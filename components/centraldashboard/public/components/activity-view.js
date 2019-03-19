@@ -1,10 +1,11 @@
-import {PolymerElement, html} from '@polymer/polymer';
-
 import '@polymer/iron-flex-layout/iron-flex-layout-classes.js';
 import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/paper-progress/paper-progress.js';
+
+import {html, PolymerElement} from '@polymer/polymer';
+import './activities-list.js';
 
 export class ActivityView extends PolymerElement {
     static get template() {
@@ -14,47 +15,26 @@ export class ActivityView extends PolymerElement {
             <style>
                 :host {
                     @apply --layout-vertical;
-                    background: #f1f3f4;
                     --accent-color: #007dfc;
                     --primary-background-color: #003c75;
                     --sidebar-default-color: #ffffff4f;
                     --border-color: #f4f4f6;
+                    background: #f1f3f4;
                     padding: 1em;
+                    overflow: auto;
                 }
                 paper-progress {
                     width: 100%;
                     --paper-progress-active-color: var(--accent-color)
                 }
-                #list {
-                    overflow-y: auto;
-                }
-                .activity-row {
+                p.message {
                     background: #fff;
                     box-shadow: 0 3px 3px rgba(0,0,0,.12);
                     transition: margin .2s cubic-bezier(0.4, 0, 0.2, 1);
                     font-size: 13px;
+                    margin: 0px;
                     padding: 5px;
                     align-items: center;
-                }
-                .activity-row:not(:first-of-type) {
-                    border-top: 1px solid rgba(0,0,0,.12);
-                }
-                .activity-row > .flex {padding: 0 5px}
-                .activity-row > .src {color: #616161}
-                .event {
-                    flex-basis: 50%;
-                }
-                .event-icon {
-                    height: 18px;
-                    width: 18px;
-                    padding: 0 10px;
-                }
-                .event-icon.build {
-                    transform: scale(-1, 1);
-                    color: rgb(28, 175, 199);
-                }
-                .event-icon.error {
-                    color: rgb(218, 66, 54);
                 }
                 [hidden] {
                     display: none;
@@ -62,52 +42,73 @@ export class ActivityView extends PolymerElement {
                     pointer-events: none
                 }
             </style>
-            <iron-ajax auto url="/api/activities" handle-as="json"
-                loading="{{loading}}" on-response="_onResponse">
+            <iron-ajax id="ajax" url="/api/activities/[[namespace]]"
+                handle-as="json" loading="{{loading}}"
+                on-response="_onResponse" on-error="_onError">
             </iron-ajax>
             <paper-progress indeterminate class="slow"
                 hidden$="[[!loading]]"></paper-progress>
-            <div id="list" role="listbox">
-                <template is="dom-repeat" items="[[activities]]">
-                    <div class="activity-row layout horizontal">
-                        <div class="flex time">[[item.formattedTime]]</div>
-                        <div class="flex flex-auto event">
-                            <iron-icon class$="event-icon [[item.icon]]"
-                                icon="[[item.icon]]">
-                            </iron-icon>[[item.event]]
-                        </div>
-                        <div class="flex src">[[item.source]]</div>
-                    </div>
-                </template>
-            </div>`;
+            <p class="message" hidden$="[[!message]]">[[message]]</p>
+            <activities-list activities="[[activities]]"></activities-list>
+            `;
     }
 
     /**
-      * Object describing property-related metadata used by Polymer features
-      */
+     * Object describing property-related metadata used by Polymer features
+     */
     static get properties() {
         return {
-            loading: Boolean,
-            activities: Array,
+            namespace: {
+                type: String,
+                observer: '_namespaceChanged',
+                value: null,
+            },
+            message: {
+                type: String,
+                value: 'Select a namespace to see recent events',
+            },
+            loading: {
+                type: Boolean,
+                value: false,
+            },
+            activities: {
+                type: Array,
+                value: [],
+            },
         };
     }
 
     /**
-     * Handles the Activities response to set date format and icon.
+     * Retrieves Events when namespace is selected.
+     * @param {string} newNamespace
+     */
+    _namespaceChanged(newNamespace) {
+        if (!newNamespace) return;
+        this.message = '';
+        this.$['ajax'].generateRequest();
+    }
+
+    /**
+     * Handles a successful Activities response.
      * @param {Event} responseEvent
      */
     _onResponse(responseEvent) {
-        const {status, response} = responseEvent.detail;
-        this.activities = [];
-        // TODO: Surface the error in some manner
-        if (status !== 200) return;
-        this.activities = response.map((a) => {
-            const activity = {
-                formattedTime: new Date(a.time).toLocaleString(),
-                icon: a.isError ? 'error' : 'build',
-            };
-            return Object.assign(activity, a);
-        });
+        const response = responseEvent.detail.response;
+        this.splice('activities', 0);
+        if (!response.length) {
+            this.message = `No activities for namespace ${this.namespace}`;
+        } else {
+            this.push('activities', ...response);
+        }
+    }
+
+    /**
+     * Handles an Activities error response.
+     */
+    _onError() {
+        this.splice('activities', 0);
+        this.message =
+            `Error retrieving activities for namespace ${this.namespace}`;
     }
 }
 
