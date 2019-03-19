@@ -197,8 +197,12 @@ func patchOrCreate(mapping *meta.RESTMapping, config *rest.Config, group string,
 }
 
 // TODO(#2391): Should remove use of kubectl apply.
-func RunKubectlApply(filename string) error {
-	cmd := exec.Command("kubectl", "apply", "--validate=false", "-f", filename)
+func RunKubectlApply(filename string, args ...string) error {
+	cmdargs := []string{"apply", "--validate=false", "-f", filename}
+	for _, arg := range args {
+		cmdargs = append(cmdargs, arg)
+	}
+	cmd := exec.Command("kubectl", cmdargs...)
 	cmd.Stdout = os.Stdout
 	return cmd.Run()
 }
