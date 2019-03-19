@@ -26,6 +26,10 @@ def test_build_kfctl_go(app_path, project):
   root = os.path.abspath(os.path.join(this_dir, "..", ".."))
   build_dir = os.path.join(root, "bootstrap")
 
+  # Need to activate account for scopes.
+  util.run(["gcloud", "auth", "activate-service-account",
+            "--key-file=" + os.environ["GOOGLE_APPLICATION_CREDENTIALS"]])
+
   # We need to use retry builds because when building in the test cluster
   # we see intermittent failures pulling dependencies
   run_with_retries(["make", "build-kfctl"], cwd=build_dir)
