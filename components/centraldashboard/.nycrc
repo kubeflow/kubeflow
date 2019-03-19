@@ -1,0 +1,17 @@
+{
+    "all": true,
+    "include": [
+        "app/**/*.ts"
+    ],
+    "exclude": [
+        "app/**/*_test.ts"
+    ],
+    "reporter": [
+        "lcov",
+        "text"
+    ],
+    "extension": [
+        ".ts"
+    ],
+    "report-dir": "./coverage/app"
+}
