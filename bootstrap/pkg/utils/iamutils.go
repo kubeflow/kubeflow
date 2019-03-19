@@ -75,7 +75,7 @@ func GetClearedIamPolicy(currentPolicy *cloudresourcemanager.Policy, pendingPoli
 	serviceAccounts := make(map[string]bool)
 	for _, binding := range pendingPolicy.Bindings {
 		for _, member := range binding.Members {
-			if strings.HasPrefix(member, "serviceAccount:") {
+			if strings.HasPrefix(member, "serviceAccount:kfctl-") {
 				serviceAccounts[member] = true
 			}
 		}
