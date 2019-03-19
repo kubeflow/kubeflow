@@ -61,6 +61,11 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	return _coordinator
 }
 
+// This function will download a version of kubeflow github repo where version can be
+//   master
+//	 tag
+//	 pull/<ID>[/head]
+// It returns one of the config files under bootstrap/config as a []byte buffer
 func downloadToCache(platform string, appDir string, version string, useBasicAuth bool) ([]byte, error) {
 	if _, err := os.Stat(appDir); os.IsNotExist(err) {
 		appdirErr := os.Mkdir(appDir, os.ModePerm)
@@ -229,9 +234,9 @@ and must start and end with an alphanumeric character`, appName)
 		options[string(kftypes.REPO)] = path.Join(kubeflowRepo, "kubeflow")
 	}
 	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
-	cache, cacheErr := downloadToCache(platform, appDir, version, useBasicAuth)
-	if cacheErr != nil {
-		log.Fatalf("could not download repo to cache Error %v", cacheErr)
+	configFileBuffer, configFileErr := downloadToCache(platform, appDir, version, useBasicAuth)
+	if configFileErr != nil {
+		log.Fatalf("could not download repo to cache Error %v", configFileErr)
 	}
 	kfDef := &kfdefs.KfDef{
 		TypeMeta: metav1.TypeMeta{
@@ -241,7 +246,7 @@ and must start and end with an alphanumeric character`, appName)
 		Spec: kfdefs.KfDefSpec{
 		},
 	}
-	specErr := yaml.Unmarshal(cache, &kfDef.Spec)
+	specErr := yaml.Unmarshal(configFileBuffer, &kfDef.Spec)
 	if specErr != nil {
 		log.Errorf("couldn't unmarshal app.yaml. Error: %v", specErr)
 	}
