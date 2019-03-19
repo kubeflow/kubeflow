@@ -514,7 +514,9 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	cred_cmd.Stdout = os.Stdout
 	log.Infof("Running get-credentials ...")
 	if err = cred_cmd.Run(); err != nil {
-		return fmt.Errorf("Error when running gcloud container clusters get-credentials: %v", err)
+		output, _ := cred_cmd.CombinedOutput()
+		return fmt.Errorf("Error when running gcloud container clusters get-credentials %v: %v",
+			gcp.GcpApp.Name + " --zone="+gcp.GcpApp.Spec.Zone + "--project="+gcp.GcpApp.Spec.Project, output)
 	}
 
 	k8sSpecsDir := path.Join(appDir, K8S_SPECS)
