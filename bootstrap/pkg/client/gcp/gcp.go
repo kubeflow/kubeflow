@@ -17,7 +17,6 @@ limitations under the License.
 package gcp
 
 import (
-	"bytes"
 	"cloud.google.com/go/container/apiv1"
 	"encoding/base64"
 	"fmt"
@@ -508,15 +507,14 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	}
 
 	// TODO(#2604): Need to create a named context.
-	var out bytes.Buffer
 	cred_cmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
 		gcp.GcpApp.Name,
 		"--zone="+gcp.GcpApp.Spec.Zone,
 		"--project="+gcp.GcpApp.Spec.Project)
-	cred_cmd.Stdout = &out
+	cred_cmd.Stdout = os.Stdout
 	log.Infof("Running get-credentials ...")
 	if err = cred_cmd.Run(); err != nil {
-		return fmt.Errorf("Error when running gcloud container clusters get-credentials: %v -> %v", err, out.String())
+		return fmt.Errorf("Error when running gcloud container clusters get-credentials: %v", err)
 	}
 
 	k8sSpecsDir := path.Join(appDir, K8S_SPECS)
