@@ -25,6 +25,9 @@ def test_build_kfctl_go(app_path, project):
   this_dir = os.path.dirname(__file__)
   root = os.path.abspath(os.path.join(this_dir, "..", ".."))
   build_dir = os.path.join(root, "bootstrap")
+  # Need to activate account for scopes.
+  util.run(["gcloud", "auth", "activate-service-account",
+            "--key-file=" + os.environ["GOOGLE_APPLICATION_CREDENTIALS"]])
 
   # We need to use retry builds because when building in the test cluster
   # we see intermittent failures pulling dependencies
@@ -42,7 +45,7 @@ def test_build_kfctl_go(app_path, project):
   # TODO(jlewi): We need to specify a valid email otherwise we get an error
   # when trying to apply the IAM policy.
   run_with_retries([kfctl_path, "generate", "-V", "all",
-                    "--email=jlewi@kubeflow.org"],
+                    "--email=kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com"],
                     cwd=app_path)
 
   # We need to use retries because if we don't we see random failures
