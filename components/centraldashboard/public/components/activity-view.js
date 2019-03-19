@@ -2,7 +2,6 @@ import '@polymer/iron-flex-layout/iron-flex-layout-classes.js';
 import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/iron-icons/iron-icons.js';
-import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-progress/paper-progress.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
