@@ -176,7 +176,7 @@ func getPackageManager(packagemanager string, kfdef *kfdefs.KfDef) (kftypes.KfAp
 	}
 }
 
-// newKfApp is called from the Init subcommand and will create a directory based on
+// NewKfApp is called from the Init subcommand and will create a directory based on
 // the path/name argument given to the Init subcommand
 func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	//appName can be a path
