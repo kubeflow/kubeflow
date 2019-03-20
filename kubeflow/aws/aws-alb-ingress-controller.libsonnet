@@ -40,7 +40,7 @@
         {
           kind: "ServiceAccount",
           name: "alb-ingress-controller",
-          namespace: params.namespace,
+          namespace: kube-system,
         },
       ],
       roleRef: {
@@ -56,7 +56,7 @@
       kind: "ServiceAccount",
       metadata: {
         name: "alb-ingress-controller",
-        namespace: params.namespace,
+        namespace: kube-system,
         labels: {
           app: "alb-ingress-controller"
         },
@@ -69,7 +69,7 @@
       kind: "Deployment",
       metadata: {
         name: "alb-ingress-controller",
-        namespace: params.namespace,
+        namespace: kube-system,
         labels: {
           app: "alb-ingress-controller"
         },

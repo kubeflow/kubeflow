@@ -157,7 +157,7 @@
                     valueFrom: {
                       secretKeyRef: {
                         name: "aws-secret",
-                        key: "key_id",
+                        key: "AWS_ACCESS_KEY_ID",
                       },
                     },
                   },
@@ -166,7 +166,7 @@
                     valueFrom: {
                       secretKeyRef: {
                         name: "aws-secret",
-                        key: "access_key",
+                        key: "AWS_SECRET_ACCESS_KEY",
                       },
                     },
                   },

@@ -630,7 +630,7 @@ main() {
       if [[ "${PLATFORM}" == "aws" ]]; then
         if [[ -d "${KUBEFLOW_INFRA_DIR}" ]]; then
           pushd ${KUBEFLOW_INFRA_DIR}
-          ${DIR}/aws/delete_deployment.sh --cluster=${DEPLOYMENT_NAME} --zone=${ZONE}
+          ${DIR}/aws/delete_deployment.sh --cluster_name=${CLUSTER_NAME} --delete_cluster=false
           popd
         fi
       fi

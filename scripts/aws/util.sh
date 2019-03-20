@@ -14,9 +14,6 @@ generate_infra_configs() {
     mkdir -p "${KUBEFLOW_INFRA_DIR}"
     cp -r ${KUBEFLOW_REPO}/deployment/aws/infra_configs/* ${KUBEFLOW_INFRA_DIR}
 
-    #TODO: Create EFS
-    #TODO: Create RDS
-
   else
     echo AWS infrastructure configs already exist in directory "${KUBEFLOW_INFRA_DIR}"
   fi
@@ -33,6 +30,35 @@ update_infra() {
   else
     kubectl create namespace ${K8S_NAMESPACE}
   fi
+
+  if ! eksctl get cluster --name=${CLUSTER_NAME} >/dev/null ; then
+    create_eks_cluster
+
+    # Find nodegroup role for later inline policy binding
+    export NODEGROUP_ROLE_NAMES=$(aws iam list-roles \
+      | jq -r ".Roles[] \
+      | select(.RoleName \
+      | startswith(\"eksctl-${CLUSTER_NAME}-nodegroup-0-NodeInstanceRole\")) \
+      .RoleName")
+  fi
+
+  attach_inline_policy iam_alb_ingress_policy ${KUBEFLOW_REPO}/deployment/aws/infra_configs/iam_alb_ingress_policy.json
+  attach_inline_policy iam_cloudwatch_policy ${KUBEFLOW_REPO}/deployment/aws/infra_configs/iam_cloudwatch_policy.json
+}
+
+attach_inline_policy() {
+  declare -r POLICY_NAME="$1" POLICY_DOCUMENT="$2"
+
+  for IAM_ROLE in ${NODEGROUP_ROLE_NAMES//,/ }
+  do
+    echo "Attach inline policy $POLICY_NAME for iam role $IAM_ROLE"
+    if ! aws iam put-role-policy --role-name $IAM_ROLE --policy-name $POLICY_NAME --policy-document file://${POLICY_DOCUMENT}; then
+        echo "Unable to attach iam inline policy $POLICY_NAME to role $IAM_ROLE" >&2
+        return 1
+    fi
+  done
+
+  return 0
 }
 
 ################################ Kubernetes Changes ################################
@@ -51,7 +77,7 @@ create_secrets() {
   create_aws_secret ${K8S_NAMESPACE} aws_secret
 }
 
-# TensorFlow Serving, TensorBoard use AWS secret.
+# TensorFlow Serving, TensorBoard use AWS secret. Leave this for customers?
 create_aws_secret() {
   # Store aws credentials in a k8s secret.
   local NAMESPACE=$1
@@ -227,8 +253,8 @@ check_nodegroup_roles() {
 create_eks_cluster() {
   OPTIONS="${aws_ssh_public_key_option} ${aws_node_zones_option} ${aws_num_nodes_option} ${aws_node_type_option}"
 
-  if [ `eksctl get cluster --name "${CLUSTER_NAME}"  "${OPTIONS}"` == "false" ] ; then
-      if ! eksctl create --name "${CLUSTER_NAME}" --region "${AWS_LOCATION} " &>/dev/null ; then
+  if [ `eksctl get cluster --name "${CLUSTER_NAME}"` == "false" ] ; then
+      if ! eksctl create --name "${CLUSTER_NAME}" --region "${AWS_LOCATION}" "${OPTIONS}" &>/dev/null ; then
           echo "aws eks create failed."
           exit 1
       fi
@@ -239,7 +265,7 @@ create_eks_cluster() {
   local context_name = "eks-dev@${CLUSTER_NAME}.${AWS_REGION}.eksctl.io"
 
   if [ `kubectl config use-context ${context_name}` &> /dev/null ] ; then
-      eksctl utils  write-kubeconfig --name=${CLUSTER_NAME}
+      eksctl utils write-kubeconfig --name=${CLUSTER_NAME}
   fi
 }
 
