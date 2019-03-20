@@ -10,7 +10,8 @@ import pytest
 
 from kubeflow.testing import util
 
-@retry(stop_max_attempt_number=7)
+# retry 4 times, waiting 3 minutes between retries
+@retry(stop_max_attempt_number=4, wait_fixed=180000)
 def run_with_retries(*args, **kwargs):
   util.run(*args, **kwargs)
 
