@@ -416,8 +416,8 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 		"--zone="+gcp.Spec.Zone,
 		"--project="+gcp.Spec.Project)
 	cred_cmd.Stdout = os.Stdout
-	log.Infof("Running get-credentials %v --zone=%v --project=%v ...", gcp.GcpApp.Name,
-		gcp.GcpApp.Spec.Zone, gcp.GcpApp.Spec.Project)
+	log.Infof("Running get-credentials %v --zone=%v --project=%v ...", gcp.KfDef.Name,
+		gcp.KfDef.Spec.Zone, gcp.KfDef.Spec.Project)
 	if err = cred_cmd.Run(); err != nil {
 		return fmt.Errorf("Error when running gcloud container clusters get-credentials: %v", err)
 	}
@@ -445,7 +445,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 }
 
 func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
-	if gcp.GcpApp.Spec.UseBasicAuth && (os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" ||
+	if gcp.KfDef.Spec.UseBasicAuth && (os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" ||
 		os.Getenv(kftypes.KUBEFLOW_PASSWORD) == "") {
 		return fmt.Errorf("gcp apply needs ENV %v and %v set when using basic auth.",
 			kftypes.KUBEFLOW_USERNAME, kftypes.KUBEFLOW_PASSWORD)
@@ -725,7 +725,7 @@ func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
 			"passwordhash": []byte(encodedPasswordHash),
 		},
 	}
-	_, err = client.CoreV1().Secrets(gcp.GcpApp.Namespace).Update(secret)
+	_, err = client.CoreV1().Secrets(gcp.KfDef.Namespace).Update(secret)
 	if err != nil {
 		log.Warnf("Updating basic auth login is failed, trying to create one: %v", err)
 		_, err = client.CoreV1().Secrets(gcp.Namespace).Create(secret)

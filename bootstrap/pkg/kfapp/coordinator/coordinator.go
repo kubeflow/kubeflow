@@ -224,15 +224,6 @@ and must start and end with an alphanumeric character`, appName)
 			options[string(kftypes.VERSION)] = version
 		}
 	}
-	if options[string(kftypes.REPO)] != nil {
-		kubeflowRepo := options[string(kftypes.REPO)].(string)
-		re := regexp.MustCompile(`(^\$GOPATH)(.*$)`)
-		goPathVar := os.Getenv("GOPATH")
-		if goPathVar != "" {
-			kubeflowRepo = re.ReplaceAllString(kubeflowRepo, goPathVar+`$2`)
-		}
-		options[string(kftypes.REPO)] = path.Join(kubeflowRepo, "kubeflow")
-	}
 	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
 	configFileBuffer, configFileErr := downloadToCache(platform, appDir, version, useBasicAuth)
 	if configFileErr != nil {
@@ -259,8 +250,6 @@ and must start and end with an alphanumeric character`, appName)
 	kfDef.Spec.Project = options[string(kftypes.PROJECT)].(string)
 	kfDef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
 	kfDef.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
-	kfDef.Spec.BasicAuthUsername = options[string(kftypes.BASIC_AUTH_USERNAME)].(string)
-	kfDef.Spec.BasicAuthPassword = options[string(kftypes.BASIC_AUTH_PASSWORD)].(string)
 	pApp := GetKfApp(kfDef)
 	return pApp, nil
 }
@@ -325,12 +314,6 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	}
 	if options[string(kftypes.USE_BASIC_AUTH)] != nil {
 		kfdef.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
-	}
-	if options[string(kftypes.BASIC_AUTH_USERNAME)] != nil {
-		kfdef.Spec.BasicAuthUsername = options[string(kftypes.BASIC_AUTH_USERNAME)].(string)
-	}
-	if options[string(kftypes.BASIC_AUTH_PASSWORD)] != nil {
-		kfdef.Spec.BasicAuthPassword = options[string(kftypes.BASIC_AUTH_PASSWORD)].(string)
 	}
 	if options[string(kftypes.SKIP_INIT_GCP_PROJECT)] != nil {
 		kfdef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
