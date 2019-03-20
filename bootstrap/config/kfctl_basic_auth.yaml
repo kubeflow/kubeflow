@@ -28,7 +28,7 @@ components:
   - basic-auth
   - basic-auth-ingress
   - centraldashboard
-  - cert-manager
+  - proxy-agent
   - cloud-endpoints
   - jupyter
   - jupyter-web-app

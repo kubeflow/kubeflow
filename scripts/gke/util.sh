@@ -230,6 +230,7 @@ gcpGenerateKsApp() {
   ks pkg install kubeflow/gcp
 
   # Generate all required components
+  ks generate proxy-agent proxy-agent
   ks generate cloud-endpoints cloud-endpoints
   ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
   ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
@@ -246,7 +247,7 @@ gcpKsApply() {
   createKsEnv
 
   if [[ -z $DEFAULT_KUBEFLOW_COMPONENTS ]]; then
-    export KUBEFLOW_COMPONENTS+=',"cloud-endpoints","cert-manager","iap-ingress"'
+    export KUBEFLOW_COMPONENTS+=',"cloud-endpoints","cert-manager","iap-ingress", "proxy-agent"'
     writeEnv
     ks param set application components '['$KUBEFLOW_COMPONENTS']'
   fi

@@ -18,6 +18,8 @@ defaultApp:
     prototype: cert-manager
   - name: iap-ingress
     prototype: iap-ingress
+  - name: proxy-agent
+    prototype: proxy-agent
   - name: pytorch-operator
     prototype: pytorch-operator
   - name: argo
