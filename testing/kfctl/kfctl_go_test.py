@@ -22,6 +22,9 @@ def test_build_kfctl_go(app_path, project):
     app_path = os.path.join(parent_dir,
                             "kfctl-{0}-{1}".format(stamp,
                                                    uuid.uuid4().hex[0:4]))
+  else:
+    parent_dir = os.path.dirname(app_path)
+
   logging.info("Using app path %s", app_path)
   this_dir = os.path.dirname(__file__)
   root = os.path.abspath(os.path.join(this_dir, "..", ".."))
