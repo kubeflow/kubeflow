@@ -17,7 +17,7 @@ package cmd
 import (
 	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/coordinator"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -63,7 +63,7 @@ The default is 'all' for any selected platform.`,
 		if kfAppErr != nil {
 			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}
-		generateErr := kfApp.Generate(resource, options)
+		generateErr := kfApp.Generate(resource)
 		if generateErr != nil {
 			return fmt.Errorf("couldn't generate KfApp: %v", generateErr)
 		}

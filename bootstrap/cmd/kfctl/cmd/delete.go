@@ -17,7 +17,7 @@ package cmd
 import (
 	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/coordinator"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -42,12 +42,11 @@ var deleteCmd = &cobra.Command{
 		if resourceErr != nil {
 			return fmt.Errorf("invalid resource: %v", resourceErr)
 		}
-		options := map[string]interface{}{}
-		kfApp, kfAppErr := coordinator.LoadKfApp(options)
+		kfApp, kfAppErr := coordinator.LoadKfApp(map[string]interface{}{})
 		if kfAppErr != nil {
 			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}
-		deleteErr := kfApp.Delete(resource, options)
+		deleteErr := kfApp.Delete(resource)
 		if deleteErr != nil {
 			return fmt.Errorf("couldn't delete KfApp: %v", deleteErr)
 		}

@@ -17,7 +17,7 @@ package cmd
 import (
 	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/coordinator"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -74,7 +74,7 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 		if kfAppErr != nil || kfApp == nil {
 			return fmt.Errorf("couldn't create KfApp: %v", kfAppErr)
 		}
-		initErr := kfApp.Init(kftypes.ALL, options)
+		initErr := kfApp.Init(kftypes.ALL)
 		if initErr != nil {
 			return fmt.Errorf("KfApp initialization failed: %v", initErr)
 		}
