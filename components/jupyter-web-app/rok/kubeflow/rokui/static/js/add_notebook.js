@@ -7,9 +7,12 @@ $(window).on('load', function () {
   });
 
   // Enable Autofill button if a Lab URL is provided
+  document.querySelector("#autofill").MaterialButton.disable()
+  
   $('#rokLabURL').on('change keyup paste', function() {
     if (this.value.length > 0) {
       $('#autofill').removeAttr('disabled data-toggle data-placement title');
+      document.querySelector("#autofill").MaterialButton.enable()
     } else {
       // Hide success/error texts
       $('#rok_lab_url_success_text').attr('hidden', true);
@@ -27,7 +30,8 @@ $(window).on('load', function () {
       });
       document.querySelector("#autofill").MaterialButton.disable()
     }
-  }).keydown(function(e) {
+  })
+  .keydown(function(e) {
     // Do not submit form if Enter is pressed
     if (e.which == 10 || e.which == 13) {
       e.stopPropagation();
@@ -45,7 +49,7 @@ $(window).on('load', function () {
   // Autofill the Spawner form using metadata from a Rok Jupyter Lab URL
   $('#autofill').click(function() {
     formCleanup();
-    // Show advanced options to show autocompletion
+    
     setTimeout(function() {
       autofillForm();
     }, 250);
@@ -112,7 +116,7 @@ function  setWorkspaceEventListeners() {
         'data-toggle': 'tooltip', 'data-placement': 'top',
         'title': 'Size is autofilled when mounting existing Volumes'
       });
-      document.querySelector("#size-input-div").MaterialTextfield.disable()
+      // document.querySelector("#size-input-div").MaterialTextfield.disable()
 
       unsetAttributes(workspaceRokURL, 'readonly data-toggle data-placement title');
       unsetAttributes(workspaceMountPath, 'readonly data-toggle data-placement title');
@@ -537,7 +541,7 @@ function addVolume() {
 
   //  ---- Input for volume Rok Url ----
   // ----------------------------------
-  var volumeNameCell = $('<div>').attr({
+  var volumeRokURLCell = $('<div>').attr({
     class: "mdl-cell mdl-cell--1-col",
     style: "width: 20%",
   });
@@ -680,10 +684,10 @@ function addVolume() {
   // Add these to the form
   var row = $("<div>", {class: "mdl-grid wide nopad"})
     .append(volumeTypeCell)
+    .append(volumeRokURLCell)
     .append(volumeNameCell)
     .append(volumeSizeCell)
     .append(volumeMountPathCell)
-    .append(volumeModeCell)
     .append(deleteButtonCell)
 
   $("<div>", {class: 'volume' + counter, style: "height: 100%"})
@@ -696,18 +700,17 @@ function addVolume() {
     if (this.value == 'Existing') {
       setAttributes(volumeSize, {
         'readonly': true,
-        'disabled': true,
         'data-toggle': 'tooltip', 'data-placement': 'top',
         'title': 'Size is autofilled when mounting existing Volumes'
       });
-      document.querySelector("#vol_size_textfield"+vol_id).MaterialTextfield.disable()
+      // document.querySelector("#vol_size_textfield"+vol_id).MaterialTextfield.disable()
 
-      unsetAttributes(volumeMode, 'readonly data-toggle data-placement title');
+      unsetAttributes(volumeRokURL, 'readonly data-toggle data-placement title');
       document.querySelector("#vol_rokurl_textfield"+vol_id).MaterialTextfield.enable()
 
     } else if (this.value == 'New') {
       unsetAttributes(volumeSize, 'readonly data-toggle data-placement title');
-      document.querySelector("#vol_size_textfield"+vol_id).MaterialTextfield.enable()
+      // document.querySelector("#vol_size_textfield"+vol_id).MaterialTextfield.enable()
 
       setAttributes(volumeRokURL, {
         'readonly': true,
@@ -845,6 +848,11 @@ function autofillForm() {
   var rok_lab_url = $('#rokLabURL').val();
   var base_url = rok_lab_url.substring(0, rok_lab_url.lastIndexOf('/') + 1);
 
+  // Don't fill the form on empty URL
+  if (rok_lab_url.length === 0) {
+    return;
+  }
+
   // Fetch Rok Jupyter Lab Metadata to autofill the form
   $.ajax({
     url: rok_lab_url,
@@ -884,6 +892,8 @@ function autofillForm() {
           setValue($('#vol_rok_url' + counter), dataset_url);
           $('#vol_rok_url' + counter).trigger('change');
         }
+
+        componentHandler.upgradeAllRegistered();
       }
     },
     error: function(XMLHttpRequest, e) {
@@ -905,6 +915,7 @@ function autofillWorkspaceVolume(rok_member_url) {
       setValue($('#ws_name'), getHeader(request, 'X-Object-Meta-workspace'));
       setValue($('#ws_size'), getHeader(request, 'Content-Length')/Math.pow(1024, 3));
       setValue($('#ws_mount_path'), getHeader(request, 'X-Object-Meta-mountpoint'));
+      componentHandler.upgradeAllRegistered();
     },
     error: function(XMLHttpRequest, e) {
       console.log('Failed to retrieve Rok Jupyter Workspace Metadata:', e);
@@ -961,10 +972,10 @@ function formCleanup() {
   setValue($('#extraResources'), '');
 
   // Empty Workspace Volume fields
-  setValue($('#ws_type'), 'New');
-  $('#ws_type').trigger('change');
-  setValue($('#ws_size'), '');
-  setValue($('#ws_name'), '');
+  // setValue($('#ws_type'), 'New');
+  // $('#ws_type').trigger('change');
+  // setValue($('#ws_size'), '');
+  // setValue($('#ws_name'), '');
 
   // Remove all Data Volumes
   for (var i=counter; i>0; i--) {

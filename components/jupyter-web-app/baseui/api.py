@@ -1,7 +1,7 @@
 import json
 from kubernetes import client, config
 from kubernetes.config import ConfigException
-from baseui.utils import create_logger
+from baseui.utils import create_logger, get_notebook_uptime
 
 logger = create_logger(__name__)
 
@@ -88,6 +88,11 @@ def get_secret(nm, ns):
   return v1_core.read_namespaced_secret(nm, ns)
 
 
+def get_pvcs(ns):
+  pvcs = v1_core.list_namespaced_persistent_volume_claim(namespace=ns).items
+  return [pvc.metadata.name for pvc in pvcs]
+
+
 def get_default_storageclass():
   strg_classes = storage_api.list_storage_class().items
   for strgclss in strg_classes:
@@ -112,13 +117,29 @@ def get_namespaces():
 
 
 def get_notebooks(ns):
-  # ns: string
   custom_api = client.CustomObjectsApi()
 
   notebooks = \
       custom_api.list_namespaced_custom_object("kubeflow.org", "v1alpha1",
-                                               ns, "notebooks")
-  return [nb["metadata"]["name"] for nb in notebooks["items"]]
+                                               ns, "notebooks")['items']
+
+  # Generate the list with the needed fields from the Notebooks
+  nbs = []
+  for nb in notebooks:
+    cntr = nb['spec']['template']['spec']['containers'][0]
+    image = cntr['image'],
+    short_image = image[0].split("/")[-1].split(':')[0]
+
+    nbs.append({
+        'name': nb['metadata']['name'],
+        'cpu': cntr['resources']['requests']['cpu'],
+        'mem': cntr['resources']['requests']['memory'],
+        'image': cntr['image'],
+        'srt_image': short_image,
+        'uptime': get_notebook_uptime(nb['metadata']['creationTimestamp']),
+        'volumes': nb['spec']['template']['spec']['volumes'],
+    })
+  return nbs
 
 
 def delete_notebook(nb, ns):
@@ -138,7 +159,6 @@ def create_notebook(nb):
                                                  ns, "notebooks", nb)
 
 
-def create_pvc(pvc):
-  # pvc: V1PersistentVolumeClaim
-  ns = pvc.metadata.namespace
-  return v1_core.create_namespaced_persistent_volume_claim(ns, pvc)
+def create_pvc(body):
+  ns = body.metadata.namespace
+  return v1_core.create_namespaced_persistent_volume_claim(ns, body)

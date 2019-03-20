@@ -1,25 +1,27 @@
+namespace = ""
+prevNotebooks = []
+
 $(document).ready(function(){
   // Update the Notebooks when a Namespace is selected
   $("#ns-select").on("change", function() {
-    var ns = this.value;
-    updateNotebooksInNamespace(ns);
+    namespace = this.value;
+    updateNotebooksInNamespace(namespace);
 
     // Change the function for the CREATE NOTEBOOK button
-    $("#create-nb-btn").click(_ => createNotebook(ns))
+    $("#create-nb-btn").click(_ => createNotebook(namespace))
   });
 
   // Search Bar
   $('#search-nb').bind("enterKey",function(e){
-    var ns = this.value;
-    updateNotebooksInNamespace(ns);
+    namespace = this.value;
+    updateNotebooksInNamespace(namespace);
 
     // Change the function for the CREATE NOTEBOOK button
-    $("#create-nb-btn").click(_ => createNotebook(ns))
+    $("#create-nb-btn").click(_ => createNotebook(namespace))
 
     // In case user sees only default ns and we go to a ns with search bar
     // then the change listener won't be triggered
     $("#ns-select").val("")
-
   });
 
   $('#search-nb').keyup(function(e){
@@ -35,7 +37,40 @@ $(document).ready(function(){
     $("#ns-select").val(ns)
   }
   $("#ns-select").trigger("change");
+
+  // Periodically check if the Notebook's State has changed
+  var inrvl = setInterval(function() {
+    updateNotebooksInNamespace(namespace)
+  }, 1250)
 });
+
+function compareNotebooks(as, bs) {
+  if (as.length !== bs.length) { return false; }
+
+  as.forEach((a, i) => {
+      if (!notebookEquals(a, bs[i])) { return false; }
+  });
+
+  return true;
+}
+
+function notebookEquals(a, b) {
+  if (a.name           !== b.name          ) { return false; }
+  if (a.cpu            !== b.cpu           ) { return false; }
+  if (a.image          !== b.image         ) { return false; }
+  if (a.mem            !== b.mem           ) { return false; }
+  if (a.uptime         !== b.uptime        ) { return false; }
+  if (a.status         !== b.status        ) { return false; }
+  if (a.namespace      !== b.namespace     ) { return false; }
+  if (a.volumes.length !== b.volumes.length) { return false; }
+
+  vols = new Set(a.volumes);
+  for (const vol of b.volumes) {
+      if (!vols.has(vol)) { return false; }
+  }
+
+  return true;
+}
 
 function deleteNotebook(ns, nb) {
   $.getJSON(prefix + "/delete-notebook", { namespace:ns, notebook:nb}, function(data, status) {
@@ -66,29 +101,109 @@ function createNotebook(ns) {
 
 function updateNotebooksInNamespace(ns) {
   // Put the add Notebook button
-  $('#nb-table-body').html("");
-
+  // $('#nb-table-body').html("");
+  var tmp = $('<div>')
+  
   // Get the Notebooks for selected Namespace
   $.getJSON(prefix + "/list-notebooks", { namespace:ns }, function(data, status) {
     // Remove data from table and errors
     $("#error-msgs").empty();
-    $('#nb-table-body').empty();
+    // $('#nb-table-body').empty();
 
     if(data.success == true){
+      // First check if the state hasn't change
+      if (compareNotebooks(prevNotebooks, data.notebooks)) {
+        return;
+      }
+
       // Create a row for every notebook
       for(var i=0; i < data.notebooks.length; i++) {
 
         var nb = data.notebooks[i];
+
+        // Col 0: Notebook Loading
+        var col0 = $('<td>')
+        // var stat = $('<div>').attr({
+        //   'class': 'mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active'
+        // })
+        var outer = $('<div>').attr({id: 'stat' + i})
+        var stat = $('<i>').attr({
+          class: "fa fa-check-circle",
+          style: "font-size:24px;color:green",
+        })
+        var statTip = $('<div>').attr({
+          class: "mdl-tooltip",
+          for: 'stat' + i,
+        }).text('Running')  // CHANGE
+
+        outer.append(stat)
+        col0.append(outer)
+            .append(statTip)
+
         // Col 1: Notebook Name
-        var col1 = $("<td>").attr({
-          class: "mdl-data-table__cell--non-numeric"
-        }).text(nb)
+        var col1 = $("<td>").text(nb.name)
 
-        // Col 2: Notebook Namespace
-        var col2 = $("<td>").text(ns)
+        // Col 2: Notebook Name
+        var col2 = $("<td>").text(nb.uptime)
 
-        // Col 3: Notebook Options
-        var col3 = $("<td>")
+        // Col 3: Notebook Image
+        var col3 = $("<td>").attr({
+          'id': 'image' + i,
+        }).text(nb.srt_image)
+        
+        $("<div>").attr({
+          'class': "mdl-tooltip",
+          'data-mdl-for': "image" + i,
+        }).text(nb.image).appendTo('body')
+        
+
+        // Col 4: Notebook CPU
+        var col4 = $("<td>").text(nb.cpu)
+
+        // Col 5: Notebook Memory
+        var col5 = $("<td>").text(nb.mem)
+
+        // Col 6: Notebook Volumes
+        var col6 = $("<td>")
+
+        var vols_actions_btn = $("<button>").attr({
+          class: "mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon",
+          id: 'vols'+i
+        })
+
+        var vols_btn_icon = $("<i>").attr({
+          class: "material-icons"
+        }).text("reorder")
+
+        var vols_actions_menu = $("<ul>").attr({
+          class: "mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right",
+          for: 'vols'+i
+        })
+
+        if (nb.volumes.length === 0) {
+          vols_actions_menu.append(
+            $("<li>").attr({
+              class: "mdl-menu__item",
+              disabled: true,
+            }).text('None')
+          )
+        } else {
+          // Create an entry for each volume
+          for(var j=0; j < nb.volumes.length; j++) {
+            vols_actions_menu.append(
+              $("<li>").attr({
+                class: "mdl-menu__item",
+              }).text(nb.volumes[j].name)
+            )
+          }
+        }
+
+        vols_actions_btn.append(vols_btn_icon)
+        col6.append(vols_actions_btn)
+        col6.append(vols_actions_menu)
+
+        // Col 7: Notebook Options
+        var col7 = $("<td>")
 
         var actions_btn = $("<button>").attr({
           class: "mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon",
@@ -106,27 +221,34 @@ function updateNotebooksInNamespace(ns) {
 
         var connect = $("<li>").attr({
           class: "mdl-menu__item",
-          onclick: 'connectNotebook(\''+ns+'\',\''+nb+'\')'
+          onclick: 'connectNotebook(\''+ns+'\',\''+nb.name+'\')'
         }).text('Connect')
 
         var del = $("<li>").attr({
           class: "mdl-menu__item",
-          onclick: 'deleteNotebook(\''+ns+'\',\''+nb+'\')'
+          onclick: 'deleteNotebook(\''+ns+'\',\''+nb.name+'\')'
         }).text('Delete')
 
         actions_btn.append(btn_icon)
-        col3.append(actions_btn)
+        col7.append(actions_btn)
         actions_menu.append(connect)
         actions_menu.append(del)
-        col3.append(actions_menu)
+        col7.append(actions_menu)
 
         // Create the row
         var new_row = $("<tr>")
+          .append(col0)
           .append(col1)
           .append(col2)
           .append(col3)
-        $('#nb-table-body').append(new_row);
+          .append(col4)
+          .append(col5)
+          .append(col6)
+          .append(col7)
+        tmp.append(new_row)
       }
+      $('#nb-table-body').html(tmp.html())
+      prevNotebooks = data.notebooks
     }
     else{
       innerHTML = `
@@ -142,7 +264,7 @@ function updateNotebooksInNamespace(ns) {
     // Load the dynamic components of mdl
     // https://stackoverflow.com/a/34579828
     componentHandler.upgradeAllRegistered();
-
+    // componentHandler.upgradeDom();
   });
 }
 

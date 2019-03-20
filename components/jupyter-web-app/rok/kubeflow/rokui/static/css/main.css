@@ -24,6 +24,15 @@
     display: none;
 }
 
+.round {
+    border-radius: 4px;
+}
+
+.round-top {
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+}
+
 .my-table {
     width: 75%;
     top: 10px;
@@ -32,6 +41,14 @@
 .mdl-textfield__label{
    margin-bottom:2px;
  }
+
+ .parent {
+    display: flex;
+  }
+  
+  .spacer {
+    flex-grow: 1;
+  }
 
 /*---------- Warnings ---------------*/
 
@@ -75,10 +92,28 @@
 
 /*---------- Card Table -------------*/
 
-.demo-card-wide.mdl-card {
+.submit-card {
+    overflow: visible !important;
+    min-height: 0;
+    min-width: 900px;
+    width: 60%;
+    margin-bottom: 20px;
+  }
+
+.demo-card {
   overflow: visible !important;
   min-height: 0;
-  min-width: 0;
+  width: fit-content;
+}
+
+.mdl-data-table th {
+  text-align: center;
+  /* width: 100%; */
+}
+
+.mdl-data-table td {
+  text-align: center;
+  /* width: 60%; */
 }
 
 .fab, .fas, .far {
@@ -86,6 +121,11 @@
   padding-right: 5px;
 }
 
+.mdl-card__table, table{
+  table-layout: auto;
+  width:900px;
+  margin:0em;
+}
 
 /*---------- Login -------------*/
 .mdl-grid.center-items {

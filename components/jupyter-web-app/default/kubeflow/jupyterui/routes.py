@@ -7,6 +7,7 @@ from baseui.api import parse_error, \
     get_namespaces, \
     get_notebooks, \
     get_default_storageclass, \
+    get_pvcs, \
     delete_notebook, \
     create_notebook, \
     create_datavol_pvc, \
@@ -117,6 +118,7 @@ def add_notebook_route():
   else:
     ns = "kubeflow"
 
+  # Get default StorageClass
   is_default = False
   try:
     if get_default_storageclass() != "":
@@ -124,10 +126,17 @@ def add_notebook_route():
   except ApiException as e:
     logger.warning("Can't  list storageclasses: %s" % parse_error(e))
 
+  # Get list of existing PVCs
+  try:
+    pvcs = get_pvcs(ns)
+  except ApiException as e:
+    pvcs = []
+    logger.warning("Can't  list pvcs: %s" % parse_error(e))
+
   form_defaults = spawner_ui_config("notebook")
   return render_template(
       'add_notebook.html', prefix=prefix(), ns=ns, form_defaults=form_defaults,
-      default_storage_class=is_default)
+      default_storage_class=is_default, existing_pvcs=pvcs)
 
 
 @app.route("/delete-notebook", methods=['GET', 'POST'])

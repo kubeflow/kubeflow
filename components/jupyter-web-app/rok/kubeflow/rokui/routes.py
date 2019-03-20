@@ -2,22 +2,26 @@
 import json
 from flask import jsonify, render_template, request
 from kubernetes.client.rest import ApiException
-# from kubernetes import client
 from kubeflow.rokui import app
-from kubeflow.rokui.api import get_rok_token
+from kubeflow.rokui.api import get_rok_token, \
+    attach_rok_token_secret, \
+    create_workspace_pvc, \
+    create_datavol_pvc
 from baseui.api import parse_error, \
     get_namespaces, \
     get_notebooks, \
     delete_notebook, \
-    create_notebook, \
-    create_datavol_pvc, \
-    create_workspace_pvc
+    create_notebook
 from baseui.utils import create_notebook_template, \
     set_notebook_names, \
     set_notebook_image, \
     set_notebook_cpu_ram, \
     add_notebook_volume, \
-    spawner_ui_config
+    spawner_ui_config, \
+    create_logger
+
+
+logger = create_logger(__name__)
 
 
 # Helper function for getting the prefix of the webapp
@@ -37,6 +41,9 @@ def post_notebook_route():
   notebook = create_notebook_template()
   notebook_cont = notebook["spec"]['template']['spec']['containers'][0]
 
+  # Attach ROK token
+  attach_rok_token_secret(notebook, body)
+
   # Set Name and Namespace
   set_notebook_names(notebook, body)
 
@@ -47,7 +54,7 @@ def post_notebook_route():
   set_notebook_cpu_ram(notebook, body)
 
   # Workspacae Volume
-  if body["ws_type"] == "New":
+  if body["ws_type"] != "None":
     try:
       create_workspace_pvc(body)
     except ApiException as e:
@@ -55,8 +62,7 @@ def post_notebook_route():
       data["log"] = parse_error(e)
       return jsonify(data)
 
-  # Create the Workspace Volume in the Pod
-  if body["ws_type"] != "None":
+    # Create the Workspace Volume in the Pod
     add_notebook_volume(
         notebook,
         "volume-" + body["nm"],
@@ -72,14 +78,13 @@ def post_notebook_route():
     pvc_nm = body['vol_name' + i]
     mnt = body['vol_mount_path' + i]
 
-    # Create a PVC if its a new Data Volume
-    if body["vol_type" + i] == "New":
-      try:
-        create_datavol_pvc(data, i)
-      except ApiException as e:
-        data["success"] = False
-        data["log"] = parse_error(e)
-        return jsonify(data)
+    # Create the Data Volume PVC
+    try:
+      create_datavol_pvc(body, i)
+    except ApiException as e:
+      data["success"] = False
+      data["log"] = parse_error(e)
+      return jsonify(data)
 
     # Create the Data Volume in the Pod
     add_notebook_volume(notebook, vol_nm, pvc_nm, mnt)
@@ -124,7 +129,7 @@ def add_notebook_route():
       prefix=prefix(),
       ns=ns,
       form_defaults=form_defaults,
-      username="webapp",
+      username="user",
       rok_token=rok_token)
 
 
@@ -169,7 +174,8 @@ def notebooks_route():
   # Get the namespaces the token can see
   try:
     nmsps = get_namespaces()
-  except ApiException:
+  except ApiException as e:
+    logger.warning("Error when trying to list Namespaces: %s" % parse_error(e))
     nmsps = [base_ns]
 
   return render_template(
@@ -178,4 +184,5 @@ def notebooks_route():
       title='Notebooks',
       namespaces=nmsps,
       username="user",
-      rok_token=get_rok_token('kubeflow'))
+      rok_token=get_rok_token('kubeflow')
+  )

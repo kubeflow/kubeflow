@@ -1,6 +1,7 @@
 import yaml
 import logging
 import sys
+import datetime as dt
 
 CONFIG = "/etc/config/spawner_ui_config.yaml"
 
@@ -44,6 +45,36 @@ def spawner_ui_config(username):
     return None
 
 
+def get_notebook_uptime(created_t):
+  then = dt.datetime.strptime(created_t, "%Y-%m-%dT%H:%M:%SZ")
+  now = dt.datetime.now()
+  diff = now - then
+
+  days = diff.days
+  hours = int(diff.seconds / 3600)
+  mins = int((diff.seconds % 3600) / 60)
+
+  age = ""
+  if days > 0:
+    if days == 1:
+      age = str(days) + ' day'
+    else:
+      age = str(days) + ' days'
+  else:
+    if hours > 0:
+      if hours == 1:
+        age = str(hours) + ' hour'
+      else:
+        age = str(hours) + ' hours'
+    else:
+      if mins == 1:
+        age = str(mins) + ' min'
+      else:
+        age = str(mins) + ' mins'
+
+  return age + ' ago'
+
+
 # Since notebook is a CRD, we don't currently have k8s client functions to
 # create the corresponding object.
 def create_notebook_template():
@@ -63,6 +94,7 @@ def create_notebook_template():
                   "containers": [{
                       "name": "",
                       "volumeMounts": [],
+                      "env": [],
                   }],
                   "ttlSecondsAfterFinished": 300,
                   "volumes": [],
@@ -75,7 +107,7 @@ def create_notebook_template():
 
 def set_notebook_names(nb, body):
   nb["metadata"]["name"] = body["nm"]
-  nb["metadata"]["labels"]["app"] = body["nm"]
+  nb["metadata"]["labels"]["app"] = "notebook"
   nb["spec"]["template"]["spec"]["containers"][0]["name"] = body["nm"]
   nb["metadata"]["namespace"] = body["ns"]
 
@@ -101,12 +133,42 @@ def set_notebook_cpu_ram(nb, body):
 
 def add_notebook_volume(nb, vol, claim, mnt_path):
   # Create the volume in the Pod
-  notebook_spec = nb["spec"]["template"]["spec"]
-  notebook_cont = nb["spec"]["template"]["spec"]["containers"][0]
+  notebook_spec = nb["spec"]['template']['spec']
+  notebook_cont = nb["spec"]['template']['spec']['containers'][0]
 
-  volume = {"name": vol, "persistentVolumeClaim": {"claimName": claim}}
-  notebook_spec["volumes"].append(volume)
+  volume = {
+      "name": vol,
+      "persistentVolumeClaim": {
+          "claimName": claim
+      }
+  }
+  notebook_spec['volumes'].append(volume)
 
   # Container volumeMounts
-  mnt = {"mountPath": mnt_path, "name": vol}
+  mnt = {
+      "mountPath": mnt_path,
+      "name": vol
+  }
+  notebook_cont["volumeMounts"].append(mnt)
+
+
+def add_notebook_volume_secret(nb, secret, secret_name, mnt_path, mode):
+  # Create the volume in the Pod
+  notebook_spec = nb["spec"]['template']['spec']
+  notebook_cont = nb["spec"]['template']['spec']['containers'][0]
+
+  volume = {
+      "name": secret,
+      "secret": {
+          "defaultMode": mode,
+          "secretName": secret_name,
+      }
+  }
+  notebook_spec['volumes'].append(volume)
+
+  # Container volumeMounts
+  mnt = {
+      "mountPath": mnt_path,
+      "name": secret,
+  }
   notebook_cont["volumeMounts"].append(mnt)
