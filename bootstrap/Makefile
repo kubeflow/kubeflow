@@ -18,7 +18,8 @@ GOPATH ?= $(HOME)/go
 GOOGLE_APPLICATION_CREDENTIALS ?= $(HOME)/auth.json
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
-IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
+BOOTSTRAPPER_IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
+KFCTL_IMG ?= gcr.io/$(GCLOUD_PROJECT)/kfctl
 TAG ?= $(shell git describe --tags --always --dirty)
 # set to -V
 VERBOSE ?= 
@@ -82,6 +83,13 @@ build-bootstrap: /tmp/v2 deepcopy generate fmt vet
 build-kfctl: /tmp/v2 deepcopy generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
+build-kfctl-container:
+	docker build \
+		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+		--target=kfctl \
+		--tag $(KFCTL_IMG):$(TAG) .
+	@echo Built $(KFCTL_IMG):$(TAG)
+
 build-local: build-bootstrap build-kfctl
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
@@ -95,8 +103,8 @@ build:
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
 		--build-arg registries=reg_tmp \
 		--target=bootstrap \
-		--tag $(IMG):$(TAG) .
-	@echo Built $(IMG):$(TAG)
+		--tag $(BOOTSTRAPPER_IMG):$(TAG) .
+	@echo Built $(BOOTSTRAPPER_IMG):$(TAG)
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.
