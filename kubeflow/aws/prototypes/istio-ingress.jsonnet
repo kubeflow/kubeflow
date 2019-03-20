@@ -9,7 +9,7 @@
 // @optionalParam issuer string letsencrypt-prod The cert-manager issuer name.
 // @optionalParam istioTls string false Enabel Istio TLS.
 // @optionalParam oauthSecretName string kubeflow-oauth The name of the secret containing the OAuth client_id and client_secret.
-// @optionalParam enableJwtChecking string true Enable JWT checking.
+// @optionalParam enableJwtChecking string false Enable JWT checking.
 // @optionalParam certArn string acm-cert AWS Certificate Manager certicate arn.
 // @optionalParam CognitoAppClientId string false Cognito App client Id
 // @optionalParam CognitoUserPoolId string false Cognito User Pool Id

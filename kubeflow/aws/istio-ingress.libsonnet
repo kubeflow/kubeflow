@@ -99,7 +99,7 @@
                 params.CognitoAppClientId,
               ],
               "issuer": "https://cognito-idp." + params.CoginitoRegion + ".amazonaws.com/" + params.CognitoUserPoolId,
-              "jwksUri": "https://cognito-idp." + params.CoginitoRegion + ".amazonaws.com/" + + params.CognitoUserPoolId + "/.well-known/jwks.json",
+              "jwksUri": "https://cognito-idp." + params.CoginitoRegion + ".amazonaws.com/" + params.CognitoUserPoolId + "/.well-known/jwks.json",
               "jwtHeaders": [
                 // double confirm headers in documentation
                 "x-amzn-cognito-jwt-assertion"
@@ -155,7 +155,7 @@
       self.ingress,
     ] + if params.enableJwtChecking then [
       self.policy,
-    ],
+    ] else [],
 
     list(obj=self.all):: k.core.v1.list.new(obj,),
   },

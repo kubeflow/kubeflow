@@ -20,6 +20,20 @@ generate_infra_configs() {
 }
 
 update_infra() {
+  if ! eksctl get cluster --name=${CLUSTER_NAME} >/dev/null ; then
+    create_eks_cluster
+
+    # Find nodegroup role for later inline policy binding
+    NODEGROUP_ROLE_NAMES=$(aws iam list-roles \
+      | jq -r ".Roles[] \
+      | select(.RoleName \
+      | startswith(\"eksctl-${CLUSTER_NAME}-nodegroup-n-NodeInstanceRole\")) \
+      .RoleName")
+
+    echo "NODEGROUP_ROLE_NAMES=${NODEGROUP_ROLE_NAMES}" >> ${KUBEFLOW_REPO}/${DEPLOYMENT_NAME}/${ENV_FILE}
+    echo "DELETE_CLUSTER=true" >> ${KUBEFLOW_REPO}/${DEPLOYMENT_NAME}/${ENV_FILE}
+  fi
+
   set +e
   O=$(kubectl get namespace ${K8S_NAMESPACE} 2>&1)
   RESULT=$?
@@ -31,19 +45,8 @@ update_infra() {
     kubectl create namespace ${K8S_NAMESPACE}
   fi
 
-  if ! eksctl get cluster --name=${CLUSTER_NAME} >/dev/null ; then
-    create_eks_cluster
-
-    # Find nodegroup role for later inline policy binding
-    export NODEGROUP_ROLE_NAMES=$(aws iam list-roles \
-      | jq -r ".Roles[] \
-      | select(.RoleName \
-      | startswith(\"eksctl-${CLUSTER_NAME}-nodegroup-0-NodeInstanceRole\")) \
-      .RoleName")
-  fi
-
-  attach_inline_policy iam_alb_ingress_policy ${KUBEFLOW_REPO}/deployment/aws/infra_configs/iam_alb_ingress_policy.json
-  attach_inline_policy iam_cloudwatch_policy ${KUBEFLOW_REPO}/deployment/aws/infra_configs/iam_cloudwatch_policy.json
+  attach_inline_policy iam_alb_ingress_policy ${KUBEFLOW_INFRA_DIR}/iam_alb_ingress_policy.json
+  attach_inline_policy iam_cloudwatch_policy ${KUBEFLOW_INFRA_DIR}/iam_cloudwatch_policy.json
 }
 
 attach_inline_policy() {
@@ -163,7 +166,7 @@ aws_ks_apply() {
   createKsEnv
 
   if [[ -z $DEFAULT_KUBEFLOW_COMPONENTS ]]; then
-    export KUBEFLOW_COMPONENTS+=',"aws-alb-ingress-controller","aws-fsx-csi-driver","istio-ingress"'
+    export KUBEFLOW_COMPONENTS+=',"aws-alb-ingress-controller","istio-ingress"'
     writeEnv
     ks param set application components '['$KUBEFLOW_COMPONENTS']'
   fi
@@ -187,31 +190,6 @@ validate_aws_arg() {
   if [[ -z "$CLUSTER_NAME" ]]; then
     echo "eks cluster_name must be provided using --clusterName <CLUSTER_NAME>"
     exit 1
-  fi
-
-  # Options for nodegroup provision used by ekstctl
-  if [[ -z "$AWS_SSH_PUBLIC_KEY" ]]; then
-      aws_ssh_public_key_option="--ssh-access --ssh-public-key=${AWS_SSH_PUBLIC_KEY}"
-  else
-      aws_ssh_public_key_option=""
-  fi
-
-  if [[ -z "$AWS_NODE_ZONES" ]]; then
-      aws_node_zones_option="--node-zones=${AWS_NODE_ZONES}"
-  else
-      aws_node_zones_option=""
-  fi
-
-  if [[ -z "$AWS_NUM_NODES" ]]; then
-      aws_num_nodes_option="--nodes=${AWS_NUM_NODES}"
-  else
-      aws_num_nodes_option=""
-  fi
-
-  if [[ -z "$AWS_NODE_TYPE" ]]; then
-      aws_node_type_option="--node-type=${AWS_NODE_TYPE}"
-  else
-      aws_node_type_option=""
   fi
 }
 
@@ -238,31 +216,52 @@ check_aws_credential() {
 }
 
 check_nodegroup_roles() {
-  if ! eksctl get cluster --name=${CLUSTER_NAME} >/dev/null ; then
-    echo "eks cluster ${CLUSTER_NAME} already exist. Skip creating new cluster"
+  if eksctl get cluster --name=${CLUSTER_NAME} >/dev/null ; then
+    echo "eks cluster ${CLUSTER_NAME} already exist."
     if [[ -z "$NODEGROUP_ROLE_NAMES" ]]; then
       echo "Nodegroup Roles must be provided for existing cluster with --nodegroupRoleNames <NODEGROUP_ROLE_NAMES>"
       exit 1
     fi
   else
-    echo "eks cluster ${CLUSTER_NAME} doesn't exist. Create new cluster ${CLUSTER_NAME}"
+    echo "eks cluster ${CLUSTER_NAME} doesn't exist."
   fi
 }
 
 # don't enabled cluster create by default. Use flags to control it.
 create_eks_cluster() {
-  OPTIONS="${aws_ssh_public_key_option} ${aws_node_zones_option} ${aws_num_nodes_option} ${aws_node_type_option}"
-
-  if [ `eksctl get cluster --name "${CLUSTER_NAME}"` == "false" ] ; then
-      if ! eksctl create --name "${CLUSTER_NAME}" --region "${AWS_LOCATION}" "${OPTIONS}" &>/dev/null ; then
-          echo "aws eks create failed."
-          exit 1
-      fi
+  # Options for nodegroup provision used by ekstctl
+  if [[ -z "$AWS_SSH_PUBLIC_KEY" ]]; then
+      aws_ssh_public_key_option=""
   else
-      echo "Kubernetes cluster already exists, skip aws eks cluster create."
+      aws_ssh_public_key_option="--ssh-access --ssh-public-key=${AWS_SSH_PUBLIC_KEY}"
   fi
 
-  local context_name = "eks-dev@${CLUSTER_NAME}.${AWS_REGION}.eksctl.io"
+  if [[ -z "$AWS_NODE_ZONES" ]]; then
+      aws_node_zones_option=""
+  else
+      aws_node_zones_option="--node-zones=${AWS_NODE_ZONES}"
+  fi
+
+  if [[ -z "$AWS_NUM_NODES" ]]; then
+      aws_num_nodes_option=""
+  else
+      aws_num_nodes_option="--nodes=${AWS_NUM_NODES}"
+  fi
+
+  if [[ -z "$AWS_NODE_TYPE" ]]; then
+      aws_node_type_option=""
+  else
+      aws_node_type_option="--node-type=${AWS_NODE_TYPE}"
+  fi
+
+  OPTIONS="${aws_ssh_public_key_option} ${aws_node_zones_option} ${aws_num_nodes_option} ${aws_node_type_option}"
+
+  if ! eksctl create cluster --name "${CLUSTER_NAME}" --region "${AWS_REGION}" ${OPTIONS} ; then
+      echo "aws eks create failed."
+      exit 1
+  fi
+
+  local context_name="eks-dev@${CLUSTER_NAME}.${AWS_REGION}.eksctl.io"
 
   if [ `kubectl config use-context ${context_name}` &> /dev/null ] ; then
       eksctl utils write-kubeconfig --name=${CLUSTER_NAME}

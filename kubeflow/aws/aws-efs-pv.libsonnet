@@ -36,7 +36,8 @@
         accessModes: [
           "ReadWriteMany",
         ],
-        storageClassName: "",
+        storageClassName: "nfs-storage",
+        volumeName: params.name,
         resources: {
           requests: {
             storage: params.storageCapacity,
@@ -65,11 +66,11 @@
                 command: [
                   "chmod",
                   "777",
-                  "/kubeflow-gcfs",
+                  "/kubeflow-efs",
                 ],
                 volumeMounts: [
                   {
-                    mountPath: "/kubeflow-gcfs",
+                    mountPath: "/kubeflow-efs",
                     name: params.name,
                   },
                 ],

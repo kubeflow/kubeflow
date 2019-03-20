@@ -474,7 +474,7 @@ main() {
     check_aws_cli
     check_eksctl_cli
     check_aws_credential
-    #check_nodegroup_roles
+    check_nodegroup_roles
   fi
 
   if [[ "${COMMAND}" == "generate" ]]; then
@@ -587,6 +587,16 @@ main() {
       pushd ${KUBEFLOW_KS_DIR}
       appname=$(ks param list application | grep '^application name'|awk '{print $NF}'|tr -d "'")
       popd
+      if [[ "${PLATFORM}" == "aws" ]]; then
+        # Ingress are created by controller, need to clean it up before ingress controller deleted
+        # Waiting for a feature to create resource via CloudFormation and then we can clean up later.
+        for i in $(kubectl get ingress -lapp.kubernetes.io/name=$appname --all-namespaces -o go-template --template '{{range .items}}{{.metadata.name}}:{{.metadata.namespace}}{{"\n"}}{{end}}'); do 
+          ingress_name_namespace=(${i//:/ })
+          kubectl delete ingress ${ingress_name_namespace[0]} -n ${ingress_name_namespace[1]}
+        done
+        sleep 20
+      fi
+
       for i in $(kubectl get crds -lapp.kubernetes.io/name=$appname -oname); do 
         crd=${i#*/}
         kubectl delete crd $crd
@@ -617,6 +627,8 @@ main() {
       else
         echo "namespace ${K8S_NAMESPACE} successfully deleted."
       fi
+      # double confirm resources not in kubeflow namespace are deleted
+      kubectl delete -f ${KUBEFLOW_KS_DIR}/default.yaml
       set -e
     fi
     if [[ "${WHAT}" == "platform" ]] || [[ "${WHAT}" == "all" ]]; then
@@ -630,7 +642,8 @@ main() {
       if [[ "${PLATFORM}" == "aws" ]]; then
         if [[ -d "${KUBEFLOW_INFRA_DIR}" ]]; then
           pushd ${KUBEFLOW_INFRA_DIR}
-          ${DIR}/aws/delete_deployment.sh --cluster_name=${CLUSTER_NAME} --delete_cluster=false
+          DELETE_CLUSTER=${DELETE_CLUSTER:-"false"}
+          ${DIR}/aws/delete_deployment.sh --cluster_name=${CLUSTER_NAME} --resource_dir=${KUBEFLOW_K8S_MANIFESTS_DIR} --delete_cluster=${DELETE_CLUSTER}
           popd
         fi
       fi

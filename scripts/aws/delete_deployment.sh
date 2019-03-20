@@ -50,7 +50,6 @@ delete_iam_role_inline_policy() {
     echo "Deleting inline policy $POLICY_NAME for iam role $IAM_ROLE"
     if ! aws iam delete-role-policy --role-name=$IAM_ROLE --policy-name=$POLICY_NAME; then
         echo "Unable to delete iam inline policy $POLICY_NAME" >&2
-        return 1
     fi
   done
 
@@ -62,7 +61,7 @@ main() {
  cd "${DIR}"
 
   # List of required parameters
-  names=(cluster_name)
+  names=(cluster_name resource_dir)
 
   missingParam=false
   for i in ${names[@]}; do
@@ -80,9 +79,9 @@ main() {
 delete_cluster=${delete_cluster:-"false"}
 
 # Uninstall system manifests
-kubectl delete -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-crds.yaml
-kubectl delete -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-noauth.yaml
-kubectl delete -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/fluentd-cloudwatch.yaml
+kubectl delete -f ${resource_dir}/istio-crds.yaml
+kubectl delete -f ${resource_dir}/istio-noauth.yaml
+kubectl delete -f ${resource_dir}/fluentd-cloudwatch.yaml
 
 # Detach inline policy from iam roles
 delete_iam_role_inline_policy iam_alb_ingress_policy
@@ -90,7 +89,7 @@ delete_iam_role_inline_policy iam_cloudwatch_policy
 
 # Ensure resources are deleted.
 if [ $delete_cluster == "true" ] ; then
-  if ! eksctl delete cluster --name=${cluster_name} >/dev/null ; then
+  if ! eksctl delete cluster --name=${cluster_name} ; then
     echo "Please go to aws console to check CloudFormation."
   fi
 fi
