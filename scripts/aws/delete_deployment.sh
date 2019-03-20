@@ -41,7 +41,7 @@ delete_iam_role_inline_policy() {
     export NODEGROUP_ROLE_NAMES=$(aws iam list-roles \
       | jq -r ".Roles[] \
       | select(.RoleName \
-      | startswith(\"eksctl-${cluster_name}-nodegroup-0-NodeInstanceRole\")) \
+      | startswith(\"eksctl-${cluster_name}-nodegroup-n-NodeInstanceRole\")) \
       .RoleName")
   fi
 
