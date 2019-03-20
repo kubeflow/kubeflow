@@ -27,11 +27,13 @@ app-drawer {
         flex-direction: column !important;
     }
 }
+
 app-drawer-layout[narrow] app-drawer {
     --app-drawer-content-container: {
         box-shadow: 0 0 6px -1px #000;
     }
 }
+
 app-drawer-layout[thin] app-drawer {
     background: var(--primary-background-color);
     --app-drawer-content-container: {
@@ -88,6 +90,7 @@ app-toolbar {
     background: white;
     transition: background .25s;
 }
+
 app-toolbar[blue] {
     color: white;
     background: var(--primary-background-color);
@@ -95,9 +98,11 @@ app-toolbar[blue] {
     --accent-color: white;
     --logo-color: white;
 }
-app-toolbar > header {
+
+app-toolbar>header {
     margin-top: auto;
 }
+
 #Narrow-Slider {
     position: absolute;
     left: 0;
@@ -105,7 +110,8 @@ app-toolbar > header {
     top: 0;
     width: 256px;
 }
-#Narrow-Slider > .Logo {
+
+#Narrow-Slider>.Logo {
     margin: 0;
     padding: .5em;
     height: 100%;
@@ -114,16 +120,22 @@ app-toolbar > header {
     @apply --layout-horizontal;
     @apply --layout-center-center;
 }
-#Narrow-Slider > .Logo > svg {
+
+#Narrow-Slider>.Logo>svg {
     width: 1.5em;
     height: 100%;
     margin-right: .5em;
 }
-#Narrow-Slider > .Logo > svg * {fill: currentColor}
-#NamespaceSelector > paper-dropdown-menu {
+
+#Narrow-Slider>.Logo>svg * {
+    fill: currentColor
+}
+
+#NamespaceSelector>paper-dropdown-menu {
     color: var(--accent-color);
     --paper-input-container-focus-color: var(--accent-color);
 }
+
 paper-tabs {
     --paper-tabs-selection-bar-color: var(--accent-color);
     --paper-tab-ink: var(--accent-color);
@@ -146,6 +158,10 @@ paper-tab[link] a {
     @apply --layout-horizontal;
     @apply --layout-center-center;
     color: var(--paper-tabs-selection-bar);
+    text-decoration: none;
+}
+
+paper-tab[link] a:hover {
     text-decoration: none;
 }
 
@@ -173,8 +189,8 @@ neon-animatable {
 #PageFrame {
     border: 0;
     display: inline-block;
-    width: 100%;
     height: 100%;
+    width: 100%;
 }
 
 #Logo {

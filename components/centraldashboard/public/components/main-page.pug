@@ -1,5 +1,5 @@
 app-drawer-layout.flex(narrow='{{narrowMode}}', force-narrow='[[or(inIframe, thinView)]]', thin$='[[thinView]]')
-    app-location(route='{{route}}')
+    app-location(route='{{route}}', query-params='{{queryParams}}')
     app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
         tail='{{subRouteData}}')
     app-drawer#MainDrawer(slot='drawer')
@@ -30,14 +30,14 @@ app-drawer-layout.flex(narrow='{{narrowMode}}', force-narrow='[[or(inIframe, thi
                     paper-tab(page='activity', link)
                         a.link(tabindex='-1', href='/activity') Activity
                 aside#NamespaceSelector
-                    paper-dropdown-menu(label='Namespace')
+                    namespace-selector(query-params='{{queryParams}}')
         neon-animated-pages(selected='[[page]]', attr-for-selected='page',
                             entry-animation='fade-in-animation',
                             exit-animation='fade-out-animation')
             neon-animatable(page='dashboard')
                 dashboard-view
             neon-animatable(page='activity')
-                activity-view
+                activity-view(namespace='[[queryParams.ns]]')
             neon-animatable#iframe-page(page='iframe')
                 iframe#PageFrame.flex(src='[[iframeUrl]]')
     iron-media-query(query='(max-width: 900px)', query-matches='{{thinView}}')

@@ -1,6 +1,7 @@
 :host {
     @apply --layout-vertical;
     padding: 1em;
+    overflow: auto;
     grid-gap: 1em;
     display: grid;
     min-height: 0;

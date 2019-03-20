@@ -27,9 +27,9 @@ import '@polymer/neon-animation/animations/fade-out-animation.js';
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
 import css from './main-page.css';
-
 import template from './main-page.pug';
 
+import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
 
@@ -50,6 +50,10 @@ export class MainPage extends PolymerElement {
             page: String,
             routeData: Object,
             subRouteData: Object,
+            queryParams: {
+                type: Object,
+                value: null,
+            },
             iframeRoute: Object,
             menuLinks: {
                 type: Array,
