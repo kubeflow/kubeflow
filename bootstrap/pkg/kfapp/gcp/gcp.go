@@ -17,7 +17,6 @@ limitations under the License.
 package gcp
 
 import (
-	"cloud.google.com/go/container/apiv1"
 	"encoding/base64"
 	"fmt"
 	"github.com/cenkalti/backoff"
@@ -35,9 +34,7 @@ import (
 	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/deploymentmanager/v2"
 	"google.golang.org/api/iam/v1"
-	"google.golang.org/api/option"
 	"google.golang.org/api/serviceusage/v1"
-	containerpb "google.golang.org/genproto/googleapis/container/v1"
 	"io"
 	"io/ioutil"
 	v1 "k8s.io/api/core/v1"
@@ -82,45 +79,6 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 		KfDef: *kfdef,
 	}
 	return _gcp
-}
-
-func GetClusterInfo(ctx context.Context, project string, loc string, cluster string) (*containerpb.Cluster, error) {
-	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
-	if err != nil {
-		return nil, fmt.Errorf("Get token error: %v", err)
-	}
-	c, err := container.NewClusterManagerClient(ctx, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
-	getClusterReq := &containerpb.GetClusterRequest{
-		ProjectId: project,
-		Zone:      loc,
-		ClusterId: cluster,
-	}
-	return c.GetCluster(ctx, getClusterReq)
-}
-
-// BuildConfigFromClusterInfo returns k8s config using gcloud Application Default Credentials
-// typically $HOME/.config/gcloud/application_default_credentials.json
-func BuildConfigFromClusterInfo(ctx context.Context, cluster *containerpb.Cluster) (*rest.Config, error) {
-	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
-	if err != nil {
-		return nil, fmt.Errorf("Get token error: %v", err)
-	}
-	t, err := ts.Token()
-	if err != nil {
-		return nil, fmt.Errorf("Token retrieval error: %v", err)
-	}
-	caDec, _ := base64.StdEncoding.DecodeString(cluster.MasterAuth.ClusterCaCertificate)
-	config := &rest.Config{
-		Host:        "https://" + cluster.Endpoint,
-		BearerToken: t.AccessToken,
-		TLSClientConfig: rest.TLSClientConfig{
-			CAData: []byte(string(caDec)),
-		},
-	}
-	return config, nil
 }
 
 func getSA(name string, nameSuffix string, project string) string {
@@ -196,12 +154,12 @@ func generateTarget(configPath string) (*deploymentmanager.TargetConfiguration, 
 }
 
 func (gcp *Gcp) getK8sClientset(ctx context.Context) (*clientset.Clientset, error) {
-	cluster, err := GetClusterInfo(ctx, gcp.Spec.Project,
+	cluster, err := utils.GetClusterInfo(ctx, gcp.Spec.Project,
 		gcp.Spec.Zone, gcp.Name)
 	if err != nil {
 		return nil, fmt.Errorf("get Cluster error: %v", err)
 	}
-	config, err := BuildConfigFromClusterInfo(ctx, cluster)
+	config, err := utils.BuildConfigFromClusterInfo(ctx, cluster)
 	if err != nil {
 		return nil, fmt.Errorf("build ClientConfig error: %v", err)
 	}
@@ -400,12 +358,12 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	}
 
 	ctx := context.Background()
-	cluster, err := GetClusterInfo(ctx, gcp.Spec.Project,
+	cluster, err := utils.GetClusterInfo(ctx, gcp.Spec.Project,
 		gcp.Spec.Zone, gcp.Name)
 	if err != nil {
 		return fmt.Errorf("Get Cluster error: %v", err)
 	}
-	client, err := BuildConfigFromClusterInfo(ctx, cluster)
+	client, err := utils.BuildConfigFromClusterInfo(ctx, cluster)
 	if err != nil {
 		return fmt.Errorf("Build ClientConfig error: %v", err)
 	}
