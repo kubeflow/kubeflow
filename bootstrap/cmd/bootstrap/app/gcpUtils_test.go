@@ -22,6 +22,7 @@ import (
 )
 
 func TestGetUpdatedPolicy(t *testing.T) {
+	etags := "etagValueNeedPreserve"
 	tests := []struct {
 		// Name of the test.
 		name string
@@ -42,7 +43,7 @@ func TestGetUpdatedPolicy(t *testing.T) {
 						Role: "admin",
 					},
 				},
-				Etag: "NeedPreserve",
+				Etag: etags,
 			},
 			iamConf: &IamConf{},
 			req:     ApplyIamRequest{},
@@ -53,7 +54,7 @@ func TestGetUpdatedPolicy(t *testing.T) {
 				if policy.Bindings[0].Role != "admin" {
 					return fmt.Errorf("'admin' role wasn't added")
 				}
-				if policy.Etag != "NeedPreserve" {
+				if policy.Etag != etags {
 					return fmt.Errorf("'Etag' role was deleted")
 				}
 				return nil
