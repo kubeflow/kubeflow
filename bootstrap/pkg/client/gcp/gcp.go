@@ -523,7 +523,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	adminClient.Impersonate.UserName = "admin"
 	adminClient.Impersonate.Groups = []string{"system:masters"}
 	rbacSetup := filepath.Join(k8sSpecsDir, "rbac-setup.yaml")
-	rbacSetupErr := utils.RunKubectlApply(rbacSetup)
+	rbacSetupErr := utils.RunKubectlApply(rbacSetup, "--as=admin", "--as-group=system:masters")
 	if rbacSetupErr != nil {
 		return fmt.Errorf("could not create resources in rbac-setup.yaml %v", rbacSetupErr)
 	}
