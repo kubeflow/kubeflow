@@ -301,11 +301,10 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 	} else {
 		config = kftypes.GetConfig()
 	}
-	log.Infof("GG TEMP: %v", config.Host)
-	// err := ksApp.deleteGlobalResources(config)
-	// if err != nil {
-	// 	log.Errorf("there was a problem deleting global resources: %v", err)
-	// }
+	err := ksApp.deleteGlobalResources(config)
+	if err != nil {
+		log.Errorf("there was a problem deleting global resources: %v", err)
+	}
 	// envSetErr := ksApp.envSet(ksApp.KsEnvName, config.Host)
 	// if envSetErr != nil {
 	// 	return fmt.Errorf("couldn't create ksonnet env %v Error: %v", ksApp.KsEnvName, envSetErr)
