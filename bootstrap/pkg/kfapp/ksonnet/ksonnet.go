@@ -289,9 +289,9 @@ func (ksApp *ksApp) deleteGlobalResources(config *rest.Config) error {
 }
 
 func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
+	ctx := context.Background()
 	var config *rest.Config
 	if ksApp.Spec.Platform == "gcp" {
-		ctx := context.Background()
 		c, err := kfctlutils.BuildConfigForGcp(ctx, ksApp.Spec.Project, ksApp.Spec.Zone, ksApp.Name)
 		if err != nil {
 			return fmt.Errorf("Error getting rest.Config info for %v/%v/%v: %v",
@@ -305,26 +305,37 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 	if err != nil {
 		log.Errorf("there was a problem deleting global resources: %v", err)
 	}
-	// envSetErr := ksApp.envSet(ksApp.KsEnvName, config.Host)
-	// if envSetErr != nil {
-	// 	return fmt.Errorf("couldn't create ksonnet env %v Error: %v", ksApp.KsEnvName, envSetErr)
-	// }
-	// clientConfig := kftypes.GetKubeConfig()
-	// components := []string{"application", "metacontroller"}
-	// err = actions.RunDelete(map[string]interface{}{
-	// 	actions.OptionApp: ksApp.KApp,
-	// 	actions.OptionClientConfig: &client.Config{
-	// 		Overrides: &clientcmd.ConfigOverrides{},
-	// 		Config:    clientcmd.NewDefaultClientConfig(*clientConfig, &clientcmd.ConfigOverrides{}),
-	// 	},
-	// 	actions.OptionEnvName:        ksApp.KsEnvName,
-	// 	actions.OptionComponentNames: components,
-	// 	actions.OptionGracePeriod:    int64(10),
-	// })
-	// if err != nil {
-	// 	log.Infof("there was a problem deleting %v: %v", components, err)
-	// }
-	// namespace := ksApp.ObjectMeta.Namespace
+
+	envSetErr := ksApp.envSet(ksApp.KsEnvName, config.Host)
+	if envSetErr != nil {
+		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", ksApp.KsEnvName, envSetErr)
+	}
+
+	namespace := ksApp.ObjectMeta.Namespace
+	var clientConfig *clientcmdapi.Config
+	if ksApp.Spec.Platform == "gcp" {
+		c, err := kfctlutils.CreateKubeconfig(ctx, ksApp.Spec.Project, ksApp.Spec.Zone, ksApp.Name, namespace)
+		if err != nil {
+			return fmt.Errorf("couldn't generate kubeconfig for GCP: %v", err)
+		}
+		clientConfig = c
+	} else {
+		clientConfig = kftypes.GetKubeConfig()
+	}
+	components := []string{"application", "metacontroller"}
+	err = actions.RunDelete(map[string]interface{}{
+		actions.OptionApp: ksApp.KApp,
+		actions.OptionClientConfig: &client.Config{
+			Overrides: &clientcmd.ConfigOverrides{},
+			Config:    clientcmd.NewDefaultClientConfig(*clientConfig, &clientcmd.ConfigOverrides{}),
+		},
+		actions.OptionEnvName:        ksApp.KsEnvName,
+		actions.OptionComponentNames: components,
+		actions.OptionGracePeriod:    int64(10),
+	})
+	if err != nil {
+		log.Infof("there was a problem deleting %v: %v", components, err)
+	}
 	// log.Infof("deleting namespace: %v", namespace)
 	// clientset := kftypes.GetClientset(config)
 	// ns, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
