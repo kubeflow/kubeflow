@@ -94,6 +94,8 @@ app-toolbar {
 app-toolbar[blue] {
     color: white;
     background: var(--primary-background-color);
+    --primary-text-color: white;
+    --secondary-text-color: #ffffff69;
     --primary-color: white;
     --accent-color: white;
     --logo-color: white;
