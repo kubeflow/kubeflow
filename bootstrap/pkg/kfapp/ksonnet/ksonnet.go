@@ -292,18 +292,16 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 	var config *rest.Config
 	if ksApp.Spec.Platform == "gcp" {
 		ctx := context.Background()
-		cluster, err := kfctlutils.GetClusterInfo(ctx, ksApp.Spec.Project, ksApp.Spec.Zone, ksApp.Name)
+		c, err := kfctlutils.BuildConfigForGcp(ctx, ksApp.Spec.Project, ksApp.Spec.Zone, ksApp.Name)
 		if err != nil {
-			return fmt.Errorf("Error getting cluster info for %v/%v/%v: %v",
+			return fmt.Errorf("Error getting rest.Config info for %v/%v/%v: %v",
 				ksApp.Spec.Project, ksApp.Spec.Zone, ksApp.Name, err)
 		}
-		config, err = kfctlutils.BuildConfigFromClusterInfo(ctx, cluster)
-		if err != nil {
-			return fmt.Errorf("Error getting config: %v", err)
-		}
+		config = c
 	} else {
 		config = kftypes.GetConfig()
 	}
+	log.Infof("GG TEMP: %v", config.Host)
 	// err := ksApp.deleteGlobalResources(config)
 	// if err != nil {
 	// 	log.Errorf("there was a problem deleting global resources: %v", err)

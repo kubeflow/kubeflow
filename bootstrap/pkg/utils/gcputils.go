@@ -4,6 +4,7 @@ import (
 	"cloud.google.com/go/container/apiv1"
 	"encoding/base64"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iam/v1"
@@ -51,4 +52,14 @@ func BuildConfigFromClusterInfo(ctx context.Context, cluster *containerpb.Cluste
 		},
 	}
 	return config, nil
+}
+
+// Helper function for the rest.Config retrieval.
+func BuildConfigForGcp(ctx context.Context, project string, loc string, cluster string) (*rest.Config, error) {
+	log.Infof("Getting rest.Config with GCP for %v/%v/%v", project, loc, cluster)
+	clusterpb, err := GetClusterInfo(ctx, project, loc, cluster)
+	if err != nil {
+		return nil, err
+	}
+	return BuildConfigFromClusterInfo(ctx, clusterpb)
 }
