@@ -55,7 +55,8 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 			os.Getenv(kftypes.BASIC_AUTH_PASSWORD) == "") {
 			// Printing warning message instead of bailing out as both ENV are used in apply,
 			// not init.
-			log.Warnf("If using basic auth, need to set ENV %v and %v when running kfctl apply",
+			log.Warnf("you need to set the environment variable %s to the username you "+
+				"want to use to login and variable %s to the password you want to use.",
 				kftypes.BASIC_AUTH_USERNAME, kftypes.BASIC_AUTH_PASSWORD)
 		}
 
