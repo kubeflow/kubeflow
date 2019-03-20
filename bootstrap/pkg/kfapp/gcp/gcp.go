@@ -694,8 +694,7 @@ func (gcp *Gcp) insertSecret(client *clientset.Clientset, secretName string, nam
 
 // Create key for service account and write to GCP as secret.
 func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientset.Clientset,
-	email string, secretName string) error {
-	namespace := gcp.Namespace
+	email string, secretName string, namespace string) error {
 	_, err := client.CoreV1().Secrets(namespace).Get(secretName, metav1.GetOptions{})
 	if err == nil {
 		log.Infof("Secret for %v already exists ...", secretName)
@@ -726,27 +725,19 @@ func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientse
 	if err != nil {
 		return fmt.Errorf("PrivateKeyData decoding error: %v", err)
 	}
-	err = gcp.insertSecret(client, secretName, gcp.Namespace, map[string][]byte{
+	return gcp.insertSecret(client, secretName, namespace, map[string][]byte{
 		secretName + ".json": privateKeyData,
 	})
-	if err != nil {
-		return err
-	}
-	// If using istio, also creates the secret in istio's namespace
-	if gcp.Spec.UseIstio {
-		err = gcp.insertSecret(client, secretName, IstioNamespace, map[string][]byte{
-			secretName + ".json": privateKeyData,
-		})
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // User CLIENT_ID and CLIENT_SECRET from GCP to create a secret for IAP.
 func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset) error {
-	if _, err := client.CoreV1().Secrets(gcp.Namespace).
+	oauthSecretNamespace := gcp.Namespace
+	if gcp.Spec.UseIstio {
+		oauthSecretNamespace = IstioNamespace
+	}
+
+	if _, err := client.CoreV1().Secrets(oauthSecretNamespace).
 		Get(KUBEFLOW_OAUTH, metav1.GetOptions{}); err == nil {
 		log.Infof("Secret for %v already exits ...", KUBEFLOW_OAUTH)
 		return nil
@@ -761,10 +752,7 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
 			string(kftypes.OAUTH_SECRET), CLIENT_SECRET)
 	}
-	oauthSecretNamespace := gcp.Namespace
-	if gcp.Spec.UseIstio {
-		oauthSecretNamespace = IstioNamespace
-	}
+
 	return gcp.insertSecret(client, KUBEFLOW_OAUTH, oauthSecretNamespace, map[string][]byte{
 		strings.ToLower(CLIENT_ID):     []byte(oauthId),
 		strings.ToLower(CLIENT_SECRET): []byte(oauthSecret),
@@ -806,13 +794,20 @@ func (gcp *Gcp) createSecrets() error {
 	}
 	adminEmail := getSA(gcp.Name, "admin", gcp.Spec.Project)
 	userEmail := getSA(gcp.Name, "user", gcp.Spec.Project)
-	if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME); err != nil {
+	if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME, gcp.Namespace); err != nil {
 		return fmt.Errorf("cannot create admin secret %v Error %v", ADMIN_SECRET_NAME, err)
-
 	}
-	if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME); err != nil {
+	if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME, gcp.Namespace); err != nil {
 		return fmt.Errorf("cannot create user secret %v Error %v", USER_SECRET_NAME, err)
-
+	}
+	// Also create service account secret in istio namespace
+	if gcp.Spec.UseIstio {
+		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME, IstioNamespace); err != nil {
+			return fmt.Errorf("cannot create admin secret %v Error %v", ADMIN_SECRET_NAME, err)
+		}
+		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME, IstioNamespace); err != nil {
+			return fmt.Errorf("cannot create user secret %v Error %v", USER_SECRET_NAME, err)
+		}
 	}
 	if gcp.Spec.UseBasicAuth {
 		if err := gcp.createBasicAuthSecret(k8sClient); err != nil {
