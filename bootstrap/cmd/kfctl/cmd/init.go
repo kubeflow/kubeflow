@@ -51,13 +51,13 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 		init_gcp := initCfg.GetBool(string(kftypes.SKIP_INIT_GCP_PROJECT))
 
 		useBasicAuth := initCfg.GetBool(string(kftypes.USE_BASIC_AUTH))
-		if useBasicAuth && (os.Getenv(kftypes.BASIC_AUTH_USERNAME) == "" ||
-			os.Getenv(kftypes.BASIC_AUTH_PASSWORD) == "") {
+		if useBasicAuth && (os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" ||
+			os.Getenv(kftypes.KUBEFLOW_PASSWORD) == "") {
 			// Printing warning message instead of bailing out as both ENV are used in apply,
 			// not init.
 			log.Warnf("you need to set the environment variable %s to the username you "+
 				"want to use to login and variable %s to the password you want to use.",
-				kftypes.BASIC_AUTH_USERNAME, kftypes.BASIC_AUTH_PASSWORD)
+				kftypes.KUBEFLOW_USERNAME, kftypes.KUBEFLOW_PASSWORD)
 		}
 
 		options := map[string]interface{}{

@@ -536,10 +536,10 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 }
 
 func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	if gcp.GcpApp.Spec.UseBasicAuth && (os.Getenv(kftypes.BASIC_AUTH_USERNAME) == "" ||
-		os.Getenv(kftypes.BASIC_AUTH_PASSWORD) == "") {
+	if gcp.GcpApp.Spec.UseBasicAuth && (os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" ||
+		os.Getenv(kftypes.KUBEFLOW_PASSWORD) == "") {
 		return fmt.Errorf("gcp apply needs ENV %v and %v set when using basic auth.",
-			kftypes.BASIC_AUTH_USERNAME, kftypes.BASIC_AUTH_PASSWORD)
+			kftypes.KUBEFLOW_USERNAME, kftypes.KUBEFLOW_PASSWORD)
 	}
 	updateDMErr := gcp.updateDM(resources, options)
 	if updateDMErr != nil {
@@ -812,8 +812,8 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 
 // Use username and password provided by user and create secret for basic auth.
 func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset, options map[string]interface{}) error {
-	username := os.Getenv(kftypes.BASIC_AUTH_USERNAME)
-	password := os.Getenv(kftypes.BASIC_AUTH_PASSWORD)
+	username := os.Getenv(kftypes.KUBEFLOW_USERNAME)
+	password := os.Getenv(kftypes.KUBEFLOW_PASSWORD)
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
 		return fmt.Errorf("Error when hashing password: %v", err)
