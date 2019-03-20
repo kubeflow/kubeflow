@@ -442,6 +442,9 @@ func (ksApp *ksApp) Init(resources kftypes.ResourceEnum) error {
 
 func (ksApp *ksApp) initKs() error {
 	newRoot := path.Join(ksApp.Spec.AppDir, ksApp.KsName)
+	if _, err := os.Stat(newRoot); !os.IsNotExist(err) {
+		os.RemoveAll(newRoot)
+	}
 	ksApp.KsEnvName = KsEnvName
 	// We hard code the K8s spec because we won't have a cluster to talk to when calling init.
 	k8sSpec := "version:v1.11.7"
