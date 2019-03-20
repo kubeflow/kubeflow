@@ -193,7 +193,7 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 	}
 	//Update the readyReplicas if the status is changed
-        if !justCreated && foundStateful.Status.ReadyReplicas != instance.Status.ReadyReplicas {
+        if foundStateful.Status.ReadyReplicas != instance.Status.ReadyReplicas {
                 log.Info("Updating Status", "namespace", instance.Namespace,"name", instance.Name)
                 instance.Status.ReadyReplicas = foundStateful.Status.ReadyReplicas 
                 err = r.Status().Update(context.Background(), instance)
