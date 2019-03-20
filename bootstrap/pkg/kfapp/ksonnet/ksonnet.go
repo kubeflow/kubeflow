@@ -30,6 +30,7 @@ import (
 	kfctlutils "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
+	"golang.org/x/net/context"
 	"io/ioutil"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -61,7 +62,7 @@ const (
 
 func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	_kfapp := &ksApp{
-		KfDef:    *kfdef,
+		KfDef:     *kfdef,
 		KsName:    KsName,
 		KsEnvName: KsEnvName,
 	}
@@ -288,48 +289,62 @@ func (ksApp *ksApp) deleteGlobalResources(config *rest.Config) error {
 }
 
 func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
-	config := kftypes.GetConfig()
-	err := ksApp.deleteGlobalResources(config)
-	if err != nil {
-		log.Errorf("there was a problem deleting global resources: %v", err)
-	}
-	envSetErr := ksApp.envSet(ksApp.KsEnvName, config.Host)
-	if envSetErr != nil {
-		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", ksApp.KsEnvName, envSetErr)
-	}
-	clientConfig := kftypes.GetKubeConfig()
-	components := []string{"application", "metacontroller"}
-	err = actions.RunDelete(map[string]interface{}{
-		actions.OptionApp: ksApp.KApp,
-		actions.OptionClientConfig: &client.Config{
-			Overrides: &clientcmd.ConfigOverrides{},
-			Config:    clientcmd.NewDefaultClientConfig(*clientConfig, &clientcmd.ConfigOverrides{}),
-		},
-		actions.OptionEnvName:        ksApp.KsEnvName,
-		actions.OptionComponentNames: components,
-		actions.OptionGracePeriod:    int64(10),
-	})
-	if err != nil {
-		log.Infof("there was a problem deleting %v: %v", components, err)
-	}
-	namespace := ksApp.ObjectMeta.Namespace
-	log.Infof("deleting namespace: %v", namespace)
-	clientset := kftypes.GetClientset(config)
-	ns, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
-	if nsMissingErr == nil {
-		nsErr := clientset.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
-		if nsErr != nil {
-			return fmt.Errorf("couldn't delete namespace %v Error: %v", namespace, nsErr)
+	var config *rest.Config
+	if ksApp.Spec.Platform == "gcp" {
+		ctx := context.Background()
+		cluster, err := kfctlutils.GetClusterInfo(ctx, ksApp.Spec.Project, ksApp.Spec.Zone, ksApp.Name)
+		if err != nil {
+			return fmt.Errorf("Error getting cluster info for %v/%v/%v: %v",
+				ksApp.Spec.Project, ksApp.Spec.Zone, ksApp.Name, err)
 		}
-	}
-	name := "meta-controller-cluster-role-binding"
-	crb, crbErr := clientset.RbacV1().ClusterRoleBindings().Get(name, metav1.GetOptions{})
-	if crbErr == nil {
-		crbDeleteErr := clientset.RbacV1().ClusterRoleBindings().Delete(crb.Name, metav1.NewDeleteOptions(int64(5)))
-		if crbDeleteErr != nil {
-			return fmt.Errorf("couldn't delete clusterrolebinding %v Error: %v", name, crbDeleteErr)
+		config, err = kfctlutils.BuildConfigFromClusterInfo(ctx, cluster)
+		if err != nil {
+			return fmt.Errorf("Error getting config: %v", err)
 		}
+	} else {
+		config = kftypes.GetConfig()
 	}
+	// err := ksApp.deleteGlobalResources(config)
+	// if err != nil {
+	// 	log.Errorf("there was a problem deleting global resources: %v", err)
+	// }
+	// envSetErr := ksApp.envSet(ksApp.KsEnvName, config.Host)
+	// if envSetErr != nil {
+	// 	return fmt.Errorf("couldn't create ksonnet env %v Error: %v", ksApp.KsEnvName, envSetErr)
+	// }
+	// clientConfig := kftypes.GetKubeConfig()
+	// components := []string{"application", "metacontroller"}
+	// err = actions.RunDelete(map[string]interface{}{
+	// 	actions.OptionApp: ksApp.KApp,
+	// 	actions.OptionClientConfig: &client.Config{
+	// 		Overrides: &clientcmd.ConfigOverrides{},
+	// 		Config:    clientcmd.NewDefaultClientConfig(*clientConfig, &clientcmd.ConfigOverrides{}),
+	// 	},
+	// 	actions.OptionEnvName:        ksApp.KsEnvName,
+	// 	actions.OptionComponentNames: components,
+	// 	actions.OptionGracePeriod:    int64(10),
+	// })
+	// if err != nil {
+	// 	log.Infof("there was a problem deleting %v: %v", components, err)
+	// }
+	// namespace := ksApp.ObjectMeta.Namespace
+	// log.Infof("deleting namespace: %v", namespace)
+	// clientset := kftypes.GetClientset(config)
+	// ns, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	// if nsMissingErr == nil {
+	// 	nsErr := clientset.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
+	// 	if nsErr != nil {
+	// 		return fmt.Errorf("couldn't delete namespace %v Error: %v", namespace, nsErr)
+	// 	}
+	// }
+	// name := "meta-controller-cluster-role-binding"
+	// crb, crbErr := clientset.RbacV1().ClusterRoleBindings().Get(name, metav1.GetOptions{})
+	// if crbErr == nil {
+	// 	crbDeleteErr := clientset.RbacV1().ClusterRoleBindings().Delete(crb.Name, metav1.NewDeleteOptions(int64(5)))
+	// 	if crbDeleteErr != nil {
+	// 		return fmt.Errorf("couldn't delete clusterrolebinding %v Error: %v", name, crbDeleteErr)
+	// 	}
+	// }
 	return nil
 }
 
@@ -363,7 +378,6 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 	}
 	setNameVal(ksApp.Spec.ComponentParams["application"], "components",
 		"["+strings.Join(components, " ,")+"]")
-
 
 	ksRegistry := kfdefs.DefaultRegistry
 	ksRegistry.Version = ksApp.Spec.Version
@@ -449,10 +463,10 @@ func (ksApp *ksApp) initKs() error {
 	// We hard code the K8s spec because we won't have a cluster to talk to when calling init.
 	k8sSpec := "version:v1.11.7"
 	options := map[string]interface{}{
-		actions.OptionFs:                    afero.NewOsFs(),
-		actions.OptionName:                  ksApp.KsName,
-		actions.OptionEnvName:               ksApp.KsEnvName,
-		actions.OptionNewRoot:               newRoot,
+		actions.OptionFs:      afero.NewOsFs(),
+		actions.OptionName:    ksApp.KsName,
+		actions.OptionEnvName: ksApp.KsEnvName,
+		actions.OptionNewRoot: newRoot,
 		// Using local host appears to fool ksonnet on init. We will add a new environment later.
 		actions.OptionServer:                "127.0.0.1",
 		actions.OptionSpecFlag:              k8sSpec,
