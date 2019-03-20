@@ -110,12 +110,16 @@ createEnv() {
       ;;
     aws)
       export KUBEFLOW_PLATFORM=aws
-      INPUT+=('KUBEFLOW_INFRA_DIR=$KUBEFLOW_INFRA_DIR\n'
+      INPUT+=('CLUSTER_NAME=$CLUSTER_NAME\n'
+              'NODEGROUP_ROLE_NAMES=$NODEGROUP_ROLE_NAMES\n'
+              'KUBEFLOW_INFRA_DIR=$KUBEFLOW_INFRA_DIR\n'
               'KUBEFLOW_K8S_MANIFESTS_DIR=$KUBEFLOW_K8S_MANIFESTS_DIR\n')
-      FORMAT+=('$KUBEFLOW_INFRA_DIR'
+      FORMAT+=('$CLUSTER_NAME'
+               '$NODEGROUP_ROLE_NAMES'
+               '$KUBEFLOW_INFRA_DIR'
                '$KUBEFLOW_K8S_MANIFESTS_DIR')
-      ## Reuse ~/.aws/configure and ~/.aws/credential. Do not show credential for security reason
-      # Kubeflow directories
+      export CLUSTER_NAME=${CLUSTER_NAME:-""}
+      export NODEGROUP_ROLE_NAMES=${NODEGROUP_ROLE_NAMES:-""}
       export KUBEFLOW_INFRA_DIR=${KUBEFLOW_INFRA_DIR:-"$(pwd)/aws_config"}
       export KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs"
       ;;
@@ -309,6 +313,14 @@ parseArgs() {
         shift
         AZ_NODE_SIZE=$1
         ;;
+      --clusterName)
+        shift
+        CLUSTER_NAME=$1
+        ;;
+      --nodegroupRoleNames)
+        shift
+        NODEGROUP_ROLE_NAMES=$1
+        ;;
     esac
     shift
   done
@@ -462,6 +474,7 @@ main() {
     check_aws_cli
     check_eksctl_cli
     check_aws_credential
+    #check_nodegroup_roles
   fi
 
   if [[ "${COMMAND}" == "generate" ]]; then

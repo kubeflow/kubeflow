@@ -4,14 +4,6 @@
 #
 set -xe
 
-aws_init_project() {
-  # FSx
-
-  # log permission
-  # https://eksworkshop.com/logging/prereqs/
-  echo "TODO. Permission setup"
-}
-
 ################################ Infrastructure Changes ################################
 
 ## Prepare Infrastrcture Configurations
@@ -22,15 +14,13 @@ generate_infra_configs() {
     mkdir -p "${KUBEFLOW_INFRA_DIR}"
     cp -r ${KUBEFLOW_REPO}/deployment/aws/infra_configs/* ${KUBEFLOW_INFRA_DIR}
 
-    # Create EFS
-
-    # Create RDS
+    #TODO: Create EFS
+    #TODO: Create RDS
 
   else
     echo AWS infrastructure configs already exist in directory "${KUBEFLOW_INFRA_DIR}"
   fi
 }
-
 
 update_infra() {
   set +e
@@ -51,21 +41,17 @@ install_k8s_manifests() {
   # Download k8s manifests for resources to deploy on the cluster and install them.
   mkdir -p ${KUBEFLOW_K8S_MANIFESTS_DIR}
 
-  # Create secret to store aws credentials
-  #create_secrets
-
   # Only install cluster level kubernetes addons here
   install_gpu_driver
   install_fluentd_cloudwatch
-  #install_alb_ingress_controller
-  #install_csi_driver
+  install_istio
 }
 
 create_secrets() {
   create_aws_secret ${K8S_NAMESPACE} aws_secret
 }
 
-# TensorFlow Serving, TensorBoard and CSI FSx for Lustre both use AWS secret.
+# TensorFlow Serving, TensorBoard use AWS secret.
 create_aws_secret() {
   # Store aws credentials in a k8s secret.
   local NAMESPACE=$1
@@ -105,40 +91,28 @@ install_fluentd_cloudwatch() {
     https://eksworkshop.com/logging/deploy.files/fluentd.yml
 
   replace_text_in_file "us-west-2" ${AWS_REGION} ${KUBEFLOW_K8S_MANIFESTS_DIR}/fluentd-cloudwatch.yaml
-  replace_text_in_file "eksworkshop-eksctl" ${DEPLOYMENT_NAME} ${KUBEFLOW_K8S_MANIFESTS_DIR}/fluentd-cloudwatch.yaml
+  replace_text_in_file "eksworkshop-eksctl" ${CLUSTER_NAME} ${KUBEFLOW_K8S_MANIFESTS_DIR}/fluentd-cloudwatch.yaml
 
   kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/fluentd-cloudwatch.yaml
 }
 
-install_alb_ingress_controller() {
-  # Install AWS ALB Ingress controller.
-  curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/aws-alb-ingress-controller-rbac.yaml \
-    https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v1.1.0/docs/examples/rbac-role.yaml
+install_istio() {
+  # Use customized istio manifests direclty https://www.kubeflow.org/docs/components/istio/
+  curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-crds.yaml \
+    https://raw.githubusercontent.com/kubeflow/kubeflow/master/dependencies/istio/install/crds.yaml
 
-  curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/aws-alb-ingress-controller.yaml \
-    https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v1.1.0/docs/examples/alb-ingress-controller.yaml
+  # 1. sidecar injection configmap policy is changed from enabled to disabled
+  # 2. istio-ingressgateway is of type NodePort instead of LoadBalancer
+  curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-noauth.yaml \
+    https://raw.githubusercontent.com/kubeflow/kubeflow/master/dependencies/istio/install/istio-noauth.yaml
 
-  replace_text_in_file "devCluster" ${DEPLOYMENT_NAME} ${KUBEFLOW_K8S_MANIFESTS_DIR}/aws-alb-ingress-controller.yaml
+  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-crds.yaml
+  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-noauth.yaml
 
-  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/aws-alb-ingress-controller-rbac.yaml
-  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/aws-alb-ingress-controller.yaml
-}
-
-install_csi_driver() {
-  # Install CSI driver for aws FSx for Lustre. FSx controller needs aws-secret
-  curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/csi-driver-aws-fsx-controller.yaml \
-    https://raw.githubusercontent.com/aws/csi-driver-amazon-fsx/master/deploy/kubernetes/controller.yaml
-
-  curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/csi-driver-aws-fsx-node.yaml \
-    https://raw.githubusercontent.com/aws/csi-driver-amazon-fsx/master/deploy/kubernetes/node.yaml
-
-  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/csi-driver-aws-fsx-controller.yaml
-  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/csi-driver-aws-fsx-node.yaml
+  kubectl label namespace ${K8S_NAMESPACE} istio-injection=enabled
 }
 
 ################################ Ksonnet changes ################################
-
-
 aws_generate_ks_app() {
   pushd .
   cd "${KUBEFLOW_KS_DIR}"
@@ -146,14 +120,12 @@ aws_generate_ks_app() {
   # Install the aws package
   ks pkg install kubeflow/aws
 
-  ks generate aws-alb-ingress-controller aws-alb-ingress-controller --namespace=${K8S_NAMESPACE} --clusterName=${DEPLOYMENT_NAME}
+  # relace with cluster namespace
+  ks generate aws-alb-ingress-controller aws-alb-ingress-controller --clusterName=${CLUSTER_NAME}
   ks generate aws-fsx-csi-driver aws-fsx-csi-driver --namespace=${K8S_NAMESPACE}
-  # we need ingress
+  ks generate istio-ingress istio-ingress --namespace=${K8S_NAMESPACE}
 
-  #ks param set jupyter jupyterHubAuthenticator cognito
-  #ks param set pipeline mysqlPd "${DEPLOYMENT_NAME}-storage-metadata-store"
-  #ks param set pipeline minioPd "${DEPLOYMENT_NAME}-storage-artifact-store"
-
+  # Since JupyterHub will be removed evently, we skip authentication for it.
   popd
 }
 
@@ -165,7 +137,7 @@ aws_ks_apply() {
   createKsEnv
 
   if [[ -z $DEFAULT_KUBEFLOW_COMPONENTS ]]; then
-    export KUBEFLOW_COMPONENTS+=',"aws-alb-ingress-controller","aws-fsx-csi-driver"'
+    export KUBEFLOW_COMPONENTS+=',"aws-alb-ingress-controller","aws-fsx-csi-driver","istio-ingress"'
     writeEnv
     ks param set application components '['$KUBEFLOW_COMPONENTS']'
   fi
@@ -186,14 +158,18 @@ validate_aws_arg() {
     exit 1
   fi
 
-  # Rest of them are all optional, we can provide default value there
+  if [[ -z "$CLUSTER_NAME" ]]; then
+    echo "eks cluster_name must be provided using --clusterName <CLUSTER_NAME>"
+    exit 1
+  fi
+
+  # Options for nodegroup provision used by ekstctl
   if [[ -z "$AWS_SSH_PUBLIC_KEY" ]]; then
       aws_ssh_public_key_option="--ssh-access --ssh-public-key=${AWS_SSH_PUBLIC_KEY}"
   else
       aws_ssh_public_key_option=""
   fi
 
-  # set default value
   if [[ -z "$AWS_NODE_ZONES" ]]; then
       aws_node_zones_option="--node-zones=${AWS_NODE_ZONES}"
   else
@@ -229,18 +205,30 @@ check_eksctl_cli() {
 }
 
 check_aws_credential() {
-    if ! aws sts get-caller-identity >/dev/null ; then
-      echo "aws get caller identity failed. Please check the aws credentials provided and try again."
+  if ! aws sts get-caller-identity >/dev/null ; then
+    echo "aws get caller identity failed. Please check the aws credentials provided and try again."
+    exit 1
+  fi
+}
+
+check_nodegroup_roles() {
+  if ! eksctl get cluster --name=${CLUSTER_NAME} >/dev/null ; then
+    echo "eks cluster ${CLUSTER_NAME} already exist. Skip creating new cluster"
+    if [[ -z "$NODEGROUP_ROLE_NAMES" ]]; then
+      echo "Nodegroup Roles must be provided for existing cluster with --nodegroupRoleNames <NODEGROUP_ROLE_NAMES>"
       exit 1
     fi
+  else
+    echo "eks cluster ${CLUSTER_NAME} doesn't exist. Create new cluster ${CLUSTER_NAME}"
+  fi
 }
 
 # don't enabled cluster create by default. Use flags to control it.
 create_eks_cluster() {
   OPTIONS="${aws_ssh_public_key_option} ${aws_node_zones_option} ${aws_num_nodes_option} ${aws_node_type_option}"
 
-  if [ `eksctl get cluster --name "${DEPLOYMENT_NAME}"  "${OPTIONS}"` == "false" ] ; then
-      if ! eksctl create --name "${DEPLOYMENT_NAME}" --region "${AWS_LOCATION} " &>/dev/null ; then
+  if [ `eksctl get cluster --name "${CLUSTER_NAME}"  "${OPTIONS}"` == "false" ] ; then
+      if ! eksctl create --name "${CLUSTER_NAME}" --region "${AWS_LOCATION} " &>/dev/null ; then
           echo "aws eks create failed."
           exit 1
       fi
@@ -248,10 +236,10 @@ create_eks_cluster() {
       echo "Kubernetes cluster already exists, skip aws eks cluster create."
   fi
 
-  local context_name = "eks-dev@${DEPLOYMENT_NAME}.${AWS_REGION}.eksctl.io"
+  local context_name = "eks-dev@${CLUSTER_NAME}.${AWS_REGION}.eksctl.io"
 
   if [ `kubectl config use-context ${context_name}` &> /dev/null ] ; then
-      eksctl utils  write-kubeconfig --name=${DEPLOYMENT_NAME}
+      eksctl utils  write-kubeconfig --name=${CLUSTER_NAME}
   fi
 }
 
