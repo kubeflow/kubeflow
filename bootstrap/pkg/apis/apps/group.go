@@ -17,22 +17,23 @@ package apps
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io"
-	ext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
-	crdclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	apiext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
-	"k8s.io/client-go/kubernetes"
-	clientset "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"os"
 	"path/filepath"
 	"plugin"
 	"regexp"
 	"strings"
+
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
+	log "github.com/sirupsen/logrus"
+	ext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	crdclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	apiext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
+	"k8s.io/client-go/kubernetes"
+	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 const (
@@ -79,6 +80,7 @@ const (
 	DATA                  CliOption = "Data"
 	ZONE                  CliOption = "zone"
 	USE_BASIC_AUTH        CliOption = "use_basic_auth"
+	USE_ISTIO             CliOption = "use_istio"
 	OAUTH_ID              CliOption = "oauth_id"
 	OAUTH_SECRET          CliOption = "oauth_secret"
 	CONFIG                CliOption = "config"

@@ -54,6 +54,7 @@ import (
 	"strings"
 )
 
+// TODO: golint complains that we should not use all capital var name.
 const (
 	GCP_CONFIG        = "gcp_config"
 	K8S_SPECS         = "k8s_specs"
@@ -61,6 +62,9 @@ const (
 	STORAGE_FILE      = "storage-kubeflow.yaml"
 	NETWORK_FILE      = "network.yaml"
 	GCFS_FILE         = "gcfs.yaml"
+	ISTIO_DIR         = "istio"
+	ISTIO_CRD         = "istio-crd.yaml"
+	ISTIO_INSTALL     = "istio-noauth.yaml"
 	ADMIN_SECRET_NAME = "admin-gcp-sa"
 	USER_SECRET_NAME  = "user-gcp-sa"
 	KUBEFLOW_OAUTH    = "kubeflow-oauth"
@@ -71,12 +75,16 @@ const (
 	BASIC_AUTH_SECRET = "kubeflow-login"
 )
 
+// The namespace for Istio
+const IstioNamespace = "istio-system"
+
 // Gcp implements KfApp Interface
 // It includes the KsApp along with additional Gcp types
 type Gcp struct {
 	kfdefs.KfDef
 }
 
+// GetKfApp returns the gcp kfapp. It's called by coordinator.GetKfApp
 func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	_gcp := &Gcp{
 		KfDef: *kfdef,
@@ -484,20 +492,22 @@ func (gcp *Gcp) copyFile(source string, dest string) error {
 	return nil
 }
 
-func setNameVal(entries *[]configtypes.NameValue, name string, val string, required bool) {
-	for i, nv := range *entries {
+// Usage: a = setNameVal(a, "acmeEmail", gcp.Spec.Email, true), similar to append
+func setNameVal(entries []configtypes.NameValue, name string, val string, required bool) []configtypes.NameValue {
+	for i, nv := range entries {
 		if nv.Name == name {
 			log.Infof("Setting %v to %v", name, val)
-			(*entries)[i].Value = val
-			return
+			entries[i].Value = val
+			return entries
 		}
 	}
 	log.Infof("Appending %v as %v", name, val)
-	*entries = append(*entries, configtypes.NameValue{
+	entries = append(entries, configtypes.NameValue{
 		Name:         name,
 		Value:        val,
 		InitRequired: required,
 	})
+	return entries
 }
 
 //TODO(#2515)
@@ -618,6 +628,28 @@ func (gcp *Gcp) downloadK8sManifests() error {
 	urlErr = gogetter.GetFile(agents, url)
 	if urlErr != nil {
 		return fmt.Errorf("couldn't download %v Error %v", url, urlErr)
+	}
+
+	// Download Istio manifests.
+	if gcp.Spec.UseIstio {
+		istioManifestDir := path.Join(appDir, ISTIO_DIR)
+		if err := os.Mkdir(istioManifestDir, os.ModePerm); err != nil {
+			return fmt.Errorf("cannot create directory %v Error %v", istioManifestDir, err)
+		}
+		repo := gcp.Spec.Repo
+		parentDir := path.Dir(repo)
+		// copy crd
+		sourceFile := filepath.Join(parentDir, "dependencies/istio/install/crds.yaml")
+		destFile := filepath.Join(istioManifestDir, ISTIO_CRD)
+		if err := gcp.copyFile(sourceFile, destFile); err != nil {
+			return fmt.Errorf("could not copy %v to %v Error %v", sourceFile, destFile, err)
+		}
+		// copy istio manifest
+		sourceFile = filepath.Join(parentDir, "dependencies/istio/install/istio-noauth.yaml")
+		destFile = filepath.Join(istioManifestDir, ISTIO_INSTALL)
+		if err := gcp.copyFile(sourceFile, destFile); err != nil {
+			return fmt.Errorf("could not copy %v to %v Error %v", sourceFile, destFile, err)
+		}
 	}
 
 	//TODO - copied from scripts/gke/util.sh. The rbac-setup command won't need admin since the user will be
@@ -761,6 +793,7 @@ func (gcp *Gcp) createSecrets() error {
 	return nil
 }
 
+// Generate generates the gcp kfapp manifest.
 func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	switch resources {
 	case kftypes.K8S:
@@ -783,8 +816,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 			return fmt.Errorf("could not generate deployment manager configs under %v Error: %v", GCP_CONFIG, gcpConfigFilesErr)
 		}
 	}
-	nv := gcp.Spec.ComponentParams["cert-manager"]
-	setNameVal(&nv, "acmeEmail", gcp.Spec.Email, true)
+	gcp.Spec.ComponentParams["cert-manager"] = setNameVal(gcp.Spec.ComponentParams["cert-manager"], "acmeEmail", gcp.Spec.Email, true)
 	if gcp.Spec.IpName == "" {
 		gcp.Spec.IpName = gcp.Name + "-ip"
 	}
@@ -792,17 +824,19 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 		gcp.Spec.Hostname = gcp.Name + ".endpoints." + gcp.Spec.Project + ".cloud.goog"
 	}
 	if gcp.Spec.UseBasicAuth {
-		nv = gcp.Spec.ComponentParams["basic-auth-ingress"]
-		setNameVal(&nv, "ipName", gcp.Spec.IpName, true)
-		setNameVal(&nv, "hostname", gcp.Spec.Hostname, true)
+		gcp.Spec.ComponentParams["basic-auth-ingress"] = setNameVal(gcp.Spec.ComponentParams["basic-auth-ingress"], "ipName", gcp.Spec.IpName, true)
+		gcp.Spec.ComponentParams["basic-auth-ingress"] = setNameVal(gcp.Spec.ComponentParams["basic-auth-ingress"], "hostname", gcp.Spec.Hostname, true)
 	} else {
-		nv = gcp.Spec.ComponentParams["iap-ingress"]
-		setNameVal(&nv, "ipName", gcp.Spec.IpName, true)
-		setNameVal(&nv, "hostname", gcp.Spec.Hostname, true)
+		gcp.Spec.ComponentParams["iap-ingress"] = setNameVal(gcp.Spec.ComponentParams["iap-ingress"], "ipName", gcp.Spec.IpName, true)
+		gcp.Spec.ComponentParams["iap-ingress"] = setNameVal(gcp.Spec.ComponentParams["iap-ingress"], "hostname", gcp.Spec.Hostname, true)
 	}
-	nv = gcp.Spec.ComponentParams["pipeline"]
-	setNameVal(&nv, "mysqlPd", gcp.Name+"-storage-metadata-store", false)
-	setNameVal(&nv, "minioPd", gcp.Name+"-storage-artifact-store", false)
+	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "mysqlPd", gcp.Name+"-storage-metadata-store", false)
+	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "minioPd", gcp.Name+"-storage-artifact-store", false)
+
+	if gcp.Spec.UseIstio {
+		gcp.Spec.ComponentParams["iap-ingress"] = setNameVal(gcp.Spec.ComponentParams["iap-ingress"], "useIstio", "true", false)
+	}
+
 	createConfigErr := gcp.writeConfigFile()
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", gcp.Spec.AppDir)
@@ -854,6 +888,7 @@ func (gcp *Gcp) gcpInitProject() error {
 	return nil
 }
 
+// Init initializes a gcp kfapp
 func (gcp *Gcp) Init(resources kftypes.ResourceEnum) error {
 	cacheDir := path.Join(gcp.Spec.AppDir, kftypes.DefaultCacheDir)
 	newPath := filepath.Join(cacheDir, gcp.Spec.Version)
