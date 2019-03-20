@@ -35,13 +35,15 @@ def test_build_kfctl_go(app_path, project):
   run_with_retries(["make", "build-kfctl"], cwd=build_dir)
   kfctl_path = os.path.join(build_dir, "bin", "kfctl")
 
+  # Set ENV for basic auth username/password.
+  os.environ["KUBEFLOW_USERNAME"] = "kf-test-user"
+  os.environ["KUBEFLOW_PASSWORD"] = str(uuid.uuid4().hex)
+
   # We don't want the password to show up in the logs because the logs
   # are public. So we use subprocess and not util.run
   subprocess.check_call([kfctl_path, "init", app_path, "-V", "--platform=gcp",
                          "--use_basic_auth", "--skip-init-gcp-project",
-                         "--project=" + project,
-                         "--basic_auth_username=kf-test-user",
-                         "--basic_auth_password=" + uuid.uuid4().hex])
+                         "--project=" + project])
 
   # TODO(jlewi): We need to specify a valid email otherwise we get an error
   # when trying to apply the IAM policy.
