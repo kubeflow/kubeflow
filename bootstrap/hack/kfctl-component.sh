@@ -1,4 +1,26 @@
 #!/usr/bin/env bash
+#
+# this will deploy a single component using kfctl 
+# It is expected to be run in a container where kfctl is built
+# The image is built in the Makefile 
+#   `make build-kfctl-container`
+# Deploying a single component can be done by saving below in a job.yaml
+# and running `kubectl apply -f job.yaml`
+#
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   name: deploycomponent
+# spec:
+#   template:
+#     spec:
+#       containers:
+#       - name: deploycomponent
+#         image: gcr.io/$CLOUD_PROJECT/kfctl
+#         command: ["/usr/local/bin/kfctl-component.sh",  "add", "openvino", "--image=XXX"]
+#       restartPolicy: Never
+#   backoffLimit: 1
+#
 
 usage () 
 {
