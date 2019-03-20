@@ -32,8 +32,8 @@ def test_build_kfctl_go(app_path, project):
   kfctl_path = os.path.join(build_dir, "bin", "kfctl")
 
   # Set ENV for basic auth username/password.
-  os.environ["BASIC_AUTH_USERNAME"] = "kf-test-user"
-  os.environ["BASIC_AUTH_PASSWORD"] = str(uuid.uuid4().hex)
+  os.environ["KUBEFLOW_USERNAME"] = "kf-test-user"
+  os.environ["KUBEFLOW_PASSWORD"] = str(uuid.uuid4().hex)
 
   # We don't want the password to show up in the logs because the logs
   # are public. So we use subprocess and not util.run
