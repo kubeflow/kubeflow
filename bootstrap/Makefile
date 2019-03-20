@@ -109,12 +109,16 @@ build:
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.
 push: build
-	docker push $(IMG):$(TAG)
-	@echo Pushed $(IMG):$(TAG)
+	docker push $(BOOTSTRAPPER_IMG):$(TAG)
+	@echo Pushed $(BOOTSTRAPPER_IMG):$(TAG)
 
 push-latest: push
-	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
-	echo created $(IMG):latest
+	gcloud container images add-tag --quiet $(BOOTSTRAPPER_IMG):$(TAG) $(BOOTSTRAPPER_IMG):latest --verbosity=info
+	echo created $(BOOTSTRAPPER_IMG):latest
+
+push-kfctl-container: build-kfctl-container
+	docker push $(KFCTL_IMG):$(TAG)
+	@echo Pushed $(KFCTL_IMG):$(TAG)
 
 install: build-kfctl dockerfordesktop.so
 	@echo copying bin/kfctl to /usr/local/bin
@@ -123,7 +127,7 @@ install: build-kfctl dockerfordesktop.so
 run-local-docker:
 	docker run -d -it --name bootstrapper \
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
-	  --entrypoint /bin/bash $(IMG):$(TAG)
+	  --entrypoint /bin/bash $(BOOTSTRAPPER_IMG):$(TAG)
 
 clean: 
 	rm -rf test && mkdir test
