@@ -39,7 +39,7 @@
       subjects: [
         {
           kind: "ServiceAccount",
-          name: "alb-ingress",
+          name: "alb-ingress-controller",
           namespace: params.namespace,
         },
       ],
@@ -112,8 +112,8 @@
             restartPolicy: "Always",
             securityContext: {},
             terminationGracePeriodSeconds: 30,
-            serviceAccountName: "alb-ingress",
-            serviceAccount: "alb-ingress",
+            serviceAccountName: "alb-ingress-controller",
+            serviceAccount: "alb-ingress-controller",
           },
         },
       },

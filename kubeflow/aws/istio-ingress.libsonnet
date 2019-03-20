@@ -3,7 +3,7 @@
   local util = import "kubeflow/common/util.libsonnet",
   new(_env, _params):: {
     local params = _params + _env {
-      disableJwtChecking: util.toBool(_params.disableJwtChecking),
+      enableJwtChecking: util.toBool(_params.enableJwtChecking),
       hostname: if std.objectHas(_params, "hostname") then _params.hostname else "null",
       istioTls: util.toBool(_params.istioTls),
     },
@@ -153,7 +153,7 @@
       self.gateway,
       self.virtualService,
       self.ingress,
-    ] + if params.disableJwtChecking then [
+    ] + if params.enableJwtChecking then [
       self.policy,
     ],
 
