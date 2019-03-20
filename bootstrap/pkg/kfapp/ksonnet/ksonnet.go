@@ -336,23 +336,26 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 	if err != nil {
 		log.Infof("there was a problem deleting %v: %v", components, err)
 	}
-	// log.Infof("deleting namespace: %v", namespace)
-	// clientset := kftypes.GetClientset(config)
-	// ns, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
-	// if nsMissingErr == nil {
-	// 	nsErr := clientset.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
-	// 	if nsErr != nil {
-	// 		return fmt.Errorf("couldn't delete namespace %v Error: %v", namespace, nsErr)
-	// 	}
-	// }
-	// name := "meta-controller-cluster-role-binding"
-	// crb, crbErr := clientset.RbacV1().ClusterRoleBindings().Get(name, metav1.GetOptions{})
-	// if crbErr == nil {
-	// 	crbDeleteErr := clientset.RbacV1().ClusterRoleBindings().Delete(crb.Name, metav1.NewDeleteOptions(int64(5)))
-	// 	if crbDeleteErr != nil {
-	// 		return fmt.Errorf("couldn't delete clusterrolebinding %v Error: %v", name, crbDeleteErr)
-	// 	}
-	// }
+	log.Infof("try to delete namespace: %v", namespace)
+	clientset := kftypes.GetClientset(config)
+	ns, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	if nsMissingErr == nil {
+		log.Infof("namespace %v is found, deleting", namespace)
+		nsErr := clientset.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
+		if nsErr != nil {
+			return fmt.Errorf("couldn't delete namespace %v Error: %v", namespace, nsErr)
+		}
+	}
+
+	name := "meta-controller-cluster-role-binding"
+	log.Infof("deleting %v", name)
+	crb, crbErr := clientset.RbacV1().ClusterRoleBindings().Get(name, metav1.GetOptions{})
+	if crbErr == nil {
+		crbDeleteErr := clientset.RbacV1().ClusterRoleBindings().Delete(crb.Name, metav1.NewDeleteOptions(int64(5)))
+		if crbDeleteErr != nil {
+			return fmt.Errorf("couldn't delete clusterrolebinding %v Error: %v", name, crbDeleteErr)
+		}
+	}
 	return nil
 }
 
