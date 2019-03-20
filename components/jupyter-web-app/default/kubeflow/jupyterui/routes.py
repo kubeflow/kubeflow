@@ -2,20 +2,24 @@
 import json
 from flask import jsonify, render_template, request
 from kubernetes.client.rest import ApiException
-from kubeflow.jupyter import app
-from kubeflow.jupyter.server import parse_error, \
-            get_namespaces, \
-            get_notebooks, \
-            delete_notebook, \
-            create_notebook, \
-            create_pvc
-from kubeflow.jupyter.utils import create_notebook_template, \
-            create_pvc_template, \
-            set_notebook_names, \
-            set_notebook_image, \
-            set_notebook_cpu_ram, \
-            add_notebook_volume, \
-            spawner_ui_config
+from kubeflow.jupyterui import app
+from baseui.api import parse_error, \
+    get_namespaces, \
+    get_notebooks, \
+    get_default_storageclass, \
+    delete_notebook, \
+    create_notebook, \
+    create_datavol_pvc, \
+    create_workspace_pvc
+from baseui.utils import create_notebook_template, \
+    set_notebook_names, \
+    set_notebook_image, \
+    set_notebook_cpu_ram, \
+    add_notebook_volume, \
+    spawner_ui_config, \
+    create_logger
+
+logger = create_logger(__name__)
 
 
 # Helper function for getting the prefix of the webapp
@@ -46,15 +50,8 @@ def post_notebook_route():
 
   # Workspacae Volume
   if body["ws_type"] == "New":
-    pvc = create_pvc_template()
-    pvc['metadata']['name'] = body['ws_name']
-    pvc['metadata']['namespace'] = body['ns']
-    pvc['spec']['accessModes'].append(body['ws_access_modes'])
-    pvc['spec']['resources']['requests']['storage'] = \
-        body['ws_size'] + 'Gi'
-
     try:
-      create_pvc(pvc)
+      create_workspace_pvc(body)
     except ApiException as e:
       data["success"] = False
       data["log"] = parse_error(e)
@@ -79,22 +76,14 @@ def post_notebook_route():
 
     # Create a PVC if its a new Data Volume
     if body["vol_type" + i] == "New":
-      size = body['vol_size' + i] + 'Gi'
-      mode = body['vol_access_modes' + i]
-      pvc = create_pvc_template()
-
-      pvc['metadata']['name'] = pvc_nm
-      pvc['metadata']['namespace'] = body['ns']
-      pvc['spec']['accessModes'].append(mode)
-      pvc['spec']['resources']['requests']['storage'] = size
-
       try:
-        create_pvc(pvc)
+        create_datavol_pvc(data, i)
       except ApiException as e:
         data["success"] = False
         data["log"] = parse_error(e)
         return jsonify(data)
 
+    # Create the Data Volume in the Pod
     add_notebook_volume(notebook, vol_nm, pvc_nm, mnt)
     counter += 1
 
@@ -128,9 +117,17 @@ def add_notebook_route():
   else:
     ns = "kubeflow"
 
+  is_default = False
+  try:
+    if get_default_storageclass() != "":
+      is_default = True
+  except ApiException as e:
+    logger.warning("Can't  list storageclasses: %s" % parse_error(e))
+
   form_defaults = spawner_ui_config("notebook")
   return render_template(
-      'add_notebook.html', prefix=prefix(), ns=ns, form_defaults=form_defaults)
+      'add_notebook.html', prefix=prefix(), ns=ns, form_defaults=form_defaults,
+      default_storage_class=is_default)
 
 
 @app.route("/delete-notebook", methods=['GET', 'POST'])
@@ -174,8 +171,9 @@ def notebooks_route():
   # Get the namespaces the token can see
   try:
     nmsps = get_namespaces()
-  except ApiException:
+  except ApiException as e:
     nmsps = [base_ns]
+    logger.warning("Can't  list namespaces: %s" % parse_error(e))
 
   return render_template(
       'notebooks.html', prefix=prefix(), title='Notebooks', namespaces=nmsps)

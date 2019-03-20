@@ -1,13 +1,24 @@
-# -*- coding: utf-8 -*-
 import yaml
+import logging
+import sys
 
 CONFIG = "/etc/config/spawner_ui_config.yaml"
 
 
+def create_logger(name):
+  handler = logging.StreamHandler(sys.stdout)
+  handler.setFormatter(logging.Formatter(
+      "%(asctime)s | %(name)s | %(levelname)s | %(message)s"))
+  logger = logging.getLogger(name)
+  logger.setLevel(logging.INFO)
+  logger.addHandler(handler)
+  return logger
+
+
 # Functions for handling the JWT token
 def load_file(filepath):
-  with open(filepath, 'r') as f:
-    file_data = f.read().replace('\n', '')
+  with open(filepath, "r") as f:
+    file_data = f.read().replace("\n", "")
 
   return file_data
 
@@ -17,10 +28,10 @@ def load_file(filepath):
 def spawner_ui_config(username):
   c = None
   try:
-    with open(CONFIG, 'r') as f:
+    with open(CONFIG, "r") as f:
       c = f.read().format(username=username)
   except IOError:
-    print('Error opening Spawner UI config file')
+    print("Error opening Spawner UI config file")
 
   try:
     if yaml.safe_load(c) is None:
@@ -33,7 +44,8 @@ def spawner_ui_config(username):
     return None
 
 
-# Helper functions for the /post-notebook route.
+# Since notebook is a CRD, we don't currently have k8s client functions to
+# create the corresponding object.
 def create_notebook_template():
   notebook = {
       "apiVersion": "kubeflow.org/v1alpha1",
@@ -61,31 +73,11 @@ def create_notebook_template():
   return notebook
 
 
-def create_pvc_template():
-  pvc = {
-      "apiVersion": "v1",
-      "kind": "PersistentVolumeClaim",
-      "metadata": {
-          "name": "",
-          "namespace": "",
-      },
-      "spec": {
-          "accessModes": [],
-          "resources": {
-              "requests": {
-                  "storage": ""
-              }
-          },
-      }
-  }
-  return pvc
-
-
 def set_notebook_names(nb, body):
-  nb['metadata']['name'] = body["nm"]
-  nb['metadata']['labels']['app'] = body["nm"]
-  nb['spec']['template']['spec']['containers'][0]['name'] = body["nm"]
-  nb['metadata']['namespace'] = body["ns"]
+  nb["metadata"]["name"] = body["nm"]
+  nb["metadata"]["labels"]["app"] = body["nm"]
+  nb["spec"]["template"]["spec"]["containers"][0]["name"] = body["nm"]
+  nb["metadata"]["namespace"] = body["ns"]
 
 
 def set_notebook_image(nb, body):
@@ -93,27 +85,27 @@ def set_notebook_image(nb, body):
     image = body["standardImages"]
   else:
     image = body["customImage"]
-  nb["spec"]['template']['spec']['containers'][0]['image'] = image
+  nb["spec"]["template"]["spec"]["containers"][0]["image"] = image
 
 
 def set_notebook_cpu_ram(nb, body):
-  notebook_cont = nb["spec"]['template']['spec']['containers'][0]
+  notebook_cont = nb["spec"]["template"]["spec"]["containers"][0]
 
-  notebook_cont['resources'] = {
-      'requests': {
-          'cpu': body['cpu'],
-          'memory': body['memory']
+  notebook_cont["resources"] = {
+      "requests": {
+          "cpu": body["cpu"],
+          "memory": body["memory"]
       }
   }
 
 
 def add_notebook_volume(nb, vol, claim, mnt_path):
   # Create the volume in the Pod
-  notebook_spec = nb["spec"]['template']['spec']
-  notebook_cont = nb["spec"]['template']['spec']['containers'][0]
+  notebook_spec = nb["spec"]["template"]["spec"]
+  notebook_cont = nb["spec"]["template"]["spec"]["containers"][0]
 
   volume = {"name": vol, "persistentVolumeClaim": {"claimName": claim}}
-  notebook_spec['volumes'].append(volume)
+  notebook_spec["volumes"].append(volume)
 
   # Container volumeMounts
   mnt = {"mountPath": mnt_path, "name": vol}
