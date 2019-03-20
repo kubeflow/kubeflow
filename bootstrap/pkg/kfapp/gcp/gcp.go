@@ -452,16 +452,33 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
+// Apply applies the gcp kfapp.
 func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 	if gcp.KfDef.Spec.UseBasicAuth && (os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" ||
 		os.Getenv(kftypes.KUBEFLOW_PASSWORD) == "") {
-		return fmt.Errorf("gcp apply needs ENV %v and %v set when using basic auth.",
+		return fmt.Errorf("gcp apply needs ENV %v and %v set when using basic auth",
 			kftypes.KUBEFLOW_USERNAME, kftypes.KUBEFLOW_PASSWORD)
 	}
+	// Update deployment manager
 	updateDMErr := gcp.updateDM(resources)
 	if updateDMErr != nil {
 		return fmt.Errorf("gcp apply could not update deployment manager Error %v", updateDMErr)
 	}
+	// Install Istio
+	if gcp.Spec.UseIstio {
+		log.Infof("Installing istio...")
+		istioDir := path.Join(gcp.Spec.AppDir, ISTIO_DIR)
+		err := utils.RunKubectlApply(path.Join(istioDir, ISTIO_CRD))
+		if err != nil {
+			return fmt.Errorf("gcp apply could not install istio, Error %v", err)
+		}
+		err = utils.RunKubectlApply(path.Join(istioDir, ISTIO_INSTALL))
+		if err != nil {
+			return fmt.Errorf("gcp apply could not install istio, Error %v", err)
+		}
+		log.Infof("Done installing istio.")
+	}
+	// Insert secrets into the cluster
 	secretsErr := gcp.createSecrets()
 	if secretsErr != nil {
 		return fmt.Errorf("gcp apply could not create secrets Error %v", secretsErr)
@@ -663,16 +680,15 @@ func (gcp *Gcp) downloadK8sManifests() error {
 	return nil
 }
 
-// Write configuration to cluster as secret.
-func (gcp *Gcp) writeGcpSecret(client *clientset.Clientset, secretName string, data map[string][]byte) error {
+func (gcp *Gcp) insertSecret(client *clientset.Clientset, secretName string, namespace string, data map[string][]byte) error {
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
-			Namespace: gcp.Namespace,
+			Namespace: namespace,
 		},
 		Data: data,
 	}
-	_, err := client.CoreV1().Secrets(gcp.Namespace).Create(secret)
+	_, err := client.CoreV1().Secrets(namespace).Create(secret)
 	return err
 }
 
@@ -710,9 +726,22 @@ func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientse
 	if err != nil {
 		return fmt.Errorf("PrivateKeyData decoding error: %v", err)
 	}
-	return gcp.writeGcpSecret(client, secretName, map[string][]byte{
+	err = gcp.insertSecret(client, secretName, gcp.Namespace, map[string][]byte{
 		secretName + ".json": privateKeyData,
 	})
+	if err != nil {
+		return err
+	}
+	// If using istio, also creates the secret in istio's namespace
+	if gcp.Spec.UseIstio {
+		err = gcp.insertSecret(client, secretName, IstioNamespace, map[string][]byte{
+			secretName + ".json": privateKeyData,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // User CLIENT_ID and CLIENT_SECRET from GCP to create a secret for IAP.
@@ -732,7 +761,11 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
 			string(kftypes.OAUTH_SECRET), CLIENT_SECRET)
 	}
-	return gcp.writeGcpSecret(client, KUBEFLOW_OAUTH, map[string][]byte{
+	oauthSecretNamespace := gcp.Namespace
+	if gcp.Spec.UseIstio {
+		oauthSecretNamespace = IstioNamespace
+	}
+	return gcp.insertSecret(client, KUBEFLOW_OAUTH, oauthSecretNamespace, map[string][]byte{
 		strings.ToLower(CLIENT_ID):     []byte(oauthId),
 		strings.ToLower(CLIENT_SECRET): []byte(oauthSecret),
 	})
