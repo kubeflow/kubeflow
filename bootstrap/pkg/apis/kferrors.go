@@ -14,4 +14,19 @@
 
 package apis
 
-import ()
+import (
+	"fmt"
+)
+
+// KfError stands for Kubeflow error. This is the standard error interface
+// for Kubeflow components.
+type KfError struct {
+	// Code is the HTTP response status code.
+	Code    int    `json:"code"`
+	Message string `json:"message,omitempty"`
+}
+
+func (e *Error) Error() string {
+	return fmt.Sprintf(" (kubeflow.error): Code %d with message: %v",
+		e.Code, e.Message)
+}
