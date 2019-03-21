@@ -51,7 +51,8 @@ const (
 	DefaultAppLabel   = "app.kubernetes.io/name"
 	KUBEFLOW_USERNAME = "KUBEFLOW_USERNAME"
 	KUBEFLOW_PASSWORD = "KUBEFLOW_PASSWORD"
-	DefaultSwaggerFile = "bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json"
+	// TODO: switch to bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json
+	DefaultSwaggerFile = "releasing/releaser/lib/v1.9.7/swagger.json"
 )
 
 type ResourceEnum string
