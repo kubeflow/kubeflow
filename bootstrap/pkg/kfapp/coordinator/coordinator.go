@@ -299,7 +299,7 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	}
 	if options[string(kftypes.IPNAME)] != nil && options[string(kftypes.IPNAME)].(string) != "" {
 		kfdef.Spec.IpName = options[string(kftypes.IPNAME)].(string)
-	} else if kfdef.Name != "" {
+	} else if kfdef.Spec.Platform == kftypes.GCP && kfdef.Name != "" {
 		kfdef.Spec.IpName = kfdef.Name + "-ip"
 	}
 	if options[string(kftypes.PROJECT)] != nil && options[string(kftypes.PROJECT)].(string) != "" {
@@ -312,7 +312,7 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	}
 	if options[string(kftypes.ZONE)] != nil && options[string(kftypes.ZONE)].(string) != "" {
 		kfdef.Spec.Zone = options[string(kftypes.ZONE)].(string)
-	} else  {
+	} else if kfdef.Spec.Platform == kftypes.GCP {
 		kfdef.Spec.Zone = kftypes.DefaultZone
 	}
 	if options[string(kftypes.USE_BASIC_AUTH)] != nil {
