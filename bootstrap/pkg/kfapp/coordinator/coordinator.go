@@ -29,11 +29,11 @@ import (
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
+	valid "k8s.io/apimachinery/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"path"
 	"path/filepath"
-	"regexp"
 	"strings"
 )
 
@@ -111,7 +111,7 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 	}
 	//TODO see #2629
 	configPath := filepath.Join(newPath, kftypes.DefaultConfigDir)
-	if platform == "gcp" {
+	if platform == kftypes.GCP {
 		if useBasicAuth {
 			configPath = filepath.Join(configPath, kftypes.GcpBasicAuth)
 		} else {
@@ -210,11 +210,9 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			appDir = path.Join(appDir, appName)
 		}
 	}
-	re := regexp.MustCompile(`[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$`)
-	validName := re.FindString(appName)
-	if strings.Compare(validName, appName) != 0 {
-		return nil, fmt.Errorf(`invalid name %v must consist of lower case alphanumeric characters, '-' or '.',
-and must start and end with an alphanumeric character`, appName)
+	errs := valid.NameIsDNSLabel(appName, false)
+	if errs != nil && len(errs) > 0 {
+		return nil, fmt.Errorf(`invalid name due to %v`, strings.Join(errs, ", "))
 	}
 	platform := options[string(kftypes.PLATFORM)].(string)
 	version := options[string(kftypes.VERSION)].(string)
