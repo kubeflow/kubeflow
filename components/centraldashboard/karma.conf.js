@@ -5,6 +5,7 @@ webpackConfig.devtool = 'inline-source-map';
 module.exports = function(config) {
     config.set({
         basePath: '',
+        browsers: ['ChromeHeadless'],
         frameworks: ['jasmine'],
         files: [
             {pattern: 'public/**/*_test.js', watched: false},
@@ -16,6 +17,5 @@ module.exports = function(config) {
         webpack: webpackConfig,
         webpackMiddleware: {stats: 'errors-only'},
         reporters: ['progress', 'kjhtml'],
-        browsers: ['Chrome'],
     });
 };
