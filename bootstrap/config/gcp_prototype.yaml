@@ -4,8 +4,6 @@ defaultApp:
   components:
   - name: metacontroller
     prototype: metacontroller
-  - name: jupyter
-    prototype: jupyter
   - name: ambassador
     prototype: ambassador
   - name: centraldashboard
@@ -28,8 +26,8 @@ defaultApp:
     prototype: pipeline
   - name: jupyter-web-app
     prototype: jupyter-web-app
-  - name: notebook_controller
-    prototype: notebook_controller
+  - name: notebook-controller
+    prototype: notebook-controller
   parameters:
   - component: cloud-endpoints
     name: secretName
@@ -46,12 +44,6 @@ defaultApp:
     name: hostname
     # TODO: replace with Name of GCP project. This is fully qualified domain name to use with ingress.
     value: kubeflow.endpoints.<Project>.cloud.goog
-  - component: jupyter
-    name: jupyterHubAuthenticator
-    value: iap
-  - component: jupyter
-    name: platform
-    value: gke
   - component: ambassador
     name: platform
     value: gke

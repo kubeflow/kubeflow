@@ -17,7 +17,7 @@ app:
       prototype: spartakus
     - name: jupyter-web-app
       prototype: jupyter-web-app
-    - name: notebook_controller
-      prototype: notebook_controller
+    - name: notebook-controller
+      prototype: notebook-controller
   registries:
     - name: kubeflow

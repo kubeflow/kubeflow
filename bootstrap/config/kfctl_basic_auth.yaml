@@ -30,7 +30,6 @@ components:
   - centraldashboard
   - cert-manager
   - cloud-endpoints
-  - jupyter
   - jupyter-web-app
   - katib
   - metacontroller

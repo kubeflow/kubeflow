@@ -29,7 +29,6 @@ components:
   - cert-manager
   - cloud-endpoints
   - iap-ingress
-  - jupyter
   - jupyter-web-app
   - katib
   - metacontroller
@@ -60,11 +59,6 @@ componentParams:
   cloud-endpoints:
     - name: secretName
       value: admin-gcp-sa
-  jupyter:
-    - name: jupyterHubAuthenticator
-      value: iap
-    - name: platform
-      value: gke
   pipeline:
     - name: mysqlPd
       value: <deployName>-storage-metadata-store

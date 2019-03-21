@@ -26,7 +26,6 @@ components:
   - application
   - argo
   - centraldashboard
-  - jupyter
   - jupyter-web-app
   - katib
   - metacontroller
