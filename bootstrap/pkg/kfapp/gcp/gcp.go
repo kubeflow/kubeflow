@@ -419,7 +419,47 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
+func deleteDeployment(deploymentmanagerService *deploymentmanager.Service, ctx context.Context,
+	project string, name string) error {
+	op, err := deploymentmanagerService.Deployments.Delete(project, name).Context(ctx).Do()
+	if err != nil {
+		return fmt.Errorf("Gcp.Delete is failed for %v/%v: %v", project, name, err)
+	}
+	if err = blockingWait(project, op.Name, deploymentmanagerService, ctx); err != nil {
+		return fmt.Errorf("Gcp.Delete is failed for %v/%v: %v", project, name, err)
+	}
+	return nil
+}
+
 func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
+	ctx := context.Background()
+	client, err := google.DefaultClient(ctx, deploymentmanager.CloudPlatformScope)
+	if err != nil {
+		return fmt.Errorf("Error getting DefaultClient: %v", err)
+	}
+	deploymentmanagerService, err := deploymentmanager.New(client)
+	if err != nil {
+		return fmt.Errorf("Error creating deploymentmanagerService: %v", err)
+	}
+
+	project := gcp.Spec.Project
+	deletingDeployments := []string{
+		gcp.Name,
+		gcp.Name + "-storage",
+	}
+	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
+		deletingDeployments = append(deletingDeployments, gcp.Name+"-network")
+	}
+	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
+		deletingDeployments = append(deletingDeployments, gcp.Name+"-gcfs")
+	}
+
+	for _, d := range deletingDeployments {
+		if err = deleteDeployment(deploymentmanagerService, ctx, project, d); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
