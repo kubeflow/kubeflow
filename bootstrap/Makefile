@@ -138,7 +138,7 @@ run-local-docker:
 	  --entrypoint /bin/bash $(BOOTSTRAPPER_IMG):$(TAG)
 
 clean: 
-	rm -rf test && mkdir test
+	rm -rf test && rm -rf /tmp/v2 && mkdir test
 
 test-init: clean install dockerfordesktop.init minikube.init gcp.init none.init-no-platform
 
