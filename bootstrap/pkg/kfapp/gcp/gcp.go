@@ -696,7 +696,7 @@ func (gcp *Gcp) downloadK8sManifests() error {
 	return nil
 }
 
-func (gcp *Gcp) insertSecret(client *clientset.Clientset, secretName string, namespace string, data map[string][]byte) error {
+func insertSecret(client *clientset.Clientset, secretName string, namespace string, data map[string][]byte) error {
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
@@ -741,7 +741,7 @@ func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientse
 	if err != nil {
 		return fmt.Errorf("PrivateKeyData decoding error: %v", err)
 	}
-	return gcp.insertSecret(client, secretName, namespace, map[string][]byte{
+	return insertSecret(client, secretName, namespace, map[string][]byte{
 		secretName + ".json": privateKeyData,
 	})
 }
@@ -769,7 +769,7 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 			string(kftypes.OAUTH_SECRET), CLIENT_SECRET)
 	}
 
-	return gcp.insertSecret(client, KUBEFLOW_OAUTH, oauthSecretNamespace, map[string][]byte{
+	return insertSecret(client, KUBEFLOW_OAUTH, oauthSecretNamespace, map[string][]byte{
 		strings.ToLower(CLIENT_ID):     []byte(oauthId),
 		strings.ToLower(CLIENT_SECRET): []byte(oauthSecret),
 	})
