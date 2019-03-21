@@ -42,7 +42,11 @@ var deleteCmd = &cobra.Command{
 		if resourceErr != nil {
 			return fmt.Errorf("invalid resource: %v", resourceErr)
 		}
-		kfApp, kfAppErr := coordinator.LoadKfApp(map[string]interface{}{})
+		deleteStorage := deleteCfg.GetBool(string(kftypes.DELETE_STORAGE))
+		options := map[string]interface{}{
+			string(kftypes.DELETE_STORAGE): deleteStorage,
+		}
+		kfApp, kfAppErr := coordinator.LoadKfApp(options)
 		if kfAppErr != nil {
 			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}
@@ -66,6 +70,14 @@ func init() {
 	bindErr := deleteCfg.BindPFlag(string(kftypes.VERBOSE), deleteCmd.Flags().Lookup(string(kftypes.VERBOSE)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERBOSE), bindErr)
+		return
+	}
+
+	deleteCmd.Flags().Bool(string(kftypes.DELETE_STORAGE), false,
+		"Set if you want to delete storage deployment.")
+	bindErr = deleteCfg.BindPFlag(string(kftypes.DELETE_STORAGE), deleteCmd.Flags().Lookup(string(kftypes.DELETE_STORAGE)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.DELETE_STORAGE), bindErr)
 		return
 	}
 }

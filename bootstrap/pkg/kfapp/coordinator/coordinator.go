@@ -44,7 +44,7 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	_coordinator := &coordinator{
 		Platforms:       make(map[string]kftypes.KfApp),
 		PackageManagers: nil,
-		KfDef: kfdef,
+		KfDef:           kfdef,
 	}
 	// fetch the platform [gcp,minikube]
 	platform := _coordinator.KfDef.Spec.Platform
@@ -154,15 +154,15 @@ func getPackageManagers(kfdef *kfdefs.KfDef) *map[string]kftypes.KfApp {
 	}
 	//TODO provide a global flag that adds kustomize so either kustomize or ksonnet can be selected
 	/*
-	_packagemanager, _packagemanagerErr = getPackageManager("kustomize", kfdef)
-	if _packagemanagerErr != nil {
-		log.Fatalf("could not get packagemanager %v Error %v **", "kustomize", _packagemanagerErr)
+		_packagemanager, _packagemanagerErr = getPackageManager("kustomize", kfdef)
+		if _packagemanagerErr != nil {
+			log.Fatalf("could not get packagemanager %v Error %v **", "kustomize", _packagemanagerErr)
 
-	}
-	if _packagemanager != nil {
-		packagemanagers["kustomize"] = _packagemanager
-	}
-	 */
+		}
+		if _packagemanager != nil {
+			packagemanagers["kustomize"] = _packagemanager
+		}
+	*/
 	return &packagemanagers
 }
 
@@ -232,8 +232,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			Kind:       "KfDef",
 			APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
 		},
-		Spec: kfdefs.KfDefSpec{
-		},
+		Spec: kfdefs.KfDefSpec{},
 	}
 	specErr := yaml.Unmarshal(configFileBuffer, &kfDef.Spec)
 	if specErr != nil {
@@ -282,8 +281,7 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			Kind:       "KfDef",
 			APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
 		},
-		Spec: kfdefs.KfDefSpec{
-		},
+		Spec: kfdefs.KfDefSpec{},
 	}
 	err = unmarshalAppYaml(cfgfile, kfdef)
 	if err != nil {
@@ -307,7 +305,7 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	}
 	if options[string(kftypes.ZONE)] != nil && options[string(kftypes.ZONE)].(string) != "" {
 		kfdef.Spec.Zone = options[string(kftypes.ZONE)].(string)
-	} else  {
+	} else {
 		kfdef.Spec.Zone = kftypes.DefaultZone
 	}
 	if options[string(kftypes.USE_BASIC_AUTH)] != nil {
@@ -318,6 +316,9 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	}
 	if options[string(kftypes.MOUNT_LOCAL)] != nil {
 		kfdef.Spec.MountLocal = options[string(kftypes.MOUNT_LOCAL)].(bool)
+	}
+	if options[string(kftypes.DELETE_STORAGE)] != nil {
+		kfdef.Spec.DeleteStorage = options[string(kftypes.DELETE_STORAGE)].(bool)
 	}
 	pApp := GetKfApp(kfdef)
 	return pApp, nil
@@ -330,7 +331,7 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 type coordinator struct {
 	Platforms       map[string]kftypes.KfApp
 	PackageManagers map[string]kftypes.KfApp
-	KfDef          *kfdefs.KfDef
+	KfDef           *kfdefs.KfDef
 }
 
 func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
@@ -404,15 +405,15 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum) error {
 	}
 
 	switch resources {
-		case kftypes.ALL:
-			if err := platform(); err != nil {
-				return err
-			}
-			return k8s()
-		case kftypes.PLATFORM:
-			return platform()
-		case kftypes.K8S:
-			return k8s()
+	case kftypes.ALL:
+		if err := platform(); err != nil {
+			return err
+		}
+		return k8s()
+	case kftypes.PLATFORM:
+		return platform()
+	case kftypes.K8S:
+		return k8s()
 	}
 	return nil
 }
@@ -522,5 +523,3 @@ func (kfapp *coordinator) Show(resources kftypes.ResourceEnum, options map[strin
 	}
 	return nil
 }
-
-
