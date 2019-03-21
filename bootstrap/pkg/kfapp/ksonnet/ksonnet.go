@@ -363,16 +363,21 @@ func (ksApp *ksApp) initKs() error {
 	}
 	ksApp.KsEnvName = KsEnvName
 	k8sSpec := ksApp.Spec.ServerVersion
+	host := "127.0.0.1"
 	if k8sSpec == "" {
-		k8sSpec = kftypes.GetServerVersion(kftypes.GetClientset(kftypes.GetConfig()))
+		config := kftypes.GetConfig()
+		host = config.Host
+		k8sSpec = kftypes.GetServerVersion(kftypes.GetClientset(config))
+		if k8sSpec == "" {
+			return fmt.Errorf("could not find kubernetes version info")
+		}
 	}
 	options := map[string]interface{}{
-		actions.OptionFs:      afero.NewOsFs(),
-		actions.OptionName:    ksApp.KsName,
-		actions.OptionEnvName: ksApp.KsEnvName,
-		actions.OptionNewRoot: newRoot,
-		// Using local host appears to fool ksonnet on init. We will add a new environment later.
-		actions.OptionServer:                "127.0.0.1",
+		actions.OptionFs:                    afero.NewOsFs(),
+		actions.OptionName:                  ksApp.KsName,
+		actions.OptionEnvName:               ksApp.KsEnvName,
+		actions.OptionNewRoot:               newRoot,
+		actions.OptionServer:                host,
 		actions.OptionSpecFlag:              k8sSpec,
 		actions.OptionNamespace:             ksApp.Namespace,
 		actions.OptionSkipDefaultRegistries: true,
