@@ -33,6 +33,7 @@ RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 #
 FROM bootstrap_base as kfctl_base
 
+RUN apt-get install unzip
 WORKDIR ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
 RUN GO111MODULE=off GOPATH=${GOPATH} go get k8s.io/code-generator/cmd/deepcopy-gen 
 RUN ${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/config/... -O zz_generated.deepcopy
