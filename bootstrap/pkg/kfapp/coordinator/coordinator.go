@@ -74,6 +74,10 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 		}
 	}
 	cacheDir := path.Join(appDir, kftypes.DefaultCacheDir)
+	// idempotency
+	if _, err := os.Stat(cacheDir); !os.IsNotExist(err) {
+		os.RemoveAll(cacheDir)
+	}
 	cacheDirErr := os.Mkdir(cacheDir, os.ModePerm)
 	if cacheDirErr != nil {
 		return nil, fmt.Errorf("couldn't create directory %v Error %v", cacheDir, cacheDirErr)
