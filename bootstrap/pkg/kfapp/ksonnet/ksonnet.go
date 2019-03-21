@@ -175,6 +175,9 @@ func (ksApp *ksApp) showComponent(components []string) error {
 }
 
 func (ksApp *ksApp) applyComponent(components []string, cfg *clientcmdapi.Config) error {
+	if ksApp.Spec.DryRun {
+		log.SetLevel(log.InfoLevel)
+	}
 	applyOptions := map[string]interface{}{
 		actions.OptionApp: ksApp.KApp,
 		actions.OptionClientConfig: &client.Config{
