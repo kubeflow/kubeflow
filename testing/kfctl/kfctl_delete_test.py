@@ -26,12 +26,8 @@ def test_kfctl_delete(kfctl_path, app_path, project):
   logging.info("Using kfctl path %s", kfctl_path)
   logging.info("Using app path %s", app_path)
 
-  util.run([kfctl_path, "delete", "-V", "all"], cwd=app_path)
-
-  # Delete the storage
-  app_name = os.path.basename(app_path)
-  util.run(["gcloud", "deployment-manager", "--project=" + project,
-            "deployments", "delete", app_name + "-storage", "--quiet"])
+  util.run([kfctl_path, "delete", "all", "--delete_storage", "-V"],
+           cwd=app_path)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
