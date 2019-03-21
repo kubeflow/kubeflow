@@ -481,7 +481,9 @@ func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
 	project := gcp.Spec.Project
 	deletingDeployments := []string{
 		gcp.Name,
-		gcp.Name + "-storage",
+	}
+	if gcp.Spec.DeleteStorage {
+		deletingDeployments = append(deletingDeployments, gcp.Name+"-storage")
 	}
 	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
 		deletingDeployments = append(deletingDeployments, gcp.Name+"-network")
