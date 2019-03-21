@@ -22,16 +22,17 @@ import (
 )
 
 func TestGetUpdatedPolicy(t *testing.T) {
+	etags := "etagValueNeedPreserve"
 	tests := []struct {
 		// Name of the test.
 		name string
 
-		// Arguments for GetUpdatedPolicy function.
+		// Arguments for UpdatePolicy function.
 		currentPolicy *cloudresourcemanager.Policy
 		iamConf       *IamConf
 		req           ApplyIamRequest
 
-		// Check function that checks if the result from GetUpdatedPolicy is valid.
+		// Check function that checks if the result from UpdatePolicy is valid.
 		check func(cloudresourcemanager.Policy) error
 	}{
 		{
@@ -42,6 +43,7 @@ func TestGetUpdatedPolicy(t *testing.T) {
 						Role: "admin",
 					},
 				},
+				Etag: etags,
 			},
 			iamConf: &IamConf{},
 			req:     ApplyIamRequest{},
@@ -51,6 +53,9 @@ func TestGetUpdatedPolicy(t *testing.T) {
 				}
 				if policy.Bindings[0].Role != "admin" {
 					return fmt.Errorf("'admin' role wasn't added")
+				}
+				if policy.Etag != etags {
+					return fmt.Errorf("'Etag' role was deleted")
 				}
 				return nil
 			},
@@ -165,12 +170,12 @@ func TestGetUpdatedPolicy(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			policy := GetUpdatedPolicy(test.currentPolicy, test.iamConf, test.req)
+			UpdatePolicy(test.currentPolicy, test.iamConf, test.req)
 			if test.check == nil {
 				t.Errorf("no check implemented")
 				return
 			}
-			if err := test.check(policy); err != nil {
+			if err := test.check(*test.currentPolicy); err != nil {
 				t.Error(err)
 			}
 		})

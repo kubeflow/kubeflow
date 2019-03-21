@@ -346,11 +346,17 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	if iamPolicyErr != nil {
 		return fmt.Errorf("Read IAM policy YAML error: %v", iamPolicyErr)
 	}
-	clearedPolicy := utils.GetClearedIamPolicy(policy, iamPolicy)
-	if err := utils.SetIamPolicy(gcp.Spec.Project, clearedPolicy); err != nil {
+	utils.ClearIamPolicy(policy, iamPolicy)
+	if err := utils.SetIamPolicy(gcp.Spec.Project, policy); err != nil {
 		return fmt.Errorf("Set Cleared IamPolicy error: %v", err)
 	}
-	newPolicy, err := utils.RewriteIamPolicy(policy, iamPolicy)
+
+	// Need to read policy again as latest Etag changed.
+	newPolicy, policyErr := utils.GetIamPolicy(gcp.Spec.Project)
+	if policyErr != nil {
+		return fmt.Errorf("GetIamPolicy error: %v", policyErr)
+	}
+	utils.RewriteIamPolicy(newPolicy, iamPolicy)
 	if err := utils.SetIamPolicy(gcp.Spec.Project, newPolicy); err != nil {
 		return fmt.Errorf("Set New IamPolicy error: %v", err)
 	}
@@ -799,6 +805,13 @@ func (gcp *Gcp) createSecrets() error {
 }
 
 func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
+	if gcp.Spec.Email == "" {
+		account, err := GetAccount()
+		if err != nil {
+			return fmt.Errorf("--email not specified and cannot get gcloud value. Error: %v", err)
+		}
+		gcp.Spec.Email = account
+	}
 	switch resources {
 	case kftypes.K8S:
 		generateK8sSpecsErr := gcp.downloadK8sManifests()

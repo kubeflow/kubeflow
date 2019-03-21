@@ -24,6 +24,15 @@
     display: none;
 }
 
+.round {
+    border-radius: 4px;
+}
+
+.round-top {
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+}
+
 .my-table {
     width: 75%;
     top: 10px;

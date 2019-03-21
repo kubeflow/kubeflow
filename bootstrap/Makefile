@@ -76,7 +76,7 @@ v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: v2/pkg/apis/apps/kfdef
 
 deepcopy: $(GOPATH)/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go 
 
-build-bootstrap: generate fmt vet
+build-bootstrap: /tmp/v2 deepcopy generate fmt vet
 	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
 build-kfctl: /tmp/v2 deepcopy generate fmt vet
