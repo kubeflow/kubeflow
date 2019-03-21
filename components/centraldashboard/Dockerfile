@@ -4,7 +4,7 @@ WORKDIR /centraldashboard
 
 COPY app/ ./app
 COPY public/ ./public
-COPY webpack.config.js *.json ./
+COPY webpack.config.js *.json .nycrc ./
 
 RUN npm install && npm run build && npm prune --production
 
