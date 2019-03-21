@@ -107,7 +107,7 @@ type ReconcileNotebook struct {
 // +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=services/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks/status,verbs=get;;update;patch
+// +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks/status,verbs=get;update;patch
 func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	// Fetch the Notebook instance
 	instance := &v1alpha1.Notebook{}
@@ -201,7 +201,6 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
                         return reconcile.Result{}, err
                 }
         }
-
 
 
 	return reconcile.Result{}, nil
