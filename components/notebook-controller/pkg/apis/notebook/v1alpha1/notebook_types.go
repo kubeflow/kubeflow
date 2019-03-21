@@ -39,12 +39,8 @@ type NotebookTemplateSpec struct {
 type NotebookStatus struct {
 	// Conditions is an array of current conditions
 	Conditions []NotebookCondition `json:"conditions"`
-
-	// readyReplicas is the number of Pods created by the StatefulSet controller that have a Ready Condition.
+	// ReadyReplicas is the number of Pods created by the StatefulSet controller that have a Ready Condition.
 	ReadyReplicas int32 `json:"readyReplicas"`
-
-
-
 }
 
 type NotebookCondition struct {

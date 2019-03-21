@@ -103,11 +103,11 @@ type ReconcileNotebook struct {
 // and what is in the Notebook.Spec
 // Automatically generate RBAC rules to allow the Controller to read and write StatefulSet
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=apps,resources=statefulsets/status,verbs=get;watch;update;patch
+// +kubebuilder:rbac:groups=apps,resources=statefulsets/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=services/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks/status,verbs=get;watch;update;patch
+// +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks/status,verbs=get;;update;patch
 func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	// Fetch the Notebook instance
 	instance := &v1alpha1.Notebook{}
@@ -192,7 +192,7 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 			return reconcile.Result{}, err
 		}
 	}
-	//Update the readyReplicas if the status is changed
+	// Update the readyReplicas if the status is changed
         if foundStateful.Status.ReadyReplicas != instance.Status.ReadyReplicas {
                 log.Info("Updating Status", "namespace", instance.Namespace,"name", instance.Name)
                 instance.Status.ReadyReplicas = foundStateful.Status.ReadyReplicas 
