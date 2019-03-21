@@ -33,6 +33,7 @@ import (
 	"golang.org/x/oauth2/google"
 	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/deploymentmanager/v2"
+	"google.golang.org/api/googleapi"
 	"google.golang.org/api/iam/v1"
 	"google.golang.org/api/serviceusage/v1"
 	"io"
@@ -421,6 +422,18 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 
 func deleteDeployment(deploymentmanagerService *deploymentmanager.Service, ctx context.Context,
 	project string, name string) error {
+	_, err := deploymentmanagerService.Deployments.Get(project, name).Context(ctx).Do()
+	if err != nil {
+		e := err.(*googleapi.Error)
+		if e.Code == 404 {
+			// Don't treat not found deployment deletion as error to make kfctl delete idempotent.
+			log.Infof("Deployment %v/%v is not found during deletion.", project, name)
+			return nil
+		} else {
+			return fmt.Errorf("Deployment %v/%v has unexpected error: %v", project, name, err)
+		}
+	}
+
 	op, err := deploymentmanagerService.Deployments.Delete(project, name).Context(ctx).Do()
 	if err != nil {
 		return fmt.Errorf("Gcp.Delete is failed for %v/%v: %v", project, name, err)
