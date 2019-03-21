@@ -20,6 +20,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/cenkalti/backoff"
+	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
@@ -471,6 +472,29 @@ func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
 		if err = deleteDeployment(deploymentmanagerService, ctx, project, d); err != nil {
 			return err
 		}
+	}
+
+	policy, err := utils.GetIamPolicy(project)
+	if err != nil {
+		return fmt.Errorf("Error when getting IAM policy: %v", err)
+	}
+	saSet := mapset.NewSet(
+		"serviceAccount:"+getSA(gcp.Name, "admin", project),
+		"serviceAccount:"+getSA(gcp.Name, "user", project),
+		"serviceAccount:"+getSA(gcp.Name, "vm", project))
+	for idx, binding := range policy.Bindings {
+		cleanedMembers := []string{}
+		for _, member := range binding.Members {
+			if saSet.Contains(member) {
+				log.Infof("Removing %v from %v", member, binding.Role)
+			} else {
+				cleanedMembers = append(cleanedMembers, member)
+			}
+		}
+		policy.Bindings[idx].Members = cleanedMembers
+	}
+	if err = utils.SetIamPolicy(project, policy); err != nil {
+		return fmt.Errorf("Error when cleaning IAM policy: %v", err)
 	}
 
 	return nil
