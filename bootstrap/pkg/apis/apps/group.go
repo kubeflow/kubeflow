@@ -51,6 +51,7 @@ const (
 	DefaultAppLabel   = "app.kubernetes.io/name"
 	KUBEFLOW_USERNAME = "KUBEFLOW_USERNAME"
 	KUBEFLOW_PASSWORD = "KUBEFLOW_PASSWORD"
+	DefaultSwaggerFile = "releasing/releaser/lib/v1.9.7/swagger.json"
 )
 
 type ResourceEnum string
@@ -75,13 +76,11 @@ const (
 	REPO                  CliOption = "repo"
 	PROJECT               CliOption = "project"
 	APPNAME               CliOption = "appname"
-	APPDIR                CliOption = "appDir"
 	DATA                  CliOption = "Data"
 	ZONE                  CliOption = "zone"
 	USE_BASIC_AUTH        CliOption = "use_basic_auth"
 	OAUTH_ID              CliOption = "oauth_id"
 	OAUTH_SECRET          CliOption = "oauth_secret"
-	CONFIG                CliOption = "config"
 )
 
 //
