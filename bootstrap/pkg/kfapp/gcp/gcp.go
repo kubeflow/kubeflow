@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
-	gogetter "github.com/hashicorp/go-getter"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
@@ -40,7 +39,7 @@ import (
 	containerpb "google.golang.org/genproto/googleapis/container/v1"
 	"io"
 	"io/ioutil"
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
@@ -415,17 +414,6 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 		return fmt.Errorf("Configure K8s is failed: %v", err)
 	}
 
-	ctx := context.Background()
-	cluster, err := GetClusterInfo(ctx, gcp.Spec.Project,
-		gcp.Spec.Zone, gcp.Name)
-	if err != nil {
-		return fmt.Errorf("Get Cluster error: %v", err)
-	}
-	client, err := BuildConfigFromClusterInfo(ctx, cluster)
-	if err != nil {
-		return fmt.Errorf("Build ClientConfig error: %v", err)
-	}
-
 	// TODO(#2604): Need to create a named context.
 	cred_cmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
 		gcp.Name,
@@ -434,29 +422,10 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	cred_cmd.Stdout = os.Stdout
 	log.Infof("Running get-credentials %v --zone=%v --project=%v ...", gcp.KfDef.Name,
 		gcp.KfDef.Spec.Zone, gcp.KfDef.Spec.Project)
-	if err = cred_cmd.Run(); err != nil {
+	if err := cred_cmd.Run(); err != nil {
 		return fmt.Errorf("Error when running gcloud container clusters get-credentials: %v", err)
 	}
 
-	k8sSpecsDir := path.Join(appDir, K8S_SPECS)
-	daemonsetPreloaded := filepath.Join(k8sSpecsDir, "daemonset-preloaded.yaml")
-	daemonsetPreloadedErr := utils.RunKubectlApply(daemonsetPreloaded)
-	if daemonsetPreloadedErr != nil {
-		return fmt.Errorf("could not create resources in daemonset-preloaded.yaml %v", daemonsetPreloadedErr)
-	}
-	adminClient := rest.CopyConfig(client)
-	adminClient.Impersonate.UserName = "admin"
-	adminClient.Impersonate.Groups = []string{"system:masters"}
-	rbacSetup := filepath.Join(k8sSpecsDir, "rbac-setup.yaml")
-	rbacSetupErr := utils.RunKubectlApply(rbacSetup, "--as=admin", "--as-group=system:masters")
-	if rbacSetupErr != nil {
-		return fmt.Errorf("could not create resources in rbac-setup.yaml %v", rbacSetupErr)
-	}
-	agents := filepath.Join(k8sSpecsDir, "agents.yaml")
-	agentsErr := utils.RunKubectlApply(agents)
-	if agentsErr != nil {
-		return fmt.Errorf("could not create resources in agents.yaml %v", agents)
-	}
 	return nil
 }
 
@@ -610,43 +579,6 @@ func (gcp *Gcp) generateDMConfigs() error {
 	return nil
 }
 
-func (gcp *Gcp) downloadK8sManifests() error {
-	appDir := gcp.Spec.AppDir
-	k8sSpecsDir := path.Join(appDir, K8S_SPECS)
-	k8sSpecsDirErr := os.MkdirAll(k8sSpecsDir, os.ModePerm)
-	if k8sSpecsDirErr != nil {
-		return fmt.Errorf("cannot create directory %v Error %v", k8sSpecsDir, k8sSpecsDirErr)
-	}
-	daemonsetPreloaded := filepath.Join(k8sSpecsDir, "daemonset-preloaded.yaml")
-	url := "https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml"
-	urlErr := gogetter.GetFile(daemonsetPreloaded, url)
-	if urlErr != nil {
-		return fmt.Errorf("couldn't download %v Error %v", url, urlErr)
-	}
-	rbacSetup := filepath.Join(k8sSpecsDir, "rbac-setup.yaml")
-	url = "https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml"
-	urlErr = gogetter.GetFile(rbacSetup, url)
-	if urlErr != nil {
-		return fmt.Errorf("couldn't download %v Error %v", url, urlErr)
-	}
-	agents := filepath.Join(k8sSpecsDir, "agents.yaml")
-	url = "https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml"
-	urlErr = gogetter.GetFile(agents, url)
-	if urlErr != nil {
-		return fmt.Errorf("couldn't download %v Error %v", url, urlErr)
-	}
-
-	//TODO - copied from scripts/gke/util.sh. The rbac-setup command won't need admin since the user will be
-	// running as admin.
-	//  # Install the GPU driver. It has no effect on non-GPU nodes.
-	//  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/daemonset-preloaded.yaml
-	//  # Install Stackdriver Kubernetes agents.
-	//  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml --as=admin --as-group=system:masters
-	//  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/agents.yaml
-
-	return nil
-}
-
 // Write configuration to cluster as secret.
 func (gcp *Gcp) writeGcpSecret(client *clientset.Clientset, secretName string, data map[string][]byte) error {
 	secret := &v1.Secret{
@@ -786,19 +718,10 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 		gcp.Spec.Email = account
 	}
 	switch resources {
-	case kftypes.K8S:
-		generateK8sSpecsErr := gcp.downloadK8sManifests()
-		if generateK8sSpecsErr != nil {
-			return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)
-		}
 	case kftypes.ALL:
 		gcpConfigFilesErr := gcp.generateDMConfigs()
 		if gcpConfigFilesErr != nil {
 			return fmt.Errorf("could not generate deployment manager configs under %v Error: %v", GCP_CONFIG, gcpConfigFilesErr)
-		}
-		generateK8sSpecsErr := gcp.downloadK8sManifests()
-		if generateK8sSpecsErr != nil {
-			return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)
 		}
 	case kftypes.PLATFORM:
 		gcpConfigFilesErr := gcp.generateDMConfigs()
