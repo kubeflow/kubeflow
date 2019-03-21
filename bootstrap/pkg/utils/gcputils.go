@@ -66,7 +66,9 @@ func BuildConfigForGcp(ctx context.Context, project string, loc string, cluster 
 	return BuildConfigFromClusterInfo(ctx, clusterpb)
 }
 
-func CreateKubeconfig(ctx context.Context, project string, loc string, cluster string, namespace string) (*clientcmdapi.Config, error) {
+// Create a config that serves as kubeconfig.
+func CreateKubeconfig(ctx context.Context, project string, loc string, cluster string,
+	namespace string) (*clientcmdapi.Config, error) {
 	clusterInfo, err := GetClusterInfo(ctx, project, loc, cluster)
 	if err != nil {
 		return nil, err
