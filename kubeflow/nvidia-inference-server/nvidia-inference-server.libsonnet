@@ -28,10 +28,8 @@
       name: $.params.name,
       image: $.params.image,
       imagePullPolicy: "IfNotPresent",
-      command: [
-        "trtserver",
-      ],
       args: [
+        "trtserver",
         "--model-store=" + $.params.modelRepositoryPath,
       ],
       ports: [

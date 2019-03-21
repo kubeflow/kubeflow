@@ -17,7 +17,6 @@ limitations under the License.
 package utils
 
 import (
-	"fmt"
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
@@ -32,7 +31,7 @@ import (
 func getServiceClient(ctx context.Context) (*http.Client, error) {
 	client, err := google.DefaultClient(ctx, cloudresourcemanager.CloudPlatformScope)
 	if err != nil {
-		log.Fatalf("Could not get authenticated client: %v", err)
+		log.Fatalf("Could not get authenticated kfdef: %v", err)
 		return nil, err
 	}
 	return client, nil
@@ -70,17 +69,17 @@ func GetIamPolicy(project string) (*cloudresourcemanager.Policy, error) {
 	return service.Projects.GetIamPolicy(project, req).Context(ctx).Do()
 }
 
-// Remove existing bindings associated with service accounts of current deployment, and return the new policy
-func GetClearedIamPolicy(currentPolicy *cloudresourcemanager.Policy, pendingPolicy *cloudresourcemanager.Policy) *cloudresourcemanager.Policy {
+// Modify currentPolicy: Remove existing bindings associated with service accounts of current deployment
+func ClearIamPolicy(currentPolicy *cloudresourcemanager.Policy, pendingPolicy *cloudresourcemanager.Policy) {
 	serviceAccounts := make(map[string]bool)
 	for _, binding := range pendingPolicy.Bindings {
 		for _, member := range binding.Members {
-			if strings.HasPrefix(member, "serviceAccount:") {
+			if strings.HasPrefix(member, "serviceAccount:kfctl-") {
 				serviceAccounts[member] = true
 			}
 		}
 	}
-	clearedPolicy := cloudresourcemanager.Policy{}
+	var newBindings []*cloudresourcemanager.Binding
 	for _, binding := range currentPolicy.Bindings {
 		newBinding := cloudresourcemanager.Binding{
 			Role: binding.Role,
@@ -92,9 +91,9 @@ func GetClearedIamPolicy(currentPolicy *cloudresourcemanager.Policy, pendingPoli
 				newBinding.Members = append(newBinding.Members, member)
 			}
 		}
-		clearedPolicy.Bindings = append(clearedPolicy.Bindings, &newBinding)
+		newBindings = append(newBindings, &newBinding)
 	}
-	return &clearedPolicy
+	currentPolicy.Bindings = newBindings
 }
 
 // TODO: Move type definitions to appropriate place.
@@ -146,10 +145,7 @@ func ReadIamBindingsYAML(filename string) (*cloudresourcemanager.Policy, error) 
 }
 
 // Either patch or remove role bindings from `src` policy.
-func RewriteIamPolicy(currentPolicy *cloudresourcemanager.Policy, adding *cloudresourcemanager.Policy) (*cloudresourcemanager.Policy, error) {
-	if currentPolicy == nil {
-		return nil, fmt.Errorf("Source IAM policy is nil.")
-	}
+func RewriteIamPolicy(currentPolicy *cloudresourcemanager.Policy, adding *cloudresourcemanager.Policy) {
 	policyMap := map[string]map[string]bool{}
 	for _, binding := range currentPolicy.Bindings {
 		policyMap[binding.Role] = make(map[string]bool)
@@ -166,7 +162,7 @@ func RewriteIamPolicy(currentPolicy *cloudresourcemanager.Policy, adding *cloudr
 			policyMap[binding.Role][member] = true
 		}
 	}
-	newPolicy := cloudresourcemanager.Policy{}
+	var newBindings []*cloudresourcemanager.Binding
 	for role, memberSet := range policyMap {
 		binding := cloudresourcemanager.Binding{}
 		binding.Role = role
@@ -175,9 +171,9 @@ func RewriteIamPolicy(currentPolicy *cloudresourcemanager.Policy, adding *cloudr
 				binding.Members = append(binding.Members, member)
 			}
 		}
-		newPolicy.Bindings = append(newPolicy.Bindings, &binding)
+		newBindings = append(newBindings, &binding)
 	}
-	return &newPolicy, nil
+	currentPolicy.Bindings = newBindings
 }
 
 // "Override" project's IAM policy with given config.

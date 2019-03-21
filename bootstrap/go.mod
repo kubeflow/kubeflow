@@ -28,6 +28,7 @@ require (
 	github.com/fatih/camelcase v1.0.0 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-kit/kit v0.8.0
+	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-openapi/jsonpointer v0.18.0
 	github.com/go-openapi/jsonreference v0.18.0
 	github.com/go-openapi/spec v0.18.0 // indirect
