@@ -3,7 +3,7 @@
    "apiVersion": "0.0.1",
    "kind": "ksonnet.io/parts",
    "description": "Package for ModelDB, a model management system.\n",
-   "author": "modeldb-team <modeldb@googlegroups.com>",
+   "author": "Verta.AI Team <hello@verta.ai>",
    "contributors": [
    ],
    "repository": {
