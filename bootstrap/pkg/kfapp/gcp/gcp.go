@@ -180,7 +180,7 @@ func (gcp *Gcp) getK8sClientset(ctx context.Context) (*clientset.Clientset, erro
 }
 
 func blockingWait(project string, opName string, deploymentmanagerService *deploymentmanager.Service,
-	ctx context.Context) error {
+	ctx context.Context, logPrefix string) error {
 	// Explicitly copy string to avoid memory leak.
 	p := "" + project
 	name := "" + opName
@@ -189,22 +189,23 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 
 		if op.Error != nil {
 			for _, e := range op.Error.Errors {
-				log.Errorf("Deployment error: %+v", e)
+				log.Errorf("%v error: %+v", logPrefix, e)
 			}
 		}
 		if op.Status == "DONE" {
 			if op.HttpErrorStatusCode > 0 {
-				return backoff.Permanent(fmt.Errorf("Deployment error(%v): %v",
+				return backoff.Permanent(fmt.Errorf("%v error(%v): %v",
+					logPrefix,
 					op.HttpErrorStatusCode, op.HttpErrorMessage))
 			}
-			log.Infof("Deployment service is finished: %v", op.Status)
+			log.Infof("%v is finished: %v", logPrefix, op.Status)
 			return nil
 		} else if err != nil {
 			return backoff.Permanent(fmt.Errorf("Deployment error: %v", err))
 		}
-		log.Warnf("Deployment operation name: %v status: %v", op.Name, op.Status)
+		log.Warnf("%v status: %v (op = %v)", logPrefix, op.Status, op.Name)
 		name = op.Name
-		return fmt.Errorf("Deployment operation did not succeed; name: %v status: %v", op.Name, op.Status)
+		return fmt.Errorf("%v did not succeed; status: %v (op = %v)", logPrefix, op.Status, op.Name)
 	}, backoff.NewExponentialBackOff())
 }
 
@@ -239,14 +240,16 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 		if updateErr != nil {
 			return fmt.Errorf("Update deployment error: %v", updateErr)
 		}
-		return blockingWait(project, op.Name, deploymentmanagerService, ctx)
+		return blockingWait(project, op.Name, deploymentmanagerService, ctx,
+			"Updating "+deployment)
 	} else {
 		log.Infof("Creating deployment %v", deployment)
 		op, insertErr := deploymentmanagerService.Deployments.Insert(project, dp).Context(ctx).Do()
 		if insertErr != nil {
 			return fmt.Errorf("Insert deployment error: %v", insertErr)
 		}
-		return blockingWait(project, op.Name, deploymentmanagerService, ctx)
+		return blockingWait(project, op.Name, deploymentmanagerService, ctx,
+			"Creating "+deployment)
 	}
 }
 
@@ -456,7 +459,8 @@ func deleteDeployment(deploymentmanagerService *deploymentmanager.Service, ctx c
 	if err != nil {
 		return fmt.Errorf("Gcp.Delete is failed for %v/%v: %v", project, name, err)
 	}
-	if err = blockingWait(project, op.Name, deploymentmanagerService, ctx); err != nil {
+	if err = blockingWait(project, op.Name, deploymentmanagerService, ctx,
+		"Deleting "+name); err != nil {
 		return fmt.Errorf("Gcp.Delete is failed for %v/%v: %v", project, name, err)
 	}
 	return nil
