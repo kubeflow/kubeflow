@@ -87,6 +87,16 @@ func getSA(name string, nameSuffix string, project string) string {
 	return fmt.Sprintf("%v-%v@%v.iam.gserviceaccount.com", name, nameSuffix, project)
 }
 
+// if --email is not supplied try and the get account info using gmail
+func GetAccount() (string, error) {
+	output, err := exec.Command("gcloud", "config", "get-value", "account").Output()
+	if err != nil {
+		return "", fmt.Errorf("could not call 'gcloud config get-value account': %v", err)
+	}
+	account := string(output)
+	return strings.TrimSpace(account), nil
+}
+
 func (gcp *Gcp) writeConfigFile() error {
 	buf, bufErr := yaml.Marshal(gcp)
 	if bufErr != nil {
