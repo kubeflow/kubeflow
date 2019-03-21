@@ -26,6 +26,11 @@ defaultApp:
     prototype: katib
   - name: pipeline
     prototype: pipeline
+  - name: jupyter-web-app
+    prototype: jupyter-web-app
+  - name: notebook_controller
+    prototype: notebook_controller
+
   parameters:
   - component: cloud-endpoints
     name: secretName
