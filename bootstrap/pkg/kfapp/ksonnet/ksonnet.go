@@ -452,6 +452,9 @@ func (ksApp *ksApp) initKs() error {
 		config := kftypes.GetConfig()
 		host = config.Host
 		k8sSpec = kftypes.GetServerVersion(kftypes.GetClientset(config))
+		if k8sSpec == "" {
+			return fmt.Errorf("could not find kubernetes version info")
+		}
 	}
 	options := map[string]interface{}{
 		actions.OptionFs:                    afero.NewOsFs(),
