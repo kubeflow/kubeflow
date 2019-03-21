@@ -25,6 +25,7 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/client"
 	"github.com/ksonnet/ksonnet/pkg/component"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
+	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	kfctlutils "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
@@ -116,6 +117,27 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 		if err != nil {
 			return fmt.Errorf("could not change directory to %v Error %v", ksApp.Spec.AppDir, err)
 		}
+	}
+	// Install Istio
+	if ksApp.Spec.UseIstio {
+		log.Infof("Installing istio...")
+		parentDir := path.Dir(ksApp.Spec.Repo)
+		err = bootstrap.CreateResourceFromFile(config, path.Join(parentDir, "dependencies/istio/install/crds.yaml"))
+		if err != nil {
+			log.Errorf("Failed to create istio CRD: %v", err)
+			return err
+		}
+		err = bootstrap.CreateResourceFromFile(config, path.Join(parentDir, "dependencies/istio/install/istio-noauth.yaml"))
+		if err != nil {
+			log.Errorf("Failed to create istio manifest: %v", err)
+			return err
+		}
+		err = bootstrap.CreateResourceFromFile(config, path.Join(parentDir, "dependencies/istio/kf-istio-resources.yaml"))
+		if err != nil {
+			log.Errorf("Failed to create kubeflow istio resource: %v", err)
+			return err
+		}
+		log.Infof("Done installing istio.")
 	}
 	clientConfig := kftypes.GetKubeConfig()
 	applyErr := ksApp.applyComponent([]string{"metacontroller"}, clientConfig)
