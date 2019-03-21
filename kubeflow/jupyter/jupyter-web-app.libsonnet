@@ -55,6 +55,11 @@
           resources: ["persistentvolumeclaims"],
           verbs: ["create", "delete", "get", "list"],
         },
+        {
+          apiGroups: ["storage.k8s.io"],
+          resources: ["storageclasses"],
+          verbs: ["get", "list"],
+        },
       ]
     },
 

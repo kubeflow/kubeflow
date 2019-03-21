@@ -231,6 +231,14 @@ function setDefaultFormValues() {
             }
           }
         }
+        // If default StorageClass is not set, only allow None as option
+        if (default_storage_class === "False") {
+          $('#ws_type')
+            .empty()
+            .append($('<option/>').attr({selected: true, value: 'None'}).text('None'))
+            .append($('<option/>').attr({value: 'Existing'}).text('Existing'))
+          $('#ws_type').val('None')
+        }
         $('#ws_type').trigger('change');
 
         // Name
@@ -474,9 +482,11 @@ function addVolume() {
     for: "vol_type" + counter
   }).text("Type")
 
-  volumeType
-    .append($('<option/>').attr({selected: true, value: 'New'}).text('New'))
-    .append($('<option/>').attr({value: 'Existing'}).text('Existing'));
+  // If no default StorageClass exists, don't create New Data Volumes
+  if (default_storage_class !== "False") {
+    volumeType.append($('<option/>').attr({selected: true, value: 'New'}).text('New'))
+  }
+  volumeType.append($('<option/>').attr({value: 'Existing'}).text('Existing'))
 
   volumeTypeTextField.append(volumeType)
   volumeTypeTextField.append(volumeTypeLabel)

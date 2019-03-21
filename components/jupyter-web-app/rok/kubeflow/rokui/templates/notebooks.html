@@ -5,11 +5,12 @@
   </script>
   <script>
     var username = "{{ username }}"
-  </script
+    var rok_token = JSON.parse('{{ rok_token | tojson | safe}}')
+  </script>
 {% endblock %}
 
 {% block content %}
-{% if rok_token|length > 0 and form_defaults %}
+{% if rok_token|length > 0  %}
 <!-- Namespaces Control Buttons -->
 <table class="ns" align="center">
   <tr>
