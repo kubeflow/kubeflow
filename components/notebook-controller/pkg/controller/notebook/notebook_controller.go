@@ -150,7 +150,6 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 	}
 
-		
 	// Reconcile service
 	service := generateService(instance)
 	if err := controllerutil.SetControllerReference(instance, service, r.scheme); err != nil {
@@ -201,7 +200,6 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
                         return reconcile.Result{}, err
                 }
         }
-
 
 	return reconcile.Result{}, nil
 }
