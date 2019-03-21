@@ -31,11 +31,10 @@ type KfDefSpec struct {
 	IpName                 string `json:"ipName,omitempty"`
 	Hostname               string `json:"hostname,omitempty"`
 	Zone                   string `json:"zone,omitempty"`
-	BasicAuthUsername      string `json:"basicAuthUsername,omitempty"`
-	BasicAuthPassword      string `json:"basicAuthPassword,omitempty"`
 	UseBasicAuth           bool   `json:"useBasicAuth"`
 	SkipInitProject        bool   `json:"skipInitProject,omitempty"`
 	UseIstio               bool   `json:"useIstio"`
+	ServerVersion          string `json:"serverVersion,omitempty"`
 }
 
 var DefaultRegistry = &RegistryConfig{
