@@ -30,7 +30,6 @@ import (
 	kfctlutils "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
-	"golang.org/x/net/context"
 	"io/ioutil"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -289,73 +288,73 @@ func (ksApp *ksApp) deleteGlobalResources(config *rest.Config) error {
 }
 
 func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
-	ctx := context.Background()
-	var config *rest.Config
-	if ksApp.Spec.Platform == "gcp" {
-		c, err := kfctlutils.BuildConfigForGcp(ctx, ksApp.Spec.Project, ksApp.Spec.Zone, ksApp.Name)
-		if err != nil {
-			return fmt.Errorf("Error getting rest.Config info for %v/%v/%v: %v",
-				ksApp.Spec.Project, ksApp.Spec.Zone, ksApp.Name, err)
-		}
-		config = c
-	} else {
-		config = kftypes.GetConfig()
-	}
-	err := ksApp.deleteGlobalResources(config)
-	if err != nil {
-		log.Errorf("there was a problem deleting global resources: %v", err)
-	}
+	// ctx := context.Background()
+	// var config *rest.Config
+	// if ksApp.Spec.Platform == "gcp" {
+	// 	c, err := kfctlutils.BuildConfigForGcp(ctx, ksApp.Spec.Project, ksApp.Spec.Zone, ksApp.Name)
+	// 	if err != nil {
+	// 		return fmt.Errorf("Error getting rest.Config info for %v/%v/%v: %v",
+	// 			ksApp.Spec.Project, ksApp.Spec.Zone, ksApp.Name, err)
+	// 	}
+	// 	config = c
+	// } else {
+	// 	config = kftypes.GetConfig()
+	// }
+	// err := ksApp.deleteGlobalResources(config)
+	// if err != nil {
+	// 	log.Errorf("there was a problem deleting global resources: %v", err)
+	// }
 
-	envSetErr := ksApp.envSet(ksApp.KsEnvName, config.Host)
-	if envSetErr != nil {
-		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", ksApp.KsEnvName, envSetErr)
-	}
+	// envSetErr := ksApp.envSet(ksApp.KsEnvName, config.Host)
+	// if envSetErr != nil {
+	// 	return fmt.Errorf("couldn't create ksonnet env %v Error: %v", ksApp.KsEnvName, envSetErr)
+	// }
 
-	namespace := ksApp.ObjectMeta.Namespace
-	var clientConfig *clientcmdapi.Config
-	if ksApp.Spec.Platform == "gcp" {
-		c, err := kfctlutils.CreateKubeconfig(ctx, ksApp.Spec.Project, ksApp.Spec.Zone, ksApp.Name, namespace)
-		if err != nil {
-			return fmt.Errorf("couldn't generate kubeconfig for GCP: %v", err)
-		}
-		clientConfig = c
-	} else {
-		clientConfig = kftypes.GetKubeConfig()
-	}
-	components := []string{"application", "metacontroller"}
-	err = actions.RunDelete(map[string]interface{}{
-		actions.OptionApp: ksApp.KApp,
-		actions.OptionClientConfig: &client.Config{
-			Overrides: &clientcmd.ConfigOverrides{},
-			Config:    clientcmd.NewDefaultClientConfig(*clientConfig, &clientcmd.ConfigOverrides{}),
-		},
-		actions.OptionEnvName:        ksApp.KsEnvName,
-		actions.OptionComponentNames: components,
-		actions.OptionGracePeriod:    int64(10),
-	})
-	if err != nil {
-		log.Infof("there was a problem deleting %v: %v", components, err)
-	}
-	log.Infof("try to delete namespace: %v", namespace)
-	clientset := kftypes.GetClientset(config)
-	ns, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
-	if nsMissingErr == nil {
-		log.Infof("namespace %v is found, deleting", namespace)
-		nsErr := clientset.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
-		if nsErr != nil {
-			return fmt.Errorf("couldn't delete namespace %v Error: %v", namespace, nsErr)
-		}
-	}
+	// namespace := ksApp.ObjectMeta.Namespace
+	// var clientConfig *clientcmdapi.Config
+	// if ksApp.Spec.Platform == "gcp" {
+	// 	c, err := kfctlutils.CreateKubeconfig(ctx, ksApp.Spec.Project, ksApp.Spec.Zone, ksApp.Name, namespace)
+	// 	if err != nil {
+	// 		return fmt.Errorf("couldn't generate kubeconfig for GCP: %v", err)
+	// 	}
+	// 	clientConfig = c
+	// } else {
+	// 	clientConfig = kftypes.GetKubeConfig()
+	// }
+	// components := []string{"application", "metacontroller"}
+	// err = actions.RunDelete(map[string]interface{}{
+	// 	actions.OptionApp: ksApp.KApp,
+	// 	actions.OptionClientConfig: &client.Config{
+	// 		Overrides: &clientcmd.ConfigOverrides{},
+	// 		Config:    clientcmd.NewDefaultClientConfig(*clientConfig, &clientcmd.ConfigOverrides{}),
+	// 	},
+	// 	actions.OptionEnvName:        ksApp.KsEnvName,
+	// 	actions.OptionComponentNames: components,
+	// 	actions.OptionGracePeriod:    int64(10),
+	// })
+	// if err != nil {
+	// 	log.Infof("there was a problem deleting %v: %v", components, err)
+	// }
+	// log.Infof("try to delete namespace: %v", namespace)
+	// clientset := kftypes.GetClientset(config)
+	// ns, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	// if nsMissingErr == nil {
+	// 	log.Infof("namespace %v is found, deleting", namespace)
+	// 	nsErr := clientset.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
+	// 	if nsErr != nil {
+	// 		return fmt.Errorf("couldn't delete namespace %v Error: %v", namespace, nsErr)
+	// 	}
+	// }
 
-	name := "meta-controller-cluster-role-binding"
-	log.Infof("deleting %v", name)
-	crb, crbErr := clientset.RbacV1().ClusterRoleBindings().Get(name, metav1.GetOptions{})
-	if crbErr == nil {
-		crbDeleteErr := clientset.RbacV1().ClusterRoleBindings().Delete(crb.Name, metav1.NewDeleteOptions(int64(5)))
-		if crbDeleteErr != nil {
-			return fmt.Errorf("couldn't delete clusterrolebinding %v Error: %v", name, crbDeleteErr)
-		}
-	}
+	// name := "meta-controller-cluster-role-binding"
+	// log.Infof("deleting %v", name)
+	// crb, crbErr := clientset.RbacV1().ClusterRoleBindings().Get(name, metav1.GetOptions{})
+	// if crbErr == nil {
+	// 	crbDeleteErr := clientset.RbacV1().ClusterRoleBindings().Delete(crb.Name, metav1.NewDeleteOptions(int64(5)))
+	// 	if crbDeleteErr != nil {
+	// 		return fmt.Errorf("couldn't delete clusterrolebinding %v Error: %v", name, crbDeleteErr)
+	// 	}
+	// }
 	return nil
 }
 
