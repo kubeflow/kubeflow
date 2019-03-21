@@ -4,23 +4,20 @@
 # It is expected to be run in a container where kfctl is built
 # The image is built in the Makefile 
 #   `make build-kfctl-container`
-# Deploying a single component can be done by saving below in a job.yaml
-# and running `kubectl apply -f job.yaml`
+# Deploying a single component can be done by running the following (assumes GCLOUD_PROJECT is defined)
+#   `envsubst < hack/job.yaml.sample | kubectl apply -f -`
+# which will deploy the openvino component
 #
-# apiVersion: batch/v1
-# kind: Job
-# metadata:
-#   name: deploycomponent
-# spec:
-#   template:
-#     spec:
-#       containers:
-#       - name: deploycomponent
-#         image: gcr.io/$CLOUD_PROJECT/kfctl
-#         command: ["/usr/local/bin/kfctl-component.sh",  "add", "openvino", "--image=XXX"]
-#       restartPolicy: Never
-#   backoffLimit: 1
-#
+# If you would like to deploy locallly without using a container you can run something like:
+#   hack/kfctl-component.sh add openvino --registry=docker.io --repoPath=intelaipg --image=openvino-model-server:0.4
+# Deleting the component would be:
+#   hack/kfctl-component.sh remove openvino
+
+namespace=kubeflow
+tmpdir=/tmp
+
+pushd() { builtin pushd "$@" > /dev/null; }
+popd() { builtin popd "$@" > /dev/null; }
 
 usage () 
 {
@@ -35,15 +32,15 @@ usage ()
   'where [component] is ambassador, cloud-endpoints, ...\n'
 }
 
-addcommand()
+writeConfigFile()
 {
   local component
   if (( $# == 0 ));then 
     usage
   fi
-  tmpdir=$(mktemp -d)
   component=$1
   shift 1
+  tmpdir=$(mktemp -d)
   pushd $tmpdir
   kfctl init kubeflow 
   pushd kubeflow
@@ -52,13 +49,31 @@ apiVersion: kfdef.apps.kubeflow.org/v1alpha1
 kind: KfDef
 metadata:
   name: kubeflow
-  namespace: kubeflow
+  namespace: $namespace
 spec:
   appdir: $tmpdir/kubeflow
   componentParams:
     ${component}:
 APP_YAML
+}
 
+removecommand()
+{
+  writeConfigFile $1
+  kfctl generate all
+#  kfctl delete all
+  echo component $component created in $tmpdir/kubeflow
+}
+
+addcommand()
+{
+  local component
+  if (( $# == 0 ));then 
+    usage
+  fi
+  component=$1
+  shift 1
+  writeConfigFile $component
   while [[ "$#" -gt "0" && $1 =~ ^-- ]]; do
     arg="$1"
     shift
@@ -84,10 +99,10 @@ REMAINDER
   kfctl generate all
   popd
   popd
-  echo kubeflow created in $tmpdir/kubeflow
+  echo component $component created in $tmpdir/kubeflow
 }
 
-commands () 
+commands() 
 {
   if [ $# = "0" ]; then
     usage
@@ -125,6 +140,22 @@ do
     -V | --verbose)
       verbose=true
       shift
+      ;;
+    -n | -n* | --namespace=* | --namespace)
+      case "$1" in
+        -n)
+	  namespace="$2"
+          shift 2
+          ;;
+        --namespace=*)
+          namespace=${1#--namespace=}
+          shift 1
+          ;;
+        --namespace)
+          namespace="$2"
+          shift 2
+          ;;
+      esac
       ;;
     --) 
       shift
