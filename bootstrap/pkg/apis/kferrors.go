@@ -18,6 +18,15 @@ import (
 	"fmt"
 )
 
+type StatusCode int
+
+const (
+	OK               StatusCode = 200
+	INVALID_ARGUMENT StatusCode = 400
+	INTERNAL_ERROR   StatusCode = 500
+	UNKNOWN          StatusCode = 520
+)
+
 // KfError stands for Kubeflow error. This is the standard error interface
 // for Kubeflow components.
 type KfError struct {
