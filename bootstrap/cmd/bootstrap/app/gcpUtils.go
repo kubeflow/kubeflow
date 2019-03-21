@@ -142,13 +142,13 @@ func (s *ksServer) GetDeploymentStatus(ctx context.Context, req CreateRequest, d
 
 // Clear existing bindings for auto-generated service accounts of current deployment.
 // Those bindings could be leftover from previous actions.
-func GetClearServiceAccountpolicy(currentPolicy *cloudresourcemanager.Policy, req ApplyIamRequest) cloudresourcemanager.Policy {
+func ClearServiceAccountPolicy(currentPolicy *cloudresourcemanager.Policy, req ApplyIamRequest) {
 	serviceAccounts := map[string]bool{
 		fmt.Sprintf("serviceAccount:%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project): true,
 		fmt.Sprintf("serviceAccount:%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project):  true,
 		fmt.Sprintf("serviceAccount:%v-vm@%v.iam.gserviceaccount.com", req.Cluster, req.Project):    true,
 	}
-	newPolicy := cloudresourcemanager.Policy{}
+	var newBindings []*cloudresourcemanager.Binding
 	for _, binding := range currentPolicy.Bindings {
 		newBinding := cloudresourcemanager.Binding{
 			Role: binding.Role,
@@ -160,9 +160,9 @@ func GetClearServiceAccountpolicy(currentPolicy *cloudresourcemanager.Policy, re
 				newBinding.Members = append(newBinding.Members, member)
 			}
 		}
-		newPolicy.Bindings = append(newPolicy.Bindings, &newBinding)
+		newBindings = append(newBindings, &newBinding)
 	}
-	return newPolicy
+	currentPolicy.Bindings = newBindings
 }
 
 func PrepareAccount(account string) string {
@@ -176,7 +176,7 @@ func PrepareAccount(account string) string {
 	}
 }
 
-func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamConf, req ApplyIamRequest) cloudresourcemanager.Policy {
+func UpdatePolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamConf, req ApplyIamRequest){
 	// map from role to members.
 	policyMap := map[string]map[string]bool{}
 	for _, binding := range currentPolicy.Bindings {
@@ -212,7 +212,7 @@ func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamCo
 			}
 		}
 	}
-	newPolicy := cloudresourcemanager.Policy{}
+	var newBindings []*cloudresourcemanager.Binding
 	for role, memberSet := range policyMap {
 		binding := cloudresourcemanager.Binding{}
 		binding.Role = role
@@ -221,9 +221,9 @@ func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamCo
 				binding.Members = append(binding.Members, member)
 			}
 		}
-		newPolicy.Bindings = append(newPolicy.Bindings, &binding)
+		newBindings = append(newBindings, &binding)
 	}
-	return newPolicy
+	currentPolicy.Bindings = newBindings
 }
 
 func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error {
@@ -254,6 +254,7 @@ func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) erro
 	exp.MaxInterval = 5 * time.Second
 	exp.MaxElapsedTime = time.Minute
 	exp.Reset()
+	// Remove bindings of target service accounts
 	err = backoff.Retry(func() error {
 		// Get current policy
 		saPolicy, err := resourceManager.Projects.GetIamPolicy(
@@ -265,23 +266,39 @@ func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) erro
 		}
 
 		// Force update iam bindings of service accounts
-		clearedPolicy := GetClearServiceAccountpolicy(saPolicy, req)
+		ClearServiceAccountPolicy(saPolicy, req)
 		_, err = resourceManager.Projects.SetIamPolicy(
 			req.Project,
 			&cloudresourcemanager.SetIamPolicyRequest{
-				Policy: &clearedPolicy,
+				Policy: saPolicy,
 			}).Do()
 		if err != nil {
 			log.Warningf("Cannot set refresh policy: %v", err)
 			return fmt.Errorf("Cannot set refresh policy: %v", err)
 		}
+		return nil
+	}, exp)
+	if err != nil {
+		return err
+	}
+	// Add new bindings to target service accounts
+	exp.Reset()
+	err = backoff.Retry(func() error {
+		// Get current policy
+		saPolicy, err := resourceManager.Projects.GetIamPolicy(
+			req.Project,
+			&cloudresourcemanager.GetIamPolicyRequest{}).Do()
+		if err != nil {
+			log.Warningf("Cannot get current policy: %v", err)
+			return fmt.Errorf("Cannot get current policy: %v", err)
+		}
 
 		// Get the updated policy and apply it.
-		newPolicy := GetUpdatedPolicy(saPolicy, &iamConf, req)
+		UpdatePolicy(saPolicy, &iamConf, req)
 		_, err = resourceManager.Projects.SetIamPolicy(
 			req.Project,
 			&cloudresourcemanager.SetIamPolicyRequest{
-				Policy: &newPolicy,
+				Policy: saPolicy,
 			}).Do()
 		if err != nil {
 			log.Warningf("Cannot set new policy: %v", err)
@@ -289,8 +306,5 @@ func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) erro
 		}
 		return nil
 	}, exp)
-	if err != nil {
-		return err
-	}
 	return nil
 }
