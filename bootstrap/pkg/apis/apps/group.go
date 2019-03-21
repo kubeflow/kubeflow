@@ -28,11 +28,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"os"
-	"path/filepath"
-	"plugin"
-	"regexp"
-	"strings"
 )
 
 const (
@@ -79,6 +74,7 @@ const (
 	DATA                  CliOption = "Data"
 	ZONE                  CliOption = "zone"
 	USE_BASIC_AUTH        CliOption = "use_basic_auth"
+	USE_ISTIO             CliOption = "use_istio"
 	OAUTH_ID              CliOption = "oauth_id"
 	OAUTH_SECRET          CliOption = "oauth_secret"
 	DELETE_STORAGE        CliOption = "delete_storage"
