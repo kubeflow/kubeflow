@@ -248,6 +248,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	kfDef.Spec.Project = options[string(kftypes.PROJECT)].(string)
 	kfDef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
 	kfDef.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
+	kfDef.Spec.UseIstio = options[string(kftypes.USE_ISTIO)].(bool)
 	pApp := GetKfApp(kfDef)
 	return pApp, nil
 }
