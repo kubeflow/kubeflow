@@ -28,6 +28,11 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"os"
+	"path/filepath"
+	"plugin"
+	"regexp"
+	"strings"
 )
 
 const (
