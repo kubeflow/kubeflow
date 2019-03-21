@@ -1,9 +1,13 @@
 {
     "env": {
         "browser": true,
-        "es6": true
+        "es6": true,
+        "jasmine": true
     },
-    "extends": ["eslint:recommended", "google"],
+    "extends": [
+        "eslint:recommended",
+        "google"
+    ],
     "globals": {
         "VERSION": true,
         "Atomics": "readonly",
@@ -15,8 +19,14 @@
             "impliedStrict": true
         }
     },
+    "plugins": [
+        "jasmine"
+    ],
     "rules": {
-        "indent": ["error", 4],
+        "indent": [
+            "error",
+            4
+        ],
         "require-jsdoc": "off"
     }
 }
