@@ -34,7 +34,7 @@ type KfDefSpec struct {
 	UseBasicAuth           bool   `json:"useBasicAuth"`
 	SkipInitProject        bool   `json:"skipInitProject,omitempty"`
 	ServerVersion          string `json:"serverVersion,omitempty"`
-	DeleteStorage          bool   `json:"deleteStorage,omitempty"`
+	DeleteStorage          bool   `json:"deleteStorage"`
 }
 
 var DefaultRegistry = &RegistryConfig{
