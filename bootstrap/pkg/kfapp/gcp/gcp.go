@@ -421,6 +421,7 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
+// Try to get information for the deployment. If returned, delete it.
 func deleteDeployment(deploymentmanagerService *deploymentmanager.Service, ctx context.Context,
 	project string, name string) error {
 	_, err := deploymentmanagerService.Deployments.Get(project, name).Context(ctx).Do()
@@ -456,6 +457,7 @@ func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
 		return fmt.Errorf("Error creating deploymentmanagerService: %v", err)
 	}
 
+	// cluster and storage deployments are required to be deleted. network and gcfs deployments are optional.
 	project := gcp.Spec.Project
 	deletingDeployments := []string{
 		gcp.Name,
