@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 #
-# this will deploy a single component using kfctl 
-# It is expected to be run in a container where kfctl is built
-# The image is built in the Makefile 
-#   `make build-kfctl-container`
-# Deploying a single component can be done by running the following (assumes GCLOUD_PROJECT is defined)
-#   `envsubst < hack/job.yaml.sample | kubectl apply -f -`
-# which will deploy the openvino component
+# This command will deploy a single component using kfctl.
+# The command can be run in a container or on the command line.
+# If the command is run within a container, the image is built and pushed in the Makefile 
+#   `make push-kfctl-container`
+# The image will be pushed to gcr.io/$GCLOUD_PROJECT/kfctl
 #
-# If you would like to deploy locallly without using a container you can run something like:
+# An example is provided where deploying a single component 'openvino' can be done by running the following 
+# (assumes env var GCLOUD_PROJECT is defined):
+#   `envsubst < hack/job.yaml.sample | kubectl apply -f -`
+#
+# If you would like to deploy from the CLI without using a container you can run something like:
+# using openvino as an example:
 #   hack/kfctl-component.sh add openvino --registry=docker.io --repoPath=intelaipg --image=openvino-model-server:0.4
 # Deleting the component would be:
 #   hack/kfctl-component.sh remove openvino
