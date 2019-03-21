@@ -45,6 +45,7 @@ var applyCmd = &cobra.Command{
 		options := map[string]interface{}{
 			string(kftypes.OAUTH_ID):     applyCfg.GetString(string(kftypes.OAUTH_ID)),
 			string(kftypes.OAUTH_SECRET): applyCfg.GetString(string(kftypes.OAUTH_SECRET)),
+			string(kftypes.DRY_RUN):      applyCfg.GetBool(string(kftypes.DRY_RUN)),
 		}
 		kfApp, kfAppErr := coordinator.LoadKfApp(options)
 		if kfAppErr != nil {

@@ -175,12 +175,8 @@ do
       esac
       ;;
     --dry-run)
-      case "$1" in
-        --dry-run)
-          dryrun=' --dry-run '
-          shift 1
-          ;;
-      esac
+      dryrun=' --dry-run '
+      shift 1
       ;;
     --) 
       shift

@@ -400,6 +400,8 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 			} else {
 				return fmt.Errorf("%v not in Platforms", kfapp.KfDef.Spec.Platform)
 			}
+		} else {
+			kfapp.writeConfigFile()
 		}
 		return nil
 	}
@@ -576,6 +578,19 @@ func (kfapp *coordinator) Show(resources kftypes.ResourceEnum, options map[strin
 				}
 			}
 		}
+	}
+	return nil
+}
+
+func (kfapp *coordinator) writeConfigFile() error {
+	buf, bufErr := yaml.Marshal(&kfapp.KfDef)
+	if bufErr != nil {
+		return bufErr
+	}
+	cfgFilePath := filepath.Join(kfapp.KfDef.Spec.AppDir, kftypes.KfConfigFile)
+	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
+	if cfgFilePathErr != nil {
+		return cfgFilePathErr
 	}
 	return nil
 }
