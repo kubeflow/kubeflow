@@ -26,7 +26,7 @@ type KfError struct {
 	Message string `json:"message,omitempty"`
 }
 
-func (e *Error) Error() string {
+func (e *KfError) Error() string {
 	return fmt.Sprintf(" (kubeflow.error): Code %d with message: %v",
 		e.Code, e.Message)
 }
