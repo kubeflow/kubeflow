@@ -55,7 +55,7 @@ WORKDIR /opt/kubeflow
 COPY --from=kfctl_base ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/bin/kfctl /usr/local/bin
 COPY --from=kfctl_base ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/hack/kfctl-component.sh /usr/local/bin
 
-CMD ["/usr/local/bin/kfctl-component.sh","add", "openvino"]
+CMD ["/usr/local/bin/kfctl-component.sh"]
 
 #
 # bootstrap

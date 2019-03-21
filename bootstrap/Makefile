@@ -15,7 +15,6 @@
 GCLOUD_PROJECT ?= kubeflow-images-public
 GOLANG_VERSION ?= 1.12
 GOPATH ?= $(HOME)/go
-GOOGLE_APPLICATION_CREDENTIALS ?= $(HOME)/auth.json
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
 BOOTSTRAPPER_IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
@@ -33,7 +32,7 @@ export GO = go
 
 %.init:
 	@echo kfctl init test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) --version master && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(PWD)/test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) --version master
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(PWD)/test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) --version master
 
 %.init-no-platform:
 	@echo kfctl init test/$* $(VERBOSE) --version master && \
@@ -42,7 +41,7 @@ export GO = go
 %.generate:
 	@echo kfctl generate all $(VERBOSE) '(--platform '$*')' && \
 	cd test/$* && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all $(VERBOSE) --mount-local --email gcp-deploy@$(GCLOUD_PROJECT).iam.gserviceaccount.com
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all $(VERBOSE) --mount-local --email gcp-deploy@$(GCLOUD_PROJECT).iam.gserviceaccount.com
 
 all: build
 
@@ -119,6 +118,10 @@ push-latest: push
 push-kfctl-container: build-kfctl-container
 	docker push $(KFCTL_IMG):$(TAG)
 	@echo Pushed $(KFCTL_IMG):$(TAG)
+
+push-kfctl-container-latest: push-kfctl-container
+	gcloud container images add-tag --quiet $(KFCTL_IMG):$(TAG) $(KFCTL_IMG):latest --verbosity=info
+	@echo created $(BOOTSTRAPPER_IMG):latest
 
 install: build-kfctl dockerfordesktop.so
 	@echo copying bin/kfctl to /usr/local/bin

@@ -1,0 +1,13 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: deploy-openvino
+spec:
+  template:
+    spec:
+      containers:
+      - name: deploy-openvino
+        image: gcr.io/$GCLOUD_PROJECT/kfctl:latest
+        command: ["/usr/local/bin/kfctl-component.sh",  "add", "openvino", "--registry=docker.io", "--repoPath=intelaipg", "--image=openvino-model-server:0.4"]
+      restartPolicy: Never
+  backoffLimit: 1

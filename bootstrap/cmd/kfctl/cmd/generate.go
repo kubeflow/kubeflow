@@ -78,8 +78,7 @@ func init() {
 	generateCfg.SetConfigType("yaml")
 
 	// platform gcp
-	generateCmd.Flags().String(string(kftypes.EMAIL), "",
-		string(kftypes.EMAIL)+" if '--platform gcp'")
+	generateCmd.Flags().String(string(kftypes.EMAIL), "", string(kftypes.EMAIL)+" if '--platform gcp'")
 	bindErr := generateCfg.BindPFlag(string(kftypes.EMAIL), generateCmd.Flags().Lookup(string(kftypes.EMAIL)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.EMAIL), bindErr)
@@ -96,8 +95,7 @@ func init() {
 	}
 
 	// platform gcp
-	generateCmd.Flags().String(string(kftypes.IPNAME), "",
-		string(kftypes.IPNAME)+" if '--platform gcp'")
+	generateCmd.Flags().String(string(kftypes.IPNAME), "", string(kftypes.IPNAME)+" if '--platform gcp'")
 	bindErr = generateCfg.BindPFlag(string(kftypes.IPNAME), generateCmd.Flags().Lookup(string(kftypes.IPNAME)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.IPNAME), bindErr)
@@ -105,8 +103,7 @@ func init() {
 	}
 
 	// platform gcp
-	generateCmd.Flags().String(string(kftypes.HOSTNAME), "",
-		string(kftypes.HOSTNAME)+" if '--platform gcp'")
+	generateCmd.Flags().String(string(kftypes.HOSTNAME), "", string(kftypes.HOSTNAME)+" if '--platform gcp'")
 	bindErr = generateCfg.BindPFlag(string(kftypes.HOSTNAME), generateCmd.Flags().Lookup(string(kftypes.HOSTNAME)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.HOSTNAME), bindErr)
