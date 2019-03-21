@@ -74,7 +74,7 @@ func init() {
 	}
 
 	deleteCmd.Flags().Bool(string(kftypes.DELETE_STORAGE), false,
-		"Set if you want to delete storage deployment.")
+		"Set if you want to delete app's storage cluster.")
 	bindErr = deleteCfg.BindPFlag(string(kftypes.DELETE_STORAGE), deleteCmd.Flags().Lookup(string(kftypes.DELETE_STORAGE)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.DELETE_STORAGE), bindErr)
