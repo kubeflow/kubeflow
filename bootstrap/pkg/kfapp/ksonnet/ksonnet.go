@@ -133,7 +133,11 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 		if err = ksApp.showComponent([]string{"application"}); err != nil {
 			return fmt.Errorf("Writing config file error: %v", err)
 		}
-		return kfctlutils.RunKubectlApply(ksApp.getCompsFilePath())
+		if ksApp.Spec.DryRun {
+			return kfctlutils.RunKubectlApply(ksApp.getCompsFilePath(), "--dry-run")
+		} else {
+			return kfctlutils.RunKubectlApply(ksApp.getCompsFilePath())
+		}
 	} else {
 		keys := make([]string, 0, len(components))
 		for k, _ := range components {
