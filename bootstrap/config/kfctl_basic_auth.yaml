@@ -7,6 +7,7 @@ packages:
   - argo
   - application
   - common
+  - credentials-admission-webhook
   - examples
   - gcp
   - jupyter
@@ -30,6 +31,7 @@ components:
   - centraldashboard
   - cert-manager
   - cloud-endpoints
+  - gcp-credentials-admission-webhook
   - jupyter
   - jupyter-web-app
   - katib
