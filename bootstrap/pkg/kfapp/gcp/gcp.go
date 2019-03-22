@@ -361,6 +361,17 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	if policyErr != nil {
 		return fmt.Errorf("GetIamPolicy error: %v", policyErr)
 	}
+	for idx, binding := range policy.Bindings {
+		cleanedMembers := []string{}
+		for _, member := range binding.Members {
+			if strings.HasPrefix(member, "serviceAccount:kfctl-") {
+				log.Infof("Clean up %v in role %v", member, binding.Role)
+			} else {
+				cleanedMembers = append(cleanedMembers, member)
+			}
+		}
+		policy.Bindings[idx].Members = cleanedMembers
+	}
 	appDir := gcp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
 	iamPolicy, iamPolicyErr := utils.ReadIamBindingsYAML(
