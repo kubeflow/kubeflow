@@ -46,7 +46,7 @@ export GO = go
 %.apply:
 	@echo kfctl apply all --dry-run $(VERBOSE) '(--platform '$*')' && \
 	cd test/$* && \
-	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl apply all --dry-run $(VERBOSE) --mount-local --email gcp-deploy@$(GCLOUD_PROJECT).iam.gserviceaccount.com
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl apply all --dry-run $(VERBOSE)
 
 all: build
 
