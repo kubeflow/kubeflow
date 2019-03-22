@@ -256,6 +256,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	disableUsageReport := options[string(kftypes.DISABLE_USAGE_REPORT)].(bool)
 	if disableUsageReport {
 		kfDef.Spec.Components = filterSpartakus(kfDef.Spec.Components)
+		delete(kfDef.Spec.ComponentParams, "spartakus")
 	}
 
 	kfDef.Name = appName
