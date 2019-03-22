@@ -196,6 +196,31 @@ func filterSpartakus(components []string) []string {
 	return ret
 }
 
+// Helper function to print out warning message if using usage reporting.
+func usageReportWarn(components []string) {
+	msg := "\n" +
+		"****************************************************************\n" +
+		"Notice anonymous usage reporting enabled using spartakus\n" +
+		"To disable it\n" +
+		"If you have already deployed it run the following commands:\n" +
+		"  cd $(pwd)\n" +
+		"  ks delete default -c spartakus\n" +
+		"  kubectl -n ${K8S_NAMESPACE} delete deploy -l app=spartakus\n" +
+		"\n" +
+		"Then run the following command to remove it from your ksonnet app:\n" +
+		"  ks component rm spartakus\n" +
+		"\n" +
+		"For more info: https://www.kubeflow.org/docs/guides/usage-reporting/\n" +
+		"****************************************************************\n" +
+		"\n"
+	for _, comp := range components {
+		if comp == "spartakus" {
+			log.Warnf(msg)
+			return
+		}
+	}
+}
+
 // NewKfApp is called from the Init subcommand and will create a directory based on
 // the path/name argument given to the Init subcommand
 func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
@@ -467,6 +492,9 @@ func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum) error {
 		}
 		return nil
 	}
+
+	// Print out warning message if using usage reporting component.
+	usageReportWarn(kfapp.KfDef.Spec.Components)
 
 	switch resources {
 	case kftypes.ALL:
