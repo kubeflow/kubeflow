@@ -1,7 +1,7 @@
 import json
 from kubernetes import client, config
 from kubernetes.config import ConfigException
-from baseui.utils import create_logger, get_notebook_uptime
+from .utils import create_logger, get_notebook_uptime
 
 logger = create_logger(__name__)
 
@@ -132,12 +132,14 @@ def get_notebooks(ns):
 
     nbs.append({
         'name': nb['metadata']['name'],
+        'namespace': nb['metadata']['namespace'],
         'cpu': cntr['resources']['requests']['cpu'],
         'mem': cntr['resources']['requests']['memory'],
         'image': cntr['image'],
         'srt_image': short_image,
         'uptime': get_notebook_uptime(nb['metadata']['creationTimestamp']),
         'volumes': nb['spec']['template']['spec']['volumes'],
+        'status': 'Running'
     })
   return nbs
 

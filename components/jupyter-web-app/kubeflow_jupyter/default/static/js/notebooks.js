@@ -1,9 +1,8 @@
 namespace = ""
-
+prevNotebooks = []
 
 $(document).ready(function(){
   // Update the Notebooks when a Namespace is selected
-
   $("#ns-select").on("change", function() {
     namespace = this.value;
     updateNotebooksInNamespace(namespace);
@@ -38,6 +37,11 @@ $(document).ready(function(){
     $("#ns-select").val(ns)
   }
   $("#ns-select").trigger("change");
+
+  // Periodically check if the Notebook's State has changed
+  var inrvl = setInterval(function() {
+    updateNotebooksInNamespace(namespace)
+  }, 1250)
 });
 
 function deleteNotebook(ns, nb) {
@@ -67,9 +71,106 @@ function createNotebook(ns) {
   window.location.href = `${prefix}/add-notebook?namespace=${ns}`
 };
 
+// Functions for the Notebook Columns in the Table
+function createNbStatusCol(txt, img, size, i) {
+  var col0 = $('<td>')
+
+  // Show the respective icon
+  var stat = $('<div>').attr({id: 'stat' + i})
+  var icon = $('<i>').attr({
+    class: img,
+    style: size,
+  })
+  var statTip = $('<div>').attr({
+    class: "mdl-tooltip",
+    for: 'stat' + i,
+  }).text(txt)
+
+  stat.append(icon)
+  col0.append(stat)
+      .append(statTip)
+
+  return col0
+}
+
+function createNbVolumesCol(nb, i) {
+  var col = $('<td>');
+  var vols_actions_btn = $("<button>").attr({
+    class: "mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon",
+    id: 'vols'+i
+  })
+
+  var vols_btn_icon = $("<i>").attr({
+    class: "material-icons"
+  }).text("subject")
+
+  var vols_actions_menu = $("<ul>").attr({
+    class: "mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right",
+    for: 'vols'+i
+  })
+
+  if (nb.volumes.length === 0) {
+    vols_actions_menu.append(
+      $("<li>").attr({
+        class: "mdl-menu__item",
+        disabled: true,
+      }).text('None')
+    )
+  } else {
+    // Create an entry for each volume
+    for(var j=0; j < nb.volumes.length; j++) {
+      vols_actions_menu.append(
+        $("<li>").attr({
+          class: "mdl-menu__item",
+        }).text(nb.volumes[j].name)
+      )
+    }
+  }
+
+  vols_actions_btn.append(vols_btn_icon)
+  col.append(vols_actions_btn)
+  col.append(vols_actions_menu)
+
+  return col
+}
+
+function createNbActionsCol(nb, i) {
+  var col = $('<td>');
+  var actions_btn = $("<button>").attr({
+    class: "mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon",
+    id: 'menu'+i
+  })
+
+  var btn_icon = $("<i>").attr({
+    class: "material-icons"
+  }).text("more_vert")
+
+  var actions_menu = $("<ul>").attr({
+    class: "mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right",
+    for: 'menu'+i
+  })
+
+  var connect = $("<li>").attr({
+    class: "mdl-menu__item",
+    onclick: 'connectNotebook(\''+nb.namespace+'\',\''+nb.name+'\')'
+  }).text('Connect')
+
+  var del = $("<li>").attr({
+    class: "mdl-menu__item",
+    onclick: 'deleteNotebook(\''+nb.namespace+'\',\''+nb.name+'\')'
+  }).text('Delete')
+
+  actions_btn.append(btn_icon)
+  col.append(actions_btn)
+  actions_menu.append(connect)
+  actions_menu.append(del)
+  col.append(actions_menu)
+
+  return col
+}
+
 function updateNotebooksInNamespace(ns) {
   // Put the add Notebook button
-  // $('#nb-table-body').html("");
   var tmp = $('<div>')
   
   // Get the Notebooks for selected Namespace
@@ -79,6 +180,11 @@ function updateNotebooksInNamespace(ns) {
     // $('#nb-table-body').empty();
 
     if(data.success == true){
+      // First check if the state hasn't changed      
+      if (_.isEqual(prevNotebooks, data.notebooks)) {
+        return;
+      }
+
       // Create a row for every notebook
       for(var i=0; i < data.notebooks.length; i++) {
 
@@ -86,22 +192,18 @@ function updateNotebooksInNamespace(ns) {
 
         // Col 0: Notebook Loading
         var col0 = $('<td>')
-        // var stat = $('<div>').attr({
-        //   'class': 'mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active'
-        // })
-        var outer = $('<div>').attr({id: 'stat' + i})
-        var stat = $('<i>').attr({
-          class: "fa fa-check-circle",
-          style: "font-size:24px;color:green",
-        })
-        var statTip = $('<div>').attr({
-          class: "mdl-tooltip",
-          for: 'stat' + i,
-        }).text('Running')  // CHANGE
-
-        outer.append(stat)
-        col0.append(outer)
-            .append(statTip)
+        if (nb.status === 'Running') {
+          icon = "fa fa-check-circle"
+          size = "font-size:24px;color:green"
+          col0 = createNbStatusCol(nb.status, icon, size, i)
+        }
+        else if (nb.status !== 'Running') {
+          // Loading icon
+          var stat = $('<div>').attr({
+            'class': 'mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active'
+          })
+          col0.append(stat)
+        }
 
         // Col 1: Notebook Name
         var col1 = $("<td>").text(nb.name)
@@ -119,7 +221,6 @@ function updateNotebooksInNamespace(ns) {
           'data-mdl-for': "image" + i,
         }).text(nb.image).appendTo('body')
         
-
         // Col 4: Notebook CPU
         var col4 = $("<td>").text(nb.cpu)
 
@@ -127,76 +228,10 @@ function updateNotebooksInNamespace(ns) {
         var col5 = $("<td>").text(nb.mem)
 
         // Col 6: Notebook Volumes
-        var col6 = $("<td>")
-
-        var vols_actions_btn = $("<button>").attr({
-          class: "mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon",
-          id: 'vols'+i
-        })
-
-        var vols_btn_icon = $("<i>").attr({
-          class: "material-icons"
-        }).text("reorder")
-
-        var vols_actions_menu = $("<ul>").attr({
-          class: "mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right",
-          for: 'vols'+i
-        })
-
-        if (nb.volumes.length === 0) {
-          vols_actions_menu.append(
-            $("<li>").attr({
-              class: "mdl-menu__item",
-              disabled: true,
-            }).text('None')
-          )
-        } else {
-          // Create an entry for each volume
-          for(var j=0; j < nb.volumes.length; j++) {
-            vols_actions_menu.append(
-              $("<li>").attr({
-                class: "mdl-menu__item",
-              }).text(nb.volumes[j].name)
-            )
-          }
-        }
-
-        vols_actions_btn.append(vols_btn_icon)
-        col6.append(vols_actions_btn)
-        col6.append(vols_actions_menu)
+        var col6 = createNbVolumesCol(nb, i)
 
         // Col 7: Notebook Options
-        var col7 = $("<td>")
-
-        var actions_btn = $("<button>").attr({
-          class: "mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon",
-          id: 'menu'+i
-        })
-
-        var btn_icon = $("<i>").attr({
-          class: "material-icons"
-        }).text("more_vert")
-
-        var actions_menu = $("<ul>").attr({
-          class: "mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right",
-          for: 'menu'+i
-        })
-
-        var connect = $("<li>").attr({
-          class: "mdl-menu__item",
-          onclick: 'connectNotebook(\''+ns+'\',\''+nb.name+'\')'
-        }).text('Connect')
-
-        var del = $("<li>").attr({
-          class: "mdl-menu__item",
-          onclick: 'deleteNotebook(\''+ns+'\',\''+nb.name+'\')'
-        }).text('Delete')
-
-        actions_btn.append(btn_icon)
-        col7.append(actions_btn)
-        actions_menu.append(connect)
-        actions_menu.append(del)
-        col7.append(actions_menu)
+        var col7 = createNbActionsCol(nb, i)
 
         // Create the row
         var new_row = $("<tr>")
@@ -211,6 +246,8 @@ function updateNotebooksInNamespace(ns) {
         tmp.append(new_row)
       }
       $('#nb-table-body').html(tmp.html())
+      // Make a deep copy
+      prevNotebooks = JSON.parse(JSON.stringify(data.notebooks)) 
     }
     else{
       innerHTML = `

@@ -1,26 +1,11 @@
-# -*- coding: utf-8 -*-
 import json
-from flask import jsonify, render_template, request
+from flask import jsonify, render_template, request, Flask
 from kubernetes.client.rest import ApiException
-from kubeflow.jupyterui import app
-from baseui.api import parse_error, \
-    get_namespaces, \
-    get_notebooks, \
-    get_default_storageclass, \
-    get_pvcs, \
-    delete_notebook, \
-    create_notebook, \
-    create_datavol_pvc, \
-    create_workspace_pvc
-from baseui.utils import create_notebook_template, \
-    set_notebook_names, \
-    set_notebook_image, \
-    set_notebook_cpu_ram, \
-    add_notebook_volume, \
-    spawner_ui_config, \
-    create_logger
+from ..common import api
+from ..common import utils
 
-logger = create_logger(__name__)
+app = Flask(__name__)
+logger = utils.create_logger(__name__)
 
 
 # Helper function for getting the prefix of the webapp
@@ -37,30 +22,30 @@ def post_notebook_route():
   body = request.form
 
   # Template
-  notebook = create_notebook_template()
+  notebook = utils.create_notebook_template()
   notebook_cont = notebook["spec"]['template']['spec']['containers'][0]
 
   # Set Name and Namespace
-  set_notebook_names(notebook, body)
+  utils.set_notebook_names(notebook, body)
 
   # Set Image
-  set_notebook_image(notebook, body)
+  utils.set_notebook_image(notebook, body)
 
   # CPU/RAM
-  set_notebook_cpu_ram(notebook, body)
+  utils.set_notebook_cpu_ram(notebook, body)
 
   # Workspacae Volume
   if body["ws_type"] == "New":
     try:
-      create_workspace_pvc(body)
+      api.create_workspace_pvc(body)
     except ApiException as e:
       data["success"] = False
-      data["log"] = parse_error(e)
+      data["log"] = api.parse_error(e)
       return jsonify(data)
 
   # Create the Workspace Volume in the Pod
   if body["ws_type"] != "None":
-    add_notebook_volume(
+    utils.add_notebook_volume(
         notebook,
         "volume-" + body["nm"],
         body["ws_name"],
@@ -78,14 +63,14 @@ def post_notebook_route():
     # Create a PVC if its a new Data Volume
     if body["vol_type" + i] == "New":
       try:
-        create_datavol_pvc(data, i)
+        api.create_datavol_pvc(data, i)
       except ApiException as e:
         data["success"] = False
-        data["log"] = parse_error(e)
+        data["log"] = api.parse_error(e)
         return jsonify(data)
 
     # Create the Data Volume in the Pod
-    add_notebook_volume(notebook, vol_nm, pvc_nm, mnt)
+    utils.add_notebook_volume(notebook, vol_nm, pvc_nm, mnt)
     counter += 1
 
   # Add Extra Resources
@@ -93,7 +78,7 @@ def post_notebook_route():
     extra = json.loads(body["extraResources"])
   except Exception as e:
     data["success"] = False
-    data["log"] = parse_error(e)
+    data["log"] = api.parse_error(e)
     return jsonify(data)
 
   notebook_cont['resources']['limits'] = extra
@@ -101,10 +86,10 @@ def post_notebook_route():
   # If all the parameters are given, then we try to create the notebook
   # return
   try:
-    create_notebook(notebook)
+    api.create_notebook(notebook)
   except ApiException as e:
     data["success"] = False
-    data["log"] = parse_error(e)
+    data["log"] = api.parse_error(e)
     return jsonify(data)
 
   return jsonify(data)
@@ -121,19 +106,19 @@ def add_notebook_route():
   # Get default StorageClass
   is_default = False
   try:
-    if get_default_storageclass() != "":
+    if api.get_default_storageclass() != "":
       is_default = True
   except ApiException as e:
-    logger.warning("Can't  list storageclasses: %s" % parse_error(e))
+    logger.warning("Can't  list storageclasses: %s" % api.parse_error(e))
 
   # Get list of existing PVCs
   try:
-    pvcs = get_pvcs(ns)
+    pvcs = api.get_pvcs(ns)
   except ApiException as e:
     pvcs = []
-    logger.warning("Can't  list pvcs: %s" % parse_error(e))
+    logger.warning("Can't  list pvcs: %s" % api.parse_error(e))
 
-  form_defaults = spawner_ui_config("notebook")
+  form_defaults = utils.spawner_ui_config("notebook")
   return render_template(
       'add_notebook.html', prefix=prefix(), ns=ns, form_defaults=form_defaults,
       default_storage_class=is_default, existing_pvcs=pvcs)
@@ -147,10 +132,10 @@ def del_notebook_route():
   # try to delete the notebook
   data = {"success": True, "log": ""}
   try:
-    delete_notebook(nb, ns)
+    api.delete_notebook(nb, ns)
   except ApiException as e:
     data["success"] = False
-    data["log"] = parse_error(e)
+    data["log"] = api.parse_error(e)
 
   return jsonify(data)
 
@@ -162,11 +147,11 @@ def list_notebooks_route():
   # Get the list of Notebooks in the given Namespace
   data = {"notebooks": [], "success": True}
   try:
-    data['notebooks'] = get_notebooks(ns)
+    data['notebooks'] = api.get_notebooks(ns)
   except ApiException as e:
     data['notebooks'] = []
     data['success'] = False
-    data["log"] = parse_error(e)
+    data["log"] = api.parse_error(e)
 
   return jsonify(data)
 
@@ -179,10 +164,14 @@ def notebooks_route():
 
   # Get the namespaces the token can see
   try:
-    nmsps = get_namespaces()
+    nmsps = api.get_namespaces()
   except ApiException as e:
     nmsps = [base_ns]
-    logger.warning("Can't  list namespaces: %s" % parse_error(e))
+    logger.warning("Can't  list namespaces: %s" % api.parse_error(e))
 
   return render_template(
       'notebooks.html', prefix=prefix(), title='Notebooks', namespaces=nmsps)
+
+
+if __name__ == "__main__":
+  app.run(host="0.0.0.0")

@@ -1,11 +1,12 @@
 import os
 import base64
 from kubernetes.client.rest import ApiException
-from baseui.utils import create_logger
-from baseui.api import v1_core, client
+from kubernetes import client
+from ..common import utils
+from ..common import api
 
 ROK_SECRET_MOUNT = "/var/run/secrets/rok"
-logger = create_logger(__name__)
+logger = utils.create_logger(__name__)
 
 
 def parse_user_template(string):
@@ -25,7 +26,7 @@ def attach_rok_token_secret(notebook, body):
   # Mount the Rok token as a Volume
   secret_name = rok_secret_name()
   secret_volume_name = 'volume-%s' % secret_name
-  add_notebook_volume_secret(
+  utils.add_notebook_volume_secret(
       notebook,
       secret_volume_name,
       secret_name,
@@ -56,9 +57,9 @@ def get_rok_token(ns):
   nm = rok_secret_name()
 
   try:
-    secret = v1_core.read_namespaced_secret(name=nm, namespace=ns)
+    secret = api.v1_core.read_namespaced_secret(name=nm, namespace=ns)
   except ApiException as e:
-    logger.warning("Couldn't load ROK token: %s" % parse_error(e))
+    logger.warning("Couldn't load ROK token: %s" % utils.parse_error(e))
     return ''
 
   if secret.data is None:
@@ -147,7 +148,7 @@ def delete_existing_pvc(pvc_name, namespace):
   delete_options = client.V1DeleteOptions()
   del_status = None
   try:
-    del_status = v1_core.delete_namespaced_persistent_volume_claim(
+    del_status = api.v1_core.delete_namespaced_persistent_volume_claim(
         name=pvc_name,
         namespace=namespace,
         body=delete_options)
@@ -160,7 +161,7 @@ def delete_existing_pvc(pvc_name, namespace):
 
   while True:
     try:
-      v1_core.read_namespaced_persistent_volume_claim(
+      api.v1_core.read_namespaced_persistent_volume_claim(
           name=pvc_name,
           namespace=namespace)
     except ApiException as e:
@@ -173,7 +174,7 @@ def provision_new_pvc(pvc_manifest):
   """Issue a K8s API request to create a new, namespaced PVC."""
   # Create a V1PersistentVolumeClaim for the API call
   try:
-    v1_core.create_namespaced_persistent_volume_claim(
+    api.v1_core.create_namespaced_persistent_volume_claim(
         namespace=pvc_manifest.metadata.namespace,
         body=pvc_manifest)
 
