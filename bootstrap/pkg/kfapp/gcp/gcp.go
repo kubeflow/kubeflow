@@ -195,6 +195,9 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 	return backoff.Retry(func() error {
 		op, err := deploymentmanagerService.Operations.Get(p, name).Context(ctx).Do()
 
+		if err != nil {
+			return backoff.Permanent(fmt.Errorf("%v error: %v", logPrefix, err))
+		}
 		if op.Error != nil {
 			for _, e := range op.Error.Errors {
 				log.Errorf("%v error: %+v", logPrefix, e)
@@ -208,8 +211,6 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 			}
 			log.Infof("%v is finished: %v", logPrefix, op.Status)
 			return nil
-		} else if err != nil {
-			return backoff.Permanent(fmt.Errorf("Deployment error: %v", err))
 		}
 		log.Warnf("%v status: %v (op = %v)", logPrefix, op.Status, op.Name)
 		name = op.Name
