@@ -17,11 +17,11 @@ module.exports = function(config) {
         browsers: ['ChromeHeadless'],
         frameworks: ['jasmine'],
         files: [
-            {pattern: 'public/**/*_test.js', watched: false},
+            'public/index_test.js',
         ],
         exclude: [],
         preprocessors: {
-            'public/**/*_test.js': ['webpack', 'sourcemap'],
+            'public/index_test.js': ['webpack', 'sourcemap'],
         },
         webpack: webpackConfig,
         webpackMiddleware: {stats: 'errors-only'},

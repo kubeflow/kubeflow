@@ -4,7 +4,7 @@ import '@polymer/test-fixture/test-fixture';
 import './activities-list';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
-const FIXTURE_ID = 'test-fixture';
+const FIXTURE_ID = 'activities-list-fixture';
 const ACTIVITIES_LIST_ID = 'test-activities-list';
 const TEMPLATE = `
 <test-fixture id="${FIXTURE_ID}">
@@ -16,10 +16,14 @@ const TEMPLATE = `
 
 describe('Activities List', () => {
     let activitiesList;
-    beforeEach(() => {
+
+    beforeAll(() => {
         const div = document.createElement('div');
         div.innerHTML = TEMPLATE;
         document.body.appendChild(div);
+    });
+
+    beforeEach(() => {
         document.getElementById(FIXTURE_ID).create();
         activitiesList = document.getElementById(ACTIVITIES_LIST_ID);
     });
