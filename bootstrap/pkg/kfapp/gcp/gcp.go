@@ -932,9 +932,10 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "minioPd", gcp.Name+"-storage-artifact-store", false)
 
 	rand.Seed(time.Now().UnixNano())
-	usageId := (rand.Uint64() << 15) | rand.Uint64()
+	r := rand.Int()
+	usageId := (r << 15) | r
 	gcp.Spec.ComponentParams["spartakus"] = setNameVal(gcp.Spec.ComponentParams["spartakus"],
-		"usageId", strconv.FormatUint(usageId, 10), true)
+		"usageId", strconv.Itoa(usageId), true)
 
 	if gcp.Spec.UseIstio {
 		gcp.Spec.ComponentParams["iap-ingress"] = setNameVal(gcp.Spec.ComponentParams["iap-ingress"], "useIstio", "true", false)
