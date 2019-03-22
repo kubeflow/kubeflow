@@ -121,9 +121,9 @@
         ["1.12.0", "cpu"],
         ["1.12.0gpu", "gpu"],
         ["1.13.1","cpu"],
-        ["1.13.1","gpu"],
+        ["1.13.1gpu","gpu"],
         ["2.0.0a0","cpu"],
-        ["2.0.0a0","gpu"],
+        ["2.0.0a0gpu","gpu"],
       ];
 
       // Build an Argo template to execute a particular command.
