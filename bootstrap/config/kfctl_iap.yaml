@@ -76,6 +76,6 @@ componentParams:
       value: <randomly-generated-id>
       initRequired: true
     - name: reportUsage
-      value: true
+      value: "true"
       initRequired: true
 platform: gcp
