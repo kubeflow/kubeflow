@@ -185,6 +185,17 @@ func getPackageManager(packagemanager string, kfdef *kfdefs.KfDef) (kftypes.KfAp
 	}
 }
 
+// Helper function to filter out spartakus.
+func filterSpartakus(components []string) []string {
+	ret := []string{}
+	for _, comp := range components {
+		if comp != "spartakus" {
+			ret = append(ret, comp)
+		}
+	}
+	return ret
+}
+
 // NewKfApp is called from the Init subcommand and will create a directory based on
 // the path/name argument given to the Init subcommand
 func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
@@ -242,6 +253,11 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	if specErr != nil {
 		log.Errorf("couldn't unmarshal app.yaml. Error: %v", specErr)
 	}
+	disableUsageReport := options[string(kftypes.DISABLE_USAGE_REPORT)].(bool)
+	if disableUsageReport {
+		kfDef.Spec.Components = filterSpartakus(kfDef.Spec.Components)
+	}
+
 	kfDef.Name = appName
 	kfDef.Spec.AppDir = appDir
 	kfDef.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
