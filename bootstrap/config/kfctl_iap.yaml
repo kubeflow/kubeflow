@@ -28,6 +28,7 @@ components:
   - centraldashboard
   - cert-manager
   - cloud-endpoints
+  - gcp-credentials-admission-webhook
   - iap-ingress
   - jupyter
   - jupyter-web-app
