@@ -17,15 +17,9 @@ package apps
 
 import (
 	"fmt"
-	"io"
-	"os"
-	"path/filepath"
-	"plugin"
-	"regexp"
-	"strings"
-
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
+	"io"
 	ext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	crdclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apiext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
@@ -34,24 +28,29 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"os"
+	"path/filepath"
+	"plugin"
+	"regexp"
+	"strings"
 )
 
 const (
 	DefaultNamespace = "kubeflow"
 	// TODO: find the latest tag dynamically
-	DefaultVersion    = "master"
-	DefaultGitRepo    = "https://github.com/kubeflow/kubeflow/tarball"
-	KfConfigFile      = "app.yaml"
-	DefaultCacheDir   = ".cache"
-	DefaultConfigDir  = "bootstrap/config"
-	DefaultConfigFile = "kfctl_default.yaml"
-	GcpIapConfig      = "kfctl_iap.yaml"
-	GcpBasicAuth      = "kfctl_basic_auth.yaml"
-	DefaultZone       = "us-east1-d"
-	DefaultGkeApiVer  = "v1beta1"
-	DefaultAppLabel   = "app.kubernetes.io/name"
-	KUBEFLOW_USERNAME = "KUBEFLOW_USERNAME"
-	KUBEFLOW_PASSWORD = "KUBEFLOW_PASSWORD"
+	DefaultVersion     = "master"
+	DefaultGitRepo     = "https://github.com/kubeflow/kubeflow/tarball"
+	KfConfigFile       = "app.yaml"
+	DefaultCacheDir    = ".cache"
+	DefaultConfigDir   = "bootstrap/config"
+	DefaultConfigFile  = "kfctl_default.yaml"
+	GcpIapConfig       = "kfctl_iap.yaml"
+	GcpBasicAuth       = "kfctl_basic_auth.yaml"
+	DefaultZone        = "us-east1-d"
+	DefaultGkeApiVer   = "v1beta1"
+	DefaultAppLabel    = "app.kubernetes.io/name"
+	KUBEFLOW_USERNAME  = "KUBEFLOW_USERNAME"
+	KUBEFLOW_PASSWORD  = "KUBEFLOW_PASSWORD"
 	DefaultSwaggerFile = "releasing/releaser/lib/v1.9.7/swagger.json"
 )
 
@@ -83,6 +82,7 @@ const (
 	USE_ISTIO             CliOption = "use_istio"
 	OAUTH_ID              CliOption = "oauth_id"
 	OAUTH_SECRET          CliOption = "oauth_secret"
+	DELETE_STORAGE        CliOption = "delete_storage"
 )
 
 //

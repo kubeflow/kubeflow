@@ -17,10 +17,10 @@ limitations under the License.
 package gcp
 
 import (
-	"cloud.google.com/go/container/apiv1"
 	"encoding/base64"
 	"fmt"
 	"github.com/cenkalti/backoff"
+	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
@@ -34,10 +34,9 @@ import (
 	"golang.org/x/oauth2/google"
 	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/deploymentmanager/v2"
+	"google.golang.org/api/googleapi"
 	"google.golang.org/api/iam/v1"
-	"google.golang.org/api/option"
 	"google.golang.org/api/serviceusage/v1"
-	containerpb "google.golang.org/genproto/googleapis/container/v1"
 	"io"
 	"io/ioutil"
 	v1 "k8s.io/api/core/v1"
@@ -92,21 +91,8 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	return _gcp
 }
 
-func GetClusterInfo(ctx context.Context, project string, loc string, cluster string) (*containerpb.Cluster, error) {
-	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
-	if err != nil {
-		return nil, fmt.Errorf("Get token error: %v", err)
-	}
-	c, err := container.NewClusterManagerClient(ctx, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
-	getClusterReq := &containerpb.GetClusterRequest{
-		ProjectId: project,
-		Zone:      loc,
-		ClusterId: cluster,
-	}
-	return c.GetCluster(ctx, getClusterReq)
+func getSA(name string, nameSuffix string, project string) string {
+	return fmt.Sprintf("%v-%v@%v.iam.gserviceaccount.com", name, nameSuffix, project)
 }
 
 // if --email is not supplied try and the get account info using gmail
@@ -117,32 +103,6 @@ func GetAccount() (string, error) {
 	}
 	account := string(output)
 	return strings.TrimSpace(account), nil
-}
-
-// BuildConfigFromClusterInfo returns k8s config using gcloud Application Default Credentials
-// typically $HOME/.config/gcloud/application_default_credentials.json
-func BuildConfigFromClusterInfo(ctx context.Context, cluster *containerpb.Cluster) (*rest.Config, error) {
-	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
-	if err != nil {
-		return nil, fmt.Errorf("Get token error: %v", err)
-	}
-	t, err := ts.Token()
-	if err != nil {
-		return nil, fmt.Errorf("Token retrieval error: %v", err)
-	}
-	caDec, _ := base64.StdEncoding.DecodeString(cluster.MasterAuth.ClusterCaCertificate)
-	config := &rest.Config{
-		Host:        "https://" + cluster.Endpoint,
-		BearerToken: t.AccessToken,
-		TLSClientConfig: rest.TLSClientConfig{
-			CAData: []byte(string(caDec)),
-		},
-	}
-	return config, nil
-}
-
-func getSA(name string, nameSuffix string, project string) string {
-	return fmt.Sprintf("%v-%v@%v.iam.gserviceaccount.com", name, nameSuffix, project)
 }
 
 func (gcp *Gcp) writeConfigFile() error {
@@ -214,12 +174,12 @@ func generateTarget(configPath string) (*deploymentmanager.TargetConfiguration, 
 }
 
 func (gcp *Gcp) getK8sClientset(ctx context.Context) (*clientset.Clientset, error) {
-	cluster, err := GetClusterInfo(ctx, gcp.Spec.Project,
+	cluster, err := utils.GetClusterInfo(ctx, gcp.Spec.Project,
 		gcp.Spec.Zone, gcp.Name)
 	if err != nil {
 		return nil, fmt.Errorf("get Cluster error: %v", err)
 	}
-	config, err := BuildConfigFromClusterInfo(ctx, cluster)
+	config, err := utils.BuildConfigFromClusterInfo(ctx, cluster)
 	if err != nil {
 		return nil, fmt.Errorf("build ClientConfig error: %v", err)
 	}
@@ -228,31 +188,33 @@ func (gcp *Gcp) getK8sClientset(ctx context.Context) (*clientset.Clientset, erro
 }
 
 func blockingWait(project string, opName string, deploymentmanagerService *deploymentmanager.Service,
-	ctx context.Context) error {
+	ctx context.Context, logPrefix string) error {
 	// Explicitly copy string to avoid memory leak.
 	p := "" + project
 	name := "" + opName
 	return backoff.Retry(func() error {
 		op, err := deploymentmanagerService.Operations.Get(p, name).Context(ctx).Do()
 
+		if err != nil {
+			return backoff.Permanent(fmt.Errorf("%v error: %v", logPrefix, err))
+		}
 		if op.Error != nil {
 			for _, e := range op.Error.Errors {
-				log.Errorf("Deployment error: %+v", e)
+				log.Errorf("%v error: %+v", logPrefix, e)
 			}
 		}
 		if op.Status == "DONE" {
 			if op.HttpErrorStatusCode > 0 {
-				return backoff.Permanent(fmt.Errorf("Deployment error(%v): %v",
+				return backoff.Permanent(fmt.Errorf("%v error(%v): %v",
+					logPrefix,
 					op.HttpErrorStatusCode, op.HttpErrorMessage))
 			}
-			log.Infof("Deployment service is finished: %v", op.Status)
+			log.Infof("%v is finished: %v", logPrefix, op.Status)
 			return nil
-		} else if err != nil {
-			return backoff.Permanent(fmt.Errorf("Deployment error: %v", err))
 		}
-		log.Warnf("Deployment operation name: %v status: %v", op.Name, op.Status)
+		log.Warnf("%v status: %v (op = %v)", logPrefix, op.Status, op.Name)
 		name = op.Name
-		return fmt.Errorf("Deployment operation did not succeed; name: %v status: %v", op.Name, op.Status)
+		return fmt.Errorf("%v did not succeed; status: %v (op = %v)", logPrefix, op.Status, op.Name)
 	}, backoff.NewExponentialBackOff())
 }
 
@@ -287,14 +249,16 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 		if updateErr != nil {
 			return fmt.Errorf("Update deployment error: %v", updateErr)
 		}
-		return blockingWait(project, op.Name, deploymentmanagerService, ctx)
+		return blockingWait(project, op.Name, deploymentmanagerService, ctx,
+			"Updating "+deployment)
 	} else {
 		log.Infof("Creating deployment %v", deployment)
 		op, insertErr := deploymentmanagerService.Deployments.Insert(project, dp).Context(ctx).Do()
 		if insertErr != nil {
 			return fmt.Errorf("Insert deployment error: %v", insertErr)
 		}
-		return blockingWait(project, op.Name, deploymentmanagerService, ctx)
+		return blockingWait(project, op.Name, deploymentmanagerService, ctx,
+			"Creating "+deployment)
 	}
 }
 
@@ -424,12 +388,12 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	}
 
 	ctx := context.Background()
-	cluster, err := GetClusterInfo(ctx, gcp.Spec.Project,
+	cluster, err := utils.GetClusterInfo(ctx, gcp.Spec.Project,
 		gcp.Spec.Zone, gcp.Name)
 	if err != nil {
 		return fmt.Errorf("Get Cluster error: %v", err)
 	}
-	client, err := BuildConfigFromClusterInfo(ctx, cluster)
+	client, err := utils.BuildConfigFromClusterInfo(ctx, cluster)
 	if err != nil {
 		return fmt.Errorf("Build ClientConfig error: %v", err)
 	}
@@ -502,7 +466,87 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
+// Try to get information for the deployment. If returned, delete it.
+func deleteDeployment(deploymentmanagerService *deploymentmanager.Service, ctx context.Context,
+	project string, name string) error {
+	_, err := deploymentmanagerService.Deployments.Get(project, name).Context(ctx).Do()
+	if err != nil {
+		e := err.(*googleapi.Error)
+		if e.Code == 404 {
+			// Don't treat not found deployment deletion as error to make kfctl delete idempotent.
+			log.Infof("Deployment %v/%v is not found during deletion.", project, name)
+			return nil
+		} else {
+			return fmt.Errorf("Deployment %v/%v has unexpected error: %v", project, name, err)
+		}
+	}
+
+	op, err := deploymentmanagerService.Deployments.Delete(project, name).Context(ctx).Do()
+	if err != nil {
+		return fmt.Errorf("Gcp.Delete is failed for %v/%v: %v", project, name, err)
+	}
+	if err = blockingWait(project, op.Name, deploymentmanagerService, ctx,
+		"Deleting "+name); err != nil {
+		return fmt.Errorf("Gcp.Delete is failed for %v/%v: %v", project, name, err)
+	}
+	return nil
+}
+
 func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
+	ctx := context.Background()
+	client, err := google.DefaultClient(ctx, deploymentmanager.CloudPlatformScope)
+	if err != nil {
+		return fmt.Errorf("Error getting DefaultClient: %v", err)
+	}
+	deploymentmanagerService, err := deploymentmanager.New(client)
+	if err != nil {
+		return fmt.Errorf("Error creating deploymentmanagerService: %v", err)
+	}
+
+	// cluster and storage deployments are required to be deleted. network and gcfs deployments are optional.
+	project := gcp.Spec.Project
+	deletingDeployments := []string{
+		gcp.Name,
+	}
+	if gcp.Spec.DeleteStorage {
+		deletingDeployments = append(deletingDeployments, gcp.Name+"-storage")
+	}
+	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
+		deletingDeployments = append(deletingDeployments, gcp.Name+"-network")
+	}
+	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
+		deletingDeployments = append(deletingDeployments, gcp.Name+"-gcfs")
+	}
+
+	for _, d := range deletingDeployments {
+		if err = deleteDeployment(deploymentmanagerService, ctx, project, d); err != nil {
+			return err
+		}
+	}
+
+	policy, err := utils.GetIamPolicy(project)
+	if err != nil {
+		return fmt.Errorf("Error when getting IAM policy: %v", err)
+	}
+	saSet := mapset.NewSet(
+		"serviceAccount:"+getSA(gcp.Name, "admin", project),
+		"serviceAccount:"+getSA(gcp.Name, "user", project),
+		"serviceAccount:"+getSA(gcp.Name, "vm", project))
+	for idx, binding := range policy.Bindings {
+		cleanedMembers := []string{}
+		for _, member := range binding.Members {
+			if saSet.Contains(member) {
+				log.Infof("Removing %v from %v", member, binding.Role)
+			} else {
+				cleanedMembers = append(cleanedMembers, member)
+			}
+		}
+		policy.Bindings[idx].Members = cleanedMembers
+	}
+	if err = utils.SetIamPolicy(project, policy); err != nil {
+		return fmt.Errorf("Error when cleaning IAM policy: %v", err)
+	}
+
 	return nil
 }
 

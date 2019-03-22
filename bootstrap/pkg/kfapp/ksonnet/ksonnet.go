@@ -61,7 +61,7 @@ const (
 
 func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	_kfapp := &ksApp{
-		KfDef:    *kfdef,
+		KfDef:     *kfdef,
 		KsName:    KsName,
 		KsEnvName: KsEnvName,
 	}
@@ -288,48 +288,6 @@ func (ksApp *ksApp) deleteGlobalResources(config *rest.Config) error {
 }
 
 func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
-	config := kftypes.GetConfig()
-	err := ksApp.deleteGlobalResources(config)
-	if err != nil {
-		log.Errorf("there was a problem deleting global resources: %v", err)
-	}
-	envSetErr := ksApp.envSet(ksApp.KsEnvName, config.Host)
-	if envSetErr != nil {
-		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", ksApp.KsEnvName, envSetErr)
-	}
-	clientConfig := kftypes.GetKubeConfig()
-	components := []string{"application", "metacontroller"}
-	err = actions.RunDelete(map[string]interface{}{
-		actions.OptionApp: ksApp.KApp,
-		actions.OptionClientConfig: &client.Config{
-			Overrides: &clientcmd.ConfigOverrides{},
-			Config:    clientcmd.NewDefaultClientConfig(*clientConfig, &clientcmd.ConfigOverrides{}),
-		},
-		actions.OptionEnvName:        ksApp.KsEnvName,
-		actions.OptionComponentNames: components,
-		actions.OptionGracePeriod:    int64(10),
-	})
-	if err != nil {
-		log.Infof("there was a problem deleting %v: %v", components, err)
-	}
-	namespace := ksApp.ObjectMeta.Namespace
-	log.Infof("deleting namespace: %v", namespace)
-	clientset := kftypes.GetClientset(config)
-	ns, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
-	if nsMissingErr == nil {
-		nsErr := clientset.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
-		if nsErr != nil {
-			return fmt.Errorf("couldn't delete namespace %v Error: %v", namespace, nsErr)
-		}
-	}
-	name := "meta-controller-cluster-role-binding"
-	crb, crbErr := clientset.RbacV1().ClusterRoleBindings().Get(name, metav1.GetOptions{})
-	if crbErr == nil {
-		crbDeleteErr := clientset.RbacV1().ClusterRoleBindings().Delete(crb.Name, metav1.NewDeleteOptions(int64(5)))
-		if crbDeleteErr != nil {
-			return fmt.Errorf("couldn't delete clusterrolebinding %v Error: %v", name, crbDeleteErr)
-		}
-	}
 	return nil
 }
 
@@ -363,7 +321,6 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 	}
 	setNameVal(ksApp.Spec.ComponentParams["application"], "components",
 		"["+strings.Join(components, " ,")+"]")
-
 
 	ksRegistry := kfdefs.DefaultRegistry
 	ksRegistry.Version = ksApp.Spec.Version
