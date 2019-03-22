@@ -32,6 +32,7 @@ import template from './main-page.pug';
 import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
+import './not-found-view.js';
 
 /**
  * Entry point for application UI.
@@ -164,9 +165,13 @@ export class MainPage extends PolymerElement {
             this._setIframeFromRoute(this.subRouteData.path);
             isIframe = true;
             break;
-        default:
+        case '':
             this.sidebarItemIndex = 0;
             this.page = 'dashboard';
+            break;
+        default:
+            this.sidebarItemIndex = -1;
+            this.page = 'not_found';
         }
         this._setInIframe(isIframe);
         // If iframe <-> [non-frame OR other iframe]
@@ -187,8 +192,8 @@ export class MainPage extends PolymerElement {
             this.iframeUrl = this.menuLinks[menuLinkIndex].iframeUrl;
             this.sidebarItemIndex = menuLinkIndex + 1;
         } else {
-            this.sidebarItemIndex = 0;
-            this.page = 'dashboard';
+            this.sidebarItemIndex = -1;
+            this.page = 'not_found';
         }
     }
 }
