@@ -28,6 +28,7 @@ components:
   - centraldashboard
   - cert-manager
   - cloud-endpoints
+  - gpu-driver
   - iap-ingress
   - jupyter-web-app
   - katib
