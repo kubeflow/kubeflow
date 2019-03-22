@@ -41,7 +41,7 @@ export class MainPage extends PolymerElement {
         return html([`
         <style is="custom-style"
             include="iron-flex iron-flex-alignment iron-positioning">
-        <style>${css.toString()}</style> ${template()}
+        <style>${css.toString()}</style>${template()}
         `]);
     }
 

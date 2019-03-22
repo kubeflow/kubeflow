@@ -51,6 +51,7 @@ func Test(t *testing.T) {
 						},
 					},
 				},
+				Etag: "ShouldKeep",
 			},
 			saPolicy: &cloudresourcemanager.Policy{
 				Bindings: []*cloudresourcemanager.Binding{
@@ -87,14 +88,15 @@ func Test(t *testing.T) {
 						},
 					},
 				},
+				Etag: "ShouldKeep",
 			},
 		},
 	}
 	for _, test := range tests {
-		clearedPolicy := GetClearedIamPolicy(test.currentPolicy, test.saPolicy)
-		if !reflect.DeepEqual(&clearedPolicy, &(test.expectedPolicy)) {
+		ClearIamPolicy(test.currentPolicy, test.saPolicy)
+		if !reflect.DeepEqual(test.currentPolicy, test.expectedPolicy) {
 			t.Errorf("Expect:\n%v; Output:\n%v", PolicyToString(test.expectedPolicy),
-				PolicyToString(clearedPolicy))
+				PolicyToString(test.currentPolicy))
 		}
 	}
 }

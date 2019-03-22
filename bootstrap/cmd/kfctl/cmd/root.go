@@ -43,8 +43,9 @@ func processResourceArg(args []string) (kftypes.ResourceEnum, error) {
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "kfctl",
-	Short: "A client tool to create kubeflow applications",
-	Long:  `kubeflow client tool`,
+	Short: "A client CLI to create kubeflow applications",
+	Long: `A client CLI to create kubeflow applications for specific platforms or 'on-prem' 
+to an existing k8 cluster.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

@@ -104,6 +104,10 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
         value: "/secret/gcp-credentials/key.json",
       },
       {
+        name: "GOPATH",
+        value: testDir,
+      },
+      {
         name: "GITHUB_TOKEN",
         valueFrom: {
           secretKeyRef: {

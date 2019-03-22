@@ -2,20 +2,22 @@
 import json
 from flask import jsonify, render_template, request
 from kubernetes.client.rest import ApiException
+# from kubernetes import client
 from kubeflow.rokui import app
-from kubeflow.rokui.server import parse_error, \
-            get_namespaces, \
-            get_notebooks, \
-            delete_notebook, \
-            create_notebook, \
-            create_pvc
-from kubeflow.rokui.utils import create_notebook_template, \
-            create_pvc_template, \
-            set_notebook_names, \
-            set_notebook_image, \
-            set_notebook_cpu_ram, \
-            add_notebook_volume, \
-            spawner_ui_config
+from kubeflow.rokui.api import get_rok_token
+from baseui.api import parse_error, \
+    get_namespaces, \
+    get_notebooks, \
+    delete_notebook, \
+    create_notebook, \
+    create_datavol_pvc, \
+    create_workspace_pvc
+from baseui.utils import create_notebook_template, \
+    set_notebook_names, \
+    set_notebook_image, \
+    set_notebook_cpu_ram, \
+    add_notebook_volume, \
+    spawner_ui_config
 
 
 # Helper function for getting the prefix of the webapp
@@ -46,15 +48,8 @@ def post_notebook_route():
 
   # Workspacae Volume
   if body["ws_type"] == "New":
-    pvc = create_pvc_template()
-    pvc['metadata']['name'] = body['ws_name']
-    pvc['metadata']['namespace'] = body['ns']
-    pvc['spec']['accessModes'].append(body['ws_access_modes'])
-    pvc['spec']['resources']['requests']['storage'] = \
-        body['ws_size'] + 'Gi'
-
     try:
-      create_pvc(pvc)
+      create_workspace_pvc(body)
     except ApiException as e:
       data["success"] = False
       data["log"] = parse_error(e)
@@ -79,22 +74,14 @@ def post_notebook_route():
 
     # Create a PVC if its a new Data Volume
     if body["vol_type" + i] == "New":
-      size = body['vol_size' + i] + 'Gi'
-      mode = body['vol_access_modes' + i]
-      pvc = create_pvc_template()
-
-      pvc['metadata']['name'] = pvc_nm
-      pvc['metadata']['namespace'] = body['ns']
-      pvc['spec']['accessModes'].append(mode)
-      pvc['spec']['resources']['requests']['storage'] = size
-
       try:
-        create_pvc(pvc)
+        create_datavol_pvc(data, i)
       except ApiException as e:
         data["success"] = False
         data["log"] = parse_error(e)
         return jsonify(data)
 
+    # Create the Data Volume in the Pod
     add_notebook_volume(notebook, vol_nm, pvc_nm, mnt)
     counter += 1
 
@@ -129,7 +116,7 @@ def add_notebook_route():
     ns = "kubeflow"
 
   # Load the Rok Token
-  rok_token = {}
+  rok_token = get_rok_token('kubeflow')
 
   form_defaults = spawner_ui_config("notebook")
   return render_template(
@@ -190,4 +177,5 @@ def notebooks_route():
       prefix=prefix(),
       title='Notebooks',
       namespaces=nmsps,
-      username="webapp")
+      username="user",
+      rok_token=get_rok_token('kubeflow'))

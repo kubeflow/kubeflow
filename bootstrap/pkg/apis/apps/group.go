@@ -17,6 +17,7 @@ package apps
 
 import (
 	"fmt"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"io"
 	ext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -37,17 +38,20 @@ import (
 const (
 	DefaultNamespace = "kubeflow"
 	// TODO: find the latest tag dynamically
-	DefaultVersion    = "master"
-	DefaultGitRepo    = "https://github.com/kubeflow/kubeflow/tarball"
-	KfConfigFile      = "app.yaml"
-	DefaultCacheDir   = ".cache"
-	DefaultConfigDir  = "bootstrap/config"
-	DefaultConfigFile = "kfctl_default.yaml"
-	GcpIapConfig      = "kfctl_iap.yaml"
-	GcpBasicAuth      = "kfctl_basic_auth.yaml"
-	DefaultZone       = "us-east1-d"
-	DefaultGkeApiVer  = "v1beta1"
-	DefaultAppLabel   = "app.kubernetes.io/name"
+	DefaultVersion     = "master"
+	DefaultGitRepo     = "https://github.com/kubeflow/kubeflow/tarball"
+	KfConfigFile       = "app.yaml"
+	DefaultCacheDir    = ".cache"
+	DefaultConfigDir   = "bootstrap/config"
+	DefaultConfigFile  = "kfctl_default.yaml"
+	GcpIapConfig       = "kfctl_iap.yaml"
+	GcpBasicAuth       = "kfctl_basic_auth.yaml"
+	DefaultZone        = "us-east1-d"
+	DefaultGkeApiVer   = "v1beta1"
+	DefaultAppLabel    = "app.kubernetes.io/name"
+	KUBEFLOW_USERNAME  = "KUBEFLOW_USERNAME"
+	KUBEFLOW_PASSWORD  = "KUBEFLOW_PASSWORD"
+	DefaultSwaggerFile = "releasing/releaser/lib/v1.9.7/swagger.json"
 )
 
 type ResourceEnum string
@@ -72,15 +76,13 @@ const (
 	REPO                  CliOption = "repo"
 	PROJECT               CliOption = "project"
 	APPNAME               CliOption = "appname"
-	APPDIR                CliOption = "appDir"
 	DATA                  CliOption = "Data"
 	ZONE                  CliOption = "zone"
 	USE_BASIC_AUTH        CliOption = "use_basic_auth"
+	USE_ISTIO             CliOption = "use_istio"
 	OAUTH_ID              CliOption = "oauth_id"
 	OAUTH_SECRET          CliOption = "oauth_secret"
-	BASIC_AUTH_USERNAME   CliOption = "basic_auth_username"
-	BASIC_AUTH_PASSWORD   CliOption = "basic_auth_password"
-	CONFIG                CliOption = "config"
+	DELETE_STORAGE        CliOption = "delete_storage"
 )
 
 //
@@ -89,10 +91,10 @@ const (
 // They all implement the API below
 //
 type KfApp interface {
-	Apply(resources ResourceEnum, options map[string]interface{}) error
-	Delete(resources ResourceEnum, options map[string]interface{}) error
-	Generate(resources ResourceEnum, options map[string]interface{}) error
-	Init(resources ResourceEnum, options map[string]interface{}) error
+	Apply(resources ResourceEnum) error
+	Delete(resources ResourceEnum) error
+	Generate(resources ResourceEnum) error
+	Init(resources ResourceEnum) error
 }
 
 //
@@ -136,8 +138,8 @@ const (
 	MINIKUBE = "minikube"
 )
 
-func LoadKfApp(platform string, options map[string]interface{}) (KfApp, error) {
-	platform = strings.Replace(platform, "-", "", -1)
+func LoadKfApp(client *kfdefs.KfDef) (KfApp, error) {
+	platform := strings.Replace(client.Spec.Platform, "-", "", -1)
 	plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
 	pluginpath := filepath.Join(plugindir, platform+".so")
 	p, err := plugin.Open(pluginpath)
@@ -149,7 +151,7 @@ func LoadKfApp(platform string, options map[string]interface{}) (KfApp, error) {
 	if symbolErr != nil {
 		return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
 	}
-	return symbol.(func(map[string]interface{}) KfApp)(options), nil
+	return symbol.(func(*kfdefs.KfDef) KfApp)(client), nil
 }
 
 // TODO(#2586): Consolidate kubeconfig and API calls.
@@ -206,7 +208,7 @@ func GetKubeConfig() *clientcmdapi.Config {
 func GetClientset(config *rest.Config) *clientset.Clientset {
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		log.Fatalf("Can not get kubernetes client: %v", err)
+		log.Fatalf("Can not get kubernetes kfdef: %v", err)
 	}
 	return clientset
 }
@@ -217,7 +219,7 @@ func GetApiExtClientset(config *rest.Config) apiext.ApiextensionsV1beta1Interfac
 	config.GroupVersion = &v
 	crdClient, err := crdclientset.NewForConfig(config)
 	if err != nil {
-		log.Fatalf("Can not get apiextensions client: %v", err)
+		log.Fatalf("Can not get apiextensions kfdef: %v", err)
 	}
 	return crdClient.ApiextensionsV1beta1()
 }

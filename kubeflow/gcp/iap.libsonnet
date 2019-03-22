@@ -1021,14 +1021,20 @@
       self.ingressBootstrapConfigMap,
       self.ingressBootstrapJob,
       self.ingress,
-    ] + if params.privateGKECluster == "false" then [
-      self.certificate,
-    ] else [] + if isCloudEndpoint(params.hostname) then [
-      self.cloudEndpoint,
-    ] else [] + if !params.useIstio then [
-      self.service,
-      self.deploy,
-    ] else [],
+    ] + (
+      if params.privateGKECluster == "false" then [
+        self.certificate,
+      ] else []
+    ) + (
+      if isCloudEndpoint(params.hostname) then [
+        self.cloudEndpoint,
+      ] else []
+    ) + (
+      if !params.useIstio then [
+        self.service,
+        self.deploy,
+      ] else []
+    ),
 
     list(obj=self.all):: k.core.v1.list.new(obj,),
   },
