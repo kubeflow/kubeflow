@@ -87,7 +87,7 @@ export class MainPage extends PolymerElement {
             },
             sidebarItemIndex: {type: Number, value: 0},
             iframeUrl: {type: String, value: ''},
-            buildVersion: {type: String, value: '0.5.0'},
+            buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
             inIframe: {type: Boolean, value: false, readOnly: true},
             _devMode: {type: Boolean, value: DEVMODE},
