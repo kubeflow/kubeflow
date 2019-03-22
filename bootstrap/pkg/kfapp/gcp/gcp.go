@@ -22,6 +22,7 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
+	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
@@ -42,7 +43,6 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"net/http"
 	"os"
 	"os/exec"
@@ -393,6 +393,27 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	client, err := utils.BuildConfigFromClusterInfo(ctx, cluster)
 	if err != nil {
 		return fmt.Errorf("Build ClientConfig error: %v", err)
+	}
+	// Install Istio
+	if gcp.Spec.UseIstio {
+		log.Infof("Installing istio...")
+		parentDir := path.Dir(gcp.Spec.Repo)
+		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/install/crds.yaml"))
+		if err != nil {
+			log.Errorf("Failed to create istio CRD: %v", err)
+			return err
+		}
+		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/install/istio-noauth.yaml"))
+		if err != nil {
+			log.Errorf("Failed to create istio manifest: %v", err)
+			return err
+		}
+		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/kf-istio-resources.yaml"))
+		if err != nil {
+			log.Errorf("Failed to create kubeflow istio resource: %v", err)
+			return err
+		}
+		log.Infof("Done installing istio.")
 	}
 
 	// TODO(#2604): Need to create a named context.
