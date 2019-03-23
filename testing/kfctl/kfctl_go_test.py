@@ -47,6 +47,7 @@ def test_build_kfctl_go(app_path, project):
   # username and password are passed as env vars and won't appear in the logs
   run_with_retries([kfctl_path, "init", app_path, "-V", "--platform=gcp",
                          "--use_basic_auth", "--skip-init-gcp-project",
+                         "--disable_usage_report",
                          "--project=" + project], cwd=parent_dir)
 
   # TODO(jlewi): We need to specify a valid email otherwise we get an error
