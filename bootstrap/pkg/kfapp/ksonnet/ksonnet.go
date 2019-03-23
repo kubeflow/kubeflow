@@ -92,9 +92,15 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", KsEnvName, envSetErr)
 	}
 	//ks param set application name ${DEPLOYMENT_NAME}
-	paramSetErr := ksApp.paramSet("application", "name", name)
-	if paramSetErr != nil {
-		return fmt.Errorf("couldn't set application component's name to %v Error: %v", name, paramSetErr)
+	components, componentsErr := ksApp.components()
+	if componentsErr != nil {
+		return fmt.Errorf("couldn't get components Error: %v", componentsErr)
+	}
+	if components["application"] != nil {
+		paramSetErr := ksApp.paramSet("application", "name", name)
+		if paramSetErr != nil {
+			return fmt.Errorf("couldn't set application component's name to %v Error: %v", name, paramSetErr)
+		}
 	}
 	namespace := ksApp.ObjectMeta.Namespace
 	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
@@ -118,16 +124,23 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 		}
 	}
 	clientConfig := kftypes.GetKubeConfig()
-	applyErr := ksApp.applyComponent([]string{"metacontroller"}, clientConfig)
-	if applyErr != nil {
-		return fmt.Errorf("couldn't create metacontroller component Error: %v", applyErr)
+	if components["metacontroller"] != nil {
+		applyErr := ksApp.applyComponent([]string{"metacontroller"}, clientConfig)
+		if applyErr != nil {
+			return fmt.Errorf("couldn't deploy metacontroller component Error: %v", applyErr)
+		}
+		// TODO(#2391): Fix this and use ks.apply
+		if err = ksApp.showComponent([]string{"application"}); err != nil {
+			return fmt.Errorf("Writing config file error: %v", err)
+		}
+		return kfctlutils.RunKubectlApply(ksApp.getCompsFilePath())
+	} else {
+		keys := make([]string, 0, len(components))
+		for k, _ := range components {
+			keys = append(keys, k)
+		}
+		return ksApp.applyComponent(keys, clientConfig)
 	}
-	// TODO(#2391): Fix this and use ks.apply
-	if err = ksApp.showComponent([]string{"application"}); err != nil {
-		return fmt.Errorf("Writing config file error: %v", err)
-	}
-
-	return kfctlutils.RunKubectlApply(ksApp.getCompsFilePath())
 }
 
 func (ksApp *ksApp) getCompsFilePath() string {
@@ -170,7 +183,7 @@ func (ksApp *ksApp) applyComponent(components []string, cfg *clientcmdapi.Config
 		},
 		actions.OptionComponentNames: components,
 		actions.OptionCreate:         true,
-		actions.OptionDryRun:         false,
+		actions.OptionDryRun:         ksApp.Spec.DryRun,
 		actions.OptionEnvName:        ksApp.KsEnvName,
 		actions.OptionGcTag:          "gc-tag",
 		actions.OptionSkipGc:         true,

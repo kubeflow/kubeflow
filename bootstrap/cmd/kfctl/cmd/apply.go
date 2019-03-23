@@ -72,6 +72,14 @@ func init() {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERBOSE), bindErr)
 		return
 	}
+	// dry-run output
+	applyCmd.Flags().Bool(string(kftypes.DRY_RUN), false,
+		string(kftypes.DRY_RUN)+" default is false")
+	bindErr = applyCfg.BindPFlag(string(kftypes.DRY_RUN), applyCmd.Flags().Lookup(string(kftypes.DRY_RUN)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.DRY_RUN), bindErr)
+		return
+	}
 	applyCmd.Flags().String(string(kftypes.OAUTH_ID), "",
 		"OAuth Client ID, GCP only. Required if using IAP but ENV CLIENT_ID is not set. "+
 			"Value passed will take precedence to ENV.")
