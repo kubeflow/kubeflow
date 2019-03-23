@@ -29,7 +29,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}', force-narrow='[[or(inIframe, thi
                         a.link(tabindex='-1', href='/') Dashboard
                     paper-tab(page='activity', link)
                         a.link(tabindex='-1', href='/activity') Activity
-                aside#NamespaceSelector
+                aside#NamespaceSelector(hidden$='[[!equals(page, "activity")]]')
                     namespace-selector(query-params='{{queryParams}}')
         neon-animated-pages(selected='[[page]]', attr-for-selected='page',
                             entry-animation='fade-in-animation',

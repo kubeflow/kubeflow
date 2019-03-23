@@ -118,12 +118,23 @@ export class MainPage extends PolymerElement {
     }
 
     /**
-     * Provide a logical OR functionality for the Polymer DOM
-     * @param {...boolean} a
+     * [MACRO] Provide a logical OR functionality for the Polymer DOM
+     * @param {...boolean} e
      * @return {boolean}
      */
     or(...e) {
         return e.some((i) => Boolean(i));
+    }
+
+    /**
+     * [MACRO] Provide a logical equals functionality for the Polymer DOM
+     * @param {...any} e
+     * @return {boolean}
+     */
+    equals(...e) {
+        const crit = e.shift();
+        if (!e.length) return true;
+        return e.every((e) => e === crit);
     }
 
     /**
