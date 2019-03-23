@@ -32,6 +32,7 @@ type KfDefSpec struct {
 	Hostname               string `json:"hostname,omitempty"`
 	Zone                   string `json:"zone,omitempty"`
 	UseBasicAuth           bool   `json:"useBasicAuth"`
+	DryRun                 bool   `json:"dryRun"`
 	SkipInitProject        bool   `json:"skipInitProject,omitempty"`
 	UseIstio               bool   `json:"useIstio"`
 	ServerVersion          string `json:"serverVersion,omitempty"`

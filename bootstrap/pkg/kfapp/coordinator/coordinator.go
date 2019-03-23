@@ -76,7 +76,10 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 	cacheDir := path.Join(appDir, kftypes.DefaultCacheDir)
 	// idempotency
 	if _, err := os.Stat(cacheDir); !os.IsNotExist(err) {
-		os.RemoveAll(cacheDir)
+		rmErr := os.RemoveAll(cacheDir)
+		if rmErr != nil {
+			return nil, fmt.Errorf("couldn't delete directory %v Error %v", cacheDir, rmErr)
+		}
 	}
 	cacheDirErr := os.Mkdir(cacheDir, os.ModePerm)
 	if cacheDirErr != nil {
@@ -322,8 +325,11 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	if options[string(kftypes.MOUNT_LOCAL)] != nil {
 		kfdef.Spec.MountLocal = options[string(kftypes.MOUNT_LOCAL)].(bool)
 	}
-	if options[string(kftypes.DELETE_STORAGE)] != nil {
+	if options[string(kftypes.DELETE_STORAGE)] != nil && kfdef.Spec.Platform == kftypes.GCP {
 		kfdef.Spec.DeleteStorage = options[string(kftypes.DELETE_STORAGE)].(bool)
+	}
+	if options[string(kftypes.DRY_RUN)] != nil {
+		kfdef.Spec.DryRun = options[string(kftypes.DRY_RUN)].(bool)
 	}
 	pApp := GetKfApp(kfdef)
 	return pApp, nil

@@ -78,6 +78,7 @@ const (
 	PROJECT               CliOption = "project"
 	APPNAME               CliOption = "appname"
 	DATA                  CliOption = "Data"
+	DRY_RUN               CliOption = "dry-run"
 	ZONE                  CliOption = "zone"
 	USE_BASIC_AUTH        CliOption = "use_basic_auth"
 	USE_ISTIO             CliOption = "use_istio"

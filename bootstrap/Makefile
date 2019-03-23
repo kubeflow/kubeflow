@@ -43,6 +43,11 @@ export GO = go
 	cd test/$* && \
 	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all $(VERBOSE) --mount-local --email gcp-deploy@$(GCLOUD_PROJECT).iam.gserviceaccount.com
 
+%.apply:
+	@echo kfctl apply all --dry-run $(VERBOSE) '(--platform '$*')' && \
+	cd test/$* && \
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl apply all --dry-run $(VERBOSE) --mount-local --email gcp-deploy@$(GCLOUD_PROJECT).iam.gserviceaccount.com
+
 all: build
 
 auth:
@@ -138,3 +143,5 @@ clean:
 test-init: clean install dockerfordesktop.init minikube.init gcp.init none.init-no-platform
 
 test-generate: test-init dockerfordesktop.generate minikube.generate gcp.generate none.generate
+
+test-apply: test-generate dockerfordesktop.apply minikube.apply gcp.apply none.apply

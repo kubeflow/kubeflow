@@ -13,20 +13,26 @@
 # Deleting the component would be:
 #   hack/kfctl-component.sh remove openvino
 
-namespace=kubeflow
-tmpdir=/tmp
-
 pushd() { builtin pushd "$@" > /dev/null; }
 popd() { builtin popd "$@" > /dev/null; }
+random-string() { LC_CTYPE=C tr -dc A-Za-z0-9 < /dev/urandom | fold -w 4 | head -1; }
+
+name=$(random-string 4)
+namespace=kubeflow
+dryrun=''
+tmpdir=/tmp
 
 usage () 
 {
-  echo -e "Usage: $0 COMMANDS\n"\
+  echo -e "Usage: $0 OPTIONS COMMANDS\n"\
   'OPTIONS:\n'\
   '  -h       | --help       \n'\
   '  -V       | --verbose\n'\
+  '           | --dry-run\n'\
+  '             --name <name>\n'\
+  '             --namespace <namespace>\n'\
   'COMMANDS:\n'\
-  '  add      <component> -- --arg=value --arg=value\n'\
+  '  add      <component> --arg=value --arg=value\n'\
   '  remove   <component>\n'\
   '\n'\
   'where [component] is ambassador, cloud-endpoints, ...\n'
@@ -61,7 +67,7 @@ removecommand()
 {
   writeConfigFile $1
   kfctl generate all
-#  kfctl delete all
+  kfctl delete all
   echo component $component created in $tmpdir/kubeflow
 }
 
@@ -88,8 +94,10 @@ COMPONENT_ARG
 
   cat << REMAINDER >> app.yaml
   components:
+  - echo-server
   - $component
   packages:
+  - common
   - $component
   repo: $tmpdir/kubeflow/.cache/master/kubeflow
   useBasicAuth: false
@@ -97,6 +105,7 @@ COMPONENT_ARG
 REMAINDER
 
   kfctl generate all
+  kfctl apply all $dryrun
   popd
   popd
   echo component $component created in $tmpdir/kubeflow
@@ -141,12 +150,8 @@ do
       verbose=true
       shift
       ;;
-    -n | -n* | --namespace=* | --namespace)
+    --namespace=* | --namespace)
       case "$1" in
-        -n)
-	  namespace="$2"
-          shift 2
-          ;;
         --namespace=*)
           namespace=${1#--namespace=}
           shift 1
@@ -154,6 +159,26 @@ do
         --namespace)
           namespace="$2"
           shift 2
+          ;;
+      esac
+      ;;
+    --name=* | --name)
+      case "$1" in
+        --name=*)
+          name=${1#--name=}
+          shift 1
+          ;;
+        --name)
+          name="$2"
+          shift 2
+          ;;
+      esac
+      ;;
+    --dry-run)
+      case "$1" in
+        --dry-run)
+          dryrun=' --dry-run '
+          shift 1
           ;;
       esac
       ;;
@@ -171,6 +196,3 @@ do
   esac
 done
 commands $*
-
-
-
