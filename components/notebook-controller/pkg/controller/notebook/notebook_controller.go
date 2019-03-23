@@ -192,14 +192,35 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 	}
 	// Update the readyReplicas if the status is changed
-        if foundStateful.Status.ReadyReplicas != instance.Status.ReadyReplicas {
-                log.Info("Updating Status", "namespace", instance.Namespace,"name", instance.Name)
-                instance.Status.ReadyReplicas = foundStateful.Status.ReadyReplicas 
-                err = r.Status().Update(context.Background(), instance)
-                if err != nil {
-                        return reconcile.Result{}, err
-                }
-        }
+	if foundStateful.Status.ReadyReplicas != instance.Status.ReadyReplicas {
+		log.Info("Updating Status", "namespace", instance.Namespace, "name", instance.Name)
+		instance.Status.ReadyReplicas = foundStateful.Status.ReadyReplicas
+		err = r.Status().Update(context.Background(), instance)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	}
+
+	// Check the pod status
+	pod := &corev1.Pod{}
+	err = r.Get(context.TODO(), types.NamespacedName{Name: ss.Name + "-0", Namespace: ss.Namespace}, pod)
+	if err != nil && errors.IsNotFound(err) {
+		// This should be reconcile by the StatefulSet
+		log.Info("Pod not found...")
+	} else if err != nil {
+		return reconcile.Result{}, err
+	} else {
+		// Got the pod
+		if len(pod.Status.ContainerStatuses) > 0 &&
+			pod.Status.ContainerStatuses[0].State != instance.Status.ContainerState {
+			log.Info("Updating container state: ", "namespace", instance.Namespace, "name", instance.Name)
+			instance.Status.ContainerState = pod.Status.ContainerStatuses[0].State
+			err = r.Status().Update(context.Background(), instance)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+		}
+	}
 
 	return reconcile.Result{}, nil
 }
