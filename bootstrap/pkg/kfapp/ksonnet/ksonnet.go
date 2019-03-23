@@ -27,7 +27,6 @@ import (
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
-	kfctlutils "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"io/ioutil"
@@ -124,19 +123,10 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 		}
 	}
 	clientConfig := kftypes.GetKubeConfig()
-	if components["metacontroller"] != nil {
-		applyErr := ksApp.applyComponent([]string{"metacontroller"}, clientConfig)
+	if components["metacontroller"] != nil && components["application"] != nil {
+		applyErr := ksApp.applyComponent([]string{"metacontroller", "application"}, clientConfig)
 		if applyErr != nil {
-			return fmt.Errorf("couldn't deploy metacontroller component Error: %v", applyErr)
-		}
-		// TODO(#2391): Fix this and use ks.apply
-		if err = ksApp.showComponent([]string{"application"}); err != nil {
-			return fmt.Errorf("Writing config file error: %v", err)
-		}
-		if ksApp.Spec.DryRun {
-			return kfctlutils.RunKubectlApply(ksApp.getCompsFilePath(), "--dry-run")
-		} else {
-			return kfctlutils.RunKubectlApply(ksApp.getCompsFilePath())
+			return fmt.Errorf("couldn't deploy components Error: %v", applyErr)
 		}
 	} else {
 		keys := make([]string, 0, len(components))
@@ -145,6 +135,7 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 		}
 		return ksApp.applyComponent(keys, clientConfig)
 	}
+	return nil
 }
 
 func (ksApp *ksApp) getCompsFilePath() string {
