@@ -848,9 +848,13 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "mysqlPd", gcp.Name+"-storage-metadata-store", false)
 	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "minioPd", gcp.Name+"-storage-artifact-store", false)
 
-	rand.Seed(time.Now().UnixNano())
-	gcp.Spec.ComponentParams["spartakus"] = setNameVal(gcp.Spec.ComponentParams["spartakus"],
-		"usageId", strconv.Itoa(rand.Int()), true)
+	for _, comp := range gcp.Spec.Components {
+		if comp == "spartakus" {
+			rand.Seed(time.Now().UnixNano())
+			gcp.Spec.ComponentParams["spartakus"] = setNameVal(gcp.Spec.ComponentParams["spartakus"],
+				"usageId", strconv.Itoa(rand.Int()), true)
+		}
+	}
 
 	if gcp.Spec.UseIstio {
 		gcp.Spec.ComponentParams["iap-ingress"] = setNameVal(gcp.Spec.ComponentParams["iap-ingress"], "useIstio", "true", false)
