@@ -16,6 +16,12 @@ def run_with_retries(*args, **kwargs):
   util.run(*args, **kwargs)
 
 def test_build_kfctl_go(app_path, project):
+  """Test building and deploying Kubeflow.
+
+  Args:
+    app_path: The path to the Kubeflow app.
+    project: The GCP project to use.
+  """
   if not app_path:
     logging.info("--app_path not specified")
     stamp = datetime.datetime.now().strftime("%H%M")

@@ -10,6 +10,10 @@ def pytest_addoption(parser):
       help="Path to kfctl.")
 
   parser.addoption(
+      "--namespace", action="store", default="kubeflow",
+      help="Namespace to use.")
+
+  parser.addoption(
       "--project", action="store", default="kubeflow-ci-deployment",
       help="GCP project to deploy Kubeflow to")
 
@@ -20,6 +24,10 @@ def app_path(request):
 @pytest.fixture
 def kfctl_path(request):
   return request.config.getoption("--kfctl_path")
+
+@pytest.fixture
+def namespace(request):
+  return request.config.getoption("--namespace")
 
 @pytest.fixture
 def project(request):
