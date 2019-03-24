@@ -15,7 +15,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}', force-narrow='[[or(inIframe, thi
                     paper-item.menu-item [[item.text]]
         aside.flex
         footer.footer
-            section.privacy Privacy
+            section.privacy
+                a(title='Kubeflow Privacy Policy', href='https://policies.google.com/privacy') Privacy
             section.build build version&nbsp;
                 span(title="Build: [[buildVersion]] | Dashboard: v[[dashVersion]]") [[buildVersion]]
     app-header-layout(fullbleed)
