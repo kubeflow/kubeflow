@@ -39,6 +39,7 @@ components:
   - pipeline
   - profiles
   - pytorch-operator
+  - spartakus
   - tensorboard
   - tf-job-operator
 componentParams:
@@ -74,4 +75,11 @@ componentParams:
       value: <deployName>-storage-metadata-store
     - name: minioPd
       value: <deployName>-storage-artifact-store
+  spartakus:
+    - name: usageId
+      value: <randomly-generated-id>
+      initRequired: true
+    - name: reportUsage
+      value: "true"
+      initRequired: true
 platform: gcp
