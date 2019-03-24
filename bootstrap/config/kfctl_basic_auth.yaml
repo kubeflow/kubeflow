@@ -31,7 +31,6 @@ components:
   - cert-manager
   - cloud-endpoints
   - gpu-driver
-  - jupyter
   - jupyter-web-app
   - katib
   - metacontroller
