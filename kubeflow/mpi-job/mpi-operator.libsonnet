@@ -184,6 +184,7 @@ local k = import "k.libsonnet";
           verbs: [
             "create",
             "list",
+            "update",
             "watch",
           ],
         },
