@@ -339,6 +339,7 @@ func (gcp *Gcp) ConfigK8s() error {
 	return nil
 }
 
+// Add a conveniently named context to KUBECONFIG.
 func (gcp *Gcp) AddNamedContext() error {
 	name := strings.Replace(KUBECONFIG_FORMAT, "{project}", gcp.Spec.Project, 1)
 	name = strings.Replace(name, "{zone}", gcp.Spec.Zone, 1)
@@ -347,11 +348,17 @@ func (gcp *Gcp) AddNamedContext() error {
 
 	buf, err := ioutil.ReadFile(kftypes.KubeConfigPath())
 	if err != nil {
-		return fmt.Errorf("Reading KUBECONFIG error: %v", err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Reading KUBECONFIG error: %v", err),
+		}
 	}
 	var config map[string]interface{}
 	if err = yaml.Unmarshal(buf, &config); err != nil {
-		return fmt.Errorf("Unmarshaling KUBECONFIG error: %v", err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Unmarshaling KUBECONFIG error: %v", err),
+		}
 	}
 
 	configNameChecker := func(config map[string]interface{}, entryName string, name string) error {
@@ -411,6 +418,7 @@ func (gcp *Gcp) AddNamedContext() error {
 	for idx, ctx := range contexts {
 		c := ctx.(map[string]interface{})
 		if c["name"] == gcp.Name {
+			// Remove the entry to override.
 			contexts = append(contexts[:idx], contexts[idx+1:]...)
 			break
 		}
