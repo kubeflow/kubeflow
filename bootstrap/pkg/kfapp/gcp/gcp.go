@@ -624,15 +624,19 @@ func (gcp *Gcp) writeIamBindingsFile(src string, dest string) error {
 	for idx, b := range bindings {
 		binding := b.(map[string]interface{})
 		if mem, ok := binding["members"]; ok {
-			members := mem.([]string)
+			members := mem.([]interface{})
 			var newMembers []string
 			for _, m := range members {
-				if acct, ok := roles[m]; ok {
+				member := m.(string)
+				if acct, ok := roles[member]; ok {
+					log.Infof("GG TEST: %v -> %v", member, acct)
 					newMembers = append(newMembers, acct)
 				} else {
-					newMembers = append(newMembers, m)
+					log.Infof("GG TEST: keep %v", member)
+					newMembers = append(newMembers, member)
 				}
 			}
+			binding["members"] = newMembers
 			bindings[idx] = binding
 		} else {
 			return &kfapis.KfError{
@@ -682,37 +686,8 @@ func (gcp *Gcp) generateDMConfigs() error {
 	}
 	from := filepath.Join(sourceDir, "iam_bindings_template.yaml")
 	to := filepath.Join(gcpConfigDir, "iam_bindings.yaml")
-	iamBindings := map[string]string{
-		"from": from,
-		"to":   to,
-	}
-	iamBindingsErr := gcp.copyFile(iamBindings["from"], iamBindings["to"])
-	if iamBindingsErr != nil {
-		return fmt.Errorf("could not copy iam_bindings Error %v", iamBindingsErr)
-	}
-	iamBindingsData, iamBindingsDataErr := ioutil.ReadFile(to) // just pass the file name
-	if iamBindingsDataErr != nil {
-		return fmt.Errorf("could not read %v Error %v", to, iamBindingsDataErr)
-	}
-	adminEmail := getSA(gcp.Name, "admin", gcp.Spec.Project)
-	repl := "serviceAccount:" + adminEmail
-	iamBindingsData = gcp.replaceText("set-kubeflow-admin-service-account", repl, iamBindingsData)
-	userEmail := getSA(gcp.Name, "user", gcp.Spec.Project)
-	repl = "serviceAccount:" + userEmail
-	iamBindingsData = gcp.replaceText("set-kubeflow-user-service-account", repl, iamBindingsData)
-	vmEmail := getSA(gcp.Name, "vm", gcp.Spec.Project)
-	repl = "serviceAccount:" + vmEmail
-	iamBindingsData = gcp.replaceText("set-kubeflow-vm-service-account", repl, iamBindingsData)
-	iamEntry := "serviceAccount:" + gcp.Spec.Email
-	re := regexp.MustCompile("iam.gserviceaccount.com")
-	if !re.MatchString(gcp.Spec.Email) {
-		iamEntry = "user:" + gcp.Spec.Email
-	}
-	iamBindingsData = gcp.replaceText("set-kubeflow-iap-account", iamEntry, iamBindingsData)
-	srcErr := ioutil.WriteFile(to, iamBindingsData, 0644)
-	if srcErr != nil {
-		return fmt.Errorf("cound not write to %v Error %v", to, srcErr)
-	}
+	gcp.writeIamBindingsFile(from, to)
+
 	configFile := filepath.Join(gcpConfigDir, CONFIG_FILE)
 	configFileData, configFileDataErr := ioutil.ReadFile(configFile)
 	if configFileDataErr != nil {
@@ -724,9 +699,14 @@ func (gcp *Gcp) generateDMConfigs() error {
 		return fmt.Errorf("could not read %v Error %v", storageFile, storageFileDataErr)
 	}
 	configFileData = gcp.replaceText("SET_GKE_API_VERSION", kftypes.DefaultGkeApiVer, configFileData)
-	repl = "zone: " + gcp.Spec.Zone
+	repl := "zone: " + gcp.Spec.Zone
 	configFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, configFileData)
 	storageFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, storageFileData)
+
+	iamEntry := "serviceAccount:" + gcp.Spec.Email
+	if !strings.Contains(gcp.Spec.Email, "iam.gserviceaccount.com") {
+		iamEntry = "user:" + gcp.Spec.Email
+	}
 	repl = "users: [\"" + iamEntry + "\"]"
 	configFileData = gcp.replaceText("users:", repl, configFileData)
 	repl = "ipName: " + gcp.Spec.IpName
