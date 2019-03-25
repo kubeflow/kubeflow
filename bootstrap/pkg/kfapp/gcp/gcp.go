@@ -436,6 +436,14 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 
 // Apply applies the gcp kfapp.
 func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
+	if os.Getenv(CLIENT_ID) == "" && !gcp.Spec.UseBasicAuth {
+		return fmt.Errorf("Need to set environment variable `%v` for IAP.",
+			CLIENT_ID)
+	}
+	if os.Getenv(CLIENT_SECRET) == "" && !gcp.Spec.UseBasicAuth {
+		return fmt.Errorf("Need to set environment variable `%v` for IAP.",
+			CLIENT_SECRET)
+	}
 	if gcp.KfDef.Spec.UseBasicAuth && (os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" ||
 		os.Getenv(kftypes.KUBEFLOW_PASSWORD) == "") {
 		return fmt.Errorf("gcp apply needs ENV %v and %v set when using basic auth",
@@ -732,15 +740,7 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 		return nil
 	}
 	oauthId := os.Getenv(CLIENT_ID)
-	if oauthId == "" && !gcp.Spec.UseBasicAuth {
-		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
-			string(kftypes.OAUTH_ID), CLIENT_ID)
-	}
 	oauthSecret := os.Getenv(CLIENT_SECRET)
-	if oauthSecret == "" && !gcp.Spec.UseBasicAuth {
-		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
-			string(kftypes.OAUTH_SECRET), CLIENT_SECRET)
-	}
 
 	return insertSecret(client, KUBEFLOW_OAUTH, oauthSecretNamespace, map[string][]byte{
 		strings.ToLower(CLIENT_ID):     []byte(oauthId),
