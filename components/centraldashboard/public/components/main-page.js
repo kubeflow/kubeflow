@@ -91,13 +91,8 @@ export class MainPage extends PolymerElement {
             buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
             inIframe: {type: Boolean, value: false, readOnly: true},
-<<<<<<< HEAD
             hideTabs: {type: Boolean, value: false, readOnly: true},
             notFoundInIframe: {type: Boolean, value: false, readOnly: true},
-=======
-            notFoundInIframe: {type: Boolean, value: false},
-            _devMode: {type: Boolean, value: DEVMODE},
->>>>>>> Hide navigation components when not-found route is active inside of iframe
         };
     }
 
