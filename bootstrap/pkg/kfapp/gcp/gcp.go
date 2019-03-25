@@ -583,6 +583,14 @@ func (gcp *Gcp) replaceText(regex string, repl string, src []byte) []byte {
 	return buf
 }
 
+func (gcp *Gcp) getIapAccount() string {
+	iapAcct := "serviceAccount:" + gcp.Spec.Email
+	if !strings.Contains(gcp.Spec.Email, "iam.gserviceaccount.com") {
+		iapAcct = "user:" + gcp.Spec.Email
+	}
+	return iapAcct
+}
+
 // Write IAM binding rules based on GCP app config.
 func (gcp *Gcp) writeIamBindingsFile(src string, dest string) error {
 	buf, err := ioutil.ReadFile(src)
@@ -609,15 +617,11 @@ func (gcp *Gcp) writeIamBindingsFile(src string, dest string) error {
 		}
 	}
 
-	iapAcct := "serviceAccount:" + gcp.Spec.Email
-	if !strings.Contains(gcp.Spec.Email, "iam.gserviceaccount.com") {
-		iapAcct = "user:" + gcp.Spec.Email
-	}
 	roles := map[string]string{
 		"set-kubeflow-admin-service-account": "serviceAccount:" + getSA(gcp.Name, "admin", gcp.Spec.Project),
 		"set-kubeflow-user-service-account":  "serviceAccount:" + getSA(gcp.Name, "user", gcp.Spec.Project),
 		"set-kubeflow-vm-service-account":    "serviceAccount:" + getSA(gcp.Name, "vm", gcp.Spec.Project),
-		"set-kubeflow-iap-account":           iapAcct,
+		"set-kubeflow-iap-account":           gcp.getIapAccount(),
 	}
 
 	bindings := e.([]interface{})
@@ -629,10 +633,8 @@ func (gcp *Gcp) writeIamBindingsFile(src string, dest string) error {
 			for _, m := range members {
 				member := m.(string)
 				if acct, ok := roles[member]; ok {
-					log.Infof("GG TEST: %v -> %v", member, acct)
 					newMembers = append(newMembers, acct)
 				} else {
-					log.Infof("GG TEST: keep %v", member)
 					newMembers = append(newMembers, member)
 				}
 			}
@@ -662,6 +664,67 @@ func (gcp *Gcp) writeIamBindingsFile(src string, dest string) error {
 	return nil
 }
 
+func (gcp *Gcp) writeClusterConfig(src string, dest string) error {
+	buf, err := ioutil.ReadFile(src)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Error when reading cluster-kubeflow template: %v", err),
+		}
+	}
+
+	var data map[string]interface{}
+	if err = yaml.Unmarshal(buf, &data); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Error when unmarshaling cluster-kubeflow template: %v", err),
+		}
+	}
+
+	res, ok := data["resources"]
+	if !ok {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: "Invalid cluster config - not able to find resources entry.",
+		}
+	}
+
+	resources := res.([]interface{})
+	for idx, re := range resources {
+		resource := re.(map[string]interface{})
+		var properties map[string]interface{}
+		if props, ok := resource["properties"]; ok {
+			properties = props.(map[string]interface{})
+		} else {
+			properties = make(map[string]interface{})
+		}
+		properties["gkeApiVersion"] = kftypes.DefaultGkeApiVer
+		properties["zone"] = gcp.Spec.Zone
+		properties["users"] = []string{
+			gcp.getIapAccount(),
+		}
+		properties["ipName"] = gcp.Spec.IpName
+		resource["properties"] = properties
+		resources[idx] = resource
+	}
+	data["resources"] = resources
+
+	if buf, err = yaml.Marshal(data); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Error when marshaling cluster-kubeflow: %v", err),
+		}
+	}
+	if err = ioutil.WriteFile(dest, buf, 0644); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Error when writing cluster-kubeflow: %v", err),
+		}
+	}
+
+	return nil
+}
+
 // TODO(#2515): Switch from string replacement to YAML config.
 func (gcp *Gcp) generateDMConfigs() error {
 	// TODO(gabrielwen): Use YAML support instead of string replacement.
@@ -686,35 +749,24 @@ func (gcp *Gcp) generateDMConfigs() error {
 	}
 	from := filepath.Join(sourceDir, "iam_bindings_template.yaml")
 	to := filepath.Join(gcpConfigDir, "iam_bindings.yaml")
-	gcp.writeIamBindingsFile(from, to)
-
-	configFile := filepath.Join(gcpConfigDir, CONFIG_FILE)
-	configFileData, configFileDataErr := ioutil.ReadFile(configFile)
-	if configFileDataErr != nil {
-		return fmt.Errorf("could not read %v Error %v", configFile, configFileDataErr)
+	if err := gcp.writeIamBindingsFile(from, to); err != nil {
+		return err
 	}
+
+	from = filepath.Join(sourceDir, CONFIG_FILE)
+	to = filepath.Join(gcpConfigDir, CONFIG_FILE)
+	if err := gcp.writeClusterConfig(from, to); err != nil {
+		return err
+	}
+
 	storageFile := filepath.Join(gcpConfigDir, STORAGE_FILE)
 	storageFileData, storageFileDataErr := ioutil.ReadFile(storageFile)
 	if storageFileDataErr != nil {
 		return fmt.Errorf("could not read %v Error %v", storageFile, storageFileDataErr)
 	}
-	configFileData = gcp.replaceText("SET_GKE_API_VERSION", kftypes.DefaultGkeApiVer, configFileData)
 	repl := "zone: " + gcp.Spec.Zone
-	configFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, configFileData)
 	storageFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, storageFileData)
 
-	iamEntry := "serviceAccount:" + gcp.Spec.Email
-	if !strings.Contains(gcp.Spec.Email, "iam.gserviceaccount.com") {
-		iamEntry = "user:" + gcp.Spec.Email
-	}
-	repl = "users: [\"" + iamEntry + "\"]"
-	configFileData = gcp.replaceText("users:", repl, configFileData)
-	repl = "ipName: " + gcp.Spec.IpName
-	configFileData = gcp.replaceText("ipName: kubeflow-ip", repl, configFileData)
-	configFileErr := ioutil.WriteFile(configFile, configFileData, 0644)
-	if configFileErr != nil {
-		return fmt.Errorf("cound not write to %v Error %v", configFile, configFileErr)
-	}
 	repl = "createPipelinePersistentStorage: true"
 	storageFileData = gcp.replaceText("createPipelinePersistentStorage: SET_CREATE_PIPELINE_PERSISTENT_STORAGE",
 		repl, storageFileData)
