@@ -87,7 +87,7 @@ export class MainPage extends PolymerElement {
             },
             sidebarItemIndex: {type: Number, value: 0},
             iframeUrl: {type: String, value: ''},
-            buildVersion: {type: String, value: '0.5.0'},
+            buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
             inIframe: {type: Boolean, value: false, readOnly: true},
             _devMode: {type: Boolean, value: DEVMODE},
@@ -118,12 +118,23 @@ export class MainPage extends PolymerElement {
     }
 
     /**
-     * Provide a logical OR functionality for the Polymer DOM
-     * @param {...boolean} a
+     * [MACRO] Provide a logical OR functionality for the Polymer DOM
+     * @param {...boolean} e
      * @return {boolean}
      */
     or(...e) {
         return e.some((i) => Boolean(i));
+    }
+
+    /**
+     * [MACRO] Provide a logical equals functionality for the Polymer DOM
+     * @param {...any} e
+     * @return {boolean}
+     */
+    equals(...e) {
+        const crit = e.shift();
+        if (!e.length) return true;
+        return e.every((e) => e === crit);
     }
 
     /**

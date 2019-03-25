@@ -51,6 +51,7 @@ const (
 	DefaultAppLabel    = "app.kubernetes.io/name"
 	KUBEFLOW_USERNAME  = "KUBEFLOW_USERNAME"
 	KUBEFLOW_PASSWORD  = "KUBEFLOW_PASSWORD"
+	// TODO: switch to bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json
 	DefaultSwaggerFile = "releasing/releaser/lib/v1.9.7/swagger.json"
 )
 
@@ -83,6 +84,7 @@ const (
 	OAUTH_ID              CliOption = "oauth_id"
 	OAUTH_SECRET          CliOption = "oauth_secret"
 	DELETE_STORAGE        CliOption = "delete_storage"
+	DISABLE_USAGE_REPORT  CliOption = "disable_usage_report"
 )
 
 //

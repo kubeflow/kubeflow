@@ -185,6 +185,42 @@ func getPackageManager(packagemanager string, kfdef *kfdefs.KfDef) (kftypes.KfAp
 	}
 }
 
+// Helper function to filter out spartakus.
+func filterSpartakus(components []string) []string {
+	ret := []string{}
+	for _, comp := range components {
+		if comp != "spartakus" {
+			ret = append(ret, comp)
+		}
+	}
+	return ret
+}
+
+// Helper function to print out warning message if using usage reporting.
+func usageReportWarn(components []string) {
+	msg := "\n" +
+		"****************************************************************\n" +
+		"Notice anonymous usage reporting enabled using spartakus\n" +
+		"To disable it\n" +
+		"If you have already deployed it run the following commands:\n" +
+		"  cd $(pwd)\n" +
+		"  ks delete default -c spartakus\n" +
+		"  kubectl -n ${K8S_NAMESPACE} delete deploy -l app=spartakus\n" +
+		"\n" +
+		"Then run the following command to remove it from your ksonnet app:\n" +
+		"  ks component rm spartakus\n" +
+		"\n" +
+		"For more info: https://www.kubeflow.org/docs/guides/usage-reporting/\n" +
+		"****************************************************************\n" +
+		"\n"
+	for _, comp := range components {
+		if comp == "spartakus" {
+			log.Warnf(msg)
+			return
+		}
+	}
+}
+
 // NewKfApp is called from the Init subcommand and will create a directory based on
 // the path/name argument given to the Init subcommand
 func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
@@ -242,6 +278,12 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	if specErr != nil {
 		log.Errorf("couldn't unmarshal app.yaml. Error: %v", specErr)
 	}
+	disableUsageReport := options[string(kftypes.DISABLE_USAGE_REPORT)].(bool)
+	if disableUsageReport {
+		kfDef.Spec.Components = filterSpartakus(kfDef.Spec.Components)
+		delete(kfDef.Spec.ComponentParams, "spartakus")
+	}
+
 	kfDef.Name = appName
 	kfDef.Spec.AppDir = appDir
 	kfDef.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
@@ -450,6 +492,9 @@ func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum) error {
 		}
 		return nil
 	}
+
+	// Print out warning message if using usage reporting component.
+	usageReportWarn(kfapp.KfDef.Spec.Components)
 
 	switch resources {
 	case kftypes.ALL:

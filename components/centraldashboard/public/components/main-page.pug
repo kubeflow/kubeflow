@@ -15,9 +15,10 @@ app-drawer-layout.flex(narrow='{{narrowMode}}', force-narrow='[[or(inIframe, thi
                     paper-item.menu-item [[item.text]]
         aside.flex
         footer.footer
-            section.privacy Privacy
+            section.privacy
+                a(title='Kubeflow Privacy Policy', href='https://policies.google.com/privacy') Privacy
             section.build build version&nbsp;
-                span(title="Build: v[[buildVersion]] | Dashboard: v[[dashVersion]]") v[[buildVersion]]
+                span(title="Build: [[buildVersion]] | Dashboard: v[[dashVersion]]") [[buildVersion]]
     app-header-layout(fullbleed)
         app-header(slot='header')
             app-toolbar(blue$='[[inIframe]]')
@@ -29,7 +30,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}', force-narrow='[[or(inIframe, thi
                         a.link(tabindex='-1', href='/') Dashboard
                     paper-tab(page='activity', link)
                         a.link(tabindex='-1', href='/activity') Activity
-                aside#NamespaceSelector
+                aside#NamespaceSelector(hidden$='[[!equals(page, "activity")]]')
                     namespace-selector(query-params='{{queryParams}}')
         neon-animated-pages(selected='[[page]]', attr-for-selected='page',
                             entry-animation='fade-in-animation',

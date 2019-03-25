@@ -40,18 +40,27 @@ resources:
     # This will cause existing node pools to be deleted and new ones to be created.
     # Use prefix v so it will be treated as a string.
     pool-version: v1
+    # CPU Pool Configs
     # Two is small enough to fit within default quota.
     cpu-pool-initialNodeCount: 2
-    gpu-pool-initialNodeCount: 0
+    # machine type for nodes in cpu pool. Available options: https://cloud.google.com/compute/docs/machine-types
+    cpu-pool-machine-type: n1-standard-8
     # Autoscaling parameters
     cpu-pool-enable-autoscaling: true
     cpu-pool-min-nodes: 0
     cpu-pool-max-nodes: 10
+    # GPU Pool Configs
+    gpu-pool-initialNodeCount: 0
+    # machine type for nodes in gpu pool. Available options: https://cloud.google.com/compute/docs/machine-types
+    gpu-pool-machine-type: n1-standard-8
     # GPUs are not enabled by default. To add GPUs
     # set gpu-pool-max-nodes to a none-zero value.
     gpu-pool-enable-autoscaling: true
     gpu-pool-min-nodes: 0
     gpu-pool-max-nodes: 0
+    # Controls gpu number per node, valid input: [1, num_cpu_per_node], for n1-standard-8, num_cpu_per_node = 8
+    gpu-number-per-node: 1
+    # Check https://cloud.google.com/compute/docs/gpus/ for available GPU models and their regions
     gpu-type: nvidia-tesla-k80
     # Autoprovisioning parameters (only supported in gkeApiVersion v1beta1).
     # This is configured by the gkeApiVersion setting.

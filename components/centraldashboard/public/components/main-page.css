@@ -324,7 +324,7 @@ neon-animatable {
 
 a[href] {
     text-decoration: none;
-    color: initial;
+    color: inherit;
     outline: none;
 }
 
