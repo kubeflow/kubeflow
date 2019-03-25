@@ -25,6 +25,8 @@ import (
 	"google.golang.org/api/option"
 	containerpb "google.golang.org/genproto/googleapis/container/v1"
 	"k8s.io/client-go/rest"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"os/exec"
 )
 
 // Use default token source and retrieve cluster information with given project/location/cluster
@@ -57,5 +59,52 @@ func BuildConfigFromClusterInfo(ctx context.Context, cluster *containerpb.Cluste
 			CAData: []byte(string(caDec)),
 		},
 	}
+	return config, nil
+}
+
+// Create a config that serves as kubeconfig.
+func CreateKubeconfig(ctx context.Context, project string, loc string, cluster string,
+	namespace string, ts oauth2.TokenSource) (*clientcmdapi.Config, error) {
+	clusterInfo, err := GetClusterInfo(ctx, project, loc, cluster, ts)
+	if err != nil {
+		return nil, err
+	}
+
+	config := clientcmdapi.NewConfig()
+	config.Kind = "Config"
+	t, err := ts.Token()
+	if err != nil {
+		return nil, fmt.Errorf("Token retrieval error: %v", err)
+	}
+	caDec, _ := base64.StdEncoding.DecodeString(clusterInfo.MasterAuth.ClusterCaCertificate)
+	gcloudPath, err := exec.LookPath("gcloud")
+	if err != nil {
+		return nil, fmt.Errorf("Not able to find gcloud: %v", err)
+	}
+
+	config.Contexts[cluster] = &clientcmdapi.Context{
+		Cluster:   cluster,
+		AuthInfo:  cluster,
+		Namespace: namespace,
+	}
+	config.Clusters[cluster] = &clientcmdapi.Cluster{
+		Server:                   "https://" + clusterInfo.Endpoint,
+		InsecureSkipTLSVerify:    false,
+		CertificateAuthorityData: []byte(string(caDec)),
+	}
+	config.AuthInfos[cluster] = &clientcmdapi.AuthInfo{
+		Token: t.AccessToken,
+		AuthProvider: &clientcmdapi.AuthProviderConfig{
+			Name: "gcp",
+			Config: map[string]string{
+				"cmd-path":   gcloudPath,
+				"cmd-args":   "config config-helper --format=json",
+				"token-key":  "{.credential.access_token}",
+				"expiry-key": "{.credential.token_expiry}",
+			},
+		},
+	}
+	config.CurrentContext = cluster
+
 	return config, nil
 }

@@ -27,7 +27,6 @@ import (
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
-	kfctlutils "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"io/ioutil"
@@ -83,11 +82,18 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 }
 
 func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
+	restConfig := kftypes.GetConfig()
+	apiConfig := kftypes.GetKubeConfig()
+	return ksApp.ApplyInner(resources, restConfig, apiConfig)
+}
+
+// Remind: Don't change signature: this entry is share among kfctl and deploy app
+// applies the ksonnet components to target k8s cluster.
+func (ksApp *ksApp) ApplyInner(resources kftypes.ResourceEnum, restConfig *rest.Config, apiConfig *clientcmdapi.Config) error {
 	name := ksApp.Name
-	config := kftypes.GetConfig()
-	clientset := kftypes.GetClientset(config)
+	clientset := kftypes.GetClientset(restConfig)
 	// TODO(gabrielwen): Make env name an option.
-	envSetErr := ksApp.envSet(KsEnvName, config.Host)
+	envSetErr := ksApp.envSet(KsEnvName, restConfig.Host)
 	if envSetErr != nil {
 		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", KsEnvName, envSetErr)
 	}
@@ -117,48 +123,20 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 			return fmt.Errorf("could not change directory to %v Error %v", ksApp.Spec.AppDir, err)
 		}
 	}
-	clientConfig := kftypes.GetKubeConfig()
-	applyErr := ksApp.applyComponent([]string{"metacontroller"}, clientConfig)
+	
+	applyErr := ksApp.applyComponent([]string{"metacontroller"}, apiConfig)
 	if applyErr != nil {
 		return fmt.Errorf("couldn't create metacontroller component Error: %v", applyErr)
 	}
-	// TODO(#2391): Fix this and use ks.apply
-	if err = ksApp.showComponent([]string{"application"}); err != nil {
-		return fmt.Errorf("Writing config file error: %v", err)
+	applyErr = ksApp.applyComponent(ksApp.Spec.Components, apiConfig)
+	if applyErr != nil {
+		return fmt.Errorf("couldn't create components Error: %v", applyErr)
 	}
-
-	return kfctlutils.RunKubectlApply(ksApp.getCompsFilePath())
+	return nil
 }
 
 func (ksApp *ksApp) getCompsFilePath() string {
 	return filepath.Join(ksApp.Spec.AppDir, ksApp.KsName, ksApp.KsEnvName+".yaml")
-}
-
-func (ksApp *ksApp) showComponent(components []string) error {
-	showOptions := map[string]interface{}{
-		actions.OptionApp:            ksApp.KApp,
-		actions.OptionComponentNames: components,
-		actions.OptionEnvName:        ksApp.KsEnvName,
-		actions.OptionFormat:         "yaml",
-	}
-
-	configPath := ksApp.getCompsFilePath()
-	log.Infof("Writing deploying config to %v", configPath)
-	configFile, err := os.Create(configPath)
-	if err != nil {
-		return err
-	}
-
-	stdout := os.Stdout
-	os.Stdout = configFile
-
-	err = actions.RunShow(showOptions)
-	if err != nil {
-		os.Stdout = stdout
-		return err
-	}
-	os.Stdout = stdout
-	return nil
 }
 
 func (ksApp *ksApp) applyComponent(components []string, cfg *clientcmdapi.Config) error {
@@ -521,7 +499,6 @@ func (ksApp *ksApp) registryAdd(registry *kfdefs.RegistryConfig) error {
 		actions.OptionAppRoot:  root,
 		actions.OptionName:     registry.Name,
 		actions.OptionURI:      registry.RegUri,
-		actions.OptionPath:     registry.Path,
 		actions.OptionVersion:  registry.Version,
 		actions.OptionOverride: false,
 	}

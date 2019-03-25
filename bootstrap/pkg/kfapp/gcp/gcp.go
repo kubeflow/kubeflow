@@ -421,18 +421,6 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, ts oauth2.TokenSource) 
 		log.Infof("Done installing istio.")
 	}
 
-	// TODO(#2604): Need to create a named context.
-	cred_cmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
-		gcp.Name,
-		"--zone="+gcp.Spec.Zone,
-		"--project="+gcp.Spec.Project)
-	cred_cmd.Stdout = os.Stdout
-	log.Infof("Running get-credentials %v --zone=%v --project=%v ...", gcp.KfDef.Name,
-		gcp.KfDef.Spec.Zone, gcp.KfDef.Spec.Project)
-	if err := cred_cmd.Run(); err != nil {
-		return fmt.Errorf("Error when running gcloud container clusters get-credentials: %v", err)
-	}
-
 	return nil
 }
 
@@ -446,12 +434,44 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 		return fmt.Errorf("Need to set environment variable `%v` for IAP.",
 			CLIENT_SECRET)
 	}
+	if gcp.KfDef.Spec.UseBasicAuth && (os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" ||
+		os.Getenv(kftypes.KUBEFLOW_PASSWORD) == "") {
+		return fmt.Errorf("gcp apply needs ENV %v and %v set when using basic auth",
+			kftypes.KUBEFLOW_USERNAME, kftypes.KUBEFLOW_PASSWORD)
+	}
 	ctx := context.Background()
 	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
 	if err != nil {
 		return fmt.Errorf("Get token error: %v", err)
 	}
-	return gcp.ApplyInner(resources, ts)
+	if err := gcp.ApplyInner(resources, ts); err != nil {
+		return err
+	}
+	k8sClient, err := gcp.getK8sClientset(ctx, ts)
+	if err != nil {
+		return fmt.Errorf("Get K8s clientset error: %v", err)
+	}
+	if gcp.Spec.UseBasicAuth {
+		if err := gcp.createBasicAuthSecret(k8sClient); err != nil {
+			return fmt.Errorf("cannot create basic auth login secret: %v", err)
+		}
+	} else {
+		if err := gcp.createIapSecret(ctx, k8sClient); err != nil {
+			return fmt.Errorf("cannot create IAP auth secret: %v", err)
+		}
+	}
+	// TODO(#2604): Need to create a named context.
+	cred_cmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
+		gcp.Name,
+		"--zone="+gcp.Spec.Zone,
+		"--project="+gcp.Spec.Project)
+	cred_cmd.Stdout = os.Stdout
+	log.Infof("Running get-credentials %v --zone=%v --project=%v ...", gcp.KfDef.Name,
+		gcp.KfDef.Spec.Zone, gcp.KfDef.Spec.Project)
+	if err := cred_cmd.Run(); err != nil {
+		return fmt.Errorf("Error when running gcloud container clusters get-credentials: %v", err)
+	}
+	return nil
 }
 
 // Remind: Don't change signature: this entry is share among kfctl and deploy app
@@ -801,15 +821,6 @@ func (gcp *Gcp) createSecrets(ts oauth2.TokenSource) error {
 		}
 		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME, IstioNamespace, ts); err != nil {
 			return fmt.Errorf("cannot create user secret %v Error %v", USER_SECRET_NAME, err)
-		}
-	}
-	if gcp.Spec.UseBasicAuth {
-		if err := gcp.createBasicAuthSecret(k8sClient); err != nil {
-			return fmt.Errorf("cannot create basic auth login secret: %v", err)
-		}
-	} else {
-		if err := gcp.createIapSecret(ctx, k8sClient); err != nil {
-			return fmt.Errorf("cannot create IAP auth secret: %v", err)
 		}
 	}
 	return nil
