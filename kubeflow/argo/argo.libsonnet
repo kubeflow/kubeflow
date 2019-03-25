@@ -232,6 +232,7 @@
         config: std.format(|||
                              {
                              executorImage: %s,
+                             containerRuntimeExecutor: %s,
                              artifactRepository:
                              {
                                  s3: {
@@ -253,6 +254,7 @@
                            |||,
                            [
                              params.executorImage,
+                             params.containerRuntimeExecutor,
                              params.artifactRepositoryBucket,
                              params.artifactRepositoryKeyPrefix,
                              params.artifactRepositoryEndpoint,

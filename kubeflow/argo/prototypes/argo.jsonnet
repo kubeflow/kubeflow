@@ -14,6 +14,7 @@
 // @optionalParam artifactRepositoryAccessKeySecretKey string accesskey artifactRepositoryAccessKeySecretKey
 // @optionalParam artifactRepositorySecretKeySecretName string mlpipeline-minio-artifact artifactRepositorySecretKeySecretName
 // @optionalParam artifactRepositorySecretKeySecretKey string secretkey artifactRepositorySecretKeySecretKey
+// @optionalParam containerRuntimeExecutor string docker containerRuntimeExecutor
 
 local argo = import "kubeflow/argo/argo.libsonnet";
 local instance = argo.new(env, params);
