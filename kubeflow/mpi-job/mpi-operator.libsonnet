@@ -274,6 +274,7 @@ local k = import "k.libsonnet";
                 name: "mpi-operator",
                 image: image,
                 args: [
+                  "-alsologtostderr",
                   "--gpus-per-node",
                   std.toString(gpusPerNode),
                   "--kubectl-delivery-image",
