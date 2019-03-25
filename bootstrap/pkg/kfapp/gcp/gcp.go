@@ -597,7 +597,7 @@ func (gcp *Gcp) writeIamBindingsFile(src string, dest string) error {
 	if err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("Error when reading IAM bindings template: %v", err),
+			Message: fmt.Sprintf("Error when reading template %v: %v", src, err),
 		}
 	}
 
@@ -605,7 +605,7 @@ func (gcp *Gcp) writeIamBindingsFile(src string, dest string) error {
 	if err = yaml.Unmarshal(buf, &data); err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("Error when unmarshaling IAM bindings template: %v", err),
+			Message: fmt.Sprintf("Error when unmarshaling template %v: %v", src, err),
 		}
 	}
 
@@ -669,7 +669,7 @@ func (gcp *Gcp) writeClusterConfig(src string, dest string) error {
 	if err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("Error when reading cluster-kubeflow template: %v", err),
+			Message: fmt.Sprintf("Error when reading template %v: %v", src, err),
 		}
 	}
 
@@ -677,7 +677,7 @@ func (gcp *Gcp) writeClusterConfig(src string, dest string) error {
 	if err = yaml.Unmarshal(buf, &data); err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("Error when unmarshaling cluster-kubeflow template: %v", err),
+			Message: fmt.Sprintf("Error when unmarshaling template %v: %v", src, err),
 		}
 	}
 
@@ -712,13 +712,70 @@ func (gcp *Gcp) writeClusterConfig(src string, dest string) error {
 	if buf, err = yaml.Marshal(data); err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("Error when marshaling cluster-kubeflow: %v", err),
+			Message: fmt.Sprintf("Error when marshaling for %v: %v", dest, err),
 		}
 	}
 	if err = ioutil.WriteFile(dest, buf, 0644); err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("Error when writing cluster-kubeflow: %v", err),
+			Message: fmt.Sprintf("Error when writing to %v: %v", dest, err),
+		}
+	}
+
+	return nil
+}
+
+func (gcp *Gcp) writeStorageConfig(src string, dest string) error {
+	buf, err := ioutil.ReadFile(src)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Error when reading storage-kubeflow template: %v", err),
+		}
+	}
+
+	var data map[string]interface{}
+	if err = yaml.Unmarshal(buf, &data); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Error when unmarshaling template %v: %v", src, err),
+		}
+	}
+
+	res, ok := data["resources"]
+	if !ok {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: "Invalid storage config - not able to find resources entry.",
+		}
+	}
+
+	resources := res.([]interface{})
+	for idx, re := range resources {
+		resource := re.(map[string]interface{})
+		var properties map[string]interface{}
+		if props, ok := resource["properties"]; ok {
+			properties = props.(map[string]interface{})
+		} else {
+			properties = make(map[string]interface{})
+		}
+		properties["zone"] = gcp.Spec.Zone
+		properties["createPipelinePersistentStorage"] = true
+		resource["properties"] = properties
+		resources[idx] = resource
+	}
+	data["resources"] = resources
+
+	if buf, err = yaml.Marshal(data); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Error when marshaling for %v: %v", dest, err),
+		}
+	}
+	if err = ioutil.WriteFile(dest, buf, 0644); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Error when writing to %v: %v", dest, err),
 		}
 	}
 
@@ -737,8 +794,8 @@ func (gcp *Gcp) generateDMConfigs() error {
 	repo := gcp.Spec.Repo
 	parentDir := path.Dir(repo)
 	sourceDir := path.Join(parentDir, "deployment/gke/deployment_manager_configs")
-	files := []string{"cluster-kubeflow.yaml", "cluster.jinja", "cluster.jinja.schema",
-		"storage-kubeflow.yaml", "storage.jinja", "storage.jinja.schema"}
+	files := []string{"cluster.jinja", "cluster.jinja.schema", "storage.jinja",
+		"storage.jinja.schema"}
 	for _, file := range files {
 		sourceFile := filepath.Join(sourceDir, file)
 		destFile := filepath.Join(gcpConfigDir, file)
@@ -759,21 +816,12 @@ func (gcp *Gcp) generateDMConfigs() error {
 		return err
 	}
 
-	storageFile := filepath.Join(gcpConfigDir, STORAGE_FILE)
-	storageFileData, storageFileDataErr := ioutil.ReadFile(storageFile)
-	if storageFileDataErr != nil {
-		return fmt.Errorf("could not read %v Error %v", storageFile, storageFileDataErr)
+	from = filepath.Join(sourceDir, STORAGE_FILE)
+	to = filepath.Join(gcpConfigDir, STORAGE_FILE)
+	if err := gcp.writeStorageConfig(from, to); err != nil {
+		return err
 	}
-	repl := "zone: " + gcp.Spec.Zone
-	storageFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, storageFileData)
 
-	repl = "createPipelinePersistentStorage: true"
-	storageFileData = gcp.replaceText("createPipelinePersistentStorage: SET_CREATE_PIPELINE_PERSISTENT_STORAGE",
-		repl, storageFileData)
-	storageFileErr := ioutil.WriteFile(storageFile, storageFileData, 0644)
-	if storageFileErr != nil {
-		return fmt.Errorf("cound not write to %v Error %v", storageFile, storageFileErr)
-	}
 	return nil
 }
 
