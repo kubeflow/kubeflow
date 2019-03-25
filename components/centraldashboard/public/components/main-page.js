@@ -91,6 +91,7 @@ export class MainPage extends PolymerElement {
             buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
             inIframe: {type: Boolean, value: false, readOnly: true},
+            notFoundInIframe: {type: Boolean, value: false},
             _devMode: {type: Boolean, value: DEVMODE},
         };
     }
@@ -156,6 +157,7 @@ export class MainPage extends PolymerElement {
      */
     _routePageChanged(newPage) {
         let isIframe = false;
+        this.notFoundInIframe = false;
         switch (newPage) {
         case 'activity':
             this.sidebarItemIndex = 0;
@@ -172,6 +174,10 @@ export class MainPage extends PolymerElement {
         default:
             this.sidebarItemIndex = -1;
             this.page = 'not_found';
+            // Handles case when an iframed page requests an invalid route
+            if (window.location !== window.parent.location) {
+                this.notFoundInIframe = true;
+            }
         }
         this._setInIframe(isIframe);
         // If iframe <-> [non-frame OR other iframe]
