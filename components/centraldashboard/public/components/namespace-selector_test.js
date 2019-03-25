@@ -1,8 +1,9 @@
 import '@polymer/test-fixture/test-fixture';
 import 'jasmine-ajax';
-import './namespace-selector';
-
 import {flush} from '@polymer/polymer/lib/utils/flush.js';
+
+import './namespace-selector';
+import {mockRequest} from '../ajax_test_helper';
 
 const FIXTURE_ID = 'namespace-selector-fixture';
 const NAMESPACE_SELECTOR_ID = 'test-namespace-selector';
@@ -24,7 +25,6 @@ describe('Namespace Selector', () => {
     });
 
     beforeEach(() => {
-    // server = createFakeServer();
         jasmine.Ajax.install();
         document.getElementById(FIXTURE_ID).create();
         namespaceSelector = document.getElementById(NAMESPACE_SELECTOR_ID);
@@ -35,41 +35,90 @@ describe('Namespace Selector', () => {
         jasmine.Ajax.uninstall();
     });
 
-    it('Shows Namespaces from /api/namespaces', (done) => {
-        namespaceSelector.addEventListener('iron-ajax-request', () => {
-            jasmine.Ajax.requests.mostRecent().respondWith({
-                status: 200,
-                responseText: JSON.stringify([
-                    {
-                        metadata: {
-                            name: 'default',
-                        },
+    it('Shows Namespaces from /api/namespaces', async () => {
+        const responsePromise = mockRequest(namespaceSelector, {
+            status: 200,
+            responseText: JSON.stringify([
+                {
+                    metadata: {
+                        uid: '1',
+                        name: 'default',
                     },
-                    {
-                        metadata: {
-                            name: 'other-namespace',
-                        },
+                },
+                {
+                    metadata: {
+                        uid: '2',
+                        name: 'other-namespace',
                     },
-                ]),
+                },
+            ]),
+        });
+        await responsePromise;
+        flush();
+
+        const namespaces = [];
+        namespaceSelector.shadowRoot.querySelectorAll('paper-item')
+            .forEach((n) => {
+                namespaces.push(n.innerText);
             });
-        });
-        namespaceSelector.addEventListener('iron-ajax-response', () => {
-            flush();
-            expect(namespaceSelector.namespaces.length).toBe(2);
-            done();
-        });
+        expect(namespaces).toEqual(['default', 'other-namespace']);
     });
 
-    it('Shows empty list when error is received', (done) => {
-        namespaceSelector.addEventListener('iron-ajax-request', () => {
-            jasmine.Ajax.requests.mostRecent().respondWith({
-                status: 500, responseText: '{"error": "Bad thing happened"}',
-            });
+    it('Shows empty list when error is received', async () => {
+        const responsePromise = mockRequest(namespaceSelector, {
+            status: 500,
+            responseText: '{"error": "Bad thing happened"}',
+        }, true);
+        await responsePromise;
+        flush();
+
+        const items = namespaceSelector.shadowRoot
+            .querySelectorAll('paper-item');
+        expect(items.length).toBe(0);
+    });
+
+    it('Sets queryParams.ns when selected', async () => {
+        namespaceSelector.queryParams = {};
+        namespaceSelector.namespaces = [
+            {
+                uid: '1',
+                name: 'default',
+            },
+            {
+                uid: '2',
+                name: 'other-namespace',
+            },
+        ];
+        flush();
+        const queryParamsChangedPromise = new Promise((resolve) => {
+            namespaceSelector.addEventListener('query-params-changed',
+                (event) =>resolve(event.detail));
         });
-        namespaceSelector.addEventListener('iron-ajax-error', () => {
-            flush();
-            expect(namespaceSelector.namespaces.length).toBe(0);
-            done();
-        });
+
+        namespaceSelector.shadowRoot.querySelector('paper-listbox').select(0);
+        const eventDetail = await queryParamsChangedPromise;
+        expect(eventDetail.path).toBe('queryParams.ns');
+        expect(eventDetail.value).toBe('default');
+    });
+
+    it('Sets selected based on queryParams', async () => {
+        namespaceSelector.queryParams = {
+            ns: 'other-namespace',
+        };
+        namespaceSelector.namespaces = [
+            {
+                uid: '1',
+                name: 'default',
+            },
+            {
+                uid: '2',
+                name: 'other-namespace',
+            },
+        ];
+        flush();
+
+        const dropDownMenu = namespaceSelector.shadowRoot
+            .querySelector('paper-dropdown-menu-light');
+        expect(dropDownMenu.value).toBe('other-namespace');
     });
 });

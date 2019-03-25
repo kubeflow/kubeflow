@@ -8,7 +8,7 @@ webpackConfig.module.rules.push({
         loader: 'istanbul-instrumenter-loader',
         options: {esModules: true},
     },
-    exclude: /node_modules|\*_test\.js$/,
+    exclude: /node_modules|_test\.js$/,
 });
 
 module.exports = function(config) {
