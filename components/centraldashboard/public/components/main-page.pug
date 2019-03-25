@@ -27,7 +27,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                 aside#Narrow-Slider(hides, hidden$='[[!narrowMode]]')
                     paper-icon-button#Menu(icon='menu', drawer-toggle)
                     figure.Logo
-                paper-tabs.bottom(selected='[[page]]', attr-for-selected='page', hides, hidden$='[[inIframe]]')
+                paper-tabs.bottom(selected='[[page]]', attr-for-selected='page',
+                        hides, hidden$='[[hideTabs]]')
                     paper-tab(page='dashboard', link)
                         a.link(tabindex='-1', href='/') Dashboard
                     paper-tab(page='activity', link)
