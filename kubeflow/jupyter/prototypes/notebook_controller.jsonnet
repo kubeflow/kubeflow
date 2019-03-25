@@ -3,7 +3,7 @@
 // @description notebook controller
 // @shortDescription notebooks
 // @param name string Name
-// @optionalParam controllerImage string gcr.io/kubeflow-images-public/notebook-controller:v20190320-v0.4.0-rc.1-238-gb90dddb0-dirty-dcf6c4 The image to use for the notebook controller
+// @optionalParam controllerImage string gcr.io/kubeflow-images-public/notebook-controller:v20190325-v0.4.0-rc.1-258-g1728f05f-dirty-8c2dab The image to use for the notebook controller
 
 local notebooks = import "kubeflow/jupyter/notebook_controller.libsonnet";
 local instance = notebooks.new(env, params);
