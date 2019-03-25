@@ -415,6 +415,7 @@ func (gcp *Gcp) AddNamedContext() error {
 		}
 	}
 	contexts = append(contexts, context)
+	config["contexts"] = contexts
 
 	buf, err = yaml.Marshal(config)
 	if err != nil {
@@ -514,7 +515,6 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 		log.Infof("Done installing istio.")
 	}
 
-	// TODO(#2604): Need to create a named context.
 	cred_cmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
 		gcp.Name,
 		"--zone="+gcp.Spec.Zone,
@@ -525,6 +525,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	if err := cred_cmd.Run(); err != nil {
 		return fmt.Errorf("Error when running gcloud container clusters get-credentials: %v", err)
 	}
+	gcp.AddNamedContext()
 
 	return nil
 }
