@@ -576,13 +576,7 @@ func setNameVal(entries []configtypes.NameValue, name string, val string, requir
 	return entries
 }
 
-//TODO(#2515)
-func (gcp *Gcp) replaceText(regex string, repl string, src []byte) []byte {
-	re := regexp.MustCompile(regex)
-	buf := re.ReplaceAll(src, []byte(repl))
-	return buf
-}
-
+// Helper function to generate account field for IAP.
 func (gcp *Gcp) getIapAccount() string {
 	iapAcct := "serviceAccount:" + gcp.Spec.Email
 	if !strings.Contains(gcp.Spec.Email, "iam.gserviceaccount.com") {
@@ -664,6 +658,7 @@ func (gcp *Gcp) writeIamBindingsFile(src string, dest string) error {
 	return nil
 }
 
+// Replace placeholders and write to cluster-kubeflow.yaml
 func (gcp *Gcp) writeClusterConfig(src string, dest string) error {
 	buf, err := ioutil.ReadFile(src)
 	if err != nil {
@@ -725,6 +720,7 @@ func (gcp *Gcp) writeClusterConfig(src string, dest string) error {
 	return nil
 }
 
+// Replace placeholders and write to storage-kubeflow.yaml
 func (gcp *Gcp) writeStorageConfig(src string, dest string) error {
 	buf, err := ioutil.ReadFile(src)
 	if err != nil {
@@ -782,9 +778,7 @@ func (gcp *Gcp) writeStorageConfig(src string, dest string) error {
 	return nil
 }
 
-// TODO(#2515): Switch from string replacement to YAML config.
 func (gcp *Gcp) generateDMConfigs() error {
-	// TODO(gabrielwen): Use YAML support instead of string replacement.
 	appDir := gcp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
 	gcpConfigDirErr := os.MkdirAll(gcpConfigDir, os.ModePerm)
