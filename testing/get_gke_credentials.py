@@ -1,25 +1,28 @@
+# -*- coding: utf-8 -*-
 import argparse
 import logging
 import os
-
 import yaml
-from kubernetes.config import kube_config
-
 from kubeflow.testing import test_helper, util
+from kubernetes.config import kube_config
 
 
 def parse_args():
   parser = argparse.ArgumentParser()
   parser.add_argument(
-    "--cluster",
-    default=None,
-    type=str,
-    help=("The name of the cluster. If not set assumes the "
-          "script is running in a cluster and uses that cluster."))
+      "--cluster",
+      default=None,
+      type=str,
+      help=(
+          "The name of the cluster. If not set assumes the script is running in"
+          " a cluster and uses that cluster."))
   parser.add_argument(
-    "--zone", default="us-east1-d", type=str, help="The zone for the cluster.")
+      "--zone",
+      default="us-east1-d",
+      type=str,
+      help="The zone for the cluster.")
   parser.add_argument(
-    "--project", default=None, type=str, help="The project to use.")
+      "--project", default=None, type=str, help="The project to use.")
   args, _ = parser.parse_known_args()
   return args
 
@@ -43,8 +46,8 @@ def get_gke_credentials(test_case):
   # We want to modify the KUBECONFIG file to remove the gcloud commands
   # for any users that are authenticating using service accounts.
   # This will allow the script to be truly headless and not require gcloud.
-  # More importantly, kubectl will properly attach auth.info scope so
-  # that RBAC rules can be applied to the email and not the id.
+  # More importantly, kubectl will properly attach auth.info scope so that
+  # RBAC rules can be applied to the email and not the id.
   # See https://github.com/kubernetes/kubernetes/pull/58141
   #
   # TODO(jlewi): We might want to check GOOGLE_APPLICATION_CREDENTIALS
@@ -70,7 +73,7 @@ def get_gke_credentials(test_case):
       # It looks like the code checks here but that doesn't seem to work
       # https://github.com/kubernetes-client/python-base/blob/master/config/kube_config.py#L209
       auth_provider["config"] = {
-        "dummy": "dummy",
+          "dummy": "dummy",
       }
   logging.info("Writing update kubeconfig:\n %s", yaml.dump(config))
   with open(config_file, "w") as hf:
@@ -79,9 +82,9 @@ def get_gke_credentials(test_case):
 
 def main():
   test_case = test_helper.TestCase(
-    name='get_gke_credentials', test_func=get_gke_credentials)
+      name='get_gke_credentials', test_func=get_gke_credentials)
   test_suite = test_helper.init(
-    name='get_gke_credentials', test_cases=[test_case])
+      name='get_gke_credentials', test_cases=[test_case])
   test_suite.run()
 
 

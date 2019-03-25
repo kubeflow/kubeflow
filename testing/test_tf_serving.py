@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
+#
 # Copyright 2018 The Kubeflow Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +16,6 @@
 # limitations under the License.
 
 from __future__ import print_function
-
 
 import argparse
 import json
@@ -60,42 +60,38 @@ def almost_equal(a, b, tol=0.001):
 def main():
   parser = argparse.ArgumentParser('Label an image using Inception')
   parser.add_argument(
-    '-p',
-    '--port',
-    type=int,
-    default=9000,
-    help='Port at which Inception model is being served')
+      '-p',
+      '--port',
+      type=int,
+      default=9000,
+      help='Port at which Inception model is being served')
   parser.add_argument(
-    "--namespace",
-    required=True,
-    type=str,
-    help=("The namespace to use."))
+      "--namespace", required=True, type=str, help=("The namespace to use."))
   parser.add_argument(
-    "--service_name",
-    required=True,
-    type=str,
-    help=("The TF serving service to use."))
+      "--service_name",
+      required=True,
+      type=str,
+      help=("The TF serving service to use."))
   parser.add_argument(
-    "--artifacts_dir",
-    default="",
-    type=str,
-    help="Directory to use for artifacts that should be preserved after "
-         "the test runs. Defaults to test_dir if not set.")
+      "--artifacts_dir",
+      default="",
+      type=str,
+      help="Directory to use for artifacts that should be preserved after "
+      "the test runs. Defaults to test_dir if not set.")
   parser.add_argument(
-    "--input_path",
-    required=True,
-    type=str,
-    help=("The input file to use."))
+      "--input_path", required=True, type=str, help=("The input file to use."))
+  parser.add_argument("--result_path", type=str, help=("The expected result."))
   parser.add_argument(
-    "--result_path",
-    type=str,
-    help=("The expected result."))
+      "--workflow_name",
+      default="tfserving",
+      type=str,
+      help="The name of the workflow.")
 
   args = parser.parse_args()
 
   t = test_util.TestCase()
   t.class_name = "Kubeflow"
-  t.name = "tf-serving-image-" + args.service_name
+  t.name = args.workflow_name + "-" + args.service_name
 
   start = time.time()
 
@@ -106,10 +102,12 @@ def main():
     with open(args.input_path) as f:
       instances = json.loads(f.read())
 
-    service = core_api.read_namespaced_service(args.service_name, args.namespace)
+    service = core_api.read_namespaced_service(args.service_name,
+                                               args.namespace)
     service_ip = service.spec.cluster_ip
     model_urls = [
-      "http://" + service_ip + ":8500/v1/models/mnist:predict",  # tf serving's http server
+        "http://" + service_ip +
+        ":8500/v1/models/mnist:predict",  # tf serving's http server
     ]
     for model_url in model_urls:
       logging.info("Try predicting with endpoint {}".format(model_url))
@@ -118,7 +116,7 @@ def main():
       while True:
         try:
           result = requests.post(model_url, json=instances)
-          assert(result.status_code == 200)
+          assert (result.status_code == 200)
         except Exception as e:
           num_try += 1
           if num_try > 10:
@@ -132,24 +130,27 @@ def main():
         with open(args.result_path) as f:
           expected_result = json.loads(f.read())
           logging.info('Expected result: {}'.format(expected_result))
-          assert(almost_equal(expected_result, json.loads(result.text)))
+          assert (almost_equal(expected_result, json.loads(result.text)))
   except Exception as e:
     t.failure = "Test failed; " + e.message
     raise
   finally:
     t.time = time.time() - start
     junit_path = os.path.join(
-        args.artifacts_dir, "junit_kubeflow-tf-serving-image-{}.xml".format(args.service_name))
+        args.artifacts_dir,
+        "junit_kubeflow-tf-serving-image-{}.xml".format(args.service_name))
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([t], junit_path)
     # Pause to collect Stackdriver logs.
     time.sleep(60)
 
+
 if __name__ == '__main__':
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
+  logging.basicConfig(
+      level=logging.INFO,
+      format=('%(levelname)s|%(asctime)s'
+              '|%(pathname)s|%(lineno)d| %(message)s'),
+      datefmt='%Y-%m-%dT%H:%M:%S',
+  )
   logging.getLogger().setLevel(logging.INFO)
   main()

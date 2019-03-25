@@ -1,0 +1,6 @@
+escapism==1.0.0
+Flask==1.0.2
+Flask_Login==0.4.1
+Flask_Bcrypt==0.7.1
+kubernetes==8.0.1
+PyYAML==3.13

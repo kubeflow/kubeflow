@@ -2,22 +2,12 @@
 # list approvers for individual components (e.g. Seldon folks for Seldon component)
 approvers:
   - abhi-g
-  - Ark-kun
-  - gaoning777
-  - hongye-sun
-  - IronPan
   - jlewi
   - kunmingg
   - lluunn
-  - neuromage
-  - paveldournov
   - pdmack
-  - qimingj
   - r2d4
   - richardsliu
-  - rileyjbauer
   - texasmichelle
-  - vicaire
-  - yebrahim
 reviewers:
   - ellis-bigelow

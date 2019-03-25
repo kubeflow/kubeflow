@@ -19,6 +19,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV NB_USER jovyan
 ENV NB_UID 1000
 ENV HOME /home/$NB_USER
+ENV NB_PREFIX /
 # We prefer to have a global conda install
 # to minimize the amount of content in $HOME
 ENV CONDA_DIR=/opt/conda
@@ -56,7 +57,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
   zip \
   && apt-get clean && \
   rm -rf /var/lib/apt/lists/*
-  
+
 ENV DOCKER_CREDENTIAL_GCR_VERSION=1.4.3
 RUN curl -LO https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v${DOCKER_CREDENTIAL_GCR_VERSION}/docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
     tar -zxvf docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
@@ -86,17 +87,20 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
 
 # Install Tini - used as entrypoint for container
 RUN cd /tmp && \
-    wget --quiet https://github.com/krallin/tini/releases/download/v0.10.0/tini && \
-    echo "1361527f39190a7338a0b434bd8c88ff7233ce7b9a4876f3315c22fce7eca1b0 *tini" | sha256sum -c - && \
+    wget --quiet https://github.com/krallin/tini/releases/download/v0.18.0/tini && \
+    echo "12d20136605531b09a2c2dac02ccee85e1b874eb322ef6baf7561cd93f93c855 *tini" | sha256sum -c - && \
     mv tini /usr/local/bin/tini && \
     chmod +x /usr/local/bin/tini
 
 # Install conda as jovyan user and check the md5 sum provided on the download site
-ENV MINICONDA_VERSION 4.4.10
+# After Miniconda v4.5.4 the default Python version is no longer 3.6, but TensorFlow
+# still doesn't support Python 3.7. If we still like to upgrade Miniconda we need
+# to add the line "conda install python==3.6" to RUN command below
+ENV MINICONDA_VERSION 4.5.4
 RUN cd /tmp && \
     mkdir -p $CONDA_DIR && \
     wget --quiet https://repo.continuum.io/miniconda/Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && \
-    echo "bec6203dbb2f53011e974e9bf4d46e93 *Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c - && \
+    echo "a946ea1d0c4a642ddf0c3a26a18bb16d *Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c - && \
     /bin/bash Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p ${CONDA_DIR} && \
     rm Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && \
     conda config --system --prepend channels conda-forge && \
@@ -111,7 +115,7 @@ RUN cd /tmp && \
 # The image size can grow significantly.
 
 # Install base python3 packages
-RUN pip install --upgrade pip && \
+RUN pip install --upgrade pip==19.0.1 && \
     pip --no-cache-dir install \
     # Tensorflow
     ${TF_PACKAGE} \
@@ -121,7 +125,7 @@ RUN pip install --upgrade pip && \
     jupyterhub \
     jupyterlab \
     xgboost \
-    git+https://github.com/kubeflow/fairing@f82e75e78874f16ceaee756445100bb7fef96b58 \
+    git+https://github.com/kubeflow/fairing@7f7a66687ceab3ed2838ad29e3ff4b04afe351ab \
     # Kubeflow pipeline SDK
     ${PIPELINE_SDK_PACKAGE} \
     # Cleanup
@@ -144,7 +148,7 @@ WORKDIR $HOME
 RUN rm -fr $(ls -A $HOME)
 
 # Copy over init scripts
-COPY --chown=jovyan:users start-singleuser.sh start-notebook.sh start.sh pvc-check.sh /usr/local/bin/
+COPY --chown=jovyan:users  pvc-check.sh /usr/local/bin/
 RUN chmod a+rx /usr/local/bin/*
 
 RUN docker-credential-gcr configure-docker && chown jovyan:users $HOME/.docker/config.json
@@ -152,4 +156,5 @@ RUN docker-credential-gcr configure-docker && chown jovyan:users $HOME/.docker/c
 # Configure container startup
 EXPOSE 8888
 ENTRYPOINT ["tini", "--"]
-CMD ["start-notebook.sh"]
+CMD ["sh","-c", "jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"]
+

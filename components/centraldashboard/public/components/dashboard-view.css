@@ -1,0 +1,84 @@
+:host {
+    @apply --layout-vertical;
+    padding: 1em;
+    overflow: auto;
+    grid-gap: 1em;
+    display: grid;
+    min-height: 0;
+    min-width: 0;
+    --accent-color: #007dfc;
+    --primary-background-color: #003c75;
+    --sidebar-default-color: #ffffff4f;
+    --border-color: #f4f4f6;
+    --primary-background-color: white;
+}
+
+.link {
+    background: #f1f3f4;
+}
+
+paper-card {
+    border-radius: 5px;
+    grid-column: 1 / span 2;
+    max-width: 100%;
+    overflow: hidden;
+    min-width: 0;
+    --paper-card-header: {
+        font-family: "Google Sans"
+    }
+}
+
+paper-card.thin {
+    grid-column: 3;
+    min-width: 19em;
+}
+
+#Getting-Started paper-icon-item:not(:last-of-type) {
+    border-bottom: 1px solid var(--border-color);
+}
+
+#Getting-Started paper-icon-item iron-icon {
+    color: var(--accent-color)
+}
+
+#Getting-Started [secondary] {
+    word-break: break-word;
+    width: 100%;
+    white-space: normal;
+    font-size: .8em;
+}
+
+#Quick-Links {
+    grid-column: 3
+}
+
+#Quick-Links .link {
+    width: 80%;
+    margin: .5em auto;
+    border: 1px solid #eeeeef;
+    padding: .5em 1em;
+    border-radius: 5px;
+    @apply --layout-horizontal;
+}
+
+#Quick-Links .link.more-coming {
+    opacity: .4;
+    font-style: italic;
+    pointer-events: none
+}
+
+#Quick-Links .link .button {
+    color: var(--accent-color);
+    background: rgba(0, 125, 252, 0.25);
+    border-radius: 50%
+}
+
+a {
+    text-decoration: none;
+    color: initial;
+}
+
+.header:hover {
+    color: var(--paper-blue-700);
+    text-decoration: underline;
+}

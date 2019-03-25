@@ -1,0 +1,2 @@
+resources:
+- kubeflow_v1alpha1_profile.yaml

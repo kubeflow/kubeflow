@@ -1,3 +1,20 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Developer guide for bootstrap](#developer-guide-for-bootstrap)
+  - [Building bootstrapper locally](#building-bootstrapper-locally)
+    - [Prerequisites](#prerequisites)
+    - [Makefile targets](#makefile-targets)
+      - [`make build-local`](#make-build-local)
+      - [`make build`](#make-build)
+      - [`make push`](#make-push)
+      - [`make push-latest`](#make-push-latest)
+      - [`make static, make plugins`](#make-static-make-plugins)
+  - [How to run bootstrapper with Click-to-deploy app locally](#how-to-run-bootstrapper-with-click-to-deploy-app-locally)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Developer guide for bootstrap
 
 ## Building bootstrapper locally
@@ -13,69 +30,71 @@ ln -sf ${GIT_KUBEFLOW} ${GOPATH}/src/github.com/kubeflow/kubeflow
 
 ### Prerequisites
 
-golang to 1.11.2
+golang to 1.11.5
 
 ```sh
 $ ☞  go version
-go version go1.11.2 darwin/amd64
+go version go1.11.5 darwin/amd64
 ```
 
-On mac osx you can run 
+On mac osx you can run
 
 ```sh
 brew upgrade golang
 ```
 
-golang-1.11.2 uses go.mod, go.sum files which include dependencies.
-To install a new dependency use `go get <dependency>`. 
-golang-1.11.2 no longer creates a vendor directory.
+golang-1.11.5 uses go.mod, go.sum files which include dependencies.
+To install a new dependency use `go get <dependency>`.
+golang-1.11.5 no longer creates a vendor directory.
 You should add the environment variable `GO111MODULE=on` to your shell init file
 
 ### Makefile targets
 
 ```
-build             debug             push              
-build-local       debug-latest      push-latest       
-cleanup           
+build             debug             push
+build-local       debug-latest      push-latest
+cleanup
 ```
 
 #### `make build-local`
 Creates bin/bootstrapper with full debug information
 
-#### `make build` 
+#### `make build`
 Depends on `make build-local`. Creates a docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
 
-#### `make push` 
+#### `make push`
 Depends on `make build`. Pushes the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
 
-#### `make push-latest` 
+#### `make push-latest`
 Depends on `make push`. Tags the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG) with latest.
-Note: To use a different gcloud project than kubeflow-images-public. 
+Note: To use a different gcloud project than kubeflow-images-public.
 ```sh
-export GCLOUD_PROJECT=mygcloudproject 
+export GCLOUD_PROJECT=mygcloudproject
 make push
 ```
 
-#### `make debug` 
-Depends on `make push` and `make cleanup`
-1. deploys a Namespace, PersistentVolumeClaim and StatefulSet using $(IMG), $(TAG), $(PORT)
-2. waits for pod kubeflow-bootstrapper-0 to be in phase 'Running'
-3. runs "kubectl port-forward ..." in the background, opening port 2345 to the pod's container
-4. wait - cleanup (kill port-forward command) on Ctrl-C
-5. when the script exits (Ctrl-C) it will kill "kubectl port-forward ..." 
-6. in order to clean up all resources deployed in step 1 run `make cleanup`
+#### `make static, make plugins`
+These targets are for kfctl and allows the goland debugger work by disabling plugins.
+This is a problem in the go compiler which should be fixed in 1.12.
+See the [kfctl/README.md](./cmd/kfctl) for additional information.
 
-The StatefulSet will create a pod and start the following process in the pod's kubeflow-bootstrapper-0 container
-```sh
-/opt/kubeflow/dlv.sh
+## How to run bootstrapper with Click-to-deploy app locally
+
+Start the backend:
+
 ```
-This script runs
+IMAGE=gcr.io/kubeflow-images-public/bootstrapper:latest  # change this
 
-```sh
-dlv --listen=:2345 --headless=true --api-version=2 exec /opt/kubeflow/bootstrapper -- --in-cluster --namespace=kubeflow
+docker run -d -it --name bootstrapper \
+    --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow -p 8080:8080 \
+    ${IMAGE} /opt/kubeflow/bootstrapper \
+    --install-istio --namespace=kubeflow  # change args if you want
 ```
 
-[dlv](https://github.com/derekparker/delve) is a golang debugger that works with JetBrain's [Goland](https://www.jetbrains.com/go/)
+Start the frontend:
 
-In order to connect to the remote bootstrapper process, in goland add a "Go Remote" debug configuration like below
-![bootstrapper](./bootstrapper.png)
+```
+cd ../components/gcp-click-to-deploy
+npm start
+```
+

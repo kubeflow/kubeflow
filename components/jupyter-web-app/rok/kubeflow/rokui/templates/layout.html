@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Material Design Lite -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.blue-pink.min.css">
+  <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+  <!-- UI Specific -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
+  <link rel="shortcut icon" href="{{ prefix + url_for('static', filename='kubeflow.png') }}">
+  <link rel="stylesheet" href="{{ prefix + url_for('static', filename='css/main.css') }}">
+
+
+  {% if title %}
+      <title>Kubeflow Jupyter - {{ title }}</title>
+  {% else %}
+      <title>Kubeflow Jupyter</title>
+  {% endif %}
+
+  {% block javascript %}
+    <script type="text/javascript">
+      var prefix = "{{ prefix }}";
+    </script>
+  {% endblock %}
+</head>
+<body>
+  <!-- The headbar -->
+  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+    <header class="mdl-layout__header mdl-layout__header--scroll mdl-shadow--4dp">
+      <div class="mdl-layout__header-row">
+        <!-- Title -->
+        <a href="{{ prefix + '/'}}" style="text-decoration:none">
+          <span class="mdl-layout-title white" >Notebooks</span>
+        </a>
+        <!-- Add spacer, to align navigation to the right -->
+        <div class="mdl-layout-spacer"></div>
+      </div>
+    </header>
+
+    <main class="mdl-layout__content">
+      <div class="mdl-grid center-items">
+        <div class="mdl-cell mdl-cell--8-col">
+          <div id="error-msgs" class="wide"></div>
+        </div>
+      </div>
+      <div class="page-content">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+</body>
+</html>

@@ -13,13 +13,13 @@
       spec: {
         group: "kubeflow.org",
         version: "v1alpha1",
-        scope: "Namespaced",
+        scope: "Cluster",
         names: {
           plural: "profiles",
           singular: "profile",
           kind: "Profile",
           shortNames: [
-            "prj",
+            "prf",
           ],
         },
         validation: {
@@ -37,136 +37,8 @@
               spec: {
                 type: "object",
                 properties: {
-                  selector: {
-                    type: "object",
-                  },
-                  template: {
-                    type: "object",
-                    properties: {
-                      metadata: {
-                        type: "object",
-                        properties: {
-                          namespace: {
-                            type: "string",
-                          },
-                          quota: {
-                            type: "object",
-                            properties: {
-                              name: {
-                                type: "string",
-                              },
-                              requests: {
-                                type: "object",
-                                properties: {
-                                  cpu: {
-                                    type: "string",
-                                  },
-                                  memory: {
-                                    type: "string",
-                                  },
-                                  gpu: {
-                                    type: "string",
-                                  },
-                                },
-                              },
-                              limits: {
-                                type: "object",
-                                properties: {
-                                  cpu: {
-                                    type: "string",
-                                  },
-                                  memory: {
-                                    type: "string",
-                                  },
-                                  gpu: {
-                                    type: "string",
-                                  },
-                                },
-                              },
-                            },
-                          },
-                        },
-                      },
-                      spec: {
-                        type: "object",
-                        properties: {
-                          owner: {
-                            type: "object",
-                            required: [
-                              "kind",
-                              "name",
-                            ],
-                            properties: {
-                              apiGroup: {
-                                type: "string",
-                              },
-                              kind: {
-                                enum: [
-                                  "ServiceAccount",
-                                  "User",
-                                ],
-                              },
-                              namespace: {
-                                type: "string",
-                              },
-                              name: {
-                                type: "string",
-                              },
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              status: {
-                properties: {
-                  observedGeneration: {
-                    type: "int64",
-                  },
-                },
-                type: "object",
-              },
-            },
-          },
-        },
-      },
-    },
-    profilesCRD:: profilesCRD,
-
-    local permissionsCRD = {
-      apiVersion: "apiextensions.k8s.io/v1beta1",
-      kind: "CustomResourceDefinition",
-      metadata: {
-        name: "permissions.kubeflow.org",
-      },
-      spec: {
-        group: "kubeflow.org",
-        version: "v1alpha1",
-        scope: "Namespaced",
-        names: {
-          plural: "permissions",
-          singular: "permission",
-          kind: "Permission",
-        },
-        validation: {
-          openAPIV3Schema: {
-            properties: {
-              apiVersion: {
-                type: "string",
-              },
-              kind: {
-                type: "string",
-              },
-              metadata: {
-                type: "object",
-              },
-              spec: {
-                type: "object",
-                properties: {
-                  selector: {
-                    type: "object",
+                  namespace: {
+                    type: "string",
                   },
                   owner: {
                     type: "object",
@@ -197,7 +69,8 @@
               status: {
                 properties: {
                   observedGeneration: {
-                    type: "int64",
+                    type: "integer",
+                    format: "int64",
                   },
                 },
                 type: "object",
@@ -207,7 +80,7 @@
         },
       },
     },
-    permissionsCRD:: permissionsCRD,
+    profilesCRD:: profilesCRD,
 
     local profilesService = {
       apiVersion: "v1",
@@ -222,8 +95,7 @@
         },
         ports: [
           {
-            port: 80,
-            targetPort: 8080,
+            port: 443,
           },
         ],
       },
@@ -234,19 +106,31 @@
       apiVersion: "rbac.authorization.k8s.io/v1",
       kind: "Role",
       metadata: {
-        name: "view",
+        name: "profiles",
         namespace: params.namespace,
       },
       rules: [
         {
           apiGroups: [
-            "kubeflow.org",
+            "",
           ],
           resources: [
-            "profiles",
+            "namespaces",
           ],
           verbs: [
-            "create",
+            "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "rbac.authorization.k8s.io",
+          ],
+          resources: [
+            "roles",
+            "rolebindings",
+          ],
+          verbs: [
+            "*",
           ],
         },
         {
@@ -257,26 +141,47 @@
             "profiles",
           ],
           verbs: [
-            "get",
+            "*",
           ],
         },
       ],
     },
     profilesRole:: profilesRole,
 
-    local profilesConfigMap = {
+    local serviceAccount = {
       apiVersion: "v1",
-      kind: "ConfigMap",
+      kind: "ServiceAccount",
+      metadata: {
+        labels: {
+          app: "profiles",
+        },
+        name: "profiles",
+        namespace: params.namespace,
+      },
+    },
+    serviceAccount:: serviceAccount,
+
+    local roleBinding = {
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "RoleBinding",
       metadata: {
         name: "profiles",
         namespace: params.namespace,
       },
-      data: {
-        "sync-profile.jsonnet": importstr "sync-profile.jsonnet",
-        "sync-permission.jsonnet": importstr "sync-permission.jsonnet",
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "Role",
+        name: "profiles",
       },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "profiles",
+          namespace: params.namespace,
+        },
+      ],
     },
-    profilesConfigMap:: profilesConfigMap,
+    roleBinding:: roleBinding,
 
     local profilesDeployment = {
       apiVersion: "apps/v1",
@@ -298,27 +203,15 @@
             },
           },
           spec: {
+            serviceAccountName: "profiles",
             containers: [
               {
-                name: "hooks",
-                //freeze latest
+                name: "manager",
                 image: params.image,
                 imagePullPolicy: "Always",
-                workingDir: "/opt/profiles/hooks",
-                volumeMounts: [
-                  {
-                    name: "hooks",
-                    mountPath: "/opt/profiles/hooks",
-                  },
+                command: [
+                  "/manager",
                 ],
-              },
-            ],
-            volumes: [
-              {
-                name: "hooks",
-                configMap: {
-                  name: "profiles",
-                },
               },
             ],
           },
@@ -327,87 +220,36 @@
     },
     profilesDeployment:: profilesDeployment,
 
-    local profilesController = {
-      apiVersion: "metacontroller.k8s.io/v1alpha1",
-      kind: "CompositeController",
+    local profileClusterRoleBinding = {
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "ClusterRoleBinding",
       metadata: {
-        name: "profiles-controller",
+        name: "profile-controller-cluster-role-binding",
       },
-      spec: {
-        generateSelector: true,
-        parentResource: {
-          apiVersion: "kubeflow.org/v1alpha1",
-          resource: "profiles",
-        },
-        childResources: [
-          {
-            apiVersion: "v1",
-            resource: "namespaces",
-          },
-          {
-            apiVersion: "v1",
-            resource: "resourcequotas",
-          },
-          {
-            apiVersion: "kubeflow.org/v1alpha1",
-            resource: "permissions",
-          },
-        ],
-        hooks: {
-          sync: {
-            webhook: {
-              url: "http://profiles." + params.namespace + "/sync-profile",
-            },
-          },
-        },
+      roleRef: {
+        kind: "ClusterRole",
+        name: "cluster-admin",
+        apiGroup: "rbac.authorization.k8s.io",
       },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "profiles",
+          namespace: params.namespace,
+        },
+      ],
     },
-    profilesController:: profilesController,
-
-    local permissionsController = {
-      apiVersion: "metacontroller.k8s.io/v1alpha1",
-      kind: "CompositeController",
-      metadata: {
-        name: "permissions-controller",
-        annotations: params,
-      },
-      spec: {
-        generateSelector: true,
-        parentResource: {
-          apiVersion: "kubeflow.org/v1alpha1",
-          resource: "permissions",
-        },
-        childResources: [
-          {
-            apiVersion: "rbac.authorization.k8s.io/v1",
-            resource: "roles",
-          },
-          {
-            apiVersion: "rbac.authorization.k8s.io/v1",
-            resource: "rolebindings",
-          },
-        ],
-        hooks: {
-          sync: {
-            webhook: {
-              url: "http://profiles." + params.namespace + "/sync-permission",
-            },
-          },
-        },
-      },
-    },
-    permissionsController:: permissionsController,
+    profileClusterRoleBinding:: profileClusterRoleBinding,
 
     parts:: self,
     local all = [
       self.profilesCRD,
-      self.permissionsCRD,
       self.profilesService,
       self.profilesRole,
-      self.profilesConfigMap,
       self.profilesDeployment,
-      self.profilesController,
-      self.permissionsController,
+      self.serviceAccount,
+      self.roleBinding,
+      self.profileClusterRoleBinding,
     ],
     all:: all,
 

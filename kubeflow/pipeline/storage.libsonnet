@@ -3,7 +3,7 @@
   // the user preferences. The logic is as following (for both mysql and nfs)
   // If user provide a GCE PD name, create a new PV and PVC using the PD
   // Else if user provide a precreated PV, create a new PVC using the PV
-  // Otherwise, use default storage specified by default StorageClass. 
+  // Otherwise, use default storage specified by default StorageClass.
   // Data might not persist in this case when cluster is deleted.
   all(namespace, mysqlPvName=null, minioPvName=null, nfsPvName=null, mysqlPd=null, minioPd=null, nfsPd=null):: [
     $.parts(namespace).mysqlPvc(mysqlPd,mysqlPvName),
@@ -63,7 +63,7 @@
               storage: "20Gi",
             },
           },
-        } + 
+        } +
         // if GCE PD or PV is provided, use mysql-pv volume
         // Otherwise create PVC through default StorageClass
         if (mysqlPvName != null) || (mysqlPd != null)  then {
