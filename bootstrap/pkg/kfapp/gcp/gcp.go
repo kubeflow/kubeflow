@@ -401,11 +401,12 @@ func (gcp *Gcp) AddNamedContext() error {
 		}
 	}
 	contexts := e.([]interface{})
-	var context map[string]interface{}
+	context := make(map[string]interface{})
 	context["name"] = gcp.Name
 	context["context"] = map[string]string{
-		"cluster": name,
-		"user":    name,
+		"cluster":   name,
+		"user":      name,
+		"namespace": gcp.Namespace,
 	}
 	for idx, ctx := range contexts {
 		c := ctx.(map[string]interface{})
@@ -416,6 +417,14 @@ func (gcp *Gcp) AddNamedContext() error {
 	}
 	contexts = append(contexts, context)
 	config["contexts"] = contexts
+	config["current-context"] = gcp.Name
+	contexts = config["contexts"].([]interface{})
+	for _, ctx := range contexts {
+		c := ctx.(map[string]interface{})
+		if c["name"] == gcp.Name {
+			log.Infof("After replacement: %v", c)
+		}
+	}
 
 	buf, err = yaml.Marshal(config)
 	if err != nil {
@@ -430,6 +439,8 @@ func (gcp *Gcp) AddNamedContext() error {
 			Message: fmt.Sprintf("Error when writing KUBECONFIG: %v", err),
 		}
 	}
+
+	log.Infof("KUBECONFIG context %v is created and currently using", gcp.Name)
 	return nil
 }
 
