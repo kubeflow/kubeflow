@@ -418,13 +418,6 @@ func (gcp *Gcp) AddNamedContext() error {
 	contexts = append(contexts, context)
 	config["contexts"] = contexts
 	config["current-context"] = gcp.Name
-	contexts = config["contexts"].([]interface{})
-	for _, ctx := range contexts {
-		c := ctx.(map[string]interface{})
-		if c["name"] == gcp.Name {
-			log.Infof("After replacement: %v", c)
-		}
-	}
 
 	buf, err = yaml.Marshal(config)
 	if err != nil {
@@ -536,7 +529,9 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	if err := cred_cmd.Run(); err != nil {
 		return fmt.Errorf("Error when running gcloud container clusters get-credentials: %v", err)
 	}
-	gcp.AddNamedContext()
+	if _, err = os.Stat(kftypes.KubeConfigPath()); !os.IsNotExist(err) {
+		gcp.AddNamedContext()
+	}
 
 	return nil
 }
