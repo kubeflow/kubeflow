@@ -24,6 +24,7 @@ import (
 	"github.com/ghodss/yaml"
 	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
@@ -580,6 +581,81 @@ func (gcp *Gcp) replaceText(regex string, repl string, src []byte) []byte {
 	re := regexp.MustCompile(regex)
 	buf := re.ReplaceAll(src, []byte(repl))
 	return buf
+}
+
+// Write IAM binding rules based on GCP app config.
+func (gcp *Gcp) writeIamBindingsFile(src string, dest string) error {
+	buf, err := ioutil.ReadFile(src)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Error when reading IAM bindings template: %v", err),
+		}
+	}
+
+	var data map[string]interface{}
+	if err = yaml.Unmarshal(buf, &data); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Error when unmarshaling IAM bindings template: %v", err),
+		}
+	}
+
+	e, ok := data["bindings"]
+	if !ok {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: "Invalid IAM bindings format: not able to find `bindings` entry.",
+		}
+	}
+
+	iapAcct := "serviceAccount:" + gcp.Spec.Email
+	if !strings.Contains(gcp.Spec.Email, "iam.gserviceaccount.com") {
+		iapAcct = "user:" + gcp.Spec.Email
+	}
+	roles := map[string]string{
+		"set-kubeflow-admin-service-account": "serviceAccount:" + getSA(gcp.Name, "admin", gcp.Spec.Project),
+		"set-kubeflow-user-service-account":  "serviceAccount:" + getSA(gcp.Name, "user", gcp.Spec.Project),
+		"set-kubeflow-vm-service-account":    "serviceAccount:" + getSA(gcp.Name, "vm", gcp.Spec.Project),
+		"set-kubeflow-iap-account":           iapAcct,
+	}
+
+	bindings := e.([]interface{})
+	for idx, b := range bindings {
+		binding := b.(map[string]interface{})
+		if mem, ok := binding["members"]; ok {
+			members := mem.([]string)
+			var newMembers []string
+			for _, m := range members {
+				if acct, ok := roles[m]; ok {
+					newMembers = append(newMembers, acct)
+				} else {
+					newMembers = append(newMembers, m)
+				}
+			}
+			bindings[idx] = binding
+		} else {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: "Invalid IAM bindings format: not able to find `members` entry.",
+			}
+		}
+	}
+	data["bindings"] = bindings
+
+	if buf, err = yaml.Marshal(data); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Error when marshaling IAM bindings: %v", err),
+		}
+	}
+	if err = ioutil.WriteFile(dest, buf, 0644); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Error when writing IAM bindings: %v", err),
+		}
+	}
+	return nil
 }
 
 // TODO(#2515): Switch from string replacement to YAML config.
