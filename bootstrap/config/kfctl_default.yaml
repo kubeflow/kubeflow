@@ -39,9 +39,6 @@ componentParams:
   application:
     - name: components
       value: <list-of-components>
-  jupyter:
-    - name: platform
-      value: none
   ambassador:
     - name: ambassadorServiceType
       value: NodePort
