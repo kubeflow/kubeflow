@@ -31,10 +31,7 @@ describe('Activity View', () => {
 
         // Prevents the activitiesList component from trying to render
         spyOn(activityView.shadowRoot.querySelector('activities-list'),
-            '_activitiesChanged').and.callFake(() => {
-            // eslint-disable-next-line no-console
-            console.log('fake call');
-        });
+            '_activitiesChanged');
     });
 
     afterEach(() => {
@@ -71,5 +68,21 @@ describe('Activity View', () => {
         const message = activityView.shadowRoot.querySelector('.message');
         expect(message.hasAttribute('hidden')).toBe(false);
         expect(message.innerText).toBe('No activities for namespace default');
+    });
+
+    it('Shows error message when activites request fails', async () => {
+        const activities = [];
+        const responsePromise = mockRequest(activityView, {
+            status: 500,
+        }, true);
+        activityView.namespace = 'default';
+        flush();
+        await responsePromise;
+
+        expect(activityView.activities).toEqual(activities);
+        const message = activityView.shadowRoot.querySelector('.message');
+        expect(message.hasAttribute('hidden')).toBe(false);
+        expect(message.innerText)
+            .toBe('Error retrieving activities for namespace default');
     });
 });
