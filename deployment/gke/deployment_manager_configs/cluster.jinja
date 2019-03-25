@@ -60,6 +60,8 @@ resources:
     cluster:
       name: {{ CLUSTER_NAME }}
       initialClusterVersion: "{{ properties['cluster-version'] }}"
+      resourceLabels:
+        application: 'kubeflow'
       {% if properties['gkeApiVersion'] == 'v1beta1' %}
       # We need 1.10.2 to support Stackdriver GKE.
       loggingService: logging.googleapis.com/kubernetes
@@ -101,7 +103,7 @@ resources:
           {% endfor %}
       {% endif %}
       nodePools:
-      - name: default-pool
+      - name: {{ CPU_POOL }}
         initialNodeCount: {{ properties['cpu-pool-initialNodeCount'] }}
         autoscaling:
           enabled: {{ properties['cpu-pool-enable-autoscaling'] }}
@@ -114,7 +116,7 @@ resources:
           workloadMetadataConfig:
             nodeMetadata: SECURE
           {% endif %}
-          machineType: n1-standard-8
+          machineType: {{ properties['cpu-pool-machine-type'] }}
           serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
           oauthScopes: {{ VM_OAUTH_SCOPES }}
           # Set min cpu platform to ensure AVX2 is supported.
@@ -153,13 +155,13 @@ resources:
         workloadMetadataConfig:
           nodeMetadata: SECURE
         {% endif %}
-        machineType: n1-standard-8
+        machineType: {{ properties['gpu-pool-machine-type'] }}
         serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
         oauthScopes: {{ VM_OAUTH_SCOPES }}
         # Set min cpu platform to ensure AVX2 is supported.
         minCpuPlatform: 'Intel Broadwell'
         accelerators:
-          - acceleratorCount: 1
+          - acceleratorCount: {{ properties['gpu-number-per-node'] }}
             acceleratorType: {{ properties['gpu-type'] }}
 
   metadata:

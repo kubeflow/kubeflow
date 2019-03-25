@@ -176,6 +176,19 @@ local k = import "k.libsonnet";
         },
         {
           apiGroups: [
+            "policy",
+          ],
+          resources: [
+            "poddisruptionbudgets",
+          ],
+          verbs: [
+            "create",
+            "list",
+            "watch",
+          ],
+        },
+        {
+          apiGroups: [
             "apiextensions.k8s.io",
           ],
           resources: [
@@ -260,6 +273,7 @@ local k = import "k.libsonnet";
                 name: "mpi-operator",
                 image: image,
                 args: [
+                  "-alsologtostderr",
                   "--gpus-per-node",
                   std.toString(gpusPerNode),
                   "--kubectl-delivery-image",

@@ -60,7 +60,9 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 				"want to use to login and variable %s to the password you want to use.",
 				kftypes.KUBEFLOW_USERNAME, kftypes.KUBEFLOW_PASSWORD)
 		}
+
 		useIstio := initCfg.GetBool(string(kftypes.USE_ISTIO))
+		disableUsageReport := initCfg.GetBool(string(kftypes.DISABLE_USAGE_REPORT))
 
 		options := map[string]interface{}{
 			string(kftypes.PLATFORM):              platform,
@@ -72,6 +74,7 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 			string(kftypes.SKIP_INIT_GCP_PROJECT): init_gcp,
 			string(kftypes.USE_BASIC_AUTH):        useBasicAuth,
 			string(kftypes.USE_ISTIO):             useIstio,
+			string(kftypes.DISABLE_USAGE_REPORT):  disableUsageReport,
 		}
 		kfApp, kfAppErr := coordinator.NewKfApp(options)
 		if kfAppErr != nil || kfApp == nil {
@@ -167,6 +170,16 @@ func init() {
 	bindErr = initCfg.BindPFlag(string(kftypes.USE_ISTIO), initCmd.Flags().Lookup(string(kftypes.USE_ISTIO)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.USE_ISTIO), bindErr)
+		return
+	}
+
+	// Skip usage report
+	initCmd.Flags().Bool(string(kftypes.DISABLE_USAGE_REPORT), false,
+		string(kftypes.DISABLE_USAGE_REPORT)+" disable anonymous usage reporting.")
+	bindErr = initCfg.BindPFlag(string(kftypes.DISABLE_USAGE_REPORT),
+		initCmd.Flags().Lookup(string(kftypes.DISABLE_USAGE_REPORT)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.DISABLE_USAGE_REPORT), bindErr)
 		return
 	}
 }

@@ -31,7 +31,6 @@ components:
   - cert-manager
   - cloud-endpoints
   - gpu-driver
-  - jupyter
   - jupyter-web-app
   - katib
   - metacontroller
@@ -39,6 +38,7 @@ components:
   - pipeline
   - profiles
   - pytorch-operator
+  - spartakus
   - tensorboard
   - tf-job-operator
 componentParams:
@@ -63,9 +63,6 @@ componentParams:
   cloud-endpoints:
     - name: secretName
       value: admin-gcp-sa
-  jupyter:
-    - name: platform
-      value: gke
   ambassador:
     - name: ambassadorServiceType
       value: NodePort
@@ -74,4 +71,11 @@ componentParams:
       value: <deployName>-storage-metadata-store
     - name: minioPd
       value: <deployName>-storage-artifact-store
+  spartakus:
+    - name: usageId
+      value: <randomly-generated-id>
+      initRequired: true
+    - name: reportUsage
+      value: "true"
+      initRequired: true
 platform: gcp
