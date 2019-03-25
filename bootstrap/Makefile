@@ -60,7 +60,7 @@ generate:
 	@$(GO) generate ./config/... ./pkg/apis/apps/kfdef/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
 
 /tmp/v2:
-	@[ ! -d /tmp/v2 ] && unzip -q -d /tmp hack/v2.zip
+	@unzip -qud /tmp hack/v2.zip
 
 $(GOPATH)/bin/deepcopy-gen:
 	GO111MODULE=off $(GO) get k8s.io/code-generator/cmd/deepcopy-gen
