@@ -63,9 +63,6 @@ componentParams:
   cloud-endpoints:
     - name: secretName
       value: admin-gcp-sa
-  jupyter:
-    - name: platform
-      value: gke
   ambassador:
     - name: ambassadorServiceType
       value: NodePort
