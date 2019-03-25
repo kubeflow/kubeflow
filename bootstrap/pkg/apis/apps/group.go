@@ -84,6 +84,7 @@ const (
 	OAUTH_ID              CliOption = "oauth_id"
 	OAUTH_SECRET          CliOption = "oauth_secret"
 	DELETE_STORAGE        CliOption = "delete_storage"
+	DISABLE_USAGE_REPORT  CliOption = "disable_usage_report"
 )
 
 //

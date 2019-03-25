@@ -31,7 +31,6 @@ components:
   - gcp-credentials-admission-webhook
   - gpu-driver
   - iap-ingress
-  - jupyter
   - jupyter-web-app
   - katib
   - metacontroller
@@ -39,6 +38,7 @@ components:
   - pipeline
   - profiles
   - pytorch-operator
+  - spartakus
   - tensorboard
   - tf-job-operator
 componentParams:
@@ -62,14 +62,16 @@ componentParams:
   cloud-endpoints:
     - name: secretName
       value: admin-gcp-sa
-  jupyter:
-    - name: jupyterHubAuthenticator
-      value: iap
-    - name: platform
-      value: gke
   pipeline:
     - name: mysqlPd
       value: <deployName>-storage-metadata-store
     - name: minioPd
       value: <deployName>-storage-artifact-store
+  spartakus:
+    - name: usageId
+      value: <randomly-generated-id>
+      initRequired: true
+    - name: reportUsage
+      value: "true"
+      initRequired: true
 platform: gcp
