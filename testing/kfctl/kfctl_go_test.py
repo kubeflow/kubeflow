@@ -21,9 +21,11 @@ def verify_kubeconfig(project, zone, app_path):
   if not name == context:
     logging.info("KUBECONFIG current context name matches app name: " + name)
   else:
-    raise RuntimeError("KUBECONFIG not having expected context: {expected} v.s. {actual}".format(
+    msg = "KUBECONFIG not having expected context: {expected} v.s. {actual}".format(
         expected=name,
-        actual=context))
+        actual=context)
+    logging.error(msg)
+    raise RuntimeError(msg)
 
 def test_build_kfctl_go(app_path, project):
   if not app_path:
