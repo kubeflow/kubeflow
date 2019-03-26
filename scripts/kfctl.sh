@@ -113,11 +113,21 @@ createEnv() {
       INPUT+=('CLUSTER_NAME=$CLUSTER_NAME\n'
               'NODEGROUP_ROLE_NAMES=$NODEGROUP_ROLE_NAMES\n'
               'KUBEFLOW_INFRA_DIR=$KUBEFLOW_INFRA_DIR\n'
-              'KUBEFLOW_K8S_MANIFESTS_DIR=$KUBEFLOW_K8S_MANIFESTS_DIR\n')
+              'KUBEFLOW_K8S_MANIFESTS_DIR=$KUBEFLOW_K8S_MANIFESTS_DIR\n'
+              'AWS_SSH_PUBLIC_KEY=$AWS_SSH_PUBLIC_KEY\n'
+              'AWS_REGION=$AWS_REGION\n'
+              'AWS_AVAILABILITY_ZONES=$AWS_AVAILABILITY_ZONES\n'
+              'AWS_NUM_NODES=$AWS_NUM_NODES\n'
+              'AWS_INSTANCE_TYPE=$AWS_INSTANCE_TYPE\n')
       FORMAT+=('$CLUSTER_NAME'
                '$NODEGROUP_ROLE_NAMES'
                '$KUBEFLOW_INFRA_DIR'
-               '$KUBEFLOW_K8S_MANIFESTS_DIR')
+               '$KUBEFLOW_K8S_MANIFESTS_DIR'
+               '$AWS_SSH_PUBLIC_KEY'
+               '$AWS_AVAILABILITY_ZONES'
+               '$AWS_REGION'
+               '$AWS_NUM_NODES'
+               '$AWS_INSTANCE_TYPE')
       export CLUSTER_NAME=${CLUSTER_NAME:-""}
       export NODEGROUP_ROLE_NAMES=${NODEGROUP_ROLE_NAMES:-""}
       export KUBEFLOW_INFRA_DIR=${KUBEFLOW_INFRA_DIR:-"$(pwd)/aws_config"}
@@ -320,6 +330,26 @@ parseArgs() {
       --nodegroupRoleNames)
         shift
         NODEGROUP_ROLE_NAMES=$1
+        ;;
+      --awsSSHPublicKey)
+        shift
+        AWS_SSH_PUBLIC_KEY=$1
+        ;;
+      --awsRegion)
+        shift
+        AWS_REGION=$1
+        ;;
+      --awsAZs)
+        shift
+        AWS_AVAILABILITY_ZONES=$1
+        ;;
+      --awsNumNodes)
+        shift
+        AWS_NUM_NODES=$1
+        ;;
+      --awsInstanceType)
+        shift
+        AWS_INSTANCE_TYPE=$1
         ;;
     esac
     shift

@@ -174,19 +174,6 @@ aws_ks_apply() {
 }
 
 validate_aws_arg() {
-  if [[ -z "$AWS_ACCESS_KEY_ID" ]]; then
-    echo "AWS aws_access_key_id must be provided using --aws_access_key_id <AWS_ACCESS_KEY_ID>"
-    exit 1
-  fi
-  if [[ -z "$AWS_SECRET_ACCESS_KEY" ]]; then
-    echo "AWS aws_secret_access_key must be provided using --aws_secret_access_key <AWS_SECRET_ACCESS_KEY>"
-    exit 1
-  fi
-  if [[ -z "$AWS_REGION" ]]; then
-    echo "AWS region must be provided using --aws_region <AWS_REGION>"
-    exit 1
-  fi
-
   if [[ -z "$CLUSTER_NAME" ]]; then
     echo "eks cluster_name must be provided using --clusterName <CLUSTER_NAME>"
     exit 1
@@ -229,6 +216,8 @@ check_nodegroup_roles() {
 
 # don't enabled cluster create by default. Use flags to control it.
 create_eks_cluster() {
+  AWS_REGION=${AWS_REGION:-"us-west-2"}
+
   # Options for nodegroup provision used by ekstctl
   if [[ -z "$AWS_SSH_PUBLIC_KEY" ]]; then
       aws_ssh_public_key_option=""
@@ -236,10 +225,10 @@ create_eks_cluster() {
       aws_ssh_public_key_option="--ssh-access --ssh-public-key=${AWS_SSH_PUBLIC_KEY}"
   fi
 
-  if [[ -z "$AWS_NODE_ZONES" ]]; then
-      aws_node_zones_option=""
+  if [[ -z "$AWS_AVAILABILITY_ZONES" ]]; then
+      aws_az_option=""
   else
-      aws_node_zones_option="--node-zones=${AWS_NODE_ZONES}"
+      aws_az_option="--node-zones=${AWS_AVAILABILITY_ZONES}"
   fi
 
   if [[ -z "$AWS_NUM_NODES" ]]; then
@@ -248,13 +237,13 @@ create_eks_cluster() {
       aws_num_nodes_option="--nodes=${AWS_NUM_NODES}"
   fi
 
-  if [[ -z "$AWS_NODE_TYPE" ]]; then
-      aws_node_type_option=""
+  if [[ -z "$AWS_INSTANCE_TYPE" ]]; then
+      aws_instance_type_option=""
   else
-      aws_node_type_option="--node-type=${AWS_NODE_TYPE}"
+      aws_instance_type_option="--node-type=${AWS_INSTANCE_TYPE}"
   fi
 
-  OPTIONS="${aws_ssh_public_key_option} ${aws_node_zones_option} ${aws_num_nodes_option} ${aws_node_type_option}"
+  OPTIONS="${aws_ssh_public_key_option} ${aws_az_option} ${aws_num_nodes_option} ${aws_instance_type_option}"
 
   if ! eksctl create cluster --name "${CLUSTER_NAME}" --region "${AWS_REGION}" ${OPTIONS} ; then
       echo "aws eks create failed."
