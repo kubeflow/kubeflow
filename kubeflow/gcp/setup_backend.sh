@@ -37,7 +37,7 @@ echo "JWT_AUDIENCE=${JWT_AUDIENCE}" > /var/shared/healthz.env
 echo "NODE_PORT=${NODE_PORT}" >> /var/shared/healthz.env
 echo "BACKEND_ID=${BACKEND_ID}" >> /var/shared/healthz.env
 
-if [[ ${USE_ISTIO} ]]; then
+if [[ -z ${USE_ISTIO} ]]; then
   # TODO(https://github.com/kubeflow/kubeflow/issues/942): We should publish the modified envoy
   # config as a config map and use that in the envoy sidecars.
   kubectl get configmap -n ${NAMESPACE} envoy-config -o jsonpath='{.data.envoy-config\.json}' |

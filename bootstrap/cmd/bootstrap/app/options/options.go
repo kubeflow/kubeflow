@@ -27,6 +27,7 @@ type ServerOption struct {
 	KeepAlive            bool
 	InstallIstio         bool
 	Port                 int
+	AppName              string
 	AppDir               string
 	Config               string
 	Email                string

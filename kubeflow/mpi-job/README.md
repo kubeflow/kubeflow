@@ -29,7 +29,7 @@ to run allreduce-style distributed training.
 generate Kubernetes YAML for mpi-job, and then deploys it to your Kubernetes
 cluster.*
 
-First, install Kubeflow by following the 
+First, install Kubeflow by following the
 [Getting Started](https://www.kubeflow.org/docs/started/getting-started/)
 guide.
 

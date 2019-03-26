@@ -1,0 +1,118 @@
+# Configuration file for the default JupyterHub Spawner UI
+# Each key corresponds to a JupyterHub Spawner UI option
+# If a key is missing, the respective Spawner UI option will be left untouched
+#
+# Each Spawner UI option is configured by two keys: `value` and `readOnly`
+# - The `value` key contains the default value
+# - The `readOnly` key determines if the option will be available to users
+#
+# If the 'readOnly' key is present and set to 'true', the respective option
+# will be disabled for users and only set by the admin
+# If the 'readOnly' key is missing (defaults to 'false'), the respective option
+# will be available for users
+#
+# Please note that some values (e.g. {username}) may be templated
+# and expanded according to KubeSpawner's rules
+#
+# For more information regarding JupyterHub KubeSpawner and its configuration:
+# https://jupyterhub-kubespawner.readthedocs.io/en/latest/spawner.html
+
+spawnerFormDefaults:
+  image:
+    # The container Image for the user's Jupyter Notebook
+    # If readonly, this value must be a member of the list below
+    value: gcr.io/kubeflow-images-public/tensorflow-1.13.1-notebook-cpu:v0.5.0
+    # The list of available standard container Images
+    options:
+      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.11.0-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.11.0-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.13.1-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.13.1-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-2.0.0a-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-2.0.0a-notebook-gpu:v0.5.0
+    # By default, custom container Images are allowed
+    # Uncomment the following line to only enable standard container Images
+    readOnly: false
+  cpu:
+    # CPU for user's Notebook
+    value: '0.5'
+    # readOnly: true
+  memory:
+    # Memory for user's Notebook
+    value: 1.0Gi
+  workspaceVolume:
+    # Workspace Volume to be attached to user's Notebook
+    # Each Workspace Volume is declared with the following attributes:
+    # Type, Name, Size, MountPath and Access Mode
+    value:
+      type:
+        # The Type of the Workspace Volume
+        # Supported values: 'New', 'Existing'
+        value: New
+      name:
+        # The Name of the Workspace Volume
+        # Note that this is a templated value
+        # value: {username}-workspace
+        value: {username}-workspace
+      size:
+        # The Size of the Workspace Volume (in Gi)
+        value: '10'
+      mountPath:
+        # The Path that the Workspace Volume will be mounted
+        readOnly: true
+        value: /home/jovyan
+      accessModes:
+        # The Access Mode of the Workspace Volume
+        # Supported values: 'ReadWriteOnce', 'ReadWriteMany', 'ReadOnlyMany'
+        value: ReadWriteOnce
+  dataVolumes:
+    # List of additional Data Volumes to be attached to the user's Notebook
+    value: []
+    # Each Data Volume is declared with the following attributes:
+    # Type, Name, Size, MountPath and Access Mode
+    #
+    # For example, a list with 2 Data Volumes:
+    #value:
+    #  - value:
+    #      type:
+    #        value: New
+    #      name:
+    #        value: {username}-vol-1
+    #      size:
+    #        value: '10'
+    #      mountPath:
+    #        value: /home/jovyan/{username}-vol-1
+    #      accessModes:
+    #        value: ReadWriteOnce
+    #  - value:
+    #      type:
+    #        value: New
+    #      name:
+    #        value: {username}-vol-2
+    #      size:
+    #        value: '5'
+    #      mountPath:
+    #        value: /home/jovyan/{username}-vol-2
+    #      accessModes:
+    #        value: ReadWriteOnce
+    #
+    # Uncomment the following line to make the Data Volumes list readonly
+    #readOnly: true
+  extraResources:
+    # Extra Resource Limits for user's Notebook
+    # Note that braces are escaped
+    value: "{{}}"
