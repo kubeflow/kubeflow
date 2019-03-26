@@ -209,6 +209,14 @@
           </div>
 
           <!-- Error message when None Workspace Volume is selected -->
+          {% if not default_storage_class %}
+          <div id="error-msg-vol" class="wide" style="display: none">
+            <div class="alert alert-warning">
+              <strong>Warning!</strong> You cannot create new Volumes, use only
+              existing ones. Contact your cluster administrator for more details.
+            </div>
+          </div>
+          {% else %}
           <div id="error-msg-vol" class="wide" style="display: none">
             <div class="alert alert-warning">
               <strong>Warning!</strong> Your workspace will not be persistent.
@@ -216,6 +224,7 @@
               any reason.
             </div>
           </div>
+          {% endif %}
 
           <!-- Data Volumes -->
           <h5><i class="far fa-hdd"></i>Data Volumes</h5>
