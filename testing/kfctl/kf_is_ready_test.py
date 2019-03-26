@@ -11,7 +11,7 @@ import pytest
 from kubeflow.testing import util
 from testing import deploy_utils
 
-def test_kf_is_ready(namespace):
+def test_kf_is_ready(namespace, use_basic_auth):
   """Test that Kubeflow was successfully deployed.
 
   Args:
@@ -50,9 +50,24 @@ def test_kf_is_ready(namespace):
       "studyjob-controller",
       "workflow-controller",
   ]
+
+  stateful_sets = [
+    "backend-updater",
+  ]
+
+  if use_basic_auth:
+    deployment_names.extend(["basic-auth"])
+  else:
+    deployment_names.extend(["iap-enabler"])
+
+  # TODO(jlewi): Might want to parallelize this.
   for deployment_name in deployment_names:
-    logging.info("Verifying that %s started...", deployment_name)
+    logging.info("Verifying that deployment %s started...", deployment_name)
     util.wait_for_deployment(api_client, namespace, deployment_name)
+
+  for name in stateful_sets:
+    logging.info("Verifying that statefulset %s started...", name)
+    util.wait_for_statefulset(api_client, namespace, name)
 
   # TODO(jlewi): We should verify that the ingress is created and healthy.
 

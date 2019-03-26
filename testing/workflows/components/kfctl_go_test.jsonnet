@@ -170,6 +170,12 @@ local componentTests = util.kfTests {
   },
 };
 
+// We need to make the XML files and test suite names unique based on the parameters.
+local nameSuffix = if util.toBool(params.useBasicAuth) then
+  "basic-auth"
+  else
+  "iap";
+
 // Create a list of dictionary.c
 // Each item is a dictionary describing one step in the graph.
 local dagTemplates = [
@@ -178,7 +184,8 @@ local dagTemplates = [
                             ["/usr/local/bin/checkout.sh", srcRootDir],
                             env_vars=[{
                               name: "EXTRA_REPOS",
-                              value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
+                              // TODO(jlewi): Stop pinning to 341 once its submitted.
+                              value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD:341",
                             }]),
     dependencies: null,
   },  // checkout
@@ -202,9 +209,12 @@ local dagTemplates = [
         // I think -s mean stdout/stderr will print out to aid in debugging.
         // Failures still appear to be captured and stored in the junit file.
         "-s",
+        "--use_basic_auth=" + params.useBasicAuth,
         // Increase the log level so that info level log statements show up.
-        "--log-cli-level=info",
-        "--junitxml=" + artifactsDir + "/junit_kfctl-build-test.xml",
+        "--log-cli-level=info",        
+        "--junitxml=" + artifactsDir + "/junit_kfctl-build-test" + nameSuffix + ".xml",
+        // Test suite name needs to be unique based on parameters
+        "-o", "junit_suite_name=test_kgctl_go_deploy_" + nameSuffix, 
         "--app_path=" + appDir,
       ],
       working_dir=srcDir+ "/testing/kfctl",
@@ -221,9 +231,12 @@ local dagTemplates = [
         // I think -s mean stdout/stderr will print out to aid in debugging.
         // Failures still appear to be captured and stored in the junit file.
         "-s",
+        "--use_basic_auth=" + params.useBasicAuth,
         // Increase the log level so that info level log statements show up.
         "--log-cli-level=info",
-        "--junitxml=" + artifactsDir + "/junit_kfctl-is-ready-test.xml",
+        "--junitxml=" + artifactsDir + "/junit_kfctl-is-ready-test-" + nameSuffix + ".xml",
+        // Test suite name needs to be unique based on parameters
+        "-o", "junit_suite_name=test_kf_is_ready_" + nameSuffix,         
         "--app_path=" + appDir,
       ],
       working_dir=srcDir+ "/testing/kfctl",
