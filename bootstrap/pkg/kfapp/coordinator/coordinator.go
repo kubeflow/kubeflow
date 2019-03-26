@@ -76,7 +76,10 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 	cacheDir := path.Join(appDir, kftypes.DefaultCacheDir)
 	// idempotency
 	if _, err := os.Stat(cacheDir); !os.IsNotExist(err) {
-		os.RemoveAll(cacheDir)
+		rmErr := os.RemoveAll(cacheDir)
+		if rmErr != nil {
+			return nil, fmt.Errorf("couldn't delete directory %v Error %v", cacheDir, rmErr)
+		}
 	}
 	cacheDirErr := os.Mkdir(cacheDir, os.ModePerm)
 	if cacheDirErr != nil {
