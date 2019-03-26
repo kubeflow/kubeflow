@@ -15,6 +15,16 @@ from kubeflow.testing import util
 def run_with_retries(*args, **kwargs):
   util.run(*args, **kwargs)
 
+def verify_kubeconfig(project, zone, app_path):
+  name = os.path.basename(app_path)
+  context = util.run(["kubectl", "config", "current-context"])
+  if not name == context:
+    logging.info("KUBECONFIG current context name matches app name: " + name)
+  else:
+    raise RuntimeError("KUBECONFIG not having expected context: {expected} v.s. {actual}".format(
+        expected=name,
+        actual=context))
+
 def test_build_kfctl_go(app_path, project):
   if not app_path:
     logging.info("--app_path not specified")
@@ -30,6 +40,7 @@ def test_build_kfctl_go(app_path, project):
   this_dir = os.path.dirname(__file__)
   root = os.path.abspath(os.path.join(this_dir, "..", ".."))
   build_dir = os.path.join(root, "bootstrap")
+  zone = 'us-east1-d'
 
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
@@ -67,7 +78,7 @@ def test_build_kfctl_go(app_path, project):
     raise ValueError("Could not determine GCP account being used.")
 
   run_with_retries([kfctl_path, "generate", "-V", "all",
-                    "--email=" + email],
+                    "--email=" + email, "--zone=" + zone],
                     cwd=app_path)
 
   # We need to use retries because if we don't we see random failures
@@ -77,6 +88,8 @@ def test_build_kfctl_go(app_path, project):
   # retries will mask failures like kubeflow/kubeflow#2791 that will succeed
   # on retry. We should fix the test so that we don't mask those errors.
   run_with_retries([kfctl_path, "apply", "-V", "all"], cwd=app_path)
+
+  verify_kubeconfig(project, zone, app_path)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
