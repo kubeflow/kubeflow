@@ -17,7 +17,7 @@ def run_with_retries(*args, **kwargs):
 
 def verify_kubeconfig(project, zone, app_path):
   name = os.path.basename(app_path)
-  context = util.run(["kubectl", "config", "current-context"])
+  context = util.run(["kubectl", "config", "current-context"]).strip()
   if not name == context:
     logging.info("KUBECONFIG current context name matches app name: " + name)
   else:
