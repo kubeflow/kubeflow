@@ -14,8 +14,6 @@ import pytest
 
 from kubeflow.testing import util
 
-# TODO(): Need to make delete work with a KUBECONFIG file.
-@pytest.mark.xfail
 def test_kfctl_delete(kfctl_path, app_path, project):
   if not kfctl_path:
     raise ValueError("kfctl_path is required")
