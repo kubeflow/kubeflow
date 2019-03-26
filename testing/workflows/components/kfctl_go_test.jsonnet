@@ -204,8 +204,6 @@ local dagTemplates = [
         "-s",
         // Increase the log level so that info level log statements show up.
         "--log-cli-level=info",
-        // Test timeout in seconds.
-        "--timeout=500",
         "--junitxml=" + artifactsDir + "/junit_kfctl-build-test.xml",
         "--app_path=" + appDir,
       ],
@@ -225,8 +223,6 @@ local dagTemplates = [
         "-s",
         // Increase the log level so that info level log statements show up.
         "--log-cli-level=info",
-        // Test timeout in seconds.
-        "--timeout=500",
         "--junitxml=" + artifactsDir + "/junit_kfctl-is-ready-test.xml",
         "--app_path=" + appDir,
       ],
