@@ -17,6 +17,19 @@
 
 # Developer guide for bootstrap
 
+## Building kfctl
+
+```sh
+cd bootstrap
+make build-kfctl
+```
+
+* This will create `bin/kfctl`
+
+* If you get an error about missing files in `/tmp/v2`, you are hitting [#2790](https://github.com/kubeflow/kubeflow/issues/2790) and need to delete `/tmp/v2` and rerun the build.
+
+
+
 ## Building bootstrapper locally
 
 Create a symbolic link inside your GOPATH to the location you checked out the code
