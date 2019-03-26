@@ -129,7 +129,7 @@
           ],
           resources: [
             "services",
-            "pods"
+            "pods",
           ],
           verbs: [
             "*",
