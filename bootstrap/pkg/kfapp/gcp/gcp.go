@@ -195,7 +195,8 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 		op, err := deploymentmanagerService.Operations.Get(p, name).Context(ctx).Do()
 
 		if err != nil {
-			return backoff.Permanent(fmt.Errorf("%v error: %v", logPrefix, err))
+			// Retry here as there's a chance to get error for newly created DM operation.
+			return fmt.Errorf("%v error: %v", logPrefix, err)
 		}
 		if op.Error != nil {
 			for _, e := range op.Error.Errors {
@@ -248,7 +249,7 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string, gcpClient *
 			}
 			opName = op.Name
 		} else {
-			log.Infof("Wait running deployment %v to finish.", deployment)
+			log.Infof("Wait running deployment %v to finish; operation name: %v.", deployment, opName)
 		}
 		return blockingWait(project, opName, deploymentmanagerService, ctx,
 			"Updating "+deployment)

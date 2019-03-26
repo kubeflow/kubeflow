@@ -419,6 +419,11 @@ func (ksApp *ksApp) envSet(envName string, host string) error {
 	if err != nil {
 		return fmt.Errorf("There was a problem setting ksonnet env: %v", err)
 	}
+	loadApp, loadErr := app.Load(afero.NewOsFs(), ksApp.KApp.HTTPClient(), ksApp.ksRoot())
+	if loadErr != nil {
+		return fmt.Errorf("could not reload the ksonnet env: %v", err)
+	}
+	ksApp.KApp = loadApp
 	return nil
 }
 
