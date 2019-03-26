@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block javascript %}
   {{ super() }}
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.min.js"></script>
   <script src="{{ prefix + url_for('static', filename='js/notebooks.js') }}"></script>
 {% endblock %}
 
