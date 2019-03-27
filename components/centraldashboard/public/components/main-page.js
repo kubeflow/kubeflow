@@ -157,11 +157,13 @@ export class MainPage extends PolymerElement {
      */
     _routePageChanged(newPage) {
         let isIframe = false;
-        this._setNotFoundInIframe(false);
+        let notFoundInIframe = false;
+        let hideTabs = true;
         switch (newPage) {
         case 'activity':
             this.sidebarItemIndex = 0;
             this.page = 'activity';
+            hideTabs = false;
             break;
         case '_': // iframe case
             this._setIframeFromRoute(this.subRouteData.path);
@@ -170,17 +172,18 @@ export class MainPage extends PolymerElement {
         case '':
             this.sidebarItemIndex = 0;
             this.page = 'dashboard';
+            hideTabs = false;
             break;
         default:
             this.sidebarItemIndex = -1;
             this.page = 'not_found';
             // Handles case when an iframed page requests an invalid route
             if (window.location !== window.parent.location) {
-                this._setNotFoundInIframe(true);
+                notFoundInIframe = true;
             }
         }
-        this._setHideTabs(!(this.page === 'activity' ||
-            this.page === 'dashboard'));
+        this._setNotFoundInIframe(notFoundInIframe);
+        this._setHideTabs(hideTabs);
         this._setInIframe(isIframe);
         // If iframe <-> [non-frame OR other iframe]
         if (isIframe !== this.inIframe || isIframe) {
