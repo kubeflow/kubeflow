@@ -124,6 +124,16 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
         value: kubeConfig,
       },
     ] + prowEnv + env_vars,
+    resources: {
+      requests: {
+        memory: "1.5Gi",
+        cpu: "1",
+      },
+      limits: {
+        memory: "4Gi",
+        cpu: "4",
+      },
+    },
     volumeMounts: [
       {
         name: dataVolume,
