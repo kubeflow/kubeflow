@@ -461,7 +461,7 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum) error {
 		// deleting the PLATFORM means deleting the cluster. We remove k8s first in order free up any cloud vendor
 		// resources. Deleting k8 resources is a best effort and partial delete or failure should not
 		// prevent PLATFORM (cluster) deletion
-		_ := k8s()
+		_ = k8s()
 		return platform()
 	case kftypes.K8S:
 		return k8s()
