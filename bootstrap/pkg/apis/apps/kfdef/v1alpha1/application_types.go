@@ -35,7 +35,7 @@ type KfDefSpec struct {
 	SkipInitProject        bool   `json:"skipInitProject,omitempty"`
 	UseIstio               bool   `json:"useIstio"`
 	ServerVersion          string `json:"serverVersion,omitempty"`
-	DeleteStorage          bool   `json:"deleteStorage"`
+	DeleteStorage          bool   `json:"deleteStorage,omitempty"`
 }
 
 var DefaultRegistry = &RegistryConfig{
