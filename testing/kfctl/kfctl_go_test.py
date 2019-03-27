@@ -73,10 +73,8 @@ def test_build_kfctl_go(app_path, project):
   # We need to use retries because if we don't we see random failures
   # where kfctl just appears to die.
   #
-  # TODO(https://github.com/kubeflow/kubeflow/issues/2791): Running with
-  # retries will mask failures like kubeflow/kubeflow#2791 that will succeed
-  # on retry. We should fix the test so that we don't mask those errors.
-  run_with_retries([kfctl_path, "apply", "-V", "all"], cwd=app_path)
+  # Do not run with retries since it masks errors
+  util.run([kfctl_path, "apply", "-V", "all"], cwd=app_path)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
