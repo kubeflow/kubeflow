@@ -537,9 +537,6 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	if err := cred_cmd.Run(); err != nil {
 		return fmt.Errorf("Error when running gcloud container clusters get-credentials: %v", err)
 	}
-	if _, err = os.Stat(kftypes.KubeConfigPath()); !os.IsNotExist(err) {
-		gcp.AddNamedContext()
-	}
 
 	return nil
 }
@@ -563,6 +560,9 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 	updateDMErr := gcp.updateDM(resources)
 	if updateDMErr != nil {
 		return fmt.Errorf("gcp apply could not update deployment manager Error %v", updateDMErr)
+	}
+	if _, err := os.Stat(kftypes.KubeConfigPath()); !os.IsNotExist(err) {
+		gcp.AddNamedContext()
 	}
 	// Insert secrets into the cluster
 	secretsErr := gcp.createSecrets()
