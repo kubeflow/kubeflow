@@ -178,7 +178,7 @@ func GetConfig() *rest.Config {
 	overrides := &clientcmd.ConfigOverrides{}
 	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, overrides).ClientConfig()
 	if err != nil {
-		log.Fatalf("could not open %v Error %v", loadingRules.ExplicitPath, err)
+		log.Warnf("could not open %v Error %v", loadingRules.ExplicitPath, err)
 	}
 	return config
 }
@@ -198,7 +198,7 @@ func GetKubeConfig() *clientcmdapi.Config {
 	kubeconfig := KubeConfigPath()
 	config, configErr := clientcmd.LoadFromFile(kubeconfig)
 	if configErr != nil {
-		log.Fatalf("could not load config Error: %v", configErr)
+		log.Warnf("could not load config Error: %v", configErr)
 	}
 	return config
 }

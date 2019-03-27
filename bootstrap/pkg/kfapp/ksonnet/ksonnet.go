@@ -51,6 +51,8 @@ type ksApp struct {
 	// ksonnet env name
 	KsEnvName string
 	KApp      app.App
+	restConfig *rest.Config
+	apiConfig *clientcmdapi.Config
 }
 
 const (
@@ -78,22 +80,19 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	if goPathVar != "" {
 		_kfapp.Spec.Repo = re.ReplaceAllString(_kfapp.Spec.Repo, goPathVar+`$2`)
 	}
+	// build restConfig and apiConfig using $HOME/.kube/config if the file exist
+	_kfapp.restConfig = kftypes.GetConfig()
+	_kfapp.apiConfig = kftypes.GetKubeConfig()
 	return _kfapp
 }
 
-func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
-	restConfig := kftypes.GetConfig()
-	apiConfig := kftypes.GetKubeConfig()
-	return ksApp.ApplyInner(resources, restConfig, apiConfig)
-}
-
-// Remind: Don't change signature: this entry is share among kfctl and deploy app
+// Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 // applies the ksonnet components to target k8s cluster.
-func (ksApp *ksApp) ApplyInner(resources kftypes.ResourceEnum, restConfig *rest.Config, apiConfig *clientcmdapi.Config) error {
+func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 	name := ksApp.Name
-	clientset := kftypes.GetClientset(restConfig)
+	clientset := kftypes.GetClientset(ksApp.restConfig)
 	// TODO(gabrielwen): Make env name an option.
-	envSetErr := ksApp.envSet(KsEnvName, restConfig.Host)
+	envSetErr := ksApp.envSet(KsEnvName, ksApp.restConfig.Host)
 	if envSetErr != nil {
 		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", KsEnvName, envSetErr)
 	}
@@ -124,11 +123,11 @@ func (ksApp *ksApp) ApplyInner(resources kftypes.ResourceEnum, restConfig *rest.
 		}
 	}
 	
-	applyErr := ksApp.applyComponent([]string{"metacontroller"}, apiConfig)
+	applyErr := ksApp.applyComponent([]string{"metacontroller"}, ksApp.apiConfig)
 	if applyErr != nil {
 		return fmt.Errorf("couldn't create metacontroller component Error: %v", applyErr)
 	}
-	applyErr = ksApp.applyComponent(ksApp.Spec.Components, apiConfig)
+	applyErr = ksApp.applyComponent(ksApp.Spec.Components, ksApp.apiConfig)
 	if applyErr != nil {
 		return fmt.Errorf("couldn't create components Error: %v", applyErr)
 	}
@@ -284,6 +283,7 @@ func setNameVal(entries []configtypes.NameValue, name string, val string) {
 	})
 }
 
+// Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 	log.Infof("Ksonnet.Generate Name %v AppDir %v Platform %v", ksApp.Name,
 		ksApp.Spec.AppDir, ksApp.Spec.Platform)
