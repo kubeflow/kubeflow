@@ -453,11 +453,11 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum) error {
 
 	switch resources {
 	case kftypes.ALL:
-		if err := platform(); err != nil {
+		fallthrough
+	case kftypes.PLATFORM:
+		if err := k8s(); err != nil {
 			return err
 		}
-		return k8s()
-	case kftypes.PLATFORM:
 		return platform()
 	case kftypes.K8S:
 		return k8s()
