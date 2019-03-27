@@ -43,7 +43,7 @@ local appName = "kfctl-" + std.substr(name, std.length(name) - 4, 4);
 // we execute kfctl commands from
 local appDir = testDir + "/" + appName;
 
-local image = "gcr.io/kubeflow-ci/test-worker:latest";
+local image = "gcr.io/kubeflow-ci/test-worker:v20190327-a9f4b89-e3b0c4";
 local testing_image = "gcr.io/kubeflow-ci/kubeflow-testing";
 
 // The name of the NFS volume claim to use for test files.
