@@ -47,21 +47,25 @@ $(document).ready(function(){
 });
 
 function deleteNotebook(ns, nb) {
-  $.getJSON(prefix + "/delete-notebook", { namespace:ns, notebook:nb}, function(data, status) {
-    var innerHTML = ''
-    if(data.success == true) {
-      updateNotebooksInNamespace(ns)
-    }
-    else {
-      innerHTML = `
-      <div class="alert alert-warning">
-        <span class="close" onclick="this.parentElement.style.display='none'">&times;</span>
-        <strong>Warning!</strong><span class='warning-log'></span>
-      </div>`
-    }
-    const $e = $("#error-msgs").html(innerHTML)
-    $('.warning-log', $e).text(data.log)
-  });
+  $.ajax({
+    url: prefix + `/api/namespaces/${ns}/notebooks/${nb}`,
+    type: 'DELETE',
+    success: function(data, status) {
+      var innerHTML = ''
+      if(data.success == true) {
+        updateNotebooksInNamespace(ns)
+      }
+      else {
+        innerHTML = `
+        <div class="alert alert-warning">
+          <span class="close" onclick="this.parentElement.style.display='none'">&times;</span>
+          <strong>Warning!</strong><span class='warning-log'></span>
+        </div>`
+      }
+      const $e = $("#error-msgs").html(innerHTML)
+      $('.warning-log', $e).text(data.log)
+    },
+  })
 };
 
 function connectNotebook(ns, nb) {
@@ -70,7 +74,7 @@ function connectNotebook(ns, nb) {
 
 function createNotebook(ns) {
   // Redirect to Add Notebook URL
-  window.location.href = `${prefix}/add-notebook?namespace=${ns}`
+  window.location.href = `${prefix}/new?namespace=${ns}`
 };
 
 // Functions for the Notebook Columns in the Table
@@ -154,12 +158,12 @@ function createNbActionsCol(nb, i) {
 
   var connect = $("<li>").attr({
     class: "mdl-menu__item",
-    onclick: 'connectNotebook(\''+nb.namespace+'\',\''+nb.name+'\')'
+    onclick: `connectNotebook('${nb.namespace}', '${nb.name}')`,
   }).text('Connect')
 
   var del = $("<li>").attr({
     class: "mdl-menu__item",
-    onclick: 'deleteNotebook(\''+nb.namespace+'\',\''+nb.name+'\')'
+    onclick: `deleteNotebook('${nb.namespace}', '${nb.name}')`,
   }).text('Delete')
 
   actions_btn.append(btn_icon)
@@ -176,7 +180,7 @@ function updateNotebooksInNamespace(ns) {
   var tmp = $('<div>')
   
   // Get the Notebooks for selected Namespace
-  $.getJSON(prefix + "/list-notebooks", { namespace:ns }, function(data, status) {
+  $.getJSON(prefix + `/api/namespaces/${ns}/notebooks`, function(data, status) {
     // Remove data from table and errors
     $("#error-msgs").empty();
     // $('#nb-table-body').empty();
@@ -265,7 +269,6 @@ function updateNotebooksInNamespace(ns) {
     // Load the dynamic components of mdl
     // https://stackoverflow.com/a/34579828
     componentHandler.upgradeAllRegistered();
-    // componentHandler.upgradeDom();
   });
 }
 

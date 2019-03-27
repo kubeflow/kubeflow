@@ -17,8 +17,23 @@ def prefix():
     return ""
 
 
-@app.route("/post-notebook", methods=['POST'])
-def post_notebook_route():
+# REST Routes
+@app.route("/api/namespaces/<namespace>/notebooks")
+def list_notebooks_route(namespace):
+  # Get the list of Notebooks in the given Namespace
+  data = {"notebooks": [], "success": True}
+  try:
+    data['notebooks'] = api.get_notebooks(namespace)
+  except ApiException as e:
+    data['notebooks'] = []
+    data['success'] = False
+    data["log"] = api.parse_error(e)
+
+  return jsonify(data)
+
+
+@app.route("/api/namespaces/<namespace>/notebooks", methods=['POST'])
+def post_notebook(namespace):
   data = {"success": True, "log": ""}
   body = request.form
 
@@ -97,8 +112,23 @@ def post_notebook_route():
   return jsonify(data)
 
 
-@app.route("/add-notebook", methods=['GET'])
-def add_notebook_route():
+@app.route("/api/namespaces/<namespace>/notebooks/<notebook>",
+           methods=['DELETE'])
+def del_notebook_route(namespace, notebook):
+  # try to delete the notebook
+  data = {"success": True, "log": ""}
+  try:
+    api.delete_notebook(notebook, namespace)
+  except ApiException as e:
+    data["success"] = False
+    data["log"] = api.parse_error(e)
+
+  return jsonify(data)
+
+
+# Front End
+@app.route("/new")
+def new_notebook():
   # A default value for the namespace to add the notebook
   if request.args.get("namespace"):
     ns = request.args.get("namespace")
@@ -118,42 +148,8 @@ def add_notebook_route():
       rok_token=rok_token)
 
 
-@app.route("/delete-notebook", methods=['GET', 'POST'])
-def del_notebook_route():
-  nb = request.args.get("notebook")
-  ns = request.args.get("namespace")
-
-  # try to delete the notebook
-  data = {"success": True, "log": ""}
-  try:
-    api.delete_notebook(nb, ns)
-  except ApiException as e:
-    data["success"] = False
-    data["log"] = api.parse_error(e)
-
-  return jsonify(data)
-
-
-@app.route("/list-notebooks")
-def list_notebooks_route():
-  ns = request.args.get("namespace")
-
-  # Get the list of Notebooks in the given Namespace
-  data = {"notebooks": [], "success": True}
-  try:
-    data['notebooks'] = api.get_notebooks(ns)
-  except ApiException as e:
-    data['notebooks'] = []
-    data['success'] = False
-    data["log"] = api.parse_error(e)
-
-  return jsonify(data)
-
-
 @app.route("/")
-@app.route("/home")
-@app.route("/notebooks")
-def notebooks_route():
+def home():
   base_ns = "kubeflow"
 
   # Get the namespaces the token can see

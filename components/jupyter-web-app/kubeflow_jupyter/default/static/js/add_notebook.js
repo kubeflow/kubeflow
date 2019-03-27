@@ -755,9 +755,9 @@ function postNotebook(form, data) {
   // Post the data and based on the result, show error msg
   ns = form.find("#ns-inp").val()
 
-  $.post(prefix + "/post-notebook", data, function(res) {
+  $.post(prefix + `/api/namespaces/${ns}/notebooks`, data, function(res) {
     if(res.success == true) {
-      window.location.href = prefix + "/notebooks" +"?namespace=" + ns
+      window.location.href = prefix + "/" +"?namespace=" + ns
     }
     else {
       innerHTML = `
