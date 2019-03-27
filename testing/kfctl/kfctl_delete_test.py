@@ -30,9 +30,8 @@ def test_kfctl_delete(kfctl_path, app_path, project):
   util.run([kfctl_path, "delete", "all", "--delete_storage", "-V"],
            cwd=app_path)
 
-  req = apis.
-      GetMessagesModule('servicemanagement', 'v1').
-      ServicemanagementServicesListRequest(producerProjectId=project)
+  req = apis.GetMessagesModule('servicemanagement', 'v1').ServicemanagementServicesListRequest(
+      producerProjectId=project)
   logging.info("GG TEST: req type = %s", type(req))
   logging.info("GG TEST: methods = %s", str(inspect.getmembers(req, predicate=inspect.ismethod)))
 
