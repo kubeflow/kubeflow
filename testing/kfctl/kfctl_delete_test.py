@@ -13,9 +13,29 @@ from retrying import retry
 import pytest
 
 from kubeflow.testing import util
-from googlecloudsdk.api_lib.util import apis
+from googleapiclient import discovery
+from oauth2client.client import GoogleCredentials
 
-import inspect
+# TODO(gabrielwen): Move this to a separate test "kfctl_go_check_post_delete"
+def get_endpoints_list(project):
+  cred = GoogleCredentials.get_application_default()
+  services_mgt = discovery.build('servicemanagement', 'v1', credentials=cred)
+  services = services_mgt.services()
+  next_page_token = None
+  endpoints = []
+
+  while True:
+    results = services.list(producerProjectId=project,
+                            pageToken=next_page_token).execute()
+
+    for s in results.get("services", {}):
+      name = s.get("serviceName", "")
+      endpoints.append(name)
+    if not "nextPageToken" in results:
+      break
+    next_page_token = results["nextPageToken"]
+
+  return endpoints
 
 def test_kfctl_delete(kfctl_path, app_path, project):
   if not kfctl_path:
@@ -30,10 +50,7 @@ def test_kfctl_delete(kfctl_path, app_path, project):
   util.run([kfctl_path, "delete", "all", "--delete_storage", "-V"],
            cwd=app_path)
 
-  req = apis.GetMessagesModule('servicemanagement', 'v1').ServicemanagementServicesListRequest(
-      producerProjectId=project)
-  logging.info("GG TEST: req type = %s", type(req))
-  logging.info("GG TEST: methods = %s", str(inspect.getmembers(req, predicate=inspect.ismethod)))
+  logging.info("List of endpoints: %s", str(get_endpoints_list(project)))
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
