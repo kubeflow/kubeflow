@@ -130,7 +130,7 @@ install: build-kfctl dockerfordesktop.so
 	@cp bin/kfctl /usr/local/bin
 
 run-kfctl-container: build-kfctl-container
-	@docker run -d -t $(KFCTL_IMG):$(TAG)
+	@docker run -d -v $HOME/.kube:/root/.kube -t $(KFCTL_IMG):$(TAG)
 
 run-local-docker:
 	docker run -d -it --name bootstrapper \
