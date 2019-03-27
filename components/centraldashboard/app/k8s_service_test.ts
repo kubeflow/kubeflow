@@ -58,7 +58,7 @@ describe('KubernetesService', () => {
 
     it('Returns empty list on error', async () => {
       mockApiClient.listNamespace.and.returnValue(
-          Promise.reject('testing-error'));
+          Promise.reject({body: 'testing-error'}));
 
       const namespaces = await k8sService.getNamespaces();
       expect(namespaces.length).toBe(0);
