@@ -805,18 +805,19 @@ func (gcp *Gcp) generateDMConfigs() error {
 			return fmt.Errorf("could not copy %v to %v Error %v", sourceFile, destFile, copyErr)
 		}
 	}
+
+	// Reading from templates and write to gcp_config directory with content had placeholders
+	// replaced.
 	from := filepath.Join(sourceDir, "iam_bindings_template.yaml")
 	to := filepath.Join(gcpConfigDir, "iam_bindings.yaml")
 	if err := gcp.writeIamBindingsFile(from, to); err != nil {
 		return err
 	}
-
 	from = filepath.Join(sourceDir, CONFIG_FILE)
 	to = filepath.Join(gcpConfigDir, CONFIG_FILE)
 	if err := gcp.writeClusterConfig(from, to); err != nil {
 		return err
 	}
-
 	from = filepath.Join(sourceDir, STORAGE_FILE)
 	to = filepath.Join(gcpConfigDir, STORAGE_FILE)
 	if err := gcp.writeStorageConfig(from, to); err != nil {
