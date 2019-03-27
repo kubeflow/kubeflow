@@ -89,6 +89,9 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 // applies the ksonnet components to target k8s cluster.
 func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
+	if ksApp.restConfig == nil || ksApp.apiConfig == nil {
+		return fmt.Errorf("Error: ksApp has nil restConfig or apiConfig, exit")
+	}
 	name := ksApp.Name
 	clientset := kftypes.GetClientset(ksApp.restConfig)
 	// TODO(gabrielwen): Make env name an option.
