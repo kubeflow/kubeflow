@@ -364,7 +364,7 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	if options[string(kftypes.MOUNT_LOCAL)] != nil {
 		kfdef.Spec.MountLocal = options[string(kftypes.MOUNT_LOCAL)].(bool)
 	}
-	if options[string(kftypes.DELETE_STORAGE)] != nil {
+	if options[string(kftypes.DELETE_STORAGE)] != nil && kfdef.Spec.Platform == kftypes.GCP {
 		kfdef.Spec.DeleteStorage = options[string(kftypes.DELETE_STORAGE)].(bool)
 	}
 	pApp := GetKfApp(kfdef)
