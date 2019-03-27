@@ -24,6 +24,7 @@ import (
 	"github.com/ghodss/yaml"
 	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
@@ -72,6 +73,7 @@ const (
 	CLIENT_ID         = "CLIENT_ID"
 	CLIENT_SECRET     = "CLIENT_SECRET"
 	BASIC_AUTH_SECRET = "kubeflow-login"
+	KUBECONFIG_FORMAT = "gke_{project}_{zone}_{cluster}"
 )
 
 // The namespace for Istio
@@ -337,6 +339,112 @@ func (gcp *Gcp) ConfigK8s() error {
 	return nil
 }
 
+// Add a conveniently named context to KUBECONFIG.
+func (gcp *Gcp) AddNamedContext() error {
+	name := strings.Replace(KUBECONFIG_FORMAT, "{project}", gcp.Spec.Project, 1)
+	name = strings.Replace(name, "{zone}", gcp.Spec.Zone, 1)
+	name = strings.Replace(name, "{cluster}", gcp.Name, 1)
+	log.Infof("KUBECONFIG name is %v", name)
+
+	buf, err := ioutil.ReadFile(kftypes.KubeConfigPath())
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Reading KUBECONFIG error: %v", err),
+		}
+	}
+	var config map[string]interface{}
+	if err = yaml.Unmarshal(buf, &config); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Unmarshaling KUBECONFIG error: %v", err),
+		}
+	}
+
+	configNameChecker := func(config map[string]interface{}, entryName string, name string) error {
+		e, ok := config[entryName]
+		if !ok {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("Not able to find %v in KUBECONFIG", entryName),
+			}
+		}
+		entries := e.([]interface{})
+		for _, entry := range entries {
+			en := entry.(map[string]interface{})
+			if mm, ok := en["name"]; ok {
+				n := mm.(string)
+				if n == name {
+					return nil
+				}
+			} else {
+				return &kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: "Not able to find name in the entry",
+				}
+			}
+		}
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Not able to find %v from %v in KUBECONFIG", name, entryName),
+		}
+	}
+
+	if err = configNameChecker(config, "clusters", name); err != nil {
+		return err
+	}
+	if err = configNameChecker(config, "users", name); err != nil {
+		return err
+	}
+	if err = configNameChecker(config, "contexts", name); err != nil {
+		return err
+	}
+
+	e, ok := config["contexts"]
+	if !ok {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: "Not able to find contexts in KUBECONFIG",
+		}
+	}
+	contexts := e.([]interface{})
+	context := make(map[string]interface{})
+	context["name"] = gcp.Name
+	context["context"] = map[string]string{
+		"cluster":   name,
+		"user":      name,
+		"namespace": gcp.Namespace,
+	}
+	for idx, ctx := range contexts {
+		c := ctx.(map[string]interface{})
+		if c["name"] == gcp.Name {
+			// Remove the entry to override.
+			contexts = append(contexts[:idx], contexts[idx+1:]...)
+			break
+		}
+	}
+	contexts = append(contexts, context)
+	config["contexts"] = contexts
+	config["current-context"] = gcp.Name
+
+	buf, err = yaml.Marshal(config)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Error when marshaling KUBECONFIG: %v", err),
+		}
+	}
+	if err = ioutil.WriteFile(kftypes.KubeConfigPath(), buf, 0644); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Error when writing KUBECONFIG: %v", err),
+		}
+	}
+
+	log.Infof("KUBECONFIG context %v is created and currently using", gcp.Name)
+	return nil
+}
+
 func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	if err := gcp.updateDeployment(gcp.Name+"-storage", STORAGE_FILE); err != nil {
 		return fmt.Errorf("could not update %v: %v", STORAGE_FILE, err)
@@ -419,7 +527,6 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 		log.Infof("Done installing istio.")
 	}
 
-	// TODO(#2604): Need to create a named context.
 	cred_cmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
 		gcp.Name,
 		"--zone="+gcp.Spec.Zone,
@@ -453,6 +560,9 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 	updateDMErr := gcp.updateDM(resources)
 	if updateDMErr != nil {
 		return fmt.Errorf("gcp apply could not update deployment manager Error %v", updateDMErr)
+	}
+	if _, err := os.Stat(kftypes.KubeConfigPath()); !os.IsNotExist(err) {
+		gcp.AddNamedContext()
 	}
 	// Insert secrets into the cluster
 	secretsErr := gcp.createSecrets()
