@@ -11,30 +11,29 @@ webpackConfig.module.rules.push({
     exclude: /node_modules|_test\.js$/,
 });
 
-module.exports = function(config) {
-    config.set({
-        basePath: '',
-        browsers: ['ChromeHeadless'],
-        frameworks: ['jasmine'],
-        files: [
-            'public/index_test.js',
-        ],
-        exclude: [],
-        preprocessors: {
-            'public/index_test.js': ['webpack', 'sourcemap'],
-        },
-        webpack: webpackConfig,
-        webpackMiddleware: {stats: 'errors-only'},
-        reporters: ['progress', 'kjhtml'],
-        coverageIstanbulReporter: {
-            'reports': ['html', 'text'],
-            'fixWebpackSourcePaths': true,
-            'skipFilesWithNoCoverage': false,
-            'report-config': {
-                html: {
-                    subdir: 'public',
-                },
+module.exports = (config) => config.set({
+    basePath: '',
+    browsers: ['ChromeHeadless'],
+    frameworks: ['jasmine'],
+    files: [
+        'public/index_test.js',
+    ],
+    exclude: [],
+    preprocessors: {
+        'public/index_test.js': ['webpack', 'sourcemap'],
+    },
+    webpack: webpackConfig,
+    webpackMiddleware: {stats: 'errors-only'},
+    reporters: ['progress', 'kjhtml'],
+    coverageIstanbulReporter: {
+        'reports': ['html', 'text'],
+        'fixWebpackSourcePaths': true,
+        'skipFilesWithNoCoverage': false,
+        'report-config': {
+            html: {
+                subdir: 'public',
             },
         },
-    });
-};
+    },
+});
+
