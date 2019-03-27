@@ -56,3 +56,5 @@ If yes, it will add volume, volumeMount, and environment variable to the pod.
 1. https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/
 1. https://github.com/kubernetes/kubernetes/tree/v1.13.0/test/images/webhook
 1. https://github.com/morvencao/kube-mutating-webhook-tutorial
+1. How to self sign: [link](https://github.com/kubernetes/kubectl/issues/86)
+1. What to put for caBundle: [issue](https://github.com/kubernetes/kubernetes/issues/61171)
