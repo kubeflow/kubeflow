@@ -129,10 +129,14 @@ install: build-kfctl dockerfordesktop.so
 	@echo copying bin/kfctl to /usr/local/bin
 	@cp bin/kfctl /usr/local/bin
 
+run-kfctl-container: build-kfctl-container
+	@docker run -d -t $(KFCTL_IMG):$(TAG)
+
 run-local-docker:
 	docker run -d -it --name bootstrapper \
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(BOOTSTRAPPER_IMG):$(TAG)
+
 
 clean: 
 	rm -rf test && rm -rf /tmp/v2 && mkdir test
