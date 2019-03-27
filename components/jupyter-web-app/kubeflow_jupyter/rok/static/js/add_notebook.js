@@ -100,32 +100,11 @@ function setImageType() {
 
 // Register jQuery event listeners for the Workspace Volume
 function  setWorkspaceEventListeners() {
-  var notebookName = $('#nm-inp');
   var workspaceType = $('#ws_type');
   var workspaceRokURL = $("#ws_rok_url")
   var workspaceName = $('#ws_name');
   var workspaceSize = $('#ws_size');
   var workspaceMountPath = $('#ws_mount_path');
-
-  // Change the value of the workspace volume to match the notebook
-  notebookName.on('keyup', function() {
-    var nm = notebookName.val()
-    workspaceName.val(nm)
-
-    if (existingPVCs.includes(nm)) {
-      workspaceType.val('Existing')
-    } else {
-      // If a default StorageClass exists, then create new PVC
-      // else it will be None
-      if (default_storage_class === 'True') {
-        workspaceType.val('New')
-      } else {
-        workspaceType.val('None')
-      }
-    }
-  
-    workspaceType.trigger('change')
-  })
 
   // Disable/Enable Workspace size option based on its Type
   workspaceType.on('change', function() {
@@ -890,7 +869,8 @@ function autofillForm() {
         markValid();
 
         // Autofill Image, CPU, Memory and Extra Resources from Rok Jupyter Lab Metadata
-        setValue($('#image'), getHeader(request, 'X-Object-Meta-image') || '');
+        document.querySelector("#option_custom").click();
+        setValue($('#customImage'), getHeader(request, 'X-Object-Meta-image') || '');
         setValue($('#cpu'), getHeader(request, 'X-Object-Meta-cpu') || '');
         setValue($('#memory'), getHeader(request, 'X-Object-Meta-memory') || '');
         setValue($('#extraResources'), getHeader(request, 'X-Object-Meta-extraResources') || '{}');

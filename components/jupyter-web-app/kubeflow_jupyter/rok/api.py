@@ -59,7 +59,7 @@ def get_rok_token(ns):
   try:
     secret = api.v1_core.read_namespaced_secret(name=nm, namespace=ns)
   except ApiException as e:
-    logger.warning("Couldn't load ROK token: %s" % utils.parse_error(e))
+    logger.warning("Couldn't load ROK token: %s" % api.parse_error(e))
     return ''
 
   if secret.data is None:

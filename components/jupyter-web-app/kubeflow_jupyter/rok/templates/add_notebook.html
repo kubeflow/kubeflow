@@ -7,6 +7,7 @@
     var username = "{{ username }}"
     var namespace = "{{ ns }}"
     var existingPVCs = ""
+    var default_storage_class = "{{ default_storage_class }}"
   </script>
   <script src="{{ prefix + url_for('static', filename='js/add_notebook.js') }}"></script>
 {% endblock %}
@@ -93,7 +94,7 @@
               <!-- Image -->
               <h5><i class="fab fa-docker"></i>Image</h5>
               <p class="text-muted nopad">
-                A starter Docker image for JupyterHub with a baseline deployment and typical ML packages.
+                A starter Jupyter Docker Image with a baseline deployment and typical ML packages.
               </p>
 
               <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect"

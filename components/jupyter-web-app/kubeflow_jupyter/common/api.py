@@ -21,9 +21,7 @@ storage_api = client.StorageV1Api()
 def parse_error(e):
   try:
     err = json.loads(e.body)["message"]
-  except json.JSONDecodeError:
-    err = str(e)
-  except KeyError:
+  except (json.JSONDecodeError, KeyError, AttributeError):
     err = str(e)
 
   return err
@@ -139,7 +137,8 @@ def get_notebooks(ns):
         'srt_image': short_image,
         'uptime': get_notebook_uptime(nb['metadata']['creationTimestamp']),
         'volumes': nb['spec']['template']['spec']['volumes'],
-        'status': nb['status']['containerState']
+        'status': nb['status']['containerState'],
+        'pods': nb['status']['readyReplicas']
     })
   return nbs
 

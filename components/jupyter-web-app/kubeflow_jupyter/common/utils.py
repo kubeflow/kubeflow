@@ -67,6 +67,8 @@ def get_notebook_uptime(created_t):
       else:
         age = str(hours) + ' hours'
     else:
+      if mins == 0:
+        return 'just now'
       if mins == 1:
         age = str(mins) + ' min'
       else:

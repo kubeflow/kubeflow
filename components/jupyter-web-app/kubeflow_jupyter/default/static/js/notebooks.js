@@ -76,6 +76,23 @@ function createNotebook(ns) {
 };
 
 // Functions for the Notebook Columns in the Table
+function createSpinner(tip, i) {
+  var col0 = $('<td>')
+  var stat = $('<div>').attr({
+    'id': 'stat' + i,
+    'class': 'mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active'
+  })
+  var statTip = $('<div>').attr({
+    class: "mdl-tooltip",
+    for: 'stat' + i,
+  }).text(tip)
+
+  col0.append(stat)
+      .append(statTip)
+
+  return col0
+}
+
 function createNbStatusIcon(txt, img, size, i) {
   var col0 = $('<td>')
 
@@ -98,41 +115,30 @@ function createNbStatusIcon(txt, img, size, i) {
 }
 
 function createNbStatusCol(nb, i) {
-  var col0 = $('<td>')
+    // If the pod has been created, keep track of container status
   if ('running' in nb.status) {
     icon = "fa fa-check-circle"
     size = "font-size:24px;color:green"
-    col0 = createNbStatusIcon('Running', icon, size, i)
+    return createNbStatusIcon('Running', icon, size, i)
   }
   else if ('waiting' in nb.status) {
     reason = nb.status.waiting.reason
-    // Check if Notebook is being deleted
 
     // Check if ImagePullBackOff
-    if (status.reason == 'ImagePullBackOff') {
+    if (reason == 'ImagePullBackOff') {
       icon = "fas fa-times"
       size = "font-size:24px;color:red"
-      col0 = createNbStatusIcon(reason, icon, size, i)
+      return createNbStatusIcon(reason, icon, size, i)
     }
     // Check if it is downloading the image
-    else if (status.reason == 'ContainerCreating') {
-      // Loading icon
-      var stat = $('<div>').attr({
-        'id': 'stat' + i,
-        'class': 'mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active'
-      })
-      var statTip = $('<div>').attr({
-        class: "mdl-tooltip",
-        for: 'stat' + i,
-      }).text(reason)
-
-      col0.append(stat)
-          .append(statTip)
+    else if (reason == 'ContainerCreating') {
+      // Loading icon      
+      return createSpinner(reason, i)
     }
     else {
       icon = "fas fa-exclamation-triangle"
-      size = "font-size:24px;color:yellow"
-      col0 = createNbStatusIcon(reason, icon, size, i)
+      size = "font-size:24px;color:orange"
+      return createNbStatusIcon(reason, icon, size, i)
     } 
   } 
   else if ('terminated' in nb.status) {
@@ -140,10 +146,13 @@ function createNbStatusCol(nb, i) {
     reason = nb.status.terminated.reason
     icon = "fas fa-times"
     size = "font-size:24px;color:red"
-    col0 = createNbStatusIcon(reason, icon, size, i)
+    return createNbStatusIcon(reason, icon, size, i)
   }
 
-  return col0
+  // Check if the underlying pods have been created
+  if (nb.pods == 0) {
+    return createSpinner('Scheduling Pod', i)
+  }
 }
 
 function createNbVolumesCol(nb, i) {
@@ -155,7 +164,7 @@ function createNbVolumesCol(nb, i) {
 
   var vols_btn_icon = $("<i>").attr({
     class: "material-icons"
-  }).text("subject")
+  }).text("storage")
 
   var vols_actions_menu = $("<ul>").attr({
     class: "mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right",
@@ -189,35 +198,42 @@ function createNbVolumesCol(nb, i) {
 
 function createNbActionsCol(nb, i) {
   var col = $('<td>');
-  var actions_btn = $("<button>").attr({
-    class: "mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon",
-    id: 'menu'+i
-  })
-
-  var btn_icon = $("<i>").attr({
-    class: "material-icons"
-  }).text("more_vert")
-
-  var actions_menu = $("<ul>").attr({
-    class: "mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right",
-    for: 'menu'+i
-  })
-
-  var connect = $("<li>").attr({
-    class: "mdl-menu__item",
+  // Connect
+  ready = true
+  if ('running' in nb.status) { 
+    ready = false 
+  }
+  
+  var connect_btn = $("<button>").attr({
+    class: "mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--colored ",
+    id: 'connect'+i,
+    disabled: ready,
     onclick: `connectNotebook('${nb.namespace}', '${nb.name}')`,
-  }).text('Connect')
+  }).text('CONNECT')
 
-  var del = $("<li>").attr({
-    class: "mdl-menu__item",
+  col.append(connect_btn)
+
+  // Delete
+  var delete_btn = $("<button>").attr({
+    class: "mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon",
+    id: 'delete'+i,
     onclick: `deleteNotebook('${nb.namespace}', '${nb.name}')`,
-  }).text('Delete')
+  })
 
-  actions_btn.append(btn_icon)
-  col.append(actions_btn)
-  actions_menu.append(connect)
-  actions_menu.append(del)
-  col.append(actions_menu)
+  var delete_icon = $("<i>").attr({
+    class: "material-icons",
+    // style: "color:red;"
+  }).text("delete")
+
+  var delTip = $('<div>').attr({
+    class: "mdl-tooltip",
+    for: 'delete' + i,
+  }).text('Delete the Notebook')
+
+  
+  delete_btn.append(delete_icon)
+  col.append(delete_btn)
+     .append(delTip)
 
   return col
 }

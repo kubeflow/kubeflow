@@ -130,10 +130,15 @@ def del_notebook_route(namespace, notebook):
 @app.route("/new")
 def new_notebook():
   # A default value for the namespace to add the notebook
-  if request.args.get("namespace"):
-    ns = request.args.get("namespace")
-  else:
-    ns = "kubeflow"
+  ns = request.args.get("namespace", "kubeflow")
+
+  # Get default StorageClass
+  is_default = False
+  try:
+    if api.get_default_storageclass() != "":
+      is_default = True
+  except ApiException as e:
+    logger.warning("Can't  list storageclasses: %s" % api.parse_error(e))
 
   # Load the Rok Token
   rok_token = rok.get_rok_token('kubeflow')
@@ -145,6 +150,7 @@ def new_notebook():
       ns=ns,
       form_defaults=form_defaults,
       username="user",
+      default_storage_class=is_default,
       rok_token=rok_token)
 
 

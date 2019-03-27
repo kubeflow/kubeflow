@@ -164,7 +164,7 @@
                           mdl-textfield--floating-label wide">
                 <input class="mdl-textfield__input" type="text"
                         id="ws_name" name="ws_name" data-required='true'
-                        value=username + "-workspace">
+                        value="workspace-volume">
                 <label class="mdl-textfield__label" for="ws_name">Name</label>
               </div>
             </div>
@@ -232,9 +232,9 @@
             Configure the Volumes to be mounted as your Datasets.</br>
             For example, to create an empty Data Volume:
             <span><code>New</code></span>,
-            <span><code>{{ username }}-volume-1</code></span>,
+            <span><code>data-volume-1</code></span>,
             <span><code>5</code></span>,
-            <span><code>/home/jovyan/{{ username }}-volume-1</code></span>,
+            <span><code>/home/jovyan/data-volume-1</code></span>,
             <span><code>ReadWriteOnce</code></span>
           </p>
           <button class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored"

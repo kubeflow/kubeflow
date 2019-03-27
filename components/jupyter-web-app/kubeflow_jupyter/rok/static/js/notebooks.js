@@ -78,7 +78,24 @@ function createNotebook(ns) {
 };
 
 // Functions for the Notebook Columns in the Table
-function createNbStatusCol(txt, img, size, i) {
+function createSpinner(tip, i) {
+  var col0 = $('<td>')
+  var stat = $('<div>').attr({
+    'id': 'stat' + i,
+    'class': 'mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active'
+  })
+  var statTip = $('<div>').attr({
+    class: "mdl-tooltip",
+    for: 'stat' + i,
+  }).text(tip)
+
+  col0.append(stat)
+      .append(statTip)
+
+  return col0
+}
+
+function createNbStatusIcon(txt, img, size, i) {
   var col0 = $('<td>')
 
   // Show the respective icon
@@ -99,6 +116,47 @@ function createNbStatusCol(txt, img, size, i) {
   return col0
 }
 
+function createNbStatusCol(nb, i) {
+    // If the pod has been created, keep track of container status
+  if ('running' in nb.status) {
+    icon = "fa fa-check-circle"
+    size = "font-size:24px;color:green"
+    return createNbStatusIcon('Running', icon, size, i)
+  }
+  else if ('waiting' in nb.status) {
+    reason = nb.status.waiting.reason
+
+    // Check if ImagePullBackOff
+    if (reason == 'ImagePullBackOff') {
+      icon = "fas fa-times"
+      size = "font-size:24px;color:red"
+      return createNbStatusIcon(reason, icon, size, i)
+    }
+    // Check if it is downloading the image
+    else if (reason == 'ContainerCreating') {
+      // Loading icon      
+      return createSpinner(reason, i)
+    }
+    else {
+      icon = "fas fa-exclamation-triangle"
+      size = "font-size:24px;color:orange"
+      return createNbStatusIcon(reason, icon, size, i)
+    } 
+  } 
+  else if ('terminated' in nb.status) {
+    // Notebook shouldn't terminate
+    reason = nb.status.terminated.reason
+    icon = "fas fa-times"
+    size = "font-size:24px;color:red"
+    return createNbStatusIcon(reason, icon, size, i)
+  }
+
+  // Check if the underlying pods have been created
+  if (nb.pods == 0) {
+    return createSpinner('Scheduling Pod', i)
+  }
+}
+
 function createNbVolumesCol(nb, i) {
   var col = $('<td>');
   var vols_actions_btn = $("<button>").attr({
@@ -108,7 +166,7 @@ function createNbVolumesCol(nb, i) {
 
   var vols_btn_icon = $("<i>").attr({
     class: "material-icons"
-  }).text("subject")
+  }).text("storage")
 
   var vols_actions_menu = $("<ul>").attr({
     class: "mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right",
@@ -142,35 +200,42 @@ function createNbVolumesCol(nb, i) {
 
 function createNbActionsCol(nb, i) {
   var col = $('<td>');
-  var actions_btn = $("<button>").attr({
-    class: "mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon",
-    id: 'menu'+i
-  })
-
-  var btn_icon = $("<i>").attr({
-    class: "material-icons"
-  }).text("more_vert")
-
-  var actions_menu = $("<ul>").attr({
-    class: "mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right",
-    for: 'menu'+i
-  })
-
-  var connect = $("<li>").attr({
-    class: "mdl-menu__item",
+  // Connect
+  ready = true
+  if ('running' in nb.status) { 
+    ready = false 
+  }
+  
+  var connect_btn = $("<button>").attr({
+    class: "mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--colored ",
+    id: 'connect'+i,
+    disabled: ready,
     onclick: `connectNotebook('${nb.namespace}', '${nb.name}')`,
-  }).text('Connect')
+  }).text('CONNECT')
 
-  var del = $("<li>").attr({
-    class: "mdl-menu__item",
+  col.append(connect_btn)
+
+  // Delete
+  var delete_btn = $("<button>").attr({
+    class: "mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon",
+    id: 'delete'+i,
     onclick: `deleteNotebook('${nb.namespace}', '${nb.name}')`,
-  }).text('Delete')
+  })
 
-  actions_btn.append(btn_icon)
-  col.append(actions_btn)
-  actions_menu.append(connect)
-  actions_menu.append(del)
-  col.append(actions_menu)
+  var delete_icon = $("<i>").attr({
+    class: "material-icons",
+    // style: "color:red;"
+  }).text("delete")
+
+  var delTip = $('<div>').attr({
+    class: "mdl-tooltip",
+    for: 'delete' + i,
+  }).text('Delete the Notebook')
+
+  
+  delete_btn.append(delete_icon)
+  col.append(delete_btn)
+     .append(delTip)
 
   return col
 }
@@ -187,29 +252,16 @@ function updateNotebooksInNamespace(ns) {
 
     if(data.success == true){
       // First check if the state hasn't changed      
-      if (_.isEqual(prevNotebooks, data.notebooks) == true) {
+      if (_.isEqual(prevNotebooks, data.notebooks)) {
         return;
       }
 
       // Create a row for every notebook
       for(var i=0; i < data.notebooks.length; i++) {
-
         var nb = data.notebooks[i];
 
         // Col 0: Notebook Loading
-        var col0 = $('<td>')
-        if (nb.status === 'Running') {
-          icon = "fa fa-check-circle"
-          size = "font-size:24px;color:green"
-          col0 = createNbStatusCol(nb.status, icon, size, i)
-        }
-        else if (nb.status !== 'Running') {
-          // Loading icon
-          var stat = $('<div>').attr({
-            'class': 'mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active'
-          })
-          col0.append(stat)
-        }
+        var col0 = createNbStatusCol(nb, i)
 
         // Col 1: Notebook Name
         var col1 = $("<td>").text(nb.name)

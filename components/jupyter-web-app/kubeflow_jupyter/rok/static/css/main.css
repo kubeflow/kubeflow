@@ -1,156 +1,165 @@
 .wide {
-    width: 100%;
+  width: 100%;
 }
 
 .no-ud-pad {
-    padding-top: 0px;
-    padding-bottom: 0px;
+  padding-top: 0px;
+  padding-bottom: 0px;
 }
 
 .nopad {
-    padding: 0 0 0 0;
-    margin: 0 0 8px;
+  padding: 0 0 0 0;
+  margin: 0 0 8px;
 }
 
 .white {
-    color: #fff;
+  color: #fff;
 }
 
 .down {
-    padding-bottom: 10px;
+  padding-bottom: 10px;
 }
 
 .hidden {
-    display: none;
+  display: none;
 }
 
 .round {
-    border-radius: 4px;
+  border-radius: 4px;
 }
 
 .round-top {
-    border-top-right-radius: 4px;
-    border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  border-top-left-radius: 4px;
 }
 
 .my-table {
-    width: 75%;
-    top: 10px;
+  width: 75%;
+  top: 10px;
 }
 
 .mdl-textfield__label{
-   margin-bottom:2px;
- }
+ margin-bottom:2px;
+}
 
- .parent {
-    display: flex;
-  }
-  
-  .spacer {
-    flex-grow: 1;
-  }
+.parent {
+  display: flex;
+}
+
+.spacer {
+  flex-grow: 1;
+}
 
 /*---------- Warnings ---------------*/
 
 .alert-warning {
-    color: #8a6d3b;
-    background-color: #fcf8e3;
-    border-color: #faebcc;
+  color: #8a6d3b;
+  background-color: #fcf8e3;
+  border-color: #faebcc;
 }
 
 .alert-danger {
-    color: #a94442;
-    background-color: #f2dede;
-    border-color: #ebccd1;
+  color: #a94442;
+  background-color: #f2dede;
+  border-color: #ebccd1;
 }
 
 .alert-success {
-    color: #155724;
-    background-color: #d4edda;
-    border-color: #c3e6cb;
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
 }
 
 .alert {
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
 }
 
 .close {
-  margin-left: 15px;
-  font-weight: bold;
-  float: right;
-  font-size: 22px;
-  line-height: 20px;
-  cursor: pointer;
-  transition: 0.3s;
+margin-left: 15px;
+font-weight: bold;
+float: right;
+font-size: 22px;
+line-height: 20px;
+cursor: pointer;
+transition: 0.3s;
 }
 
 .closebtn:hover {
-  color: black;
+color: black;
 }
 
 /*---------- Card Table -------------*/
 
 .submit-card {
-    overflow: visible !important;
-    min-height: 0;
-    min-width: 900px;
-    width: 60%;
-    margin-bottom: 20px;
-  }
-
-.demo-card {
   overflow: visible !important;
   min-height: 0;
-  width: fit-content;
+  min-width: 900px;
+  width: 60%;
+  margin-bottom: 20px;
+}
+
+.demo-card {
+overflow: visible !important;
+min-height: 0;
+width: fit-content;
 }
 
 .mdl-data-table th {
-  text-align: center;
-  /* width: 100%; */
+text-align: center;
+/* width: 100%; */
 }
 
 .mdl-data-table td {
-  text-align: center;
-  /* width: 60%; */
+text-align: center;
+/* width: 60%; */
 }
 
 .fab, .fas, .far {
-  padding-left: 5px;
-  padding-right: 5px;
+padding-left: 5px;
+padding-right: 5px;
 }
 
 .mdl-card__table, table{
-  table-layout: auto;
-  width:900px;
-  margin:0em;
+table-layout: auto;
+min-width:1000px;
+margin:0em;
+}
+
+.mdl-spinner {
+width: 24px;
+height: 24px;
+}
+
+.mdl-spinner__circle {
+border-width: 3px;
 }
 
 /*---------- Login -------------*/
 .mdl-grid.center-items {
-  justify-content: center;
+justify-content: center;
 }
 
 .card-cont {
-    padding-top: 15px;
-    padding-left: 15px;
-    padding-right: 15px;
-    padding-bottom: 15px;
+  padding-top: 15px;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-bottom: 15px;
 }
 
 .card-header {
-    background:#2196f3;
-    padding: 0 0 0 0; /* Normal sized borders */
+  background:#2196f3;
+  padding: 0 0 0 0; /* Normal sized borders */
 }
 
 .mdl-card__supporting-text {
-    padding: 0 0 0 0;
-    width: 100%;
-    overflow: visible;
+  padding: 0 0 0 0;
+  width: 100%;
+  overflow: visible;
 }
 
 .mdl-card {
-  overflow: visible;
-  z-index: 100;
+overflow: visible;
+z-index: 100;
 }

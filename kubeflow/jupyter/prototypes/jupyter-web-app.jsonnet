@@ -7,7 +7,7 @@
 // @optionalParam port string 80 Port to expose the UI's Service
 // @optionalParam policy string Always imagePullPolicy for the UI's image
 // @optionalParam prefix string jupyter The prefix under which the app is accessed
-// @optionalParam rokSecretName string secret-rok-{uername} The name of the secret containing user's credentials for Arrikto Rok
+// @optionalParam rokSecretName string secret-rok-{username} The name of the secret containing user's credentials for Arrikto Rok
 
 local jupyter_ui = import "kubeflow/jupyter/jupyter-web-app.libsonnet";
 

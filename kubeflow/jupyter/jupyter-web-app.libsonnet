@@ -60,6 +60,11 @@
           resources: ["storageclasses"],
           verbs: ["get", "list"],
         },
+        {
+          apiGroups: [""],
+          resources: ["secrets"],
+          verbs: ["get", "list"],
+        },
       ]
     },
 
