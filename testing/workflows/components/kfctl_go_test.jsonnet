@@ -204,14 +204,31 @@ local dagTemplates = [
         "-s",
         // Increase the log level so that info level log statements show up.
         "--log-cli-level=info",
-        // Test timeout in seconds.
-        "--timeout=500",
         "--junitxml=" + artifactsDir + "/junit_kfctl-build-test.xml",
         "--app_path=" + appDir,
       ],
       working_dir=srcDir+ "/testing/kfctl",
     ),
     dependencies: ["checkout"],
+  },
+  // Verify Kubeflow is deployed successfully.
+  {
+    template: buildTemplate(
+      "kfctl-is-ready",
+      [        
+        "pytest",
+        "kf_is_ready_test.py",
+        // I think -s mean stdout/stderr will print out to aid in debugging.
+        // Failures still appear to be captured and stored in the junit file.
+        "-s",
+        // Increase the log level so that info level log statements show up.
+        "--log-cli-level=info",
+        "--junitxml=" + artifactsDir + "/junit_kfctl-is-ready-test.xml",
+        "--app_path=" + appDir,
+      ],
+      working_dir=srcDir+ "/testing/kfctl",
+    ),
+    dependencies: ["kfctl-build-deploy"],
   },
 ];
 
@@ -309,7 +326,6 @@ local exitDag = {
 
 // A list of templates for the actual steps
 //
-// TODO(jlewi): Add componentTests.argoTaskTemplates
 local stepTemplates = std.map(function(i) i.template
                               , dagTemplates)  +
                       std.map(function(i) i.template
