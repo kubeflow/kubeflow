@@ -44,7 +44,7 @@ workflows:
       gkeApiVersion: v1
       workflowName: kfctl-go
       useBasicAuth: false
-  # Run basic auth test as part of every pre and postsubmit run. 
+  # Run basic auth test as part of every periodic and postsubmit run. 
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_go_test
     name: kfctl-go-basic-auth
