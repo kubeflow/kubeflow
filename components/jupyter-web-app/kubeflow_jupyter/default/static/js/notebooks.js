@@ -76,7 +76,7 @@ function createNotebook(ns) {
 };
 
 // Functions for the Notebook Columns in the Table
-function createNbStatusCol(txt, img, size, i) {
+function createNbStatusIcon(txt, img, size, i) {
   var col0 = $('<td>')
 
   // Show the respective icon
@@ -93,6 +93,55 @@ function createNbStatusCol(txt, img, size, i) {
   stat.append(icon)
   col0.append(stat)
       .append(statTip)
+
+  return col0
+}
+
+function createNbStatusCol(nb, i) {
+  var col0 = $('<td>')
+  if ('running' in nb.status) {
+    icon = "fa fa-check-circle"
+    size = "font-size:24px;color:green"
+    col0 = createNbStatusIcon('Running', icon, size, i)
+  }
+  else if ('waiting' in nb.status) {
+    reason = nb.status.waiting.reason
+    // Check if Notebook is being deleted
+
+    // Check if ImagePullBackOff
+    if (status.reason == 'ImagePullBackOff') {
+      icon = "fas fa-times"
+      size = "font-size:24px;color:red"
+      col0 = createNbStatusIcon(reason, icon, size, i)
+    }
+    // Check if it is downloading the image
+    else if (status.reason == 'ContainerCreating') {
+      // Loading icon
+      var stat = $('<div>').attr({
+        'id': 'stat' + i,
+        'class': 'mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active'
+      })
+      var statTip = $('<div>').attr({
+        class: "mdl-tooltip",
+        for: 'stat' + i,
+      }).text(reason)
+
+      col0.append(stat)
+          .append(statTip)
+    }
+    else {
+      icon = "fas fa-exclamation-triangle"
+      size = "font-size:24px;color:yellow"
+      col0 = createNbStatusIcon(reason, icon, size, i)
+    } 
+  } 
+  else if ('terminated' in nb.status) {
+    // Notebook shouldn't terminate
+    reason = nb.status.terminated.reason
+    icon = "fas fa-times"
+    size = "font-size:24px;color:red"
+    col0 = createNbStatusIcon(reason, icon, size, i)
+  }
 
   return col0
 }
@@ -191,23 +240,10 @@ function updateNotebooksInNamespace(ns) {
 
       // Create a row for every notebook
       for(var i=0; i < data.notebooks.length; i++) {
-
         var nb = data.notebooks[i];
 
         // Col 0: Notebook Loading
-        var col0 = $('<td>')
-        if (nb.status === 'Running') {
-          icon = "fa fa-check-circle"
-          size = "font-size:24px;color:green"
-          col0 = createNbStatusCol(nb.status, icon, size, i)
-        }
-        else if (nb.status !== 'Running') {
-          // Loading icon
-          var stat = $('<div>').attr({
-            'class': 'mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active'
-          })
-          col0.append(stat)
-        }
+        var col0 = createNbStatusCol(nb, i)
 
         // Col 1: Notebook Name
         var col1 = $("<td>").text(nb.name)

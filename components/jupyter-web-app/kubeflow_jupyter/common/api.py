@@ -139,7 +139,7 @@ def get_notebooks(ns):
         'srt_image': short_image,
         'uptime': get_notebook_uptime(nb['metadata']['creationTimestamp']),
         'volumes': nb['spec']['template']['spec']['volumes'],
-        'status': 'Running'
+        'status': nb['status']['containerState']
     })
   return nbs
 

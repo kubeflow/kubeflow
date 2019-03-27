@@ -127,6 +127,15 @@
   margin:0em;
 }
 
+.mdl-spinner {
+  width: 24px;
+  height: 24px;
+}
+
+.mdl-spinner__circle {
+  border-width: 3px;
+}
+
 /*---------- Login -------------*/
 .mdl-grid.center-items {
   justify-content: center;
