@@ -78,11 +78,14 @@ def test_build_kfctl_go(app_path, project, use_basic_auth):
     version = "pull/{0}".format(os.getenv("PULL_NUMBER"))
 
   # username and password are passed as env vars and won't appear in the logs
+  # TODO(https://github.com/kubeflow/kubeflow/issues/2831): Once kfctl
+  # supports loading version from a URI we should use that so that we
+  # pull the configs from the repo we checked out.
   run_with_retries([kfctl_path, "init", app_path, "-V", "--platform=gcp",
-                         "--version=" + version,
-                         "--skip-init-gcp-project",
-                         "--disable_usage_report",
-                         "--project=" + project] + init_args, cwd=parent_dir)
+                    "--version=" + version,
+                    "--skip-init-gcp-project",
+                    "--disable_usage_report",
+                    "--project=" + project] + init_args, cwd=parent_dir)
 
   # We need to specify a valid email because
   #  1. We need to create appropriate RBAC rules to allow the current user
