@@ -598,6 +598,10 @@ func deleteDeployment(deploymentmanagerService *deploymentmanager.Service, ctx c
 	return nil
 }
 
+func deleteEndpoints(endpoint string) error {
+	return nil
+}
+
 func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
 	ctx := context.Background()
 	client, err := google.DefaultClient(ctx, deploymentmanager.CloudPlatformScope)
@@ -651,6 +655,9 @@ func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
 	}
 	if err = utils.SetIamPolicy(project, policy); err != nil {
 		return fmt.Errorf("Error when cleaning IAM policy: %v", err)
+	}
+	if err = deleteEndpoints(gcp.Spec.Hostname); err != nil {
+		return err
 	}
 
 	return nil
