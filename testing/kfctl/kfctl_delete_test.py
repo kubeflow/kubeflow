@@ -50,7 +50,12 @@ def test_kfctl_delete(kfctl_path, app_path, project):
   util.run([kfctl_path, "delete", "all", "--delete_storage", "-V"],
            cwd=app_path)
 
-  logging.info("List of endpoints: %s", str(get_endpoints_list(project)))
+  name = os.path.basename(app_path)
+  endpoint_name = "{deployment}.endpoints.{project}.cloud.goog".format(
+      deployment=name,
+      project=project)
+  if endpoint_name in get_endpoints_list(project):
+    raise AssertionError("Endpoint is not deleted: " + endpoint_name)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
