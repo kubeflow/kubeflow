@@ -96,9 +96,10 @@ def get_default_storageclass():
   for strgclss in strg_classes:
     annotations = strgclss.metadata.annotations
     # List of possible annotations
-    keys = []
-    keys.append("storageclass.kubernetes.io/is-default-class")
-    keys.append("storageclass.beta.kubernetes.io/is-default-class")  # GKE
+    keys = [
+        "storageclass.kubernetes.io/is-default-class",
+        "storageclass.beta.kubernetes.io/is-default-class"  # GKE
+    ]
 
     for key in keys:
       is_default = annotations.get(key, False)

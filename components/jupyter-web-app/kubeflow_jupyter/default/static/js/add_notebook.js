@@ -769,7 +769,7 @@ function postNotebook(form, data) {
       const $e = $("#error-msgs").html(innerHTML)
       $('.danger-log', $e).text(res.log)
 
-      window.scrollTo(0, 0);
+      $(".mdl-layout").stop().animate({scrollTop:0}, "fast");
     }
   })
 }
