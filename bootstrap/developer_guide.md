@@ -118,6 +118,15 @@ make push-kfctl-container-latest
 
 * pushes the docker container to $IMG_KFCTL and tags it with kfctl:latest
 
+##### `make run-kfctl-container`
+
+```sh
+make run-kfctl-container
+```
+
+* Runs the local docker container
+
+
 ##### `make test-init`
 
 ```sh
