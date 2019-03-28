@@ -55,7 +55,9 @@ def test_kfctl_delete(kfctl_path, app_path, project):
       deployment=name,
       project=project)
   if endpoint_name in get_endpoints_list(project):
-    raise AssertionError("Endpoint is not deleted: " + endpoint_name)
+    msg = "Endpoint is not deleted: " + endpoint_name
+    logging.errorf(msg)
+    raise AssertionError(msg)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
