@@ -1,4 +1,9 @@
-"""Wait for Kubeflow to be deployed."""
+"""Wait for Kubeflow to be deployed.
+
+
+TODO(jlewi): With 0.5 and kfctl go binary this test is replaced by
+kf_is_ready_test.py.
+"""
 import argparse
 import logging
 

@@ -39,6 +39,7 @@
       deleteKubeflow: true,
       gkeApiVersion: "v1",
       workflowName: "kfctl-go",
+      useBasicAuth: "true",
     },
     click_deploy_test: {
       bucket: "kubeflow-ci_temp",
