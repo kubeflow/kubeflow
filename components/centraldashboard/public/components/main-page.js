@@ -167,7 +167,7 @@ export class MainPage extends PolymerElement {
             this.sidebarItemIndex = -1;
             this.page = 'not_found';
             // Handles case when an iframed page requests an invalid route
-            if (window.location !== window.parent.location) {
+            if (this._isInsideOfIframe()) {
                 notFoundInIframe = true;
             }
         }
@@ -195,6 +195,15 @@ export class MainPage extends PolymerElement {
             this.sidebarItemIndex = -1;
             this.page = 'not_found';
         }
+    }
+
+    /**
+     * Returns true when this component is found to be iframed inside of a
+     * parent page.
+     * @return {boolean}
+     */
+    _isInsideOfIframe() {
+        return window.location !== window.parent.location;
     }
 }
 

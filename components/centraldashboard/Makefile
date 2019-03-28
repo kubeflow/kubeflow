@@ -18,7 +18,7 @@ TAG := $(shell date +v%Y%m%d)-$(GIT_VERSION)
 all: build
 
 clean:
-	rm -rf node_modules/ dist/ .nyc_output
+	rm -rf coverage/ dist/ node_modules/ .nyc_output/
 
 # Builds the package locally
 build-local: clean
