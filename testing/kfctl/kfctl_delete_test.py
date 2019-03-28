@@ -54,10 +54,13 @@ def test_kfctl_delete(kfctl_path, app_path, project):
   endpoint_name = "{deployment}.endpoints.{project}.cloud.goog".format(
       deployment=name,
       project=project)
+  logging.info("Verify endpoint service is deleted: " + endpoint_name)
   if endpoint_name in get_endpoints_list(project):
     msg = "Endpoint is not deleted: " + endpoint_name
     logging.errorf(msg)
     raise AssertionError(msg)
+  else:
+    logging.info("Verified endpoint service is deleted.")
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
