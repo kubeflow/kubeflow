@@ -217,7 +217,7 @@ function createNbActionsCol(nb, i) {
   var delete_btn = $("<button>").attr({
     class: "mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon",
     id: 'delete'+i,
-    onclick: `deleteNotebook('${nb.namespace}', '${nb.name}')`,
+    onclick: `createDialog('${nb.namespace}', '${nb.name}')`,
   })
 
   var delete_icon = $("<i>").attr({
@@ -238,6 +238,23 @@ function createNbActionsCol(nb, i) {
   return col
 }
 
+function createDialog(ns, nm) {
+  showDialog({
+    title: 'You are about to delete Notebook Server: ' + nm,
+    text: 'Are you sure you want to delete this Notebook Server? Your data might be lost if the Server is not backed by persistent storage.',
+    negative: {
+        title: 'CANCEL'
+    },
+    positive: {
+        title: 'DELETE',
+        onClick: function (e) {
+          deleteNotebook(ns, nm)
+        }
+    }
+  });
+}
+
+// Function that updates the Notebooks table
 function updateNotebooksInNamespace(ns) {
   // Put the add Notebook button
   var tmp = $('<div>')

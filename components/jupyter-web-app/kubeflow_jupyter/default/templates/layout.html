@@ -16,6 +16,9 @@
   <link rel="shortcut icon" href="{{ prefix + url_for('static', filename='kubeflow.png') }}">
   <link rel="stylesheet" href="{{ prefix + url_for('static', filename='css/main.css') }}">
 
+  <!-- Dialogs -->
+  <link rel="stylesheet" href="{{ prefix + url_for('static', filename='css/dialog.css') }}"">
+  <script src="{{ prefix + url_for('static', filename='js/dialog.js') }}"></script>
 
   {% if title %}
       <title>Kubeflow Jupyter - {{ title }}</title>
