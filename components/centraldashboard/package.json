@@ -15,6 +15,7 @@
         "start": "npm run serve",
         "test": "npm run test-client && npm run test-server",
         "test-client": "karma start --single-run",
+        "test-client-debug": "karma start --browsers Chrome",
         "test-server": "jasmine-ts --config=app/.jasmine.json",
         "tslint": "tslint -c tslint.json -p tsconfig.json",
         "coverage": "nyc npm run test-server && karma start --single-run --reporters coverage-istanbul",

@@ -56,15 +56,14 @@ describe('Main Page', () => {
     });
 
     it('Sets view state when dashboard page is active', async () => {
-        mainPage._routePageChanged('dashboard');
-        flush();
-
         const selectedTabPromise = new Promise((resolve) => {
             const paperTabs = mainPage.shadowRoot.querySelector('paper-tabs');
             paperTabs.addEventListener('selected-item-changed', () => {
                 resolve();
             });
         });
+        mainPage._routePageChanged('');
+        flush();
 
         expect(mainPage.page).toBe('dashboard');
         expect(mainPage.sidebarItemIndex).toBe(0);
@@ -78,15 +77,14 @@ describe('Main Page', () => {
     });
 
     it('Sets view state when activities page is active', async () => {
-        mainPage._routePageChanged('activity');
-        flush();
-
         const selectedTabPromise = new Promise((resolve) => {
             const paperTabs = mainPage.shadowRoot.querySelector('paper-tabs');
             paperTabs.addEventListener('selected-item-changed', () => {
                 resolve();
             });
         });
+        mainPage._routePageChanged('activity');
+        flush();
 
         expect(mainPage.page).toBe('activity');
         expect(mainPage.sidebarItemIndex).toBe(0);
@@ -98,6 +96,38 @@ describe('Main Page', () => {
         expect(mainPage.shadowRoot.querySelector('paper-tab[page="activity"]')
             .classList.contains('iron-selected')).toBe(true);
     });
+
+    it('Sets view state when an invalid page is specified', () => {
+        spyOn(mainPage, '_isInsideOfIframe').and.returnValue(false);
+        mainPage._routePageChanged('not-a-valid-page');
+        flush();
+
+        expect(mainPage.page).toBe('not_found');
+        expect(mainPage.sidebarItemIndex).toBe(-1);
+        expect(mainPage.notFoundInIframe).toBe(false);
+        expect(mainPage.inIframe).toBe(false);
+        expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
+            .hasAttribute('hidden')).toBe(true);
+        expect(mainPage.shadowRoot.querySelector('paper-tabs')
+            .hasAttribute('hidden')).toBe(true);
+    });
+
+    it('Sets view state when an invalid page is specified from an iframe',
+        () => {
+            spyOn(mainPage, '_isInsideOfIframe').and.returnValue(true);
+            mainPage._routePageChanged('not-a-valid-page-in-iframe');
+            flush();
+
+            expect(mainPage.page).toBe('not_found');
+            expect(mainPage.sidebarItemIndex).toBe(-1);
+            expect(mainPage.notFoundInIframe).toBe(true);
+            expect(mainPage.shadowRoot.querySelector('paper-tabs')
+                .hasAttribute('hidden')).toBe(true);
+            expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
+                .hasAttribute('hidden')).toBe(true);
+            expect(mainPage.shadowRoot.querySelector('paper-tabs')
+                .hasAttribute('hidden')).toBe(true);
+        });
 
     it('Sets view state when iframe page is active', () => {
         spyOn(mainPage.$.MainDrawer, 'close');
