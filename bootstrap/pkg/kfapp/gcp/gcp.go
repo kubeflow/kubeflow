@@ -115,11 +115,9 @@ func GetKfApp(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 		isCLI:       true,
 	}
 	if _gcp.Spec.Email == "" {
-		account, err := GetAccount()
-		if err != nil {
+		if err = _gcp.getAccount(); err != nil {
 			log.Infof("cannot get gcloud account email. Error: %v", err)
 		}
-		_gcp.Spec.Email = account
 	}
 	return _gcp, nil
 }
@@ -128,14 +126,15 @@ func getSA(name string, nameSuffix string, project string) string {
 	return fmt.Sprintf("%v-%v@%v.iam.gserviceaccount.com", name, nameSuffix, project)
 }
 
-// if --email is not supplied try and the get account info using gmail
-func GetAccount() (string, error) {
+// getAccount if --email is not supplied try and get account info using gcloud
+func (gcp *Gcp) getAccount() error {
 	output, err := exec.Command("gcloud", "config", "get-value", "account").Output()
 	if err != nil {
-		return "", fmt.Errorf("could not call 'gcloud config get-value account': %v", err)
+		return fmt.Errorf("could not call 'gcloud config get-value account': %v", err)
 	}
 	account := string(output)
-	return strings.TrimSpace(account), nil
+	gcp.Spec.Email = strings.TrimSpace(account)
+	return nil
 }
 
 func (gcp *Gcp) writeConfigFile() error {
@@ -966,6 +965,9 @@ func (gcp *Gcp) createSecrets() error {
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	if gcp.Spec.Email == "" {
+		if gcp.isCLI {
+			return fmt.Errorf("--email not specified and cannot get gcloud value.")
+		}
 		return fmt.Errorf("email not specified.")
 	}
 	switch resources {
@@ -1044,7 +1046,6 @@ func (gcp *Gcp) gcpInitProject() error {
 	return nil
 }
 
-// Don't change signature: this entry is share among kfctl and deploy app
 // Init initializes a gcp kfapp
 func (gcp *Gcp) Init(resources kftypes.ResourceEnum) error {
 	cacheDir := path.Join(gcp.Spec.AppDir, kftypes.DefaultCacheDir)
