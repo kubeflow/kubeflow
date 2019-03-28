@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -71,17 +72,26 @@ func getResource(mapping *meta.RESTMapping, config *rest.Config, group string,
 	version string, namespace string, name string) error {
 	restClient, err := getRESTClient(config, group, version)
 	if err != nil {
-		return fmt.Errorf("getResource error: %v", err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("getResource error: %v", err),
+		}
 	}
 
-	_, err = restClient.
+	if _, err = restClient.
 		Get().
 		Resource(mapping.Resource).
 		NamespaceIfScoped(namespace, mapping.Scope.Name() == "namespace").
 		Name(name).
 		Do().
-		Get()
-	return err
+		Get(); err == nil {
+		return nil
+	} else {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("getResource error: %v", err),
+		}
+	}
 }
 
 // TODO(#2391): kubectl is hard to be used as library - it's deeply integrated with
@@ -91,25 +101,36 @@ func patchResource(mapping *meta.RESTMapping, config *rest.Config, group string,
 	version string, namespace string, data []byte) error {
 	restClient, err := getRESTClient(config, group, version)
 	if err != nil {
-		return fmt.Errorf("patchResource error: %v", err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("patchResource error: %v", err),
+		}
 	}
 
-	_, err = restClient.
+	if _, err = restClient.
 		Patch(k8stypes.JSONPatchType).
 		Resource(mapping.Resource).
 		NamespaceIfScoped(namespace, mapping.Scope.Name() == "namespace").
 		Body(data).
 		Do().
-		Get()
-
-	return err
+		Get(); err == nil {
+		return nil
+	} else {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("patchResource error: %v", err),
+		}
+	}
 }
 
 func deleteResource(mapping *meta.RESTMapping, config *rest.Config, group string,
 	version string, namespace string, name string) error {
 	restClient, err := getRESTClient(config, group, version)
 	if err != nil {
-		return fmt.Errorf("deleteResource error: %v", err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("deleteResource error: %v", err),
+		}
 	}
 
 	_, err = restClient.
@@ -124,7 +145,10 @@ func deleteResource(mapping *meta.RESTMapping, config *rest.Config, group string
 		if k8serrors.IsNotFound(err) {
 			return nil
 		} else {
-			return fmt.Errorf("Resource deletion error: %v", err)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("Resource deletion error: %v", err),
+			}
 		}
 	}
 
@@ -139,7 +163,10 @@ func deleteResource(mapping *meta.RESTMapping, config *rest.Config, group string
 			if getErr != nil {
 				msg = msg + getErr.Error()
 			}
-			return fmt.Errorf(msg)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: msg,
+			}
 		}
 	}, backoff.NewExponentialBackOff())
 }
@@ -148,17 +175,26 @@ func createResource(mapping *meta.RESTMapping, config *rest.Config, group string
 	version string, namespace string, data []byte) error {
 	restClient, err := getRESTClient(config, group, version)
 	if err != nil {
-		return fmt.Errorf("createResource error: %v", err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("createResource error: %v", err),
+		}
 	}
 
-	_, err = restClient.
+	if _, err = restClient.
 		Post().
 		Resource(mapping.Resource).
 		NamespaceIfScoped(namespace, mapping.Scope.Name() == "namespace").
 		Body(data).
 		Do().
-		Get()
-	return err
+		Get(); err == nil {
+		return nil
+	} else {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("createResource error: %v", err),
+		}
+	}
 }
 
 // TODO(#2585): Should try to have 3 way merge functionality.
@@ -180,7 +216,7 @@ func patchOrCreate(mapping *meta.RESTMapping, config *rest.Config, group string,
 		log.Infof("Retrying patchOrCreate at %v attempt ...", i)
 		err = getResource(mapping, config, group, version, namespace, name)
 		if err != nil {
-			return fmt.Errorf("Resource creation error: %v", err)
+			return err
 		}
 		err = patchResource(mapping, config, group, version, namespace, data)
 	}
@@ -189,7 +225,7 @@ func patchOrCreate(mapping *meta.RESTMapping, config *rest.Config, group string,
 		k8serrors.IsMethodNotSupported(err)) {
 		log.Infof("Trying delete and create as last resort ...")
 		if err = deleteResource(mapping, config, group, version, namespace, name); err != nil {
-			return fmt.Errorf("Resource deletion error: %v", err)
+			return err
 		}
 		err = createResource(mapping, config, group, version, namespace, data)
 	}
@@ -205,7 +241,14 @@ func RunKubectlApply(filename string, args ...string) error {
 	cmd := exec.Command("kubectl", cmdargs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stdout
-	return cmd.Run()
+	if err := cmd.Run(); err == nil {
+		return nil
+	} else {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: err.Error(),
+		}
+	}
 }
 
 // CreateResourceFromFile creates resources from a file, just like `kubectl create -f filename`
@@ -216,14 +259,20 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 	// Create a restmapper to determine the resource type.
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
-		return err
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: err.Error(),
+		}
 	}
 	cached := cached.NewMemCacheClient(discoveryClient)
 	mapper := discovery.NewDeferredDiscoveryRESTMapper(cached, dynamic.VersionInterfaces)
 
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return err
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: err.Error(),
+		}
 	}
 	objects := bytes.Split(data, []byte(yamlSeparator))
 	var o map[string]interface{}
@@ -314,7 +363,10 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 				}
 				log.Infof("Resource creation for %v is failed, backoff and retry: %v",
 					name, retryErr.Error())
-				return retryErr
+				return &kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: retryErr.Error(),
+				}
 			}, backoff.NewExponentialBackOff())
 		}(idx, gk, config, group, version, namespace, name, data)
 	}
@@ -322,7 +374,10 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 	wg.Wait()
 	for _, e := range errors {
 		if e != nil {
-			return fmt.Errorf("CreateResourceFromFile is failed: %v", e)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: e.Error(),
+			}
 		}
 	}
 	return nil

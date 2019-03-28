@@ -1379,7 +1379,7 @@ func (gcp *Gcp) getServiceClient(ctx context.Context) (*http.Client, error) {
 	client, err := google.DefaultClient(ctx, gke.CloudPlatformScope)
 	if err != nil {
 		log.Fatalf("Could not authenticate Client: %v", err)
-		return &kfapis.KfError{
+		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Could not authenticate Client: %v", err),
 		}
