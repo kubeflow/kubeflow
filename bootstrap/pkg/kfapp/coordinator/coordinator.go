@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
@@ -453,14 +454,37 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum) error {
 
 	switch resources {
 	case kftypes.ALL:
-		if err := platform(); err != nil {
-			return err
+		// if we're deleting ALL, any problems with deleting k8s will abort and not delete the platform
+		if err := k8s(); err != nil {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("error while deleting k8 resources, aborting deleting the platform. Error %v", err),
+			}
 		}
-		return k8s()
+		if err := platform(); err != nil {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("error while deleting platform resources. Error %v", err),
+			}
+		}
 	case kftypes.PLATFORM:
-		return platform()
+		// deleting the PLATFORM means deleting the cluster. We remove k8s first in order free up any cloud vendor
+		// resources. Deleting k8 resources is a best effort and partial delete or failure should not
+		// prevent PLATFORM (cluster) deletion
+		_ = k8s()
+		if err := platform(); err != nil {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("error while deleting platform resources. Error %v", err),
+			}
+		}
 	case kftypes.K8S:
-		return k8s()
+		if err := k8s(); err != nil {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("error while deleting k8 resources, aborting deleting the platform. Error %v", err),
+			}
+		}
 	}
 	return nil
 }
