@@ -5,7 +5,7 @@
 // @param name string Name to give to each of the components
 // @optionalParam disks string null Comma separated list of Google persistent disks to attach to jupyter environments.
 // @optionalParam cloud string null String identifying the cloud to customize the deployment for.
-// @optionalParam paddleJobImage string ppl521/paddlejob-operator:3.0 The image for the Paddle controller
+// @optionalParam paddleJobImage string ppl521/paddle-operator:6.0 The image for the Paddle controller
 // @optionalParam paddleDefaultImage string null The default image to use for paddle
 // @optionalParam paddleJobVersion string Fluid which version of the PaddleJob operator to use
 // @optionalParam deploymentScope string cluster The scope at which paddle-operator should be deployed - valid values are cluster, namespace.
