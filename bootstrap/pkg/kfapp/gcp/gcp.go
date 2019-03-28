@@ -1178,9 +1178,13 @@ func insertSecret(client *clientset.Clientset, secretName string, namespace stri
 		Data: data,
 	}
 	_, err := client.CoreV1().Secrets(namespace).Create(secret)
-	return &kfapis.KfError{
-		Code:    int(kfapis.INTERNAL_ERROR),
-		Message: err.Error(),
+	if err == nil {
+		return nil
+	} else {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: err.Error(),
+		}
 	}
 }
 
