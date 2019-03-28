@@ -21,7 +21,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"

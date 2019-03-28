@@ -17,11 +17,9 @@ limitations under the License.
 package utils
 
 import (
-	"fmt"
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"io/ioutil"

@@ -320,7 +320,10 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 			log.Infof("Updating deployment %v", deployment)
 			op, updateErr := deploymentmanagerService.Deployments.Update(project, deployment, dp).Context(ctx).Do()
 			if updateErr != nil {
-				return fmt.Errorf("Update deployment error: %v", updateErr)
+				return &kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("Update deployment error: %v", updateErr),
+				}
 			}
 			opName = op.Name
 		} else {
@@ -686,24 +689,34 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 	if gcp.isCLI {
 		if gcp.Spec.UseBasicAuth {
 			if os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" || os.Getenv(kftypes.KUBEFLOW_PASSWORD) == "" {
-				return fmt.Errorf("gcp apply needs ENV %v and %v set when using basic auth",
-					kftypes.KUBEFLOW_USERNAME, kftypes.KUBEFLOW_PASSWORD)
+				return &kfapis.KfError{
+					Code: int(kfapis.INVALID_ARGUMENT),
+					Message: fmt.Sprintf("gcp apply needs ENV %v and %v set when using basic auth",
+						kftypes.KUBEFLOW_USERNAME, kftypes.KUBEFLOW_PASSWORD),
+				}
 			}
 			gcp.username = os.Getenv(kftypes.KUBEFLOW_USERNAME)
 			password := os.Getenv(kftypes.KUBEFLOW_PASSWORD)
 			passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 			if err != nil {
-				return fmt.Errorf("Error when hashing password: %v", err)
+				return &kfapis.KfError{
+					Code:    int(kfapis.INVALID_ARGUMENT),
+					Message: fmt.Sprintf("Error when hashing password: %v", err),
+				}
 			}
 			gcp.encodedPassword = base64.StdEncoding.EncodeToString(passwordHash)
 		} else {
 			if os.Getenv(CLIENT_ID) == "" {
-				return fmt.Errorf("Need to set environment variable `%v` for IAP.",
-					CLIENT_ID)
+				return &kfapis.KfError{
+					Code:    int(kfapis.INVALID_ARGUMENT),
+					Message: fmt.Sprintf("Need to set environment variable `%v` for IAP.", CLIENT_ID),
+				}
 			}
 			if os.Getenv(CLIENT_SECRET) == "" {
-				return fmt.Errorf("Need to set environment variable `%v` for IAP.",
-					CLIENT_SECRET)
+				return &kfapis.KfError{
+					Code:    int(kfapis.INVALID_ARGUMENT),
+					Message: fmt.Sprintf("Need to set environment variable `%v` for IAP.", CLIENT_SECRET),
+				}
 			}
 			gcp.oauthId = os.Getenv(CLIENT_ID)
 			gcp.oauthSecret = os.Getenv(CLIENT_SECRET)
@@ -738,7 +751,10 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 		log.Infof("Running get-credentials %v --zone=%v --project=%v ...", gcp.KfDef.Name,
 			gcp.KfDef.Spec.Zone, gcp.KfDef.Spec.Project)
 		if err := cred_cmd.Run(); err != nil {
-			return fmt.Errorf("Error when running gcloud container clusters get-credentials: %v", err)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("Error when running gcloud container clusters get-credentials: %v", err),
+			}
 		}
 		if _, err := os.Stat(kftypes.KubeConfigPath()); !os.IsNotExist(err) {
 			gcp.AddNamedContext()
