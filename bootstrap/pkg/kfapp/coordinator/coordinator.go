@@ -136,7 +136,7 @@ func getPlatform(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 	case string(kftypes.MINIKUBE):
 		return minikube.GetKfApp(kfdef), nil
 	case string(kftypes.GCP):
-		return gcp.GetKfApp(kfdef), nil
+		return gcp.GetKfApp(kfdef)
 	default:
 		log.Infof("** loading %v.so for platform %v **", kfdef.Spec.Platform, kfdef.Spec.Platform)
 		return kftypes.LoadKfApp(kfdef)
