@@ -83,6 +83,12 @@
                 command: [
                   "/manager",
                 ],
+                env: if util.toBool(params.injectGcpCredentials) then [
+                  {
+                    name: "GCP_CREDENTIALS",
+                    value: "true",
+                  },
+                ] else [],
               },
             ],
           },

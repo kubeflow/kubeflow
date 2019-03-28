@@ -18,6 +18,7 @@ package notebook
 
 import (
 	"context"
+	"os"
 	"strings"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
@@ -283,6 +284,14 @@ func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
 			},
 		},
 	}
+
+	// Inject GCP credentials
+	if os.Getenv("GCP_CREDENTIALS") != "" {
+		labels := &ss.Spec.Template.ObjectMeta.Labels
+		(*labels)["gcp-cred-secret"] = "user-gcp-sa"
+		(*labels)["gcp-cred-secret-filename"] = "user-gcp-sa.json"
+	}
+
 	podSpec := &ss.Spec.Template.Spec
 	container := &podSpec.Containers[0]
 	if container.WorkingDir == "" {
