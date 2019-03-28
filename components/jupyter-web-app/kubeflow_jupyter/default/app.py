@@ -62,7 +62,7 @@ def post_notebook(namespace):
   if body["ws_type"] != "None":
     utils.add_notebook_volume(
         notebook,
-        "volume-" + body["nm"],
+        body["ws_name"],
         body["ws_name"],
         "/home/jovyan",
     )
@@ -71,14 +71,14 @@ def post_notebook(namespace):
   counter = 1
   while ("vol_name" + str(counter)) in body:
     i = str(counter)
-    vol_nm = 'data-volume-' + i
-    pvc_nm = body['vol_name' + i]
+    vol_nm = body['vol_name' + i]
+    pvc_nm = vol_nm
     mnt = body['vol_mount_path' + i]
 
     # Create a PVC if its a new Data Volume
     if body["vol_type" + i] == "New":
       try:
-        api.create_datavol_pvc(data, i)
+        api.create_datavol_pvc(body, i)
       except ApiException as e:
         data["success"] = False
         data["log"] = api.parse_error(e)

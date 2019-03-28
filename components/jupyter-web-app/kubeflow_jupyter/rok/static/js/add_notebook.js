@@ -808,7 +808,7 @@ function postNotebook(form, data) {
       const $e = $("#error-msgs").html(innerHTML)
       $('.danger-log', $e).text(res.log)
 
-      $(".mdl-layout").stop().animate({scrollTop:0}, "fast");
+      $('html,body').stop().animate({scrollTop:0}, "fast");
     }
   })
 }

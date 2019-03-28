@@ -43,11 +43,11 @@
 }
 
 .parent {
-  display: flex;
+display: flex;
 }
 
 .spacer {
-  flex-grow: 1;
+flex-grow: 1;
 }
 
 /*---------- Warnings ---------------*/
@@ -72,7 +72,6 @@
 
 .alert {
   padding: 15px;
-  margin-bottom: 20px;
   border-radius: 4px;
 }
 
@@ -90,30 +89,33 @@ transition: 0.3s;
 color: black;
 }
 
-/*---------- Card Table -------------*/
-
-.submit-card {
-  overflow: visible !important;
-  min-height: 0;
-  min-width: 900px;
-  width: 60%;
-  margin-bottom: 20px;
+/* ------------- Main Content ------------ */
+.errors {
+margin-top: 10px;
+margin-bottom: 10px;
 }
 
+#error-msgs {
+min-width: 900px;
+width: 60%;
+}
+/* ---------- Card Table -------------*/
 .demo-card {
 overflow: visible !important;
 min-height: 0;
 width: fit-content;
 }
 
+.mdl-data-table {
+border: 0px;
+}
+
 .mdl-data-table th {
 text-align: center;
-/* width: 100%; */
 }
 
 .mdl-data-table td {
 text-align: center;
-/* width: 60%; */
 }
 
 .fab, .fas, .far {
@@ -121,6 +123,7 @@ padding-left: 5px;
 padding-right: 5px;
 }
 
+/* Notebooks Table */
 .mdl-card__table, table{
 table-layout: auto;
 min-width:1000px;
@@ -136,7 +139,14 @@ height: 24px;
 border-width: 3px;
 }
 
-/*---------- Login -------------*/
+.submit-card {
+overflow: visible !important;
+min-height: 0;
+min-width: 900px;
+width: 60%;
+margin-bottom: 20px;
+}
+
 .mdl-grid.center-items {
 justify-content: center;
 }
@@ -162,4 +172,13 @@ justify-content: center;
 .mdl-card {
 overflow: visible;
 z-index: 100;
+}
+
+hr {
+display: block;
+height: 1px;
+border: 0;
+border-top: 1px solid rgba(0,0,0,0.12);
+padding: 0;
+margin: 0px;
 }

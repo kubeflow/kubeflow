@@ -6,7 +6,6 @@
 {% endblock %}
 
 {% block content %}
-
 <div class='parent'>
   <div class="spacer"></div>
   <!-- Namespace Selector -->
@@ -17,7 +16,7 @@
         <option value="{{ ns }}">{{ ns }}</option>
       {% endfor %}
     </select>
-    <label class="mdl-textfield__label" for="ns">Selact Project</label>
+    <label class="mdl-textfield__label" for="ns">Select Project</label>
   </div>
 
   <!-- Search Bar -->
@@ -43,6 +42,7 @@
         <h2 class="mdl-card__title-text mdl-typography--title">Notebook Servers</h2>
       </div>
 
+      <hr/>
       <div class="mdl-card__table">
         <table class="mdl-data-table mdl-js-data-table">
           <thead>
@@ -66,7 +66,7 @@
       <!-- Menus on top right of top card -->
       <div class="mdl-card__menu">
         <button class="mdl-button mdl-js-button mdl-js-ripple-effect 
-                       mdl-button--raised mdl-button--colored"
+                       mdl-button--colored"
                 id="create-nb-btn">
           <!-- <i class="material-icons">filter_list</i> -->
           + NEW SERVER

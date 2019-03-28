@@ -65,7 +65,7 @@ def post_notebook(namespace):
     # Create the Workspace Volume in the Pod
     utils.add_notebook_volume(
         notebook,
-        "volume-" + body["nm"],
+        body["ws_name"],
         body["ws_name"],
         "/home/jovyan",
     )
@@ -74,8 +74,8 @@ def post_notebook(namespace):
   counter = 1
   while ("vol_name" + str(counter)) in body:
     i = str(counter)
-    vol_nm = 'data-volume-' + i
-    pvc_nm = body['vol_name' + i]
+    vol_nm = body['vol_name' + i]
+    pvc_nm = vol_nm
     mnt = body['vol_mount_path' + i]
 
     # Create the Data Volume PVC

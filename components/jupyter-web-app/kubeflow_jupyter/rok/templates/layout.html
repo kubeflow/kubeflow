@@ -30,29 +30,13 @@
   {% endblock %}
 </head>
 <body>
-  <!-- The headbar -->
-  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-    <header class="mdl-layout__header mdl-layout__header--scroll mdl-shadow--4dp">
-      <div class="mdl-layout__header-row">
-        <!-- Title -->
-        <a href="{{ prefix + '/'}}" style="text-decoration:none">
-          <span class="mdl-layout-title white" >Notebooks</span>
-        </a>
-        <!-- Add spacer, to align navigation to the right -->
-        <div class="mdl-layout-spacer"></div>
-      </div>
-    </header>
-
-    <main class="mdl-layout__content">
-      <div class="mdl-grid center-items">
-        <div class="mdl-cell mdl-cell--8-col">
-          <div id="error-msgs" class="wide"></div>
-        </div>
-      </div>
-      <div class="page-content">
-        {% block content %}{% endblock %}
-      </div>
-    </main>
+  <div class='parent errors'>
+    <div class="spacer"></div>
+    <div id="error-msgs"></div>
+    <div class="spacer"></div>
+  </div>
+  <div class="page-content">
+    {% block content %}{% endblock %}
   </div>
 </body>
 </html>
