@@ -85,7 +85,7 @@ local prowDict = {
 // We use separate kubeConfig files for separate clusters
 local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=[]) = {
   name: step_name,
-  activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
+  activeDeadlineSeconds: 2700,  // Set 30 minute timeout for each template
   workingDir: working_dir,
   container: {
     command: command,
@@ -124,6 +124,16 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
         value: kubeConfig,
       },
     ] + prowEnv + env_vars,
+    resources: {
+      requests: {
+        memory: "1.5Gi",
+        cpu: "1",
+      },
+      limits: {
+        memory: "4Gi",
+        cpu: "4",
+      },
+    },
     volumeMounts: [
       {
         name: dataVolume,
@@ -170,6 +180,12 @@ local componentTests = util.kfTests {
   },
 };
 
+// We need to make the XML files and test suite names unique based on the parameters.
+local nameSuffix = if util.toBool(params.useBasicAuth) then
+  "basic-auth"
+  else
+  "iap";
+
 // Create a list of dictionary.c
 // Each item is a dictionary describing one step in the graph.
 local dagTemplates = [
@@ -178,6 +194,7 @@ local dagTemplates = [
                             ["/usr/local/bin/checkout.sh", srcRootDir],
                             env_vars=[{
                               name: "EXTRA_REPOS",
+                              // TODO(jlewi): Stop pinning to 341 once its submitted.
                               value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
                             }]),
     dependencies: null,
@@ -202,9 +219,12 @@ local dagTemplates = [
         // I think -s mean stdout/stderr will print out to aid in debugging.
         // Failures still appear to be captured and stored in the junit file.
         "-s",
+        "--use_basic_auth=" + params.useBasicAuth,
         // Increase the log level so that info level log statements show up.
-        "--log-cli-level=info",
-        "--junitxml=" + artifactsDir + "/junit_kfctl-build-test.xml",
+        "--log-cli-level=info",        
+        "--junitxml=" + artifactsDir + "/junit_kfctl-build-test" + nameSuffix + ".xml",
+        // Test suite name needs to be unique based on parameters
+        "-o", "junit_suite_name=test_kgctl_go_deploy_" + nameSuffix, 
         "--app_path=" + appDir,
       ],
       working_dir=srcDir+ "/testing/kfctl",
@@ -221,9 +241,12 @@ local dagTemplates = [
         // I think -s mean stdout/stderr will print out to aid in debugging.
         // Failures still appear to be captured and stored in the junit file.
         "-s",
+        "--use_basic_auth=" + params.useBasicAuth,
         // Increase the log level so that info level log statements show up.
         "--log-cli-level=info",
-        "--junitxml=" + artifactsDir + "/junit_kfctl-is-ready-test.xml",
+        "--junitxml=" + artifactsDir + "/junit_kfctl-is-ready-test-" + nameSuffix + ".xml",
+        // Test suite name needs to be unique based on parameters
+        "-o", "junit_suite_name=test_kf_is_ready_" + nameSuffix,         
         "--app_path=" + appDir,
       ],
       working_dir=srcDir+ "/testing/kfctl",

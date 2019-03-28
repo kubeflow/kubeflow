@@ -17,6 +17,10 @@ def pytest_addoption(parser):
       "--project", action="store", default="kubeflow-ci-deployment",
       help="GCP project to deploy Kubeflow to")
 
+  parser.addoption(
+      "--use_basic_auth", action="store", default="False",
+      help="Use basic auth.")
+
 @pytest.fixture
 def app_path(request):
   return request.config.getoption("--app_path")
@@ -32,3 +36,12 @@ def namespace(request):
 @pytest.fixture
 def project(request):
   return request.config.getoption("--project")
+
+@pytest.fixture
+def use_basic_auth(request):
+  value = request.config.getoption("--use_basic_auth").lower()
+
+  if value in ["t", "true"]:
+    return True
+  else:
+    return False
