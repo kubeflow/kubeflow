@@ -85,6 +85,12 @@ type Gcp struct {
 	tokenSource oauth2.TokenSource
 	// When isCLI is false, following code need to be multi-thread safe, and can not access local configs or gcloud cli
 	isCLI bool
+	// requried when choose basic-auth
+	username        string
+	encodedPassword string
+	// requried when choose iap
+	oauthId     string
+	oauthSecret string
 }
 
 // GetKfApp returns the gcp kfapp. It's called by coordinator.GetKfApp
@@ -98,7 +104,7 @@ func GetKfApp(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
 	if err != nil {
 		return nil, &kfapis.KfError{
-			Code: int(kfapis.INVALID_ARGUMENT),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Get token error: %v", err),
 		}
 	}
@@ -563,18 +569,29 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 	// kfctl only
 	if gcp.isCLI {
-		if os.Getenv(CLIENT_ID) == "" && !gcp.Spec.UseBasicAuth {
-			return fmt.Errorf("Need to set environment variable `%v` for IAP.",
-				CLIENT_ID)
-		}
-		if os.Getenv(CLIENT_SECRET) == "" && !gcp.Spec.UseBasicAuth {
-			return fmt.Errorf("Need to set environment variable `%v` for IAP.",
-				CLIENT_SECRET)
-		}
-		if gcp.KfDef.Spec.UseBasicAuth && (os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" ||
-			os.Getenv(kftypes.KUBEFLOW_PASSWORD) == "") {
-			return fmt.Errorf("gcp apply needs ENV %v and %v set when using basic auth",
-				kftypes.KUBEFLOW_USERNAME, kftypes.KUBEFLOW_PASSWORD)
+		if gcp.Spec.UseBasicAuth {
+			if os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" || os.Getenv(kftypes.KUBEFLOW_PASSWORD) == "" {
+				return fmt.Errorf("gcp apply needs ENV %v and %v set when using basic auth",
+					kftypes.KUBEFLOW_USERNAME, kftypes.KUBEFLOW_PASSWORD)
+			}
+			gcp.username = os.Getenv(kftypes.KUBEFLOW_USERNAME)
+			password := os.Getenv(kftypes.KUBEFLOW_PASSWORD)
+			passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+			if err != nil {
+				return fmt.Errorf("Error when hashing password: %v", err)
+			}
+			gcp.encodedPassword = base64.StdEncoding.EncodeToString(passwordHash)
+		} else {
+			if os.Getenv(CLIENT_ID) == "" {
+				return fmt.Errorf("Need to set environment variable `%v` for IAP.",
+					CLIENT_ID)
+			}
+			if os.Getenv(CLIENT_SECRET) == "" {
+				return fmt.Errorf("Need to set environment variable `%v` for IAP.",
+					CLIENT_SECRET)
+			}
+			gcp.oauthId = os.Getenv(CLIENT_ID)
+			gcp.oauthSecret = os.Getenv(CLIENT_SECRET)
 		}
 	}
 
@@ -591,20 +608,6 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 
 	// kfctl only
 	if gcp.isCLI {
-		ctx := context.Background()
-		k8sClient, err := gcp.getK8sClientset(ctx)
-		if err != nil {
-			return fmt.Errorf("Get K8s clientset error: %v", err)
-		}
-		if gcp.Spec.UseBasicAuth {
-			if err := gcp.createBasicAuthSecret(k8sClient); err != nil {
-				return fmt.Errorf("cannot create basic auth login secret: %v", err)
-			}
-		} else {
-			if err := gcp.createIapSecret(ctx, k8sClient); err != nil {
-				return fmt.Errorf("cannot create IAP auth secret: %v", err)
-			}
-		}
 		// TODO(#2604): Need to create a named context.
 		cred_cmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
 			gcp.Name,
@@ -897,35 +900,26 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 		log.Infof("Secret for %v already exits ...", KUBEFLOW_OAUTH)
 		return nil
 	}
-	oauthId := os.Getenv(CLIENT_ID)
-	oauthSecret := os.Getenv(CLIENT_SECRET)
 
 	return insertSecret(client, KUBEFLOW_OAUTH, oauthSecretNamespace, map[string][]byte{
-		strings.ToLower(CLIENT_ID):     []byte(oauthId),
-		strings.ToLower(CLIENT_SECRET): []byte(oauthSecret),
+		strings.ToLower(CLIENT_ID):     []byte(gcp.oauthId),
+		strings.ToLower(CLIENT_SECRET): []byte(gcp.oauthSecret),
 	})
 }
 
 // Use username and password provided by user and create secret for basic auth.
 func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
-	username := os.Getenv(kftypes.KUBEFLOW_USERNAME)
-	password := os.Getenv(kftypes.KUBEFLOW_PASSWORD)
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
-	if err != nil {
-		return fmt.Errorf("Error when hashing password: %v", err)
-	}
-	encodedPasswordHash := base64.StdEncoding.EncodeToString(passwordHash)
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      BASIC_AUTH_SECRET,
 			Namespace: gcp.Namespace,
 		},
 		Data: map[string][]byte{
-			"username":     []byte(username),
-			"passwordhash": []byte(encodedPasswordHash),
+			"username":     []byte(gcp.username),
+			"passwordhash": []byte(gcp.encodedPassword),
 		},
 	}
-	_, err = client.CoreV1().Secrets(gcp.KfDef.Namespace).Update(secret)
+	_, err := client.CoreV1().Secrets(gcp.KfDef.Namespace).Update(secret)
 	if err != nil {
 		log.Warnf("Updating basic auth login is failed, trying to create one: %v", err)
 		_, err = client.CoreV1().Secrets(gcp.Namespace).Create(secret)
@@ -954,6 +948,15 @@ func (gcp *Gcp) createSecrets() error {
 		}
 		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME, IstioNamespace); err != nil {
 			return fmt.Errorf("cannot create user secret %v Error %v", USER_SECRET_NAME, err)
+		}
+	}
+	if gcp.Spec.UseBasicAuth {
+		if err := gcp.createBasicAuthSecret(k8sClient); err != nil {
+			return fmt.Errorf("cannot create basic auth login secret: %v", err)
+		}
+	} else {
+		if err := gcp.createIapSecret(ctx, k8sClient); err != nil {
+			return fmt.Errorf("cannot create IAP auth secret: %v", err)
 		}
 	}
 	return nil
