@@ -341,14 +341,14 @@ func unmarshalAppYaml(cfgfile string, kfdef *kfdefs.KfDef) error {
 		log.Infof("reading from %v", cfgfile)
 		buf, bufErr := ioutil.ReadFile(cfgfile)
 		if bufErr != nil {
-			return nil, &kfapis.KfError{
+			return &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("couldn't read %v. Error: %v", cfgfile, bufErr),
 			}
 		}
 		err := yaml.Unmarshal(buf, kfdef)
 		if err != nil {
-			return nil, &kfapis.KfError{
+			return &kfapis.KfError{
 				Code:    int(kfapis.INTERNAL_ERROR),
 				Message: fmt.Sprintf("could not unmarshal %v. Error: %v", cfgfile, err),
 			}
@@ -679,7 +679,7 @@ func (kfapp *coordinator) Show(resources kftypes.ResourceEnum, options map[strin
 					return &kfapis.KfError{
 						Code: int(kfapis.INTERNAL_ERROR),
 						Message: fmt.Sprintf("kfApp Show failed for %v: %v",
-							packageManagerName, packageManagerErr),
+							packageManagerName, showErr),
 					}
 				}
 			}

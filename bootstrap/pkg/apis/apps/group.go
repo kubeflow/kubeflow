@@ -259,7 +259,7 @@ func Capture() func() (string, error) {
 		if err == nil {
 			return buf.String(), nil
 		} else {
-			return nil, &kfapis.KfError{
+			return "", &kfapis.KfError{
 				Code:    int(kfapis.INTERNAL_ERROR),
 				Message: err.Error(),
 			}
