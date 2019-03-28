@@ -97,7 +97,10 @@ func GetKfApp(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 	}
 	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
 	if err != nil {
-		return nil, fmt.Errorf("Get token error: %v", err)
+		return nil, &kfapis.KfError{
+			Code: int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Get token error: %v", err),
+		}
 	}
 	_gcp := &Gcp{
 		KfDef:       *kfdef,
@@ -130,7 +133,7 @@ func GetAccount() (string, error) {
 }
 
 func (gcp *Gcp) writeConfigFile() error {
-	buf, bufErr := yaml.Marshal(gcp)
+	buf, bufErr := yaml.Marshal(gcp.KfDef)
 	if bufErr != nil {
 		return bufErr
 	}
@@ -960,7 +963,7 @@ func (gcp *Gcp) createSecrets() error {
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	if gcp.Spec.Email == "" {
-		return fmt.Errorf("--email not specified and cannot get gcloud value.")
+		return fmt.Errorf("email not specified.")
 	}
 	switch resources {
 	case kftypes.ALL:

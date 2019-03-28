@@ -39,7 +39,6 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -92,17 +91,11 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 	if ksApp.restConfig == nil || ksApp.apiConfig == nil {
 		return fmt.Errorf("Error: ksApp has nil restConfig or apiConfig, exit")
 	}
-	name := ksApp.Name
 	clientset := kftypes.GetClientset(ksApp.restConfig)
 	// TODO(gabrielwen): Make env name an option.
 	envSetErr := ksApp.envSet(KsEnvName, ksApp.restConfig.Host)
 	if envSetErr != nil {
 		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", KsEnvName, envSetErr)
-	}
-	//ks param set application name ${DEPLOYMENT_NAME}
-	paramSetErr := ksApp.paramSet("application", "name", name)
-	if paramSetErr != nil {
-		return fmt.Errorf("couldn't set application component's name to %v Error: %v", name, paramSetErr)
 	}
 	namespace := ksApp.ObjectMeta.Namespace
 	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
@@ -125,12 +118,7 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 			return fmt.Errorf("could not change directory to %v Error %v", ksApp.Spec.AppDir, err)
 		}
 	}
-	
-	applyErr := ksApp.applyComponent([]string{"metacontroller"}, ksApp.apiConfig)
-	if applyErr != nil {
-		return fmt.Errorf("couldn't create metacontroller component Error: %v", applyErr)
-	}
-	applyErr = ksApp.applyComponent(ksApp.Spec.Components, ksApp.apiConfig)
+	applyErr := ksApp.applyComponent(ksApp.Spec.Components, ksApp.apiConfig)
 	if applyErr != nil {
 		return fmt.Errorf("couldn't create components Error: %v", applyErr)
 	}
@@ -296,14 +284,6 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 	if initErr != nil {
 		return fmt.Errorf("couldn't initialize KfApi: %v", initErr)
 	}
-	components := []string{}
-	for _, c := range ksApp.Spec.Components {
-		if c != "application" && c != "metacontroller" {
-			components = append(components, fmt.Sprintf("\"%v\"", c))
-		}
-	}
-	ksApp.Spec.ComponentParams["application"] = setNameVal(ksApp.Spec.ComponentParams["application"], "components",
-		"["+strings.Join(components, " ,")+"]")
 
 	ksRegistry := kfdefs.DefaultRegistry
 	ksRegistry.Version = ksApp.Spec.Version
@@ -322,7 +302,6 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 			return fmt.Errorf("couldn't add package %v. Error: %v", pkg.Name, packageAddErr)
 		}
 	}
-	componentArray := ksApp.Spec.Components
 	for _, compName := range ksApp.Spec.Components {
 		comp := kfdefs.KsComponent{
 			Name:      compName,
@@ -337,13 +316,6 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 					parameterArgs = append(parameterArgs, nv.Value)
 				}
 			}
-		}
-		if compName == "application" {
-			parameterArgs = append(parameterArgs, "--components")
-			prunedArray := kftypes.RemoveItems(componentArray, "application", "metacontroller")
-			quotedArray := kftypes.QuoteItems(prunedArray)
-			arrayString := "[" + strings.Join(quotedArray, ",") + "]"
-			parameterArgs = append(parameterArgs, arrayString)
 		}
 		componentAddErr := ksApp.componentAdd(comp, parameterArgs)
 		if componentAddErr != nil {
@@ -389,9 +361,8 @@ func (ksApp *ksApp) initKs() error {
 	k8sSpec := ksApp.Spec.ServerVersion
 	host := "127.0.0.1"
 	if k8sSpec == "" {
-		config := kftypes.GetConfig()
-		host = config.Host
-		k8sSpec = kftypes.GetServerVersion(kftypes.GetClientset(config))
+		host = ksApp.restConfig.Host
+		k8sSpec = kftypes.GetServerVersion(kftypes.GetClientset(ksApp.restConfig))
 		if k8sSpec == "" {
 			return fmt.Errorf("could not find kubernetes version info")
 		}
