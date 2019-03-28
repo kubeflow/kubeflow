@@ -23,8 +23,7 @@ import (
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/iam/v1"
+	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 	containerpb "google.golang.org/genproto/googleapis/container/v1"
 	"k8s.io/client-go/rest"
@@ -34,14 +33,7 @@ import (
 
 // Use default token source and retrieve cluster information with given project/location/cluster
 // information.
-func GetClusterInfo(ctx context.Context, project string, loc string, cluster string) (*containerpb.Cluster, error) {
-	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Get token error: %v", err.Error()),
-		}
-	}
+func GetClusterInfo(ctx context.Context, project string, loc string, cluster string, ts oauth2.TokenSource) (*containerpb.Cluster, error) {
 	c, err := container.NewClusterManagerClient(ctx, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, &kfapis.KfError{
@@ -66,14 +58,7 @@ func GetClusterInfo(ctx context.Context, project string, loc string, cluster str
 
 // BuildConfigFromClusterInfo returns k8s config using gcloud Application Default Credentials
 // typically $HOME/.config/gcloud/application_default_credentials.json
-func BuildConfigFromClusterInfo(ctx context.Context, cluster *containerpb.Cluster) (*rest.Config, error) {
-	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Get token error: %v", err.Error()),
-		}
-	}
+func BuildConfigFromClusterInfo(ctx context.Context, cluster *containerpb.Cluster, ts oauth2.TokenSource) (*rest.Config, error) {
 	t, err := ts.Token()
 	if err != nil {
 		return nil, &kfapis.KfError{
@@ -92,33 +77,16 @@ func BuildConfigFromClusterInfo(ctx context.Context, cluster *containerpb.Cluste
 	return config, nil
 }
 
-// Helper function for the rest.Config retrieval.
-func BuildConfigForGcp(ctx context.Context, project string, loc string, cluster string) (*rest.Config, error) {
-	log.Infof("Getting rest.Config with GCP for %v/%v/%v", project, loc, cluster)
-	clusterpb, err := GetClusterInfo(ctx, project, loc, cluster)
-	if err != nil {
-		return nil, err
-	}
-	return BuildConfigFromClusterInfo(ctx, clusterpb)
-}
-
 // Create a config that serves as kubeconfig.
 func CreateKubeconfig(ctx context.Context, project string, loc string, cluster string,
-	namespace string) (*clientcmdapi.Config, error) {
-	clusterInfo, err := GetClusterInfo(ctx, project, loc, cluster)
+	namespace string, ts oauth2.TokenSource) (*clientcmdapi.Config, error) {
+	clusterInfo, err := GetClusterInfo(ctx, project, loc, cluster, ts)
 	if err != nil {
 		return nil, err
 	}
 
 	config := clientcmdapi.NewConfig()
 	config.Kind = "Config"
-	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Get token error: %v", err.Error()),
-		}
-	}
 	t, err := ts.Token()
 	if err != nil {
 		return nil, &kfapis.KfError{

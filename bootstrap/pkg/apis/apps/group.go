@@ -51,8 +51,7 @@ const (
 	DefaultAppLabel   = "app.kubernetes.io/name"
 	KUBEFLOW_USERNAME = "KUBEFLOW_USERNAME"
 	KUBEFLOW_PASSWORD = "KUBEFLOW_PASSWORD"
-	// TODO: switch to bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json
-	DefaultSwaggerFile = "releasing/releaser/lib/v1.9.7/swagger.json"
+	DefaultSwaggerFile = "bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json"
 )
 
 type ResourceEnum string
@@ -179,7 +178,7 @@ func GetConfig() *rest.Config {
 	overrides := &clientcmd.ConfigOverrides{}
 	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, overrides).ClientConfig()
 	if err != nil {
-		log.Fatalf("could not open %v Error %v", loadingRules.ExplicitPath, err)
+		log.Warnf("could not open %v Error %v", loadingRules.ExplicitPath, err)
 	}
 	return config
 }
@@ -199,7 +198,7 @@ func GetKubeConfig() *clientcmdapi.Config {
 	kubeconfig := KubeConfigPath()
 	config, configErr := clientcmd.LoadFromFile(kubeconfig)
 	if configErr != nil {
-		log.Fatalf("could not load config Error: %v", configErr)
+		log.Warnf("could not load config Error: %v", configErr)
 	}
 	return config
 }

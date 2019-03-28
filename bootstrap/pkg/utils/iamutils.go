@@ -23,24 +23,11 @@ import (
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
-	"golang.org/x/oauth2/google"
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"io/ioutil"
 	"net/http"
 	"strings"
 )
-
-func getServiceClient(ctx context.Context) (*http.Client, error) {
-	client, err := google.DefaultClient(ctx, cloudresourcemanager.CloudPlatformScope)
-	if err != nil {
-		log.Errorf("Could not get authenticated kfdef: %v", err)
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Could not get authenticated kfdef: %v", err),
-		}
-	}
-	return client, nil
-}
 
 func transformSliceToInterface(slice []string) []interface{} {
 	ret := make([]interface{}, len(slice))
@@ -59,23 +46,15 @@ func transformInterfaceToSlice(inter []interface{}) []string {
 }
 
 // Gets IAM plicy from GCP for the whole project.
-func GetIamPolicy(project string) (*cloudresourcemanager.Policy, error) {
+func GetIamPolicy(project string, gcpClient *http.Client) (*cloudresourcemanager.Policy, error) {
 	ctx := context.Background()
-	client, clientErr := getServiceClient(ctx)
-	if clientErr != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: clientErr.Error(),
-		}
-	}
-	service, serviceErr := cloudresourcemanager.New(client)
+	service, serviceErr := cloudresourcemanager.New(gcpClient)
 	if serviceErr != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: serviceErr.Error(),
 		}
 	}
-
 	req := &cloudresourcemanager.GetIamPolicyRequest{}
 	if policy, err := service.Projects.GetIamPolicy(project, req).Context(ctx).Do(); err == nil {
 		return policy, nil
@@ -201,16 +180,9 @@ func RewriteIamPolicy(currentPolicy *cloudresourcemanager.Policy, adding *cloudr
 }
 
 // "Override" project's IAM policy with given config.
-func SetIamPolicy(project string, policy *cloudresourcemanager.Policy) error {
+func SetIamPolicy(project string, policy *cloudresourcemanager.Policy, gcpClient *http.Client) error {
 	ctx := context.Background()
-	client, clientErr := getServiceClient(ctx)
-	if clientErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: clientErr.Error(),
-		}
-	}
-	service, serviceErr := cloudresourcemanager.New(client)
+	service, serviceErr := cloudresourcemanager.New(gcpClient)
 	if serviceErr != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
