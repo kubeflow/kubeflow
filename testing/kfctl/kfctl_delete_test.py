@@ -57,7 +57,7 @@ def test_kfctl_delete(kfctl_path, app_path, project):
   logging.info("Verify endpoint service is deleted: " + endpoint_name)
   if endpoint_name in get_endpoints_list(project):
     msg = "Endpoint is not deleted: " + endpoint_name
-    logging.errorf(msg)
+    logging.error(msg)
     raise AssertionError(msg)
   else:
     logging.info("Verified endpoint service is deleted.")
