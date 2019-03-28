@@ -96,6 +96,19 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 		} else {
 			namespace = "default"
 		}
+
+		// Get first to see if object already exists
+		getRequest := restClient.Get().Resource(result.Resource).Name(name)
+		if result.Scope.Name() == "namespace" {
+			getRequest = getRequest.Namespace(namespace)
+		}
+		_, err = getRequest.DoRaw()
+		if err == nil {
+			log.Infof("object already exists...\n")
+			continue
+		}
+
+		// Post to create the resource.
 		body, err := json.Marshal(o)
 		if err != nil {
 			return err
