@@ -27,7 +27,7 @@ def verify_kubeconfig(project, zone, app_path):
     logging.error(msg)
     raise RuntimeError(msg)
 
-def test_build_kfctl_go(app_path, project):
+def test_build_kfctl_go(app_path, project, use_basic_auth):
   """Test building and deploying Kubeflow.
 
   Args:
@@ -61,20 +61,31 @@ def test_build_kfctl_go(app_path, project):
   kfctl_path = os.path.join(build_dir, "bin", "kfctl")
 
   # Set ENV for basic auth username/password.
-  os.environ["KUBEFLOW_USERNAME"] = "kf-test-user"
-  os.environ["KUBEFLOW_PASSWORD"] = str(uuid.uuid4().hex)
+  init_args = []
+  if use_basic_auth:
+    os.environ["KUBEFLOW_USERNAME"] = "kf-test-user"
+    os.environ["KUBEFLOW_PASSWORD"] = str(uuid.uuid4().hex)
+    init_args = ["--use_basic_auth"]
+  else:
+    # Owned by project kubeflow-ci-deployment.
+    os.environ["CLIENT_ID"] = "CJ4qVPLTi0j0GJMkONj7Quwt"
+    os.environ["CLIENT_SECRET"] = (
+      "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g"
+      ".apps.googleusercontent.com")
 
   version = "master"
   if os.getenv("PULL_NUMBER"):
     version = "pull/{0}".format(os.getenv("PULL_NUMBER"))
 
   # username and password are passed as env vars and won't appear in the logs
+  # TODO(https://github.com/kubeflow/kubeflow/issues/2831): Once kfctl
+  # supports loading version from a URI we should use that so that we
+  # pull the configs from the repo we checked out.
   run_with_retries([kfctl_path, "init", app_path, "-V", "--platform=gcp",
-                         "--version=" + version,
-                         "--use_basic_auth",
-                         "--skip-init-gcp-project",
-                         "--disable_usage_report",
-                         "--project=" + project], cwd=parent_dir)
+                    "--version=" + version,
+                    "--skip-init-gcp-project",
+                    "--disable_usage_report",
+                    "--project=" + project] + init_args, cwd=parent_dir)
 
   # We need to specify a valid email because
   #  1. We need to create appropriate RBAC rules to allow the current user
