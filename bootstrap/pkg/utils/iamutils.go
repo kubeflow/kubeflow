@@ -17,8 +17,10 @@ limitations under the License.
 package utils
 
 import (
+	"fmt"
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
@@ -31,8 +33,11 @@ import (
 func getServiceClient(ctx context.Context) (*http.Client, error) {
 	client, err := google.DefaultClient(ctx, cloudresourcemanager.CloudPlatformScope)
 	if err != nil {
-		log.Fatalf("Could not get authenticated kfdef: %v", err)
-		return nil, err
+		log.Errorf("Could not get authenticated kfdef: %v", err)
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Could not get authenticated kfdef: %v", err),
+		}
 	}
 	return client, nil
 }
@@ -58,15 +63,28 @@ func GetIamPolicy(project string) (*cloudresourcemanager.Policy, error) {
 	ctx := context.Background()
 	client, clientErr := getServiceClient(ctx)
 	if clientErr != nil {
-		return nil, clientErr
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: clientErr.Error(),
+		}
 	}
 	service, serviceErr := cloudresourcemanager.New(client)
 	if serviceErr != nil {
-		return nil, serviceErr
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: serviceErr.Error(),
+		}
 	}
 
 	req := &cloudresourcemanager.GetIamPolicyRequest{}
-	return service.Projects.GetIamPolicy(project, req).Context(ctx).Do()
+	if policy, err := service.Projects.GetIamPolicy(project, req).Context(ctx).Do(); err == nil {
+		return policy, nil
+	} else {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: err.Error(),
+		}
+	}
 }
 
 // Modify currentPolicy: Remove existing bindings associated with service accounts of current deployment
@@ -113,12 +131,18 @@ type IamBindingsYAML struct {
 func ReadIamBindingsYAML(filename string) (*cloudresourcemanager.Policy, error) {
 	buf, bufErr := ioutil.ReadFile(filename)
 	if bufErr != nil {
-		return nil, bufErr
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: bufErr.Error(),
+		}
 	}
 
 	iam := IamBindingsYAML{}
 	if err := yaml.Unmarshal(buf, &iam); err != nil {
-		return nil, err
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: err.Error(),
+		}
 	}
 
 	entries := make(map[string]mapset.Set)
@@ -181,16 +205,29 @@ func SetIamPolicy(project string, policy *cloudresourcemanager.Policy) error {
 	ctx := context.Background()
 	client, clientErr := getServiceClient(ctx)
 	if clientErr != nil {
-		return clientErr
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: clientErr.Error(),
+		}
 	}
 	service, serviceErr := cloudresourcemanager.New(client)
 	if serviceErr != nil {
-		return serviceErr
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: serviceErr.Error(),
+		}
 	}
 
 	req := &cloudresourcemanager.SetIamPolicyRequest{
 		Policy: policy,
 	}
 	_, err := service.Projects.SetIamPolicy(project, req).Context(ctx).Do()
-	return err
+	if err == nil {
+		return nil
+	} else {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: err.Error(),
+		}
+	}
 }
