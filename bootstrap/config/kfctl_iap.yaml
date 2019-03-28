@@ -4,7 +4,6 @@
 # TODO change repo on the fly: set it to local tmp dir containing kubeflow registry
 repo: /path/to/local/tmp/containing/kubeflow
 packages:
-  - application
   - argo
   - common
   - examples
@@ -23,7 +22,6 @@ packages:
   - tf-training
 components:
   - ambassador
-  - application
   - argo
   - centraldashboard
   - cert-manager
@@ -55,9 +53,6 @@ componentParams:
       # TODO change value on the fly: replace with user-provide parameters. This need to be fully qualified domain name to use with ingress.
       value: <deployName>.endpoints.<project>.cloud.goog
       initRequired: true
-  application:
-    - name: components
-      value: <list-of-components>
   cloud-endpoints:
     - name: secretName
       value: admin-gcp-sa
