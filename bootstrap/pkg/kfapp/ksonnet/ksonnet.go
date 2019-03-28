@@ -25,6 +25,7 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/client"
 	"github.com/ksonnet/ksonnet/pkg/component"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
@@ -48,10 +49,10 @@ type ksApp struct {
 	// ksonnet root name
 	KsName string
 	// ksonnet env name
-	KsEnvName string
-	KApp      app.App
+	KsEnvName  string
+	KApp       app.App
 	restConfig *rest.Config
-	apiConfig *clientcmdapi.Config
+	apiConfig  *clientcmdapi.Config
 }
 
 const (
@@ -89,13 +90,19 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 	if ksApp.restConfig == nil || ksApp.apiConfig == nil {
-		return fmt.Errorf("Error: ksApp has nil restConfig or apiConfig, exit")
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: "Error: ksApp has nil restConfig or apiConfig, exit",
+		}
 	}
 	clientset := kftypes.GetClientset(ksApp.restConfig)
 	// TODO(gabrielwen): Make env name an option.
 	envSetErr := ksApp.envSet(KsEnvName, ksApp.restConfig.Host)
 	if envSetErr != nil {
-		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", KsEnvName, envSetErr)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("couldn't create ksonnet env %v Error: %v", KsEnvName, envSetErr),
+		}
 	}
 	namespace := ksApp.ObjectMeta.Namespace
 	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
@@ -105,22 +112,36 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
 		_, nsErr := clientset.CoreV1().Namespaces().Create(nsSpec)
 		if nsErr != nil {
-			return fmt.Errorf("couldn't create "+string(kftypes.NAMESPACE)+" %v Error: %v", namespace, nsErr)
+			return &kfapis.KfError{
+				Code: int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("couldn't create %v %v Error: %v",
+					string(kftypes.NAMESPACE), namespace, nsErr),
+			}
 		}
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("could not get current directory %v", err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not get current directory %v", err),
+		}
 	}
 	if cwd != ksApp.Spec.AppDir {
 		err = os.Chdir(ksApp.Spec.AppDir)
 		if err != nil {
-			return fmt.Errorf("could not change directory to %v Error %v", ksApp.Spec.AppDir, err)
+			return &kfapis.KfError{
+				Code: int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("could not change directory to %v Error %v",
+					ksApp.Spec.AppDir, err),
+			}
 		}
 	}
 	applyErr := ksApp.applyComponent(ksApp.Spec.Components, ksApp.apiConfig)
 	if applyErr != nil {
-		return fmt.Errorf("couldn't create components Error: %v", applyErr)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("couldn't create components Error: %v", applyErr),
+		}
 	}
 	return nil
 }
@@ -162,14 +183,21 @@ func (ksApp *ksApp) applyComponent(components []string, cfg *clientcmdapi.Config
 		if len(doneApply) == len(components) {
 			return nil
 		}
-		return fmt.Errorf("%v failed components in last try", len(components)-len(doneApply))
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("%v failed components in last try", len(components)-len(doneApply)),
+		}
 	}, bo)
 	if err != nil {
 		log.Errorf("components apply failed; Error: %v", err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: err.Error(),
+		}
 	} else {
 		log.Infof("All components apply succeeded")
+		return nil
 	}
-	return err
 
 }
 
@@ -189,7 +217,10 @@ func (ksApp *ksApp) componentAdd(component kfdefs.KsComponent, args []string) er
 			actions.OptionArguments: componentArgs,
 		})
 		if err != nil {
-			return fmt.Errorf("there was a problem adding component %v: %v", component.Name, err)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("there was a problem adding component %v: %v", component.Name, err),
+			}
 		}
 	} else {
 		log.Infof("Component %v already exists", component.Name)
@@ -202,7 +233,10 @@ func (ksApp *ksApp) components() (map[string]*kfdefs.KsComponent, error) {
 	topModule := component.NewModule(ksApp.KApp, moduleName)
 	components, err := topModule.Components()
 	if err != nil {
-		return nil, fmt.Errorf("there was a problem getting the components %v. Error: %v", ksApp.Name, err)
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("there was a problem getting the components %v. Error: %v", ksApp.Name, err),
+		}
 	}
 	comps := make(map[string]*kfdefs.KsComponent)
 	for _, comp := range components {
@@ -223,7 +257,10 @@ func (ksApp *ksApp) deleteGlobalResources(config *rest.Config) error {
 	}
 	crdsErr := apiextclientset.CustomResourceDefinitions().DeleteCollection(do, lo)
 	if crdsErr != nil {
-		return fmt.Errorf("couldn't delete customresourcedefinitions Error: %v", crdsErr)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("couldn't delete customresourcedefinitions Error: %v", crdsErr),
+		}
 	}
 	crdsByName := []string{
 		"compositecontrollers.metacontroller.k8s.io",
@@ -241,7 +278,10 @@ func (ksApp *ksApp) deleteGlobalResources(config *rest.Config) error {
 	clientset := kftypes.GetClientset(config)
 	crbsErr := clientset.RbacV1().ClusterRoleBindings().DeleteCollection(do, lo)
 	if crbsErr != nil {
-		return fmt.Errorf("couldn't get list of clusterrolebindings Error: %v", crbsErr)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("couldn't get list of clusterrolebindings Error: %v", crbsErr),
+		}
 	}
 	crbName := "meta-controller-cluster-role-binding"
 	dErr := clientset.RbacV1().ClusterRoleBindings().Delete(crbName, do)
@@ -250,7 +290,10 @@ func (ksApp *ksApp) deleteGlobalResources(config *rest.Config) error {
 	}
 	crsErr := clientset.RbacV1().ClusterRoles().DeleteCollection(do, lo)
 	if crsErr != nil {
-		return fmt.Errorf("couldn't delete clusterroles Error: %v", crsErr)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("couldn't delete clusterroles Error: %v", crsErr),
+		}
 	}
 	return nil
 }
@@ -263,7 +306,10 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 	}
 	envSetErr := ksApp.envSet(ksApp.KsEnvName, config.Host)
 	if envSetErr != nil {
-		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", ksApp.KsEnvName, envSetErr)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("couldn't create ksonnet env %v Error: %v", ksApp.KsEnvName, envSetErr),
+		}
 	}
 	clientConfig := kftypes.GetKubeConfig()
 	components := []string{"application", "metacontroller"}
@@ -287,7 +333,10 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 	if nsMissingErr == nil {
 		nsErr := clientset.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
 		if nsErr != nil {
-			return fmt.Errorf("couldn't delete namespace %v Error: %v", namespace, nsErr)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("couldn't delete namespace %v Error: %v", namespace, nsErr),
+			}
 		}
 	}
 	name := "meta-controller-cluster-role-binding"
@@ -295,7 +344,10 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 	if crbErr == nil {
 		crbDeleteErr := clientset.RbacV1().ClusterRoleBindings().Delete(crb.Name, metav1.NewDeleteOptions(int64(5)))
 		if crbDeleteErr != nil {
-			return fmt.Errorf("couldn't delete clusterrolebinding %v Error: %v", name, crbDeleteErr)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("couldn't delete clusterrolebinding %v Error: %v", name, crbDeleteErr),
+			}
 		}
 	}
 	return nil
@@ -324,7 +376,10 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 		ksApp.Spec.AppDir, ksApp.Spec.Platform)
 	initErr := ksApp.initKs()
 	if initErr != nil {
-		return fmt.Errorf("couldn't initialize KfApi: %v", initErr)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("couldn't initialize KfApi: %v", initErr),
+		}
 	}
 
 	ksRegistry := kfdefs.DefaultRegistry
@@ -332,7 +387,10 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 	ksRegistry.RegUri = ksApp.Spec.Repo
 	registryAddErr := ksApp.registryAdd(ksRegistry)
 	if registryAddErr != nil {
-		return fmt.Errorf("couldn't add registry %v. Error: %v", ksRegistry.Name, registryAddErr)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("couldn't add registry %v. Error: %v", ksRegistry.Name, registryAddErr),
+		}
 	}
 	for _, pkgName := range ksApp.Spec.Packages {
 		pkg := kfdefs.KsPackage{
@@ -341,7 +399,10 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 		}
 		packageAddErr := ksApp.pkgInstall(pkg)
 		if packageAddErr != nil {
-			return fmt.Errorf("couldn't add package %v. Error: %v", pkg.Name, packageAddErr)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("couldn't add package %v. Error: %v", pkg.Name, packageAddErr),
+			}
 		}
 	}
 	for _, compName := range ksApp.Spec.Components {
@@ -361,7 +422,10 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 		}
 		componentAddErr := ksApp.componentAdd(comp, parameterArgs)
 		if componentAddErr != nil {
-			return fmt.Errorf("couldn't add comp %v. Error: %v", comp.Name, componentAddErr)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("couldn't add comp %v. Error: %v", comp.Name, componentAddErr),
+			}
 		}
 	}
 	for compName, namevals := range ksApp.Spec.ComponentParams {
@@ -373,14 +437,20 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 				actions.OptionValue:   nv.Value,
 			}
 			if err := actions.RunParamSet(args); err != nil {
-				return fmt.Errorf("Failed to set param %v %v %v: %v", compName, nv.Name,
-					nv.Value, err)
+				return &kfapis.KfError{
+					Code: int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("Failed to set param %v %v %v: %v",
+						compName, nv.Name, nv.Value, err),
+				}
 			}
 		}
 	}
 	createConfigErr := ksApp.writeConfigFile()
 	if createConfigErr != nil {
-		return fmt.Errorf("cannot write to config file app.yaml in %v", ksApp.Spec.AppDir)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("cannot write to config file app.yaml in %v", ksApp.Spec.AppDir),
+		}
 	}
 	return nil
 }
@@ -389,7 +459,10 @@ func (ksApp *ksApp) Init(resources kftypes.ResourceEnum) error {
 	ksApp.Spec.Repo = path.Join(path.Join(ksApp.Spec.AppDir, kftypes.DefaultCacheDir, ksApp.Spec.Version), "kubeflow")
 	createConfigErr := ksApp.writeConfigFile()
 	if createConfigErr != nil {
-		return fmt.Errorf("cannot create config file app.yaml in %v", ksApp.Spec.AppDir)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("cannot create config file app.yaml in %v", ksApp.Spec.AppDir),
+		}
 	}
 	return nil
 }
@@ -406,7 +479,10 @@ func (ksApp *ksApp) initKs() error {
 		host = ksApp.restConfig.Host
 		k8sSpec = kftypes.GetServerVersion(kftypes.GetClientset(ksApp.restConfig))
 		if k8sSpec == "" {
-			return fmt.Errorf("could not find kubernetes version info")
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: "could not find kubernetes version info",
+			}
 		}
 	}
 	options := map[string]interface{}{
@@ -421,7 +497,10 @@ func (ksApp *ksApp) initKs() error {
 	}
 	err := actions.RunInit(options)
 	if err != nil {
-		return fmt.Errorf("there was a problem initializing the app: %v", err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("there was a problem initializing the app: %v", err),
+		}
 	}
 	log.Infof("Successfully initialized the app %v.", ksApp.Name)
 	return nil
@@ -430,17 +509,23 @@ func (ksApp *ksApp) initKs() error {
 func (ksApp *ksApp) envSet(envName string, host string) error {
 	ksApp.KsEnvName = envName
 	err := actions.RunEnvSet(map[string]interface{}{
-		actions.OptionAppRoot: ksApp.ksRoot(),
-		actions.OptionEnvName: ksApp.KsEnvName,
-		actions.OptionServer:  host,
+		actions.OptionAppRoot:  ksApp.ksRoot(),
+		actions.OptionEnvName:  ksApp.KsEnvName,
+		actions.OptionServer:   host,
 		actions.OptionOverride: true,
 	})
 	if err != nil {
-		return fmt.Errorf("There was a problem setting ksonnet env: %v", err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("There was a problem setting ksonnet env: %v", err),
+		}
 	}
 	loadApp, loadErr := app.Load(afero.NewOsFs(), ksApp.KApp.HTTPClient(), ksApp.ksRoot())
 	if loadErr != nil {
-		return fmt.Errorf("could not reload the ksonnet env: %v", err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not reload the ksonnet env: %v", err),
+		}
 	}
 	ksApp.KApp = loadApp
 	return nil
@@ -454,7 +539,11 @@ func (ksApp *ksApp) ksRoot() string {
 func (ksApp *ksApp) libraries() (map[string]*kfdefs.KsLibrary, error) {
 	libs, err := ksApp.KApp.Libraries()
 	if err != nil {
-		return nil, fmt.Errorf("there was a problem getting the libraries %v. Error: %v", ksApp.Name, err)
+		return nil, &kfapis.KfError{
+			Code: int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("there was a problem getting the libraries %v. Error: %v",
+				ksApp.Name, err),
+		}
 	}
 
 	libraries := make(map[string]*kfdefs.KsLibrary)
@@ -471,7 +560,11 @@ func (ksApp *ksApp) libraries() (map[string]*kfdefs.KsLibrary, error) {
 func (ksApp *ksApp) registries() (map[string]*kfdefs.Registry, error) {
 	regs, err := ksApp.KApp.Registries()
 	if err != nil {
-		return nil, fmt.Errorf("There was a problem getting the registries %v. Error: %v", ksApp.Name, err)
+		return nil, &kfapis.KfError{
+			Code: int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("There was a problem getting the registries %v. Error: %v",
+				ksApp.Name, err),
+		}
 	}
 	registries := make(map[string]*kfdefs.Registry)
 	for k, v := range regs {
@@ -493,7 +586,11 @@ func (ksApp *ksApp) paramSet(component string, name string, value string) error 
 		actions.OptionValue:   value,
 	})
 	if err != nil {
-		return fmt.Errorf("Error when setting Parameters %v for Component %v: %v", name, component, err)
+		return &kfapis.KfError{
+			Code: int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Error when setting Parameters %v for Component %v: %v",
+				name, component, err),
+		}
 	}
 	return nil
 }
@@ -507,7 +604,11 @@ func (ksApp *ksApp) pkgInstall(pkg kfdefs.KsPackage) error {
 		actions.OptionForce:   false,
 	})
 	if err != nil {
-		return fmt.Errorf("there was a problem installing package %v: %v", pkg.Name, err)
+		return &kfapis.KfError{
+			Code: int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("there was a problem installing package %v: %v",
+				pkg.Name, err),
+		}
 	}
 	return nil
 }
@@ -528,7 +629,10 @@ func (ksApp *ksApp) registryAdd(registry *kfdefs.RegistryConfig) error {
 	}
 	err := actions.RunRegistryAdd(options)
 	if err != nil {
-		return fmt.Errorf("there was a problem adding registry %v: %v", registry.Name, err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("there was a problem adding registry %v: %v", registry.Name, err),
+		}
 	}
 	return nil
 }
@@ -542,21 +646,33 @@ func (ksApp *ksApp) Show(resources kftypes.ResourceEnum, options map[string]inte
 		actions.OptionFormat:         "yaml",
 	})
 	if err != nil {
-		return fmt.Errorf("there was a problem calling show: %v", err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("there was a problem calling show: %v", err),
+		}
 	}
 	yamlDir := filepath.Join(ksApp.Spec.AppDir, "yamls")
 	err = os.Mkdir(yamlDir, os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("couldn't create directory %v, most likely it already exists", yamlDir)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("couldn't create directory %v, most likely it already exists", yamlDir),
+		}
 	}
 	output, outputErr := capture()
 	if outputErr != nil {
-		return fmt.Errorf("there was a problem calling capture: %v", outputErr)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("there was a problem calling capture: %v", outputErr),
+		}
 	}
 	yamlFile := filepath.Join(yamlDir, "default.yaml")
 	yamlFileErr := ioutil.WriteFile(yamlFile, []byte(output), 0644)
 	if yamlFileErr != nil {
-		return fmt.Errorf("could not write to %v Error %v", yamlFile, yamlFileErr)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not write to %v Error %v", yamlFile, yamlFileErr),
+		}
 	}
 	return nil
 }
@@ -564,12 +680,18 @@ func (ksApp *ksApp) Show(resources kftypes.ResourceEnum, options map[string]inte
 func (ksApp *ksApp) writeConfigFile() error {
 	buf, bufErr := yaml.Marshal(&ksApp.KfDef)
 	if bufErr != nil {
-		return bufErr
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: bufErr.Error(),
+		}
 	}
 	cfgFilePath := filepath.Join(ksApp.Spec.AppDir, kftypes.KfConfigFile)
 	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
 	if cfgFilePathErr != nil {
-		return cfgFilePathErr
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: cfgFilePathErr.Error(),
+		}
 	}
 	return nil
 }
