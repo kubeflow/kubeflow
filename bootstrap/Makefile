@@ -123,7 +123,7 @@ push-kfctl-container: build-kfctl-container
 
 push-kfctl-container-latest: push-kfctl-container
 	gcloud container images add-tag --quiet $(KFCTL_IMG):$(TAG) $(KFCTL_IMG):latest --verbosity=info
-	@echo created $(BOOTSTRAPPER_IMG):latest
+	@echo created $(KFCTL_IMG):latest
 
 install: build-kfctl dockerfordesktop.so
 	@echo copying bin/kfctl to /usr/local/bin
