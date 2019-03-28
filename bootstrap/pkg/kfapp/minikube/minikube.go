@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	"io/ioutil"
@@ -63,7 +64,10 @@ func (minikube *Minikube) generate() error {
 	}
 	usr, err := user.Current()
 	if err != nil {
-		return fmt.Errorf("Could not get current user; error %v", err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Could not get current user; error %v", err),
+		}
 	}
 	uid := usr.Uid
 	gid := usr.Gid
@@ -110,12 +114,18 @@ func (minikube *Minikube) Generate(resources kftypes.ResourceEnum) error {
 	case kftypes.PLATFORM:
 		generateErr := minikube.generate()
 		if generateErr != nil {
-			return fmt.Errorf("minikube generate failed Error: %v", generateErr)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("minikube generate failed Error: %v", generateErr),
+			}
 		}
 	}
 	createConfigErr := minikube.writeConfigFile()
 	if createConfigErr != nil {
-		return fmt.Errorf("cannot create config file app.yaml in %v", minikube.KfDef.Spec.AppDir)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("cannot create config file app.yaml in %v", minikube.KfDef.Spec.AppDir),
+		}
 	}
 	return nil
 }
@@ -127,12 +137,18 @@ func (minikube *Minikube) Init(kftypes.ResourceEnum) error {
 func (minikube *Minikube) writeConfigFile() error {
 	buf, bufErr := yaml.Marshal(minikube.KfDef)
 	if bufErr != nil {
-		return bufErr
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("cannot marshal config file: %v", bufErr),
+		}
 	}
 	cfgFilePath := filepath.Join(minikube.KfDef.Spec.AppDir, kftypes.KfConfigFile)
 	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
 	if cfgFilePathErr != nil {
-		return cfgFilePathErr
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("cannot write config file: %v", cfgFilePathErr),
+		}
 	}
 	return nil
 }
