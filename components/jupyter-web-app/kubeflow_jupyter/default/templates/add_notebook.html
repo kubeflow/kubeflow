@@ -32,7 +32,7 @@
           <!-- Name -->
           <h5><i class="fas fa-book"></i>Name</h5>
           <p class="text-muted nopad">
-              Specify the name of the Notebook Server and the Project it will belong to.
+              Specify the name of the Notebook Server and the Namespace it will belong to.
           </p>
           <!-- Text Inputs -->
           <div id="name-input-div"
@@ -46,9 +46,9 @@
 
           <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide">
             <input class="mdl-textfield__input" type="text" data-required="true"
-                    oninvalid="this.setCustomValidity('Please enter the Project for the Server')"
+                    oninvalid="this.setCustomValidity('Please enter the Namespace for the Server')"
                     id="ns-inp" name="ns" value="{{ ns }}">
-            <label class="mdl-textfield__label" for="ns-inp">Project</label>
+            <label class="mdl-textfield__label" for="ns-inp">Namespace</label>
           </div>
           <br/>
 
