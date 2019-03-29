@@ -17,6 +17,7 @@ limitations under the License.
 package utils
 
 import (
+	"fmt"
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
@@ -24,7 +25,6 @@ import (
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"io/ioutil"
 	"net/http"
-	"strings"
 )
 
 func transformSliceToInterface(slice []string) []interface{} {
@@ -65,14 +65,11 @@ func GetIamPolicy(project string, gcpClient *http.Client) (*cloudresourcemanager
 }
 
 // Modify currentPolicy: Remove existing bindings associated with service accounts of current deployment
-func ClearIamPolicy(currentPolicy *cloudresourcemanager.Policy, pendingPolicy *cloudresourcemanager.Policy) {
-	serviceAccounts := make(map[string]bool)
-	for _, binding := range pendingPolicy.Bindings {
-		for _, member := range binding.Members {
-			if strings.HasPrefix(member, "serviceAccount:kfctl-") {
-				serviceAccounts[member] = true
-			}
-		}
+func ClearIamPolicy(currentPolicy *cloudresourcemanager.Policy, deployName string, project string) {
+	serviceAccounts := map[string]bool{
+		fmt.Sprintf("serviceAccount:%v-admin@%v.iam.gserviceaccount.com", deployName, project): true,
+		fmt.Sprintf("serviceAccount:%v-user@%v.iam.gserviceaccount.com", deployName, project):  true,
+		fmt.Sprintf("serviceAccount:%v-vm@%v.iam.gserviceaccount.com", deployName, project):    true,
 	}
 	var newBindings []*cloudresourcemanager.Binding
 	for _, binding := range currentPolicy.Bindings {

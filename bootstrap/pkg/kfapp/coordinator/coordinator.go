@@ -395,12 +395,12 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	}
 	if options[string(kftypes.HOSTNAME)] != nil && options[string(kftypes.HOSTNAME)].(string) != "" {
 		kfdef.Spec.Hostname = options[string(kftypes.HOSTNAME)].(string)
-	} else if kfdef.Name != "" && kfdef.Spec.Project != "" {
+	} else if kfdef.Name != "" && kfdef.Spec.Project != "" && kfdef.Spec.Hostname == "" {
 		kfdef.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog", kfdef.Name, kfdef.Spec.Project)
 	}
 	if options[string(kftypes.ZONE)] != nil && options[string(kftypes.ZONE)].(string) != "" {
 		kfdef.Spec.Zone = options[string(kftypes.ZONE)].(string)
-	} else if kfdef.Spec.Platform == kftypes.GCP {
+	} else if kfdef.Spec.Platform == kftypes.GCP && kfdef.Spec.Zone == "" {
 		kfdef.Spec.Zone = kftypes.DefaultZone
 	}
 	if options[string(kftypes.USE_BASIC_AUTH)] != nil {

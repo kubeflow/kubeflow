@@ -600,7 +600,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 				iamPolicyErr.(*kfapis.KfError).Message),
 		}
 	}
-	utils.ClearIamPolicy(policy, iamPolicy)
+	utils.ClearIamPolicy(policy, gcp.Name, gcp.Spec.Project)
 	if err := utils.SetIamPolicy(gcp.Spec.Project, policy, gcpClient); err != nil {
 		return &kfapis.KfError{
 			Code: err.(*kfapis.KfError).Code,
