@@ -115,18 +115,12 @@ func (dockerfordesktop *DockerForDesktop) Generate(resources kftypes.ResourceEnu
 	case kftypes.PLATFORM:
 		generateErr := dockerfordesktop.generate()
 		if generateErr != nil {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: fmt.Sprintf("dockerfordesktop generate failed Error: %v", generateErr),
-			}
+			return generateErr
 		}
 	}
 	createConfigErr := dockerfordesktop.writeConfigFile()
 	if createConfigErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("cannot create config file app.yaml in %v", dockerfordesktop.KfDef.Spec.AppDir),
-		}
+		return createConfigErr
 	}
 	return nil
 }
@@ -139,7 +133,7 @@ func (dockerfordesktop *DockerForDesktop) writeConfigFile() error {
 	buf, bufErr := yaml.Marshal(dockerfordesktop.KfDef)
 	if bufErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("cannot marshal config file: %v", bufErr),
 		}
 	}
@@ -147,7 +141,7 @@ func (dockerfordesktop *DockerForDesktop) writeConfigFile() error {
 	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
 	if cfgFilePathErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("cannot write config file: %v", cfgFilePathErr),
 		}
 	}
