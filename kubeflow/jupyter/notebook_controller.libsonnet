@@ -86,7 +86,7 @@
                 env: if util.toBool(params.injectGcpCredentials) then [
                   {
                     name: "GCP_CREDENTIALS",
-                    value: "true",
+                    value: "gcp-cred-secret=user-gcp-sa,gcp-cred-secret-filename=user-gcp-sa.json",
                   },
                 ] else [],
               },

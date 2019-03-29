@@ -286,10 +286,20 @@ func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
 	}
 
 	// Inject GCP credentials
-	if os.Getenv("GCP_CREDENTIALS") != "" {
-		labels := &ss.Spec.Template.ObjectMeta.Labels
-		(*labels)["gcp-cred-secret"] = "user-gcp-sa"
-		(*labels)["gcp-cred-secret-filename"] = "user-gcp-sa.json"
+	if labels := os.Getenv("GCP_CREDENTIALS"); labels != "" {
+		// labels should be comma separated labels, e.g. "k1=v1,k2=v2"
+		l := &ss.Spec.Template.ObjectMeta.Labels
+		labelList := strings.Split(labels, ",")
+		for _, label := range labelList {
+			// label is something like k1=v1
+			s := strings.Split(label, "=")
+			if len(s) != 2 {
+				log.Info("Invalid env var GCP_CREDENTIALS, skip..")
+				continue
+			}
+			// s[0] = k1, s[1] = v1
+			(*l)[s[0]] = s[1]
+		}
 	}
 
 	podSpec := &ss.Spec.Template.Spec
