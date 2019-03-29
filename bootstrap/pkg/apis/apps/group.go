@@ -145,7 +145,7 @@ func LoadKfApp(client *kfdefs.KfDef) (KfApp, error) {
 	p, err := plugin.Open(pluginpath)
 	if err != nil {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("could not load plugin %v for platform %v Error %v", pluginpath, platform, err),
 		}
 	}
@@ -260,7 +260,7 @@ func Capture() func() (string, error) {
 			return buf.String(), nil
 		} else {
 			return "", &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
+				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: err.Error(),
 			}
 		}
