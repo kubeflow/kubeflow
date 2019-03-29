@@ -138,7 +138,7 @@ func (minikube *Minikube) writeConfigFile() error {
 	buf, bufErr := yaml.Marshal(minikube.KfDef)
 	if bufErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("cannot marshal config file: %v", bufErr),
 		}
 	}
