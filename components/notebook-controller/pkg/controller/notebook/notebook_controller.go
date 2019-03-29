@@ -286,7 +286,7 @@ func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
 	}
 
 	// Inject GCP credentials
-	if labels := os.Getenv("GCP_CREDENTIALS"); labels != "" {
+	if labels := os.Getenv("POD_LABELS"); labels != "" {
 		// labels should be comma separated labels, e.g. "k1=v1,k2=v2"
 		l := &ss.Spec.Template.ObjectMeta.Labels
 		labelList := strings.Split(labels, ",")
@@ -294,7 +294,7 @@ func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
 			// label is something like k1=v1
 			s := strings.Split(label, "=")
 			if len(s) != 2 {
-				log.Info("Invalid env var GCP_CREDENTIALS, skip..")
+				log.Info("Invalid env var POD_LABELS, skip..")
 				continue
 			}
 			// s[0] = k1, s[1] = v1
