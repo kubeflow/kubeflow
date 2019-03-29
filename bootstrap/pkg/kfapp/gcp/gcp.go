@@ -133,7 +133,7 @@ func (gcp *Gcp) getAccount() error {
 	output, err := exec.Command("gcloud", "config", "get-value", "account").Output()
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("could not call 'gcloud config get-value account': %v", err),
 		}
 	}
@@ -146,7 +146,7 @@ func (gcp *Gcp) writeConfigFile() error {
 	buf, bufErr := yaml.Marshal(gcp.KfDef)
 	if bufErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("GCP marshaling error: %v", bufErr),
 		}
 	}
@@ -154,7 +154,7 @@ func (gcp *Gcp) writeConfigFile() error {
 	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
 	if cfgFilePathErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("GCP config file writing error: %v", cfgFilePathErr),
 		}
 	}
@@ -240,7 +240,7 @@ func (gcp *Gcp) getK8sClientset(ctx context.Context) (*clientset.Clientset, erro
 	config, err := utils.BuildConfigFromClusterInfo(ctx, cluster, gcp.tokenSource)
 	if err != nil {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("build ClientConfig error: %v", err),
 		}
 	}
@@ -275,7 +275,7 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 		if op.Status == "DONE" {
 			if op.HttpErrorStatusCode > 0 {
 				return backoff.Permanent(&kfapis.KfError{
-					Code: int(kfapis.INTERNAL_ERROR),
+					Code: int(kfapis.INVALID_ARGUMENT),
 					Message: fmt.Sprintf("%v error(%v): %v",
 						logPrefix,
 						op.HttpErrorStatusCode, op.HttpErrorMessage),
@@ -297,7 +297,7 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	deploymentmanagerService, err := deploymentmanager.New(gcp.client)
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Error creating deploymentmanagerService: %v", err),
 		}
 	}
@@ -307,7 +307,7 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	}
 	if target, targetErr := generateTarget(filePath); targetErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: targetErr.Error(),
 		}
 	} else {
@@ -447,14 +447,14 @@ func (gcp *Gcp) AddNamedContext() error {
 	buf, err := ioutil.ReadFile(kftypes.KubeConfigPath())
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Reading KUBECONFIG error: %v", err),
 		}
 	}
 	var config map[string]interface{}
 	if err = yaml.Unmarshal(buf, &config); err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Unmarshaling KUBECONFIG error: %v", err),
 		}
 	}
@@ -463,7 +463,7 @@ func (gcp *Gcp) AddNamedContext() error {
 		e, ok := config[entryName]
 		if !ok {
 			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
+				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("Not able to find %v in KUBECONFIG", entryName),
 			}
 		}
@@ -477,13 +477,13 @@ func (gcp *Gcp) AddNamedContext() error {
 				}
 			} else {
 				return &kfapis.KfError{
-					Code:    int(kfapis.INTERNAL_ERROR),
+					Code:    int(kfapis.INVALID_ARGUMENT),
 					Message: "Not able to find name in the entry",
 				}
 			}
 		}
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Not able to find %v from %v in KUBECONFIG", name, entryName),
 		}
 	}
@@ -501,7 +501,7 @@ func (gcp *Gcp) AddNamedContext() error {
 	e, ok := config["contexts"]
 	if !ok {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: "Not able to find contexts in KUBECONFIG",
 		}
 	}
@@ -755,7 +755,7 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 			gcp.KfDef.Spec.Zone, gcp.KfDef.Spec.Project)
 		if err := cred_cmd.Run(); err != nil {
 			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
+				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("Error when running gcloud container clusters get-credentials: %v", err),
 			}
 		}
@@ -778,7 +778,7 @@ func deleteDeployment(deploymentmanagerService *deploymentmanager.Service, ctx c
 			return nil
 		} else {
 			return &kfapis.KfError{
-				Code: int(kfapis.INTERNAL_ERROR),
+				Code: int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("Deployment %v/%v has unexpected error: %v",
 					project, name, err),
 			}
@@ -935,7 +935,7 @@ func (gcp *Gcp) writeIamBindingsFile(src string, dest string) error {
 	buf, err := ioutil.ReadFile(src)
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Error when reading template %v: %v", src, err),
 		}
 	}
@@ -943,7 +943,7 @@ func (gcp *Gcp) writeIamBindingsFile(src string, dest string) error {
 	var data map[string]interface{}
 	if err = yaml.Unmarshal(buf, &data); err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Error when unmarshaling template %v: %v", src, err),
 		}
 	}
@@ -951,7 +951,7 @@ func (gcp *Gcp) writeIamBindingsFile(src string, dest string) error {
 	e, ok := data["bindings"]
 	if !ok {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: "Invalid IAM bindings format: not able to find `bindings` entry.",
 		}
 	}
@@ -1008,7 +1008,7 @@ func (gcp *Gcp) writeClusterConfig(src string, dest string) error {
 	buf, err := ioutil.ReadFile(src)
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Error when reading template %v: %v", src, err),
 		}
 	}
@@ -1016,7 +1016,7 @@ func (gcp *Gcp) writeClusterConfig(src string, dest string) error {
 	var data map[string]interface{}
 	if err = yaml.Unmarshal(buf, &data); err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Error when unmarshaling template %v: %v", src, err),
 		}
 	}
@@ -1024,7 +1024,7 @@ func (gcp *Gcp) writeClusterConfig(src string, dest string) error {
 	res, ok := data["resources"]
 	if !ok {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: "Invalid cluster config - not able to find resources entry.",
 		}
 	}
@@ -1070,7 +1070,7 @@ func (gcp *Gcp) writeStorageConfig(src string, dest string) error {
 	buf, err := ioutil.ReadFile(src)
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Error when reading storage-kubeflow template: %v", err),
 		}
 	}
@@ -1078,7 +1078,7 @@ func (gcp *Gcp) writeStorageConfig(src string, dest string) error {
 	var data map[string]interface{}
 	if err = yaml.Unmarshal(buf, &data); err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Error when unmarshaling template %v: %v", src, err),
 		}
 	}
@@ -1086,7 +1086,7 @@ func (gcp *Gcp) writeStorageConfig(src string, dest string) error {
 	res, ok := data["resources"]
 	if !ok {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: "Invalid storage config - not able to find resources entry.",
 		}
 	}
@@ -1129,7 +1129,7 @@ func (gcp *Gcp) generateDMConfigs() error {
 	gcpConfigDirErr := os.MkdirAll(gcpConfigDir, os.ModePerm)
 	if gcpConfigDirErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("cannot create directory %v", gcpConfigDirErr),
 		}
 	}
@@ -1205,7 +1205,7 @@ func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientse
 	iamService, err := iam.New(oClient)
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Get Oauth Client error: %v", err),
 		}
 	}
@@ -1419,7 +1419,7 @@ func (gcp *Gcp) gcpInitProject() error {
 	serviceusageService, serviceusageServiceErr := serviceusage.New(gcp.client)
 	if serviceusageServiceErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("could not create service usage service %v", serviceusageServiceErr),
 		}
 	}
