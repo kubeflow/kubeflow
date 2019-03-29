@@ -82,7 +82,7 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 	cacheDirErr := os.Mkdir(cacheDir, os.ModePerm)
 	if cacheDirErr != nil {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("couldn't create directory %v Error %v", cacheDir, cacheDirErr),
 		}
 	}
@@ -94,14 +94,14 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 	tarballUrlErr := gogetter.GetAny(cacheDir, tarballUrl)
 	if tarballUrlErr != nil {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("couldn't download kubeflow repo %v Error %v", tarballUrl, tarballUrlErr),
 		}
 	}
 	files, filesErr := ioutil.ReadDir(cacheDir)
 	if filesErr != nil {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("couldn't read %v Error %v", cacheDir, filesErr),
 		}
 	}
@@ -126,7 +126,7 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 	renameErr := os.Rename(extractedPath, newPath)
 	if renameErr != nil {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr),
 		}
 	}
@@ -145,7 +145,7 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 		return data, nil
 	} else {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: err.Error(),
 		}
 	}
@@ -255,7 +255,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		cwd, err := os.Getwd()
 		if err != nil {
 			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
+				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("could not get current directory %v", err),
 			}
 		}
@@ -265,14 +265,14 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			home, homeErr := homedir.Dir()
 			if homeErr != nil {
 				return nil, &kfapis.KfError{
-					Code:    int(kfapis.INTERNAL_ERROR),
+					Code:    int(kfapis.INVALID_ARGUMENT),
 					Message: fmt.Sprintf("could not get home directory %v", homeErr),
 				}
 			}
 			expanded, expandedErr := homedir.Expand(home)
 			if expandedErr != nil {
 				return nil, &kfapis.KfError{
-					Code:    int(kfapis.INTERNAL_ERROR),
+					Code:    int(kfapis.INVALID_ARGUMENT),
 					Message: fmt.Sprintf("could not expand home directory %v", homeErr),
 				}
 			}
@@ -286,7 +286,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	errs := valid.NameIsDNSLabel(appName, false)
 	if errs != nil && len(errs) > 0 {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf(`invalid name due to %v`, strings.Join(errs, ", ")),
 		}
 	}
@@ -363,7 +363,7 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	appDir, err := os.Getwd()
 	if err != nil {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("could not get current directory %v", err),
 		}
 	}
