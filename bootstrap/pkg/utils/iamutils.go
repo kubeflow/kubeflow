@@ -49,7 +49,7 @@ func GetIamPolicy(project string, gcpClient *http.Client) (*cloudresourcemanager
 	service, serviceErr := cloudresourcemanager.New(gcpClient)
 	if serviceErr != nil {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: serviceErr.Error(),
 		}
 	}
@@ -58,7 +58,7 @@ func GetIamPolicy(project string, gcpClient *http.Client) (*cloudresourcemanager
 		return policy, nil
 	} else {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: err.Error(),
 		}
 	}
@@ -180,7 +180,7 @@ func SetIamPolicy(project string, policy *cloudresourcemanager.Policy, gcpClient
 	service, serviceErr := cloudresourcemanager.New(gcpClient)
 	if serviceErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: serviceErr.Error(),
 		}
 	}
@@ -193,7 +193,7 @@ func SetIamPolicy(project string, policy *cloudresourcemanager.Policy, gcpClient
 		return nil
 	} else {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: err.Error(),
 		}
 	}
