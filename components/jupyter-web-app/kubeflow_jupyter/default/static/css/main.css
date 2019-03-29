@@ -103,6 +103,7 @@
 .demo-card {
   overflow: visible !important;
   min-height: 0;
+  display: table;
   width: fit-content;
 }
 

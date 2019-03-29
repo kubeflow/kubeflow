@@ -76,79 +76,80 @@ flex-grow: 1;
 }
 
 .close {
-margin-left: 15px;
-font-weight: bold;
-float: right;
-font-size: 22px;
-line-height: 20px;
-cursor: pointer;
-transition: 0.3s;
+  margin-left: 15px;
+  font-weight: bold;
+  float: right;
+  font-size: 22px;
+  line-height: 20px;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
 .closebtn:hover {
-color: black;
+  color: black;
 }
 
 /* ------------- Main Content ------------ */
 .errors {
-margin-top: 10px;
-margin-bottom: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 #error-msgs {
-min-width: 900px;
-width: 60%;
+  min-width: 900px;
+  width: 60%;
 }
 /* ---------- Card Table -------------*/
 .demo-card {
-overflow: visible !important;
-min-height: 0;
-width: fit-content;
+  overflow: visible !important;
+  min-height: 0;
+  display: table;
+  width: fit-content;
 }
 
 .mdl-data-table {
-border: 0px;
+  border: 0px;
 }
 
 .mdl-data-table th {
-text-align: center;
+  text-align: center;
 }
 
 .mdl-data-table td {
-text-align: center;
+  text-align: center;
 }
 
 .fab, .fas, .far {
-padding-left: 5px;
-padding-right: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
 }
 
 /* Notebooks Table */
 .mdl-card__table, table{
-table-layout: auto;
-min-width:1000px;
-margin:0em;
+  table-layout: auto;
+  min-width:1000px;
+  margin:0em;
 }
 
 .mdl-spinner {
-width: 24px;
-height: 24px;
+  width: 24px;
+  height: 24px;
 }
 
 .mdl-spinner__circle {
-border-width: 3px;
+  border-width: 3px;
 }
 
 .submit-card {
-overflow: visible !important;
-min-height: 0;
-min-width: 900px;
-width: 60%;
-margin-bottom: 20px;
+  overflow: visible !important;
+  min-height: 0;
+  min-width: 900px;
+  width: 60%;
+  margin-bottom: 20px;
 }
 
 .mdl-grid.center-items {
-justify-content: center;
+  justify-content: center;
 }
 
 .card-cont {
@@ -170,15 +171,15 @@ justify-content: center;
 }
 
 .mdl-card {
-overflow: visible;
-z-index: 100;
+  overflow: visible;
+  z-index: 100;
 }
 
 hr {
-display: block;
-height: 1px;
-border: 0;
-border-top: 1px solid rgba(0,0,0,0.12);
-padding: 0;
-margin: 0px;
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 1px solid rgba(0,0,0,0.12);
+  padding: 0;
+  margin: 0px;
 }
