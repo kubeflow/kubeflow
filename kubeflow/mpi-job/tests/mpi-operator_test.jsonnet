@@ -3,10 +3,10 @@
 
 local mpiOperator = import "kubeflow/mpi-job/mpi-operator.libsonnet";
 
-local v1beta1params = {
-  name: "mpi-operator-v1beta1",
-  image: "mpioperator/mpi-operator:v1beta1",
-  kubectlDeliveryImage: "mpioperator/kubectl-delivery:v1beta1",
+local v1alpha2params = {
+  name: "mpi-operator-v1alpha2",
+  image: "mpioperator/mpi-operator:v1alpha2",
+  kubectlDeliveryImage: "mpioperator/kubectl-delivery:v1alpha2",
   gpusPerNode: 4
 };
 
@@ -14,7 +14,7 @@ local env = {
   namespace: "kubeflow",
 };
 
-local mpiOperatorInstance = mpiOperator.new(env, v1beta1params);
+local mpiOperatorInstance = mpiOperator.new(env, v1alpha2params);
 
 // does it have all and items?
 std.assertEqual(
@@ -25,7 +25,7 @@ std.assertEqual(
 std.assertEqual(
   mpiOperatorInstance.mpiJobCrd,
   {
-    apiVersion: "apiextensions.k8s.io/v1beta1",
+    apiVersion: "apiextensions.k8s.io/v1alpha2",
     kind: "CustomResourceDefinition",
     metadata: {
       name: "mpijobs.kubeflow.org",
@@ -104,7 +104,7 @@ std.assertEqual(
     apiVersion: "v1",
     kind: "ServiceAccount",
     metadata: {
-      name: "mpi-operator-v1beta1",
+      name: "mpi-operator-v1alpha2",
       namespace: "kubeflow",
     },
   },
@@ -116,7 +116,7 @@ std.assertEqual(
       kind: "ClusterRole",
       apiVersion: "rbac.authorization.k8s.io/v1",
       metadata: {
-        name: "mpi-operator-v1beta1",
+        name: "mpi-operator-v1alpha2",
       },
       rules: [
         {
@@ -256,18 +256,18 @@ std.assertEqual(
     kind: "ClusterRoleBinding",
     apiVersion: "rbac.authorization.k8s.io/v1",
     metadata: {
-      name: "mpi-operator-v1beta1",
+      name: "mpi-operator-v1alpha2",
       namespace: "kubeflow",
     },
     roleRef: {
       apiGroup: "rbac.authorization.k8s.io",
       kind: "ClusterRole",
-      name: "mpi-operator-v1beta1",
+      name: "mpi-operator-v1alpha2",
     },
     subjects: [
       {
         kind: "ServiceAccount",
-        name: "mpi-operator-v1beta1",
+        name: "mpi-operator-v1alpha2",
         namespace: "kubeflow",
       },
     ],
@@ -280,37 +280,37 @@ std.assertEqual(
       apiVersion: "apps/v1",
       kind: "Deployment",
       metadata: {
-        name: "mpi-operator-v1beta1",
+        name: "mpi-operator-v1alpha2",
         namespace: "kubeflow",
         labels: {
-          app: "mpi-operator-v1beta1",
+          app: "mpi-operator-v1alpha2",
         },
       },
       spec: {
         replicas: 1,
         selector: {
           matchLabels: {
-            app: "mpi-operator-v1beta1",
+            app: "mpi-operator-v1alpha2",
           },
         },
         template: {
           metadata: {
             labels: {
-              app: "mpi-operator-v1beta1",
+              app: "mpi-operator-v1alpha2",
             },
           },
           spec: {
-            serviceAccountName: "mpi-operator-v1beta1",
+            serviceAccountName: "mpi-operator-v1alpha2",
             containers: [
               {
                 name: "mpi-operator",
-                image: "mpioperator/mpi-operator:v1beta1",
+                image: "mpioperator/mpi-operator:v1alpha2",
                 args: [
                   "-alsologtostderr",
                   "--gpus-per-node",
                   "4",
                   "--kubectl-delivery-image",
-                  "mpioperator/kubectl-delivery:v1beta1",
+                  "mpioperator/kubectl-delivery:v1alpha2",
                 ],
                 imagePullPolicy: "Always",
               },
