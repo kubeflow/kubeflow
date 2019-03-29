@@ -229,7 +229,11 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 
 		if err != nil {
 			// Retry here as there's a chance to get error for newly created DM operation.
-			return fmt.Errorf("%v error: %v", logPrefix, err)
+			log.Errorf("%v error: %v", logPrefix, err)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("%v error: %v", logPrefix, err),
+			}
 		}
 		if op.Error != nil {
 			for _, e := range op.Error.Errors {
@@ -247,7 +251,10 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 		}
 		log.Warnf("%v status: %v (op = %v)", logPrefix, op.Status, op.Name)
 		name = op.Name
-		return fmt.Errorf("%v did not succeed; status: %v (op = %v)", logPrefix, op.Status, op.Name)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("%v did not succeed; status: %v (op = %v)", logPrefix, op.Status, op.Name),
+		}
 	}, backoff.NewExponentialBackOff())
 }
 
@@ -675,10 +682,11 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 	return backoff.Retry(func() error {
 		newOp, retryErr := opService.Get(opName).Context(ctx).Do()
 		if retryErr != nil {
-			return backoff.Permanent(&kfapis.KfError{
+			log.Errorf("long running endpoint deletion error: %v", retryErr)
+			return &kfapis.KfError{
 				Code:    int(kfapis.INTERNAL_ERROR),
 				Message: fmt.Sprintf("long running endpoint deletion error: %v", retryErr),
-			})
+			}
 		}
 		if newOp.Error != nil {
 			return backoff.Permanent(&kfapis.KfError{
@@ -699,7 +707,10 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 		log.Warnf("Endpoint deletion is running: %v (op = %v)", gcp.Spec.Hostname, newOp.Name)
 		opName = newOp.Name
 		// This error is used to invoke another retry, no need to use KfError.
-		return fmt.Errorf("Endpoint deletion is running...")
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Endpoint deletion is running..."),
+		}
 	}, backoff.NewExponentialBackOff())
 }
 
