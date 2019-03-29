@@ -71,7 +71,7 @@ func getResource(mapping *meta.RESTMapping, config *rest.Config, group string,
 	restClient, err := getRESTClient(config, group, version)
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("getResource error: %v", err),
 		}
 	}
@@ -86,7 +86,7 @@ func getResource(mapping *meta.RESTMapping, config *rest.Config, group string,
 		return nil
 	} else {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("getResource error: %v", err),
 		}
 	}
@@ -100,7 +100,7 @@ func patchResource(mapping *meta.RESTMapping, config *rest.Config, group string,
 	restClient, err := getRESTClient(config, group, version)
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("patchResource error: %v", err),
 		}
 	}
@@ -115,7 +115,7 @@ func patchResource(mapping *meta.RESTMapping, config *rest.Config, group string,
 		return nil
 	} else {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("patchResource error: %v", err),
 		}
 	}
@@ -126,7 +126,7 @@ func deleteResource(mapping *meta.RESTMapping, config *rest.Config, group string
 	restClient, err := getRESTClient(config, group, version)
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("deleteResource error: %v", err),
 		}
 	}
@@ -144,7 +144,7 @@ func deleteResource(mapping *meta.RESTMapping, config *rest.Config, group string
 			return nil
 		} else {
 			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
+				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("Resource deletion error: %v", err),
 			}
 		}
@@ -162,7 +162,7 @@ func deleteResource(mapping *meta.RESTMapping, config *rest.Config, group string
 				msg = msg + getErr.Error()
 			}
 			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
+				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: msg,
 			}
 		}
@@ -174,7 +174,7 @@ func createResource(mapping *meta.RESTMapping, config *rest.Config, group string
 	restClient, err := getRESTClient(config, group, version)
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("createResource error: %v", err),
 		}
 	}
@@ -189,7 +189,7 @@ func createResource(mapping *meta.RESTMapping, config *rest.Config, group string
 		return nil
 	} else {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("createResource error: %v", err),
 		}
 	}
@@ -239,7 +239,7 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: err.Error(),
 		}
 	}
@@ -249,7 +249,7 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: err.Error(),
 		}
 	}
@@ -343,7 +343,7 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 				log.Infof("Resource creation for %v is failed, backoff and retry: %v",
 					name, retryErr.Error())
 				return &kfapis.KfError{
-					Code:    int(kfapis.INTERNAL_ERROR),
+					Code:    int(kfapis.INVALID_ARGUMENT),
 					Message: retryErr.Error(),
 				}
 			}, backoff.NewExponentialBackOff())
@@ -354,7 +354,7 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 	for _, e := range errors {
 		if e != nil {
 			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
+				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: e.Error(),
 			}
 		}
