@@ -15,11 +15,11 @@
 GCLOUD_PROJECT ?= kubeflow-images-public
 GOLANG_VERSION ?= 1.12
 GOPATH ?= $(HOME)/go
-GOOGLE_APPLICATION_CREDENTIALS ?= $(HOME)/auth.json
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
-IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
-TAG ?= $(shell git describe --tags --always --dirty)
+BOOTSTRAPPER_IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
+KFCTL_IMG ?= gcr.io/$(GCLOUD_PROJECT)/kfctl
+TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
 # set to -V
 VERBOSE ?= 
 PLUGINS_ENVIRONMENT ?= $(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin
@@ -32,7 +32,7 @@ export GO = go
 
 %.init:
 	@echo kfctl init test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) --version master && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(PWD)/test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) --version master
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(PWD)/test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) --version master
 
 %.init-no-platform:
 	@echo kfctl init test/$* $(VERBOSE) --version master && \
@@ -41,7 +41,9 @@ export GO = go
 %.generate:
 	@echo kfctl generate all $(VERBOSE) '(--platform '$*')' && \
 	cd test/$* && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all $(VERBOSE) --mount-local --email gcp-deploy@$(GCLOUD_PROJECT).iam.gserviceaccount.com
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all $(VERBOSE) --mount-local --email gcp-deploy@$(GCLOUD_PROJECT).iam.gserviceaccount.com
+
+%.md:
 
 all: build
 
@@ -82,6 +84,13 @@ build-bootstrap: /tmp/v2 deepcopy generate fmt vet
 build-kfctl: /tmp/v2 deepcopy generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
+build-kfctl-container:
+	docker build \
+		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+		--target=kfctl \
+		--tag $(KFCTL_IMG):$(TAG) .
+	@echo Built $(KFCTL_IMG):$(TAG)
+
 build-local: build-bootstrap build-kfctl
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
@@ -95,31 +104,49 @@ build:
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
 		--build-arg registries=reg_tmp \
 		--target=bootstrap \
-		--tag $(IMG):$(TAG) .
-	@echo Built $(IMG):$(TAG)
+		--tag $(BOOTSTRAPPER_IMG):$(TAG) .
+	@echo Built $(BOOTSTRAPPER_IMG):$(TAG)
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.
 push: build
-	docker push $(IMG):$(TAG)
-	@echo Pushed $(IMG):$(TAG)
+	docker push $(BOOTSTRAPPER_IMG):$(TAG)
+	@echo Pushed $(BOOTSTRAPPER_IMG):$(TAG)
 
 push-latest: push
-	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
-	echo created $(IMG):latest
+	gcloud container images add-tag --quiet $(BOOTSTRAPPER_IMG):$(TAG) $(BOOTSTRAPPER_IMG):latest --verbosity=info
+	echo created $(BOOTSTRAPPER_IMG):latest
+
+push-kfctl-container: build-kfctl-container
+	docker push $(KFCTL_IMG):$(TAG)
+	@echo Pushed $(KFCTL_IMG):$(TAG)
+
+push-kfctl-container-latest: push-kfctl-container
+	gcloud container images add-tag --quiet $(KFCTL_IMG):$(TAG) $(KFCTL_IMG):latest --verbosity=info
+	@echo created $(KFCTL_IMG):latest
 
 install: build-kfctl dockerfordesktop.so
 	@echo copying bin/kfctl to /usr/local/bin
 	@cp bin/kfctl /usr/local/bin
 
+run-kfctl-container: build-kfctl-container
+	@docker run -d -v $HOME/.kube:/root/.kube -t $(KFCTL_IMG):$(TAG)
+
 run-local-docker:
 	docker run -d -it --name bootstrapper \
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
-	  --entrypoint /bin/bash $(IMG):$(TAG)
+	  --entrypoint /bin/bash $(BOOTSTRAPPER_IMG):$(TAG)
+
 
 clean: 
-	rm -rf test && mkdir test
+	rm -rf test && rm -rf /tmp/v2 && mkdir test
+
+doc:
+	doctoc ./cmd/kfctl/README.md README.md k8sSpec/README.md developer_guide.md
 
 test-init: clean install dockerfordesktop.init minikube.init gcp.init none.init-no-platform
 
 test-generate: test-init dockerfordesktop.generate minikube.generate gcp.generate none.generate
+
+test-apply: test-generate dockerfordesktop.apply minikube.apply gcp.apply none.apply
+
