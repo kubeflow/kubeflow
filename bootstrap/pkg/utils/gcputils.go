@@ -36,7 +36,7 @@ func GetClusterInfo(ctx context.Context, project string, loc string, cluster str
 	c, err := container.NewClusterManagerClient(ctx, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: err.Error(),
 		}
 	}
@@ -49,7 +49,7 @@ func GetClusterInfo(ctx context.Context, project string, loc string, cluster str
 		return cl, nil
 	} else {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: err.Error(),
 		}
 	}
