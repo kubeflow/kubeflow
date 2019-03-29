@@ -510,7 +510,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	if iamPolicyErr != nil {
 		return fmt.Errorf("Read IAM policy YAML error: %v", iamPolicyErr)
 	}
-	utils.ClearIamPolicy(policy, iamPolicy)
+	utils.ClearIamPolicy(policy, gcp.Name, gcp.Spec.Project)
 	if err := utils.SetIamPolicy(gcp.Spec.Project, policy, gcpClient); err != nil {
 		return fmt.Errorf("Set Cleared IamPolicy error: %v", err)
 	}
