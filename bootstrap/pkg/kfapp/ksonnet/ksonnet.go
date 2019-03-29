@@ -91,7 +91,7 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 	if ksApp.restConfig == nil || ksApp.apiConfig == nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: "Error: ksApp has nil restConfig or apiConfig, exit",
 		}
 	}
@@ -100,8 +100,9 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 	envSetErr := ksApp.envSet(KsEnvName, ksApp.restConfig.Host)
 	if envSetErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("couldn't create ksonnet env %v Error: %v", KsEnvName, envSetErr),
+			Code: envSetErr.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("couldn't create ksonnet env %v Error: %v",
+				KsEnvName, envSetErr.(*kfapis.KfError).Message),
 		}
 	}
 	namespace := ksApp.ObjectMeta.Namespace
@@ -113,7 +114,7 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 		_, nsErr := clientset.CoreV1().Namespaces().Create(nsSpec)
 		if nsErr != nil {
 			return &kfapis.KfError{
-				Code: int(kfapis.INTERNAL_ERROR),
+				Code: int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("couldn't create %v %v Error: %v",
 					string(kftypes.NAMESPACE), namespace, nsErr),
 			}
@@ -122,7 +123,7 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("could not get current directory %v", err),
 		}
 	}
@@ -130,20 +131,13 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 		err = os.Chdir(ksApp.Spec.AppDir)
 		if err != nil {
 			return &kfapis.KfError{
-				Code: int(kfapis.INTERNAL_ERROR),
+				Code: int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("could not change directory to %v Error %v",
 					ksApp.Spec.AppDir, err),
 			}
 		}
 	}
-	applyErr := ksApp.applyComponent(ksApp.Spec.Components, ksApp.apiConfig)
-	if applyErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("couldn't create components Error: %v", applyErr),
-		}
-	}
-	return nil
+	return ksApp.applyComponent(ksApp.Spec.Components, ksApp.apiConfig)
 }
 
 func (ksApp *ksApp) getCompsFilePath() string {
@@ -218,7 +212,7 @@ func (ksApp *ksApp) componentAdd(component kfdefs.KsComponent, args []string) er
 		})
 		if err != nil {
 			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
+				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("there was a problem adding component %v: %v", component.Name, err),
 			}
 		}
@@ -234,7 +228,7 @@ func (ksApp *ksApp) components() (map[string]*kfdefs.KsComponent, error) {
 	components, err := topModule.Components()
 	if err != nil {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("there was a problem getting the components %v. Error: %v", ksApp.Name, err),
 		}
 	}
@@ -258,7 +252,7 @@ func (ksApp *ksApp) deleteGlobalResources(config *rest.Config) error {
 	crdsErr := apiextclientset.CustomResourceDefinitions().DeleteCollection(do, lo)
 	if crdsErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("couldn't delete customresourcedefinitions Error: %v", crdsErr),
 		}
 	}
@@ -279,7 +273,7 @@ func (ksApp *ksApp) deleteGlobalResources(config *rest.Config) error {
 	crbsErr := clientset.RbacV1().ClusterRoleBindings().DeleteCollection(do, lo)
 	if crbsErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("couldn't get list of clusterrolebindings Error: %v", crbsErr),
 		}
 	}
@@ -291,7 +285,7 @@ func (ksApp *ksApp) deleteGlobalResources(config *rest.Config) error {
 	crsErr := clientset.RbacV1().ClusterRoles().DeleteCollection(do, lo)
 	if crsErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("couldn't delete clusterroles Error: %v", crsErr),
 		}
 	}
@@ -307,7 +301,7 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 	envSetErr := ksApp.envSet(ksApp.KsEnvName, config.Host)
 	if envSetErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("couldn't create ksonnet env %v Error: %v", ksApp.KsEnvName, envSetErr),
 		}
 	}
@@ -334,7 +328,7 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 		nsErr := clientset.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
 		if nsErr != nil {
 			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
+				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("couldn't delete namespace %v Error: %v", namespace, nsErr),
 			}
 		}
@@ -345,7 +339,7 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 		crbDeleteErr := clientset.RbacV1().ClusterRoleBindings().Delete(crb.Name, metav1.NewDeleteOptions(int64(5)))
 		if crbDeleteErr != nil {
 			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
+				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("couldn't delete clusterrolebinding %v Error: %v", name, crbDeleteErr),
 			}
 		}
@@ -377,8 +371,9 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 	initErr := ksApp.initKs()
 	if initErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("couldn't initialize KfApi: %v", initErr),
+			Code: initErr.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("couldn't initialize KfApi: %v",
+				initErr.(*kfapis.KfError).Message),
 		}
 	}
 
@@ -388,8 +383,9 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 	registryAddErr := ksApp.registryAdd(ksRegistry)
 	if registryAddErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("couldn't add registry %v. Error: %v", ksRegistry.Name, registryAddErr),
+			Code: registryAddErr.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("couldn't add registry %v. Error: %v", ksRegistry.Name,
+				registryAddErr.(*kfapis.KfError).Message),
 		}
 	}
 	for _, pkgName := range ksApp.Spec.Packages {
@@ -400,8 +396,9 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 		packageAddErr := ksApp.pkgInstall(pkg)
 		if packageAddErr != nil {
 			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: fmt.Sprintf("couldn't add package %v. Error: %v", pkg.Name, packageAddErr),
+				Code: packageAddErr.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("couldn't add package %v. Error: %v", pkg.Name,
+					packageAddErr.(*kfapis.KfError).Message),
 			}
 		}
 	}
@@ -423,8 +420,9 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 		componentAddErr := ksApp.componentAdd(comp, parameterArgs)
 		if componentAddErr != nil {
 			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: fmt.Sprintf("couldn't add comp %v. Error: %v", comp.Name, componentAddErr),
+				Code: componentAddErr.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("couldn't add comp %v. Error: %v", comp.Name,
+					componentAddErr.(*kfapis.KfError).Message),
 			}
 		}
 	}
@@ -438,7 +436,7 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 			}
 			if err := actions.RunParamSet(args); err != nil {
 				return &kfapis.KfError{
-					Code: int(kfapis.INTERNAL_ERROR),
+					Code: int(kfapis.INVALID_ARGUMENT),
 					Message: fmt.Sprintf("Failed to set param %v %v %v: %v",
 						compName, nv.Name, nv.Value, err),
 				}
@@ -448,7 +446,7 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 	createConfigErr := ksApp.writeConfigFile()
 	if createConfigErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("cannot write to config file app.yaml in %v", ksApp.Spec.AppDir),
 		}
 	}
@@ -457,14 +455,7 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 
 func (ksApp *ksApp) Init(resources kftypes.ResourceEnum) error {
 	ksApp.Spec.Repo = path.Join(path.Join(ksApp.Spec.AppDir, kftypes.DefaultCacheDir, ksApp.Spec.Version), "kubeflow")
-	createConfigErr := ksApp.writeConfigFile()
-	if createConfigErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("cannot create config file app.yaml in %v", ksApp.Spec.AppDir),
-		}
-	}
-	return nil
+	return ksApp.writeConfigFile()
 }
 
 func (ksApp *ksApp) initKs() error {
@@ -480,7 +471,7 @@ func (ksApp *ksApp) initKs() error {
 		k8sSpec = kftypes.GetServerVersion(kftypes.GetClientset(ksApp.restConfig))
 		if k8sSpec == "" {
 			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
+				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: "could not find kubernetes version info",
 			}
 		}
@@ -516,14 +507,14 @@ func (ksApp *ksApp) envSet(envName string, host string) error {
 	})
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("There was a problem setting ksonnet env: %v", err),
 		}
 	}
 	loadApp, loadErr := app.Load(afero.NewOsFs(), ksApp.KApp.HTTPClient(), ksApp.ksRoot())
 	if loadErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("could not reload the ksonnet env: %v", err),
 		}
 	}
@@ -540,7 +531,7 @@ func (ksApp *ksApp) libraries() (map[string]*kfdefs.KsLibrary, error) {
 	libs, err := ksApp.KApp.Libraries()
 	if err != nil {
 		return nil, &kfapis.KfError{
-			Code: int(kfapis.INTERNAL_ERROR),
+			Code: int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("there was a problem getting the libraries %v. Error: %v",
 				ksApp.Name, err),
 		}
@@ -561,7 +552,7 @@ func (ksApp *ksApp) registries() (map[string]*kfdefs.Registry, error) {
 	regs, err := ksApp.KApp.Registries()
 	if err != nil {
 		return nil, &kfapis.KfError{
-			Code: int(kfapis.INTERNAL_ERROR),
+			Code: int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("There was a problem getting the registries %v. Error: %v",
 				ksApp.Name, err),
 		}
@@ -587,7 +578,7 @@ func (ksApp *ksApp) paramSet(component string, name string, value string) error 
 	})
 	if err != nil {
 		return &kfapis.KfError{
-			Code: int(kfapis.INTERNAL_ERROR),
+			Code: int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Error when setting Parameters %v for Component %v: %v",
 				name, component, err),
 		}
@@ -605,7 +596,7 @@ func (ksApp *ksApp) pkgInstall(pkg kfdefs.KsPackage) error {
 	})
 	if err != nil {
 		return &kfapis.KfError{
-			Code: int(kfapis.INTERNAL_ERROR),
+			Code: int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("there was a problem installing package %v: %v",
 				pkg.Name, err),
 		}
@@ -630,7 +621,7 @@ func (ksApp *ksApp) registryAdd(registry *kfdefs.RegistryConfig) error {
 	err := actions.RunRegistryAdd(options)
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("there was a problem adding registry %v: %v", registry.Name, err),
 		}
 	}
@@ -647,7 +638,7 @@ func (ksApp *ksApp) Show(resources kftypes.ResourceEnum, options map[string]inte
 	})
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("there was a problem calling show: %v", err),
 		}
 	}
@@ -655,22 +646,23 @@ func (ksApp *ksApp) Show(resources kftypes.ResourceEnum, options map[string]inte
 	err = os.Mkdir(yamlDir, os.ModePerm)
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("couldn't create directory %v, most likely it already exists", yamlDir),
 		}
 	}
 	output, outputErr := capture()
 	if outputErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("there was a problem calling capture: %v", outputErr),
+			Code: outputErr.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("there was a problem calling capture: %v",
+				outputErr.(*kfapis.KfError).Message),
 		}
 	}
 	yamlFile := filepath.Join(yamlDir, "default.yaml")
 	yamlFileErr := ioutil.WriteFile(yamlFile, []byte(output), 0644)
 	if yamlFileErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("could not write to %v Error %v", yamlFile, yamlFileErr),
 		}
 	}
@@ -681,7 +673,7 @@ func (ksApp *ksApp) writeConfigFile() error {
 	buf, bufErr := yaml.Marshal(&ksApp.KfDef)
 	if bufErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: bufErr.Error(),
 		}
 	}
@@ -689,7 +681,7 @@ func (ksApp *ksApp) writeConfigFile() error {
 	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
 	if cfgFilePathErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: cfgFilePathErr.Error(),
 		}
 	}
