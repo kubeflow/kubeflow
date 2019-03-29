@@ -28,8 +28,6 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/discovery/cached"
 	"k8s.io/client-go/dynamic"
-	"os"
-	"os/exec"
 	"strings"
 	"sync"
 
@@ -194,18 +192,6 @@ func patchOrCreate(mapping *meta.RESTMapping, config *rest.Config, group string,
 		err = createResource(mapping, config, group, version, namespace, data)
 	}
 	return err
-}
-
-// TODO(#2391): Should remove use of kubectl apply.
-func RunKubectlApply(filename string, args ...string) error {
-	cmdargs := []string{"apply", "--validate=false", "-f", filename}
-	for _, arg := range args {
-		cmdargs = append(cmdargs, arg)
-	}
-	cmd := exec.Command("kubectl", cmdargs...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stdout
-	return cmd.Run()
 }
 
 // CreateResourceFromFile creates resources from a file, just like `kubectl create -f filename`

@@ -5,7 +5,6 @@
 repo: /path/to/local/tmp/containing/kubeflow
 packages:
   - argo
-  - application
   - common
   - examples
   - gcp
@@ -23,7 +22,6 @@ packages:
   - tf-training
 components:
   - ambassador
-  - application
   - argo
   - centraldashboard
   - jupyter-web-app
@@ -36,9 +34,6 @@ components:
   - tensorboard
   - tf-job-operator
 componentParams:
-  application:
-    - name: components
-      value: <list-of-components>
   ambassador:
     - name: ambassadorServiceType
       value: NodePort
