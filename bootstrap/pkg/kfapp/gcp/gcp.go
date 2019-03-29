@@ -98,6 +98,7 @@ func GetKfApp(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 	client, err := google.DefaultClient(ctx, gke.CloudPlatformScope)
 	if err != nil {
 		log.Fatalf("Could not authenticate Client: %v", err)
+		log.Fatalf("Try authentication command and rerun: `gcloud auth application-default login`")
 		return nil, err
 	}
 	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
