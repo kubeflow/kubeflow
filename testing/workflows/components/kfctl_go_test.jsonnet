@@ -85,7 +85,7 @@ local prowDict = {
 // We use separate kubeConfig files for separate clusters
 local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=[]) = {
   name: step_name,
-  activeDeadlineSeconds: 2700,  // Set 30 minute timeout for each template
+  activeDeadlineSeconds: 3000,  // Set 50 minute timeout for each template
   workingDir: working_dir,
   container: {
     command: command,
