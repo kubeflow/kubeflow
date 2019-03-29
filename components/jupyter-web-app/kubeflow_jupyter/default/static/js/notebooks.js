@@ -1,10 +1,16 @@
-namespace = ""
-prevNotebooks = []
+var namespace = ""
+var prevNotebooks = []
+
+var TRIES = 3
+var timer = 1             // id of current running timer
+var retries = TRIES       // if it goes to zero, double the waiting time
+var wait_time = 1         // seconds
 
 $(document).ready(function(){
   // Update the Notebooks when a Namespace is selected
   $("#ns-select").on("change", function() {
     namespace = this.value;
+    resetTimerMechanism()
     updateNotebooksInNamespace(namespace);
 
     // Change the function for the CREATE NOTEBOOK button
@@ -14,6 +20,7 @@ $(document).ready(function(){
   // Search Bar
   $('#search-nb').bind("enterKey",function(e){
     namespace = this.value;
+    resetTimerMechanism()
     updateNotebooksInNamespace(namespace);
 
     // Change the function for the CREATE NOTEBOOK button
@@ -38,11 +45,51 @@ $(document).ready(function(){
   }
   $("#ns-select").trigger("change");
 
-  // Periodically check if the Notebook's State has changed
-  var inrvl = setInterval(function() {
+  // Periodically check if the Notebook's State has changed. The function
+  // updateNotebooksInNamespace handles the polling
+  timer = setTimeout(function() {
     updateNotebooksInNamespace(namespace)
-  }, 1250)
+  }, 1000)
 });
+
+function resetTimerMechanism() {
+  // Stop any previously running timer and set tries and wait time to defaults
+  clearTimeout(timer)
+  retries = TRIES + 1
+  wait_time = 1
+}
+
+function updatePolling(val_changed) {
+  // if the value changed, then reset the counter and waiting time
+  if (val_changed) {
+    resetTimerMechanism()
+
+    // restart polling
+    timer = setTimeout(function() {
+      updateNotebooksInNamespace(namespace)
+    }, wait_time * 1000)
+  } else {
+    // If the value didn't change, then double the waiting time (up to 16 secs)
+    // and decrease the retries
+    retries--;
+    if (retries == 0) {
+      retries = TRIES
+      wait_time = Math.min(wait_time * 2, 16)
+
+      // reset the timer to the new waiting time
+      clearTimeout(timer)
+      timer = setTimeout(function() {
+        updateNotebooksInNamespace(namespace)
+      }, wait_time * 1000)
+    } else {
+      // Reset the timer by waiting_time
+      clearTimeout(timer)
+      timer = setTimeout(function() {
+        updateNotebooksInNamespace(namespace)
+      }, wait_time * 1000)
+    }
+  }
+}
 
 function deleteNotebook(ns, nb) {
   $.ajax({
@@ -51,6 +98,7 @@ function deleteNotebook(ns, nb) {
     success: function(data, status) {
       var innerHTML = ''
       if(data.success == true) {
+        resetTimerMechanism()
         updateNotebooksInNamespace(ns)
       }
       else {
@@ -268,6 +316,7 @@ function updateNotebooksInNamespace(ns) {
     if(data.success == true){
       // First check if the state hasn't changed      
       if (_.isEqual(prevNotebooks, data.notebooks)) {
+        updatePolling(false)
         return;
       }
 
@@ -320,7 +369,8 @@ function updateNotebooksInNamespace(ns) {
       }
       $('#nb-table-body').html(tmp.html())
       // Make a deep copy
-      prevNotebooks = JSON.parse(JSON.stringify(data.notebooks)) 
+      prevNotebooks = JSON.parse(JSON.stringify(data.notebooks))
+      updatePolling(true)
     }
     else{
       innerHTML = `
@@ -336,7 +386,11 @@ function updateNotebooksInNamespace(ns) {
     // Load the dynamic components of mdl
     // https://stackoverflow.com/a/34579828
     componentHandler.upgradeAllRegistered();
-  });
+  })
+    .fail(function() {
+      // If failed to get a response, keep increasing the wait time / tries
+      updatePolling(false)
+    })
 }
 
 function searchOut() {
