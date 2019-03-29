@@ -653,14 +653,7 @@ func deleteDeployment(deploymentmanagerService *deploymentmanager.Service, ctx c
 
 // Delete endpoint service from resources.
 func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
-	client, clientErr := google.DefaultClient(ctx, servicemanagement.ServiceManagementScope)
-	if clientErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("creating HTTP client error: %v", clientErr),
-		}
-	}
-	servicemanagementService, err := servicemanagement.New(client)
+	servicemanagementService, err := servicemanagement.New(gcp.client)
 	if err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
