@@ -129,6 +129,19 @@ def get_notebooks(ns):
     image = cntr['image'],
     short_image = image[0].split("/")[-1].split(':')[0]
 
+    # In case the controller hasn't created the Status property
+    # notify the user
+    try:
+      status = nb['status']['containerState']
+      pods = nb['status']['readyReplicas']
+    except KeyError:
+      status = {
+          'waiting': {
+              'reason': 'No Status Available'
+          }
+      }
+      pods = 0
+
     nbs.append({
         'name': nb['metadata']['name'],
         'namespace': nb['metadata']['namespace'],
@@ -138,8 +151,8 @@ def get_notebooks(ns):
         'srt_image': short_image,
         'uptime': get_notebook_uptime(nb['metadata']['creationTimestamp']),
         'volumes': nb['spec']['template']['spec']['volumes'],
-        'status': nb['status']['containerState'],
-        'pods': nb['status']['readyReplicas']
+        'status': status,
+        'pods': pods,
     })
   return nbs
 
