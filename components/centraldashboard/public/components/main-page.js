@@ -28,6 +28,7 @@ import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
 import css from './main-page.css';
 import template from './main-page.pug';
+import logo from '../assets/kf-logo_64px.svg';
 
 import './namespace-selector.js';
 import './dashboard-view.js';
@@ -39,11 +40,11 @@ import './not-found-view.js';
  */
 export class MainPage extends PolymerElement {
     static get template() {
+        const pugVariables = {logo: logo};
         return html([`
         <style is="custom-style"
             include="iron-flex iron-flex-alignment iron-positioning">
-        <style>${css.toString()}</style>${template()}
-        `]);
+        <style>${css.toString()}</style>${template(pugVariables)}`]);
     }
 
     static get properties() {
@@ -107,18 +108,6 @@ export class MainPage extends PolymerElement {
         ];
     }
 
-    ready() {
-        super.ready();
-        fetch('assets/kf-logo_64px.svg')
-            .then((r) => r.text())
-            .then((svg) => {
-                this.$['Narrow-Slider'].querySelector('.Logo').innerHTML += [
-                    svg,
-                    `<figcaption>Kubeflow</figcaption>`,
-                ].join('');
-            });
-    }
-
     /**
      * [MACRO] Provide a logical OR functionality for the Polymer DOM
      * @param {...boolean} e
@@ -178,7 +167,7 @@ export class MainPage extends PolymerElement {
             this.sidebarItemIndex = -1;
             this.page = 'not_found';
             // Handles case when an iframed page requests an invalid route
-            if (window.location !== window.parent.location) {
+            if (this._isInsideOfIframe()) {
                 notFoundInIframe = true;
             }
         }
@@ -206,6 +195,15 @@ export class MainPage extends PolymerElement {
             this.sidebarItemIndex = -1;
             this.page = 'not_found';
         }
+    }
+
+    /**
+     * Returns true when this component is found to be iframed inside of a
+     * parent page.
+     * @return {boolean}
+     */
+    _isInsideOfIframe() {
+        return window.location !== window.parent.location;
     }
 }
 
