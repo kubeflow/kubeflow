@@ -5,7 +5,7 @@
 // @param name string Name to give to each of the components
 // @optionalParam disks string null Comma separated list of Google persistent disks to attach to jupyter environments.
 // @optionalParam cloud string null String identifying the cloud to customize the deployment for.
-// @optionalParam pytorchJobImage string gcr.io/kubeflow-images-public/pytorch-operator:v0.5.0-rc.1-6-gd09eb65 The image for the PyTorchJob controller
+// @optionalParam pytorchJobImage string gcr.io/kubeflow-images-public/pytorch-operator:v0.5.0 The image for the PyTorchJob controller
 // @optionalParam pytorchDefaultImage string null The default image to use for pytorch
 // @optionalParam deploymentScope string cluster The scope at which pytorch-operator should be deployed - valid values are cluster, namespace.
 // @optionalParam deploymentNamespace string null The namespace to which pytorch-operator should be scoped. If deploymentScope is set to cluster, this is ignored.

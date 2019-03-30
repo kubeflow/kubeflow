@@ -1,4 +1,6 @@
-app-drawer-layout.flex(narrow='{{narrowMode}}', force-narrow='[[or(inIframe, thinView)]]', thin$='[[thinView]]')
+app-drawer-layout.flex(narrow='{{narrowMode}}',
+        force-narrow='[[or(inIframe, thinView, notFoundInIframe)]]',
+        thin$='[[thinView]]')
     app-location(route='{{route}}', query-params='{{queryParams}}')
     app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
         tail='{{subRouteData}}')
@@ -20,12 +22,13 @@ app-drawer-layout.flex(narrow='{{narrowMode}}', force-narrow='[[or(inIframe, thi
             section.build build version&nbsp;
                 span(title="Build: [[buildVersion]] | Dashboard: v[[dashVersion]]") [[buildVersion]]
     app-header-layout(fullbleed)
-        app-header(slot='header')
+        app-header(slot='header', hides, hidden$='[[notFoundInIframe]]')
             app-toolbar(blue$='[[inIframe]]')
                 aside#Narrow-Slider(hides, hidden$='[[!narrowMode]]')
                     paper-icon-button#Menu(icon='menu', drawer-toggle)
                     figure.Logo
-                paper-tabs.bottom(selected='[[page]]', attr-for-selected='page', hides, hidden$='[[inIframe]]')
+                paper-tabs.bottom(selected='[[page]]', attr-for-selected='page',
+                        hides, hidden$='[[hideTabs]]')
                     paper-tab(page='dashboard', link)
                         a.link(tabindex='-1', href='/') Dashboard
                     paper-tab(page='activity', link)
@@ -41,4 +44,6 @@ app-drawer-layout.flex(narrow='{{narrowMode}}', force-narrow='[[or(inIframe, thi
                 activity-view(namespace='[[queryParams.ns]]')
             neon-animatable#iframe-page(page='iframe')
                 iframe#PageFrame.flex(src='[[iframeUrl]]')
+            neon-animatable(page='not_found')
+                not-found-view(path="[[route.path]]")
     iron-media-query(query='(max-width: 900px)', query-matches='{{thinView}}')

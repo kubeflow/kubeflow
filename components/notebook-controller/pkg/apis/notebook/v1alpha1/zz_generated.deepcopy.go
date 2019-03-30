@@ -126,6 +126,7 @@ func (in *NotebookStatus) DeepCopyInto(out *NotebookStatus) {
 		*out = make([]NotebookCondition, len(*in))
 		copy(*out, *in)
 	}
+	in.ContainerState.DeepCopyInto(&out.ContainerState)
 	return
 }
 
