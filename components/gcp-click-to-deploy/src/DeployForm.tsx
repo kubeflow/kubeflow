@@ -112,8 +112,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       dialogBody: '',
       dialogTitle: '',
       iap: true,
-      kfversion: 'v0.3.5',
-      kfversionList: ['v0.3.5', 'v0.4.1'],
+      kfversion: 'v0.4.1',
+      kfversionList: ['v0.4.1'],
       password: '',
       password2: '',
       project: '',
@@ -340,16 +340,48 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       }
 
     }
+    this._configSpec.defaultApp.registries[0].version = this.state.kfversion;
+
+    // Make copy of this._configSpec before conditional changes.
+    const configSpec = JSON.parse(JSON.stringify(this._configSpec));
+
+    // Customize config for v0.4.1 compatibility
+    // TODO: remove after fully switch to kfctl / new deployment API is alive.
+    if (this.state.kfversion.startsWith('v0.4.1')) {
+      const removeComps = ['gcp-credentials-admission-webhook', 'gpu-driver', 'notebook-controller'];
+      for (let i = 0, len = removeComps.length; i < len; i++) {
+        this._removeComponent(removeComps[i], configSpec);
+      }
+      for (let i = 0, len = configSpec.defaultApp.components.length; i < len; i++) {
+        const component = configSpec.defaultApp.components[i];
+        if (component.name === 'jupyter-web-app') {
+          component.name = 'jupyter';
+          component.prototype = 'jupyter';
+          break;
+        }
+      }
+      configSpec.defaultApp.parameters.push({
+        component: 'jupyter',
+        name: 'jupyterHubAuthenticator',
+        value: 'iap'
+      });
+      configSpec.defaultApp.parameters.push({
+        component: 'jupyter',
+        name: 'platform',
+        value: 'gke'
+      });
+    }
+
     if (!this.state.iap) {
-      for (let i = 0, len = this._configSpec.defaultApp.components.length; i < len; i++) {
-        const p = this._configSpec.defaultApp.components[i];
+      for (let i = 0, len = configSpec.defaultApp.components.length; i < len; i++) {
+        const p = configSpec.defaultApp.components[i];
         if (p.name === 'iap-ingress') {
           p.name = 'basic-auth-ingress';
           p.prototype = 'basic-auth-ingress';
         }
       }
-      for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
-        const p = this._configSpec.defaultApp.parameters[i];
+      for (let i = 0, len = configSpec.defaultApp.parameters.length; i < len; i++) {
+        const p = configSpec.defaultApp.parameters[i];
         if (p.component === 'iap-ingress') {
           p.component = 'basic-auth-ingress';
         }
@@ -357,37 +389,31 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           p.value = 'null';
         }
       }
+      configSpec.defaultApp.components.push({
+        name: 'basic-auth',
+        prototype: 'basic-auth',
+      });
+      configSpec.defaultApp.parameters.push({
+        component: 'ambassador',
+        name: 'ambassadorServiceType',
+        value: 'NodePort'
+      });
     }
-    // Customize config for v0.3 compatibility
-    // TODO: remove after https://github.com/kubeflow/kubeflow/pull/2019 merged
-    if (this.state.kfversion.startsWith('v0.3')) {
-      let metacontrollerIdx = -1;
-      for (let i = 0, len = this._configSpec.defaultApp.components.length; i < len; i++) {
-        const component = this._configSpec.defaultApp.components[i];
-        if (component.name === 'jupyter') {
-          component.name = 'jupyterhub';
-          component.prototype = 'jupyterhub';
-        }
-        if (component.name === 'metacontroller') {
-          metacontrollerIdx = i;
-        }
-      }
-      for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
-        const p = this._configSpec.defaultApp.parameters[i];
-        if (p.component === 'jupyter') {
-          p.component = 'jupyterhub';
-        }
-        if (p.name === 'platform') {
-          p.name = 'cloud';
-        }
-      }
-      if (metacontrollerIdx !== -1) {
-        this._configSpec.defaultApp.components.splice(metacontrollerIdx, 1);
-      }
-    }
-    this._configSpec.defaultApp.registries[0].version = this.state.kfversion;
+    return configSpec;
+  }
 
-    return this._configSpec;
+  private _removeComponent(compName: string, configSpec: any) {
+    let rmIdx = -1;
+    for (let i = 0, len = configSpec.defaultApp.components.length; i < len; i++) {
+      const component = configSpec.defaultApp.components[i];
+      if (component.name === compName) {
+        rmIdx = i;
+        break;
+      }
+    }
+    if (rmIdx !== -1) {
+      configSpec.defaultApp.components.splice(rmIdx, 1);
+    }
   }
 
   private async _cloudShell() {
@@ -643,21 +669,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       return;
     }
 
-    const resource = await this._getYaml();
-    if (!resource) {
+    const configSpec = await this._getYaml();
+    if (!configSpec) {
       return;
-    }
-    const configSpec = JSON.parse(JSON.stringify(resource));
-    if (!this.state.iap) {
-      configSpec.defaultApp.components.push({
-        name: 'basic-auth',
-        prototype: 'basic-auth',
-      });
-      configSpec.defaultApp.parameters.push({
-        component: 'ambassador',
-        name: 'ambassadorServiceType',
-        value: 'NodePort'
-      });
     }
 
     let createBody = {
