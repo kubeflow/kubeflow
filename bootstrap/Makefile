@@ -13,14 +13,35 @@
 # limitations under the License.
 #
 GCLOUD_PROJECT ?= kubeflow-images-public
-GOLANG_VERSION ?= 1.11.2
+GOLANG_VERSION ?= 1.12
+GOPATH ?= $(HOME)/go
+GOOGLE_APPLICATION_CREDENTIALS ?= $(HOME)/auth.json
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
-# set to GOLANG_GCFLAGS=-gcflags "all=-N -l" to debug
-GOLANG_GCFLAGS ?= ""
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
-TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
-PORT ?= 2345
+TAG ?= $(shell git describe --tags --always --dirty)
+# set to -V
+VERBOSE ?= 
+PLUGINS_ENVIRONMENT ?= $(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin
+export GO111MODULE = on
+export GO = go
+
+%.so:
+	cd cmd/plugins/$* && \
+	$(GO) build -i -gcflags 'all=-N -l' -o ../../../bin/$*.so -buildmode=plugin $*.go
+
+%.init:
+	@echo kfctl init test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) --version master && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(PWD)/test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) --version master
+
+%.init-no-platform:
+	@echo kfctl init test/$* $(VERBOSE) --version master && \
+	kfctl init $(PWD)/test/$* $(VERBOSE) --version master
+
+%.generate:
+	@echo kfctl generate all $(VERBOSE) '(--platform '$*')' && \
+	cd test/$* && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all $(VERBOSE) --mount-local --email gcp-deploy@$(GCLOUD_PROJECT).iam.gserviceaccount.com
 
 all: build
 
@@ -29,23 +50,52 @@ auth:
 
 # Run go fmt against code
 fmt:
-	go fmt ./cmd/...
+	@$(GO) fmt ./config/... ./pkg/apis/apps/kfdef/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
 
 # Run go vet against code
 vet:
-	go vet ./cmd/...
+	@$(GO) vet ./config/... ./pkg/apis/apps/kfdef/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
 
-build-local: fmt vet
-	GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+generate:
+	@$(GO) generate ./config/... ./pkg/apis/apps/kfdef/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
+
+/tmp/v2:
+	@[ ! -d /tmp/v2 ] && unzip -q -d /tmp hack/v2.zip
+
+$(GOPATH)/bin/deepcopy-gen:
+	GO111MODULE=off $(GO) get k8s.io/code-generator/cmd/deepcopy-gen
+
+config/zz_generated.deepcopy.go: config/types.go
+	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/config/... -O zz_generated.deepcopy
+
+pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/kfdef/v1alpha1/application_types.go
+	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy
+
+v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: v2/pkg/apis/apps/kfdef/v1alpha1/application_types.go
+	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy
+
+deepcopy: $(GOPATH)/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go 
+
+build-bootstrap: /tmp/v2 deepcopy generate fmt vet
+	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+
+build-kfctl: /tmp/v2 deepcopy generate fmt vet
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
+
+build-local: build-bootstrap build-kfctl
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
-build: build-local
+build:
 	rm -rf reg_tmp
 	mkdir -p reg_tmp/kubeflow
 	cp -r ../kubeflow reg_tmp/kubeflow
 	cp -r ../deployment reg_tmp/kubeflow
 	cp -r ../dependencies reg_tmp/kubeflow
-	docker build -t $(IMG):$(TAG) --build-arg GOLANG_VERSION=$(GOLANG_VERSION) --build-arg registries=reg_tmp --target=bootstrap .
+	docker build \
+		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+		--build-arg registries=reg_tmp \
+		--target=bootstrap \
+		--tag $(IMG):$(TAG) .
 	@echo Built $(IMG):$(TAG)
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
@@ -58,21 +108,18 @@ push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
 	echo created $(IMG):latest
 
-run-local:
-	KUBERNETES_SERVICE_HOST=https://35.233.240.120 KUBERNETES_SERVICE_PORT=80 bin/bootstrapper --app-dir=$$HOME/apps --registries-config-file=$$PWD/local_registries.yaml --config=$$PWD/config/default.yaml --in-cluster=false
+install: build-kfctl dockerfordesktop.so
+	@echo copying bin/kfctl to /usr/local/bin
+	@cp bin/kfctl /usr/local/bin
 
 run-local-docker:
 	docker run -d -it --name bootstrapper \
-	  --mount type=bind,source=$$HOME/kf_app,target=/home/kubeflow \
+	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
-debug: push cleanup
-	@echo debugging $(IMG):$(TAG) using port $(PORT)
-	@./debug.sh $(IMG) $(TAG) $(PORT)
+clean: 
+	rm -rf test && mkdir test
 
-debug-latest: debug
-	@echo debugging $(IMG):latest using port $(PORT)
-	@./debug.sh $(IMG) latest $(PORT)
+test-init: clean install dockerfordesktop.init minikube.init gcp.init none.init-no-platform
 
-cleanup:
-	@./cleanup.sh kubeflow-admin
+test-generate: test-init dockerfordesktop.generate minikube.generate gcp.generate none.generate

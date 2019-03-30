@@ -27,6 +27,6 @@ GITHUB_USER=[your github id]
 ```
 Follow the commandline prompt to enter authentication credentials. Assuming that there are no
 conflicts, a PR should be created with the title `Automated cherry pick of #1234...`. PRs
-with conflicts need to be resolved manually. 
+with conflicts need to be resolved manually.
 
 The PR should be assigned to the current release czar for approval.

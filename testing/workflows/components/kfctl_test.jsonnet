@@ -43,7 +43,7 @@ local appName = "kfctl-" + std.substr(name, std.length(name) - 4, 4);
 // we execute kfctl commands from
 local appDir = testDir + "/" + appName;
 
-local image = "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4";
+local image = "gcr.io/kubeflow-ci/test-worker:latest";
 local testing_image = "gcr.io/kubeflow-ci/kubeflow-testing";
 
 // The name of the NFS volume claim to use for test files.
@@ -76,8 +76,8 @@ local prowDict = {
   REPO_NAME: "notset",
   JOB_NAME: "notset",
   JOB_TYPE: "notset",
-  PULL_NUMBER: "notset",  
- } + newUtil.listOfDictToMap(prowEnv);
+  PULL_NUMBER: "notset",
+} + newUtil.listOfDictToMap(prowEnv);
 
 // Build an Argo template to execute a particular command.
 // step_name: Name for the template
@@ -92,14 +92,7 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
     image: image,
     workingDir: working_dir,
     // TODO(jlewi): Change to IfNotPresent.
-    imagePullPolicy: "Always",
-    metadata: {
-      labels: prowDict + {
-        workflow: params.name,
-        workflow_template: workflow_template,
-        "step_name": step_name,
-      },
-    },
+    imagePullPolicy: "Always",    
     env: [
       {
         // Add the source directories to the python path.
@@ -142,6 +135,13 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
       },
     ],
   },
+  metadata: {
+      labels: prowDict {
+        workflow: params.name,
+        workflow_template: workflow_template,
+        step_name: step_name,
+      },
+  },
   sidecars: sidecars,
 };  // buildTemplate
 
@@ -151,11 +151,12 @@ local componentTests = util.kfTests {
   testDir: testDir,
   kubeConfig: kubeConfig,
   image: image,
+  workflowName: params.workflowName,
   buildTemplate+: {
     argoTemplate+: {
       container+: {
         metadata+: {
-          labels: prowDict + {
+          labels: prowDict {
             workflow: params.name,
             workflow_template: workflow_template,
           },
@@ -275,6 +276,53 @@ local dagTemplates = [
   },
   {
     template: buildTemplate(
+      "install-spark-operator",
+      [
+        // Install the operator
+        "ks",
+        "pkg",
+        "install",
+        "kubeflow/spark",
+      ],
+      working_dir=appDir + "/ks_app"
+    ),
+    dependencies: ["kfctl-generate-k8s"],
+  },  // install-spark-operator
+  {
+    template: buildTemplate(
+      "generate-spark-operator",
+      [
+        // Generate the operator
+        "ks",
+        "generate",
+        "spark-operator",
+        "spark-operator",
+        "--name=spark-operator",
+      ],
+      working_dir=appDir + "/ks_app"
+    ),
+    // Need to wait on kfctl-apply-k8s because that step creates
+    // the ksonnet environment.
+    dependencies: ["install-spark-operator", "kfctl-apply-k8s"],
+  },  // generate-spark-operator
+  {
+    template: buildTemplate(
+      "apply-spark-operator",
+      [
+        runPath,
+        // Apply the operator
+        "ks",
+        "apply",
+        "default",
+        "-c",
+        "spark-operator",
+      ],
+      working_dir=appDir + "/ks_app"
+    ),
+    dependencies: ["generate-spark-operator"],
+  },  //apply-spark-operator
+  {
+    template: buildTemplate(
       "kfctl-apply-k8s",
       [
         runPath,
@@ -289,7 +337,7 @@ local dagTemplates = [
   // Run the nested tests.
   {
     template: componentTests.argoDagTemplate,
-    dependencies: ["kfctl-apply-k8s"],
+    dependencies: ["apply-spark-operator", "kfctl-apply-k8s"],
   },
 ];
 
@@ -326,7 +374,7 @@ local deleteStorageStep = if deleteKubeflow then
         "--project=" + project,
         "deployments",
         "delete",
-        appName+"-storage",
+        appName + "-storage",
         "--quiet",
       ],
       working_dir=appDir
@@ -410,11 +458,11 @@ local workflow = {
   metadata: {
     name: name,
     namespace: namespace,
-    labels: prowDict + {
-        workflow: params.name,
-        workflow_template: workflow_template,
+    labels: prowDict {
+      workflow: params.name,
+      workflow_template: workflow_template,
     },
-  },  
+  },
   spec: {
     entrypoint: "e2e",
     // Have argo garbage collect old workflows otherwise we overload the API server.

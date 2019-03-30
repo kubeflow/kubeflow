@@ -68,12 +68,32 @@
                 image: params.image,
                 name: "app",
                 workingDir: "/opt/kubeflow",
+                env: [
+                  {
+                    name: "USERNAME",
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: params.authSecretName,
+                        key: "username",
+                      },
+                    },
+                  },
+                  {
+                    name: "PASSWORDHASH",
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: params.authSecretName,
+                        key: "passwordhash",
+                      },
+                    },
+                  },
+                ],
                 command: [
                   "/opt/kubeflow/gatekeeper",
                 ],
                 args: [
-                  "--username=" + params.username,
-                  "--pwhash=" + params.pwhash,
+                  "--username=$(USERNAME)",
+                  "--pwhash=$(PASSWORDHASH)",
                 ],
                 ports: [
                   {

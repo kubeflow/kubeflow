@@ -1,0 +1,18 @@
+paper-card#Getting-Started(heading='Getting Started')
+    template(is='dom-repeat', items='[[gettingStartedItems]]')
+        a.heading(href$='[[item.link]]', tabindex='-1',
+                    target='_blank')
+            paper-icon-item
+                iron-icon(icon='launch', slot='item-icon')
+                paper-item-body(two-line)
+                    .header [[item.text]]
+                    aside(secondary) [[item.desc]]
+paper-card.thin#Quick-Links(heading='Quick Links')
+    template(is='dom-repeat', items='[[quickLinks]]')
+        article.link
+            paper-item-body [[item.text]]
+            a(href$='[[item.link]]', tabindex='-1', target='_blank')
+                paper-icon-button.button(icon='arrow-forward', alt='[[item.text]]')
+    article.link.more-coming
+        paper-item-body More coming soon
+        paper-icon-button.button(icon='arrow-forward', disabled)

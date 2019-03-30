@@ -1,4 +1,4 @@
-apiVersion: 0.1.0
+apiVersion: 0.3.0
 environments:
   kubeflow-testing:
     destination:

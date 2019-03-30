@@ -29,7 +29,7 @@
         name: "envoy",
         namespace: namespace,
         annotations: {
-          "beta.cloud.google.com/backend-config": '{"ports": {"envoy":"envoy-iap"}}',
+          "beta.cloud.google.com/backend-config": '{"ports": {"envoy":"iap-backendconfig"}}',
         },
       },
       spec: {
@@ -824,7 +824,7 @@
       apiVersion: "cloud.google.com/v1beta1",
       kind: "BackendConfig",
       metadata: {
-        name: "envoy-iap",
+        name: "iap-backendconfig",
         namespace: namespace,
       },
       spec: {
@@ -948,67 +948,63 @@
     },  // iapIngress
     ingress:: ingress,
 
-    local certificate = if params.privateGKECluster == "false" then (
-      {
-        apiVersion: "certmanager.k8s.io/v1alpha1",
-        kind: "Certificate",
-        metadata: {
-          name: params.secretName,
-          namespace: namespace,
-        },
+    local certificate = {
+      apiVersion: "certmanager.k8s.io/v1alpha1",
+      kind: "Certificate",
+      metadata: {
+        name: params.secretName,
+        namespace: namespace,
+      },
 
-        spec: {
-          secretName: params.secretName,
-          issuerRef: {
-            name: params.issuer,
-            kind: "ClusterIssuer",
-          },
-          commonName: params.hostname,
-          dnsNames: [
-            params.hostname,
-          ],
-          acme: {
-            config: [
-              {
-                http01: {
-                  ingress: "envoy-ingress",
-                },
-                domains: [
-                  params.hostname,
-                ],
-              },
-            ],
-          },
+      spec: {
+        secretName: params.secretName,
+        issuerRef: {
+          name: params.issuer,
+          kind: "ClusterIssuer",
         },
-      }  // certificate
-    ),
+        commonName: params.hostname,
+        dnsNames: [
+          params.hostname,
+        ],
+        acme: {
+          config: [
+            {
+              http01: {
+                ingress: "envoy-ingress",
+              },
+              domains: [
+                params.hostname,
+              ],
+            },
+          ],
+        },
+      },
+    },  // certificate
     certificate:: certificate,
 
-    local cloudEndpoint = if isCloudEndpoint(params.hostname) then (
-      {
-        local makeEndpointParams(str) = {
-          local toks = std.split(str, "."),
-          result:: {
-            name: toks[0],
-            project: toks[2],
-          },
-        }.result,
-        local endpointParams = makeEndpointParams(params.hostname),
-        apiVersion: "ctl.isla.solutions/v1",
-        kind: "CloudEndpoint",
-        metadata: {
-          name: endpointParams.name,
+    local cloudEndpoint = {
+      local makeEndpointParams(str) = {
+        local toks = std.split(str, "."),
+        result:: {
+          name: toks[0],
+          project: toks[2],
+        },
+      }.result,
+      local endpointParams = makeEndpointParams(params.hostname),
+      apiVersion: "ctl.isla.solutions/v1",
+      kind: "CloudEndpoint",
+      metadata: {
+        name: endpointParams.name,
+        namespace: namespace,
+      },
+      spec: {
+        project: endpointParams.project,
+        targetIngress: {
+          name: "envoy-ingress",
           namespace: namespace,
         },
-        spec: {
-          project: endpointParams.project,
-          targetIngress: {
-            name: "envoy-ingress",
-            namespace: namespace,
-          },
-        },
-      }  // cloudEndpoint
-    ),
+      },
+    },  // cloudEndpoint
     cloudEndpoint:: cloudEndpoint,
 
     parts:: self,
@@ -1025,12 +1021,20 @@
       self.ingressBootstrapConfigMap,
       self.ingressBootstrapJob,
       self.ingress,
-      self.certificate,
-      self.cloudEndpoint,
-    ] + if !params.useIstio then [
-      self.service,
-      self.deploy,
-    ] else [],
+    ] + (
+      if params.privateGKECluster == "false" then [
+        self.certificate,
+      ] else []
+    ) + (
+      if isCloudEndpoint(params.hostname) then [
+        self.cloudEndpoint,
+      ] else []
+    ) + (
+      if !params.useIstio then [
+        self.service,
+        self.deploy,
+      ] else []
+    ),
 
     list(obj=self.all):: k.core.v1.list.new(obj,),
   },
