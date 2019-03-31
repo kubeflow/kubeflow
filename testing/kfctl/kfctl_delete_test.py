@@ -50,6 +50,8 @@ def test_kfctl_delete(kfctl_path, app_path, project):
   util.run([kfctl_path, "delete", "all", "--delete_storage", "-V"],
            cwd=app_path)
 
+  # Use services.list instead of services.get because error returned is not
+  # 404, it's 403 which is confusing.
   name = os.path.basename(app_path)
   endpoint_name = "{deployment}.endpoints.{project}.cloud.goog".format(
       deployment=name,
