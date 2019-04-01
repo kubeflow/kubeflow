@@ -186,7 +186,7 @@ func (ksApp *ksApp) applyComponent(components []string, cfg *clientcmdapi.Config
 		log.Errorf("components apply failed; Error: %v", err)
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: err.Error(),
+			Message: fmt.Sprintf("components apply failed; Error: %v", err.Error()),
 		}
 	} else {
 		log.Infof("All components apply succeeded")
