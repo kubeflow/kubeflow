@@ -422,24 +422,13 @@ Alternatively you can use the UI.
 
    * TODO(jlewi): Ideally we automate the builds and publish them e.g. to a GCS bucket on postsubmit.
 
-1. Build kfctl for linux
+1. Build kfctl for linux and mac
 
    ```
    cd bootstrap
-   make build-kfctl
+   TAG=v0.5.0-rc.1 make push-to-github-release
    ```
-
-1. Upload the artifact
-
-   ```
-   TAG=${e.g v0.5.0-rc.1}
-   github-release upload \
-    --user kubeflow \
-    --repo kubeflow \
-    --tag ${TAG} \
-    --name "kfctl_${TAG}_linux" \
-    --file bin/kfctl
-   ```
+   * Set the tag to be the correct version for the tag.
 
 ## Update the changelog
 
