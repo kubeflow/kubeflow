@@ -1,3 +1,29 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [kfctl golang client](#kfctl-golang-client)
+  - [Overview](#overview)
+  - [Requirements](#requirements)
+  - [API and Packaging](#api-and-packaging)
+    - [KfApp Interface](#kfapp-interface)
+  - [Usage](#usage)
+  - [Subcommands](#subcommands)
+    - [**init**](#init)
+    - [**generate**](#generate)
+    - [**apply**](#apply)
+  - [Extending kfctl](#extending-kfctl)
+    - [Building the sample plugin](#building-the-sample-plugin)
+  - [Testing](#testing)
+    - [Testing kfctl (tests plugin functionality, `kfctl init`, `kfctl generate`)](#testing-kfctl-tests-plugin-functionality-kfctl-init-kfctl-generate)
+    - [Testing `kfctl init` for all platforms](#testing-kfctl-init-for-all-platforms)
+    - [Testing `kfctl generate` for all platforms](#testing-kfctl-generate-for-all-platforms)
+      - [app.yaml example for --platform gcp](#appyaml-example-for---platform-gcp)
+  - [gcp-click-to-deploy (no changes)](#gcp-click-to-deploy-no-changes)
+  - [golang modules and versioned packages](#golang-modules-and-versioned-packages)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # kfctl golang client
 
 ## Overview

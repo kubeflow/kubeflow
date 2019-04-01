@@ -1390,6 +1390,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	}
 	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "mysqlPd", gcp.Name+"-storage-metadata-store", false)
 	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "minioPd", gcp.Name+"-storage-artifact-store", false)
+	gcp.Spec.ComponentParams["notebook-controller"] = setNameVal(gcp.Spec.ComponentParams["notebook-controller"], "injectGcpCredentials", "true", false)
 
 	for _, comp := range gcp.Spec.Components {
 		if comp == "spartakus" {
