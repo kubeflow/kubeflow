@@ -26,6 +26,7 @@ components:
   - basic-auth
   - basic-auth-ingress
   - centraldashboard
+  - cert-manager
   - cloud-endpoints
   - gcp-credentials-admission-webhook
   - gpu-driver
