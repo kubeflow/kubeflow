@@ -46,6 +46,7 @@ const (
 	DefaultConfigFile = "kfctl_default.yaml"
 	GcpIapConfig      = "kfctl_iap.yaml"
 	GcpBasicAuth      = "kfctl_basic_auth.yaml"
+	GcpProxyConfig    = "kfctl_proxy.yaml"
 	DefaultZone       = "us-east1-d"
 	DefaultGkeApiVer  = "v1beta1"
 	DefaultAppLabel   = "app.kubernetes.io/name"
