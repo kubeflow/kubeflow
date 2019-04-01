@@ -401,6 +401,46 @@ Releasing a new version on the website requires the following steps:
     ```
    * Make this change in the master branch, and then cherry-pick the commit back to the newly released branch. This allows the user to browse between all the released versions on the website.
 
+## Release kfctl
+
+You can use the [CLI github-release](https://github.com/aktau/github-release) to automate uploading artifacts.
+Alternatively you can use the UI.
+
+1. Get aktau/github-release
+
+   ```
+   go get github.com/aktau/github-release
+   ```
+
+1. You'll need a GitHub token to authenticate to GitHub see [docs](https://github.com/aktau/github-release)
+
+1. Checkout the release commit
+
+   ```
+   git checkout ${COMMIT}
+   ```
+
+   * TODO(jlewi): Ideally we automate the builds and publish them e.g. to a GCS bucket on postsubmit.
+
+1. Build kfctl for linux
+
+   ```
+   cd bootstrap
+   make build-kfctl
+   ```
+
+1. Upload the artifact
+
+   ```
+   TAG=${e.g v0.5.0-rc.1}
+   github-release upload \
+    --user kubeflow \
+    --repo kubeflow \
+    --tag ${TAG} \
+    --name "kfctl_${TAG}_linux" \
+    --file bin/kfctl
+   ```
+
 ## Update the changelog
 
 1. After the release branch is created run the following script to update the changelog

@@ -188,3 +188,6 @@ cd ../components/gcp-click-to-deploy
 npm start
 ```
 
+## Releasing kfctl
+
+See [release guide](https://github.com/kubeflow/kubeflow/blob/master/docs_dev/releasing.md)
