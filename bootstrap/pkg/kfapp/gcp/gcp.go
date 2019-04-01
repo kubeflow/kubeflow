@@ -37,6 +37,7 @@ import (
 	"google.golang.org/api/deploymentmanager/v2"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/iam/v1"
+	"google.golang.org/api/servicemanagement/v1"
 	"google.golang.org/api/serviceusage/v1"
 	"io"
 	"io/ioutil"
@@ -229,7 +230,11 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 
 		if err != nil {
 			// Retry here as there's a chance to get error for newly created DM operation.
-			return fmt.Errorf("%v error: %v", logPrefix, err)
+			log.Errorf("%v error: %v", logPrefix, err)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("%v error: %v", logPrefix, err),
+			}
 		}
 		if op.Error != nil {
 			for _, e := range op.Error.Errors {
@@ -247,7 +252,10 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 		}
 		log.Warnf("%v status: %v (op = %v)", logPrefix, op.Status, op.Name)
 		name = op.Name
-		return fmt.Errorf("%v did not succeed; status: %v (op = %v)", logPrefix, op.Status, op.Name)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("%v did not succeed; status: %v (op = %v)", logPrefix, op.Status, op.Name),
+		}
 	}, backoff.NewExponentialBackOff())
 }
 
@@ -651,6 +659,62 @@ func deleteDeployment(deploymentmanagerService *deploymentmanager.Service, ctx c
 	return nil
 }
 
+// Delete endpoint service from resources.
+func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
+	servicemanagementService, err := servicemanagement.New(gcp.client)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("creating servicemanagement API client error: %v", err),
+		}
+	}
+
+	services := servicemanagement.NewServicesService(servicemanagementService)
+	op, err := services.Delete(gcp.Spec.Hostname).Context(ctx).Do()
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("issuing endpoint deletion error: %v", err),
+		}
+	}
+
+	opService := servicemanagement.NewOperationsService(servicemanagementService)
+	opName := "" + op.Name
+	return backoff.Retry(func() error {
+		newOp, retryErr := opService.Get(opName).Context(ctx).Do()
+		if retryErr != nil {
+			log.Errorf("long running endpoint deletion error: %v", retryErr)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("long running endpoint deletion error: %v", retryErr),
+			}
+		}
+		if newOp.Error != nil {
+			return backoff.Permanent(&kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("long running endpoint deletion error: %v", newOp.Error.Message),
+			})
+		}
+		if newOp.Done {
+			if newOp.HTTPStatusCode != 200 {
+				return backoff.Permanent(&kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("Abnormal response code: %v", newOp.HTTPStatusCode),
+				})
+			}
+			log.Infof("endpoint deletion %v is completed: %v", gcp.Spec.Hostname, string(newOp.Response))
+			return nil
+		}
+		log.Warnf("Endpoint deletion is running: %v (op = %v)", gcp.Spec.Hostname, newOp.Name)
+		opName = newOp.Name
+		// This error is used to invoke another retry, no need to use KfError.
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Endpoint deletion is running..."),
+		}
+	}, backoff.NewExponentialBackOff())
+}
+
 func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
 	ctx := context.Background()
 	// TODO: make client a parameter
@@ -705,6 +769,9 @@ func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
 	}
 	if err = utils.SetIamPolicy(project, policy, client); err != nil {
 		return fmt.Errorf("Error when cleaning IAM policy: %v", err)
+	}
+	if err = gcp.deleteEndpoints(ctx); err != nil {
+		return err
 	}
 
 	return nil
