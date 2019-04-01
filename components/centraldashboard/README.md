@@ -78,3 +78,42 @@ coverage statistics on the console and also create subfolders for `app` and
 `public` inside of the `coverage` folder with interactive displays of the code
 coverage. Please try to strive for high levels of coverage for sections of your
 code with business logic.
+
+---
+
+## Style-Guide
+Kubeflow central dashboard is a visualization and networking platform that links fellow sub-apps within the Kubeflow Ecosystem together. As a result we have various web-apps that are iframed within the app. To keep this experience uniform, we have a style guide for all Kubeflow Integrators to follow / use.
+
+### Approach
+We store our CSS palette in [_public/kubeflow-palette.css_](public/kubeflow-palette.css). This contains variables such as
+
+Name | Value | Usage
+--- | --- | ---
+`--accent-color` | #007dfc | Should be used to highlight Action Buttons, borders, FABs
+`--primary-background-color` | #003c75 | Used as the background color for all navigation elements (Sidebars, Toolbars)
+`--sidebar-default-color` | #ffffff4f | Text color to be used in the sidebar
+`--border-color` | #f4f4f6 | All borders on the page
+
+_**Note:** This styleguide is subject to change, and will eventually be served as a CDN, so manual updates will not be required._
+
+### General Principles
+- Follow the Material Design 2 Spec, when possible
+- Elevations should match the [_**MD2 Elevation Spec**_](https://material.io/design/environment/elevation.html)
+- The subapp should not mention namespaces, and should use the value provided by the Central Dashboard.
+
+### Usage
+Dowload the [_**styleguide**_](public/kubeflow-palette.css). And then in your html, import it like:
+
+```html
+<head>
+  <!-- Meta tags / etc -->
+  <link rel='stylesheet' href='kubeflow-palette.css'>
+```
+
+And then in your stylesheets you can use your pallete vairables like:
+
+```css
+body > .Main-Toolbar {background-color: var(--primary-background-color)}
+.List > .item:not(:first-of-type) {border-top: 1px solid var(--border-color)}
+/* etc */
+```
