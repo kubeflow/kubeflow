@@ -16,6 +16,25 @@
       )
     else [],
 
+  // Function turn comma separated list of prow environment variables into a dictionary.
+  listToDict:: function(v)
+    {
+      [v[0]]: v[1],
+    },
+
+  parseEnvToDict: function(v)
+    local pieces = std.split(v, ",");
+    if v != "" && std.length(pieces) > 0 then
+      std.foldl(
+        function(a, b) a + b,
+        std.map(
+          function(i) $.listToDict(std.split(i, "=")),
+          std.split(v, ",")
+        ),
+        {}
+      )
+    else {},
+
 
   // Default parameters.
   defaultParams:: {
@@ -54,6 +73,7 @@
       local name = params.name;
 
       local prow_env = $.parseEnv(params.prow_env);
+      local prowDict = $.parseEnvToDict(params.prow_env);
       local bucket = params.bucket;
 
       local stepsNamespace = name;
@@ -77,6 +97,31 @@
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
       local releaseImage = params.registry + "/" + params.image;
+
+      local tagElements = [
+          "v",
+          if std.length(params.versionTag) > 0 then
+            params.versionTag
+          else null,
+          if std.objectHas(prowDict, "PULL_BASE_SHA") then
+            "base-" + std.substr(prowDict.PULL_BASE_SHA, 0, 6)
+          else null,
+          if std.objectHas(prowDict, "PULL_PULL_SHA") then
+            "pull-" + std.substr(prowDict.PULL_PULL_SHA, 0, 6)
+          else null,
+
+          if std.objectHas(prowDict, "PULL_NUMBER") then
+            "pr-" + prowDict.PULL_NUMBER
+          else null,
+          if std.objectHas(prowDict, "BUILD_NUMBER") then
+            prowDict.BUILD_NUMBER
+          else null,
+        ];
+
+      local tag = std.join(
+        "-",
+        std.prune(tagElements)
+      );
 
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
@@ -155,7 +200,7 @@
             "scripts/build_image.sh "
             + "--dockerfile=" + params.dockerfileDir + "/" + dockerfile + " "
             + "--image=" + image + " "
-            + "--tag=" + params.versionTag
+            + "--tag=" + tag
             + params.extra_args,
           ],
         );  // buildImageTemplate
