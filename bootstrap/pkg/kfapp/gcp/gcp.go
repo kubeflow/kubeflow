@@ -324,7 +324,7 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 			op, updateErr := deploymentmanagerService.Deployments.Update(project, deployment, dp).Context(ctx).Do()
 			if updateErr != nil {
 				return &kfapis.KfError{
-					Code:    int(kfapis.INTERNAL_ERROR),
+					Code:    int(kfapis.UNKNOWN),
 					Message: fmt.Sprintf("Update deployment error: %v", updateErr),
 				}
 			}
@@ -730,16 +730,18 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 	updateDMErr := gcp.updateDM(resources)
 	if updateDMErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("gcp apply could not update deployment manager Error %v", updateDMErr),
+			Code: updateDMErr.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("gcp apply could not update deployment manager Error %v",
+				updateDMErr.(*kfapis.KfError).Message),
 		}
 	}
 	// Insert secrets into the cluster
 	secretsErr := gcp.createSecrets()
 	if secretsErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("gcp apply could not create secrets Error %v", secretsErr),
+			Code: secretsErr.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("gcp apply could not create secrets Error %v",
+				secretsErr.(*kfapis.KfError).Message),
 		}
 	}
 
@@ -1070,7 +1072,7 @@ func (gcp *Gcp) writeStorageConfig(src string, dest string) error {
 	buf, err := ioutil.ReadFile(src)
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
+			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("Error when reading storage-kubeflow template: %v", err),
 		}
 	}
@@ -1078,7 +1080,7 @@ func (gcp *Gcp) writeStorageConfig(src string, dest string) error {
 	var data map[string]interface{}
 	if err = yaml.Unmarshal(buf, &data); err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
+			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("Error when unmarshaling template %v: %v", src, err),
 		}
 	}
@@ -1218,7 +1220,7 @@ func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientse
 	saKey, err := iamService.Projects.ServiceAccounts.Keys.Create(name, req).Context(ctx).Do()
 	if err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Service account key creation error: %v", err),
 		}
 	}
@@ -1441,7 +1443,7 @@ func (gcp *Gcp) gcpInitProject() error {
 		_, opErr := serviceusageService.Services.Enable(service, &serviceusage.EnableServiceRequest{}).Context(ctx).Do()
 		if opErr != nil {
 			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
+				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("could not enable API service %v: %v", api, opErr),
 			}
 		}
