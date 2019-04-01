@@ -82,6 +82,35 @@ build-bootstrap: /tmp/v2 deepcopy generate fmt vet
 build-kfctl: /tmp/v2 deepcopy generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
+# Release tarballs suitable for upload to GitHub release pages
+build-kfctl-tgz: build-kfctl
+	chmod a+rx ./bin/kfctl
+	rm -f bin/*.tgz
+	cd bin && tar -cvzf kfctl_$(TAG)_linux.tar.gz ./kfctl
+	cp -f ./bin/kfctl_$(TAG)_linux.tar.gz ./bin/kfctl_$(TAG)_darwin.tar.gz
+
+# push the releases to a GitHub page
+push-to-github-release: build-kfctl-tgz
+	github-release upload \
+	    --user kubeflow \
+	    --repo kubeflow \
+	    --tag $(TAG) \
+	    --name "kfctl_$(TAG)_linux.tar.gz" \
+	    --file bin/kfctl_$(TAG)_linux.tar.gz
+	github-release upload \
+	    --user kubeflow \
+	    --repo kubeflow \
+	    --tag $(TAG) \
+	    --name "kfctl_$(TAG)_darwin.tar.gz" \
+	    --file bin/kfctl_$(TAG)_darwin.tar.gz
+	 
+build-kfctl-container:
+	docker build \
+		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+		--target=kfctl \
+		--tag $(KFCTL_IMG):$(TAG) .
+	@echo Built $(KFCTL_IMG):$(TAG)
+
 build-local: build-bootstrap build-kfctl
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
