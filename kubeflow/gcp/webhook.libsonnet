@@ -99,11 +99,6 @@
               resources: ["pods"],
             },
           ],
-          namespaceSelector: {
-            matchLabels: {
-              "add-gcp-cred": "true",
-            },
-          },
         },
       ],
     },  // webhookConfig
