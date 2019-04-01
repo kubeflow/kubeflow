@@ -113,6 +113,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       dialogTitle: '',
       iap: true,
       kfversion: 'v0.4.1',
+      // Version for local test. Staging and Prod with overwrite with their env vars.
       kfversionList: ['v0.4.1'],
       password: '',
       password2: '',
