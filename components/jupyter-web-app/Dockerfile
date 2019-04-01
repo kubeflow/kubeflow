@@ -12,6 +12,9 @@ RUN pip3 install -r /app/requirements.txt
 
 COPY default /app/default
 COPY rok /app/rok
+COPY baseui /app/baseui
+
+ENV PYTHONPATH /app
 
 WORKDIR /app/default
 

@@ -28,21 +28,23 @@ import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
 import css from './main-page.css';
 import template from './main-page.pug';
+import logo from '../assets/kf-logo_64px.svg';
 
 import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
+import './not-found-view.js';
 
 /**
  * Entry point for application UI.
  */
 export class MainPage extends PolymerElement {
     static get template() {
+        const pugVariables = {logo: logo};
         return html([`
         <style is="custom-style"
             include="iron-flex iron-flex-alignment iron-positioning">
-        <style>${css.toString()}</style>${template()}
-        `]);
+        <style>${css.toString()}</style>${template(pugVariables)}`]);
     }
 
     static get properties() {
@@ -87,10 +89,11 @@ export class MainPage extends PolymerElement {
             },
             sidebarItemIndex: {type: Number, value: 0},
             iframeUrl: {type: String, value: ''},
-            buildVersion: {type: String, value: '0.5.0'},
+            buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
             inIframe: {type: Boolean, value: false, readOnly: true},
-            _devMode: {type: Boolean, value: DEVMODE},
+            hideTabs: {type: Boolean, value: false, readOnly: true},
+            notFoundInIframe: {type: Boolean, value: false, readOnly: true},
         };
     }
 
@@ -105,25 +108,24 @@ export class MainPage extends PolymerElement {
         ];
     }
 
-    ready() {
-        super.ready();
-        fetch('assets/kf-logo_64px.svg')
-            .then((r) => r.text())
-            .then((svg) => {
-                this.$['Narrow-Slider'].querySelector('.Logo').innerHTML += [
-                    svg,
-                    `<figcaption>Kubeflow</figcaption>`,
-                ].join('');
-            });
-    }
-
     /**
-     * Provide a logical OR functionality for the Polymer DOM
-     * @param {...boolean} a
+     * [MACRO] Provide a logical OR functionality for the Polymer DOM
+     * @param {...boolean} e
      * @return {boolean}
      */
     or(...e) {
         return e.some((i) => Boolean(i));
+    }
+
+    /**
+     * [MACRO] Provide a logical equals functionality for the Polymer DOM
+     * @param {...any} e
+     * @return {boolean}
+     */
+    equals(...e) {
+        const crit = e.shift();
+        if (!e.length) return true;
+        return e.every((e) => e === crit);
     }
 
     /**
@@ -144,19 +146,33 @@ export class MainPage extends PolymerElement {
      */
     _routePageChanged(newPage) {
         let isIframe = false;
+        let notFoundInIframe = false;
+        let hideTabs = true;
         switch (newPage) {
         case 'activity':
             this.sidebarItemIndex = 0;
             this.page = 'activity';
+            hideTabs = false;
             break;
         case '_': // iframe case
             this._setIframeFromRoute(this.subRouteData.path);
             isIframe = true;
             break;
-        default:
+        case '':
             this.sidebarItemIndex = 0;
             this.page = 'dashboard';
+            hideTabs = false;
+            break;
+        default:
+            this.sidebarItemIndex = -1;
+            this.page = 'not_found';
+            // Handles case when an iframed page requests an invalid route
+            if (this._isInsideOfIframe()) {
+                notFoundInIframe = true;
+            }
         }
+        this._setNotFoundInIframe(notFoundInIframe);
+        this._setHideTabs(hideTabs);
         this._setInIframe(isIframe);
         // If iframe <-> [non-frame OR other iframe]
         if (isIframe !== this.inIframe || isIframe) {
@@ -176,9 +192,18 @@ export class MainPage extends PolymerElement {
             this.iframeUrl = this.menuLinks[menuLinkIndex].iframeUrl;
             this.sidebarItemIndex = menuLinkIndex + 1;
         } else {
-            this.sidebarItemIndex = 0;
-            this.page = 'dashboard';
+            this.sidebarItemIndex = -1;
+            this.page = 'not_found';
         }
+    }
+
+    /**
+     * Returns true when this component is found to be iframed inside of a
+     * parent page.
+     * @return {boolean}
+     */
+    _isInsideOfIframe() {
+        return window.location !== window.parent.location;
     }
 }
 

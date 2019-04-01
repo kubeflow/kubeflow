@@ -5,7 +5,6 @@
 repo: /path/to/local/tmp/containing/kubeflow
 packages:
   - argo
-  - application
   - common
   - examples
   - gcp
@@ -23,14 +22,14 @@ packages:
   - tf-training
 components:
   - ambassador
-  - application
   - argo
   - basic-auth
   - basic-auth-ingress
   - centraldashboard
   - proxy-agent
   - cloud-endpoints
-  - jupyter
+  - gcp-credentials-admission-webhook
+  - gpu-driver
   - jupyter-web-app
   - katib
   - metacontroller
@@ -38,6 +37,7 @@ components:
   - pipeline
   - profiles
   - pytorch-operator
+  - spartakus
   - tensorboard
   - tf-job-operator
 componentParams:
@@ -55,16 +55,9 @@ componentParams:
       # TODO change value on the fly: replace with user-provide parameters. This need to be fully qualified domain name to use with ingress.
       value: <deployName>.endpoints.<Project>.cloud.goog
       initRequired: true
-
-  application:
-    - name: components
-      value: <list-of-components>
   cloud-endpoints:
     - name: secretName
       value: admin-gcp-sa
-  jupyter:
-    - name: platform
-      value: gke
   ambassador:
     - name: ambassadorServiceType
       value: NodePort
@@ -73,4 +66,11 @@ componentParams:
       value: <deployName>-storage-metadata-store
     - name: minioPd
       value: <deployName>-storage-artifact-store
+  spartakus:
+    - name: usageId
+      value: <randomly-generated-id>
+      initRequired: true
+    - name: reportUsage
+      value: "true"
+      initRequired: true
 platform: gcp

@@ -51,23 +51,7 @@ func Test(t *testing.T) {
 						},
 					},
 				},
-			},
-			saPolicy: &cloudresourcemanager.Policy{
-				Bindings: []*cloudresourcemanager.Binding{
-					&cloudresourcemanager.Binding{
-						Role: "roles/source.admin",
-						Members: []string{
-							"serviceAccount:kfctl-admin@project.iam.gserviceaccount.com",
-							"serviceAccount:kfctl-vm@project.iam.gserviceaccount.com",
-						},
-					},
-					&cloudresourcemanager.Binding{
-						Role: "roles/iap.httpsResourceAccessor",
-						Members: []string{
-							"user:user1@google.com",
-						},
-					},
-				},
+				Etag: "ShouldKeep",
 			},
 			expectedPolicy: &cloudresourcemanager.Policy{
 				Bindings: []*cloudresourcemanager.Binding{
@@ -87,14 +71,15 @@ func Test(t *testing.T) {
 						},
 					},
 				},
+				Etag: "ShouldKeep",
 			},
 		},
 	}
 	for _, test := range tests {
-		clearedPolicy := GetClearedIamPolicy(test.currentPolicy, test.saPolicy)
-		if !reflect.DeepEqual(&clearedPolicy, &(test.expectedPolicy)) {
+		ClearIamPolicy(test.currentPolicy, "kfctl", "project")
+		if !reflect.DeepEqual(test.currentPolicy, test.expectedPolicy) {
 			t.Errorf("Expect:\n%v; Output:\n%v", PolicyToString(test.expectedPolicy),
-				PolicyToString(clearedPolicy))
+				PolicyToString(test.currentPolicy))
 		}
 	}
 }

@@ -45,7 +45,10 @@ export class NamespaceSelector extends PolymerElement {
                 type: Object,
                 notify: true,
             },
-            namespaces: Array,
+            namespaces: {
+                type: Array,
+                value: [],
+            },
             selected: {
                 type: String,
                 observer: '_onSelected',
@@ -79,7 +82,6 @@ export class NamespaceSelector extends PolymerElement {
      */
     _onResponse(responseEvent) {
         const {status, response} = responseEvent.detail;
-        this.namespaces = [];
         // TODO: Surface the error in some manner
         if (status !== 200) return;
         this.namespaces = response.map((n) => {

@@ -16,12 +16,13 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/coordinator"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
 )
 
 var initCfg = viper.New()
@@ -60,6 +61,9 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 				kftypes.KUBEFLOW_USERNAME, kftypes.KUBEFLOW_PASSWORD)
 		}
 
+		useIstio := initCfg.GetBool(string(kftypes.USE_ISTIO))
+		disableUsageReport := initCfg.GetBool(string(kftypes.DISABLE_USAGE_REPORT))
+
 		options := map[string]interface{}{
 			string(kftypes.PLATFORM):              platform,
 			string(kftypes.NAMESPACE):             namespace,
@@ -69,12 +73,14 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 			string(kftypes.PROJECT):               project,
 			string(kftypes.SKIP_INIT_GCP_PROJECT): init_gcp,
 			string(kftypes.USE_BASIC_AUTH):        useBasicAuth,
+			string(kftypes.USE_ISTIO):             useIstio,
+			string(kftypes.DISABLE_USAGE_REPORT):  disableUsageReport,
 		}
 		kfApp, kfAppErr := coordinator.NewKfApp(options)
 		if kfAppErr != nil || kfApp == nil {
 			return fmt.Errorf("couldn't create KfApp: %v", kfAppErr)
 		}
-		initErr := kfApp.Init(kftypes.ALL, options)
+		initErr := kfApp.Init(kftypes.ALL)
 		if initErr != nil {
 			return fmt.Errorf("KfApp initialization failed: %v", initErr)
 		}
@@ -149,11 +155,31 @@ func init() {
 		return
 	}
 
+	// Use basic auth
 	initCmd.Flags().Bool(string(kftypes.USE_BASIC_AUTH), false,
 		string(kftypes.USE_BASIC_AUTH)+" use basic auth service instead of IAP.")
 	bindErr = initCfg.BindPFlag(string(kftypes.USE_BASIC_AUTH), initCmd.Flags().Lookup(string(kftypes.USE_BASIC_AUTH)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.USE_BASIC_AUTH), bindErr)
+		return
+	}
+
+	// Use Istio
+	initCmd.Flags().Bool(string(kftypes.USE_ISTIO), false,
+		string(kftypes.USE_ISTIO)+" use istio for auth and traffic routing.")
+	bindErr = initCfg.BindPFlag(string(kftypes.USE_ISTIO), initCmd.Flags().Lookup(string(kftypes.USE_ISTIO)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.USE_ISTIO), bindErr)
+		return
+	}
+
+	// Skip usage report
+	initCmd.Flags().Bool(string(kftypes.DISABLE_USAGE_REPORT), false,
+		string(kftypes.DISABLE_USAGE_REPORT)+" disable anonymous usage reporting.")
+	bindErr = initCfg.BindPFlag(string(kftypes.DISABLE_USAGE_REPORT),
+		initCmd.Flags().Lookup(string(kftypes.DISABLE_USAGE_REPORT)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.DISABLE_USAGE_REPORT), bindErr)
 		return
 	}
 }

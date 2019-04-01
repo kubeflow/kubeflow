@@ -202,7 +202,7 @@ neon-animatable {
     padding: 2em;
 }
 
-#Logo>img {
+#Logo>svg {
     width: 3em;
     margin-right: 1em;
 }
@@ -324,7 +324,7 @@ neon-animatable {
 
 a[href] {
     text-decoration: none;
-    color: initial;
+    color: inherit;
     outline: none;
 }
 

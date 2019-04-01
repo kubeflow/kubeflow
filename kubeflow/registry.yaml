@@ -49,9 +49,6 @@ libraries:
   new-package-stub:
     version: master
     path: new-package-stub
-  openmpi:
-    version: master
-    path: openmpi
   katib:
     version: master
     path: katib

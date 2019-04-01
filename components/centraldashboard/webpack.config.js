@@ -12,6 +12,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 const ENV = process.env.NODE_ENV || 'development';
 const NODE_MODULES = /\/node_modules\//;
 const PKG_VERSION = require('./package.json').version;
+const BUILD_VERSION = process.env.BUILD_VERSION || `v${PKG_VERSION}`;
 const SRC = resolve(__dirname, 'public');
 const COMPONENTS = resolve(SRC, 'components');
 const DESTINATION = resolve(__dirname, 'dist', 'public');
@@ -29,8 +30,10 @@ const POLYFILLS = [
     },
 ];
 
-// Rules for processing Polymer components to allow
-// external Pug templates and CSS files.
+/**
+ * Rules for processing Polymer components to allow external Pug templates
+ * and CSS files.
+ */
 const COMPONENT_RULES = [
     {
         test: /\.pug$/,
@@ -62,13 +65,17 @@ module.exports = {
                 ],
             },
             {
-                test: /\.(gif|jpg|png|svg)$/,
+                test: /\.(gif|jpg|png)$/,
                 use: {
                     loader: 'file-loader',
                     options: {
                         name: '[folder]/[name].[ext]',
                     },
                 },
+            },
+            {
+                test: /\.svg$/,
+                use: 'raw-loader',
             },
             // Roboto Font and Material Icons
             {
@@ -150,8 +157,8 @@ module.exports = {
         new CleanWebpackPlugin([DESTINATION]),
         new CopyWebpackPlugin(POLYFILLS),
         new DefinePlugin({
+            BUILD_VERSION: JSON.stringify(BUILD_VERSION),
             VERSION: JSON.stringify(PKG_VERSION),
-            DEVMODE: JSON.stringify(ENV == 'development'),
         }),
         new HtmlWebpackPlugin({
             filename: resolve(DESTINATION, 'index.html'),

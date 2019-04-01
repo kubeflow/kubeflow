@@ -400,3 +400,15 @@ Releasing a new version on the website requires the following steps:
       url = "https://vX-Y.kubeflow.org"
     ```
    * Make this change in the master branch, and then cherry-pick the commit back to the newly released branch. This allows the user to browse between all the released versions on the website.
+
+## Update the changelog
+
+1. After the release branch is created run the following script to update the changelog
+
+   ```
+   update-changelog.sh
+   ```
+
+1. Create a PR with the resulting changes.
+
+1. Repeate above steps as new release candidates are created

@@ -8,8 +8,8 @@
         "google"
     ],
     "globals": {
+        "BUILD_VERSION": "readonly",
         "VERSION": "readonly",
-        "DEVMODE": "readonly",
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly"
     },

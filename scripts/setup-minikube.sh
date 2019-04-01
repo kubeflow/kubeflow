@@ -14,9 +14,9 @@ LINUX="Linux"
 PLATFORM=$(uname)
 if [[ $PLATFORM == $LINUX ]]; then
   fpn=$(uname -a)
-  if [[ $fpn =~ *(Ubuntu|Debian)* ]]; then
+  if [[ "$fpn" =~ .*(Ubuntu|Debian).* ]]; then
     DIST_TYPE="Ubuntu"
-  elif [[ $fpn =~ *(CentOS|Fedora|Red Hat)* ]]; then
+  elif [[ "$fpn" =~ .*(CentOS|Fedora|Red Hat).* ]]; then
     DIST_TYPE="CentOS"
   fi
 fi
