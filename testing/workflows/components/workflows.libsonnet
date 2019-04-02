@@ -327,19 +327,22 @@
 
         dependencies: ["wait-for-kubeflow"],
       },  // tfjob-simple-prototype-test
-      {
-        template: tests.buildTemplate {
-          name: "katib-studyjob-test",
-          command: [
-            "python",
-            "-m",
-            "testing.katib_studyjob_test",
-            "--src_dir=" + tests.srcDir,
-            "--studyjob_version=v1alpha1",
-          ],
-        },
-        dependencies: ["wait-for-kubeflow"],
-      },  // katib-studyjob-test
+      // The test is flaky so disable it see https://github.com/kubeflow/kubeflow/issues/2825.
+      // TODO(jlewi). We probably don't need to run the test to verify katib is working correctly.
+      // i.e. that the required resources are deployed.
+      // {
+      //  template: tests.buildTemplate {
+      //    name: "katib-studyjob-test",
+      //    command: [
+      //      "python",
+      //      "-m",
+      //      "testing.katib_studyjob_test",
+      //      "--src_dir=" + tests.srcDir,
+      //      "--studyjob_version=v1alpha1",
+      //    ],
+      //  },
+      //  dependencies: ["wait-for-kubeflow"],
+      //},  // katib-studyjob-test
       {
         template: tests.buildTemplate {
           name: "notebooks-test",

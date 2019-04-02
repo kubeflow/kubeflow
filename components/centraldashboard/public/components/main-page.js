@@ -32,6 +32,7 @@ import template from './main-page.pug';
 import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
+import './not-found-view.js';
 
 /**
  * Entry point for application UI.
@@ -90,7 +91,8 @@ export class MainPage extends PolymerElement {
             buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
             inIframe: {type: Boolean, value: false, readOnly: true},
-            _devMode: {type: Boolean, value: DEVMODE},
+            hideTabs: {type: Boolean, value: false, readOnly: true},
+            notFoundInIframe: {type: Boolean, value: false, readOnly: true},
         };
     }
 
@@ -155,19 +157,33 @@ export class MainPage extends PolymerElement {
      */
     _routePageChanged(newPage) {
         let isIframe = false;
+        let notFoundInIframe = false;
+        let hideTabs = true;
         switch (newPage) {
         case 'activity':
             this.sidebarItemIndex = 0;
             this.page = 'activity';
+            hideTabs = false;
             break;
         case '_': // iframe case
             this._setIframeFromRoute(this.subRouteData.path);
             isIframe = true;
             break;
-        default:
+        case '':
             this.sidebarItemIndex = 0;
             this.page = 'dashboard';
+            hideTabs = false;
+            break;
+        default:
+            this.sidebarItemIndex = -1;
+            this.page = 'not_found';
+            // Handles case when an iframed page requests an invalid route
+            if (window.location !== window.parent.location) {
+                notFoundInIframe = true;
+            }
         }
+        this._setNotFoundInIframe(notFoundInIframe);
+        this._setHideTabs(hideTabs);
         this._setInIframe(isIframe);
         // If iframe <-> [non-frame OR other iframe]
         if (isIframe !== this.inIframe || isIframe) {
@@ -187,8 +203,8 @@ export class MainPage extends PolymerElement {
             this.iframeUrl = this.menuLinks[menuLinkIndex].iframeUrl;
             this.sidebarItemIndex = menuLinkIndex + 1;
         } else {
-            this.sidebarItemIndex = 0;
-            this.page = 'dashboard';
+            this.sidebarItemIndex = -1;
+            this.page = 'not_found';
         }
     }
 }

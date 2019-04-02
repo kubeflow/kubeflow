@@ -5,7 +5,6 @@
 repo: /path/to/local/tmp/containing/kubeflow
 packages:
   - argo
-  - application
   - common
   - examples
   - gcp
@@ -23,13 +22,13 @@ packages:
   - tf-training
 components:
   - ambassador
-  - application
   - argo
   - basic-auth
   - basic-auth-ingress
   - centraldashboard
   - cert-manager
   - cloud-endpoints
+  - gcp-credentials-admission-webhook
   - gpu-driver
   - jupyter-web-app
   - katib
@@ -56,10 +55,6 @@ componentParams:
       # TODO change value on the fly: replace with user-provide parameters. This need to be fully qualified domain name to use with ingress.
       value: <deployName>.endpoints.<Project>.cloud.goog
       initRequired: true
-
-  application:
-    - name: components
-      value: <list-of-components>
   cloud-endpoints:
     - name: secretName
       value: admin-gcp-sa

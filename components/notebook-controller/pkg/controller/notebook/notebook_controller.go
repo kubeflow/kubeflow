@@ -32,8 +32,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
@@ -84,6 +86,41 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		IsController: true,
 		OwnerType:    &v1alpha1.Notebook{},
 	})
+	if err != nil {
+		return err
+	}
+
+	// Watch underlying pod.
+	// mapFn defines the mapping from object in event to reconcile request
+	mapFn := handler.ToRequestsFunc(
+		func(a handler.MapObject) []reconcile.Request {
+			return []reconcile.Request{
+				{NamespacedName: types.NamespacedName{
+					Name:      a.Meta.GetLabels()["notebook-name"],
+					Namespace: a.Meta.GetNamespace(),
+				}},
+			}
+		})
+	p := predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			if _, ok := e.MetaOld.GetLabels()["notebook-name"]; !ok {
+				return false
+			}
+			return e.ObjectOld != e.ObjectNew
+		},
+		CreateFunc: func(e event.CreateEvent) bool {
+			if _, ok := e.Meta.GetLabels()["notebook-name"]; !ok {
+				return false
+			}
+			return true
+		},
+	}
+	err = c.Watch(
+		&source.Kind{Type: &corev1.Pod{}},
+		&handler.EnqueueRequestsFromMapFunc{
+			ToRequests: mapFn,
+		},
+		p)
 	if err != nil {
 		return err
 	}
@@ -192,14 +229,35 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 	}
 	// Update the readyReplicas if the status is changed
-        if foundStateful.Status.ReadyReplicas != instance.Status.ReadyReplicas {
-                log.Info("Updating Status", "namespace", instance.Namespace,"name", instance.Name)
-                instance.Status.ReadyReplicas = foundStateful.Status.ReadyReplicas 
-                err = r.Status().Update(context.Background(), instance)
-                if err != nil {
-                        return reconcile.Result{}, err
-                }
-        }
+	if foundStateful.Status.ReadyReplicas != instance.Status.ReadyReplicas {
+		log.Info("Updating Status", "namespace", instance.Namespace, "name", instance.Name)
+		instance.Status.ReadyReplicas = foundStateful.Status.ReadyReplicas
+		err = r.Status().Update(context.Background(), instance)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	}
+
+	// Check the pod status
+	pod := &corev1.Pod{}
+	err = r.Get(context.TODO(), types.NamespacedName{Name: ss.Name + "-0", Namespace: ss.Namespace}, pod)
+	if err != nil && errors.IsNotFound(err) {
+		// This should be reconcile by the StatefulSet
+		log.Info("Pod not found...")
+	} else if err != nil {
+		return reconcile.Result{}, err
+	} else {
+		// Got the pod
+		if len(pod.Status.ContainerStatuses) > 0 &&
+			pod.Status.ContainerStatuses[0].State != instance.Status.ContainerState {
+			log.Info("Updating container state: ", "namespace", instance.Namespace, "name", instance.Name)
+			instance.Status.ContainerState = pod.Status.ContainerStatuses[0].State
+			err = r.Status().Update(context.Background(), instance)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+		}
+	}
 
 	return reconcile.Result{}, nil
 }
@@ -212,11 +270,16 @@ func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
 		},
 		Spec: appsv1.StatefulSetSpec{
 			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{"statefulset": instance.Name},
+				MatchLabels: map[string]string{
+					"statefulset": instance.Name,
+				},
 			},
 			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"statefulset": instance.Name}},
-				Spec:       instance.Spec.Template.Spec,
+				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{
+					"statefulset":   instance.Name,
+					"notebook-name": instance.Name,
+				}},
+				Spec: instance.Spec.Template.Spec,
 			},
 		},
 	}

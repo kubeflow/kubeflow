@@ -17,25 +17,14 @@ limitations under the License.
 package utils
 
 import (
+	"fmt"
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
-	"golang.org/x/oauth2/google"
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"io/ioutil"
 	"net/http"
-	"strings"
 )
-
-func getServiceClient(ctx context.Context) (*http.Client, error) {
-	client, err := google.DefaultClient(ctx, cloudresourcemanager.CloudPlatformScope)
-	if err != nil {
-		log.Fatalf("Could not get authenticated kfdef: %v", err)
-		return nil, err
-	}
-	return client, nil
-}
 
 func transformSliceToInterface(slice []string) []interface{} {
 	ret := make([]interface{}, len(slice))
@@ -54,30 +43,22 @@ func transformInterfaceToSlice(inter []interface{}) []string {
 }
 
 // Gets IAM plicy from GCP for the whole project.
-func GetIamPolicy(project string) (*cloudresourcemanager.Policy, error) {
+func GetIamPolicy(project string, gcpClient *http.Client) (*cloudresourcemanager.Policy, error) {
 	ctx := context.Background()
-	client, clientErr := getServiceClient(ctx)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-	service, serviceErr := cloudresourcemanager.New(client)
+	service, serviceErr := cloudresourcemanager.New(gcpClient)
 	if serviceErr != nil {
 		return nil, serviceErr
 	}
-
 	req := &cloudresourcemanager.GetIamPolicyRequest{}
 	return service.Projects.GetIamPolicy(project, req).Context(ctx).Do()
 }
 
 // Modify currentPolicy: Remove existing bindings associated with service accounts of current deployment
-func ClearIamPolicy(currentPolicy *cloudresourcemanager.Policy, pendingPolicy *cloudresourcemanager.Policy) {
-	serviceAccounts := make(map[string]bool)
-	for _, binding := range pendingPolicy.Bindings {
-		for _, member := range binding.Members {
-			if strings.HasPrefix(member, "serviceAccount:kfctl-") {
-				serviceAccounts[member] = true
-			}
-		}
+func ClearIamPolicy(currentPolicy *cloudresourcemanager.Policy, deployName string, project string) {
+	serviceAccounts := map[string]bool{
+		fmt.Sprintf("serviceAccount:%v-admin@%v.iam.gserviceaccount.com", deployName, project): true,
+		fmt.Sprintf("serviceAccount:%v-user@%v.iam.gserviceaccount.com", deployName, project):  true,
+		fmt.Sprintf("serviceAccount:%v-vm@%v.iam.gserviceaccount.com", deployName, project):    true,
 	}
 	var newBindings []*cloudresourcemanager.Binding
 	for _, binding := range currentPolicy.Bindings {
@@ -177,13 +158,9 @@ func RewriteIamPolicy(currentPolicy *cloudresourcemanager.Policy, adding *cloudr
 }
 
 // "Override" project's IAM policy with given config.
-func SetIamPolicy(project string, policy *cloudresourcemanager.Policy) error {
+func SetIamPolicy(project string, policy *cloudresourcemanager.Policy, gcpClient *http.Client) error {
 	ctx := context.Background()
-	client, clientErr := getServiceClient(ctx)
-	if clientErr != nil {
-		return clientErr
-	}
-	service, serviceErr := cloudresourcemanager.New(client)
+	service, serviceErr := cloudresourcemanager.New(gcpClient)
 	if serviceErr != nil {
 		return serviceErr
 	}

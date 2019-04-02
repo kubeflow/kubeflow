@@ -155,7 +155,6 @@ module.exports = {
         new DefinePlugin({
             BUILD_VERSION: JSON.stringify(BUILD_VERSION),
             VERSION: JSON.stringify(PKG_VERSION),
-            DEVMODE: JSON.stringify(ENV == 'development'),
         }),
         new HtmlWebpackPlugin({
             filename: resolve(DESTINATION, 'index.html'),
