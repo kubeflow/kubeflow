@@ -60,6 +60,11 @@
           resources: ["storageclasses"],
           verbs: ["get", "list"],
         },
+        {
+          apiGroups: [""],
+          resources: ["secrets"],
+          verbs: ["get", "list"],
+        },
       ]
     },
 
@@ -148,7 +153,16 @@
             containers: [{
               name: params.name,
               image: params.image,
-              workingDir: "/app/" + params.ui,
+              env: std.prune([
+                {
+                  name: "ROK_SECRET_NAME",
+                  value: params.rokSecretName,
+                },
+                {
+                  name: "UI",
+                  value: params.ui,
+                },
+              ]),
               volumeMounts: [
                 {
                   mountPath: "/etc/config",
