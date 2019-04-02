@@ -45,7 +45,6 @@ def test_kf_is_ready(namespace, use_basic_auth):
       "ml-pipeline-ui",
       "notebooks-controller",
       "tf-job-operator",
-      "profiles",
       "pytorch-operator",
       "studyjob-controller",
       "workflow-controller",
