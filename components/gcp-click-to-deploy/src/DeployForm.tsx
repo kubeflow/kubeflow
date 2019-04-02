@@ -233,25 +233,14 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           </TextField>
         </div>
 
-        <Collapse in={!this.state.iap}>
-          <div style={styles.row}>Kubeflow UI Access: after Deployment is done, click "Cloud Shell" and click "port forwarding" in new page.</div>
-        </Collapse>
-
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
           <Button style={styles.btn} variant="contained" color="primary" onClick={this._createDeployment.bind(this)}>
             Create Deployment
           </Button>
 
-          {this.state.iap && (
-            <Button style={styles.btn} variant="contained" color="default" onClick={this._iapAddress.bind(this)}>
-              IAP Access
-            </Button>
-          )}
-          {!this.state.iap && (
-            <Button style={styles.btn} variant="contained" color="default" onClick={this._cloudShell.bind(this)}>
-              Cloud Shell
-            </Button>
-          )}
+          <Button style={styles.btn} variant="contained" color="default" onClick={this._kubeflowAddress.bind(this)}>
+            Kubeflow Service Address
+          </Button>
 
           <Button style={styles.yamlBtn} variant="outlined" color="default" onClick={this._showYaml.bind(this)}>
             View YAML
@@ -417,21 +406,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     }
   }
 
-  private async _cloudShell() {
-    const key = 'project';
-    if (this.state[key] === '') {
-      this.setState({
-        dialogBody: 'project id is missing',
-        dialogTitle: 'Missing field',
-      });
-      return;
-    }
-    const cloudShellUrl = 'https://console.cloud.google.com/kubernetes/service/' +  this.state.zone + '/' +
-      this.state.deploymentName + '/kubeflow/ambassador?project=' + this.state.project + '&tab=overview';
-    window.open(cloudShellUrl, '_blank');
-  }
-
-  private async _iapAddress() {
+  private async _kubeflowAddress() {
     for (const prop of ['project', 'deploymentName']) {
       if (this.state[prop] === '') {
         this.setState({
@@ -743,17 +718,13 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             const readyTime = new Date();
             readyTime.setTime(readyTime.getTime() + (20 * 60 * 1000));
             this._appendLine('Deployment initialized, configuring environment');
-            if (this.state.clientId === '' || this.state.clientSecret === '') {
-              this._appendLine('(IAP skipped), cluster should be ready within 5 minutes. To connect to cluster, click cloud shell and follow instruction');
-            } else {
-              this._appendLine('your kubeflow app url should be ready within 20 minutes (by '
-                + readyTime.toLocaleTimeString() + '): https://'
-                + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
-              this._redirectToKFDashboard(dashboardUri);
-            }
+            this._appendLine('your kubeflow service url should be ready within 20 minutes (by '
+              + readyTime.toLocaleTimeString() + '): https://'
+              + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
+            this._redirectToKFDashboard(dashboardUri);
             clearInterval(monitorInterval);
           } else {
-            this._appendLine(`Status of ${deploymentName}: ` + r.operation!.status!);
+            this._appendLine(`${deploymentName}: Deployment Operation Status: ` + r.operation!.status!);
           }
         })
         .catch(err => this._appendLine('deployment failed with error:' + err));
@@ -761,36 +732,62 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   }
 
   private _redirectToKFDashboard(dashboardUri: string) {
-    // relying on JupyterHub logo image to be available when the site is ready.
-    // The dashboard URI is hosted at a domain different from the deployer
-    // app. Fetching a GET on the dashboard is blocked by the browser due
-    // to CORS. Therefore we use an img element as a hack which fetches
-    // an image served by the target site, the img load is a simple html
-    // request and not an AJAX request, thus bypassing the CORS in this
-    // case.
-    this._appendLine('Validating if IAP is up and running...');
-    const imgUri = dashboardUri + 'hub/logo';
-    const startTime = new Date().getTime() / 1000;
-    const img = document.createElement('img');
-    img.src = imgUri + '?rand=' + Math.random();
-    img.id = 'ready_test';
-    img.onload = () => { window.location.href = dashboardUri; };
-    img.onerror = () => {
-      const timeSince = (new Date().getTime() / 1000) - startTime;
-      if (timeSince > 1500) {
-        this._appendLine('Could not redirect to Kubeflow Dashboard at: ' + dashboardUri);
-      } else {
-        const ready_test = document.getElementById('ready_test') as HTMLImageElement;
-        if (ready_test != null) {
-          setTimeout(() => {
-            ready_test.src = imgUri + '?rand=' + Math.random();
-            this._appendLine('Waiting for the IAP setup to get ready...');
-          }, 20000);
+    if (this.state.iap) {
+      // relying on Kubeflow / JupyterHub logo image to be available when the site is ready.
+      // The dashboard URI is hosted at a domain different from the deployer
+      // app. Fetching a GET on the dashboard is blocked by the browser due
+      // to CORS. Therefore we use an img element as a hack which fetches
+      // an image served by the target site, the img load is a simple html
+      // request and not an AJAX request, thus bypassing the CORS in this
+      // case.
+      this._appendLine('Validating if IAP is up and running...');
+      const startTime = new Date().getTime() / 1000;
+      const img = document.createElement('img');
+      img.src = dashboardUri + 'assets/kf-logo_64px.svg' + '?rand=' + Math.random();
+      img.id = 'ready_test';
+      img.onload = () => {
+        window.location.href = dashboardUri;
+      };
+      img.onerror = () => {
+        const timeSince = (new Date().getTime() / 1000) - startTime;
+        if (timeSince > 1500) {
+          this._appendLine('Could not redirect to Kubeflow Dashboard at: ' + dashboardUri);
+        } else {
+          const ready_test = document.getElementById('ready_test') as HTMLImageElement;
+          if (ready_test != null) {
+            setTimeout(() => {
+              // We rotate on image addresses of v0.4 and v0.5+ t to support both v0.4 and v0.5+
+              if (ready_test.src.includes('hub/logo')) {
+                ready_test.src = dashboardUri + 'assets/kf-logo_64px.svg' + '?rand=' + Math.random();
+              } else {
+                ready_test.src = dashboardUri + 'hub/logo' + '?rand=' + Math.random();
+              }
+              this._appendLine('Waiting for the IAP setup to get ready...');
+            }, 10000);
+          }
         }
-      }
-    };
-    img.style.display = 'none';
-    document.body.appendChild(img);
+      };
+      img.style.display = 'none';
+      document.body.appendChild(img);
+    } else {
+      const loginUri = 'https://' + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog/kflogin';
+      const monitorInterval = setInterval(() => {
+        request(
+          {
+            method: 'GET',
+            uri: loginUri,
+          },
+          (error, response, body) => {
+            if (!error) {
+              clearInterval(monitorInterval);
+              window.location.href = loginUri;
+            } else {
+              this._appendLine('Waiting for the kubeflow ingress to get ready...');
+            }
+          }
+        );
+      }, 10000);
+    }
   }
 
   private _handleChange = (name: string) => (event: React.ChangeEvent) => {
