@@ -672,10 +672,36 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 	services := servicemanagement.NewServicesService(servicemanagementService)
 	op, err := services.Delete(gcp.Spec.Hostname).Context(ctx).Do()
 	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("issuing endpoint deletion error: %v", err),
+		nextPage := ""
+		for {
+			list := services.List().ProducerProjectId(gcp.Spec.Project)
+			if nextPage != "" {
+				list = list.PageToken(nextPage)
+			}
+			listResp, err := list.Do()
+			if err != nil {
+				return &kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("listing managed services error: %v", err),
+				}
+			}
+			for _, s := range listResp.Services {
+				if s.ServiceName == gcp.Spec.Hostname {
+					return &kfapis.KfError{
+						Code:    int(kfapis.INTERNAL_ERROR),
+						Message: fmt.Sprintf("issuing endpoint deletion error: %v", err),
+					}
+				}
+			}
+			// Explicitly copy it to prevent memory leak.
+			nextPage = "" + listResp.NextPageToken
+			if nextPage == "" {
+				break
+			}
 		}
+		// Delete is not successful and we are not able to find endpoint in managed
+		// services, treat it as OK.
+		return nil
 	}
 
 	opService := servicemanagement.NewOperationsService(servicemanagementService)
