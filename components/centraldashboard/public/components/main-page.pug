@@ -9,11 +9,12 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             |!{logo}
             figcaption Kubeflow
         iron-selector(selected='{{sidebarItemIndex}}')
-            a(href='/', tabindex='-1')
+            a(href$='[[_buildHref("/")]]', tabindex='-1')
                 paper-item.menu-item Home
                 aside.divider
             template(is='dom-repeat', items='[[menuLinks]]')
-                a(href$='[[item.href]]', on-click='openInIframe', tabindex='-1')
+                a(href$='[[_buildHref(item.href)]]',
+                    on-click='openInIframe', tabindex='-1')
                     paper-item.menu-item [[item.text]]
         aside.flex
         footer.footer
@@ -32,10 +33,10 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                 paper-tabs.bottom(selected='[[page]]', attr-for-selected='page',
                         hides, hidden$='[[hideTabs]]')
                     paper-tab(page='dashboard', link)
-                        a.link(tabindex='-1', href='/') Dashboard
+                        a.link(tabindex='-1', href$='[[_buildHref("/")]]') Dashboard
                     paper-tab(page='activity', link)
-                        a.link(tabindex='-1', href='/activity') Activity
-                aside#NamespaceSelector(hidden$='[[!equals(page, "activity")]]')
+                        a.link(tabindex='-1', href$='[[_buildHref("/activity")]]') Activity
+                aside#NamespaceSelector
                     namespace-selector(query-params='{{queryParams}}')
         neon-animated-pages(selected='[[page]]', attr-for-selected='page',
                             entry-animation='fade-in-animation',

@@ -97,7 +97,6 @@ export class MainPage extends PolymerElement {
         };
     }
 
-
     /**
      * Array of strings describing multi-property observer methods and their
      * dependant properties
@@ -134,8 +133,9 @@ export class MainPage extends PolymerElement {
      * @param {MouseEvent} e
      */
     openInIframe(e) {
-        const url = new URL(e.currentTarget.href);
-        window.history.pushState({}, null, `_${url.pathname}`);
+        // e.currentTarget is an anchor element
+        const url = e.currentTarget.href.substr(e.currentTarget.origin.length);
+        window.history.pushState({}, null, `_${url}`);
         window.dispatchEvent(new CustomEvent('location-changed'));
         e.preventDefault();
     }
@@ -204,6 +204,20 @@ export class MainPage extends PolymerElement {
      */
     _isInsideOfIframe() {
         return window.location !== window.parent.location;
+    }
+
+    /**
+     * Builds and returns an href value preserving the existing query string and
+     * hash.
+     * @param {string} href
+     * @return {string}
+     */
+    _buildHref(href) {
+        const current = new URL(window.location.href);
+        const url = new URL(href, window.location.origin);
+        url.search = current.search;
+        url.hash = current.hash;
+        return url.href;
     }
 }
 
