@@ -87,6 +87,97 @@
         apiGroup: "rbac.authorization.k8s.io",
       },
     },
+    
+    notebookRole:: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "Role",
+      metadata: {
+        name: "jupyter-notebook-role",
+        namespace: params.namespace,
+      },
+      rules: [
+        {
+          apiGroups: [
+            "",
+          ],
+          resources: [
+            "pods",
+            "pods/log",
+            "secrets",
+            "services",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "",
+            "apps",
+            "extensions",
+          ],
+          resources: [
+            "deployments",
+            "replicasets",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "kubeflow.org",
+          ],
+          resources: [
+            "*",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "batch",
+          ],
+          resources: [
+            "jobs",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+      ],
+    },
+    
+    notebookServiceAccount:: {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: "jupyter-notebook",
+        namespace: params.namespace,
+      },
+    },
+    
+    notebookRoleBinding:: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "RoleBinding",
+      metadata: {
+        name: "jupyter-role",
+        namespace: params.namespace,
+      },
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "Role",
+        name: "jupyter-role",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "jupyter",
+          namespace: params.namespace,
+        },
+      ],
+    },
 
     svc:: {
       apiVersion: "v1",
@@ -195,6 +286,9 @@
       self.serviceAccount,
       self.clusterRoleBinding,
       self.clusterRole,
+      self.notebookServiceAccount,
+      self.notebookRole,
+      self.notebookRoleBinding,
       ],
 
     list(obj=self.all):: util.list(obj),
