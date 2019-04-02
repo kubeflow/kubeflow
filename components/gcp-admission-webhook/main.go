@@ -49,9 +49,15 @@ var codecs = serializer.NewCodecFactory(scheme)
 // patchString patches: Add volume, volumeMount, and environment variable
 const patchString = `[
 {"op":"add","path":"/spec/volumes","value":{"name":"gcp-credentials","secret":{"secretName": "%s"}}},
-{"op":"add","path":"/spec/containers/0/env","value":[{"name":"GOOGLE_APPLICATION_CREDENTIALS","value":"/secrets/gcp-service-account-credentials/%s"}]},
-{"op":"add","path":"/spec/containers/0/volumeMounts","value":[{"name":"gcp-credentials","readOnly": true,"mountPath":"/secrets/gcp-service-account-credentials"}]}
+{"op":"add","path":"ENV_PATH","value":"ENV_VALUE"}},
+{"op":"add","path":"VOLUMEMOUNT_PATH","value":{"name":"gcp-credentials","readOnly": true,"mountPath":"/secrets/gcp-service-account-credentials"}}
 ]`
+
+type patchOperation struct {
+	Op    string      `json:"op"`
+	Path  string      `json:"path"`
+	Value interface{} `json:"value,omitempty"`
+}
 
 func addToScheme(scheme *runtime.Scheme) {
 	utilruntime.Must(corev1.AddToScheme(scheme))
@@ -147,15 +153,96 @@ func addGcpCred(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 
 	if secretName, ok := pod.Labels["gcp-cred-secret"]; ok {
 		if fileName, ok2 := pod.Labels["gcp-cred-secret-filename"]; ok2 {
-			klog.Info("adding gcp credential: ")
-			patched := fmt.Sprintf(patchString, secretName, fileName)
-			klog.Info("patch: " + patched)
-			reviewResponse.Patch = []byte(patched)
+			patched, err := getPatchString(pod, secretName, fileName)
+			if err != nil {
+				klog.Error(err)
+				return toAdmissionResponse(err)
+			}
+			klog.Info("patch: " + string(patched[:]))
+			reviewResponse.Patch = patched
 			pt := v1beta1.PatchTypeJSONPatch
 			reviewResponse.PatchType = &pt
 		}
 	}
 	return &reviewResponse
+}
+
+func getPatchString(pod corev1.Pod, secretName string, fileName string) ([]byte, error) {
+	patches := []patchOperation{}
+	// volume patch
+	volumePath := "/spec/volumes"
+	volumeValue := corev1.Volume{
+		Name: "gcp-credentials",
+		VolumeSource: corev1.VolumeSource{
+			Secret: &corev1.SecretVolumeSource{SecretName: secretName},
+		},
+	}
+	var volumePatch patchOperation
+	if len(pod.Spec.Volumes) == 0 {
+		// First one, value is an array.
+		volumePatch = patchOperation{
+			Op:    "add",
+			Path:  volumePath,
+			Value: []corev1.Volume{volumeValue},
+		}
+	} else {
+		// Not first one, add to the end.
+		volumePatch = patchOperation{
+			Op:    "add",
+			Path:  volumePath + "/-",
+			Value: volumeValue,
+		}
+	}
+	patches = append(patches, volumePatch)
+	// volumeMount patch
+	volumeMountPath := "/spec/containers/0/volumeMounts"
+	volumeMountValue := corev1.VolumeMount{
+		Name:      "gcp-credentials",
+		ReadOnly:  true,
+		MountPath: "/secrets/gcp-service-account-credentials",
+	}
+	var volumeMountPatch patchOperation
+	if len(pod.Spec.Containers[0].VolumeMounts) == 0 {
+		// First one, value is an array.
+		volumeMountPatch = patchOperation{
+			Op:    "add",
+			Path:  volumeMountPath,
+			Value: []corev1.VolumeMount{volumeMountValue},
+		}
+	} else {
+		// Not first one, add to the end.
+		volumeMountPatch = patchOperation{
+			Op:    "add",
+			Path:  volumeMountPath + "/-",
+			Value: volumeMountValue,
+		}
+	}
+	patches = append(patches, volumeMountPatch)
+	// env var patch
+	envPath := "/spec/containers/0/env"
+	envValue := corev1.EnvVar{
+		Name:  "GOOGLE_APPLICATION_CREDENTIALS",
+		Value: "/secrets/gcp-service-account-credentials/" + fileName,
+	}
+	var envPatch patchOperation
+	if len(pod.Spec.Containers[0].Env) == 0 {
+		// First one, value is an array.
+		envPatch = patchOperation{
+			Op:    "add",
+			Path:  envPath,
+			Value: []corev1.EnvVar{envValue},
+		}
+	} else {
+		// Not first one, add to the end.
+		envPatch = patchOperation{
+			Op:    "add",
+			Path:  envPath + "/-",
+			Value: envValue,
+		}
+	}
+	patches = append(patches, envPatch)
+
+	return json.Marshal(patches)
 }
 
 func serveCred(w http.ResponseWriter, r *http.Request) {
