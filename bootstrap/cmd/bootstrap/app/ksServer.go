@@ -473,7 +473,14 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		}
 		appDir := path.Join(deployConfDir, KubeflowFolder)
 		_, err = s.fs.Stat(appDir)
-		regPath := s.knownRegistries["kubeflow"].RegUri
+		absSpecPath := path.Join(s.knownRegistries["kubeflow"].RegUri, K8sSpecPath)
+		specFlag := "file:" + absSpecPath
+		// Fetch k8s api spec from github if not found locally
+		if _, err = os.Stat(absSpecPath); err != nil {
+			log.Infof("k8s spec cache not found, using remote resource.")
+			specFlag = "version:v1.11.7"
+
+		}
 		if err != nil {
 			options := map[string]interface{}{
 				actions.OptionFs:      s.fs,
@@ -482,7 +489,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 				actions.OptionNewRoot: appDir,
 				actions.OptionServer:  config.Host,
 				// Use k8s swagger spec from kubeflow repo cache.
-				actions.OptionSpecFlag:              "file:" + path.Join(regPath, K8sSpecPath),
+				actions.OptionSpecFlag:              specFlag,
 				actions.OptionNamespace:             request.Namespace,
 				actions.OptionSkipDefaultRegistries: true,
 			}
