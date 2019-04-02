@@ -162,18 +162,18 @@
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "RoleBinding",
       metadata: {
-        name: "jupyter-role",
+        name: "jupyter-notebook-role-binding",
         namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
         kind: "Role",
-        name: "jupyter-role",
+        name: "jupyter-notebook-role",
       },
       subjects: [
         {
           kind: "ServiceAccount",
-          name: "jupyter",
+          name: "jupyter-notebook",
           namespace: params.namespace,
         },
       ],
