@@ -210,13 +210,16 @@ export class MainPage extends PolymerElement {
      * Builds and returns an href value preserving the existing query string and
      * hash.
      * @param {string} href
+     * @param {Object} queryParams
      * @return {string}
      */
-    _buildHref(href) {
-        const current = new URL(window.location.href);
+    _buildHref(href, queryParams) {
         const url = new URL(href, window.location.origin);
-        url.search = current.search;
-        url.hash = current.hash;
+        for (const k in queryParams) {
+            if (Object.prototype.hasOwnProperty.call(queryParams, k)) {
+                url.searchParams.set(k, queryParams[k]);
+            }
+        }
         return url.href;
     }
 }
