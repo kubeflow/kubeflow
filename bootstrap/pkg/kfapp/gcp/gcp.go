@@ -673,6 +673,7 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 	op, err := services.Delete(gcp.Spec.Hostname).Context(ctx).Do()
 	if err != nil {
 		nextPage := ""
+		// Use a loop to read multi-page managed services list.
 		for {
 			list := services.List().ProducerProjectId(gcp.Spec.Project)
 			if nextPage != "" {
