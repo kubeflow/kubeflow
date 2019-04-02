@@ -670,7 +670,7 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 	}
 
 	services := servicemanagement.NewServicesService(servicemanagementService)
-	op, err := services.Delete(gcp.Spec.Hostname).Context(ctx).Do()
+	op, deleteErr := services.Delete(gcp.Spec.Hostname).Context(ctx).Do()
 	if err != nil {
 		nextPage := ""
 		// Use a loop to read multi-page managed services list.
@@ -690,7 +690,7 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 				if s.ServiceName == gcp.Spec.Hostname {
 					return &kfapis.KfError{
 						Code:    int(kfapis.INTERNAL_ERROR),
-						Message: fmt.Sprintf("issuing endpoint deletion error: %v", err),
+						Message: fmt.Sprintf("issuing endpoint deletion error: %v", deleteErr),
 					}
 				}
 			}
