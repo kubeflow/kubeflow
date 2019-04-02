@@ -46,13 +46,6 @@ type admitFunc func(v1beta1.AdmissionReview) *v1beta1.AdmissionResponse
 var scheme = runtime.NewScheme()
 var codecs = serializer.NewCodecFactory(scheme)
 
-// patchString patches: Add volume, volumeMount, and environment variable
-const patchString = `[
-{"op":"add","path":"/spec/volumes","value":{"name":"gcp-credentials","secret":{"secretName": "%s"}}},
-{"op":"add","path":"ENV_PATH","value":"ENV_VALUE"}},
-{"op":"add","path":"VOLUMEMOUNT_PATH","value":{"name":"gcp-credentials","readOnly": true,"mountPath":"/secrets/gcp-service-account-credentials"}}
-]`
-
 type patchOperation struct {
 	Op    string      `json:"op"`
 	Path  string      `json:"path"`
