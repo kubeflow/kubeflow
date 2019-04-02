@@ -590,14 +590,35 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	policy, policyErr := utils.GetIamPolicy(gcp.Spec.Project, gcpClient)
-	if policyErr != nil {
-		return &kfapis.KfError{
-			Code: policyErr.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("GetIamPolicy error: %v",
-				policyErr.(*kfapis.KfError).Message),
+	exp := backoff.NewExponentialBackOff()
+	exp.InitialInterval = 1 * time.Second
+	exp.MaxInterval = 3 * time.Second
+	exp.MaxElapsedTime = time.Minute
+	exp.Reset()
+	err := backoff.Retry(func() error {
+		// Get current policy
+		policy, policyErr := utils.GetIamPolicy(gcp.Spec.Project, gcpClient)
+		if policyErr != nil {
+			return &kfapis.KfError{
+				Code: policyErr.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("GetIamPolicy error: %v",
+					policyErr.(*kfapis.KfError).Message),
+			}
 		}
+		utils.ClearIamPolicy(policy, gcp.Name, gcp.Spec.Project)
+		if err := utils.SetIamPolicy(gcp.Spec.Project, policy, gcpClient); err != nil {
+			return &kfapis.KfError{
+				Code: err.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("Set Cleared IamPolicy error: %v",
+					err.(*kfapis.KfError).Message),
+			}
+		}
+		return nil
+	}, exp)
+	if err != nil {
+		return err
 	}
+
 	appDir := gcp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
 	iamPolicy, iamPolicyErr := utils.ReadIamBindingsYAML(
@@ -609,31 +630,30 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 				iamPolicyErr.(*kfapis.KfError).Message),
 		}
 	}
-	utils.ClearIamPolicy(policy, gcp.Name, gcp.Spec.Project)
-	if err := utils.SetIamPolicy(gcp.Spec.Project, policy, gcpClient); err != nil {
-		return &kfapis.KfError{
-			Code: err.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("Set Cleared IamPolicy error: %v",
-				err.(*kfapis.KfError).Message),
-		}
-	}
 
-	// Need to read policy again as latest Etag changed.
-	newPolicy, policyErr := utils.GetIamPolicy(gcp.Spec.Project, gcpClient)
-	if policyErr != nil {
-		return &kfapis.KfError{
-			Code: policyErr.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("GetIamPolicy error: %v",
-				policyErr.(*kfapis.KfError).Message),
+	exp.Reset()
+	err = backoff.Retry(func() error {
+		// Need to read policy again as latest Etag changed.
+		newPolicy, policyErr := utils.GetIamPolicy(gcp.Spec.Project, gcpClient)
+		if policyErr != nil {
+			return &kfapis.KfError{
+				Code: policyErr.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("GetIamPolicy error: %v",
+					policyErr.(*kfapis.KfError).Message),
+			}
 		}
-	}
-	utils.RewriteIamPolicy(newPolicy, iamPolicy)
-	if err := utils.SetIamPolicy(gcp.Spec.Project, newPolicy, gcpClient); err != nil {
-		return &kfapis.KfError{
-			Code: err.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("Set New IamPolicy error: %v",
-				err.(*kfapis.KfError).Message),
+		utils.RewriteIamPolicy(newPolicy, iamPolicy)
+		if err := utils.SetIamPolicy(gcp.Spec.Project, newPolicy, gcpClient); err != nil {
+			return &kfapis.KfError{
+				Code: err.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("Set New IamPolicy error: %v",
+					err.(*kfapis.KfError).Message),
+			}
 		}
+		return nil
+	}, exp)
+	if err != nil {
+		return err
 	}
 
 	if err := gcp.ConfigK8s(); err != nil {
