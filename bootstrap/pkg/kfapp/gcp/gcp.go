@@ -701,6 +701,7 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 		}
 		// Delete is not successful and we are not able to find endpoint in managed
 		// services, treat it as OK.
+		log.Infof("Endpoint %v deletion is failed but it is not found in managed services, treating it as successful.", gcp.Spec.Hostname)
 		return nil
 	}
 
