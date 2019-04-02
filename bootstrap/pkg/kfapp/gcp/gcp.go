@@ -1298,13 +1298,13 @@ func (gcp *Gcp) gcpInitProject() error {
 		if retryErr != nil {
 			log.Errorf("long running batch API enabling services error: %v", retryErr)
 			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
+				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("long running batch API enabling services error: %v", retryErr),
 			}
 		}
 		if newOp.Error != nil {
 			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
+				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("long running batch API enabling services error: %v", newOp.Error.Message),
 			}
 		}
