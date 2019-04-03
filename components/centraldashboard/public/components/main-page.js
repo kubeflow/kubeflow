@@ -35,6 +35,8 @@ import './dashboard-view.js';
 import './activity-view.js';
 import './not-found-view.js';
 
+const VALID_QUERY_PARAMS = ['ns'];
+
 /**
  * Entry point for application UI.
  */
@@ -54,7 +56,7 @@ export class MainPage extends PolymerElement {
             subRouteData: Object,
             queryParams: {
                 type: Object,
-                value: null,
+                value: () => {},
             },
             iframeRoute: Object,
             menuLinks: {
@@ -133,8 +135,8 @@ export class MainPage extends PolymerElement {
      * @param {MouseEvent} e
      */
     openInIframe(e) {
-        // e.currentTarget is an anchor element
-        const url = e.currentTarget.href.substr(e.currentTarget.origin.length);
+        // e.currentTarget is an HTMLAnchorElement
+        const url = e.currentTarget.href.slice(e.currentTarget.origin.length);
         window.history.pushState({}, null, `_${url}`);
         window.dispatchEvent(new CustomEvent('location-changed'));
         e.preventDefault();
@@ -207,20 +209,19 @@ export class MainPage extends PolymerElement {
     }
 
     /**
-     * Builds and returns an href value preserving the existing query string and
-     * hash.
+     * Builds and returns an href value preserving the current query string.
      * @param {string} href
      * @param {Object} queryParams
      * @return {string}
      */
     _buildHref(href, queryParams) {
         const url = new URL(href, window.location.origin);
-        for (const k in queryParams) {
-            if (Object.prototype.hasOwnProperty.call(queryParams, k)) {
-                url.searchParams.set(k, queryParams[k]);
+        VALID_QUERY_PARAMS.forEach((qp) => {
+            if (queryParams[qp]) {
+                url.searchParams.set(qp, queryParams[qp]);
             }
-        }
-        return url.href;
+        });
+        return url.href.slice(url.origin.length);
     }
 }
 
