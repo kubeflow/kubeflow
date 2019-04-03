@@ -460,9 +460,6 @@ func (ksApp *ksApp) Init(resources kftypes.ResourceEnum) error {
 
 func (ksApp *ksApp) initKs() error {
 	newRoot := path.Join(ksApp.Spec.AppDir, ksApp.KsName)
-	if _, err := os.Stat(newRoot); !os.IsNotExist(err) {
-		os.RemoveAll(newRoot)
-	}
 	ksApp.KsEnvName = KsEnvName
 	k8sSpec := ksApp.Spec.ServerVersion
 	host := "127.0.0.1"
@@ -486,7 +483,19 @@ func (ksApp *ksApp) initKs() error {
 		actions.OptionNamespace:             ksApp.Namespace,
 		actions.OptionSkipDefaultRegistries: true,
 	}
-	err := actions.RunInit(options)
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 5)
+	err := backoff.Retry(func() error {
+		// Clean up leftovers from previous run if exists
+		if initErr := os.RemoveAll(newRoot); initErr != nil {
+			log.Warnf("Failed to cleanup app dir from previous run, error: %v. will retry up to 5 times", initErr)
+			return initErr
+		}
+		if initErr := actions.RunInit(options); initErr != nil {
+			log.Warnf("app init failed with error: %v. will retry up to 5 times", initErr)
+			return initErr
+		}
+		return nil
+	}, bo)
 	if err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
