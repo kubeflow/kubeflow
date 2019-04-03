@@ -911,7 +911,6 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 		}
 		log.Warnf("Endpoint deletion is running: %v (op = %v)", gcp.Spec.Hostname, newOp.Name)
 		opName = newOp.Name
-		// This error is used to invoke another retry, no need to use KfError.
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("Endpoint deletion is running..."),
@@ -1554,17 +1553,51 @@ func (gcp *Gcp) gcpInitProject() error {
 		"iam.googleapis.com",
 		"sqladmin.googleapis.com",
 	}
-	for _, api := range enabledApis {
-		service := fmt.Sprintf("projects/%v/services/%v", gcp.Spec.Project, api)
-		_, opErr := serviceusageService.Services.Enable(service, &serviceusage.EnableServiceRequest{}).Context(ctx).Do()
-		if opErr != nil {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("could not enable API service %v: %v", api, opErr),
-			}
+	op, opErr := serviceusageService.Services.BatchEnable("projects/"+gcp.Spec.Project,
+		&serviceusage.BatchEnableServicesRequest{
+			ServiceIds: enabledApis,
+		}).Context(ctx).Do()
+	if opErr != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("issuing batch API enabling services error: %v", opErr),
 		}
 	}
-	return nil
+	opService := serviceusage.NewOperationsService(serviceusageService)
+	opName := "" + op.Name
+	return backoff.Retry(func() error {
+		newOp, retryErr := opService.Get(opName).Context(ctx).Do()
+		if retryErr != nil {
+			log.Errorf("long running batch API enabling services error: %v", retryErr)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("long running batch API enabling services error: %v", retryErr),
+			}
+		}
+		if newOp.Error != nil {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("long running batch API enabling services error: %v", newOp.Error.Message),
+			}
+		}
+		if newOp.Done {
+			if newOp.HTTPStatusCode != 200 {
+				return backoff.Permanent(&kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("Abnormal response code: %v", newOp.HTTPStatusCode),
+				})
+			}
+			log.Infof("batch API enabling is completed: %v", enabledApis)
+			return nil
+
+		}
+		log.Warnf("batch API enabling is running: %v (op = %v)", enabledApis, newOp.Name)
+		opName = "" + newOp.Name
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("batch API enabling is running..."),
+		}
+	}, backoff.NewExponentialBackOff())
 }
 
 // Init initializes a gcp kfapp
