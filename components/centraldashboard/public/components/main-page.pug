@@ -46,7 +46,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             neon-animatable(page='activity')
                 activity-view(namespace='[[queryParams.ns]]')
             neon-animatable#iframe-page(page='iframe')
-                iframe#PageFrame.flex(src='[[iframeUrl]]')
+                iframe#PageFrame.flex(src='[[iframeUrl]]',
+                    on-load='_sendNamespaceMessage')
             neon-animatable(page='not_found')
                 not-found-view(path="[[route.path]]")
     iron-media-query(query='(max-width: 900px)', query-matches='{{thinView}}')

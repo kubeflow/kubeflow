@@ -68,7 +68,7 @@ export class MainPage extends PolymerElement {
                         href: '/docs',
                     },
                     {
-                        iframeUrl: '/jupyter/',
+                        iframeUrl: 'http://localhost:8000/test.html',
                         text: 'Notebooks',
                         href: '/notebooks',
                     },
@@ -106,6 +106,7 @@ export class MainPage extends PolymerElement {
     static get observers() {
         return [
             '_routePageChanged(routeData.page)',
+            '_namespaceChanged(queryParams.ns)',
         ];
     }
 
@@ -183,6 +184,13 @@ export class MainPage extends PolymerElement {
     }
 
     /**
+     * Handles namespace change.
+     */
+    _namespaceChanged() {
+        this._sendNamespaceMessage();
+    }
+
+    /**
      * Sets the iframeUrl and sidebarItem based on the subpage component
      * provided.
      * @param {string} href
@@ -222,6 +230,20 @@ export class MainPage extends PolymerElement {
             }
         });
         return url.href.slice(url.origin.length);
+    }
+
+    /**
+     * Sends a message to the iframe message bus. This is used on the iframe
+     * load event as well as when the namespace changes.
+     */
+    _sendNamespaceMessage() {
+        const iframe = this.$.PageFrame;
+        if (this.page === 'iframe' && this.queryParams.ns && iframe.src) {
+            iframe.contentWindow.postMessage({
+                type: 'selected-namespace',
+                value: this.queryParams.ns,
+            }, iframe.src);
+        }
     }
 }
 

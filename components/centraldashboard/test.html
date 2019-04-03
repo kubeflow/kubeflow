@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Generic Iframe Page</title>
+
+<head>
+    <script>
+        window.addEventListener('message', (event) => {
+            document.body.innerHTML +=
+                `<p>${new Date().toLocaleString()} ${event.data.value}</p>`;
+        });
+    </script>
+</head>
+
+<body>
+    Empty Body
+</body>
