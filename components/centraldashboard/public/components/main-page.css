@@ -309,6 +309,21 @@ neon-animatable {
     content: "No content here yet..."
 }
 
+#MainDrawer .footer .bullet {
+    margin: 0 .5em;
+    display: inline-block;
+}
+#MainDrawer .footer .bullet:before {
+    content: ' ';
+    display: inline-block;
+    height: 0;
+    width: 0;
+    padding: 2px;
+    border-radius: 50%;
+    background: currentColor;
+    transform: translateY(-50%);
+}
+
 [hides] {
     transition: opacity .25s
 }

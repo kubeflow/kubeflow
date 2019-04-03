@@ -17,8 +17,10 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     paper-item.menu-item [[item.text]]
         aside.flex
         footer.footer
-            section.privacy
-                a(title='Kubeflow Privacy Policy', href='https://policies.google.com/privacy') Privacy
+            section.information
+                a.privacy(title='Kubeflow Privacy Policy', target='_blank', href='https://policies.google.com/privacy') Privacy
+                .bullet
+                a.usage(title='Kubeflow Usage Reporting', target='_blank', href='https://master.kubeflow.org/docs/other-guides/usage-reporting/') Usage Reporting
             section.build build version&nbsp;
                 span(title="Build: [[buildVersion]] | Dashboard: v[[dashVersion]]") [[buildVersion]]
     app-header-layout(fullbleed)
