@@ -105,16 +105,26 @@
     webhookConfig:: webhookConfig,
 
     local webhookBootstrapJob = {
-      apiVersion: "batch/v1",
-      kind: "Job",
+      apiVersion: "apps/v1",
+      kind: "StatefulSet",
       metadata: {
         name: "webhook-bootstrap",
         namespace: namespace,
       },
       spec: {
+        selector: {
+          matchLabels: {
+            service: "webhook-bootstrap",
+          },
+        },
         template: {
+          metadata: {
+            labels: {
+              service: "webhook-bootstrap",
+            },
+          },
           spec: {
-            restartPolicy: "OnFailure",
+            restartPolicy: "Always",
             serviceAccountName: "webhook-bootstrap",
             containers: [
               {
