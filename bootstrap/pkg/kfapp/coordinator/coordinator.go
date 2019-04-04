@@ -239,7 +239,7 @@ func usageReportWarn(components []string) {
 		"\n"
 	for _, comp := range components {
 		if comp == "spartakus" {
-			log.Warnf(msg)
+			log.Infof(msg)
 			return
 		}
 	}
