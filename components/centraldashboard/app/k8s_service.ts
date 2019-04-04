@@ -1,5 +1,10 @@
 import * as k8s from '@kubernetes/client-node';
 
+/** Information about the Kubernetes hosting platform. */
+interface PlatformInfo {
+  provider: string;
+}
+
 /** Wrap Kubernetes API calls in a simpler interface for use in routes. */
 export class KubernetesService {
   private k8sApi: k8s.Core_v1Api;
@@ -31,5 +36,21 @@ export class KubernetesService {
           `Unable to fetch Events for ${namespace}:`, err.body || err);
       return [];
     }
+  }
+
+  /** Retrieves the list of namespaces from the Cluster. */
+  async getPlatformInfo(): Promise<PlatformInfo> {
+    const info: PlatformInfo = {provider: 'other'};
+    try {
+      const {body} = await this.k8sApi.listNode();
+      const prefix = body.items.map((n) => n.spec.providerID)
+                         .filter(Boolean)
+                         .map((p) => p.split(':')[0])
+                         .find(Boolean);
+      info.provider = prefix || 'other';
+    } catch (err) {
+      console.error('Unable to fetch Node information:', err.body || err);
+    }
+    return info;
   }
 }

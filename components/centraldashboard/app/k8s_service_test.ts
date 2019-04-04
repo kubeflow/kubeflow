@@ -11,7 +11,7 @@ describe('KubernetesService', () => {
     mockKubeConfig = jasmine.createSpyObj<k8s.KubeConfig>(
         'mockKubeConfig', ['loadFromDefault', 'makeApiClient']);
     mockApiClient = jasmine.createSpyObj<k8s.Core_v1Api>(
-        'mockApiClient', ['listNamespace', 'listNamespacedEvent']);
+        'mockApiClient', ['listNamespace', 'listNamespacedEvent', 'listNode']);
     mockKubeConfig.makeApiClient.and.returnValue(mockApiClient);
 
     k8sService = new KubernetesService(mockKubeConfig);
@@ -154,6 +154,76 @@ describe('KubernetesService', () => {
 
       const events = await k8sService.getEventsForNamespace('bad-namespace');
       expect(events.length).toBe(0);
+    });
+  });
+
+  describe('Get Platform Info', () => {
+    it('Returns a known provider', async () => {
+      const response = {
+        kind: 'List',
+        apiVersion: 'v1',
+        metadata: {
+          selfLink: '',
+        },
+        items: [
+          {
+            apiVersion: 'v1',
+            kind: 'Node',
+            spec: {
+              podCIDR: '10.44.1.0/24',
+              providerID:
+                  'gce://kubeflow-dev/us-east1-d/gke-kubeflow-default-pool-59885f2c-08tm'
+            },
+          },
+          {
+            apiVersion: 'v1',
+            kind: 'Node',
+            spec: {
+              podCIDR: '10.44.0.0/24',
+              providerID:
+                  'gce://kubeflow-dev/us-east1-d/gke-kubeflow-default-pool-59885f2c-r72s'
+            },
+          }
+        ]
+      };
+      mockApiClient.listNode.and.returnValue(Promise.resolve({body: response}));
+
+      const platformInfo = await k8sService.getPlatformInfo();
+      expect(platformInfo).toEqual({provider: 'gce'});
+    });
+
+    it('Returns other when no providerID is listed', async () => {
+      const response = {
+        kind: 'List',
+        apiVersion: 'v1',
+        metadata: {
+          selfLink: '',
+        },
+        items: [
+          {
+            apiVersion: 'v1',
+            kind: 'Node',
+            spec: {podCIDR: '10.44.1.0/24'},
+          },
+          {
+            apiVersion: 'v1',
+            kind: 'Node',
+            spec: {podCIDR: '10.44.0.0/24'},
+          }
+        ]
+      };
+      mockApiClient.listNode.and.returnValue(Promise.resolve({body: response}));
+
+      const platformInfo = await k8sService.getPlatformInfo();
+      expect(platformInfo).toEqual({provider: 'other'});
+    });
+
+    it('Returns other on error', async () => {
+      mockApiClient.listNode.and.returnValue(
+          Promise.reject({body: 'testing-error'}));
+
+      const platformInfo = await k8sService.getPlatformInfo();
+      expect(platformInfo).toEqual({provider: 'other'});
     });
   });
 });
