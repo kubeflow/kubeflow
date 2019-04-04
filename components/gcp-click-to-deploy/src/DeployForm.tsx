@@ -29,8 +29,8 @@ import appConfigPath from './user_config/app-config.yaml';
 
 const IngressType  = {
   BasicAuth: 'Login with Username Password',
-  Iap: 'Login with GCP Iap',
-  Skip: 'Skip Endpoint'
+  DeferIap: 'Setup Endpoint later',
+  Iap: 'Login with GCP Iap'
 };
 
 interface DeployFormState {
@@ -190,7 +190,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                      value={this.state.ingress} onChange={this._handleChange('ingress')}>
             <MenuItem key={1} value={IngressType.Iap}>{IngressType.Iap}</MenuItem>
             <MenuItem key={2} value={IngressType.BasicAuth}>{IngressType.BasicAuth}</MenuItem>
-            <MenuItem key={3} value={IngressType.Skip}>{IngressType.Skip}</MenuItem>
+            <MenuItem key={3} value={IngressType.DeferIap}>{IngressType.DeferIap}</MenuItem>
           </TextField>
         </div>
 
@@ -233,9 +233,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           </div>
         </Collapse>
 
-        <Collapse in={this.state.ingress === IngressType.Skip}>
+        <Collapse in={this.state.ingress === IngressType.DeferIap}>
           <div style={styles.row}>
-            <li>Skip creating service endpoint, use port-forward to connect to kubeflow service</li>
+            <li>Skip creating service endpoint now, finish endpoint setup later by inserting oauth client to kubeflow cluster</li>
           </div>
         </Collapse>
 
@@ -263,12 +263,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             Create Deployment
           </Button>
 
-          {!(this.state.ingress === IngressType.Skip) && (
+          {!(this.state.ingress === IngressType.DeferIap) && (
             <Button style={styles.btn} variant="contained" color="default" onClick={this._kubeflowAddress.bind(this)}>
               Kubeflow Service Endpoint
             </Button>
           )}
-          {this.state.ingress === IngressType.Skip && (
+          {this.state.ingress === IngressType.DeferIap && (
             <Button style={styles.btn} variant="contained" color="default" onClick={this._toPortForward.bind(this)}>
               Port Forward
             </Button>
@@ -420,14 +420,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         name: 'ambassadorServiceType',
         value: 'NodePort'
       });
-    }
-    // Remove ingress when user choose to use port-forward
-    if (this.state.ingress === IngressType.Skip) {
-      for (let i = 0, len = configSpec.defaultApp.components.length; i < len; i++) {
-        if (configSpec.defaultApp.components[i].name.includes('ingress')) {
-          this._removeComponent(configSpec.defaultApp.components[i].name, configSpec);
-        }
-      }
     }
     return configSpec;
   }
