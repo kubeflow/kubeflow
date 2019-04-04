@@ -4,7 +4,7 @@
 // @shortDescription A benchmark job on Kubeflow
 // @param name string Name to give to each of the components
 // @optionalParam serviceAccount string null The service account used to run the job
-// @optionalParam controllerImage string gcr.io/kubeflow-images-public/kubebench/kubebench-controller:v0.4.0 Configurator image
+// @optionalParam controllerImage string gcr.io/kubeflow-images-public/kubebench/kubebench-controller:v0.4.0-13-g262c593 Configurator image
 // @optionalParam githubTokenSecret string null Github token secret
 // @optionalParam githubTokenSecretKey string null Key of Github token secret
 // @optionalParam gcpCredentialsSecret string null GCP credentials secret
@@ -16,7 +16,7 @@
 // @optionalParam experimentConfigPvc string kubebench-config-pvc Configuration PVC
 // @optionalParam experimentDataPvc string null Data PVC
 // @optionalParam experimentRecordPvc string kubebench-exp-pvc Experiment PVC
-// @optionalParam postJobImage string gcr.io/kubeflow-images-public/kubebench/kubebench-example-tf-cnn-post-processor:3c75b50 Image of post processor
+// @optionalParam postJobImage string gcr.io/kubeflow-images-public/kubebench/kubebench-example-tf-cnn-post-processor:v0.4.0-13-g262c593 Image of post processor
 // @optionalParam postJobArgs string null Arguments of post processor
 // @optionalParam reporterType string csv Type of reporter
 // @optionalParam csvReporterInput string result.json The input of CSV reporter

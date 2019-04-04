@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	"golang.org/x/net/context"
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"io/ioutil"
@@ -47,10 +48,20 @@ func GetIamPolicy(project string, gcpClient *http.Client) (*cloudresourcemanager
 	ctx := context.Background()
 	service, serviceErr := cloudresourcemanager.New(gcpClient)
 	if serviceErr != nil {
-		return nil, serviceErr
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: serviceErr.Error(),
+		}
 	}
 	req := &cloudresourcemanager.GetIamPolicyRequest{}
-	return service.Projects.GetIamPolicy(project, req).Context(ctx).Do()
+	if policy, err := service.Projects.GetIamPolicy(project, req).Context(ctx).Do(); err == nil {
+		return policy, nil
+	} else {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: err.Error(),
+		}
+	}
 }
 
 // Modify currentPolicy: Remove existing bindings associated with service accounts of current deployment
@@ -94,12 +105,18 @@ type IamBindingsYAML struct {
 func ReadIamBindingsYAML(filename string) (*cloudresourcemanager.Policy, error) {
 	buf, bufErr := ioutil.ReadFile(filename)
 	if bufErr != nil {
-		return nil, bufErr
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: bufErr.Error(),
+		}
 	}
 
 	iam := IamBindingsYAML{}
 	if err := yaml.Unmarshal(buf, &iam); err != nil {
-		return nil, err
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: err.Error(),
+		}
 	}
 
 	entries := make(map[string]mapset.Set)
@@ -162,12 +179,22 @@ func SetIamPolicy(project string, policy *cloudresourcemanager.Policy, gcpClient
 	ctx := context.Background()
 	service, serviceErr := cloudresourcemanager.New(gcpClient)
 	if serviceErr != nil {
-		return serviceErr
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: serviceErr.Error(),
+		}
 	}
 
 	req := &cloudresourcemanager.SetIamPolicyRequest{
 		Policy: policy,
 	}
 	_, err := service.Projects.SetIamPolicy(project, req).Context(ctx).Do()
-	return err
+	if err == nil {
+		return nil
+	} else {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: err.Error(),
+		}
+	}
 }
