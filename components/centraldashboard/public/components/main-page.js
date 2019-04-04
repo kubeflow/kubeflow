@@ -95,6 +95,7 @@ export class MainPage extends PolymerElement {
             dashVersion: {type: String, value: VERSION},
             inIframe: {type: Boolean, value: false, readOnly: true},
             hideTabs: {type: Boolean, value: false, readOnly: true},
+            hideNamespaces: {type: Boolean, value: false, readOnly: true},
             notFoundInIframe: {type: Boolean, value: false, readOnly: true},
         };
     }
@@ -150,6 +151,7 @@ export class MainPage extends PolymerElement {
         let isIframe = false;
         let notFoundInIframe = false;
         let hideTabs = true;
+        let hideNamespaces = false;
         switch (newPage) {
         case 'activity':
             this.sidebarItemIndex = 0;
@@ -159,6 +161,7 @@ export class MainPage extends PolymerElement {
         case '_': // iframe case
             this._setIframeFromRoute(this.subRouteData.path);
             isIframe = true;
+            hideNamespaces = this.subRouteData.path.startsWith('/pipeline');
             break;
         case '':
             this.sidebarItemIndex = 0;
@@ -175,6 +178,7 @@ export class MainPage extends PolymerElement {
         }
         this._setNotFoundInIframe(notFoundInIframe);
         this._setHideTabs(hideTabs);
+        this._setHideNamespaces(hideNamespaces);
         this._setInIframe(isIframe);
         // If iframe <-> [non-frame OR other iframe]
         if (isIframe !== this.inIframe || isIframe) {

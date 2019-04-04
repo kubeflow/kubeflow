@@ -36,7 +36,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                         a.link(tabindex='-1', href$='[[_buildHref("/", queryParams)]]') Dashboard
                     paper-tab(page='activity', link)
                         a.link(tabindex='-1', href$='[[_buildHref("/activity", queryParams)]]') Activity
-                aside#NamespaceSelector
+                aside#NamespaceSelector(hides, hidden$='[[hideNamespaces]]')
                     namespace-selector(query-params='{{queryParams}}')
         neon-animated-pages(selected='[[page]]', attr-for-selected='page',
                             entry-animation='fade-in-animation',

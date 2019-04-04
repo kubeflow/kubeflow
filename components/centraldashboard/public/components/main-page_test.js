@@ -158,4 +158,16 @@ describe('Main Page', () => {
             .forEach((l) => hrefs.push(l.href));
         hrefs.forEach((h) => expect(h).toContain('?ns=another-namespace'));
     });
+
+    it('Hides namespace selector when showing Pipelines dashboard', () => {
+        flush();
+        expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
+            .hasAttribute('hidden')).toBe(false);
+
+        mainPage.subRouteData.path = '/pipeline-dashboard';
+        mainPage._routePageChanged('_');
+        flush();
+        expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
+            .hasAttribute('hidden')).toBe(true);
+    });
 });
