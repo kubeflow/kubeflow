@@ -24,13 +24,14 @@ gcloud config list
 NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
 echo "node port is ${NODE_PORT}"
 
-while [[ -z ${BACKENDS} ]]; do
+while [[ -z ${BACKEND_NAME} ]]; do
   BACKENDS=$(kubectl --namespace=${NAMESPACE} get ingress ${SERVICE}-ingress -o jsonpath='{.metadata.annotations.ingress\.kubernetes\.io/backends}')
   echo "fetching backends info: ${BACKENDS}"
+  BACKEND_NAME=$(echo $BACKENDS | grep -o "k8s-be-${NODE_PORT}--[0-9a-z]\+")
+  echo "backend name is ${BACKEND_NAME}"
   sleep 2
 done
-BACKEND_NAME=$(echo $BACKENDS | grep -o "k8s-be-${NODE_PORT}--[0-9a-z]\+")
-echo "backend name is ${BACKEND_NAME}"
+
 while [[ -z ${BACKEND_ID} ]]; do
   BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=${BACKEND_NAME} --format='value(id)')
   echo "Waiting for backend id PROJECT=${PROJECT} NAMESPACE=${NAMESPACE} SERVICE=${SERVICE} filter=name~${BACKEND_NAME}"
