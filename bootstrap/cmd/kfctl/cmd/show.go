@@ -32,10 +32,7 @@ var showCmd = &cobra.Command{
 	Long:  `Deploy a generated kubeflow application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
-		log.Info("show kubeflow application")
-		if showCfg.GetBool(string(kftypes.VERBOSE)) == true {
-			log.SetLevel(log.InfoLevel)
-		} else {
+		if showCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
 		resource, resourceErr := processResourceArg(args)
