@@ -51,8 +51,6 @@ type ksApp struct {
 	// ksonnet env name
 	KsEnvName  string
 	KApp       app.App
-	restConfig *rest.Config
-	apiConfig  *clientcmdapi.Config
 }
 
 const (
@@ -80,24 +78,24 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	if goPathVar != "" {
 		_kfapp.Spec.Repo = re.ReplaceAllString(_kfapp.Spec.Repo, goPathVar+`$2`)
 	}
-	// build restConfig and apiConfig using $HOME/.kube/config if the file exist
-	_kfapp.restConfig = kftypes.GetConfig()
-	_kfapp.apiConfig = kftypes.GetKubeConfig()
 	return _kfapp
 }
 
 // Apply applies the ksonnet components to target k8s cluster.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
-	if ksApp.restConfig == nil || ksApp.apiConfig == nil {
+	// build restConfig and apiConfig using $HOME/.kube/config if the file exist
+	restConfig := kftypes.GetConfig()
+	apiConfig := kftypes.GetKubeConfig()
+	if restConfig == nil || apiConfig == nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: "Error: ksApp has nil restConfig or apiConfig, exit",
+			Message: "Error: nil restConfig or apiConfig, exit",
 		}
 	}
-	clientset := kftypes.GetClientset(ksApp.restConfig)
+	clientset := kftypes.GetClientset(restConfig)
 	// TODO(gabrielwen): Make env name an option.
-	envSetErr := ksApp.envSet(KsEnvName, ksApp.restConfig.Host)
+	envSetErr := ksApp.envSet(KsEnvName, restConfig.Host)
 	if envSetErr != nil {
 		return &kfapis.KfError{
 			Code: envSetErr.(*kfapis.KfError).Code,
@@ -137,7 +135,7 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 			}
 		}
 	}
-	return ksApp.applyComponent(ksApp.Spec.Components, ksApp.apiConfig)
+	return ksApp.applyComponent(ksApp.Spec.Components, apiConfig)
 }
 
 func (ksApp *ksApp) getCompsFilePath() string {
@@ -464,8 +462,15 @@ func (ksApp *ksApp) initKs() error {
 	k8sSpec := ksApp.Spec.ServerVersion
 	host := "127.0.0.1"
 	if k8sSpec == "" {
-		host = ksApp.restConfig.Host
-		k8sSpec = kftypes.GetServerVersion(kftypes.GetClientset(ksApp.restConfig))
+		restConfig := kftypes.GetConfig()
+		if restConfig == nil {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: "Error: restConfig is nil, exit",
+			}
+		}
+		host = restConfig.Host
+		k8sSpec = kftypes.GetServerVersion(kftypes.GetClientset(restConfig))
 		if k8sSpec == "" {
 			return &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
