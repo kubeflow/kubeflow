@@ -1,12 +1,10 @@
 import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
 import Collapse from '@material-ui/core/Collapse';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import * as jsYaml from 'js-yaml';
@@ -29,6 +27,12 @@ import appConfigPath from './user_config/app-config.yaml';
 // selects auto domain then we should automatically supply the suffix
 // <hostname>.endpoints.<Project>.cloud.goog
 
+const IngressType  = {
+  BasicAuth: 'Login with Username Password',
+  DeferIap: 'Setup Endpoint later',
+  Iap: 'Login with GCP Iap'
+};
+
 interface DeployFormState {
   deploymentName: string;
   dialogTitle: string;
@@ -43,7 +47,7 @@ interface DeployFormState {
   username: string;
   password: string;
   password2: string;
-  iap: boolean;
+  ingress: string;
 }
 
 const logsContainerStyle = (show: boolean) => {
@@ -111,7 +115,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       deploymentName: 'kubeflow',
       dialogBody: '',
       dialogTitle: '',
-      iap: true,
+      ingress: IngressType.Iap,
       kfversion: 'v0.4.1',
       // Version for local test. Staging and Prod with overwrite with their env vars.
       kfversionList: ['v0.4.1'],
@@ -168,7 +172,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   public render() {
     const zoneList = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b',
       'europe-west1-b', 'europe-west1-d', 'asia-east1-a', 'asia-east1-b'];
-
+    // const ingressList = ['Login with GCP Iap', 'Login with Username Password', 'Skip Endpoint'];
     return (
       <div>
         <div style={styles.text}>Create a Kubeflow deployment</div>
@@ -182,13 +186,24 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
            required={true} value={this.state.deploymentName} onChange={this._handleChange('deploymentName')} />
         </div>
         <div style={styles.row}>
-          <FormControlLabel label="Skip IAP" control={
-            <Checkbox checked={!this.state.iap} color="primary"
-              onChange={() => this.setState({ iap: !this.state.iap })} />
-          } />
+          <TextField select={true} label="Choose how to connect to kubeflow service:" required={true} style={styles.input} variant="filled"
+                     value={this.state.ingress} onChange={this._handleChange('ingress')}>
+            <MenuItem key={1} value={IngressType.Iap}>{IngressType.Iap}</MenuItem>
+            <MenuItem key={2} value={IngressType.BasicAuth}>{IngressType.BasicAuth}</MenuItem>
+            <MenuItem key={3} value={IngressType.DeferIap}>{IngressType.DeferIap}</MenuItem>
+          </TextField>
         </div>
 
-        <Collapse in={this.state.iap}>
+        <Collapse in={this.state.ingress === IngressType.Iap}>
+          <div style={styles.row}>
+            <li>An endpoint protected by GCP IAP will be created for accessing kubeflow.
+              Follow these
+              <a href="https://www.kubeflow.org/docs/started/getting-started-gke/#create-oauth-client-credentials"
+                 style={{ color: 'inherit', marginLeft: 5 }}
+                 target="_blank">
+                instructions</a> to create an OAuth client and
+                then enter as IAP Oauth Client ID and Secret</li>
+          </div>
           <div style={styles.row}>
             <TextField label="IAP OAuth client ID" spellCheck={false} style={styles.input} variant="filled"
              required={true} value={this.state.clientId} onChange={this._handleChange('clientId')} />
@@ -199,7 +214,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           </div>
         </Collapse>
 
-        <Collapse in={!this.state.iap}>
+        <Collapse in={this.state.ingress === IngressType.BasicAuth}>
+          <div style={styles.row}>
+            <li>An endpoint protected by in-cluster auth will be created for accessing kubeflow.
+              Create your username / password for login to kubeflow service</li>
+          </div>
           <div style={styles.row}>
             <TextField label="Create Kubeflow Login Username" spellCheck={false} style={styles.input} variant="filled"
              required={true} value={this.state.username} onChange={this._handleChange('username')} />
@@ -211,6 +230,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           <div style={styles.row}>
             <TextField label="Confirm Password" spellCheck={false} style={styles.input} variant="filled" type="password"
              required={true} value={this.state.password2} onChange={this._handleChange('password2')} />
+          </div>
+        </Collapse>
+
+        <Collapse in={this.state.ingress === IngressType.DeferIap}>
+          <div style={styles.row}>
+            <li>Skip creating service endpoint now, finish endpoint setup later by inserting oauth client to kubeflow cluster</li>
           </div>
         </Collapse>
 
@@ -238,9 +263,16 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             Create Deployment
           </Button>
 
-          <Button style={styles.btn} variant="contained" color="default" onClick={this._kubeflowAddress.bind(this)}>
-            Kubeflow Service Address
-          </Button>
+          {!(this.state.ingress === IngressType.DeferIap) && (
+            <Button style={styles.btn} variant="contained" color="default" onClick={this._kubeflowAddress.bind(this)}>
+              Kubeflow Service Endpoint
+            </Button>
+          )}
+          {this.state.ingress === IngressType.DeferIap && (
+            <Button style={styles.btn} variant="contained" color="default" onClick={this._toPortForward.bind(this)}>
+              Port Forward
+            </Button>
+          )}
 
           <Button style={styles.yamlBtn} variant="outlined" color="default" onClick={this._showYaml.bind(this)}>
             View YAML
@@ -362,7 +394,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       });
     }
 
-    if (!this.state.iap) {
+    if (this.state.ingress === IngressType.BasicAuth) {
       for (let i = 0, len = configSpec.defaultApp.components.length; i < len; i++) {
         const p = configSpec.defaultApp.components[i];
         if (p.name === 'iap-ingress') {
@@ -406,6 +438,20 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     }
   }
 
+  private async _toPortForward() {
+    const key = 'project';
+    if (this.state[key] === '') {
+      this.setState({
+        dialogBody: 'project id is missing',
+        dialogTitle: 'Missing field',
+      });
+      return;
+    }
+    const cloudShellUrl = 'https://console.cloud.google.com/kubernetes/service/' +  this.state.zone + '/' +
+      this.state.deploymentName + '/kubeflow/ambassador?project=' + this.state.project + '&tab=overview';
+    window.open(cloudShellUrl, '_blank');
+  }
+
   private async _kubeflowAddress() {
     for (const prop of ['project', 'deploymentName']) {
       if (this.state[prop] === '') {
@@ -434,7 +480,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         return;
       }
     }
-    if (this.state.iap) {
+    if (this.state.ingress === IngressType.Iap) {
       for (const prop of ['clientId', 'clientSecret']) {
         if (this.state[prop] === '') {
           this.setState({
@@ -666,12 +712,13 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       Token: token,
       Zone: this.state.zone,
     };
-    if (this.state.iap) {
+    if (this.state.ingress === IngressType.Iap) {
       createBody = {...createBody, ...{
         ClientId: btoa(this.state.clientId),
         ClientSecret: btoa(this.state.clientSecret),
       }};
-    } else {
+    }
+    if (this.state.ingress === IngressType.BasicAuth) {
       createBody = {...createBody, ...{
         PasswordHash: btoa(encryptPassword(this.state.password)),
         Username: btoa(this.state.username),
@@ -732,7 +779,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   }
 
   private _redirectToKFDashboard(dashboardUri: string) {
-    if (this.state.iap) {
+    if (this.state.ingress === IngressType.Iap) {
       // relying on Kubeflow / JupyterHub logo image to be available when the site is ready.
       // The dashboard URI is hosted at a domain different from the deployer
       // app. Fetching a GET on the dashboard is blocked by the browser due
@@ -770,23 +817,27 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       img.style.display = 'none';
       document.body.appendChild(img);
     } else {
-      const loginUri = 'https://' + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog/kflogin';
-      const monitorInterval = setInterval(() => {
-        request(
-          {
-            method: 'GET',
-            uri: loginUri,
-          },
-          (error, response, body) => {
-            if (!error) {
-              clearInterval(monitorInterval);
-              window.location.href = loginUri;
-            } else {
-              this._appendLine('Waiting for the kubeflow ingress to get ready...');
+      if (this.state.ingress === IngressType.BasicAuth) {
+        const loginUri = 'https://' + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog/kflogin';
+        const monitorInterval = setInterval(() => {
+          request(
+            {
+              method: 'GET',
+              uri: loginUri,
+            },
+            (error, response, body) => {
+              if (!error) {
+                clearInterval(monitorInterval);
+                window.location.href = loginUri;
+              } else {
+                this._appendLine('Waiting for the kubeflow ingress to get ready...');
+              }
             }
-          }
-        );
-      }, 10000);
+          );
+        }, 10000);
+      } else {
+        this._appendLine('Please use port forward to connect to kubeflow when Skip Endpoint');
+      }
     }
   }
 
