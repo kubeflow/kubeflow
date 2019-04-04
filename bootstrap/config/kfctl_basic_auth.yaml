@@ -20,6 +20,7 @@ packages:
   - tf-serving
   - tf-training
 components:
+# ordering is important
   - metacontroller
   - ambassador
   - argo
