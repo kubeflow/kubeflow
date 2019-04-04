@@ -68,8 +68,6 @@ describe('Main Page', () => {
         expect(mainPage.page).toBe('dashboard');
         expect(mainPage.sidebarItemIndex).toBe(0);
         expect(mainPage.inIframe).toBe(false);
-        expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
-            .hasAttribute('hidden')).toBe(true);
 
         await selectedTabPromise;
         expect(mainPage.shadowRoot.querySelector('paper-tab[page="dashboard"]')
@@ -89,8 +87,6 @@ describe('Main Page', () => {
         expect(mainPage.page).toBe('activity');
         expect(mainPage.sidebarItemIndex).toBe(0);
         expect(mainPage.inIframe).toBe(false);
-        expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
-            .hasAttribute('hidden')).toBe(false);
 
         await selectedTabPromise;
         expect(mainPage.shadowRoot.querySelector('paper-tab[page="activity"]')
@@ -106,8 +102,6 @@ describe('Main Page', () => {
         expect(mainPage.sidebarItemIndex).toBe(-1);
         expect(mainPage.notFoundInIframe).toBe(false);
         expect(mainPage.inIframe).toBe(false);
-        expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
-            .hasAttribute('hidden')).toBe(true);
         expect(mainPage.shadowRoot.querySelector('paper-tabs')
             .hasAttribute('hidden')).toBe(true);
     });
@@ -122,8 +116,6 @@ describe('Main Page', () => {
             expect(mainPage.sidebarItemIndex).toBe(-1);
             expect(mainPage.notFoundInIframe).toBe(true);
             expect(mainPage.shadowRoot.querySelector('paper-tabs')
-                .hasAttribute('hidden')).toBe(true);
-            expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
                 .hasAttribute('hidden')).toBe(true);
             expect(mainPage.shadowRoot.querySelector('paper-tabs')
                 .hasAttribute('hidden')).toBe(true);
@@ -144,5 +136,38 @@ describe('Main Page', () => {
         expect(mainPage.shadowRoot.querySelector('app-toolbar')
             .hasAttribute('blue')).toBe(true);
         expect(mainPage.$.MainDrawer.close).toHaveBeenCalled();
+    });
+
+    it('Appends query string when building links', () => {
+        // Base case
+        flush();
+        const hrefs = [];
+        mainPage.shadowRoot.querySelectorAll('#MainDrawer iron-selector a')
+            .forEach((l) => hrefs.push(l.href));
+        mainPage.shadowRoot.querySelectorAll('app-header paper-tabs a')
+            .forEach((l) => hrefs.push(l.href));
+        hrefs.forEach((h) => expect(h).not.toContain('?'));
+
+        // Set namespace case
+        mainPage.set('queryParams.ns', 'another-namespace');
+        flush();
+        hrefs.splice(0);
+        mainPage.shadowRoot.querySelectorAll('#MainDrawer iron-selector a')
+            .forEach((l) => hrefs.push(l.href));
+        mainPage.shadowRoot.querySelectorAll('app-header paper-tabs a')
+            .forEach((l) => hrefs.push(l.href));
+        hrefs.forEach((h) => expect(h).toContain('?ns=another-namespace'));
+    });
+
+    it('Hides namespace selector when showing Pipelines dashboard', () => {
+        flush();
+        expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
+            .hasAttribute('hidden')).toBe(false);
+
+        mainPage.subRouteData.path = '/pipeline-dashboard';
+        mainPage._routePageChanged('_');
+        flush();
+        expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
+            .hasAttribute('hidden')).toBe(true);
     });
 });
