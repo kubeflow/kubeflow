@@ -20,12 +20,12 @@ packages:
   - tf-serving
   - tf-training
 components:
+  - metacontroller
   - ambassador
   - argo
   - centraldashboard
   - jupyter-web-app
   - katib
-  - metacontroller
   - notebook-controller
   - pipeline
   - pytorch-operator
