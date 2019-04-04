@@ -11,6 +11,7 @@
         - [`make build-kftl-container`](#make-build-kftl-container)
         - [`make push-kftl-container`](#make-push-kftl-container)
         - [`make push-kftl-container-latest`](#make-push-kftl-container-latest)
+        - [`make run-kfctl-container`](#make-run-kfctl-container)
         - [`make test-init`](#make-test-init)
   - [Building bootstrap](#building-bootstrap)
         - [`make build-bootstrap`](#make-build-bootstrap)
@@ -19,6 +20,7 @@
         - [`make push-latest`](#make-push-latest)
         - [`make static, make plugins`](#make-static-make-plugins)
   - [How to run bootstrapper with Click-to-deploy app locally](#how-to-run-bootstrapper-with-click-to-deploy-app-locally)
+  - [Releasing kfctl](#releasing-kfctl)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -124,7 +126,26 @@ make push-kfctl-container-latest
 make run-kfctl-container
 ```
 
-* Runs the local docker container
+* runs the local docker container. Opens a shell in the container
+
+> how to deploy gcp from within the container<br>
+
+Run 
+
+```sh
+KFCTL_TARGET=kfctl_base MOUNT_KUBE='' make run-kfctl-container
+```
+
+The above command will open a shell in the container. Then run the following:
+
+```
+$ cp bin/kfctl /usr/local/bin
+$ cd /opt/kubeflow
+$ kfctl init gcp-test --platform gcp --project constant-cubist-173123 -V
+$ cd gcp-test
+$ kfctl generate all -V
+$ CLIENT_ID=XXX CLIENT_SECRET=YYY kfctl apply all -V
+```
 
 
 ##### `make test-init`
