@@ -23,8 +23,12 @@ gcloud config list
 
 NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
 echo "node port is ${NODE_PORT}"
-BACKENDS=$(kubectl --namespace=${NAMESPACE} get ingress ${SERVICE}-ingress -o jsonpath='{.metadata.annotations.ingress\.kubernetes\.io/backends}')
-echo "backends are ${BACKENDS}"
+
+while [[ -z ${BACKENDS} ]]; do
+  BACKENDS=$(kubectl --namespace=${NAMESPACE} get ingress ${SERVICE}-ingress -o jsonpath='{.metadata.annotations.ingress\.kubernetes\.io/backends}')
+  echo "fetching backends info: ${BACKENDS}"
+  sleep 2
+done
 BACKEND_NAME=$(echo $BACKENDS | grep -o "k8s-be-${NODE_PORT}--[0-9a-z]\+")
 echo "backend name is ${BACKEND_NAME}"
 while [[ -z ${BACKEND_ID} ]]; do
