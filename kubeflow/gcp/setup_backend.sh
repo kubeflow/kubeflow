@@ -26,7 +26,7 @@ BACKENDS=$(kubectl --namespace=${NAMESPACE} get ingress ${SERVICE}-ingress -o js
 BACKEND_NAME=$(echo $BACKENDS | grep -o "k8s-be-${NODE_PORT}--[0-9a-z]\+")
 while [[ -z ${BACKEND_ID} ]]; do
   BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=${BACKEND_NAME} --format='value(id)')
-  echo "Waiting for backend id PROJECT=${PROJECT} NAMESPACE=${NAMESPACE} SERVICE=${SERVICE} filter=name~k8s-be-${NODE_PORT}- ..."
+  echo "Waiting for backend id PROJECT=${PROJECT} NAMESPACE=${NAMESPACE} SERVICE=${SERVICE} filter=name~${BACKEND_NAME}"
   sleep 2
 done
 echo BACKEND_ID=${BACKEND_ID}
