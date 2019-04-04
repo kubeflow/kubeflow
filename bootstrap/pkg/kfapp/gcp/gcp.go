@@ -290,7 +290,7 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 			log.Infof("%v is finished: %v", logPrefix, op.Status)
 			return nil
 		}
-		log.Warnf("%v status: %v (op = %v)", logPrefix, op.Status, op.Name)
+		log.Infof("%v status: %v (op = %v)", logPrefix, op.Status, op.Name)
 		name = op.Name
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
@@ -909,7 +909,7 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 			log.Infof("endpoint deletion %v is completed: %v", gcp.Spec.Hostname, string(newOp.Response))
 			return nil
 		}
-		log.Warnf("Endpoint deletion is running: %v (op = %v)", gcp.Spec.Hostname, newOp.Name)
+		log.Infof("Endpoint deletion is running: %v (op = %v)", gcp.Spec.Hostname, newOp.Name)
 		opName = newOp.Name
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
@@ -1384,7 +1384,7 @@ func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
 	}
 	_, err := client.CoreV1().Secrets(gcp.KfDef.Namespace).Update(secret)
 	if err != nil {
-		log.Warnf("Updating basic auth login is failed, trying to create one: %v", err)
+		log.Warnf("Updating basic auth login failed, trying to create one: %v", err)
 		_, err = client.CoreV1().Secrets(gcp.Namespace).Create(secret)
 	}
 
@@ -1591,7 +1591,7 @@ func (gcp *Gcp) gcpInitProject() error {
 			return nil
 
 		}
-		log.Warnf("batch API enabling is running: %v (op = %v)", enabledApis, newOp.Name)
+		log.Infof("batch API enabling is running: %v (op = %v)", enabledApis, newOp.Name)
 		opName = "" + newOp.Name
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
