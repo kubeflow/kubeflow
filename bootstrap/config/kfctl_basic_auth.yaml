@@ -20,6 +20,7 @@ packages:
   - tf-serving
   - tf-training
 components:
+  - metacontroller
   - ambassador
   - argo
   - basic-auth
@@ -31,7 +32,6 @@ components:
   - gpu-driver
   - jupyter-web-app
   - katib
-  - metacontroller
   - notebook-controller
   - pipeline
   - pytorch-operator
