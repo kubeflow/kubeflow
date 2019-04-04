@@ -20,6 +20,7 @@ GOPATH ?= $(HOME)/go
 BOOTSTRAPPER_IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
 KFCTL_IMG ?= gcr.io/$(GCLOUD_PROJECT)/kfctl
 TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
+KFCTL_TARGET ?= kfctl
 # set to -V
 VERBOSE ?= 
 PLUGINS_ENVIRONMENT ?= $(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin
@@ -109,7 +110,7 @@ push-to-github-release: build-kfctl-tgz
 build-kfctl-container:
 	docker build \
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
-		--target=kfctl \
+		--target=$(KFCTL_TARGET) \
 		--tag $(KFCTL_IMG):$(TAG) .
 	@echo Built $(KFCTL_IMG):$(TAG)
 
@@ -154,7 +155,7 @@ install: build-kfctl dockerfordesktop.so
 	@cp bin/kfctl /usr/local/bin
 
 run-kfctl-container: build-kfctl-container
-	@docker run -d -v $HOME/.kube:/root/.kube -t $(KFCTL_IMG):$(TAG)
+	@docker run -v $$HOME/.kube:/root/.kube -v $$HOME/.config:/root/.config --entrypoint /bin/sh -it $(KFCTL_IMG):$(TAG)
 
 run-local-docker:
 	docker run -d -it --name bootstrapper \
