@@ -590,14 +590,35 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	policy, policyErr := utils.GetIamPolicy(gcp.Spec.Project, gcpClient)
-	if policyErr != nil {
-		return &kfapis.KfError{
-			Code: policyErr.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("GetIamPolicy error: %v",
-				policyErr.(*kfapis.KfError).Message),
+	exp := backoff.NewExponentialBackOff()
+	exp.InitialInterval = 1 * time.Second
+	exp.MaxInterval = 3 * time.Second
+	exp.MaxElapsedTime = time.Minute
+	exp.Reset()
+	err := backoff.Retry(func() error {
+		// Get current policy
+		policy, policyErr := utils.GetIamPolicy(gcp.Spec.Project, gcpClient)
+		if policyErr != nil {
+			return &kfapis.KfError{
+				Code: policyErr.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("GetIamPolicy error: %v",
+					policyErr.(*kfapis.KfError).Message),
+			}
 		}
+		utils.ClearIamPolicy(policy, gcp.Name, gcp.Spec.Project)
+		if err := utils.SetIamPolicy(gcp.Spec.Project, policy, gcpClient); err != nil {
+			return &kfapis.KfError{
+				Code: err.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("Set Cleared IamPolicy error: %v",
+					err.(*kfapis.KfError).Message),
+			}
+		}
+		return nil
+	}, exp)
+	if err != nil {
+		return err
 	}
+
 	appDir := gcp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
 	iamPolicy, iamPolicyErr := utils.ReadIamBindingsYAML(
@@ -609,31 +630,30 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 				iamPolicyErr.(*kfapis.KfError).Message),
 		}
 	}
-	utils.ClearIamPolicy(policy, gcp.Name, gcp.Spec.Project)
-	if err := utils.SetIamPolicy(gcp.Spec.Project, policy, gcpClient); err != nil {
-		return &kfapis.KfError{
-			Code: err.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("Set Cleared IamPolicy error: %v",
-				err.(*kfapis.KfError).Message),
-		}
-	}
 
-	// Need to read policy again as latest Etag changed.
-	newPolicy, policyErr := utils.GetIamPolicy(gcp.Spec.Project, gcpClient)
-	if policyErr != nil {
-		return &kfapis.KfError{
-			Code: policyErr.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("GetIamPolicy error: %v",
-				policyErr.(*kfapis.KfError).Message),
+	exp.Reset()
+	err = backoff.Retry(func() error {
+		// Need to read policy again as latest Etag changed.
+		newPolicy, policyErr := utils.GetIamPolicy(gcp.Spec.Project, gcpClient)
+		if policyErr != nil {
+			return &kfapis.KfError{
+				Code: policyErr.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("GetIamPolicy error: %v",
+					policyErr.(*kfapis.KfError).Message),
+			}
 		}
-	}
-	utils.RewriteIamPolicy(newPolicy, iamPolicy)
-	if err := utils.SetIamPolicy(gcp.Spec.Project, newPolicy, gcpClient); err != nil {
-		return &kfapis.KfError{
-			Code: err.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("Set New IamPolicy error: %v",
-				err.(*kfapis.KfError).Message),
+		utils.RewriteIamPolicy(newPolicy, iamPolicy)
+		if err := utils.SetIamPolicy(gcp.Spec.Project, newPolicy, gcpClient); err != nil {
+			return &kfapis.KfError{
+				Code: err.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("Set New IamPolicy error: %v",
+					err.(*kfapis.KfError).Message),
+			}
 		}
+		return nil
+	}, exp)
+	if err != nil {
+		return err
 	}
 
 	if err := gcp.ConfigK8s(); err != nil {
@@ -826,12 +846,40 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 	}
 
 	services := servicemanagement.NewServicesService(servicemanagementService)
-	op, err := services.Delete(gcp.Spec.Hostname).Context(ctx).Do()
-	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("issuing endpoint deletion error: %v", err),
+	op, deleteErr := services.Delete(gcp.Spec.Hostname).Context(ctx).Do()
+	if deleteErr != nil {
+		nextPage := ""
+		// Use a loop to read multi-page managed services list.
+		for {
+			list := services.List().ProducerProjectId(gcp.Spec.Project)
+			if nextPage != "" {
+				list = list.PageToken(nextPage)
+			}
+			listResp, err := list.Do()
+			if err != nil {
+				return &kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("listing managed services error: %v", err),
+				}
+			}
+			for _, s := range listResp.Services {
+				if s.ServiceName == gcp.Spec.Hostname {
+					return &kfapis.KfError{
+						Code:    int(kfapis.INTERNAL_ERROR),
+						Message: fmt.Sprintf("issuing endpoint deletion error: %v", deleteErr),
+					}
+				}
+			}
+			// Explicitly copy it to prevent memory leak.
+			nextPage = "" + listResp.NextPageToken
+			if nextPage == "" {
+				break
+			}
 		}
+		// Delete is not successful and we are not able to find endpoint in managed
+		// services, treat it as OK.
+		log.Infof("Endpoint %v deletion is failed but it is not found in managed services, treating it as successful.", gcp.Spec.Hostname)
+		return nil
 	}
 
 	opService := servicemanagement.NewOperationsService(servicemanagementService)
@@ -863,7 +911,6 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 		}
 		log.Warnf("Endpoint deletion is running: %v (op = %v)", gcp.Spec.Hostname, newOp.Name)
 		opName = newOp.Name
-		// This error is used to invoke another retry, no need to use KfError.
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("Endpoint deletion is running..."),
@@ -1506,17 +1553,51 @@ func (gcp *Gcp) gcpInitProject() error {
 		"iam.googleapis.com",
 		"sqladmin.googleapis.com",
 	}
-	for _, api := range enabledApis {
-		service := fmt.Sprintf("projects/%v/services/%v", gcp.Spec.Project, api)
-		_, opErr := serviceusageService.Services.Enable(service, &serviceusage.EnableServiceRequest{}).Context(ctx).Do()
-		if opErr != nil {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("could not enable API service %v: %v", api, opErr),
-			}
+	op, opErr := serviceusageService.Services.BatchEnable("projects/"+gcp.Spec.Project,
+		&serviceusage.BatchEnableServicesRequest{
+			ServiceIds: enabledApis,
+		}).Context(ctx).Do()
+	if opErr != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("issuing batch API enabling services error: %v", opErr),
 		}
 	}
-	return nil
+	opService := serviceusage.NewOperationsService(serviceusageService)
+	opName := "" + op.Name
+	return backoff.Retry(func() error {
+		newOp, retryErr := opService.Get(opName).Context(ctx).Do()
+		if retryErr != nil {
+			log.Errorf("long running batch API enabling services error: %v", retryErr)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("long running batch API enabling services error: %v", retryErr),
+			}
+		}
+		if newOp.Error != nil {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("long running batch API enabling services error: %v", newOp.Error.Message),
+			}
+		}
+		if newOp.Done {
+			if newOp.HTTPStatusCode != 200 {
+				return backoff.Permanent(&kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("Abnormal response code: %v", newOp.HTTPStatusCode),
+				})
+			}
+			log.Infof("batch API enabling is completed: %v", enabledApis)
+			return nil
+
+		}
+		log.Warnf("batch API enabling is running: %v (op = %v)", enabledApis, newOp.Name)
+		opName = "" + newOp.Name
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("batch API enabling is running..."),
+		}
+	}, backoff.NewExponentialBackOff())
 }
 
 // Init initializes a gcp kfapp
