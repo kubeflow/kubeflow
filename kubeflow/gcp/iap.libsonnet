@@ -9,6 +9,7 @@
       envoyAdminPort: 8001,
       envoyStatsPort: 8025,
       useIstio: util.toBool(_params.useIstio),
+      ingressService: "envoy-ingress"
     },
     local namespace = if params.useIstio then params.istioNamespace else params.namespace,
 
@@ -384,6 +385,10 @@
                   {
                     name: "SERVICE",
                     value: if params.useIstio then "istio-ingressgateway" else "envoy",
+                  },
+                  {
+                    name: "INGRESS_SERVICE",
+                    value: params.ingressService,
                   },
                   {
                     name: "ENVOY_ADMIN",
