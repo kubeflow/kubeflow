@@ -203,7 +203,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           <div style={styles.row}>
             <li>An endpoint protected by GCP IAP will be created for accessing kubeflow.
               Follow these
-              <a href="https://www.kubeflow.org/docs/started/getting-started-gke/#create-oauth-client-credentials"
+              <a href="https://www.kubeflow.org/docs/gke/deploy/oauth-setup/"
                  style={{ color: 'inherit', marginLeft: 5 }}
                  target="_blank">
                 instructions</a> to create an OAuth client and
