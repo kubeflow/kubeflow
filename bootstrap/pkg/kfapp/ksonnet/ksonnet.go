@@ -258,7 +258,6 @@ func (ksApp *ksApp) deleteGlobalResources(config *rest.Config) error {
 		"compositecontrollers.metacontroller.k8s.io",
 		"controllerrevisions.metacontroller.k8s.io",
 		"decoratorcontrollers.metacontroller.k8s.io",
-		"applications.app.k8s.io",
 	}
 	for _, crd := range crdsByName {
 		do := &metav1.DeleteOptions{}
@@ -304,7 +303,7 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 		}
 	}
 	clientConfig := kftypes.GetKubeConfig()
-	components := []string{"application", "metacontroller"}
+	components := []string{"metacontroller"}
 	err = actions.RunDelete(map[string]interface{}{
 		actions.OptionApp: ksApp.KApp,
 		actions.OptionClientConfig: &client.Config{
