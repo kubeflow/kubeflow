@@ -36,16 +36,16 @@ usage() {
 delete_iam_role_inline_policy() {
   declare -r POLICY_NAME="$1"
 
-  if [[ -z "$NODEGROUP_ROLE_NAMES" ]]; then
+  if [[ -z "$AWS_NODEGROUP_ROLE_NAMES" ]]; then
     # only new cluster rely on scripts to figure out roles
-    export NODEGROUP_ROLE_NAMES=$(aws iam list-roles \
+    export AWS_NODEGROUP_ROLE_NAMES=$(aws iam list-roles \
       | jq -r ".Roles[] \
       | select(.RoleName \
-      | startswith(\"eksctl-${cluster_name}-nodegroup-n-NodeInstanceRole\")) \
+      | startswith(\"eksctl-${cluster_name}-nodegroup\")) \
       .RoleName")
   fi
 
-  for IAM_ROLE in ${NODEGROUP_ROLE_NAMES//,/ }
+  for IAM_ROLE in ${AWS_NODEGROUP_ROLE_NAMES//,/ }
   do
     echo "Deleting inline policy $POLICY_NAME for iam role $IAM_ROLE"
     if ! aws iam delete-role-policy --role-name=$IAM_ROLE --policy-name=$POLICY_NAME; then
@@ -57,7 +57,6 @@ delete_iam_role_inline_policy() {
 }
 
 main() {
-
  cd "${DIR}"
 
   # List of required parameters
@@ -86,11 +85,12 @@ kubectl delete -f ${resource_dir}/fluentd-cloudwatch.yaml
 # Detach inline policy from iam roles
 delete_iam_role_inline_policy iam_alb_ingress_policy
 delete_iam_role_inline_policy iam_cloudwatch_policy
+delete_iam_role_inline_policy iam_csi_fsx_policy
 
 # Ensure resources are deleted.
 if [ $delete_cluster == "true" ] ; then
   if ! eksctl delete cluster --name=${cluster_name} ; then
-    echo "Please go to aws console to check CloudFormation."
+    echo "Please go to aws console to check CloudFormation status and double make sure your cluster has been shutdown."
   fi
 fi
 

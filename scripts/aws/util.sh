@@ -20,18 +20,18 @@ generate_infra_configs() {
 }
 
 update_infra() {
-  if ! eksctl get cluster --name=${CLUSTER_NAME} >/dev/null ; then
+  if ! eksctl get cluster --name=${AWS_CLUSTER_NAME} >/dev/null ; then
     create_eks_cluster
 
     # Find nodegroup role for later inline policy binding
-    NODEGROUP_ROLE_NAMES=$(aws iam list-roles \
+    AWS_NODEGROUP_ROLE_NAMES=$(aws iam list-roles \
       | jq -r ".Roles[] \
       | select(.RoleName \
-      | startswith(\"eksctl-${CLUSTER_NAME}-nodegroup-n-NodeInstanceRole\")) \
-      .RoleName")
+      | startswith(\"eksctl-${AWS_CLUSTER_NAME}-nodegroup\")) \
+      .RoleName") | xargs | sed -e 's/ /,/g'
 
-    echo "NODEGROUP_ROLE_NAMES=${NODEGROUP_ROLE_NAMES}" >> ${KUBEFLOW_REPO}/${DEPLOYMENT_NAME}/${ENV_FILE}
-    echo "DELETE_CLUSTER=true" >> ${KUBEFLOW_REPO}/${DEPLOYMENT_NAME}/${ENV_FILE}
+    echo "AWS_NODEGROUP_ROLE_NAMES=${AWS_NODEGROUP_ROLE_NAMES}" >> ${KUBEFLOW_REPO}/${DEPLOYMENT_NAME}/${ENV_FILE}
+    echo "MANAGED_CLUSTER=true" >> ${KUBEFLOW_REPO}/${DEPLOYMENT_NAME}/${ENV_FILE}
   fi
 
   set +e
@@ -47,12 +47,13 @@ update_infra() {
 
   attach_inline_policy iam_alb_ingress_policy ${KUBEFLOW_INFRA_DIR}/iam_alb_ingress_policy.json
   attach_inline_policy iam_cloudwatch_policy ${KUBEFLOW_INFRA_DIR}/iam_cloudwatch_policy.json
+  attach_inline_policy iam_csi_fsx_policy ${KUBEFLOW_INFRA_DIR}/iam_csi_fsx_policy.json
 }
 
 attach_inline_policy() {
   declare -r POLICY_NAME="$1" POLICY_DOCUMENT="$2"
 
-  for IAM_ROLE in ${NODEGROUP_ROLE_NAMES//,/ }
+  for IAM_ROLE in ${AWS_NODEGROUP_ROLE_NAMES//,/ }
   do
     echo "Attach inline policy $POLICY_NAME for iam role $IAM_ROLE"
     if ! aws iam put-role-policy --role-name $IAM_ROLE --policy-name $POLICY_NAME --policy-document file://${POLICY_DOCUMENT}; then
@@ -120,7 +121,7 @@ install_fluentd_cloudwatch() {
     https://eksworkshop.com/logging/deploy.files/fluentd.yml
 
   replace_text_in_file "us-west-2" ${AWS_REGION} ${KUBEFLOW_K8S_MANIFESTS_DIR}/fluentd-cloudwatch.yaml
-  replace_text_in_file "eksworkshop-eksctl" ${CLUSTER_NAME} ${KUBEFLOW_K8S_MANIFESTS_DIR}/fluentd-cloudwatch.yaml
+  replace_text_in_file "eksworkshop-eksctl" ${AWS_CLUSTER_NAME} ${KUBEFLOW_K8S_MANIFESTS_DIR}/fluentd-cloudwatch.yaml
 
   kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/fluentd-cloudwatch.yaml
 }
@@ -150,7 +151,7 @@ aws_generate_ks_app() {
   ks pkg install kubeflow/aws
 
   # relace with cluster namespace
-  ks generate aws-alb-ingress-controller aws-alb-ingress-controller --clusterName=${CLUSTER_NAME}
+  ks generate aws-alb-ingress-controller aws-alb-ingress-controller --clusterName=${AWS_CLUSTER_NAME}
   ks generate aws-fsx-csi-driver aws-fsx-csi-driver --namespace=${K8S_NAMESPACE}
   ks generate istio-ingress istio-ingress --namespace=${K8S_NAMESPACE}
 
@@ -166,7 +167,7 @@ aws_ks_apply() {
   createKsEnv
 
   if [[ -z $DEFAULT_KUBEFLOW_COMPONENTS ]]; then
-    export KUBEFLOW_COMPONENTS+=',"aws-alb-ingress-controller","istio-ingress"'
+    export KUBEFLOW_COMPONENTS+=',"aws-alb-ingress-controller","aws-fsx-csi-driver","istio-ingress"'
     writeEnv
     ks param set application components '['$KUBEFLOW_COMPONENTS']'
   fi
@@ -174,8 +175,8 @@ aws_ks_apply() {
 }
 
 validate_aws_arg() {
-  if [[ -z "$CLUSTER_NAME" ]]; then
-    echo "eks cluster_name must be provided using --clusterName <CLUSTER_NAME>"
+  if [[ -z "$AWS_CLUSTER_NAME" ]]; then
+    echo "eks cluster_name must be provided using --awsClusterName <AWS_CLUSTER_NAME>"
     exit 1
   fi
 }
@@ -203,14 +204,14 @@ check_aws_credential() {
 }
 
 check_nodegroup_roles() {
-  if eksctl get cluster --name=${CLUSTER_NAME} >/dev/null ; then
-    echo "eks cluster ${CLUSTER_NAME} already exist."
-    if [[ -z "$NODEGROUP_ROLE_NAMES" ]]; then
-      echo "Nodegroup Roles must be provided for existing cluster with --nodegroupRoleNames <NODEGROUP_ROLE_NAMES>"
+  if eksctl get cluster --name=${AWS_CLUSTER_NAME} >/dev/null ; then
+    echo "eks cluster ${AWS_CLUSTER_NAME} already exist."
+    if [[ -z "$AWS_NODEGROUP_ROLE_NAMES" ]]; then
+      echo "Nodegroup Roles must be provided for existing cluster with --awsNodegroupRoleNames <AWS_NODEGROUP_ROLE_NAMES>"
       exit 1
     fi
   else
-    echo "eks cluster ${CLUSTER_NAME} doesn't exist."
+    echo "eks cluster ${AWS_CLUSTER_NAME} doesn't exist."
   fi
 }
 
@@ -245,15 +246,23 @@ create_eks_cluster() {
 
   OPTIONS="${aws_ssh_public_key_option} ${aws_az_option} ${aws_num_nodes_option} ${aws_instance_type_option}"
 
-  if ! eksctl create cluster --name "${CLUSTER_NAME}" --region "${AWS_REGION}" ${OPTIONS} ; then
+  # eksctl cluster_config is preferred to create clusters
+  if [[ ! -z "$AWS_CLUSTER_CONFIG" ]]; then
+    if ! eksctl create cluster --config-file="${AWS_CLUSTER_CONFIG}" ; then
+      echo "aws eks create failed."
+      exit 1
+    fi
+  fi
+
+  if ! eksctl create cluster --name "${AWS_CLUSTER_NAME}" --region "${AWS_REGION}" ${OPTIONS} ; then
       echo "aws eks create failed."
       exit 1
   fi
 
-  local context_name="eks-dev@${CLUSTER_NAME}.${AWS_REGION}.eksctl.io"
+  local context_name="eks-dev@${AWS_CLUSTER_NAME}.${AWS_REGION}.eksctl.io"
 
   if [ `kubectl config use-context ${context_name}` &> /dev/null ] ; then
-      eksctl utils write-kubeconfig --name=${CLUSTER_NAME}
+      eksctl utils write-kubeconfig --name=${AWS_CLUSTER_NAME}
   fi
 }
 

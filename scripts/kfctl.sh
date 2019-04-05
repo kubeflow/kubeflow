@@ -110,26 +110,28 @@ createEnv() {
       ;;
     aws)
       export KUBEFLOW_PLATFORM=aws
-      INPUT+=('CLUSTER_NAME=$CLUSTER_NAME\n'
-              'NODEGROUP_ROLE_NAMES=$NODEGROUP_ROLE_NAMES\n'
+      INPUT+=('AWS_CLUSTER_NAME=$AWS_CLUSTER_NAME\n'
+              'AWS_NODEGROUP_ROLE_NAMES=$AWS_NODEGROUP_ROLE_NAMES\n'
               'KUBEFLOW_INFRA_DIR=$KUBEFLOW_INFRA_DIR\n'
               'KUBEFLOW_K8S_MANIFESTS_DIR=$KUBEFLOW_K8S_MANIFESTS_DIR\n'
               'AWS_SSH_PUBLIC_KEY=$AWS_SSH_PUBLIC_KEY\n'
               'AWS_REGION=$AWS_REGION\n'
               'AWS_AVAILABILITY_ZONES=$AWS_AVAILABILITY_ZONES\n'
               'AWS_NUM_NODES=$AWS_NUM_NODES\n'
-              'AWS_INSTANCE_TYPE=$AWS_INSTANCE_TYPE\n')
-      FORMAT+=('$CLUSTER_NAME'
-               '$NODEGROUP_ROLE_NAMES'
+              'AWS_INSTANCE_TYPE=$AWS_INSTANCE_TYPE\n'
+              'AWS_CLUSTER_CONFIG=$AWS_CLUSTER_CONFIG\n')
+      FORMAT+=('$AWS_CLUSTER_NAME'
+               '$AWS_NODEGROUP_ROLE_NAMES'
                '$KUBEFLOW_INFRA_DIR'
                '$KUBEFLOW_K8S_MANIFESTS_DIR'
                '$AWS_SSH_PUBLIC_KEY'
                '$AWS_AVAILABILITY_ZONES'
                '$AWS_REGION'
                '$AWS_NUM_NODES'
-               '$AWS_INSTANCE_TYPE')
-      export CLUSTER_NAME=${CLUSTER_NAME:-""}
-      export NODEGROUP_ROLE_NAMES=${NODEGROUP_ROLE_NAMES:-""}
+               '$AWS_INSTANCE_TYPE'
+               '$AWS_CLUSTER_CONFIG')
+      export AWS_CLUSTER_NAME=${AWS_CLUSTER_NAME:-""}
+      export AWS_NODEGROUP_ROLE_NAMES=${AWS_NODEGROUP_ROLE_NAMES:-""}
       export KUBEFLOW_INFRA_DIR=${KUBEFLOW_INFRA_DIR:-"$(pwd)/aws_config"}
       export KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs"
       ;;
@@ -323,13 +325,13 @@ parseArgs() {
         shift
         AZ_NODE_SIZE=$1
         ;;
-      --clusterName)
+      --awsClusterName)
         shift
-        CLUSTER_NAME=$1
+        AWS_CLUSTER_NAME=$1
         ;;
-      --nodegroupRoleNames)
+      --awsNodegroupRoleNames)
         shift
-        NODEGROUP_ROLE_NAMES=$1
+        AWS_NODEGROUP_ROLE_NAMES=$1
         ;;
       --awsSSHPublicKey)
         shift
@@ -350,6 +352,9 @@ parseArgs() {
       --awsInstanceType)
         shift
         AWS_INSTANCE_TYPE=$1
+      --awsClusterConfig)
+        shift
+        AWS_CLUSTER_CONFIG=$1
         ;;
     esac
     shift
@@ -620,22 +625,22 @@ main() {
       if [[ "${PLATFORM}" == "aws" ]]; then
         # Ingress are created by controller, need to clean it up before ingress controller deleted
         # Waiting for a feature to create resource via CloudFormation and then we can clean up later.
-        for i in $(kubectl get ingress -lapp.kubernetes.io/name=$appname --all-namespaces -o go-template --template '{{range .items}}{{.metadata.name}}:{{.metadata.namespace}}{{"\n"}}{{end}}'); do 
+        for i in $(kubectl get ingress -lapp.kubernetes.io/name=$appname --all-namespaces -o go-template --template '{{range .items}}{{.metadata.name}}:{{.metadata.namespace}}{{"\n"}}{{end}}'); do
           ingress_name_namespace=(${i//:/ })
           kubectl delete ingress ${ingress_name_namespace[0]} -n ${ingress_name_namespace[1]}
         done
         sleep 20
       fi
 
-      for i in $(kubectl get crds -lapp.kubernetes.io/name=$appname -oname); do 
+      for i in $(kubectl get crds -lapp.kubernetes.io/name=$appname -oname); do
         crd=${i#*/}
         kubectl delete crd $crd
       done
-      for i in $(kubectl get clusterroles -lapp.kubernetes.io/name=$appname -oname); do 
+      for i in $(kubectl get clusterroles -lapp.kubernetes.io/name=$appname -oname); do
         clusterrole=${i#*/}
         kubectl delete clusterrole $clusterrole
       done
-      for i in $(kubectl get clusterrolebindings -lapp.kubernetes.io/name=$appname -oname); do 
+      for i in $(kubectl get clusterrolebindings -lapp.kubernetes.io/name=$appname -oname); do
         clusterrolebinding=${i#*/}
         kubectl delete clusterrolebinding $clusterrolebinding
       done
@@ -672,8 +677,8 @@ main() {
       if [[ "${PLATFORM}" == "aws" ]]; then
         if [[ -d "${KUBEFLOW_INFRA_DIR}" ]]; then
           pushd ${KUBEFLOW_INFRA_DIR}
-          DELETE_CLUSTER=${DELETE_CLUSTER:-"false"}
-          ${DIR}/aws/delete_deployment.sh --cluster_name=${CLUSTER_NAME} --resource_dir=${KUBEFLOW_K8S_MANIFESTS_DIR} --delete_cluster=${DELETE_CLUSTER}
+          MANAGED_CLUSTER=${MANAGED_CLUSTER:-"false"}
+          ${DIR}/aws/delete_deployment.sh --cluster_name=${AWS_CLUSTER_NAME} --resource_dir=${KUBEFLOW_K8S_MANIFESTS_DIR} --delete_cluster=${MANAGED_CLUSTER}
           popd
         fi
       fi
