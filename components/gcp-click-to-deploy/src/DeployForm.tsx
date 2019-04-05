@@ -118,7 +118,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       ingress: IngressType.Iap,
       kfversion: 'v0.4.1',
       // Version for local test. Staging and Prod with overwrite with their env vars.
-      kfversionList: ['v0.4.1'],
+      kfversionList: ['v0.5.0-rc.3', 'v0.4.1'],
       password: '',
       password2: '',
       project: '',
@@ -490,7 +490,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           return;
         }
       }
-    } else {
+    }
+    if (this.state.ingress === IngressType.BasicAuth) {
       for (const prop of ['username', 'password', 'password2']) {
         if (this.state[prop] === '') {
           this.setState({

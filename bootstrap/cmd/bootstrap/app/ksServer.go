@@ -467,20 +467,20 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	} else {
 		log.Infof("Creating app %v", request.Name)
 		log.Infof("Using K8s host %v", config.Host)
+		absSpecPath := path.Join(s.knownRegistries["kubeflow"].RegUri, K8sSpecPath)
+		specFlag := "file:" + absSpecPath
+		// Fetch k8s api spec from github if not found locally
+		if _, specErr := os.Stat(absSpecPath); specErr != nil {
+			log.Infof("k8s spec cache not found, using remote resource.")
+			specFlag = "version:v1.11.7"
+
+		}
 		deployConfDir := path.Join(repoDir, GetRepoName(request.Project), kfVersion, request.Name)
 		if err = os.MkdirAll(deployConfDir, os.ModePerm); err != nil {
 			return fmt.Errorf("Cannot create deployConfDir: %v", err)
 		}
 		appDir := path.Join(deployConfDir, KubeflowFolder)
 		_, err = s.fs.Stat(appDir)
-		absSpecPath := path.Join(s.knownRegistries["kubeflow"].RegUri, K8sSpecPath)
-		specFlag := "file:" + absSpecPath
-		// Fetch k8s api spec from github if not found locally
-		if _, err = os.Stat(absSpecPath); err != nil {
-			log.Infof("k8s spec cache not found, using remote resource.")
-			specFlag = "version:v1.11.7"
-
-		}
 		if err != nil {
 			options := map[string]interface{}{
 				actions.OptionFs:      s.fs,
