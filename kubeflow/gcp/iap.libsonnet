@@ -9,7 +9,7 @@
       envoyAdminPort: 8001,
       envoyStatsPort: 8025,
       useIstio: util.toBool(_params.useIstio),
-      ingressService: "envoy-ingress"
+      ingressName: "envoy-ingress"
     },
     local namespace = if params.useIstio then params.istioNamespace else params.namespace,
 
@@ -387,8 +387,8 @@
                     value: if params.useIstio then "istio-ingressgateway" else "envoy",
                   },
                   {
-                    name: "INGRESS_SERVICE",
-                    value: params.ingressService,
+                    name: "INGRESS_NAME",
+                    value: params.ingressName,
                   },
                   {
                     name: "ENVOY_ADMIN",
@@ -889,7 +889,7 @@
                   },
                   {
                     name: "INGRESS_NAME",
-                    value: "envoy-ingress",
+                    value: params.ingressName,
                   },
                 ],
                 volumeMounts: [
@@ -920,7 +920,7 @@
       apiVersion: "extensions/v1beta1",
       kind: "Ingress",
       metadata: {
-        name: "envoy-ingress",
+        name: params.ingressName,
         namespace: namespace,
         annotations: {
           "kubernetes.io/tls-acme": "true",
@@ -975,7 +975,7 @@
           config: [
             {
               http01: {
-                ingress: "envoy-ingress",
+                ingress: params.ingressName,
               },
               domains: [
                 params.hostname,
@@ -1005,7 +1005,7 @@
       spec: {
         project: endpointParams.project,
         targetIngress: {
-          name: "envoy-ingress",
+          name: params.ingressName,
           namespace: namespace,
         },
       },
