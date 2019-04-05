@@ -3,6 +3,7 @@
 # A simple shell script to configure the backend timeouts and health checks by using gcloud.
 [ -z ${NAMESPACE} ] && echo Error NAMESPACE must be set && exit 1
 [ -z ${SERVICE} ] && echo Error SERVICE must be set && exit 1
+[ -z ${INGRESS_NAME} ] && echo Error INGRESS_NAME must be set && exit 1
 
 PROJECT=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/project/project-id)
 if [ -z ${PROJECT} ]; then
@@ -25,15 +26,15 @@ NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.s
 echo "node port is ${NODE_PORT}"
 
 while [[ -z ${BACKEND_NAME} ]]; do
-  BACKENDS=$(kubectl --namespace=${NAMESPACE} get ingress ${INGRESS_SERVICE} -o jsonpath='{.metadata.annotations.ingress\.kubernetes\.io/backends}')
-  echo "fetching backends info with ${INGRESS_SERVICE}: ${BACKENDS}"
+  BACKENDS=$(kubectl --namespace=${NAMESPACE} get ingress ${INGRESS_NAME} -o jsonpath='{.metadata.annotations.ingress\.kubernetes\.io/backends}')
+  echo "fetching backends info with ${INGRESS_NAME}: ${BACKENDS}"
   BACKEND_NAME=$(echo $BACKENDS | grep -o "k8s-be-${NODE_PORT}--[0-9a-z]\+")
   echo "backend name is ${BACKEND_NAME}"
   sleep 2
 done
 
 while [[ -z ${BACKEND_ID} ]]; do
-  BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=${BACKEND_NAME} --format='value(id)')
+  BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~${BACKEND_NAME} --format='value(id)')
   echo "Waiting for backend id PROJECT=${PROJECT} NAMESPACE=${NAMESPACE} SERVICE=${SERVICE} filter=name~${BACKEND_NAME}"
   sleep 2
 done
