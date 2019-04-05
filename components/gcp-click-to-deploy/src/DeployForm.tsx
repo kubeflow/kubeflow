@@ -1,10 +1,12 @@
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
 import Collapse from '@material-ui/core/Collapse';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import * as jsYaml from 'js-yaml';
@@ -47,7 +49,9 @@ interface DeployFormState {
   username: string;
   password: string;
   password2: string;
+  permanentStorage: boolean;
   ingress: string;
+  spartakus: boolean;
 }
 
 const logsContainerStyle = (show: boolean) => {
@@ -121,8 +125,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       kfversionList: ['v0.5.0-rc.3', 'v0.4.1'],
       password: '',
       password2: '',
+      permanentStorage: true,
       project: '',
       showLogs: false,
+      spartakus: true,
       username: '',
       zone: 'us-central1-a',
     };
@@ -172,7 +178,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   public render() {
     const zoneList = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b',
       'europe-west1-b', 'europe-west1-d', 'asia-east1-a', 'asia-east1-b'];
-    // const ingressList = ['Login with GCP Iap', 'Login with Username Password', 'Skip Endpoint'];
     return (
       <div>
         <div style={styles.text}>Create a Kubeflow deployment</div>
@@ -256,6 +261,16 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
               ))
             }
           </TextField>
+        </div>
+        <div style={styles.row}>
+          <FormControlLabel label="Create Permanent Storage" control={
+            <Checkbox checked={this.state.permanentStorage} color="primary"
+                      onChange={() => this.setState({ permanentStorage: !this.state.permanentStorage })} />
+          } />
+          <FormControlLabel label="Share Anonymous Usage Report" control={
+            <Checkbox checked={this.state.spartakus} color="primary"
+                      onChange={() => this.setState({ spartakus: !this.state.spartakus })} />
+          } />
         </div>
 
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
@@ -419,6 +434,23 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         component: 'ambassador',
         name: 'ambassadorServiceType',
         value: 'NodePort'
+      });
+    }
+
+    if (this.state.spartakus) {
+      configSpec.defaultApp.components.push({
+        name: 'spartakus',
+        prototype: 'spartakus',
+      });
+      configSpec.defaultApp.parameters.push({
+        component: 'spartakus',
+        name: 'usageId',
+        value: Math.floor(Math.random() * 100000000).toString()
+      });
+      configSpec.defaultApp.parameters.push({
+        component: 'spartakus',
+        name: 'reportUsage',
+        value: 'true'
       });
     }
     return configSpec;
@@ -709,7 +741,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       Project: project,
       ProjectNumber: projectNumber,
       SAClientId: saUniqueId,
-      StorageOption: { CreatePipelinePersistentStorage: true },
+
       Token: token,
       Zone: this.state.zone,
     };
@@ -724,6 +756,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         PasswordHash: btoa(encryptPassword(this.state.password)),
         Username: btoa(this.state.username),
       }};
+    }
+    if (this.state.permanentStorage) {
+      createBody = {...createBody, ...{
+          StorageOption: { CreatePipelinePersistentStorage: true },
+        }};
     }
     request(
       {
