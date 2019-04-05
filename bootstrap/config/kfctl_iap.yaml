@@ -67,4 +67,7 @@ componentParams:
     - name: reportUsage
       value: "true"
       initRequired: true
+  notebook-controller:
+    - name: injectGcpCredentials
+      value: "true"
 platform: gcp
