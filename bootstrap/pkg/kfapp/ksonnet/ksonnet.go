@@ -460,24 +460,10 @@ func (ksApp *ksApp) initKs() error {
 	newRoot := path.Join(ksApp.Spec.AppDir, ksApp.KsName)
 	ksApp.KsEnvName = KsEnvName
 	k8sSpec := ksApp.Spec.ServerVersion
-	host := "127.0.0.1"
 	if k8sSpec == "" {
-		restConfig := kftypes.GetConfig()
-		if restConfig == nil {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: "Error: restConfig is nil, exit",
-			}
-		}
-		host = restConfig.Host
-		k8sSpec = kftypes.GetServerVersion(kftypes.GetClientset(restConfig))
-		if k8sSpec == "" {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: "could not find kubernetes version info",
-			}
-		}
+		k8sSpec = "version:v1.11.7"
 	}
+	host := "127.0.0.1"
 	options := map[string]interface{}{
 		actions.OptionFs:                    afero.NewOsFs(),
 		actions.OptionName:                  ksApp.KsName,
