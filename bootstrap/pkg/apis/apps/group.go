@@ -83,6 +83,7 @@ const (
 	USE_ISTIO             CliOption = "use_istio"
 	DELETE_STORAGE        CliOption = "delete_storage"
 	DISABLE_USAGE_REPORT  CliOption = "disable_usage_report"
+	PACKAGE_MANAGER       CliOption = "package-manager"
 )
 
 //
@@ -138,15 +139,21 @@ const (
 	MINIKUBE = "minikube"
 )
 
-func LoadKfApp(client *kfdefs.KfDef) (KfApp, error) {
-	platform := strings.Replace(client.Spec.Platform, "-", "", -1)
+// PackageManagers
+const (
+	KSONNET      = "ksonnet"
+	KUSTOMIZE = "kustomize"
+)
+
+func LoadKfApp(name string, kfdef *kfdefs.KfDef) (KfApp, error) {
+	pluginname := strings.Replace(name, "-", "", -1)
 	plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
-	pluginpath := filepath.Join(plugindir, platform+".so")
+	pluginpath := filepath.Join(plugindir, name+".so")
 	p, err := plugin.Open(pluginpath)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("could not load plugin %v for platform %v Error %v", pluginpath, platform, err),
+			Message: fmt.Sprintf("could not load plugin %v for platform %v Error %v", pluginpath, pluginname, err),
 		}
 	}
 	symName := "GetKfApp"
@@ -154,10 +161,10 @@ func LoadKfApp(client *kfdefs.KfDef) (KfApp, error) {
 	if symbolErr != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr),
+			Message: fmt.Sprintf("could not find symbol %v for platform %v Error %v", symName, pluginname, symbolErr),
 		}
 	}
-	return symbol.(func(*kfdefs.KfDef) KfApp)(client), nil
+	return symbol.(func(*kfdefs.KfDef) KfApp)(kfdef), nil
 }
 
 // TODO(#2586): Consolidate kubeconfig and API calls.
