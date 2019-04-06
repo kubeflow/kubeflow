@@ -77,7 +77,7 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 	cacheDir := path.Join(appDir, kftypes.DefaultCacheDir)
 	// idempotency
 	if _, err := os.Stat(cacheDir); !os.IsNotExist(err) {
-		os.RemoveAll(cacheDir)
+		_ = os.RemoveAll(cacheDir)
 	}
 	cacheDirErr := os.Mkdir(cacheDir, os.ModePerm)
 	if cacheDirErr != nil {
@@ -162,7 +162,7 @@ func getPlatform(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 		return gcp.GetKfApp(kfdef)
 	default:
 		log.Infof("** loading %v.so for platform %v **", kfdef.Spec.Platform, kfdef.Spec.Platform)
-		return kftypes.LoadKfApp(kfdef)
+		return kftypes.LoadKfApp(kfdef.Spec.Platform, kfdef)
 	}
 }
 
@@ -173,24 +173,13 @@ func getPackageManagers(kfdef *kfdefs.KfDef) *map[string]kftypes.KfApp {
 		log.Fatalf("failed unmarshalling %v Error %v", appyaml, err)
 	}
 	var packagemanagers = make(map[string]kftypes.KfApp)
-	_packagemanager, _packagemanagerErr := getPackageManager("ksonnet", kfdef)
+	_packagemanager, _packagemanagerErr := getPackageManager(kfdef.Spec.PackageManager, kfdef)
 	if _packagemanagerErr != nil {
-		log.Fatalf("could not get packagemanager %v Error %v **", "ksonnet", _packagemanagerErr)
+		log.Fatalf("could not get packagemanager %v Error %v **", kfdef.Spec.PackageManager, _packagemanagerErr)
 	}
 	if _packagemanager != nil {
-		packagemanagers["ksonnet"] = _packagemanager
+		packagemanagers[kfdef.Spec.PackageManager] = _packagemanager
 	}
-	//TODO provide a global flag that adds kustomize so either kustomize or ksonnet can be selected
-	/*
-		_packagemanager, _packagemanagerErr = getPackageManager("kustomize", kfdef)
-		if _packagemanagerErr != nil {
-			log.Fatalf("could not get packagemanager %v Error %v **", "kustomize", _packagemanagerErr)
-
-		}
-		if _packagemanager != nil {
-			packagemanagers["kustomize"] = _packagemanager
-		}
-	*/
 	return &packagemanagers
 }
 
@@ -199,13 +188,13 @@ func getPackageManagers(kfdef *kfdefs.KfDef) *map[string]kftypes.KfApp {
 // kftypes.LoadKfApp which will try and dynamically load a .so
 func getPackageManager(packagemanager string, kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 	switch packagemanager {
-	case "ksonnet":
+	case kftypes.KSONNET:
 		return ksonnet.GetKfApp(kfdef), nil
-	case "kustomize":
+	case kftypes.KUSTOMIZE:
 		return kustomize.GetKfApp(kfdef), nil
 	default:
 		log.Infof("** loading %v.so for package manager %v **", packagemanager, packagemanager)
-		return kftypes.LoadKfApp(kfdef)
+		return kftypes.LoadKfApp(packagemanager, kfdef)
 	}
 }
 
@@ -330,6 +319,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	kfDef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
 	kfDef.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
 	kfDef.Spec.UseIstio = options[string(kftypes.USE_ISTIO)].(bool)
+	kfDef.Spec.PackageManager = options[string(kftypes.PACKAGE_MANAGER)].(string)
 	pApp := GetKfApp(kfDef)
 	return pApp, nil
 }
@@ -603,12 +593,7 @@ func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum) error {
 }
 
 func (kfapp *coordinator) Init(resources kftypes.ResourceEnum) error {
-	switch resources {
-	case kftypes.K8S:
-		fallthrough
-	case kftypes.PLATFORM:
-		fallthrough
-	case kftypes.ALL:
+	platform := func() error {
 		if kfapp.KfDef.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
 			if platform != nil {
@@ -628,6 +613,10 @@ func (kfapp *coordinator) Init(resources kftypes.ResourceEnum) error {
 				}
 			}
 		}
+		return nil
+	}
+
+	k8s := func() error {
 		kfapp.PackageManagers = *getPackageManagers(kfapp.KfDef)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
 			packageManagerErr := packageManager.Init(kftypes.K8S)
@@ -639,6 +628,19 @@ func (kfapp *coordinator) Init(resources kftypes.ResourceEnum) error {
 				}
 			}
 		}
+		return nil
+	}
+
+	switch resources {
+	case kftypes.ALL:
+		if err := platform(); err != nil {
+			return err
+		}
+		return k8s()
+	case kftypes.PLATFORM:
+		return platform()
+	case kftypes.K8S:
+		return k8s()
 	}
 	return nil
 }

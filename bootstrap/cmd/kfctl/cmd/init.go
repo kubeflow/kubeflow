@@ -43,6 +43,7 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 		}
 		appName := args[0]
 		platform := initCfg.GetString(string(kftypes.PLATFORM))
+		packageManager := initCfg.GetString(string(kftypes.PACKAGE_MANAGER))
 		namespace := initCfg.GetString(string(kftypes.NAMESPACE))
 		version := initCfg.GetString(string(kftypes.VERSION))
 		repo := initCfg.GetString(string(kftypes.REPO))
@@ -73,6 +74,7 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 			string(kftypes.USE_BASIC_AUTH):        useBasicAuth,
 			string(kftypes.USE_ISTIO):             useIstio,
 			string(kftypes.DISABLE_USAGE_REPORT):  disableUsageReport,
+			string(kftypes.PACKAGE_MANAGER):       packageManager,
 		}
 		kfApp, kfAppErr := coordinator.NewKfApp(options)
 		if kfAppErr != nil || kfApp == nil {
@@ -97,6 +99,14 @@ func init() {
 	bindErr := initCfg.BindPFlag(string(kftypes.PLATFORM), initCmd.Flags().Lookup(string(kftypes.PLATFORM)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.PLATFORM), bindErr)
+		return
+	}
+
+	initCmd.Flags().String(string(kftypes.PACKAGE_MANAGER), "ksonnet",
+		"either 'ksonnet|kustomize'")
+	bindErr = initCfg.BindPFlag(string(kftypes.PACKAGE_MANAGER), initCmd.Flags().Lookup(string(kftypes.PACKAGE_MANAGER)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.PACKAGE_MANAGER), bindErr)
 		return
 	}
 
