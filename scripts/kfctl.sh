@@ -352,6 +352,7 @@ parseArgs() {
       --awsInstanceType)
         shift
         AWS_INSTANCE_TYPE=$1
+        ;;
       --awsClusterConfig)
         shift
         AWS_CLUSTER_CONFIG=$1
@@ -565,7 +566,6 @@ main() {
 
       if [[ "${PLATFORM}" == "aws" ]]; then
         update_infra
-        install_k8s_manifests
       fi
     fi
 
@@ -577,6 +577,7 @@ main() {
       fi
 
       if [[ "${PLATFORM}" == "aws" ]]; then
+        install_k8s_manifests
         aws_ks_apply
       fi
 
@@ -629,7 +630,10 @@ main() {
           ingress_name_namespace=(${i//:/ })
           kubectl delete ingress ${ingress_name_namespace[0]} -n ${ingress_name_namespace[1]}
         done
+        echo "Waiting for alb ingress controller to clean up ingress resources. sleeping 20 seconds..."
         sleep 20
+
+        uninstall_aws_k8s
       fi
 
       for i in $(kubectl get crds -lapp.kubernetes.io/name=$appname -oname); do
@@ -662,8 +666,6 @@ main() {
       else
         echo "namespace ${K8S_NAMESPACE} successfully deleted."
       fi
-      # double confirm resources not in kubeflow namespace are deleted
-      kubectl delete -f ${KUBEFLOW_KS_DIR}/default.yaml
       set -e
     fi
     if [[ "${WHAT}" == "platform" ]] || [[ "${WHAT}" == "all" ]]; then
@@ -677,8 +679,7 @@ main() {
       if [[ "${PLATFORM}" == "aws" ]]; then
         if [[ -d "${KUBEFLOW_INFRA_DIR}" ]]; then
           pushd ${KUBEFLOW_INFRA_DIR}
-          MANAGED_CLUSTER=${MANAGED_CLUSTER:-"false"}
-          ${DIR}/aws/delete_deployment.sh --cluster_name=${AWS_CLUSTER_NAME} --resource_dir=${KUBEFLOW_K8S_MANIFESTS_DIR} --delete_cluster=${MANAGED_CLUSTER} --cluster_config=${AWS_CLUSTER_CONFIG}
+          uninstall_aws_platform
           popd
         fi
       fi

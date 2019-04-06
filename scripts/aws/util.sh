@@ -29,7 +29,7 @@ update_infra() {
     AWS_NODEGROUP_ROLE_NAMES=$(aws iam list-roles \
       | jq -r ".Roles[] \
       | select(.RoleName \
-      | startswith(\"eksctl-${AWS_CLUSTER_NAME}-nodegroup\")) \
+      | startswith(\"eksctl-${AWS_CLUSTER_NAME}\") and contains(\"NodeInstanceRole\")) \
       .RoleName") | xargs | sed -e 's/ /,/g'
 
     echo "AWS_NODEGROUP_ROLE_NAMES=${AWS_NODEGROUP_ROLE_NAMES}" >> ${KUBEFLOW_REPO}/${DEPLOYMENT_NAME}/${ENV_FILE}
@@ -55,15 +55,25 @@ update_infra() {
 
   # Customize private Link and control panel Logging
   if [ "$PRIVATE_LINK" = true ]; then
-    aws eks --region ${AWS_REGION} update-cluster-config --name ${AWS_CLUSTER_NAME} --resources-vpc-config \
-      endpointPublicAccess=${ENDPOINT_PUBLIC_ACCESS},endpointPrivateAccess=${ENDPOINT_PRIVATE_ACCESS}
+    update_config=$(aws eks update-cluster-config --name ${AWS_CLUSTER_NAME} --region ${AWS_REGION} --resources-vpc-config \
+      endpointPublicAccess=${ENDPOINT_PUBLIC_ACCESS},endpointPrivateAccess=${ENDPOINT_PRIVATE_ACCESS})
+    wait_cluster_update $(echo $update_config | jq -r '.update.id')
   fi
 
   if [ "$CONTROL_PLANE_LOGGING" = true ]; then
     logging_components=$(echo $CONTROL_PLANE_LOGGING_COMPONENTS | sed 's/[^,]*/"&"/g')
-    aws eks --region ${AWS_REGION} update-cluster-config --name ${AWS_CLUSTER_NAME} \
-      --logging '{"clusterLogging":[{"types":['${logging_components}'],"enabled":true}]}'
+    update_config=$(aws eks update-cluster-config --name ${AWS_CLUSTER_NAME} --region ${AWS_REGION} \
+      --logging '{"clusterLogging":[{"types":['${logging_components}'],"enabled":true}]}')
+    wait_cluster_update $(echo $update_config | jq -r '.update.id')
   fi
+}
+
+wait_cluster_update() {
+  local update_id=$1
+  until [ $(aws eks describe-update --name ${AWS_CLUSTER_NAME} --region ${AWS_REGION} --update-id ${update_id} | jq -r '.update.status') = 'Successful' ]; do
+    echo "eks is updating cluster configuraion, wait for 15s..."
+    sleep 15
+  done
 }
 
 attach_inline_policy() {
@@ -230,13 +240,10 @@ check_aws_credential() {
 
 check_nodegroup_roles() {
   if eksctl get cluster --name=${AWS_CLUSTER_NAME} >/dev/null ; then
-    echo "eks cluster ${AWS_CLUSTER_NAME} already exist."
     if [[ -z "$AWS_NODEGROUP_ROLE_NAMES" ]]; then
       echo "Nodegroup Roles must be provided for existing cluster with --awsNodegroupRoleNames <AWS_NODEGROUP_ROLE_NAMES>"
       exit 1
     fi
-  else
-    echo "eks cluster ${AWS_CLUSTER_NAME} doesn't exist."
   fi
 }
 
@@ -277,7 +284,7 @@ create_eks_cluster() {
     fi
   fi
 
-  if ! eksctl create cluster --name "${AWS_CLUSTER_NAME}" --region "${AWS_REGION}" ${OPTIONS} ; then
+  if ! eksctl create cluster --name "${AWS_CLUSTER_NAME}" --region "${AWS_REGION}" --version=1.12 ${OPTIONS} ; then
       echo "aws eks create failed."
       exit 1
   fi
@@ -296,4 +303,50 @@ replace_text_in_file() {
 
   sed -i.bak "s/${FIND_TEXT}/${REPLACE_TEXT}/" ${SRC_FILE}
   rm $SRC_FILE.bak
+}
+
+uninstall_aws_k8s() {
+  source ${KUBEFLOW_INFRA_DIR}/cluster_features.sh
+  kubectl delete -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-crds.yaml
+  kubectl delete -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-noauth.yaml
+  if [ "$WORKER_NODE_GROUP_LOGGING" = true ]; then
+    kubectl delete -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/fluentd-cloudwatch.yaml
+  fi
+}
+
+uninstall_aws_platform() {
+  source ${KUBEFLOW_INFRA_DIR}/cluster_features.sh
+
+  # Detach inline policy from iam roles
+  delete_iam_role_inline_policy iam_alb_ingress_policy
+  delete_iam_role_inline_policy iam_csi_fsx_policy
+  if [ "$WORKER_NODE_GROUP_LOGGING" = true ]; then
+    delete_iam_role_inline_policy iam_cloudwatch_policy
+  fi
+
+  MANAGED_CLUSTER=${MANAGED_CLUSTER:-"false"}
+  if [ $MANAGED_CLUSTER = "true" ] ; then
+    # User may create cluster from command or cluster_config
+    if [ ! -z "$AWS_CLUSTER_CONFIG" ]; then
+      if ! eksctl delete cluster --cluster_config=${AWS_CLUSTER_CONFIG} ; then
+        echo "Please go to aws console to check CloudFormation status and double make sure your cluster has been shutdown."
+      fi
+    else
+      if ! eksctl delete cluster --name=${AWS_CLUSTER_CONFIG} ; then
+        echo "Please go to aws console to check CloudFormation status and double make sure your cluster has been shutdown."
+      fi
+    fi
+  fi
+}
+
+delete_iam_role_inline_policy() {
+  declare -r POLICY_NAME="$1"
+
+  for IAM_ROLE in ${AWS_NODEGROUP_ROLE_NAMES//,/ }
+  do
+    echo "Deleting inline policy $POLICY_NAME for iam role $IAM_ROLE"
+    if ! aws iam delete-role-policy --role-name=$IAM_ROLE --policy-name=$POLICY_NAME; then
+        echo "Unable to delete iam inline policy $POLICY_NAME" >&2
+    fi
+  done
 }
