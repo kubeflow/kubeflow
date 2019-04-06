@@ -125,7 +125,7 @@ RUN pip install --upgrade pip==19.0.1 && \
     jupyterhub \
     jupyterlab \
     xgboost \
-    git+https://github.com/kubeflow/fairing@bd8313d9a4e4dd3b69a840e7cf0ea0d2326d720e \
+    git+https://github.com/kubeflow/fairing@a9bb9d5cc1c9f1d75efa31198ddbdccfe176b7bf \
     # Kubeflow pipeline SDK
     ${PIPELINE_SDK_PACKAGE} \
     # Cleanup
