@@ -51,6 +51,8 @@ type ksApp struct {
 	// ksonnet env name
 	KsEnvName  string
 	KApp       app.App
+	restConfig *rest.Config
+	apiConfig  *clientcmdapi.Config
 }
 
 const (
@@ -85,17 +87,17 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 	// build restConfig and apiConfig using $HOME/.kube/config if the file exist
-	restConfig := kftypes.GetConfig()
-	apiConfig := kftypes.GetKubeConfig()
-	if restConfig == nil || apiConfig == nil {
+	ksApp.restConfig = kftypes.GetConfig()
+	ksApp.apiConfig = kftypes.GetKubeConfig()
+	if ksApp.restConfig == nil || ksApp.apiConfig == nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: "Error: nil restConfig or apiConfig, exit",
 		}
 	}
-	clientset := kftypes.GetClientset(restConfig)
+	clientset := kftypes.GetClientset(ksApp.restConfig)
 	// TODO(gabrielwen): Make env name an option.
-	envSetErr := ksApp.envSet(KsEnvName, restConfig.Host)
+	envSetErr := ksApp.envSet(KsEnvName, ksApp.restConfig.Host)
 	if envSetErr != nil {
 		return &kfapis.KfError{
 			Code: envSetErr.(*kfapis.KfError).Code,
@@ -135,7 +137,7 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 			}
 		}
 	}
-	return ksApp.applyComponent(ksApp.Spec.Components, apiConfig)
+	return ksApp.applyComponent(ksApp.Spec.Components, ksApp.apiConfig)
 }
 
 func (ksApp *ksApp) getCompsFilePath() string {
