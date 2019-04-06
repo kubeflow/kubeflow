@@ -20,6 +20,8 @@ generate_infra_configs() {
 }
 
 update_infra() {
+  source ${KUBEFLOW_INFRA_DIR}/cluster_features.sh
+
   if ! eksctl get cluster --name=${AWS_CLUSTER_NAME} >/dev/null ; then
     create_eks_cluster
 
@@ -46,8 +48,22 @@ update_infra() {
   fi
 
   attach_inline_policy iam_alb_ingress_policy ${KUBEFLOW_INFRA_DIR}/iam_alb_ingress_policy.json
-  attach_inline_policy iam_cloudwatch_policy ${KUBEFLOW_INFRA_DIR}/iam_cloudwatch_policy.json
   attach_inline_policy iam_csi_fsx_policy ${KUBEFLOW_INFRA_DIR}/iam_csi_fsx_policy.json
+  if [ "$WORKER_NODE_GROUP_LOGGING" = true ]; then
+    attach_inline_policy iam_cloudwatch_policy ${KUBEFLOW_INFRA_DIR}/iam_cloudwatch_policy.json
+  fi
+
+  # Customize private Link and control panel Logging
+  if [ "$PRIVATE_LINK" = true ]; then
+    aws eks --region ${AWS_REGION} update-cluster-config --name ${AWS_CLUSTER_NAME} --resources-vpc-config \
+      endpointPublicAccess=${ENDPOINT_PUBLIC_ACCESS},endpointPrivateAccess=${ENDPOINT_PRIVATE_ACCESS}
+  fi
+
+  if [ "$CONTROL_PLANE_LOGGING" = true ]; then
+    logging_components=$(echo $CONTROL_PLANE_LOGGING_COMPONENTS | sed 's/[^,]*/"&"/g')
+    aws eks --region ${AWS_REGION} update-cluster-config --name ${AWS_CLUSTER_NAME} \
+      --logging '{"clusterLogging":[{"types":['${logging_components}'],"enabled":true}]}'
+  fi
 }
 
 attach_inline_policy() {
@@ -68,13 +84,17 @@ attach_inline_policy() {
 ################################ Kubernetes Changes ################################
 
 install_k8s_manifests() {
+  source ${KUBEFLOW_INFRA_DIR}/cluster_features.sh
   # Download k8s manifests for resources to deploy on the cluster and install them.
   mkdir -p ${KUBEFLOW_K8S_MANIFESTS_DIR}
 
   # Only install cluster level kubernetes addons here
   install_gpu_driver
-  install_fluentd_cloudwatch
   install_istio
+
+  if [[ ! -z "$WORKER_NODE_GROUP_LOGGING" ]]; then
+    install_fluentd_cloudwatch
+  fi
 }
 
 create_secrets() {
@@ -179,6 +199,11 @@ validate_aws_arg() {
     echo "eks cluster_name must be provided using --awsClusterName <AWS_CLUSTER_NAME>"
     exit 1
   fi
+
+  if [[ -z "$AWS_REGION" ]]; then
+    echo "eks region must be provided using --awsRegion <AWS_REGION>"
+    exit 1
+  fi
 }
 
 check_aws_cli() {
@@ -217,8 +242,6 @@ check_nodegroup_roles() {
 
 # don't enabled cluster create by default. Use flags to control it.
 create_eks_cluster() {
-  AWS_REGION=${AWS_REGION:-"us-west-2"}
-
   # Options for nodegroup provision used by ekstctl
   if [[ -z "$AWS_SSH_PUBLIC_KEY" ]]; then
       aws_ssh_public_key_option=""

@@ -678,7 +678,7 @@ main() {
         if [[ -d "${KUBEFLOW_INFRA_DIR}" ]]; then
           pushd ${KUBEFLOW_INFRA_DIR}
           MANAGED_CLUSTER=${MANAGED_CLUSTER:-"false"}
-          ${DIR}/aws/delete_deployment.sh --cluster_name=${AWS_CLUSTER_NAME} --resource_dir=${KUBEFLOW_K8S_MANIFESTS_DIR} --delete_cluster=${MANAGED_CLUSTER}
+          ${DIR}/aws/delete_deployment.sh --cluster_name=${AWS_CLUSTER_NAME} --resource_dir=${KUBEFLOW_K8S_MANIFESTS_DIR} --delete_cluster=${MANAGED_CLUSTER} --cluster_config=${AWS_CLUSTER_CONFIG}
           popd
         fi
       fi

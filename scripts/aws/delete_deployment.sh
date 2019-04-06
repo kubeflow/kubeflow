@@ -58,9 +58,11 @@ delete_iam_role_inline_policy() {
 
 main() {
  cd "${DIR}"
+source ${KUBEFLOW_INFRA_DIR}/cluster_features.sh
+
 
   # List of required parameters
-  names=(cluster_name resource_dir)
+  names=(cluster_name resource_dir managed_cluster)
 
   missingParam=false
   for i in ${names[@]}; do
@@ -75,23 +77,32 @@ main() {
     exit 1
   fi
 
-delete_cluster=${delete_cluster:-"false"}
-
 # Uninstall system manifests
 kubectl delete -f ${resource_dir}/istio-crds.yaml
 kubectl delete -f ${resource_dir}/istio-noauth.yaml
-kubectl delete -f ${resource_dir}/fluentd-cloudwatch.yaml
+if [ "$WORKER_NODE_GROUP_LOGGING" = true ]; then
+  kubectl delete -f ${resource_dir}/fluentd-cloudwatch.yaml
+fi
 
 # Detach inline policy from iam roles
 delete_iam_role_inline_policy iam_alb_ingress_policy
-delete_iam_role_inline_policy iam_cloudwatch_policy
 delete_iam_role_inline_policy iam_csi_fsx_policy
+if [ "$WORKER_NODE_GROUP_LOGGING" = true ]; then
+  delete_iam_role_inline_policy iam_cloudwatch_policy
+fi
+
 
 # Ensure resources are deleted.
-if [ $delete_cluster == "true" ] ; then
-  if ! eksctl delete cluster --name=${cluster_name} ; then
-    echo "Please go to aws console to check CloudFormation status and double make sure your cluster has been shutdown."
-  fi
+if [ $managed_cluster = "true" ] ; then
+  # User may create cluster from command or cluster_config
+  if [[ ! -z "$cluster_config" ]]; then
+    if ! eksctl delete cluster --cluster_config=${cluster_config} ; then
+      echo "Please go to aws console to check CloudFormation status and double make sure your cluster has been shutdown."
+    fi
+  else
+    if ! eksctl delete cluster --name=${cluster_name} ; then
+      echo "Please go to aws console to check CloudFormation status and double make sure your cluster has been shutdown."
+    fi
 fi
 
 # Exit with status zero.
