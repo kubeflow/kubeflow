@@ -7,19 +7,22 @@ set -xe
 ################################ Infrastructure Changes ################################
 
 ## Prepare Infrastrcture Configurations
-generate_infra_configs() {
+generate_aws_infra_configs() {
   # Create the infrastructure configs if they don't exist.
   if [ ! -d "${KUBEFLOW_INFRA_DIR}" ]; then
     echo "Creating AWS infrastructure configs in directory ${KUBEFLOW_INFRA_DIR}"
     mkdir -p "${KUBEFLOW_INFRA_DIR}"
     cp -r ${KUBEFLOW_REPO}/deployment/aws/infra_configs/* ${KUBEFLOW_INFRA_DIR}
-
   else
     echo AWS infrastructure configs already exist in directory "${KUBEFLOW_INFRA_DIR}"
   fi
+
+  # Replace placehold with user configurations
+  replace_text_in_file "your_cluster_name" ${AWS_CLUSTER_NAME} ${KUBEFLOW_INFRA_DIR}/cluster_config.yaml
+  replace_text_in_file "your_cluster_region" ${AWS_REGION} ${KUBEFLOW_INFRA_DIR}/cluster_config.yaml
 }
 
-update_infra() {
+apply_aws_infra() {
   source ${KUBEFLOW_INFRA_DIR}/cluster_features.sh
 
   if ! eksctl get cluster --name=${AWS_CLUSTER_NAME} >/dev/null ; then
@@ -30,7 +33,13 @@ update_infra() {
       | jq -r ".Roles[] \
       | select(.RoleName \
       | startswith(\"eksctl-${AWS_CLUSTER_NAME}\") and contains(\"NodeInstanceRole\")) \
-      .RoleName") | xargs | sed -e 's/ /,/g'
+      .RoleName")
+    AWS_NODEGROUP_ROLE_NAMES=$(echo ${AWS_NODEGROUP_ROLE_NAMES} | sed -e 's/ /,/g')
+
+    if [[ -z "$AWS_NODEGROUP_ROLE_NAMES" ]]; then
+      echo "AWS_NODEGROUP_ROLE_NAMES cannot be empty. Error list roles from new created cluster"
+      exit 1
+    fi
 
     echo "AWS_NODEGROUP_ROLE_NAMES=${AWS_NODEGROUP_ROLE_NAMES}" >> ${KUBEFLOW_REPO}/${DEPLOYMENT_NAME}/${ENV_FILE}
     echo "MANAGED_CLUSTER=true" >> ${KUBEFLOW_REPO}/${DEPLOYMENT_NAME}/${ENV_FILE}
@@ -53,8 +62,8 @@ update_infra() {
     attach_inline_policy iam_cloudwatch_policy ${KUBEFLOW_INFRA_DIR}/iam_cloudwatch_policy.json
   fi
 
-  # Customize private Link and control panel Logging
-  if [ "$PRIVATE_LINK" = true ]; then
+  # Customize private access and control panel Logging
+  if [ "$PRIVATE_ACCESS" = true ]; then
     update_config=$(aws eks update-cluster-config --name ${AWS_CLUSTER_NAME} --region ${AWS_REGION} --resources-vpc-config \
       endpointPublicAccess=${ENDPOINT_PUBLIC_ACCESS},endpointPrivateAccess=${ENDPOINT_PRIVATE_ACCESS})
     wait_cluster_update $(echo $update_config | jq -r '.update.id')
@@ -107,32 +116,6 @@ install_k8s_manifests() {
   fi
 }
 
-create_secrets() {
-  create_aws_secret ${K8S_NAMESPACE} aws_secret
-}
-
-# TensorFlow Serving, TensorBoard use AWS secret. Leave this for customers?
-create_aws_secret() {
-  # Store aws credentials in a k8s secret.
-  local NAMESPACE=$1
-  local SECRET=$2
-
-  check_variable "${AWS_ACCESS_KEY_ID}" "AWS_ACCESS_KEY_ID"
-  check_variable "${AWS_SECRET_ACCESS_KEY}" "AWS_SECRET_ACCESS_KEY"
-
-  set +e
-  O=$(kubectl get secret --namespace=${NAMESPACE} ${SECRET} 2>&1)
-  local RESULT=$?
-  set -e
-
-  if [ "${RESULT}" -eq 0 ]; then
-    echo "secret ${SECRET} already exists"
-    return
-  fi
-
-  kubectl create secret generic --namespace=${NAMESPACE} ${SECRET} --from-literal=key_id=$AWS_ACCESS_KEY_ID --from-literal=access_key=$AWS_SECRET_ACCESS_KEY
-}
-
 install_gpu_driver() {
   local INSTANCE_TYPE=$(kubectl get nodes -o jsonpath='{.items[0].metadata.labels.beta\.kubernetes\.io/instance-type}')
 
@@ -173,7 +156,7 @@ install_istio() {
 }
 
 ################################ Ksonnet changes ################################
-aws_generate_ks_app() {
+generate_aws_ks_app() {
   pushd .
   cd "${KUBEFLOW_KS_DIR}"
 
@@ -190,7 +173,7 @@ aws_generate_ks_app() {
 }
 
 # TODO: Waiting for alb-ingress-controller iam cert integration
-aws_ks_apply() {
+apply_aws_ks() {
   # Apply the components generated
   pushd .
   cd "${KUBEFLOW_KS_DIR}"
@@ -203,7 +186,7 @@ aws_ks_apply() {
   fi
   popd
 }
-
+################################ arguments and setup validation ################################
 validate_aws_arg() {
   if [[ -z "$AWS_CLUSTER_NAME" ]]; then
     echo "eks cluster_name must be provided using --awsClusterName <AWS_CLUSTER_NAME>"
@@ -231,6 +214,13 @@ check_eksctl_cli() {
   fi
 }
 
+check_jq() {
+  if ! which "jq" &>/dev/null && ! type -a "jq" &>/dev/null ; then
+    echo "You don't have jq installed. Please install jq. https://stedolan.github.io/jq/download/"
+    exit 1
+  fi
+}
+
 check_aws_credential() {
   if ! aws sts get-caller-identity >/dev/null ; then
     echo "aws get caller identity failed. Please check the aws credentials provided and try again."
@@ -247,46 +237,19 @@ check_nodegroup_roles() {
   fi
 }
 
+check_aws_setups() {
+  check_aws_cli
+  check_eksctl_cli
+  check_jq
+  check_aws_credential
+  check_nodegroup_roles
+}
+
 # don't enabled cluster create by default. Use flags to control it.
 create_eks_cluster() {
-  # Options for nodegroup provision used by ekstctl
-  if [[ -z "$AWS_SSH_PUBLIC_KEY" ]]; then
-      aws_ssh_public_key_option=""
-  else
-      aws_ssh_public_key_option="--ssh-access --ssh-public-key=${AWS_SSH_PUBLIC_KEY}"
-  fi
-
-  if [[ -z "$AWS_AVAILABILITY_ZONES" ]]; then
-      aws_az_option=""
-  else
-      aws_az_option="--node-zones=${AWS_AVAILABILITY_ZONES}"
-  fi
-
-  if [[ -z "$AWS_NUM_NODES" ]]; then
-      aws_num_nodes_option=""
-  else
-      aws_num_nodes_option="--nodes=${AWS_NUM_NODES}"
-  fi
-
-  if [[ -z "$AWS_INSTANCE_TYPE" ]]; then
-      aws_instance_type_option=""
-  else
-      aws_instance_type_option="--node-type=${AWS_INSTANCE_TYPE}"
-  fi
-
-  OPTIONS="${aws_ssh_public_key_option} ${aws_az_option} ${aws_num_nodes_option} ${aws_instance_type_option}"
-
-  # eksctl cluster_config is preferred to create clusters
-  if [[ ! -z "$AWS_CLUSTER_CONFIG" ]]; then
-    if ! eksctl create cluster --config-file="${AWS_CLUSTER_CONFIG}" ; then
-      echo "aws eks create failed."
-      exit 1
-    fi
-  fi
-
-  if ! eksctl create cluster --name "${AWS_CLUSTER_NAME}" --region "${AWS_REGION}" --version=1.12 ${OPTIONS} ; then
-      echo "aws eks create failed."
-      exit 1
+  if ! eksctl create cluster --config-file=${KUBEFLOW_INFRA_DIR}/cluster_config.yaml ; then
+    echo "aws eks create failed."
+    exit 1
   fi
 
   local context_name="eks-dev@${AWS_CLUSTER_NAME}.${AWS_REGION}.eksctl.io"
@@ -307,8 +270,8 @@ replace_text_in_file() {
 
 uninstall_aws_k8s() {
   source ${KUBEFLOW_INFRA_DIR}/cluster_features.sh
-  kubectl delete -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-crds.yaml
   kubectl delete -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-noauth.yaml
+  kubectl delete -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-crds.yaml
   if [ "$WORKER_NODE_GROUP_LOGGING" = true ]; then
     kubectl delete -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/fluentd-cloudwatch.yaml
   fi
@@ -326,15 +289,8 @@ uninstall_aws_platform() {
 
   MANAGED_CLUSTER=${MANAGED_CLUSTER:-"false"}
   if [ $MANAGED_CLUSTER = "true" ] ; then
-    # User may create cluster from command or cluster_config
-    if [ ! -z "$AWS_CLUSTER_CONFIG" ]; then
-      if ! eksctl delete cluster --cluster_config=${AWS_CLUSTER_CONFIG} ; then
-        echo "Please go to aws console to check CloudFormation status and double make sure your cluster has been shutdown."
-      fi
-    else
-      if ! eksctl delete cluster --name=${AWS_CLUSTER_CONFIG} ; then
-        echo "Please go to aws console to check CloudFormation status and double make sure your cluster has been shutdown."
-      fi
+    if ! eksctl delete cluster --config-file=${KUBEFLOW_INFRA_DIR}/cluster_config.yaml ; then
+      echo "Please go to aws console to check CloudFormation status and double make sure your cluster has been shutdown."
     fi
   fi
 }

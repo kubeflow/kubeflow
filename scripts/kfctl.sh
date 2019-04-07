@@ -111,25 +111,15 @@ createEnv() {
     aws)
       export KUBEFLOW_PLATFORM=aws
       INPUT+=('AWS_CLUSTER_NAME=$AWS_CLUSTER_NAME\n'
+              'AWS_REGION=$AWS_REGION\n'
               'AWS_NODEGROUP_ROLE_NAMES=$AWS_NODEGROUP_ROLE_NAMES\n'
               'KUBEFLOW_INFRA_DIR=$KUBEFLOW_INFRA_DIR\n'
-              'KUBEFLOW_K8S_MANIFESTS_DIR=$KUBEFLOW_K8S_MANIFESTS_DIR\n'
-              'AWS_SSH_PUBLIC_KEY=$AWS_SSH_PUBLIC_KEY\n'
-              'AWS_REGION=$AWS_REGION\n'
-              'AWS_AVAILABILITY_ZONES=$AWS_AVAILABILITY_ZONES\n'
-              'AWS_NUM_NODES=$AWS_NUM_NODES\n'
-              'AWS_INSTANCE_TYPE=$AWS_INSTANCE_TYPE\n'
-              'AWS_CLUSTER_CONFIG=$AWS_CLUSTER_CONFIG\n')
+              'KUBEFLOW_K8S_MANIFESTS_DIR=$KUBEFLOW_K8S_MANIFESTS_DIR\n')
       FORMAT+=('$AWS_CLUSTER_NAME'
+               '$AWS_REGION'
                '$AWS_NODEGROUP_ROLE_NAMES'
                '$KUBEFLOW_INFRA_DIR'
-               '$KUBEFLOW_K8S_MANIFESTS_DIR'
-               '$AWS_SSH_PUBLIC_KEY'
-               '$AWS_AVAILABILITY_ZONES'
-               '$AWS_REGION'
-               '$AWS_NUM_NODES'
-               '$AWS_INSTANCE_TYPE'
-               '$AWS_CLUSTER_CONFIG')
+               '$KUBEFLOW_K8S_MANIFESTS_DIR')
       export AWS_CLUSTER_NAME=${AWS_CLUSTER_NAME:-""}
       export AWS_NODEGROUP_ROLE_NAMES=${AWS_NODEGROUP_ROLE_NAMES:-""}
       export KUBEFLOW_INFRA_DIR=${KUBEFLOW_INFRA_DIR:-"$(pwd)/aws_config"}
@@ -329,33 +319,13 @@ parseArgs() {
         shift
         AWS_CLUSTER_NAME=$1
         ;;
-      --awsNodegroupRoleNames)
-        shift
-        AWS_NODEGROUP_ROLE_NAMES=$1
-        ;;
-      --awsSSHPublicKey)
-        shift
-        AWS_SSH_PUBLIC_KEY=$1
-        ;;
       --awsRegion)
         shift
         AWS_REGION=$1
         ;;
-      --awsAZs)
+      --awsNodegroupRoleNames)
         shift
-        AWS_AVAILABILITY_ZONES=$1
-        ;;
-      --awsNumNodes)
-        shift
-        AWS_NUM_NODES=$1
-        ;;
-      --awsInstanceType)
-        shift
-        AWS_INSTANCE_TYPE=$1
-        ;;
-      --awsClusterConfig)
-        shift
-        AWS_CLUSTER_CONFIG=$1
+        AWS_NODEGROUP_ROLE_NAMES=$1
         ;;
     esac
     shift
@@ -507,10 +477,7 @@ main() {
     az_login
   fi
   if [[ "${PLATFORM}" == "aws" ]]; then
-    check_aws_cli
-    check_eksctl_cli
-    check_aws_credential
-    check_nodegroup_roles
+    check_aws_setups
   fi
 
   if [[ "${COMMAND}" == "generate" ]]; then
@@ -526,7 +493,7 @@ main() {
     fi
 
     if [[ "${PLATFORM}" == "aws" ]]; then
-      generate_infra_configs
+      generate_aws_infra_configs
     fi
 
     if [[ "${WHAT}" == "k8s" ]] || [[ "${WHAT}" == "all" ]]; then
@@ -539,7 +506,7 @@ main() {
       fi
 
       if [[ "${PLATFORM}" == "aws" ]]; then
-        aws_generate_ks_app
+        generate_aws_ks_app
       fi
 
       if [[ "${PLATFORM}" == "minikube" ]] || [[ "${PLATFORM}" == "docker-for-desktop" ]]; then
@@ -565,7 +532,7 @@ main() {
       fi
 
       if [[ "${PLATFORM}" == "aws" ]]; then
-        update_infra
+        apply_aws_infra
       fi
     fi
 
@@ -578,7 +545,7 @@ main() {
 
       if [[ "${PLATFORM}" == "aws" ]]; then
         install_k8s_manifests
-        aws_ks_apply
+        apply_aws_ks
       fi
 
       # all components deployed
