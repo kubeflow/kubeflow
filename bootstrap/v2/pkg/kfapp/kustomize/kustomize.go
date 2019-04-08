@@ -17,11 +17,13 @@ limitations under the License.
 package kustomize
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/ghodss/yaml"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
+	"sigs.k8s.io/kustomize/v2/pkg/types"
 	"strings"
 
 	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
@@ -136,7 +138,15 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 }
 
 func (kustomize *kustomize) generate() error {
-	_loader, loaderErr := loader.NewLoader(kustomize.Spec.Repo, kustomize.fsys)
+	updateParamFilesErr := kustomize.updateParamFiles()
+	if updateParamFilesErr != nil {
+		return updateParamFilesErr
+	}
+	writeKustomizationFileErr := kustomize.writeKustomizationFile()
+	if writeKustomizationFileErr != nil {
+		return writeKustomizationFileErr
+	}
+	_loader, loaderErr := loader.NewLoader(kustomize.Spec.ManifestsRepo, kustomize.fsys)
 	if loaderErr != nil {
 		return fmt.Errorf("could not load kustomize loader: %v", loaderErr)
 	}
@@ -191,7 +201,7 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum) error {
 	if cacheDirErr != nil || cacheDir == "" {
 		log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
 	}
-	kustomize.Spec.Repo = cacheDir
+	kustomize.Spec.ManifestsRepo = cacheDir
 	createConfigErr := kustomize.writeConfigFile()
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", kustomize.Spec.AppDir)
@@ -210,4 +220,94 @@ func (kustomize *kustomize) writeConfigFile() error {
 		return cfgFilePathErr
 	}
 	return nil
+}
+
+func (kustomize *kustomize) writeKustomizationFile() error {
+	kustomization := &types.Kustomization{
+		TypeMeta: types.TypeMeta{
+			Kind: types.KustomizationKind,
+			APIVersion: types.KustomizationVersion,
+		},
+		Bases: kustomize.Spec.Components,
+		CommonLabels: map[string]string{
+			"app": kustomize.Name,
+		},
+		Namespace: kustomize.Namespace,
+	}
+	buf, bufErr := yaml.Marshal(kustomization)
+	if bufErr != nil {
+		return bufErr
+	}
+	cfgFilePath := filepath.Join(kustomize.Spec.ManifestsRepo, kftypes.KustomizationFile)
+	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
+	if cfgFilePathErr != nil {
+		return cfgFilePathErr
+	}
+	return nil
+}
+
+func (kustomize *kustomize) updateParamFiles() error {
+	for _, compName := range kustomize.Spec.Components {
+		if val, ok := kustomize.Spec.ComponentParams[compName]; ok {
+			paramMap := make(map[string]string)
+			for _, nv := range val {
+				paramMap[nv.Name] = nv.Value
+			}
+			compDir := path.Join(kustomize.Spec.ManifestsRepo, compName)
+			paramFile := filepath.Join(compDir, kftypes.KustomizationParamFile)
+			if _, err := os.Stat(paramFile); err == nil {
+				params, paramFileErr := readLines(paramFile)
+				if paramFileErr != nil {
+					return &kfapis.KfError{
+						Code:    int(kfapis.INVALID_ARGUMENT),
+						Message: fmt.Sprintf("could not open %v. Error: %v", paramFile, paramFileErr),
+					}
+				}
+				for i, param := range params {
+					paramName := strings.Split(param, "=")[0]
+					if val, ok := paramMap[paramName]; ok {
+						params[i] = paramName + "=" + val
+					}
+				}
+				paramFileErr = writeLines(params, paramFile)
+				if paramFileErr != nil {
+					return &kfapis.KfError{
+						Code:    int(kfapis.INTERNAL_ERROR),
+						Message: fmt.Sprintf("could not update %v. Error: %v", paramFile, paramFileErr),
+					}
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func readLines(path string) ([]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines, scanner.Err()
+}
+
+// writeLines writes the lines to the given file.
+func writeLines(lines []string, path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	w := bufio.NewWriter(file)
+	for _, line := range lines {
+		fmt.Fprintln(w, line)
+	}
+	return w.Flush()
 }
