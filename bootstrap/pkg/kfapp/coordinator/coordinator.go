@@ -120,6 +120,7 @@ func getPackageManagers(kfdef *kfdefs.KfDef) *map[string]kftypes.KfApp {
 // It looks for statically compiled-in implementations, otherwise it delegates to
 // kftypes.LoadKfApp which will try and dynamically load a .so
 func getPackageManager(packagemanager string, kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
+	packagemanager = strings.Split(packagemanager, "@")[0]
 	switch packagemanager {
 	case kftypes.KSONNET:
 		return ksonnet.GetKfApp(kfdef), nil

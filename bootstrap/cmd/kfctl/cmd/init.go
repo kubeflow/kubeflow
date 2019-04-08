@@ -103,7 +103,7 @@ func init() {
 	}
 
 	initCmd.Flags().String(string(kftypes.PACKAGE_MANAGER), "ksonnet",
-		"either 'ksonnet|kustomize'")
+		"either 'ksonnet|kustomize[@version]'")
 	bindErr = initCfg.BindPFlag(string(kftypes.PACKAGE_MANAGER), initCmd.Flags().Lookup(string(kftypes.PACKAGE_MANAGER)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.PACKAGE_MANAGER), bindErr)
