@@ -166,9 +166,7 @@ generate_aws_ks_app() {
   ks pkg install kubeflow/aws
 
   # relace with cluster namespace
-  ks generate mpi-operator mpi-operator
   ks generate aws-alb-ingress-controller aws-alb-ingress-controller --clusterName=${AWS_CLUSTER_NAME}
-  ks generate aws-fsx-csi-driver aws-fsx-csi-driver --namespace=${K8S_NAMESPACE}
   ks generate istio-ingress istio-ingress --namespace=${K8S_NAMESPACE}
 
   # Since JupyterHub will be removed evently, we skip authentication for it.
@@ -183,7 +181,7 @@ apply_aws_ks() {
   createKsEnv
 
   if [[ -z $DEFAULT_KUBEFLOW_COMPONENTS ]]; then
-    export KUBEFLOW_COMPONENTS+=',"mpi-operator","aws-alb-ingress-controller","aws-fsx-csi-driver","istio-ingress"'
+    export KUBEFLOW_COMPONENTS+=',"aws-alb-ingress-controller","istio-ingress"'
     writeEnv
     ks param set application components '['$KUBEFLOW_COMPONENTS']'
   fi
@@ -217,6 +215,20 @@ check_eksctl_cli() {
   fi
 }
 
+check_jsonnet() {
+  if ! which "ks" &>/dev/null && ! type -a "ks" &>/dev/null ; then
+    echo "You don't have ks installed. Please install ksonnet. https://github.com/ksonnet/ksonnet/"
+    exit 1
+  fi
+}
+
+check_aws_iam_authenticator() {
+  if ! which "aws-iam-authenticator" &>/dev/null && ! type -a "aws-iam-authenticator" &>/dev/null ; then
+    echo "You don't have aws-iam-authenticator installed. Please install aws-iam-authenticator. https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html"
+    exit 1
+  fi
+}
+
 check_jq() {
   if ! which "jq" &>/dev/null && ! type -a "jq" &>/dev/null ; then
     echo "You don't have jq installed. Please install jq. https://stedolan.github.io/jq/download/"
@@ -244,6 +256,8 @@ check_aws_setups() {
   check_aws_cli
   check_eksctl_cli
   check_jq
+  check_jsonnet
+  check_aws_iam_authenticator
   check_aws_credential
   check_nodegroup_roles
 }
@@ -255,7 +269,8 @@ create_eks_cluster() {
     exit 1
   fi
 
-  local context_name="eks-dev@${AWS_CLUSTER_NAME}.${AWS_REGION}.eksctl.io"
+  local AWS_ROLE_NAME=$(aws sts get-caller-identity | jq -r '.Arn' | cut -d'/' -f2)
+  local context_name="${AWS_ROLE_NAME}@${AWS_CLUSTER_NAME}.${AWS_REGION}.eksctl.io"
 
   if [ `kubectl config use-context ${context_name}` &> /dev/null ] ; then
       eksctl utils write-kubeconfig --name=${AWS_CLUSTER_NAME}

@@ -3,7 +3,7 @@
   local util = import "kubeflow/common/util.libsonnet",
   new(_env, _params):: {
     local params = _params + _env,
-    local namespace = if _params.namespace != null then _params.namespace else _env.namespace,
+    local namespace = if _params.namespace != "null" then _params.namespace else _env.namespace,
 
     local storageClass = {
       apiVersion: "storage.k8s.io/v1",

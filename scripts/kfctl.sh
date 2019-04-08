@@ -121,6 +121,7 @@ createEnv() {
                '$KUBEFLOW_INFRA_DIR'
                '$KUBEFLOW_K8S_MANIFESTS_DIR')
       export AWS_CLUSTER_NAME=${AWS_CLUSTER_NAME:-""}
+      export AWS_REGION=${AWS_REGION:-""}
       export AWS_NODEGROUP_ROLE_NAMES=${AWS_NODEGROUP_ROLE_NAMES:-""}
       export KUBEFLOW_INFRA_DIR=${KUBEFLOW_INFRA_DIR:-"$(pwd)/aws_config"}
       export KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs"

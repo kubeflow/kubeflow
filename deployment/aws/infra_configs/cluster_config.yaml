@@ -19,6 +19,7 @@ nodeGroups:
     desiredCapacity: 1
     minSize: 0
     maxSize: 2
+    volumeSize: 30
 
   # Example of GPU node group
   # - name: Tesla-V100
@@ -30,6 +31,8 @@ nodeGroups:
   #   desiredCapacity: 0
   #   minSize: 0
   #   maxSize: 4
+  # Node Root Disk
+  #   volumeSize: 50
   # Enable SSH out side your VPC.
   #   allowSSH: true
   #   sshPublicKeyPath: '~/.ssh/id_rsa.pub'

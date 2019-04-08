@@ -3,10 +3,11 @@ local awsEfsPv = import "kubeflow/aws/aws-efs-pv.libsonnet";
 
 local params = {
   name: "aws-efs-pv",
-  storageCapacity: "1T",
+  storageCapacity: "100Gi",
   path: "/kubeflow",
-  serverIP: "10.10.10.10",
+  efsId: "fsxxxx",
   image: "gcr.io/kubeflow-images-public/ubuntu:18.04",
+  storageClassName: "efs-default"
 };
 local env = {
   namespace: "kf-001",
@@ -22,18 +23,20 @@ local testCases = [
       kind: "PersistentVolume",
       metadata: {
         name: "aws-efs-pv",
-        namespace: "kf-001",
       },
       spec: {
         accessModes: [
           "ReadWriteMany",
         ],
+        volumeMode: "Filesystem",
+        persistentVolumeReclaimPolicy: "Recycle",
+        storageClassName: "efs-default",
         capacity: {
-          storage: "1T",
+          storage: "100Gi",
         },
-        nfs: {
-          path: "/kubeflow",
-          server: "10.10.10.10",
+        csi: {
+          driver: "efs.csi.aws.com",
+          volumeHandle: "fsxxxx",
         },
       },
     },
@@ -53,10 +56,10 @@ local testCases = [
         ],
         resources: {
           requests: {
-            storage: "1T",
+            storage: "100Gi",
           },
         },
-        storageClassName: "nfs-storage",
+        storageClassName: "efs-default",
         volumeName: "aws-efs-pv",
       },
     },
