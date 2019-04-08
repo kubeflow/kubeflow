@@ -68,6 +68,7 @@ type kustomize struct {
 	fsys       fs.FileSystem
 	out        *os.File
 	err        *os.File
+	componentMap map[string]string
 	restConfig *rest.Config
 	apiConfig  *clientcmdapi.Config
 }
@@ -98,6 +99,9 @@ func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
 		fsys:       fs.MakeRealFS(),
 		out:        os.Stdout,
 		err:        os.Stderr,
+	}
+	if _kustomize.Spec.ManifestsRepo != "" {
+		_kustomize.componentMap = mapDirs(_kustomize.Spec.ManifestsRepo, make(map[string]string))
 	}
 	// build restConfig and apiConfig using $HOME/.kube/config if the file exist
 	_kustomize.restConfig = kftypesv2.GetConfig()
@@ -223,12 +227,18 @@ func (kustomize *kustomize) writeConfigFile() error {
 }
 
 func (kustomize *kustomize) writeKustomizationFile() error {
+	bases := []string{}
+	for _, compName := range kustomize.Spec.Components {
+		if val, ok := kustomize.componentMap[compName]; ok {
+			bases = append(bases, val)
+		}
+	}
 	kustomization := &types.Kustomization{
 		TypeMeta: types.TypeMeta{
 			Kind: types.KustomizationKind,
 			APIVersion: types.KustomizationVersion,
 		},
-		Bases: kustomize.Spec.Components,
+		Bases: bases,
 		CommonLabels: map[string]string{
 			"app": kustomize.Name,
 		},
@@ -253,7 +263,7 @@ func (kustomize *kustomize) updateParamFiles() error {
 			for _, nv := range val {
 				paramMap[nv.Name] = nv.Value
 			}
-			compDir := path.Join(kustomize.Spec.ManifestsRepo, compName)
+			compDir := kustomize.componentMap[compName]
 			paramFile := filepath.Join(compDir, kftypes.KustomizationParamFile)
 			if _, err := os.Stat(paramFile); err == nil {
 				params, paramFileErr := readLines(paramFile)
@@ -310,4 +320,22 @@ func writeLines(lines []string, path string) error {
 		fmt.Fprintln(w, line)
 	}
 	return w.Flush()
+}
+
+func mapDirs(dirPath string, leafMap map[string]string) map[string]string {
+	files, err := ioutil.ReadDir(dirPath)
+	if err != nil {
+		return leafMap
+	}
+	hasDir := false
+	for _, f := range files {
+		if f.IsDir() {
+			hasDir = true
+			mapDirs(path.Join(dirPath, f.Name()), leafMap)
+		}
+	}
+	if !hasDir {
+		leafMap[path.Base(dirPath)] = dirPath
+	}
+	return leafMap
 }
