@@ -1588,7 +1588,7 @@ func (gcp *Gcp) gcpInitProject() error {
 
 // Init initializes a gcp kfapp
 func (gcp *Gcp) Init(resources kftypes.ResourceEnum) error {
-	cacheDir := path.Join(gcp.Spec.AppDir, kftypes.DefaultCacheDir)
+	cacheDir := path.Join(gcp.Spec.AppDir, kftypes.DefaultCacheDir, kftypes.KubeflowRepo)
 	newPath := filepath.Join(cacheDir, gcp.Spec.Version)
 	swaggerFile := filepath.Join(newPath, kftypes.DefaultSwaggerFile)
 	gcp.Spec.ServerVersion = "file:" + swaggerFile
