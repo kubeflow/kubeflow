@@ -22,6 +22,7 @@ import (
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
+	"strings"
 
 	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	cltypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
@@ -181,7 +182,12 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 }
 
 func (kustomize *kustomize) Init(resources kftypes.ResourceEnum) error {
-	cacheDir, cacheDirErr := kftypes.DownloadToCache(kustomize.Spec.AppDir, kftypes.ManifestsRepo, "pull/13")
+	parts := strings.Split(kustomize.Spec.PackageManager, "@")
+	version := "master"
+	if len(parts) == 2 {
+		version = parts[1]
+	}
+	cacheDir, cacheDirErr := kftypes.DownloadToCache(kustomize.Spec.AppDir, kftypes.ManifestsRepo, version)
 	if cacheDirErr != nil || cacheDir == "" {
 		log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
 	}
