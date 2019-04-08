@@ -139,7 +139,7 @@ local testCases = [
         namespace: "kf-001",
       },
       spec: {
-        serviceAccount: "fsx-csi-controller",
+        serviceName: "fsx-csi-controller",
         replicas: 1,
         template: {
           metadata: {

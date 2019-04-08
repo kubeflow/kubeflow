@@ -117,13 +117,15 @@ install_k8s_manifests() {
 }
 
 install_gpu_driver() {
-  local INSTANCE_TYPE=$(kubectl get nodes -o jsonpath='{.items[0].metadata.labels.beta\.kubernetes\.io/instance-type}')
+  local INSTANCE_TYPE=$(kubectl get nodes -o jsonpath='{.items[*].metadata.labels.beta\.kubernetes\.io/instance-type}')
 
   # Install the nvidia device plugin for accelarator nodes
   if [[ ($INSTANCE_TYPE == *"p2"*) || ($INSTANCE_TYPE == *"p3"*) ]]; then
-    if [ ! `kubectl get ds --all-namespaces | grep nvidia-device-plugin` ] ; then
-        kubectl apply -f https://raw.githubusercontent.com/nvidia/k8s-device-plugin/v1.11/nvidia-device-plugin.yml
-        echo "installed nvidia-device-plugin"
+    if [[ $(kubectl get ds --all-namespaces | grep nvidia-device-plugin) ]]; then
+      echo "You already install nvidia-device-plugin"
+    else
+      kubectl apply -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/1.0.0-beta/nvidia-device-plugin.yml
+      echo "installed nvidia-device-plugin"
     fi
   fi
 }
@@ -152,7 +154,7 @@ install_istio() {
   kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-crds.yaml
   kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-noauth.yaml
 
-  kubectl label namespace ${K8S_NAMESPACE} istio-injection=enabled
+  kubectl label namespace ${K8S_NAMESPACE} istio-injection=enabled --overwrite
 }
 
 ################################ Ksonnet changes ################################
@@ -164,6 +166,7 @@ generate_aws_ks_app() {
   ks pkg install kubeflow/aws
 
   # relace with cluster namespace
+  ks generate mpi-operator mpi-operator
   ks generate aws-alb-ingress-controller aws-alb-ingress-controller --clusterName=${AWS_CLUSTER_NAME}
   ks generate aws-fsx-csi-driver aws-fsx-csi-driver --namespace=${K8S_NAMESPACE}
   ks generate istio-ingress istio-ingress --namespace=${K8S_NAMESPACE}
@@ -180,7 +183,7 @@ apply_aws_ks() {
   createKsEnv
 
   if [[ -z $DEFAULT_KUBEFLOW_COMPONENTS ]]; then
-    export KUBEFLOW_COMPONENTS+=',"aws-alb-ingress-controller","aws-fsx-csi-driver","istio-ingress"'
+    export KUBEFLOW_COMPONENTS+=',"mpi-operator","aws-alb-ingress-controller","aws-fsx-csi-driver","istio-ingress"'
     writeEnv
     ks param set application components '['$KUBEFLOW_COMPONENTS']'
   fi
