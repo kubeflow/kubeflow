@@ -56,7 +56,7 @@ type ksApp struct {
 }
 
 const (
-	KsName    = "ks_app"
+	KsName    = "ksonnet"
 	KsEnvName = "default"
 )
 

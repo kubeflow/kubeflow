@@ -19,10 +19,19 @@ package kustomize
 import (
 	"fmt"
 	"github.com/ghodss/yaml"
-	gogetter "github.com/hashicorp/go-getter"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
+
 	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
+	cltypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	clientcmdapi "k8s.io/client-go/v2/tools/clientcmd/api"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
+	"k8s.io/client-go/v2/rest"
+	"k8s.io/api/v2/core/v1"
+	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"os"
 	"path"
 	"path/filepath"
@@ -51,28 +60,74 @@ import (
 // and is taken from [Declarative Application Management in Kubernetes]
 // (https://docs.google.com/document/d/1cLPGweVEYrVqQvBLJg6sxV-TrE5Rm2MNOBA_cxZP2WU)
 type kustomize struct {
-	cltypes.KfDef
+	cltypesv2.KfDef
 	factory    *factory.KustFactory
 	fsys       fs.FileSystem
-	outputFile string
 	out        *os.File
 	err        *os.File
+	restConfig *rest.Config
+	apiConfig  *clientcmdapi.Config
 }
 
+const (
+	outputDir    = "kustomize"
+	outputFile   = "resources.yaml"
+)
+
 func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
+	kfdef2 := cltypesv2.KfDef {
+		TypeMeta: metav1.TypeMeta{
+			Kind: kfdef.TypeMeta.Kind,
+			APIVersion: kfdef.TypeMeta.APIVersion,
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: kfdef.Name,
+			Namespace: kfdef.Namespace,
+			Labels: kfdef.Labels,
+			Annotations: kfdef.Annotations,
+			ClusterName: kfdef.ClusterName,
+		},
+		Spec: kfdef.Spec,
+	}
 	_kustomize := &kustomize{
-		KfDef: *kfdef,
+		KfDef: kfdef2,
 		factory:    k8sdeps.NewFactory(),
 		fsys:       fs.MakeRealFS(),
-		outputFile: "output.yaml",
 		out:        os.Stdout,
 		err:        os.Stderr,
 	}
+	// build restConfig and apiConfig using $HOME/.kube/config if the file exist
+	_kustomize.restConfig = kftypesv2.GetConfig()
+	_kustomize.apiConfig = kftypesv2.GetKubeConfig()
 	return _kustomize
 }
 
 func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
-	return nil
+	if kustomize.restConfig == nil || kustomize.apiConfig == nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: "Error: ksApp has nil restConfig or apiConfig, exit",
+		}
+	}
+	clientset := kftypesv2.GetClientset(kustomize.restConfig)
+	namespace := kustomize.ObjectMeta.Namespace
+	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
+	_, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	if nsMissingErr != nil {
+		log.Infof("Creating namespace: %v", namespace)
+		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
+		_, nsErr := clientset.CoreV1().Namespaces().Create(nsSpec)
+		if nsErr != nil {
+			return &kfapis.KfError{
+				Code: int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("couldn't create %v %v Error: %v",
+					string(kftypes.NAMESPACE), namespace, nsErr),
+			}
+		}
+	}
+	kustomizeDir := path.Join(kustomize.Spec.AppDir, outputDir)
+	kustomizeFile := filepath.Join(kustomizeDir, outputFile)
+	return utils.CreateResourceFromFile(kustomize.restConfig, kustomizeFile)
 }
 
 func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
@@ -80,9 +135,7 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 }
 
 func (kustomize *kustomize) generate() error {
-	//TODO see #2629
-	kustomizeDir := path.Join(kustomize.Spec.AppDir, "manifests", "master")
-	loader, loaderErr := loader.NewLoader(kustomizeDir, kustomize.fsys)
+	loader, loaderErr := loader.NewLoader(kustomize.Spec.Repo, kustomize.fsys)
 	if loaderErr != nil {
 		return fmt.Errorf("could not load kustomize loader: %v", loaderErr)
 	}
@@ -100,7 +153,12 @@ func (kustomize *kustomize) generate() error {
 	if err != nil {
 		return err
 	}
-	kustomizeFile := filepath.Join(kustomize.Spec.AppDir, kustomize.outputFile)
+	kustomizeDir := path.Join(kustomize.Spec.AppDir, outputDir)
+	kustomizeDirErr := os.Mkdir(kustomizeDir, os.ModePerm)
+	if kustomizeDirErr != nil {
+		log.Fatalf("couldn't create directory %v Error %v", kustomizeDir, kustomizeDirErr)
+	}
+	kustomizeFile := filepath.Join(kustomizeDir, outputFile)
 	kustomizeFileErr := kustomize.fsys.WriteFile(kustomizeFile, res)
 	if kustomizeFileErr != nil {
 		return kustomizeFileErr
@@ -108,7 +166,6 @@ func (kustomize *kustomize) generate() error {
 	return err
 }
 
-// kfctl generate all -V --email <service_account_name>@<project>.iam.gserviceaccount.com
 func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 	switch resources {
 	case kftypes.PLATFORM:
@@ -123,34 +180,12 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
-// kfctl init kustomize -V --platform kustomize --project <project>
 func (kustomize *kustomize) Init(resources kftypes.ResourceEnum) error {
-	kustomizeDir := path.Join(kustomize.Spec.AppDir, "manifests")
-	kustomizeDirErr := os.Mkdir(kustomizeDir, os.ModePerm)
-	if kustomizeDirErr != nil {
-		return fmt.Errorf("couldn't create directory %v Error %v", kustomizeDir, kustomizeDirErr)
+	cacheDir, cacheDirErr := kftypes.DownloadToCache(kustomize.Spec.AppDir, kftypes.ManifestsRepo, "pull/13")
+	if cacheDirErr != nil || cacheDir == "" {
+		log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
 	}
-	//TODO see #2629
-	version := kustomize.Spec.Version
-	//tarballUrl := "https://github.com/kubeflow/manifests/tarball/" + version + "?archive=tar.gz"
-	tarballUrl := "https://github.com/kubeflow/manifests/tarball/master?archive=tar.gz"
-	tarballUrlErr := gogetter.GetAny(kustomizeDir, tarballUrl)
-	if tarballUrlErr != nil {
-		return fmt.Errorf("couldn't download kustomize manifests repo %v Error %v", tarballUrl, tarballUrlErr)
-	}
-	files, filesErr := ioutil.ReadDir(kustomizeDir)
-	if filesErr != nil {
-		return fmt.Errorf("couldn't read %v Error %v", kustomizeDir, filesErr)
-	}
-	subdir := files[0].Name()
-	extractedPath := filepath.Join(kustomizeDir, subdir)
-	newPath := filepath.Join(kustomizeDir, "master")
-	renameErr := os.Rename(extractedPath, newPath)
-	if renameErr != nil {
-		return fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
-	}
-	repoPath := path.Join(kustomize.Spec.AppDir, kftypes.DefaultCacheDir, version)
-	kustomize.Spec.Repo = path.Join(repoPath, "kubeflow")
+	kustomize.Spec.Repo = cacheDir
 	createConfigErr := kustomize.writeConfigFile()
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", kustomize.Spec.AppDir)
