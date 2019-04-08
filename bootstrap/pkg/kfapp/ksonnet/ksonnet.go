@@ -80,15 +80,15 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	if goPathVar != "" {
 		_kfapp.Spec.Repo = re.ReplaceAllString(_kfapp.Spec.Repo, goPathVar+`$2`)
 	}
+	// build restConfig and apiConfig using $HOME/.kube/config if the file exist
+	_kfapp.restConfig = kftypes.GetConfig()
+	_kfapp.apiConfig = kftypes.GetKubeConfig()
 	return _kfapp
 }
 
 // Apply applies the ksonnet components to target k8s cluster.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
-	// build restConfig and apiConfig using $HOME/.kube/config if the file exist
-	ksApp.restConfig = kftypes.GetConfig()
-	ksApp.apiConfig = kftypes.GetKubeConfig()
 	if ksApp.restConfig == nil || ksApp.apiConfig == nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
@@ -244,9 +244,6 @@ func (ksApp *ksApp) components() (map[string]*kfdefs.KsComponent, error) {
 }
 
 func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
-	// build restConfig and apiConfig using $HOME/.kube/config if the file exist
-	ksApp.restConfig = kftypes.GetConfig()
-	ksApp.apiConfig = kftypes.GetKubeConfig()
 	if ksApp.restConfig == nil || ksApp.apiConfig == nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
