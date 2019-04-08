@@ -5,20 +5,22 @@
 - [Developer guide for bootstrap](#developer-guide-for-bootstrap)
   - [Prerequisites](#prerequisites)
   - [Setting up the build environment](#setting-up-the-build-environment)
-  - [Building kfctl](#building-kfctl)
-        - [`make build-kfctl`](#make-build-kfctl)
-        - [`make install`](#make-install)
-        - [`make build-kftl-container`](#make-build-kftl-container)
-        - [`make push-kftl-container`](#make-push-kftl-container)
-        - [`make push-kftl-container-latest`](#make-push-kftl-container-latest)
-        - [`make test-init`](#make-test-init)
-  - [Building bootstrap](#building-bootstrap)
-        - [`make build-bootstrap`](#make-build-bootstrap)
-        - [`make build`](#make-build)
-        - [`make push`](#make-push)
-        - [`make push-latest`](#make-push-latest)
-        - [`make static, make plugins`](#make-static-make-plugins)
+  - [Building kfctl](#building-kfctl)<br>
+        - [`make build-kfctl`](#make-build-kfctl)<br>
+        - [`make install`](#make-install)<br>
+        - [`make build-kftl-container`](#make-build-kftl-container)<br>
+        - [`make push-kftl-container`](#make-push-kftl-container)<br>
+        - [`make push-kftl-container-latest`](#make-push-kftl-container-latest)<br>
+        - [`make run-kfctl-container`](#make-run-kfctl-container)<br>
+        - [`make test-init`](#make-test-init)<br>
+  - [Building bootstrap](#building-bootstrap)<br>
+        - [`make build-bootstrap`](#make-build-bootstrap)<br>
+        - [`make build`](#make-build)<br>
+        - [`make push`](#make-push)<br>
+        - [`make push-latest`](#make-push-latest)<br>
+        - [`make static, make plugins`](#make-static-make-plugins)<br>
   - [How to run bootstrapper with Click-to-deploy app locally](#how-to-run-bootstrapper-with-click-to-deploy-app-locally)
+  - [Releasing kfctl](#releasing-kfctl)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -124,7 +126,26 @@ make push-kfctl-container-latest
 make run-kfctl-container
 ```
 
-* Runs the local docker container
+* runs the local docker container. Opens a shell in the container
+
+> how to deploy gcp from within the container<br>
+
+Run 
+
+```sh
+KFCTL_TARGET=kfctl_base MOUNT_KUBE='' make run-kfctl-container
+```
+
+The above command will open a shell in the container. Then run the following:
+
+```
+$ cp bin/kfctl /usr/local/bin
+$ cd /opt/kubeflow
+$ kfctl init gcp-test --platform gcp --project <PROJECT> -V
+$ cd gcp-test
+$ kfctl generate all -V
+$ CLIENT_ID=XXX CLIENT_SECRET=YYY kfctl apply all -V
+```
 
 
 ##### `make test-init`

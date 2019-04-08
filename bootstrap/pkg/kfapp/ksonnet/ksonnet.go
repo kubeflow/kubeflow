@@ -92,7 +92,7 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 	if ksApp.restConfig == nil || ksApp.apiConfig == nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: "Error: ksApp has nil restConfig or apiConfig, exit",
+			Message: "Error: nil restConfig or apiConfig, exit",
 		}
 	}
 	clientset := kftypes.GetClientset(ksApp.restConfig)
@@ -243,86 +243,44 @@ func (ksApp *ksApp) components() (map[string]*kfdefs.KsComponent, error) {
 	return comps, nil
 }
 
-func (ksApp *ksApp) deleteGlobalResources(config *rest.Config) error {
-	apiextclientset := kftypes.GetApiExtClientset(config)
-	do := &metav1.DeleteOptions{}
-	lo := metav1.ListOptions{
-		LabelSelector: kftypes.DefaultAppLabel + "=" + ksApp.Name,
-	}
-	crdsErr := apiextclientset.CustomResourceDefinitions().DeleteCollection(do, lo)
-	if crdsErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("couldn't delete customresourcedefinitions Error: %v", crdsErr),
-		}
-	}
-	crdsByName := []string{
-		"compositecontrollers.metacontroller.k8s.io",
-		"controllerrevisions.metacontroller.k8s.io",
-		"decoratorcontrollers.metacontroller.k8s.io",
-		"applications.app.k8s.io",
-	}
-	for _, crd := range crdsByName {
-		do := &metav1.DeleteOptions{}
-		dErr := apiextclientset.CustomResourceDefinitions().Delete(crd, do)
-		if dErr != nil {
-			log.Errorf("could not delete %v Error %v", crd, dErr)
-		}
-	}
-	clientset := kftypes.GetClientset(config)
-	crbsErr := clientset.RbacV1().ClusterRoleBindings().DeleteCollection(do, lo)
-	if crbsErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("couldn't get list of clusterrolebindings Error: %v", crbsErr),
-		}
-	}
-	crbName := "meta-controller-cluster-role-binding"
-	dErr := clientset.RbacV1().ClusterRoleBindings().Delete(crbName, do)
-	if dErr != nil {
-		log.Errorf("could not delete %v Error %v", crbName, dErr)
-	}
-	crsErr := clientset.RbacV1().ClusterRoles().DeleteCollection(do, lo)
-	if crsErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("couldn't delete clusterroles Error: %v", crsErr),
-		}
-	}
-	return nil
-}
-
 func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
-	config := kftypes.GetConfig()
-	err := ksApp.deleteGlobalResources(config)
-	if err != nil {
-		log.Errorf("there was a problem deleting global resources: %v", err)
+	if ksApp.restConfig == nil || ksApp.apiConfig == nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: "Error: nil restConfig or apiConfig, exit",
+		}
 	}
-	envSetErr := ksApp.envSet(ksApp.KsEnvName, config.Host)
+	clientset := kftypes.GetClientset(ksApp.restConfig)
+	envSetErr := ksApp.envSet(ksApp.KsEnvName, ksApp.restConfig.Host)
 	if envSetErr != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("couldn't create ksonnet env %v Error: %v", ksApp.KsEnvName, envSetErr),
 		}
 	}
-	clientConfig := kftypes.GetKubeConfig()
-	components := []string{"application", "metacontroller"}
-	err = actions.RunDelete(map[string]interface{}{
+	components := ksApp.Spec.Components
+	err := actions.RunDelete(map[string]interface{}{
 		actions.OptionApp: ksApp.KApp,
 		actions.OptionClientConfig: &client.Config{
 			Overrides: &clientcmd.ConfigOverrides{},
-			Config:    clientcmd.NewDefaultClientConfig(*clientConfig, &clientcmd.ConfigOverrides{}),
+			Config:    clientcmd.NewDefaultClientConfig(*ksApp.apiConfig, &clientcmd.ConfigOverrides{}),
 		},
 		actions.OptionEnvName:        ksApp.KsEnvName,
 		actions.OptionComponentNames: components,
-		actions.OptionGracePeriod:    int64(10),
+		actions.OptionGracePeriod:    int64(100),
 	})
 	if err != nil {
 		log.Infof("there was a problem deleting %v: %v", components, err)
 	}
+	envDeleteErr := ksApp.envDelete(ksApp.KsEnvName, ksApp.restConfig.Host)
+	if envDeleteErr != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("couldn't delete ksonnet env %v Error: %v", ksApp.KsEnvName, envSetErr),
+		}
+	}
 	namespace := ksApp.ObjectMeta.Namespace
 	log.Infof("deleting namespace: %v", namespace)
-	clientset := kftypes.GetClientset(config)
 	ns, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 	if nsMissingErr == nil {
 		nsErr := clientset.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
@@ -330,17 +288,6 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 			return &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("couldn't delete namespace %v Error: %v", namespace, nsErr),
-			}
-		}
-	}
-	name := "meta-controller-cluster-role-binding"
-	crb, crbErr := clientset.RbacV1().ClusterRoleBindings().Get(name, metav1.GetOptions{})
-	if crbErr == nil {
-		crbDeleteErr := clientset.RbacV1().ClusterRoleBindings().Delete(crb.Name, metav1.NewDeleteOptions(int64(5)))
-		if crbDeleteErr != nil {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("couldn't delete clusterrolebinding %v Error: %v", name, crbDeleteErr),
 			}
 		}
 	}
@@ -462,17 +409,10 @@ func (ksApp *ksApp) initKs() error {
 	newRoot := path.Join(ksApp.Spec.AppDir, ksApp.KsName)
 	ksApp.KsEnvName = KsEnvName
 	k8sSpec := ksApp.Spec.ServerVersion
-	host := "127.0.0.1"
 	if k8sSpec == "" {
-		host = ksApp.restConfig.Host
-		k8sSpec = kftypes.GetServerVersion(kftypes.GetClientset(ksApp.restConfig))
-		if k8sSpec == "" {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: "could not find kubernetes version info",
-			}
-		}
+		k8sSpec = "version:v1.11.7"
 	}
+	host := "127.0.0.1"
 	options := map[string]interface{}{
 		actions.OptionFs:                    afero.NewOsFs(),
 		actions.OptionName:                  ksApp.KsName,
@@ -506,11 +446,26 @@ func (ksApp *ksApp) initKs() error {
 	return nil
 }
 
+func (ksApp *ksApp) envDelete(envName string, host string) error {
+	err := actions.RunEnvRm(map[string]interface{}{
+		actions.OptionAppRoot:  ksApp.ksRoot(),
+		actions.OptionEnvName:  envName,
+		actions.OptionServer:   host,
+		actions.OptionOverride: true,
+	})
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("There was a problem deleting ksonnet env: %v", err),
+		}
+	}
+	return nil
+}
+
 func (ksApp *ksApp) envSet(envName string, host string) error {
-	ksApp.KsEnvName = envName
 	err := actions.RunEnvSet(map[string]interface{}{
 		actions.OptionAppRoot:  ksApp.ksRoot(),
-		actions.OptionEnvName:  ksApp.KsEnvName,
+		actions.OptionEnvName:  envName,
 		actions.OptionServer:   host,
 		actions.OptionOverride: true,
 	})
