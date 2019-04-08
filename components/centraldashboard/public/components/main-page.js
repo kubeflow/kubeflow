@@ -33,6 +33,8 @@ import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
 import './not-found-view.js';
+import {MESSAGE, PARENT_CONNECTED_EVENT, IFRAME_CONNECTED_EVENT,
+    NAMESPACE_SELECTED_EVENT} from '../library.js';
 
 const VALID_QUERY_PARAMS = ['ns'];
 
@@ -53,7 +55,7 @@ export class MainPage extends PolymerElement {
             subRouteData: Object,
             queryParams: {
                 type: Object,
-                value: () => {},
+                value: null, // Necessary to preserve queryString from load
             },
             iframeRoute: Object,
             menuLinks: {
@@ -91,7 +93,28 @@ export class MainPage extends PolymerElement {
             hideTabs: {type: Boolean, value: false, readOnly: true},
             hideNamespaces: {type: Boolean, value: false, readOnly: true},
             notFoundInIframe: {type: Boolean, value: false, readOnly: true},
+            namespace: {type: String, observer: '_namespaceChanged'},
         };
+    }
+
+    /**
+     * Initializes private iframe state variables and attaches a listener for
+     * messages received by the window object.
+     */
+    ready() {
+        super.ready();
+        this._iframeConnected = false;
+        this._iframeOrigin = null;
+        this._messageListener = this._onMessageReceived.bind(this);
+        window.addEventListener(MESSAGE, this._messageListener);
+    }
+
+    /**
+     * Remove the event listener for messages.
+     */
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener(MESSAGE, this._messageListener);
     }
 
     /**
@@ -174,6 +197,8 @@ export class MainPage extends PolymerElement {
         this._setHideTabs(hideTabs);
         this._setHideNamespaces(hideNamespaces);
         this._setInIframe(isIframe);
+
+        this._iframeConnected = this._iframeConnected && isIframe;
         // If iframe <-> [non-frame OR other iframe]
         if (isIframe !== this.inIframe || isIframe) {
             this.$.MainDrawer.close();
@@ -185,9 +210,19 @@ export class MainPage extends PolymerElement {
      * @param {int} curr
      * @param {int} old
      */
-    _revertSidebarIndexIfExternal(curr, old=0) {
+    _revertSidebarIndexIfExternal(curr, old = 0) {
         if (curr != 1) return;
         this.sidebarItemIndex = old;
+    }
+
+    /* Handles namespace change. Sends message if the value has changed.
+     * @param {string} newValue
+     * @param {string} oldValue
+     */
+    _namespaceChanged(newValue, oldValue) {
+        if (newValue && newValue !== oldValue) {
+            this._sendNamespaceMessage();
+        }
     }
 
     /**
@@ -225,11 +260,13 @@ export class MainPage extends PolymerElement {
      */
     _buildHref(href, queryParams) {
         const url = new URL(href, window.location.origin);
-        VALID_QUERY_PARAMS.forEach((qp) => {
-            if (queryParams[qp]) {
-                url.searchParams.set(qp, queryParams[qp]);
-            }
-        });
+        if (queryParams) {
+            VALID_QUERY_PARAMS.forEach((qp) => {
+                if (queryParams[qp]) {
+                    url.searchParams.set(qp, queryParams[qp]);
+                }
+            });
+        }
         return url.href.slice(url.origin.length);
     }
 
@@ -237,10 +274,42 @@ export class MainPage extends PolymerElement {
      * @param {Event} responseEvent AJAX-response
      */
     _onPlatformInfoResponse(responseEvent) {
-        const {response} = responseEvent.detail;
+        const { response } = responseEvent.detail;
         this.platformInfo = response;
         if (this.platformInfo.kubeflowVersion) {
             this.buildVersion = this.platformInfo.kubeflowVersion;
+        }
+    }
+
+    /**
+     * Sends a message to the iframe message bus. This is used on the iframe
+     * load event as well as when the namespace changes.
+     */
+    _sendNamespaceMessage() {
+        if (this._iframeConnected) {
+            this.$.PageFrame.contentWindow.postMessage({
+                type: NAMESPACE_SELECTED_EVENT,
+                value: this.namespace,
+            }, this._iframeOrigin);
+        }
+    }
+
+    /**
+     * Receives a message from an iframe page and passes the selected namespace.
+     * @param {MessageEvent} event
+     */
+    _onMessageReceived(event) {
+        const {data, origin} = event;
+        this._iframeOrigin = origin;
+        switch (data.type) {
+        case IFRAME_CONNECTED_EVENT:
+            this._iframeConnected = true;
+            this.$.PageFrame.contentWindow.postMessage({
+                type: PARENT_CONNECTED_EVENT,
+                value: null,
+            }, origin);
+            this._sendNamespaceMessage();
+            break;
         }
     }
 }
