@@ -401,7 +401,8 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 }
 
 func (ksApp *ksApp) Init(resources kftypes.ResourceEnum) error {
-	ksApp.Spec.Repo = path.Join(path.Join(ksApp.Spec.AppDir, kftypes.DefaultCacheDir, ksApp.Spec.Version), "kubeflow")
+	ksApp.Spec.Repo = path.Join(path.Join(ksApp.Spec.AppDir, kftypes.DefaultCacheDir, kftypes.KubeflowRepo,
+		ksApp.Spec.Version), "kubeflow")
 	return ksApp.writeConfigFile()
 }
 

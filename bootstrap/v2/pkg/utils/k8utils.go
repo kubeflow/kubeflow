@@ -51,6 +51,7 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 		return err
 	}
 	_cached := cached.NewMemCacheClient(_discoveryClient)
+	_cached.Invalidate()
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(_cached)
 
 	data, err := ioutil.ReadFile(filename)
@@ -106,27 +107,32 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 
 		// build the request
 		metadata := o["metadata"].(map[string]interface{})
-		name := metadata["name"].(string)
-		log.Infof("creating %v\n", name)
+		if metadata["name"] != nil {
+			name := metadata["name"].(string)
+			log.Infof("creating %v\n", name)
 
-		var namespace string
-		if metadata["namespace"] != nil {
-			namespace = metadata["namespace"].(string)
+			var namespace string
+			if metadata["namespace"] != nil {
+				namespace = metadata["namespace"].(string)
+			} else {
+				namespace = "default"
+			}
+			body, err := json.Marshal(o)
+			if err != nil {
+				return err
+			}
+			request := restClient.Post().Resource(result.Resource.Resource).Body(body)
+			if result.Scope.Name() == "namespace" {
+				request = request.Namespace(namespace)
+			}
+			_, err = request.DoRaw()
+			if err != nil {
+				return err
+			}
 		} else {
-			namespace = "default"
+			log.Warnf("object with kind %v has no name\n", metadata["kind"])
 		}
-		body, err := json.Marshal(o)
-		if err != nil {
-			return err
-		}
-		request := restClient.Post().Resource(result.Resource.Resource).Body(body)
-		if result.Scope.Name() == "namespace" {
-			request = request.Namespace(namespace)
-		}
-		_, err = request.DoRaw()
-		if err != nil {
-			return err
-		}
+
 	}
 
 	return nil

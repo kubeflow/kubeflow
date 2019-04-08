@@ -42,23 +42,23 @@ import (
 const (
 	DefaultNamespace = "kubeflow"
 	// TODO: find the latest tag dynamically
-	DefaultVersion     = "master"
-	DefaultGitKubeflowRepo     = "https://github.com/kubeflow/kubeflow/tarball"
-	DefaultGitManifestsRepo     = "https://github.com/kubeflow/kubeflow/tarball"
-	KfConfigFile       = "app.yaml"
-	DefaultCacheDir    = ".cache"
-	KubeflowRepo    = "kubeflow"
-	ManifestsRepo    = "manifests"
-	DefaultConfigDir   = "bootstrap/config"
-	DefaultConfigFile  = "kfctl_default.yaml"
-	GcpIapConfig       = "kfctl_iap.yaml"
-	GcpBasicAuth       = "kfctl_basic_auth.yaml"
-	DefaultZone        = "us-east1-d"
-	DefaultGkeApiVer   = "v1beta1"
-	DefaultAppLabel    = "app.kubernetes.io/name"
-	KUBEFLOW_USERNAME  = "KUBEFLOW_USERNAME"
-	KUBEFLOW_PASSWORD  = "KUBEFLOW_PASSWORD"
-	DefaultSwaggerFile = "bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json"
+	DefaultVersion         = "master"
+	KfConfigFile           = "app.yaml"
+	KustomizationFile      = "kustomization.yaml"
+	KustomizationParamFile = "params.env"
+	DefaultCacheDir        = ".cache"
+	KubeflowRepo           = "kubeflow"
+	ManifestsRepo          = "manifests"
+	DefaultConfigDir       = "bootstrap/config"
+	DefaultConfigFile      = "kfctl_default.yaml"
+	GcpIapConfig           = "kfctl_iap.yaml"
+	GcpBasicAuth           = "kfctl_basic_auth.yaml"
+	DefaultZone            = "us-east1-d"
+	DefaultGkeApiVer       = "v1beta1"
+	DefaultAppLabel        = "app.kubernetes.io/name"
+	KUBEFLOW_USERNAME      = "KUBEFLOW_USERNAME"
+	KUBEFLOW_PASSWORD      = "KUBEFLOW_PASSWORD"
+	DefaultSwaggerFile     = "bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json"
 )
 
 type ResourceEnum string
@@ -138,7 +138,7 @@ const (
 
 // PackageManagers
 const (
-	KSONNET      = "ksonnet"
+	KSONNET   = "ksonnet"
 	KUSTOMIZE = "kustomize"
 )
 
