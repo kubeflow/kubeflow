@@ -48,10 +48,15 @@ const COMPONENT_RULES = [
 
 module.exports = {
     mode: ENV,
-    entry: resolve(SRC, 'index.js'),
+    entry: {
+        app: resolve(SRC, 'index.js'),
+        lib: resolve(SRC, 'library.js'),
+    },
     output: {
         filename: '[name].bundle.js',
         path: DESTINATION,
+        library: 'centraldashboard',
+        libraryTarget: 'umd',
     },
     devtool: 'cheap-source-map',
     module: {
@@ -137,12 +142,6 @@ module.exports = {
         })],
         splitChunks: {
             cacheGroups: {
-                commons: {
-                    chunks: 'all',
-                    minChunks: 2,
-                    maxInitialRequests: 5,
-                    minSize: 0,
-                },
                 vendor: {
                     test: NODE_MODULES,
                     chunks: 'all',
@@ -163,6 +162,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             filename: resolve(DESTINATION, 'index.html'),
             template: resolve(SRC, 'index.html'),
+            excludeChunks: ['lib'],
             inject: true,
             minify: ENV == 'development' ? false : {
                 collapseWhitespace: true,

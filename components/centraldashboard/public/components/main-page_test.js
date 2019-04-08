@@ -3,6 +3,9 @@ import 'jasmine-ajax';
 import {flush} from '@polymer/polymer/lib/utils/flush.js';
 
 import './main-page';
+import {
+    IFRAME_CONNECTED_EVENT, PARENT_CONNECTED_EVENT, NAMESPACE_SELECTED_EVENT,
+} from '../library';
 
 const FIXTURE_ID = 'main-page-fixture';
 const MAIN_PAGE_SELECTOR_ID = 'test-main-page';
@@ -30,6 +33,7 @@ describe('Main Page', () => {
     });
 
     afterEach(() => {
+        mainPage.set('queryParams', null);
         document.getElementById(FIXTURE_ID).restore();
     });
 
@@ -157,7 +161,6 @@ describe('Main Page', () => {
         const headerLinkSelector = 'app-header paper-tabs a';
 
         // Base case
-        flush();
         const hrefs = [];
         mainPage.shadowRoot.querySelectorAll(sidebarLinkSelector)
             .forEach((l) => hrefs.push(l.href));
@@ -166,7 +169,7 @@ describe('Main Page', () => {
         hrefs.forEach((h) => expect(h).not.toContain('?'));
 
         // Set namespace case
-        mainPage.set('queryParams.ns', 'another-namespace');
+        mainPage.namespace = 'another-namespace';
         flush();
         hrefs.splice(0);
         mainPage.shadowRoot.querySelectorAll(sidebarLinkSelector)
@@ -177,7 +180,6 @@ describe('Main Page', () => {
     });
 
     it('Hides namespace selector when showing Pipelines dashboard', () => {
-        flush();
         expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
             .hasAttribute('hidden')).toBe(false);
 
@@ -186,5 +188,32 @@ describe('Main Page', () => {
         flush();
         expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
             .hasAttribute('hidden')).toBe(true);
+    });
+
+    it('Communicates with iframed page after it connects', async () => {
+        mainPage.namespace = 'another-namespace';
+        const iframeMessagesPromise = new Promise((resolve) => {
+            const messages = [];
+            spyOn(mainPage.$.PageFrame.contentWindow,
+                'postMessage').and.callFake((m) => {
+                messages.push(m);
+                if (messages.length === 2) {
+                    resolve(messages);
+                }
+            });
+        });
+
+        window.postMessage({type: IFRAME_CONNECTED_EVENT});
+        const messages = await iframeMessagesPromise;
+        expect(messages).toEqual([
+            {
+                type: PARENT_CONNECTED_EVENT,
+                value: null,
+            },
+            {
+                type: NAMESPACE_SELECTED_EVENT,
+                value: 'another-namespace',
+            },
+        ]);
     });
 });
