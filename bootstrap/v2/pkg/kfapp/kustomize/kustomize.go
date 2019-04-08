@@ -26,13 +26,13 @@ import (
 
 	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	cltypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	clientcmdapi "k8s.io/client-go/v2/tools/clientcmd/api"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
+	utilsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"k8s.io/client-go/v2/rest"
 	"k8s.io/api/v2/core/v1"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"k8s.io/client-go/v2/rest"
+	clientcmdapi "k8s.io/client-go/v2/tools/clientcmd/api"
 	"os"
 	"path"
 	"path/filepath"
@@ -128,7 +128,7 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	}
 	kustomizeDir := path.Join(kustomize.Spec.AppDir, outputDir)
 	kustomizeFile := filepath.Join(kustomizeDir, outputFile)
-	return utils.CreateResourceFromFile(kustomize.restConfig, kustomizeFile)
+	return utilsv2.CreateResourceFromFile(kustomize.restConfig, kustomizeFile)
 }
 
 func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
@@ -136,12 +136,12 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 }
 
 func (kustomize *kustomize) generate() error {
-	loader, loaderErr := loader.NewLoader(kustomize.Spec.Repo, kustomize.fsys)
+	_loader, loaderErr := loader.NewLoader(kustomize.Spec.Repo, kustomize.fsys)
 	if loaderErr != nil {
 		return fmt.Errorf("could not load kustomize loader: %v", loaderErr)
 	}
-	defer loader.Cleanup()
-	kt, err := target.NewKustTarget(loader, kustomize.factory.ResmapF, kustomize.factory.TransformerF)
+	defer _loader.Cleanup()
+	kt, err := target.NewKustTarget(_loader, kustomize.factory.ResmapF, kustomize.factory.TransformerF)
 	if err != nil {
 		return err
 	}
