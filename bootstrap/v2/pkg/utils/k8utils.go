@@ -19,7 +19,7 @@ import (
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"k8s.io/client-go/v2/dynamic"
+	"k8s.io/client-go/v2/restmapper"
 	"strings"
 
 	"k8s.io/apimachinery/v2/pkg/runtime/schema"
@@ -35,9 +35,6 @@ import (
 	_ "k8s.io/client-go/v2/plugin/pkg/client/auth/oidc"
 )
 
-// RecommendedConfigPathEnvVar is a environment variable for path configuration
-const RecommendedConfigPathEnvVar = "KUBECONFIG"
-
 const (
 	yamlSeparator = "---"
 )
@@ -49,12 +46,12 @@ const (
 // TODO: it can't handle "kind: list" yet.
 func CreateResourceFromFile(config *rest.Config, filename string) error {
 	// Create a restmapper to determine the resource type.
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
+	_discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
 		return err
 	}
-	cached := cached.NewMemCacheClient(discoveryClient)
-	mapper := discovery.NewDeferredDiscoveryRESTMapper(cached, dynamic.VersionInterfaces)
+	_cached := cached.NewMemCacheClient(_discoveryClient)
+	mapper := restmapper.NewDeferredDiscoveryRESTMapper(_cached)
 
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -122,7 +119,7 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 		if err != nil {
 			return err
 		}
-		request := restClient.Post().Resource(result.Resource).Body(body)
+		request := restClient.Post().Resource(result.Resource.Resource).Body(body)
 		if result.Scope.Name() == "namespace" {
 			request = request.Namespace(namespace)
 		}
