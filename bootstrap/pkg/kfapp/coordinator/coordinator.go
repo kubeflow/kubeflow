@@ -19,7 +19,6 @@ package coordinator
 import (
 	"fmt"
 	"github.com/ghodss/yaml"
-	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
@@ -62,76 +61,9 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	return _coordinator
 }
 
-// This function will download a version of kubeflow github repo where version can be
-//   master
-//	 tag
-//	 pull/<ID>[/head]
-// It returns one of the config files under bootstrap/config as a []byte buffer
-func downloadToCache(platform string, appDir string, version string, useBasicAuth bool) ([]byte, error) {
-	if _, err := os.Stat(appDir); os.IsNotExist(err) {
-		appdirErr := os.Mkdir(appDir, os.ModePerm)
-		if appdirErr != nil {
-			log.Errorf("couldn't create directory %v Error %v", appDir, appdirErr)
-		}
-	}
-	cacheDir := path.Join(appDir, kftypes.DefaultCacheDir)
-	// idempotency
-	if _, err := os.Stat(cacheDir); !os.IsNotExist(err) {
-		_ = os.RemoveAll(cacheDir)
-	}
-	cacheDirErr := os.Mkdir(cacheDir, os.ModePerm)
-	if cacheDirErr != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("couldn't create directory %v Error %v", cacheDir, cacheDirErr),
-		}
-	}
-	// Version can be
-	// --version master
-	// --version tag
-	// --version pull/<ID>/head
-	tarballUrl := kftypes.DefaultGitRepo + "/" + version + "?archive=tar.gz"
-	tarballUrlErr := gogetter.GetAny(cacheDir, tarballUrl)
-	if tarballUrlErr != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("couldn't download kubeflow repo %v Error %v", tarballUrl, tarballUrlErr),
-		}
-	}
-	files, filesErr := ioutil.ReadDir(cacheDir)
-	if filesErr != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("couldn't read %v Error %v", cacheDir, filesErr),
-		}
-	}
-	subdir := files[0].Name()
-	extractedPath := filepath.Join(cacheDir, subdir)
-	newPath := filepath.Join(cacheDir, version)
-	if strings.Contains(version, "/") {
-		parts := strings.Split(version, "/")
-		versionPath := cacheDir
-		for i := 0; i < len(parts)-1; i++ {
-			versionPath = filepath.Join(versionPath, parts[i])
-			versionPathErr := os.Mkdir(versionPath, os.ModePerm)
-			if versionPathErr != nil {
-				return nil, &kfapis.KfError{
-					Code: int(kfapis.INTERNAL_ERROR),
-					Message: fmt.Sprintf("couldn't create directory %v Error %v",
-						versionPath, versionPathErr),
-				}
-			}
-		}
-	}
-	renameErr := os.Rename(extractedPath, newPath)
-	if renameErr != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr),
-		}
-	}
+func getConfigFromCache(pathDir string, platform string, useBasicAuth bool) ([]byte, error) {
 	//TODO see #2629
-	configPath := filepath.Join(newPath, kftypes.DefaultConfigDir)
+	configPath := filepath.Join(pathDir, kftypes.DefaultConfigDir)
 	if platform == kftypes.GCP {
 		if useBasicAuth {
 			configPath = filepath.Join(configPath, kftypes.GcpBasicAuth)
@@ -150,6 +82,7 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 		}
 	}
 }
+
 
 // GetPlatform will return an implementation of kftypes.KfApp that matches the platform string
 // It looks for statically compiled-in implementations, otherwise it delegates to
@@ -281,17 +214,16 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	}
 	platform := options[string(kftypes.PLATFORM)].(string)
 	version := options[string(kftypes.VERSION)].(string)
-	if strings.HasPrefix(version, "pull") {
-		if !strings.HasSuffix(version, "head") {
-			version = version + "/head"
-			options[string(kftypes.VERSION)] = version
-		}
-	}
 	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
-	configFileBuffer, configFileErr := downloadToCache(platform, appDir, version, useBasicAuth)
-	if configFileErr != nil {
-		log.Fatalf("could not download repo to cache Error %v", configFileErr)
+	cacheDir, cacheDirErr := kftypes.DownloadToCache(appDir, kftypes.KubeflowRepo, version)
+	if cacheDirErr != nil || cacheDir == "" {
+		log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
 	}
+	configFileBuffer, configFileErr := getConfigFromCache(cacheDir, platform, useBasicAuth)
+	if configFileErr != nil {
+		log.Fatalf("could not get config file Error %v", configFileErr)
+	}
+
 	kfDef := &kfdefs.KfDef{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KfDef",

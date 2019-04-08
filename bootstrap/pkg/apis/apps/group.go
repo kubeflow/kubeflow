@@ -17,10 +17,12 @@ package apps
 
 import (
 	"fmt"
+	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"io/ioutil"
 	ext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	crdclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apiext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
@@ -30,6 +32,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"os"
+	"path"
 	"path/filepath"
 	"plugin"
 	"regexp"
@@ -40,9 +43,12 @@ const (
 	DefaultNamespace = "kubeflow"
 	// TODO: find the latest tag dynamically
 	DefaultVersion     = "master"
-	DefaultGitRepo     = "https://github.com/kubeflow/kubeflow/tarball"
+	DefaultGitKubeflowRepo     = "https://github.com/kubeflow/kubeflow/tarball"
+	DefaultGitManifestsRepo     = "https://github.com/kubeflow/kubeflow/tarball"
 	KfConfigFile       = "app.yaml"
 	DefaultCacheDir    = ".cache"
+	KubeflowRepo    = "kubeflow"
+	ManifestsRepo    = "manifests"
 	DefaultConfigDir   = "bootstrap/config"
 	DefaultConfigFile  = "kfctl_default.yaml"
 	GcpIapConfig       = "kfctl_iap.yaml"
@@ -124,15 +130,6 @@ func RemoveItem(defaults []string, name string) []string {
 	return pkgs
 }
 
-func RemoveItems(defaults []string, names ...string) []string {
-	pkgs := make([]string, len(defaults))
-	copy(pkgs, defaults)
-	for _, name := range names {
-		pkgs = RemoveItem(pkgs, name)
-	}
-	return pkgs
-}
-
 // Platforms
 const (
 	GCP      = "gcp"
@@ -165,6 +162,83 @@ func LoadKfApp(name string, kfdef *kfdefs.KfDef) (KfApp, error) {
 		}
 	}
 	return symbol.(func(*kfdefs.KfDef) KfApp)(kfdef), nil
+}
+
+// This function will download a version of kubeflow github repo where version can be
+//   master
+//	 tag
+//	 pull/<ID>[/head]
+// It returns one of the config files under bootstrap/config as a []byte buffer
+func DownloadToCache(appDir string, repo string, version string) (string, error) {
+	if _, err := os.Stat(appDir); os.IsNotExist(err) {
+		appdirErr := os.Mkdir(appDir, os.ModePerm)
+		if appdirErr != nil {
+			log.Errorf("couldn't create directory %v Error %v", appDir, appdirErr)
+		}
+	}
+	cacheDir := path.Join(appDir, DefaultCacheDir)
+	cacheDir = path.Join(cacheDir, repo)
+	// idempotency
+	if _, err := os.Stat(cacheDir); !os.IsNotExist(err) {
+		_ = os.RemoveAll(cacheDir)
+	}
+	cacheDirErr := os.MkdirAll(cacheDir, os.ModePerm)
+	if cacheDirErr != nil {
+		return "", &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("couldn't create directory %v Error %v", cacheDir, cacheDirErr),
+		}
+	}
+	// Version can be
+	// --version master
+	// --version tag
+	// --version pull/<ID>/head
+	if strings.HasPrefix(version, "pull") {
+		if !strings.HasSuffix(version, "head") {
+			version = version + "/head"
+		}
+	}
+	tarballUrl := "https://github.com/kubeflow/" + repo + "/tarball/" + version + "?archive=tar.gz"
+	tarballUrlErr := gogetter.GetAny(cacheDir, tarballUrl)
+	if tarballUrlErr != nil {
+		return "", &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("couldn't download kubeflow repo %v Error %v", tarballUrl, tarballUrlErr),
+		}
+	}
+	files, filesErr := ioutil.ReadDir(cacheDir)
+	if filesErr != nil {
+		return "", &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("couldn't read %v Error %v", cacheDir, filesErr),
+		}
+	}
+	subdir := files[0].Name()
+	extractedPath := filepath.Join(cacheDir, subdir)
+	newPath := filepath.Join(cacheDir, version)
+	if strings.Contains(version, "/") {
+		parts := strings.Split(version, "/")
+		versionPath := cacheDir
+		for i := 0; i < len(parts)-1; i++ {
+			versionPath = filepath.Join(versionPath, parts[i])
+			versionPathErr := os.Mkdir(versionPath, os.ModePerm)
+			if versionPathErr != nil {
+				return "", &kfapis.KfError{
+					Code: int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("couldn't create directory %v Error %v",
+						versionPath, versionPathErr),
+				}
+			}
+		}
+	}
+	renameErr := os.Rename(extractedPath, newPath)
+	if renameErr != nil {
+		return "", &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr),
+		}
+	}
+	return newPath, nil
 }
 
 // TODO(#2586): Consolidate kubeconfig and API calls.
