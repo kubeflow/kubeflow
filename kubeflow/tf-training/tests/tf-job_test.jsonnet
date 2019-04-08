@@ -5,6 +5,7 @@ local paramsv1beta2 = {
   tfDefaultImage:: "null",
   deploymentScope:: "cluster",
   deploymentNamespace:: "null",
+  enableGangScheduling: "false",
 };
 local env = {
   namespace: "test-kf-001",

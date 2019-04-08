@@ -9,6 +9,7 @@
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 // @optionalParam deploymentScope string cluster The scope at which tf-job-operator should be deployed - valid values are cluster, namespace.
 // @optionalParam deploymentNamespace string null The namespace to which tf-job-operator should be scoped. If deploymentScope is set to cluster, this is ignored.
+// @optionalParam enableGangScheduling string false If set true, enable gang scheduling by kube-batch.
 
 local tfJobOperator = import "kubeflow/tf-training/tf-job-operator.libsonnet";
 local instance = tfJobOperator.new(env, params);
