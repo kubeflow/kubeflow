@@ -31,6 +31,8 @@ from tensorflow_serving.apis import input_pb2
 from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2_grpc
 from tensorflow_serving.apis import get_model_metadata_pb2
+from tensorflow_serving.apis import model_service_pb2_grpc
+from tensorflow_serving.apis import get_model_status_pb2
 from tornado import gen
 from tornado.ioloop import IOLoop
 from tornado.options import define, options, parse_command_line
@@ -291,6 +293,28 @@ class IndexHanlder(tornado.web.RequestHandler):
     self.write(WELCOME)
 
 
+class ModelStatusHandler(tornado.web.RequestHandler):
+  @gen.coroutine
+  def get(self, model_name):
+    request = get_model_status_pb2.GetModelStatusRequest()
+    request.model_spec.name = model_name
+
+    stub = self.settings['model_stub']
+    try:
+      result = yield fwrap(stub.GetModelStatus.future(request, self.settings['rpc_timeout']))
+    except grpc.RpcError as rpc_error:
+      logging.exception("GetModelStatus call to model server failed with code "
+                        "%s and message %s", rpc_error.code(), rpc_error.details())
+      self.send_error(500)
+      return
+    if not any(map(lambda s:s.state == get_model_status_pb2.ModelVersionStatus.AVAILABLE,
+      result.model_version_status)):
+      self.send_error(503)
+      logging.exception("No available model %s", model_name)
+      return
+    self.write("Available")
+
+
 def get_application(**settings):
   return tornado.web.Application(
       [
@@ -299,6 +323,7 @@ def get_application(**settings):
       (r"/model/(.*)/version/(.*):classify", ClassifyHandler),
       (r"/model/(.*):predict", PredictHandler),
       (r"/model/(.*):classify", ClassifyHandler),
+      (r"/model/(.*):status", ModelStatusHandler),
       (r"/", IndexHanlder),
       ],
       xsrf_cookies=False,
@@ -313,6 +338,7 @@ def main():
 
   channel = grpc.insecure_channel('%s:%s' % (options.rpc_address, options.rpc_port))
   stub = prediction_service_pb2_grpc.PredictionServiceStub(channel)
+  model_stub = model_service_pb2_grpc.ModelServiceStub(channel)
 
   if options.log_request:
     request_logger = logging.getLogger("RequestLogger")
@@ -327,6 +353,7 @@ def main():
 
   extra_settings = dict(
       stub=stub,
+      model_stub=model_stub,
       signature_map={},
       request_logger=request_logger,
       request_log_prob=options.request_log_prob,
