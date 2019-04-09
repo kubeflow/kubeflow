@@ -104,6 +104,9 @@
       ] + if params.deploymentScope == "namespace" &&
              params.deploymentNamespace != null then [
         "--namespace=" + params.deploymentNamespace,
+      ] else []
+        + if util.toBool(params.enableGangScheduling) then [
+        "--enable-gang-scheduling",
       ] else [],
       env:
         if params.deploymentScope == "namespace" && params.deploymentNamespace != null then [{
@@ -293,6 +296,16 @@
         withVerbsMixin([
         "*",
       ],),
+      tfGangScheduleRule:: rule.new() + rule.
+        withApiGroupsMixin([
+        "scheduling.incubator.k8s.io",
+      ],).
+        withResourcesMixin([
+        "podgroups",
+      ],).
+        withVerbsMixin([
+        "*",
+      ],),
     },
     local role(inst) = {
       local ns =
@@ -319,7 +332,9 @@
         rules.tfBatchRule,
         rules.tfCoreRule,
         rules.tfAppsRule,
-      ],),
+      ] + if util.toBool(params.enableGangScheduling) then [
+        rules.tfGangScheduleRule,
+      ] else []),
     ),
     tfOperatorRole:: tfOperatorRole,
 
