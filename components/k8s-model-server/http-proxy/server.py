@@ -29,7 +29,7 @@ import numpy as np
 from tensorflow_serving.apis import classification_pb2
 from tensorflow_serving.apis import input_pb2
 from tensorflow_serving.apis import predict_pb2
-from tensorflow_serving.apis import prediction_service_pb2
+from tensorflow_serving.apis import prediction_service_pb2_grpc
 from tensorflow_serving.apis import get_model_metadata_pb2
 from tornado import gen
 from tornado.ioloop import IOLoop
@@ -70,7 +70,7 @@ def prepare_classify_requests(instances, model_name, model_version):
   request.model_spec.name = model_name
 
   if model_version is not None:
-    request.model_spec.version = model_version
+    request.model_spec.version.value = int(model_version)
 
   instance_examples = []
   for instance in instances:
@@ -118,10 +118,10 @@ def decode_b64_if_needed(data):
   if isinstance(data, list):
     return [decode_b64_if_needed(val) for val in data]
   elif isinstance(data, dict):
-    if data.viewkeys() == {"b64"}:
+    if data.keys() == {"b64"}:
       return base64.b64decode(data["b64"])
     else:
-      return {k: decode_b64_if_needed(v) for k, v in data.iteritems()}
+      return {k: decode_b64_if_needed(v) for k, v in data.items()}
   else:
     return data
 
@@ -155,7 +155,7 @@ def get_signature_map(model_server_stub, model_name):
   # Delete incomplete signatures without input dtypes.
   invalid_signatures = []
   for signature_name in signature_def_map:
-    for tensor in signature_def_map[signature_name].inputs.itervalues():
+    for tensor in signature_def_map[signature_name].inputs.values():
       if not tensor.dtype:
         logging.warn("Signature %s has incomplete dtypes, removing from "
                      "usable signatures", signature_name)
@@ -217,7 +217,7 @@ class PredictHandler(tornado.web.RequestHandler):
   `Map<strinbg, tf.Tensor>` protobuf. Defined here https://github.com/tensorflow/serving/blob/master/tensorflow_serving/apis/prediction_service.proto#L23
   """
   @gen.coroutine
-  def post(self, model_name, version_name=None):
+  def post(self, model_name, model_version=None):
     if not self.settings['signature_map'].get(model_name):
       self.settings['signature_map'][model_name] = get_signature_map(self.settings['stub'], model_name)
 
@@ -239,8 +239,8 @@ class PredictHandler(tornado.web.RequestHandler):
     request.model_spec.name = model_name
     request.model_spec.signature_name = signature_name_used
 
-    if version_name is not None:
-      request.model_spec.version = version_name
+    if model_version is not None:
+      request.model_spec.version.value = int(model_version)
     
     inputs_type_map = signature.inputs
     for input_column in input_columns:
@@ -295,10 +295,10 @@ def get_application(**settings):
   return tornado.web.Application(
       [
       (r"/model/(.*):metadata", MetadataHandler),
-      (r"/model/(.*):predict", PredictHandler),
-      (r"/model/(.*):classify", ClassifyHandler),
       (r"/model/(.*)/version/(.*):predict", PredictHandler),
       (r"/model/(.*)/version/(.*):classify", ClassifyHandler),
+      (r"/model/(.*):predict", PredictHandler),
+      (r"/model/(.*):classify", ClassifyHandler),
       (r"/", IndexHanlder),
       ],
       xsrf_cookies=False,
@@ -311,8 +311,8 @@ def get_application(**settings):
 def main():
   parse_command_line()
 
-  channel = implementations.insecure_channel(options.rpc_address, options.rpc_port)
-  stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
+  channel = grpc.insecure_channel('%s:%s' % (options.rpc_address, options.rpc_port))
+  stub = prediction_service_pb2_grpc.PredictionServiceStub(channel)
 
   if options.log_request:
     request_logger = logging.getLogger("RequestLogger")
@@ -326,10 +326,10 @@ def main():
     request_logger = None
 
   extra_settings = dict(
-      stub = stub,
-      signature_map = {},
-      request_logger = request_logger,
-      request_log_prob = options.request_log_prob,
+      stub=stub,
+      signature_map={},
+      request_logger=request_logger,
+      request_log_prob=options.request_log_prob,
   )
   app = get_application(**extra_settings)
   app.listen(options.port)
