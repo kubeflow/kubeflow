@@ -6,6 +6,7 @@ local params = {
   csiControllerImage: "amazon/aws-fsx-csi-driver:latest",
   csiProvisionerImage: "quay.io/k8scsi/csi-provisioner:v0.4.2",
   csiAttacherImage: "quay.io/k8scsi/csi-attacher:v0.4.2",
+  namespace: "null"
 };
 
 local env = {
