@@ -145,7 +145,6 @@ def prepare_request_data(args, deployment):
       "Token": access_token,
       "Zone": getZone(args, deployment)
   }
-  logging.info("request data: %s", request_data)
   return request_data
 
 
@@ -309,7 +308,7 @@ def check_deploy_status(args, deployments):
 
   for deployment in success_deploy:
     try:
-      ssl_local_dir = os.path.join(SSL_DIR, deployment)
+      ssl_local_dir = os.path.join(SSL_DIR, args.project, deployment)
       try:
         os.makedirs(ssl_local_dir)
       except OSError as exc:  # Python >2.5
@@ -440,6 +439,8 @@ def clean_up_resource(args, deployments):
     except Exception:
       logging.info("Failed listing current deployments, retry in 10 seconds")
 
+  # Delete forwarding-rules
+  delete_gcloud_resource(args, 'forwarding-rules', dlt_params=['--global'])
   # Delete target-http-proxies
   delete_gcloud_resource(args, 'target-http-proxies')
   # Delete target-http-proxies
