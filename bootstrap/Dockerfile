@@ -32,6 +32,7 @@ RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 # kfctl_base
 #
 FROM bootstrap_base as kfctl_base
+ARG VERSION=""
 
 RUN apt-get install unzip
 WORKDIR ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
@@ -42,12 +43,15 @@ RUN ${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v2/pkg/
 RUN go generate ./config/... ./pkg/apis/... ./pkg/utils/... ./pkg/kfapp/... ./cmd/kfctl/...
 RUN go fmt ./config/... ./pkg/apis/... ./pkg/utils/... ./pkg/kfapp/... ./cmd/kfctl/...
 RUN go vet ./config/... ./pkg/apis/... ./pkg/utils/... ./pkg/kfapp/... ./cmd/kfctl/...
-RUN go build -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
+RUN go build -gcflags 'all=-N -l' -ldflags "-X main.VERSION=${VERSION}" -o bin/kfctl cmd/kfctl/main.go
 
 #
 # kfctl
 #
 FROM golang:${GOLANG_VERSION} as kfctl
+
+RUN apt-get update
+RUN apt-get install -y upx
 
 ENV PATH ${GOPATH}/bin:/usr/local/go/bin:${PATH}
 RUN mkdir -p /opt/kubeflow
