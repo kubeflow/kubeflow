@@ -146,7 +146,7 @@ def decode_b64_if_needed(data):
     return [decode_b64_if_needed(val) for val in data]
   elif isinstance(data, dict):
     if data.keys() == {"b64"}:
-      return base64.b64decode(data["b64"])
+      return base64.b64decode(data["b64"].encode('ascii')).decode('utf-8')
     else:
       return {k: decode_b64_if_needed(v) for k, v in data.items()}
   else:

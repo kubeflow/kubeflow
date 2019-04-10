@@ -38,7 +38,7 @@ def predict_template(data):
 
 @pytest.fixture
 def raw_predict_payload(mock_data):
-  return predict_template({'b64': base64.b64encode(mock_data)})
+  return predict_template({'b64': base64.b64encode(mock_data.encode('utf-8')).decode('ascii')})
 
 
 @pytest.fixture
@@ -71,7 +71,7 @@ def test_base64_not_doing_extra_3(mock_data):
 def test_index_success(app, http_client, base_url):
   response = yield http_client.fetch(base_url)
   assert response.code == 200
-  assert WELCOME in response.body
+  assert WELCOME in response.body.decode('utf-8')
 
 
 @pytest.mark.gen_test
@@ -98,6 +98,6 @@ def test_predict_with_post_without_payload(http_client, base_url, io_loop):
   def test_gen():
     with pytest.raises(Exception) as e:
       yield http_client.fetch('%s/model/name:predict' % base_url, method='POST')
-    assert 'Body must not be None for method POST' in e.value.message
+    assert 'Body must not be None for method POST' in str(e.value)
 
   io_loop.run_sync(test_gen)
