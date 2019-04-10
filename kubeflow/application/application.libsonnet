@@ -369,16 +369,15 @@
     applicationController:: applicationController,
 
     parts:: self,
-    all:: std.flattenArrays(
-      [
-        self.applicationCRD,
-        self.applicationConfigMap,
-        self.applicationDeployment,
-        self.applicationService,
-        self.applicationController,
-        self.application,
-      ],
-    ),
+    local all = [
+      self.applicationCRD,
+      self.applicationConfigMap,
+      self.applicationDeployment,
+      self.applicationService,
+      self.applicationController,
+      self.application,
+    ],
+    all:: all,
 
     list(obj=self.all):: util.list(obj),
   },
