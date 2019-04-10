@@ -4,6 +4,7 @@
 # TODO change repo on the fly: set it to local tmp dir containing kubeflow registry
 repo: /path/to/local/tmp/containing/kubeflow
 packages:
+  - application
   - argo
   - common
   - examples
@@ -39,6 +40,7 @@ components:
   - spartakus
   - tensorboard
   - tf-job-operator
+  - application
 componentParams:
   cert-manager:
     - name: acmeEmail

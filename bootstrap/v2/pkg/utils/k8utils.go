@@ -14,12 +14,12 @@ limitations under the License.
 package utils
 
 import (
-	"bytes"
 	"encoding/json"
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"k8s.io/client-go/v2/restmapper"
+	"regexp"
 	"strings"
 
 	"k8s.io/apimachinery/v2/pkg/runtime/schema"
@@ -36,7 +36,7 @@ import (
 )
 
 const (
-	yamlSeparator = "---"
+	yamlSeparator = "(?m)^---[ \t]*$"
 )
 
 // TODO COPIED from bootstrap/app/k8sUtil.go. Need to merge.
@@ -58,10 +58,12 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 	if err != nil {
 		return err
 	}
-	objects := bytes.Split(data, []byte(yamlSeparator))
+	splitter := regexp.MustCompile(yamlSeparator)
+	objects := splitter.Split(string(data), -1)
+
 	var o map[string]interface{}
 	for _, object := range objects {
-		if err = yaml.Unmarshal(object, &o); err != nil {
+		if err = yaml.Unmarshal([]byte(object), &o); err != nil {
 			return err
 		}
 		a := o["apiVersion"]

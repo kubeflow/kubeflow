@@ -69,6 +69,7 @@ type kustomize struct {
 	out        *os.File
 	err        *os.File
 	componentMap map[string]string
+	packageMap map[string]bool
 	restConfig *rest.Config
 	apiConfig  *clientcmdapi.Config
 }
@@ -99,8 +100,12 @@ func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
 		fsys:       fs.MakeRealFS(),
 		out:        os.Stdout,
 		err:        os.Stderr,
+		packageMap: make(map[string]bool),
 	}
 	if _kustomize.Spec.ManifestsRepo != "" {
+		for _, packageName := range _kustomize.Spec.Packages {
+			_kustomize.packageMap[packageName] = true
+		}
 		_kustomize.componentMap = _kustomize.mapDirs(_kustomize.Spec.ManifestsRepo, true, make(map[string]string))
 	}
 	// build restConfig and apiConfig using $HOME/.kube/config if the file exist
@@ -137,7 +142,77 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	return utilsv2.CreateResourceFromFile(kustomize.restConfig, kustomizeFile)
 }
 
+func (kustomize *kustomize) deleteGlobalResources() error {
+	apiextclientset := kftypesv2.GetApiExtClientset(kustomize.restConfig)
+	do := &metav1.DeleteOptions{}
+	lo := metav1.ListOptions{
+		LabelSelector: kftypes.DefaultAppLabel + "=" + kustomize.Name,
+	}
+	crdsErr := apiextclientset.CustomResourceDefinitions().DeleteCollection(do, lo)
+	if crdsErr != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("couldn't delete customresourcedefinitions Error: %v", crdsErr),
+		}
+	}
+	crdsByName := []string{
+		"compositecontrollers.metacontroller.k8s.io",
+		"controllerrevisions.metacontroller.k8s.io",
+		"decoratorcontrollers.metacontroller.k8s.io",
+		"applications.app.k8s.io",
+	}
+	for _, crd := range crdsByName {
+		do := &metav1.DeleteOptions{}
+		dErr := apiextclientset.CustomResourceDefinitions().Delete(crd, do)
+		if dErr != nil {
+			log.Errorf("could not delete %v Error %v", crd, dErr)
+		}
+	}
+	clientset := kftypesv2.GetClientset(kustomize.restConfig)
+	crbsErr := clientset.RbacV1().ClusterRoleBindings().DeleteCollection(do, lo)
+	if crbsErr != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("couldn't get list of clusterrolebindings Error: %v", crbsErr),
+		}
+	}
+	crbName := "meta-controller-cluster-role-binding"
+	dErr := clientset.RbacV1().ClusterRoleBindings().Delete(crbName, do)
+	if dErr != nil {
+		log.Errorf("could not delete %v Error %v", crbName, dErr)
+	}
+	crsErr := clientset.RbacV1().ClusterRoles().DeleteCollection(do, lo)
+	if crsErr != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("couldn't delete clusterroles Error: %v", crsErr),
+		}
+	}
+	return nil
+}
+
 func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
+	if kustomize.restConfig == nil || kustomize.apiConfig == nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: "Error: nil restConfig or apiConfig, exit",
+		}
+	}
+	clientset := kftypesv2.GetClientset(kustomize.restConfig)
+    kustomize.deleteGlobalResources()
+
+	namespace := kustomize.ObjectMeta.Namespace
+	log.Infof("deleting namespace: %v", namespace)
+	ns, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	if nsMissingErr == nil {
+		nsErr := clientset.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
+		if nsErr != nil {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("couldn't delete namespace %v Error: %v", namespace, nsErr),
+			}
+		}
+	}
 	return nil
 }
 
@@ -227,7 +302,11 @@ func (kustomize *kustomize) mapDirs(dirPath string, root bool, leafMap map[strin
 		}
 	}
 	if !hasDir && !root {
-		leafMap[path.Base(dirPath)] = extractSuffix(kustomize.Spec.ManifestsRepo, dirPath)
+		componentPath := extractSuffix(kustomize.Spec.ManifestsRepo, dirPath)
+		_, inPackages := kustomize.packageMap[strings.Split(componentPath, "/")[0]]
+		if inPackages {
+			leafMap[path.Base(dirPath)] = componentPath
+		}
 	}
 	return leafMap
 }
@@ -312,7 +391,7 @@ func (kustomize *kustomize) updateParamFiles() error {
 }
 
 func readLines(path string) ([]string, error) {
-	file, err := os.Open(path)
+	var file, err = os.Open(path)
 	if err != nil {
 		return nil, err
 	}
