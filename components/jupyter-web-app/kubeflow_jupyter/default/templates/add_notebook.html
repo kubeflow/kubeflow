@@ -1,0 +1,284 @@
+{% extends "layout.html" %}
+{% block javascript %}
+{{ super() }}
+  <script type="text/javascript">
+    var formDefaults = JSON.parse('{{ form_defaults | tojson | safe}}');
+    var username = "notebook"
+    var namespace = "{{ ns }}"
+    var existingPVCs = JSON.parse('{{ existing_pvcs | tojson | safe}}');
+    var default_storage_class = "{{ default_storage_class }}"
+  </script>
+  <script src="{{ prefix + url_for('static', filename='js/add_notebook.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<form id="spawn-form" method="POST" action="">
+  <div class='parent'>
+
+    <div class='spacer'></div>
+    <div class="submit-card mdl-card mdl-shadow--8dp round">
+
+      <!-- Top Media Header -->
+      <div class="mdl-card__media card-header round-top">
+        <div class="mdl-card__title white">
+          <h3 class="mdl-card__title-text">New Notebook Server</h3>
+        </div>
+      </div>
+
+      <!-- Input Form -->
+      <div class="mdl-card__supporting-text">
+        <div class="card-cont">
+
+          <!-- Name -->
+          <h5><i class="fas fa-book"></i>Name</h5>
+          <p class="text-muted nopad">
+              Specify the name of the Notebook Server and the Namespace it will belong to.
+          </p>
+          <!-- Text Inputs -->
+          <div id="name-input-div"
+                class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide">
+            <input class="mdl-textfield__input" type="text"
+                    id="nm-inp" name="nm" data-required='true'>
+
+            <label class="mdl-textfield__label" for="nm-inp">Notebook Server's Name
+            </label>
+          </div>
+
+          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide">
+            <input class="mdl-textfield__input" type="text" data-required="true"
+                    oninvalid="this.setCustomValidity('Please enter the Namespace for the Server')"
+                    id="ns-inp" name="ns" value="{{ ns }}">
+            <label class="mdl-textfield__label" for="ns-inp">Namespace</label>
+          </div>
+          <br/>
+
+          <!-- Image -->
+          <h5><i class="fab fa-docker"></i>Image</h5>
+          <p class="text-muted nopad">
+            A starter Jupyter Docker Image with a baseline deployment and typical ML packages.
+          </p>
+
+          <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect"
+                  for="option_standard" id="custom-radio">
+            <input type="radio" class="mdl-radio__button"
+                    name="imageType" value="standard" id="option_standard"
+                    onclick="setImageType()" checked>
+            <span class="mdl-radio__label">Standard</span>
+          </label>
+          <!-- Radio Button Custom -->
+          <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect"
+                  for="option_custom" id="standard-radio">
+            <input type="radio" class="mdl-radio__button"
+                    id="option_custom" name="imageType"
+                    value="custom" onclick="setImageType()">
+            <span class="mdl-radio__label">Custom</span>
+          </label>
+
+          <br/>
+          <div class="down"></div>
+
+          <!-- Image Selector -->
+          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide"
+                id="img-sel-div">
+            <select class="mdl-textfield__input"
+                    id="standardImages" name="standardImages" data-required="true">
+            </select>
+            <label class="mdl-textfield__label" for="standardImages">Image</label>
+          </div>
+
+          <!-- Custom image  -->
+          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide"
+                id="cstm-inp-div">
+            <input class="mdl-textfield__input" type="text" data-required="true"
+                    id="customImage" name="customImage" placeholder="repo/image:tag"
+                    oninvalid="this.setCustomValidity('Select the Custom Image for the Notebook')">
+            <label class="mdl-textfield__label" for="customImage">Custom Image</label>
+          </div>
+
+          <!-- CPU -->
+          <!-- Input Form -->
+          <h5><i class="fas fa-microchip"></i>CPU</h5>
+          <p class="text-muted nopad">
+            Specify the total amount of CPU reserved by your Notebook Server.
+            For CPU-intensive workloads, you can choose more than 1 CPU
+            (e.g. <span><code>1.5</code></span>).
+          </p>
+
+          <!-- Text Inputs -->
+          <div id="cpu-input-div"
+                class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide">
+            <input class="mdl-textfield__input" type="text"
+                    id='cpu' name='cpu' placeholder='200m, 2.5, etc'
+                    data-required='true'>
+            <label class="mdl-textfield__label" for="cpu">CPU
+            </label>
+          </div>
+
+          <!-- Memory -->
+          <h5><i class="fas fa-memory"></i>Memory</h5>
+          <p class="text-muted nopad">
+            Specify the total amount of RAM reserved by your Notebook Server
+            (e.g. <span><code>2.0Gi</code></span>).
+          </p>
+          <!-- Text Inputs -->
+          <div id="memory-input-div"
+                class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide">
+            <input class="mdl-textfield__input" type="text"
+                    id='memory' name='memory' placeholder='100Mi, 1.5Gi, etc'
+                    data-required='true'>
+            <label class="mdl-textfield__label" for="memory">Memory
+            </label>
+          </div>
+
+          <!-- Workspace Volumes -->
+          <h5><i class="fas fa-laptop-code"></i>Workspace Volume</h5>
+          <p class="text-muted nopad">
+            Configure the Volume to be mounted as your personal Workspace.</br>
+            For example, to create an empty Workspace:
+            <span><code>New</code></span>
+            <span><code>notebook-workspace</code></span>,
+            <span><code>10</code></span>,
+            <span><code>/home/jovyan</code></span>,
+            <span><code>ReadWriteOnce</code></span>
+          </p>
+
+          <div class="mdl-grid wide" style="padding: 0 0 0 0">
+            <!-- New - Existing select -->
+            <div class="mdl-cell mdl-cell--1-col" style="width: 10%">
+              <div class="mdl-textfield mdl-js-textfield
+                          mdl-textfield--floating-label wide"
+                    id="workspace-sel-div">
+                <select class="mdl-textfield__input"
+                        id="ws_type" name="ws_type" data-required="true">
+                  <option value="New" selected>New</option>
+                  <option value="Existing">Existing</option>
+                  <option value="None">None</option>
+                </select>
+                <label class="mdl-textfield__label" for="ws_type">Type</label>
+              </div>
+            </div>
+            <!-- Name Input -->
+            <div class="mdl-cell mdl-cell--1-col" style="width: 30%">
+              <div id="wsname-input-div"
+                    class="mdl-textfield mdl-js-textfield
+                          mdl-textfield--floating-label wide">
+                <input class="mdl-textfield__input" type="text"
+                        id="ws_name" name="ws_name" data-required='true'
+                        value="workspace-volume">
+                <label class="mdl-textfield__label" for="ws_name">Name</label>
+              </div>
+            </div>
+            <!-- Size Input -->
+            <div class="mdl-cell mdl-cell--1-col" style="width: 5%">
+              <div id="size-input-div"
+                      class="mdl-textfield mdl-js-textfield
+                            mdl-textfield--floating-label wide">
+                  <input class="mdl-textfield__input" type="number" step="0.5"
+                          id="ws_size" name="ws_size" data-required='true'
+                          value=10>
+                  <label class="mdl-textfield__label" for="ws_size">Size (Gi)</label>
+                </div>
+              </div>
+            <!-- Mount Path -->
+            <div class="mdl-cell mdl-cell--1-col" style="width: 25%">
+              <div id="mountpath-input-div"
+                    class="mdl-textfield mdl-js-textfield
+                          mdl-textfield--floating-label wide">
+                <input class="mdl-textfield__input" type="text"
+                        id="ws_mount_path" name="ws_mount_path" data-required='true'
+                        value="/home/jovyan">
+                <label class="mdl-textfield__label" for="ws_mount_path">Mount Path
+                </label>
+              </div>
+            </div>
+            <!-- Access Mode select -->
+            <div class="mdl-cell mdl-cell--1-col" style="width: 15%">
+              <div class="mdl-textfield mdl-js-textfield
+                          mdl-textfield--floating-label wide"
+                    id="access-sel-div">
+                <select class="mdl-textfield__input"
+                        id="ws_access_modes" name="ws_access_modes"
+                        data-required="true">
+                  <option value="ReadWriteOnce" selected>ReadWriteOnce</option>
+                  <option value="ReadWriteMany">ReadWriteMany</option>
+                  <option value="ReadOnlyMany">ReadOnlyMany</option>
+                </select>
+                <label class="mdl-textfield__label" for="ws_type">Access Mode</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error message when None Workspace Volume is selected -->
+          {% if not default_storage_class %}
+          <div id="error-msg-vol" class="wide" style="display: none">
+            <div class="alert alert-warning">
+              <strong>Warning!</strong> You cannot create new Volumes, use only
+              existing ones. Contact your cluster administrator for more details.
+            </div>
+          </div>
+          {% else %}
+          <div id="error-msg-vol" class="wide" style="display: none">
+            <div class="alert alert-warning">
+              <strong>Warning!</strong> Your workspace will not be persistent.
+              You will lose all data in it, if your notebook is terminated for
+              any reason.
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Data Volumes -->
+          <h5><i class="far fa-hdd"></i>Data Volumes</h5>
+          <p class="text-muted" style="padding: 10px;">
+            Configure the Volumes to be mounted as your Datasets.</br>
+            For example, to create an empty Data Volume:
+            <span><code>New</code></span>,
+            <span><code>data-volume-1</code></span>,
+            <span><code>5</code></span>,
+            <span><code>/home/jovyan/data-volume-1</code></span>,
+            <span><code>ReadWriteOnce</code></span>
+          </p>
+          <button class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored"
+                  type="button" onclick="addVolume()" id="add_volume">
+            <i class="material-icons">add_circle</i>  <!-- class="material-icons"-->
+          </button>
+
+          <!-- Data Volumes are added here -->
+          <div id="data_volumes">
+          </div>
+
+          <h5><i class="fas fa-cogs"></i>Extra Resources</h5>
+          <p class="text-muted nopad">
+            Reserve additional resources.</br>
+            For example, to reserve 2 GPUs: <span><code>{"nvidia.com/gpu": 2}</code></span>
+          </p>
+          <!-- Text Inputs -->
+          <div id="name-input-div"
+                class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide">
+            <input class="mdl-textfield__input" type="text"
+                    id="extraResources" name="extraResources"
+                    placeholder='{"nvidia.com/gpu": 2}' data-required="true">
+            <label class="mdl-textfield__label" for="nm-inp">Extra Resources
+            </label>
+          </div>
+          <br/>
+        </div>
+      </div>
+
+      <div class="mdl-card__actions">
+        <button type="submit" id="spawn-btn"
+                class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+        SPAWN
+        </button>
+
+        <button type="button" id="cancel-btn"
+                class="mdl-button mdl-js-button mdl-button--raised"
+                onclick="location.href='{{ prefix }}' + '/?namespace=' + namespace">
+          CANCEL
+        </button>
+      </div>
+    </div>
+    <div class='spacer'></div>
+
+  </div>
+</form>
+{% endblock content %}

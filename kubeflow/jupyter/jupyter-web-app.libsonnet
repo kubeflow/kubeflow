@@ -60,6 +60,11 @@
           resources: ["storageclasses"],
           verbs: ["get", "list"],
         },
+        {
+          apiGroups: [""],
+          resources: ["secrets"],
+          verbs: ["get", "list"],
+        },
       ]
     },
 
@@ -81,6 +86,97 @@
         name: params.name + "-cluster-role",
         apiGroup: "rbac.authorization.k8s.io",
       },
+    },
+    
+    notebookRole:: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "Role",
+      metadata: {
+        name: "jupyter-notebook-role",
+        namespace: params.namespace,
+      },
+      rules: [
+        {
+          apiGroups: [
+            "",
+          ],
+          resources: [
+            "pods",
+            "pods/log",
+            "secrets",
+            "services",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "",
+            "apps",
+            "extensions",
+          ],
+          resources: [
+            "deployments",
+            "replicasets",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "kubeflow.org",
+          ],
+          resources: [
+            "*",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "batch",
+          ],
+          resources: [
+            "jobs",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+      ],
+    },
+    
+    notebookServiceAccount:: {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: "jupyter-notebook",
+        namespace: params.namespace,
+      },
+    },
+    
+    notebookRoleBinding:: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "RoleBinding",
+      metadata: {
+        name: "jupyter-notebook-role-binding",
+        namespace: params.namespace,
+      },
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "Role",
+        name: "jupyter-notebook-role",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "jupyter-notebook",
+          namespace: params.namespace,
+        },
+      ],
     },
 
     svc:: {
@@ -148,7 +244,16 @@
             containers: [{
               name: params.name,
               image: params.image,
-              workingDir: "/app/" + params.ui,
+              env: std.prune([
+                {
+                  name: "ROK_SECRET_NAME",
+                  value: params.rokSecretName,
+                },
+                {
+                  name: "UI",
+                  value: params.ui,
+                },
+              ]),
               volumeMounts: [
                 {
                   mountPath: "/etc/config",
@@ -181,6 +286,9 @@
       self.serviceAccount,
       self.clusterRoleBinding,
       self.clusterRole,
+      self.notebookServiceAccount,
+      self.notebookRole,
+      self.notebookRoleBinding,
       ],
 
     list(obj=self.all):: util.list(obj),

@@ -214,6 +214,7 @@ local testCases = [
           resources: [
             "pods",
             "pods/log",
+            "secrets",
             "services",
           ],
           verbs: [

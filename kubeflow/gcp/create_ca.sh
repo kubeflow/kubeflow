@@ -100,5 +100,16 @@ patchString='[{"op": "replace", "path": "/webhooks/0/clientConfig/caBundle", "va
 patchString=`echo ${patchString} | sed "s|{{CA_BUNDLE}}|${caBundle}|g"`
 echo ${patchString}
 
-kubectl patch mutatingwebhookconfiguration gcp-cred-webhook \
-    --type='json' -p="${patchString}"
+checkWebhookConfig() {
+  currentBundle=$(kubectl get mutatingwebhookconfigurations -n ${namespace} gcp-cred-webhook -o jsonpath='{.webhooks[0].clientConfig.caBundle}')
+  [[ "$currentBundle" == "$caBundle" ]]
+}
+
+while true; do
+  if ! checkWebhookConfig; then
+    echo "patching ca bundle for webhook configuration..."
+    kubectl patch mutatingwebhookconfiguration gcp-cred-webhook \
+        --type='json' -p="${patchString}"
+  fi
+  sleep 10
+done

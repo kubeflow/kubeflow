@@ -83,6 +83,12 @@
                 command: [
                   "/manager",
                 ],
+                env: if util.toBool(params.injectGcpCredentials) then [
+                  {
+                    name: "POD_LABELS",
+                    value: "gcp-cred-secret=user-gcp-sa,gcp-cred-secret-filename=user-gcp-sa.json",
+                  },
+                ] else [],
               },
             ],
           },
