@@ -17,6 +17,7 @@ package apps
 
 import (
 	"fmt"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"io"
@@ -38,19 +39,19 @@ import (
 const (
 	DefaultNamespace = "kubeflow"
 	// TODO: find the latest tag dynamically
-	DefaultVersion    = "master"
-	DefaultGitRepo    = "https://github.com/kubeflow/kubeflow/tarball"
-	KfConfigFile      = "app.yaml"
-	DefaultCacheDir   = ".cache"
-	DefaultConfigDir  = "bootstrap/config"
-	DefaultConfigFile = "kfctl_default.yaml"
-	GcpIapConfig      = "kfctl_iap.yaml"
-	GcpBasicAuth      = "kfctl_basic_auth.yaml"
-	DefaultZone       = "us-east1-d"
-	DefaultGkeApiVer  = "v1beta1"
-	DefaultAppLabel   = "app.kubernetes.io/name"
-	KUBEFLOW_USERNAME = "KUBEFLOW_USERNAME"
-	KUBEFLOW_PASSWORD = "KUBEFLOW_PASSWORD"
+	DefaultVersion     = "master"
+	DefaultGitRepo     = "https://github.com/kubeflow/kubeflow/tarball"
+	KfConfigFile       = "app.yaml"
+	DefaultCacheDir    = ".cache"
+	DefaultConfigDir   = "bootstrap/config"
+	DefaultConfigFile  = "kfctl_default.yaml"
+	GcpIapConfig       = "kfctl_iap.yaml"
+	GcpBasicAuth       = "kfctl_basic_auth.yaml"
+	DefaultZone        = "us-east1-d"
+	DefaultGkeApiVer   = "v1beta1"
+	DefaultAppLabel    = "app.kubernetes.io/name"
+	KUBEFLOW_USERNAME  = "KUBEFLOW_USERNAME"
+	KUBEFLOW_PASSWORD  = "KUBEFLOW_PASSWORD"
 	DefaultSwaggerFile = "bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json"
 )
 
@@ -143,12 +144,18 @@ func LoadKfApp(client *kfdefs.KfDef) (KfApp, error) {
 	pluginpath := filepath.Join(plugindir, platform+".so")
 	p, err := plugin.Open(pluginpath)
 	if err != nil {
-		return nil, fmt.Errorf("could not load plugin %v for platform %v Error %v", pluginpath, platform, err)
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("could not load plugin %v for platform %v Error %v", pluginpath, platform, err),
+		}
 	}
 	symName := "GetKfApp"
 	symbol, symbolErr := p.Lookup(symName)
 	if symbolErr != nil {
-		return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr),
+		}
 	}
 	return symbol.(func(*kfdefs.KfDef) KfApp)(client), nil
 }
@@ -249,6 +256,13 @@ func Capture() func() (string, error) {
 		os.Stdout = save
 		_ = w.Close()
 		err := <-done
-		return buf.String(), err
+		if err == nil {
+			return buf.String(), nil
+		} else {
+			return "", &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: err.Error(),
+			}
+		}
 	}
 }

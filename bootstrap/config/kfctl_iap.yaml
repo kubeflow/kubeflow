@@ -14,7 +14,6 @@ packages:
   - modeldb
   - mpi-job
   - pipeline
-  - profiles
   - pytorch-job
   - seldon
   - tensorboard
@@ -34,7 +33,6 @@ components:
   - metacontroller
   - notebook-controller
   - pipeline
-  - profiles
   - pytorch-operator
   - spartakus
   - tensorboard
@@ -69,4 +67,7 @@ componentParams:
     - name: reportUsage
       value: "true"
       initRequired: true
+  notebook-controller:
+    - name: injectGcpCredentials
+      value: "true"
 platform: gcp
