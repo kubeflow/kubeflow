@@ -17,10 +17,16 @@ package apps
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"plugin"
+	"regexp"
+	"strings"
+
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
-	"io"
 	ext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	crdclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apiext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
@@ -29,17 +35,12 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"os"
-	"path/filepath"
-	"plugin"
-	"regexp"
-	"strings"
 )
 
 const (
 	DefaultNamespace = "kubeflow"
 	// TODO: find the latest tag dynamically
-	DefaultVersion     = "master"
+	DefaultVersion     = "v0.5.0"
 	DefaultGitRepo     = "https://github.com/kubeflow/kubeflow/tarball"
 	KfConfigFile       = "app.yaml"
 	DefaultCacheDir    = ".cache"
