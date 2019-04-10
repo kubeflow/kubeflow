@@ -127,10 +127,18 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 			if result.Scope.Name() == "namespace" {
 				request = request.Namespace(namespace)
 			}
-			_, err = request.DoRaw()
-			if err != nil {
-				return err
+			if kind == "CustomResourceDefinition" {
+				result := request.Do()
+				if result.Error() != nil {
+					return result.Error()
+				}
+			} else {
+				_, err := request.DoRaw()
+				if err != nil {
+					return err
+				}
 			}
+
 		} else {
 			log.Warnf("object with kind %v has no name\n", metadata["kind"])
 		}
