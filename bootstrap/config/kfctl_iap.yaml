@@ -1,0 +1,74 @@
+# Config entry used for deploying on GCP with IAP enabled
+# Load this file as object (KsonnetSpec)[https://github.com/kubeflow/kubeflow/blob/master/bootstrap/pkg/apis/apps/ksonnet/v1alpha1/application_types.go#L201]
+# All TODO fields need to be changed following user's input before apply
+# TODO change repo on the fly: set it to local tmp dir containing kubeflow registry
+repo: /path/to/local/tmp/containing/kubeflow
+packages:
+  - argo
+  - common
+  - examples
+  - gcp
+  - jupyter
+  - katib
+  - metacontroller
+  - modeldb
+  - mpi-job
+  - pipeline
+  - pytorch-job
+  - seldon
+  - tensorboard
+  - tf-serving
+  - tf-training
+components:
+# ordering is important
+  - metacontroller
+  - ambassador
+  - argo
+  - centraldashboard
+  - cert-manager
+  - cloud-endpoints
+  - gcp-credentials-admission-webhook
+  - gpu-driver
+  - iap-ingress
+  - jupyter-web-app
+  - katib
+  - notebook-controller
+  - pipeline
+  - pytorch-operator
+  - spartakus
+  - tensorboard
+  - tf-job-operator
+componentParams:
+  cert-manager:
+    - name: acmeEmail
+      # TODO change value on the fly: use your email for ssl cert
+      value: johnDoe@acme.com
+      initRequired: true
+  iap-ingress:
+    - name: ipName
+      # TODO change value on the fly: value of ipName need to match resource name in deployment entry.
+      value: ipName
+      initRequired: true
+    - name: hostname
+      # TODO change value on the fly: replace with user-provide parameters. This need to be fully qualified domain name to use with ingress.
+      value: <deployName>.endpoints.<project>.cloud.goog
+      initRequired: true
+  cloud-endpoints:
+    - name: secretName
+      value: admin-gcp-sa
+  pipeline:
+    - name: mysqlPd
+      value: <deployName>-storage-metadata-store
+    - name: minioPd
+      value: <deployName>-storage-artifact-store
+  spartakus:
+    - name: usageId
+      value: <randomly-generated-id>
+      initRequired: true
+    - name: reportUsage
+      value: "true"
+      initRequired: true
+  notebook-controller:
+    - name: injectGcpCredentials
+      value: "true"
+platform: gcp

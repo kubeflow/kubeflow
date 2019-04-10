@@ -154,10 +154,9 @@
 
     local issuerLEProd = {
       apiVersion: "certmanager.k8s.io/v1alpha1",
-      kind: "Issuer",
+      kind: "ClusterIssuer",
       metadata: {
         name: "letsencrypt-prod",
-        namespace: params.namespace,
       },
       spec: {
         acme: {

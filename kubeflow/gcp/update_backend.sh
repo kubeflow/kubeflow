@@ -32,7 +32,16 @@ done
 # load balancer. It will default the healthcheck request path to a value of
 # / instead of the intended /healthz.
 # Manually update the healthcheck request path to /healthz
-gcloud --project=${PROJECT} compute health-checks update http ${HEALTH_CHECK_URI} --request-path=/healthz
+if [[ ${HEALTHCHECK_PATH} ]]; then
+  gcloud --project=${PROJECT} compute health-checks update http ${HEALTH_CHECK_URI} --request-path=${HEALTHCHECK_PATH}
+else
+  gcloud --project=${PROJECT} compute health-checks update http ${HEALTH_CHECK_URI} --request-path=/healthz
+fi
+
+if [[ ${USE_ISTIO} ]]; then
+  # Create the route so healthcheck can pass
+  kubectl apply -f /var/envoy-config/healthcheck_route.yaml
+fi
 
 # Since JupyterHub uses websockets we want to increase the backend timeout
 echo Increasing backend timeout for JupyterHub

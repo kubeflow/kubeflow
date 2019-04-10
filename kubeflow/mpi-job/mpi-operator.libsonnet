@@ -1,8 +1,11 @@
-local k = import "k.libsonnet";
-
 {
-  parts:: {
-    crd:: {
+  local k = import "k.libsonnet",
+  local util = import "kubeflow/common/util.libsonnet",
+
+  new(_env, _params):: {
+    local params = _params + _env,
+
+    local mpiJobCrd = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -74,12 +77,23 @@ local k = import "k.libsonnet";
         },
       },
     },
+    mpiJobCrd:: mpiJobCrd,
 
-    clusterRole(name):: {
+    local serviceAccount = {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: params.name,
+        namespace: params.namespace,
+      },
+    },
+    serviceAccount:: serviceAccount,
+
+    local clusterRole = {
       kind: "ClusterRole",
       apiVersion: "rbac.authorization.k8s.io/v1",
       metadata: {
-        name: name,
+        name: params.name,
       },
       rules: [
         {
@@ -176,6 +190,20 @@ local k = import "k.libsonnet";
         },
         {
           apiGroups: [
+            "policy",
+          ],
+          resources: [
+            "poddisruptionbudgets",
+          ],
+          verbs: [
+            "create",
+            "list",
+            "update",
+            "watch",
+          ],
+        },
+        {
+          apiGroups: [
             "apiextensions.k8s.io",
           ],
           resources: [
@@ -199,71 +227,65 @@ local k = import "k.libsonnet";
         },
       ],
     },
+    clusterRole:: clusterRole,
 
-    serviceAccount(namespace, name):: {
-      apiVersion: "v1",
-      kind: "ServiceAccount",
-      metadata: {
-        name: name,
-        namespace: namespace,
-      },
-    },
-
-    clusterRoleBinding(namespace, name):: {
+    local clusterRoleBinding = {
       kind: "ClusterRoleBinding",
       apiVersion: "rbac.authorization.k8s.io/v1",
       metadata: {
-        name: name,
-        namespace: namespace,
+        name: params.name,
+        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
         kind: "ClusterRole",
-        name: name,
+        name: params.name,
       },
       subjects: [
         {
           kind: "ServiceAccount",
-          name: name,
-          namespace: namespace,
+          name: params.name,
+          namespace: params.namespace,
         },
       ],
     },
+    clusterRoleBinding:: clusterRoleBinding,
 
-    deploy(namespace, name, image, kubectlDeliveryImage, gpusPerNode):: {
+    local deployment = {
       apiVersion: "apps/v1",
       kind: "Deployment",
       metadata: {
-        name: name,
-        namespace: namespace,
+        name: params.name,
+        namespace: params.namespace,
         labels: {
-          app: name,
+          app: params.name,
         },
       },
       spec: {
         replicas: 1,
         selector: {
           matchLabels: {
-            app: name,
+            app: params.name,
           },
         },
         template: {
           metadata: {
             labels: {
-              app: name,
+              app: params.name,
             },
           },
           spec: {
-            serviceAccountName: name,
+            serviceAccountName: params.name,
             containers: [
               {
                 name: "mpi-operator",
-                image: image,
+                image: params.image,
                 args: [
+                  "-alsologtostderr",
                   "--gpus-per-node",
-                  std.toString(gpusPerNode),
+                  std.toString(params.gpusPerNode),
                   "--kubectl-delivery-image",
-                  kubectlDeliveryImage,
+                  params.kubectlDeliveryImage,
                 ],
                 imagePullPolicy: "Always",
               },
@@ -272,5 +294,17 @@ local k = import "k.libsonnet";
         },
       },
     },
+    deployment:: deployment,
+
+    parts:: self,
+    all:: [
+      self.mpiJobCrd,
+      self.serviceAccount,
+      self.clusterRole,
+      self.clusterRoleBinding,
+      self.deployment
+    ],
+
+    list(obj=self.all):: util.list(obj),
   },
 }

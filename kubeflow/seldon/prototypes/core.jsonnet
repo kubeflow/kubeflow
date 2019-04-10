@@ -64,9 +64,9 @@ local rbac2_single_namespace = [
 local rbac2_cluster_wide = [
   core.parts(name, namespace, seldonVersion, singleNamespace).rbacServiceAccount(),
   core.parts(name, namespace, seldonVersion, singleNamespace).rbacClusterRole(),
-  core.parts(name, namespace, seldonVersion, singleNamespace).rbacClusterRoleBinding(),  
+  core.parts(name, namespace, seldonVersion, singleNamespace).rbacClusterRoleBinding(),
   core.parts(name, namespace, seldonVersion, singleNamespace).rbacCRDClusterRole(),
-  core.parts(name, namespace, seldonVersion, singleNamespace).rbacCRDClusterRoleBinding(),  
+  core.parts(name, namespace, seldonVersion, singleNamespace).rbacCRDClusterRoleBinding(),
 ];
 
 local rbac1 = [
@@ -87,17 +87,17 @@ local coreComponents = [
 //Ambassador
 local ambassadorRbac_single_namespace = [
   core.parts(name,namespace, seldonVersion, singleNamespace).rbacAmbassadorRole(),
-  core.parts(name,namespace, seldonVersion, singleNamespace).rbacAmbassadorRoleBinding(),  
+  core.parts(name,namespace, seldonVersion, singleNamespace).rbacAmbassadorRoleBinding(),
 ];
 
 local ambassadorRbac_cluster_wide = [
   core.parts(name,namespace, seldonVersion, singleNamespace).rbacAmbassadorClusterRole(),
-  core.parts(name,namespace, seldonVersion, singleNamespace).rbacAmbassadorClusterRoleBinding(),  
+  core.parts(name,namespace, seldonVersion, singleNamespace).rbacAmbassadorClusterRoleBinding(),
 ];
 
 local ambassador = [
   core.parts(name,namespace, seldonVersion, singleNamespace).ambassadorDeployment(),
-  core.parts(name,namespace, seldonVersion, singleNamespace).ambassadorService(),  
+  core.parts(name,namespace, seldonVersion, singleNamespace).ambassadorService(),
 ];
 
 local l1 = if withRbac == "true" then rbac + coreComponents else coreComponents;

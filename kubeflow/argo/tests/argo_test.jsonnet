@@ -51,10 +51,10 @@ local testCases = [
     expected: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
-      labels: {
-        app: "workflow-controller",
-      },
       metadata: {
+        labels: {
+          app: "workflow-controller",
+        },
         name: "workflow-controller",
         namespace: "kubeflow",
       },
@@ -182,18 +182,18 @@ local testCases = [
                 image: "argoproj/argoui:v2.2.0",
                 imagePullPolicy: "IfNotPresent",
                 name: "argo-ui",
+                readinessProbe: {
+                  httpGet: {
+                    path: "/",
+                    port: 8001,
+                  },
+                },
                 resources: {},
                 terminationMessagePath: "/dev/termination-log",
                 terminationMessagePolicy: "File",
               },
             ],
             dnsPolicy: "ClusterFirst",
-            readinessProbe: {
-              httpGet: {
-                path: "/",
-                port: 8001,
-              },
-            },
             restartPolicy: "Always",
             schedulerName: "default-scheduler",
             securityContext: {},

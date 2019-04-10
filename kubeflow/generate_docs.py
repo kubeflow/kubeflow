@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
+#
 # Copyright 2018 The Kubeflow Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +29,6 @@ if __name__ == "__main__":
     if not os.path.isdir(f):
       continue
     prototypes = glob.glob(os.path.join(full_dir, "prototypes/*.jsonnet"))
-
 
     command = [doc_gen, os.path.join(full_dir, "parts.yaml")]
     command.extend(prototypes)

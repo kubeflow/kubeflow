@@ -1,0 +1,54 @@
+app-drawer-layout.flex(narrow='{{narrowMode}}',
+        force-narrow='[[or(inIframe, thinView, notFoundInIframe)]]',
+        thin$='[[thinView]]')
+    app-location(route='{{route}}', query-params='{{queryParams}}')
+    app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
+        tail='{{subRouteData}}')
+    app-drawer#MainDrawer(slot='drawer')
+        figure#Logo
+            |!{logo}
+            figcaption Kubeflow
+        iron-selector(selected='{{sidebarItemIndex}}')
+            a(href$='[[_buildHref("/", queryParams)]]', tabindex='-1')
+                paper-item.menu-item Home
+                aside.divider
+            template(is='dom-repeat', items='[[menuLinks]]')
+                a(href$='[[_buildHref(item.href, queryParams)]]',
+                    on-click='openInIframe', tabindex='-1')
+                    paper-item.menu-item [[item.text]]
+        aside.flex
+        footer.footer
+            section.information
+                a.privacy(title='Kubeflow Privacy Policy', target='_blank', href='https://policies.google.com/privacy') Privacy
+                .bullet
+                a.usage(title='Kubeflow Usage Reporting', target='_blank', href='https://www.kubeflow.org/docs/other-guides/usage-reporting/') Usage Reporting
+            section.build build version&nbsp;
+                span(title="Build: [[buildVersion]] | Dashboard: v[[dashVersion]]") [[buildVersion]]
+    app-header-layout(fullbleed)
+        app-header(slot='header', hides, hidden$='[[notFoundInIframe]]')
+            app-toolbar(blue$='[[inIframe]]')
+                aside#Narrow-Slider(hides, hidden$='[[!narrowMode]]')
+                    paper-icon-button#Menu(icon='menu', drawer-toggle)
+                    figure.Logo
+                        |!{logo}
+                        figcaption Kubeflow
+                paper-tabs.bottom(selected='[[page]]', attr-for-selected='page',
+                        hides, hidden$='[[hideTabs]]')
+                    paper-tab(page='dashboard', link)
+                        a.link(tabindex='-1', href$='[[_buildHref("/", queryParams)]]') Dashboard
+                    paper-tab(page='activity', link)
+                        a.link(tabindex='-1', href$='[[_buildHref("/activity", queryParams)]]') Activity
+                aside#NamespaceSelector(hides, hidden$='[[hideNamespaces]]')
+                    namespace-selector(query-params='{{queryParams}}')
+        neon-animated-pages(selected='[[page]]', attr-for-selected='page',
+                            entry-animation='fade-in-animation',
+                            exit-animation='fade-out-animation')
+            neon-animatable(page='dashboard')
+                dashboard-view
+            neon-animatable(page='activity')
+                activity-view(namespace='[[queryParams.ns]]')
+            neon-animatable#iframe-page(page='iframe')
+                iframe#PageFrame.flex(src='[[iframeUrl]]')
+            neon-animatable(page='not_found')
+                not-found-view(path="[[route.path]]")
+    iron-media-query(query='(max-width: 900px)', query-matches='{{thinView}}')

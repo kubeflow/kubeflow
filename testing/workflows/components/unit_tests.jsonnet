@@ -107,6 +107,18 @@ local dagTemplates = [
     dependencies: ["checkout"],
   },  // create-pr-symlink
   {
+    template: buildTemplate("flake8-test", [
+      "python",
+      "-m",
+      "testing.test_flake8",
+      "--test_files_dirs=" +
+      srcDir + "/kubeflow" + "," +
+      srcDir + "/testing",
+    ]),  // flake8-test
+    
+    dependencies: ["checkout"],
+  },
+  {
     template: buildTemplate("jsonnet-test", [
       "python",
       "-m",
@@ -123,8 +135,10 @@ local dagTemplates = [
       srcDir + "/kubeflow/profiles/tests" + "," +
       srcDir + "/kubeflow/tensorboard/tests" + "," +
       srcDir + "/kubeflow/argo/tests" + "," +
+      srcDir + "/kubeflow/kubebench/tests" + "," +
       srcDir + "/kubeflow/tf-training/tests",
       "--jsonnet_path_dirs=" + srcDir + "," + srcRootDir + "/kubeflow/testing/workflows/lib/v1.7.0/",
+      "--exclude_dirs=" + srcDir + "/kubeflow/jupyter/tests/test_app",
     ]),  // jsonnet-test
 
     dependencies: ["checkout"],

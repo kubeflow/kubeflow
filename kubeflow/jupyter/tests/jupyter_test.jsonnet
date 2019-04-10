@@ -214,6 +214,7 @@ local testCases = [
           resources: [
             "pods",
             "pods/log",
+            "secrets",
             "services",
           ],
           verbs: [
@@ -359,6 +360,73 @@ local testCases = [
         },
       ],
     },
+  },
+  {
+    actual: instance.parts.pv,
+    expected:
+      {
+        apiVersion: "v1",
+        kind: "PersistentVolume",
+        metadata: {
+          labels: {
+            type: "local",
+          },
+          name: "local-volume",
+        },
+        spec: {
+          accessModes: [
+            "ReadWriteOnce",
+          ],
+          capacity: {
+            storage: "10Gi",
+          },
+          "local": {
+            path: "/mnt/local",
+          },
+          nodeAffinity: {
+            required: {
+              nodeSelectorTerms: [
+                {
+                  matchExpressions: [
+                    {
+                      key: "kubernetes.io/hostname",
+                      operator: "In",
+                      values: [
+                        "minikube",
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+          persistentVolumeReclaimPolicy: "Delete",
+          storageClassName: "local-storage",
+        },
+      },
+  },
+  {
+    actual: instance.parts.pvclaim,
+    expected:
+      {
+        apiVersion: "v1",
+        kind: "PersistentVolumeClaim",
+        metadata: {
+          name: "local-notebooks",
+        },
+        spec: {
+          accessModes: [
+            "ReadWriteOnce",
+          ],
+          resources: {
+            requests: {
+              storage: "10Gi",
+            },
+          },
+          storageClassName: "local-storage",
+          volumeName: "local-volume",
+        },
+      },
   },
 ];
 

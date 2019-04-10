@@ -11,6 +11,75 @@ workflows:
     - bootstrap/*
     - kubeflow/*
     - testing/*
+    params:
+      workflowName: deployapp
+  # deploy app test runs tests on gke.
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: click_deploy_test
+    name: deployapp-istio
+    job_types:
+    - periodic
+    include_dirs:
+    - bootstrap/*
+    - kubeflow/*
+    - testing/*
+    params:
+      installIstio: true
+      workflowName: deployapp-istio
+  # kfctl test runs tests on gke using the new kfctl go binary and IAP
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: kfctl_go_test
+    name: kfctl-go-iap
+    job_types:
+      - presubmit
+      - postsubmit
+      - periodic
+    include_dirs:
+      - bootstrap/*
+      - deployment/*
+      - kubeflow/*
+      - testing/*
+    params:
+      platform: gke
+      gkeApiVersion: v1
+      workflowName: kfctl-go
+      useBasicAuth: false
+  # Run basic auth test as part of every periodic and postsubmit run. 
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: kfctl_go_test
+    name: kfctl-go-basic-auth
+    job_types:
+      - postsubmit
+      - periodic
+    include_dirs:
+      - bootstrap/*
+      - deployment/*
+      - kubeflow/*
+      - testing/*
+    params:
+      platform: gke
+      gkeApiVersion: v1
+      workflowName: kfctl-go
+      useBasicAuth: true  
+  # Only run  kfctl presubmit test with basic auth if
+  # files related to basic auth are modified.
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: kfctl_go_test
+    name: kfctl-go-basic-auth
+    job_types:
+      - presubmit
+    include_dirs:
+      # If kfctl is modified make sure basic auth still works
+      - bootstrap/*
+      - kubeflow/kubeflow/common/basic-auth.libsonnet
+      - kubeflow/kubeflow/common/prototypes/basic-auth.jsonnet
+      - testing/kfctl/*
+      - testing/workflows/kfctl_go_test.jsonnet
+    params:
+      platform: gke
+      gkeApiVersion: v1
+      workflowName: kfctl-go
+      useBasicAuth: true  
   # kfctl test runs tests on gke.
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_test
@@ -27,6 +96,7 @@ workflows:
     params:
       platform: gke
       gkeApiVersion: v1
+      workflowName: kfctl
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_test
     name: kfctl-beta
@@ -40,11 +110,14 @@ workflows:
     params:
       platform: gke
       gkeApiVersion: v1beta1
+      workflowName: kfctl-beta
   # Run unittests
   # TODO(jlewi): Need to add step to run go and python unittests
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: unit_tests
     name: unittests
+    params:
+      workflowName: unittest
   # TODO(jlewi): We should be running the minikube workflow
   # on presubmit when the minikube E2E test itself changes
   # so we verify the test is working before submitting
@@ -58,11 +131,14 @@ workflows:
     component: workflows
     name: kubeflow-e2e-minikube
     job_types:
-      - presubmit
+      # TODO(https://github.com/kubeflow/kubeflow/issues/2703): Reenable minikube on presubmit
+      # when the test is fixed.
+      # - presubmit
       - postsubmit
       - periodic
     params:
       platform: minikube
+      workflowName: e2e-minikube
     include_dirs:
       # Run on presubmit if any files used by minikube change
       - kubeflow/core/*
@@ -82,6 +158,8 @@ workflows:
       - kubeflow/tf-serving/*
       - components/k8s-model-server/*
       - testing/*
+    params:
+      workflowName: tfserving
 
   # Image Auto Release workflows.
   # The workflows below are related to auto building our Docker images.
@@ -115,7 +193,7 @@ workflows:
       - presubmit
     params:
       registry: "gcr.io/kubeflow-ci"
-      step_image: "gcr.io/kubeflow-ci/test-worker:v20181017-bfeaaf5-dirty-4adcd0"
+      step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
     include_dirs:
       - components/tensorflow-notebook-image/*
   # The postsubmit run publishes the docker images to gcr.io/kubeflow-images-public
@@ -126,6 +204,28 @@ workflows:
       - postsubmit
     params:
       registry: "gcr.io/kubeflow-images-public"
-      step_image: "gcr.io/kubeflow-ci/test-worker:v20181017-bfeaaf5-dirty-4adcd0"
+      step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
     include_dirs:
       - components/tensorflow-notebook-image/*
+  # Jupyter-web-app presubmit
+  - app_dir: kubeflow/kubeflow/components/jupyter-web-app/releaser
+    component: workflows
+    name: jupyterui-release
+    job_types:
+      - presubmit
+    params:
+      registry: "gcr.io/kubeflow-ci"
+      step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
+    include_dirs:
+      - components/jupyter-web-app/*
+  # Jupyter-web-app postsubmit that publishes the docker image to gcr.io/kubeflow-images-public
+  - app_dir: kubeflow/kubeflow/components/jupyter-web-app/releaser
+    component: workflows
+    name: jupyterui-release
+    job_types:
+      - postsubmit
+    params:
+      registry: "gcr.io/kubeflow-images-public"
+      step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
+    include_dirs:
+      - components/jupyter-web-app/*

@@ -23,7 +23,7 @@ contributors interested in
 Kubeflow is a Kubernetes native platform for machine learning.
 When it comes to deploying Kubeflow the primary goals are
 
-1. Creating a very simple getting started experience 
+1. Creating a very simple getting started experience
 1. Allow Kubeflow to be customized and optimized for different platforms
 
 ## Glossary
@@ -34,29 +34,29 @@ Platform - We use platform to refer to the entirety of a user's solution. This
 
 ## Getting Started Experience: one click or one command
 
-With our 0.3 release we'd like to offer users a one command or one click 
+With our 0.3 release we'd like to offer users a one command or one click
 experience.
 
 1. User deploys Kubeflow on their platform using one click or one command
 
-   * Using the command line (with required tools preinstalled) the experience should 
+   * Using the command line (with required tools preinstalled) the experience should
      be something like
 
      ```
      curl https://github.com/kubeflow/kubeflow/blob/master/scripts/gke/deploy.sh | bash
      ```
 
-   
+
    * Alternatively, we'd like to offer a web-app that allows deployments with one click
 
-     * A web-app creates an opportunity to offer a wizard that can help walk users through 
+     * A web-app creates an opportunity to offer a wizard that can help walk users through
        the setup process
 
      * A web-app can also eliminate the need to install any tools client side
 
 
    * We'd like to offer scripts for various platforms including major clouds as well
-     as solutions for deploying Kubeflow locally on one's machine (e.g. docker, minikube, microk8s) 
+     as solutions for deploying Kubeflow locally on one's machine (e.g. docker, minikube, microk8s)
 
    * The script should take care of setting up Kubernetes and supporting services
      for each platform
@@ -94,7 +94,7 @@ experience.
 
 ## Customizing & Optimizing Kubeflow For Different Platforms
 
-One of the goals of Kubeflow is to run anywhere Kubernetes runs. 
+One of the goals of Kubeflow is to run anywhere Kubernetes runs.
 **However we also want to optimize Kubeflow to take advantage of features in
 different K8s versions and platforms.**
 
@@ -108,7 +108,7 @@ is
 Here are some **guidelines (not requirements)** for creating the above scripts and instructions
 
 * Platform scripts should assume users are starting from scratch
-  
+
   * Scripts should create K8s clusters and supporting services as needed
 
   * This is based on anecdotal evidence that most Kubeflow users to date
@@ -121,7 +121,7 @@ Here are some **guidelines (not requirements)** for creating the above scripts a
 
 * Declarative approaches to managing infrastructure (e.g. Terraform) are preferred
 
-  * Kubeflow aims to adopt K8s patterns; managing infrastructure declaratively 
+  * Kubeflow aims to adopt K8s patterns; managing infrastructure declaratively
     is one such pattern
 
   * Another Kubeflow principle is low bar high ceiling
@@ -180,7 +180,7 @@ We have yet to find a good method for defining the base components. Currently, t
 is defined by the components generated in the deploy script. This works but will probably be difficult
 to avoid fragmentation as scripts are added for more platforms.
 
-We had previously tried defining a ksonnet core prototype consisting of all the components that should be 
+We had previously tried defining a ksonnet core prototype consisting of all the components that should be
 installed by default. This had some unfortunate side effects and I think we want to avoid creating a single prototype
 for multiple components going forward
 
@@ -196,7 +196,7 @@ Monitoring deployment is an open area. The initial focus is:
   1. Surfacing relevant events (e.g. as K8s events)
 
 For more info please take a look at some of the open issues and consider
-opening more. 
+opening more.
 
 The current thinking is to follow the guidance of sig-apps and use an [application resource](https://github.com/kubernetes-sigs/application)
 to represent Kubeflow and attach events, status, and other metrics to that application as appropriate.
@@ -227,15 +227,15 @@ For more information on testing
 
 ## Auto Configuration
 
-One of the ideas we considered was creating a simple program (originally called bootstrapper) that could automatically optimize a 
+One of the ideas we considered was creating a simple program (originally called bootstrapper) that could automatically optimize a
 Kubeflow configuration
 based on a user's setup. For example, if the K8s cluster has a default storage
-class the program would automatically configure JupyterHub to use persistent 
+class the program would automatically configure JupyterHub to use persistent
 volumes for notebook storage.
 
-So far this idea hasn't gained much traction. 
+So far this idea hasn't gained much traction.
 
-Most of the setup to date has focused on users starting from scratch. In this situation we 
+Most of the setup to date has focused on users starting from scratch. In this situation we
 have complete control of the setup so there's no reason to optimize with respect to an
 existing deployment.
 
@@ -245,7 +245,7 @@ be welcome.
 
 ## Cloud ksonnet parameter
 
-An early idea was to have a simple ksonnet/template parameter 
+An early idea was to have a simple ksonnet/template parameter
 (originally called cloud). This parameter would correspond to different
 platforms (e.g. GKE or Azure or minikube).
 
@@ -271,7 +271,7 @@ We are moving away from this approach in favor of deploy.sh for a variety of rea
 * Some amount of customization of the YAML was always needed and a deploy script
   can help automate this
 
-* This approach worked by creating a bootstrapper that ran on the cluster and then 
+* This approach worked by creating a bootstrapper that ran on the cluster and then
   deployed the app. This had the following drawbacks
 
   1. You had to grant the pod elevated permissions

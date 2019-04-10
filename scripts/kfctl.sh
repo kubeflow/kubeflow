@@ -25,10 +25,12 @@ GCP_DEFAULT_ZONE="us-east1-d"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 source "${DIR}/util.sh"
 source "${DIR}/gke/util.sh"
+source "${DIR}/azure/util.sh"
+source "${DIR}/aws/util.sh"
 source "${DIR}/util-minikube.sh"
 INPUT=()
 FORMAT=()
-export KUBEFLOW_COMPONENTS=${DEFAULT_KUBEFLOW_COMPONENTS:-'"ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline"'}
+export KUBEFLOW_COMPONENTS=${DEFAULT_KUBEFLOW_COMPONENTS:-'"ambassador","jupyter","notebook-controller","jupyter-web-app","profiles","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline"'}
 export KUBEFLOW_EXTENDEDINFO=${KUBEFLOW_EXTENDEDINFO:-false}
 
 # envsubst alternative if envsubst is not installed
@@ -56,7 +58,7 @@ createEnv() {
   # Remove trailing slash from the repo.
   KUBEFLOW_REPO=${KUBEFLOW_REPO%/}
 
-  # builds a set of inputs to be used with envsubst for env.sh 
+  # builds a set of inputs to be used with envsubst for env.sh
   # writeEnv updates env.sh when any env var changes
   # eg: envsubst < input.tmpl > env.sh
   INPUT+=('PLATFORM=$PLATFORM\n'
@@ -94,7 +96,7 @@ createEnv() {
 
   case "$PLATFORM" in
     minikube)
-      export KUBEFLOW_PLATFORM=minikube 
+      export KUBEFLOW_PLATFORM=minikube
       export MOUNT_LOCAL=${MOUNT_LOCAL:-""}
       ;;
     docker-for-desktop)
@@ -105,6 +107,53 @@ createEnv() {
       export KUBEFLOW_PLATFORM=ack
       export KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com
       export DOCKER_REGISTRY_KATIB_NAMESPACE=katib
+      ;;
+    aws)
+      export KUBEFLOW_PLATFORM=aws
+      INPUT+=('CLUSTER_NAME=$CLUSTER_NAME\n'
+              'NODEGROUP_ROLE_NAMES=$NODEGROUP_ROLE_NAMES\n'
+              'KUBEFLOW_INFRA_DIR=$KUBEFLOW_INFRA_DIR\n'
+              'KUBEFLOW_K8S_MANIFESTS_DIR=$KUBEFLOW_K8S_MANIFESTS_DIR\n'
+              'AWS_SSH_PUBLIC_KEY=$AWS_SSH_PUBLIC_KEY\n'
+              'AWS_REGION=$AWS_REGION\n'
+              'AWS_AVAILABILITY_ZONES=$AWS_AVAILABILITY_ZONES\n'
+              'AWS_NUM_NODES=$AWS_NUM_NODES\n'
+              'AWS_INSTANCE_TYPE=$AWS_INSTANCE_TYPE\n')
+      FORMAT+=('$CLUSTER_NAME'
+               '$NODEGROUP_ROLE_NAMES'
+               '$KUBEFLOW_INFRA_DIR'
+               '$KUBEFLOW_K8S_MANIFESTS_DIR'
+               '$AWS_SSH_PUBLIC_KEY'
+               '$AWS_AVAILABILITY_ZONES'
+               '$AWS_REGION'
+               '$AWS_NUM_NODES'
+               '$AWS_INSTANCE_TYPE')
+      export CLUSTER_NAME=${CLUSTER_NAME:-""}
+      export NODEGROUP_ROLE_NAMES=${NODEGROUP_ROLE_NAMES:-""}
+      export KUBEFLOW_INFRA_DIR=${KUBEFLOW_INFRA_DIR:-"$(pwd)/aws_config"}
+      export KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs"
+      ;;
+    azure)
+      export KUBEFLOW_PLATFORM=azure
+      INPUT+=('AZ_CLIENT_ID=$AZ_CLIENT_ID\n'
+              'AZ_CLIENT_SECRET=$AZ_CLIENT_SECRET\n'
+              'AZ_TENANT_ID=$AZ_TENANT_ID\n'
+              'AZ_SUBSCRIPTION_ID=$AZ_SUBSCRIPTION_ID\n'
+              'AZ_LOCATION=$AZ_LOCATION\n'
+              'AZ_NODE_SIZE=$AZ_NODE_SIZE\n')
+      FORMAT+=('$AZ_CLIENT_ID'
+               '$AZ_CLIENT_SECRET'
+               '$AZ_TENANT_ID'
+               '$AZ_SUBSCRIPTION_ID'
+               '$AZ_LOCATION'
+               '$AZ_NODE_SIZE')
+
+      export AZ_CLIENT_ID=${AZ_CLIENT_ID}
+      export AZ_CLIENT_SECRET=${AZ_CLIENT_SECRET}
+      export AZ_TENANT_ID=${AZ_TENANT_ID}
+      export AZ_SUBSCRIPTION_ID=${AZ_SUBSCRIPTION_ID}
+      export AZ_LOCATION=${AZ_LOCATION}
+      export AZ_NODE_SIZE=${AZ_NODE_SIZE}
       ;;
     gcp)
       INPUT+=('PROJECT=$PROJECT\n'
@@ -134,7 +183,7 @@ createEnv() {
                '$CONFIG_FILE$GKE_API_VERSION')
 
       export KUBEFLOW_PLATFORM=gke
-      export PROJECT="${PROJECT}" 
+      export PROJECT="${PROJECT}"
       export ZONE=${ZONE}
       export EMAIL=${EMAIL}
 
@@ -147,7 +196,7 @@ createEnv() {
       export DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
 
       # Kubeflow directories
-      export KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"$(pwd)/gcp_config"} 
+      export KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"$(pwd)/gcp_config"}
       export KUBEFLOW_SECRETS_DIR=${KUBEFLOW_SECRETS_DIR:-"$(pwd)/secrets"}
       export KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs"
 
@@ -156,7 +205,7 @@ createEnv() {
 
       # GCP Static IP Name
       export KUBEFLOW_IP_NAME=${KUBEFLOW_IP_NAME:-"${DEPLOYMENT_NAME}-ip"}
-      
+
       # Name of the endpoint
       export KUBEFLOW_ENDPOINT_NAME=${KUBEFLOW_ENDPOINT_NAME:-"${DEPLOYMENT_NAME}"}
       # Complete hostname
@@ -194,17 +243,7 @@ ksApply() {
   pushd ${KUBEFLOW_KS_DIR}
 
   createNamespace
-
-  set +e
-  O=$(ks env describe default 2>&1)
-  RESULT=$?
-  set -e
-
-  if [[ "${RESULT}" -eq 0 ]]; then
-    echo "environment default already exists"
-  else
-    ks env add default --namespace "${K8S_NAMESPACE}"
-  fi
+  createKsEnv
 
   # Reduce resource demands locally
   if [[ "${PLATFORM}" != "minikube" ]] && [[ "${PLATFORM}" != "docker-for-desktop" ]]; then
@@ -256,9 +295,61 @@ parseArgs() {
       --gkeApiVersion)
         shift
         GKE_API_VERSION=$1
-        ;;       
+        ;;
       --skipInitProject)
         SKIP_INIT_PROJECT=true
+        ;;
+      --azClientId)
+        shift
+        AZ_CLIENT_ID=$1
+        ;;
+      --azClientSecret)
+        shift
+        AZ_CLIENT_SECRET=$1
+        ;;
+      --azTenantId)
+        shift
+        AZ_TENANT_ID=$1
+        ;;
+      --azSubscriptionId)
+        shift
+        AZ_SUBSCRIPTION_ID=$1
+        ;;
+      --azLocation)
+        shift
+        AZ_LOCATION=$1
+        ;;
+      --azNodeSize)
+        shift
+        AZ_NODE_SIZE=$1
+        ;;
+      --clusterName)
+        shift
+        CLUSTER_NAME=$1
+        ;;
+      --nodegroupRoleNames)
+        shift
+        NODEGROUP_ROLE_NAMES=$1
+        ;;
+      --awsSSHPublicKey)
+        shift
+        AWS_SSH_PUBLIC_KEY=$1
+        ;;
+      --awsRegion)
+        shift
+        AWS_REGION=$1
+        ;;
+      --awsAZs)
+        shift
+        AWS_AVAILABILITY_ZONES=$1
+        ;;
+      --awsNumNodes)
+        shift
+        AWS_NUM_NODES=$1
+        ;;
+      --awsInstanceType)
+        shift
+        AWS_INSTANCE_TYPE=$1
         ;;
     esac
     shift
@@ -293,7 +384,7 @@ parseArgs() {
         echo "or by setting a default account in gcloud config"
         exit 1
       fi
-      
+
       # See kubeflow/kubeflow#1936
       # gcloud may not get the case correct for the email.
       # The iam-policy respects the case so we check the IAM policy for the email
@@ -312,6 +403,12 @@ parseArgs() {
       done
     fi
   fi
+  if [[ "${PLATFORM}" == "azure" ]]; then
+    validate_az_arg
+  fi
+  if [[ "${PLATFORM}" == "aws" ]]; then
+    validate_aws_arg
+  fi
 }
 
 main() {
@@ -328,7 +425,7 @@ main() {
       exit 1
     fi
     if [[ ${#DEPLOYMENT_NAME} -gt 25 ]]; then
-      echo "Name ${DEPLOYMENT_NAME} should not be longer than 25 characters" 
+      echo "Name ${DEPLOYMENT_NAME} should not be longer than 25 characters"
       exit 1
     fi
     if [[ ${DEPLOYMENT_NAME} == *.*  ]]; then
@@ -359,7 +456,7 @@ main() {
     createEnv
 
     source ${ENV_FILE}
-    
+
     if [[ -z "${PLATFORM}" ]]; then
       echo "--platform must be provided"
       echo "usage: kfctl init <PLATFORM>"
@@ -393,12 +490,21 @@ main() {
     exit 1
   fi
 
-  # TODO(ankushagarwal): verify ks version is higher than 0.11.0
-  check_install ks
-  check_install kubectl
+  # verify client dependencies like ks and kubectl are installed and have right versions
+  check_installed_deps
 
   if [[ "${PLATFORM}" == "gcp" ]]; then
     checkInstallPy pyyaml yaml
+  fi
+  if [[ "${PLATFORM}" == "azure" ]]; then
+    check_az_cli
+    az_login
+  fi
+  if [[ "${PLATFORM}" == "aws" ]]; then
+    check_aws_cli
+    check_eksctl_cli
+    check_aws_credential
+    check_nodegroup_roles
   fi
 
   if [[ "${COMMAND}" == "generate" ]]; then
@@ -408,6 +514,14 @@ main() {
         downloadK8sManifests
       fi
     fi
+    if [[ "${PLATFORM}" == "azure" ]]; then
+        echo "generate for Azure"
+        createAKSCluster
+    fi
+
+    if [[ "${PLATFORM}" == "aws" ]]; then
+      generate_infra_configs
+    fi
 
     if [[ "${WHAT}" == "k8s" ]] || [[ "${WHAT}" == "all" ]]; then
       createKsApp
@@ -416,6 +530,10 @@ main() {
 
       if [[ "${PLATFORM}" == "gcp" ]]; then
         gcpGenerateKsApp
+      fi
+
+      if [[ "${PLATFORM}" == "aws" ]]; then
+        aws_generate_ks_app
       fi
 
       if [[ "${PLATFORM}" == "minikube" ]] || [[ "${PLATFORM}" == "docker-for-desktop" ]]; then
@@ -436,6 +554,13 @@ main() {
       if [[ "${PLATFORM}" == "gcp" ]]; then
         updateDM
         createSecrets
+      elif [[ "${PLATFORM}" == "azure" ]]; then
+        createAzSecrets
+      fi
+
+      if [[ "${PLATFORM}" == "aws" ]]; then
+        update_infra
+        install_k8s_manifests
       fi
     fi
 
@@ -444,6 +569,10 @@ main() {
 
       if [[ "${PLATFORM}" == "gcp" ]]; then
         gcpKsApply
+      fi
+
+      if [[ "${PLATFORM}" == "aws" ]]; then
+        aws_ks_apply
       fi
 
       # all components deployed
@@ -464,39 +593,87 @@ main() {
     if [[ "${WHAT}" == "k8s" ]] || [[ "${WHAT}" == "all" ]]; then
       # Delete kubeflow namespace - this deletes all the ingress objects
       # in the namespace which deletes the associated GCP resources
+      if [[ "$OSTYPE" != "darwin"* ]]; then
+          # Fetch master information and strip away color markers
+          KUBE_INFO=$(kubectl cluster-info | sed 's/\x1B\[[0-9;]\+[A-Za-z]//g')
+          pushd ${KUBEFLOW_KS_DIR}
+          KS_ENV=default
+          KS_ENV_INFO=$(ks env describe ${KS_ENV})
+          popd
+          KS_MASTER=`expr match "${KS_ENV_INFO}" '.*server[^\.0-9]*\([\.0-9]\+\)'`
+          echo KS_MASTER=${KS_MASTER}
+          MASTER=`expr match "${KUBE_INFO}" '[^\.0-9]*\([\.0-9]\+\)'`
+          echo MASTER=${MASTER}
 
-      # Fetch master information and strip away color markers
-      KUBE_INFO=$(kubectl cluster-info | sed 's/\x1B\[[0-9;]\+[A-Za-z]//g')
-      pushd ${KUBEFLOW_KS_DIR}
-      KS_ENV=default
-      KS_ENV_INFO=$(ks env describe ${KS_ENV})
-      popd
-      KS_MASTER=`expr match "${KS_ENV_INFO}" '.*server[^\.0-9]*\([\.0-9]\+\)'`
-      echo KS_MASTER=${KS_MASTER}
-      MASTER=`expr match "${KUBE_INFO}" '[^\.0-9]*\([\.0-9]\+\)'`
-      echo MASTER=${MASTER}
-
-       if [[ "${MASTER}" != "${KS_MASTER}" ]]; then
-        echo "The current kubectl context doesn't match the ks environment"
-        echo "Please configure the context to match ks environment ${KS_ENV}"
-        exit -1
-      else
-        echo "kubectl context matches ks environment ${KS_ENV}"
+          if [[ "${MASTER}" != "${KS_MASTER}" ]]; then
+            echo "The current kubectl context doesn't match the ks environment"
+            echo "Please configure the context to match ks environment ${KS_ENV}"
+            exit -1
+          else
+            echo "kubectl context matches ks environment ${KS_ENV}"
+          fi
       fi
       set +e
+      pushd ${KUBEFLOW_KS_DIR}
+      appname=$(ks param list application | grep '^application name'|awk '{print $NF}'|tr -d "'")
+      popd
+      if [[ "${PLATFORM}" == "aws" ]]; then
+        # Ingress are created by controller, need to clean it up before ingress controller deleted
+        # Waiting for a feature to create resource via CloudFormation and then we can clean up later.
+        for i in $(kubectl get ingress -lapp.kubernetes.io/name=$appname --all-namespaces -o go-template --template '{{range .items}}{{.metadata.name}}:{{.metadata.namespace}}{{"\n"}}{{end}}'); do 
+          ingress_name_namespace=(${i//:/ })
+          kubectl delete ingress ${ingress_name_namespace[0]} -n ${ingress_name_namespace[1]}
+        done
+        sleep 20
+      fi
+
+      for i in $(kubectl get crds -lapp.kubernetes.io/name=$appname -oname); do 
+        crd=${i#*/}
+        kubectl delete crd $crd
+      done
+      for i in $(kubectl get clusterroles -lapp.kubernetes.io/name=$appname -oname); do 
+        clusterrole=${i#*/}
+        kubectl delete clusterrole $clusterrole
+      done
+      for i in $(kubectl get clusterrolebindings -lapp.kubernetes.io/name=$appname -oname); do 
+        clusterrolebinding=${i#*/}
+        kubectl delete clusterrolebinding $clusterrolebinding
+      done
+      kubectl delete clusterrolebinding meta-controller-cluster-role-binding
+      kubectl delete crd compositecontrollers.metacontroller.k8s.io
+      kubectl delete crd controllerrevisions.metacontroller.k8s.io
+      kubectl delete crd decoratorcontrollers.metacontroller.k8s.io
+      kubectl delete crd applications.app.k8s.io
       kubectl delete ns/${K8S_NAMESPACE}
       while kubectl get ns/${K8S_NAMESPACE}; do
         echo "namespace ${K8S_NAMESPACE} not yet deleted. sleeping 10 seconds..."
+        # wait for 100s at most
+        # https://github.com/kubeflow/kubeflow/issues/2408
+        ((c++)) && ((c==10)) && break
         sleep 10
       done
-      echo "namespace ${K8S_NAMESPACE} successfully deleted."
+      if kubectl get ns/${K8S_NAMESPACE}; then
+        echo "namespace ${K8S_NAMESPACE} failed to delete."
+      else
+        echo "namespace ${K8S_NAMESPACE} successfully deleted."
+      fi
+      # double confirm resources not in kubeflow namespace are deleted
+      kubectl delete -f ${KUBEFLOW_KS_DIR}/default.yaml
       set -e
     fi
     if [[ "${WHAT}" == "platform" ]] || [[ "${WHAT}" == "all" ]]; then
       if [[ "${PLATFORM}" == "gcp" ]]; then
         if [[ -d "${KUBEFLOW_DM_DIR}" ]]; then
           pushd ${KUBEFLOW_DM_DIR}
-          ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
+          ${DIR}/gke/delete_deployment.sh --project=${PROJECT} --deployment=${DEPLOYMENT_NAME} --zone=${ZONE}
+          popd
+        fi
+      fi
+      if [[ "${PLATFORM}" == "aws" ]]; then
+        if [[ -d "${KUBEFLOW_INFRA_DIR}" ]]; then
+          pushd ${KUBEFLOW_INFRA_DIR}
+          DELETE_CLUSTER=${DELETE_CLUSTER:-"false"}
+          ${DIR}/aws/delete_deployment.sh --cluster_name=${CLUSTER_NAME} --resource_dir=${KUBEFLOW_K8S_MANIFESTS_DIR} --delete_cluster=${DELETE_CLUSTER}
           popd
         fi
       fi

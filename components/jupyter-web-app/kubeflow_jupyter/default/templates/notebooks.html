@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block javascript %}
+  {{ super() }}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.min.js"></script>
+  <script src="{{ prefix + url_for('static', filename='js/notebooks.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class='parent'>
+  <div class="spacer"></div>
+  <!-- Namespace Selector -->
+  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <select class="mdl-textfield__input" id="ns-select" name="ns">
+      <!-- Fill with the namespaces the user can see -->
+      {% for ns in namespaces %}
+        <option value="{{ ns }}">{{ ns }}</option>
+      {% endfor %}
+    </select>
+    <label class="mdl-textfield__label" for="ns">Select Namespace</label>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
+    <label class="mdl-button mdl-js-button mdl-button--icon" for="search-nb">
+      <i class="material-icons">search</i>
+    </label>
+    <div class="mdl-textfield__expandable-holder">
+      <input class="mdl-textfield__input" type="text" id="search-nb" >
+      <label class="mdl-textfield__label" for="search-nb">Enter your query...</label>
+    </div>
+  </div>
+  <div class='spacer'></div>
+</div>
+
+<!-- The Notebooks Table -->
+<div class="parent">
+  <div class='spacer'></div>
+  <!-- Table Card -->
+    <div class="demo-card mdl-card mdl-shadow--4dp">
+
+      <div class="mdl-card__title mdl-card--table__header">
+        <h2 class="mdl-card__title-text mdl-typography--title">Notebook Servers</h2>
+      </div>
+
+      <hr/>
+      <div class="mdl-card__table">
+        <table class="mdl-data-table mdl-js-data-table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Name</th>
+              <th>Created</th>
+              <th>Image</th>
+              <th>CPU</th>
+              <th>Memory</th>
+              <th>Volumes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="nb-table-body">
+            <!-- Dynamically load the page -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Menus on top right of top card -->
+      <div class="mdl-card__menu">
+        <button class="mdl-button mdl-js-button mdl-js-ripple-effect 
+                       mdl-button--colored"
+                id="create-nb-btn">
+          <!-- <i class="material-icons">filter_list</i> -->
+          + NEW SERVER
+        </button>
+      </div>
+
+    </div>
+
+  <div class='spacer'></div>
+</div>
+{% endblock content %}

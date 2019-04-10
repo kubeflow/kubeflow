@@ -1,6 +1,69 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Developer guide for bootstrap](#developer-guide-for-bootstrap)
+  - [Prerequisites](#prerequisites)
+  - [Setting up the build environment](#setting-up-the-build-environment)
+  - [Building kfctl](#building-kfctl)<br>
+        - [`make build-kfctl`](#make-build-kfctl)<br>
+        - [`make install`](#make-install)<br>
+        - [`make build-kftl-container`](#make-build-kftl-container)<br>
+        - [`make push-kftl-container`](#make-push-kftl-container)<br>
+        - [`make push-kftl-container-latest`](#make-push-kftl-container-latest)<br>
+        - [`make run-kfctl-container`](#make-run-kfctl-container)<br>
+        - [`make test-init`](#make-test-init)<br>
+  - [Building bootstrap](#building-bootstrap)<br>
+        - [`make build-bootstrap`](#make-build-bootstrap)<br>
+        - [`make build`](#make-build)<br>
+        - [`make push`](#make-push)<br>
+        - [`make push-latest`](#make-push-latest)<br>
+        - [`make static, make plugins`](#make-static-make-plugins)<br>
+  - [How to run bootstrapper with Click-to-deploy app locally](#how-to-run-bootstrapper-with-click-to-deploy-app-locally)
+  - [Releasing kfctl](#releasing-kfctl)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Developer guide for bootstrap
 
-## Building bootstrapper locally
+## Prerequisites
+
+golang to 1.12
+
+```sh
+$ ☞  go version
+go version go1.12 darwin/amd64
+```
+
+On mac osx you can run
+
+```sh
+brew upgrade golang
+```
+
+On linux you can install the [download](https://golang.org/dl/) and follow the [installation directions](https://golang.org/doc/install).
+
+golang-1.12 uses the golang module framework. See [golang Modules](https://github.com/golang/go/wiki/Modules).
+You should add the environment variable `GO111MODULE=on` to your shell init file
+
+Normally go will build a dependency list in the go.mod file, installing 
+a dependency explicitly is done by running `go get <dependency>`. 
+See the [use case](https://github.com/golang/go/wiki/Modules#why-am-i-getting-an-error-cannot-find-module-providing-package-foo) in the golang Modules Wiki.
+golang-1.12 no longer creates a vendor directory.
+
+## Setting up the build environment
+
+Download the kubeflow repo by running
+
+```sh
+git clone git@github.com:kubeflow/kubeflow.git
+```
+
+or
+
+```sh
+git clone https://github.com:kubeflow/kubeflow .
+```
 
 Create a symbolic link inside your GOPATH to the location you checked out the code
 
@@ -9,73 +72,143 @@ mkdir -p ${GOPATH}/src/github.com/kubeflow
 ln -sf ${GIT_KUBEFLOW} ${GOPATH}/src/github.com/kubeflow/kubeflow
 ```
 
-* GIT_KUBEFLOW should be the location where you checked out https://github.com/kubeflow/kubeflow
+* GIT_KUBEFLOW should be the location where you checked out https://github.com/kubeflow/kubeflow. GOPATH is typically $HOME/go.
 
-### Prerequisites
 
-golang to 1.11.2
+## Building kfctl
+
+##### `make build-kfctl`
+```sh
+cd $GIT_KUBEFLOW/bootstrap
+make build-kfctl
+```
+
+* This will create `bin/kfctl` with full debug information
+
+* If you get an error about missing files in `/tmp/v2`, you are hitting [#2790](https://github.com/kubeflow/kubeflow/issues/2790) and need to delete `/tmp/v2` and rerun the build.
+
+##### `make install`
 
 ```sh
-$ ☞  go version
-go version go1.11.2 darwin/amd64
+make install #depends on build-kfctl
 ```
 
-On mac osx you can run 
+* Installs kfctl in /usr/local/bin
+
+
+##### `make build-kftl-container`
 
 ```sh
-brew upgrade golang
+make build-kfctl-container
 ```
 
-golang-1.11.2 uses go.mod, go.sum files which include dependencies.
-To install a new dependency use `go get <dependency>`. 
-golang-1.11.2 no longer creates a vendor directory.
-You should add the environment variable `GO111MODULE=on` to your shell init file
+* creates a docker container
 
-### Makefile targets
+##### `make push-kftl-container`
 
-```
-build             debug             push              
-build-local       debug-latest      push-latest       
-cleanup           
-```
-
-#### `make build-local`
-Creates bin/bootstrapper with full debug information
-
-#### `make build` 
-Depends on `make build-local`. Creates a docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
-
-#### `make push` 
-Depends on `make build`. Pushes the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
-
-#### `make push-latest` 
-Depends on `make push`. Tags the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG) with latest.
-Note: To use a different gcloud project than kubeflow-images-public. 
 ```sh
-export GCLOUD_PROJECT=mygcloudproject 
+make push-kfctl-container
+```
+
+* pushes the docker container to $IMG_KFCTL
+
+##### `make push-kftl-container-latest`
+
+```sh
+make push-kfctl-container-latest
+```
+
+* pushes the docker container to $IMG_KFCTL and tags it with kfctl:latest
+
+##### `make run-kfctl-container`
+
+```sh
+make run-kfctl-container
+```
+
+* runs the local docker container. Opens a shell in the container
+
+> how to deploy gcp from within the container<br>
+
+Run 
+
+```sh
+KFCTL_TARGET=kfctl_base MOUNT_KUBE='' make run-kfctl-container
+```
+
+The above command will open a shell in the container. Then run the following:
+
+```
+$ cp bin/kfctl /usr/local/bin
+$ cd /opt/kubeflow
+$ kfctl init gcp-test --platform gcp --project <PROJECT> -V
+$ cd gcp-test
+$ kfctl generate all -V
+$ CLIENT_ID=XXX CLIENT_SECRET=YYY kfctl apply all -V
+```
+
+
+##### `make test-init`
+
+```sh
+make test-init
+```
+
+* will run `kfctl init` for gcp, minikube and no platform
+
+## Building bootstrap 
+
+##### `make build-bootstrap`
+
+```sh
+cd $GIT_KUBEFLOW/bootstrap
+make build-bootstrap
+```
+
+* Creates bin/bootstrapper with full debug information
+
+##### `make build`
+
+* Depends on `make build-local`. Creates a docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
+
+##### `make push`
+
+* Depends on `make build`. Pushes the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
+
+##### `make push-latest`
+
+* Depends on `make push`. Tags the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG) with latest.
+Note: To use a different gcloud project than kubeflow-images-public.
+```sh
+export GCLOUD_PROJECT=mygcloudproject
 make push
 ```
 
-#### `make debug` 
-Depends on `make push` and `make cleanup`
-1. deploys a Namespace, PersistentVolumeClaim and StatefulSet using $(IMG), $(TAG), $(PORT)
-2. waits for pod kubeflow-bootstrapper-0 to be in phase 'Running'
-3. runs "kubectl port-forward ..." in the background, opening port 2345 to the pod's container
-4. wait - cleanup (kill port-forward command) on Ctrl-C
-5. when the script exits (Ctrl-C) it will kill "kubectl port-forward ..." 
-6. in order to clean up all resources deployed in step 1 run `make cleanup`
+##### `make static, make plugins`
+These targets are for kfctl and allows the goland debugger work by disabling plugins.
+This is a problem in the go compiler which should be fixed in 1.12.
+See the [kfctl/README.md](./cmd/kfctl) for additional information.
 
-The StatefulSet will create a pod and start the following process in the pod's kubeflow-bootstrapper-0 container
-```sh
-/opt/kubeflow/dlv.sh
+## How to run bootstrapper with Click-to-deploy app locally
+
+Start the backend:
+
 ```
-This script runs
+IMAGE=gcr.io/kubeflow-images-public/bootstrapper:latest  # change this
 
-```sh
-dlv --listen=:2345 --headless=true --api-version=2 exec /opt/kubeflow/bootstrapper -- --in-cluster --namespace=kubeflow
+docker run -d -it --name bootstrapper \
+    --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow -p 8080:8080 \
+    ${IMAGE} /opt/kubeflow/bootstrapper \
+    --install-istio --namespace=kubeflow  # change args if you want
 ```
 
-[dlv](https://github.com/derekparker/delve) is a golang debugger that works with JetBrain's [Goland](https://www.jetbrains.com/go/)
+Start the frontend:
 
-In order to connect to the remote bootstrapper process, in goland add a "Go Remote" debug configuration like below
-![bootstrapper](./bootstrapper.png)
+```
+cd ../components/gcp-click-to-deploy
+npm start
+```
+
+## Releasing kfctl
+
+See [release guide](https://github.com/kubeflow/kubeflow/blob/master/docs_dev/releasing.md)

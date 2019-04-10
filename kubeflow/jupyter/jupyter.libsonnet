@@ -281,6 +281,7 @@
           resources: [
             "pods",
             "pods/log",
+            "secrets",
             "services",
           ],
           verbs: [
@@ -394,6 +395,10 @@
     },
     notebookRoleBinding:: notebookRoleBinding,
 
+    local localstorage = (import "localstorage.libsonnet"),
+    pv:: localstorage.pv,
+    pvclaim:: localstorage.pvclaim,
+
     parts:: self,
     all:: [
       self.kubeSpawnerConfig,
@@ -406,7 +411,12 @@
       self.notebookServiceAccount,
       self.hubRoleBinding,
       self.notebookRoleBinding,
-    ],
+    ] + std.flattenArrays([
+      if params.accessLocalFs == "true" then [
+        self.pv,
+        self.pvclaim,
+      ] else [],
+    ]),
 
     list(obj=self.all):: util.list(obj),
   },
