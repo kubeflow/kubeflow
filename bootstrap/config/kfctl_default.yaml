@@ -23,7 +23,6 @@ packages:
 components:
 # ordering is important
   - metacontroller
-  - application
   - ambassador
   - argo
   - centraldashboard
@@ -34,6 +33,7 @@ components:
   - pytorch-operator
   - tensorboard
   - tf-job-operator
+  - application
 componentParams:
   ambassador:
     - name: ambassadorServiceType
