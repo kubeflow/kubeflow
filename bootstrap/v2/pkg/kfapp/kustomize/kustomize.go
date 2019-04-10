@@ -259,7 +259,7 @@ func (kustomize *kustomize) writeKustomizationFile() error {
 		},
 		Bases: bases,
 		CommonLabels: map[string]string{
-			"app.kubernetes.io/name": kustomize.Name,
+			kftypes.DefaultAppLabel: kustomize.Name,
 		},
 		Namespace: kustomize.Namespace,
 	}

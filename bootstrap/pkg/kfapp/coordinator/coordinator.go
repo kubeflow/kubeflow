@@ -216,9 +216,18 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	platform := options[string(kftypes.PLATFORM)].(string)
 	version := options[string(kftypes.VERSION)].(string)
 	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
-	cacheDir, cacheDirErr := kftypes.DownloadToCache(appDir, kftypes.KubeflowRepo, version)
-	if cacheDirErr != nil || cacheDir == "" {
-		log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
+	cacheDir := ""
+	if options[string(kftypes.REPO)].(string) != "" {
+		cacheDir = options[string(kftypes.REPO)].(string)
+		if _, err := os.Stat(cacheDir); err != nil {
+			log.Fatalf("repo %v does not exist Error %v", cacheDir, err)
+		}
+	} else {
+		var cacheDirErr error
+		cacheDir, cacheDirErr = kftypes.DownloadToCache(appDir, kftypes.KubeflowRepo, version)
+		if cacheDirErr != nil || cacheDir == "" {
+			log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
+		}
 	}
 	configFileBuffer, configFileErr := getConfigFromCache(cacheDir, platform, useBasicAuth)
 	if configFileErr != nil {
@@ -247,7 +256,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	kfDef.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
 	kfDef.Namespace = options[string(kftypes.NAMESPACE)].(string)
 	kfDef.Spec.Version = options[string(kftypes.VERSION)].(string)
-	kfDef.Spec.Repo = options[string(kftypes.REPO)].(string)
+	kfDef.Spec.Repo = path.Join(cacheDir, kftypes.KubeflowRepo)
 	kfDef.Spec.Project = options[string(kftypes.PROJECT)].(string)
 	kfDef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
 	kfDef.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
