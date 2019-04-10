@@ -101,7 +101,7 @@ func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
 		err:        os.Stderr,
 	}
 	if _kustomize.Spec.ManifestsRepo != "" {
-		_kustomize.componentMap = mapDirs(_kustomize.Spec.ManifestsRepo, make(map[string]string))
+		_kustomize.componentMap = _kustomize.mapDirs(_kustomize.Spec.ManifestsRepo, true, make(map[string]string))
 	}
 	// build restConfig and apiConfig using $HOME/.kube/config if the file exist
 	_kustomize.restConfig = kftypesv2.GetConfig()
@@ -213,6 +213,25 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
+func (kustomize *kustomize) mapDirs(dirPath string, root bool, leafMap map[string]string) map[string]string {
+	files, err := ioutil.ReadDir(dirPath)
+	if err != nil {
+		return leafMap
+	}
+	hasDir := false
+	for _, f := range files {
+		if f.IsDir() {
+			hasDir = true
+			leafDir := path.Join(dirPath, f.Name())
+			kustomize.mapDirs(leafDir, false, leafMap)
+		}
+	}
+	if !hasDir && !root {
+		leafMap[path.Base(dirPath)] = extractSuffix(kustomize.Spec.ManifestsRepo, dirPath)
+	}
+	return leafMap
+}
+
 func (kustomize *kustomize) writeConfigFile() error {
 	buf, bufErr := yaml.Marshal(kustomize)
 	if bufErr != nil {
@@ -264,7 +283,7 @@ func (kustomize *kustomize) updateParamFiles() error {
 				paramMap[nv.Name] = nv.Value
 			}
 			compDir := kustomize.componentMap[compName]
-			paramFile := filepath.Join(compDir, kftypes.KustomizationParamFile)
+			paramFile := filepath.Join(path.Join(kustomize.Spec.ManifestsRepo, compDir), kftypes.KustomizationParamFile)
 			if _, err := os.Stat(paramFile); err == nil {
 				params, paramFileErr := readLines(paramFile)
 				if paramFileErr != nil {
@@ -322,20 +341,7 @@ func writeLines(lines []string, path string) error {
 	return w.Flush()
 }
 
-func mapDirs(dirPath string, leafMap map[string]string) map[string]string {
-	files, err := ioutil.ReadDir(dirPath)
-	if err != nil {
-		return leafMap
-	}
-	hasDir := false
-	for _, f := range files {
-		if f.IsDir() {
-			hasDir = true
-			mapDirs(path.Join(dirPath, f.Name()), leafMap)
-		}
-	}
-	if !hasDir {
-		leafMap[path.Base(dirPath)] = dirPath
-	}
-	return leafMap
+func extractSuffix(dirPath string, subDirPath string) string {
+	suffix := strings.TrimPrefix(subDirPath, dirPath)[1:]
+	return suffix
 }
