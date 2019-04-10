@@ -371,16 +371,12 @@
     parts:: self,
     all:: std.flattenArrays(
       [
-        clusterResources,
-        namespacedResources,
-        [
-          self.applicationCRD,
-          self.applicationConfigMap,
-          self.applicationDeployment,
-          self.applicationService,
-          self.applicationController,
-          self.application,
-        ],
+        self.applicationCRD,
+        self.applicationConfigMap,
+        self.applicationDeployment,
+        self.applicationService,
+        self.applicationController,
+        self.application,
       ],
     ),
 
