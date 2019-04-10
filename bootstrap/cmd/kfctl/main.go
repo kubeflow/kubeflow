@@ -20,6 +20,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var (
+	// VERSION is set during build
+	VERSION = "0.0.1"
+)
+
 func init() {
 	// Add filename as one of the fields of the structured log message.
 	filenameHook := filename.NewHook()
@@ -28,5 +33,5 @@ func init() {
 }
 
 func main() {
-	cmd.Execute()
+	cmd.Execute(VERSION)
 }
