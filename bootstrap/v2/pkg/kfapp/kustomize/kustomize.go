@@ -247,18 +247,10 @@ func (kustomize *kustomize) createResourcesFromFile(config *rest.Config, filenam
 			if result.Scope.Name() == "namespace" {
 				request = request.Namespace(namespace)
 			}
-			if kind == "CustomResourceDefinition" {
-				result := request.Do()
-				if result.Error() != nil {
-					return result.Error()
-				}
-			} else {
-				_, err := request.DoRaw()
-				if err != nil {
-					return err
-				}
+			result := request.Do()
+			if result.Error() != nil {
+				return result.Error()
 			}
-
 		} else {
 			log.Warnf("object with kind %v has no name\n", metadata["kind"])
 		}
