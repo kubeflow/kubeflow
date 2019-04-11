@@ -5,7 +5,7 @@
     local params = _params + _env {
       enableJwtChecking: util.toBool(_params.enableJwtChecking),
       hostname: if std.objectHas(_params, "hostname") then _params.hostname else "null",
-      istioTls: util.toBool(_params.istioTls),
+      enableAuth: util.toBool(_params.enableCognito),
     },
 
     local kubeflowGateway = {
@@ -121,10 +121,14 @@
         annotations: {
           "kubernetes.io/ingress.class": "alb",
           "alb.ingress.kubernetes.io/scheme": "internet-facing",
-        } + if params.istioTls then {
+        } + if params.enableAuth then {
+          "alb.ingress.kubernetes.io/auth-type": "cognito",
+          "alb.ingress.kubernetes.io/auth-idp-cognito": '{"UserPoolArn":"'+ params.CognitoUserPoolArn +'", "UserPoolClientId":"'+ params.CognitoAppClientId +'", "UserPoolDomain":"'+params.CognitoUserPoolDomain +'"}',
           "alb.ingress.kubernetes.io/certificate-arn": params.certArn,
-          "alb.ingress.kubernetes.io/listen-ports":  '[{"HTTP": 80}, {"HTTPS":443}]',
-        } else {},
+          "alb.ingress.kubernetes.io/listen-ports":  '[{"HTTPS":443}]',
+        } else {
+          "alb.ingress.kubernetes.io/listen-ports":  '[{"HTTP": 80}]',
+        },
       },
       spec: {
         rules: [

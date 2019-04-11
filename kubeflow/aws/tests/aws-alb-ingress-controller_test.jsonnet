@@ -4,7 +4,6 @@ local albIngressController = import "kubeflow/aws/aws-alb-ingress-controller.lib
 local params = {
   name: "aws-alb-ingress-controller",
   clusterName: "eks-test-cluster",
-  namespace: "kube-system",
   albIngressControllerImage: "docker.io/amazon/aws-alb-ingress-controller:v1.1.0",
 };
 
@@ -57,7 +56,7 @@ local testCases = [
         {
           kind: "ServiceAccount",
           name: "alb-ingress-controller",
-          namespace: "kube-system",
+          namespace: "kubeflow",
         },
       ],
       roleRef: {
@@ -65,7 +64,7 @@ local testCases = [
         name: "alb-ingress-controller",
         apiGroup: "rbac.authorization.k8s.io",
       },
-      
+
     },
   },
   {
@@ -75,7 +74,7 @@ local testCases = [
       kind: "ServiceAccount",
       metadata: {
         name: "alb-ingress-controller",
-        namespace: "kube-system",
+        namespace: "kubeflow",
         labels: {
           app: "alb-ingress-controller"
         },
@@ -90,7 +89,7 @@ local testCases = [
       kind: "Deployment",
       metadata: {
         name: "alb-ingress-controller",
-        namespace: "kube-system",
+        namespace: "kubeflow",
         labels: {
           app: "alb-ingress-controller"
         },
