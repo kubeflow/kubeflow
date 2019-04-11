@@ -7,6 +7,7 @@ local params = {
   enableJwtChecking: "false",
   istioTls: "false",
   hostname: "null",
+  enableCognito: "false"
 };
 
 local tlsEnabledParams = {
@@ -15,7 +16,11 @@ local tlsEnabledParams = {
   enableJwtChecking: "false",
   istioTls: "true",
   hostname: "example.com",
-  certArn: "arn:aws:acm:us-west-2:3482112113:certificate/eeeeeee-a759-40de-80e1-ef619eadae79"
+  certArn: "arn:aws:acm:us-west-2:3482112113:certificate/eeeeeee-a759-40de-80e1-ef619eadae79",
+  enableCognito: "true",
+  CognitoAppClientId: "cognito_app_client_id",
+  CognitoUserPoolArn: "poolArn",
+  CognitoUserPoolDomain: "poolDomain"
 };
 
 local authEnabledParams = {
@@ -24,10 +29,11 @@ local authEnabledParams = {
   enableJwtChecking: "true",
   istioTls: "true",
   hostname: "example.com",
+  certArn: "arn:aws:acm:us-west-2:3482112113:certificate/eeeeeee-a759-40de-80e1-ef619eadae79",
   CognitoAppClientId: "cognito_app_client_id",
   CoginitoRegion: "us-west-2",
   CognitoUserPoolId: "kubeflow-user-pool",
-  certArn: "arn:aws:acm:us-west-2:3482112113:certificate/eeeeeee-a759-40de-80e1-ef619eadae79"
+  enableCognito: "false",
 };
 
 local env = {
@@ -116,6 +122,7 @@ local testCases = [
         annotations: {
           "kubernetes.io/ingress.class": "alb",
           "alb.ingress.kubernetes.io/scheme": "internet-facing",
+          "alb.ingress.kubernetes.io/listen-ports":  '[{"HTTP": 80}]'
         },
       },
       spec: {
@@ -148,8 +155,10 @@ local testCases = [
         annotations: {
           "kubernetes.io/ingress.class": "alb",
           "alb.ingress.kubernetes.io/scheme": "internet-facing",
+          "alb.ingress.kubernetes.io/auth-type": "cognito",
+          "alb.ingress.kubernetes.io/auth-idp-cognito": '{"UserPoolArn":"poolArn", "UserPoolClientId":"cognito_app_client_id", "UserPoolDomain":"poolDomain"}',
           "alb.ingress.kubernetes.io/certificate-arn": "arn:aws:acm:us-west-2:3482112113:certificate/eeeeeee-a759-40de-80e1-ef619eadae79",
-          "alb.ingress.kubernetes.io/listen-ports":  '[{"HTTP": 80}, {"HTTPS":443}]',
+          "alb.ingress.kubernetes.io/listen-ports":  '[{"HTTPS":443}]',
         },
       },
       spec: {

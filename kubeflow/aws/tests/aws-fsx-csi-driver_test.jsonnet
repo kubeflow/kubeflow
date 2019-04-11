@@ -6,6 +6,7 @@ local params = {
   csiControllerImage: "amazon/aws-fsx-csi-driver:latest",
   csiProvisionerImage: "quay.io/k8scsi/csi-provisioner:v0.4.2",
   csiAttacherImage: "quay.io/k8scsi/csi-attacher:v0.4.2",
+  namespace: "null"
 };
 
 local env = {
@@ -139,7 +140,7 @@ local testCases = [
         namespace: "kf-001",
       },
       spec: {
-        serviceAccount: "fsx-csi-controller",
+        serviceName: "fsx-csi-controller",
         replicas: 1,
         template: {
           metadata: {
@@ -148,9 +149,7 @@ local testCases = [
             },
           },
           spec: {
-            serviceAccount: "csi-controller-sa",
-            priorityClassName: "system-cluster-critical",
-
+            serviceAccount: "fsx-csi-controller-sa",
             tolerations: [
               {
                 key: "CriticalAddonsOnly",
@@ -170,24 +169,6 @@ local testCases = [
                   {
                     name: "CSI_ENDPOINT",
                     value: "unix:///var/lib/csi/sockets/pluginproxy/csi.sock",
-                  },
-                  {
-                    name: "AWS_ACCESS_KEY_ID",
-                    valueFrom: {
-                      secretKeyRef: {
-                        name: "aws-secret",
-                        key: "AWS_ACCESS_KEY_ID",
-                      },
-                    },
-                  },
-                  {
-                    name: "AWS_SECRET_ACCESS_KEY",
-                    valueFrom: {
-                      secretKeyRef: {
-                        name: "aws-secret",
-                        key: "AWS_SECRET_ACCESS_KEY",
-                      },
-                    },
                   },
                 ],
                 volumeMounts: [
