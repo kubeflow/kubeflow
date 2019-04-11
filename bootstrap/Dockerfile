@@ -50,9 +50,6 @@ RUN go build -gcflags 'all=-N -l' -ldflags "-X main.VERSION=${VERSION}" -o bin/k
 #
 FROM golang:${GOLANG_VERSION} as kfctl
 
-RUN apt-get update
-RUN apt-get install -y upx
-
 ENV PATH ${GOPATH}/bin:/usr/local/go/bin:${PATH}
 RUN mkdir -p /opt/kubeflow
 WORKDIR /opt/kubeflow
