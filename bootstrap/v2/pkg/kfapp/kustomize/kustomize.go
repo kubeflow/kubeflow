@@ -42,6 +42,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	application "sigs.k8s.io/application/v2/pkg/apis/app/v1beta1"
 	"sigs.k8s.io/kustomize/v2/k8sdeps"
 	"sigs.k8s.io/kustomize/v2/pkg/factory"
 	"sigs.k8s.io/kustomize/v2/pkg/fs"
@@ -76,6 +77,7 @@ type kustomize struct {
 	err        *os.File
 	componentMap map[string]string
 	packageMap map[string][]string
+	application *application.Application
 	restConfig *rest.Config
 	apiConfig  *clientcmdapi.Config
 }
@@ -114,6 +116,8 @@ func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
 		}
 		_kustomize.componentMap = _kustomize.mapDirs(_kustomize.Spec.ManifestsRepo, true, make(map[string]string))
 	}
+	_kustomize.application = &application.Application{}
+
 	// build restConfig and apiConfig using $HOME/.kube/config if the file exist
 	_kustomize.restConfig = kftypesv2.GetConfig()
 	_kustomize.apiConfig = kftypesv2.GetKubeConfig()
@@ -147,7 +151,7 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	for _, compName := range kustomize.Spec.Components {
 		kustomizeFile := filepath.Join(kustomizeDir, compName+".yaml")
 		if _, err := os.Stat(kustomizeFile); err == nil {
-			resourcesErr := kustomize.createResourcesFromFile(kustomize.restConfig, kustomizeFile)
+			resourcesErr := kustomize.deployResources(kustomize.restConfig, kustomizeFile)
 			if resourcesErr != nil {
 				return &kfapis.KfError{
 					Code:    int(kfapis.INTERNAL_ERROR),
@@ -164,7 +168,7 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 // We use some libraries in an old way (e.g. the RestMapper is in discovery instead of restmapper)
 // because ksonnet (one of our dependency) is using the old library version.
 // TODO: it can't handle "kind: list" yet.
-func (kustomize *kustomize) createResourcesFromFile(config *rest.Config, filename string) error {
+func (kustomize *kustomize) deployResources(config *rest.Config, filename string) error {
 	// Create a restmapper to determine the resource type.
 	_discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
@@ -315,58 +319,58 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
-func (kustomize *kustomize) generate() error {
-	updateParamFilesErr := kustomize.updateParamFiles()
-	if updateParamFilesErr != nil {
-		return updateParamFilesErr
-	}
-	kustomizeDir := path.Join(kustomize.Spec.AppDir, outputDir)
-	kustomizeDirErr := os.Mkdir(kustomizeDir, os.ModePerm)
-	if kustomizeDirErr != nil {
-		log.Fatalf("couldn't create directory %v Error %v", kustomizeDir, kustomizeDirErr)
-	}
-	for _, compName := range kustomize.Spec.Components {
-		if compPath, ok := kustomize.componentMap[compName]; ok {
-			writeKustomizationFileErr := kustomize.writeKustomizationFile(compPath)
-			if writeKustomizationFileErr != nil {
-				return writeKustomizationFileErr
-			}
-			_loader, loaderErr := loader.NewLoader(kustomize.Spec.ManifestsRepo, kustomize.fsys)
-			if loaderErr != nil {
-				return fmt.Errorf("could not load kustomize loader: %v", loaderErr)
-			}
-			defer _loader.Cleanup()
-			kt, err := target.NewKustTarget(_loader, kustomize.factory.ResmapF, kustomize.factory.TransformerF)
-			if err != nil {
-				return err
-			}
-			allResources, err := kt.MakeCustomizedResMap()
-			if err != nil {
-				return err
-			}
-			// Output the objects.
-			res, err := allResources.EncodeAsYaml()
-			if err != nil {
-				return err
-			}
-			kustomizeFile := filepath.Join(kustomizeDir, compName+".yaml")
-			kustomizeFileErr := kustomize.fsys.WriteFile(kustomizeFile, res)
-			if kustomizeFileErr != nil {
-				return kustomizeFileErr
+func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
+	generate := func() error {
+		updateParamFilesErr := kustomize.updateParamFiles()
+		if updateParamFilesErr != nil {
+			return updateParamFilesErr
+		}
+		kustomizeDir := path.Join(kustomize.Spec.AppDir, outputDir)
+		kustomizeDirErr := os.Mkdir(kustomizeDir, os.ModePerm)
+		if kustomizeDirErr != nil {
+			log.Fatalf("couldn't create directory %v Error %v", kustomizeDir, kustomizeDirErr)
+		}
+		for _, compName := range kustomize.Spec.Components {
+			if compPath, ok := kustomize.componentMap[compName]; ok {
+				writeKustomizationFileErr := kustomize.writeKustomizationFile(compPath)
+				if writeKustomizationFileErr != nil {
+					return writeKustomizationFileErr
+				}
+				_loader, loaderErr := loader.NewLoader(kustomize.Spec.ManifestsRepo, kustomize.fsys)
+				if loaderErr != nil {
+					return fmt.Errorf("could not load kustomize loader: %v", loaderErr)
+				}
+				defer _loader.Cleanup()
+				kt, err := target.NewKustTarget(_loader, kustomize.factory.ResmapF, kustomize.factory.TransformerF)
+				if err != nil {
+					return err
+				}
+				allResources, err := kt.MakeCustomizedResMap()
+				if err != nil {
+					return err
+				}
+				// Output the objects.
+				res, err := allResources.EncodeAsYaml()
+				if err != nil {
+					return err
+				}
+				kustomizeFile := filepath.Join(kustomizeDir, compName+".yaml")
+				kustomizeFileErr := kustomize.fsys.WriteFile(kustomizeFile, res)
+				if kustomizeFileErr != nil {
+					return kustomizeFileErr
+				}
 			}
 		}
+
+		return nil
 	}
 
-	return nil
-}
-
-func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 	switch resources {
 	case kftypes.PLATFORM:
 	case kftypes.ALL:
 		fallthrough
 	case kftypes.K8S:
-		generateErr := kustomize.generate()
+		generateErr := generate()
 		if generateErr != nil {
 			return fmt.Errorf("kustomize generate failed Error: %v", generateErr)
 		}
