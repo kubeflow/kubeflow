@@ -20,12 +20,10 @@
     $.parts(params, namespace).uiServiceAccount,
   ] + if util.toBool(params.injectIstio) then [
     $.parts(params, namespace).virtualService,
-    $.parts(params, namespace).destinationRule,
   ] else [],
 
   parts(params, namespace):: {
 
-    local versionWeights = std.split(params.trafficRule, ","),
     virtualService: {
       apiVersion: "networking.istio.io/v1alpha3",
       kind: "VirtualService",
@@ -55,41 +53,17 @@
             route: [
               {
                 destination: {
-                  host: "katic-ui." + namespace,
+                  host: "katic-ui." + namespace + ".svc.cluster.local",
                   port: {
-                    number: 8500,
+                    number: 80,
                   },
-                  subset: std.split(versionWeight, ":")[0],
                 },
-                weight: std.parseInt(std.split(versionWeight, ":")[1]),
-              }
-              for versionWeight in versionWeights
+              },
             ],
           },
         ],
       },
     },  // virtualService
-
-    destinationRule: {
-      apiVersion: "networking.istio.io/v1alpha3",
-      kind: "DestinationRule",
-      metadata: {
-        name: "katib-ui",
-        namespace: namespace,
-      },
-      spec: {
-        host: "katic-ui." + namespace,
-        subsets: [
-          {
-            name: std.split(versionWeight, ":")[0],
-            labels: {
-              version: std.split(versionWeight, ":")[0],
-            },
-          }
-          for versionWeight in versionWeights
-        ],
-      },
-    },  // destinationRule
 
     coreService: {
       apiVersion: "v1",
