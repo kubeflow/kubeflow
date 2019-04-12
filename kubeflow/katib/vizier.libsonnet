@@ -68,7 +68,7 @@
           },
         ],
       },
-    }  // virtualService
+    },  // virtualService
 
     destinationRule:: {
       apiVersion: "networking.istio.io/v1alpha3",
@@ -89,7 +89,7 @@
           for versionWeight in versionWeights
         ],
       },
-    }  // destinationRule
+    },  // destinationRule
 
     coreService: {
       apiVersion: "v1",
