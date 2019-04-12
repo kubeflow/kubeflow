@@ -1,5 +1,7 @@
 {
-  all(params, namespace):: [
+  local util = import "kubeflow/katib/util.libsonnet",
+
+  all(params, namespace):: util.list([
     $.parts(params, namespace).coreService,
     $.parts(params, namespace).coreDeployment,
     $.parts(params, namespace).dbService,
@@ -16,10 +18,10 @@
     $.parts(params, namespace).uiClusterRole,
     $.parts(params, namespace).uiClusterRoleBinding,
     $.parts(params, namespace).uiServiceAccount,
-  ] + [
+  ] + if util.toBool(params.injectIstio) then [
     $.parts(params. namespace).virtualService,
     $.parts(params. namespace).destinationRule,
-  ],
+  ] else []),
 
   parts(params, namespace):: {
 
