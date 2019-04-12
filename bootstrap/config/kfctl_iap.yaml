@@ -13,7 +13,7 @@ packages:
   - metacontroller
   - modeldb
   - mpi-job
-  - pipeline
+  - pipelines
   - profiles
   - pytorch-job
   - seldon
@@ -34,7 +34,7 @@ components:
   - jupyter-web-app
   - katib
   - notebook-controller
-  - pipeline
+  - pipelines
   - profiles
   - pytorch-operator
   - spartakus
@@ -58,7 +58,7 @@ componentParams:
   cloud-endpoints:
     - name: secretName
       value: admin-gcp-sa
-  pipeline:
+  pipelines:
     - name: mysqlPd
       value: <deployName>-storage-metadata-store
     - name: minioPd

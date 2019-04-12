@@ -26,8 +26,8 @@ defaultApp:
     prototype: metacontroller
   - name: notebook-controller
     prototype: notebook-controller
-  - name: pipeline
-    prototype: pipeline
+  - name: pipelines
+    prototype: pipelines
   - name: profiles
     prototype: profiles
   - name: pytorch-operator
