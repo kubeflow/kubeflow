@@ -147,11 +147,36 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 			}
 		}
 	}
+	continuation := func() func(string, schema.GroupKind, map[string]interface{}) {
+		componentGroupKindsMap := make(map[string]metav1.GroupKind)
+		callback := func(namespace string, sgk schema.GroupKind, obj map[string]interface{}) {
+			gk := metav1.GroupKind {
+				Kind: sgk.Kind,
+				Group: sgk.Group,
+			}
+			if namespace == kustomize.Namespace {
+				switch gk.Kind {
+				case kustomize.application.Kind:
+					spec := obj["spec"].(map[string]interface{})
+					spec["componentGroupKinds"] = kustomize.application.Spec.ComponentGroupKinds
+				default:
+					encoded := gk.Group + "-" + gk.Kind
+					if _, exists := componentGroupKindsMap[encoded]; !exists {
+						componentGroupKindsMap[encoded] = gk
+						kustomize.application.Spec.ComponentGroupKinds =
+							append(kustomize.application.Spec.ComponentGroupKinds, gk)
+					}
+				}
+			}
+		}
+		return callback
+	}
+
 	kustomizeDir := path.Join(kustomize.Spec.AppDir, outputDir)
 	for _, compName := range kustomize.Spec.Components {
 		kustomizeFile := filepath.Join(kustomizeDir, compName+".yaml")
 		if _, err := os.Stat(kustomizeFile); err == nil {
-			resourcesErr := kustomize.deployResources(kustomize.restConfig, kustomizeFile)
+			resourcesErr := kustomize.deployResources(kustomize.restConfig, kustomizeFile, continuation())
 			if resourcesErr != nil {
 				return &kfapis.KfError{
 					Code:    int(kfapis.INTERNAL_ERROR),
@@ -168,7 +193,8 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 // We use some libraries in an old way (e.g. the RestMapper is in discovery instead of restmapper)
 // because ksonnet (one of our dependency) is using the old library version.
 // TODO: it can't handle "kind: list" yet.
-func (kustomize *kustomize) deployResources(config *rest.Config, filename string) error {
+func (kustomize *kustomize) deployResources(config *rest.Config, filename string,
+	callback func(string, schema.GroupKind, map[string]interface{})) error {
 	// Create a restmapper to determine the resource type.
 	_discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
@@ -243,6 +269,9 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 			} else {
 				namespace = "default"
 			}
+			if callback != nil {
+				callback(namespace, gk, o)
+			}
 			body, err := json.Marshal(o)
 			if err != nil {
 				return err
@@ -260,7 +289,6 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 		}
 
 	}
-
 	return nil
 }
 
