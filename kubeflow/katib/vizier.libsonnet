@@ -16,9 +16,78 @@
     $.parts(params, namespace).uiClusterRole,
     $.parts(params, namespace).uiClusterRoleBinding,
     $.parts(params, namespace).uiServiceAccount,
+  ] + [
+    $.parts(params. namespace).virtualService,
+    $.parts(params. namespace).destinationRule,
   ],
 
   parts(params, namespace):: {
+
+    local versionWeights = std.split(params.trafficRule, ","),
+    virtualService:: {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: "katib-ui",
+        namespace: namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/katib/",
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/katib/",
+            },
+            route: [
+              {
+                destination: {
+                  host: "katic-ui." + namespace,
+                  port: {
+                    number: 8500,
+                  },
+                  subset: std.split(versionWeight, ":")[0],
+                },
+                weight: std.parseInt(std.split(versionWeight, ":")[1]),
+              }
+              for versionWeight in versionWeights
+            ],
+          },
+        ],
+      },
+    }  // virtualService
+
+    destinationRule:: {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "DestinationRule",
+      metadata: {
+        name: name,
+        namespace: namespace,
+      },
+      spec: {
+        host: "katic-ui." + namespace,
+        subsets: [
+          {
+            name: std.split(versionWeight, ":")[0],
+            labels: {
+              version: std.split(versionWeight, ":")[0],
+            },
+          }
+          for versionWeight in versionWeights
+        ],
+      },
+    }  // destinationRule
 
     coreService: {
       apiVersion: "v1",
