@@ -348,11 +348,14 @@ func (kustomize *kustomize) deployApplication(config *rest.Config) error {
 	if err != nil {
 		return err
 	}
-	response := restClient.Post().Resource(result.Resource.Resource).Body(body).Do()
+	request := restClient.Post().Resource(result.Resource.Resource).Body(body)
+	if result.Scope.Name() == "namespace" {
+		request = request.Namespace(kustomize.Namespace)
+	}
+	response := request.Do()
 	if response.Error() != nil {
 		return response.Error()
 	}
-
 	return nil
 }
 
