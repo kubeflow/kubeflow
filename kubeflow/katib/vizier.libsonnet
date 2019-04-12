@@ -19,14 +19,14 @@
     $.parts(params, namespace).uiClusterRoleBinding,
     $.parts(params, namespace).uiServiceAccount,
   ] + if util.toBool(params.injectIstio) then [
-    $.parts(params. namespace).virtualService,
-    $.parts(params. namespace).destinationRule,
+    $.parts(params, namespace).virtualService,
+    $.parts(params, namespace).destinationRule,
   ] else [],
 
   parts(params, namespace):: {
 
     local versionWeights = std.split(params.trafficRule, ","),
-    virtualService:: {
+    virtualService: {
       apiVersion: "networking.istio.io/v1alpha3",
       kind: "VirtualService",
       metadata: {
@@ -70,11 +70,11 @@
       },
     },  // virtualService
 
-    destinationRule:: {
+    destinationRule: {
       apiVersion: "networking.istio.io/v1alpha3",
       kind: "DestinationRule",
       metadata: {
-        name: name,
+        name: "katib-ui",
         namespace: namespace,
       },
       spec: {
