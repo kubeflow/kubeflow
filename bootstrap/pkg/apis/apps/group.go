@@ -56,6 +56,8 @@ const (
 	DefaultZone            = "us-east1-d"
 	DefaultGkeApiVer       = "v1beta1"
 	DefaultAppLabel        = "app.kubernetes.io/name"
+	DefaultAppVersion      = "app.kubernetes.io/version"
+	DefaultAppType         = "Kubeflow"
 	KUBEFLOW_USERNAME      = "KUBEFLOW_USERNAME"
 	KUBEFLOW_PASSWORD      = "KUBEFLOW_PASSWORD"
 	DefaultSwaggerFile     = "bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json"
