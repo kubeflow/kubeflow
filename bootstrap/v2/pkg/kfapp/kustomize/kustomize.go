@@ -343,7 +343,18 @@ func (kustomize *kustomize) deployApplication(config *rest.Config) error {
 	}
 	kustomize.application.Name = kustomize.Name
 	kustomize.application.Namespace = kustomize.Namespace
-
+	kustomize.application.Labels = map[string]string{
+		kftypes.DefaultAppLabel: kustomize.Name,
+		kftypes.DefaultAppVersion: kustomize.Spec.Version,
+	}
+	kustomize.application.Spec.Selector = &metav1.LabelSelector{
+		MatchLabels: map[string]string{
+			kftypes.DefaultAppLabel: kustomize.Name,
+		},
+	}
+	kustomize.application.Spec.Descriptor = application.Descriptor{
+		Type: kftypes.DefaultAppType,
+	}
 	body, err := json.Marshal(kustomize.application)
 	if err != nil {
 		return err
