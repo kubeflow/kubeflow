@@ -3,8 +3,8 @@
 ---
 app:
   components:
-    - name: pipelines
-      prototype: pipelines
+    - name: pipeline
+      prototype: pipeline
     - name: argo
       prototype: argo
     - name: ambassador
