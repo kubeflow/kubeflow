@@ -14,7 +14,7 @@ packages:
   - metacontroller
   - modeldb
   - mpi-job
-  - pipelines
+  - pipeline
   - profiles
   - pytorch-job
   - seldon
@@ -30,7 +30,7 @@ components:
   - jupyter-web-app
   - katib
   - notebook-controller
-  - pipelines
+  - pipeline
   - profiles
   - pytorch-operator
   - tensorboard
