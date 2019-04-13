@@ -53,7 +53,7 @@
             route: [
               {
                 destination: {
-                  host: "katic-ui." + namespace + ".svc.cluster.local",
+                  host: "katib-ui." + namespace + ".svc.cluster.local",
                   port: {
                     number: 80,
                   },
