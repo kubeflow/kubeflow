@@ -596,6 +596,11 @@ func (kustomize *kustomize) updateParamFiles() error {
 					paramName := strings.Split(param, "=")[0]
 					if val, ok := paramMap[paramName]; ok {
 						params[i] = paramName + "=" + val
+					} else {
+						switch paramName {
+						case "namespace":
+							params[i] = paramName + "=" + kustomize.Namespace
+						}
 					}
 				}
 				paramFileErr = writeLines(params, paramFile)
