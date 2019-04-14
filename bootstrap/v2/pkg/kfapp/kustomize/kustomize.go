@@ -345,7 +345,8 @@ func (kustomize *kustomize) deployApplication(config *rest.Config) error {
 	kustomize.application.Namespace = kustomize.Namespace
 	kustomize.application.Labels = map[string]string{
 		kftypes.DefaultAppLabel: kustomize.Name,
-		kftypes.DefaultAppVersion: kustomize.Spec.Version,
+		//TODO add VERSION from cmd/kfctl/cmd/init.go
+		//kftypes.DefaultAppVersion: VERSION
 	}
 	kustomize.application.Spec.Selector = &metav1.LabelSelector{
 		MatchLabels: map[string]string{
