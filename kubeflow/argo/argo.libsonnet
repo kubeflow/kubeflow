@@ -263,6 +263,7 @@
         ],  // http
       },  // spec
     },  // istioVirtualService
+    istioVirtualService:: istioVirtualService,
 
     local workflowControllerConfigmap = {
       apiVersion: "v1",
@@ -516,7 +517,9 @@
       self.argoUIServiceAccount,
       self.argoUIRole,
       self.argUIClusterRoleBinding,
-    ],
+    ] + if util.toBool(params.injectIstio) then [
+      self.istioVirtualService,
+    ] else [],
 
     list(obj=self.all):: util.list(obj),
   },
