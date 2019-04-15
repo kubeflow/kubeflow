@@ -38,7 +38,7 @@ kubectl create secret generic user-gcp-sa -n $NAMESPACE\
 ```
 * Create a service account and bind it  to a role which has permission for K8s resources in your namespace. 
 To this end, you need to create three manifests to declare the role, the service account and the rolebinding. Then you need to deploy them in your cluster and desired namespace.
-  * Create notebook-role using the following manifest in a file named  `jupyterRole.yaml`, and then deploy it:
+  * Create `jupyter-notebook-role` using the following manifest in a file named  `jupyterRole.yaml`, and then deploy it:
 ```
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: Role
@@ -76,7 +76,7 @@ metadata:
 kubectl apply -n $NAMESPACE -f jupyterNotebook.yaml
 ```
 
-  * Write a `RoleBinding` to bound `jupyter-notebook` to the role from the following manifest in a file named `jupyterRoleBinding.yaml`, and then deploy it.
+  * Write a `RoleBinding` to bind `jupyter-notebook` to the role `jupyter-notebook-role` from the following manifest in a file named `jupyterRoleBinding.yaml`, and then deploy it.
 ``` 
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
