@@ -1,5 +1,5 @@
 {
-  local util = import "kubeflow/katib/util.libsonnet",
+  local util = import "kubeflow/common/util.libsonnet",
 
   all(params, namespace):: [
     $.parts(params, namespace).coreService,
