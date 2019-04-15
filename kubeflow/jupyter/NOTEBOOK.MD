@@ -12,7 +12,7 @@ kubectl get serviceaccount jupyter-notebook  --namespace=kubeflow --export -o ya
  kubectl apply --namespace=<your-desired-namespace> -f -
 ``` 
 
-Alternatively, if you would like to leverage GCP services and Kubeflow Fairing functionality using your account you can  manually create 
+Alternatively, if you would like to leverage GCP services and have access to K8s resources (e.g, to make use of  Kubeflow Fairing functionality) using your account you can  manually create 
 them in your namespace as follows:
 * Create a GCP service account with your desired role (to use Kubeflow Fairing, choose `roles/editor`):
 ```
