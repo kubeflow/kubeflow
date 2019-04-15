@@ -311,6 +311,10 @@
                     name: "GOOGLE_APPLICATION_CREDENTIALS",
                     value: "/var/run/secrets/sa/admin-gcp-sa.json",
                   },
+                  {
+                    name: "INGRESS_NAME",
+                    value: params.ingressName,
+                  },
                 ] + if params.useIstio then [
                   {
                     name: "USE_ISTIO",
