@@ -47,7 +47,7 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 		PackageManagers: nil,
 		KfDef:           kfdef,
 	}
-	// fetch the platform [gcp,minikube]
+	// fetch the platform [gcp,minikube,onprem]
 	platform := _coordinator.KfDef.Spec.Platform
 	if platform != "" {
 		_platform, _platformErr := getPlatform(_coordinator.KfDef)

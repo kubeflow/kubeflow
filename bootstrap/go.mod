@@ -92,7 +92,7 @@ require (
 	k8s.io/kube-openapi v0.0.0-20190115222348-ced9eb3070a5 // indirect
 	k8s.io/kubernetes v0.0.0-00010101000000-000000000000 // indirect
 	k8s.io/utils v0.0.0-20190308190857-21c4ce38f2a7 // indirect
-	sigs.k8s.io/controller-runtime v0.1.1
+	sigs.k8s.io/controller-runtime v0.1.10
 	sigs.k8s.io/controller-runtime/v2 v2.0.0
 	sigs.k8s.io/kustomize/v2 v2.0.0-00010101000000-000000000000
 	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect

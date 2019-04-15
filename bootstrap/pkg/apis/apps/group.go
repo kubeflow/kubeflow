@@ -87,7 +87,7 @@ const (
 
 //
 // KfApp provides a common
-// API for platforms like gcp or minikube
+// API for platforms like gcp or minikube or onprem
 // They all implement the API below
 //
 type KfApp interface {
@@ -136,6 +136,7 @@ func RemoveItems(defaults []string, names ...string) []string {
 const (
 	GCP      = "gcp"
 	MINIKUBE = "minikube"
+	ONPREM   = "onprem"
 )
 
 func LoadKfApp(client *kfdefs.KfDef) (KfApp, error) {

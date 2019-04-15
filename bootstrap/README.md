@@ -6,6 +6,7 @@
   - [Usage](#usage)
     - [quick start](#quick-start)
     - [Interactive-use container](#interactive-use-container)
+    - [kfctl onprem](#kfctl-onprem)
   - [Explanation](#explanation)
   - [Background](#background)
     - [ksonnet is a barrier](#ksonnet-is-a-barrier)
@@ -101,6 +102,40 @@ ks apply default
     ```
 
     Then, open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
+
+## kfctl onprem
+
+This has instructions for building kfctl from source for onprem platforms.
+
+Workflow for kfctl:
+
+1. `make build-kfctl` installs the kfctl binary.
+2. `kfctl init <kfapp_directory> --platform onprem` calls the onprem platform specific plugin and skaffolds an app.
+3. `kfctl generate -V` generates a Kubeflow application with the platform specific components.
+4. `kfctl apply -V` applies the generated set of components to the Kubeflow cluster the `kubeconfig` is pointed at.
+
+### Building the plugin for onprem
+
+- Move into the bootstrap directory
+
+- Run `cd cmd/plugins/onprem && go build -i -gcflags 'all=-N -l' -o ../../bin/onprem.so -buildmode=plugin onprem.go`
+
+- Set `export EXPORT_PLUGINS=$GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/bin/`
+
+### Using kfctl for onprem
+
+Note: This currently assumes you have a storage class in the cluster.
+The default namespace for installation is `kubeflow`.
+
+- Ensure kfctl binary is placed in a directory included in `$PATH`
+
+- `kfctl init -V <kfapp_directory> --platform onprem -n <namespace>`
+
+- `kfctl generate k8s -V`
+
+- `kfctl apply k8s -V`
+
+You are all set to Kubeflow onprem :tada:
 
 ## Explanation
 For Kubeflow we want a **low bar and a high ceiling**.
