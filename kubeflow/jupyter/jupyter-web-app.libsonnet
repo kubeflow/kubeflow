@@ -216,6 +216,51 @@
       },
     },
 
+    istioVirtualService:: {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: params.name,
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/" + params.prefix + "/",
+                },
+              },
+            ],
+            route: [
+              {
+                destination: {
+                  host: params.name + "." + params.namespace + ".svc.cluster.local",
+                  port: {
+                    number: 80,
+                  },
+                },
+              },
+            ],
+            headers: {
+              request: {
+                add: {
+                  "x-forwarded-prefix": "/" + params.prefix,
+                },
+              },
+            },
+          },
+        ],
+      },
+    },
+
     depl :: {
       apiVersion: "apps/v1",
       kind: "Deployment",
