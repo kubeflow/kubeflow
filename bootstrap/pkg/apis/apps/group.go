@@ -57,7 +57,7 @@ const (
 	DefaultGkeApiVer       = "v1beta1"
 	DefaultAppLabel        = "app.kubernetes.io/name"
 	DefaultAppVersion      = "app.kubernetes.io/version"
-	DefaultAppType         = "Kubeflow"
+	DefaultAppType         = "kubeflow"
 	KUBEFLOW_USERNAME      = "KUBEFLOW_USERNAME"
 	KUBEFLOW_PASSWORD      = "KUBEFLOW_PASSWORD"
 	DefaultSwaggerFile     = "bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json"
@@ -113,6 +113,7 @@ type KfShow interface {
 	Show(resources ResourceEnum, options map[string]interface{}) error
 }
 
+// QuoteItems will place quotes around the string arrays items
 func QuoteItems(items []string) []string {
 	var withQuotes []string
 	for _, item := range items {
@@ -122,6 +123,7 @@ func QuoteItems(items []string) []string {
 	return withQuotes
 }
 
+// RemoveItem will remove a string item from the string array
 func RemoveItem(defaults []string, name string) []string {
 	var pkgs []string
 	for _, pkg := range defaults {
@@ -144,6 +146,7 @@ const (
 	KUSTOMIZE = "kustomize"
 )
 
+// LoadKfApp will load a shared library of the form <name>.so
 func LoadKfApp(name string, kfdef *kfdefs.KfDef) (KfApp, error) {
 	pluginname := strings.Replace(name, "-", "", -1)
 	plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
@@ -166,11 +169,11 @@ func LoadKfApp(name string, kfdef *kfdefs.KfDef) (KfApp, error) {
 	return symbol.(func(*kfdefs.KfDef) KfApp)(kfdef), nil
 }
 
-// This function will download a version of kubeflow github repo where version can be
+// DownloadToCache will download a version of kubeflow github repo or the manifests repo where version can be
 //   master
 //	 tag
 //	 pull/<ID>[/head]
-// It returns one of the config files under bootstrap/config as a []byte buffer
+// It returns the local file path of where the repo was downloaded
 func DownloadToCache(appDir string, repo string, version string) (string, error) {
 	if _, err := os.Stat(appDir); os.IsNotExist(err) {
 		appdirErr := os.Mkdir(appDir, os.ModePerm)
@@ -244,6 +247,7 @@ func DownloadToCache(appDir string, repo string, version string) (string, error)
 }
 
 // TODO(#2586): Consolidate kubeconfig and API calls.
+// KubeConfigPath returns the filepath to the k8 client config file
 func KubeConfigPath() string {
 	kubeconfigEnv := os.Getenv("KUBECONFIG")
 	if kubeconfigEnv == "" {
@@ -273,6 +277,7 @@ func GetConfig() *rest.Config {
 	return config
 }
 
+// GetServerVersion returns the verison of the k8 api server
 func GetServerVersion(c *clientset.Clientset) string {
 	serverVersion, serverVersionErr := c.ServerVersion()
 	if serverVersionErr != nil {
@@ -283,7 +288,7 @@ func GetServerVersion(c *clientset.Clientset) string {
 	return "version:" + version
 }
 
-// Get $HOME/.kube/config
+// GetKubeConfig returns a representation of  $HOME/.kube/config
 func GetKubeConfig() *clientcmdapi.Config {
 	kubeconfig := KubeConfigPath()
 	config, configErr := clientcmd.LoadFromFile(kubeconfig)
