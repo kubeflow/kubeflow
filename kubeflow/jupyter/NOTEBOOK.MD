@@ -1,7 +1,7 @@
 ## Creating a Jupyter notebook in user-defined namespaces
 In order to create a notebook in a given namespace, Kubeflow expects a service account named `jupyter-notebook`, whcih allows k8s resource access,  and a secret named `user-gcp-sa,` which allows GCP service access, to exist in the namespace. 
 By default these serice acounts exist in `kubeflow` namespace so that you are able to create notebooks in this namespace. 
-You can also create jupyter notebooks in other namespaces than `kubeflow`. However, before creating any notebook you have to make sure that you create the above serviceaccounts in your desirec namespace. 
+You can also create jupyter notebooks in other namespaces than `kubeflow`. However, before creating any notebook you have to make sure that you create the above servic eaccounts in your desired namespace. 
 To this end, you can simply copy the aforementioned service accounts from `kubeflow` namespace to your desired namespace as follows:
 ``` 
 kubectl get secret user-gcp-sa  --namespace=kubeflow --export -o yaml |\
