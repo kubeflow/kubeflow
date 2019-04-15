@@ -94,8 +94,8 @@ subjects:
 kubectl apply -n $NAMESPACE -f jupyterRoleBinding.yaml
 ```
 
-Finally, if you are not interested in using GCP services and/or Kubeflow Fairing, the workaround is to create  
-the aforementioned secret (i.e., `user-gcp-sa`) and service account (i.e., `jupyter-notebook`) without necessarily having them to point to an actual account as follows: 
+Finally, if you are not interested in using GCP services and/or Kubeflow Fairing, but just need to create a notebook in your desired namespace, the work around is to create  
+the aforementioned secret (i.e., `user-gcp-sa`) and service account (i.e., `jupyter-notebook`) without necessarily having them to point to an actual account/role as follows: 
 * Write a secret manifest in a file named `gcpSecret.yaml`:
 ``` 
 apiVersion: v1
