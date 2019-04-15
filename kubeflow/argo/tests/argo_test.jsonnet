@@ -6,6 +6,7 @@ local params = {
   workflowControllerImage: "argoproj/workflow-controller:v2.2.0",
   uiImage: "argoproj/argoui:v2.2.0",
   executorImage: "argoproj/argoexec:v2.2.0",
+  containerRuntimeExecutor: "docker",
   artifactRepositoryKeyPrefix: "artifacts",
   artifactRepositoryEndpoint: "minio-service.kubeflow:9000",
   artifactRepositoryBucket: "mlpipeline",
