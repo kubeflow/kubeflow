@@ -334,7 +334,9 @@
       self.notebookServiceAccount,
       self.notebookRole,
       self.notebookRoleBinding,
-      ],
+    ] + if util.toBool(params.injectIstio) then [
+      self.istioVirtualService,
+    ] else [],
 
     list(obj=self.all):: util.list(obj),
   },
