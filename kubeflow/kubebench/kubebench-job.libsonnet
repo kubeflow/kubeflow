@@ -12,6 +12,10 @@ local k = import "k.libsonnet";
              experimentPvc,
              githubTokenSecret,
              githubTokenSecretKey,
+             awsCredentialsSecret,
+             awsCredentialsSecretAccessKeyId,
+             awsCredentialsSecretAccessKey,
+             awsRegion,
              gcpCredentialsSecret,
              gcpCredentialsSecretKey,
              mainJobKsPrototype,
@@ -57,6 +61,31 @@ local k = import "k.libsonnet";
         "--output-file=" + csvReporterOutput,
       ] else [];
 
+      local awsSecretEnv = if awsCredentialsSecret != "null" then [
+        {
+          name: "AWS_ACCESS_KEY_ID",
+          valueFrom: {
+            secretKeyRef: {
+              name: awsCredentialsSecret,
+              key: awsCredentialsSecretAccessKeyId,
+            },
+          },
+        },
+        {
+          name: "AWS_SECRET_ACCESS_KEY",
+          valueFrom: {
+            secretKeyRef: {
+              name: awsCredentialsSecret,
+              key: awsCredentialsSecretAccessKey,
+            },
+          },
+        },
+        {
+          name: "AWS_REGION",
+          value: awsRegion
+        },
+      ] else [];
+
       local secretEnvVars = [
         if gcpCredentialsSecret != "null" then {
           name: "GOOGLE_APPLICATION_CREDENTIALS",
@@ -71,7 +100,7 @@ local k = import "k.libsonnet";
             },
           },
         },
-      ];  // secretEnvVars
+      ] + awsSecretEnv;  // secretEnvVars
       local baseEnvVars = [
         {
           name: "KUBEBENCH_CONFIG_ROOT",
