@@ -64,11 +64,6 @@ import (
 //  kustomize edit add patch <filepath>
 //  kustomize edit add base <filepath1>,<filepath2>,<filepath3>
 //  kustomize edit set nameprefix <prefix-value>
-
-// A good example is kustomize/pkg/examplelayout/simple
-// which creates an instance from a package, this may be the most similar to ksonnet packages
-// and is taken from [Declarative Application Management in Kubernetes]
-// (https://docs.google.com/document/d/1cLPGweVEYrVqQvBLJg6sxV-TrE5Rm2MNOBA_cxZP2WU)
 type kustomize struct {
 	cltypesv2.KfDef
 	factory          *factory.KustFactory
@@ -84,33 +79,34 @@ type kustomize struct {
 }
 
 const (
-	outputDir    = "kustomize"
+	outputDir     = "kustomize"
 	yamlSeparator = "(?m)^---[ \t]*$"
 )
 
+// GetKfApp is the common entry point for all implmentations of the KfApp interface
 func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
-	kfdef2 := cltypesv2.KfDef {
+	kfdef2 := cltypesv2.KfDef{
 		TypeMeta: metav1.TypeMeta{
-			Kind: kfdef.TypeMeta.Kind,
+			Kind:       kfdef.TypeMeta.Kind,
 			APIVersion: kfdef.TypeMeta.APIVersion,
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: kfdef.Name,
-			Namespace: kfdef.Namespace,
-			Labels: kfdef.Labels,
+			Name:        kfdef.Name,
+			Namespace:   kfdef.Namespace,
+			Labels:      kfdef.Labels,
 			Annotations: kfdef.Annotations,
 			ClusterName: kfdef.ClusterName,
 		},
 		Spec: kfdef.Spec,
 	}
 	_kustomize := &kustomize{
-		KfDef: kfdef2,
-		factory:    k8sdeps.NewFactory(),
-		fsys:       fs.MakeRealFS(),
-		out:        os.Stdout,
-		err:        os.Stderr,
+		KfDef:        kfdef2,
+		factory:      k8sdeps.NewFactory(),
+		fsys:         fs.MakeRealFS(),
+		out:          os.Stdout,
+		err:          os.Stderr,
 		componentMap: make(map[string]bool),
-		packageMap: make(map[string]*[]string),
+		packageMap:   make(map[string]*[]string),
 	}
 	if _kustomize.Spec.ManifestsRepo != "" {
 		for _, compName := range _kustomize.Spec.Components {
@@ -124,15 +120,26 @@ func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
 	}
 	_kustomize.application = &application.Application{
 		TypeMeta: metav1.TypeMeta{
-			Kind: "Application",
+			Kind:       "Application",
 			APIVersion: "app.k8s.io/v1beta1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: _kustomize.Name,
+			Name:      _kustomize.Name,
 			Namespace: _kustomize.Namespace,
+			Labels: map[string]string{
+				kftypes.DefaultAppLabel: _kustomize.Name,
+			},
 		},
 		Spec: application.ApplicationSpec{
-
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					kftypes.DefaultAppLabel: _kustomize.Name,
+				},
+			},
+			Descriptor: application.Descriptor{
+				Type:    kftypes.DefaultAppType,
+				Version: _kustomize.Spec.Version,
+			},
 		},
 	}
 
@@ -142,6 +149,7 @@ func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
 	return _kustomize
 }
 
+// Apply deploys kustomize generated resources to the kubenetes api server
 func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	if kustomize.restConfig == nil || kustomize.apiConfig == nil {
 		return &kfapis.KfError{
@@ -177,10 +185,21 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 			}
 			if namespace == kustomize.Namespace {
 				encoded := gk.Group + "-" + gk.Kind
-				if _, exists := componentGroupKindsMap[encoded]; !exists {
-					componentGroupKindsMap[encoded] = gk
-					kustomize.application.Spec.ComponentGroupKinds =
-						append(kustomize.application.Spec.ComponentGroupKinds, gk)
+				log.Infof("encoded= %v", encoded)
+
+				switch encoded {
+				case "app.k8s.io-Application":
+					obj["name"] = kustomize.application.Name
+					spec := obj["spec"].(map[string]interface{})
+					componentGroupKinds := spec["componentKinds"].([]interface{})
+					for _, groupKind := range componentGroupKindsMap {
+						gk := &groupKind
+						componentGroupKinds = append(componentGroupKinds, gk)
+					}
+				default:
+					if _, exists := componentGroupKindsMap[encoded]; !exists {
+						componentGroupKindsMap[encoded] = gk
+					}
 				}
 			}
 		}
@@ -200,11 +219,11 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 			}
 		}
 	}
-	return kustomize.deployApplication(kustomize.restConfig)
+	return nil
 }
 
 // TODO COPIED from bootstrap/app/k8sUtil.go. Need to merge.
-// CreateResourceFromFile creates resources from a file, just like `kubectl create -f filename`
+// deployResources creates resources from a file, just like `kubectl create -f filename`
 // We use some libraries in an old way (e.g. the RestMapper is in discovery instead of restmapper)
 // because ksonnet (one of our dependency) is using the old library version.
 // TODO: it can't handle "kind: list" yet.
@@ -244,15 +263,23 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 		} else {
 			group, version = apiVersion[0], apiVersion[1]
 		}
+		metadata := o["metadata"].(map[string]interface{})
+		var namespace string
+		if metadata["namespace"] != nil {
+			namespace = metadata["namespace"].(string)
+		} else {
+			namespace = ""
+		}
+		log.Infof("namespace = %v", namespace)
+
 		kind := o["kind"].(string)
 		gk := schema.GroupKind{
 			Group: group,
 			Kind:  kind,
 		}
-		result, err := mapper.RESTMapping(gk, version)
-		// result.resource is the resource we need (e.g. pods, services)
-		if err != nil {
-			return err
+		mapping, retryErr := mapper.RESTMapping(gk, version)
+		if retryErr != nil {
+			return retryErr
 		}
 
 		// build config for restClient
@@ -273,7 +300,6 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 		}
 
 		// build the request
-		metadata := o["metadata"].(map[string]interface{})
 		if metadata["name"] != nil {
 			name := metadata["name"].(string)
 			log.Infof("creating %v\n", name)
@@ -282,7 +308,7 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 			if metadata["namespace"] != nil {
 				namespace = metadata["namespace"].(string)
 			} else {
-				namespace = "default"
+				namespace = ""
 			}
 			if callback != nil {
 				callback(namespace, gk, o)
@@ -291,13 +317,22 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 			if err != nil {
 				return err
 			}
-			request := restClient.Post().Resource(result.Resource.Resource).Body(body)
-			if result.Scope.Name() == "namespace" {
+			request := restClient.Post().Resource(mapping.Resource.Resource).Body(body)
+			if mapping.Scope.Name() == "namespace" {
 				request = request.Namespace(namespace)
 			}
 			result := request.Do()
 			if result.Error() != nil {
-				return result.Error()
+				statusCode := 200
+				result.StatusCode(&statusCode)
+				switch statusCode {
+				case 200:
+					fallthrough
+				case 409:
+					continue
+				default:
+					return result.Error()
+				}
 			}
 		} else {
 			log.Warnf("object with kind %v has no name\n", metadata["kind"])
@@ -307,70 +342,7 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 	return nil
 }
 
-func (kustomize *kustomize) deployApplication(config *rest.Config) error {
-	// Create a restmapper to determine the resource type.
-	_discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
-	if err != nil {
-		return err
-	}
-	_cached := cached.NewMemCacheClient(_discoveryClient)
-	_cached.Invalidate()
-	mapper := restmapper.NewDeferredDiscoveryRESTMapper(_cached)
-	c := rest.CopyConfig(config)
-	gvk := kustomize.application.GroupVersionKind()
-	c.GroupVersion = &schema.GroupVersion{
-		Group:   gvk.Group,
-		Version: gvk.Version,
-	}
-	gk := schema.GroupKind{
-		Group: gvk.Group,
-		Kind:  gvk.Kind,
-	}
-	result, err := mapper.RESTMapping(gk, gvk.Version)
-	// result.resource is the resource we need (e.g. pods, services)
-	if err != nil {
-		return err
-	}
-	c.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
-	if gk.Group == "" {
-		c.APIPath = "/api"
-	} else {
-		c.APIPath = "/apis"
-	}
-	restClient, err := rest.RESTClientFor(c)
-	if err != nil {
-		return err
-	}
-	kustomize.application.Name = kustomize.Name
-	kustomize.application.Namespace = kustomize.Namespace
-	kustomize.application.Labels = map[string]string{
-		kftypes.DefaultAppLabel: kustomize.Name,
-		//TODO add VERSION from cmd/kfctl/cmd/init.go
-		//kftypes.DefaultAppVersion: VERSION
-	}
-	kustomize.application.Spec.Selector = &metav1.LabelSelector{
-		MatchLabels: map[string]string{
-			kftypes.DefaultAppLabel: kustomize.Name,
-		},
-	}
-	kustomize.application.Spec.Descriptor = application.Descriptor{
-		Type: kftypes.DefaultAppType,
-	}
-	body, err := json.Marshal(kustomize.application)
-	if err != nil {
-		return err
-	}
-	request := restClient.Post().Resource(result.Resource.Resource).Body(body)
-	if result.Scope.Name() == "namespace" {
-		request = request.Namespace(kustomize.Namespace)
-	}
-	response := request.Do()
-	if response.Error() != nil {
-		return response.Error()
-	}
-	return nil
-}
-
+// deleteGlobalResources is called from Delete and deletes CRDs, ClusterRoles, ClusterRoleBindings
 func (kustomize *kustomize) deleteGlobalResources() error {
 	apiextclientset := kftypesv2.GetApiExtClientset(kustomize.restConfig)
 	do := &metav1.DeleteOptions{}
@@ -402,6 +374,7 @@ func (kustomize *kustomize) deleteGlobalResources() error {
 	return nil
 }
 
+// Delete is called from 'kfctl delete ...'. Will delete all resources deployed from the Apply method
 func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 	if kustomize.restConfig == nil || kustomize.apiConfig == nil {
 		return &kfapis.KfError{
@@ -410,7 +383,7 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 		}
 	}
 	clientset := kftypesv2.GetClientset(kustomize.restConfig)
-    kustomize.deleteGlobalResources()
+	kustomize.deleteGlobalResources()
 	namespace := kustomize.Namespace
 	log.Infof("deleting namespace: %v", namespace)
 	ns, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
@@ -426,6 +399,8 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
+// Generate is called from 'kfctl generate ...' and produces yaml output files under <deployment>/kustomize.
+// One yaml file per component
 func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 	generate := func() error {
 		updateParamFilesErr := kustomize.updateParamFiles()
@@ -433,10 +408,23 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 			return updateParamFilesErr
 		}
 		kustomizeDir := path.Join(kustomize.Spec.AppDir, outputDir)
-		kustomizeDirErr := os.Mkdir(kustomizeDir, os.ModePerm)
-		if kustomizeDirErr != nil {
-			log.Fatalf("couldn't create directory %v Error %v", kustomizeDir, kustomizeDirErr)
+		// idempotency
+		if _, err := os.Stat(kustomizeDir); !os.IsNotExist(err) {
+			_ = os.RemoveAll(kustomizeDir)
 		}
+		kustomizeDirErr := os.MkdirAll(kustomizeDir, os.ModePerm)
+		if kustomizeDirErr != nil {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("couldn't create directory %v Error %v", kustomizeDir, kustomizeDirErr),
+			}
+		}
+		defer func() {
+			file := filepath.Join(kustomize.Spec.ManifestsRepo, kftypes.KustomizationFile)
+			if _, err := os.Stat(file); err == nil {
+				_ = os.Remove(file)
+			}
+		}()
 		for _, compName := range kustomize.Spec.Components {
 			if compPath, ok := kustomize.componentPathMap[compName]; ok {
 				writeKustomizationFileErr := kustomize.writeKustomizationFile(compPath)
@@ -468,7 +456,6 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 				}
 			}
 		}
-
 		return nil
 	}
 
@@ -485,6 +472,8 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
+// Init is called from 'kfctl init ...' and creates a <deployment> directory with an app.yaml file that
+// holds deployment information like components, parameters
 func (kustomize *kustomize) Init(resources kftypes.ResourceEnum) error {
 	parts := strings.Split(kustomize.Spec.PackageManager, "@")
 	version := "master"
@@ -503,15 +492,17 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
+// mapDirs is a recursive method that will return a map of component -> path-to-kustomization.yaml
+// under the manifests downloaded cache
 func (kustomize *kustomize) mapDirs(dirPath string, root bool, depth int, leafMap map[string]string) map[string]string {
 	dirName := path.Base(dirPath)
 	// package is component, stop here
 	if depth == 1 && kustomize.packageMap[dirName] != nil && kustomize.componentMap[dirName] {
 		leafMap[dirName] = dirName
 		arrayOfComponents := *kustomize.packageMap[dirName]
-        arrayOfComponents = append(arrayOfComponents, dirName)
-        kustomize.packageMap[dirName] = &arrayOfComponents
-        return leafMap
+		arrayOfComponents = append(arrayOfComponents, dirName)
+		kustomize.packageMap[dirName] = &arrayOfComponents
+		return leafMap
 	}
 	files, err := ioutil.ReadDir(dirPath)
 	if err != nil {
@@ -521,7 +512,7 @@ func (kustomize *kustomize) mapDirs(dirPath string, root bool, depth int, leafMa
 		if f.IsDir() {
 			leafDir := path.Join(dirPath, f.Name())
 			if depth < 2 {
-				kustomize.mapDirs(leafDir, false, depth + 1, leafMap)
+				kustomize.mapDirs(leafDir, false, depth+1, leafMap)
 			}
 		}
 	}
@@ -538,6 +529,7 @@ func (kustomize *kustomize) mapDirs(dirPath string, root bool, depth int, leafMa
 	return leafMap
 }
 
+// writeConfigFile will marshal kustomize to <deployment>/app.yaml
 func (kustomize *kustomize) writeConfigFile() error {
 	buf, bufErr := yaml.Marshal(kustomize)
 	if bufErr != nil {
@@ -551,11 +543,13 @@ func (kustomize *kustomize) writeConfigFile() error {
 	return nil
 }
 
+// writeKustomizationFile will write out a top-level kustomization.yaml under the manifests downloaded cache.
+// this file is then used to generate a component under <deployment>/kustomize
 func (kustomize *kustomize) writeKustomizationFile(compPath string) error {
 	bases := []string{compPath}
 	kustomization := &types.Kustomization{
 		TypeMeta: types.TypeMeta{
-			Kind: types.KustomizationKind,
+			Kind:       types.KustomizationKind,
 			APIVersion: types.KustomizationVersion,
 		},
 		Bases: bases,
@@ -576,6 +570,8 @@ func (kustomize *kustomize) writeKustomizationFile(compPath string) error {
 	return nil
 }
 
+// updateParamFiles will taks any parameterComponent sections in app.yaml and update
+// the component's param.yaml file under the manifests downloaded cache
 func (kustomize *kustomize) updateParamFiles() error {
 	for _, compName := range kustomize.Spec.Components {
 		if val, ok := kustomize.Spec.ComponentParams[compName]; ok {
@@ -617,6 +613,7 @@ func (kustomize *kustomize) updateParamFiles() error {
 	return nil
 }
 
+// readLines reads a file into an array of strings
 func readLines(path string) ([]string, error) {
 	var file, err = os.Open(path)
 	if err != nil {
@@ -632,7 +629,7 @@ func readLines(path string) ([]string, error) {
 	return lines, scanner.Err()
 }
 
-// writeLines writes the lines to the given file.
+// writeLines writes a string array to the given file - one line per array entry.
 func writeLines(lines []string, path string) error {
 	file, err := os.Create(path)
 	if err != nil {
@@ -647,6 +644,8 @@ func writeLines(lines []string, path string) error {
 	return w.Flush()
 }
 
+// extractSuffix will return the non-overlapped part of 2 paths eg
+// /foo/bar/baz/zed and /foo/bar/ will return baz/zed
 func extractSuffix(dirPath string, subDirPath string) string {
 	suffix := strings.TrimPrefix(subDirPath, dirPath)[1:]
 	return suffix

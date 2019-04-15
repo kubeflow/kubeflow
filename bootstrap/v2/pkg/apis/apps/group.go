@@ -28,6 +28,7 @@ import (
 	"path/filepath"
 )
 
+// KubeConfigPath returns the filepath to the k8 client config file
 func KubeConfigPath() string {
 	kubeconfigEnv := os.Getenv("KUBECONFIG")
 	if kubeconfigEnv == "" {
@@ -57,7 +58,7 @@ func GetConfig() *rest.Config {
 	return config
 }
 
-// Get $HOME/.kube/config
+// GetKubeConfig returns a representation of  $HOME/.kube/config
 func GetKubeConfig() *clientcmdapi.Config {
 	kubeconfig := KubeConfigPath()
 	config, configErr := clientcmd.LoadFromFile(kubeconfig)
@@ -76,7 +77,7 @@ func GetClientset(config *rest.Config) *kubernetes.Clientset {
 	return _clientset
 }
 
-// Gets a clientset which can query for CRDs
+// GetApiExtClientset returns a k8s clientset that can query for CRDs
 func GetApiExtClientset(config *rest.Config) apiext.ApiextensionsV1beta1Interface {
 	v := ext.SchemeGroupVersion
 	config.GroupVersion = &v
@@ -86,4 +87,3 @@ func GetApiExtClientset(config *rest.Config) apiext.ApiextensionsV1beta1Interfac
 	}
 	return crdClient.ApiextensionsV1beta1()
 }
-
