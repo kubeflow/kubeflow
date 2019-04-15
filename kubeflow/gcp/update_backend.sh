@@ -4,6 +4,7 @@
 
 [ -z ${NAMESPACE} ] && echo Error NAMESPACE must be set && exit 1
 [ -z ${SERVICE} ] && echo Error SERVICE must be set && exit 1
+[ -z ${INGRESS_NAME} ] && echo Error INGRESS_NAME must be set && exit 1
 
 PROJECT=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/project/project-id)
 if [ -z ${PROJECT} ]; then
@@ -16,6 +17,15 @@ for i in {1..5}; do gcloud auth activate-service-account --key-file=${GOOGLE_APP
 
 NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
 echo node port is ${NODE_PORT}
+
+while [[ -z ${BACKEND_NAME} ]]; do
+  BACKENDS=$(kubectl --namespace=${NAMESPACE} get ingress ${INGRESS_NAME} -o jsonpath='{.metadata.annotations.ingress\.kubernetes\.io/backends}')
+  echo "fetching backends info with ${INGRESS_NAME}: ${BACKENDS}"
+  BACKEND_NAME=$(echo $BACKENDS | grep -o "k8s-be-${NODE_PORT}--[0-9a-z]\+")
+  echo "backend name is ${BACKEND_NAME}"
+  sleep 2
+done
+
 while [[ -z ${BACKEND_SERVICE} ]];
 do BACKEND_SERVICE=$(gcloud --project=${PROJECT} compute backend-services list --filter=name~k8s-be-${NODE_PORT}- --uri);
 echo "Waiting for the backend-services resource PROJECT=${PROJECT} NODEPORT=${NODE_PORT} SERVICE=${SERVICE}...";
@@ -23,7 +33,7 @@ sleep 2;
 done
 
 while [[ -z ${HEALTH_CHECK_URI} ]];
-do HEALTH_CHECK_URI=$(gcloud compute --project=${PROJECT} health-checks list --filter=name~k8s-be-${NODE_PORT}- --uri);
+do HEALTH_CHECK_URI=$(gcloud compute --project=${PROJECT} health-checks list --filter=name~${BACKEND_NAME} --uri);
 echo "Waiting for the healthcheck resource PROJECT=${PROJECT} NODEPORT=${NODE_PORT} SERVICE=${SERVICE}...";
 sleep 2;
 done
