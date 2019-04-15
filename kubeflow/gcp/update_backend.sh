@@ -15,6 +15,7 @@ fi
 for i in {1..5}; do gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} && break || sleep 10; done
 
 NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
+echo node port is ${NODE_PORT}
 while [[ -z ${BACKEND_SERVICE} ]];
 do BACKEND_SERVICE=$(gcloud --project=${PROJECT} compute backend-services list --filter=name~k8s-be-${NODE_PORT}- --uri);
 echo "Waiting for the backend-services resource PROJECT=${PROJECT} NODEPORT=${NODE_PORT} SERVICE=${SERVICE}...";
@@ -27,19 +28,25 @@ echo "Waiting for the healthcheck resource PROJECT=${PROJECT} NODEPORT=${NODE_PO
 sleep 2;
 done
 
+echo health check URI is ${HEALTH_CHECK_URI}
+
 # Since we create the envoy-ingress ingress object before creating the envoy
 # deployment object, healthcheck will not be configured correctly in the GCP
 # load balancer. It will default the healthcheck request path to a value of
 # / instead of the intended /healthz.
 # Manually update the healthcheck request path to /healthz
 if [[ ${HEALTHCHECK_PATH} ]]; then
+  echo Running health checks update ${HEALTH_CHECK_URI} with ${HEALTHCHECK_PATH}
   gcloud --project=${PROJECT} compute health-checks update http ${HEALTH_CHECK_URI} --request-path=${HEALTHCHECK_PATH}
 else
+  echo Running health checks update ${HEALTH_CHECK_URI} with /healthz
   gcloud --project=${PROJECT} compute health-checks update http ${HEALTH_CHECK_URI} --request-path=/healthz
 fi
 
 if [[ ${USE_ISTIO} ]]; then
   # Create the route so healthcheck can pass
+  echo istio healthcheck_route is
+  cat /var/envoy-config/healthcheck_route.yaml
   kubectl apply -f /var/envoy-config/healthcheck_route.yaml
 fi
 
