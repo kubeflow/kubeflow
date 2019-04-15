@@ -1,5 +1,5 @@
 ## Creating a Jupyter notebook in user-defined namespaces
-In order to create a notebook in a given namespace, Kubeflow expects a service account named `jupyter-notebook`, whcih allows k8s resource access,  and a secret named `user-gcp-sa,` which allows GCP service access, to exist in the namespace. 
+In order to create a notebook in a given namespace, Kubeflow expects a service account named `jupyter-notebook`, whcih allows K8s resource access,  and a secret named `user-gcp-sa,` which allows GCP service access, to exist in the namespace. 
 By default these serice acounts exist in `kubeflow` namespace so that you are able to create notebooks in this namespace. 
 You can also create jupyter notebooks in other namespaces than `kubeflow`. However, before creating any notebook you have to make sure that you create the above servic eaccounts in your desired namespace. 
 To this end, you can simply copy the aforementioned service accounts from `kubeflow` namespace to your desired namespace as follows:
@@ -36,8 +36,8 @@ gcloud iam service-accounts keys create <path-to-key>/key.json \
 kubectl create secret generic user-gcp-sa -n $NAMESPACE\
   --from-file=user-gcp-sa.json=<path-to-key>/key.json
 ```
-* Create a service account bounding to a role which has permission for k8s resources in your namespace. 
-To this end, you need to create three manifests to declare role, service account and rolebinding. Then you need to deploy them in your cluster and desired namespace.
+* Create a service account and bind it  to a role which has permission for K8s resources in your namespace. 
+To this end, you need to create three manifests to declare the role, the service account and the rolebinding. Then you need to deploy them in your cluster and desired namespace.
   * Create notebook-role using the following manifest in a file named  `jupyterRole.yaml`, and then deploy it:
 ```
 apiVersion: rbac.authorization.k8s.io/v1beta1
