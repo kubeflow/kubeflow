@@ -98,6 +98,25 @@
           "waf:GetWebACL"
         ],
         "Resource": "*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+            "cognito-identity:Describe*",
+            "cognito-identity:Get*",
+            "cognito-identity:List*",
+            "cognito-idp:Describe*",
+            "cognito-idp:AdminGetUser",
+            "cognito-idp:AdminList*",
+            "cognito-idp:List*",
+            "cognito-sync:Describe*",
+            "cognito-sync:Get*",
+            "cognito-sync:List*",
+            "iam:ListOpenIdConnectProviders",
+            "iam:ListRoles",
+            "sns:ListPlatformApplications"
+        ],
+        "Resource": "*"
       }
     ]
   }

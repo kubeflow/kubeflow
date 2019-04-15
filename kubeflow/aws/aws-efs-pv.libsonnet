@@ -8,18 +8,20 @@
       kind: "PersistentVolume",
       metadata: {
         name: params.name,
-        namespace: params.namespace,
       },
       spec: {
         capacity: {
           storage: params.storageCapacity,
         },
+        volumeMode: "Filesystem",
+        persistentVolumeReclaimPolicy: "Recycle",
+        storageClassName: params.storageClassName,
         accessModes: [
           "ReadWriteMany",
         ],
-        nfs: {
-          server: params.serverIP,
-          path: params.path,
+        csi: {
+          driver: "efs.csi.aws.com",
+          volumeHandle: params.efsId,
         },
       },
     },
@@ -36,8 +38,8 @@
         accessModes: [
           "ReadWriteMany",
         ],
-        storageClassName: "nfs-storage",
         volumeName: params.name,
+        storageClassName: params.storageClassName,
         resources: {
           requests: {
             storage: params.storageCapacity,

@@ -131,7 +131,7 @@ export class ActivitiesList extends PolymerElement {
                 time: time,
                 event: a.message,
                 icon: a.type === 'Normal' ? 'build' : 'error',
-                source: a.source.host,
+                source: a.involvedObject.name,
             };
             if (!(day in eventsByDate)) {
                 eventsByDate[day] = [];

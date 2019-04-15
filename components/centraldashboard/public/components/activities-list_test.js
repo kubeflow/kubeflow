@@ -39,15 +39,15 @@ describe('Activities List', () => {
             lastTimestamp: today.toLocaleString(),
             message: 'Something happened',
             type: 'Normal',
-            source: {
-                host: 'some-container',
+            involvedObject: {
+                name: 'some-pod',
             },
         }, {
             lastTimestamp: yesterday.toLocaleString(),
             message: 'Something bad happened',
             type: 'Error',
-            source: {
-                host: 'a-failing-container',
+            involvedObject: {
+                name: 'a-failing-pod',
             },
         }];
         flush();
@@ -71,8 +71,8 @@ describe('Activities List', () => {
                     .toLocaleString(),
                 message: `Something happened ${i}`,
                 type: 'Normal',
-                source: {
-                    host: 'some-container',
+                involvedObject: {
+                    name: 'some-pod',
                 },
             });
         }
