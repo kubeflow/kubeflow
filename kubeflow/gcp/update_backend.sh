@@ -55,8 +55,6 @@ fi
 
 if [[ ${USE_ISTIO} ]]; then
   # Create the route so healthcheck can pass
-  echo istio healthcheck_route is
-  cat /var/envoy-config/healthcheck_route.yaml
   kubectl apply -f /var/envoy-config/healthcheck_route.yaml
 fi
 
