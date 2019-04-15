@@ -262,6 +262,7 @@ local k = import "k.libsonnet";
                     ],
                   ),
                 ],
+                if postJobImage != "null" && postJobArgs != "null" then
                 [
                   buildStep(
                     "run-post-job",
@@ -277,7 +278,8 @@ local k = import "k.libsonnet";
                       },
                     ],
                   ),
-                ],
+                ] else [],
+                if reporterType != "null" then
                 [
                   buildStep(
                     "run-reporter",
@@ -293,7 +295,7 @@ local k = import "k.libsonnet";
                       },
                     ],
                   ),
-                ],
+                ] else [],
               ],
             },
             buildTemplate(
@@ -342,6 +344,7 @@ local k = import "k.libsonnet";
               successCondition="status.completionTime",
               inParams=[{ name: "kf-job-manifest" }],
             ),
+            if postJobImage != "null" && postJobArgs != "null" then
             buildTemplate(
               "post-job",
               postJobImage,
@@ -349,7 +352,8 @@ local k = import "k.libsonnet";
               envVars=baseEnvVars + expEnvVars(),
               volMnts=baseVolMnts,
               inParams=[{ name: "experiment-id" }],
-            ),
+            ) else {},
+            if reporterType != "null" then
             buildTemplate(
               "reporter",
               controllerImage,
@@ -357,7 +361,7 @@ local k = import "k.libsonnet";
               envVars=secretEnvVars + baseEnvVars + expEnvVars(),
               volMnts=secretVolMnts + baseVolMnts,
               inParams=[{ name: "experiment-id" }],
-            ),
+            ) else {},
           ],  // templates
         },
       },  // workflow
