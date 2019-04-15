@@ -226,6 +226,44 @@
     },
     argUIService:: argUIService,
 
+    local istioVirtualService = {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: "argo-ui",
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/argo/",
+                },
+              },
+            ],  // match
+            route: [
+              {
+                destination: {
+                  host: "argo-ui." + params.namespace + ".svc.cluster.local",
+                  port: {
+                    number: 80,
+                  },
+                },  // destination
+              },
+            ],  // route
+          },
+        ],  // http
+      },  // spec
+    },  // istioVirtualService
+
     local workflowControllerConfigmap = {
       apiVersion: "v1",
       data: {
