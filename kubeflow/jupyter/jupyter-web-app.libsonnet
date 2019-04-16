@@ -239,6 +239,9 @@
                 },
               },
             ],
+            rewrite: {
+              uri: "/",
+            },
             route: [
               {
                 destination: {
