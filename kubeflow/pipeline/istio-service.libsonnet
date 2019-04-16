@@ -3,6 +3,7 @@
 
   all(namespace, injectIstio):: if util.toBool(injectIstio) then [
     $.parts(namespace).serviceUiIstio,
+    $.parts(namespace).tensorbaordDataIstio,
   ] else [],
 
   parts(namespace):: {
