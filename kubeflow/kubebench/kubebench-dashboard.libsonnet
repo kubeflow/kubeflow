@@ -1,5 +1,7 @@
 {
   local k = import "k.libsonnet",
+  local util = import "kubeflow/common/util.libsonnet",
+
   new(_env, _params):: {
 
     local params = _env + _params,
@@ -199,7 +201,9 @@
       self.serviceAccount,
       self.role,
       self.roleBinding,
-    ],
+    ] + if util.toBool(params.injectIstio) then [
+      self.istioVirtualService,
+    ] else [],
 
     //Create Objects
     list(obj=self.all):: k.core.v1.list.new(obj,),

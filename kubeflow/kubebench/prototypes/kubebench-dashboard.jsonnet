@@ -4,6 +4,7 @@
 // @shortDescription Kubebench dashboard installer
 // @param name string Name for the component
 // @optionalParam image string gcr.io/kubeflow-images-public/kubebench/kubebench-dashboard:v0.4.0-13-g262c593 Image for kubebench dashboard
+// @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
 
 local k = import "k.libsonnet";
 
