@@ -1,6 +1,4 @@
 {
-  local util = import "kubeflow/common/util.libsonnet",
-
   all(namespace, uiImage):: [
     $.parts(namespace).serviceAccount,
     $.parts(namespace).serviceUi,
@@ -58,50 +56,6 @@
         loadBalancer: {},
       },
     },  //serviceUi
-
-    serviceUiIstio: {
-      apiVersion: "networking.istio.io/v1alpha3",
-      kind: "VirtualService",
-      metadata: {
-        name: "ml-pipeline-ui",
-        namespace: namespace,
-      },
-      spec: {
-        hosts: [
-          "*",
-        ],
-        gateways: [
-          "kubeflow-gateway",
-        ],
-        http: [
-          {
-            match: [
-              {
-                uri: {
-                  prefix: "/pipeline",
-                },
-              },
-            ],
-            rewrite: {
-              uri: "/pipeline",
-            },
-            route: [
-              {
-                destination: {
-                  host: "ml-pipeline-ui." + namespace + ".svc.cluster.local",
-                  port: {
-                    number: 80,
-                  },
-                },
-              },
-            ],
-            timeout: {
-              seconds: 300,
-            },
-          },
-        ],
-      },
-    },  // serviceUiIstio
 
     tensorboardData: {
       apiVersion: "v1",
