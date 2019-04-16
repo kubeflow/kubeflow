@@ -32,7 +32,7 @@ import appConfigPath from './user_config/app-config.yaml';
 const IngressType  = {
   BasicAuth: 'Login with Username Password',
   DeferIap: 'Setup Endpoint later',
-  Iap: 'Login with GCP Iap'
+  Iap: 'Login with GCP IAP'
 };
 
 interface DeployFormState {
