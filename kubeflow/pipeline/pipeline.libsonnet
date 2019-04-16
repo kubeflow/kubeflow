@@ -59,7 +59,7 @@
           pipeline_viewercrd.all(namespace, viewerCrdControllerImage) +
           pipeline_ui.all(namespace, uiImage) +
           storage.all(namespace, mysqlPvName, minioPvName, nfsPvName, mysqlPd, minioPd, nfsPd) +
-          istio_service.add(namespace, injectIstio) +
+          istio_service.all(namespace, injectIstio) +
           $.parts.nfs,
   },
 }
