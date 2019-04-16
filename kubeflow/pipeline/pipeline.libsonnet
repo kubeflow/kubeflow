@@ -15,6 +15,7 @@
     mysqlPd: null,
     minioPd: null,
     nfsPd: null,
+    injectIstio: "false",
   },
 
   parts:: {

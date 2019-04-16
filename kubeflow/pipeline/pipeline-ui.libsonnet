@@ -1,4 +1,6 @@
 {
+  local util = import "kubeflow/common/util.libsonnet",
+
   all(namespace, uiImage):: [
     $.parts(namespace).serviceAccount,
     $.parts(namespace).serviceUi,
