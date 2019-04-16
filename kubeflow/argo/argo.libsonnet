@@ -249,6 +249,9 @@
                 },
               },
             ],  // match
+            rewrite: {
+              uri: "/",
+            },
             route: [
               {
                 destination: {
