@@ -47,5 +47,47 @@
         ],
       },
     },  // serviceUiIstio
+
+    tensorbaordDataIstio: {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: "ml-pipeline-tensorboard-ui",
+        namespace: namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/data",
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/data",
+            },
+            route: [
+              {
+                destination: {
+                  host: "ml-pipeline-ui." + namespace + ".svc.cluster.local",
+                  port: {
+                    number: 80,
+                  },
+                },
+              },
+            ],
+            timeout: "300s",
+          },
+        ],
+      },
+    },  // tensorbaordDataIstio
   },
 }
