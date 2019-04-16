@@ -37,6 +37,47 @@
       }),
     tbService:: tbService,
 
+    istioVirtualService:: {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: params.name,
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/tensorboard/" + params.name + "/",
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/",
+            },
+            route: [
+              {
+                destination: {
+                  host: params.name + "." + params.namespace + ".svc.cluster.local",
+                  port: {
+                    number: params.servicePort,
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },  // istioVirtualService
+
     local tbContainer =
       container.new(
         params.name, params.defaultTbImage
