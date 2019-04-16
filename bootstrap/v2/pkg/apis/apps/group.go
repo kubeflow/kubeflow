@@ -17,10 +17,6 @@ package apps
 
 import (
 	log "github.com/sirupsen/logrus"
-	ext "k8s.io/apiextensions-apiserver/v2/pkg/apis/apiextensions/v1beta1"
-	crdclientset "k8s.io/apiextensions-apiserver/v2/pkg/client/clientset/clientset"
-	apiext "k8s.io/apiextensions-apiserver/v2/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
-	"k8s.io/client-go/v2/kubernetes"
 	"k8s.io/client-go/v2/rest"
 	"k8s.io/client-go/v2/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/v2/tools/clientcmd/api"
@@ -66,24 +62,4 @@ func GetKubeConfig() *clientcmdapi.Config {
 		log.Warnf("could not load config Error: %v", configErr)
 	}
 	return config
-}
-
-// GetClientset returns a k8s clientset using .kube/config credentials
-func GetClientset(config *rest.Config) *kubernetes.Clientset {
-	_clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		log.Fatalf("Can not get kubernetes kfdef: %v", err)
-	}
-	return _clientset
-}
-
-// GetApiExtClientset returns a k8s clientset that can query for CRDs
-func GetApiExtClientset(config *rest.Config) apiext.ApiextensionsV1beta1Interface {
-	v := ext.SchemeGroupVersion
-	config.GroupVersion = &v
-	crdClient, err := crdclientset.NewForConfig(config)
-	if err != nil {
-		log.Fatalf("Can not get apiextensions kfdef: %v", err)
-	}
-	return crdClient.ApiextensionsV1beta1()
 }
