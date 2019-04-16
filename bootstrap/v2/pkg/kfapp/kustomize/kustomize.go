@@ -35,9 +35,12 @@ import (
 	"k8s.io/client-go/v2/discovery"
 	"k8s.io/client-go/v2/discovery/cached"
 	"k8s.io/client-go/v2/kubernetes/scheme"
+	corev1 "k8s.io/client-go/v2/kubernetes/typed/core/v1"
+	rbacv1 "k8s.io/client-go/v2/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/v2/rest"
 	"k8s.io/client-go/v2/restmapper"
 	clientcmdapi "k8s.io/client-go/v2/tools/clientcmd/api"
+	crdclientset "k8s.io/apiextensions-apiserver/v2/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	"os"
 	"path"
 	"path/filepath"
@@ -140,6 +143,10 @@ func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
 				Type:    kftypes.DefaultAppType,
 				Version: _kustomize.Spec.Version,
 			},
+			Info: []application.InfoItem {
+
+			},
+
 		},
 	}
 
@@ -157,14 +164,20 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 			Message: "Error: ksApp has nil restConfig or apiConfig, exit",
 		}
 	}
-	clientset := kftypesv2.GetClientset(kustomize.restConfig)
+	corev1client, err := corev1.NewForConfig(kustomize.restConfig)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: "could not get core/v1 client",
+		}
+	}
 	namespace := kustomize.ObjectMeta.Namespace
 	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
-	_, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	_, nsMissingErr := corev1client.Namespaces().Get(namespace, metav1.GetOptions{})
 	if nsMissingErr != nil {
 		log.Infof("Creating namespace: %v", namespace)
 		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
-		_, nsErr := clientset.CoreV1().Namespaces().Create(nsSpec)
+		_, nsErr := corev1client.Namespaces().Create(nsSpec)
 		if nsErr != nil {
 			return &kfapis.KfError{
 				Code: int(kfapis.INVALID_ARGUMENT),
@@ -344,7 +357,13 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 
 // deleteGlobalResources is called from Delete and deletes CRDs, ClusterRoles, ClusterRoleBindings
 func (kustomize *kustomize) deleteGlobalResources() error {
-	apiextclientset := kftypesv2.GetApiExtClientset(kustomize.restConfig)
+	apiextclientset, err := crdclientset.NewForConfig(kustomize.restConfig)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: "could not get apiextensions client",
+		}
+	}
 	do := &metav1.DeleteOptions{}
 	lo := metav1.ListOptions{
 		LabelSelector: kftypes.DefaultAppLabel + "=" + kustomize.Name,
@@ -356,15 +375,21 @@ func (kustomize *kustomize) deleteGlobalResources() error {
 			Message: fmt.Sprintf("couldn't delete customresourcedefinitions Error: %v", crdsErr),
 		}
 	}
-	clientset := kftypesv2.GetClientset(kustomize.restConfig)
-	crbsErr := clientset.RbacV1().ClusterRoleBindings().DeleteCollection(do, lo)
+	rbacclient, err := rbacv1.NewForConfig(kustomize.restConfig)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: "could not get rbac/v1 client",
+		}
+	}
+	crbsErr := rbacclient.ClusterRoleBindings().DeleteCollection(do, lo)
 	if crbsErr != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("couldn't get list of clusterrolebindings Error: %v", crbsErr),
 		}
 	}
-	crsErr := clientset.RbacV1().ClusterRoles().DeleteCollection(do, lo)
+	crsErr := rbacclient.ClusterRoles().DeleteCollection(do, lo)
 	if crsErr != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
@@ -382,13 +407,19 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 			Message: "Error: nil restConfig or apiConfig, exit",
 		}
 	}
-	clientset := kftypesv2.GetClientset(kustomize.restConfig)
+	corev1client, err := corev1.NewForConfig(kustomize.restConfig)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: "could not get core/v1 client",
+		}
+	}
 	kustomize.deleteGlobalResources()
 	namespace := kustomize.Namespace
 	log.Infof("deleting namespace: %v", namespace)
-	ns, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	ns, nsMissingErr := corev1client.Namespaces().Get(namespace, metav1.GetOptions{})
 	if nsMissingErr == nil {
-		nsErr := clientset.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
+		nsErr := corev1client.Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
 		if nsErr != nil {
 			return &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
@@ -547,6 +578,11 @@ func (kustomize *kustomize) writeConfigFile() error {
 // this file is then used to generate a component under <deployment>/kustomize
 func (kustomize *kustomize) writeKustomizationFile(compPath string) error {
 	bases := []string{compPath}
+    platformOverlay := path.Join(kustomize.Spec.ManifestsRepo, compPath, "overlays", kustomize.Spec.Platform)
+	platformKustomizationFile := filepath.Join(platformOverlay, kftypes.KustomizationFile)
+	if _, err := os.Stat(platformKustomizationFile); err == nil {
+	  bases = []string{platformOverlay}
+	}
 	kustomization := &types.Kustomization{
 		TypeMeta: types.TypeMeta{
 			Kind:       types.KustomizationKind,
