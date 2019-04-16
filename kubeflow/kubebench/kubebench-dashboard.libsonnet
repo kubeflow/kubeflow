@@ -75,6 +75,49 @@
     },
     service:: service,
 
+    // ISTIO virtual service for routing.
+    local istioVirtualService = {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: params.name,
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/dashboard/",
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/dashboard/",
+            },
+            route: [
+              {
+                destination: {
+                  host: params.name + "." + params.namespace + ".svc.cluster.local",
+                  port: {
+                    number: 80,
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+    istioVirtualService:: istioVirtualService,
+
     //Dahboard Service Account
     local serviceAccount = {
       apiVersion: "v1",
