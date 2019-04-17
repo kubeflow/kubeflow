@@ -561,7 +561,9 @@
       self.tfUiDeployment,
       self.tfUiRole,
       self.tfUiRoleBinding,
-    ],
+    ] if util.toBool(params.injectIstio) then [
+      self.tfUiIstioVirtualService,
+    ] else [],
 
     list(obj=self.all):: util.list(obj),
   },
