@@ -19,7 +19,6 @@
 
 local k = import "k.libsonnet";
 local core = import "kubeflow/seldon/core.libsonnet";
-local util = import "kubeflow/common/util.libsonnet";
 
 local registry = import "param://registry";
 local repository = import "param://repository";
