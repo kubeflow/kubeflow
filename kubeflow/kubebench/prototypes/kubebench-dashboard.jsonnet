@@ -8,7 +8,7 @@
 
 local k = import "k.libsonnet";
 
-local kubebenchDashboard = import "kubebench/kubebench-dashboard/kubebench-dashboard.libsonnet";
+local kubebenchDashboard = import "kubeflow/kubebench/kubebench-dashboard.libsonnet";
 
 local kubebenchDashboardInstance = kubebenchDashboard.new(env, params);
 kubebenchDashboardInstance.list(kubebenchDashboardInstance.all)
