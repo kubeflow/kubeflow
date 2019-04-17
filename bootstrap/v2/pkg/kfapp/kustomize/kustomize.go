@@ -519,11 +519,15 @@ func (kustomize *kustomize) mapDirs(dirPath string, root bool, depth int, leafMa
 	dirName := path.Base(dirPath)
 	// package is component, stop here
 	if depth == 1 && kustomize.packageMap[dirName] != nil && kustomize.componentMap[dirName] {
-		leafMap[dirName] = dirName
-		arrayOfComponents := *kustomize.packageMap[dirName]
-		arrayOfComponents = append(arrayOfComponents, dirName)
-		kustomize.packageMap[dirName] = &arrayOfComponents
-		return leafMap
+		subdirCheck := path.Join(dirPath, dirName)
+		// border case manifests/jupyter/jupyter
+		if _, err := os.Stat(subdirCheck); err != nil {
+			leafMap[dirName] = dirName
+			arrayOfComponents := *kustomize.packageMap[dirName]
+			arrayOfComponents = append(arrayOfComponents, dirName)
+			kustomize.packageMap[dirName] = &arrayOfComponents
+			return leafMap
+		}
 	}
 	files, err := ioutil.ReadDir(dirPath)
 	if err != nil {
