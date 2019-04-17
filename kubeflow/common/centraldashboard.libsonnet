@@ -256,7 +256,9 @@
       self.centralDashboardRoleBinding,
       self.centralDashboardClusterRole,
       self.centralDashboardClusterRoleBinding,
-    ],
+    ] if util.toBool(params.injectIstio) then [
+      self.centralDashboardIstioVirtualService,
+    ] else [],
 
     list(obj=self.all):: util.list(obj),
   },
