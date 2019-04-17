@@ -55,7 +55,7 @@ import (
 	"strings"
 )
 
-// Kustomize implements KfApp Interface
+// kustomize implements KfApp Interface
 // It should include functionality needed for the kustomize platform
 // In addition to `kustomize build`, there is `kustomize edit ...`
 // As noted below there are lots of different ways to use edit
@@ -235,10 +235,10 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
-// TODO COPIED from bootstrap/app/k8sUtil.go. Need to merge.
 // deployResources creates resources from a file, just like `kubectl create -f filename`
 // We use some libraries in an old way (e.g. the RestMapper is in discovery instead of restmapper)
 // because ksonnet (one of our dependency) is using the old library version.
+// TODO based on bootstrap/app/k8sUtil.go. Need to merge.
 // TODO: it can't handle "kind: list" yet.
 func (kustomize *kustomize) deployResources(config *rest.Config, filename string,
 	callback func(string, schema.GroupKind, map[string]interface{})) error {

@@ -307,7 +307,7 @@ func GetClientset(config *rest.Config) *clientset.Clientset {
 	return clientset
 }
 
-// Gets a clientset which can query for CRDs
+// GetApiExtClientset returns a client that can query for CRDs
 func GetApiExtClientset(config *rest.Config) apiext.ApiextensionsV1beta1Interface {
 	v := ext.SchemeGroupVersion
 	config.GroupVersion = &v
@@ -320,7 +320,8 @@ func GetApiExtClientset(config *rest.Config) apiext.ApiextensionsV1beta1Interfac
 
 // Capture replaces os.Stdout with a writer that buffers any data written
 // to os.Stdout. Call the returned function to cleanup and get the data
-// as a string.
+// as a string. This is used in cases where the API we're calling writes to stdout
+// eg ksonnet's show
 func Capture() func() (string, error) {
 	r, w, err := os.Pipe()
 	if err != nil {
