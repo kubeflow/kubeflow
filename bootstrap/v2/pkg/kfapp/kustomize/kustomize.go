@@ -577,11 +577,19 @@ func (kustomize *kustomize) writeConfigFile() error {
 // writeKustomizationFile will write out a top-level kustomization.yaml under the manifests downloaded cache.
 // this file is then used to generate a component under <deployment>/kustomize
 func (kustomize *kustomize) writeKustomizationFile(compPath string) error {
-	bases := []string{compPath}
-    platformOverlay := path.Join(kustomize.Spec.ManifestsRepo, compPath, "overlays", kustomize.Spec.Platform)
+	bases := []string{}
+	comp := path.Join(kustomize.Spec.ManifestsRepo, compPath)
+	compKustomizationFile := filepath.Join(comp, kftypes.KustomizationFile)
+	base := path.Join(kustomize.Spec.ManifestsRepo, compPath, "base")
+	baseKustomizationFile := filepath.Join(base, kftypes.KustomizationFile)
+	platformOverlay := path.Join(kustomize.Spec.ManifestsRepo, compPath, "overlays", kustomize.Spec.Platform)
 	platformKustomizationFile := filepath.Join(platformOverlay, kftypes.KustomizationFile)
 	if _, err := os.Stat(platformKustomizationFile); err == nil {
-	  bases = []string{platformOverlay}
+		bases = append(bases, extractSuffix(kustomize.Spec.ManifestsRepo, platformOverlay))
+	} else if _, err := os.Stat(baseKustomizationFile); err == nil {
+		bases = append(bases, extractSuffix(kustomize.Spec.ManifestsRepo, base))
+	} else if _, err := os.Stat(compKustomizationFile); err == nil {
+		bases = append(bases, extractSuffix(kustomize.Spec.ManifestsRepo, compPath))
 	}
 	kustomization := &types.Kustomization{
 		TypeMeta: types.TypeMeta{
