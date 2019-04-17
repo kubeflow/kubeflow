@@ -59,7 +59,11 @@ createKsApp() {
   pushd .
   # Create the ksonnet app
   cd $(dirname "${KUBEFLOW_KS_DIR}")
-  eval ks init $(basename "${KUBEFLOW_KS_DIR}") --skip-default-registries ${KS_INIT_EXTRA_ARGS}
+  if [-z "$KUBEFLOW_KS_API_SPEC" ]; then
+    eval ks init $(basename "${KUBEFLOW_KS_DIR}") --skip-default-registries ${KS_INIT_EXTRA_ARGS}
+  else
+    eval ks init $(basename "${KUBEFLOW_KS_DIR}") --skip-default-registries ${KS_INIT_EXTRA_ARGS} --api-spec "${KUBEFLOW_KS_API_SPEC}"
+  fi
   cd "${KUBEFLOW_KS_DIR}"
 
   # Remove the default environment; The cluster might not exist yet
@@ -140,7 +144,11 @@ createKsEnv(){
   if [ "${RESULT}" -eq 0 ]; then
     echo environment default already exists
   else
-    ks env add default --namespace "${K8S_NAMESPACE}"
+    if [ -z "$KUBEFLOW_KS_API_SPEC" ]; then
+      ks env add default --namespace "${K8S_NAMESPACE}"
+    else
+      ks env add default --namespace "${K8S_NAMESPACE}" --api-spec "${KUBEFLOW_KS_API_SPEC}"
+    fi
   fi
   popd
 }
