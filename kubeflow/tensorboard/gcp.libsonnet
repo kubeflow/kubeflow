@@ -48,7 +48,7 @@
   all:: [
     self.tbService,
     self.tbDeployment,
-  ] + if util.toBool(injectIstio) then [
+  ] + if util.toBool(params.injectIstio) then [
     self.istioVirtualService,
   ] else [],
 
