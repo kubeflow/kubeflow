@@ -83,6 +83,48 @@
     },  //service
     centralDashboardService:: centralDashboardService,
 
+    local centralDashboardIstioVirtualService = {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: "centraldashboard",
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/",
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/",
+            },
+            route: [
+              {
+                destination: {
+                  host: "centraldashboard." + params.namespace + ".svc.cluster.local",
+                  port: {
+                    number: 80,
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },  // centralDashboardIstioVirtualService
+    centralDashboardIstioVirtualService:: centralDashboardIstioVirtualService,
+
     local centralDashboardServiceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
