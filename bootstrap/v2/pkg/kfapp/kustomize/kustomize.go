@@ -283,8 +283,6 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 		} else {
 			namespace = ""
 		}
-		log.Infof("namespace = %v", namespace)
-
 		kind := o["kind"].(string)
 		gk := schema.GroupKind{
 			Group: group,
@@ -294,7 +292,6 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 		if retryErr != nil {
 			return retryErr
 		}
-
 		// build config for restClient
 		c := rest.CopyConfig(config)
 		c.GroupVersion = &schema.GroupVersion{
@@ -316,13 +313,6 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 		if metadata["name"] != nil {
 			name := metadata["name"].(string)
 			log.Infof("creating %v\n", name)
-
-			var namespace string
-			if metadata["namespace"] != nil {
-				namespace = metadata["namespace"].(string)
-			} else {
-				namespace = ""
-			}
 			if callback != nil {
 				callback(namespace, gk, o)
 			}
