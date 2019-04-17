@@ -589,7 +589,7 @@ func (kustomize *kustomize) writeKustomizationFile(compPath string) error {
 	} else if _, err := os.Stat(baseKustomizationFile); err == nil {
 		bases = append(bases, extractSuffix(kustomize.Spec.ManifestsRepo, base))
 	} else if _, err := os.Stat(compKustomizationFile); err == nil {
-		bases = append(bases, extractSuffix(kustomize.Spec.ManifestsRepo, compPath))
+		bases = append(bases, extractSuffix(kustomize.Spec.ManifestsRepo, comp))
 	}
 	kustomization := &types.Kustomization{
 		TypeMeta: types.TypeMeta{
