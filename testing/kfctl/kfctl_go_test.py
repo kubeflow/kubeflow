@@ -110,9 +110,9 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
 
   # hack
   google_application_cred = os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-  os.Unsetenv("GOOGLE_APPLICATION_CREDENTIALS")
+  del os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
   util.run([kfctl_path, "apply", "-V", "all"], cwd=app_path)
-  os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", google_application_cred)
+  os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = google_application_cred
 
   verify_kubeconfig(project, zone, app_path)
 
