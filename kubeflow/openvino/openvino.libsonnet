@@ -135,7 +135,9 @@
     all:: [
       self.ovService,
       self.ovDeployment,
-    ],
+    ] if util.toBool(params.injectIstio) then [
+      self.ovIstioVirtualService,
+    ] else [],
 
     list(obj=self.all):: util.list(obj),
   },
