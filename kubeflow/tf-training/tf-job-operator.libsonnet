@@ -561,7 +561,7 @@
       self.tfUiDeployment,
       self.tfUiRole,
       self.tfUiRoleBinding,
-    ] if util.toBool(params.injectIstio) then [
+    ] + if util.toBool(params.injectIstio) then [
       self.tfUiIstioVirtualService,
     ] else [],
 

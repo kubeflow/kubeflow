@@ -129,7 +129,7 @@
     all:: [
       self.service,
       self.deployment,
-    ] if util.toBool(params.injectIstio) then [
+    ] + if util.toBool(params.injectIstio) then [
       self.istioVirtualService,
     ] else [],
 
