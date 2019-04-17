@@ -54,14 +54,13 @@ For __stan__ the RoleBinding may look the following
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: stan
-  namespace: kubeflow
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: view
+  kind: ClusterRole
+  name: profiles-view
 subjects:
 - kind: ServiceAccount
   name: stan
@@ -72,39 +71,29 @@ The __view__ Role that __stan__ has (shown above) in the kubeflow shared namespa
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
-  name: view
-  namespace: kubeflow
+  name: profiles-view
 rules:
 - apiGroups:
   - kubeflow.org
   resources:
   - profiles
   verbs:
-  - create
-- apiGroups:
-  - kubeflow.org
-  resources:
-  - profiles
-  verbs:
   - get
+  - list
+  - create
 ```
 
-This means that users have very few privileges within the shared namespace, limited to creating and getting a Profile CR. Besides the Profile CRD, there is one additional Custom Resource Definition used implement protected namespaces called a Permissions CRD. In total - the CRDs are:
+This means that users have very few privileges within the shared namespace, limited to creating and getting a Profile CR. In total - the CRDs are:
 
 - Profile
-- Permissions
 
 Both custom resources have an associated controllers which do the following:
 
 - profiles-controller
-  - watches for __Profile__ Custom Resources in the kubeflow namespace
-  - creates a Namespace and Permission Resource
-- permissions-controller
-  - watches for __Permission__ Custom Resources in any protected namespace
-  - creates a Role and RoleBinding Resource
-
+  - watches for __Profile__ Custom Resources
+  - creates a Namespace, role and rolebinding
 
 The user flow is as follows:
 
@@ -123,48 +112,10 @@ The Profile resource contains a template section where a namespace and owner are
 apiVersion: kubeflow.org/v1alpha1
 kind: Profile
 metadata:
-  name: gan
-  namespace: kubeflow
-spec:
-  template:
-    metadata:
-      namespace: gan
-      quota:
-        name: compute-quota
-        requests:
-          cpu: "1"
-          memory: "1Gi"
-          gpu: "1"
-        limits:
-          cpu: "2"
-          memory: "2Gi"
-    spec:
-      owner:
-        kind: User
-        apiGroup: rbac.authorization.k8s.io
-        name: alice@foo.com
-```
-
-The Permission resource contains the RBAC Role, RoleBinding that will be created for the user within the protected namespace. The Permission resource is also created within the protected namespace. An example is:
-
-```yaml
-apiVersion: kubeflow.org/v1alpha1
-kind: Permission
-metadata:
-  labels:
-    controller-uid: cc6cf46d-d9ea-11e8-9846-42010a8a00a5
-  name: default
-  namespace: gan
-  ownerReferences:
-  - apiVersion: kubeflow.org/v1alpha1
-    blockOwnerDeletion: true
-    controller: true
-    kind: Profile
-    name: gan
+  name: stan
 spec:
   owner:
     kind: User
     apiGroup: rbac.authorization.k8s.io
-    name: alice@foo.com
+    name: stan@foo.com
 ```
-
