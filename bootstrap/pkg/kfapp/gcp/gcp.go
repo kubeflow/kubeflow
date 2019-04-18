@@ -126,6 +126,16 @@ func GetKfApp(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 	return _gcp, nil
 }
 
+// BuildKfApp build the gcp kfapp from input and return it. Used by click-deploy app
+func BuildKfApp(kfdef *kfdefs.KfDef, gcpClient *http.Client, ts oauth2.TokenSource) kftypes.KfApp {
+	return &Gcp{
+		KfDef:       *kfdef,
+		client:      gcpClient,
+		tokenSource: ts,
+		isCLI:       false,
+	}
+}
+
 func getSA(name string, nameSuffix string, project string) string {
 	return fmt.Sprintf("%v-%v@%v.iam.gserviceaccount.com", name, nameSuffix, project)
 }

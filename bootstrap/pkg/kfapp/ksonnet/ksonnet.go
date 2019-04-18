@@ -86,6 +86,28 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	return _kfapp
 }
 
+// BuildKfApp build the ksonnet kfapp from input and return it. Used by click-deploy app
+func BuildKfApp(kfdef *kfdefs.KfDef, restConfig *rest.Config, apiConfig  *clientcmdapi.Config) kftypes.KfApp {
+	_kfapp := &ksApp{
+		KfDef:     *kfdef,
+		KsName:    KsName,
+		KsEnvName: KsEnvName,
+	}
+	ksDir := path.Join(_kfapp.Spec.AppDir, KsName)
+	if _, err := os.Stat(ksDir); !os.IsNotExist(err) {
+		fs := afero.NewOsFs()
+		kApp, kAppErr := app.Load(fs, nil, ksDir)
+		if kAppErr != nil {
+			log.Fatalf("there was a problem loading ksonnet app from %v. Error: %v", ksDir, kAppErr)
+			os.RemoveAll(ksDir)
+		}
+		_kfapp.KApp = kApp
+	}
+	_kfapp.restConfig = restConfig
+	_kfapp.apiConfig = apiConfig
+	return _kfapp
+}
+
 // Apply applies the ksonnet components to target k8s cluster.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {

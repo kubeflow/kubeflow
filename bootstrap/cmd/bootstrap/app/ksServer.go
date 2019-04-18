@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
 	"net/http"
 	"path"
 	"sync"
@@ -25,6 +26,7 @@ import (
 	kApp "github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -92,6 +94,7 @@ type KsService interface {
 	Apply(ctx context.Context, req ApplyRequest) error
 	ConfigCluster(context.Context, CreateRequest) error
 	BindRole(context.Context, string, string, string) error
+	DeployWithKfctl(req *CreateRequest) error
 	InstallIstio(ctx context.Context, req CreateRequest) error
 	InsertDeployment(context.Context, CreateRequest, DmSpec) (*deploymentmanager.Deployment, error)
 	GetDeploymentStatus(context.Context, CreateRequest, string) (string, string, error)
@@ -196,37 +199,41 @@ type StorageOption struct {
 // CreateRequest represents a request to create a ksonnet application.
 type CreateRequest struct {
 	// Name for the app.
-	Name string
+	Name 			string
 	// AppConfig is the config for the app.
-	AppConfig kstypes.AppConfig
+	AppConfigOld		kstypes.AppConfig
+
+	AppConfig		config.ComponentConfig
 
 	// Namespace for the app.
-	Namespace string
+	Namespace 		string
 
 	// Whether to try to autoconfigure the app.
-	AutoConfigure bool
+	AutoConfigure 	bool
 
 	// target GKE cLuster info
-	Cluster       string
-	Project       string
-	ProjectNumber string
-	Zone          string
+	Cluster       	string
+	Project       	string
+	ProjectNumber 	string
+	Zone          	string
 
 	// Access token, need to access target cluster in order for AutoConfigure
-	Token string
-	Apply bool
-	Email string
+	Token 			string
+	Apply 			bool
+	Email 			string
 	// temporary
-	ClientId     string
-	ClientSecret string
-	IpName       string
-	Username     string
-	PasswordHash string
+	ClientId     	string
+	ClientSecret 	string
+	IpName       	string
+	Username     	string
+	PasswordHash 	string
 
 	// For test: GCP service account client id
-	SAClientId string
+	SAClientId 		string
 
-	StorageOption StorageOption
+	StorageOption 	StorageOption
+	UserKfctl	  	bool
+	Version 	 	string
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -864,6 +871,10 @@ func GetRepoName(project string) string {
 	return fmt.Sprintf("%s-kubeflow-config", project)
 }
 
+func GetRepoNameKfctl(project string) string {
+	return fmt.Sprintf("%s-kubeflow-kfctl", project)
+}
+
 func generateRandStr(length int) string {
 	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	b := make([]byte, length)
@@ -875,7 +886,7 @@ func generateRandStr(length int) string {
 
 // Not thread-safe, make sure project lock is on.
 // Clone project repo to local disk, which contains all existing ks apps config in the project
-func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error) {
+func (s *ksServer) CloneRepoToLocal(project string, token string, repoName string) (string, error) {
 	// use a 20-char-random-string as folder name for each repo clone.
 	// this random directory only lives in same request, and will be deleted before request finish.
 	// this can strengthen data isolation among different requests.
@@ -890,18 +901,18 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 	sourcerepoService, err := sourcerepo.New(oauth2.NewClient(context.Background(), ts))
 	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
 	err = backoff.Retry(func() error {
-		_, err = sourcerepoService.Projects.Repos.Get(fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project))).Do()
+		_, err = sourcerepoService.Projects.Repos.Get(fmt.Sprintf("projects/%s/repos/%s", project, repoName)).Do()
 		if err != nil {
 			// repo does't exist in target project, create one
 			_, err = sourcerepoService.Projects.Repos.Create(fmt.Sprintf("projects/%s", project), &sourcerepo.Repo{
-				Name: fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project)),
+				Name: fmt.Sprintf("projects/%s/repos/%s", project, repoName),
 			}).Do()
-			return fmt.Errorf("repo %v doesn't exist, made create repo request: %v", GetRepoName(project), err)
+			return fmt.Errorf("repo %v doesn't exist, made create repo request: %v", repoName, err)
 		}
 		return nil
 	}, bo)
 	if err != nil {
-		log.Errorf("Fail to create repo: %v. Error: %v", GetRepoName(project), err)
+		log.Errorf("Fail to create repo: %v. Error: %v", repoName, err)
 		return "", err
 	}
 	err = os.Chdir(repoDir)
@@ -909,16 +920,16 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 		return "", err
 	}
 	cloneCmd := fmt.Sprintf("git clone https://%s:%s@source.developers.google.com/p/%s/r/%s",
-		"user1", token, project, GetRepoName(project))
+		"user1", token, project, repoName)
 
 	if err := runCmd(cloneCmd); err != nil {
-		return "", fmt.Errorf("Failed to clone from source repo: %s", GetRepoName(project))
+		return "", fmt.Errorf("Failed to clone from source repo: %s", repoName)
 	}
 	return repoDir, nil
 }
 
 func (s *ksServer) GetApp(project string, appName string, kfVersion string, token string) (*appInfo, string, error) {
-	repoDir, err := s.CloneRepoToLocal(project, token)
+	repoDir, err := s.CloneRepoToLocal(project, token, GetRepoName(project))
 	if err != nil {
 		log.Errorf("Cannot clone repo from cloud source repo")
 	}
@@ -1062,34 +1073,12 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		}
 	}
 
-	cfg := clientcmdapi.Config{
-		Kind:       "Config",
-		APIVersion: "v1",
-		Clusters: map[string]*clientcmdapi.Cluster{
-			"activeCluster": {
-				CertificateAuthorityData: config.TLSClientConfig.CAData,
-				Server:                   config.Host,
-			},
-		},
-		Contexts: map[string]*clientcmdapi.Context{
-			"activeCluster": {
-				Cluster:  "activeCluster",
-				AuthInfo: "activeCluster",
-			},
-		},
-		CurrentContext: "activeCluster",
-		AuthInfos: map[string]*clientcmdapi.AuthInfo{
-			"activeCluster": {
-				Token: token,
-			},
-		},
-	}
-
+	cfg := BuildClientCmdApi(config, token)
 	applyOptions := map[string]interface{}{
 		actions.OptionAppRoot: targetApp.App.Root(),
 		actions.OptionClientConfig: &client.Config{
 			Overrides: &clientcmd.ConfigOverrides{},
-			Config:    clientcmd.NewDefaultClientConfig(cfg, &clientcmd.ConfigOverrides{}),
+			Config:    clientcmd.NewDefaultClientConfig(*cfg, &clientcmd.ConfigOverrides{}),
 		},
 		actions.OptionComponentNames: req.Components,
 		actions.OptionCreate:         true,
@@ -1305,6 +1294,14 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 		if err := req.Validate(); err != nil {
 			r.Err = err.Error()
 			deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
+			return r, err
+		}
+
+		if req.UserKfctl {
+			err := svc.DeployWithKfctl(&req)
+			if err != nil {
+				r.Err = err.Error()
+			}
 			return r, err
 		}
 
