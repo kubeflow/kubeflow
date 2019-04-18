@@ -346,7 +346,7 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	ksRegistry := kfdefs.DefaultRegistry
+	ksRegistry := kfdefs.GetDefaultRegistry()
 	ksRegistry.Version = ksApp.Spec.Version
 	ksRegistry.RegUri = ksApp.Spec.Repo
 	registryAddErr := ksApp.registryAdd(ksRegistry)

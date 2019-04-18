@@ -3,7 +3,6 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
 	"net/http"
 	"path"
 	"sync"
@@ -41,7 +40,7 @@ import (
 	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 )
 
 // The name of the prototype for Jupyter.
@@ -364,16 +363,6 @@ func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) er
 	return err
 }
 
-// Return version of specified registry, or empty string if not found
-func getRegistryVersion(request CreateRequest, regName string) string {
-	for _, registry := range request.AppConfig.Registries {
-		if registry.Name == regName {
-			return registry.Version
-		}
-	}
-	return ""
-}
-
 func (s *CreateRequest) Validate() error {
 	missings := make([]string, 0)
 	if len(s.Name) == 0 {
@@ -453,7 +442,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	if request.Name == "" {
 		return fmt.Errorf("Name must be a non empty string.")
 	}
-	kfVersion := getRegistryVersion(request, KubeflowRegName)
+	kfVersion := request.Version
 	a, repoDir, err := s.GetApp(request.Project, request.Name, kfVersion, request.Token)
 	defer os.RemoveAll(repoDir)
 	if repoDir == "" {
@@ -535,39 +524,39 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		}
 	}
 
-	// Add the registries to the app.
-	for idx, registry := range request.AppConfig.Registries {
-		RegUri, err := s.getRegistryUri(registry)
+	// Add kubeflow registry to the app.
+	ksRegistry := kfdefs.GetDefaultRegistry()
+	ksRegistry.Version = request.Version
+	RegUri, err := s.getRegistryUri(ksRegistry)
+	if err != nil {
+		log.Errorf("There was a problem getRegistryUri for registry %v. Error: %v", ksRegistry, err)
+		return err
+	}
+	request.AppConfig.Repo = RegUri
+	log.Infof("App %v add registry %v URI %v", request.Name, ksRegistry.Name, RegUri)
+	options := map[string]interface{}{
+		actions.OptionAppRoot: a.App.Root(),
+		actions.OptionName:    ksRegistry.Name,
+		actions.OptionURI:     RegUri,
+		// Version doesn't actually appear to be used by the add function.
+		actions.OptionVersion: "",
+		// Looks like override allows us to override existing registries; we shouldn't
+		// need to do that.
+		actions.OptionOverride: false,
+	}
+
+	registries, err := a.App.Registries()
+	if err != nil {
+		log.Errorf("There was a problem listing registries; %v", err)
+	}
+
+	if _, found := registries[ksRegistry.Name]; found {
+		log.Infof("App already has registry %v", ksRegistry.Name)
+	} else {
+
+		err = actions.RunRegistryAdd(options)
 		if err != nil {
-			log.Errorf("There was a problem getRegistryUri for registry %v. Error: %v", registry.Name, err)
-			return err
-		}
-		request.AppConfig.Registries[idx].RegUri = RegUri
-		log.Infof("App %v add registry %v URI %v", request.Name, registry.Name, registry.RegUri)
-		options := map[string]interface{}{
-			actions.OptionAppRoot: a.App.Root(),
-			actions.OptionName:    registry.Name,
-			actions.OptionURI:     request.AppConfig.Registries[idx].RegUri,
-			// Version doesn't actually appear to be used by the add function.
-			actions.OptionVersion: "",
-			// Looks like override allows us to override existing registries; we shouldn't
-			// need to do that.
-			actions.OptionOverride: false,
-		}
-
-		registries, err := a.App.Registries()
-		if err != nil {
-			log.Errorf("There was a problem listing registries; %v", err)
-		}
-
-		if _, found := registries[registry.Name]; found {
-			log.Infof("App already has registry %v", registry.Name)
-		} else {
-
-			err = actions.RunRegistryAdd(options)
-			if err != nil {
-				return fmt.Errorf("There was a problem adding registry %v: %v", registry.Name, err)
-			}
+			return fmt.Errorf("There was a problem adding registry %v: %v", ksRegistry.Name, err)
 		}
 	}
 
@@ -582,11 +571,11 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	if request.Apply {
 		components := []string{}
 		for _, comp := range request.AppConfig.Components {
-			components = append(components, comp.Name)
+			components = append(components, comp)
 		}
 		err = s.Apply(ctx, ApplyRequest{
 			Name:        request.Name,
-			KfVersion:   getRegistryVersion(request, KubeflowRegName),
+			KfVersion:   request.Version,
 			Environment: "default",
 			Components:  components,
 			Cluster:     request.Cluster,
@@ -682,8 +671,8 @@ func runCmd(rawcmd string) error {
 }
 
 // appGenerate installs packages and creates components.
-func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *kstypes.AppConfig) error {
-	libs, err := kfApp.Libraries()
+func (s *ksServer) appGenerate(ksApp kApp.App, appConfig *config.ComponentConfig) error {
+	libs, err := ksApp.Libraries()
 
 	if err != nil {
 		return fmt.Errorf("Could not list libraries for app; error %v", err)
@@ -702,35 +691,34 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *kstypes.AppConfig) err
 	// to other machines.
 	// Should we add an option to install packages rather than doing it if
 	// registry.yaml exists?
-	for _, registry := range appConfig.Registries {
-		regFile := path.Join(registry.RegUri, "registry.yaml")
-		_, err = s.fs.Stat(regFile)
-		if err == nil {
-			log.Infof("processing registry file %v ", regFile)
-			var ksRegistry kstypes.KsRegistry
-			if LoadConfig(regFile, &ksRegistry) == nil {
-				for pkgName, _ := range ksRegistry.Libraries {
-					_, err = s.fs.Stat(path.Join(registry.RegUri, pkgName))
-					if err != nil {
-						return fmt.Errorf("Package %v didn't exist in registry %v", pkgName, registry.RegUri)
-					}
-					full := fmt.Sprintf("%v/%v", registry.Name, pkgName)
-					log.Infof("Installing package %v", full)
+	regFile := path.Join(appConfig.Repo, "registry.yaml")
+	regName := kfdefs.GetDefaultRegistry().Name
+	_, err = s.fs.Stat(regFile)
+	if err == nil {
+		log.Infof("processing registry file %v ", regFile)
+		var ksRegistry kstypes.KsRegistry
+		if LoadConfig(regFile, &ksRegistry) == nil {
+			for pkgName, _ := range ksRegistry.Libraries {
+				_, err = s.fs.Stat(path.Join(appConfig.Repo, pkgName))
+				if err != nil {
+					return fmt.Errorf("Package %v didn't exist in registry %v", pkgName, appConfig.Repo)
+				}
+				full := fmt.Sprintf("%v/%v", regName, pkgName)
+				log.Infof("Installing package %v", full)
 
-					if _, found := libs[full]; found {
-						log.Infof("Package %v already exists", pkgName)
-						continue
-					}
-					err := actions.RunPkgInstall(map[string]interface{}{
-						actions.OptionAppRoot: kfApp.Root(),
-						actions.OptionPkgName: full,
-						actions.OptionName:    pkgName,
-						actions.OptionForce:   false,
-					})
+				if _, found := libs[full]; found {
+					log.Infof("Package %v already exists", pkgName)
+					continue
+				}
+				err := actions.RunPkgInstall(map[string]interface{}{
+					actions.OptionAppRoot: ksApp.Root(),
+					actions.OptionPkgName: full,
+					actions.OptionName:    pkgName,
+					actions.OptionForce:   false,
+				})
 
-					if err != nil {
-						return fmt.Errorf("There was a problem installing package %v; error %v", full, err)
-					}
+				if err != nil {
+					return fmt.Errorf("There was a problem installing package %v; error %v", full, err)
 				}
 			}
 		}
@@ -738,17 +726,17 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *kstypes.AppConfig) err
 
 	// Install packages.
 	for _, pkg := range appConfig.Packages {
-		full := fmt.Sprintf("%v/%v", pkg.Registry, pkg.Name)
+		full := fmt.Sprintf("%v/%v", regName, pkg)
 		log.Infof("Installing package %v", full)
 
 		if _, found := libs[full]; found {
-			log.Infof("Package %v already exists", pkg.Name)
+			log.Infof("Package %v already exists", pkg)
 			continue
 		}
 		err := actions.RunPkgInstall(map[string]interface{}{
-			actions.OptionAppRoot: kfApp.Root(),
+			actions.OptionAppRoot: ksApp.Root(),
 			actions.OptionPkgName: full,
-			actions.OptionName:    pkg.Name,
+			actions.OptionName:    pkg,
 			actions.OptionForce:   false,
 		})
 
@@ -757,36 +745,33 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *kstypes.AppConfig) err
 		}
 	}
 
-	paramMapping := make(map[string][]string)
-	// Extract params for each component
-	for _, p := range appConfig.Parameters {
-		if val, ok := paramMapping[p.Component]; ok {
-			paramMapping[p.Component] = append(val, []string{"--" + p.Name, p.Value}...)
-		} else {
-			paramMapping[p.Component] = []string{"--" + p.Name, p.Value}
-		}
-	}
-
 	// Create Components
-	for _, c := range appConfig.Components {
-		params := []string{c.Prototype, c.Name}
-		if val, ok := paramMapping[c.Name]; ok {
-			params = append(params, val...)
+	for _, compName := range appConfig.Components {
+		params := []string{compName, compName}
+		if val, ok := appConfig.ComponentParams[compName]; ok {
+			for _, nv := range val {
+				// Only add InitRequired params
+				if nv.InitRequired {
+					params = append(params, []string{"--" + nv.Name, nv.Value}...)
+				}
+			}
 		}
-		if err = s.createComponent(kfApp, params); err != nil {
+		if err = s.createComponent(ksApp, params); err != nil {
 			return err
 		}
 	}
 	// Apply Params
-	for _, p := range appConfig.ApplyParameters {
-		err = actions.RunParamSet(map[string]interface{}{
-			actions.OptionAppRoot: kfApp.Root(),
-			actions.OptionName:    p.Component,
-			actions.OptionPath:    p.Name,
-			actions.OptionValue:   p.Value,
-		})
-		if err != nil {
-			return fmt.Errorf("Error when setting Parameters %v for Component %v: %v", p.Name, p.Component, err)
+	for compName, namevals := range appConfig.ComponentParams {
+		for _, nv := range namevals {
+			args := map[string]interface{}{
+				actions.OptionAppRoot: ksApp.Root(),
+				actions.OptionName:    compName,
+				actions.OptionPath:    nv.Name,
+				actions.OptionValue:   nv.Value,
+			}
+			if err := actions.RunParamSet(args); err != nil {
+				return fmt.Errorf("Error when setting Parameters %v for Component %v: %v", nv.Name, compName, err)
+			}
 		}
 	}
 	return err
@@ -814,7 +799,7 @@ func (s *ksServer) createComponent(kfApp kApp.App, args []string) error {
 
 // autoConfigureApp attempts to automatically optimize the Kubeflow application
 // based on the cluster setup.
-func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *kstypes.AppConfig, namespace string, config *rest.Config) error {
+func (s *ksServer) autoConfigureApp(ksApp *kApp.App, appConfig *config.ComponentConfig, namespace string, config *rest.Config) error {
 
 	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(config, "kubeflow-bootstrapper"))
 	if err != nil {
@@ -845,15 +830,15 @@ func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *kstypes.AppConfi
 	// which components correspond to which prototypes? Would we have to parse
 	// the actual jsonnet files?
 	for _, component := range appConfig.Components {
-		if component.Prototype == JupyterPrototype {
+		if component == JupyterPrototype {
 			pvcMount := ""
 			if hasDefault {
 				pvcMount = "/home/jovyan"
 			}
 
 			err = actions.RunParamSet(map[string]interface{}{
-				actions.OptionAppRoot: (*kfApp).Root(),
-				actions.OptionName:    component.Name,
+				actions.OptionAppRoot: (*ksApp).Root(),
+				actions.OptionName:    component,
 				actions.OptionPath:    "jupyterNotebookPVCMount",
 				actions.OptionValue:   pvcMount,
 			})
@@ -1130,42 +1115,6 @@ func makeApplyAppEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
-// Create ksonnet app, and optionally apply it to target GKE cluster
-func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(CreateRequest)
-		err := svc.CreateApp(ctx, req, nil)
-
-		r := &basicServerResponse{}
-
-		if err != nil {
-			r.Err = err.Error()
-		} else {
-			if req.Apply {
-				components := []string{}
-				for _, comp := range req.AppConfig.Components {
-					components = append(components, comp.Name)
-				}
-				err = svc.Apply(ctx, ApplyRequest{
-					Name:        req.Name,
-					KfVersion:   getRegistryVersion(req, KubeflowRegName),
-					Environment: "default",
-					Components:  components,
-					Cluster:     req.Cluster,
-					Project:     req.Project,
-					Zone:        req.Zone,
-					Token:       req.Token,
-					Email:       req.Email,
-				})
-				if err != nil {
-					r.Err = err.Error()
-				}
-			}
-		}
-		return r, nil
-	}
-}
-
 func timeSinceStart(ctx context.Context) time.Duration {
 	startTime, ok := ctx.Value(StartTime).(time.Time)
 	if !ok {
@@ -1314,18 +1263,20 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 				r.Err = err.Error()
 				return r, err
 			}
-			req.AppConfig.ApplyParameters = append(
-				req.AppConfig.ApplyParameters,
-				kstypes.KsParameter{
-					Component: "pipeline",
-					Name:      "mysqlPd",
-					Value:     req.Name + StorageDmSpec.DmNameSuffix + MetadataStoreDiskSuffix})
-			req.AppConfig.ApplyParameters = append(
-				req.AppConfig.ApplyParameters,
-				kstypes.KsParameter{
-					Component: "pipeline",
-					Name:      "minioPd",
-					Value:     req.Name + StorageDmSpec.DmNameSuffix + ArtifactStoreDiskSuffix})
+			req.AppConfig.ComponentParams["pipeline"] = append(
+				req.AppConfig.ComponentParams["pipeline"],
+				config.NameValue{
+					Name:         "mysqlPd",
+					Value:        req.Name + StorageDmSpec.DmNameSuffix + MetadataStoreDiskSuffix,
+					InitRequired: false,
+				})
+			req.AppConfig.ComponentParams["pipeline"] = append(
+				req.AppConfig.ComponentParams["pipeline"],
+				config.NameValue{
+					Name:         "minioPd",
+					Value:        req.Name + StorageDmSpec.DmNameSuffix + ArtifactStoreDiskSuffix,
+					InitRequired: false,
+				})
 		}
 
 		clusterDmDeployment, err := svc.InsertDeployment(ctx, req, ClusterDmSpec)
@@ -1407,12 +1358,6 @@ func (s *ksServer) StartHttp(port int) {
 		encodeResponse,
 	)
 
-	createAppHandler := httptransport.NewServer(
-		makeCreateAppEndpoint(s),
-		decodeCreateAppRequest,
-		encodeResponse,
-	)
-
 	healthzHandler := httptransport.NewServer(
 		makeHealthzEndpoint(s),
 		func(_ context.Context, r *http.Request) (interface{}, error) {
@@ -1455,7 +1400,6 @@ func (s *ksServer) StartHttp(port int) {
 	// k8s storage / github, instead of gone with browser tabs.
 	http.Handle("/", optionsHandler(healthzHandler))
 	http.Handle("/kfctl/apps/apply", optionsHandler(applyAppHandler))
-	http.Handle("/kfctl/apps/create", optionsHandler(createAppHandler))
 	http.Handle("/kfctl/iam/apply", optionsHandler(applyIamHandler))
 	http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))
 	http.Handle("/kfctl/e2eDeploy", optionsHandler(deployHandler))

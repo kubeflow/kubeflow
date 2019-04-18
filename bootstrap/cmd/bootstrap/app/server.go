@@ -34,8 +34,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-
-	"context"
 )
 
 // RecommendedConfigPathEnvVar is a environment variable for path configuration
@@ -199,46 +197,6 @@ func hasDefaultStorage(sClasses *v1.StorageClassList) bool {
 	return false
 }
 
-// processFile creates an app based on a configuration file.
-func processFile(opt *options.ServerOption, ksServer *ksServer) error {
-	ctx := context.Background()
-
-	appName := "kubeflow"
-
-	var appConfigFile AppConfigFile
-	if err := LoadConfig(opt.Config, &appConfigFile); err != nil {
-		return err
-	}
-
-	request := CreateRequest{
-		Name:          appName,
-		AppConfig:     appConfigFile.App,
-		Namespace:     opt.NameSpace,
-		AutoConfigure: true,
-	}
-	if err := ksServer.CreateApp(ctx, request, nil); err != nil {
-		return err
-	}
-
-	if opt.Apply {
-		req := ApplyRequest{
-			Name:        appName,
-			Environment: "default",
-			Components:  make([]string, 0),
-		}
-
-		for _, component := range appConfigFile.App.Components {
-			req.Components = append(req.Components, component.Name)
-		}
-
-		if err := ksServer.Apply(ctx, req); err != nil {
-			log.Errorf("Failed to apply app %v; Error: %v", appName, err)
-			return err
-		}
-	}
-	return nil
-}
-
 // Run the application.
 func Run(opt *options.ServerOption) error {
 	// Check if the -version flag was passed and, if so, print the version and exit.
@@ -262,13 +220,6 @@ func Run(opt *options.ServerOption) error {
 
 	if err != nil {
 		return err
-	}
-
-	if opt.Config != "" {
-		log.Infof("Processing file: %v", opt.Config)
-		if err := processFile(opt, ksServer); err != nil {
-			log.Errorf("Error occurred tyring to process file %v; %v", opt.Config, err)
-		}
 	}
 
 	if opt.KeepAlive {

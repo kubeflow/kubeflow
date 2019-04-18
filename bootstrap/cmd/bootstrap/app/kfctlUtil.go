@@ -2,8 +2,8 @@ package app
 
 import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/ksonnet"
 	"golang.org/x/net/context"
@@ -11,7 +11,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"path"
-	"path/filepath"
 )
 
 func (cr *CreateRequest) ToKfdef(appDir string, repo string, istio bool) (*kfdefs.KfDef, error) {
@@ -47,7 +46,6 @@ func (s *ksServer) DeployWithKfctl(req *CreateRequest) error{
 	if err != nil {
 		return err
 	}
-	versionedKfRepo := filepath.Dir(versionedRegPath)
 
 	// pull source repo to random tmp dir
 	repoDir, err := s.CloneRepoToLocal(req.Project, req.Token, GetRepoNameKfctl(req.Project))
@@ -57,7 +55,7 @@ func (s *ksServer) DeployWithKfctl(req *CreateRequest) error{
 		return err
 	}
 	ksAppDir := path.Join(repoDir, GetRepoNameKfctl(req.Project), req.Version, req.Name)
-	kfdef, err := req.ToKfdef(ksAppDir, versionedKfRepo, s.installIstio)
+	kfdef, err := req.ToKfdef(ksAppDir, versionedRegPath, s.installIstio)
 	if err != nil {
 		return err
 	}

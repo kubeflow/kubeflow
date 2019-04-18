@@ -38,7 +38,8 @@ type KfDefSpec struct {
 	DeleteStorage          bool   `json:"deleteStorage,omitempty"`
 }
 
-var DefaultRegistry = &RegistryConfig{
+// Make it private to prevent user modify original struct.
+var defaultRegistry = RegistryConfig{
 	Name: "kubeflow",
 	Repo: "https://github.com/kubeflow/kubeflow.git",
 	Path: "kubeflow",
@@ -173,4 +174,10 @@ type KfDefList struct {
 
 func init() {
 	SchemeBuilder.Register(&KfDef{}, &KfDefList{})
+}
+
+// GetDefaultRegistry return reference of a newly copied Default Registry
+func GetDefaultRegistry() *RegistryConfig {
+	newReg := defaultRegistry
+	return &newReg
 }
