@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/imdario/mergo"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfapisv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
