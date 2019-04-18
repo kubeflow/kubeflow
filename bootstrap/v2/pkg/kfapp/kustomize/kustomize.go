@@ -29,6 +29,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"k8s.io/api/v2/core/v1"
+	crdclientset "k8s.io/apiextensions-apiserver/v2/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/v2/pkg/runtime/schema"
 	"k8s.io/apimachinery/v2/pkg/runtime/serializer"
@@ -40,7 +41,6 @@ import (
 	"k8s.io/client-go/v2/rest"
 	"k8s.io/client-go/v2/restmapper"
 	clientcmdapi "k8s.io/client-go/v2/tools/clientcmd/api"
-	crdclientset "k8s.io/apiextensions-apiserver/v2/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	"os"
 	"path"
 	"path/filepath"
@@ -186,9 +186,9 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 			}
 		}
 	}
-	continuation := func() func(string, schema.GroupKind, map[string]interface{}) {
+	continuation := func() func(string, schema.GroupKind, map[string]interface{}) ([]byte, error) {
 		componentGroupKindsMap := make(map[string]metav1.GroupKind)
-		callback := func(namespace string, sgk schema.GroupKind, obj map[string]interface{}) {
+		callback := func(namespace string, sgk schema.GroupKind, obj map[string]interface{}) ([]byte, error) {
 			gk := metav1.GroupKind{
 				Kind:  sgk.Kind,
 				Group: sgk.Group,
@@ -198,23 +198,33 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 			}
 			if namespace == kustomize.Namespace {
 				encoded := gk.Group + "-" + gk.Kind
-				log.Infof("encoded= %v", encoded)
-
 				switch encoded {
 				case "app.k8s.io-Application":
-					obj["name"] = kustomize.application.Name
-					spec := obj["spec"].(map[string]interface{})
-					componentGroupKinds := spec["componentKinds"].([]interface{})
+					app := application.Application{}
+					out, _ := json.Marshal(obj)
+					_ = json.Unmarshal([]byte(out), &app)
+					app.Name = kustomize.application.Name
+					app.Namespace = kustomize.application.Namespace
+					app.Spec.ComponentGroupKinds = make([]metav1.GroupKind, 0)
 					for _, groupKind := range componentGroupKindsMap {
-						gk := &groupKind
-						componentGroupKinds = append(componentGroupKinds, gk)
+						app.Spec.ComponentGroupKinds = append(app.Spec.ComponentGroupKinds, groupKind)
 					}
+					body, err := json.Marshal(&app)
+					if err != nil {
+						return nil, err
+					}
+					return body, nil
 				default:
 					if _, exists := componentGroupKindsMap[encoded]; !exists {
 						componentGroupKindsMap[encoded] = gk
 					}
 				}
 			}
+			body, err := json.Marshal(obj)
+			if err != nil {
+				return nil, err
+			}
+			return body, nil
 		}
 		return callback
 	}()
@@ -241,7 +251,7 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 // TODO based on bootstrap/app/k8sUtil.go. Need to merge.
 // TODO: it can't handle "kind: list" yet.
 func (kustomize *kustomize) deployResources(config *rest.Config, filename string,
-	callback func(string, schema.GroupKind, map[string]interface{})) error {
+	callback func(string, schema.GroupKind, map[string]interface{})([]byte, error)) error {
 	// Create a restmapper to determine the resource type.
 	_discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
@@ -313,10 +323,7 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 		if metadata["name"] != nil {
 			name := metadata["name"].(string)
 			log.Infof("creating %v\n", name)
-			if callback != nil {
-				callback(namespace, gk, o)
-			}
-			body, err := json.Marshal(o)
+			body, err := callback(namespace, gk, o)
 			if err != nil {
 				return err
 			}
