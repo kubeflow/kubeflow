@@ -22,7 +22,6 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
-	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
@@ -695,7 +694,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	if gcp.Spec.UseIstio {
 		log.Infof("Installing istio...")
 		parentDir := path.Dir(gcp.Spec.Repo)
-		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/install/crds.yaml"))
+		err = utils.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/install/crds.yaml"))
 		if err != nil {
 			log.Errorf("Failed to create istio CRD: %v", err)
 			return &kfapis.KfError{
@@ -703,7 +702,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 				Message: err.Error(),
 			}
 		}
-		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/install/istio-noauth.yaml"))
+		err = utils.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/install/istio-noauth.yaml"))
 		if err != nil {
 			log.Errorf("Failed to create istio manifest: %v", err)
 			return &kfapis.KfError{
@@ -711,7 +710,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 				Message: err.Error(),
 			}
 		}
-		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/kf-istio-resources.yaml"))
+		err = utils.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/kf-istio-resources.yaml"))
 		if err != nil {
 			log.Errorf("Failed to create kubeflow istio resource: %v", err)
 			return &kfapis.KfError{

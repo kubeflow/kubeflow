@@ -25,6 +25,7 @@ import (
 	kApp "github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -406,17 +407,17 @@ func (s *ksServer) InstallIstio(ctx context.Context, req CreateRequest) error {
 		return err
 	}
 
-	err = CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/install/crds.yaml"))
+	err = utils.CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/install/crds.yaml"))
 	if err != nil {
 		log.Errorf("Failed to create istio CRD: %v", err)
 		return err
 	}
-	err = CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/install/istio-noauth.yaml"))
+	err = utils.CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/install/istio-noauth.yaml"))
 	if err != nil {
 		log.Errorf("Failed to create istio manifest: %v", err)
 		return err
 	}
-	err = CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/kf-istio-resources.yaml"))
+	err = utils.CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/kf-istio-resources.yaml"))
 	if err != nil {
 		log.Errorf("Failed to create kubeflow istio resource: %v", err)
 		return err
