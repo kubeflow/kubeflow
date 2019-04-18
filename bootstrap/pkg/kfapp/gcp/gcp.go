@@ -569,7 +569,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 				err.(*kfapis.KfError).Message),
 		}
 	}
-	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
+	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
 		err := gcp.updateDeployment(gcp.Name+"-network", NETWORK_FILE)
 		if err != nil {
 			return &kfapis.KfError{
@@ -579,7 +579,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 			}
 		}
 	}
-	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
+	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
 		err := gcp.updateDeployment(gcp.Name+"-gcfs", GCFS_FILE)
 		if err != nil {
 			return &kfapis.KfError{
@@ -944,10 +944,10 @@ func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
 	if gcp.Spec.DeleteStorage {
 		deletingDeployments = append(deletingDeployments, gcp.Name+"-storage")
 	}
-	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
+	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
 		deletingDeployments = append(deletingDeployments, gcp.Name+"-network")
 	}
-	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
+	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
 		deletingDeployments = append(deletingDeployments, gcp.Name+"-gcfs")
 	}
 
