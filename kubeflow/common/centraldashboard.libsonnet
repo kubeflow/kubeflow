@@ -102,7 +102,7 @@
             match: [
               {
                 uri: {
-                  prefix: "/",
+                  prefix: "/_/",
                 },
               },
             ],
