@@ -34,6 +34,8 @@ import (
 	"io/ioutil"
 	valid "k8s.io/apimachinery/v2/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"os"
 	"path"
 	"path/filepath"
@@ -43,16 +45,16 @@ import (
 // The common entry point used to retrieve an implementation of KfApp.
 // In this case it returns a composite class (coordinator) which aggregates
 // platform and package manager implementations in Children.
-func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
+func GetKfApp(kfdef *kfdefsv2.KfDef, platformArgs []byte) kftypes.KfApp {
 	_coordinator := &coordinator{
-		Platforms:       make(map[string]kftypes.KfApp),
+		Platforms:       make(map[string]kftypes.Platform),
 		PackageManagers: nil,
 		KfDef:           kfdef,
 	}
 	// fetch the platform [gcp,minikube]
 	platform := _coordinator.KfDef.Spec.Platform
 	if platform != "" {
-		_platform, _platformErr := getPlatform(_coordinator.KfDef)
+		_platform, _platformErr := getPlatform(_coordinator.KfDef, platformArgs)
 		if _platformErr != nil {
 			log.Fatalf("could not get platform %v Error %v **", platform, _platformErr)
 			return nil
@@ -110,29 +112,24 @@ func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
 	return data, nil
 }
 
-// GetPlatform will return an implementation of kftypes.KfApp that matches the platform string
-// It looks for statically compiled-in implementations, otherwise it delegates to
-// kftypes.LoadKfApp which will try and dynamically load a .so
-func getPlatform(kfdef *kfdefsv2.KfDef) (kftypes.KfApp, error) {
+// GetPlatform will return an implementation of kftypes.GetPlatform that matches the platform string
+// It looks for statically compiled-in implementations, otherwise throws unrecognized error
+func getPlatform(kfdef *kfdefsv2.KfDef, platformArgs []byte) (kftypes.Platform, error) {
 	switch kfdef.Spec.Platform {
 	case string(kftypes.MINIKUBE):
-		return minikube.GetKfApp(kfdef), nil
+		return minikube.Getplatform(kfdef), nil
 	case string(kftypes.GCP):
-		return gcp.GetKfApp(kfdef)
+		return gcp.GetPlatform(kfdef, platformArgs)
 	default:
-		log.Infof("** loading %v.so for platform %v **", kfdef.Spec.Platform, kfdef.Spec.Platform)
-		return kftypesv2.LoadKfApp(kfdef.Spec.Platform, kfdef)
+		log.Infof("** Unrecognized platform %v **", kfdef.Spec.Platform)
+		return nil, fmt.Errorf("Unrecognized platform %v", kfdef.Spec.Platform)
 	}
 }
 
-func getPackageManagers(kfdef *kfdefsv2.KfDef) *map[string]kftypes.KfApp {
-	appyaml := filepath.Join(kfdef.Spec.AppDir, kftypes.KfConfigFile)
-	err := unmarshalAppYaml(appyaml, kfdef)
-	if err != nil {
-		log.Fatalf("failed unmarshalling %v Error %v", appyaml, err)
-	}
+func (coord *coordinator) getPackageManagers(kfdef *kfdefsv2.KfDef) *map[string]kftypes.KfApp {
+	platform := coord.Platforms[coord.KfDef.Spec.Platform]
 	var packagemanagers = make(map[string]kftypes.KfApp)
-	_packagemanager, _packagemanagerErr := getPackageManager(kfdef.Spec.PackageManager, kfdef)
+	_packagemanager, _packagemanagerErr := getPackageManager(kfdef.Spec.PackageManager, kfdef, platform)
 	if _packagemanagerErr != nil {
 		log.Fatalf("could not get packagemanager %v Error %v **", kfdef.Spec.PackageManager, _packagemanagerErr)
 	}
@@ -145,13 +142,18 @@ func getPackageManagers(kfdef *kfdefsv2.KfDef) *map[string]kftypes.KfApp {
 // getPackageManager will return an implementation of kftypes.KfApp that matches the packagemanager string
 // It looks for statically compiled-in implementations, otherwise it delegates to
 // kftypes.LoadKfApp which will try and dynamically load a .so
-func getPackageManager(packagemanager string, kfdef *kfdefsv2.KfDef) (kftypes.KfApp, error) {
+func getPackageManager(packagemanager string, kfdef *kfdefsv2.KfDef, platform kftypes.Platform) (kftypes.KfApp, error) {
+	var restconf *rest.Config = nil
+	var apiconf  *clientcmdapi.Config = nil
+	if platform != nil {
+		restconf, apiconf = platform.GetK8sConfig()
+	}
 	packagemanager = strings.Split(packagemanager, "@")[0]
 	switch packagemanager {
 	case kftypes.KUSTOMIZE:
 		return kustomize.GetKfApp(kfdef), nil
 	case kftypes.KSONNET:
-		return ksonnet.GetKfApp(kfdef), nil
+		return ksonnet.GetKfApp(kfdef, restconf, apiconf), nil
 	default:
 		log.Infof("** loading %v.so for package manager %v **", packagemanager, packagemanager)
 		return kftypesv2.LoadKfApp(packagemanager, kfdef)
@@ -353,8 +355,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	kfDef.Spec.UseBasicAuth = useBasicAuth
 	kfDef.Spec.UseIstio = useIstio
 	kfDef.Spec.PackageManager = packageManager
-
-	pApp := GetKfApp(kfDef)
+	pApp := GetKfApp(kfDef, nil)
 	return pApp, nil
 }
 
@@ -439,7 +440,7 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	if options[string(kftypes.DELETE_STORAGE)] != nil && kfdef.Spec.Platform == kftypes.GCP {
 		kfdef.Spec.DeleteStorage = options[string(kftypes.DELETE_STORAGE)].(bool)
 	}
-	pApp := GetKfApp(kfdef)
+	pApp := GetKfApp(kfdef, nil)
 	return pApp, nil
 }
 
@@ -447,7 +448,7 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 // eg Platforms[kftypes.GCP], Platforms[kftypes.MINIKUBE], PackageManagers["kustomize"]
 // The data attributes in kfdefsv2.KfDef are used by different KfApp implementations
 type coordinator struct {
-	Platforms       map[string]kftypes.KfApp
+	Platforms       map[string]kftypes.Platform
 	PackageManagers map[string]kftypes.KfApp
 	KfDef           *kfdefsv2.KfDef
 }
@@ -477,7 +478,7 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 	}
 
 	k8s := func() error {
-		kfapp.PackageManagers = *getPackageManagers(kfapp.KfDef)
+		kfapp.PackageManagers = *kfapp.getPackageManagers(kfapp.KfDef)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
 			packageManagerErr := packageManager.Apply(kftypes.K8S)
 			if packageManagerErr != nil {
@@ -530,7 +531,7 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum) error {
 	}
 
 	k8s := func() error {
-		kfapp.PackageManagers = *getPackageManagers(kfapp.KfDef)
+		kfapp.PackageManagers = *kfapp.getPackageManagers(kfapp.KfDef)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
 			packageManagerErr := packageManager.Delete(kftypes.K8S)
 			if packageManagerErr != nil {
@@ -594,7 +595,7 @@ func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum) error {
 	}
 
 	k8s := func() error {
-		kfapp.PackageManagers = *getPackageManagers(kfapp.KfDef)
+		kfapp.PackageManagers = *kfapp.getPackageManagers(kfapp.KfDef)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
 			packageManagerErr := packageManager.Generate(kftypes.K8S)
 			if packageManagerErr != nil {
@@ -650,7 +651,7 @@ func (kfapp *coordinator) Init(resources kftypes.ResourceEnum) error {
 	}
 
 	k8s := func() error {
-		kfapp.PackageManagers = *getPackageManagers(kfapp.KfDef)
+		kfapp.PackageManagers = *kfapp.getPackageManagers(kfapp.KfDef)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
 			packageManagerErr := packageManager.Init(kftypes.K8S)
 			if packageManagerErr != nil {
@@ -711,7 +712,7 @@ func (kfapp *coordinator) Show(resources kftypes.ResourceEnum, options map[strin
 					kfapp.KfDef.Spec.Platform),
 			}
 		}
-		kfapp.PackageManagers = *getPackageManagers(kfapp.KfDef)
+		kfapp.PackageManagers = *kfapp.getPackageManagers(kfapp.KfDef)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
 			show, ok := packageManager.(kftypes.KfShow)
 			if ok && show != nil {
