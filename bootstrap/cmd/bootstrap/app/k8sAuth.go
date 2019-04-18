@@ -11,6 +11,7 @@ import (
 	"k8s.io/api/rbac/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 func buildClusterConfig(ctx context.Context, token string, project string, zone string,
@@ -39,6 +40,31 @@ func buildClusterConfig(ctx context.Context, token string, project string, zone 
 			CAData: []byte(string(caDec)),
 		},
 	}, nil
+}
+
+func BuildClientCmdApi(config *rest.Config, token string) *clientcmdapi.Config {
+	return &clientcmdapi.Config{
+		Kind:       "Config",
+		APIVersion: "v1",
+		Clusters: map[string]*clientcmdapi.Cluster{
+			"activeCluster": {
+				CertificateAuthorityData: config.TLSClientConfig.CAData,
+				Server:                   config.Host,
+			},
+		},
+		Contexts: map[string]*clientcmdapi.Context{
+			"activeCluster": {
+				Cluster:  "activeCluster",
+				AuthInfo: "activeCluster",
+			},
+		},
+		CurrentContext: "activeCluster",
+		AuthInfos: map[string]*clientcmdapi.AuthInfo{
+			"activeCluster": {
+				Token: token,
+			},
+		},
+	}
 }
 
 func createK8sRoleBing(config *rest.Config, roleBinding *v1.ClusterRoleBinding) error {
