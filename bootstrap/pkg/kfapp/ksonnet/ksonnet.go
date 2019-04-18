@@ -87,6 +87,28 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	return _kfapp
 }
 
+// BuildKfApp build the ksonnet kfapp from input and return it. Used by click-deploy app
+func BuildKfApp(kfdef *kfdefs.KfDef, restConfig *rest.Config, apiConfig  *clientcmdapi.Config) kftypes.KfApp {
+	_kfapp := &ksApp{
+		KfDef:     *kfdef,
+		KsName:    KsName,
+		KsEnvName: KsEnvName,
+	}
+	ksDir := path.Join(_kfapp.Spec.AppDir, KsName)
+	if _, err := os.Stat(ksDir); !os.IsNotExist(err) {
+		fs := afero.NewOsFs()
+		kApp, kAppErr := app.Load(fs, nil, ksDir)
+		if kAppErr != nil {
+			log.Fatalf("there was a problem loading ksonnet app from %v. Error: %v", ksDir, kAppErr)
+			os.RemoveAll(ksDir)
+		}
+		_kfapp.KApp = kApp
+	}
+	_kfapp.restConfig = restConfig
+	_kfapp.apiConfig = apiConfig
+	return _kfapp
+}
+
 // Apply applies the ksonnet components to target k8s cluster.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
@@ -147,7 +169,7 @@ func (ksApp *ksApp) getCompsFilePath() string {
 
 func (ksApp *ksApp) applyComponent(components []string, cfg *clientcmdapi.Config) error {
 	applyOptions := map[string]interface{}{
-		actions.OptionApp: ksApp.KApp,
+		actions.OptionAppRoot: ksApp.ksRoot(),
 		actions.OptionClientConfig: &client.Config{
 			Overrides: &clientcmd.ConfigOverrides{},
 			Config:    clientcmd.NewDefaultClientConfig(*cfg, &clientcmd.ConfigOverrides{}),
@@ -261,7 +283,7 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 	}
 	components := ksApp.Spec.Components
 	err := actions.RunDelete(map[string]interface{}{
-		actions.OptionApp: ksApp.KApp,
+		actions.OptionAppRoot: ksApp.ksRoot(),
 		actions.OptionClientConfig: &client.Config{
 			Overrides: &clientcmd.ConfigOverrides{},
 			Config:    clientcmd.NewDefaultClientConfig(*ksApp.apiConfig, &clientcmd.ConfigOverrides{}),
@@ -325,7 +347,7 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	ksRegistry := kfdefs.DefaultRegistry
+	ksRegistry := kfdefs.GetDefaultRegistry()
 	ksRegistry.Version = ksApp.Spec.Version
 	ksRegistry.RegUri = ksApp.Spec.Repo
 	registryAddErr := ksApp.registryAdd(ksRegistry)
@@ -475,14 +497,6 @@ func (ksApp *ksApp) envSet(envName string, host string) error {
 			Message: fmt.Sprintf("There was a problem setting ksonnet env: %v", err),
 		}
 	}
-	loadApp, loadErr := app.Load(afero.NewOsFs(), ksApp.KApp.HTTPClient(), ksApp.ksRoot())
-	if loadErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("could not reload the ksonnet env: %v", err),
-		}
-	}
-	ksApp.KApp = loadApp
 	return nil
 }
 

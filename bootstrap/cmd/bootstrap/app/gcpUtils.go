@@ -68,7 +68,7 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest, dmSp
 	if err == nil {
 		dmconf.Resources[0].Name = req.Name
 		dmconf.Resources[0].Properties["zone"] = req.Zone
-		dmconf.Resources[0].Properties["ipName"] = req.IpName
+		dmconf.Resources[0].Properties["ipName"] = req.IPName
 		dmconf.Resources[0].Properties["createPipelinePersistentStorage"] = req.StorageOption.CreatePipelinePersistentStorage
 		// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
 		if s.gkeVersionOverride != "" {

@@ -37,3 +37,9 @@ type ComponentConfig struct {
 	// Platform type.
 	Platform string `json:"platform,omitempty"`
 }
+
+// StorageOption store user choice of permanent storage
+type StorageOption struct {
+	// Whether to create persistent storage for storing all Kubeflow Pipeline artifacts or not.
+	CreatePipelinePersistentStorage bool
+}

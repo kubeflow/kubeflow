@@ -21,7 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ghodss/yaml"
-	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
@@ -286,7 +286,7 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 	if err != nil {
 		return err
 	}
-	splitter := regexp.MustCompile(bootstrap.YamlSeparator)
+	splitter := regexp.MustCompile(utils.YamlSeparator)
 	objects := splitter.Split(string(data), -1)
 
 	for _, object := range objects {

@@ -48,8 +48,8 @@ func (s *ksServer) ConfigCluster(ctx context.Context, req CreateRequest) error {
 	}
 	log.Infof("Creating cluster admin role binding...")
 	bindAccount := req.Email
-	if req.SAClientId != "" {
-		bindAccount = req.SAClientId
+	if req.SAClientID != "" {
+		bindAccount = req.SAClientID
 	}
 	roleBinding := rbac_v1.ClusterRoleBinding{
 		TypeMeta: meta_v1.TypeMeta{
@@ -88,7 +88,7 @@ func CreateNamespace(req *CreateRequest, k8sClientset *clientset.Clientset) erro
 
 func InsertOauthCredentails(req *CreateRequest, k8sClientset *clientset.Clientset) error {
 	secretData := make(map[string][]byte)
-	ClientIdData, err := base64.StdEncoding.DecodeString(req.ClientId)
+	ClientIdData, err := base64.StdEncoding.DecodeString(req.ClientID)
 	if err != nil {
 		log.Errorf("Failed decoding client id: %v", err)
 		return err
@@ -122,7 +122,7 @@ func InsertLoginCredentails(req *CreateRequest, k8sClientset *clientset.Clientse
 	secretData := make(map[string][]byte)
 	UsernameData, err := base64.StdEncoding.DecodeString(req.Username)
 	if err != nil {
-		log.Errorf("Failed decoding client id: %v", err)
+		log.Errorf("Failed decoding username: %v", err)
 		return err
 	}
 	secretData["username"] = UsernameData

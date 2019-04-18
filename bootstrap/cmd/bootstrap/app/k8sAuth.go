@@ -11,10 +11,11 @@ import (
 	"k8s.io/api/rbac/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 func buildClusterConfig(ctx context.Context, token string, project string, zone string,
-	clusterId string) (*rest.Config, error) {
+	clusterID string) (*rest.Config, error) {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: token,
 	})
@@ -25,7 +26,7 @@ func buildClusterConfig(ctx context.Context, token string, project string, zone 
 	req := &containerpb.GetClusterRequest{
 		ProjectId: project,
 		Zone:      zone,
-		ClusterId: clusterId,
+		ClusterId: clusterID,
 	}
 	resp, err := c.GetCluster(ctx, req)
 	if err != nil {
@@ -39,6 +40,32 @@ func buildClusterConfig(ctx context.Context, token string, project string, zone 
 			CAData: []byte(string(caDec)),
 		},
 	}, nil
+}
+
+// BuildClientCmdAPI takeks k8s config and access token, build and return clientcmdapi.Config entry
+func BuildClientCmdAPI(config *rest.Config, token string) *clientcmdapi.Config {
+	return &clientcmdapi.Config{
+		Kind:       "Config",
+		APIVersion: "v1",
+		Clusters: map[string]*clientcmdapi.Cluster{
+			"activeCluster": {
+				CertificateAuthorityData: config.TLSClientConfig.CAData,
+				Server:                   config.Host,
+			},
+		},
+		Contexts: map[string]*clientcmdapi.Context{
+			"activeCluster": {
+				Cluster:  "activeCluster",
+				AuthInfo: "activeCluster",
+			},
+		},
+		CurrentContext: "activeCluster",
+		AuthInfos: map[string]*clientcmdapi.AuthInfo{
+			"activeCluster": {
+				Token: token,
+			},
+		},
+	}
 }
 
 func createK8sRoleBing(config *rest.Config, roleBinding *v1.ClusterRoleBinding) error {
