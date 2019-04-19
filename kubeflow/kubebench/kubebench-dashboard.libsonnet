@@ -107,7 +107,11 @@
             route: [
               {
                 destination: {
-                  host: params.name + "." + params.namespace + ".svc.cluster.local",
+                  host: std.join(".", [
+                    params.name,
+                    params.namespace,
+                    params.clusterDomain,
+                  ]),
                   port: {
                     number: 80,
                   },
