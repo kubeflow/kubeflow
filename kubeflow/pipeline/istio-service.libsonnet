@@ -1,12 +1,12 @@
 {
   local util = import "kubeflow/common/util.libsonnet",
 
-  all(namespace, injectIstio):: if util.toBool(injectIstio) then [
-    $.parts(namespace).serviceUiIstio,
-    $.parts(namespace).tensorbaordDataIstio,
+  all(namespace, clusterDomain, injectIstio):: if util.toBool(injectIstio) then [
+    $.parts(namespace, clusterDomain).serviceUiIstio,
+    $.parts(namespace, clusterDomain).tensorbaordDataIstio,
   ] else [],
 
-  parts(namespace):: {
+  parts(namespace, clusterDomain):: {
     serviceUiIstio: {
       apiVersion: "networking.istio.io/v1alpha3",
       kind: "VirtualService",
@@ -36,7 +36,11 @@
             route: [
               {
                 destination: {
-                  host: "ml-pipeline-ui." + namespace + ".svc.cluster.local",
+                  host: std.join(".", [
+                    "ml-pipeline-ui",
+                    namespace,
+                    clusterDomain,
+                  ]),
                   port: {
                     number: 80,
                   },
@@ -78,7 +82,11 @@
             route: [
               {
                 destination: {
-                  host: "ml-pipeline-ui." + namespace + ".svc.cluster.local",
+                  host: std.join(".", [
+                    "ml-pipeline-ui",
+                    namespace,
+                    clusterDomain,
+                  ]),
                   port: {
                     number: 80,
                   },
