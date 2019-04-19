@@ -247,6 +247,7 @@ local dagTemplates = [
         // Failures still appear to be captured and stored in the junit file.
         "-s",
         "--use_basic_auth=" + params.useBasicAuth,
+        "--use_istio=" + params.useIstio,
         // Increase the log level so that info level log statements show up.
         "--log-cli-level=info",
         "--junitxml=" + artifactsDir + "/junit_kfctl-is-ready-test-" + nameSuffix + ".xml",

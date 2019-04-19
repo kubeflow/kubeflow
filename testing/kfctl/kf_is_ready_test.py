@@ -11,7 +11,7 @@ import pytest
 from kubeflow.testing import util
 from testing import deploy_utils
 
-def test_kf_is_ready(namespace, use_basic_auth):
+def test_kf_is_ready(namespace, use_basic_auth, use_istio):
   """Test that Kubeflow was successfully deployed.
 
   Args:
@@ -25,8 +25,6 @@ def test_kf_is_ready(namespace, use_basic_auth):
     util.run(["gcloud", "auth", "activate-service-account",
               "--key-file=" + os.environ["GOOGLE_APPLICATION_CREDENTIALS"]])
 
-
-
   api_client = deploy_utils.create_k8s_client()
 
   util.load_kube_config()
@@ -38,7 +36,6 @@ def test_kf_is_ready(namespace, use_basic_auth):
       "argo-ui",
       "centraldashboard",
       "cert-manager",
-      "cloud-endpoints-controller",
       "jupyter-web-app",
       "ml-pipeline",
       "ml-pipeline-scheduledworkflow",
@@ -49,6 +46,9 @@ def test_kf_is_ready(namespace, use_basic_auth):
       "studyjob-controller",
       "workflow-controller",
   ]
+  ingress_related_deployments = [
+    "cloud-endpoints-controller",
+  ]
 
   stateful_sets = [
     "backend-updater",
@@ -57,16 +57,21 @@ def test_kf_is_ready(namespace, use_basic_auth):
   if use_basic_auth:
     deployment_names.extend(["basic-auth"])
   else:
-    deployment_names.extend(["iap-enabler"])
+    ingress_related_deployments.extend(["iap-enabler"])
 
   # TODO(jlewi): Might want to parallelize this.
   for deployment_name in deployment_names:
     logging.info("Verifying that deployment %s started...", deployment_name)
     util.wait_for_deployment(api_client, namespace, deployment_name)
+  
+  ingress_namespace = "istio-system" if use_istio else namespace
+  for deployment_name in ingress_related_deployments:
+    logging.info("Verifying that deployment %s started...", deployment_name)
+    util.wait_for_deployment(api_client, ingress_namespace, deployment_name)
 
   for name in stateful_sets:
     logging.info("Verifying that statefulset %s started...", name)
-    util.wait_for_statefulset(api_client, namespace, name)
+    util.wait_for_statefulset(api_client, ingress_namespace, name)
 
   # TODO(jlewi): We should verify that the ingress is created and healthy.
 
