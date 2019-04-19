@@ -112,7 +112,11 @@
             route: [
               {
                 destination: {
-                  host: "centraldashboard." + params.namespace + ".svc.cluster.local",
+                  host: std.join(".", [
+                    "centraldashboard",
+                    params.namespace,
+                    params.clusterDomain,
+                  ]),
                   port: {
                     number: 80,
                   },
