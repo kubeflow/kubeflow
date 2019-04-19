@@ -19,12 +19,12 @@
     $.parts(params, namespace).uiClusterRoleBinding,
     $.parts(params, namespace).uiServiceAccount,
   ] + if util.toBool(params.injectIstio) then [
-    $.parts(params, namespace).virtualService,
+    $.parts(params, namespace).istioVirtualService,
   ] else [],
 
   parts(params, namespace):: {
 
-    virtualService: {
+    istioVirtualService: {
       apiVersion: "networking.istio.io/v1alpha3",
       kind: "VirtualService",
       metadata: {
@@ -53,7 +53,11 @@
             route: [
               {
                 destination: {
-                  host: "katib-ui." + namespace + ".svc.cluster.local",
+                  host: std.join(".", [
+                    "katib-ui",
+                    namespace,
+                    params.clusterDomain,
+                  ]),
                   port: {
                     number: 80,
                   },
@@ -63,7 +67,7 @@
           },
         ],
       },
-    },  // virtualService
+    },  // istioVirtualService
 
     coreService: {
       apiVersion: "v1",

@@ -14,6 +14,7 @@
 // @optionalParam studyJobControllerImage string gcr.io/kubeflow-images-public/katib/studyjob-controller:v0.1.2-alpha-156-g4ab3dbd The image for studyjob-controller.
 // @optionalParam metricsCollectorImage string gcr.io/kubeflow-images-public/katib/metrics-collector:v0.1.2-alpha-156-g4ab3dbd The image for metrics-collector.
 // @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
+// @optionalParam clusterDomain string svc.cluster.local DNS config to cluster domain.
 
 local k = import "k.libsonnet";
 
