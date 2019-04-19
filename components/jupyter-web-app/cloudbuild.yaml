@@ -1,0 +1,16 @@
+#cloudbuild.yaml
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - 'build'
+    - '-t'
+    - 'gcr.io/$PROJECT_ID/jupyter-web-app:$TAG_NAME'
+    - '--label=git-version=${_GIT_VERSION}'
+    - '.'
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - 'tag'
+    - 'gcr.io/$PROJECT_ID/jupyter-web-app:$TAG_NAME'
+    - 'gcr.io/$PROJECT_ID/jupyter-web-app:latest'
+images: ['gcr.io/$PROJECT_ID/jupyter-web-app:$TAG_NAME',
+         'gcr.io/$PROJECT_ID/jupyter-web-app:latest']
