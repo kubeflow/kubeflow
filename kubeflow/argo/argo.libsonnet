@@ -255,7 +255,11 @@
             route: [
               {
                 destination: {
-                  host: "argo-ui." + params.namespace + ".svc.cluster.local",
+                  host: std.join(".", [
+                    "argo-ui",
+                    params.namespace,
+                    params.clusterDomain,
+                  ]),
                   port: {
                     number: 80,
                   },
