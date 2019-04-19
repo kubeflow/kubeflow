@@ -428,7 +428,11 @@
             route: [
               {
                 destination: {
-                  host: "tf-job-dashboard." + params.namespace + ".svc.cluster.local",
+                  host: std.join(".", [
+                    "tf-job-dashboard",
+                    params.namespace,
+                    params.clusterDomain,
+                  ]),
                   port: {
                     number: 80,
                   },

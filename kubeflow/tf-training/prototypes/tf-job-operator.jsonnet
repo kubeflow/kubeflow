@@ -11,6 +11,7 @@
 // @optionalParam deploymentNamespace string null The namespace to which tf-job-operator should be scoped. If deploymentScope is set to cluster, this is ignored.
 // @optionalParam enableGangScheduling string false If set true, enable gang scheduling by kube-batch.
 // @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
+// @optionalParam clusterDomain string svc.cluster.local DNS config to cluster domain.
 
 local tfJobOperator = import "kubeflow/tf-training/tf-job-operator.libsonnet";
 local instance = tfJobOperator.new(env, params);
