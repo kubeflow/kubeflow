@@ -216,6 +216,58 @@
       },
     },
 
+    istioVirtualService:: {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: params.name,
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/" + params.prefix + "/",
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/",
+            },
+            route: [
+              {
+                destination: {
+                  host: std.join(".", [
+                    params.name,
+                    params.namespace,
+                    params.clusterDomain,
+                  ]),
+                  port: {
+                    number: 80,
+                  },
+                },
+              },
+            ],
+            headers: {
+              request: {
+                add: {
+                  "x-forwarded-prefix": "/" + params.prefix,
+                },
+              },
+            },
+          },
+        ],
+      },
+    },
+
     depl :: {
       apiVersion: "apps/v1",
       kind: "Deployment",
@@ -289,7 +341,9 @@
       self.notebookServiceAccount,
       self.notebookRole,
       self.notebookRoleBinding,
-      ],
+    ] + if util.toBool(params.injectIstio) then [
+      self.istioVirtualService,
+    ] else [],
 
     list(obj=self.all):: util.list(obj),
   },
