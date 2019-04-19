@@ -666,6 +666,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 
 	// kfctl only
 	// Setup kube config
+	// TODO(#3061): figure out how to properly build config without kubeconfig.
 	if gcp.isCLI {
 		credCmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
 			gcp.Name,
