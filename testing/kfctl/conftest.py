@@ -21,6 +21,10 @@ def pytest_addoption(parser):
       "--use_basic_auth", action="store", default="False",
       help="Use basic auth.")
 
+  parser.addoption(
+      "--use_istio", action="store", default="False",
+      help="Use istio.")
+
 @pytest.fixture
 def app_path(request):
   return request.config.getoption("--app_path")
@@ -40,6 +44,15 @@ def project(request):
 @pytest.fixture
 def use_basic_auth(request):
   value = request.config.getoption("--use_basic_auth").lower()
+
+  if value in ["t", "true"]:
+    return True
+  else:
+    return False
+
+@pytest.fixture
+def use_istio(request):
+  value = request.config.getoption("--use_istio").lower()
 
   if value in ["t", "true"]:
     return True
