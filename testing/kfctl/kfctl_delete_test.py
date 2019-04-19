@@ -38,7 +38,6 @@ def get_endpoints_list(project):
   return endpoints
 
 def test_kfctl_delete(kfctl_path, app_path, project):
-  return
   if not kfctl_path:
     raise ValueError("kfctl_path is required")
 
