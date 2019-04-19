@@ -29,6 +29,9 @@ PLUGINS_ENVIRONMENT ?= $(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin
 export GO111MODULE = on
 export GO = go
 
+# Location of junit file
+JUNIT_FILE ?= /tmp/report.xml
+
 %.so:
 	cd cmd/plugins/$* && \
 	$(GO) build -i -gcflags 'all=-N -l' -o ../../../bin/$*.so -buildmode=plugin $*.go
@@ -113,8 +116,16 @@ build-kfctl-container:
 	docker build \
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
 		--target=$(KFCTL_TARGET) \
-		--tag $(KFCTL_IMG):$(TAG) .
-	@echo Built $(KFCTL_IMG):$(TAG)
+		--tag $(KFCTL_IMG)/builder:$(TAG) .
+	@echo Built $(KFCTL_IMG)/builder:$(TAG)
+
+# build containers using GCLOUD_PROJECT
+build-gcb:
+	gcloud --project=$(GCLOUD_PROJECT)\
+		builds submit \
+		--machine-type=n1-highcpu-32 \
+		--substitutions=TAG_NAME=$(TAG)
+		--config=cloudbuild.yaml .
 
 build-local: build-bootstrap build-kfctl
 
@@ -164,6 +175,28 @@ run-local-docker:
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(BOOTSTRAPPER_IMG):$(TAG)
 
+#***************************************************************************************************
+# Build a docker container that can be used to build kfctl
+#
+# The rules in this section are used to build the docker image that provides
+# a suitable go build environment for kfctl
+
+build-builder-container:
+	docker build \
+		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+		--target=builder \
+		--tag $(KFCTL_IMG):$(TAG) .
+	@echo Built $(KFCTL_IMG):$(TAG)
+
+# build containers using GCLOUD_PROJECT
+build-builder-container-gcb:
+	gcloud --project=$(GCLOUD_PROJECT) \
+		builds submit \
+		--machine-type=n1-highcpu-32 \
+		--substitutions=TAG_NAME=$(TAG),_TARGET=builder \
+		--config=cloudbuild.yaml .
+
+#***************************************************************************************************
 
 clean: 
 	rm -rf test && rm -rf /tmp/v2 && mkdir test
@@ -171,6 +204,20 @@ clean:
 doc:
 	doctoc ./cmd/kfctl/README.md README.md k8sSpec/README.md developer_guide.md
 
+
+#**************************************************************************************************
+# rules to run unittests
+#
+test: build-kfctl
+	go test ./...
+
+
+# Run the unittests and output a junit report for use with prow
+test-junit: build-kfctl
+	echo Running tests ... junit_file=$(JUNIT_FILE)
+	go test ./... -v 2>&1 | go-junit-report > $(JUNIT_FILE)
+
+#***************************************************************************************************
 test-init: clean install dockerfordesktop.init minikube.init gcp.init none.init-no-platform
 
 test-generate: test-init dockerfordesktop.generate minikube.generate gcp.generate none.generate

@@ -24,7 +24,16 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# Developer guide for bootstrap
+# Developer guide
+
+This guide covers to binaries
+
+1. kfctl
+1. bootstrap
+
+bootstrap is a legacy binary that is being replaced by kfctl see [#2870](https://github.com/kubeflow/kubeflow/issues/2870).
+
+
 
 ## Prerequisites
 
@@ -86,6 +95,38 @@ make build-kfctl
 * This will create `bin/kfctl` with full debug information
 
 * If you get an error about missing files in `/tmp/v2`, you are hitting [#2790](https://github.com/kubeflow/kubeflow/issues/2790) and need to delete `/tmp/v2` and rerun the build.
+
+
+#### Build and test in a container
+
+This section describes how to build and test kfctl in a docker container. This ensures a reproducible build environment.
+This is also useful for reproducing what happens in our CI system.
+
+Create the docker image used to build and test `kfctl`.
+
+```
+ GCLOUD_PROJECT=cloud-ml-dev make build-builder-container
+```
+
+Alternatively to build using GCB
+
+```
+ GCLOUD_PROJECT=cloud-ml-dev make build-builder-container
+```
+
+We can now start an interactive shell inside the docker container
+
+```
+REPO_ROOT=$(git rev-parse --show-toplevel)
+mkdir -p ${REPO_ROOT}/bootstrap/bin/tmp
+docker run -it \
+  -v ${REPO_ROOT}:/go/src/github.com/kubeflow/kubeflow \
+  -v ${REPO_ROOT}/bootstrap/bin/tmp:/tmp \
+  ${IMAGE} \
+  /bin/bash
+```
+
+**Note** Since this is running as root files written to bin/... will be owned by root.
 
 ##### `make install`
 
@@ -155,6 +196,21 @@ make test-init
 ```
 
 * will run `kfctl init` for gcp, minikube and no platform
+
+
+## kfctl unit tests
+
+This section provides information about how we continually run the go unittests for kfctl.
+
+We create a suitable docker image for building and testing the code under Prow
+
+```
+GCLOUD_PROJECT=kubeflow-ci make build-builder-container-gcb
+```
+
+This image is then set [unit_tests.jsonnet](https://github.com/kubeflow/kubeflow/blob/master/testing/workflows/components/unit_tests.jsonnet).
+
+
 
 ## Building bootstrap 
 
