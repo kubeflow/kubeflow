@@ -36,6 +36,7 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
       "argo-ui",
       "centraldashboard",
       "cert-manager",
+      "cloud-endpoints-controller"
       "jupyter-web-app",
       "ml-pipeline",
       "ml-pipeline-scheduledworkflow",
@@ -46,9 +47,7 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
       "studyjob-controller",
       "workflow-controller",
   ]
-  ingress_related_deployments = [
-    "cloud-endpoints-controller",
-  ]
+  ingress_related_deployments = []
 
   stateful_sets = [
     "backend-updater",
