@@ -125,7 +125,7 @@ local dagTemplates = [
       "test-junit",
     ], working_dir=srcDir + "/bootstrap",
        env_vars=[{
-          name: "JUNIT_TEST",
+          name: "JUNIT_FILE",
           value: artifactsDir + "/junit_go-kfctl-unit-tests.xml",
        }],
        ) + {
