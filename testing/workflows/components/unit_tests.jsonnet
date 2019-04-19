@@ -47,7 +47,7 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
   name: step_name,
   activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
   workingDir: working_dir,
-  container: {
+  container+: {
     command: command,
     image: image,
     workingDir: working_dir,
@@ -120,11 +120,17 @@ local dagTemplates = [
   },
   {
     // Run the kfctl go unittests
-    template: buildTemplate("go-kfctl-unit-tests", [
+    template: buildTemplate("go-kfctl-unit-tests", [      
       "make",
       "test-junit",
-    ], working_dir=src_dir + "/bootstrap") + {
-      container: {
+    ], working_dir=srcDir + "/bootstrap",
+       env_vars=[{
+          name: "JUNIT_TEST",
+          value: artifactsDir + "/junit_go-kfctl-unit-tests.xml",
+       }],
+       ) + {
+      someRandomField: "jeremy",
+      container+:{
         image: "gcr.io/kubeflow-ci/kfctl/builder:v20190418-v0-30-g5e3bd23d-dirty-73d1fe",
       },
     },  // go-kfctl-unit-tests

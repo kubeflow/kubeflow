@@ -29,6 +29,9 @@ PLUGINS_ENVIRONMENT ?= $(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin
 export GO111MODULE = on
 export GO = go
 
+# Location of junit file
+JUNIT_FILE ?= /tmp/report.xml
+
 %.so:
 	cd cmd/plugins/$* && \
 	$(GO) build -i -gcflags 'all=-N -l' -o ../../../bin/$*.so -buildmode=plugin $*.go
@@ -211,7 +214,8 @@ test: build-kfctl
 
 # Run the unittests and output a junit report for use with prow
 test-junit: build-kfctl
-	go test ./... -v 2>&1 | go-junit-report > /tmp/report.xml
+	echo Running tests ... junit_file=$(JUNIT_FILE)
+	go test ./... -v 2>&1 | go-junit-report > $(JUNIT_FILE)
 
 #***************************************************************************************************
 test-init: clean install dockerfordesktop.init minikube.init gcp.init none.init-no-platform
