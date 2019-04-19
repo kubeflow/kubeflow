@@ -667,7 +667,6 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	// kfctl only
 	// Setup kube config
 	if gcp.isCLI {
-		// TODO(#2604): Need to create a named context.
 		credCmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
 			gcp.Name,
 			"--zone="+gcp.Spec.Zone,
