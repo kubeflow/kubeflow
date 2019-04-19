@@ -2,85 +2,94 @@
   local k = import "k.libsonnet",
   new(_env, _params):: {
     local params = _params + _env,
-    local namespace = if _params.namespace != "null" then _params.namespace else _env.namespace,
-
-    local csiControllerServiceAccount = {
-      apiVersion: "v1",
-      kind: "ServiceAccount",
-      metadata: {
-        name: "fsx-csi-controller-sa",
-        namespace: namespace,
-      },
-    },  // csiControllerServiceAccount
-    csiControllerServiceAccount:: csiControllerServiceAccount,
 
     local csiNodeServiceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
-        name: "fsx-csi-node-sa",
-        namespace: namespace,
+        name: "efs-csi-node-sa",
+        namespace: params.namespace,
       },
     },  // csiNodeServiceAccount
     csiNodeServiceAccount:: csiNodeServiceAccount,
 
-    local csiProvisionerClusterRole = {
+    local csiNodeClusterRole = {
       kind: "ClusterRole",
       apiVersion: "rbac.authorization.k8s.io/v1",
       metadata: {
-        name: "csi-fsx-external-provisioner-clusterrole",
+        name: "csi-efs-node-clusterrole",
       },
       rules: [
         {
           apiGroups: [""],
-          resources: ["persistentvolumes"],
-          verbs: ["get", "list", "watch", "create", "delete"],
+          resources: ["secrets"],
+          verbs: ["get", "list"],
         },
         {
           apiGroups: [""],
-          resources: ["persistentvolumeclaims"],
+          resources: ["nodes"],
+          verbs: ["get", "list", "update"],
+        },
+        {
+          apiGroups: [""],
+          resources: ["namespaces"],
+          verbs: ["get", "list"],
+        },
+        {
+          apiGroups: [""],
+          resources: ["persistentvolumes"],
           verbs: ["get", "list", "watch", "update"],
         },
         {
           apiGroups: ["storage.k8s.io"],
-          resources: ["storageclasses"],
-          verbs: ["get", "list", "watch"],
+          resources: ["volumeattachments"],
+          verbs: ["get", "list", "watch", "update"],
         },
         {
-          apiGroups: [""],
-          resources: ["events"],
-          verbs: ["get", "list", "watch", "create", "update", "patch"],
+          apiGroups: ["csi.storage.k8s.io"],
+          resources: ["csinodeinfos"],
+          verbs: ["get", "list", "watch", "update"],
         },
       ],
-    }, // csiProvisionerClusterRole
-    csiProvisionerClusterRole:: csiProvisionerClusterRole,
+    }, // csiNodeClusterRole
+    csiNodeClusterRole:: csiNodeClusterRole,
 
-    local csiProvisionerClusterRoleBinding = {
+    local csiNodeClusterRoleBinding = {
       kind: "ClusterRoleBinding",
       apiVersion: "rbac.authorization.k8s.io/v1",
       metadata: {
-        name: "csi-fsx-provisioner-binding",
+        name: "csi-efs-node-binding",
       },
       subjects: [
         {
           kind: "ServiceAccount",
-          name: "fsx-csi-controller-sa",
-          namespace: namespace,
+          name: "efs-csi-node-sa",
+          namespace: params.namespace,
         },
       ],
       roleRef: {
         kind: "ClusterRole",
-        name: "csi-fsx-external-provisioner-clusterrole",
+        name: "csi-efs-node-clusterrole",
         apiGroup: "rbac.authorization.k8s.io",
       },
-    }, // csiProvisionerClusterRoleBinding
-    csiProvisionerClusterRoleBinding:: csiProvisionerClusterRoleBinding,
+    }, // csiNodeClusterRoleBinding
+    csiNodeClusterRoleBinding:: csiNodeClusterRoleBinding,
+
+    local csiControllerServiceAccount = {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: "efs-csi-controller-sa",
+        namespace: params.namespace,
+      },
+    },  // csiControllerServiceAccount
+    csiControllerServiceAccount:: csiControllerServiceAccount,
 
     local csiAttacherClusterRole = {
       kind: "ClusterRole",
       apiVersion: "rbac.authorization.k8s.io/v1",
       metadata: {
-        name: "csi-fsx-external-attacher-clusterrole",
+        name: "csi-efs-external-attacher-clusterrole",
       },
       rules: [
         {
@@ -99,25 +108,25 @@
           verbs: ["get", "list", "watch", "update"],
         },
       ],
-    }, // csiFSxAttacherClusterRole
+    }, // csiAttacherClusterRole
     csiAttacherClusterRole:: csiAttacherClusterRole,
 
     local csiAttacherClusterRoleBinding = {
       kind: "ClusterRoleBinding",
       apiVersion: "rbac.authorization.k8s.io/v1",
       metadata: {
-        name: "csi-fsx-attacher-binding",
+        name: "csi-efs-attacher-binding",
       },
       subjects: [
         {
           kind: "ServiceAccount",
-          name: "fsx-csi-controller-sa",
-          namespace: namespace,
+          name: "efs-csi-controller-sa",
+          namespace: params.namespace,
         },
       ],
       roleRef: {
         kind: "ClusterRole",
-        name: "csi-fsx-external-attacher-clusterrole",
+        name: "csi-efs-external-attacher-clusterrole",
         apiGroup: "rbac.authorization.k8s.io",
       },
     }, // csiAttacherClusterRoleBinding
@@ -127,31 +136,32 @@
       apiVersion: "apps/v1beta2",
       kind: "DaemonSet",
       metadata: {
-        name: "fsx-csi-node",
-        namespace: namespace,
+        name: "efs-csi-node",
+        namespace: params.namespace,
       },
       spec: {
         selector: {
           matchLabels: {
-            app: "fsx-csi-node"
+            app: "efs-csi-node"
           },
         },
         template: {
           metadata: {
             labels: {
-              app: "fsx-csi-node",
+              app: "efs-csi-node",
             },
           },
           spec: {
-            serviceAccount: "fsx-csi-node-sa",
+            serviceAccount: "efs-csi-node-sa",
             hostNetwork: true,
             containers: [
               {
-                name: "fsx-plugin",
+                name: "efs-plugin",
                 securityContext: {
                   privileged: true,
                 },
                 image: params.csiControllerImage,
+                imagePullPolicy: "Always",
                 args: [
                   "--endpoint=$(CSI_ENDPOINT)",
                   "--logtostderr",
@@ -180,11 +190,12 @@
                 ],
               },
               {
-                name: "fsx-csi-driver-registrar",
+                name: "efs-csi-driver-registrar",
                 image: params.csiDriverRegistrarImage,
                 args: [
                   "--csi-address=$(ADDRESS)",
                   "--mode=node-register",
+                  "--driver-requires-attachment=true",
                   "--pod-info-mount-version=v1",
                   "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)",
                   "--v=5"
@@ -196,7 +207,7 @@
                   },
                   {
                     name: "DRIVER_REG_SOCK_PATH",
-                    value: "/var/lib/kubelet/plugins/fsx.csi.aws.com/csi.sock",
+                    value: "/var/lib/kubelet/plugins/efs.csi.aws.com/csi.sock",
                   },
                   {
                     name: "KUBE_NODE_NAME",
@@ -230,7 +241,7 @@
               {
                 name: "plugin-dir",
                 hostPath: {
-                  path: "/var/lib/kubelet/plugins/fsx.csi.aws.com/",
+                  path: "/var/lib/kubelet/plugins/efs.csi.aws.com/",
                   type: "DirectoryOrCreate"
                 },
               },
@@ -259,20 +270,20 @@
       apiVersion: "apps/v1beta1",
       kind: "StatefulSet",
       metadata: {
-        name: "fsx-csi-controller",
-        namespace: namespace,
+        name: "efs-csi-controller",
+        namespace: params.namespace,
       },
       spec: {
-        serviceName: "fsx-csi-controller",
+        serviceName: "efs-csi-controller",
         replicas: 1,
         template: {
           metadata: {
             labels: {
-              app: "fsx-csi-controller",
+              app: "efs-csi-controller",
             },
           },
           spec: {
-            serviceAccount: "fsx-csi-controller-sa",
+            serviceAccount: "efs-csi-controller-sa",
             tolerations: [
               {
                 key: "CriticalAddonsOnly",
@@ -281,7 +292,7 @@
             ],
             containers: [
               {
-                name: "fsx-plugin",
+                name: "efs-plugin",
                 image: params.csiControllerImage,
                 args: [
                   "--endpoint=$(CSI_ENDPOINT)",
@@ -302,29 +313,7 @@
                 ],
               },
               {
-                name: "fsx-csi-provisioner",
-                image: params.csiProvisionerImage,
-                args: [
-                  "--provisioner=fsx.csi.aws.com",
-                  "--csi-address=$(ADDRESS)",
-                  "--connection-timeout=5m",
-                  "--v=5"
-                ],
-                env: [
-                  {
-                    name: "ADDRESS",
-                    value: "/var/lib/csi/sockets/pluginproxy/csi.sock",
-                  },
-                ],
-                volumeMounts: [
-                  {
-                    name: "socket-dir",
-                    mountPath: "/var/lib/csi/sockets/pluginproxy/",
-                  },
-                ],
-              },
-              {
-                name: "fsx-csi-attacher",
+                name: "efs-csi-attacher",
                 image: params.csiAttacherImage,
                 args: [
                   "--csi-address=$(ADDRESS)",
@@ -360,9 +349,9 @@
       apiVersion: "storage.k8s.io/v1",
       kind: "StorageClass",
       metadata: {
-        name: "fsx-default",
+        name: "efs-default",
       },
-      provisioner: "fsx.csi.aws.com"
+      provisioner: "efs.csi.aws.com"
     },  // csiDefaultStorageClass
     csiDefaultStorageClass:: csiDefaultStorageClass,
 
@@ -371,8 +360,8 @@
     local all = [
       self.csiControllerServiceAccount,
       self.csiNodeServiceAccount,
-      self.csiProvisionerClusterRole,
-      self.csiProvisionerClusterRoleBinding,
+      self.csiNodeClusterRole,
+      self.csiNodeClusterRoleBinding,
       self.csiAttacherClusterRole,
       self.csiAttacherClusterRoleBinding,
       self.csiDaemonSetDeploy,
