@@ -1,8 +1,5 @@
 """Script to build and update the Jupyter WebApp image."""
 
-import fire
-import git
-import httplib2
 import json
 import logging
 import os
@@ -10,17 +7,19 @@ import re
 import tempfile
 import yaml
 
-from kubeflow.testing import util
+import fire
+import git
+import httplib2
+
+from kubeflow.testing import util # pylint: disable=no-name-in-module
 
 from containerregistry.client import docker_creds
 from containerregistry.client import docker_name
-from containerregistry.client.v2_2 import docker_digest
 from containerregistry.client.v2_2 import docker_http
 from containerregistry.client.v2_2 import docker_image as v2_2_image
 from containerregistry.transport import transport_pool
-from containerregistry.transform.v2_2 import metadata
 
-class WebAppUpdater(object):
+class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
   def __init__(self):
     self._last_commit = None
 
@@ -63,7 +62,7 @@ class WebAppUpdater(object):
       prototype = f.read().split("\n")
     replacements = 0
     for i, line in enumerate(prototype):
-      for param in regexps.keys():
+      for param, _ in regexps.iteritems():
         if param not in line:
           continue
         if line.startswith("//"):
@@ -85,14 +84,14 @@ class WebAppUpdater(object):
     with open(temp_file, "w") as w:
       w.write("\n".join(prototype))
     os.rename(temp_file, prototype_file)
-    logging.info("Successfully made %d replacements" % replacements)
+    logging.info("Successfully made %d replacements", replacements)
 
     return prototype_file
 
   @property
   def last_commit(self):
+    """Get the last commit of a change to the source for the jupyter-web-app."""
     if not self._last_commit:
-      """Get the last commit of a change to the source for the jupyter-web-app."""
       # Get the hash of the last commit to modify the source for the Jupyter web
       # app image
       self._last_commit = util.run(["git", "log", "-n", "1", "--pretty=format:\"%h\"",
@@ -100,7 +99,7 @@ class WebAppUpdater(object):
 
     return self._last_commit
 
-  def _find_remote_repo(self, repo, remote_url):
+  def _find_remote_repo(self, repo, remote_url): # pylint: disable=no-self-use
     """Find the remote repo if it has already been added.
 
     Args:
@@ -112,7 +111,6 @@ class WebAppUpdater(object):
       remote: git-python object representing the remote repo or none if it
         isn't present.
     """
-    remote_repo = None
     for r in repo.remotes:
       for u in r.urls:
         if remote_url == u:
@@ -120,7 +118,7 @@ class WebAppUpdater(object):
 
     return None
 
-  def all(self, build_project, registry_project, remote_fork):
+  def all(self, build_project, registry_project, remote_fork): # pylint: disable=too-many-statements,too-many-branches
     """Build the latest image and update the prototype.
 
     Args:
@@ -146,7 +144,7 @@ class WebAppUpdater(object):
 
     logging.info("Last change to components-jupyter-web-app was %s", last_commit)
 
-    base = "gcr.io/{0}/jupyter-web-app".format(project)
+    base = "gcr.io/{0}/jupyter-web-app".format(registry_project)
     base_image = base + ":latest"
     transport = transport_pool.Http(httplib2.Http)
     src = docker_name.from_string(base_image)
@@ -197,12 +195,6 @@ class WebAppUpdater(object):
     logging.info("Add file %s to repo", prototype_file)
     repo.index.add([prototype_file])
     repo.index.commit("Update the jupyter web app image to {0}".format(image))
-
-    remote_repo = None
-    for r in repo.remotes:
-      if remote == r.name:
-        remote_repo = r
-        break
 
     remote_repo.push()
 

@@ -15,7 +15,7 @@ spec:
         # TODO(jlewi): Stop checking out the jlewi fork once it is merged
         - --repos=jlewi/kubeflow@web_app_ci,kubeflow/fairing@HEAD,jlewi/testing@add_hub
         - --src_dir=/src        
-        - --links=jlewi/kubeflow=kubeflow/kubeflow
+        - --links=jlewi/kubeflow=kubeflow/kubeflow,jlewi/testing=kubeflow/testing
         name: checkout
         image: gcr.io/kubeflow-ci/test-worker:v20190420-70fb4fe-e3b0c4
         volumeMounts:
@@ -27,7 +27,8 @@ spec:
         - -m 
         - kubeflow.kubeflow.ci.update_jupyter_web_app
         - all
-        - --project=kubeflow-images-public
+        - --build-project=kubeflow-ci
+        - --registry-project=kubeflow-images-public
         # TODO(jlewi): We should switch to using kubeflow-ci bot
         - --remote-fork=git@github.com:jlewi/kubeflow.git
         image: gcr.io/kubeflow-ci/test-worker:v20190420-70fb4fe-e3b0c4
