@@ -28,6 +28,8 @@ spec:
         - kubeflow.kubeflow.ci.update_jupyter_web_app
         - all
         - --project=kubeflow-images-public
+        # TODO(jlewi): We should switch to using kubeflow-ci bot
+        - --remote-fork=git@github.com:jlewi/kubeflow.git
         image: gcr.io/kubeflow-ci/test-worker:v20190420-70fb4fe-e3b0c4
         name: update
         env:

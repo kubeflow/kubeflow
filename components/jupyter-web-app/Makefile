@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+# Project used with GCB
 PROJECT ?= kubeflow-dev
+# Registry where the image should be published
+REGISTRY_PROJECT ?= kubeflow-dev
 OUTPUT ?= output.yaml
 TAG ?= $(shell git describe --tags --always --long)
 
@@ -25,5 +29,5 @@ build-gcb:
 	gcloud --project=$(PROJECT) \
 		builds submit \
 		--machine-type=n1-highcpu-32 \
-		--substitutions=_GIT_VERSION=$(GIT_TAG),TAG_NAME=$(TAG) \
+		--substitutions=_GIT_VERSION=$(GIT_TAG),_REGISTRY=$(REGISTRY_PROJECT),TAG_NAME=$(TAG) \
 		--config=cloudbuild.yaml .

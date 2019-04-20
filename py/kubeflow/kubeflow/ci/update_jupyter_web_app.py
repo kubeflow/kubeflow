@@ -24,11 +24,17 @@ class WebAppUpdater(object):
   def __init__(self):
     self._last_commit = None
 
-  def build_image(self, project):
-    """Build the image."""
+  def build_image(self, build_project, registry_project):
+    """Build the image.
+
+    Args:
+      build_project: GCP project used to build the image.
+      registry_project: GCP project used to host the image.
+    """
     env = dict()
     env.update(os.environ)
-    env["PROJECT"] = project
+    env["PROJECT"] = build_project
+    env["REGISTRY_PROJECT"] = registry_project
 
     with tempfile.NamedTemporaryFile() as hf:
       name = hf.name
@@ -94,20 +100,52 @@ class WebAppUpdater(object):
 
     return self._last_commit
 
-  def all(self, project, remote):
+  def _find_remote_repo(self, repo, remote_url):
+    """Find the remote repo if it has already been added.
+
+    Args:
+      repo: The git python repo object.
+      remote_url: The URL of the remote repo e.g.
+        git@github.com:jlewi/kubeflow.git
+
+    Returns:
+      remote: git-python object representing the remote repo or none if it
+        isn't present.
+    """
+    remote_repo = None
+    for r in repo.remotes:
+      for u in r.urls:
+        if remote_url == u:
+          return r
+
+    return None
+
+  def all(self, build_project, registry_project, remote_fork):
     """Build the latest image and update the prototype.
 
     Args:
-      project: GCP project to push the image to
-      remote: Name of the remote to push to
+      build_project: GCP project used to build the image.
+      registry_project: GCP project used to host the image.
+      remote_fork: Url of the remote fork.
+        The remote fork used to create the PR;
+         e.g. git@github.com:jlewi/kubeflow.git. currently only ssh is
+         supported.
     """
+    repo = git.Repo(self._root_dir())
     util.maybe_activate_service_account()
-    last_commit = self._last_commit()
+    last_commit = self.last_commit
+
+    if not remote_fork.startswith("git@github.com"):
+      raise ValueError("Remote fork currently only supports ssh")
+
+    remote_repo = self._find_remote_repo(repo, remote_fork)
+
+    if not remote_repo:
+      fork_name = remote_fork.split(":", 1)[-1].split("/", 1)[0]
+      remote_repo = repo.create_remote(fork_name, remote_fork)
+
     logging.info("Last change to components-jupyter-web-app was %s", last_commit)
-    # TODO(jlewi): Get the latest image and compare the sha against the
-    # current sha and if it isn't the same then rebuild the image.
-    # TODO(jlewi): We might actually want to use git diff to see the
-    # the last commit the relevant code actually changed.
+
     base = "gcr.io/{0}/jupyter-web-app".format(project)
     base_image = base + ":latest"
     transport = transport_pool.Http(httplib2.Http)
@@ -144,13 +182,18 @@ class WebAppUpdater(object):
 
       image = base + ":" + found_tag
     else:
-      image = self.build_image(project)
+      image = self.build_image(build_project, registry_project)
 
     # TODO(jlewi):We should check what the current image and not update it
     # if its the existing image
     prototype_file = self.update_prototype(image)
 
-    repo = git.Repo(self._root_dir())
+    branch_name = "update_jupyter_{0}".format(last_commit)
+
+    if repo.active_branch.name != branch_name:
+      logging.info("Creating branch %s", branch_name)
+      util.run(["git", "checkout", "-b", branch_name])
+
     logging.info("Add file %s to repo", prototype_file)
     repo.index.add([prototype_file])
     repo.index.commit("Update the jupyter web app image to {0}".format(image))
