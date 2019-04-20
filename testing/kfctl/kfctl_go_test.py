@@ -27,7 +27,7 @@ def verify_kubeconfig(project, zone, app_path):
     logging.error(msg)
     raise RuntimeError(msg)
 
-def test_build_kfctl_go(app_path, project, use_basic_auth):
+def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
   """Test building and deploying Kubeflow.
 
   Args:
@@ -72,6 +72,9 @@ def test_build_kfctl_go(app_path, project, use_basic_auth):
     os.environ["CLIENT_SECRET"] = (
       "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g"
       ".apps.googleusercontent.com")
+
+  if use_istio:
+    init_args.append("--use_istio")
 
   version = "master"
   if os.getenv("PULL_NUMBER"):

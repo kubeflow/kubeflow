@@ -40,6 +40,7 @@
       gkeApiVersion: "v1",
       workflowName: "kfctl-go",
       useBasicAuth: "true",
+      useIstio: "false",
     },
     click_deploy_test: {
       bucket: "kubeflow-ci_temp",

@@ -181,10 +181,14 @@ local componentTests = util.kfTests {
 };
 
 // We need to make the XML files and test suite names unique based on the parameters.
-local nameSuffix = if util.toBool(params.useBasicAuth) then
+local nameSuffix1 = if util.toBool(params.useBasicAuth) then
   "basic-auth"
   else
   "iap";
+local nameSuffix = if util.toBool(params.useIstio) then
+  nameSuffix1 + "-istio"
+  else
+  nameSuffix1;
 
 // Create a list of dictionary.c
 // Each item is a dictionary describing one step in the graph.
@@ -220,6 +224,7 @@ local dagTemplates = [
         // Failures still appear to be captured and stored in the junit file.
         "-s",
         "--use_basic_auth=" + params.useBasicAuth,
+        "--use_istio=" + params.useIstio,
         // Increase the log level so that info level log statements show up.
         "--log-cli-level=info",        
         "--junitxml=" + artifactsDir + "/junit_kfctl-build-test" + nameSuffix + ".xml",
@@ -242,6 +247,7 @@ local dagTemplates = [
         // Failures still appear to be captured and stored in the junit file.
         "-s",
         "--use_basic_auth=" + params.useBasicAuth,
+        "--use_istio=" + params.useIstio,
         // Increase the log level so that info level log statements show up.
         "--log-cli-level=info",
         "--junitxml=" + artifactsDir + "/junit_kfctl-is-ready-test-" + nameSuffix + ".xml",

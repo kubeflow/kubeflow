@@ -404,15 +404,10 @@ def clean_up_resource(args, deployments):
     bool: True if cleanup is done
   """
   logging.info(
-      "Clean up project resource (source repo, backend service and deployment)")
+      "Clean up project resource (backend service and deployment)")
 
-  # Delete source repo
-  sr_cmd = 'gcloud -q source repos delete %s-kubeflow-config --project=%s' % (
-      args.project, args.project)
-  try:
-    util_run(sr_cmd.split(' '), cwd=FILE_PATH)
-  except Exception as e:
-    logging.warning(e)
+  # Will reuse source repo for continuous tests
+  # Within 7 days after repo deleted, source repo won't allow recreation with same name
 
   # Delete deployment
   credentials = GoogleCredentials.get_application_default()

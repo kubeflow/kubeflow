@@ -569,7 +569,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 				err.(*kfapis.KfError).Message),
 		}
 	}
-	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
+	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
 		err := gcp.updateDeployment(gcp.Name+"-network", NETWORK_FILE)
 		if err != nil {
 			return &kfapis.KfError{
@@ -579,7 +579,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 			}
 		}
 	}
-	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
+	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
 		err := gcp.updateDeployment(gcp.Name+"-gcfs", GCFS_FILE)
 		if err != nil {
 			return &kfapis.KfError{
@@ -664,23 +664,29 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	cluster, err := utils.GetClusterInfo(ctx, gcp.Spec.Project,
-		gcp.Spec.Zone, gcp.Name, gcp.tokenSource)
-	if err != nil {
-		return &kfapis.KfError{
-			Code: err.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("Configure K8s is failed: %v",
-				err.(*kfapis.KfError).Message),
+	// kfctl only
+	// Setup kube config
+	// TODO(#3061): figure out how to properly build config without kubeconfig.
+	if gcp.isCLI {
+		credCmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
+			gcp.Name,
+			"--zone="+gcp.Spec.Zone,
+			"--project="+gcp.Spec.Project)
+		credCmd.Stdout = os.Stdout
+		log.Infof("Running get-credentials %v --zone=%v --project=%v ...", gcp.KfDef.Name,
+			gcp.KfDef.Spec.Zone, gcp.KfDef.Spec.Project)
+		if err := credCmd.Run(); err != nil {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Error when running gcloud container clusters get-credentials: %v", err),
+			}
+		}
+		if _, err := os.Stat(kftypes.KubeConfigPath()); !os.IsNotExist(err) {
+			gcp.AddNamedContext()
 		}
 	}
-	client, err := utils.BuildConfigFromClusterInfo(ctx, cluster, gcp.tokenSource)
-	if err != nil {
-		return &kfapis.KfError{
-			Code: err.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("Build ClientConfig error: %v",
-				err.(*kfapis.KfError).Message),
-		}
-	}
+	// Get client for kube config.
+	client := kftypes.GetConfig()
 	// Install Istio
 	if gcp.Spec.UseIstio {
 		log.Infof("Installing istio...")
@@ -774,26 +780,6 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	// kfctl only
-	if gcp.isCLI {
-		// TODO(#2604): Need to create a named context.
-		cred_cmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
-			gcp.Name,
-			"--zone="+gcp.Spec.Zone,
-			"--project="+gcp.Spec.Project)
-		cred_cmd.Stdout = os.Stdout
-		log.Infof("Running get-credentials %v --zone=%v --project=%v ...", gcp.KfDef.Name,
-			gcp.KfDef.Spec.Zone, gcp.KfDef.Spec.Project)
-		if err := cred_cmd.Run(); err != nil {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Error when running gcloud container clusters get-credentials: %v", err),
-			}
-		}
-		if _, err := os.Stat(kftypes.KubeConfigPath()); !os.IsNotExist(err) {
-			gcp.AddNamedContext()
-		}
-	}
 	return nil
 }
 
@@ -944,10 +930,10 @@ func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
 	if gcp.Spec.DeleteStorage {
 		deletingDeployments = append(deletingDeployments, gcp.Name+"-storage")
 	}
-	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
+	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
 		deletingDeployments = append(deletingDeployments, gcp.Name+"-network")
 	}
-	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
+	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
 		deletingDeployments = append(deletingDeployments, gcp.Name+"-gcfs")
 	}
 
