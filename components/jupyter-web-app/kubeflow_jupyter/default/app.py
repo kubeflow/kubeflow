@@ -4,6 +4,7 @@ from kubernetes.client.rest import ApiException
 from ..common import api
 from ..common import utils
 
+
 app = Flask(__name__)
 logger = utils.create_logger(__name__)
 
@@ -35,7 +36,16 @@ def get_notebooks(namespace):
 def post_notebook(namespace):
   data = {"success": True, "log": ""}
   body = request.form
-
+  if "shm_enable" in body.keys():
+    logger.warning("shm_enable exists in body")
+  else:
+    logger.warning("shm_enable does not exist in body")  
+  namespace = body["ns"]
+  podpresetLabels = api.get_podpresets_labels(namespace)
+  if "shm_enable" in body.keys():
+    logger.warning("shm_enable exists in body") 
+  else:
+    logger.warning("shm_enable does not exist in body")  
   # Template
   notebook = utils.create_notebook_template()
   notebook_cont = notebook["spec"]['template']['spec']['containers'][0]
@@ -48,6 +58,13 @@ def post_notebook(namespace):
 
   # CPU/RAM
   utils.set_notebook_cpu_ram(notebook, body)
+
+  # podpreset labels
+  utils.set_notebook_podpresets_labels(notebook,podpresetLabels)
+  if "shm_enable" in body.keys():
+    logger.warning("shm_enable exists in body") 
+  else:
+    logger.warning("shm_enable does not exist in body")
 
   # Enable SHM
   if body["shm_enable"] == "1":

@@ -26,6 +26,7 @@
               {
                 name: "gcp-cred-webhook",
                 image: params.image,
+                imagePullPolicy: "Always",
                 volumeMounts: [{
                   name: "webhook-cert",
                   mountPath: "/etc/webhook/certs",
@@ -33,6 +34,7 @@
                 }],
               },
             ],
+            serviceAccountName: "webhook",
             volumes: [
               {
                 name: "webhook-cert",
@@ -227,6 +229,97 @@
     },  // webhookConfigmap
     webhookConfigmap:: webhookConfigmap,
 
+local webhookRole = {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "ClusterRole",
+      metadata: {
+        name: "webhook-role",
+      },
+      rules: [
+        {
+          apiGroups: [
+            "apps",
+          ],
+          resources: [
+            "deployments",
+          ],
+          verbs: [
+            "get",
+            "watch",
+            "list",
+            "delete",
+            "update",
+            "create",
+            "patch",
+          ],
+        },
+        {
+          apiGroups: [
+            "",
+          ],
+          resources: [
+            "events",
+          ],
+          verbs: [
+            "get",
+            "watch",
+            "list",
+            "update",
+          ],
+        },
+        {
+         apiGroups: [
+            "kubeflow.org",
+          ],
+          resources: [
+            "podpresets",
+          ],
+          verbs: [
+            "get",
+            "watch",
+            "list",
+            "update",
+            "create",
+            "patch",
+            "delete",
+          ],
+
+        }
+      ],
+    },
+    webhookRole:: webhookRole,
+
+     local webhookServiceAccount = {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: "webhook",
+        namespace: params.namespace,
+      },
+    },
+    webhookServiceAccount:: webhookServiceAccount,
+  
+    local webhookRoleBinding = {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "ClusterRoleBinding",
+      metadata: {
+        name: "webhook-role-binding",
+      },
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
+        name: "webhook-role",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "webhook",
+          namespace: params.namespace,
+        },
+      ],
+    },
+    webhookRoleBinding:: webhookRoleBinding,
+
     all:: [
       self.deployment,
       self.service,
@@ -236,6 +329,9 @@
       self.initServiceAccount,
       self.initClusterRole,
       self.initClusterRoleBinding,
+      self.webhookServiceAccount,
+      self.webhookRole,
+      self.webhookRoleBinding,
     ],
 
     list(obj=self.all):: k.core.v1.list.new(obj,),

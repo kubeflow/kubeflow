@@ -12,7 +12,7 @@
 // @optionalParam defaultGpuImage string tensorflow/serving:1.11.1-gpu The default model server image (gpu)
 // @optionalParam httpProxyImage string gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180723 Http proxy image
 // @optionalParam gcpCredentialSecretName string null If not empty, insert the secret credential
-// @optionalParam injectIstio string true Whether to inject istio sidecar; should be true or false.
+// @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
 // @optionalParam enablePrometheus string true Whether to enable prometheus endpoint (requires TF 1.11)
 
 local k = import "k.libsonnet";

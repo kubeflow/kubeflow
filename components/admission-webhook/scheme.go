@@ -1,5 +1,5 @@
 /*
-Copyright 2019 The Kubeflow Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,19 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Generate deepcopy for apis
-
-// Package apis contains Kubernetes API groups.
-package apis
+package main
 
 import (
+	"github.com/kubeflow/kubeflow/components/admission-webhook/pkg/apis"
+	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 )
 
-// AddToSchemes may be used to add all resources defined in the project to a Scheme
-var AddToSchemes runtime.SchemeBuilder
+var scheme = runtime.NewScheme()
+var codecs = serializer.NewCodecFactory(scheme)
 
-// AddToScheme adds all Resources to the Scheme
-func AddToScheme(s *runtime.Scheme) error {
-	return AddToSchemes.AddToScheme(s)
+func init() {
+	addToScheme(scheme)
+}
+
+func addToScheme(scheme *runtime.Scheme) {
+	corev1.AddToScheme(scheme)
+	admissionregistrationv1beta1.AddToScheme(scheme)
+	apis.AddToScheme(scheme)
 }
