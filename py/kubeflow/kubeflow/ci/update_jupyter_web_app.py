@@ -101,6 +101,7 @@ class WebAppUpdater(object):
       project: GCP project to push the image to
       remote: Name of the remote to push to
     """
+    util.maybe_activate_service_account()
     last_commit = self._last_commit()
     logging.info("Last change to components-jupyter-web-app was %s", last_commit)
     # TODO(jlewi): Get the latest image and compare the sha against the

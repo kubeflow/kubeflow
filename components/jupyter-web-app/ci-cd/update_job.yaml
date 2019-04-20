@@ -23,19 +23,28 @@ spec:
           name: src
       containers:
       - command:
-        - tail
-        - -f
-        - /dev/null
-        - python3 -m kubeflow.kubeflow.ci.update_jupyter_web_app
+        - python3 
+        - -m 
+        - kubeflow.kubeflow.ci.update_jupyter_web_app
+        - all
+        - --project=kubeflow-images-public
         image: gcr.io/kubeflow-ci/test-worker:v20190420-70fb4fe-e3b0c4
         name: update
         env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /secret/gcp-credentials/key.json
         - name: PYTHONPATH
-          value: /src/kubeflow/kubeflow/py:/src/kubeflow/testing/py:/src/kubeflow/fairing
+          value: /src/kubeflow/kubeflow/py:/src/kubeflow/testing/py:/src/kubeflow/fairing        
         volumeMounts:
         - mountPath: /src
           name: src
+        - mountPath: /secret/gcp-credentials
+          name: gcp-credentials
+          readOnly: true
       restartPolicy: Never
       volumes:
       - name: src
         emptyDir: {}
+      - name: gcp-credentials
+        secret:
+          secretName: kubeflow-testing-credentials
