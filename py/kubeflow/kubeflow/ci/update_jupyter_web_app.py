@@ -162,6 +162,8 @@ class WebAppUpdater(object):
 
     remote_repo.push()
 
+    self.create_pull_request(commit=last_commit)
+
   def create_pull_request(self, base="kubeflow:master", commit=None):
     """Create a pull request.
 
