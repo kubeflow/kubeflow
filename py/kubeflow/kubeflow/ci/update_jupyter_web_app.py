@@ -162,11 +162,12 @@ class WebAppUpdater(object):
 
     remote_repo.push()
 
-  def create_pull_request(self, base="upstream:master" commit=None):
+  def create_pull_request(self, base="kubeflow:master", commit=None):
     """Create a pull request.
 
     Args:
-      base: The base to use. Defaults to "upstream:master".
+      base: The base to use. Defaults to "kubeflow:master". This should be
+        in the form <GitHub OWNER>:<branch>
     """
     # TODO(jlewi): Modeled on
     # https://github.com/kubeflow/examples/blob/master/code_search/docker/ks/update_index.sh
@@ -177,11 +178,31 @@ class WebAppUpdater(object):
       commit = self.last_commit
       logging.info("No commit specified defaulting to %s", commit)
 
+    pr_title = "Update the jupyter-web-app image to {0}".format(commit)
+
+    # See hub conventions:
+    # https://hub.github.com/hub.1.html
+    # The GitHub repository is determined automatically based on the forks.
+    output = util.run(["hub", "pr", "list", "--format=%U;%t\n"])
+    lines = output.splitlines()
+
+    prs = {}
+    for l in lines:
+      n, t = l.split(";", 1)
+      prs[t] = n
+
+    if pr_title in prs:
+      logging.info("PR %s already exists to update the Jupyter web app image "
+                   "to %s", prs[pr_title], commit)
+
     with tempfile.NamedTemporaryFile(delete=False) as hf:
-      hf.write("Update the jupyter-web-app image to {0}".format(commit))
+      hf.write(pr_title)
       message_file = hf.name
 
-    util.run(["hub", "pull-request", "--base=" + base, "-F", message_file],
+    # TODO(jlewi): -f creates the pull requests even if there are local changes
+    # this was useful during development but we may want to drop it.
+    util.run(["hub", "pull-request", "-f", "--base=" + base, "-F",
+              message_file],
               cwd=self._root_dir())
 
   def _root_dir(self):
