@@ -197,8 +197,7 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     repo.index.add([prototype_file])
     repo.index.commit("Update the jupyter web app image to {0}".format(image))
 
-    # TODO(jlewi): Should we do a force push?
-    remote_repo.push()
+    util.run(["git", "push", "-f", remote_repo.name])
 
     self.create_pull_request(commit=last_commit)
 
@@ -244,7 +243,7 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
                    "to %s", prs[pr_title], commit)
 
     with tempfile.NamedTemporaryFile(delete=False) as hf:
-      hf.write(pr_title)
+      hf.write(pr_title.encode())
       message_file = hf.name
 
     # TODO(jlewi): -f creates the pull requests even if there are local changes
