@@ -149,9 +149,6 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     if not remote_fork.startswith("git@github.com"):
       raise ValueError("Remote fork currently only supports ssh")
 
-    remote_repo = self._find_remote_repo(repo, remote_fork)
-    remote_repo.push()
-
     if not remote_repo:
       fork_name = remote_fork.split(":", 1)[-1].split("/", 1)[0]
       logging.info("Adding remote %s=%s", fork_name, remote_fork)
