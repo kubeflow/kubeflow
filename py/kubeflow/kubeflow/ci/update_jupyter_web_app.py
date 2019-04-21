@@ -199,6 +199,10 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
 
     util.run(["git", "push", "-f", remote_repo.name], cwd=self._root_dir())
 
+    while True:
+      import time
+      print("sleep forever")
+      time.sleep(300)
     self.create_pull_request(commit=last_commit)
 
   def create_pull_request(self, base="kubeflow:master", commit=None):
