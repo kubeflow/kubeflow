@@ -144,6 +144,7 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
 
     if not remote_repo:
       fork_name = remote_fork.split(":", 1)[-1].split("/", 1)[0]
+      logging.info("Adding remote %s=%s", fork_name, remote_fork)
       remote_repo = repo.create_remote(fork_name, remote_fork)
 
     logging.info("Last change to components-jupyter-web-app was %s", last_commit)
@@ -200,6 +201,10 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     repo.index.add([prototype_file])
     repo.index.commit("Update the jupyter web app image to {0}".format(image))
 
+    while True:
+      print("sleep forever")
+      import time
+      time.sleep(300)
     remote_repo.push()
 
     self.create_pull_request(commit=last_commit)

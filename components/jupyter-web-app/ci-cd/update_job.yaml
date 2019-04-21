@@ -1,5 +1,7 @@
 # Run a job to build the image from the latest code and then create
 # a PR updating the image.
+#
+# This job is expected to run in the cluster kf-releasing in project kubeflow-releasing.
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -10,6 +12,7 @@ spec:
   template:
     spec:
       initContainers:
+      # This init container checks out the source code.
       - command:
         - /usr/local/bin/checkout_repos.sh
         # TODO(jlewi): Stop checking out the jlewi fork once it is merged
@@ -17,10 +20,24 @@ spec:
         - --src_dir=/src        
         - --links=jlewi/kubeflow=kubeflow/kubeflow,jlewi/testing=kubeflow/testing
         name: checkout
-        image: gcr.io/kubeflow-ci/test-worker:v20190420-70fb4fe-e3b0c4
+        image: gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df
         volumeMounts:
         - mountPath: /src
           name: src
+      # This init container configures the ssh keys
+      - command:
+        - /usr/local/bin/setup_ssh.sh
+        - --ssh_dir=/root/.ssh
+        - --private_key=/secret/ssh-key/id_rsa
+        - --public_key=/secret/ssh-key/id_rsa.pub
+        image: gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df
+        name: setup-ssh
+        volumeMounts:
+        - mountPath: /root/.ssh
+          name: ssh-config
+        - mountPath: /secret/ssh-key
+          name: ssh
+          readOnly: true
       containers:
       - command:
         - python3 
@@ -29,13 +46,12 @@ spec:
         - all
         - --build-project=kubeflow-ci
         - --registry-project=kubeflow-images-public
-        # TODO(jlewi): We should switch to using kubeflow-ci bot
-        - --remote-fork=git@github.com:jlewi/kubeflow.git
-        image: gcr.io/kubeflow-ci/test-worker:v20190420-70fb4fe-e3b0c4
+        - --remote-fork=git@github.com:kubeflow-bot/kubeflow.git
+        image: gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df
         name: update
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /secret/gcp-credentials/key.json
+          value: /secret/gcp-credentials/user-gcp-sa.json
         - name: PYTHONPATH
           value: /src/kubeflow/kubeflow/py:/src/kubeflow/testing/py:/src/kubeflow/fairing        
         volumeMounts:
@@ -44,10 +60,18 @@ spec:
         - mountPath: /secret/gcp-credentials
           name: gcp-credentials
           readOnly: true
+        - mountPath: /root/.ssh
+          name: ssh-config
       restartPolicy: Never
       volumes:
+      - name: ssh-config
+        emptyDir: {}
       - name: src
         emptyDir: {}
       - name: gcp-credentials
         secret:
-          secretName: kubeflow-testing-credentials
+          secretName: user-gcp-sa
+      # ssh key to push to github.com/kubeflow-bot
+      - name: ssh
+        secret:
+          secretName: kubeflow-bot-ssh
