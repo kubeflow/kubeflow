@@ -47,6 +47,7 @@ spec:
         - --build-project=kubeflow-releasing
         - --registry-project=kubeflow-images-public
         - --remote-fork=git@github.com:kubeflow-bot/kubeflow.git
+        - --add-github-host=true
         image: gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df
         name: update
         env:

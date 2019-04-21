@@ -159,7 +159,9 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     logging.info("Last change to components-jupyter-web-app was %s", last_commit)
 
     base = "gcr.io/{0}/jupyter-web-app".format(registry_project)
-    base_image = base + ":latest"
+
+    # Check if there is already an image tagged with this commit.
+    base_image = base + ":" + self.last_commit
     transport = transport_pool.Http(httplib2.Http)
     src = docker_name.from_string(base_image)
     creds = docker_creds.DefaultKeychain.Resolve(src)
@@ -188,11 +190,12 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
           found_tag = t
           break
 
-      if not found_tag:
-        raise ValueError("Could not find an image with tag that matches the "
-                         "commit.")
-
-      image = base + ":" + found_tag
+      if found_tag:
+        logging.info("Image has tag %s", last_commit)
+        image = base + ":" + found_tag
+      else:
+        logging.info("Could not find tag %s; using full sha", last_commit)
+        image = base + "@" + src_image.digest()
     else:
       image = self.build_image(build_project, registry_project)
 

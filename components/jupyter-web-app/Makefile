@@ -18,7 +18,6 @@ PROJECT ?= kubeflow-dev
 # Registry where the image should be published
 REGISTRY_PROJECT ?= kubeflow-dev
 OUTPUT ?= output.yaml
-TAG ?= $(shell git describe --tags --always --long)
 
 # We want the git tag to be the last commit to this directory so we don'the
 # bump the image on unrelated changes.
@@ -29,5 +28,5 @@ build-gcb:
 	gcloud --project=$(PROJECT) \
 		builds submit \
 		--machine-type=n1-highcpu-32 \
-		--substitutions=_GIT_VERSION=$(GIT_TAG),_REGISTRY=$(REGISTRY_PROJECT),TAG_NAME=$(TAG) \
+		--substitutions=_GIT_VERSION=$(GIT_TAG),_REGISTRY=$(REGISTRY_PROJECT) \
 		--config=cloudbuild.yaml .
