@@ -168,9 +168,9 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     image_exists = False
     try:
       with v2_2_image.FromRegistry(src, creds, transport) as src_image:
-        image_exists = True
         logging.info("Image %s exists; digest: %s", image,
                      src_image.digest())
+        image_exists = True
     except docker_http.V2DiagnosticException as e:
       if e.status == 404:
         logging.info("%s doesn't exist", image)
@@ -197,11 +197,14 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     repo.index.add([prototype_file])
     repo.index.commit("Update the jupyter web app image to {0}".format(image))
 
-    while True:
-      print("sleep forever")
-      import time
-      time.sleep(300)
-    remote_repo.push()
+    try:
+      remote_repo.push()
+    except exception as e:
+      logging.info("Exception occured: %s", e)
+      while True:
+        print("sleep forever")
+        import time
+        time.sleep(300)
 
     self.create_pull_request(commit=last_commit)
 
