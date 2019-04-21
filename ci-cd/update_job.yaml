@@ -44,7 +44,7 @@ spec:
         - -m 
         - kubeflow.kubeflow.ci.update_jupyter_web_app
         - all
-        - --build-project=kubeflow-ci
+        - --build-project=kubeflow-releasing
         - --registry-project=kubeflow-images-public
         - --remote-fork=git@github.com:kubeflow-bot/kubeflow.git
         image: gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df
