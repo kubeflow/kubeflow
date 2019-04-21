@@ -194,7 +194,7 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
 
     if repo.active_branch.name != branch_name:
       logging.info("Creating branch %s", branch_name)
-      util.run(["git", "checkout", "-b", branch_name], cwd=self._root_dir)
+      util.run(["git", "checkout", "-b", branch_name], cwd=self._root_dir())
 
     logging.info("Add file %s to repo", prototype_file)
     repo.index.add([prototype_file])
