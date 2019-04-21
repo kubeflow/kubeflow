@@ -54,7 +54,12 @@ spec:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /secret/gcp-credentials/user-gcp-sa.json
         - name: PYTHONPATH
-          value: /src/kubeflow/kubeflow/py:/src/kubeflow/testing/py:/src/kubeflow/fairing        
+          value: /src/kubeflow/kubeflow/py:/src/kubeflow/testing/py:/src/kubeflow/fairing
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: github-token
+              key: github_token
         volumeMounts:
         - mountPath: /src
           name: src

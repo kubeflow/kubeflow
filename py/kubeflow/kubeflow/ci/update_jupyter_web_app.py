@@ -197,6 +197,7 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     repo.index.add([prototype_file])
     repo.index.commit("Update the jupyter web app image to {0}".format(image))
 
+    # TODO(jlewi): Should we do a force push?
     remote_repo.push()
 
     self.create_pull_request(commit=last_commit)
