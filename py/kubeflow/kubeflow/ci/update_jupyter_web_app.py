@@ -197,14 +197,8 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     repo.index.add([prototype_file])
     repo.index.commit("Update the jupyter web app image to {0}".format(image))
 
-    try:
-      remote_repo.push()
-    except exception as e:
-      logging.info("Exception occured: %s", e)
-      while True:
-        print("sleep forever")
-        import time
-        time.sleep(300)
+    remote_repo.push()
+    logging.info("Exception occured: %s", e)
 
     self.create_pull_request(commit=last_commit)
 
@@ -229,8 +223,15 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     # See hub conventions:
     # https://hub.github.com/hub.1.html
     # The GitHub repository is determined automatically based on the forks.
-    output = util.run(["hub", "pr", "list", "--format=%U;%t\n"],
-                      cwd=self._root_dir())
+    try:
+      output = util.run(["hub", "pr", "list", "--format=%U;%t\n"],
+                        cwd=self._root_dir())
+    except Exception as e:
+      while True:
+        print("sleep forever")
+        import time
+        time.sleep(300)
+
     lines = output.splitlines()
 
     prs = {}
