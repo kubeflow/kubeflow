@@ -19,7 +19,7 @@ PROJECT ?= kubeflow-dev
 REGISTRY_PROJECT ?= kubeflow-dev
 OUTPUT ?= output.yaml
 
-# We want the git tag to be the last commit to this directory so we don'the
+# We want the git tag to be the last commit to this directory so we don't
 # bump the image on unrelated changes.
 GIT_TAG ?= $(shell git log -n 1 --pretty=format:"%h" ./)
 

@@ -3,7 +3,6 @@
 Requires python3
 """
 
-import json
 import logging
 import os
 import re
@@ -161,43 +160,28 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     base = "gcr.io/{0}/jupyter-web-app".format(registry_project)
 
     # Check if there is already an image tagged with this commit.
-    base_image = base + ":" + self.last_commit
+    image = base + ":" + self.last_commit
     transport = transport_pool.Http(httplib2.Http)
-    src = docker_name.from_string(base_image)
+    src = docker_name.from_string(image)
     creds = docker_creds.DefaultKeychain.Resolve(src)
+
+    image_exists = False
     try:
       with v2_2_image.FromRegistry(src, creds, transport) as src_image:
-        config = json.loads(src_image.config_file())
+        image_exists = True
+        logging.info("Image %s exists; digest: %s", image,
+                     src_image.digest())
     except docker_http.V2DiagnosticException as e:
       if e.status == 404:
-        logging.info("%s doesn't exist", base_image)
+        logging.info("%s doesn't exist", image)
       else:
         raise
-    git_version = config.get("container_config").get("Labels").get("git-version")
-    logging.info("Most recent image has git-version %s", git_version)
 
-    last_hash = None
-    if git_version:
-      last_hash = git_version.rsplit("g", 1)[-1]
-
-    if last_hash == last_commit:
-      logging.info("Existing docker image is already built from commit: %s",
-                   last_commit)
-
-      found_tag = None
-      for t in src_image.tags():
-        if t.endswith(last_commit):
-          found_tag = t
-          break
-
-      if found_tag:
-        logging.info("Image has tag %s", last_commit)
-        image = base + ":" + found_tag
-      else:
-        logging.info("Could not find tag %s; using full sha", last_commit)
-        image = base + "@" + src_image.digest()
-    else:
+    if not image_exists:
+      logging.info("Building the image")
       image = self.build_image(build_project, registry_project)
+    else:
+      logging.info("Image %s already exists", image)
 
     # TODO(jlewi):We should check what the current image and not update it
     # if its the existing image
