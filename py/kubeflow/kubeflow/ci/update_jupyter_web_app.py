@@ -198,7 +198,6 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     repo.index.commit("Update the jupyter web app image to {0}".format(image))
 
     remote_repo.push()
-    logging.info("Exception occured: %s", e)
 
     self.create_pull_request(commit=last_commit)
 
