@@ -1,4 +1,7 @@
-"""Script to build and update the Jupyter WebApp image."""
+"""Script to build and update the Jupyter WebApp image.
+
+Requires python3
+"""
 
 import json
 import logging
@@ -50,7 +53,7 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     values = {"image": image}
 
     regexps = {}
-    for param, value in values.iteritems():
+    for param, value in values.items():
       r = re.compile(r"([ \t]*" + param + ":+ ?\"?)[^\",]+(\"?,?)")
       v = r"\g<1>" + value + r"\2"
       regexps[param] = (r, v, value)
@@ -62,7 +65,7 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
       prototype = f.read().split("\n")
     replacements = 0
     for i, line in enumerate(prototype):
-      for param, _ in regexps.iteritems():
+      for param, _ in regexps.items():
         if param not in line:
           continue
         if line.startswith("//"):
@@ -95,7 +98,8 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
       # Get the hash of the last commit to modify the source for the Jupyter web
       # app image
       self._last_commit = util.run(["git", "log", "-n", "1", "--pretty=format:\"%h\"",
-                                    "components/jupyter-web-app"], cwd=self._root_dir())
+                                    "components/jupyter-web-app"],
+                                   cwd=self._root_dir()).strip("\"")
 
     return self._last_commit
 

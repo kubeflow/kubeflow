@@ -25,7 +25,7 @@ TAG ?= $(shell git describe --tags --always --long)
 GIT_TAG ?= $(shell git log -n 1 --pretty=format:"%h" ./)
 
 build-gcb:
-	echo image: \"gcr.io/$(PROJECT)/jupyter-web-app:$(TAG)\" > $(OUTPUT)
+	echo image: \"gcr.io/$(REGISTRY_PROJECT)/jupyter-web-app:$(TAG)\" > $(OUTPUT)
 	gcloud --project=$(PROJECT) \
 		builds submit \
 		--machine-type=n1-highcpu-32 \
