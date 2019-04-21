@@ -229,7 +229,8 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     # See hub conventions:
     # https://hub.github.com/hub.1.html
     # The GitHub repository is determined automatically based on the forks.
-    output = util.run(["hub", "pr", "list", "--format=%U;%t\n"])
+    output = util.run(["hub", "pr", "list", "--format=%U;%t\n"],
+                      cwd=self._root_dir())
     lines = output.splitlines()
 
     prs = {}
