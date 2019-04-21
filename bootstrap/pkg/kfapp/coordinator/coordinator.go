@@ -19,7 +19,6 @@ package coordinator
 import (
 	"fmt"
 	"github.com/ghodss/yaml"
-	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
@@ -62,76 +61,9 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	return _coordinator
 }
 
-// This function will download a version of kubeflow github repo where version can be
-//   master
-//	 tag
-//	 pull/<ID>[/head]
-// It returns one of the config files under bootstrap/config as a []byte buffer
-func downloadToCache(platform string, appDir string, version string, useBasicAuth bool) ([]byte, error) {
-	if _, err := os.Stat(appDir); os.IsNotExist(err) {
-		appdirErr := os.Mkdir(appDir, os.ModePerm)
-		if appdirErr != nil {
-			log.Errorf("couldn't create directory %v Error %v", appDir, appdirErr)
-		}
-	}
-	cacheDir := path.Join(appDir, kftypes.DefaultCacheDir)
-	// idempotency
-	if _, err := os.Stat(cacheDir); !os.IsNotExist(err) {
-		os.RemoveAll(cacheDir)
-	}
-	cacheDirErr := os.Mkdir(cacheDir, os.ModePerm)
-	if cacheDirErr != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("couldn't create directory %v Error %v", cacheDir, cacheDirErr),
-		}
-	}
-	// Version can be
-	// --version master
-	// --version tag
-	// --version pull/<ID>/head
-	tarballUrl := kftypes.DefaultGitRepo + "/" + version + "?archive=tar.gz"
-	tarballUrlErr := gogetter.GetAny(cacheDir, tarballUrl)
-	if tarballUrlErr != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("couldn't download kubeflow repo %v Error %v", tarballUrl, tarballUrlErr),
-		}
-	}
-	files, filesErr := ioutil.ReadDir(cacheDir)
-	if filesErr != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("couldn't read %v Error %v", cacheDir, filesErr),
-		}
-	}
-	subdir := files[0].Name()
-	extractedPath := filepath.Join(cacheDir, subdir)
-	newPath := filepath.Join(cacheDir, version)
-	if strings.Contains(version, "/") {
-		parts := strings.Split(version, "/")
-		versionPath := cacheDir
-		for i := 0; i < len(parts)-1; i++ {
-			versionPath = filepath.Join(versionPath, parts[i])
-			versionPathErr := os.Mkdir(versionPath, os.ModePerm)
-			if versionPathErr != nil {
-				return nil, &kfapis.KfError{
-					Code: int(kfapis.INTERNAL_ERROR),
-					Message: fmt.Sprintf("couldn't create directory %v Error %v",
-						versionPath, versionPathErr),
-				}
-			}
-		}
-	}
-	renameErr := os.Rename(extractedPath, newPath)
-	if renameErr != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr),
-		}
-	}
+func getConfigFromCache(pathDir string, platform string, useBasicAuth bool) ([]byte, error) {
 	//TODO see #2629
-	configPath := filepath.Join(newPath, kftypes.DefaultConfigDir)
+	configPath := filepath.Join(pathDir, kftypes.DefaultConfigDir)
 	if platform == kftypes.GCP {
 		if useBasicAuth {
 			configPath = filepath.Join(configPath, kftypes.GcpBasicAuth)
@@ -151,6 +83,7 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 	}
 }
 
+
 // GetPlatform will return an implementation of kftypes.KfApp that matches the platform string
 // It looks for statically compiled-in implementations, otherwise it delegates to
 // kftypes.LoadKfApp which will try and dynamically load a .so
@@ -162,7 +95,7 @@ func getPlatform(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 		return gcp.GetKfApp(kfdef)
 	default:
 		log.Infof("** loading %v.so for platform %v **", kfdef.Spec.Platform, kfdef.Spec.Platform)
-		return kftypes.LoadKfApp(kfdef)
+		return kftypes.LoadKfApp(kfdef.Spec.Platform, kfdef)
 	}
 }
 
@@ -173,24 +106,13 @@ func getPackageManagers(kfdef *kfdefs.KfDef) *map[string]kftypes.KfApp {
 		log.Fatalf("failed unmarshalling %v Error %v", appyaml, err)
 	}
 	var packagemanagers = make(map[string]kftypes.KfApp)
-	_packagemanager, _packagemanagerErr := getPackageManager("ksonnet", kfdef)
+	_packagemanager, _packagemanagerErr := getPackageManager(kfdef.Spec.PackageManager, kfdef)
 	if _packagemanagerErr != nil {
-		log.Fatalf("could not get packagemanager %v Error %v **", "ksonnet", _packagemanagerErr)
+		log.Fatalf("could not get packagemanager %v Error %v **", kfdef.Spec.PackageManager, _packagemanagerErr)
 	}
 	if _packagemanager != nil {
-		packagemanagers["ksonnet"] = _packagemanager
+		packagemanagers[kfdef.Spec.PackageManager] = _packagemanager
 	}
-	//TODO provide a global flag that adds kustomize so either kustomize or ksonnet can be selected
-	/*
-		_packagemanager, _packagemanagerErr = getPackageManager("kustomize", kfdef)
-		if _packagemanagerErr != nil {
-			log.Fatalf("could not get packagemanager %v Error %v **", "kustomize", _packagemanagerErr)
-
-		}
-		if _packagemanager != nil {
-			packagemanagers["kustomize"] = _packagemanager
-		}
-	*/
 	return &packagemanagers
 }
 
@@ -198,14 +120,15 @@ func getPackageManagers(kfdef *kfdefs.KfDef) *map[string]kftypes.KfApp {
 // It looks for statically compiled-in implementations, otherwise it delegates to
 // kftypes.LoadKfApp which will try and dynamically load a .so
 func getPackageManager(packagemanager string, kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
+	packagemanager = strings.Split(packagemanager, "@")[0]
 	switch packagemanager {
-	case "ksonnet":
+	case kftypes.KSONNET:
 		return ksonnet.GetKfApp(kfdef), nil
-	case "kustomize":
+	case kftypes.KUSTOMIZE:
 		return kustomize.GetKfApp(kfdef), nil
 	default:
 		log.Infof("** loading %v.so for package manager %v **", packagemanager, packagemanager)
-		return kftypes.LoadKfApp(kfdef)
+		return kftypes.LoadKfApp(packagemanager, kfdef)
 	}
 }
 
@@ -292,17 +215,25 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	}
 	platform := options[string(kftypes.PLATFORM)].(string)
 	version := options[string(kftypes.VERSION)].(string)
-	if strings.HasPrefix(version, "pull") {
-		if !strings.HasSuffix(version, "head") {
-			version = version + "/head"
-			options[string(kftypes.VERSION)] = version
+	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
+	cacheDir := ""
+	if options[string(kftypes.REPO)].(string) != "" {
+		cacheDir = options[string(kftypes.REPO)].(string)
+		if _, err := os.Stat(cacheDir); err != nil {
+			log.Fatalf("repo %v does not exist Error %v", cacheDir, err)
+		}
+	} else {
+		var cacheDirErr error
+		cacheDir, cacheDirErr = kftypes.DownloadToCache(appDir, kftypes.KubeflowRepo, version)
+		if cacheDirErr != nil || cacheDir == "" {
+			log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
 		}
 	}
-	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
-	configFileBuffer, configFileErr := downloadToCache(platform, appDir, version, useBasicAuth)
+	configFileBuffer, configFileErr := getConfigFromCache(cacheDir, platform, useBasicAuth)
 	if configFileErr != nil {
-		log.Fatalf("could not download repo to cache Error %v", configFileErr)
+		log.Fatalf("could not get config file Error %v", configFileErr)
 	}
+
 	kfDef := &kfdefs.KfDef{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KfDef",
@@ -325,11 +256,12 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	kfDef.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
 	kfDef.Namespace = options[string(kftypes.NAMESPACE)].(string)
 	kfDef.Spec.Version = options[string(kftypes.VERSION)].(string)
-	kfDef.Spec.Repo = options[string(kftypes.REPO)].(string)
+	kfDef.Spec.Repo = path.Join(cacheDir, kftypes.KubeflowRepo)
 	kfDef.Spec.Project = options[string(kftypes.PROJECT)].(string)
 	kfDef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
 	kfDef.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
 	kfDef.Spec.UseIstio = options[string(kftypes.USE_ISTIO)].(bool)
+	kfDef.Spec.PackageManager = options[string(kftypes.PACKAGE_MANAGER)].(string)
 	pApp := GetKfApp(kfDef)
 	return pApp, nil
 }
@@ -603,12 +535,7 @@ func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum) error {
 }
 
 func (kfapp *coordinator) Init(resources kftypes.ResourceEnum) error {
-	switch resources {
-	case kftypes.K8S:
-		fallthrough
-	case kftypes.PLATFORM:
-		fallthrough
-	case kftypes.ALL:
+	platform := func() error {
 		if kfapp.KfDef.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
 			if platform != nil {
@@ -628,6 +555,10 @@ func (kfapp *coordinator) Init(resources kftypes.ResourceEnum) error {
 				}
 			}
 		}
+		return nil
+	}
+
+	k8s := func() error {
 		kfapp.PackageManagers = *getPackageManagers(kfapp.KfDef)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
 			packageManagerErr := packageManager.Init(kftypes.K8S)
@@ -639,6 +570,19 @@ func (kfapp *coordinator) Init(resources kftypes.ResourceEnum) error {
 				}
 			}
 		}
+		return nil
+	}
+
+	switch resources {
+	case kftypes.ALL:
+		if err := platform(); err != nil {
+			return err
+		}
+		return k8s()
+	case kftypes.PLATFORM:
+		return platform()
+	case kftypes.K8S:
+		return k8s()
 	}
 	return nil
 }

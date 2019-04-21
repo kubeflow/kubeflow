@@ -56,7 +56,7 @@ type ksApp struct {
 }
 
 const (
-	KsName    = "ks_app"
+	KsName    = "ksonnet"
 	KsEnvName = "default"
 )
 
@@ -401,7 +401,6 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 }
 
 func (ksApp *ksApp) Init(resources kftypes.ResourceEnum) error {
-	ksApp.Spec.Repo = path.Join(path.Join(ksApp.Spec.AppDir, kftypes.DefaultCacheDir, ksApp.Spec.Version), "kubeflow")
 	return ksApp.writeConfigFile()
 }
 

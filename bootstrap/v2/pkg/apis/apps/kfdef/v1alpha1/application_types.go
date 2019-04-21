@@ -28,8 +28,8 @@ type KfDef struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   cltypes.KfDefSpec   `json:"spec,omitempty"`
-	Status KfDefStatus `json:"status,omitempty"`
+	Spec   cltypes.KfDefSpec `json:"spec,omitempty"`
+	Status KfDefStatus       `json:"status,omitempty"`
 }
 
 // KfDefStatus defines the observed state of KfDef
@@ -51,8 +51,6 @@ type KfDefCondition struct {
 	// A human readable message indicating details about the transition.
 	Message string `json:"message,omitempty" protobuf:"bytes,5,opt,name=message"`
 }
-
-
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/v2/pkg/runtime.Object
 
