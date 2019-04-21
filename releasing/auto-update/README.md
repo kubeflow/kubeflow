@@ -19,6 +19,9 @@ Here's how this works
   * The script uses the [hub cli](https://hub.github.com/) to create a PR
 
 
+* update_job.yaml provides an example job spec for running the job.
+
+
 ## kubeflow-bot
 
 * The script uses the [kubeflow-bot](https://github.com/kubeflow-bot) to host the fork containing the PR
@@ -28,3 +31,24 @@ Here's how this works
 
     * **project**: kubeflow-releasing
   	* **cluster**: kf-releasing
+
+* The ssh keys are stored as K8s secret and configured via init containers
+
+## hub-cli
+
+[hub cli](https://hub.github.com/) is to list and create PRs
+
+Here are some key things to know about hub CLI
+
+  * It uses a GITHUB_TOKEN to create PRs
+
+  	* The token must have permission to modify repositories in order to create PRs see https://hub.github.com/hub.1.html
+
+  * The repository in which to create the PR is based on the names of the remotes see conventions in the [doc page](https://hub.github.com/hub.1.html)
+
+## Next steps
+
+* We'd like to use Kubeflow to run this script regularly and keep track of runs; options are
+
+  * Run it as a 1 step pipeline and use pipelines to keep track of runs
+  * Use a cron job and the Kubeflow metadata solution to keep track of runs
