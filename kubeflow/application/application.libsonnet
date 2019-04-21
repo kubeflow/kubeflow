@@ -369,15 +369,20 @@
     applicationController:: applicationController,
 
     parts:: self,
-    local all = [
-      self.applicationCRD,
-      self.applicationConfigMap,
-      self.applicationDeployment,
-      self.applicationService,
-      self.applicationController,
-      self.application,
-    ],
-    all:: all,
+    all:: std.flattenArrays(
+      [
+        clusterResources,
+        namespacedResources,
+        [
+          self.applicationCRD,
+          self.applicationConfigMap,
+          self.applicationDeployment,
+          self.applicationService,
+          self.applicationController,
+          self.application,
+        ],
+      ],
+    ),
 
     list(obj=self.all):: util.list(obj),
   },

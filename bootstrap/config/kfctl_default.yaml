@@ -4,7 +4,6 @@
 # TODO change repo on the fly: set it to local tmp dir containing kubeflow registry
 repo: /path/to/local/tmp/containing/kubeflow
 packages:
-  - application
   - argo
   - common
   - examples
@@ -15,7 +14,6 @@ packages:
   - modeldb
   - mpi-job
   - pipeline
-  - profiles
   - pytorch-job
   - seldon
   - tensorboard
@@ -31,11 +29,9 @@ components:
   - katib
   - notebook-controller
   - pipeline
-  - profiles
   - pytorch-operator
   - tensorboard
   - tf-job-operator
-  - application
 componentParams:
   ambassador:
     - name: ambassadorServiceType

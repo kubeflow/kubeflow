@@ -14,7 +14,6 @@ packages:
   - modeldb
   - mpi-job
   - pipeline
-  - profiles
   - pytorch-job
   - seldon
   - tensorboard
@@ -35,7 +34,6 @@ components:
   - katib
   - notebook-controller
   - pipeline
-  - profiles
   - pytorch-operator
   - spartakus
   - tensorboard
