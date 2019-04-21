@@ -122,7 +122,8 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
 
     return None
 
-  def all(self, build_project, registry_project, remote_fork): # pylint: disable=too-many-statements,too-many-branches
+  def all(self, build_project, registry_project, remote_fork,
+          add_github_host=False): # pylint: disable=too-many-statements,too-many-branches
     """Build the latest image and update the prototype.
 
     Args:
@@ -132,15 +133,24 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
         The remote fork used to create the PR;
          e.g. git@github.com:jlewi/kubeflow.git. currently only ssh is
          supported.
+      add_github_host: If true will add the github ssh host to known ssh hosts.
     """
     repo = git.Repo(self._root_dir())
     util.maybe_activate_service_account()
     last_commit = self.last_commit
 
+    # Ensure github.com is in the known hosts
+    if add_github_host:
+      output = util.run(["ssh-keyscan", "github.com"])
+      with open(os.path.join(os.getenv("HOME"), ".ssh", "known_hosts"),
+                mode='a') as hf:
+        hf.write(output)
+
     if not remote_fork.startswith("git@github.com"):
       raise ValueError("Remote fork currently only supports ssh")
 
     remote_repo = self._find_remote_repo(repo, remote_fork)
+    remote_repo.push()
 
     if not remote_repo:
       fork_name = remote_fork.split(":", 1)[-1].split("/", 1)[0]
