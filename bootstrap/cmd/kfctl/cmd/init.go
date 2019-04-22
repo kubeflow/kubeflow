@@ -173,7 +173,7 @@ func init() {
 	}
 
 	// Use Istio
-	initCmd.Flags().Bool(string(kftypes.USE_ISTIO), false,
+	initCmd.Flags().Bool(string(kftypes.USE_ISTIO), true,
 		string(kftypes.USE_ISTIO)+" use istio for auth and traffic routing.")
 	bindErr = initCfg.BindPFlag(string(kftypes.USE_ISTIO), initCmd.Flags().Lookup(string(kftypes.USE_ISTIO)))
 	if bindErr != nil {
