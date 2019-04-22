@@ -280,7 +280,10 @@
       self.authDeployment,
       self.loginService,
       self.loginDeployment,
-    ],
+    ] + if util.toBool(params.injectIstio) then [
+      self.authIstioVirtualService,
+      self.loginIstioVirtualService,
+    ] else [],
 
     list(obj=self.all):: util.list(obj),
   },
