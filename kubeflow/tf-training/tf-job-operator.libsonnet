@@ -399,6 +399,53 @@
     },
     tfUiService:: tfUiService,
 
+    local tfUiIstioVirtualService = {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: "tf-job-dashboard",
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/tfjobs/",
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/tfjobs/",
+            },
+            route: [
+              {
+                destination: {
+                  host: std.join(".", [
+                    "tf-job-dashboard",
+                    params.namespace,
+                    "svc",
+                    params.clusterDomain,
+                  ]),
+                  port: {
+                    number: 80,
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },  // tfUiIstioVirtualService
+    tfUiIstioVirtualService:: tfUiIstioVirtualService,
+
     local tfUiServiceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
@@ -519,7 +566,9 @@
       self.tfUiDeployment,
       self.tfUiRole,
       self.tfUiRoleBinding,
-    ],
+    ] + if util.toBool(params.injectIstio) then [
+      self.tfUiIstioVirtualService,
+    ] else [],
 
     list(obj=self.all):: util.list(obj),
   },

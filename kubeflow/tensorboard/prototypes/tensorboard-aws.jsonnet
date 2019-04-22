@@ -20,6 +20,8 @@
 // @optionalParam efsPvcName string null Name of the Persistent Volume Claim used for EFS
 // @optionalParam efsVolumeName string null Name of the Volume to mount to the pod
 // @optionalParam efsMountPath string null Where to mount the EFS Volume
+// @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
+// @optionalParam clusterDomain string cluster.local DNS config to cluster domain.
 
 local subtype = import "kubeflow/tensorboard/aws.libsonnet";
 local basetype = import "kubeflow/tensorboard/tensorboard.libsonnet";
