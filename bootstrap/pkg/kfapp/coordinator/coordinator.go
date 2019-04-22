@@ -35,6 +35,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -318,6 +319,15 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	if disableUsageReport {
 		kfDef.Spec.Components = filterSpartakus(kfDef.Spec.Components)
 		delete(kfDef.Spec.ComponentParams, "spartakus")
+	}
+
+	injectIstio := strconv.FormatBool(options[string(kftypes.USE_ISTIO)].(bool))
+	for name, params := range kfDef.Spec.ComponentParams {
+		for idx, param := range params {
+			if param.Name == "injectIstio" {
+				kfDef.Spec.ComponentParams[name][idx].Value = injectIstio
+			}
+		}
 	}
 
 	kfDef.Name = appName
