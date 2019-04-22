@@ -41,6 +41,48 @@
     },
     authService:: authService,
 
+    local authIstioVirtualService = {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: params.name,
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            route: [
+              {
+                destination: {
+                  host: std.join(".", [
+                    params.name,
+                    params.namespace,
+                    "svc",
+                    params.clusterDomain,
+                  ]),
+                  port: {
+                    number: 8085,
+                  },
+                },
+              },
+            ],
+            cors_policy: {
+              allowed_headers: [
+                "x-from-login",
+              ],
+            },
+          },
+        ],
+      },
+    },
+    authIstioVirtualService:: authIstioVirtualService,
+
     local authDeployment = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
@@ -146,6 +188,54 @@
       },
     },
     loginService:: loginService,
+
+    local loginIstioVirtualService = {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: ui_name,
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/kflogin",
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/kflogin",
+            },
+            route: [
+              {
+                destination: {
+                  host: std.join(".", [
+                    ui_name,
+                    params.namespace,
+                    "svc",
+                    params.clusterDomain,
+                  ]),
+                  port: {
+                    number: 80,
+                  },
+                },
+              },
+            ],
+            timeout: "300s",
+          },
+        ],
+      },
+    },
+    loginIstioVirtualService:: loginIstioVirtualService,
 
     local loginDeployment = {
       apiVersion: "extensions/v1beta1",
