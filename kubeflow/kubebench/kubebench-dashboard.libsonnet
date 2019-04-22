@@ -1,5 +1,7 @@
 {
   local k = import "k.libsonnet",
+  local util = import "kubeflow/common/util.libsonnet",
+
   new(_env, _params):: {
 
     local params = _env + _params,
@@ -74,6 +76,54 @@
       },
     },
     service:: service,
+
+    // ISTIO virtual service for routing.
+    local istioVirtualService = {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: params.name,
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/dashboard/",
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/dashboard/",
+            },
+            route: [
+              {
+                destination: {
+                  host: std.join(".", [
+                    params.name,
+                    params.namespace,
+                    "svc",
+                    params.clusterDomain,
+                  ]),
+                  port: {
+                    number: 80,
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+    istioVirtualService:: istioVirtualService,
 
     //Dahboard Service Account
     local serviceAccount = {
@@ -156,7 +206,9 @@
       self.serviceAccount,
       self.role,
       self.roleBinding,
-    ],
+    ] + if util.toBool(params.injectIstio) then [
+      self.istioVirtualService,
+    ] else [],
 
     //Create Objects
     list(obj=self.all):: k.core.v1.list.new(obj,),

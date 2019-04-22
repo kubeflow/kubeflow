@@ -15,6 +15,8 @@
     mysqlPd: null,
     minioPd: null,
     nfsPd: null,
+    injectIstio: "false",
+    clusterDomain: "cluster.local",
   },
 
   parts:: {
@@ -27,6 +29,7 @@
     local pipeline_persistenceagent = import "kubeflow/pipeline/pipeline-persistenceagent.libsonnet",
     local pipeline_viewercrd = import "kubeflow/pipeline/pipeline-viewercrd.libsonnet",
     local pipeline_ui = import "kubeflow/pipeline/pipeline-ui.libsonnet",
+    local istio_service = import "kubeflow/pipeline/istio-service.libsonnet",
 
     local name = $.params.name,
     local namespace = $.params.namespace,
@@ -48,6 +51,8 @@
              nfs.all(namespace, nfsImage)
            else [],
     local minioPvcName = if (nfsPvName != null) || (nfsPd != null) then "nfs-pvc" else "minio-pvc",
+    local injectIstio = $.params.injectIstio,
+    local clusterDomain = $.params.clusterDomain,
     all:: minio.all(namespace, minioImage, minioPvcName) +
           mysql.all(namespace, mysqlImage) +
           pipeline_apiserver.all(namespace, apiImage) +
@@ -56,6 +61,7 @@
           pipeline_viewercrd.all(namespace, viewerCrdControllerImage) +
           pipeline_ui.all(namespace, uiImage) +
           storage.all(namespace, mysqlPvName, minioPvName, nfsPvName, mysqlPd, minioPd, nfsPd) +
+          istio_service.all(namespace, clusterDomain, injectIstio) +
           $.parts.nfs,
   },
 }

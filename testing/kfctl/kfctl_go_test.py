@@ -75,6 +75,8 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
 
   if use_istio:
     init_args.append("--use_istio")
+  else:
+    init_args.append("--use_istio=false")
 
   version = "master"
   if os.getenv("PULL_NUMBER"):
