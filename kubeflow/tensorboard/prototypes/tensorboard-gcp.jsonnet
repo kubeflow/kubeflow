@@ -10,7 +10,7 @@
 // @optionalParam defaultTbImage string tensorflow/tensorflow:1.8.0 default tensorboard image to use
 // @optionalParam gcpCredentialSecretName string null Name of the k8s secrets containing gcp credentials
 // @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
-// @optionalParam clusterDomain string svc.cluster.local DNS config to cluster domain.
+// @optionalParam clusterDomain string cluster.local DNS config to cluster domain.
 
 local subtype = import "kubeflow/tensorboard/gcp.libsonnet";
 local basetype = import "kubeflow/tensorboard/tensorboard.libsonnet";
