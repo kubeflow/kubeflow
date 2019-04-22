@@ -56,6 +56,7 @@
                   host: std.join(".", [
                     "katib-ui",
                     namespace,
+                    "svc",
                     params.clusterDomain,
                   ]),
                   port: {
