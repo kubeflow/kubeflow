@@ -16,7 +16,7 @@
     minioPd: null,
     nfsPd: null,
     injectIstio: "false",
-    clusterDomain: "svc.cluster.local",
+    clusterDomain: "cluster.local",
   },
 
   parts:: {
