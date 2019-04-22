@@ -23,8 +23,8 @@ import (
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Prints the version of kfctl.",
-	Long:  `Prints the version of kfctl.`,
+	Short: "Print the version of kfctl.",
+	Long:  `Print the version of kfctl.`,
 	Run:   versionfunc,
 }
 
