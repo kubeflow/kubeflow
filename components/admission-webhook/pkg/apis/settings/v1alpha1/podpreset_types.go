@@ -16,7 +16,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -31,6 +31,12 @@ type PodPresetSpec struct {
 	// Selector is a label query over a set of resources, in this case pods.
 	// Required.
 	Selector metav1.LabelSelector `json:"selector"`
+
+	// Human readable description of podpreset
+	// todo: not sure if Spec is the right place for this (move to meta..)
+	// Can be used by UI to show users avaialble options for podpresets.
+	// +optional
+	Desc string `json:"desc,omitempty"`
 
 	// Env defines the collection of EnvVar to inject into containers.
 	// +optional
@@ -47,6 +53,11 @@ type PodPresetSpec struct {
 	// VolumeMounts defines the collection of VolumeMount to inject into containers.
 	// +optional
 	VolumeMounts []v1.VolumeMount `json:"volumeMounts,omitempty"`
+
+	// ServiceAccountName is the name of the ServiceAccount to use to run the matching pod with this podpreset.
+	// Overwrites the ServiceAccountName of the matching pod, if there exist any
+	// +optional
+	ServiceAccountName string `json:"ServiceaccountName,omitempty"`
 }
 
 // PodPresetStatus defines the observed state of PodPreset

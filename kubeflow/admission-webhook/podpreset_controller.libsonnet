@@ -33,6 +33,9 @@
               },
               spec: {
                 properties: {
+                  desc: {
+                  type: "string",
+                  },
                   env: {
                     items:{
                       type: "object",
@@ -59,6 +62,9 @@
                       type: "object",
                     },
                     type: "array",
+                  },
+                  serviceaccountname:{
+                    type: "string",
                   },
                 },
                 required: [

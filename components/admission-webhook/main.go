@@ -81,6 +81,11 @@ func filterPodPresets(list []settingsapi.PodPreset, pod *corev1.Pod) ([]*setting
 			glog.V(6).Infof("PodPreset '%s' does NOT match pod '%s' labels", pp.GetName(), pod.GetName())
 			continue
 		}
+		// check if the pod namespace match the podpreset's namespace
+		if pp.GetNamespace() != pod.GetNamespace() {
+			klog.Infof("PodPreset '%s' is not in the namespcae of pod '%s' ", pp.GetName(), pod.GetName())
+			continue
+		}
 		glog.V(4).Infof("PodPreset '%s' matches pod '%s' labels", pp.GetName(), pod.GetName())
 		// create pointer to a non-loop variable
 		newPP := pp
@@ -172,6 +177,15 @@ func mergeEnvFrom(envSources []corev1.EnvFromSource, podPresets []*settingsapi.P
 	}
 
 	return mergedEnvFrom, nil
+}
+
+func mergeServiceaccountName(currentServiceaccount string, podPresets []*settingsapi.PodPreset) (string, error) {
+	for _, pp := range podPresets {
+		if pp.Spec.ServiceAccountName != "" {
+			currentServiceaccount = pp.Spec.ServiceAccountName
+		}
+	}
+	return currentServiceaccount, nil
 }
 
 // mergeVolumeMounts merges given list of VolumeMounts with the volumeMounts
@@ -316,6 +330,11 @@ func applyPodPresetsOnPod(pod *corev1.Pod, podPresets []*settingsapi.PodPreset) 
 	for i, ctr := range pod.Spec.Containers {
 		applyPodPresetsOnContainer(&ctr, podPresets)
 		pod.Spec.Containers[i] = ctr
+	}
+
+	saName, _ := mergeServiceaccountName(pod.Spec.ServiceAccountName, podPresets)
+	if saName != "" {
+		pod.Spec.ServiceAccountName = saName
 	}
 
 	if pod.ObjectMeta.Annotations == nil {
