@@ -110,6 +110,7 @@
                   host: std.join(".", [
                     params.name,
                     params.namespace,
+                    "svc",
                     params.clusterDomain,
                   ]),
                   port: {
