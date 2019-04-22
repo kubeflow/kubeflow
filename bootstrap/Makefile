@@ -19,7 +19,7 @@ GOPATH ?= $(HOME)/go
 # export DOCKER_BUILD_OPTS=--no-cache
 BOOTSTRAPPER_IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
 KFCTL_IMG ?= gcr.io/$(GCLOUD_PROJECT)/kfctl
-TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
+TAG ?= $(eval TAG := $(shell git describe --tags --long))$(TAG)
 KFCTL_TARGET ?= kfctl
 MOUNT_KUBE ?=  -v $(HOME)/.kube:/root/.kube 
 MOUNT_GCP ?=  -v $(HOME)/.config:/root/.config 
@@ -55,11 +55,11 @@ auth:
 
 # Run go fmt against code
 fmt:
-	@$(GO) fmt ./config/... ./pkg/apis/apps/kfdef/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
+	@$(GO) fmt ./config/... ./pkg/apis/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
 
 # Run go vet against code
 vet:
-	@$(GO) vet ./config/... ./pkg/apis/apps/kfdef/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
+	@$(GO) vet ./config/... ./pkg/apis/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
 
 generate:
 	@$(GO) generate ./config/... ./pkg/apis/apps/kfdef/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
@@ -85,7 +85,7 @@ build-bootstrap: /tmp/v2 deepcopy generate fmt vet
 	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
 build-kfctl: /tmp/v2 deepcopy generate fmt vet
-	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
+	$(GO) build -i -gcflags 'all=-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctl cmd/kfctl/main.go
 
 # Release tarballs suitable for upload to GitHub release pages
 build-kfctl-tgz: build-kfctl
@@ -112,6 +112,7 @@ push-to-github-release: build-kfctl-tgz
 build-kfctl-container:
 	docker build \
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+		--build-arg VERSION=$(TAG) \
 		--target=$(KFCTL_TARGET) \
 		--tag $(KFCTL_IMG):$(TAG) .
 	@echo Built $(KFCTL_IMG):$(TAG)

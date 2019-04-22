@@ -36,6 +36,8 @@ type KfDefSpec struct {
 	UseIstio               bool   `json:"useIstio"`
 	ServerVersion          string `json:"serverVersion,omitempty"`
 	DeleteStorage          bool   `json:"deleteStorage,omitempty"`
+	PackageManager         string `json:"packageManager,omitempty"`
+	ManifestsRepo          string `json:"manifestsRepo,omitempty"`
 }
 
 var DefaultRegistry = &RegistryConfig{
