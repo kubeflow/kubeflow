@@ -3,7 +3,7 @@
 
   all(namespace, clusterDomain, injectIstio):: if util.toBool(injectIstio) then [
     $.parts(namespace, clusterDomain).serviceUiIstio,
-    $.parts(namespace, clusterDomain).tensorbaordDataIstio,
+    $.parts(namespace, clusterDomain).tensorboardDataIstio,
   ] else [],
 
   parts(namespace, clusterDomain):: {
@@ -54,7 +54,7 @@
       },
     },  // serviceUiIstio
 
-    tensorbaordDataIstio: {
+    tensorboardDataIstio: {
       apiVersion: "networking.istio.io/v1alpha3",
       kind: "VirtualService",
       metadata: {
@@ -98,6 +98,6 @@
           },
         ],
       },
-    },  // tensorbaordDataIstio
+    },  // tensorboardDataIstio
   },
 }
