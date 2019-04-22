@@ -45,7 +45,7 @@ var rootCmd = &cobra.Command{
 	Use:   "kfctl",
 	Short: "A client CLI to create kubeflow applications",
 	Long: `A client CLI to create kubeflow applications for specific platforms or 'on-prem' 
-to an existing k8 cluster.`,
+to an existing k8s cluster.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

@@ -609,9 +609,15 @@ func (kfapp *coordinator) Show(resources kftypes.ResourceEnum, options map[strin
 			} else {
 				return &kfapis.KfError{
 					Code: int(kfapis.INTERNAL_ERROR),
-					Message: fmt.Sprintf("%v not in Platforms",
+					Message: fmt.Sprintf("coordinator Show failed for %v: Not support 'Show'",
 						kfapp.KfDef.Spec.Platform),
 				}
+			}
+		} else {
+			return &kfapis.KfError{
+				Code: int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("%v not in Platforms",
+					kfapp.KfDef.Spec.Platform),
 			}
 		}
 		kfapp.PackageManagers = *getPackageManagers(kfapp.KfDef)
