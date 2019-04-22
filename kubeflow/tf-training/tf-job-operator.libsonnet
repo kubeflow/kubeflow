@@ -431,6 +431,7 @@
                   host: std.join(".", [
                     "tf-job-dashboard",
                     params.namespace,
+                    "svc",
                     params.clusterDomain,
                   ]),
                   port: {
