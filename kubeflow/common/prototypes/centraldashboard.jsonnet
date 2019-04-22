@@ -5,7 +5,7 @@
 // @param name string Name
 // @optionalParam image string gcr.io/kubeflow-images-public/centraldashboard:v0.5.0 Image for the central dashboard
 // @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
-// @optionalParam clusterDomain string svc.cluster.local DNS config to cluster domain.
+// @optionalParam clusterDomain string cluster.local DNS config to cluster domain.
 
 local centraldashboard = import "kubeflow/common/centraldashboard.libsonnet";
 local instance = centraldashboard.new(env, params);

@@ -115,6 +115,7 @@
                   host: std.join(".", [
                     "centraldashboard",
                     params.namespace,
+                    "svc",
                     params.clusterDomain,
                   ]),
                   port: {
