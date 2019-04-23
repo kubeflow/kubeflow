@@ -32,21 +32,14 @@ var applyCmd = &cobra.Command{
 	Long:  `Deploy a generated kubeflow application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
-		log.Info("deploying kubeflow application")
-		if applyCfg.GetBool(string(kftypes.VERBOSE)) == true {
-			log.SetLevel(log.InfoLevel)
-		} else {
+		if applyCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
 		resource, resourceErr := processResourceArg(args)
 		if resourceErr != nil {
 			return fmt.Errorf("invalid resource: %v", resourceErr)
 		}
-		options := map[string]interface{}{
-			string(kftypes.OAUTH_ID):     applyCfg.GetString(string(kftypes.OAUTH_ID)),
-			string(kftypes.OAUTH_SECRET): applyCfg.GetString(string(kftypes.OAUTH_SECRET)),
-		}
-		kfApp, kfAppErr := coordinator.LoadKfApp(options)
+		kfApp, kfAppErr := coordinator.LoadKfApp(map[string]interface{}{})
 		if kfAppErr != nil {
 			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}
@@ -70,22 +63,6 @@ func init() {
 	bindErr := applyCfg.BindPFlag(string(kftypes.VERBOSE), applyCmd.Flags().Lookup(string(kftypes.VERBOSE)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERBOSE), bindErr)
-		return
-	}
-	applyCmd.Flags().String(string(kftypes.OAUTH_ID), "",
-		"OAuth Client ID, GCP only. Required if using IAP but ENV CLIENT_ID is not set. "+
-			"Value passed will take precedence to ENV.")
-	bindErr = applyCfg.BindPFlag(string(kftypes.OAUTH_ID), applyCmd.Flags().Lookup(string(kftypes.OAUTH_ID)))
-	if bindErr != nil {
-		log.Errorf("couldn't set flag --%v: %v", string(kftypes.OAUTH_ID), bindErr)
-		return
-	}
-	applyCmd.Flags().String(string(kftypes.OAUTH_SECRET), "",
-		"OAuth Client Secret, GCP only. Required if using IAP but ENV CLIENT_SECRET is not set. "+
-			"Value passed will take precedence to ENV.")
-	bindErr = applyCfg.BindPFlag(string(kftypes.OAUTH_SECRET), applyCmd.Flags().Lookup(string(kftypes.OAUTH_SECRET)))
-	if bindErr != nil {
-		log.Errorf("couldn't set flag --%v: %v", string(kftypes.OAUTH_SECRET), bindErr)
 		return
 	}
 }

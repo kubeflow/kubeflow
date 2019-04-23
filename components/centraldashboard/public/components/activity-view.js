@@ -78,7 +78,7 @@ export class ActivityView extends PolymerElement {
             },
             activities: {
                 type: Array,
-                value: [],
+                value: () => [],
             },
         };
     }

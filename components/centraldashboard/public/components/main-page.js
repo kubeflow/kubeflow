@@ -28,21 +28,25 @@ import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
 import css from './main-page.css';
 import template from './main-page.pug';
+import logo from '../assets/kf-logo_64px.svg';
 
 import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
+import './not-found-view.js';
+
+const VALID_QUERY_PARAMS = ['ns'];
 
 /**
  * Entry point for application UI.
  */
 export class MainPage extends PolymerElement {
     static get template() {
+        const pugVariables = {logo: logo};
         return html([`
         <style is="custom-style"
             include="iron-flex iron-flex-alignment iron-positioning">
-        <style>${css.toString()}</style>${template()}
-        `]);
+        <style>${css.toString()}</style>${template(pugVariables)}`]);
     }
 
     static get properties() {
@@ -52,7 +56,7 @@ export class MainPage extends PolymerElement {
             subRouteData: Object,
             queryParams: {
                 type: Object,
-                value: null,
+                value: () => {},
             },
             iframeRoute: Object,
             menuLinks: {
@@ -90,10 +94,11 @@ export class MainPage extends PolymerElement {
             buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
             inIframe: {type: Boolean, value: false, readOnly: true},
-            _devMode: {type: Boolean, value: DEVMODE},
+            hideTabs: {type: Boolean, value: false, readOnly: true},
+            hideNamespaces: {type: Boolean, value: false, readOnly: true},
+            notFoundInIframe: {type: Boolean, value: false, readOnly: true},
         };
     }
-
 
     /**
      * Array of strings describing multi-property observer methods and their
@@ -103,18 +108,6 @@ export class MainPage extends PolymerElement {
         return [
             '_routePageChanged(routeData.page)',
         ];
-    }
-
-    ready() {
-        super.ready();
-        fetch('assets/kf-logo_64px.svg')
-            .then((r) => r.text())
-            .then((svg) => {
-                this.$['Narrow-Slider'].querySelector('.Logo').innerHTML += [
-                    svg,
-                    `<figcaption>Kubeflow</figcaption>`,
-                ].join('');
-            });
     }
 
     /**
@@ -143,8 +136,9 @@ export class MainPage extends PolymerElement {
      * @param {MouseEvent} e
      */
     openInIframe(e) {
-        const url = new URL(e.currentTarget.href);
-        window.history.pushState({}, null, `_${url.pathname}`);
+        // e.currentTarget is an HTMLAnchorElement
+        const url = e.currentTarget.href.slice(e.currentTarget.origin.length);
+        window.history.pushState({}, null, `_${url}`);
         window.dispatchEvent(new CustomEvent('location-changed'));
         e.preventDefault();
     }
@@ -155,19 +149,36 @@ export class MainPage extends PolymerElement {
      */
     _routePageChanged(newPage) {
         let isIframe = false;
+        let notFoundInIframe = false;
+        let hideTabs = true;
+        let hideNamespaces = false;
         switch (newPage) {
         case 'activity':
             this.sidebarItemIndex = 0;
             this.page = 'activity';
+            hideTabs = false;
             break;
         case '_': // iframe case
             this._setIframeFromRoute(this.subRouteData.path);
             isIframe = true;
+            hideNamespaces = this.subRouteData.path.startsWith('/pipeline');
             break;
-        default:
+        case '':
             this.sidebarItemIndex = 0;
             this.page = 'dashboard';
+            hideTabs = false;
+            break;
+        default:
+            this.sidebarItemIndex = -1;
+            this.page = 'not_found';
+            // Handles case when an iframed page requests an invalid route
+            if (this._isInsideOfIframe()) {
+                notFoundInIframe = true;
+            }
         }
+        this._setNotFoundInIframe(notFoundInIframe);
+        this._setHideTabs(hideTabs);
+        this._setHideNamespaces(hideNamespaces);
         this._setInIframe(isIframe);
         // If iframe <-> [non-frame OR other iframe]
         if (isIframe !== this.inIframe || isIframe) {
@@ -187,9 +198,34 @@ export class MainPage extends PolymerElement {
             this.iframeUrl = this.menuLinks[menuLinkIndex].iframeUrl;
             this.sidebarItemIndex = menuLinkIndex + 1;
         } else {
-            this.sidebarItemIndex = 0;
-            this.page = 'dashboard';
+            this.sidebarItemIndex = -1;
+            this.page = 'not_found';
         }
+    }
+
+    /**
+     * Returns true when this component is found to be iframed inside of a
+     * parent page.
+     * @return {boolean}
+     */
+    _isInsideOfIframe() {
+        return window.location !== window.parent.location;
+    }
+
+    /**
+     * Builds and returns an href value preserving the current query string.
+     * @param {string} href
+     * @param {Object} queryParams
+     * @return {string}
+     */
+    _buildHref(href, queryParams) {
+        const url = new URL(href, window.location.origin);
+        VALID_QUERY_PARAMS.forEach((qp) => {
+            if (queryParams[qp]) {
+                url.searchParams.set(qp, queryParams[qp]);
+            }
+        });
+        return url.href.slice(url.origin.length);
     }
 }
 

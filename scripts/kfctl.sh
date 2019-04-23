@@ -26,6 +26,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 source "${DIR}/util.sh"
 source "${DIR}/gke/util.sh"
 source "${DIR}/azure/util.sh"
+source "${DIR}/aws/util.sh"
 source "${DIR}/util-minikube.sh"
 INPUT=()
 FORMAT=()
@@ -106,6 +107,24 @@ createEnv() {
       export KUBEFLOW_PLATFORM=ack
       export KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com
       export DOCKER_REGISTRY_KATIB_NAMESPACE=katib
+      ;;
+    aws)
+      export KUBEFLOW_PLATFORM=aws
+      INPUT+=('AWS_CLUSTER_NAME=$AWS_CLUSTER_NAME\n'
+              'AWS_REGION=$AWS_REGION\n'
+              'AWS_NODEGROUP_ROLE_NAMES=$AWS_NODEGROUP_ROLE_NAMES\n'
+              'KUBEFLOW_INFRA_DIR=$KUBEFLOW_INFRA_DIR\n'
+              'KUBEFLOW_K8S_MANIFESTS_DIR=$KUBEFLOW_K8S_MANIFESTS_DIR\n')
+      FORMAT+=('$AWS_CLUSTER_NAME'
+               '$AWS_REGION'
+               '$AWS_NODEGROUP_ROLE_NAMES'
+               '$KUBEFLOW_INFRA_DIR'
+               '$KUBEFLOW_K8S_MANIFESTS_DIR')
+      export AWS_CLUSTER_NAME=${AWS_CLUSTER_NAME:-""}
+      export AWS_REGION=${AWS_REGION:-""}
+      export AWS_NODEGROUP_ROLE_NAMES=${AWS_NODEGROUP_ROLE_NAMES:-""}
+      export KUBEFLOW_INFRA_DIR=${KUBEFLOW_INFRA_DIR:-"$(pwd)/aws_config"}
+      export KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs"
       ;;
     azure)
       export KUBEFLOW_PLATFORM=azure
@@ -297,6 +316,18 @@ parseArgs() {
         shift
         AZ_NODE_SIZE=$1
         ;;
+      --awsClusterName)
+        shift
+        AWS_CLUSTER_NAME=$1
+        ;;
+      --awsRegion)
+        shift
+        AWS_REGION=$1
+        ;;
+      --awsNodegroupRoleNames)
+        shift
+        AWS_NODEGROUP_ROLE_NAMES=$1
+        ;;
     esac
     shift
   done
@@ -351,6 +382,9 @@ parseArgs() {
   fi
   if [[ "${PLATFORM}" == "azure" ]]; then
     validate_az_arg
+  fi
+  if [[ "${PLATFORM}" == "aws" ]]; then
+    validate_aws_arg
   fi
 }
 
@@ -443,6 +477,9 @@ main() {
     check_az_cli
     az_login
   fi
+  if [[ "${PLATFORM}" == "aws" ]]; then
+    check_aws_setups
+  fi
 
   if [[ "${COMMAND}" == "generate" ]]; then
     if [[ "${WHAT}" == "platform" ]] || [[ "${WHAT}" == "all" ]]; then
@@ -456,6 +493,10 @@ main() {
         createAKSCluster
     fi
 
+    if [[ "${PLATFORM}" == "aws" ]]; then
+      generate_aws_infra_configs
+    fi
+
     if [[ "${WHAT}" == "k8s" ]] || [[ "${WHAT}" == "all" ]]; then
       createKsApp
       customizeKsApp
@@ -463,6 +504,10 @@ main() {
 
       if [[ "${PLATFORM}" == "gcp" ]]; then
         gcpGenerateKsApp
+      fi
+
+      if [[ "${PLATFORM}" == "aws" ]]; then
+        generate_aws_ks_app
       fi
 
       if [[ "${PLATFORM}" == "minikube" ]] || [[ "${PLATFORM}" == "docker-for-desktop" ]]; then
@@ -486,6 +531,10 @@ main() {
       elif [[ "${PLATFORM}" == "azure" ]]; then
         createAzSecrets
       fi
+
+      if [[ "${PLATFORM}" == "aws" ]]; then
+        apply_aws_infra
+      fi
     fi
 
     if [[ "${WHAT}" == "k8s" ]] || [[ "${WHAT}" == "all" ]]; then
@@ -493,6 +542,11 @@ main() {
 
       if [[ "${PLATFORM}" == "gcp" ]]; then
         gcpKsApply
+      fi
+
+      if [[ "${PLATFORM}" == "aws" ]]; then
+        install_k8s_manifests
+        apply_aws_ks
       fi
 
       # all components deployed
@@ -537,15 +591,28 @@ main() {
       pushd ${KUBEFLOW_KS_DIR}
       appname=$(ks param list application | grep '^application name'|awk '{print $NF}'|tr -d "'")
       popd
-      for i in $(kubectl get crds -lapp.kubernetes.io/name=$appname -oname); do 
+      if [[ "${PLATFORM}" == "aws" ]]; then
+        # Ingress are created by controller, need to clean it up before ingress controller deleted
+        # Waiting for a feature to create resource via CloudFormation and then we can clean up later.
+        for i in $(kubectl get ingress -lapp.kubernetes.io/name=$appname --all-namespaces -o go-template --template '{{range .items}}{{.metadata.name}}:{{.metadata.namespace}}{{"\n"}}{{end}}'); do
+          ingress_name_namespace=(${i//:/ })
+          kubectl delete ingress ${ingress_name_namespace[0]} -n ${ingress_name_namespace[1]}
+        done
+        echo "Waiting for alb ingress controller to clean up ingress resources. sleeping 20 seconds..."
+        sleep 20
+
+        uninstall_aws_k8s
+      fi
+
+      for i in $(kubectl get crds -lapp.kubernetes.io/name=$appname -oname); do
         crd=${i#*/}
         kubectl delete crd $crd
       done
-      for i in $(kubectl get clusterroles -lapp.kubernetes.io/name=$appname -oname); do 
+      for i in $(kubectl get clusterroles -lapp.kubernetes.io/name=$appname -oname); do
         clusterrole=${i#*/}
         kubectl delete clusterrole $clusterrole
       done
-      for i in $(kubectl get clusterrolebindings -lapp.kubernetes.io/name=$appname -oname); do 
+      for i in $(kubectl get clusterrolebindings -lapp.kubernetes.io/name=$appname -oname); do
         clusterrolebinding=${i#*/}
         kubectl delete clusterrolebinding $clusterrolebinding
       done
@@ -574,6 +641,13 @@ main() {
         if [[ -d "${KUBEFLOW_DM_DIR}" ]]; then
           pushd ${KUBEFLOW_DM_DIR}
           ${DIR}/gke/delete_deployment.sh --project=${PROJECT} --deployment=${DEPLOYMENT_NAME} --zone=${ZONE}
+          popd
+        fi
+      fi
+      if [[ "${PLATFORM}" == "aws" ]]; then
+        if [[ -d "${KUBEFLOW_INFRA_DIR}" ]]; then
+          pushd ${KUBEFLOW_INFRA_DIR}
+          uninstall_aws_platform
           popd
         fi
       fi

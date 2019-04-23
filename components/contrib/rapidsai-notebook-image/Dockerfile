@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/rapidsai/rapidsai:cuda9.2_ubuntu16.04
+FROM nvcr.io/nvidia/rapidsai/rapidsai:cuda9.2-runtime-ubuntu16.04
 
 USER root
 
@@ -32,8 +32,7 @@ ENV LANGUAGE en_US.UTF-8
 # Replace jupyter user with jovyan user UID=1000 and in the 'users' group
 # but allow for non-initial launches of the notebook to have
 # $HOME provided by the contents of a PV
-RUN userdel jupyter && \
-    useradd -M -s /bin/bash -N -u $NB_UID $NB_USER && \
+RUN useradd -M -s /bin/bash -N -u $NB_UID $NB_USER && \
     chown -R ${NB_USER}:users /usr/local/bin && \
     chown -R ${NB_USER}:users $CONDA_DIR && \
     chown -R ${NB_USER}:users /rapids && \

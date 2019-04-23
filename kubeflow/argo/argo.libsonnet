@@ -226,6 +226,52 @@
     },
     argUIService:: argUIService,
 
+    local istioVirtualService = {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: "argo-ui",
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/argo/",
+                },
+              },
+            ],  // match
+            rewrite: {
+              uri: "/",
+            },
+            route: [
+              {
+                destination: {
+                  host: std.join(".", [
+                    "argo-ui",
+                    params.namespace,
+                    params.clusterDomain,
+                  ]),
+                  port: {
+                    number: 80,
+                  },
+                },  // destination
+              },
+            ],  // route
+          },
+        ],  // http
+      },  // spec
+    },  // istioVirtualService
+    istioVirtualService:: istioVirtualService,
+
     local workflowControllerConfigmap = {
       apiVersion: "v1",
       data: {
@@ -480,7 +526,9 @@
       self.argoUIServiceAccount,
       self.argoUIRole,
       self.argUIClusterRoleBinding,
-    ],
+    ] + if util.toBool(params.injectIstio) then [
+      self.istioVirtualService,
+    ] else [],
 
     list(obj=self.all):: util.list(obj),
   },

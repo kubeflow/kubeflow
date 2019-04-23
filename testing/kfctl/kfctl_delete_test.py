@@ -13,9 +13,30 @@ from retrying import retry
 import pytest
 
 from kubeflow.testing import util
+from googleapiclient import discovery
+from oauth2client.client import GoogleCredentials
 
-# TODO(): Need to make delete work with a KUBECONFIG file.
-@pytest.mark.xfail
+# TODO(gabrielwen): Move this to a separate test "kfctl_go_check_post_delete"
+def get_endpoints_list(project):
+  cred = GoogleCredentials.get_application_default()
+  services_mgt = discovery.build('servicemanagement', 'v1', credentials=cred)
+  services = services_mgt.services()
+  next_page_token = None
+  endpoints = []
+
+  while True:
+    results = services.list(producerProjectId=project,
+                            pageToken=next_page_token).execute()
+
+    for s in results.get("services", {}):
+      name = s.get("serviceName", "")
+      endpoints.append(name)
+    if not "nextPageToken" in results:
+      break
+    next_page_token = results["nextPageToken"]
+
+  return endpoints
+
 def test_kfctl_delete(kfctl_path, app_path, project):
   if not kfctl_path:
     raise ValueError("kfctl_path is required")
@@ -28,6 +49,20 @@ def test_kfctl_delete(kfctl_path, app_path, project):
 
   util.run([kfctl_path, "delete", "all", "--delete_storage", "-V"],
            cwd=app_path)
+
+  # Use services.list instead of services.get because error returned is not
+  # 404, it's 403 which is confusing.
+  name = os.path.basename(app_path)
+  endpoint_name = "{deployment}.endpoints.{project}.cloud.goog".format(
+      deployment=name,
+      project=project)
+  logging.info("Verify endpoint service is deleted: " + endpoint_name)
+  if endpoint_name in get_endpoints_list(project):
+    msg = "Endpoint is not deleted: " + endpoint_name
+    logging.error(msg)
+    raise AssertionError(msg)
+  else:
+    logging.info("Verified endpoint service is deleted.")
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,

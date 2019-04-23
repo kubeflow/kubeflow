@@ -6,160 +6,96 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Installing MXNet Operator](#installing-mxnet-operator)
-- [Verify that MXNet support is included in your Kubeflow deployment](#verify-that-mxnet-support-is-included-in-your-kubeflow-deployment)
-- [Creating a MXNet Job](#creating-a-mxnet-job)
-- [Monitoring a MXNet Job](#monitoring-a-mxnet-job)
+- [Quickstart](#quickstart)
+- [Using the library](#using-the-library)
+  - [io.ksonnet.pkg.mxnet-operator](#ioksonnetpkgmxnet-operator)
+    - [Example](#example)
+    - [Parameters](#parameters)
+  - [io.ksonnet.pkg.mxnet-job](#ioksonnetpkgmxnet-job)
+    - [Example](#example-1)
+    - [Parameters](#parameters-1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## Installing MXNet Operator
+## Quickstart
 
-If you haven't already done so please follow the [Getting Started Guide](https://www.kubeflow.org/docs/started/getting-started/) to deploy Kubeflow.
+*The following commands use the `io.ksonnet.pkg.mxnet-operator` prototype to
+generate Kubernetes YAML for mxnet-job, and then deploys it to your Kubernetes
+cluster.*
 
-An **alpha** version of MXNet support was introduced with Kubeflow 0.2.0. You must be using a version of Kubeflow newer than 0.2.0.
+First, install Kubeflow by following the
+[Getting Started](https://www.kubeflow.org/docs/started/getting-started/)
+guide.
 
-## Verify that MXNet support is included in your Kubeflow deployment
+Then, in the ksonnet application directory, run the following:
 
-Check that the MXNet custom resource is installed
+```shell
+# Install the mxnet-job package.
+$ ks pkg install kubeflow/mxnet-job@master
 
-```
-kubectl get crd
-```
+# Deploy the mxnet-operator.
+$ ks prototype use io.ksonnet.pkg.mxnet-operator mxnet-operator \
+  --name mxnet-operator
+$ ks apply default -c mxnet-operator # wait for the operator to be running
 
-The output should include `mxjobs.kubeflow.org`
-
-```
-NAME                                           AGE
-...
-mxjobs.kubeflow.org                            4d
-...
-```
-
-If it is not included you can add it as follows
-
-```
-cd ${KSONNET_APP}
-ks pkg install kubeflow/mxnet-job
-ks generate mxnet-operator mxnet-operator
-ks apply ${ENVIRONMENT} -c mxnet-operator
+# Run MXNet training job
+$ ks prototype use io.ksonnet.pkg.mxnet-job mxnet-job \
+  --name mxnet-job
+$ ks apply default -c mxnet-job
 ```
 
-## Creating a MXNet Job
+## Using the library
 
+The library files for mxnet-job define a set of relevant *parts* (_e.g._,
+deployments, services, secrets, and so on) that can be combined to configure
+mxnet-job for a wide variety of scenarios. For example, a database like Redis may
+need a secret to hold the user password, or it may have no password if it's
+acting as a cache.
 
-You create a job by defining a MXJob and then creating it with.
+This library provides a set of pre-fabricated "flavors" (or "distributions") of
+mxnet-job, each of which is configured for a different use case. These are
+captured as ksonnet *prototypes*, which allow users to interactively customize
+these distributions for their specific needs.
 
+These prototypes, as well as how to use them, are enumerated below.
 
-```
-kubectl create -f examples/mx_job_dist.yaml
-```
+### io.ksonnet.pkg.mxnet-operator
 
+Deploy the MXNet operator, which manages MXNet jobs.
 
-## Monitoring a MXNet Job
+#### Example
 
-
-To get the status of your job
-
-```bash
-kubectl get -o yaml mxjobs $JOB
-```
-
-Here is sample output for an example job
-
-```yaml
-apiVersion: kubeflow.org/v1alpha1
-kind: MXJob
-metadata:
-  clusterName: ""
-  creationTimestamp: 2018-08-10T07:13:39Z
-  generation: 1
-  name: example-dist-job
-  namespace: default
-  resourceVersion: "491499"
-  selfLink: /apis/kubeflow.org/v1alpha1/namespaces/default/mxjobs/example-dist-job
-  uid: e800b1ed-9c6c-11e8-962f-704d7b2c0a63
-spec:
-  RuntimeId: aycw
-  jobMode: dist
-  mxImage: mxjob/mxnet:gpu
-  replicaSpecs:
-  - PsRootPort: 9000
-    mxReplicaType: SCHEDULER
-    replicas: 1
-    template:
-      metadata:
-        creationTimestamp: null
-      spec:
-        containers:
-        - args:
-          - train_mnist.py
-          command:
-          - python
-          image: mxjob/mxnet:gpu
-          name: mxnet
-          resources: {}
-          workingDir: /incubator-mxnet/example/image-classification
-        restartPolicy: OnFailure
-  - PsRootPort: 9091
-    mxReplicaType: SERVER
-    replicas: 1
-    template:
-      metadata:
-        creationTimestamp: null
-      spec:
-        containers:
-        - args:
-          - train_mnist.py
-          command:
-          - python
-          image: mxjob/mxnet:gpu
-          name: mxnet
-          resources: {}
-          workingDir: /incubator-mxnet/example/image-classification
-        restartPolicy: OnFailure
-  - PsRootPort: 9091
-    mxReplicaType: WORKER
-    replicas: 1
-    template:
-      metadata:
-        creationTimestamp: null
-      spec:
-        containers:
-        - args:
-          - train_mnist.py
-          - --num-epochs=10
-          - --num-layers=2
-          - --kv-store=dist_device_sync
-          command:
-          - python
-          image: mxjob/mxnet:gpu
-          name: mxnet
-          resources: {}
-          workingDir: /incubator-mxnet/example/image-classification
-        restartPolicy: OnFailure
-  terminationPolicy:
-    chief:
-      replicaIndex: 0
-      replicaName: SCHEDULER
-status:
-  phase: Running
-  reason: ""
-  replicaStatuses:
-  - ReplicasStates:
-      Running: 1
-    mx_replica_type: SCHEDULER
-    state: Running
-  - ReplicasStates:
-      Running: 1
-    mx_replica_type: SERVER
-    state: Running
-  - ReplicasStates:
-      Running: 1
-    mx_replica_type: WORKER
-    state: Running
-  state: Running
-
-
+```shell
+$ ks prototype use io.ksonnet.pkg.mxnet-operator mxnet-operator \
+  --name YOUR_NAME_HERE
 ```
 
+#### Parameters
+
+The available options to pass prototype are:
+
+* `--name=<name>`: Name to give to each of the components [string]
+* `--image=<image>`: The image for the MXNet Operator [string]
+
+### io.ksonnet.pkg.mxnet-job
+
+A MXNet job.
+
+#### Example
+
+```shell
+$ ks prototype use io.ksonnet.pkg.mxnet-job mxnet-job \
+  --name YOUR_NAME_HERE
+```
+
+#### Parameters
+
+The available options to pass prototype are:
+
+* `--name=<name>`: Name to give to each of the components [string]
+* `--image=<image>`: The image to user for the job [string]
+* `--command=<command>`: Command to pass to the job [string]
+* `--args=<args>`: Comma separated list of arguments to pass to the job [string]
+* `--numServers=<replicas>`: Total number of replicas for the servers; default to 1 [number]
+* `--numWorkers=<replicas>`: Total number of replicas for the workers; default to 1 [number]
+* `--numGpus=<gpus>`: Total number of GPUs per worker replica; default to 1 [number]

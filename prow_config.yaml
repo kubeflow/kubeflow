@@ -26,10 +26,10 @@ workflows:
     params:
       installIstio: true
       workflowName: deployapp-istio
-  # kfctl test runs tests on gke using the new kfctl go binary
+  # kfctl test runs tests on gke using the new kfctl go binary and IAP
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_go_test
-    name: kfctl-go
+    name: kfctl-go-iap
     job_types:
       - presubmit
       - postsubmit
@@ -43,6 +43,64 @@ workflows:
       platform: gke
       gkeApiVersion: v1
       workflowName: kfctl-go
+      useBasicAuth: false
+      useIstio: false
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: kfctl_go_test
+    name: kfctl-go-iap-istio
+    job_types:
+      - presubmit
+      - postsubmit
+      - periodic
+    include_dirs:
+      - bootstrap/*
+      - deployment/*
+      - kubeflow/*
+      - testing/*
+    params:
+      platform: gke
+      gkeApiVersion: v1
+      workflowName: kfctl-go
+      useBasicAuth: false
+      useIstio: true
+  # Run basic auth test as part of every periodic and postsubmit run. 
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: kfctl_go_test
+    name: kfctl-go-basic-auth
+    job_types:
+      - postsubmit
+      - periodic
+    include_dirs:
+      - bootstrap/*
+      - deployment/*
+      - kubeflow/*
+      - testing/*
+    params:
+      platform: gke
+      gkeApiVersion: v1
+      workflowName: kfctl-go
+      useBasicAuth: true  
+      useIstio: false
+  # Only run  kfctl presubmit test with basic auth if
+  # files related to basic auth are modified.
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: kfctl_go_test
+    name: kfctl-go-basic-auth
+    job_types:
+      - presubmit
+    include_dirs:
+      # If kfctl is modified make sure basic auth still works
+      - bootstrap/*
+      - kubeflow/kubeflow/common/basic-auth.libsonnet
+      - kubeflow/kubeflow/common/prototypes/basic-auth.jsonnet
+      - testing/kfctl/*
+      - testing/workflows/kfctl_go_test.jsonnet
+    params:
+      platform: gke
+      gkeApiVersion: v1
+      workflowName: kfctl-go
+      useBasicAuth: true
+      useIstio: false
   # kfctl test runs tests on gke.
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_test

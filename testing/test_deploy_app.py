@@ -145,7 +145,6 @@ def prepare_request_data(args, deployment):
       "Token": access_token,
       "Zone": getZone(args, deployment)
   }
-  logging.info("request data: %s", request_data)
   return request_data
 
 
@@ -309,7 +308,7 @@ def check_deploy_status(args, deployments):
 
   for deployment in success_deploy:
     try:
-      ssl_local_dir = os.path.join(SSL_DIR, deployment)
+      ssl_local_dir = os.path.join(SSL_DIR, args.project, deployment)
       try:
         os.makedirs(ssl_local_dir)
       except OSError as exc:  # Python >2.5
@@ -405,15 +404,10 @@ def clean_up_resource(args, deployments):
     bool: True if cleanup is done
   """
   logging.info(
-      "Clean up project resource (source repo, backend service and deployment)")
+      "Clean up project resource (backend service and deployment)")
 
-  # Delete source repo
-  sr_cmd = 'gcloud -q source repos delete %s-kubeflow-config --project=%s' % (
-      args.project, args.project)
-  try:
-    util_run(sr_cmd.split(' '), cwd=FILE_PATH)
-  except Exception as e:
-    logging.warning(e)
+  # Will reuse source repo for continuous tests
+  # Within 7 days after repo deleted, source repo won't allow recreation with same name
 
   # Delete deployment
   credentials = GoogleCredentials.get_application_default()
@@ -440,6 +434,8 @@ def clean_up_resource(args, deployments):
     except Exception:
       logging.info("Failed listing current deployments, retry in 10 seconds")
 
+  # Delete forwarding-rules
+  delete_gcloud_resource(args, 'forwarding-rules', dlt_params=['--global'])
   # Delete target-http-proxies
   delete_gcloud_resource(args, 'target-http-proxies')
   # Delete target-http-proxies

@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	"io/ioutil"
@@ -64,7 +65,10 @@ func (dockerfordesktop *DockerForDesktop) generate() error {
 	}
 	usr, err := user.Current()
 	if err != nil {
-		return fmt.Errorf("Could not get current user; error %v", err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Could not get current user; error %v", err),
+		}
 	}
 	uid := usr.Uid
 	gid := usr.Gid
@@ -111,12 +115,12 @@ func (dockerfordesktop *DockerForDesktop) Generate(resources kftypes.ResourceEnu
 	case kftypes.PLATFORM:
 		generateErr := dockerfordesktop.generate()
 		if generateErr != nil {
-			return fmt.Errorf("dockerfordesktop generate failed Error: %v", generateErr)
+			return generateErr
 		}
 	}
 	createConfigErr := dockerfordesktop.writeConfigFile()
 	if createConfigErr != nil {
-		return fmt.Errorf("cannot create config file app.yaml in %v", dockerfordesktop.KfDef.Spec.AppDir)
+		return createConfigErr
 	}
 	return nil
 }
@@ -128,12 +132,18 @@ func (dockerfordesktop *DockerForDesktop) Init(resources kftypes.ResourceEnum) e
 func (dockerfordesktop *DockerForDesktop) writeConfigFile() error {
 	buf, bufErr := yaml.Marshal(dockerfordesktop.KfDef)
 	if bufErr != nil {
-		return bufErr
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("cannot marshal config file: %v", bufErr),
+		}
 	}
 	cfgFilePath := filepath.Join(dockerfordesktop.KfDef.Spec.AppDir, kftypes.KfConfigFile)
 	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
 	if cfgFilePathErr != nil {
-		return cfgFilePathErr
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("cannot write config file: %v", cfgFilePathErr),
+		}
 	}
 	return nil
 }

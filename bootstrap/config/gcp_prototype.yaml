@@ -2,32 +2,36 @@
 # App only apply if on GKE
 defaultApp:
   components:
-  - name: metacontroller
-    prototype: metacontroller
   - name: ambassador
     prototype: ambassador
-  - name: centraldashboard
-    prototype: centraldashboard
-  - name: tf-job-operator
-    prototype: tf-job-operator
-  - name: cloud-endpoints
-    prototype: cloud-endpoints
-  - name: cert-manager
-    prototype: cert-manager
-  - name: iap-ingress
-    prototype: iap-ingress
-  - name: pytorch-operator
-    prototype: pytorch-operator
   - name: argo
     prototype: argo
-  - name: katib
-    prototype: katib
-  - name: pipeline
-    prototype: pipeline
+  - name: centraldashboard
+    prototype: centraldashboard
+  - name: cert-manager
+    prototype: cert-manager
+  - name: cloud-endpoints
+    prototype: cloud-endpoints
+  - name: gcp-credentials-admission-webhook
+    prototype: gcp-credentials-admission-webhook
+  - name: gpu-driver
+    prototype: gpu-driver
+  - name: iap-ingress
+    prototype: iap-ingress
   - name: jupyter-web-app
     prototype: jupyter-web-app
+  - name: katib
+    prototype: katib
+  - name: metacontroller
+    prototype: metacontroller
   - name: notebook-controller
     prototype: notebook-controller
+  - name: pipeline
+    prototype: pipeline
+  - name: pytorch-operator
+    prototype: pytorch-operator
+  - name: tf-job-operator
+    prototype: tf-job-operator
   parameters:
   - component: cloud-endpoints
     name: secretName

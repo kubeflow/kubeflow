@@ -125,7 +125,7 @@ RUN pip install --upgrade pip==19.0.1 && \
     jupyterhub \
     jupyterlab \
     xgboost \
-    git+https://github.com/kubeflow/fairing@7f7a66687ceab3ed2838ad29e3ff4b04afe351ab \
+    git+https://github.com/kubeflow/fairing@a9bb9d5cc1c9f1d75efa31198ddbdccfe176b7bf \
     # Kubeflow pipeline SDK
     ${PIPELINE_SDK_PACKAGE} \
     # Cleanup
@@ -155,6 +155,7 @@ RUN docker-credential-gcr configure-docker && chown jovyan:users $HOME/.docker/c
 
 # Configure container startup
 EXPOSE 8888
+USER jovyan
 ENTRYPOINT ["tini", "--"]
 CMD ["sh","-c", "jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"]
 

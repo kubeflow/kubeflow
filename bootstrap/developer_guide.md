@@ -3,38 +3,43 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Developer guide for bootstrap](#developer-guide-for-bootstrap)
-  - [Building bootstrapper locally](#building-bootstrapper-locally)
-    - [Prerequisites](#prerequisites)
-    - [Makefile targets](#makefile-targets)
-      - [`make build-local`](#make-build-local)
-      - [`make build`](#make-build)
-      - [`make push`](#make-push)
-      - [`make push-latest`](#make-push-latest)
-      - [`make static, make plugins`](#make-static-make-plugins)
+  - [Prerequisites](#prerequisites)
+  - [Setting up the build environment](#setting-up-the-build-environment)
+  - [Building kfctl](#building-kfctl)<br>
+        - [`make build-kfctl`](#make-build-kfctl)<br>
+        - [`make install`](#make-install)<br>
+        - [`make build-kftl-container`](#make-build-kftl-container)<br>
+        - [`make push-kftl-container`](#make-push-kftl-container)<br>
+        - [`make push-kftl-container-latest`](#make-push-kftl-container-latest)<br>
+        - [`make run-kfctl-container`](#make-run-kfctl-container)<br>
+        - [`make test-init`](#make-test-init)<br>
+  - [Building bootstrap](#building-bootstrap)<br>
+        - [`make build-bootstrap`](#make-build-bootstrap)<br>
+        - [`make build`](#make-build)<br>
+        - [`make push`](#make-push)<br>
+        - [`make push-latest`](#make-push-latest)<br>
+        - [`make static, make plugins`](#make-static-make-plugins)<br>
   - [How to run bootstrapper with Click-to-deploy app locally](#how-to-run-bootstrapper-with-click-to-deploy-app-locally)
+  - [Releasing kfctl](#releasing-kfctl)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# Developer guide for bootstrap
+# Developer guide
 
-## Building bootstrapper locally
+This guide covers to binaries
 
-Create a symbolic link inside your GOPATH to the location you checked out the code
+1. kfctl
+1. bootstrap
 
-```sh
-mkdir -p ${GOPATH}/src/github.com/kubeflow
-ln -sf ${GIT_KUBEFLOW} ${GOPATH}/src/github.com/kubeflow/kubeflow
-```
+bootstrap is a legacy binary that is being replaced by kfctl see [#2870](https://github.com/kubeflow/kubeflow/issues/2870).
 
-* GIT_KUBEFLOW should be the location where you checked out https://github.com/kubeflow/kubeflow
+## Prerequisites
 
-### Prerequisites
-
-golang to 1.11.5
+golang to 1.12
 
 ```sh
 $ ☞  go version
-go version go1.11.5 darwin/amd64
+go version go1.12 darwin/amd64
 ```
 
 On mac osx you can run
@@ -43,37 +48,214 @@ On mac osx you can run
 brew upgrade golang
 ```
 
-golang-1.11.5 uses go.mod, go.sum files which include dependencies.
-To install a new dependency use `go get <dependency>`.
-golang-1.11.5 no longer creates a vendor directory.
+On linux you can install the [download](https://golang.org/dl/) and follow the [installation directions](https://golang.org/doc/install).
+
+golang-1.12 uses the golang module framework. See [golang Modules](https://github.com/golang/go/wiki/Modules).
 You should add the environment variable `GO111MODULE=on` to your shell init file
 
-### Makefile targets
+Normally go will build a dependency list in the go.mod file, installing 
+a dependency explicitly is done by running `go get <dependency>`. 
+See the [use case](https://github.com/golang/go/wiki/Modules#why-am-i-getting-an-error-cannot-find-module-providing-package-foo) in the golang Modules Wiki.
+golang-1.12 no longer creates a vendor directory.
+
+## Setting up the build environment
+
+Download the kubeflow repo by running
+
+```sh
+git clone git@github.com:kubeflow/kubeflow.git
+```
+
+or
+
+```sh
+git clone https://github.com:kubeflow/kubeflow .
+```
+
+Create a symbolic link inside your GOPATH to the location you checked out the code
+
+```sh
+mkdir -p ${GOPATH}/src/github.com/kubeflow
+ln -sf ${GIT_KUBEFLOW} ${GOPATH}/src/github.com/kubeflow/kubeflow
+```
+
+* GIT_KUBEFLOW should be the location where you checked out https://github.com/kubeflow/kubeflow. GOPATH is typically $HOME/go.
+
+
+## Building kfctl
+
+##### `make build-kfctl`
+```sh
+cd $GIT_KUBEFLOW/bootstrap
+make build-kfctl
+```
+
+* This will create `bin/kfctl` with full debug information
+
+* If you get an error about missing files in `/tmp/v2`, you are hitting [#2790](https://github.com/kubeflow/kubeflow/issues/2790) and need to delete `/tmp/v2` and rerun the build.
+
+
+#### Build and test in a container
+
+This section describes how to build and test kfctl in a docker container. This ensures a reproducible build environment.
+This is also useful for reproducing what happens in our CI system.
+
+Create the docker image used to build and test `kfctl`.
 
 ```
-build             debug             push
-build-local       debug-latest      push-latest
-cleanup
+ GCLOUD_PROJECT=cloud-ml-dev make build-builder-container
 ```
 
-#### `make build-local`
-Creates bin/bootstrapper with full debug information
+Alternatively to build using GCB
 
-#### `make build`
-Depends on `make build-local`. Creates a docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
+```
+ GCLOUD_PROJECT=cloud-ml-dev make build-builder-container
+```
 
-#### `make push`
-Depends on `make build`. Pushes the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
+We can now start an interactive shell inside the docker container
 
-#### `make push-latest`
-Depends on `make push`. Tags the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG) with latest.
+```
+IMAGE=$(docker images --format '{{ .Repository }}:{{ .Tag }}' | awk 'FNR==1{print $0}')
+REPO_ROOT=$(git rev-parse --show-toplevel)
+mkdir -p ${REPO_ROOT}/bootstrap/bin/tmp
+docker run -it \
+  -v ${REPO_ROOT}:/go/src/github.com/kubeflow/kubeflow \
+  -v ${REPO_ROOT}/bootstrap/bin/tmp:/tmp \
+  ${IMAGE} \
+  /bin/bash
+docker run  -v ${REPO_ROOT}:/go/src/github.com/kubeflow/kubeflow  \
+  -v ${REPO_ROOT}/bootstrap/bin/tmp:/tmp \
+  -it $IMAGE \
+  /bin/bash -c "cd /go/src/github.com/kubeflow/kubeflow/bootstrap;exec /bin/bash"  
+```
+
+Then to build it run the following inside the container
+
+```
+make build-kfctl
+```
+
+To run the unittests run the following inside the container
+
+```
+make test
+```
+
+**Note** Since this is running as root files written to bin/... will be owned by root.
+
+##### `make install`
+
+```sh
+make install #depends on build-kfctl
+```
+
+* Installs kfctl in /usr/local/bin
+
+
+##### `make build-kftl-container`
+
+```sh
+make build-kfctl-container
+```
+
+* creates a docker container
+
+##### `make push-kftl-container`
+
+```sh
+make push-kfctl-container
+```
+
+* pushes the docker container to $IMG_KFCTL
+
+##### `make push-kftl-container-latest`
+
+```sh
+make push-kfctl-container-latest
+```
+
+* pushes the docker container to $IMG_KFCTL and tags it with kfctl:latest
+
+##### `make run-kfctl-container`
+
+```sh
+make run-kfctl-container
+```
+
+* runs the local docker container. Opens a shell in the container
+
+> how to deploy gcp from within the container<br>
+
+Run 
+
+```sh
+KFCTL_TARGET=kfctl_base MOUNT_KUBE='' make run-kfctl-container
+```
+
+The above command will open a shell in the container. Then run the following:
+
+```
+$ cp bin/kfctl /usr/local/bin
+$ cd /opt/kubeflow
+$ kfctl init gcp-test --platform gcp --project <PROJECT> -V
+$ cd gcp-test
+$ kfctl generate all -V
+$ CLIENT_ID=XXX CLIENT_SECRET=YYY kfctl apply all -V
+```
+
+
+##### `make test-init`
+
+```sh
+make test-init
+```
+
+* will run `kfctl init` for gcp, minikube and no platform
+
+
+## kfctl unit tests
+
+This section provides information about how we continually run the go unittests for kfctl.
+
+We create a suitable docker image for building and testing the code under Prow
+
+```
+GCLOUD_PROJECT=kubeflow-ci make build-builder-container-gcb
+```
+
+This image is then set [unit_tests.jsonnet](https://github.com/kubeflow/kubeflow/blob/master/testing/workflows/components/unit_tests.jsonnet).
+
+
+
+## Building bootstrap 
+
+##### `make build-bootstrap`
+
+```sh
+cd $GIT_KUBEFLOW/bootstrap
+make build-bootstrap
+```
+
+* Creates bin/bootstrapper with full debug information
+
+##### `make build`
+
+* Depends on `make build-local`. Creates a docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
+
+##### `make push`
+
+* Depends on `make build`. Pushes the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
+
+##### `make push-latest`
+
+* Depends on `make push`. Tags the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG) with latest.
 Note: To use a different gcloud project than kubeflow-images-public.
 ```sh
 export GCLOUD_PROJECT=mygcloudproject
 make push
 ```
 
-#### `make static, make plugins`
+##### `make static, make plugins`
 These targets are for kfctl and allows the goland debugger work by disabling plugins.
 This is a problem in the go compiler which should be fixed in 1.12.
 See the [kfctl/README.md](./cmd/kfctl) for additional information.
@@ -98,3 +280,6 @@ cd ../components/gcp-click-to-deploy
 npm start
 ```
 
+## Releasing kfctl
+
+See [release guide](https://github.com/kubeflow/kubeflow/blob/master/docs_dev/releasing.md)

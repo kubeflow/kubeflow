@@ -37,13 +37,11 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.2.0 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/golang/groupcache v0.0.0-20181024230925-c65c006176ff // indirect
 	github.com/google/go-github v17.0.0+incompatible // indirect
 	github.com/google/go-jsonnet v0.12.1 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/googleapis/gax-go v2.0.2+incompatible // indirect
 	github.com/gophercloud/gophercloud v0.0.0-20190116032514-258a61a0642d // indirect
-	github.com/gregjones/httpcache v0.0.0-20181110185634-c63ab54fda8f // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/hashicorp/go-getter v1.0.2
 	github.com/hashicorp/golang-lru v0.5.0 // indirect
@@ -51,6 +49,7 @@ require (
 	github.com/huandu/xstrings v1.2.0 // indirect
 	github.com/imdario/mergo v0.3.6
 	github.com/jonboulle/clockwork v0.1.0 // indirect
+	github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024 // indirect
 	github.com/ksonnet/ksonnet v0.13.1
 	github.com/ksonnet/ksonnet-lib v0.1.12 // indirect
 	github.com/mitchellh/go-homedir v1.0.0
@@ -70,9 +69,8 @@ require (
 	github.com/spf13/viper v1.3.1
 	go.opencensus.io v0.18.1-0.20181204023538-aab39bd6a98b // indirect
 	golang.org/x/crypto v0.0.0
-	golang.org/x/net v0.0.0-20190110200230-915654e7eabc
+	golang.org/x/net v0.0.0-20190206173232-65e2d4e15006
 	golang.org/x/oauth2 v0.0.0-20190115181402-5dab4167f31c
-	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
 	google.golang.org/api v0.1.0
 	google.golang.org/genproto v0.0.0-20190111180523-db91494dd46c
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
@@ -91,8 +89,8 @@ require (
 	k8s.io/helm v2.13.0+incompatible // indirect
 	k8s.io/kube-openapi v0.0.0-20190115222348-ced9eb3070a5 // indirect
 	k8s.io/kubernetes v0.0.0-00010101000000-000000000000 // indirect
-	k8s.io/utils v0.0.0-20190308190857-21c4ce38f2a7 // indirect
-	sigs.k8s.io/controller-runtime v0.1.1
+	sigs.k8s.io/application/v2 v2.0.0
+	sigs.k8s.io/controller-runtime v0.0.0-00010101000000-000000000000
 	sigs.k8s.io/controller-runtime/v2 v2.0.0
 	sigs.k8s.io/kustomize/v2 v2.0.0-00010101000000-000000000000
 	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect
@@ -104,6 +102,7 @@ replace (
 	github.com/go-openapi/jsonreference => github.com/go-openapi/jsonreference v0.17.0
 	github.com/go-openapi/spec => github.com/go-openapi/spec v0.18.0
 	github.com/go-openapi/swag => github.com/go-openapi/swag v0.17.0
+	github.com/kubeflow/kubeflow/bootstrap v0.0.0 => ./
 	github.com/mitchellh/go-homedir => github.com/mitchellh/go-homedir v1.0.0
 	github.com/russross/blackfriday => github.com/russross/blackfriday v1.5.2-0.20180428102519-11635eb403ff // indirect
 	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
@@ -119,6 +118,7 @@ replace (
 	k8s.io/client-go => k8s.io/client-go v7.0.0+incompatible
 	k8s.io/client-go/v2 => /tmp/v2/k8s.io/client-go/v2
 	k8s.io/kubernetes => k8s.io/kubernetes v1.10.4
+	sigs.k8s.io/application/v2 => /tmp/v2/sigs.k8s.io/application/v2
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.1.1
 	sigs.k8s.io/controller-runtime/v2 => /tmp/v2/sigs.k8s.io/controller-runtime/v2
 	sigs.k8s.io/kustomize/v2 => /tmp/v2/sigs.k8s.io/kustomize/v2
