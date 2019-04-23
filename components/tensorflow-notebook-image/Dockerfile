@@ -55,6 +55,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
   vim \
   wget \
   zip \
+  emacs \
   && apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
