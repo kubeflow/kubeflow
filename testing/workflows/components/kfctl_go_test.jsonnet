@@ -229,7 +229,7 @@ local dagTemplates = [
         "--log-cli-level=info",        
         "--junitxml=" + artifactsDir + "/junit_kfctl-build-test" + nameSuffix + ".xml",
         // Test suite name needs to be unique based on parameters
-        "-o", "junit_suite_name=test_kgctl_go_deploy_" + nameSuffix, 
+        "-o", "junit_suite_name=test_kfctl_go_deploy_" + nameSuffix, 
         "--app_path=" + appDir,
       ],
       working_dir=srcDir+ "/testing/kfctl",
