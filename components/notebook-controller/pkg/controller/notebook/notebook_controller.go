@@ -18,6 +18,7 @@ package notebook
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 
@@ -27,6 +28,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -368,4 +370,56 @@ func generateService(instance *v1alpha1.Notebook) *corev1.Service {
 		},
 	}
 	return svc
+}
+
+func generateVirtualService(instance *v1alpha1.Notebook) (*unstructured.Unstructured, error) {
+	prefix := fmt.Sprintf("/notebook/%s/%s", instance.Namespace, instance.Name)
+	rewrite := fmt.Sprintf("/notebook/%s/%s", instance.Namespace, instance.Name)
+	// TODO(gabrielwen): Make clusterDomain an option.
+	service := fmt.Sprintf("%s.%s.svc.cluster.local", instance.Name, instance.Namespace)
+	port := DefaultContainerPort
+	templateJson := fmt.Sprintf(`
+	"hosts": [
+	  "*"
+	],
+	"gateways": [
+	  "kubeflow-gateway"
+	],
+	"http": [
+	  {
+	    "match": [
+	      {
+		"uri": {
+		  "prefix": "%s"
+		}
+	      }
+	    ],
+	    "rewrite": {
+	      "uri": "%s"
+	    },
+	    "route": [
+	      {
+	        "destination": {
+		  "host": "%s",
+		  "port": {
+		    "number": %d
+		  }
+		}
+	      }
+	    ],
+	    "timeout": "300s"
+          }
+	]
+	`, prefix, rewrite, service, port)
+
+	vsvc := &unstructured.Unstructured{}
+	vsvc.SetAPIVersion("networking.istio.io/v1alpha3")
+	vsvc.SetKind("VirtualService")
+	vsvc.SetName(instance.Name)
+	vsvc.SetNamespace(instance.Namespace)
+	if err := unstructured.SetNestedMap(vsvc.Object, spec, "spec"); err != nil {
+		return nil, err
+	}
+
+	return vsvc, nil
 }
