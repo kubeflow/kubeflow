@@ -225,11 +225,12 @@ local dagTemplates = [
         "-s",
         "--use_basic_auth=" + params.useBasicAuth,
         "--use_istio=" + params.useIstio,
+        "--package_manager=" + params.packageManager,
         // Increase the log level so that info level log statements show up.
         "--log-cli-level=info",        
         "--junitxml=" + artifactsDir + "/junit_kfctl-build-test" + nameSuffix + ".xml",
         // Test suite name needs to be unique based on parameters
-        "-o", "junit_suite_name=test_kgctl_go_deploy_" + nameSuffix, 
+        "-o", "junit_suite_name=test_kfctl_go_deploy_" + nameSuffix, 
         "--app_path=" + appDir,
       ],
       working_dir=srcDir+ "/testing/kfctl",

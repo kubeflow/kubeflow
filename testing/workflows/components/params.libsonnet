@@ -41,6 +41,7 @@
       workflowName: "kfctl-go",
       useBasicAuth: "true",
       useIstio: "false",
+      packageManager: "kustomize"
     },
     click_deploy_test: {
       bucket: "kubeflow-ci_temp",

@@ -27,7 +27,7 @@ def verify_kubeconfig(project, zone, app_path):
     logging.error(msg)
     raise RuntimeError(msg)
 
-def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
+def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, package_manager):
   """Test building and deploying Kubeflow.
 
   Args:
@@ -77,6 +77,9 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
     init_args.append("--use_istio")
   else:
     init_args.append("--use_istio=false")
+
+  if package_manager == "kustomize":
+    init_args.append("--package_manager=kustomize")
 
   version = "master"
   if os.getenv("PULL_NUMBER"):
