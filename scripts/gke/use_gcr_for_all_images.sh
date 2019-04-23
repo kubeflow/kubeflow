@@ -66,6 +66,12 @@ main() {
   if ks component list | awk '{print $1}' | grep -q "^metacontroller$"; then
     ks param set metacontroller image ${registry}/metacontroller:v0.3.0
   fi
+
+    if ks component list | awk '{print $1}' | grep -q "^pipeline$"; then
+    ks param set pipeline mysqlImage ${registry}/minio:RELEASE.2018-02-09T22-40-05Z
+    ks param set minioImage mysqlImage ${registry}/mysql:8.0.3
+  fi
+
 }
 
 parseArgs $*
