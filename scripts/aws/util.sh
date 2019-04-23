@@ -171,6 +171,11 @@ generate_aws_ks_app() {
 
   # Since JupyterHub will be removed evently, we skip authentication for it.
   popd
+
+  # write configuarion in generate phase and user can still configure it.
+  INGRESS_COMPONENT=',\\"aws-alb-ingress-controller\\",\\"istio-ingress\\"'
+  sed -i.bak "/^KUBEFLOW_COMPONENTS/ s/$/$INGRESS_COMPONENT/" ${KUBEFLOW_REPO}/${DEPLOYMENT_NAME}/${ENV_FILE}
+  rm ${KUBEFLOW_REPO}/${DEPLOYMENT_NAME}/${ENV_FILE}.bak
 }
 
 # TODO: Waiting for alb-ingress-controller iam cert integration
@@ -181,8 +186,6 @@ apply_aws_ks() {
   createKsEnv
 
   if [[ -z $DEFAULT_KUBEFLOW_COMPONENTS ]]; then
-    export KUBEFLOW_COMPONENTS+=',"aws-alb-ingress-controller","istio-ingress"'
-    writeEnv
     ks param set application components '['$KUBEFLOW_COMPONENTS']'
   fi
   popd
