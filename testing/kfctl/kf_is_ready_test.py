@@ -11,7 +11,7 @@ import pytest
 from kubeflow.testing import util
 from testing import deploy_utils
 
-def test_kf_is_ready(namespace, use_basic_auth, use_istio):
+def test_kf_is_ready(namespace, use_basic_auth, use_istio, package_manager):
   """Test that Kubeflow was successfully deployed.
 
   Args:

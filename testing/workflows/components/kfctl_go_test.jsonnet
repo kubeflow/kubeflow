@@ -181,12 +181,16 @@ local componentTests = util.kfTests {
 };
 
 // We need to make the XML files and test suite names unique based on the parameters.
-local nameSuffix1 = if util.toBool(params.useBasicAuth) then
+local nameSuffix2 = if util.toBool(params.useBasicAuth) then
   "basic-auth"
   else
   "iap";
-local nameSuffix = if util.toBool(params.useIstio) then
-  nameSuffix1 + "-istio"
+local nameSuffix1 = if util.toBool(params.useIstio) then
+  nameSuffix2 + "-istio"
+  else
+  nameSuffix2;
+local nameSuffix = if util.toBool(params.packageManager) then
+  nameSuffix1 + "-package-manager"
   else
   nameSuffix1;
 
@@ -225,6 +229,7 @@ local dagTemplates = [
         "-s",
         "--use_basic_auth=" + params.useBasicAuth,
         "--use_istio=" + params.useIstio,
+        "--package-manager=" + params.packageManager,
         // Increase the log level so that info level log statements show up.
         "--log-cli-level=info",        
         "--junitxml=" + artifactsDir + "/junit_kfctl-build-test" + nameSuffix + ".xml",
@@ -248,6 +253,7 @@ local dagTemplates = [
         "-s",
         "--use_basic_auth=" + params.useBasicAuth,
         "--use_istio=" + params.useIstio,
+        "--package-manager=" + params.packageManager,
         // Increase the log level so that info level log statements show up.
         "--log-cli-level=info",
         "--junitxml=" + artifactsDir + "/junit_kfctl-is-ready-test-" + nameSuffix + ".xml",

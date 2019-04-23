@@ -81,6 +81,25 @@ workflows:
       workflowName: kfctl-go
       useBasicAuth: true  
       useIstio: false
+  # Run kustomize package manager test
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: kfctl_go_test
+    name: kfctl-go-basic-auth
+    job_types:
+      - postsubmit
+      - periodic
+    include_dirs:
+      - bootstrap/*
+      - deployment/*
+      - kubeflow/*
+      - testing/*
+    params:
+      platform: gke
+      gkeApiVersion: v1
+      workflowName: kfctl-go
+      useBasicAuth: true  
+      useIstio: false
+      packageManager: true
   # Only run  kfctl presubmit test with basic auth if
   # files related to basic auth are modified.
   - app_dir: kubeflow/kubeflow/testing/workflows

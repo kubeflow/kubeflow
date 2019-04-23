@@ -24,6 +24,10 @@ def pytest_addoption(parser):
   parser.addoption(
       "--use_istio", action="store", default="False",
       help="Use istio.")
+  
+  parser.addoption(
+      "--package_manager", action="store", default="False",
+      help="Use ksonnet / kustomize as a package manager.")
 
 @pytest.fixture
 def app_path(request):
@@ -53,6 +57,15 @@ def use_basic_auth(request):
 @pytest.fixture
 def use_istio(request):
   value = request.config.getoption("--use_istio").lower()
+
+  if value in ["t", "true"]:
+    return True
+  else:
+    return False
+
+@pytest.fixture
+def package_manager(request):
+  value = request.config.getoption("--package_manager").lower()
 
   if value in ["t", "true"]:
     return True
