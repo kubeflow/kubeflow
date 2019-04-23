@@ -33,8 +33,6 @@ This guide covers to binaries
 
 bootstrap is a legacy binary that is being replaced by kfctl see [#2870](https://github.com/kubeflow/kubeflow/issues/2870).
 
-
-
 ## Prerequisites
 
 golang to 1.12
@@ -117,6 +115,7 @@ Alternatively to build using GCB
 We can now start an interactive shell inside the docker container
 
 ```
+IMAGE=$(docker images --format '{{ .Repository }}:{{ .Tag }}' | awk 'FNR==1{print $0}')
 REPO_ROOT=$(git rev-parse --show-toplevel)
 mkdir -p ${REPO_ROOT}/bootstrap/bin/tmp
 docker run -it \
@@ -124,6 +123,22 @@ docker run -it \
   -v ${REPO_ROOT}/bootstrap/bin/tmp:/tmp \
   ${IMAGE} \
   /bin/bash
+docker run  -v ${REPO_ROOT}:/go/src/github.com/kubeflow/kubeflow  \
+  -v ${REPO_ROOT}/bootstrap/bin/tmp:/tmp \
+  -it $IMAGE \
+  /bin/bash -c "cd /go/src/github.com/kubeflow/kubeflow/bootstrap;exec /bin/bash"  
+```
+
+Then to build it run the following inside the container
+
+```
+make build-kfctl
+```
+
+To run the unittests run the following inside the container
+
+```
+make test
 ```
 
 **Note** Since this is running as root files written to bin/... will be owned by root.
