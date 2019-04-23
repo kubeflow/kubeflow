@@ -5,7 +5,7 @@
 // @param name string Name to give to each of the components
 // @optionalParam numGpus string 0 Number of gpus to use
 // @optionalParam deployHttpProxy string false Whether to deploy http proxy
-// @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
+// @optionalParam injectIstio string true Whether to inject istio sidecar; should be true or false.
 // @optionalParam enablePrometheus string true Whether to enable prometheus endpoint (requires TF 1.11)
 // @optionalParam modelBasePath string s3://kubeflow-examples-data/mnist The model path
 // @optionalParam modelName string null The model name
