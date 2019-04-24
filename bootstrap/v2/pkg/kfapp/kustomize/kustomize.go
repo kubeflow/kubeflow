@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ghodss/yaml"
+	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
@@ -457,7 +458,7 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 		}()
 		for _, compName := range kustomize.Spec.Components {
 			if compPath, ok := kustomize.componentPathMap[compName]; ok {
-				writeKustomizationFileErr := kustomize.writeKustomizationFile(compPath)
+				writeKustomizationFileErr := kustomize.writeKustomizationFile(compName, compPath)
 				if writeKustomizationFileErr != nil {
 					return writeKustomizationFileErr
 				}
@@ -577,14 +578,52 @@ func (kustomize *kustomize) writeConfigFile() error {
 	return nil
 }
 
+func (kustomize *kustomize) overlayResources(compName string, compPath string) map[string][]string {
+	params := kustomize.Spec.ComponentParams[compName]
+	if params != nil {
+		for _, nv := range params {
+			name := nv.Name
+			if name == "overlays" {
+				
+			}
+		}
+	}
+	overlayResourcesMap := make(map[string][]string)
+	files, err := ioutil.ReadDir(compPath)
+	if err != nil {
+		return overlayResourcesMap
+	}
+	resources := func (overlayPath string) []string {
+		resources := make([]string, 0)
+		files, err := ioutil.ReadDir(compPath)
+		if err != nil {
+			return resources
+		}
+		for _, f := range files {
+			if !f.IsDir() && strings.HasSuffix(f.Name(), ".yaml") {
+				fpath := filepath.Join(overlayPath, f.Name())
+				resources = append(resources, fpath)
+			}
+		}
+		return resources
+	}
+	for _, f := range files {
+		if f.IsDir() {
+			overlayResourcesMap[f.Name()] = resources(path.Join(compPath, f.Name()))
+		}
+	}
+	return overlayResourcesMap
+}
+
 // writeKustomizationFile will write out a top-level kustomization.yaml under the manifests downloaded cache.
 // this file is then used to generate a component under <deployment>/kustomize
-func (kustomize *kustomize) writeKustomizationFile(compPath string) error {
+func (kustomize *kustomize) writeKustomizationFile(compName string, compPath string) error {
 	bases := []string{}
 	comp := path.Join(kustomize.Spec.ManifestsRepo, compPath)
 	compKustomizationFile := filepath.Join(comp, kftypes.KustomizationFile)
 	base := path.Join(kustomize.Spec.ManifestsRepo, compPath, "base")
 	baseKustomizationFile := filepath.Join(base, kftypes.KustomizationFile)
+	overlays := kustomize.overlayResources(compName, compPath)
 	platformOverlay := path.Join(kustomize.Spec.ManifestsRepo, compPath, "overlays", kustomize.Spec.Platform)
 	platformKustomizationFile := filepath.Join(platformOverlay, kftypes.KustomizationFile)
 	if _, err := os.Stat(platformKustomizationFile); err == nil {
@@ -600,9 +639,6 @@ func (kustomize *kustomize) writeKustomizationFile(compPath string) error {
 			APIVersion: types.KustomizationVersion,
 		},
 		Bases: bases,
-		CommonLabels: map[string]string{
-			kftypes.DefaultAppLabel: kustomize.Name,
-		},
 		Namespace: kustomize.Namespace,
 	}
 	buf, bufErr := yaml.Marshal(kustomization)
