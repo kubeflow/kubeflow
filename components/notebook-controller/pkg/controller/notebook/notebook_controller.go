@@ -196,7 +196,10 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	if err := controllerutil.SetControllerReference(instance, service, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
-	virtualService := generateVirtualService(instance)
+	virtualService, err := generateVirtualService(instance)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
 	if err := controllerutil.SetControllerReference(instance, virtualService, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
