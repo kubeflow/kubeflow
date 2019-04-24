@@ -383,6 +383,8 @@ func generateService(instance *v1alpha1.Notebook) *corev1.Service {
 }
 
 func generateVirtualService(instance *v1alpha1.Notebook) (*unstructured.Unstructured, error) {
+	name := instance.Name
+	namespace := instance.Namespace
 	prefix := fmt.Sprintf("/notebook/%s/%s", namespace, name)
 	rewrite := fmt.Sprintf("/notebook/%s/%s", namespace, name)
 	// TODO(gabrielwen): Make clusterDomain an option.
