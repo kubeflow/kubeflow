@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
@@ -407,30 +406,32 @@ func generateVirtualService(instance *v1alpha1.Notebook) (*unstructured.Unstruct
 		return nil, fmt.Errorf("Set .spec.gateways error: %v", err)
 	}
 
-	http := map[string]interface{}{
-		"match": []interface{}{
-			map[string]interface{}{
-				"uri": map[string]interface{}{
-					"prefix": prefix,
+	http := []interface{}{
+		map[string]interface{}{
+			"match": []interface{}{
+				map[string]interface{}{
+					"uri": map[string]interface{}{
+						"prefix": prefix,
+					},
 				},
 			},
-		},
-		"rewrite": map[string]interface{}{
-			"uri": rewrite,
-		},
-		"route": []interface{}{
-			map[string]interface{}{
-				"destination": map[string]interface{}{
-					"host": service,
-				},
-				"port": map[string]interface{}{
-					"number": strconv.Itoa(port),
+			"rewrite": map[string]interface{}{
+				"uri": rewrite,
+			},
+			"route": []interface{}{
+				map[string]interface{}{
+					"destination": map[string]interface{}{
+						"host": service,
+						"port": map[string]interface{}{
+							"number": int64(port),
+						},
+					},
 				},
 			},
+			"timeout": "300s",
 		},
-		"timeout": "300s",
 	}
-	if err := unstructured.SetNestedMap(vsvc.Object, http, "spec", "http"); err != nil {
+	if err := unstructured.SetNestedSlice(vsvc.Object, http, "spec", "http"); err != nil {
 		return nil, fmt.Errorf("Set .spec.http error: %v", err)
 	}
 
