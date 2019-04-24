@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
@@ -195,6 +196,10 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	if err := controllerutil.SetControllerReference(instance, service, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
+	virtualService := generateVirtualService(instance)
+	if err := controllerutil.SetControllerReference(instance, virtualService, r.scheme); err != nil {
+		return reconcile.Result{}, err
+	}
 	// Check if the Service already exists
 	foundService := &corev1.Service{}
 	justCreated = false
@@ -203,6 +208,11 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		log.Info("Creating Service", "namespace", service.Namespace, "name", service.Name)
 		err = r.Create(context.TODO(), service)
 		justCreated = true
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		log.Info("Creating virtual service", "namespace", service.Namespace, "name", service.Name)
+		err = r.Create(context.TODO(), virtualService)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -373,53 +383,52 @@ func generateService(instance *v1alpha1.Notebook) *corev1.Service {
 }
 
 func generateVirtualService(instance *v1alpha1.Notebook) (*unstructured.Unstructured, error) {
-	prefix := fmt.Sprintf("/notebook/%s/%s", instance.Namespace, instance.Name)
-	rewrite := fmt.Sprintf("/notebook/%s/%s", instance.Namespace, instance.Name)
+	prefix := fmt.Sprintf("/notebook/%s/%s", namespace, name)
+	rewrite := fmt.Sprintf("/notebook/%s/%s", namespace, name)
 	// TODO(gabrielwen): Make clusterDomain an option.
-	service := fmt.Sprintf("%s.%s.svc.cluster.local", instance.Name, instance.Namespace)
+	service := fmt.Sprintf("%s.%s.svc.cluster.local", name, namespace)
 	port := DefaultContainerPort
-	templateJson := fmt.Sprintf(`
-	"hosts": [
-	  "*"
-	],
-	"gateways": [
-	  "kubeflow-gateway"
-	],
-	"http": [
-	  {
-	    "match": [
-	      {
-		"uri": {
-		  "prefix": "%s"
-		}
-	      }
-	    ],
-	    "rewrite": {
-	      "uri": "%s"
-	    },
-	    "route": [
-	      {
-	        "destination": {
-		  "host": "%s",
-		  "port": {
-		    "number": %d
-		  }
-		}
-	      }
-	    ],
-	    "timeout": "300s"
-          }
-	]
-	`, prefix, rewrite, service, port)
 
 	vsvc := &unstructured.Unstructured{}
 	vsvc.SetAPIVersion("networking.istio.io/v1alpha3")
 	vsvc.SetKind("VirtualService")
-	vsvc.SetName(instance.Name)
-	vsvc.SetNamespace(instance.Namespace)
-	if err := unstructured.SetNestedMap(vsvc.Object, spec, "spec"); err != nil {
-		return nil, err
+	vsvc.SetName(name)
+	vsvc.SetNamespace(namespace)
+	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"*"}, "spec", "hosts"); err != nil {
+		return nil, fmt.Errorf("Set .spec.hosts error: %v", err)
+	}
+	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"kubeflow-gateway"},
+		"spec", "gateways"); err != nil {
+		return nil, fmt.Errorf("Set .spec.gateways error: %v", err)
+	}
+
+	http := map[string]interface{}{
+		"match": []interface{}{
+			map[string]interface{}{
+				"uri": map[string]interface{}{
+					"prefix": prefix,
+				},
+			},
+		},
+		"rewrite": map[string]interface{}{
+			"uri": rewrite,
+		},
+		"route": []interface{}{
+			map[string]interface{}{
+				"destination": map[string]interface{}{
+					"host": service,
+				},
+				"port": map[string]interface{}{
+					"number": strconv.Itoa(port),
+				},
+			},
+		},
+		"timeout": "300s",
+	}
+	if err := unstructured.SetNestedMap(vsvc.Object, http, "spec", "http"); err != nil {
+		return nil, fmt.Errorf("Set .spec.http error: %v", err)
 	}
 
 	return vsvc, nil
+
 }
