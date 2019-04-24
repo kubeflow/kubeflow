@@ -1,5 +1,3 @@
-iron-ajax(auto, url='/api/platform-info', handle-as='json',
-    on-response='_onPlatformInfoResponse')
 paper-card#Getting-Started(heading='Getting Started')
     template(is='dom-repeat', items='[[gettingStartedItems]]')
         a.heading(href$='[[item.link]]', tabindex='-1',
@@ -11,21 +9,17 @@ paper-card#Getting-Started(heading='Getting Started')
                     aside(secondary) [[item.desc]]
 paper-card.thin#Quick-Links(heading='Quick Links')
     template(is='dom-repeat', items='[[quickLinks]]')
-        article.link
-            paper-item-body [[item.text]]
-            a(href$='[[item.link]]', tabindex='-1', target='_blank')
-                paper-icon-button.button(icon='arrow-forward', alt='[[item.text]]')
-    article.link.more-coming
-        paper-item-body More coming soon
-        paper-icon-button.button(icon='arrow-forward', disabled)
-paper-card#Platform-Links(heading='Platform Links')
-    template(is='dom-if', if='[[equals(platformType, "aws")]]')
-        article.link
-            paper-item-body AWS Link 1
-    template(is='dom-if', if='[[equals(platformType, "azure")]]')
-        article.link
-            paper-item-body Azure Link 1
-    template(is='dom-if', if='[[equals(platformType, "gce")]]')
-        article.link
-            paper-item-body GCP Link 1
-            paper-item-body GCP Link 2
+        a.link(href$='[[item.link]]', tabindex='-1', target='_blank')
+            paper-icon-item [[item.text]]
+                paper-icon-button.button(icon='arrow-forward',
+                    slot='item-icon', alt='[[item.text]]')
+    template(is='dom-if', if='[[platformLinks]]')
+        section#Platform-Links
+            header [[ platformName ]] Information
+            template(is='dom-repeat', items='[[platformLinks]]')
+                a.link(href$='[[item.link]]', tabindex='-1', target='_blank')
+                    paper-icon-item
+                        aside [[item.text]]
+                        paper-icon-button.button(icon='arrow-forward',
+                            slot='item-icon', alt='[[item.text]]')
+

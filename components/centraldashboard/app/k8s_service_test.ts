@@ -5,14 +5,22 @@ import {KubernetesService} from './k8s_service';
 describe('KubernetesService', () => {
   let mockKubeConfig: jasmine.SpyObj<k8s.KubeConfig>;
   let mockApiClient: jasmine.SpyObj<k8s.Core_v1Api>;
+  let mockCustomApiClient: jasmine.SpyObj<k8s.Custom_objectsApi>;
   let k8sService: KubernetesService;
 
   beforeEach(() => {
-    mockKubeConfig = jasmine.createSpyObj<k8s.KubeConfig>(
-        'mockKubeConfig', ['loadFromDefault', 'makeApiClient']);
+    mockKubeConfig = jasmine.createSpyObj<k8s.KubeConfig>('mockKubeConfig', [
+      'loadFromDefault', 'getContextObject', 'getCurrentContext',
+      'makeApiClient'
+    ]);
     mockApiClient = jasmine.createSpyObj<k8s.Core_v1Api>(
         'mockApiClient', ['listNamespace', 'listNamespacedEvent', 'listNode']);
-    mockKubeConfig.makeApiClient.and.returnValue(mockApiClient);
+    mockCustomApiClient = jasmine.createSpyObj<k8s.Custom_objectsApi>(
+        'mockCustomApiClient', ['listNamespacedCustomObject']);
+    mockKubeConfig.makeApiClient.withArgs(k8s.Core_v1Api)
+        .and.returnValue(mockApiClient);
+    mockKubeConfig.makeApiClient.withArgs(k8s.Custom_objectsApi)
+        .and.returnValue(mockCustomApiClient);
 
     k8sService = new KubernetesService(mockKubeConfig);
   });
@@ -158,8 +166,8 @@ describe('KubernetesService', () => {
   });
 
   describe('Get Platform Info', () => {
-    it('Returns a known provider', async () => {
-      const response = {
+    it('Returns a known provider and version', async () => {
+      const listNodeResponse = {
         kind: 'List',
         apiVersion: 'v1',
         metadata: {
@@ -186,10 +194,25 @@ describe('KubernetesService', () => {
           }
         ]
       };
-      mockApiClient.listNode.and.returnValue(Promise.resolve({body: response}));
+      const listApplicationsResponse = {
+        items: [{
+          apiVersion: 'app.k8s.io/v1beta1',
+          kind: 'Application',
+          spec: {descriptor: {version: '1.0.0'}}
+        }]
+      };
+      mockApiClient.listNode.and.returnValue(
+          Promise.resolve({body: listNodeResponse}));
+      mockCustomApiClient.listNamespacedCustomObject.and.returnValue(
+          Promise.resolve({body: listApplicationsResponse}));
 
       const platformInfo = await k8sService.getPlatformInfo();
-      expect(platformInfo).toEqual({provider: 'gce'});
+      expect(platformInfo).toEqual({
+        provider:
+            'gce://kubeflow-dev/us-east1-d/gke-kubeflow-default-pool-59885f2c-08tm',
+        providerName: 'gce',
+        kubeflowVersion: '1.0.0'
+      });
     });
 
     it('Returns other when no providerID is listed', async () => {
@@ -212,18 +235,83 @@ describe('KubernetesService', () => {
           }
         ]
       };
+      const listApplicationsResponse = {
+        items: [{
+          apiVersion: 'app.k8s.io/v1beta1',
+          kind: 'Application',
+          spec: {descriptor: {version: '1.0.0'}}
+        }]
+      };
       mockApiClient.listNode.and.returnValue(Promise.resolve({body: response}));
+      mockCustomApiClient.listNamespacedCustomObject.and.returnValue(
+          Promise.resolve({body: listApplicationsResponse}));
 
       const platformInfo = await k8sService.getPlatformInfo();
-      expect(platformInfo).toEqual({provider: 'other'});
+      expect(platformInfo).toEqual({
+        provider: 'other://',
+        providerName: 'other',
+        kubeflowVersion: '1.0.0'
+      });
     });
 
-    it('Returns other on error', async () => {
+    it('Returns unknown when no Application resource is found', async () => {
+      const listNodeResponse = {
+        kind: 'List',
+        apiVersion: 'v1',
+        metadata: {
+          selfLink: '',
+        },
+        items: [
+          {
+            apiVersion: 'v1',
+            kind: 'Node',
+            spec: {
+              podCIDR: '10.44.1.0/24',
+              providerID:
+                  'gce://kubeflow-dev/us-east1-d/gke-kubeflow-default-pool-59885f2c-08tm'
+            },
+          },
+          {
+            apiVersion: 'v1',
+            kind: 'Node',
+            spec: {
+              podCIDR: '10.44.0.0/24',
+              providerID:
+                  'gce://kubeflow-dev/us-east1-d/gke-kubeflow-default-pool-59885f2c-r72s'
+            },
+          }
+        ]
+      };
       mockApiClient.listNode.and.returnValue(
+          Promise.resolve({body: listNodeResponse}));
+      mockCustomApiClient.listNamespacedCustomObject.and.returnValue(
+          Promise.resolve({
+            body: {
+              items: [],
+            }
+          }));
+
+      const platformInfo = await k8sService.getPlatformInfo();
+      expect(platformInfo).toEqual({
+        provider:
+            'gce://kubeflow-dev/us-east1-d/gke-kubeflow-default-pool-59885f2c-08tm',
+        providerName: 'gce',
+        kubeflowVersion: 'unknown'
+      });
+    });
+
+    it('Returns defaults on error', async () => {
+      mockApiClient.listNode.and.returnValue(
+          Promise.reject({body: 'testing-error'}));
+      mockCustomApiClient.listNamespacedCustomObject.and.returnValue(
           Promise.reject({body: 'testing-error'}));
 
       const platformInfo = await k8sService.getPlatformInfo();
-      expect(platformInfo).toEqual({provider: 'other'});
+      expect(platformInfo).toEqual({
+        provider: 'other://',
+        providerName: 'other',
+        kubeflowVersion: 'unknown'
+      });
     });
   });
 });

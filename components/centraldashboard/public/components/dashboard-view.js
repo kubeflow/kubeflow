@@ -1,10 +1,32 @@
-import '@polymer/iron-ajax/iron-ajax.js';
+import '@polymer/iron-icon/iron-icon.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/paper-card/paper-card.js';
+import '@polymer/paper-item/paper-icon-item.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
 import css from './dashboard-view.css';
 import template from './dashboard-view.pug';
 
 const DOCS = 'https://www.kubeflow.org/docs/started';
+const GCP_LINKS = [
+    {
+        text: 'Project Overview',
+        link: 'https://console.cloud.google.com/home/dashboard?project=',
+    },
+    {
+        text: 'Deployment Manager',
+        link: 'https://console.cloud.google.com/dm/deployments?project=',
+    },
+    {
+        text: 'Kubernetes Engine',
+        link: 'https://console.cloud.google.com/kubernetes/list?project=',
+    },
+    {
+        text: 'Stackdriver Logging',
+        link: 'https://console.cloud.google.com/logs/viewer?resource=k8s_cluster&project=',
+    },
+];
 
 export class DashboardView extends PolymerElement {
     static get template() {
@@ -16,7 +38,6 @@ export class DashboardView extends PolymerElement {
      */
     static get properties() {
         return {
-            platformType: String,
             gettingStartedItems: {
                 type: Array,
                 value: [
@@ -66,19 +87,33 @@ export class DashboardView extends PolymerElement {
                     },
                 ],
             },
+            platformName: String,
+            platformLinks: Array,
+            platformInfo: {
+                type: Object,
+                observer: '_platformInfoChanged',
+            },
         };
     }
 
-    // TODO: Move to mixin class
-    equals(...e) {
-        const crit = e.shift();
-        if (!e.length) return true;
-        return e.every((e) => e === crit);
-    }
-
-    _onPlatformInfoResponse(responseEvent) {
-        const {response} = responseEvent.detail;
-        this.platformType = response.provider;
+    /**
+     * Observer for platformInfo property
+     */
+    _platformInfoChanged() {
+        if (this.platformInfo && this.platformInfo.providerName === 'gce') {
+            this.platformName = 'GCP';
+            const pieces = this.platformInfo.provider.split('/');
+            let gcpProject = '';
+            if (pieces.length >= 3) {
+                gcpProject = pieces[2];
+            }
+            this.platformLinks = GCP_LINKS.map((l) => {
+                return {
+                    text: l.text,
+                    link: l.link + gcpProject,
+                };
+            });
+        }
     }
 }
 
