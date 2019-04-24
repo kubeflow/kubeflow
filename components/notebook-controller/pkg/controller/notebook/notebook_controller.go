@@ -47,6 +47,7 @@ import (
 var log = logf.Log.WithName("controller")
 
 const DefaultContainerPort = 8888
+const DefaultServingPort = 80
 
 // The default fsGroup of PodSecurityContext.
 // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#podsecuritycontext-v1-core
@@ -213,7 +214,8 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		if err != nil {
 			return reconcile.Result{}, err
 		}
-		log.Info("Creating virtual service", "namespace", service.Namespace, "name", service.Name)
+		log.Info("Creating virtual service", "namespace", service.Namespace, "name",
+			virtualServiceName(service.Name, service.Namespace))
 		err = r.Create(context.TODO(), virtualService)
 		if err != nil {
 			return reconcile.Result{}, err
@@ -374,7 +376,7 @@ func generateService(instance *v1alpha1.Notebook) *corev1.Service {
 			Selector: map[string]string{"statefulset": instance.Name},
 			Ports: []corev1.ServicePort{
 				corev1.ServicePort{
-					Port:       80,
+					Port:       DefaultServingPort,
 					TargetPort: intstr.FromInt(port),
 					Protocol:   "TCP",
 				},
@@ -384,19 +386,23 @@ func generateService(instance *v1alpha1.Notebook) *corev1.Service {
 	return svc
 }
 
+func virtualServiceName(kfName string, namespace string) string {
+	return fmt.Sprintf("notebook-%s-%s", namespace, kfName)
+}
+
 func generateVirtualService(instance *v1alpha1.Notebook) (*unstructured.Unstructured, error) {
 	name := instance.Name
 	namespace := instance.Namespace
+	appName := fmt.Sprintf("notebook-%s-%s", namespace, name)
 	prefix := fmt.Sprintf("/notebook/%s/%s", namespace, name)
 	rewrite := fmt.Sprintf("/notebook/%s/%s", namespace, name)
 	// TODO(gabrielwen): Make clusterDomain an option.
 	service := fmt.Sprintf("%s.%s.svc.cluster.local", name, namespace)
-	port := DefaultContainerPort
 
 	vsvc := &unstructured.Unstructured{}
 	vsvc.SetAPIVersion("networking.istio.io/v1alpha3")
 	vsvc.SetKind("VirtualService")
-	vsvc.SetName(name)
+	vsvc.SetName(virtualServiceName(name, namespace))
 	vsvc.SetNamespace(namespace)
 	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"*"}, "spec", "hosts"); err != nil {
 		return nil, fmt.Errorf("Set .spec.hosts error: %v", err)
@@ -423,7 +429,7 @@ func generateVirtualService(instance *v1alpha1.Notebook) (*unstructured.Unstruct
 					"destination": map[string]interface{}{
 						"host": service,
 						"port": map[string]interface{}{
-							"number": int64(port),
+							"number": int64(DefaultServingPort),
 						},
 					},
 				},
