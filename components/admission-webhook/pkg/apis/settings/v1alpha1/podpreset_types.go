@@ -57,7 +57,7 @@ type PodPresetSpec struct {
 	// ServiceAccountName is the name of the ServiceAccount to use to run the matching pod with this podpreset.
 	// Overwrites the ServiceAccountName of the matching pod, if there exist any
 	// +optional
-	ServiceAccountName string `json:"ServiceaccountName,omitempty"`
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 }
 
 // PodPresetStatus defines the observed state of PodPreset

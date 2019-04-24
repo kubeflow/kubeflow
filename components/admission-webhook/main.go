@@ -26,7 +26,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/golang/glog"
 	settingsapi "github.com/kubeflow/kubeflow/components/admission-webhook/pkg/apis/settings/v1alpha1"
 	"github.com/mattbaird/jsonpatch"
 	"k8s.io/api/admission/v1beta1"
@@ -78,7 +77,7 @@ func filterPodPresets(list []settingsapi.PodPreset, pod *corev1.Pod) ([]*setting
 
 		// check if the pod labels match the selector
 		if !selector.Matches(labels.Set(pod.Labels)) {
-			glog.V(6).Infof("PodPreset '%s' does NOT match pod '%s' labels", pp.GetName(), pod.GetName())
+			klog.V(6).Infof("PodPreset '%s' does NOT match pod '%s' labels", pp.GetName(), pod.GetName())
 			continue
 		}
 		// check if the pod namespace match the podpreset's namespace
@@ -86,7 +85,7 @@ func filterPodPresets(list []settingsapi.PodPreset, pod *corev1.Pod) ([]*setting
 			klog.Infof("PodPreset '%s' is not in the namespcae of pod '%s' ", pp.GetName(), pod.GetName())
 			continue
 		}
-		glog.V(4).Infof("PodPreset '%s' matches pod '%s' labels", pp.GetName(), pod.GetName())
+		klog.V(4).Infof("PodPreset '%s' matches pod '%s' labels", pp.GetName(), pod.GetName())
 		// create pointer to a non-loop variable
 		newPP := pp
 		matchingPPs = append(matchingPPs, &newPP)
@@ -179,13 +178,15 @@ func mergeEnvFrom(envSources []corev1.EnvFromSource, podPresets []*settingsapi.P
 	return mergedEnvFrom, nil
 }
 
-func mergeServiceaccountName(currentServiceaccount string, podPresets []*settingsapi.PodPreset) (string, error) {
+func mergeServiceAccountName(currentServiceaccount string, podPresets []*settingsapi.PodPreset) (string, error) {
+	var saName = currentServiceaccount
 	for _, pp := range podPresets {
 		if pp.Spec.ServiceAccountName != "" {
-			currentServiceaccount = pp.Spec.ServiceAccountName
+			saName = pp.Spec.ServiceAccountName
+			klog.Infof("serviceAccountName %s is applied", pp.Spec.ServiceAccountName)
 		}
 	}
-	return currentServiceaccount, nil
+	return saName, nil
 }
 
 // mergeVolumeMounts merges given list of VolumeMounts with the volumeMounts
@@ -332,7 +333,7 @@ func applyPodPresetsOnPod(pod *corev1.Pod, podPresets []*settingsapi.PodPreset) 
 		pod.Spec.Containers[i] = ctr
 	}
 
-	saName, _ := mergeServiceaccountName(pod.Spec.ServiceAccountName, podPresets)
+	saName, _ := mergeServiceAccountName(pod.Spec.ServiceAccountName, podPresets)
 	if saName != "" {
 		pod.Spec.ServiceAccountName = saName
 	}
@@ -381,13 +382,13 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	pod := corev1.Pod{}
 	deserializer := codecs.UniversalDeserializer()
 	if _, _, err := deserializer.Decode(raw, nil, &pod); err != nil {
-		glog.Error(err)
+		klog.Error(err)
 		return toAdmissionResponse(err)
 	}
 	reviewResponse := v1beta1.AdmissionResponse{}
 	reviewResponse.Allowed = true
 	podCopy := pod.DeepCopy()
-	glog.V(1).Infof("Examining pod: %v\n", pod.GetName())
+	klog.V(1).Infof("Examining pod: %v\n", pod.GetName())
 
 	// Ignore if exclusion annotation is present
 	if podAnnotations := pod.GetAnnotations(); podAnnotations != nil {
@@ -404,16 +405,16 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	list := &settingsapi.PodPresetList{}
 	err := crdclient.List(context.TODO(), &client.ListOptions{Namespace: pod.Namespace}, list)
 	if meta.IsNoMatchError(err) {
-		glog.Errorf("%v (has the CRD been loaded?)", err)
+		klog.Errorf("%v (has the CRD been loaded?)", err)
 		return toAdmissionResponse(err)
 	} else if err != nil {
-		glog.Errorf("error fetching podpresets: %v", err)
+		klog.Errorf("error fetching podpresets: %v", err)
 		return toAdmissionResponse(err)
 	}
 
 	klog.Info(fmt.Sprintf("fetched %d podpreset(s) in namespace %s", len(list.Items), pod.Namespace))
 	if len(list.Items) == 0 {
-		glog.V(5).Infof("No pod presets created, so skipping pod %v", pod.Name)
+		klog.V(5).Infof("No pod presets created, so skipping pod %v", pod.Name)
 		fmt.Printf("No pod presets created, so skipping pod %s", pod.Name)
 
 		return &reviewResponse
@@ -421,12 +422,12 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 
 	matchingPPs, err := filterPodPresets(list.Items, &pod)
 	if err != nil {
-		glog.Errorf("filtering pod presets failed: %v", err)
+		klog.Errorf("filtering pod presets failed: %v", err)
 		return toAdmissionResponse(err)
 	}
 
 	if len(matchingPPs) == 0 {
-		glog.V(5).Infof("No matching pod presets, so skipping pod %v", pod.Name)
+		klog.V(5).Infof("No matching pod presets, so skipping pod %v", pod.Name)
 		return &reviewResponse
 	}
 	klog.Infof("%d matching pod presets, for pod %v", len(matchingPPs), pod.Name)
@@ -445,7 +446,7 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 		msg := fmt.Errorf("conflict occurred while applying podpresets: %s on pod: %v err: %v",
 			strings.Join(presetNames, ","), pod.GetName(), err)
 		//recordConflictEvent(recorder, &pod, msg)
-		glog.Warning(msg)
+		klog.Warning(msg)
 		return toAdmissionResponse(msg)
 	}
 
@@ -491,7 +492,7 @@ func serve(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 	// verify the content type is accurate
 	contentType := r.Header.Get("Content-Type")
 	if contentType != "application/json" {
-		glog.Errorf("contentType=%s, expect application/json", contentType)
+		klog.Errorf("contentType=%s, expect application/json", contentType)
 		return
 	}
 
@@ -499,7 +500,7 @@ func serve(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 	ar := v1beta1.AdmissionReview{}
 	deserializer := codecs.UniversalDeserializer()
 	if _, _, err := deserializer.Decode(body, nil, &ar); err != nil {
-		glog.Error(err)
+		klog.Error(err)
 		reviewResponse = toAdmissionResponse(err)
 	} else {
 		reviewResponse = admit(ar)
@@ -516,10 +517,10 @@ func serve(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 
 	resp, err := json.Marshal(response)
 	if err != nil {
-		glog.Error(err)
+		klog.Error(err)
 	}
 	if _, err := w.Write(resp); err != nil {
-		glog.Error(err)
+		klog.Error(err)
 	}
 }
 
@@ -529,11 +530,10 @@ func serveMutatePods(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	var config Config
-	klog.Infof("Start serving")
-
 	flag.StringVar(&config.CertFile, "tlsCertFile", "/etc/webhook/certs/cert.pem", "File containing the x509 Certificate for HTTPS.")
 	flag.StringVar(&config.KeyFile, "tlsKeyFile", "/etc/webhook/certs/key.pem", "File containing the x509 private key to --tlsCertFile.")
 	flag.Parse()
+	klog.InitFlags(nil)
 
 	http.HandleFunc("/add-cred", serveMutatePods)
 

@@ -17,7 +17,7 @@
         names: {
           plural: "podpresets",
           singular: "podpreset",
-          kind: "Podpreset",
+          kind: "PodPreset",
         },
         validation: {
           openAPIV3Schema: {

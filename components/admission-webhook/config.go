@@ -21,18 +21,18 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/golang/glog"
+	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 func getCrdClient() client.Client {
 	config, err := config.GetConfig()
 	if err != nil {
-		glog.Fatal(err)
+		klog.Fatal(err)
 	}
 	crdclient, err := client.New(config, client.Options{Scheme: scheme})
 	if err != nil {
-		glog.Fatal(err)
+		klog.Fatal(err)
 	}
 
 	return crdclient
@@ -41,7 +41,7 @@ func getCrdClient() client.Client {
 func configTLS(config Config) *tls.Config {
 	sCert, err := tls.LoadX509KeyPair(config.CertFile, config.KeyFile)
 	if err != nil {
-		glog.Fatalf("config=%#v Error: %v", config, err)
+		klog.Fatalf("config=%#v Error: %v", config, err)
 	}
 	return &tls.Config{
 		Certificates: []tls.Certificate{sCert},

@@ -234,7 +234,6 @@ local webhookRole = {
       kind: "ClusterRole",
       metadata: {
         name: "webhook-role",
-        namespace: params.namespace,
       },
       rules: [
         {
@@ -302,10 +301,9 @@ local webhookRole = {
   
     local webhookRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "RoleBinding",
+      kind: "ClusterRoleBinding",
       metadata: {
         name: "webhook-role-binding",
-        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
