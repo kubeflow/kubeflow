@@ -210,11 +210,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                 then enter as IAP Oauth Client ID and Secret</li>
           </div>
           <div style={styles.row}>
-            <TextField label="IAP OAuth client ID" spellCheck={false} style={styles.input} variant="filled"
+            <TextField label="IAP OAuth client ID" autoComplete="username" spellCheck={false} style={styles.input} variant="filled"
              required={true} value={this.state.clientId} onChange={this._handleChange('clientId')} />
           </div>
           <div style={styles.row}>
-            <TextField label="IAP OAuth client secret" spellCheck={false} style={styles.input} variant="filled"
+            <TextField label="IAP OAuth client secret" autoComplete="current-password" spellCheck={false} style={styles.input} variant="filled"
              required={true} value={this.state.clientSecret} onChange={this._handleChange('clientSecret')} />
           </div>
         </Collapse>
