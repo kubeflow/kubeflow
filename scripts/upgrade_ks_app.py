@@ -57,12 +57,12 @@ def main():
   registries = app['registries']
   libraries = app['libraries']
 
-  for name in registries.keys():
+  for name, reg in registries.items():
     if name != registry_name:
       logging.info("Skipping registry %s", name)
       continue
 
-    if registries[name]["uri"].startswith("file"):
+    if reg["uri"].startswith("file"):
       # File registries are not stored in .ksonnet
       # TODO(jlewi): This messes with bootstrapper because we might want  to
       # switch from using the file URI to using the git location.
@@ -75,8 +75,8 @@ def main():
     shutil.rmtree(target)
 
   libs_to_remove = []
-  for name in libraries.keys():
-    lib_registry = libraries[name]["registry"]
+  for name, lib in libraries.items():
+    lib_registry = lib["registry"]
     if lib_registry != registry_name:
       continue
     libs_to_remove.append(name)
