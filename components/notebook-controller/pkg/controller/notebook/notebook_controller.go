@@ -224,32 +224,21 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	if err := controllerutil.SetControllerReference(instance, virtualService, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
-	// Check if the virtual service already exists
+	// Check if the virtual service already exists. Noop if it already exists.
 	foundVirtual := &unstructured.Unstructured{}
 	foundVirtual.SetAPIVersion("networking.istio.io/v1alpha3")
 	foundVirtual.SetKind("VirtualService")
-	justCreated = false
 	err = r.Get(context.TODO(), types.NamespacedName{Name: virtualServiceName(instance.Name,
 		instance.Namespace), Namespace: instance.Namespace}, foundVirtual)
 	if err != nil && errors.IsNotFound(err) {
 		log.Info("Creating virtual service", "namespace", instance.Namespace, "name",
 			virtualServiceName(instance.Name, instance.Namespace))
 		err = r.Create(context.TODO(), virtualService)
-		justCreated = true
 		if err != nil {
 			return reconcile.Result{}, err
 		}
 	} else if err != nil {
 		return reconcile.Result{}, err
-	}
-	// Override virtual service if needed.
-	if !justCreated && util.DiffUnstructured(foundVirtual, virtualService) {
-		log.Info("Overriding virtual service", "namespace", instance.Namespace, "name",
-			virtualServiceName(instance.Name, instance.Namespace))
-		err = r.Update(context.TODO(), virtualService)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
 	}
 
 	// Update the status if previous condition is not "Ready"
