@@ -18,6 +18,7 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 // Reference: https://github.com/pwittrock/kubebuilder-workshop/blob/master/pkg/util/util.go
@@ -78,4 +79,9 @@ func CopyServiceFields(from, to *corev1.Service) bool {
 	to.Spec.Ports = from.Spec.Ports
 
 	return requireUpdate
+}
+
+// Deep compare between two unstructured instances.
+func DiffUnstructured(from, to *unstructured.Unstructured) bool {
+	return !reflect.DeepEqual(from, to)
 }
