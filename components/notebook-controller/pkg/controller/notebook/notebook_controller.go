@@ -226,6 +226,7 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 	// Check if the virtual service already exists. Noop if it already exists.
 	foundVirtual := &unstructured.Unstructured{}
+	justCreated = false
 	foundVirtual.SetAPIVersion("networking.istio.io/v1alpha3")
 	foundVirtual.SetKind("VirtualService")
 	err = r.Get(context.TODO(), types.NamespacedName{Name: virtualServiceName(instance.Name,
@@ -234,11 +235,21 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		log.Info("Creating virtual service", "namespace", instance.Namespace, "name",
 			virtualServiceName(instance.Name, instance.Namespace))
 		err = r.Create(context.TODO(), virtualService)
+		justCreated = true
 		if err != nil {
 			return reconcile.Result{}, err
 		}
 	} else if err != nil {
 		return reconcile.Result{}, err
+	}
+
+	if !justCreated && util.CopyVirtualService(virtualService, foundVirtual) {
+		log.Info("Updating virtual service", "namespace", instance.Namespace, "name",
+			virtualServiceName(instance.Name, instance.Namespace))
+		err = r.Update(context.TODO(), foundVirtual)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
 	}
 
 	// Update the status if previous condition is not "Ready"
