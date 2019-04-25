@@ -118,3 +118,34 @@ body > .Main-Toolbar {background-color: var(--primary-background-color)}
 .List > .item:not(:first-of-type) {border-top: 1px solid var(--border-color)}
 /* etc */
 ```
+
+## Client-Side Library
+Since the Central Dashboard wraps other Kubeflow components in an iframe, a
+standalone Javascript library is exposed to make it possible to communicate
+between the child pages and the dashboard.
+
+The library is available for import from `/lib.bundle.js` within the cluster.
+When imported in this manner, a `centraldashboard` module is created in the
+global scope. To establish a channel for communication between the iframed page
+and the Dashboard, use the following example which would disable a `<select>`
+element and assign the value from the Dashboard's Namespace selector when it
+changes:
+
+```
+window.addEventListener('DOMContentLoaded', function (event) {
+    if (window.centraldashboard.CentralDashboardEventHandler) {
+        // Init method will invoke the callback with the event handler instance
+        // and a boolean indicating whether the page is iframed or not
+        window.centraldashboard.CentralDashboardEventHandler
+            .init(function (cdeh, isIframed) {
+                var namespaceSelector = document.getElementById('ns-select');
+                namespaceSelector.disabled = isIframed;
+                // Binds a callback that gets invoked anytime the Dashboard's
+                // namespace is changed
+                cdeh.onNamespaceSelected = function (namespace) {
+                    namespaceSelector.value = namespace;
+                };
+            });
+    }
+});
+```
