@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ghodss/yaml"
-	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
@@ -51,6 +50,7 @@ import (
 	"sigs.k8s.io/kustomize/v2/pkg/factory"
 	"sigs.k8s.io/kustomize/v2/pkg/fs"
 	"sigs.k8s.io/kustomize/v2/pkg/loader"
+	"sigs.k8s.io/kustomize/v2/pkg/patch"
 	"sigs.k8s.io/kustomize/v2/pkg/target"
 	"sigs.k8s.io/kustomize/v2/pkg/types"
 	"strings"
@@ -580,37 +580,34 @@ func (kustomize *kustomize) writeConfigFile() error {
 
 func (kustomize *kustomize) overlayResources(compName string, compPath string) map[string][]string {
 	params := kustomize.Spec.ComponentParams[compName]
+	overlays := []string{}
 	if params != nil {
 		for _, nv := range params {
 			name := nv.Name
-			if name == "overlays" {
-				
+			if name == "overlay" {
+				overlays = append(overlays, nv.Value)
 			}
 		}
 	}
-	overlayResourcesMap := make(map[string][]string)
-	files, err := ioutil.ReadDir(compPath)
-	if err != nil {
-		return overlayResourcesMap
-	}
 	resources := func (overlayPath string) []string {
 		resources := make([]string, 0)
-		files, err := ioutil.ReadDir(compPath)
+		files, err := ioutil.ReadDir(overlayPath)
 		if err != nil {
 			return resources
 		}
 		for _, f := range files {
-			if !f.IsDir() && strings.HasSuffix(f.Name(), ".yaml") {
+			if !f.IsDir() && f.Name() != "kustomization.yaml" && strings.HasSuffix(f.Name(), ".yaml") {
 				fpath := filepath.Join(overlayPath, f.Name())
-				resources = append(resources, fpath)
+				resources = append(resources, extractSuffix(kustomize.Spec.ManifestsRepo, fpath))
 			}
 		}
 		return resources
 	}
-	for _, f := range files {
-		if f.IsDir() {
-			overlayResourcesMap[f.Name()] = resources(path.Join(compPath, f.Name()))
-		}
+	overlayResourcesMap := make(map[string][]string)
+	for _, overlay := range overlays {
+		compAbsolutePath := path.Join(kustomize.Spec.ManifestsRepo, compPath)
+		overlayPath := path.Join(compAbsolutePath, overlay)
+		overlayResourcesMap[overlay] = resources(overlayPath)
 	}
 	return overlayResourcesMap
 }
@@ -624,10 +621,12 @@ func (kustomize *kustomize) writeKustomizationFile(compName string, compPath str
 	base := path.Join(kustomize.Spec.ManifestsRepo, compPath, "base")
 	baseKustomizationFile := filepath.Join(base, kftypes.KustomizationFile)
 	overlays := kustomize.overlayResources(compName, compPath)
-	platformOverlay := path.Join(kustomize.Spec.ManifestsRepo, compPath, "overlays", kustomize.Spec.Platform)
-	platformKustomizationFile := filepath.Join(platformOverlay, kftypes.KustomizationFile)
-	if _, err := os.Stat(platformKustomizationFile); err == nil {
-		bases = append(bases, extractSuffix(kustomize.Spec.ManifestsRepo, platformOverlay))
+	if kustomize.Spec.Platform != "" && len(overlays) == 0 {
+		platformOverlay := path.Join(kustomize.Spec.ManifestsRepo, compPath, "overlays", kustomize.Spec.Platform)
+		platformKustomizationFile := filepath.Join(platformOverlay, kftypes.KustomizationFile)
+		if _, err := os.Stat(platformKustomizationFile); err == nil {
+			bases = append(bases, extractSuffix(kustomize.Spec.ManifestsRepo, platformOverlay))
+		}
 	} else if _, err := os.Stat(baseKustomizationFile); err == nil {
 		bases = append(bases, extractSuffix(kustomize.Spec.ManifestsRepo, base))
 	} else if _, err := os.Stat(compKustomizationFile); err == nil {
@@ -640,6 +639,15 @@ func (kustomize *kustomize) writeKustomizationFile(compName string, compPath str
 		},
 		Bases: bases,
 		Namespace: kustomize.Namespace,
+	}
+	if len(overlays) > 0 {
+		patchesStrategicMerge := make([]patch.StrategicMerge,0)
+		for _, v := range overlays {
+			for _, overlay := range v {
+				patchesStrategicMerge = append(patchesStrategicMerge, patch.StrategicMerge(overlay))
+			}
+		}
+		kustomization.PatchesStrategicMerge = patchesStrategicMerge
 	}
 	buf, bufErr := yaml.Marshal(kustomization)
 	if bufErr != nil {
