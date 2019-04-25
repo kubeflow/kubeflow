@@ -57,7 +57,7 @@ def main():
   registries = app['registries']
   libraries = app['libraries']
 
-  for name in registries.iterkeys():
+  for name in registries.keys():
     if name != registry_name:
       logging.info("Skipping registry %s", name)
       continue
@@ -75,7 +75,7 @@ def main():
     shutil.rmtree(target)
 
   libs_to_remove = []
-  for name in libraries.iterkeys():
+  for name in libraries.keys():
     lib_registry = libraries[name]["registry"]
     if lib_registry != registry_name:
       continue
