@@ -9,24 +9,42 @@ export const MESSAGE = 'message';
 
 /**
  * Encapsulates the sending, receiving, and handling of events between iframed
- * pages and the CentralDashboard component.
+ * pages and the CentralDashboard component. Events data should a type property
+ * indicating the type of message and a value property with the payload.
  */
-export class CentralDashboardEventHandler {
-    /**
-     * Initializes the handler with a reference to its parent and flag
-     * indicating whether it's iframed.
-     */
+class CentralDashboardEventHandler_ {
     constructor() {
         this.window = window;
         this.parent = window.parent;
+        this._messageEventListener = null;
         this._onParentConnected = null;
         this._onNamespaceSelected = null;
+    }
 
-        if (this.window.location !== this.parent.location) {
-            this.window.addEventListener(MESSAGE,
-                this._onMessageReceived.bind(this));
+    /**
+     * Invokes the supplied callback function, then establishes the
+     * communication with the parent frame.
+     * @param {Function} callback - Callback invoked with this instance and a
+     *  boolean indicating whether the page importing the library is iframed.
+     */
+    init(callback) {
+        const isIframed = this.window.location !== this.parent.location;
+        callback(this, isIframed);
+        if (isIframed) {
+            this._messageEventListener = this._onMessageReceived.bind(this);
+            this.window.addEventListener(MESSAGE, this._messageEventListener);
             this.parent.postMessage({type: IFRAME_CONNECTED_EVENT},
                 this.parent.origin);
+        }
+    }
+
+    /**
+     * Removes the message event listener.
+     */
+    detach() {
+        if (this._messageEventListener) {
+            this.window.removeEventListener(MESSAGE,
+                this._messageEventListener);
         }
     }
 
@@ -68,9 +86,12 @@ export class CentralDashboardEventHandler {
             break;
         case NAMESPACE_SELECTED_EVENT:
             if (this._onNamespaceSelected) {
-                this._onNamespaceSelected(data);
+                this._onNamespaceSelected(data.value);
             }
             break;
         }
     }
 }
+
+// Exports a singleton instance
+export const CentralDashboardEventHandler = new CentralDashboardEventHandler_();

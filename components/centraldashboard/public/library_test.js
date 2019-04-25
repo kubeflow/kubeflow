@@ -4,52 +4,57 @@ import {
 } from './library';
 
 describe('CentralDashboardEventHandler', () => {
-    // eslint-disable-next-line no-unused-vars
-    let cdEventHandler;
     let parentSpy;
     let oldParent;
 
     beforeEach(() => {
         parentSpy = jasmine.createSpyObj('parent', ['postMessage']);
         oldParent = window.parent;
-        window.parent = parentSpy;
+        CentralDashboardEventHandler.parent = parentSpy;
 
         spyOn(window, 'addEventListener');
     });
 
     afterEach(() => {
-        window.parent = oldParent;
+        CentralDashboardEventHandler.detach();
+        CentralDashboardEventHandler.parent = oldParent;
     });
 
     it('Should not post message when outside of iframe', () => {
         parentSpy.location = window.location;
-
-        cdEventHandler = new CentralDashboardEventHandler();
+        const initSpy = jasmine.createSpy();
+        CentralDashboardEventHandler.init(initSpy);
 
         expect(window.addEventListener).not.toHaveBeenCalled();
-        expect(window.parent.postMessage).not.toHaveBeenCalled();
+        expect(CentralDashboardEventHandler.parent.postMessage)
+            .not.toHaveBeenCalled();
+        expect(initSpy).toHaveBeenCalledWith(CentralDashboardEventHandler,
+            false);
     });
 
     it('Should bind listener and send message to parent when in iframe', () => {
         parentSpy.origin = 'http://testpage.com';
-
-        cdEventHandler = new CentralDashboardEventHandler();
+        const initSpy = jasmine.createSpy();
+        CentralDashboardEventHandler.init(initSpy);
 
         expect(window.addEventListener).toHaveBeenCalled();
-        expect(window.parent.postMessage).toHaveBeenCalledWith(
-            {
-                type: IFRAME_CONNECTED_EVENT,
-            }, 'http://testpage.com'
-        );
+        expect(CentralDashboardEventHandler.parent.postMessage)
+            .toHaveBeenCalledWith(
+                {
+                    type: IFRAME_CONNECTED_EVENT,
+                }, 'http://testpage.com'
+            );
+        expect(initSpy).toHaveBeenCalledWith(CentralDashboardEventHandler,
+            true);
     });
 
     it('Should invoke callbacks when messages are received', () => {
-        cdEventHandler = new CentralDashboardEventHandler();
         const callbacksSpy = jasmine.createSpyObj('callbacksSpy', [
             'onParentConnected', 'onNamespaceSelected']);
-
-        cdEventHandler.onParentConnected = callbacksSpy.onParentConnected;
-        cdEventHandler.onNamespaceSelected = callbacksSpy.onNamespaceSelected;
+        CentralDashboardEventHandler.init((cdeh) => {
+            cdeh.onParentConnected = callbacksSpy.onParentConnected;
+            cdeh.onNamespaceSelected = callbacksSpy.onNamespaceSelected;
+        });
 
         const message1 = {data: {type: PARENT_CONNECTED_EVENT, value: 'foo'}};
         const message2 = {
@@ -58,12 +63,12 @@ describe('CentralDashboardEventHandler', () => {
             },
         };
 
-        cdEventHandler._onMessageReceived(message1);
+        CentralDashboardEventHandler._onMessageReceived(message1);
         expect(callbacksSpy.onParentConnected)
             .toHaveBeenCalledWith(message1.data);
 
-        cdEventHandler._onMessageReceived(message2);
+        CentralDashboardEventHandler._onMessageReceived(message2);
         expect(callbacksSpy.onNamespaceSelected)
-            .toHaveBeenCalledWith(message2.data);
+            .toHaveBeenCalledWith(message2.data.value);
     });
 });
