@@ -224,7 +224,7 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	if err := controllerutil.SetControllerReference(instance, virtualService, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
-	// Check if the virtual service already exists. Noop if it already exists.
+	// Check if the virtual service already exists.
 	foundVirtual := &unstructured.Unstructured{}
 	justCreated = false
 	foundVirtual.SetAPIVersion("networking.istio.io/v1alpha3")
