@@ -59,17 +59,30 @@ main() {
     ks param set ambassador ambassadorImage ${registry}/datawire/ambassador:0.37.0
   fi
 
+  if ks component list | awk '{print $1}' | grep -q "^cloud-endpoints$"; then
+    ks param set cloud-endpoints cloudEndpointsImage ${registry}/cloud-solutions-group/cloud-endpoints-controller:0.2.1
+  fi
+
   if ks component list | awk '{print $1}' | grep -q "^katib$"; then
     ks param set katib vizierDbImage ${registry}/mysql:8.0.3
+  fi
+
+  if ks component list | awk '{print $1}' | grep -q "^iap$"; then
+    ks param set iap-ingress  ${registry}/cloud-solutions-group/esp-sample-app:1.0.0
   fi
 
   if ks component list | awk '{print $1}' | grep -q "^metacontroller$"; then
     ks param set metacontroller image ${registry}/metacontroller:v0.3.0
   fi
 
-    if ks component list | awk '{print $1}' | grep -q "^pipeline$"; then
-    ks param set pipeline mysqlImage ${registry}/minio:RELEASE.2018-02-09T22-40-05Z
-    ks param set minioImage mysqlImage ${registry}/mysql:8.0.3
+  if ks component list | awk '{print $1}' | grep -q "^pipeline$"; then
+    ks param set pipeline minioImage ${registry}/minio:RELEASE.2018-02-09T22-40-05Z
+    ks param set pipeline mysqlImage ${registry}/mysql:8.0.3
+
+    ks param set pipeline apiImage ${registry}/ml-pipeline/api-server:0.1.17
+    ks param set pipeline scheduledWorkflowImage ${registry}/ml-pipeline/scheduledworkflow:0.1.17
+    ks param set pipeline persistenceAgentImage ${registry}/ml-pipeline/persistenceagent:0.1.17
+    ks param set pipeline viewerCrdControllerImage ${registry}/ml-pipeline/viewer-crd-controller:0.1.17
   fi
 
 }
