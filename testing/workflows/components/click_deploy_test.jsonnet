@@ -80,8 +80,8 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
         name: "CLIENT_ID",
         valueFrom: {
           secretKeyRef: {
-            name: "kubeflow-oauth",
-            key: "client_id",
+            name: "kubeflow-ci-deployment-iap-testing-oauth",
+            key: "CLIENT_ID",
           },
         },
       },
@@ -89,8 +89,8 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
         name: "CLIENT_SECRET",
         valueFrom: {
           secretKeyRef: {
-            name: "kubeflow-oauth",
-            key: "client_secret",
+            name: "kubeflow-ci-deployment-iap-testing-oauth",
+            key: "CLIENT_SECRET",
           },
         },
       },
