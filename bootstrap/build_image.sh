@@ -19,7 +19,9 @@ done
 
 go version
 
-GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+GO111MODULE=on 
+#go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+make build-bootstrap
 
 rm -rf reg_tmp
 mkdir -p reg_tmp/kubeflow
