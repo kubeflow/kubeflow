@@ -149,8 +149,9 @@ def prepare_request_data(args, deployment):
 
 
 def make_e2e_call(args):
-  if not clean_up_resource(args, set([args.deployment])):
-    raise RuntimeError("Failed to cleanup resource")
+  # We should have cron job to cleanup resources
+  # if not clean_up_resource(args, set([args.deployment])):
+  #   raise RuntimeError("Failed to cleanup resource")
   req_data = prepare_request_data(args, args.deployment)
   resp = requests.post(
       "http://kubeflow-controller.%s.svc.cluster.local:8080/kfctl/e2eDeploy" %
