@@ -84,7 +84,8 @@ export class MainPage extends PolymerElement {
                     },
                 ],
             },
-            sidebarItemIndex: {type: Number, value: 0},
+            sidebarItemIndex: {type: Number, value: 0,
+                observer: '_revertSidebarIndexIfExternal'},
             iframeUrl: {type: String, value: ''},
             buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
@@ -179,6 +180,16 @@ export class MainPage extends PolymerElement {
         if (isIframe !== this.inIframe || isIframe) {
             this.$.MainDrawer.close();
         }
+    }
+
+    /**
+     * Revert the sidebar index if the item clicked is an external link
+     * @param {int} curr
+     * @param {int} old
+     */
+    _revertSidebarIndexIfExternal(curr, old=0) {
+        if (curr != 1) return;
+        this.sidebarItemIndex = old;
     }
 
     /**

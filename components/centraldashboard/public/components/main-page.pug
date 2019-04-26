@@ -12,9 +12,9 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             a(href$='[[_buildHref("/", queryParams)]]', tabindex='-1')
                 paper-item.menu-item Home
             a(href='https://www.kubeflow.org/docs/about/kubeflow/',
-                tabindex='-1', target="_new")
-                paper-icon-item.menu-item Documentation
-                    iron-icon(icon="launch", slot="item-icon")
+                tabindex='-1', target="_blank")
+                paper-item.menu-item Documentation
+                    iron-icon.external(icon="launch")
             aside.divider
             template(is='dom-repeat', items='[[menuLinks]]')
                 a.iframe-link(href$='[[_buildHref(item.href, queryParams)]]',
