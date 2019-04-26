@@ -1,9 +1,9 @@
 {
   local k = import "k.libsonnet",
   new(_env, _params):: {
-    local params = _params + _env {
+    local params = {
       cloudEndpointsImage: "gcr.io/cloud-solutions-group/cloud-endpoints-controller:0.2.1",
-    },
+    } + _params + _env,
 
     local endpointsCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",

@@ -10,13 +10,17 @@
   // A template for defining the steps  to retag each image.
   local subGraphTemplate(image) = {
     local imagePieces = std.split(image, "/"),
-    local nameAndTag = std.split(imagePieces[std.length(imagePieces) -1], ":"),
+    local imageName = if std.length(imagePieces) > 1 then
+      imagePieces[1:]
+      else
+      [image],
+    local nameAndTag = std.split(imageName[std.length(imageName) -1], ":"),
 
     local name = nameAndTag[0],
 
     local template = self,
 
-    local newImage = std.join("/", [newRegistry] +  imagePieces[1:]),
+    local newImage = std.join("/", [newRegistry] +  imageName),
 
     images+: [newImage],
 
@@ -41,6 +45,13 @@
     "argoproj/argoui:v2.2.0",
     "argoproj/argoexec:v2.2.0",
     "argoproj/workflow-controller:v2.2.0",
+    "gcr.io/cloud-solutions-group/cloud-endpoints-controller:0.2.1",
+    "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
+    "gcr.io/ml-pipeline/api-server:0.1.17",
+    "gcr.io/ml-pipeline/persistenceagent:0.1.17",
+    "gcr.io/ml-pipeline/scheduledworkflow:0.1.17",
+    "gcr.io/ml-pipeline/frontend:0.1.17",
+    "gcr.io/ml-pipeline/viewer-crd-controller:0.1.17",
     "metacontroller/metacontroller:v0.3.0",
     "minio/minio:RELEASE.2018-02-09T22-40-05Z",
     "mysql:8.0.3",
