@@ -63,11 +63,6 @@ export class MainPage extends PolymerElement {
                 type: Array,
                 value: [
                     {
-                        iframeUrl: 'https://www.kubeflow.org/docs/about/kubeflow/',
-                        text: 'Kubeflow docs',
-                        href: '/docs',
-                    },
-                    {
                         iframeUrl: '/jupyter/',
                         text: 'Notebooks',
                         href: '/notebooks',
@@ -196,7 +191,8 @@ export class MainPage extends PolymerElement {
         if (menuLinkIndex >= 0) {
             this.page = 'iframe';
             this.iframeUrl = this.menuLinks[menuLinkIndex].iframeUrl;
-            this.sidebarItemIndex = menuLinkIndex + 1;
+            // Adds 2 since the Home and Documentation links are hard-coded
+            this.sidebarItemIndex = menuLinkIndex + 2;
         } else {
             this.sidebarItemIndex = -1;
             this.page = 'not_found';

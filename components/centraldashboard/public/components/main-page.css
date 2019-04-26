@@ -46,9 +46,10 @@ app-drawer .menu-item {
     transition: background .25s;
     font-family: Google Sans;
     color: var(--sidebar-default-color);
+    --paper-item-icon-width: 36px;
 }
 
-app-drawer .menu-item+.divider {
+app-drawer .divider {
     width: 90%;
     margin: 1em auto;
     border-bottom: 2px solid var(--sidebar-default-color)
@@ -313,6 +314,7 @@ neon-animatable {
     margin: 0 .5em;
     display: inline-block;
 }
+
 #MainDrawer .footer .bullet:before {
     content: ' ';
     display: inline-block;
