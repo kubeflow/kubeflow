@@ -14,7 +14,7 @@
 // @optionalParam privateGKECluster string false Is the k8s cluster a private GKE cluster
 // @optionalParam useIstio string false The namespace where Istio is installed
 // @optionalParam istioNamespace string istio-system The namespace where Istio is installed
-// @optionalParam  espSampleAppImage string gcr.io/cloud-solutions-group/esp-sample-app:1.0.0 The sample app used with IAP
+// @optionalParam espSampleAppImage string gcr.io/cloud-solutions-group/esp-sample-app:1.0.0 The sample app used with IAP
 
 local iap = import "kubeflow/gcp/iap.libsonnet";
 local instance = iap.new(env, params);
