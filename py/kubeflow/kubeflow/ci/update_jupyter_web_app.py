@@ -52,45 +52,54 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
 
     return data["image"]
 
+  def _replace_parameters(self, lines, values):
+    """Replace parameters in ksonnet text.
+
+    Args:
+      lines: Lines of text
+      values: A dictionary containing the names of parameters and the values
+        to set them to.
+    """
+    for i, line in enumerate(lines):
+      # Split the line on white space
+      pieces = re.findall(r'\S+', line)
+
+      # Check if this line is a parameter
+      # // @optionalParam image string gcr.io/myimage Some image
+      if len(pieces) < 5:
+        continue
+
+      if pieces[0] != "//" or pieces[1] != "@optionalParam":
+        continue
+
+      param_name = pieces[2]
+      if not param_name in values:
+        continue
+
+      logging.info("Changing param %s from %s to %s", param_name, pieces[4],
+                   values[param_name])
+      pieces[4] = values[param_name]
+
+      lines[i] = " ".join(pieces)
+
+    return lines
+
   def update_prototype(self, image):
     values = {"image": image}
 
-    regexps = {}
-    for param, value in values.items():
-      r = re.compile(r"([ \t]*" + param + ":+ ?\"?)[^\",]+(\"?,?)")
-      v = r"\g<1>" + value + r"\2"
-      regexps[param] = (r, v, value)
 
     prototype_file = os.path.join(self._root_dir(),
                                   "kubeflow/jupyter/prototypes",
                                   "jupyter-web-app.jsonnet")
     with open(prototype_file) as f:
       prototype = f.read().split("\n")
-    replacements = 0
-    for i, line in enumerate(prototype):
-      for param, _ in regexps.items():
-        if param not in line:
-          continue
-        if line.startswith("//"):
-          prototype[i] = re.sub(
-            r"(// @\w+ )" + param + r"( \w+ )[^ ]+(.*)",  # noqa: W605
-            r"\g<1>" + param + r"\2" + regexps[param][2] + r"\3",
-            line)
-          replacements += 1
-          continue
-        prototype[i] = re.sub(regexps[param][0], regexps[param][1], line)
-        if line != prototype[i]:
-          replacements += 1
-    if replacements == 0:
-      raise Exception(
-          "No replacements made, are you sure you specified correct param?")
-    if replacements < len(regexps):
-      raise Warning("Made less replacements then number of params. Typo?")
+
+    new_lines = self._replace_parameters(prototype, values)
+
     temp_file = prototype_file + ".tmp"
     with open(temp_file, "w") as w:
-      w.write("\n".join(prototype))
+      w.write("\n".join(new_lines))
     os.rename(temp_file, prototype_file)
-    logging.info("Successfully made %d replacements", replacements)
 
     return prototype_file
 
@@ -195,7 +204,13 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
 
     if repo.active_branch.name != branch_name:
       logging.info("Creating branch %s", branch_name)
-      util.run(["git", "checkout", "-b", branch_name], cwd=self._root_dir())
+
+      branch_names = [b.name for b in repo.branches]
+      if branch_name in branch_names:
+        logging.info("Branch %s exists", branch_name)
+        util.run(["git", "checkout", branch_name], cwd=self._root_dir())
+      else:
+        util.run(["git", "checkout", "-b", branch_name], cwd=self._root_dir())
 
     logging.info("Add file %s to repo", prototype_file)
     repo.index.add([prototype_file])
@@ -221,7 +236,7 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
       commit = self.last_commit
       logging.info("No commit specified defaulting to %s", commit)
 
-    pr_title = "Update the jupyter-web-app image to {0}".format(commit)
+    pr_title = "[auto PR] Update the jupyter-web-app image to {0}".format(commit)
 
     # See hub conventions:
     # https://hub.github.com/hub.1.html
