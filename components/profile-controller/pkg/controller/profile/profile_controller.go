@@ -18,6 +18,7 @@ package profile
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 
 	kubeflowv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
@@ -121,6 +122,7 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{"owner": instance.Spec.Owner.Name},
 			Name: instance.Name,
 		},
 	}
@@ -139,7 +141,13 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, err
 	}
 	// No need to update namespace
+	val, ok := foundNs.Annotations["owner"]
+	if (!ok) || val != instance.Spec.Owner.Name {
+		return reconcile.Result{}, fmt.Errorf("namespace already exist, but not owned by profile creator %v",
+			instance.Spec.Owner.Name)
+	}
 
+	// TODO: add role for impersonate permission
 	role := generateRole(instance)
 	if err := controllerutil.SetControllerReference(instance, role, r.scheme); err != nil {
 		return reconcile.Result{}, err
@@ -166,13 +174,14 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	roleBinding := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "default",
+			Name:      "namespaceAdmin",
 			Namespace: instance.Name,
 		},
+		// Use default ClusterRole 'admin' for profile/namespace owner
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "Role",
-			Name:     "edit",
+			Kind:     "ClusterRole",
+			Name:     "admin",
 		},
 		Subjects: []rbacv1.Subject{
 			instance.Spec.Owner,
