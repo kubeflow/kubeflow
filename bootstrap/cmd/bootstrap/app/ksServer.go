@@ -13,7 +13,6 @@ import (
 	"os/exec"
 	"time"
 
-	"bytes"
 	"io/ioutil"
 	"math/rand"
 	"strings"
@@ -24,9 +23,10 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/actions"
 	kApp "github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
+	"github.com/kubeflow/kubeflow/bootstrap/config"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
-	"github.com/kubeflow/kubeflow/bootstrap/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -41,23 +41,19 @@ import (
 	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 )
 
 // The name of the prototype for Jupyter.
 const JupyterPrototype = "jupyterhub"
 
 // root dir of local cached VERSIONED REGISTRIES
-const CachedRegistries = "/opt/versioned_registries"
-const CloudShellTemplatePath = "/opt/registries/kubeflow/deployment/gke/cloud_shell_templates"
+const CachedRegistries = "/Users/kunming/test/versioned_registries"
 
 // key used for storing start time of a request to deploy in the request contexts
 const StartTime = "StartTime"
 
-const KubeflowRegName = "kubeflow"
 const KubeflowFolder = "ks_app"
 const DmFolder = "gcp_config"
-const CloudShellFolder = "kf_util"
 const IstioFolder = "istio"
 // default k8s spec to use
 const K8sSpecPath = "../bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json"
@@ -191,18 +187,11 @@ func NewServer(appsDir string, registries []*kstypes.RegistryConfig, gkeVersionO
 	return s, nil
 }
 
-type StorageOption struct {
-	// Whether to create persistent storage for storing all Kubeflow Pipeline artifacts or not.
-	CreatePipelinePersistentStorage bool
-}
-
 // CreateRequest represents a request to create a ksonnet application.
 type CreateRequest struct {
 	// Name for the app.
 	Name 			string
 	// AppConfig is the config for the app.
-	AppConfigOld		kstypes.AppConfig
-
 	AppConfig		config.ComponentConfig
 
 	// Namespace for the app.
@@ -231,9 +220,9 @@ type CreateRequest struct {
 	// For test: GCP service account client id
 	SAClientId 		string
 
-	StorageOption 	StorageOption
-	UserKfctl	  	bool
-	Version 	 	string
+	StorageOption 	config.StorageOption
+	UseKfctl      	bool
+	KfVersion     	string
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -443,7 +432,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	if request.Name == "" {
 		return fmt.Errorf("Name must be a non empty string.")
 	}
-	kfVersion := request.Version
+	kfVersion := request.KfVersion
 	a, repoDir, err := s.GetApp(request.Project, request.Name, kfVersion, request.Token)
 	defer os.RemoveAll(repoDir)
 	if repoDir == "" {
@@ -527,7 +516,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 
 	// Add kubeflow registry to the app.
 	ksRegistry := kfdefs.GetDefaultRegistry()
-	ksRegistry.Version = request.Version
+	ksRegistry.Version = request.KfVersion
 	RegUri, err := s.getRegistryUri(ksRegistry)
 	if err != nil {
 		log.Errorf("There was a problem getRegistryUri for registry %v. Error: %v", ksRegistry, err)
@@ -576,7 +565,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		}
 		err = s.Apply(ctx, ApplyRequest{
 			Name:        request.Name,
-			KfVersion:   request.Version,
+			KfVersion:   request.KfVersion,
 			Environment: "default",
 			Components:  components,
 			Cluster:     request.Cluster,
@@ -596,11 +585,10 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	if dmDeploy != nil {
 		UpdateDmConfig(repoDir, request.Project, request.Name, kfVersion, dmDeploy)
 	}
-	UpdateCloudShellConfig(repoDir, request.Project, request.Name, kfVersion, request.Zone)
 	if s.installIstio {
 		UpdateIstioManifest(repoDir, request.Project, request.Name, kfVersion, s.knownRegistries["kubeflow"].RegUri)
 	}
-	err = s.SaveAppToRepo(request.Project, request.Email, repoDir)
+	err = SaveAppToRepo(request.Email, path.Join(repoDir, GetRepoName(request.Project)))
 	if err != nil {
 		log.Errorf("There was a problem saving config to cloud repo; %v", err)
 		return err
@@ -639,7 +627,7 @@ func (s *ksServer) getRegistryUri(registry *kstypes.RegistryConfig) (string, err
 			if err != nil {
 				os.Mkdir(registryPath, os.ModePerm)
 			}
-			fileUrl := registry.Repo + "/archive/" + registry.Version + ".tar.gz"
+			fileUrl := path.Join(registry.Repo, "archive", registry.Version + ".tar.gz")
 
 			err = runCmd(fmt.Sprintf("curl -L -o %v %v", versionPath+".tar.gz", fileUrl))
 			if err != nil {
@@ -981,34 +969,10 @@ func UpdateIstioManifest(repoDir string, project string, appName string, kfVersi
 	return nil
 }
 
-// Save cloud shell config to project source repo.
-func UpdateCloudShellConfig(repoDir string, project string, appName string, kfVersion string, zone string) error {
-	confDir := path.Join(repoDir, GetRepoName(project), kfVersion, appName, CloudShellFolder)
-	if err := os.RemoveAll(confDir); err != nil {
-		return err
-	}
-	if err := os.MkdirAll(confDir, os.ModePerm); err != nil {
-		return err
-	}
-	for _, filename := range []string{"conn.sh", "conn.md"} {
-		data, err := ioutil.ReadFile(path.Join(CloudShellTemplatePath, filename))
-		if err != nil {
-			return err
-		}
-		data = bytes.Replace(data, []byte("project_id_placeholder"), []byte(project), -1)
-		data = bytes.Replace(data, []byte("zone_placeholder"), []byte(zone), -1)
-		data = bytes.Replace(data, []byte("deploy_name_placeholder"), []byte(appName), -1)
-		if err := ioutil.WriteFile(path.Join(confDir, filename), data, os.ModePerm); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 // Save ks app config local changes to project source repo.
 // Not thread safe, be aware when call it.
-func (s *ksServer) SaveAppToRepo(project string, email string, repoDir string) error {
-	repoPath := path.Join(repoDir, GetRepoName(project))
+func SaveAppToRepo(email string, repoPath string) error {
+	//repoPath := path.Join(repoDir, GetRepoName(project))
 	err := os.Chdir(repoPath)
 	if err != nil {
 		return err
@@ -1247,12 +1211,9 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			return r, err
 		}
 
-		if req.UserKfctl {
-			err := svc.DeployWithKfctl(&req)
-			if err != nil {
-				r.Err = err.Error()
-			}
-			return r, err
+		if req.UseKfctl {
+			go svc.DeployWithKfctl(&req)
+			return r, nil
 		}
 
 		var storageDmDeployment *deploymentmanager.Deployment
@@ -1314,7 +1275,7 @@ func decodeCreateAppRequest(_ context.Context, r *http.Request) (interface{}, er
 	var request CreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
-		return nil, err
+		return nil, fmt.Errorf("Cannot recognize request body, please refresh page and try again.")
 	}
 	return request, nil
 }

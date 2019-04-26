@@ -1,59 +1,65 @@
 # Just for local test
 appAddress: http://localhost:8080
 defaultApp:
+  packages:
+    - argo
+    - common
+    - examples
+    - gcp
+    - jupyter
+    - katib
+    - metacontroller
+    - modeldb
+    - mpi-job
+    - pipeline
+    - pytorch-job
+    - seldon
+    - tensorboard
+    - tf-serving
+    - tf-training
   components:
-  - name: ambassador
-    prototype: ambassador
-  - name: argo
-    prototype: argo
-  - name: centraldashboard
-    prototype: centraldashboard
-  - name: cert-manager
-    prototype: cert-manager
-  - name: cloud-endpoints
-    prototype: cloud-endpoints
-  - name: gcp-credentials-admission-webhook
-    prototype: gcp-credentials-admission-webhook
-  - name: gpu-driver
-    prototype: gpu-driver
-  - name: iap-ingress
-    prototype: iap-ingress
-  - name: jupyter-web-app
-    prototype: jupyter-web-app
-  - name: katib
-    prototype: katib
-  - name: metacontroller
-    prototype: metacontroller
-  - name: notebook-controller
-    prototype: notebook-controller
-  - name: pipeline
-    prototype: pipeline
-  - name: pytorch-operator
-    prototype: pytorch-operator
-  - name: tf-job-operator
-    prototype: tf-job-operator
-  parameters:
-  - component: cloud-endpoints
-    name: secretName
-    value: admin-gcp-sa
-  - component: cert-manager
-    name: acmeEmail
-    # TODO: use your email for ssl cert
-    value: johnDoe@acme.com
-  - component: iap-ingress
-    name: ipName
-    # TODO: make sure value of ipName is the same as property <ipName>.
-    value: ipName
-  - component: iap-ingress
-    name: hostname
-    # TODO: replace with Name of GCP project. This is fully qualified domain name to use with ingress.
-    value: kubeflow.endpoints.<Project>.cloud.goog
-  - component: ambassador
-    name: platform
-    value: gke
-  registries:
-  - name: kubeflow
-    repo: https://github.com/kubeflow/kubeflow
-    # default leave empty
-    version:
-    path: kubeflow
+    # ordering is important
+    - metacontroller
+    - ambassador
+    - argo
+    - centraldashboard
+    - cert-manager
+    - cloud-endpoints
+    - gcp-credentials-admission-webhook
+    - gpu-driver
+    - iap-ingress
+    - jupyter-web-app
+    - katib
+    - notebook-controller
+    - pipeline
+    - pytorch-operator
+    - tf-job-operator
+  componentParams:
+    cert-manager:
+      - name: acmeEmail
+        # TODO change value on the fly: use your email for ssl cert
+        value: johnDoe@acme.com
+        initRequired: true
+    iap-ingress:
+      - name: ipName
+        # TODO change value on the fly: value of ipName need to match resource name in deployment entry.
+        value: ipName
+        initRequired: true
+      - name: hostname
+        # TODO change value on the fly: replace with user-provide parameters. This need to be fully qualified domain name to use with ingress.
+        value: <deployName>.endpoints.<project>.cloud.goog
+        initRequired: true
+    cloud-endpoints:
+      - name: secretName
+        value: admin-gcp-sa
+    spartakus:
+      - name: usageId
+        value: <randomly-generated-id>
+        initRequired: true
+      - name: reportUsage
+        value: "true"
+        initRequired: true
+    notebook-controller:
+      - name: injectGcpCredentials
+        value: "true"
+  platform: gcp

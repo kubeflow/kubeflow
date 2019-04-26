@@ -122,7 +122,7 @@ func InsertLoginCredentails(req *CreateRequest, k8sClientset *clientset.Clientse
 	secretData := make(map[string][]byte)
 	UsernameData, err := base64.StdEncoding.DecodeString(req.Username)
 	if err != nil {
-		log.Errorf("Failed decoding client id: %v", err)
+		log.Errorf("Failed decoding username: %v", err)
 		return err
 	}
 	secretData["username"] = UsernameData

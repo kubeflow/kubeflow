@@ -80,16 +80,24 @@ const IstioNamespace = "istio-system"
 // It includes the KsApp along with additional Gcp types
 type Gcp struct {
 	kfdefs.KfDef
-	client      *http.Client
-	tokenSource oauth2.TokenSource
+	configtypes.StorageOption
+	client      	*http.Client
+	tokenSource 	oauth2.TokenSource
 	// When isCLI is false, following code need to be multi-thread safe, and can not access local configs or gcloud cli
-	isCLI bool
+	isCLI 			bool
+	SAClientId 		string
 	// requried when choose basic-auth
 	username        string
 	encodedPassword string
 	// requried when choose iap
-	oauthId     string
-	oauthSecret string
+	oauthId     	string
+	oauthSecret 	string
+}
+
+type dmOperationEntry struct {
+	operationName  string
+	// create or update dmName
+	action		   string
 }
 
 // GetKfApp returns the gcp kfapp. It's called by coordinator.GetKfApp
@@ -112,10 +120,13 @@ func GetKfApp(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 		}
 	}
 	_gcp := &Gcp{
-		KfDef:       *kfdef,
-		client:      client,
-		tokenSource: ts,
-		isCLI:       true,
+		KfDef:       	*kfdef,
+		client:      	client,
+		tokenSource: 	ts,
+		isCLI:       	true,
+		StorageOption:	configtypes.StorageOption{
+			CreatePipelinePersistentStorage: true,
+		},
 	}
 	if _gcp.Spec.Email == "" {
 		if err = _gcp.getAccount(); err != nil {
@@ -126,12 +137,20 @@ func GetKfApp(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 }
 
 // BuildKfApp build the gcp kfapp from input and return it. Used by click-deploy app
-func BuildKfApp(kfdef *kfdefs.KfDef, gcpClient *http.Client, ts oauth2.TokenSource) kftypes.KfApp {
+func BuildKfApp(kfdef *kfdefs.KfDef, gcpClient *http.Client, ts oauth2.TokenSource,
+	storageOption configtypes.StorageOption, SAClientId string, username string, encodedPassword string, 
+	oauthId string, oauthSecret string) kftypes.KfApp {
 	return &Gcp{
-		KfDef:       *kfdef,
-		client:      gcpClient,
-		tokenSource: ts,
-		isCLI:       false,
+		KfDef:       	 *kfdef,
+		StorageOption:	 storageOption,
+		client:      	 gcpClient,
+		tokenSource: 	 ts,
+		isCLI:       	 false,
+		SAClientId: 	 SAClientId,
+		username:	 	 username,
+		encodedPassword: encodedPassword,
+		oauthId:		 oauthId,
+		oauthSecret: 	 oauthSecret,
 	}
 }
 
@@ -266,65 +285,63 @@ func (gcp *Gcp) getK8sClientset(ctx context.Context) (*clientset.Clientset, erro
 	}
 }
 
-func blockingWait(project string, opName string, deploymentmanagerService *deploymentmanager.Service,
-	ctx context.Context, logPrefix string) error {
+func blockingWait(project string, deploymentmanagerService *deploymentmanager.Service,
+	dmOperationEntries []*dmOperationEntry) error {
+	ctx := context.Background()
 	// Explicitly copy string to avoid memory leak.
 	p := "" + project
-	name := "" + opName
+	//name := "" + opName
 	return backoff.Retry(func() error {
-		op, err := deploymentmanagerService.Operations.Get(p, name).Context(ctx).Do()
+		for _, dmEntry := range dmOperationEntries {
+			op, err := deploymentmanagerService.Operations.Get(p, dmEntry.operationName).Context(ctx).Do()
 
-		if err != nil {
-			// Retry here as there's a chance to get error for newly created DM operation.
-			log.Errorf("%v error: %v", logPrefix, err)
-			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: fmt.Sprintf("%v error: %v", logPrefix, err),
+			if err != nil {
+				// Retry here as there's a chance to get error for newly created DM operation.
+				log.Errorf("%v error: %v", dmEntry.action, err)
+				return &kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("%v error: %v", dmEntry.action, err),
+				}
 			}
-		}
-		if op.Error != nil {
-			for _, e := range op.Error.Errors {
-				log.Errorf("%v error: %+v", logPrefix, e)
+			if op.Error != nil {
+				for _, e := range op.Error.Errors {
+					log.Errorf("%v error: %+v", dmEntry.action, e)
+				}
 			}
-		}
-		if op.Status == "DONE" {
+			if op.Status != "DONE" {
+				log.Infof("%v status: %v (op = %v)", dmEntry.action, op.Status, op.Name)
+				return &kfapis.KfError{
+					Code:    int(kfapis.INVALID_ARGUMENT),
+					Message: fmt.Sprintf("%v did not succeed; status: %v (op = %v)",
+						dmEntry.action, op.Status, op.Name),
+				}
+			}
 			if op.HttpErrorStatusCode > 0 {
 				return backoff.Permanent(&kfapis.KfError{
 					Code: int(kfapis.INVALID_ARGUMENT),
 					Message: fmt.Sprintf("%v error(%v): %v",
-						logPrefix,
+						dmEntry.action,
 						op.HttpErrorStatusCode, op.HttpErrorMessage),
 				})
 			}
-			log.Infof("%v is finished: %v", logPrefix, op.Status)
-			return nil
+			log.Infof("%v is finished: %v", dmEntry.action, op.Status)
 		}
-		log.Infof("%v status: %v (op = %v)", logPrefix, op.Status, op.Name)
-		name = op.Name
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("%v did not succeed; status: %v (op = %v)", logPrefix, op.Status, op.Name),
-		}
+		return nil
 	}, backoff.NewExponentialBackOff())
 }
 
-func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
+func (gcp *Gcp) updateDeployment(deploymentmanagerService *deploymentmanager.Service, deployment string,
+	yamlfile string) (*dmOperationEntry, error) {
 	appDir := gcp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
 	ctx := context.Background()
-	deploymentmanagerService, err := deploymentmanager.New(gcp.client)
-	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error creating deploymentmanagerService: %v", err),
-		}
-	}
+
 	filePath := filepath.Join(gcpConfigDir, yamlfile)
 	dp := &deploymentmanager.Deployment{
 		Name: deployment,
 	}
 	if target, targetErr := generateTarget(filePath); targetErr != nil {
-		return &kfapis.KfError{
+		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: targetErr.Error(),
 		}
@@ -341,7 +358,7 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 			log.Infof("Updating deployment %v", deployment)
 			op, updateErr := deploymentmanagerService.Deployments.Update(project, deployment, dp).Context(ctx).Do()
 			if updateErr != nil {
-				return &kfapis.KfError{
+				return nil, &kfapis.KfError{
 					Code:    int(kfapis.UNKNOWN),
 					Message: fmt.Sprintf("Update deployment error: %v", updateErr),
 				}
@@ -350,19 +367,23 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 		} else {
 			log.Infof("Wait running deployment %v to finish; operation name: %v.", deployment, opName)
 		}
-		return blockingWait(project, opName, deploymentmanagerService, ctx,
-			"Updating "+deployment)
+		return &dmOperationEntry{
+			operationName: opName,
+			action: "Updating " + deployment,
+		}, nil
 	} else {
 		log.Infof("Creating deployment %v", deployment)
 		op, insertErr := deploymentmanagerService.Deployments.Insert(project, dp).Context(ctx).Do()
 		if insertErr != nil {
-			return &kfapis.KfError{
+			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INTERNAL_ERROR),
 				Message: fmt.Sprintf("Insert deployment error: %v", insertErr),
 			}
 		}
-		return blockingWait(project, op.Name, deploymentmanagerService, ctx,
-			"Creating "+deployment)
+		return &dmOperationEntry{
+			operationName: op.Name,
+			action: "Creating " + deployment,
+		}, nil
 	}
 }
 
@@ -448,7 +469,12 @@ func (gcp *Gcp) ConfigK8s() error {
 	if err = createNamespace(k8sClientset, gcp.Namespace); err != nil {
 		return err
 	}
-	if err = bindAdmin(k8sClientset, gcp.Spec.Email); err != nil {
+	// For deploy app, request will use service account credential instead of user credential.
+	bindAccount := gcp.Spec.Email
+	if gcp.SAClientId != "" {
+		bindAccount = gcp.SAClientId
+	}
+	if err = bindAdmin(k8sClientset, bindAccount); err != nil {
 		return err
 	}
 
@@ -564,22 +590,36 @@ func (gcp *Gcp) AddNamedContext() error {
 func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	ctx := context.Background()
 	gcpClient := oauth2.NewClient(ctx, gcp.tokenSource)
-	if err := gcp.updateDeployment(gcp.Name+"-storage", STORAGE_FILE); err != nil {
+	dmOperationEntries := []*dmOperationEntry{}
+	deploymentmanagerService, err := deploymentmanager.New(gcp.client)
+	if err != nil {
 		return &kfapis.KfError{
-			Code: err.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("could not update %v: %v", STORAGE_FILE,
-				err.(*kfapis.KfError).Message),
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error creating deploymentmanagerService: %v", err),
 		}
 	}
-	if err := gcp.updateDeployment(gcp.Name, CONFIG_FILE); err != nil {
+	if _, storageStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, STORAGE_FILE)); !os.IsNotExist(storageStatErr) {
+		storageEntry, err := gcp.updateDeployment(deploymentmanagerService, gcp.Name+"-storage", STORAGE_FILE)
+		if err != nil {
+			return &kfapis.KfError{
+				Code: err.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("could not update %v: %v", STORAGE_FILE,
+					err.(*kfapis.KfError).Message),
+			}
+		}
+		dmOperationEntries = append(dmOperationEntries, storageEntry)
+	}
+	dmEntry, err := gcp.updateDeployment(deploymentmanagerService, gcp.Name, CONFIG_FILE)
+	if err != nil {
 		return &kfapis.KfError{
 			Code: err.(*kfapis.KfError).Code,
 			Message: fmt.Sprintf("could not update %v: %v", CONFIG_FILE,
 				err.(*kfapis.KfError).Message),
 		}
 	}
+	dmOperationEntries = append(dmOperationEntries, dmEntry)
 	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
-		err := gcp.updateDeployment(gcp.Name+"-network", NETWORK_FILE)
+		networkEntry, err := gcp.updateDeployment(deploymentmanagerService, gcp.Name+"-network", NETWORK_FILE)
 		if err != nil {
 			return &kfapis.KfError{
 				Code: err.(*kfapis.KfError).Code,
@@ -587,9 +627,10 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 					err.(*kfapis.KfError).Message),
 			}
 		}
+		dmOperationEntries = append(dmOperationEntries, networkEntry)
 	}
 	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
-		err := gcp.updateDeployment(gcp.Name+"-gcfs", GCFS_FILE)
+		gcfsEntry, err := gcp.updateDeployment(deploymentmanagerService, gcp.Name+"-gcfs", GCFS_FILE)
 		if err != nil {
 			return &kfapis.KfError{
 				Code: err.(*kfapis.KfError).Code,
@@ -597,14 +638,22 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 					err.(*kfapis.KfError).Message),
 			}
 		}
+		dmOperationEntries = append(dmOperationEntries, gcfsEntry)
 	}
 
+	if err = blockingWait(gcp.Spec.Project, deploymentmanagerService, dmOperationEntries); err != nil {
+		return &kfapis.KfError{
+			Code: err.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("could not update deployment manager entries: %v",
+				err.(*kfapis.KfError).Message),
+		}
+	}
 	exp := backoff.NewExponentialBackOff()
 	exp.InitialInterval = 1 * time.Second
 	exp.MaxInterval = 3 * time.Second
 	exp.MaxElapsedTime = time.Minute
 	exp.Reset()
-	err := backoff.Retry(func() error {
+	err = backoff.Retry(func() error {
 		// Get current policy
 		policy, policyErr := utils.GetIamPolicy(gcp.Spec.Project, gcpClient)
 		if policyErr != nil {
@@ -833,8 +882,12 @@ func deleteDeployment(deploymentmanagerService *deploymentmanager.Service, ctx c
 				project, name, err),
 		}
 	}
-	if err = blockingWait(project, op.Name, deploymentmanagerService, ctx,
-		"Deleting "+name); err != nil {
+	deleteEntry := []*dmOperationEntry{&dmOperationEntry{
+		operationName: op.Name,
+		action: "Deleting " + name,
+
+	}}
+	if err = blockingWait(project, deploymentmanagerService, deleteEntry); err != nil {
 		return &kfapis.KfError{
 			Code: err.(*kfapis.KfError).Code,
 			Message: fmt.Sprintf("Gcp.Delete is failed for %v/%v: %v",
@@ -1289,10 +1342,12 @@ func (gcp *Gcp) generateDMConfigs() error {
 	if err := gcp.writeClusterConfig(from, to); err != nil {
 		return err
 	}
-	from = filepath.Join(sourceDir, STORAGE_FILE)
-	to = filepath.Join(gcpConfigDir, STORAGE_FILE)
-	if err := gcp.writeStorageConfig(from, to); err != nil {
-		return err
+	if gcp.CreatePipelinePersistentStorage {
+		from = filepath.Join(sourceDir, STORAGE_FILE)
+		to = filepath.Join(gcpConfigDir, STORAGE_FILE)
+		if err := gcp.writeStorageConfig(from, to); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -1514,8 +1569,10 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 		gcp.Spec.ComponentParams["iap-ingress"] = setNameVal(gcp.Spec.ComponentParams["iap-ingress"], "ipName", gcp.Spec.IpName, true)
 		gcp.Spec.ComponentParams["iap-ingress"] = setNameVal(gcp.Spec.ComponentParams["iap-ingress"], "hostname", gcp.Spec.Hostname, true)
 	}
-	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "mysqlPd", gcp.Name+"-storage-metadata-store", false)
-	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "minioPd", gcp.Name+"-storage-artifact-store", false)
+	if gcp.CreatePipelinePersistentStorage {
+		gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "mysqlPd", gcp.Name+"-storage-metadata-store", false)
+		gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "minioPd", gcp.Name+"-storage-artifact-store", false)
+	}
 	gcp.Spec.ComponentParams["notebook-controller"] = setNameVal(gcp.Spec.ComponentParams["notebook-controller"], "injectGcpCredentials", "true", false)
 
 	for _, comp := range gcp.Spec.Components {

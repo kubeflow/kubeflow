@@ -41,7 +41,7 @@ type KfDefSpec struct {
 // Make it private to prevent user modify original struct.
 var defaultRegistry = RegistryConfig{
 	Name: "kubeflow",
-	Repo: "https://github.com/kubeflow/kubeflow.git",
+	Repo: "https://github.com/kubeflow/kubeflow",
 	Path: "kubeflow",
 }
 

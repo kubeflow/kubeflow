@@ -168,7 +168,7 @@ func (ksApp *ksApp) getCompsFilePath() string {
 
 func (ksApp *ksApp) applyComponent(components []string, cfg *clientcmdapi.Config) error {
 	applyOptions := map[string]interface{}{
-		actions.OptionApp: ksApp.KApp,
+		actions.OptionAppRoot: ksApp.ksRoot(),
 		actions.OptionClientConfig: &client.Config{
 			Overrides: &clientcmd.ConfigOverrides{},
 			Config:    clientcmd.NewDefaultClientConfig(*cfg, &clientcmd.ConfigOverrides{}),
@@ -282,7 +282,7 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 	}
 	components := ksApp.Spec.Components
 	err := actions.RunDelete(map[string]interface{}{
-		actions.OptionApp: ksApp.KApp,
+		actions.OptionAppRoot: ksApp.ksRoot(),
 		actions.OptionClientConfig: &client.Config{
 			Overrides: &clientcmd.ConfigOverrides{},
 			Config:    clientcmd.NewDefaultClientConfig(*ksApp.apiConfig, &clientcmd.ConfigOverrides{}),
@@ -497,14 +497,6 @@ func (ksApp *ksApp) envSet(envName string, host string) error {
 			Message: fmt.Sprintf("There was a problem setting ksonnet env: %v", err),
 		}
 	}
-	loadApp, loadErr := app.Load(afero.NewOsFs(), ksApp.KApp.HTTPClient(), ksApp.ksRoot())
-	if loadErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("could not reload the ksonnet env: %v", err),
-		}
-	}
-	ksApp.KApp = loadApp
 	return nil
 }
 
