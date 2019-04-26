@@ -23,8 +23,10 @@ OUTPUT ?= output.yaml
 # bump the image on unrelated changes.
 GIT_TAG ?= $(shell git log -n 1 --pretty=format:"%h" ./)
 
-build-gcb:
+info:
 	echo image: \"gcr.io/$(REGISTRY_PROJECT)/jupyter-web-app:$(TAG)\" > $(OUTPUT)
+
+build-gcb: info	
 	gcloud --project=$(PROJECT) \
 		builds submit \
 		--machine-type=n1-highcpu-32 \

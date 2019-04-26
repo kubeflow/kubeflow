@@ -40,6 +40,7 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     env.update(os.environ)
     env["PROJECT"] = build_project
     env["REGISTRY_PROJECT"] = registry_project
+    env["GIT_TAG"] = self._last_commit
 
     with tempfile.NamedTemporaryFile() as hf:
       name = hf.name
@@ -59,7 +60,12 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
       lines: Lines of text
       values: A dictionary containing the names of parameters and the values
         to set them to.
+
+    Returns:
+      lines: Modified lines
+      old: Dictionary of old values for these parameters
     """
+    old = {}
     for i, line in enumerate(lines):
       # Split the line on white space
       pieces = re.findall(r'\S+', line)
@@ -76,15 +82,25 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
       if not param_name in values:
         continue
 
+      old[param_name] = pieces[4]
       logging.info("Changing param %s from %s to %s", param_name, pieces[4],
                    values[param_name])
       pieces[4] = values[param_name]
 
       lines[i] = " ".join(pieces)
 
-    return lines
+    return lines, old
 
   def update_prototype(self, image):
+    """Update the prototype file.
+
+    Args:
+      image: New image to set
+
+    Returns:
+      prototype_file: The modified prototype file or None if the image is
+        already up to date.
+    """
     values = {"image": image}
 
 
@@ -94,8 +110,11 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     with open(prototype_file) as f:
       prototype = f.read().split("\n")
 
-    new_lines = self._replace_parameters(prototype, values)
+    new_lines, old_values = self._replace_parameters(prototype, values)
 
+    if old_values["image"] == image:
+      logging.info("Existing image was already the current image; %s", image)
+      return None
     temp_file = prototype_file + ".tmp"
     with open(temp_file, "w") as w:
       w.write("\n".join(new_lines))
@@ -109,7 +128,8 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     if not self._last_commit:
       # Get the hash of the last commit to modify the source for the Jupyter web
       # app image
-      self._last_commit = util.run(["git", "log", "-n", "1", "--pretty=format:\"%h\"",
+      self._last_commit = util.run(["git", "log", "-n", "1",
+                                    "--pretty=format:\"%h\"",
                                     "components/jupyter-web-app"],
                                    cwd=self._root_dir()).strip("\"")
 
@@ -193,12 +213,17 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     if not image_exists:
       logging.info("Building the image")
       image = self.build_image(build_project, registry_project)
+      logging.info("Created image: %s", image)
     else:
       logging.info("Image %s already exists", image)
 
-    # TODO(jlewi):We should check what the current image and not update it
+    # We should check what the current image is if and not update it
     # if its the existing image
     prototype_file = self.update_prototype(image)
+
+    if not prototype_file:
+      logging.info("Prototype not updated so not creating a PR.")
+      return
 
     branch_name = "update_jupyter_{0}".format(last_commit)
 
@@ -256,6 +281,7 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     if pr_title in prs:
       logging.info("PR %s already exists to update the Jupyter web app image "
                    "to %s", prs[pr_title], commit)
+      return
 
     with tempfile.NamedTemporaryFile(delete=False) as hf:
       hf.write(pr_title.encode())
