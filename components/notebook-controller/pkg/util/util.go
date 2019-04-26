@@ -81,20 +81,20 @@ func CopyServiceFields(from, to *corev1.Service) bool {
 	return requireUpdate
 }
 
+// Copy configuration related fields to another instance and returns true if there
+// is a diff and thus needs to update.
 func CopyVirtualService(from, to *unstructured.Unstructured) bool {
 	fromSpec, found, err := unstructured.NestedMap(from.Object, "spec")
 	if !found {
-		return true
+		return false
 	}
 	if err != nil {
-		return true
+		return false
 	}
 
 	toSpec, found, err := unstructured.NestedMap(to.Object, "spec")
-	if !found {
-		return true
-	}
-	if err != nil {
+	if !found || err != nil {
+		unstructured.SetNestedMap(to.Object, fromSpec, "spec")
 		return true
 	}
 
