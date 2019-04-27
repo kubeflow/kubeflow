@@ -48,6 +48,11 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     web_dir = self._component_dir()
     util.run(["make", "build-gcb"], env=env, cwd=web_dir)
 
+    # TODO(jlewi): We want to get the actual image produced by GCB. Right
+    # now this is a bit brittle because we have multiple layers of substitution
+    # e.g. in the Makefile and then the GCB YAML.
+    # It might be better to parse the stdout of make-build-gcb to get the
+    # GCB job name and then fetch the GCB info specifying the images.
     with open(name) as hf:
       data = yaml.load(hf)
 
