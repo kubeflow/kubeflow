@@ -34,6 +34,22 @@ Here's how this works
 
 * The ssh keys are stored as K8s secret and configured via init containers
 
+## Setting up the bot
+
+1. Create secrets in the cluster containing the GitHub ssh keys.
+
+    ```
+    kubectl create secret generic kubeflow-bot-ssh --from-file=id_rsa=kubeflow-bot --from-file=id_rsa.pub=kubeflow-bot.pub 
+    ```
+
+    * Use a public/private SSH key that has been added to the kubeflow-bot GitHub account
+
+1. Create a secret containing a GITHUB_TOKEN
+
+    ```
+    kubectl create secret generic github-token --namespace=${NAMESPACE} --from-literal=github_token=${GITHUB_TOKEN}
+    ```
+
 ## hub-cli
 
 [hub cli](https://hub.github.com/) is to list and create PRs
