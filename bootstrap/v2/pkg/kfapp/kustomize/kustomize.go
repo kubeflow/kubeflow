@@ -450,19 +450,13 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 				Message: fmt.Sprintf("couldn't create directory %v Error %v", kustomizeDir, kustomizeDirErr),
 			}
 		}
-		defer func() {
-			file := filepath.Join(kustomize.Spec.ManifestsRepo, kftypes.KustomizationFile)
-			if _, err := os.Stat(file); err == nil {
-				_ = os.Remove(file)
-			}
-		}()
 		for _, compName := range kustomize.Spec.Components {
 			if compPath, ok := kustomize.componentPathMap[compName]; ok {
-				writeKustomizationFileErr := kustomize.writeKustomizationFile(compName, compPath)
-				if writeKustomizationFileErr != nil {
-					return writeKustomizationFileErr
+				kustomizationPath, err := kustomize.writeKustomizationFile(compName, compPath)
+				if err != nil {
+					return err
 				}
-				_loader, loaderErr := loader.NewLoader(kustomize.Spec.ManifestsRepo, kustomize.fsys)
+				_loader, loaderErr := loader.NewLoader(kustomizationPath, kustomize.fsys)
 				if loaderErr != nil {
 					return fmt.Errorf("could not load kustomize loader: %v", loaderErr)
 				}
@@ -578,7 +572,7 @@ func (kustomize *kustomize) writeConfigFile() error {
 	return nil
 }
 
-func (kustomize *kustomize) overlayResources(compName string, compPath string) map[string][]string {
+func (kustomize *kustomize) overlayResources(compName string, compPath string) map[string]*types.Kustomization {
 	params := kustomize.Spec.ComponentParams[compName]
 	overlays := []string{}
 	if params != nil {
@@ -589,76 +583,115 @@ func (kustomize *kustomize) overlayResources(compName string, compPath string) m
 			}
 		}
 	}
-	resources := func (overlayPath string) []string {
-		resources := make([]string, 0)
-		files, err := ioutil.ReadDir(overlayPath)
+	resources := func(compDir string, overlayPath string) *types.Kustomization {
+		kustomizationFile := filepath.Join(overlayPath, kftypes.KustomizationFile)
+		data, err := ioutil.ReadFile(kustomizationFile)
 		if err != nil {
-			return resources
+			return nil
 		}
-		for _, f := range files {
-			if !f.IsDir() && f.Name() != "kustomization.yaml" && strings.HasSuffix(f.Name(), ".yaml") {
-				fpath := filepath.Join(overlayPath, f.Name())
-				resources = append(resources, extractSuffix(kustomize.Spec.ManifestsRepo, fpath))
+		kustomization := &types.Kustomization{
+			TypeMeta: types.TypeMeta{
+				APIVersion: types.KustomizationVersion,
+				Kind:       types.KustomizationKind,
+			},
+			Namespace: kustomize.Namespace,
+			Bases: []string{},
+			PatchesStrategicMerge: []patch.StrategicMerge{},
+			PatchesJson6902: []patch.Json6902{},
+		}
+		overlayKustomization := &types.Kustomization{}
+		if err = yaml.Unmarshal(data, overlayKustomization); err != nil {
+			return nil
+		}
+		if overlayKustomization.Bases != nil {
+			for _, value := range overlayKustomization.Bases {
+				baseAbsolutePath := path.Join(overlayPath, value)
+				basePath := extractSuffix(compDir, baseAbsolutePath)
+				kustomization.Bases = append(kustomization.Bases, basePath)
 			}
 		}
-		return resources
+		if overlayKustomization.PatchesStrategicMerge != nil {
+			for _, value := range overlayKustomization.PatchesStrategicMerge {
+				patchAbsoluteFile := filepath.Join(overlayPath, string(value))
+				patchFile := extractSuffix(compDir, patchAbsoluteFile)
+				patchFileCasted := patch.StrategicMerge(patchFile)
+				kustomization.PatchesStrategicMerge = append(kustomization.PatchesStrategicMerge, patchFileCasted)
+			}
+		}
+		if overlayKustomization.PatchesJson6902 != nil {
+			for _, value := range overlayKustomization.PatchesJson6902 {
+				patchJson := new(patch.Json6902)
+				patchJson.Target = value.Target
+				patchAbsolutePath := filepath.Join(overlayPath, value.Path)
+				patchJson.Path = extractSuffix(compDir, patchAbsolutePath)
+				kustomization.PatchesJson6902 = append(kustomization.PatchesJson6902, *patchJson)
+			}
+		}
+		return kustomization
 	}
-	overlayResourcesMap := make(map[string][]string)
+	overlayResourcesMap := make(map[string]*types.Kustomization)
 	for _, overlay := range overlays {
-		compAbsolutePath := path.Join(kustomize.Spec.ManifestsRepo, compPath)
-		overlayPath := path.Join(compAbsolutePath, overlay)
-		overlayResourcesMap[overlay] = resources(overlayPath)
+		compDir := path.Join(kustomize.Spec.ManifestsRepo, compPath)
+		overlayPath := path.Join(compDir, "overlays", overlay)
+		overlayResourcesMap[overlay] = resources(compDir, overlayPath)
 	}
 	return overlayResourcesMap
 }
 
-// writeKustomizationFile will write out a top-level kustomization.yaml under the manifests downloaded cache.
-// this file is then used to generate a component under <deployment>/kustomize
-func (kustomize *kustomize) writeKustomizationFile(compName string, compPath string) error {
-	bases := []string{}
-	comp := path.Join(kustomize.Spec.ManifestsRepo, compPath)
-	compKustomizationFile := filepath.Join(comp, kftypes.KustomizationFile)
-	base := path.Join(kustomize.Spec.ManifestsRepo, compPath, "base")
-	baseKustomizationFile := filepath.Join(base, kftypes.KustomizationFile)
-	overlays := kustomize.overlayResources(compName, compPath)
-	if kustomize.Spec.Platform != "" && len(overlays) == 0 {
-		platformOverlay := path.Join(kustomize.Spec.ManifestsRepo, compPath, "overlays", kustomize.Spec.Platform)
-		platformKustomizationFile := filepath.Join(platformOverlay, kftypes.KustomizationFile)
-		if _, err := os.Stat(platformKustomizationFile); err == nil {
-			bases = append(bases, extractSuffix(kustomize.Spec.ManifestsRepo, platformOverlay))
-		}
-	} else if _, err := os.Stat(baseKustomizationFile); err == nil {
-		bases = append(bases, extractSuffix(kustomize.Spec.ManifestsRepo, base))
-	} else if _, err := os.Stat(compKustomizationFile); err == nil {
-		bases = append(bases, extractSuffix(kustomize.Spec.ManifestsRepo, comp))
-	}
+// writeKustomizationFile will create a kustomization.yaml and return its location.
+// It will return its directory location (or error).
+// The following algorithm is used:
+//
+// It will first parse app.yaml for an overlay parameter in componentParams  - for example
+//
+//   componentParams:
+//    tf-job-operator:
+//    - name: overlay
+//      value: namespaced-gangscheduled
+//
+// If a single overlay is listed it will return this location as an absolute path.
+// Else If multiple overlays listed, it will generate a kustomization.yaml file
+//   under <compPath>/overlays that is a strategic merge of overlays/{name1,name2,...}.
+// Else it will look for a kustomization.yaml
+//   under <compPath>/base.
+//
+// If no kustomization.yaml is found or base doesn't exist it returns an error
+func (kustomize *kustomize) writeKustomizationFile(compName string, compPath string) (string, error) {
+	compDir := path.Join(kustomize.Spec.ManifestsRepo, compPath)
+	locationDir := path.Join(compDir, "base")
 	kustomization := &types.Kustomization{
 		TypeMeta: types.TypeMeta{
 			Kind:       types.KustomizationKind,
 			APIVersion: types.KustomizationVersion,
 		},
-		Bases: bases,
+		Bases: []string{extractSuffix(compDir, locationDir)},
 		Namespace: kustomize.Namespace,
 	}
+	overlays := kustomize.overlayResources(compName, compPath)
 	if len(overlays) > 0 {
-		patchesStrategicMerge := make([]patch.StrategicMerge,0)
-		for _, v := range overlays {
-			for _, overlay := range v {
-				patchesStrategicMerge = append(patchesStrategicMerge, patch.StrategicMerge(overlay))
+		for _, overlay := range overlays {
+			if len(overlays) == 1 {
+				kustomization = overlay
+				break
+			}
+			for _, patchFile := range overlay.PatchesStrategicMerge {
+				kustomization.PatchesStrategicMerge = append(kustomization.PatchesStrategicMerge, patchFile)
+			}
+			for _, jsonPatch := range overlay.PatchesJson6902 {
+				kustomization.PatchesJson6902 = append(kustomization.PatchesJson6902, jsonPatch)
 			}
 		}
-		kustomization.PatchesStrategicMerge = patchesStrategicMerge
 	}
 	buf, bufErr := yaml.Marshal(kustomization)
 	if bufErr != nil {
-		return bufErr
+		return "", bufErr
 	}
-	cfgFilePath := filepath.Join(kustomize.Spec.ManifestsRepo, kftypes.KustomizationFile)
+	cfgFilePath := filepath.Join(compDir, kftypes.KustomizationFile)
 	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
 	if cfgFilePathErr != nil {
-		return cfgFilePathErr
+		return "", cfgFilePathErr
 	}
-	return nil
+	return locationDir, nil
 }
 
 // updateParamFiles will taks any parameterComponent sections in app.yaml and update
