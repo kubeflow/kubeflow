@@ -265,6 +265,7 @@
     },  // deploy
     deploy:: deploy,
 
+
     // Run the process to update the backend service
     local backendUpdater = {
       apiVersion: "apps/v1",
@@ -276,6 +277,7 @@
           service: "backend-updater",
         },
       },
+      serviceName: "backend-updater",
       spec: {
         selector: {
           matchLabels: {
