@@ -31,41 +31,6 @@ spec:
           protocol: TCP
       serviceAccountName: centraldashboard
 `)
-  th.writeK("/manifests/common/centraldashboard/base", `
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: kubeflow
-resources:
-- deployment.yaml
-- role-binding.yaml
-- role.yaml
-- service-account.yaml
-- service.yaml
-commonLabels:
-  kustomize.component: centraldashboard
-images:
-  - name: gcr.io/kubeflow-images-public/centraldashboard
-    newName: gcr.io/kubeflow-images-public/centraldashboard
-    newTag: latest
-generatorOptions:
-  disableNameSuffixHash: true
-vars:
-- name: namespace
-  objref:
-    kind: Service
-    name: centraldashboard
-    apiVersion: v1
-  fieldref:
-    fieldpath: metadata.namespace
-configurations:
-- params.yaml
-
-`)
-  th.writeF("/manifests/common/centraldashboard/base/params.yaml", `
-varReference:
-- path: metadata/annotations/getambassador.io\/config
-  kind: Service
-`)
   th.writeF("/manifests/common/centraldashboard/base/role-binding.yaml", `
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -138,6 +103,41 @@ spec:
     app: centraldashboard
   sessionAffinity: None
   type: ClusterIP
+`)
+  th.writeF("/manifests/common/centraldashboard/base/params.yaml", `
+varReference:
+- path: metadata/annotations/getambassador.io\/config
+  kind: Service
+`)
+  th.writeK("/manifests/common/centraldashboard/base", `
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow
+resources:
+- deployment.yaml
+- role-binding.yaml
+- role.yaml
+- service-account.yaml
+- service.yaml
+commonLabels:
+  kustomize.component: centraldashboard
+images:
+  - name: gcr.io/kubeflow-images-public/centraldashboard
+    newName: gcr.io/kubeflow-images-public/centraldashboard
+    newTag: latest
+generatorOptions:
+  disableNameSuffixHash: true
+vars:
+- name: namespace
+  objref:
+    kind: Service
+    name: centraldashboard
+    apiVersion: v1
+  fieldref:
+    fieldpath: metadata.namespace
+configurations:
+- params.yaml
+
 `)
 }
 
