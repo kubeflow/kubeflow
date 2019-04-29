@@ -77,6 +77,14 @@ const (
 // The namespace for Istio
 const IstioNamespace = "istio-system"
 
+var DEFAULT_EXP_BACKOFF = backoff.ExponentialBackOff{
+	InitialInterval:     backoff.DefaultInitialInterval,
+	RandomizationFactor: backoff.DefaultRandomizationFactor,
+	Multiplier:          backoff.DefaultMultiplier,
+	MaxInterval:         30 * time.Second,
+	MaxElapsedTime:      backoff.DefaultMaxElapsedTime,
+}
+
 // Gcp implements KfApp Interface
 // It includes the KsApp along with additional Gcp types
 type Gcp struct {
@@ -296,7 +304,7 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("%v did not succeed; status: %v (op = %v)", logPrefix, op.Status, op.Name),
 		}
-	}, backoff.NewExponentialBackOff())
+	}, DEFAULT_EXP_BACKOFF)
 }
 
 func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
@@ -901,7 +909,7 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("Endpoint deletion is running..."),
 		}
-	}, backoff.NewExponentialBackOff())
+	}, DEFAULT_EXP_BACKOFF)
 }
 
 func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
@@ -1582,7 +1590,7 @@ func (gcp *Gcp) gcpInitProject() error {
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("batch API enabling is running..."),
 		}
-	}, backoff.NewExponentialBackOff())
+	}, DEFAULT_EXP_BACKOFF)
 }
 
 // Init initializes a gcp kfapp
