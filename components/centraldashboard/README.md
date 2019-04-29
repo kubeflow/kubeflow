@@ -90,11 +90,12 @@ We store our CSS palette in [_public/kubeflow-palette.css_](public/kubeflow-pale
 Name | Value | Usage
 --- | --- | ---
 `--accent-color` | #007dfc | Should be used to highlight Action Buttons, borders, FABs
-`--primary-background-color` | #003c75 | Used as the background color for all navigation elements (Sidebars, Toolbars)
-`--sidebar-default-color` | #ffffff4f | Text color to be used in the sidebar
+`-kubeflow-color` | #003c75 | The primary background color for Kubeflow CentralDashboard
+`--primary-background-color` | #2196f3 | Used as the background color for all navigation elements (Toolbars, FOBs)
+`--sidebar-color` | #f8fafb | Background Color for Sub-App Sidebar
 `--border-color` | #f4f4f6 | All borders on the page
 
-_**Note:** This styleguide is subject to change, and will eventually be served as a CDN, so manual updates will not be required._
+_**Note:** This style-guide is subject to change, and will eventually be served as a CDN, so eventually manual updates will not be required._
 
 ### General Principles
 - Follow the Material Design 2 Spec, when possible

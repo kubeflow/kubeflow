@@ -46,13 +46,13 @@ describe('Main Page', () => {
         });
         flush();
         const link = mainPage.shadowRoot
-            .querySelector('#MainDrawer a[href="/docs"]');
+            .querySelector('#MainDrawer a[href="/notebooks"]');
         link.click();
         await locationChanged;
         flush();
 
         expect(window.history.pushState)
-            .toHaveBeenCalledWith({}, null, '_/docs');
+            .toHaveBeenCalledWith({}, null, '_/notebooks');
     });
 
     it('Sets view state when dashboard page is active', async () => {
@@ -106,6 +106,37 @@ describe('Main Page', () => {
             .hasAttribute('hidden')).toBe(true);
     });
 
+    it('Sets view state when iframe page is active', () => {
+        spyOn(mainPage.$.MainDrawer, 'close');
+
+        mainPage.subRouteData.path = '/notebooks';
+        mainPage._routePageChanged('_');
+        flush();
+
+        expect(mainPage.page).toBe('iframe');
+        expect(mainPage.sidebarItemIndex).toBe(2);
+        expect(mainPage.inIframe).toBe(true);
+        expect(mainPage.shadowRoot.querySelector('paper-tabs')
+            .hasAttribute('hidden')).toBe(true);
+        expect(mainPage.shadowRoot.querySelector('app-toolbar')
+            .hasAttribute('blue')).toBe(true);
+        expect(mainPage.$.MainDrawer.close).toHaveBeenCalled();
+    });
+
+    it('Sets view state when an invalid iframe page is specified', () => {
+        spyOn(mainPage, '_isInsideOfIframe').and.returnValue(false);
+        mainPage.subRouteData.path = '/not-a-valid-page-for-iframe';
+        mainPage._routePageChanged('_');
+        flush();
+
+        expect(mainPage.page).toBe('not_found');
+        expect(mainPage.sidebarItemIndex).toBe(-1);
+        expect(mainPage.notFoundInIframe).toBe(false);
+        expect(mainPage.inIframe).toBe(true);
+        expect(mainPage.shadowRoot.querySelector('paper-tabs')
+            .hasAttribute('hidden')).toBe(true);
+    });
+
     it('Sets view state when an invalid page is specified from an iframe',
         () => {
             spyOn(mainPage, '_isInsideOfIframe').and.returnValue(true);
@@ -121,30 +152,16 @@ describe('Main Page', () => {
                 .hasAttribute('hidden')).toBe(true);
         });
 
-    it('Sets view state when iframe page is active', () => {
-        spyOn(mainPage.$.MainDrawer, 'close');
-
-        mainPage.subRouteData.path = '/docs';
-        mainPage._routePageChanged('_');
-        flush();
-
-        expect(mainPage.page).toBe('iframe');
-        expect(mainPage.sidebarItemIndex).toBe(1);
-        expect(mainPage.inIframe).toBe(true);
-        expect(mainPage.shadowRoot.querySelector('paper-tabs')
-            .hasAttribute('hidden')).toBe(true);
-        expect(mainPage.shadowRoot.querySelector('app-toolbar')
-            .hasAttribute('blue')).toBe(true);
-        expect(mainPage.$.MainDrawer.close).toHaveBeenCalled();
-    });
-
     it('Appends query string when building links', () => {
+        const sidebarLinkSelector = '#MainDrawer iron-selector a.iframe-link';
+        const headerLinkSelector = 'app-header paper-tabs a';
+
         // Base case
         flush();
         const hrefs = [];
-        mainPage.shadowRoot.querySelectorAll('#MainDrawer iron-selector a')
+        mainPage.shadowRoot.querySelectorAll(sidebarLinkSelector)
             .forEach((l) => hrefs.push(l.href));
-        mainPage.shadowRoot.querySelectorAll('app-header paper-tabs a')
+        mainPage.shadowRoot.querySelectorAll(headerLinkSelector)
             .forEach((l) => hrefs.push(l.href));
         hrefs.forEach((h) => expect(h).not.toContain('?'));
 
@@ -152,9 +169,9 @@ describe('Main Page', () => {
         mainPage.set('queryParams.ns', 'another-namespace');
         flush();
         hrefs.splice(0);
-        mainPage.shadowRoot.querySelectorAll('#MainDrawer iron-selector a')
+        mainPage.shadowRoot.querySelectorAll(sidebarLinkSelector)
             .forEach((l) => hrefs.push(l.href));
-        mainPage.shadowRoot.querySelectorAll('app-header paper-tabs a')
+        mainPage.shadowRoot.querySelectorAll(headerLinkSelector)
             .forEach((l) => hrefs.push(l.href));
         hrefs.forEach((h) => expect(h).toContain('?ns=another-namespace'));
     });

@@ -358,7 +358,7 @@ func (kustomize *kustomize) deleteGlobalResources() error {
 	if err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: "could not get apiextensions client",
+			Message: fmt.Sprintf("couldn't get apiextensions client Error: %v", err),
 		}
 	}
 	do := &metav1.DeleteOptions{}
@@ -376,14 +376,14 @@ func (kustomize *kustomize) deleteGlobalResources() error {
 	if err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: "could not get rbac/v1 client",
+			Message: fmt.Sprintf("couldn't get rbac/v1 client Error: %v", err),
 		}
 	}
 	crbsErr := rbacclient.ClusterRoleBindings().DeleteCollection(do, lo)
 	if crbsErr != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("couldn't get list of clusterrolebindings Error: %v", crbsErr),
+			Message: fmt.Sprintf("couldn't delete clusterrolebindings Error: %v", crbsErr),
 		}
 	}
 	crsErr := rbacclient.ClusterRoles().DeleteCollection(do, lo)
@@ -404,14 +404,16 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 			Message: "Error: nil restConfig or apiConfig, exit",
 		}
 	}
+	if err := kustomize.deleteGlobalResources(); err != nil {
+		return err
+	}
 	corev1client, err := corev1.NewForConfig(kustomize.restConfig)
 	if err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: "could not get core/v1 client",
+			Message: fmt.Sprintf("couldn't get core/v1 client Error: %v", err),
 		}
 	}
-	kustomize.deleteGlobalResources()
 	namespace := kustomize.Namespace
 	log.Infof("deleting namespace: %v", namespace)
 	ns, nsMissingErr := corev1client.Namespaces().Get(namespace, metav1.GetOptions{})
@@ -515,7 +517,7 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum) error {
 	kustomize.Spec.ManifestsRepo = cacheDir
 	createConfigErr := kustomize.writeConfigFile()
 	if createConfigErr != nil {
-		return fmt.Errorf("cannot create config file app.yaml in %v", kustomize.Spec.AppDir)
+		return fmt.Errorf("cannot create config file %v in %v", kftypes.KfConfigFile, kustomize.Spec.AppDir)
 	}
 	return nil
 }
