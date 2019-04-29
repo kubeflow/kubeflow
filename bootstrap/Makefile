@@ -218,6 +218,8 @@ doc:
 test: build-kfctl
 	go test ./...
 
+test-kustomize: build-kfctl
+	cd v2/pkg/kfapp/kustomize && $(GO) test -v .
 
 # Run the unittests and output a junit report for use with prow
 test-junit: build-kfctl
