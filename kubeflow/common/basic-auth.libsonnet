@@ -41,48 +41,6 @@
     },
     authService:: authService,
 
-    local authIstioVirtualService = {
-      apiVersion: "networking.istio.io/v1alpha3",
-      kind: "VirtualService",
-      metadata: {
-        name: params.name,
-        namespace: params.namespace,
-      },
-      spec: {
-        hosts: [
-          "*",
-        ],
-        gateways: [
-          "kubeflow-gateway",
-        ],
-        http: [
-          {
-            route: [
-              {
-                destination: {
-                  host: std.join(".", [
-                    params.name,
-                    params.namespace,
-                    "svc",
-                    params.clusterDomain,
-                  ]),
-                  port: {
-                    number: 8085,
-                  },
-                },
-              },
-            ],
-            cors_policy: {
-              allowed_headers: [
-                "x-from-login",
-              ],
-            },
-          },
-        ],
-      },
-    },
-    authIstioVirtualService:: authIstioVirtualService,
-
     local authDeployment = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
@@ -281,7 +239,6 @@
       self.loginService,
       self.loginDeployment,
     ] + if util.toBool(params.injectIstio) then [
-      self.authIstioVirtualService,
       self.loginIstioVirtualService,
     ] else [],
 
