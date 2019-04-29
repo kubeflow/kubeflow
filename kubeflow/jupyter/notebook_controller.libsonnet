@@ -153,6 +153,17 @@
             "*",
           ],
         },
+        {
+          apiGroups: [
+            "networking.istio.io",
+          ],
+          resources: [
+            "virtualservices",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
       ],
     },
     role:: role,

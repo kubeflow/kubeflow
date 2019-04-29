@@ -18,6 +18,7 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 // Reference: https://github.com/pwittrock/kubebuilder-workshop/blob/master/pkg/util/util.go
@@ -78,4 +79,28 @@ func CopyServiceFields(from, to *corev1.Service) bool {
 	to.Spec.Ports = from.Spec.Ports
 
 	return requireUpdate
+}
+
+// Copy configuration related fields to another instance and returns true if there
+// is a diff and thus needs to update.
+func CopyVirtualService(from, to *unstructured.Unstructured) bool {
+	fromSpec, found, err := unstructured.NestedMap(from.Object, "spec")
+	if !found {
+		return false
+	}
+	if err != nil {
+		return false
+	}
+
+	toSpec, found, err := unstructured.NestedMap(to.Object, "spec")
+	if !found || err != nil {
+		unstructured.SetNestedMap(to.Object, fromSpec, "spec")
+		return true
+	}
+
+	requiresUpdate := !reflect.DeepEqual(fromSpec, toSpec)
+	if requiresUpdate {
+		unstructured.SetNestedMap(to.Object, fromSpec, "spec")
+	}
+	return requiresUpdate
 }
