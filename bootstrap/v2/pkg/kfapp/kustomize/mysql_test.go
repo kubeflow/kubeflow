@@ -38,6 +38,17 @@ spec:
         persistentVolumeClaim:
           claimName: mysql-pv-claim
 `)
+  th.writeF("/manifests/pipeline/mysql/base/service.yaml", `
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mysql
+`)
   th.writeK("/manifests/pipeline/mysql/base", `
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -49,17 +60,6 @@ resources:
 images:
 - name: mysql
   newTag: '5.6'
-`)
-  th.writeF("/manifests/pipeline/mysql/base/service.yaml", `
-apiVersion: v1
-kind: Service
-metadata:
-  name: mysql
-spec:
-  ports:
-  - port: 3306
-  selector:
-    app: mysql
 `)
 }
 

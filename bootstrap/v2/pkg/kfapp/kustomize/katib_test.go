@@ -94,64 +94,6 @@ spec:
   selector:
     component: ui
 `)
-  th.writeK("/manifests/katib/base", `
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: kubeflow
-resources:
-- katib-db-pvc.yaml
-- katib-ui-deployment.yaml
-- katib-ui-rbac.yaml
-- katib-ui-service.yaml
-- metrics-collector-rbac.yaml
-- metrics-collector-template-configmap.yaml
-- studyjob-controller-deployment.yaml
-- studyjob-crd.yaml
-- studyjob-rbac.yaml
-- studyjob-service.yaml
-- suggestion-bayesianoptimization-deployment.yaml
-- suggestion-bayesianoptimization-service.yaml
-- suggestion-grid-deployment.yaml
-- suggestion-grid-service.yaml
-- suggestion-hyperband-deployment.yaml
-- suggestion-hyperband-service.yaml
-- suggestion-nasrl-deployment.yaml
-- suggestion-nasrl-service.yaml
-- suggestion-random-deployment.yaml
-- suggestion-random-service.yaml
-- vizier-core-deployment.yaml
-- vizier-core-rbac.yaml
-- vizier-core-rest-deployment.yaml
-- vizier-core-rest-service.yaml
-- vizier-core-service.yaml
-- vizier-db-deployment.yaml
-- vizier-db-secret.yaml
-- vizier-db-service.yaml
-- worker-template.yaml
-images:
-  - name: gcr.io/kubeflow-images-public/katib/vizier-core
-    newTag: v0.1.2-alpha-157-g3d4cd04
-  - name: gcr.io/kubeflow-images-public/katib/suggestion-hyperband
-    newTag: v0.1.2-alpha-157-g3d4cd04
-  - name: gcr.io/kubeflow-images-public/katib/katib-ui
-    newTag: v0.1.2-alpha-157-g3d4cd04
-  - name: mysql
-    newTag: 8.0.3
-  - name: gcr.io/kubeflow-images-public/katib/suggestion-bayesianoptimization
-    newTag: v0.1.2-alpha-157-g3d4cd04
-  - name: gcr.io/kubeflow-images-public/katib/suggestion-grid
-    newTag: v0.1.2-alpha-157-g3d4cd04
-  - name: gcr.io/kubeflow-images-public/katib/vizier-core-rest
-    newTag: v0.1.2-alpha-157-g3d4cd04
-  - name: gcr.io/kubeflow-images-public/katib/metrics-collector
-    newTag: v0.1.2-alpha-157-g3d4cd04
-  - name: gcr.io/kubeflow-images-public/katib/studyjob-controller
-    newTag: v0.1.2-alpha-157-g3d4cd04
-  - name: gcr.io/kubeflow-images-public/katib/suggestion-random
-    newTag: v0.1.2-alpha-157-g3d4cd04
-  - name: gcr.io/kubeflow-images-public/katib/suggestion-nasrl
-    newTag: v0.1.2-alpha-157-g3d4cd04
-`)
   th.writeF("/manifests/katib/base/metrics-collector-rbac.yaml", `
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -787,6 +729,64 @@ data:
           - name: {{.WorkerID}}
             image: alpine
           restartPolicy: Never
+`)
+  th.writeK("/manifests/katib/base", `
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow
+resources:
+- katib-db-pvc.yaml
+- katib-ui-deployment.yaml
+- katib-ui-rbac.yaml
+- katib-ui-service.yaml
+- metrics-collector-rbac.yaml
+- metrics-collector-template-configmap.yaml
+- studyjob-controller-deployment.yaml
+- studyjob-crd.yaml
+- studyjob-rbac.yaml
+- studyjob-service.yaml
+- suggestion-bayesianoptimization-deployment.yaml
+- suggestion-bayesianoptimization-service.yaml
+- suggestion-grid-deployment.yaml
+- suggestion-grid-service.yaml
+- suggestion-hyperband-deployment.yaml
+- suggestion-hyperband-service.yaml
+- suggestion-nasrl-deployment.yaml
+- suggestion-nasrl-service.yaml
+- suggestion-random-deployment.yaml
+- suggestion-random-service.yaml
+- vizier-core-deployment.yaml
+- vizier-core-rbac.yaml
+- vizier-core-rest-deployment.yaml
+- vizier-core-rest-service.yaml
+- vizier-core-service.yaml
+- vizier-db-deployment.yaml
+- vizier-db-secret.yaml
+- vizier-db-service.yaml
+- worker-template.yaml
+images:
+  - name: gcr.io/kubeflow-images-public/katib/vizier-core
+    newTag: v0.1.2-alpha-157-g3d4cd04
+  - name: gcr.io/kubeflow-images-public/katib/suggestion-hyperband
+    newTag: v0.1.2-alpha-157-g3d4cd04
+  - name: gcr.io/kubeflow-images-public/katib/katib-ui
+    newTag: v0.1.2-alpha-157-g3d4cd04
+  - name: mysql
+    newTag: 8.0.3
+  - name: gcr.io/kubeflow-images-public/katib/suggestion-bayesianoptimization
+    newTag: v0.1.2-alpha-157-g3d4cd04
+  - name: gcr.io/kubeflow-images-public/katib/suggestion-grid
+    newTag: v0.1.2-alpha-157-g3d4cd04
+  - name: gcr.io/kubeflow-images-public/katib/vizier-core-rest
+    newTag: v0.1.2-alpha-157-g3d4cd04
+  - name: gcr.io/kubeflow-images-public/katib/metrics-collector
+    newTag: v0.1.2-alpha-157-g3d4cd04
+  - name: gcr.io/kubeflow-images-public/katib/studyjob-controller
+    newTag: v0.1.2-alpha-157-g3d4cd04
+  - name: gcr.io/kubeflow-images-public/katib/suggestion-random
+    newTag: v0.1.2-alpha-157-g3d4cd04
+  - name: gcr.io/kubeflow-images-public/katib/suggestion-nasrl
+    newTag: v0.1.2-alpha-157-g3d4cd04
 `)
 }
 

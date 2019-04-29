@@ -168,6 +168,19 @@ spec:
           name: pytorch-operator-config
         name: config-volume
 `)
+  th.writeF("/manifests/pytorch-job/pytorch-operator/base/service-account.yaml", `
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: pytorch-operator
+  name: pytorch-operator
+`)
+  th.writeF("/manifests/pytorch-job/pytorch-operator/base/params.env", `
+pytorchDefaultImage=null
+deploymentScope=cluster
+deploymentNamespace=null
+`)
   th.writeK("/manifests/pytorch-job/pytorch-operator/base", `
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -185,19 +198,6 @@ images:
   - name: gcr.io/kubeflow-images-public/pytorch-operator
     newName: gcr.io/kubeflow-images-public/pytorch-operator
     newTag: v0.5.0
-`)
-  th.writeF("/manifests/pytorch-job/pytorch-operator/base/params.env", `
-pytorchDefaultImage=null
-deploymentScope=cluster
-deploymentNamespace=null
-`)
-  th.writeF("/manifests/pytorch-job/pytorch-operator/base/service-account.yaml", `
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  labels:
-    app: pytorch-operator
-  name: pytorch-operator
 `)
 }
 

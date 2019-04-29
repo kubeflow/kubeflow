@@ -52,20 +52,6 @@ spec:
         name: ml-pipeline-scheduledworkflow
       serviceAccountName: ml-pipeline-scheduledworkflow
 `)
-  th.writeK("/manifests/pipeline/scheduledworkflow/base", `
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-- crd.yaml
-- deployment.yaml
-- role-binding.yaml
-- role.yaml
-- sa.yaml
-namespace: kubeflow
-images:
-- name: gcr.io/ml-pipeline/scheduledworkflow
-  newTag: '0.1.14'
-`)
   th.writeF("/manifests/pipeline/scheduledworkflow/base/role-binding.yaml", `
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
@@ -119,6 +105,20 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: ml-pipeline-scheduledworkflow
+`)
+  th.writeK("/manifests/pipeline/scheduledworkflow/base", `
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- crd.yaml
+- deployment.yaml
+- role-binding.yaml
+- role.yaml
+- sa.yaml
+namespace: kubeflow
+images:
+- name: gcr.io/ml-pipeline/scheduledworkflow
+  newTag: '0.1.14'
 `)
 }
 

@@ -72,6 +72,12 @@ spec:
         name: ml-pipeline-persistenceagent
       serviceAccountName: ml-pipeline-persistenceagent
 `)
+  th.writeF("/manifests/pipeline/persistent-agent/base/sa.yaml", `
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ml-pipeline-persistenceagent
+`)
   th.writeK("/manifests/pipeline/persistent-agent/base", `
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -85,12 +91,6 @@ resources:
 images:
 - name: gcr.io/ml-pipeline/persistenceagent
   newTag: '0.1.14'
-`)
-  th.writeF("/manifests/pipeline/persistent-agent/base/sa.yaml", `
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: ml-pipeline-persistenceagent
 `)
 }
 

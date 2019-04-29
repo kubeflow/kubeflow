@@ -199,20 +199,6 @@ spec:
         ports:
         - containerPort: 3000
 `)
-  th.writeK("/manifests/modeldb/base", `
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: kubeflow
-resources:
-- config-map.yaml
-- deployment.yaml
-- persistent-volume-claim.yaml
-- secret.yaml
-- service.yaml
-namePrefix: modeldb-
-commonLabels:
-  kustomize.component: modeldb
-`)
   th.writeF("/manifests/modeldb/base/persistent-volume-claim.yaml", `
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -342,6 +328,20 @@ spec:
     app: modeldb
     tier: mysql
   type: ClusterIP
+`)
+  th.writeK("/manifests/modeldb/base", `
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow
+resources:
+- config-map.yaml
+- deployment.yaml
+- persistent-volume-claim.yaml
+- secret.yaml
+- service.yaml
+namePrefix: modeldb-
+commonLabels:
+  kustomize.component: modeldb
 `)
 }
 
