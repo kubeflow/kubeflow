@@ -799,7 +799,7 @@
                     value: "8081",
                   },
                 ],
-                image: "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
+                image: params.espSampleAppImage,
                 name: "app",
                 ports: [
                   {
