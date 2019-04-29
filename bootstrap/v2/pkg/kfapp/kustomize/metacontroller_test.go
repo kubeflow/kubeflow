@@ -296,22 +296,6 @@ spec:
   scope: Cluster
   version: v1alpha1
 `)
-  th.writeK("/manifests/metacontroller/base", `
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: kubeflow
-resources:
-- cluster-role-binding.yaml
-- crd.yaml
-- service-account.yaml
-- stateful-set.yaml
-commonLabels:
-  kustomize.component: metacontroller
-images:
-  - name: metacontroller/metacontroller
-    newName: metacontroller/metacontroller
-    newTag: v0.3.0
-`)
   th.writeF("/manifests/metacontroller/base/service-account.yaml", `
 apiVersion: v1
 kind: ServiceAccount
@@ -360,6 +344,22 @@ spec:
       serviceAccountName: meta-controller-service
   # Workaround for https://github.com/kubernetes-sigs/kustomize/issues/677
   volumeClaimTemplates: []
+`)
+  th.writeK("/manifests/metacontroller/base", `
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow
+resources:
+- cluster-role-binding.yaml
+- crd.yaml
+- service-account.yaml
+- stateful-set.yaml
+commonLabels:
+  kustomize.component: metacontroller
+images:
+  - name: metacontroller/metacontroller
+    newName: metacontroller/metacontroller
+    newTag: v0.3.0
 `)
 }
 

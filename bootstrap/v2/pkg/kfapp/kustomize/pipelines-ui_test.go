@@ -29,38 +29,6 @@ spec:
         - containerPort: 3000
       serviceAccountName: ml-pipeline-ui
 `)
-  th.writeK("/manifests/pipeline/pipelines-ui/base", `
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: kubeflow
-resources:
-- deployment.yaml
-- role-binding.yaml
-- role.yaml
-- sa.yaml
-- service.yaml
-
-images:
-- name: gcr.io/ml-pipeline/frontend
-  newTag: '0.1.14'
-
-vars:
-- name: namespace
-  objref:
-    kind: Service
-    name: ml-pipeline-ui
-    apiVersion: v1
-  fieldref:
-    fieldpath: metadata.namespace
-
-configurations:
-- params.yaml
-`)
-  th.writeF("/manifests/pipeline/pipelines-ui/base/params.yaml", `
-varReference:
-- path: metadata/annotations/getambassador.io\/config
-  kind: Service
-`)
   th.writeF("/manifests/pipeline/pipelines-ui/base/role-binding.yaml", `
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
@@ -125,6 +93,38 @@ spec:
     targetPort: 3000
   selector:
     app: ml-pipeline-ui
+`)
+  th.writeF("/manifests/pipeline/pipelines-ui/base/params.yaml", `
+varReference:
+- path: metadata/annotations/getambassador.io\/config
+  kind: Service
+`)
+  th.writeK("/manifests/pipeline/pipelines-ui/base", `
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow
+resources:
+- deployment.yaml
+- role-binding.yaml
+- role.yaml
+- sa.yaml
+- service.yaml
+
+images:
+- name: gcr.io/ml-pipeline/frontend
+  newTag: '0.1.14'
+
+vars:
+- name: namespace
+  objref:
+    kind: Service
+    name: ml-pipeline-ui
+    apiVersion: v1
+  fieldref:
+    fieldpath: metadata.namespace
+
+configurations:
+- params.yaml
 `)
 }
 

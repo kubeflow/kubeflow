@@ -43,19 +43,6 @@ spec:
         persistentVolumeClaim:
           claimName: minio-pvc
 `)
-  th.writeK("/manifests/pipeline/minio/base", `
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: kubeflow
-resources:
-- deployment.yaml
-- secret.yaml
-- service.yaml
-
-images:
-- name: minio/minio
-  newTag: RELEASE.2018-02-09T22-40-05Z
-`)
   th.writeF("/manifests/pipeline/minio/base/secret.yaml", `
 apiVersion: v1
 data:
@@ -78,6 +65,19 @@ spec:
     targetPort: 9000
   selector:
     app: minio
+`)
+  th.writeK("/manifests/pipeline/minio/base", `
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow
+resources:
+- deployment.yaml
+- secret.yaml
+- service.yaml
+
+images:
+- name: minio/minio
+  newTag: RELEASE.2018-02-09T22-40-05Z
 `)
 }
 

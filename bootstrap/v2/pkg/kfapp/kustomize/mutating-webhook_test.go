@@ -30,31 +30,6 @@ spec:
           secret:
             secretName: add-label
 `)
-  th.writeK("/manifests/mutating-webhook/base", `
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: kubeflow
-resources:
-- deployment.yaml
-- service-account.yaml
-- service.yaml
-namePrefix:
-  add-label-
-commonLabels:
-  kustomize.component: add-label
-images:
-  - name: gcr.io/constant-cubist-173123/mutating-webhook
-    newName: gcr.io/constant-cubist-173123/mutating-webhook
-    newTag: v0-46-ga6e52aef
-`)
-  th.writeF("/manifests/mutating-webhook/base/namespace.yaml", `
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: kubeflow
-  labels:
-    add-label: enabled
-`)
   th.writeF("/manifests/mutating-webhook/base/service-account.yaml", `
 ---
 apiVersion: v1
@@ -76,6 +51,23 @@ spec:
   ports:
   - name: webhook
     port: 443
+`)
+  th.writeK("/manifests/mutating-webhook/base", `
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow
+resources:
+- deployment.yaml
+- service-account.yaml
+- service.yaml
+namePrefix:
+  add-label-
+commonLabels:
+  kustomize.component: add-label
+images:
+  - name: gcr.io/constant-cubist-173123/mutating-webhook
+    newName: gcr.io/constant-cubist-173123/mutating-webhook
+    newTag: v0-46-ga6e52aef
 `)
 }
 
