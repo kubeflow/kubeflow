@@ -82,10 +82,14 @@ code with business logic.
 ---
 
 ## Style-Guide
-Kubeflow central dashboard is a visualization and networking platform that links fellow sub-apps within the Kubeflow Ecosystem together. As a result we have various web-apps that are iframed within the app. To keep this experience uniform, we have a style guide for all Kubeflow Integrators to follow / use.
+Kubeflow central dashboard is a visualization and networking platform that links
+fellow sub-apps within the Kubeflow Ecosystem together. As a result we have
+various web-apps that are iframed within the app. To keep this experience
+ uniform, we have a style guide for all Kubeflow Integrators to follow / use.
 
 ### Approach
-We store our CSS palette in [_public/kubeflow-palette.css_](public/kubeflow-palette.css). This contains variables such as
+The CSS palette is found at [_public/kubeflow-palette.css_](public/kubeflow-palette.css).
+When deployed to a cluster, it can be imported from `cluster-host/kubeflow-palette.css`
 
 Name | Value | Usage
 --- | --- | ---
@@ -124,12 +128,12 @@ Since the Central Dashboard wraps other Kubeflow components in an iframe, a
 standalone Javascript library is exposed to make it possible to communicate
 between the child pages and the dashboard.
 
-The library is available for import from `/lib.bundle.js` within the cluster.
-When imported in this manner, a `centraldashboard` module is created in the
-global scope. To establish a channel for communication between the iframed page
-and the Dashboard, use the following example which would disable a `<select>`
-element and assign the value from the Dashboard's Namespace selector when it
-changes:
+The library is available for import from `/dashboard_lib.bundle.js` within the
+cluster. When imported in this manner, a `centraldashboard` module is created in
+the global scope. To establish a channel for communication between the iframed
+page and the Dashboard, use the following example which would disable a
+`<select>` element and assign the value from the Dashboard's Namespace selector
+when it changes:
 
 ```
 window.addEventListener('DOMContentLoaded', function (event) {

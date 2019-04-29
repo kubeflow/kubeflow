@@ -50,7 +50,7 @@ module.exports = {
     mode: ENV,
     entry: {
         app: resolve(SRC, 'index.js'),
-        lib: resolve(SRC, 'library.js'),
+        dashboard_lib: resolve(SRC, 'library.js'),
     },
     output: {
         filename: '[name].bundle.js',
@@ -154,7 +154,9 @@ module.exports = {
     },
     plugins: [
         new CleanWebpackPlugin([DESTINATION]),
-        new CopyWebpackPlugin(POLYFILLS),
+        new CopyWebpackPlugin(POLYFILLS.concat([
+            {from: resolve(SRC, 'kubeflow-palette.css'), to: DESTINATION},
+        ])),
         new DefinePlugin({
             BUILD_VERSION: JSON.stringify(BUILD_VERSION),
             VERSION: JSON.stringify(PKG_VERSION),

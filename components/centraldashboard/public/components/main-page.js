@@ -212,7 +212,7 @@ export class MainPage extends PolymerElement {
      * @param {int} curr
      * @param {int} old
      */
-    _revertSidebarIndexIfExternal(curr, old = 0) {
+    _revertSidebarIndexIfExternal(curr, old=0) {
         if (curr != 1) return;
         this.sidebarItemIndex = old;
     }
