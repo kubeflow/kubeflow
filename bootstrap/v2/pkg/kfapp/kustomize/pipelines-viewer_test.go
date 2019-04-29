@@ -5,6 +5,26 @@ import (
 )
 
 func writePipelinesViewer(th *KustTestHarness) {
+  th.writeF("/manifests/pipeline/pipelines-viewer/base/crd.yaml", `
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: viewers.kubeflow.org
+spec:
+  group: kubeflow.org
+  names:
+    kind: Viewer
+    listKind: ViewerList
+    plural: viewers
+    shortNames:
+    - vi
+    singular: viewer
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+`)
   th.writeF("/manifests/pipeline/pipelines-viewer/base/clusterrole-binding.yaml", `
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
@@ -54,26 +74,6 @@ rules:
   - patch
   - delete
 `)
-  th.writeF("/manifests/pipeline/pipelines-viewer/base/crd.yaml", `
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: viewers.kubeflow.org
-spec:
-  group: kubeflow.org
-  names:
-    kind: Viewer
-    listKind: ViewerList
-    plural: viewers
-    shortNames:
-    - vi
-    singular: viewer
-  scope: Namespaced
-  versions:
-  - name: v1beta1
-    served: true
-    storage: true
-`)
   th.writeF("/manifests/pipeline/pipelines-viewer/base/deployment.yaml", `
 apiVersion: apps/v1beta2
 kind: Deployment
@@ -100,36 +100,6 @@ spec:
         imagePullPolicy: Always
         name: ml-pipeline-viewer-controller
       serviceAccountName: ml-pipeline-viewer-crd-service-account
-`)
-  th.writeK("/manifests/pipeline/pipelines-viewer/base", `
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: kubeflow
-resources:
-- crd.yaml
-- clusterrole-binding.yaml
-- clusterrole.yaml
-- deployment.yaml
-- sa.yaml
-- service.yaml
-images:
-- name: gcr.io/ml-pipeline/viewer-crd-controller
-  newTag: '0.1.14'
-vars:
-- name: namespace
-  objref:
-    kind: Service
-    name: ml-pipeline-tensorboard-ui
-    apiVersion: v1
-  fieldref:
-    fieldpath: metadata.namespace
-configurations:
-- params.yaml
-`)
-  th.writeF("/manifests/pipeline/pipelines-viewer/base/params.yaml", `
-varReference:
-- path: metadata/annotations/getambassador.io\/config
-  kind: Service
 `)
   th.writeF("/manifests/pipeline/pipelines-viewer/base/sa.yaml", `
 apiVersion: v1
@@ -161,6 +131,36 @@ spec:
     targetPort: 3000
   selector:
     app: ml-pipeline-tensorboard-ui
+`)
+  th.writeF("/manifests/pipeline/pipelines-viewer/base/params.yaml", `
+varReference:
+- path: metadata/annotations/getambassador.io\/config
+  kind: Service
+`)
+  th.writeK("/manifests/pipeline/pipelines-viewer/base", `
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow
+resources:
+- crd.yaml
+- clusterrole-binding.yaml
+- clusterrole.yaml
+- deployment.yaml
+- sa.yaml
+- service.yaml
+images:
+- name: gcr.io/ml-pipeline/viewer-crd-controller
+  newTag: '0.1.14'
+vars:
+- name: namespace
+  objref:
+    kind: Service
+    name: ml-pipeline-tensorboard-ui
+    apiVersion: v1
+  fieldref:
+    fieldpath: metadata.namespace
+configurations:
+- params.yaml
 `)
 }
 

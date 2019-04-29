@@ -35,20 +35,6 @@ spec:
         - containerPort: 8887
       serviceAccountName: ml-pipeline
 `)
-  th.writeK("/manifests/pipeline/api-service/base", `
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-- deployment.yaml
-- role-binding.yaml
-- role.yaml
-- sa.yaml
-- service.yaml
-namespace: kubeflow
-images:
-- name: gcr.io/ml-pipeline/api-server
-  newTag: '0.1.14'
-`)
   th.writeF("/manifests/pipeline/api-service/base/role-binding.yaml", `
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
@@ -122,6 +108,20 @@ spec:
     targetPort: 8887
   selector:
     app: ml-pipeline
+`)
+  th.writeK("/manifests/pipeline/api-service/base", `
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- deployment.yaml
+- role-binding.yaml
+- role.yaml
+- sa.yaml
+- service.yaml
+namespace: kubeflow
+images:
+- name: gcr.io/ml-pipeline/api-server
+  newTag: '0.1.14'
 `)
 }
 
