@@ -572,7 +572,7 @@ func (kustomize *kustomize) writeConfigFile() error {
 	return nil
 }
 
-func (kustomize *kustomize) overlayResources(compName string, compPath string) map[string]*types.Kustomization {
+func (kustomize *kustomize) overlayResources(compName string, compPath string) []*types.Kustomization {
 	params := kustomize.Spec.ComponentParams[compName]
 	overlays := []string{}
 	if params != nil {
@@ -629,13 +629,13 @@ func (kustomize *kustomize) overlayResources(compName string, compPath string) m
 		}
 		return kustomization
 	}
-	overlayResourcesMap := make(map[string]*types.Kustomization)
+	overlayResources := make([]*types.Kustomization,0)
 	for _, overlay := range overlays {
 		compDir := path.Join(kustomize.Spec.ManifestsRepo, compPath)
 		overlayPath := path.Join(compDir, "overlays", overlay)
-		overlayResourcesMap[overlay] = resources(compDir, overlayPath)
+		overlayResources = append(overlayResources, resources(compDir, overlayPath))
 	}
-	return overlayResourcesMap
+	return overlayResources
 }
 
 // writeKustomizationFile will create a kustomization.yaml and return its location.
@@ -664,16 +664,14 @@ func (kustomize *kustomize) writeKustomizationFile(compName string, compPath str
 			Kind:       types.KustomizationKind,
 			APIVersion: types.KustomizationVersion,
 		},
-		Bases: []string{extractSuffix(compDir, locationDir)},
+		Bases:     []string{extractSuffix(compDir, locationDir)},
 		Namespace: kustomize.Namespace,
 	}
 	overlays := kustomize.overlayResources(compName, compPath)
-	if len(overlays) > 0 {
+	if len(overlays) == 1 {
+		kustomization = overlays[0]
+	} else {
 		for _, overlay := range overlays {
-			if len(overlays) == 1 {
-				kustomization = overlay
-				break
-			}
 			for _, patchFile := range overlay.PatchesStrategicMerge {
 				kustomization.PatchesStrategicMerge = append(kustomization.PatchesStrategicMerge, patchFile)
 			}
