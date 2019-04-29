@@ -207,18 +207,29 @@ createSecrets() {
   createGcpSecret ${ADMIN_EMAIL} admin-gcp-sa
   createGcpSecret ${USER_EMAIL} user-gcp-sa
 
-  check_variable "${CLIENT_ID}" "CLIENT_ID"
-  check_variable "${CLIENT_SECRET}" "CLIENT_SECRET"
-
-  set +e
-  O=$(kubectl get secret --namespace=${K8S_NAMESPACE} kubeflow-oauth 2>&1)
-  RESULT=$?
-  set -e
-
-  if [ "${RESULT}" -eq 0 ]; then
-    echo Secret kubeflow-oauth already exists
+  # In basic AUTH folks may specify the kubeflow username instead of a client id
+  # and then we don't use OAUTH secrets
+  if [ -z "${CLIENT_ID}" ]; then
+    if [[ ! -z "${KUBEFLOW_USERNAME}" ]]; then
+      echo "Client ID is not set, but kubeflow username is set, skipping OAUTH tokens."
+    else
+      echo "KUBEFLOW_USERNAME and CLIENT_ID are both unset, please set one"
+      exit 1
+    fi
   else
-    kubectl create secret generic --namespace=${K8S_NAMESPACE} kubeflow-oauth --from-literal=client_id=${CLIENT_ID} --from-literal=client_secret=${CLIENT_SECRET}
+    check_variable "${CLIENT_ID}" "CLIENT_ID"
+    check_variable "${CLIENT_SECRET}" "CLIENT_SECRET"
+
+    set +e
+    O=$(kubectl get secret --namespace=${K8S_NAMESPACE} kubeflow-oauth 2>&1)
+    RESULT=$?
+    set -e
+
+    if [ "${RESULT}" -eq 0 ]; then
+      echo Secret kubeflow-oauth already exists
+    else
+      kubectl create secret generic --namespace=${K8S_NAMESPACE} kubeflow-oauth --from-literal=client_id=${CLIENT_ID} --from-literal=client_secret=${CLIENT_SECRET}
+    fi
   fi
 }
 
