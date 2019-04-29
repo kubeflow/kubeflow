@@ -90,17 +90,17 @@ rules:
   verbs:
   - '*'
 `)
-  th.writeK("/manifests/pipeline/pipelines-runner/base", `
-resources:
-- clusterrole-binding.yaml
-- clusterrole.yaml
-- sa.yaml
-`)
   th.writeF("/manifests/pipeline/pipelines-runner/base/sa.yaml", `
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: pipeline-runner
+`)
+  th.writeK("/manifests/pipeline/pipelines-runner/base", `
+resources:
+- clusterrole-binding.yaml
+- clusterrole.yaml
+- sa.yaml
 `)
 }
 
