@@ -3,6 +3,7 @@ import 'jasmine-ajax';
 import {flush} from '@polymer/polymer/lib/utils/flush.js';
 
 import './main-page';
+import {mockRequest} from '../ajax_test_helper';
 
 const FIXTURE_ID = 'main-page-fixture';
 const MAIN_PAGE_SELECTOR_ID = 'test-main-page';
@@ -186,5 +187,24 @@ describe('Main Page', () => {
         flush();
         expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
             .hasAttribute('hidden')).toBe(true);
+    });
+
+    it('Sets build version when platform info is received', async () => {
+        const responsePromise = mockRequest(mainPage, {
+            status: 200,
+            responseText: JSON.stringify({
+                provider: 'gce://test-project/us-east1-c/gke-kubeflow-node-123',
+                providerName: 'gce',
+                kubeflowVersion: '1.0.0',
+            }),
+        }, false, '/api/platform-info');
+        await responsePromise;
+        flush();
+
+        const buildVersion = mainPage.shadowRoot.querySelector(
+            'section.build span');
+        // textContent is used because innerText would be empty if sidebar is
+        // hidden
+        expect(buildVersion.textContent).toEqual('1.0.0');
     });
 });

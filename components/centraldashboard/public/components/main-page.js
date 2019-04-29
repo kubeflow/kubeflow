@@ -6,11 +6,10 @@ import '@polymer/app-layout/app-scroll-effects/app-scroll-effects.js';
 import '@polymer/app-layout/app-toolbar/app-toolbar.js';
 import '@polymer/app-route/app-location.js';
 import '@polymer/app-route/app-route.js';
+import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/iron-collapse/iron-collapse.js';
 import '@polymer/iron-selector/iron-selector.js';
-import '@polymer/iron-flex-layout/iron-flex-layout-classes.js';
-import '@polymer/iron-flex-layout/iron-flex-layout.js';
 import '@polymer/iron-media-query/iron-media-query.js';
 import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-tabs/paper-tabs.js';
@@ -43,10 +42,8 @@ const VALID_QUERY_PARAMS = ['ns'];
 export class MainPage extends PolymerElement {
     static get template() {
         const pugVariables = {logo: logo};
-        return html([`
-        <style is="custom-style"
-            include="iron-flex iron-flex-alignment iron-positioning">
-        <style>${css.toString()}</style>${template(pugVariables)}`]);
+        return html([
+            `<style>${css.toString()}</style>${template(pugVariables)}`]);
     }
 
     static get properties() {
@@ -89,6 +86,7 @@ export class MainPage extends PolymerElement {
             iframeUrl: {type: String, value: ''},
             buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
+            platformInfo: Object,
             inIframe: {type: Boolean, value: false, readOnly: true},
             hideTabs: {type: Boolean, value: false, readOnly: true},
             hideNamespaces: {type: Boolean, value: false, readOnly: true},
@@ -233,6 +231,17 @@ export class MainPage extends PolymerElement {
             }
         });
         return url.href.slice(url.origin.length);
+    }
+
+    /* Handles the AJAX response from the platform-info API.
+     * @param {Event} responseEvent AJAX-response
+     */
+    _onPlatformInfoResponse(responseEvent) {
+        const {response} = responseEvent.detail;
+        this.platformInfo = response;
+        if (this.platformInfo.kubeflowVersion) {
+            this.buildVersion = this.platformInfo.kubeflowVersion;
+        }
     }
 }
 

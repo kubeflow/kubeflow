@@ -21,7 +21,7 @@ clean:
 	rm -rf coverage/ dist/ node_modules/ .nyc_output/
 
 # Builds the package locally
-build-local: clean
+build-local:
 	npm install
 
 # Runs unit tests with coverage
