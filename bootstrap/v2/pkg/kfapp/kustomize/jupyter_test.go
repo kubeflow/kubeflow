@@ -1670,62 +1670,6 @@ data:
       {% endif %}
     {% endblock %}
 `)
-  th.writeK("/manifests/jupyter/jupyter/base", `
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: kubeflow
-resources:
-- config-map.yaml
-- role-binding.yaml
-- role.yaml
-- service-account.yaml
-- service.yaml
-- stateful-set.yaml
-commonLabels:
-  kustomize.component: jupyter
-  app: jupyter
-images:
-  - name: gcr.io/kubeflow/jupyterhub-k8s
-    newName: gcr.io/kubeflow/jupyterhub-k8s
-    newTag: v20180531-3bb991b1
-configMapGenerator:
-- name: parameters
-  env: params.env
-generatorOptions:
-  disableNameSuffixHash: true
-vars:
-- name: serviceType
-  objref:
-    kind: ConfigMap
-    name: parameters
-    apiVersion: v1
-  fieldref:
-    fieldpath: data.serviceType
-- name: namespace
-  objref:
-    kind: Service
-    name: jupyter-lb
-    apiVersion: v1
-  fieldref:
-    fieldpath: metadata.namespace
-configurations:
-- params.yaml
-`)
-  th.writeF("/manifests/jupyter/jupyter/base/params.env", `
-STORAGE_CLASS=null
-KF_AUTHENTICATOR=null
-DEFAULT_JUPYTERLAB=false
-serviceType=ClusterIP
-`)
-  th.writeF("/manifests/jupyter/jupyter/base/params.yaml", `
-varReference:
-- path: spec/template/spec/containers/imagePullPolicy
-  kind: Deployment
-- path: metadata/annotations/getambassador.io\/config
-  kind: Service
-- path: spec/type
-  kind: Service
-`)
   th.writeF("/manifests/jupyter/jupyter/base/role-binding.yaml", `
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -1926,6 +1870,62 @@ spec:
   updateStrategy:
     type: RollingUpdate
   volumeClaimTemplates: []
+`)
+  th.writeF("/manifests/jupyter/jupyter/base/params.yaml", `
+varReference:
+- path: spec/template/spec/containers/imagePullPolicy
+  kind: Deployment
+- path: metadata/annotations/getambassador.io\/config
+  kind: Service
+- path: spec/type
+  kind: Service
+`)
+  th.writeF("/manifests/jupyter/jupyter/base/params.env", `
+STORAGE_CLASS=null
+KF_AUTHENTICATOR=null
+DEFAULT_JUPYTERLAB=false
+serviceType=ClusterIP
+`)
+  th.writeK("/manifests/jupyter/jupyter/base", `
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow
+resources:
+- config-map.yaml
+- role-binding.yaml
+- role.yaml
+- service-account.yaml
+- service.yaml
+- stateful-set.yaml
+commonLabels:
+  kustomize.component: jupyter
+  app: jupyter
+images:
+  - name: gcr.io/kubeflow/jupyterhub-k8s
+    newName: gcr.io/kubeflow/jupyterhub-k8s
+    newTag: v20180531-3bb991b1
+configMapGenerator:
+- name: parameters
+  env: params.env
+generatorOptions:
+  disableNameSuffixHash: true
+vars:
+- name: serviceType
+  objref:
+    kind: ConfigMap
+    name: parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.serviceType
+- name: namespace
+  objref:
+    kind: Service
+    name: jupyter-lb
+    apiVersion: v1
+  fieldref:
+    fieldpath: metadata.namespace
+configurations:
+- params.yaml
 `)
 }
 

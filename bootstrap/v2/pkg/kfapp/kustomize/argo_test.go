@@ -268,6 +268,64 @@ spec:
       serviceAccountName: argo
       terminationGracePeriodSeconds: 30
 `)
+  th.writeF("/manifests/argo/base/service-account.yaml", `
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argo
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argo-ui
+  namespace: kubeflow
+`)
+  th.writeF("/manifests/argo/base/service.yaml", `
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    getambassador.io/config: |-
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name: argo-ui-mapping
+      prefix: /argo/
+      service: argo-ui.$(namespace)
+  labels:
+    app: argo-ui
+  name: argo-ui
+  namespace: kubeflow
+spec:
+  ports:
+  - port: 80
+    targetPort: 8001
+  selector:
+    app: argo-ui
+  sessionAffinity: None
+  type: NodePort
+`)
+  th.writeF("/manifests/argo/base/params.yaml", `
+varReference:
+- path: data/config
+  kind: ConfigMap
+- path: data/config
+  kind: Deployment
+- path: metadata/annotations/getambassador.io\/config
+  kind: Service
+`)
+  th.writeF("/manifests/argo/base/params.env", `
+executorImage=argoproj/argoexec:v2.2.0
+artifactRepositoryBucket=mlpipeline
+artifactRepositoryKeyPrefix=artifacts
+artifactRepositoryEndpoint=minio-service.kubeflow:9000
+artifactRepositoryInsecure=true
+artifactRepositoryAccessKeySecretName=mlpipeline-minio-artifact
+artifactRepositoryAccessKeySecretKey=accesskey
+artifactRepositorySecretKeySecretName=mlpipeline-minio-artifact
+artifactRepositorySecretKeySecretKey=secretkey
+`)
   th.writeK("/manifests/argo/base", `
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -368,64 +426,6 @@ vars:
     fieldpath: metadata.namespace
 configurations:
 - params.yaml
-`)
-  th.writeF("/manifests/argo/base/params.env", `
-executorImage=argoproj/argoexec:v2.2.0
-artifactRepositoryBucket=mlpipeline
-artifactRepositoryKeyPrefix=artifacts
-artifactRepositoryEndpoint=minio-service.kubeflow:9000
-artifactRepositoryInsecure=true
-artifactRepositoryAccessKeySecretName=mlpipeline-minio-artifact
-artifactRepositoryAccessKeySecretKey=accesskey
-artifactRepositorySecretKeySecretName=mlpipeline-minio-artifact
-artifactRepositorySecretKeySecretKey=secretkey
-`)
-  th.writeF("/manifests/argo/base/params.yaml", `
-varReference:
-- path: data/config
-  kind: ConfigMap
-- path: data/config
-  kind: Deployment
-- path: metadata/annotations/getambassador.io\/config
-  kind: Service
-`)
-  th.writeF("/manifests/argo/base/service-account.yaml", `
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: argo
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: argo-ui
-  namespace: kubeflow
-`)
-  th.writeF("/manifests/argo/base/service.yaml", `
-apiVersion: v1
-kind: Service
-metadata:
-  annotations:
-    getambassador.io/config: |-
-      ---
-      apiVersion: ambassador/v0
-      kind:  Mapping
-      name: argo-ui-mapping
-      prefix: /argo/
-      service: argo-ui.$(namespace)
-  labels:
-    app: argo-ui
-  name: argo-ui
-  namespace: kubeflow
-spec:
-  ports:
-  - port: 80
-    targetPort: 8001
-  selector:
-    app: argo-ui
-  sessionAffinity: None
-  type: NodePort
 `)
 }
 

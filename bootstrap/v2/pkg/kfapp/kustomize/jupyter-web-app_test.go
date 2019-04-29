@@ -211,70 +211,6 @@ spec:
           name: config
         name: config-volume
 `)
-  th.writeK("/manifests/jupyter/jupyter-web-app/base", `
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: kubeflow
-resources:
-- cluster-role-binding.yaml
-- cluster-role.yaml
-- config-map.yaml
-- deployment.yaml
-- role-binding.yaml
-- role.yaml
-- service-account.yaml
-- service.yaml
-namePrefix: jupyter-web-app-
-commonLabels:
-  app: jupyter-web-app
-  kustomize.component: jupyter-web-app
-images:
-  - name: gcr.io/kubeflow-images-public/jupyter-web-app
-    newName: gcr.io/kubeflow-images-public/jupyter-web-app
-    newTag: v0.5.0
-configMapGenerator:
-- name: parameters
-  env: params.env
-generatorOptions:
-  disableNameSuffixHash: true
-vars:
-- name: policy
-  objref:
-    kind: ConfigMap
-    name: parameters
-    apiVersion: v1
-  fieldref:
-    fieldpath: data.policy
-- name: prefix
-  objref:
-    kind: ConfigMap
-    name: parameters
-    apiVersion: v1
-  fieldref:
-    fieldpath: data.prefix
-- name: namespace
-  objref:
-    kind: Service
-    name: service
-    apiVersion: v1
-  fieldref:
-    fieldpath: metadata.namespace
-configurations:
-- params.yaml
-`)
-  th.writeF("/manifests/jupyter/jupyter-web-app/base/params.env", `
-UI=default
-ROK_SECRET_NAME=secret-rok-{username}
-policy=Always
-prefix=jupyter
-`)
-  th.writeF("/manifests/jupyter/jupyter-web-app/base/params.yaml", `
-varReference:
-- path: spec/template/spec/containers/imagePullPolicy
-  kind: Deployment
-- path: metadata/annotations/getambassador.io\/config
-  kind: Service
-`)
   th.writeF("/manifests/jupyter/jupyter-web-app/base/role-binding.yaml", `
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
@@ -360,6 +296,70 @@ spec:
     protocol: TCP
     targetPort: 5000
   type: ClusterIP
+`)
+  th.writeF("/manifests/jupyter/jupyter-web-app/base/params.yaml", `
+varReference:
+- path: spec/template/spec/containers/imagePullPolicy
+  kind: Deployment
+- path: metadata/annotations/getambassador.io\/config
+  kind: Service
+`)
+  th.writeF("/manifests/jupyter/jupyter-web-app/base/params.env", `
+UI=default
+ROK_SECRET_NAME=secret-rok-{username}
+policy=Always
+prefix=jupyter
+`)
+  th.writeK("/manifests/jupyter/jupyter-web-app/base", `
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow
+resources:
+- cluster-role-binding.yaml
+- cluster-role.yaml
+- config-map.yaml
+- deployment.yaml
+- role-binding.yaml
+- role.yaml
+- service-account.yaml
+- service.yaml
+namePrefix: jupyter-web-app-
+commonLabels:
+  app: jupyter-web-app
+  kustomize.component: jupyter-web-app
+images:
+  - name: gcr.io/kubeflow-images-public/jupyter-web-app
+    newName: gcr.io/kubeflow-images-public/jupyter-web-app
+    newTag: v0.5.0
+configMapGenerator:
+- name: parameters
+  env: params.env
+generatorOptions:
+  disableNameSuffixHash: true
+vars:
+- name: policy
+  objref:
+    kind: ConfigMap
+    name: parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.policy
+- name: prefix
+  objref:
+    kind: ConfigMap
+    name: parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.prefix
+- name: namespace
+  objref:
+    kind: Service
+    name: service
+    apiVersion: v1
+  fieldref:
+    fieldpath: metadata.namespace
+configurations:
+- params.yaml
 `)
 }
 
