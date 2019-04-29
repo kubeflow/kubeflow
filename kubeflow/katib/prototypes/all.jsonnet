@@ -16,11 +16,11 @@
 // @optionalParam injectIstio string true Whether to inject istio sidecar; should be true or false.
 // @optionalParam clusterDomain string cluster.local DNS config to cluster domain.
 
-local k = import 'k.libsonnet';
+local k = import "k.libsonnet";
 
-local studyjobcontroller = import 'kubeflow/katib/studyjobcontroller.libsonnet';
-local suggestion = import 'kubeflow/katib/suggestion.libsonnet';
-local vizier = import 'kubeflow/katib/vizier.libsonnet';
+local studyjobcontroller = import "kubeflow/katib/studyjobcontroller.libsonnet";
+local suggestion = import "kubeflow/katib/suggestion.libsonnet";
+local vizier = import "kubeflow/katib/vizier.libsonnet";
 
 local namespace = env.namespace;
 
