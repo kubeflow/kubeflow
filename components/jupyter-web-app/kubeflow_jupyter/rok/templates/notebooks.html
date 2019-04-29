@@ -18,7 +18,7 @@
     <select class="mdl-textfield__input" id="ns-select" name="ns">
       <!-- Fill with the namespaces the user can see -->
       {% for ns in namespaces %}
-        <option value="{{ ns }}">{{ ns }}</option>
+        <option value="{{ ns }}" {% if ns == "kubeflow" %}selected{% endif %}>{{ ns }}</option>
       {% endfor %}
     </select>
     <label class="mdl-textfield__label" for="ns">Select Namespace</label>

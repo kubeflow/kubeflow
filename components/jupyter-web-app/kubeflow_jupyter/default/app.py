@@ -166,7 +166,5 @@ def home():
     nmsps = [base_ns]
     logger.warning("Can't  list namespaces: %s" % api.parse_error(e))
 
-  # todo(apverma): To Be removed after multi-user isolation support is implemented
-  nmsps = [base_ns] # Issue #2937
   return render_template(
       'notebooks.html', prefix=prefix(), title='Notebooks', namespaces=nmsps)
