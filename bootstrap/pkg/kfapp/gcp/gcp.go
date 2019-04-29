@@ -128,7 +128,7 @@ func GetKfApp(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 
 func newDefaultBackoff() *backoff.ExponentialBackOff {
 	return &backoff.ExponentialBackOff{
-		InitialInterval:     backoff.DefaultInitialInterval,
+		InitialInterval:     3 * time.Second,
 		RandomizationFactor: backoff.DefaultRandomizationFactor,
 		Multiplier:          backoff.DefaultMultiplier,
 		MaxInterval:         30 * time.Second,
