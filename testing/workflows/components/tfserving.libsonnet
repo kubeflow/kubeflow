@@ -87,6 +87,7 @@
         modelName: "mnist",
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-examples-data/mnist",
+        injectIstio: "false",
       };
       local deployGpuParams = {
         name: "mnist-gpu",
@@ -94,6 +95,7 @@
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-examples-data/mnist",
         numGpus: 1,
+        injectIstio: "false",
       };
 
       local toPair = function(k, v) k + "=" + v;

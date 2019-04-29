@@ -14,7 +14,7 @@
 // @optionalParam modelName string resnet model name
 // @optionalParam pvc string nfs Claimname for the PVC
 // @optionalParam pvcMount string /opt/ml Mount path for PVC.
-// @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
+// @optionalParam injectIstio string true Whether to inject istio sidecar; should be true or false.
 // @optionalParam clusterDomain string cluster.local DNS config to cluster domain.
 
 local openvino = import "kubeflow/openvino/openvino.libsonnet";

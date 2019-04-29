@@ -15,7 +15,7 @@
     mysqlPd: null,
     minioPd: null,
     nfsPd: null,
-    injectIstio: "false",
+    injectIstio: "true",
     clusterDomain: "cluster.local",
   },
 
