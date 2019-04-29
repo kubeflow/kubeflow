@@ -94,6 +94,18 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	// Watch for changes to Notebook virtualservices.
+	virtualService := &unstructured.Unstructured{}
+	virtualService.SetAPIVersion("networking.istio.io/v1alpha3")
+	virtualService.SetKind("VirtualService")
+	err = c.Watch(&source.Kind{Type: virtualService}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &v1alpha1.Notebook{},
+	})
+	if err != nil {
+		return err
+	}
+
 	// Watch underlying pod.
 	// mapFn defines the mapping from object in event to reconcile request
 	mapFn := handler.ToRequestsFunc(
