@@ -59,6 +59,22 @@ spec:
         name: volunteer
       serviceAccountName: spartakus
 `)
+  th.writeF("/manifests/common/spartakus/base/service-account.yaml", `
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: spartakus
+  name: spartakus
+`)
+  th.writeF("/manifests/common/spartakus/base/params.yaml", `
+varReference:
+- path: spec/template/spec/containers/0/args/1
+  kind: Deployment
+`)
+  th.writeF("/manifests/common/spartakus/base/params.env", `
+usageId=unknown_cluster
+`)
   th.writeK("/manifests/common/spartakus/base", `
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -89,22 +105,6 @@ vars:
     fieldpath: data.usageId
 configurations:
 - params.yaml
-`)
-  th.writeF("/manifests/common/spartakus/base/params.env", `
-usageId=unknown_cluster
-`)
-  th.writeF("/manifests/common/spartakus/base/params.yaml", `
-varReference:
-- path: spec/template/spec/containers/0/args/1
-  kind: Deployment
-`)
-  th.writeF("/manifests/common/spartakus/base/service-account.yaml", `
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  labels:
-    app: spartakus
-  name: spartakus
 `)
 }
 

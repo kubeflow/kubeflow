@@ -82,6 +82,24 @@ spec:
         imagePullPolicy: Always
       serviceAccountName: service-account
 `)
+  th.writeF("/manifests/jupyter/notebook-controller/base/service-account.yaml", `
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: service-account
+`)
+  th.writeF("/manifests/jupyter/notebook-controller/base/service.yaml", `
+apiVersion: v1
+kind: Service
+metadata:
+  name: service
+spec:
+  ports:
+  - port: 443
+`)
+  th.writeF("/manifests/jupyter/notebook-controller/base/params.env", `
+POD_LABELS=gcp-cred-secret=user-gcp-sa,gcp-cred-secret-filename=user-gcp-sa.json
+`)
   th.writeK("/manifests/jupyter/notebook-controller/base", `
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -106,24 +124,6 @@ configMapGenerator:
   env: params.env
 generatorOptions:
   disableNameSuffixHash: true
-`)
-  th.writeF("/manifests/jupyter/notebook-controller/base/params.env", `
-POD_LABELS=gcp-cred-secret=user-gcp-sa,gcp-cred-secret-filename=user-gcp-sa.json
-`)
-  th.writeF("/manifests/jupyter/notebook-controller/base/service-account.yaml", `
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: service-account
-`)
-  th.writeF("/manifests/jupyter/notebook-controller/base/service.yaml", `
-apiVersion: v1
-kind: Service
-metadata:
-  name: service
-spec:
-  ports:
-  - port: 443
 `)
 }
 

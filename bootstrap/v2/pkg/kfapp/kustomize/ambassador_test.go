@@ -51,11 +51,6 @@ rules:
   - get
   - list
   - watch`)
-  th.writeF("/manifests/common/ambassador/base/deployment-ambassador.yaml", `
-- op: replace
-  path: /spec/replicas
-  value: 1
-`)
   th.writeF("/manifests/common/ambassador/base/deployment.yaml", `
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -98,6 +93,52 @@ spec:
       restartPolicy: Always
       serviceAccountName: ambassador
 `)
+  th.writeF("/manifests/common/ambassador/base/service-account.yaml", `
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ambassador
+`)
+  th.writeF("/manifests/common/ambassador/base/service.yaml", `
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador-admin
+  name: ambassador-admin
+spec:
+  ports:
+  - name: ambassador-admin
+    port: 8877
+    targetPort: 8877
+  selector:
+    service: ambassador
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador
+  name: ambassador
+spec:
+  ports:
+  - name: ambassador
+    port: 80
+    targetPort: 80
+  selector:
+    service: ambassador
+  type: $(ambassadorServiceType)
+`)
+  th.writeF("/manifests/common/ambassador/base/params.yaml", `
+varReference:
+- path: spec/type
+  kind: Service
+`)
+  th.writeF("/manifests/common/ambassador/base/params.env", `
+ambassadorServiceType=ClusterIP
+`)
   th.writeK("/manifests/common/ambassador/base", `
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -136,52 +177,6 @@ vars:
     fieldpath: data.ambassadorServiceType
 configurations:
 - params.yaml
-`)
-  th.writeF("/manifests/common/ambassador/base/params.env", `
-ambassadorServiceType=ClusterIP
-`)
-  th.writeF("/manifests/common/ambassador/base/params.yaml", `
-varReference:
-- path: spec/type
-  kind: Service
-`)
-  th.writeF("/manifests/common/ambassador/base/service-account.yaml", `
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: ambassador
-`)
-  th.writeF("/manifests/common/ambassador/base/service.yaml", `
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: ambassador-admin
-  name: ambassador-admin
-spec:
-  ports:
-  - name: ambassador-admin
-    port: 8877
-    targetPort: 8877
-  selector:
-    service: ambassador
-  type: ClusterIP
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: ambassador
-  name: ambassador
-spec:
-  ports:
-  - name: ambassador
-    port: 80
-    targetPort: 80
-  selector:
-    service: ambassador
-  type: $(ambassadorServiceType)
 `)
 }
 

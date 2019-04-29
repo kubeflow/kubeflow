@@ -114,6 +114,46 @@ spec:
           name: config-map
         name: config-volume
 `)
+  th.writeF("/manifests/tf-training/tf-job-operator/base/service-account.yaml", `
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dashboard-service-account
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: service-account
+`)
+  th.writeF("/manifests/tf-training/tf-job-operator/base/service.yaml", `
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard-service
+  annotations:
+    getambassador.io/config: |-
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name: tfjobs-ui-mapping
+      prefix: /tfjobs/
+      rewrite: /tfjobs/
+      service: tf-job-operator-dashboard.$(namespace)
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+  type: ClusterIP
+`)
+  th.writeF("/manifests/tf-training/tf-job-operator/base/params.yaml", `
+varReference:
+- path: metadata/annotations/getambassador.io\/config
+  kind: Service
+`)
+  th.writeF("/manifests/tf-training/tf-job-operator/base/params.env", `
+namespace=kubeflow
+`)
   th.writeK("/manifests/tf-training/tf-job-operator/base", `
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -147,46 +187,6 @@ vars:
     fieldpath: data.namespace
 configurations:
 - params.yaml
-`)
-  th.writeF("/manifests/tf-training/tf-job-operator/base/params.env", `
-namespace=kubeflow
-`)
-  th.writeF("/manifests/tf-training/tf-job-operator/base/params.yaml", `
-varReference:
-- path: metadata/annotations/getambassador.io\/config
-  kind: Service
-`)
-  th.writeF("/manifests/tf-training/tf-job-operator/base/service-account.yaml", `
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: dashboard-service-account
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: service-account
-`)
-  th.writeF("/manifests/tf-training/tf-job-operator/base/service.yaml", `
-apiVersion: v1
-kind: Service
-metadata:
-  name: dashboard-service
-  annotations:
-    getambassador.io/config: |-
-      ---
-      apiVersion: ambassador/v0
-      kind:  Mapping
-      name: tfjobs-ui-mapping
-      prefix: /tfjobs/
-      rewrite: /tfjobs/
-      service: tf-job-operator-dashboard.$(namespace)
-spec:
-  ports:
-  - port: 80
-    targetPort: 8080
-  type: ClusterIP
 `)
 }
 
