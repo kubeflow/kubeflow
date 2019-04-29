@@ -38,26 +38,36 @@ spec:
             cpu: "1"
             memory: 1Gi
 `)
-  th.writeK("/manifests/tensorboard/base", `
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: kubeflow
-resources:
-- deployment.yaml
-- params.env
-- service.yaml
-commonLabels:
-  kustomize.component: tensorboard
-vars:
-- name: namespace
-  objref:
-    kind: Service
-    name: tensorboard
-    apiVersion: v1
-  fieldref:
-    fieldpath: metadata.namespace
-configurations:
-- params.yaml
+  th.writeF("/manifests/tensorboard/base/service.yaml", `
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    getambassador.io/config: |-
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name: tb-mapping-tensorboard-get
+      prefix: /tensorboard/ tensorboard/
+      rewrite: /
+      method: GET
+      service: tensorboard.$(namespace):9000
+  labels:
+    app: tensorboard
+  name: tensorboard
+spec:
+  ports:
+  - name: tb
+    port: 9000
+    targetPort: 6006
+  selector:
+    app: tensorboard
+  type: ClusterIP
+`)
+  th.writeF("/manifests/tensorboard/base/params.yaml", `
+varReference:
+- path: metadata/annotations/getambassador.io\/config
+  kind: Service
 `)
   th.writeF("/manifests/tensorboard/base/params.env", `
 # GCP
@@ -86,36 +96,26 @@ configurations:
 # @optionalParam efsVolumeName string null Name of the Volume to mount to the pod
 # @optionalParam efsMountPath string null Where to mount the EFS Volume
 `)
-  th.writeF("/manifests/tensorboard/base/params.yaml", `
-varReference:
-- path: metadata/annotations/getambassador.io\/config
-  kind: Service
-`)
-  th.writeF("/manifests/tensorboard/base/service.yaml", `
-apiVersion: v1
-kind: Service
-metadata:
-  annotations:
-    getambassador.io/config: |-
-      ---
-      apiVersion: ambassador/v0
-      kind:  Mapping
-      name: tb-mapping-tensorboard-get
-      prefix: /tensorboard/ tensorboard/
-      rewrite: /
-      method: GET
-      service: tensorboard.$(namespace):9000
-  labels:
-    app: tensorboard
-  name: tensorboard
-spec:
-  ports:
-  - name: tb
-    port: 9000
-    targetPort: 6006
-  selector:
-    app: tensorboard
-  type: ClusterIP
+  th.writeK("/manifests/tensorboard/base", `
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow
+resources:
+- deployment.yaml
+- params.env
+- service.yaml
+commonLabels:
+  kustomize.component: tensorboard
+vars:
+- name: namespace
+  objref:
+    kind: Service
+    name: tensorboard
+    apiVersion: v1
+  fieldref:
+    fieldpath: metadata.namespace
+configurations:
+- params.yaml
 `)
 }
 

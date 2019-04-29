@@ -5,19 +5,6 @@ import (
 )
 
 func writeProfiles(th *KustTestHarness) {
-  th.writeF("/manifests/profiles/base/cluster-role-binding.yaml", `
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: cluster-role-binding
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
-subjects:
-- kind: ServiceAccount
-  name: controller-service-account
-`)
   th.writeF("/manifests/profiles/base/crd.yaml", `
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -72,6 +59,76 @@ spec:
           type: object
   version: v1alpha1
 `)
+  th.writeF("/manifests/profiles/base/service-account.yaml", `
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: controller-service-account
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: service-account
+`)
+  th.writeF("/manifests/profiles/base/cluster-role-binding.yaml", `
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: controller-service-account
+`)
+  th.writeF("/manifests/profiles/base/role.yaml", `
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs: ['get', 'list']
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  - rolebindings
+  verbs: ['get', 'list']
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - profiles
+  verbs: ['*']
+`)
+  th.writeF("/manifests/profiles/base/role-binding.yaml", `
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: role
+subjects:
+- kind: ServiceAccount
+  name: service-account
+`)
+  th.writeF("/manifests/profiles/base/service.yaml", `
+apiVersion: v1
+kind: Service
+metadata:
+  name: service
+spec:
+  ports:
+  - port: 443
+`)
   th.writeF("/manifests/profiles/base/deployment.yaml", `
 apiVersion: apps/v1
 kind: Deployment
@@ -108,63 +165,6 @@ images:
   - name: gcr.io/kubeflow-images-public/profile-controller
     newName: gcr.io/kubeflow-images-public/profile-controller
     newTag: v20190228-v0.4.0-rc.1-192-g1a802656-dirty-f95773
-`)
-  th.writeF("/manifests/profiles/base/role-binding.yaml", `
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: role-binding
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: role
-subjects:
-- kind: ServiceAccount
-  name: service-account
-`)
-  th.writeF("/manifests/profiles/base/role.yaml", `
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: role
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - namespaces
-  verbs: ['get', 'list']
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
-  - roles
-  - rolebindings
-  verbs: ['get', 'list']
-- apiGroups:
-  - kubeflow.org
-  resources:
-  - profiles
-  verbs: ['*']
-`)
-  th.writeF("/manifests/profiles/base/service-account.yaml", `
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: controller-service-account
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: service-account
-`)
-  th.writeF("/manifests/profiles/base/service.yaml", `
-apiVersion: v1
-kind: Service
-metadata:
-  name: service
-spec:
-  ports:
-  - port: 443
 `)
 }
 
