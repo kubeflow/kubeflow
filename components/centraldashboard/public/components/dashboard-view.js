@@ -11,6 +11,10 @@ import template from './dashboard-view.pug';
 const DOCS = 'https://www.kubeflow.org/docs/started';
 const GCP_LINKS = [
     {
+        text: 'Stackdriver Logging',
+        link: 'https://console.cloud.google.com/logs/viewer?resource=k8s_cluster&project=',
+    },
+    {
         text: 'Project Overview',
         link: 'https://console.cloud.google.com/home/dashboard?project=',
     },
@@ -21,10 +25,6 @@ const GCP_LINKS = [
     {
         text: 'Kubernetes Engine',
         link: 'https://console.cloud.google.com/kubernetes/list?project=',
-    },
-    {
-        text: 'Stackdriver Logging',
-        link: 'https://console.cloud.google.com/logs/viewer?resource=k8s_cluster&project=',
     },
 ];
 

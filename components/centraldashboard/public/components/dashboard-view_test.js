@@ -62,10 +62,10 @@ describe('Dashboard View', () => {
                 hrefs.push(l.href);
             });
         expect(hrefs).toEqual([
+            'https://console.cloud.google.com/logs/viewer?resource=k8s_cluster&project=test-project',
             'https://console.cloud.google.com/home/dashboard?project=test-project',
             'https://console.cloud.google.com/dm/deployments?project=test-project',
             'https://console.cloud.google.com/kubernetes/list?project=test-project',
-            'https://console.cloud.google.com/logs/viewer?resource=k8s_cluster&project=test-project',
         ]);
     });
 });
