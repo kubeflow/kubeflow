@@ -15,7 +15,7 @@ paper-card.thin#Quick-Links(heading='Quick Links')
                     slot='item-icon', alt='[[item.text]]')
     template(is='dom-if', if='[[platformLinks]]')
         section#Platform-Links
-            header [[ platformName ]] Information
+            header [[platformName]] Information
             template(is='dom-repeat', items='[[platformLinks]]')
                 a.link(href$='[[item.link]]', tabindex='-1', target='_blank')
                     paper-icon-item

@@ -76,10 +76,9 @@ paper-card.thin {
 }
 
 #Platform-Links header {
-    font-size: 18px;
+    font-size: 1.25em;
     font-weight: 400;
-    font-family: var(--paper-card-header_-_font-family);
-    padding: 8px 16px;
+    padding: .5em 1em;
 }
 
 a {
