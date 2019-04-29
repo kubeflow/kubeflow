@@ -9,8 +9,11 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+let commit = process.env.BUILD_COMMIT || ''
 
-const commit = `${execSync('git rev-parse HEAD')}`.replace(/\s/g,'');
+try {
+    commit = commit || `${execSync(`git rev-parse HEAD`)}`.replace(/\s/g,'');
+} catch(e) {}
 
 const ENV = process.env.NODE_ENV || 'development';
 const NODE_MODULES = /\/node_modules\//;

@@ -59,6 +59,7 @@ switch($steps) {
         # export DOCKER_BUILD_OPTS=--no-cache
         docker build ${DOCKER_BUILD_OPTS} -t ${IMG}:$TAG . `
             --build-arg kubeflowversion=$(git describe --abbrev=0 --tags) `
+            --build-arg commit=$(git rev-parse HEAD) `
             --label=git-verions=$GIT_VERSION
         docker tag "${IMG}:$TAG" "${IMG}:latest"
         if ($?) {
