@@ -2,7 +2,7 @@
 # a PR updating the image.
 #
 # This job is expected to run in the cluster kf-releasing in project kubeflow-releasing.
-piVersion: batch/v1beta1
+apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
   labels:
