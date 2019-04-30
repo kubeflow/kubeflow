@@ -29,6 +29,7 @@
     local pipeline_persistenceagent = import "kubeflow/pipeline/pipeline-persistenceagent.libsonnet",
     local pipeline_viewercrd = import "kubeflow/pipeline/pipeline-viewercrd.libsonnet",
     local pipeline_ui = import "kubeflow/pipeline/pipeline-ui.libsonnet",
+    local artifact_repository_config = import "kubeflow/pipeline/artifact-repository-config.libsonnet",
     local istio_service = import "kubeflow/pipeline/istio-service.libsonnet",
 
     local name = $.params.name,
@@ -60,6 +61,7 @@
           pipeline_persistenceagent.all(namespace, persistenceAgentImage) +
           pipeline_viewercrd.all(namespace, viewerCrdControllerImage) +
           pipeline_ui.all(namespace, uiImage) +
+          artifact_repository_config.all(namespace) + 
           storage.all(namespace, mysqlPvName, minioPvName, nfsPvName, mysqlPd, minioPd, nfsPd) +
           istio_service.all(namespace, clusterDomain, injectIstio) +
           $.parts.nfs,
