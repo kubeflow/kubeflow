@@ -120,6 +120,7 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, err
 	}
 
+	// Update namespace
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{"owner": instance.Spec.Owner.Name},
@@ -131,54 +132,50 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 	foundNs := &corev1.Namespace{}
 	err = r.Get(context.TODO(), types.NamespacedName{Name: ns.Name}, foundNs)
-	if err != nil && errors.IsNotFound(err) {
-		log.Info("Creating Namespace: " + ns.Name)
-		err = r.Create(context.TODO(), ns)
-		if err != nil {
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating Namespace: " + ns.Name)
+			err = r.Create(context.TODO(), ns)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+		} else {
 			return reconcile.Result{}, err
 		}
-	} else if err != nil {
-		return reconcile.Result{}, err
-	}
-	// No need to update namespace
-	val, ok := foundNs.Annotations["owner"]
-	if (!ok) || val != instance.Spec.Owner.Name {
-		log.Info(fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
-			instance.Spec.Owner.Name))
-		instance.Status = kubeflowv1alpha1.ProfileStatus{
-			Status: kubeflowv1alpha1.ProfileFailed,
-			Message: fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
-				instance.Spec.Owner.Name),
+	} else {
+		// Check exising namespace ownership before move forward
+		val, ok := foundNs.Annotations["owner"]
+		if (!ok) || val != instance.Spec.Owner.Name {
+			log.Info(fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
+				instance.Spec.Owner.Name))
+			instance.Status = kubeflowv1alpha1.ProfileStatus{
+				Status: kubeflowv1alpha1.ProfileFailed,
+				Message: fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
+					instance.Spec.Owner.Name),
+			}
+			r.Update(context.TODO(), instance)
+			return reconcile.Result{}, nil
 		}
-		r.Update(context.TODO(), instance)
+	}
+
+	// Update service accounts
+	// "default-editor" would be default "edit" permission for pods in user namespace
+	if err = r.updateServiceAccount(instance, "default-editor", "edit"); err != nil {
+		log.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
+			"defaultEdittor", "error", err)
+		return reconcile.Result{}, nil
+	}
+	// "default-viewer" would be default "view" permission for pods in user namespace
+	if err = r.updateServiceAccount(instance, "default-viewer", "view"); err != nil {
+		log.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
+			"defaultViewer", "error", err)
 		return reconcile.Result{}, nil
 	}
 
 	// TODO: add role for impersonate permission
-	role := generateRole(instance)
-	if err := controllerutil.SetControllerReference(instance, role, r.scheme); err != nil {
-		return reconcile.Result{}, err
-	}
-	foundRole := &rbacv1.Role{}
-	err = r.Get(context.TODO(), types.NamespacedName{Name: role.Name, Namespace: role.Namespace}, foundRole)
-	if err != nil && errors.IsNotFound(err) {
-		log.Info("Creating Role", "namespace", role.Namespace, "name", role.Name)
-		err = r.Create(context.TODO(), role)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-	} else if err != nil {
-		return reconcile.Result{}, err
-	}
-	if !reflect.DeepEqual(role.Rules, foundRole.Rules) {
-		foundRole.Rules = role.Rules
-		log.Info("Updating Role", "namespace", role.Namespace, "name", role.Name)
-		err = r.Update(context.TODO(), foundRole)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-	}
 
+	// Update owner rbac permission
+	// When ClusterRole was referred by namespaced roleBinding, the result permission will be namespaced as well.
 	roleBinding := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "namespaceAdmin",
@@ -194,20 +191,77 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 			instance.Spec.Owner,
 		},
 	}
-	if err := controllerutil.SetControllerReference(instance, roleBinding, r.scheme); err != nil {
-		return reconcile.Result{}, err
+	if err = r.updateRoleBingding(instance, roleBinding); err != nil {
+		log.Info("Failed Updating Owner Rolebinding", "namespace", instance.Name, "name",
+			"defaultEdittor", "error", err)
+		return reconcile.Result{}, nil
+	}
+	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileProfile) updateServiceAccount(profileIns *kubeflowv1alpha1.Profile, saName string, ClusterRoleName string) error {
+	serviceAccount := &corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      saName,
+			Namespace: profileIns.Name,
+		},
+	}
+	if err := controllerutil.SetControllerReference(profileIns, serviceAccount, r.scheme); err != nil {
+		return err
+	}
+	found := &corev1.ServiceAccount{}
+	err := r.Get(context.TODO(), types.NamespacedName{Name: serviceAccount.Name, Namespace: serviceAccount.Namespace}, found)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating ServiceAccount", "namespace", serviceAccount.Namespace,
+				"name", serviceAccount.Name)
+			err = r.Create(context.TODO(), serviceAccount)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+	roleBinding := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      saName,
+			Namespace: profileIns.Name,
+		},
+		// Use default ClusterRole 'admin' for profile/namespace owner
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "ClusterRole",
+			Name:     ClusterRoleName,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind:      rbacv1.ServiceAccountKind,
+				Name:      saName,
+				Namespace: profileIns.Name,
+			},
+		},
+	}
+	r.updateRoleBingding(profileIns, roleBinding)
+	return nil
+}
+
+func (r *ReconcileProfile) updateRoleBingding(profileIns *kubeflowv1alpha1.Profile,
+	roleBinding *rbacv1.RoleBinding) error {
+	if err := controllerutil.SetControllerReference(profileIns, roleBinding, r.scheme); err != nil {
+		return err
 	}
 	found := &rbacv1.RoleBinding{}
-	err = r.Get(context.TODO(), types.NamespacedName{Name: roleBinding.Name, Namespace: roleBinding.Namespace}, found)
+	err := r.Get(context.TODO(), types.NamespacedName{Name: roleBinding.Name, Namespace: roleBinding.Namespace}, found)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
 			err = r.Create(context.TODO(), roleBinding)
 			if err != nil {
-				return reconcile.Result{}, err
+				return err
 			}
 		} else {
-			return reconcile.Result{}, err
+			return err
 		}
 	} else {
 		if !(reflect.DeepEqual(roleBinding.RoleRef, found.RoleRef) && reflect.DeepEqual(roleBinding.Subjects, found.Subjects)) {
@@ -216,268 +270,9 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 			log.Info("Updating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
 			err = r.Update(context.TODO(), found)
 			if err != nil {
-				return reconcile.Result{}, err
+				return err
 			}
 		}
 	}
-	return reconcile.Result{}, nil
-}
-
-func generateRole(instance *kubeflowv1alpha1.Profile) *rbacv1.Role {
-	role := &rbacv1.Role{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "edit",
-			Namespace: instance.Name,
-		},
-		Rules: []rbacv1.PolicyRule{
-			{
-				APIGroups: []string{
-					"metacontroller.k8s.io",
-				},
-				Resources: []string{
-					"compositecontrollers",
-					"decoratecontrollers",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"kubeflow.org",
-				},
-				Resources: []string{
-					"notebooks",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"app.k8s.io",
-				},
-				Resources: []string{
-					"applications",
-					"apps",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"",
-				},
-				Resources: []string{
-					"pods",
-					"pods/attach",
-					"pods/exec",
-					"pods/portforward",
-					"pods/proxy",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"",
-				},
-				Resources: []string{
-					"configmaps",
-					"endpoints",
-					"persistentvolumeclaims",
-					"replicationcontrollers",
-					"replicationcontrollers/scale",
-					"secrets",
-					"serviceaccounts",
-					"services",
-					"services/proxy",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"",
-				},
-				Resources: []string{
-					"bindings",
-					"events",
-					"limitranges",
-					"pods/log",
-					"pods/status",
-					"replicationcontrollers/status",
-					"resourcequotas",
-					"resourcequotas/status",
-				},
-				Verbs: []string{
-					"get",
-					"list",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"",
-				},
-				Resources: []string{
-					"serviceaccounts",
-				},
-				Verbs: []string{
-					"impersonate",
-				},
-			},
-			{
-				APIGroups: []string{
-					"apps",
-				},
-				Resources: []string{
-					"daemonsets",
-					"deployments",
-					"deployments/rollback",
-					"deployments/scale",
-					"replicasets",
-					"replicasets/scale",
-					"statefulsets",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"autoscaling",
-				},
-				Resources: []string{
-					"horizontalpodautoscalers",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"batch",
-				},
-				Resources: []string{
-					"cronjobs",
-					"jobs",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"extensions",
-				},
-				Resources: []string{
-					"daemonsets",
-					"deployments",
-					"deployments/rollback",
-					"deployments/scale",
-					"ingresses",
-					"networkpolicies",
-					"replicasets",
-					"replicasets/scale",
-					"replicationcontrollers/scale",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"policy",
-				},
-				Resources: []string{
-					"poddistruptionbudgets",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"networking.k8s.io",
-				},
-				Resources: []string{
-					"networkpolicies",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-		},
-	}
-	return role
+	return nil
 }
