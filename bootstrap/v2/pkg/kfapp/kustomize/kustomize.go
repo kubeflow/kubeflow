@@ -49,6 +49,7 @@ import (
 	"sigs.k8s.io/kustomize/v2/k8sdeps"
 	"sigs.k8s.io/kustomize/v2/pkg/factory"
 	"sigs.k8s.io/kustomize/v2/pkg/fs"
+	"sigs.k8s.io/kustomize/v2/pkg/image"
 	"sigs.k8s.io/kustomize/v2/pkg/loader"
 	"sigs.k8s.io/kustomize/v2/pkg/patch"
 	"sigs.k8s.io/kustomize/v2/pkg/resmap"
@@ -69,12 +70,31 @@ import (
 //  kustomize edit add patch <filepath>
 //  kustomize edit add base <filepath1>,<filepath2>,<filepath3>
 //  kustomize edit set nameprefix <prefix-value>
+
+type MapType int
+
+const (
+	basesMap MapType = 0
+	commonAnnotationsMap MapType = 1
+	commonLabelsMap MapType = 2
+	imagesMap MapType = 3
+	resourcesMap MapType = 4
+	crdsMap MapType = 5
+	varsMap MapType = 6
+	configurationsMap = 7
+	configMapGeneratorMap = 8
+	secretsMapGeneratorMap = 9
+	patchesStrategicMergeMap = 10
+	patchesJson6902 = 11
+)
 type kustomize struct {
 	cltypesv2.KfDef
 	factory          *factory.KustFactory
 	fsys             fs.FileSystem
 	out              *os.File
 	err              *os.File
+
+	kustomizationMaps           map[MapType]map[string]bool
 	componentPathMap map[string]string
 	componentMap     map[string]bool
 	packageMap       map[string]*[]string
@@ -110,6 +130,19 @@ func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
 		fsys:         fs.MakeRealFS(),
 		out:          os.Stdout,
 		err:          os.Stderr,
+		kustomizationMaps:     map[MapType]map[string]bool{
+			basesMap: make(map[string]bool),
+			commonAnnotationsMap: make(map[string]bool),
+			commonLabelsMap: make(map[string]bool),
+			imagesMap: make(map[string]bool),
+			resourcesMap: make(map[string]bool),
+			crdsMap: make(map[string]bool),
+			varsMap: make(map[string]bool),
+			configurationsMap: make(map[string]bool),
+			configMapGeneratorMap: make(map[string]bool),
+			secretsMapGeneratorMap: make(map[string]bool),
+			patchesStrategicMergeMap: make(map[string]bool),
+		},
 		componentMap: make(map[string]bool),
 		packageMap:   make(map[string]*[]string),
 	}
@@ -453,16 +486,28 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 		}
 		for _, compName := range kustomize.Spec.Components {
 			if compPath, ok := kustomize.componentPathMap[compName]; ok {
-				resMap, err := kustomize.writeKustomizationFile(compName, compPath)
+				resMap, resMapErr := kustomize.writeKustomizationFile(compName, compPath)
+				if resMapErr != nil {
+					return &kfapis.KfError{
+						Code:    int(kfapis.INTERNAL_ERROR),
+						Message: fmt.Sprintf("error writing to %v Error %v", compPath, resMapErr),
+					}
+				}
 				// Output the objects.
-				yamlResources, err := resMap.EncodeAsYaml()
-				if err != nil {
-					return err
+				yamlResources, yamlResourcesErr := resMap.EncodeAsYaml()
+				if yamlResourcesErr != nil {
+					return &kfapis.KfError{
+						Code:    int(kfapis.INTERNAL_ERROR),
+						Message: fmt.Sprintf("error generating yaml Error %v", yamlResourcesErr),
+					}
 				}
 				kustomizeFile := filepath.Join(kustomizeDir, compName+".yaml")
 				kustomizeFileErr := kustomize.fsys.WriteFile(kustomizeFile, yamlResources)
 				if kustomizeFileErr != nil {
-					return kustomizeFileErr
+					return &kfapis.KfError{
+						Code:    int(kfapis.INTERNAL_ERROR),
+						Message: fmt.Sprintf("error generating yaml Error %v", yamlResourcesErr),
+					}
 				}
 			}
 		}
@@ -570,37 +615,123 @@ func (kustomize *kustomize) getKustomization(compDir string, overlayPath string)
 	return kustomization
 }
 
-func (kustomize *kustomize) mergeKustomization(compDir string, overlayDir string,
-	kustomization *types.Kustomization, target *types.Kustomization) error {
+// mergeKustomization will merge the child into the parent
+// if the child has no bases, then the parent just needs to add the child as base
+// otherwise the parent needs to merge with behaviors
+func (kustomize *kustomize) mergeKustomization(compDir string, targetDir string,
+	parent *types.Kustomization, child *types.Kustomization) error {
 
-	for _, value := range target.Bases {
-		baseAbsolutePath := path.Join(overlayDir, value)
+	if child.Bases == nil {
+		basePath := extractSuffix(compDir, targetDir)
+		if _, ok := kustomize.kustomizationMaps[basesMap][basePath]; !ok {
+			parent.Bases = append(parent.Bases, basePath)
+			kustomize.kustomizationMaps[basesMap][basePath] = true
+		}
+		return nil
+	}
+	for _, value := range child.Bases {
+		baseAbsolutePath := path.Join(targetDir, value)
 		basePath := extractSuffix(compDir, baseAbsolutePath)
-		kustomization.Bases = append(kustomization.Bases, basePath)
+		if _, ok := kustomize.kustomizationMaps[basesMap][basePath]; !ok {
+			parent.Bases = append(parent.Bases, basePath)
+			kustomize.kustomizationMaps[basesMap][basePath] = true
+		} else {
+			childPath := extractSuffix(compDir, targetDir)
+			kustomize.kustomizationMaps[basesMap][childPath] = true
+		}
 	}
-	for k, v := range target.CommonLabels {
-		kustomization.CommonAnnotations[k] = v
+	for key, value := range child.CommonLabels {
+		if _, ok := kustomize.kustomizationMaps[commonLabelsMap][key]; !ok {
+			parent.CommonLabels[key] = value
+			kustomize.kustomizationMaps[commonLabelsMap][key] = true
+		}
 	}
-	for k, v := range target.CommonAnnotations {
-		kustomization.CommonAnnotations[k] = v
+	for key, value := range child.CommonAnnotations {
+		if _, ok := kustomize.kustomizationMaps[commonAnnotationsMap][key]; !ok {
+			parent.CommonAnnotations[key] = value
+			kustomize.kustomizationMaps[commonAnnotationsMap][key] = true
+		}
 	}
-	for _, value := range target.Resources {
-		resourceAbsoluteFile := filepath.Join(overlayDir, string(value))
+	for _, value := range child.Resources {
+		resourceAbsoluteFile := filepath.Join(targetDir, string(value))
 		resourceFile := extractSuffix(compDir, resourceAbsoluteFile)
-		kustomization.Resources = append(kustomization.Resources, resourceFile)
+		if _, ok := kustomize.kustomizationMaps[resourcesMap][resourceFile]; !ok {
+			parent.Resources = append(parent.Resources, resourceFile)
+			kustomize.kustomizationMaps[resourcesMap][resourceFile] = true
+		}
 	}
-	for _, value := range target.PatchesStrategicMerge {
-		patchAbsoluteFile := filepath.Join(overlayDir, string(value))
+	for _, value := range child.Images {
+		imageName := value.Name
+		if _, ok := kustomize.kustomizationMaps[imagesMap][imageName]; !ok {
+			parent.Images = append(parent.Images, value)
+			kustomize.kustomizationMaps[imagesMap][imageName] = true
+		}
+	}
+	for _, value := range child.Crds {
+		if _, ok := kustomize.kustomizationMaps[crdsMap][value]; !ok {
+			parent.Crds = append(parent.Crds, value)
+			kustomize.kustomizationMaps[crdsMap][value] = true
+		}
+	}
+	for _, value := range child.ConfigMapGenerator {
+		configMapName := value.Name
+		switch types.NewGenerationBehavior(value.Behavior) {
+		case types.BehaviorCreate:
+			if _, ok := kustomize.kustomizationMaps[configMapGeneratorMap][configMapName]; !ok {
+				parent.ConfigMapGenerator = append(parent.ConfigMapGenerator, value)
+				kustomize.kustomizationMaps[configMapGeneratorMap][configMapName] = true
+			}
+		case types.BehaviorMerge, types.BehaviorReplace:
+			parent.ConfigMapGenerator = append(parent.ConfigMapGenerator, value)
+			kustomize.kustomizationMaps[configMapGeneratorMap][configMapName] = true
+		}
+	}
+	for _, value := range child.SecretGenerator {
+		secretName := value.Name
+		switch types.NewGenerationBehavior(value.Behavior) {
+		case types.BehaviorCreate:
+			if _, ok := kustomize.kustomizationMaps[secretsMapGeneratorMap][secretName]; !ok {
+				parent.SecretGenerator = append(parent.SecretGenerator, value)
+				kustomize.kustomizationMaps[configMapGeneratorMap][secretName] = true
+			}
+		case types.BehaviorMerge, types.BehaviorReplace:
+			parent.SecretGenerator = append(parent.SecretGenerator, value)
+			kustomize.kustomizationMaps[configMapGeneratorMap][secretName] = true
+		}
+	}
+	for _, value := range child.Vars {
+		varName := value.Name
+		if _, ok := kustomize.kustomizationMaps[varsMap][varName]; !ok {
+			parent.Vars = append(parent.Vars, value)
+			kustomize.kustomizationMaps[varsMap][varName] = true
+		}
+	}
+	for _, value := range child.PatchesStrategicMerge {
+		patchAbsoluteFile := filepath.Join(targetDir, string(value))
 		patchFile := extractSuffix(compDir, patchAbsoluteFile)
-		patchFileCasted := patch.StrategicMerge(patchFile)
-		kustomization.PatchesStrategicMerge = append(kustomization.PatchesStrategicMerge, patchFileCasted)
+		if _, ok := kustomize.kustomizationMaps[patchesStrategicMergeMap][patchFile]; !ok {
+			patchFileCasted := patch.StrategicMerge(patchFile)
+			parent.PatchesStrategicMerge = append(parent.PatchesStrategicMerge, patchFileCasted)
+			kustomize.kustomizationMaps[patchesStrategicMergeMap][patchFile] = true
+		}
 	}
-	for _, value := range target.PatchesJson6902 {
+	for _, value := range child.PatchesJson6902 {
 		patchJson := new(patch.Json6902)
 		patchJson.Target = value.Target
-		patchAbsolutePath := filepath.Join(overlayDir, value.Path)
+		patchAbsolutePath := filepath.Join(targetDir, value.Path)
 		patchJson.Path = extractSuffix(compDir, patchAbsolutePath)
-		kustomization.PatchesJson6902 = append(kustomization.PatchesJson6902, *patchJson)
+		if _, ok := kustomize.kustomizationMaps[patchesJson6902][patchJson.Path]; !ok {
+			parent.PatchesJson6902 = append(parent.PatchesJson6902, *patchJson)
+			kustomize.kustomizationMaps[patchesJson6902][patchJson.Path] = true
+		}
+	}
+	for _, value := range child.Configurations {
+		configurationAbsolutePath := filepath.Join(targetDir, value)
+		configurationPath := extractSuffix(compDir, configurationAbsolutePath)
+		if _, ok := kustomize.kustomizationMaps[configurationsMap][configurationPath]; !ok {
+			parent.Configurations = append(parent.Configurations, configurationPath)
+			kustomize.kustomizationMaps[patchesJson6902][configurationPath] = true
+		}
 	}
 	return nil
 }
@@ -624,14 +755,27 @@ func (kustomize *kustomize) mergeKustomizations(compName string, compDir string)
 			Kind:       types.KustomizationKind,
 		},
 		Namespace: kustomize.Namespace,
+		Bases: make([]string,0),
+		CommonLabels: make(map[string]string),
+		CommonAnnotations: make(map[string]string),
+		PatchesStrategicMerge: make([]patch.StrategicMerge,0),
+		PatchesJson6902: make([]patch.Json6902,0),
+		Images: make([]image.Image,0),
+		Vars: make([]types.Var,0),
+		Crds: make([]string,0),
+		Resources: make([]string,0),
+		ConfigMapGenerator: make([]types.ConfigMapArgs,0),
+		SecretGenerator: make([]types.SecretArgs,0),
+		Configurations: make([]string,0),
 	}
-	err := kustomize.mergeKustomization(baseDir, kustomization, base)
+	err := kustomize.mergeKustomization(compDir, baseDir, kustomization, base)
 	if err != nil {
 		return nil
 	}
 	for _, overlayParam := range overlayParams {
 		overlayDir := path.Join(compDir, "overlays", overlayParam)
-		err := kustomize.mergeKustomization(overlayDir, kustomization, kustomize.getKustomization(compDir, overlayDir))
+		err := kustomize.mergeKustomization(compDir, overlayDir, kustomization,
+			kustomize.getKustomization(compDir, overlayDir))
 		if err != nil {
 			return nil
 		}
