@@ -274,7 +274,7 @@ export class MainPage extends PolymerElement {
      * @param {Event} responseEvent AJAX-response
      */
     _onPlatformInfoResponse(responseEvent) {
-        const { response } = responseEvent.detail;
+        const {response} = responseEvent.detail;
         this.platformInfo = response;
         if (this.platformInfo.kubeflowVersion) {
             this.buildVersion = this.platformInfo.kubeflowVersion;
@@ -286,12 +286,11 @@ export class MainPage extends PolymerElement {
      * load event as well as when the namespace changes.
      */
     _sendNamespaceMessage() {
-        if (this._iframeConnected) {
-            this.$.PageFrame.contentWindow.postMessage({
-                type: NAMESPACE_SELECTED_EVENT,
-                value: this.namespace,
-            }, this._iframeOrigin);
-        }
+        if (!this._iframeConnected) return;
+        this.$.PageFrame.contentWindow.postMessage({
+            type: NAMESPACE_SELECTED_EVENT,
+            value: this.namespace,
+        }, this._iframeOrigin);
     }
 
     /**
