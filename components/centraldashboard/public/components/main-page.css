@@ -1,0 +1,357 @@
+*, :host, :host * {
+    box-sizing: border-box
+}
+
+:host {
+    @apply --layout-vertical;
+    --accent-color: #007dfc;
+    --primary-background-color: #003c75;
+    --sidebar-default-color: #ffffff4f;
+    --border-color: #f4f4f6;
+}
+
+.flex {
+    flex: 1
+}
+
+.bottom {
+    margin-top: auto;
+    @apply --layout-horizontal;
+}
+
+app-drawer {
+    color: white;
+    --app-drawer-content-container: {
+        background: var(--primary-background-color) !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+}
+
+app-drawer-layout[narrow] app-drawer {
+    --app-drawer-content-container: {
+        box-shadow: 0 0 6px -1px #000;
+    }
+}
+
+app-drawer-layout[thin] app-drawer {
+    background: var(--primary-background-color);
+    --app-drawer-content-container: {
+        background: transparent !important;
+    }
+}
+
+app-drawer .menu-item {
+    cursor: pointer;
+    transition: background .25s;
+    font-family: Google Sans;
+    color: var(--sidebar-default-color);
+    --paper-item-icon-width: 36px;
+}
+
+app-drawer .divider {
+    width: 90%;
+    margin: 1em auto;
+    border-bottom: 2px solid var(--sidebar-default-color)
+}
+
+app-drawer .menu-item:hover {
+    background: #ffffff1b
+}
+
+app-drawer .iron-selected>.menu-item {
+    background: #ffffff3b;
+    color: white;
+    font-weight: 100
+}
+
+app-drawer .footer {
+    padding: 1.25rem;
+    font-size: .9em;
+    color: var(--sidebar-default-color);
+    line-height: 1.5em
+}
+
+app-drawer .footer>.build {
+    font-size: .9em;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.64)
+}
+
+#NamespaceSelector {
+    position: absolute;
+    right: 1em;
+    top: 50%;
+    transform: translateY(-50%)
+}
+
+app-toolbar {
+    display: flex;
+    justify-content: center;
+    background: white;
+    transition: background .25s;
+}
+
+app-toolbar[blue] {
+    color: white;
+    background: var(--primary-background-color);
+    --primary-text-color: white;
+    --secondary-text-color: #ffffff69;
+    --primary-color: white;
+    --accent-color: white;
+    --logo-color: white;
+}
+
+app-toolbar>header {
+    margin-top: auto;
+}
+
+#Narrow-Slider {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    top: 0;
+    width: 256px;
+}
+
+#Narrow-Slider>.Logo {
+    margin: 0;
+    padding: .5em;
+    height: 100%;
+    box-sizing: border-box;
+    color: var(--logo-color, var(--primary-background-color));
+    @apply --layout-horizontal;
+    @apply --layout-center-center;
+}
+
+#Narrow-Slider>.Logo>svg {
+    width: 1.5em;
+    height: 100%;
+    margin-right: .5em;
+}
+
+#Narrow-Slider>.Logo>svg * {
+    fill: currentColor
+}
+
+#NamespaceSelector>paper-dropdown-menu {
+    color: var(--accent-color);
+    --paper-input-container-focus-color: var(--accent-color);
+}
+
+paper-tabs {
+    --paper-tabs-selection-bar-color: var(--accent-color);
+    --paper-tab-ink: var(--accent-color);
+    --paper-tabs-selection-bar: {
+        border-radius: 50px 50px 0 0;
+        border-width: 3px;
+    }
+}
+
+paper-tab {
+    padding: 0 2em
+}
+
+paper-tab.iron-selected {
+    color: var(--accent-color)
+}
+
+paper-tab[link] a {
+    /* These mixins (from iron-flex-layout) center the link text. */
+    @apply --layout-horizontal;
+    @apply --layout-center-center;
+    color: var(--paper-tabs-selection-bar);
+    text-decoration: none;
+}
+
+paper-tab[link] a:hover {
+    text-decoration: none;
+}
+
+app-header-layout {
+    @apply --layout-vertical
+}
+
+neon-animated-pages {
+    height: 100%;
+}
+
+neon-animatable {
+    @apply --layout-vertical;
+    background: #f1f3f4;
+    height: 100%;
+}
+
+#Menu {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%)
+}
+
+#PageFrame {
+    border: 0;
+    display: inline-block;
+    height: 100%;
+    width: 100%;
+}
+
+#Logo {
+    display: flex;
+    align-items: center;
+    margin: 0 0 1em;
+    padding: 2em;
+}
+
+#Logo>svg {
+    width: 3em;
+    margin-right: 1em;
+}
+
+#Logo>figcaption {
+    font-size: 1.3em;
+    font-family: Google Sans;
+}
+
+#Dashboard {
+    background: #f1f3f4;
+    padding: 1em;
+    grid-gap: 1em;
+    display: grid;
+    min-height: 0;
+    min-width: 0;
+    --primary-background-color: white;
+}
+
+#Dashboard>paper-card {
+    border-radius: 5px;
+    grid-column: 1 / span 2;
+    max-width: 100%;
+    overflow: hidden;
+    min-width: 0;
+    --paper-card-header: {
+        font-family: "Google Sans"
+    }
+}
+
+#Dashboard>paper-card.thin {
+    grid-column: 3;
+    min-width: 19em
+}
+
+#Dashboard>.Getting-Started paper-icon-item {
+    cursor: pointer;
+}
+
+#Dashboard>.Getting-Started paper-icon-item:not(:last-of-type) {
+    border-bottom: 1px solid var(--border-color);
+}
+
+#Dashboard>.Getting-Started paper-icon-item iron-icon {
+    color: var(--accent-color)
+}
+
+#Dashboard>.Getting-Started paper-icon-item:hover .heading {
+    color: var(--paper-blue-700);
+    text-decoration: underline;
+}
+
+#Dashboard>.Getting-Started [secondary] {
+    word-break: break-word;
+    width: 100%;
+    white-space: normal;
+    font-size: .8em;
+}
+
+#Dashboard>.Quick-Links .link {
+    width: 80%;
+    margin: .5em auto;
+    border: 1px solid #eeeeef;
+    padding: .5em 1em;
+    border-radius: 5px;
+    @apply --layout-horizontal;
+}
+
+#Dashboard>.Quick-Links .link.more-coming {
+    opacity: .4;
+    font-style: italic;
+    pointer-events: none
+}
+
+#Dashboard>.Quick-Links .link .button {
+    color: var(--accent-color);
+    background: rgba(0, 125, 252, 0.25);
+    border-radius: 50%
+}
+
+#Dashboard:after {
+    content: '';
+    grid-column: 1 span 3
+}
+
+#Activity {
+    @apply --layout-vertical;
+    @apply --layout-center-center
+}
+
+#Activity:before, #Activity:after {
+    font-size: 3em;
+    opacity: .3;
+    font-family: Google Sans
+}
+
+#Activity:before {
+    content: ":(";
+    font-size: 6em;
+    transform: rotateZ(90deg)
+}
+
+#Activity:after {
+    content: "No content here yet..."
+}
+
+#MainDrawer .menu-item iron-icon.external {
+    width: .75em;
+    transform: translateY(-25%);
+    margin-left: .25em;
+}
+
+#MainDrawer .footer .bullet {
+    margin: 0 .5em;
+    display: inline-block;
+}
+
+#MainDrawer .footer .bullet:before {
+    content: ' ';
+    display: inline-block;
+    height: 0;
+    width: 0;
+    padding: 2px;
+    border-radius: 50%;
+    background: currentColor;
+    transform: translateY(-50%);
+}
+
+[hides] {
+    transition: opacity .25s
+}
+
+[hidden] {
+    opacity: 0;
+    pointer-events: none
+}
+
+[hidden]:not([hides]) {
+    display: none
+}
+
+a[href] {
+    text-decoration: none;
+    color: inherit;
+    outline: none;
+}
+
+a[href]:hover {
+    color: var(--paper-blue-700);
+    text-decoration: underline;
+}

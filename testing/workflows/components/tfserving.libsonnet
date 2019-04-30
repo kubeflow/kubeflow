@@ -35,7 +35,7 @@
     registry: "gcr.io/kubeflow-ci",
     versionTag: "latest",
     // The default image to use for the steps in the Argo workflow.
-    testing_image: "gcr.io/kubeflow-ci/test-worker",
+    testing_image: "gcr.io/kubeflow-ci/test-worker:latest",
     tf_testing_image: "gcr.io/kubeflow-ci/tf-test-worker:1.0",
     project: "kubeflow-ci",
     cluster: "kubeflow-testing",
@@ -87,6 +87,7 @@
         modelName: "mnist",
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-examples-data/mnist",
+        injectIstio: "false",
       };
       local deployGpuParams = {
         name: "mnist-gpu",
@@ -94,6 +95,7 @@
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-examples-data/mnist",
         numGpus: 1,
+        injectIstio: "false",
       };
 
       local toPair = function(k, v) k + "=" + v;
@@ -162,6 +164,7 @@
             "--namespace=" + stepsNamespace,
             "--artifacts_dir=" + artifactsDir,
             "--service_name=" + serviceName,
+            "--workflow_name=" + params.workflowName,
             "--input_path=" + srcDir + "/components/k8s-model-server/test-data/mnist_input.json",
             "--result_path=" + srcDir + "/components/k8s-model-server/test-data/mnist_result.json",
           ],
@@ -237,6 +240,7 @@
         "--namespace=" + stepsNamespace,
         "--test_dir=" + testDir,
         "--artifacts_dir=" + artifactsDir,
+        "--workflow_name=" + params.workflowName,
       ];
       local deploy_tf_serving_command = deploy_tf_serving_command_base + [
         "--deploy_name=mnist-cpu",
@@ -369,6 +373,7 @@
                 "--namespace=" + stepsNamespace,
                 "--test_dir=" + testDir,
                 "--artifacts_dir=" + artifactsDir,
+                "--workflow_name=" + params.workflowName,
                 "teardown",
               ]
             ),  // teardown

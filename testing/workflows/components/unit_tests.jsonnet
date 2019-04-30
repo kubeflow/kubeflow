@@ -47,7 +47,7 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
   name: step_name,
   activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
   workingDir: working_dir,
-  container: {
+  container+: {
     command: command,
     image: image,
     workingDir: working_dir,
@@ -107,6 +107,37 @@ local dagTemplates = [
     dependencies: ["checkout"],
   },  // create-pr-symlink
   {
+    template: buildTemplate("flake8-test", [
+      "python",
+      "-m",
+      "testing.test_flake8",
+      "--test_files_dirs=" +
+      srcDir + "/kubeflow" + "," +
+      srcDir + "/testing",
+    ]),  // flake8-test
+    
+    dependencies: ["checkout"],
+  },
+  {
+    // Run the kfctl go unittests
+    template: buildTemplate("go-kfctl-unit-tests", [      
+      "make",
+      "test-junit",
+    ], working_dir=srcDir + "/bootstrap",
+       env_vars=[{
+          name: "JUNIT_FILE",
+          value: artifactsDir + "/junit_go-kfctl-unit-tests.xml",
+       }],
+       ) + {
+      someRandomField: "jeremy",
+      container+:{
+        image: "gcr.io/kubeflow-ci/kfctl/builder:v20190418-v0-30-g5e3bd23d-dirty-73d1fe",
+      },
+    },  // go-kfctl-unit-tests
+    
+    dependencies: ["checkout"],
+  },
+  {
     template: buildTemplate("jsonnet-test", [
       "python",
       "-m",
@@ -122,8 +153,11 @@ local dagTemplates = [
       srcDir + "/kubeflow/metacontroller/tests" + "," +
       srcDir + "/kubeflow/profiles/tests" + "," +
       srcDir + "/kubeflow/tensorboard/tests" + "," +
+      srcDir + "/kubeflow/argo/tests" + "," +
+      srcDir + "/kubeflow/kubebench/tests" + "," +
       srcDir + "/kubeflow/tf-training/tests",
       "--jsonnet_path_dirs=" + srcDir + "," + srcRootDir + "/kubeflow/testing/workflows/lib/v1.7.0/",
+      "--exclude_dirs=" + srcDir + "/kubeflow/jupyter/tests/test_app",
     ]),  // jsonnet-test
 
     dependencies: ["checkout"],
@@ -133,8 +167,6 @@ local dagTemplates = [
       "python",
       "-m",
       "kubeflow.testing.test_jsonnet_formatting",
-      "--project=" + project,
-      "--artifacts_dir=" + artifactsDir,
       "--src_dir=" + srcDir,
       "--exclude_dirs=" + srcDir + "/bootstrap/vendor/," + srcDir + "/releasing/releaser/lib," + srcDir + "/releasing/releaser/vendor",
     ]),  // test-jsonnet-formatting

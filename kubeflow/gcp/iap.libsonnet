@@ -8,7 +8,10 @@
       envoyPort: 8080,
       envoyAdminPort: 8001,
       envoyStatsPort: 8025,
+      useIstio: util.toBool(_params.useIstio),
+      ingressName: "envoy-ingress"
     },
+    local namespace = if params.useIstio then params.istioNamespace else params.namespace,
 
     // Test if the given hostname is in the form of: "NAME.endpoints.PROJECT.cloud.goog"
     local isCloudEndpoint(str) = {
@@ -25,9 +28,9 @@
           service: "envoy",
         },
         name: "envoy",
-        namespace: params.namespace,
+        namespace: namespace,
         annotations: {
-          "beta.cloud.google.com/backend-config": '{"ports": {"envoy":"envoy-iap"}}',
+          "beta.cloud.google.com/backend-config": '{"ports": {"envoy":"iap-backendconfig"}}',
         },
       },
       spec: {
@@ -52,7 +55,7 @@
       kind: "ServiceAccount",
       metadata: {
         name: "envoy",
-        namespace: params.namespace,
+        namespace: namespace,
       },
     },  // initServiceAccount
     initServiceAccount:: initServiceAccount,
@@ -67,7 +70,7 @@
         {
           kind: "ServiceAccount",
           name: "envoy",
-          namespace: params.namespace,
+          namespace: namespace,
         },
       ],
       roleRef: {
@@ -83,7 +86,7 @@
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       metadata: {
         name: "envoy",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       rules: [
         {
@@ -96,7 +99,18 @@
           resources: ["ingresses"],
           verbs: ["get", "list", "update", "patch"],
         },
-      ],
+      ] + if params.useIstio then [
+        {
+          apiGroups: ["authentication.istio.io"],
+          resources: ["policies"],
+          verbs: ["*"],
+        },
+        {
+          apiGroups: ["networking.istio.io"],
+          resources: ["gateways", "virtualservices"],
+          verbs: ["*"],
+        },
+      ] else [],
     },  // initClusterRoleBinding
     initClusterRole:: initClusterRole,
 
@@ -257,7 +271,7 @@
       kind: "StatefulSet",
       metadata: {
         name: "backend-updater",
-        namespace: params.namespace,
+        namespace: namespace,
         labels: {
           service: "backend-updater",
         },
@@ -287,17 +301,26 @@
                 env: [
                   {
                     name: "NAMESPACE",
-                    value: params.namespace,
+                    value: namespace,
                   },
                   {
                     name: "SERVICE",
-                    value: "envoy",
+                    value: if params.useIstio then "istio-ingressgateway" else "envoy",
                   },
                   {
                     name: "GOOGLE_APPLICATION_CREDENTIALS",
                     value: "/var/run/secrets/sa/admin-gcp-sa.json",
                   },
-                ],
+                  {
+                    name: "INGRESS_NAME",
+                    value: params.ingressName,
+                  },
+                ] + if params.useIstio then [
+                  {
+                    name: "USE_ISTIO",
+                    value: "true",
+                  },
+                ] else [],
                 volumeMounts: [
                   {
                     mountPath: "/var/envoy-config/",
@@ -338,7 +361,7 @@
       kind: "Deployment",
       metadata: {
         name: "iap-enabler",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         replicas: 1,
@@ -361,11 +384,15 @@
                 env: [
                   {
                     name: "NAMESPACE",
-                    value: params.namespace,
+                    value: namespace,
                   },
                   {
                     name: "SERVICE",
-                    value: "envoy",
+                    value: if params.useIstio then "istio-ingressgateway" else "envoy",
+                  },
+                  {
+                    name: "INGRESS_NAME",
+                    value: params.ingressName,
                   },
                   {
                     name: "ENVOY_ADMIN",
@@ -375,7 +402,12 @@
                     name: "GOOGLE_APPLICATION_CREDENTIALS",
                     value: "/var/run/secrets/sa/admin-gcp-sa.json",
                   },
-                ],
+                ] + if params.useIstio then [
+                  {
+                    name: "USE_ISTIO",
+                    value: "true",
+                  },
+                ] else [],
                 volumeMounts: [
                   {
                     mountPath: "/var/envoy-config/",
@@ -707,12 +739,16 @@
       kind: "ConfigMap",
       metadata: {
         name: "envoy-config",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       data: {
-        "envoy-config.json": std.manifestJson(envoyConfig(params)),
         "setup_backend.sh": importstr "setup_backend.sh",
         "update_backend.sh": importstr "update_backend.sh",
+      } + if params.useIstio then {
+        "jwt-policy-template.yaml": importstr "jwt-policy-template.yaml",
+        "healthcheck_route.yaml": importstr "healthcheck_route.yaml",
+      } else {
+        "envoy-config.json": std.manifestJson(envoyConfig(params)),
         "configure_envoy_for_iap.sh": importstr "configure_envoy_for_iap.sh",
       },
     },
@@ -767,7 +803,7 @@
                     value: "8081",
                   },
                 ],
-                image: "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
+                image: params.espSampleAppImage,
                 name: "app",
                 ports: [
                   {
@@ -797,8 +833,8 @@
       apiVersion: "cloud.google.com/v1beta1",
       kind: "BackendConfig",
       metadata: {
-        name: "envoy-iap",
-        namespace: params.namespace,
+        name: "iap-backendconfig",
+        namespace: namespace,
       },
       spec: {
         iap: {
@@ -817,7 +853,7 @@
       kind: "ConfigMap",
       metadata: {
         name: "ingress-bootstrap-config",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       data: {
         "ingress_bootstrap.sh": importstr "ingress_bootstrap.sh",
@@ -830,7 +866,7 @@
       kind: "Job",
       metadata: {
         name: "ingress-bootstrap",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         template: {
@@ -845,7 +881,7 @@
                 env: [
                   {
                     name: "NAMESPACE",
-                    value: params.namespace,
+                    value: namespace,
                   },
                   {
                     name: "TLS_SECRET_NAME",
@@ -857,7 +893,7 @@
                   },
                   {
                     name: "INGRESS_NAME",
-                    value: "envoy-ingress",
+                    value: params.ingressName,
                   },
                 ],
                 volumeMounts: [
@@ -888,8 +924,8 @@
       apiVersion: "extensions/v1beta1",
       kind: "Ingress",
       metadata: {
-        name: "envoy-ingress",
-        namespace: params.namespace,
+        name: params.ingressName,
+        namespace: namespace,
         annotations: {
           "kubernetes.io/tls-acme": "true",
           "ingress.kubernetes.io/ssl-redirect": "true",
@@ -908,8 +944,8 @@
                     // Due to https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/README.md#limitations
                     // Keep port the servicePort the same as the port we are targeting on the backend so that servicePort will be the same as targetPort for the purpose of
                     // health checking.
-                    serviceName: "envoy",
-                    servicePort: params.envoyPort,
+                    serviceName: if params.useIstio then "istio-ingressgateway" else "envoy",
+                    servicePort: if params.useIstio then 80 else params.envoyPort,
                   },
                   path: "/*",
                 },
@@ -921,76 +957,70 @@
     },  // iapIngress
     ingress:: ingress,
 
-    local certificate = if params.privateGKECluster == "false" then (
-      {
-        apiVersion: "certmanager.k8s.io/v1alpha1",
-        kind: "Certificate",
-        metadata: {
-          name: params.secretName,
-          namespace: params.namespace,
-        },
+    local certificate = {
+      apiVersion: "certmanager.k8s.io/v1alpha1",
+      kind: "Certificate",
+      metadata: {
+        name: params.secretName,
+        namespace: namespace,
+      },
 
-        spec: {
-          secretName: params.secretName,
-          issuerRef: {
-            name: params.issuer,
-            kind: "Issuer",
-          },
-          commonName: params.hostname,
-          dnsNames: [
-            params.hostname,
-          ],
-          acme: {
-            config: [
-              {
-                http01: {
-                  ingress: "envoy-ingress",
-                },
-                domains: [
-                  params.hostname,
-                ],
-              },
-            ],
-          },
+      spec: {
+        secretName: params.secretName,
+        issuerRef: {
+          name: params.issuer,
+          kind: "ClusterIssuer",
         },
-      }  // certificate
-    ),
+        commonName: params.hostname,
+        dnsNames: [
+          params.hostname,
+        ],
+        acme: {
+          config: [
+            {
+              http01: {
+                ingress: params.ingressName,
+              },
+              domains: [
+                params.hostname,
+              ],
+            },
+          ],
+        },
+      },
+    },  // certificate
     certificate:: certificate,
 
-    local cloudEndpoint = if isCloudEndpoint(params.hostname) then (
-      {
-        local makeEndpointParams(str) = {
-          local toks = std.split(str, "."),
-          result:: {
-            name: toks[0],
-            project: toks[2],
-          },
-        }.result,
-        local endpointParams = makeEndpointParams(params.hostname),
-        apiVersion: "ctl.isla.solutions/v1",
-        kind: "CloudEndpoint",
-        metadata: {
-          name: endpointParams.name,
-          namespace: params.namespace,
+    local cloudEndpoint = {
+      local makeEndpointParams(str) = {
+        local toks = std.split(str, "."),
+        result:: {
+          name: toks[0],
+          project: toks[2],
         },
-        spec: {
-          project: endpointParams.project,
-          targetIngress: {
-            name: "envoy-ingress",
-            namespace: params.namespace,
-          },
+      }.result,
+      local endpointParams = makeEndpointParams(params.hostname),
+      apiVersion: "ctl.isla.solutions/v1",
+      kind: "CloudEndpoint",
+      metadata: {
+        name: endpointParams.name,
+        namespace: namespace,
+      },
+      spec: {
+        project: endpointParams.project,
+        targetIngress: {
+          name: params.ingressName,
+          namespace: namespace,
         },
-      }  // cloudEndpoint
-    ),
+      },
+    },  // cloudEndpoint
     cloudEndpoint:: cloudEndpoint,
 
     parts:: self,
     all:: [
-      self.service,
       self.initServiceAccount,
       self.initClusterRoleBinding,
       self.initClusterRole,
-      self.deploy,
       self.iapEnabler,
       self.backendUpdater,
       self.configMap,
@@ -1000,9 +1030,20 @@
       self.ingressBootstrapConfigMap,
       self.ingressBootstrapJob,
       self.ingress,
-      self.certificate,
-      self.cloudEndpoint,
-    ],
+    ] + (
+      if params.privateGKECluster == "false" then [
+        self.certificate,
+      ] else []
+    ) + (
+      if isCloudEndpoint(params.hostname) then [
+        self.cloudEndpoint,
+      ] else []
+    ) + (
+      if !params.useIstio then [
+        self.service,
+        self.deploy,
+      ] else []
+    ),
 
     list(obj=self.all):: k.core.v1.list.new(obj,),
   },

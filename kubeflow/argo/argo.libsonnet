@@ -35,10 +35,10 @@
     local workflowController = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
-      labels: {
-        app: "workflow-controller",
-      },
       metadata: {
+        labels: {
+          app: "workflow-controller",
+        },
         name: "workflow-controller",
         namespace: params.namespace,
       },
@@ -168,6 +168,12 @@
                 resources: {},
                 terminationMessagePath: "/dev/termination-log",
                 terminationMessagePolicy: "File",
+                readinessProbe: {
+                  httpGet: {
+                    path: "/",
+                    port: 8001,
+                  },
+                },
               },
             ],
             dnsPolicy: "ClusterFirst",
@@ -177,12 +183,6 @@
             serviceAccount: "argo-ui",
             serviceAccountName: "argo-ui",
             terminationGracePeriodSeconds: 30,
-            readinessProbe: {
-              httpGet: {
-                path: "/",
-                port: 8001,
-              },
-            },
           },
         },
       },
@@ -226,10 +226,88 @@
     },
     argUIService:: argUIService,
 
+    local istioVirtualService = {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: "argo-ui",
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/argo/",
+                },
+              },
+            ],  // match
+            rewrite: {
+              uri: "/",
+            },
+            route: [
+              {
+                destination: {
+                  host: std.join(".", [
+                    "argo-ui",
+                    params.namespace,
+                    params.clusterDomain,
+                  ]),
+                  port: {
+                    number: 80,
+                  },
+                },  // destination
+              },
+            ],  // route
+          },
+        ],  // http
+      },  // spec
+    },  // istioVirtualService
+    istioVirtualService:: istioVirtualService,
+
     local workflowControllerConfigmap = {
       apiVersion: "v1",
       data: {
-        config: @"executorImage: " + params.executorImage,
+        config: std.format(|||
+                             {
+                             executorImage: %s,
+                             artifactRepository:
+                             {
+                                 s3: {
+                                     bucket: %s,
+                                     keyPrefix: %s,
+                                     endpoint: %s,
+                                     insecure: %s,
+                                     accessKeySecret: {
+                                         name: %s,
+                                         key: %s
+                                     },
+                                     secretKeySecret: {
+                                         name: %s,
+                                         key: %s
+                                     }
+                                 }
+                             }
+                             }
+                           |||,
+                           [
+                             params.executorImage,
+                             params.artifactRepositoryBucket,
+                             params.artifactRepositoryKeyPrefix,
+                             params.artifactRepositoryEndpoint,
+                             params.artifactRepositoryInsecure,
+                             params.artifactRepositoryAccessKeySecretName,
+                             params.artifactRepositoryAccessKeySecretKey,
+                             params.artifactRepositorySecretKeySecretName,
+                             params.artifactRepositorySecretKeySecretKey,
+                           ]),
       },
       kind: "ConfigMap",
       metadata: {
@@ -446,7 +524,9 @@
       self.argoUIServiceAccount,
       self.argoUIRole,
       self.argUIClusterRoleBinding,
-    ],
+    ] + if util.toBool(params.injectIstio) then [
+      self.istioVirtualService,
+    ] else [],
 
     list(obj=self.all):: util.list(obj),
   },

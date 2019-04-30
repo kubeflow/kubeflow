@@ -15,9 +15,22 @@ usage() {
   echo "help - print this message"
 }
 
-check_install() {
-  if ! which "${1}" &>/dev/null && ! type -a "${1}" &>/dev/null ; then
-    echo "You don't have ${1} installed. Please install ${1}."
+check_installed_deps() {
+  declare -a kf_deps=("ks" "kubectl")
+
+  for kf_dep in "${kf_app[@]}"; do
+    if ! which "${kf_dep}" &>/dev/null && ! type -a "${kf_dep}" &>/dev/null ; then
+      echo "You don't have ${kf_dep} installed. Please install ${kf_dep}."
+      exit 1
+    fi
+  done
+
+  # check minimum ks versions
+  kf_dep="ks"
+  min_ks_ver="0.11.0"
+  ks_ver=$(${kf_dep} version | cut -d' ' -f3 | head -1)
+  if [ ${ks_ver} \< ${min_ks_ver} ]; then
+    echo "Please install ${kf_dep} version ${min_ks_ver} or newer"
     exit 1
   fi
 }
@@ -68,6 +81,7 @@ createKsApp() {
   ks pkg install kubeflow/seldon
   ks pkg install kubeflow/tf-serving
   ks pkg install kubeflow/openvino
+  ks pkg install kubeflow/tensorboard
   ks pkg install kubeflow/tf-training
   ks pkg install kubeflow/metacontroller
   ks pkg install kubeflow/profiles
@@ -79,15 +93,20 @@ createKsApp() {
   ks generate ambassador ambassador
   ks generate openvino openvino
   ks generate jupyter jupyter
-  ks generate centraldashboard centraldashboard
-  ks generate tf-job-operator tf-job-operator
+  ks generate notebook-controller notebook-controller
+  ks generate jupyter-web-app jupyter-web-app --injectIstio false
+  ks generate centraldashboard centraldashboard --injectIstio false
+  ks generate tf-job-operator tf-job-operator --injectIstio false
+  ks generate tensorboard tensorboard --injectIstio false
   ks generate metacontroller metacontroller
   ks generate profiles profiles
-  ks generate notebooks notebooks 
-  ks generate argo argo
-  ks generate pipeline pipeline
+  ks generate notebooks notebooks
+  ks generate argo argo --injectIstio false
 
-  ks generate katib katib
+  ks generate pipeline pipeline
+  ks param set pipeline injectIstio false
+
+  ks generate katib katib --injectIstio false
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.
   # cd ks_app
@@ -113,6 +132,21 @@ createKsApp() {
   ks generate application application
 }
 
+createKsEnv(){
+  pushd ${KUBEFLOW_KS_DIR}
+  set +e
+  O=$(ks env describe default 2>&1)
+  RESULT=$?
+  set -e
+
+  if [ "${RESULT}" -eq 0 ]; then
+    echo environment default already exists
+  else
+    ks env add default --namespace "${K8S_NAMESPACE}"
+  fi
+  popd
+}
+
 removeKsEnv() {
   pushd ${KUBEFLOW_KS_DIR}
   set +e
@@ -133,5 +167,12 @@ customizeKsAppWithDockerImage() {
   if [[ ! -z "$KUBEFLOW_DOCKER_REGISTRY" ]]; then
     find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
     find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%quay.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+    find ${KUBEFLOW_KS_DIR} -name config.yaml | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+  fi
+
+  # The katib images like gcr.io/kubeflow-images-public/katib/tfevent-metrics-collector:v0.4.0 uses sub namespace kubeflow-images-public/katib in
+  # gcr.io repo, but it's not supported by other docker image repo. We need to consider how to support it in other docker repos.
+  if [[ ! -z "$DOCKER_REGISTRY_KATIB_NAMESPACE" ]]; then
+    find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%kubeflow-images-public/katib%$DOCKER_REGISTRY_KATIB_NAMESPACE%g"
   fi
 }

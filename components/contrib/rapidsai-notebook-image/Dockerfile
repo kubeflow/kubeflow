@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/rapidsai/rapidsai:cuda9.2_ubuntu16.04
+FROM nvcr.io/nvidia/rapidsai/rapidsai:cuda9.2-runtime-ubuntu16.04
 
 USER root
 
@@ -18,7 +18,7 @@ ENV PATH /usr/local/nvidia/bin:$PATH
 # Use bash instead of sh
 SHELL ["/bin/bash", "-c"]
 
-# add https support 
+# add https support
 RUN apt-get update && apt-get install -yq --no-install-recommends \
     apt-transport-https locales lsb-release wget
 
@@ -32,8 +32,7 @@ ENV LANGUAGE en_US.UTF-8
 # Replace jupyter user with jovyan user UID=1000 and in the 'users' group
 # but allow for non-initial launches of the notebook to have
 # $HOME provided by the contents of a PV
-RUN userdel jupyter && \
-    useradd -M -s /bin/bash -N -u $NB_UID $NB_USER && \
+RUN useradd -M -s /bin/bash -N -u $NB_UID $NB_USER && \
     chown -R ${NB_USER}:users /usr/local/bin && \
     chown -R ${NB_USER}:users $CONDA_DIR && \
     chown -R ${NB_USER}:users /rapids && \
@@ -46,13 +45,13 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     apt-get install -y google-cloud-sdk kubectl && \
     # Install to the existing RapidsAI conda env
     source activate rapids && \
-    pip install --upgrade pip && \
+    pip install --upgrade pip==19.0.1 && \
     pip --no-cache-dir install jupyterhub matplotlib
 
 # Install Tini - used as entrypoint for container
 RUN cd /tmp && \
-    wget --quiet https://github.com/krallin/tini/releases/download/v0.10.0/tini && \
-    echo "1361527f39190a7338a0b434bd8c88ff7233ce7b9a4876f3315c22fce7eca1b0 *tini" | sha256sum -c - && \
+    wget --quiet https://github.com/krallin/tini/releases/download/v0.18.0/tini && \
+    echo "12d20136605531b09a2c2dac02ccee85e1b874eb322ef6baf7561cd93f93c855 *tini" | sha256sum -c - && \
     mv tini /usr/local/bin/tini && \
     chmod +x /usr/local/bin/tini
 
@@ -66,7 +65,7 @@ ADD --chown=jovyan:users $GITHUB_REF/jupyter_notebook_config.py /tmp
 WORKDIR $HOME
 RUN rm -fr $(ls -A $HOME)
 
-# Get init scripts from kubeflow 
+# Get init scripts from kubeflow
 ADD --chown=jovyan:users \
     $GITHUB_REF/start-notebook.sh \
     $GITHUB_REF/start-singleuser.sh \

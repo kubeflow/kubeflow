@@ -12,8 +12,8 @@ IMAGES_FILE=${ROOT_DIR}/releasing/image_tags.yaml
 # we depend on the python code in that repo.
 export PYTHONPATH=${PYTHONPATH}:${ROOT_DIR}/../git_kubeflow-testing/py
 
-KATIB_TAG=v0.1.2-alpha-34-gb46378c
+KATIB_TAG=v0.1.2-alpha-106-gfae6aa5
 
-# Fetch shas for Jupyter images
+# Fetch shas for katib images
 python ${ROOT_DIR}/releasing/add_image_shas.py --pattern=.*katib/.*:${KATIB_TAG} \
-  --images_file=${IMAGES_FILE}
+  --images_file=${IMAGES_FILE} --repository=gcr.io/kubeflow-images-public/katib

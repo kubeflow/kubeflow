@@ -9,7 +9,7 @@
       "template.html": importstr "ui/default/template.html",
       "script.js": importstr "ui/default/script.js",
       "style.css": importstr "ui/default/style.css",
-      "spawner.py": importstr "ui/default/spawner.py",
+      "spawner.py": std.strReplace(importstr "ui/default/spawner.py", "\\\n", ""),
       "spawner_ui_config.yaml": importstr "ui/default/config.yaml",
     },
 
@@ -23,7 +23,7 @@
       "template.html": importstr "ui/rok/template.html",
       "script.js": importstr "ui/rok/script.js",
       "style.css": importstr "ui/rok/style.css",
-      "spawner.py": importstr "ui/rok/spawner.py",
+      "spawner.py": std.strReplace(importstr "ui/rok/spawner.py", "\\\n", ""),
       "spawner_ui_config.yaml": importstr "ui/rok/config.yaml",
     },
 
@@ -36,7 +36,7 @@
       },
       // JH config file
       local config = {
-        "jupyter_config.py": importstr "jupyter_config.py",
+        "jupyter_config.py": std.strReplace(importstr "jupyter_config.py", "\\\n", ""),
       },
       data: config +
             if params.ui == "rok" then rokSpawnerData
@@ -281,6 +281,7 @@
           resources: [
             "pods",
             "pods/log",
+            "secrets",
             "services",
           ],
           verbs: [
@@ -394,6 +395,10 @@
     },
     notebookRoleBinding:: notebookRoleBinding,
 
+    local localstorage = (import "localstorage.libsonnet"),
+    pv:: localstorage.pv,
+    pvclaim:: localstorage.pvclaim,
+
     parts:: self,
     all:: [
       self.kubeSpawnerConfig,
@@ -406,7 +411,12 @@
       self.notebookServiceAccount,
       self.hubRoleBinding,
       self.notebookRoleBinding,
-    ],
+    ] + std.flattenArrays([
+      if params.accessLocalFs == "true" then [
+        self.pv,
+        self.pvclaim,
+      ] else [],
+    ]),
 
     list(obj=self.all):: util.list(obj),
   },

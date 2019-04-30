@@ -2,6 +2,9 @@
 
 The roadmap provides a high level overview of key areas that will likely span multiple releases.
 
+The roadmap provides links to critical user journeys(CUJs) that we want to deliver.
+A CUJ shows how a user would accomplish some critical task (for example build, train, and deploy a model).
+
 Kubeflow does a major release at the end of every quarter. Minor releases occur as needed to fix important bugs.
 
 For detailed information about what will be in a release look
@@ -12,22 +15,27 @@ If you are a member of the Kubeflow org you can use these search queries
 
 ## Kubeflow 1.0
 
-We are working diligently to get Kubeflow to its first major version release 1.0 and plan to have this ready in early half of 2019. This will be a significant milestone for the project. Here are some critical areas for the release:
+We are working diligently to get Kubeflow to its first major version release 1.0. Here's how we are approaching 1.0.
+
+* Individual applications within Kubeflow (e.g. TFJob, kfctl, Pipelines, etc...) will graduate to 1.0
+* We expect to start graduating some components in the second half of 2019
+* Once we have a set of graduated applications covering core CUJ's for Kubeflow we will graduate Kubeflow to 1.0
 
 
-*   Stabilized APIs for training (TFJob/PyTorch operators) and serving.
+We are working on defining criterion for graduating applications. Here are some areas we think are important
 
-	* [PyTorch issues](https://github.com/issues?utf8=%E2%9C%93&q=org%3Akubeflow+label%3Aarea%2Fpytorch)
-	* [TFJob issues](https://github.com/issues?utf8=%E2%9C%93&q=org%3Akubeflow+label%3Aarea%2Ftfjob+)
+
+*   Stabilized APIs   
 *   Robust support for monitoring and logging.
 *   Scale and load testing.
-*   Integration with hyperparameter tuning with Katib.
-	* [Katib Issues](https://github.com/issues?utf8=%E2%9C%93&q=org%3Akubeflow+label%3Aarea%2Fkatib+)
 
 ## Enterprise Readiness
 
 The features in this enterprise readiness theme focus on better integration with existing enterprise infrastructure and support for secure data access. Some of the highlights in the area include:
 
+*   Multi User Kubeflow Deployments
+	* [CUJ](http://bit.ly/kubeflow_cuj_multi_user)
+	* [Design Doc for Jupyter](http://bit.ly/kf_jupyter_design_doc)
 *   Isolation of environments within a cluster.
 *   RBAC and IAM integrations.
 *   Support for multi-tenancy.
@@ -51,9 +59,8 @@ We have heard from our users and based on the feedback we are continuing to impr
 
 Continue to improve development experience for Data Scientists and ML Practitioners using Kubeflow.
 
-
 *   Notebooks driven interface for developing ML workflows and pipelines.
-    * [Slide deck](http://bit.ly/cuj_train_deploy_notebook) illustrating Build/Train/Deploy from Notebook critical user journey
+    * [CUJ](http://bit.ly/cuj_train_deploy_notebook) illustrating Build/Train/Deploy from Notebook
 	* [Jupyter related issues](https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+org%3Akubeflow+label%3Aarea%2Fjupyter)
 	* [Fairing project](https://github.com/kubeflow/fairing)
 *   Minimize the need for switching contexts out of the notebook / development environment for launching / tracking jobs.

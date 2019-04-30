@@ -16,6 +16,7 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/deploymentmanager/v2"
+	"path/filepath"
 )
 
 type Resource struct {
@@ -59,15 +60,16 @@ func init() {
 }
 
 // TODO: handle concurrent & repetitive deployment requests.
-func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*deploymentmanager.Deployment, error) {
+func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest, dmSpec DmSpec) (*deploymentmanager.Deployment, error) {
 	regPath := s.knownRegistries["kubeflow"].RegUri
 	var dmconf DmConf
-	err := LoadConfig(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml"), &dmconf)
+	err := LoadConfig(path.Join(regPath, dmSpec.ConfigFile), &dmconf)
 
 	if err == nil {
 		dmconf.Resources[0].Name = req.Name
 		dmconf.Resources[0].Properties["zone"] = req.Zone
 		dmconf.Resources[0].Properties["ipName"] = req.IpName
+		dmconf.Resources[0].Properties["createPipelinePersistentStorage"] = req.StorageOption.CreatePipelinePersistentStorage
 		// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
 		if s.gkeVersionOverride != "" {
 			dmconf.Resources[0].Properties["cluster-version"] = s.gkeVersionOverride
@@ -76,13 +78,13 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 	confByte, err := yaml.Marshal(dmconf)
 	if err != nil {
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return nil, err
 	}
-	templateData, err := ioutil.ReadFile(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster.jinja"))
+	templateData, err := ioutil.ReadFile(path.Join(regPath, dmSpec.TemplateFile))
 	if err != nil {
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return nil, err
 	}
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
@@ -91,11 +93,11 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 	deploymentmanagerService, err := deploymentmanager.New(oauth2.NewClient(ctx, ts))
 	if err != nil {
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return nil, err
 	}
 	rb := &deploymentmanager.Deployment{
-		Name: req.Name,
+		Name: req.Name + dmSpec.DmNameSuffix,
 		Target: &deploymentmanager.TargetConfiguration{
 			Config: &deploymentmanager.ConfigFile{
 				Content: string(confByte),
@@ -103,7 +105,7 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 			Imports: []*deploymentmanager.ImportFile{
 				{
 					Content: string(templateData),
-					Name:    "cluster.jinja",
+					Name:    filepath.Base(dmSpec.TemplateFile),
 				},
 			},
 		},
@@ -118,30 +120,35 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 	return rb, nil
 }
 
-func (s *ksServer) GetDeploymentStatus(ctx context.Context, req CreateRequest) (string, error) {
+func (s *ksServer) GetDeploymentStatus(ctx context.Context, req CreateRequest, deployName string) (string, string, error) {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: req.Token,
 	})
 	deploymentmanagerService, err := deploymentmanager.New(oauth2.NewClient(ctx, ts))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	dm, err := deploymentmanagerService.Deployments.Get(req.Project, req.Name).Context(ctx).Do()
+	dm, err := deploymentmanagerService.Deployments.Get(req.Project, deployName).Context(ctx).Do()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return dm.Operation.Status, nil
+	if dm.Operation.Status == "DONE" {
+		if dm.Operation.Error != nil && len(dm.Operation.Error.Errors) > 0 {
+			return dm.Operation.Status, dm.Operation.Error.Errors[0].Message, nil
+		}
+	}
+	return dm.Operation.Status, "", nil
 }
 
 // Clear existing bindings for auto-generated service accounts of current deployment.
 // Those bindings could be leftover from previous actions.
-func GetClearServiceAccountpolicy(currentPolicy *cloudresourcemanager.Policy, req ApplyIamRequest) cloudresourcemanager.Policy {
+func ClearServiceAccountPolicy(currentPolicy *cloudresourcemanager.Policy, req ApplyIamRequest) {
 	serviceAccounts := map[string]bool{
 		fmt.Sprintf("serviceAccount:%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project): true,
 		fmt.Sprintf("serviceAccount:%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project):  true,
 		fmt.Sprintf("serviceAccount:%v-vm@%v.iam.gserviceaccount.com", req.Cluster, req.Project):    true,
 	}
-	newPolicy := cloudresourcemanager.Policy{}
+	var newBindings []*cloudresourcemanager.Binding
 	for _, binding := range currentPolicy.Bindings {
 		newBinding := cloudresourcemanager.Binding{
 			Role: binding.Role,
@@ -153,9 +160,9 @@ func GetClearServiceAccountpolicy(currentPolicy *cloudresourcemanager.Policy, re
 				newBinding.Members = append(newBinding.Members, member)
 			}
 		}
-		newPolicy.Bindings = append(newPolicy.Bindings, &newBinding)
+		newBindings = append(newBindings, &newBinding)
 	}
-	return newPolicy
+	currentPolicy.Bindings = newBindings
 }
 
 func PrepareAccount(account string) string {
@@ -169,7 +176,7 @@ func PrepareAccount(account string) string {
 	}
 }
 
-func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamConf, req ApplyIamRequest) cloudresourcemanager.Policy {
+func UpdatePolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamConf, req ApplyIamRequest){
 	// map from role to members.
 	policyMap := map[string]map[string]bool{}
 	for _, binding := range currentPolicy.Bindings {
@@ -205,7 +212,7 @@ func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamCo
 			}
 		}
 	}
-	newPolicy := cloudresourcemanager.Policy{}
+	var newBindings []*cloudresourcemanager.Binding
 	for role, memberSet := range policyMap {
 		binding := cloudresourcemanager.Binding{}
 		binding.Role = role
@@ -214,9 +221,9 @@ func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamCo
 				binding.Members = append(binding.Members, member)
 			}
 		}
-		newPolicy.Bindings = append(newPolicy.Bindings, &binding)
+		newBindings = append(newBindings, &binding)
 	}
-	return newPolicy
+	currentPolicy.Bindings = newBindings
 }
 
 func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error {
@@ -247,6 +254,7 @@ func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) erro
 	exp.MaxInterval = 5 * time.Second
 	exp.MaxElapsedTime = time.Minute
 	exp.Reset()
+	// Remove bindings of target service accounts
 	err = backoff.Retry(func() error {
 		// Get current policy
 		saPolicy, err := resourceManager.Projects.GetIamPolicy(
@@ -258,23 +266,39 @@ func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) erro
 		}
 
 		// Force update iam bindings of service accounts
-		clearedPolicy := GetClearServiceAccountpolicy(saPolicy, req)
+		ClearServiceAccountPolicy(saPolicy, req)
 		_, err = resourceManager.Projects.SetIamPolicy(
 			req.Project,
 			&cloudresourcemanager.SetIamPolicyRequest{
-				Policy: &clearedPolicy,
+				Policy: saPolicy,
 			}).Do()
 		if err != nil {
 			log.Warningf("Cannot set refresh policy: %v", err)
 			return fmt.Errorf("Cannot set refresh policy: %v", err)
 		}
+		return nil
+	}, exp)
+	if err != nil {
+		return err
+	}
+	// Add new bindings to target service accounts
+	exp.Reset()
+	err = backoff.Retry(func() error {
+		// Get current policy
+		saPolicy, err := resourceManager.Projects.GetIamPolicy(
+			req.Project,
+			&cloudresourcemanager.GetIamPolicyRequest{}).Do()
+		if err != nil {
+			log.Warningf("Cannot get current policy: %v", err)
+			return fmt.Errorf("Cannot get current policy: %v", err)
+		}
 
 		// Get the updated policy and apply it.
-		newPolicy := GetUpdatedPolicy(saPolicy, &iamConf, req)
+		UpdatePolicy(saPolicy, &iamConf, req)
 		_, err = resourceManager.Projects.SetIamPolicy(
 			req.Project,
 			&cloudresourcemanager.SetIamPolicyRequest{
-				Policy: &newPolicy,
+				Policy: saPolicy,
 			}).Do()
 		if err != nil {
 			log.Warningf("Cannot set new policy: %v", err)
@@ -282,8 +306,5 @@ func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) erro
 		}
 		return nil
 	}, exp)
-	if err != nil {
-		return err
-	}
 	return nil
 }

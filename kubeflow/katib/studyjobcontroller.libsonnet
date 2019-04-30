@@ -5,6 +5,7 @@
     $.parts(params, namespace).metricsControllerConfigMap +
     $.parts(params, namespace).RBAC +
     $.parts(params, namespace).studyJobController +
+    $.parts(params, namespace).studyJobControllerService +
     $.parts(params, namespace).workerConfigMap,
 
   parts(params, namespace):: {
@@ -23,6 +24,18 @@
           singular: "studyjob",
           plural: "studyjobs",
         },
+        additionalPrinterColumns: [
+          {
+            JSONPath: ".status.condition",
+            name: "Condition",
+            type: "string",
+          },
+          {
+            JSONPath: ".metadata.creationTimestamp",
+            name: "Age",
+            type: "date",
+          },
+        ],
       },
     }],
 
@@ -102,13 +115,14 @@
             kind: CronJob
             metadata:
               name: {{.WorkerID}}
-              namespace: {{.NameSpace}}  
+              namespace: {{.NameSpace}}
             spec:
               schedule: "*/1 * * * *"
               successfulJobsHistoryLimit: 0
               failedJobsHistoryLimit: 1
               jobTemplate:
                 spec:
+                  backoffLimit: 0
                   template:
                     spec:
                       serviceAccountName: metrics-collector
@@ -127,6 +141,8 @@
                         - "{{.WorkerKind}}"
                         - "-n"
                         - "{{.NameSpace}}"
+                        - "-m"
+                        - "{{.ManagerSerivce}}"
                       restartPolicy: Never
           ||| % { mcimage: params.metricsCollectorImage },
         },
@@ -147,6 +163,7 @@
             resources: [
               "configmaps",
               "serviceaccounts",
+              "services",
             ],
             verbs: [
               "*",
@@ -174,6 +191,17 @@
             verbs: [
               "create",
               "get",
+            ],
+          },
+          {
+            apiGroups: [
+              "admissionregistration.k8s.io",
+            ],
+            resources: [
+              "validatingwebhookconfigurations",
+            ],
+            verbs: [
+              "*",
             ],
           },
           {
@@ -242,6 +270,27 @@
         ],
       },
     ],
+    studyJobControllerService: [
+      {
+        apiVersion: "v1",
+        kind: "Service",
+        metadata: {
+          name: "studyjob-controller",
+          namespace: namespace,
+        },
+        spec: {
+          ports: [
+            {
+              port: 443,
+              protocol: "TCP",
+            },
+          ],
+          selector: {
+            app: "studyjob-controller"
+          },
+        },
+      },  // studyJobControllerService
+    ],
     studyJobController: [
       {
         apiVersion: "extensions/v1beta1",
@@ -273,6 +322,22 @@
                   name: "studyjob-controller",
                   image: params.studyJobControllerImage,
                   imagePullPolicy: "Always",
+                  ports: [
+                    {
+                      name: "validating",
+                      containerPort: 443,
+                    },
+                  ],
+                  env: [
+                    {
+                      name: "VIZIER_CORE_NAMESPACE",
+                      valueFrom: {
+                        fieldRef: {
+                          fieldPath: "metadata.namespace",
+                        },
+                      },
+                    },
+                  ],
                 },
               ],
             },

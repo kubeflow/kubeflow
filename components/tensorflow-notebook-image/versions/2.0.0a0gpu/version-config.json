@@ -1,0 +1,6 @@
+{
+  "BASE_IMAGE": "nvidia/cuda:10.0-cudnn7-runtime-ubuntu16.04",
+  "TF_PACKAGE": "https://files.pythonhosted.org/packages/1a/66/32cffad095253219d53f6b6c2a436637bbe45ac4e7be0244557210dc3918/tensorflow_gpu-2.0.0a0-cp36-cp36m-manylinux1_x86_64.whl",
+  "TF_PACKAGE_PY_27": "https://files.pythonhosted.org/packages/55/18/48ea6802a165fc4c24216768ad497af287f18db5bf91597b85f8903e70dc/tensorflow_gpu-2.0.0a0-cp27-cp27mu-manylinux1_x86_64.whl",
+"INSTALL_TFMA": "yes"
+}

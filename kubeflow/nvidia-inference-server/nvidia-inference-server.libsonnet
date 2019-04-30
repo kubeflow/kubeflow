@@ -28,10 +28,8 @@
       name: $.params.name,
       image: $.params.image,
       imagePullPolicy: "IfNotPresent",
-      command: [
-        "inference_server",
-      ],
       args: [
+        "trtserver",
         "--model-store=" + $.params.modelRepositoryPath,
       ],
       ports: [

@@ -20,6 +20,10 @@
             name: "ambassador",
             port: 80,
             targetPort: 80,
+            [if (params.ambassadorServiceType == 'NodePort') &&
+                (params.ambassadorNodePort >= 30000) &&
+                (params.ambassadorNodePort <= 32767)
+             then 'nodePort']: params.ambassadorNodePort,
           },
         ],
         selector: {
@@ -141,15 +145,14 @@
     ambassadorRoleBinding:: ambassadorRoleBinding,
 
     local ambassadorDeployment = {
-      local replicas = if params.platform == "minikube" then 1 else 3,
-      apiVersion: "extensions/v1beta1",
+      apiVersion: "apps/v1beta1",
       kind: "Deployment",
       metadata: {
         name: "ambassador",
         namespace: params.namespace,
       },
       spec: {
-        replicas: replicas,
+        replicas: params.replicas,
         template: {
           metadata: {
             labels: {
@@ -171,23 +174,7 @@
                   },
                 ],
                 image: params.ambassadorImage,
-                livenessProbe: {
-                  httpGet: {
-                    path: "/ambassador/v0/check_alive",
-                    port: 8877,
-                  },
-                  initialDelaySeconds: 30,
-                  periodSeconds: 30,
-                },
                 name: "ambassador",
-                readinessProbe: {
-                  httpGet: {
-                    path: "/ambassador/v0/check_ready",
-                    port: 8877,
-                  },
-                  initialDelaySeconds: 30,
-                  periodSeconds: 30,
-                },
                 resources: {
                   limits: {
                     cpu: 1,
@@ -197,6 +184,22 @@
                     cpu: "200m",
                     memory: "100Mi",
                   },
+                },
+                readinessProbe: {
+                  httpGet: {
+                    path: "/ambassador/v0/check_ready",
+                    port: 8877,
+                  },
+                  initialDelaySeconds: 30,
+                  periodSeconds: 30,
+                },
+                livenessProbe: {
+                  httpGet: {
+                    path: "/ambassador/v0/check_alive",
+                    port: 8877,
+                  },
+                  initialDelaySeconds: 30,
+                  periodSeconds: 30,
                 },
               },
             ],

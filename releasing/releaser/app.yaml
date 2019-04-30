@@ -1,5 +1,5 @@
 apiVersion: 0.1.0
-environments:  
+environments:
   prow:
     destination:
       namespace: kubeflow-testing

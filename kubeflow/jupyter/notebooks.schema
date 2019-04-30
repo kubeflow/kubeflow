@@ -64,149 +64,149 @@
                         httpGet: {
                           required: [
                             'port',
-                          ], 
+                          ],
                           properties: {
                             path: {
                               type: 'string',
-                            }, 
+                            },
                             host: {
                               type: 'string',
-                            }, 
+                            },
                             scheme: {
                               type: 'string',
-                            }, 
+                            },
                             httpHeaders: {
                               items: {
                                 required: [
-                                  'name', 
+                                  'name',
                                   'value',
-                                ], 
+                                ],
                                 properties: {
                                   name: {
-                                    type: 'string', 
-                                  }, 
+                                    type: 'string',
+                                  },
                                   value: {
-                                    type: 'string', 
+                                    type: 'string',
                                   },
                                 },
-                              }, 
+                              },
                               type: 'array',
-                            }, 
+                            },
                             port: {
                               oneOf: [
                                 {
                                   type: 'string',
-                                }, 
+                                },
                                 {
                                   type: 'integer',
                                 },
                               ],
                             },
                           },
-                        }, 
+                        },
                         tcpSocket: {
                           required: [
                             'port',
-                          ], 
+                          ],
                           properties: {
                             host: {
                               type: 'string',
-                            }, 
+                            },
                             port: {
                               oneOf: [
                                 {
                                   type: 'string'
-                                }, 
+                                },
                                 {
                                   type: 'integer',
                                 }
                               ]
                             }
                           }
-                        }, 
+                        },
                         exec: {
                           properties: {
                             command: {
                               items: {
                                 type: 'string',
-                              }, 
+                              },
                               type: 'array',
                             },
                           },
                         },
                       },
-                    }, 
+                    },
                     postStart: {
                       properties: {
                         httpGet: {
                           required: [
                             'port',
-                          ], 
+                          ],
                           properties: {
                             path: {
                               type: 'string',
-                            }, 
+                            },
                             host: {
                               type: 'string',
-                            }, 
+                            },
                             scheme: {
                               type: 'string',
-                            }, 
+                            },
                             httpHeaders: {
                               items: {
                                 required: [
-                                  'name', 
+                                  'name',
                                   'value',
-                                ], 
+                                ],
                                 properties: {
                                   name: {
                                     type: 'string',
-                                  }, 
+                                  },
                                   value: {
                                     type: 'string',
                                   },
                                 },
-                              }, 
+                              },
                               type: 'array',
-                            }, 
+                            },
                             port: {
                               oneOf: [
                                 {
                                   type: 'string',
-                                }, 
+                                },
                                 {
                                   type: 'integer',
                                 },
                               ],
                             },
                           },
-                        }, 
+                        },
                         tcpSocket: {
                           required: [
                             'port',
-                          ], 
+                          ],
                           properties: {
                             host: {
                               type: 'string',
-                            }, 
+                            },
                             port: {
                               oneOf: [
                                 {
                                   type: 'string',
-                                }, 
+                                },
                                 {
                                   type: 'integer'
                                 },
                               ],
                             },
                           },
-                        }, 
+                        },
                         exec: {
                           properties: {
                             command: {
                               items: {
                                 type: 'string',
-                              }, 
+                              },
                               type: 'array',
                             },
                           },
@@ -214,7 +214,7 @@
                       },
                     },
                   },
-                }, 
+                },
                 serviceAccountName: {
                   type: 'string',
                 },

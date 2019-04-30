@@ -116,7 +116,7 @@
               {
                 name: "ml-pipeline-scheduledworkflow",
                 image: image,
-                imagePullPolicy: "Always",
+                imagePullPolicy: "IfNotPresent",
                 env: [
                   {
                     name: "POD_NAMESPACE",
@@ -152,7 +152,13 @@
           singular: "scheduledworkflow",
         },
         scope: "Namespaced",
-        version: "v1alpha1",
+        versions: [
+          {
+            name: "v1beta1",
+            served: true,
+            storage: true,
+          },
+        ]
       },
     },  // crd
   },  // parts

@@ -1,4 +1,6 @@
 {
+  local util = import "kubeflow/common/util.libsonnet",
+
   all(params, namespace):: [
     $.parts(params, namespace).coreService,
     $.parts(params, namespace).coreDeployment,
@@ -16,9 +18,57 @@
     $.parts(params, namespace).uiClusterRole,
     $.parts(params, namespace).uiClusterRoleBinding,
     $.parts(params, namespace).uiServiceAccount,
-  ],
+  ] + if util.toBool(params.injectIstio) then [
+    $.parts(params, namespace).istioVirtualService,
+  ] else [],
 
   parts(params, namespace):: {
+
+    istioVirtualService: {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: "katib-ui",
+        namespace: namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/katib/",
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/katib/",
+            },
+            route: [
+              {
+                destination: {
+                  host: std.join(".", [
+                    "katib-ui",
+                    namespace,
+                    "svc",
+                    params.clusterDomain,
+                  ]),
+                  port: {
+                    number: 80,
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },  // istioVirtualService
 
     coreService: {
       apiVersion: "v1",

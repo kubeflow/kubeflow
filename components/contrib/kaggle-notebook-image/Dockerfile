@@ -20,7 +20,8 @@ ENV PATH $CONDA_DIR/bin:$PATH
 SHELL ["/bin/bash", "-c"]
 
 # add https support 
-RUN apt-get update && apt-get install -yq --no-install-recommends apt-transport-https
+RUN apt-get update && apt-get install -yq --no-install-recommends \
+    apt-transport-https locales lsb-release wget
 
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen
@@ -41,16 +42,15 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
     apt-get update && \
     apt-get install -y google-cloud-sdk kubectl && \
-    # pin to 0.8.1 due to conflicts with tornado>=5.x and pyzmq>=17.x
     # we just really need jupyterhub-singleuser for our KF scripts
-    pip install jupyterhub==0.8.1 \
+    pip install jupyterhub==0.9.6 \
     # Kaggle image doesn't include their own API package (yet)
     kaggle
 
 # Install Tini - used as entrypoint for container
 RUN cd /tmp && \
-    wget --quiet https://github.com/krallin/tini/releases/download/v0.10.0/tini && \
-    echo "1361527f39190a7338a0b434bd8c88ff7233ce7b9a4876f3315c22fce7eca1b0 *tini" | sha256sum -c - && \
+    wget --quiet https://github.com/krallin/tini/releases/download/v0.18.0/tini && \
+    echo "12d20136605531b09a2c2dac02ccee85e1b874eb322ef6baf7561cd93f93c855 *tini" | sha256sum -c - && \
     mv tini /usr/local/bin/tini && \
     chmod +x /usr/local/bin/tini
 
@@ -64,7 +64,7 @@ ADD --chown=jovyan:users $GITHUB_REF/jupyter_notebook_config.py /tmp
 WORKDIR $HOME
 RUN rm -fr $(ls -A $HOME)
 
-# Get init scripts from kubeflow 
+# Get init scripts from kubeflow
 ADD --chown=jovyan:users \
     $GITHUB_REF/start-singleuser.sh \
     $GITHUB_REF/start-notebook.sh \

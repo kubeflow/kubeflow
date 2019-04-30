@@ -14,12 +14,17 @@ import (
 	"time"
 
 	"bytes"
+	"io/ioutil"
+	"math/rand"
+	"strings"
+
 	"github.com/cenkalti/backoff"
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/ksonnet/ksonnet/pkg/actions"
 	kApp "github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -28,17 +33,13 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/deploymentmanager/v2"
 	"google.golang.org/api/sourcerepo/v1"
-	"io/ioutil"
 	core_v1 "k8s.io/api/core/v1"
-	"k8s.io/api/rbac/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"math/rand"
-	"strings"
 )
 
 // The name of the prototype for Jupyter.
@@ -55,6 +56,33 @@ const KubeflowRegName = "kubeflow"
 const KubeflowFolder = "ks_app"
 const DmFolder = "gcp_config"
 const CloudShellFolder = "kf_util"
+const IstioFolder = "istio"
+// default k8s spec to use
+const K8sSpecPath = "../bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json"
+
+const MetadataStoreDiskSuffix = "-metadata-store"
+const ArtifactStoreDiskSuffix = "-artifact-store"
+
+type DmSpec struct {
+	// path to the deployment manager configuration file
+	ConfigFile string
+	// path to the deployment manager template file
+	TemplateFile string
+	// the suffix to append to the deployment name
+	DmNameSuffix string
+}
+
+var ClusterDmSpec = DmSpec{
+	ConfigFile:   "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml",
+	TemplateFile: "../deployment/gke/deployment_manager_configs/cluster.jinja",
+	DmNameSuffix: "",
+}
+
+var StorageDmSpec = DmSpec{
+	ConfigFile:   "../deployment/gke/deployment_manager_configs/storage-kubeflow.yaml",
+	TemplateFile: "../deployment/gke/deployment_manager_configs/storage.jinja",
+	DmNameSuffix: "-storage",
+}
 
 // KsService defines an interface for working with ksonnet.
 type KsService interface {
@@ -64,8 +92,9 @@ type KsService interface {
 	Apply(ctx context.Context, req ApplyRequest) error
 	ConfigCluster(context.Context, CreateRequest) error
 	BindRole(context.Context, string, string, string) error
-	InsertDeployment(context.Context, CreateRequest) (*deploymentmanager.Deployment, error)
-	GetDeploymentStatus(context.Context, CreateRequest) (string, error)
+	InstallIstio(ctx context.Context, req CreateRequest) error
+	InsertDeployment(context.Context, CreateRequest, DmSpec) (*deploymentmanager.Deployment, error)
+	GetDeploymentStatus(context.Context, CreateRequest, string) (string, string, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 	GetProjectLock(string) *sync.Mutex
 }
@@ -84,7 +113,7 @@ type ksServer struct {
 	// This can be used to map the name of a registry to info about the registry.
 	// This allows apps to specify a registry by name without having to know any
 	// other information about the regisry.
-	knownRegistries map[string]RegistryConfig
+	knownRegistries map[string]*kstypes.RegistryConfig
 
 	//gkeVersionOverride allows overriding the GKE version specified in DM config. If not set the value in DM config is used.
 	// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
@@ -95,6 +124,9 @@ type ksServer struct {
 	// project-id -> project lock
 	projectLocks map[string]*sync.Mutex
 	serverMux    sync.Mutex
+
+	// Whether to install istio.
+	installIstio bool
 }
 
 type MultiError struct {
@@ -120,7 +152,7 @@ func (m MultiError) ToError() error {
 }
 
 // NewServer constructs a ksServer.
-func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride string) (*ksServer, error) {
+func NewServer(appsDir string, registries []*kstypes.RegistryConfig, gkeVersionOverride string, installIstio bool) (*ksServer, error) {
 	if appsDir == "" {
 		return nil, fmt.Errorf("appsDir can't be empty")
 	}
@@ -128,9 +160,10 @@ func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride s
 	s := &ksServer{
 		appsDir:            appsDir,
 		projectLocks:       make(map[string]*sync.Mutex),
-		knownRegistries:    make(map[string]RegistryConfig),
+		knownRegistries:    make(map[string]*kstypes.RegistryConfig),
 		gkeVersionOverride: gkeVersionOverride,
 		fs:                 afero.NewOsFs(),
+		installIstio:       installIstio,
 	}
 
 	for _, r := range registries {
@@ -155,12 +188,17 @@ func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride s
 	return s, nil
 }
 
+type StorageOption struct {
+	// Whether to create persistent storage for storing all Kubeflow Pipeline artifacts or not.
+	CreatePipelinePersistentStorage bool
+}
+
 // CreateRequest represents a request to create a ksonnet application.
 type CreateRequest struct {
 	// Name for the app.
 	Name string
 	// AppConfig is the config for the app.
-	AppConfig AppConfig
+	AppConfig kstypes.AppConfig
 
 	// Namespace for the app.
 	Namespace string
@@ -182,9 +220,13 @@ type CreateRequest struct {
 	ClientId     string
 	ClientSecret string
 	IpName       string
+	Username     string
+	PasswordHash string
 
 	// For test: GCP service account client id
 	SAClientId string
+
+	StorageOption StorageOption
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -242,13 +284,23 @@ var (
 		},
 		[]string{"status"},
 	)
-	deploymentFailure = prometheus.NewCounter(prometheus.CounterOpts{
+	deploymentFailure = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "deployments_failure",
 		Help: "Number of failed Kubeflow deployments",
-	})
+	}, []string{"status"})
+
 	serviceHeartbeat = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "service_heartbeat",
 		Help: "Heartbeat signal every 10 seconds indicating pods are alive.",
+	})
+
+	deployReqCounterUser = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "deploy_requests_user",
+		Help: "Number of user requests for deployments",
+	})
+	kfDeploymentsDoneUser = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "kubeflow_deployments_done_user",
+		Help: "Number of successfully finished Kubeflow user deployments",
 	})
 
 	// Gauge metrics
@@ -279,6 +331,8 @@ func init() {
 	prometheus.MustRegister(deployReqCounter)
 	prometheus.MustRegister(clusterDeploymentLatencies)
 	prometheus.MustRegister(kfDeploymentLatencies)
+	prometheus.MustRegister(deployReqCounterUser)
+	prometheus.MustRegister(kfDeploymentsDoneUser)
 	prometheus.MustRegister(deployReqCounterRaw)
 	prometheus.MustRegister(kfDeploymentsDoneRaw)
 	prometheus.MustRegister(deploymentFailure)
@@ -337,6 +391,43 @@ func (s *ksServer) GetProjectLock(project string) *sync.Mutex {
 	return s.projectLocks[project]
 }
 
+// InstallIstio installs istio into the cluster.
+func (s *ksServer) InstallIstio(ctx context.Context, req CreateRequest) error {
+	if !s.installIstio {
+		return nil
+	}
+	log.Infof("Installing Istio...")
+	regPath := s.knownRegistries["kubeflow"].RegUri
+
+	token := req.Token
+	if token == "" {
+		log.Errorf("No token specified in request; dropping request.")
+		return fmt.Errorf("No token specified in request; dropping request.")
+	}
+	config, err := buildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
+	if err != nil {
+		log.Errorf("Failed getting GKE cluster config: %v", err)
+		return err
+	}
+
+	err = CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/install/crds.yaml"))
+	if err != nil {
+		log.Errorf("Failed to create istio CRD: %v", err)
+		return err
+	}
+	err = CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/install/istio-noauth.yaml"))
+	if err != nil {
+		log.Errorf("Failed to create istio manifest: %v", err)
+		return err
+	}
+	err = CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/kf-istio-resources.yaml"))
+	if err != nil {
+		log.Errorf("Failed to create kubeflow istio resource: %v", err)
+		return err
+	}
+	return nil
+}
+
 // CreateApp creates a ksonnet application based on the request.
 func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeploy *deploymentmanager.Deployment) error {
 	config, err := rest.InClusterConfig()
@@ -365,7 +456,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	if err == nil {
 		log.Infof("App %v exists in project %v", request.Name, request.Project)
 		options := map[string]interface{}{
-			actions.OptionApp:     a.App,
+			actions.OptionAppRoot: a.App.Root(),
 			actions.OptionEnvName: envName,
 			actions.OptionServer:  config.Host,
 		}
@@ -376,28 +467,47 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	} else {
 		log.Infof("Creating app %v", request.Name)
 		log.Infof("Using K8s host %v", config.Host)
+		absSpecPath := path.Join(s.knownRegistries["kubeflow"].RegUri, K8sSpecPath)
+		specFlag := "file:" + absSpecPath
+		// Fetch k8s api spec from github if not found locally
+		if _, specErr := os.Stat(absSpecPath); specErr != nil {
+			log.Infof("k8s spec cache not found, using remote resource.")
+			specFlag = "version:v1.11.7"
+
+		}
 		deployConfDir := path.Join(repoDir, GetRepoName(request.Project), kfVersion, request.Name)
 		if err = os.MkdirAll(deployConfDir, os.ModePerm); err != nil {
 			return fmt.Errorf("Cannot create deployConfDir: %v", err)
 		}
 		appDir := path.Join(deployConfDir, KubeflowFolder)
 		_, err = s.fs.Stat(appDir)
-
 		if err != nil {
 			options := map[string]interface{}{
 				actions.OptionFs:      s.fs,
 				actions.OptionName:    "app",
 				actions.OptionEnvName: envName,
-				actions.OptionAppRoot: appDir,
+				actions.OptionNewRoot: appDir,
 				actions.OptionServer:  config.Host,
-				// TODO(jlewi): What is the proper version to use? It shouldn't be a version like v1.9.0-gke as that
-				// will create an error because ksonnet will be unable to fetch a swagger spec.
-				actions.OptionSpecFlag:              "version:v1.10.6",
+				// Use k8s swagger spec from kubeflow repo cache.
+				actions.OptionSpecFlag:              specFlag,
 				actions.OptionNamespace:             request.Namespace,
 				actions.OptionSkipDefaultRegistries: true,
 			}
+			// Add retry around ks init as sometimes fetching k8s API from github will fail
+			bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 5)
+			err = backoff.Retry(func() error {
+				// Clean up leftovers from previous run if exists
+				if initErr := os.RemoveAll(appDir); initErr != nil {
+					log.Warnf("Failed to cleanup app dir from previous run, error: %v. will retry up to 5 times", initErr)
+					return initErr
+				}
+				if initErr := actions.RunInit(options); initErr != nil {
+					log.Warnf("app init failed with error: %v. will retry up to 5 times", initErr)
+					return initErr
+				}
+				return nil
+			}, bo)
 
-			err := actions.RunInit(options)
 			if err != nil {
 				return fmt.Errorf("There was a problem initializing the app: %v", err)
 			}
@@ -420,7 +530,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 
 	// Add the registries to the app.
 	for idx, registry := range request.AppConfig.Registries {
-		RegUri, err := s.getRegistryUri(&registry)
+		RegUri, err := s.getRegistryUri(registry)
 		if err != nil {
 			log.Errorf("There was a problem getRegistryUri for registry %v. Error: %v", registry.Name, err)
 			return err
@@ -428,9 +538,9 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		request.AppConfig.Registries[idx].RegUri = RegUri
 		log.Infof("App %v add registry %v URI %v", request.Name, registry.Name, registry.RegUri)
 		options := map[string]interface{}{
-			actions.OptionApp:  a.App,
-			actions.OptionName: registry.Name,
-			actions.OptionURI:  request.AppConfig.Registries[idx].RegUri,
+			actions.OptionAppRoot: a.App.Root(),
+			actions.OptionName:    registry.Name,
+			actions.OptionURI:     request.AppConfig.Registries[idx].RegUri,
 			// Version doesn't actually appear to be used by the add function.
 			actions.OptionVersion: "",
 			// Looks like override allows us to override existing registries; we shouldn't
@@ -490,6 +600,9 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		UpdateDmConfig(repoDir, request.Project, request.Name, kfVersion, dmDeploy)
 	}
 	UpdateCloudShellConfig(repoDir, request.Project, request.Name, kfVersion, request.Zone)
+	if s.installIstio {
+		UpdateIstioManifest(repoDir, request.Project, request.Name, kfVersion, s.knownRegistries["kubeflow"].RegUri)
+	}
 	err = s.SaveAppToRepo(request.Project, request.Email, repoDir)
 	if err != nil {
 		log.Errorf("There was a problem saving config to cloud repo; %v", err)
@@ -500,7 +613,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 
 // fetch remote registry to local disk, or use baked-in registry if version not specified in user request.
 // Then return registry's RegUri.
-func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
+func (s *ksServer) getRegistryUri(registry *kstypes.RegistryConfig) (string, error) {
 	if registry.Name == "" ||
 		registry.Path == "" ||
 		registry.Repo == "" ||
@@ -562,7 +675,7 @@ func runCmd(rawcmd string) error {
 }
 
 // appGenerate installs packages and creates components.
-func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
+func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *kstypes.AppConfig) error {
 	libs, err := kfApp.Libraries()
 
 	if err != nil {
@@ -587,7 +700,7 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 		_, err = s.fs.Stat(regFile)
 		if err == nil {
 			log.Infof("processing registry file %v ", regFile)
-			var ksRegistry KsRegistry
+			var ksRegistry kstypes.KsRegistry
 			if LoadConfig(regFile, &ksRegistry) == nil {
 				for pkgName, _ := range ksRegistry.Libraries {
 					_, err = s.fs.Stat(path.Join(registry.RegUri, pkgName))
@@ -597,12 +710,12 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 					full := fmt.Sprintf("%v/%v", registry.Name, pkgName)
 					log.Infof("Installing package %v", full)
 
-					if _, found := libs[pkgName]; found {
+					if _, found := libs[full]; found {
 						log.Infof("Package %v already exists", pkgName)
 						continue
 					}
 					err := actions.RunPkgInstall(map[string]interface{}{
-						actions.OptionApp:     kfApp,
+						actions.OptionAppRoot: kfApp.Root(),
 						actions.OptionPkgName: full,
 						actions.OptionName:    pkgName,
 						actions.OptionForce:   false,
@@ -621,12 +734,12 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 		full := fmt.Sprintf("%v/%v", pkg.Registry, pkg.Name)
 		log.Infof("Installing package %v", full)
 
-		if _, found := libs[pkg.Name]; found {
+		if _, found := libs[full]; found {
 			log.Infof("Package %v already exists", pkg.Name)
 			continue
 		}
 		err := actions.RunPkgInstall(map[string]interface{}{
-			actions.OptionApp:     kfApp,
+			actions.OptionAppRoot: kfApp.Root(),
 			actions.OptionPkgName: full,
 			actions.OptionName:    pkg.Name,
 			actions.OptionForce:   false,
@@ -658,12 +771,12 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 		}
 	}
 	// Apply Params
-	for _, p := range appConfig.Parameters {
+	for _, p := range appConfig.ApplyParameters {
 		err = actions.RunParamSet(map[string]interface{}{
-			actions.OptionApp:   kfApp,
-			actions.OptionName:  p.Component,
-			actions.OptionPath:  p.Name,
-			actions.OptionValue: p.Value,
+			actions.OptionAppRoot: kfApp.Root(),
+			actions.OptionName:    p.Component,
+			actions.OptionPath:    p.Name,
+			actions.OptionValue:   p.Value,
 		})
 		if err != nil {
 			return fmt.Errorf("Error when setting Parameters %v for Component %v: %v", p.Name, p.Component, err)
@@ -680,7 +793,7 @@ func (s *ksServer) createComponent(kfApp kApp.App, args []string) error {
 	if exists, _ := afero.Exists(s.fs, componentPath); !exists {
 		log.Infof("Creating Component: %v ...", componentName)
 		err := actions.RunPrototypeUse(map[string]interface{}{
-			actions.OptionApp:       kfApp,
+			actions.OptionAppRoot:   kfApp.Root(),
 			actions.OptionArguments: args,
 		})
 		if err != nil {
@@ -694,7 +807,7 @@ func (s *ksServer) createComponent(kfApp kApp.App, args []string) error {
 
 // autoConfigureApp attempts to automatically optimize the Kubeflow application
 // based on the cluster setup.
-func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig, namespace string, config *rest.Config) error {
+func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *kstypes.AppConfig, namespace string, config *rest.Config) error {
 
 	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(config, "kubeflow-bootstrapper"))
 	if err != nil {
@@ -732,10 +845,10 @@ func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig, names
 			}
 
 			err = actions.RunParamSet(map[string]interface{}{
-				actions.OptionApp:   *kfApp,
-				actions.OptionName:  component.Name,
-				actions.OptionPath:  "jupyterNotebookPVCMount",
-				actions.OptionValue: pvcMount,
+				actions.OptionAppRoot: (*kfApp).Root(),
+				actions.OptionName:    component.Name,
+				actions.OptionPath:    "jupyterNotebookPVCMount",
+				actions.OptionValue:   pvcMount,
 			})
 
 			if err != nil {
@@ -788,7 +901,7 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 		return nil
 	}, bo)
 	if err != nil {
-		log.Errorf("Fail to create repo: %v", GetRepoName(project))
+		log.Errorf("Fail to create repo: %v. Error: %v", GetRepoName(project), err)
 		return "", err
 	}
 	err = os.Chdir(repoDir)
@@ -841,6 +954,31 @@ func UpdateDmConfig(repoDir string, project string, appName string, kfVersion st
 	}
 	if err := ioutil.WriteFile(path.Join(confDir, "cluster-kubeflow.yaml"), []byte(dmDeploy.Target.Config.Content),
 		os.ModePerm); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Save istio manifest to project source repo.
+// Not thread safe, be aware when call it.
+func UpdateIstioManifest(repoDir string, project string, appName string, kfVersion string, regPath string) error {
+	istioDir := path.Join(repoDir, GetRepoName(project), kfVersion, appName, IstioFolder)
+	if err := os.RemoveAll(istioDir); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(istioDir, os.ModePerm); err != nil {
+		return err
+	}
+	err := copyFile(path.Join(regPath, "../dependencies/istio/install/crds.yaml"), path.Join(istioDir, "crd.yaml"))
+	if err != nil {
+		return err
+	}
+	err = copyFile(path.Join(regPath, "../dependencies/istio/install/istio-noauth.yaml"), path.Join(istioDir, "istio-noauth.yaml"))
+	if err != nil {
+		return err
+	}
+	err = copyFile(path.Join(regPath, "../dependencies/istio/kf-istio-resources.yaml"), path.Join(istioDir, "kf-istio-resources.yaml"))
+	if err != nil {
 		return err
 	}
 	return nil
@@ -924,34 +1062,6 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		}
 	}
 
-	bindAccount := req.Email
-	if req.SAClientId != "" {
-		bindAccount = req.SAClientId
-	}
-
-	roleBinding := v1.ClusterRoleBinding{
-		TypeMeta: meta_v1.TypeMeta{
-			APIVersion: "rbac.authorization.k8s.io/v1beta1",
-			Kind:       "ClusterRoleBinding",
-		},
-		ObjectMeta: meta_v1.ObjectMeta{
-			Name: "default-admin",
-		},
-		RoleRef: v1.RoleRef{
-			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "ClusterRole",
-			Name:     "cluster-admin",
-		},
-		Subjects: []v1.Subject{
-			{
-				Kind: v1.UserKind,
-				Name: bindAccount,
-			},
-		},
-	}
-
-	createK8sRoleBing(config, &roleBinding)
-
 	cfg := clientcmdapi.Config{
 		Kind:       "Config",
 		APIVersion: "v1",
@@ -976,7 +1086,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 	}
 
 	applyOptions := map[string]interface{}{
-		actions.OptionApp: targetApp.App,
+		actions.OptionAppRoot: targetApp.App.Root(),
 		actions.OptionClientConfig: &client.Config{
 			Overrides: &clientcmd.ConfigOverrides{},
 			Config:    clientcmd.NewDefaultClientConfig(cfg, &clientcmd.ConfigOverrides{}),
@@ -1075,33 +1185,60 @@ func timeSinceStart(ctx context.Context) time.Duration {
 	return time.Since(startTime)
 }
 
-func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmanager.Deployment) {
+func checkDeploymentFinished(svc KsService, req CreateRequest, deployName string) error {
 	status := ""
+	errMsg := ""
 	var err error
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, StartTime, time.Now())
+
 	for retry := 0; retry < 60; retry++ {
 		time.Sleep(10 * time.Second)
-		status, err = svc.GetDeploymentStatus(ctx, req)
+		status, errMsg, err = svc.GetDeploymentStatus(ctx, req, deployName)
 		if err != nil {
-			log.Errorf("Failed to get deployment status: %v", err)
-			deployReqCounter.WithLabelValues("INTERNAL").Inc()
-			deploymentFailure.Inc()
-			return
+			log.Warningf("Failed to get deployment status: %v\nWill retry...", err)
+			continue
 		}
 		if status == "DONE" {
-			clusterDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
-			log.Infof("Deployment is done")
-			break
+			if errMsg == "" {
+				// Deploy successfully
+				break
+			}
+			log.Errorf("Deployment manager returned error message: %v", errMsg)
+			// Mark status "INVALID_ARGUMENT" as most deployment manager failures are caused by insufficient quota or permission.
+			// Error messages are available from UI, and should be resolvable by retries.
+			deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
+			return fmt.Errorf(errMsg)
 		}
 		log.Infof("status: %v, waiting...", status)
 	}
 	if status != "DONE" {
 		log.Errorf("Deployment status is not done: %v", status)
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
+		return err
+	}
+	return nil
+}
+
+func finishDeployment(svc KsService, req CreateRequest,
+	clusterDmDeploy *deploymentmanager.Deployment, storageDmDeploy *deploymentmanager.Deployment) {
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, StartTime, time.Now())
+
+	err := checkDeploymentFinished(svc, req, clusterDmDeploy.Name)
+	if err != nil {
 		return
 	}
+
+	if storageDmDeploy != nil {
+		err = checkDeploymentFinished(svc, req, storageDmDeploy.Name)
+		if err != nil {
+			return
+		}
+	}
+	clusterDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
+	log.Infof("Deployment is done")
 
 	log.Info("Patching IAM bindings...")
 	err = svc.ApplyIamPolicy(ctx, ApplyIamRequest{
@@ -1114,29 +1251,37 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	if err != nil {
 		log.Errorf("Failed to update IAM: %v", err)
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return
 	}
 
 	log.Infof("Configuring cluster...")
 	if err = svc.ConfigCluster(ctx, req); err != nil {
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
+		return
+	}
+
+	if err = svc.InstallIstio(ctx, req); err != nil {
+		log.Errorf("Failed to install istio: %v", err)
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return
 	}
 
 	log.Infof("Creating app...")
-	err = svc.CreateApp(ctx, req, dmDeploy)
+	err = svc.CreateApp(ctx, req, clusterDmDeploy)
 	if err != nil {
 		log.Errorf("Failed to create app: %v", err)
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return
 	}
 
 	deployReqCounter.WithLabelValues("OK").Inc()
 	if req.Project != "kubeflow-prober-deploy" {
 		kfDeploymentsDoneRaw.Inc()
+		kfDeploymentsDoneUser.Inc()
 	}
 	kfDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 }
@@ -1155,6 +1300,7 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 		r := &basicServerResponse{}
 		if req.Project != "kubeflow-prober-deploy" {
 			deployReqCounterRaw.Inc()
+			deployReqCounterUser.Inc()
 		}
 		if err := req.Validate(); err != nil {
 			r.Err = err.Error()
@@ -1162,12 +1308,35 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			return r, err
 		}
 
-		DmDeployment, err := svc.InsertDeployment(ctx, req)
+		var storageDmDeployment *deploymentmanager.Deployment
+
+		if req.StorageOption.CreatePipelinePersistentStorage {
+			var err error
+			storageDmDeployment, err = svc.InsertDeployment(ctx, req, StorageDmSpec)
+			if err != nil {
+				r.Err = err.Error()
+				return r, err
+			}
+			req.AppConfig.ApplyParameters = append(
+				req.AppConfig.ApplyParameters,
+				kstypes.KsParameter{
+					Component: "pipeline",
+					Name:      "mysqlPd",
+					Value:     req.Name + StorageDmSpec.DmNameSuffix + MetadataStoreDiskSuffix})
+			req.AppConfig.ApplyParameters = append(
+				req.AppConfig.ApplyParameters,
+				kstypes.KsParameter{
+					Component: "pipeline",
+					Name:      "minioPd",
+					Value:     req.Name + StorageDmSpec.DmNameSuffix + ArtifactStoreDiskSuffix})
+		}
+
+		clusterDmDeployment, err := svc.InsertDeployment(ctx, req, ClusterDmSpec)
 		if err != nil {
 			r.Err = err.Error()
 			return r, err
 		}
-		go finishDeployment(svc, req, DmDeployment)
+		go finishDeployment(svc, req, clusterDmDeployment, storageDmDeployment)
 		return r, nil
 	}
 }

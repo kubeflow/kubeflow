@@ -1,0 +1,25 @@
+paper-card#Getting-Started(heading='Getting Started')
+    template(is='dom-repeat', items='[[gettingStartedItems]]')
+        a.heading(href$='[[item.link]]', tabindex='-1',
+                    target='_blank')
+            paper-icon-item
+                iron-icon(icon='launch', slot='item-icon')
+                paper-item-body(two-line)
+                    .header [[item.text]]
+                    aside(secondary) [[item.desc]]
+paper-card.thin#Quick-Links(heading='Quick Links')
+    template(is='dom-repeat', items='[[quickLinks]]')
+        a.link(href$='[[item.link]]', tabindex='-1', target='_blank')
+            paper-icon-item [[item.text]]
+                paper-icon-button.button(icon='arrow-forward',
+                    slot='item-icon', alt='[[item.text]]')
+    template(is='dom-if', if='[[platformLinks]]')
+        section#Platform-Links
+            header [[platformName]] Information
+            template(is='dom-repeat', items='[[platformLinks]]')
+                a.link(href$='[[item.link]]', tabindex='-1', target='_blank')
+                    paper-icon-item
+                        aside [[item.text]]
+                        paper-icon-button.button(icon='arrow-forward',
+                            slot='item-icon', alt='[[item.text]]')
+

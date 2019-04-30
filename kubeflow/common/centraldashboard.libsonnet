@@ -83,6 +83,53 @@
     },  //service
     centralDashboardService:: centralDashboardService,
 
+    local centralDashboardIstioVirtualService = {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: "centraldashboard",
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/",
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/",
+            },
+            route: [
+              {
+                destination: {
+                  host: std.join(".", [
+                    "centraldashboard",
+                    params.namespace,
+                    "svc",
+                    params.clusterDomain,
+                  ]),
+                  port: {
+                    number: 80,
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },  // centralDashboardIstioVirtualService
+    centralDashboardIstioVirtualService:: centralDashboardIstioVirtualService,
+
     local centralDashboardServiceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
@@ -155,13 +202,68 @@
     },  // role binding
     centralDashboardRoleBinding:: centralDashboardRoleBinding,
 
+    local centralDashboardClusterRole = {
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "ClusterRole",
+      metadata: {
+        labels: {
+          app: "centraldashboard",
+        },
+        name: "centraldashboard",
+      },
+      rules: [
+        {
+          apiGroups: [""],
+          resources: [
+            "namespaces",
+            "events"
+          ],
+          verbs: [
+            "get",
+            "list",
+            "watch",
+          ],
+        }
+      ],
+    },  // clusterrole
+    centralDashboardClusterRole:: centralDashboardClusterRole,
+
+    local centralDashboardClusterRoleBinding = {
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "ClusterRoleBinding",
+      metadata: {
+        labels: {
+          app: "centraldashboard",
+        },
+        name: "centraldashboard",
+      },
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
+        name: "centraldashboard",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "centraldashboard",
+          namespace: params.namespace,
+        },
+      ],
+    },  // clusterrolebinding
+    centralDashboardClusterRoleBinding:: centralDashboardClusterRoleBinding,
+
     parts:: self,
     all:: [
       self.centralDashboardDeployment,
       self.centralDashboardService,
       self.centralDashboardServiceAccount,
       self.centralDashboardRole,
-    ],
+      self.centralDashboardRoleBinding,
+      self.centralDashboardClusterRole,
+      self.centralDashboardClusterRoleBinding,
+    ] + if util.toBool(params.injectIstio) then [
+      self.centralDashboardIstioVirtualService,
+    ] else [],
 
     list(obj=self.all):: util.list(obj),
   },
