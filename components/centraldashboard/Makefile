@@ -33,6 +33,7 @@ test: build-local
 build: test
 	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) . \
 	  --build-arg kubeflowversion=$(shell git describe --abbrev=0 --tags) \
+	  --build-arg commit=$(shell git rev-parse HEAD) \
       --label=git-verions=$(GIT_VERSION)
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):latest
