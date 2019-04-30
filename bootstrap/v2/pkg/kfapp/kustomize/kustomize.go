@@ -85,7 +85,7 @@ const (
 	configMapGeneratorMap = 8
 	secretsMapGeneratorMap = 9
 	patchesStrategicMergeMap = 10
-	patchesJson6902 = 11
+	patchesJson6902Map = 11
 )
 type kustomize struct {
 	cltypesv2.KfDef
@@ -130,19 +130,6 @@ func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
 		fsys:         fs.MakeRealFS(),
 		out:          os.Stdout,
 		err:          os.Stderr,
-		kustomizationMaps:     map[MapType]map[string]bool{
-			basesMap: make(map[string]bool),
-			commonAnnotationsMap: make(map[string]bool),
-			commonLabelsMap: make(map[string]bool),
-			imagesMap: make(map[string]bool),
-			resourcesMap: make(map[string]bool),
-			crdsMap: make(map[string]bool),
-			varsMap: make(map[string]bool),
-			configurationsMap: make(map[string]bool),
-			configMapGeneratorMap: make(map[string]bool),
-			secretsMapGeneratorMap: make(map[string]bool),
-			patchesStrategicMergeMap: make(map[string]bool),
-		},
 		componentMap: make(map[string]bool),
 		packageMap:   make(map[string]*[]string),
 	}
@@ -486,6 +473,7 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 		}
 		for _, compName := range kustomize.Spec.Components {
 			if compPath, ok := kustomize.componentPathMap[compName]; ok {
+				kustomize.kustomizationMaps = createKustomizationMaps()
 				resMap, resMapErr := kustomize.writeKustomizationFile(compName, compPath)
 				if resMapErr != nil {
 					return &kfapis.KfError{
@@ -602,8 +590,8 @@ func (kustomize *kustomize) writeConfigFile() error {
 	return nil
 }
 
-func (kustomize *kustomize) getKustomization(compDir string, overlayPath string) *types.Kustomization {
-	kustomizationFile := filepath.Join(overlayPath, kftypes.KustomizationFile)
+func (kustomize *kustomize) getKustomization(kustomizationPath string) *types.Kustomization {
+	kustomizationFile := filepath.Join(kustomizationPath, kftypes.KustomizationFile)
 	data, err := ioutil.ReadFile(kustomizationFile)
 	if err != nil {
 		return nil
@@ -618,7 +606,7 @@ func (kustomize *kustomize) getKustomization(compDir string, overlayPath string)
 // mergeKustomization will merge the child into the parent
 // if the child has no bases, then the parent just needs to add the child as base
 // otherwise the parent needs to merge with behaviors
-func (kustomize *kustomize) mergeKustomization(compDir string, targetDir string,
+func (kustomize *kustomize) mergeKustomization(compName string, compDir string, targetDir string,
 	parent *types.Kustomization, child *types.Kustomization) error {
 
 	if child.Bases == nil {
@@ -720,9 +708,9 @@ func (kustomize *kustomize) mergeKustomization(compDir string, targetDir string,
 		patchJson.Target = value.Target
 		patchAbsolutePath := filepath.Join(targetDir, value.Path)
 		patchJson.Path = extractSuffix(compDir, patchAbsolutePath)
-		if _, ok := kustomize.kustomizationMaps[patchesJson6902][patchJson.Path]; !ok {
+		if _, ok := kustomize.kustomizationMaps[patchesJson6902Map][patchJson.Path]; !ok {
 			parent.PatchesJson6902 = append(parent.PatchesJson6902, *patchJson)
-			kustomize.kustomizationMaps[patchesJson6902][patchJson.Path] = true
+			kustomize.kustomizationMaps[patchesJson6902Map][patchJson.Path] = true
 		}
 	}
 	for _, value := range child.Configurations {
@@ -730,7 +718,7 @@ func (kustomize *kustomize) mergeKustomization(compDir string, targetDir string,
 		configurationPath := extractSuffix(compDir, configurationAbsolutePath)
 		if _, ok := kustomize.kustomizationMaps[configurationsMap][configurationPath]; !ok {
 			parent.Configurations = append(parent.Configurations, configurationPath)
-			kustomize.kustomizationMaps[patchesJson6902][configurationPath] = true
+			kustomize.kustomizationMaps[patchesJson6902Map][configurationPath] = true
 		}
 	}
 	return nil
@@ -748,7 +736,13 @@ func (kustomize *kustomize) mergeKustomizations(compName string, compDir string)
 		}
 	}
 	baseDir := path.Join(compDir, "base")
-	base := kustomize.getKustomization(compName, baseDir)
+	base := kustomize.getKustomization(baseDir)
+	if base == nil {
+		comp := kustomize.getKustomization(compDir)
+		if comp != nil {
+			return comp
+		}
+	}
 	kustomization := &types.Kustomization{
 		TypeMeta: types.TypeMeta{
 			APIVersion: types.KustomizationVersion,
@@ -768,14 +762,14 @@ func (kustomize *kustomize) mergeKustomizations(compName string, compDir string)
 		SecretGenerator: make([]types.SecretArgs,0),
 		Configurations: make([]string,0),
 	}
-	err := kustomize.mergeKustomization(compDir, baseDir, kustomization, base)
+	err := kustomize.mergeKustomization(compName, compDir, baseDir, kustomization, base)
 	if err != nil {
 		return nil
 	}
 	for _, overlayParam := range overlayParams {
 		overlayDir := path.Join(compDir, "overlays", overlayParam)
-		err := kustomize.mergeKustomization(compDir, overlayDir, kustomization,
-			kustomize.getKustomization(compDir, overlayDir))
+		err := kustomize.mergeKustomization(compName, compDir, overlayDir, kustomization,
+			kustomize.getKustomization(overlayDir))
 		if err != nil {
 			return nil
 		}
@@ -804,7 +798,7 @@ func (kustomize *kustomize) writeKustomizationFile(compName string, compPath str
 	if kustomizationPathErr != nil {
 		return nil, kustomizationPathErr
 	}
-	_loader, loaderErr := loader.NewLoader(kustomizationPath, kustomize.fsys)
+	_loader, loaderErr := loader.NewLoader(compDir, kustomize.fsys)
 	if loaderErr != nil {
 		return nil, fmt.Errorf("could not load kustomize loader: %v", loaderErr)
 	}
@@ -899,4 +893,21 @@ func writeLines(lines []string, path string) error {
 func extractSuffix(dirPath string, subDirPath string) string {
 	suffix := strings.TrimPrefix(subDirPath, dirPath)[1:]
 	return suffix
+}
+
+func createKustomizationMaps() map[MapType]map[string]bool {
+	return map[MapType]map[string]bool{
+		basesMap: make(map[string]bool),
+		commonAnnotationsMap: make(map[string]bool),
+		commonLabelsMap: make(map[string]bool),
+		imagesMap: make(map[string]bool),
+		resourcesMap: make(map[string]bool),
+		crdsMap: make(map[string]bool),
+		varsMap: make(map[string]bool),
+		configurationsMap: make(map[string]bool),
+		configMapGeneratorMap: make(map[string]bool),
+		secretsMapGeneratorMap: make(map[string]bool),
+		patchesStrategicMergeMap: make(map[string]bool),
+		patchesJson6902Map: make(map[string]bool),
+	}
 }
