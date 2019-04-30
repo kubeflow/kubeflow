@@ -27,10 +27,20 @@ type ProfileSpec struct {
 	Owner rbacv1.Subject `json:"owner,omitempty"`
 }
 
+type ProfileState string
+
+const (
+	ProfileSucceed ProfileState = "Succeed"
+	ProfileFailed  ProfileState = "Failed"
+	ProfileUnknown ProfileState = "Unknown"
+)
+
 // ProfileStatus defines the observed state of Profile
 type ProfileStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Status  ProfileState `json:"status" protobuf:"bytes,2,opt,name=status,casttype=k8s.io/api/core/v1.ConditionStatus"`
+	Message string       `json:"message,omitempty" protobuf:"bytes,5,opt,name=message"`
 }
 
 // +genclient

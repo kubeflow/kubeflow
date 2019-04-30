@@ -123,7 +123,7 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{"owner": instance.Spec.Owner.Name},
-			Name: instance.Name,
+			Name:        instance.Name,
 		},
 	}
 	if err := controllerutil.SetControllerReference(instance, ns, r.scheme); err != nil {
@@ -143,8 +143,15 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 	// No need to update namespace
 	val, ok := foundNs.Annotations["owner"]
 	if (!ok) || val != instance.Spec.Owner.Name {
-		return reconcile.Result{}, fmt.Errorf("namespace already exist, but not owned by profile creator %v",
-			instance.Spec.Owner.Name)
+		log.Info(fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
+			instance.Spec.Owner.Name))
+		instance.Status = kubeflowv1alpha1.ProfileStatus{
+			Status: kubeflowv1alpha1.ProfileFailed,
+			Message: fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
+				instance.Spec.Owner.Name),
+		}
+		r.Update(context.TODO(), instance)
+		return reconcile.Result{}, nil
 	}
 
 	// TODO: add role for impersonate permission
@@ -192,22 +199,25 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 	found := &rbacv1.RoleBinding{}
 	err = r.Get(context.TODO(), types.NamespacedName{Name: roleBinding.Name, Namespace: roleBinding.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		log.Info("Creating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
-		err = r.Create(context.TODO(), roleBinding)
-		if err != nil {
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
+			err = r.Create(context.TODO(), roleBinding)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+		} else {
 			return reconcile.Result{}, err
 		}
-	} else if err != nil {
-		return reconcile.Result{}, err
-	}
-	if !(reflect.DeepEqual(roleBinding.RoleRef, found.RoleRef) && reflect.DeepEqual(roleBinding.Subjects, found.Subjects)) {
-		found.RoleRef = roleBinding.RoleRef
-		found.Subjects = roleBinding.Subjects
-		log.Info("Updating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
-		err = r.Update(context.TODO(), found)
-		if err != nil {
-			return reconcile.Result{}, err
+	} else {
+		if !(reflect.DeepEqual(roleBinding.RoleRef, found.RoleRef) && reflect.DeepEqual(roleBinding.Subjects, found.Subjects)) {
+			found.RoleRef = roleBinding.RoleRef
+			found.Subjects = roleBinding.Subjects
+			log.Info("Updating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
+			err = r.Update(context.TODO(), found)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
 		}
 	}
 	return reconcile.Result{}, nil
