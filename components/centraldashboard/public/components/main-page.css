@@ -92,16 +92,6 @@ app-toolbar {
     transition: background .25s;
 }
 
-app-toolbar[blue] {
-    color: white;
-    background: var(--primary-background-color);
-    --primary-text-color: white;
-    --secondary-text-color: #ffffff69;
-    --primary-color: white;
-    --accent-color: white;
-    --logo-color: white;
-}
-
 app-toolbar>header {
     margin-top: auto;
 }
@@ -166,6 +156,10 @@ paper-tab[link] a {
 
 paper-tab[link] a:hover {
     text-decoration: none;
+}
+
+app-header {
+    box-shadow: 0 2px 6px 1px rgba(232, 234, 237, 0.5);
 }
 
 app-header-layout {
