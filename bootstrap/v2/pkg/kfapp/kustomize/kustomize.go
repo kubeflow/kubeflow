@@ -95,6 +95,8 @@ type kustomize struct {
 	cltypes.KfDef
 	out              *os.File
 	err              *os.File
+
+	kustomizationMaps           map[MapType]map[string]bool
 	componentPathMap map[string]string
 	componentMap     map[string]bool
 	packageMap       map[string]*[]string
@@ -129,6 +131,19 @@ func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
 		KfDef:        *kfdef,
 		out:          os.Stdout,
 		err:          os.Stderr,
+		kustomizationMaps:     map[MapType]map[string]bool{
+			basesMap: make(map[string]bool),
+			commonAnnotationsMap: make(map[string]bool),
+			commonLabelsMap: make(map[string]bool),
+			imagesMap: make(map[string]bool),
+			resourcesMap: make(map[string]bool),
+			crdsMap: make(map[string]bool),
+			varsMap: make(map[string]bool),
+			configurationsMap: make(map[string]bool),
+			configMapGeneratorMap: make(map[string]bool),
+			secretsMapGeneratorMap: make(map[string]bool),
+			patchesStrategicMergeMap: make(map[string]bool),
+		},
 		componentMap: make(map[string]bool),
 		packageMap:   make(map[string]*[]string),
 	}
