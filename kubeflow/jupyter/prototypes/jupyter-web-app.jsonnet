@@ -8,7 +8,7 @@
 // @optionalParam policy string Always imagePullPolicy for the UI's image
 // @optionalParam prefix string jupyter The prefix under which the app is accessed
 // @optionalParam rokSecretName string secret-rok-{username} The name of the secret containing user's credentials for Arrikto Rok
-// @optionalParam injectIstio string true Whether to inject istio sidecar; should be true or false.
+// @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
 // @optionalParam clusterDomain string svc.cluster.local DNS config to cluster domain.
 
 local jupyter_ui = import "kubeflow/jupyter/jupyter-web-app.libsonnet";
