@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	rbacv1 "k8s.io/api/rbac/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -25,6 +26,7 @@ import (
 type ProfileSpec struct {
 	// The profile owner
 	Owner rbacv1.Subject `json:"owner,omitempty"`
+	ResourceQuota corev1.ResourceQuota
 }
 
 type ProfileState string
