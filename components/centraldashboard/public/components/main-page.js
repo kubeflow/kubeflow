@@ -27,7 +27,7 @@ import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
 import css from './main-page.css';
 import template from './main-page.pug';
-import logo from '../assets/kf-logo_64px.svg';
+import logo from '../assets/kf-logo.svg';
 
 import './namespace-selector.js';
 import './dashboard-view.js';
