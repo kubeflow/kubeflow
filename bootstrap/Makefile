@@ -218,6 +218,7 @@ doc:
 test: build-kfctl
 	go test ./...
 
+
 # Run the unittests and output a junit report for use with prow
 test-junit: build-kfctl
 	echo Running tests ... junit_file=$(JUNIT_FILE)
