@@ -112,7 +112,7 @@ app-toolbar>header {
 
 #Narrow-Slider>.Logo>svg {
     height: 24px;
-    margin-right: .5em;
+    margin-top: 4px;
 }
 
 #Narrow-Slider>.Logo>svg * {
@@ -154,7 +154,7 @@ paper-tab[link] a:hover {
 }
 
 app-header {
-    box-shadow: 0 2px 6px 1px rgba(232, 234, 237, 0.5);
+    box-shadow: 0 2px 6px 1px rgba(232, 234, 237, 0.5), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
 }
 
 app-header-layout {
