@@ -628,6 +628,15 @@ func (kustomize *kustomize) mergeKustomization(compName string, compDir string, 
 			kustomize.kustomizationMaps[basesMap][childPath] = true
 		}
 	}
+	if child.NamePrefix != "" && parent.NamePrefix == "" {
+		parent.NamePrefix = child.NamePrefix
+	}
+	if child.GeneratorOptions != nil && parent.GeneratorOptions == nil {
+		parent.GeneratorOptions = child.GeneratorOptions
+	}
+	if child.NameSuffix != "" && parent.NameSuffix == "" {
+		parent.NameSuffix = child.NameSuffix
+	}
 	for key, value := range child.CommonLabels {
 		if _, ok := kustomize.kustomizationMaps[commonLabelsMap][key]; !ok {
 			parent.CommonLabels[key] = value
@@ -750,7 +759,9 @@ func (kustomize *kustomize) mergeKustomizations(compName string, compDir string)
 		},
 		Namespace: kustomize.Namespace,
 		Bases: make([]string,0),
-		CommonLabels: make(map[string]string),
+		CommonLabels: map[string]string {
+			kftypes.DefaultAppLabel: kustomize.Name,
+		},
 		CommonAnnotations: make(map[string]string),
 		PatchesStrategicMerge: make([]patch.StrategicMerge,0),
 		PatchesJson6902: make([]patch.Json6902,0),
@@ -768,9 +779,13 @@ func (kustomize *kustomize) mergeKustomizations(compName string, compDir string)
 	}
 	for _, overlayParam := range overlayParams {
 		overlayDir := path.Join(compDir, "overlays", overlayParam)
-		err := kustomize.mergeKustomization(compName, compDir, overlayDir, kustomization,
-			kustomize.getKustomization(overlayDir))
-		if err != nil {
+		if _, err := os.Stat(overlayDir); err == nil {
+			err := kustomize.mergeKustomization(compName, compDir, overlayDir, kustomization,
+				kustomize.getKustomization(overlayDir))
+			if err != nil {
+				return nil
+			}
+		} else {
 			return nil
 		}
 	}
