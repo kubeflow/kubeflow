@@ -7,9 +7,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
     app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
         tail='{{subRouteData}}')
     app-drawer#MainDrawer(slot='drawer')
-        figure#Logo
+        figure
             |!{logo}
-            figcaption Kubeflow
         iron-selector(selected='{{sidebarItemIndex}}')
             a(href$='[[_buildHref("/", queryParams)]]', tabindex='-1')
                 paper-item.menu-item Home
@@ -37,7 +36,6 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     paper-icon-button#Menu(icon='menu', drawer-toggle)
                     figure.Logo
                         |!{logo}
-                        figcaption Kubeflow
                 paper-tabs.bottom(selected='[[page]]', attr-for-selected='page',
                         hides, hidden$='[[hideTabs]]')
                     paper-tab(page='dashboard', link)
