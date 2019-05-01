@@ -865,7 +865,9 @@ func MergeKustomizations(kfDef *kfdefsv2.KfDef, compDir string, params []config.
 			Kind:       types.KustomizationKind,
 		},
 		Bases: make([]string,0),
-		CommonLabels: make(map[string]string),
+		CommonLabels: map[string]string {
+			kftypes.DefaultAppLabel: kfDef.Name,
+		},
 		CommonAnnotations: make(map[string]string),
 		PatchesStrategicMerge: make([]patch.StrategicMerge,0),
 		PatchesJson6902: make([]patch.Json6902,0),
