@@ -72,7 +72,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
-	err = c.Watch(&source.Kind{Type: &rbacv1.Role{}}, &handler.EnqueueRequestForOwner{
+	err = c.Watch(&source.Kind{Type: &corev1.ServiceAccount{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &kubeflowv1alpha1.Profile{},
 	})
@@ -102,7 +102,7 @@ type ReconcileProfile struct {
 // and what is in the Profile.Spec
 // Automatically generate RBAC rules to allow the Controller to read and write Deployments
 // +kubebuilder:rbac:groups=core,resources=namespaces,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=rbac,resources=roles,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=serviceaccount,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rbac,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeflow.org,resources=profiles,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeflow.org,resources=profiles/status,verbs=get;update;patch
@@ -159,17 +159,19 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 
 	// Update service accounts
-	// "default-editor" would be default "edit" permission for pods in user namespace
+	// Create service account "default-editor" in target namespace.
+	// "default-editor" would have k8s default "edit" permission: edit all resources in target namespace except rbac.
 	if err = r.updateServiceAccount(instance, "default-editor", "edit"); err != nil {
 		log.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
 			"defaultEdittor", "error", err)
-		return reconcile.Result{}, nil
+		return reconcile.Result{}, err
 	}
-	// "default-viewer" would be default "view" permission for pods in user namespace
+	// Create service account "default-viewer" in target namespace.
+	// "default-viewer" would have k8s default "view" permission: view all resources in target namespace.
 	if err = r.updateServiceAccount(instance, "default-viewer", "view"); err != nil {
 		log.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
 			"defaultViewer", "error", err)
-		return reconcile.Result{}, nil
+		return reconcile.Result{}, err
 	}
 
 	// TODO: add role for impersonate permission
@@ -191,14 +193,15 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 			instance.Spec.Owner,
 		},
 	}
-	if err = r.updateRoleBingding(instance, roleBinding); err != nil {
+	if err = r.updateRoleBinding(instance, roleBinding); err != nil {
 		log.Info("Failed Updating Owner Rolebinding", "namespace", instance.Name, "name",
 			"defaultEdittor", "error", err)
-		return reconcile.Result{}, nil
+		return reconcile.Result{}, err
 	}
 	return reconcile.Result{}, nil
 }
 
+// updateServiceAccount create or update service account "saName" with role "ClusterRoleName" in target namespace owned by "profileIns"
 func (r *ReconcileProfile) updateServiceAccount(profileIns *kubeflowv1alpha1.Profile, saName string, ClusterRoleName string) error {
 	serviceAccount := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
@@ -242,11 +245,12 @@ func (r *ReconcileProfile) updateServiceAccount(profileIns *kubeflowv1alpha1.Pro
 			},
 		},
 	}
-	r.updateRoleBingding(profileIns, roleBinding)
+	r.updateRoleBinding(profileIns, roleBinding)
 	return nil
 }
 
-func (r *ReconcileProfile) updateRoleBingding(profileIns *kubeflowv1alpha1.Profile,
+// updateRoleBinding create or update roleBinding "roleBinding" in target namespace owned by "profileIns"
+func (r *ReconcileProfile) updateRoleBinding(profileIns *kubeflowv1alpha1.Profile,
 	roleBinding *rbacv1.RoleBinding) error {
 	if err := controllerutil.SetControllerReference(profileIns, roleBinding, r.scheme); err != nil {
 		return err
