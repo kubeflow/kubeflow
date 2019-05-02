@@ -10,15 +10,19 @@ import 'jasmine-ajax';
  * @param {HTMLElement} component
  * @param {object} response
  * @param {boolean=} respondWithError
+ * @param {string=} matchUrl
  * @return {Promise} Resolves when iron-ajax-response is handled
  */
-export function mockRequest(component, response, respondWithError = false) {
+export function mockRequest(component, response, respondWithError = false,
+    matchUrl = null) {
     const responseEvent = respondWithError ?
         'iron-ajax-error' : 'iron-ajax-response';
     return new Promise((resolve) => {
-        component.addEventListener('iron-ajax-request', () =>
-            jasmine.Ajax.requests.mostRecent().respondWith(response)
-        );
+        component.addEventListener('iron-ajax-request', (event) => {
+            if (!matchUrl || matchUrl === event.detail.options.url) {
+                jasmine.Ajax.requests.mostRecent().respondWith(response);
+            }
+        });
         component.addEventListener(responseEvent, () => resolve());
     });
 }

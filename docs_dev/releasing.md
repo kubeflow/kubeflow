@@ -440,4 +440,4 @@ Alternatively you can use the UI.
 
 1. Create a PR with the resulting changes.
 
-1. Repeate above steps as new release candidates are created
+1. Repeat above steps as new release candidates are created

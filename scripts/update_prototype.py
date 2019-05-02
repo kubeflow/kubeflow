@@ -19,6 +19,8 @@ import os
 import re
 
 
+# TODO(jlewi): This code is now in
+# py/kubeflow/kubeflow/ci/update_jupdate_jupyter_web_app.py
 def main():
   parser = argparse.ArgumentParser(
       description="Update ksonnet prototypes parameters' values")

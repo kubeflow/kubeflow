@@ -6,11 +6,10 @@ import '@polymer/app-layout/app-scroll-effects/app-scroll-effects.js';
 import '@polymer/app-layout/app-toolbar/app-toolbar.js';
 import '@polymer/app-route/app-location.js';
 import '@polymer/app-route/app-route.js';
+import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/iron-collapse/iron-collapse.js';
 import '@polymer/iron-selector/iron-selector.js';
-import '@polymer/iron-flex-layout/iron-flex-layout-classes.js';
-import '@polymer/iron-flex-layout/iron-flex-layout.js';
 import '@polymer/iron-media-query/iron-media-query.js';
 import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-tabs/paper-tabs.js';
@@ -43,10 +42,8 @@ const VALID_QUERY_PARAMS = ['ns'];
 export class MainPage extends PolymerElement {
     static get template() {
         const pugVariables = {logo: logo};
-        return html([`
-        <style is="custom-style"
-            include="iron-flex iron-flex-alignment iron-positioning">
-        <style>${css.toString()}</style>${template(pugVariables)}`]);
+        return html([
+            `<style>${css.toString()}</style>${template(pugVariables)}`]);
     }
 
     static get properties() {
@@ -62,11 +59,6 @@ export class MainPage extends PolymerElement {
             menuLinks: {
                 type: Array,
                 value: [
-                    {
-                        iframeUrl: 'https://www.kubeflow.org/docs/about/kubeflow/',
-                        text: 'Kubeflow docs',
-                        href: '/docs',
-                    },
                     {
                         iframeUrl: '/jupyter/',
                         text: 'Notebooks',
@@ -89,10 +81,12 @@ export class MainPage extends PolymerElement {
                     },
                 ],
             },
-            sidebarItemIndex: {type: Number, value: 0},
+            sidebarItemIndex: {type: Number, value: 0,
+                observer: '_revertSidebarIndexIfExternal'},
             iframeUrl: {type: String, value: ''},
             buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
+            platformInfo: Object,
             inIframe: {type: Boolean, value: false, readOnly: true},
             hideTabs: {type: Boolean, value: false, readOnly: true},
             hideNamespaces: {type: Boolean, value: false, readOnly: true},
@@ -187,6 +181,16 @@ export class MainPage extends PolymerElement {
     }
 
     /**
+     * Revert the sidebar index if the item clicked is an external link
+     * @param {int} curr
+     * @param {int} old
+     */
+    _revertSidebarIndexIfExternal(curr, old=0) {
+        if (curr != 1) return;
+        this.sidebarItemIndex = old;
+    }
+
+    /**
      * Sets the iframeUrl and sidebarItem based on the subpage component
      * provided.
      * @param {string} href
@@ -196,7 +200,8 @@ export class MainPage extends PolymerElement {
         if (menuLinkIndex >= 0) {
             this.page = 'iframe';
             this.iframeUrl = this.menuLinks[menuLinkIndex].iframeUrl;
-            this.sidebarItemIndex = menuLinkIndex + 1;
+            // Adds 2 since the Home and Documentation links are hard-coded
+            this.sidebarItemIndex = menuLinkIndex + 2;
         } else {
             this.sidebarItemIndex = -1;
             this.page = 'not_found';
@@ -226,6 +231,17 @@ export class MainPage extends PolymerElement {
             }
         });
         return url.href.slice(url.origin.length);
+    }
+
+    /* Handles the AJAX response from the platform-info API.
+     * @param {Event} responseEvent AJAX-response
+     */
+    _onPlatformInfoResponse(responseEvent) {
+        const {response} = responseEvent.detail;
+        this.platformInfo = response;
+        if (this.platformInfo.kubeflowVersion) {
+            this.buildVersion = this.platformInfo.kubeflowVersion;
+        }
     }
 }
 

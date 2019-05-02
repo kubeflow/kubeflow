@@ -22,7 +22,6 @@ packages:
 components:
 # ordering is important
   - metacontroller
-  - ambassador
   - argo
   - centraldashboard
   - cert-manager

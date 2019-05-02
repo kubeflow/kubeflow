@@ -12,6 +12,10 @@ local k = import "k.libsonnet";
              experimentPvc,
              githubTokenSecret,
              githubTokenSecretKey,
+             awsCredentialsSecret,
+             awsCredentialsSecretAccessKeyId,
+             awsCredentialsSecretAccessKey,
+             awsRegion,
              gcpCredentialsSecret,
              gcpCredentialsSecretKey,
              mainJobKsPrototype,
@@ -57,6 +61,31 @@ local k = import "k.libsonnet";
         "--output-file=" + csvReporterOutput,
       ] else [];
 
+      local awsSecretEnv = if awsCredentialsSecret != "null" then [
+        {
+          name: "AWS_ACCESS_KEY_ID",
+          valueFrom: {
+            secretKeyRef: {
+              name: awsCredentialsSecret,
+              key: awsCredentialsSecretAccessKeyId,
+            },
+          },
+        },
+        {
+          name: "AWS_SECRET_ACCESS_KEY",
+          valueFrom: {
+            secretKeyRef: {
+              name: awsCredentialsSecret,
+              key: awsCredentialsSecretAccessKey,
+            },
+          },
+        },
+        {
+          name: "AWS_REGION",
+          value: awsRegion
+        },
+      ] else [];
+
       local secretEnvVars = [
         if gcpCredentialsSecret != "null" then {
           name: "GOOGLE_APPLICATION_CREDENTIALS",
@@ -71,7 +100,7 @@ local k = import "k.libsonnet";
             },
           },
         },
-      ];  // secretEnvVars
+      ] + awsSecretEnv;  // secretEnvVars
       local baseEnvVars = [
         {
           name: "KUBEBENCH_CONFIG_ROOT",
@@ -262,6 +291,7 @@ local k = import "k.libsonnet";
                     ],
                   ),
                 ],
+                if postJobImage != "null" && postJobArgs != "null" then
                 [
                   buildStep(
                     "run-post-job",
@@ -277,7 +307,8 @@ local k = import "k.libsonnet";
                       },
                     ],
                   ),
-                ],
+                ] else [],
+                if reporterType != "null" then
                 [
                   buildStep(
                     "run-reporter",
@@ -293,7 +324,7 @@ local k = import "k.libsonnet";
                       },
                     ],
                   ),
-                ],
+                ] else [],
               ],
             },
             buildTemplate(
@@ -342,6 +373,7 @@ local k = import "k.libsonnet";
               successCondition="status.completionTime",
               inParams=[{ name: "kf-job-manifest" }],
             ),
+            if postJobImage != "null" && postJobArgs != "null" then
             buildTemplate(
               "post-job",
               postJobImage,
@@ -349,7 +381,8 @@ local k = import "k.libsonnet";
               envVars=baseEnvVars + expEnvVars(),
               volMnts=baseVolMnts,
               inParams=[{ name: "experiment-id" }],
-            ),
+            ) else {},
+            if reporterType != "null" then
             buildTemplate(
               "reporter",
               controllerImage,
@@ -357,7 +390,7 @@ local k = import "k.libsonnet";
               envVars=secretEnvVars + baseEnvVars + expEnvVars(),
               volMnts=secretVolMnts + baseVolMnts,
               inParams=[{ name: "experiment-id" }],
-            ),
+            ) else {},
           ],  // templates
         },
       },  // workflow
