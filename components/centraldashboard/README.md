@@ -103,7 +103,7 @@ _**Note:** This style-guide is subject to change, and will eventually be served 
 - The subapp should not mention namespaces, and should use the value provided by the Central Dashboard.
 
 ### Usage
-Dowload the [_**styleguide**_](public/kubeflow-palette.css). And then in your html, import it like:
+Download the [_**styleguide**_](public/kubeflow-palette.css). And then in your html, import it like:
 
 ```html
 <head>
@@ -111,7 +111,7 @@ Dowload the [_**styleguide**_](public/kubeflow-palette.css). And then in your ht
   <link rel='stylesheet' href='kubeflow-palette.css'>
 ```
 
-And then in your stylesheets you can use your pallete vairables like:
+And then in your stylesheets you can use your palette variables like:
 
 ```css
 body > .Main-Toolbar {background-color: var(--primary-background-color)}
