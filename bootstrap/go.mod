@@ -108,18 +108,18 @@ replace (
 	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
 	golang.org/x/net => golang.org/x/net v0.0.0-20180124060956-0ed95abb35c4
 	k8s.io/api => k8s.io/api v0.0.0-20180601181742-8b7507fac302
-	k8s.io/api/v2 => /tmp/v2/k8s.io/api/v2
+	k8s.io/api/v2 => /tmp/v2/k8s.io/api
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20180601203502-8e7f43002fec
-	k8s.io/apiextensions-apiserver/v2 => /tmp/v2/k8s.io/apiextensions-apiserver/v2
+	k8s.io/apiextensions-apiserver/v2 => /tmp/v2/k8s.io/apiextensions-apiserver
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20180601181227-17529ec7eadb
-	k8s.io/apimachinery/v2 => /tmp/v2/k8s.io/apimachinery/v2
+	k8s.io/apimachinery/v2 => /tmp/v2/k8s.io/apimachinery
 	k8s.io/apiserver => k8s.io/apiserver v0.0.0-20180601190550-8378ef881d4f
 	k8s.io/cli-runtime => k8s.io/cli-runtime v0.0.0-20180907072557-b3b289918979
 	k8s.io/client-go => k8s.io/client-go v7.0.0+incompatible
-	k8s.io/client-go/v2 => /tmp/v2/k8s.io/client-go/v2
+	k8s.io/client-go/v2 => /tmp/v2/k8s.io/client-go
 	k8s.io/kubernetes => k8s.io/kubernetes v1.10.4
-	sigs.k8s.io/application/v2 => /tmp/v2/sigs.k8s.io/application/v2
+	sigs.k8s.io/application/v2 => /tmp/v2/sigs.k8s.io/application
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.1.1
-	sigs.k8s.io/controller-runtime/v2 => /tmp/v2/sigs.k8s.io/controller-runtime/v2
-	sigs.k8s.io/kustomize/v2 => /tmp/v2/sigs.k8s.io/kustomize/v2
+	sigs.k8s.io/controller-runtime/v2 => /tmp/v2/sigs.k8s.io/controller-runtime
+	sigs.k8s.io/kustomize/v2 => /tmp/v2/sigs.k8s.io/kustomize
 )
