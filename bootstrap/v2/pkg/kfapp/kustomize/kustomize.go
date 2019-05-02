@@ -744,14 +744,6 @@ func (kustomize *kustomize) mergeKustomizations(compName string, compDir string)
 			}
 		}
 	}
-	baseDir := path.Join(compDir, "base")
-	base := kustomize.getKustomization(baseDir)
-	if base == nil {
-		comp := kustomize.getKustomization(compDir)
-		if comp != nil {
-			return comp
-		}
-	}
 	kustomization := &types.Kustomization{
 		TypeMeta: types.TypeMeta{
 			APIVersion: types.KustomizationVersion,
@@ -773,9 +765,18 @@ func (kustomize *kustomize) mergeKustomizations(compName string, compDir string)
 		SecretGenerator: make([]types.SecretArgs,0),
 		Configurations: make([]string,0),
 	}
-	err := kustomize.mergeKustomization(compName, compDir, baseDir, kustomization, base)
-	if err != nil {
-		return nil
+	baseDir := path.Join(compDir, "base")
+	base := kustomize.getKustomization(baseDir)
+	if base == nil {
+		comp := kustomize.getKustomization(compDir)
+		if comp != nil {
+			return comp
+		}
+	} else {
+		err := kustomize.mergeKustomization(compName, compDir, baseDir, kustomization, base)
+		if err != nil {
+			return nil
+		}
 	}
 	for _, overlayParam := range overlayParams {
 		overlayDir := path.Join(compDir, "overlays", overlayParam)
