@@ -18,6 +18,7 @@ package profile
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 
 	kubeflowv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
@@ -71,7 +72,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
-	err = c.Watch(&source.Kind{Type: &rbacv1.Role{}}, &handler.EnqueueRequestForOwner{
+	err = c.Watch(&source.Kind{Type: &corev1.ServiceAccount{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &kubeflowv1alpha1.Profile{},
 	})
@@ -101,7 +102,7 @@ type ReconcileProfile struct {
 // and what is in the Profile.Spec
 // Automatically generate RBAC rules to allow the Controller to read and write Deployments
 // +kubebuilder:rbac:groups=core,resources=namespaces,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=rbac,resources=roles,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=serviceaccount,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rbac,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeflow.org,resources=profiles,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeflow.org,resources=profiles/status,verbs=get;update;patch
@@ -119,9 +120,11 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, err
 	}
 
+	// Update namespace
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: instance.Name,
+			Annotations: map[string]string{"owner": instance.Spec.Owner.Name},
+			Name:        instance.Name,
 		},
 	}
 	if err := controllerutil.SetControllerReference(instance, ns, r.scheme); err != nil {
@@ -129,336 +132,151 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 	foundNs := &corev1.Namespace{}
 	err = r.Get(context.TODO(), types.NamespacedName{Name: ns.Name}, foundNs)
-	if err != nil && errors.IsNotFound(err) {
-		log.Info("Creating Namespace: " + ns.Name)
-		err = r.Create(context.TODO(), ns)
-		if err != nil {
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating Namespace: " + ns.Name)
+			err = r.Create(context.TODO(), ns)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+		} else {
 			return reconcile.Result{}, err
 		}
-	} else if err != nil {
-		return reconcile.Result{}, err
-	}
-	// No need to update namespace
-
-	role := generateRole(instance)
-	if err := controllerutil.SetControllerReference(instance, role, r.scheme); err != nil {
-		return reconcile.Result{}, err
-	}
-	foundRole := &rbacv1.Role{}
-	err = r.Get(context.TODO(), types.NamespacedName{Name: role.Name, Namespace: role.Namespace}, foundRole)
-	if err != nil && errors.IsNotFound(err) {
-		log.Info("Creating Role", "namespace", role.Namespace, "name", role.Name)
-		err = r.Create(context.TODO(), role)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-	} else if err != nil {
-		return reconcile.Result{}, err
-	}
-	if !reflect.DeepEqual(role.Rules, foundRole.Rules) {
-		foundRole.Rules = role.Rules
-		log.Info("Updating Role", "namespace", role.Namespace, "name", role.Name)
-		err = r.Update(context.TODO(), foundRole)
-		if err != nil {
-			return reconcile.Result{}, err
+	} else {
+		// Check exising namespace ownership before move forward
+		val, ok := foundNs.Annotations["owner"]
+		if (!ok) || val != instance.Spec.Owner.Name {
+			log.Info(fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
+				instance.Spec.Owner.Name))
+			instance.Status = kubeflowv1alpha1.ProfileStatus{
+				Status: kubeflowv1alpha1.ProfileFailed,
+				Message: fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
+					instance.Spec.Owner.Name),
+			}
+			r.Update(context.TODO(), instance)
+			return reconcile.Result{}, nil
 		}
 	}
 
+	// Update service accounts
+	// Create service account "default-editor" in target namespace.
+	// "default-editor" would have k8s default "edit" permission: edit all resources in target namespace except rbac.
+	if err = r.updateServiceAccount(instance, "default-editor", "edit"); err != nil {
+		log.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
+			"defaultEdittor", "error", err)
+		return reconcile.Result{}, err
+	}
+	// Create service account "default-viewer" in target namespace.
+	// "default-viewer" would have k8s default "view" permission: view all resources in target namespace.
+	if err = r.updateServiceAccount(instance, "default-viewer", "view"); err != nil {
+		log.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
+			"defaultViewer", "error", err)
+		return reconcile.Result{}, err
+	}
+
+	// TODO: add role for impersonate permission
+
+	// Update owner rbac permission
+	// When ClusterRole was referred by namespaced roleBinding, the result permission will be namespaced as well.
 	roleBinding := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "default",
+			Name:      "namespaceAdmin",
 			Namespace: instance.Name,
 		},
+		// Use default ClusterRole 'admin' for profile/namespace owner
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "Role",
-			Name:     "edit",
+			Kind:     "ClusterRole",
+			Name:     "admin",
 		},
 		Subjects: []rbacv1.Subject{
 			instance.Spec.Owner,
 		},
 	}
-	if err := controllerutil.SetControllerReference(instance, roleBinding, r.scheme); err != nil {
+	if err = r.updateRoleBinding(instance, roleBinding); err != nil {
+		log.Info("Failed Updating Owner Rolebinding", "namespace", instance.Name, "name",
+			"defaultEdittor", "error", err)
 		return reconcile.Result{}, err
-	}
-	found := &rbacv1.RoleBinding{}
-	err = r.Get(context.TODO(), types.NamespacedName{Name: roleBinding.Name, Namespace: roleBinding.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		log.Info("Creating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
-		err = r.Create(context.TODO(), roleBinding)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-	} else if err != nil {
-		return reconcile.Result{}, err
-	}
-	if !(reflect.DeepEqual(roleBinding.RoleRef, found.RoleRef) && reflect.DeepEqual(roleBinding.Subjects, found.Subjects)) {
-		found.RoleRef = roleBinding.RoleRef
-		found.Subjects = roleBinding.Subjects
-		log.Info("Updating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
-		err = r.Update(context.TODO(), found)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
 	}
 	return reconcile.Result{}, nil
 }
 
-func generateRole(instance *kubeflowv1alpha1.Profile) *rbacv1.Role {
-	role := &rbacv1.Role{
+// updateServiceAccount create or update service account "saName" with role "ClusterRoleName" in target namespace owned by "profileIns"
+func (r *ReconcileProfile) updateServiceAccount(profileIns *kubeflowv1alpha1.Profile, saName string, ClusterRoleName string) error {
+	serviceAccount := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "edit",
-			Namespace: instance.Name,
+			Name:      saName,
+			Namespace: profileIns.Name,
 		},
-		Rules: []rbacv1.PolicyRule{
+	}
+	if err := controllerutil.SetControllerReference(profileIns, serviceAccount, r.scheme); err != nil {
+		return err
+	}
+	found := &corev1.ServiceAccount{}
+	err := r.Get(context.TODO(), types.NamespacedName{Name: serviceAccount.Name, Namespace: serviceAccount.Namespace}, found)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating ServiceAccount", "namespace", serviceAccount.Namespace,
+				"name", serviceAccount.Name)
+			err = r.Create(context.TODO(), serviceAccount)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+	roleBinding := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      saName,
+			Namespace: profileIns.Name,
+		},
+		// Use default ClusterRole 'admin' for profile/namespace owner
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "ClusterRole",
+			Name:     ClusterRoleName,
+		},
+		Subjects: []rbacv1.Subject{
 			{
-				APIGroups: []string{
-					"metacontroller.k8s.io",
-				},
-				Resources: []string{
-					"compositecontrollers",
-					"decoratecontrollers",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"kubeflow.org",
-				},
-				Resources: []string{
-					"notebooks",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"app.k8s.io",
-				},
-				Resources: []string{
-					"applications",
-					"apps",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"",
-				},
-				Resources: []string{
-					"pods",
-					"pods/attach",
-					"pods/exec",
-					"pods/portforward",
-					"pods/proxy",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"",
-				},
-				Resources: []string{
-					"configmaps",
-					"endpoints",
-					"persistentvolumeclaims",
-					"replicationcontrollers",
-					"replicationcontrollers/scale",
-					"secrets",
-					"serviceaccounts",
-					"services",
-					"services/proxy",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"",
-				},
-				Resources: []string{
-					"bindings",
-					"events",
-					"limitranges",
-					"pods/log",
-					"pods/status",
-					"replicationcontrollers/status",
-					"resourcequotas",
-					"resourcequotas/status",
-				},
-				Verbs: []string{
-					"get",
-					"list",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"",
-				},
-				Resources: []string{
-					"serviceaccounts",
-				},
-				Verbs: []string{
-					"impersonate",
-				},
-			},
-			{
-				APIGroups: []string{
-					"apps",
-				},
-				Resources: []string{
-					"daemonsets",
-					"deployments",
-					"deployments/rollback",
-					"deployments/scale",
-					"replicasets",
-					"replicasets/scale",
-					"statefulsets",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"autoscaling",
-				},
-				Resources: []string{
-					"horizontalpodautoscalers",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"batch",
-				},
-				Resources: []string{
-					"cronjobs",
-					"jobs",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"extensions",
-				},
-				Resources: []string{
-					"daemonsets",
-					"deployments",
-					"deployments/rollback",
-					"deployments/scale",
-					"ingresses",
-					"networkpolicies",
-					"replicasets",
-					"replicasets/scale",
-					"replicationcontrollers/scale",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"policy",
-				},
-				Resources: []string{
-					"poddistruptionbudgets",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
-			},
-			{
-				APIGroups: []string{
-					"networking.k8s.io",
-				},
-				Resources: []string{
-					"networkpolicies",
-				},
-				Verbs: []string{
-					"create",
-					"delete",
-					"get",
-					"list",
-					"patch",
-					"update",
-					"watch",
-				},
+				Kind:      rbacv1.ServiceAccountKind,
+				Name:      saName,
+				Namespace: profileIns.Name,
 			},
 		},
 	}
-	return role
+	r.updateRoleBinding(profileIns, roleBinding)
+	return nil
+}
+
+// updateRoleBinding create or update roleBinding "roleBinding" in target namespace owned by "profileIns"
+func (r *ReconcileProfile) updateRoleBinding(profileIns *kubeflowv1alpha1.Profile,
+	roleBinding *rbacv1.RoleBinding) error {
+	if err := controllerutil.SetControllerReference(profileIns, roleBinding, r.scheme); err != nil {
+		return err
+	}
+	found := &rbacv1.RoleBinding{}
+	err := r.Get(context.TODO(), types.NamespacedName{Name: roleBinding.Name, Namespace: roleBinding.Namespace}, found)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
+			err = r.Create(context.TODO(), roleBinding)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		if !(reflect.DeepEqual(roleBinding.RoleRef, found.RoleRef) && reflect.DeepEqual(roleBinding.Subjects, found.Subjects)) {
+			found.RoleRef = roleBinding.RoleRef
+			found.Subjects = roleBinding.Subjects
+			log.Info("Updating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
+			err = r.Update(context.TODO(), found)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

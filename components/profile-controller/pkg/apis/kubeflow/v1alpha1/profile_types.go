@@ -27,10 +27,20 @@ type ProfileSpec struct {
 	Owner rbacv1.Subject `json:"owner,omitempty"`
 }
 
+type ProfileState string
+
+const (
+	ProfileSucceed ProfileState = "Succeed"
+	ProfileFailed  ProfileState = "Failed"
+	ProfileUnknown ProfileState = "Unknown"
+)
+
 // ProfileStatus defines the observed state of Profile
 type ProfileStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Status  ProfileState `json:"status,omitempty"`
+	Message string       `json:"message,omitempty"`
 }
 
 // +genclient
