@@ -41,10 +41,7 @@ export class NamespaceSelector extends PolymerElement {
      */
     static get properties() {
         return {
-            queryParams: {
-                type: Object,
-                notify: true,
-            },
+            queryParams: Object,
             namespaces: {
                 type: Array,
                 value: [],
@@ -52,6 +49,7 @@ export class NamespaceSelector extends PolymerElement {
             selected: {
                 type: String,
                 observer: '_onSelected',
+                notify: true,
             },
         };
     }
@@ -81,9 +79,7 @@ export class NamespaceSelector extends PolymerElement {
      * @param {Event} responseEvent
      */
     _onResponse(responseEvent) {
-        const {status, response} = responseEvent.detail;
-        // TODO: Surface the error in some manner
-        if (status !== 200) return;
+        const {response} = responseEvent.detail;
         this.namespaces = response.map((n) => {
             return {name: n.metadata.name, id: n.metadata.uid};
         });
