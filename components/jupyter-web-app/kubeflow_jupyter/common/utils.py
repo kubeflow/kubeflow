@@ -133,6 +133,8 @@ def set_notebook_cpu_ram(nb, body):
       }
   }
 
+# todo: jupyter-web-app should add the podpreset labels that user selected
+#  (https://github.com/kubeflow/kubeflow/issues/2992)
 def set_notebook_podpresets_labels(nb,podprestLabels):
   logger = create_logger(__name__)
   logger.warning("number of labels to be added: %d" % len(podprestLabels))
