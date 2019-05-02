@@ -88,6 +88,7 @@
       },
     },
 
+    // TODO: "default-editor" will be shared by multiple components; update here once other components switched to new auth-model
     defaultEditorServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
