@@ -53,7 +53,11 @@ def post_notebook(namespace):
   # CPU/RAM
   utils.set_notebook_cpu_ram(notebook, body)
 
-  # Workspacae Volume
+  # Enable SHM
+  if body["shm_enable"] == "1":
+      utils.enable_shm(notebook)
+      
+  # Workspace Volume
   if body["ws_type"] != "None":
     try:
       rok.create_workspace_pvc(body)

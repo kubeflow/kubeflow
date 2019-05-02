@@ -14,7 +14,8 @@
 // @optionalParam artifactRepositoryAccessKeySecretKey string accesskey artifactRepositoryAccessKeySecretKey
 // @optionalParam artifactRepositorySecretKeySecretName string mlpipeline-minio-artifact artifactRepositorySecretKeySecretName
 // @optionalParam artifactRepositorySecretKeySecretKey string secretkey artifactRepositorySecretKeySecretKey
-// @optionalParam injectIstio string true Whether to inject istio sidecar; should be true or false.
+// @optionalParam containerRuntimeExecutor string docker containerRuntimeExecutor
+// @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
 // @optionalParam clusterDomain string svc.cluster.local DNS config to cluster domain.
 
 local argo = import "kubeflow/argo/argo.libsonnet";
