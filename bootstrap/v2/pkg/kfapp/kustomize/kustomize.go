@@ -733,7 +733,7 @@ func (kustomize *kustomize) mergeKustomization(compName string, compDir string, 
 	return nil
 }
 
-func (kustomize *kustomize) mergeKustomizations(compName string, compDir string) *types.Kustomization {
+func (kustomize *kustomize) mergeKustomizations(compName string, compDir string) (*types.Kustomization, error) {
 	params := kustomize.Spec.ComponentParams[compName]
 	overlayParams := []string{}
 	if params != nil {
@@ -743,6 +743,9 @@ func (kustomize *kustomize) mergeKustomizations(compName string, compDir string)
 				overlayParams = append(overlayParams, nv.Value)
 			}
 		}
+	}
+	if kustomize.Spec.Platform != "" {
+		overlayParams = append(overlayParams, kustomize.Spec.Platform)
 	}
 	kustomization := &types.Kustomization{
 		TypeMeta: types.TypeMeta{
@@ -770,12 +773,23 @@ func (kustomize *kustomize) mergeKustomizations(compName string, compDir string)
 	if base == nil {
 		comp := kustomize.getKustomization(compDir)
 		if comp != nil {
-			return comp
+			comp.Namespace = kustomize.Namespace
+			if comp.CommonLabels == nil {
+				comp.CommonLabels = map[string]string {
+					kftypes.DefaultAppLabel: kustomize.Name,
+				}
+			} else {
+				comp.CommonLabels[kftypes.DefaultAppLabel] = kustomize.Name
+			}
+			return comp, nil
 		}
 	} else {
 		err := kustomize.mergeKustomization(compName, compDir, baseDir, kustomization, base)
 		if err != nil {
-			return nil
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("error merging kustomization at %v Error %v", baseDir, err),
+			}
 		}
 	}
 	for _, overlayParam := range overlayParams {
@@ -784,13 +798,14 @@ func (kustomize *kustomize) mergeKustomizations(compName string, compDir string)
 			err := kustomize.mergeKustomization(compName, compDir, overlayDir, kustomization,
 				kustomize.getKustomization(overlayDir))
 			if err != nil {
-				return nil
+				return nil, &kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("error merging kustomization at %v Error %v", overlayDir, err),
+				}
 			}
-		} else {
-			return nil
 		}
 	}
-	return kustomization
+	return kustomization, nil
 }
 
 // writeKustomizationFile will create a kustomization.yaml
@@ -804,7 +819,10 @@ func (kustomize *kustomize) mergeKustomizations(compName string, compDir string)
 // It will return a resmap.ResMap which is an accumulated ResMap of the base + any overlays
 func (kustomize *kustomize) writeKustomizationFile(compName string, compPath string) (resmap.ResMap, error) {
 	compDir := path.Join(kustomize.Spec.ManifestsRepo, compPath)
-	kustomization := kustomize.mergeKustomizations(compName, compDir)
+	kustomization, kustomizationErr := kustomize.mergeKustomizations(compName, compDir)
+	if kustomizationErr != nil {
+		return nil, kustomizationErr
+	}
 	buf, bufErr := yaml.Marshal(kustomization)
 	if bufErr != nil {
 		return nil, bufErr
