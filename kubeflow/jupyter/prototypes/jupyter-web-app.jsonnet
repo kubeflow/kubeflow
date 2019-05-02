@@ -2,7 +2,7 @@
 // @name io.ksonnet.pkg.jupyter-web-app
 // @shortDescription A WebApp that controlls Jupyter Notebooks
 // @param name string Name to give to the Jupyter UI
-// @optionalParam image string gcr.io/kubeflow-images-public/jupyter-web-app:latest Docker Image used for the Jupyter UI
+// @optionalParam image string gcr.io/kubeflow-images-public/jupyter-web-app:2e50e7d Docker Image used for the Jupyter UI
 // @optionalParam ui string default Choose the UI to use. Supported: default | rok
 // @optionalParam port string 80 Port to expose the UI's Service
 // @optionalParam policy string Always imagePullPolicy for the UI's image
