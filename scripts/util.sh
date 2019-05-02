@@ -94,17 +94,19 @@ createKsApp() {
   ks generate openvino openvino
   ks generate jupyter jupyter
   ks generate notebook-controller notebook-controller
-  ks generate jupyter-web-app jupyter-web-app
-  ks generate centraldashboard centraldashboard
-  ks generate tf-job-operator tf-job-operator
-  ks generate tensorboard tensorboard
+  ks generate jupyter-web-app jupyter-web-app --injectIstio false
+  ks generate centraldashboard centraldashboard --injectIstio false
+  ks generate tf-job-operator tf-job-operator --injectIstio false
+  ks generate tensorboard tensorboard --injectIstio false
   ks generate metacontroller metacontroller
   ks generate profiles profiles
   ks generate notebooks notebooks
-  ks generate argo argo
-  ks generate pipeline pipeline
+  ks generate argo argo --injectIstio false
 
-  ks generate katib katib
+  ks generate pipeline pipeline
+  ks param set pipeline injectIstio false
+
+  ks generate katib katib --injectIstio false
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.
   # cd ks_app

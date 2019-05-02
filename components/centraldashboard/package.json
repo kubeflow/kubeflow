@@ -1,6 +1,6 @@
 {
     "name": "kubeflow-centraldashboard",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Kubeflow Central Dashboard",
     "scripts": {
         "build": "cross-env NODE_ENV=production webpack && npm run tslint && npm run build-ts",
