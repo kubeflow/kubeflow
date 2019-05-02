@@ -1,0 +1,228 @@
+swagger: "2.0"
+info:
+  description: "Profile Spawner API."
+  version: "1.0.0"
+  title: "Kubeflow Auth"
+  termsOfService: "https://www.kubeflow.org/"
+  contact:
+    email: "kubeflow-engineering@google.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+basePath: "/kfauth"
+schemes:
+  - "http"
+paths:
+  /profiles/{profile}/register:
+    post:
+      summary: "Create a owning-profile instance, which own a namespace of same name"
+      operationId: "register"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "profile"
+          description: "Profile name"
+          required: true
+          type: "string"
+        - in: "body"
+          name: "body"
+          description: "Profile spec"
+          required: true
+          schema:
+            $ref: "#/definitions/Profile"
+      responses:
+        200:
+          description: "OK"
+        403:
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/ErrorMessage"
+        500:
+          description: "Internal Server Error"
+  /profiles/{profile}/share:
+    post:
+      summary: "Create a sharing-profile instance, which grant profile-owner edit-access to referred namespace"
+      description: "Only admin owner of referred namespace can share referred namespace"
+      operationId: "share"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "profile"
+          description: "Profile name"
+          required: true
+          type: "string"
+        - in: "body"
+          name: "body"
+          description: "Profile spec"
+          required: true
+          schema:
+            $ref: "#/definitions/Profile"
+      responses:
+        200:
+          description: "OK"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/ErrorMessage"
+        500:
+          description: "Internal Server Error"
+  /profiles/{profile}:
+    get:
+      summary: "Get profile"
+      operationId: "getProfile"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "profile"
+          description: "Profile name"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Profile"
+        401:
+          description: "Unauthorized"
+        500:
+          description: "Internal Server Error"
+    delete:
+      summary: "Delete profile"
+      description: "Only admin owner of referred namespace can delete profile"
+      operationId: "deleteProfile"
+      parameters:
+        - in: "path"
+          name: "profile"
+          description: "Profile name"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "OK"
+        401:
+          description: "Unauthorized"
+        500:
+          description: "Internal Server Error"
+  /profiles/{profile}/users:
+    get:
+      summary: "Get owner and editor users of target owning-profile"
+      description: "return list of users"
+      operationId: "getProfileUsers"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "profile"
+          description: "Profile name"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/UserEntries"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/ErrorMessage"
+        404:
+          description: "Entry not found"
+        500:
+          description: "Internal Server Error"
+  /users/permission:
+    get:
+      summary: "Return namespace list that user can access as owner or editor"
+      operationId: "getUsersPermission"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "User spec"
+          required: true
+          schema:
+            $ref: "#/definitions/User"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/ProfileEntries"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Entry not found"
+        500:
+          description: "Internal Server Error"
+definitions:
+  UserEntries:
+    type: "object"
+    properties:
+      configs:
+        type: "array"
+        items:
+          $ref: "#/definitions/User"
+  User:
+    type: "object"
+    properties:
+      kind:
+        type: "string"
+      name:
+        type: "string"
+  ProfileEntries:
+    type: "object"
+    properties:
+      configs:
+        type: "array"
+        items:
+          $ref: "#/definitions/Profile"
+  Metadata:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      namespace:
+        type: "string"
+  Profile:
+    type: "object"
+    properties:
+      metadata:
+        $ref: "#/definitions/Metadata"
+      spec:
+        type: "object"
+        properties:
+          owner:
+            $ref: "#/definitions/User"
+          referredNamespace:
+            type: "string"
+            description: "when referredNamespace not empty, this profile is sharing-profile; otherwise it's an owning-profile"
+      status:
+        type: "object"
+        properties:
+          status:
+            description: "Status of the profile, one of Succeeded, Failed, Unknown."
+            type: "string"
+          message:
+            description: "Non empty when at Failed status, containing detailed error messages"
+            type: "string"
+  ErrorMessage:
+    type: "object"
+    properties:
+      errorMessage:
+        type: "string"
