@@ -126,6 +126,13 @@ func GetKfApp(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 	return _gcp, nil
 }
 
+func newDefaultBackoff() *backoff.ExponentialBackOff {
+	b := backoff.NewExponentialBackOff()
+	b.InitialInterval = 3 * time.Second
+	b.MaxInterval = 30 * time.Second
+	return b
+}
+
 func getSA(name string, nameSuffix string, project string) string {
 	return fmt.Sprintf("%v-%v@%v.iam.gserviceaccount.com", name, nameSuffix, project)
 }
@@ -296,7 +303,7 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("%v did not succeed; status: %v (op = %v)", logPrefix, op.Status, op.Name),
 		}
-	}, backoff.NewExponentialBackOff())
+	}, newDefaultBackoff())
 }
 
 func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
@@ -901,7 +908,7 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("Endpoint deletion is running..."),
 		}
-	}, backoff.NewExponentialBackOff())
+	}, newDefaultBackoff())
 }
 
 func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
@@ -1582,7 +1589,7 @@ func (gcp *Gcp) gcpInitProject() error {
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("batch API enabling is running..."),
 		}
-	}, backoff.NewExponentialBackOff())
+	}, newDefaultBackoff())
 }
 
 // Init initializes a gcp kfapp
