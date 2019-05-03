@@ -97,8 +97,6 @@ type kustomize struct {
 	kfdefsv2.KfDef
 	out              *os.File
 	err              *os.File
-
-	kustomizationMaps           map[MapType]map[string]bool
 	componentPathMap map[string]string
 	componentMap     map[string]bool
 	packageMap       map[string]*[]string
