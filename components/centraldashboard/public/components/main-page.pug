@@ -36,15 +36,15 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     paper-icon-button#Menu(icon='menu', drawer-toggle)
                     figure.Logo
                         |!{logo}
+                aside#NamespaceSelector(hides, hidden$='[[hideNamespaces]]')
+                    namespace-selector(query-params='{{queryParams}}',
+                        selected="{{namespace}}")
                 paper-tabs.bottom(selected='[[page]]', attr-for-selected='page',
                         hides, hidden$='[[hideTabs]]')
                     paper-tab(page='dashboard', link)
                         a.link(tabindex='-1', href$='[[_buildHref("/", queryParams)]]') Dashboard
                     paper-tab(page='activity', link)
                         a.link(tabindex='-1', href$='[[_buildHref("/activity", queryParams)]]') Activity
-                aside#NamespaceSelector(hides, hidden$='[[hideNamespaces]]')
-                    namespace-selector(query-params='{{queryParams}}',
-                        selected="{{namespace}}")
         neon-animated-pages(selected='[[page]]', attr-for-selected='page',
                             entry-animation='fade-in-animation',
                             exit-animation='fade-out-animation')
