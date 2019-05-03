@@ -86,6 +86,7 @@
                   host: std.join(".", [
                     "ml-pipeline-ui",
                     namespace,
+                    "svc",
                     clusterDomain,
                   ]),
                   port: {
