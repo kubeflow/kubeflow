@@ -133,22 +133,24 @@ def set_notebook_cpu_ram(nb, body):
       }
   }
 
+
 def enable_shm(nb):
   notebook_spec = nb["spec"]['template']['spec']
   notebook_cont = nb["spec"]['template']['spec']['containers'][0]
 
   shm_volume = {
-        "name": "dshm",
-        "emptyDir": {
-            "medium": "Memory"
-        }
-    }
+      "name": "dshm",
+      "emptyDir": {
+          "medium": "Memory"
+      }
+  }
   notebook_spec['volumes'].append(shm_volume)
-  shm_mnt={
-          "mountPath": "/dev/shm",
-          "name": "dshm"
-        }
+  shm_mnt = {
+      "mountPath": "/dev/shm",
+      "name": "dshm"
+  }
   notebook_cont["volumeMounts"].append(shm_mnt)
+
 
 def add_notebook_volume(nb, vol, claim, mnt_path):
   # Create the volume in the Pod
