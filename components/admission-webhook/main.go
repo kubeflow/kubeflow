@@ -147,7 +147,6 @@ func mergeEnv(envVars []corev1.EnvVar, podPresets []*settingsapi.PodPreset) ([]c
 				// if we don't already have it append it and continue
 				origEnv[v.Name] = v
 				mergedEnv = append(mergedEnv, v)
-				klog.Info(fmt.Sprintf("env is added %s", v.Name))
 				continue
 			}
 
@@ -201,7 +200,6 @@ func mergeVolumeMounts(volumeMounts []corev1.VolumeMount, podPresets []*settings
 				// if we don't already have it append it and continue
 				origVolumeMounts[v.Name] = v
 				mergedVolumeMounts = append(mergedVolumeMounts, v)
-				klog.Info(fmt.Sprintf("volumeMount  name is added: %s", v.Name))
 
 			} else {
 				// make sure they are identical or throw an error
@@ -215,7 +213,6 @@ func mergeVolumeMounts(volumeMounts []corev1.VolumeMount, podPresets []*settings
 			if !ok {
 				// if we don't already have it append it and continue
 				volumeMountsByPath[v.MountPath] = v
-				klog.Info(fmt.Sprintf("volumeMount path is added : %s", v.MountPath))
 
 			} else {
 				// make sure they are identical or throw an error
@@ -254,7 +251,6 @@ func mergeVolumes(volumes []corev1.Volume, podPresets []*settingsapi.PodPreset) 
 			if !ok {
 				// if we don't already have it append it and continue
 				origVolumes[v.Name] = v
-				klog.Info(fmt.Sprintf("volume is added : %s", v.Name))
 				mergedVolumes = append(mergedVolumes, v)
 				continue
 			}
@@ -278,28 +274,6 @@ func mergeVolumes(volumes []corev1.Volume, podPresets []*settingsapi.PodPreset) 
 
 	return mergedVolumes, err
 }
-
-// func recordConflictEvent(recorder record.EventRecorder, pod *corev1.Pod, message string) {
-// 	// Event API doesn't support corv1.Pod object for strange reason,
-// 	podRef := &corev1.ObjectReference{
-// 		Kind:      "Pod",
-// 		Name:      pod.GetName(),
-// 		Namespace: pod.GetNamespace(),
-// 	}
-// 	recorder.Event(podRef, corev1.EventTypeWarning, "PodPreset", message)
-// 	ref := metav1.GetControllerOf(pod)
-// 	if ref != nil {
-// 		// raise the event at the immediate parent controller as well
-// 		ctrl := &corev1.ObjectReference{
-// 			Kind:       ref.Kind,
-// 			Name:       ref.Name,
-// 			Namespace:  pod.GetNamespace(),
-// 			UID:        ref.UID,
-// 			APIVersion: ref.APIVersion,
-// 		}
-// 		recorder.Eventf(ctrl, corev1.EventTypeWarning, "PodPreset", message)
-// 	}
-// }
 
 // applyPodPresetsOnPod updates the PodSpec with merged information from all the
 // applicable PodPresets. It ignores the errors of merge functions because merge
@@ -337,7 +311,6 @@ func applyPodPresetsOnPod(pod *corev1.Pod, podPresets []*settingsapi.PodPreset) 
 // because it assumes those have been checked already by the caller.
 func applyPodPresetsOnContainer(ctr *corev1.Container, podPresets []*settingsapi.PodPreset) {
 	envVars, _ := mergeEnv(ctr.Env, podPresets)
-	klog.Info(fmt.Sprintf("%v number of envs are added", len(envVars)))
 
 	ctr.Env = envVars
 
@@ -346,7 +319,6 @@ func applyPodPresetsOnContainer(ctr *corev1.Container, podPresets []*settingsapi
 		klog.Error(err)
 	}
 	ctr.VolumeMounts = volumeMounts
-	klog.Info(fmt.Sprintf("%v number of volumeMounts are added", len(envVars)))
 	envFrom, err := mergeEnvFrom(ctr.EnvFrom, podPresets)
 	if err != nil {
 		klog.Error(err)
@@ -519,7 +491,7 @@ func main() {
 	flag.Parse()
 	klog.InitFlags(nil)
 
-	http.HandleFunc("/add-cred", serveMutatePods)
+	http.HandleFunc("/apply-podpreset", serveMutatePods)
 
 	server := &http.Server{
 		Addr:      ":443",

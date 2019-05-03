@@ -11,20 +11,20 @@
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
-        name: "gcp-cred-webhook",
+        name: "admission-webhook",
         namespace: namespace,
       },
       spec: {
         template: {
           metadata: {
             labels: {
-              app: "gcp-cred-webhook"
+              app: "admission-webhook"
             },
           },
           spec: {
             containers: [
               {
-                name: "gcp-cred-webhook",
+                name: "admission-webhook",
                 image: params.image,
                 imagePullPolicy: "Always",
                 volumeMounts: [{
@@ -39,7 +39,7 @@
               {
                 name: "webhook-cert",
                 secret: {
-                  secretName: "gcp-cred-webhook-certs",
+                  secretName: "admission-webhook-certs",
                 },
               },
             ],
@@ -54,14 +54,14 @@
       kind: "Service",
       metadata: {
         labels: {
-          app: "gcp-cred-webhook",
+          app: "admission-webhook",
         },
-        name: "gcp-cred-webhook",
+        name: "admission-webhook",
         namespace: namespace,
       },
       spec: {
         selector: {
-          app: "gcp-cred-webhook",
+          app: "admission-webhook",
         },
         ports: [
           {
@@ -77,18 +77,18 @@
       apiVersion: "admissionregistration.k8s.io/v1beta1",
       kind: "MutatingWebhookConfiguration",
       metadata: {
-        name: "gcp-cred-webhook",
+        name: "admission-webhook",
         // This is cluster scope.
       },
       webhooks: [
         {
           // name has to be fully qualified X.X.X
-          name: "gcp-cred-webhook.kubeflow.org",
+          name: "admission-webhook.kubeflow.org",
           clientConfig: {
             service: {
-              name: "gcp-cred-webhook",
+              name: "admission-webhook",
               namespace: namespace,
-              path: "/add-cred"
+              path: "/apply-podpreset"
             },
             // To be patched.
             caBundle: "",

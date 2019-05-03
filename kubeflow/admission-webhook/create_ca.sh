@@ -41,8 +41,8 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-[ -z ${service} ] && service=gcp-cred-webhook
-[ -z ${secret} ] && secret=gcp-cred-webhook-certs
+[ -z ${service} ] && service=admission-webhook
+[ -z ${secret} ] && secret=admission-webhook-certs
 [ -z ${namespace} ] && namespace=${NAMESPACE}
 [ -z ${namespace} ] && namespace=default
 
@@ -101,14 +101,14 @@ patchString=`echo ${patchString} | sed "s|{{CA_BUNDLE}}|${caBundle}|g"`
 echo ${patchString}
 
 checkWebhookConfig() {
-  currentBundle=$(kubectl get mutatingwebhookconfigurations -n ${namespace} gcp-cred-webhook -o jsonpath='{.webhooks[0].clientConfig.caBundle}')
+  currentBundle=$(kubectl get mutatingwebhookconfigurations -n ${namespace} admission-webhook -o jsonpath='{.webhooks[0].clientConfig.caBundle}')
   [[ "$currentBundle" == "$caBundle" ]]
 }
 
 while true; do
   if ! checkWebhookConfig; then
     echo "patching ca bundle for webhook configuration..."
-    kubectl patch mutatingwebhookconfiguration gcp-cred-webhook \
+    kubectl patch mutatingwebhookconfiguration admission-webhook \
         --type='json' -p="${patchString}"
   fi
   sleep 10
