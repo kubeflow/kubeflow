@@ -1,17 +1,17 @@
 ## Goal
 We need a way to inject common data (env vars, volumes) to pods (e.g. notebooks).
 See [issue](https://github.com/kubeflow/kubeflow/issues/2641).
-K8S has [PodPreset](https://kubernetes.io/docs/concepts/workloads/pods/podpreset/) resource with similar use-case, however it is in alpha. 
-[admission-controller](https://godoc.org/k8s.io/api/admissionregistration/v1beta1#MutatingWebhookConfiguration) and CRD can be used to implement PodPreset as done in [here](https://github.com/jpeeler/podpreset-crd).
+K8s has [PodPreset](https://kubernetes.io/docs/concepts/workloads/pods/podpreset/) resource with similar use-case, however it is in alpha. 
+K8s admission-controller](https://godoc.org/k8s.io/api/admissionregistration/v1beta1#MutatingWebhookConfiguration) and CRD can be used to implement PodPreset as done in [here](https://github.com/jpeeler/podpreset-crd).
 We borrowed this PodPreset implementation and  customize it for Kubeflow.  
 The code is not directly used as Kubeflow's use case for PodPreset controller is slightly different. 
-In fact, PodPreset in Kubeflow is defined as CRD without any custom controller (as opposed to [here](https://github.com/jpeeler/podpreset-crd)).
+In fact, PodPreset in Kubeflow is defined as CRD without the  custom controller (as opposed to [here](https://github.com/jpeeler/podpreset-crd)).
 
 ## How this works
-Here is the workflow on how this can be used in Kubeflow:
+Here is the workflow on how this is used in Kubeflow:
 
 1. Users create  PodPreset manifests which describe additional runtime requirements (i.e., volume, volumeMounts, environment variables) to be injected  into a Pod at creation time.
-PodPresets use [label selectors] to specify the Pods to which a given PodPreset applies.
+PodPresets use label selectors to specify the Pods to which a given PodPreset applies.
 As an example, the following manifest declares a PodPrest to add the secret ```gcp-secret``` in to pods. 
 
 ```
