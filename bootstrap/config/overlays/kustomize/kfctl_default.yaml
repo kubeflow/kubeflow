@@ -1,0 +1,13 @@
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+metadata:
+  name: config
+spec:
+  componentParams:
+    pipeline:
+    - name: mysqlPd
+      value: dls-kf-storage-metadata-store
+    - name: minioPd
+      value: dls-kf-storage-artifact-store
+    - name: injectIstio
+      value: "true"

@@ -1,0 +1,24 @@
+- op: add
+  path: /spec/components/-
+  value: 
+    cert-manager
+- op: add
+  path: /spec/components/-
+  value: 
+    cloud-endpoints
+- op: add
+  path: /spec/components/-
+  value: 
+    gcp-credentials-admission-webhook
+- op: add
+  path: /spec/components/-
+  value: 
+    gpu-driver
+- op: add
+  path: /spec/components/-
+  value: 
+    iap-ingress
+- op: add
+  path: /spec/packages/-
+  value: 
+    gcp
