@@ -3,43 +3,53 @@
 ## Goal
 We need a way to inject common data (env vars, volumes) to pods (e.g. notebooks).
 See [issue](https://github.com/kubeflow/kubeflow/issues/2641).
+K8S natively has [PodPreset](https://kubernetes.io/docs/concepts/workloads/pods/podpreset/) with similar use-case, however it is in alpha. 
+[admission-controller] and CRD can be used to implement PodPreset as done in [].
+We borrowed this PodPreset implelentation and  custimeze it for Kubeflow.  
+The code is not directly used as Kubeflow's use case for PodPreset controller is slightly differen. 
+In fact, PodPreset in Kubeflow is defined as CRD awithout any custom controller (as oppsed to [here]).
 
 ## How this works
-An [admission controller](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/)
-intercepts requests to the Kubernetes API server, and can modify and/or validate the requests.
-We are implementing a custom MutatingAdmissionWebhook.
+Here is the workflow on how this can be used in Kubeflow:
 
-### Configure
-Define a [MutatingWebhookConfiguration](https://godoc.org/k8s.io/api/admissionregistration/v1beta1#MutatingWebhookConfiguration),
-for example:
+- Users create  PodPreset manifests whcih describe additional runtime requirements to be injected  into a Pod at creation time.
+PodPresets use [label selectors]() to specify the Pods to which a given PodPreset applies.
+As an example, the following manifest declares a PodPrest to add the secret ```gcp-secret``` in to pods. 
 
 ```
-apiVersion: admissionregistration.k8s.io/v1beta1
-kind: MutatingWebhookConfiguration
+apiVersion: "kubeflow.org/v1alpha1"
+kind: PodPreset
 metadata:
-  name: gcp-cred-webhook
-  labels:
-    app: gcp-cred-webhook
-webhooks:
-  - name: gcp-cred-webhook.kubeflow.org
-    clientConfig:
-      service:
-        name: gcp-cred-webhook
-        namespace: default
-        path: "/add-cred"
-      caBundle: "..."
-    rules:
-      - operations: [ "CREATE" ]
-        apiGroups: [""]
-        apiVersions: ["v1"]
-        resources: ["pods"]
-    namespaceSelector:
-      matchLabels:
-        add-gcp-cred: "true"
-```
+  name: add-gcp-secret
+spec:
+ selector:
+  matchLabels:
+    gcpsecret: "true"
+ desc: "add gcp credential"
+ volumeMounts:
+ - name: secret-volume
+   mountPath: /secret/gcp
+ volumes:
+ - name: secret-volume
+   secret:
+    secretName: gcp-secret
+``` 
+- Kubeflow components, which are in the charge of creating pods (e.g., notebook controller) add available PodPreset lables to the pods when required.
+For Jupyter notebooks, for instance, Notebook UI asks users which PodPreset needs to be applied to the notebook pods [](). 
+Notebook-controller, then, adds the corresponding PodPreset labels to Notebook pods.  
 
-This specifies
-1. When there is a pod being created (see `rules`) in the namespace that has labels `add-gcp-cred="true"` (see `namespaceSelector`),
+
+- [Admission webhook controller](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/)
+intercepts requests to the Kubernetes API server, and can modify and/or validate the requests.
+Here we  implement admission webhooks which  modify pods based on avalaible PodPresets.
+When a pod creattion request is received, the admission webhook looks up the available PodPresets whcih match the pod's label.
+It, then, mutates the Pod spec according to PodPreset's spec.
+For the above PodPreset example:
+
+
+
+
+1. When there is a pod being created in the namespace that has labels `add-gcp-secret="true"`,
 1. call the webhook service `gcp-cred-webhook.default` at path `/add-cred` (see `clientConfig`)
 
 ### Webhook implementation
@@ -47,8 +57,6 @@ The webhook should be a server that can handled request coming from the configur
 The request and response types are both [AdmissionReview](https://godoc.org/k8s.io/api/admission/v1beta1#AdmissionReview)
 
 The webhook check if the pod has labels:
-1. `gcp-cred-secret: SOME_SECRET`
-1. `gcp-cred-secret-filename: SOME_KEY.json`
 
 If yes, it will add volume, volumeMount, and environment variable to the pod.
 
