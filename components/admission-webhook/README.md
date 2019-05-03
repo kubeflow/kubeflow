@@ -1,18 +1,16 @@
-# Admission Webhook for adding GCP credentials to pods
-
 ## Goal
 We need a way to inject common data (env vars, volumes) to pods (e.g. notebooks).
 See [issue](https://github.com/kubeflow/kubeflow/issues/2641).
 K8S has [PodPreset](https://kubernetes.io/docs/concepts/workloads/pods/podpreset/) resource with similar use-case, however it is in alpha. 
 [admission-controller](https://godoc.org/k8s.io/api/admissionregistration/v1beta1#MutatingWebhookConfiguration) and CRD can be used to implement PodPreset as done in [here](https://github.com/jpeeler/podpreset-crd).
-We borrowed this PodPreset implelentation and  custimeze it for Kubeflow.  
-The code is not directly used as Kubeflow's use case for PodPreset controller is slightly differen. 
-In fact, PodPreset in Kubeflow is defined as CRD awithout any custom controller (as oppsed to [here](https://github.com/jpeeler/podpreset-crd)).
+We borrowed this PodPreset implementation and  customize it for Kubeflow.  
+The code is not directly used as Kubeflow's use case for PodPreset controller is slightly different. 
+In fact, PodPreset in Kubeflow is defined as CRD without any custom controller (as opposed to [here](https://github.com/jpeeler/podpreset-crd)).
 
 ## How this works
 Here is the workflow on how this can be used in Kubeflow:
 
-1. Users create  PodPreset manifests whcih describe additional runtime requirements (i.e., volume, volumeMounts, enviornment variables) to be injected  into a Pod at creation time.
+1. Users create  PodPreset manifests which describe additional runtime requirements (i.e., volume, volumeMounts, environment variables) to be injected  into a Pod at creation time.
 PodPresets use [label selectors] to specify the Pods to which a given PodPreset applies.
 As an example, the following manifest declares a PodPrest to add the secret ```gcp-secret``` in to pods. 
 
@@ -34,17 +32,17 @@ spec:
    secret:
     secretName: gcp-secret
 ``` 
-1.  Kubeflow components, which are in the charge of creating pods (e.g., notebook controller) add some of available PodPreset lables to the pods when required.
+1.  Kubeflow components, which are in charge of creating pods (e.g., notebook controller) add some of available PodPreset labels to the pods when required.
 For Jupyter notebooks, for instance, Notebook UI asks users which PodPreset needs to be applied to the notebook pods (see [this issue](https://github.com/kubeflow/kubeflow/issues/2992)). 
 Notebook-controller, then, adds the corresponding PodPreset labels to Notebook pods.  
 
 
 1. [Admission webhook controller](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/)
-in generl, intercepts requests to the Kubernetes API server, and can modify and/or validate the requests.
-Here the  admission webhook is impplemented to  modify pods based on the avalaible PodPresets.
-When a pod creattion request is received, the admission webhook looks up the available PodPresets whcih match the pod's label.
-It, then, mutates the Pod spec according to PodPreset's spec.
-For the above PodPreset, when a pod creation request comes which has the lable `add-gcp-secret:"true"', it appends the volume and volumeMounts 
+in general, intercepts requests to the Kubernetes API server, and can modify and/or validate the requests.
+Here the  admission webhook is implemented to  modify pods based on the available PodPresets.
+When a pod creation request is received, the admission webhook looks up the available PodPresets which match the pod's label.
+It then, mutates the Pod spec according to PodPreset's spec.
+For the above PodPreset, when a pod creation request comes which has the label `add-gcp-secret:"true"', it appends the volume and volumeMounts 
 to the pod as described in the PodPreset spec.
 
 ## Webhook Configuration
