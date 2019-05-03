@@ -13,7 +13,6 @@ spec:
   - metacontroller
   - modeldb
   - mpi-job
-  - pipeline
   - pytorch-job
   - seldon
   - tensorboard
@@ -27,7 +26,6 @@ spec:
   - jupyter-web-app
   - katib
   - notebook-controller
-  - pipeline
   - pytorch-operator
   - tensorboard
   - tf-job-operator
