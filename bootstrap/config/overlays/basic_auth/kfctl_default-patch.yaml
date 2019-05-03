@@ -1,0 +1,8 @@
+- op: add
+  path: /spec/components/-
+  value: 
+    basic-auth
+- op: add
+  path: /spec/components/-
+  value: 
+    basic-auth-ingress

@@ -1,0 +1,37 @@
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+metadata:
+  name: config
+spec:
+  repo: /path/to/local/tmp/containing/kubeflow
+  packages: 
+  - argo
+  - common
+  - examples
+  - jupyter
+  - katib
+  - metacontroller
+  - modeldb
+  - mpi-job
+  - pipeline
+  - pytorch-job
+  - seldon
+  - tensorboard
+  - tf-serving
+  - tf-training
+  components:
+  - metacontroller
+  - ambassador
+  - argo
+  - centraldashboard
+  - jupyter-web-app
+  - katib
+  - notebook-controller
+  - pipeline
+  - pytorch-operator
+  - tensorboard
+  - tf-job-operator
+  componentParams:
+    ambassador:
+    - name: ambassadorServiceType
+      value: NodePort
