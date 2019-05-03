@@ -95,8 +95,6 @@ type kustomize struct {
 	cltypes.KfDef
 	out              *os.File
 	err              *os.File
-
-	kustomizationMaps           map[MapType]map[string]bool
 	componentPathMap map[string]string
 	componentMap     map[string]bool
 	packageMap       map[string]*[]string
