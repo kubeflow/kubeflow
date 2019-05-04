@@ -16,9 +16,8 @@ spec:
       - command:
         - /usr/local/bin/checkout_repos.sh
         # TODO(jlewi): Stop checking out the jlewi fork once it is merged
-        - --repos=jlewi/kubeflow@web_app_ci,kubeflow/fairing@HEAD,jlewi/testing@add_hub
-        - --src_dir=/src        
-        - --links=jlewi/kubeflow=kubeflow/kubeflow,jlewi/testing=kubeflow/testing
+        - --repos=kubeflow/kubeflow@HEAD,kubeflow/fairing@HEAD,kubeflow/testing@HEAD
+        - --src_dir=/src
         name: checkout
         image: gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df
         volumeMounts:
