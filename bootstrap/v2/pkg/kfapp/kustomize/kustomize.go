@@ -575,6 +575,7 @@ func (kustomize *kustomize) writeConfigFile() error {
 	return nil
 }
 
+// GetKustomization will read a kustomization.yaml and return Kustomization type
 func GetKustomization(kustomizationPath string) *types.Kustomization {
 	kustomizationFile := filepath.Join(kustomizationPath, kftypes.KustomizationFile)
 	data, err := ioutil.ReadFile(kustomizationFile)
@@ -718,6 +719,8 @@ func MergeKustomization(compDir string, targetDir string,
 	return nil
 }
 
+// MergeKustomizations will merge base and all overlay kustomization files into
+// a single kustomization file
 func MergeKustomizations(platform string, compDir string, params []config.NameValue) (*types.Kustomization, error) {
 
 	overlayParams := []string{}
@@ -779,51 +782,53 @@ func MergeKustomizations(platform string, compDir string, params []config.NameVa
 			}
 		}
 	}
-	patches := map[string][]patch.Json6902{}
-	for _, jsonPatch := range kustomization.PatchesJson6902 {
-		key := jsonPatch.Target.Name + "-" + jsonPatch.Target.Kind
-		if _, exists := patches[key]; !exists {
-			patchArray := make([]patch.Json6902,0)
-			patchArray = append(patchArray, jsonPatch)
-			patches[key] = patchArray
-		} else {
-			patches[key] = append(patches[key], jsonPatch)
-		}
-	}
-	kustomization.PatchesJson6902 = make([]patch.Json6902,0)
-	aggregatedPatchOps := make([]byte,0)
-	patchFile := ""
-	for key, values := range patches {
-		aggregatedPatch := new(patch.Json6902)
-		aggregatedPatch.Path = key + ".yaml"
-		patchFile = path.Join(compDir, aggregatedPatch.Path)
-		aggregatedPatch.Target = new(patch.Target)
-		aggregatedPatch.Target.Name = values[0].Target.Name
-		aggregatedPatch.Target.Namespace = values[0].Target.Namespace
-		aggregatedPatch.Target.Group = values[0].Target.Group
-		aggregatedPatch.Target.Version = values[0].Target.Version
-		aggregatedPatch.Target.Kind = values[0].Target.Kind
-		aggregatedPatch.Target.Gvk = values[0].Target.Gvk
-		for _, eachPatch := range values {
-			patchPath := path.Join(compDir, eachPatch.Path)
-			if _, err := os.Stat(patchPath); err == nil {
-				data, err := ioutil.ReadFile(patchPath)
-				if err != nil {
-					return nil, err
-				}
-				aggregatedPatchOps = append(aggregatedPatchOps, data...)
+	if len(kustomization.PatchesJson6902) > 0 {
+		patches := map[string][]patch.Json6902{}
+		for _, jsonPatch := range kustomization.PatchesJson6902 {
+			key := jsonPatch.Target.Name + "-" + jsonPatch.Target.Kind
+			if _, exists := patches[key]; !exists {
+				patchArray := make([]patch.Json6902, 0)
+				patchArray = append(patchArray, jsonPatch)
+				patches[key] = patchArray
+			} else {
+				patches[key] = append(patches[key], jsonPatch)
 			}
 		}
-		kustomization.PatchesJson6902 = append(kustomization.PatchesJson6902, *aggregatedPatch)
-	}
-	patchErr := ioutil.WriteFile(patchFile, aggregatedPatchOps, 0644)
-	if patchErr != nil {
-		return nil, patchErr
+		kustomization.PatchesJson6902 = make([]patch.Json6902, 0)
+		aggregatedPatchOps := make([]byte, 0)
+		patchFile := ""
+		for key, values := range patches {
+			aggregatedPatch := new(patch.Json6902)
+			aggregatedPatch.Path = key + ".yaml"
+			patchFile = path.Join(compDir, aggregatedPatch.Path)
+			aggregatedPatch.Target = new(patch.Target)
+			aggregatedPatch.Target.Name = values[0].Target.Name
+			aggregatedPatch.Target.Namespace = values[0].Target.Namespace
+			aggregatedPatch.Target.Group = values[0].Target.Group
+			aggregatedPatch.Target.Version = values[0].Target.Version
+			aggregatedPatch.Target.Kind = values[0].Target.Kind
+			aggregatedPatch.Target.Gvk = values[0].Target.Gvk
+			for _, eachPatch := range values {
+				patchPath := path.Join(compDir, eachPatch.Path)
+				if _, err := os.Stat(patchPath); err == nil {
+					data, err := ioutil.ReadFile(patchPath)
+					if err != nil {
+						return nil, err
+					}
+					aggregatedPatchOps = append(aggregatedPatchOps, data...)
+				}
+			}
+			kustomization.PatchesJson6902 = append(kustomization.PatchesJson6902, *aggregatedPatch)
+		}
+		patchErr := ioutil.WriteFile(patchFile, aggregatedPatchOps, 0644)
+		if patchErr != nil {
+			return nil, patchErr
+		}
 	}
 	return kustomization, nil
 }
 
-// generateKustomizationFile will create a kustomization.yaml
+// GenerateKustomizationFile will create a kustomization.yaml
 // It will parse a args structure that provides mixin or multiple overlays to be merged with the base kustomization file
 // for example
 //
