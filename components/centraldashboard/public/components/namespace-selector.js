@@ -54,6 +54,9 @@ export class NamespaceSelector extends PolymerElement {
                     --paper-listbox-background-color: white;
                     --paper-listbox-color: black;
                 }
+                paper-button {
+                    --paper-button-ink-color: var(--accent-color);
+                }
             </style>
             <iron-ajax auto url="/api/namespaces" handle-as="json"
                 on-response="_onResponse">
