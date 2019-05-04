@@ -119,20 +119,41 @@ export class DashboardView extends PolymerElement {
      * Observer for platformInfo property
      */
     _platformInfoChanged() {
-        if (this.platformInfo && this.platformInfo.providerName === 'gce') {
-            this.platformName = 'GCP';
-            const pieces = this.platformInfo.provider.split('/');
-            let gcpProject = '';
-            if (pieces.length >= 3) {
-                gcpProject = pieces[2];
-            }
-            this.platformLinks = GCP_LINKS.map((l) => {
-                return {
-                    text: l.text,
-                    link: l.link + gcpProject,
-                };
-            });
+        if (!this.platformInfo || this.platformInfo.providerName != 'gce') {
+            // return;
         }
+        this.platformName = 'GCP';
+        const pieces = this.platformInfo.provider.split('/');
+        let gcpProject = '';
+        if (pieces.length >= 3) {
+            gcpProject = pieces[2];
+        }
+        this.platformLinks = GCP_LINKS.map((l) => {
+            return {
+                text: l.text,
+                link: l.link + gcpProject,
+            };
+        });
+    }
+    /**
+     * Takes a platform abbrev and converts it to a fully qualified name
+     * @param {string} platform
+     * @return {string}
+     */
+    headerForPlatform(platform) {
+        return {
+            'GCP': 'Google Cloud Platform',
+        }[platform.toUpperCase()] || platform;
+    }
+    /**
+     * Takes a platform abbrev and converts it to a fully qualified logo image
+     * @param {string} platform
+     * @return {string}
+     */
+    logoForPlatform(platform) {
+        return {
+            'GCP': 'https://cloud.google.com/_static/images/cloud/icons/favicons/onecloud/super_cloud.png',
+        }[platform.toUpperCase()] || '';
     }
 }
 

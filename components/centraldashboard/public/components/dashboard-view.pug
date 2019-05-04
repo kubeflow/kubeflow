@@ -1,25 +1,26 @@
-paper-card#Getting-Started(heading='Getting Started')
-    template(is='dom-repeat', items='[[gettingStartedItems]]')
-        a.heading(href$='[[item.link]]', tabindex='-1',
-                    target='_blank')
-            paper-icon-item
-                iron-icon(icon='launch', slot='item-icon')
-                paper-item-body(two-line)
-                    .header [[item.text]]
-                    aside(secondary) [[item.desc]]
-paper-card.thin#Quick-Links(heading='Quick shortcuts')
-    template(is='dom-repeat', items='[[quickLinks]]')
-        iframe-link.link(href$="[[item.link]]", tabindex='-1')
-            paper-icon-item [[item.text]]
-                paper-icon-button.button(icon='arrow-forward',
-                    slot='item-icon', alt='[[item.text]]')
+.column
+    paper-card#Quick-Links(heading='Quick shortcuts')
+        template(is='dom-repeat', items='[[quickLinks]]')
+            iframe-link.link(href$="[[item.link]]", tabindex='-1')
+                paper-icon-item [[item.text]]
+                    paper-icon-button.button(icon='arrow-forward',
+                        slot='item-icon', alt='[[item.text]]')
+.column
+    paper-card#Getting-Started(heading='Getting Started')
+        template(is='dom-repeat', items='[[gettingStartedItems]]')
+            a.heading(href$='[[item.link]]', tabindex='-1',
+                        target='_blank')
+                paper-icon-item
+                    iron-icon(icon='launch', slot='item-icon')
+                    paper-item-body(two-line)
+                        .header [[item.text]]
+                        aside(secondary) [[item.desc]]
+.column
     template(is='dom-if', if='[[platformLinks]]')
-        section#Platform-Links
-            header [[platformName]] Information
+        paper-card#Platform-Links(class$='[[platformName]]', heading='[[headerForPlatform(platformName)]]', image='[[logoForPlatform(platformName)]]')
             template(is='dom-repeat', items='[[platformLinks]]')
                 a.link(href$='[[item.link]]', tabindex='-1', target='_blank')
                     paper-icon-item
                         aside [[item.text]]
-                        paper-icon-button.button(icon='arrow-forward',
+                        paper-icon-button.button(icon='open-in-new',
                             slot='item-icon', alt='[[item.text]]')
-
