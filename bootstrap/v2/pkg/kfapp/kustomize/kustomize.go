@@ -588,9 +588,12 @@ func GetKustomization(kustomizationPath string) *types.Kustomization {
 	return kustomization
 }
 
-// mergeKustomization will merge the child into the parent
+// MergeKustomization will merge the child into the parent
 // if the child has no bases, then the parent just needs to add the child as base
 // otherwise the parent needs to merge with behaviors
+// Multiple overlays are constrained in what they can merge
+// which exclude NamePrefixes, NameSuffixes, CommonLabels, CommonAnnotations.
+// Any of these will generate an error
 func MergeKustomization(compDir string, targetDir string,
 	parent *types.Kustomization, child *types.Kustomization, kustomizationMaps map[MapType]map[string]bool) error {
 
@@ -613,26 +616,22 @@ func MergeKustomization(compDir string, targetDir string,
 			kustomizationMaps[basesMap][childPath] = true
 		}
 	}
-	if child.NamePrefix != "" && parent.NamePrefix == "" {
-		parent.NamePrefix = child.NamePrefix
+	if child.NamePrefix != "" {
+		log.Warnf("cannot merge nameprefix %v ", child.NamePrefix)
 	}
 	if child.GeneratorOptions != nil && parent.GeneratorOptions == nil {
 		parent.GeneratorOptions = child.GeneratorOptions
 	}
-	if child.NameSuffix != "" && parent.NameSuffix == "" {
-		parent.NameSuffix = child.NameSuffix
+	if child.NameSuffix != "" {
+		log.Warnf("cannot merge namesuffix %v ", child.NamePrefix)
+
 	}
-	for key, value := range child.CommonLabels {
-		if _, ok := kustomizationMaps[commonLabelsMap][key]; !ok {
-			parent.CommonLabels[key] = value
-			kustomizationMaps[commonLabelsMap][key] = true
-		}
+	if len(child.CommonLabels) > 0 {
+		log.Warnf("cannot merge commonlabels %v ", child.CommonLabels)
+
 	}
-	for key, value := range child.CommonAnnotations {
-		if _, ok := kustomizationMaps[commonAnnotationsMap][key]; !ok {
-			parent.CommonAnnotations[key] = value
-			kustomizationMaps[commonAnnotationsMap][key] = true
-		}
+	if len(child.CommonAnnotations) > 0 {
+		log.Warnf("cannot merge commonannotations %v ", child.CommonAnnotations)
 	}
 	for _, value := range child.Resources {
 		resourceAbsoluteFile := filepath.Join(targetDir, string(value))
@@ -697,6 +696,7 @@ func MergeKustomization(compDir string, targetDir string,
 			kustomizationMaps[patchesStrategicMergeMap][patchFile] = true
 		}
 	}
+	// json patches are aggregated and merged into local patch files
 	for _, value := range child.PatchesJson6902 {
 		patchJson := new(patch.Json6902)
 		patchJson.Target = value.Target
@@ -778,6 +778,47 @@ func MergeKustomizations(platform string, compDir string, params []config.NameVa
 				}
 			}
 		}
+	}
+	patches := map[string][]patch.Json6902{}
+	for _, jsonPatch := range kustomization.PatchesJson6902 {
+		key := jsonPatch.Target.Name + "-" + jsonPatch.Target.Kind
+		if _, exists := patches[key]; !exists {
+			patchArray := make([]patch.Json6902,0)
+			patchArray = append(patchArray, jsonPatch)
+			patches[key] = patchArray
+		} else {
+			patches[key] = append(patches[key], jsonPatch)
+		}
+	}
+	kustomization.PatchesJson6902 = make([]patch.Json6902,0)
+	aggregatedPatchOps := make([]byte,0)
+	patchFile := ""
+	for key, values := range patches {
+		aggregatedPatch := new(patch.Json6902)
+		aggregatedPatch.Path = key + ".yaml"
+		patchFile = path.Join(compDir, aggregatedPatch.Path)
+		aggregatedPatch.Target = new(patch.Target)
+		aggregatedPatch.Target.Name = values[0].Target.Name
+		aggregatedPatch.Target.Namespace = values[0].Target.Namespace
+		aggregatedPatch.Target.Group = values[0].Target.Group
+		aggregatedPatch.Target.Version = values[0].Target.Version
+		aggregatedPatch.Target.Kind = values[0].Target.Kind
+		aggregatedPatch.Target.Gvk = values[0].Target.Gvk
+		for _, eachPatch := range values {
+			patchPath := path.Join(compDir, eachPatch.Path)
+			if _, err := os.Stat(patchPath); err == nil {
+				data, err := ioutil.ReadFile(patchPath)
+				if err != nil {
+					return nil, err
+				}
+				aggregatedPatchOps = append(aggregatedPatchOps, data...)
+			}
+		}
+		kustomization.PatchesJson6902 = append(kustomization.PatchesJson6902, *aggregatedPatch)
+	}
+	patchErr := ioutil.WriteFile(patchFile, aggregatedPatchOps, 0644)
+	if patchErr != nil {
+		return nil, patchErr
 	}
 	return kustomization, nil
 }

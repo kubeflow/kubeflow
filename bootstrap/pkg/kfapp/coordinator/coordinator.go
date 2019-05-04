@@ -65,20 +65,20 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 
 func getConfigFromCache(pathDir string, platform string, packageManager string, name string, namespace string,
 	useBasicAuth bool) ([]byte, error) {
-	//TODO see #2629
+
 	configPath := filepath.Join(pathDir, kftypes.DefaultConfigDir)
 	overlays := []config.NameValue{
 		{
 			Name:  "overlay",
-			Value: packageManager,
+			Value: strings.Split(packageManager, "@")[0],
 		},
 	}
-	configDirname := strings.Split(kftypes.DefaultConfigDir, "/")[1]
 	if useBasicAuth {
-		overlays = append(overlays, config.NameValue{Name:"overlay", Value:"basic_auth"})
+		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "basic_auth"})
 	}
-	resMap, resMapErr := kustomize.GenerateKustomizationFile(platform, namespace, name, configPath,
-		configDirname, overlays)
+	baseName := strings.Split(kftypes.DefaultConfigDir, "/")[1]
+	resMap, resMapErr := kustomize.GenerateKustomizationFile(platform, namespace, name,
+		path.Dir(configPath), baseName, overlays)
 	if resMapErr != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
@@ -96,7 +96,7 @@ func getConfigFromCache(pathDir string, platform string, packageManager string, 
 	if dataErr != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("can not encode as yaml Error %v", configDirname, resMapErr),
+			Message: fmt.Sprintf("can not encode as yaml Error %v", configPath, resMapErr),
 		}
 	}
 	return data, nil
@@ -262,7 +262,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		},
 		Spec: kfdefs.KfDefSpec{},
 	}
-	specErr := yaml.Unmarshal(configFileBuffer, &kfDef.Spec)
+	specErr := yaml.Unmarshal(configFileBuffer, kfDef)
 	if specErr != nil {
 		log.Errorf("couldn't unmarshal app.yaml. Error: %v", specErr)
 	}
