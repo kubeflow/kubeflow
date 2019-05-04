@@ -7,9 +7,9 @@ paper-card#Getting-Started(heading='Getting Started')
                 paper-item-body(two-line)
                     .header [[item.text]]
                     aside(secondary) [[item.desc]]
-paper-card.thin#Quick-Links(heading='Quick Links')
+paper-card.thin#Quick-Links(heading='Quick shortcuts')
     template(is='dom-repeat', items='[[quickLinks]]')
-        a.link(href$='[[item.link]]', tabindex='-1', target='_blank')
+        iframe-link.link(href$="[[item.link]]", tabindex='-1')
             paper-icon-item [[item.text]]
                 paper-icon-button.button(icon='arrow-forward',
                     slot='item-icon', alt='[[item.text]]')

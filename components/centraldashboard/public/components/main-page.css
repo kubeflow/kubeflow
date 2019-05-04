@@ -8,6 +8,11 @@
     --primary-background-color: #003c75;
     --sidebar-default-color: #ffffff4f;
     --border-color: #f4f4f6;
+    --iframe-link: {
+        text-decoration: none;
+        color: inherit;
+        outline: none;
+    }
 }
 
 .flex {
@@ -351,7 +356,7 @@ a[href] {
     outline: none;
 }
 
-a[href]:hover {
+a[href]:hover, iframe-link:hover {
     color: var(--paper-blue-700);
     text-decoration: underline;
 }
