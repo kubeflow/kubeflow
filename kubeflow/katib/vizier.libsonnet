@@ -8,9 +8,6 @@
     $.parts(params, namespace).dbPVC,
     $.parts(params, namespace).dbDeployment,
     $.parts(params, namespace).dbSecret,
-    $.parts(params, namespace).clusterRole,
-    $.parts(params, namespace).clusterRoleBinding,
-    $.parts(params, namespace).serviceAccount,
     $.parts(params, namespace).coreRestService,
     $.parts(params, namespace).coreRestDeployment,
     $.parts(params, namespace).uiService,
@@ -119,7 +116,6 @@
             name: "vizier-core",
           },
           spec: {
-            serviceAccountName: "vizier-core",
             containers: [
               {
                 name: "vizier-core",
@@ -168,102 +164,6 @@
         },
       },
     },  // coreDeployment
-
-    clusterRoleBinding: {
-      apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRoleBinding",
-      metadata: {
-        name: "vizier-core",
-      },
-      roleRef: {
-        apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
-        name: "vizier-core",
-      },
-      subjects: [
-        {
-          kind: "ServiceAccount",
-          name: "vizier-core",
-          namespace: namespace,
-        },
-      ],
-    },
-
-    clusterRole: {
-      apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRole",
-      metadata: {
-        name: "vizier-core",
-      },
-      rules: [
-        {
-          apiGroups: [
-            "",
-          ],
-          resources: [
-            "pods",
-            "nodes",
-            "nodes/*",
-            "pods/log",
-            "pods/status",
-            "services",
-            "persistentvolumes",
-            "persistentvolumes/status",
-            "persistentvolumeclaims",
-            "persistentvolumeclaims/status",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "batch",
-          ],
-          resources: [
-            "jobs",
-            "jobs/status",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "extensions",
-          ],
-          resources: [
-            "ingresses",
-            "ingresses/status",
-            "deployments",
-            "deployments/status",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "",
-          ],
-          resources: [
-            "services",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-      ],
-    },  // clusterRole
-
-    serviceAccount: {
-      apiVersion: "v1",
-      kind: "ServiceAccount",
-      metadata: {
-        name: "vizier-core",
-        namespace: namespace,
-      },
-    },
 
     dbPVC: {
       apiVersion: "v1",
