@@ -24,26 +24,26 @@ export class NamespaceSelector extends PolymerElement {
                     }
                 }
 
-                paper-button {
+                #dropdown-trigger {
                     @apply --layout-horizontal;
                     @apply --layout-center;
                     text-transform: none;
                 }
 
-                paper-button iron-icon:first-child {
+                #dropdown-trigger iron-icon:first-child {
                     padding-right: 0.5em;
                     --iron-icon-fill-color: var(--primary-background-color);
                     --iron-icon-height: 20px;
                     --iron-icon-width: 20px;
                 }
 
-                paper-button span {
-                    width: 170px;
+                #dropdown-trigger span {
+                    min-width: 120px;
                     overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;
                 }
-                paper-button span:empty::before {
+                #dropdown-trigger span:empty::before {
                     content: 'Select namespace';
                 }
 
@@ -59,8 +59,8 @@ export class NamespaceSelector extends PolymerElement {
                 on-response="_onResponse">
             </iron-ajax>
             <app-route query-params="{{queryParams}}"></app-route>
-            <paper-menu-button>
-                <paper-button slot="dropdown-trigger">
+            <paper-menu-button no-overlap horizontal-align="right">
+                <paper-button id="dropdown-trigger" slot="dropdown-trigger">
                     <iron-icon icon="group-work"></iron-icon>
                     <span>[[selected]]</span>
                     <iron-icon icon="arrow-drop-down"></iron-icon>
