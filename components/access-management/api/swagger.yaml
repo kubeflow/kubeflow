@@ -1,6 +1,6 @@
 swagger: "2.0"
 info:
-  description: "Profile Spawner API."
+  description: "Access Management API."
   version: "1.0.0"
   title: "Kubeflow Auth"
   termsOfService: "https://www.kubeflow.org/"
@@ -9,24 +9,19 @@ info:
   license:
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-basePath: "/kfauth"
+basePath: "/kfam"
 schemes:
   - "http"
 paths:
-  /profiles/{profile}/register:
+  /v1/profiles:
     post:
-      summary: "Create a owning-profile instance, which own a namespace of same name"
-      operationId: "register"
+      summary: "Create a instance, which own a namespace of same name"
+      operationId: "create profile"
       consumes:
         - "application/json"
       produces:
         - "application/json"
       parameters:
-        - in: "path"
-          name: "profile"
-          description: "Profile name"
-          required: true
-          type: "string"
         - in: "body"
           name: "body"
           description: "Profile spec"
@@ -42,27 +37,42 @@ paths:
             $ref: "#/definitions/ErrorMessage"
         500:
           description: "Internal Server Error"
-  /profiles/{profile}/share:
-    post:
-      summary: "Create a sharing-profile instance, which grant profile-owner edit-access to referred namespace"
-      description: "Only admin owner of referred namespace can share referred namespace"
-      operationId: "share"
-      consumes:
-        - "application/json"
-      produces:
-        - "application/json"
+  /v1/profiles/{profile}:
+    delete:
+      summary: "Delete profile"
+      description: "Only admin or profile owner can delete profile"
+      operationId: "delete profile"
       parameters:
         - in: "path"
           name: "profile"
           description: "Profile name"
           required: true
           type: "string"
+      responses:
+        200:
+          description: "OK"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Entry not found"
+        500:
+          description: "Internal Server Error"
+  /v1/bindings:
+    post:
+      summary: "Create a binding specifying a user and an namespace, the binding will grant user edit-access to referred namespace"
+      description: "Only admin or referred namespace owner can create binding"
+      operationId: "create binding"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
         - in: "body"
           name: "body"
-          description: "Profile spec"
+          description: "Binding spec"
           required: true
           schema:
-            $ref: "#/definitions/Profile"
+            $ref: "#/definitions/Binding"
       responses:
         200:
           description: "OK"
@@ -74,51 +84,59 @@ paths:
             $ref: "#/definitions/ErrorMessage"
         500:
           description: "Internal Server Error"
-  /profiles/{profile}:
     get:
-      summary: "Get profile"
-      operationId: "getProfile"
+      summary: "Get binding specified in request body"
+      description: "If succeeded, returned binding will contain it's current status"
+      operationId: "read binding"
       consumes:
         - "application/json"
       produces:
         - "application/json"
       parameters:
-        - in: "path"
-          name: "profile"
-          description: "Profile name"
+        - in: "body"
+          name: "body"
+          description: "Binding spec"
           required: true
-          type: "string"
+          schema:
+            $ref: "#/definitions/Binding"
       responses:
         200:
           description: "OK"
           schema:
-            $ref: "#/definitions/Profile"
-        401:
-          description: "Unauthorized"
+            $ref: "#/definitions/Binding"
+        404:
+          description: "Entry not found"
         500:
           description: "Internal Server Error"
     delete:
-      summary: "Delete profile"
-      description: "Only admin owner of referred namespace can delete profile"
-      operationId: "deleteProfile"
+      summary: "Delete binding specified in request body"
+      description: "Only admin or referred namespace owner can delete binding"
+      operationId: "delete binding"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
       parameters:
-        - in: "path"
-          name: "profile"
-          description: "Profile name"
+        - in: "body"
+          name: "body"
+          description: "Binding spec"
           required: true
-          type: "string"
+          schema:
+            $ref: "#/definitions/Binding"
       responses:
         200:
           description: "OK"
         401:
           description: "Unauthorized"
+        404:
+          description: "Entry not found"
         500:
           description: "Internal Server Error"
-  /profiles/{profile}/users:
+  /v1/profiles/{profile}/users:
     get:
-      summary: "Get owner and editor users of target owning-profile"
+      summary: "Get users with owner or editor permission to queried profile / namespace"
       description: "return list of users"
-      operationId: "getProfileUsers"
+      operationId: "read users"
       consumes:
         - "application/json"
       produces:
@@ -134,38 +152,29 @@ paths:
           description: "OK"
           schema:
             $ref: "#/definitions/UserEntries"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-          schema:
-            $ref: "#/definitions/ErrorMessage"
         404:
           description: "Entry not found"
         500:
           description: "Internal Server Error"
-  /users/permission:
+  /v1/users/{user}/namespaces:
     get:
-      summary: "Return namespace list that user can access as owner or editor"
-      operationId: "getUsersPermission"
+      summary: "Get namespaces that queried user can access as owner or editor"
+      operationId: "read namespaces"
       consumes:
         - "application/json"
       produces:
         - "application/json"
       parameters:
-        - in: "body"
-          name: "body"
-          description: "User spec"
+        - in: "path"
+          name: "user"
+          description: "k8s user name"
           required: true
-          schema:
-            $ref: "#/definitions/User"
+          type: "string"
       responses:
         200:
           description: "OK"
           schema:
-            $ref: "#/definitions/ProfileEntries"
-        401:
-          description: "Unauthorized"
+            $ref: "#/definitions/NamespaceEntries"
         404:
           description: "Entry not found"
         500:
@@ -174,7 +183,7 @@ definitions:
   UserEntries:
     type: "object"
     properties:
-      configs:
+      users:
         type: "array"
         items:
           $ref: "#/definitions/User"
@@ -185,13 +194,24 @@ definitions:
         type: "string"
       name:
         type: "string"
-  ProfileEntries:
+  NamespaceEntries:
     type: "object"
     properties:
-      configs:
+      namespaces:
         type: "array"
         items:
-          $ref: "#/definitions/Profile"
+          type: "string"
+  Binding:
+    type: "object"
+    description: "Binding will give user edit access to referredNamespace"
+    properties:
+      user:
+        $ref: "#/definitions/User"
+      referredNamespace:
+        type: "string"
+      status:
+        description: "Status of the profile, one of Succeeded, Failed, Unknown."
+        type: "string"
   Metadata:
     type: "object"
     properties:
@@ -209,9 +229,6 @@ definitions:
         properties:
           owner:
             $ref: "#/definitions/User"
-          referredNamespace:
-            type: "string"
-            description: "when referredNamespace not empty, this profile is sharing-profile; otherwise it's an owning-profile"
       status:
         type: "object"
         properties:
