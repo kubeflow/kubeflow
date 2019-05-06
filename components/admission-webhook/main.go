@@ -371,8 +371,6 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	klog.Info(fmt.Sprintf("fetched %d podpreset(s) in namespace %s", len(list.Items), pod.Namespace))
 	if len(list.Items) == 0 {
 		klog.V(5).Infof("No pod presets created, so skipping pod %v", pod.Name)
-		fmt.Printf("No pod presets created, so skipping pod %s", pod.Name)
-
 		return &reviewResponse
 	}
 
@@ -398,17 +396,14 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	err = safeToApplyPodPresetsOnPod(&pod, matchingPPs)
 	if err != nil {
 		// conflict, ignore the error, but raise an event
-		// TODO: investigate why GetGenerateName doesn't work, might be because it's too early to exist yet
 		msg := fmt.Errorf("conflict occurred while applying podpresets: %s on pod: %v err: %v",
 			strings.Join(presetNames, ","), pod.GetName(), err)
-		//recordConflictEvent(recorder, &pod, msg)
 		klog.Warning(msg)
 		return toAdmissionResponse(msg)
 	}
 
 	applyPodPresetsOnPod(&pod, matchingPPs)
 
-	// TODO: investigate why GetGenerateName doesn't work
 	klog.Infof("applied podpresets: %s successfully on Pod: %+v ", strings.Join(presetNames, ","), pod.GetName())
 
 	podCopyJSON, err := json.Marshal(podCopy)
@@ -429,9 +424,6 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	pt := v1beta1.PatchTypeJSONPatch
 	reviewResponse.PatchType = &pt
 
-	// if !reviewResponse.Allowed {
-	// 	reviewResponse.Result = &metav1.Status{Message: strings.TrimSpace(msg)}
-	// }
 	return &reviewResponse
 }
 

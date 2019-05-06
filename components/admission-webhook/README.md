@@ -2,7 +2,7 @@
 We need a way to inject common data (env vars, volumes) to pods (e.g. notebooks).
 See [issue](https://github.com/kubeflow/kubeflow/issues/2641).
 K8s has [PodPreset](https://kubernetes.io/docs/concepts/workloads/pods/podpreset/) resource with similar use-case, however it is in alpha. 
-K8s admission-controller](https://godoc.org/k8s.io/api/admissionregistration/v1beta1#MutatingWebhookConfiguration) and CRD can be used to implement PodPreset as done in [here](https://github.com/jpeeler/podpreset-crd).
+K8s [admission-controller](https://godoc.org/k8s.io/api/admissionregistration/v1beta1#MutatingWebhookConfiguration) and CRD can be used to implement PodPreset as done in [here](https://github.com/jpeeler/podpreset-crd).
 We borrowed this PodPreset implementation and  customize it for Kubeflow.  
 The code is not directly used as Kubeflow's use case for PodPreset controller is slightly different. 
 In fact, PodPreset in Kubeflow is defined as CRD without the  custom controller (as opposed to [here](https://github.com/jpeeler/podpreset-crd)).
@@ -70,7 +70,7 @@ webhooks:
 ```
 
 This specifies
-1. When there is a pod being created (see `rules`) in the namespace,
+1. When there is a pod being created (see `rules`),
 1. call the webhook service `gcp-cred-webhook.default` at path `/add-cred` (see `clientConfig`)
 
 

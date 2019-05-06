@@ -385,7 +385,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // Customize config for v0.4.1 compatibility
     // TODO: remove after fully switch to kfctl / new deployment API is alive.
     if (this.state.kfversion.startsWith('v0.4.1')) {
-      const removeComps = ['admission-webhook', 'gpu-driver', 'notebook-controller'];
+      const removeComps = ['gpu-driver', 'notebook-controller'];
       for (let i = 0, len = removeComps.length; i < len; i++) {
         this._removeComponent(removeComps[i], configSpec);
       }

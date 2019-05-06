@@ -12,8 +12,6 @@ defaultApp:
     prototype: cert-manager
   - name: cloud-endpoints
     prototype: cloud-endpoints
-  - name: admission-webhook
-    prototype: admission-webhook
   - name: gpu-driver
     prototype: gpu-driver
   - name: iap-ingress

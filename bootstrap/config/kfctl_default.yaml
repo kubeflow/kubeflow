@@ -8,6 +8,7 @@ packages:
   - common
   - examples
   - gcp
+  - admission-webhook  
   - jupyter
   - katib
   - metacontroller
@@ -25,6 +26,8 @@ components:
   - ambassador
   - argo
   - centraldashboard
+  - admission-webhook
+  - podpreset-crd  
   - jupyter-web-app
   - katib
   - notebook-controller
