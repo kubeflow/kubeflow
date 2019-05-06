@@ -39,7 +39,7 @@ import (
 const (
 	DefaultNamespace = "kubeflow"
 	// TODO: find the latest tag dynamically
-	DefaultVersion     = "v0.5.0"
+	DefaultVersion     = "v0.5.1"
 	DefaultGitRepo     = "https://github.com/kubeflow/kubeflow/tarball"
 	KfConfigFile       = "app.yaml"
 	DefaultCacheDir    = ".cache"
