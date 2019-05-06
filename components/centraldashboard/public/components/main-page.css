@@ -87,13 +87,6 @@ app-drawer .footer>.build {
     color: rgba(255, 255, 255, 0.64)
 }
 
-#NamespaceSelector {
-    position: absolute;
-    right: 1em;
-    top: 50%;
-    transform: translateY(-50%)
-}
-
 app-toolbar {
     @apply --layout-horizontal;
     @apply --layout-center;
@@ -110,6 +103,10 @@ app-toolbar>header {
     @apply --layout-center;
 }
 
+#Narrow-Slider[hidden] {
+    display: none;
+}
+
 #Narrow-Slider>.Logo {
     margin: 0;
     color: var(--logo-color, var(--primary-background-color));
@@ -122,6 +119,10 @@ app-toolbar>header {
 
 #Narrow-Slider>.Logo>svg * {
     fill: currentColor;
+}
+
+#NamespaceSelector {
+    flex-basis: 33%;
 }
 
 #NamespaceSelector>paper-dropdown-menu {
