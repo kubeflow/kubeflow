@@ -63,9 +63,6 @@
                     },
                     type: "array",
                   },
-                  serviceaccountname:{
-                    type: "string",
-                  },
                 },
                 required: [
                   "selector",
