@@ -8,6 +8,7 @@ packages:
   - common
   - examples
   - gcp
+  - admission-webhook  
   - jupyter
   - katib
   - metacontroller
@@ -29,8 +30,8 @@ components:
   - centraldashboard
   - cert-manager
   - cloud-endpoints
-  - gcp-credentials-admission-webhook
   - gpu-driver
+  - admission-webhook
   - jupyter-web-app
   - katib
   - notebook-controller
