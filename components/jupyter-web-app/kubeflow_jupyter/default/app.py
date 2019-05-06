@@ -4,7 +4,6 @@ from kubernetes.client.rest import ApiException
 from ..common import api
 from ..common import utils
 
-
 app = Flask(__name__)
 logger = utils.create_logger(__name__)
 
@@ -36,7 +35,7 @@ def get_notebooks(namespace):
 def post_notebook(namespace):
   data = {"success": True, "log": ""}
   body = request.form
-   
+
   # Template
   notebook = utils.create_notebook_template()
   notebook_cont = notebook["spec"]['template']['spec']['containers'][0]
@@ -52,7 +51,7 @@ def post_notebook(namespace):
 
   # Enable SHM
   if body["shm_enable"] == "1":
-    utils.enable_shm(notebook)
+      utils.enable_shm(notebook)
 
   # Workspace Volume
   if body["ws_type"] == "New":
