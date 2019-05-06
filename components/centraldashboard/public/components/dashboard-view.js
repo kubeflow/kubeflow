@@ -8,6 +8,8 @@ import {html, PolymerElement} from '@polymer/polymer';
 import css from './dashboard-view.css';
 import template from './dashboard-view.pug';
 
+import './iframe-link.js';
+
 const DOCS = 'https://www.kubeflow.org/docs/started';
 const GCP_LINKS = [
     {
@@ -78,12 +80,29 @@ export class DashboardView extends PolymerElement {
                 type: Array,
                 value: [
                     {
-                        text: 'Open docs',
-                        link: `${DOCS}/getting-started/`,
+                        text: 'Upload a pipeline',
+                        desc: 'Pipelines',
+                        link: `/pipeline/`,
                     },
                     {
-                        text: 'Open Github',
-                        link: 'https://github.com/kubeflow/kubeflow',
+                        text: 'View all pipeline runs',
+                        desc: 'Pipelines',
+                        link: `/pipeline/#/archive`,
+                    },
+                    {
+                        text: 'Create a new Notebook server',
+                        desc: 'Notebook Servers',
+                        link: `/jupyter/new?namespace=kubeflow`,
+                    },
+                    {
+                        text: 'View all TF Jobs',
+                        desc: 'TF Jobs',
+                        link: `/tfjobs/ui/`,
+                    },
+                    {
+                        text: 'View Katib Studies',
+                        desc: 'Katib',
+                        link: `/katib/`,
                     },
                 ],
             },

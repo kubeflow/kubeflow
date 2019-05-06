@@ -5,9 +5,14 @@
 :host {
     @apply --layout-vertical;
     --accent-color: #007dfc;
-    --primary-background-color: #003c75;
+    --primary-background-color: #0a3b71;
     --sidebar-default-color: #ffffff4f;
     --border-color: #f4f4f6;
+    --iframe-link: {
+        text-decoration: none;
+        color: inherit;
+        outline: none;
+    }
 }
 
 .flex {
@@ -26,6 +31,10 @@ app-drawer {
         display: flex !important;
         flex-direction: column !important;
     }
+}
+
+app-drawer figure {
+    margin-left: 1em;
 }
 
 app-drawer-layout[narrow] app-drawer {
@@ -86,20 +95,10 @@ app-drawer .footer>.build {
 }
 
 app-toolbar {
-    display: flex;
-    justify-content: center;
+    @apply --layout-horizontal;
+    @apply --layout-center;
     background: white;
     transition: background .25s;
-}
-
-app-toolbar[blue] {
-    color: white;
-    background: var(--primary-background-color);
-    --primary-text-color: white;
-    --secondary-text-color: #ffffff69;
-    --primary-color: white;
-    --accent-color: white;
-    --logo-color: white;
 }
 
 app-toolbar>header {
@@ -107,31 +106,22 @@ app-toolbar>header {
 }
 
 #Narrow-Slider {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    top: 0;
-    width: 256px;
+    @apply --layout-horizontal;
+    @apply --layout-center;
 }
 
 #Narrow-Slider>.Logo {
     margin: 0;
-    padding: .5em;
-    height: 100%;
-    box-sizing: border-box;
     color: var(--logo-color, var(--primary-background-color));
-    @apply --layout-horizontal;
-    @apply --layout-center-center;
 }
 
 #Narrow-Slider>.Logo>svg {
-    width: 1.5em;
-    height: 100%;
-    margin-right: .5em;
+    height: 24px;
+    margin-top: 4px;
 }
 
 #Narrow-Slider>.Logo>svg * {
-    fill: currentColor
+    fill: currentColor;
 }
 
 #NamespaceSelector>paper-dropdown-menu {
@@ -149,7 +139,7 @@ paper-tabs {
 }
 
 paper-tab {
-    padding: 0 2em
+    padding: 0 2em;
 }
 
 paper-tab.iron-selected {
@@ -168,6 +158,10 @@ paper-tab[link] a:hover {
     text-decoration: none;
 }
 
+app-header {
+    box-shadow: 0 2px 6px 1px rgba(232, 234, 237, 0.5), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+}
+
 app-header-layout {
     @apply --layout-vertical
 }
@@ -183,10 +177,11 @@ neon-animatable {
 }
 
 #Menu {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%)
+    --paper-icon-button: {
+        width: 44px;
+        height: 44px;
+        color: var(--primary-background-color);
+    }
 }
 
 #PageFrame {
@@ -194,23 +189,6 @@ neon-animatable {
     display: inline-block;
     height: 100%;
     width: 100%;
-}
-
-#Logo {
-    display: flex;
-    align-items: center;
-    margin: 0 0 1em;
-    padding: 2em;
-}
-
-#Logo>svg {
-    width: 3em;
-    margin-right: 1em;
-}
-
-#Logo>figcaption {
-    font-size: 1.3em;
-    font-family: Google Sans;
 }
 
 #Dashboard {
@@ -351,7 +329,7 @@ a[href] {
     outline: none;
 }
 
-a[href]:hover {
+a[href]:hover, iframe-link:hover {
     color: var(--paper-blue-700);
     text-decoration: underline;
 }

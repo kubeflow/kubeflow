@@ -133,29 +133,24 @@ def set_notebook_cpu_ram(nb, body):
       }
   }
 
-# todo: jupyter-web-app should add the podpreset labels that user selected
-#  (https://github.com/kubeflow/kubeflow/issues/2992)
-def set_notebook_podpresets_labels(nb,podprestLabels):
-  logger = create_logger(__name__)
-  logger.warning("number of labels to be added: %d" % len(podprestLabels))
-  nb["metadata"]["labels"].update(podprestLabels)
 
 def enable_shm(nb):
   notebook_spec = nb["spec"]['template']['spec']
   notebook_cont = nb["spec"]['template']['spec']['containers'][0]
 
   shm_volume = {
-        "name": "dshm",
-        "emptyDir": {
-            "medium": "Memory"
-        }
-    }
+      "name": "dshm",
+      "emptyDir": {
+          "medium": "Memory"
+      }
+  }
   notebook_spec['volumes'].append(shm_volume)
-  shm_mnt={
-          "mountPath": "/dev/shm",
-          "name": "dshm"
-        }
+  shm_mnt = {
+      "mountPath": "/dev/shm",
+      "name": "dshm"
+  }
   notebook_cont["volumeMounts"].append(shm_mnt)
+
 
 def add_notebook_volume(nb, vol, claim, mnt_path):
   # Create the volume in the Pod

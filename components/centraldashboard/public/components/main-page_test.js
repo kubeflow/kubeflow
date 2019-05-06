@@ -42,24 +42,6 @@ describe('Main Page', () => {
         jasmine.Ajax.uninstall();
     });
 
-    it('Pushes history when menu link is clicked', async () => {
-        spyOn(window.history, 'pushState');
-        const locationChanged = new Promise((resolve) => {
-            window.addEventListener('location-changed', () => {
-                resolve();
-            });
-        });
-        flush();
-        const link = mainPage.shadowRoot
-            .querySelector('#MainDrawer a[href="/notebooks"]');
-        link.click();
-        await locationChanged;
-        flush();
-
-        expect(window.history.pushState)
-            .toHaveBeenCalledWith({}, null, '_/notebooks');
-    });
-
     it('Sets view state when dashboard page is active', async () => {
         const selectedTabPromise = new Promise((resolve) => {
             const paperTabs = mainPage.shadowRoot.querySelector('paper-tabs');
@@ -114,7 +96,7 @@ describe('Main Page', () => {
     it('Sets view state when iframe page is active', () => {
         spyOn(mainPage.$.MainDrawer, 'close');
 
-        mainPage.subRouteData.path = '/notebooks';
+        mainPage.subRouteData.path = '/jupyter/';
         mainPage._routePageChanged('_');
         flush();
 
@@ -123,23 +105,7 @@ describe('Main Page', () => {
         expect(mainPage.inIframe).toBe(true);
         expect(mainPage.shadowRoot.querySelector('paper-tabs')
             .hasAttribute('hidden')).toBe(true);
-        expect(mainPage.shadowRoot.querySelector('app-toolbar')
-            .hasAttribute('blue')).toBe(true);
         expect(mainPage.$.MainDrawer.close).toHaveBeenCalled();
-    });
-
-    it('Sets view state when an invalid iframe page is specified', () => {
-        spyOn(mainPage, '_isInsideOfIframe').and.returnValue(false);
-        mainPage.subRouteData.path = '/not-a-valid-page-for-iframe';
-        mainPage._routePageChanged('_');
-        flush();
-
-        expect(mainPage.page).toBe('not_found');
-        expect(mainPage.sidebarItemIndex).toBe(-1);
-        expect(mainPage.notFoundInIframe).toBe(false);
-        expect(mainPage.inIframe).toBe(true);
-        expect(mainPage.shadowRoot.querySelector('paper-tabs')
-            .hasAttribute('hidden')).toBe(true);
     });
 
     it('Sets view state when an invalid page is specified from an iframe',
@@ -184,11 +150,18 @@ describe('Main Page', () => {
         expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
             .hasAttribute('hidden')).toBe(false);
 
-        mainPage.subRouteData.path = '/pipeline-dashboard';
+        mainPage.subRouteData.path = '/pipeline/';
         mainPage._routePageChanged('_');
         flush();
         expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
             .hasAttribute('hidden')).toBe(true);
+        expect(mainPage.page).toBe('iframe');
+        expect(mainPage.sidebarItemIndex).toBe(1);
+        expect(mainPage.inIframe).toBe(true);
+        expect(mainPage.shadowRoot.querySelector('paper-tabs')
+            .hasAttribute('hidden')).toBe(true);
+        expect(mainPage.shadowRoot.querySelector('app-toolbar')
+            .hasAttribute('blue')).toBe(true);
     });
 
     it('Sets build version when platform info is received', async () => {

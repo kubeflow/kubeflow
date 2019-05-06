@@ -7,21 +7,24 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
     app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
         tail='{{subRouteData}}')
     app-drawer#MainDrawer(slot='drawer')
-        figure#Logo
+        figure
             |!{logo}
-            figcaption Kubeflow
         iron-selector(selected='{{sidebarItemIndex}}')
-            a(href$='[[_buildHref("/", queryParams)]]', tabindex='-1')
-                paper-item.menu-item Home
+            a(href$='[[buildHref("/", queryParams)]]', tabindex='-1')
+                paper-item.menu-item Overview
+            template(is='dom-repeat', items='[[menuLinks]]')
+                iframe-link(href$="[[buildHref(item.link, queryParams)]]",
+                    tabindex='-1')
+                    paper-item.menu-item [[item.text]]
+            aside.divider
+            a(href='https://github.com/kubeflow/kubeflow',
+                tabindex='-1', target="_blank")
+                paper-item.menu-item GitHub
+                    iron-icon.external(icon="launch")
             a(href='https://www.kubeflow.org/docs/about/kubeflow/',
                 tabindex='-1', target="_blank")
                 paper-item.menu-item Documentation
                     iron-icon.external(icon="launch")
-            aside.divider
-            template(is='dom-repeat', items='[[menuLinks]]')
-                a.iframe-link(href$='[[_buildHref(item.href, queryParams)]]',
-                    on-click='openInIframe', tabindex='-1')
-                    paper-item.menu-item [[item.text]]
         aside.flex
         footer.footer
             section.information
@@ -32,18 +35,17 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                 span(title="Build: [[buildVersion]] | Dashboard: v[[dashVersion]]") [[buildVersion]]
     app-header-layout(fullbleed)
         app-header(slot='header', hides, hidden$='[[notFoundInIframe]]')
-            app-toolbar(blue$='[[inIframe]]')
+            app-toolbar
                 aside#Narrow-Slider(hides, hidden$='[[!narrowMode]]')
                     paper-icon-button#Menu(icon='menu', drawer-toggle)
                     figure.Logo
                         |!{logo}
-                        figcaption Kubeflow
                 paper-tabs.bottom(selected='[[page]]', attr-for-selected='page',
                         hides, hidden$='[[hideTabs]]')
                     paper-tab(page='dashboard', link)
-                        a.link(tabindex='-1', href$='[[_buildHref("/", queryParams)]]') Dashboard
+                        a.link(tabindex='-1', href$='[[buildHref("/", queryParams)]]') Dashboard
                     paper-tab(page='activity', link)
-                        a.link(tabindex='-1', href$='[[_buildHref("/activity", queryParams)]]') Activity
+                        a.link(tabindex='-1', href$='[[buildHref("/activity", queryParams)]]') Activity
                 aside#NamespaceSelector(hides, hidden$='[[hideNamespaces]]')
                     namespace-selector(query-params='{{queryParams}}',
                         selected="{{namespace}}")

@@ -19,6 +19,7 @@ package notebook
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
@@ -332,10 +333,21 @@ func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
 		},
 	}
 
-	// copy all of the Notebook labels to the pod including podpreset related labels
-	l := &ss.Spec.Template.ObjectMeta.Labels
-	for k, v := range instance.ObjectMeta.Labels {
-		(*l)[k] = v
+	// Inject GCP credentials
+	if labels := os.Getenv("POD_LABELS"); labels != "" {
+		// labels should be comma separated labels, e.g. "k1=v1,k2=v2"
+		l := &ss.Spec.Template.ObjectMeta.Labels
+		labelList := strings.Split(labels, ",")
+		for _, label := range labelList {
+			// label is something like k1=v1
+			s := strings.Split(label, "=")
+			if len(s) != 2 {
+				log.Info("Invalid env var POD_LABELS, skip..")
+				continue
+			}
+			// s[0] = k1, s[1] = v1
+			(*l)[s[0]] = s[1]
+		}
 	}
 
 	podSpec := &ss.Spec.Template.Spec
