@@ -121,6 +121,10 @@ app-toolbar>header {
     fill: currentColor;
 }
 
+#NamespaceSelector {
+    flex-basis: 33%;
+}
+
 #NamespaceSelector>paper-dropdown-menu {
     color: var(--accent-color);
     --paper-input-container-focus-color: var(--accent-color);

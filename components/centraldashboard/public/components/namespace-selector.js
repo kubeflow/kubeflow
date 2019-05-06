@@ -38,7 +38,7 @@ export class NamespaceSelector extends PolymerElement {
                 }
 
                 #dropdown-trigger span {
-                    min-width: 120px;
+                    max-width: 170px;
                     overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;
