@@ -18,6 +18,13 @@ package ksonnet
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
+	"path/filepath"
+	"regexp"
+	"time"
+
 	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
 	"github.com/ksonnet/ksonnet/pkg/actions"
@@ -30,17 +37,11 @@ import (
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
-	"io/ioutil"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"os"
-	"path"
-	"path/filepath"
-	"regexp"
-	"time"
 )
 
 // Ksonnet implements the KfApp Interface
@@ -267,7 +268,7 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 		},
 		actions.OptionEnvName:        ksApp.KsEnvName,
 		actions.OptionComponentNames: components,
-		actions.OptionGracePeriod:    int64(100),
+		actions.OptionGracePeriod:    int64(300),
 	})
 	if err != nil {
 		log.Infof("there was a problem deleting %v: %v", components, err)
@@ -283,7 +284,7 @@ func (ksApp *ksApp) Delete(resources kftypes.ResourceEnum) error {
 	log.Infof("deleting namespace: %v", namespace)
 	ns, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 	if nsMissingErr == nil {
-		nsErr := clientset.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
+		nsErr := clientset.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(300)))
 		if nsErr != nil {
 			return &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
