@@ -233,6 +233,8 @@ github.com/grpc-ecosystem/go-grpc-prometheus v0.0.0-20170330212424-2500245aa611/
 github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgfV/d3M/q6VIi02HzZEHgUlZvzk=
 github.com/grpc-ecosystem/grpc-gateway v1.3.0/go.mod h1:RSKVYQBd5MCa4OVpNdGskqpgL2+G+NZTnrVHpWWfpdw=
 github.com/grpc-ecosystem/grpc-gateway v1.5.0/go.mod h1:RSKVYQBd5MCa4OVpNdGskqpgL2+G+NZTnrVHpWWfpdw=
+github.com/hacdias/fileutils v0.0.0-20181202104838-227b317161a1 h1:2MkEawJQTmAr6YI7T7j7SKxdTmYJOcaJZfzeVPr56PM=
+github.com/hacdias/fileutils v0.0.0-20181202104838-227b317161a1/go.mod h1:lwnswzFVSy7B/k81M5rOLUU0fOBKHrDRIkPIBZd7PBo=
 github.com/hashicorp/go-cleanhttp v0.5.0 h1:wvCrVc9TjDls6+YGAF2hAifE1E5U1+b4tH6KdvN3Gig=
 github.com/hashicorp/go-cleanhttp v0.5.0/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
 github.com/hashicorp/go-getter v1.0.2 h1:ba+UwCRuxJ7+rS+cO6JnQZUrweQjmEAkwKu9r7+HCpM=

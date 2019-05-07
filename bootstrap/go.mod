@@ -45,6 +45,7 @@ require (
 	github.com/gophercloud/gophercloud v0.0.0-20190116032514-258a61a0642d // indirect
 	github.com/gregjones/httpcache v0.0.0-20181110185634-c63ab54fda8f // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
+	github.com/hacdias/fileutils v0.0.0-20181202104838-227b317161a1
 	github.com/hashicorp/go-getter v1.0.2
 	github.com/hashicorp/golang-lru v0.5.0 // indirect
 	github.com/howeyc/gopass v0.0.0-20170109162249-bf9dde6d0d2c // indirect

@@ -19,6 +19,7 @@ package coordinator
 import (
 	"fmt"
 	"github.com/ghodss/yaml"
+	"github.com/hacdias/fileutils"
 	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
@@ -151,7 +152,34 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 	}
 }
 
-func copyLocalRepo() ([]byte, error) {
+func copyLocalRepo(platform string, appDir string, version string, repoPath string,
+	useBasicAuth bool) ([]byte, error) {
+	if _, err := os.Stat(appDir); os.IsNotExist(err) {
+		appdirErr := os.Mkdir(appDir, os.ModePerm)
+		if appdirErr != nil {
+			log.Errorf("couldn't create directory %v Error %v", appDir, appdirErr)
+		}
+	}
+	cacheDir := path.Join(appDir, kftypes.DefaultCacheDir, version)
+	// idempotency
+	if _, err := os.Stat(cacheDir); !os.IsNotExist(err) {
+		os.RemoveAll(cacheDir)
+	}
+	cacheDirErr := os.MkdirAll(cacheDir, os.ModePerm)
+	if cacheDirErr != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("couldn't create directory %v Error %v", cacheDir, cacheDirErr),
+		}
+	}
+
+	if copyErr := fileutils.CopyDir(repoPath, cacheDir); copyErr != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error when copying local repo: %v", copyErr),
+		}
+	}
+
 	return nil, nil
 }
 
@@ -305,10 +333,11 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
 	var configFileBuffer []byte
 	var configFileErr error
-	if options[string(kftypes.REPO)].(string) == "" {
+	repoPath := options[string(kftypes.REPO)].(string)
+	if repoPath == "" {
 		configFileBuffer, configFileErr = downloadToCache(platform, appDir, version, useBasicAuth)
 	} else {
-		configFileBuffer, configFileErr = copyLocalRepo()
+		configFileBuffer, configFileErr = copyLocalRepo(platform, appDir, version, repoPath, useBasicAuth)
 	}
 	if configFileErr != nil {
 		log.Fatalf("could not download repo to cache Error %v", configFileErr)
@@ -335,7 +364,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	kfDef.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
 	kfDef.Namespace = options[string(kftypes.NAMESPACE)].(string)
 	kfDef.Spec.Version = options[string(kftypes.VERSION)].(string)
-	kfDef.Spec.Repo = options[string(kftypes.REPO)].(string)
+	kfDef.Spec.Repo = repoPath
 	kfDef.Spec.Project = options[string(kftypes.PROJECT)].(string)
 	kfDef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
 	kfDef.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
