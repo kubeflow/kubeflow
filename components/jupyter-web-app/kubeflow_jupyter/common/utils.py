@@ -93,7 +93,7 @@ def create_notebook_template():
       "spec": {
           "template": {
               "spec": {
-                  "serviceAccountName": "jupyter-notebook",
+                  "serviceAccountName": "default-editor",
                   "containers": [{
                       "name": "",
                       "volumeMounts": [],
