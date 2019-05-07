@@ -49,7 +49,11 @@ def post_notebook(namespace):
   # CPU/RAM
   utils.set_notebook_cpu_ram(notebook, body)
 
-  # Workspacae Volume
+  # Enable SHM
+  if body["shm_enable"] == "1":
+      utils.enable_shm(notebook)
+
+  # Workspace Volume
   if body["ws_type"] == "New":
     try:
       api.create_workspace_pvc(body)
@@ -162,7 +166,5 @@ def home():
     nmsps = [base_ns]
     logger.warning("Can't  list namespaces: %s" % api.parse_error(e))
 
-  # todo(apverma): To Be removed after multi-user isolation support is implemented
-  nmsps = [base_ns] # Issue #2937
   return render_template(
       'notebooks.html', prefix=prefix(), title='Notebooks', namespaces=nmsps)

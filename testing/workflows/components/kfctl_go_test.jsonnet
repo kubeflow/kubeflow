@@ -278,7 +278,7 @@ local deleteStep = if deleteKubeflow then
         // Increase the log level so that info level log statements show up.
         "--log-cli-level=info",
         // Test timeout in seconds.
-        "--timeout=500",
+        "--timeout=1000",
         "--junitxml=" + artifactsDir + "/junit_kfctl-go-delete-test.xml",
         "--app_path=" + appDir,
         "--kfctl_path=" + kfCtlPath,
@@ -304,7 +304,6 @@ local testDirDeleteStep = {
       dependencies: ["copy-artifacts"],
     };
 
-// TODO(jlewi): Add testDirDeleteStep
 local exitTemplates =
   deleteStep +
   [
@@ -322,7 +321,8 @@ local exitTemplates =
       dependencies: if deleteKubeflow then
          ["kfctl-delete"]
       else null,
-    },    
+    },
+    testDirDeleteStep,
   ];
 
 // Dag defines the tasks in the graph

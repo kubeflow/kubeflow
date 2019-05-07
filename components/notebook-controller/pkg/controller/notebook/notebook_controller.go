@@ -18,6 +18,7 @@ package notebook
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 
@@ -27,6 +28,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -45,6 +47,7 @@ import (
 var log = logf.Log.WithName("controller")
 
 const DefaultContainerPort = 8888
+const DefaultServingPort = 80
 
 // The default fsGroup of PodSecurityContext.
 // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#podsecuritycontext-v1-core
@@ -84,6 +87,18 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	err = c.Watch(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &v1alpha1.Notebook{},
+	})
+	if err != nil {
+		return err
+	}
+
+	// Watch for changes to Notebook virtualservices.
+	virtualService := &unstructured.Unstructured{}
+	virtualService.SetAPIVersion("networking.istio.io/v1alpha3")
+	virtualService.SetKind("VirtualService")
+	err = c.Watch(&source.Kind{Type: virtualService}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &v1alpha1.Notebook{},
 	})
@@ -211,6 +226,39 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	if !justCreated && util.CopyServiceFields(service, foundService) {
 		log.Info("Updating Service\n", "namespace", service.Namespace, "name", service.Name)
 		err = r.Update(context.TODO(), foundService)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	}
+
+	// Reconcile virtual service
+	virtualService, err := generateVirtualService(instance)
+	if err := controllerutil.SetControllerReference(instance, virtualService, r.scheme); err != nil {
+		return reconcile.Result{}, err
+	}
+	// Check if the virtual service already exists.
+	foundVirtual := &unstructured.Unstructured{}
+	justCreated = false
+	foundVirtual.SetAPIVersion("networking.istio.io/v1alpha3")
+	foundVirtual.SetKind("VirtualService")
+	err = r.Get(context.TODO(), types.NamespacedName{Name: virtualServiceName(instance.Name,
+		instance.Namespace), Namespace: instance.Namespace}, foundVirtual)
+	if err != nil && errors.IsNotFound(err) {
+		log.Info("Creating virtual service", "namespace", instance.Namespace, "name",
+			virtualServiceName(instance.Name, instance.Namespace))
+		err = r.Create(context.TODO(), virtualService)
+		justCreated = true
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	} else if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	if !justCreated && util.CopyVirtualService(virtualService, foundVirtual) {
+		log.Info("Updating virtual service", "namespace", instance.Namespace, "name",
+			virtualServiceName(instance.Name, instance.Namespace))
+		err = r.Update(context.TODO(), foundVirtual)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -360,7 +408,7 @@ func generateService(instance *v1alpha1.Notebook) *corev1.Service {
 			Selector: map[string]string{"statefulset": instance.Name},
 			Ports: []corev1.ServicePort{
 				corev1.ServicePort{
-					Port:       80,
+					Port:       DefaultServingPort,
 					TargetPort: intstr.FromInt(port),
 					Protocol:   "TCP",
 				},
@@ -368,4 +416,62 @@ func generateService(instance *v1alpha1.Notebook) *corev1.Service {
 		},
 	}
 	return svc
+}
+
+func virtualServiceName(kfName string, namespace string) string {
+	return fmt.Sprintf("notebook-%s-%s", namespace, kfName)
+}
+
+func generateVirtualService(instance *v1alpha1.Notebook) (*unstructured.Unstructured, error) {
+	name := instance.Name
+	namespace := instance.Namespace
+	prefix := fmt.Sprintf("/notebook/%s/%s", namespace, name)
+	rewrite := fmt.Sprintf("/notebook/%s/%s", namespace, name)
+	// TODO(gabrielwen): Make clusterDomain an option.
+	service := fmt.Sprintf("%s.%s.svc.cluster.local", name, namespace)
+
+	vsvc := &unstructured.Unstructured{}
+	vsvc.SetAPIVersion("networking.istio.io/v1alpha3")
+	vsvc.SetKind("VirtualService")
+	vsvc.SetName(virtualServiceName(name, namespace))
+	vsvc.SetNamespace(namespace)
+	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"*"}, "spec", "hosts"); err != nil {
+		return nil, fmt.Errorf("Set .spec.hosts error: %v", err)
+	}
+	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"kubeflow-gateway"},
+		"spec", "gateways"); err != nil {
+		return nil, fmt.Errorf("Set .spec.gateways error: %v", err)
+	}
+
+	http := []interface{}{
+		map[string]interface{}{
+			"match": []interface{}{
+				map[string]interface{}{
+					"uri": map[string]interface{}{
+						"prefix": prefix,
+					},
+				},
+			},
+			"rewrite": map[string]interface{}{
+				"uri": rewrite,
+			},
+			"route": []interface{}{
+				map[string]interface{}{
+					"destination": map[string]interface{}{
+						"host": service,
+						"port": map[string]interface{}{
+							"number": int64(DefaultServingPort),
+						},
+					},
+				},
+			},
+			"timeout": "300s",
+		},
+	}
+	if err := unstructured.SetNestedSlice(vsvc.Object, http, "spec", "http"); err != nil {
+		return nil, fmt.Errorf("Set .spec.http error: %v", err)
+	}
+
+	return vsvc, nil
+
 }

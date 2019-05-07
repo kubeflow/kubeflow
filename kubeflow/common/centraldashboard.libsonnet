@@ -102,7 +102,7 @@
             match: [
               {
                 uri: {
-                  prefix: "/_/",
+                  prefix: "/",
                 },
               },
             ],
@@ -152,8 +152,12 @@
       },
       rules: [
         {
-          apiGroups: [""],
+          apiGroups: [
+              "",
+              "app.k8s.io"
+          ],
           resources: [
+            "applications",
             "pods",
             "pods/exec",
             "pods/log",
@@ -216,6 +220,7 @@
           apiGroups: [""],
           resources: [
             "namespaces",
+            "nodes",
             "events"
           ],
           verbs: [

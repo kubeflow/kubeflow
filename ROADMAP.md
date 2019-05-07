@@ -8,7 +8,7 @@ A CUJ shows how a user would accomplish some critical task (for example build, t
 Kubeflow does a major release at the end of every quarter. Minor releases occur as needed to fix important bugs.
 
 For detailed information about what will be in a release look
-for the issues taged "area/X.Y.Z".
+for the issues tagged "area/X.Y.Z".
 
 If you are a member of the Kubeflow org you can use these search queries
   * Issues for [0.4.0](https://github.com/issues?utf8=%E2%9C%93&q=org%3Akubeflow+label%3Aarea%2F0.4.0)

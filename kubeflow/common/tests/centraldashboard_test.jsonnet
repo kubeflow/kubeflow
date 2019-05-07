@@ -112,8 +112,12 @@ local testCases = [
       },
       rules: [
         {
-          apiGroups: [""],
+          apiGroups: [
+            "",
+            "app.k8s.io"
+          ],
           resources: [
+            "applications",
             "pods",
             "pods/exec",
             "pods/log",
@@ -151,6 +155,59 @@ local testCases = [
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
         kind: "Role",
+        name: "centraldashboard",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "centraldashboard",
+          namespace: "kftest",
+        },
+      ],
+    },
+  },
+  {
+    actual: centraldash.centralDashboardClusterRole,
+    expected: {
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "ClusterRole",
+      metadata: {
+        labels: {
+          app: "centraldashboard",
+        },
+        name: "centraldashboard",
+      },
+      rules: [
+        {
+          apiGroups: [""],
+          resources: [
+            "namespaces",
+            "nodes",
+            "events"
+          ],
+          verbs: [
+            "get",
+            "list",
+            "watch",
+          ],
+        },
+      ],
+    },
+  },
+  {
+    actual: centraldash.centralDashboardClusterRoleBinding,
+    expected: {
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "ClusterRoleBinding",
+      metadata: {
+        labels: {
+          app: "centraldashboard",
+        },
+        name: "centraldashboard",
+      },
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
         name: "centraldashboard",
       },
       subjects: [

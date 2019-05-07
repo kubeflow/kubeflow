@@ -6,11 +6,10 @@ import '@polymer/app-layout/app-scroll-effects/app-scroll-effects.js';
 import '@polymer/app-layout/app-toolbar/app-toolbar.js';
 import '@polymer/app-route/app-location.js';
 import '@polymer/app-route/app-route.js';
+import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/iron-collapse/iron-collapse.js';
 import '@polymer/iron-selector/iron-selector.js';
-import '@polymer/iron-flex-layout/iron-flex-layout-classes.js';
-import '@polymer/iron-flex-layout/iron-flex-layout.js';
 import '@polymer/iron-media-query/iron-media-query.js';
 import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-tabs/paper-tabs.js';
@@ -28,25 +27,25 @@ import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
 import css from './main-page.css';
 import template from './main-page.pug';
-import logo from '../assets/kf-logo_64px.svg';
+import logo from '../assets/kf-logo.svg';
 
 import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
 import './not-found-view.js';
-
-const VALID_QUERY_PARAMS = ['ns'];
+import utilitiesMixin from './utilities-mixin.js';
+import {MESSAGE, PARENT_CONNECTED_EVENT, IFRAME_CONNECTED_EVENT,
+    NAMESPACE_SELECTED_EVENT} from '../library.js';
+import {IFRAME_LINK_PREFIX} from './iframe-link.js';
 
 /**
  * Entry point for application UI.
  */
-export class MainPage extends PolymerElement {
+export class MainPage extends utilitiesMixin(PolymerElement) {
     static get template() {
         const pugVariables = {logo: logo};
-        return html([`
-        <style is="custom-style"
-            include="iron-flex iron-flex-alignment iron-positioning">
-        <style>${css.toString()}</style>${template(pugVariables)}`]);
+        return html([
+            `<style>${css.toString()}</style>${template(pugVariables)}`]);
     }
 
     static get properties() {
@@ -56,48 +55,62 @@ export class MainPage extends PolymerElement {
             subRouteData: Object,
             queryParams: {
                 type: Object,
-                value: () => {},
+                value: null, // Necessary to preserve queryString from load
             },
             iframeRoute: Object,
             menuLinks: {
                 type: Array,
                 value: [
                     {
-                        iframeUrl: 'https://www.kubeflow.org/docs/about/kubeflow/',
-                        text: 'Kubeflow docs',
-                        href: '/docs',
+                        link: '/pipeline/',
+                        text: 'Pipelines',
                     },
                     {
-                        iframeUrl: '/jupyter/',
-                        text: 'Notebooks',
-                        href: '/notebooks',
+                        link: '/jupyter/',
+                        text: 'Notebook Servers',
                     },
                     {
-                        iframeUrl: '/tfjobs/ui/',
-                        text: 'TFJob Dashboard',
-                        href: '/tjob-dashboard',
+                        link: '/tfjobs/ui/',
+                        text: 'TF Jobs Dashboard',
                     },
                     {
-                        iframeUrl: '/katib/',
+                        link: '/katib/',
                         text: 'Katib Dashboard',
-                        href: '/katib-dashboard',
-                    },
-                    {
-                        iframeUrl: '/pipeline/',
-                        text: 'Pipeline Dashboard',
-                        href: '/pipeline-dashboard',
                     },
                 ],
             },
-            sidebarItemIndex: {type: Number, value: 0},
+            sidebarItemIndex: {type: Number, value: 0,
+                observer: '_revertSidebarIndexIfExternal'},
             iframeUrl: {type: String, value: ''},
             buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
+            platformInfo: Object,
             inIframe: {type: Boolean, value: false, readOnly: true},
             hideTabs: {type: Boolean, value: false, readOnly: true},
             hideNamespaces: {type: Boolean, value: false, readOnly: true},
             notFoundInIframe: {type: Boolean, value: false, readOnly: true},
+            namespace: {type: String, observer: '_namespaceChanged'},
         };
+    }
+
+    /**
+     * Initializes private iframe state variables and attaches a listener for
+     * messages received by the window object.
+     */
+    ready() {
+        super.ready();
+        this._iframeConnected = false;
+        this._iframeOrigin = null;
+        this._messageListener = this._onMessageReceived.bind(this);
+        window.addEventListener(MESSAGE, this._messageListener);
+    }
+
+    /**
+     * Remove the event listener for messages.
+     */
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener(MESSAGE, this._messageListener);
     }
 
     /**
@@ -111,39 +124,6 @@ export class MainPage extends PolymerElement {
     }
 
     /**
-     * [MACRO] Provide a logical OR functionality for the Polymer DOM
-     * @param {...boolean} e
-     * @return {boolean}
-     */
-    or(...e) {
-        return e.some((i) => Boolean(i));
-    }
-
-    /**
-     * [MACRO] Provide a logical equals functionality for the Polymer DOM
-     * @param {...any} e
-     * @return {boolean}
-     */
-    equals(...e) {
-        const crit = e.shift();
-        if (!e.length) return true;
-        return e.every((e) => e === crit);
-    }
-
-    /**
-     * Intercepts any external links and ensures that they are captured in
-     * the route and sent to the iframe source.
-     * @param {MouseEvent} e
-     */
-    openInIframe(e) {
-        // e.currentTarget is an HTMLAnchorElement
-        const url = e.currentTarget.href.slice(e.currentTarget.origin.length);
-        window.history.pushState({}, null, `_${url}`);
-        window.dispatchEvent(new CustomEvent('location-changed'));
-        e.preventDefault();
-    }
-
-    /**
      * Handles route changes by evaluating the page path component
      * @param {string} newPage
      */
@@ -152,16 +132,23 @@ export class MainPage extends PolymerElement {
         let notFoundInIframe = false;
         let hideTabs = true;
         let hideNamespaces = false;
+        let iframeUrl;
+
         switch (newPage) {
         case 'activity':
             this.sidebarItemIndex = 0;
             this.page = 'activity';
             hideTabs = false;
             break;
-        case '_': // iframe case
-            this._setIframeFromRoute(this.subRouteData.path);
+        case IFRAME_LINK_PREFIX:
+            this.page = 'iframe';
+            iframeUrl = new URL(this.subRouteData.path, window.location.origin);
+            iframeUrl.hash = window.location.hash;
+            iframeUrl.search = window.location.search;
+            this.iframeUrl = iframeUrl.toString();
             isIframe = true;
             hideNamespaces = this.subRouteData.path.startsWith('/pipeline');
+            this._setActiveMenuLink(this.subRouteData.path);
             break;
         case '':
             this.sidebarItemIndex = 0;
@@ -180,6 +167,8 @@ export class MainPage extends PolymerElement {
         this._setHideTabs(hideTabs);
         this._setHideNamespaces(hideNamespaces);
         this._setInIframe(isIframe);
+
+        this._iframeConnected = this._iframeConnected && isIframe;
         // If iframe <-> [non-frame OR other iframe]
         if (isIframe !== this.inIframe || isIframe) {
             this.$.MainDrawer.close();
@@ -187,19 +176,39 @@ export class MainPage extends PolymerElement {
     }
 
     /**
-     * Sets the iframeUrl and sidebarItem based on the subpage component
-     * provided.
-     * @param {string} href
+     * Revert the sidebar index if the item clicked is an external link
+     * @param {int} curr
+     * @param {int} old
      */
-    _setIframeFromRoute(href) {
-        const menuLinkIndex = this.menuLinks.findIndex((m) => m.href === href);
+    _revertSidebarIndexIfExternal(curr, old=0) {
+        if (curr <= this.menuLinks.length) return;
+        this.sidebarItemIndex = old;
+    }
+
+    /**
+     * Handles namespace change. Sends message if the value has changed.
+     * @param {string} newValue
+     * @param {string} oldValue
+     */
+    _namespaceChanged(newValue, oldValue) {
+        if (newValue && newValue !== oldValue) {
+            this._sendNamespaceMessage();
+        }
+    }
+
+    /**
+     * Tries to determine which menu link to activate based on the provided
+     * path.
+     * @param {string} path
+     */
+    _setActiveMenuLink(path) {
+        const menuLinkIndex = this.menuLinks
+            .findIndex((m) => path.startsWith(m.link));
         if (menuLinkIndex >= 0) {
-            this.page = 'iframe';
-            this.iframeUrl = this.menuLinks[menuLinkIndex].iframeUrl;
+            // Adds 1 since Overview is hard-coded
             this.sidebarItemIndex = menuLinkIndex + 1;
         } else {
             this.sidebarItemIndex = -1;
-            this.page = 'not_found';
         }
     }
 
@@ -212,20 +221,46 @@ export class MainPage extends PolymerElement {
         return window.location !== window.parent.location;
     }
 
-    /**
-     * Builds and returns an href value preserving the current query string.
-     * @param {string} href
-     * @param {Object} queryParams
-     * @return {string}
+    /* Handles the AJAX response from the platform-info API.
+     * @param {Event} responseEvent AJAX-response
      */
-    _buildHref(href, queryParams) {
-        const url = new URL(href, window.location.origin);
-        VALID_QUERY_PARAMS.forEach((qp) => {
-            if (queryParams[qp]) {
-                url.searchParams.set(qp, queryParams[qp]);
-            }
-        });
-        return url.href.slice(url.origin.length);
+    _onPlatformInfoResponse(responseEvent) {
+        const {response} = responseEvent.detail;
+        this.platformInfo = response;
+        if (this.platformInfo.kubeflowVersion) {
+            this.buildVersion = this.platformInfo.kubeflowVersion;
+        }
+    }
+
+    /**
+     * Sends a message to the iframe message bus. This is used on the iframe
+     * load event as well as when the namespace changes.
+     */
+    _sendNamespaceMessage() {
+        if (!this._iframeConnected) return;
+        this.$.PageFrame.contentWindow.postMessage({
+            type: NAMESPACE_SELECTED_EVENT,
+            value: this.namespace,
+        }, this._iframeOrigin);
+    }
+
+    /**
+     * Receives a message from an iframe page and passes the selected namespace.
+     * @param {MessageEvent} event
+     */
+    _onMessageReceived(event) {
+        const {data, origin} = event;
+        this._iframeOrigin = origin;
+        switch (data.type) {
+        case IFRAME_CONNECTED_EVENT:
+            this._iframeConnected = true;
+            this.$.PageFrame.contentWindow.postMessage({
+                type: PARENT_CONNECTED_EVENT,
+                value: null,
+            }, origin);
+            this._sendNamespaceMessage();
+            break;
+        }
     }
 }
 

@@ -1,3 +1,5 @@
+iron-ajax(auto, url='/api/platform-info', handle-as='json',
+    on-response='_onPlatformInfoResponse')
 app-drawer-layout.flex(narrow='{{narrowMode}}',
         force-narrow='[[or(inIframe, thinView, notFoundInIframe)]]',
         thin$='[[thinView]]')
@@ -5,17 +7,24 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
     app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
         tail='{{subRouteData}}')
     app-drawer#MainDrawer(slot='drawer')
-        figure#Logo
+        figure
             |!{logo}
-            figcaption Kubeflow
         iron-selector(selected='{{sidebarItemIndex}}')
-            a(href$='[[_buildHref("/", queryParams)]]', tabindex='-1')
-                paper-item.menu-item Home
-                aside.divider
+            a(href$='[[buildHref("/", queryParams)]]', tabindex='-1')
+                paper-item.menu-item Overview
             template(is='dom-repeat', items='[[menuLinks]]')
-                a(href$='[[_buildHref(item.href, queryParams)]]',
-                    on-click='openInIframe', tabindex='-1')
+                iframe-link(href$="[[buildHref(item.link, queryParams)]]",
+                    tabindex='-1')
                     paper-item.menu-item [[item.text]]
+            aside.divider
+            a(href='https://github.com/kubeflow/kubeflow',
+                tabindex='-1', target="_blank")
+                paper-item.menu-item GitHub
+                    iron-icon.external(icon="launch")
+            a(href='https://www.kubeflow.org/docs/about/kubeflow/',
+                tabindex='-1', target="_blank")
+                paper-item.menu-item Documentation
+                    iron-icon.external(icon="launch")
         aside.flex
         footer.footer
             section.information
@@ -26,25 +35,25 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                 span(title="Build: [[buildVersion]] | Dashboard: v[[dashVersion]]") [[buildVersion]]
     app-header-layout(fullbleed)
         app-header(slot='header', hides, hidden$='[[notFoundInIframe]]')
-            app-toolbar(blue$='[[inIframe]]')
+            app-toolbar
                 aside#Narrow-Slider(hides, hidden$='[[!narrowMode]]')
                     paper-icon-button#Menu(icon='menu', drawer-toggle)
                     figure.Logo
                         |!{logo}
-                        figcaption Kubeflow
+                namespace-selector#NamespaceSelector(
+                    query-params='{{queryParams}}', selected="{{namespace}}",
+                    hides, hidden$='[[hideNamespaces]]')
                 paper-tabs.bottom(selected='[[page]]', attr-for-selected='page',
                         hides, hidden$='[[hideTabs]]')
                     paper-tab(page='dashboard', link)
-                        a.link(tabindex='-1', href$='[[_buildHref("/", queryParams)]]') Dashboard
+                        a.link(tabindex='-1', href$='[[buildHref("/", queryParams)]]') Dashboard
                     paper-tab(page='activity', link)
-                        a.link(tabindex='-1', href$='[[_buildHref("/activity", queryParams)]]') Activity
-                aside#NamespaceSelector(hides, hidden$='[[hideNamespaces]]')
-                    namespace-selector(query-params='{{queryParams}}')
+                        a.link(tabindex='-1', href$='[[buildHref("/activity", queryParams)]]') Activity
         neon-animated-pages(selected='[[page]]', attr-for-selected='page',
                             entry-animation='fade-in-animation',
                             exit-animation='fade-out-animation')
             neon-animatable(page='dashboard')
-                dashboard-view
+                dashboard-view(platform-info='[[platformInfo]]')
             neon-animatable(page='activity')
                 activity-view(namespace='[[queryParams.ns]]')
             neon-animatable#iframe-page(page='iframe')

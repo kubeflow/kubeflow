@@ -1,0 +1,10 @@
+#cloudbuild.yaml
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: 
+    - 'build'
+    - '-t'
+    - 'gcr.io/$PROJECT_ID/kfctl/${_TARGET}:$TAG_NAME'
+    - '--target=${_TARGET}'
+    - '.'
+images: ['gcr.io/$PROJECT_ID/kfctl/${_TARGET}:$TAG_NAME',]
