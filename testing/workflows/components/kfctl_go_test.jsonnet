@@ -304,7 +304,6 @@ local testDirDeleteStep = {
       dependencies: ["copy-artifacts"],
     };
 
-// TODO(jlewi): Add testDirDeleteStep
 local exitTemplates =
   deleteStep +
   [
@@ -322,7 +321,8 @@ local exitTemplates =
       dependencies: if deleteKubeflow then
          ["kfctl-delete"]
       else null,
-    },    
+    },
+    testDirDeleteStep,
   ];
 
 // Dag defines the tasks in the graph
