@@ -152,6 +152,8 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 	}
 }
 
+// This function will copy local repo to cache directory.
+// It returns one of the config files under bootstrap/config as a []byte buffer.
 func copyLocalRepo(platform string, appDir string, version string, repoPath string,
 	useBasicAuth bool) ([]byte, error) {
 	if _, err := os.Stat(appDir); os.IsNotExist(err) {
