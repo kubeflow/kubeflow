@@ -625,6 +625,11 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 						params[i] = paramName + "=" + kfDef.Namespace
 					case "project":
 						params[i] = paramName + "=" + kfDef.Spec.Project
+					default:
+						return &kfapis.KfError{
+							Code:    int(kfapis.INTERNAL_ERROR),
+							Message: fmt.Sprintf("could not resolve %v in %v", paramName, paramFile),
+						}
 					}
 				}
 			}
