@@ -50,7 +50,8 @@ We have heard from our users and based on the feedback we are continuing to impr
 *   A uniform CLI / UI based deployment experience based on a common backend [kubeflow/kubeflow#1419](https://github.com/kubeflow/kubeflow/issues/1419).
 *   Simplified UI Driven deployment.
 *   Support for upgrading existing Kubeflow deployments.
-*   Simplified deployment for local Kubeflow using Minikube and Microk8s.
+*   Simplified deployment for local Kubeflow using MiniKF, Minikube and Microk8s.
+	* [MiniKF Issues](https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+org%3Akubeflow+label%3Aplatform%2Fminikf)
 	* [Minikube Issues](https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+org%3Akubeflow+label%3Aplatform%2Fminikube)
 	* [MicroK8s Issues](https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+org%3Akubeflow+label%3Aplatform%2Fmicrok8s+)
 *   [Deployment related issues](https://github.com/kubeflow/kubeflow/issues?q=is%3Aopen+is%3Aissue+label%3Aarea%2Fbootstrap)

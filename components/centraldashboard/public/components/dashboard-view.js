@@ -50,6 +50,11 @@ export class DashboardView extends PolymerElement {
                         link: `${DOCS}/getting-started/`,
                     },
                     {
+                        text: 'MiniKF',
+                        desc: 'A fast and easy way to deploy Kubeflow locally',
+                        link: `${DOCS}/getting-started-minikf/`,
+                    },
+                    {
                         text: 'Microk8s for Kubeflow',
                         desc: 'Quickly get Kubeflow running locally on ' +
                             'native hypervisors',
