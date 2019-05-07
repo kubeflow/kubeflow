@@ -80,11 +80,11 @@ const (
 	resourcesMap MapType = 4
 	crdsMap MapType = 5
 	varsMap MapType = 6
-	configurationsMap = 7
-	configMapGeneratorMap = 8
-	secretsMapGeneratorMap = 9
-	patchesStrategicMergeMap = 10
-	patchesJson6902Map = 11
+	configurationsMap MapType = 7
+	configMapGeneratorMap MapType = 8
+	secretsMapGeneratorMap MapType = 9
+	patchesStrategicMergeMap MapType = 10
+	patchesJson6902Map MapType = 11
 )
 type kustomize struct {
 	cltypes.KfDef
@@ -619,6 +619,11 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 						params[i] = paramName + "=" + kfDef.Namespace
 					case "project":
 						params[i] = paramName + "=" + kfDef.Spec.Project
+					default:
+						return &kfapis.KfError{
+							Code:    int(kfapis.INTERNAL_ERROR),
+							Message: fmt.Sprintf("could not resolve %v in %v", paramName, paramFile),
+						}
 					}
 				}
 			}
@@ -667,7 +672,9 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 		}
 	}
 
-	updateParamFiles()
+	if err := updateParamFiles(); err != nil {
+		return err
+	}
 	if child.Bases == nil {
 		basePath := extractSuffix(compDir, targetDir)
 		if _, ok := kustomizationMaps[basesMap][basePath]; !ok {
@@ -717,12 +724,18 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 		if _, ok := kustomizationMaps[imagesMap][imageName]; !ok {
 			parent.Images = append(parent.Images, value)
 			kustomizationMaps[imagesMap][imageName] = true
+		} else {
+			kFile := filepath.Join(targetDir, kftypes.KustomizationFile)
+			log.Warnf("ignoring image %v specified in %v", imageName, kFile)
 		}
 	}
 	for _, value := range child.Crds {
 		if _, ok := kustomizationMaps[crdsMap][value]; !ok {
 			parent.Crds = append(parent.Crds, value)
 			kustomizationMaps[crdsMap][value] = true
+		} else {
+			kFile := filepath.Join(targetDir, kftypes.KustomizationFile)
+			log.Warnf("ignoring crd %v specified in %v", value, kFile)
 		}
 	}
 	for _, value := range child.ConfigMapGenerator {
@@ -735,11 +748,11 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 		case types.BehaviorCreate:
 			if _, ok := kustomizationMaps[secretsMapGeneratorMap][secretName]; !ok {
 				parent.SecretGenerator = append(parent.SecretGenerator, value)
-				kustomizationMaps[configMapGeneratorMap][secretName] = true
+				kustomizationMaps[secretsMapGeneratorMap][secretName] = true
 			}
 		case types.BehaviorMerge, types.BehaviorReplace:
 			parent.SecretGenerator = append(parent.SecretGenerator, value)
-			kustomizationMaps[configMapGeneratorMap][secretName] = true
+			kustomizationMaps[secretsMapGeneratorMap][secretName] = true
 		}
 	}
 	for _, value := range child.Vars {
@@ -747,6 +760,9 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 		if _, ok := kustomizationMaps[varsMap][varName]; !ok {
 			parent.Vars = append(parent.Vars, value)
 			kustomizationMaps[varsMap][varName] = true
+		} else {
+			kFile := filepath.Join(targetDir, kftypes.KustomizationFile)
+			log.Warnf("ignoring var %v specified in %v", varName, kFile)
 		}
 	}
 	for _, value := range child.PatchesStrategicMerge {
