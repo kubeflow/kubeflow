@@ -176,11 +176,28 @@ func copyLocalRepo(platform string, appDir string, version string, repoPath stri
 	if copyErr := fileutils.CopyDir(repoPath, cacheDir); copyErr != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error when copying local repo: %v", copyErr),
+			Message: fmt.Sprintf("couldn't copy local repo %v: %v", repoPath, copyErr),
 		}
 	}
 
-	return nil, nil
+	configPath := filepath.Join(cacheDir, kftypes.DefaultConfigDir)
+	if platform == kftypes.GCP {
+		if useBasicAuth {
+			configPath = filepath.Join(configPath, kftypes.GcpBasicAuth)
+		} else {
+			configPath = filepath.Join(configPath, kftypes.GcpIapConfig)
+		}
+	} else {
+		configPath = filepath.Join(configPath, kftypes.DefaultConfigFile)
+	}
+	if data, err := ioutil.ReadFile(configPath); err == nil {
+		return data, nil
+	} else {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("couldn't read config file from %v:%v", configPath, err),
+		}
+	}
 }
 
 // GetPlatform will return an implementation of kftypes.KfApp that matches the platform string
