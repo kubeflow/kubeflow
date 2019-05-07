@@ -105,8 +105,6 @@ describe('Main Page', () => {
         expect(mainPage.inIframe).toBe(true);
         expect(mainPage.shadowRoot.querySelector('paper-tabs')
             .hasAttribute('hidden')).toBe(true);
-        expect(mainPage.shadowRoot.querySelector('app-toolbar')
-            .hasAttribute('blue')).toBe(true);
         expect(mainPage.$.MainDrawer.close).toHaveBeenCalled();
     });
 
@@ -162,8 +160,6 @@ describe('Main Page', () => {
         expect(mainPage.inIframe).toBe(true);
         expect(mainPage.shadowRoot.querySelector('paper-tabs')
             .hasAttribute('hidden')).toBe(true);
-        expect(mainPage.shadowRoot.querySelector('app-toolbar')
-            .hasAttribute('blue')).toBe(true);
     });
 
     it('Sets build version when platform info is received', async () => {

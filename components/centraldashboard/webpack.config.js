@@ -123,6 +123,7 @@ module.exports = {
                         presets: [[
                             '@babel/preset-env',
                             {
+                                corejs: '2',
                                 useBuiltIns: 'entry',
                                 targets: {
                                     browsers: [
