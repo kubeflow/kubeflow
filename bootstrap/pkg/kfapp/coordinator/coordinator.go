@@ -151,6 +151,10 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 	}
 }
 
+func copyLocalRepo() ([]byte, error) {
+	return nil, nil
+}
+
 // GetPlatform will return an implementation of kftypes.KfApp that matches the platform string
 // It looks for statically compiled-in implementations, otherwise it delegates to
 // kftypes.LoadKfApp which will try and dynamically load a .so
@@ -299,7 +303,13 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		}
 	}
 	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
-	configFileBuffer, configFileErr := downloadToCache(platform, appDir, version, useBasicAuth)
+	var configFileBuffer []byte
+	var configFileErr error
+	if options[string(kftypes.REPO)].(string) == "" {
+		configFileBuffer, configFileErr = downloadToCache(platform, appDir, version, useBasicAuth)
+	} else {
+		configFileBuffer, configFileErr = copyLocalRepo()
+	}
 	if configFileErr != nil {
 		log.Fatalf("could not download repo to cache Error %v", configFileErr)
 	}
