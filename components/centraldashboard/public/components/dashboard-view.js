@@ -103,7 +103,7 @@ export class DashboardView extends PolymerElement {
      */
     _platformInfoChanged() {
         let platformProps = {};
-        if (1||this.platformInfo && this.platformInfo.providerName === 'gce') {
+        if (this.platformInfo && this.platformInfo.providerName === 'gce') {
             this.platformName = 'GCP';
             const pieces = this.platformInfo.provider.split('/');
             let gcpProject = '';
