@@ -85,8 +85,8 @@ paths:
         500:
           description: "Internal Server Error"
     get:
-      summary: "Get binding specified in request body"
-      description: "If succeeded, returned binding will contain it's current status"
+      summary: "Get bindings filtered by query param"
+      description: "bindings will contain it's current status"
       operationId: "read binding"
       consumes:
         - "application/json"
@@ -99,6 +99,18 @@ paths:
           required: true
           schema:
             $ref: "#/definitions/Binding"
+        - in: "query"
+          name: "user"
+          description: "User name, when not empty, only return bindings of this user"
+          type: "string"
+        - in: "query"
+          name: "namespace"
+          description: "Namespace name, when not empty, only return bindings of this namespace"
+          type: "string"
+        - in: "query"
+          name: "role"
+          description: "owner or editor, when not empty, only return bindings of this role"
+          type: "string"
       responses:
         200:
           description: "OK"
@@ -132,61 +144,14 @@ paths:
           description: "Entry not found"
         500:
           description: "Internal Server Error"
-  /v1/profiles/{profile}/users:
-    get:
-      summary: "Get users with owner or editor permission to queried profile / namespace"
-      description: "return list of users"
-      operationId: "read users"
-      consumes:
-        - "application/json"
-      produces:
-        - "application/json"
-      parameters:
-        - in: "path"
-          name: "profile"
-          description: "Profile name"
-          required: true
-          type: "string"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            $ref: "#/definitions/UserEntries"
-        404:
-          description: "Entry not found"
-        500:
-          description: "Internal Server Error"
-  /v1/users/{user}/namespaces:
-    get:
-      summary: "Get namespaces that queried user can access as owner or editor"
-      operationId: "read namespaces"
-      consumes:
-        - "application/json"
-      produces:
-        - "application/json"
-      parameters:
-        - in: "path"
-          name: "user"
-          description: "k8s user name"
-          required: true
-          type: "string"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            $ref: "#/definitions/NamespaceEntries"
-        404:
-          description: "Entry not found"
-        500:
-          description: "Internal Server Error"
 definitions:
-  UserEntries:
+  BindingEntries:
     type: "object"
     properties:
       users:
         type: "array"
         items:
-          $ref: "#/definitions/User"
+          $ref: "#/definitions/Binding"
   User:
     type: "object"
     properties:
@@ -194,13 +159,6 @@ definitions:
         type: "string"
       name:
         type: "string"
-  NamespaceEntries:
-    type: "object"
-    properties:
-      namespaces:
-        type: "array"
-        items:
-          type: "string"
   Binding:
     type: "object"
     description: "Binding will give user edit access to referredNamespace"
@@ -208,6 +166,9 @@ definitions:
       user:
         $ref: "#/definitions/User"
       referredNamespace:
+        type: "string"
+      role:
+        description: "owner or editor"
         type: "string"
       status:
         description: "Status of the profile, one of Succeeded, Failed, Unknown."

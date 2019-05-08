@@ -30,8 +30,11 @@ The goal is to support multi-tenancy kubeflow cluster / services.
 #####`/v1/bindings`
 * `create`: create new binding; 
   * called when admin or owner share namespace access with other users.
-* `get`: get binding; 
+* `get`: get bindings; 
   * called when query for binding status.
+  * filter by user=... | namespace=... | role=owner/editor to query permissions related to a user / namespace.
+  * For example filter by "user=abc@def.com" when need to list namespaces for user "abc@def.com".
+  * For example filter by "namespace=abc" when need to list users of a namespace "abc"
 * `delete`: delete binding; 
   * called when admin or owner revoke namespace access.
 
