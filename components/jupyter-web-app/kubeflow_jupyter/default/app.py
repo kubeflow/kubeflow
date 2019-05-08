@@ -50,11 +50,11 @@ def post_notebook(namespace):
   utils.set_notebook_cpu_ram(notebook, body)
 
   # Enable SHM
-  if body["shm_enable"] == "1":
+  if body.get("shm_enable", "") == "1":
       utils.enable_shm(notebook)
 
   # Workspace Volume
-  if body["ws_type"] == "New":
+  if body.get("ws_type", "") == "New":
     try:
       api.create_workspace_pvc(body)
     except ApiException as e:
@@ -63,7 +63,7 @@ def post_notebook(namespace):
       return jsonify(data)
 
   # Create the Workspace Volume in the Pod
-  if body["ws_type"] != "None":
+  if body.get("ws_type", "") != "None":
     utils.add_notebook_volume(
         notebook,
         body["ws_name"],
