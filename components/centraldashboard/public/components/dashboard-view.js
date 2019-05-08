@@ -9,26 +9,9 @@ import css from './dashboard-view.css';
 import template from './dashboard-view.pug';
 
 import './iframe-link.js';
+import {getGCPData} from './resources/cloud-platform-data.js';
 
 const DOCS = 'https://www.kubeflow.org/docs/started';
-const GCP_LINKS = [
-    {
-        text: 'Stackdriver Logging',
-        link: 'https://console.cloud.google.com/logs/viewer?resource=k8s_cluster&project=',
-    },
-    {
-        text: 'Project Overview',
-        link: 'https://console.cloud.google.com/home/dashboard?project=',
-    },
-    {
-        text: 'Deployment Manager',
-        link: 'https://console.cloud.google.com/dm/deployments?project=',
-    },
-    {
-        text: 'Kubernetes Engine',
-        link: 'https://console.cloud.google.com/kubernetes/list?project=',
-    },
-];
 
 export class DashboardView extends PolymerElement {
     static get template() {
@@ -119,20 +102,20 @@ export class DashboardView extends PolymerElement {
      * Observer for platformInfo property
      */
     _platformInfoChanged() {
-        if (this.platformInfo && this.platformInfo.providerName != 'gce') {
+        let platformProps = {};
+        if (1||this.platformInfo && this.platformInfo.providerName === 'gce') {
             this.platformName = 'GCP';
             const pieces = this.platformInfo.provider.split('/');
             let gcpProject = '';
             if (pieces.length >= 3) {
                 gcpProject = pieces[2];
             }
-            this.platformLinks = GCP_LINKS.map((l) => {
-                return {
-                    text: l.text,
-                    link: l.link + gcpProject,
-                };
-            });
+            platformProps = getGCPData(gcpProject);
         }
+        Object.entries(platformProps).forEach(([key, value]) => {
+            const properKey = key[0].toUpperCase()+key.slice(1);
+            this[`platform${properKey}`] = value;
+        });
     }
 }
 
