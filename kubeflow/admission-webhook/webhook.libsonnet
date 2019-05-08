@@ -39,7 +39,7 @@
               {
                 name: "webhook-cert",
                 secret: {
-                  secretName: "admission-webhook-certs2",
+                  secretName: "admission-webhook-certs",
                 },
               },
             ],
@@ -249,37 +249,6 @@ local webhookRole = {
       },
       rules: [
         {
-          apiGroups: [
-            "apps",
-          ],
-          resources: [
-            "deployments",
-          ],
-          verbs: [
-            "get",
-            "watch",
-            "list",
-            "delete",
-            "update",
-            "create",
-            "patch",
-          ],
-        },
-        {
-          apiGroups: [
-            "",
-          ],
-          resources: [
-            "events",
-          ],
-          verbs: [
-            "get",
-            "watch",
-            "list",
-            "update",
-          ],
-        },
-        {
          apiGroups: [
             "kubeflow.org",
           ],
@@ -295,7 +264,6 @@ local webhookRole = {
             "patch",
             "delete",
           ],
-
         }
       ],
     },

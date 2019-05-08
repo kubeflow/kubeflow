@@ -42,7 +42,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 [ -z ${service} ] && service=admission-webhook
-[ -z ${secret} ] && secret=admission-webhook-certs2
+[ -z ${secret} ] && secret=admission-webhook-certs
 [ -z ${namespace} ] && namespace=${NAMESPACE}
 [ -z ${namespace} ] && namespace=default
 
