@@ -58,7 +58,7 @@ def post_notebook(namespace):
   utils.set_notebook_cpu_ram(notebook, body)
 
   # Enable SHM
-  if body.get("shm_enable", "") == "1":
+  if "shm_enable" in body:
       utils.enable_shm(notebook)
 
   # Workspace Volume
