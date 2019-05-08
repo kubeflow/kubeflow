@@ -55,10 +55,10 @@ paper-card {
     --paper-card-header: {
         font-family: "Google Sans";
         height: 62px;
-        display: flex;
-        align-items: center;
         border-bottom: 1px solid var(--border-color);
         margin-bottom: .5em;
+        @apply --layout-horizontal;
+        @apply --layout-center;
     }
     --paper-card-header-text: {
         padding: 0 1em;
@@ -68,11 +68,11 @@ paper-card {
 paper-card#Platform-Links {
     --paper-card-header-color: #2c6acb;
     --paper-card-header: {
-        display: flex;
-        align-items: center;
         background: #e9f0fd;
         height: 62px;
         border-color: white;
+        @apply --layout-horizontal;
+        @apply --layout-center;
     };
     --paper-card-header-image-text: {
         flex: 1;
