@@ -39,7 +39,7 @@
               {
                 name: "webhook-cert",
                 secret: {
-                  secretName: "admission-webhook-certs",
+                  secretName: "admission-webhook-certs2",
                 },
               },
             ],
@@ -211,6 +211,18 @@
           apiGroups: [""],
           resources: ["secrets"],
           verbs: ["*"],
+        },
+        {
+          apiGroups: [
+            "",
+          ],
+          resources: [
+            "pods",
+          ],
+          verbs: [
+            "list",
+            "delete",
+          ],
         },
       ],
     },  // initClusterRoleBinding

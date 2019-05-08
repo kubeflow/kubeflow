@@ -42,7 +42,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 [ -z ${service} ] && service=admission-webhook
-[ -z ${secret} ] && secret=admission-webhook-certs
+[ -z ${secret} ] && secret=admission-webhook-certs2
 [ -z ${namespace} ] && namespace=${NAMESPACE}
 [ -z ${namespace} ] && namespace=default
 
@@ -84,12 +84,23 @@ openssl req -new -key ${tmpdir}/server-key.pem -subj "/CN=${service}.${namespace
 # Self sign
 openssl x509 -req -days 365 -in ${tmpdir}/server.csr -CA ${tmpdir}/self_ca.crt -CAkey ${tmpdir}/self_ca.key -CAcreateserial -out ${tmpdir}/server-cert.pem
 
+
 # create the secret with CA cert and server cert/key
 kubectl create secret generic ${secret} \
         --from-file=key.pem=${tmpdir}/server-key.pem \
         --from-file=cert.pem=${tmpdir}/server-cert.pem \
         --dry-run -o yaml |
     kubectl -n ${namespace} apply -f -
+
+echo "${secret} is created"
+
+# restart the webhook server if it already exists, ignore the error otherwise
+# this is for https://github.com/kubeflow/kubeflow/issues/3227. 
+# Webhook pod once created loads the secret in the begining and starts serving. 
+# Therefore, if secret is updated, then Webhook pod needs to be restarted  
+webhookPod=$(kubectl get pods -n ${namespace} | grep admission-webhook- |awk '{print $1;}')
+kubectl delete pod ${webhookPod} 2>/dev/null || true
+echo "webhook ${webhookPod} is restarted to utilize the new secret"
 
 cat ${tmpdir}/self_ca.crt
 # -a means base64 encode
