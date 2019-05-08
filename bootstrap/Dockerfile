@@ -40,9 +40,14 @@ WORKDIR ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
 
 # TODO(jlewi) This is copying in the source. Do we really want to bake the source into the image.
 # Might be better to mount it via a volume.
-COPY . .
+# Download dependencies first to optimize Docker caching.
+COPY go.mod .
+COPY go.sum .
+COPY hack/v2.zip hack/v2.zip
 RUN unzip -q -d /tmp hack/v2.zip
 RUN go mod download
+# Then copy source and build.
+COPY . .
 RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
 #
