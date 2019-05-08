@@ -98,6 +98,8 @@ def create_notebook_template():
                       "name": "",
                       "volumeMounts": [],
                       "env": [],
+                      "command": ["/bin/sh"],
+                      "args": ["-c", "jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"],
                   }],
                   "ttlSecondsAfterFinished": 300,
                   "volumes": [],
