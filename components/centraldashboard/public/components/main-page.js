@@ -227,8 +227,8 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     _onPlatformInfoResponse(responseEvent) {
         const {response} = responseEvent.detail;
         this.platformInfo = response;
-        if (response.kubeflowVersion) {
-            this.buildVersion = response.kubeflowVersion;
+        if (this.platformInfo.kubeflowVersion) {
+            this.buildVersion = this.platformInfo.kubeflowVersion;
         }
     }
 

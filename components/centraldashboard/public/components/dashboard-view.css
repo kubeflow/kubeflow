@@ -7,6 +7,7 @@
     grid-template-columns: repeat(3, 1fr);
     min-height: 0;
     min-width: 0;
+    flex: 1;
     --accent-color: #007dfc;
     --primary-background-color: #003c75;
     --sidebar-default-color: #ffffff4f;

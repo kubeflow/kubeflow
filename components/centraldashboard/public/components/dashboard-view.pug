@@ -17,7 +17,7 @@
                         aside(secondary) [[item.desc]]
 .column
     template(is='dom-if', if='[[platformLinks]]')
-        paper-card#Platform-Links(class$='[[platformName]]', heading='[[platformInfo.meta.title]]', image='[[platformInfo.meta.logo]]')
+        paper-card#Platform-Links(class$='[[platformName]]', heading='[[platformTitle]]', image='[[platformLogo]]')
             template(is='dom-repeat', items='[[platformLinks]]')
                 a.link(href$='[[item.link]]', tabindex='-1', target='_blank')
                     paper-icon-item
