@@ -248,17 +248,6 @@ ksApply() {
   fi
 
   popd
-
-  set +x
-  if [[ "${PLATFORM}" == "minikube" ]] || [[ "${PLATFORM}" == "docker-for-desktop" ]]; then
-    if is_kubeflow_ready; then
-      mount_local_fs
-      setup_tunnels
-    else
-      echo -e "${RED}Unable to get kubeflow ready${NC}"
-    fi
-  fi
-  set -x
 }
 
 parseArgs() {
@@ -560,6 +549,16 @@ main() {
       ks show default -c metacontroller -c application > default.yaml
       kubectl apply --validate=false -f default.yaml
       popd
+      set +x
+      if [[ "${PLATFORM}" == "minikube" ]] || [[ "${PLATFORM}" == "docker-for-desktop" ]]; then
+        if is_kubeflow_ready; then
+          mount_local_fs
+          setup_tunnels
+        else
+          echo -e "${RED}Unable to get kubeflow ready${NC}"
+        fi
+      fi
+      set -x
     fi
   fi
 
