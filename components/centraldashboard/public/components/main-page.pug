@@ -9,7 +9,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
     app-drawer#MainDrawer(slot='drawer')
         figure
             |!{logo}
-        iron-selector(selected='{{sidebarItemIndex}}')
+        iron-selector.flex(selected='{{sidebarItemIndex}}')
             a(href$='[[buildHref("/", queryParams)]]', tabindex='-1')
                 paper-item.menu-item Overview
             template(is='dom-repeat', items='[[menuLinks]]')
@@ -25,7 +25,6 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                 tabindex='-1', target="_blank")
                 paper-item.menu-item Documentation
                     iron-icon.external(icon="launch")
-        aside.flex
         footer.footer
             section.information
                 a.privacy(title='Kubeflow Privacy Policy', target='_blank', href='https://policies.google.com/privacy') Privacy
