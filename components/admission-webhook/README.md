@@ -12,13 +12,15 @@ Here is the workflow on how this is used in Kubeflow:
 
 1. Users create  PodPreset manifests which describe additional runtime requirements (i.e., volume, volumeMounts, environment variables) to be injected  into a Pod at creation time.
 PodPresets use label selectors to specify the Pods to which a given PodPreset applies.
-As an example, the following manifest declares a PodPrest to add the secret ```gcp-secret``` in to pods. 
+PodPresets are namespace scope, and they can be applied/viewed in the namespace.  
+As an example, the following manifest declares a PodPrest in `kubeflow` namespace to add the secret ```gcp-secret``` in to pods in the given namespace. 
 
 ```
 apiVersion: "kubeflow.org/v1alpha1"
 kind: PodPreset
 metadata:
   name: add-gcp-secret
+  namespace: kubeflow
 spec:
  selector:
   matchLabels:
