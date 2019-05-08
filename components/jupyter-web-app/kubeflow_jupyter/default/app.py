@@ -63,7 +63,7 @@ def post_notebook(namespace):
       return jsonify(data)
 
   # Create the Workspace Volume in the Pod
-  if body["ws_type"] != "None":
+  if body.get("ws_type", "") != "None":
     utils.add_notebook_volume(
         notebook,
         body["ws_name"],
