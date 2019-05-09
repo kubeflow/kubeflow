@@ -52,7 +52,7 @@ func CreateResourceFromFile(config *rest.Config, filename string, elems ...confi
 		}
 		a := o["apiVersion"]
 		if a == nil {
-			log.Warnf("Unknown resource: %v", object)
+			log.Warnf("Unknown resource: %v", o)
 			continue
 		}
 		apiVersion := strings.Split(a.(string), "/")
