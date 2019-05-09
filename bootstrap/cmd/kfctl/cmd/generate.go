@@ -67,6 +67,7 @@ The default is 'all' for any selected platform.`,
 		}
 		return nil
 	},
+	ValidArgs: []string{"all", "platform", "k8s"},
 }
 
 func init() {

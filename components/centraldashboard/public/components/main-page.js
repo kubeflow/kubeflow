@@ -27,21 +27,21 @@ import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
 import css from './main-page.css';
 import template from './main-page.pug';
-import logo from '../assets/kf-logo_64px.svg';
+import logo from '../assets/kf-logo.svg';
 
 import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
 import './not-found-view.js';
+import utilitiesMixin from './utilities-mixin.js';
 import {MESSAGE, PARENT_CONNECTED_EVENT, IFRAME_CONNECTED_EVENT,
     NAMESPACE_SELECTED_EVENT} from '../library.js';
-
-const VALID_QUERY_PARAMS = ['ns'];
+import {IFRAME_LINK_PREFIX} from './iframe-link.js';
 
 /**
  * Entry point for application UI.
  */
-export class MainPage extends PolymerElement {
+export class MainPage extends utilitiesMixin(PolymerElement) {
     static get template() {
         const pugVariables = {logo: logo};
         return html([
@@ -62,24 +62,20 @@ export class MainPage extends PolymerElement {
                 type: Array,
                 value: [
                     {
-                        iframeUrl: '/jupyter/',
-                        text: 'Notebooks',
-                        href: '/notebooks',
+                        link: '/pipeline/',
+                        text: 'Pipelines',
                     },
                     {
-                        iframeUrl: '/tfjobs/ui/',
-                        text: 'TFJob Dashboard',
-                        href: '/tjob-dashboard',
+                        link: '/jupyter/',
+                        text: 'Notebook Servers',
                     },
                     {
-                        iframeUrl: '/katib/',
+                        link: '/tfjobs/ui/',
+                        text: 'TF Jobs Dashboard',
+                    },
+                    {
+                        link: '/katib/',
                         text: 'Katib Dashboard',
-                        href: '/katib-dashboard',
-                    },
-                    {
-                        iframeUrl: '/pipeline/',
-                        text: 'Pipeline Dashboard',
-                        href: '/pipeline-dashboard',
                     },
                 ],
             },
@@ -128,39 +124,6 @@ export class MainPage extends PolymerElement {
     }
 
     /**
-     * [MACRO] Provide a logical OR functionality for the Polymer DOM
-     * @param {...boolean} e
-     * @return {boolean}
-     */
-    or(...e) {
-        return e.some((i) => Boolean(i));
-    }
-
-    /**
-     * [MACRO] Provide a logical equals functionality for the Polymer DOM
-     * @param {...any} e
-     * @return {boolean}
-     */
-    equals(...e) {
-        const crit = e.shift();
-        if (!e.length) return true;
-        return e.every((e) => e === crit);
-    }
-
-    /**
-     * Intercepts any external links and ensures that they are captured in
-     * the route and sent to the iframe source.
-     * @param {MouseEvent} e
-     */
-    openInIframe(e) {
-        // e.currentTarget is an HTMLAnchorElement
-        const url = e.currentTarget.href.slice(e.currentTarget.origin.length);
-        window.history.pushState({}, null, `_${url}`);
-        window.dispatchEvent(new CustomEvent('location-changed'));
-        e.preventDefault();
-    }
-
-    /**
      * Handles route changes by evaluating the page path component
      * @param {string} newPage
      */
@@ -169,16 +132,23 @@ export class MainPage extends PolymerElement {
         let notFoundInIframe = false;
         let hideTabs = true;
         let hideNamespaces = false;
+        let iframeUrl;
+
         switch (newPage) {
         case 'activity':
             this.sidebarItemIndex = 0;
             this.page = 'activity';
             hideTabs = false;
             break;
-        case '_': // iframe case
-            this._setIframeFromRoute(this.subRouteData.path);
+        case IFRAME_LINK_PREFIX:
+            this.page = 'iframe';
+            iframeUrl = new URL(this.subRouteData.path, window.location.origin);
+            iframeUrl.hash = window.location.hash;
+            iframeUrl.search = window.location.search;
+            this.iframeUrl = iframeUrl.toString();
             isIframe = true;
             hideNamespaces = this.subRouteData.path.startsWith('/pipeline');
+            this._setActiveMenuLink(this.subRouteData.path);
             break;
         case '':
             this.sidebarItemIndex = 0;
@@ -211,11 +181,12 @@ export class MainPage extends PolymerElement {
      * @param {int} old
      */
     _revertSidebarIndexIfExternal(curr, old=0) {
-        if (curr != 1) return;
+        if (curr <= this.menuLinks.length) return;
         this.sidebarItemIndex = old;
     }
 
-    /* Handles namespace change. Sends message if the value has changed.
+    /**
+     * Handles namespace change. Sends message if the value has changed.
      * @param {string} newValue
      * @param {string} oldValue
      */
@@ -226,20 +197,18 @@ export class MainPage extends PolymerElement {
     }
 
     /**
-     * Sets the iframeUrl and sidebarItem based on the subpage component
-     * provided.
-     * @param {string} href
+     * Tries to determine which menu link to activate based on the provided
+     * path.
+     * @param {string} path
      */
-    _setIframeFromRoute(href) {
-        const menuLinkIndex = this.menuLinks.findIndex((m) => m.href === href);
+    _setActiveMenuLink(path) {
+        const menuLinkIndex = this.menuLinks
+            .findIndex((m) => path.startsWith(m.link));
         if (menuLinkIndex >= 0) {
-            this.page = 'iframe';
-            this.iframeUrl = this.menuLinks[menuLinkIndex].iframeUrl;
-            // Adds 2 since the Home and Documentation links are hard-coded
-            this.sidebarItemIndex = menuLinkIndex + 2;
+            // Adds 1 since Overview is hard-coded
+            this.sidebarItemIndex = menuLinkIndex + 1;
         } else {
             this.sidebarItemIndex = -1;
-            this.page = 'not_found';
         }
     }
 
@@ -250,24 +219,6 @@ export class MainPage extends PolymerElement {
      */
     _isInsideOfIframe() {
         return window.location !== window.parent.location;
-    }
-
-    /**
-     * Builds and returns an href value preserving the current query string.
-     * @param {string} href
-     * @param {Object} queryParams
-     * @return {string}
-     */
-    _buildHref(href, queryParams) {
-        const url = new URL(href, window.location.origin);
-        if (queryParams) {
-            VALID_QUERY_PARAMS.forEach((qp) => {
-                if (queryParams[qp]) {
-                    url.searchParams.set(qp, queryParams[qp]);
-                }
-            });
-        }
-        return url.href.slice(url.origin.length);
     }
 
     /* Handles the AJAX response from the platform-info API.

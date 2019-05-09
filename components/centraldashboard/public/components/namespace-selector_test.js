@@ -59,7 +59,7 @@ describe('Namespace Selector', () => {
         const namespaces = [];
         namespaceSelector.shadowRoot.querySelectorAll('paper-item')
             .forEach((n) => {
-                namespaces.push(n.innerText);
+                namespaces.push(n.innerText.trim());
             });
         expect(namespaces).toEqual(['default', 'other-namespace']);
     });
@@ -95,7 +95,8 @@ describe('Namespace Selector', () => {
                 (event) =>resolve(event.detail));
         });
 
-        namespaceSelector.shadowRoot.querySelector('paper-listbox').select(0);
+        namespaceSelector.shadowRoot.querySelector('paper-listbox')
+            .select('default');
         const eventDetail = await queryParamsChangedPromise;
         expect(eventDetail.path).toBe('queryParams.ns');
         expect(eventDetail.value).toBe('default');
@@ -117,8 +118,8 @@ describe('Namespace Selector', () => {
         ];
         flush();
 
-        const dropDownMenu = namespaceSelector.shadowRoot
-            .querySelector('paper-dropdown-menu-light');
-        expect(dropDownMenu.value).toBe('other-namespace');
+        expect(namespaceSelector.selected).toBe('other-namespace');
+        expect(namespaceSelector.shadowRoot.querySelector('paper-button span')
+            .innerText).toBe('other-namespace');
     });
 });

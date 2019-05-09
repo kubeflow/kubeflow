@@ -1,4 +1,8 @@
 import '@polymer/iron-ajax/iron-ajax.js';
+import '@polymer/iron-icon/iron-icon.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-menu-button/paper-menu-button.js';
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu-light';
 import '@polymer/paper-listbox/paper-listbox.js';
 import '@polymer/paper-item/paper-item.js';
@@ -13,6 +17,36 @@ export class NamespaceSelector extends PolymerElement {
     static get template() {
         return html`
             <style>
+                paper-menu-button {
+                    --paper-menu-button: {
+                        font-size: 14px;
+                        color: #3c4043
+                    }
+                }
+
+                #dropdown-trigger {
+                    @apply --layout-horizontal;
+                    @apply --layout-center;
+                    text-transform: none;
+                }
+
+                #dropdown-trigger iron-icon:first-child {
+                    padding-right: 0.5em;
+                    --iron-icon-fill-color: var(--primary-background-color);
+                    --iron-icon-height: 20px;
+                    --iron-icon-width: 20px;
+                }
+
+                #dropdown-trigger span {
+                    max-width: 170px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                #dropdown-trigger span:empty::before {
+                    content: 'Select namespace';
+                }
+
                 paper-item {
                     cursor: pointer;
                 }
@@ -25,14 +59,21 @@ export class NamespaceSelector extends PolymerElement {
                 on-response="_onResponse">
             </iron-ajax>
             <app-route query-params="{{queryParams}}"></app-route>
-            <paper-dropdown-menu-light label="Namespace" vertical-offset="60"
-                value="{{selected}}">
-                <paper-listbox slot="dropdown-content">
+            <paper-menu-button no-overlap horizontal-align="right">
+                <paper-button id="dropdown-trigger" slot="dropdown-trigger">
+                    <iron-icon icon="group-work"></iron-icon>
+                    <span>[[selected]]</span>
+                    <iron-icon icon="arrow-drop-down"></iron-icon>
+                </paper-button>
+                <paper-listbox slot="dropdown-content"
+                    attr-for-selected="name" selected="{{selected}}">
                     <template is="dom-repeat" items="{{namespaces}}">
-                        <paper-item>[[item.name]]</paper-item>
+                        <paper-item name="[[item.name]]">
+                            [[item.name]]
+                        </paper-item>
                     </template>
                 </paper-listbox>
-            </paper-dropdown-menu>
+            </paper-menu-button>
         `;
     }
 
@@ -49,6 +90,7 @@ export class NamespaceSelector extends PolymerElement {
             selected: {
                 type: String,
                 observer: '_onSelected',
+                value: '',
                 notify: true,
             },
         };
