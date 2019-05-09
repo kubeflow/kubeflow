@@ -422,7 +422,7 @@ func (s *ksServer) InstallIstio(ctx context.Context, req CreateRequest) error {
 		return err
 	}
 	//TODO should be a cli parameter
-	nv := configtypes.NameValue{Name: "namespace", Value: "istio-system"}
+	nv := configtypes.NameValue{Name: "namespace", Value: req.Namespace}
 	err = CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/kf-istio-resources.yaml"), nv)
 	if err != nil {
 		log.Errorf("Failed to create kubeflow istio resource: %v", err)
