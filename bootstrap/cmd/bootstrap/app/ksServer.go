@@ -20,7 +20,6 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/go-kit/kit/endpoint"
-	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/ksonnet/ksonnet/pkg/actions"
 	kApp "github.com/ksonnet/ksonnet/pkg/app"
