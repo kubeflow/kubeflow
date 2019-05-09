@@ -1332,7 +1332,7 @@ func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      BASIC_AUTH_SECRET,
-			Namespace: gcp.Namespace,
+			Namespace: gcp.KfDef.Namespace,
 		},
 		Data: map[string][]byte{
 			"username":     []byte(gcp.username),
