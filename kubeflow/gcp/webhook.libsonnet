@@ -210,6 +210,18 @@
           resources: ["secrets"],
           verbs: ["*"],
         },
+	{
+          apiGroups: [
+            "",
+          ],
+          resources: [
+            "pods",
+          ],
+          verbs: [
+            "list",
+            "delete",
+          ],
+        },
       ],
     },  // initClusterRoleBinding
     initClusterRole:: initClusterRole,
