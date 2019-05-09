@@ -1,5 +1,5 @@
 /*
-Copyright 2019 The Kubeflow Authors.
+Copyright 2019 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,14 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package apis
-
-import (
-	istiov1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/istio/v1alpha1"
-	kfv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
-)
-
-func init() {
-	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
-	AddToSchemes = append(AddToSchemes, kfv1alpha1.SchemeBuilder.AddToScheme, istiov1alpha1.SchemeBuilder.AddToScheme)
-}
+// Package v1alpha1 contains API Schema definitions for the kubeflow v1alpha1 API group
+// +k8s:openapi-gen=true
+// +k8s:deepcopy-gen=package,register
+// +k8s:conversion-gen=github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow
+// +k8s:defaulter-gen=TypeMeta
+// +groupName=kubeflow.org
+package v1alpha1

@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"reflect"
 
+	istiov1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/istio/v1alpha1"
 	kubeflowv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -39,6 +40,9 @@ import (
 )
 
 var log = logf.Log.WithName("controller")
+
+const ServiceRoleIstio = "ns-access-istio"
+const ServiceRoleBindingIstio = "owner-binding-istio"
 
 // Add creates a new Profile Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -65,6 +69,13 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	err = c.Watch(&source.Kind{Type: &istiov1alpha1.ServiceRole{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &kubeflowv1alpha1.Profile{},
+	})
+	if err != nil {
+		return err
+	}
 	err = c.Watch(&source.Kind{Type: &corev1.Namespace{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &kubeflowv1alpha1.Profile{},
@@ -124,7 +135,9 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{"owner": instance.Spec.Owner.Name},
-			Name:        instance.Name,
+			// inject istio sidecar to all pods in target namespace by default.
+			Labels: map[string]string{"istio-injection": "enabled"},
+			Name:   instance.Name,
 		},
 	}
 	if err := controllerutil.SetControllerReference(instance, ns, r.scheme); err != nil {
@@ -156,6 +169,13 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 			r.Update(context.TODO(), instance)
 			return reconcile.Result{}, nil
 		}
+	}
+
+	// Update Istio Rbac
+	// Create Istio ServiceRole and ServiceRoleBinding in target namespace; which will give ns owner permission to access services in ns.
+	if err = r.updateIstioRbac(instance); err != nil {
+		log.Info("Failed Updating Istio rbac permission", "namespace", instance.Name, "error", err)
+		return reconcile.Result{}, err
 	}
 
 	// Update service accounts
@@ -199,6 +219,97 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, err
 	}
 	return reconcile.Result{}, nil
+}
+
+// updateIstioRbac create or update Istio rbac resources in target namespace owned by "profileIns". The goal is to allow service access for profile owner
+func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile) error {
+	istioServiceRole := &istiov1alpha1.ServiceRole{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ServiceRoleIstio,
+			Namespace: profileIns.Name,
+		},
+		Spec: istiov1alpha1.ServiceRoleSpec{
+			Rules: []*istiov1alpha1.AccessRule{
+				{
+					Services: []string{"*"},
+				},
+			},
+		},
+	}
+	if err := controllerutil.SetControllerReference(profileIns, istioServiceRole, r.scheme); err != nil {
+		return err
+	}
+	foundSr := &istiov1alpha1.ServiceRole{}
+	err := r.Get(context.TODO(), types.NamespacedName{Name: istioServiceRole.Name,
+		Namespace: istioServiceRole.Namespace}, foundSr)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating Istio ServiceRole", "namespace", istioServiceRole.Namespace,
+				"name", istioServiceRole.Name)
+			err = r.Create(context.TODO(), istioServiceRole)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		if !reflect.DeepEqual(istioServiceRole.Spec, foundSr.Spec) {
+			foundSr.Spec = istioServiceRole.Spec
+			log.Info("Updating Istio ServiceRole", "namespace", istioServiceRole.Namespace,
+				"name", istioServiceRole.Name)
+			err = r.Update(context.TODO(), foundSr)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	istioServiceRoleBinding := &istiov1alpha1.ServiceRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ServiceRoleBindingIstio,
+			Namespace: profileIns.Name,
+		},
+		Spec: istiov1alpha1.ServiceRoleBindingSpec{
+			Subjects: []*istiov1alpha1.Subject{
+				{
+					Properties: map[string]string{"request.headers[x-goog-authenticated-user-email]": "accounts.google.com:" + profileIns.Spec.Owner.Name},
+				},
+			},
+			RoleRef: &istiov1alpha1.RoleRef{
+				Kind: "ServiceRole",
+				Name: ServiceRoleIstio,
+			},
+		},
+	}
+	if err := controllerutil.SetControllerReference(profileIns, istioServiceRoleBinding, r.scheme); err != nil {
+		return err
+	}
+	foundSrb := &istiov1alpha1.ServiceRoleBinding{}
+	err = r.Get(context.TODO(), types.NamespacedName{Name: istioServiceRoleBinding.Name,
+		Namespace: istioServiceRoleBinding.Namespace}, foundSrb)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating Istio ServiceRoleBinding", "namespace", istioServiceRoleBinding.Namespace,
+				"name", istioServiceRoleBinding.Name)
+			err = r.Create(context.TODO(), istioServiceRoleBinding)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		if !reflect.DeepEqual(istioServiceRoleBinding.Spec, foundSrb.Spec) {
+			foundSrb.Spec = istioServiceRoleBinding.Spec
+			log.Info("Updating Istio ServiceRoleBinding", "namespace", istioServiceRoleBinding.Namespace,
+				"name", istioServiceRoleBinding.Name)
+			err = r.Update(context.TODO(), foundSrb)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // updateServiceAccount create or update service account "saName" with role "ClusterRoleName" in target namespace owned by "profileIns"
