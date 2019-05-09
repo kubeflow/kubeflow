@@ -50,6 +50,10 @@ func CreateResourceFromFile(config *rest.Config, filename string, elems ...confi
 		if err = yaml.Unmarshal([]byte(object), &o); err != nil {
 			return err
 		}
+		if len(o) == 0 {
+			log.Warnf("Empty resource: %v", o)
+			continue
+		}
 		a := o["apiVersion"]
 		if a == nil {
 			log.Warnf("Unknown resource: %v", o)
