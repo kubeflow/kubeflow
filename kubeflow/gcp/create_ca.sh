@@ -91,6 +91,15 @@ kubectl create secret generic ${secret} \
         --dry-run -o yaml |
     kubectl -n ${namespace} apply -f -
 
+# restart the webhook server if it already exists, ignore the error otherwise
+# this is for https://github.com/kubeflow/kubeflow/issues/3227. 
+# Webhook pod once created loads the secret in the begining and starts serving. 
+# Therefore, if secret is updated, then Webhook pod needs to be restarted  
+webhookPod=$(kubectl get pods -n ${namespace} | grep gcp-cred-webhook- |awk '{print $1;}')
+kubectl delete pod ${webhookPod} 2>/dev/null || true
+echo "webhook ${webhookPod} is restarted to utilize the new secret"
+
+
 cat ${tmpdir}/self_ca.crt
 # -a means base64 encode
 caBundle=`cat ${tmpdir}/self_ca.crt | openssl enc -a -A`
