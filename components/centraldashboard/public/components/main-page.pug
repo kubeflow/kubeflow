@@ -1,5 +1,7 @@
 iron-ajax(auto, url='/api/platform-info', handle-as='json',
     on-response='_onPlatformInfoResponse')
+iron-ajax(auto, url='/api/user-info', handle-as='json',
+    on-response='_onUserInfoResponse')
 app-drawer-layout.flex(narrow='{{narrowMode}}',
         force-narrow='[[or(inIframe, thinView, notFoundInIframe)]]',
         thin$='[[thinView]]')
@@ -48,6 +50,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                         a.link(tabindex='-1', href$='[[buildHref("/", queryParams)]]') Dashboard
                     paper-tab(page='activity', link)
                         a.link(tabindex='-1', href$='[[buildHref("/activity", queryParams)]]') Activity
+                footer#User-Badge
+                    iron-image.image(sizing="contain", fade, src="[[user.image]]", title="[[user.email]]")
         neon-animated-pages(selected='[[page]]', attr-for-selected='page',
                             entry-animation='fade-in-animation',
                             exit-animation='fade-out-animation')
