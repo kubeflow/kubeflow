@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
+	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
@@ -100,7 +101,6 @@ type kustomize struct {
 
 const (
 	outputDir     = "kustomize"
-	yamlSeparator = "(?m)^---[ \t]*$"
 )
 
 // GetKfApp is the common entry point for all implmentations of the KfApp interface
@@ -282,7 +282,7 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 	if err != nil {
 		return err
 	}
-	splitter := regexp.MustCompile(yamlSeparator)
+	splitter := regexp.MustCompile(bootstrap.YamlSeparator)
 	objects := splitter.Split(string(data), -1)
 
 	var o map[string]interface{}
