@@ -291,6 +291,37 @@
                 <label class="mdl-textfield__label" for="nm-inp">Extra Resources
                 </label>
               </div>
+
+              <!-- Custom Container Command -->
+              <h5><i class="fas fa-terminal"></i>Custom Command</h5>
+              <p class="text-muted nopad">
+                Launch your notebook server with a custom command.</br>
+                Useful if there is a custom entrypoint or script to run besides jupyter.
+              </p>
+              <div class="mdl-grid wide" style="padding: 0 0 0 0">
+                <!-- Command -->
+                <div class="mdl-cell mdl-cell--1-col" style="width: 20%">
+                  <div id="command-input-div"
+                       class="mdl-textfield mdl-js-textfield
+                              mdl-textfield--floating-label wide">
+                    <input class="mdl-textfield__input" type="text"
+                           id="cmd_command" name="cmd_command" data-required='false'
+                           placeholder="[&quot;/bin/sh&quot;]">
+                    <label class="mdl-textfield__label" for="cmd_command">Command</label>
+                  </div>
+                </div>
+                <!-- Args -->
+                <div class="mdl-cell mdl-cell--1-col" style="width: 70%">
+                  <div id="args-input-div"
+                       class="mdl-textfield mdl-js-textfield
+                              mdl-textfield--floating-label wide">
+                    <input class="mdl-textfield__input" type="text"
+                           id="cmd_args" name="cmd_args" data-required='false'
+                           placeholder="[&quot;-c&quot;,&quot;jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}&quot;]">
+                    <label class="mdl-textfield__label" for="cmd_args">Command Args</label>
+                  </div>
+                </div>
+              </div>
               <br/>
             </div>
           </div>
