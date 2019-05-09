@@ -116,3 +116,10 @@ spawnerFormDefaults:
     # Extra Resource Limits for user's Notebook
     # Note that braces are escaped
     value: "{{}}"
+  cmd:
+    # Custom command to launch when running notebook container
+    value:
+      command:
+        value: ["/bin/sh"]
+      args:
+        value: ["-c", "jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"]

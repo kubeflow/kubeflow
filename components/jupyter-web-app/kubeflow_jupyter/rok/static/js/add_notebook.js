@@ -496,6 +496,28 @@ function setDefaultFormValues() {
       });
     }
   }
+
+  // Custom Command
+  if ('cmd' in formDefaults) {
+    // Set the custom command, if specified
+    if ('value' in formDefaults.cmd) {
+      var defaultCmd = formDefaults.cmd.value;
+      if (defaultCmd) {
+        if ('command' in defaultCmd) {
+          $('#cmd_command').val('');
+          if ('value' in defaultCmd.command) {
+            $('#cmd_command').val(JSON.stringify(defaultCmd.command.value));
+          }
+        }
+        if ('args' in defaultCmd) {
+          $('#cmd_args').val('');
+          if ('value' in defaultCmd.args) {
+            $('#cmd_args').val(JSON.stringify(defaultCmd.args.value));
+          }
+        }
+      }
+    }
+  }
 }
 
 // Counter and options for Dataset Volumes

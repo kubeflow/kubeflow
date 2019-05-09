@@ -5,6 +5,10 @@ import datetime as dt
 
 CONFIG = "/etc/config/spawner_ui_config.yaml"
 
+class SafeDict(dict):
+  def __missing__(self, key):
+    return '{' + key + '}'
+
 
 def create_logger(name):
   handler = logging.StreamHandler(sys.stdout)
@@ -30,7 +34,7 @@ def spawner_ui_config(username):
   c = None
   try:
     with open(CONFIG, "r") as f:
-      c = f.read().format(username=username)
+      c = f.read().format_map(SafeDict(username=username))
   except IOError:
     print("Error opening Spawner UI config file")
 
@@ -98,8 +102,6 @@ def create_notebook_template():
                       "name": "",
                       "volumeMounts": [],
                       "env": [],
-                      "command": ["/bin/sh"],
-                      "args": ["-c", "jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"],
                   }],
                   "ttlSecondsAfterFinished": 300,
                   "volumes": [],
