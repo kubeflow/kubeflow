@@ -51,7 +51,6 @@ func CreateResourceFromFile(config *rest.Config, filename string, elems ...confi
 			return err
 		}
 		if len(o) == 0 {
-			log.Warnf("Empty resource: %v", o)
 			continue
 		}
 		a := o["apiVersion"]

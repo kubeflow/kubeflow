@@ -1370,27 +1370,22 @@ func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      BASIC_AUTH_SECRET,
-			Namespace: gcp.KfDef.Namespace,
+			Namespace: gcp.Namespace,
 		},
 		Data: map[string][]byte{
 			"username":     []byte(gcp.username),
 			"passwordhash": []byte(gcp.encodedPassword),
 		},
 	}
-	_, err := client.CoreV1().Secrets(gcp.KfDef.Namespace).Update(secret)
+	_, err := client.CoreV1().Secrets(gcp.Namespace).Update(secret)
 	if err != nil {
 		log.Warnf("Updating basic auth login failed, trying to create one: %v", err)
-		_, err = client.CoreV1().Secrets(gcp.KfDef.Namespace).Create(secret)
+		return insertSecret(client, BASIC_AUTH_SECRET, gcp.Namespace, map[string][]byte{
+			"username":     []byte(gcp.username),
+			"passwordhash": []byte(gcp.encodedPassword),
+		})
 	}
-
-	if err == nil {
-		return nil
-	} else {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: err.Error(),
-		}
-	}
+	return nil
 }
 
 func (gcp *Gcp) createSecrets() error {
