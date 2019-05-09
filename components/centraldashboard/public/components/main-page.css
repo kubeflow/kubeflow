@@ -193,7 +193,7 @@ neon-animatable {
 }
 
 #User-Badge {
-    right: 16px;
+    right: 1em; /* 16px */
     position: absolute;
 }
 #User-Badge > .image {
