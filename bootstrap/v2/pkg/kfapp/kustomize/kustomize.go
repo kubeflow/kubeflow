@@ -609,6 +609,8 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 					Message: fmt.Sprintf("could not open %v. Error: %v", paramFile, paramFileErr),
 				}
 			}
+			// in params.env look for name=value that we can substitute from componentParams[component]
+			// or if there is just namespace= or project= - fill in the values from KfDef
 			for i, param := range params {
 				paramName := strings.Split(param, "=")[0]
 				if val, ok := paramMap[paramName]; ok && val != "" {
@@ -619,11 +621,6 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 						params[i] = paramName + "=" + kfDef.Namespace
 					case "project":
 						params[i] = paramName + "=" + kfDef.Spec.Project
-					default:
-						return &kfapis.KfError{
-							Code:    int(kfapis.INTERNAL_ERROR),
-							Message: fmt.Sprintf("could not resolve %v in %v", paramName, paramFile),
-						}
 					}
 				}
 			}
