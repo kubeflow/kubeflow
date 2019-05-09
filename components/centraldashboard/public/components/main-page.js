@@ -8,6 +8,7 @@ import '@polymer/app-route/app-location.js';
 import '@polymer/app-route/app-route.js';
 import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/iron-image/iron-image.js';
 import '@polymer/iron-collapse/iron-collapse.js';
 import '@polymer/iron-selector/iron-selector.js';
 import '@polymer/iron-media-query/iron-media-query.js';
@@ -230,6 +231,14 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         if (this.platformInfo.kubeflowVersion) {
             this.buildVersion = this.platformInfo.kubeflowVersion;
         }
+    }
+
+    /* Handles the AJAX response from the user-info API.
+     * @param {Event} responseEvent AJAX-response
+     */
+    _onUserInfoResponse(responseEvent) {
+        const {response} = responseEvent.detail;
+        this.user = response;
     }
 
     /**

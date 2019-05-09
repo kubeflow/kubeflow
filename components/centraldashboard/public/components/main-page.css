@@ -177,6 +177,16 @@ neon-animatable {
     height: 100%;
 }
 
+#User-Badge {
+    right: 16px;
+    position: absolute;
+}
+#User-Badge > .image {
+    width: 2em;
+    height: 2em;
+    border-radius: 50%;
+}
+
 #Menu {
     --paper-icon-button: {
         width: 44px;

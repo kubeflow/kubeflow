@@ -13,6 +13,15 @@ export function api(kubeConfig: KubeConfig): express.Router {
                 res.json(await k8sService.getPlatformInfo());
             })
         .get(
+            '/user-info',
+            async (req: express.Request, res: express.Response) => {
+                console.log(req.headers);
+                res.json({
+                    email: 'blah@blah.com',
+                    image: '/public/assets/gcp-logo.png',
+                });
+            })
+        .get(
             '/namespaces',
             async (_: express.Request, res: express.Response) => {
                 res.json(await k8sService.getNamespaces());
