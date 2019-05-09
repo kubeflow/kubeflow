@@ -697,7 +697,8 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	// Install Istio
 	if gcp.Spec.UseIstio {
 		log.Infof("Installing istio...")
-		nv := configtypes.NameValue{Name: "namespace", Value: gcp.Namespace}
+		//TODO should be a cli parameter
+		nv := configtypes.NameValue{Name: "namespace", Value: "istio-system"}
 		parentDir := path.Dir(gcp.Spec.Repo)
 		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/install/crds.yaml"))
 		if err != nil {
