@@ -19,7 +19,7 @@
     @apply --layout-horizontal;
 }
 
-app-drawer {
+#MainDrawer {
     color: white;
     --app-drawer-content-container: {
         background: var(--primary-background-color) !important;
@@ -28,42 +28,46 @@ app-drawer {
     }
 }
 
-app-drawer-layout[narrow] app-drawer {
+app-drawer-layout[narrow] #MainDrawer {
     --app-drawer-content-container: {
         box-shadow: 0 0 6px -1px #000;
     }
 }
 
-app-drawer-layout[thin] app-drawer {
+app-drawer-layout[thin] #MainDrawer {
     background: var(--primary-background-color);
     --app-drawer-content-container: {
         background: transparent !important;
     }
 }
 
-app-drawer .menu-item {
+#MainDrawer a:hover {color: inherit}
+#MainDrawer iron-selector > a:hover {text-decoration: none}
+
+#MainDrawer .menu-item {
     cursor: pointer;
+    margin: .5em 0;
     transition: background .25s;
     font-family: Google Sans;
     color: var(--sidebar-default-color);
     --paper-item-icon-width: 36px;
 }
 
-app-drawer .divider {
+#MainDrawer .divider {
     width: 90%;
     margin: 1em auto;
     border-bottom: 2px solid var(--sidebar-default-color)
 }
 
-app-drawer .menu-item:hover {
+#MainDrawer .menu-item:hover {
     background: #ffffff1b
 }
 
-app-drawer .iron-selected>.menu-item {
+#MainDrawer .iron-selected>.menu-item {
     color: white;
     font-weight: 100
 }
-app-drawer .iron-selected>.menu-item::after {
+#MainDrawer .iron-selected>.menu-item::after {
     content: '';
     display: block;
     position: absolute;
@@ -74,14 +78,14 @@ app-drawer .iron-selected>.menu-item::after {
     background: white;
 }
 
-app-drawer .footer {
+#MainDrawer .footer {
     padding: 1.25rem;
     font-size: .9em;
     color: var(--sidebar-default-color);
     line-height: 1.5em
 }
 
-app-drawer .footer>.build {
+#MainDrawer .footer>.build {
     font-size: .9em;
     font-style: italic;
     color: rgba(255, 255, 255, 0.64)
