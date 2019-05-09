@@ -1,12 +1,15 @@
 :host {
     @apply --layout-vertical;
-    padding: 1em;
+    padding: 1.3em; /* 20px */
     overflow: auto;
-    grid-gap: 1em;
+    grid-gap: 1.9em; /* 28px */
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     min-height: 0;
     min-width: 0;
+    width: 100%;
+    max-width: 105em;
+    margin: auto;
     flex: 1;
     --accent-color: #007dfc;
     --primary-background-color: #003c75;
@@ -50,10 +53,11 @@ paper-card {
     width: 100%;
     overflow: hidden;
     min-width: 19em;
-    min-width: 0;
     padding-bottom: 16px;
+    --paper-card-header-color: #202124;
     --paper-card-header: {
         font-family: "Google Sans";
+        font-size: 1.3em;
         height: 62px;
         border-bottom: 1px solid var(--border-color);
         margin-bottom: .5em;
