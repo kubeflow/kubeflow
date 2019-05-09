@@ -1,10 +1,10 @@
 package app
 
 import (
-	"bytes"
 	"encoding/json"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	"io/ioutil"
+	"regexp"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -43,10 +43,11 @@ func CreateResourceFromFile(config *rest.Config, filename string, elems ...confi
 	if err != nil {
 		return err
 	}
-	objects := bytes.Split(data, []byte(YamlSeparator))
+	splitter := regexp.MustCompile(YamlSeparator)
+	objects := splitter.Split(string(data), -1)
 	var o map[string]interface{}
 	for _, object := range objects {
-		if err = yaml.Unmarshal(object, &o); err != nil {
+		if err = yaml.Unmarshal([]byte(object), &o); err != nil {
 			return err
 		}
 		a := o["apiVersion"]
