@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	"io/ioutil"
 	"strings"
 
@@ -18,14 +19,18 @@ import (
 )
 
 const (
-	yamlSeparator = "---"
+	YamlSeparator = "(?m)^---[ \t]*$"
 )
 
 // CreateResourceFromFile creates resources from a file, just like `kubectl create -f filename`
 // We use some libraries in an old way (e.g. the RestMapper is in discovery instead of restmapper)
 // because ksonnet (one of our dependency) is using the old library version.
 // TODO: it can't handle "kind: list" yet.
-func CreateResourceFromFile(config *rest.Config, filename string) error {
+func CreateResourceFromFile(config *rest.Config, filename string, elems ...configtypes.NameValue) error {
+	elemsMap := make(map[string]configtypes.NameValue)
+	for _, nv := range(elems) {
+		elemsMap[nv.Name] = nv
+	}
 	// Create a restmapper to determine the resource type.
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
@@ -38,7 +43,7 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 	if err != nil {
 		return err
 	}
-	objects := bytes.Split(data, []byte(yamlSeparator))
+	objects := bytes.Split(data, []byte(YamlSeparator))
 	var o map[string]interface{}
 	for _, object := range objects {
 		if err = yaml.Unmarshal(object, &o); err != nil {
@@ -93,6 +98,9 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 		var namespace string
 		if metadata["namespace"] != nil {
 			namespace = metadata["namespace"].(string)
+		} else if val, exists := elemsMap["namespace"]; exists {
+			namespace = val.Value
+			metadata["namespace"] = namespace
 		} else {
 			namespace = "default"
 		}

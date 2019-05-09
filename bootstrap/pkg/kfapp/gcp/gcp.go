@@ -697,6 +697,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	// Install Istio
 	if gcp.Spec.UseIstio {
 		log.Infof("Installing istio...")
+		nv := configtypes.NameValue{Name: "namespace", Value: gcp.Namespace}
 		parentDir := path.Dir(gcp.Spec.Repo)
 		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/install/crds.yaml"))
 		if err != nil {
@@ -714,7 +715,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 				Message: err.Error(),
 			}
 		}
-		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/kf-istio-resources.yaml"))
+		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/kf-istio-resources.yaml"), nv)
 		if err != nil {
 			log.Errorf("Failed to create kubeflow istio resource: %v", err)
 			return &kfapis.KfError{

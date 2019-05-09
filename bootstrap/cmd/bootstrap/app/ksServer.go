@@ -20,6 +20,7 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/go-kit/kit/endpoint"
+	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/ksonnet/ksonnet/pkg/actions"
 	kApp "github.com/ksonnet/ksonnet/pkg/app"
@@ -420,7 +421,8 @@ func (s *ksServer) InstallIstio(ctx context.Context, req CreateRequest) error {
 		log.Errorf("Failed to create istio manifest: %v", err)
 		return err
 	}
-	err = CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/kf-istio-resources.yaml"))
+	nv := configtypes.NameValue{Name: "namespace", Value: req.Namespace}
+	err = CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/kf-istio-resources.yaml"), nv)
 	if err != nil {
 		log.Errorf("Failed to create kubeflow istio resource: %v", err)
 		return err

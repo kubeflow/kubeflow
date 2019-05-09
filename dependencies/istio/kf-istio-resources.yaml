@@ -2,7 +2,6 @@ apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
   name: kubeflow-gateway
-  namespace: kubeflow
 spec:
   selector:
     istio: ingressgateway
@@ -18,7 +17,6 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: grafana-vs
-  namespace: kubeflow
 spec:
   hosts:
   - "*"
@@ -42,7 +40,6 @@ apiVersion: networking.istio.io/v1alpha3
 kind: ServiceEntry
 metadata:
   name: google-api-entry
-  namespace: kubeflow
 spec:
   hosts:
   - www.googleapis.com
@@ -57,7 +54,6 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: google-api-vs
-  namespace: kubeflow
 spec:
   hosts:
   - www.googleapis.com
@@ -77,7 +73,6 @@ apiVersion: networking.istio.io/v1alpha3
 kind: ServiceEntry
 metadata:
   name: google-storage-api-entry
-  namespace: kubeflow
 spec:
   hosts:
   - storage.googleapis.com
@@ -92,7 +87,6 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: google-storage-api-vs
-  namespace: kubeflow
 spec:
   hosts:
   - storage.googleapis.com
