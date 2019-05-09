@@ -23,6 +23,7 @@ import (
 	"github.com/ghodss/yaml"
 	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
+	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
