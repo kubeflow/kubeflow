@@ -91,6 +91,11 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             hideNamespaces: {type: Boolean, value: false, readOnly: true},
             notFoundInIframe: {type: Boolean, value: false, readOnly: true},
             namespace: {type: String, observer: '_namespaceChanged'},
+            __placeholderImage: {
+                type: String,
+                value: '/public/assets/anon-user.png',
+                readOnly: true,
+            },
         };
     }
 
