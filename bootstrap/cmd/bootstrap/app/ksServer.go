@@ -20,11 +20,11 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/go-kit/kit/endpoint"
-	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/ksonnet/ksonnet/pkg/actions"
 	kApp "github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
+	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
