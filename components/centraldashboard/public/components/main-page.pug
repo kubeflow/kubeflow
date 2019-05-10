@@ -7,7 +7,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
     app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
         tail='{{subRouteData}}')
     app-drawer#MainDrawer(slot='drawer')
-        figure
+        figure.logo
             |!{logo}
         iron-selector(selected='{{sidebarItemIndex}}')
             a(href$='[[buildHref("/", queryParams)]]', tabindex='-1')
