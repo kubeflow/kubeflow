@@ -5,44 +5,24 @@
         // Establish communication with Central Dashboard
         window.addEventListener('DOMContentLoaded', function (event) {
             const {CentralDashboardEventHandler: CD_EvHandler} = window.centraldashboard || {}
-            if (!CD_EvHandler) return;
+            if (!CD_EvHandler) return
             CD_EvHandler.init(function(handler, isIframed) {
                 document.body.classList[isIframed?'add':'remove']('iframe-view')
-                var ns = document.getElementById('ns-select'), wrapper = ns.parentElement;
-                ns.disabled = isIframed;
-                wrapper.classList.add('disabled');
+                if (!isIframed) return
+                var ns = document.getElementById('ns-select'), wrapper = ns.parentElement
+                ns.disabled = isIframed
+                wrapper.classList.add('disabled')
                 handler.onNamespaceSelected = function(namespace){
-                    ns.value = namespace;
-                };
-            });
-        });
+                    ns.value = namespace
+                }
+            })
+        })
     </script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.min.js"></script>
 	<script src="{{ prefix + url_for('static', filename='js/notebooks.js') }}"></script>
     <style>
-        .Namespace-Selector.disabled {opacity: .8}
-        .Namespace-Selector.disabled * {cursor: not-allowed}
-        .Namespace-Selector.disabled:after {
-            position: absolute;
-            content: "Please select the namespace from Central Dashboard's selector";
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 78%;
-            font-size: .8em;
-            transform: translateY(11%);
-            box-sizing: border-box;
-            display: block;
-            display: flex;
-            align-items: center;
-            background: #2d2d2d;
-            color: white;
-            padding: 1em 1.5em;
-            opacity: 0;
-            transition: opacity .25s;
-        }
-        .Namespace-Selector.disabled:after:hover {
-            opacity: 1;
+        .Namespace-Selector.disabled {
+            display: none;
         }
     </style>
 {% endblock %}
