@@ -1,3 +1,17 @@
+/* The Goal of this file is to provide platform specific resources
+ *  to centraldashboard:
+ * - Platform Specific card in case links are provided.
+ * - Logo for said card.
+ * - And a full name Title
+ */
+import '/public/assets/gcp-logo.png';
+
+
+/**
+ * Provides GCP specific Platform data
+ * @param {string} project
+ * @return {object}
+ */
 export const getGCPData = (project) => ({
     links: [
         {
@@ -19,4 +33,5 @@ export const getGCPData = (project) => ({
     ],
     title: 'Google Cloud Platform',
     logo: '/public/assets/gcp-logo.png',
+    name: 'GCP',
 });

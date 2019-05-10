@@ -16,9 +16,10 @@
                         .header [[item.text]]
                         aside(secondary) [[item.desc]]
 .column
-    template(is='dom-if', if='[[platformLinks]]')
-        paper-card#Platform-Links(class$='[[platformName]]', heading='[[platformTitle]]', image='[[platformLogo]]')
-            template(is='dom-repeat', items='[[platformLinks]]')
+    template(is='dom-if', if='[[platformDetails.links]]')
+        paper-card#Platform-Links(class$='[[platformDetails.name]]',
+            heading='[[platformDetails.title]]', image='[[platformDetails.logo]]')
+            template(is='dom-repeat', items='[[platformDetails.links]]')
                 a.link(href$='[[item.link]]', tabindex='-1', target='_blank')
                     paper-icon-item
                         aside [[item.text]]

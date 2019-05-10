@@ -89,8 +89,7 @@ export class DashboardView extends PolymerElement {
                     },
                 ],
             },
-            platformName: String,
-            platformLinks: Array,
+            platformDetails: Object,
             platformInfo: {
                 type: Object,
                 observer: '_platformInfoChanged',
@@ -102,7 +101,6 @@ export class DashboardView extends PolymerElement {
      * Observer for platformInfo property
      */
     _platformInfoChanged() {
-        let platformProps = {};
         if (this.platformInfo && this.platformInfo.providerName === 'gce') {
             this.platformName = 'GCP';
             const pieces = this.platformInfo.provider.split('/');
@@ -110,12 +108,8 @@ export class DashboardView extends PolymerElement {
             if (pieces.length >= 3) {
                 gcpProject = pieces[2];
             }
-            platformProps = getGCPData(gcpProject);
+            this.platformDetails = getGCPData(gcpProject);
         }
-        Object.entries(platformProps).forEach(([key, value]) => {
-            const properKey = key[0].toUpperCase()+key.slice(1);
-            this[`platform${properKey}`] = value;
-        });
     }
 }
 
