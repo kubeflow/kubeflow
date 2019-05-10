@@ -43,21 +43,22 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                 namespace-selector#NamespaceSelector(
                     query-params='{{queryParams}}', selected="{{namespace}}",
                     hides, hidden$='[[hideNamespaces]]')
-                paper-tabs.bottom(selected='[[page]]', attr-for-selected='page',
-                        hides, hidden$='[[hideTabs]]')
-                    paper-tab(page='dashboard', link)
-                        a.link(tabindex='-1', href$='[[buildHref("/", queryParams)]]') Dashboard
-                    paper-tab(page='activity', link)
-                        a.link(tabindex='-1', href$='[[buildHref("/activity", queryParams)]]') Activity
-        neon-animated-pages(selected='[[page]]', attr-for-selected='page',
-                            entry-animation='fade-in-animation',
-                            exit-animation='fade-out-animation')
-            neon-animatable(page='dashboard')
-                dashboard-view(platform-info='[[platformInfo]]')
-            neon-animatable(page='activity')
-                activity-view(namespace='[[queryParams.ns]]')
-            neon-animatable#iframe-page(page='iframe')
-                iframe#PageFrame.flex(src='[[iframeUrl]]')
-            neon-animatable(page='not_found')
-                not-found-view(path="[[route.path]]")
+        section#Content
+            section#ViewTabs(hides, hidden$='[[hideTabs]]')
+                paper-tabs(selected='[[page]]', attr-for-selected='page')
+                        paper-tab(page='dashboard', link)
+                            a.link(tabindex='-1', href$='[[buildHref("/", queryParams)]]') Dashboard
+                        paper-tab(page='activity', link)
+                            a.link(tabindex='-1', href$='[[buildHref("/activity", queryParams)]]') Activity
+            neon-animated-pages(selected='[[page]]', attr-for-selected='page',
+                                entry-animation='fade-in-animation',
+                                exit-animation='fade-out-animation')
+                neon-animatable(page='dashboard')
+                    dashboard-view(platform-info='[[platformInfo]]')
+                neon-animatable(page='activity')
+                    activity-view(namespace='[[queryParams.ns]]')
+                neon-animatable#iframe-page(page='iframe')
+                    iframe#PageFrame.flex(src='[[iframeUrl]]')
+                neon-animatable(page='not_found')
+                    not-found-view(path="[[route.path]]")
     iron-media-query(query='(max-width: 900px)', query-matches='{{thinView}}')
