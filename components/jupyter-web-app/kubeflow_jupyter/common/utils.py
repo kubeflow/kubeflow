@@ -93,7 +93,7 @@ def create_notebook_template():
       "spec": {
           "template": {
               "spec": {
-                  "serviceAccountName": "default-editor",
+                  "serviceAccountName": "jupyter-notebook",
                   "containers": [{
                       "name": "",
                       "volumeMounts": [],
@@ -132,6 +132,13 @@ def set_notebook_cpu_ram(nb, body):
           "memory": body["memory"]
       }
   }
+
+# todo: jupyter-web-app should add the podpreset labels that user selected
+#  (https://github.com/kubeflow/kubeflow/issues/2992)
+def set_notebook_podpresets_labels(nb,podprestLabels):
+  logger = create_logger(__name__)
+  logger.warning("number of labels to be added: %d" % len(podprestLabels))
+  nb["metadata"]["labels"].update(podprestLabels)
 
 
 def enable_shm(nb):

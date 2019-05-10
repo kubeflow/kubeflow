@@ -4,6 +4,7 @@ from kubernetes.client.rest import ApiException
 from ..common import api
 from ..common import utils
 
+
 app = Flask(__name__)
 logger = utils.create_logger(__name__)
 
@@ -35,7 +36,9 @@ def get_notebooks(namespace):
 def post_notebook(namespace):
   data = {"success": True, "log": ""}
   body = request.form
-
+  namespace = body["ns"]
+  podpresetLabels = api.get_podpresets_labels(namespace)
+   
   # Template
   notebook = utils.create_notebook_template()
   notebook_cont = notebook["spec"]['template']['spec']['containers'][0]
@@ -49,12 +52,18 @@ def post_notebook(namespace):
   # CPU/RAM
   utils.set_notebook_cpu_ram(notebook, body)
 
+  # podpreset labels
+  # todo: jupyter-web-app should add the podpreset labels that user selected
+  #  (https://github.com/kubeflow/kubeflow/issues/2992)
+  utils.set_notebook_podpresets_labels(notebook,podpresetLabels)
+  
   # Enable SHM
-  if body.get("shm_enable", "") == "1":
-      utils.enable_shm(notebook)
+  #if "shm_enable" in body.keys() and body["shm_enable"] == "1":
+  if body.get("shm_enable","0") == "1":
+    utils.enable_shm(notebook)
 
   # Workspace Volume
-  if body.get("ws_type", "") == "New":
+  if body["ws_type"] == "New":
     try:
       api.create_workspace_pvc(body)
     except ApiException as e:
@@ -63,7 +72,7 @@ def post_notebook(namespace):
       return jsonify(data)
 
   # Create the Workspace Volume in the Pod
-  if body.get("ws_type", "") != "None":
+  if body["ws_type"] != "None":
     utils.add_notebook_volume(
         notebook,
         body["ws_name"],

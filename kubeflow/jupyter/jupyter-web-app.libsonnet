@@ -47,7 +47,7 @@
         },
         {
           apiGroups: ["kubeflow.org"],
-          resources: ["notebooks"],
+          resources: ["notebooks","podpresets"],
           verbs: ["get", "list", "create", "delete"],
         },
         {
@@ -87,33 +87,93 @@
         apiGroup: "rbac.authorization.k8s.io",
       },
     },
-
-    // TODO: "default-editor" will be shared by multiple components; update here once other components switched to new auth-model
-    defaultEditorServiceAccount:: {
+    
+    notebookRole:: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "Role",
+      metadata: {
+        name: "jupyter-notebook-role",
+        namespace: params.namespace,
+      },
+      rules: [
+        {
+          apiGroups: [
+            "",
+          ],
+          resources: [
+            "pods",
+            "pods/log",
+            "secrets",
+            "services",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "",
+            "apps",
+            "extensions",
+          ],
+          resources: [
+            "deployments",
+            "replicasets",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "kubeflow.org",
+          ],
+          resources: [
+            "*",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "batch",
+          ],
+          resources: [
+            "jobs",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+      ],
+    },
+    
+    notebookServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
-        name: "default-editor",
+        name: "jupyter-notebook",
         namespace: params.namespace,
       },
     },
     
-    defaultEditorRoleBinding:: {
+    notebookRoleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "RoleBinding",
       metadata: {
-        name: "default-editor-role-binding",
+        name: "jupyter-notebook-role-binding",
         namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
-        name: "edit",
+        kind: "Role",
+        name: "jupyter-notebook-role",
       },
       subjects: [
         {
           kind: "ServiceAccount",
-          name: "default-editor",
+          name: "jupyter-notebook",
           namespace: params.namespace,
         },
       ],
@@ -278,8 +338,9 @@
       self.serviceAccount,
       self.clusterRoleBinding,
       self.clusterRole,
-      self.defaultEditorServiceAccount,
-      self.defaultEditorRoleBinding,
+      self.notebookServiceAccount,
+      self.notebookRole,
+      self.notebookRoleBinding,
     ] + if util.toBool(params.injectIstio) then [
       self.istioVirtualService,
     ] else [],
