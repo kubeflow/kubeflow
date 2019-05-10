@@ -39,188 +39,192 @@
               {
                 name: "webhook-cert",
                 secret: {
-			  secretName: "admission-webhook-certs",
-			},
-		      },
-		    ],
-		  },
-		},
-	      },
-	    },  // deployment
-	    deployment:: deployment,
-
-	    local service = {
-	      apiVersion: "v1",
-	      kind: "Service",
-	      metadata: {
-		labels: {
-		  app: "admission-webhook",
-		},
-		name: "admission-webhook",
-		namespace: namespace,
-	      },
-	      spec: {
-		selector: {
-		  app: "admission-webhook",
-		},
-		ports: [
-		  {
-		    port: 443,
-		    targetPort: 443,
-		  },
-		],
-	      },
-	    },  // service
-	    service:: service,
-
-	    local webhookConfig = {
-	      apiVersion: "admissionregistration.k8s.io/v1beta1",
-	      kind: "MutatingWebhookConfiguration",
-	      metadata: {
-		name: "admission-webhook",
-		// This is cluster scope.
-	      },
-	      webhooks: [
-		{
-		  // name has to be fully qualified X.X.X
-		  name: "admission-webhook.kubeflow.org",
-		  clientConfig: {
-		    service: {
-		      name: "admission-webhook",
-		      namespace: namespace,
-		      path: "/apply-podpreset"
-		    },
-		    // To be patched.
-		    caBundle: "",
-		  },
-		  rules: [
-		    {
-		      operations: ["CREATE"],
-		      apiGroups: [""],
-		      apiVersions: ["v1"],
-		      resources: ["pods"],
-		    },
-		  ],
-		},
-	      ],
-	    },  // webhookConfig
-	    webhookConfig:: webhookConfig,
-
-	    local webhookBootstrapJob = {
-	      apiVersion: "apps/v1",
-	      kind: "StatefulSet",
-	      metadata: {
-		name: "webhook-bootstrap",
-		namespace: namespace,
-	      },
-	      spec: {
-		selector: {
-		  matchLabels: {
-		    service: "webhook-bootstrap",
-		  },
-		},
-		template: {
-		  metadata: {
-		    labels: {
-		      service: "webhook-bootstrap",
-		    },
-		  },
-		  spec: {
-		    restartPolicy: "Always",
-		    serviceAccountName: "webhook-bootstrap",
-		    containers: [
-		      {
-			name: "bootstrap",
-			image: params.webhookSetupImage,
-			command: [
-			  "sh",
-			  "/var/webhook-config/create_ca.sh",
-			],
-			env: [
-			  {
-			    name: "NAMESPACE",
-			    value: namespace,
-			  },
-			],
-			volumeMounts: [
-			  {
-			    mountPath: "/var/webhook-config/",
-			    name: "webhook-config",
-			  },
-			],
-		      },
-		    ],
-		    volumes: [
-		      {
-			configMap: {
-			  name: "webhook-bootstrap-config",
-			},
-			name: "webhook-config",
-		      },
-		    ],
-		  },
-		},
-	      },
-	    },  // webhookBootstrapJob
-	    webhookBootstrapJob:: webhookBootstrapJob,
-
-	    local initServiceAccount = {
-	      apiVersion: "v1",
-	      kind: "ServiceAccount",
-	      metadata: {
-		name: "webhook-bootstrap",
-		namespace: namespace,
-	      },
-	    },  // initServiceAccount
-	    initServiceAccount:: initServiceAccount,
-
-	    local initClusterRoleBinding = {
-	      kind: "ClusterRoleBinding",
-	      apiVersion: "rbac.authorization.k8s.io/v1beta1",
-	      metadata: {
-		name: "webhook-bootstrap",
-	      },
-	      subjects: [
-		{
-		  kind: "ServiceAccount",
-		  name: "webhook-bootstrap",
-		  namespace: namespace,
-		},
-	      ],
-	      roleRef: {
-		kind: "ClusterRole",
-		name: "webhook-bootstrap",
-		apiGroup: "rbac.authorization.k8s.io",
-	      },
-	    },  // initClusterRoleBinding
-	    initClusterRoleBinding:: initClusterRoleBinding,
-
-	    local initClusterRole = {
-	      kind: "ClusterRole",
-	      apiVersion: "rbac.authorization.k8s.io/v1beta1",
-	      metadata: {
-		name: "webhook-bootstrap",
-	      },
-	      rules: [
-		{
-		  apiGroups: ["admissionregistration.k8s.io"],
-		  resources: ["mutatingwebhookconfigurations"],
-		  verbs: ["*"],
-		},
-		{
-		  apiGroups: [""],
-		  resources: ["secrets"],
-		  verbs: ["*"],
-		},
-		{
-          	  apiGroups: ["",],
-          	  resources: ["pods",],
-          	  verbs: [
-            		"list",
-            		"delete",
-          	],
+                  secretName: "admission-webhook-certs",
+                },
               },
-      	   ],
+            ],
+          },
+        },
+      },
+    },  // deployment
+    deployment:: deployment,
+
+    local service = {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "admission-webhook",
+        },
+        name: "admission-webhook",
+        namespace: namespace,
+      },
+      spec: {
+        selector: {
+          app: "admission-webhook",
+        },
+        ports: [
+          {
+            port: 443,
+            targetPort: 443,
+          },
+        ],
+      },
+    },  // service
+    service:: service,
+
+    local webhookConfig = {
+      apiVersion: "admissionregistration.k8s.io/v1beta1",
+      kind: "MutatingWebhookConfiguration",
+      metadata: {
+        name: "admission-webhook",
+        // This is cluster scope.
+      },
+      webhooks: [
+        {
+          // name has to be fully qualified X.X.X
+          name: "admission-webhook.kubeflow.org",
+          clientConfig: {
+            service: {
+              name: "admission-webhook",
+              namespace: namespace,
+              path: "/apply-podpreset"
+            },
+            // To be patched.
+            caBundle: "",
+          },
+          rules: [
+            {
+              operations: ["CREATE"],
+              apiGroups: [""],
+              apiVersions: ["v1"],
+              resources: ["pods"],
+            },
+          ],
+        },
+      ],
+    },  // webhookConfig
+    webhookConfig:: webhookConfig,
+
+    local webhookBootstrapJob = {
+      apiVersion: "apps/v1",
+      kind: "StatefulSet",
+      metadata: {
+        name: "webhook-bootstrap",
+        namespace: namespace,
+      },
+      spec: {
+        selector: {
+          matchLabels: {
+            service: "webhook-bootstrap",
+          },
+        },
+        template: {
+          metadata: {
+            labels: {
+              service: "webhook-bootstrap",
+            },
+          },
+          spec: {
+            restartPolicy: "Always",
+            serviceAccountName: "webhook-bootstrap",
+            containers: [
+              {
+                name: "bootstrap",
+                image: params.webhookSetupImage,
+                command: [
+                  "sh",
+                  "/var/webhook-config/create_ca.sh",
+                ],
+                env: [
+                  {
+                    name: "NAMESPACE",
+                    value: namespace,
+                  },
+                ],
+                volumeMounts: [
+                  {
+                    mountPath: "/var/webhook-config/",
+                    name: "webhook-config",
+                  },
+                ],
+              },
+            ],
+            volumes: [
+              {
+                configMap: {
+                  name: "webhook-bootstrap-config",
+                },
+                name: "webhook-config",
+              },
+            ],
+          },
+        },
+      },
+    },  // webhookBootstrapJob
+    webhookBootstrapJob:: webhookBootstrapJob,
+
+    local initServiceAccount = {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: "webhook-bootstrap",
+        namespace: namespace,
+      },
+    },  // initServiceAccount
+    initServiceAccount:: initServiceAccount,
+
+    local initClusterRoleBinding = {
+      kind: "ClusterRoleBinding",
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      metadata: {
+        name: "webhook-bootstrap",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "webhook-bootstrap",
+          namespace: namespace,
+        },
+      ],
+      roleRef: {
+        kind: "ClusterRole",
+        name: "webhook-bootstrap",
+        apiGroup: "rbac.authorization.k8s.io",
+      },
+    },  // initClusterRoleBinding
+    initClusterRoleBinding:: initClusterRoleBinding,
+
+    local initClusterRole = {
+      kind: "ClusterRole",
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      metadata: {
+        name: "webhook-bootstrap",
+      },
+      rules: [
+        {
+          apiGroups: ["admissionregistration.k8s.io"],
+          resources: ["mutatingwebhookconfigurations"],
+          verbs: ["*"],
+        },
+        {
+          apiGroups: [""],
+          resources: ["secrets"],
+          verbs: ["*"],
+        },
+        {
+          apiGroups: [
+            "",
+          ],
+          resources: [
+            "pods",
+          ],
+          verbs: [
+            "list",
+            "delete",
+          ],
+        },
+      ],
     },  // initClusterRoleBinding
     initClusterRole:: initClusterRole,
 
