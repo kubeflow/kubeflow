@@ -408,6 +408,8 @@ func generateService(instance *v1alpha1.Notebook) *corev1.Service {
 			Selector: map[string]string{"statefulset": instance.Name},
 			Ports: []corev1.ServicePort{
 				corev1.ServicePort{
+					// Make port name follow Istio pattern so it can be managed by istio rbac
+					Name: 		"http-" + instance.Name,
 					Port:       DefaultServingPort,
 					TargetPort: intstr.FromInt(port),
 					Protocol:   "TCP",
