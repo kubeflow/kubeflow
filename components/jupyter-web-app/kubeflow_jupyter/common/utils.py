@@ -193,3 +193,11 @@ def add_notebook_volume_secret(nb, secret, secret_name, mnt_path, mode):
       "name": secret,
   }
   notebook_cont["volumeMounts"].append(mnt)
+
+# todo: jupyter-web-app should add the podpreset labels that user selected
+#  (https://github.com/kubeflow/kubeflow/issues/2992)
+def set_notebook_podpresets_labels(nb,podprestLabels):
+  logger = create_logger(__name__)
+  logger.warning("number of labels to be added: %d" % len(podprestLabels))
+  nb["metadata"]["labels"].update(podprestLabels)
+  

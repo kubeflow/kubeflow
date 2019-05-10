@@ -117,6 +117,19 @@ def get_namespaces():
   nmsps = v1_core.list_namespace()
   return [ns.metadata.name for ns in nmsps.items]
 
+#get the list of available podpresets
+def get_podpresets_labels(ns):
+  custom_api = client.CustomObjectsApi()
+  podpresets = custom_api.list_namespaced_custom_object("kubeflow.org", "v1alpha1", 
+                                            ns, "podpresets")['items']
+  plabels = {}
+  logger.info("%d number of podpresets are found." % len(podpresets))
+  print(len(podpresets)) 
+  for pp in podpresets:
+    selector = pp['spec']['selector']['matchLabels']
+    plabels.update(selector)
+  return plabels
+
 
 def get_notebooks(ns):
   custom_api = client.CustomObjectsApi()

@@ -36,10 +36,18 @@ def post_notebook(namespace):
   data = {"success": True, "log": ""}
   body = request.form
 
+  namespace = body["ns"]
+  podpresetLabels = api.get_podpresets_labels(namespace)
+
   # Template
   notebook = utils.create_notebook_template()
   notebook_cont = notebook["spec"]['template']['spec']['containers'][0]
 
+  # podpreset labels
+  # todo: jupyter-web-app should add the podpreset labels that user selected
+  #  (https://github.com/kubeflow/kubeflow/issues/2992)
+  utils.set_notebook_podpresets_labels(notebook,podpresetLabels)
+  
   # Set Name and Namespace
   utils.set_notebook_names(notebook, body)
 
