@@ -28,7 +28,6 @@ paper-card {
     --paper-card-header-color: #202124;
     --paper-card-header: {
         font-family: "Google Sans";
-        font-size: 1.3em;
         height: 62px;
         border-bottom: 1px solid var(--divider-color);
         margin-bottom: .5em;
@@ -36,9 +35,13 @@ paper-card {
         @apply --layout-center;
     }
     --paper-card-header-text: {
+        font-size: 18px;
         padding: 0 1em;
         flex: 1;
     };
+    --paper-card-content: {
+        font-size: 14px;
+    }
 }
 paper-card#Platform-Links {
     --paper-card-header-color: #2c6acb;

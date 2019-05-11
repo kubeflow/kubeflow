@@ -53,8 +53,9 @@ describe('Dashboard View', () => {
             kubeflowVersion: '1.0.0',
         };
         flush();
-        expect(dashboardView.shadowRoot.querySelector('#Platform-Links header')
-            .innerText).toBe('GCP Information');
+        expect(dashboardView.shadowRoot.querySelector('#Platform-Links')
+            .shadowRoot.querySelector('.header').innerText)
+            .toBe('Google Cloud Platform');
 
         const hrefs = [];
         dashboardView.shadowRoot.querySelectorAll('#Platform-Links a.link')
