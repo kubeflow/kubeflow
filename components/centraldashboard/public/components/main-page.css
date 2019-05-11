@@ -7,7 +7,8 @@
     --accent-color: #007dfc;
     --primary-background-color: #0a3b71;
     --sidebar-default-color: #ffffff4f;
-    --border-color: #f4f4f6;
+    --divider-color: #f4f4f6;
+    --border-color: #eeeeef;
     --iframe-link: {
         text-decoration: none;
         color: inherit;
@@ -213,51 +214,6 @@ neon-animatable {
     grid-template-columns: repeat(3, 1fr);
     min-height: 0;
     min-width: 0;
-}
-
-#Dashboard>.Getting-Started paper-icon-item {
-    cursor: pointer;
-}
-
-#Dashboard>.Getting-Started paper-icon-item:not(:last-of-type) {
-    border-bottom: 1px solid var(--border-color);
-}
-
-#Dashboard>.Getting-Started paper-icon-item iron-icon {
-    color: var(--accent-color)
-}
-
-#Dashboard>.Getting-Started paper-icon-item:hover .heading {
-    color: var(--paper-blue-700);
-    text-decoration: underline;
-}
-
-#Dashboard>.Getting-Started [secondary] {
-    word-break: break-word;
-    width: 100%;
-    white-space: normal;
-    font-size: .8em;
-}
-
-#Dashboard>.Quick-Links .link {
-    width: 80%;
-    margin: .5em auto;
-    border: 1px solid #eeeeef;
-    padding: .5em 1em;
-    border-radius: 5px;
-    @apply --layout-horizontal;
-}
-
-#Dashboard>.Quick-Links .link.more-coming {
-    opacity: .4;
-    font-style: italic;
-    pointer-events: none
-}
-
-#Dashboard>.Quick-Links .link .button {
-    color: var(--accent-color);
-    background: rgba(0, 125, 252, 0.25);
-    border-radius: 50%
 }
 
 #Dashboard:after {

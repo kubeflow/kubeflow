@@ -4,7 +4,7 @@
  * - Logo for said card.
  * - And a full name Title
  */
-import '/public/assets/gcp-logo.png';
+import '../../assets/gcp-logo.png';
 
 
 /**

@@ -12,38 +12,9 @@
     margin: auto;
     flex: 1;
     --accent-color: #007dfc;
-    --primary-background-color: #003c75;
-    --sidebar-default-color: #ffffff4f;
-    --border-color: #f4f4f6;
     --primary-background-color: white;
 }
 
-.link {
-    background: #f1f3f4;
-    margin: .5em 1em;
-    border: 1px solid #eeeeef;
-    padding: .5em 1em;
-    border-radius: 5px;
-    @apply --layout-horizontal;
-}
-
-.link paper-icon-item {
-    @apply --layout-flex;
-    @apply --layout-justified;
-    @apply --layout-horizontal-reverse;
-    --paper-item-icon-width: 40px;
-    --paper-item-icon: {
-        color: var(--accent-color);
-        background: rgba(0, 125, 252, 0.25);
-        border-radius: 50%;
-    }
-}
-
-.link.more-coming {
-    opacity: .4;
-    font-style: italic;
-    pointer-events: none
-}
 .column {grid-row: 1}
 .column:nth-of-type(1) {grid-column: 1}
 .column:nth-of-type(2) {grid-column: 2}
@@ -59,7 +30,7 @@ paper-card {
         font-family: "Google Sans";
         font-size: 1.3em;
         height: 62px;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--divider-color);
         margin-bottom: .5em;
         @apply --layout-horizontal;
         @apply --layout-center;
@@ -90,7 +61,7 @@ paper-card#Platform-Links {
 }
 
 #Getting-Started paper-icon-item:not(:last-of-type) {
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--divider-color);
 }
 
 #Getting-Started paper-icon-item iron-icon {
@@ -112,6 +83,40 @@ paper-card#Platform-Links {
     font-size: 1.25em;
     font-weight: 400;
     padding: .5em 1em;
+}
+
+paper-icon-item {
+    --paper-item-icon-width: 40px;
+    --paper-item-focused-before: {
+        background: #007dfc;
+    };
+    --paper-icon-button-ink-color: var(--accent-color);
+}
+
+.link {
+    display: block;
+    margin: .5em 1em;
+}
+
+.link paper-icon-item {
+    @apply --layout-flex;
+    @apply --layout-justified;
+    @apply --layout-horizontal-reverse;
+    border: 1px solid var(--border-color);
+    padding: .5em 1em;
+    border-radius: 5px;
+    overflow:hidden;
+    --paper-item-icon: {
+        color: var(--accent-color);
+        background: rgba(0, 125, 252, 0.25);
+        border-radius: 50%;
+    };
+}
+
+.link.more-coming {
+    opacity: .4;
+    font-style: italic;
+    pointer-events: none
 }
 
 a {
