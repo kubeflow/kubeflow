@@ -1080,8 +1080,9 @@
       if !params.injectIstio then [
         self.service,
         self.deploy,
+      ] else [
         self.jwtPolicy,
-      ] else []
+      ]
     ),
 
     list(obj=self.all):: k.core.v1.list.new(obj,),
