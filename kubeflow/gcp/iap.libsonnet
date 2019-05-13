@@ -1077,7 +1077,7 @@
         self.cloudEndpoint,
       ] else []
     ) + (
-      if !params.useIstio then [
+      if !params.injectIstio then [
         self.service,
         self.deploy,
         self.jwtPolicy,
