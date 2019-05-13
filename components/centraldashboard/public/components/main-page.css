@@ -19,11 +19,6 @@
     flex: 1
 }
 
-.bottom {
-    margin-top: auto;
-    @apply --layout-horizontal;
-}
-
 #MainDrawer {
     color: white;
     --app-drawer-content-container: {
@@ -50,8 +45,11 @@ app-drawer-layout[thin] #MainDrawer {
     margin-left: 1em;
 }
 
-#MainDrawer a:hover {color: inherit}
-#MainDrawer iframe-link:hover, #MainDrawer iron-selector > a:hover {
+#MainDrawer a:hover {
+    color: inherit
+}
+
+#MainDrawer iframe-link:hover, #MainDrawer iron-selector>a:hover {
     text-decoration: none;
 }
 
@@ -78,6 +76,7 @@ app-drawer-layout[thin] #MainDrawer {
     color: white;
     font-weight: 100
 }
+
 #MainDrawer .iron-selected>.menu-item::after {
     content: '';
     display: block;
@@ -145,6 +144,12 @@ app-toolbar>header {
     --paper-input-container-focus-color: var(--accent-color);
 }
 
+#ViewTabs {
+    @apply --layout-horizontal;
+    @apply --layout-center-justified;
+    border-bottom: 1px solid rgba(0, 0, 0, .12);
+}
+
 paper-tabs {
     --paper-tabs-selection-bar-color: var(--accent-color);
     --paper-tab-ink: var(--accent-color);
@@ -182,6 +187,12 @@ app-header-layout {
     @apply --layout-vertical
 }
 
+#Content {
+    @apply --layout-vertical;
+    background: #f1f3f4;
+    height: 100%;
+}
+
 neon-animated-pages {
     height: 100%;
 }
@@ -205,103 +216,6 @@ neon-animatable {
     display: inline-block;
     height: 100%;
     width: 100%;
-}
-
-#Dashboard {
-    background: #f1f3f4;
-    padding: 1em;
-    grid-gap: 1em;
-    display: grid;
-    min-height: 0;
-    min-width: 0;
-    --primary-background-color: white;
-}
-
-#Dashboard>paper-card {
-    border-radius: 5px;
-    grid-column: 1 / span 2;
-    max-width: 100%;
-    overflow: hidden;
-    min-width: 0;
-    --paper-card-header: {
-        font-family: "Google Sans"
-    }
-}
-
-#Dashboard>paper-card.thin {
-    grid-column: 3;
-    min-width: 19em
-}
-
-#Dashboard>.Getting-Started paper-icon-item {
-    cursor: pointer;
-}
-
-#Dashboard>.Getting-Started paper-icon-item:not(:last-of-type) {
-    border-bottom: 1px solid var(--border-color);
-}
-
-#Dashboard>.Getting-Started paper-icon-item iron-icon {
-    color: var(--accent-color)
-}
-
-#Dashboard>.Getting-Started paper-icon-item:hover .heading {
-    color: var(--paper-blue-700);
-    text-decoration: underline;
-}
-
-#Dashboard>.Getting-Started [secondary] {
-    word-break: break-word;
-    width: 100%;
-    white-space: normal;
-    font-size: .8em;
-}
-
-#Dashboard>.Quick-Links .link {
-    width: 80%;
-    margin: .5em auto;
-    border: 1px solid #eeeeef;
-    padding: .5em 1em;
-    border-radius: 5px;
-    @apply --layout-horizontal;
-}
-
-#Dashboard>.Quick-Links .link.more-coming {
-    opacity: .4;
-    font-style: italic;
-    pointer-events: none
-}
-
-#Dashboard>.Quick-Links .link .button {
-    color: var(--accent-color);
-    background: rgba(0, 125, 252, 0.25);
-    border-radius: 50%
-}
-
-#Dashboard:after {
-    content: '';
-    grid-column: 1 span 3
-}
-
-#Activity {
-    @apply --layout-vertical;
-    @apply --layout-center-center
-}
-
-#Activity:before, #Activity:after {
-    font-size: 3em;
-    opacity: .3;
-    font-family: Google Sans
-}
-
-#Activity:before {
-    content: ":(";
-    font-size: 6em;
-    transform: rotateZ(90deg)
-}
-
-#Activity:after {
-    content: "No content here yet..."
 }
 
 #MainDrawer .menu-item iron-icon.external {
