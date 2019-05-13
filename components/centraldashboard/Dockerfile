@@ -3,6 +3,7 @@ FROM node:10
 WORKDIR /centraldashboard
 
 COPY app/ ./app
+COPY types/ ./types
 COPY public/ ./public
 COPY webpack.config.js *.json .nycrc ./
 
