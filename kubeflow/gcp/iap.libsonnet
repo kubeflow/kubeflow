@@ -1043,13 +1043,6 @@
               }, {
                 prefix: "/.well-known/acme-challenge",
               },],
-                exact: [
-                  "/healthz",
-                ],
-                prefix: [
-                  "/.well-known/acme-challenge",
-                ],
-              },
             }],
           },
         }],
