@@ -1037,6 +1037,9 @@
             jwtHeaders: [
               "x-goog-iap-jwt-assertion",
             ],
+            audiences: [
+              "TO_BE PATCHED",
+            ],
             trigger_rules: [{
               excluded_paths: [{
                 exact: "/healthz",
