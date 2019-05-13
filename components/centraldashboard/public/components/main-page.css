@@ -20,11 +20,6 @@
     flex: 1
 }
 
-.bottom {
-    margin-top: auto;
-    @apply --layout-horizontal;
-}
-
 #MainDrawer {
     color: white;
     --app-drawer-content-container: {
@@ -51,8 +46,11 @@ app-drawer-layout[thin] #MainDrawer {
     margin-left: 1em;
 }
 
-#MainDrawer a:hover {color: inherit}
-#MainDrawer iframe-link:hover, #MainDrawer iron-selector > a:hover {
+#MainDrawer a:hover {
+    color: inherit
+}
+
+#MainDrawer iframe-link:hover, #MainDrawer iron-selector>a:hover {
     text-decoration: none;
 }
 
@@ -79,6 +77,7 @@ app-drawer-layout[thin] #MainDrawer {
     color: white;
     font-weight: 100
 }
+
 #MainDrawer .iron-selected>.menu-item::after {
     content: '';
     display: block;
@@ -146,6 +145,12 @@ app-toolbar>header {
     --paper-input-container-focus-color: var(--accent-color);
 }
 
+#ViewTabs {
+    @apply --layout-horizontal;
+    @apply --layout-center-justified;
+    border-bottom: 1px solid rgba(0, 0, 0, .12);
+}
+
 paper-tabs {
     --paper-tabs-selection-bar-color: var(--accent-color);
     --paper-tab-ink: var(--accent-color);
@@ -181,6 +186,12 @@ app-header {
 
 app-header-layout {
     @apply --layout-vertical
+}
+
+#Content {
+    @apply --layout-vertical;
+    background: #f1f3f4;
+    height: 100%;
 }
 
 neon-animated-pages {
