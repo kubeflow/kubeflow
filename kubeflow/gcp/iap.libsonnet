@@ -1016,6 +1016,31 @@
     },  // cloudEndpoint
     cloudEndpoint:: cloudEndpoint,
 
+    local jwtPolicy = {
+      apiVersion: authentication.istio.io/v1alpha1
+      kind: Policy
+      metadata:
+        name: ingress-jwt
+        namespace: istio-system
+      spec:
+        targets:
+        - name: istio-ingressgateway
+          ports:
+          - number: 80
+        origins:
+        - jwt:
+            issuer: https://cloud.google.com/iap
+            jwksUri: https://www.gstatic.com/iap/verify/public_key-jwk
+            jwtHeaders:
+            - x-goog-iap-jwt-assertion
+            trigger_rules:
+            - excluded_paths:
+              - exact: /healthz
+              - prefix: /.well-known/acme-challenge
+        principalBinding: USE_ORIGIN
+    },  // jwtPolicy
+    jwtPolicy:: jwtPolicy,
+
     parts:: self,
     all:: [
       self.initServiceAccount,
@@ -1042,6 +1067,7 @@
       if !params.useIstio then [
         self.service,
         self.deploy,
+        self.jwtPolicy,
       ] else []
     ),
 
