@@ -1038,7 +1038,11 @@
               "x-goog-iap-jwt-assertion",
             ],
             trigger_rules: [{
-              excluded_paths: {
+              excluded_paths: [{
+                exact: "/healthz",
+              }, {
+                prefix: "/.well-known/acme-challenge",
+              },],
                 exact: [
                   "/healthz",
                 ],
