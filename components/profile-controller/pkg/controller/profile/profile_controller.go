@@ -21,7 +21,8 @@ import (
 	"fmt"
 	"reflect"
 
-	istiov1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/istio/v1alpha1"
+	istionetworking "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/istionetworking/v1alpha3"
+	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/istiorbac/v1alpha1"
 	kubeflowv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -69,7 +70,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	err = c.Watch(&source.Kind{Type: &istiov1alpha1.ServiceRole{}}, &handler.EnqueueRequestForOwner{
+	err = c.Watch(&source.Kind{Type: &istiorbac.ServiceRole{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &kubeflowv1alpha1.Profile{},
 	})
@@ -223,13 +224,13 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 
 // updateIstioRbac create or update Istio rbac resources in target namespace owned by "profileIns". The goal is to allow service access for profile owner
 func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile) error {
-	istioServiceRole := &istiov1alpha1.ServiceRole{
+	istioServiceRole := &istiorbac.ServiceRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ServiceRoleIstio,
 			Namespace: profileIns.Name,
 		},
-		Spec: istiov1alpha1.ServiceRoleSpec{
-			Rules: []*istiov1alpha1.AccessRule{
+		Spec: istiorbac.ServiceRoleSpec{
+			Rules: []*istiorbac.AccessRule{
 				{
 					Services: []string{"*"},
 				},
@@ -239,7 +240,7 @@ func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile)
 	if err := controllerutil.SetControllerReference(profileIns, istioServiceRole, r.scheme); err != nil {
 		return err
 	}
-	foundSr := &istiov1alpha1.ServiceRole{}
+	foundSr := &istiorbac.ServiceRole{}
 	err := r.Get(context.TODO(), types.NamespacedName{Name: istioServiceRole.Name,
 		Namespace: istioServiceRole.Namespace}, foundSr)
 	if err != nil {
@@ -264,18 +265,18 @@ func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile)
 			}
 		}
 	}
-	istioServiceRoleBinding := &istiov1alpha1.ServiceRoleBinding{
+	istioServiceRoleBinding := &istiorbac.ServiceRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ServiceRoleBindingIstio,
 			Namespace: profileIns.Name,
 		},
-		Spec: istiov1alpha1.ServiceRoleBindingSpec{
-			Subjects: []*istiov1alpha1.Subject{
+		Spec: istiorbac.ServiceRoleBindingSpec{
+			Subjects: []*istiorbac.Subject{
 				{
 					Properties: map[string]string{"request.headers[x-goog-authenticated-user-email]": "accounts.google.com:" + profileIns.Spec.Owner.Name},
 				},
 			},
-			RoleRef: &istiov1alpha1.RoleRef{
+			RoleRef: &istiorbac.RoleRef{
 				Kind: "ServiceRole",
 				Name: ServiceRoleIstio,
 			},
@@ -284,7 +285,7 @@ func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile)
 	if err := controllerutil.SetControllerReference(profileIns, istioServiceRoleBinding, r.scheme); err != nil {
 		return err
 	}
-	foundSrb := &istiov1alpha1.ServiceRoleBinding{}
+	foundSrb := &istiorbac.ServiceRoleBinding{}
 	err = r.Get(context.TODO(), types.NamespacedName{Name: istioServiceRoleBinding.Name,
 		Namespace: istioServiceRoleBinding.Namespace}, foundSrb)
 	if err != nil {
@@ -304,6 +305,54 @@ func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile)
 			log.Info("Updating Istio ServiceRoleBinding", "namespace", istioServiceRoleBinding.Namespace,
 				"name", istioServiceRoleBinding.Name)
 			err = r.Update(context.TODO(), foundSrb)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	istioGateway := &istionetworking.Gateway{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "kubeflow-gateway",
+			Namespace: profileIns.Name,
+		},
+		Spec: istionetworking.GatewaySpec{
+			Servers: []*istionetworking.Server{
+				{
+					Port: &istionetworking.Port{
+						Name:     "http",
+						Number:   80,
+						Protocol: "HTTP",
+					},
+					Hosts: []string{"*"},
+				},
+			},
+			Selector: map[string]string{"istio": "ingressgateway"},
+		},
+	}
+	if err := controllerutil.SetControllerReference(profileIns, istioGateway, r.scheme); err != nil {
+		return err
+	}
+	foundGw := &istionetworking.Gateway{}
+	err = r.Get(context.TODO(), types.NamespacedName{Name: istioGateway.Name,
+		Namespace: istioGateway.Namespace}, foundGw)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating Istio Gateway", "namespace", istioGateway.Namespace,
+				"name", istioGateway.Name)
+			err = r.Create(context.TODO(), istioGateway)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		if !reflect.DeepEqual(istioGateway.Spec, foundGw.Spec) {
+			foundGw.Spec = istioGateway.Spec
+			log.Info("Updating Istio Gateway", "namespace", istioGateway.Namespace,
+				"name", istioGateway.Name)
+			err = r.Update(context.TODO(), foundGw)
 			if err != nil {
 				return err
 			}

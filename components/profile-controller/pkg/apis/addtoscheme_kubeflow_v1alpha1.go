@@ -17,11 +17,13 @@ limitations under the License.
 package apis
 
 import (
-	istiov1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/istio/v1alpha1"
+	istionetworking "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/istionetworking/v1alpha3"
+	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/istiorbac/v1alpha1"
 	kfv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
 )
 
 func init() {
 	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
-	AddToSchemes = append(AddToSchemes, kfv1alpha1.SchemeBuilder.AddToScheme, istiov1alpha1.SchemeBuilder.AddToScheme)
+	AddToSchemes = append(AddToSchemes, kfv1alpha1.SchemeBuilder.AddToScheme, istiorbac.SchemeBuilder.AddToScheme,
+		istionetworking.SchemeBuilder.AddToScheme)
 }
