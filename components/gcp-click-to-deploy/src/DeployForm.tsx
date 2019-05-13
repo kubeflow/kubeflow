@@ -32,7 +32,7 @@ import appConfigPath from './user_config/app-config.yaml';
 const IngressType  = {
   BasicAuth: 'Login with Username Password',
   DeferIap: 'Setup Endpoint later',
-  Iap: 'Login with GCP Iap'
+  Iap: 'Login with GCP IAP'
 };
 
 interface DeployFormState {
@@ -385,7 +385,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // Customize config for v0.4.1 compatibility
     // TODO: remove after fully switch to kfctl / new deployment API is alive.
     if (this.state.kfversion.startsWith('v0.4.1')) {
-      const removeComps = ['gcp-credentials-admission-webhook', 'gpu-driver', 'notebook-controller'];
+      const removeComps = ['gpu-driver', 'notebook-controller'];
       for (let i = 0, len = removeComps.length; i < len; i++) {
         this._removeComponent(removeComps[i], configSpec);
       }

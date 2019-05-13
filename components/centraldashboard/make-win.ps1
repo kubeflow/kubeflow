@@ -1,4 +1,4 @@
-param([ValidateSet('all','build','push','push-latest')]$step = 'all')
+param([ValidateSet('all','clean','test','build-local','build','push','push-latest')]$step = 'all')
 # =======================================START=OF=COMPILER==========================================================|
 #    The Following Code was added by AP-Compiler Version [1.2] To Make this program independent of AP-Core Engine
 #    GitHub: https://github.com/avdaredevil/AP-Compiler
@@ -32,13 +32,34 @@ if ($CHANGED_FILES) {
 $Date = (Get-Date).ToString("vyyyyMMdd")
 $TAG = "$Date-$GIT_VERSION"
 if ($step -eq "all") {$step = "build"}
+$steps = @{
+    "clean" = "clean"
+    "build-local" = "build-local"
+    "test" = "build-local","test"
+    "build" = "build-local","test","build"
+    "push" = "build-local","test","build","push"
+    "push-latest" = "build-local","test","build","push","push-latest"
+}[$step]
 
-switch($step) {
+switch($steps) {
+    "clean" {
+        "coverage","dist","node_modules",".nyc_output" | % {
+            Write-AP "!Removing Folder [$_]"
+            rm $_
+        }
+    }
+    "build-local" {
+	    npm install
+    }
+    "test" {
+	    npm run coverage
+    }
     "build" {
         # To build without the cache set the environment variable
         # export DOCKER_BUILD_OPTS=--no-cache
         docker build ${DOCKER_BUILD_OPTS} -t ${IMG}:$TAG . `
             --build-arg kubeflowversion=$(git describe --abbrev=0 --tags) `
+            --build-arg commit=$(git rev-parse HEAD) `
             --label=git-verions=$GIT_VERSION
         docker tag "${IMG}:$TAG" "${IMG}:latest"
         if ($?) {

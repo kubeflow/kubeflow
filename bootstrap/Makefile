@@ -34,7 +34,7 @@ JUNIT_FILE ?= /tmp/report.xml
 
 %.so:
 	cd cmd/plugins/$* && \
-	$(GO) build -i -gcflags 'all=-N -l' -o ../../../bin/$*.so -buildmode=plugin $*.go
+	${GO} build -i -gcflags 'all=-N -l' -o ../../../bin/$*.so -buildmode=plugin $*.go
 
 %.init:
 	@echo kfctl init test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) --version master && \
@@ -58,37 +58,37 @@ auth:
 
 # Run go fmt against code
 fmt:
-	@$(GO) fmt ./config/... ./pkg/apis/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
+	@${GO} fmt ./config/... ./pkg/apis/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
 
 # Run go vet against code
 vet:
-	@$(GO) vet ./config/... ./pkg/apis/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
+	@${GO} vet ./config/... ./pkg/apis/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
 
 generate:
-	@$(GO) generate ./config/... ./pkg/apis/apps/kfdef/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
+	@${GO} generate ./config/... ./pkg/apis/apps/kfdef/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
 
 /tmp/v2:
 	@[ ! -d /tmp/v2 ] && unzip -q -d /tmp hack/v2.zip
 
-$(GOPATH)/bin/deepcopy-gen:
-	GO111MODULE=off $(GO) get k8s.io/code-generator/cmd/deepcopy-gen
+${GOPATH}/bin/deepcopy-gen:
+	GO111MODULE=off ${GO} get k8s.io/code-generator/cmd/deepcopy-gen
 
 config/zz_generated.deepcopy.go: config/types.go
-	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/config/... -O zz_generated.deepcopy
+	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/config/... -O zz_generated.deepcopy
 
 pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/kfdef/v1alpha1/application_types.go
-	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy
+	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy
 
 v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: v2/pkg/apis/apps/kfdef/v1alpha1/application_types.go
-	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy
+	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy
 
-deepcopy: $(GOPATH)/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go 
+deepcopy: ${GOPATH}/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go 
 
 build-bootstrap: /tmp/v2 deepcopy generate fmt vet
-	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+	${GO} build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
 build-kfctl: /tmp/v2 deepcopy generate fmt vet
-	$(GO) build -i -gcflags 'all=-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctl cmd/kfctl/main.go
+	${GO} build -i -gcflags 'all=-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctl cmd/kfctl/main.go
 
 # Release tarballs suitable for upload to GitHub release pages
 build-kfctl-tgz: build-kfctl
@@ -119,6 +119,12 @@ build-kfctl-container:
 		--target=$(KFCTL_TARGET) \
 		--tag $(KFCTL_IMG)/builder:$(TAG) .
 	@echo Built $(KFCTL_IMG)/builder:$(TAG)
+	docker create \
+		--name=temp_kfctl_container \
+		$(KFCTL_IMG)/builder:$(TAG)
+	docker cp temp_kfctl_container:/usr/local/bin/kfctl ./bin/kfctl
+	docker rm temp_kfctl_container
+	@echo Exported kfctl binary to bin/kfctl
 
 # build containers using GCLOUD_PROJECT
 build-gcb:

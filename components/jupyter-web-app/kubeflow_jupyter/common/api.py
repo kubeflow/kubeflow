@@ -95,6 +95,9 @@ def get_default_storageclass():
   strg_classes = storage_api.list_storage_class().items
   for strgclss in strg_classes:
     annotations = strgclss.metadata.annotations
+    if annotations is None:
+      continue
+
     # List of possible annotations
     keys = [
         "storageclass.kubernetes.io/is-default-class",

@@ -21,7 +21,7 @@ clean:
 	rm -rf coverage/ dist/ node_modules/ .nyc_output/
 
 # Builds the package locally
-build-local: clean
+build-local:
 	npm install
 
 # Runs unit tests with coverage
@@ -33,6 +33,7 @@ test: build-local
 build: test
 	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) . \
 	  --build-arg kubeflowversion=$(shell git describe --abbrev=0 --tags) \
+	  --build-arg commit=$(shell git rev-parse HEAD) \
       --label=git-verions=$(GIT_VERSION)
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):latest

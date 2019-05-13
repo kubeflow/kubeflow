@@ -22,12 +22,10 @@ packages:
 components:
 # ordering is important
   - metacontroller
-  - ambassador
   - argo
   - centraldashboard
   - cert-manager
   - cloud-endpoints
-  - gcp-credentials-admission-webhook
   - gpu-driver
   - iap-ingress
   - jupyter-web-app

@@ -3,6 +3,10 @@ import 'jasmine-ajax';
 import {flush} from '@polymer/polymer/lib/utils/flush.js';
 
 import './main-page';
+import {mockRequest} from '../ajax_test_helper';
+import {
+    IFRAME_CONNECTED_EVENT, PARENT_CONNECTED_EVENT, NAMESPACE_SELECTED_EVENT,
+} from '../library';
 
 const FIXTURE_ID = 'main-page-fixture';
 const MAIN_PAGE_SELECTOR_ID = 'test-main-page';
@@ -30,29 +34,12 @@ describe('Main Page', () => {
     });
 
     afterEach(() => {
+        mainPage.set('queryParams', null);
         document.getElementById(FIXTURE_ID).restore();
     });
 
     afterAll(() => {
         jasmine.Ajax.uninstall();
-    });
-
-    it('Pushes history when menu link is clicked', async () => {
-        spyOn(window.history, 'pushState');
-        const locationChanged = new Promise((resolve) => {
-            window.addEventListener('location-changed', () => {
-                resolve();
-            });
-        });
-        flush();
-        const link = mainPage.shadowRoot
-            .querySelector('#MainDrawer a[href="/notebooks"]');
-        link.click();
-        await locationChanged;
-        flush();
-
-        expect(window.history.pushState)
-            .toHaveBeenCalledWith({}, null, '_/notebooks');
     });
 
     it('Sets view state when dashboard page is active', async () => {
@@ -109,7 +96,7 @@ describe('Main Page', () => {
     it('Sets view state when iframe page is active', () => {
         spyOn(mainPage.$.MainDrawer, 'close');
 
-        mainPage.subRouteData.path = '/notebooks';
+        mainPage.subRouteData.path = '/jupyter/';
         mainPage._routePageChanged('_');
         flush();
 
@@ -118,23 +105,7 @@ describe('Main Page', () => {
         expect(mainPage.inIframe).toBe(true);
         expect(mainPage.shadowRoot.querySelector('paper-tabs')
             .hasAttribute('hidden')).toBe(true);
-        expect(mainPage.shadowRoot.querySelector('app-toolbar')
-            .hasAttribute('blue')).toBe(true);
         expect(mainPage.$.MainDrawer.close).toHaveBeenCalled();
-    });
-
-    it('Sets view state when an invalid iframe page is specified', () => {
-        spyOn(mainPage, '_isInsideOfIframe').and.returnValue(false);
-        mainPage.subRouteData.path = '/not-a-valid-page-for-iframe';
-        mainPage._routePageChanged('_');
-        flush();
-
-        expect(mainPage.page).toBe('not_found');
-        expect(mainPage.sidebarItemIndex).toBe(-1);
-        expect(mainPage.notFoundInIframe).toBe(false);
-        expect(mainPage.inIframe).toBe(true);
-        expect(mainPage.shadowRoot.querySelector('paper-tabs')
-            .hasAttribute('hidden')).toBe(true);
     });
 
     it('Sets view state when an invalid page is specified from an iframe',
@@ -157,7 +128,6 @@ describe('Main Page', () => {
         const headerLinkSelector = 'app-header paper-tabs a';
 
         // Base case
-        flush();
         const hrefs = [];
         mainPage.shadowRoot.querySelectorAll(sidebarLinkSelector)
             .forEach((l) => hrefs.push(l.href));
@@ -166,7 +136,7 @@ describe('Main Page', () => {
         hrefs.forEach((h) => expect(h).not.toContain('?'));
 
         // Set namespace case
-        mainPage.set('queryParams.ns', 'another-namespace');
+        mainPage.namespace = 'another-namespace';
         flush();
         hrefs.splice(0);
         mainPage.shadowRoot.querySelectorAll(sidebarLinkSelector)
@@ -177,14 +147,64 @@ describe('Main Page', () => {
     });
 
     it('Hides namespace selector when showing Pipelines dashboard', () => {
-        flush();
         expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
             .hasAttribute('hidden')).toBe(false);
 
-        mainPage.subRouteData.path = '/pipeline-dashboard';
+        mainPage.subRouteData.path = '/pipeline/';
         mainPage._routePageChanged('_');
         flush();
         expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
             .hasAttribute('hidden')).toBe(true);
+        expect(mainPage.page).toBe('iframe');
+        expect(mainPage.sidebarItemIndex).toBe(1);
+        expect(mainPage.inIframe).toBe(true);
+        expect(mainPage.shadowRoot.querySelector('paper-tabs')
+            .hasAttribute('hidden')).toBe(true);
+    });
+
+    it('Sets build version when platform info is received', async () => {
+        const responsePromise = mockRequest(mainPage, {
+            status: 200,
+            responseText: JSON.stringify({
+                provider: 'gce://test-project/us-east1-c/gke-kubeflow-node-123',
+                providerName: 'gce',
+                kubeflowVersion: '1.0.0',
+            }),
+        }, false, '/api/platform-info');
+        await responsePromise;
+        flush();
+
+        const buildVersion = mainPage.shadowRoot.querySelector(
+            'section.build span');
+        // textContent is used because innerText would be empty if sidebar is
+        // hidden
+        expect(buildVersion.textContent).toEqual('1.0.0');
+    });
+
+    it('Communicates with iframed page after it connects', async () => {
+        mainPage.namespace = 'another-namespace';
+        const iframeMessagesPromise = new Promise((resolve) => {
+            const messages = [];
+            spyOn(mainPage.$.PageFrame.contentWindow,
+                'postMessage').and.callFake((m) => {
+                messages.push(m);
+                if (messages.length === 2) {
+                    resolve(messages);
+                }
+            });
+        });
+
+        window.postMessage({type: IFRAME_CONNECTED_EVENT});
+        const messages = await iframeMessagesPromise;
+        expect(messages).toEqual([
+            {
+                type: PARENT_CONNECTED_EVENT,
+                value: null,
+            },
+            {
+                type: NAMESPACE_SELECTED_EVENT,
+                value: 'another-namespace',
+            },
+        ]);
     });
 });
