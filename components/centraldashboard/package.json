@@ -34,6 +34,7 @@
     "homepage": "https://github.com/kubeflow/kubeflow#readme",
     "dependencies": {
         "@babel/polyfill": "^7.4.4",
+        "@google-cloud/monitoring": "^0.7.1",
         "@kubernetes/client-node": "^0.8.2",
         "@polymer/app-layout": "^3.0.0",
         "@polymer/app-route": "^3.0.0",
@@ -68,6 +69,7 @@
         "@babel/runtime": "^7.4.4",
         "@polymer/test-fixture": "^4.0.2",
         "@types/express": "^4.16.1",
+        "@types/gapi.client.monitoring": "^3.0.1",
         "@types/jasmine": "^3.3.12",
         "babel-loader": "^8.0.5",
         "clean-webpack-plugin": "^1.0.1",
