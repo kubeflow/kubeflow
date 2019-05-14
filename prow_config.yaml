@@ -55,6 +55,7 @@ workflows:
     include_dirs:
       - bootstrap/*
       - deployment/*
+      - dependencies/*
       - kubeflow/*
       - testing/*
     params:
