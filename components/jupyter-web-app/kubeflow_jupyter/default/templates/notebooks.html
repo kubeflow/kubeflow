@@ -4,19 +4,20 @@
     <script defer>
         // Establish communication with Central Dashboard
         window.addEventListener('DOMContentLoaded', function (event) {
-            const {CentralDashboardEventHandler: CD_EvHandler} = window.centraldashboard || {}
-            if (!CD_EvHandler) return
+            const CD_EvHandler = (window.centraldashboard || {}).CentralDashboardEventHandler;
+            if (!CD_EvHandler) return;
             CD_EvHandler.init(function(handler, isIframed) {
-                document.body.classList[isIframed?'add':'remove']('iframe-view')
-                if (!isIframed) return
-                var ns = document.getElementById('ns-select'), wrapper = ns.parentElement
-                ns.disabled = isIframed
-                wrapper.classList.add('disabled')
+                document.body.classList[isIframed?'add':'remove']('iframe-view');
+                if (!isIframed) return;
+                var ns = document.getElementById('ns-select');
+                var wrapper = ns.parentElement;
+                ns.disabled = isIframed;
+                wrapper.classList.add('disabled');
                 handler.onNamespaceSelected = function(namespace){
-                    ns.value = namespace
-                }
-            })
-        })
+                    ns.value = namespace;
+                };
+            });
+        });
     </script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.min.js"></script>
 	<script src="{{ prefix + url_for('static', filename='js/notebooks.js') }}"></script>

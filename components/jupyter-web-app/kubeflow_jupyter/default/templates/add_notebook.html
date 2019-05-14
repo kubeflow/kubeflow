@@ -1,22 +1,23 @@
 {% extends "layout.html" %}
 {% block javascript %}
-{{ super() }}
+	{{ super() }}
 	<script>
         window.addEventListener('DOMContentLoaded', function (event) {
-            const {CentralDashboardEventHandler: CD_EvHandler} = window.centraldashboard || {}
-            if (!CD_EvHandler) return
+            const CD_EvHandler = (window.centraldashboard || {}).CentralDashboardEventHandler;
+            if (!CD_EvHandler) return;
             CD_EvHandler.init(function(handler, isIframed) {
-                document.body.classList[isIframed?'add':'remove']('iframe-view')
-                if (!isIframed) return
-                var ns = document.getElementById('ns-inp'), wrapper = ns.parentElement
-                ns.disabled = isIframed
-                wrapper.classList.add('disabled')
-                wrapper.title = 'Please change from toolbar'
+                document.body.classList[isIframed?'add':'remove']('iframe-view');
+                if (!isIframed) return;
+                var ns = document.getElementById('ns-inp');
+				var wrapper = ns.parentElement;
+                ns.disabled = isIframed;
+                wrapper.classList.add('disabled');
+                wrapper.title = 'Please change from toolbar';
                 handler.onNamespaceSelected = function(namespace){
-                    ns.value = namespace
-                }
-            })
-        })
+                    ns.value = namespace;
+                };
+            });
+        });
     </script>
 	<script type="text/javascript">
 		var formDefaults = JSON.parse('{{ form_defaults | tojson | safe}}');
