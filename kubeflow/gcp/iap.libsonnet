@@ -8,10 +8,10 @@
       envoyPort: 8080,
       envoyAdminPort: 8001,
       envoyStatsPort: 8025,
-      useIstio: util.toBool(_params.useIstio),
+      injectIstio: util.toBool(_params.injectIstio),
       ingressName: "envoy-ingress"
     },
-    local namespace = if params.useIstio then params.istioNamespace else params.namespace,
+    local namespace = if params.injectIstio then params.istioNamespace else params.namespace,
 
     // Test if the given hostname is in the form of: "NAME.endpoints.PROJECT.cloud.goog"
     local isCloudEndpoint(str) = {
@@ -99,7 +99,7 @@
           resources: ["ingresses"],
           verbs: ["get", "list", "update", "patch"],
         },
-      ] + if params.useIstio then [
+      ] + if params.injectIstio then [
         {
           apiGroups: ["authentication.istio.io"],
           resources: ["policies"],
@@ -305,7 +305,7 @@
                   },
                   {
                     name: "SERVICE",
-                    value: if params.useIstio then "istio-ingressgateway" else "envoy",
+                    value: if params.injectIstio then "istio-ingressgateway" else "envoy",
                   },
                   {
                     name: "GOOGLE_APPLICATION_CREDENTIALS",
@@ -315,7 +315,7 @@
                     name: "INGRESS_NAME",
                     value: params.ingressName,
                   },
-                ] + if params.useIstio then [
+                ] + if params.injectIstio then [
                   {
                     name: "USE_ISTIO",
                     value: "true",
@@ -388,7 +388,7 @@
                   },
                   {
                     name: "SERVICE",
-                    value: if params.useIstio then "istio-ingressgateway" else "envoy",
+                    value: if params.injectIstio then "istio-ingressgateway" else "envoy",
                   },
                   {
                     name: "INGRESS_NAME",
@@ -402,7 +402,7 @@
                     name: "GOOGLE_APPLICATION_CREDENTIALS",
                     value: "/var/run/secrets/sa/admin-gcp-sa.json",
                   },
-                ] + if params.useIstio then [
+                ] + if params.injectIstio then [
                   {
                     name: "USE_ISTIO",
                     value: "true",
@@ -744,7 +744,7 @@
       data: {
         "setup_backend.sh": importstr "setup_backend.sh",
         "update_backend.sh": importstr "update_backend.sh",
-      } + if params.useIstio then {
+      } + if params.injectIstio then {
         "jwt-policy-template.yaml": importstr "jwt-policy-template.yaml",
         "healthcheck_route.yaml": importstr "healthcheck_route.yaml",
       } else {
@@ -944,8 +944,8 @@
                     // Due to https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/README.md#limitations
                     // Keep port the servicePort the same as the port we are targeting on the backend so that servicePort will be the same as targetPort for the purpose of
                     // health checking.
-                    serviceName: if params.useIstio then "istio-ingressgateway" else "envoy",
-                    servicePort: if params.useIstio then 80 else params.envoyPort,
+                    serviceName: if params.injectIstio then "istio-ingressgateway" else "envoy",
+                    servicePort: if params.injectIstio then 80 else params.envoyPort,
                   },
                   path: "/*",
                 },
