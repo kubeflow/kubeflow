@@ -7,7 +7,7 @@ local testCases = [
       { namespace: "namespace" },
       {
         envoyPort: 8080,
-        useIstio: "false",
+        injectIstio: "false",
         espSampleAppImage: "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
       }
     ).service,
@@ -48,7 +48,7 @@ local testCases = [
         ipName: "ipName",
         hostname: "hostname",
         issuer: "issuer",
-        useIstio: "false",
+        injectIstio: "false",
         espSampleAppImage: "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
       }
     ).ingress,
@@ -95,7 +95,7 @@ local testCases = [
         ipName: "ipName",
         hostname: "null",
         issuer: "issuer",
-        useIstio: "false",
+        injectIstio: "false",
         espSampleAppImage: "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
       }
     ).ingress,
@@ -141,7 +141,7 @@ local testCases = [
         hostname: "hostname",
         issuer: "issuer",
         privateGKECluster: "false",
-        useIstio: "false",
+        injectIstio: "false",
         espSampleAppImage: "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
       }
     ).certificate,
@@ -183,7 +183,7 @@ local testCases = [
         namespace: "namespace",
       },
       {
-        useIstio: "false",
+        injectIstio: "false",
         espSampleAppImage: "cloud-solutions-group/esp-sample-app:5.0.0",
       }
     ).whoamiApp,
@@ -242,7 +242,7 @@ local testCases = [
         namespace: "namespace",
       },
       {
-        useIstio: "false",
+        injectIstio: "false",
         espSampleAppImage: "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
       }
     ).whoamiService,
