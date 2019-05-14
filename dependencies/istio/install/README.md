@@ -13,6 +13,7 @@ Specifically, the things we changed are:
 1. The service type of `istio-ingressgateway` is changed from `LoadBalancer` to `NodePort`.
 1. Add annotation to service `istio-ingressgateway`: `beta.cloud.google.com/backend-config: XXX`.
    This is to [enable IAP](https://cloud.google.com/iap/docs/enabling-kubernetes-howto#kubernetes-configure).
+1. We break down the items of "kind: list" k8s resouces into seperate resources because our code can't handle list yet.
 
 *Notice*: 
 * The policy of configmap `istio-sidecar-injector` is `enabled`. To turn on injection for certain namespace, add namespace 
