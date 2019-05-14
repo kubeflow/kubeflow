@@ -55,7 +55,7 @@ if [[ -z ${USE_ISTIO} ]]; then
     sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g" > /var/shared/envoy-config.json
 else
   # Use kubectl patch.
-  _op='[{"op": "replace", "path": "/spec/origins/jwt/0/audiences", "value": ["'${JWT_AUDIENCE}'"]}]'
+  _op='[{"op": "replace", "path": "/spec/principalBinding", "value": "USE_PEER"}]'
   echo "patch policy: ${NAMESPACE} with ${_op}"
   kubectl -n ${NAMESPACE} patch policy ingress-jwt --type='json' -p ${_op}
 fi
