@@ -11,10 +11,6 @@
   value: 
     gpu-driver
 - op: add
-  path: /spec/packages/-
-  value: 
-    gcp
-- op: add
   path: /spec/components/-
   value: 
     basic-auth
@@ -26,3 +22,7 @@
   path: /spec/components/-
   value: 
     spartakus
+- op: add
+  path: /spec/packages/-
+  value: 
+    gcp

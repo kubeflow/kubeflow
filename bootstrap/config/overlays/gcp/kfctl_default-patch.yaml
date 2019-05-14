@@ -11,10 +11,14 @@
   value: 
     gpu-driver
 - op: add
-  path: /spec/packages/-
-  value: 
-    gcp
-- op: add
   path: /spec/components/-
   value: 
     iap-ingress
+- op: add
+  path: /spec/components/-
+  value: 
+    spartakus
+- op: add
+  path: /spec/packages/-
+  value: 
+    gcp
