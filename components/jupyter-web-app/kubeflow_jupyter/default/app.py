@@ -46,7 +46,7 @@ def post_notebook(namespace):
   # podpreset labels
   # todo: jupyter-web-app should add the podpreset labels that user selected
   #  (https://github.com/kubeflow/kubeflow/issues/2992)
-  utils.set_notebook_podpresets_labels(notebook,podpresetLabels)
+  utils.set_notebook_podpresets_labels(notebook, podpresetLabels)
   
   # Set Name and Namespace
   utils.set_notebook_names(notebook, body)
