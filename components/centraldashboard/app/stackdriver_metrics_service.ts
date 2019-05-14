@@ -120,27 +120,27 @@ export class StackdriverMetricsService implements MetricsService {
   private getTimeSeriesInterval(interval: Interval):
       {startTime: monitoring.Timestamp, endTime: monitoring.Timestamp} {
     const now = Math.floor(Date.now() / 1000);
-    let secondsToSubtract = 0;
+    let minutesToSubtract = 0;
     switch (interval) {
       case Interval.Last5m:
-        secondsToSubtract = 60 * 5;
+        minutesToSubtract = 5;
         break;
       case Interval.Last15m:
-        secondsToSubtract = 60 * 15;
+        minutesToSubtract = 15;
         break;
       case Interval.Last30m:
-        secondsToSubtract = 60 * 30;
+        minutesToSubtract = 30;
         break;
       case Interval.Last60m:
-        secondsToSubtract = 60 * 60;
+        minutesToSubtract = 60;
         break;
       case Interval.Last180m:
-        secondsToSubtract = 60 * 180;
+        minutesToSubtract = 180;
         break;
       default:
     }
     return {
-      startTime: {seconds: now - secondsToSubtract},
+      startTime: {seconds: now - (60 * minutesToSubtract)},
       endTime: {seconds: now},
     };
   }

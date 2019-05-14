@@ -22,9 +22,8 @@ describe('Dashboard API', () => {
       if (typeof addressInfo === 'string') {
         throw new Error(
             'Unable to determine system-assigned port for test API server');
-      } else {
-        port = addressInfo.port;
       }
+      port = addressInfo.port;
     });
 
     it('Should return a 405 status code', (done) => {
