@@ -62,6 +62,9 @@ componentParams:
       # TODO change value on the fly: replace with user-provide parameters. This need to be fully qualified domain name to use with ingress.
       value: <deployName>.endpoints.<project>.cloud.goog
       initRequired: true
+    - name: injectIstio
+      initRequired: true
+      value: "false"
   jupyter-web-app:
   - initRequired: true
     name: injectIstio
