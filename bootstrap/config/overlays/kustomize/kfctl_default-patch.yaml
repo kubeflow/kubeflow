@@ -1,0 +1,36 @@
+- op: add
+  path: /spec/components/-
+  value: 
+    api-service
+- op: add
+  path: /spec/components/-
+  value: 
+    minio
+- op: add
+  path: /spec/components/-
+  value: 
+    mysql
+- op: add
+  path: /spec/components/-
+  value: 
+    persistent-agent
+- op: add
+  path: /spec/components/-
+  value: 
+    pipelines-runner
+- op: add
+  path: /spec/components/-
+  value: 
+    pipelines-ui
+- op: add
+  path: /spec/components/-
+  value: 
+    pipelines-viewer
+- op: add
+  path: /spec/components/-
+  value: 
+    scheduledworkflow
+- op: add
+  path: /spec/packages/-
+  value: 
+    pipeline

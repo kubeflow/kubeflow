@@ -697,6 +697,8 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	// Install Istio
 	if gcp.Spec.UseIstio {
 		log.Infof("Installing istio...")
+		//TODO should be a cli parameter
+		nv := configtypes.NameValue{Name: "namespace", Value: gcp.Namespace}
 		parentDir := path.Dir(gcp.Spec.Repo)
 		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/install/crds.yaml"))
 		if err != nil {
@@ -714,7 +716,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 				Message: err.Error(),
 			}
 		}
-		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/kf-istio-resources.yaml"))
+		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/kf-istio-resources.yaml"), nv)
 		if err != nil {
 			log.Errorf("Failed to create kubeflow istio resource: %v", err)
 			return &kfapis.KfError{
@@ -1375,20 +1377,15 @@ func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
 			"passwordhash": []byte(gcp.encodedPassword),
 		},
 	}
-	_, err := client.CoreV1().Secrets(gcp.KfDef.Namespace).Update(secret)
+	_, err := client.CoreV1().Secrets(gcp.Namespace).Update(secret)
 	if err != nil {
 		log.Warnf("Updating basic auth login failed, trying to create one: %v", err)
-		_, err = client.CoreV1().Secrets(gcp.Namespace).Create(secret)
+		return insertSecret(client, BASIC_AUTH_SECRET, gcp.Namespace, map[string][]byte{
+			"username":     []byte(gcp.username),
+			"passwordhash": []byte(gcp.encodedPassword),
+		})
 	}
-
-	if err == nil {
-		return nil
-	} else {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: err.Error(),
-		}
-	}
+	return nil
 }
 
 func (gcp *Gcp) createSecrets() error {
@@ -1498,6 +1495,8 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 		gcp.Spec.ComponentParams["iap-ingress"] = setNameVal(gcp.Spec.ComponentParams["iap-ingress"], "ipName", gcp.Spec.IpName, true)
 		gcp.Spec.ComponentParams["iap-ingress"] = setNameVal(gcp.Spec.ComponentParams["iap-ingress"], "hostname", gcp.Spec.Hostname, true)
 	}
+	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "overlay", "minioPd", false)
+	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "overlay", "mysqlPd", false)
 	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "mysqlPd", gcp.Name+"-storage-metadata-store", false)
 	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "minioPd", gcp.Name+"-storage-artifact-store", false)
 	gcp.Spec.ComponentParams["notebook-controller"] = setNameVal(gcp.Spec.ComponentParams["notebook-controller"], "injectGcpCredentials", "true", false)

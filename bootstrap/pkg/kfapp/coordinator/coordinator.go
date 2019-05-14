@@ -19,6 +19,7 @@ package coordinator
 import (
 	"fmt"
 	"github.com/ghodss/yaml"
+	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
@@ -62,26 +63,44 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	return _coordinator
 }
 
-func getConfigFromCache(pathDir string, platform string, useBasicAuth bool) ([]byte, error) {
-	//TODO see #2629
+func getConfigFromCache(pathDir string, kfDef *kfdefs.KfDef) ([]byte, error) {
+
 	configPath := filepath.Join(pathDir, kftypes.DefaultConfigDir)
-	if platform == kftypes.GCP {
-		if useBasicAuth {
-			configPath = filepath.Join(configPath, kftypes.GcpBasicAuth)
-		} else {
-			configPath = filepath.Join(configPath, kftypes.GcpIapConfig)
-		}
-	} else {
-		configPath = filepath.Join(configPath, kftypes.DefaultConfigFile)
+	overlays := []config.NameValue{
+		{
+			Name:  "overlay",
+			Value: strings.Split(kfDef.Spec.PackageManager, "@")[0],
+		},
 	}
-	if data, err := ioutil.ReadFile(configPath); err == nil {
-		return data, nil
-	} else {
+	if kfDef.Spec.UseBasicAuth {
+		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "basic_auth"})
+	} else if kfDef.Spec.Platform != "" {
+		overlays = append(overlays, config.NameValue{Name: "overlay", Value: kfDef.Spec.Platform})
+	}
+	compPath := strings.Split(kftypes.DefaultConfigDir, "/")[1]
+	resMap, resMapErr := kustomize.GenerateKustomizationFile(kfDef,
+		path.Dir(configPath), compPath, overlays)
+	if resMapErr != nil {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: err.Error(),
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("error writing to %v Error %v", configPath, resMapErr),
 		}
 	}
+	writeErr := kustomize.WriteKustomizationFile(kfDef.Name, configPath, resMap)
+	if writeErr != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("error writing to %v Error %v", kfDef.Name, writeErr),
+		}
+	}
+	data, dataErr := resMap.EncodeAsYaml()
+	if dataErr != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("can not encode as yaml Error %v", configPath, resMapErr),
+		}
+	}
+	return data, nil
 }
 
 // GetPlatform will return an implementation of kftypes.KfApp that matches the platform string
@@ -214,8 +233,12 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		}
 	}
 	platform := options[string(kftypes.PLATFORM)].(string)
+	packageManager := options[string(kftypes.PACKAGE_MANAGER)].(string)
 	version := options[string(kftypes.VERSION)].(string)
 	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
+	useIstio := options[string(kftypes.USE_ISTIO)].(bool)
+	namespace := options[string(kftypes.NAMESPACE)].(string)
+	project := options[string(kftypes.PROJECT)].(string)
 	cacheDir := ""
 	if options[string(kftypes.REPO)].(string) != "" {
 		cacheDir = options[string(kftypes.REPO)].(string)
@@ -229,19 +252,30 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
 		}
 	}
-	configFileBuffer, configFileErr := getConfigFromCache(cacheDir, platform, useBasicAuth)
-	if configFileErr != nil {
-		log.Fatalf("could not get config file Error %v", configFileErr)
-	}
-
 	kfDef := &kfdefs.KfDef{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KfDef",
 			APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
 		},
-		Spec: kfdefs.KfDefSpec{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: appName,
+			Namespace: namespace,
+		},
+		Spec: kfdefs.KfDefSpec{
+			ComponentConfig: config.ComponentConfig{
+				Platform:platform,
+			},
+			Project: project,
+			PackageManager: packageManager,
+			UseBasicAuth: useBasicAuth,
+			UseIstio: useIstio,
+		},
 	}
-	specErr := yaml.Unmarshal(configFileBuffer, &kfDef.Spec)
+	configFileBuffer, configFileErr := getConfigFromCache(cacheDir, kfDef)
+	if configFileErr != nil {
+		log.Fatalf("could not get config file Error %v", configFileErr)
+	}
+	specErr := yaml.Unmarshal(configFileBuffer, kfDef)
 	if specErr != nil {
 		log.Errorf("couldn't unmarshal app.yaml. Error: %v", specErr)
 	}
@@ -262,15 +296,15 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 
 	kfDef.Name = appName
 	kfDef.Spec.AppDir = appDir
-	kfDef.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
-	kfDef.Namespace = options[string(kftypes.NAMESPACE)].(string)
-	kfDef.Spec.Version = options[string(kftypes.VERSION)].(string)
+	kfDef.Spec.Platform = platform
+	kfDef.Namespace = namespace
+	kfDef.Spec.Version = version
 	kfDef.Spec.Repo = path.Join(cacheDir, kftypes.KubeflowRepo)
 	kfDef.Spec.Project = options[string(kftypes.PROJECT)].(string)
 	kfDef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
-	kfDef.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
-	kfDef.Spec.UseIstio = options[string(kftypes.USE_ISTIO)].(bool)
-	kfDef.Spec.PackageManager = options[string(kftypes.PACKAGE_MANAGER)].(string)
+	kfDef.Spec.UseBasicAuth = useBasicAuth
+	kfDef.Spec.UseIstio = useIstio
+	kfDef.Spec.PackageManager = packageManager
 	pApp := GetKfApp(kfDef)
 	return pApp, nil
 }
