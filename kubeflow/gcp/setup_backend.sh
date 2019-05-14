@@ -54,11 +54,10 @@ if [[ -z ${USE_ISTIO} ]]; then
   kubectl get configmap -n ${NAMESPACE} envoy-config -o jsonpath='{.data.envoy-config\.json}' |
     sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g" > /var/shared/envoy-config.json
 else
-  # Apply the jwt validation policy
-  cat /var/envoy-config/jwt-policy-template.yaml | sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g" > /var/shared/jwt-policy.yaml
   # Use kubectl patch.
-  kubectl -n ${NAMESPACE} patch policy ingress-jwt --type='json' \
-    -p "[{\"op\": \"replace\", \"path\": \"/spec/origins/jwt/0/audiences/0\", \"value\": \"${JWT_AUDIENCE}\"}]"
+  _op="[{\"op\": \"replace\", \"path\": \"/spec/origins/jwt/0/audiences/0\", \"value\": \"${JWT_AUDIENCE}\"}]"
+  echo "patch policy: ${NAMESPACE} with ${_op}"
+  kubectl -n ${NAMESPACE} patch policy ingress-jwt --type='json' -p ${_op}
 fi
 
 echo "Clearing lock on service annotation"
