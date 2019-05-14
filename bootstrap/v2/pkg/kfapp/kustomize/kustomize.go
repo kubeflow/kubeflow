@@ -811,9 +811,6 @@ func MergeKustomizations(kfDef *cltypes.KfDef, compDir string, params []config.N
 		}
 	}
 	kustomizationMaps := CreateKustomizationMaps()
-	if kfDef.Spec.Platform != "" {
-		overlayParams = append([]string{kfDef.Spec.Platform}, overlayParams...)
-	}
 	kustomization := &types.Kustomization{
 		TypeMeta: types.TypeMeta{
 			APIVersion: types.KustomizationVersion,
