@@ -5,6 +5,1558 @@ metadata:
   labels:
     istio-injection: disabled
 ---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: virtualservices.networking.istio.io
+  labels:
+    app: istio-pilot
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: networking.istio.io
+  names:
+    kind: VirtualService
+    listKind: VirtualServiceList
+    plural: virtualservices
+    singular: virtualservice
+    shortNames:
+    - vs
+    categories:
+    - istio-io
+    - networking-istio-io
+  scope: Namespaced
+  version: v1alpha3
+  additionalPrinterColumns:
+  - JSONPath: .spec.gateways
+    description: The names of gateways and sidecars that should apply these routes
+    name: Gateways
+    type: string
+  - JSONPath: .spec.hosts
+    description: The destination hosts to which traffic is being sent
+    name: Hosts
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    description: |-
+      CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+      Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+    name: Age
+    type: date
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: destinationrules.networking.istio.io
+  labels:
+    app: istio-pilot
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: networking.istio.io
+  names:
+    kind: DestinationRule
+    listKind: DestinationRuleList
+    plural: destinationrules
+    singular: destinationrule
+    shortNames:
+    - dr
+    categories:
+    - istio-io
+    - networking-istio-io
+  scope: Namespaced
+  version: v1alpha3
+  additionalPrinterColumns:
+  - JSONPath: .spec.host
+    description: The name of a service from the service registry
+    name: Host
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    description: |-
+      CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+      Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+    name: Age
+    type: date
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: serviceentries.networking.istio.io
+  labels:
+    app: istio-pilot
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: networking.istio.io
+  names:
+    kind: ServiceEntry
+    listKind: ServiceEntryList
+    plural: serviceentries
+    singular: serviceentry
+    shortNames:
+    - se
+    categories:
+    - istio-io
+    - networking-istio-io
+  scope: Namespaced
+  version: v1alpha3
+  additionalPrinterColumns:
+  - JSONPath: .spec.hosts
+    description: The hosts associated with the ServiceEntry
+    name: Hosts
+    type: string
+  - JSONPath: .spec.location
+    description: Whether the service is external to the mesh or part of the mesh (MESH_EXTERNAL or MESH_INTERNAL)
+    name: Location
+    type: string
+  - JSONPath: .spec.resolution
+    description: Service discovery mode for the hosts (NONE, STATIC, or DNS)
+    name: Resolution
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    description: |-
+      CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+      Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+    name: Age
+    type: date
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: gateways.networking.istio.io
+  labels:
+    app: istio-pilot
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: networking.istio.io
+  names:
+    kind: Gateway
+    plural: gateways
+    singular: gateway
+    shortNames:
+    - gw
+    categories:
+    - istio-io
+    - networking-istio-io
+  scope: Namespaced
+  version: v1alpha3
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: envoyfilters.networking.istio.io
+  labels:
+    app: istio-pilot
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: networking.istio.io
+  names:
+    kind: EnvoyFilter
+    plural: envoyfilters
+    singular: envoyfilter
+    categories:
+    - istio-io
+    - networking-istio-io
+  scope: Namespaced
+  version: v1alpha3
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: clusterrbacconfigs.rbac.istio.io
+  labels:
+    app: istio-pilot
+    istio: rbac
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: rbac.istio.io
+  names:
+    kind: ClusterRbacConfig
+    plural: clusterrbacconfigs
+    singular: clusterrbacconfig
+    categories:
+    - istio-io
+    - rbac-istio-io
+  scope: Cluster
+  version: v1alpha1
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: policies.authentication.istio.io
+  labels:
+    app: istio-citadel
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: authentication.istio.io
+  names:
+    kind: Policy
+    plural: policies
+    singular: policy
+    categories:
+    - istio-io
+    - authentication-istio-io
+  scope: Namespaced
+  version: v1alpha1
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: meshpolicies.authentication.istio.io
+  labels:
+    app: istio-citadel
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: authentication.istio.io
+  names:
+    kind: MeshPolicy
+    listKind: MeshPolicyList
+    plural: meshpolicies
+    singular: meshpolicy
+    categories:
+    - istio-io
+    - authentication-istio-io
+  scope: Cluster
+  version: v1alpha1
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: httpapispecbindings.config.istio.io
+  labels:
+    app: istio-mixer
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: HTTPAPISpecBinding
+    plural: httpapispecbindings
+    singular: httpapispecbinding
+    categories:
+    - istio-io
+    - apim-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: httpapispecs.config.istio.io
+  labels:
+    app: istio-mixer
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: HTTPAPISpec
+    plural: httpapispecs
+    singular: httpapispec
+    categories:
+    - istio-io
+    - apim-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: quotaspecbindings.config.istio.io
+  labels:
+    app: istio-mixer
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: QuotaSpecBinding
+    plural: quotaspecbindings
+    singular: quotaspecbinding
+    categories:
+    - istio-io
+    - apim-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: quotaspecs.config.istio.io
+  labels:
+    app: istio-mixer
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: QuotaSpec
+    plural: quotaspecs
+    singular: quotaspec
+    categories:
+    - istio-io
+    - apim-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: rules.config.istio.io
+  labels:
+    app: mixer
+    package: istio.io.mixer
+    istio: core
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: rule
+    plural: rules
+    singular: rule
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: attributemanifests.config.istio.io
+  labels:
+    app: mixer
+    package: istio.io.mixer
+    istio: core
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: attributemanifest
+    plural: attributemanifests
+    singular: attributemanifest
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: bypasses.config.istio.io
+  labels:
+    app: mixer
+    package: bypass
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: bypass
+    plural: bypasses
+    singular: bypass
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: circonuses.config.istio.io
+  labels:
+    app: mixer
+    package: circonus
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: circonus
+    plural: circonuses
+    singular: circonus
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: deniers.config.istio.io
+  labels:
+    app: mixer
+    package: denier
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: denier
+    plural: deniers
+    singular: denier
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: fluentds.config.istio.io
+  labels:
+    app: mixer
+    package: fluentd
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: fluentd
+    plural: fluentds
+    singular: fluentd
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: kubernetesenvs.config.istio.io
+  labels:
+    app: mixer
+    package: kubernetesenv
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: kubernetesenv
+    plural: kubernetesenvs
+    singular: kubernetesenv
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: listcheckers.config.istio.io
+  labels:
+    app: mixer
+    package: listchecker
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: listchecker
+    plural: listcheckers
+    singular: listchecker
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: memquotas.config.istio.io
+  labels:
+    app: mixer
+    package: memquota
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: memquota
+    plural: memquotas
+    singular: memquota
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: noops.config.istio.io
+  labels:
+    app: mixer
+    package: noop
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: noop
+    plural: noops
+    singular: noop
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: opas.config.istio.io
+  labels:
+    app: mixer
+    package: opa
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: opa
+    plural: opas
+    singular: opa
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: prometheuses.config.istio.io
+  labels:
+    app: mixer
+    package: prometheus
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: prometheus
+    plural: prometheuses
+    singular: prometheus
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: rbacs.config.istio.io
+  labels:
+    app: mixer
+    package: rbac
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: rbac
+    plural: rbacs
+    singular: rbac
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: redisquotas.config.istio.io
+  labels:
+    app: mixer
+    package: redisquota
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: redisquota
+    plural: redisquotas
+    singular: redisquota
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: signalfxs.config.istio.io
+  labels:
+    app: mixer
+    package: signalfx
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: signalfx
+    plural: signalfxs
+    singular: signalfx
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: solarwindses.config.istio.io
+  labels:
+    app: mixer
+    package: solarwinds
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: solarwinds
+    plural: solarwindses
+    singular: solarwinds
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: stackdrivers.config.istio.io
+  labels:
+    app: mixer
+    package: stackdriver
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: stackdriver
+    plural: stackdrivers
+    singular: stackdriver
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: statsds.config.istio.io
+  labels:
+    app: mixer
+    package: statsd
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: statsd
+    plural: statsds
+    singular: statsd
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: stdios.config.istio.io
+  labels:
+    app: mixer
+    package: stdio
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: stdio
+    plural: stdios
+    singular: stdio
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: apikeys.config.istio.io
+  labels:
+    app: mixer
+    package: apikey
+    istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: apikey
+    plural: apikeys
+    singular: apikey
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: authorizations.config.istio.io
+  labels:
+    app: mixer
+    package: authorization
+    istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: authorization
+    plural: authorizations
+    singular: authorization
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: checknothings.config.istio.io
+  labels:
+    app: mixer
+    package: checknothing
+    istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: checknothing
+    plural: checknothings
+    singular: checknothing
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: kuberneteses.config.istio.io
+  labels:
+    app: mixer
+    package: adapter.template.kubernetes
+    istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: kubernetes
+    plural: kuberneteses
+    singular: kubernetes
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: listentries.config.istio.io
+  labels:
+    app: mixer
+    package: listentry
+    istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: listentry
+    plural: listentries
+    singular: listentry
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: logentries.config.istio.io
+  labels:
+    app: mixer
+    package: logentry
+    istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: logentry
+    plural: logentries
+    singular: logentry
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+  additionalPrinterColumns:
+  - JSONPath: .spec.severity
+    description: The importance of the log entry
+    name: Severity
+    type: string
+  - JSONPath: .spec.timestamp
+    description: The time value for the log entry
+    name: Timestamp
+    type: string
+  - JSONPath: .spec.monitored_resource_type
+    description: Optional expression to compute the type of the monitored resource this log entry is being recorded on
+    name: Res Type
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    description: |-
+      CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+      Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+    name: Age
+    type: date
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: edges.config.istio.io
+  labels:
+    app: mixer
+    package: edge
+    istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: edge
+    plural: edges
+    singular: edge
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: metrics.config.istio.io
+  labels:
+    app: mixer
+    package: metric
+    istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: metric
+    plural: metrics
+    singular: metric
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: quotas.config.istio.io
+  labels:
+    app: mixer
+    package: quota
+    istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: quota
+    plural: quotas
+    singular: quota
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: reportnothings.config.istio.io
+  labels:
+    app: mixer
+    package: reportnothing
+    istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: reportnothing
+    plural: reportnothings
+    singular: reportnothing
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: tracespans.config.istio.io
+  labels:
+    app: mixer
+    package: tracespan
+    istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: tracespan
+    plural: tracespans
+    singular: tracespan
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: rbacconfigs.rbac.istio.io
+  labels:
+    app: mixer
+    package: istio.io.mixer
+    istio: rbac
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: rbac.istio.io
+  names:
+    kind: RbacConfig
+    plural: rbacconfigs
+    singular: rbacconfig
+    categories:
+    - istio-io
+    - rbac-istio-io
+  scope: Namespaced
+  version: v1alpha1
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: serviceroles.rbac.istio.io
+  labels:
+    app: mixer
+    package: istio.io.mixer
+    istio: rbac
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: rbac.istio.io
+  names:
+    kind: ServiceRole
+    plural: serviceroles
+    singular: servicerole
+    categories:
+    - istio-io
+    - rbac-istio-io
+  scope: Namespaced
+  version: v1alpha1
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: servicerolebindings.rbac.istio.io
+  labels:
+    app: mixer
+    package: istio.io.mixer
+    istio: rbac
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: rbac.istio.io
+  names:
+    kind: ServiceRoleBinding
+    plural: servicerolebindings
+    singular: servicerolebinding
+    categories:
+    - istio-io
+    - rbac-istio-io
+  scope: Namespaced
+  version: v1alpha1
+  additionalPrinterColumns:
+  - JSONPath: .spec.roleRef.name
+    description: The name of the ServiceRole object being referenced
+    name: Reference
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    description: |-
+      CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+      Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+    name: Age
+    type: date
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: adapters.config.istio.io
+  labels:
+    app: mixer
+    package: adapter
+    istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: adapter
+    plural: adapters
+    singular: adapter
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: instances.config.istio.io
+  labels:
+    app: mixer
+    package: instance
+    istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: instance
+    plural: instances
+    singular: instance
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: templates.config.istio.io
+  labels:
+    app: mixer
+    package: template
+    istio: mixer-template
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: template
+    plural: templates
+    singular: template
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: handlers.config.istio.io
+  labels:
+    app: mixer
+    package: handler
+    istio: mixer-handler
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: handler
+    plural: handlers
+    singular: handler
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: cloudwatches.config.istio.io
+  labels:
+    app: mixer
+    package: cloudwatch
+    istio: mixer-adapter
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: cloudwatch
+    plural: cloudwatches
+    singular: cloudwatch
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: dogstatsds.config.istio.io
+  labels:
+    app: mixer
+    package: dogstatsd
+    istio: mixer-adapter
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: dogstatsd
+    plural: dogstatsds
+    singular: dogstatsd
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: sidecars.networking.istio.io
+  labels:
+    app: istio-pilot
+    chart: istio
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: networking.istio.io
+  names:
+    kind: Sidecar
+    plural: sidecars
+    singular: sidecar
+    categories:
+    - istio-io
+    - networking-istio-io
+  scope: Namespaced
+  version: v1alpha3
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: zipkins.config.istio.io
+  labels:
+    app: mixer
+    package: zipkin
+    istio: mixer-adapter
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: zipkin
+    plural: zipkins
+    singular: zipkin
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: clusterissuers.certmanager.k8s.io
+  labels:
+    app: certmanager
+    chart: certmanager
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: certmanager.k8s.io
+  version: v1alpha1
+  names:
+    kind: ClusterIssuer
+    plural: clusterissuers
+  scope: Cluster
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: issuers.certmanager.k8s.io
+  labels:
+    app: certmanager
+    chart: certmanager
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: certmanager.k8s.io
+  version: v1alpha1
+  names:
+    kind: Issuer
+    plural: issuers
+  scope: Namespaced
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: certificates.certmanager.k8s.io
+  labels:
+    app: certmanager
+    chart: certmanager
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  additionalPrinterColumns:
+    - JSONPath: .status.conditions[?(@.type=="Ready")].status
+      name: Ready
+      type: string
+    - JSONPath: .spec.secretName
+      name: Secret
+      type: string
+    - JSONPath: .spec.issuerRef.name
+      name: Issuer
+      type: string
+      priority: 1
+    - JSONPath: .status.conditions[?(@.type=="Ready")].message
+      name: Status
+      type: string
+      priority: 1
+    - JSONPath: .metadata.creationTimestamp
+      description: |-
+        CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+        Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+      name: Age
+      type: date
+  group: certmanager.k8s.io
+  version: v1alpha1
+  scope: Namespaced
+  names:
+    kind: Certificate
+    plural: certificates
+    shortNames:
+      - cert
+      - certs
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: orders.certmanager.k8s.io
+  labels:
+    app: certmanager
+    chart: certmanager
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  additionalPrinterColumns:
+    - JSONPath: .status.state
+      name: State
+      type: string
+    - JSONPath: .spec.issuerRef.name
+      name: Issuer
+      type: string
+      priority: 1
+    - JSONPath: .status.reason
+      name: Reason
+      type: string
+      priority: 1
+    - JSONPath: .metadata.creationTimestamp
+      description: |-
+        CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+        Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+      name: Age
+      type: date
+  group: certmanager.k8s.io
+  version: v1alpha1
+  names:
+    kind: Order
+    plural: orders
+  scope: Namespaced
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: challenges.certmanager.k8s.io
+  labels:
+    app: certmanager
+    chart: certmanager
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  additionalPrinterColumns:
+    - JSONPath: .status.state
+      name: State
+      type: string
+    - JSONPath: .spec.dnsName
+      name: Domain
+      type: string
+    - JSONPath: .status.reason
+      name: Reason
+      type: string
+    - JSONPath: .metadata.creationTimestamp
+      description: |-
+        CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+        Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+      name: Age
+      type: date
+  group: certmanager.k8s.io
+  version: v1alpha1
+  names:
+    kind: Challenge
+    plural: challenges
+  scope: Namespaced
+---
+# Source: istio/charts/kiali/templates/demosecret.yaml
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kiali
+  namespace: istio-system
+  labels:
+    app: kiali
+    chart: kiali
+    heritage: Tiller
+    release: istio
+type: Opaque
+data:
+  username: YWRtaW4=   # admin
+  passphrase: YWRtaW4= # admin
+
+---
 # Source: istio/charts/galley/templates/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -18,7 +1570,7 @@ metadata:
     release: istio
     istio: galley
 data:
-  validatingwebhookconfiguration.yaml: |-
+  validatingwebhookconfiguration.yaml: |-    
     apiVersion: admissionregistration.k8s.io/v1beta1
     kind: ValidatingWebhookConfiguration
     metadata:
@@ -81,6 +1633,7 @@ data:
             - envoyfilters
             - gateways
             - serviceentries
+            - sidecars
             - virtualservices
         failurePolicy: Fail
       - name: mixer.validation.istio.io
@@ -111,7 +1664,6 @@ data:
             - opas
             - prometheuses
             - rbacs
-            - servicecontrols
             - solarwindses
             - stackdrivers
             - cloudwatches
@@ -127,7 +1679,6 @@ data:
             - metrics
             - quotas
             - reportnothings
-            - servicecontrolreports
             - tracespans
         failurePolicy: Fail
 ---
@@ -144,7 +1695,7 @@ metadata:
     release: istio
     istio: grafana
 data:
-  custom-resources.yaml: |-
+  custom-resources.yaml: |-    
     apiVersion: authentication.istio.io/v1alpha1
     kind: Policy
     metadata:
@@ -160,18 +1711,18 @@ data:
       - name: grafana
         ports:
         - number: 3000
-  run.sh: |-
+  run.sh: |-    
     #!/bin/sh
-
+    
     set -x
-
+    
     if [ "$#" -ne "1" ]; then
         echo "first argument should be path to custom resource yaml"
         exit 1
     fi
-
+    
     pathToResourceYAML=${1}
-
+    
     kubectl get validatingwebhookconfiguration istio-galley 2>/dev/null
     if [ "$?" -eq 0 ]; then
         echo "istio-galley validatingwebhookconfiguration found - waiting for istio-galley deployment to be ready"
@@ -191,7 +1742,7 @@ data:
     fi
     sleep 5
     kubectl apply -f ${pathToResourceYAML}
-
+    
 
 ---
 # Source: istio/charts/grafana/templates/configmap-dashboards.yaml
@@ -219,26 +1770,6 @@ data:
       "pluginName": "Prometheus"
     }
   ],
-  "__requires": [
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "5.2.3"
-    },
-    {
-      "type": "panel",
-      "id": "graph",
-      "name": "Graph",
-      "version": "5.0.0"
-    },
-    {
-      "type": "datasource",
-      "id": "prometheus",
-      "name": "Prometheus",
-      "version": "5.0.0"
-    }
-  ],
   "annotations": {
     "list": [
       {
@@ -255,7 +1786,6 @@ data:
   "editable": false,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": null,
   "links": [],
   "panels": [
     {
@@ -304,6 +1834,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Galley Versions",
       "tooltip": {
@@ -450,6 +1981,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Memory",
       "tooltip": {
@@ -548,6 +2080,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "CPU",
       "tooltip": {
@@ -639,6 +2172,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Disk",
       "tooltip": {
@@ -717,11 +2251,27 @@ data:
           "expr": "go_goroutines{job=\"galley\"}",
           "format": "time_series",
           "intervalFactor": 2,
+          "legendFormat": "goroutines_total",
           "refId": "A"
+        },
+        {
+          "expr": "galley_mcp_source_clients_total",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "clients_total",
+          "refId": "B"
+        },
+        {
+          "expr": "go_goroutines{job=\"galley\"}/galley_mcp_source_clients_total",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "avg_goroutines_per_client",
+          "refId": "C"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Goroutines",
       "tooltip": {
@@ -833,6 +2383,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Event Rates",
       "tooltip": {
@@ -931,6 +2482,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Timer Rates",
       "tooltip": {
@@ -1036,6 +2588,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Events Per Snapshot",
       "tooltip": {
@@ -1120,6 +2673,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "State Type Instances",
       "tooltip": {
@@ -1224,6 +2778,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Validation Webhook Certificate",
       "tooltip": {
@@ -1315,6 +2870,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Resource Validation",
       "tooltip": {
@@ -1399,6 +2955,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Validation HTTP Errors",
       "tooltip": {
@@ -1487,14 +3044,14 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(galley_kube_source_listener_handle_event_success_total[1m]) * 60",
+          "expr": "rate(galley_source_kube_event_success_total[1m]) * 60",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Success",
           "refId": "A"
         },
         {
-          "expr": "rate(galley_kube_source_listener_handle_event_error_total[1m]) * 60",
+          "expr": "rate(galley_source_kube_event_error_total[1m]) * 60",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Error",
@@ -1503,6 +3060,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Source Event Rate",
       "tooltip": {
@@ -1578,7 +3136,7 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(galley_kube_source_source_converter_success_total[1m]) * 60",
+          "expr": "rate(galley_source_kube_dynamic_converter_success_total[1m]) * 60",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{apiVersion=\"{{apiVersion}}\",group=\"{{group}}\",kind=\"{{kind}}\"}",
@@ -1587,6 +3145,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Kubernetes Object Conversion Successes",
       "tooltip": {
@@ -1662,7 +3221,7 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(galley_kube_source_source_converter_failure_total[1m]) * 60",
+          "expr": "rate(galley_source_kube_dynamic_converter_failure_total[1m]) * 60",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Error",
@@ -1671,6 +3230,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Kubernetes Object Conversion Failures",
       "tooltip": {
@@ -1759,7 +3319,7 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(galley_mcp_server_clients_total)",
+          "expr": "sum(galley_mcp_source_clients_total)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Clients",
@@ -1768,6 +3328,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Connected Clients",
       "tooltip": {
@@ -1843,7 +3404,7 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(galley_mcp_server_request_acks_total[1m]) * 60",
+          "expr": "sum by(collection)(irate(galley_mcp_source_request_acks_total[1m]) * 60)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -1852,6 +3413,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Request ACKs",
       "tooltip": {
@@ -1927,7 +3489,7 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(galley_mcp_server_request_nacks_total[1m]) * 60",
+          "expr": "rate(galley_mcp_source_request_nacks_total[1m]) * 60",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -1935,6 +3497,7 @@ data:
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Request NACKs",
       "tooltip": {
@@ -2013,7 +3576,7 @@ data:
   "timezone": "",
   "title": "Istio Galley Dashboard",
   "uid": "TSEY6jLmk",
-  "version": 3
+  "version": 1
 }
 '
 ---
@@ -3025,6 +4588,12 @@ data:
       "id": "prometheus",
       "name": "Prometheus",
       "version": "5.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "text",
+      "name": "Text",
+      "version": "5.0.0"
     }
   ],
   "annotations": {
@@ -3083,28 +4652,28 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{pod_name=~\"istio-telemetry-.*\"}[1m]))/ (round(sum(irate(istio_requests_total[1m])), 0.001)/1000)",
+          "expr": "(sum(rate(container_cpu_usage_seconds_total{pod_name=~\"istio-telemetry-.*\",container_name=~\"mixer|istio-proxy\"}[1m]))/ (round(sum(irate(istio_requests_total[1m])), 0.001)/1000))/ (sum(irate(istio_requests_total{source_workload=\"istio-ingressgateway\"}[1m])) >bool 10)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "istio-telemetry",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{pod_name=~\"istio-ingressgateway-.*\"}[1m])) / (round(sum(irate(istio_requests_total{source_workload=\"istio-ingressgateway\", reporter=\"source\"}[1m])), 0.001)/1000)",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{pod_name=~\"istio-ingressgateway-.*\",container_name=\"istio-proxy\"}[1m])) / (round(sum(irate(istio_requests_total{source_workload=\"istio-ingressgateway\", reporter=\"source\"}[1m])), 0.001)/1000)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "istio-ingressgateway",
           "refId": "B"
         },
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{container_name=\"istio-proxy\"}[1m]))/ (round(sum(irate(istio_requests_total[1m])), 0.001)/1000)",
+          "expr": "(sum(rate(container_cpu_usage_seconds_total{namespace!=\"istio-system\",container_name=\"istio-proxy\"}[1m]))/ (round(sum(irate(istio_requests_total[1m])), 0.001)/1000))/ (sum(irate(istio_requests_total{source_workload=\"istio-ingressgateway\"}[1m])) >bool 10)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "istio-proxy",
           "refId": "C"
         },
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{pod_name=~\"istio-policy-.*\"}[1m]))/ (round(sum(irate(istio_requests_total[1m])), 0.001)/1000)",
+          "expr": "(sum(rate(container_cpu_usage_seconds_total{pod_name=~\"istio-policy-.*\",container_name=~\"mixer|istio-proxy\"}[1m]))/ (round(sum(irate(istio_requests_total[1m])), 0.001)/1000)) / (sum(irate(istio_requests_total{source_workload=\"istio-ingressgateway\"}[1m])) >bool 10)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "istio-policy",
@@ -3188,28 +4757,28 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{pod_name=~\"istio-telemetry-.*\"}[1m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{pod_name=~\"istio-telemetry-.*\",container_name=~\"mixer|istio-proxy\"}[1m]))",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "istio-telemetry",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{pod_name=~\"istio-ingressgateway-.*\"}[1m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{pod_name=~\"istio-ingressgateway-.*\",container_name=\"istio-proxy\"}[1m]))",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "istio-ingressgateway",
           "refId": "B"
         },
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{container_name=\"istio-proxy\"}[1m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace!=\"istio-system\",container_name=\"istio-proxy\"}[1m]))",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "istio-proxy",
           "refId": "C"
         },
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{pod_name=~\"istio-policy-.*\"}[1m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{pod_name=~\"istio-policy-.*\",container_name=~\"mixer|istio-proxy\"}[1m]))",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "istio-policy",
@@ -3293,28 +4862,28 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(container_memory_usage_bytes{pod_name=~\"istio-telemetry-.*\"}) / (sum(irate(istio_requests_total[1m])) / 1000)",
+          "expr": "(sum(container_memory_usage_bytes{pod_name=~\"istio-telemetry-.*\"}) / (sum(irate(istio_requests_total[1m])) / 1000)) / (sum(irate(istio_requests_total{source_workload=\"istio-ingressgateway\"}[1m])) >bool 10)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "istio-telemetry / 1k rps",
           "refId": "A"
         },
         {
-          "expr": "sum(container_memory_usage_bytes{pod_name=~\"istio-ingressgateway-.*\"}) / count(container_memory_usage_bytes{pod_name=~\"istio-ingressgateway-.*\"})",
+          "expr": "sum(container_memory_usage_bytes{pod_name=~\"istio-ingressgateway-.*\"}) / count(container_memory_usage_bytes{pod_name=~\"istio-ingressgateway-.*\",container_name!=\"POD\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "per istio-ingressgateway",
           "refId": "C"
         },
         {
-          "expr": "sum(container_memory_usage_bytes{container_name=\"istio-proxy\"}) / count(container_memory_usage_bytes{container_name=\"istio-proxy\"})",
+          "expr": "sum(container_memory_usage_bytes{namespace!=\"istio-system\",container_name=\"istio-proxy\"}) / count(container_memory_usage_bytes{namespace!=\"istio-system\",container_name=\"istio-proxy\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "per istio-proxy",
           "refId": "B"
         },
         {
-          "expr": "sum(container_memory_usage_bytes{pod_name=~\"istio-policy-.*\"}) / (sum(irate(istio_requests_total[1m])) / 1000)",
+          "expr": "(sum(container_memory_usage_bytes{pod_name=~\"istio-policy-.*\"}) / (sum(irate(istio_requests_total[1m])) / 1000))/ (sum(irate(istio_requests_total{source_workload=\"istio-ingressgateway\"}[1m])) >bool 10)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "istio-policy / 1k rps",
@@ -3552,6 +5121,20 @@ data:
         "align": false,
         "alignLevel": null
       }
+    },
+    {
+      "content": "The charts on this dashboard are intended to show Istio main components cost in terms resources utilization under steady load.\n\n- **vCPU/1k rps:** shows vCPU utilization by the main Istio components normalized by 1000 requests/second. When idle or low traffic, this chart will be blank. The curve for istio-proxy refers to the services sidecars only. \n- **vCPU:** vCPU utilization by Istio components, not normalized.\n- **Memory:** memory footprint for the components. Telemetry and policy are normalized by 1k rps, and no data is shown  when there is no traffic. For ingress and istio-proxy, the data is per instance. \n- **Bytes transferred/ sec:** shows the number of bytes flowing through each Istio component.",
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "id": 11,
+      "links": [],
+      "mode": "markdown",
+      "title": "Istio Performance Dashboard Readme",
+      "type": "text"
     }
   ],
   "schemaVersion": 16,
@@ -3703,7 +5286,7 @@ data:
       "tableColumn": "",
       "targets": [
         {
-          "expr": "round(sum(rate(istio_requests_total{reporter=\"source\",destination_service=~\"$service\"}[30s])), 0.001)",
+          "expr": "round(sum(irate(istio_requests_total{reporter=\"source\",destination_service=~\"$service\"}[5m])), 0.001)",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A",
@@ -3786,7 +5369,7 @@ data:
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(irate(istio_requests_total{reporter=\"source\",destination_service=~\"$service\",response_code!~\"5.*\"}[30s])) / sum(irate(istio_requests_total{reporter=\"source\",destination_service=~\"$service\"}[30s]))",
+          "expr": "sum(irate(istio_requests_total{reporter=\"source\",destination_service=~\"$service\",response_code!~\"5.*\"}[5m])) / sum(irate(istio_requests_total{reporter=\"source\",destination_service=~\"$service\"}[5m]))",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "B"
@@ -4055,7 +5638,7 @@ data:
       "tableColumn": "",
       "targets": [
         {
-          "expr": "round(sum(rate(istio_requests_total{reporter=\"destination\",destination_service=~\"$service\"}[30s])), 0.001)",
+          "expr": "round(sum(irate(istio_requests_total{reporter=\"destination\",destination_service=~\"$service\"}[5m])), 0.001)",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A",
@@ -4138,7 +5721,7 @@ data:
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(irate(istio_requests_total{reporter=\"destination\",destination_service=~\"$service\",response_code!~\"5.*\"}[30s])) / sum(irate(istio_requests_total{reporter=\"destination\",destination_service=~\"$service\"}[30s]))",
+          "expr": "sum(irate(istio_requests_total{reporter=\"destination\",destination_service=~\"$service\",response_code!~\"5.*\"}[5m])) / sum(irate(istio_requests_total{reporter=\"destination\",destination_service=~\"$service\"}[5m]))",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "B"
@@ -4399,7 +5982,7 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "round(sum(irate(istio_requests_total{connection_security_policy=\"mutual_tls\",destination_service=~\"$service\",reporter=\"source\",source_workload=~\"$srcwl\",source_workload_namespace=~\"$srcns\"}[30s])) by (source_workload, source_workload_namespace, response_code), 0.001)",
+          "expr": "round(sum(irate(istio_requests_total{connection_security_policy=\"mutual_tls\",destination_service=~\"$service\",reporter=\"source\",source_workload=~\"$srcwl\",source_workload_namespace=~\"$srcns\"}[5m])) by (source_workload, source_workload_namespace, response_code), 0.001)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{ source_workload }}.{{ source_workload_namespace }} : {{ response_code }} (🔐mTLS)",
@@ -4407,7 +5990,7 @@ data:
           "step": 2
         },
         {
-          "expr": "round(sum(irate(istio_requests_total{connection_security_policy!=\"mutual_tls\", destination_service=~\"$service\", reporter=\"source\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[30s])) by (source_workload, source_workload_namespace, response_code), 0.001)",
+          "expr": "round(sum(irate(istio_requests_total{connection_security_policy!=\"mutual_tls\", destination_service=~\"$service\", reporter=\"source\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[5m])) by (source_workload, source_workload_namespace, response_code), 0.001)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -4497,7 +6080,7 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(istio_requests_total{reporter=\"source\", connection_security_policy=\"mutual_tls\", destination_service=~\"$service\",response_code!~\"5.*\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[30s])) by (source_workload, source_workload_namespace) / sum(rate(istio_requests_total{reporter=\"source\", connection_security_policy=\"mutual_tls\", destination_service=~\"$service\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[30s])) by (source_workload, source_workload_namespace)",
+          "expr": "sum(irate(istio_requests_total{reporter=\"source\", connection_security_policy=\"mutual_tls\", destination_service=~\"$service\",response_code!~\"5.*\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[5m])) by (source_workload, source_workload_namespace) / sum(irate(istio_requests_total{reporter=\"source\", connection_security_policy=\"mutual_tls\", destination_service=~\"$service\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[5m])) by (source_workload, source_workload_namespace)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -4506,7 +6089,7 @@ data:
           "step": 2
         },
         {
-          "expr": "sum(rate(istio_requests_total{reporter=\"source\", connection_security_policy!=\"mutual_tls\", destination_service=~\"$service\",response_code!~\"5.*\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[30s])) by (source_workload, source_workload_namespace) / sum(rate(istio_requests_total{reporter=\"source\", connection_security_policy!=\"mutual_tls\", destination_service=~\"$service\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[30s])) by (source_workload, source_workload_namespace)",
+          "expr": "sum(irate(istio_requests_total{reporter=\"source\", connection_security_policy!=\"mutual_tls\", destination_service=~\"$service\",response_code!~\"5.*\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[5m])) by (source_workload, source_workload_namespace) / sum(irate(istio_requests_total{reporter=\"source\", connection_security_policy!=\"mutual_tls\", destination_service=~\"$service\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[5m])) by (source_workload, source_workload_namespace)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -5253,7 +6836,7 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "round(sum(irate(istio_requests_total{connection_security_policy=\"mutual_tls\",destination_service=~\"$service\",reporter=\"destination\",destination_workload=~\"$dstwl\",destination_workload_namespace=~\"$dstns\"}[30s])) by (destination_workload, destination_workload_namespace, response_code), 0.001)",
+          "expr": "round(sum(irate(istio_requests_total{connection_security_policy=\"mutual_tls\",destination_service=~\"$service\",reporter=\"destination\",destination_workload=~\"$dstwl\",destination_workload_namespace=~\"$dstns\"}[5m])) by (destination_workload, destination_workload_namespace, response_code), 0.001)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{ destination_workload }}.{{ destination_workload_namespace }} : {{ response_code }} (🔐mTLS)",
@@ -5261,7 +6844,7 @@ data:
           "step": 2
         },
         {
-          "expr": "round(sum(irate(istio_requests_total{connection_security_policy!=\"mutual_tls\", destination_service=~\"$service\", reporter=\"destination\", destination_workload=~\"$dstwl\", destination_workload_namespace=~\"$dstns\"}[30s])) by (destination_workload, destination_workload_namespace, response_code), 0.001)",
+          "expr": "round(sum(irate(istio_requests_total{connection_security_policy!=\"mutual_tls\", destination_service=~\"$service\", reporter=\"destination\", destination_workload=~\"$dstwl\", destination_workload_namespace=~\"$dstns\"}[5m])) by (destination_workload, destination_workload_namespace, response_code), 0.001)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -5351,7 +6934,7 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(istio_requests_total{reporter=\"destination\", connection_security_policy=\"mutual_tls\", destination_service=~\"$service\",response_code!~\"5.*\", destination_workload=~\"$dstwl\", destination_workload_namespace=~\"$dstns\"}[30s])) by (destination_workload, destination_workload_namespace) / sum(rate(istio_requests_total{reporter=\"destination\", connection_security_policy=\"mutual_tls\", destination_service=~\"$service\", destination_workload=~\"$dstwl\", destination_workload_namespace=~\"$dstns\"}[30s])) by (destination_workload, destination_workload_namespace)",
+          "expr": "sum(irate(istio_requests_total{reporter=\"destination\", connection_security_policy=\"mutual_tls\", destination_service=~\"$service\",response_code!~\"5.*\", destination_workload=~\"$dstwl\", destination_workload_namespace=~\"$dstns\"}[5m])) by (destination_workload, destination_workload_namespace) / sum(rate(istio_requests_total{reporter=\"destination\", connection_security_policy=\"mutual_tls\", destination_service=~\"$service\", destination_workload=~\"$dstwl\", destination_workload_namespace=~\"$dstns\"}[5m])) by (destination_workload, destination_workload_namespace)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -5360,7 +6943,7 @@ data:
           "step": 2
         },
         {
-          "expr": "sum(rate(istio_requests_total{reporter=\"destination\", connection_security_policy!=\"mutual_tls\", destination_service=~\"$service\",response_code!~\"5.*\", destination_workload=~\"$dstwl\", destination_workload_namespace=~\"$dstns\"}[30s])) by (destination_workload, destination_workload_namespace) / sum(rate(istio_requests_total{reporter=\"destination\", connection_security_policy!=\"mutual_tls\", destination_service=~\"$service\", destination_workload=~\"$dstwl\", destination_workload_namespace=~\"$dstns\"}[30s])) by (destination_workload, destination_workload_namespace)",
+          "expr": "sum(irate(istio_requests_total{reporter=\"destination\", connection_security_policy!=\"mutual_tls\", destination_service=~\"$service\",response_code!~\"5.*\", destination_workload=~\"$dstwl\", destination_workload_namespace=~\"$dstns\"}[5m])) by (destination_workload, destination_workload_namespace) / sum(rate(istio_requests_total{reporter=\"destination\", connection_security_policy!=\"mutual_tls\", destination_service=~\"$service\", destination_workload=~\"$dstwl\", destination_workload_namespace=~\"$dstns\"}[5m])) by (destination_workload, destination_workload_namespace)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -6361,7 +7944,7 @@ data:
       "tableColumn": "",
       "targets": [
         {
-          "expr": "round(sum(rate(istio_requests_total{reporter=\"destination\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\"}[30s])), 0.001)",
+          "expr": "round(sum(irate(istio_requests_total{reporter=\"destination\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\"}[5m])), 0.001)",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A",
@@ -6444,7 +8027,7 @@ data:
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(irate(istio_requests_total{reporter=\"destination\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",response_code!~\"5.*\"}[30s])) / sum(irate(istio_requests_total{reporter=\"destination\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\"}[30s]))",
+          "expr": "sum(irate(istio_requests_total{reporter=\"destination\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",response_code!~\"5.*\"}[5m])) / sum(irate(istio_requests_total{reporter=\"destination\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\"}[5m]))",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "B"
@@ -6784,7 +8367,7 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "round(sum(irate(istio_requests_total{connection_security_policy=\"mutual_tls\", destination_workload_namespace=~\"$namespace\", destination_workload=~\"$workload\", reporter=\"destination\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[30s])) by (source_workload, source_workload_namespace, response_code), 0.001)",
+          "expr": "round(sum(irate(istio_requests_total{connection_security_policy=\"mutual_tls\", destination_workload_namespace=~\"$namespace\", destination_workload=~\"$workload\", reporter=\"destination\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[5m])) by (source_workload, source_workload_namespace, response_code), 0.001)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{ source_workload }}.{{ source_workload_namespace }} : {{ response_code }} (🔐mTLS)",
@@ -6792,7 +8375,7 @@ data:
           "step": 2
         },
         {
-          "expr": "round(sum(irate(istio_requests_total{connection_security_policy!=\"mutual_tls\", destination_workload_namespace=~\"$namespace\", destination_workload=~\"$workload\", reporter=\"destination\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[30s])) by (source_workload, source_workload_namespace, response_code), 0.001)",
+          "expr": "round(sum(irate(istio_requests_total{connection_security_policy!=\"mutual_tls\", destination_workload_namespace=~\"$namespace\", destination_workload=~\"$workload\", reporter=\"destination\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[5m])) by (source_workload, source_workload_namespace, response_code), 0.001)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -6878,7 +8461,7 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(istio_requests_total{reporter=\"destination\", connection_security_policy=\"mutual_tls\", destination_workload_namespace=~\"$namespace\", destination_workload=~\"$workload\",response_code!~\"5.*\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[30s])) by (source_workload, source_workload_namespace) / sum(rate(istio_requests_total{reporter=\"destination\", connection_security_policy=\"mutual_tls\", destination_workload_namespace=~\"$namespace\", destination_workload=~\"$workload\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[30s])) by (source_workload, source_workload_namespace)",
+          "expr": "sum(irate(istio_requests_total{reporter=\"destination\", connection_security_policy=\"mutual_tls\", destination_workload_namespace=~\"$namespace\", destination_workload=~\"$workload\",response_code!~\"5.*\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[5m])) by (source_workload, source_workload_namespace) / sum(rate(istio_requests_total{reporter=\"destination\", connection_security_policy=\"mutual_tls\", destination_workload_namespace=~\"$namespace\", destination_workload=~\"$workload\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[5m])) by (source_workload, source_workload_namespace)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -6887,7 +8470,7 @@ data:
           "step": 2
         },
         {
-          "expr": "sum(rate(istio_requests_total{reporter=\"destination\", connection_security_policy!=\"mutual_tls\", destination_workload_namespace=~\"$namespace\", destination_workload=~\"$workload\",response_code!~\"5.*\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[30s])) by (source_workload, source_workload_namespace) / sum(rate(istio_requests_total{reporter=\"destination\", connection_security_policy!=\"mutual_tls\", destination_workload_namespace=~\"$namespace\", destination_workload=~\"$workload\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[30s])) by (source_workload, source_workload_namespace)",
+          "expr": "sum(irate(istio_requests_total{reporter=\"destination\", connection_security_policy!=\"mutual_tls\", destination_workload_namespace=~\"$namespace\", destination_workload=~\"$workload\",response_code!~\"5.*\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[5m])) by (source_workload, source_workload_namespace) / sum(rate(istio_requests_total{reporter=\"destination\", connection_security_policy!=\"mutual_tls\", destination_workload_namespace=~\"$namespace\", destination_workload=~\"$workload\", source_workload=~\"$srcwl\", source_workload_namespace=~\"$srcns\"}[5m])) by (source_workload, source_workload_namespace)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -7610,7 +9193,7 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "round(sum(irate(istio_requests_total{connection_security_policy=\"mutual_tls\", source_workload_namespace=~\"$namespace\", source_workload=~\"$workload\", reporter=\"source\", destination_service=~\"$dstsvc\"}[30s])) by (destination_service, response_code), 0.001)",
+          "expr": "round(sum(irate(istio_requests_total{connection_security_policy=\"mutual_tls\", source_workload_namespace=~\"$namespace\", source_workload=~\"$workload\", reporter=\"source\", destination_service=~\"$dstsvc\"}[5m])) by (destination_service, response_code), 0.001)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{ destination_service }} : {{ response_code }} (🔐mTLS)",
@@ -7618,7 +9201,7 @@ data:
           "step": 2
         },
         {
-          "expr": "round(sum(irate(istio_requests_total{connection_security_policy!=\"mutual_tls\", source_workload_namespace=~\"$namespace\", source_workload=~\"$workload\", reporter=\"source\", destination_service=~\"$dstsvc\"}[30s])) by (destination_service, response_code), 0.001)",
+          "expr": "round(sum(irate(istio_requests_total{connection_security_policy!=\"mutual_tls\", source_workload_namespace=~\"$namespace\", source_workload=~\"$workload\", reporter=\"source\", destination_service=~\"$dstsvc\"}[5m])) by (destination_service, response_code), 0.001)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -7704,7 +9287,7 @@ data:
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(istio_requests_total{reporter=\"source\", connection_security_policy=\"mutual_tls\", source_workload_namespace=~\"$namespace\", source_workload=~\"$workload\",response_code!~\"5.*\", destination_service=~\"$dstsvc\"}[30s])) by (destination_service) / sum(rate(istio_requests_total{reporter=\"source\", connection_security_policy=\"mutual_tls\", source_workload_namespace=~\"$namespace\", source_workload=~\"$workload\", destination_service=~\"$dstsvc\"}[30s])) by (destination_service)",
+          "expr": "sum(irate(istio_requests_total{reporter=\"source\", connection_security_policy=\"mutual_tls\", source_workload_namespace=~\"$namespace\", source_workload=~\"$workload\",response_code!~\"5.*\", destination_service=~\"$dstsvc\"}[5m])) by (destination_service) / sum(irate(istio_requests_total{reporter=\"source\", connection_security_policy=\"mutual_tls\", source_workload_namespace=~\"$namespace\", source_workload=~\"$workload\", destination_service=~\"$dstsvc\"}[5m])) by (destination_service)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -7713,7 +9296,7 @@ data:
           "step": 2
         },
         {
-          "expr": "sum(rate(istio_requests_total{reporter=\"source\", connection_security_policy!=\"mutual_tls\", source_workload_namespace=~\"$namespace\", source_workload=~\"$workload\",response_code!~\"5.*\", destination_service=~\"$dstsvc\"}[30s])) by (destination_service) / sum(rate(istio_requests_total{reporter=\"source\", connection_security_policy!=\"mutual_tls\", source_workload_namespace=~\"$namespace\", source_workload=~\"$workload\", destination_service=~\"$dstsvc\"}[30s])) by (destination_service)",
+          "expr": "sum(irate(istio_requests_total{reporter=\"source\", connection_security_policy!=\"mutual_tls\", source_workload_namespace=~\"$namespace\", source_workload=~\"$workload\",response_code!~\"5.*\", destination_service=~\"$dstsvc\"}[5m])) by (destination_service) / sum(irate(istio_requests_total{reporter=\"source\", connection_security_policy!=\"mutual_tls\", source_workload_namespace=~\"$namespace\", source_workload=~\"$workload\", destination_service=~\"$dstsvc\"}[5m])) by (destination_service)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -11958,6 +13541,8 @@ data:
 }
 '
 ---
+
+---
 # Source: istio/charts/grafana/templates/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -11983,7 +13568,7 @@ data:
       orgId: 1
       type: prometheus
       url: http://prometheus:9090
-
+    
   dashboardproviders.yaml: |
     apiVersion: 1
     providers:
@@ -11994,7 +13579,7 @@ data:
         path: /var/lib/grafana/dashboards/istio
       orgId: 1
       type: file
-
+    
 ---
 # Source: istio/charts/kiali/templates/configmap.yaml
 apiVersion: v1
@@ -12013,10 +13598,12 @@ data:
     server:
       port: 20001
     external_services:
+      istio:
+        url_service_version: http://istio-pilot:8080/version
       jaeger:
-        url:
+        url: 
       grafana:
-        url:
+        url: 
 
 ---
 # Source: istio/charts/prometheus/templates/configmap.yaml
@@ -12152,6 +13739,18 @@ data:
       - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
         action: keep
         regex: istio-galley;http-monitoring
+
+    - job_name: 'citadel'
+      kubernetes_sd_configs:
+      - role: endpoints
+        namespaces:
+          names:
+          - istio-system
+
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: istio-citadel;http-monitoring
 
     # scrape config for API servers
     - job_name: 'kubernetes-apiservers'
@@ -12323,19 +13922,19 @@ data:
         target_label: pod_name
 ---
 # Source: istio/charts/security/templates/configmap.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: istio-security-custom-resources
-  namespace: istio-system
-  labels:
-    app: security
-    chart: security
-    heritage: Tiller
-    release: istio
-    istio: citadel
-data:
-  custom-resources.yaml: |-
+apiVersion: v1	
+kind: ConfigMap	
+metadata:	
+  name: istio-security-custom-resources	
+  namespace: istio-system	
+  labels:	
+    app: security	
+    chart: security	
+    heritage: Tiller	
+    release: istio	
+    istio: citadel	
+data:	
+  custom-resources.yaml: |-    
     # Authentication policy to enable permissive mode for all services (that have sidecar) in the mesh.
     apiVersion: "authentication.istio.io/v1alpha1"
     kind: "MeshPolicy"
@@ -12349,19 +13948,19 @@ data:
     spec:
       peers:
       - mtls:
-          mode: PERMISSIVE
-  run.sh: |-
+          mode: PERMISSIVE	
+  run.sh: |-    
     #!/bin/sh
-
+    
     set -x
-
+    
     if [ "$#" -ne "1" ]; then
         echo "first argument should be path to custom resource yaml"
         exit 1
     fi
-
+    
     pathToResourceYAML=${1}
-
+    
     kubectl get validatingwebhookconfiguration istio-galley 2>/dev/null
     if [ "$?" -eq 0 ]; then
         echo "istio-galley validatingwebhookconfiguration found - waiting for istio-galley deployment to be ready"
@@ -12381,7 +13980,7 @@ data:
     fi
     sleep 5
     kubectl apply -f ${pathToResourceYAML}
-
+    
 
 ---
 # Source: istio/templates/configmap.yaml
@@ -12393,7 +13992,7 @@ metadata:
   namespace: istio-system
   labels:
     app: istio
-    chart: istio-1.1.0
+    chart: istio
     heritage: Tiller
     release: istio
 data:
@@ -12413,48 +14012,68 @@ data:
     # If AccessLogEncoding is JSON, value will be parsed as map[string]string
     # example: '{"start_time": "%START_TIME%", "req_method": "%REQ(:METHOD)%"}'
     # Leave empty to use default log format
-    accessLogFormat: ''
+    accessLogFormat: ""
 
     # Set accessLogEncoding to JSON or TEXT to configure sidecar access log
     accessLogEncoding: 'TEXT'
-
-    #
-    # Deprecated: mixer is using EDS
     mixerCheckServer: istio-policy.istio-system.svc.cluster.local:9091
     mixerReportServer: istio-telemetry.istio-system.svc.cluster.local:9091
-
     # policyCheckFailOpen allows traffic in cases when the mixer policy service cannot be reached.
     # Default is false which means the traffic is denied when the client is unable to connect to Mixer.
     policyCheckFailOpen: false
     # Let Pilot give ingresses the public IP of the Istio ingressgateway
     ingressService: istio-ingressgateway
 
-    # Unix Domain Socket through which envoy communicates with NodeAgent SDS to get
-    # key/cert for mTLS. Use secret-mount files instead of SDS if set to empty.
-    sdsUdsPath:
+    # Default connect timeout for dynamic clusters generated by Pilot and returned via XDS
+    connectTimeout: 10s
+    
+    # DNS refresh rate for Envoy clusters of type STRICT_DNS
+    dnsRefreshRate: 5s
 
-    # This flag is used by secret discovery service(SDS).
-    # If set to true(prerequisite: https://kubernetes.io/docs/concepts/storage/volumes/#projected), Istio will inject volumes mount
-    # for k8s service account JWT, so that K8s API server mounts k8s service account JWT to envoy container, which
+    # Unix Domain Socket through which envoy communicates with NodeAgent SDS to get
+    # key/cert for mTLS. Use secret-mount files instead of SDS if set to empty. 
+    sdsUdsPath: 
+
+    # This flag is used by secret discovery service(SDS). 
+    # If set to true(prerequisite: https://kubernetes.io/docs/concepts/storage/volumes/#projected), Istio will inject volumes mount 
+    # for k8s service account JWT, so that K8s API server mounts k8s service account JWT to envoy container, which 
     # will be used to generate key/cert eventually. This isn't supported for non-k8s case.
     enableSdsTokenMount: false
 
-    # This flag is used by secret discovery service(SDS).
-    # If set to true, envoy will fetch normal k8s service account JWT from '/var/run/secrets/kubernetes.io/serviceaccount/token'
-    # (https://kubernetes.io/docs/tasks/access-application-cluster/access-cluster/#accessing-the-api-from-a-pod)
-    # and pass to sds server, which will be used to request key/cert eventually.
+    # This flag is used by secret discovery service(SDS). 
+    # If set to true, envoy will fetch normal k8s service account JWT from '/var/run/secrets/kubernetes.io/serviceaccount/token' 
+    # (https://kubernetes.io/docs/tasks/access-application-cluster/access-cluster/#accessing-the-api-from-a-pod) 
+    # and pass to sds server, which will be used to request key/cert eventually. 
     # this flag is ignored if enableSdsTokenMount is set.
     # This isn't supported for non-k8s case.
     sdsUseK8sSaJwt: false
 
     # The trust domain corresponds to the trust root of a system.
     # Refer to https://github.com/spiffe/spiffe/blob/master/standards/SPIFFE-ID.md#21-trust-domain
-    trustDomain:
+    trustDomain: 
 
-    #
+    # Set the default behavior of the sidecar for handling outbound traffic from the application:
+    # ALLOW_ANY - outbound traffic to unknown destinations will be allowed, in case there are no
+    #   services or ServiceEntries for the destination port
+    # REGISTRY_ONLY - restrict outbound traffic to services defined in the service registry as well
+    #   as those defined through ServiceEntries  
+    outboundTrafficPolicy:
+      mode: ALLOW_ANY
+
+    localityLbSetting:
+      {}
+      
+
+    # The namespace to treat as the administrative root namespace for istio
+    # configuration.    
+    rootNamespace: istio-system
+    configSources:
+    - address: istio-galley.istio-system.svc:9901
+
     defaultConfig:
       #
-      # TCP connection timeout between Envoy & the application, and between Envoys.
+      # TCP connection timeout between Envoy & the application, and between Envoys.  Used for static clusters
+      # defined in Envoy's configuration file
       connectTimeout: 10s
       #
       ### ADVANCED SETTINGS #############
@@ -12491,7 +14110,7 @@ data:
       #
       # Set concurrency to a specific number to control the number of Proxy worker threads.
       # If set to 0 (default), then start worker thread for each CPU thread/core.
-      concurrency: 0
+      concurrency: 2
       #
       tracing:
         zipkin:
@@ -12503,7 +14122,7 @@ data:
       #
       # Address where istio Pilot service is running
       discoveryAddress: istio-pilot.istio-system:15010
-
+  
   # Configuration file for the mesh networks to be used by the Split Horizon EDS.
   meshNetworks: |-
     networks: {}
@@ -12518,7 +14137,7 @@ metadata:
   namespace: istio-system
   labels:
     app: istio
-    chart: istio-1.1.0
+    chart: istio
     heritage: Tiller
     release: istio
     istio: sidecar-injector
@@ -12528,8 +14147,9 @@ data:
     template: |-
       rewriteAppHTTPProbe: false
       initContainers:
+      [[ if ne (annotation .ObjectMeta `sidecar.istio.io/interceptionMode` .ProxyConfig.InterceptionMode) "NONE" ]]
       - name: istio-init
-        image: "gcr.io/istio-release/proxy_init:release-1.1-20190111-09-15"
+        image: "docker.io/istio/proxy_init:1.1.6"
         args:
         - "-p"
         - [[ .MeshConfig.ProxyListenPort ]]
@@ -12545,22 +14165,29 @@ data:
         - "[[ annotation .ObjectMeta `traffic.sidecar.istio.io/includeInboundPorts` (includeInboundPorts .Spec.Containers) ]]"
         - "-d"
         - "[[ excludeInboundPort (annotation .ObjectMeta `status.sidecar.istio.io/port`  15020 ) (annotation .ObjectMeta `traffic.sidecar.istio.io/excludeInboundPorts`  "" ) ]]"
+        [[ if (isset .ObjectMeta.Annotations `traffic.sidecar.istio.io/kubevirtInterfaces`) -]]
+        - "-k"
+        - "[[ index .ObjectMeta.Annotations `traffic.sidecar.istio.io/kubevirtInterfaces` ]]"
+        [[ end -]]
         imagePullPolicy: IfNotPresent
         resources:
           requests:
             cpu: 10m
             memory: 10Mi
           limits:
-            cpu: 10m
-            memory: 10Mi
+            cpu: 100m
+            memory: 50Mi
         securityContext:
+          runAsUser: 0
+          runAsNonRoot: false
           capabilities:
             add:
             - NET_ADMIN
         restartPolicy: Always
+      [[ end -]]
       containers:
       - name: istio-proxy
-        image: [[ annotation .ObjectMeta `sidecar.istio.io/proxyImage`  "gcr.io/istio-release/proxyv2:release-1.1-20190111-09-15"  ]]
+        image: [[ annotation .ObjectMeta `sidecar.istio.io/proxyImage`  "docker.io/istio/proxyv2:1.1.6"  ]]
         ports:
         - containerPort: 15090
           protocol: TCP
@@ -12568,13 +14195,15 @@ data:
         args:
         - proxy
         - sidecar
+        - --domain
+        - $(POD_NAMESPACE).svc.cluster.local
         - --configPath
         - [[ .ProxyConfig.ConfigPath ]]
         - --binaryPath
         - [[ .ProxyConfig.BinaryPath ]]
         - --serviceCluster
         [[ if ne "" (index .ObjectMeta.Labels "app") -]]
-        - [[ index .ObjectMeta.Labels "app" ]].[[ valueOrDefault .DeploymentMeta.Namespace "default" ]]
+        - [[ index .ObjectMeta.Labels "app" ]].$(POD_NAMESPACE)
         [[ else -]]
         - [[ valueOrDefault .DeploymentMeta.Name "istio-proxy" ]].[[ valueOrDefault .DeploymentMeta.Namespace "default" ]]
         [[ end -]]
@@ -12615,6 +14244,7 @@ data:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
+        
         - name: ISTIO_META_POD_NAME
           valueFrom:
             fieldRef:
@@ -12635,6 +14265,10 @@ data:
           value: |
                  [[ toJSON .ObjectMeta.Labels ]]
         [[ end ]]
+        [[- if (isset .ObjectMeta.Annotations `sidecar.istio.io/bootstrapOverride`) ]]
+        - name: ISTIO_BOOTSTRAP_OVERRIDE
+          value: "/etc/istio/custom-bootstrap/custom_bootstrap.json"
+        [[- end ]]
         imagePullPolicy: IfNotPresent
         [[ if (ne (annotation .ObjectMeta `status.sidecar.istio.io/port`  15020 ) "0") ]]
         readinessProbe:
@@ -12652,20 +14286,32 @@ data:
             - NET_ADMIN
           runAsGroup: 1337
           [[ else -]]
-
+          
           runAsUser: 1337
           [[- end ]]
         resources:
-          [[ if (isset .ObjectMeta.Annotations `sidecar.istio.io/proxyCPU`) -]]
+          [[ if or (isset .ObjectMeta.Annotations `sidecar.istio.io/proxyCPU`) (isset .ObjectMeta.Annotations `sidecar.istio.io/proxyMemory`) -]]
           requests:
+            [[ if (isset .ObjectMeta.Annotations `sidecar.istio.io/proxyCPU`) -]]
             cpu: "[[ index .ObjectMeta.Annotations `sidecar.istio.io/proxyCPU` ]]"
+            [[ end ]]
+            [[ if (isset .ObjectMeta.Annotations `sidecar.istio.io/proxyMemory`) -]]
             memory: "[[ index .ObjectMeta.Annotations `sidecar.istio.io/proxyMemory` ]]"
+            [[ end ]]
         [[ else -]]
+          limits:
+            cpu: 2000m
+            memory: 128Mi
           requests:
             cpu: 10m
-
+            memory: 40Mi
+          
         [[ end -]]
         volumeMounts:
+        [[- if (isset .ObjectMeta.Annotations `sidecar.istio.io/bootstrapOverride`) ]]
+        - mountPath: /etc/istio/custom-bootstrap
+          name: custom-bootstrap-volume
+        [[- end ]]
         - mountPath: /etc/istio/proxy
           name: istio-envoy
         - mountPath: /etc/certs/
@@ -12678,6 +14324,11 @@ data:
           [[ end ]]
           [[- end ]]
       volumes:
+      [[- if (isset .ObjectMeta.Annotations `sidecar.istio.io/bootstrapOverride`) ]]
+      - name: custom-bootstrap-volume
+        configMap:
+          name: [[ annotation .ObjectMeta `sidecar.istio.io/bootstrapOverride` `` ]]
+      [[- end ]]
       - emptyDir:
           medium: Memory
         name: istio-envoy
@@ -12694,7 +14345,7 @@ data:
       - name: "[[ $index ]]"
         [[ toYaml $value | indent 2 ]]
         [[ end ]]
-        [[ end -]]
+        [[ end ]]
 
 ---
 # Source: istio/charts/galley/templates/serviceaccount.yaml
@@ -12718,7 +14369,7 @@ metadata:
   name: istio-egressgateway-service-account
   namespace: istio-system
   labels:
-    app: egressgateway
+    app: istio-egressgateway
     chart: gateways
     heritage: Tiller
     release: istio
@@ -12729,10 +14380,13 @@ metadata:
   name: istio-ingressgateway-service-account
   namespace: istio-system
   labels:
-    app: ingressgateway
+    app: istio-ingressgateway
     chart: gateways
     heritage: Tiller
     release: istio
+---
+
+
 ---
 # Source: istio/charts/grafana/templates/create-custom-resources-job.yaml
 apiVersion: v1
@@ -12746,7 +14400,7 @@ metadata:
     heritage: Tiller
     release: istio
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: istio-grafana-post-install-istio-system
@@ -12760,7 +14414,7 @@ rules:
   resources: ["*"]
   verbs: ["*"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: istio-grafana-post-install-role-binding-istio-system
@@ -12781,7 +14435,7 @@ subjects:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: istio-grafana-post-install-release-1.1-20190111-09-15
+  name: istio-grafana-post-install-1.1.6
   namespace: istio-system
   annotations:
     "helm.sh/hook": post-install
@@ -12804,7 +14458,7 @@ spec:
       serviceAccountName: istio-grafana-post-install-account
       containers:
         - name: kubectl
-          image: "gcr.io/istio-release/kubectl:release-1.1-20190111-09-15"
+          image: "docker.io/istio/kubectl:1.1.6"
           command: [ "/bin/bash", "/tmp/grafana/run.sh", "/tmp/grafana/custom-resources.yaml" ]
           volumeMounts:
             - mountPath: "/tmp/grafana"
@@ -12814,6 +14468,39 @@ spec:
           configMap:
             name: istio-grafana-custom-resources
       restartPolicy: OnFailure
+      affinity:      
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - ppc64le
+                - s390x
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 2
+            preference:
+              matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+          - weight: 2
+            preference:
+              matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - ppc64le
+          - weight: 2
+            preference:
+              matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - s390x      
 
 ---
 # Source: istio/charts/kiali/templates/serviceaccount.yaml
@@ -12894,7 +14581,7 @@ metadata:
     heritage: Tiller
     release: istio
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: istio-cleanup-secrets-istio-system
@@ -12912,7 +14599,7 @@ rules:
   resources: ["secrets"]
   verbs: ["list", "delete"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: istio-cleanup-secrets-istio-system
@@ -12937,7 +14624,7 @@ subjects:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: istio-cleanup-secrets-release-1.1-20190111-09-15
+  name: istio-cleanup-secrets-1.1.6
   namespace: istio-system
   annotations:
     "helm.sh/hook": post-delete
@@ -12961,7 +14648,7 @@ spec:
       serviceAccountName: istio-cleanup-secrets-service-account
       containers:
         - name: kubectl
-          image: "gcr.io/istio-release/kubectl:release-1.1-20190111-09-15"
+          image: "docker.io/istio/kubectl:1.1.6"
           imagePullPolicy: IfNotPresent
           command:
           - /bin/bash
@@ -12973,7 +14660,7 @@ spec:
                 kubectl delete secret $name -n $ns;
               done
       restartPolicy: OnFailure
-      affinity:
+      affinity:      
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -13005,102 +14692,101 @@ spec:
               - key: beta.kubernetes.io/arch
                 operator: In
                 values:
-                - s390x
+                - s390x      
 
 ---
 # Source: istio/charts/security/templates/create-custom-resources-job.yaml
 
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: istio-security-post-install-account
-  namespace: istio-system
-  labels:
-    app: security
-    chart: security
-    heritage: Tiller
-    release: istio
+apiVersion: v1	
+kind: ServiceAccount	
+metadata:	
+  name: istio-security-post-install-account	
+  namespace: istio-system	
+  labels:	
+    app: security	
+    chart: security	
+    heritage: Tiller	
+    release: istio	
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
-metadata:
-  name: istio-security-post-install-istio-system
-  labels:
-    app: security
-    chart: security
-    heritage: Tiller
-    release: istio
-rules:
-- apiGroups: ["authentication.istio.io"] # needed to create default authn policy
-  resources: ["*"]
-  verbs: ["*"]
-- apiGroups: ["networking.istio.io"] # needed to create security destination rules
-  resources: ["*"]
-  verbs: ["*"]
-- apiGroups: ["admissionregistration.k8s.io"]
-  resources: ["validatingwebhookconfigurations"]
-  verbs: ["get"]
-- apiGroups: ["extensions"]
-  resources: ["deployments", "replicasets"]
-  verbs: ["get", "list", "watch"]
+apiVersion: rbac.authorization.k8s.io/v1beta1	
+kind: ClusterRole	
+metadata:	
+  name: istio-security-post-install-istio-system	
+  labels:	
+    app: security	
+    chart: security	
+    heritage: Tiller	
+    release: istio	
+rules:	
+- apiGroups: ["authentication.istio.io"] # needed to create default authn policy	
+  resources: ["*"]	
+  verbs: ["*"]	
+- apiGroups: ["networking.istio.io"] # needed to create security destination rules	
+  resources: ["*"]	
+  verbs: ["*"]	
+- apiGroups: ["admissionregistration.k8s.io"]	
+  resources: ["validatingwebhookconfigurations"]	
+  verbs: ["get"]	
+- apiGroups: ["extensions", "apps"]	
+  resources: ["deployments", "replicasets"]	
+  verbs: ["get", "list", "watch"]	
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: istio-security-post-install-role-binding-istio-system
-  labels:
-    app: security
-    chart: security
-    heritage: Tiller
-    release: istio
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: istio-security-post-install-istio-system
-subjects:
-  - kind: ServiceAccount
-    name: istio-security-post-install-account
-    namespace: istio-system
+apiVersion: rbac.authorization.k8s.io/v1beta1	
+kind: ClusterRoleBinding	
+metadata:	
+  name: istio-security-post-install-role-binding-istio-system	
+  labels:	
+    app: security	
+    chart: security	
+    heritage: Tiller	
+    release: istio	
+roleRef:	
+  apiGroup: rbac.authorization.k8s.io	
+  kind: ClusterRole	
+  name: istio-security-post-install-istio-system	
+subjects:	
+  - kind: ServiceAccount	
+    name: istio-security-post-install-account	
+    namespace: istio-system	
 ---
-
 apiVersion: batch/v1
-kind: Job
-metadata:
-  name: istio-security-post-install-release-1.1-20190111-09-15
-  namespace: istio-system
-  annotations:
-    "helm.sh/hook": post-install
-    "helm.sh/hook-delete-policy": hook-succeeded
-  labels:
-    app: security
-    chart: security
-    heritage: Tiller
-    release: istio
-spec:
-  template:
-    metadata:
-      name: istio-security-post-install
-      labels:
-        app: security
-        chart: security
-        heritage: Tiller
-        release: istio
-    spec:
-      serviceAccountName: istio-security-post-install-account
-      containers:
-        - name: kubectl
-          image: "gcr.io/istio-release/kubectl:release-1.1-20190111-09-15"
-          imagePullPolicy: IfNotPresent
-          command: [ "/bin/bash", "/tmp/security/run.sh", "/tmp/security/custom-resources.yaml" ]
-          volumeMounts:
-            - mountPath: "/tmp/security"
-              name: tmp-configmap-security
-      volumes:
-        - name: tmp-configmap-security
-          configMap:
-            name: istio-security-custom-resources
-      restartPolicy: OnFailure
-      affinity:
+kind: Job	
+metadata:	
+  name: istio-security-post-install-1.1.6	
+  namespace: istio-system	
+  annotations:	
+    "helm.sh/hook": post-install	
+    "helm.sh/hook-delete-policy": hook-succeeded	
+  labels:	
+    app: security	
+    chart: security	
+    heritage: Tiller	
+    release: istio	
+spec:	
+  template:	
+    metadata:	
+      name: istio-security-post-install	
+      labels:	
+        app: security	
+        chart: security	
+        heritage: Tiller	
+        release: istio	
+    spec:	
+      serviceAccountName: istio-security-post-install-account	
+      containers:	
+        - name: kubectl	
+          image: "docker.io/istio/kubectl:1.1.6"	
+          imagePullPolicy: IfNotPresent	
+          command: [ "/bin/bash", "/tmp/security/run.sh", "/tmp/security/custom-resources.yaml" ]	
+          volumeMounts:	
+            - mountPath: "/tmp/security"	
+              name: tmp-configmap-security	
+      volumes:	
+        - name: tmp-configmap-security	
+          configMap:	
+            name: istio-security-custom-resources	
+      restartPolicy: OnFailure	
+      affinity:      
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -13132,7 +14818,7 @@ spec:
               - key: beta.kubernetes.io/arch
                 operator: In
                 values:
-                - s390x
+                - s390x      
 
 ---
 # Source: istio/charts/security/templates/serviceaccount.yaml
@@ -13162,8 +14848,16 @@ metadata:
     istio: sidecar-injector
 
 ---
+# Source: istio/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: istio-multi
+  namespace: istio-system
+
+---
 # Source: istio/charts/galley/templates/clusterrole.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: istio-galley-istio-system
@@ -13188,21 +14882,25 @@ rules:
 - apiGroups: ["rbac.istio.io"]
   resources: ["*"]
   verbs: ["get", "list", "watch"]
-- apiGroups: ["*"]
+- apiGroups: ["extensions","apps"]
   resources: ["deployments"]
   resourceNames: ["istio-galley"]
   verbs: ["get"]
-- apiGroups: ["*"]
-  resources: ["endpoints"]
+- apiGroups: [""]
+  resources: ["pods", "nodes", "services", "endpoints"]
   verbs: ["get", "list", "watch"]
 - apiGroups: ["extensions"]
   resources: ["ingresses"]
   verbs: ["get", "list", "watch"]
+- apiGroups: ["extensions"]
+  resources: ["deployments/finalizers"]
+  resourceNames: ["istio-galley"]
+  verbs: ["update"]
 
 ---
 # Source: istio/charts/gateways/templates/clusterrole.yaml
 
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: istio-egressgateway-istio-system
@@ -13216,7 +14914,7 @@ rules:
   resources: ["virtualservices", "destinationrules", "gateways"]
   verbs: ["get", "watch", "list", "update"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: istio-ingressgateway-istio-system
@@ -13230,6 +14928,8 @@ rules:
   resources: ["virtualservices", "destinationrules", "gateways"]
   verbs: ["get", "watch", "list", "update"]
 ---
+
+---
 # Source: istio/charts/kiali/templates/clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -13241,22 +14941,164 @@ metadata:
     heritage: Tiller
     release: istio
 rules:
-- apiGroups: ["", "apps", "autoscaling", "batch"]
+- apiGroups: [""]
   resources:
   - configmaps
-  - cronjobs
-  - deployments
   - endpoints
-  - horizontalpodautoscalers
-  - jobs
   - namespaces
   - nodes
   - pods
-  - projects
   - services
+  - replicationcontrollers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["extensions", "apps"]
+  resources:
+  - deployments
   - statefulsets
   - replicasets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["autoscaling"]
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["batch"]
+  resources:
+  - cronjobs
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["config.istio.io"]
+  resources:
+  - apikeys
+  - authorizations
+  - checknothings
+  - circonuses
+  - deniers
+  - fluentds
+  - handlers
+  - kubernetesenvs
+  - kuberneteses
+  - listcheckers
+  - listentries
+  - logentries
+  - memquotas
+  - metrics
+  - opas
+  - prometheuses
+  - quotas
+  - quotaspecbindings
+  - quotaspecs
+  - rbacs
+  - reportnothings
+  - rules
+  - solarwindses
+  - stackdrivers
+  - statsds
+  - stdios
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups: ["networking.istio.io"]
+  resources:
+  - destinationrules
+  - gateways
+  - serviceentries
+  - virtualservices
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups: ["authentication.istio.io"]
+  resources:
+  - policies
+  - meshpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups: ["rbac.istio.io"]
+  resources:
+  - clusterrbacconfigs
+  - rbacconfigs
+  - serviceroles
+  - servicerolebindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups: ["monitoring.kiali.io"]
+  resources:
+  - monitoringdashboards
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kiali-viewer
+  labels:
+    app: kiali
+    chart: kiali
+    heritage: Tiller
+    release: istio
+rules:
+- apiGroups: [""]
+  resources:
+  - configmaps
+  - endpoints
+  - namespaces
+  - nodes
+  - pods
+  - services
   - replicationcontrollers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["extensions", "apps"]
+  resources:
+  - deployments
+  - statefulsets
+  - replicasets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["autoscaling"]
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["batch"]
+  resources:
+  - cronjobs
+  - jobs
   verbs:
   - get
   - list
@@ -13292,10 +15134,8 @@ rules:
   - statsds
   - stdios
   verbs:
-  - delete
   - get
   - list
-  - patch
   - watch
 - apiGroups: ["networking.istio.io"]
   resources:
@@ -13304,16 +15144,37 @@ rules:
   - serviceentries
   - virtualservices
   verbs:
-  - delete
   - get
   - list
-  - patch
   - watch
+- apiGroups: ["authentication.istio.io"]
+  resources:
+  - policies
+  - meshpolicies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["rbac.istio.io"]
+  resources:
+  - clusterrbacconfigs
+  - rbacconfigs
+  - serviceroles
+  - servicerolebindings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["monitoring.kiali.io"]
+  resources:
+  - monitoringdashboards
+  verbs:
+  - get
 
 ---
 # Source: istio/charts/mixer/templates/clusterrole.yaml
 
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: istio-mixer-istio-system
@@ -13332,16 +15193,13 @@ rules:
 - apiGroups: [""]
   resources: ["configmaps", "endpoints", "pods", "services", "namespaces", "secrets", "replicationcontrollers"]
   verbs: ["get", "list", "watch"]
-- apiGroups: ["extensions"]
-  resources: ["replicasets"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: ["apps"]
+- apiGroups: ["extensions", "apps"]
   resources: ["replicasets"]
   verbs: ["get", "list", "watch"]
 
 ---
 # Source: istio/charts/pilot/templates/clusterrole.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: istio-pilot-istio-system
@@ -13373,15 +15231,12 @@ rules:
   resources: ["configmaps"]
   verbs: ["create", "get", "list", "watch", "update"]
 - apiGroups: [""]
-  resources: ["endpoints", "pods", "services"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources: ["namespaces", "nodes", "secrets"]
+  resources: ["endpoints", "pods", "services", "namespaces", "nodes", "secrets"]
   verbs: ["get", "list", "watch"]
 
 ---
 # Source: istio/charts/prometheus/templates/clusterrole.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: prometheus-istio-system
@@ -13408,7 +15263,7 @@ rules:
 
 ---
 # Source: istio/charts/security/templates/clusterrole.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: istio-citadel-istio-system
@@ -13425,10 +15280,7 @@ rules:
   resources: ["secrets"]
   verbs: ["create", "get", "watch", "list", "update", "delete"]
 - apiGroups: [""]
-  resources: ["serviceaccounts"]
-  verbs: ["get", "watch", "list"]
-- apiGroups: [""]
-  resources: ["services"]
+  resources: ["serviceaccounts", "services"]
   verbs: ["get", "watch", "list"]
 - apiGroups: ["authentication.k8s.io"]
   resources: ["tokenreviews"]
@@ -13436,7 +15288,7 @@ rules:
 
 ---
 # Source: istio/charts/sidecarInjectorWebhook/templates/clusterrole.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: istio-sidecar-injector-istio-system
@@ -13455,8 +15307,22 @@ rules:
   verbs: ["get", "list", "watch", "patch"]
 
 ---
+# Source: istio/templates/clusterrole.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: istio-reader
+rules:
+  - apiGroups: ['']
+    resources: ['nodes', 'pods', 'services', 'endpoints', "replicationcontrollers"]
+    verbs: ['get', 'watch', 'list']
+  - apiGroups: ["extensions", "apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+
+---
 # Source: istio/charts/galley/templates/clusterrolebinding.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: istio-galley-admin-role-binding-istio-system
@@ -13477,7 +15343,7 @@ subjects:
 ---
 # Source: istio/charts/gateways/templates/clusterrolebindings.yaml
 
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: istio-egressgateway-istio-system
@@ -13495,7 +15361,7 @@ subjects:
   name: istio-egressgateway-service-account
   namespace: istio-system
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: istio-ingressgateway-istio-system
@@ -13512,6 +15378,8 @@ subjects:
 - kind: ServiceAccount
   name: istio-ingressgateway-service-account
   namespace: istio-system
+---
+
 ---
 # Source: istio/charts/kiali/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -13535,7 +15403,7 @@ subjects:
 ---
 # Source: istio/charts/mixer/templates/clusterrolebinding.yaml
 
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: istio-mixer-admin-role-binding-istio-system
@@ -13555,7 +15423,7 @@ subjects:
 
 ---
 # Source: istio/charts/pilot/templates/clusterrolebinding.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: istio-pilot-istio-system
@@ -13575,7 +15443,7 @@ subjects:
 
 ---
 # Source: istio/charts/prometheus/templates/clusterrolebindings.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: prometheus-istio-system
@@ -13595,7 +15463,7 @@ subjects:
 
 ---
 # Source: istio/charts/security/templates/clusterrolebinding.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: istio-citadel-istio-system
@@ -13615,7 +15483,7 @@ subjects:
 
 ---
 # Source: istio/charts/sidecarInjectorWebhook/templates/clusterrolebinding.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: istio-sidecar-injector-admin-role-binding-istio-system
@@ -13635,9 +15503,26 @@ subjects:
     namespace: istio-system
 
 ---
+# Source: istio/templates/clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: istio-multi
+  labels:
+    chart: istio-1.1.0
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: istio-reader
+subjects:
+- kind: ServiceAccount
+  name: istio-multi
+  namespace: istio-system
+
+---
 # Source: istio/charts/gateways/templates/role.yaml
 
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: istio-ingressgateway-sds
@@ -13651,7 +15536,7 @@ rules:
 ---
 # Source: istio/charts/gateways/templates/rolebindings.yaml
 
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: istio-ingressgateway-sds
@@ -13663,6 +15548,8 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: istio-ingressgateway-service-account
+---
+
 ---
 # Source: istio/charts/galley/templates/service.yaml
 apiVersion: v1
@@ -13680,7 +15567,7 @@ spec:
   ports:
   - port: 443
     name: https-validation
-  - port: 9093
+  - port: 15014
     name: http-monitoring
   - port: 9901
     name: grpc-mcp
@@ -13741,6 +15628,10 @@ spec:
     istio: ingressgateway
   ports:
     -
+      name: status-port
+      port: 15020
+      targetPort: 15020
+    -
       name: http2
       nodePort: 31380
       port: 80
@@ -13797,7 +15688,7 @@ spec:
       name: http
   selector:
     app: grafana
-
+  
 ---
 # Source: istio/charts/kiali/templates/service.yaml
 apiVersion: v1
@@ -13826,6 +15717,8 @@ kind: Service
 metadata:
   name: istio-policy
   namespace: istio-system
+  annotations:
+   networking.istio.io/exportTo: "*"
   labels:
     app: mixer
     chart: mixer
@@ -13839,7 +15732,7 @@ spec:
   - name: grpc-mixer-mtls
     port: 15004
   - name: http-monitoring
-    port: 9093
+    port: 15014
   selector:
     istio: mixer
     istio-mixer-type: policy
@@ -13849,6 +15742,8 @@ kind: Service
 metadata:
   name: istio-telemetry
   namespace: istio-system
+  annotations:
+   networking.istio.io/exportTo: "*"
   labels:
     app: mixer
     chart: mixer
@@ -13862,7 +15757,7 @@ spec:
   - name: grpc-mixer-mtls
     port: 15004
   - name: http-monitoring
-    port: 9093
+    port: 15014
   - name: prometheus
     port: 42422
   selector:
@@ -13892,7 +15787,7 @@ spec:
     name: https-xds # mTLS
   - port: 8080
     name: http-legacy-discovery # direct
-  - port: 9093
+  - port: 15014
     name: http-monitoring
   selector:
     istio: pilot
@@ -13941,32 +15836,9 @@ spec:
       targetPort: 8060
       protocol: TCP
     - name: http-monitoring
-      port: 9093
+      port: 15014
   selector:
     istio: citadel
-
----
-# Source: istio/charts/servicegraph/templates/service.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: servicegraph
-  namespace: istio-system
-  annotations:
-  labels:
-    app: servicegraph
-    chart: servicegraph
-    heritage: Tiller
-    release: istio
-spec:
-  type: ClusterIP
-  ports:
-    - port: 8088
-      targetPort: 8088
-      protocol: TCP
-      name: http
-  selector:
-    app: servicegraph
 
 ---
 # Source: istio/charts/sidecarInjectorWebhook/templates/service.yaml
@@ -14012,32 +15884,34 @@ spec:
         app: galley
         chart: galley
         heritage: Tiller
-        release: istio
+        release: istio      
         istio: galley
       annotations:
         sidecar.istio.io/inject: "false"
-        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
       serviceAccountName: istio-galley-service-account
       containers:
         - name: galley
-          image: "gcr.io/istio-release/galley:release-1.1-20190111-09-15"
+          image: "docker.io/istio/galley:1.1.6"
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 443
-          - containerPort: 9093
+          - containerPort: 15014
           - containerPort: 9901
           command:
           - /usr/local/bin/galley
+          - server
           - --meshConfigFile=/etc/mesh-config/mesh
           - --livenessProbeInterval=1s
           - --livenessProbePath=/healthliveness
           - --readinessProbePath=/healthready
           - --readinessProbeInterval=1s
+          - --deployment-namespace=istio-system
           - --insecure=true
           - --validation-webhook-config-file
           - /etc/config/validatingwebhookconfiguration.yaml
-          - --monitoringPort=9093
+          - --monitoringPort=15014
+          - --log_output_level=default:info
           volumeMounts:
           - name: certs
             mountPath: /etc/certs
@@ -14069,7 +15943,7 @@ spec:
           resources:
             requests:
               cpu: 10m
-
+            
       volumes:
       - name: certs
         secret:
@@ -14080,7 +15954,7 @@ spec:
       - name: mesh-config
         configMap:
           name: istio
-      affinity:
+      affinity:      
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -14112,7 +15986,7 @@ spec:
               - key: beta.kubernetes.io/arch
                 operator: In
                 values:
-                - s390x
+                - s390x      
 
 ---
 # Source: istio/charts/gateways/templates/deployment.yaml
@@ -14129,24 +16003,21 @@ metadata:
     app: istio-egressgateway
     istio: egressgateway
 spec:
-  replicas: 1
   template:
     metadata:
       labels:
         chart: gateways
         heritage: Tiller
         release: istio
-        version: 1.1.0
         app: istio-egressgateway
         istio: egressgateway
       annotations:
         sidecar.istio.io/inject: "false"
-        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
       serviceAccountName: istio-egressgateway-service-account
       containers:
         - name: istio-proxy
-          image: "gcr.io/istio-release/proxyv2:release-1.1-20190111-09-15"
+          image: "docker.io/istio/proxyv2:1.1.6"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
@@ -14158,8 +16029,9 @@ spec:
           args:
           - proxy
           - router
-          - --log_output_level
-          - 'info'
+          - --domain
+          - $(POD_NAMESPACE).svc.cluster.local
+          - --log_output_level=default:info
           - --drainDuration
           - '45s' #drainDuration
           - --parentShutdownDuration
@@ -14172,14 +16044,30 @@ spec:
           - zipkin:9411
           - --proxyAdminPort
           - "15000"
+          - --statusPort
+          - "15020"
           - --controlPlaneAuthPolicy
           - NONE
           - --discoveryAddress
           - istio-pilot:15010
+          readinessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /healthz/ready
+              port: 15020
+              scheme: HTTP
+            initialDelaySeconds: 1
+            periodSeconds: 2
+            successThreshold: 1
+            timeoutSeconds: 1
           resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
             requests:
               cpu: 10m
-
+              memory: 40Mi
+            
           env:
           - name: POD_NAME
             valueFrom:
@@ -14196,6 +16084,11 @@ spec:
               fieldRef:
                 apiVersion: v1
                 fieldPath: status.podIP
+          - name: HOST_IP
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.hostIP
           - name: ISTIO_META_POD_NAME
             valueFrom:
               fieldRef:
@@ -14230,7 +16123,7 @@ spec:
         secret:
           secretName: "istio-egressgateway-ca-certs"
           optional: true
-      affinity:
+      affinity:      
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -14262,7 +16155,7 @@ spec:
               - key: beta.kubernetes.io/arch
                 operator: In
                 values:
-                - s390x
+                - s390x      
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -14276,26 +16169,24 @@ metadata:
     app: istio-ingressgateway
     istio: ingressgateway
 spec:
-  replicas: 1
   template:
     metadata:
       labels:
         chart: gateways
         heritage: Tiller
         release: istio
-        version: 1.1.0
         app: istio-ingressgateway
         istio: ingressgateway
       annotations:
         sidecar.istio.io/inject: "false"
-        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
       serviceAccountName: istio-ingressgateway-service-account
       containers:
         - name: istio-proxy
-          image: "gcr.io/istio-release/proxyv2:release-1.1-20190111-09-15"
+          image: "docker.io/istio/proxyv2:1.1.6"
           imagePullPolicy: IfNotPresent
           ports:
+            - containerPort: 15020
             - containerPort: 80
             - containerPort: 443
             - containerPort: 31400
@@ -14310,8 +16201,9 @@ spec:
           args:
           - proxy
           - router
-          - --log_output_level
-          - 'info'
+          - --domain
+          - $(POD_NAMESPACE).svc.cluster.local
+          - --log_output_level=default:info
           - --drainDuration
           - '45s' #drainDuration
           - --parentShutdownDuration
@@ -14324,14 +16216,30 @@ spec:
           - zipkin:9411
           - --proxyAdminPort
           - "15000"
+          - --statusPort
+          - "15020"
           - --controlPlaneAuthPolicy
           - NONE
           - --discoveryAddress
           - istio-pilot:15010
+          readinessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /healthz/ready
+              port: 15020
+              scheme: HTTP
+            initialDelaySeconds: 1
+            periodSeconds: 2
+            successThreshold: 1
+            timeoutSeconds: 1
           resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
             requests:
               cpu: 10m
-
+              memory: 40Mi
+            
           env:
           - name: POD_NAME
             valueFrom:
@@ -14348,6 +16256,11 @@ spec:
               fieldRef:
                 apiVersion: v1
                 fieldPath: status.podIP
+          - name: HOST_IP
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.hostIP
           - name: ISTIO_META_POD_NAME
             valueFrom:
               fieldRef:
@@ -14382,7 +16295,7 @@ spec:
         secret:
           secretName: "istio-ingressgateway-ca-certs"
           optional: true
-      affinity:
+      affinity:      
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -14414,7 +16327,7 @@ spec:
               - key: beta.kubernetes.io/arch
                 operator: In
                 values:
-                - s390x
+                - s390x      
 ---
 
 ---
@@ -14440,14 +16353,13 @@ spec:
         release: istio
       annotations:
         sidecar.istio.io/inject: "false"
-        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
       securityContext:
         runAsUser: 472
         fsGroup: 472
       containers:
         - name: grafana
-          image: "grafana/grafana:5.4.0"
+          image: "grafana/grafana:6.0.2"
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 3000
@@ -14469,7 +16381,7 @@ spec:
           resources:
             requests:
               cpu: 10m
-
+            
           volumeMounts:
           - name: data
             mountPath: /data/grafana
@@ -14507,7 +16419,7 @@ spec:
           - name: config
             mountPath: "/etc/grafana/provisioning/dashboards/dashboardproviders.yaml"
             subPath: dashboardproviders.yaml
-      affinity:
+      affinity:      
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -14539,7 +16451,7 @@ spec:
               - key: beta.kubernetes.io/arch
                 operator: In
                 values:
-                - s390x
+                - s390x      
       volumes:
       - name: config
         configMap:
@@ -14596,10 +16508,12 @@ spec:
       annotations:
         sidecar.istio.io/inject: "false"
         scheduler.alpha.kubernetes.io/critical-pod: ""
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
     spec:
       serviceAccountName: kiali-service-account
       containers:
-      - image: "docker.io/kiali/kiali:v0.12"
+      - image: "docker.io/kiali/kiali:v0.16"
         name: kiali
         command:
         - "/opt/kiali/kiali"
@@ -14612,16 +16526,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: SERVER_CREDENTIALS_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: kiali
-              key: username
-        - name: SERVER_CREDENTIALS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: kiali
-              key: passphrase
         - name: PROMETHEUS_SERVICE_URL
           value: http://prometheus:9090
         - name: SERVER_WEB_ROOT
@@ -14629,15 +16533,21 @@ spec:
         volumeMounts:
         - name: kiali-configuration
           mountPath: "/kiali-configuration"
+        - name: kiali-secret
+          mountPath: "/kiali-secret"
         resources:
           requests:
             cpu: 10m
-
+          
       volumes:
       - name: kiali-configuration
         configMap:
           name: kiali
-      affinity:
+      - name: kiali-secret
+        secret:
+          secretName: kiali
+          optional: true
+      affinity:      
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -14669,7 +16579,7 @@ spec:
               - key: beta.kubernetes.io/arch
                 operator: In
                 values:
-                - s390x
+                - s390x      
 
 ---
 # Source: istio/charts/mixer/templates/deployment.yaml
@@ -14684,21 +16594,14 @@ metadata:
     chart: mixer
     heritage: Tiller
     release: istio
-    version: 1.1.0
     istio: mixer
 spec:
-  replicas: 1
   strategy:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
   selector:
     matchLabels:
-      app: policy
-      chart: mixer
-      heritage: Tiller
-      release: istio
-      version: 1.1.0
       istio: mixer
       istio-mixer-type: policy
   template:
@@ -14708,12 +16611,10 @@ spec:
         chart: mixer
         heritage: Tiller
         release: istio
-        version: 1.1.0
         istio: mixer
         istio-mixer-type: policy
       annotations:
         sidecar.istio.io/inject: "false"
-        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
       serviceAccountName: istio-mixer-service-account
       volumes:
@@ -14723,7 +16624,11 @@ spec:
           optional: true
       - name: uds-socket
         emptyDir: {}
-      affinity:
+      - name: policy-adapter-secret
+        secret:
+          secretName: policy-adapter-secret
+          optional: true
+      affinity:      
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -14755,29 +16660,36 @@ spec:
               - key: beta.kubernetes.io/arch
                 operator: In
                 values:
-                - s390x
+                - s390x      
       containers:
       - name: mixer
-        image: "gcr.io/istio-release/mixer:release-1.1-20190111-09-15"
+        image: "docker.io/istio/mixer:1.1.6"
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 9093
+        - containerPort: 15014
         - containerPort: 42422
         args:
-          - --monitoringPort=9093
+          - --monitoringPort=15014
           - --address
           - unix:///sock/mixer.socket
+          - --log_output_level=default:info
           - --configStoreURL=mcp://istio-galley.istio-system.svc:9901
           - --configDefaultNamespace=istio-system
           - --useAdapterCRDs=true
           - --trace_zipkin_url=http://zipkin:9411/api/v1/spans
         env:
         - name: GODEBUG
-          value: "gctrace=2"
+          value: "gctrace=1"
+        - name: GOMAXPROCS
+          value: "6"
         resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
           requests:
             cpu: 10m
-
+            memory: 100Mi
+          
         volumeMounts:
         - name: istio-certs
           mountPath: /etc/certs
@@ -14787,11 +16699,11 @@ spec:
         livenessProbe:
           httpGet:
             path: /version
-            port: 9093
+            port: 15014
           initialDelaySeconds: 5
           periodSeconds: 5
       - name: istio-proxy
-        image: "gcr.io/istio-release/proxyv2:release-1.1-20190111-09-15"
+        image: "docker.io/istio/proxyv2:1.1.6"
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9091
@@ -14801,6 +16713,8 @@ spec:
           name: http-envoy-prom
         args:
         - proxy
+        - --domain
+        - $(POD_NAMESPACE).svc.cluster.local
         - --serviceCluster
         - istio-policy
         - --templateFile
@@ -14824,15 +16738,22 @@ spec:
               apiVersion: v1
               fieldPath: status.podIP
         resources:
+          limits:
+            cpu: 2000m
+            memory: 128Mi
           requests:
             cpu: 10m
-
+            memory: 40Mi
+          
         volumeMounts:
         - name: istio-certs
           mountPath: /etc/certs
           readOnly: true
         - name: uds-socket
           mountPath: /sock
+        - name: policy-adapter-secret
+          mountPath: /var/run/secrets/istio.io/policy/adapter
+          readOnly: true
 
 ---
 apiVersion: extensions/v1beta1
@@ -14845,21 +16766,14 @@ metadata:
     chart: mixer
     heritage: Tiller
     release: istio
-    version: 1.1.0
     istio: mixer
 spec:
-  replicas: 1
   strategy:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
   selector:
     matchLabels:
-      app: telemetry
-      chart: mixer
-      heritage: Tiller
-      release: istio
-      version: 1.1.0
       istio: mixer
       istio-mixer-type: telemetry
   template:
@@ -14869,12 +16783,10 @@ spec:
         chart: mixer
         heritage: Tiller
         release: istio
-        version: 1.1.0
         istio: mixer
         istio-mixer-type: telemetry
       annotations:
         sidecar.istio.io/inject: "false"
-        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
       serviceAccountName: istio-mixer-service-account
       volumes:
@@ -14884,7 +16796,11 @@ spec:
           optional: true
       - name: uds-socket
         emptyDir: {}
-      affinity:
+      - name: telemetry-adapter-secret
+        secret:
+          secretName: telemetry-adapter-secret
+          optional: true
+      affinity:      
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -14916,43 +16832,57 @@ spec:
               - key: beta.kubernetes.io/arch
                 operator: In
                 values:
-                - s390x
+                - s390x      
       containers:
       - name: mixer
-        image: "gcr.io/istio-release/mixer:release-1.1-20190111-09-15"
+        image: "docker.io/istio/mixer:1.1.6"
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 9093
+        - containerPort: 15014
         - containerPort: 42422
         args:
-          - --monitoringPort=9093
+          - --monitoringPort=15014
           - --address
           - unix:///sock/mixer.socket
+          - --log_output_level=default:info
           - --configStoreURL=mcp://istio-galley.istio-system.svc:9901
           - --configDefaultNamespace=istio-system
           - --useAdapterCRDs=true
           - --trace_zipkin_url=http://zipkin:9411/api/v1/spans
+          - --averageLatencyThreshold
+          - 100ms
+          - --loadsheddingMode
+          - enforce
         env:
         - name: GODEBUG
-          value: "gctrace=2"
+          value: "gctrace=1"
+        - name: GOMAXPROCS
+          value: "6"
         resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
           requests:
-            cpu: 10m
-
+            cpu: 50m
+            memory: 100Mi
+          
         volumeMounts:
         - name: istio-certs
           mountPath: /etc/certs
+          readOnly: true
+        - name: telemetry-adapter-secret
+          mountPath: /var/run/secrets/istio.io/telemetry/adapter
           readOnly: true
         - name: uds-socket
           mountPath: /sock
         livenessProbe:
           httpGet:
             path: /version
-            port: 9093
+            port: 15014
           initialDelaySeconds: 5
           periodSeconds: 5
       - name: istio-proxy
-        image: "gcr.io/istio-release/proxyv2:release-1.1-20190111-09-15"
+        image: "docker.io/istio/proxyv2:1.1.6"
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9091
@@ -14962,6 +16892,8 @@ spec:
           name: http-envoy-prom
         args:
         - proxy
+        - --domain
+        - $(POD_NAMESPACE).svc.cluster.local
         - --serviceCluster
         - istio-telemetry
         - --templateFile
@@ -14985,15 +16917,21 @@ spec:
               apiVersion: v1
               fieldPath: status.podIP
         resources:
+          limits:
+            cpu: 2000m
+            memory: 128Mi
           requests:
             cpu: 10m
-
+            memory: 40Mi
+          
         volumeMounts:
         - name: istio-certs
           mountPath: /etc/certs
           readOnly: true
         - name: uds-socket
           mountPath: /sock
+
+--- 
 
 ---
 # Source: istio/charts/pilot/templates/deployment.yaml
@@ -15012,11 +16950,13 @@ metadata:
   annotations:
     checksum/config-volume: f8da08b6b8c170dde721efd680270b2901e750d4aa186ebb6c22bef5b78a43f9
 spec:
-  replicas: 1
   strategy:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
+  selector:
+    matchLabels:
+      istio: pilot
   template:
     metadata:
       labels:
@@ -15027,19 +16967,22 @@ spec:
         istio: pilot
       annotations:
         sidecar.istio.io/inject: "false"
-        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
       serviceAccountName: istio-pilot-service-account
       containers:
         - name: discovery
-          image: "gcr.io/istio-release/pilot:release-1.1-20190111-09-15"
+          image: "docker.io/istio/pilot:1.1.6"
           imagePullPolicy: IfNotPresent
           args:
           - "discovery"
-          - --monitoringAddr=:9093
+          - --monitoringAddr=:15014
+          - --log_output_level=default:info
+          - --domain
+          - cluster.local
           - --secureGrpcAddr
           - ""
-          - --mcpServerAddrs=mcp://istio-galley.istio-system.svc:9901
+          - --keepaliveMaxServerConnectionAge
+          - "30m"
           ports:
           - containerPort: 8080
           - containerPort: 15010
@@ -15062,16 +17005,21 @@ spec:
                 apiVersion: v1
                 fieldPath: metadata.namespace
           - name: GODEBUG
-            value: "gctrace=2"
-          - name: PILOT_PUSH_THROTTLE_COUNT
+            value: "gctrace=1"
+          - name: PILOT_PUSH_THROTTLE
             value: "100"
           - name: PILOT_TRACE_SAMPLING
             value: "100"
+          - name: PILOT_DISABLE_XDS_MARSHALING_TO_ANY
+            value: "1"
           resources:
+            limits:
+              cpu: 100m
+              memory: 200Mi
             requests:
-              cpu: 500m
-              memory: 2048Mi
-
+              cpu: 10m
+              memory: 100Mi
+            
           volumeMounts:
           - name: config-volume
             mountPath: /etc/istio/config
@@ -15079,7 +17027,7 @@ spec:
             mountPath: /etc/certs
             readOnly: true
         - name: istio-proxy
-          image: "gcr.io/istio-release/proxyv2:release-1.1-20190111-09-15"
+          image: "docker.io/istio/proxyv2:1.1.6"
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 15003
@@ -15088,6 +17036,8 @@ spec:
           - containerPort: 15011
           args:
           - proxy
+          - --domain
+          - $(POD_NAMESPACE).svc.cluster.local
           - --serviceCluster
           - istio-pilot
           - --templateFile
@@ -15111,9 +17061,13 @@ spec:
                 apiVersion: v1
                 fieldPath: status.podIP
           resources:
+            limits:
+              cpu: 2000m
+              memory: 128Mi
             requests:
               cpu: 10m
-
+              memory: 40Mi
+            
           volumeMounts:
           - name: istio-certs
             mountPath: /etc/certs
@@ -15126,7 +17080,7 @@ spec:
         secret:
           secretName: istio.istio-pilot-service-account
           optional: true
-      affinity:
+      affinity:      
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -15158,7 +17112,7 @@ spec:
               - key: beta.kubernetes.io/arch
                 operator: In
                 values:
-                - s390x
+                - s390x      
 
 ---
 # Source: istio/charts/prometheus/templates/deployment.yaml
@@ -15187,7 +17141,6 @@ spec:
         release: istio
       annotations:
         sidecar.istio.io/inject: "false"
-        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
       serviceAccountName: prometheus
       containers:
@@ -15211,7 +17164,7 @@ spec:
           resources:
             requests:
               cpu: 10m
-
+            
           volumeMounts:
           - name: config-volume
             mountPath: /etc/prometheus
@@ -15224,9 +17177,8 @@ spec:
       - name: istio-certs
         secret:
           defaultMode: 420
-          optional: true
           secretName: istio.default
-      affinity:
+      affinity:      
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -15258,7 +17210,7 @@ spec:
               - key: beta.kubernetes.io/arch
                 operator: In
                 values:
-                - s390x
+                - s390x      
 
 ---
 # Source: istio/charts/security/templates/deployment.yaml
@@ -15290,12 +17242,11 @@ spec:
         istio: citadel
       annotations:
         sidecar.istio.io/inject: "false"
-        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
       serviceAccountName: istio-citadel-service-account
       containers:
         - name: citadel
-          image: "gcr.io/istio-release/citadel:release-1.1-20190111-09-15"
+          image: "docker.io/istio/citadel:1.1.6"
           imagePullPolicy: IfNotPresent
           args:
             - --append-dns-names=true
@@ -15303,92 +17254,19 @@ spec:
             - --grpc-hostname=citadel
             - --citadel-storage-namespace=istio-system
             - --custom-dns-names=istio-pilot-service-account.istio-system:istio-pilot.istio-system
+            - --monitoring-port=15014
             - --self-signed-ca=true
-            - --trust-domain=cluster.local
-          resources:
-            requests:
-              cpu: 10m
-
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - amd64
-                - ppc64le
-                - s390x
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 2
-            preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - amd64
-          - weight: 2
-            preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - ppc64le
-          - weight: 2
-            preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - s390x
-
----
-# Source: istio/charts/servicegraph/templates/deployment.yaml
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: servicegraph
-  namespace: istio-system
-  labels:
-    app: servicegraph
-    chart: servicegraph
-    heritage: Tiller
-    release: istio
-spec:
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        app: servicegraph
-        chart: servicegraph
-        heritage: Tiller
-        release: istio
-      annotations:
-        sidecar.istio.io/inject: "false"
-        scheduler.alpha.kubernetes.io/critical-pod: ""
-    spec:
-      containers:
-        - name: servicegraph
-          image: "gcr.io/istio-release/servicegraph:release-1.1-20190111-09-15"
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8088
-          args:
-          - --prometheusAddr=http://prometheus:9090
           livenessProbe:
             httpGet:
-              path: /graph
-              port: 8088
-          readinessProbe:
-            httpGet:
-              path: /graph
-              port: 8088
+              path: /version
+              port: 15014
+            initialDelaySeconds: 5
+            periodSeconds: 5
           resources:
             requests:
               cpu: 10m
-
-      affinity:
+            
+      affinity:      
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -15420,7 +17298,7 @@ spec:
               - key: beta.kubernetes.io/arch
                 operator: In
                 values:
-                - s390x
+                - s390x      
 
 ---
 # Source: istio/charts/sidecarInjectorWebhook/templates/deployment.yaml
@@ -15451,12 +17329,11 @@ spec:
         istio: sidecar-injector
       annotations:
         sidecar.istio.io/inject: "false"
-        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
       serviceAccountName: istio-sidecar-injector-service-account
       containers:
         - name: sidecar-injector-webhook
-          image: "gcr.io/istio-release/sidecar_injector:release-1.1-20190111-09-15"
+          image: "docker.io/istio/sidecar_injector:1.1.6"
           imagePullPolicy: IfNotPresent
           args:
             - --caCertFile=/etc/istio/certs/root-cert.pem
@@ -15497,7 +17374,7 @@ spec:
           resources:
             requests:
               cpu: 10m
-
+            
       volumes:
       - name: config-volume
         configMap:
@@ -15511,7 +17388,7 @@ spec:
           items:
           - key: config
             path: config
-      affinity:
+      affinity:      
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -15543,7 +17420,7 @@ spec:
               - key: beta.kubernetes.io/arch
                 operator: In
                 values:
-                - s390x
+                - s390x      
 
 ---
 # Source: istio/charts/tracing/templates/deployment-jaeger.yaml
@@ -15569,13 +17446,13 @@ spec:
         release: istio
       annotations:
         sidecar.istio.io/inject: "false"
-        scheduler.alpha.kubernetes.io/critical-pod: ""
         prometheus.io/scrape: "true"
         prometheus.io/port: "16686"
+        prometheus.io/path: "/jaeger/metrics"
     spec:
       containers:
         - name: jaeger
-          image: "docker.io/jaegertracing/all-in-one:1.8"
+          image: "docker.io/jaegertracing/all-in-one:1.9"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9411
@@ -15597,7 +17474,7 @@ spec:
           - name: MEMORY_MAX_TRACES
             value: "50000"
           - name: QUERY_BASE_PATH
-            value: /jaeger
+            value:  /jaeger 
           livenessProbe:
             httpGet:
               path: /
@@ -15609,8 +17486,8 @@ spec:
           resources:
             requests:
               cpu: 10m
-
-      affinity:
+            
+      affinity:      
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -15642,8 +17519,7 @@ spec:
               - key: beta.kubernetes.io/arch
                 operator: In
                 values:
-                - s390x
-
+                - s390x      
 
 
 ---
@@ -15695,6 +17571,8 @@ spec:
         name: cpu
         targetAverageUtilization: 80
 ---
+
+---
 # Source: istio/charts/mixer/templates/autoscale.yaml
 
 apiVersion: autoscaling/v2beta1
@@ -15743,6 +17621,8 @@ spec:
         name: cpu
         targetAverageUtilization: 80
 ---
+
+---
 # Source: istio/charts/pilot/templates/autoscale.yaml
 
 apiVersion: autoscaling/v2beta1
@@ -15767,130 +17647,151 @@ spec:
     resource:
       name: cpu
       targetAverageUtilization: 80
+---
 
 ---
 # Source: istio/charts/tracing/templates/service-jaeger.yaml
 
+
 apiVersion: v1
-kind: Service
+kind: List
 metadata:
-  name: jaeger-query
+  name: jaeger-services
   namespace: istio-system
-  annotations:
   labels:
     app: jaeger
-    jaeger-infra: jaeger-service
     chart: tracing
     heritage: Tiller
     release: istio
-spec:
-  ports:
-    - name: query-http
-      port: 16686
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: jaeger-query
+    namespace: istio-system
+    annotations:
+    labels:
+      app: jaeger
+      jaeger-infra: jaeger-service
+      chart: tracing
+      heritage: Tiller
+      release: istio
+  spec:
+    ports:
+      - name: query-http
+        port: 16686
+        protocol: TCP
+        targetPort: 16686
+    selector:
+      app: jaeger
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: jaeger-collector
+    namespace: istio-system
+    labels:
+      app: jaeger
+      jaeger-infra: collector-service
+      chart: tracing
+      heritage: Tiller
+      release: istio
+  spec:
+    ports:
+    - name: jaeger-collector-tchannel
+      port: 14267
       protocol: TCP
-      targetPort: 16686
-  selector:
-    app: jaeger
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: jaeger-collector
-  namespace: istio-system
-  labels:
-    app: jaeger
-    jaeger-infra: collector-service
-    chart: tracing
-    heritage: Tiller
-    release: istio
-spec:
-  ports:
-  - name: jaeger-collector-tchannel
-    port: 14267
-    protocol: TCP
-    targetPort: 14267
-  - name: jaeger-collector-http
-    port: 14268
-    targetPort: 14268
-    protocol: TCP
-  selector:
-    app: jaeger
-  type: ClusterIP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: jaeger-agent
-  namespace: istio-system
-  labels:
-    app: jaeger
-    jaeger-infra: agent-service
-    chart: tracing
-    heritage: Tiller
-    release: istio
-spec:
-  ports:
-  - name: agent-zipkin-thrift
-    port: 5775
-    protocol: UDP
-    targetPort: 5775
-  - name: agent-compact
-    port: 6831
-    protocol: UDP
-    targetPort: 6831
-  - name: agent-binary
-    port: 6832
-    protocol: UDP
-    targetPort: 6832
-  clusterIP: None
-  selector:
-    app: jaeger
+      targetPort: 14267
+    - name: jaeger-collector-http
+      port: 14268
+      targetPort: 14268
+      protocol: TCP
+    selector:
+      app: jaeger
+    type: ClusterIP
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: jaeger-agent
+    namespace: istio-system
+    labels:
+      app: jaeger
+      jaeger-infra: agent-service
+      chart: tracing
+      heritage: Tiller
+      release: istio
+  spec:
+    ports:
+    - name: agent-zipkin-thrift
+      port: 5775
+      protocol: UDP
+      targetPort: 5775
+    - name: agent-compact
+      port: 6831
+      protocol: UDP
+      targetPort: 6831
+    - name: agent-binary
+      port: 6832
+      protocol: UDP
+      targetPort: 6832
+    clusterIP: None
+    selector:
+      app: jaeger
 
 
 
 ---
 # Source: istio/charts/tracing/templates/service.yaml
 apiVersion: v1
-kind: Service
+kind: List
 metadata:
-  name: zipkin
+  name: tracing-services
   namespace: istio-system
   labels:
     app: jaeger
     chart: tracing
     heritage: Tiller
     release: istio
-spec:
-  type: ClusterIP
-  ports:
-    - port: 9411
-      targetPort: 9411
-      protocol: TCP
-      name: http
-  selector:
-    app: jaeger
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: tracing
-  namespace: istio-system
-  annotations:
-  labels:
-    app: jaeger
-    chart: tracing
-    heritage: Tiller
-    release: istio
-spec:
-  ports:
-    - name: http-query
-      port: 80
-      protocol: TCP
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: zipkin
+    namespace: istio-system
+    labels:
+      app: jaeger
+      chart: tracing
+      heritage: Tiller
+      release: istio
+  spec:
+    type: ClusterIP
+    ports:
+      - port: 9411
+        targetPort: 9411
+        protocol: TCP
+        name: http
+    selector:
+      app: jaeger
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: tracing
+    namespace: istio-system
+    annotations:
+    labels:
+      app: jaeger
+      chart: tracing
+      heritage: Tiller
+      release: istio
+  spec:
+    ports:
+      - name: http-query
+        port: 80
+        protocol: TCP
 
-      targetPort: 16686
+        targetPort: 16686
 
-  selector:
-    app: jaeger
+    selector:
+      app: jaeger
 
 ---
 # Source: istio/charts/sidecarInjectorWebhook/templates/mutatingwebhook.yaml
@@ -16064,6 +17965,87 @@ spec:
       istio: pilot
 
 ---
+# Source: istio/charts/galley/templates/validatingwebhookconfiguration.yaml.tpl
+
+
+---
+# Source: istio/charts/gateways/templates/preconfigured.yaml
+
+
+---
+# Source: istio/charts/grafana/templates/grafana-ports-mtls.yaml
+
+
+---
+# Source: istio/charts/grafana/templates/ingress.yaml
+
+---
+# Source: istio/charts/grafana/templates/pvc.yaml
+
+
+---
+# Source: istio/charts/grafana/templates/tests/test-grafana-connection.yaml
+
+
+---
+# Source: istio/charts/kiali/templates/ingress.yaml
+
+---
+# Source: istio/charts/kiali/templates/tests/test-kiali-connection.yaml
+
+
+---
+# Source: istio/charts/pilot/templates/meshexpansion.yaml
+
+
+
+---
+# Source: istio/charts/prometheus/templates/ingress.yaml
+
+---
+# Source: istio/charts/prometheus/templates/tests/test-prometheus-connection.yaml
+
+
+---
+# Source: istio/charts/security/templates/enable-mesh-mtls.yaml
+
+
+---
+# Source: istio/charts/security/templates/enable-mesh-permissive.yaml
+
+
+---
+# Source: istio/charts/security/templates/meshexpansion.yaml
+
+
+---
+# Source: istio/charts/security/templates/tests/test-citadel-connection.yaml
+
+
+---
+# Source: istio/charts/tracing/templates/deployment-zipkin.yaml
+
+
+---
+# Source: istio/charts/tracing/templates/ingress.yaml
+
+---
+# Source: istio/charts/tracing/templates/tests/test-tracing-connection.yaml
+
+
+---
+# Source: istio/templates/endpoints.yaml
+
+
+---
+# Source: istio/templates/install-custom-resources.sh.tpl
+
+
+---
+# Source: istio/templates/service.yaml
+
+
+---
 # Source: istio/charts/mixer/templates/config.yaml
 
 apiVersion: "config.istio.io/v1alpha2"
@@ -16094,6 +18076,10 @@ spec:
       valueType: STRING
     request.path:
       valueType: STRING
+    request.url_path:
+      valueType: STRING
+    request.query_params:
+      valueType: STRING_MAP
     request.reason:
       valueType: STRING
     request.referer:
@@ -16156,6 +18142,8 @@ spec:
       valueType: STRING
     context.protocol:
       valueType: STRING
+    context.proxy_error_code:
+      valueType: STRING
     context.timestamp:
       valueType: TIMESTAMP
     context.time:
@@ -16191,6 +18179,14 @@ spec:
       valueType: STRING
     rbac.permissive.effective_policy_id:
       valueType: STRING
+    check.error_code:
+      valueType: INT64
+    check.error_message:
+      valueType: STRING
+    check.cache_hit:
+      valueType: BOOL
+    quota.cache_hit:
+      valueType: BOOL
 
 ---
 apiVersion: "config.istio.io/v1alpha2"
@@ -16217,8 +18213,6 @@ spec:
       valueType: STRING
     source.owner:
       valueType: STRING
-    source.service:  # DEPRECATED
-      valueType: STRING
     source.serviceAccount:
       valueType: STRING
     source.services:
@@ -16242,8 +18236,6 @@ spec:
     destination.container.name:
       valueType: STRING
     destination.namespace:
-      valueType: STRING
-    destination.service: # DEPRECATED
       valueType: STRING
     destination.service.uid:
       valueType: STRING
@@ -16312,6 +18304,7 @@ spec:
     method: request.method | ""
     url: request.path | ""
     responseCode: response.code | 0
+    responseFlags: context.proxy_error_code | ""
     responseSize: response.size | 0
     permissiveResponseCode: rbac.permissive.response_code | "none"
     permissiveResponsePolicyID: rbac.permissive.effective_policy_id | "none"
@@ -16372,6 +18365,7 @@ spec:
     totalReceivedBytes: connection.received.bytes_total | 0
     totalSentBytes: connection.sent.bytes_total | 0
     reporter: conditional((context.reporter.kind | "inbound") == "outbound", "source", "destination")
+    responseFlags: context.proxy_error_code | ""
   monitored_resource_type: '"global"'
 ---
 apiVersion: "config.istio.io/v1alpha2"
@@ -16437,6 +18431,7 @@ spec:
     destination_service_namespace: destination.service.namespace | "unknown"
     request_protocol: api.protocol | context.protocol | "unknown"
     response_code: response.code | 200
+    response_flags: context.proxy_error_code | "-"
     permissive_response_code: rbac.permissive.response_code | "none"
     permissive_response_policyid: rbac.permissive.effective_policy_id | "none"
     connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
@@ -16471,7 +18466,8 @@ spec:
     destination_service_namespace: destination.service.namespace | "unknown"
     request_protocol: api.protocol | context.protocol | "unknown"
     response_code: response.code | 200
-    permissive_response_code: rbac.permissive.response_code | "none"
+    response_flags: context.proxy_error_code | "-"
+    permissive_response_code: rbac.permissive.response_code | "none" 
     permissive_response_policyid: rbac.permissive.effective_policy_id | "none"
     connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
   monitored_resource_type: '"UNSPECIFIED"'
@@ -16505,7 +18501,8 @@ spec:
     destination_service_namespace: destination.service.namespace | "unknown"
     request_protocol: api.protocol | context.protocol | "unknown"
     response_code: response.code | 200
-    permissive_response_code: rbac.permissive.response_code | "none"
+    response_flags: context.proxy_error_code | "-"
+    permissive_response_code: rbac.permissive.response_code | "none" 
     permissive_response_policyid: rbac.permissive.effective_policy_id | "none"
     connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
   monitored_resource_type: '"UNSPECIFIED"'
@@ -16539,7 +18536,8 @@ spec:
     destination_service_namespace: destination.service.namespace | "unknown"
     request_protocol: api.protocol | context.protocol | "unknown"
     response_code: response.code | 200
-    permissive_response_code: rbac.permissive.response_code | "none"
+    response_flags: context.proxy_error_code | "-"
+    permissive_response_code: rbac.permissive.response_code | "none" 
     permissive_response_policyid: rbac.permissive.effective_policy_id | "none"
     connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
   monitored_resource_type: '"UNSPECIFIED"'
@@ -16572,6 +18570,7 @@ spec:
     destination_service_name: destination.service.name | "unknown"
     destination_service_namespace: destination.service.namespace | "unknown"
     connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
+    response_flags: context.proxy_error_code | "-"
   monitored_resource_type: '"UNSPECIFIED"'
 ---
 apiVersion: "config.istio.io/v1alpha2"
@@ -16602,6 +18601,7 @@ spec:
     destination_service_name: destination.service.name | "unknown"
     destination_service_namespace: destination.service.namespace | "unknown"
     connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
+    response_flags: context.proxy_error_code | "-"
   monitored_resource_type: '"UNSPECIFIED"'
 ---
 apiVersion: "config.istio.io/v1alpha2"
@@ -16609,6 +18609,11 @@ kind: metric
 metadata:
   name: tcpconnectionsopened
   namespace: istio-system
+  labels:
+    app: mixer
+    chart: mixer
+    heritage: Tiller
+    release: istio
 spec:
   value: "1"
   dimensions:
@@ -16627,6 +18632,7 @@ spec:
     destination_service_name: destination.service.name | "unknown"
     destination_service_namespace: destination.service.namespace | "unknown"
     connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
+    response_flags: context.proxy_error_code | "-"
   monitored_resource_type: '"UNSPECIFIED"'
 ---
 apiVersion: "config.istio.io/v1alpha2"
@@ -16634,6 +18640,11 @@ kind: metric
 metadata:
   name: tcpconnectionsclosed
   namespace: istio-system
+  labels:
+    app: mixer
+    chart: mixer
+    heritage: Tiller
+    release: istio
 spec:
   value: "1"
   dimensions:
@@ -16652,6 +18663,7 @@ spec:
     destination_service_name: destination.service.name | "unknown"
     destination_service_namespace: destination.service.namespace | "unknown"
     connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
+    response_flags: context.proxy_error_code | "-"
   monitored_resource_type: '"UNSPECIFIED"'
 ---
 apiVersion: "config.istio.io/v1alpha2"
@@ -16690,6 +18702,7 @@ spec:
       - destination_service_namespace
       - request_protocol
       - response_code
+      - response_flags
       - permissive_response_code
       - permissive_response_policyid
       - connection_security_policy
@@ -16713,6 +18726,7 @@ spec:
       - destination_service_namespace
       - request_protocol
       - response_code
+      - response_flags
       - permissive_response_code
       - permissive_response_policyid
       - connection_security_policy
@@ -16739,6 +18753,7 @@ spec:
       - destination_service_namespace
       - request_protocol
       - response_code
+      - response_flags
       - permissive_response_code
       - permissive_response_policyid
       - connection_security_policy
@@ -16767,6 +18782,7 @@ spec:
       - destination_service_namespace
       - request_protocol
       - response_code
+      - response_flags
       - permissive_response_code
       - permissive_response_policyid
       - connection_security_policy
@@ -16794,6 +18810,7 @@ spec:
       - destination_service_name
       - destination_service_namespace
       - connection_security_policy
+      - response_flags
     - name: tcp_received_bytes_total
       instance_name: tcpbytereceived.metric.istio-system
       kind: COUNTER
@@ -16813,6 +18830,7 @@ spec:
       - destination_service_name
       - destination_service_namespace
       - connection_security_policy
+      - response_flags
     - name: tcp_connections_opened_total
       instance_name: tcpconnectionsopened.metric.istio-system
       kind: COUNTER
@@ -16832,6 +18850,7 @@ spec:
       - destination_service_name
       - destination_service_namespace
       - connection_security_policy
+      - response_flags
     - name: tcp_connections_closed_total
       instance_name: tcpconnectionsclosed.metric.istio-system
       kind: COUNTER
@@ -16851,6 +18870,7 @@ spec:
       - destination_service_name
       - destination_service_namespace
       - connection_security_policy
+      - response_flags
 ---
 apiVersion: "config.istio.io/v1alpha2"
 kind: rule
@@ -16895,6 +18915,11 @@ kind: rule
 metadata:
   name: promtcpconnectionopen
   namespace: istio-system
+  labels:
+    app: mixer
+    chart: mixer
+    heritage: Tiller
+    release: istio
 spec:
   match: context.protocol == "tcp" && ((connection.event | "na") == "open")
   actions:
@@ -16907,6 +18932,11 @@ kind: rule
 metadata:
   name: promtcpconnectionclosed
   namespace: istio-system
+  labels:
+    app: mixer
+    chart: mixer
+    heritage: Tiller
+    release: istio
 spec:
   match: context.protocol == "tcp" && ((connection.event | "na") == "close")
   actions:
