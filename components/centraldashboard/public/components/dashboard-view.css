@@ -95,6 +95,9 @@ paper-icon-item {
     };
     --paper-icon-button-ink-color: var(--accent-color);
 }
+paper-ripple {
+    color: var(--accent-color);
+}
 
 .link {
     display: block;
@@ -105,13 +108,11 @@ paper-icon-item {
     @apply --layout-flex;
     @apply --layout-justified;
     @apply --layout-horizontal-reverse;
-    border: 1px solid var(--border-color);
     padding: .5em 1em;
     border-radius: 5px;
     overflow:hidden;
     --paper-item-icon: {
         color: var(--accent-color);
-        background: rgba(0, 125, 252, 0.25);
         border-radius: 50%;
     };
 }

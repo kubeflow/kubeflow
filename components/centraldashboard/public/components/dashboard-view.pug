@@ -2,7 +2,9 @@
     paper-card#Quick-Links(heading='Quick shortcuts')
         template(is='dom-repeat', items='[[quickLinks]]')
             iframe-link.link(href$="[[item.link]]", tabindex='-1')
-                paper-icon-item [[item.text]]
+                paper-icon-item
+                    paper-ripple
+                    .text [[item.text]]
                     paper-icon-button.button(icon='arrow-forward',
                         slot='item-icon', alt='[[item.text]]')
 .column
@@ -12,6 +14,7 @@
                         target='_blank')
                 paper-icon-item
                     iron-icon(icon='launch', slot='item-icon')
+                    paper-ripple
                     paper-item-body(two-line)
                         .header [[item.text]]
                         aside(secondary) [[item.desc]]
@@ -22,6 +25,7 @@
             template(is='dom-repeat', items='[[platformDetails.links]]')
                 a.link(href$='[[item.link]]', tabindex='-1', target='_blank')
                     paper-icon-item
+                        paper-ripple
                         aside [[item.text]]
                         paper-icon-button.button(icon='open-in-new',
                             slot='item-icon', alt='[[item.text]]')
