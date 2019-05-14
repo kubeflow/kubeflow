@@ -56,7 +56,9 @@ if [[ -z ${USE_ISTIO} ]]; then
 else
   # Apply the jwt validation policy
   cat /var/envoy-config/jwt-policy-template.yaml | sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g" > /var/shared/jwt-policy.yaml
-  kubectl apply -f /var/shared/jwt-policy.yaml
+  # Use kubectl patch.
+  kubectl -n ${NAMESPACE} patch policy ingress-jwt --type='json' \
+    -p "[{\"op\": \"replace\", \"path\": \"/spec/origins/jwt/0/audiences/0\", \"value\": \"${JWT_AUDIENCE}\"}]"
 fi
 
 echo "Clearing lock on service annotation"
