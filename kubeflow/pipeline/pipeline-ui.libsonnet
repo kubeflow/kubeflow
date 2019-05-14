@@ -185,5 +185,34 @@
         },
       },
     },  // deployUi
+
+    crd: {
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
+      metadata: {
+        name: "viewers.kubeflow.org",
+      },
+      spec: {
+        group: "kubeflow.org",
+        versions: [
+          {
+            name: "v1beta1",
+            storage: true,
+            served: true,
+          },
+        ],
+        scope: "Namespaced",
+        names: {
+          kind: "Viewer",
+          listKind: "ViewerList",
+          singular: "viewer",
+          plural: "viewers",
+          shortNames: [
+            "vi",
+          ],
+        },
+      },
+    },  // crd    
+    
   },  // parts
 }
