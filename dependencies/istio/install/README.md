@@ -5,6 +5,11 @@ The manifest is taken from OSS Istio 1.1.6. Download it by:
 curl -L https://git.io/getLatestIstio | ISTIO_VERSION=1.1.6 sh -
 ```
 
+In the directory `istio-1.1.6`:
+
+- `crds.yaml` is the combination of `install/kubernetes/helm/istio-init/files/*.yaml`.
+- `istio-noauth.yaml` is `install/kubernetes/istio-demo.yaml`.
+
 We need custom configuration as discussed in the
 [issue](https://github.com/kubeflow/kubeflow/issues/1909#issuecomment-438409215).
 
