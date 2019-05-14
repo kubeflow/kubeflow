@@ -33,3 +33,31 @@ spec:
     ambassador:
     - name: ambassadorServiceType
       value: NodePort
+    argo:
+    - initRequired: true
+      name: injectIstio
+      value: "false"
+    centraldashboard:
+    - initRequired: true
+      name: injectIstio
+      value: "false"
+    notebook-controller:
+      - name: injectGcpCredentials
+        value: "true"
+    jupyter-web-app:
+    - initRequired: true
+      name: injectIstio
+      value: "false"
+    katib:
+    - initRequired: true
+      name: injectIstio
+      value: "false"
+    tensorboard:
+    - initRequired: true
+      name: injectIstio
+      value: "false"
+    tf-job-operator:
+    - initRequired: true
+      name: injectIstio
+      value: "false"
+  platform: gcp

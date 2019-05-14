@@ -74,10 +74,12 @@ func getConfigFromCache(pathDir string, kfDef *kfdefs.KfDef) ([]byte, error) {
 	}
 	if kfDef.Spec.UseBasicAuth {
 		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "basic_auth"})
+	} else if kfDef.Spec.Platform != "" {
+		overlays = append(overlays, config.NameValue{Name: "overlay", Value: kfDef.Spec.Platform})
 	}
-	baseName := strings.Split(kftypes.DefaultConfigDir, "/")[1]
+	compPath := strings.Split(kftypes.DefaultConfigDir, "/")[1]
 	resMap, resMapErr := kustomize.GenerateKustomizationFile(kfDef,
-		path.Dir(configPath), baseName, overlays)
+		path.Dir(configPath), compPath, overlays)
 	if resMapErr != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
