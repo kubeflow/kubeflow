@@ -7,14 +7,23 @@ The goal is to support multi-tenancy kubeflow cluster / services.
 
 ### Profile
 - Profile contains owner which refers to a k8s user.
-- Profile will spawn a namespace with same name and make profile owner the namespace owner.
-- Profile will fulfill necessary k8s resources to enable owner access to kubeflow servuces under multi-tenancy mode.
+- Profile will create a namespace with same name and make profile owner the namespace owner.
+- Profile will create necessary k8s resources to enable owner access to kubeflow servuces under multi-tenancy mode.
+- After the namespace is created, the owner can grant access to additional users or groups using the API or by creating RBAC roles & bindings directly.
 - Delete profile will delete namespace and other k8s resources owned by this profile.
 
 ### Binding
 - Binding contains a user-namespace pair.
 - Binding will give user edit access to referred namespace.
 - Delete binding will revoke user's access in binding.
+
+
+## Use Cases
+#### Case 1: Self serve Kubeflow
+
+A Kubeflow admin would like to grant a set of users the ability to create/delete a namespace in which they can consume Kubeflow. 
+The resulting namespace should only be accessible to the user who created it; or people they grant access to.
+RBAC doesn't directly support this. So we provide a service on top of RBAC which will enforce this based on the user's identity
 
 
 ## APIs
