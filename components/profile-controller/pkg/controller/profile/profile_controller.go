@@ -19,9 +19,9 @@ package profile
 import (
 	"context"
 	"fmt"
+	"os"
 	"reflect"
 
-	istionetworking "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/istionetworking/v1alpha3"
 	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/istiorbac/v1alpha1"
 	kubeflowv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -44,6 +44,13 @@ var log = logf.Log.WithName("controller")
 
 const ServiceRoleIstio = "ns-access-istio"
 const ServiceRoleBindingIstio = "owner-binding-istio"
+
+const ServiceRoleBindingKeyDefault = "request.headers[x-goog-authenticated-user-email]"
+const ServiceRoleBindingValPrefixDefault = "accounts.google.com:"
+
+// Set those Env to the header matching your auth service output if needed.
+const ServiceRoleBindingKeyEnvName = "SERVICE_ROLE_BINDING_KEY"
+const ServiceRoleBindingValPrefixEnvName = "SERVICE_ROLE_BINDING_VAL_PREFIX"
 
 // Add creates a new Profile Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -167,7 +174,9 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 				Message: fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
 					instance.Spec.Owner.Name),
 			}
-			r.Update(context.TODO(), instance)
+			if err := r.Update(context.TODO(), instance); err != nil {
+				return reconcile.Result{}, err
+			}
 			return reconcile.Result{}, nil
 		}
 	}
@@ -222,6 +231,19 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 	return reconcile.Result{}, nil
 }
 
+// getServiceRoleBindingProperties return a map[string]string containing properties used by Istio ServiceRoleBinding.
+func getServiceRoleBindingProperties(user string) map[string]string {
+	bindingKey := ServiceRoleBindingKeyDefault
+	if os.Getenv(ServiceRoleBindingKeyEnvName) != "" {
+		bindingKey = os.Getenv(ServiceRoleBindingKeyEnvName)
+	}
+	bindingValPrefix := ServiceRoleBindingValPrefixDefault
+	if os.Getenv(ServiceRoleBindingValPrefixEnvName) != "" {
+		bindingValPrefix = os.Getenv(ServiceRoleBindingValPrefixEnvName)
+	}
+	return map[string]string{bindingKey: bindingValPrefix + user}
+}
+
 // updateIstioRbac create or update Istio rbac resources in target namespace owned by "profileIns". The goal is to allow service access for profile owner
 func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile) error {
 	istioServiceRole := &istiorbac.ServiceRole{
@@ -273,7 +295,7 @@ func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile)
 		Spec: istiorbac.ServiceRoleBindingSpec{
 			Subjects: []*istiorbac.Subject{
 				{
-					Properties: map[string]string{"request.headers[x-goog-authenticated-user-email]": "accounts.google.com:" + profileIns.Spec.Owner.Name},
+					Properties: getServiceRoleBindingProperties(profileIns.Spec.Owner.Name),
 				},
 			},
 			RoleRef: &istiorbac.RoleRef{
@@ -311,53 +333,6 @@ func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile)
 		}
 	}
 
-	istioGateway := &istionetworking.Gateway{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kubeflow-gateway",
-			Namespace: profileIns.Name,
-		},
-		Spec: istionetworking.GatewaySpec{
-			Servers: []*istionetworking.Server{
-				{
-					Port: &istionetworking.Port{
-						Name:     "http",
-						Number:   80,
-						Protocol: "HTTP",
-					},
-					Hosts: []string{"*"},
-				},
-			},
-			Selector: map[string]string{"istio": "ingressgateway"},
-		},
-	}
-	if err := controllerutil.SetControllerReference(profileIns, istioGateway, r.scheme); err != nil {
-		return err
-	}
-	foundGw := &istionetworking.Gateway{}
-	err = r.Get(context.TODO(), types.NamespacedName{Name: istioGateway.Name,
-		Namespace: istioGateway.Namespace}, foundGw)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			log.Info("Creating Istio Gateway", "namespace", istioGateway.Namespace,
-				"name", istioGateway.Name)
-			err = r.Create(context.TODO(), istioGateway)
-			if err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-	} else {
-		if !reflect.DeepEqual(istioGateway.Spec, foundGw.Spec) {
-			foundGw.Spec = istioGateway.Spec
-			log.Info("Updating Istio Gateway", "namespace", istioGateway.Namespace,
-				"name", istioGateway.Name)
-			err = r.Update(context.TODO(), foundGw)
-			if err != nil {
-				return err
-			}
-		}
-	}
 	return nil
 }
 
@@ -405,8 +380,7 @@ func (r *ReconcileProfile) updateServiceAccount(profileIns *kubeflowv1alpha1.Pro
 			},
 		},
 	}
-	r.updateRoleBinding(profileIns, roleBinding)
-	return nil
+	return r.updateRoleBinding(profileIns, roleBinding)
 }
 
 // updateRoleBinding create or update roleBinding "roleBinding" in target namespace owned by "profileIns"
