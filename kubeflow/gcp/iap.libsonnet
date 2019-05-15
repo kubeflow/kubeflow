@@ -276,6 +276,7 @@
           service: "backend-updater",
         },
       },
+      serviceName: "backend-updater",
       spec: {
         selector: {
           matchLabels: {

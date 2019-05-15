@@ -119,6 +119,7 @@
             service: "webhook-bootstrap",
           },
         },
+        serviceName: "webhook-bootstrap",
         template: {
           metadata: {
             labels: {
