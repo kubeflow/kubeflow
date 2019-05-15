@@ -4,7 +4,7 @@
     <script defer>
         // Establish communication with Central Dashboard
         window.addEventListener('DOMContentLoaded', function (event) {
-            const CD_EvHandler = (window.centraldashboard || {}).CentralDashboardEventHandler;
+            var CD_EvHandler = (window.centraldashboard || {}).CentralDashboardEventHandler;
             if (!CD_EvHandler) return;
             CD_EvHandler.init(function(handler, isIframed) {
                 document.body.classList[isIframed?'add':'remove']('iframe-view');
