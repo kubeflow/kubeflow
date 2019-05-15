@@ -4,6 +4,9 @@ metadata:
   name: config
 spec:
   componentParams:
+    ambassador:
+    - name: ambassadorServiceType
+      value: NodePort
     argo:
     - initRequired: true
       name: injectIstio

@@ -1,6 +1,10 @@
 - op: add
   path: /spec/components/-
   value: 
+    ambassador
+- op: add
+  path: /spec/components/-
+  value: 
     cert-manager
 - op: add
   path: /spec/components/-
@@ -18,10 +22,6 @@
   path: /spec/components/-
   value: 
     basic-auth-ingress
-- op: add
-  path: /spec/components/-
-  value: 
-    spartakus
 - op: add
   path: /spec/packages/-
   value: 

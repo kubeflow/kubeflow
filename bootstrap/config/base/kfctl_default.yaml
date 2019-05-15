@@ -20,7 +20,6 @@ spec:
   - tf-training
   components:
   - metacontroller
-  - ambassador
   - argo
   - centraldashboard
   - jupyter-web-app
@@ -30,7 +29,3 @@ spec:
   - spartakus
   - tensorboard
   - tf-job-operator
-  componentParams:
-    ambassador:
-    - name: ambassadorServiceType
-      value: NodePort
