@@ -242,6 +242,15 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
       else:
         util.run(["git", "checkout", "-b", branch_name], cwd=self._root_dir())
 
+    if self._check_if_pr_exists(commit=last_commit):
+      # Since a PR already exists updating to the specified commit
+      # don't create a new one.
+      # We don't want to just push -f because if the PR already exists
+      # git push -f will retrigger the tests.
+      # To force a recreate of the PR someone could close the existing
+      # PR and a new PR will be created on the next cron run.
+      return
+
     logging.info("Add file %s to repo", prototype_file)
     repo.index.add([prototype_file])
     repo.index.commit("Update the jupyter web app image to {0}".format(image))
@@ -250,12 +259,12 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
 
     self.create_pull_request(commit=last_commit)
 
-  def create_pull_request(self, base="kubeflow:master", commit=None):
-    """Create a pull request.
+  def _check_if_pr_exists(self, base="kubeflow:master", commit=None):
+    """Check if a PR is already open.
 
-    Args:
-      base: The base to use. Defaults to "kubeflow:master". This should be
-        in the form <GitHub OWNER>:<branch>
+    Returns:
+      exists: True if a PR updating the image to the specified commit already
+       exists and false otherwise.
     """
     # TODO(jlewi): Modeled on
     # https://github.com/kubeflow/examples/blob/master/code_search/docker/ks/update_index.sh
@@ -286,8 +295,17 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     if pr_title in prs:
       logging.info("PR %s already exists to update the Jupyter web app image "
                    "to %s", prs[pr_title], commit)
-      return
+      return True
 
+    return False
+
+  def create_pull_request(self, base="kubeflow:master", commit=None):
+    """Create a pull request.
+
+    Args:
+      base: The base to use. Defaults to "kubeflow:master". This should be
+        in the form <GitHub OWNER>:<branch>
+    """
     with tempfile.NamedTemporaryFile(delete=False) as hf:
       hf.write(pr_title.encode())
       message_file = hf.name
