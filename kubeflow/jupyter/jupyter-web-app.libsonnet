@@ -55,6 +55,16 @@
           resources: ["persistentvolumeclaims"],
           verbs: ["create", "delete", "get", "list"],
         },
+        {
+          apiGroups: ["storage.k8s.io"],
+          resources: ["storageclasses"],
+          verbs: ["get", "list"],
+        },
+        {
+          apiGroups: [""],
+          resources: ["secrets"],
+          verbs: ["get", "list"],
+        },
       ]
     },
 
@@ -68,7 +78,7 @@
         {
           kind: "ServiceAccount",
           name: params.name,
-          namespace: params.namespace 
+          namespace: params.namespace
         },
       ],
       roleRef: {
@@ -78,11 +88,43 @@
       },
     },
 
+    // TODO: "default-editor" will be shared by multiple components; update here once other components switched to new auth-model
+    defaultEditorServiceAccount:: {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: "default-editor",
+        namespace: params.namespace,
+      },
+    },
+    
+    defaultEditorRoleBinding:: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "RoleBinding",
+      metadata: {
+        name: "default-editor-role-binding",
+        namespace: params.namespace,
+      },
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
+        name: "edit",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "default-editor",
+          namespace: params.namespace,
+        },
+      ],
+    },
+
     svc:: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
         name: params.name,
+        namespace: params.namespace,
         labels: {
           run: params.name
         },
@@ -114,11 +156,64 @@
       },
     },
 
+    istioVirtualService:: {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: params.name,
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/" + params.prefix + "/",
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/",
+            },
+            route: [
+              {
+                destination: {
+                  host: std.join(".", [
+                    params.name,
+                    params.namespace,
+                    params.clusterDomain,
+                  ]),
+                  port: {
+                    number: 80,
+                  },
+                },
+              },
+            ],
+            headers: {
+              request: {
+                add: {
+                  "x-forwarded-prefix": "/" + params.prefix,
+                },
+              },
+            },
+          },
+        ],
+      },
+    },
+
     depl :: {
       apiVersion: "apps/v1",
       kind: "Deployment",
       metadata: {
         name: params.name,
+        namespace: params.namespace,
         labels: {
           app: params.name,
         },
@@ -141,7 +236,16 @@
             containers: [{
               name: params.name,
               image: params.image,
-              workingDir: "/app/" + params.ui,
+              env: std.prune([
+                {
+                  name: "ROK_SECRET_NAME",
+                  value: params.rokSecretName,
+                },
+                {
+                  name: "UI",
+                  value: params.ui,
+                },
+              ]),
               volumeMounts: [
                 {
                   mountPath: "/etc/config",
@@ -168,13 +272,17 @@
 
     parts:: self,
     all:: [
-      self.svc, 
-      self.depl, 
+      self.svc,
+      self.depl,
       self.jupyterConfig,
       self.serviceAccount,
       self.clusterRoleBinding,
       self.clusterRole,
-      ],
+      self.defaultEditorServiceAccount,
+      self.defaultEditorRoleBinding,
+    ] + if util.toBool(params.injectIstio) then [
+      self.istioVirtualService,
+    ] else [],
 
     list(obj=self.all):: util.list(obj),
   },

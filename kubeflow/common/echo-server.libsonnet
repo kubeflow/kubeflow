@@ -40,6 +40,53 @@
     },
     service:: service,
 
+    local istioVirtualService = {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: params.name,
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/" + params.name,
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/",
+            },
+            route: [
+              {
+                destination: {
+                  host: std.join(".", [
+                    params.name,
+                    params.namespace,
+                    "svc",
+                    params.clusterDomain,
+                  ]),
+                  port: {
+                    number: 80,
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+    istioVirtualService:: istioVirtualService,
+
     local deployment = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
@@ -87,7 +134,9 @@
     all:: [
       self.service,
       self.deployment,
-    ],
+    ] + if util.toBool(params.injectIstio) then [
+      self.istioVirtualService,
+    ] else [],
 
     list(obj=self.all):: util.list(obj),
   },

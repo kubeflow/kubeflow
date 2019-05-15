@@ -8,6 +8,7 @@ local params = {
   servicePort: "9000",
   serviceType: "LoadBalancer",
   defaultTbImage: "tensorflow/tensorflow:1.9.0",
+  s3Enabled: true,
   s3SecretName: "foo",
   s3SecretAccesskeyidKeyName: "bar",
   s3SecretSecretaccesskeyKeyName: "baz",
@@ -15,6 +16,10 @@ local params = {
   s3UseHttps: "true",
   s3VerifySsl: "true",
   s3Endpoint: "null",
+  efsEnabled: true,
+  efsPvcName: "qux",
+  efsVolumeName: "quux",
+  efsMountPath: "/quuz",
 };
 local env = {
   namespace: "test-kf-001",
@@ -107,6 +112,10 @@ std.assertEqual(
                   value: "us-west1-a",
                 },
                 {
+                  name: "S3_REGION",
+                  value: "us-west1-a",
+                },
+                {
                   name: "S3_USE_HTTPS",
                   value: "true",
                 },
@@ -136,6 +145,20 @@ std.assertEqual(
                   cpu: "1",
                   memory: "1Gi",
                 },
+              },
+              volumeMounts: [
+                {
+                  mountPath: "/quuz",
+                  name: "quux",
+                },
+              ],
+            },
+          ],
+          volumes: [
+            {
+              name: "quux",
+              persistentVolumeClaim: {
+                claimName: "qux",
               },
             },
           ],

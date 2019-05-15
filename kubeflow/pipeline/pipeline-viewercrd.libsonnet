@@ -31,12 +31,11 @@
           app: app_label,
         },
         name: viewer_controller_role,
-        namespace: namespace,
       },
       rules: [
         {
           apiGroups: [
-            "",
+            "*",
           ],
           resources: [
             "deployments", "services",

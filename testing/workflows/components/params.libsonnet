@@ -31,6 +31,17 @@
       gkeApiVersion: "v1",
       workflowName: "kfctl",
     },
+    kfctl_go_test: {
+      bucket: "kubeflow-ci_temp",
+      name: "somefakename",
+      namespace: "kubeflow-test-infra",
+      prow_env: "",
+      deleteKubeflow: true,
+      gkeApiVersion: "v1",
+      workflowName: "kfctl-go",
+      useBasicAuth: "true",
+      useIstio: "false",
+    },
     click_deploy_test: {
       bucket: "kubeflow-ci_temp",
       name: "somefakename",
@@ -46,7 +57,7 @@
       namespace: "kubeflow-test-infra",
       prow_env: "",
       gkeApiVersion: "",
-      workflowName: "unittest",      
+      workflowName: "unittest",
     },
     tfserving: {
       commit: "master",

@@ -24,10 +24,10 @@ resources:
     disks:
      - sizeGb: 20
        diskType: pd-standard
-       usage: pipeline-db
+       usage: metadata-store
      - sizeGb: 200
        diskType: pd-standard
-       usage: pipeline-nfs
+       usage: artifact-store
     enable_cloudsql: false
     database:
       name: mlpipeline

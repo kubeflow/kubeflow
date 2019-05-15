@@ -23,6 +23,14 @@
           kind: "Notebook",
         },
       },
+      status: {
+        acceptedNames: {
+          kind: "",
+          plural: "",
+        },
+        conditions: [],
+        storedVersions: [],
+      },
     },
     notebooksCRD:: notebooksCRD,
 
@@ -75,6 +83,12 @@
                 command: [
                   "/manager",
                 ],
+                env: if util.toBool(params.injectGcpCredentials) then [
+                  {
+                    name: "POD_LABELS",
+                    value: "gcp-cred-secret=user-gcp-sa,gcp-cred-secret-filename=user-gcp-sa.json",
+                  },
+                ] else [],
               },
             ],
           },
@@ -121,6 +135,7 @@
           ],
           resources: [
             "services",
+            "pods",
           ],
           verbs: [
             "*",
@@ -132,6 +147,18 @@
           ],
           resources: [
             "notebooks",
+            "notebooks/status",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "networking.istio.io",
+          ],
+          resources: [
+            "virtualservices",
           ],
           verbs: [
             "*",

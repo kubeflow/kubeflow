@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import argparse
 import datetime
 import json
@@ -17,13 +18,15 @@ from kubernetes.client import rest
 from kubernetes.config import kube_config
 from oauth2client.client import GoogleCredentials
 
-from kubeflow.testing import test_util, util  # pylint: disable=no-name-in-module
+from kubeflow.testing import test_util, util  # pylint: disable=no-name-in-module  # noqa: E501
 from testing import vm_util
+
 
 def get_gcp_identity():
   identity = util.run(["gcloud", "config", "get-value", "account"])
   logging.info("Current GCP account: %s", identity)
   return identity
+
 
 def create_k8s_client():
   # We need to load the kube config so that we can have credentials to
@@ -34,6 +37,7 @@ def create_k8s_client():
   api_client = k8s_client.ApiClient()
 
   return api_client
+
 
 def _setup_test(api_client, run_label):
   """Create the namespace for the test.
@@ -47,9 +51,9 @@ def _setup_test(api_client, run_label):
   namespace.api_version = "v1"
   namespace.kind = "Namespace"
   namespace.metadata = k8s_client.V1ObjectMeta(
-    name=run_label, labels={
-      "app": "kubeflow-e2e-test",
-    })
+      name=run_label, labels={
+          "app": "kubeflow-e2e-test",
+      })
 
   try:
     logging.info("Creating namespace %s", namespace.metadata.name)
@@ -62,6 +66,7 @@ def _setup_test(api_client, run_label):
       raise
 
   return namespace
+
 
 def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
   """Create a ksonnet app for Kubeflow"""
@@ -84,61 +89,72 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
                     "limits.")
   # Initialize a ksonnet app.
   app_name = "kubeflow-test-" + uuid.uuid4().hex[0:4]
-  util.run(
-    [
+  util.run([
       "ks",
       "init",
       app_name,
-    ], cwd=dir)
+  ], cwd=dir)
 
   app_dir = os.path.join(dir, app_name)
 
   # Set the default namespace.
   util.run(["ks", "env", "set", "default", "--namespace=" + namespace_name],
-    cwd=app_dir)
+           cwd=app_dir)
 
   kubeflow_registry = "github.com/kubeflow/kubeflow/tree/master/kubeflow"
-  util.run(
-    ["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
+  util.run(["ks", "registry", "add", "kubeflow", kubeflow_registry],
+           cwd=app_dir)
 
   # Install required packages
-  packages = ["kubeflow/common", "kubeflow/gcp", "kubeflow/jupyter", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/tf-training", "kubeflow/pytorch-job", "kubeflow/argo", "kubeflow/katib"]
+  packages = [
+      "kubeflow/common", "kubeflow/gcp", "kubeflow/jupyter",
+      "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/tf-training",
+      "kubeflow/pytorch-job", "kubeflow/argo", "kubeflow/katib"
+  ]
 
-  # Instead of installing packages we edit the app.yaml file directly
-  #for p in packages:
+  # Instead of installing packages we edit the app.yaml file directly for p in
+  # packages:
   # util.run(["ks", "pkg", "install", p], cwd=app_dir)
-  app_file = os.path.join(app_dir,"app.yaml")
+  app_file = os.path.join(app_dir, "app.yaml")
   with open(app_file) as f:
     app_yaml = yaml.load(f)
 
   libraries = {}
   for pkg in packages:
     pkg = pkg.split("/")[1]
-    libraries[pkg] = {'gitVersion':{'commitSha': 'fake', 'refSpec': 'fake'}, 'name': pkg, 'registry': "kubeflow"}
+    libraries[pkg] = {
+        'gitVersion': {
+            'commitSha': 'fake',
+            'refSpec': 'fake'
+        },
+        'name': pkg,
+        'registry': "kubeflow"
+    }
   app_yaml['libraries'] = libraries
 
   with open(app_file, "w") as f:
     yaml.dump(app_yaml, f)
 
-  # Create vendor directory with a symlink to the src
-  # so that we use the code at the desired commit.
+  # Create vendor directory with a symlink to the src so that we use the code
+  # at the desired commit.
   target_dir = os.path.join(app_dir, "vendor", "kubeflow")
 
   REPO_ORG = "kubeflow"
   REPO_NAME = "kubeflow"
   REGISTRY_PATH = "kubeflow"
-  source = os.path.join(dir, "src", REPO_ORG, REPO_NAME,
-                        REGISTRY_PATH)
+  source = os.path.join(dir, "src", REPO_ORG, REPO_NAME, REGISTRY_PATH)
   logging.info("Creating link %s -> %s", target_dir, source)
   os.symlink(source, target_dir)
 
   return app_dir
+
 
 def log_operation_status(operation):
   """A callback to use with wait_for_operation."""
   name = operation.get("name", "")
   status = operation.get("status", "")
   logging.info("Operation %s status %s", name, status)
+
 
 def wait_for_operation(client,
                        project,
@@ -166,8 +182,7 @@ def wait_for_operation(client,
   endtime = datetime.datetime.now() + timeout
   while True:
     try:
-      op = client.operations().get(
-        project=project, operation=op_id).execute()
+      op = client.operations().get(project=project, operation=op_id).execute()
 
       if status_callback:
         status_callback(op)
@@ -180,8 +195,8 @@ def wait_for_operation(client,
       logging.error("Ignoring error %s", e)
     if datetime.datetime.now() > endtime:
       raise TimeoutError(
-        "Timed out waiting for op: {0} to complete.".format(op_id))
+          "Timed out waiting for op: {0} to complete.".format(op_id))
     time.sleep(polling_interval.total_seconds())
 
-  # Linter complains if we don't have a return here even though its unreachable.
+  # Linter complains if we don't have a return here even though its unreachable
   return None

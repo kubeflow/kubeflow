@@ -46,7 +46,7 @@ jupyter labextension install @jupyter-widgets/jupyterlab-manager
 
 # Install common packages from requirements.txt for both python2 and python
 pip --no-cache-dir install -r /tmp/requirements.txt
-source activate py2
+source activate base
 pip --no-cache-dir install -r /tmp/requirements.txt
 
 # Do chown in this layer for significant size savings

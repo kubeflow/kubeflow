@@ -1,0 +1,64 @@
+iron-ajax(auto, url='/api/platform-info', handle-as='json',
+    on-response='_onPlatformInfoResponse')
+app-drawer-layout.flex(narrow='{{narrowMode}}',
+        force-narrow='[[or(inIframe, thinView, notFoundInIframe)]]',
+        thin$='[[thinView]]')
+    app-location(route='{{route}}', query-params='{{queryParams}}')
+    app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
+        tail='{{subRouteData}}')
+    app-drawer#MainDrawer(slot='drawer')
+        figure.logo
+            |!{logo}
+        iron-selector(selected='{{sidebarItemIndex}}')
+            a(href$='[[buildHref("/", queryParams)]]', tabindex='-1')
+                paper-item.menu-item Overview
+            template(is='dom-repeat', items='[[menuLinks]]')
+                iframe-link(href$="[[buildHref(item.link, queryParams)]]",
+                    tabindex='-1')
+                    paper-item.menu-item [[item.text]]
+            aside.divider
+            a(href='https://github.com/kubeflow/kubeflow',
+                tabindex='-1', target="_blank")
+                paper-item.menu-item GitHub
+                    iron-icon.external(icon="launch")
+            a(href='https://www.kubeflow.org/docs/about/kubeflow/',
+                tabindex='-1', target="_blank")
+                paper-item.menu-item Documentation
+                    iron-icon.external(icon="launch")
+        aside.flex
+        footer.footer
+            section.information
+                a.privacy(title='Kubeflow Privacy Policy', target='_blank', href='https://policies.google.com/privacy') Privacy
+                .bullet
+                a.usage(title='Kubeflow Usage Reporting', target='_blank', href='https://www.kubeflow.org/docs/other-guides/usage-reporting/') Usage Reporting
+            section.build build version&nbsp;
+                span(title="Build: [[buildVersion]] | Dashboard: v[[dashVersion]]") [[buildVersion]]
+    app-header-layout(fullbleed)
+        app-header(slot='header', hides, hidden$='[[notFoundInIframe]]')
+            app-toolbar
+                aside#Narrow-Slider(hides, hidden$='[[!narrowMode]]')
+                    paper-icon-button#Menu(icon='menu', drawer-toggle)
+                    figure.Logo
+                        |!{logo}
+                namespace-selector#NamespaceSelector(
+                    query-params='{{queryParams}}', selected="{{namespace}}",
+                    hides, hidden$='[[hideNamespaces]]')
+        main#Content
+            section#ViewTabs(hides, hidden$='[[hideTabs]]')
+                paper-tabs(selected='[[page]]', attr-for-selected='page')
+                        paper-tab(page='dashboard', link)
+                            a.link(tabindex='-1', href$='[[buildHref("/", queryParams)]]') Dashboard
+                        paper-tab(page='activity', link)
+                            a.link(tabindex='-1', href$='[[buildHref("/activity", queryParams)]]') Activity
+            neon-animated-pages(selected='[[page]]', attr-for-selected='page',
+                                entry-animation='fade-in-animation',
+                                exit-animation='fade-out-animation')
+                neon-animatable(page='dashboard')
+                    dashboard-view(platform-info='[[platformInfo]]')
+                neon-animatable(page='activity')
+                    activity-view(namespace='[[queryParams.ns]]')
+                neon-animatable#iframe-page(page='iframe')
+                    iframe#PageFrame.flex(src='[[iframeUrl]]')
+                neon-animatable(page='not_found')
+                    not-found-view(path="[[route.path]]")
+    iron-media-query(query='(max-width: 900px)', query-matches='{{thinView}}')

@@ -281,6 +281,7 @@
           resources: [
             "pods",
             "pods/log",
+            "secrets",
             "services",
           ],
           verbs: [

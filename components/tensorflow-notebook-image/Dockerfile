@@ -19,6 +19,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV NB_USER jovyan
 ENV NB_UID 1000
 ENV HOME /home/$NB_USER
+ENV NB_PREFIX /
 # We prefer to have a global conda install
 # to minimize the amount of content in $HOME
 ENV CONDA_DIR=/opt/conda
@@ -124,7 +125,7 @@ RUN pip install --upgrade pip==19.0.1 && \
     jupyterhub \
     jupyterlab \
     xgboost \
-    git+https://github.com/kubeflow/fairing@f82e75e78874f16ceaee756445100bb7fef96b58 \
+    git+https://github.com/kubeflow/fairing@a9bb9d5cc1c9f1d75efa31198ddbdccfe176b7bf \
     # Kubeflow pipeline SDK
     ${PIPELINE_SDK_PACKAGE} \
     # Cleanup
@@ -147,12 +148,14 @@ WORKDIR $HOME
 RUN rm -fr $(ls -A $HOME)
 
 # Copy over init scripts
-COPY --chown=jovyan:users start-singleuser.sh start-notebook.sh start.sh pvc-check.sh /usr/local/bin/
+COPY --chown=jovyan:users  pvc-check.sh /usr/local/bin/
 RUN chmod a+rx /usr/local/bin/*
 
 RUN docker-credential-gcr configure-docker && chown jovyan:users $HOME/.docker/config.json
 
 # Configure container startup
 EXPOSE 8888
+USER jovyan
 ENTRYPOINT ["tini", "--"]
-CMD ["start-notebook.sh"]
+CMD ["sh","-c", "jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"]
+

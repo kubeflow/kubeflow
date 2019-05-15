@@ -44,8 +44,8 @@ properties:
           type: string
           description: what is the disk used for
           enum:
-          - pipeline-db
-          - pipeline-nfs
+          - metadata-store
+          - artifact-store
 
   cloudsql:
     type: object

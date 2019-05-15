@@ -1,211 +1,180 @@
 {
   all(params, namespace):: [
-    $.parts(params, namespace).backendService,
-    $.parts(params, namespace).backendPVC,
-    $.parts(params, namespace).backendDeployment,
-    $.parts(params, namespace).frontendService,
-    $.parts(params, namespace).frontendDeployment,
-  ] + if params.mongoDbService != "" then [] else [
-    $.parts(params, namespace).dbService,
-    $.parts(params, namespace).dbPVC,
-    $.parts(params, namespace).dbDeployment,
+    $.parts(params, namespace).artifactStoreDeployment,
+    $.parts(params, namespace).artifactStoreService,
+    $.parts(params, namespace).artifactStoreConfig,
+    $.parts(params, namespace).backendProxyDeployment,
+    $.parts(params, namespace).backendProxyService,
+    $.parts(params, namespace).modeldbBackendDeployment,
+    $.parts(params, namespace).modeldbBackendSecret,
+    $.parts(params, namespace).modeldbBackendService,
+    $.parts(params, namespace).webappDeployment,
+    $.parts(params, namespace).webappService,
+  ] + if params.mysqlDbService != 'true' then [] else [
+    $.parts(params, namespace).mysqlBackendDeployment,
+    $.parts(params, namespace).mysqlBackendPV,
+    $.parts(params, namespace).mysqlBackendService,
   ],
 
   parts(params, namespace):: {
-    backendService: {
-      apiVersion: "v1",
-      kind: "Service",
+    artifactStoreConfig: {
+      apiVersion: 'v1',
+      kind: 'ConfigMap',
       metadata: {
-        name: "modeldb-backend",
         namespace: namespace,
+        name: 'modeldb-artifact-store-config',
+      },
+      data: {
+        'config.yaml': if params.artifactConfig != '' then params.artifactConfig else
+          std.join('\n', [
+            '#ArtifactStore Properties',
+            'artifactStore_grpcServer:',
+            '  port: 8086',
+            '',
+            'artifactStoreConfig:',
+            '  initializeBuckets: false',
+            '  storageTypeName: amazonS3 #amazonS3, googleCloudStorage, nfs',
+            '  #nfsRootPath: /path/to/my/nfs/storage/location',
+            '  bucket_names:',
+            '    - artifactstoredemo',
+          ]),
+      },
+      type: 'Opaque',
+    },
+    artifactStoreDeployment: {
+      apiVersion: 'apps/v1',
+      kind: 'Deployment',
+      metadata: {
         labels: {
-          app: "modeldb",
-          component: "backend",
+          app: 'modeldb',
         },
+        namespace: namespace,
+        name: 'modeldb-artifact-store',
       },
       spec: {
-        type: "ClusterIP",
-        ports: [
-          {
-            port: 6543,
-            protocol: "TCP",
-            name: "api",
-          },
-        ],
         selector: {
-          app: "modeldb",
-          component: "backend",
-        },
-      },
-    },  // backendService
-    backendPVC: {
-      apiVersion: "v1",
-      kind: "PersistentVolumeClaim",
-      metadata: {
-        labels: {
-          app: "modeldb",
-          component: "backend",
-        },
-        name: "modeldb-backend-pvc",
-        namespace: namespace,
-      },
-      spec: {
-        accessModes: [
-          "ReadWriteOnce",
-        ],
-        resources: {
-          requests: {
-            storage: params.modeldbBackendPvcSize,
+          matchLabels: {
+            app: 'modeldb',
+            tier: 'artifact-store',
           },
         },
-      },
-    },  // backendPersistentVolumeClaim
-    backendDeployment: {
-      apiVersion: "extensions/v1beta1",
-      kind: "Deployment",
-      metadata: {
-        labels: {
-          app: "modeldb",
-          component: "backend",
+        strategy: {
+          type: 'Recreate',
         },
-        name: "modeldb-backend",
-        namespace: namespace,
-      },
-      spec: {
-        replicas: 1,
         template: {
           metadata: {
             labels: {
-              app: "modeldb",
-              component: "backend",
+              app: 'modeldb',
+              tier: 'artifact-store',
             },
-            name: "modeldb-backend",
           },
           spec: {
             containers: [
               {
+                image: params.artifactStoreImage,
+                imagePullPolicy: 'Always',
+                name: 'modeldb-artifact-store',
                 env: [
                   {
-                    name: "MONGODB_HOST",
-                    value: if params.mongoDbService != "" then params.mongoDbService else "modeldb-db",
+                    name: 'VERTA_ARTIFACT_CONFIG',
+                    value: '/config/config.yaml',
                   },
                 ],
-                args: [
-                  if params.mongoDbService != "" then params.mongoDbService else "modeldb-db",
-                ],
-                image: params.modeldbImage,
-                name: "modeldb-backend",
                 ports: [
                   {
-                    containerPort: 6543,
-                    name: "api",
+                    containerPort: 8086,
                   },
                 ],
                 volumeMounts: [
                   {
-                    mountPath: "/db",
-                    name: "modeldb-persistent-storage",
+                    mountPath: '/config',
+                    name: 'modeldb-artifact-store-config',
+                    readOnly: true,
                   },
                 ],
               },
             ],
             volumes: [
               {
-                name: "modeldb-persistent-storage",
-                persistentVolumeClaim: {
-                  claimName: "modeldb-backend-pvc",
+                name: 'modeldb-artifact-store-config',
+                configMap: {
+                  name: 'modeldb-artifact-store-config',
                 },
               },
             ],
           },
         },
       },
-    },  // backendDeployment
-
-    frontendService: {
-      apiVersion: "v1",
-      kind: "Service",
+    },
+    artifactStoreService: {
+      apiVersion: 'v1',
+      kind: 'Service',
       metadata: {
         labels: {
-          app: "modeldb",
-          component: "frontend",
+          app: 'modeldb',
         },
-        name: "modeldb-frontend",
         namespace: namespace,
-        annotations: {
-          "getambassador.io/config":
-            std.join("\n", [
-              "---",
-              "apiVersion: ambassador/v0",
-              "kind:  Mapping",
-              "name: modeldb-mapping",
-              "prefix: /modeldb/",
-              "rewrite: /modeldb/",
-              "method: GET",
-              "service: " + "modeldb-frontend." + namespace + ":3000",
-            ]),
-        },  //annotations
-
+        name: 'modeldb-artifact-store',
       },
       spec: {
         ports: [
           {
-            name: "api",
-            port: 3000,
-            protocol: "TCP",
+            port: 8086,
+            targetPort: 8086,
           },
         ],
         selector: {
-          app: "modeldb",
-          component: "frontend",
+          app: 'modeldb',
+          tier: 'artifact-store',
         },
-        type: "ClusterIP",
+        type: 'ClusterIP',
       },
-    },  // frontendService
-    frontendDeployment: {
-      apiVersion: "extensions/v1beta1",
-      kind: "Deployment",
+    },
+    backendProxyDeployment: {
+      apiVersion: 'apps/v1',
+      kind: 'Deployment',
       metadata: {
         labels: {
-          app: "modeldb",
-          component: "frontend",
+          app: 'modeldb',
         },
-        name: "modeldb-frontend",
         namespace: namespace,
+        name: 'modeldb-backend-proxy',
       },
       spec: {
-        replicas: 1,
+        selector: {
+          matchLabels: {
+            app: 'modeldb',
+            tier: 'backend-proxy',
+          },
+        },
+        strategy: {
+          type: 'Recreate',
+        },
         template: {
           metadata: {
             labels: {
-              app: "modeldb",
-              component: "frontend",
+              app: 'modeldb',
+              tier: 'backend-proxy',
             },
-            name: "modeldb-frontend",
           },
           spec: {
             containers: [
               {
+                image: params.modeldbBackendProxyImage,
+                imagePullPolicy: 'Always',
+                name: 'modeldb-backend-proxy',
+                command: ['/go/bin/proxy'],
                 args: [
-                  "modeldb-backend",
+                  '-project_endpoint',
+                  'modeldb-backend:8085',
+                  '-experiment_endpoint',
+                  'modeldb-backend:8085',
+                  '-experiment_run_endpoint',
+                  'modeldb-backend:8085',
                 ],
-                env: [
-                  {
-                    name: "ROOT_PATH",
-                    value: "/katib",
-                  },
-                  {
-                    name: "BACKEND_HOST",
-                    value: "modeldb-backend",
-                  },
-                ],
-                image: params.modeldbFrontendImage,
-                imagePullPolicy: "IfNotPresent",
-                name: "modeldb-frontend",
                 ports: [
                   {
-                    containerPort: 3000,
-                    name: "webapi",
+                    containerPort: 8080,
                   },
                 ],
               },
@@ -213,107 +182,345 @@
           },
         },
       },
-    },  // frontendDeployment
-
-    dbService: {
-      apiVersion: "v1",
-      kind: "Service",
+    },
+    backendProxyService: {
+      apiVersion: 'v1',
+      kind: 'Service',
       metadata: {
         labels: {
-          app: "modeldb",
-          component: "db",
+          app: 'modeldb',
         },
-        name: "modeldb-db",
         namespace: namespace,
+        name: 'modeldb-backend-proxy',
       },
       spec: {
         ports: [
           {
-            name: "dbapi",
-            port: 27017,
-            protocol: "TCP",
+            port: 8080,
+            targetPort: 8080,
           },
         ],
         selector: {
-          app: "modeldb",
-          component: "db",
+          app: 'modeldb',
+          tier: 'backend-proxy',
         },
-        type: "ClusterIP",
+        type: params.modeldbBackendService,
       },
-    },  // dbService
-    dbPVC: {
-      apiVersion: "v1",
-      kind: "PersistentVolumeClaim",
+    },
+    modeldbBackendDeployment: {
+      apiVersion: 'apps/v1',
+      kind: 'Deployment',
       metadata: {
         labels: {
-          app: "modeldb",
-          component: "db",
+          app: 'modeldb',
         },
-        name: "modeldb-db-pvc",
         namespace: namespace,
+        name: 'modeldb-backend',
       },
       spec: {
-        accessModes: [
-          "ReadWriteOnce",
-        ],
-        resources: {
-          requests: {
-            storage: params.modeldbMongoPvcSize,
+        selector: {
+          matchLabels: {
+            app: 'modeldb',
+            tier: 'backend',
           },
         },
-      },
-    },  // dbPersistentVolumeClaim
-    dbDeployment: {
-      apiVersion: "extensions/v1beta1",
-      kind: "Deployment",
-      metadata: {
-        labels: {
-          app: "modeldb",
-          component: "db",
+        strategy: {
+          type: 'Recreate',
         },
-        name: "modeldb-db",
-        namespace: namespace,
-      },
-      spec: {
-        replicas: 1,
         template: {
           metadata: {
             labels: {
-              app: "modeldb",
-              component: "db",
+              app: 'modeldb',
+              tier: 'backend',
             },
-            name: "modeldb-db",
+          },
+          spec: {
+            containers: [
+              {
+                env: [
+                  {
+                    name: 'VERTA_MODELDB_CONFIG',
+                    value: '/config-backend/config.yaml',
+                  },
+                ],
+                image: params.modeldbBackendImage,
+                imagePullPolicy: 'Always',
+                name: 'modeldb-backend',
+                ports: [
+                  {
+                    containerPort: 8085,
+                  },
+                ],
+                volumeMounts: [
+                  {
+                    mountPath: '/config-backend',
+                    name: 'modeldb-backend-secret-volume',
+                    readOnly: true,
+                  },
+                ],
+              },
+            ],
+            volumes: [
+              {
+                name: 'modeldb-backend-secret-volume',
+                secret: {
+                  secretName: 'modeldb-backend-config-secret',
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+    modeldbBackendSecret: {
+      apiVersion: 'v1',
+      kind: 'Secret',
+      metadata: {
+        namespace: namespace,
+        name: 'modeldb-backend-config-secret',
+      },
+      stringData: {
+        'config.yaml': if params.config != '' then params.config else
+          std.join('\n', [
+            '#ModelDB Properties',
+            'grpcServer:',
+            '  port: 8085',
+            '',
+            '#Entity name list',
+            'entities:',
+            '  projectEntity: Project',
+            '  experimentEntity: Experiment',
+            '  experimentRunEntity: ExperimentRun',
+            '  artifactStoreMappingEntity: ArtifactStoreMapping',
+            '  jobEntity: Job',
+            '  collaboratorEntity: Collaborator',
+            '',
+            '# Database settings (type mysql, mongodb, couchbasedb etc..)',
+            'database:',
+            '  DBType: rdbms',
+            '  RdbConfiguration:',
+            '    RdbDatabaseName: modeldb',
+            '    RdbDriver: "com.mysql.cj.jdbc.Driver"',
+            '    RdbDialect: "org.hibernate.dialect.MySQL5Dialect"',
+            '    RdbUrl: "jdbc:mysql://modeldb-mysql-backend:3306"',
+            '    RdbUsername: root',
+            '    RdbPassword: root',
+            '',
+            '#ArtifactStore Properties',
+            'artifactStore_grpcServer:',
+            '  host: artifact-store-backend',
+            '  port: 8086',
+            '',
+            '#AuthService Properties',
+            'authService:',
+            '  host: #uacservice # Docker container name OR docker IP',
+            '  port: #50051',
+          ]),
+      },
+      type: 'Opaque',
+    },
+    modeldbBackendService: {
+      apiVersion: 'v1',
+      kind: 'Service',
+      metadata: {
+        labels: {
+          app: 'modeldb',
+        },
+        namespace: namespace,
+        name: 'modeldb-backend',
+      },
+      spec: {
+        ports: [
+          {
+            port: 8085,
+          },
+        ],
+        selector: {
+          app: 'modeldb',
+          tier: 'backend',
+        },
+        type: params.modeldbBackendService,
+      },
+    },
+    mysqlBackendDeployment: {
+      apiVersion: 'apps/v1',
+      kind: 'Deployment',
+      metadata: {
+        labels: {
+          app: 'modeldb',
+        },
+        namespace: namespace,
+        name: 'modeldb-mysql-backend',
+      },
+      spec: {
+        selector: {
+          matchLabels: {
+            app: 'modeldb',
+            tier: 'mysql',
+          },
+        },
+        strategy: {
+          type: 'Recreate',
+        },
+        template: {
+          metadata: {
+            labels: {
+              app: 'modeldb',
+              tier: 'mysql',
+            },
           },
           spec: {
             containers: [
               {
                 image: params.modeldbDatabaseImage,
-                name: "modeldb-db",
+                imagePullPolicy: 'Always',
+                name: 'modeldb-mysql-backend',
+                args: [
+                  '--ignore-db-dir=lost+found',
+                ],
+                env: [
+                  {
+                    name: 'MYSQL_ROOT_PASSWORD',
+                    value: 'root',
+                  },
+                ],
                 ports: [
                   {
-                    containerPort: 27017,
-                    name: "dbapi",
+                    containerPort: 3306,
                   },
                 ],
                 volumeMounts: [
                   {
-                    mountPath: "/data/db",
-                    name: "mongodb-persistent-storage",
+                    mountPath: '/var/lib/mysql',
+                    name: 'modeldb-mysql-persistent-storage',
                   },
                 ],
               },
             ],
             volumes: [
               {
-                name: "mongodb-persistent-storage",
+                name: 'modeldb-mysql-persistent-storage',
                 persistentVolumeClaim: {
-                  claimName: "modeldb-db-pvc",
+                  claimName: 'modeldb-mysql-pv-claim',
                 },
               },
             ],
           },
         },
       },
-    },  // dbDeployment
-  },  // parts
+    },
+    mysqlBackendPV: {
+      apiVersion: 'v1',
+      kind: 'PersistentVolumeClaim',
+      metadata: {
+        labels: {
+          app: 'modeldb',
+        },
+        namespace: namespace,
+        name: 'modeldb-mysql-pv-claim',
+      },
+      spec: {
+        accessModes: [
+          'ReadWriteOnce',
+        ],
+        resources: {
+          requests: {
+            storage: params.modeldbMysqlPvcSize,
+          },
+        },
+      },
+    },
+    mysqlBackendService: {
+      apiVersion: 'v1',
+      kind: 'Service',
+      metadata: {
+        labels: {
+          app: 'modeldb',
+        },
+        namespace: namespace,
+        name: 'modeldb-mysql-backend',
+      },
+      spec: {
+        ports: [
+          {
+            port: 3306,
+            targetPort: 3306,
+          },
+        ],
+        selector: {
+          app: 'modeldb',
+          tier: 'mysql',
+        },
+        type: 'ClusterIP',
+      },
+    },
+    webappDeployment: {
+      apiVersion: 'apps/v1',
+      kind: 'Deployment',
+      metadata: {
+        labels: {
+          app: 'modeldb',
+        },
+        namespace: namespace,
+        name: 'modeldb-webapp',
+      },
+      spec: {
+        selector: {
+          matchLabels: {
+            app: 'modeldb',
+            tier: 'webapp',
+          },
+        },
+        strategy: {
+          type: 'Recreate',
+        },
+        template: {
+          metadata: {
+            labels: {
+              app: 'modeldb',
+              tier: 'webapp',
+            },
+          },
+          spec: {
+            containers: [
+              {
+                image: params.modeldbWebappImage,
+                imagePullPolicy: 'Always',
+                name: 'modeldb-webapp',
+                ports: [
+                  {
+                    containerPort: 3000,
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    },
+    webappService: {
+      apiVersion: 'v1',
+      kind: 'Service',
+      metadata: {
+        labels: {
+          app: 'modeldb',
+        },
+        namespace: namespace,
+        name: 'modeldb-webapp',
+      },
+      spec: {
+        ports: [
+          {
+            port: 80,
+            targetPort: 3000,
+          },
+        ],
+        selector: {
+          app: 'modeldb',
+          tier: 'webapp',
+        },
+        type: params.modeldbWebappService,
+      },
+    },
+  },
 }

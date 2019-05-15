@@ -1,4 +1,6 @@
-"""Configuration file for JupyterHub.
+# -*- coding: utf-8 -*-
+"""
+Configuration file for JupyterHub.
 
 Kubeflow uses this file as the configuration file for JupyterHub. It contains
 all glue code necessary to integrate JupyterHub with the remaining Kubeflow
@@ -52,25 +54,27 @@ c.KubeSpawner.singleuser_working_dir = '/home/jovyan'
 # This allows local host path mounts to be read/writable
 env_uid = os.environ.get('NOTEBOOK_UID')
 if env_uid:
-    c.KubeSpawner.singleuser_uid = int(env_uid)
+  c.KubeSpawner.singleuser_uid = int(env_uid)
 env_gid = os.environ.get('NOTEBOOK_GID')
 if env_gid:
-    c.KubeSpawner.singleuser_fs_gid = int(env_gid)
+  c.KubeSpawner.singleuser_fs_gid = int(env_gid)
 access_local_fs = os.environ.get('ACCESS_LOCAL_FS')
 if access_local_fs == 'true':
-    def modify_pod_hook(spawner, pod):
-        pod.spec.containers[0].lifecycle = {
-            'postStart': {
-                'exec': {
-                    'command': [
-                        'ln', '-s', '/mnt/local-notebooks',
-                        '/home/jovyan/local-notebooks'
-                    ]
-                }
+
+  def modify_pod_hook(spawner, pod):
+    pod.spec.containers[0].lifecycle = {
+        'postStart': {
+            'exec': {
+                'command': [
+                    'ln', '-s', '/mnt/local-notebooks',
+                    '/home/jovyan/local-notebooks'
+                ]
             }
         }
-        return pod
-    c.KubeSpawner.modify_pod_hook = modify_pod_hook
+    }
+    return pod
+
+  c.KubeSpawner.modify_pod_hook = modify_pod_hook
 
 ###################################################
 # Persistent volume options
@@ -88,27 +92,27 @@ volume_mounts = []
 
 gcp_secret_name = os.environ.get('GCP_SECRET_NAME')
 if gcp_secret_name:
-    volumes.append({
+  volumes.append({
       'name': gcp_secret_name,
       'secret': {
-        'secretName': gcp_secret_name,
+          'secretName': gcp_secret_name,
       }
-    })
-    volume_mounts.append({
-        'name': gcp_secret_name,
-        'mountPath': SERVICE_ACCOUNT_SECRET_MOUNT
-    })
+  })
+  volume_mounts.append({
+      'name': gcp_secret_name,
+      'mountPath': SERVICE_ACCOUNT_SECRET_MOUNT
+  })
 
 c.KubeSpawner.volumes = volumes
 c.KubeSpawner.volume_mounts = volume_mounts
 
 storage_class = None
 if os.environ.get('STORAGE_CLASS') != 'null':
-    storage_class = os.environ.get('STORAGE_CLASS')
+  storage_class = os.environ.get('STORAGE_CLASS')
 
 rok_secret_name = ''
 if os.environ.get('ROK_SECRET_NAME') != 'null':
-    rok_secret_name = os.environ.get('ROK_SECRET_NAME')
+  rok_secret_name = os.environ.get('ROK_SECRET_NAME')
 
 # Set both service_account and singleuser_service_account because
 # singleuser_service_account has been deprecated in a future release
@@ -116,13 +120,13 @@ c.KubeSpawner.service_account = 'jupyter-notebook'
 c.KubeSpawner.singleuser_service_account = 'jupyter-notebook'
 # Authenticator
 if os.environ.get('KF_AUTHENTICATOR') == 'iap':
-    c.JupyterHub.authenticator_class = RemoteUserAuthenticator
-    c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'
+  c.JupyterHub.authenticator_class = RemoteUserAuthenticator
+  c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'
 else:
-    c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
+  c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
 
 if os.environ.get('DEFAULT_JUPYTERLAB').lower() == 'true':
-    c.KubeSpawner.default_url = '/lab'
+  c.KubeSpawner.default_url = '/lab'
 
 # Set extra spawner configuration variables
 c.KubeSpawner.extra_spawner_config = {

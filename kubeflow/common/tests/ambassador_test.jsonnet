@@ -159,71 +159,72 @@ local testCases = [
   },
   {
     actual: instance.parts.ambassadorDeployment,
-    expected: {
-      apiVersion: "extensions/v1beta1",
-      kind: "Deployment",
-      metadata: {
-        name: "ambassador",
-        namespace: "kubeflow",
-      },
-      spec: {
-        replicas: 3,
-        template: {
-          metadata: {
-            labels: {
-              service: "ambassador",
+    expected:
+      {
+        apiVersion: "apps/v1beta1",
+        kind: "Deployment",
+        metadata: {
+          name: "ambassador",
+          namespace: "kubeflow",
+        },
+        spec: {
+          replicas: 3,
+          template: {
+            metadata: {
+              labels: {
+                service: "ambassador",
+              },
+              namespace: "kubeflow",
             },
-            namespace: "kubeflow",
-          },
-          spec: {
-            containers: [
-              {
-                env: [
-                  {
-                    name: "AMBASSADOR_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
+            spec: {
+              containers: [
+                {
+                  env: [
+                    {
+                      name: "AMBASSADOR_NAMESPACE",
+                      valueFrom: {
+                        fieldRef: {
+                          fieldPath: "metadata.namespace",
+                        },
                       },
                     },
+                  ],
+                  image: "quay.io/datawire/ambassador:0.37.0",
+                  livenessProbe: {
+                    httpGet: {
+                      path: "/ambassador/v0/check_alive",
+                      port: 8877,
+                    },
+                    initialDelaySeconds: 30,
+                    periodSeconds: 30,
                   },
-                ],
-                image: "quay.io/datawire/ambassador:0.37.0",
-                livenessProbe: {
-                  httpGet: {
-                    path: "/ambassador/v0/check_alive",
-                    port: 8877,
+                  name: "ambassador",
+                  readinessProbe: {
+                    httpGet: {
+                      path: "/ambassador/v0/check_ready",
+                      port: 8877,
+                    },
+                    initialDelaySeconds: 30,
+                    periodSeconds: 30,
                   },
-                  initialDelaySeconds: 30,
-                  periodSeconds: 30,
+                  resources: {
+                    limits: {
+                      cpu: 1,
+                      memory: "400Mi",
+                    },
+                    requests: {
+                      cpu: "200m",
+                      memory: "100Mi",
+                    },
+                  },
                 },
-                name: "ambassador",
-                readinessProbe: {
-                  httpGet: {
-                    path: "/ambassador/v0/check_ready",
-                    port: 8877,
-                  },
-                  initialDelaySeconds: 30,
-                  periodSeconds: 30,
-                },
-                resources: {
-                  limits: {
-                    cpu: 1,
-                    memory: "400Mi",
-                  },
-                  requests: {
-                    cpu: "200m",
-                    memory: "100Mi",
-                  },
-                },
-              },
-            ],
-            restartPolicy: "Always",
-            serviceAccountName: "ambassador",
+              ],
+              restartPolicy: "Always",
+              serviceAccountName: "ambassador",
+            },
           },
         },
       },
-    },
   },
 ];
 

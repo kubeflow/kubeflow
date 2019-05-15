@@ -2,9 +2,10 @@ package main
 
 import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/dockerfordesktop"
+	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/dockerfordesktop"
 )
 
-func GetKfApp(options map[string]interface{}) kftypes.KfApp {
-	return dockerfordesktop.GetKfApp(options)
+func GetKfApp(client *cltypes.KfDef) kftypes.KfApp {
+	return dockerfordesktop.GetKfApp(client)
 }

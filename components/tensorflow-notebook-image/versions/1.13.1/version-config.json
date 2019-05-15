@@ -1,0 +1,8 @@
+{
+  "BASE_IMAGE": "ubuntu:18.04@sha256:de774a3145f7ca4f0bd144c7d4ffb2931e06634f11529653b23eba85aef8e378",
+  "TF_PACKAGE":"https://files.pythonhosted.org/packages/77/63/a9fa76de8dffe7455304c4ed635be4aa9c0bacef6e0633d87d5f54530c5c/tensorflow-1.13.1-cp36-cp36m-manylinux1_x86_64.whl",
+  "TF_PACKAGE_PY_27": "https://files.pythonhosted.org/packages/d2/ea/ab2c8c0e81bd051cc1180b104c75a865ab0fc66c89be992c4b20bbf6d624/tensorflow-1.13.1-cp27-cp27mu-manylinux1_x86_64.whl",
+  "TFMA_VERSION": "0.13.0",
+  "TFDV_VERSION": "0.13.1"
+}
+

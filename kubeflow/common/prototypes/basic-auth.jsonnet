@@ -4,8 +4,10 @@
 // @shortDescription Http basic auth.
 // @param name string Name for the component
 // @optionalParam authSecretName string kubeflow-login Contains username and passwordhash for UI/API auth.
-// @optionalParam image string gcr.io/kubeflow-images-public/gatekeeper:v20190211-v0.4.0-rc.1-119-g5098995b-e3b0c4 Auth service image to use.
-// @optionalParam imageui string gcr.io/kubeflow-images-public/kflogin-ui:v20190123-v0.4.0-rc.1-73-g38ad5f77 UI image to use.
+// @optionalParam image string gcr.io/kubeflow-images-public/gatekeeper:v0.5.0 Auth service image to use.
+// @optionalParam imageui string gcr.io/kubeflow-images-public/kflogin-ui:v0.5.0 UI image to use.
+// @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
+// @optionalParam clusterDomain string cluster.local DNS config to cluster domain.
 
 local basicauth = import "kubeflow/common/basic-auth.libsonnet";
 local instance = basicauth.new(env, params);

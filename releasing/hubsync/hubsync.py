@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # Copyright 2015 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,17 +16,13 @@
 
 # [START app]
 
-#import modules
+# import modules
 
-import os
-import subprocess
-import logging
-import yaml
 import json
-import re
-import argparse
+import subprocess
+import yaml
 
-#declaring some variables
+# declaring some variables
 images = []
 timeout = '7200s'
 filename = 'cloudbuild.yaml'
@@ -32,58 +30,80 @@ builder = 'gcr.io/cloud-builders/docker'
 kfRepo = 'gcr.io/kubeflow-images-public/'
 myRepo = 'gcr.io/<my_repo>'
 
-#Get Auth
+# Get Auth
 with open('keys.yaml', 'r') as keyfile:
-    kcfg = yaml.load(keyfile)
+  kcfg = yaml.load(keyfile)
 
 login = kcfg['username']
-pswd= kcfg['password']
+pswd = kcfg['password']
 
-#build a json file with all files.
-repos = subprocess.run(["gcloud","--project=kubeflow-images-public","container","images","list","--format=json"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+# build a json file with all files.
+repos = subprocess.run([
+    "gcloud", "--project=kubeflow-images-public", "container", "images", "list",
+    "--format=json"
+],
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.STDOUT)
 my_json = json.loads(repos.stdout.decode('utf8').strip().replace("'", '"'))
 for data in my_json:
-    for name, image in data.items():
-        #get Tags and Repos
-        raw_images = subprocess.run(["gcloud","container","images","list","--repository="+image+"","--format=json"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        imgData = raw_images.stdout.decode("utf-8")
-        if "[]" not in imgData:
-            imgJson = json.loads(raw_images.stdout.decode("utf-8").strip().replace("'", '"'))
-            for stuff in imgJson:
-                for a,b in stuff.items():
-                    images.append(b)
-            images.append(image)
-
+  for name, image in data.items():
+    # get Tags and Repos
+    raw_images = subprocess.run([
+        "gcloud", "container", "images", "list", "--repository=" + image + "",
+        "--format=json"
+    ],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT)
+    imgData = raw_images.stdout.decode("utf-8")
+    if "[]" not in imgData:
+      imgJson = json.loads(
+          raw_images.stdout.decode("utf-8").strip().replace("'", '"'))
+      for stuff in imgJson:
+        for a, b in stuff.items():
+          images.append(b)
+      images.append(image)
 
 for item in images:
-    getTags = subprocess.run(["gcloud","--project=kubeflow-images-public","container","images","list-tags",item,"--format=json","--limit=1"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    preTags = json.loads(getTags.stdout.decode('utf8').replace("'", '"'))
-    for datum in preTags:
-        t = datum['digest']
-        s = item[30:]
-        myTag = item+"@"+t
-        theyaml = {
+  getTags = subprocess.run([
+      "gcloud", "--project=kubeflow-images-public", "container", "images",
+      "list-tags", item, "--format=json", "--limit=1"
+  ],
+                           stdout=subprocess.PIPE,
+                           stderr=subprocess.STDOUT)
+  preTags = json.loads(getTags.stdout.decode('utf8').replace("'", '"'))
+  for datum in preTags:
+    t = datum['digest']
+    s = item[30:]
+    myTag = item + "@" + t
+    theyaml = {
+        'timeout':
+        timeout,
+        'steps': [
+            {
+                'name': builder,
+                'args': ['login', '-u', login, '-p', pswd],
                 'timeout': timeout,
-                'steps' : [
-                    {'name': builder, 'args':
-                        [ 'login', '-u',login,'-p',pswd],
-                    'timeout': timeout,
-                    },
-                    {'name': builder, 'args':
-                        [ 'pull', myTag ],
-                    'timeout': timeout,
-                    },
-                    {'name': builder, 'args':
-                        [ 'tag', myTag, myRepo+s ],
-                    'timeout': timeout,
-                    },
-                    {'name': builder, 'args':
-                        [ 'push', myRepo+s ],
-                    'timeout': timeout,
-                    },
-                ]
-            }
-        with open(filename, 'a') as outfile:
-            yaml.dump(theyaml, outfile, default_flow_style=False)
+            },
+            {
+                'name': builder,
+                'args': ['pull', myTag],
+                'timeout': timeout,
+            },
+            {
+                'name': builder,
+                'args': ['tag', myTag, myRepo + s],
+                'timeout': timeout,
+            },
+            {
+                'name': builder,
+                'args': ['push', myRepo + s],
+                'timeout': timeout,
+            },
+        ]
+    }
+    with open(filename, 'a') as outfile:
+      yaml.dump(theyaml, outfile, default_flow_style=False)
 
-        subprocess.run(["gcloud","builds","submit","--config",filename], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    subprocess.run(["gcloud", "builds", "submit", "--config", filename],
+                   stdout=subprocess.PIPE,
+                   stderr=subprocess.STDOUT)

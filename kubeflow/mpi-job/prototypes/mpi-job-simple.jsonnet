@@ -9,48 +9,8 @@
 // @optionalParam args string null Comma separated list of arguments to pass to the job
 
 local k = import "k.libsonnet";
-
-local namespace = env.namespace;  // namespace is inherited from the environment
-local name = params.name;
-local gpus = params.gpus;
-local image = params.image;
-local command = params.command;
-local args = params.args;
-
-local containerCommand =
-  if command != "null" then
-    {
-      command: std.split(command, ","),
-    }
-  else {};
-local containerArgs =
-  if args != "null" then
-    {
-      args: std.split(args, ","),
-    }
-  else {};
-
-local mpiJobSimple = {
-  apiVersion: "kubeflow.org/v1alpha1",
-  kind: "MPIJob",
-  metadata: {
-    name: name,
-    namespace: namespace,
-  },
-  spec: {
-    gpus: gpus,
-    template: {
-      spec: {
-        containers: [
-          {
-            name: name,
-            image: image,
-          } + containerCommand + containerArgs,
-        ],
-      },
-    },
-  },
-};
+local mpiJob = import "kubeflow/mpi-job/mpi-job.libsonnet";
+local mpiJobSimple = mpiJob.parts(env, params).mpiJobSimple;
 
 std.prune(k.core.v1.list.new([
   mpiJobSimple,

@@ -65,7 +65,7 @@ The above will expose JupyterHub on http://localhost:8000. The pod name can be o
 
 ## Configuration
 
-Configuration for JupyterHub is shipped separately and contained within the configmap defined by the [core componenent](https://github.com/kubeflow/kubeflow/tree/master/kubeflow). It is a Python file that is consumed by JupyterHub on starting up. The supplied configuration has reasonable defaults for the requisite fields and **no authenticator** configured by default. Furthermore, we provide a number of parameters that can be used to configure
+Configuration for JupyterHub is shipped separately and contained within the configmap defined by the [core component](https://github.com/kubeflow/kubeflow/tree/master/kubeflow). It is a Python file that is consumed by JupyterHub on starting up. The supplied configuration has reasonable defaults for the requisite fields and **no authenticator** configured by default. Furthermore, we provide a number of parameters that can be used to configure
 the core component. To see a list of ksonnet parameters run
 
 ```

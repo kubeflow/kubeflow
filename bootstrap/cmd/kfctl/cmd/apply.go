@@ -15,7 +15,9 @@
 package cmd
 
 import (
+	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -28,31 +30,26 @@ var applyCmd = &cobra.Command{
 	Use:   "apply [all(=default)|k8s|platform]",
 	Short: "Deploy a generated kubeflow application.",
 	Long:  `Deploy a generated kubeflow application.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
-		log.Info("deploying kubeflow application")
-		if applyCfg.GetBool(string(kftypes.VERBOSE)) == true {
-			log.SetLevel(log.InfoLevel)
-		} else {
+		if applyCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
 		resource, resourceErr := processResourceArg(args)
 		if resourceErr != nil {
-			log.Errorf("invalid resource: %v", resourceErr)
-			return
+			return fmt.Errorf("invalid resource: %v", resourceErr)
 		}
-		options := map[string]interface{}{}
-		kfApp, kfAppErr := loadKfApp(options)
+		kfApp, kfAppErr := coordinator.LoadKfApp(map[string]interface{}{})
 		if kfAppErr != nil {
-			log.Errorf("couldn't load KfApp: %v", kfAppErr)
-			return
+			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}
-		applyErr := kfApp.Apply(resource, options)
+		applyErr := kfApp.Apply(resource)
 		if applyErr != nil {
-			log.Errorf("couldn't apply KfApp: %v", applyErr)
-			return
+			return fmt.Errorf("couldn't apply KfApp: %v", applyErr)
 		}
+		return nil
 	},
+	ValidArgs: []string{"all", "platform", "k8s"},
 }
 
 func init() {

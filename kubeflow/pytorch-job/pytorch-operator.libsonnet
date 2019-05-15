@@ -1,26 +1,17 @@
 {
   all(params, env):: [
-                       $.parts(params, env).configMap(params.pytorchDefaultImage),
-                       $.parts(params, env).serviceAccount,
-                       $.parts(params, env).operatorRole(params.deploymentScope, params.deploymentNamespace),
-                       $.parts(params, env).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
-                     ] +
-
-                     if params.pytorchJobVersion == "v1beta1" then
-                       [
-                         $.parts(params, env).crdV1beta1,
-                         $.parts(params, env).pytorchJobDeployV1beta1(params.pytorchJobImage, params.deploymentScope, params.deploymentNamespace),
-                       ]
-                     else
-                       [
-                         $.parts(params, env).crdV1alpha2,
-                         $.parts(params, env).pytorchJobDeployV1alpha2(params.pytorchJobImage, params.deploymentScope, params.deploymentNamespace),
-                       ],
+    $.parts(params, env).configMap(params.pytorchDefaultImage),
+    $.parts(params, env).serviceAccount,
+    $.parts(params, env).operatorRole(params.deploymentScope, params.deploymentNamespace),
+    $.parts(params, env).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
+    $.parts(params, env).crd,
+    $.parts(params, env).pytorchJobDeploy(params.pytorchJobImage, params.deploymentScope, params.deploymentNamespace),
+  ],
 
   parts(params, env):: {
     local namespace = env.namespace,
 
-    crdV1alpha2: {
+    crd: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -29,12 +20,39 @@
       spec: {
         group: "kubeflow.org",
         scope: "Namespaced",
-        version: "v1alpha2",
+        version: "v1beta2",
         names: {
           kind: "PyTorchJob",
           singular: "pytorchjob",
           plural: "pytorchjobs",
         },
+        subresources: {
+          status: {},
+        },
+        additionalPrinterColumns: [
+          {
+            JSONPath: ".status.conditions[-1:].type",
+            name: "State",
+            type: "string",
+          },
+          {
+            JSONPath: ".metadata.creationTimestamp",
+            name: "Age",
+            type: "date",
+          },
+        ],
+        versions: [
+          {
+            name: "v1beta2",
+            served: true,
+            storage: true,
+          },
+          {
+            name: "v1beta1",
+            served: true,
+            storage: false,
+          },
+        ],
         validation: {
           openAPIV3Schema: {
             properties: {
@@ -69,56 +87,7 @@
       },
     },
 
-    crdV1beta1: {
-      apiVersion: "apiextensions.k8s.io/v1beta1",
-      kind: "CustomResourceDefinition",
-      metadata: {
-        name: "pytorchjobs.kubeflow.org",
-      },
-      spec: {
-        group: "kubeflow.org",
-        version: "v1beta1",
-        scope: "Namespaced",
-        names: {
-          kind: "PyTorchJob",
-          singular: "pytorchjob",
-          plural: "pytorchjobs",
-        },
-        validation: {
-          openAPIV3Schema: {
-            properties: {
-              spec: {
-                properties: {
-                  pytorchReplicaSpecs: {
-                    properties: {
-                      Worker: {
-                        properties: {
-                          replicas: {
-                            type: "integer",
-                            minimum: 1,
-                          },
-                        },
-                      },
-                      Master: {
-                        properties: {
-                          replicas: {
-                            type: "integer",
-                            minimum: 1,
-                            maximum: 1,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-
-    pytorchJobDeployV1alpha2(image, deploymentScope, deploymentNamespace): {
+    pytorchJobDeploy(image, deploymentScope, deploymentNamespace): {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -137,7 +106,7 @@
             containers: [
               {
                 command: std.prune([
-                  "/pytorch-operator.v2",
+                  "/pytorch-operator.v1beta2",
                   "--alsologtostderr",
                   "-v=1",
                   if deploymentScope == "namespace" then ("--namespace=" + deploymentNamespace),
@@ -190,81 +159,7 @@
           },
         },
       },
-    },  // pytorchJobDeployV1alpha2
-
-    pytorchJobDeployV1beta1(image, deploymentScope, deploymentNamespace): {
-      apiVersion: "extensions/v1beta1",
-      kind: "Deployment",
-      metadata: {
-        name: "pytorch-operator",
-        namespace: namespace,
-      },
-      spec: {
-        replicas: 1,
-        template: {
-          metadata: {
-            labels: {
-              name: "pytorch-operator",
-            },
-          },
-          spec: {
-            containers: [
-              {
-                command: std.prune([
-                  "/pytorch-operator.v1beta1",
-                  "--alsologtostderr",
-                  "-v=1",
-                  if deploymentScope == "namespace" then ("--namespace=" + deploymentNamespace),
-                ]),
-                env: std.prune([
-                  {
-                    name: "MY_POD_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                  {
-                    name: "MY_POD_NAME",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.name",
-                      },
-                    },
-                  },
-                  if deploymentScope == "namespace" then {
-                    name: "KUBEFLOW_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                ]),
-                image: image,
-                name: "pytorch-operator",
-                volumeMounts: [
-                  {
-                    mountPath: "/etc/config",
-                    name: "config-volume",
-                  },
-                ],
-              },
-            ],
-            serviceAccountName: "pytorch-operator",
-            volumes: [
-              {
-                configMap: {
-                  name: "pytorch-operator-config",
-                },
-                name: "config-volume",
-              },
-            ],
-          },
-        },
-      },
-    },  // pytorchJobDeployV1beta1
+    },  // pytorchJobDeploy
 
     // Default value for
     defaultControllerConfig(pytorchDefaultImage):: if pytorchDefaultImage != "" && pytorchDefaultImage != "null" then
@@ -316,6 +211,7 @@
           ],
           resources: [
             "pytorchjobs",
+            "pytorchjobs/status",
           ],
           verbs: [
             "*",

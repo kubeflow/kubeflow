@@ -17,11 +17,23 @@ endif
 TAG := $(shell date +v%Y%m%d)-$(GIT_VERSION)
 all: build
 
+clean:
+	rm -rf coverage/ dist/ node_modules/ .nyc_output/
+
+# Builds the package locally
+build-local:
+	npm install
+
+# Runs unit tests with coverage
+test: build-local
+	npm run coverage
+
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
-build:
+build: test
 	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) . \
 	  --build-arg kubeflowversion=$(shell git describe --abbrev=0 --tags) \
+	  --build-arg commit=$(shell git rev-parse HEAD) \
       --label=git-verions=$(GIT_VERSION)
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):latest

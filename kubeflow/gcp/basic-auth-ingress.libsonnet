@@ -4,6 +4,7 @@
   new(_env, _params):: {
     local params = _params + _env {
       hostname: if std.objectHas(_params, "hostname") then _params.hostname else "null",
+      ingressName: "envoy-ingress"
     },
     local namespace = params.namespace,
 
@@ -216,6 +217,10 @@
                   {
                     name: "HEALTHCHECK_PATH",
                     value: "/whoami",
+                  },
+                  {
+                    name: "INGRESS_NAME",
+                    value: params.ingressName,
                   },
                 ],
                 volumeMounts: [

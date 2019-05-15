@@ -4,7 +4,7 @@
 // @shortDescription application Component
 // @param name string Name
 // @optionalParam type string kubeflow Type of application.
-// @optionalParam version string 0.4 Version of kubeflow
+// @optionalParam version string 0.5 Version of kubeflow
 // @optionalParam components array ["ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline"] names of components or empty for all components
 // @optionalParam extendedInfo string false Whether to emit informational arrays in the status section
 

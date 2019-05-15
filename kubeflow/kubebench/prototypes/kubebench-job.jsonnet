@@ -4,9 +4,13 @@
 // @shortDescription A benchmark job on Kubeflow
 // @param name string Name to give to each of the components
 // @optionalParam serviceAccount string null The service account used to run the job
-// @optionalParam controllerImage string gcr.io/kubeflow-images-public/kubebench/kubebench-controller:v0.4.0 Configurator image
+// @optionalParam controllerImage string gcr.io/kubeflow-images-public/kubebench/kubebench-controller:v0.4.0-13-g262c593 Configurator image
 // @optionalParam githubTokenSecret string null Github token secret
 // @optionalParam githubTokenSecretKey string null Key of Github token secret
+// @optionalParam awsCredentialsSecret string null AWS credentials secret
+// @optionalParam awsCredentialsSecretAccessKeyId string null AWS credentials secret access key id
+// @optionalParam awsCredentialsSecretAccessKey string null AWS credentials secret access key
+// @optionalParam awsRegion string null Key of AWS Region
 // @optionalParam gcpCredentialsSecret string null GCP credentials secret
 // @optionalParam gcpCredentialsSecretKey string null Key of GCP credentials secret
 // @optionalParam mainJobKsPrototype string kubebench-example-tfcnn The Ksonnet prototype of the job being benchmarked
@@ -16,7 +20,7 @@
 // @optionalParam experimentConfigPvc string kubebench-config-pvc Configuration PVC
 // @optionalParam experimentDataPvc string null Data PVC
 // @optionalParam experimentRecordPvc string kubebench-exp-pvc Experiment PVC
-// @optionalParam postJobImage string gcr.io/kubeflow-images-public/kubebench/kubebench-example-tf-cnn-post-processor:3c75b50 Image of post processor
+// @optionalParam postJobImage string gcr.io/kubeflow-images-public/kubebench/kubebench-example-tf-cnn-post-processor:v0.4.0-13-g262c593 Image of post processor
 // @optionalParam postJobArgs string null Arguments of post processor
 // @optionalParam reporterType string csv Type of reporter
 // @optionalParam csvReporterInput string result.json The input of CSV reporter
@@ -33,6 +37,10 @@ local controllerImage = params.controllerImage;
 local configPvc = params.experimentConfigPvc;
 local dataPvc = params.experimentDataPvc;
 local experimentPvc = params.experimentRecordPvc;
+local awsCredentialsSecret = params.awsCredentialsSecret;
+local awsCredentialsSecretAccessKeyId = params.awsCredentialsSecretAccessKeyId;
+local awsCredentialsSecretAccessKey = params.awsCredentialsSecretAccessKey;
+local awsRegion = params.awsRegion;
 local gcpCredentialsSecret = params.gcpCredentialsSecret;
 local gcpCredentialsSecretKey = params.gcpCredentialsSecretKey;
 local githubTokenSecret = params.githubTokenSecret;
@@ -70,6 +78,10 @@ local jobParts = [
                               experimentPvc,
                               githubTokenSecret,
                               githubTokenSecretKey,
+                              awsCredentialsSecret,
+                              awsCredentialsSecretAccessKeyId,
+                              awsCredentialsSecretAccessKey,
+                              awsRegion,
                               gcpCredentialsSecret,
                               gcpCredentialsSecretKey,
                               mainJobKsPrototype,

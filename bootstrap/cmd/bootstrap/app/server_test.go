@@ -15,13 +15,28 @@
 package app
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 
 	"k8s.io/api/storage/v1"
 	k8sVersion "k8s.io/apimachinery/pkg/version"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+
+// Pformat returns a pretty format output of any value.
+func Pformat(value interface{}) (string, error) {
+	if s, ok := value.(string); ok {
+		return s, nil
+	}
+	valueJson, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	return string(valueJson), nil
+}
 
 func TestModifyGcloudCommand(t *testing.T) {
 	type TestCase struct {
@@ -63,7 +78,9 @@ func TestModifyGcloudCommand(t *testing.T) {
 			t.Errorf("ModifyGcloudCommand returned error; %v", err)
 		}
 		if !reflect.DeepEqual(c.Expected, c.Input) {
-			t.Errorf("ModifyGcloudCommand not correct; got %v; want %v", c.Input, c.Expected)
+			pInput, _ := Pformat(c.Input)
+			pExpected, _ := Pformat(c.Expected)
+			t.Errorf("ModifyGcloudCommand not correct; got %v; want %v", pInput, pExpected)
 		}
 	}
 }
@@ -109,8 +126,10 @@ func TestHasDefaultStorageClass(t *testing.T) {
 			Input: v1.StorageClassList{
 				Items: []v1.StorageClass{
 					{
-						Parameters: map[string]string{
-							"storageclass.beta.kubernetes.io/is-default-class": "true",
+						ObjectMeta: metav1.ObjectMeta {
+							Annotations: map[string]string{
+								"storageclass.beta.kubernetes.io/is-default-class": "true",
+							},
 						},
 					},
 				},
@@ -121,19 +140,22 @@ func TestHasDefaultStorageClass(t *testing.T) {
 			Input: v1.StorageClassList{
 				Items: []v1.StorageClass{
 					{
-						Parameters: map[string]string{
-							"storageclass.beta.kubernetes.io/is-default-class": "false",
+						ObjectMeta: metav1.ObjectMeta {
+							Annotations: map[string]string{
+								"storageclass.beta.kubernetes.io/is-default-class": "false",
+							},
 						},
 					},
 				},
 			},
-			Expected: true,
+			Expected: false,
 		},
 	}
 	for _, c := range cases {
 		result := hasDefaultStorage(&c.Input)
 		if result != c.Expected {
-			t.Errorf("hasDefaultStorage(%v) not correct; got %v; want %v", c.Input, result, c.Expected)
+			pInput, _ := Pformat(c.Input)
+			t.Errorf("hasDefaultStorage(%v) not correct; got %+v; want %+v", pInput, result, c.Expected)
 		}
 	}
 }

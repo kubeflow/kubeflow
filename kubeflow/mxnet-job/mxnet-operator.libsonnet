@@ -1,7 +1,6 @@
 {
   all(params, env):: [
-    $.parts(params, env).mxnetJobDeploy(params.mxnetJobImage),
-    $.parts(params, env).configMap(params.mxnetDefaultImage),
+    $.parts(params, env).mxnetJobDeploy(params.image),
     $.parts(params, env).serviceAccount,
     $.parts(params, env).operatorRole,
     $.parts(params, env).operatorRoleBinding,
@@ -18,7 +17,7 @@
       },
       spec: {
         group: "kubeflow.org",
-        version: "v1alpha1",
+        version: "v1beta1",
         names: {
           kind: "MXJob",
           singular: "mxjob",
@@ -46,7 +45,7 @@
             containers: [
               {
                 command: [
-                  "/opt/mlkube/mxnet-operator",
+                  "/opt/kubeflow/mxnet-operator.v1beta1",
                   "--alsologtostderr",
                   "-v=1",
                 ],
@@ -71,47 +70,13 @@
                 image: image,
                 name: "mxnet-operator",
                 imagePullPolicy: "Always",
-                volumeMounts: [
-                  {
-                    mountPath: "/etc/config",
-                    name: "config-volume",
-                  },
-                ],
               },
             ],
             serviceAccountName: "mxnet-operator",
-            volumes: [
-              {
-                configMap: {
-                  name: "mxnet-operator-config",
-                },
-                name: "config-volume",
-              },
-            ],
           },
         },
       },
     },  // mxnetJobDeploy
-
-    // Default value for
-    defaultControllerConfig(mxnetDefaultImage):: if mxnetDefaultImage != "" && mxnetDefaultImage != "null" then
-      {
-        mxnetImage: mxnetDefaultImage,
-      }
-    else
-      {},
-
-    configMap(mxnetDefaultImage): {
-      apiVersion: "v1",
-      data: {
-        "controller_config_file.yaml": std.manifestJson($.parts(params, env).defaultControllerConfig(mxnetDefaultImage)),
-      },
-      kind: "ConfigMap",
-      metadata: {
-        name: "mxnet-operator-config",
-        namespace: namespace,
-      },
-    },
 
     serviceAccount: {
       apiVersion: "v1",

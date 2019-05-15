@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
+#
 # Copyright 2018 The Kubeflow Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,20 +14,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Run jsonnet tests
 
-This test goes through all jsonnet files specified by the
-test_files_dirs directory and runs jsonnet eval <filename> and reports
-the results
+This test goes through all jsonnet files specified by the test_files_dirs
+directory and runs jsonnet eval <filename> and reports the results
 
 Example invocation
 
-python -m testing.test_jsonnet --test_files_dirs=/kubeflow/application/tests,/kubeflow/common/tests,/kubeflow/jupyter/tests,/kubeflow/iap/tests,/kubeflow/gcp/tests,/kubeflow/tensorboard/tests,/kubeflow/examples/tests,/kubeflow/metacontroller/tests,/kubeflow/profiles/tests,/kubeflow/tf-training/tests --artifacts_dir=/tmp/artifacts
+python -m testing.test_jsonnet --test_files_dirs=/kubeflow/application/tests,/kubeflow/common/tests,/kubeflow/jupyter/tests,/kubeflow/iap/tests,/kubeflow/gcp/tests,/kubeflow/tensorboard/tests,/kubeflow/examples/tests,/kubeflow/metacontroller/tests,/kubeflow/profiles/tests,/kubeflow/tf-training/tests,/kubeflow/kubebench/tests --artifacts_dir=/tmp/artifacts  # noqa: E501
 
-TODO(jlewi): Should we use pytest to create a parameterized test with
-respect to directory?
-See https://docs.pytest.org/en/latest/example/parametrize.html
+TODO(jlewi): Should we use pytest to create a parameterized test with respect
+to directory? See https://docs.pytest.org/en/latest/example/parametrize.html
 """
 
 from __future__ import print_function
@@ -38,6 +36,7 @@ import os
 import argparse
 
 from kubeflow.testing import test_helper, util
+
 
 # We should test all files which end in .jsonnet or .libsonnet
 # except ksonnet prototype definitions - they require additional
@@ -51,11 +50,13 @@ def should_test(file_path):
     raise ValueError('Invalid file : {}'.format(file_path))
   return parts[-2] != 'prototypes'
 
+
 def is_excluded(file_name, exclude_dirs):
   for exclude_dir in exclude_dirs:
     if file_name.startswith(exclude_dir):
       return True
   return False
+
 
 def run(test_files_dirs, jsonnet_path_args, exclude_dirs, test_case):
   # Go through each jsonnet file in test_files_dirs and run jsonnet eval
@@ -71,14 +72,14 @@ def run(test_files_dirs, jsonnet_path_args, exclude_dirs, test_case):
           logging.info("Testing: %s", test_file)
           try:
             output = util.run(
-              ['jsonnet', 'eval', full_path] + jsonnet_path_args,
-              cwd=os.path.dirname(full_path))
+                ['jsonnet', 'eval', full_path] + jsonnet_path_args,
+                cwd=os.path.dirname(full_path))
             try:
               parsed = json.loads(output)
             except AttributeError:
               logging.error(
-                "Output of jsonnet eval could not be parsed as json; "
-                "output: %s", output)
+                  "Output of jsonnet eval could not be parsed as json; "
+                  "output: %s", output)
               parsed = {}
 
             if not hasattr(parsed, "get"):
@@ -89,40 +90,44 @@ def run(test_files_dirs, jsonnet_path_args, exclude_dirs, test_case):
               # will actually return an error in the case the test didn't
               # pass.
               logging.warn(
-                "jsonnet test is using old style and not emitting an object. "
-                "Result was: %s. Output will be treated as a boolean", output)
+                  "jsonnet test is using old style and not emitting an object. "
+                  "Result was: %s. Output will be treated as a boolean", output)
               test_passed = parsed
             else:
               test_passed = parsed.get("pass", False)
 
             if not test_passed:
               test_case.add_failure_info('{} test failed'.format(test_file))
-              logging.error('%s test failed. See Subprocess output for details.',
-                            test_file)
+              logging.error(
+                  '%s test failed. See Subprocess output for details.',
+                  test_file)
           except Exception as e:
             test_case.add_failure_info('{} test failed'.format(test_file))
-            logging.error('%s test failed with exception %s. '
-                          'See Subprocess output for details.', e, test_file)
+            logging.error(
+                '%s test failed with exception %s. '
+                'See Subprocess output for details.', e, test_file)
 
 
 def parse_args():
   parser = argparse.ArgumentParser()
   parser.add_argument(
-    "--test_files_dirs",
-    default="",
-    type=str,
-    help="Comma separated directories where test jsonnet test files are stored")
+      "--test_files_dirs",
+      default="",
+      type=str,
+      help="Comma separated directories where test jsonnet test files are "
+      "stored")
   parser.add_argument(
-    "--jsonnet_path_dirs",
-    default="",
-    type=str,
-    help="Comma separated directories used by jsonnet to find additional libraries")
+      "--jsonnet_path_dirs",
+      default="",
+      type=str,
+      help="Comma separated directories used by jsonnet to find additional "
+      "libraries")
 
   parser.add_argument(
-    "--exclude_dirs",
-    default="",
-    type=str,
-    help="Comma separated directories which should be excluded from the test")
+      "--exclude_dirs",
+      default="",
+      type=str,
+      help="Comma separated directories which should be excluded from the test")
 
   args, _ = parser.parse_known_args()
   return args
@@ -150,8 +155,7 @@ def test_jsonnet(test_case):  # pylint: disable=redefined-outer-name
 
 
 if __name__ == "__main__":
-  test_case = test_helper.TestCase(
-    name='test_jsonnet', test_func=test_jsonnet)
+  test_case = test_helper.TestCase(name='test_jsonnet', test_func=test_jsonnet)
   test_suite = test_helper.init(
-    name='jsonnet_test_suite', test_cases=[test_case])
+      name='jsonnet_test_suite', test_cases=[test_case])
   test_suite.run()

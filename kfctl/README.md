@@ -63,7 +63,7 @@ The KsService Interface as is cannot be leveraged by kfctl since it includes spe
 The interface is implemented by [ksServer](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L80) which also binds additional methods like [appGenerate](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L566)
 that are relevant to kfctl but cannot be easily separated. It turns out the primary flow
 of interest is createAppHandler. This calls an [anonymous function](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L1038) that ends up making all the ksonnet calls required by kfctl.
-The other entrypoints are either not relevent to kfctl or implement part of what is done in
+The other entrypoints are either not relevant to kfctl or implement part of what is done in
 this anonymous function.
 
 ### Analysis

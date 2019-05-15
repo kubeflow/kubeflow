@@ -11,26 +11,30 @@ spawnerFormDefaults:
     # The URL of a Jupyter Lab, already snapshotted in Rok
     value: ''
   image:
-    value: gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-cpu:v0.4.0
+    value: gcr.io/kubeflow-images-public/tensorflow-1.13.1-notebook-cpu:v0.5.0
     options:
-      - gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-cpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-gpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-cpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-gpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-cpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-gpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-cpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-gpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-gpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-cpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-gpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-gpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.11.0-notebook-cpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.11.0-notebook-gpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-cpu:v0.4.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-gpu:v0.4.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.11.0-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.11.0-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.13.1-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.13.1-notebook-gpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-2.0.0a-notebook-cpu:v0.5.0
+      - gcr.io/kubeflow-images-public/tensorflow-2.0.0a-notebook-gpu:v0.5.0
     # By default, custom container Images are allowed
     # Uncomment the following line to only enable standard container Images
     #readOnly: true

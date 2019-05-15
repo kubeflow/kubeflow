@@ -46,7 +46,7 @@ Users __stan__ and __jackie__ are subjects within the shared namespace. A subjec
 
 ![iam users](./docs/iamusers.png "IAM users")
 
-Per user, the kubeflow admin creates a RoleBinding for that user in the shared namespace. The RoleBinding's roleRef is a constained Role that only allows the user to create and get Profile CRs. The subject is - as noted above - a ServiceAccount or User.
+Per user, the kubeflow admin creates a RoleBinding for that user in the shared namespace. The RoleBinding's roleRef is a constrained Role that only allows the user to create and get Profile CRs. The subject is - as noted above - a ServiceAccount or User.
 
 ![rolebindings](./docs/rolebindings.png "rolebindings")
 

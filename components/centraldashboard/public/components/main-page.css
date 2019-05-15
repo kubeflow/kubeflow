@@ -1,0 +1,265 @@
+*, :host, :host * {
+    box-sizing: border-box
+}
+
+:host {
+    @apply --layout-vertical;
+    --accent-color: #007dfc;
+    --primary-background-color: #0a3b71;
+    --sidebar-default-color: #ffffff4f;
+    --border-color: #f4f4f6;
+    --iframe-link: {
+        text-decoration: none;
+        color: inherit;
+        outline: none;
+    }
+}
+
+.flex {
+    flex: 1
+}
+
+#MainDrawer {
+    color: white;
+    --app-drawer-content-container: {
+        background: var(--primary-background-color) !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+}
+
+app-drawer-layout[narrow] #MainDrawer {
+    --app-drawer-content-container: {
+        box-shadow: 0 0 6px -1px #000;
+    }
+}
+
+app-drawer-layout[thin] #MainDrawer {
+    background: var(--primary-background-color);
+    --app-drawer-content-container: {
+        background: transparent !important;
+    }
+}
+
+#MainDrawer .logo {
+    margin-left: 1em;
+}
+
+#MainDrawer a:hover {
+    color: inherit
+}
+
+#MainDrawer iframe-link:hover, #MainDrawer iron-selector>a:hover {
+    text-decoration: none;
+}
+
+#MainDrawer .menu-item {
+    cursor: pointer;
+    margin: .5em 0;
+    transition: background .25s;
+    font-family: Google Sans;
+    color: var(--sidebar-default-color);
+    --paper-item-icon-width: 36px;
+}
+
+#MainDrawer .divider {
+    width: 90%;
+    margin: 1em auto;
+    border-bottom: 2px solid var(--sidebar-default-color)
+}
+
+#MainDrawer .menu-item:hover {
+    background: #ffffff1b
+}
+
+#MainDrawer .iron-selected>.menu-item {
+    color: white;
+    font-weight: 100
+}
+
+#MainDrawer .iron-selected>.menu-item::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    background: white;
+}
+
+#MainDrawer .footer {
+    padding: 1.25rem;
+    font-size: .9em;
+    color: var(--sidebar-default-color);
+    line-height: 1.5em
+}
+
+#MainDrawer .footer>.build {
+    font-size: .9em;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.64)
+}
+
+app-toolbar {
+    @apply --layout-horizontal;
+    @apply --layout-center;
+    background: white;
+    transition: background .25s;
+}
+
+app-toolbar>header {
+    margin-top: auto;
+}
+
+#Narrow-Slider {
+    @apply --layout-horizontal;
+    @apply --layout-center;
+}
+
+#Narrow-Slider[hidden] {
+    display: none;
+}
+
+#Narrow-Slider>.Logo {
+    margin: 0;
+    color: var(--logo-color, var(--primary-background-color));
+}
+
+#Narrow-Slider>.Logo>svg {
+    height: 24px;
+    margin-top: 4px;
+}
+
+#Narrow-Slider>.Logo>svg * {
+    fill: currentColor;
+}
+
+#NamespaceSelector {
+    flex-basis: 33%;
+}
+
+#NamespaceSelector>paper-dropdown-menu {
+    color: var(--accent-color);
+    --paper-input-container-focus-color: var(--accent-color);
+}
+
+#ViewTabs {
+    @apply --layout-horizontal;
+    @apply --layout-center-justified;
+    border-bottom: 1px solid rgba(0, 0, 0, .12);
+}
+
+paper-tabs {
+    --paper-tabs-selection-bar-color: var(--accent-color);
+    --paper-tab-ink: var(--accent-color);
+    --paper-tabs-selection-bar: {
+        border-radius: 50px 50px 0 0;
+        border-width: 3px;
+    }
+}
+
+paper-tab {
+    padding: 0 2em;
+}
+
+paper-tab.iron-selected {
+    color: var(--accent-color)
+}
+
+paper-tab[link] a {
+    /* These mixins (from iron-flex-layout) center the link text. */
+    @apply --layout-horizontal;
+    @apply --layout-center-center;
+    color: var(--paper-tabs-selection-bar);
+    text-decoration: none;
+}
+
+paper-tab[link] a:hover {
+    text-decoration: none;
+}
+
+app-header {
+    box-shadow: 0 2px 6px 1px rgba(232, 234, 237, 0.5), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+}
+
+app-header-layout {
+    @apply --layout-vertical
+}
+
+#Content {
+    @apply --layout-vertical;
+    background: #f1f3f4;
+    height: 100%;
+}
+
+neon-animated-pages {
+    height: 100%;
+}
+
+neon-animatable {
+    @apply --layout-vertical;
+    background: #f1f3f4;
+    height: 100%;
+}
+
+#Menu {
+    --paper-icon-button: {
+        width: 44px;
+        height: 44px;
+        color: var(--primary-background-color);
+    }
+}
+
+#PageFrame {
+    border: 0;
+    display: inline-block;
+    height: 100%;
+    width: 100%;
+}
+
+#MainDrawer .menu-item iron-icon.external {
+    width: .75em;
+    transform: translateY(-25%);
+    margin-left: .25em;
+}
+
+#MainDrawer .footer .bullet {
+    margin: 0 .5em;
+    display: inline-block;
+}
+
+#MainDrawer .footer .bullet:before {
+    content: ' ';
+    display: inline-block;
+    height: 0;
+    width: 0;
+    padding: 2px;
+    border-radius: 50%;
+    background: currentColor;
+    transform: translateY(-50%);
+}
+
+[hides] {
+    transition: opacity .25s
+}
+
+[hidden] {
+    opacity: 0;
+    pointer-events: none
+}
+
+[hidden]:not([hides]) {
+    display: none
+}
+
+a[href] {
+    text-decoration: none;
+    color: inherit;
+    outline: none;
+}
+
+a[href]:hover, iframe-link:hover {
+    color: var(--paper-blue-700);
+    text-decoration: underline;
+}

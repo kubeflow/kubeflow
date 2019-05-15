@@ -212,6 +212,7 @@ local dagTemplates = [
         "-m",
         "testing.test_deploy_app",
         "--namespace=" + name,
+        "--deployment=" + params.workflowName,
         "--artifacts_dir=" + artifactsDir,
         "--iap_wait_min=15",
         "--workflow_name=" + params.workflowName,

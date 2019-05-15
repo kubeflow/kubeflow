@@ -15,7 +15,9 @@
 package cmd
 
 import (
+	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -28,31 +30,30 @@ var deleteCmd = &cobra.Command{
 	Use:   "delete [all(=default)|k8s|platform]",
 	Short: "Delete a kubeflow application.",
 	Long:  `Delete a kubeflow application.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
-		log.Info("deleting kubeflow application")
-		if deleteCfg.GetBool(string(kftypes.VERBOSE)) == true {
-			log.SetLevel(log.InfoLevel)
-		} else {
+		if deleteCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
 		resource, resourceErr := processResourceArg(args)
 		if resourceErr != nil {
-			log.Errorf("invalid resource: %v", resourceErr)
-			return
+			return fmt.Errorf("invalid resource: %v", resourceErr)
 		}
-		options := map[string]interface{}{}
-		kfApp, kfAppErr := loadKfApp(options)
+		deleteStorage := deleteCfg.GetBool(string(kftypes.DELETE_STORAGE))
+		options := map[string]interface{}{
+			string(kftypes.DELETE_STORAGE): deleteStorage,
+		}
+		kfApp, kfAppErr := coordinator.LoadKfApp(options)
 		if kfAppErr != nil {
-			log.Errorf("couldn't load KfApp: %v", kfAppErr)
-			return
+			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}
-		deleteErr := kfApp.Delete(resource, options)
+		deleteErr := kfApp.Delete(resource)
 		if deleteErr != nil {
-			log.Errorf("couldn't delete KfApp: %v", deleteErr)
-			return
+			return fmt.Errorf("couldn't delete KfApp: %v", deleteErr)
 		}
+		return nil
 	},
+	ValidArgs: []string{"all", "platform", "k8s"},
 }
 
 func init() {
@@ -67,6 +68,14 @@ func init() {
 	bindErr := deleteCfg.BindPFlag(string(kftypes.VERBOSE), deleteCmd.Flags().Lookup(string(kftypes.VERBOSE)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERBOSE), bindErr)
+		return
+	}
+
+	deleteCmd.Flags().Bool(string(kftypes.DELETE_STORAGE), false,
+		"Set if you want to delete app's storage cluster used for mlpipeline.")
+	bindErr = deleteCfg.BindPFlag(string(kftypes.DELETE_STORAGE), deleteCmd.Flags().Lookup(string(kftypes.DELETE_STORAGE)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.DELETE_STORAGE), bindErr)
 		return
 	}
 }

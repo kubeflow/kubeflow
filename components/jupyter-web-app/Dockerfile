@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 RUN apt-get update -y && \
     apt-get install -y apt-utils  build-essential curl \
@@ -10,10 +10,10 @@ COPY ./requirements.txt /app/requirements.txt
 
 RUN pip3 install -r /app/requirements.txt
 
-COPY default /app/default
-COPY rok /app/rok
+COPY ./kubeflow_jupyter /app/kubeflow_jupyter
+COPY ./main.py /app/main.py
 
-WORKDIR /app/default
+WORKDIR /app/
 
 ENTRYPOINT ["python3"]
-CMD ["run.py"]
+CMD ["main.py"]

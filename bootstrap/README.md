@@ -1,3 +1,22 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Kubeflow Bootstrap](#kubeflow-bootstrap)
+  - [Usage](#usage)
+    - [quick start](#quick-start)
+    - [Interactive-use container](#interactive-use-container)
+  - [Explanation](#explanation)
+  - [Background](#background)
+    - [ksonnet is a barrier](#ksonnet-is-a-barrier)
+    - [No mechanism for auto-configure](#no-mechanism-for-auto-configure)
+    - [Non K8s dependencies](#non-k8s-dependencies)
+    - [No ordering to deployments](#no-ordering-to-deployments)
+  - [Bootstrapper Dev Guide](#bootstrapper-dev-guide)
+  - [References](#references)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Kubeflow Bootstrap
 
 Bootstrap is a tool to manage ksonnet application configured to take advantage
@@ -119,14 +138,6 @@ Non Goals
 
   1. wrap or replace ks/kubectl
 
-## Bootstrapper Dev Guide
-
-Bootstrapper create your ksonnet application by creating component set following config file ([config example](config/gcp_prototype.yaml)).
-In other word, bootstrapper provide user an easy way to use ksonnet api within k8s cluster by editing config file.
-
-Currently we only support using local registries within bootstrapper image.
-Edit [image config](./image_registries.yaml) to control which registries to include in bootstrapper image, then user can build custom image to [bootstrap](./bootstrapper.yaml#L55).
-
 ## Background
 
 Here are some of the current difficulties with deploying Kubeflow today.
@@ -183,6 +194,16 @@ Potential solutions
 
   - e.g. if a pod depends on a volume or ConfigMap that pod won't be scheduled
     until the config map exists
+
+## Bootstrapper Dev Guide
+
+Bootstrapper create your ksonnet application by creating component set following config file ([config example](config/gcp_prototype.yaml)).
+In other word, bootstrapper provide user an easy way to use ksonnet api within k8s cluster by editing config file.
+
+Currently we only support using local registries within bootstrapper image.
+Edit [image config](./image_registries.yaml) to control which registries to include in bootstrapper image, then user can build custom image to [bootstrap](./bootstrapper.yaml#L55).
+
+See more at [dev guide](./developer_guide.md).
 
 ## References
 

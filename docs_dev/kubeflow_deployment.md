@@ -129,7 +129,7 @@ Here are some **guidelines (not requirements)** for creating the above scripts a
   	* Declarative configs help this by providing a starting point for users
   	  looking to customize the deployment further
 
-* Scripts should tend toward simplicity and readibility
+* Scripts should tend toward simplicity and readability
 
   * Scripts should primarily be sugar that prevent users from having to
     copy and paste a bunch of commands.

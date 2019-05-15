@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
+#
 # Copyright 2017 The Kubeflow Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,23 +14,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""A launcher suitable for invoking tf_cnn_benchmarks using TfJob.
-
-All the launcher does is turn TF_CONFIG environment variable
-into extra arguments to append to the command line.
 """
-import logging
+A launcher suitable for invoking tf_cnn_benchmarks using TfJob.
+
+All the launcher does is turn TF_CONFIG environment variable into extra
+arguments to append to the command line.
+"""
 import json
+import logging
 import os
 import subprocess
 import sys
 import time
 
+
 def run_and_stream(cmd):
   logging.info("Running %s", " ".join(cmd))
-  process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
+  process = subprocess.Popen(
+      cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
   while process.poll() is None:
     process.stdout.flush()
@@ -51,15 +53,17 @@ def run_and_stream(cmd):
 
   if process.returncode != 0:
     raise ValueError("cmd: {0} exited with code {1}".format(
-      " ".join(cmd), process.returncode))
+        " ".join(cmd), process.returncode))
+
 
 if __name__ == "__main__":
   logging.getLogger().setLevel(logging.INFO)
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
+  logging.basicConfig(
+      level=logging.INFO,
+      format=('%(levelname)s|%(asctime)s'
+              '|%(pathname)s|%(lineno)d| %(message)s'),
+      datefmt='%Y-%m-%dT%H:%M:%S',
+  )
   logging.info("Launcher started.")
   tf_config = os.environ.get('TF_CONFIG', '{}')
   tf_config_json = json.loads(tf_config)
@@ -83,8 +87,7 @@ if __name__ == "__main__":
 
   run_and_stream(command)
   logging.info("Finished: %s", " ".join(command))
-  # We don't want to terminate because TfJob will
-  # just restart the job.
+  # We don't want to terminate because TfJob will just restart the job.
   while True:
     logging.info("Command ran successfully sleep for ever.")
     time.sleep(600)

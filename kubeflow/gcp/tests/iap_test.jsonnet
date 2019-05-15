@@ -7,7 +7,8 @@ local testCases = [
       { namespace: "namespace" },
       {
         envoyPort: 8080,
-        useIstio: "false",
+        injectIstio: "false",
+        espSampleAppImage: "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
       }
     ).service,
     expected: {
@@ -19,7 +20,7 @@ local testCases = [
           service: "envoy",
         },
         annotations: {
-          "beta.cloud.google.com/backend-config": '{"ports": {"envoy":"envoy-iap"}}',
+          "beta.cloud.google.com/backend-config": '{"ports": {"envoy":"iap-backendconfig"}}',
         },
         name: "envoy",
         namespace: "namespace",
@@ -47,7 +48,8 @@ local testCases = [
         ipName: "ipName",
         hostname: "hostname",
         issuer: "issuer",
-        useIstio: "false",
+        injectIstio: "false",
+        espSampleAppImage: "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
       }
     ).ingress,
     expected: {
@@ -93,7 +95,8 @@ local testCases = [
         ipName: "ipName",
         hostname: "null",
         issuer: "issuer",
-        useIstio: "false",
+        injectIstio: "false",
+        espSampleAppImage: "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
       }
     ).ingress,
     expected: {
@@ -138,7 +141,8 @@ local testCases = [
         hostname: "hostname",
         issuer: "issuer",
         privateGKECluster: "false",
-        useIstio: "false",
+        injectIstio: "false",
+        espSampleAppImage: "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
       }
     ).certificate,
     expected: {
@@ -179,7 +183,8 @@ local testCases = [
         namespace: "namespace",
       },
       {
-        useIstio: "false",
+        injectIstio: "false",
+        espSampleAppImage: "cloud-solutions-group/esp-sample-app:5.0.0",
       }
     ).whoamiApp,
     expected: {
@@ -206,7 +211,7 @@ local testCases = [
                     value: "8081",
                   },
                 ],
-                image: "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
+                image: "cloud-solutions-group/esp-sample-app:5.0.0",
                 name: "app",
                 ports: [
                   {
@@ -237,7 +242,8 @@ local testCases = [
         namespace: "namespace",
       },
       {
-        useIstio: "false",
+        injectIstio: "false",
+        espSampleAppImage: "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
       }
     ).whoamiService,
     expected: {

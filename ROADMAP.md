@@ -8,26 +8,26 @@ A CUJ shows how a user would accomplish some critical task (for example build, t
 Kubeflow does a major release at the end of every quarter. Minor releases occur as needed to fix important bugs.
 
 For detailed information about what will be in a release look
-for the issues taged "area/X.Y.Z".
+for the issues tagged "area/X.Y.Z".
 
 If you are a member of the Kubeflow org you can use these search queries
   * Issues for [0.4.0](https://github.com/issues?utf8=%E2%9C%93&q=org%3Akubeflow+label%3Aarea%2F0.4.0)
 
 ## Kubeflow 1.0
 
-We are working diligently to get Kubeflow to its first major version release 1.0 and plan to have this ready in early half of 2019. This will be a significant milestone for the project. Here are some critical areas for the release:
+We are working diligently to get Kubeflow to its first major version release 1.0. Here's how we are approaching 1.0.
+
+* Individual applications within Kubeflow (e.g. TFJob, kfctl, Pipelines, etc...) will graduate to 1.0
+* We expect to start graduating some components in the second half of 2019
+* Once we have a set of graduated applications covering core CUJ's for Kubeflow we will graduate Kubeflow to 1.0
 
 
-*   Stabilized APIs for training (TFJob/PyTorch operators) and serving.
+We are working on defining criterion for graduating applications. Here are some areas we think are important
 
-	* [PyTorch issues](https://github.com/issues?utf8=%E2%9C%93&q=org%3Akubeflow+label%3Aarea%2Fpytorch)
-	* [TFJob issues](https://github.com/issues?utf8=%E2%9C%93&q=org%3Akubeflow+label%3Aarea%2Ftfjob+)
+
+*   Stabilized APIs   
 *   Robust support for monitoring and logging.
 *   Scale and load testing.
-*   Integration with hyperparameter tuning with Katib.
-	* [Katib Issues](https://github.com/issues?utf8=%E2%9C%93&q=org%3Akubeflow+label%3Aarea%2Fkatib+)
-*   A new [dashboard experience](http://bit.ly/kf-landing-page-cuj)
-    *   [Tracker Issue](https://github.com/kubeflow/kubeflow/issues/2359)
 
 ## Enterprise Readiness
 
@@ -50,7 +50,8 @@ We have heard from our users and based on the feedback we are continuing to impr
 *   A uniform CLI / UI based deployment experience based on a common backend [kubeflow/kubeflow#1419](https://github.com/kubeflow/kubeflow/issues/1419).
 *   Simplified UI Driven deployment.
 *   Support for upgrading existing Kubeflow deployments.
-*   Simplified deployment for local Kubeflow using Minikube and Microk8s.
+*   Simplified deployment for local Kubeflow using MiniKF, Minikube and Microk8s.
+	* [MiniKF Issues](https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+org%3Akubeflow+label%3Aplatform%2Fminikf)
 	* [Minikube Issues](https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+org%3Akubeflow+label%3Aplatform%2Fminikube)
 	* [MicroK8s Issues](https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+org%3Akubeflow+label%3Aplatform%2Fmicrok8s+)
 *   [Deployment related issues](https://github.com/kubeflow/kubeflow/issues?q=is%3Aopen+is%3Aissue+label%3Aarea%2Fbootstrap)

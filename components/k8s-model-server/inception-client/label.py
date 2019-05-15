@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
+#
 # Copyright 2018 The Kubeflow Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,15 +14,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
 """
 Runs the Inception model being served on the kubeflow model server on an image
 that you specify.
 
 Note: This file is a modification of the inception client available on the
 TensorFlow Serving GitHub repository:
-  https://github.com/tensorflow/serving/blob/master/tensorflow_serving/example/inception_client.py
+  https://github.com/tensorflow/serving/blob/master/tensorflow_serving/example/inception_client.py  # noqa: E501
 """
 
 from __future__ import print_function
@@ -29,10 +28,8 @@ from __future__ import print_function
 # This is a placeholder for a Google-internal import.
 
 import argparse
-
-from grpc.beta import implementations
 import tensorflow as tf
-
+from grpc.beta import implementations
 from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2
 
@@ -60,22 +57,17 @@ def main(image_paths, server, port):
 if __name__ == '__main__':
   parser = argparse.ArgumentParser('Label an image using Inception')
   parser.add_argument(
-      '-s',
-      '--server',
-      help='URL of host serving the Inception model'
-  )
+      '-s', '--server', help='URL of host serving the Inception model')
   parser.add_argument(
       '-p',
       '--port',
       type=int,
       default=9000,
-      help='Port at which Inception model is being served'
-  )
+      help='Port at which Inception model is being served')
   parser.add_argument(
       'images',
       nargs='+',
-      help='Paths (local or GCS) to images you would like to label'
-  )
+      help='Paths (local or GCS) to images you would like to label')
 
   args = parser.parse_args()
 

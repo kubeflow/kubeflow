@@ -147,6 +147,54 @@
     },
     loginService:: loginService,
 
+    local loginIstioVirtualService = {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: ui_name,
+        namespace: params.namespace,
+      },
+      spec: {
+        hosts: [
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
+        ],
+        http: [
+          {
+            match: [
+              {
+                uri: {
+                  prefix: "/kflogin",
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/kflogin",
+            },
+            route: [
+              {
+                destination: {
+                  host: std.join(".", [
+                    ui_name,
+                    params.namespace,
+                    "svc",
+                    params.clusterDomain,
+                  ]),
+                  port: {
+                    number: 80,
+                  },
+                },
+              },
+            ],
+            timeout: "300s",
+          },
+        ],
+      },
+    },
+    loginIstioVirtualService:: loginIstioVirtualService,
+
     local loginDeployment = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
@@ -190,7 +238,9 @@
       self.authDeployment,
       self.loginService,
       self.loginDeployment,
-    ],
+    ] + if util.toBool(params.injectIstio) then [
+      self.loginIstioVirtualService,
+    ] else [],
 
     list(obj=self.all):: util.list(obj),
   },

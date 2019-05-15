@@ -1,0 +1,90 @@
+# Run a job to build the image from the latest code and then create
+# a PR updating the image.
+#
+# This job is expected to run in the cluster kf-releasing in project kubeflow-releasing.
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  labels:
+    app: jupyter-updater
+  name: jupyter-updater
+spec:
+  # TODO(jlewi): Run this more frequently once we see we aren't spamming the repo with PRs
+  schedule: "*/6 * * * *"
+  jobTemplate:    
+    spec:
+      template:
+        spec:
+          initContainers:
+          # This init container checks out the source code.
+          - command:
+            - /usr/local/bin/checkout_repos.sh
+            # TODO(jlewi): Stop checking out the jlewi fork once it is merged
+            - --repos=kubeflow/kubeflow@HEAD,kubeflow/fairing@HEAD,kubeflow/testing@HEAD
+            - --src_dir=/src
+            name: checkout
+            image: gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df
+            volumeMounts:
+            - mountPath: /src
+              name: src
+          # This init container configures the ssh keys
+          - command:
+            - /usr/local/bin/setup_ssh.sh
+            - --ssh_dir=/root/.ssh
+            - --private_key=/secret/ssh-key/id_rsa
+            - --public_key=/secret/ssh-key/id_rsa.pub
+            image: gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df
+            name: setup-ssh
+            volumeMounts:
+            - mountPath: /root/.ssh
+              name: ssh-config
+            - mountPath: /secret/ssh-key
+              name: ssh
+              readOnly: true
+          containers:
+          - command:
+            - python3 
+            - -m 
+            - kubeflow.kubeflow.ci.update_jupyter_web_app
+            - all
+            - --build-project=kubeflow-releasing
+            - --registry-project=kubeflow-images-public
+            - --remote-fork=git@github.com:kubeflow-bot/kubeflow.git
+            - --add-github-host=true
+            image: gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df
+            name: update
+            env:
+            - name: GIT_AUTHOR_NAME
+              value: kubeflow-bot
+            - name: GIT_AUTHOR_EMAIL
+              value: ci-bot-owners@kubeflow.org
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /secret/gcp-credentials/user-gcp-sa.json
+            - name: PYTHONPATH
+              value: /src/kubeflow/kubeflow/py:/src/kubeflow/testing/py:/src/kubeflow/fairing
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-token
+                  key: github_token
+            volumeMounts:
+            - mountPath: /src
+              name: src
+            - mountPath: /secret/gcp-credentials
+              name: gcp-credentials
+              readOnly: true
+            - mountPath: /root/.ssh
+              name: ssh-config
+          restartPolicy: Never
+          volumes:
+          - name: ssh-config
+            emptyDir: {}
+          - name: src
+            emptyDir: {}
+          - name: gcp-credentials
+            secret:
+              secretName: user-gcp-sa
+          # ssh key to push to github.com/kubeflow-bot
+          - name: ssh
+            secret:
+              secretName: kubeflow-bot-ssh

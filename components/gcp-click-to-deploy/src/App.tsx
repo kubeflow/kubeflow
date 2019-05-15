@@ -111,38 +111,11 @@ class App extends React.Component<any, { signedIn: boolean }> {
                   <ul>
                     <li> Enter the Project ID of the GCP project you want to use  </li>
                     <li> Pick a name for your deployment </li>
-                    <li> (Optional / Recommended) Follow these
-                         <a href="https://www.kubeflow.org/docs/started/getting-started-gke/#create-oauth-client-credentials"
-                        style={{ color: 'inherit', marginLeft: 5 }}
-                        target="_blank"
-                      >
-                        instructions</a> to create an OAuth client and
-                         then enter as IAP Oauth Client ID and Secret</li>
+                    <li> Choose how to connect to kubeflow service </li>
                     <li> (Optional) Choose GKE zone where you want Kubeflow to be deployed </li>
                     <li> (Optional) Choose Kubeflow version </li>
                     <li> Click Create Deployment </li>
-                  </ul>
-                </div>
-                <div>
-                  To connect to deployed Kubeflow cluster:
-                </div>
-                <div>
-                  <ul>
-                    <li> If you configured IAP Oauth Client ID and Secret: </li>
-                  </ul>
-                  <ul>
-                    <ul>
-                      <li>  Click IAP Access (might need up to 20 minutes for domain and IAP to be setup) </li>
-                    </ul>
-                  </ul>
-                  <ul>
-                    <li> If you checked Skip IAP for your deployment: </li>
-                  </ul>
-                  <ul>
-                    <ul>
-                      <li>  Click Cloud Shell; follow instructions on right side of the new tab.
-                      </li>
-                    </ul>
+                    <li> If your deployment include endpoint, will redirect once endpoint is ready </li>
                   </ul>
                 </div>
                 <div>

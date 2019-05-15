@@ -22,12 +22,13 @@
 set -o errexit
 set -o nounset
 set -o pipefail
+set -x
 
 GITHUB_TOKEN=${GITHUB_TOKEN:-"NO"}
 
-SCRIPT_ROOT=$(dirname ${BASH_SOURCE})/../..
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." > /dev/null && pwd)"
 
-cd ${SCRIPT_ROOT}
+cd ${ROOT}
 
 if [ "${GITHUB_TOKEN}" == "NO" ]; then
   echo "Environment variable GITHUB_TOKEN is not set."
@@ -35,7 +36,7 @@ if [ "${GITHUB_TOKEN}" == "NO" ]; then
 fi
 
 github_changelog_generator -t ${GITHUB_TOKEN} -u kubeflow -p kubeflow \
-  --exclude-labels community/discussion,cmmunity/question,duplicate,question,invalid,wontfix \
+  --exclude-labels community/discussion,community/question,duplicate,question,invalid,wontfix \
   --bug-labels kind/bug,problems/bug \
   --enhancement-labels improvement/optimization,kind/enhancement,improvement/enhancement,addition/feature,kind/feature \
   --enhancement-label "**Features and improvements:**"
