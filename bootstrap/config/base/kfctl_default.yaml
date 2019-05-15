@@ -29,3 +29,11 @@ spec:
   - spartakus
   - tensorboard
   - tf-job-operator
+  componentParams:
+    spartakus:
+      - name: usageId
+        value: <randomly-generated-id>
+        initRequired: true
+      - name: reportUsage
+        value: "true"
+        initRequired: true
