@@ -27,6 +27,7 @@ spec:
   - katib
   - notebook-controller
   - pytorch-operator
+  - spartakus
   - tensorboard
   - tf-job-operator
   componentParams:
