@@ -43,6 +43,13 @@ spec:
     - initRequired: true
       name: injectIstio
       value: "false"
+    pipeline:
+    - name: mysqlPd
+      value: <deployName>-storage-metadata-store
+    - name: minioPd
+      value: <deployName>-storage-artifact-store
+    - name: injectIstio
+      value: "false"
     tensorboard:
     - initRequired: true
       name: injectIstio
