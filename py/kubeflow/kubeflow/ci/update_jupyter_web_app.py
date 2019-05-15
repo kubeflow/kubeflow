@@ -159,8 +159,8 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
 
     return None
 
-  def all(self, build_project, registry_project, remote_fork,
-          add_github_host=False): # pylint: disable=too-many-statements,too-many-branches
+  def all(self, build_project, registry_project, remote_fork, # pylint: disable=too-many-statements,too-many-branches
+          add_github_host=False):
     """Build the latest image and update the prototype.
 
     Args:
@@ -259,7 +259,12 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
 
     self.create_pull_request(commit=last_commit)
 
-  def _check_if_pr_exists(self, base="kubeflow:master", commit=None):
+  def _pr_title(self, commit):
+    pr_title = "[auto PR] Update the jupyter-web-app image to {0}".format(
+      commit)
+    return pr_title
+
+  def _check_if_pr_exists(self, commit=None):
     """Check if a PR is already open.
 
     Returns:
@@ -275,7 +280,7 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
       commit = self.last_commit
       logging.info("No commit specified defaulting to %s", commit)
 
-    pr_title = "[auto PR] Update the jupyter-web-app image to {0}".format(commit)
+    pr_title = self._pr_title(commit)
 
     # See hub conventions:
     # https://hub.github.com/hub.1.html
@@ -306,6 +311,8 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
       base: The base to use. Defaults to "kubeflow:master". This should be
         in the form <GitHub OWNER>:<branch>
     """
+    pr_title = self._pr_title(commit)
+
     with tempfile.NamedTemporaryFile(delete=False) as hf:
       hf.write(pr_title.encode())
       message_file = hf.name
