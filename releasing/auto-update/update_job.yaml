@@ -15,8 +15,8 @@ spec:
       # This init container checks out the source code.
       - command:
         - /usr/local/bin/checkout_repos.sh
-        # TODO(jlewi): Stop using pull 3269
-        - --repos=kubeflow/kubeflow@HEAD:3269,kubeflow/fairing@HEAD,kubeflow/testing@HEAD
+        # TODO(jlewi): Stop checking out the jlewi fork once it is merged
+        - --repos=kubeflow/kubeflow@HEAD,kubeflow/fairing@HEAD,kubeflow/testing@HEAD
         - --src_dir=/src
         name: checkout
         image: gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df
