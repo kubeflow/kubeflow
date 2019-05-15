@@ -51,7 +51,4 @@ spec:
     - initRequired: true
       name: injectIstio
       value: "false"
-    foo:
-    - name: bar
-      value: "baz"
   platform: gcp
