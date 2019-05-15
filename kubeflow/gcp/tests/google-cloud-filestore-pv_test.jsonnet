@@ -35,6 +35,7 @@ local testCases = [
           path: "/kubeflow",
           server: "10.10.10.10",
         },
+        storageClassName: "nfs-storage",
       },
     },
   },
