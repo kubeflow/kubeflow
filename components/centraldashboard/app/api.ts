@@ -1,25 +1,38 @@
 import {KubeConfig} from '@kubernetes/client-node';
 import express from 'express';
 
-import {KubernetesService} from './k8s_service';
+import {KubernetesService, PlatformInfo} from './k8s_service';
+
+interface UserInfo {
+    email: string;
+    image: string;
+}
+
+interface EnvironmentInfo {
+    user: UserInfo;
+    platform: PlatformInfo;
+}
+
+/** Function that provides user information back */
+function getUserInfo() {
+    return {
+        email: 'blah@blah.com',
+    };
+}
 
 /** API routes exposing information from Kubernetes */
 export function api(kubeConfig: KubeConfig): express.Router {
     const k8sService = new KubernetesService(kubeConfig);
     return express.Router()
         .get(
-            '/platform-info',
+            '/env-info',
             async (_: express.Request, res: express.Response) => {
-                res.json(await k8sService.getPlatformInfo());
-            })
-        .get(
-            '/user-info',
-            async (req: express.Request, res: express.Response) => {
-                console.log(req.headers);
-                res.json({
-                    email: 'blah@blah.com',
-                    image: '/public/assets/gcp-logo.png',
-                });
+                const [platform, user] = await Promise.all([
+                    k8sService.getPlatformInfo(),
+                    getUserInfo(),
+                ]);
+                const returnPayoad = {platform, user} as EnvironmentInfo;
+                res.json(returnPayoad);
             })
         .get(
             '/namespaces',

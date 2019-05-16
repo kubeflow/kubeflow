@@ -1,7 +1,7 @@
 import * as k8s from '@kubernetes/client-node';
 
 /** Information about the Kubernetes hosting platform. */
-interface PlatformInfo {
+export interface PlatformInfo {
   provider: string;
   providerName: string;
   kubeflowVersion: string;

@@ -29,6 +29,7 @@ import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 import css from './main-page.css';
 import template from './main-page.pug';
 import logo from '../assets/kf-logo.svg';
+import '../assets/anon-user.png';
 
 import './namespace-selector.js';
 import './dashboard-view.js';
@@ -230,20 +231,13 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     /* Handles the AJAX response from the platform-info API.
      * @param {Event} responseEvent AJAX-response
      */
-    _onPlatformInfoResponse(responseEvent) {
-        const {response} = responseEvent.detail;
-        this.platformInfo = response;
+    _onEnvInfoResponse(responseEvent) {
+        const {platform, user} = responseEvent.detail.response;
+        this.user = user;
+        this.platformInfo = platform;
         if (this.platformInfo.kubeflowVersion) {
             this.buildVersion = this.platformInfo.kubeflowVersion;
         }
-    }
-
-    /* Handles the AJAX response from the user-info API.
-     * @param {Event} responseEvent AJAX-response
-     */
-    _onUserInfoResponse(responseEvent) {
-        const {response} = responseEvent.detail;
-        this.user = response;
     }
 
     /**
