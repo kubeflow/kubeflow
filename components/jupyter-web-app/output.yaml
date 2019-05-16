@@ -1,1 +1,1 @@
-image: "gcr.io/kubeflow-dev/jupyter-web-app:328cab3c"
+image: "gcr.io/kubeflow-dev/jupyter-web-app:5babf2df"
