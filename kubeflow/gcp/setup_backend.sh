@@ -22,7 +22,7 @@ gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS
 # Print out the config for debugging
 gcloud config list
 
-NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[?(@.name=="http2"].nodePort}')
+NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[?(@.name=="http2)"].nodePort}')
 echo "node port is ${NODE_PORT}"
 
 while [[ -z ${BACKEND_NAME} ]]; do
