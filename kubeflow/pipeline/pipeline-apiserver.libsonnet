@@ -206,6 +206,8 @@
             "secrets",
           ],
           verbs: [
+            "create",
+            "delete",
             "get",
           ],
         },
