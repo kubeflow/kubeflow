@@ -23,8 +23,9 @@ paper-card {
     border-radius: 5px;
     width: 100%;
     overflow: hidden;
-    min-width: 19em;
+    min-width: 25.75em;
     padding-bottom: 16px;
+    font-size: 14px;
     --paper-card-header-color: #202124;
     --paper-card-header: {
         font-family: "Google Sans";
@@ -35,7 +36,8 @@ paper-card {
         @apply --layout-center;
     }
     --paper-card-header-text: {
-        font-size: 18px;
+        font-size: 16px;
+        font-weight: 500;
         padding: 0 1em;
         flex: 1;
     };
@@ -63,11 +65,7 @@ paper-card#Platform-Links {
     };
 }
 
-#Getting-Started paper-icon-item:not(:last-of-type) {
-    border-bottom: 1px solid var(--divider-color);
-}
-
-#Getting-Started paper-icon-item iron-icon {
+#Getting-Started .heading iron-icon {
     color: var(--accent-color)
 }
 
@@ -89,12 +87,17 @@ paper-card#Platform-Links {
 }
 
 paper-icon-item {
+    font-size: 1em;
     --paper-item-icon-width: 40px;
+    --paper-icon-item: {
+        font-weight: 500;
+    };
     --paper-item-focused-before: {
         background: #007dfc;
     };
     --paper-icon-button-ink-color: var(--accent-color);
 }
+
 paper-ripple {
     color: var(--accent-color);
 }

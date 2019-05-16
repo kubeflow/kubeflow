@@ -32,6 +32,6 @@ export const getGCPData = (project) => ({
         },
     ],
     title: 'Google Cloud Platform',
-    logo: '/public/assets/gcp-logo.png',
+    logo: '/assets/gcp-logo.png',
     name: 'GCP',
 });
