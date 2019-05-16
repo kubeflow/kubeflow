@@ -20,16 +20,20 @@ spec:
   - tf-training
   components:
   - metacontroller
-  - ambassador
   - argo
   - centraldashboard
   - jupyter-web-app
   - katib
   - notebook-controller
   - pytorch-operator
+  - spartakus
   - tensorboard
   - tf-job-operator
   componentParams:
-    ambassador:
-    - name: ambassadorServiceType
-      value: NodePort
+    spartakus:
+      - name: usageId
+        value: <randomly-generated-id>
+        initRequired: true
+      - name: reportUsage
+        value: "true"
+        initRequired: true

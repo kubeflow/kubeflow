@@ -29,6 +29,9 @@ spec:
       # TODO change value on the fly: replace with user-provide parameters. This need to be fully qualified domain name to use with ingress.
       value: <deployName>.endpoints.<project>.cloud.goog
       initRequired: true
+    - name: injectIstio
+      value: "false"
+      initRequired: true
     notebook-controller:
     - name: injectGcpCredentials
       value: "true"
@@ -48,11 +51,4 @@ spec:
     - initRequired: true
       name: injectIstio
       value: "false"
-    spartakus:
-      - name: usageId
-        value: <randomly-generated-id>
-        initRequired: true
-      - name: reportUsage
-        value: "true"
-        initRequired: true
   platform: gcp

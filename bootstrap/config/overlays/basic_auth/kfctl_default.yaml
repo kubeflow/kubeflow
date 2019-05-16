@@ -4,6 +4,9 @@ metadata:
   name: config
 spec:
   componentParams:
+    ambassador:
+    - name: ambassadorServiceType
+      value: NodePort
     argo:
     - initRequired: true
       name: injectIstio
@@ -52,11 +55,4 @@ spec:
     - initRequired: true
       name: injectIstio
       value: "false"
-    spartakus:
-      - name: usageId
-        value: <randomly-generated-id>
-        initRequired: true
-      - name: reportUsage
-        value: "true"
-        initRequired: true
   platform: gcp

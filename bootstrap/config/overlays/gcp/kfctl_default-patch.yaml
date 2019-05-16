@@ -15,10 +15,6 @@
   value: 
     iap-ingress
 - op: add
-  path: /spec/components/-
-  value: 
-    spartakus
-- op: add
   path: /spec/packages/-
   value: 
     gcp
