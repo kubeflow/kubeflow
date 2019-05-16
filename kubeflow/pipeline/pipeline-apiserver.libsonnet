@@ -207,7 +207,6 @@
           ],
           verbs: [
             "create",
-            "delete",
             "get",
           ],
         },
