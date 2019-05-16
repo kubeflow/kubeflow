@@ -144,6 +144,23 @@
             "list",
           ],
         },
+        {
+          apiGroups: [
+            "kubeflow.org",
+          ],
+          resources: [
+            "viewers",
+          ],
+          verbs: [
+            "create",
+            "get",
+            "list",
+            "watch",
+            "update",
+            "patch",
+            "delete",
+          ],
+        },
       ],
     },  // role
 

@@ -7,6 +7,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: networking.istio.io
   names:
@@ -14,11 +16,29 @@ spec:
     listKind: VirtualServiceList
     plural: virtualservices
     singular: virtualservice
+    shortNames:
+    - vs
     categories:
     - istio-io
     - networking-istio-io
   scope: Namespaced
   version: v1alpha3
+  additionalPrinterColumns:
+  - JSONPath: .spec.gateways
+    description: The names of gateways and sidecars that should apply these routes
+    name: Gateways
+    type: string
+  - JSONPath: .spec.hosts
+    description: The destination hosts to which traffic is being sent
+    name: Hosts
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    description: |-
+      CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+      Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+    name: Age
+    type: date
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -29,6 +49,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: networking.istio.io
   names:
@@ -36,11 +58,25 @@ spec:
     listKind: DestinationRuleList
     plural: destinationrules
     singular: destinationrule
+    shortNames:
+    - dr
     categories:
     - istio-io
     - networking-istio-io
   scope: Namespaced
   version: v1alpha3
+  additionalPrinterColumns:
+  - JSONPath: .spec.host
+    description: The name of a service from the service registry
+    name: Host
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    description: |-
+      CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+      Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+    name: Age
+    type: date
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -51,6 +87,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: networking.istio.io
   names:
@@ -58,11 +96,33 @@ spec:
     listKind: ServiceEntryList
     plural: serviceentries
     singular: serviceentry
+    shortNames:
+    - se
     categories:
     - istio-io
     - networking-istio-io
   scope: Namespaced
   version: v1alpha3
+  additionalPrinterColumns:
+  - JSONPath: .spec.hosts
+    description: The hosts associated with the ServiceEntry
+    name: Hosts
+    type: string
+  - JSONPath: .spec.location
+    description: Whether the service is external to the mesh or part of the mesh (MESH_EXTERNAL or MESH_INTERNAL)
+    name: Location
+    type: string
+  - JSONPath: .spec.resolution
+    description: Service discovery mode for the hosts (NONE, STATIC, or DNS)
+    name: Resolution
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    description: |-
+      CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+      Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+    name: Age
+    type: date
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -73,33 +133,16 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: networking.istio.io
   names:
     kind: Gateway
     plural: gateways
     singular: gateway
-    categories:
-    - istio-io
-    - networking-istio-io
-  scope: Namespaced
-  version: v1alpha3
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: sidecars.networking.istio.io
-  labels:
-    app: istio-pilot
-    chart: istio
-    heritage: Tiller
-    release: istio
-spec:
-  group: networking.istio.io
-  names:
-    kind: Sidecar
-    plural: sidecars
-    singular: sidecar
+    shortNames:
+    - gw
     categories:
     - istio-io
     - networking-istio-io
@@ -115,6 +158,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: networking.istio.io
   names:
@@ -136,6 +181,8 @@ metadata:
     istio: rbac
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: rbac.istio.io
   names:
@@ -157,6 +204,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: authentication.istio.io
   names:
@@ -178,6 +227,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: authentication.istio.io
   names:
@@ -200,6 +251,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -221,6 +274,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -242,6 +297,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -263,6 +320,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -286,6 +345,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -309,6 +370,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -332,6 +395,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -355,6 +420,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -378,6 +445,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -401,6 +470,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -424,6 +495,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -447,6 +520,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -470,6 +545,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -493,6 +570,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -516,6 +595,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -539,6 +620,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -562,6 +645,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -585,35 +670,14 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
     kind: redisquota
     plural: redisquotas
     singular: redisquota
-  scope: Namespaced
-  version: v1alpha2
----
-kind: CustomResourceDefinition
-apiVersion: apiextensions.k8s.io/v1beta1
-metadata:
-  name: servicecontrols.config.istio.io
-  labels:
-    app: mixer
-    package: servicecontrol
-    istio: mixer-adapter
-    chart: istio
-    heritage: Tiller
-    release: istio
-spec:
-  group: config.istio.io
-  names:
-    kind: servicecontrol
-    plural: servicecontrols
-    singular: servicecontrol
-    categories:
-    - istio-io
-    - policy-istio-io
   scope: Namespaced
   version: v1alpha2
 ---
@@ -628,6 +692,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -651,6 +717,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -674,6 +742,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -697,6 +767,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -720,6 +792,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -743,6 +817,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -766,6 +842,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -789,6 +867,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -812,6 +892,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -835,6 +917,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -858,6 +942,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -869,6 +955,26 @@ spec:
     - policy-istio-io
   scope: Namespaced
   version: v1alpha2
+  additionalPrinterColumns:
+  - JSONPath: .spec.severity
+    description: The importance of the log entry
+    name: Severity
+    type: string
+  - JSONPath: .spec.timestamp
+    description: The time value for the log entry
+    name: Timestamp
+    type: string
+  - JSONPath: .spec.monitored_resource_type
+    description: Optional expression to compute the type of the monitored resource this log entry is being recorded on
+    name: Res Type
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    description: |-
+      CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+      Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+    name: Age
+    type: date
 ---
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
@@ -881,6 +987,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -904,6 +1012,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -927,6 +1037,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -950,35 +1062,14 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
     kind: reportnothing
     plural: reportnothings
     singular: reportnothing
-    categories:
-    - istio-io
-    - policy-istio-io
-  scope: Namespaced
-  version: v1alpha2
----
-kind: CustomResourceDefinition
-apiVersion: apiextensions.k8s.io/v1beta1
-metadata:
-  name: servicecontrolreports.config.istio.io
-  labels:
-    app: mixer
-    package: servicecontrolreport
-    istio: mixer-instance
-    chart: istio
-    heritage: Tiller
-    release: istio
-spec:
-  group: config.istio.io
-  names:
-    kind: servicecontrolreport
-    plural: servicecontrolreports
-    singular: servicecontrolreport
     categories:
     - istio-io
     - policy-istio-io
@@ -996,6 +1087,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -1019,6 +1112,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: rbac.istio.io
   names:
@@ -1042,6 +1137,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: rbac.istio.io
   names:
@@ -1065,6 +1162,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: rbac.istio.io
   names:
@@ -1076,6 +1175,18 @@ spec:
     - rbac-istio-io
   scope: Namespaced
   version: v1alpha1
+  additionalPrinterColumns:
+  - JSONPath: .spec.roleRef.name
+    description: The name of the ServiceRole object being referenced
+    name: Reference
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    description: |-
+      CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+      Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+    name: Age
+    type: date
 ---
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
@@ -1088,6 +1199,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -1111,6 +1224,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -1134,6 +1249,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -1157,6 +1274,8 @@ metadata:
     chart: istio
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -1177,6 +1296,8 @@ metadata:
     app: mixer
     package: cloudwatch
     istio: mixer-adapter
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -1197,6 +1318,8 @@ metadata:
     app: mixer
     package: dogstatsd
     istio: mixer-adapter
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: config.istio.io
   names:
@@ -1212,14 +1335,59 @@ spec:
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: clusterissuers.certmanager.k8s.io
+  name: sidecars.networking.istio.io
+  labels:
+    app: istio-pilot
+    chart: istio
+    heritage: Tiller
+    release: istio
   annotations:
-    "helm.sh/hook": crd-install
+    "helm.sh/resource-policy": keep
+spec:
+  group: networking.istio.io
+  names:
+    kind: Sidecar
+    plural: sidecars
+    singular: sidecar
+    categories:
+    - istio-io
+    - networking-istio-io
+  scope: Namespaced
+  version: v1alpha3
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: zipkins.config.istio.io
+  labels:
+    app: mixer
+    package: zipkin
+    istio: mixer-adapter
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  group: config.istio.io
+  names:
+    kind: zipkin
+    plural: zipkins
+    singular: zipkin
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: clusterissuers.certmanager.k8s.io
   labels:
     app: certmanager
     chart: certmanager
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: certmanager.k8s.io
   version: v1alpha1
@@ -1232,13 +1400,13 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   name: issuers.certmanager.k8s.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: certmanager
     chart: certmanager
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   group: certmanager.k8s.io
   version: v1alpha1
@@ -1251,14 +1419,36 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   name: certificates.certmanager.k8s.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: certmanager
     chart: certmanager
     heritage: Tiller
     release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
+  additionalPrinterColumns:
+    - JSONPath: .status.conditions[?(@.type=="Ready")].status
+      name: Ready
+      type: string
+    - JSONPath: .spec.secretName
+      name: Secret
+      type: string
+    - JSONPath: .spec.issuerRef.name
+      name: Issuer
+      type: string
+      priority: 1
+    - JSONPath: .status.conditions[?(@.type=="Ready")].message
+      name: Status
+      type: string
+      priority: 1
+    - JSONPath: .metadata.creationTimestamp
+      description: |-
+        CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+        Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+      name: Age
+      type: date
   group: certmanager.k8s.io
   version: v1alpha1
   scope: Namespaced
@@ -1268,3 +1458,77 @@ spec:
     shortNames:
       - cert
       - certs
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: orders.certmanager.k8s.io
+  labels:
+    app: certmanager
+    chart: certmanager
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  additionalPrinterColumns:
+    - JSONPath: .status.state
+      name: State
+      type: string
+    - JSONPath: .spec.issuerRef.name
+      name: Issuer
+      type: string
+      priority: 1
+    - JSONPath: .status.reason
+      name: Reason
+      type: string
+      priority: 1
+    - JSONPath: .metadata.creationTimestamp
+      description: |-
+        CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+        Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+      name: Age
+      type: date
+  group: certmanager.k8s.io
+  version: v1alpha1
+  names:
+    kind: Order
+    plural: orders
+  scope: Namespaced
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: challenges.certmanager.k8s.io
+  labels:
+    app: certmanager
+    chart: certmanager
+    heritage: Tiller
+    release: istio
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  additionalPrinterColumns:
+    - JSONPath: .status.state
+      name: State
+      type: string
+    - JSONPath: .spec.dnsName
+      name: Domain
+      type: string
+    - JSONPath: .status.reason
+      name: Reason
+      type: string
+    - JSONPath: .metadata.creationTimestamp
+      description: |-
+        CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+        Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+      name: Age
+      type: date
+  group: certmanager.k8s.io
+  version: v1alpha1
+  names:
+    kind: Challenge
+    plural: challenges
+  scope: Namespaced
