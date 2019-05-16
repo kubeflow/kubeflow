@@ -22,7 +22,7 @@
       prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
       registry: "gcr.io/kubeflow-images-public",
       testing_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4",
-      versionTag: "latest",
+      versionTag: "v0.5.0",
       zone: "us-central1-a",
     },
   },
