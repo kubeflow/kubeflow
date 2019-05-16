@@ -31,6 +31,10 @@
     }
 }
 
+app-drawer-layout {
+    --app-drawer-width: 240px;
+}
+
 app-drawer-layout[narrow] #MainDrawer {
     --app-drawer-content-container: {
         box-shadow: 0 0 6px -1px #000;
