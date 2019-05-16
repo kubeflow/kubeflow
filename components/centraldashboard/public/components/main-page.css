@@ -289,7 +289,7 @@ neon-animatable {
 }
 
 [hidden]:not([hides]) {
-    display: none
+    display: none !important
 }
 
 a[href] {
