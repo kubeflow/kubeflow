@@ -109,7 +109,7 @@ paths:
           type: "string"
         - in: "query"
           name: "role"
-          description: "owner or editor, when not empty, only return bindings of this role"
+          description: "owner or editor or viewer, when not empty, only return bindings of this role"
           type: "string"
       responses:
         200:
@@ -168,7 +168,7 @@ definitions:
       referredNamespace:
         type: "string"
       role:
-        description: "owner or editor"
+        description: "owner or editor or viewer"
         type: "string"
       status:
         description: "Status of the profile, one of Succeeded, Failed, Unknown."

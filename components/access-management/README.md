@@ -3,7 +3,7 @@
 Kubeflow Access Management API provides fine-grain user-namespace level access control.
 The goal is to support multi-tenancy kubeflow cluster / services.
 
-## Resources
+## Resources under management
 
 ### Profile
 - Profile contains owner which refers to a k8s user.
@@ -25,6 +25,10 @@ A Kubeflow admin would like to grant a set of users the ability to create/delete
 The resulting namespace should only be accessible to the user who created it; or people they grant access to.
 RBAC doesn't directly support this. So we provide a service on top of RBAC which will enforce this based on the user's identity
 
+#### Case 2: Allow user to update / share resources they own.
+
+We will not grant user permission to edit cluster-scoped CRD resources. Then to enable user editting their own resources,
+we provide update / share / delete APIs and perform permission check on every coming request.  
 
 ## APIs
 
@@ -42,15 +46,7 @@ RBAC doesn't directly support this. So we provide a service on top of RBAC which
 * `get`: get bindings; 
   * called when query for binding status.
   * filter by user=... | namespace=... | role=owner/editor to query permissions related to a user / namespace.
-  * For example filter by "user=abc@def.com" when need to list namespaces for user "abc@def.com".
-  * For example filter by "namespace=abc" when need to list users of a namespace "abc"
+  * For example filter by "user=abc@def.com" when need to list namespaces for user "abc@def.com"; called when need to list namespaces for an user (list namespaces on notebook spawner for current user)
+  * For example filter by "namespace=abc" when need to list users of a namespace "abc"; called when need to list users of namespace "abc".
 * `delete`: delete binding; 
   * called when admin or owner revoke namespace access.
-
-#####`/v1/users/{user}/namespaces`
-* `get`: return namespaces that queried user can access as owner or editor.
-  * called when need to list namespaces for an user: list namespaces on notebook spawner for current user
-
-#####`/v1/profiles/{profile}/users`
-* `get`: return users with owner or editor permission to queried profile / namespace.
-  * called when need to list users of a namespace
