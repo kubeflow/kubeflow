@@ -2,13 +2,13 @@
     @apply --layout-vertical;
     padding: 1.3em; /* 20px */
     overflow: auto;
-    grid-gap: 1.9em; /* 28px */
+    grid-gap: .75em; /* 12px */
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     min-height: 0;
     min-width: 0;
     width: 100%;
-    max-width: 105em;
+    max-width: 82em;
     margin: auto;
     flex: 1;
     --accent-color: #007dfc;
@@ -61,15 +61,11 @@ paper-card#Platform-Links {
     };
     --paper-card-header-image: {
         width: 2em;
-        padding: .5em .7em;
+        padding: .5em .75em .5em 1.25em;
     };
 }
 
-#Getting-Started .heading iron-icon {
-    color: var(--accent-color)
-}
-
-#Getting-Started [secondary] {
+#Documentation [secondary] {
     word-break: break-word;
     width: 100%;
     white-space: normal;
@@ -87,15 +83,34 @@ paper-card#Platform-Links {
 }
 
 paper-icon-item {
+    @apply --layout-flex;
+    @apply --layout-justified;
+    @apply --layout-horizontal-reverse;
     font-size: 1em;
+    overflow:hidden;
     --paper-item-icon-width: 40px;
     --paper-icon-item: {
         font-weight: 500;
+    };
+    --paper-item-icon: {
+        color: var(--icon-color);
+        border-radius: 50%;
     };
     --paper-item-focused-before: {
         background: #007dfc;
     };
     --paper-icon-button-ink-color: var(--accent-color);
+}
+
+paper-icon-item.external {
+    --paper-item-icon: {
+        color: var(--external-icon-color);
+    };
+}
+
+#Quick-Links paper-icon-item {
+    @apply --layout-horizontal;
+    justify-content: unset;
 }
 
 paper-ripple {
@@ -108,16 +123,8 @@ paper-ripple {
 }
 
 .link paper-icon-item {
-    @apply --layout-flex;
-    @apply --layout-justified;
-    @apply --layout-horizontal-reverse;
     padding: .5em 1em;
-    border-radius: 5px;
-    overflow:hidden;
-    --paper-item-icon: {
-        color: var(--accent-color);
-        border-radius: 50%;
-    };
+    border-radius: 5px;    
 }
 
 .link.more-coming {

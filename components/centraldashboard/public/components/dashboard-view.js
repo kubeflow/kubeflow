@@ -1,5 +1,6 @@
 import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/iron-icons/image-icons.js';
 import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-ripple/paper-ripple.js';
 import '@polymer/paper-item/paper-icon-item.js';
@@ -24,7 +25,7 @@ export class DashboardView extends PolymerElement {
      */
     static get properties() {
         return {
-            gettingStartedItems: {
+            documentationItems: {
                 type: Array,
                 value: [
                     {

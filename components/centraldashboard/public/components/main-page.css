@@ -9,6 +9,8 @@
     --sidebar-default-color: #ffffff4f;
     --divider-color: #dadce0;
     --border-color: #eeeeef;
+    --icon-color: #202124;
+    --external-icon-color: var(--google-grey-700);
     --iframe-link: {
         text-decoration: none;
         color: inherit;
