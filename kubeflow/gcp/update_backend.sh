@@ -15,9 +15,10 @@ fi
 # Activate the service account, allow 5 retries
 for i in {1..5}; do gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} && break || sleep 10; done
 
+NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[?(@.name=="http2"].nodePort}')
+echo node port is ${NODE_PORT}
+
 while [[ -z ${BACKEND_NAME} ]]; do
-  NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[?(@.name=="http2"].nodePort}')
-  echo node port is ${NODE_PORT}
   BACKENDS=$(kubectl --namespace=${NAMESPACE} get ingress ${INGRESS_NAME} -o jsonpath='{.metadata.annotations.ingress\.kubernetes\.io/backends}')
   echo "fetching backends info with ${INGRESS_NAME}: ${BACKENDS}"
   BACKEND_NAME=$(echo $BACKENDS | grep -o "k8s-be-${NODE_PORT}--[0-9a-z]\+")
