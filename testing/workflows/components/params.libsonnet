@@ -27,7 +27,7 @@
       name: "somefakename",
       namespace: "kubeflow-test-infra",
       prow_env: "",
-      deleteKubeflow: true,
+      deleteKubeflow: false,
       gkeApiVersion: "v1",
       workflowName: "kfctl",
     },
