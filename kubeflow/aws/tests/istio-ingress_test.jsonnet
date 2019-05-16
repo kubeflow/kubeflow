@@ -1,20 +1,33 @@
 local testSuite = import "kubeflow/common/testsuite.libsonnet";
 local istioIngress = import "kubeflow/aws/istio-ingress.libsonnet";
 
-local params = {
-  name: "isto-ingress",
+local defaultParams = {
+  namespace: "kubeflow",
   istioNamespace: "istio-system",
-  enableJwtChecking: "false",
-  istioTls: "false",
   hostname: "null",
-  enableCognito: "false"
+  issuer: "letsencrypt-prod",
+  enableCognito: "false",
+  CognitoAppClientId: "null",
+  CognitoUserPoolId: "null",
+  CognitoUserPoolArn: "null",
+  CognitoUserPoolDomain: "null",
+  enableJwtChecking: "false",
+  certArn: "null",
+  enableOidc: "false",
+  OidcIssuer: "null",
+  OidcAuthorizationEndpoint: "null",
+  OidcTokenEndpoint: "null",
+  OidcUserInfoEndpoint: "null",
+  OidcClientId: "null",
+  OidcClientSecret: "null",
 };
 
-local tlsEnabledParams = {
-  name: "isto-ingress",
-  istioNamespace: "istio-system",
-  enableJwtChecking: "false",
-  istioTls: "true",
+local params = defaultParams + {
+  name: "istio-ingress",
+};
+
+local cognitoEnabledParams = defaultParams + {
+  name: "istio-ingress",
   hostname: "example.com",
   certArn: "arn:aws:acm:us-west-2:3482112113:certificate/eeeeeee-a759-40de-80e1-ef619eadae79",
   enableCognito: "true",
@@ -23,17 +36,27 @@ local tlsEnabledParams = {
   CognitoUserPoolDomain: "poolDomain"
 };
 
-local authEnabledParams = {
-  name: "isto-ingress",
-  istioNamespace: "istio-system",
+local jwtCheckingEnabledParams = defaultParams + {
+  name: "istio-ingress",
   enableJwtChecking: "true",
-  istioTls: "true",
   hostname: "example.com",
   certArn: "arn:aws:acm:us-west-2:3482112113:certificate/eeeeeee-a759-40de-80e1-ef619eadae79",
   CognitoAppClientId: "cognito_app_client_id",
   CoginitoRegion: "us-west-2",
   CognitoUserPoolId: "kubeflow-user-pool",
-  enableCognito: "false",
+};
+
+local oidcEnabledParams = defaultParams + {
+  name: "istio-ingress",
+  hostname: "example.com",
+  enableOidc: "true",
+  certArn: "arn:aws:acm:us-west-2:3482112113:certificate/eeeeeee-a759-40de-80e1-ef619eadae79",
+  OidcIssuer: "issuer",
+  OidcAuthorizationEndpoint: "authorization-endpoint",
+  OidcTokenEndpoint: "token-endpoint",
+  OidcUserInfoEndpoint: "user-info-endpoint",
+  OidcClientId: "client-id",
+  OidcClientSecret: "client-secret",
 };
 
 local env = {
@@ -145,7 +168,7 @@ local testCases = [
     },
   },
   {
-    actual: istioIngress.new(env, tlsEnabledParams).parts.ingress,
+    actual: istioIngress.new(env, cognitoEnabledParams).parts.ingress,
     expected: {
       apiVersion: "extensions/v1beta1",
       kind: "Ingress",
@@ -182,7 +205,7 @@ local testCases = [
     },
   },
   {
-    actual: istioIngress.new(env, authEnabledParams).parts.policy,
+    actual: istioIngress.new(env, jwtCheckingEnabledParams).parts.jwtCheckingPolicy,
     expected: {
       apiVersion: "authentication.istio.io/v1alpha1",
       kind: "Policy",
@@ -219,6 +242,58 @@ local testCases = [
       },
     },
   },
+  {
+    actual: istioIngress.new(env, oidcEnabledParams).parts.ingress,
+    expected: {
+      apiVersion: "extensions/v1beta1",
+      kind: "Ingress",
+      metadata: {
+        name: "istio-ingress",
+        namespace: "istio-system",
+        annotations: {
+          "kubernetes.io/ingress.class": "alb",
+          "alb.ingress.kubernetes.io/scheme": "internet-facing",
+          "alb.ingress.kubernetes.io/auth-type": "oidc",
+          "alb.ingress.kubernetes.io/auth-idp-oidc": "{\"Issuer\":\"issuer\",\"AuthorizationEndpoint\":\"authorization-endpoint\",\"TokenEndpoint\":\"token-endpoint\",\"UserInfoEndpoint\":\"user-info-endpoint\",\"SecretName\":\"istio-oidc-secret\"}",
+          "alb.ingress.kubernetes.io/certificate-arn": "arn:aws:acm:us-west-2:3482112113:certificate/eeeeeee-a759-40de-80e1-ef619eadae79",
+          "alb.ingress.kubernetes.io/listen-ports":  '[{"HTTPS":443}]',
+        },
+      },
+      spec: {
+        rules: [
+          {
+            host: "example.com",
+            http: {
+              paths: [
+                {
+                  backend: {
+                    serviceName: "istio-ingressgateway",
+                    servicePort: 80,
+                  },
+                  path: "/*",
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  },
+  {
+    actual: istioIngress.new(env, oidcEnabledParams).parts.oidcSecret,
+    expected: {
+      "apiVersion": "v1",
+      "data": {
+       "clientId": "Y2xpZW50LWlk",
+       "clientSecret": "Y2xpZW50LXNlY3JldA=="
+      },
+      "kind": "Secret",
+      "metadata": {
+       "name": "istio-oidc-secret",
+       "namespace": "istio-system"
+      }
+    }
+  }
 ];
 
 testSuite.run(testCases)

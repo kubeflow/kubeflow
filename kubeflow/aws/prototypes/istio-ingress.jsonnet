@@ -7,13 +7,20 @@
 // @optionalParam istioNamespace string istio-system The namespace where Istio is installed
 // @optionalParam hostname string null The hostname associated with this ingress. Eg: mykubeflow.example.com
 // @optionalParam issuer string letsencrypt-prod The cert-manager issuer name.
-// @optionalParam enableCognito string false Enabel enableCognito authentication.
-// @optionalParam enableJwtChecking string false Enable JWT checking.
-// @optionalParam certArn string acm-cert AWS Certificate Manager certicate arn.
+// @optionalParam enableCognito string false Enable Cognito authentication.
 // @optionalParam CognitoAppClientId string null Cognito App client Id
 // @optionalParam CognitoUserPoolId string null Cognito User Pool Id
 // @optionalParam CognitoUserPoolArn string null Cognito User Pool Arn
 // @optionalParam CognitoUserPoolDomain string null Cognito User Pool Domain
+// @optionalParam enableJwtChecking string false Enable JWT checking.
+// @optionalParam certArn string null AWS Certificate Manager certicate arn, if not given TLS will not be used.
+// @optionalParam enableOidc string false Enable OIDC authentication.
+// @optionalParam OidcIssuer string null OIDC Issuer
+// @optionalParam OidcAuthorizationEndpoint string null OIDC Authorization Endpoint
+// @optionalParam OidcTokenEndpoint string null OIDC Token endpoint
+// @optionalParam OidcUserInfoEndpoint string null OIDC User Info endpoint
+// @optionalParam OidcClientId string null OIDC Client id
+// @optionalParam OidcClientSecret string null OIDC Client secret
 
 local istioIngress = import "kubeflow/aws/istio-ingress.libsonnet";
 local instance = istioIngress.new(env, params);
