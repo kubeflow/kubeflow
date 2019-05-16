@@ -21,7 +21,14 @@ declare module '@google-cloud/monitoring' {
     listTimeSeries(request: {
       name: string,
       filter: string,
-      interval: {startTime: Timestamp, endTime: Timestamp}
+      interval: {startTime: Timestamp, endTime: Timestamp},
+      aggregation?: {
+        alignmentPeriod?: {
+          seconds: number,
+        },
+        perSeriesAligner?: string,
+        crossSeriesReducer?: string,
+      }
     }): Promise<[gapi.client.monitoring.TimeSeries[]]>;
   }
 }
