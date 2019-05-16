@@ -24,6 +24,7 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/actions"
 	kApp "github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
+	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -420,7 +421,9 @@ func (s *ksServer) InstallIstio(ctx context.Context, req CreateRequest) error {
 		log.Errorf("Failed to create istio manifest: %v", err)
 		return err
 	}
-	err = CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/kf-istio-resources.yaml"))
+	//TODO should be a cli parameter
+	nv := configtypes.NameValue{Name: "namespace", Value: req.Namespace}
+	err = CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/kf-istio-resources.yaml"), nv)
 	if err != nil {
 		log.Errorf("Failed to create kubeflow istio resource: %v", err)
 		return err

@@ -116,7 +116,9 @@ def set_notebook_names(nb, body):
 
 
 def set_notebook_image(nb, body):
-  if body["imageType"] == "standard":
+  if 'imageType' not in body:
+    image = body["standardImages"]
+  elif body["imageType"] == "standard":
     image = body["standardImages"]
   else:
     image = body["customImage"]
