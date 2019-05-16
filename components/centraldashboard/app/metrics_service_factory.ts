@@ -13,8 +13,10 @@ import {StackdriverMetricsService} from './stackdriver_metrics_service';
 export async function getMetricsService(k8sService: KubernetesService):
     Promise<MetricsService>|null {
   try {
-    const [platformInfo, nodes] = await Promise.all(
-        [k8sService.getPlatformInfo(), k8sService.getNodes()]);
+    const [platformInfo, nodes] = await Promise.all([
+      k8sService.getPlatformInfo(),
+      k8sService.getNodes(),
+    ]);
     const nodeNames = nodes.map((n) => n.metadata.name);
     switch (platformInfo.providerName) {
       case 'gce':

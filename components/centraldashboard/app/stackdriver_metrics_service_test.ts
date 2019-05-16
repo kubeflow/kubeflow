@@ -8,6 +8,13 @@ describe('StackdriverMetricsService', () => {
   const nodeNames = ['node-1', 'node-2'];
   const emptyTimeSeriesPromise =
       Promise.resolve([[]] as [gapi.client.monitoring.TimeSeries[]]);
+  const aggregation = {
+    alignmentPeriod: {
+      seconds: 60,
+    },
+    perSeriesAligner: 'ALIGN_MEAN',
+    crossSeriesReducer: 'REDUCE_NONE',
+  };
   let stackdriverClient: jasmine.SpyObj<monitoring.MetricServiceClient>;
   let service: StackdriverMetricsService;
 
@@ -35,8 +42,8 @@ describe('StackdriverMetricsService', () => {
               points: [
                 {
                   interval: {
-                    startTime: {seconds: 1557705300},
-                    endTime: {seconds: 1557705300},
+                    startTime: {seconds: 1557705600},
+                    endTime: {seconds: 1557705600},
                   },
                   value: {
                     doubleValue: 0.08,
@@ -44,11 +51,11 @@ describe('StackdriverMetricsService', () => {
                 },
                 {
                   interval: {
-                    startTime: {seconds: 1557705600},
-                    endTime: {seconds: 1557705600}
+                    startTime: {seconds: 1557705300},
+                    endTime: {seconds: 1557705300}
                   },
                   value: {
-                    doubleValue: 0.10,
+                    doubleValue: 0.1,
                   },
                 },
               ]
@@ -58,8 +65,8 @@ describe('StackdriverMetricsService', () => {
               points: [
                 {
                   interval: {
-                    startTime: {seconds: 1557705300},
-                    endTime: {seconds: 1557705300},
+                    startTime: {seconds: 1557705600},
+                    endTime: {seconds: 1557705600},
                   },
                   value: {
                     doubleValue: 0.07,
@@ -67,8 +74,8 @@ describe('StackdriverMetricsService', () => {
                 },
                 {
                   interval: {
-                    startTime: {seconds: 1557705600},
-                    endTime: {seconds: 1557705600},
+                    startTime: {seconds: 1557705300},
+                    endTime: {seconds: 1557705300},
                   },
                   value: {
                     doubleValue: 0.12,
@@ -87,7 +94,8 @@ describe('StackdriverMetricsService', () => {
             interval: {
               startTime: {seconds: 1557705300},
               endTime: {seconds: 1557705600}
-            }
+            },
+            aggregation
           })
           .and.returnValue(Promise.resolve(
               [response] as [gapi.client.monitoring.TimeSeries[]]));
@@ -95,10 +103,10 @@ describe('StackdriverMetricsService', () => {
           await service.getNodeCpuUtilization(Interval.Last5m);
       expect(timeSeriesPoints.length).toBe(4);
       expect(timeSeriesPoints).toEqual([
-        {timestamp: 1557705300, label: 'node-1-gce-instance-abc', value: 0.08},
-        {timestamp: 1557705600, label: 'node-1-gce-instance-abc', value: 0.1},
-        {timestamp: 1557705300, label: 'node-2-gce-instance-xyz', value: 0.07},
-        {timestamp: 1557705600, label: 'node-2-gce-instance-xyz', value: 0.12}
+        {timestamp: 1557705300, label: 'node-1-gce-instance-abc', value: 0.1},
+        {timestamp: 1557705300, label: 'node-2-gce-instance-xyz', value: 0.12},
+        {timestamp: 1557705600, label: 'node-1-gce-instance-abc', value: 0.08},
+        {timestamp: 1557705600, label: 'node-2-gce-instance-xyz', value: 0.07}
       ]);
     });
 
@@ -108,8 +116,17 @@ describe('StackdriverMetricsService', () => {
         filter:
             'metric.type="compute.googleapis.com/instance/cpu/utilization" ' +
             'AND metric.label.instance_name = "node-1"',
-        interval:
-            {startTime: {seconds: 1557705300}, endTime: {seconds: 1557705600}}
+        interval: {
+          startTime: {seconds: 1557705300},
+          endTime: {seconds: 1557705600},
+        },
+        aggregation: {
+          alignmentPeriod: {
+            seconds: 60,
+          },
+          perSeriesAligner: 'ALIGN_MEAN',
+          crossSeriesReducer: 'REDUCE_NONE',
+        }
       };
       service = new StackdriverMetricsService(
           stackdriverClient, projectId, ['node-1']);
@@ -132,8 +149,11 @@ describe('StackdriverMetricsService', () => {
         filter:
             'metric.type="compute.googleapis.com/instance/cpu/utilization" ' +
             'AND metric.label.instance_name = "node-1"',
-        interval:
-            {startTime: {seconds: 1557704700}, endTime: {seconds: 1557705600}}
+        interval: {
+          startTime: {seconds: 1557704700},
+          endTime: {seconds: 1557705600},
+        },
+        aggregation
       };
       service = new StackdriverMetricsService(
           stackdriverClient, projectId, ['node-1']);
@@ -216,7 +236,8 @@ describe('StackdriverMetricsService', () => {
             interval: {
               startTime: {seconds: 1557705300},
               endTime: {seconds: 1557705600}
-            }
+            },
+            aggregation
           })
           .and.returnValue(Promise.resolve(
               [response] as [gapi.client.monitoring.TimeSeries[]]));
@@ -224,16 +245,25 @@ describe('StackdriverMetricsService', () => {
           await service.getPodCpuUtilization(Interval.Last5m);
       expect(timeSeriesPoints.length).toBe(4);
       expect(timeSeriesPoints).toEqual([
-        {timestamp: 1557705300, label: 'foo-container', value: 0.08},
-        {timestamp: 1557705600, label: 'foo-container', value: 0.1}, {
+        {
+          timestamp: 1557705300,
+          label: 'foo-container',
+          value: 0.08,
+        },
+        {
           timestamp: 1557705300,
           label: 'fe1f5b92-66a8-11e9-9fd0-42010a800178',
-          value: 0.07
+          value: 0.07,
+        },
+        {
+          timestamp: 1557705600,
+          label: 'foo-container',
+          value: 0.1,
         },
         {
           timestamp: 1557705600,
           label: 'fe1f5b92-66a8-11e9-9fd0-42010a800178',
-          value: 0.12
+          value: 0.12,
         }
       ]);
     });
@@ -259,7 +289,7 @@ describe('StackdriverMetricsService', () => {
                     endTime: {seconds: 1557705300},
                   },
                   value: {
-                    int64Value: 800,
+                    doubleValue: 800,
                   },
                 },
                 {
@@ -268,7 +298,7 @@ describe('StackdriverMetricsService', () => {
                     endTime: {seconds: 1557705600}
                   },
                   value: {
-                    int64Value: 1000,
+                    doubleValue: 1000,
                   },
                 },
               ]
@@ -283,7 +313,7 @@ describe('StackdriverMetricsService', () => {
                     endTime: {seconds: 1557705300},
                   },
                   value: {
-                    int64Value: 700,
+                    doubleValue: 700,
                   },
                 },
                 {
@@ -292,7 +322,7 @@ describe('StackdriverMetricsService', () => {
                     endTime: {seconds: 1557705600},
                   },
                   value: {
-                    int64Value: 1200,
+                    doubleValue: 1200,
                   },
                 },
               ]
@@ -302,28 +332,39 @@ describe('StackdriverMetricsService', () => {
       stackdriverClient.listTimeSeries
           .withArgs({
             name: 'projects/test-project',
-            filter:
-                'metric.type="container.googleapis.com/container/memory/bytes_used"',
+            filter: 'metric.type="container.googleapis.com/container/' +
+                'memory/bytes_used" AND ' +
+                'metric.label.memory_type = "non-evictable"',
             interval: {
               startTime: {seconds: 1557705300},
               endTime: {seconds: 1557705600}
-            }
+            },
+            aggregation
           })
           .and.returnValue(Promise.resolve(
               [response] as [gapi.client.monitoring.TimeSeries[]]));
       const timeSeriesPoints = await service.getPodMemoryUsage(Interval.Last5m);
       expect(timeSeriesPoints.length).toBe(4);
       expect(timeSeriesPoints).toEqual([
-        {timestamp: 1557705300, label: 'foo-container', value: 800},
-        {timestamp: 1557705600, label: 'foo-container', value: 1000}, {
+        {
+          timestamp: 1557705300,
+          label: 'foo-container',
+          value: 800,
+        },
+        {
           timestamp: 1557705300,
           label: 'fe1f5b92-66a8-11e9-9fd0-42010a800178',
-          value: 700
+          value: 700,
+        },
+        {
+          timestamp: 1557705600,
+          label: 'foo-container',
+          value: 1000,
         },
         {
           timestamp: 1557705600,
           label: 'fe1f5b92-66a8-11e9-9fd0-42010a800178',
-          value: 1200
+          value: 1200,
         }
       ]);
     });
