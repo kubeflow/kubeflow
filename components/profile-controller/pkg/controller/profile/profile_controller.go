@@ -84,6 +84,13 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
+	err = c.Watch(&source.Kind{Type: &istiorbac.ServiceRoleBinding{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &kubeflowv1alpha1.Profile{},
+	})
+	if err != nil {
+		return err
+	}
 	err = c.Watch(&source.Kind{Type: &corev1.Namespace{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &kubeflowv1alpha1.Profile{},
