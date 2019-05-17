@@ -318,9 +318,7 @@ local exitTemplates =
       ]),  // copy-artifacts,
 
       // TODO(jlewi): Uncomment when we actually set up Kubeflow.
-      dependencies: if deleteKubeflow then
-         ["kfctl-delete"]
-      else null,
+      dependencies: null,
     },
    // testDirDeleteStep,
   ];
