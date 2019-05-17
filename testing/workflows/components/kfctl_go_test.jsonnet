@@ -305,7 +305,7 @@ local testDirDeleteStep = {
     };
 
 local exitTemplates =
-  //deleteStep +
+  // deleteStep +
   [
     {
       template: buildTemplate("copy-artifacts", [
