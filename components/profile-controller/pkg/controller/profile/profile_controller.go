@@ -19,7 +19,6 @@ package profile
 import (
 	"context"
 	"fmt"
-	"os"
 	"reflect"
 
 	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/istiorbac/v1alpha1"
@@ -42,25 +41,32 @@ import (
 
 var log = logf.Log.WithName("controller")
 
-const ServiceRoleIstio = "ns-access-istio"
-const ServiceRoleBindingIstio = "owner-binding-istio"
+const USERIDHEADER = "userid-header"
+const USERIDPREFIX = "userid-prefix"
 
-const ServiceRoleBindingKeyDefault = "request.headers[x-goog-authenticated-user-email]"
-const ServiceRoleBindingValPrefixDefault = "accounts.google.com:"
-
-// Set those Env to the header matching your auth service output if needed.
-const ServiceRoleBindingKeyEnvName = "SERVICE_ROLE_BINDING_KEY"
-const ServiceRoleBindingValPrefixEnvName = "SERVICE_ROLE_BINDING_VAL_PREFIX"
+const SERVICEROLEISTIO = "ns-access-istio"
+const SERVICEROLEBINDINGISTIO = "owner-binding-istio"
 
 // Add creates a new Profile Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
+func Add(mgr manager.Manager, args map[string]string) error {
+	if _, ok := args[USERIDHEADER]; !ok {
+		return fmt.Errorf("%v not set!", USERIDHEADER)
+	}
+	if _, ok := args[USERIDPREFIX]; !ok {
+		return fmt.Errorf("%v not set!", USERIDPREFIX)
+	}
+	return add(mgr, newReconciler(mgr, args[USERIDHEADER], args[USERIDPREFIX]))
 }
 
 // newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileProfile{Client: mgr.GetClient(), scheme: mgr.GetScheme()}
+func newReconciler(mgr manager.Manager, userIdHeader string, userIdPrefix string) reconcile.Reconciler {
+	return &ReconcileProfile{
+		Client:       mgr.GetClient(),
+		scheme:       mgr.GetScheme(),
+		userIdHeader: userIdHeader,
+		userIdPrefix: userIdPrefix,
+	}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -121,7 +127,9 @@ var _ reconcile.Reconciler = &ReconcileProfile{}
 // ReconcileProfile reconciles a Profile object
 type ReconcileProfile struct {
 	client.Client
-	scheme *runtime.Scheme
+	scheme       *runtime.Scheme
+	userIdHeader string
+	userIdPrefix string
 }
 
 // Reconcile reads that state of the cluster for a Profile object and makes changes based on the state read
@@ -238,24 +246,11 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 	return reconcile.Result{}, nil
 }
 
-// getServiceRoleBindingProperties return a map[string]string containing properties used by Istio ServiceRoleBinding.
-func getServiceRoleBindingProperties(user string) map[string]string {
-	bindingKey := ServiceRoleBindingKeyDefault
-	if os.Getenv(ServiceRoleBindingKeyEnvName) != "" {
-		bindingKey = os.Getenv(ServiceRoleBindingKeyEnvName)
-	}
-	bindingValPrefix := ServiceRoleBindingValPrefixDefault
-	if os.Getenv(ServiceRoleBindingValPrefixEnvName) != "" {
-		bindingValPrefix = os.Getenv(ServiceRoleBindingValPrefixEnvName)
-	}
-	return map[string]string{bindingKey: bindingValPrefix + user}
-}
-
 // updateIstioRbac create or update Istio rbac resources in target namespace owned by "profileIns". The goal is to allow service access for profile owner
 func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile) error {
 	istioServiceRole := &istiorbac.ServiceRole{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      ServiceRoleIstio,
+			Name:      SERVICEROLEISTIO,
 			Namespace: profileIns.Name,
 		},
 		Spec: istiorbac.ServiceRoleSpec{
@@ -296,18 +291,18 @@ func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile)
 	}
 	istioServiceRoleBinding := &istiorbac.ServiceRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      ServiceRoleBindingIstio,
+			Name:      SERVICEROLEBINDINGISTIO,
 			Namespace: profileIns.Name,
 		},
 		Spec: istiorbac.ServiceRoleBindingSpec{
 			Subjects: []*istiorbac.Subject{
 				{
-					Properties: getServiceRoleBindingProperties(profileIns.Spec.Owner.Name),
+					Properties: map[string]string{fmt.Sprintf("request.headers[%v]", r.userIdHeader): r.userIdPrefix + profileIns.Spec.Owner.Name},
 				},
 			},
 			RoleRef: &istiorbac.RoleRef{
 				Kind: "ServiceRole",
-				Name: ServiceRoleIstio,
+				Name: SERVICEROLEISTIO,
 			},
 		},
 	}
