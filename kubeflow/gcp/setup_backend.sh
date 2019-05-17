@@ -56,9 +56,9 @@ if [[ -z ${USE_ISTIO} ]]; then
 else
   # Use kubectl patch.
   echo patch JWT audience: ${JWT_AUDIENCE}
-  _test='[{"op": "replace", "path": "/spec/origins/jwt/0/audiences/0", "value": "'${JWT_AUDIENCE}'"}]'
+  _test='[{"op": "replace", "path": "/spec/origins/0/jwt/audiences/0", "value": "'${JWT_AUDIENCE}'"}]'
   echo GG TEST: "'${_test}'"
-  kubectl -n ${NAMESPACE} patch policy ingress-jwt --type json -p '[{"op": "replace", "path": "/spec/origins/jwt/0/audiences/0", "value": "'${JWT_AUDIENCE}'"}]'
+  kubectl -n ${NAMESPACE} patch policy ingress-jwt --type json -p '[{"op": "replace", "path": "/spec/origins/0/jwt/audiences/0", "value": "'${JWT_AUDIENCE}'"}]'
 fi
 
 echo "Clearing lock on service annotation"
