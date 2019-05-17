@@ -85,7 +85,7 @@ paths:
         500:
           description: "Internal Server Error"
     get:
-      summary: "Get bindings filtered by query param"
+      summary: "Get bindings created via kubeflow; filtered by query param"
       description: "bindings will contain it's current status"
       operationId: "read binding"
       consumes:
@@ -152,9 +152,22 @@ definitions:
         type: "array"
         items:
           $ref: "#/definitions/Binding"
-  User:
+  Subject:
     type: "object"
+    description: "in consistent with io.k8s.api.rbac.v1.Subject"
     properties:
+      kind:
+        type: "string"
+      name:
+        type: "string"
+      namespace:
+        type: "string"
+  RoleRef:
+    type: "object"
+    description: "in consistent with io.k8s.api.rbac.v1.RoleRef"
+    properties:
+      apiGroup:
+        type: "string"
       kind:
         type: "string"
       name:
@@ -164,12 +177,11 @@ definitions:
     description: "Binding will give user edit access to referredNamespace"
     properties:
       user:
-        $ref: "#/definitions/User"
+        $ref: "#/definitions/Subject"
       referredNamespace:
         type: "string"
-      role:
-        description: "owner or editor or viewer"
-        type: "string"
+      RoleRef:
+        $ref: "#/definitions/RoleRef"
       status:
         description: "Status of the profile, one of Succeeded, Failed, Unknown."
         type: "string"
@@ -189,7 +201,8 @@ definitions:
         type: "object"
         properties:
           owner:
-            $ref: "#/definitions/User"
+            description: "Only accept kind: user"
+            $ref: "#/definitions/Subject"
       status:
         type: "object"
         properties:
