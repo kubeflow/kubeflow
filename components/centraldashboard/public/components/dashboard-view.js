@@ -74,6 +74,14 @@ export class DashboardView extends PolymerElement {
                         link: `${DOCS}/getting-started-gke/`,
                     },
                     {
+                        text: 'EKS for Kubeflow',
+                        desc: 'Get Kubeflow running on AWS. ' +
+                        'This guide is a quickstart to' +
+                        ' deploying Kubeflow on Amazon Elastic' +
+                        ' Container Service for Kubernetes (Amazon EKS)',
+                        link: `${DOCS}/getting-started-aws/`,
+                    },
+                    {
                         text: 'Requirements for Kubeflow',
                         desc: 'Get more detailed information about using ' +
                 'Kubeflow and its components',
