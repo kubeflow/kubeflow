@@ -305,7 +305,7 @@ local testDirDeleteStep = {
     };
 
 local exitTemplates =
-  deleteStep +
+  //deleteStep +
   [
     {
       template: buildTemplate("copy-artifacts", [
@@ -322,7 +322,7 @@ local exitTemplates =
          ["kfctl-delete"]
       else null,
     },
-    testDirDeleteStep,
+   // testDirDeleteStep,
   ];
 
 // Dag defines the tasks in the graph
