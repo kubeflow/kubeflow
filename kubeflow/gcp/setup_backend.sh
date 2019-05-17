@@ -56,7 +56,8 @@ if [[ -z ${USE_ISTIO} ]]; then
 else
   # Use kubectl patch.
   echo patch policy
-  kubectl -n ${NAMESPACE} patch policy ingress-jwt --type json -p '[{"op": "replace", "path": "/spec/principalBinding", "value": "USE_PEER"}]'
+  kubectl -n ${NAMESPACE} patch policy ingress-jwt --type json \
+    -p '[{"op": "replace", "path": "/spec/origins/jwt/0/audiences", "value": "['${JWT_AUDIENCE}']"}]'
 fi
 
 echo "Clearing lock on service annotation"
