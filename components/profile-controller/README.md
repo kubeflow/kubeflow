@@ -22,6 +22,7 @@ Specifically, each profile CRD will manage following resources:
 
 **GCP**
 - All users should have IAM permission `Kubernetes Engine Cluster Viewer`
+  - This is needed in order to get cluster access by `gcloud container clusters get-credentials`
 - kubeflow cluster with version v0.6
 
 ## Manage access control and resources
