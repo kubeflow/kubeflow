@@ -746,7 +746,6 @@
         "setup_backend.sh": importstr "setup_backend.sh",
         "update_backend.sh": importstr "update_backend.sh",
       } + if params.injectIstio then {
-        "jwt-policy-template.yaml": importstr "jwt-policy-template.yaml",
         "healthcheck_route.yaml": importstr "healthcheck_route.yaml",
       } else {
         "envoy-config.json": std.manifestJson(envoyConfig(params)),

@@ -146,15 +146,15 @@ install_istio() {
   curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-crds.yaml \
     https://raw.githubusercontent.com/kubeflow/kubeflow/master/dependencies/istio/install/crds.yaml
 
-  # 1. sidecar injection configmap policy is changed from enabled to disabled
-  # 2. istio-ingressgateway is of type NodePort instead of LoadBalancer
+  # istio-ingressgateway is of type NodePort instead of LoadBalancer
   curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-noauth.yaml \
     https://raw.githubusercontent.com/kubeflow/kubeflow/master/dependencies/istio/install/istio-noauth.yaml
 
   kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-crds.yaml
   kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-noauth.yaml
 
-  kubectl label namespace ${K8S_NAMESPACE} istio-injection=enabled --overwrite
+  # ensure istio injection is disabled by default
+  kubectl label namespace ${K8S_NAMESPACE} istio-injection=disabled --overwrite
 }
 
 ################################ Ksonnet changes ################################

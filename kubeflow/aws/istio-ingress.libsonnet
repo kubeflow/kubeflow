@@ -5,7 +5,7 @@
     local params = _params + _env {
       enableJwtChecking: util.toBool(_params.enableJwtChecking),
       hostname: if std.objectHas(_params, "hostname") then _params.hostname else "null",
-      enableAuth: util.toBool(_params.enableCognito),
+      authType: if util.toBool(_params.enableCognito) then "cognito" else if util.toBool(_params.enableOidc) then "oidc" else "null",
     },
 
     local kubeflowGateway = {
@@ -74,7 +74,11 @@
     }, // kubeflowRoutes
     virtualService:: kubeflowRoutes,
 
-    local policy = {
+    local jwtCheckingPolicy = if params.enableJwtChecking then {
+      assert params.CognitoAppClientId != "null" : "Parameter 'CognitoAppClientId' required for auth-type 'cognito'",
+      assert params.CoginitoRegion != "null" : "Parameter 'CoginitoRegion' required for auth-type 'cognito'",
+      assert params.CognitoUserPoolId != "null" : "Parameter 'CognitoUserPoolId' required for auth-type 'cognito'",
+
       apiVersion: "authentication.istio.io/v1alpha1",
       kind: "Policy",
       metadata: {
@@ -110,7 +114,24 @@
         "principalBinding": "USE_ORIGIN"
       },
     },
-    policy:: policy,
+    jwtCheckingPolicy:: jwtCheckingPolicy,
+
+    local oidcSecret = if params.authType == "oidc" then {
+      assert params.OidcClientId != "null" : "Parameter 'OidcClientId' required for auth-type 'oidc'",
+      assert params.OidcClientSecret != "null" : "Parameter 'OidcClientSecret' required for auth-type 'oidc'",
+
+      apiVersion: "v1",
+      kind: "Secret",
+      metadata: {
+        name: "istio-oidc-secret",
+        namespace: params.istioNamespace
+      },
+      data: {
+        clientId: std.base64(params.OidcClientId),
+        clientSecret: std.base64(params.OidcClientSecret)
+      }
+    },
+    oidcSecret:: oidcSecret,
 
     local ingress = {
       apiVersion: "extensions/v1beta1",
@@ -121,14 +142,30 @@
         annotations: {
           "kubernetes.io/ingress.class": "alb",
           "alb.ingress.kubernetes.io/scheme": "internet-facing",
-        } + if params.enableAuth then {
+        } + (if params.authType == "cognito" then {
+          assert params.CognitoUserPoolArn != "null" : "Parameter 'CognitoUserPoolArn' required for auth-type 'cognito'",
+          assert params.CognitoAppClientId != "null" : "Parameter 'CognitoAppClientId' required for auth-type 'cognito'",
+          assert params.CognitoUserPoolDomain != "null" : "Parameter 'CognitoUserPoolDomain' required for auth-type 'cognito'",
+
           "alb.ingress.kubernetes.io/auth-type": "cognito",
           "alb.ingress.kubernetes.io/auth-idp-cognito": '{"UserPoolArn":"'+ params.CognitoUserPoolArn +'", "UserPoolClientId":"'+ params.CognitoAppClientId +'", "UserPoolDomain":"'+params.CognitoUserPoolDomain +'"}',
-          "alb.ingress.kubernetes.io/certificate-arn": params.certArn,
-          "alb.ingress.kubernetes.io/listen-ports":  '[{"HTTPS":443}]',
+        } else if params.authType == "oidc" then {
+          assert params.OidcIssuer != "null" : "Parameter 'OidcIssuer' required for auth-type 'oidc'",
+          assert params.OidcAuthorizationEndpoint != "null" : "Parameter 'OidcAuthorizationEndpoint' required for auth-type 'oidc'",
+          assert params.OidcTokenEndpoint != "null" : "Parameter 'OidcTokenEndpoint' required for auth-type 'oidc'",
+          assert params.OidcUserInfoEndpoint != "null" : "Parameter 'OidcUserInfoEndpoint' required for auth-type 'oidc'",
+
+          "alb.ingress.kubernetes.io/auth-type": "oidc",
+          "alb.ingress.kubernetes.io/auth-idp-oidc": '{"Issuer":"'+ params.OidcIssuer + '","AuthorizationEndpoint":"'+ params.OidcAuthorizationEndpoint + '","TokenEndpoint":"'+ params.OidcTokenEndpoint +'","UserInfoEndpoint":"'+ params.OidcUserInfoEndpoint + '","SecretName":"istio-oidc-secret"}'
         } else {
-          "alb.ingress.kubernetes.io/listen-ports":  '[{"HTTP": 80}]',
-        },
+        }) + (if params.authType != "null" || params.certArn != "null" then {
+          assert params.certArn != "null" : "Parameter 'certArn' required for auth-type '" + params.authType + "'",
+
+          "alb.ingress.kubernetes.io/certificate-arn": params.certArn,
+          "alb.ingress.kubernetes.io/listen-ports": '[{"HTTPS":443}]',
+        } else {
+          "alb.ingress.kubernetes.io/listen-ports": '[{"HTTP": 80}]',
+        }),
       },
       spec: {
         rules: [
@@ -158,8 +195,11 @@
       self.virtualService,
       self.ingress,
     ] + if params.enableJwtChecking then [
-      self.policy,
-    ] else [],
+      self.jwtCheckingPolicy,
+    ] else [
+    ] + if params.authType == "oidc" then [
+      self.oidcSecret
+    ],
 
     list(obj=self.all):: k.core.v1.list.new(obj,),
   },
