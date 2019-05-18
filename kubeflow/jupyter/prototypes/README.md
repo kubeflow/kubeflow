@@ -37,7 +37,7 @@ spec:
           requests:
             cpu: 500m
             memory: 1Gi
-        workingDir: "/home/jovyan"
+        workingDir: /home/jovyan
       securityContext:
         fsGroup: 100
         runAsUser: 1000
