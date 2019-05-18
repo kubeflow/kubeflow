@@ -43,7 +43,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     query-params='{{queryParams}}', selected="{{namespace}}",
                     hides, hidden$='[[hideNamespaces]]')
         main#Content
-            section#ViewTabs(hides, hidden$='[[hideTabs]]')
+            section#ViewTabs(hidden$='[[hideTabs]]')
                 paper-tabs(selected='[[page]]', attr-for-selected='page')
                         paper-tab(page='dashboard', link)
                             a.link(tabindex='-1', href$='[[buildHref("/", queryParams)]]') Dashboard
