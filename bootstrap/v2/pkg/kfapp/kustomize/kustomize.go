@@ -707,12 +707,15 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 		log.Warnf("cannot merge namesuffix %v ", child.NamePrefix)
 
 	}
-	if len(child.CommonLabels) > 0 {
-		log.Warnf("cannot merge commonlabels %v ", child.CommonLabels)
-
+	for k, v := range child.CommonLabels {
+		//allow replacement
+		parent.CommonLabels[k] = v
+		kustomizationMaps[commonLabelsMap][k] = true
 	}
-	if len(child.CommonAnnotations) > 0 {
-		log.Warnf("cannot merge commonannotations %v ", child.CommonAnnotations)
+	for k, v := range child.CommonAnnotations {
+		//allow replacement
+		parent.CommonAnnotations[k] = v
+		kustomizationMaps[commonAnnotationsMap][k] = true
 	}
 	for _, value := range child.Resources {
 		resourceAbsoluteFile := filepath.Join(targetDir, string(value))
