@@ -934,8 +934,6 @@ func GenerateKustomizationFile(kfDef *cltypes.KfDef, root string,
 		kustomization.CommonLabels = map[string]string {
 			kftypes.DefaultAppLabel: kfDef.Name,
 		}
-	} else {
-		kustomization.CommonLabels[kftypes.DefaultAppLabel] = kfDef.Name
 	}
 	buf, bufErr := yaml.Marshal(kustomization)
 	if bufErr != nil {
