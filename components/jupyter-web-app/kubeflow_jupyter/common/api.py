@@ -123,8 +123,8 @@ def get_poddefaults_labels(ns):
                                             ns, "poddefaults")['items']
   plabels = {}
   logger.info("%d number of poddefaults are found." % len(poddefaults))
-  for pp in poddefaults:
-    selector = pp['spec']['selector']['matchLabels']
+  for pd in poddefaults:
+    selector = pd['spec']['selector']['matchLabels']
     plabels.update(selector)
   return plabels
 
