@@ -69,7 +69,8 @@ paper-card#Platform-Links {
     word-break: break-word;
     width: 100%;
     white-space: normal;
-    font-size: .8em;
+    font-size: .9em;
+    line-height: 1.5em;
 }
 
 #Quick-Links {
