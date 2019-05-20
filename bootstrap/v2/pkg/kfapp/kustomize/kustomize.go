@@ -621,6 +621,8 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 					params[i] = paramName + "=" + val
 				} else {
 					switch paramName {
+					case "appName":
+						params[i] = paramName + "=" + kfDef.Name
 					case "namespace":
 						params[i] = paramName + "=" + kfDef.Namespace
 					case "project":
