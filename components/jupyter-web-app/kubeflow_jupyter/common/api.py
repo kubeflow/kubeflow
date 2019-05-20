@@ -117,13 +117,13 @@ def get_namespaces():
   nmsps = v1_core.list_namespace()
   return [ns.metadata.name for ns in nmsps.items]
 
-#get the list of available podpresets
-def get_podpresets_labels(ns):
-  podpresets = custom_api.list_namespaced_custom_object("kubeflow.org", "v1alpha1", 
-                                            ns, "podpresets")['items']
+#get the list of available poddefaults
+def get_poddefaults_labels(ns):
+  poddefaults = custom_api.list_namespaced_custom_object("kubeflow.org", "v1alpha1", 
+                                            ns, "poddefaults")['items']
   plabels = {}
-  logger.info("%d number of podpresets are found." % len(podpresets))
-  for pp in podpresets:
+  logger.info("%d number of poddefaults are found." % len(poddefaults))
+  for pp in poddefaults:
     selector = pp['spec']['selector']['matchLabels']
     plabels.update(selector)
   return plabels

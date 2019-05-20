@@ -24,13 +24,13 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func TestStoragePodPreset(t *testing.T) {
+func TestStoragePodDefault(t *testing.T) {
 	key := types.NamespacedName{Name: "foo", Namespace: "default"}
-	created := &PodPreset{ObjectMeta: metav1.ObjectMeta{Name: "foo", Namespace: "default"}}
+	created := &PodDefault{ObjectMeta: metav1.ObjectMeta{Name: "foo", Namespace: "default"}}
 	g := gomega.NewGomegaWithT(t)
 
 	// Test Create
-	fetched := &PodPreset{}
+	fetched := &PodDefault{}
 	g.Expect(c.Create(context.TODO(), created)).NotTo(gomega.HaveOccurred())
 
 	g.Expect(c.Get(context.TODO(), key, fetched)).NotTo(gomega.HaveOccurred())

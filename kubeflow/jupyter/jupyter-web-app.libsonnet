@@ -47,7 +47,7 @@
         },
         {
           apiGroups: ["kubeflow.org"],
-          resources: ["notebooks","podpresets"],
+          resources: ["notebooks","poddefaults"],
           verbs: ["get", "list", "create", "delete"],
         },
         {
