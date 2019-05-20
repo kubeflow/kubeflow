@@ -277,19 +277,26 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	pod := &corev1.Pod{}
 	err = r.Get(context.TODO(), types.NamespacedName{Name: ss.Name + "-0", Namespace: ss.Namespace}, pod)
 	if err != nil && errors.IsNotFound(err) {
-		// This should be reconcile by the StatefulSet
+		// This should be reconciled by the StatefulSet
 		log.Info("Pod not found...")
 	} else if err != nil {
 		return reconcile.Result{}, err
 	} else {
 		// Got the pod
-		if len(pod.Status.ContainerStatuses) > 0 && instance.Status.ContainerState != pod.Status.ContainerStatuses[0].State {
+		if len(pod.Status.ContainerStatuses) > 0 &&
+			pod.Status.ContainerStatuses[0].State != instance.Status.ContainerState {
 			log.Info("Updating container state: ", "namespace", instance.Namespace, "name", instance.Name)
-			oldConditions := instance.Status.Conditions
 			cs := pod.Status.ContainerStatuses[0].State
 			instance.Status.ContainerState = cs
+			oldConditions := instance.Status.Conditions
 			newCondition := getNextCondition(&cs)
-			instance.Status.Conditions = append([]v1alpha1.NotebookCondition{*newCondition}, oldConditions...)
+			// Append new condition
+			if len(oldConditions) == 0 || oldConditions[0].Type != newCondition.Type ||
+				oldConditions[0].Reason != newCondition.Reason ||
+				oldConditions[0].Message != newCondition.Message {
+				log.Info("Appending to conditions: ", "namespace", instance.Namespace, "name", instance.Name, "type", newCondition.Type, "reason", newCondition.Reason, "message", newCondition.Message)
+				instance.Status.Conditions = append([]v1alpha1.NotebookCondition{newCondition}, oldConditions...)
+			}
 			err = r.Status().Update(context.Background(), instance)
 			if err != nil {
 				return reconcile.Result{}, err
@@ -300,7 +307,7 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	return reconcile.Result{}, nil
 }
 
-func getNextCondition(cs *corev1.ContainerState) *v1alpha1.NotebookCondition {
+func getNextCondition(cs *corev1.ContainerState) v1alpha1.NotebookCondition {
 	var nbtype = ""
 	var nbreason = ""
 	var nbmsg = ""
@@ -317,7 +324,7 @@ func getNextCondition(cs *corev1.ContainerState) *v1alpha1.NotebookCondition {
 		nbmsg = cs.Terminated.Reason
 	}
 
-	newCondition := &v1alpha1.NotebookCondition{
+	newCondition := v1alpha1.NotebookCondition{
 		Type:          nbtype,
 		LastProbeTime: metav1.Now(),
 		Reason:        nbreason,
