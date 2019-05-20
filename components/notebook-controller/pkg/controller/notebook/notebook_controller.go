@@ -289,7 +289,7 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 			cs := pod.Status.ContainerStatuses[0].State
 			instance.Status.ContainerState = cs
 			oldConditions := instance.Status.Conditions
-			newCondition := getNextCondition(&cs)
+			newCondition := getNextCondition(cs)
 			// Append new condition
 			if len(oldConditions) == 0 || oldConditions[0].Type != newCondition.Type ||
 				oldConditions[0].Reason != newCondition.Reason ||
@@ -307,7 +307,7 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	return reconcile.Result{}, nil
 }
 
-func getNextCondition(cs *corev1.ContainerState) v1alpha1.NotebookCondition {
+func getNextCondition(cs corev1.ContainerState) v1alpha1.NotebookCondition {
 	var nbtype = ""
 	var nbreason = ""
 	var nbmsg = ""
