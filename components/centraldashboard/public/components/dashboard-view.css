@@ -45,6 +45,9 @@ paper-card {
         font-size: 14px;
     }
 }
+paper-card#Quick-Links {
+    --paper-item-body-two-line-min-height: 2em;
+}
 paper-card#Platform-Links {
     --paper-card-header-color: #2c6acb;
     --paper-card-header: {

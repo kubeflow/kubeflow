@@ -4,8 +4,10 @@
             iframe-link.link(href$="[[item.link]]", tabindex='-1')
                 paper-icon-item
                     iron-icon(icon='kubeflow:bolt', slot='item-icon')
+                    paper-item-body(two-line)
+                        .header [[item.text]]
+                        aside(secondary) [[item.desc]]
                     paper-ripple
-                    .text [[item.text]]
 .column
     paper-card#Documentation(heading='Documentation')
         template(is='dom-repeat', items='[[documentationItems]]')
