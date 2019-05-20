@@ -264,19 +264,6 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 	}
 
-	// Update the status if previous condition is not "Ready"
-	oldConditions := instance.Status.Conditions
-	if len(oldConditions) == 0 || oldConditions[0].Type != "Ready" {
-		newCondition := v1alpha1.NotebookCondition{
-			Type: "Ready",
-		}
-		instance.Status.Conditions = append([]v1alpha1.NotebookCondition{newCondition}, oldConditions...)
-		// Using context.Background as: https://book.kubebuilder.io/basics/status_subresource.html
-		err = r.Status().Update(context.Background(), instance)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-	}
 	// Update the readyReplicas if the status is changed
 	if foundStateful.Status.ReadyReplicas != instance.Status.ReadyReplicas {
 		log.Info("Updating Status", "namespace", instance.Namespace, "name", instance.Name)
@@ -297,10 +284,13 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	} else {
 		// Got the pod
-		if len(pod.Status.ContainerStatuses) > 0 &&
-			pod.Status.ContainerStatuses[0].State != instance.Status.ContainerState {
+		if len(pod.Status.ContainerStatuses) > 0 && instance.Status.ContainerState != pod.Status.ContainerStatuses[0].State {
 			log.Info("Updating container state: ", "namespace", instance.Namespace, "name", instance.Name)
-			instance.Status.ContainerState = pod.Status.ContainerStatuses[0].State
+			oldConditions := instance.Status.Conditions
+			cs := pod.Status.ContainerStatuses[0].State
+			instance.Status.ContainerState = cs
+			newCondition := getNextCondition(&cs)
+			instance.Status.Conditions = append([]v1alpha1.NotebookCondition{*newCondition}, oldConditions...)
 			err = r.Status().Update(context.Background(), instance)
 			if err != nil {
 				return reconcile.Result{}, err
@@ -311,6 +301,32 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	return reconcile.Result{}, nil
 }
 
+func getNextCondition(cs *corev1.ContainerState) *v1alpha1.NotebookCondition {
+	var nbtype = ""
+	var nbreason = ""
+	var nbmsg = ""
+
+	if cs.Running != nil {
+		nbtype = "Running"
+	} else if cs.Waiting != nil {
+		nbtype = "Waiting"
+		nbreason = cs.Waiting.Reason
+		nbmsg = cs.Waiting.Message
+	} else {
+		nbtype = "Terminated"
+		nbreason = cs.Terminated.Reason
+		nbmsg = cs.Terminated.Reason
+	}
+
+	newCondition := &v1alpha1.NotebookCondition{
+		Type:          nbtype,
+		LastProbeTime: metav1.Now(),
+		Reason:        nbreason,
+		Message:       nbmsg,
+	}
+	return newCondition
+
+}
 func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
 	ss := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -409,7 +425,7 @@ func generateService(instance *v1alpha1.Notebook) *corev1.Service {
 			Ports: []corev1.ServicePort{
 				corev1.ServicePort{
 					// Make port name follow Istio pattern so it can be managed by istio rbac
-					Name: 		"http-" + instance.Name,
+					Name:       "http-" + instance.Name,
 					Port:       DefaultServingPort,
 					TargetPort: intstr.FromInt(port),
 					Protocol:   "TCP",
