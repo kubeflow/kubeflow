@@ -289,8 +289,8 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 	splitter := regexp.MustCompile(bootstrap.YamlSeparator)
 	objects := splitter.Split(string(data), -1)
 
-	var o map[string]interface{}
 	for _, object := range objects {
+		var o map[string]interface{}
 		if err = yaml.Unmarshal([]byte(object), &o); err != nil {
 			return err
 		}
