@@ -31,7 +31,7 @@ components:
   - cert-manager
   - cloud-endpoints
   - gpu-driver
-  - webhook  
+  - admission-webhook  
   - jupyter-web-app
   - katib
   - notebook-controller

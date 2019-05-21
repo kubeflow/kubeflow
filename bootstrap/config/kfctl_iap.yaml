@@ -29,7 +29,7 @@ components:
   - cloud-endpoints
   - gpu-driver
   - iap-ingress
-  - webhook  
+  - admission-webhook  
   - jupyter-web-app
   - katib
   - notebook-controller
