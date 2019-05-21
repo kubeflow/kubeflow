@@ -37,16 +37,16 @@ def post_notebook(namespace):
   body = request.form
 
   namespace = body["ns"]
-  podpresetLabels = api.get_podpresets_labels(namespace)
+  poddefaultLabels = api.get_poddefaults_labels(namespace)
 
   # Template
   notebook = utils.create_notebook_template()
   notebook_cont = notebook["spec"]['template']['spec']['containers'][0]
 
-  # podpreset labels
-  # todo: jupyter-web-app should add the podpreset labels that user selected
+  # poddefault labels
+  # todo: jupyter-web-app should add the poddefault labels that user selected
   #  (https://github.com/kubeflow/kubeflow/issues/2992)
-  utils.set_notebook_podpresets_labels(notebook, podpresetLabels)
+  utils.set_notebook_poddefaults_labels(notebook, poddefaultLabels)
   
   # Set Name and Namespace
   utils.set_notebook_names(notebook, body)
