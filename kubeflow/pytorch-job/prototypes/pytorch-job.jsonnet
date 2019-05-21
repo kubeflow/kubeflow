@@ -8,7 +8,7 @@
 // @optionalParam numMasters number 1 The number of masters to use
 // @optionalParam numWorkers number 1 The number of workers to use
 // @optionalParam numGpus number 0 The number of GPUs to attach to workers.
-// @optionalParam jobVersion string v1beta2 The pytorch operator version to use
+// @optionalParam jobVersion string v1 The pytorch operator version to use
 
 local k = import "k.libsonnet";
 
@@ -67,7 +67,7 @@ else
 
 local masterSpec = replicaSpec("MASTER", num_masters, args, image);
 
-local job = if jobVersion == "v1beta1" || jobVersion == "v1beta2" then {
+local job = if jobVersion == "v1" || jobVersion == "v1beta2" then {
   apiVersion: "kubeflow.org/" + jobVersion,
   kind: "PyTorchJob",
   metadata: {

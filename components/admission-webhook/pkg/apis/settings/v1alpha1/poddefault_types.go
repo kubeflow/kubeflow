@@ -23,8 +23,8 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// PodPresetSpec defines the desired state of PodPreset
-type PodPresetSpec struct {
+// PodDefaultSpec defines the desired state of PodDefault
+type PodDefaultSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
@@ -32,9 +32,9 @@ type PodPresetSpec struct {
 	// Required.
 	Selector metav1.LabelSelector `json:"selector"`
 
-	// Human readable description of podpreset
+	// Human readable description of poddefault
 	// todo: not sure if Spec is the right place for this (move to meta..)
-	// Can be used by UI to show users avaialble options for podpresets.
+	// Can be used by UI to show users avaialble options for poddefaults.
 	// +optional
 	Desc string `json:"desc,omitempty"`
 
@@ -55,8 +55,8 @@ type PodPresetSpec struct {
 	VolumeMounts []v1.VolumeMount `json:"volumeMounts,omitempty"`
 }
 
-// PodPresetStatus defines the observed state of PodPreset
-type PodPresetStatus struct {
+// PodDefaultStatus defines the observed state of PodDefault
+type PodDefaultStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
@@ -64,29 +64,29 @@ type PodPresetStatus struct {
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// PodPreset is the Schema for the podpresets API
+// PodDefault is the Schema for the poddefaults API
 // +k8s:openapi-gen=true
-// +kubebuilder:resource:path=podpresets
+// +kubebuilder:resource:path=poddefaults
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;watch;list;update
 // +kubebuilder:rbac:groups=,resources=events,verbs=create;patch;update
 // +kubebuilder:informers:group=apps,version=v1,kind=Deployment
-type PodPreset struct {
+type PodDefault struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   PodPresetSpec   `json:"spec,omitempty"`
-	Status PodPresetStatus `json:"status,omitempty"`
+	Spec   PodDefaultSpec   `json:"spec,omitempty"`
+	Status PodDefaultStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// PodPresetList contains a list of PodPreset
-type PodPresetList struct {
+// PodDefaultList contains a list of PodDefault
+type PodDefaultList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []PodPreset `json:"items"`
+	Items           []PodDefault `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&PodPreset{}, &PodPresetList{})
+	SchemeBuilder.Register(&PodDefault{}, &PodDefaultList{})
 }

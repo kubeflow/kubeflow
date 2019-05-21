@@ -88,7 +88,7 @@
             service: {
               name: "admission-webhook",
               namespace: namespace,
-              path: "/apply-podpreset"
+              path: "/apply-poddefault"
             },
             // To be patched.
             caBundle: "",
@@ -254,7 +254,7 @@ local webhookRole = {
             "kubeflow.org",
           ],
           resources: [
-            "podpresets",
+            "poddefaults",
           ],
           verbs: [
             "get",
@@ -301,20 +301,20 @@ local webhookRole = {
     },
     webhookRoleBinding:: webhookRoleBinding,
 
-   local podpresetCRD = {
+   local poddefaultCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
-        name: "podpresets.kubeflow.org",
+        name: "poddefaults.kubeflow.org",
       },
       spec: {
         group: "kubeflow.org",
         version: "v1alpha1",
         scope: "Namespaced",
         names: {
-          plural: "podpresets",
-          singular: "podpreset",
-          kind: "PodPreset",
+          plural: "poddefaults",
+          singular: "poddefault",
+          kind: "PodDefault",
         },
         validation: {
           openAPIV3Schema: {
@@ -383,10 +383,10 @@ local webhookRole = {
         storedVersions: [],
       },
     },
-    podpresetCRD:: podpresetCRD,
+    poddefaultCRD:: poddefaultCRD,
 
     all:: [
-      self.podpresetCRD,
+      self.poddefaultCRD,
       self.deployment,
       self.service,
       self.webhookBootstrapJob,

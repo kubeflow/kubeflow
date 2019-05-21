@@ -354,7 +354,7 @@ func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
 			},
 		},
 	}
-	// copy all of the Notebook labels to the pod including podpreset related labels
+	// copy all of the Notebook labels to the pod including poddefault related labels
 	l := &ss.Spec.Template.ObjectMeta.Labels
 	for k, v := range instance.ObjectMeta.Labels {
 		(*l)[k] = v

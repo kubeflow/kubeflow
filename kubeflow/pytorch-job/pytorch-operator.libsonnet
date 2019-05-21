@@ -20,7 +20,7 @@
       spec: {
         group: "kubeflow.org",
         scope: "Namespaced",
-        version: "v1beta2",
+        version: "v1",
         names: {
           kind: "PyTorchJob",
           singular: "pytorchjob",
@@ -43,12 +43,12 @@
         ],
         versions: [
           {
-            name: "v1beta2",
+            name: "v1",
             served: true,
             storage: true,
           },
           {
-            name: "v1beta1",
+            name: "v1beta2",
             served: true,
             storage: false,
           },
@@ -106,7 +106,7 @@
             containers: [
               {
                 command: std.prune([
-                  "/pytorch-operator.v1beta2",
+                  "/pytorch-operator.v1",
                   "--alsologtostderr",
                   "-v=1",
                   if deploymentScope == "namespace" then ("--namespace=" + deploymentNamespace),

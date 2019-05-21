@@ -289,8 +289,8 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 	splitter := regexp.MustCompile(bootstrap.YamlSeparator)
 	objects := splitter.Split(string(data), -1)
 
-	var o map[string]interface{}
 	for _, object := range objects {
+		var o map[string]interface{}
 		if err = yaml.Unmarshal([]byte(object), &o); err != nil {
 			return err
 		}
@@ -707,12 +707,15 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 		log.Warnf("cannot merge namesuffix %v ", child.NamePrefix)
 
 	}
-	if len(child.CommonLabels) > 0 {
-		log.Warnf("cannot merge commonlabels %v ", child.CommonLabels)
-
+	for k, v := range child.CommonLabels {
+		//allow replacement
+		parent.CommonLabels[k] = v
+		kustomizationMaps[commonLabelsMap][k] = true
 	}
-	if len(child.CommonAnnotations) > 0 {
-		log.Warnf("cannot merge commonannotations %v ", child.CommonAnnotations)
+	for k, v := range child.CommonAnnotations {
+		//allow replacement
+		parent.CommonAnnotations[k] = v
+		kustomizationMaps[commonAnnotationsMap][k] = true
 	}
 	for _, value := range child.Resources {
 		resourceAbsoluteFile := filepath.Join(targetDir, string(value))
@@ -819,7 +822,9 @@ func MergeKustomizations(kfDef *cltypes.KfDef, compDir string, params []config.N
 			Kind:       types.KustomizationKind,
 		},
 		Bases: make([]string,0),
-		CommonLabels: make(map[string]string),
+		CommonLabels: map[string]string {
+			kftypes.DefaultAppLabel: kfDef.Name,
+		},
 		CommonAnnotations: make(map[string]string),
 		PatchesStrategicMerge: make([]patch.StrategicMerge,0),
 		PatchesJson6902: make([]patch.Json6902,0),
@@ -931,8 +936,6 @@ func GenerateKustomizationFile(kfDef *cltypes.KfDef, root string,
 		kustomization.CommonLabels = map[string]string {
 			kftypes.DefaultAppLabel: kfDef.Name,
 		}
-	} else {
-		kustomization.CommonLabels[kftypes.DefaultAppLabel] = kfDef.Name
 	}
 	buf, bufErr := yaml.Marshal(kustomization)
 	if bufErr != nil {
