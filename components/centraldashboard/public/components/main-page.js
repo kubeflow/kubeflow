@@ -27,7 +27,7 @@ import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
 import css from './main-page.css';
 import template from './main-page.pug';
-import logo from '../assets/kf-logo.svg';
+import logo from '../assets/logo.svg';
 
 import './namespace-selector.js';
 import './dashboard-view.js';
@@ -44,9 +44,9 @@ import {IFRAME_LINK_PREFIX} from './iframe-link.js';
  */
 export class MainPage extends utilitiesMixin(PolymerElement) {
     static get template() {
-        const pugVariables = {logo: logo};
+        const vars = {logo};
         return html([
-            `<style>${css.toString()}</style>${template(pugVariables)}`]);
+            `<style>${css.toString()}</style>${template(vars)}`]);
     }
 
     static get properties() {
