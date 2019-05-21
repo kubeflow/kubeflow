@@ -142,7 +142,7 @@ std.assertEqual(
                   },
                 },
               ],
-              image: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
+              image: "gcr.io/kubeflow-images-public/tf_operator:v0.5.1",
               name: "tf-job-operator",
               volumeMounts: [
                 {
@@ -199,7 +199,7 @@ std.assertEqual(
                   },
                 },
               ],
-              image: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
+              image: "gcr.io/kubeflow-images-public/tf_operator:v0.5.1",
               name: "tf-job-dashboard",
               ports: [
                 {
