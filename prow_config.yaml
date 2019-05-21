@@ -100,6 +100,8 @@ workflows:
       platform: gke
       gkeApiVersion: v1
       workflowName: kfctl
+      useBasicAuth: false
+      useIstio: true
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_test
     name: kfctl-beta
