@@ -83,10 +83,9 @@ std.assertEqual(
           },
         },
       },
-      version: "v1beta1",
       versions: [
         {
-          name: "v1beta1",
+          name: "v1",
           served: true,
           storage: true,
         },
