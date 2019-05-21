@@ -7,7 +7,10 @@
     --accent-color: #007dfc;
     --primary-background-color: #0a3b71;
     --sidebar-default-color: #ffffff4f;
-    --border-color: #f4f4f6;
+    --divider-color: #dadce0;
+    --border-color: #eeeeef;
+    --icon-color: #202124;
+    --external-icon-color: var(--google-grey-700);
     --iframe-link: {
         text-decoration: none;
         color: inherit;
@@ -26,6 +29,10 @@
         display: flex !important;
         flex-direction: column !important;
     }
+}
+
+app-drawer-layout {
+    --app-drawer-width: 240px;
 }
 
 app-drawer-layout[narrow] #MainDrawer {
@@ -250,7 +257,7 @@ neon-animatable {
 }
 
 [hidden]:not([hides]) {
-    display: none
+    display: none !important
 }
 
 a[href] {
