@@ -23,7 +23,7 @@ paper-card {
     border-radius: 5px;
     width: 100%;
     overflow: hidden;
-    min-width: 25.75em;
+    min-width: 23em; /* 320px */
     padding-bottom: 16px;
     font-size: 14px;
     --paper-card-header-color: #202124;
