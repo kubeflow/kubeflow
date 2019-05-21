@@ -384,7 +384,7 @@ local deleteStorageStep = if deleteKubeflow then
 else [];
 
 local exitTemplates =
-  deleteStep + deleteStorageStep +
+  // deleteStep + deleteStorageStep +
   [
     {
       template: buildTemplate("copy-artifacts", [
@@ -397,7 +397,8 @@ local exitTemplates =
       ]),  // copy-artifacts,
 
       dependencies: if deleteKubeflow then
-        ["kfctl-delete"] + ["kfctl-delete-storage"]
+	null
+        // ["kfctl-delete"] + ["kfctl-delete-storage"]
       else null,
     },
     {
