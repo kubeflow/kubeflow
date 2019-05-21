@@ -8,6 +8,7 @@ packages:
   - common
   - examples
   - gcp
+  - admission-webhook  
   - jupyter
   - katib
   - metacontroller
@@ -28,6 +29,7 @@ components:
   - cloud-endpoints
   - gpu-driver
   - iap-ingress
+  - webhook  
   - jupyter-web-app
   - katib
   - notebook-controller
