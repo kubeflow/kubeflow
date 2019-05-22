@@ -259,6 +259,7 @@ local dagTemplates = [
     ),
     dependencies: ["kfctl-build-deploy"],
   },
+ // Run the nested tests.
   {
     template: componentTests.argoDagTemplate,
     dependencies: ["kfctl-is-ready"],
@@ -362,7 +363,8 @@ local exitDag = {
 local stepTemplates = std.map(function(i) i.template
                               , dagTemplates)  +
                       std.map(function(i) i.template
-                              , exitTemplates) + componentTests.argoDagTemplate;
+                              , exitTemplates) +componentTests.argoTaskTemplates;
+
 
 // Add a task to a dag.
 local workflow = {

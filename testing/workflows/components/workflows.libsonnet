@@ -487,7 +487,7 @@
               value: "false",
             },
             {
-              // We use a /directory in our NFS share to store our kube config.
+              // We use a directory in our NFS share to store our kube config.
               // This way we can configure it on a single step and reuse it on subsequent steps.
               name: "KUBECONFIG",
               value: testDir + "/.kube/" + kubeConfig,
@@ -579,7 +579,7 @@
                       if platform == "minikube" then
                         "deploy-kubeflow"
                       else
-                        "wait-for-kubeflow",
+                        "deploy-kubeflow",
                     ],
                   },
                   // Don't run argo test for gke since
