@@ -77,6 +77,9 @@ func getConfigFromCache(pathDir string, kfDef *kfdefs.KfDef) ([]byte, error) {
 	} else if kfDef.Spec.Platform != "" {
 		overlays = append(overlays, config.NameValue{Name: "overlay", Value: kfDef.Spec.Platform})
 	}
+	if kfDef.Spec.UseIstio {
+		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "istio"})
+	}
 	compPath := strings.Split(kftypes.DefaultConfigDir, "/")[1]
 	resMap, resMapErr := kustomize.GenerateKustomizationFile(kfDef,
 		path.Dir(configPath), compPath, overlays)

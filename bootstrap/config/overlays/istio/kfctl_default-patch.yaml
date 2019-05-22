@@ -1,0 +1,12 @@
+- op: add
+  path: /spec/components/-
+  value: 
+    istio-install
+- op: add
+  path: /spec/components/-
+  value: 
+    istio-namespace
+- op: add
+  path: /spec/components/-
+  value: 
+    istio

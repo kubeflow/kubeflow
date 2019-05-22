@@ -700,12 +700,11 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 	if child.NamePrefix != "" {
 		log.Warnf("cannot merge nameprefix %v ", child.NamePrefix)
 	}
-	if child.GeneratorOptions != nil && parent.GeneratorOptions == nil {
-		parent.GeneratorOptions = child.GeneratorOptions
-	}
 	if child.NameSuffix != "" {
 		log.Warnf("cannot merge namesuffix %v ", child.NamePrefix)
-
+	}
+	if child.GeneratorOptions != nil && parent.GeneratorOptions == nil {
+		parent.GeneratorOptions = child.GeneratorOptions
 	}
 	for k, v := range child.CommonLabels {
 		//allow replacement
@@ -805,16 +804,6 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 // MergeKustomizations will merge base and all overlay kustomization files into
 // a single kustomization file
 func MergeKustomizations(kfDef *cltypes.KfDef, compDir string, params []config.NameValue) (*types.Kustomization, error) {
-
-	overlayParams := []string{}
-	if params != nil {
-		for _, nv := range params {
-			name := nv.Name
-			if name == "overlay" {
-				overlayParams = append(overlayParams, nv.Value)
-			}
-		}
-	}
 	kustomizationMaps := CreateKustomizationMaps()
 	kustomization := &types.Kustomization{
 		TypeMeta: types.TypeMeta{
@@ -849,6 +838,18 @@ func MergeKustomizations(kfDef *cltypes.KfDef, compDir string, params []config.N
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INTERNAL_ERROR),
 				Message: fmt.Sprintf("error merging kustomization at %v Error %v", baseDir, err),
+			}
+		}
+	}
+	overlayParams := []string{}
+	if params != nil {
+		for _, nv := range params {
+			name := nv.Name
+			switch name {
+			case "overlay":
+				overlayParams = append(overlayParams, nv.Value)
+			case "namespace":
+				kustomization.Namespace = nv.Value
 			}
 		}
 	}
@@ -931,7 +932,9 @@ func GenerateKustomizationFile(kfDef *cltypes.KfDef, root string,
 	if kustomizationErr != nil {
 		return nil, kustomizationErr
 	}
-	kustomization.Namespace = kfDef.Namespace
+	if kustomization.Namespace == "" {
+		kustomization.Namespace = kfDef.Namespace
+	}
 	if kustomization.CommonLabels == nil {
 		kustomization.CommonLabels = map[string]string {
 			kftypes.DefaultAppLabel: kfDef.Name,
