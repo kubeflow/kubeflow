@@ -39,7 +39,7 @@ def parse_args():
       "--src_dir", default="", type=str, help="The kubeflow src directory")
   parser.add_argument(
       "--tf_job_version",
-      default="v1beta1",
+      default="v1",
       type=str,
       help="Which TFJob version to use")
   args, _ = parser.parse_known_args()
@@ -76,8 +76,8 @@ def create_app_and_job(args, namespace, name):
     if not re.search(".*already exists.*", e.output):
       raise
 
-  if args.tf_job_version == "v1beta1":
-    prototype_name = "tf-job-simple-v1beta1"
+  if args.tf_job_version == "v1":
+    prototype_name = "tf-job-simple-v1"
   elif args.tf_job_version == "v1beta2":
     prototype_name = "tf-job-simple-v1beta2"
   else:
