@@ -363,7 +363,7 @@ local exitDag = {
 local stepTemplates = std.map(function(i) i.template
                               , dagTemplates)  +
                       std.map(function(i) i.template
-                              , exitTemplates);
+                              , exitTemplates) +componentTests.argoTaskTemplates;
 
 
 // Add a task to a dag.
