@@ -259,6 +259,10 @@ local dagTemplates = [
     ),
     dependencies: ["kfctl-build-deploy"],
   },
+  {
+    template: componentTests.argoDagTemplate,
+    dependencies: ["kfctl-is-ready"],
+  },
 ];
 
 // Each item is a dictionary describing one step in the graph
@@ -358,8 +362,7 @@ local exitDag = {
 local stepTemplates = std.map(function(i) i.template
                               , dagTemplates)  +
                       std.map(function(i) i.template
-                              , exitTemplates);
-
+                              , exitTemplates) + componentTests.argoDagTemplate;
 
 // Add a task to a dag.
 local workflow = {
