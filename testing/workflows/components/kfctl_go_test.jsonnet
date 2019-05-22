@@ -259,6 +259,11 @@ local dagTemplates = [
     ),
     dependencies: ["kfctl-build-deploy"],
   },
+ // Run the nested tests.
+  {
+    template: componentTests.argoDagTemplate,
+    dependencies: ["kfctl-is-ready"],
+  },
 ];
 
 // Each item is a dictionary describing one step in the graph
