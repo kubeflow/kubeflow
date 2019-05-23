@@ -19,6 +19,8 @@ spec:
     - name: mysqlPvName
       value: mysql-pv
     - name: mysqlPvcName
+      value: mysql-pv-claim
+    - name: mysqlVolumeName
       value: mysql-pvc
     minio:
     - name: overlay
