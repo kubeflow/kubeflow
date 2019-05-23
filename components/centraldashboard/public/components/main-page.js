@@ -35,6 +35,7 @@ import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
 import './not-found-view.js';
+import './resources/kubeflow-icons.js';
 import utilitiesMixin from './utilities-mixin.js';
 import {MESSAGE, PARENT_CONNECTED_EVENT, IFRAME_CONNECTED_EVENT,
     NAMESPACE_SELECTED_EVENT} from '../library.js';

@@ -129,8 +129,8 @@
                       containers:
                       - name: {{.WorkerID}}
                         image: %(mcimage)s
+                        command: ["./metricscollector"]
                         args:
-                        - "./metricscollector"
                         - "-s"
                         - "{{.StudyID}}"
                         - "-t"

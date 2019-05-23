@@ -100,7 +100,13 @@
                 args: [
                   "--ingress-class=alb",
                   "--cluster-name=" + params.clusterName,
-                ],
+                ] + (if params.awsVpcId != "null" then [
+                  "--aws-vpc-id=" + params.awsVpcId
+                ] else [
+                ]) + (if params.awsRegion != "null" then [
+                  "--aws-region=" + params.awsRegion
+                ] else [
+                ]),
                 name: "alb-ingress-controller",
                 image: params.albIngressControllerImage,
                 imagePullPolicy: "Always",

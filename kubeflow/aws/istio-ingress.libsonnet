@@ -199,7 +199,7 @@
     ] else [
     ] + if params.authType == "oidc" then [
       self.oidcSecret
-    ],
+    ] else [],
 
     list(obj=self.all):: k.core.v1.list.new(obj,),
   },

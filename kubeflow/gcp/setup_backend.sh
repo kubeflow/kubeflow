@@ -22,7 +22,7 @@ gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS
 # Print out the config for debugging
 gcloud config list
 
-NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
+NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}')
 echo "node port is ${NODE_PORT}"
 
 while [[ -z ${BACKEND_NAME} ]]; do
@@ -54,9 +54,9 @@ if [[ -z ${USE_ISTIO} ]]; then
   kubectl get configmap -n ${NAMESPACE} envoy-config -o jsonpath='{.data.envoy-config\.json}' |
     sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g" > /var/shared/envoy-config.json
 else
-  # Apply the jwt validation policy
-  cat /var/envoy-config/jwt-policy-template.yaml | sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g" > /var/shared/jwt-policy.yaml
-  kubectl apply -f /var/shared/jwt-policy.yaml
+  # Use kubectl patch.
+  echo patch JWT audience: ${JWT_AUDIENCE}
+  kubectl -n ${NAMESPACE} patch policy ingress-jwt --type json -p '[{"op": "replace", "path": "/spec/origins/0/jwt/audiences/0", "value": "'${JWT_AUDIENCE}'"}]'
 fi
 
 echo "Clearing lock on service annotation"
