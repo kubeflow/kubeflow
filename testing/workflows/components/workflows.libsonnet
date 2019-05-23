@@ -578,9 +578,9 @@
                     template: "pytorchjob-deploy",
                     dependencies: [
                       if platform == "minikube" then
-                        "wait-for-kubeflow"
+                        "deploy-kubeflow"
                       else
-                        "deploy-kubeflow",
+                        "wait-for-kubeflow",
                     ],
                   },
                   // Don't run argo test for gke since
