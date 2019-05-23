@@ -34,3 +34,11 @@
   path: /spec/packages/-
   value: 
     pipeline
+- op: add
+  path: /spec/componentParams
+  value:
+    pipeline:
+    - name: mysqlPd
+      value: dls-kf-storage-metadata-store
+    - name: minioPd
+      value: dls-kf-storage-artifact-store
