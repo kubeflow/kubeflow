@@ -28,8 +28,8 @@ var showCfg = viper.New()
 // showCmd represents the show command
 var showCmd = &cobra.Command{
 	Use:   "show [all(=default)|k8s|platform]",
-	Short: "Deploy a generated kubeflow application.",
-	Long:  `Deploy a generated kubeflow application.`,
+	Short: "Show a generated kubeflow application.",
+	Long:  `Show a generated kubeflow application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
 		if showCfg.GetBool(string(kftypes.VERBOSE)) != true {

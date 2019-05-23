@@ -1,0 +1,219 @@
+swagger: "2.0"
+info:
+  description: "Access Management API."
+  version: "1.0.0"
+  title: "Kubeflow Auth"
+  termsOfService: "https://www.kubeflow.org/"
+  contact:
+    email: "kubeflow-engineering@google.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+basePath: "/kfam"
+schemes:
+  - "http"
+paths:
+  /v1/profiles:
+    post:
+      summary: "Create a instance, which own a namespace of same name"
+      operationId: "create profile"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Profile spec"
+          required: true
+          schema:
+            $ref: "#/definitions/Profile"
+      responses:
+        200:
+          description: "OK"
+        403:
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/ErrorMessage"
+        500:
+          description: "Internal Server Error"
+  /v1/profiles/{profile}:
+    delete:
+      summary: "Delete profile"
+      description: "Only admin or profile owner can delete profile"
+      operationId: "delete profile"
+      parameters:
+        - in: "path"
+          name: "profile"
+          description: "Profile name"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "OK"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Entry not found"
+        500:
+          description: "Internal Server Error"
+  /v1/bindings:
+    post:
+      summary: "Create a binding specifying a user and an namespace, the binding will grant user edit-access to referred namespace"
+      description: "Only admin or referred namespace owner can create binding"
+      operationId: "create binding"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Binding spec"
+          required: true
+          schema:
+            $ref: "#/definitions/Binding"
+      responses:
+        200:
+          description: "OK"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/ErrorMessage"
+        500:
+          description: "Internal Server Error"
+    get:
+      summary: "Get bindings created via kubeflow; filtered by query param"
+      description: "bindings will contain it's current status"
+      operationId: "read binding"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Binding spec"
+          required: true
+          schema:
+            $ref: "#/definitions/Binding"
+        - in: "query"
+          name: "user"
+          description: "User name, when not empty, only return bindings of this user"
+          type: "string"
+        - in: "query"
+          name: "namespace"
+          description: "Namespace name, when not empty, only return bindings of this namespace"
+          type: "string"
+        - in: "query"
+          name: "role"
+          description: "owner or editor or viewer, when not empty, only return bindings of this role"
+          type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Binding"
+        404:
+          description: "Entry not found"
+        500:
+          description: "Internal Server Error"
+    delete:
+      summary: "Delete binding specified in request body"
+      description: "Only admin or referred namespace owner can delete binding"
+      operationId: "delete binding"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Binding spec"
+          required: true
+          schema:
+            $ref: "#/definitions/Binding"
+      responses:
+        200:
+          description: "OK"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Entry not found"
+        500:
+          description: "Internal Server Error"
+definitions:
+  BindingEntries:
+    type: "object"
+    properties:
+      users:
+        type: "array"
+        items:
+          $ref: "#/definitions/Binding"
+  Subject:
+    type: "object"
+    description: "in consistent with io.k8s.api.rbac.v1.Subject"
+    properties:
+      kind:
+        type: "string"
+      name:
+        type: "string"
+      namespace:
+        type: "string"
+  RoleRef:
+    type: "object"
+    description: "in consistent with io.k8s.api.rbac.v1.RoleRef"
+    properties:
+      apiGroup:
+        type: "string"
+      kind:
+        type: "string"
+      name:
+        type: "string"
+  Binding:
+    type: "object"
+    description: "Binding will give user edit access to referredNamespace"
+    properties:
+      user:
+        $ref: "#/definitions/Subject"
+      referredNamespace:
+        type: "string"
+      RoleRef:
+        $ref: "#/definitions/RoleRef"
+      status:
+        description: "Status of the profile, one of Succeeded, Failed, Unknown."
+        type: "string"
+  Metadata:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      namespace:
+        type: "string"
+  Profile:
+    type: "object"
+    properties:
+      metadata:
+        $ref: "#/definitions/Metadata"
+      spec:
+        type: "object"
+        properties:
+          owner:
+            description: "Only accept kind: user"
+            $ref: "#/definitions/Subject"
+      status:
+        type: "object"
+        properties:
+          status:
+            description: "Status of the profile, one of Succeeded, Failed, Unknown."
+            type: "string"
+          message:
+            description: "Non empty when at Failed status, containing detailed error messages"
+            type: "string"
+  ErrorMessage:
+    type: "object"
+    properties:
+      errorMessage:
+        type: "string"

@@ -50,8 +50,10 @@ spec:
         image: gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df
         name: update
         env:
-        - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /secret/gcp-credentials/user-gcp-sa.json
+        - name: GIT_AUTHOR_NAME
+          value: kubeflow-bot
+        - name: GIT_AUTHOR_EMAIL
+          value: ci-bot-owners@kubeflow.org
         - name: PYTHONPATH
           value: /src/kubeflow/kubeflow/py:/src/kubeflow/testing/py:/src/kubeflow/fairing
         - name: GITHUB_TOKEN

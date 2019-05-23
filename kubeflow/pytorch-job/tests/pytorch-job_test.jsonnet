@@ -8,14 +8,14 @@ local params = {
   image: "pyControllerImage",
   deploymentScope: "cluster",
   deploymentNamespace: "null",
-  pyjobVersion: "v1beta2",
+  pyjobVersion: "v1",
 };
 
 local env = {
   namespace: "test-kf-001",
 };
 
-local pyjobCrd = pyjob.parts(params, env).crdV1beta2;
+local pyjobCrd = pyjob.parts(params, env).crd;
 
 local pytorchJobDeploy = pyjob.parts(params, env).pytorchJobDeploy;
 
@@ -79,15 +79,15 @@ local expectedCrd = {
         },
       },
     },
-    version: "v1beta2",
+    version: "v1",
     versions: [
       {
-        name: "v1beta2",
+        name: "v1",
         served: true,
         storage: true,
       },
       {
-        name: "v1beta1",
+        name: "v1beta2",
         served: true,
         storage: false,
       },
@@ -122,7 +122,7 @@ local testCases = [
             containers: [
               {
                 command: [
-                  "/pytorch-operator.v1beta2",
+                  "/pytorch-operator.v1",
                   "--alsologtostderr",
                   "-v=1",
                 ],

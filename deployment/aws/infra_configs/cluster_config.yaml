@@ -1,7 +1,7 @@
 # For details, Please check eksctl documentation or API specs.
 # https://github.com/weaveworks/eksctl/blob/master/pkg/apis/eksctl.io/v1alpha4/types.go
 
-apiVersion: eksctl.io/v1alpha4
+apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 metadata:
   # AWS_CLUSTER_NAME and AWS_REGION will override `name` and `region` here.

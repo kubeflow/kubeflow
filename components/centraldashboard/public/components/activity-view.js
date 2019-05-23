@@ -18,9 +18,6 @@ export class ActivityView extends PolymerElement {
                     padding: 1em;
                     overflow: auto;
                     --accent-color: #007dfc;
-                    --border-color: #f4f4f6;
-                    --sidebar-default-color: #ffffff4f;
-                    --primary-background-color: #003c75;
                     @apply --layout-vertical;
                 }
                 paper-progress {

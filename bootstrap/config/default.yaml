@@ -15,6 +15,8 @@ app:
       prototype: tf-job-operator
     - name: spartakus
       prototype: spartakus
+    - name: admission-webhook
+      prototype: admission-webhook  
     - name: jupyter-web-app
       prototype: jupyter-web-app
     - name: notebook-controller

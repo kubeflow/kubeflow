@@ -117,6 +117,17 @@ def get_namespaces():
   nmsps = v1_core.list_namespace()
   return [ns.metadata.name for ns in nmsps.items]
 
+#get the list of available poddefaults
+def get_poddefaults_labels(ns):
+  poddefaults = custom_api.list_namespaced_custom_object("kubeflow.org", "v1alpha1", 
+                                            ns, "poddefaults")['items']
+  plabels = {}
+  logger.info("%d number of poddefaults are found." % len(poddefaults))
+  for pd in poddefaults:
+    selector = pd['spec']['selector']['matchLabels']
+    plabels.update(selector)
+  return plabels
+
 
 def get_notebooks(ns):
   custom_api = client.CustomObjectsApi()

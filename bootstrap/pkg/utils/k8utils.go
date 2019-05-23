@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
+	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -45,7 +46,6 @@ import (
 const RecommendedConfigPathEnvVar = "KUBECONFIG"
 
 const (
-	yamlSeparator   = "---"
 	maxRetries      = 5
 	backoffInterval = 5 * time.Second
 )
@@ -253,7 +253,7 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 			Message: err.Error(),
 		}
 	}
-	objects := bytes.Split(data, []byte(yamlSeparator))
+	objects := bytes.Split(data, []byte(bootstrap.YamlSeparator))
 	var o map[string]interface{}
 	errors := make([]error, len(objects))
 	var wg sync.WaitGroup

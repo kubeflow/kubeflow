@@ -21,11 +21,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ghodss/yaml"
+	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
+	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
-	cltypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"k8s.io/api/v2/core/v1"
@@ -47,12 +48,18 @@ import (
 	"regexp"
 	application "sigs.k8s.io/application/v2/pkg/apis/app/v1beta1"
 	"sigs.k8s.io/kustomize/v2/k8sdeps"
-	"sigs.k8s.io/kustomize/v2/pkg/factory"
 	"sigs.k8s.io/kustomize/v2/pkg/fs"
+	"sigs.k8s.io/kustomize/v2/pkg/image"
 	"sigs.k8s.io/kustomize/v2/pkg/loader"
+	"sigs.k8s.io/kustomize/v2/pkg/patch"
+	"sigs.k8s.io/kustomize/v2/pkg/resmap"
 	"sigs.k8s.io/kustomize/v2/pkg/target"
 	"sigs.k8s.io/kustomize/v2/pkg/types"
 	"strings"
+
+	// Auth plugins
+	_ "k8s.io/client-go/v2/plugin/pkg/client/auth/gcp"
+	_ "k8s.io/client-go/v2/plugin/pkg/client/auth/oidc"
 )
 
 // kustomize implements KfApp Interface
@@ -67,10 +74,25 @@ import (
 //  kustomize edit add patch <filepath>
 //  kustomize edit add base <filepath1>,<filepath2>,<filepath3>
 //  kustomize edit set nameprefix <prefix-value>
+
+type MapType int
+
+const (
+	basesMap MapType = 0
+	commonAnnotationsMap MapType = 1
+	commonLabelsMap MapType = 2
+	imagesMap MapType = 3
+	resourcesMap MapType = 4
+	crdsMap MapType = 5
+	varsMap MapType = 6
+	configurationsMap MapType = 7
+	configMapGeneratorMap MapType = 8
+	secretsMapGeneratorMap MapType = 9
+	patchesStrategicMergeMap MapType = 10
+	patchesJson6902Map MapType = 11
+)
 type kustomize struct {
-	cltypesv2.KfDef
-	factory          *factory.KustFactory
-	fsys             fs.FileSystem
+	cltypes.KfDef
 	out              *os.File
 	err              *os.File
 	componentPathMap map[string]string
@@ -83,12 +105,12 @@ type kustomize struct {
 
 const (
 	outputDir     = "kustomize"
-	yamlSeparator = "(?m)^---[ \t]*$"
 )
 
 // GetKfApp is the common entry point for all implmentations of the KfApp interface
 func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
-	kfdef2 := cltypesv2.KfDef{
+	/*
+	kfdef := cltypes.KfDef{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       kfdef.TypeMeta.Kind,
 			APIVersion: kfdef.TypeMeta.APIVersion,
@@ -102,10 +124,9 @@ func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
 		},
 		Spec: kfdef.Spec,
 	}
+	*/
 	_kustomize := &kustomize{
-		KfDef:        kfdef2,
-		factory:      k8sdeps.NewFactory(),
-		fsys:         fs.MakeRealFS(),
+		KfDef:        *kfdef,
 		out:          os.Stdout,
 		err:          os.Stderr,
 		componentMap: make(map[string]bool),
@@ -265,11 +286,11 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 	if err != nil {
 		return err
 	}
-	splitter := regexp.MustCompile(yamlSeparator)
+	splitter := regexp.MustCompile(bootstrap.YamlSeparator)
 	objects := splitter.Split(string(data), -1)
 
-	var o map[string]interface{}
 	for _, object := range objects {
+		var o map[string]interface{}
 		if err = yaml.Unmarshal([]byte(object), &o); err != nil {
 			return err
 		}
@@ -433,10 +454,6 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 // One yaml file per component
 func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 	generate := func() error {
-		updateParamFilesErr := kustomize.updateParamFiles()
-		if updateParamFilesErr != nil {
-			return updateParamFilesErr
-		}
 		kustomizeDir := path.Join(kustomize.Spec.AppDir, outputDir)
 		// idempotency
 		if _, err := os.Stat(kustomizeDir); !os.IsNotExist(err) {
@@ -449,40 +466,22 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 				Message: fmt.Sprintf("couldn't create directory %v Error %v", kustomizeDir, kustomizeDirErr),
 			}
 		}
-		defer func() {
-			file := filepath.Join(kustomize.Spec.ManifestsRepo, kftypes.KustomizationFile)
-			if _, err := os.Stat(file); err == nil {
-				_ = os.Remove(file)
-			}
-		}()
 		for _, compName := range kustomize.Spec.Components {
 			if compPath, ok := kustomize.componentPathMap[compName]; ok {
-				writeKustomizationFileErr := kustomize.writeKustomizationFile(compPath)
-				if writeKustomizationFileErr != nil {
-					return writeKustomizationFileErr
-				}
-				_loader, loaderErr := loader.NewLoader(kustomize.Spec.ManifestsRepo, kustomize.fsys)
-				if loaderErr != nil {
-					return fmt.Errorf("could not load kustomize loader: %v", loaderErr)
-				}
-				defer _loader.Cleanup()
-				kt, err := target.NewKustTarget(_loader, kustomize.factory.ResmapF, kustomize.factory.TransformerF)
+				resMap, err := GenerateKustomizationFile(&kustomize.KfDef, kustomize.Spec.ManifestsRepo, compPath,
+					kustomize.Spec.ComponentParams[compName])
 				if err != nil {
-					return err
+					return &kfapis.KfError{
+						Code:    int(kfapis.INTERNAL_ERROR),
+						Message: fmt.Sprintf("error generating kustomization for %v Error %v", compPath, err),
+					}
 				}
-				allResources, err := kt.MakeCustomizedResMap()
-				if err != nil {
-					return err
-				}
-				// Output the objects.
-				res, err := allResources.EncodeAsYaml()
-				if err != nil {
-					return err
-				}
-				kustomizeFile := filepath.Join(kustomizeDir, compName+".yaml")
-				kustomizeFileErr := kustomize.fsys.WriteFile(kustomizeFile, res)
-				if kustomizeFileErr != nil {
-					return kustomizeFileErr
+				writeErr := WriteKustomizationFile(compName, kustomizeDir, resMap)
+				if writeErr != nil {
+					return &kfapis.KfError{
+						Code:    int(kfapis.INTERNAL_ERROR),
+						Message: fmt.Sprintf("error writing to %v Error %v", compPath, writeErr),
+					}
 				}
 			}
 		}
@@ -577,84 +576,407 @@ func (kustomize *kustomize) writeConfigFile() error {
 	return nil
 }
 
-// writeKustomizationFile will write out a top-level kustomization.yaml under the manifests downloaded cache.
-// this file is then used to generate a component under <deployment>/kustomize
-func (kustomize *kustomize) writeKustomizationFile(compPath string) error {
-	bases := []string{}
-	comp := path.Join(kustomize.Spec.ManifestsRepo, compPath)
-	compKustomizationFile := filepath.Join(comp, kftypes.KustomizationFile)
-	base := path.Join(kustomize.Spec.ManifestsRepo, compPath, "base")
-	baseKustomizationFile := filepath.Join(base, kftypes.KustomizationFile)
-	platformOverlay := path.Join(kustomize.Spec.ManifestsRepo, compPath, "overlays", kustomize.Spec.Platform)
-	platformKustomizationFile := filepath.Join(platformOverlay, kftypes.KustomizationFile)
-	if _, err := os.Stat(platformKustomizationFile); err == nil {
-		bases = append(bases, extractSuffix(kustomize.Spec.ManifestsRepo, platformOverlay))
-	} else if _, err := os.Stat(baseKustomizationFile); err == nil {
-		bases = append(bases, extractSuffix(kustomize.Spec.ManifestsRepo, base))
-	} else if _, err := os.Stat(compKustomizationFile); err == nil {
-		bases = append(bases, extractSuffix(kustomize.Spec.ManifestsRepo, comp))
+// GetKustomization will read a kustomization.yaml and return Kustomization type
+func GetKustomization(kustomizationPath string) *types.Kustomization {
+	kustomizationFile := filepath.Join(kustomizationPath, kftypes.KustomizationFile)
+	data, err := ioutil.ReadFile(kustomizationFile)
+	if err != nil {
+		return nil
 	}
-	kustomization := &types.Kustomization{
-		TypeMeta: types.TypeMeta{
-			Kind:       types.KustomizationKind,
-			APIVersion: types.KustomizationVersion,
-		},
-		Bases: bases,
-		CommonLabels: map[string]string{
-			kftypes.DefaultAppLabel: kustomize.Name,
-		},
-		Namespace: kustomize.Namespace,
+	kustomization := &types.Kustomization{}
+	if err = yaml.Unmarshal(data, kustomization); err != nil {
+		return nil
 	}
-	buf, bufErr := yaml.Marshal(kustomization)
-	if bufErr != nil {
-		return bufErr
+	return kustomization
+}
+
+// MergeKustomization will merge the child into the parent
+// if the child has no bases, then the parent just needs to add the child as base
+// otherwise the parent needs to merge with behaviors
+// Multiple overlays are constrained in what they can merge
+// which exclude NamePrefixes, NameSuffixes, CommonLabels, CommonAnnotations.
+// Any of these will generate an error
+func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, params []config.NameValue,
+	parent *types.Kustomization, child *types.Kustomization, kustomizationMaps map[MapType]map[string]bool) error {
+
+	paramMap := make(map[string]string)
+	for _, nv := range params {
+		paramMap[nv.Name] = nv.Value
 	}
-	cfgFilePath := filepath.Join(kustomize.Spec.ManifestsRepo, kftypes.KustomizationFile)
-	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
-	if cfgFilePathErr != nil {
-		return cfgFilePathErr
+	updateParamFiles := func() error {
+		paramFile := filepath.Join(targetDir, kftypes.KustomizationParamFile)
+		if _, err := os.Stat(paramFile); err == nil {
+			params, paramFileErr := readLines(paramFile)
+			if paramFileErr != nil {
+				return &kfapis.KfError{
+					Code:    int(kfapis.INVALID_ARGUMENT),
+					Message: fmt.Sprintf("could not open %v. Error: %v", paramFile, paramFileErr),
+				}
+			}
+			// in params.env look for name=value that we can substitute from componentParams[component]
+			// or if there is just namespace= or project= - fill in the values from KfDef
+			for i, param := range params {
+				paramName := strings.Split(param, "=")[0]
+				if val, ok := paramMap[paramName]; ok && val != "" {
+					params[i] = paramName + "=" + val
+				} else {
+					switch paramName {
+					case "appName":
+						params[i] = paramName + "=" + kfDef.Name
+					case "namespace":
+						params[i] = paramName + "=" + kfDef.Namespace
+					case "project":
+						params[i] = paramName + "=" + kfDef.Spec.Project
+					}
+				}
+			}
+			paramFileErr = writeLines(params, paramFile)
+			if paramFileErr != nil {
+				return &kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("could not update %v. Error: %v", paramFile, paramFileErr),
+				}
+			}
+		}
+		return nil
+	}
+	updateConfigMapArgs := func(parentConfigMapArgs *types.ConfigMapArgs, childConfigMapArgs types.ConfigMapArgs) {
+		parentConfigMapArgs.Name = childConfigMapArgs.Name
+		parentConfigMapArgs.Namespace = childConfigMapArgs.Namespace
+		if childConfigMapArgs.EnvSource != "" {
+			envAbsolutePathSource := path.Join(targetDir, childConfigMapArgs.EnvSource)
+			envSource := extractSuffix(compDir, envAbsolutePathSource)
+			parentConfigMapArgs.EnvSource = envSource
+		}
+		if childConfigMapArgs.FileSources != nil && len(childConfigMapArgs.FileSources) > 0 {
+			parentConfigMapArgs.FileSources = make([]string,0)
+			for _, fileSource := range childConfigMapArgs.FileSources {
+				fileAbsolutePathSource := path.Join(targetDir, fileSource)
+				parentConfigMapArgs.EnvSource = extractSuffix(compDir, fileAbsolutePathSource)
+			}
+		}
+		if childConfigMapArgs.LiteralSources != nil && len(childConfigMapArgs.LiteralSources) > 0 {
+			parentConfigMapArgs.LiteralSources = make([]string,0)
+			for _, literalSource := range childConfigMapArgs.LiteralSources {
+				parentConfigMapArgs.LiteralSources = append(parentConfigMapArgs.LiteralSources, literalSource)
+			}
+		}
+		switch types.NewGenerationBehavior(childConfigMapArgs.Behavior) {
+		case types.BehaviorCreate:
+			if _, ok := kustomizationMaps[configMapGeneratorMap][childConfigMapArgs.Name]; !ok {
+				parent.ConfigMapGenerator = append(parent.ConfigMapGenerator, *parentConfigMapArgs)
+				kustomizationMaps[configMapGeneratorMap][childConfigMapArgs.Name] = true
+			}
+		case types.BehaviorMerge, types.BehaviorReplace, types.BehaviorUnspecified:
+			fallthrough
+		default:
+			parent.ConfigMapGenerator = append(parent.ConfigMapGenerator, *parentConfigMapArgs)
+			kustomizationMaps[configMapGeneratorMap][childConfigMapArgs.Name] = true
+		}
+	}
+
+	if err := updateParamFiles(); err != nil {
+		return err
+	}
+	if child.Bases == nil {
+		basePath := extractSuffix(compDir, targetDir)
+		if _, ok := kustomizationMaps[basesMap][basePath]; !ok {
+			parent.Bases = append(parent.Bases, basePath)
+			kustomizationMaps[basesMap][basePath] = true
+		}
+		return nil
+	}
+	for _, value := range child.Bases {
+		baseAbsolutePath := path.Join(targetDir, value)
+		basePath := extractSuffix(compDir, baseAbsolutePath)
+		if _, ok := kustomizationMaps[basesMap][basePath]; !ok {
+			parent.Bases = append(parent.Bases, basePath)
+			kustomizationMaps[basesMap][basePath] = true
+		} else {
+			childPath := extractSuffix(compDir, targetDir)
+			kustomizationMaps[basesMap][childPath] = true
+		}
+	}
+	if child.NamePrefix != "" {
+		log.Warnf("cannot merge nameprefix %v ", child.NamePrefix)
+	}
+	if child.GeneratorOptions != nil && parent.GeneratorOptions == nil {
+		parent.GeneratorOptions = child.GeneratorOptions
+	}
+	if child.NameSuffix != "" {
+		log.Warnf("cannot merge namesuffix %v ", child.NamePrefix)
+
+	}
+	for k, v := range child.CommonLabels {
+		//allow replacement
+		parent.CommonLabels[k] = v
+		kustomizationMaps[commonLabelsMap][k] = true
+	}
+	for k, v := range child.CommonAnnotations {
+		//allow replacement
+		parent.CommonAnnotations[k] = v
+		kustomizationMaps[commonAnnotationsMap][k] = true
+	}
+	for _, value := range child.Resources {
+		resourceAbsoluteFile := filepath.Join(targetDir, string(value))
+		resourceFile := extractSuffix(compDir, resourceAbsoluteFile)
+		if _, ok := kustomizationMaps[resourcesMap][resourceFile]; !ok {
+			parent.Resources = append(parent.Resources, resourceFile)
+			kustomizationMaps[resourcesMap][resourceFile] = true
+		}
+	}
+	for _, value := range child.Images {
+		imageName := value.Name
+		if _, ok := kustomizationMaps[imagesMap][imageName]; !ok {
+			parent.Images = append(parent.Images, value)
+			kustomizationMaps[imagesMap][imageName] = true
+		} else {
+			kFile := filepath.Join(targetDir, kftypes.KustomizationFile)
+			log.Warnf("ignoring image %v specified in %v", imageName, kFile)
+		}
+	}
+	for _, value := range child.Crds {
+		if _, ok := kustomizationMaps[crdsMap][value]; !ok {
+			parent.Crds = append(parent.Crds, value)
+			kustomizationMaps[crdsMap][value] = true
+		} else {
+			kFile := filepath.Join(targetDir, kftypes.KustomizationFile)
+			log.Warnf("ignoring crd %v specified in %v", value, kFile)
+		}
+	}
+	for _, value := range child.ConfigMapGenerator {
+		parentConfigMapArgs := new(types.ConfigMapArgs)
+		updateConfigMapArgs(parentConfigMapArgs, value)
+	}
+	for _, value := range child.SecretGenerator {
+		secretName := value.Name
+		switch types.NewGenerationBehavior(value.Behavior) {
+		case types.BehaviorCreate:
+			if _, ok := kustomizationMaps[secretsMapGeneratorMap][secretName]; !ok {
+				parent.SecretGenerator = append(parent.SecretGenerator, value)
+				kustomizationMaps[secretsMapGeneratorMap][secretName] = true
+			}
+		case types.BehaviorMerge, types.BehaviorReplace:
+			parent.SecretGenerator = append(parent.SecretGenerator, value)
+			kustomizationMaps[secretsMapGeneratorMap][secretName] = true
+		}
+	}
+	for _, value := range child.Vars {
+		varName := value.Name
+		if _, ok := kustomizationMaps[varsMap][varName]; !ok {
+			parent.Vars = append(parent.Vars, value)
+			kustomizationMaps[varsMap][varName] = true
+		} else {
+			kFile := filepath.Join(targetDir, kftypes.KustomizationFile)
+			log.Warnf("ignoring var %v specified in %v", varName, kFile)
+		}
+	}
+	for _, value := range child.PatchesStrategicMerge {
+		patchAbsoluteFile := filepath.Join(targetDir, string(value))
+		patchFile := extractSuffix(compDir, patchAbsoluteFile)
+		if _, ok := kustomizationMaps[patchesStrategicMergeMap][patchFile]; !ok {
+			patchFileCasted := patch.StrategicMerge(patchFile)
+			parent.PatchesStrategicMerge = append(parent.PatchesStrategicMerge, patchFileCasted)
+			kustomizationMaps[patchesStrategicMergeMap][patchFile] = true
+		}
+	}
+	// json patches are aggregated and merged into local patch files
+	for _, value := range child.PatchesJson6902 {
+		patchJson := new(patch.Json6902)
+		patchJson.Target = value.Target
+		patchAbsolutePath := filepath.Join(targetDir, value.Path)
+		patchJson.Path = extractSuffix(compDir, patchAbsolutePath)
+		if _, ok := kustomizationMaps[patchesJson6902Map][patchJson.Path]; !ok {
+			parent.PatchesJson6902 = append(parent.PatchesJson6902, *patchJson)
+			kustomizationMaps[patchesJson6902Map][patchJson.Path] = true
+		}
+	}
+	for _, value := range child.Configurations {
+		configurationAbsolutePath := filepath.Join(targetDir, value)
+		configurationPath := extractSuffix(compDir, configurationAbsolutePath)
+		if _, ok := kustomizationMaps[configurationsMap][configurationPath]; !ok {
+			parent.Configurations = append(parent.Configurations, configurationPath)
+			kustomizationMaps[configurationsMap][configurationPath] = true
+		}
 	}
 	return nil
 }
 
-// updateParamFiles will taks any parameterComponent sections in app.yaml and update
-// the component's param.yaml file under the manifests downloaded cache
-func (kustomize *kustomize) updateParamFiles() error {
-	for _, compName := range kustomize.Spec.Components {
-		if val, ok := kustomize.Spec.ComponentParams[compName]; ok {
-			paramMap := make(map[string]string)
-			for _, nv := range val {
-				paramMap[nv.Name] = nv.Value
+// MergeKustomizations will merge base and all overlay kustomization files into
+// a single kustomization file
+func MergeKustomizations(kfDef *cltypes.KfDef, compDir string, params []config.NameValue) (*types.Kustomization, error) {
+
+	overlayParams := []string{}
+	if params != nil {
+		for _, nv := range params {
+			name := nv.Name
+			if name == "overlay" {
+				overlayParams = append(overlayParams, nv.Value)
 			}
-			compDir := kustomize.componentPathMap[compName]
-			paramFile := filepath.Join(path.Join(kustomize.Spec.ManifestsRepo, compDir), kftypes.KustomizationParamFile)
-			if _, err := os.Stat(paramFile); err == nil {
-				params, paramFileErr := readLines(paramFile)
-				if paramFileErr != nil {
-					return &kfapis.KfError{
-						Code:    int(kfapis.INVALID_ARGUMENT),
-						Message: fmt.Sprintf("could not open %v. Error: %v", paramFile, paramFileErr),
-					}
-				}
-				for i, param := range params {
-					paramName := strings.Split(param, "=")[0]
-					if val, ok := paramMap[paramName]; ok {
-						params[i] = paramName + "=" + val
-					} else {
-						switch paramName {
-						case "namespace":
-							params[i] = paramName + "=" + kustomize.Namespace
-						}
-					}
-				}
-				paramFileErr = writeLines(params, paramFile)
-				if paramFileErr != nil {
-					return &kfapis.KfError{
-						Code:    int(kfapis.INTERNAL_ERROR),
-						Message: fmt.Sprintf("could not update %v. Error: %v", paramFile, paramFileErr),
-					}
+		}
+	}
+	kustomizationMaps := CreateKustomizationMaps()
+	kustomization := &types.Kustomization{
+		TypeMeta: types.TypeMeta{
+			APIVersion: types.KustomizationVersion,
+			Kind:       types.KustomizationKind,
+		},
+		Bases: make([]string,0),
+		CommonLabels: map[string]string {
+			kftypes.DefaultAppLabel: kfDef.Name,
+		},
+		CommonAnnotations: make(map[string]string),
+		PatchesStrategicMerge: make([]patch.StrategicMerge,0),
+		PatchesJson6902: make([]patch.Json6902,0),
+		Images: make([]image.Image,0),
+		Vars: make([]types.Var,0),
+		Crds: make([]string,0),
+		Resources: make([]string,0),
+		ConfigMapGenerator: make([]types.ConfigMapArgs,0),
+		SecretGenerator: make([]types.SecretArgs,0),
+		Configurations: make([]string,0),
+	}
+	baseDir := path.Join(compDir, "base")
+	base := GetKustomization(baseDir)
+	if base == nil {
+		comp := GetKustomization(compDir)
+		if comp != nil {
+			return comp, nil
+		}
+	} else {
+		err := MergeKustomization(compDir, baseDir, kfDef, params, kustomization, base, kustomizationMaps)
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("error merging kustomization at %v Error %v", baseDir, err),
+			}
+		}
+	}
+	for _, overlayParam := range overlayParams {
+		overlayDir := path.Join(compDir, "overlays", overlayParam)
+		if _, err := os.Stat(overlayDir); err == nil {
+			err := MergeKustomization(compDir, overlayDir, kfDef, params, kustomization,
+				GetKustomization(overlayDir), kustomizationMaps)
+			if err != nil {
+				return nil, &kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("error merging kustomization at %v Error %v", overlayDir, err),
 				}
 			}
+		}
+	}
+	if len(kustomization.PatchesJson6902) > 0 {
+		patches := map[string][]patch.Json6902{}
+		for _, jsonPatch := range kustomization.PatchesJson6902 {
+			key := jsonPatch.Target.Name + "-" + jsonPatch.Target.Kind
+			if _, exists := patches[key]; !exists {
+				patchArray := make([]patch.Json6902, 0)
+				patchArray = append(patchArray, jsonPatch)
+				patches[key] = patchArray
+			} else {
+				patches[key] = append(patches[key], jsonPatch)
+			}
+		}
+		kustomization.PatchesJson6902 = make([]patch.Json6902, 0)
+		aggregatedPatchOps := make([]byte, 0)
+		patchFile := ""
+		for key, values := range patches {
+			aggregatedPatch := new(patch.Json6902)
+			aggregatedPatch.Path = key + ".yaml"
+			patchFile = path.Join(compDir, aggregatedPatch.Path)
+			aggregatedPatch.Target = new(patch.Target)
+			aggregatedPatch.Target.Name = values[0].Target.Name
+			aggregatedPatch.Target.Namespace = values[0].Target.Namespace
+			aggregatedPatch.Target.Group = values[0].Target.Group
+			aggregatedPatch.Target.Version = values[0].Target.Version
+			aggregatedPatch.Target.Kind = values[0].Target.Kind
+			aggregatedPatch.Target.Gvk = values[0].Target.Gvk
+			for _, eachPatch := range values {
+				patchPath := path.Join(compDir, eachPatch.Path)
+				if _, err := os.Stat(patchPath); err == nil {
+					data, err := ioutil.ReadFile(patchPath)
+					if err != nil {
+						return nil, err
+					}
+					aggregatedPatchOps = append(aggregatedPatchOps, data...)
+				}
+			}
+			kustomization.PatchesJson6902 = append(kustomization.PatchesJson6902, *aggregatedPatch)
+		}
+		patchErr := ioutil.WriteFile(patchFile, aggregatedPatchOps, 0644)
+		if patchErr != nil {
+			return nil, patchErr
+		}
+	}
+	return kustomization, nil
+}
+
+// GenerateKustomizationFile will create a kustomization.yaml
+// It will parse a args structure that provides mixin or multiple overlays to be merged with the base kustomization file
+// for example
+//
+//   componentParams:
+//    tf-job-operator:
+//    - name: overlay
+//      value: namespaced-gangscheduled
+//
+// It will return a resmap.ResMap which is an accumulated ResMap of the base + any overlays
+func GenerateKustomizationFile(kfDef *cltypes.KfDef, root string,
+	compPath string, params []config.NameValue) (resmap.ResMap, error) {
+
+	factory := k8sdeps.NewFactory()
+	fsys := fs.MakeRealFS()
+	compDir := path.Join(root, compPath)
+	kustomization, kustomizationErr := MergeKustomizations(kfDef, compDir, params)
+	if kustomizationErr != nil {
+		return nil, kustomizationErr
+	}
+	kustomization.Namespace = kfDef.Namespace
+	if kustomization.CommonLabels == nil {
+		kustomization.CommonLabels = map[string]string {
+			kftypes.DefaultAppLabel: kfDef.Name,
+		}
+	}
+	buf, bufErr := yaml.Marshal(kustomization)
+	if bufErr != nil {
+		return nil, bufErr
+	}
+	kustomizationPath := filepath.Join(compDir, kftypes.KustomizationFile)
+	kustomizationPathErr := ioutil.WriteFile(kustomizationPath, buf, 0644)
+	if kustomizationPathErr != nil {
+		return nil, kustomizationPathErr
+	}
+	_loader, loaderErr := loader.NewLoader(compDir, fsys)
+	if loaderErr != nil {
+		return nil, fmt.Errorf("could not load kustomize loader: %v", loaderErr)
+	}
+	defer _loader.Cleanup()
+	kt, err := target.NewKustTarget(_loader, factory.ResmapF, factory.TransformerF)
+	if err != nil {
+		return nil, err
+	}
+	allResources, err := kt.MakeCustomizedResMap()
+	if err != nil {
+		return nil, err
+	}
+	return allResources, nil
+}
+
+func WriteKustomizationFile(name string, kustomizeDir string, resMap resmap.ResMap) error {
+	// Output the objects.
+	yamlResources, yamlResourcesErr := resMap.EncodeAsYaml()
+	if yamlResourcesErr != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("error generating yaml Error %v", yamlResourcesErr),
+		}
+	}
+	kustomizeFile := filepath.Join(kustomizeDir, name+".yaml")
+	kustomizationFileErr := ioutil.WriteFile(kustomizeFile, yamlResources, 0644)
+	if kustomizationFileErr != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("error writing to %v Error %v", kustomizeFile, kustomizationFileErr),
 		}
 	}
 	return nil
@@ -696,4 +1018,21 @@ func writeLines(lines []string, path string) error {
 func extractSuffix(dirPath string, subDirPath string) string {
 	suffix := strings.TrimPrefix(subDirPath, dirPath)[1:]
 	return suffix
+}
+
+func CreateKustomizationMaps() map[MapType]map[string]bool {
+	return map[MapType]map[string]bool{
+		basesMap: make(map[string]bool),
+		commonAnnotationsMap: make(map[string]bool),
+		commonLabelsMap: make(map[string]bool),
+		imagesMap: make(map[string]bool),
+		resourcesMap: make(map[string]bool),
+		crdsMap: make(map[string]bool),
+		varsMap: make(map[string]bool),
+		configurationsMap: make(map[string]bool),
+		configMapGeneratorMap: make(map[string]bool),
+		secretsMapGeneratorMap: make(map[string]bool),
+		patchesStrategicMergeMap: make(map[string]bool),
+		patchesJson6902Map: make(map[string]bool),
+	}
 }

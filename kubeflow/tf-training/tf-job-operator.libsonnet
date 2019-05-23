@@ -58,7 +58,6 @@
       spec: {
         group: "kubeflow.org",
         scope: "Namespaced",
-        version: "v1beta1",
         names: {
           kind: "TFJob",
           singular: "tfjob",
@@ -82,7 +81,7 @@
         validation: { openAPIV3Schema: openAPIV3Schema },
         versions: [
           {
-            name: "v1beta1",
+            name: "v1",
             served: true,
             storage: true,
           },
@@ -98,7 +97,7 @@
 
     local tfJobContainer = {
       command: [
-        "/opt/kubeflow/tf-operator.v1beta2",
+        "/opt/kubeflow/tf-operator.v1",
         "--alsologtostderr",
         "-v=1",
       ] + if params.deploymentScope == "namespace" &&

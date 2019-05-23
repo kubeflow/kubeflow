@@ -88,7 +88,7 @@
             service: {
               name: "admission-webhook",
               namespace: namespace,
-              path: "/apply-podpreset"
+              path: "/apply-poddefault"
             },
             // To be patched.
             caBundle: "",
@@ -119,6 +119,7 @@
             service: "webhook-bootstrap",
           },
         },
+        serviceName: "webhook-bootstrap",
         template: {
           metadata: {
             labels: {
@@ -253,7 +254,7 @@ local webhookRole = {
             "kubeflow.org",
           ],
           resources: [
-            "podpresets",
+            "poddefaults",
           ],
           verbs: [
             "get",
@@ -300,7 +301,92 @@ local webhookRole = {
     },
     webhookRoleBinding:: webhookRoleBinding,
 
+   local poddefaultCRD = {
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
+      metadata: {
+        name: "poddefaults.kubeflow.org",
+      },
+      spec: {
+        group: "kubeflow.org",
+        version: "v1alpha1",
+        scope: "Namespaced",
+        names: {
+          plural: "poddefaults",
+          singular: "poddefault",
+          kind: "PodDefault",
+        },
+        validation: {
+          openAPIV3Schema: {
+            properties: {
+              apiVersion: {
+                type: "string",
+              },
+              kind: {
+                type: "string",
+              },
+              metadata: {
+                type: "object",
+              },
+              spec: {
+                properties: {
+                  desc: {
+                  type: "string",
+                  },
+                  env: {
+                    items:{
+                      type: "object",
+                    },
+                   type: "array",
+                  },
+                  envFrom: {
+                    items: {
+                      type: "object",
+                    },
+                    type: "array",
+                  },
+                  selector: {
+                    type: "object",
+                  },
+                  volumeMounts: {
+                    items: {
+                      type: "object",
+                    },
+                    type: "array",
+                  },
+                  volumes: {
+                    items: {
+                      type: "object",
+                    },
+                    type: "array",
+                  },
+                },
+                required: [
+                  "selector",
+                ],
+                type: "object",
+            },
+            status:{
+              type: "object",
+           },
+          },
+          type: "object",
+        },
+       },
+      },
+      status: {
+        acceptedNames: {
+          kind: "",
+          plural: "",
+        },
+        conditions: [],
+        storedVersions: [],
+      },
+    },
+    poddefaultCRD:: poddefaultCRD,
+
     all:: [
+      self.poddefaultCRD,
       self.deployment,
       self.service,
       self.webhookBootstrapJob,
