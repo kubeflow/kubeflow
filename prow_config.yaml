@@ -86,22 +86,6 @@ workflows:
   # kfctl test runs tests on gke.
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_test
-    name: kfctl
-    job_types:
-      - presubmit
-      - postsubmit
-      - periodic
-    include_dirs:
-      - scripts/*
-      - kubeflow/*
-      - testing/*
-      - deployment/*
-    params:
-      platform: gke
-      gkeApiVersion: v1
-      workflowName: kfctl
-  - app_dir: kubeflow/kubeflow/testing/workflows
-    component: kfctl_test
     name: kfctl-beta
     job_types:
       - presubmit
