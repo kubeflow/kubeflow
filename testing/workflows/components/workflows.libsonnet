@@ -190,22 +190,6 @@
     // argoTaskTemplates is constructing from tasks as well.
     tasks:: [
       {
-
-        // Wait for Kubeflow and run some basic tests such as checking
-        // that various components started.
-        template: tests.buildTemplate {
-          name: "wait-for-kubeflow",
-          command: [
-            "python",
-            "-m",
-            "testing.wait_for_kubeflow",
-            "--test_dir=" + tests.testDir,
-            "--namespace=" + tests.stepsNamespace,
-          ],
-        },  // wait-for-kubeflow
-        dependencies: null,
-      },  // wait-for-kubeflow
-      {
         local v1Suffix = "-v1",
         template: tests.buildTemplate {
           name: "tfjob-test" + v1Suffix,
@@ -224,7 +208,7 @@
             "--skip_tests=test_simple_tfjob_gpu",
           ],
         },  // run tests
-        dependencies: ["wait-for-kubeflow"],
+        dependencies: null,
       },  // tf-job-test-v1
       {
         local v1beta2Suffix = "-v1b2",
@@ -245,7 +229,7 @@
             "--skip_tests=test_simple_tfjob_gpu",
           ],
         },  // run tests
-        dependencies: ["wait-for-kubeflow"],
+        dependencies: null,
       },  // tf-job-test-v1b2
       // TODO(https://github.com/kubeflow/kubeflow/issues/1407): argo-deploy is flaky so disable it.
       // {
@@ -286,7 +270,7 @@
             "test_katib",
           ],
         },
-        dependencies: ["wait-for-kubeflow"],
+        dependencies: null,
       },  // test-katib
       {
         template: tests.buildTemplate {
@@ -307,7 +291,7 @@
           ],
           pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
         },
-        dependencies: ["wait-for-kubeflow"],
+        dependencies: null,
       },  // pytorchjob - deploy,
       {
 
@@ -325,7 +309,7 @@
           pythonPath: tests.kubeflowPy + ":" + tests.tfOperatorPy + ":" + tests.kubeflowTestingPy,
         },
 
-        dependencies: ["wait-for-kubeflow"],
+        dependencies: null,
       },  // tfjob-simple-prototype-test
       // The test is flaky so disable it see https://github.com/kubeflow/kubeflow/issues/2825.
       // TODO(jlewi). We probably don't need to run the test to verify katib is working correctly.
@@ -359,25 +343,26 @@
           ],
           workingDir: tests.srcDir + "/kubeflow/jupyter/tests",
         },
-        dependencies: ["wait-for-kubeflow"],
+        dependencies: null,
       },  // notebooks-test
-      {
-        template: tests.buildTemplate {
-          name: "profiles-test",
-          command: [
-            "pytest",
-            "profiles_test.py",
+     // profle is a wip and is under some changes
+     //  {
+      //  template: tests.buildTemplate {
+        //  name: "profiles-test",
+        //  command: [
+        //    "pytest",
+        //    "profiles_test.py",
             // I think -s mean stdout/stderr will print out to aid in debugging.
             // Failures still appear to be captured and stored in the junit file.
-            "-s",
+         //   "-s",
             // Test timeout in seconds.
-            "--timeout=500",
-            "--junitxml=" + tests.artifactsDir + "/junit_profile-test.xml",
-          ],
-          workingDir: tests.srcDir + "/kubeflow/profiles/tests",
-        },
-        dependencies: ["wait-for-kubeflow"],
-      },  // profiles-test
+          //  "--timeout=500",
+          //  "--junitxml=" + tests.artifactsDir + "/junit_profile-test.xml",
+         // ],
+         // workingDir: tests.srcDir + "/kubeflow/profiles/tests",
+       // },
+      //  dependencies: null,
+     // },  // profiles-test
     ],
 
     // An Argo template for the dag.
