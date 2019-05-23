@@ -1498,12 +1498,12 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 
 	minioPdName := gcp.Name + "-storage-artifact-store"
 	mysqlPdName := gcp.Name + "-storage-metadata-store"
-	gcp.Spec.ComponentParams["minio"] = setNameVal(gcp.Spec.ComponentParams["minio"], "overlay", "minioPd", false)
-	gcp.Spec.ComponentParams["minio"] = setNameVal(gcp.Spec.ComponentParams["minio"], "minioPd", minioPdName, false)
 	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "mysqlPd", mysqlPdName, false)
-	gcp.Spec.ComponentParams["mysql"] = setNameVal(gcp.Spec.ComponentParams["mysql"], "overlay", "mysqlPd", false)
-	gcp.Spec.ComponentParams["mysql"] = setNameVal(gcp.Spec.ComponentParams["mysql"], "mysqlPd", mysqlPdName, false)
 	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "minioPd", minioPdName, false)
+	if gcp.Spec.PackageManager == "kustomize" {
+		gcp.Spec.ComponentParams["minio"] = setNameVal(gcp.Spec.ComponentParams["minio"], "minioPd", minioPdName, false)
+		gcp.Spec.ComponentParams["mysql"] = setNameVal(gcp.Spec.ComponentParams["mysql"], "mysqlPd", mysqlPdName, false)
+	}
 	gcp.Spec.ComponentParams["notebook-controller"] = setNameVal(gcp.Spec.ComponentParams["notebook-controller"], "injectGcpCredentials", "true", false)
 
 	for _, comp := range gcp.Spec.Components {

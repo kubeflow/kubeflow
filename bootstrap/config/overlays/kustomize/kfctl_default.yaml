@@ -11,3 +11,13 @@ spec:
       value: dls-kf-storage-artifact-store
     - name: injectIstio
       value: "false"
+    mysql:
+    - name: overlay
+      value: mysqlPd
+    - name: mysqlPd
+      value: dls-kf-storage-metadata-store
+    minio:
+    - name: overlay
+      value: minioPd
+    - name: minioPd
+      value: dls-kf-storage-artifact-store
