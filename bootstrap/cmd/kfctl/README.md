@@ -82,7 +82,7 @@ These include:
 - platform: **gcp** 
   - bootstrap/pkg/client/gcp/gcp.go
 
-kfctl also statically links package managers that are used by the platforms
+kfctl also statically links package managers that are used by the platforms.
 These include:
 
 - package manager: **ksonnet**
@@ -106,8 +106,8 @@ described below in [Extending kfctl](#extending-kfctl).
      generate    Generate a kubeflow application where resources is one of 'platform|k8s|all'.
      help        Help about any command
      init        Create a kubeflow application under <[path/]name>
-     show        Deploy a generated kubeflow application.
-     version     Prints the version of kfctl.
+     show        Show a generated kubeflow application.
+     version     Print the version of kfctl.
    
    Flags:
      -h, --help   help for kfctl
@@ -132,7 +132,7 @@ kfctl apply all
 
 ```
 Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path
-or a <name>. If just <name> a directory <name> will be created in the current directory.
+or a <name>. If just <name>, a directory <name> will be created in the current directory.
 
 Usage:
   kfctl init <[path/]name> [flags]
@@ -189,6 +189,8 @@ Flags:
       --oauth_secret string   OAuth Client ID, GCP only. Required if ENV CLIENT_SECRET is not set. Value passed will take precedence to ENV.
   -V, --verbose               verbose output default is false```
 
+```
+
 ### **delete** 
 
 (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
@@ -201,7 +203,8 @@ Usage:
 
 Flags:
   -h, --help      help for delete
-  -V, --verbose   verbose output default is false```
+  -V, --verbose   verbose output default is false
+```
 
 ---
 
