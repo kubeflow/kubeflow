@@ -3,9 +3,9 @@ local testSuite = import "kubeflow/common/testsuite.libsonnet";
 
 local params = {
   name: "argo",
-  workflowControllerImage: "argoproj/workflow-controller:v2.2.0",
-  uiImage: "argoproj/argoui:v2.2.0",
-  executorImage: "argoproj/argoexec:v2.2.0",
+  workflowControllerImage: "argoproj/workflow-controller:v2.3.0",
+  uiImage: "argoproj/argoui:v2.3.0",
+  executorImage: "argoproj/argoexec:v2.3.0",
   containerRuntimeExecutor: "docker",
   artifactRepositoryKeyPrefix: "artifacts",
   artifactRepositoryEndpoint: "minio-service.kubeflow:9000",
@@ -103,7 +103,7 @@ local testCases = [
                     },
                   },
                 ],
-                image: "argoproj/workflow-controller:v2.2.0",
+                image: "argoproj/workflow-controller:v2.3.0",
                 imagePullPolicy: "IfNotPresent",
                 name: "workflow-controller",
                 resources: {},
@@ -180,7 +180,7 @@ local testCases = [
                     value: "/argo/",
                   },
                 ],
-                image: "argoproj/argoui:v2.2.0",
+                image: "argoproj/argoui:v2.3.0",
                 imagePullPolicy: "IfNotPresent",
                 name: "argo-ui",
                 readinessProbe: {
@@ -241,7 +241,7 @@ local testCases = [
     expected: {
       apiVersion: "v1",
       data: {
-        config: "{\nexecutorImage: argoproj/argoexec:v2.2.0,\ncontainerRuntimeExecutor: docker,\nartifactRepository:\n{\n    s3: {\n        bucket: mlpipeline,\n        keyPrefix: artifacts,\n        endpoint: minio-service.kubeflow:9000,\n        insecure: true,\n        accessKeySecret: {\n            name: mlpipeline-minio-artifact,\n            key: accesskey\n        },\n        secretKeySecret: {\n            name: mlpipeline-minio-artifact,\n            key: secretkey\n        }\n    }\n}\n}\n",
+        config: "{\nexecutorImage: argoproj/argoexec:v2.3.0,\ncontainerRuntimeExecutor: docker,\nartifactRepository:\n{\n    s3: {\n        bucket: mlpipeline,\n        keyPrefix: artifacts,\n        endpoint: minio-service.kubeflow:9000,\n        insecure: true,\n        accessKeySecret: {\n            name: mlpipeline-minio-artifact,\n            key: accesskey\n        },\n        secretKeySecret: {\n            name: mlpipeline-minio-artifact,\n            key: secretkey\n        }\n    }\n}\n}\n",
       },
       kind: "ConfigMap",
       metadata: {
