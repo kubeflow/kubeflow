@@ -163,14 +163,18 @@ describe('Main Page', () => {
     });
 
     it('Sets build version when platform info is received', async () => {
+        const platform = {
+            provider: 'gce://test-project/us-east1-c/gke-kubeflow-node-123',
+            providerName: 'gce',
+            kubeflowVersion: '1.0.0',
+        };
+        const user = {
+            email: 'user@kubeflow.org',
+        };
         const responsePromise = mockRequest(mainPage, {
             status: 200,
-            responseText: JSON.stringify({
-                provider: 'gce://test-project/us-east1-c/gke-kubeflow-node-123',
-                providerName: 'gce',
-                kubeflowVersion: '1.0.0',
-            }),
-        }, false, '/api/platform-info');
+            responseText: JSON.stringify({platform, user}),
+        }, false, '/api/env-info');
         await responsePromise;
         flush();
 

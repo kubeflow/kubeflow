@@ -8,6 +8,7 @@ spec:
   - argo
   - common
   - examples
+  - admission-webhook  
   - jupyter
   - katib
   - metacontroller
@@ -22,6 +23,7 @@ spec:
   - metacontroller
   - argo
   - centraldashboard
+  - admission-webhook  
   - jupyter-web-app
   - katib
   - notebook-controller

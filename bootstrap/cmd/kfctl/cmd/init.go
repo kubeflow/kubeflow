@@ -32,7 +32,7 @@ var initCmd = &cobra.Command{
 	Use:   "init <[path/]name>",
 	Short: "Create a kubeflow application under <[path/]name>",
 	Long: `Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path
-or a <name>. If just <name> a directory <name> will be created in the current directory.`,
+or a <name>. If just <name>, a directory <name> will be created in the current directory.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
 		if initCfg.GetBool(string(kftypes.VERBOSE)) != true {
