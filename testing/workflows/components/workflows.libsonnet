@@ -345,23 +345,24 @@
         },
         dependencies: null,
       },  // notebooks-test
-      {
-        template: tests.buildTemplate {
-          name: "profiles-test",
-          command: [
-            "pytest",
-            "profiles_test.py",
+     // profle is a wip and is under some changes
+     //  {
+      //  template: tests.buildTemplate {
+        //  name: "profiles-test",
+        //  command: [
+        //    "pytest",
+        //    "profiles_test.py",
             // I think -s mean stdout/stderr will print out to aid in debugging.
             // Failures still appear to be captured and stored in the junit file.
-            "-s",
+         //   "-s",
             // Test timeout in seconds.
-            "--timeout=500",
-            "--junitxml=" + tests.artifactsDir + "/junit_profile-test.xml",
-          ],
-          workingDir: tests.srcDir + "/kubeflow/profiles/tests",
-        },
-        dependencies: null,
-      },  // profiles-test
+          //  "--timeout=500",
+          //  "--junitxml=" + tests.artifactsDir + "/junit_profile-test.xml",
+         // ],
+         // workingDir: tests.srcDir + "/kubeflow/profiles/tests",
+       // },
+      //  dependencies: null,
+     // },  // profiles-test
     ],
 
     // An Argo template for the dag.
@@ -579,7 +580,7 @@
                       if platform == "minikube" then
                         "deploy-kubeflow"
                       else
-                        "deploy-kubeflow",
+                        "wait-for-kubeflow",
                     ],
                   },
                   // Don't run argo test for gke since
