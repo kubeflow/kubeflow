@@ -94,7 +94,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             namespace: {type: String, observer: '_namespaceChanged'},
             __placeholderImage: {
                 type: String,
-                value: '/public/assets/anon-user.png',
+                value: '/assets/anon-user.png',
                 readOnly: true,
             },
         };

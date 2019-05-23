@@ -16,7 +16,7 @@ interface EnvironmentInfo {
 /** Function that provides user information back */
 function getUserInfo() {
     return {
-        email: 'blah@blah.com',
+        email: 'user@kubeflow.org',
     };
 }
 
