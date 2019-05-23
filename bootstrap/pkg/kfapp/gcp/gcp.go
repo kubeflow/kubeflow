@@ -1500,7 +1500,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	mysqlPdName := gcp.Name + "-storage-metadata-store"
 	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "mysqlPd", mysqlPdName, false)
 	gcp.Spec.ComponentParams["pipeline"] = setNameVal(gcp.Spec.ComponentParams["pipeline"], "minioPd", minioPdName, false)
-	if gcp.Spec.PackageManager == "kustomize" {
+	if strings.HasPrefix(gcp.Spec.PackageManager, "kustomize") {
 		gcp.Spec.ComponentParams["minio"] = setNameVal(gcp.Spec.ComponentParams["minio"], "minioPd", minioPdName, false)
 		gcp.Spec.ComponentParams["mysql"] = setNameVal(gcp.Spec.ComponentParams["mysql"], "mysqlPd", mysqlPdName, false)
 	}
