@@ -117,7 +117,7 @@ checkWebhookConfig() {
 }
 
 if ! checkWebhookConfig; then
-  echo "patching ca bundle for webhook configuration..."
-  kubectl patch mutatingwebhookconfiguration admission-webhook \
+    echo "patching ca bundle for webhook configuration..."
+    kubectl patch mutatingwebhookconfiguration admission-webhook \
         --type='json' -p="${patchString}"
 fi
