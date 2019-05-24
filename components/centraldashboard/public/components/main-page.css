@@ -72,7 +72,7 @@ app-drawer-layout[thin] #MainDrawer {
 #MainDrawer .divider {
     width: 90%;
     margin: 1em auto;
-    border-bottom: 2px solid var(--sidebar-default-color)
+    border-bottom: 1px solid var(--sidebar-default-color)
 }
 
 #MainDrawer .menu-item:hover {
@@ -214,7 +214,8 @@ neon-animatable {
     right: 16px;
     position: absolute;
 }
-#User-Badge > .image {
+
+#User-Badge>.image {
     width: 2em;
     height: 2em;
     border-radius: 50%;

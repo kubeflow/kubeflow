@@ -74,11 +74,11 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                     },
                     {
                         link: '/tfjobs/ui/',
-                        text: 'TF Jobs Dashboard',
+                        text: 'TF Jobs',
                     },
                     {
                         link: '/katib/',
-                        text: 'Katib Dashboard',
+                        text: 'Katib',
                     },
                 ],
             },
