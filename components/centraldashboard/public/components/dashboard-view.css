@@ -1,10 +1,8 @@
 :host {
     @apply --layout-vertical;
-    padding: 1.3em;
-    /* 20px */
+    padding: 1.3em; /* 20px */
     overflow: auto;
-    grid-gap: .75em;
-    /* 12px */
+    grid-gap: .75em; /* 12px */
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     min-height: 0;
@@ -17,28 +15,19 @@
     --primary-background-color: white;
 }
 
-.column {
-    grid-row: 1
-}
+.column {grid-row: 1}
+.column:nth-of-type(1) {grid-column: 1}
+.column:nth-of-type(2) {grid-column: 2}
+.column:nth-of-type(3) {grid-column: 3}
 
-.column:nth-of-type(1) {
-    grid-column: 1
-}
-
-.column:nth-of-type(2) {
-    grid-column: 2
-}
-
-.column:nth-of-type(3) {
-    grid-column: 3
+.column>* {
+    margin-bottom: .75em; /* 12px */
 }
 
 paper-card {
     border-radius: 5px;
     width: 100%;
-    overflow: hidden;
-    min-width: 23em;
-    /* 320px */
+    min-width: 23em; /* 320px */
     padding-bottom: 16px;
     font-size: 14px;
     --paper-card-header-color: #202124;
@@ -55,17 +44,14 @@ paper-card {
         font-weight: 500;
         padding: 0 1em;
         flex: 1;
-    }
-    ;
+    };
     --paper-card-content: {
         font-size: 14px;
     }
 }
-
 paper-card#Quick-Links {
     --paper-item-body-two-line-min-height: 2em;
 }
-
 paper-card#Platform-Links {
     --paper-card-header-color: #2c6acb;
     --paper-card-header: {
@@ -75,19 +61,16 @@ paper-card#Platform-Links {
         border-color: white;
         @apply --layout-horizontal;
         @apply --layout-center;
-    }
-    ;
+    };
     --paper-card-header-image-text: {
         flex: 1;
         padding: 16px 0;
         position: initial;
-    }
-    ;
+    };
     --paper-card-header-image: {
         width: 2em;
         padding: .5em .75em .5em 1.25em;
-    }
-    ;
+    };
 }
 
 #Documentation [secondary] {
@@ -117,26 +100,22 @@ paper-icon-item {
     --paper-item-icon-width: 40px;
     --paper-icon-item: {
         font-weight: 500;
-    }
-    ;
+    };
     --paper-item-icon: {
         color: var(--icon-color);
         border-radius: 50%;
-    }
-    ;
+    };
     --paper-item-focused-before: {
         /* Approximates the hover style since it uses opacity */
         background: var(--google-grey-700);
-    }
-    ;
+    };
     --paper-icon-button-ink-color: var(--accent-color);
 }
 
 paper-icon-item.external {
     --paper-item-icon: {
         color: var(--external-icon-color);
-    }
-    ;
+    };
 }
 
 #Quick-Links paper-icon-item {

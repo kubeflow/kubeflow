@@ -6,7 +6,7 @@
     @apply --layout-vertical;
     --accent-color: #007dfc;
     --primary-background-color: #0a3b71;
-    --sidebar-default-color: #ffffff4f;
+    --sidebar-default-color: rgba(255, 255, 255, 0.5);
     --divider-color: #dadce0;
     --border-color: #eeeeef;
     --icon-color: #202124;
@@ -61,13 +61,17 @@ app-drawer-layout[thin] #MainDrawer {
 }
 
 #MainDrawer .menu-item {
+    color: var(--sidebar-default-color);
     cursor: pointer;
+    font-family: Google Sans;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    line-height: 24px;
     margin: .5em 0;
     transition: background .25s;
-    font-family: Google Sans;
-    font-weight: 500;
-    color: var(--sidebar-default-color);
     --paper-item-icon-width: 36px;
+
 }
 
 #MainDrawer .divider {
@@ -81,7 +85,7 @@ app-drawer-layout[thin] #MainDrawer {
 }
 
 #MainDrawer .iron-selected>.menu-item {
-    color: white;
+    color: #fff;
 }
 
 #MainDrawer .iron-selected>.menu-item::after {
