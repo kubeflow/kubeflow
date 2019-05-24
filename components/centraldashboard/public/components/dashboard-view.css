@@ -1,10 +1,8 @@
 :host {
     @apply --layout-vertical;
-    /* 20px */
-    padding: 1.3em;
+    padding: 1.3em; /* 20px */
     overflow: auto;
-    /* 12px */
-    grid-gap: .75em;
+    grid-gap: .75em; /* 12px */
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     min-height: 0;
@@ -46,37 +44,37 @@ paper-card {
         font-weight: 500;
         padding: 0 1em;
         flex: 1;
-    }
-    ;
+    };
     --paper-card-content: {
         font-size: 14px;
     }
 }
+<<<<<<< HEAD
 paper-card {
+=======
+paper-card#Quick-Links {
+>>>>>>> Completes resource-charts with full test coverage.
     --paper-item-body-two-line-min-height: 2em;
 }
-
 paper-card#Platform-Links {
     --paper-card-header-color: #2c6acb;
     --paper-card-header: {
+        font-family: "Google Sans";
         background: #e9f0fd;
         height: 62px;
         border-color: white;
         @apply --layout-horizontal;
         @apply --layout-center;
-    }
-    ;
+    };
     --paper-card-header-image-text: {
         flex: 1;
         padding: 16px 0;
         position: initial;
-    }
-    ;
+    };
     --paper-card-header-image: {
         width: 2em;
         padding: .5em .75em .5em 1.25em;
-    }
-    ;
+    };
 }
 
 #Documentation [secondary] {
@@ -102,13 +100,11 @@ paper-icon-item {
     --paper-item-icon-width: 40px;
     --paper-icon-item: {
         font-weight: 500;
-    }
-    ;
+    };
     --paper-item-icon: {
         color: var(--icon-color);
         border-radius: 50%;
-    }
-    ;
+    };
     --paper-item-focused-before: {
         /* Approximates the hover style since it uses opacity */
         background: var(--google-grey-700);
@@ -119,8 +115,7 @@ paper-icon-item {
 paper-icon-item.external {
     --paper-item-icon: {
         color: var(--external-icon-color);
-    }
-    ;
+    };
 }
 
 #Quick-Links paper-icon-item {

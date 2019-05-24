@@ -28,8 +28,9 @@ describe('Resource Chart', () => {
     beforeEach(() => {
         document.getElementById(FIXTURE_ID).create();
         resourceChart = document.getElementById(RESOURCE_CHART_SELECTOR_ID);
-        resourceChart.heading = 'Test Resource Chart';
+        resourceChart.headerText = 'Test Resource Chart';
         resourceChart.externalLink = 'http://test.link';
+        resourceChart.externalLinkText = 'View in External Metrics Site';
     });
 
     afterEach(() => {
@@ -76,51 +77,122 @@ describe('Resource Chart', () => {
         expect(ds1.label).toBe('node-1');
         expect(ds1.backgroundColor).toBe('#1e88e5');
         expect(ds1.borderColor).toBe('#1e88e5');
+        expect(ds1.data).toEqual([
+            {t: new Date('2019-05-23T14:30:07.000Z'), y: 0.5},
+            {t: new Date('2019-05-23T14:31:07.000Z'), y: 0.5},
+            {t: new Date('2019-05-23T14:32:07.000Z'), y: 0.5},
+            {t: new Date('2019-05-23T14:33:07.000Z'), y: 0.5},
+            {t: new Date('2019-05-23T14:34:07.000Z'), y: 0.5},
+        ]);
+        expect(ds2.data).toEqual([
+            {t: new Date('2019-05-23T14:30:07.000Z'), y: 0.4},
+            {t: new Date('2019-05-23T14:31:07.000Z'), y: 0.4},
+            {t: new Date('2019-05-23T14:32:07.000Z'), y: 0.4},
+            {t: new Date('2019-05-23T14:33:07.000Z'), y: 0.4},
+            {t: new Date('2019-05-23T14:34:07.000Z'), y: 0.4},
+        ]);
         expect(ds2.label).toBe('node-2');
         expect(ds2.backgroundColor).toBe('#00acc1');
         expect(ds2.borderColor).toBe('#00acc1');
+        expect(resourceChart.shadowRoot.getElementById('header-text').innerText)
+            .toBe('Test Resource Chart');
     });
 
-    it('Shows top 5 time-series', async () => {
-        resourceChart.metric = 'podcpu';
+    it('Draws chart with top 5 time-series for podmem', async () => {
+        resourceChart.metric = 'podmem';
         resourceChart.interval = 'Last30m';
         const metrics = [
-            {timestamp: 1558621807, label: 'node-1', value: 0.5},
-            {timestamp: 1558621807, label: 'node-2', value: 0.4},
-            {timestamp: 1558621867, label: 'node-1', value: 0.5},
-            {timestamp: 1558621867, label: 'node-2', value: 0.4},
-            {timestamp: 1558621927, label: 'node-1', value: 0.5},
-            {timestamp: 1558621927, label: 'node-2', value: 0.4},
-            {timestamp: 1558621987, label: 'node-1', value: 0.5},
-            {timestamp: 1558621987, label: 'node-2', value: 0.4},
-            {timestamp: 1558622047, label: 'node-1', value: 0.5},
-            {timestamp: 1558622047, label: 'node-2', value: 0.4},
+            {timestamp: 1558621807, label: 'node-1', value: 1},
+            {timestamp: 1558621867, label: 'node-1', value: 1},
+            {timestamp: 1558621927, label: 'node-1', value: 1},
+            {timestamp: 1558621807, label: 'node-2', value: 2},
+            {timestamp: 1558621867, label: 'node-2', value: 2},
+            {timestamp: 1558621927, label: 'node-2', value: 2},
+            {timestamp: 1558621807, label: 'node-3', value: 3},
+            {timestamp: 1558621867, label: 'node-3', value: 3},
+            {timestamp: 1558621927, label: 'node-3', value: 3},
+            {timestamp: 1558621807, label: 'node-4', value: 4},
+            {timestamp: 1558621867, label: 'node-4', value: 4},
+            {timestamp: 1558621927, label: 'node-4', value: 4},
+            {timestamp: 1558621807, label: 'node-5', value: 5},
+            {timestamp: 1558621867, label: 'node-5', value: 5},
+            {timestamp: 1558621927, label: 'node-5', value: 5},
+            {timestamp: 1558621807, label: 'node-6', value: 6},
+            {timestamp: 1558621867, label: 'node-6', value: 6},
+            {timestamp: 1558621927, label: 'node-6', value: 6},
+            {timestamp: 1558621807, label: 'node-7', value: 7},
+            {timestamp: 1558621867, label: 'node-7', value: 7},
+            {timestamp: 1558621927, label: 'node-7', value: 7},
+            {timestamp: 1558621807, label: 'node-8', value: 8},
+            {timestamp: 1558621867, label: 'node-8', value: 8},
+            {timestamp: 1558621927, label: 'node-8', value: 8},
+            {timestamp: 1558621807, label: 'node-9', value: 9},
+            {timestamp: 1558621867, label: 'node-9', value: 9},
+            {timestamp: 1558621927, label: 'node-9', value: 9},
+            {timestamp: 1558621807, label: 'node-10', value: 10},
+            {timestamp: 1558621867, label: 'node-10', value: 10},
+            {timestamp: 1558621927, label: 'node-10', value: 10},
         ];
         const responsePromise = mockRequest(resourceChart, {
             status: 200,
             responseText: JSON.stringify(metrics),
-        }, false, '/api/metrics/podcpu?interval=Last30m');
+        }, false, '/api/metrics/podmem?interval=Last30m');
         await responsePromise;
         flush();
 
         expect(resourceChart.shadowRoot.getElementById('interval')
             .selectedItem.innerText).toBe('30m');
         // Validate chart properties directly
-        expect(resourceChart._chart.data.datasets.length).toBe(2);
+        expect(resourceChart._chart.data.datasets.length).toBe(5);
         expect(resourceChart._chart.options.scales.yAxes[0].ticks
-            .stepSize).toBe(0.2);
+            .stepSize).toBeUndefined();
+        expect(resourceChart._chart.options.legend.display).toBe(false);
 
-        // Validate callbacks behavior
-        expect(resourceChart._chart.options.scales.yAxes[0].ticks
-            .callback(0.5)).toBe('50%');
-
-        const [ds1, ds2] = resourceChart._chart.data.datasets;
-        expect(ds1.label).toBe('node-1');
+        const [ds1, ds2, ds3, ds4, ds5] = resourceChart._chart.data.datasets;
+        expect(ds1.label).toBe('node-10');
         expect(ds1.backgroundColor).toBe('#1e88e5');
         expect(ds1.borderColor).toBe('#1e88e5');
-        expect(ds2.label).toBe('node-2');
+        expect(ds2.label).toBe('node-9');
         expect(ds2.backgroundColor).toBe('#00acc1');
         expect(ds2.borderColor).toBe('#00acc1');
+        expect(ds3.label).toBe('node-8');
+        expect(ds3.backgroundColor).toBe('#e91e63');
+        expect(ds3.borderColor).toBe('#e91e63');
+        expect(ds4.label).toBe('node-7');
+        expect(ds4.backgroundColor).toBe('#ff9800');
+        expect(ds4.borderColor).toBe('#ff9800');
+        expect(ds5.label).toBe('node-6');
+        expect(ds5.backgroundColor).toBe('#9ccc65');
+        expect(ds5.borderColor).toBe('#9ccc65');
+        expect(resourceChart.shadowRoot.getElementById('header-text').innerText)
+            .toBe('Test Resource Chart (Top 5)');
+    });
+
+    it('Refreshes when interval is changed', (done) => {
+        resourceChart.metric = 'podcpu';
+        resourceChart.interval = 'Last180m';
+        resourceChart.addEventListener('iron-ajax-request', (event) => {
+            expect(event.detail.options.url).toBe(
+                '/api/metrics/podcpu?interval=Last60m');
+            done();
+        });
+        resourceChart.shadowRoot.getElementById('interval')
+            .selected = 'Last60m';
+        flush();
+    });
+
+    it('Refreshes when clicked is changed', (done) => {
+        let requests = 0;
+        resourceChart.addEventListener('iron-ajax-request', (event) => {
+            expect(event.detail.options.url).toBe(
+                '/api/metrics/node?interval=Last30m');
+            if (++requests === 2) done();
+        });
+        resourceChart.metric = 'node';
+        resourceChart.interval = 'Last30m';
+
+        resourceChart.shadowRoot.getElementById('refresh').click();
+        flush();
     });
 
     it('Formats tooltip labels based on metric type and label length', () => {
