@@ -11,6 +11,7 @@ import css from './dashboard-view.css';
 import template from './dashboard-view.pug';
 
 import './iframe-link.js';
+import './resource-chart.js';
 import {getGCPData} from './resources/cloud-platform-data.js';
 
 const DOCS = 'https://www.kubeflow.org/docs/started';

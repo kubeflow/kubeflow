@@ -8,7 +8,25 @@
                         .header [[item.text]]
                         aside(secondary) [[item.desc]]
                     paper-ripple
+template(is='dom-if', if='[[platformDetails.resourceChartsLink]]')
+    .column
+        resource-chart(heading='Cluster CPU Utilization', metric='cpu',
+            interval='Last60m',
+            external-link='[[platformDetails.resourceChartsLink]]')
+        resource-chart(heading='Pod CPU Utilization', metric='podcpu',
+            interval='Last60m',
+            external-link='[[platformDetails.resourceChartsLink]]')
 .column
+    template(is='dom-if', if='[[platformDetails.links]]')
+        paper-card#Platform-Links(class$='[[platformDetails.name]]',
+            heading='[[platformDetails.title]]', image='[[platformDetails.logo]]')
+            template(is='dom-repeat', items='[[platformDetails.links]]')
+                a.link(href$='[[item.link]]', tabindex='-1', target='_blank')
+                    paper-icon-item.external
+                        paper-ripple
+                        aside [[item.text]]
+                        paper-icon-button.button(icon='open-in-new',
+                            slot='item-icon', alt='[[item.text]]', tabindex=-1)
     paper-card#Documentation(heading='Documentation')
         template(is='dom-repeat', items='[[documentationItems]]')
             a.link(href$='[[item.link]]', tabindex='-1',
@@ -20,16 +38,3 @@
                         aside(secondary) [[item.desc]]
                     paper-icon-button.button(icon='open-in-new',
                         slot='item-icon', alt='[[item.text]]', tabindex=-1)
-.column
-    template(is='dom-if', if='[[platformDetails.links]]')
-        paper-card#Platform-Links(class$='[[platformDetails.name]]',
-            heading='[[platformDetails.title]]', image='[[platformDetails.logo]]')
-            template(is='dom-repeat', items='[[platformDetails.links]]')
-                a.link(href$='[[item.link]]', tabindex='-1', target='_blank')
-                    paper-icon-item.external
-                        paper-ripple
-                        paper-item-body(two-line)
-                            .header [[item.headerText]]
-                            aside(secondary) [[item.secondaryText]]
-                        paper-icon-button.button(icon='open-in-new',
-                            slot='item-icon', alt='[[item.text]]', tabindex=-1)

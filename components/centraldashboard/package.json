@@ -60,6 +60,8 @@
         "@polymer/polymer": "^3.2.0",
         "@types/dotenv": "^6.1.1",
         "@webcomponents/webcomponentsjs": "^2.2.10",
+        "chart.js": "^2.8.0",
+        "chartjs-plugin-crosshair": "^1.1.2",
         "express": "^4.16.4",
         "web-animations-js": "^2.3.1"
     },
