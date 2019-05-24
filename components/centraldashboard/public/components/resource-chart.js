@@ -2,8 +2,10 @@ import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/paper-button/paper-button.js';
-import '@polymer/paper-dropdown-menu/paper-dropdown-menu-light';
 import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/paper-menu-button/paper-menu-button.js';
+import '@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/paper-item/paper-item.js';
 import '@polymer/paper-styles/element-styles/paper-material-styles.js';
 import 'chartjs-plugin-crosshair';
 
@@ -34,7 +36,7 @@ const MAX_TOOLTIP_LENGTH = 10;
 class ResourceChart extends PolymerElement {
     static get template() {
         return html`
-        <style include="paper-material-styles">
+        <style include="iron-flex iron-flex-alignment paper-material-styles">
             :host {
                 @apply --paper-material-elevation-1;
                 background-color: var(--paper-card-background-color,
@@ -45,7 +47,6 @@ class ResourceChart extends PolymerElement {
                 max-width: 400px;
                 min-width: 320px;
                 position: relative;
-                overflow: hidden;
                 width: 100%;
             }
             header {
@@ -54,12 +55,15 @@ class ResourceChart extends PolymerElement {
                 @apply --layout-horizontal;
                 @apply --layout-center;
             }
+            paper-menu-button {
+                padding: 0;
+            }
             footer {
                 height: 62px;
                 padding: 0 16px;
                 @apply --layout-horizontal;
                 @apply --layout-center;
-                @apply --layout-justified;
+                @apply --layout-end-justified;
             }
             #header-text {
                 font-family: "Google Sans";
@@ -88,19 +92,17 @@ class ResourceChart extends PolymerElement {
                 };
             }
         </style>
-        <iron-ajax auto url="[[metricUrl]]" handle-as="json"
+        <iron-ajax id="ajax" auto url="[[metricUrl]]" handle-as="json"
             on-response="_onResponse"></iron-ajax>
         <article id="card">
             <header>
-                <h1 id="header-text">[[heading]]</h1>
-                <paper-icon-button icon="refresh" title="Refresh Chart"
-                    alt="Refresh chart"></paper-button>
-            </header>
-            <section id="chart-container">
-                <canvas id="chart" height="400" width="400"></canvas></section>
-            <footer>
-                <paper-dropdown-menu-light id="interval" label="Interval">
-                    <paper-listbox slot="dropdown-content"
+                <h1 id="header-text">[[displayedHeader]]</h1>
+                <paper-menu-button no-overlap horizontal-align="right"
+                    title="Select interval">
+                    <paper-icon-button slot="dropdown-trigger"
+                        icon="filter-list">
+                    </paper-icon-button>
+                    <paper-listbox id="interval" slot="dropdown-content"
                         attr-for-selected="value" selected="{{interval}}">
                         <paper-item value="Last5m">5m</paper-item>
                         <paper-item value="Last15m">15m</paper-item>
@@ -108,11 +110,18 @@ class ResourceChart extends PolymerElement {
                         <paper-item value="Last60m">1h</paper-item>
                         <paper-item value="Last180m">3h</paper-item>
                     </paper-listbox>
-                </paper-dropdown-menu-light>
+                </paper-menu-button>
+                <paper-icon-button id="refresh" icon="refresh"
+                    title="Refresh chart" alt="Refresh chart"
+                    on-click="_refresh"></paper-button>
+            </header>
+            <section id="chart-container">
+                <canvas id="chart" height="400" width="400"></canvas></section>
+            <footer>
                 <a id="external-link" href="[[externalLink]]".
                     target="_blank" tabindex="-1">
                     <paper-button>
-                        View more
+                        [[externalLinkText]]
                         <iron-icon icon="launch"></iron-icon>
                     </paper-button>
                 </a>
@@ -123,20 +132,29 @@ class ResourceChart extends PolymerElement {
 
     static get properties() {
         return {
-            heading: String,
+            headerText: String,
             metric: String,
             interval: String,
             externalLink: String,
+            externalLinkText: String,
+            displayedHeader: {
+                type: String,
+                computed: '_getDisplayedHeader(headerText, truncatedSeries)',
+            },
             metricUrl: {
                 type: String,
                 computed: '_getUrl(metric, interval)',
+            },
+            truncatedSeries: {
+                type: Boolean,
+                readOnly: true,
+                value: false,
             },
         };
     }
 
     constructor() {
         super();
-        const tooltipFontColor = '#666'; // Matches default Chart.js color
         this._chartOptions = {
             type: 'line',
             data: {
@@ -145,12 +163,6 @@ class ResourceChart extends PolymerElement {
             options: {
                 maintainAspectRatio: false,
                 tooltips: {
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    borderWidth: 1,
-                    borderColor: '#eeeeef',
-                    titleFontColor: tooltipFontColor,
-                    bodyFontColor: tooltipFontColor,
-                    footerFontColor: tooltipFontColor,
                     mode: 'index',
                     intersect: false,
                     callbacks: {
@@ -189,6 +201,9 @@ class ResourceChart extends PolymerElement {
                         zoom: {
                             enabled: false,
                         },
+                        sync: {
+                            enabled: false,
+                        },
                     },
                 },
             },
@@ -201,6 +216,10 @@ class ResourceChart extends PolymerElement {
     ready() {
         super.ready();
         this._chart = new Chart(this.$.chart, this._chartOptions);
+    }
+
+    _refresh() {
+        this.$.ajax.generateRequest();
     }
 
     /**
@@ -248,6 +267,7 @@ class ResourceChart extends PolymerElement {
         //   mean: cumulative moving average
         //   data: [{t: timestamp in s, y: value}]
         // }
+        let truncatedSeries = false;
         const dataPointsByLabel = new Map();
         timeSeriesPoints.forEach((point) => {
             if (!dataPointsByLabel.has(point.label)) {
@@ -270,27 +290,10 @@ class ResourceChart extends PolymerElement {
             series.sort((a, b) => b[1].mean - a[1].mean);
             series.splice(MAX_SERIES);
             this._chartOptions.options.legend.display = false;
+            truncatedSeries = true;
         }
+        this._setTruncatedSeries(truncatedSeries);
         return series;
-    }
-
-    /**
-     * Computer property function to returns the URL to use for obtaining
-     * metrics.
-     * @param {string} metric
-     * @param {string} interval
-     * @return {string}
-     */
-    _getUrl(metric, interval) {
-        let _metric = 'node';
-        let _interval = 'Last15m';
-        if (METRICS.has(metric)) {
-            _metric = metric;
-        }
-        if (INTERVALS.has(interval)) {
-            _interval = interval;
-        }
-        return `/api/metrics/${_metric}?interval=${_interval}`;
     }
 
     /**
@@ -310,6 +313,39 @@ class ResourceChart extends PolymerElement {
             value = `${(Number(item.value) * 100).toFixed(2)}%`;
         }
         return `${seriesLabel} - ${value}`;
+    }
+
+    /**
+     * Computed property function to returns the URL to use for obtaining
+     * metrics.
+     * @param {string} metric
+     * @param {string} interval
+     * @return {string}
+     */
+    _getUrl(metric, interval) {
+        let _metric = 'node';
+        let _interval = 'Last15m';
+        if (METRICS.has(metric)) {
+            _metric = metric;
+        }
+        if (INTERVALS.has(interval)) {
+            _interval = interval;
+        }
+        return `/api/metrics/${_metric}?interval=${_interval}`;
+    }
+
+    /**
+     * Computed property to add Top X suffix to the heading if series was
+     * truncated.
+     * @param {string} heading
+     * @param {boolean} truncatedSeries
+     * @return {string}
+     */
+    _getDisplayedHeader(heading, truncatedSeries) {
+        if (truncatedSeries) {
+            return `${heading} (Top ${MAX_SERIES})`;
+        }
+        return heading;
     }
 }
 

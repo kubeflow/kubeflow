@@ -124,8 +124,8 @@ describe('Main Page', () => {
         });
 
     it('Appends query string when building links', () => {
-        const sidebarLinkSelector = '#MainDrawer iron-selector a.iframe-link';
-        const headerLinkSelector = 'app-header paper-tabs a';
+        const sidebarLinkSelector = '#MainDrawer iron-selector iframe-link';
+        const headerLinkSelector = '#ViewTabs paper-tabs a';
 
         // Base case
         const hrefs = [];
