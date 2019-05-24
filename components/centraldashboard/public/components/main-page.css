@@ -65,6 +65,7 @@ app-drawer-layout[thin] #MainDrawer {
     margin: .5em 0;
     transition: background .25s;
     font-family: Google Sans;
+    font-weight: 500;
     color: var(--sidebar-default-color);
     --paper-item-icon-width: 36px;
 }
@@ -81,7 +82,6 @@ app-drawer-layout[thin] #MainDrawer {
 
 #MainDrawer .iron-selected>.menu-item {
     color: white;
-    font-weight: 100
 }
 
 #MainDrawer .iron-selected>.menu-item::after {
