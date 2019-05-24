@@ -34,4 +34,5 @@ export const getGCPData = (project) => ({
     title: 'Google Cloud Platform',
     logo: '/assets/gcp-logo.png',
     name: 'GCP',
+    resourceChartsLink: `https://app.google.stackdriver.com/gke?project=${project}`,
 });
