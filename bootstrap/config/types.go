@@ -39,7 +39,7 @@ type ComponentConfig struct {
 	// Parameters to be set to components using ks param set.
 	// +patchMergeKey=name
 	// +patchStrategy=merge
-	ComponentParams Parameters `json:"componentParams,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
+	ComponentParams Parameters `json:"componentParams,omitempty" patchStrategy:"merge" patchMergeKey:"name"`
 	// Platform type.
 	Platform string `json:"platform,omitempty"`
 }
