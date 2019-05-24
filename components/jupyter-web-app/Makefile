@@ -26,8 +26,15 @@ GIT_TAG ?= $(shell git log -n 1 --pretty=format:"%h" ./)
 info:
 	echo image: \"gcr.io/$(REGISTRY_PROJECT)/jupyter-web-app:$(GIT_TAG)\" > $(OUTPUT)
 
-build-gcb: info	
+build-gcb: info
 	gcloud --project=$(PROJECT) \
+		builds submit \
+		--machine-type=n1-highcpu-32 \
+		--substitutions=_GIT_VERSION=$(GIT_TAG),_REGISTRY=$(REGISTRY_PROJECT) \
+		--config=cloudbuild.yaml .
+
+build-gcb-win: info
+	cmd /c gcloud --project=$(PROJECT) \
 		builds submit \
 		--machine-type=n1-highcpu-32 \
 		--substitutions=_GIT_VERSION=$(GIT_TAG),_REGISTRY=$(REGISTRY_PROJECT) \
