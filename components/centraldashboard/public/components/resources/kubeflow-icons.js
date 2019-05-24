@@ -38,6 +38,11 @@ function getSvgGroupEntries(context) {
  * @return {string} If return is empty, then handle as invalid SVG.
  */
 function stripSVG(svg) {
+    // The regex below first makes the multi-line HTML a single line.
+    // Then it ignores anything outside the svg tags including:
+    //  - The <svg> tag itself.
+    //  - Any trailing whitespace.
+    //  - <?xml> meta data.
     const content = svg
         .replace(/\r?\n|(?=>)\s+(?=<)/g, ' ')
         .replace(/^.*?<svg.*?>(.+?)<\/svg>.*$/, '$1');
