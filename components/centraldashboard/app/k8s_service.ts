@@ -101,14 +101,26 @@ export class KubernetesService {
   }
 
   /**
+   * Retrieves Kubernetes Node information.
+   */
+  async getNodes(): Promise<k8s.V1Node[]> {
+    try {
+      const {body} = await this.coreAPI.listNode();
+      return body.items;
+    } catch (err) {
+      console.error('Unable to fetch Nodes', err.body || err);
+      return [];
+    }
+  }
+
+  /**
    * Returns the provider identifier or 'other://' from the K8s cluster.
    */
   private async getProvider(): Promise<string> {
     let provider = 'other://';
     try {
-      const {body} = await this.coreAPI.listNode();
-      const foundProvider =
-          body.items.map((n) => n.spec.providerID).find(Boolean);
+      const nodes = await this.getNodes();
+      const foundProvider = nodes.map((n) => n.spec.providerID).find(Boolean);
       if (foundProvider) {
         provider = foundProvider;
       }
