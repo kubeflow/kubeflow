@@ -5,38 +5,4 @@
 - op: add
   path: /spec/components/-
   value: 
-    istio-namespace
-- op: add
-  path: /spec/components/-
-  value: 
     istio
-- op: add
-  path: /spec/componentParams
-  value:
-    argo:
-    - name: overlay
-      value: istio
-    centraldashboard:
-    - name: overlay
-      value: istio
-    iap-ingress:
-    - name: namespace
-      value: istio-system
-    istio-install:
-    - name: namespace
-      value: istio-system
-    jupyter-web-app:
-    - name: overlay
-      value: istio
-    katib:
-    - name: overlay
-      value: istio
-    pipeline:
-    - name: overlay
-      value: istio
-    tensorboard:
-    - name: overlay
-      value: istio
-    tf-job-operator:
-    - name: overlay
-      value: istio

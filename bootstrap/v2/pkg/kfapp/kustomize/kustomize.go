@@ -698,10 +698,10 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 		}
 	}
 	if child.NamePrefix != "" {
-		log.Warnf("cannot merge nameprefix %v ", child.NamePrefix)
+		log.Fatalf("cannot merge nameprefix %v ", child.NamePrefix)
 	}
 	if child.NameSuffix != "" {
-		log.Warnf("cannot merge namesuffix %v ", child.NamePrefix)
+		log.Fatalf("cannot merge namesuffix %v ", child.NamePrefix)
 	}
 	if child.GeneratorOptions != nil && parent.GeneratorOptions == nil {
 		parent.GeneratorOptions = child.GeneratorOptions

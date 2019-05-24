@@ -3,6 +3,13 @@ kind: KfDef
 metadata:
   name: config
 spec:
+  components:
+  - cert-manager 
+  - cloud-endpoints
+  - gpu-driver
+  - iap-ingress
+  packages:
+  - gcp
   componentParams:
     cert-manager:
     - name: acmeEmail

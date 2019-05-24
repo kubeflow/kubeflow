@@ -3,6 +3,17 @@ kind: KfDef
 metadata:
   name: config
 spec:
+  components:
+  - api-service
+  - minio
+  - mysql
+  - persistent-agent
+  - pipelines-runner
+  - pipelines-ui
+  - pipelines-viewer
+  - scheduledworkflow
+  packages:
+  - pipeline
   componentParams:
     pipeline:
     - name: mysqlPd
