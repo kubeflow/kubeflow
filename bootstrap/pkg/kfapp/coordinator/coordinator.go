@@ -72,13 +72,13 @@ func getConfigFromCache(pathDir string, kfDef *kfdefs.KfDef) ([]byte, error) {
 			Value: strings.Split(kfDef.Spec.PackageManager, "@")[0],
 		},
 	}
+	if kfDef.Spec.UseIstio {
+		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "istio"})
+	}
 	if kfDef.Spec.UseBasicAuth {
 		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "basic_auth"})
 	} else if kfDef.Spec.Platform != "" {
 		overlays = append(overlays, config.NameValue{Name: "overlay", Value: kfDef.Spec.Platform})
-	}
-	if kfDef.Spec.UseIstio {
-		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "istio"})
 	}
 	compPath := strings.Split(kftypes.DefaultConfigDir, "/")[1]
 	resMap, resMapErr := kustomize.GenerateKustomizationFile(kfDef,
