@@ -14,15 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package minikube
+package dockerfordesktop
 
 import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"io/ioutil"
 	"os/user"
 	"path/filepath"
@@ -30,36 +30,37 @@ import (
 	"strings"
 )
 
-// Minikube implements KfApp Interface
-type Minikube struct {
+// DockerForDesktop implements KfApp Interface
+// It should include functionality needed for the dockerfordesktop platform
+type DockerForDesktop struct {
 	kfdefs.KfDef
 }
 
 func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
-	_minikube := &Minikube{
+	_dockerfordesktop := &DockerForDesktop{
 		KfDef: *kfdef,
 	}
-	return _minikube
+	return _dockerfordesktop
 }
 
-func (minikube *Minikube) Apply(resources kftypes.ResourceEnum) error {
+func (dockerfordesktop *DockerForDesktop) Apply(resources kftypes.ResourceEnum) error {
 	//mount_local_fs
 	//setup_tunnels
 	return nil
 }
 
-func (minikube *Minikube) Delete(resources kftypes.ResourceEnum) error {
+func (dockerfordesktop *DockerForDesktop) Delete(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
-func (minikube *Minikube) generate() error {
+func (dockerfordesktop *DockerForDesktop) generate() error {
 	// remove Katib package and component
-	minikube.Spec.Packages = kftypes.RemoveItem(minikube.Spec.Packages, "katib")
-	minikube.Spec.Components = kftypes.RemoveItem(minikube.Spec.Components, "katib")
-	minikube.Spec.ComponentParams["application"] = []config.NameValue{
+	dockerfordesktop.Spec.Packages = kftypes.RemoveItem(dockerfordesktop.Spec.Packages, "katib")
+	dockerfordesktop.Spec.Components = kftypes.RemoveItem(dockerfordesktop.Spec.Components, "katib")
+	dockerfordesktop.Spec.ComponentParams["application"] = []config.NameValue{
 		{
 			Name:  "components",
-			Value: "[" + strings.Join(kftypes.QuoteItems(minikube.Spec.Components), ",") + "]",
+			Value: "[" + strings.Join(kftypes.QuoteItems(dockerfordesktop.Spec.Components), ",") + "]",
 		},
 	}
 	usr, err := user.Current()
@@ -71,14 +72,14 @@ func (minikube *Minikube) generate() error {
 	}
 	uid := usr.Uid
 	gid := usr.Gid
-	minikube.Spec.ComponentParams["jupyter"] = []config.NameValue{
+	dockerfordesktop.Spec.ComponentParams["jupyter"] = []config.NameValue{
 		{
 			Name:  string(kftypes.PLATFORM),
-			Value: minikube.Spec.Platform,
+			Value: dockerfordesktop.Spec.Platform,
 		},
 		{
 			Name:  "accessLocalFs",
-			Value: strconv.FormatBool(minikube.Spec.MountLocal),
+			Value: strconv.FormatBool(dockerfordesktop.Spec.MountLocal),
 		},
 		{
 			Name:  "disks",
@@ -93,10 +94,10 @@ func (minikube *Minikube) generate() error {
 			Value: gid,
 		},
 	}
-	minikube.Spec.ComponentParams["ambassador"] = []config.NameValue{
+	dockerfordesktop.Spec.ComponentParams["ambassador"] = []config.NameValue{
 		{
 			Name:  string(kftypes.PLATFORM),
-			Value: minikube.Spec.Platform,
+			Value: dockerfordesktop.Spec.Platform,
 		},
 		{
 			Name:  "replicas",
@@ -106,47 +107,41 @@ func (minikube *Minikube) generate() error {
 	return nil
 }
 
-func (minikube *Minikube) Generate(resources kftypes.ResourceEnum) error {
+func (dockerfordesktop *DockerForDesktop) Generate(resources kftypes.ResourceEnum) error {
 	switch resources {
 	case kftypes.K8S:
 	case kftypes.ALL:
 		fallthrough
 	case kftypes.PLATFORM:
-		generateErr := minikube.generate()
+		generateErr := dockerfordesktop.generate()
 		if generateErr != nil {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: fmt.Sprintf("minikube generate failed Error: %v", generateErr),
-			}
+			return generateErr
 		}
 	}
-	createConfigErr := minikube.writeConfigFile()
+	createConfigErr := dockerfordesktop.writeConfigFile()
 	if createConfigErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("cannot create config file app.yaml in %v", minikube.KfDef.Spec.AppDir),
-		}
+		return createConfigErr
 	}
 	return nil
 }
 
-func (minikube *Minikube) Init(kftypes.ResourceEnum) error {
+func (dockerfordesktop *DockerForDesktop) Init(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
-func (minikube *Minikube) writeConfigFile() error {
-	buf, bufErr := yaml.Marshal(minikube.KfDef)
+func (dockerfordesktop *DockerForDesktop) writeConfigFile() error {
+	buf, bufErr := yaml.Marshal(dockerfordesktop.KfDef)
 	if bufErr != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("cannot marshal config file: %v", bufErr),
 		}
 	}
-	cfgFilePath := filepath.Join(minikube.KfDef.Spec.AppDir, kftypes.KfConfigFile)
+	cfgFilePath := filepath.Join(dockerfordesktop.KfDef.Spec.AppDir, kftypes.KfConfigFile)
 	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
 	if cfgFilePathErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("cannot write config file: %v", cfgFilePathErr),
 		}
 	}

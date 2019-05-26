@@ -8,9 +8,9 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 	containerpb "google.golang.org/genproto/googleapis/container/v1"
-	"k8s.io/api/rbac/v1"
-	clientset "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
+	"k8s.io/api/v2/rbac/v1"
+	clientset "k8s.io/client-go/v2/kubernetes"
+	"k8s.io/client-go/v2/rest"
 )
 
 func buildClusterConfig(ctx context.Context, token string, project string, zone string,

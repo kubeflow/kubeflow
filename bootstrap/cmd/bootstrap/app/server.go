@@ -26,14 +26,14 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/version"
 	log "github.com/sirupsen/logrus"
-	"k8s.io/api/storage/v1"
-	k8sVersion "k8s.io/apimachinery/pkg/version"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"k8s.io/api/v2/storage/v1"
+	k8sVersion "k8s.io/apimachinery/v2/pkg/version"
+	"k8s.io/client-go/v2/rest"
+	"k8s.io/client-go/v2/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/v2/tools/clientcmd/api"
 
 	"context"
 )

@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	"golang.org/x/net/context"
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"io/ioutil"

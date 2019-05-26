@@ -20,18 +20,18 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/ksonnet"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/minikube"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/gcp"
+//	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/ksonnet"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/minikube"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/kustomize"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	valid "k8s.io/apimachinery/pkg/api/validation"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	valid "k8s.io/apimachinery/v2/pkg/api/validation"
+	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"os"
 	"path"
 	"path/filepath"
@@ -144,10 +144,11 @@ func getPackageManagers(kfdef *kfdefs.KfDef) *map[string]kftypes.KfApp {
 func getPackageManager(packagemanager string, kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 	packagemanager = strings.Split(packagemanager, "@")[0]
 	switch packagemanager {
-	case kftypes.KSONNET:
-		return ksonnet.GetKfApp(kfdef), nil
 	case kftypes.KUSTOMIZE:
 		return kustomize.GetKfApp(kfdef), nil
+	case kftypes.KSONNET:
+//		return ksonnet.GetKfApp(kfdef), nil
+                fallthrough
 	default:
 		log.Infof("** loading %v.so for package manager %v **", packagemanager, packagemanager)
 		return kftypes.LoadKfApp(packagemanager, kfdef)

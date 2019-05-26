@@ -8,14 +8,14 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
-	ksUtil "github.com/ksonnet/ksonnet/utils"
 	log "github.com/sirupsen/logrus"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
+	"k8s.io/apimachinery/v2/pkg/runtime/schema"
+	"k8s.io/apimachinery/v2/pkg/runtime/serializer"
+	"k8s.io/client-go/v2/discovery"
+	"k8s.io/client-go/v2/discovery/cached"
+	"k8s.io/client-go/v2/kubernetes/scheme"
+	"k8s.io/client-go/v2/rest"
+	"k8s.io/client-go/v2/restmapper"
 )
 
 const (
@@ -36,8 +36,9 @@ func CreateResourceFromFile(config *rest.Config, filename string, elems ...confi
 	if err != nil {
 		return err
 	}
-	cacheClient := ksUtil.NewMemcachedDiscoveryClient(discoveryClient)
-	mapper := discovery.NewDeferredDiscoveryRESTMapper(cacheClient, dynamic.VersionInterfaces)
+	cacheClient := cached.NewMemCacheClient(discoveryClient)
+	mapper := restmapper.NewDeferredDiscoveryRESTMapper(cacheClient)
+	mapper.Reset()
 
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -110,7 +111,7 @@ func CreateResourceFromFile(config *rest.Config, filename string, elems ...confi
 		}
 
 		// Get first to see if object already exists
-		getRequest := restClient.Get().Resource(result.Resource).Name(name)
+		getRequest := restClient.Get().Resource(result.Resource.Resource).Name(name)
 		if result.Scope.Name() == "namespace" {
 			getRequest = getRequest.Namespace(namespace)
 		}
@@ -125,7 +126,7 @@ func CreateResourceFromFile(config *rest.Config, filename string, elems ...confi
 		if err != nil {
 			return err
 		}
-		request := restClient.Post().Resource(result.Resource).Body(body)
+		request := restClient.Post().Resource(result.Resource.Resource).Body(body)
 		if result.Scope.Name() == "namespace" {
 			request = request.Namespace(namespace)
 		}

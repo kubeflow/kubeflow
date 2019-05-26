@@ -20,13 +20,13 @@ import (
 	"cloud.google.com/go/container/apiv1"
 	"encoding/base64"
 	"fmt"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 	containerpb "google.golang.org/genproto/googleapis/container/v1"
-	"k8s.io/client-go/rest"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"k8s.io/client-go/v2/rest"
+	clientcmdapi "k8s.io/client-go/v2/tools/clientcmd/api"
 	"os/exec"
 )
 

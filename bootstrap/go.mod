@@ -2,7 +2,6 @@ module github.com/kubeflow/kubeflow/bootstrap
 
 require (
 	cloud.google.com/go v0.34.0
-	github.com/Azure/go-autorest v11.1.0+incompatible
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/GeertJohan/go.rice v0.0.0-20181229193832-0af3f3b09a0a // indirect
 	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
@@ -29,14 +28,11 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-kit/kit v0.8.0
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
-	github.com/go-openapi/jsonpointer v0.18.0
-	github.com/go-openapi/jsonreference v0.18.0
 	github.com/go-openapi/spec v0.18.0 // indirect
 	github.com/go-openapi/strfmt v0.18.0 // indirect
-	github.com/go-openapi/swag v0.17.2
+	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.2.0 // indirect
-	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/google/go-github v17.0.0+incompatible // indirect
 	github.com/google/go-jsonnet v0.12.1 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
@@ -47,26 +43,26 @@ require (
 	github.com/hashicorp/golang-lru v0.5.0 // indirect
 	github.com/howeyc/gopass v0.0.0-20170109162249-bf9dde6d0d2c // indirect
 	github.com/huandu/xstrings v1.2.0 // indirect
-	github.com/imdario/mergo v0.3.6
+	github.com/imdario/mergo v0.3.7
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024 // indirect
 	github.com/ksonnet/ksonnet v0.13.1
 	github.com/ksonnet/ksonnet-lib v0.1.12 // indirect
 	github.com/mitchellh/go-homedir v1.0.0
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
+	github.com/munnerz/goautoneg v0.0.0-20190414153302-2ae31c8b6b30 // indirect
 	github.com/onrik/logrus v0.2.1
-	github.com/onsi/gomega v1.4.3
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/prometheus/client_golang v0.9.2
-	github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
 	github.com/russross/blackfriday v0.0.0-00010101000000-000000000000 // indirect
+	github.com/sergi/go-diff v1.0.0 // indirect
 	github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c // indirect
-	github.com/sirupsen/logrus v1.3.0
+	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.2.0
 	github.com/spf13/cobra v0.0.3
-	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.1
+	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	go.opencensus.io v0.18.1-0.20181204023538-aab39bd6a98b // indirect
 	golang.org/x/crypto v0.0.0
 	golang.org/x/net v0.0.0-20190206173232-65e2d4e15006
@@ -75,22 +71,22 @@ require (
 	google.golang.org/genproto v0.0.0-20190111180523-db91494dd46c
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
-	gopkg.in/resty.v1 v1.11.0
+	gopkg.in/resty.v1 v1.11.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.3.0 // indirect
-	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20180308224125-73d903622b73
 	k8s.io/api/v2 v2.0.0
-	k8s.io/apiextensions-apiserver v0.0.0-20190116054503-cf30b7cf64c2
+	k8s.io/apiextensions-apiserver v0.0.0-20190116054503-cf30b7cf64c2 // indirect
 	k8s.io/apiextensions-apiserver/v2 v2.0.0
 	k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63
 	k8s.io/apimachinery/v2 v2.0.0
+	k8s.io/apiserver/v2 v2.0.0 // indirect
 	k8s.io/client-go v10.0.0+incompatible
 	k8s.io/client-go/v2 v2.0.0
 	k8s.io/helm v2.13.0+incompatible // indirect
 	k8s.io/kube-openapi v0.0.0-20190115222348-ced9eb3070a5 // indirect
 	k8s.io/kubernetes v0.0.0-00010101000000-000000000000 // indirect
 	sigs.k8s.io/application/v2 v2.0.0
-	sigs.k8s.io/controller-runtime v0.0.0-00010101000000-000000000000
+	sigs.k8s.io/controller-runtime v0.0.0-00010101000000-000000000000 // indirect
 	sigs.k8s.io/controller-runtime/v2 v2.0.0
 	sigs.k8s.io/kustomize/v2 v2.0.0-00010101000000-000000000000
 	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect
@@ -98,6 +94,7 @@ require (
 
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v9.1.0+incompatible
+	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.4.2
 	github.com/go-openapi/jsonpointer => github.com/go-openapi/jsonpointer v0.17.0
 	github.com/go-openapi/jsonreference => github.com/go-openapi/jsonreference v0.17.0
 	github.com/go-openapi/spec => github.com/go-openapi/spec v0.18.0
@@ -114,6 +111,7 @@ replace (
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20180601181227-17529ec7eadb
 	k8s.io/apimachinery/v2 => /tmp/v2/k8s.io/apimachinery
 	k8s.io/apiserver => k8s.io/apiserver v0.0.0-20180601190550-8378ef881d4f
+	k8s.io/apiserver/v2 => /tmp/v2/k8s.io/apiserver
 	k8s.io/cli-runtime => k8s.io/cli-runtime v0.0.0-20180907072557-b3b289918979
 	k8s.io/client-go => k8s.io/client-go v7.0.0+incompatible
 	k8s.io/client-go/v2 => /tmp/v2/k8s.io/client-go
