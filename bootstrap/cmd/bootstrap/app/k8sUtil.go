@@ -2,7 +2,7 @@ package app
 
 import (
 	"encoding/json"
-	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
+	configtypes "github.com/kubeflow/kubeflow/bootstrap/v2/config"
 	"io/ioutil"
 	"regexp"
 	"strings"

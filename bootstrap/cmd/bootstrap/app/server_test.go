@@ -19,10 +19,10 @@ import (
 	"reflect"
 	"testing"
 
-	"k8s.io/api/storage/v1"
-	k8sVersion "k8s.io/apimachinery/pkg/version"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/api/v2/storage/v1"
+	k8sVersion "k8s.io/apimachinery/v2/pkg/version"
+	clientcmdapi "k8s.io/client-go/v2/tools/clientcmd/api"
+	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 )
 
 

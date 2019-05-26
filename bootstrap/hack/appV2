@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+findfiles() {
+  vgrep -+ "$1"|grep -v v2|awk '{print $1}'|sed 's/:$//'|sort|uniq
+}
+
+echo processing github.com/kubernetes-sigs/application
+for i in $(findfiles 'github.com\/kubernetes-sigs\/application');do 
+  ex -s $i << APPLICATION
+%s/github.com\/kubernetes-sigs\/application\//sigs.k8s.io\/application\/v2\//
+w
+q
+APPLICATION
+done
+
+echo processing k8s.io/apimachinery
+for i in $(findfiles 'k8s.io\/apimachinery\/');do 
+  ex -s $i << APIMACHINERY
+%s/k8s.io\/apimachinery\//k8s.io\/apimachinery\/v2\//
+w
+q
+APIMACHINERY
+done
+
+echo processing k8s.io/api
+for i in $(findfiles 'k8s.io\/api\/');do 
+  ex -s $i << API
+%s/k8s.io\/api\//k8s.io\/api\/v2\//
+w
+q
+API
+done
+
+echo processing k8s.io/apiextensions-apiserver
+for i in $(findfiles 'k8s.io\/apiextensions-apiserver\/');do 
+  ex -s $i << APIEXTENSIONS_APISERVER
+%s/k8s.io\/apiextensions-apiserver\//k8s.io\/apiextensions-apiserver\/v2\//
+w
+q
+APIEXTENSIONS_APISERVER
+done
+
+echo processing k8s.io/client-go
+for i in $(findfiles 'k8s.io\/client-go\/');do 
+  ex -s $i << CLIENT_GO
+%s/k8s.io\/client-go\//k8s.io\/client-go\/v2\//
+w
+q
+CLIENT_GO
+done
+
+echo processing sigs.k8s.io/controller-runtime
+for i in $(findfiles 'sigs.k8s.io\/controller-runtime\/');do 
+  ex -s $i << CONTROLLER_RUNTIME
+%s/sigs.k8s.io\/controller-runtime\//sigs.k8s.io\/controller-runtime\/v2\//
+w
+q
+CONTROLLER_RUNTIME
+done
+
+
+echo processing k8s.io/apiserver
+for i in $(findfiles 'k8s.io\/apiserver\/');do 
+  ex -s $i << APISERVER
+%s/k8s.io\/apiserver\//k8s.io\/apiserver\/v2\//
+w
+q
+APISERVER
+done
+
+echo processing k8s.io/cli-runtime
+for i in $(findfiles 'k8s.io\/cli-runtime\/');do 
+  ex -s $i << CLI_RUNTIME
+%s/k8s.io\/cli-runtime\//k8s.io\/cli-runtime\/v2\//
+w
+q
+CLI_RUNTIME
+done
