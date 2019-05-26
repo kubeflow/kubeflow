@@ -3,6 +3,15 @@ kind: KfDef
 metadata:
   name: config
 spec:
+  components:
+  - ambassador
+  - cert-manager
+  - cloud-endpoints
+  - gpu-driver
+  - basic-auth
+  - basic-auth-ingress
+  packages:
+  - gcp
   componentParams:
     ambassador:
     - name: ambassadorServiceType
