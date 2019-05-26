@@ -1385,6 +1385,12 @@ func (gcp *Gcp) createSecrets() error {
 	}
 	// Also create service account secret in istio namespace
 	if gcp.Spec.UseIstio {
+		if err = createNamespace(k8sClient, gcp.getIstioNamespace()); err != nil {
+			return &kfapis.KfError{
+				Code: err.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("cannot create istio namespace Error %v", err.(*kfapis.KfError).Message),
+			}
+		}
 		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME, gcp.getIstioNamespace()); err != nil {
 			return &kfapis.KfError{
 				Code: err.(*kfapis.KfError).Code,
