@@ -3,6 +3,10 @@ kind: KfDef
 metadata:
   name: config
 spec:
+  components:
+  - pipeline
+  packages:
+  - pipeline
   componentParams:
     pipeline:
     - name: mysqlPd

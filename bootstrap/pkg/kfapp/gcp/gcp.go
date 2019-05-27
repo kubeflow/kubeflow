@@ -1387,7 +1387,7 @@ func (gcp *Gcp) createSecrets() error {
 	if gcp.Spec.UseIstio {
 		if err = createNamespace(k8sClient, gcp.getIstioNamespace()); err != nil {
 			return &kfapis.KfError{
-				Code: err.(*kfapis.KfError).Code,
+				Code:    err.(*kfapis.KfError).Code,
 				Message: fmt.Sprintf("cannot create istio namespace Error %v", err.(*kfapis.KfError).Message),
 			}
 		}

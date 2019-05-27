@@ -991,6 +991,19 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 				return nil, mergeErr
 			}
 		}
+		if baseKfDef.Spec.UseIstio {
+			olen := len(baseKfDef.Spec.Components)
+			orderedComponents := make([]string, len(baseKfDef.Spec.Components))
+			for i, component := range baseKfDef.Spec.Components {
+				if component == "istio-install" {
+					orderedComponents = append(orderedComponents, baseKfDef.Spec.Components[i])
+					orderedComponents = append(orderedComponents, baseKfDef.Spec.Components[0:i-1]...)
+					orderedComponents = append(orderedComponents, baseKfDef.Spec.Components[i+1:olen]...)
+					break
+				}
+			}
+			baseKfDef.Spec.Components = orderedComponents
+		}
 		writeErr := WriteKfDef(baseKfDef, basefile)
 		if writeErr != nil {
 			return nil, writeErr

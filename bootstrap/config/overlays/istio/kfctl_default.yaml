@@ -4,8 +4,8 @@ metadata:
   name: config
 spec:
   components:
-  - istio
   - istio-install 
+  - istio
   componentParams:
     argo:
     - name: overlay
