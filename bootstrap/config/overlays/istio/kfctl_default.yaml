@@ -14,10 +14,13 @@ spec:
     centraldashboard:
     - name: overlay
       value: istio
-    iap-ingress:
+    istio-crds:
     - name: namespace
       value: istio-system
     istio-install:
+    - name: namespace
+      value: istio-system
+    iap-ingress:
     - name: namespace
       value: istio-system
     jupyter-web-app:
