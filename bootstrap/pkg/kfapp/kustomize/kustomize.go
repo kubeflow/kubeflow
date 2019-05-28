@@ -964,6 +964,19 @@ func MergeKustomizations(kfDef *kfdefsv2.KfDef, compDir string, params []config.
 func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 	compPath string, params []config.NameValue) (resmap.ResMap, error) {
 
+	moveToFront := func(item string, list []string) []string {
+		olen := len(list)
+		newlist := make([]string, 0)
+		for i, component := range list {
+			if component == item {
+				newlist = append(newlist, list[i])
+				newlist = append(newlist, list[0:i]...)
+				newlist = append(newlist, list[i+1:olen]...)
+				break
+			}
+		}
+		return newlist
+	}
 	factory := k8sdeps.NewFactory()
 	fsys := fs.MakeRealFS()
 	compDir := path.Join(root, compPath)
@@ -992,17 +1005,9 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 			}
 		}
 		if kfDef.Spec.UseIstio {
-			olen := len(baseKfDef.Spec.Components)
-			orderedComponents := make([]string, 0)
-			for i, component := range baseKfDef.Spec.Components {
-				if component == "istio-install" {
-					orderedComponents = append(orderedComponents, baseKfDef.Spec.Components[i])
-					orderedComponents = append(orderedComponents, baseKfDef.Spec.Components[0:i]...)
-					orderedComponents = append(orderedComponents, baseKfDef.Spec.Components[i+1:olen]...)
-					break
-				}
-			}
-			baseKfDef.Spec.Components = orderedComponents
+			baseKfDef.Spec.Components = moveToFront("istio", baseKfDef.Spec.Components)
+			baseKfDef.Spec.Components = moveToFront("istio-install", baseKfDef.Spec.Components)
+			baseKfDef.Spec.Components = moveToFront("istio-crds", baseKfDef.Spec.Components)
 		}
 		writeErr := WriteKfDef(baseKfDef, basefile)
 		if writeErr != nil {
