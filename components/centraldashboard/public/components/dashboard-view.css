@@ -49,19 +49,11 @@ paper-card {
         font-size: 14px;
     }
 }
-paper-card#Quick-Links {
+paper-card {
     --paper-item-body-two-line-min-height: 2em;
 }
 paper-card#Platform-Links {
     --paper-card-header-color: #2c6acb;
-    --paper-card-header: {
-        font-family: "Google Sans";
-        background: #e9f0fd;
-        height: 62px;
-        border-color: white;
-        @apply --layout-horizontal;
-        @apply --layout-center;
-    };
     --paper-card-header-image-text: {
         flex: 1;
         padding: 16px 0;
