@@ -334,4 +334,47 @@ describe('KubernetesService', () => {
       });
     });
   });
+
+  describe('Get Nodes', () => {
+    it('Returns all Nodes', async () => {
+      const listNodeResponse = {
+        kind: 'List',
+        apiVersion: 'v1',
+        metadata: {
+          selfLink: '',
+        },
+        items: [
+          {
+            apiVersion: 'v1',
+            kind: 'Node',
+            metadata: {
+              name: 'node1',
+            },
+            spec: {
+              podCIDR: '10.44.1.0/24',
+              providerID:
+                  'gce://kubeflow-dev/us-east1-d/gke-kubeflow-default-pool-59885f2c-08tm'
+            },
+          },
+          {
+            apiVersion: 'v1',
+            kind: 'Node',
+            metadata: {
+              name: 'node2',
+            },
+            spec: {
+              podCIDR: '10.44.0.0/24',
+              providerID:
+                  'gce://kubeflow-dev/us-east1-d/gke-kubeflow-default-pool-59885f2c-r72s'
+            },
+          }
+        ]
+      };
+      mockApiClient.listNode.and.returnValue(Promise.resolve(
+          {response: mockResponse, body: listNodeResponse as k8s.V1NodeList}));
+
+      const nodes = await k8sService.getNodes();
+      expect(nodes).toEqual(listNodeResponse.items as k8s.V1Node[]);
+    });
+  });
 });
