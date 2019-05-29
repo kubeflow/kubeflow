@@ -26,7 +26,9 @@ template(is='dom-if', if='[[platformDetails.resourceChartsLink]]')
                 a.link(href$='[[item.link]]', tabindex='-1', target='_blank')
                     paper-icon-item.external
                         paper-ripple
-                        aside [[item.text]]
+                        paper-item-body(two-line)
+                            .header [[item.headerText]]
+                            aside(secondary) [[item.secondaryText]]
                         paper-icon-button.button(icon='open-in-new',
                             slot='item-icon', alt='[[item.text]]', tabindex=-1)
     paper-card#Documentation(heading='Documentation')

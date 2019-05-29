@@ -6,7 +6,6 @@ import '@polymer/paper-icon-button/paper-icon-button.js';
 import '@polymer/paper-menu-button/paper-menu-button.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 import '@polymer/paper-item/paper-item.js';
-import '@polymer/paper-styles/element-styles/paper-material-styles.js';
 import 'chartjs-plugin-crosshair';
 
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
@@ -36,24 +35,12 @@ const MAX_TOOLTIP_LENGTH = 10;
 class ResourceChart extends PolymerElement {
     static get template() {
         return html`
-        <style include="iron-flex iron-flex-alignment paper-material-styles">
+        <style include="iron-flex iron-flex-alignment">
             :host {
-                @apply --paper-material-elevation-1;
-                background-color: var(--paper-card-background-color,
-                    var(--primary-background-color));
-                border-radius: 5px;
-                display: inline-block;
-                font-size: 14px;
-                max-width: 400px;
-                min-width: 320px;
-                position: relative;
-                width: 100%;
+                @apply --dashboard-card;
             }
             header {
-                height: 62px;
-                border-bottom: 1px solid var(--divider-color);
-                @apply --layout-horizontal;
-                @apply --layout-center;
+                @apply --dashboard-card-header;
             }
             paper-menu-button {
                 padding: 0;
@@ -116,7 +103,8 @@ class ResourceChart extends PolymerElement {
                     on-click="_refresh"></paper-button>
             </header>
             <section id="chart-container">
-                <canvas id="chart" height="400" width="400"></canvas></section>
+                <canvas id="chart" height="400" width="400"></canvas>
+            </section>
             <footer>
                 <a id="external-link" href="[[externalLink]]".
                     target="_blank" tabindex="-1">
@@ -227,10 +215,9 @@ class ResourceChart extends PolymerElement {
      * @param {Event} responseEvent
      */
     _onResponse(responseEvent) {
-        let i = 0;
-        this._chartOptions.data.datasets = [];
-        for (const ds of this._buildDatasets(responseEvent.detail.response)) {
-            this._chartOptions.data.datasets.push({
+        const dataSets = this._buildDatasets(responseEvent.detail.response);
+        this._chartOptions.data.datasets = dataSets.map((ds, i) => (
+            {
                 type: 'line',
                 label: ds[0],
                 backgroundColor: LINE_COLORS[i % LINE_COLORS.length],
@@ -240,9 +227,8 @@ class ResourceChart extends PolymerElement {
                 borderWidth: 2,
                 lineTension: 0,
                 pointRadius: 0,
-            });
-            i++;
-        }
+            }
+        ));
         // Adds % formatting for CPU utilization
         if (this.metric !== 'podmem') {
             this._chartOptions.options.scales.yAxes[0].ticks = {
@@ -284,9 +270,8 @@ class ResourceChart extends PolymerElement {
             p.mean = ((p.mean * (p.data.length - 1) + point.value) /
                 p.data.length);
         });
-        let series = dataPointsByLabel.entries();
-        if (dataPointsByLabel.size > MAX_SERIES) {
-            series = Array.from(dataPointsByLabel.entries());
+        const series = Array.from(dataPointsByLabel.entries());
+        if (series.length > MAX_SERIES) {
             series.sort((a, b) => b[1].mean - a[1].mean);
             series.splice(MAX_SERIES);
             this._chartOptions.options.legend.display = false;

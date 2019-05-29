@@ -13,6 +13,28 @@
     flex: 1;
     --accent-color: #007dfc;
     --primary-background-color: white;
+
+    --dashboard-card: {
+        background-color: var(--paper-card-background-color,
+            var(--primary-background-color));
+        border-radius: 5px;
+        display: inline-block;
+        font-size: 14px;
+        max-width: 400px;
+        min-width: 320px;
+        position: relative;
+        width: 100%;
+        @apply --paper-material-elevation-1;
+    }
+
+    --dashboard-card-header: {
+        font-family: "Google Sans";
+        height: 62px;
+        border-bottom: 1px solid var(--divider-color);
+        margin-bottom: .5em;
+        @apply --layout-horizontal;
+        @apply --layout-center;
+    }
 }
 
 .column {grid-row: 1}
@@ -32,12 +54,7 @@ paper-card {
     font-size: 14px;
     --paper-card-header-color: #202124;
     --paper-card-header: {
-        font-family: "Google Sans";
-        height: 62px;
-        border-bottom: 1px solid var(--divider-color);
-        margin-bottom: .5em;
-        @apply --layout-horizontal;
-        @apply --layout-center;
+        @apply --dashboard-card-header;
     }
     --paper-card-header-text: {
         font-size: 16px;
@@ -49,23 +66,11 @@ paper-card {
         font-size: 14px;
     }
 }
-<<<<<<< HEAD
 paper-card {
-=======
-paper-card#Quick-Links {
->>>>>>> Completes resource-charts with full test coverage.
     --paper-item-body-two-line-min-height: 2em;
 }
 paper-card#Platform-Links {
     --paper-card-header-color: #2c6acb;
-    --paper-card-header: {
-        font-family: "Google Sans";
-        background: #e9f0fd;
-        height: 62px;
-        border-color: white;
-        @apply --layout-horizontal;
-        @apply --layout-center;
-    };
     --paper-card-header-image-text: {
         flex: 1;
         padding: 16px 0;
