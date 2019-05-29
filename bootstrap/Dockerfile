@@ -2,7 +2,7 @@
 # Builder
 # 
 # Create a go runtime suitable for building and testing kfctl
-ARG GOLANG_VERSION=1.12
+ARG GOLANG_VERSION=1.12.4
 FROM golang:$GOLANG_VERSION as builder
 
 RUN apt-get update

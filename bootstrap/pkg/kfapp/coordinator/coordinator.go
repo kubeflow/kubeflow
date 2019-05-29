@@ -24,7 +24,6 @@ import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/gcp"
-//	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/ksonnet"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/minikube"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/kustomize"
 	"github.com/mitchellh/go-homedir"
@@ -41,7 +40,7 @@ import (
 
 // The common entry point used to retrieve an implementation of KfApp.
 // In this case it returns a composite class (coordinator) which aggregates
-// platform and ksonnet implementations in Children.
+// platform and package manager implementations in Children.
 func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	_coordinator := &coordinator{
 		Platforms:       make(map[string]kftypes.KfApp),
@@ -146,9 +145,6 @@ func getPackageManager(packagemanager string, kfdef *kfdefs.KfDef) (kftypes.KfAp
 	switch packagemanager {
 	case kftypes.KUSTOMIZE:
 		return kustomize.GetKfApp(kfdef), nil
-	case kftypes.KSONNET:
-//		return ksonnet.GetKfApp(kfdef), nil
-                fallthrough
 	default:
 		log.Infof("** loading %v.so for package manager %v **", packagemanager, packagemanager)
 		return kftypes.LoadKfApp(packagemanager, kfdef)
@@ -398,9 +394,8 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	return pApp, nil
 }
 
-// this type holds platform implementations of KfApp and ksonnet (also an implementation of KfApp)
-// eg Platforms[kftypes.GCP], Platforms[kftypes.MINIKUBE], PackageManagers["ksonnet"],
-// PackageManagers["kustomize"]
+// this type holds platform implementations of KfApp
+// eg Platforms[kftypes.GCP], Platforms[kftypes.MINIKUBE], PackageManagers["kustomize"]
 // The data attributes in kfdefs.KfDef are used by different KfApp implementations
 type coordinator struct {
 	Platforms       map[string]kftypes.KfApp
