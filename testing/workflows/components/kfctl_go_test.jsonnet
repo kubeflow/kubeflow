@@ -324,7 +324,8 @@ local exitTemplates =
 
       // TODO(jlewi): Uncomment when we actually set up Kubeflow.
       dependencies: if deleteKubeflow then
-         ["kfctl-delete"]
+        // ["kfctl-delete"]
+	null
       else null,
     },
     // testDirDeleteStep,
