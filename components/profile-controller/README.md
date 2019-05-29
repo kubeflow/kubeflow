@@ -2,7 +2,7 @@
 
 Kubeflow Profile CRD is designed to solve access management within multi-user kubernetes cluster.
 
-Profile access management provide namespace level isolation based on:
+Profile access management provides namespace level isolation based on:
 
 - k8s rbac access control
 - Istio rbac access control
@@ -12,10 +12,12 @@ Profile access management provide namespace level isolation based on:
 Each profile CRD will manage one namespace (with same name as profile CRD), and will have one owner.
 Specifically, each profile CRD will manage following resources:
 
-- Namespace
-- K8s rbac Role & Rolebinding to grant profile owner access to above namespace via k8s API (kubectl)
-- Istio namespace-scoped gateway & rbac permission to grant profile owner access to above namespace via Istio (browser)
-- Setup namespace-scoped service-accounts `editor` and `viewer` to be used by user-created pods in 
+- Namespace reserved for profile owner.
+- K8s rbac Rolebinding `namespaceAdmin`: make profile owner the namespace admin, allow access to above namespace via k8s API (kubectl).
+- Istio namespace-scoped ServiceRole `ns-access-istio`: allow access to all services in target namespace via Istio routing.
+- Istio namespace-scoped ServiceRoleBinding `owner-binding-istio`: bind ServiceRole `ns-access-istio` to profile owner. 
+So profile owner can access services in above namespace via Istio (browser).
+- Setup namespace-scoped service-accounts `editor` and `viewer` to be used by user-created pods in above namespace.
 - resource quota management (coming)
 
 ## Supported platforms and prerequisites:
@@ -32,7 +34,7 @@ Specifically, each profile CRD will manage following resources:
 Cluster admin will manage access management for cluster users:
 
 **To create and reserve namespace `ns1` for user `abc@def.com`**
-- create profile:
+- Admin need to create profile via kubectl:
 ```
 apiVersion: kubeflow.org/v1alpha1
 kind: Profile
@@ -45,18 +47,17 @@ spec:
 ```
 
 **To revoke access to namespace `ns1` from user `abc@def.com` and delete namespace `ns1`**
-- delete profile ns1:
+- Admin can delete profile ns1:
 ```
 kubectl delete profile ns1
 ```
 
-You should have kubeflow components deployed inside your k8s cluster. Generated ksonnet application is store in [app-dir](./bootstrapper.yaml#L65).
-Exec into pod ```kubeflow-bootstrapper-0``` in namespace ```kubeflow-admin``` if you need to edit your ksonnet app.
+### Self-serve kfam UI 
 
-The default components are defined in [default.yaml](config/default.yaml), user can customize which components to deploy by
-pointing ```--config``` args in [bootstrapper.yaml](./bootstrapper.yaml) to their own config (eg. a configmap in k8s cluster)
+Users with access to cluster API server should be able to resiger and use kubeflow cluster without admin manual approve.
 
-This bootstrapper example [config](config/gcp_prototype.yaml) can help explain how config customization works.
+**Coming**
+
 
 ### Dev Instruction
 
