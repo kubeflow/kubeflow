@@ -1,7 +1,7 @@
 .column
     paper-card#Quick-Links(heading='Quick shortcuts')
         template(is='dom-repeat', items='[[quickLinks]]')
-            iframe-link.link(href$="[[item.link]]", tabindex='-1')
+            iframe-link.link(role='link', href$="[[item.link]]")
                 paper-icon-item
                     iron-icon(icon='kubeflow:bolt', slot='item-icon')
                     paper-item-body(two-line)
@@ -11,7 +11,7 @@
 .column
     paper-card#Documentation(heading='Documentation')
         template(is='dom-repeat', items='[[documentationItems]]')
-            a.heading(href$='[[item.link]]', tabindex='-1',
+            a.link(href$='[[item.link]]', tabindex='-1',
                         target='_blank')
                 paper-icon-item.external
                     paper-ripple
@@ -28,6 +28,8 @@
                 a.link(href$='[[item.link]]', tabindex='-1', target='_blank')
                     paper-icon-item.external
                         paper-ripple
-                        aside [[item.text]]
+                        paper-item-body(two-line)
+                            .header [[item.headerText]]
+                            aside(secondary) [[item.secondaryText]]
                         paper-icon-button.button(icon='open-in-new',
                             slot='item-icon', alt='[[item.text]]', tabindex=-1)

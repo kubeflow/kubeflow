@@ -6,7 +6,7 @@
     @apply --layout-vertical;
     --accent-color: #007dfc;
     --primary-background-color: #0a3b71;
-    --sidebar-default-color: #ffffff4f;
+    --sidebar-default-color: rgba(255, 255, 255, 0.5);
     --divider-color: #dadce0;
     --border-color: #eeeeef;
     --icon-color: #202124;
@@ -61,18 +61,23 @@ app-drawer-layout[thin] #MainDrawer {
 }
 
 #MainDrawer .menu-item {
+    color: var(--sidebar-default-color);
     cursor: pointer;
+    font-family: Google Sans;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    line-height: 24px;
     margin: .5em 0;
     transition: background .25s;
-    font-family: Google Sans;
-    color: var(--sidebar-default-color);
     --paper-item-icon-width: 36px;
+
 }
 
 #MainDrawer .divider {
     width: 90%;
     margin: 1em auto;
-    border-bottom: 2px solid var(--sidebar-default-color)
+    border-bottom: 1px solid var(--sidebar-default-color)
 }
 
 #MainDrawer .menu-item:hover {
@@ -80,8 +85,7 @@ app-drawer-layout[thin] #MainDrawer {
 }
 
 #MainDrawer .iron-selected>.menu-item {
-    color: white;
-    font-weight: 100
+    color: #fff;
 }
 
 #MainDrawer .iron-selected>.menu-item::after {
@@ -214,7 +218,8 @@ neon-animatable {
     right: 16px;
     position: absolute;
 }
-#User-Badge > .image {
+
+#User-Badge>.image {
     width: 2em;
     height: 2em;
     border-radius: 50%;

@@ -19,10 +19,14 @@
 .column:nth-of-type(1) {grid-column: 1}
 .column:nth-of-type(2) {grid-column: 2}
 .column:nth-of-type(3) {grid-column: 3}
+
+.column>* {
+    margin-bottom: .75em; /* 12px */
+}
+
 paper-card {
     border-radius: 5px;
     width: 100%;
-    overflow: hidden;
     min-width: 23em; /* 320px */
     padding-bottom: 16px;
     font-size: 14px;
@@ -45,18 +49,11 @@ paper-card {
         font-size: 14px;
     }
 }
-paper-card#Quick-Links {
+paper-card {
     --paper-item-body-two-line-min-height: 2em;
 }
 paper-card#Platform-Links {
     --paper-card-header-color: #2c6acb;
-    --paper-card-header: {
-        background: #e9f0fd;
-        height: 62px;
-        border-color: white;
-        @apply --layout-horizontal;
-        @apply --layout-center;
-    };
     --paper-card-header-image-text: {
         flex: 1;
         padding: 16px 0;
@@ -91,7 +88,7 @@ paper-icon-item {
     @apply --layout-justified;
     @apply --layout-horizontal-reverse;
     font-size: 1em;
-    overflow:hidden;
+    overflow: hidden;
     --paper-item-icon-width: 40px;
     --paper-icon-item: {
         font-weight: 500;
@@ -101,7 +98,8 @@ paper-icon-item {
         border-radius: 50%;
     };
     --paper-item-focused-before: {
-        background: #007dfc;
+        /* Approximates the hover style since it uses opacity */
+        background: var(--google-grey-700);
     };
     --paper-icon-button-ink-color: var(--accent-color);
 }
@@ -123,26 +121,18 @@ paper-ripple {
 
 .link {
     display: block;
-    margin: .5em 1em;
+}
+
+.link:hover, .link:active {
+    background-color: var(--google-grey-100);
 }
 
 .link paper-icon-item {
     padding: .5em 1em;
-    border-radius: 5px;    
-}
-
-.link.more-coming {
-    opacity: .4;
-    font-style: italic;
-    pointer-events: none
+    border-radius: 5px;
 }
 
 a {
     text-decoration: none;
     color: initial;
-}
-
-.header:hover {
-    color: var(--paper-blue-700);
-    text-decoration: underline;
 }
