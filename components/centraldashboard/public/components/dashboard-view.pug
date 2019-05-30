@@ -8,6 +8,8 @@
                         .header [[item.text]]
                         aside(secondary) [[item.desc]]
                     paper-ripple
+    paper-card(heading='Recent Notebooks')
+        notebooks-card(namespace='[[namespace]]')
 template(is='dom-if', if='[[platformDetails.resourceChartsLink]]')
     .column
         resource-chart(header-text='Cluster CPU Utilization', metric='cpu',
