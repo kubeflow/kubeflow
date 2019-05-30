@@ -19,7 +19,9 @@ package coordinator
 import (
 	"fmt"
 	"github.com/ghodss/yaml"
+	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
+	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
@@ -30,6 +32,8 @@ import (
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	valid "k8s.io/apimachinery/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
@@ -97,7 +101,7 @@ func getConfigFromCache(pathDir string, kfDef *kfdefs.KfDef) ([]byte, error) {
 	if dataErr != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("can not encode as yaml Error %v", configPath, resMapErr),
+			Message: fmt.Sprintf("can not encode as yaml Error %v", dataErr),
 		}
 	}
 	return data, nil
@@ -258,17 +262,17 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: appName,
+			Name:      appName,
 			Namespace: namespace,
 		},
 		Spec: kfdefs.KfDefSpec{
 			ComponentConfig: config.ComponentConfig{
-				Platform:platform,
+				Platform: platform,
 			},
-			Project: project,
+			Project:        project,
 			PackageManager: packageManager,
-			UseBasicAuth: useBasicAuth,
-			UseIstio: useIstio,
+			UseBasicAuth:   useBasicAuth,
+			UseIstio:       useIstio,
 		},
 	}
 	configFileBuffer, configFileErr := getConfigFromCache(cacheDir, kfDef)
@@ -405,6 +409,14 @@ type coordinator struct {
 }
 
 func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
+
+	if err := kfapp.applyCommon(); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("failed to apply common resources: %v", err),
+		}
+	}
+
 	platform := func() error {
 		if kfapp.KfDef.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
@@ -454,6 +466,65 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 	case kftypes.K8S:
 		return k8s()
 	}
+	return nil
+}
+
+func (kfapp *coordinator) applyCommon() error {
+
+	// Get a K8s client
+	config := kftypes.GetConfig()
+	kubeclient := kftypes.GetClientset(config)
+
+	// Create KFApp's namespace
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: kfapp.KfDef.Namespace,
+		},
+	}
+	log.Infof("Creating namespace: %v", ns.Name)
+
+	_, err := kubeclient.CoreV1().Namespaces().Create(ns)
+	if err != nil && !errors.IsAlreadyExists(err) {
+		log.Errorf("Error creating namespace %v", ns.Name)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: err.Error(),
+		}
+	}
+
+	// Apply Istio if use_istio option is set
+	if kfapp.KfDef.Spec.UseIstio {
+		log.Infof("Installing istio...")
+		nv := configtypes.NameValue{Name: "namespace", Value: kfapp.KfDef.Namespace}
+		parentDir := path.Dir(kfapp.KfDef.Spec.Repo)
+		err := bootstrap.CreateResourceFromFile(kftypes.GetConfig(), path.Join(parentDir, "dependencies/istio/install/crds.yaml"))
+
+		if err != nil {
+			log.Errorf("Failed to create istio CRD: %v", err)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: err.Error(),
+			}
+		}
+		err = bootstrap.CreateResourceFromFile(config, path.Join(parentDir, "dependencies/istio/install/istio-noauth.yaml"))
+		if err != nil {
+			log.Errorf("Failed to create istio manifest: %v", err)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: err.Error(),
+			}
+		}
+		err = bootstrap.CreateResourceFromFile(config, path.Join(parentDir, "dependencies/istio/kf-istio-resources.yaml"), nv)
+		if err != nil {
+			log.Errorf("Failed to create kubeflow istio resource: %v", err)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: err.Error(),
+			}
+		}
+		log.Infof("Done installing istio.")
+	}
+
 	return nil
 }
 
