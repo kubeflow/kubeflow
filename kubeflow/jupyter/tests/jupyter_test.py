@@ -24,13 +24,25 @@ import re
 import requests
 from retrying import retry
 import six
-
+import datetime
+import multiprocessing
+import time
+import urllib
+import yaml
 import pytest
+import google.auth
+import google.auth.transport
+import google.auth.transport.requests
+from google.cloud import storage  # pylint: disable=no-name-in-module
+
+from googleapiclient import errors
 
 from kubernetes.config import kube_config
 from kubernetes import client as k8s_client
 from kubeflow.testing import ks_util
 from kubeflow.testing import util
+from kubernetes.client import configuration as kubernetes_configuration
+from kubernetes.client import rest
 
 GROUP = "kubeflow.org"
 PLURAL = "notebooks"
@@ -44,6 +56,80 @@ logging.basicConfig(
     datefmt='%Y-%m-%dT%H:%M:%S',
 )
 logging.getLogger().setLevel(logging.INFO)
+
+# pylint: disable=too-many-arguments
+def wait_for_cr_condition(client,
+                          group,
+                          plural,
+                          version,
+                          namespace,
+                          name,
+                          expected_condition,
+                          timeout=datetime.timedelta(minutes=10),
+                          polling_interval=datetime.timedelta(seconds=30),
+                          status_callback=None):
+  """Waits until any of the specified conditions occur for the specified
+     custom resource.
+  Args:
+    client: K8s api client.
+    group: Resource group.
+    plural: Resource plural
+    namespace: namespace for the job.
+    name: Name of the job.
+    expected_condition: A list of conditions. Function waits until any of the
+      supplied conditions is reached.
+    timeout: How long to wait for the job.
+    polling_interval: How often to poll for the status of the job.
+    status_callback: (Optional): Callable. If supplied this callable is
+      invoked after we poll the job. Callable takes a single argument which
+      is the job.
+  """
+  crd_api = k8s_client.CustomObjectsApi(client)
+  end_time = datetime.datetime.now() + timeout
+  while True:
+    # By setting async_req=True ApiClient returns multiprocessing.pool.AsyncResult
+    # If we don't set async_req=True then it could potentially block forever.
+    thread = crd_api.get_namespaced_custom_object(
+      group, version, namespace, plural, name, async_req=True)
+
+    # Try to get the result but timeout.
+    results = None
+    try:
+      results = thread.get(TIMEOUT)
+    except multiprocessing.TimeoutError:
+      logging.error("Timeout trying to get TFJob.")
+    except Exception as e:
+      logging.error("There was a problem waiting for Job %s.%s; Exception; %s",
+                    name, name, e)
+      raise
+
+    if results:
+      if status_callback:
+        status_callback(results)
+
+      # If we poll the CRD quick enough status won't have been set yet.
+      conditions = results.get("status", {}).get("conditions", [])
+      # Conditions might have a value of None in status.
+      conditions = conditions or []
+      logging.warning("expected condition: $s ",expected_condition)
+      for c in conditions:
+	logging.info("the list of key valus in condition item\n")      
+	for k,v in c.items():
+	  logging.warning('key: %s value  %s', k, v)
+        if c.get("type", "") in expected_condition:
+          return results
+
+    if datetime.datetime.now() + polling_interval > end_time:
+      raise JobTimeoutError(
+        "Timeout waiting for job {0} in namespace {1} to enter one of the "
+        "conditions {2}.".format(name, namespace, conditions), results)
+
+    time.sleep(polling_interval.seconds)
+
+  # Linter complains if we don't have a return statement even though
+  # this code is unreachable.
+  return None
+
 
 
 def is_retryable_result(r):
