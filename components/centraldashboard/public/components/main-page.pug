@@ -42,7 +42,10 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     query-params='{{queryParams}}', selected="{{namespace}}",
                     hides, hidden$='[[hideNamespaces]]')
                 footer#User-Badge
-                    iron-image.image(sizing="contain", fade, preload, placeholder="[[__placeholderImage]]", src="[[user.image]]", title="[[user.email]]")
+                    iron-image.image(sizing='contain', fade, preload,
+                        placeholder='/assets/anon-user.png',
+                        preventLoad='[[!user.image]]', src='[[user.image]]',
+                        title='[[user.email]]')
         main#Content
             section#ViewTabs(hidden$='[[hideTabs]]')
                 paper-tabs(selected='[[page]]', attr-for-selected='page')
