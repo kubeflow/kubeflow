@@ -201,7 +201,6 @@ module.exports = {
             },
             '/notebook': {
                 target: 'http://localhost:8083/api/v1/namespaces/',
-                logLevel: 'debug',
                 pathRewrite: {
                     '^/notebook/(.*?)/(.*?)/(.*)':
                         '/$1/services/$2/proxy/notebook/$1/$2/$3',

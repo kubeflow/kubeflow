@@ -115,7 +115,7 @@ export class NotebooksCard extends PolymerElement {
             this._onError();
         }
         this.message = this.notebooks.length ?
-            '' : `None in namespace ${this.namespace}`;
+            '' : `No Notebooks in namespace ${this.namespace}`;
         this.loading = false;
     }
 

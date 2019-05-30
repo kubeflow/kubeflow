@@ -233,7 +233,8 @@ describe('Notebooks Card', () => {
             const header = notebooksCard.shadowRoot
                 .getElementById('message');
             expect(header.hasAttribute('hidden')).toBe(false);
-            expect(header.innerText).toBe('None in namespace test-namespace');
+            expect(header.innerText).toBe(
+                'No Notebooks in namespace test-namespace');
         });
 
     it('Shows error message when List Notebooks Server request fails',
