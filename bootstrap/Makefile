@@ -122,6 +122,7 @@ build-kfctl-container:
 	docker create \
 		--name=temp_kfctl_container \
 		$(KFCTL_IMG)/builder:$(TAG)
+	mkdir -p bin
 	docker cp temp_kfctl_container:/usr/local/bin/kfctl ./bin/kfctl
 	docker rm temp_kfctl_container
 	@echo Exported kfctl binary to bin/kfctl
