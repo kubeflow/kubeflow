@@ -427,7 +427,7 @@ func generateVirtualService(instance *v1alpha1.Notebook) (*unstructured.Unstruct
 	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"*"}, "spec", "hosts"); err != nil {
 		return nil, fmt.Errorf("Set .spec.hosts error: %v", err)
 	}
-	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"kubeflow-gateway"},
+	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"kubeflow/kubeflow-gateway"},
 		"spec", "gateways"); err != nil {
 		return nil, fmt.Errorf("Set .spec.gateways error: %v", err)
 	}
