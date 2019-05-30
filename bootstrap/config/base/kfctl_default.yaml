@@ -1,0 +1,41 @@
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+metadata:
+  name: config
+spec:
+  repo: /path/to/local/tmp/containing/kubeflow
+  packages: 
+  - argo
+  - common
+  - examples
+  - admission-webhook  
+  - jupyter
+  - katib
+  - metacontroller
+  - modeldb
+  - mpi-job
+  - pytorch-job
+  - seldon
+  - tensorboard
+  - tf-serving
+  - tf-training
+  components:
+  - metacontroller
+  - argo
+  - centraldashboard
+  - admission-webhook  
+  - jupyter-web-app
+  - katib
+  - notebook-controller
+  - pytorch-operator
+  - spartakus
+  - tensorboard
+  - tf-job-operator
+  componentParams:
+    spartakus:
+      - name: usageId
+        value: <randomly-generated-id>
+        initRequired: true
+      - name: reportUsage
+        value: "true"
+        initRequired: true

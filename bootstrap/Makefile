@@ -119,6 +119,12 @@ build-kfctl-container:
 		--target=$(KFCTL_TARGET) \
 		--tag $(KFCTL_IMG)/builder:$(TAG) .
 	@echo Built $(KFCTL_IMG)/builder:$(TAG)
+	docker create \
+		--name=temp_kfctl_container \
+		$(KFCTL_IMG)/builder:$(TAG)
+	docker cp temp_kfctl_container:/usr/local/bin/kfctl ./bin/kfctl
+	docker rm temp_kfctl_container
+	@echo Exported kfctl binary to bin/kfctl
 
 # build containers using GCLOUD_PROJECT
 build-gcb:

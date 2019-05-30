@@ -1,5 +1,5 @@
 // @apiVersion 0.1
-// @name io.ksonnet.pkg.tf-job-simple-v1beta1
+// @name io.ksonnet.pkg.tf-job-simple-v1
 // @description tf-job-simple
 // @shortDescription A simple TFJob to run CNN benchmark
 // @param name string Name for the job.
@@ -11,7 +11,7 @@ local namespace = env.namespace;
 local image = "gcr.io/kubeflow/tf-benchmarks-cpu:v20171202-bdab599-dirty-284af3";
 
 local tfjob = {
-  apiVersion: "kubeflow.org/v1beta1",
+  apiVersion: "kubeflow.org/v1",
   kind: "TFJob",
   metadata: {
     name: name,

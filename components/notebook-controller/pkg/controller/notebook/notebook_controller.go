@@ -19,7 +19,6 @@ package notebook
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
@@ -332,22 +331,10 @@ func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
 			},
 		},
 	}
-
-	// Inject GCP credentials
-	if labels := os.Getenv("POD_LABELS"); labels != "" {
-		// labels should be comma separated labels, e.g. "k1=v1,k2=v2"
-		l := &ss.Spec.Template.ObjectMeta.Labels
-		labelList := strings.Split(labels, ",")
-		for _, label := range labelList {
-			// label is something like k1=v1
-			s := strings.Split(label, "=")
-			if len(s) != 2 {
-				log.Info("Invalid env var POD_LABELS, skip..")
-				continue
-			}
-			// s[0] = k1, s[1] = v1
-			(*l)[s[0]] = s[1]
-		}
+	// copy all of the Notebook labels to the pod including poddefault related labels
+	l := &ss.Spec.Template.ObjectMeta.Labels
+	for k, v := range instance.ObjectMeta.Labels {
+		(*l)[k] = v
 	}
 
 	podSpec := &ss.Spec.Template.Spec
@@ -408,6 +395,8 @@ func generateService(instance *v1alpha1.Notebook) *corev1.Service {
 			Selector: map[string]string{"statefulset": instance.Name},
 			Ports: []corev1.ServicePort{
 				corev1.ServicePort{
+					// Make port name follow Istio pattern so it can be managed by istio rbac
+					Name:       "http-" + instance.Name,
 					Port:       DefaultServingPort,
 					TargetPort: intstr.FromInt(port),
 					Protocol:   "TCP",
@@ -438,7 +427,7 @@ func generateVirtualService(instance *v1alpha1.Notebook) (*unstructured.Unstruct
 	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"*"}, "spec", "hosts"); err != nil {
 		return nil, fmt.Errorf("Set .spec.hosts error: %v", err)
 	}
-	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"kubeflow-gateway"},
+	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"kubeflow/kubeflow-gateway"},
 		"spec", "gateways"); err != nil {
 		return nil, fmt.Errorf("Set .spec.gateways error: %v", err)
 	}

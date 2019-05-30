@@ -3,7 +3,6 @@ import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-menu-button/paper-menu-button.js';
-import '@polymer/paper-dropdown-menu/paper-dropdown-menu-light';
 import '@polymer/paper-listbox/paper-listbox.js';
 import '@polymer/paper-item/paper-item.js';
 
@@ -53,6 +52,9 @@ export class NamespaceSelector extends PolymerElement {
                 paper-listbox {
                     --paper-listbox-background-color: white;
                     --paper-listbox-color: black;
+                }
+                paper-button {
+                    --paper-button-ink-color: var(--accent-color);
                 }
             </style>
             <iron-ajax auto url="/api/namespaces" handle-as="json"

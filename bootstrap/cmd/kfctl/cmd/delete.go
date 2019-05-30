@@ -53,6 +53,7 @@ var deleteCmd = &cobra.Command{
 		}
 		return nil
 	},
+	ValidArgs: []string{"all", "platform", "k8s"},
 }
 
 func init() {

@@ -11,21 +11,22 @@
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
-        name: "gcp-cred-webhook",
+        name: "admission-webhook",
         namespace: namespace,
       },
       spec: {
         template: {
           metadata: {
             labels: {
-              app: "gcp-cred-webhook"
+              app: "admission-webhook"
             },
           },
           spec: {
             containers: [
               {
-                name: "gcp-cred-webhook",
+                name: "admission-webhook",
                 image: params.image,
+                imagePullPolicy: "Always",
                 volumeMounts: [{
                   name: "webhook-cert",
                   mountPath: "/etc/webhook/certs",
@@ -33,11 +34,12 @@
                 }],
               },
             ],
+            serviceAccountName: "webhook",
             volumes: [
               {
                 name: "webhook-cert",
                 secret: {
-                  secretName: "gcp-cred-webhook-certs",
+                  secretName: "admission-webhook-certs",
                 },
               },
             ],
@@ -52,14 +54,14 @@
       kind: "Service",
       metadata: {
         labels: {
-          app: "gcp-cred-webhook",
+          app: "admission-webhook",
         },
-        name: "gcp-cred-webhook",
+        name: "admission-webhook",
         namespace: namespace,
       },
       spec: {
         selector: {
-          app: "gcp-cred-webhook",
+          app: "admission-webhook",
         },
         ports: [
           {
@@ -75,18 +77,18 @@
       apiVersion: "admissionregistration.k8s.io/v1beta1",
       kind: "MutatingWebhookConfiguration",
       metadata: {
-        name: "gcp-cred-webhook",
+        name: "admission-webhook",
         // This is cluster scope.
       },
       webhooks: [
         {
           // name has to be fully qualified X.X.X
-          name: "gcp-cred-webhook.kubeflow.org",
+          name: "admission-webhook.kubeflow.org",
           clientConfig: {
             service: {
-              name: "gcp-cred-webhook",
+              name: "admission-webhook",
               namespace: namespace,
-              path: "/add-cred"
+              path: "/apply-poddefault"
             },
             // To be patched.
             caBundle: "",
@@ -117,6 +119,7 @@
             service: "webhook-bootstrap",
           },
         },
+        serviceName: "webhook-bootstrap",
         template: {
           metadata: {
             labels: {
@@ -210,6 +213,18 @@
           resources: ["secrets"],
           verbs: ["*"],
         },
+        {
+          apiGroups: [
+            "",
+          ],
+          resources: [
+            "pods",
+          ],
+          verbs: [
+            "list",
+            "delete",
+          ],
+        },
       ],
     },  // initClusterRoleBinding
     initClusterRole:: initClusterRole,
@@ -227,7 +242,151 @@
     },  // webhookConfigmap
     webhookConfigmap:: webhookConfigmap,
 
+local webhookRole = {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "ClusterRole",
+      metadata: {
+        name: "webhook-role",
+      },
+      rules: [
+        {
+         apiGroups: [
+            "kubeflow.org",
+          ],
+          resources: [
+            "poddefaults",
+          ],
+          verbs: [
+            "get",
+            "watch",
+            "list",
+            "update",
+            "create",
+            "patch",
+            "delete",
+          ],
+        }
+      ],
+    },
+    webhookRole:: webhookRole,
+
+     local webhookServiceAccount = {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: "webhook",
+        namespace: params.namespace,
+      },
+    },
+    webhookServiceAccount:: webhookServiceAccount,
+  
+    local webhookRoleBinding = {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "ClusterRoleBinding",
+      metadata: {
+        name: "webhook-role-binding",
+      },
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
+        name: "webhook-role",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "webhook",
+          namespace: params.namespace,
+        },
+      ],
+    },
+    webhookRoleBinding:: webhookRoleBinding,
+
+   local poddefaultCRD = {
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
+      metadata: {
+        name: "poddefaults.kubeflow.org",
+      },
+      spec: {
+        group: "kubeflow.org",
+        version: "v1alpha1",
+        scope: "Namespaced",
+        names: {
+          plural: "poddefaults",
+          singular: "poddefault",
+          kind: "PodDefault",
+        },
+        validation: {
+          openAPIV3Schema: {
+            properties: {
+              apiVersion: {
+                type: "string",
+              },
+              kind: {
+                type: "string",
+              },
+              metadata: {
+                type: "object",
+              },
+              spec: {
+                properties: {
+                  desc: {
+                  type: "string",
+                  },
+                  env: {
+                    items:{
+                      type: "object",
+                    },
+                   type: "array",
+                  },
+                  envFrom: {
+                    items: {
+                      type: "object",
+                    },
+                    type: "array",
+                  },
+                  selector: {
+                    type: "object",
+                  },
+                  volumeMounts: {
+                    items: {
+                      type: "object",
+                    },
+                    type: "array",
+                  },
+                  volumes: {
+                    items: {
+                      type: "object",
+                    },
+                    type: "array",
+                  },
+                },
+                required: [
+                  "selector",
+                ],
+                type: "object",
+            },
+            status:{
+              type: "object",
+           },
+          },
+          type: "object",
+        },
+       },
+      },
+      status: {
+        acceptedNames: {
+          kind: "",
+          plural: "",
+        },
+        conditions: [],
+        storedVersions: [],
+      },
+    },
+    poddefaultCRD:: poddefaultCRD,
+
     all:: [
+      self.poddefaultCRD,
       self.deployment,
       self.service,
       self.webhookBootstrapJob,
@@ -236,6 +395,9 @@
       self.initServiceAccount,
       self.initClusterRole,
       self.initClusterRoleBinding,
+      self.webhookServiceAccount,
+      self.webhookRole,
+      self.webhookRoleBinding,
     ],
 
     list(obj=self.all):: k.core.v1.list.new(obj,),

@@ -22,6 +22,7 @@ import (
 
 	"github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis"
 	"github.com/kubeflow/kubeflow/components/profile-controller/pkg/controller"
+	"github.com/kubeflow/kubeflow/components/profile-controller/pkg/controller/profile"
 	"github.com/kubeflow/kubeflow/components/profile-controller/pkg/webhook"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -33,7 +34,12 @@ import (
 func main() {
 	var metricsAddr string
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
+	var userIdHeader string
+	var userIdPrefix string
+	flag.StringVar(&userIdHeader, profile.USERIDHEADER, "x-goog-authenticated-user-email", "Key of request header containing user id")
+	flag.StringVar(&userIdPrefix, profile.USERIDPREFIX, "accounts.google.com:", "Request header user id common prefix")
 	flag.Parse()
+	inputArgs := map[string]string{profile.USERIDHEADER: userIdHeader, profile.USERIDPREFIX: userIdPrefix}
 	logf.SetLogger(logf.ZapLogger(false))
 	log := logf.Log.WithName("entrypoint")
 
@@ -64,7 +70,7 @@ func main() {
 
 	// Setup all Controllers
 	log.Info("Setting up controller")
-	if err := controller.AddToManager(mgr); err != nil {
+	if err := controller.AddToManager(mgr, inputArgs); err != nil {
 		log.Error(err, "unable to register controllers to the manager")
 		os.Exit(1)
 	}

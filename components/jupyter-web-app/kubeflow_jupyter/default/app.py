@@ -36,10 +36,18 @@ def post_notebook(namespace):
   data = {"success": True, "log": ""}
   body = request.form
 
+  namespace = body["ns"]
+  poddefaultLabels = api.get_poddefaults_labels(namespace)
+
   # Template
   notebook = utils.create_notebook_template()
   notebook_cont = notebook["spec"]['template']['spec']['containers'][0]
 
+  # poddefault labels
+  # todo: jupyter-web-app should add the poddefault labels that user selected
+  #  (https://github.com/kubeflow/kubeflow/issues/2992)
+  utils.set_notebook_poddefaults_labels(notebook, poddefaultLabels)
+  
   # Set Name and Namespace
   utils.set_notebook_names(notebook, body)
 
@@ -54,7 +62,7 @@ def post_notebook(namespace):
       utils.enable_shm(notebook)
 
   # Workspace Volume
-  if body["ws_type"] == "New":
+  if body.get("ws_type", "") == "New":
     try:
       api.create_workspace_pvc(body)
     except ApiException as e:
@@ -63,7 +71,7 @@ def post_notebook(namespace):
       return jsonify(data)
 
   # Create the Workspace Volume in the Pod
-  if body["ws_type"] != "None":
+  if body.get("ws_type", "") != "None":
     utils.add_notebook_volume(
         notebook,
         body["ws_name"],

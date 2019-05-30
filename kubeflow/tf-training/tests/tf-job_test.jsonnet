@@ -1,7 +1,7 @@
 local tfjob = import "../tf-job-operator.libsonnet";
-local paramsv1beta2 = {
+local paramsv1 = {
   name:: "tf-job-operator",
-  tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
+  tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:v0.5.1",
   tfDefaultImage:: "null",
   deploymentScope:: "cluster",
   deploymentNamespace:: "null",
@@ -11,10 +11,10 @@ local env = {
   namespace: "test-kf-001",
 };
 
-local tfjobv1beta2 = tfjob.new(env, paramsv1beta2);
+local tfjobv1 = tfjob.new(env, paramsv1);
 
 std.assertEqual(
-  tfjobv1beta2.tfJobCrd,
+  tfjobv1.tfJobCrd,
   {
     apiVersion: "apiextensions.k8s.io/v1beta1",
     kind: "CustomResourceDefinition",
@@ -83,10 +83,9 @@ std.assertEqual(
           },
         },
       },
-      version: "v1beta1",
       versions: [
         {
-          name: "v1beta1",
+          name: "v1",
           served: true,
           storage: true,
         },
@@ -101,7 +100,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  tfjobv1beta2.tfJobDeployment,
+  tfjobv1.tfJobDeployment,
   {
     apiVersion: "extensions/v1beta1",
     kind: "Deployment",
@@ -121,7 +120,7 @@ std.assertEqual(
           containers: [
             {
               command: [
-                "/opt/kubeflow/tf-operator.v1beta2",
+                "/opt/kubeflow/tf-operator.v1",
                 "--alsologtostderr",
                 "-v=1",
               ],
@@ -143,7 +142,7 @@ std.assertEqual(
                   },
                 },
               ],
-              image: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
+              image: "gcr.io/kubeflow-images-public/tf_operator:v0.5.1",
               name: "tf-job-operator",
               volumeMounts: [
                 {
@@ -169,7 +168,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  tfjobv1beta2.tfUiDeployment,
+  tfjobv1.tfUiDeployment,
   {
     apiVersion: "extensions/v1beta1",
     kind: "Deployment",
@@ -200,7 +199,7 @@ std.assertEqual(
                   },
                 },
               ],
-              image: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
+              image: "gcr.io/kubeflow-images-public/tf_operator:v0.5.1",
               name: "tf-job-dashboard",
               ports: [
                 {
@@ -217,7 +216,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  tfjobv1beta2.tfUiRole,
+  tfjobv1.tfUiRole,
   {
     apiVersion: "rbac.authorization.k8s.io/v1beta1",
     kind: "ClusterRole",

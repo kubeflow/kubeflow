@@ -16,13 +16,17 @@ export class IframeLink extends PolymerElement {
             <style>
                 :host {
                     cursor: pointer;
-                }
-                a {
-                    width: 100%;
                     @apply --iframe-link;
                 }
+                a {
+                    width: 100%
+                }
+                a, a:hover, a:active {
+                    text-decoration: inherit;
+                    color: inherit
+                }
             </style>
-            <a id="link" href$="/[[prefix]][[href]]"
+            <a id="link" href$="/[[prefix]][[href]]" tabindex="-1"
                 on-click="onClick"><slot></slot></a>`;
     }
 

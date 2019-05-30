@@ -21,6 +21,7 @@
           path: params.path,
           server: params.serverIP,
         },
+        storageClassName: "nfs-storage",
       },
     },
     persistentVolume:: persistentVolume,

@@ -8,6 +8,7 @@ import '@polymer/app-route/app-location.js';
 import '@polymer/app-route/app-route.js';
 import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/iron-image/iron-image.js';
 import '@polymer/iron-collapse/iron-collapse.js';
 import '@polymer/iron-selector/iron-selector.js';
 import '@polymer/iron-media-query/iron-media-query.js';
@@ -27,12 +28,14 @@ import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
 import css from './main-page.css';
 import template from './main-page.pug';
-import logo from '../assets/kf-logo.svg';
+import logo from '../assets/logo.svg';
+import '../assets/anon-user.png';
 
 import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
 import './not-found-view.js';
+import './resources/kubeflow-icons.js';
 import utilitiesMixin from './utilities-mixin.js';
 import {MESSAGE, PARENT_CONNECTED_EVENT, IFRAME_CONNECTED_EVENT,
     NAMESPACE_SELECTED_EVENT} from '../library.js';
@@ -43,9 +46,9 @@ import {IFRAME_LINK_PREFIX} from './iframe-link.js';
  */
 export class MainPage extends utilitiesMixin(PolymerElement) {
     static get template() {
-        const pugVariables = {logo: logo};
+        const vars = {logo};
         return html([
-            `<style>${css.toString()}</style>${template(pugVariables)}`]);
+            `<style>${css.toString()}</style>${template(vars)}`]);
     }
 
     static get properties() {
@@ -71,11 +74,11 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                     },
                     {
                         link: '/tfjobs/ui/',
-                        text: 'TF Jobs Dashboard',
+                        text: 'TF Jobs',
                     },
                     {
                         link: '/katib/',
-                        text: 'Katib Dashboard',
+                        text: 'Katib',
                     },
                 ],
             },
@@ -90,6 +93,11 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             hideNamespaces: {type: Boolean, value: false, readOnly: true},
             notFoundInIframe: {type: Boolean, value: false, readOnly: true},
             namespace: {type: String, observer: '_namespaceChanged'},
+            __placeholderImage: {
+                type: String,
+                value: '/assets/anon-user.png',
+                readOnly: true,
+            },
         };
     }
 
@@ -224,9 +232,10 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     /* Handles the AJAX response from the platform-info API.
      * @param {Event} responseEvent AJAX-response
      */
-    _onPlatformInfoResponse(responseEvent) {
-        const {response} = responseEvent.detail;
-        this.platformInfo = response;
+    _onEnvInfoResponse(responseEvent) {
+        const {platform, user} = responseEvent.detail.response;
+        this.user = user;
+        this.platformInfo = platform;
         if (this.platformInfo.kubeflowVersion) {
             this.buildVersion = this.platformInfo.kubeflowVersion;
         }

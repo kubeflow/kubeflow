@@ -1,4 +1,4 @@
-param([ValidateSet('all','clean','test','build-local','build','push','push-latest')]$step = 'all')
+param([ValidateSet('all','clean','test','build-local','build','push','push-latest')]$step = 'all', [Alias('OneStep')][switch]$OnlyThatStep)
 # =======================================START=OF=COMPILER==========================================================|
 #    The Following Code was added by AP-Compiler Version [1.2] To Make this program independent of AP-Core Engine
 #    GitHub: https://github.com/avdaredevil/AP-Compiler
@@ -40,6 +40,7 @@ $steps = @{
     "push" = "build-local","test","build","push"
     "push-latest" = "build-local","test","build","push","push-latest"
 }[$step]
+if ($OnlyThatStep) {$steps = $step}
 
 switch($steps) {
     "clean" {

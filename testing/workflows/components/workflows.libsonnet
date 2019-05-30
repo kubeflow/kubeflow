@@ -190,32 +190,16 @@
     // argoTaskTemplates is constructing from tasks as well.
     tasks:: [
       {
-
-        // Wait for Kubeflow and run some basic tests such as checking
-        // that various components started.
+        local v1Suffix = "-v1",
         template: tests.buildTemplate {
-          name: "wait-for-kubeflow",
-          command: [
-            "python",
-            "-m",
-            "testing.wait_for_kubeflow",
-            "--test_dir=" + tests.testDir,
-            "--namespace=" + tests.stepsNamespace,
-          ],
-        },  // wait-for-kubeflow
-        dependencies: null,
-      },  // wait-for-kubeflow
-      {
-        local v1beta1Suffix = "-v1b1",
-        template: tests.buildTemplate {
-          name: "tfjob-test" + v1beta1Suffix,
+          name: "tfjob-test" + v1Suffix,
           pythonPath: tests.kubeflowPy + ":" + tests.tfOperatorPy + ":" + tests.kubeflowTestingPy,
           command: [
             "python",
             "-m",
             "kubeflow.tf_operator.simple_tfjob_tests",
             "--app_dir=" + tests.tfOperatorRoot + "/test/workflows",
-            "--tfjob_version=v1beta1",
+            "--tfjob_version=v1",
             // Name is used for the test case name so it should be unique across
             // all E2E tests.
             "--params=name=smoke-tfjob-" + tests.platform + ",namespace=" + tests.stepsNamespace,
@@ -224,8 +208,8 @@
             "--skip_tests=test_simple_tfjob_gpu",
           ],
         },  // run tests
-        dependencies: ["wait-for-kubeflow"],
-      },  // tf-job-test-v1b1
+        dependencies: null,
+      },  // tf-job-test-v1
       {
         local v1beta2Suffix = "-v1b2",
         template: tests.buildTemplate {
@@ -245,7 +229,7 @@
             "--skip_tests=test_simple_tfjob_gpu",
           ],
         },  // run tests
-        dependencies: ["wait-for-kubeflow"],
+        dependencies: null,
       },  // tf-job-test-v1b2
       // TODO(https://github.com/kubeflow/kubeflow/issues/1407): argo-deploy is flaky so disable it.
       // {
@@ -286,7 +270,7 @@
             "test_katib",
           ],
         },
-        dependencies: ["wait-for-kubeflow"],
+        dependencies: null,
       },  // test-katib
       {
         template: tests.buildTemplate {
@@ -307,7 +291,7 @@
           ],
           pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
         },
-        dependencies: ["wait-for-kubeflow"],
+        dependencies: null,
       },  // pytorchjob - deploy,
       {
 
@@ -318,14 +302,14 @@
             "-m",
             "testing.tf_job_simple_test",
             "--src_dir=" + tests.srcDir,
-            "--tf_job_version=v1beta1",
+            "--tf_job_version=v1",
             "--test_dir=" + tests.testDir,
             "--artifacts_dir=" + tests.artifactsDir,
           ],
           pythonPath: tests.kubeflowPy + ":" + tests.tfOperatorPy + ":" + tests.kubeflowTestingPy,
         },
 
-        dependencies: ["wait-for-kubeflow"],
+        dependencies: null,
       },  // tfjob-simple-prototype-test
       // The test is flaky so disable it see https://github.com/kubeflow/kubeflow/issues/2825.
       // TODO(jlewi). We probably don't need to run the test to verify katib is working correctly.
@@ -359,25 +343,26 @@
           ],
           workingDir: tests.srcDir + "/kubeflow/jupyter/tests",
         },
-        dependencies: ["wait-for-kubeflow"],
+        dependencies: null,
       },  // notebooks-test
-      {
-        template: tests.buildTemplate {
-          name: "profiles-test",
-          command: [
-            "pytest",
-            "profiles_test.py",
+     // profle is a wip and is under some changes
+     //  {
+      //  template: tests.buildTemplate {
+        //  name: "profiles-test",
+        //  command: [
+        //    "pytest",
+        //    "profiles_test.py",
             // I think -s mean stdout/stderr will print out to aid in debugging.
             // Failures still appear to be captured and stored in the junit file.
-            "-s",
+         //   "-s",
             // Test timeout in seconds.
-            "--timeout=500",
-            "--junitxml=" + tests.artifactsDir + "/junit_profile-test.xml",
-          ],
-          workingDir: tests.srcDir + "/kubeflow/profiles/tests",
-        },
-        dependencies: ["wait-for-kubeflow"],
-      },  // profiles-test
+          //  "--timeout=500",
+          //  "--junitxml=" + tests.artifactsDir + "/junit_profile-test.xml",
+         // ],
+         // workingDir: tests.srcDir + "/kubeflow/profiles/tests",
+       // },
+      //  dependencies: null,
+     // },  // profiles-test
     ],
 
     // An Argo template for the dag.
@@ -432,7 +417,7 @@
       // The last 4 digits of the name should be a unique id.
       local deploymentName = "e2e-" + std.substr(name, std.length(name) - 4, 4);
       local v1alpha1Suffix = "-v1alpha1";
-      local v1beta1Suffix = "-v1b1";
+      local v1Suffix = "-v1";
       local v1beta2Suffix = "-v1b2";
 
       // The name of the NFS volume claim to use for test files.
@@ -612,8 +597,8 @@
                   else
                     {},
                   {
-                    name: "tfjob-test" + v1beta1Suffix,
-                    template: "tfjob-test" + v1beta1Suffix,
+                    name: "tfjob-test" + v1Suffix,
+                    template: "tfjob-test" + v1Suffix,
                     dependencies: [
                       "deploy-kubeflow",
                     ],
@@ -754,9 +739,9 @@
               "-m",
               "testing.tf_job_simple_test",
               "--src_dir=" + srcDir,
-              "--tf_job_version=v1beta1",
+              "--tf_job_version=v1",
             ]),  // tfjob-simple-prototype-test
-            buildTemplate("tfjob-test" + v1beta1Suffix, [
+            buildTemplate("tfjob-test" + v1Suffix, [
               "python",
               "-m",
               "kubeflow.tf_operator.simple_tfjob_tests",
@@ -764,14 +749,14 @@
               "--zone=" + zone,
               "--project=" + project,
               "--app_dir=" + tfOperatorRoot + "/test/workflows",
-              "--tfjob_version=v1beta1",
+              "--tfjob_version=v1",
               // Name is used for the test case name so it should be unique across
               // all E2E tests.
               "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace,
               "--artifacts_path=" + artifactsDir,
               // Skip GPU tests
               "--skip_tests=test_simple_tfjob_gpu",
-            ]),  // tfjob-test-v1beta1
+            ]),  // tfjob-test-v1
             buildTemplate("tfjob-test" + v1beta2Suffix, [
               "python",
               "-m",

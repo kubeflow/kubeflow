@@ -1,38 +1,28 @@
 import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/iron-icons/image-icons.js';
 import '@polymer/paper-card/paper-card.js';
+import '@polymer/paper-ripple/paper-ripple.js';
 import '@polymer/paper-item/paper-icon-item.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/paper-styles/element-styles/paper-material-styles.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
 import css from './dashboard-view.css';
 import template from './dashboard-view.pug';
 
 import './iframe-link.js';
+import './resource-chart.js';
+import {getGCPData} from './resources/cloud-platform-data.js';
 
 const DOCS = 'https://www.kubeflow.org/docs/started';
-const GCP_LINKS = [
-    {
-        text: 'Stackdriver Logging',
-        link: 'https://console.cloud.google.com/logs/viewer?resource=k8s_cluster&project=',
-    },
-    {
-        text: 'Project Overview',
-        link: 'https://console.cloud.google.com/home/dashboard?project=',
-    },
-    {
-        text: 'Deployment Manager',
-        link: 'https://console.cloud.google.com/dm/deployments?project=',
-    },
-    {
-        text: 'Kubernetes Engine',
-        link: 'https://console.cloud.google.com/kubernetes/list?project=',
-    },
-];
 
 export class DashboardView extends PolymerElement {
     static get template() {
-        return html([`<style>${css.toString()}</style> ${template()}`]);
+        return html([`
+            <style include="paper-material-styles">${css.toString()}</style>
+            ${template()}
+        `]);
     }
 
     /**
@@ -40,7 +30,7 @@ export class DashboardView extends PolymerElement {
      */
     static get properties() {
         return {
-            gettingStartedItems: {
+            documentationItems: {
                 type: Array,
                 value: [
                     {
@@ -48,6 +38,11 @@ export class DashboardView extends PolymerElement {
                         desc: 'Quickly get running with your ML workflow on ' +
                             'an existing Kubernetes installation',
                         link: `${DOCS}/getting-started/`,
+                    },
+                    {
+                        text: 'MiniKF',
+                        desc: 'A fast and easy way to deploy Kubeflow locally',
+                        link: `${DOCS}/getting-started-minikf/`,
                     },
                     {
                         text: 'Microk8s for Kubeflow',
@@ -106,8 +101,7 @@ export class DashboardView extends PolymerElement {
                     },
                 ],
             },
-            platformName: String,
-            platformLinks: Array,
+            platformDetails: Object,
             platformInfo: {
                 type: Object,
                 observer: '_platformInfoChanged',
@@ -126,12 +120,7 @@ export class DashboardView extends PolymerElement {
             if (pieces.length >= 3) {
                 gcpProject = pieces[2];
             }
-            this.platformLinks = GCP_LINKS.map((l) => {
-                return {
-                    text: l.text,
-                    link: l.link + gcpProject,
-                };
-            });
+            this.platformDetails = getGCPData(gcpProject);
         }
     }
 }
