@@ -37,7 +37,6 @@ import (
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
-	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -96,7 +95,6 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 			Message: "Error: nil restConfig or apiConfig, exit",
 		}
 	}
-	clientset := kftypes.GetClientset(ksApp.restConfig)
 	// TODO(gabrielwen): Make env name an option.
 	envSetErr := ksApp.envSet(KsEnvName, ksApp.restConfig.Host)
 	if envSetErr != nil {
@@ -106,21 +104,7 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {
 				KsEnvName, envSetErr.(*kfapis.KfError).Message),
 		}
 	}
-	namespace := ksApp.ObjectMeta.Namespace
-	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
-	_, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
-	if nsMissingErr != nil {
-		log.Infof("Creating namespace: %v", namespace)
-		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
-		_, nsErr := clientset.CoreV1().Namespaces().Create(nsSpec)
-		if nsErr != nil {
-			return &kfapis.KfError{
-				Code: int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("couldn't create %v %v Error: %v",
-					string(kftypes.NAMESPACE), namespace, nsErr),
-			}
-		}
-	}
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		return &kfapis.KfError{

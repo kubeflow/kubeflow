@@ -4,10 +4,37 @@ metadata:
   name: config
 spec:
   componentParams:
+    argo:
+    - initRequired: true
+      name: injectIstio
+      value: "false"
+    centraldashboard:
+    - initRequired: true
+      name: injectIstio
+      value: "false"
+    jupyter-web-app:
+    - initRequired: true
+      name: injectIstio
+      value: "false"
+    katib:
+    - initRequired: true
+      name: injectIstio
+      value: "false"
     pipeline:
-    - name: mysqlPd
-      value: <deployName>-storage-metadata-store
-    - name: minioPd
-      value: <deployName>-storage-artifact-store
     - name: injectIstio
+      value: "false"
+    spartakus:
+    - initRequired: true
+      name: usageId
+      value: myrandomstring
+    - initRequired: true
+      name: reportUsage
+      value: "false"
+    tensorboard:
+    - initRequired: true
+      name: injectIstio
+      value: "false"
+    tf-job-operator:
+    - initRequired: true
+      name: injectIstio
       value: "false"

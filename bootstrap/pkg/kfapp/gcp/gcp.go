@@ -22,7 +22,6 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
-	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
@@ -364,31 +363,6 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	}
 }
 
-func createNamespace(k8sClientset *clientset.Clientset, namespace string) error {
-	log.Infof("Creating namespace: %v", namespace)
-	_, err := k8sClientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
-	if err == nil {
-		log.Infof("Namespace already exists...")
-		return nil
-	}
-	log.Infof("Get namespace error: %v", err)
-	_, err = k8sClientset.CoreV1().Namespaces().Create(
-		&v1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: namespace,
-			},
-		},
-	)
-	if err == nil {
-		return nil
-	} else {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: err.Error(),
-		}
-	}
-}
-
 func bindAdmin(k8sClientset *clientset.Clientset, user string) error {
 	log.Infof("Binding admin role for %v ...", user)
 	defaultAdmin := "default-admin"
@@ -441,9 +415,6 @@ func (gcp *Gcp) ConfigK8s() error {
 	ctx := context.Background()
 	k8sClientset, err := gcp.getK8sClientset(ctx)
 	if err != nil {
-		return err
-	}
-	if err = createNamespace(k8sClientset, gcp.Namespace); err != nil {
 		return err
 	}
 	if err = bindAdmin(k8sClientset, gcp.Spec.Email); err != nil {
@@ -691,40 +662,6 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 		if _, err := os.Stat(kftypes.KubeConfigPath()); !os.IsNotExist(err) {
 			gcp.AddNamedContext()
 		}
-	}
-	// Get client for kube config.
-	client := kftypes.GetConfig()
-	// Install Istio
-	if gcp.Spec.UseIstio {
-		log.Infof("Installing istio...")
-		//TODO should be a cli parameter
-		nv := configtypes.NameValue{Name: "namespace", Value: gcp.Namespace}
-		parentDir := path.Dir(gcp.Spec.Repo)
-		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/install/crds.yaml"))
-		if err != nil {
-			log.Errorf("Failed to create istio CRD: %v", err)
-			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: err.Error(),
-			}
-		}
-		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/install/istio-noauth.yaml"))
-		if err != nil {
-			log.Errorf("Failed to create istio manifest: %v", err)
-			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: err.Error(),
-			}
-		}
-		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/kf-istio-resources.yaml"), nv)
-		if err != nil {
-			log.Errorf("Failed to create kubeflow istio resource: %v", err)
-			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: err.Error(),
-			}
-		}
-		log.Infof("Done installing istio.")
 	}
 	return nil
 }
