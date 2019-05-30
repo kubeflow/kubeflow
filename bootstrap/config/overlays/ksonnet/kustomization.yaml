@@ -4,10 +4,3 @@ bases:
 - ../../base
 patchesStrategicMerge:
 - kfctl_default.yaml
-patchesJson6902:
-- target:
-    group: kfdef.apps.kubeflow.org
-    version: v1alpha1
-    kind: KfDef
-    name: config
-  path: kfctl_default-patch.yaml
