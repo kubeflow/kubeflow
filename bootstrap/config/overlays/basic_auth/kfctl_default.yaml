@@ -3,18 +3,19 @@ kind: KfDef
 metadata:
   name: config
 spec:
+  components:
+  - ambassador
+  - cert-manager
+  - cloud-endpoints
+  - gpu-driver
+  - basic-auth
+  - basic-auth-ingress
+  packages:
+  - gcp
   componentParams:
     ambassador:
     - name: ambassadorServiceType
       value: NodePort
-    argo:
-    - initRequired: true
-      name: injectIstio
-      value: "false"
-    centraldashboard:
-    - initRequired: true
-      name: injectIstio
-      value: "false"
     cert-manager:
     - name: acmeEmail
       # TODO change value on the fly: use your email for ssl cert
@@ -39,23 +40,4 @@ spec:
     notebook-controller:
     - name: injectGcpCredentials
       value: "true"
-    - initRequired: true
-      name: injectIstio
-      value: "false"
-    jupyter-web-app:
-    - initRequired: true
-      name: injectIstio
-      value: "false"
-    katib:
-    - initRequired: true
-      name: injectIstio
-      value: "false"
-    tensorboard:
-    - initRequired: true
-      name: injectIstio
-      value: "false"
-    tf-job-operator:
-    - initRequired: true
-      name: injectIstio
-      value: "false"
   platform: gcp
