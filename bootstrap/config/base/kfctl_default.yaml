@@ -32,10 +32,6 @@ spec:
   - tensorboard
   - tf-job-operator
   componentParams:
-    notebook-controller:
-      - initRequired: true
-        name: injectIstio
-        value: "false"
     spartakus:
       - name: usageId
         value: <randomly-generated-id>

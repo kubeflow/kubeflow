@@ -1,8 +1,0 @@
-- op: add
-  path: /spec/components/-
-  value: 
-    pipeline
-- op: add
-  path: /spec/packages/-
-  value: 
-    pipeline

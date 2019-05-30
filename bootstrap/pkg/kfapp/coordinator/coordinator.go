@@ -20,9 +20,10 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
+	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
+	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/ksonnet"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/minikube"
@@ -30,8 +31,8 @@ import (
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	valid "k8s.io/apimachinery/pkg/api/validation"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	valid "k8s.io/apimachinery/v2/pkg/api/validation"
+	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"os"
 	"path"
 	"path/filepath"
@@ -41,8 +42,8 @@ import (
 
 // The common entry point used to retrieve an implementation of KfApp.
 // In this case it returns a composite class (coordinator) which aggregates
-// platform and ksonnet implementations in Children.
-func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
+// platform and package manager implementations in Children.
+func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 	_coordinator := &coordinator{
 		Platforms:       make(map[string]kftypes.KfApp),
 		PackageManagers: nil,
@@ -63,7 +64,7 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	return _coordinator
 }
 
-func getConfigFromCache(pathDir string, kfDef *kfdefs.KfDef) ([]byte, error) {
+func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
 
 	configPath := filepath.Join(pathDir, kftypes.DefaultConfigDir)
 	overlays := []config.NameValue{
@@ -71,6 +72,9 @@ func getConfigFromCache(pathDir string, kfDef *kfdefs.KfDef) ([]byte, error) {
 			Name:  "overlay",
 			Value: strings.Split(kfDef.Spec.PackageManager, "@")[0],
 		},
+	}
+	if kfDef.Spec.UseIstio {
+		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "istio"})
 	}
 	if kfDef.Spec.UseBasicAuth {
 		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "basic_auth"})
@@ -106,7 +110,7 @@ func getConfigFromCache(pathDir string, kfDef *kfdefs.KfDef) ([]byte, error) {
 // GetPlatform will return an implementation of kftypes.KfApp that matches the platform string
 // It looks for statically compiled-in implementations, otherwise it delegates to
 // kftypes.LoadKfApp which will try and dynamically load a .so
-func getPlatform(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
+func getPlatform(kfdef *kfdefsv2.KfDef) (kftypes.KfApp, error) {
 	switch kfdef.Spec.Platform {
 	case string(kftypes.MINIKUBE):
 		return minikube.GetKfApp(kfdef), nil
@@ -114,11 +118,11 @@ func getPlatform(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 		return gcp.GetKfApp(kfdef)
 	default:
 		log.Infof("** loading %v.so for platform %v **", kfdef.Spec.Platform, kfdef.Spec.Platform)
-		return kftypes.LoadKfApp(kfdef.Spec.Platform, kfdef)
+		return kftypesv2.LoadKfApp(kfdef.Spec.Platform, kfdef)
 	}
 }
 
-func getPackageManagers(kfdef *kfdefs.KfDef) *map[string]kftypes.KfApp {
+func getPackageManagers(kfdef *kfdefsv2.KfDef) *map[string]kftypes.KfApp {
 	appyaml := filepath.Join(kfdef.Spec.AppDir, kftypes.KfConfigFile)
 	err := unmarshalAppYaml(appyaml, kfdef)
 	if err != nil {
@@ -138,16 +142,16 @@ func getPackageManagers(kfdef *kfdefs.KfDef) *map[string]kftypes.KfApp {
 // getPackageManager will return an implementation of kftypes.KfApp that matches the packagemanager string
 // It looks for statically compiled-in implementations, otherwise it delegates to
 // kftypes.LoadKfApp which will try and dynamically load a .so
-func getPackageManager(packagemanager string, kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
+func getPackageManager(packagemanager string, kfdef *kfdefsv2.KfDef) (kftypes.KfApp, error) {
 	packagemanager = strings.Split(packagemanager, "@")[0]
 	switch packagemanager {
-	case kftypes.KSONNET:
-		return ksonnet.GetKfApp(kfdef), nil
 	case kftypes.KUSTOMIZE:
 		return kustomize.GetKfApp(kfdef), nil
+	case kftypes.KSONNET:
+		return ksonnet.GetKfApp(kfdef), nil
 	default:
 		log.Infof("** loading %v.so for package manager %v **", packagemanager, packagemanager)
-		return kftypes.LoadKfApp(packagemanager, kfdef)
+		return kftypesv2.LoadKfApp(packagemanager, kfdef)
 	}
 }
 
@@ -252,7 +256,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
 		}
 	}
-	kfDef := &kfdefs.KfDef{
+	kfDef := &kfdefsv2.KfDef{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KfDef",
 			APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
@@ -261,7 +265,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			Name: appName,
 			Namespace: namespace,
 		},
-		Spec: kfdefs.KfDefSpec{
+		Spec: kfdefsv2.KfDefSpec{
 			ComponentConfig: config.ComponentConfig{
 				Platform:platform,
 			},
@@ -311,7 +315,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 
 // unmarshalAppYaml is a local function to marshal the contents of app.yaml into
 // the KfDef type
-func unmarshalAppYaml(cfgfile string, kfdef *kfdefs.KfDef) error {
+func unmarshalAppYaml(cfgfile string, kfdef *kfdefsv2.KfDef) error {
 	if _, err := os.Stat(cfgfile); err == nil {
 		log.Infof("reading from %v", cfgfile)
 		buf, bufErr := ioutil.ReadFile(cfgfile)
@@ -343,12 +347,12 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		}
 	}
 	cfgfile := filepath.Join(appDir, kftypes.KfConfigFile)
-	kfdef := &kfdefs.KfDef{
+	kfdef := &kfdefsv2.KfDef{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KfDef",
 			APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
 		},
-		Spec: kfdefs.KfDefSpec{},
+		Spec: kfdefsv2.KfDefSpec{},
 	}
 	err = unmarshalAppYaml(cfgfile, kfdef)
 	if err != nil {
@@ -394,14 +398,13 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	return pApp, nil
 }
 
-// this type holds platform implementations of KfApp and ksonnet (also an implementation of KfApp)
-// eg Platforms[kftypes.GCP], Platforms[kftypes.MINIKUBE], PackageManagers["ksonnet"],
-// PackageManagers["kustomize"]
-// The data attributes in kfdefs.KfDef are used by different KfApp implementations
+// this type holds platform implementations of KfApp
+// eg Platforms[kftypes.GCP], Platforms[kftypes.MINIKUBE], PackageManagers["kustomize"]
+// The data attributes in kfdefsv2.KfDef are used by different KfApp implementations
 type coordinator struct {
 	Platforms       map[string]kftypes.KfApp
 	PackageManagers map[string]kftypes.KfApp
-	KfDef           *kfdefs.KfDef
+	KfDef           *kfdefsv2.KfDef
 }
 
 func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {

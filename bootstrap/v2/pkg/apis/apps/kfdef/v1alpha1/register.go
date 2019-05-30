@@ -23,8 +23,11 @@
 package v1alpha1
 
 import (
+	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/v2/pkg/runtime"
 	"k8s.io/apimachinery/v2/pkg/runtime/schema"
-	"sigs.k8s.io/controller-runtime/v2/pkg/runtime/scheme"
+	utilruntime "k8s.io/apimachinery/v2/pkg/util/runtime"
+	"k8s.io/client-go/v2/kubernetes/scheme"
 )
 
 var (
@@ -32,13 +35,28 @@ var (
 	SchemeGroupVersion = schema.GroupVersion{Group: "kfdef.apps.kubeflow.org", Version: "v1alpha1"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
-	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
+	SchemeBuilder      = runtime.NewSchemeBuilder(addKnownTypes)
+	localSchemeBuilder = &SchemeBuilder
 
 	// AddToScheme is required by pkg/kfdef/...
-	AddToScheme = SchemeBuilder.AddToScheme
+	AddToScheme = localSchemeBuilder.AddToScheme
 )
 
 // Resource is required by pkg/kfdef/listers/...
 func Resource(resource string) schema.GroupResource {
 	return SchemeGroupVersion.WithResource(resource).GroupResource()
+}
+
+func addKnownTypes(scheme *runtime.Scheme) error {
+	scheme.AddKnownTypes(SchemeGroupVersion,
+		&KfDef{},
+		&KfDefList{},
+	)
+	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
+	return nil
+}
+
+func init() {
+	metav1.AddToGroupVersion(scheme.Scheme, SchemeGroupVersion)
+	utilruntime.Must(AddToScheme(scheme.Scheme))
 }

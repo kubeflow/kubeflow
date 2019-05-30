@@ -3,15 +3,14 @@ kind: KfDef
 metadata:
   name: config
 spec:
+  components:
+  - cert-manager 
+  - cloud-endpoints
+  - gpu-driver
+  - iap-ingress
+  packages:
+  - gcp
   componentParams:
-    argo:
-    - initRequired: true
-      name: injectIstio
-      value: "false"
-    centraldashboard:
-    - initRequired: true
-      name: injectIstio
-      value: "false"
     cert-manager:
     - name: acmeEmail
       # TODO change value on the fly: use your email for ssl cert
@@ -29,26 +28,7 @@ spec:
       # TODO change value on the fly: replace with user-provide parameters. This need to be fully qualified domain name to use with ingress.
       value: <deployName>.endpoints.<project>.cloud.goog
       initRequired: true
-    - name: injectIstio
-      value: "false"
-      initRequired: true
     notebook-controller:
     - name: injectGcpCredentials
       value: "true"
-    jupyter-web-app:
-    - initRequired: true
-      name: injectIstio
-      value: "false"
-    katib:
-    - initRequired: true
-      name: injectIstio
-      value: "false"
-    tensorboard:
-    - initRequired: true
-      name: injectIstio
-      value: "false"
-    tf-job-operator:
-    - initRequired: true
-      name: injectIstio
-      value: "false"
   platform: gcp
