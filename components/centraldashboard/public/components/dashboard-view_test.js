@@ -1,4 +1,5 @@
 import '@polymer/test-fixture/test-fixture';
+import 'jasmine-ajax';
 import {flush} from '@polymer/polymer/lib/utils/flush.js';
 
 import './dashboard-view';
@@ -17,6 +18,7 @@ describe('Dashboard View', () => {
     let dashboardView;
 
     beforeAll(() => {
+        jasmine.Ajax.install();
         const div = document.createElement('div');
         div.innerHTML = TEMPLATE;
         document.body.appendChild(div);
@@ -31,9 +33,15 @@ describe('Dashboard View', () => {
         document.getElementById(FIXTURE_ID).restore();
     });
 
+    afterAll(() => {
+        jasmine.Ajax.uninstall();
+    });
+
     it('Does not show links without platform info', () => {
         expect(dashboardView.shadowRoot.getElementById('Platform-Links'))
             .toBeNull();
+        expect(dashboardView.shadowRoot.querySelectorAll('resource-chart')
+            .length).toBe(0);
     });
 
     it('Does not show links for an unrecognized provider', async () => {
@@ -44,9 +52,11 @@ describe('Dashboard View', () => {
         flush();
         expect(dashboardView.shadowRoot.getElementById('Platform-Links'))
             .toBeNull();
+        expect(dashboardView.shadowRoot.querySelectorAll('resource-chart')
+            .length).toBe(0);
     });
 
-    it('Shows GCP links when provider is gce', () => {
+    it('Shows GCP links and Stackdriver charts when provider is gce', () => {
         dashboardView.platformInfo = {
             provider: 'gce://test-project/us-east1-c/gke-kubeflow-node-123',
             providerName: 'gce',
@@ -68,5 +78,7 @@ describe('Dashboard View', () => {
             'https://console.cloud.google.com/dm/deployments?project=test-project',
             'https://console.cloud.google.com/kubernetes/list?project=test-project',
         ]);
+        expect(dashboardView.shadowRoot.querySelectorAll('resource-chart')
+            .length).toBe(2);
     });
 });

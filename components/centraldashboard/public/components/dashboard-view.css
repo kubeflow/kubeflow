@@ -13,6 +13,28 @@
     flex: 1;
     --accent-color: #007dfc;
     --primary-background-color: white;
+
+    --dashboard-card: {
+        background-color: var(--paper-card-background-color,
+            var(--primary-background-color));
+        border-radius: 5px;
+        display: inline-block;
+        font-size: 14px;
+        max-width: 400px;
+        min-width: 320px;
+        position: relative;
+        width: 100%;
+        @apply --paper-material-elevation-1;
+    }
+
+    --dashboard-card-header: {
+        font-family: "Google Sans";
+        height: 62px;
+        border-bottom: 1px solid var(--divider-color);
+        margin-bottom: .5em;
+        @apply --layout-horizontal;
+        @apply --layout-center;
+    }
 }
 
 .column {grid-row: 1}
@@ -32,12 +54,7 @@ paper-card {
     font-size: 14px;
     --paper-card-header-color: #202124;
     --paper-card-header: {
-        font-family: "Google Sans";
-        height: 62px;
-        border-bottom: 1px solid var(--divider-color);
-        margin-bottom: .5em;
-        @apply --layout-horizontal;
-        @apply --layout-center;
+        @apply --dashboard-card-header;
     }
     --paper-card-header-text: {
         font-size: 16px;
@@ -71,10 +88,6 @@ paper-card#Platform-Links {
     white-space: normal;
     font-size: .9em;
     line-height: 1.5em;
-}
-
-#Quick-Links {
-    grid-column: 3
 }
 
 #Platform-Links header {

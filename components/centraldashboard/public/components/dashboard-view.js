@@ -5,19 +5,24 @@ import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-ripple/paper-ripple.js';
 import '@polymer/paper-item/paper-icon-item.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/paper-styles/element-styles/paper-material-styles.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
 import css from './dashboard-view.css';
 import template from './dashboard-view.pug';
 
 import './iframe-link.js';
+import './resource-chart.js';
 import {getGCPData} from './resources/cloud-platform-data.js';
 
 const DOCS = 'https://www.kubeflow.org/docs/started';
 
 export class DashboardView extends PolymerElement {
     static get template() {
-        return html([`<style>${css.toString()}</style> ${template()}`]);
+        return html([`
+            <style include="paper-material-styles">${css.toString()}</style>
+            ${template()}
+        `]);
     }
 
     /**
