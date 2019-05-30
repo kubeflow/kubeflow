@@ -71,6 +71,9 @@ class ResourceChart extends PolymerElement {
             #external-link {
                 flex: 0 1 auto;
                 text-decoration: none;
+                --iron-icon: {
+                    padding-left: 8px;
+                };
                 --iron-icon-width: 20px;
                 --iron-icon-height: 20px;
                 --paper-button: {
