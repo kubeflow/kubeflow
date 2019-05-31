@@ -8,9 +8,9 @@
   - [Building kfctl](#building-kfctl)<br>
         - [`make build-kfctl`](#make-build-kfctl)<br>
         - [`make install`](#make-install)<br>
-        - [`make build-kftl-container`](#make-build-kftl-container)<br>
-        - [`make push-kftl-container`](#make-push-kftl-container)<br>
-        - [`make push-kftl-container-latest`](#make-push-kftl-container-latest)<br>
+        - [`make build-kfctl-container`](#make-build-kfctl-container)<br>
+        - [`make push-kfctl-container`](#make-push-kfctl-container)<br>
+        - [`make push-kfctl-container-latest`](#make-push-kfctl-container-latest)<br>
         - [`make run-kfctl-container`](#make-run-kfctl-container)<br>
         - [`make test-init`](#make-test-init)<br>
   - [Building bootstrap](#building-bootstrap)<br>
@@ -86,6 +86,14 @@ ln -sf ${GIT_KUBEFLOW} ${GOPATH}/src/github.com/kubeflow/kubeflow
 
 ## Building kfctl
 
+##### Fetch dependencies
+
+```sh
+GO111MODULE=on
+export GO111MODULE
+go mod download
+```
+
 ##### `make build-kfctl`
 ```sh
 cd $GIT_KUBEFLOW/bootstrap
@@ -154,7 +162,7 @@ make install #depends on build-kfctl
 * Installs kfctl in /usr/local/bin
 
 
-##### `make build-kftl-container`
+##### `make build-kfctl-container`
 
 ```sh
 make build-kfctl-container
@@ -162,7 +170,7 @@ make build-kfctl-container
 
 * creates a docker container
 
-##### `make push-kftl-container`
+##### `make push-kfctl-container`
 
 ```sh
 make push-kfctl-container
@@ -170,7 +178,7 @@ make push-kfctl-container
 
 * pushes the docker container to $IMG_KFCTL
 
-##### `make push-kftl-container-latest`
+##### `make push-kfctl-container-latest`
 
 ```sh
 make push-kfctl-container-latest
