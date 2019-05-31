@@ -28,16 +28,6 @@ export class NotebooksCard extends PolymerElement {
             :host {
                 @apply --layout-vertical;
             }
-            paper-progress {
-                width: 100%;
-                --paper-progress-active-color: var(--accent-color)
-            }
-            #message {
-                color: var(--google-grey-500);
-                font-style: italic;
-                font-family: Google Sans;
-                padding: 0.5em 1em;
-            }
         </style>
         <iron-ajax auto url="[[listNotebookServersUrl]]" handle-as="json"
             loading="{{loading}}" on-response="_onNotebookServersResponse"

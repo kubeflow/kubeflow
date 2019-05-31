@@ -56,6 +56,18 @@ styleElement.innerHTML = `
             text-decoration: none;
             color: initial;
         }
+
+        paper-progress {
+            width: 100%;
+            --paper-progress-active-color: #669df6;
+            --paper-progress-container-color: #f1f3f4;
+        }
+        #message {
+            color: var(--google-grey-500);
+            font-style: italic;
+            font-family: Google Sans;
+            padding: 0.5em 1em;
+        }
     </style>
 </template>
 `;
