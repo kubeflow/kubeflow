@@ -21,6 +21,10 @@ div#grid
     .column
         paper-card(heading='Recent Notebooks')
                 notebooks-card(namespace='[[namespace]]')
+        paper-card(heading='Recently Created Pipelines')
+            pipelines-card(artifact-type='pipelines')
+        paper-card(heading='Recent Pipeline Runs')
+            pipelines-card(artifact-type='runs')
     .column
         template(is='dom-if', if='[[platformDetails.links]]')
             paper-card#Platform-Links(class$='[[platformDetails.name]]',

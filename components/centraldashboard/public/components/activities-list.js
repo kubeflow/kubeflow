@@ -49,7 +49,7 @@ export class ActivitiesList extends PolymerElement {
                     color: rgb(28, 175, 199);
                 }
                 .event-icon.error {
-                    color: rgb(218, 66, 54);
+                    color: rgb(213, 0, 0);
                 }
             </style>
             <template is="dom-repeat" items="[[eventsForDates]]">
