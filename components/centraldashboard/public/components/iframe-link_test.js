@@ -36,6 +36,7 @@ describe('Iframe Link', () => {
         iframeLink.href = '/test-page';
         flush();
 
+        expect(iframeLink.getAttribute('role')).toBe('link');
         expect(iframeLink.shadowRoot.getElementById('link').pathname)
             .toBe('/_/test-page');
     });

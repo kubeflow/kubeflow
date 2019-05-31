@@ -2,14 +2,7 @@
     @apply --layout-vertical;
     padding: 1.3em; /* 20px */
     overflow: auto;
-    grid-gap: .75em; /* 12px */
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    min-height: 0;
-    min-width: 0;
     width: 100%;
-    max-width: 82em;
-    margin: auto;
     flex: 1;
     --accent-color: #007dfc;
     --primary-background-color: white;
@@ -20,8 +13,6 @@
         border-radius: 5px;
         display: inline-block;
         font-size: 14px;
-        max-width: 400px;
-        min-width: 320px;
         position: relative;
         width: 100%;
         @apply --paper-material-elevation-1;
@@ -31,13 +22,32 @@
         font-family: "Google Sans";
         height: 62px;
         border-bottom: 1px solid var(--divider-color);
-        margin-bottom: .5em;
         @apply --layout-horizontal;
         @apply --layout-center;
     }
+
+    --paper-item-body-secondary: {
+        font-size: 12px;
+        letter-spacing: 0.3px;
+        line-height: 16px;
+        white-space: normal;
+        width: 100%;
+        word-break: break-word;
+    }
 }
 
-.column {grid-row: 1}
+#grid {
+    display: grid;
+    grid-gap: .75em; /* 12px */
+    grid-template-columns: repeat(3, 1fr);
+    margin: 0 auto;
+}
+
+.column {
+    grid-row: 1;
+    min-width: 320px;
+    max-width: 400px;
+}
 .column:nth-of-type(1) {grid-column: 1}
 .column:nth-of-type(2) {grid-column: 2}
 .column:nth-of-type(3) {grid-column: 3}
@@ -49,7 +59,6 @@
 paper-card {
     border-radius: 5px;
     width: 100%;
-    min-width: 23em; /* 320px */
     padding-bottom: 16px;
     font-size: 14px;
     --paper-card-header-color: #202124;
@@ -82,70 +91,8 @@ paper-card#Platform-Links {
     };
 }
 
-#Documentation [secondary] {
-    word-break: break-word;
-    width: 100%;
-    white-space: normal;
-    font-size: .9em;
-    line-height: 1.5em;
-}
-
 #Platform-Links header {
     font-size: 1.25em;
     font-weight: 400;
     padding: .5em 1em;
-}
-
-paper-icon-item {
-    @apply --layout-flex;
-    @apply --layout-justified;
-    @apply --layout-horizontal-reverse;
-    font-size: 1em;
-    overflow: hidden;
-    --paper-item-icon-width: 40px;
-    --paper-icon-item: {
-        font-weight: 500;
-    };
-    --paper-item-icon: {
-        color: var(--icon-color);
-        border-radius: 50%;
-    };
-    --paper-item-focused-before: {
-        /* Approximates the hover style since it uses opacity */
-        background: var(--google-grey-700);
-    };
-    --paper-icon-button-ink-color: var(--accent-color);
-}
-
-paper-icon-item.external {
-    --paper-item-icon: {
-        color: var(--external-icon-color);
-    };
-}
-
-#Quick-Links paper-icon-item {
-    @apply --layout-horizontal;
-    justify-content: unset;
-}
-
-paper-ripple {
-    color: var(--accent-color);
-}
-
-.link {
-    display: block;
-}
-
-.link:hover, .link:active {
-    background-color: var(--google-grey-100);
-}
-
-.link paper-icon-item {
-    padding: .5em 1em;
-    border-radius: 5px;
-}
-
-a {
-    text-decoration: none;
-    color: initial;
 }

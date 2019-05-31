@@ -13,7 +13,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             a(href$='[[buildHref("/", queryParams)]]', tabindex='-1')
                 paper-item.menu-item Home
             template(is='dom-repeat', items='[[menuLinks]]')
-                iframe-link(role='link', href$="[[buildHref(item.link, queryParams)]]")
+                iframe-link(href$="[[buildHref(item.link, queryParams)]]")
                     paper-item.menu-item [[item.text]]
             aside.divider
             a(href='https://github.com/kubeflow/kubeflow',
@@ -42,7 +42,10 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     query-params='{{queryParams}}', selected="{{namespace}}",
                     hides, hidden$='[[hideNamespaces]]')
                 footer#User-Badge
-                    iron-image.image(sizing="contain", fade, preload, placeholder="[[__placeholderImage]]", src="[[user.image]]", title="[[user.email]]")
+                    iron-image.image(sizing='contain', fade, preload,
+                        placeholder='/assets/anon-user.png',
+                        preventLoad='[[!user.image]]', src='[[user.image]]',
+                        title='[[user.email]]')
         main#Content
             section#ViewTabs(hidden$='[[hideTabs]]')
                 paper-tabs(selected='[[page]]', attr-for-selected='page')
@@ -54,7 +57,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                                 entry-animation='fade-in-animation',
                                 exit-animation='fade-out-animation')
                 neon-animatable(page='dashboard')
-                    dashboard-view(platform-info='[[platformInfo]]')
+                    dashboard-view(namespace='[[namespace]]',
+                        platform-info='[[platformInfo]]')
                 neon-animatable(page='activity')
                     activity-view(namespace='[[queryParams.ns]]')
                 neon-animatable#iframe-page(page='iframe')

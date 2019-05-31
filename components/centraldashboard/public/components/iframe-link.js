@@ -40,6 +40,11 @@ export class IframeLink extends PolymerElement {
             href: {
                 type: String,
             },
+            role: {
+                type: String,
+                value: 'link',
+                reflectToAttribute: true,
+            },
         };
     }
 
