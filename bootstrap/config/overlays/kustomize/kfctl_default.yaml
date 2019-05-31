@@ -28,4 +28,4 @@ spec:
     - name: minioPvName
       value: minio-pv
     - name: minioPvcName
-      value: minio-pvc
+      value: minio-pv-claim

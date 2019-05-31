@@ -124,8 +124,8 @@ describe('Main Page', () => {
         });
 
     it('Appends query string when building links', () => {
-        const sidebarLinkSelector = '#MainDrawer iron-selector a.iframe-link';
-        const headerLinkSelector = 'app-header paper-tabs a';
+        const sidebarLinkSelector = '#MainDrawer iron-selector iframe-link';
+        const headerLinkSelector = '#ViewTabs paper-tabs a';
 
         // Base case
         const hrefs = [];
@@ -162,18 +162,20 @@ describe('Main Page', () => {
             .hasAttribute('hidden')).toBe(true);
     });
 
-    it('Sets build version when platform info is received', async () => {
-        const platform = {
-            provider: 'gce://test-project/us-east1-c/gke-kubeflow-node-123',
-            providerName: 'gce',
-            kubeflowVersion: '1.0.0',
-        };
-        const user = {
-            email: 'user@kubeflow.org',
+    it('Sets information when platform info is received', async () => {
+        const envInfo = {
+            platform: {
+                provider: 'gce://test-project/us-east1-c/gke-kubeflow-node-123',
+                providerName: 'gce',
+                kubeflowVersion: '1.0.0',
+            },
+            user: {
+                email: 'user@kubeflow.org',
+            },
         };
         const responsePromise = mockRequest(mainPage, {
             status: 200,
-            responseText: JSON.stringify({platform, user}),
+            responseText: JSON.stringify(envInfo),
         }, false, '/api/env-info');
         await responsePromise;
         flush();
@@ -183,6 +185,8 @@ describe('Main Page', () => {
         // textContent is used because innerText would be empty if sidebar is
         // hidden
         expect(buildVersion.textContent).toEqual('1.0.0');
+        expect(mainPage.shadowRoot.querySelector('#User-Badge iron-image')
+            .title).toBe('user@kubeflow.org');
     });
 
     it('Communicates with iframed page after it connects', async () => {

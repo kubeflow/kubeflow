@@ -74,11 +74,11 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                     },
                     {
                         link: '/tfjobs/ui/',
-                        text: 'TF Jobs Dashboard',
+                        text: 'TF Jobs',
                     },
                     {
                         link: '/katib/',
-                        text: 'Katib Dashboard',
+                        text: 'Katib',
                     },
                 ],
             },
@@ -93,11 +93,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             hideNamespaces: {type: Boolean, value: false, readOnly: true},
             notFoundInIframe: {type: Boolean, value: false, readOnly: true},
             namespace: {type: String, observer: '_namespaceChanged'},
-            __placeholderImage: {
-                type: String,
-                value: '/assets/anon-user.png',
-                readOnly: true,
-            },
+            user: Object,
         };
     }
 
@@ -234,6 +230,8 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      */
     _onEnvInfoResponse(responseEvent) {
         const {platform, user} = responseEvent.detail.response;
+        // ensures that iron-image doesn't  make a request if no image is set
+        if (!user.image) user.image = '';
         this.user = user;
         this.platformInfo = platform;
         if (this.platformInfo.kubeflowVersion) {

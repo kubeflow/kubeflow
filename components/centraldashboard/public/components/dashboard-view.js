@@ -1,23 +1,31 @@
 import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/iron-icons/iron-icons.js';
-import '@polymer/iron-icons/image-icons.js';
 import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-ripple/paper-ripple.js';
 import '@polymer/paper-item/paper-icon-item.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/paper-styles/element-styles/paper-material-styles.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
+
 import css from './dashboard-view.css';
 import template from './dashboard-view.pug';
-
+import './card-styles.js';
 import './iframe-link.js';
+import './notebooks-card.js';
+import './resource-chart.js';
 import {getGCPData} from './resources/cloud-platform-data.js';
 
 const DOCS = 'https://www.kubeflow.org/docs/started';
 
 export class DashboardView extends PolymerElement {
     static get template() {
-        return html([`<style>${css.toString()}</style> ${template()}`]);
+        return html([`
+            <style include="card-styles paper-material-styles">
+                ${css.toString()}
+            </style>
+            ${template()}
+        `]);
     }
 
     /**
@@ -66,6 +74,7 @@ export class DashboardView extends PolymerElement {
                     },
                 ],
             },
+            namespace: String,
             quickLinks: {
                 type: Array,
                 value: [

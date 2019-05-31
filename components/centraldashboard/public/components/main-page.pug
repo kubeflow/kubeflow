@@ -2,7 +2,7 @@ iron-ajax(auto, url='/api/env-info', handle-as='json',
     on-response='_onEnvInfoResponse')
 app-drawer-layout.flex(narrow='{{narrowMode}}',
         force-narrow='[[or(inIframe, thinView, notFoundInIframe)]]',
-        thin$='[[thinView]]')
+        bleed$='[[sidebarBleed]]')
     app-location(route='{{route}}', query-params='{{queryParams}}')
     app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
         tail='{{subRouteData}}')
@@ -11,10 +11,9 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             |!{logo}
         iron-selector.flex(selected='{{sidebarItemIndex}}')
             a(href$='[[buildHref("/", queryParams)]]', tabindex='-1')
-                paper-item.menu-item Overview
+                paper-item.menu-item Home
             template(is='dom-repeat', items='[[menuLinks]]')
-                iframe-link(href$="[[buildHref(item.link, queryParams)]]",
-                    tabindex='-1')
+                iframe-link(href$="[[buildHref(item.link, queryParams)]]")
                     paper-item.menu-item [[item.text]]
             aside.divider
             a(href='https://github.com/kubeflow/kubeflow',
@@ -43,7 +42,10 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     query-params='{{queryParams}}', selected="{{namespace}}",
                     hides, hidden$='[[hideNamespaces]]')
                 footer#User-Badge
-                    iron-image.image(sizing="contain", fade, preload, placeholder="[[__placeholderImage]]", src="[[user.image]]", title="[[user.email]]")
+                    iron-image.image(sizing='contain', fade, preload,
+                        placeholder='/assets/anon-user.png',
+                        preventLoad='[[!user.image]]', src='[[user.image]]',
+                        title='[[user.email]]')
         main#Content
             section#ViewTabs(hidden$='[[hideTabs]]')
                 paper-tabs(selected='[[page]]', attr-for-selected='page')
@@ -55,11 +57,13 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                                 entry-animation='fade-in-animation',
                                 exit-animation='fade-out-animation')
                 neon-animatable(page='dashboard')
-                    dashboard-view(platform-info='[[platformInfo]]')
+                    dashboard-view(namespace='[[namespace]]',
+                        platform-info='[[platformInfo]]')
                 neon-animatable(page='activity')
                     activity-view(namespace='[[queryParams.ns]]')
                 neon-animatable#iframe-page(page='iframe')
                     iframe#PageFrame.flex(src='[[iframeUrl]]')
                 neon-animatable(page='not_found')
                     not-found-view(path="[[route.path]]")
-    iron-media-query(query='(max-width: 900px)', query-matches='{{thinView}}')
+    iron-media-query(query='(max-width: 900px)', query-matches='{{sidebarBleed}}')
+    iron-media-query(query='(max-width: 1270px)', query-matches='{{thinView}}')

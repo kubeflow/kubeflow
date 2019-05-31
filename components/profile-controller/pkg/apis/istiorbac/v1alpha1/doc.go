@@ -1,5 +1,5 @@
 /*
-Copyright 2019 The Kubeflow Authors.
+Copyright 2019 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,21 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controller
-
-import (
-	"sigs.k8s.io/controller-runtime/pkg/manager"
-)
-
-// AddToManagerFuncs is a list of functions to add all Controllers to the Manager
-var AddToManagerFuncs []func(manager.Manager, map[string]string) error
-
-// AddToManager adds all Controllers to the Manager
-func AddToManager(m manager.Manager, args map[string]string) error {
-	for _, f := range AddToManagerFuncs {
-		if err := f(m, args); err != nil {
-			return err
-		}
-	}
-	return nil
-}
+// Package v1alpha1 contains API Schema definitions for the kubeflow v1alpha1 API group
+// +k8s:openapi-gen=true
+// +k8s:deepcopy-gen=package,register
+// +k8s:conversion-gen=github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow
+// +k8s:defaulter-gen=TypeMeta
+// +groupName=kubeflow.org
+package v1alpha1

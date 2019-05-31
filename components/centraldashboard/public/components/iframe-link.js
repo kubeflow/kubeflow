@@ -18,10 +18,15 @@ export class IframeLink extends PolymerElement {
                     cursor: pointer;
                     @apply --iframe-link;
                 }
-                a {width: 100%}
-                a,a:hover,a:active {text-decoration: inherit;color: inherit}
+                a {
+                    width: 100%
+                }
+                a, a:hover, a:active {
+                    text-decoration: inherit;
+                    color: inherit
+                }
             </style>
-            <a id="link" href$="/[[prefix]][[href]]"
+            <a id="link" href$="/[[prefix]][[href]]" tabindex="-1"
                 on-click="onClick"><slot></slot></a>`;
     }
 
@@ -34,6 +39,11 @@ export class IframeLink extends PolymerElement {
             },
             href: {
                 type: String,
+            },
+            role: {
+                type: String,
+                value: 'link',
+                reflectToAttribute: true,
             },
         };
     }

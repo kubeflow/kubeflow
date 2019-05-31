@@ -193,7 +193,20 @@ module.exports = {
     ],
     devServer: {
         port: 8081,
-        proxy: {'/api': 'http://localhost:8082'},
+        proxy: {
+            '/api': 'http://localhost:8082',
+            '/jupyter': {
+                target: 'http://localhost:8083/api/v1/namespaces/kubeflow/services/jupyter-web-app:80/proxy',
+                pathRewrite: {'^/jupyter': ''},
+            },
+            '/notebook': {
+                target: 'http://localhost:8083/api/v1/namespaces/',
+                pathRewrite: {
+                    '^/notebook/(.*?)/(.*?)/(.*)':
+                        '/$1/services/$2/proxy/notebook/$1/$2/$3',
+                },
+            },
+        },
         historyApiFallback: {
             disableDotRule: true,
         },
