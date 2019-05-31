@@ -106,6 +106,9 @@
       ] else []
         + if util.toBool(params.enableGangScheduling) then [
         "--enable-gang-scheduling",
+      ] else []
+        + if params.monitoringPort != null then [
+          "--monitoring-port=" + params.monitoringPort,
       ] else [],
       env:
         if params.deploymentScope == "namespace" && params.deploymentNamespace != null then [{
@@ -154,10 +157,22 @@
       },
       spec: {
         replicas: 1,
+        ports: [
+          {
+            name: "monitoring-port",
+            port: params.monitoringPort,
+            targetPort: params.monitoringPort,
+          },
+        ],
         template: {
           metadata: {
             labels: {
               name: "tf-job-operator",
+            },
+            annotations: {
+              prometheus.io/scrape: 'true',
+              prometheus.io/path: '/metrics',
+              prometheus.io/port: params.monitoringPort,
             },
           },
           spec: {

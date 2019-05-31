@@ -6,6 +6,7 @@ local paramsv1 = {
   deploymentScope:: "cluster",
   deploymentNamespace:: "null",
   enableGangScheduling: "false",
+  monitoringPort: 8443,
 };
 local env = {
   namespace: "test-kf-001",
