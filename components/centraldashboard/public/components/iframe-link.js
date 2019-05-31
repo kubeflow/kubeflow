@@ -45,6 +45,7 @@ export class IframeLink extends PolymerElement {
 
     ready() {
         super.ready();
+        this.setAttribute('role', 'link');
         this.addEventListener('click', () => this.$.link.click());
     }
 

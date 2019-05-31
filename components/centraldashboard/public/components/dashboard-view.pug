@@ -2,7 +2,7 @@ div#grid
     .column
         paper-card#Quick-Links(heading='Quick shortcuts')
             template(is='dom-repeat', items='[[quickLinks]]')
-                iframe-link.link(role='link', href$="[[item.link]]")
+                iframe-link.link(href$="[[item.link]]")
                     paper-icon-item
                         iron-icon(icon='kubeflow:bolt', slot='item-icon')
                         paper-item-body(two-line)
