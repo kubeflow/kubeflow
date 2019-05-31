@@ -169,6 +169,7 @@ class ResourceChart extends PolymerElement {
                         distribution: 'series',
                         ticks: {
                             source: 'auto',
+                            maxRotation: 0,
                         },
                     }],
                     yAxes: [{

@@ -2,10 +2,7 @@
     @apply --layout-vertical;
     padding: 1.3em; /* 20px */
     overflow: auto;
-    grid-gap: .75em; /* 12px */
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    margin: auto;
+    width: 100%;
     flex: 1;
     --accent-color: #007dfc;
     --primary-background-color: white;
@@ -28,6 +25,22 @@
         @apply --layout-horizontal;
         @apply --layout-center;
     }
+
+    --paper-item-body-secondary: {
+        font-size: 12px;
+        letter-spacing: 0.3px;
+        line-height: 16px;
+        white-space: normal;
+        width: 100%;
+        word-break: break-word;
+    }
+}
+
+#grid {
+    display: grid;
+    grid-gap: .75em; /* 12px */
+    grid-template-columns: repeat(3, 1fr);
+    margin: 0 auto;
 }
 
 .column {
@@ -76,14 +89,6 @@ paper-card#Platform-Links {
         width: 2em;
         padding: .5em .75em .5em 1.25em;
     };
-}
-
-#Documentation [secondary] {
-    word-break: break-word;
-    width: 100%;
-    white-space: normal;
-    font-size: .9em;
-    line-height: 1.5em;
 }
 
 #Platform-Links header {

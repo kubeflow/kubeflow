@@ -107,7 +107,8 @@ export class NotebooksCard extends PolymerElement {
             const listNotebooksResults = await Promise.all(
                 response.notebooks.map((n) =>
                     this._getNotebooksFromServer(n.namespace, n.name)));
-            const notebooks = listNotebooksResults.flat(1);
+            const notebooks = [];
+            listNotebooksResults.map((r) => notebooks.push(...r));
             notebooks.sort((n1, n2) => n2.sortTime - n1.sortTime);
             this.splice('notebooks', 0,
                 this.notebooks.length, ...notebooks.slice(0, MAX_NOTEBOOKS));
