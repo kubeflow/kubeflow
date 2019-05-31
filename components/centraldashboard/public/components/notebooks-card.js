@@ -33,24 +33,26 @@ export class NotebooksCard extends PolymerElement {
             loading="{{loading}}" on-response="_onNotebookServersResponse"
             on-error="_onError">
         </iron-ajax>
-        <paper-progress indeterminate class="slow"
-            hidden$="[[!loading]]"></paper-progress>
-        <header id="message" hidden$="[[!message]]">[[message]]</header>
-        <template is="dom-repeat" items="[[notebooks]]">
-            <iframe-link class="link" href$="[[item.href]]">
-                <paper-icon-item>
-                    <paper-ripple></paper-ripple>
-                    <iron-icon icon="chrome-reader-mode" slot="item-icon">
-                    </iron-icon>
-                    <paper-item-body two-line>
-                        <div class="header">[[item.name]]</div>
-                        <aside secondary>
-                            Accessed [[item.lastModified]]
-                        </aside>
-                    </paper-item-body>
-                </paper-icon-item>
-            </iframe-link>
-        </template>
+        <paper-card heading="Recent Notebooks">
+            <paper-progress indeterminate class="slow"
+                hidden$="[[!loading]]"></paper-progress>
+            <header id="message" hidden$="[[!message]]">[[message]]</header>
+            <template is="dom-repeat" items="[[notebooks]]">
+                <iframe-link class="link" href$="[[item.href]]">
+                    <paper-icon-item>
+                        <paper-ripple></paper-ripple>
+                        <iron-icon icon="chrome-reader-mode" slot="item-icon">
+                        </iron-icon>
+                        <paper-item-body two-line>
+                            <div class="header">[[item.name]]</div>
+                            <aside secondary>
+                                Accessed [[item.lastModified]]
+                            </aside>
+                        </paper-item-body>
+                    </paper-icon-item>
+                </iframe-link>
+            </template>
+        </paper-card>
         `;
     }
 

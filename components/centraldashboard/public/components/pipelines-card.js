@@ -39,21 +39,24 @@ export class PipelinesCard extends PolymerElement {
         </iron-ajax>
         <paper-progress indeterminate class="slow"
             hidden$="[[!loading]]"></paper-progress>
-        <header id="message" hidden$="[[!message]]">[[message]]</header>
-        <template is="dom-repeat" items="[[pipelines]]">
-            <iframe-link class="link" href$="[[item.href]]">
-                <paper-icon-item>
-                    <paper-ripple></paper-ripple>
-                    <iron-icon icon="[[item.icon]]" slot="item-icon"
-                        class$="[[item.iconClass]]" title="[[item.iconTitle]]">
-                    </iron-icon>
-                    <paper-item-body two-line>
-                        <div class="header">[[item.name]]</div>
-                        <aside secondary>Created [[item.created]]</aside>
-                    </paper-item-body>
-                </paper-icon-item>
-            </iframe-link>
-        </template>
+        <paper-card heading="[[heading]]">
+            <header id="message" hidden$="[[!message]]">[[message]]</header>
+            <template is="dom-repeat" items="[[pipelines]]">
+                <iframe-link class="link" href$="[[item.href]]">
+                    <paper-icon-item>
+                        <paper-ripple></paper-ripple>
+                        <iron-icon icon="[[item.icon]]" slot="item-icon"
+                            class$="[[item.iconClass]]"
+                            title="[[item.iconTitle]]">
+                        </iron-icon>
+                        <paper-item-body two-line>
+                            <div class="header">[[item.name]]</div>
+                            <aside secondary>Created [[item.created]]</aside>
+                        </paper-item-body>
+                    </paper-icon-item>
+                </iframe-link>
+            </template>
+        </paper-card>
         `;
     }
 
@@ -63,6 +66,7 @@ export class PipelinesCard extends PolymerElement {
                 type: Boolean,
                 value: false,
             },
+            heading: String,
             artifactType: String,
             message: {
                 type: String,

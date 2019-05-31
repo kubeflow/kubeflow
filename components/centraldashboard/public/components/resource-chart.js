@@ -11,6 +11,8 @@ import 'chartjs-plugin-crosshair';
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 import {Chart} from 'chart.js';
 
+import './card-styles.js';
+
 Chart.defaults.global.defaultFontFamily = '"Google Sans", sans-serif';
 
 // Preferred colors for Material Charts
@@ -35,7 +37,7 @@ const MAX_TOOLTIP_LENGTH = 10;
 class ResourceChart extends PolymerElement {
     static get template() {
         return html`
-        <style include="iron-flex iron-flex-alignment">
+        <style include="card-styles">
             :host {
                 @apply --dashboard-card;
             }

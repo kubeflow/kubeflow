@@ -19,12 +19,9 @@ div#grid
                 external-link='[[platformDetails.resourceChartsLink]]'
                 external-link-text='[[platformDetails.resourceChartsLinkText]]')
     .column
-        paper-card(heading='Recent Notebooks')
-            notebooks-card(namespace='[[namespace]]')
-        paper-card(heading='Recent Pipelines')
-            pipelines-card(artifact-type='pipelines')
-        paper-card(heading='Recent Pipeline Runs')
-            pipelines-card(artifact-type='runs')
+        notebooks-card(namespace='[[namespace]]')
+        pipelines-card(heading='Recent Pipelines', artifact-type='pipelines')
+        pipelines-card(heading='Recent Pipeline Runs', artifact-type='runs')
     .column
         template(is='dom-if', if='[[platformDetails.links]]')
             paper-card#Platform-Links(class$='[[platformDetails.name]]',

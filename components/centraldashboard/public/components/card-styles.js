@@ -1,8 +1,55 @@
+
+import '@polymer/paper-styles/element-styles/paper-material-styles.js';
+
 const styleElement = document.createElement('dom-module');
 styleElement.innerHTML = `
 <template>
-    <style>
+    <style include="paper-material-styles">
         /* Styles shared amongst dashboard card components */
+        :host {
+            --dashboard-card: {
+                background-color: var(--paper-card-background-color,
+                    var(--primary-background-color));
+                border-radius: 5px;
+                display: inline-block;
+                font-size: 14px;
+                position: relative;
+                width: 100%;
+                @apply --paper-material-elevation-1;
+            };
+
+            --dashboard-card-header: {
+                font-family: "Google Sans";
+                height: 62px;
+                border-bottom: 1px solid var(--divider-color);
+                @apply --layout-horizontal;
+                @apply --layout-center;
+            };
+        }
+
+        paper-card {
+            border-radius: 5px;
+            width: 100%;
+            padding-bottom: 16px;
+            font-size: 14px;
+            --paper-card-header-color: #202124;
+            --paper-card-header: {
+                @apply --dashboard-card-header;
+            }
+            --paper-card-header-text: {
+                font-size: 16px;
+                font-weight: 500;
+                padding: 0 1em;
+                flex: 1;
+            };
+            --paper-card-content: {
+                font-size: 14px;
+            }
+        }
+        paper-card {
+            --paper-item-body-two-line-min-height: 2em;
+        }
+
         paper-icon-item {
             @apply --layout-flex;
             @apply --layout-justified;
