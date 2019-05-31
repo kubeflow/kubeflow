@@ -32,7 +32,7 @@ spec:
     notebook-controller:
     - name: overlay
       value: istio
-    pipeline:
+    pipelines-ui:
     - name: overlay
       value: istio
     tensorboard:
