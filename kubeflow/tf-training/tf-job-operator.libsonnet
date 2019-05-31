@@ -170,9 +170,9 @@
               name: "tf-job-operator",
             },
             annotations: {
-              prometheus.io/scrape: 'true',
-              prometheus.io/path: '/metrics',
-              prometheus.io/port: params.monitoringPort,
+              "prometheus.io/scrape": 'true',
+              "prometheus.io/path": "/metrics",
+              "prometheus.io/port": params.monitoringPort,
             },
           },
           spec: {

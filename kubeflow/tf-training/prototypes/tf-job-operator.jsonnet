@@ -12,7 +12,7 @@
 // @optionalParam enableGangScheduling string false If set true, enable gang scheduling by kube-batch.
 // @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
 // @optionalParam clusterDomain string cluster.local DNS config to cluster domain.
-// @optionalParam monitoringPort number 8443 Port for monitoring agent to scrape metrics from.
+// @optionalParam monitoringPort string 8443 Port for monitoring agent to scrape metrics from.
 
 local tfJobOperator = import "kubeflow/tf-training/tf-job-operator.libsonnet";
 local instance = tfJobOperator.new(env, params);
