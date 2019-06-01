@@ -11,6 +11,7 @@ spec:
   - basic-auth
   - basic-auth-ingress
   packages:
+  - cert-manager
   - gcp
   componentParams:
     ambassador:

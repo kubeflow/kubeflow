@@ -9,6 +9,7 @@ spec:
   - gpu-driver
   - iap-ingress
   packages:
+  - cert-manager 
   - gcp
   componentParams:
     cert-manager:
