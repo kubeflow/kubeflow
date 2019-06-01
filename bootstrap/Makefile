@@ -34,7 +34,7 @@ JUNIT_FILE ?= /tmp/report.xml
 
 %.so:
 	cd cmd/plugins/$* && \
-	${GO} build -i -gcflags 'all=-N -l' -o ../../../bin/$*.so -buildmode=plugin $*.go
+	${GO} build -i -gcflags '-N -l' -o ../../../bin/$*.so -buildmode=plugin $*.go
 
 %.init:
 	@echo kfctl init test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) --version master && \
@@ -85,10 +85,10 @@ v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: v2/pkg/apis/apps/kfdef
 deepcopy: ${GOPATH}/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go 
 
 build-bootstrap: /tmp/v2 deepcopy generate fmt vet
-	${GO} build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+	${GO} build -gcflags '-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
 build-kfctl: /tmp/v2 deepcopy generate fmt vet
-	${GO} build -i -gcflags 'all=-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctl cmd/kfctl/main.go
+	${GO} build -i -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctl cmd/kfctl/main.go
 
 # Release tarballs suitable for upload to GitHub release pages
 build-kfctl-tgz: build-kfctl
@@ -111,7 +111,7 @@ push-to-github-release: build-kfctl-tgz
 	    --tag $(TAG) \
 	    --name "kfctl_$(TAG)_darwin.tar.gz" \
 	    --file bin/kfctl_$(TAG)_darwin.tar.gz
-	 
+
 build-kfctl-container:
 	DOCKER_BUILDKIT=1 docker build \
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
