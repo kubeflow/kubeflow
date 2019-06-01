@@ -110,9 +110,21 @@ std.assertEqual(
       namespace: "test-kf-001",
     },
     spec: {
+      ports: [
+        {
+          name: "monitoring-port",
+          port: "8443",
+          targetPort: "8443"
+        }
+      ],
       replicas: 1,
       template: {
         metadata: {
+          annotations: {
+            prometheus.io/path: "/metrics",
+            prometheus.io/port: "8443",
+            prometheus.io/scrape: "true"
+          },
           labels: {
             name: "tf-job-operator",
           },
@@ -124,6 +136,7 @@ std.assertEqual(
                 "/opt/kubeflow/tf-operator.v1",
                 "--alsologtostderr",
                 "-v=1",
+                "--monitoring-port=8443"
               ],
               env: [
                 {
