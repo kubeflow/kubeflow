@@ -4,6 +4,7 @@ metadata:
   name: config
 spec:
   components:
+  - cert-manager-crds
   - cert-manager 
   - cloud-endpoints
   - gpu-driver
