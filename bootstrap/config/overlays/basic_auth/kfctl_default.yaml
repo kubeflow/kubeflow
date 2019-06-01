@@ -5,6 +5,7 @@ metadata:
 spec:
   components:
   - ambassador
+  - cert-manager-crds
   - cert-manager
   - cloud-endpoints
   - gpu-driver
