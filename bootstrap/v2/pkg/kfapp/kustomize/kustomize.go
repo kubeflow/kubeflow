@@ -344,7 +344,7 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 		// build the request
 		if metadata["name"] != nil {
 			name := metadata["name"].(string)
-			log.Infof("creating %v\n", name)
+			log.Infof("creating %v/%v\n", kind, name)
 			body, err := callback(namespace, gk, o)
 			if err != nil {
 				return err
