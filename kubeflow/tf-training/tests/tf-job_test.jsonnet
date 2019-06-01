@@ -121,9 +121,9 @@ std.assertEqual(
       template: {
         metadata: {
           annotations: {
-            prometheus.io/path: "/metrics",
-            prometheus.io/port: "8443",
-            prometheus.io/scrape: "true"
+            "prometheus.io/path": "/metrics",
+            "prometheus.io/port": "8443",
+            "prometheus.io/scrape": "true"
           },
           labels: {
             name: "tf-job-operator",
