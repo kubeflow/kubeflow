@@ -41,7 +41,7 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
       "ml-pipeline",
       "ml-pipeline-scheduledworkflow",
       "ml-pipeline-ui",
-      "notebooks-controller-deployment",
+      "notebook-controller-deployment",
       "tf-job-operator",
       "pytorch-operator",
       "studyjob-controller",
