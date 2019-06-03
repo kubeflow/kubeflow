@@ -19,6 +19,7 @@ package notebook
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
@@ -94,15 +95,17 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to Notebook virtualservices.
-	virtualService := &unstructured.Unstructured{}
-	virtualService.SetAPIVersion("networking.istio.io/v1alpha3")
-	virtualService.SetKind("VirtualService")
-	err = c.Watch(&source.Kind{Type: virtualService}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &v1alpha1.Notebook{},
-	})
-	if err != nil {
-		return err
+	if os.Getenv("USE_ISTIO") == "true" {
+		virtualService := &unstructured.Unstructured{}
+		virtualService.SetAPIVersion("networking.istio.io/v1alpha3")
+		virtualService.SetKind("VirtualService")
+		err = c.Watch(&source.Kind{Type: virtualService}, &handler.EnqueueRequestForOwner{
+			IsController: true,
+			OwnerType:    &v1alpha1.Notebook{},
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	// Watch underlying pod.
@@ -230,34 +233,9 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 	}
 
-	// Reconcile virtual service
-	virtualService, err := generateVirtualService(instance)
-	if err := controllerutil.SetControllerReference(instance, virtualService, r.scheme); err != nil {
-		return reconcile.Result{}, err
-	}
-	// Check if the virtual service already exists.
-	foundVirtual := &unstructured.Unstructured{}
-	justCreated = false
-	foundVirtual.SetAPIVersion("networking.istio.io/v1alpha3")
-	foundVirtual.SetKind("VirtualService")
-	err = r.Get(context.TODO(), types.NamespacedName{Name: virtualServiceName(instance.Name,
-		instance.Namespace), Namespace: instance.Namespace}, foundVirtual)
-	if err != nil && errors.IsNotFound(err) {
-		log.Info("Creating virtual service", "namespace", instance.Namespace, "name",
-			virtualServiceName(instance.Name, instance.Namespace))
-		err = r.Create(context.TODO(), virtualService)
-		justCreated = true
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-	} else if err != nil {
-		return reconcile.Result{}, err
-	}
-
-	if !justCreated && util.CopyVirtualService(virtualService, foundVirtual) {
-		log.Info("Updating virtual service", "namespace", instance.Namespace, "name",
-			virtualServiceName(instance.Name, instance.Namespace))
-		err = r.Update(context.TODO(), foundVirtual)
+	// Reconcile virtual service if we use ISTIO.
+	if os.Getenv("USE_ISTIO") == "true" {
+		err = r.reconcileVirtualService(instance)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -486,4 +464,40 @@ func generateVirtualService(instance *v1alpha1.Notebook) (*unstructured.Unstruct
 
 	return vsvc, nil
 
+}
+
+func (r *ReconcileNotebook) reconcileVirtualService(instance *v1alpha1.Notebook) error {
+	virtualService, err := generateVirtualService(instance)
+	if err := controllerutil.SetControllerReference(instance, virtualService, r.scheme); err != nil {
+		return err
+	}
+	// Check if the virtual service already exists.
+	foundVirtual := &unstructured.Unstructured{}
+	justCreated := false
+	foundVirtual.SetAPIVersion("networking.istio.io/v1alpha3")
+	foundVirtual.SetKind("VirtualService")
+	err = r.Get(context.TODO(), types.NamespacedName{Name: virtualServiceName(instance.Name,
+		instance.Namespace), Namespace: instance.Namespace}, foundVirtual)
+	if err != nil && errors.IsNotFound(err) {
+		log.Info("Creating virtual service", "namespace", instance.Namespace, "name",
+			virtualServiceName(instance.Name, instance.Namespace))
+		err = r.Create(context.TODO(), virtualService)
+		justCreated = true
+		if err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+
+	if !justCreated && util.CopyVirtualService(virtualService, foundVirtual) {
+		log.Info("Updating virtual service", "namespace", instance.Namespace, "name",
+			virtualServiceName(instance.Name, instance.Namespace))
+		err = r.Update(context.TODO(), foundVirtual)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
