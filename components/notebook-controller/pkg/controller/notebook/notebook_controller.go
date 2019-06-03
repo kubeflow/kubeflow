@@ -95,15 +95,17 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to Notebook virtualservices.
-	virtualService := &unstructured.Unstructured{}
-	virtualService.SetAPIVersion("networking.istio.io/v1alpha3")
-	virtualService.SetKind("VirtualService")
-	err = c.Watch(&source.Kind{Type: virtualService}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &v1alpha1.Notebook{},
-	})
-	if err != nil {
-		return err
+	if os.Getenv("USE_ISTIO") == "true" {
+		virtualService := &unstructured.Unstructured{}
+		virtualService.SetAPIVersion("networking.istio.io/v1alpha3")
+		virtualService.SetKind("VirtualService")
+		err = c.Watch(&source.Kind{Type: virtualService}, &handler.EnqueueRequestForOwner{
+			IsController: true,
+			OwnerType:    &v1alpha1.Notebook{},
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	// Watch underlying pod.
