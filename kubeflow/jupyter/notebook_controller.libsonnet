@@ -88,6 +88,11 @@
                     name: "POD_LABELS",
                     value: "gcp-cred-secret=user-gcp-sa,gcp-cred-secret-filename=user-gcp-sa.json",
                   },
+                ] else [] + if util.toBool(params.injectIstio) then [
+                  {
+                    name: "USE_ISTIO",
+                    value: "true",
+                  },
                 ] else [],
               },
             ],
