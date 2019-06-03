@@ -41,21 +41,8 @@ describe('Iframe Link', () => {
             .toBe('/_/test-page');
     });
 
-    it('Forwards click event to the anchor element', (done) => {
-        iframeLink.href = '/test-page';
-        flush();
-        spyOn(iframeLink.shadowRoot.getElementById('link'), 'click');
 
-        iframeLink.addEventListener('click', () => {
-            expect(iframeLink.shadowRoot.getElementById('link').click)
-                .toHaveBeenCalled();
-            done();
-        });
-        iframeLink.click();
-    });
-
-
-    it('Pushes history when clicked clicked', async () => {
+    it('Pushes history when link is clicked', async () => {
         iframeLink.href = '/test-page';
         spyOn(window.history, 'pushState');
         const locationChanged = new Promise((resolve) => {
@@ -64,7 +51,7 @@ describe('Iframe Link', () => {
             });
         });
         flush();
-        iframeLink.click();
+        iframeLink.shadowRoot.getElementById('link').click();
         await locationChanged;
 
         expect(window.history.pushState)
