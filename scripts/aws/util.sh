@@ -172,7 +172,7 @@ generate_aws_ks_app() {
   # Since JupyterHub will be removed evently, we skip authentication for it.
   popd
 
-  # write configuarion in generate phase and user can still configure it.
+  # write configuration in generate phase and user can still configure it.
   INGRESS_COMPONENT=',\\"aws-alb-ingress-controller\\",\\"istio-ingress\\"'
   sed -i.bak "/^KUBEFLOW_COMPONENTS/ s/$/$INGRESS_COMPONENT/" ${KUBEFLOW_REPO}/${DEPLOYMENT_NAME}/${ENV_FILE}
   rm ${KUBEFLOW_REPO}/${DEPLOYMENT_NAME}/${ENV_FILE}.bak
