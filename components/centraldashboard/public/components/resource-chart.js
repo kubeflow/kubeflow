@@ -10,6 +10,10 @@ import 'chartjs-plugin-crosshair';
 
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 import {Chart} from 'chart.js';
+// Explicitly loads the Chart.js CSS so it can be applied to the ShadowDOM
+// Necessary since third-party CSS would normally be vendored and applied
+// globally.
+import chartCss from '!css-loader!exports-loader!chart.js/dist/Chart.css';
 
 import './card-styles.js';
 
@@ -36,7 +40,7 @@ const MAX_TOOLTIP_LENGTH = 10;
 
 class ResourceChart extends PolymerElement {
     static get template() {
-        return html`
+        return html([`
         <style include="card-styles">
             :host {
                 @apply --dashboard-card;
@@ -83,6 +87,7 @@ class ResourceChart extends PolymerElement {
                     text-transform: none;
                 };
             }
+            ${chartCss.toString()}
         </style>
         <iron-ajax id="ajax" auto url="[[metricUrl]]" handle-as="json"
             on-response="_onResponse"></iron-ajax>
@@ -107,7 +112,7 @@ class ResourceChart extends PolymerElement {
                     title="Refresh chart" alt="Refresh chart"
                     on-click="_refresh"></paper-button>
             </header>
-            <section id="chart-container">
+            <section id="chart-container" hidden>
                 <canvas id="chart" height="400" width="400"></canvas>
             </section>
             <footer>
@@ -120,7 +125,7 @@ class ResourceChart extends PolymerElement {
                 </a>
             </footer>
         </article>
-        `;
+        `]);
     }
 
     static get properties() {
@@ -242,6 +247,7 @@ class ResourceChart extends PolymerElement {
                 callback: (value) => `${(value * 100).toFixed(0)}%`,
             };
         }
+        this.$['chart-container'].removeAttribute('hidden');
         this._chart.resize();
         this._chart.update();
     }
