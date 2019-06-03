@@ -11,20 +11,31 @@
 package main
 
 import (
-	"k8s.io/client-go/kubernetes/scheme"
+	"flag"
 	log "github.com/sirupsen/logrus"
+	"k8s.io/client-go/kubernetes/scheme"
 	"net/http"
 
 	"github.com/kubeflow/kubeflow/components/access-management/kfam"
 	profile "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1alpha1"
+	istio "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/istiorbac/v1alpha1"
 )
+
+const USERIDHEADER = "userid-header"
+const USERIDPREFIX = "userid-prefix"
 
 func main() {
 	log.Printf("Server started")
+	var userIdHeader string
+	var userIdPrefix string
+	flag.StringVar(&userIdHeader, USERIDHEADER, "x-goog-authenticated-user-email", "Key of request header containing user id")
+	flag.StringVar(&userIdPrefix, USERIDPREFIX, "accounts.google.com:", "Request header user id common prefix")
+	flag.Parse()
 
 	profile.AddToScheme(scheme.Scheme)
+	istio.AddToScheme(scheme.Scheme)
 
-	profileClient, err := kfam.NewProfileConfig()
+	profileClient, err := kfam.NewKfamClient(userIdHeader, userIdPrefix)
 	if err != nil {
 		log.Print(err)
 		panic(err)

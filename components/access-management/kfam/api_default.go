@@ -12,55 +12,90 @@ package kfam
 
 import (
 	"encoding/json"
-	"github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1alpha1"
+	profileRegister "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1alpha1"
+	istioRegister "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/istiorbac/v1alpha1"
 	profileV1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
 	"net/http"
-	"os"
 	"path"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 type KfamV1Alpha1Interface interface {
-	//Profiles(namespace string) ProfileInterface
+	CreateBinding(w http.ResponseWriter, r *http.Request)
 	CreateProfile(w http.ResponseWriter, r *http.Request)
+	DeleteBinding(w http.ResponseWriter, r *http.Request)
 	DeleteProfile(w http.ResponseWriter, r *http.Request)
+	ReadBinding(w http.ResponseWriter, r *http.Request)
 }
 
 type KfamV1Alpha1Client struct {
 	profileClient ProfileInterface
+	bindingClient BindingInterface
 }
 
-func NewProfileConfig() (*KfamV1Alpha1Client, error) {
-	config, err := config.GetConfig()
-	if err != nil {
-		os.Exit(1)
-	}
-	config.ContentConfig.GroupVersion = &schema.GroupVersion{Group: v1alpha1.GroupName, Version: v1alpha1.GroupVersion}
-	config.APIPath = "/apis"
-	config.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
-	config.UserAgent = rest.DefaultKubernetesUserAgent()
-
-	client, err := rest.RESTClientFor(config)
+func NewKfamClient(userIdHeader string, userIdPrefix string) (*KfamV1Alpha1Client, error) {
+	profileRESTClient, err := getRESTClient(profileRegister.GroupName, profileRegister.GroupVersion)
 	if err != nil {
 		return nil, err
 	}
-
+	istioRESTClient, err := getRESTClient(istioRegister.GroupName, istioRegister.GroupVersion)
+	if err != nil {
+		return nil, err
+	}
+	restconfig, err := config.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+	kubeClient, err := clientset.NewForConfig(restconfig)
+	if err != nil {
+		return nil, err
+	}
 	return &KfamV1Alpha1Client{
-		profileClient: &profileClient{
-			restClient: client,
-			resource:   "profiles",
+		profileClient: &ProfileClient{
+			restClient: profileRESTClient,
+		},
+		bindingClient: &BindingClient{
+			restClient: 	istioRESTClient,
+			kubeClient: 	kubeClient,
+			userIdHeader:	userIdHeader,
+			userIdPrefix:	userIdPrefix,
 		},
 	}, nil
 }
 
-func CreateBinding(w http.ResponseWriter, r *http.Request) {
+func getRESTClient(group string, version string) (*rest.RESTClient, error) {
+	restconfig, err := config.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+	restconfig.ContentConfig.GroupVersion = &schema.GroupVersion{Group: profileRegister.GroupName, Version: profileRegister.GroupVersion}
+	restconfig.APIPath = "/apis"
+	restconfig.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
+	restconfig.UserAgent = rest.DefaultKubernetesUserAgent()
+	return rest.RESTClientFor(restconfig)
+}
+
+func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+	var binding Binding
+	if err := json.NewDecoder(r.Body).Decode(&binding); err != nil {
+		json.NewEncoder(w).Encode(err)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	err := c.bindingClient.Create(&binding)
+	if err == nil {
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(err.Error()))
+	}
 }
 
 func (c *KfamV1Alpha1Client) CreateProfile(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +115,7 @@ func (c *KfamV1Alpha1Client) CreateProfile(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func DeleteBinding(w http.ResponseWriter, r *http.Request) {
+func (c *KfamV1Alpha1Client) DeleteBinding(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 }
@@ -98,7 +133,7 @@ func (c *KfamV1Alpha1Client) DeleteProfile(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func ReadBinding(w http.ResponseWriter, r *http.Request) {
+func (c *KfamV1Alpha1Client) ReadBinding(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 }

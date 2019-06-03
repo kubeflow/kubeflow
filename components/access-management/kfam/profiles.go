@@ -15,16 +15,17 @@ type ProfileInterface interface {
 	Update(profile *v1alpha1.Profile) (*v1alpha1.Profile, error)
 }
 
-type profileClient struct {
+type ProfileClient struct {
 	restClient rest.Interface
-	resource   string
 }
 
-func (c *profileClient) Create(profile *v1alpha1.Profile) (*v1alpha1.Profile, error) {
+const Profiles = "profiles"
+
+func (c *ProfileClient) Create(profile *v1alpha1.Profile) (*v1alpha1.Profile, error) {
 	result := v1alpha1.Profile{}
 	err := c.restClient.
 		Post().
-		Resource("profiles").
+		Resource(Profiles).
 		Body(profile).
 		Do().
 		Into(&result)
@@ -32,21 +33,21 @@ func (c *profileClient) Create(profile *v1alpha1.Profile) (*v1alpha1.Profile, er
 	return &result, err
 }
 
-func (c *profileClient) Delete(name string, opts *metav1.DeleteOptions) error {
+func (c *ProfileClient) Delete(name string, opts *metav1.DeleteOptions) error {
 	return c.restClient.
 		Delete().
-		Resource("profiles").
+		Resource(Profiles).
 		Name(name).
 		Body(opts).
 		Do().
 		Error()
 }
 
-func (c *profileClient) Get(name string, opts metav1.GetOptions) (*v1alpha1.Profile, error) {
+func (c *ProfileClient) Get(name string, opts metav1.GetOptions) (*v1alpha1.Profile, error) {
 	result := v1alpha1.Profile{}
 	err := c.restClient.
 		Get().
-		Resource("profiles").
+		Resource(Profiles).
 		Name(name).
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Do().
@@ -55,11 +56,11 @@ func (c *profileClient) Get(name string, opts metav1.GetOptions) (*v1alpha1.Prof
 	return &result, err
 }
 
-func (c *profileClient) List(opts metav1.ListOptions) (*v1alpha1.ProfileList, error) {
+func (c *ProfileClient) List(opts metav1.ListOptions) (*v1alpha1.ProfileList, error) {
 	result := v1alpha1.ProfileList{}
 	err := c.restClient.
 		Get().
-		Resource("profiles").
+		Resource(Profiles).
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Do().
 		Into(&result)
@@ -67,11 +68,11 @@ func (c *profileClient) List(opts metav1.ListOptions) (*v1alpha1.ProfileList, er
 	return &result, err
 }
 
-func (c *profileClient) Update(profile *v1alpha1.Profile) (*v1alpha1.Profile, error) {
+func (c *ProfileClient) Update(profile *v1alpha1.Profile) (*v1alpha1.Profile, error) {
 	result := v1alpha1.Profile{}
 	err := c.restClient.
 		Put().
-		Resource("profiles").
+		Resource(Profiles).
 		Body(profile).
 		Do().
 		Into(&result)

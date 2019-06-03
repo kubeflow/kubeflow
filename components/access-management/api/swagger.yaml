@@ -63,7 +63,7 @@ paths:
   /v1/bindings:
     get:
       summary: "Get bindings created via kubeflow; filtered by query param"
-      description: "bindings will contain it's current status"
+      description: "Bindings will contain its current status"
       operationId: "read binding"
       consumes:
       - "application/json"
@@ -94,7 +94,7 @@ paths:
         x-optionalDataType: "String"
       - name: "role"
         in: "query"
-        description: "owner or editor or viewer, when not empty, only return bindings\
+        description: "Owner or editor or viewer, when not empty, only return bindings\
           \ of this role"
         required: false
         type: "string"

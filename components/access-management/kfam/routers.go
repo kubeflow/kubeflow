@@ -41,7 +41,7 @@ func NewRouter(kfamV1Alpha1 KfamV1Alpha1Interface) *mux.Router {
 			"CreateBinding",
 			strings.ToUpper("Post"),
 			"/kfam/v1/bindings",
-			CreateBinding,
+			kfamV1Alpha1.CreateBinding,
 		},
 
 		Route{
@@ -55,7 +55,7 @@ func NewRouter(kfamV1Alpha1 KfamV1Alpha1Interface) *mux.Router {
 			"DeleteBinding",
 			strings.ToUpper("Delete"),
 			"/kfam/v1/bindings",
-			DeleteBinding,
+			kfamV1Alpha1.DeleteBinding,
 		},
 
 		Route{
@@ -69,7 +69,7 @@ func NewRouter(kfamV1Alpha1 KfamV1Alpha1Interface) *mux.Router {
 			"ReadBinding",
 			strings.ToUpper("Get"),
 			"/kfam/v1/bindings",
-			ReadBinding,
+			kfamV1Alpha1.ReadBinding,
 		},
 	}
 	for _, route := range routes {
