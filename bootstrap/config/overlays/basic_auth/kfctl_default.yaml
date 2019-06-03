@@ -39,6 +39,9 @@ spec:
     notebook-controller:
     - name: injectGcpCredentials
       value: "true"
+    - initRequired: true
+      name: injectIstio
+      value: "false"
     jupyter-web-app:
     - initRequired: true
       name: injectIstio
