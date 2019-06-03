@@ -3,7 +3,7 @@
 // @description notebook controller
 // @shortDescription notebooks
 // @param name string Name
-// @optionalParam controllerImage string gcr.io/kubeflow-images-public/notebook-controller:v20190523-v0-154-g5a78f54f-e3b0c4 The image to use for the notebook controller
+// @optionalParam controllerImage string gcr.io/kubeflow-images-public/notebook-controller:v20190528-v0-169-g4ab2dc13-dirty-bfc67c The image to use for the notebook controller
 // @optionalParam injectGcpCredentials string true Whether to inject gcp credentials
 
 local notebooks = import "kubeflow/jupyter/notebook_controller.libsonnet";
