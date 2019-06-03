@@ -13,6 +13,7 @@ package kfam
 import (
 	"encoding/json"
 	"github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1alpha1"
+	profileV1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -64,7 +65,7 @@ func CreateBinding(w http.ResponseWriter, r *http.Request) {
 
 func (c *KfamV1Alpha1Client) CreateProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var profile v1alpha1.Profile
+	var profile profileV1alpha1.Profile
 	if err := json.NewDecoder(r.Body).Decode(&profile); err != nil {
 		json.NewEncoder(w).Encode(err)
 		w.WriteHeader(http.StatusForbidden)

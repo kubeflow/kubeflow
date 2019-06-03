@@ -10,14 +10,15 @@
 
 package kfam
 
+import rbacv1 "k8s.io/api/rbac/v1"
 // Binding will give user edit access to referredNamespace
 type Binding struct {
 
-	User *Subject `json:"user,omitempty"`
+	User *rbacv1.Subject `json:"user,omitempty"`
 
 	ReferredNamespace string `json:"referredNamespace,omitempty"`
 
-	RoleRef *RoleRef `json:"RoleRef,omitempty"`
+	RoleRef *rbacv1.RoleRef `json:"RoleRef,omitempty"`
 
 	// Status of the profile, one of Succeeded, Failed, Unknown.
 	Status string `json:"status,omitempty"`
