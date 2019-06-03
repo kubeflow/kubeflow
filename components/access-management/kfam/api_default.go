@@ -13,13 +13,11 @@ package kfam
 import (
 	"encoding/json"
 	"github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1alpha1"
-	rbacv1 "k8s.io/api/rbac/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"k8s.io/client-go/rest"
 	"net/http"
 	"os"
 	"path"
@@ -66,25 +64,13 @@ func CreateBinding(w http.ResponseWriter, r *http.Request) {
 
 func (c *KfamV1Alpha1Client) CreateProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var profile Profile
+	var profile v1alpha1.Profile
 	if err := json.NewDecoder(r.Body).Decode(&profile); err != nil {
 		json.NewEncoder(w).Encode(err)
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-	_, err := c.profileClient.Create(&v1alpha1.Profile{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      profile.Metadata.Name,
-			Namespace: profile.Metadata.Name,
-		},
-		Spec: v1alpha1.ProfileSpec{
-			Owner: rbacv1.Subject{
-				Kind: 		profile.Spec.Owner.Kind,
-				Name: 		profile.Spec.Owner.Name,
-				Namespace: 	profile.Spec.Owner.Namespace,
-			},
-		},
-	})
+	_, err := c.profileClient.Create(&profile)
 	if err == nil {
 		w.WriteHeader(http.StatusOK)
 	} else {
