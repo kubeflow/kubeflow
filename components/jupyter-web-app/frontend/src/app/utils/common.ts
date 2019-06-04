@@ -86,12 +86,10 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
   ws.controls.path.disable();
 
   // Add the data volumes
-  const arr = fb.array([]);
   config.dataVolumes.value.forEach(vol => {
     // Create a new FormControl to append to the array
-    arr.push(createVolumeControl(vol.value));
+    addDataVolume(formCtrl, vol.value);
   });
-  formCtrl.controls.datavols = arr;
 
   formCtrl.controls.extra.setValue(config.extraResources.value);
 }
