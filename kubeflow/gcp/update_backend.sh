@@ -16,7 +16,7 @@ fi
 # Activate the service account, allow 5 retries
 for i in {1..5}; do gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} && break || sleep 10; done
 
-NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[?(@.name=='${PORT_NAME}')].nodePort}')
+NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[?(@.name=="'${PORT_NAME}'")].nodePort}')
 echo node port is ${NODE_PORT}
 
 while [[ -z ${BACKEND_NAME} ]]; do
