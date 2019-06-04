@@ -40,21 +40,4 @@ describe('Iframe Link', () => {
         expect(iframeLink.shadowRoot.getElementById('link').pathname)
             .toBe('/_/test-page');
     });
-
-
-    it('Pushes history when link is clicked', async () => {
-        iframeLink.href = '/test-page';
-        spyOn(window.history, 'pushState');
-        const locationChanged = new Promise((resolve) => {
-            window.addEventListener('location-changed', () => {
-                resolve();
-            });
-        });
-        flush();
-        iframeLink.shadowRoot.getElementById('link').click();
-        await locationChanged;
-
-        expect(window.history.pushState)
-            .toHaveBeenCalledWith({}, null, '/_/test-page');
-    });
 });
