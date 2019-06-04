@@ -1,6 +1,7 @@
 import { Component, OnInit, Input } from "@angular/core";
 import { FormGroup, FormArray, Validators, FormBuilder } from "@angular/forms";
 import { Volume } from "src/app/utils/types";
+import { addDataVolume } from "src/app/utils/common";
 
 @Component({
   selector: "app-form-data-volumes",
@@ -40,22 +41,7 @@ export class FormDataVolumesComponent implements OnInit {
   }
 
   addVol() {
-    const l: number = this.parentForm.value.datavols.length;
-
-    const vol: Volume = {
-      type: "New",
-      name: "{notebook-name}-vol-" + (l + 1),
-      size: "10Gi",
-      path: "/home/jovyan/data-vol-" + (l + 1),
-      mode: "ReadWriteOnce",
-      class: "{empty}",
-      id: l
-    };
-
-    // Push it to the control
-    const vols = this.parentForm.get("datavols") as FormArray;
-    vols.push(this.createVolumeControl(vol));
-    this.parentForm.updateValueAndValidity();
+    addDataVolume(this.parentForm);
   }
 
   deleteVol(idx: number) {
