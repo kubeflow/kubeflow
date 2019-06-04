@@ -24,7 +24,7 @@ def post_notebook(namespace):
 
     # Workspace Volume
     workspace_vol = body["workspace"]
-    if workspace_vol["type"] == "New":
+    if not body["noWorkspace"] and workspace_vol["type"] == "New":
         # Create the PVC
         ws_pvc = utils.pvc_from_dict(workspace_vol, namespace)
 
@@ -33,7 +33,7 @@ def post_notebook(namespace):
         if not r["success"]:
             return jsonify(r)
 
-    if workspace_vol["type"] != "none":
+    if not body["noWorkspace"]:
         utils.add_notebook_volume(
             notebook,
             workspace_vol["name"],

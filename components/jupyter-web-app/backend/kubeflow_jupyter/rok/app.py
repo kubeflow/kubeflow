@@ -88,7 +88,6 @@ def post_notebook(namespace):
             r['pvc'].metadata.name,
             "/home/jovyan",
         )
-        
 
     # Add th Data Volumes
     for vol in body["datavols"]:
