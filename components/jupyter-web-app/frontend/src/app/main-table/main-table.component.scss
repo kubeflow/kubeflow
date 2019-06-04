@@ -1,0 +1,11 @@
+.parent {
+  display: flex;
+}
+
+.spacer {
+  flex-grow: 1;
+}
+
+app-namespace-select {
+  padding-top: 20px;
+}

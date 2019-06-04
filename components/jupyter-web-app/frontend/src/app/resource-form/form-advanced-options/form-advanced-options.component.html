@@ -1,0 +1,18 @@
+<div class="group-wrapper" [formGroup]="parentForm">
+  <h3>
+    <fa-icon [icon]="['fas', 'cogs']" class="check"></fa-icon>
+    Extra Resources
+  </h3>
+  <mat-form-field class="wide" appearance="outline">
+    <mat-label>Extra Resources</mat-label>
+    <input
+      matInput
+      placeholder='{"nvidia.com/gpu": 2}'
+      formControlName="extra"
+      required
+    />
+    <mat-hint
+      >Extra Resources available in the cluster that are needed in the Notebook.
+    </mat-hint>
+  </mat-form-field>
+</div>

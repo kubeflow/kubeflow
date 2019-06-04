@@ -1,0 +1,31 @@
+.group-wrapper {
+  margin-bottom: 0.5rem;
+}
+
+.group-wrapper > button {
+  margin-bottom: 0.5rem;
+}
+
+.inputs-wrapper {
+  display: flex;
+  align-items: flex-start;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+}
+
+.inputs-wrapper > .mat-form-field {
+  flex: 1 1 0px;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.inputs-wrapper > .button-wrapper {
+  flex: 0 1 0rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.button-wrapper > button {
+  margin-top: 0.2rem;
+  height: 3.1rem;
+}

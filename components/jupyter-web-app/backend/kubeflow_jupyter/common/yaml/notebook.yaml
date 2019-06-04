@@ -1,0 +1,18 @@
+apiVersion: kubeflow.org/v1alpha1
+kind: Notebook
+metadata:
+  name: {name}
+  namespace: {namespace}
+  labels:
+    app: {name}
+spec:
+  template:
+    spec:
+      serviceAccountName: jupyter-notebook
+      containers:
+        - name: {name}
+          image: ""
+          volumeMounts: []
+          env: []
+      ttlSecondsAfterFinished: 300
+      volumes: []
