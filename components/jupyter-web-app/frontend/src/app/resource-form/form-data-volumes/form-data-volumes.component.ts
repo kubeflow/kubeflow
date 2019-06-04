@@ -15,7 +15,7 @@ export class FormDataVolumesComponent implements OnInit {
   @Input() parentForm: FormGroup;
   @Input() readonly: boolean;
   @Input() pvcs: Volume[];
-  @Input() storageClasses: string[];
+  @Input() defaultStorageClass: boolean;
 
   get datavols() {
     const vols = this.parentForm.get("datavols") as FormArray;
@@ -25,20 +25,6 @@ export class FormDataVolumesComponent implements OnInit {
   constructor(private fb: FormBuilder) {}
 
   ngOnInit() {}
-
-  createVolumeControl(vol: Volume) {
-    const ctrl = this.fb.group({
-      type: [vol.type, [Validators.required]],
-      name: [vol.name, [Validators.required]],
-      size: [vol.size, [Validators.required]],
-      path: [vol.path, [Validators.required]],
-      mode: [vol.mode, [Validators.required]],
-      class: [vol.class, []],
-      extraFields: this.fb.group({})
-    });
-
-    return ctrl;
-  }
 
   addVol() {
     addDataVolume(this.parentForm);

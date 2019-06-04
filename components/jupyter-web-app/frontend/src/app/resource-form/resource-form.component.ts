@@ -7,11 +7,7 @@ import { first } from "rxjs/operators";
 import { Subscription } from "rxjs";
 import { Volume, Config, ConfigVolume, SnackType } from "../utils/types";
 import { SnackBarService } from "../services/snack-bar.service";
-import {
-  createVolumeControl,
-  getFormDefaults,
-  initFormControls
-} from "../utils/common";
+import { getFormDefaults, initFormControls } from "../utils/common";
 
 @Component({
   selector: "app-resource-form",
