@@ -2,3 +2,4 @@ node_modules/
 dist/
 coverage/
 .nyc_output/
+screen-diff-testing/temp

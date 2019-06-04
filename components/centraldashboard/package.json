@@ -17,6 +17,7 @@
         "test-client": "karma start --single-run",
         "test-client-debug": "karma start --browsers Chrome",
         "test-server": "jasmine-ts --config=app/.jasmine.json",
+        "screen-test": "cd screen-diff-testing/ && mocha --require @babel/register diff-test.js",
         "tslint": "tslint -c tslint.json -p tsconfig.json",
         "coverage": "nyc npm run test-server && karma start --single-run --reporters coverage-istanbul",
         "watch-node": "nodemon dist/server.js",
@@ -30,6 +31,17 @@
     "license": "Apache-2.0",
     "bugs": {
         "url": "https://github.com/kubeflow/kubeflow/issues"
+    },
+    "babel": {
+        "presets": [[
+            "@babel/preset-env",
+            {
+                "modules": "commonjs",
+                "targets": {
+                    "node": "current"
+                }
+            }
+        ]]
     },
     "homepage": "https://github.com/kubeflow/kubeflow#readme",
     "dependencies": {
@@ -69,12 +81,14 @@
         "@babel/core": "^7.4.4",
         "@babel/plugin-transform-runtime": "^7.4.4",
         "@babel/preset-env": "^7.4.4",
+        "@babel/register": "^7.4.4",
         "@babel/runtime": "^7.4.4",
         "@polymer/test-fixture": "^4.0.2",
         "@types/express": "^4.16.1",
         "@types/gapi.client.monitoring": "^3.0.1",
         "@types/jasmine": "^3.3.12",
         "babel-loader": "^8.0.5",
+        "chai": "^4.2.0",
         "clean-webpack-plugin": "^1.0.1",
         "concurrently": "^4.1.0",
         "copy-webpack-plugin": "^5.0.3",
@@ -100,8 +114,10 @@
         "karma-sourcemap-loader": "^0.3.7",
         "karma-webpack": "^4.0.0-rc",
         "mini-css-extract-plugin": "^0.5.0",
+        "mocha": "^6.1.4",
         "nodemon": "^1.19.0",
         "nyc": "^14.1.0",
+        "pixelmatch": "^4.0.2",
         "pug": "^2.0.3",
         "pug-loader": "^2.4.0",
         "puppeteer": "^1.15.0",
