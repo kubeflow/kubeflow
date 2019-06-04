@@ -9,7 +9,8 @@
       envoyAdminPort: 8001,
       envoyStatsPort: 8025,
       injectIstio: util.toBool(_params.injectIstio),
-      ingressName: "envoy-ingress"
+      ingressName: "envoy-ingress",
+      portName: "http2",
     },
     local namespace = if params.injectIstio then params.istioNamespace else params.namespace,
 
@@ -316,6 +317,10 @@
                     name: "INGRESS_NAME",
                     value: params.ingressName,
                   },
+                  {
+                    name: "PORT_NAME",
+                    value: params.portName,
+                  },
                 ] + if params.injectIstio then [
                   {
                     name: "USE_ISTIO",
@@ -402,6 +407,10 @@
                   {
                     name: "GOOGLE_APPLICATION_CREDENTIALS",
                     value: "/var/run/secrets/sa/admin-gcp-sa.json",
+                  },
+                  {
+                    name: "PORT_NAME",
+                    value: params.portName,
                   },
                 ] + if params.injectIstio then [
                   {

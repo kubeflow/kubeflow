@@ -4,7 +4,8 @@
   new(_env, _params):: {
     local params = _params + _env {
       hostname: if std.objectHas(_params, "hostname") then _params.hostname else "null",
-      ingressName: "envoy-ingress"
+      ingressName: "envoy-ingress",
+      portName: "ambassador",
     },
     local namespace = params.namespace,
 
@@ -221,6 +222,10 @@
                   {
                     name: "INGRESS_NAME",
                     value: params.ingressName,
+                  },
+                  {
+                    name: "PORT_NAME",
+                    value: params.portName,
                   },
                 ],
                 volumeMounts: [
