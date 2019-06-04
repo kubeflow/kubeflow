@@ -1,0 +1,68 @@
+/* You can add global styles to this file, and also import other style files */
+@import "~@angular/material/theming";
+// @import '~@angular/material/prebuilt-themes/indigo-pink.css';
+
+// always include only once per project
+@include mat-core();
+
+// import our custom theme (eventually will use one from centraldashboard)
+$my-theme-primary: mat-palette($mat-blue, 600, 700, 900);
+$my-theme-accent: mat-palette($mat-light-blue);
+$my-theme-warn: mat-palette($mat-deep-orange, A200);
+
+// create theme (use mat-dark-theme for themes with dark backgrounds)
+$my-theme: mat-light-theme($my-theme-primary, $my-theme-accent, $my-theme-warn);
+
+@include angular-material-theme($my-theme);
+
+.primary-color {
+  color: mat-color($my-theme-primary) !important;
+}
+
+$custom-typography: mat-typography-config(
+  $font-family: "Roboto, monospace",
+  $headline: mat-typography-level(32px, 48px, 700),
+  $body-1: mat-typography-level(16px, 24px, 500)
+);
+
+@include angular-material-typography($custom-typography);
+
+// Custom css
+* {
+  font-family: Roboto;
+}
+
+.mat-tooltip {
+  font-size: 14px !important;
+}
+
+body {
+  margin: 0;
+}
+
+.app-filler {
+  flex: 1 1 auto;
+}
+
+.mat-snack-bar-container {
+  max-width: 100% !important;
+  width: 700px;
+}
+
+// Get the select and input elements have the same height
+mat-form-field {
+  line-height: 0;
+}
+
+// Make the outline grey instead of black
+.mat-form-field-appearance-outline .mat-form-field-outline-thick {
+  color: rgba(0, 0, 0, 0.16);
+}
+
+.mat-checkbox-layout {
+  margin-bottom: 10px;
+}
+
+.custom-dialog-container .mat-dialog-container {
+  padding: 0px;
+}
