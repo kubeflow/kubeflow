@@ -12,6 +12,7 @@
     - [**init**](#init)
     - [**generate**](#generate)
     - [**apply**](#apply)
+    - [**delete**](#delete)
   - [Extending kfctl](#extending-kfctl)
     - [Building the sample plugin](#building-the-sample-plugin)
   - [Testing](#testing)
@@ -30,7 +31,7 @@
 
 The new `kfctl` client replaces `kfctl.sh` and is implemented in golang.
 
-Note: This README.md will be updated on an ongoing basis to reflect features, bug fixes.
+**Note**: This README.md will be updated on an ongoing basis to reflect features, bug fixes.
 
 ## Requirements
 
@@ -258,7 +259,7 @@ make test-generate
 
 #### app.yaml example for --platform gcp 
 
-```
+```yaml
 apiVersion: client.apps.kubeflow.org/v1alpha1
 kind: Client
 metadata:
