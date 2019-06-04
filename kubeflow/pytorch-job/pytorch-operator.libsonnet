@@ -1,10 +1,10 @@
 {
   all(params, env):: [
+    $.parts(params, env).crd,
     $.parts(params, env).configMap(params.pytorchDefaultImage),
     $.parts(params, env).serviceAccount,
     $.parts(params, env).operatorRole(params.deploymentScope, params.deploymentNamespace),
     $.parts(params, env).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
-    $.parts(params, env).crd,
     $.parts(params, env).pytorchJobDeploy(params.pytorchJobImage, params.deploymentScope, params.deploymentNamespace),
   ],
 
