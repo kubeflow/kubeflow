@@ -97,7 +97,7 @@ func getConfigFromCache(pathDir string, kfDef *kfdefs.KfDef) ([]byte, error) {
 	if dataErr != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("can not encode as yaml Error %v", configPath, resMapErr),
+			Message: fmt.Sprintf("can not encode %v as yaml Error %v", configPath, resMapErr),
 		}
 	}
 	return data, nil
