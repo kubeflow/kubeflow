@@ -61,8 +61,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                         platform-info='[[platformInfo]]')
                 neon-animatable(page='activity')
                     activity-view(namespace='[[queryParams.ns]]')
-                neon-animatable#iframe-page(page='iframe')
-                    iframe#PageFrame.flex(src='[[iframeUrl]]')
+                neon-animatable(page='iframe')
+                    iframe#PageFrame.flex
                 neon-animatable(page='not_found')
                     not-found-view(path="[[route.path]]")
     iron-media-query(query='(max-width: 900px)', query-matches='{{sidebarBleed}}')

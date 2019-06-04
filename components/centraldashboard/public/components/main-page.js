@@ -82,9 +82,11 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                     },
                 ],
             },
-            sidebarItemIndex: {type: Number, value: 0,
-                observer: '_revertSidebarIndexIfExternal'},
-            iframeUrl: {type: String, value: ''},
+            sidebarItemIndex: {
+                type: Number,
+                value: 0,
+                observer: '_revertSidebarIndexIfExternal',
+            },
             buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
             platformInfo: Object,
@@ -136,7 +138,6 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         let notFoundInIframe = false;
         let hideTabs = true;
         let hideNamespaces = false;
-        let iframeUrl;
 
         switch (newPage) {
         case 'activity':
@@ -146,13 +147,10 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             break;
         case IFRAME_LINK_PREFIX:
             this.page = 'iframe';
-            iframeUrl = new URL(this.subRouteData.path, window.location.origin);
-            iframeUrl.hash = window.location.hash;
-            iframeUrl.search = window.location.search;
-            this.iframeUrl = iframeUrl.toString();
             isIframe = true;
             hideNamespaces = this.subRouteData.path.startsWith('/pipeline');
             this._setActiveMenuLink(this.subRouteData.path);
+            this._setIframeLocation();
             break;
         case '':
             this.sidebarItemIndex = 0;
@@ -213,6 +211,23 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             this.sidebarItemIndex = menuLinkIndex + 1;
         } else {
             this.sidebarItemIndex = -1;
+        }
+    }
+
+    /**
+     * Sets the location of the emebedded iframe based on the current route.
+     * This method avoids including the ns query parameter to the iframe,
+     * and only replaces the location when it has changed.
+     */
+    _setIframeLocation() {
+        const iframeUrl = new URL(this.subRouteData.path,
+            window.location.origin);
+        const iframeLocation = this.$.PageFrame.contentWindow.location;
+        iframeUrl.hash = window.location.hash;
+        iframeUrl.search = window.location.search;
+        iframeUrl.searchParams.delete('ns');
+        if (iframeUrl.toString() !== iframeLocation.toString()) {
+            iframeLocation.replace(iframeUrl.toString());
         }
     }
 
