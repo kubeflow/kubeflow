@@ -1,5 +1,5 @@
 import { ConfigVolume, Config } from "src/app/utils/types";
-import { Validators, FormBuilder, FormGroup } from "@angular/forms";
+import { Validators, FormBuilder, FormGroup, FormArray } from "@angular/forms";
 
 const fb = new FormBuilder();
 
@@ -39,6 +39,35 @@ export function createVolumeControl(vol: ConfigVolume) {
   });
 
   return ctrl;
+}
+
+export function addDataVolume(formCtrl: FormGroup, vol: ConfigVolume = null) {
+  // If no vol is provided create one with default values
+  if (vol === null) {
+    const l: number = formCtrl.value.datavols.length;
+
+    vol = {
+      type: {
+        value: "New"
+      },
+      name: {
+        value: "{notebook-name}-vol-" + (l + 1)
+      },
+      size: {
+        value: "10Gi"
+      },
+      mountPath: {
+        value: "/home/jovyan/data-vol-" + (l + 1)
+      },
+      accessModes: {
+        value: "ReadWriteOnce"
+      }
+    };
+  }
+
+  // Push it to the control
+  const vols = formCtrl.get("datavols") as FormArray;
+  vols.push(createVolumeControl(vol));
 }
 
 export function initFormControls(formCtrl: FormGroup, config: Config) {
