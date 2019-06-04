@@ -27,6 +27,7 @@ spec:
   - jupyter-web-app
   - katib
   - notebook-controller
+  - pytorch-crds
   - pytorch-operator
   - spartakus
   - tensorboard
