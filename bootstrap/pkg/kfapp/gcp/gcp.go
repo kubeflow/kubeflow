@@ -75,6 +75,7 @@ const (
 )
 
 // The namespace for Istio
+// Dummy.
 const IstioNamespace = "istio-system"
 
 // Gcp implements KfApp Interface
