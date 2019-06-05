@@ -7,6 +7,9 @@ spec:
     ambassador:
     - name: ambassadorServiceType
       value: NodePort
+    - initRequired: true
+      name: injectIstio
+      value: "false"
     argo:
     - initRequired: true
       name: injectIstio
