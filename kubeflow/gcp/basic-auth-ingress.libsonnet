@@ -369,7 +369,7 @@
           },
         ],
       },
-    },  // iapIngress
+    },  // ingress
     ingress:: ingress,
 
     local certificate = if params.privateGKECluster == "false" then (
