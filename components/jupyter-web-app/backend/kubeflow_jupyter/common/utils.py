@@ -6,6 +6,11 @@ from kubernetes import client
 import datetime as dt
 from . import api
 
+CONFIGS = [
+    "/etc/config/spawner_ui_config.yaml",
+    "./kubeflow_jupyter/common/spawner_ui_config.yaml"
+]
+
 
 # Logging
 def create_logger(name):
@@ -43,8 +48,8 @@ def load_param_yaml(f, **kwargs):
         return None
 
 
-def spawner_ui_config(configs):
-    for config in configs:
+def spawner_ui_config():
+    for config in CONFIGS:
         c = None
         try:
             with open(config, 'r') as f:
@@ -256,6 +261,30 @@ def add_notebook_volume(notebook, vol_name, claim, mnt_path):
         "name": vol_name
     }
     container["volumeMounts"].append(mnt)
+
+
+def set_notebook_shm(notebook, body, defaults):
+    # If shm wasn't provided, act based on the defaults
+    if "shm" not in body:
+        if not defaults["shm"]["value"]:
+            # shm set to false
+            return
+
+    notebook_spec = notebook["spec"]['template']['spec']
+    notebook_cont = notebook["spec"]['template']['spec']['containers'][0]
+
+    shm_volume = {
+        "name": "dshm",
+        "emptyDir": {
+            "medium": "Memory"
+        }
+    }
+    notebook_spec['volumes'].append(shm_volume)
+    shm_mnt = {
+        "mountPath": "/dev/shm",
+        "name": "dshm"
+    }
+    notebook_cont["volumeMounts"].append(shm_mnt)
 
 
 def add_notebook_volume_secret(nb, secret, secret_name, mnt_path, mode):

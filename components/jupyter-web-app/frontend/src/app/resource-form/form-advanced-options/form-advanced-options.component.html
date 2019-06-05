@@ -3,6 +3,14 @@
     <fa-icon [icon]="['fas', 'cogs']" class="check"></fa-icon>
     Extra Resources
   </h3>
+  <p>
+    Specify extra resoucres that might be needed in the Notebook Server.
+  </p>
+
+  <mat-slide-toggle formControlName="shm"
+    >Enable Shared Memory</mat-slide-toggle
+  >
+
   <mat-form-field class="wide" appearance="outline">
     <mat-label>Extra Resources</mat-label>
     <input
@@ -12,7 +20,7 @@
       required
     />
     <mat-hint
-      >Extra Resources available in the cluster that are needed in the Notebook.
+      >Extra Resources available in the cluster (ex. NVIDIA GPUs)
     </mat-hint>
   </mat-form-field>
 </div>

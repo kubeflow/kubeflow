@@ -94,6 +94,10 @@ export interface Config {
     value: any;
     readOnly?: boolean;
   };
+  shm?: {
+    value: boolean;
+    readOnly?: boolean;
+  };
 }
 
 // Types of  popup

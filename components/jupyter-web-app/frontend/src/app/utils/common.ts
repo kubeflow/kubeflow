@@ -23,7 +23,8 @@ export function getFormDefaults(): FormGroup {
       extraFields: fb.group({})
     }),
     datavols: fb.array([]),
-    extra: ["", [Validators.required]]
+    extra: ["", [Validators.required]],
+    shm: [true, []]
   });
 }
 
@@ -92,4 +93,5 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
   });
 
   formCtrl.controls.extra.setValue(config.extraResources.value);
+  formCtrl.controls.shm.setValue(config.shm.value);
 }

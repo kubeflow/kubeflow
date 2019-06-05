@@ -13,6 +13,7 @@ NOTEBOOK = './kubeflow_jupyter/common/yaml/notebook.yaml'
 @app.route("/api/namespaces/<namespace>/notebooks", methods=['POST'])
 def post_notebook(namespace):
     body = request.get_json()
+    defaults = utils.spawner_ui_config()
     logger.info('Got Notebook: {}'.format(body))
 
     notebook = utils.load_param_yaml(NOTEBOOK,
@@ -63,6 +64,9 @@ def post_notebook(namespace):
     r = utils.set_notebook_extra_resources(notebook, body)
     if not r["success"]:
         return jsonify(r)
+
+    # shm
+    utils.set_notebook_shm(notebook, body, defaults)
 
     logger.info("Creating Notebook: {}".format(notebook))
     return jsonify(api.post_notebook(notebook))
