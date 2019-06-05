@@ -114,7 +114,7 @@ def patch_iam_policy(args):
     yaml.dump(current_policy, f, default_flow_style=False)
   logging.debug("Temp file %s", updated_policy_file.name)
   if not args.dry_run:
-    subprocess.call([
+    subprocess.check_call([
         "gcloud", "projects", "set-iam-policy", args.project,
         updated_policy_file.name
     ])
