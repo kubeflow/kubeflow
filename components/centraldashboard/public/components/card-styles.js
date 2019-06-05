@@ -96,7 +96,6 @@ styleElement.innerHTML = `
 
         .link paper-icon-item {
             padding: .5em 1em;
-            border-radius: 5px;
         }
 
         a {
