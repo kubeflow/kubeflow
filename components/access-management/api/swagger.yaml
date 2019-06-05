@@ -70,13 +70,6 @@ paths:
       produces:
       - "application/json"
       parameters:
-      - in: "body"
-        name: "body"
-        description: "Binding spec"
-        required: true
-        schema:
-          $ref: "#/definitions/Binding"
-        x-exportParamName: "Body"
       - name: "user"
         in: "query"
         description: "User name, when not empty, only return bindings of this user"
@@ -166,7 +159,7 @@ definitions:
   BindingEntries:
     type: "object"
     properties:
-      users:
+      bindings:
         type: "array"
         items:
           $ref: "#/definitions/Binding"

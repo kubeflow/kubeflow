@@ -10,7 +10,7 @@
 
 package kfam
 
-type BindingList struct {
+type BindingEntries struct {
 
-	Users []Binding `json:"users,omitempty"`
+	Bindings []Binding `json:"bindings,omitempty"`
 }

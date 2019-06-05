@@ -12,16 +12,18 @@ package kfam
 
 import (
 	"encoding/json"
-	profileRegister "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1alpha1"
 	istioRegister "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/istiorbac/v1alpha1"
+	profileRegister "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1alpha1"
 	profileV1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
-	clientset "k8s.io/client-go/kubernetes"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
 	"net/http"
+	"net/url"
 	"path"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -74,7 +76,7 @@ func getRESTClient(group string, version string) (*rest.RESTClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	restconfig.ContentConfig.GroupVersion = &schema.GroupVersion{Group: profileRegister.GroupName, Version: profileRegister.GroupVersion}
+	restconfig.ContentConfig.GroupVersion = &schema.GroupVersion{Group: group, Version: version}
 	restconfig.APIPath = "/apis"
 	restconfig.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
 	restconfig.UserAgent = rest.DefaultKubernetesUserAgent()
@@ -89,6 +91,7 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
+	//TODO: check permission before create binding
 	err := c.bindingClient.Create(&binding)
 	if err == nil {
 		w.WriteHeader(http.StatusOK)
@@ -117,7 +120,20 @@ func (c *KfamV1Alpha1Client) CreateProfile(w http.ResponseWriter, r *http.Reques
 
 func (c *KfamV1Alpha1Client) DeleteBinding(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+	var binding Binding
+	if err := json.NewDecoder(r.Body).Decode(&binding); err != nil {
+		json.NewEncoder(w).Encode(err)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	//TODO: check permission before delete
+	err := c.bindingClient.Delete(&binding)
+	if err == nil {
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(err.Error()))
+	}
 }
 
 func (c *KfamV1Alpha1Client) DeleteProfile(w http.ResponseWriter, r *http.Request) {
@@ -135,5 +151,36 @@ func (c *KfamV1Alpha1Client) DeleteProfile(w http.ResponseWriter, r *http.Reques
 
 func (c *KfamV1Alpha1Client) ReadBinding(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+	queries, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(err.Error()))
+	}
+	namespaces := []string{}
+	// by default scan all namespaces created by profile CR
+	if queries.Get("namespace") == "" {
+		profList, err := c.profileClient.List(metav1.ListOptions{})
+		if err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte(err.Error()))
+		}
+		for _, profile := range profList.Items {
+			namespaces = append(namespaces, profile.Name)
+		}
+	} else {
+		namespaces = append(namespaces, queries.Get("namespace"))
+	}
+	bindingList, err := c.bindingClient.List(queries.Get("user"), namespaces, queries.Get("role"))
+	if err == nil {
+		result, err := json.Marshal(*bindingList)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		} else {
+			w.WriteHeader(http.StatusOK)
+			w.Write(result)
+		}
+	} else {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(err.Error()))
+	}
 }
