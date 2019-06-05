@@ -206,6 +206,10 @@ module.exports = {
                         '/$1/services/$2/proxy/notebook/$1/$2/$3',
                 },
             },
+            '/pipeline': {
+                target: 'http://localhost:8083/api/v1/namespaces/kubeflow/services/ml-pipeline:8888/proxy',
+                pathRewrite: {'^/pipeline': ''},
+            },
         },
         historyApiFallback: {
             disableDotRule: true,

@@ -34,7 +34,7 @@ describe('Main Page', () => {
     });
 
     afterEach(() => {
-        mainPage.set('queryParams', null);
+        mainPage.set('queryParams.ns', null);
         document.getElementById(FIXTURE_ID).restore();
     });
 
@@ -96,16 +96,27 @@ describe('Main Page', () => {
     it('Sets view state when iframe page is active', () => {
         spyOn(mainPage.$.MainDrawer, 'close');
 
+        const locationSpy = jasmine.createSpyObj('spyLocation', ['replace']);
+        spyOnProperty(mainPage.$.PageFrame, 'contentWindow')
+            .and.returnValue({location: locationSpy});
+
+        mainPage.set('queryParams.ns', 'test');
         mainPage.subRouteData.path = '/jupyter/';
         mainPage._routePageChanged('_');
         flush();
 
+        expect(window.location.search).toContain('ns=test');
         expect(mainPage.page).toBe('iframe');
         expect(mainPage.sidebarItemIndex).toBe(2);
         expect(mainPage.inIframe).toBe(true);
         expect(mainPage.shadowRoot.getElementById('ViewTabs')
             .hasAttribute('hidden')).toBe(true);
         expect(mainPage.$.MainDrawer.close).toHaveBeenCalled();
+
+        const expected = new RegExp(`^${window.location.origin}/jupyter/`);
+        const calledWith = locationSpy.replace.calls.argsFor(0);
+        expect(calledWith).toMatch(expected);
+        expect(calledWith).not.toContain('ns=test');
     });
 
     it('Sets view state when an invalid page is specified from an iframe',

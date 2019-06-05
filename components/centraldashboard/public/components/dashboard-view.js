@@ -4,7 +4,6 @@ import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-ripple/paper-ripple.js';
 import '@polymer/paper-item/paper-icon-item.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
-import '@polymer/paper-styles/element-styles/paper-material-styles.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
 
@@ -13,15 +12,16 @@ import template from './dashboard-view.pug';
 import './card-styles.js';
 import './iframe-link.js';
 import './notebooks-card.js';
+import './pipelines-card.js';
 import './resource-chart.js';
 import {getGCPData} from './resources/cloud-platform-data.js';
 
-const DOCS = 'https://www.kubeflow.org/docs/started';
+const DOCS = 'https://www.kubeflow.org/docs';
 
 export class DashboardView extends PolymerElement {
     static get template() {
         return html([`
-            <style include="card-styles paper-material-styles">
+            <style include="card-styles">
                 ${css.toString()}
             </style>
             ${template()}
@@ -37,40 +37,44 @@ export class DashboardView extends PolymerElement {
                 type: Array,
                 value: [
                     {
-                        text: 'Getting started with Kubeflow',
-                        desc: 'Quickly get running with your ML workflow on ' +
-                            'an existing Kubernetes installation',
-                        link: `${DOCS}/getting-started/`,
+                        text: 'Getting Started with Kubeflow',
+                        desc: 'Get your machine-learning workflow up and ' +
+                            'running on Kubeflow',
+                        link: `${DOCS}/started/getting-started/`,
                     },
                     {
                         text: 'MiniKF',
                         desc: 'A fast and easy way to deploy Kubeflow locally',
-                        link: `${DOCS}/getting-started-minikf/`,
+                        link: `${DOCS}/started/getting-started-minikf/`,
                     },
                     {
                         text: 'Microk8s for Kubeflow',
                         desc: 'Quickly get Kubeflow running locally on ' +
                             'native hypervisors',
-                        link: `${DOCS}/getting-started-multipass/`,
+                        link: `${DOCS}/started/getting-started-multipass/`,
                     },
                     {
                         text: 'Minikube for Kubeflow',
                         desc: 'Quickly get Kubeflow running locally',
-                        link: `${DOCS}/getting-started-minikube/`,
+                        link: `${DOCS}/started/getting-started-minikube/`,
                     },
                     {
-                        text: 'Kubernetes Engine for Kubeflow',
-                        desc: 'Get Kubeflow running on Google Cloud ' +
-                                'Platform. This guide is a quickstart' +
-                                ' to deploying Kubeflow on Google' +
-                                ' Kubernetes Engine',
-                        link: `${DOCS}/getting-started-gke/`,
+                        text: 'Kubeflow on GCP',
+                        desc: 'Running Kubeflow on Kubernetes Engine and ' +
+                            'Google Cloud Platform',
+                        link: `${DOCS}/gke/`,
+                    },
+                    {
+                        text: 'Kubeflow on AWS',
+                        desc: 'Running Kubeflow on Elastic Container Service ' +
+                            'and Amazon Web Services',
+                        link: `${DOCS}/aws/`,
                     },
                     {
                         text: 'Requirements for Kubeflow',
                         desc: 'Get more detailed information about using ' +
                 'Kubeflow and its components',
-                        link: `${DOCS}/requirements/`,
+                        link: `${DOCS}/started/requirements/`,
                     },
                 ],
             },

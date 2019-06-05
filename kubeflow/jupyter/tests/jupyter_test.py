@@ -125,7 +125,7 @@ def test_jupyter(env, namespace):
   ks_util.setup_ks_app(app_dir, env, namespace, component, params)
 
   util.run([ks_cmd, "apply", env, "-c", component], cwd=app_dir)
-  conditions = ["Ready"]
+  conditions = ["Running"]
   results = util.wait_for_cr_condition(api_client, GROUP, PLURAL, VERSION,
                                        namespace, name, conditions)
 
