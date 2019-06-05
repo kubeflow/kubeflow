@@ -9,6 +9,8 @@
 // @optionalParam issuer string letsencrypt-prod The cert-manager issuer name.
 // @optionalParam ingressSetupImage string gcr.io/kubeflow-images-public/ingress-setup:latest The image for setting up ingress.
 // @optionalParam privateGKECluster string false Is the k8s cluster a private GKE cluster
+// @optionalParam injectIstio string false The namespace where Istio is installed
+// @optionalParam istioNamespace string istio-system The namespace where Istio is installed
 
 local basicauth = import "kubeflow/gcp/basic-auth-ingress.libsonnet";
 local instance = basicauth.new(env, params);

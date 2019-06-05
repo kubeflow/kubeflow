@@ -6,8 +6,9 @@
       hostname: if std.objectHas(_params, "hostname") then _params.hostname else "null",
       ingressName: "envoy-ingress",
       portName: "ambassador",
+      injectIstio: util.toBool(_params.injectIstio),
     },
-    local namespace = params.namespace,
+    local namespace = if params.injectIstio then params.istioNamespace else params.namespace,
 
     // Test if the given hostname is in the form of: "NAME.endpoints.PROJECT.cloud.goog"
     local isCloudEndpoint(str) = {
