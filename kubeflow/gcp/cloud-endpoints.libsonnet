@@ -2,7 +2,7 @@
   local k = import "k.libsonnet",
   new(_env, _params):: {
     local params = {
-      cloudEndpointsImage: "gcr.io/cloud-solutions-group/cloud-endpoints-controller:0.2.1",
+      cloudEndpointsImage: "gcr.io/gabrielwen-learning/cloud-endpoint-controller:06051555",
     } + _params + _env,
 
     local endpointsCRD = {
