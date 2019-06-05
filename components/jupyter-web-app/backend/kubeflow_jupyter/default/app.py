@@ -20,7 +20,7 @@ def post_notebook(namespace):
                                      name=body['name'],
                                      namespace=namespace)
 
-    utils.set_notebook_image(notebook, body)
+    utils.set_notebook_image(notebook, body, defaults)
     utils.set_notebook_specs(notebook, body, defaults)
 
     # Workspace Volume
