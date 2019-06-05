@@ -208,8 +208,10 @@ def process_status(rsrc):
 
 
 # Notebook YAML processing
-def set_notebook_image(notebook, body):
-    if body["customImageCheck"]:
+def set_notebook_image(notebook, body, defaults):
+    if "image" not in body:
+        image = defaults["image"]["value"]
+    elif "customImageCheck" in body and body["customImageCheck"]:
         image = body["customImage"]
     else:
         image = body["image"]

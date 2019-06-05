@@ -18,22 +18,11 @@
   >
     <!-- If readonly, then make it an input element instead of select -->
     <mat-label>Image</mat-label>
-    <mat-select
-      *ngIf="!readonly"
-      placeholder="Docker Image"
-      formControlName="image"
-    >
+    <mat-select placeholder="Docker Image" formControlName="image">
       <mat-option *ngFor="let img of images" [value]="img">
         {{ img }}
       </mat-option>
     </mat-select>
-
-    <input
-      matInput
-      *ngIf="readonly"
-      [readonly]="readonly"
-      formControlName="image"
-    />
   </mat-form-field>
 
   <mat-form-field
@@ -46,6 +35,7 @@
       matInput
       placeholder="Provide a custom Image"
       formControlName="customImage"
+      [readonly]="readonly"
       #cstmimg
     />
     <mat-error>Please provide and Image to use</mat-error>
