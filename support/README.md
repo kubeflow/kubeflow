@@ -14,9 +14,10 @@ TODO: add rotation sheet
 1. Please go through the questions on Stack Overflow and see if you can answer a couple. Even if we get 2-3 questions answered per week, we’ll make progress.
 1. Monitor Kubeflow pre-submit/post-submit tests and notice if any of the test failures are block the submission of PRs. If so, please help fix and document what you did to fix it in testing [playbook](https://github.com/kubeflow/testing/blob/master/playbook.md).
 1. Pay attention to Github PRs that need reviews and either reassign to reviewers appropriately or see if you can review the PR.
-1. At the end of the week send out a report using the report template which includes the following sections:
+1. At the end of the week send out a report (TODO: where?) using the report template which includes the following sections:
     - Any instances where you had to intervene with the Kubeflow CI Infrastructure and fix things. Please document what you did to fix.
     - Thread titles from Kubeflow-Discuss that you needed to route to specific people or answered yourself.
     - Stack Overflow questions you paid attention to. Links to those questions would be ideal.
     - Github PRs that you routed or reviewed.
+
 Note: The goal with above report is to have sufficient context to transfer to the next on-call shift as well as provide visibility to the team. Please keep the report brief.
