@@ -1,6 +1,7 @@
 {
     "env": {
         "browser": true,
+        "node": true,
         "es6": true
     },
     "extends": [
@@ -15,6 +16,7 @@
     },
     "parserOptions": {
         "sourceType": "module",
+        "ecmaVersion": 2019,
         "ecmaFeatures": {
             "impliedStrict": true
         }

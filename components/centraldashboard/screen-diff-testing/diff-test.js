@@ -1,43 +1,43 @@
-import puppeteer from 'puppeteer'
+/* eslint-disable no-undef */
+/* eslint-disable max-len */
+import puppeteer from 'puppeteer';
 
-import {TEST_DIR, takeAndCompareScreenshot, ensureFolders} from './screenshot-helpers.js'
-// import {unlinkSync} from 'fs'
+import {takeAndCompareScreenshot, ensureFolders} from './screenshot-helpers.js';
 
-let browser, page
-const testCases = size => {
-    it('/', () => takeAndCompareScreenshot(page, '', size))
-    it('/activity', () => takeAndCompareScreenshot(page, '/activity', size, 'activity-without-content'))
-    it('/activity?ns=kubeflow', () => takeAndCompareScreenshot(page, '/activity?ns=kubeflow', size, 'activity-with-content'))
+let browser; let page;
+const testCases = (size) => {
+    it('/', () =>
+        takeAndCompareScreenshot(page, '', size));
+    it('/activity', () =>
+        takeAndCompareScreenshot(page, '/activity', size, 'activity-without-content'));
+    it('/activity?ns=kubeflow', () =>
+        takeAndCompareScreenshot(page, '/activity?ns=kubeflow', size, 'activity-with-content'));
     // And your other routes, 404, etc.
-}
+};
+
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 5e3;
+ensureFolders();
 describe('Screenshots are correct', function() {
-    this.timeout(5e3)
-    before(async function() {
-        ensureFolders()
-    })
-
-    // after(async () => unlinkSync(TEST_DIR))
-
     beforeEach(async function() {
-        browser = await puppeteer.launch()
-        page = await browser.newPage()
-    })
+        browser = await puppeteer.launch();
+        page = await browser.newPage();
+    });
 
-    afterEach(() => browser.close())
+    afterEach(() => browser.close());
 
     describe('wide screen', function() {
-        const size = 'wide'
+        const size = 'wide';
         beforeEach(async function() {
-            return page.setViewport({width: 1200, height: 700})
-        })
-        testCases(size)
-    })
+            return page.setViewport({width: 1200, height: 700});
+        });
+        testCases(size);
+    });
 
     describe('narrow screen', function() {
-        const size = 'narrow'
+        const size = 'narrow';
         beforeEach(async function() {
-            return page.setViewport({width: 800, height: 600})
-        })
-        testCases(size)
-    })
-})
+            return page.setViewport({width: 800, height: 600});
+        });
+        testCases(size);
+    });
+});
