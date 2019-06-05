@@ -2,7 +2,10 @@
   local k = import "k.libsonnet",
   local util = import "kubeflow/common/util.libsonnet",
   new(_env, _params):: {
-    local params = _params + _env,
+    local params = _params + _env {
+      injectIstio: util.toBool(_params.injectIstio),
+    },
+    local namespace = if params.injectIstio then params.istioNamespace else params.namespace,
 
     local ambassadorService = {
       apiVersion: "v1",
@@ -12,7 +15,7 @@
           service: "ambassador",
         },
         name: "ambassador",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         ports: [
@@ -42,7 +45,7 @@
           service: "ambassador-admin",
         },
         name: "ambassador-admin",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         ports: [
@@ -118,7 +121,7 @@
       kind: "ServiceAccount",
       metadata: {
         name: "ambassador",
-        namespace: params.namespace,
+        namespace: namespace,
       },
     },  // serviceAccount
     ambassadorServiceAccount:: ambassadorServiceAccount,
@@ -138,7 +141,7 @@
         {
           kind: "ServiceAccount",
           name: "ambassador",
-          namespace: params.namespace,
+          namespace: namespace,
         },
       ],
     },  // roleBinding
@@ -149,7 +152,7 @@
       kind: "Deployment",
       metadata: {
         name: "ambassador",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         replicas: params.replicas,
@@ -158,7 +161,7 @@
             labels: {
               service: "ambassador",
             },
-            namespace: params.namespace,
+            namespace: namespace,
           },
           spec: {
             containers: [
