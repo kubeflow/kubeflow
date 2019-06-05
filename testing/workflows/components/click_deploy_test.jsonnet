@@ -21,7 +21,7 @@ local mountPath = "/mnt/" + "test-data-volume";
 local testDir = mountPath + "/" + name;
 // outputDir is the directory to sync to GCS to contain the output for this job.
 local outputDir = testDir + "/output";
-local artifactsDir = outputDir + "/artifacts";
+local artifactsDir = outputDir + "/artifacts/clicktodeploy";
 // Source directory where all repos should be checked out
 local srcRootDir = testDir + "/src/github.com";
 // The directory containing the kubeflow/kubeflow repo

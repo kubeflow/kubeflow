@@ -74,7 +74,7 @@
     testDir: self.mountPath + "/" + self.name,
     // outputDir is the directory to sync to GCS to contain the output for this job.
     outputDir: self.testDir + "/output",
-    artifactsDir: self.outputDir + "/artifacts",
+    artifactsDir: self.outputDir + "/artifacts/workflow",
     // Source directory where all repos should be checked out
     srcRootDir: self.testDir + "/src",
     // The directory containing the kubeflow/kubeflow repo
