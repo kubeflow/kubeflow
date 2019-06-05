@@ -21,7 +21,7 @@ def post_notebook(namespace):
                                      namespace=namespace)
 
     utils.set_notebook_image(notebook, body)
-    utils.set_notebook_specs(notebook, body)
+    utils.set_notebook_specs(notebook, body, defaults)
 
     # Workspace Volume
     workspace_vol = body["workspace"]
@@ -88,4 +88,3 @@ def static_proxy(path):
 def page_not_found(e):
     logger.info("Sending file 'index.html'")
     return send_from_directory('./static/', 'index.html')
-

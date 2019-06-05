@@ -8,8 +8,20 @@ import { FormGroup } from "@angular/forms";
 })
 export class FormSpecsComponent implements OnInit {
   @Input() parentForm: FormGroup;
-  @Input() readonlyCPU: boolean;
-  @Input() readonlyMemory: boolean;
+  @Input() set readonlyCPU(b: boolean) {
+    if (b) {
+      this.parentForm.get("cpu").disable();
+    } else {
+      this.parentForm.get("cpu").enable();
+    }
+  }
+  @Input() set readonlyMemory(b: boolean) {
+    if (b) {
+      this.parentForm.get("memory").disable();
+    } else {
+      this.parentForm.get("memory").enable();
+    }
+  }
 
   constructor() {}
 
