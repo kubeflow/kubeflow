@@ -217,13 +217,24 @@ def set_notebook_image(notebook, body):
     notebook["spec"]["template"]["spec"]["containers"][0]["image"] = image
 
 
-def set_notebook_specs(notebook, body):
+def set_notebook_specs(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
+
+    # If cpu/memory was not provided, use the default values
+    if "cpu" not in body:
+        cpu = defaults["cpu"]["value"]
+    else:
+        cpu = body["cpu"]
+
+    if "memory" not in body:
+        memory = defaults["memory"]["value"]
+    else:
+        memory = body["memory"]
 
     container["resources"] = {
         "requests": {
-            "cpu": body["cpu"],
-            "memory": body["memory"]
+            "cpu": cpu,
+            "memory": memory
         }
     }
 
@@ -269,6 +280,9 @@ def set_notebook_shm(notebook, body, defaults):
         if not defaults["shm"]["value"]:
             # shm set to false
             return
+
+    if not body["shm"]:
+        return
 
     notebook_spec = notebook["spec"]['template']['spec']
     notebook_cont = notebook["spec"]['template']['spec']['containers'][0]

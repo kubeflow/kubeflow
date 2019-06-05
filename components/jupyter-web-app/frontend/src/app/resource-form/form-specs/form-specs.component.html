@@ -12,23 +12,13 @@
   <div class="inputs-wrapper">
     <mat-form-field appearance="outline">
       <mat-label>CPU</mat-label>
-      <input
-        matInput
-        placeholder="# of CPU Cores"
-        formControlName="cpu"
-        [readonly]="readonlyCPU"
-      />
+      <input matInput placeholder="# of CPU Cores" formControlName="cpu" />
       <mat-error>Please provide the CPU requirements</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Memory</mat-label>
-      <input
-        matInput
-        placeholder="Amount of Memory"
-        formControlName="memory"
-        [readonly]="readonlyMemory"
-      />
+      <input matInput placeholder="Amount of Memory" formControlName="memory" />
       <mat-error>Please provide the RAM requirements</mat-error>
     </mat-form-field>
   </div>
