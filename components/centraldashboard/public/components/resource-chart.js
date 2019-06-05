@@ -18,6 +18,9 @@ import chartCss from '!css-loader!exports-loader!chart.js/dist/Chart.css';
 import './card-styles.js';
 
 Chart.defaults.global.defaultFontFamily = '"Google Sans", sans-serif';
+Chart.Tooltip.positioners.custom = (_, eventPosition) => (
+    {x: eventPosition.x, y: eventPosition.y}
+);
 
 // Preferred colors for Material Charts
 const LINE_COLORS = [
@@ -163,6 +166,7 @@ class ResourceChart extends PolymerElement {
                 tooltips: {
                     mode: 'index',
                     intersect: false,
+                    position: 'custom',
                     callbacks: {
                         label: this._buildTooltipsLabel.bind(this),
                     },
