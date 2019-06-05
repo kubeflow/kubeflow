@@ -7,11 +7,6 @@ from . import utils
 app = Blueprint('base_app', __name__)
 logger = utils.create_logger(__name__)
 
-CONFIGS = [
-    "/etc/config/spawner_ui_config.yaml",
-    "./kubeflow_jupyter/common/spawner_ui_config.yaml"
-]
-
 
 # Helper function for getting the prefix of the webapp
 def prefix():
@@ -110,7 +105,7 @@ def get_default_storageclass():
 def get_config():
     data = {"success": True}
 
-    data['config'] = utils.spawner_ui_config(CONFIGS)
+    data['config'] = utils.spawner_ui_config()
     return jsonify(data)
 
 

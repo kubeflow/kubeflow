@@ -54,6 +54,7 @@ spawnerFormDefaults:
   memory:
     # Memory for user's Notebook
     value: 1.0Gi
+    # readOnly: false
   workspaceVolume:
     # Workspace Volume to be attached to user's Notebook
     # Each Workspace Volume is declared with the following attributes:
@@ -124,5 +125,7 @@ spawnerFormDefaults:
     readOnly: false
   extraResources:
     # Extra Resource Limits for user's Notebook
-    # Note that braces are escaped
     value: "{}"
+  shm:
+    value: true
+    # readOnly: false
