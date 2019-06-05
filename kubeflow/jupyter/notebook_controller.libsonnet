@@ -35,32 +35,22 @@
                 type: "object",
               },
               spec: {
-                properties: {
-                 template: {
-                   type: "object",
-		 },
-               },
-               required: [
-		 "template",
-	      ],
-              type: "object",
+               description: "Represents spec for notebook pods",
+               type: "object",
              },
-            status: {
-              type: "object",
-            },
           },
           type: "object",
         },
       },
      },
-      status: {
+     status: {
         acceptedNames: {
           kind: "",
           plural: "",
         },
         conditions: [],
         storedVersions: [],
-      },
+     },
     },
     notebooksCRD:: notebooksCRD,
 
