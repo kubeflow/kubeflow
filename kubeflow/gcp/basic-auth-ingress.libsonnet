@@ -436,6 +436,44 @@
     ),
     cloudEndpoint:: cloudEndpoint,
 
+    local istioMappingSvc = {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "istioMappingSvc",
+        },
+        name: "istio-mapping-service",
+        namespace: namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: istio-mapping",
+              "prefix: /",
+              "rewrite: /",
+              "service: istio-ingressgateway." + namespace,
+              "precedence: 1",
+            ]),
+        },  //annotations
+      },
+      spec: {
+        ports: [
+          {
+            port: 80,
+            targetPort: 8081,
+          },
+        ],
+        selector: {
+          app: "istioMappingSvc",
+        },
+        type: "ClusterIP",
+      },
+    },
+    istioMappingSvc:: istioMappingSvc,
+
     parts:: self,
     all:: [
       self.initServiceAccount,
@@ -450,7 +488,9 @@
       self.ingress,
       self.certificate,
       self.cloudEndpoint,
-    ],
+    ] + if params.injectIstio then [
+      self.istioMappingSvc,
+    ] else [],
 
     list(obj=self.all):: k.core.v1.list.new(obj,),
   },
