@@ -53,6 +53,10 @@ import (
 	"sigs.k8s.io/kustomize/v2/pkg/target"
 	"sigs.k8s.io/kustomize/v2/pkg/types"
 	"strings"
+
+        // Auth plugins
+        _ "k8s.io/client-go/v2/plugin/pkg/client/auth/gcp"
+        _ "k8s.io/client-go/v2/plugin/pkg/client/auth/oidc"
 )
 
 // kustomize implements KfApp Interface
