@@ -164,20 +164,14 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 			Message: "Error: ksApp has nil restConfig or apiConfig, exit",
 		}
 	}
-	corev1client, err := corev1.NewForConfig(kustomize.restConfig)
-	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: "could not get core/v1 client",
-		}
-	}
+	clientset := kftypesv2.GetClientset(kustomize.restConfig)
 	namespace := kustomize.ObjectMeta.Namespace
 	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
-	_, nsMissingErr := corev1client.Namespaces().Get(namespace, metav1.GetOptions{})
+	_, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 	if nsMissingErr != nil {
 		log.Infof("Creating namespace: %v", namespace)
 		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
-		_, nsErr := corev1client.Namespaces().Create(nsSpec)
+		_, nsErr := clientset.CoreV1().Namespaces().Create(nsSpec)
 		if nsErr != nil {
 			return &kfapis.KfError{
 				Code: int(kfapis.INVALID_ARGUMENT),

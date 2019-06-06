@@ -17,6 +17,8 @@ package apps
 
 import (
 	log "github.com/sirupsen/logrus"
+	"k8s.io/client-go/v2/kubernetes"
+
 	"k8s.io/client-go/v2/rest"
 	"k8s.io/client-go/v2/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/v2/tools/clientcmd/api"
@@ -62,4 +64,13 @@ func GetKubeConfig() *clientcmdapi.Config {
 		log.Warnf("could not load config Error: %v", configErr)
 	}
 	return config
+}
+
+// GetClientset returns a k8s clientset using .kube/config credentials
+func GetClientset(config *rest.Config) *kubernetes.Clientset {
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		log.Fatalf("Can not get kubernetes kfdef: %v", err)
+	}
+	return clientset
 }
