@@ -101,7 +101,7 @@
               "name: whoami-mapping",
               "prefix: /whoami",
               "rewrite: /whoami",
-              "service: whoami-app." + namespace,
+              "service: whoami-app." + params.namespace,
             ]),
         },  //annotations
       },
