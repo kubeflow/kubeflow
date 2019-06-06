@@ -110,21 +110,9 @@ std.assertEqual(
       namespace: "test-kf-001",
     },
     spec: {
-      ports: [
-        {
-          name: "monitoring-port",
-          port: "8443",
-          targetPort: "8443"
-        }
-      ],
       replicas: 1,
       template: {
         metadata: {
-          annotations: {
-            "prometheus.io/path": "/metrics",
-            "prometheus.io/port": "8443",
-            "prometheus.io/scrape": "true"
-          },
           labels: {
             name: "tf-job-operator",
           },
@@ -177,6 +165,39 @@ std.assertEqual(
           ],
         },
       },
+    },
+  }
+) &&
+
+std.assertEqual(
+  tfjobv1.tfJobService,
+  {
+    apiVersion: 'v1',
+    kind: 'Service',
+    metadata: {
+      annotations: {
+        'prometheus.io/scrape': 'true',
+        'prometheus.io/path': '/metrics',
+        'prometheus.io/port': '8443',
+      },
+      labels: {
+        app: 'tf-job-operator',
+      },
+      name: 'tf-job-operator',
+      namespace: 'test-kf-001',
+    },
+    spec: {
+      ports: [
+        {
+          name: 'monitoring-port',
+          port: 8443,
+          targetPort: 8443,
+        },
+      ],
+      selector: {
+        name: 'tf-job-operator',
+      },
+      type: 'ClusterIP',
     },
   }
 ) &&

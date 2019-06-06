@@ -157,22 +157,10 @@
       },
       spec: {
         replicas: 1,
-        ports: [
-          {
-            name: "monitoring-port",
-            port: params.monitoringPort,
-            targetPort: params.monitoringPort,
-          },
-        ],
         template: {
           metadata: {
             labels: {
               name: "tf-job-operator",
-            },
-            annotations: {
-              "prometheus.io/scrape": 'true',
-              "prometheus.io/path": "/metrics",
-              "prometheus.io/port": params.monitoringPort,
             },
           },
           spec: {
@@ -193,6 +181,37 @@
       },
     },
     tfJobDeployment:: tfJobDeployment,
+
+    local tfJobService = {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "tf-job-operator",
+        },
+        name: params.name,
+        namespace: params.namespace,
+        annotations: {
+          "prometheus.io/scrape": "true",
+          "prometheus.io/path": "/metrics",
+          "prometheus.io/port": params.monitoringPort,
+        },
+      },
+      spec: {
+        ports: [
+          {
+            name: "monitoring-port",
+            port: std.parseInt(params.monitoringPort),
+            targetPort: std.parseInt(params.monitoringPort)
+          }
+        ],
+        selector: {
+          name: "tf-job-operator",
+        },
+        type: "ClusterIP",
+      },
+    },  // tfJobService
+    tfJobService:: tfJobService,
 
     local tfConfigMap = {
       apiVersion: "v1",
@@ -571,6 +590,7 @@
     all:: [
       self.tfJobCrd,
       self.tfJobDeployment,
+      self.tfJobService,
       self.tfConfigMap,
       self.tfServiceAccount,
       self.tfOperatorRole,
