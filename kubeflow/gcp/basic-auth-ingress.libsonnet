@@ -436,6 +436,8 @@
     ),
     cloudEndpoint:: cloudEndpoint,
 
+    // No deployments. This is used for annotation that directs traffic to
+    // ISTIO ingress gateway.
     local istioMappingSvc = {
       apiVersion: "v1",
       kind: "Service",
