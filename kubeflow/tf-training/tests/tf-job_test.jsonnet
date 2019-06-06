@@ -199,9 +199,6 @@ std.assertEqual(
       },
       type: 'ClusterIP',
     },
-    status: {
-      loadBalancer: {},
-    },
   }
 ) &&
 
