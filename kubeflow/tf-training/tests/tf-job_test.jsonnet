@@ -190,8 +190,8 @@ std.assertEqual(
       ports: [
         {
           name: 'monitoring-port',
-          port: '8443',
-          targetPort: '8443',
+          port: 8443,
+          targetPort: 8443,
         },
       ],
       selector: {
