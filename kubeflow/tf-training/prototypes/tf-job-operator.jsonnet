@@ -13,7 +13,6 @@
 // @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
 // @optionalParam clusterDomain string cluster.local DNS config to cluster domain.
 // @optionalParam monitoringPort string 8443 Port for monitoring agent to scrape metrics from.
-// @optionalParam enablePrometheus string false If set true, enable prometheus monitoring metrics reporting.
 
 local tfJobOperator = import "kubeflow/tf-training/tf-job-operator.libsonnet";
 local instance = tfJobOperator.new(env, params);

@@ -191,12 +191,11 @@
         },
         name: params.name,
         namespace: params.namespace,
-        annotations: {}
-        + if util.toBool(params.enablePrometheus) then {
+        annotations: {
           "prometheus.io/scrape": "true",
           "prometheus.io/path": "/metrics",
           "prometheus.io/port": params.monitoringPort,
-        } else {},  //annotations
+        },
       },
       spec: {
         ports: [
