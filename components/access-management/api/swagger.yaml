@@ -155,6 +155,28 @@ paths:
           description: "Entry not found"
         500:
           description: "Internal Server Error"
+  /v1/role/clusteradmin:
+    get:
+      summary: "Query whether the user specified by query param is cluster admin"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "user"
+          in: "query"
+          description: "username / email"
+          required: true
+          type: "string"
+          x-exportParamName: "User"
+          x-optionalDataType: "String"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "boolean"
+        500:
+          description: "Internal Server Error"
 definitions:
   BindingEntries:
     type: "object"
