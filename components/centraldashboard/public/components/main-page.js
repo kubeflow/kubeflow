@@ -94,8 +94,9 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             hideTabs: {type: Boolean, value: false, readOnly: true},
             hideNamespaces: {type: Boolean, value: false, readOnly: true},
             notFoundInIframe: {type: Boolean, value: false, readOnly: true},
+            namespaces: Array,
             namespace: {type: String, observer: '_namespaceChanged'},
-            user: Object,
+            user: String,
         };
     }
 
@@ -244,10 +245,9 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * @param {Event} responseEvent AJAX-response
      */
     _onEnvInfoResponse(responseEvent) {
-        const {platform, user} = responseEvent.detail.response;
-        // ensures that iron-image doesn't  make a request if no image is set
-        if (!user.image) user.image = '';
+        const {platform, user, namespaces} = responseEvent.detail.response;
         this.user = user;
+        this.namespaces = namespaces;
         this.platformInfo = platform;
         if (this.platformInfo.kubeflowVersion) {
             this.buildVersion = this.platformInfo.kubeflowVersion;

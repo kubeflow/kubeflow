@@ -175,14 +175,13 @@ describe('Main Page', () => {
 
     it('Sets information when platform info is received', async () => {
         const envInfo = {
+            namespaces: ['default', 'kubeflow', 'namespace-2'],
             platform: {
                 provider: 'gce://test-project/us-east1-c/gke-kubeflow-node-123',
                 providerName: 'gce',
                 kubeflowVersion: '1.0.0',
             },
-            user: {
-                email: 'user@kubeflow.org',
-            },
+            user: 'anonymous@kubeflow.org',
         };
         const responsePromise = mockRequest(mainPage, {
             status: 200,
@@ -197,7 +196,13 @@ describe('Main Page', () => {
         // hidden
         expect(buildVersion.textContent).toEqual('1.0.0');
         expect(mainPage.shadowRoot.querySelector('#User-Badge iron-image')
-            .title).toBe('user@kubeflow.org');
+            .title).toBe('anonymous@kubeflow.org');
+        const namespaceSelector = mainPage.shadowRoot
+            .getElementById('NamespaceSelector');
+        expect(Array.from(namespaceSelector.shadowRoot
+            .querySelectorAll('paper-item'))
+            .map((n) => n.innerText))
+            .toEqual(['default', 'kubeflow', 'namespace-2']);
     });
 
     it('Communicates with iframed page after it connects', async () => {
