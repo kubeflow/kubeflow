@@ -7,7 +7,7 @@ local params = {
   ambassadorServiceType: "ClusterIP",
   ambassadorImage: "quay.io/datawire/ambassador:0.37.0",
   replicas: 3,
-  injectIstio: false,
+  injectIstio: true,
   istioNamespace: "istio-test",
 };
 local env = {
@@ -28,7 +28,7 @@ local testCases = [
             service: "ambassador",
           },
           name: "ambassador",
-          namespace: "kubeflow",
+          namespace: "istio-test",
         },
         spec: {
           ports: [
@@ -55,7 +55,7 @@ local testCases = [
           service: "ambassador-admin",
         },
         name: "ambassador-admin",
-        namespace: "kubeflow",
+        namespace: "istio-test",
       },
       spec: {
         ports: [
@@ -133,7 +133,7 @@ local testCases = [
       kind: "ServiceAccount",
       metadata: {
         name: "ambassador",
-        namespace: "kubeflow",
+        namespace: "istio-test",
       },
     },
   },
@@ -154,7 +154,7 @@ local testCases = [
         {
           kind: "ServiceAccount",
           name: "ambassador",
-          namespace: "kubeflow",
+          namespace: "istio-test",
         },
       ],
     },
@@ -167,7 +167,7 @@ local testCases = [
         kind: "Deployment",
         metadata: {
           name: "ambassador",
-          namespace: "kubeflow",
+          namespace: "istio-test",
         },
         spec: {
           replicas: 3,
@@ -176,7 +176,7 @@ local testCases = [
               labels: {
                 service: "ambassador",
               },
-              namespace: "kubeflow",
+              namespace: "istio-test",
             },
             spec: {
               containers: [
