@@ -129,6 +129,7 @@
               "timeout_ms: 300000",
               "service: " + ui_name + "." + params.namespace,
               "use_websocket: true",
+              "precedence: 2",
             ]),
         },  //annotations
       },
