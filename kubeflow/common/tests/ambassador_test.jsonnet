@@ -7,6 +7,8 @@ local params = {
   ambassadorServiceType: "ClusterIP",
   ambassadorImage: "quay.io/datawire/ambassador:0.37.0",
   replicas: 3,
+  injectIstio: false,
+  istioNamespace: "istio-test",
 };
 local env = {
   namespace: "kubeflow",
