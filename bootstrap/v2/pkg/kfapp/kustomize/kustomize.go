@@ -682,7 +682,8 @@ func MergeKustomization(compDir string, targetDir string, kfDef *kfdefsv2.KfDef,
 				parentConfigMapArgs.LiteralSources = append(parentConfigMapArgs.LiteralSources, literalSource)
 			}
 		}
-		switch types.NewGenerationBehavior(childConfigMapArgs.Behavior) {
+		behavior := types.NewGenerationBehavior(childConfigMapArgs.Behavior)
+		switch behavior {
 		case types.BehaviorCreate:
 			if _, ok := kustomizationMaps[configMapGeneratorMap][childConfigMapArgs.Name]; !ok {
 				parent.ConfigMapGenerator = append(parent.ConfigMapGenerator, *parentConfigMapArgs)
@@ -691,6 +692,7 @@ func MergeKustomization(compDir string, targetDir string, kfDef *kfdefsv2.KfDef,
 		case types.BehaviorMerge, types.BehaviorReplace, types.BehaviorUnspecified:
 			fallthrough
 		default:
+			parentConfigMapArgs.Behavior = behavior.String()
 			parent.ConfigMapGenerator = append(parent.ConfigMapGenerator, *parentConfigMapArgs)
 			kustomizationMaps[configMapGeneratorMap][childConfigMapArgs.Name] = true
 		}
