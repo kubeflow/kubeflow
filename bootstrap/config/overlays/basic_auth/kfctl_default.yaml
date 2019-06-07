@@ -39,9 +39,6 @@ spec:
       value: envoy-ingress
     - name: issuer
       value: letsencrypt-prod
-    - initRequired: true
-      name: injectIstio
-      value: "false"
     notebook-controller:
     - name: injectGcpCredentials
       value: "true"

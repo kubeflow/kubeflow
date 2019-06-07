@@ -289,15 +289,6 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		delete(kfDef.Spec.ComponentParams, "spartakus")
 	}
 
-	injectIstio := strconv.FormatBool(options[string(kftypes.USE_ISTIO)].(bool))
-	for name, params := range kfDef.Spec.ComponentParams {
-		for idx, param := range params {
-			if param.Name == "injectIstio" {
-				kfDef.Spec.ComponentParams[name][idx].Value = injectIstio
-			}
-		}
-	}
-
 	kfDef.Name = appName
 	kfDef.Spec.AppDir = appDir
 	kfDef.Spec.Platform = platform

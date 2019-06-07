@@ -86,10 +86,9 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
   # TODO(https://github.com/kubeflow/kubeflow/issues/2831): Once kfctl
   # supports loading version from a URI we should use that so that we
   # pull the configs from the repo we checked out.
-  # TODO replace --package-manager=kustomize@pull/102 with --package-manager=kustomize
   run_with_retries([kfctl_path, "init", app_path, "-V", "--platform=gcp",
                     "--version=" + version,
-                    "--package-manager=kustomize@pull/102",
+                    "--package-manager=kustomize",
                     "--skip-init-gcp-project",
                     "--disable_usage_report",
                     "--project=" + project] + init_args, cwd=parent_dir)
