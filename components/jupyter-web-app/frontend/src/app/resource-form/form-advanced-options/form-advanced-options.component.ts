@@ -11,13 +11,6 @@ import { FormGroup } from "@angular/forms";
 })
 export class FormAdvancedOptionsComponent implements OnInit {
   @Input() parentForm: FormGroup;
-  @Input() set shmReadonly(b: boolean) {
-    if (b) {
-      this.parentForm.get("shm").disable();
-    } else {
-      this.parentForm.get("shm").enable();
-    }
-  }
 
   constructor() {}
 

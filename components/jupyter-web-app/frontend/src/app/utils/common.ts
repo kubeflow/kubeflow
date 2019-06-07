@@ -28,7 +28,7 @@ export function getFormDefaults(): FormGroup {
   });
 }
 
-export function createVolumeControl(vol: ConfigVolume) {
+export function createVolumeControl(vol: ConfigVolume, readonly = false) {
   const ctrl = fb.group({
     type: [vol.type.value, [Validators.required]],
     name: [vol.name.value, [Validators.required]],
@@ -39,10 +39,18 @@ export function createVolumeControl(vol: ConfigVolume) {
     extraFields: fb.group({})
   });
 
+  if (readonly) {
+    ctrl.disable();
+  }
+
   return ctrl;
 }
 
-export function addDataVolume(formCtrl: FormGroup, vol: ConfigVolume = null) {
+export function addDataVolume(
+  formCtrl: FormGroup,
+  vol: ConfigVolume = null,
+  readonly = false
+) {
   // If no vol is provided create one with default values
   if (vol === null) {
     const l: number = formCtrl.value.datavols.length;
@@ -67,19 +75,32 @@ export function addDataVolume(formCtrl: FormGroup, vol: ConfigVolume = null) {
   }
 
   // Push it to the control
+  const ctrl = createVolumeControl(vol, readonly);
   const vols = formCtrl.get("datavols") as FormArray;
-  vols.push(createVolumeControl(vol));
+  vols.push(ctrl);
 }
 
 export function initFormControls(formCtrl: FormGroup, config: Config) {
   // Sets the values from our internal dict. This is an initialization step
   // that should be only run once
   formCtrl.controls.cpu.setValue(config.cpu.value);
+  if (config.cpu.readOnly) {
+    formCtrl.controls.cpu.disable();
+  }
+
   formCtrl.controls.memory.setValue(config.memory.value);
+  if (config.memory.readOnly) {
+    formCtrl.controls.memory.disable();
+  }
+
   formCtrl.controls.image.setValue(config.image.value);
+  if (config.image.readOnly) {
+    formCtrl.controls.image.disable();
+  }
 
   formCtrl.controls.workspace = createVolumeControl(
-    config.workspaceVolume.value
+    config.workspaceVolume.value,
+    config.workspaceVolume.readOnly
   );
 
   // Disable the mount path by default
@@ -93,5 +114,12 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
   });
 
   formCtrl.controls.extra.setValue(config.extraResources.value);
+  if (config.extraResources.readOnly) {
+    formCtrl.controls.extra.disable();
+  }
+
   formCtrl.controls.shm.setValue(config.shm.value);
+  if (config.shm.readOnly) {
+    formCtrl.controls.shm.disable();
+  }
 }

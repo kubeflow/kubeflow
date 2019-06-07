@@ -14,12 +14,19 @@ import { SnackBarService } from "src/app/services/snack-bar.service";
 })
 export class FormWorkspaceVolumeComponent implements OnInit {
   subscriptions = new Subscription();
+  private _readonly = false;
 
   @Input() parentForm: FormGroup;
-  @Input() readonly: boolean;
   @Input() pvcs: Volume[];
   @Input() storageClasses: string[];
   @Input() defaultStorageClass: boolean;
+  @Input()
+  get readonly() {
+    return this._readonly;
+  }
+  set readonly(b) {
+    this._readonly = b;
+  }
 
   constructor(private snackBar: SnackBarService) {}
 
