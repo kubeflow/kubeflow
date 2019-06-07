@@ -1012,8 +1012,7 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 			return nil, err
 		}
 		apiVersion := def.GetAPIVersion()
-		switch apiVersion {
-		case kfDef.APIVersion:
+		if apiVersion == kfDef.APIVersion {
 			baseKfDef := ReadKfDef(basefile)
 			for _, k := range kustomization.PatchesStrategicMerge {
 				overlayfile := filepath.Join(compDir, string(k))
@@ -1033,7 +1032,6 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 				return nil, writeErr
 			}
 			kustomization.PatchesStrategicMerge = nil
-		default:
 		}
 	}
 	buf, bufErr := yaml.Marshal(kustomization)
