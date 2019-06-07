@@ -51,7 +51,7 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
   stateful_sets = []
 
   if use_basic_auth:
-    deployment_names.extend(["whoami-app"])
+    deployment_names.extend(["basic-auth-login"])
     stateful_sets.extend(["backend-updater"])
   else:
     ingress_related_deployments.extend(["iap-ingress-iap-enabler"])
