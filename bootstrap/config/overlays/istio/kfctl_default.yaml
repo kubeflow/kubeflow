@@ -23,6 +23,9 @@ spec:
     iap-ingress:
     - name: namespace
       value: istio-system
+    basic-auth-ingress:
+    - name: namespace
+      value: istio-system
     jupyter-web-app:
     - name: overlay
       value: istio
