@@ -1,9 +1,7 @@
 import '@polymer/test-fixture/test-fixture';
-import 'jasmine-ajax';
 import {flush} from '@polymer/polymer/lib/utils/flush.js';
 
 import './namespace-selector';
-import {mockRequest} from '../ajax_test_helper';
 
 const FIXTURE_ID = 'namespace-selector-fixture';
 const NAMESPACE_SELECTOR_ID = 'test-namespace-selector';
@@ -25,56 +23,12 @@ describe('Namespace Selector', () => {
     });
 
     beforeEach(() => {
-        jasmine.Ajax.install();
         document.getElementById(FIXTURE_ID).create();
         namespaceSelector = document.getElementById(NAMESPACE_SELECTOR_ID);
     });
 
     afterEach(() => {
         document.getElementById(FIXTURE_ID).restore();
-        jasmine.Ajax.uninstall();
-    });
-
-    it('Shows Namespaces from /api/namespaces', async () => {
-        const responsePromise = mockRequest(namespaceSelector, {
-            status: 200,
-            responseText: JSON.stringify([
-                {
-                    metadata: {
-                        uid: '1',
-                        name: 'default',
-                    },
-                },
-                {
-                    metadata: {
-                        uid: '2',
-                        name: 'other-namespace',
-                    },
-                },
-            ]),
-        });
-        await responsePromise;
-        flush();
-
-        const namespaces = [];
-        namespaceSelector.shadowRoot.querySelectorAll('paper-item')
-            .forEach((n) => {
-                namespaces.push(n.innerText.trim());
-            });
-        expect(namespaces).toEqual(['default', 'other-namespace']);
-    });
-
-    it('Shows empty list when error is received', async () => {
-        const responsePromise = mockRequest(namespaceSelector, {
-            status: 500,
-            responseText: '{"error": "Bad thing happened"}',
-        }, true);
-        await responsePromise;
-        flush();
-
-        const items = namespaceSelector.shadowRoot
-            .querySelectorAll('paper-item');
-        expect(items.length).toBe(0);
     });
 
     it('Sets queryParams.ns when selected', async () => {
