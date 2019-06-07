@@ -1,6 +1,3 @@
-# Copyright (c) Jupyter Development Team.
-# Distributed under the terms of the Modified BSD License.
-
 # use basic syntax for now
 FROM gcr.io/kaggle-images/python:latest
 
@@ -56,25 +53,8 @@ RUN cd /tmp && \
 
 RUN chown -R ${NB_USER}:users $HOME
 
-ENV GITHUB_REF https://raw.githubusercontent.com/kubeflow/kubeflow/master/components/tensorflow-notebook-image
-
-ADD --chown=jovyan:users $GITHUB_REF/jupyter_notebook_config.py /tmp
-
-# Wipe $HOME for PVC detection later
-WORKDIR $HOME
-RUN rm -fr $(ls -A $HOME)
-
-# Get init scripts from kubeflow
-ADD --chown=jovyan:users \
-    $GITHUB_REF/start-singleuser.sh \
-    $GITHUB_REF/start-notebook.sh \
-    $GITHUB_REF/start.sh \
-    $GITHUB_REF/pvc-check.sh \
-    /usr/local/bin/
-
-RUN chmod a+rx /usr/local/bin/*
-
 # Configure container startup
 EXPOSE 8888
+USER jovyan
 ENTRYPOINT ["tini", "--"]
-CMD ["start-notebook.sh"]
+CMD ["sh","-c", "jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"]
