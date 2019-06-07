@@ -48,7 +48,6 @@ export class Api {
         .get(
             '/env-info',
             async (req: express.Request, res: express.Response) => {
-              console.log('getting env-info');
               const [platform, user, namespaces] = await Promise.all([
                 this.getPlatformInfo(),
                 this.getUser(req),
@@ -63,28 +62,29 @@ export class Api {
         .get(
             '/metrics/:type((node|podcpu|podmem))',
             async (req: express.Request, res: express.Response) => {
+              if (!this.metricsService) {
+                res.sendStatus(405);
+                return;
+              }
+
               let interval = Interval.Last15m;
               if (Interval[req.query.interval] !== undefined) {
                 interval = Number(Interval[req.query.interval]);
               }
-              if (this.metricsService) {
-                switch (req.params.type) {
-                  case 'node':
-                    res.json(await this.metricsService.getNodeCpuUtilization(
-                        interval));
-                    break;
-                  case 'podcpu':
-                    res.json(await this.metricsService.getPodCpuUtilization(
-                        interval));
-                    break;
-                  case 'podmem':
-                    res.json(
-                        await this.metricsService.getPodMemoryUsage(interval));
-                    break;
-                  default:
-                }
-              } else {
-                res.sendStatus(405);
+              switch (req.params.type) {
+                case 'node':
+                  res.json(await this.metricsService.getNodeCpuUtilization(
+                      interval));
+                  break;
+                case 'podcpu':
+                  res.json(
+                      await this.metricsService.getPodCpuUtilization(interval));
+                  break;
+                case 'podmem':
+                  res.json(
+                      await this.metricsService.getPodMemoryUsage(interval));
+                  break;
+                default:
               }
             })
         .get(
