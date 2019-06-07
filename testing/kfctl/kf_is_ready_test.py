@@ -48,15 +48,14 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
       "workflow-controller",
   ]
   ingress_related_deployments = []
-
-  stateful_sets = [
-    "backend-updater",
-  ]
+  stateful_sets = []
 
   if use_basic_auth:
     deployment_names.extend(["whoami-app"])
+    stateful_sets.extend(["backend-updater"])
   else:
     ingress_related_deployments.extend(["iap-ingress-iap-enabler"])
+    stateful_sets.extend(["iap-ingress-backend-updater"])
 
   # TODO(jlewi): Might want to parallelize this.
   for deployment_name in deployment_names:
