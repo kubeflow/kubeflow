@@ -15,6 +15,7 @@
                 wrapper.classList.add('disabled');
                 handler.onNamespaceSelected = function(namespace){
                     ns.value = namespace;
+                    $(ns).trigger('change');
                 };
             });
         });
