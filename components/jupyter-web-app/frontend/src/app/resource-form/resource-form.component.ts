@@ -104,17 +104,17 @@ export class ResourceFormComponent implements OnInit, OnDestroy {
     const nb = JSON.parse(JSON.stringify(this.formCtrl.value));
 
     console.log(nb, this.formCtrl.valid);
-    this.subscriptions.add(
-      this.k8s
-        .postResource(nb)
-        .pipe(first())
-        .subscribe(result => {
-          if (result === "posted") {
-            this.router.navigate(["/"]);
-          } else if (result === "error") {
-            this.updatePVCs(this.currNamespace);
-          }
-        })
-    );
+    // this.subscriptions.add(
+    //   this.k8s
+    //     .postResource(nb)
+    //     .pipe(first())
+    //     .subscribe(result => {
+    //       if (result === "posted") {
+    //         this.router.navigate(["/"]);
+    //       } else if (result === "error") {
+    //         this.updatePVCs(this.currNamespace);
+    //       }
+    //     })
+    // );
   }
 }

@@ -12,10 +12,10 @@ export class VolumeComponent implements OnInit, OnDestroy {
   private _volume: FormGroup;
   private _notebookName = "";
   private _defaultStorageClass: boolean;
+  private _readonly = true;
 
   currentPVC: Volume;
   existingPVCs: Set<string> = new Set();
-  readOnly = false;
 
   subscriptions = new Subscription();
 
@@ -33,17 +33,43 @@ export class VolumeComponent implements OnInit, OnDestroy {
     return this._notebookName;
   }
   set notebookName(nm: string) {
-    this.notebookNameChanged(nm);
+    if (!this.readonly) {
+      this.notebookNameChanged(nm);
+    }
   }
 
   @Input()
   set ephemeral(b: boolean) {
-    this.storageOptionChanged(b);
+    if (!this.readonly) {
+      this.storageOptionChanged(b);
+    }
+  }
+
+  @Input()
+  get readonly(): boolean {
+    return this._readonly;
+  }
+  set readonly(b) {
+    if (b === null) {
+      return;
+    }
+
+    this._readonly = b;
+
+    if (this._readonly) {
+      // Enable and disable to show the latest values
+      this.subscriptions.unsubscribe();
+      this.volume.enable();
+      this.volume.get("name").setValue(this.currentPVC.name);
+      this.volume.disable();
+    }
   }
 
   @Input()
   set pvcs(data) {
-    this.pvcsChanged(data);
+    if (!this.readonly) {
+      this.pvcsChanged(data);
+    }
   }
 
   @Input()
@@ -53,12 +79,13 @@ export class VolumeComponent implements OnInit, OnDestroy {
   set defaultStorageClass(s: boolean) {
     // Update the current pvc type
     this._defaultStorageClass = s;
-    this.updateVolInputFields();
+
+    if (!this.readonly) {
+      this.updateVolInputFields();
+    }
   }
 
-  @Input() readonly: boolean;
   @Input() namespace: string;
-  @Input() storageClasses: string[] = [];
 
   // ----- Get macros -----
   get selectedVolIsExistingType(): boolean {
@@ -150,7 +177,7 @@ export class VolumeComponent implements OnInit, OnDestroy {
 
   // ----- @Input change handling functions -----
   notebookNameChanged(nm: string): void {
-    if (!this.currentPVC) {
+    if (!this.currentPVC || this.readonly) {
       return;
     }
 
@@ -164,11 +191,18 @@ export class VolumeComponent implements OnInit, OnDestroy {
     this.currentPVC = vol.value;
     this._volume = vol;
 
-    const name = this.renderVolName(vol.value.name);
-    this.volume.controls.name.setValue(name, { emitEvent: false });
+    if (this.readonly) {
+      this.subscriptions.unsubscribe();
+      const name = vol.value.name;
+      this.volume.controls.name.setValue(name, { emitEvent: false });
+      this.volume.disable();
+    } else {
+      const name = this.renderVolName(vol.value.name);
+      this.volume.controls.name.setValue(name, { emitEvent: false });
 
-    this.updateVolInputFields();
-    this.initSubscriptions();
+      this.updateVolInputFields();
+      this.initSubscriptions();
+    }
   }
 
   storageOptionChanged(ephemeral: boolean): void {
@@ -186,7 +220,7 @@ export class VolumeComponent implements OnInit, OnDestroy {
   }
 
   pvcsChanged(pvcs: Volume[]) {
-    this.existingPVCs = new Set();
+    this.existingPVCs.clear();
     for (let pvc of pvcs) {
       this.existingPVCs.add(pvc.name);
     }
