@@ -23,8 +23,8 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/imdario/mergo"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
-	kfapisv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	kfapisv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
@@ -32,6 +32,7 @@ import (
 	"k8s.io/api/v2/core/v1"
 	crdclientset "k8s.io/apiextensions-apiserver/v2/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/v2/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/v2/pkg/runtime/schema"
 	"k8s.io/apimachinery/v2/pkg/runtime/serializer"
 	"k8s.io/client-go/v2/discovery"
@@ -585,6 +586,19 @@ func GetKustomization(kustomizationPath string) *types.Kustomization {
 	return kustomization
 }
 
+// ReadUnstructured will read a resource .yaml and return the Unstructured type
+func ReadUnstructured(kfDefFile string) (*unstructured.Unstructured, error) {
+	data, err := ioutil.ReadFile(kfDefFile)
+	if err != nil {
+		return nil, err
+	}
+	def := &unstructured.Unstructured{}
+	if err = yaml.Unmarshal(data, def); err != nil {
+		return nil, err
+	}
+	return def, nil
+}
+
 // ReadKfDef will read a config .yaml and return the KfDef type
 func ReadKfDef(kfDefFile string) *kfdefsv2.KfDef {
 	data, err := ioutil.ReadFile(kfDefFile)
@@ -993,25 +1007,34 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 	if len(kustomization.PatchesStrategicMerge) > 0 {
 		basename := filepath.Base(string(kustomization.PatchesStrategicMerge[0]))
 		basefile := filepath.Join(compDir, "base", basename)
-		baseKfDef := ReadKfDef(basefile)
-		for _, k := range kustomization.PatchesStrategicMerge {
-			overlayfile := filepath.Join(compDir, string(k))
-			overlay := ReadKfDef(overlayfile)
-			mergeErr := mergo.Merge(&baseKfDef.Spec.ComponentConfig, overlay.Spec.ComponentConfig, mergo.WithAppendSlice)
-			if mergeErr != nil {
-				return nil, mergeErr
+		def, err := ReadUnstructured(basefile)
+		if err != nil {
+			return nil, err
+		}
+		apiVersion := def.GetAPIVersion()
+		switch apiVersion {
+		case kfDef.APIVersion:
+			baseKfDef := ReadKfDef(basefile)
+			for _, k := range kustomization.PatchesStrategicMerge {
+				overlayfile := filepath.Join(compDir, string(k))
+				overlay := ReadKfDef(overlayfile)
+				mergeErr := mergo.Merge(&baseKfDef.Spec.ComponentConfig, overlay.Spec.ComponentConfig, mergo.WithAppendSlice)
+				if mergeErr != nil {
+					return nil, mergeErr
+				}
 			}
+			if kfDef.Spec.UseIstio {
+				baseKfDef.Spec.Components = moveToFront("istio", baseKfDef.Spec.Components)
+				baseKfDef.Spec.Components = moveToFront("istio-install", baseKfDef.Spec.Components)
+				baseKfDef.Spec.Components = moveToFront("istio-crds", baseKfDef.Spec.Components)
+			}
+			writeErr := WriteKfDef(baseKfDef, basefile)
+			if writeErr != nil {
+				return nil, writeErr
+			}
+			kustomization.PatchesStrategicMerge = nil
+		default:
 		}
-		if kfDef.Spec.UseIstio {
-			baseKfDef.Spec.Components = moveToFront("istio", baseKfDef.Spec.Components)
-			baseKfDef.Spec.Components = moveToFront("istio-install", baseKfDef.Spec.Components)
-			baseKfDef.Spec.Components = moveToFront("istio-crds", baseKfDef.Spec.Components)
-		}
-		writeErr := WriteKfDef(baseKfDef, basefile)
-		if writeErr != nil {
-			return nil, writeErr
-		}
-		kustomization.PatchesStrategicMerge = nil
 	}
 	buf, bufErr := yaml.Marshal(kustomization)
 	if bufErr != nil {
