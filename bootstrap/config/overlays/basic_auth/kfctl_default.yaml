@@ -7,6 +7,9 @@ spec:
     ambassador:
     - name: ambassadorServiceType
       value: NodePort
+    - initRequired: true
+      name: injectIstio
+      value: "false"
     argo:
     - initRequired: true
       name: injectIstio
@@ -36,6 +39,9 @@ spec:
       value: envoy-ingress
     - name: issuer
       value: letsencrypt-prod
+    - initRequired: true
+      name: injectIstio
+      value: "false"
     notebook-controller:
     - name: injectGcpCredentials
       value: "true"
