@@ -54,9 +54,9 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
   ]
 
   if use_basic_auth:
-    deployment_names.extend(["basic-auth"])
+    deployment_names.extend(["whoami-app"])
   else:
-    ingress_related_deployments.extend(["iap-enabler"])
+    ingress_related_deployments.extend(["iap-ingress-iap-enabler"])
 
   # TODO(jlewi): Might want to parallelize this.
   for deployment_name in deployment_names:
