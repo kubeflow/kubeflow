@@ -21,17 +21,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ghodss/yaml"
-	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
+	"github.com/imdario/mergo"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
+	kfapisv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
+	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"k8s.io/api/v2/core/v1"
 	crdclientset "k8s.io/apiextensions-apiserver/v2/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/v2/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/v2/pkg/runtime/schema"
 	"k8s.io/apimachinery/v2/pkg/runtime/serializer"
 	"k8s.io/client-go/v2/discovery"
@@ -90,9 +91,10 @@ const (
 	secretsMapGeneratorMap MapType = 9
 	patchesStrategicMergeMap MapType = 10
 	patchesJson6902Map MapType = 11
+	YamlSeparator = "(?m)^---[ \t]*$"
 )
 type kustomize struct {
-	cltypes.KfDef
+	kfdefsv2.KfDef
 	out              *os.File
 	err              *os.File
 	componentPathMap map[string]string
@@ -108,9 +110,9 @@ const (
 )
 
 // GetKfApp is the common entry point for all implmentations of the KfApp interface
-func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
+func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 	/*
-	kfdef := cltypes.KfDef{
+	kfdef := kfdefsv2.KfDef{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       kfdef.TypeMeta.Kind,
 			APIVersion: kfdef.TypeMeta.APIVersion,
@@ -151,17 +153,17 @@ func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
 			Name:      _kustomize.Name,
 			Namespace: _kustomize.Namespace,
 			Labels: map[string]string{
-				kftypes.DefaultAppLabel: _kustomize.Name,
+				kftypesv2.DefaultAppLabel: _kustomize.Name,
 			},
 		},
 		Spec: application.ApplicationSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					kftypes.DefaultAppLabel: _kustomize.Name,
+					kftypesv2.DefaultAppLabel: _kustomize.Name,
 				},
 			},
 			Descriptor: application.Descriptor{
-				Type:    kftypes.DefaultAppType,
+				Type:    kftypesv2.DefaultAppType,
 				Version: _kustomize.Spec.Version,
 			},
 			Info: []application.InfoItem {
@@ -180,28 +182,22 @@ func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
 // Apply deploys kustomize generated resources to the kubenetes api server
 func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	if kustomize.restConfig == nil || kustomize.apiConfig == nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
+		return &kfapisv2.KfError{
+			Code:    int(kfapisv2.INVALID_ARGUMENT),
 			Message: "Error: ksApp has nil restConfig or apiConfig, exit",
 		}
 	}
-	corev1client, err := corev1.NewForConfig(kustomize.restConfig)
-	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: "could not get core/v1 client",
-		}
-	}
+	clientset := kftypesv2.GetClientset(kustomize.restConfig)
 	namespace := kustomize.ObjectMeta.Namespace
 	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
-	_, nsMissingErr := corev1client.Namespaces().Get(namespace, metav1.GetOptions{})
+	_, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 	if nsMissingErr != nil {
 		log.Infof("Creating namespace: %v", namespace)
 		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
-		_, nsErr := corev1client.Namespaces().Create(nsSpec)
+		_, nsErr := clientset.CoreV1().Namespaces().Create(nsSpec)
 		if nsErr != nil {
-			return &kfapis.KfError{
-				Code: int(kfapis.INVALID_ARGUMENT),
+			return &kfapisv2.KfError{
+				Code: int(kfapisv2.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("couldn't create %v %v Error: %v",
 					string(kftypes.NAMESPACE), namespace, nsErr),
 			}
@@ -256,8 +252,8 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 		if _, err := os.Stat(kustomizeFile); err == nil {
 			resourcesErr := kustomize.deployResources(kustomize.restConfig, kustomizeFile, continuation)
 			if resourcesErr != nil {
-				return &kfapis.KfError{
-					Code:    int(kfapis.INTERNAL_ERROR),
+				return &kfapisv2.KfError{
+					Code:    int(kfapisv2.INTERNAL_ERROR),
 					Message: fmt.Sprintf("couldn't create resources from %v Error: %v", kustomizeFile, resourcesErr),
 				}
 			}
@@ -286,7 +282,7 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 	if err != nil {
 		return err
 	}
-	splitter := regexp.MustCompile(bootstrap.YamlSeparator)
+	splitter := regexp.MustCompile(YamlSeparator)
 	objects := splitter.Split(string(data), -1)
 
 	for _, object := range objects {
@@ -343,7 +339,7 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 		// build the request
 		if metadata["name"] != nil {
 			name := metadata["name"].(string)
-			log.Infof("creating %v\n", name)
+			log.Infof("creating %v/%v\n", kind, name)
 			body, err := callback(namespace, gk, o)
 			if err != nil {
 				return err
@@ -377,40 +373,40 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 func (kustomize *kustomize) deleteGlobalResources() error {
 	apiextclientset, err := crdclientset.NewForConfig(kustomize.restConfig)
 	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+		return &kfapisv2.KfError{
+			Code:    int(kfapisv2.INTERNAL_ERROR),
 			Message: fmt.Sprintf("couldn't get apiextensions client Error: %v", err),
 		}
 	}
 	do := &metav1.DeleteOptions{}
 	lo := metav1.ListOptions{
-		LabelSelector: kftypes.DefaultAppLabel + "=" + kustomize.Name,
+		LabelSelector: kftypesv2.DefaultAppLabel + "=" + kustomize.Name,
 	}
 	crdsErr := apiextclientset.CustomResourceDefinitions().DeleteCollection(do, lo)
 	if crdsErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
+		return &kfapisv2.KfError{
+			Code:    int(kfapisv2.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("couldn't delete customresourcedefinitions Error: %v", crdsErr),
 		}
 	}
 	rbacclient, err := rbacv1.NewForConfig(kustomize.restConfig)
 	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+		return &kfapisv2.KfError{
+			Code:    int(kfapisv2.INTERNAL_ERROR),
 			Message: fmt.Sprintf("couldn't get rbac/v1 client Error: %v", err),
 		}
 	}
 	crbsErr := rbacclient.ClusterRoleBindings().DeleteCollection(do, lo)
 	if crbsErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
+		return &kfapisv2.KfError{
+			Code:    int(kfapisv2.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("couldn't delete clusterrolebindings Error: %v", crbsErr),
 		}
 	}
 	crsErr := rbacclient.ClusterRoles().DeleteCollection(do, lo)
 	if crsErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
+		return &kfapisv2.KfError{
+			Code:    int(kfapisv2.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("couldn't delete clusterroles Error: %v", crsErr),
 		}
 	}
@@ -420,8 +416,8 @@ func (kustomize *kustomize) deleteGlobalResources() error {
 // Delete is called from 'kfctl delete ...'. Will delete all resources deployed from the Apply method
 func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 	if kustomize.restConfig == nil || kustomize.apiConfig == nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
+		return &kfapisv2.KfError{
+			Code:    int(kfapisv2.INVALID_ARGUMENT),
 			Message: "Error: nil restConfig or apiConfig, exit",
 		}
 	}
@@ -430,8 +426,8 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 	}
 	corev1client, err := corev1.NewForConfig(kustomize.restConfig)
 	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+		return &kfapisv2.KfError{
+			Code:    int(kfapisv2.INTERNAL_ERROR),
 			Message: fmt.Sprintf("couldn't get core/v1 client Error: %v", err),
 		}
 	}
@@ -441,8 +437,8 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 	if nsMissingErr == nil {
 		nsErr := corev1client.Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
 		if nsErr != nil {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
+			return &kfapisv2.KfError{
+				Code:    int(kfapisv2.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("couldn't delete namespace %v Error: %v", namespace, nsErr),
 			}
 		}
@@ -461,8 +457,8 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 		}
 		kustomizeDirErr := os.MkdirAll(kustomizeDir, os.ModePerm)
 		if kustomizeDirErr != nil {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
+			return &kfapisv2.KfError{
+				Code:    int(kfapisv2.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("couldn't create directory %v Error %v", kustomizeDir, kustomizeDirErr),
 			}
 		}
@@ -471,15 +467,15 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 				resMap, err := GenerateKustomizationFile(&kustomize.KfDef, kustomize.Spec.ManifestsRepo, compPath,
 					kustomize.Spec.ComponentParams[compName])
 				if err != nil {
-					return &kfapis.KfError{
-						Code:    int(kfapis.INTERNAL_ERROR),
+					return &kfapisv2.KfError{
+						Code:    int(kfapisv2.INTERNAL_ERROR),
 						Message: fmt.Sprintf("error generating kustomization for %v Error %v", compPath, err),
 					}
 				}
 				writeErr := WriteKustomizationFile(compName, kustomizeDir, resMap)
 				if writeErr != nil {
-					return &kfapis.KfError{
-						Code:    int(kfapis.INTERNAL_ERROR),
+					return &kfapisv2.KfError{
+						Code:    int(kfapisv2.INTERNAL_ERROR),
 						Message: fmt.Sprintf("error writing to %v Error %v", compPath, writeErr),
 					}
 				}
@@ -509,14 +505,14 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum) error {
 	if len(parts) == 2 {
 		version = parts[1]
 	}
-	cacheDir, cacheDirErr := kftypes.DownloadToCache(kustomize.Spec.AppDir, kftypes.ManifestsRepo, version)
+	cacheDir, cacheDirErr := kftypesv2.DownloadToCache(kustomize.Spec.AppDir, kftypesv2.ManifestsRepo, version)
 	if cacheDirErr != nil || cacheDir == "" {
 		log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
 	}
 	kustomize.Spec.ManifestsRepo = cacheDir
 	createConfigErr := kustomize.writeConfigFile()
 	if createConfigErr != nil {
-		return fmt.Errorf("cannot create config file %v in %v", kftypes.KfConfigFile, kustomize.Spec.AppDir)
+		return fmt.Errorf("cannot create config file %v in %v", kftypesv2.KfConfigFile, kustomize.Spec.AppDir)
 	}
 	return nil
 }
@@ -568,7 +564,7 @@ func (kustomize *kustomize) writeConfigFile() error {
 	if bufErr != nil {
 		return bufErr
 	}
-	cfgFilePath := filepath.Join(kustomize.Spec.AppDir, kftypes.KfConfigFile)
+	cfgFilePath := filepath.Join(kustomize.Spec.AppDir, kftypesv2.KfConfigFile)
 	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
 	if cfgFilePathErr != nil {
 		return cfgFilePathErr
@@ -578,7 +574,7 @@ func (kustomize *kustomize) writeConfigFile() error {
 
 // GetKustomization will read a kustomization.yaml and return Kustomization type
 func GetKustomization(kustomizationPath string) *types.Kustomization {
-	kustomizationFile := filepath.Join(kustomizationPath, kftypes.KustomizationFile)
+	kustomizationFile := filepath.Join(kustomizationPath, kftypesv2.KustomizationFile)
 	data, err := ioutil.ReadFile(kustomizationFile)
 	if err != nil {
 		return nil
@@ -590,13 +586,52 @@ func GetKustomization(kustomizationPath string) *types.Kustomization {
 	return kustomization
 }
 
+// ReadUnstructured will read a resource .yaml and return the Unstructured type
+func ReadUnstructured(kfDefFile string) (*unstructured.Unstructured, error) {
+	data, err := ioutil.ReadFile(kfDefFile)
+	if err != nil {
+		return nil, err
+	}
+	def := &unstructured.Unstructured{}
+	if err = yaml.Unmarshal(data, def); err != nil {
+		return nil, err
+	}
+	return def, nil
+}
+
+// ReadKfDef will read a config .yaml and return the KfDef type
+func ReadKfDef(kfDefFile string) *kfdefsv2.KfDef {
+	data, err := ioutil.ReadFile(kfDefFile)
+	if err != nil {
+		return nil
+	}
+	kfdef := &kfdefsv2.KfDef{}
+	if err = yaml.Unmarshal(data, kfdef); err != nil {
+		return nil
+	}
+	return kfdef
+}
+
+// WriteKfDef will write a KfDef to a config .yaml
+func WriteKfDef(kfdef *kfdefsv2.KfDef, kfdefpath string) error {
+	data, err := yaml.Marshal(kfdef)
+	if err != nil {
+		return err
+	}
+	writeErr := ioutil.WriteFile(kfdefpath, data, 0644)
+	if writeErr != nil {
+		return writeErr
+	}
+	return nil
+}
+
 // MergeKustomization will merge the child into the parent
 // if the child has no bases, then the parent just needs to add the child as base
 // otherwise the parent needs to merge with behaviors
 // Multiple overlays are constrained in what they can merge
 // which exclude NamePrefixes, NameSuffixes, CommonLabels, CommonAnnotations.
 // Any of these will generate an error
-func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, params []config.NameValue,
+func MergeKustomization(compDir string, targetDir string, kfDef *kfdefsv2.KfDef, params []config.NameValue,
 	parent *types.Kustomization, child *types.Kustomization, kustomizationMaps map[MapType]map[string]bool) error {
 
 	paramMap := make(map[string]string)
@@ -604,12 +639,12 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 		paramMap[nv.Name] = nv.Value
 	}
 	updateParamFiles := func() error {
-		paramFile := filepath.Join(targetDir, kftypes.KustomizationParamFile)
+		paramFile := filepath.Join(targetDir, kftypesv2.KustomizationParamFile)
 		if _, err := os.Stat(paramFile); err == nil {
 			params, paramFileErr := readLines(paramFile)
 			if paramFileErr != nil {
-				return &kfapis.KfError{
-					Code:    int(kfapis.INVALID_ARGUMENT),
+				return &kfapisv2.KfError{
+					Code:    int(kfapisv2.INVALID_ARGUMENT),
 					Message: fmt.Sprintf("could not open %v. Error: %v", paramFile, paramFileErr),
 				}
 			}
@@ -632,8 +667,8 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 			}
 			paramFileErr = writeLines(params, paramFile)
 			if paramFileErr != nil {
-				return &kfapis.KfError{
-					Code:    int(kfapis.INTERNAL_ERROR),
+				return &kfapisv2.KfError{
+					Code:    int(kfapisv2.INTERNAL_ERROR),
 					Message: fmt.Sprintf("could not update %v. Error: %v", paramFile, paramFileErr),
 				}
 			}
@@ -661,7 +696,8 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 				parentConfigMapArgs.LiteralSources = append(parentConfigMapArgs.LiteralSources, literalSource)
 			}
 		}
-		switch types.NewGenerationBehavior(childConfigMapArgs.Behavior) {
+		behavior := types.NewGenerationBehavior(childConfigMapArgs.Behavior)
+		switch behavior {
 		case types.BehaviorCreate:
 			if _, ok := kustomizationMaps[configMapGeneratorMap][childConfigMapArgs.Name]; !ok {
 				parent.ConfigMapGenerator = append(parent.ConfigMapGenerator, *parentConfigMapArgs)
@@ -670,6 +706,7 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 		case types.BehaviorMerge, types.BehaviorReplace, types.BehaviorUnspecified:
 			fallthrough
 		default:
+			parentConfigMapArgs.Behavior = behavior.String()
 			parent.ConfigMapGenerator = append(parent.ConfigMapGenerator, *parentConfigMapArgs)
 			kustomizationMaps[configMapGeneratorMap][childConfigMapArgs.Name] = true
 		}
@@ -697,15 +734,25 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 			kustomizationMaps[basesMap][childPath] = true
 		}
 	}
+	/*
 	if child.NamePrefix != "" {
-		log.Warnf("cannot merge nameprefix %v ", child.NamePrefix)
-	}
-	if child.GeneratorOptions != nil && parent.GeneratorOptions == nil {
-		parent.GeneratorOptions = child.GeneratorOptions
+		log.Fatalf("cannot merge nameprefix %v ", child.NamePrefix)
 	}
 	if child.NameSuffix != "" {
-		log.Warnf("cannot merge namesuffix %v ", child.NamePrefix)
-
+		log.Fatalf("cannot merge namesuffix %v ", child.NamePrefix)
+	}
+	if (child.CommonLabels != nil && len(child.CommonLabels) > 0) {
+		log.Fatalf("cannot merge commonLabels for %v ", compDir)
+	}
+	if (child.CommonAnnotations != nil && len(child.CommonAnnotations) > 0) {
+		log.Fatalf("cannot merge commonAnnotations for %v ", compDir)
+	}
+	*/
+	if child.NamePrefix != "" && parent.NamePrefix == "" {
+		parent.NamePrefix = child.NamePrefix
+	}
+	if child.NameSuffix != "" && parent.NameSuffix == "" {
+		parent.NameSuffix = child.NameSuffix
 	}
 	for k, v := range child.CommonLabels {
 		//allow replacement
@@ -716,6 +763,10 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 		//allow replacement
 		parent.CommonAnnotations[k] = v
 		kustomizationMaps[commonAnnotationsMap][k] = true
+	}
+
+	if child.GeneratorOptions != nil && parent.GeneratorOptions == nil {
+		parent.GeneratorOptions = child.GeneratorOptions
 	}
 	for _, value := range child.Resources {
 		resourceAbsoluteFile := filepath.Join(targetDir, string(value))
@@ -731,7 +782,7 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 			parent.Images = append(parent.Images, value)
 			kustomizationMaps[imagesMap][imageName] = true
 		} else {
-			kFile := filepath.Join(targetDir, kftypes.KustomizationFile)
+			kFile := filepath.Join(targetDir, kftypesv2.KustomizationFile)
 			log.Warnf("ignoring image %v specified in %v", imageName, kFile)
 		}
 	}
@@ -740,7 +791,7 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 			parent.Crds = append(parent.Crds, value)
 			kustomizationMaps[crdsMap][value] = true
 		} else {
-			kFile := filepath.Join(targetDir, kftypes.KustomizationFile)
+			kFile := filepath.Join(targetDir, kftypesv2.KustomizationFile)
 			log.Warnf("ignoring crd %v specified in %v", value, kFile)
 		}
 	}
@@ -767,7 +818,7 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 			parent.Vars = append(parent.Vars, value)
 			kustomizationMaps[varsMap][varName] = true
 		} else {
-			kFile := filepath.Join(targetDir, kftypes.KustomizationFile)
+			kFile := filepath.Join(targetDir, kftypesv2.KustomizationFile)
 			log.Warnf("ignoring var %v specified in %v", varName, kFile)
 		}
 	}
@@ -804,17 +855,7 @@ func MergeKustomization(compDir string, targetDir string, kfDef *cltypes.KfDef, 
 
 // MergeKustomizations will merge base and all overlay kustomization files into
 // a single kustomization file
-func MergeKustomizations(kfDef *cltypes.KfDef, compDir string, params []config.NameValue) (*types.Kustomization, error) {
-
-	overlayParams := []string{}
-	if params != nil {
-		for _, nv := range params {
-			name := nv.Name
-			if name == "overlay" {
-				overlayParams = append(overlayParams, nv.Value)
-			}
-		}
-	}
+func MergeKustomizations(kfDef *kfdefsv2.KfDef, compDir string, params []config.NameValue) (*types.Kustomization, error) {
 	kustomizationMaps := CreateKustomizationMaps()
 	kustomization := &types.Kustomization{
 		TypeMeta: types.TypeMeta{
@@ -822,9 +863,7 @@ func MergeKustomizations(kfDef *cltypes.KfDef, compDir string, params []config.N
 			Kind:       types.KustomizationKind,
 		},
 		Bases: make([]string,0),
-		CommonLabels: map[string]string {
-			kftypes.DefaultAppLabel: kfDef.Name,
-		},
+		CommonLabels: make(map[string]string),
 		CommonAnnotations: make(map[string]string),
 		PatchesStrategicMerge: make([]patch.StrategicMerge,0),
 		PatchesJson6902: make([]patch.Json6902,0),
@@ -846,9 +885,21 @@ func MergeKustomizations(kfDef *cltypes.KfDef, compDir string, params []config.N
 	} else {
 		err := MergeKustomization(compDir, baseDir, kfDef, params, kustomization, base, kustomizationMaps)
 		if err != nil {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
+			return nil, &kfapisv2.KfError{
+				Code:    int(kfapisv2.INTERNAL_ERROR),
 				Message: fmt.Sprintf("error merging kustomization at %v Error %v", baseDir, err),
+			}
+		}
+	}
+	overlayParams := []string{}
+	if params != nil {
+		for _, nv := range params {
+			name := nv.Name
+			switch name {
+			case "overlay":
+				overlayParams = append(overlayParams, nv.Value)
+			case "namespace":
+				kustomization.Namespace = nv.Value
 			}
 		}
 	}
@@ -858,8 +909,8 @@ func MergeKustomizations(kfDef *cltypes.KfDef, compDir string, params []config.N
 			err := MergeKustomization(compDir, overlayDir, kfDef, params, kustomization,
 				GetKustomization(overlayDir), kustomizationMaps)
 			if err != nil {
-				return nil, &kfapis.KfError{
-					Code:    int(kfapis.INTERNAL_ERROR),
+				return nil, &kfapisv2.KfError{
+					Code:    int(kfapisv2.INTERNAL_ERROR),
 					Message: fmt.Sprintf("error merging kustomization at %v Error %v", overlayDir, err),
 				}
 			}
@@ -921,9 +972,22 @@ func MergeKustomizations(kfDef *cltypes.KfDef, compDir string, params []config.N
 //      value: namespaced-gangscheduled
 //
 // It will return a resmap.ResMap which is an accumulated ResMap of the base + any overlays
-func GenerateKustomizationFile(kfDef *cltypes.KfDef, root string,
+func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 	compPath string, params []config.NameValue) (resmap.ResMap, error) {
 
+	moveToFront := func(item string, list []string) []string {
+		olen := len(list)
+		newlist := make([]string, 0)
+		for i, component := range list {
+			if component == item {
+				newlist = append(newlist, list[i])
+				newlist = append(newlist, list[0:i]...)
+				newlist = append(newlist, list[i+1:olen]...)
+				break
+			}
+		}
+		return newlist
+	}
 	factory := k8sdeps.NewFactory()
 	fsys := fs.MakeRealFS()
 	compDir := path.Join(root, compPath)
@@ -931,17 +995,50 @@ func GenerateKustomizationFile(kfDef *cltypes.KfDef, root string,
 	if kustomizationErr != nil {
 		return nil, kustomizationErr
 	}
-	kustomization.Namespace = kfDef.Namespace
+	if kustomization.Namespace == "" {
+		kustomization.Namespace = kfDef.Namespace
+	}
 	if kustomization.CommonLabels == nil {
 		kustomization.CommonLabels = map[string]string {
-			kftypes.DefaultAppLabel: kfDef.Name,
+			kftypesv2.DefaultAppLabel: kfDef.Name,
+		}
+	}
+	//TODO(#2685) we may want to delegate this to separate tooling so kfctl is not dynamically mixing in overlays.
+	if len(kustomization.PatchesStrategicMerge) > 0 {
+		basename := filepath.Base(string(kustomization.PatchesStrategicMerge[0]))
+		basefile := filepath.Join(compDir, "base", basename)
+		def, err := ReadUnstructured(basefile)
+		if err != nil {
+			return nil, err
+		}
+		apiVersion := def.GetAPIVersion()
+		if apiVersion == kfDef.APIVersion {
+			baseKfDef := ReadKfDef(basefile)
+			for _, k := range kustomization.PatchesStrategicMerge {
+				overlayfile := filepath.Join(compDir, string(k))
+				overlay := ReadKfDef(overlayfile)
+				mergeErr := mergo.Merge(&baseKfDef.Spec.ComponentConfig, overlay.Spec.ComponentConfig, mergo.WithAppendSlice)
+				if mergeErr != nil {
+					return nil, mergeErr
+				}
+			}
+			if kfDef.Spec.UseIstio {
+				baseKfDef.Spec.Components = moveToFront("istio", baseKfDef.Spec.Components)
+				baseKfDef.Spec.Components = moveToFront("istio-install", baseKfDef.Spec.Components)
+				baseKfDef.Spec.Components = moveToFront("istio-crds", baseKfDef.Spec.Components)
+			}
+			writeErr := WriteKfDef(baseKfDef, basefile)
+			if writeErr != nil {
+				return nil, writeErr
+			}
+			kustomization.PatchesStrategicMerge = nil
 		}
 	}
 	buf, bufErr := yaml.Marshal(kustomization)
 	if bufErr != nil {
 		return nil, bufErr
 	}
-	kustomizationPath := filepath.Join(compDir, kftypes.KustomizationFile)
+	kustomizationPath := filepath.Join(compDir, kftypesv2.KustomizationFile)
 	kustomizationPathErr := ioutil.WriteFile(kustomizationPath, buf, 0644)
 	if kustomizationPathErr != nil {
 		return nil, kustomizationPathErr
@@ -966,16 +1063,16 @@ func WriteKustomizationFile(name string, kustomizeDir string, resMap resmap.ResM
 	// Output the objects.
 	yamlResources, yamlResourcesErr := resMap.EncodeAsYaml()
 	if yamlResourcesErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+		return &kfapisv2.KfError{
+			Code:    int(kfapisv2.INTERNAL_ERROR),
 			Message: fmt.Sprintf("error generating yaml Error %v", yamlResourcesErr),
 		}
 	}
 	kustomizeFile := filepath.Join(kustomizeDir, name+".yaml")
 	kustomizationFileErr := ioutil.WriteFile(kustomizeFile, yamlResources, 0644)
 	if kustomizationFileErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
+		return &kfapisv2.KfError{
+			Code:    int(kfapisv2.INTERNAL_ERROR),
 			Message: fmt.Sprintf("error writing to %v Error %v", kustomizeFile, kustomizationFileErr),
 		}
 	}
