@@ -51,5 +51,6 @@ export class FormWorkspaceVolumeComponent implements OnInit {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    this.snackBar.close();
   }
 }

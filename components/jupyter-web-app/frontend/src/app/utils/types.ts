@@ -6,8 +6,8 @@ export interface Volume {
   mode: string;
   type?: string;
   path: string;
-  id?: number;
   extraFields?: any;
+  templatedName?: string;
 }
 
 export function emptyVolume(): Volume {
@@ -17,7 +17,8 @@ export function emptyVolume(): Volume {
     size: "",
     path: "",
     mode: "",
-    extraFields: {}
+    extraFields: {},
+    templatedName: ""
   };
 }
 

@@ -16,10 +16,11 @@ export function getFormDefaults(): FormGroup {
     workspace: fb.group({
       type: ["", [Validators.required]],
       name: ["", [Validators.required]],
+      templatedName: ["", []],
       size: ["", [Validators.required]],
       path: [{ value: "", disabled: true }, [Validators.required]],
       mode: ["", [Validators.required]],
-      class: ["", [Validators.required]],
+      class: ["{none}", [Validators.required]],
       extraFields: fb.group({})
     }),
     datavols: fb.array([]),
@@ -32,6 +33,7 @@ export function createVolumeControl(vol: ConfigVolume, readonly = false) {
   const ctrl = fb.group({
     type: [vol.type.value, [Validators.required]],
     name: [vol.name.value, [Validators.required]],
+    templatedName: [vol.name.value, []],
     size: [vol.size.value, [Validators.required]],
     path: [vol.mountPath.value, [Validators.required]],
     mode: [vol.accessModes.value, [Validators.required]],
@@ -44,6 +46,23 @@ export function createVolumeControl(vol: ConfigVolume, readonly = false) {
   }
 
   return ctrl;
+}
+
+export function updateVolumeControl(
+  volCtrl: FormGroup,
+  vol: ConfigVolume,
+  readonly = false
+) {
+  volCtrl.get("name").setValue(vol.name.value);
+  volCtrl.get("type").setValue(vol.type.value);
+  volCtrl.get("size").setValue(vol.size.value);
+  volCtrl.get("mode").setValue(vol.accessModes.value);
+  volCtrl.get("path").setValue(vol.mountPath.value);
+  volCtrl.get("templatedName").setValue(vol.name.value);
+
+  if (readonly) {
+    volCtrl.disable();
+  }
 }
 
 export function addDataVolume(
@@ -98,7 +117,8 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
     formCtrl.controls.image.disable();
   }
 
-  formCtrl.controls.workspace = createVolumeControl(
+  updateVolumeControl(
+    formCtrl.get("workspace") as FormGroup,
     config.workspaceVolume.value,
     config.workspaceVolume.readOnly
   );
@@ -110,7 +130,7 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
   // Add the data volumes
   config.dataVolumes.value.forEach(vol => {
     // Create a new FormControl to append to the array
-    addDataVolume(formCtrl, vol.value);
+    addDataVolume(formCtrl, vol.value, config.dataVolumes.readOnly);
   });
 
   formCtrl.controls.extra.setValue(config.extraResources.value);
