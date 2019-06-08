@@ -1,10 +1,4 @@
-import {
-  Component,
-  OnInit,
-  ViewChild,
-  ElementRef,
-  ChangeDetectionStrategy
-} from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { MatSort, MatTableDataSource, MatDialog } from "@angular/material";
 import { Subscription } from "rxjs";
 import { first } from "rxjs/operators";
@@ -61,16 +55,17 @@ export class ResourceTableComponent implements OnInit {
       // NOTE: We are using both the 'trackBy' feature in the Table for performance
       // and also detecting with lodash if the new data is different from the old
       // one. This is because, if the data changes we want to reset the poller
-      this.k8s
-        .getResource(this.currNamespace)
-        .pipe(first())
-        .subscribe(resources => {
-          if (!isEqual(this.resources, resources)) {
-            this.resources = resources;
-            this.dataSource.data = this.resources;
-            this.poller.reset();
-          }
-        });
+      if (!this.currNamespace) {
+        return;
+      }
+
+      this.k8s.getResource(this.currNamespace).subscribe(resources => {
+        if (!isEqual(this.resources, resources)) {
+          this.resources = resources;
+          this.dataSource.data = this.resources;
+          this.poller.reset();
+        }
+      });
     });
 
     // Keep track of the selected namespace

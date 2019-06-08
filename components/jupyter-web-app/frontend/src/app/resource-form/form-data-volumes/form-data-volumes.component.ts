@@ -22,7 +22,7 @@ export class FormDataVolumesComponent implements OnInit {
     return vols.controls;
   }
 
-  constructor(private fb: FormBuilder) {}
+  constructor() {}
 
   ngOnInit() {}
 

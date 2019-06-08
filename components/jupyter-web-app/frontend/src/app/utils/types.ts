@@ -29,7 +29,7 @@ export interface Resp {
   defaultStorageClass?: string;
   pvcs?: Volume[];
   config?: any;
-  success: string;
+  success: boolean;
   log?: string;
 }
 

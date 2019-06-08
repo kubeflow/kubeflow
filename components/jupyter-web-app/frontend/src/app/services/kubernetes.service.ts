@@ -1,8 +1,8 @@
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 
-import { ReplaySubject, Observable } from "rxjs";
-import { first } from "rxjs/operators";
+import { Observable, throwError } from "rxjs";
+import { tap, map, catchError } from "rxjs/operators";
 import { environment } from "src/environments/environment";
 
 import { Resp, Resource, SnackType, Volume, Config } from "../utils/types";
@@ -14,221 +14,145 @@ export class KubernetesService {
 
   // GETers
   getNamespaces(): Observable<string[]> {
-    const src = new ReplaySubject<string[]>(1);
-
     const url = environment.apiUrl + `/api/namespaces`;
-    this.http
-      .get<Resp>(url)
-      .pipe(first())
-      .subscribe(
-        data => {
-          this.handleBackendError(data);
 
-          const namespaces = data.namespaces;
-          src.next(namespaces);
-        },
-        error => this.handleError(error)
-      );
-
-    return src.asObservable();
+    return this.http.get<Resp>(url).pipe(
+      tap(data => this.handleBackendError(data)),
+      catchError(error => this.handleError(error)),
+      map(data => {
+        return data.namespaces;
+      })
+    );
   }
 
   getResource(ns: string): Observable<Resource[]> {
     // Get existing PVCs in a namespace
     const url =
       environment.apiUrl + `/api/namespaces/${ns}/${environment.resource}`;
-    const src = new ReplaySubject<Resource[]>(1);
 
-    if (ns === "") {
-      return src.asObservable();
-    }
-
-    this.http
-      .get<Resp>(url)
-      .pipe(first())
-      .subscribe(
-        data => {
-          this.handleBackendError(data);
-          const notebooks = data.notebooks as Resource[];
-          src.next(notebooks);
-        },
-        error => this.handleError(error)
-      );
-
-    return src.asObservable();
+    return this.http.get<Resp>(url).pipe(
+      tap(data => this.handleBackendError(data)),
+      catchError(error => this.handleError(error)),
+      map(data => {
+        return data.notebooks as Resource[];
+      })
+    );
   }
 
   getStorageClasses(): Observable<string[]> {
     // Get existing PVCs in a namespace
-    const src = new ReplaySubject<string[]>(1);
     const url = environment.apiUrl + `/api/storageclasses`;
 
-    this.http
-      .get<Resp>(url)
-      .pipe(first())
-      .subscribe(
-        data => {
-          this.handleBackendError(data);
-          const scs = data.storageclasses;
-          src.next(scs);
-        },
-        error => this.handleError(error)
-      );
-
-    return src.asObservable();
+    return this.http.get<Resp>(url).pipe(
+      tap(data => this.handleBackendError(data)),
+      catchError(error => this.handleError(error)),
+      map(data => {
+        return data.storageclasses;
+      })
+    );
   }
 
   getDefaultStorageClass(): Observable<string> {
-    const src = new ReplaySubject<string>(1);
     const url = environment.apiUrl + `/api/storageclasses/default`;
 
-    this.http
-      .get<Resp>(url)
-      .pipe(first())
-      .subscribe(
-        data => {
-          this.handleBackendError(data);
-          const sc = data.defaultStorageClass;
-          src.next(sc);
-        },
-        error => this.handleError(error)
-      );
-
-    return src.asObservable();
+    return this.http.get<Resp>(url).pipe(
+      tap(data => this.handleBackendError(data)),
+      catchError(error => this.handleError(error)),
+      map(data => {
+        return data.defaultStorageClass;
+      })
+    );
   }
 
   getConfig(): Observable<Config> {
-    const src = new ReplaySubject<Config>(1);
     const url = environment.apiUrl + `/api/config`;
 
-    this.http
-      .get<Resp>(url)
-      .pipe(first())
-      .subscribe(
-        data => {
-          this.handleBackendError(data);
-          src.next(data.config);
-        },
-        error => this.handleError(error)
-      );
-
-    return src;
+    return this.http.get<Resp>(url).pipe(
+      tap(data => this.handleBackendError(data)),
+      catchError(error => this.handleError(error)),
+      map(data => {
+        return data.config;
+      })
+    );
   }
 
   getVolumes(ns: string): Observable<Volume[]> {
     // Get existing PVCs in a namespace
     const url = environment.apiUrl + `/api/namespaces/${ns}/pvcs`;
-    const src = new ReplaySubject<Volume[]>(1);
 
-    if (ns === "") {
-      return src.asObservable();
-    }
-
-    this.http
-      .get<Resp>(url)
-      .pipe(first())
-      .subscribe(
-        data => {
-          this.handleBackendError(data);
-          src.next(data.pvcs);
-        },
-        error => this.handleError(error)
-      );
-
-    return src.asObservable();
+    return this.http.get<Resp>(url).pipe(
+      tap(data => this.handleBackendError(data)),
+      catchError(error => this.handleError(error)),
+      map(data => {
+        return data.pvcs;
+      })
+    );
   }
 
   // Delete functions
   deleteResource(ns: string, nm: string): Observable<string> {
-    const src = new ReplaySubject<string>(1);
     const url =
       environment.apiUrl +
       `/api/namespaces/${ns}/${environment.resource}/${nm}`;
 
-    this.http
-      .delete<Resp>(url)
-      .pipe(first())
-      .subscribe(
-        data => {
-          this.handleBackendError(data);
-          src.next("posted");
-        },
-        error => this.handleError(error)
-      );
-
-    return src.asObservable();
+    return this.http.delete<Resp>(url).pipe(
+      tap(data => this.handleBackendError(data)),
+      catchError(error => this.handleError(error)),
+      map(_ => {
+        return "deleted";
+      })
+    );
   }
 
   deleteViewer(ns: string, nm: string): Observable<string> {
-    const obs = new ReplaySubject<string>(1);
     const url = environment.apiUrl + `/api/namespaces/${ns}/viewers/${nm}`;
 
-    this.http
-      .delete<Resp>(url)
-      .pipe(first())
-      .subscribe(
-        data => {
-          this.handleBackendError(data);
-          obs.next("posted");
-        },
-        error => this.handleError(error)
-      );
-
-    return obs.asObservable();
+    return this.http.delete<Resp>(url).pipe(
+      tap(data => this.handleBackendError(data)),
+      catchError(error => this.handleError(error)),
+      map(_ => {
+        return "deleted";
+      })
+    );
   }
 
   // Post Functions
   postResource(rsrc: Resource): Observable<string> {
-    const src = new ReplaySubject<string>(1);
     const url =
       environment.apiUrl +
       `/api/namespaces/${rsrc.namespace}/${environment.resource}`;
 
-    this.http
-      .post<Resp>(url, rsrc)
-      .pipe(first())
-      .subscribe(
-        data => {
-          if (this.handleBackendError(data) === "success") {
-            src.next("posted");
-          } else {
-            src.next("error");
-          }
-        },
-        error => {
-          this.handleError(error);
-          src.next("error");
-        }
-      );
-
-    return src.asObservable();
+    return this.http.post<Resp>(url, rsrc).pipe(
+      tap(data => this.handleBackendError(data)),
+      catchError(error => this.handleError(error)),
+      map(_ => {
+        return "posted";
+      })
+    );
   }
 
   // ---------------------------Error Handling----------------------------------
-  private handleBackendError(response: Resp): string {
+  private handleBackendError(response: Resp) {
     if (!response.success) {
-      this.snackBar.show("Warning: " + response.log, SnackType.Warning);
-
-      return "error";
+      throw response;
     }
-    return "success";
   }
 
-  private handleError(error: HttpErrorResponse): string {
-    if (error.error instanceof ErrorEvent) {
-      // A client-side or network error occurred. Handle it accordingly.
-      console.error("An error occurred:", error.error.message);
-      return "error";
-    } else {
-      // The backend returned an unsuccessful response code.
-      // The response body may contain clues as to what went wrong,
+  private handleError(error: HttpErrorResponse | Resp): Observable<never> {
+    // The backend returned an unsuccessful response code.
+    // The response body may contain clues as to what went wrong,
+    if (error instanceof HttpErrorResponse) {
       this.snackBar.show(
         `${error.status}: There was an error trying to connect ` +
           `to the backend API. ${error.message}`,
         SnackType.Error
       );
-
-      return "error";
+      return throwError(error.message);
+    } else {
+      // Backend error thrown from handleBackendError
+      const backendError = error as Resp;
+      this.snackBar.show(backendError.log, SnackType.Error);
+      return throwError(backendError.log);
     }
   }
 }
