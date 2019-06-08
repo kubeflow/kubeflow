@@ -8,8 +8,8 @@ import {
 import { environment } from "src/environments/environment";
 import { Resp, SnackType, emptyVolume, Volume } from "src/app/utils/types";
 import { SnackBarService } from "src/app/services/snack-bar.service";
-import { ReplaySubject, Observable } from "rxjs";
-import { first } from "rxjs/operators";
+import { ReplaySubject, Observable, throwError } from "rxjs";
+import { first, tap, map, catchError } from "rxjs/operators";
 import {
   RokToken,
   RokResponse,
@@ -25,41 +25,32 @@ export class RokService {
 
   public getRokSecret(ns: string): Observable<RokToken> {
     // Get the Token needed for Rok Api requests
-    const src = new ReplaySubject<RokToken>(1);
     const url = environment.apiUrl + `/api/rok/namespaces/${ns}/token`;
 
-    this.http
-      .get<RokResponse>(url)
-      .pipe(first())
-      .subscribe(
-        data => {
-          this.handleBackendError(data);
-          src.next(data.token);
-        },
-        error => {
-          this.handleError(error);
-          src.next({ name: "rok-token-name", value: "" });
-        }
-      );
-
-    return src.asObservable();
+    return this.http.get<RokResponse>(url).pipe(
+      tap(data => this.handleBackendError(data)),
+      catchError(error => this.handleError(error)),
+      map(data => {
+        return data.token;
+      })
+    );
   }
 
   public getJupyterLab(url: string, token: string): Observable<JupyterLab> {
     // Get the Token needed for Rok Api requests
-    const src = new ReplaySubject<any>(1);
     const baseUrl = url.substring(0, url.lastIndexOf("/") + 1);
 
-    this.http
+    return this.http
       .head<RokResponse>(url, {
         headers: new HttpHeaders({
           "X-Auth-Token": token
         }),
         observe: "response"
       })
-      .pipe(first())
-      .subscribe(
-        resp => {
+      .pipe(
+        tap(resp => this.handleBackendError(resp.body)),
+        catchError(error => this.handleError(error)),
+        map(resp => {
           const headers = resp.headers;
           const notebook: JupyterLab = emptyJupyterLab();
 
@@ -104,27 +95,23 @@ export class RokService {
             notebook.dtvolumes.push(vol);
           }
 
-          src.next(notebook);
-        },
-        error => this.handleError(error)
+          return notebook;
+        })
       );
-
-    return src.asObservable();
   }
 
   public getVolume(url: string, token: string): Observable<Volume> {
-    const src = new ReplaySubject<Volume>(1);
-
-    this.http
+    return this.http
       .head<RokResponse>(url, {
         headers: new HttpHeaders({
           "X-Auth-Token": token
         }),
         observe: "response"
       })
-      .pipe(first())
-      .subscribe(
-        resp => {
+      .pipe(
+        tap(resp => this.handleBackendError(resp.body)),
+        catchError(error => this.handleError(error)),
+        map(resp => {
           const headers = resp.headers;
           const volume: Volume = emptyVolume();
 
@@ -140,12 +127,9 @@ export class RokService {
 
           volume.path = this.getHeader(headers, "X-Object-Meta-mountpoint");
 
-          src.next(volume);
-        },
-        error => this.handleError(error)
+          return volume;
+        })
       );
-
-    return src.asObservable();
   }
 
   // -----------------------------Utils-----------------------------------------
@@ -157,33 +141,27 @@ export class RokService {
   }
 
   // ---------------------------Error Handling----------------------------------
-  private handleBackendError(response: Resp): string {
+  private handleBackendError(response: RokResponse) {
     if (!response.success) {
-      this.snackBar.show("Warning: " + response.log, SnackType.Warning);
-
-      return "error";
+      throw response;
     }
-    return "success";
   }
 
-  private handleError(error: HttpErrorResponse): string {
-    if (error.error instanceof ErrorEvent) {
-      // A client-side or network error occurred. Handle it accordingly.
-      console.error("A Client error occurred:", error.error.message);
-      this.snackBar.show(
-        `A Client error occured: ${error.error.message}`,
-        SnackType.Error
-      );
-    } else {
-      // The backend returned an unsuccessful response code.
-      // The response body may contain clues as to what went wrong,
+  private handleError(error: HttpErrorResponse | RokResponse) {
+    // The backend returned an unsuccessful response code.
+    // The response body may contain clues as to what went wrong,
+    if (error instanceof HttpErrorResponse) {
       this.snackBar.show(
         `${error.status}: There was an error trying to connect ` +
           `to the backend API. ${error.message}`,
         SnackType.Error
       );
+      return throwError(error.message);
+    } else {
+      // Backend error thrown from handleBackendError
+      const backendError = error as RokResponse;
+      this.snackBar.show(backendError.log, SnackType.Error);
+      return throwError(backendError.log);
     }
-
-    return "error";
   }
 }

@@ -3,8 +3,8 @@ import { FormGroup, FormBuilder, Validators } from "@angular/forms";
 import { NamespaceService } from "../services/namespace.service";
 import { KubernetesService } from "../services/kubernetes.service";
 import { Router } from "@angular/router";
-import { first } from "rxjs/operators";
-import { Subscription } from "rxjs";
+import { catchError, map } from "rxjs/operators";
+import { Subscription, throwError, of } from "rxjs";
 import { Volume, Config, ConfigVolume, SnackType } from "../utils/types";
 import { SnackBarService } from "../services/snack-bar.service";
 import { getFormDefaults, initFormControls } from "../utils/common";
@@ -40,18 +40,15 @@ export class ResourceFormComponent implements OnInit, OnDestroy {
     this.formCtrl = getFormDefaults();
 
     // Update the form Values from the default ones
-    this.k8s
-      .getConfig()
-      .pipe(first())
-      .subscribe(config => {
-        if (Object.keys(config).length === 0) {
-          // Don't fire on empty config
-          return;
-        }
+    this.k8s.getConfig().subscribe(config => {
+      if (Object.keys(config).length === 0) {
+        // Don't fire on empty config
+        return;
+      }
 
-        this.config = config;
-        initFormControls(this.formCtrl, config);
-      });
+      this.config = config;
+      initFormControls(this.formCtrl, config);
+    });
 
     // Keep track of the selected namespace
     this.subscriptions.add(
@@ -64,22 +61,19 @@ export class ResourceFormComponent implements OnInit, OnDestroy {
     );
 
     // Check if a default StorageClass is set
-    this.k8s
-      .getDefaultStorageClass()
-      .pipe(first())
-      .subscribe(defaultClass => {
-        if (defaultClass.length === 0) {
-          this.defaultStorageclass = false;
-          this.popup.show(
-            "No default Storage Class is set. Can't create new Disks for the " +
-              "new Notebook. Please use an Existing Disk.",
-            SnackType.Warning,
-            0
-          );
-        } else {
-          this.defaultStorageclass = true;
-        }
-      });
+    this.k8s.getDefaultStorageClass().subscribe(defaultClass => {
+      if (defaultClass.length === 0) {
+        this.defaultStorageclass = false;
+        this.popup.show(
+          "No default Storage Class is set. Can't create new Disks for the " +
+            "new Notebook. Please use an Existing Disk.",
+          SnackType.Warning,
+          0
+        );
+      } else {
+        this.defaultStorageclass = true;
+      }
+    });
   }
 
   ngOnDestroy() {
@@ -89,12 +83,9 @@ export class ResourceFormComponent implements OnInit, OnDestroy {
 
   public updatePVCs(namespace: string) {
     this.subscriptions.add(
-      this.k8s
-        .getVolumes(namespace)
-        .pipe(first())
-        .subscribe(pvcs => {
-          this.pvcs = pvcs;
-        })
+      this.k8s.getVolumes(namespace).subscribe(pvcs => {
+        this.pvcs = pvcs;
+      })
     );
   }
 
@@ -104,17 +95,16 @@ export class ResourceFormComponent implements OnInit, OnDestroy {
     const nb = JSON.parse(JSON.stringify(this.formCtrl.value));
 
     console.log(nb, this.formCtrl.valid);
-    // this.subscriptions.add(
-    //   this.k8s
-    //     .postResource(nb)
-    //     .pipe(first())
-    //     .subscribe(result => {
-    //       if (result === "posted") {
-    //         this.router.navigate(["/"]);
-    //       } else if (result === "error") {
-    //         this.updatePVCs(this.currNamespace);
-    //       }
-    //     })
-    // );
+    this.k8s
+      .postResource(nb)
+      .pipe(catchError(_ => of("failed")))
+      .subscribe(resp => {
+        console.log(resp);
+        if (resp === "posted") {
+          this.router.navigate(["/"]);
+        } else if (resp === "failed") {
+          this.updatePVCs(this.currNamespace);
+        }
+      });
   }
 }

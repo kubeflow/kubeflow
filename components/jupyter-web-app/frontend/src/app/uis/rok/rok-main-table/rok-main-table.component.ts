@@ -1,8 +1,8 @@
 import { Component, OnInit } from "@angular/core";
 import { RokService } from "../services/rok.service";
 import { RokToken, EMPTY_TOKEN } from "src/app/uis/rok/utils/types";
-import { Subscription } from "rxjs";
-import { first } from "rxjs/operators";
+import { Subscription, of } from "rxjs";
+import { first, catchError } from "rxjs/operators";
 
 @Component({
   selector: "app-rok-main-table",
@@ -17,13 +17,11 @@ export class RokMainTableComponent implements OnInit {
 
   ngOnInit() {
     // Load the Rok Token for further API calls
-    this.subscriptions.add(
-      this.rok
-        .getRokSecret("kubeflow")
-        .pipe(first())
-        .subscribe(token => {
-          this.token = token;
-        })
-    );
+    this.rok
+      .getRokSecret("kubeflow")
+      .pipe(catchError(_ => of({ name: "rok-token-name", value: "" })))
+      .subscribe(token => {
+        this.token = token;
+      });
   }
 }

@@ -1,8 +1,8 @@
 import { Component, OnInit } from "@angular/core";
 import { RokService } from "../services/rok.service";
 import { RokToken, EMPTY_TOKEN } from "src/app/uis/rok/utils/types";
-import { Subscription } from "rxjs";
-import { first } from "rxjs/operators";
+import { Subscription, of } from "rxjs";
+import { catchError } from "rxjs/operators";
 import { Volume, Config } from "src/app/utils/types";
 import {
   FormGroup,
@@ -59,24 +59,21 @@ export class RokResourceFormComponent implements OnInit {
     // Get the user's Rok Secret
     this.rok
       .getRokSecret("kubeflow")
-      .pipe(first())
+      .pipe(catchError(_ => of({ name: "rok-token-name", value: "" })))
       .subscribe(token => {
         this.token = token;
       });
 
     // Update the form Values from the default ones
-    this.k8s
-      .getConfig()
-      .pipe(first())
-      .subscribe(config => {
-        if (Object.keys(config).length === 0) {
-          // Don't fire on empty config
-          return;
-        }
+    this.k8s.getConfig().subscribe(config => {
+      if (Object.keys(config).length === 0) {
+        // Don't fire on empty config
+        return;
+      }
 
-        this.config = config;
-        this.initRokFormControls();
-      });
+      this.config = config;
+      this.initRokFormControls();
+    });
 
     // Keep track of the selected namespace
     this.subscriptions.add(
@@ -89,24 +86,18 @@ export class RokResourceFormComponent implements OnInit {
     );
 
     // Check if a default StorageClass is set
-    this.k8s
-      .getDefaultStorageClass()
-      .pipe(first())
-      .subscribe(defaultClass => {
-        if (defaultClass.length === 0) {
-          this.defaultStorageclass = false;
-        } else {
-          this.defaultStorageclass = true;
-        }
-      });
+    this.k8s.getDefaultStorageClass().subscribe(defaultClass => {
+      if (defaultClass.length === 0) {
+        this.defaultStorageclass = false;
+      } else {
+        this.defaultStorageclass = true;
+      }
+    });
 
     // Get a list of existin StorageClasses
-    this.k8s
-      .getStorageClasses()
-      .pipe(first())
-      .subscribe(classes => {
-        this.storageClasses = classes;
-      });
+    this.k8s.getStorageClasses().subscribe(classes => {
+      this.storageClasses = classes;
+    });
   }
 
   ngOnDestroy() {
@@ -115,14 +106,9 @@ export class RokResourceFormComponent implements OnInit {
   }
 
   public updatePVCs(namespace: string) {
-    this.subscriptions.add(
-      this.k8s
-        .getVolumes(namespace)
-        .pipe(first())
-        .subscribe(pvcs => {
-          this.pvcs = pvcs;
-        })
-    );
+    this.k8s.getVolumes(namespace).subscribe(pvcs => {
+      this.pvcs = pvcs;
+    });
   }
 
   public initRokFormControls() {
@@ -140,7 +126,6 @@ export class RokResourceFormComponent implements OnInit {
       .disable();
 
     // Add the data volumes
-    const arr = this.fb.array([]);
     this.config.dataVolumes.value.forEach(vol => {
       // Create a new FormControl to append to the array
       addRokDataVolume(this.formCtrl, vol.value);
@@ -152,17 +137,15 @@ export class RokResourceFormComponent implements OnInit {
     const nb = JSON.parse(JSON.stringify(this.formCtrl.value));
 
     console.log(nb, this.formCtrl.valid);
-    this.subscriptions.add(
-      this.k8s
-        .postResource(nb)
-        .pipe(first())
-        .subscribe(result => {
-          if (result === "posted") {
-            this.router.navigate(["/"]);
-          } else if (result === "error") {
-            this.updatePVCs(this.currNamespace);
-          }
-        })
-    );
+    this.k8s;
+    // .postResource(nb)
+    // .pipe(catchError(_ => of("failed")))
+    // .subscribe(resp => {
+    //   if (resp === "posted") {
+    //     this.router.navigate(["/"]);
+    //   } else if (resp === "failed") {
+    //     this.updatePVCs(this.currNamespace);
+    //   }
+    // });
   }
 }

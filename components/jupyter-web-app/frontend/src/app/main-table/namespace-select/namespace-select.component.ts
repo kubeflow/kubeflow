@@ -31,20 +31,21 @@ export class NamespaceSelectComponent implements OnInit, OnDestroy {
 
     // Poll untill you get existing Namespaces
     const nsSub = this.poller.start().subscribe(() => {
-      this.k8s
-        .getNamespaces()
-        .pipe(first())
-        .subscribe(namespaces => {
-          this.namespaces = namespaces;
+      this.k8s.getNamespaces().subscribe(namespaces => {
+        this.namespaces = namespaces;
 
-          if (this.currNamespace || this.currNamespace.length > 0) {
-            this.namespaceService.updateSelectedNamespace(this.currNamespace);
-          }
+        if (
+          this.currNamespace === undefined ||
+          this.currNamespace.length === 0
+        ) {
+          return;
+        }
 
-          // stop polling
-          this.poller.stop();
-          this.subscriptions.unsubscribe();
-        });
+        // stop polling
+        this.namespaceService.updateSelectedNamespace(this.currNamespace);
+        this.poller.stop();
+        this.subscriptions.unsubscribe();
+      });
     });
 
     this.subscriptions.add(nsSub);
