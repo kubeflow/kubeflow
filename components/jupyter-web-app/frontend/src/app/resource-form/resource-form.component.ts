@@ -90,13 +90,9 @@ export class ResourceFormComponent implements OnInit, OnDestroy {
   }
 
   public onSubmit() {
-    this.formCtrl.updateValueAndValidity();
-    // Create a deep copy of the Form's Values
-    const nb = JSON.parse(JSON.stringify(this.formCtrl.value));
-
-    console.log(nb, this.formCtrl.valid);
+    // console.log(this.formCtrl.value, this.formCtrl.valid);
     this.k8s
-      .postResource(nb)
+      .postResource(this.formCtrl.value)
       .pipe(catchError(_ => of("failed")))
       .subscribe(resp => {
         console.log(resp);

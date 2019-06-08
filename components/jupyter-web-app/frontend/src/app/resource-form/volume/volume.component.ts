@@ -12,7 +12,6 @@ export class VolumeComponent implements OnInit, OnDestroy {
   private _volume: FormGroup;
   private _notebookName = "";
   private _defaultStorageClass: boolean;
-  private _readonly = true;
 
   currentPVC: Volume;
   existingPVCs: Set<string> = new Set();
@@ -20,54 +19,29 @@ export class VolumeComponent implements OnInit, OnDestroy {
   subscriptions = new Subscription();
 
   // ----- @Input Parameters -----
-  @Input()
-  get volume() {
-    return this._volume;
-  }
-  set volume(volume: FormGroup) {
-    this.volumeCtrlChanged(volume);
-  }
+  @Input() volume: FormGroup;
+  @Input() namespace: string;
 
   @Input()
   get notebookName() {
     return this._notebookName;
   }
   set notebookName(nm: string) {
-    if (!this.readonly) {
+    if (!this.volume.disabled) {
       this.notebookNameChanged(nm);
     }
   }
 
   @Input()
   set ephemeral(b: boolean) {
-    if (!this.readonly) {
+    if (!this.volume.disabled) {
       this.storageOptionChanged(b);
     }
   }
 
   @Input()
-  get readonly(): boolean {
-    return this._readonly;
-  }
-  set readonly(b) {
-    if (b === null) {
-      return;
-    }
-
-    this._readonly = b;
-
-    if (this._readonly) {
-      // Enable and disable to show the latest values
-      this.subscriptions.unsubscribe();
-      this.volume.enable();
-      this.volume.get("name").setValue(this.currentPVC.name);
-      this.volume.disable();
-    }
-  }
-
-  @Input()
   set pvcs(data) {
-    if (!this.readonly) {
+    if (!this.volume.disabled) {
       this.pvcsChanged(data);
     }
   }
@@ -80,12 +54,10 @@ export class VolumeComponent implements OnInit, OnDestroy {
     // Update the current pvc type
     this._defaultStorageClass = s;
 
-    if (!this.readonly) {
+    if (!this.volume.disabled) {
       this.updateVolInputFields();
     }
   }
-
-  @Input() namespace: string;
 
   // ----- Get macros -----
   get selectedVolIsExistingType(): boolean {
@@ -95,7 +67,7 @@ export class VolumeComponent implements OnInit, OnDestroy {
   }
 
   get currentVolName(): string {
-    return this.renderVolName(this.currentPVC ? this.currentPVC.name : "");
+    return this.renderVolName(this.volume.get("templatedName").value);
   }
 
   // ----- utility functions -----
@@ -104,7 +76,6 @@ export class VolumeComponent implements OnInit, OnDestroy {
   }
 
   setVolumeType(type: string) {
-    this.currentPVC.type = type;
     if (type === "Existing") {
       this.volume.controls.size.disable();
       this.volume.controls.mode.disable();
@@ -151,20 +122,6 @@ export class VolumeComponent implements OnInit, OnDestroy {
         this.updateVolInputFields();
       })
     );
-
-    // size
-    this.subscriptions.add(
-      this.volume.get("size").valueChanges.subscribe((size: string) => {
-        this.currentPVC.size = size;
-      })
-    );
-
-    // mode
-    this.subscriptions.add(
-      this.volume.get("mode").valueChanges.subscribe((mode: string) => {
-        this.currentPVC.mode = mode;
-      })
-    );
   }
 
   ngOnInit() {
@@ -177,32 +134,12 @@ export class VolumeComponent implements OnInit, OnDestroy {
 
   // ----- @Input change handling functions -----
   notebookNameChanged(nm: string): void {
-    if (!this.currentPVC || this.readonly) {
+    if (this.volume.disabled) {
       return;
     }
 
     this._notebookName = nm;
     this.volume.controls.name.setValue(this.currentVolName);
-
-    this.updateVolInputFields();
-  }
-
-  volumeCtrlChanged(vol: FormGroup): void {
-    this.currentPVC = vol.value;
-    this._volume = vol;
-
-    if (this.readonly) {
-      this.subscriptions.unsubscribe();
-      const name = vol.value.name;
-      this.volume.controls.name.setValue(name, { emitEvent: false });
-      this.volume.disable();
-    } else {
-      const name = this.renderVolName(vol.value.name);
-      this.volume.controls.name.setValue(name, { emitEvent: false });
-
-      this.updateVolInputFields();
-      this.initSubscriptions();
-    }
   }
 
   storageOptionChanged(ephemeral: boolean): void {
@@ -230,7 +167,6 @@ export class VolumeComponent implements OnInit, OnDestroy {
     } else {
       // Also set the selected volume
       this.volume.controls.name.setValue(this.currentVolName);
-      this.updateVolInputFields();
     }
   }
 }
