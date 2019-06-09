@@ -82,7 +82,7 @@ spawnerFormDefaults:
       # {empty}: empty string ""
       class:
         value: '{none}'
-    readOnly: true
+    readOnly: false
   dataVolumes:
     # List of additional Data Volumes to be attached to the user's Notebook
     value: []

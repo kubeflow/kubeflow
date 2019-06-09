@@ -8,7 +8,7 @@ metadata:
 spec:
   template:
     spec:
-      serviceAccountName: jupyter-notebook
+      serviceAccountName: {serviceAccount}
       containers:
         - name: {name}
           image: ""

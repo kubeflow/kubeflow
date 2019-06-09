@@ -8,7 +8,7 @@ from . import api
 
 CONFIGS = [
     "/etc/config/spawner_ui_config.yaml",
-    "./kubeflow_jupyter/common/spawner_ui_config.yaml"
+    "./kubeflow_jupyter/common/yaml/spawner_ui_config.yaml"
 ]
 
 
