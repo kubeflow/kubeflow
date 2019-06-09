@@ -80,6 +80,9 @@ func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
 	} else if kfDef.Spec.Platform != "" {
 		overlays = append(overlays, config.NameValue{Name: "overlay", Value: kfDef.Spec.Platform})
 	}
+	if kfDef.Spec.EnableApplications {
+		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "application"})
+	}
 	compPath := strings.Split(kftypes.DefaultConfigDir, "/")[1]
 	resMap, resMapErr := kustomize.GenerateKustomizationFile(kfDef,
 		path.Dir(configPath), compPath, overlays)
@@ -240,6 +243,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	version := options[string(kftypes.VERSION)].(string)
 	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
 	useIstio := options[string(kftypes.USE_ISTIO)].(bool)
+	enableApplications := options[string(kftypes.ENABLE_APPLICATIONS)].(bool)
 	namespace := options[string(kftypes.NAMESPACE)].(string)
 	project := options[string(kftypes.PROJECT)].(string)
 	cacheDir := ""
@@ -272,6 +276,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			PackageManager: packageManager,
 			UseBasicAuth: useBasicAuth,
 			UseIstio: useIstio,
+			EnableApplications: enableApplications,
 		},
 	}
 	configFileBuffer, configFileErr := getConfigFromCache(cacheDir, kfDef)
@@ -299,6 +304,8 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	kfDef.Spec.UseBasicAuth = useBasicAuth
 	kfDef.Spec.UseIstio = useIstio
 	kfDef.Spec.PackageManager = packageManager
+	kfDef.Spec.EnableApplications = enableApplications
+
 	pApp := GetKfApp(kfDef)
 	return pApp, nil
 }
