@@ -763,13 +763,9 @@ func MergeKustomization(compDir string, targetDir string, kfDef *kfdefsv2.KfDef,
 		//allow replacement
 		parent.CommonAnnotations[k] = v
 		kustomizationMaps[commonAnnotationsMap][k] = true
-<<<<<<< HEAD
 	}
-
 	if child.GeneratorOptions != nil && parent.GeneratorOptions == nil {
 		parent.GeneratorOptions = child.GeneratorOptions
-=======
->>>>>>> 2ad1777c... update to overlay logic
 	}
 	for _, value := range child.Resources {
 		resourceAbsoluteFile := filepath.Join(targetDir, string(value))
