@@ -33,7 +33,7 @@ def load_param_yaml(f, **kwargs):
         with open(f, "r") as f:
             c = f.read().format(**kwargs)
     except IOError:
-        logger.info("Error opening: ", f)
+        logger.info("Error opening: {}".format(f))
         return None
 
     try:
@@ -44,7 +44,7 @@ def load_param_yaml(f, **kwargs):
             # YAML exists and is not empty
             return yaml.safe_load(c)
     except yaml.YAMLError as e:
-        logger.warning("Couldn't load yaml: ", e)
+        logger.warning("Couldn't load yaml: {}".format(e))
         return None
 
 
@@ -124,7 +124,33 @@ def handle_storage_class(vol):
         return vol['class']
 
 
+# Volume handling functions
+def volume_from_config(config_vol, notebook):
+    '''
+    Create a Volume Dict from the config.yaml. This dict has the same fields as
+    a Volume returned from the frontend
+    '''
+    vol_name = config_vol["name"]["value"].replace(
+        "{notebook-name}",
+        notebook["name"]
+    )
+    vol_class = handle_storage_class(config_vol["class"]["value"])
+
+    return {
+        "name": vol_name,
+        "type": config_vol["type"]["value"],
+        "size": config_vol["size"]["value"],
+        "mode": config_vol["accessModes"]["value"],
+        "path": config_vol["mountPath"]["value"],
+        "class": vol_class,
+        "extraFields": config_vol.get("extra", {}),
+    }
+
+
 def pvc_from_dict(vol, namespace):
+    if vol is None:
+        return None
+
     return client.V1PersistentVolumeClaim(
         metadata=client.V1ObjectMeta(
             name=vol["name"],
@@ -142,6 +168,54 @@ def pvc_from_dict(vol, namespace):
     )
 
 
+def get_workspace_vol(body, defaults):
+    '''
+    Checks the config and the form values and returns a Volume Dict for the
+    workspace. If the workspace is readOnly, then the value from the config
+    will be used instead. The Volume Dict has the same format as the Volume
+    interface of the frontend.
+    '''
+    default_ws = volume_from_config(defaults["workspaceVolume"]["value"], body)
+    form_ws = body.get("workspace", None)
+
+    if defaults["workspaceVolume"].get("readOnly", False):
+        ws = default_ws
+        logger.info("Using the default Workspace Volume: {}".format(ws))
+    elif form_ws is not None:
+        ws = form_ws
+        logger.info("Using form's Workspace Volume: {}".format(ws))
+    else:
+        ws = default_ws
+        logger.info("Using the default Workspace Volume: {}".format(ws))
+
+    return ws
+
+
+def get_data_vols(body, defaults):
+    '''
+    Checks the config and the form values and returns a list of Volume
+    Dictionaries for the Notebook's Data Volumes. If the Data Volumes are
+    readOnly, then the value from the config will be used instead. The Volume
+    Dict has the same format as the Volume interface of the frontend.
+    '''
+    default_vols = [volume_from_config(vol["value"], body)
+                    for vol in defaults["dataVolumes"]["value"]]
+    form_vols = body.get("datavols", [])
+
+    if defaults["dataVolumes"].get("readOnly", False):
+        vols = default_vols
+        logger.info("Using the default Data Volumes: {}".format(vols))
+    elif "datavols" in body:
+        vols = form_vols
+        logger.info("Using the form's Data Volumes: {}".format(vols))
+    else:
+        vols = default_vols
+        logger.info("Using the default Data Volumes: {}".format(vols))
+
+    return vols
+
+
+# Functions for transforming the data from k8s api
 def process_pvc(rsrc):
     # VAR: change this function according to the main resource
     res = {
@@ -209,44 +283,73 @@ def process_status(rsrc):
 
 # Notebook YAML processing
 def set_notebook_image(notebook, body, defaults):
-    if "image" not in body:
+    '''
+    If the image is set to readOnly, use only the value from the config
+    '''
+    if defaults["image"].get("readOnly", False):
         image = defaults["image"]["value"]
-    elif "customImageCheck" in body and body["customImageCheck"]:
+        logger.info("Using default Image: " + image)
+    elif body.get("customImageCheck", False):
         image = body["customImage"]
-    else:
+        logger.info("Using form's custom Image: " + image)
+    elif "image" in body:
         image = body["image"]
+        logger.info("Using form's Image: " + image)
+    else:
+        image = defaults["image"]["value"]
+        logger.info("Using default Image: " + image)
 
     notebook["spec"]["template"]["spec"]["containers"][0]["image"] = image
 
 
-def set_notebook_specs(notebook, body, defaults):
+def set_notebook_cpu(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
 
-    # If cpu/memory was not provided, use the default values
-    if "cpu" not in body:
+    if defaults["cpu"].get("readOnly", False):
         cpu = defaults["cpu"]["value"]
-    else:
+        logger.info("Using default CPU: " + cpu)
+    elif body.get("cpu", ""):
         cpu = body["cpu"]
-
-    if "memory" not in body:
-        memory = defaults["memory"]["value"]
+        logger.info("Using form's CPU: " + cpu)
     else:
+        cpu = defaults["cpu"]["value"]
+        logger.info("Using default CPU: " + cpu)
+
+    container["resources"]["requests"]["cpu"] = cpu
+
+
+def set_notebook_memory(notebook, body, defaults):
+    container = notebook["spec"]["template"]["spec"]["containers"][0]
+
+    if defaults["memory"].get("readOnly", False):
+        memory = defaults["memory"]["value"]
+        logger.info("Using default Memory: " + memory)
+    elif body.get("memory", ""):
         memory = body["memory"]
+        logger.info("Using form's Memory: " + memory)
+    else:
+        memory = defaults["memory"]["value"]
+        logger.info("Using default Memory: " + memory)
 
-    container["resources"] = {
-        "requests": {
-            "cpu": cpu,
-            "memory": memory
-        }
-    }
+    container["resources"]["requests"]["memory"] = memory
 
 
-def set_notebook_extra_resources(notebook, body):
+def set_notebook_extra_resources(notebook, body, defaults):
     r = {"success": True, "log": ""}
     container = notebook["spec"]["template"]["spec"]["containers"][0]
 
+    if defaults["extraResources"].get("readOnly", False):
+        resources_str = defaults["extraResources"]["value"]
+        logger.info("Using the default Extra Resources: " + resources_str)
+    elif body.get("extra", ""):
+        resources_str = body["extra"]
+        logger.info("Using the form's Extra Resources: " + resources_str)
+    else:
+        resources_str = defaults["extraResources"]["value"]
+        logger.info("Using the default Extra Resources: " + resources_str)
+
     try:
-        extra = json.loads(body["extra"])
+        extra = json.loads(resources_str)
     except Exception as e:
         r["success"] = False
         r["log"] = api.parse_error(e)
@@ -254,6 +357,34 @@ def set_notebook_extra_resources(notebook, body):
 
     container["resources"]["limits"] = extra
     return r
+
+
+def set_notebook_shm(notebook, body, defaults):
+    if defaults["shm"].get("readOnly", False):
+        if not defaults["shm"]["value"]:
+            return
+    elif "shm" in body:
+        if not body["shm"]:
+            return
+    else:
+        if not defaults["shm"]["value"]:
+            return
+
+    notebook_spec = notebook["spec"]['template']['spec']
+    notebook_cont = notebook["spec"]['template']['spec']['containers'][0]
+
+    shm_volume = {
+        "name": "dshm",
+        "emptyDir": {
+            "medium": "Memory"
+        }
+    }
+    notebook_spec['volumes'].append(shm_volume)
+    shm_mnt = {
+        "mountPath": "/dev/shm",
+        "name": "dshm"
+    }
+    notebook_cont["volumeMounts"].append(shm_mnt)
 
 
 def add_notebook_volume(notebook, vol_name, claim, mnt_path):
@@ -274,33 +405,6 @@ def add_notebook_volume(notebook, vol_name, claim, mnt_path):
         "name": vol_name
     }
     container["volumeMounts"].append(mnt)
-
-
-def set_notebook_shm(notebook, body, defaults):
-    # If shm wasn't provided, act based on the defaults
-    if "shm" not in body:
-        if not defaults["shm"]["value"]:
-            # shm set to false
-            return
-
-    if not body["shm"]:
-        return
-
-    notebook_spec = notebook["spec"]['template']['spec']
-    notebook_cont = notebook["spec"]['template']['spec']['containers'][0]
-
-    shm_volume = {
-        "name": "dshm",
-        "emptyDir": {
-            "medium": "Memory"
-        }
-    }
-    notebook_spec['volumes'].append(shm_volume)
-    shm_mnt = {
-        "mountPath": "/dev/shm",
-        "name": "dshm"
-    }
-    notebook_cont["volumeMounts"].append(shm_mnt)
 
 
 def add_notebook_volume_secret(nb, secret, secret_name, mnt_path, mode):

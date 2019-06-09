@@ -9,7 +9,6 @@ import { Subscription } from "rxjs";
   styleUrls: ["./volume.component.scss"]
 })
 export class VolumeComponent implements OnInit, OnDestroy {
-  private _volume: FormGroup;
   private _notebookName = "";
   private _defaultStorageClass: boolean;
 
@@ -102,11 +101,7 @@ export class VolumeComponent implements OnInit, OnDestroy {
   // ----- Component Functions -----
   constructor() {}
 
-  initSubscriptions() {
-    // Re initialize the subscriptions var
-    this.subscriptions.unsubscribe();
-    this.subscriptions = new Subscription();
-
+  ngOnInit() {
     // type
     this.subscriptions.add(
       this.volume.get("type").valueChanges.subscribe((type: string) => {
@@ -122,10 +117,6 @@ export class VolumeComponent implements OnInit, OnDestroy {
         this.updateVolInputFields();
       })
     );
-  }
-
-  ngOnInit() {
-    this.initSubscriptions();
   }
 
   ngOnDestroy() {
@@ -158,9 +149,7 @@ export class VolumeComponent implements OnInit, OnDestroy {
 
   pvcsChanged(pvcs: Volume[]) {
     this.existingPVCs.clear();
-    for (let pvc of pvcs) {
-      this.existingPVCs.add(pvc.name);
-    }
+    pvcs.map(pvc => this.existingPVCs.add(pvc.name));
 
     if (!this.existingPVCs.has(this.currentVolName)) {
       this.updateVolInputFields();
