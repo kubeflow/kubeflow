@@ -15,6 +15,10 @@ $my-theme: mat-light-theme($my-theme-primary, $my-theme-accent, $my-theme-warn);
 
 @include angular-material-theme($my-theme);
 
+// Use the material icons offline
+$material-icons-font-path: "~material-icons/iconfont/";
+@import "~material-icons/iconfont/material-icons.scss";
+
 .primary-color {
   color: mat-color($my-theme-primary) !important;
 }
