@@ -3,7 +3,7 @@
 - allow Users to create, connect to and delete Notebooks by specifying custom resources
 
 ## Design
-The new Jupyter UI uses [Python Flask](http://flask.pocoo.org/) for the backend and HTML/jQuery/Material Design Lite for the frontend. A privileged `ServiceAccount` along with proper `RBAC` resources are associated with the Pod hosting the Flask server. In this manner, the `jupyter-web-app` Pod is allowed to manage Notebook CRs and PVCs in the `kubeflow` namespace.
+The new Jupyter UI uses [Python Flask](http://flask.pocoo.org/) for the backend and Angular for the frontend. A privileged `ServiceAccount` along with proper `RBAC` resources are associated with the Pod hosting the Flask server. In this manner, the `jupyter-web-app` Pod is allowed to manage Notebook CRs and PVCs in the `kubeflow` namespace.
 
 Please note that as soon as the Profile Controller supports automatic creation of read/write ServiceAccounts for each `Profile`, the new Jupyter UI will be updated to use the respective JWTs and perform all K8s API requests via [K8s Impersonation](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation). This will ultimately provide isolation of resources between Users and avoid any possible conflicts. For more information about User authentication and e2e workflow see the [Jupyter design doc](http://bit.ly/kf_jupyter_design_doc)
 

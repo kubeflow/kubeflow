@@ -18,7 +18,8 @@ def post_notebook(namespace):
 
     notebook = utils.load_param_yaml(NOTEBOOK,
                                      name=body['name'],
-                                     namespace=namespace)
+                                     namespace=namespace,
+                                     serviceAccount="default-editor")
 
     utils.set_notebook_image(notebook, body, defaults)
     utils.set_notebook_cpu(notebook, body, defaults)
