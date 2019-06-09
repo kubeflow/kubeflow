@@ -21,11 +21,12 @@ def post_notebook(namespace):
                                      namespace=namespace)
 
     utils.set_notebook_image(notebook, body, defaults)
-    utils.set_notebook_specs(notebook, body, defaults)
+    utils.set_notebook_cpu(notebook, body, defaults)
+    utils.set_notebook_memory(notebook, body, defaults)
 
     # Workspace Volume
-    workspace_vol = body["workspace"]
-    if not body["noWorkspace"] and workspace_vol["type"] == "New":
+    workspace_vol = utils.get_workspace_vol(body, defaults)
+    if not body.get("noWorkspace", False) and workspace_vol["type"] == "New":
         # Create the PVC
         ws_pvc = utils.pvc_from_dict(workspace_vol, namespace)
 
@@ -34,7 +35,7 @@ def post_notebook(namespace):
         if not r["success"]:
             return jsonify(r)
 
-    if not body["noWorkspace"]:
+    if not body.get("noWorkspace", False) and workspace_vol["type"] != "None":
         utils.add_notebook_volume(
             notebook,
             workspace_vol["name"],
@@ -42,8 +43,8 @@ def post_notebook(namespace):
             "/home/jovyan",
         )
 
-    # Add th Data Volumes
-    for vol in body["datavols"]:
+    # Add the Data Volumes
+    for vol in utils.get_data_vols(body, defaults):
         if vol["type"] == "New":
             # Create the PVC
             dtvol_pvc = utils.pvc_from_dict(vol, namespace)
@@ -61,7 +62,7 @@ def post_notebook(namespace):
         )
 
     # Extra Resources
-    r = utils.set_notebook_extra_resources(notebook, body)
+    r = utils.set_notebook_extra_resources(notebook, body, defaults)
     if not r["success"]:
         return jsonify(r)
 

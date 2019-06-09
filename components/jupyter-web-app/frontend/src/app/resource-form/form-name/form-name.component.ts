@@ -17,7 +17,7 @@ import { first } from "rxjs/operators";
 })
 export class FormNameComponent implements OnInit, OnDestroy {
   subscriptions = new Subscription();
-  notebooks: Set<string> = new Set();
+  notebooks: Set<string> = new Set<string>();
   @Input() parentForm: FormGroup;
 
   constructor(private k8s: KubernetesService, private ns: NamespaceService) {}
@@ -32,10 +32,8 @@ export class FormNameComponent implements OnInit, OnDestroy {
     // Use these names to check if the input name exists
     const nsSub = this.ns.getSelectedNamespace().subscribe(ns => {
       this.k8s.getResource(ns).subscribe(notebooks => {
-        this.notebooks = new Set();
-        notebooks.forEach(nb => {
-          this.notebooks.add(nb.name);
-        });
+        this.notebooks.clear();
+        notebooks.map(nb => this.notebooks.add(nb.name));
       });
     });
 
