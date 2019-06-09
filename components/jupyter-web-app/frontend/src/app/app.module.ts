@@ -6,8 +6,14 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { fas } from "@fortawesome/free-solid-svg-icons";
-import { fab } from "@fortawesome/free-brands-svg-icons";
+import {
+  faCogs,
+  faHdd,
+  faBook,
+  faMicrochip,
+  faLaptopCode
+} from "@fortawesome/free-solid-svg-icons";
+import { faDocker } from "@fortawesome/free-brands-svg-icons";
 
 import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app.component";
@@ -38,7 +44,7 @@ import { RokJupyterLabSelectorComponent } from "./uis/rok/rok-resource-form/rok-
 import { RokVolumeComponent } from "./uis/rok/rok-resource-form/rok-volume/rok-volume.component";
 import { RokFormWorkspaceVolumeComponent } from "./uis/rok/rok-resource-form/rok-form-workspace-volume/rok-form-workspace-volume.component";
 import { RokFormDataVolumesComponent } from "./uis/rok/rok-resource-form/rok-form-data-volumes/rok-form-data-volumes.component";
-import { RokErrorMsgComponent } from './uis/rok/rok-error-msg/rok-error-msg.component';
+import { RokErrorMsgComponent } from "./uis/rok/rok-error-msg/rok-error-msg.component";
 
 @NgModule({
   declarations: [
@@ -82,6 +88,6 @@ import { RokErrorMsgComponent } from './uis/rok/rok-error-msg/rok-error-msg.comp
 })
 export class AppModule {
   constructor() {
-    library.add(fab, fas);
+    library.add(faCogs, faHdd, faBook, faMicrochip, faLaptopCode, faDocker);
   }
 }
