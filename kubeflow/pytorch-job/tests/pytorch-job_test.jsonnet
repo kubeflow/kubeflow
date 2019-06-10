@@ -104,7 +104,8 @@ local testCases = [
     expected: expectedCrd,
   },
   {
-    actual: pyjob.parts(params, env).pytorchJobDeploy(params.image, params.deploymentScope, params.deploymentNamespace),
+    actual: pyjob.parts(params, env).pytorchJobDeploy(params.image, params.deploymentScope,
+      params.deploymentNamespace, params.monitoringPort),
     expected: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",

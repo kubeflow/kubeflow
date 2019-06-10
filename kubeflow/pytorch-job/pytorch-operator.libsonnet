@@ -5,7 +5,8 @@
     $.parts(params, env).serviceAccount,
     $.parts(params, env).operatorRole(params.deploymentScope, params.deploymentNamespace),
     $.parts(params, env).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
-    $.parts(params, env).pytorchJobDeploy(params.pytorchJobImage, params.deploymentScope, params.deploymentNamespace),
+    $.parts(params, env).pytorchJobDeploy(params.pytorchJobImage, params.deploymentScope,
+      params.deploymentNamespace, params.monitoringPort),
     $.parts(params, env).pytorchJobService(params.monitoringPort),
   ],
 
@@ -88,7 +89,7 @@
       },
     },
 
-    pytorchJobDeploy(image, deploymentScope, deploymentNamespace): {
+    pytorchJobDeploy(image, deploymentScope, deploymentNamespace, monitoringPort): {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -111,6 +112,9 @@
                   "--alsologtostderr",
                   "-v=1",
                   if deploymentScope == "namespace" then ("--namespace=" + deploymentNamespace),
+                  if monitoringPort != null then (
+                    "--monitoring-port=" + monitoringPort
+                  ),
                 ]),
                 env: std.prune([
                   {
