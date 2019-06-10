@@ -3,10 +3,10 @@
   <p>{{ data.message }}</p>
 </div>
 <div mat-dialog-actions>
-  <button mat-button [mat-dialog-close]="data.no" cdkFocusInitial>
+  <button mat-button [mat-dialog-close]="data.no" class="no" cdkFocusInitial>
     {{ data.no.toUpperCase() }}
   </button>
-  <button mat-button [mat-dialog-close]="data.yes">
+  <button mat-button [mat-dialog-close]="data.yes" class="yes">
     {{ data.yes.toUpperCase() }}
   </button>
 </div>

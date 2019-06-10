@@ -12,7 +12,7 @@ import { SnackBarService } from "src/app/services/snack-bar.service";
     "../../../../resource-form/resource-form.component.scss"
   ]
 })
-export class RokFormWorkspaceVolumeComponent implements OnInit {
+export class RokFormWorkspaceVolumeComponent implements OnInit, OnDestroy {
   subscriptions = new Subscription();
 
   @Input() parentForm: FormGroup;

@@ -77,10 +77,10 @@ spawnerFormDefaults:
         ## The Access Mode of the Workspace Volume
         ## Supported values: 'ReadWriteOnce', 'ReadWriteMany', 'ReadOnlyMany'
         value: ReadWriteOnce
-      # The StrageClass the PVC will use if type New. Special values are:
-      # {none}: default StorageClass
-      # {empty}: empty string ""
       class:
+        # The StrageClass the PVC will use if type is New. Special values are:
+        # {none}: default StorageClass
+        # {empty}: empty string ""
         value: '{none}'
     readOnly: false
   dataVolumes:

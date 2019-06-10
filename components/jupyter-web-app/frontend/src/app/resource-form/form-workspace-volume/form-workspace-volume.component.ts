@@ -12,7 +12,7 @@ import { SnackBarService } from "src/app/services/snack-bar.service";
     "../resource-form.component.scss"
   ]
 })
-export class FormWorkspaceVolumeComponent implements OnInit {
+export class FormWorkspaceVolumeComponent implements OnInit, OnDestroy {
   subscriptions = new Subscription();
   private _readonly = false;
 

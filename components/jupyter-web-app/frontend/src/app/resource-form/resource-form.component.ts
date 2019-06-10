@@ -3,9 +3,9 @@ import { FormGroup, FormBuilder, Validators } from "@angular/forms";
 import { NamespaceService } from "../services/namespace.service";
 import { KubernetesService } from "../services/kubernetes.service";
 import { Router } from "@angular/router";
-import { catchError, map } from "rxjs/operators";
-import { Subscription, throwError, of } from "rxjs";
-import { Volume, Config, ConfigVolume, SnackType } from "../utils/types";
+import { catchError } from "rxjs/operators";
+import { Subscription, of } from "rxjs";
+import { Volume, Config, SnackType } from "../utils/types";
 import { SnackBarService } from "../services/snack-bar.service";
 import { getFormDefaults, initFormControls } from "../utils/common";
 
@@ -90,12 +90,10 @@ export class ResourceFormComponent implements OnInit, OnDestroy {
   }
 
   public onSubmit() {
-    // console.log(this.formCtrl.value, this.formCtrl.valid);
     this.k8s
       .postResource(this.formCtrl.value)
       .pipe(catchError(_ => of("failed")))
       .subscribe(resp => {
-        console.log(resp);
         if (resp === "posted") {
           this.router.navigate(["/"]);
         } else if (resp === "failed") {

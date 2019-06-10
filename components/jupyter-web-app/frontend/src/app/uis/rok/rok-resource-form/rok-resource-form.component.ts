@@ -15,8 +15,6 @@ import { NamespaceService } from "src/app/services/namespace.service";
 import { KubernetesService } from "src/app/services/kubernetes.service";
 import { Router } from "@angular/router";
 import { getFormDefaults, initFormControls } from "src/app/utils/common";
-import { createRokVolumeControl, addRokDataVolume } from "../utils/common";
-import { config } from "@fortawesome/fontawesome-svg-core";
 
 @Component({
   selector: "app-rok-resource-form",
@@ -137,7 +135,6 @@ export class RokResourceFormComponent implements OnInit {
       .postResource(this.formCtrl.value)
       .pipe(catchError(_ => of("failed")))
       .subscribe(resp => {
-        console.log(resp);
         if (resp === "posted") {
           this.router.navigate(["/"]);
         } else if (resp === "failed") {

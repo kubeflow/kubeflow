@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from "@angular/core";
-import { FormGroup, FormArray, Validators, FormBuilder } from "@angular/forms";
+import { FormGroup, FormArray, FormBuilder } from "@angular/forms";
 import { addRokDataVolume } from "src/app/uis/rok/utils/common";
 import { Volume } from "src/app/utils/types";
 

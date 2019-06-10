@@ -8,7 +8,6 @@ import {
 import { KubernetesService } from "src/app/services/kubernetes.service";
 import { NamespaceService } from "src/app/services/namespace.service";
 import { Subscription } from "rxjs";
-import { first } from "rxjs/operators";
 
 @Component({
   selector: "app-form-name",

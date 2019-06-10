@@ -8,8 +8,8 @@ import {
 import { environment } from "src/environments/environment";
 import { Resp, SnackType, emptyVolume, Volume } from "src/app/utils/types";
 import { SnackBarService } from "src/app/services/snack-bar.service";
-import { ReplaySubject, Observable, throwError } from "rxjs";
-import { first, tap, map, catchError } from "rxjs/operators";
+import { Observable, throwError } from "rxjs";
+import { tap, map, catchError } from "rxjs/operators";
 import {
   RokToken,
   RokResponse,
@@ -150,7 +150,7 @@ export class RokService {
   private handleError(error: HttpErrorResponse | RokResponse | Resp) {
     // The backend returned an unsuccessful response code.
     // The response body may contain clues as to what went wrong,
-    console.log(error);
+    console.error(error);
     if (error instanceof HttpErrorResponse) {
       this.snackBar.show(
         `${error.status}: There was an error trying to connect ` +
