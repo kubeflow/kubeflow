@@ -762,6 +762,7 @@ func MergeKustomization(compDir string, targetDir string, kfDef *kfdefsv2.KfDef,
 		parent.CommonAnnotations[k] = v
 		kustomizationMaps[commonAnnotationsMap][k] = true
 	}
+
 	if child.GeneratorOptions != nil && parent.GeneratorOptions == nil {
 		parent.GeneratorOptions = child.GeneratorOptions
 	}
