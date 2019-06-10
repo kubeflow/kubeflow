@@ -128,6 +128,7 @@ local testCases = [
                   "/pytorch-operator.v1",
                   "--alsologtostderr",
                   "-v=1",
+                  "--monitoring-port=8443",
                 ],
                 env: [
                   {
