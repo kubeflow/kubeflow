@@ -51,7 +51,6 @@ export class RokService {
         tap(resp => this.handleBackendError(resp.body)),
         catchError(error => this.handleError(error)),
         map(resp => {
-          console.log("yo");
           const headers = resp.headers;
           const notebook: JupyterLab = emptyJupyterLab();
 
@@ -71,7 +70,7 @@ export class RokService {
           );
           let obj = this.getHeader(headers, "X-Object-Group-Member-0-Object");
           notebook.wsvolume.extraFields = {
-            "rokUrl": baseUrl + obj + "?version=" + version
+            rokUrl: baseUrl + obj + "?version=" + version
           };
 
           // Data Volumes
@@ -91,7 +90,7 @@ export class RokService {
 
             const vol = emptyVolume();
             vol.extraFields = {
-              "rokUrl": baseUrl + obj + "?version=" + version
+              rokUrl: baseUrl + obj + "?version=" + version
             };
             notebook.dtvolumes.push(vol);
           }
