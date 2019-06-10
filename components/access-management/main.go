@@ -23,19 +23,23 @@ import (
 
 const USERIDHEADER = "userid-header"
 const USERIDPREFIX = "userid-prefix"
+const CLUSTERADMIN = "cluster-admin"
+
 
 func main() {
 	log.Printf("Server started")
 	var userIdHeader string
 	var userIdPrefix string
+	var clusterAdmin string
 	flag.StringVar(&userIdHeader, USERIDHEADER, "x-goog-authenticated-user-email", "Key of request header containing user id")
 	flag.StringVar(&userIdPrefix, USERIDPREFIX, "accounts.google.com:", "Request header user id common prefix")
+	flag.StringVar(&clusterAdmin, CLUSTERADMIN, "kunming@google.com", "cluster admin")
 	flag.Parse()
 
 	profile.AddToScheme(scheme.Scheme)
 	istio.AddToScheme(scheme.Scheme)
 
-	profileClient, err := kfam.NewKfamClient(userIdHeader, userIdPrefix)
+	profileClient, err := kfam.NewKfamClient(userIdHeader, userIdPrefix, clusterAdmin)
 	if err != nil {
 		log.Print(err)
 		panic(err)

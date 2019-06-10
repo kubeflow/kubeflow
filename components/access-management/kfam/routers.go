@@ -71,6 +71,12 @@ func NewRouter(kfamV1Alpha1 KfamV1Alpha1Interface) *mux.Router {
 			"/kfam/v1/bindings",
 			kfamV1Alpha1.ReadBinding,
 		},
+		Route{
+			"QueryClusterAdmin",
+			strings.ToUpper("Get"),
+			"/kfam/v1/role/clusteradmin",
+			kfamV1Alpha1.QueryClusterAdmin,
+		},
 	}
 	for _, route := range routes {
 		var handler http.Handler

@@ -26,6 +26,7 @@ import (
 	"net/url"
 	"path"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	"strconv"
 )
 
 type KfamV1Alpha1Interface interface {
@@ -34,14 +35,16 @@ type KfamV1Alpha1Interface interface {
 	DeleteBinding(w http.ResponseWriter, r *http.Request)
 	DeleteProfile(w http.ResponseWriter, r *http.Request)
 	ReadBinding(w http.ResponseWriter, r *http.Request)
+	QueryClusterAdmin(w http.ResponseWriter, r *http.Request)
 }
 
 type KfamV1Alpha1Client struct {
 	profileClient ProfileInterface
 	bindingClient BindingInterface
+	clusterAdmin []string
 }
 
-func NewKfamClient(userIdHeader string, userIdPrefix string) (*KfamV1Alpha1Client, error) {
+func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string) (*KfamV1Alpha1Client, error) {
 	profileRESTClient, err := getRESTClient(profileRegister.GroupName, profileRegister.GroupVersion)
 	if err != nil {
 		return nil, err
@@ -68,6 +71,7 @@ func NewKfamClient(userIdHeader string, userIdPrefix string) (*KfamV1Alpha1Clien
 			userIdHeader:	userIdHeader,
 			userIdPrefix:	userIdPrefix,
 		},
+		clusterAdmin: []string{clusterAdmin},
 	}, nil
 }
 
@@ -183,4 +187,24 @@ func (c *KfamV1Alpha1Client) ReadBinding(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte(err.Error()))
 	}
+}
+
+func (c *KfamV1Alpha1Client) QueryClusterAdmin(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	queries, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	queryUser := queries.Get("user")
+	for _, val := range c.clusterAdmin {
+		if val == queryUser {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(strconv.FormatBool(true)))
+			return
+		}
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(strconv.FormatBool(false)))
 }
