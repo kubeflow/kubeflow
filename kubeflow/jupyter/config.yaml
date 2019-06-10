@@ -1,21 +1,18 @@
-# Configuration file for the default JupyterHub Spawner UI
-# Each key corresponds to a JupyterHub Spawner UI option
-# If a key is missing, the respective Spawner UI option will be left untouched
-#
-# Each Spawner UI option is configured by two keys: `value` and `readOnly`
+# Configuration file for the Jupyter UI.
+# 
+# Each Jupyter UI option is configured by two keys: `value` and `readOnly`
 # - The `value` key contains the default value
 # - The `readOnly` key determines if the option will be available to users
-#
+# 
 # If the 'readOnly' key is present and set to 'true', the respective option
-# will be disabled for users and only set by the admin
+# will be disabled for users and only set by the admin. Also if a Notebook is
+# POSTED to the API, then the value from this config will be used for that field
+# 
 # If the 'readOnly' key is missing (defaults to 'false'), the respective option
 # will be available for users
-#
-# Please note that some values (e.g. {username}) may be templated
-# and expanded according to KubeSpawner's rules
-#
-# For more information regarding JupyterHub KubeSpawner and its configuration:
-# https://jupyterhub-kubespawner.readthedocs.io/en/latest/spawner.html
+# 
+# Note that some values can be templated. Such values are the names of the 
+# Volumes as well as their StorageClass
 
 spawnerFormDefaults:
   image:
@@ -54,6 +51,7 @@ spawnerFormDefaults:
   memory:
     # Memory for user's Notebook
     value: 1.0Gi
+    # readOnly: false
   workspaceVolume:
     # Workspace Volume to be attached to user's Notebook
     # Each Workspace Volume is declared with the following attributes:
@@ -65,20 +63,26 @@ spawnerFormDefaults:
         value: New
       name:
         # The Name of the Workspace Volume
-        # Note that this is a templated value
-        # value: {username}-workspace
-        value: {username}-workspace
+        # Note that this is a templated value. Special values:
+        # {notebook-name}: Replaced with the name of the Notebook. The frontend
+        #                  will replace this value as the user types the name
+        value: 'workspace-{notebook-name}'
       size:
-        # The Size of the Workspace Volume (in Gi)
-        value: '10'
+        ## The Size of the Workspace Volume (in Gi)
+        value: '11Gi'
       mountPath:
         # The Path that the Workspace Volume will be mounted
-        readOnly: true
         value: /home/jovyan
       accessModes:
-        # The Access Mode of the Workspace Volume
-        # Supported values: 'ReadWriteOnce', 'ReadWriteMany', 'ReadOnlyMany'
+        ## The Access Mode of the Workspace Volume
+        ## Supported values: 'ReadWriteOnce', 'ReadWriteMany', 'ReadOnlyMany'
         value: ReadWriteOnce
+      class:
+        # The StrageClass the PVC will use if type is New. Special values are:
+        # {none}: default StorageClass
+        # {empty}: empty string ""
+        value: '{none}'
+    readOnly: false
   dataVolumes:
     # List of additional Data Volumes to be attached to the user's Notebook
     value: []
@@ -86,33 +90,44 @@ spawnerFormDefaults:
     # Type, Name, Size, MountPath and Access Mode
     #
     # For example, a list with 2 Data Volumes:
-    #value:
-    #  - value:
-    #      type:
-    #        value: New
-    #      name:
-    #        value: {username}-vol-1
-    #      size:
-    #        value: '10'
-    #      mountPath:
-    #        value: /home/jovyan/{username}-vol-1
-    #      accessModes:
-    #        value: ReadWriteOnce
-    #  - value:
-    #      type:
-    #        value: New
-    #      name:
-    #        value: {username}-vol-2
-    #      size:
-    #        value: '5'
-    #      mountPath:
-    #        value: /home/jovyan/{username}-vol-2
-    #      accessModes:
-    #        value: ReadWriteOnce
-    #
+    # value:
+    #   - value:
+    #       type:
+    #         value: New
+    #       name:
+    #         value: '{notebook-name}-vol-1'
+    #       size:
+    #         value: '10Gi'
+    #       class:
+    #         value: standard
+    #       mountPath:
+    #         value: /home/jovyan/vol-1
+    #       accessModes:
+    #         value: ReadWriteOnce
+    #       class:
+    #         value: {none}
+    #   - value:
+    #       type:
+    #         value: New
+    #       name:
+    #         value: '{notebook-name}-vol-2'
+    #       size:
+    #         value: '15Gi'
+    #       class:
+    #         value: nfs-drive
+    #       mountPath:
+    #         value: /home/jovyan/vol-2
+    #       accessModes:
+    #         value: ReadWriteMany
+    #       class:
+    #         value: {none} 
     # Uncomment the following line to make the Data Volumes list readonly
-    #readOnly: true
+    readOnly: false
   extraResources:
     # Extra Resource Limits for user's Notebook
-    # Note that braces are escaped
-    value: "{{}}"
+    value: "{}"
+    readOnly: false
+  shm:
+    value: true
+    readOnly: false
+
