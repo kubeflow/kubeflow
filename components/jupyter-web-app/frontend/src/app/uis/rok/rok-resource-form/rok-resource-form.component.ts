@@ -8,13 +8,15 @@ import {
   FormGroup,
   FormBuilder,
   Validators,
-  FormControl
+  FormControl,
+  FormArray
 } from "@angular/forms";
 import { NamespaceService } from "src/app/services/namespace.service";
 import { KubernetesService } from "src/app/services/kubernetes.service";
 import { Router } from "@angular/router";
 import { getFormDefaults, initFormControls } from "src/app/utils/common";
 import { createRokVolumeControl, addRokDataVolume } from "../utils/common";
+import { config } from "@fortawesome/fontawesome-svg-core";
 
 @Component({
   selector: "app-rok-resource-form",
@@ -50,10 +52,10 @@ export class RokResourceFormComponent implements OnInit {
     // Add labUrl control
     this.formCtrl.addControl("labUrl", new FormControl("", []));
 
-    // Add the rok-url control
+    // Add the rokUrl control
     const ws: FormGroup = this.formCtrl.get("workspace") as FormGroup;
     ws.controls.extraFields = this.fb.group({
-      "rok-url": ["", [Validators.required]]
+      rokUrl: ["", [Validators.required]]
     });
 
     // Get the user's Rok Secret
@@ -116,20 +118,18 @@ export class RokResourceFormComponent implements OnInit {
     // that should be only run once
     initFormControls(this.formCtrl, this.config);
 
-    // Configure workspace control with rok-url
-    this.formCtrl.controls.workspace = createRokVolumeControl(
-      this.config.workspaceVolume.value
-    );
-    this.formCtrl
+    // Configure workspace control with rokUrl
+    const extraFields: FormGroup = this.formCtrl
       .get("workspace")
-      .get("path")
-      .disable();
+      .get("extraFields") as FormGroup;
+    extraFields.addControl("rokUrl", new FormControl("", []));
 
-    // Add the data volumes
-    this.config.dataVolumes.value.forEach(vol => {
-      // Create a new FormControl to append to the array
-      addRokDataVolume(this.formCtrl, vol.value);
-    });
+    // Add rok url control to the data volumes
+    const array = this.formCtrl.get("datavols") as FormArray;
+    for (let i = 0; i < this.config.dataVolumes.value.length; i++) {
+      const extra = array.at(i).get("extraFields") as FormGroup;
+      extra.addControl("rokUrl", new FormControl("", []));
+    }
   }
 
   public onSubmit() {

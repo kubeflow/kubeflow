@@ -51,6 +51,7 @@ export class RokService {
         tap(resp => this.handleBackendError(resp.body)),
         catchError(error => this.handleError(error)),
         map(resp => {
+          console.log("yo");
           const headers = resp.headers;
           const notebook: JupyterLab = emptyJupyterLab();
 
@@ -70,7 +71,7 @@ export class RokService {
           );
           let obj = this.getHeader(headers, "X-Object-Group-Member-0-Object");
           notebook.wsvolume.extraFields = {
-            "rok-url": baseUrl + obj + "?version=" + version
+            "rokUrl": baseUrl + obj + "?version=" + version
           };
 
           // Data Volumes
@@ -90,7 +91,7 @@ export class RokService {
 
             const vol = emptyVolume();
             vol.extraFields = {
-              "rok-url": baseUrl + obj + "?version=" + version
+              "rokUrl": baseUrl + obj + "?version=" + version
             };
             notebook.dtvolumes.push(vol);
           }
@@ -141,15 +142,16 @@ export class RokService {
   }
 
   // ---------------------------Error Handling----------------------------------
-  private handleBackendError(response: RokResponse) {
-    if (!response.success) {
+  private handleBackendError(response: RokResponse | Resp) {
+    if (response && !response.success) {
       throw response;
     }
   }
 
-  private handleError(error: HttpErrorResponse | RokResponse) {
+  private handleError(error: HttpErrorResponse | RokResponse | Resp) {
     // The backend returned an unsuccessful response code.
     // The response body may contain clues as to what went wrong,
+    console.log(error);
     if (error instanceof HttpErrorResponse) {
       this.snackBar.show(
         `${error.status}: There was an error trying to connect ` +

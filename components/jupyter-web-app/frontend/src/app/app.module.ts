@@ -11,7 +11,8 @@ import {
   faHdd,
   faBook,
   faMicrochip,
-  faLaptopCode
+  faLaptopCode,
+  faLink
 } from "@fortawesome/free-solid-svg-icons";
 import { faDocker } from "@fortawesome/free-brands-svg-icons";
 
@@ -88,6 +89,14 @@ import { RokErrorMsgComponent } from "./uis/rok/rok-error-msg/rok-error-msg.comp
 })
 export class AppModule {
   constructor() {
-    library.add(faCogs, faHdd, faBook, faMicrochip, faLaptopCode, faDocker);
+    library.add(
+      faCogs,
+      faHdd,
+      faBook,
+      faMicrochip,
+      faLaptopCode,
+      faDocker,
+      faLink
+    );
   }
 }

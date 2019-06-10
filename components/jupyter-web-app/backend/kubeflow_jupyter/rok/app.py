@@ -57,30 +57,32 @@ def get_token(namespace):
 @app.route("/api/namespaces/<namespace>/notebooks", methods=['POST'])
 def post_notebook(namespace):
     body = request.get_json()
-    logger.info('Got Notebook: ' + json.dumps(body))
+    defaults = utils.spawner_ui_config()
+    logger.info('Got Notebook: {}'.format(body))
 
     notebook = utils.load_param_yaml(NOTEBOOK,
                                      name=body['name'],
-                                     namespace=namespace)
+                                     namespace=namespace,
+                                     serviceAccount="default-editor")
 
     rok.attach_rok_token_secret(notebook)
-    utils.set_notebook_image(notebook, body)
-    utils.set_notebook_specs(notebook, body)
+    utils.set_notebook_image(notebook, body, defaults)
+    utils.set_notebook_cpu(notebook, body, defaults)
+    utils.set_notebook_memory(notebook, body, defaults)
 
     # Workspace Volume
-    workspace_vol = body["workspace"]
-    if not body["noWorkspace"]:
+    workspace_vol = utils.get_workspace_vol(body, defaults)
+    if not body.get("noWorkspace", False) and workspace_vol["type"] != "None":
         # Create the PVC
-        ws_pvc = rok.rok_pvc(workspace_vol, namespace)
+        ws_pvc = rok.rok_pvc_from_dict(workspace_vol, namespace)
 
         if workspace_vol["type"] == "Existing":
             rok.add_workspace_volume_annotations(ws_pvc, workspace_vol)
 
+        logger.info("Creating Workspace Volume: {}".format(ws_pvc.to_dict()))
         r = api.post_pvc(ws_pvc)
         if not r["success"]:
             return jsonify(r)
-
-        logger.info("Created Workspace Volume: {}".format(r['pvc'].to_dict()))
 
         utils.add_notebook_volume(
             notebook,
@@ -89,19 +91,18 @@ def post_notebook(namespace):
             "/home/jovyan",
         )
 
-    # Add th Data Volumes
-    for vol in body["datavols"]:
+    # Add the Data Volumes
+    for vol in utils.get_data_vols(body, defaults):
         # Create the PVC
-        dtvol_pvc = rok.rok_pvc(vol, namespace)
+        dtvol_pvc = rok.rok_pvc_from_dict(vol, namespace)
 
         if vol["type"] == "Existing":
             rok.add_data_volume_annotations(dtvol_pvc, vol)
 
+        logger.info("Creating Data Volume {}:".format(dtvol_pvc))
         r = api.post_pvc(dtvol_pvc)
         if not r["success"]:
             return jsonify(r)
-
-        logger.info("Created Data Volume: {}".format(dtvol_pvc))
 
         utils.add_notebook_volume(
             notebook,
@@ -111,11 +112,14 @@ def post_notebook(namespace):
         )
 
     # Extra Resources
-    r = utils.set_notebook_extra_resources(notebook, body)
+    r = utils.set_notebook_extra_resources(notebook, body, defaults)
     if not r["success"]:
         return jsonify(r)
 
-    logger.info("Creating Notebook:", notebook)
+    # shm
+    utils.set_notebook_shm(notebook, body, defaults)
+
+    logger.info("Creating Notebook: {}".format(notebook))
     return jsonify(api.post_notebook(notebook))
 
 

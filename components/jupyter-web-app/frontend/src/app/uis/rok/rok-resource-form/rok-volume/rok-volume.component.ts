@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, OnDestroy } from "@angular/core";
-import { FormGroup } from "@angular/forms";
+import { FormGroup, Validators } from "@angular/forms";
 import { Volume } from "src/app/utils/types";
 import { Subscription } from "rxjs";
 import { RokService } from "../../services/rok.service";
@@ -11,7 +11,6 @@ import { first } from "rxjs/operators";
   styleUrls: ["./rok-volume.component.scss"]
 })
 export class RokVolumeComponent implements OnInit, OnDestroy {
-  private volumePrv: FormGroup;
   private nbName = "";
 
   newPVC: Volume;
@@ -21,75 +20,51 @@ export class RokVolumeComponent implements OnInit, OnDestroy {
   subscriptions = new Subscription();
 
   // ----- @Input Parameters -----
-  @Input()
-  get volume() {
-    return this.volumePrv;
-  }
-  set volume(volume: FormGroup) {
-    this.volumeCtrlChanged(volume);
-  }
+  @Input() volume: FormGroup;
 
   @Input()
   get notebookName() {
     return this.nbName;
   }
   set notebookName(nm: string) {
-    this.notebookNameChanged(nm);
+    if (!this.volume.disabled) {
+      this.notebookNameChanged(nm);
+    }
   }
 
   @Input()
   set ephemeral(b: boolean) {
-    this.storageOptionChanged(b);
+    if (!this.volume.disabled) {
+      this.storageOptionChanged(b);
+    }
   }
 
   @Input() pvcs: Volume[];
-  @Input() readonly: boolean;
   @Input() namespace: string;
   @Input() storageClasses: string[] = [];
   @Input() token: string;
 
   // ----- Get macros -----
-  get selectedVolume(): Volume {
-    return this.newPVC;
-  }
-
   get selectedVolIsExistingType(): boolean {
     return this.volume.value.type === "Existing";
   }
 
-  get newVolName(): string {
-    return this.renderVolName(this.newPVC ? this.newPVC.name : "");
-  }
-
-  get newVolIsSelected() {
-    return this.volume.controls.name.value === this.newVolName;
+  get currentVolName(): string {
+    return this.volume
+      .get("templatedName")
+      .value.replace("{notebook-name}", this.notebookName);
   }
 
   // ----- utility functions -----
-  renderVolName(name: string): string {
-    return name.replace("{notebook-name}", this.notebookName);
-  }
-
   updateVolType(type): void {
+    const rokUrl = this.volume.get("extraFields").get("rokUrl");
     if (type === "Existing") {
-      // Enable rok-url
-      this.volume
-        .get("extraFields")
-        .get("rok-url")
-        .enable();
+      // Enable rokUrl
+      rokUrl.enable();
+      rokUrl.setValidators([Validators.required]);
     } else {
-      this.volume
-        .get("extraFields")
-        .get("rok-url")
-        .disable();
-    }
-  }
-
-  updateVolValueFields(): void {
-    if (this.selectedVolume.extraFields) {
-      this.volume.controls.extraFields.setValue(
-        this.selectedVolume.extraFields
-      );
+      rokUrl.setValidators([]);
+      rokUrl.disable();
     }
   }
 
@@ -99,7 +74,7 @@ export class RokVolumeComponent implements OnInit, OnDestroy {
       // Get the data from the Paste event if the user used copy/paste
       url = pasteEvent.clipboardData.getData("text");
     } else {
-      url = this.volume.value.extraFields["rok-url"];
+      url = this.volume.value.extraFields["rokUrl"];
     }
 
     this.rok
@@ -115,32 +90,13 @@ export class RokVolumeComponent implements OnInit, OnDestroy {
   // ----- Component Functions -----
   constructor(private rok: RokService) {}
 
-  initSubscriptions() {
-    // Re initialize the subscriptions var
-    this.subscriptions.unsubscribe();
-    this.subscriptions = new Subscription();
-
+  ngOnInit() {
     // type
     this.subscriptions.add(
       this.volume.get("type").valueChanges.subscribe((type: string) => {
-        this.selectedVolume.type = type;
         this.updateVolType(type);
       })
     );
-
-    // rok-url
-    this.subscriptions.add(
-      this.volume
-        .get("extraFields")
-        .get("rok-url")
-        .valueChanges.subscribe((url: string) => {
-          this.selectedVolume.extraFields["rok-url"] = url;
-        })
-    );
-  }
-
-  ngOnInit() {
-    this.initSubscriptions();
   }
 
   ngOnDestroy() {
@@ -149,33 +105,19 @@ export class RokVolumeComponent implements OnInit, OnDestroy {
 
   // ----- @Input change handling functions -----
   notebookNameChanged(nm: string): void {
-    if (!this.newPVC) {
+    if (this.volume.disabled) {
       return;
     }
 
     this.nbName = nm;
-    this.volume.controls.name.setValue(this.newVolName);
-
-    this.updateVolValueFields();
-  }
-
-  volumeCtrlChanged(vol: FormGroup): void {
-    this.newPVC = vol.value;
-    this.volumePrv = vol;
-
-    const name = this.renderVolName(vol.value.name);
-    this.volume.controls.name.setValue(name);
-    this.updateVolType(vol.value.type);
-
-    // Re initialize the subscriptions
-    this.initSubscriptions();
+    this.volume.controls.name.setValue(this.currentVolName);
   }
 
   storageOptionChanged(ephemeral: boolean): void {
     if (ephemeral) {
       // Disable all fields
       this.volume.controls.type.disable();
-      this.volume.controls.extraFields.get("rok-url").disable();
+      this.volume.controls.extraFields.get("rokUrl").disable();
       this.volume.controls.name.disable();
       this.volume.controls.size.disable();
       this.volume.controls.mode.disable();
@@ -187,7 +129,7 @@ export class RokVolumeComponent implements OnInit, OnDestroy {
       this.volume.controls.mode.enable();
     } else {
       // Existing
-      this.volume.controls.extraFields.get("rok-url").enable();
+      this.volume.controls.extraFields.get("rokUrl").enable();
     }
   }
 }

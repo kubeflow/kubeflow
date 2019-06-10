@@ -1,11 +1,12 @@
 import { Component, OnInit, OnDestroy, Input } from "@angular/core";
 import { FormGroup, FormArray, FormBuilder } from "@angular/forms";
 import { RokService } from "../../services/rok.service";
-import { first } from "rxjs/operators";
+import { first, catchError } from "rxjs/operators";
 import { SnackType } from "src/app/utils/types";
 import { SnackBarService } from "src/app/services/snack-bar.service";
 import { addRokDataVolume } from "../../utils/common";
-import { JupyterLab } from "../../utils/types";
+import { JupyterLab, emptyJupyterLab } from "../../utils/types";
+import { of } from "rxjs";
 
 @Component({
   selector: "app-rok-jupyter-lab-selector",
@@ -39,15 +40,12 @@ export class RokJupyterLabSelectorComponent implements OnInit {
       return;
     }
 
-    this.rok
-      .getJupyterLab(url, this.token)
-      .pipe(first())
-      .subscribe(lab => {
-        this.setLabValues(lab);
+    this.rok.getJupyterLab(url, this.token).subscribe(lab => {
+      this.setLabValues(lab);
 
-        const msg = "Successfully retrieved details from Rok Jupyter Lab URL";
-        this.popup.show(msg, SnackType.Success, 6000);
-      });
+      const msg = "Successfully retrieved details from Rok Jupyter Lab URL";
+      this.popup.show(msg, SnackType.Success, 4000);
+    });
   }
 
   setLabValues(lab: JupyterLab) {
@@ -60,8 +58,8 @@ export class RokJupyterLabSelectorComponent implements OnInit {
     this.parentForm
       .get("workspace")
       .get("extraFields")
-      .get("rok-url")
-      .setValue(lab.wsvolume.extraFields["rok-url"]);
+      .get("rokUrl")
+      .setValue(lab.wsvolume.extraFields["rokUrl"]);
     this.parentForm
       .get("workspace")
       .get("type")
@@ -83,8 +81,8 @@ export class RokJupyterLabSelectorComponent implements OnInit {
       volsArr
         .at(i)
         .get("extraFields")
-        .get("rok-url")
-        .setValue(lab.dtvolumes[i].extraFields["rok-url"]);
+        .get("rokUrl")
+        .setValue(lab.dtvolumes[i].extraFields["rokUrl"]);
 
       volsArr
         .at(i)

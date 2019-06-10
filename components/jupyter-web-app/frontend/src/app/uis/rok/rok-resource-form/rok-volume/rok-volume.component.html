@@ -1,5 +1,5 @@
 <div *ngIf="volume" [formGroup]="volume" class="volume-wrapper">
-  <mat-form-field appearance="outline" id="type" *ngIf="!readonly">
+  <mat-form-field appearance="outline" id="type">
     <mat-label>Type</mat-label>
     <mat-select formControlName="type">
       <mat-option value="New">New</mat-option>
@@ -8,11 +8,11 @@
   </mat-form-field>
 
   <div formGroupName="extraFields">
-    <mat-form-field appearance="outline" id="rok-url" *ngIf="!readonly">
+    <mat-form-field appearance="outline" id="rokUrl">
       <mat-label>Rok URL</mat-label>
       <input
         matInput
-        formControlName="rok-url"
+        formControlName="rokUrl"
         placeholder="Data Volume Rok URL"
         (paste)="autofillVolume($event)"
         (keyup.enter)="autofillVolume()"
@@ -23,29 +23,18 @@
   <!-- Volume Name Input -->
   <mat-form-field appearance="outline" id="name">
     <mat-label>Name</mat-label>
-    <input matInput formControlName="name" [readonly]="readonly" />
+    <input matInput formControlName="name" />
   </mat-form-field>
 
   <!-- Size Input -->
   <mat-form-field appearance="outline" id="size">
     <mat-label>Size</mat-label>
-    <input matInput formControlName="size" [readonly]="readonly" />
-  </mat-form-field>
-
-  <!-- Mode Input -->
-  <mat-form-field appearance="outline" id="mode" *ngIf="readonly">
-    <mat-label>Mode</mat-label>
-    <input matInput formControlName="mode" [readonly]="readonly" />
-  </mat-form-field>
-
-  <mat-form-field appearance="outline" id="class" *ngIf="readonly">
-    <mat-label>Class</mat-label>
-    <input matInput formControlName="class" [readonly]="readonly" />
+    <input matInput formControlName="size" />
   </mat-form-field>
 
   <!-- Mount Input -->
   <mat-form-field appearance="outline" id="path">
     <mat-label>Mount Point</mat-label>
-    <input matInput formControlName="path" [readonly]="readonly" />
+    <input matInput formControlName="path" />
   </mat-form-field>
 </div>
