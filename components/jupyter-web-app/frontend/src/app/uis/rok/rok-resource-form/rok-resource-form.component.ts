@@ -133,19 +133,16 @@ export class RokResourceFormComponent implements OnInit {
   }
 
   public onSubmit() {
-    this.formCtrl.updateValueAndValidity();
-    const nb = JSON.parse(JSON.stringify(this.formCtrl.value));
-
-    console.log(nb, this.formCtrl.valid);
-    this.k8s;
-    // .postResource(nb)
-    // .pipe(catchError(_ => of("failed")))
-    // .subscribe(resp => {
-    //   if (resp === "posted") {
-    //     this.router.navigate(["/"]);
-    //   } else if (resp === "failed") {
-    //     this.updatePVCs(this.currNamespace);
-    //   }
-    // });
+    this.k8s
+      .postResource(this.formCtrl.value)
+      .pipe(catchError(_ => of("failed")))
+      .subscribe(resp => {
+        console.log(resp);
+        if (resp === "posted") {
+          this.router.navigate(["/"]);
+        } else if (resp === "failed") {
+          this.updatePVCs(this.currNamespace);
+        }
+      });
   }
 }

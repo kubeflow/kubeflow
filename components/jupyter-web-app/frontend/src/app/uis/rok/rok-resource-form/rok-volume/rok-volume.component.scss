@@ -6,7 +6,19 @@
   max-width: 10%;
 }
 
-#mode {
+#rokUrl {
+  max-width: 100%;
+}
+
+#name {
+  max-width: 30%;
+}
+
+#path {
+  max-width: 25%;
+}
+
+#rokUrl-wrapper {
   max-width: 20%;
 }
 
@@ -18,6 +30,7 @@
 
 .volume-wrapper > * {
   flex: 1 1 0px;
-  padding-left: 0.5rem;
+  min-width: 0px;
   padding-right: 0.5rem;
+  padding-left: 0.5rem;
 }
