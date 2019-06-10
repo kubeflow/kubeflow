@@ -4,7 +4,7 @@
 // @shortDescription A PyTorch job.
 // @param name string Name to give to each of the components
 // @optionalParam args string null Comma separated list of arguments to pass to the job
-// @optionalParam image gcr.io/kubeflow-examples/pytorch-dist-mnist:v20180702-a57993c string The docker image to use for the job.
+// @optionalParam image string gcr.io/kubeflow-examples/pytorch-dist-mnist:v20180702-a57993c The docker image to use for the job.
 // @optionalParam numMasters number 1 The number of masters to use
 // @optionalParam numWorkers number 1 The number of workers to use
 // @optionalParam numGpus number 0 The number of GPUs to attach to workers.
