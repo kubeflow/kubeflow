@@ -2,7 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { RokService } from "../services/rok.service";
 import { RokToken, EMPTY_TOKEN } from "src/app/uis/rok/utils/types";
 import { Subscription, of } from "rxjs";
-import { first, catchError } from "rxjs/operators";
+import { catchError } from "rxjs/operators";
 
 @Component({
   selector: "app-rok-main-table",

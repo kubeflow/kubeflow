@@ -1,12 +1,10 @@
 import { Component, OnInit, OnDestroy, Input } from "@angular/core";
 import { FormGroup, FormArray, FormBuilder } from "@angular/forms";
 import { RokService } from "../../services/rok.service";
-import { first, catchError } from "rxjs/operators";
 import { SnackType } from "src/app/utils/types";
 import { SnackBarService } from "src/app/services/snack-bar.service";
 import { addRokDataVolume } from "../../utils/common";
-import { JupyterLab, emptyJupyterLab } from "../../utils/types";
-import { of } from "rxjs";
+import { JupyterLab } from "../../utils/types";
 
 @Component({
   selector: "app-rok-jupyter-lab-selector",

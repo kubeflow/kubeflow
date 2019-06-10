@@ -1,4 +1,4 @@
-import { Subscription, ReplaySubject, interval, timer } from "rxjs";
+import { Subscription, Subject, interval, timer } from "rxjs";
 
 export interface BackoffConfig {
   retries?: number;
@@ -14,14 +14,14 @@ const defaultConfig: BackoffConfig = {
 
 export class ExponentialBackoff {
   // An instance of this class will have an Observable (poller) that
-  // will emit a balue with Exponential Backoff manner. We can then make
+  // will emit a value in Exponential Backoff manner. We can then make
   // a subscription to it and apply our logic
   private retries: number;
   private interval: number;
   private maxInterval: number;
 
   private scheduler: Subscription;
-  private poller: ReplaySubject<number>;
+  private poller: Subject<number>;
   private n: number;
 
   private remainingTries: number;
@@ -34,7 +34,7 @@ export class ExponentialBackoff {
     this.interval = conf.interval;
     this.maxInterval = conf.maxInterval;
 
-    this.poller = new ReplaySubject<number>(1);
+    this.poller = new Subject<number>();
 
     this.n = 0;
     this.remainingTries = this.retries + 1;

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Copyright 2017 The Kubernetes Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,23 +39,3 @@ build-gcb-win: info
 		--machine-type=n1-highcpu-32 \
 		--substitutions=_GIT_VERSION=$(GIT_TAG),_REGISTRY=$(REGISTRY_PROJECT) \
 		--config=cloudbuild.yaml .
-=======
-IMG:=gcr.io/arrikto-interns/notebooks-manager
-
-apply: 
-	cd release && kubectl -n kubeflow apply -f .
-
-reapply:
-	cd release && kubectl -n kubeflow delete -f . && kubectl -n kubeflow apply -f .
-
-delete:
-	cd release && kubectl -n kubeflow delete -f .
-
-publish: build push
-
-build: 
-	docker build -t ${IMG} .
-
-push:
-	gcloud docker -- push ${IMG}
->>>>>>> a2f88a05... Use Angular for the frontend

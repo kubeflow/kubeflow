@@ -1,6 +1,6 @@
 import { createVolumeControl } from "src/app/utils/common";
 import { ConfigVolume } from "src/app/utils/types";
-import { FormGroup, FormControl, Validators, FormArray } from "@angular/forms";
+import { FormGroup, FormControl, FormArray } from "@angular/forms";
 
 export function createRokVolumeControl(vol: ConfigVolume) {
   const volCtrl = createVolumeControl(vol);
