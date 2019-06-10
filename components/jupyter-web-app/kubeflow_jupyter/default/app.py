@@ -111,23 +111,28 @@ def post_notebook(namespace):
   notebook_cont['resources']['limits'] = extra
 
   # Set the Custom Command
-  try:
-    command = json.loads(body["cmd_command"])
-  except Exception as e:
-    data["success"] = False
-    data["log"] = api.parse_error(e)
-    return jsonify(data)
-
-  if command:
+  commandStr = body["cmd_command"]
+  if commandStr != "":
     try:
-      args = json.loads(body["cmd_args"])
+      command = json.loads(commandStr)
     except Exception as e:
       data["success"] = False
       data["log"] = api.parse_error(e)
       return jsonify(data)
 
-    notebook_cont['command'] = command
-    notebook_cont['args'] = args
+    if command:
+      notebook_cont['command'] = command
+
+      argsStr = body["cmd_args"]
+      if argsStr != "":
+        try:
+          args = json.loads(argsStr)
+        except Exception as e:
+          data["success"] = False
+          data["log"] = api.parse_error(e)
+          return jsonify(data)
+
+        notebook_cont['args'] = args
 
   # If all the parameters are given, then we try to create the notebook
   # return
