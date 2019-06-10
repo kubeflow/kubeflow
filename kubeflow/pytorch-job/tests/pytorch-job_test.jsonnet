@@ -19,6 +19,8 @@ local pyjobCrd = pyjob.parts(params, env).crd;
 
 local pytorchJobDeploy = pyjob.parts(params, env).pytorchJobDeploy;
 
+local pytorchJobService = pyjob.parts(params, env).pytorchJobService;
+
 local expectedCrd = {
   apiVersion: "apiextensions.k8s.io/v1beta1",
   kind: "CustomResourceDefinition",
@@ -165,6 +167,38 @@ local testCases = [
             ],
           },
         },
+      },
+    },
+  },
+  {
+    actual: pyjob.parts(params, env).pytorchJobService(params.monitoringPort),
+    expected: {
+      apiVersion: 'v1',
+      kind: 'Service',
+      metadata: {
+        annotations: {
+          'prometheus.io/scrape': 'true',
+          'prometheus.io/path': '/metrics',
+          'prometheus.io/port': '8443',
+        },
+        labels: {
+          app: 'pytorch-operator',
+        },
+        name: 'pytorch-operator',
+        namespace: env.namespace,
+      },
+      spec: {
+        ports: [
+          {
+            name: 'monitoring-port',
+            port: 8443,
+            targetPort: 8443,
+          },
+        ],
+        selector: {
+          name: 'pytorch-operator',
+        },
+        type: 'ClusterIP',
       },
     },
   },

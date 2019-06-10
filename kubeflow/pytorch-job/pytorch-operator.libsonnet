@@ -6,6 +6,7 @@
     $.parts(params, env).operatorRole(params.deploymentScope, params.deploymentNamespace),
     $.parts(params, env).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
     $.parts(params, env).pytorchJobDeploy(params.pytorchJobImage, params.deploymentScope, params.deploymentNamespace),
+    $.parts(params, env).pytorchJobService(params.monitoringPort),
   ],
 
   parts(params, env):: {
@@ -160,6 +161,36 @@
         },
       },
     },  // pytorchJobDeploy
+
+    pytorchJobService(monitoringPort): {
+      apiVersion: 'v1',
+      kind: 'Service',
+      metadata: {
+        annotations: {
+          'prometheus.io/scrape': 'true',
+          'prometheus.io/path': '/metrics',
+          'prometheus.io/port': monitoringPort,
+        },
+        labels: {
+          app: 'pytorch-operator',
+        },
+        name: 'pytorch-operator',
+        namespace: namespace,
+      },
+      spec: {
+        ports: [
+          {
+            name: 'monitoring-port',
+            port: std.parseInt(monitoringPort),
+            targetPort: std.parseInt(monitoringPort),
+          },
+        ],
+        selector: {
+          name: 'pytorch-operator',
+        },
+        type: 'ClusterIP',
+      },
+    },
 
     // Default value for
     defaultControllerConfig(pytorchDefaultImage):: if pytorchDefaultImage != "" && pytorchDefaultImage != "null" then

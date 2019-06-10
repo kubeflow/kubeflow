@@ -9,6 +9,7 @@
 // @optionalParam pytorchDefaultImage string null The default image to use for pytorch
 // @optionalParam deploymentScope string cluster The scope at which pytorch-operator should be deployed - valid values are cluster, namespace.
 // @optionalParam deploymentNamespace string null The namespace to which pytorch-operator should be scoped. If deploymentScope is set to cluster, this is ignored.
+// @optionalParam monitoringPort string 8443 Port for monitoring agent to scrape metrics from.
 
 local k = import "k.libsonnet";
 local operator = import "kubeflow/pytorch-job/pytorch-operator.libsonnet";
