@@ -66,7 +66,7 @@ def add_workspace_volume_annotations(pvc, vol):
     }
 
     if vol["type"] == "Existing":
-        annotations['rok/origin'] = vol["extraFields"].get("rok-url", "")
+        annotations['rok/origin'] = vol["extraFields"].get("rokUrl", "")
 
     labels = {"component": "singleuser-storage"}
 
@@ -83,7 +83,7 @@ def add_data_volume_annotations(pvc, vol):
     }
 
     if vol["type"] == "Existing":
-        annotations['rok/origin'] = vol["extraFields"].get("rok-url", "")
+        annotations['rok/origin'] = vol["extraFields"].get("rokUrl", "")
 
     labels = {"component": "singleuser-storage"}
 
@@ -91,7 +91,7 @@ def add_data_volume_annotations(pvc, vol):
     pvc.metadata.labels = labels
 
 
-def rok_pvc(vol, namespace):
+def rok_pvc_from_dict(vol, namespace):
     pvc = utils.pvc_from_dict(vol, namespace)
     pvc.metadata.name = None
     pvc.metadata.generate_name = vol["name"] + "-"

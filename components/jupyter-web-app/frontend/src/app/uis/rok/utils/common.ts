@@ -5,9 +5,9 @@ import { FormGroup, FormControl, Validators, FormArray } from "@angular/forms";
 export function createRokVolumeControl(vol: ConfigVolume) {
   const volCtrl = createVolumeControl(vol);
 
-  // Set the rok-url in extraFields
+  // Set the rokUrl in extraFields
   const extraFields: FormGroup = volCtrl.get("extraFields") as FormGroup;
-  extraFields.addControl("rok-url", new FormControl("", []));
+  extraFields.addControl("rokUrl", new FormControl("", []));
 
   return volCtrl;
 }
