@@ -5,7 +5,7 @@
     <div class="spacer"></div>
 
     <a routerLink="/new">
-      <button mat-button id="add-nb" color="primary">
+      <button mat-button id="add-nb" color="accent">
         <mat-icon>add</mat-icon>NEW SERVER
       </button>
     </a>
@@ -109,7 +109,7 @@
         <button
           (click)="connectResource(elem)"
           mat-button
-          color="primary"
+          color="accent"
           [disabled]="elem.status !== 'running'"
         >
           CONNECT
