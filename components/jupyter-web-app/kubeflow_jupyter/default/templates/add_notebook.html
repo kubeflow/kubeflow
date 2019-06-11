@@ -290,7 +290,9 @@
 					<h5><i class="fas fa-terminal"></i>Custom Command</h5>
 					<p class="text-muted nopad">
 						Launch your notebook server with a custom command.</br>
-						Useful if there is a custom entrypoint or script to run besides jupyter.
+						For example, to make your container <a href="https://www.kubeflow.org/docs/notebooks/custom-notebook/">Kubeflow-compatible</a>:</br>
+						<b>Command:</b> <span><code>[&quot;/bin/sh&quot;]</code></span>
+						<b>Command Args:</b> <span><code>[&quot;-c&quot;,&quot;jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}&quot;]</code></span>
 					</p>
 					<div class="mdl-grid wide" style="padding: 0 0 0 0">
 						<!-- Command -->
