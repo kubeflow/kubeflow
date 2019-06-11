@@ -144,12 +144,12 @@ install_fluentd_cloudwatch() {
 install_istio() {
   # Use customized istio manifests direclty https://www.kubeflow.org/docs/components/istio/
   curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-crds.yaml \
-    https://raw.githubusercontent.com/kubeflow/kubeflow/master/dependencies/istio/install/crds.yaml
+    https://raw.githubusercontent.com/kubeflow/kubeflow/${KUBEFLOW_TAG}/dependencies/istio/install/crds.yaml
 
   # 1. sidecar injection configmap policy is changed from enabled to disabled
   # 2. istio-ingressgateway is of type NodePort instead of LoadBalancer
   curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-noauth.yaml \
-    https://raw.githubusercontent.com/kubeflow/kubeflow/master/dependencies/istio/install/istio-noauth.yaml
+    https://raw.githubusercontent.com/kubeflow/kubeflow/${KUBEFLOW_TAG}/dependencies/istio/install/istio-noauth.yaml
 
   kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-crds.yaml
   kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-noauth.yaml
