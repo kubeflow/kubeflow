@@ -49,6 +49,8 @@ from oauth2client.client import GoogleCredentials
 from kubeflow.testing import test_util, util  # pylint: disable=no-name-in-module
 from testing import vm_util
 
+# The ksonnet binary
+ks = "ks-13"
 
 def _setup_test(api_client, run_label):
   """Create the namespace for the test.
@@ -120,7 +122,7 @@ def setup_kubeflow_ks_app(args, api_client):
   # Initialize a ksonnet app.
   app_name = "kubeflow-test-" + uuid.uuid4().hex[0:4]
   util.run([
-      "ks",
+      ks,
       "init",
       app_name,
   ], cwd=args.test_dir)
@@ -128,7 +130,7 @@ def setup_kubeflow_ks_app(args, api_client):
   app_dir = os.path.join(args.test_dir, app_name)
 
   kubeflow_registry = "github.com/kubeflow/kubeflow/tree/master/kubeflow"
-  util.run(["ks", "registry", "add", "kubeflow", kubeflow_registry],
+  util.run([ks, "registry", "add", "kubeflow", kubeflow_registry],
            cwd=app_dir)
 
   # Install required packages
@@ -139,7 +141,7 @@ def setup_kubeflow_ks_app(args, api_client):
 
   # Instead of installing packages we edit the app.yaml file directly
   #for p in packages:
-  # util.run(["ks", "pkg", "install", p], cwd=app_dir)
+  # util.run([ks, "pkg", "install", p], cwd=app_dir)
   app_file = os.path.join(app_dir, "app.yaml")
   with open(app_file) as f:
     app_yaml = yaml.load(f)
@@ -195,7 +197,7 @@ def deploy_model(args):
   # deployment component
   deployComponent = "modelServer"
   generate_command = [
-      "ks", "generate", "tf-serving-deployment-gcp", deployComponent
+      ks, "generate", "tf-serving-deployment-gcp", deployComponent
   ]
   util.run(generate_command, cwd=app_dir)
   ks_deploy(
@@ -208,7 +210,7 @@ def deploy_model(args):
 
   # service component
   serviceComponent = "modelServer-service"
-  generate_command = ["ks", "generate", "tf-serving-service", serviceComponent]
+  generate_command = [ks, "generate", "tf-serving-service", serviceComponent]
   util.run(generate_command, cwd=app_dir)
   ks_deploy(
       app_dir,
@@ -279,7 +281,7 @@ def deploy_argo(args):
 
   component = "argo"
   logging.info("Deploying argo")
-  generate_command = ["ks", "generate", "argo", component, "--name", "argo"]
+  generate_command = [ks, "generate", "argo", component, "--name", "argo"]
   util.run(generate_command, cwd=app_dir)
 
   ks_deploy(app_dir, component, {}, env=None, account=None, namespace=None)
@@ -314,7 +316,7 @@ def deploy_pytorchjob(args):
 
   component = "example-job"
   logging.info("Deploying pytorch.")
-  generate_command = ["ks", "generate", "pytorch-job", component]
+  generate_command = [ks, "generate", "pytorch-job", component]
 
   util.run(generate_command, cwd=app_dir)
 
@@ -404,15 +406,15 @@ def ks_deploy(app_dir,
   logging.info("Using app directory: %s", app_dir)
 
   if not namespace:
-    util.run(["ks", "env", "add", env], cwd=app_dir)
+    util.run([ks, "env", "add", env], cwd=app_dir)
   else:
-    util.run(["ks", "env", "add", env, "--namespace=" + namespace], cwd=app_dir)
+    util.run([ks, "env", "add", env, "--namespace=" + namespace], cwd=app_dir)
 
   for k, v in params.iteritems():
-    util.run(["ks", "param", "set", "--env=" + env, component, k, v],
+    util.run([ks, "param", "set", "--env=" + env, component, k, v],
              cwd=app_dir)
 
-  apply_command = ["ks", "apply", env, "-c", component]
+  apply_command = [ks, "apply", env, "-c", component]
   if account:
     apply_command.append("--as=" + account)
   util.run(apply_command, cwd=app_dir)
@@ -782,7 +784,7 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
       datefmt="%Y-%m-%dT%H:%M:%S")
   file_handler.setFormatter(formatter)
   logging.info("Logging to %s", test_log)
-  util.run(["ks", "version"])
+  util.run([ks, "version"])
 
   util.maybe_activate_service_account()
   config_file = os.path.expanduser(kube_config.KUBE_CONFIG_DEFAULT_LOCATION)
