@@ -1,0 +1,19 @@
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+metadata:
+  name: config
+spec:
+  components:
+  - application
+  packages:
+  - application
+  componentParams:
+    jupyter:
+    - name: overlay
+      value: application
+    jupyter-web-app:
+    - name: overlay
+      value: application
+    notebook-controller:
+    - name: overlay
+      value: application
