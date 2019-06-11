@@ -9,7 +9,7 @@ local params = {
   deploymentScope: "cluster",
   deploymentNamespace: "null",
   pyjobVersion: "v1",
-  enableGangScheduling: "false",
+  enableGangScheduling: "true",
   monitoringPort: "8443",
 };
 
@@ -133,6 +133,7 @@ local testCases = [
                   "/pytorch-operator.v1",
                   "--alsologtostderr",
                   "-v=1",
+                  "--enable-gang-scheduling",
                   "--monitoring-port=8443",
                 ],
                 env: [
