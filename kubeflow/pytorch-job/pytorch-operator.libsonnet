@@ -1,12 +1,17 @@
 {
+  local util = import "kubeflow/common/util.libsonnet",
+
   all(params, env):: [
     $.parts(params, env).crd,
     $.parts(params, env).configMap(params.pytorchDefaultImage),
     $.parts(params, env).serviceAccount,
-    $.parts(params, env).operatorRole(params.deploymentScope, params.deploymentNamespace),
+    $.parts(params, env).operatorRole(params.deploymentScope, params.deploymentNamespace, params.enableGangScheduling),
     $.parts(params, env).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
-    $.parts(params, env).pytorchJobDeploy(params.pytorchJobImage, params.deploymentScope,
-      params.deploymentNamespace, params.monitoringPort),
+    $.parts(params, env).pytorchJobDeploy(params.pytorchJobImage,
+                                          params.deploymentScope,
+                                          params.deploymentNamespace,
+                                          params.enableGangScheduling,
+                                          params.monitoringPort),
     $.parts(params, env).pytorchJobService(params.monitoringPort),
   ],
 
@@ -89,7 +94,7 @@
       },
     },
 
-    pytorchJobDeploy(image, deploymentScope, deploymentNamespace, monitoringPort): {
+    pytorchJobDeploy(image, deploymentScope, deploymentNamespace, enableGangScheduling, monitoringPort): {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -112,6 +117,9 @@
                   "--alsologtostderr",
                   "-v=1",
                   if deploymentScope == "namespace" then ("--namespace=" + deploymentNamespace),
+                  if util.toBool(enableGangScheduling) then (
+                    "--enable-gang-scheduling"
+                  ),
                   if monitoringPort != null then (
                     "--monitoring-port=" + monitoringPort
                   ),
@@ -167,32 +175,32 @@
     },  // pytorchJobDeploy
 
     pytorchJobService(monitoringPort): {
-      apiVersion: 'v1',
-      kind: 'Service',
+      apiVersion: "v1",
+      kind: "Service",
       metadata: {
         annotations: {
-          'prometheus.io/scrape': 'true',
-          'prometheus.io/path': '/metrics',
-          'prometheus.io/port': monitoringPort,
+          "prometheus.io/scrape": "true",
+          "prometheus.io/path": "/metrics",
+          "prometheus.io/port": monitoringPort,
         },
         labels: {
-          app: 'pytorch-operator',
+          app: "pytorch-operator",
         },
-        name: 'pytorch-operator',
+        name: "pytorch-operator",
         namespace: namespace,
       },
       spec: {
         ports: [
           {
-            name: 'monitoring-port',
+            name: "monitoring-port",
             port: std.parseInt(monitoringPort),
             targetPort: std.parseInt(monitoringPort),
           },
         ],
         selector: {
-          name: 'pytorch-operator',
+          name: "pytorch-operator",
         },
-        type: 'ClusterIP',
+        type: "ClusterIP",
       },
     },
 
@@ -228,7 +236,7 @@
       },
     },
 
-    operatorRole(deploymentScope, deploymentNamespace): {
+    operatorRole(deploymentScope, deploymentNamespace, enableGangScheduling): {
       local roleType = if deploymentScope == "cluster" then "ClusterRole" else "Role",
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: roleType,
@@ -313,6 +321,19 @@
             "*",
           ],
         },
+        +if util.toBool(enableGangScheduling) then (
+          {
+            apiGroups: [
+              "scheduling.incubator.k8s.io",
+            ],
+            resources: [
+              "podgroups",
+            ],
+            verbs: [
+              "*",
+            ],
+          }
+        ),
       ],
     },  // operator-role
 

@@ -9,6 +9,8 @@ local params = {
   deploymentScope: "cluster",
   deploymentNamespace: "null",
   pyjobVersion: "v1",
+  enableGangScheduling: "true",
+  monitoringPort: "8443",
 };
 
 local env = {
@@ -104,8 +106,11 @@ local testCases = [
     expected: expectedCrd,
   },
   {
-    actual: pyjob.parts(params, env).pytorchJobDeploy(params.image, params.deploymentScope,
-      params.deploymentNamespace, params.monitoringPort),
+    actual: pyjob.parts(params, env).pytorchJobDeploy(params.image,
+                                                      params.deploymentScope,
+                                                      params.deploymentNamespace,
+                                                      params.enableGangScheduling,
+                                                      params.monitoringPort),
     expected: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
@@ -128,6 +133,7 @@ local testCases = [
                   "/pytorch-operator.v1",
                   "--alsologtostderr",
                   "-v=1",
+                  "--enable-gang-scheduling",
                   "--monitoring-port=8443",
                 ],
                 env: [
@@ -175,32 +181,32 @@ local testCases = [
   {
     actual: pyjob.parts(params, env).pytorchJobService(params.monitoringPort),
     expected: {
-      apiVersion: 'v1',
-      kind: 'Service',
+      apiVersion: "v1",
+      kind: "Service",
       metadata: {
         annotations: {
-          'prometheus.io/scrape': 'true',
-          'prometheus.io/path': '/metrics',
-          'prometheus.io/port': '8443',
+          "prometheus.io/scrape": "true",
+          "prometheus.io/path": "/metrics",
+          "prometheus.io/port": "8443",
         },
         labels: {
-          app: 'pytorch-operator',
+          app: "pytorch-operator",
         },
-        name: 'pytorch-operator',
+        name: "pytorch-operator",
         namespace: env.namespace,
       },
       spec: {
         ports: [
           {
-            name: 'monitoring-port',
+            name: "monitoring-port",
             port: 8443,
             targetPort: 8443,
           },
         ],
         selector: {
-          name: 'pytorch-operator',
+          name: "pytorch-operator",
         },
-        type: 'ClusterIP',
+        type: "ClusterIP",
       },
     },
   },
