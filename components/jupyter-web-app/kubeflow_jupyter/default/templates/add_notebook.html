@@ -135,6 +135,7 @@
 						</label>
 					</div>
 
+<<<<<<< HEAD
 					<!-- Memory -->
 					<h5><i class="fas fa-memory"></i>Memory</h5>
 					<p class="text-muted nopad">
@@ -155,6 +156,28 @@
 						<input type="checkbox" id="shm_enable" class="mdl-switch__input" name="shm_enable" checked>
 						<span class="mdl-switch__label">Enable Shared Memory (shm)</span>
 					</label>
+=======
+          <!-- Memory -->
+          <h5><i class="fas fa-memory"></i>Memory</h5>
+          <p class="text-muted nopad">
+            Specify the total amount of RAM reserved by your Notebook Server
+            (e.g. <span><code>2.0Gi</code></span>).
+          </p>
+          <!-- Text Inputs -->
+          <div id="memory-input-div"
+                class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide">
+            <input class="mdl-textfield__input" type="text"
+                    id='memory' name='memory' placeholder='100Mi, 1.5Gi, etc'
+                    data-required='true'>
+            <label class="mdl-textfield__label" for="memory">Memory
+            </label>
+          </div>
+          <!-- Enable/Disable Shared Memory -->
+          <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="shm_enable">
+            <input type="checkbox" id="shm_enable" class="mdl-switch__input" name="shm_enable" checked>
+            <span class="mdl-switch__label">Enable Shared Memory (shm)</span>
+          </label>
+>>>>>>> a4f6c5b172f3d0e5f92586756fff47da3868b22c
 
 					<!-- Workspace Volumes -->
 					<h5><i class="fas fa-laptop-code"></i>Workspace Volume</h5>
