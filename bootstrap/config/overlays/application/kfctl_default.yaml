@@ -17,3 +17,6 @@ spec:
     notebook-controller:
     - name: overlay
       value: application
+    pytorch-operator:
+    - name: overlay
+      value: application
