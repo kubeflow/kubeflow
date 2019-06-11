@@ -34,7 +34,7 @@ const USER = "user"
 const ROLE = "role"
 
 type BindingInterface interface {
-	Create(binding *Binding) error
+	Create(binding *Binding, userIdHeader string, userIdPrefix string) error
 	Delete(binding *Binding) error
 	List(user string, namespaces []string, role string) (*BindingEntries, error)
 }
@@ -42,8 +42,6 @@ type BindingInterface interface {
 type BindingClient struct {
 	restClient rest.Interface
 	kubeClient *clientset.Clientset
-	userIdHeader string
-	userIdPrefix string
 }
 
 //getBindingName returns bindingName, which is combination of user kind, username, RoleRef kind, RoleRef name.
@@ -64,7 +62,7 @@ func getBindingName(binding *Binding) (string, error) {
 	return reg.ReplaceAllString(nameRaw, "-"), nil
 }
 
-func (c *BindingClient) Create(binding *Binding) error {
+func (c *BindingClient) Create(binding *Binding, userIdHeader string, userIdPrefix string) error {
 	// TODO: permission check before go ahead
 	bindingName, err := getBindingName(binding)
 	if err != nil {
@@ -95,7 +93,7 @@ func (c *BindingClient) Create(binding *Binding) error {
 		Spec: istiorbac.ServiceRoleBindingSpec{
 			Subjects: []*istiorbac.Subject{
 				{
-					Properties: map[string]string{fmt.Sprintf("request.headers[%v]", c.userIdHeader): c.userIdPrefix + binding.User.Name},
+					Properties: map[string]string{fmt.Sprintf("request.headers[%v]", userIdHeader): userIdPrefix + binding.User.Name},
 				},
 			},
 			RoleRef: &istiorbac.RoleRef{

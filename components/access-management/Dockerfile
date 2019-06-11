@@ -14,6 +14,6 @@ RUN go build -gcflags 'all=-N -l' -o /opt/kubeflow/access-management main.go
 
 RUN chmod a+rx /opt/kubeflow/access-management
 
-EXPOSE 8083
+EXPOSE 8081
 
 CMD ["/opt/kubeflow/access-management"]

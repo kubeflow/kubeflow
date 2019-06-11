@@ -42,6 +42,8 @@ type KfamV1Alpha1Client struct {
 	profileClient ProfileInterface
 	bindingClient BindingInterface
 	clusterAdmin []string
+	userIdHeader string
+	userIdPrefix string
 }
 
 func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string) (*KfamV1Alpha1Client, error) {
@@ -68,10 +70,10 @@ func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string
 		bindingClient: &BindingClient{
 			restClient: 	istioRESTClient,
 			kubeClient: 	kubeClient,
-			userIdHeader:	userIdHeader,
-			userIdPrefix:	userIdPrefix,
 		},
 		clusterAdmin: []string{clusterAdmin},
+		userIdHeader: userIdHeader,
+		userIdPrefix: userIdPrefix,
 	}, nil
 }
 
@@ -95,13 +97,18 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-	//TODO: check permission before create binding
-	err := c.bindingClient.Create(&binding)
-	if err == nil {
-		w.WriteHeader(http.StatusOK)
+	// check permission before create binding
+	useremail := c.getUserEmail(r.Header)
+	if c.isOwnerOrAdmin(useremail, binding.ReferredNamespace) {
+		err := c.bindingClient.Create(&binding, c.userIdHeader, c.userIdPrefix)
+		if err == nil {
+			w.WriteHeader(http.StatusOK)
+		} else {
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte(err.Error()))
+		}
 	} else {
 		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(err.Error()))
 	}
 }
 
@@ -130,26 +137,36 @@ func (c *KfamV1Alpha1Client) DeleteBinding(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-	//TODO: check permission before delete
-	err := c.bindingClient.Delete(&binding)
-	if err == nil {
-		w.WriteHeader(http.StatusOK)
+	// check permission before delete
+	useremail := c.getUserEmail(r.Header)
+	if c.isOwnerOrAdmin(useremail, binding.ReferredNamespace) {
+		err := c.bindingClient.Delete(&binding)
+		if err == nil {
+			w.WriteHeader(http.StatusOK)
+		} else {
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte(err.Error()))
+		}
 	} else {
 		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(err.Error()))
 	}
 }
 
 func (c *KfamV1Alpha1Client) DeleteProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	useremail := c.getUserEmail(r.Header)
 	profileName := path.Base(r.RequestURI)
-	//TODO: check permission before delete
-	err := c.profileClient.Delete(profileName, nil)
-	if err == nil {
-		w.WriteHeader(http.StatusOK)
+	// check permission before delete
+	if c.isOwnerOrAdmin(useremail, profileName) {
+		err := c.profileClient.Delete(profileName, nil)
+		if err == nil {
+			w.WriteHeader(http.StatusOK)
+		} else {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(err.Error()))
+		}
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(err.Error()))
 	}
 }
 
@@ -198,13 +215,34 @@ func (c *KfamV1Alpha1Client) QueryClusterAdmin(w http.ResponseWriter, r *http.Re
 		return
 	}
 	queryUser := queries.Get("user")
-	for _, val := range c.clusterAdmin {
-		if val == queryUser {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(strconv.FormatBool(true)))
-			return
-		}
+	if c.isClusterAdmin(queryUser) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(strconv.FormatBool(true)))
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(strconv.FormatBool(false)))
+}
+
+func (c *KfamV1Alpha1Client) getUserEmail(header http.Header) string {
+	return header.Get(c.userIdHeader)[len(c.userIdPrefix):]
+}
+
+func (c *KfamV1Alpha1Client) isClusterAdmin(queryUser string) bool {
+	for _, val := range c.clusterAdmin {
+		if val == queryUser {
+			return true
+		}
+	}
+	return false
+}
+
+//isOwnerOrAdmin return true if queryUser is cluster admin or profile owner
+func (c *KfamV1Alpha1Client) isOwnerOrAdmin(queryUser string, profileName string) bool {
+	isAdmin := c.isClusterAdmin(queryUser)
+	prof, err := c.profileClient.Get(profileName, metav1.GetOptions{})
+	if err != nil {
+		return false
+	}
+	return isAdmin || (prof.Spec.Owner.Name == queryUser)
 }
