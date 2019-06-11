@@ -1,4 +1,5 @@
 import { Component, OnInit } from "@angular/core";
+import { NamespaceService } from "../services/namespace.service";
 
 @Component({
   selector: "app-main-table",
@@ -9,7 +10,7 @@ export class MainTableComponent implements OnInit {
   namespaces = [];
   currNamespace: string;
 
-  constructor() {}
+  constructor(public ns: NamespaceService) {}
 
   ngOnInit() {}
 }
