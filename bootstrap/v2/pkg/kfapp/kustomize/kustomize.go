@@ -1020,6 +1020,9 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 					return nil, mergeErr
 				}
 			}
+			if kfDef.Spec.EnableApplications {
+				baseKfDef.Spec.Components = moveToFront("application", baseKfDef.Spec.Components)
+			}
 			if kfDef.Spec.UseIstio {
 				baseKfDef.Spec.Components = moveToFront("istio", baseKfDef.Spec.Components)
 				baseKfDef.Spec.Components = moveToFront("istio-install", baseKfDef.Spec.Components)
