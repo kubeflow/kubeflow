@@ -31,7 +31,6 @@ def get_notebooks(namespace):
 
 @app.route("/api/namespaces/<namespace>/pvcs")
 def get_pvcs(namespace):
-    # Get the active viewers for each PVC
     data = api.get_pvcs(namespace)
     if not data['success']:
         return jsonify(data)
@@ -137,42 +136,6 @@ def post_pvc(namespace):
            methods=['DELETE'])
 def delete_notebook(namespace, notebook):
     return jsonify(api.delete_notebook(namespace, notebook))
-
-
-@app.route("/api/namespaces/<namespace>/pvcs/<pvc>", methods=['DELETE'])
-def delete_pvc(namespace, pvc):
-    '''
-    Check if any Pod is using that PVC
-    '''
-    data = api.get_pods(namespace)
-    if not data['success']:
-        return jsonify({
-            'success': False,
-            'log': "Couldn't list Pods: " + data['log']
-        })
-
-    pods = data['pods'].items
-    for pod in pods:
-        if not pod.spec.volumes:
-            continue
-
-        vols = pod.spec.volumes
-        for vol in vols:
-            # Check if Volume is PVC
-            if not vol.persistent_volume_claim:
-                continue
-
-            # It is a PVC mount, check if it is the one we want to delete
-            if vol.persistent_volume_claim.claim_name == pvc:
-                msg = "Can't delete Volume {}. It is used from Pod {}".format(
-                    pvc, pod.metadata.name
-                )
-                return jsonify({
-                    'success': False,
-                    'log': msg,
-                })
-
-    return jsonify(api.delete_pvc(namespace, pvc))
 
 
 if __name__ == '__main__':
