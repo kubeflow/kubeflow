@@ -62,7 +62,6 @@ or a <name>. If just <name>, a directory <name> will be created in the current d
 
 		useIstio := initCfg.GetBool(string(kftypes.USE_ISTIO))
 		disableUsageReport := initCfg.GetBool(string(kftypes.DISABLE_USAGE_REPORT))
-		enableApplications := initCfg.GetBool(string(kftypes.ENABLE_APPLICATIONS))
 
 		options := map[string]interface{}{
 			string(kftypes.PLATFORM):              platform,
@@ -76,7 +75,6 @@ or a <name>. If just <name>, a directory <name> will be created in the current d
 			string(kftypes.USE_ISTIO):             useIstio,
 			string(kftypes.DISABLE_USAGE_REPORT):  disableUsageReport,
 			string(kftypes.PACKAGE_MANAGER):       packageManager,
-			string(kftypes.ENABLE_APPLICATIONS):   enableApplications,
 		}
 		kfApp, kfAppErr := coordinator.NewKfApp(options)
 		if kfAppErr != nil || kfApp == nil {
@@ -190,15 +188,6 @@ func init() {
 		initCmd.Flags().Lookup(string(kftypes.DISABLE_USAGE_REPORT)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.DISABLE_USAGE_REPORT), bindErr)
-		return
-	}
-
-	// Enable Applications
-	initCmd.Flags().Bool(string(kftypes.ENABLE_APPLICATIONS), false,
-		string(kftypes.ENABLE_APPLICATIONS)+" enable applications to enable application-controller.")
-	bindErr = initCfg.BindPFlag(string(kftypes.ENABLE_APPLICATIONS), initCmd.Flags().Lookup(string(kftypes.ENABLE_APPLICATIONS)))
-	if bindErr != nil {
-		log.Errorf("couldn't set flag --%v: %v", string(kftypes.ENABLE_APPLICATIONS), bindErr)
 		return
 	}
 }
