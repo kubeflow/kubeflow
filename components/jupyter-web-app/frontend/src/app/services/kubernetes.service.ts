@@ -104,18 +104,6 @@ export class KubernetesService {
     );
   }
 
-  deleteViewer(ns: string, nm: string): Observable<string> {
-    const url = environment.apiUrl + `/api/namespaces/${ns}/viewers/${nm}`;
-
-    return this.http.delete<Resp>(url).pipe(
-      tap(data => this.handleBackendError(data)),
-      catchError(error => this.handleError(error)),
-      map(_ => {
-        return "deleted";
-      })
-    );
-  }
-
   // Post Functions
   postResource(rsrc: Resource): Observable<string> {
     const url =
