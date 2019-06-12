@@ -18,8 +18,8 @@ package apps
 import (
 	"fmt"
 	gogetter "github.com/hashicorp/go-getter"
+	kfapps "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
-	kfapps  "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"io"
@@ -61,9 +61,7 @@ const (
 	DefaultSwaggerFile     = "bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json"
 )
 
-
 type CliOption string
-
 
 //
 // This is used in the ksonnet implementation for `ks show`
