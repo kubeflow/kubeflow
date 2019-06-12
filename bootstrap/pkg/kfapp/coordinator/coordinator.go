@@ -243,7 +243,6 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	version := options[string(kftypes.VERSION)].(string)
 	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
 	useIstio := options[string(kftypes.USE_ISTIO)].(bool)
-	enableApplications := options[string(kftypes.ENABLE_APPLICATIONS)].(bool)
 	namespace := options[string(kftypes.NAMESPACE)].(string)
 	project := options[string(kftypes.PROJECT)].(string)
 	cacheDir := ""
@@ -276,7 +275,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			PackageManager: packageManager,
 			UseBasicAuth: useBasicAuth,
 			UseIstio: useIstio,
-			EnableApplications: enableApplications,
+			EnableApplications: true,
 		},
 	}
 	configFileBuffer, configFileErr := getConfigFromCache(cacheDir, kfDef)
@@ -304,7 +303,8 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	kfDef.Spec.UseBasicAuth = useBasicAuth
 	kfDef.Spec.UseIstio = useIstio
 	kfDef.Spec.PackageManager = packageManager
-	kfDef.Spec.EnableApplications = enableApplications
+	kfDef.Spec.EnableApplications = true
+
 
 	pApp := GetKfApp(kfDef)
 	return pApp, nil
