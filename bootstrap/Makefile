@@ -58,11 +58,11 @@ auth:
 
 # Run go fmt against code
 fmt:
-	@${GO} fmt ./config ./pkg/apis/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
+	@${GO} fmt ./config ./cmd/... ./pkg/... ./v2/...
 
 # Run go vet against code
 vet:
-	@${GO} vet ./config ./pkg/apis/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
+	@${GO} vet ./config ./cmd/... ./pkg/... ./v2/...
 
 generate:
 	@${GO} generate ./config ./pkg/apis/apps/kfdef/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
@@ -113,7 +113,7 @@ push-to-github-release: build-kfctl-tgz
 	    --file bin/kfctl_$(TAG)_darwin.tar.gz
 	 
 build-kfctl-container:
-	docker build \
+	DOCKER_BUILDKIT=1 docker build \
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(TAG) \
 		--target=$(KFCTL_TARGET) \
