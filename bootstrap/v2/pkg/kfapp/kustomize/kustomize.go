@@ -171,7 +171,7 @@ func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 		},
 	}
 
-	// build restConfig and apiConfig using $HOME/.kube/config if the file exist
+	// build restConfig and apiConfig using $HOME/.kube/config if the file exists
 	_kustomize.restConfig = kftypesv2.GetConfig()
 	_kustomize.apiConfig = kftypesv2.GetKubeConfig()
 	return _kustomize
@@ -995,11 +995,6 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 	}
 	if kustomization.Namespace == "" {
 		kustomization.Namespace = kfDef.Namespace
-	}
-	if kustomization.CommonLabels == nil {
-		kustomization.CommonLabels = map[string]string{
-			kftypesv2.DefaultAppLabel: kfDef.Name,
-		}
 	}
 	//TODO(#2685) we may want to delegate this to separate tooling so kfctl is not dynamically mixing in overlays.
 	if len(kustomization.PatchesStrategicMerge) > 0 {

@@ -34,7 +34,7 @@ type KfDefSpec struct {
 	UseBasicAuth           bool   `json:"useBasicAuth"`
 	SkipInitProject        bool   `json:"skipInitProject,omitempty"`
 	UseIstio               bool   `json:"useIstio"`
-	EnableApplications     bool   `json:"applications"`
+	EnableApplications     bool   `json:"enableApplications"`
 	ServerVersion          string `json:"serverVersion,omitempty"`
 	DeleteStorage          bool   `json:"deleteStorage,omitempty"`
 	PackageManager         string `json:"packageManager,omitempty"`
