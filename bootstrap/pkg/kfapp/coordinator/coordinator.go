@@ -20,13 +20,13 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/ksonnet"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/minikube"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
+	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
+	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/kustomize"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
@@ -261,17 +261,17 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: appName,
+			Name:      appName,
 			Namespace: namespace,
 		},
 		Spec: kfdefsv2.KfDefSpec{
 			ComponentConfig: config.ComponentConfig{
-				Platform:platform,
+				Platform: platform,
 			},
-			Project: project,
+			Project:        project,
 			PackageManager: packageManager,
-			UseBasicAuth: useBasicAuth,
-			UseIstio: useIstio,
+			UseBasicAuth:   useBasicAuth,
+			UseIstio:       useIstio,
 		},
 	}
 	configFileBuffer, configFileErr := getConfigFromCache(cacheDir, kfDef)
