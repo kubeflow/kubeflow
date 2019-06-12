@@ -973,8 +973,8 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 			}
 			//TODO look at sort options
 			if kfDef.Spec.EnableApplications {
-				baseKfDef.Spec.Components = moveToFront("application-crds", baseKfDef.Spec.Components)
 				baseKfDef.Spec.Components = moveToFront("application", baseKfDef.Spec.Components)
+				baseKfDef.Spec.Components = moveToFront("application-crds", baseKfDef.Spec.Components)
 			}
 			if kfDef.Spec.UseIstio {
 				baseKfDef.Spec.Components = moveToFront("istio", baseKfDef.Spec.Components)
