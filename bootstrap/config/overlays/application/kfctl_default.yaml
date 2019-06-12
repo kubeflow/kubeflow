@@ -4,10 +4,14 @@ metadata:
   name: config
 spec:
   components:
+  - application-crds
   - application
   packages:
   - application
   componentParams:
+    application:
+    - name: overlay
+      value: application
     jupyter:
     - name: overlay
       value: application

@@ -201,54 +201,12 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 			}
 		}
 	}
-	continuation := func() func(string, schema.GroupKind, map[string]interface{}) ([]byte, error) {
-		componentGroupKindsMap := make(map[string]metav1.GroupKind)
-		callback := func(namespace string, sgk schema.GroupKind, obj map[string]interface{}) ([]byte, error) {
-			gk := metav1.GroupKind{
-				Kind:  sgk.Kind,
-				Group: sgk.Group,
-			}
-			if gk.Group == "" {
-				gk.Group = "core"
-			}
-			if namespace == kustomize.Namespace {
-				encoded := gk.Group + "-" + gk.Kind
-				switch encoded {
-				case "app.k8s.io-Application":
-					app := application.Application{}
-					out, _ := json.Marshal(obj)
-					_ = json.Unmarshal([]byte(out), &app)
-					app.Name = kustomize.application.Name
-					app.Namespace = kustomize.application.Namespace
-					app.Spec.ComponentGroupKinds = make([]metav1.GroupKind, 0)
-					for _, groupKind := range componentGroupKindsMap {
-						app.Spec.ComponentGroupKinds = append(app.Spec.ComponentGroupKinds, groupKind)
-					}
-					body, err := json.Marshal(&app)
-					if err != nil {
-						return nil, err
-					}
-					return body, nil
-				default:
-					if _, exists := componentGroupKindsMap[encoded]; !exists {
-						componentGroupKindsMap[encoded] = gk
-					}
-				}
-			}
-			body, err := json.Marshal(obj)
-			if err != nil {
-				return nil, err
-			}
-			return body, nil
-		}
-		return callback
-	}()
 
 	kustomizeDir := path.Join(kustomize.Spec.AppDir, outputDir)
 	for _, compName := range kustomize.Spec.Components {
 		kustomizeFile := filepath.Join(kustomizeDir, compName+".yaml")
 		if _, err := os.Stat(kustomizeFile); err == nil {
-			resourcesErr := kustomize.deployResources(kustomize.restConfig, kustomizeFile, continuation)
+			resourcesErr := kustomize.deployResources(kustomize.restConfig, kustomizeFile)
 			if resourcesErr != nil {
 				return &kfapisv2.KfError{
 					Code:    int(kfapisv2.INTERNAL_ERROR),
@@ -261,12 +219,9 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 }
 
 // deployResources creates resources from a file, just like `kubectl create -f filename`
-// We use some libraries in an old way (e.g. the RestMapper is in discovery instead of restmapper)
-// because ksonnet (one of our dependency) is using the old library version.
 // TODO based on bootstrap/app/k8sUtil.go. Need to merge.
 // TODO: it can't handle "kind: list" yet.
-func (kustomize *kustomize) deployResources(config *rest.Config, filename string,
-	callback func(string, schema.GroupKind, map[string]interface{})([]byte, error)) error {
+func (kustomize *kustomize) deployResources(config *rest.Config, filename string) error {
 	// Create a restmapper to determine the resource type.
 	_discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
@@ -338,10 +293,11 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 		if metadata["name"] != nil {
 			name := metadata["name"].(string)
 			log.Infof("creating %v/%v\n", kind, name)
-			body, err := callback(namespace, gk, o)
+			body, err := json.Marshal(o)
 			if err != nil {
 				return err
 			}
+
 			request := restClient.Post().Resource(mapping.Resource.Resource).Body(body)
 			if mapping.Scope.Name() == "namespace" {
 				request = request.Namespace(namespace)
