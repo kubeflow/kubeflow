@@ -1002,6 +1002,8 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 		kustomization.CommonLabels = map[string]string {
 			kftypesv2.DefaultAppLabel: kfDef.Name,
 		}
+	} else {
+		kustomization.CommonLabels[kftypesv2.DefaultAppLabel] = kfDef.Name
 	}
 	//TODO(#2685) we may want to delegate this to separate tooling so kfctl is not dynamically mixing in overlays.
 	if len(kustomization.PatchesStrategicMerge) > 0 {
