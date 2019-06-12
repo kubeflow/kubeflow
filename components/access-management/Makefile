@@ -5,3 +5,6 @@ TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always
 
 build:
 	docker build -t $(IMG):$(TAG) .
+
+push: build
+	docker push $(IMG):$(TAG)

@@ -287,6 +287,8 @@
                     name: "kfam",
                     image: params.kfamimage,
                     imagePullPolicy: "Always",
+                    command: ["/opt/kubeflow/access-management"]
+                    args: ["-cluster-admin", params.admin],
                   },
                 ],
               },

@@ -2,7 +2,7 @@
 swagger: "2.0"
 info:
   description: "Access Management API."
-  version: "1.0.0"
+  version: "0.1.0"
   title: "Kubeflow Auth"
   termsOfService: "https://www.kubeflow.org/"
   contact:
