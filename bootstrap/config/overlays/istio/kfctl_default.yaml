@@ -29,7 +29,7 @@ spec:
     jupyter-web-app:
     - name: overlay
       value: istio
-    katib:
+    katib-ui:
     - name: overlay
       value: istio
     notebook-controller:

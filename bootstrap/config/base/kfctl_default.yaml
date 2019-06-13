@@ -10,7 +10,7 @@ spec:
   - examples
   - admission-webhook  
   - jupyter
-  - katib
+  - katib-v1alpha2
   - metacontroller
   - modeldb
   - mpi-job
@@ -25,7 +25,12 @@ spec:
   - centraldashboard
   - admission-webhook  
   - jupyter-web-app
-  - katib
+  - katib-db
+  - katib-manager
+  - katib-controller
+  - katib-ui
+  - metrics-collector
+  - suggestion
   - notebook-controller
   - pytorch-job-crds
   - pytorch-operator
