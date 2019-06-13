@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: Role
+metadata:
+  labels:
+    app: kubeflow-controller
+  name: router
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - '*'
+- apiGroups:
+  - ""
+  resources:
+  # Need pods access to fetch pod info to allow reflection to get currently running pod.
+  - pods
+  - services
+  verbs:
+  - '*'

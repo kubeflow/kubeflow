@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kubeflow-controller
+  name: router
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubeflow-controller
+  template:
+    metadata:
+      labels:
+        app: kubeflow-controller
+      namespace: namespace-placeholder
+    spec:
+      containers:
+      - name: controller-backend
+        # TODO(jlewi):  Match value in skaffold.yaml?
+        # image:bootstrap-dev
+        image: gcr.io/code-search-demo/bootstrap-dev
+        workingDir: /opt/bootstrap
+        command: [ "/opt/kubeflow/bootstrapper"]
+        env:
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: MY_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        args: [
+          "--in-cluster",
+          "--namespace=kubeflow",
+          "--install-istio", # Use istio.
+          # We don't need a registry config file; but we need to override the default value.
+          "--registries-config-file=",
+          # TODO(jlewi): Need to use a different value for prod.
+          # Probably need to set it via configmap so we can create a kustomize var and substitute it in.
+          "--kfctl-apps-namespace=kfctl-test",          
+        ]
+        ports:
+        - containerPort: 8080
+      serviceAccountName: router

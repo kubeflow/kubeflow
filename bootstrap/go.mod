@@ -37,6 +37,7 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.2.0 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
+	github.com/golang/protobuf v1.2.0
 	github.com/google/go-github v17.0.0+incompatible // indirect
 	github.com/google/go-jsonnet v0.12.1 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
@@ -71,6 +72,7 @@ require (
 	golang.org/x/crypto v0.0.0
 	golang.org/x/net v0.0.0-20190311183353-d8887717615a
 	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
+	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c
 	google.golang.org/api v0.1.0
 	google.golang.org/genproto v0.0.0-20190111180523-db91494dd46c
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect

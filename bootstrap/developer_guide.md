@@ -31,7 +31,9 @@ This guide covers to binaries
 1. kfctl
 1. bootstrap
 
-bootstrap is a legacy binary that is being replaced by kfctl see [#2870](https://github.com/kubeflow/kubeflow/issues/2870).
+   * bootstrap is a legacy binary that is being replaced by kfctl see [#2870](https://github.com/kubeflow/kubeflow/issues/2870).
+   * It is still used as the binary providing a REST server around kfctl
+     * With [#2870](https://github.com/kubeflow/kubeflow/issues/2870) we may or may not move that into kfctl
 
 ## Prerequisites
 
@@ -228,6 +230,55 @@ This image is then set [unit_tests.jsonnet](https://github.com/kubeflow/kubeflow
 
 
 ## Building bootstrap 
+
+One of the functions of bootstrap is to provide a REST server for deploying Kubeflow.
+
+* With [#2152](https://github.com/kubeflow/kubeflow/issues/2870) we are adopting a design where there are 2 servers
+ 
+  * A router that clients directly connect to
+  * Router handles requests by creating a statefulset running the server for a single deployment.
+
+* This makes testing/developing the router and statefulset interactions more complicated because
+  we need to deploy the router on a Kubernetes cluster.
+
+### Iterative Development Using Skaffold
+
+This section describes how to use skaffold to make iterative development/testing of the router and statefulset easy
+
+* skaffold is used to continuously update and deploy the bootstrap server on your Kubernetes cluster
+
+* To make rebuilds of the docker image fast we build `bootstrap` in a container that already has the go dependencies cached init
+
+* The base container is provided by 
+
+  ```
+  DOCKERFILE=Dockerfile
+  TARGET=bootstrap_base
+  ```
+* To build the base container
+
+  ```
+  make GCLOUD_PROJECT=${PROJECT} PROJECT=${PROJECT} build-builder-container-gcb
+  ```
+
+  * You will need to rebuild if the dependencies change.
+
+* The actual docker container is file `Dockerfile.bootstrap.dev`
+
+* To start skaffold
+
+  ```
+  skaffold dev -v=info --default-repo gcr.io/code-search-demo
+  ```
+  * `.dockerignore` controlls which files trigger rebuilds and are uploaded as part of the context
+
+* Then to send requests
+
+
+  ```
+  kubectl port-forward service/kubeflow-controller 8080:8080
+  curl -d '{"project": "jlewi-dev", "name": "jlewi-test", "zone": "us-east1-d"}' -H "Content-Type: application/json" -X POST http://localhost:8080/kfctl/apps/v1alpha2/create
+  ```
 
 ##### `make build-bootstrap`
 
