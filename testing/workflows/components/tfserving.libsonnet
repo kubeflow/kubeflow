@@ -297,12 +297,12 @@
             {
               name: "exit-handler",
               steps: [
-                [
-                  {
-                    name: "teardown",
-                    template: "teardown",
-                  },
-                ],
+               // [
+               //   {
+                //    name: "teardown",
+                 //   template: "teardown",
+                //  },
+               // ],
                 [{
                   name: "copy-artifacts",
                   template: "copy-artifacts",
