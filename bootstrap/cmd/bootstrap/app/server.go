@@ -23,10 +23,12 @@ import (
 	"path"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"github.com/kubeflow/kubeflow/bootstrap/version"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/storage/v1"
@@ -260,29 +262,55 @@ func Run(opt *options.ServerOption) error {
 		log.Info("--registries-config-file not provided; not loading any registries")
 	}
 
+	if strings.ToLower(opt.Mode) == "kfctl" {
+		log.Info("Creating kfctl server")
+		kServer, err := NewKfctlServer()
 
-	// Create a K8s client to talk to the cluster in which the server is running.
-	// This will be used by the router to spin up statefulsets to handle the requests.
-	config, err := getClusterConfig(opt.InCluster)
+		if err != nil {
+			return err
+		}
+		kServer.RegisterEndpoints()
+	} else {
+		log.Infof("Getting K8s client")
 
-	if err != nil {
-		return err
+		// Create a K8s client to talk to the cluster in which the server is running.
+		// This will be used by the router to spin up statefulsets to handle the requests.
+		config, err := getClusterConfig(opt.InCluster)
+
+		if err != nil {
+			return err
+		}
+
+		log.Info("Creating router")
+
+		kubeClientSet, err := kubeclientset.NewForConfig(rest.AddUserAgent(config, "kfctl-server"))
+
+		if err != nil {
+			return err
+		}
+
+		// Determine the docker image by fetching the pod spec.
+		podName := os.Getenv("MY_POD_NAME")
+		podNamespace := os.Getenv("MY_POD_NAMESPACE")
+
+		log.Infof("Running in pod %v, %v", podNamespace, podName)
+
+		pod, err := kubeClientSet.CoreV1().Pods(podNamespace).Get(podName,  metav1.GetOptions{})
+
+		if err != nil {
+			log.Fatalf("Could not fetch pod info for %v.%v; Error: %+v", podNamespace, podName, err)
+			return err
+		}
+
+		image := pod.Spec.Containers[0].Image
+		log.Infof("Using image: %v", image)
+		router, err := NewRouter(kubeClientSet, image, opt.KfctlAppsNamespace)
+
+		if err != nil {
+			return err
+		}
+		router.RegisterEndpoints()
 	}
-
-	kubeClientSet, err := kubeclientset.NewForConfig(rest.AddUserAgent(config, "kfctl-server"))
-
-	if err != nil {
-		return err
-	}
-
-	log.Info("Creating router")
-	router, err := NewRouter(kubeClientSet)
-
-	if err != nil {
-		return err
-	}
-
-	router.RegisterEndpoints()
 
 	log.Info("Creating server")
 	ksServer, err := NewServer(opt.AppDir, regConfig.Registries, opt.GkeVersionOverride, opt.InstallIstio)

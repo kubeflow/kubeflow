@@ -1,0 +1,17 @@
+# Configuration for the kfctl service
+# 
+nameprefix: kfctl-
+namespace:  kfctl-test
+
+commonLabels:
+  app: kfctl-service
+
+images:
+- name: gcr.io/code-search-demo/bootstrap-dev
+
+resources:
+- deployment.yaml
+- role.yaml
+- role_binding.yaml
+- service_account.yaml
+- service.yaml

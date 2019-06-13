@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"path"
 	"sync"
@@ -129,6 +130,8 @@ type ksServer struct {
 
 	// Whether to install istio.
 	installIstio bool
+
+	listener net.Listener
 }
 
 type MultiError struct {
@@ -229,6 +232,10 @@ type CreateRequest struct {
 	SAClientId string
 
 	StorageOption StorageOption
+}
+
+// CreateResponse collects the response for create request.
+type CreateResponse struct{
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -1375,7 +1382,13 @@ func decodeCreateAppRequest(_ context.Context, r *http.Request) (interface{}, er
 }
 
 // The same encoder can be used for all RPC responses.
-func encodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+func encodeResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	// If the response
+	if f, ok := response.(endpoint.Failer); ok && f.Failed() != nil {
+		errorEncoder(ctx, f.Failed(), w)
+		return nil
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -1394,12 +1407,31 @@ func optionsHandler(h http.Handler) http.HandlerFunc {
 	}
 }
 
-// StartHttp starts an HTTP server and blocks.
-func (s *ksServer) StartHttp(port int) {
-	if port <= 0 {
-		log.Fatal("port must be > 0.")
+// Addr returns the address we are listening on
+func (s *ksServer) Addr() net.Addr {
+	s.serverMux.Lock()
+	defer s.serverMux.Unlock()
+
+	if s.listener == nil {
+		return nil
 	}
-	// ctx := context.Background()
+	return s.listener.Addr()
+}
+// StartHttp starts an HTTP server and blocks.
+func (s *ksServer) StartHttp(port int) error {
+	portS := fmt.Sprintf(":%d", port)
+	if port <= 0 {
+		log.Info("No port specified; using next available.")
+		portS = ":0"
+	}
+
+	listener, err := net.Listen("tcp", portS)
+
+	if err != nil {
+		panic(err)
+	}
+
+	s.listener = listener
 
 	applyAppHandler := httptransport.NewServer(
 		makeApplyAppEndpoint(s),
@@ -1471,5 +1503,10 @@ func (s *ksServer) StartHttp(port int) {
 	http.Handle("/metrics", promhttp.Handler())
 
 	go countHeartbeat()
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
+
+	log.Infof("Listening on address: %+v", listener.Addr())
+
+	err = http.Serve(s.listener, nil)
+
+	return err
 }
