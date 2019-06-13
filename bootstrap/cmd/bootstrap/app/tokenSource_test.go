@@ -7,7 +7,7 @@ import (
 )
 
 type FakeIAMChecker struct {
-	isValid bool
+	isValid     bool
 	resultError error
 }
 
@@ -17,33 +17,33 @@ func (c *FakeIAMChecker) Check(p string, ts oauth2.TokenSource) (bool, error) {
 
 func TestTokenSource(t *testing.T) {
 	type testCase struct {
-		isValid bool
-		checkError error
+		isValid     bool
+		checkError  error
 		accessToken string
 	}
 
-	testCases := []testCase {
+	testCases := []testCase{
 		{
-			isValid: true,
-			checkError: nil,
+			isValid:     true,
+			checkError:  nil,
 			accessToken: "firsttoken",
 		},
 		{
-			isValid: true,
-			checkError: nil,
+			isValid:     true,
+			checkError:  nil,
 			accessToken: "secondtoken",
 		},
 		{
-			isValid: false,
-			checkError: nil,
+			isValid:     false,
+			checkError:  nil,
 			accessToken: "thirdtoken",
 		},
 
 		{
 			// The project is valid but there is a check error so token
 			// should not get replaced.
-			isValid: true,
-			checkError: fmt.Errorf("Could not refresh the TokenSource; token doesn't provide sufficient privileges"),
+			isValid:     true,
+			checkError:  fmt.Errorf("Could not refresh the TokenSource; token doesn't provide sufficient privileges"),
 			accessToken: "fourthtoken",
 		},
 	}
@@ -64,7 +64,7 @@ func TestTokenSource(t *testing.T) {
 			AccessToken: c.accessToken,
 		})
 
-		if c.checkError != nil && err == nil{
+		if c.checkError != nil && err == nil {
 			t.Fatalf("Refresh didn't return expected error")
 		}
 

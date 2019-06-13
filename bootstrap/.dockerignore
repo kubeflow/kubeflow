@@ -1,3 +1,13 @@
-vendor
-bin
+# Dockerignore is used by skaffold even with Cloud Build
+# It determines which files are uploaded as part of the context and trigger rebuilds.
+# So we include any files we don't want to trigger rebuilds.
+bin/**
+vendor/**
+v2/**
 **/.git
+
+# Ignore kubernetes manifests.
+# This way skaffold will avoid retriggring builds if we modify the manifest.
+test_deploy_kfctl_router.yaml
+kustomize/**
+*.md

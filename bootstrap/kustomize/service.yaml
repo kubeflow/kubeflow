@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: router
+spec:
+  ports:
+  - name: backend
+    port: 8080
+  selector:
+    app: kubeflow-controller

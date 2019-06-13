@@ -1,0 +1,29 @@
+# A skaffold config for developing bootstrap/kfctl server.
+# The purpose of the skaffold config is to automatically
+# build and deploy your app on every code change
+#
+# Spec Reference:
+# https://skaffold.dev/docs/references/yaml/
+apiVersion: skaffold/v1beta11
+kind: Config
+build:
+  artifacts:
+  # Just the name of the image not the registry
+  # TODO(jlewi): Does this need to match the name in the deployment manifest so
+  # that skaffold will replace it.
+  - image: bootstrap-dev
+    docker:
+      dockerfile: Dockerfile.bootstrap.dev
+  # Uncomment and comment out GoogleCloudBuild
+  # To build with docker daemon
+  # local: {}
+  googleCloudBuild:  
+    # TODO(jlewi): How do developers override this?
+    projectId: code-search-demo
+    machineType: n1-highcpu-32
+deploy:
+  #kubectl:
+  #  manifests:  
+  #    - test_deploy_kfctl_router.yaml
+  kustomize:
+    path: kustomize
