@@ -61,8 +61,8 @@ workflows:
       platform: gke
       gkeApiVersion: v1
       workflowName: kfctl-go
-      useBasicAuth: true  
-      useIstio: false
+      useBasicAuth: true
+      useIstio: true
   # Only run  kfctl presubmit test with basic auth if
   # files related to basic auth are modified.
   - app_dir: kubeflow/kubeflow/testing/workflows
@@ -82,7 +82,7 @@ workflows:
       gkeApiVersion: v1
       workflowName: kfctl-go
       useBasicAuth: true
-      useIstio: false
+      useIstio: true
   # kfctl test runs tests on gke.
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_test

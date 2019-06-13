@@ -19,6 +19,7 @@ export class IframeLink extends PolymerElement {
                     @apply --iframe-link;
                 }
                 a {
+                    display: inline-block;
                     width: 100%
                 }
                 a, a:hover, a:active {
@@ -26,8 +27,9 @@ export class IframeLink extends PolymerElement {
                     color: inherit
                 }
             </style>
-            <a id="link" href$="/[[prefix]][[href]]" tabindex="-1"
-                on-click="onClick"><slot></slot></a>`;
+            <a id="link" href$="/[[prefix]][[href]]" tabindex="-1">
+                <slot></slot>
+            </a>`;
     }
 
     static get properties() {
@@ -46,23 +48,6 @@ export class IframeLink extends PolymerElement {
                 reflectToAttribute: true,
             },
         };
-    }
-
-    ready() {
-        super.ready();
-        this.addEventListener('click', () => this.$.link.click());
-    }
-
-    /**
-     * Handles the anchor click event.
-     * @param {MouseEvent} e
-     */
-    onClick(e) {
-        // e.currentTarget is an HTMLAnchorElement
-        const url = e.currentTarget.href.slice(e.currentTarget.origin.length);
-        window.history.pushState({}, null, url);
-        window.dispatchEvent(new CustomEvent('location-changed'));
-        e.preventDefault();
     }
 }
 

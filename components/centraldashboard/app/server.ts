@@ -2,7 +2,7 @@ import {KubeConfig} from '@kubernetes/client-node';
 import express from 'express';
 import {resolve} from 'path';
 
-import {api} from './api';
+import {Api} from './api';
 import {KubernetesService} from './k8s_service';
 import {getMetricsService} from './metrics_service_factory';
 
@@ -17,7 +17,7 @@ async function main() {
 
   app.use(express.json());
   app.use(express.static(frontEnd));
-  app.use('/api', api(k8sService, metricsService));
+  app.use('/api', new Api(k8sService, metricsService).routes());
   app.get('/*', (_: express.Request, res: express.Response) => {
     res.sendFile(resolve(frontEnd, 'index.html'));
   });

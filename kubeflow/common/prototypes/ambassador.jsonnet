@@ -8,6 +8,8 @@
 // @optionalParam ambassadorNodePort number 0 Optional nodePort to use when ambassadorServiceType is NodePort {30000-32767}.
 // @optionalParam ambassadorImage string quay.io/datawire/ambassador:0.37.0 The image for the API Gateway.
 // @optionalParam replicas number 3 The number of replicas.
+// @optionalParam injectIstio string false Whether to use ISTIO.
+// @optionalParam istioNamespace string istio-system The namespace where Istio is installed
 
 local ambassador = import "kubeflow/common/ambassador.libsonnet";
 local instance = ambassador.new(env, params);

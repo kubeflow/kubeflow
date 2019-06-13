@@ -34,7 +34,7 @@ describe('Main Page', () => {
     });
 
     afterEach(() => {
-        mainPage.set('queryParams', null);
+        mainPage.set('queryParams.ns', null);
         document.getElementById(FIXTURE_ID).restore();
     });
 
@@ -96,16 +96,27 @@ describe('Main Page', () => {
     it('Sets view state when iframe page is active', () => {
         spyOn(mainPage.$.MainDrawer, 'close');
 
+        const locationSpy = jasmine.createSpyObj('spyLocation', ['replace']);
+        spyOnProperty(mainPage.$.PageFrame, 'contentWindow')
+            .and.returnValue({location: locationSpy});
+
+        mainPage.set('queryParams.ns', 'test');
         mainPage.subRouteData.path = '/jupyter/';
         mainPage._routePageChanged('_');
         flush();
 
+        expect(window.location.search).toContain('ns=test');
         expect(mainPage.page).toBe('iframe');
         expect(mainPage.sidebarItemIndex).toBe(2);
         expect(mainPage.inIframe).toBe(true);
         expect(mainPage.shadowRoot.getElementById('ViewTabs')
             .hasAttribute('hidden')).toBe(true);
         expect(mainPage.$.MainDrawer.close).toHaveBeenCalled();
+
+        const expected = new RegExp(`^${window.location.origin}/jupyter/`);
+        const calledWith = locationSpy.replace.calls.argsFor(0);
+        expect(calledWith).toMatch(expected);
+        expect(calledWith).not.toContain('ns=test');
     });
 
     it('Sets view state when an invalid page is specified from an iframe',
@@ -164,14 +175,13 @@ describe('Main Page', () => {
 
     it('Sets information when platform info is received', async () => {
         const envInfo = {
+            namespaces: ['default', 'kubeflow', 'namespace-2'],
             platform: {
                 provider: 'gce://test-project/us-east1-c/gke-kubeflow-node-123',
                 providerName: 'gce',
                 kubeflowVersion: '1.0.0',
             },
-            user: {
-                email: 'user@kubeflow.org',
-            },
+            user: 'anonymous@kubeflow.org',
         };
         const responsePromise = mockRequest(mainPage, {
             status: 200,
@@ -186,7 +196,13 @@ describe('Main Page', () => {
         // hidden
         expect(buildVersion.textContent).toEqual('1.0.0');
         expect(mainPage.shadowRoot.querySelector('#User-Badge iron-image')
-            .title).toBe('user@kubeflow.org');
+            .title).toBe('anonymous@kubeflow.org');
+        const namespaceSelector = mainPage.shadowRoot
+            .getElementById('NamespaceSelector');
+        expect(Array.from(namespaceSelector.shadowRoot
+            .querySelectorAll('paper-item'))
+            .map((n) => n.innerText))
+            .toEqual(['default', 'kubeflow', 'namespace-2']);
     });
 
     it('Communicates with iframed page after it connects', async () => {

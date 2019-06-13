@@ -37,10 +37,9 @@ spec:
           requests:
             cpu: 500m
             memory: 1Gi
-        workingDir: "/home/jovyan"
-      ttlSecondsAfterFinished: 300
+        workingDir: /home/jovyan
       securityContext:
-      - fsGroup: 100
+        fsGroup: 100
         runAsUser: 1000
 ```
 

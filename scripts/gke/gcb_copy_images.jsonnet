@@ -42,9 +42,9 @@
   },
 
   local images = [
-    "argoproj/argoui:v2.2.0",
-    "argoproj/argoexec:v2.2.0",
-    "argoproj/workflow-controller:v2.2.0",
+    "argoproj/argoui:v2.3.0",
+    "argoproj/argoexec:v2.3.0",
+    "argoproj/workflow-controller:v2.3.0",
     "gcr.io/cloud-solutions-group/cloud-endpoints-controller:0.2.1",
     "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
     "gcr.io/ml-pipeline/api-server:0.1.17",

@@ -29,11 +29,14 @@ type ComponentConfig struct {
 	// Name of repository.
 	Repo string `json:"repo,omitempty"`
 	// List of default components.
-	Components []string `json:"components,omitempty"`
+	// +patchStrategy=merge
+	Components []string `json:"components,omitempty" patchStrategy:"merge"`
 	// List of default packages.
-	Packages []string `json:"packages,omitempty"`
+	// +patchStrategy=merge
+	Packages []string `json:"packages,omitempty" patchStrategy:"merge"`
 	// Parameters to be set to components using ks param set.
-	ComponentParams Parameters `json:"componentParams,omitempty"`
+	// +patchStrategy=merge,retainKeys
+	ComponentParams Parameters `json:"componentParams,omitempty" patchStrategy:"merge,retainKeys"`
 	// Platform type.
 	Platform string `json:"platform,omitempty"`
 }

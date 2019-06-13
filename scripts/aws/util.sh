@@ -144,11 +144,11 @@ install_fluentd_cloudwatch() {
 install_istio() {
   # Use customized istio manifests direclty https://www.kubeflow.org/docs/components/istio/
   curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-crds.yaml \
-    https://raw.githubusercontent.com/kubeflow/kubeflow/master/dependencies/istio/install/crds.yaml
+    https://raw.githubusercontent.com/kubeflow/kubeflow/${KUBEFLOW_TAG}/dependencies/istio/install/crds.yaml
 
   # istio-ingressgateway is of type NodePort instead of LoadBalancer
   curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-noauth.yaml \
-    https://raw.githubusercontent.com/kubeflow/kubeflow/master/dependencies/istio/install/istio-noauth.yaml
+    https://raw.githubusercontent.com/kubeflow/kubeflow/${KUBEFLOW_TAG}/dependencies/istio/install/istio-noauth.yaml
 
   kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-crds.yaml
   kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-noauth.yaml
@@ -172,7 +172,7 @@ generate_aws_ks_app() {
   # Since JupyterHub will be removed evently, we skip authentication for it.
   popd
 
-  # write configuarion in generate phase and user can still configure it.
+  # write configuration in generate phase and user can still configure it.
   INGRESS_COMPONENT=',\\"aws-alb-ingress-controller\\",\\"istio-ingress\\"'
   sed -i.bak "/^KUBEFLOW_COMPONENTS/ s/$/$INGRESS_COMPONENT/" ${KUBEFLOW_REPO}/${DEPLOYMENT_NAME}/${ENV_FILE}
   rm ${KUBEFLOW_REPO}/${DEPLOYMENT_NAME}/${ENV_FILE}.bak

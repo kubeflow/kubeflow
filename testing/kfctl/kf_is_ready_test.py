@@ -37,26 +37,25 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
       "centraldashboard",
       "cert-manager",
       "cloud-endpoints-controller",
-      "jupyter-web-app",
+      "jupyter-web-app-deployment",
       "ml-pipeline",
       "ml-pipeline-scheduledworkflow",
       "ml-pipeline-ui",
-      "notebooks-controller",
+      "notebook-controller-deployment",
       "tf-job-operator",
       "pytorch-operator",
       "studyjob-controller",
       "workflow-controller",
   ]
   ingress_related_deployments = []
-
-  stateful_sets = [
-    "backend-updater",
-  ]
+  stateful_sets = []
 
   if use_basic_auth:
-    deployment_names.extend(["basic-auth"])
+    deployment_names.extend(["basic-auth-login"])
+    stateful_sets.extend(["backend-updater"])
   else:
-    ingress_related_deployments.extend(["iap-enabler"])
+    ingress_related_deployments.extend(["iap-ingress-iap-enabler"])
+    stateful_sets.extend(["iap-ingress-backend-updater"])
 
   # TODO(jlewi): Might want to parallelize this.
   for deployment_name in deployment_names:

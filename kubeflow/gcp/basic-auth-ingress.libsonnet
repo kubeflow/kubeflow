@@ -4,9 +4,11 @@
   new(_env, _params):: {
     local params = _params + _env {
       hostname: if std.objectHas(_params, "hostname") then _params.hostname else "null",
-      ingressName: "envoy-ingress"
+      ingressName: "envoy-ingress",
+      portName: "ambassador",
+      injectIstio: util.toBool(_params.injectIstio),
     },
-    local namespace = params.namespace,
+    local namespace = if params.injectIstio then params.istioNamespace else params.namespace,
 
     // Test if the given hostname is in the form of: "NAME.endpoints.PROJECT.cloud.goog"
     local isCloudEndpoint(str) = {
@@ -99,7 +101,7 @@
               "name: whoami-mapping",
               "prefix: /whoami",
               "rewrite: /whoami",
-              "service: whoami-app." + namespace,
+              "service: whoami-app." + params.namespace,
             ]),
         },  //annotations
       },
@@ -221,6 +223,10 @@
                   {
                     name: "INGRESS_NAME",
                     value: params.ingressName,
+                  },
+                  {
+                    name: "PORT_NAME",
+                    value: params.portName,
                   },
                 ],
                 volumeMounts: [
@@ -364,7 +370,7 @@
           },
         ],
       },
-    },  // iapIngress
+    },  // ingress
     ingress:: ingress,
 
     local certificate = if params.privateGKECluster == "false" then (
@@ -430,6 +436,47 @@
     ),
     cloudEndpoint:: cloudEndpoint,
 
+    // No deployments. This is used for annotation that directs traffic to
+    // ISTIO ingress gateway.
+    local istioMappingSvc = {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "istioMappingSvc",
+        },
+        name: "istio-mapping-service",
+        namespace: namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: istio-mapping",
+              "prefix_regex: true",
+              "prefix: /(?!whoami|kflogin).*",
+              "rewrite: \"\"",
+              "service: istio-ingressgateway." + namespace,
+              "precedence: 1",
+            ]),
+        },  //annotations
+      },
+      spec: {
+        ports: [
+          {
+            port: 80,
+            targetPort: 8081,
+          },
+        ],
+        selector: {
+          app: "istioMappingSvc",
+        },
+        type: "ClusterIP",
+      },
+    },
+    istioMappingSvc:: istioMappingSvc,
+
     parts:: self,
     all:: [
       self.initServiceAccount,
@@ -444,7 +491,9 @@
       self.ingress,
       self.certificate,
       self.cloudEndpoint,
-    ],
+    ] + if params.injectIstio then [
+      self.istioMappingSvc,
+    ] else [],
 
     list(obj=self.all):: k.core.v1.list.new(obj,),
   },

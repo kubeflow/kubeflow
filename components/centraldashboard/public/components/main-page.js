@@ -73,18 +73,16 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                         text: 'Notebook Servers',
                     },
                     {
-                        link: '/tfjobs/ui/',
-                        text: 'TF Jobs',
-                    },
-                    {
                         link: '/katib/',
                         text: 'Katib',
                     },
                 ],
             },
-            sidebarItemIndex: {type: Number, value: 0,
-                observer: '_revertSidebarIndexIfExternal'},
-            iframeUrl: {type: String, value: ''},
+            sidebarItemIndex: {
+                type: Number,
+                value: 0,
+                observer: '_revertSidebarIndexIfExternal',
+            },
             buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
             platformInfo: Object,
@@ -92,8 +90,9 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             hideTabs: {type: Boolean, value: false, readOnly: true},
             hideNamespaces: {type: Boolean, value: false, readOnly: true},
             notFoundInIframe: {type: Boolean, value: false, readOnly: true},
+            namespaces: Array,
             namespace: {type: String, observer: '_namespaceChanged'},
-            user: Object,
+            user: String,
         };
     }
 
@@ -136,7 +135,6 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         let notFoundInIframe = false;
         let hideTabs = true;
         let hideNamespaces = false;
-        let iframeUrl;
 
         switch (newPage) {
         case 'activity':
@@ -146,13 +144,10 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             break;
         case IFRAME_LINK_PREFIX:
             this.page = 'iframe';
-            iframeUrl = new URL(this.subRouteData.path, window.location.origin);
-            iframeUrl.hash = window.location.hash;
-            iframeUrl.search = window.location.search;
-            this.iframeUrl = iframeUrl.toString();
             isIframe = true;
             hideNamespaces = this.subRouteData.path.startsWith('/pipeline');
             this._setActiveMenuLink(this.subRouteData.path);
+            this._setIframeLocation();
             break;
         case '':
             this.sidebarItemIndex = 0;
@@ -217,6 +212,23 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     }
 
     /**
+     * Sets the location of the emebedded iframe based on the current route.
+     * This method avoids including the ns query parameter to the iframe,
+     * and only replaces the location when it has changed.
+     */
+    _setIframeLocation() {
+        const iframeUrl = new URL(this.subRouteData.path,
+            window.location.origin);
+        const iframeLocation = this.$.PageFrame.contentWindow.location;
+        iframeUrl.hash = window.location.hash;
+        iframeUrl.search = window.location.search;
+        iframeUrl.searchParams.delete('ns');
+        if (iframeUrl.toString() !== iframeLocation.toString()) {
+            iframeLocation.replace(iframeUrl.toString());
+        }
+    }
+
+    /**
      * Returns true when this component is found to be iframed inside of a
      * parent page.
      * @return {boolean}
@@ -229,10 +241,9 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * @param {Event} responseEvent AJAX-response
      */
     _onEnvInfoResponse(responseEvent) {
-        const {platform, user} = responseEvent.detail.response;
-        // ensures that iron-image doesn't  make a request if no image is set
-        if (!user.image) user.image = '';
+        const {platform, user, namespaces} = responseEvent.detail.response;
         this.user = user;
+        this.namespaces = namespaces;
         this.platformInfo = platform;
         if (this.platformInfo.kubeflowVersion) {
             this.buildVersion = this.platformInfo.kubeflowVersion;
