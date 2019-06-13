@@ -50,9 +50,9 @@ main() {
   done
 	
   if ks component list | awk '{print $1}' | grep -q "^argo$"; then
-    ks param set argo workflowControllerImage ${registry}/workflow-controller:v2.2.0
-    ks param set argo uiImage ${registry}/argoui:v2.2.0
-    ks param set argo executorImage ${registry}/argoexec:v2.2.0
+    ks param set argo workflowControllerImage ${registry}/workflow-controller:v2.3.0
+    ks param set argo uiImage ${registry}/argoui:v2.3.0
+    ks param set argo executorImage ${registry}/argoexec:v2.3.0
   fi
 
   if ks component list | awk '{print $1}' | grep -q "^ambassador$"; then

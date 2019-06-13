@@ -22,12 +22,11 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
-	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/context"
@@ -41,10 +40,10 @@ import (
 	"google.golang.org/api/serviceusage/v1"
 	"io"
 	"io/ioutil"
-	"k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/api/v2/core/v1"
+	rbacv1 "k8s.io/api/v2/rbac/v1"
+	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	clientset "k8s.io/client-go/v2/kubernetes"
 	"math/rand"
 	"net/http"
 	"os"
@@ -74,9 +73,6 @@ const (
 	KUBECONFIG_FORMAT = "gke_{project}_{zone}_{cluster}"
 )
 
-// The namespace for Istio
-const IstioNamespace = "istio-system"
-
 // Gcp implements KfApp Interface
 // It includes the KsApp along with additional Gcp types
 type Gcp struct {
@@ -98,8 +94,8 @@ func GetKfApp(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 	ctx := context.Background()
 	client, err := google.DefaultClient(ctx, gke.CloudPlatformScope)
 	if err != nil {
-		log.Fatalf("Could not authenticate Client: %v", err)
-		log.Fatalf("Try authentication command and rerun: `gcloud auth application-default login`")
+		log.Errorf("Could not authenticate Client: %v", err)
+		log.Errorf("Try authentication command and rerun: `gcloud auth application-default login`")
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: err.Error(),
@@ -576,7 +572,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 				err.(*kfapis.KfError).Message),
 		}
 	}
-	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
+	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, NETWORK_FILE)); networkStatErr == nil {
 		err := gcp.updateDeployment(gcp.Name+"-network", NETWORK_FILE)
 		if err != nil {
 			return &kfapis.KfError{
@@ -586,7 +582,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 			}
 		}
 	}
-	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
+	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, GCFS_FILE)); gcfsStatErr == nil {
 		err := gcp.updateDeployment(gcp.Name+"-gcfs", GCFS_FILE)
 		if err != nil {
 			return &kfapis.KfError{
@@ -691,40 +687,6 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 		if _, err := os.Stat(kftypes.KubeConfigPath()); !os.IsNotExist(err) {
 			gcp.AddNamedContext()
 		}
-	}
-	// Get client for kube config.
-	client := kftypes.GetConfig()
-	// Install Istio
-	if gcp.Spec.UseIstio {
-		log.Infof("Installing istio...")
-		//TODO should be a cli parameter
-		nv := configtypes.NameValue{Name: "namespace", Value: gcp.Namespace}
-		parentDir := path.Dir(gcp.Spec.Repo)
-		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/install/crds.yaml"))
-		if err != nil {
-			log.Errorf("Failed to create istio CRD: %v", err)
-			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: err.Error(),
-			}
-		}
-		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/install/istio-noauth.yaml"))
-		if err != nil {
-			log.Errorf("Failed to create istio manifest: %v", err)
-			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: err.Error(),
-			}
-		}
-		err = bootstrap.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/kf-istio-resources.yaml"), nv)
-		if err != nil {
-			log.Errorf("Failed to create kubeflow istio resource: %v", err)
-			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: err.Error(),
-			}
-		}
-		log.Infof("Done installing istio.")
 	}
 	return nil
 }
@@ -1350,7 +1312,7 @@ func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientse
 func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset) error {
 	oauthSecretNamespace := gcp.Namespace
 	if gcp.Spec.UseIstio {
-		oauthSecretNamespace = IstioNamespace
+		oauthSecretNamespace = gcp.getIstioNamespace()
 	}
 
 	if _, err := client.CoreV1().Secrets(oauthSecretNamespace).
@@ -1388,6 +1350,16 @@ func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
 	return nil
 }
 
+func (gcp *Gcp) getIstioNamespace() string {
+	istioNamespace := gcp.Namespace
+	for _, v := range gcp.Spec.ComponentParams["iap-ingress"] {
+		if v.Name == "namespace" {
+			istioNamespace = v.Value
+		}
+	}
+	return istioNamespace
+}
+
 func (gcp *Gcp) createSecrets() error {
 	ctx := context.Background()
 	k8sClient, err := gcp.getK8sClientset(ctx)
@@ -1413,14 +1385,20 @@ func (gcp *Gcp) createSecrets() error {
 	}
 	// Also create service account secret in istio namespace
 	if gcp.Spec.UseIstio {
-		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME, IstioNamespace); err != nil {
+		if err = createNamespace(k8sClient, gcp.getIstioNamespace()); err != nil {
+			return &kfapis.KfError{
+				Code:    err.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("cannot create istio namespace Error %v", err.(*kfapis.KfError).Message),
+			}
+		}
+		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME, gcp.getIstioNamespace()); err != nil {
 			return &kfapis.KfError{
 				Code: err.(*kfapis.KfError).Code,
 				Message: fmt.Sprintf("cannot create admin secret %v Error %v", ADMIN_SECRET_NAME,
 					err.(*kfapis.KfError).Message),
 			}
 		}
-		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME, IstioNamespace); err != nil {
+		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME, gcp.getIstioNamespace()); err != nil {
 			return &kfapis.KfError{
 				Code: err.(*kfapis.KfError).Code,
 				Message: fmt.Sprintf("cannot create user secret %v Error %v", USER_SECRET_NAME,

@@ -39,13 +39,11 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     figure.Logo
                         |!{logo}
                 namespace-selector#NamespaceSelector(
-                    query-params='{{queryParams}}', selected="{{namespace}}",
-                    hides, hidden$='[[hideNamespaces]]')
+                    query-params='{{queryParams}}', namespaces='[[namespaces]]'
+                    selected='{{namespace}}', hides, hidden$='[[hideNamespaces]]')
                 footer#User-Badge
-                    iron-image.image(sizing='contain', fade, preload,
-                        placeholder='/assets/anon-user.png',
-                        preventLoad='[[!user.image]]', src='[[user.image]]',
-                        title='[[user.email]]')
+                    iron-image.image(sizing='contain', fade,
+                        src='/assets/anon-user.png', title='[[user]]')
         main#Content
             section#ViewTabs(hidden$='[[hideTabs]]')
                 paper-tabs(selected='[[page]]', attr-for-selected='page')
@@ -61,8 +59,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                         platform-info='[[platformInfo]]')
                 neon-animatable(page='activity')
                     activity-view(namespace='[[queryParams.ns]]')
-                neon-animatable#iframe-page(page='iframe')
-                    iframe#PageFrame.flex(src='[[iframeUrl]]')
+                neon-animatable(page='iframe')
+                    iframe#PageFrame.flex
                 neon-animatable(page='not_found')
                     not-found-view(path="[[route.path]]")
     iron-media-query(query='(max-width: 900px)', query-matches='{{sidebarBleed}}')

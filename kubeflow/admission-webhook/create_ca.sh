@@ -116,11 +116,8 @@ checkWebhookConfig() {
   [[ "$currentBundle" == "$caBundle" ]]
 }
 
-while true; do
-  if ! checkWebhookConfig; then
+if ! checkWebhookConfig; then
     echo "patching ca bundle for webhook configuration..."
     kubectl patch mutatingwebhookconfiguration admission-webhook \
         --type='json' -p="${patchString}"
-  fi
-  sleep 10
-done
+fi

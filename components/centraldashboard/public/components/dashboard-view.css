@@ -6,26 +6,6 @@
     flex: 1;
     --accent-color: #007dfc;
     --primary-background-color: white;
-
-    --dashboard-card: {
-        background-color: var(--paper-card-background-color,
-            var(--primary-background-color));
-        border-radius: 5px;
-        display: inline-block;
-        font-size: 14px;
-        position: relative;
-        width: 100%;
-        @apply --paper-material-elevation-1;
-    }
-
-    --dashboard-card-header: {
-        font-family: "Google Sans";
-        height: 62px;
-        border-bottom: 1px solid var(--divider-color);
-        @apply --layout-horizontal;
-        @apply --layout-center;
-    }
-
     --paper-item-body-secondary: {
         font-size: 12px;
         letter-spacing: 0.3px;
@@ -56,29 +36,8 @@
     margin-bottom: .75em; /* 12px */
 }
 
-paper-card {
-    border-radius: 5px;
-    width: 100%;
-    padding-bottom: 16px;
-    font-size: 14px;
-    --paper-card-header-color: #202124;
-    --paper-card-header: {
-        @apply --dashboard-card-header;
-    }
-    --paper-card-header-text: {
-        font-size: 16px;
-        font-weight: 500;
-        padding: 0 1em;
-        flex: 1;
-    };
-    --paper-card-content: {
-        font-size: 14px;
-    }
-}
-paper-card {
-    --paper-item-body-two-line-min-height: 2em;
-}
-paper-card#Platform-Links {
+
+#Platform-Links {
     --paper-card-header-color: #2c6acb;
     --paper-card-header-image-text: {
         flex: 1;
@@ -90,7 +49,6 @@ paper-card#Platform-Links {
         padding: .5em .75em .5em 1.25em;
     };
 }
-
 #Platform-Links header {
     font-size: 1.25em;
     font-weight: 400;

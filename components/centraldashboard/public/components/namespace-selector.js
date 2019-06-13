@@ -1,4 +1,3 @@
-import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/paper-button/paper-button.js';
@@ -57,10 +56,6 @@ export class NamespaceSelector extends PolymerElement {
                     --paper-button-ink-color: var(--accent-color);
                 }
             </style>
-            <iron-ajax auto url="/api/namespaces" handle-as="json"
-                on-response="_onResponse">
-            </iron-ajax>
-            <app-route query-params="{{queryParams}}"></app-route>
             <paper-menu-button no-overlap horizontal-align="right">
                 <paper-button id="dropdown-trigger" slot="dropdown-trigger">
                     <iron-icon icon="group-work"></iron-icon>
@@ -70,9 +65,7 @@ export class NamespaceSelector extends PolymerElement {
                 <paper-listbox slot="dropdown-content"
                     attr-for-selected="name" selected="{{selected}}">
                     <template is="dom-repeat" items="{{namespaces}}">
-                        <paper-item name="[[item.name]]">
-                            [[item.name]]
-                        </paper-item>
+                        <paper-item name="[[item]]">[[item]]</paper-item>
                     </template>
                 </paper-listbox>
             </paper-menu-button>
@@ -85,10 +78,7 @@ export class NamespaceSelector extends PolymerElement {
     static get properties() {
         return {
             queryParams: Object,
-            namespaces: {
-                type: Array,
-                value: [],
-            },
+            namespaces: Array,
             selected: {
                 type: String,
                 observer: '_onSelected',
@@ -116,17 +106,6 @@ export class NamespaceSelector extends PolymerElement {
         if (namespace && this.selected !== namespace) {
             this.selected = namespace;
         }
-    }
-
-    /**
-     * Handles the Activities response to set date format and icon.
-     * @param {Event} responseEvent
-     */
-    _onResponse(responseEvent) {
-        const {response} = responseEvent.detail;
-        this.namespaces = response.map((n) => {
-            return {name: n.metadata.name, id: n.metadata.uid};
-        });
     }
 
     /**
