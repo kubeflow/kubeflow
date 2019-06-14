@@ -48,7 +48,7 @@ func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 		PackageManagers: nil,
 		KfDef:           kfdef,
 	}
-	// fetch the platform [gcp,minikube]
+	// Fetch the platform [gcp,minikube]
 	platform := _coordinator.KfDef.Spec.Platform
 	if platform != "" {
 		_platform, _platformErr := getPlatform(_coordinator.KfDef)
@@ -63,9 +63,28 @@ func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 	return _coordinator
 }
 
-func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
+func getStaticConfigForPlatform(kfDef *kfdefsv2.KfDef) string {
 
-	configPath := filepath.Join(pathDir, kftypes.DefaultConfigDir)
+	return ""
+	// Platform specific options to override config.
+	// eg a platform might want to use a static config file
+}
+
+func getConfigFromCache(kfDef *kfdefsv2.KfDef, staticConfigFile string) ([]byte, error) {
+
+	// Check if a static config file has been specified
+	if staticConfigFile != "" {
+		configFileBytes, err := ioutil.ReadFile(staticConfigFile)
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("error reading specified config file %s: %v", staticConfigFile, err),
+			}
+		}
+		return configFileBytes, nil
+	}
+
+	configPath := filepath.Join(kfDef.Spec.Repo, kftypes.DefaultConfigDir)
 	overlays := []config.NameValue{
 		{
 			Name:  "overlay",
@@ -242,6 +261,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	useIstio := options[string(kftypes.USE_ISTIO)].(bool)
 	namespace := options[string(kftypes.NAMESPACE)].(string)
 	project := options[string(kftypes.PROJECT)].(string)
+	staticConfigFile := options[string(kftypes.CONFIG)].(string)
 	cacheDir := ""
 	if options[string(kftypes.REPO)].(string) != "" {
 		cacheDir = options[string(kftypes.REPO)].(string)
@@ -267,6 +287,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		Spec: kfdefsv2.KfDefSpec{
 			ComponentConfig: config.ComponentConfig{
 				Platform: platform,
+				Repo:     cacheDir,
 			},
 			Project:        project,
 			PackageManager: packageManager,
@@ -274,7 +295,10 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			UseIstio:       useIstio,
 		},
 	}
-	configFileBuffer, configFileErr := getConfigFromCache(cacheDir, kfDef)
+	if staticConfigFile == "" {
+		staticConfigFile = getStaticConfigForPlatform(kfDef)
+	}
+	configFileBuffer, configFileErr := getConfigFromCache(kfDef, staticConfigFile)
 	if configFileErr != nil {
 		log.Fatalf("could not get config file Error %v", configFileErr)
 	}
