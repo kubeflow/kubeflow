@@ -12,6 +12,12 @@ environments:
       server: https://35.237.22.119
     k8sVersion: v1.11.6
     path: jlewi
+  kf:
+    destination:
+      namespace: kubeflow
+      server: https://35.196.17.251
+    k8sVersion: v1.12.8
+    path: kf
 kind: ksonnet.io/app
 name: test_app
 version: 0.0.1
