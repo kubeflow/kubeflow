@@ -310,7 +310,7 @@ local testDirDeleteStep = {
     };
 
 local exitTemplates =
-  deleteStep +
+ // deleteStep +
   [
     {
       template: buildTemplate("copy-artifacts", [
@@ -323,11 +323,9 @@ local exitTemplates =
       ]),  // copy-artifacts,
 
       // TODO(jlewi): Uncomment when we actually set up Kubeflow.
-      dependencies: if deleteKubeflow then
-         ["kfctl-delete"]
-      else null,
+      dependencies: null,
     },
-    testDirDeleteStep,
+  //  testDirDeleteStep,
   ];
 
 // Dag defines the tasks in the graph
