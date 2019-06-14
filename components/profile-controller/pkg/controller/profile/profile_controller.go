@@ -47,6 +47,11 @@ const USERIDPREFIX = "userid-prefix"
 const SERVICEROLEISTIO = "ns-access-istio"
 const SERVICEROLEBINDINGISTIO = "owner-binding-istio"
 
+// annotation key, consumed by kfam API
+const USER = "user"
+const ROLE = "role"
+const ADMIN = "admin"
+
 // Add creates a new Profile Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager, args map[string]string) error {
@@ -225,6 +230,7 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 	// When ClusterRole was referred by namespaced roleBinding, the result permission will be namespaced as well.
 	roleBinding := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{USER: instance.Spec.Owner.Name, ROLE: ADMIN},
 			Name:      "namespaceAdmin",
 			Namespace: instance.Name,
 		},
@@ -232,7 +238,7 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
 			Kind:     "ClusterRole",
-			Name:     "admin",
+			Name:     ADMIN,
 		},
 		Subjects: []rbacv1.Subject{
 			instance.Spec.Owner,
@@ -250,6 +256,7 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile) error {
 	istioServiceRole := &istiorbac.ServiceRole{
 		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{USER: profileIns.Spec.Owner.Name, ROLE: ADMIN},
 			Name:      SERVICEROLEISTIO,
 			Namespace: profileIns.Name,
 		},
@@ -291,6 +298,7 @@ func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile)
 	}
 	istioServiceRoleBinding := &istiorbac.ServiceRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{USER: profileIns.Spec.Owner.Name, ROLE: ADMIN},
 			Name:      SERVICEROLEBINDINGISTIO,
 			Namespace: profileIns.Name,
 		},

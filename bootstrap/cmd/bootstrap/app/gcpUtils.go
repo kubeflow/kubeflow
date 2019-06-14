@@ -176,7 +176,7 @@ func PrepareAccount(account string) string {
 	}
 }
 
-func UpdatePolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamConf, req ApplyIamRequest){
+func UpdatePolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamConf, req ApplyIamRequest) {
 	// map from role to members.
 	policyMap := map[string]map[string]bool{}
 	for _, binding := range currentPolicy.Bindings {
