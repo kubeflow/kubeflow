@@ -41,6 +41,3 @@ spec:
       - name: reportUsage
         value: "true"
         initRequired: true
-   admission-webhook:
-    - name: webhookNamePrefix
-      value: admission-webhook-	   
