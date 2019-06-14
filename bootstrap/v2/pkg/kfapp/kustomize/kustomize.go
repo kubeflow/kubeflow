@@ -79,20 +79,21 @@ import (
 type MapType int
 
 const (
-	basesMap MapType = 0
-	commonAnnotationsMap MapType = 1
-	commonLabelsMap MapType = 2
-	imagesMap MapType = 3
-	resourcesMap MapType = 4
-	crdsMap MapType = 5
-	varsMap MapType = 6
-	configurationsMap MapType = 7
-	configMapGeneratorMap MapType = 8
-	secretsMapGeneratorMap MapType = 9
+	basesMap                 MapType = 0
+	commonAnnotationsMap     MapType = 1
+	commonLabelsMap          MapType = 2
+	imagesMap                MapType = 3
+	resourcesMap             MapType = 4
+	crdsMap                  MapType = 5
+	varsMap                  MapType = 6
+	configurationsMap        MapType = 7
+	configMapGeneratorMap    MapType = 8
+	secretsMapGeneratorMap   MapType = 9
 	patchesStrategicMergeMap MapType = 10
-	patchesJson6902Map MapType = 11
-	YamlSeparator = "(?m)^---[ \t]*$"
+	patchesJson6902Map       MapType = 11
+	YamlSeparator                    = "(?m)^---[ \t]*$"
 )
+
 type kustomize struct {
 	kfdefsv2.KfDef
 	out              *os.File
@@ -106,26 +107,26 @@ type kustomize struct {
 }
 
 const (
-	outputDir     = "kustomize"
+	outputDir = "kustomize"
 )
 
 // GetKfApp is the common entry point for all implmentations of the KfApp interface
 func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 	/*
-	kfdef := kfdefsv2.KfDef{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       kfdef.TypeMeta.Kind,
-			APIVersion: kfdef.TypeMeta.APIVersion,
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        kfdef.Name,
-			Namespace:   kfdef.Namespace,
-			Labels:      kfdef.Labels,
-			Annotations: kfdef.Annotations,
-			ClusterName: kfdef.ClusterName,
-		},
-		Spec: kfdef.Spec,
-	}
+		kfdef := kfdefsv2.KfDef{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       kfdef.TypeMeta.Kind,
+				APIVersion: kfdef.TypeMeta.APIVersion,
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        kfdef.Name,
+				Namespace:   kfdef.Namespace,
+				Labels:      kfdef.Labels,
+				Annotations: kfdef.Annotations,
+				ClusterName: kfdef.ClusterName,
+			},
+			Spec: kfdef.Spec,
+		}
 	*/
 	_kustomize := &kustomize{
 		KfDef:        *kfdef,
@@ -166,10 +167,7 @@ func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 				Type:    kftypesv2.DefaultAppType,
 				Version: _kustomize.Spec.Version,
 			},
-			Info: []application.InfoItem {
-
-			},
-
+			Info: []application.InfoItem{},
 		},
 	}
 
@@ -268,7 +266,7 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 // TODO based on bootstrap/app/k8sUtil.go. Need to merge.
 // TODO: it can't handle "kind: list" yet.
 func (kustomize *kustomize) deployResources(config *rest.Config, filename string,
-	callback func(string, schema.GroupKind, map[string]interface{})([]byte, error)) error {
+	callback func(string, schema.GroupKind, map[string]interface{}) ([]byte, error)) error {
 	// Create a restmapper to determine the resource type.
 	_discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
@@ -684,14 +682,14 @@ func MergeKustomization(compDir string, targetDir string, kfDef *kfdefsv2.KfDef,
 			parentConfigMapArgs.EnvSource = envSource
 		}
 		if childConfigMapArgs.FileSources != nil && len(childConfigMapArgs.FileSources) > 0 {
-			parentConfigMapArgs.FileSources = make([]string,0)
+			parentConfigMapArgs.FileSources = make([]string, 0)
 			for _, fileSource := range childConfigMapArgs.FileSources {
 				fileAbsolutePathSource := path.Join(targetDir, fileSource)
 				parentConfigMapArgs.EnvSource = extractSuffix(compDir, fileAbsolutePathSource)
 			}
 		}
 		if childConfigMapArgs.LiteralSources != nil && len(childConfigMapArgs.LiteralSources) > 0 {
-			parentConfigMapArgs.LiteralSources = make([]string,0)
+			parentConfigMapArgs.LiteralSources = make([]string, 0)
 			for _, literalSource := range childConfigMapArgs.LiteralSources {
 				parentConfigMapArgs.LiteralSources = append(parentConfigMapArgs.LiteralSources, literalSource)
 			}
@@ -735,18 +733,18 @@ func MergeKustomization(compDir string, targetDir string, kfDef *kfdefsv2.KfDef,
 		}
 	}
 	/*
-	if child.NamePrefix != "" {
-		log.Fatalf("cannot merge nameprefix %v ", child.NamePrefix)
-	}
-	if child.NameSuffix != "" {
-		log.Fatalf("cannot merge namesuffix %v ", child.NamePrefix)
-	}
-	if (child.CommonLabels != nil && len(child.CommonLabels) > 0) {
-		log.Fatalf("cannot merge commonLabels for %v ", compDir)
-	}
-	if (child.CommonAnnotations != nil && len(child.CommonAnnotations) > 0) {
-		log.Fatalf("cannot merge commonAnnotations for %v ", compDir)
-	}
+		if child.NamePrefix != "" {
+			log.Fatalf("cannot merge nameprefix %v ", child.NamePrefix)
+		}
+		if child.NameSuffix != "" {
+			log.Fatalf("cannot merge namesuffix %v ", child.NamePrefix)
+		}
+		if (child.CommonLabels != nil && len(child.CommonLabels) > 0) {
+			log.Fatalf("cannot merge commonLabels for %v ", compDir)
+		}
+		if (child.CommonAnnotations != nil && len(child.CommonAnnotations) > 0) {
+			log.Fatalf("cannot merge commonAnnotations for %v ", compDir)
+		}
 	*/
 	if child.NamePrefix != "" && parent.NamePrefix == "" {
 		parent.NamePrefix = child.NamePrefix
@@ -862,18 +860,18 @@ func MergeKustomizations(kfDef *kfdefsv2.KfDef, compDir string, params []config.
 			APIVersion: types.KustomizationVersion,
 			Kind:       types.KustomizationKind,
 		},
-		Bases: make([]string,0),
-		CommonLabels: make(map[string]string),
-		CommonAnnotations: make(map[string]string),
-		PatchesStrategicMerge: make([]patch.StrategicMerge,0),
-		PatchesJson6902: make([]patch.Json6902,0),
-		Images: make([]image.Image,0),
-		Vars: make([]types.Var,0),
-		Crds: make([]string,0),
-		Resources: make([]string,0),
-		ConfigMapGenerator: make([]types.ConfigMapArgs,0),
-		SecretGenerator: make([]types.SecretArgs,0),
-		Configurations: make([]string,0),
+		Bases:                 make([]string, 0),
+		CommonLabels:          make(map[string]string),
+		CommonAnnotations:     make(map[string]string),
+		PatchesStrategicMerge: make([]patch.StrategicMerge, 0),
+		PatchesJson6902:       make([]patch.Json6902, 0),
+		Images:                make([]image.Image, 0),
+		Vars:                  make([]types.Var, 0),
+		Crds:                  make([]string, 0),
+		Resources:             make([]string, 0),
+		ConfigMapGenerator:    make([]types.ConfigMapArgs, 0),
+		SecretGenerator:       make([]types.SecretArgs, 0),
+		Configurations:        make([]string, 0),
 	}
 	baseDir := path.Join(compDir, "base")
 	base := GetKustomization(baseDir)
@@ -999,7 +997,7 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 		kustomization.Namespace = kfDef.Namespace
 	}
 	if kustomization.CommonLabels == nil {
-		kustomization.CommonLabels = map[string]string {
+		kustomization.CommonLabels = map[string]string{
 			kftypesv2.DefaultAppLabel: kfDef.Name,
 		}
 	}
@@ -1119,17 +1117,17 @@ func extractSuffix(dirPath string, subDirPath string) string {
 
 func CreateKustomizationMaps() map[MapType]map[string]bool {
 	return map[MapType]map[string]bool{
-		basesMap: make(map[string]bool),
-		commonAnnotationsMap: make(map[string]bool),
-		commonLabelsMap: make(map[string]bool),
-		imagesMap: make(map[string]bool),
-		resourcesMap: make(map[string]bool),
-		crdsMap: make(map[string]bool),
-		varsMap: make(map[string]bool),
-		configurationsMap: make(map[string]bool),
-		configMapGeneratorMap: make(map[string]bool),
-		secretsMapGeneratorMap: make(map[string]bool),
+		basesMap:                 make(map[string]bool),
+		commonAnnotationsMap:     make(map[string]bool),
+		commonLabelsMap:          make(map[string]bool),
+		imagesMap:                make(map[string]bool),
+		resourcesMap:             make(map[string]bool),
+		crdsMap:                  make(map[string]bool),
+		varsMap:                  make(map[string]bool),
+		configurationsMap:        make(map[string]bool),
+		configMapGeneratorMap:    make(map[string]bool),
+		secretsMapGeneratorMap:   make(map[string]bool),
 		patchesStrategicMergeMap: make(map[string]bool),
-		patchesJson6902Map: make(map[string]bool),
+		patchesJson6902Map:       make(map[string]bool),
 	}
 }

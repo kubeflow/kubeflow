@@ -22,6 +22,20 @@ ENV PATH /go/bin:/usr/local/go/bin:/opt/google-cloud-sdk/bin:${PATH}
 
 # use go modules
 ENV GO111MODULE=on
+ENV GOPATH=/go
+
+# Create bootstrap folder
+RUN mkdir -p ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
+WORKDIR ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
+
+# Download dependencies first to optimize Docker caching.
+COPY go.mod .
+COPY go.sum .
+COPY hack/v2.zip hack/v2.zip
+RUN unzip -q -d /tmp hack/v2.zip
+RUN go mod download
+# Copy in the source
+COPY . .
 
 #**********************************************************************
 # Bootstrap base
@@ -34,64 +48,44 @@ ENV GO111MODULE=on
 #
 FROM builder as bootstrap_base
 
-RUN mkdir -p /opt/kubeflow
-RUN mkdir -p ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
-WORKDIR ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
+RUN make build-bootstrap
 
-# TODO(jlewi) This is copying in the source. Do we really want to bake the source into the image.
-# Might be better to mount it via a volume.
-# Download dependencies first to optimize Docker caching.
-COPY go.mod .
-COPY go.sum .
-COPY hack/v2.zip hack/v2.zip
-RUN unzip -q -d /tmp hack/v2.zip
-RUN go mod download
-# Then copy source and build.
-COPY . .
-RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
-
+#**********************************************************************
 #
 # kfctl_base
 #
-# TODO(jlewi): Why are we depending on a Docker container that has bootstrapper built into it?
-FROM bootstrap_base as kfctl_base
-ARG VERSION=""
+FROM builder as kfctl_base
 
-# TODO(jlewi): This should already be installed in the base image.
-RUN apt-get install unzip
-WORKDIR ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
+RUN make build-kfctl
 
-# TODO(jlewi): Why are these commands being run as part of the Dockerfile? Why aren't they part of Make?
-RUN GO111MODULE=off GOPATH=${GOPATH} go get k8s.io/code-generator/cmd/deepcopy-gen 
-RUN ${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/config/... -O zz_generated.deepcopy
-RUN ${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy
-RUN ${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy
-RUN go generate ./config/... ./pkg/apis/... ./pkg/utils/... ./pkg/kfapp/... ./cmd/kfctl/...
-RUN go fmt ./config/... ./pkg/apis/... ./pkg/utils/... ./pkg/kfapp/... ./cmd/kfctl/...
-RUN go vet ./config/... ./pkg/apis/... ./pkg/utils/... ./pkg/kfapp/... ./cmd/kfctl/...
-RUN go build -gcflags 'all=-N -l' -ldflags "-X main.VERSION=${VERSION}" -o bin/kfctl cmd/kfctl/main.go
+#**********************************************************************
+#
+# Final image base
+#
 
+FROM alpine:3.9.4 as barebones_base
+RUN mkdir -p /opt/kubeflow
+WORKDIR /opt/kubeflow
+
+#**********************************************************************
 #
 # kfctl
 #
-FROM golang:${GOLANG_VERSION} as kfctl
+FROM barebones_base as kfctl
 
-ENV PATH ${GOPATH}/bin:/usr/local/go/bin:${PATH}
-RUN mkdir -p /opt/kubeflow
-WORKDIR /opt/kubeflow
-COPY --from=kfctl_base ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/bin/kfctl /usr/local/bin
+COPY --from=kfctl_base /go/src/github.com/kubeflow/kubeflow/bootstrap/bin/kfctl /usr/local/bin
 
 CMD ["/bin/bash", "-c", "trap : TERM INT; sleep infinity & wait"]
 
+#**********************************************************************
 #
 # bootstrap
 #
-FROM golang:${GOLANG_VERSION} as bootstrap
+FROM barebones_base as bootstrap
 ARG registries
 
 COPY $registries /opt/registries
 
-RUN mkdir -p /opt/kubeflow
 COPY --from=bootstrap_base ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow/
 
 COPY config/default.yaml /opt/kubeflow/
@@ -100,9 +94,8 @@ RUN mkdir -p /opt/bootstrap
 RUN mkdir -p /opt/versioned_registries
 RUN chmod a+rx /opt/kubeflow/bootstrapper
 
-ENV PATH ${GOPATH}/bin:/usr/local/go/bin:${PATH}
-RUN mkdir -p /opt/kubeflow
-WORKDIR /opt/kubeflow
+ENV PATH /opt/kubeflow:/opt/bootstrap:${PATH}
+
 
 EXPOSE 8080
 

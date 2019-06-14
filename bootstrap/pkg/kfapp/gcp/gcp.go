@@ -572,7 +572,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 				err.(*kfapis.KfError).Message),
 		}
 	}
-	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
+	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, NETWORK_FILE)); networkStatErr == nil {
 		err := gcp.updateDeployment(gcp.Name+"-network", NETWORK_FILE)
 		if err != nil {
 			return &kfapis.KfError{
@@ -582,7 +582,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 			}
 		}
 	}
-	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
+	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCP_CONFIG, GCFS_FILE)); gcfsStatErr == nil {
 		err := gcp.updateDeployment(gcp.Name+"-gcfs", GCFS_FILE)
 		if err != nil {
 			return &kfapis.KfError{

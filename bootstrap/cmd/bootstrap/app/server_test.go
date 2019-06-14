@@ -20,11 +20,10 @@ import (
 	"testing"
 
 	"k8s.io/api/storage/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sVersion "k8s.io/apimachinery/pkg/version"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
 
 // Pformat returns a pretty format output of any value.
 func Pformat(value interface{}) (string, error) {
@@ -126,7 +125,7 @@ func TestHasDefaultStorageClass(t *testing.T) {
 			Input: v1.StorageClassList{
 				Items: []v1.StorageClass{
 					{
-						ObjectMeta: metav1.ObjectMeta {
+						ObjectMeta: metav1.ObjectMeta{
 							Annotations: map[string]string{
 								"storageclass.beta.kubernetes.io/is-default-class": "true",
 							},
@@ -140,7 +139,7 @@ func TestHasDefaultStorageClass(t *testing.T) {
 			Input: v1.StorageClassList{
 				Items: []v1.StorageClass{
 					{
-						ObjectMeta: metav1.ObjectMeta {
+						ObjectMeta: metav1.ObjectMeta{
 							Annotations: map[string]string{
 								"storageclass.beta.kubernetes.io/is-default-class": "false",
 							},

@@ -1,0 +1,11 @@
+{
+  "RoleRef": {
+    "kind": "ClusterRole",
+    "name": "edit"
+  },
+  "referredNamespace": "namespace1",
+  "user": {
+    "kind": "User",
+    "name": "user1@org1.com"
+  }
+}

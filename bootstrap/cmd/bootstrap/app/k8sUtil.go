@@ -28,7 +28,7 @@ const (
 // TODO: it can't handle "kind: list" yet.
 func CreateResourceFromFile(config *rest.Config, filename string, elems ...configtypes.NameValue) error {
 	elemsMap := make(map[string]configtypes.NameValue)
-	for _, nv := range(elems) {
+	for _, nv := range elems {
 		elemsMap[nv.Name] = nv
 	}
 	// Create a restmapper to determine the resource type.
