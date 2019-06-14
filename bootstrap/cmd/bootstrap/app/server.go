@@ -34,6 +34,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 )
 
 // RecommendedConfigPathEnvVar is a environment variable for path configuration
@@ -205,7 +206,7 @@ func Run(opt *options.ServerOption) error {
 	}
 
 	// Load information about the default registries.
-	var regConfig kstypes.RegistriesConfigFile
+	var regConfig kfdefs.RegistriesConfigFile
 
 	if opt.RegistriesConfigFile != "" {
 		log.Infof("Loading registry info in file %v", opt.RegistriesConfigFile)

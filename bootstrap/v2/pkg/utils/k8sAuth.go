@@ -1,4 +1,4 @@
-package app
+package utils
 
 import (
 	"encoding/base64"
@@ -14,7 +14,7 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
-func buildClusterConfig(ctx context.Context, token string, project string, zone string,
+func BuildClusterConfig(ctx context.Context, token string, project string, zone string,
 	clusterID string) (*rest.Config, error) {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: token,
@@ -68,7 +68,7 @@ func BuildClientCmdAPI(config *rest.Config, token string) *clientcmdapi.Config {
 	}
 }
 
-func createK8sRoleBing(config *rest.Config, roleBinding *v1.ClusterRoleBinding) error {
+func CreateK8sRoleBing(config *rest.Config, roleBinding *v1.ClusterRoleBinding) error {
 	kubeClient, err := clientset.NewForConfig(config)
 	if err != nil {
 		return err

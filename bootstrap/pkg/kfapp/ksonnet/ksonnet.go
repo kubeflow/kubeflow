@@ -62,7 +62,7 @@ const (
 	KsEnvName = "default"
 )
 
-func GetKfApp(kfdefv2 *kfdefsv2.KfDef) kftypes.KfApp {
+func GetKfApp(kfdefv2 *kfdefsv2.KfDef, restConfig *rest.Config, apiConfig  *clientcmdapi.Config) kftypes.KfApp {
 	kfdef := &kfdefs.KfDef{
 		TypeMeta: metav1.TypeMeta{
 			Kind: kfdefv2.Kind,
@@ -116,9 +116,14 @@ func GetKfApp(kfdefv2 *kfdefsv2.KfDef) kftypes.KfApp {
 	if goPathVar != "" {
 		_kfapp.Spec.Repo = re.ReplaceAllString(_kfapp.Spec.Repo, goPathVar+`$2`)
 	}
-	// build restConfig and apiConfig using $HOME/.kube/config if the file exist
-	_kfapp.restConfig = kftypes.GetConfig()
-	_kfapp.apiConfig = kftypes.GetKubeConfig()
+	if restConfig != nil && apiConfig != nil {
+		_kfapp.restConfig = restConfig
+		_kfapp.apiConfig = apiConfig
+	} else {
+		// build restConfig and apiConfig using $HOME/.kube/config if the file exist
+		_kfapp.restConfig = kftypes.GetConfig()
+		_kfapp.apiConfig = kftypes.GetKubeConfig()
+	}
 	return _kfapp
 }
 

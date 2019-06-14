@@ -3,25 +3,24 @@ package app
 import (
 	"encoding/base64"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
-	log "github.com/sirupsen/logrus"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/ksonnet"
-	"golang.org/x/net/context"
-	"golang.org/x/oauth2"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/square/go-jose.v2/json"
+	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"os"
 	"path"
 )
 
 // ToKfdef will output CreateRequest in format of kfdefs.KfDef
-func (cr *CreateRequest) ToKfdef(appDir string, repo string, istio bool) (*kfdefs.KfDef, error) {
-	kfDef := &kfdefs.KfDef{
+func (cr *CreateRequest) ToKfdef(appDir string, repo string, istio bool) (*kfdefsv2.KfDef, error) {
+	kfDef := &kfdefsv2.KfDef{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KfDef",
 			APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
 		},
-		Spec: kfdefs.KfDefSpec{},
+		Spec: kfdefsv2.KfDefSpec{},
 	}
 	kfDef.Spec.ComponentConfig = cr.AppConfig
 	kfDef.Name = cr.Name
@@ -44,7 +43,7 @@ func (cr *CreateRequest) ToKfdef(appDir string, repo string, istio bool) (*kfdef
 
 func (s *ksServer) DeployWithKfctl(req *CreateRequest) error{
 	// pull versioned kubeflow repo
-	ksRegistry := kfdefs.GetDefaultRegistry()
+	ksRegistry := kfdefsv2.GetDefaultRegistry()
 	ksRegistry.Version = req.KfVersion
 	versionedRegPath, err := s.getRegistryUri(ksRegistry)
 	if err != nil {
@@ -63,12 +62,12 @@ func (s *ksServer) DeployWithKfctl(req *CreateRequest) error{
 	if err != nil {
 		return err
 	}
-	ts := oauth2.StaticTokenSource(&oauth2.Token{
+	gcpArgs := gcp.GcpArgs{
 		AccessToken: req.Token,
-	})
-	ctx := context.Background()
-
-	var gcpApp kftypes.KfApp
+		StorageOption: req.StorageOption,
+		SAClientId: req.SAClientID,
+	}
+	//var gcpApp kftypes.KfApp
 	// run gcp generate / apply
 	if kfdef.Spec.UseBasicAuth {
 		UsernameData, err := base64.StdEncoding.DecodeString(req.Username)
@@ -76,33 +75,26 @@ func (s *ksServer) DeployWithKfctl(req *CreateRequest) error{
 			log.Errorf("Failed decoding username: %v", err)
 			return err
 		}
-		gcpApp = gcp.BuildKfApp(kfdef, oauth2.NewClient(ctx, ts), ts, req.StorageOption, req.SAClientID,
-			string(UsernameData), req.PasswordHash, "", "")
+		gcpArgs.Username = string(UsernameData)
+		gcpArgs.EncodedPassword = req.PasswordHash
 	} else {
-		gcpApp = gcp.BuildKfApp(kfdef, oauth2.NewClient(ctx, ts), ts, req.StorageOption, req.SAClientID,
-			"", "", req.ClientID, req.ClientSecret)
+		gcpArgs.OauthID = req.ClientID
+		gcpArgs.OauthSecret = req.ClientSecret
 	}
-	
-	if err = gcpApp.Generate(kftypes.ALL); err != nil {
+	argBytes, err := json.Marshal(gcpArgs)
+	if err != nil {
+		log.Errorf("Failed encoding gcp args: %v", err)
 		return err
 	}
-	if err = gcpApp.Apply(kftypes.ALL); err != nil {
+	coord := coordinator.GetKfApp(kfdef, argBytes)
+
+	if err = coord.Generate(kftypes.ALL); err != nil {
+		return err
+	}
+	if err = coord.Apply(kftypes.ALL); err != nil {
 		return err
 	}
 
-	// run ksonnet generate / apply
-	restConfig, err := buildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
-	if err != nil {
-		return err
-	}
-	apiConfig := BuildClientCmdAPI(restConfig, req.Token)
-	ksonnetApp := ksonnet.BuildKfApp(kfdef, restConfig, apiConfig)
-	if err = ksonnetApp.Generate(kftypes.ALL); err != nil {
-		return err
-	}
-	if err = ksonnetApp.Apply(kftypes.ALL); err != nil {
-		return err
-	}
 	err = SaveAppToRepo(req.Email, path.Join(repoDir, GetRepoNameKfctl(req.Project)))
 	if err != nil {
 		log.Errorf("There was a problem saving config to cloud repo; %v", err)

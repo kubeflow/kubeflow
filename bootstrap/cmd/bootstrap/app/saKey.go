@@ -13,13 +13,14 @@ import (
 	rbac_v1 "k8s.io/api/rbac/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 )
 
 const OauthSecretName = "kubeflow-oauth"
 const LoginSecretName = "kubeflow-login"
 
 func (s *ksServer) ConfigCluster(ctx context.Context, req CreateRequest) error {
-	k8sConfig, err := buildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
+	k8sConfig, err := utils.BuildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
 	if err != nil {
 		log.Errorf("Failed getting GKE cluster config: %v", err)
 		return err
@@ -71,7 +72,7 @@ func (s *ksServer) ConfigCluster(ctx context.Context, req CreateRequest) error {
 			},
 		},
 	}
-	err = createK8sRoleBing(k8sConfig, &roleBinding)
+	err = utils.CreateK8sRoleBing(k8sConfig, &roleBinding)
 	return err
 }
 

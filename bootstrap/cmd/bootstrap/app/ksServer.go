@@ -24,9 +24,7 @@ import (
 	kApp "github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -41,13 +39,14 @@ import (
 	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 )
 
 // The name of the prototype for Jupyter.
 const JupyterPrototype = "jupyterhub"
 
 // root dir of local cached VERSIONED REGISTRIES
-const CachedRegistries = "/Users/kunming/test/versioned_registries"
+const CachedRegistries = "/opt/versioned_registries"
 
 // key used for storing start time of a request to deploy in the request contexts
 const StartTime = "StartTime"
@@ -112,7 +111,7 @@ type ksServer struct {
 	// This can be used to map the name of a registry to info about the registry.
 	// This allows apps to specify a registry by name without having to know any
 	// other information about the regisry.
-	knownRegistries map[string]*kstypes.RegistryConfig
+	knownRegistries map[string]*kfdefs.RegistryConfig
 
 	//gkeVersionOverride allows overriding the GKE version specified in DM config. If not set the value in DM config is used.
 	// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
@@ -151,7 +150,7 @@ func (m MultiError) ToError() error {
 }
 
 // NewServer constructs a ksServer.
-func NewServer(appsDir string, registries []*kstypes.RegistryConfig, gkeVersionOverride string, installIstio bool) (*ksServer, error) {
+func NewServer(appsDir string, registries []*kfdefs.RegistryConfig, gkeVersionOverride string, installIstio bool) (*ksServer, error) {
 	if appsDir == "" {
 		return nil, fmt.Errorf("appsDir can't be empty")
 	}
@@ -159,7 +158,7 @@ func NewServer(appsDir string, registries []*kstypes.RegistryConfig, gkeVersionO
 	s := &ksServer{
 		appsDir:            appsDir,
 		projectLocks:       make(map[string]*sync.Mutex),
-		knownRegistries:    make(map[string]*kstypes.RegistryConfig),
+		knownRegistries:    make(map[string]*kfdefs.RegistryConfig),
 		gkeVersionOverride: gkeVersionOverride,
 		fs:                 afero.NewOsFs(),
 		installIstio:       installIstio,
@@ -390,25 +389,25 @@ func (s *ksServer) InstallIstio(ctx context.Context, req CreateRequest) error {
 		log.Errorf("No token specified in request; dropping request.")
 		return fmt.Errorf("No token specified in request; dropping request.")
 	}
-	config, err := buildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
+	config, err := utils.BuildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
 	if err != nil {
 		log.Errorf("Failed getting GKE cluster config: %v", err)
 		return err
 	}
 
-	err = utils.CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/install/crds.yaml"))
+	err = CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/install/crds.yaml"))
 	if err != nil {
 		log.Errorf("Failed to create istio CRD: %v", err)
 		return err
 	}
-	err = utils.CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/install/istio-noauth.yaml"))
+	err = CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/install/istio-noauth.yaml"))
 	if err != nil {
 		log.Errorf("Failed to create istio manifest: %v", err)
 		return err
 	}
 	//TODO should be a cli parameter
 	nv := configtypes.NameValue{Name: "namespace", Value: req.Namespace}
-	err = utils.CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/kf-istio-resources.yaml"), nv)
+	err = CreateResourceFromFile(config, path.Join(regPath, "../dependencies/istio/kf-istio-resources.yaml"), nv)
 	if err != nil {
 		log.Errorf("Failed to create kubeflow istio resource: %v", err)
 		return err
@@ -420,7 +419,7 @@ func (s *ksServer) InstallIstio(ctx context.Context, req CreateRequest) error {
 func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeploy *deploymentmanager.Deployment) error {
 	config, err := rest.InClusterConfig()
 	if request.Token != "" {
-		config, err = buildClusterConfig(ctx, request.Token, request.Project, request.Zone, request.Cluster)
+		config, err = utils.BuildClusterConfig(ctx, request.Token, request.Project, request.Zone, request.Cluster)
 	}
 	if err != nil {
 		log.Errorf("Failed getting GKE cluster config: %v", err)
@@ -600,7 +599,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 
 // fetch remote registry to local disk, or use baked-in registry if version not specified in user request.
 // Then return registry's RegUri.
-func (s *ksServer) getRegistryUri(registry *kstypes.RegistryConfig) (string, error) {
+func (s *ksServer) getRegistryUri(registry *kfdefs.RegistryConfig) (string, error) {
 	if registry.Name == "" ||
 		registry.Path == "" ||
 		registry.Repo == "" ||
@@ -687,7 +686,7 @@ func (s *ksServer) appGenerate(ksApp kApp.App, appConfig *configtypes.ComponentC
 	_, err = s.fs.Stat(regFile)
 	if err == nil {
 		log.Infof("processing registry file %v ", regFile)
-		var ksRegistry kstypes.KsRegistry
+		var ksRegistry kfdefs.KsRegistry
 		if LoadConfig(regFile, &ksRegistry) == nil {
 			for pkgName := range ksRegistry.Libraries {
 				_, err = s.fs.Stat(path.Join(appConfig.Repo, pkgName))
@@ -1010,7 +1009,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		log.Errorf("No token specified in request; dropping request.")
 		return fmt.Errorf("No token specified in request; dropping request.")
 	}
-	config, err := buildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
+	config, err := utils.BuildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
 	if err != nil {
 		log.Errorf("Failed getting GKE cluster config: %v", err)
 		return err
@@ -1025,7 +1024,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		}
 	}
 
-	cfg := BuildClientCmdAPI(config, token)
+	cfg := utils.BuildClientCmdAPI(config, token)
 	applyOptions := map[string]interface{}{
 		actions.OptionAppRoot: targetApp.App.Root(),
 		actions.OptionClientConfig: &client.Config{

@@ -18,6 +18,7 @@ package gcp
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/deckarep/golang-set"
@@ -43,6 +44,8 @@ import (
 	"k8s.io/api/v2/core/v1"
 	rbacv1 "k8s.io/api/v2/rbac/v1"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	clientset "k8s.io/client-go/v2/kubernetes"
 	"math/rand"
 	"net/http"
@@ -79,10 +82,9 @@ type Gcp struct {
 	kfdefs.KfDef
 	configtypes.StorageOption
 	client      *http.Client
+	accessToken string
 	tokenSource oauth2.TokenSource
-	// When isCLI is false, following code need to be multi-thread safe, and can not access local configs or gcloud cli
-	isCLI      bool
-	SAClientId string
+	SAClientId  string
 	// requried when choose basic-auth
 	username        string
 	encodedPassword string
@@ -91,42 +93,79 @@ type Gcp struct {
 	oauthSecret string
 }
 
+type GcpArgs struct {
+	AccessToken     string
+	StorageOption   configtypes.StorageOption
+	SAClientId      string
+	Username        string
+	EncodedPassword string
+	OauthID         string
+	OauthSecret     string
+}
+
 type dmOperationEntry struct {
 	operationName string
 	// create or update dmName
 	action string
 }
 
-// GetKfApp returns the gcp kfapp. It's called by coordinator.GetKfApp
-func GetKfApp(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
-	ctx := context.Background()
-	client, err := google.DefaultClient(ctx, gke.CloudPlatformScope)
-	if err != nil {
-		log.Errorf("Could not authenticate Client: %v", err)
-		log.Errorf("Try authentication command and rerun: `gcloud auth application-default login`")
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: err.Error(),
-		}
-	}
-	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Get token error: %v", err),
-		}
-	}
-	_gcp := &Gcp{
-		KfDef:       *kfdef,
-		client:      client,
-		tokenSource: ts,
-		isCLI:       true,
+func getDefaultArgs() GcpArgs {
+	return GcpArgs{
 		StorageOption: configtypes.StorageOption{
 			CreatePipelinePersistentStorage: true,
 		},
 	}
+}
+
+// GetPlatform returns the gcp kfapp. It's called by coordinator.GetPlatform
+func GetPlatform(kfdef *kfdefs.KfDef, platformArgs []byte) (kftypes.Platform, error) {
+	var gcpArgs GcpArgs
+	if platformArgs == nil {
+		gcpArgs = getDefaultArgs()
+	} else {
+		err := json.Unmarshal(platformArgs, &gcpArgs)
+		if err != nil {
+			return nil, err
+		}
+	}
+	_gcp := &Gcp{
+		KfDef:           *kfdef,
+		StorageOption:   gcpArgs.StorageOption,
+		SAClientId:      gcpArgs.SAClientId,
+		username:        gcpArgs.Username,
+		encodedPassword: gcpArgs.EncodedPassword,
+		oauthId:         gcpArgs.OauthID,
+		oauthSecret:     gcpArgs.OauthSecret,
+	}
+	ctx := context.Background()
+	if gcpArgs.AccessToken == "" {
+		client, err := google.DefaultClient(ctx, gke.CloudPlatformScope)
+		if err != nil {
+			log.Errorf("Could not authenticate Client: %v", err)
+			log.Errorf("Try authentication command and rerun: `gcloud auth application-default login`")
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: err.Error(),
+			}
+		}
+		_gcp.client = client
+		_gcp.tokenSource, err = google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Get token error: %v", err),
+			}
+		}
+	} else {
+		ts := oauth2.StaticTokenSource(&oauth2.Token{
+			AccessToken: gcpArgs.AccessToken,
+		})
+		_gcp.client = oauth2.NewClient(ctx, ts)
+		_gcp.accessToken = gcpArgs.AccessToken
+		_gcp.tokenSource = ts
+	}
 	if _gcp.Spec.Email == "" {
-		if err = _gcp.getAccount(); err != nil {
+		if err := _gcp.getAccount(); err != nil {
 			log.Infof("cannot get gcloud account email. Error: %v", err)
 		}
 	}
@@ -140,26 +179,22 @@ func newDefaultBackoff() *backoff.ExponentialBackOff {
 	return b
 }
 
-// BuildKfApp build the gcp kfapp from input and return it. Used by click-deploy app
-func BuildKfApp(kfdef *kfdefs.KfDef, gcpClient *http.Client, ts oauth2.TokenSource,
-	storageOption configtypes.StorageOption, SAClientId string, username string, encodedPassword string,
-	oauthID string, oauthSecret string) kftypes.KfApp {
-	return &Gcp{
-		KfDef:           *kfdef,
-		StorageOption:   storageOption,
-		client:          gcpClient,
-		tokenSource:     ts,
-		isCLI:           false,
-		SAClientId:      SAClientId,
-		username:        username,
-		encodedPassword: encodedPassword,
-		oauthId:         oauthID,
-		oauthSecret:     oauthSecret,
-	}
-}
-
 func getSA(name string, nameSuffix string, project string) string {
 	return fmt.Sprintf("%v-%v@%v.iam.gserviceaccount.com", name, nameSuffix, project)
+}
+
+func (gcp *Gcp) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
+	if gcp.accessToken == "" {
+		return nil, nil
+	}
+	ctx := context.Background()
+	restConfig, err := utils.BuildClusterConfig(ctx, gcp.accessToken, gcp.KfDef.Spec.Project,
+		gcp.KfDef.Spec.Zone, gcp.KfDef.Name)
+	if err != nil {
+		return nil, nil
+	}
+	apiConfig := utils.BuildClientCmdAPI(restConfig, gcp.accessToken)
+	return restConfig, apiConfig
 }
 
 // getAccount if --email is not supplied try and get account info using gcloud
@@ -725,10 +760,9 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	// kfctl only
 	// Setup kube config
 	// TODO(#3061): figure out how to properly build config without kubeconfig.
-	if gcp.isCLI {
+	if gcp.accessToken == "" {
 		credCmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
 			gcp.Name,
 			"--zone="+gcp.Spec.Zone,
@@ -746,49 +780,14 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 			gcp.AddNamedContext()
 		}
 	}
-	// Get client for kube config.
-	client := kftypes.GetConfig()
-	// Install Istio
-	if gcp.Spec.UseIstio {
-		log.Infof("Installing istio...")
-		//TODO should be a cli parameter
-		nv := configtypes.NameValue{Name: "namespace", Value: gcp.Namespace}
-		parentDir := path.Dir(gcp.Spec.Repo)
-		err = utils.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/install/crds.yaml"))
-		if err != nil {
-			log.Errorf("Failed to create istio CRD: %v", err)
-			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: err.Error(),
-			}
-		}
-		err = utils.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/install/istio-noauth.yaml"))
-		if err != nil {
-			log.Errorf("Failed to create istio manifest: %v", err)
-			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: err.Error(),
-			}
-		}
-		err = utils.CreateResourceFromFile(client, path.Join(parentDir, "dependencies/istio/kf-istio-resources.yaml"), nv)
-		if err != nil {
-			log.Errorf("Failed to create kubeflow istio resource: %v", err)
-			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: err.Error(),
-			}
-		}
-		log.Infof("Done installing istio.")
-	}
 	return nil
 }
 
 // Apply applies the gcp kfapp.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
-	// kfctl only
-	if gcp.isCLI {
-		if gcp.Spec.UseBasicAuth {
+	if gcp.Spec.UseBasicAuth {
+		if gcp.username == "" || gcp.encodedPassword == "" {
 			if os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" || os.Getenv(kftypes.KUBEFLOW_PASSWORD) == "" {
 				return &kfapis.KfError{
 					Code: int(kfapis.INVALID_ARGUMENT),
@@ -806,7 +805,9 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 				}
 			}
 			gcp.encodedPassword = base64.StdEncoding.EncodeToString(passwordHash)
-		} else {
+		}
+	} else {
+		if gcp.oauthId == "" || gcp.oauthSecret == "" {
 			if os.Getenv(CLIENT_ID) == "" {
 				return &kfapis.KfError{
 					Code:    int(kfapis.INVALID_ARGUMENT),
@@ -1525,12 +1526,6 @@ func (gcp *Gcp) createSecrets() error {
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	if gcp.Spec.Email == "" {
-		if gcp.isCLI {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: "--email not specified and cannot get gcloud value.",
-			}
-		}
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: "email not specified.",

@@ -14,12 +14,11 @@ limitations under the License.
 package utils
 
 import (
-	"encoding/json"
+	"bytes"
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
-	ksUtil "github.com/ksonnet/ksonnet/utils"
-	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
+	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -29,9 +28,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	k8stypes "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/discovery/cached"
 	"k8s.io/client-go/dynamic"
-	"regexp"
 	"strings"
+	"sync"
 
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -48,7 +48,6 @@ const RecommendedConfigPathEnvVar = "KUBECONFIG"
 const (
 	maxRetries      = 5
 	backoffInterval = 5 * time.Second
-	YamlSeparator   = "(?m)^---[ \t]*$"
 )
 
 func getRESTClient(config *rest.Config, group string, version string) (*rest.RESTClient, error) {
@@ -235,38 +234,57 @@ func patchOrCreate(mapping *meta.RESTMapping, config *rest.Config, group string,
 // We use some libraries in an old way (e.g. the RestMapper is in discovery instead of restmapper)
 // because ksonnet (one of our dependency) is using the old library version.
 // TODO: it can't handle "kind: list" yet.
-func CreateResourceFromFile(config *rest.Config, filename string, elems ...configtypes.NameValue) error {
-	elemsMap := make(map[string]configtypes.NameValue)
-	for _, nv := range elems {
-		elemsMap[nv.Name] = nv
-	}
+func CreateResourceFromFile(config *rest.Config, filename string) error {
 	// Create a restmapper to determine the resource type.
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
-		return err
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: err.Error(),
+		}
 	}
-	cacheClient := ksUtil.NewMemcachedDiscoveryClient(discoveryClient)
-	mapper := discovery.NewDeferredDiscoveryRESTMapper(cacheClient, dynamic.VersionInterfaces)
+	cached := cached.NewMemCacheClient(discoveryClient)
+	mapper := discovery.NewDeferredDiscoveryRESTMapper(cached, dynamic.VersionInterfaces)
 
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return err
-	}
-	splitter := regexp.MustCompile(YamlSeparator)
-	objects := splitter.Split(string(data), -1)
-	var o map[string]interface{}
-	for _, object := range objects {
-		if err = yaml.Unmarshal([]byte(object), &o); err != nil {
-			return err
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: err.Error(),
 		}
-		if len(o) == 0 {
+	}
+	objects := bytes.Split(data, []byte(bootstrap.YamlSeparator))
+	var o map[string]interface{}
+	errors := make([]error, len(objects))
+	var wg sync.WaitGroup
+	log.Infof("%v of resources creation ...", len(objects))
+	wg.Add(len(objects))
+	for idx, object := range objects {
+		if err = yaml.Unmarshal(object, &o); err != nil {
+			log.Warnf("Resource marshal error: %v", err)
+			errors[idx] = nil
+			wg.Done()
 			continue
 		}
 		a := o["apiVersion"]
 		if a == nil {
-			log.Warnf("Unknown resource: %v", o)
+			log.Warnf("Unknown resource: %v", object)
+			errors[idx] = nil
+			wg.Done()
 			continue
 		}
+
+		// Identify the name of deployment.
+		metadata := o["metadata"].(map[string]interface{})
+		if metadata["name"] == nil {
+			log.Warnf("Cannot name in resource: %v", string(object))
+			errors[idx] = nil
+			wg.Done()
+			continue
+		}
+		name := metadata["name"].(string)
+		log.Infof("creating %v\n", name)
+
 		apiVersion := strings.Split(a.(string), "/")
 		var group, version string
 		if len(apiVersion) == 1 {
@@ -275,74 +293,71 @@ func CreateResourceFromFile(config *rest.Config, filename string, elems ...confi
 		} else {
 			group, version = apiVersion[0], apiVersion[1]
 		}
-		kind := o["kind"].(string)
-		gk := schema.GroupKind{
-			Group: group,
-			Kind:  kind,
-		}
-		result, err := mapper.RESTMapping(gk, version)
-		// result.resource is the resource we need (e.g. pods, services)
-		if err != nil {
-			return err
-		}
-
-		// build config for restClient
-		c := rest.CopyConfig(config)
-		c.GroupVersion = &schema.GroupVersion{
-			Group:   group,
-			Version: version,
-		}
-		c.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
-		if group == "" {
-			c.APIPath = "/api"
-		} else {
-			c.APIPath = "/apis"
-		}
-		restClient, err := rest.RESTClientFor(c)
-		if err != nil {
-			return err
-		}
-
-		// build the request
-		metadata := o["metadata"].(map[string]interface{})
-		name := metadata["name"].(string)
-		log.Infof("creating %v\n", name)
+		log.Infof("using group (%v) and version (%v)", group, version)
 
 		var namespace string
 		if metadata["namespace"] != nil {
 			namespace = metadata["namespace"].(string)
-		} else if val, exists := elemsMap["namespace"]; exists {
-			namespace = val.Value
-			metadata["namespace"] = namespace
 		} else {
 			namespace = "default"
 		}
+		log.Infof("namespace = %v", namespace)
 
-		// Get first to see if object already exists
-		getRequest := restClient.Get().Resource(result.Resource).Name(name)
-		if result.Scope.Name() == "namespace" {
-			getRequest = getRequest.Namespace(namespace)
+		kind := o["kind"].(string)
+		log.Infof("kind: %v", kind)
+		gk := schema.GroupKind{
+			Group: group,
+			Kind:  kind,
 		}
-		_, err = getRequest.DoRaw()
-		if err == nil {
-			log.Infof("object already exists...\n")
+
+		data, err := yaml.YAMLToJSON(object)
+		if err != nil {
+			log.Warnf("YAMLToJSON error for %v: %v", name, err)
+			errors[idx] = nil
+			wg.Done()
 			continue
 		}
 
-		// Post to create the resource.
-		body, err := json.Marshal(o)
-		if err != nil {
-			return err
-		}
-		request := restClient.Post().Resource(result.Resource).Body(body)
-		if result.Scope.Name() == "namespace" {
-			request = request.Namespace(namespace)
-		}
-		_, err = request.DoRaw()
-		if err != nil {
-			return err
-		}
+		go func(idx int, gk schema.GroupKind, config *rest.Config, group string,
+			version string, namespace string, name string, data []byte) {
+			log.Infof("Goroutine for %v is started ...", name)
+			var resourceErr error
+			resourceErr = nil
+			defer func() {
+				log.Infof("Goroutine for %v is DONE ...", name)
+				errors[idx] = resourceErr
+				wg.Done()
+			}()
+
+			resourceErr = backoff.Retry(func() error {
+				// result.resource is the resource we need (e.g. pods, services)
+				mapping, retryErr := mapper.RESTMapping(gk, version)
+				if retryErr == nil {
+					retryErr = patchOrCreate(mapping, config, group, version,
+						namespace, name, data)
+				}
+				if retryErr == nil {
+					log.Infof("Resource creation for %v is finished ...", name)
+					return nil
+				}
+				log.Infof("Resource creation for %v is failed, backoff and retry: %v",
+					name, retryErr.Error())
+				return &kfapis.KfError{
+					Code:    int(kfapis.INVALID_ARGUMENT),
+					Message: retryErr.Error(),
+				}
+			}, backoff.NewExponentialBackOff())
+		}(idx, gk, config, group, version, namespace, name, data)
 	}
 
+	wg.Wait()
+	for _, e := range errors {
+		if e != nil {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: e.Error(),
+			}
+		}
+	}
 	return nil
 }
