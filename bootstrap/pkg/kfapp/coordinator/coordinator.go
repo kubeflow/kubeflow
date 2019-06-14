@@ -293,7 +293,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	kfDef.Spec.Platform = platform
 	kfDef.Namespace = namespace
 	kfDef.Spec.Version = version
-	kfDef.Spec.Repo = path.Join(cacheDir, kftypes.KubeflowRepo)
+	kfDef.Spec.Repo = cacheDir
 	kfDef.Spec.Project = options[string(kftypes.PROJECT)].(string)
 	kfDef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
 	kfDef.Spec.UseBasicAuth = useBasicAuth

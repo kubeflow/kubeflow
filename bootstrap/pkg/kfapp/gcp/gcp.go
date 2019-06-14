@@ -1208,8 +1208,7 @@ func (gcp *Gcp) generateDMConfigs() error {
 		}
 	}
 	repo := gcp.Spec.Repo
-	parentDir := path.Dir(repo)
-	sourceDir := path.Join(parentDir, "deployment/gke/deployment_manager_configs")
+	sourceDir := path.Join(repo, "deployment/gke/deployment_manager_configs")
 	files := []string{"cluster.jinja", "cluster.jinja.schema", "storage.jinja",
 		"storage.jinja.schema"}
 	for _, file := range files {
@@ -1573,7 +1572,7 @@ func (gcp *Gcp) gcpInitProject() error {
 
 // Init initializes a gcp kfapp
 func (gcp *Gcp) Init(resources kftypes.ResourceEnum) error {
-	swaggerFile := filepath.Join(path.Dir(gcp.Spec.Repo), kftypes.DefaultSwaggerFile)
+	swaggerFile := filepath.Join(gcp.Spec.Repo, kftypes.DefaultSwaggerFile)
 	gcp.Spec.ServerVersion = "file:" + swaggerFile
 	createConfigErr := gcp.writeConfigFile()
 	if createConfigErr != nil {

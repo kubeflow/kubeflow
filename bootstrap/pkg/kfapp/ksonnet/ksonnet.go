@@ -362,7 +362,7 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 
 	ksRegistry := kfdefs.DefaultRegistry
 	ksRegistry.Version = ksApp.Spec.Version
-	ksRegistry.RegUri = ksApp.Spec.Repo
+	ksRegistry.RegUri = path.Join(ksApp.Spec.Repo, kfdefs.DefaultRegistry.Repo)
 	registryAddErr := ksApp.registryAdd(ksRegistry)
 	if registryAddErr != nil {
 		return &kfapis.KfError{
