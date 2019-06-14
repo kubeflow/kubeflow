@@ -44,7 +44,7 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
       "notebook-controller-deployment",
       "tf-job-operator",
       "pytorch-operator",
-      "studyjob-controller",
+      "katib-controller",
       "workflow-controller",
   ]
   ingress_related_deployments = []
