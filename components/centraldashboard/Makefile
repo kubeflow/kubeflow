@@ -9,9 +9,9 @@ ifeq ($(strip $(CHANGED_FILES)),)
 # Changed files is empty; not dirty
 # Don't include --dirty because it could be dirty if files outside the ones we care
 # about changed.
-GIT_VERSION := $(shell git describe --always)
+GIT_VERSION := $(shell git describe --tags --long)
 else
-GIT_VERSION := $(shell git describe --always)-dirty-$(shell git diff | shasum -a256 | cut -c -6)
+GIT_VERSION := $(shell git describe --tags --long)-dirty-$(shell git diff | shasum -a256 | cut -c -6)
 endif
 
 TAG := $(shell date +v%Y%m%d)-$(GIT_VERSION)
