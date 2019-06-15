@@ -253,26 +253,6 @@
       //  dependencies: ["wait-for-kubeflow"],
       //},  // test-argo-deploy
       {
-
-        template: tests.buildTemplate {
-          name: "test-katib-deploy",
-          command: [
-            "python",
-            "-m",
-            "testing.test_deploy",
-            "--project=kubeflow-ci",
-            "--github_token=$(GITHUB_TOKEN)",
-            "--namespace=" + tests.stepsNamespace,
-            "--test_dir=" + tests.testDir,
-            "--artifacts_dir=" + tests.artifactsDir,
-            "--deploy_name=test-katib",
-            "--workflow_name=" + tests.workflowName,
-            "test_katib",
-          ],
-        },
-        dependencies: null,
-      },  // test-katib
-      {
         template: tests.buildTemplate {
           name: "pytorchjob-deploy",
           command: [
@@ -617,13 +597,6 @@
                       "deploy-kubeflow",
                     ],
                   },
-                  {
-                    name: "katib-studyjob-test",
-                    template: "katib-studyjob-test" + v1alpha1Suffix,
-                    dependencies: [
-                      "deploy-kubeflow",
-                    ],
-                  },
                 ]),  // tasks
               },  // dag
             },  // e2e template
@@ -787,13 +760,6 @@
               "deploy_pytorchjob",
               "--params=image=pytorch/pytorch:v0.2,num_workers=1",
             ]),  // pytorchjob-deploy
-            buildTemplate("katib-studyjob-test" + v1alpha1Suffix, [
-              "python",
-              "-m",
-              "testing.katib_studyjob_test",
-              "--src_dir=" + srcDir,
-              "--studyjob_version=v1alpha1",
-            ]),  // katib-studyjob-test
             buildTemplate("test-argo-deploy", [
               "python",
               "-m",
