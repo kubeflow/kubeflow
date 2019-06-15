@@ -81,7 +81,10 @@ export class RokResourceFormComponent implements OnInit {
         this.currNamespace = namespace;
         this.formCtrl.controls.namespace.setValue(this.currNamespace);
 
-        this.updatePVCs(namespace);
+        // Get the PVCs of the new Namespace
+        this.k8s.getVolumes(namespace).subscribe(pvcs => {
+          this.pvcs = pvcs;
+        });
       })
     );
 
@@ -103,12 +106,6 @@ export class RokResourceFormComponent implements OnInit {
   ngOnDestroy() {
     // Unsubscriptions
     this.subscriptions.unsubscribe();
-  }
-
-  public updatePVCs(namespace: string) {
-    this.k8s.getVolumes(namespace).subscribe(pvcs => {
-      this.pvcs = pvcs;
-    });
   }
 
   public initRokFormControls() {
@@ -138,7 +135,10 @@ export class RokResourceFormComponent implements OnInit {
         if (resp === "posted") {
           this.router.navigate(["/"]);
         } else if (resp === "failed") {
-          this.updatePVCs(this.currNamespace);
+          // The Notebook wasn't created, but its volumes might have been created
+          this.k8s.getVolumes(this.currNamespace).subscribe(pvcs => {
+            this.pvcs = pvcs;
+          });
         }
       });
   }
