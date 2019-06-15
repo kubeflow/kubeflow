@@ -24,6 +24,7 @@ def post_notebook(namespace):
     utils.set_notebook_image(notebook, body, defaults)
     utils.set_notebook_cpu(notebook, body, defaults)
     utils.set_notebook_memory(notebook, body, defaults)
+    utils.set_notebook_configurations(notebook, body, defaults)
 
     # Workspace Volume
     workspace_vol = utils.get_workspace_vol(body, defaults)

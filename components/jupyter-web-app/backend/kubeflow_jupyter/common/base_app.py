@@ -29,6 +29,25 @@ def get_notebooks(namespace):
     return jsonify(data)
 
 
+@app.route("/api/namespaces/<namespace>/poddefaults")
+def get_poddefaults(namespace):
+    data = api.get_poddefaults(namespace)
+
+    if not data['success']:
+        return jsonify(data)
+
+    # Return a list of (label, desc) with the pod defaults
+    pdefaults = []
+    for pd in data["poddefaults"]["items"]:
+        label = list(pd['spec']['selector']['matchLabels'].keys())[0]
+        desc = pd['spec']['desc']
+        pdefaults.append({'label': label, 'desc': desc})
+
+    logger.info("Found poddefaults: {}".format(pdefaults))
+    data["poddefaults"] = pdefaults
+    return jsonify(data)
+
+
 @app.route("/api/namespaces/<namespace>/pvcs")
 def get_pvcs(namespace):
     data = api.get_pvcs(namespace)

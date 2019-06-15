@@ -334,6 +334,23 @@ def set_notebook_memory(notebook, body, defaults):
     container["resources"]["requests"]["memory"] = memory
 
 
+def set_notebook_configurations(notebook, body, defaults):
+    notebook_labels = notebook["metadata"]["labels"]
+
+    if defaults["configurations"].get("readOnly", False):
+        labels = defaults["configurations"]["value"]
+        logger.info("Using default Configurations: {}".format(labels))
+    elif body.get("configurations", None) is not None:
+        labels = body["configurations"]
+        logger.info("Using form's Configurations: {}".format(labels))
+    else:
+        labels = defaults["configurations"]["value"]
+        logger.info("Using default Configurations: {}".format(labels))
+
+    for l in labels:
+        notebook_labels[l] = "true"
+
+
 def set_notebook_extra_resources(notebook, body, defaults):
     r = {"success": True, "log": ""}
     container = notebook["spec"]["template"]["spec"]["containers"][0]

@@ -101,6 +101,17 @@ def get_notebooks(ns):
     )
 
 
+def get_poddefaults(ns):
+    return wrap_resp(
+        'poddefaults',
+        custom_api.list_namespaced_custom_object,
+        "kubeflow.org",
+        "v1alpha1",
+        ns,
+        "poddefaults"
+    )
+
+
 def get_namespaces():
     return wrap_resp(
         'namespaces',
