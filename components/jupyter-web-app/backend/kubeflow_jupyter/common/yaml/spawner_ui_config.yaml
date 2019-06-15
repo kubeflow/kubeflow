@@ -130,3 +130,10 @@ spawnerFormDefaults:
   shm:
     value: true
     readOnly: false
+  configurations:
+    # List of labels to be selected by default (used from PodDefaults)
+    # value: 
+    #   - add-gcp-secret
+    #   - default-editor
+    value: []
+    readOnly: false
