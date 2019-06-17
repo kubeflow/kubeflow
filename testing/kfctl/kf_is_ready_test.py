@@ -54,8 +54,8 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
     deployment_names.extend(["basic-auth-login"])
     stateful_sets.extend(["backend-updater"])
   else:
-    ingress_related_deployments.extend(["iap-ingress-iap-enabler"])
-    stateful_sets.extend(["iap-ingress-backend-updater"])
+    ingress_related_deployments.extend(["iap-enabler"])
+    stateful_sets.extend(["backend-updater"])
 
   # TODO(jlewi): Might want to parallelize this.
   for deployment_name in deployment_names:
