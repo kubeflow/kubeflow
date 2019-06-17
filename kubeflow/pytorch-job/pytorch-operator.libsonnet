@@ -115,7 +115,7 @@
                   "--alsologtostderr",
                   "-v=1",
                   if deploymentScope == "namespace" then ("--namespace=" + deploymentNamespace),
-                  if enableGangScheduling ==  "true" then (
+                  if enableGangScheduling == "true" then (
                     "--enable-gang-scheduling"
                   ),
                   if monitoringPort != null then (
