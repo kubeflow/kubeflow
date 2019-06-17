@@ -135,7 +135,7 @@ def setup_kubeflow_ks_app(args, api_client):
 
   # Install required packages
   packages = [
-      "kubeflow/common", "kubeflow/tf-serving", "kubeflow/tf-job",
+      "kubeflow/common", "kubeflow/tf-serving", "kubeflow/tf-training",
       "kubeflow/pytorch-job", "kubeflow/argo"
   ]
 
