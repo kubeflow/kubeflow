@@ -1472,6 +1472,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	} else {
 		gcp.Spec.ComponentParams["iap-ingress"] = setNameVal(gcp.Spec.ComponentParams["iap-ingress"], "ipName", gcp.Spec.IpName, true)
 		gcp.Spec.ComponentParams["iap-ingress"] = setNameVal(gcp.Spec.ComponentParams["iap-ingress"], "hostname", gcp.Spec.Hostname, true)
+		gcp.Spec.ComponentParams["profiles"] = setNameVal(gcp.Spec.ComponentParams["profiles"], "admin", gcp.Spec.Email, true)
 	}
 
 	minioPdName := gcp.Name + "-storage-artifact-store"
