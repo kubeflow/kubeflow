@@ -20,6 +20,7 @@ packages:
   - tensorboard
   - tf-serving
   - tf-training
+  - profiles
 components:
 # ordering is important
   - metacontroller
@@ -43,6 +44,7 @@ components:
   - spartakus
   - tensorboard
   - tf-job-operator
+  - profiles
 componentParams:
   argo:
   - initRequired: true
@@ -105,4 +107,8 @@ componentParams:
   - initRequired: true
     name: injectIstio
     value: "false"
+  profiles:
+  - initRequired: true
+    name: admin
+    value: ""
 platform: gcp
