@@ -1,0 +1,13 @@
+{
+  "metadata":
+    {
+      "name": "namespace1"
+    },
+  "spec": {
+    "owner": {
+      "kind": "User",
+      "name": "user1@org1.com"
+    }
+  }
+}
+

@@ -241,15 +241,126 @@
     },
     profileClusterRoleBinding:: profileClusterRoleBinding,
 
+    local kfamService = {
+          apiVersion: "v1",
+          kind: "Service",
+          metadata: {
+            name: "kfam",
+            namespace: params.namespace,
+          },
+          spec: {
+            selector: {
+              app: "kfam",
+            },
+            ports: [
+              {
+                port: 8081,
+              },
+            ],
+          },
+        },
+        kfamService:: kfamService,
+
+        local kfamDeployment = {
+          apiVersion: "apps/v1",
+          kind: "Deployment",
+          metadata: {
+            name: "kfam",
+            namespace: params.namespace,
+          },
+          spec: {
+            selector: {
+              matchLabels: {
+                app: "kfam",
+              },
+            },
+            template: {
+              metadata: {
+                labels: {
+                  app: "kfam",
+                },
+              },
+              spec: {
+                serviceAccountName: "profiles",
+                containers: [
+                  {
+                    name: "kfam",
+                    image: params.kfamimage,
+                    imagePullPolicy: "Always",
+                    command: ["/opt/kubeflow/access-management"],
+                    args: ["-cluster-admin", params.admin],
+                  },
+                ],
+              },
+            },
+          },
+        },
+        kfamDeployment:: kfamDeployment,
+
+        local virtualService = {
+          apiVersion: "networking.istio.io/v1alpha3",
+          kind: "VirtualService",
+          metadata: {
+            name: params.name,
+            namespace: params.namespace,
+          },
+          spec: {
+            hosts: [
+              "*",
+            ],
+            gateways: [
+              "kubeflow-gateway",
+            ],
+            http: [
+              {
+                match: [
+                  {
+                    uri: {
+                      prefix: "/" + params.prefix + "/",
+                    },
+                  },
+                ],
+                rewrite: {
+                  uri: "/kfam/",
+                },
+                route: [
+                  {
+                    destination: {
+                      host: std.join(".", [
+                        params.name,
+                        params.namespace,
+                        "svc.cluster.local"
+                      ]),
+                      port: {
+                        number: 8081,
+                      },
+                    },
+                  },
+                ],
+                headers: {
+                  request: {
+                    add: {
+                      "x-forwarded-prefix": "/" + params.prefix,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
+        virtualService:: virtualService,
+
     parts:: self,
     local all = [
       self.profilesCRD,
-      self.profilesService,
       self.profilesRole,
       self.profilesDeployment,
       self.serviceAccount,
       self.roleBinding,
       self.profileClusterRoleBinding,
+      self.kfamService,
+      self.kfamDeployment,
+      self.virtualService,
     ],
     all:: all,
 

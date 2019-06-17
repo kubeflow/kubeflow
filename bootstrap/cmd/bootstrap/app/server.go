@@ -31,6 +31,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/storage/v1"
 	k8sVersion "k8s.io/apimachinery/pkg/version"
+	kubeclientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -117,6 +118,7 @@ func getKubeConfigFile() string {
 }
 
 // gGetClusterConfig obtain the config from the Kube configuration used by kubeconfig.
+// If inCluster is true it returns the in cluster configuration.
 func getClusterConfig(inCluster bool) (*rest.Config, error) {
 	if inCluster {
 		return rest.InClusterConfig()
@@ -258,8 +260,32 @@ func Run(opt *options.ServerOption) error {
 		log.Info("--registries-config-file not provided; not loading any registries")
 	}
 
-	ksServer, err := NewServer(opt.AppDir, regConfig.Registries, opt.GkeVersionOverride, opt.InstallIstio)
 
+	// Create a K8s client to talk to the cluster in which the server is running.
+	// This will be used by the router to spin up statefulsets to handle the requests.
+	config, err := getClusterConfig(opt.InCluster)
+
+	if err != nil {
+		return err
+	}
+
+	kubeClientSet, err := kubeclientset.NewForConfig(rest.AddUserAgent(config, "kfctl-server"))
+
+	if err != nil {
+		return err
+	}
+
+	log.Info("Creating router")
+	router, err := NewRouter(kubeClientSet)
+
+	if err != nil {
+		return err
+	}
+
+	router.RegisterEndpoints()
+
+	log.Info("Creating server")
+	ksServer, err := NewServer(opt.AppDir, regConfig.Registries, opt.GkeVersionOverride, opt.InstallIstio)
 	if err != nil {
 		return err
 	}
@@ -272,8 +298,8 @@ func Run(opt *options.ServerOption) error {
 	}
 
 	if opt.KeepAlive {
-		log.Infof("Starting http server.")
-		ksServer.StartHttp(opt.Port)
+			log.Infof("Starting http server.")
+			ksServer.StartHttp(opt.Port)
 	}
 
 	return nil
