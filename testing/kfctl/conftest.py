@@ -4,6 +4,10 @@ def pytest_addoption(parser):
   parser.addoption(
       "--app_path", action="store", default="",
       help="Path where the KF application should be stored")
+  
+  parser.addoption(
+      "--app_name", action="store", default="",
+      help="Name of the KF application")
 
   parser.addoption(
       "--kfctl_path", action="store", default="",
@@ -28,6 +32,10 @@ def pytest_addoption(parser):
 @pytest.fixture
 def app_path(request):
   return request.config.getoption("--app_path")
+
+@pytest.fixture
+def app_name(request):
+  return request.config.getoption("--app_name")
 
 @pytest.fixture
 def kfctl_path(request):

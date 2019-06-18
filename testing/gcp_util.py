@@ -14,7 +14,6 @@ from time import sleep
 from google.auth.transport.requests import Request
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
-from prometheus_client import start_http_server, Gauge, Counter
 
 import requests
 import yaml

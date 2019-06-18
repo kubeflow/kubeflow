@@ -12,12 +12,15 @@ from kubeflow.testing import util
 from testing import deploy_utils
 from testing import gcp_util
 
-def test_endpoint_is_ready():
+def test_endpoint_is_ready(project, app_name):
   """Test that Kubeflow was successfully deployed.
 
   Args:
+    project: The gcp project that we deployed kubeflow
+    app_name: The name of the kubeflow deployment
   """
-  if not gcp_util.endpoint_is_ready("https://kf.endpoints.kubeflow-ci.cloud.goog"):
+  if not gcp_util.endpoint_is_ready(
+      "https://{}.endpoints.{}.cloud.goog".format(app_name, project)):
     raise Error("GG")
 
 if __name__ == "__main__":
