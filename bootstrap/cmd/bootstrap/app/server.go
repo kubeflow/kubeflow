@@ -260,7 +260,6 @@ func Run(opt *options.ServerOption) error {
 		log.Info("--registries-config-file not provided; not loading any registries")
 	}
 
-
 	// Create a K8s client to talk to the cluster in which the server is running.
 	// This will be used by the router to spin up statefulsets to handle the requests.
 	config, err := getClusterConfig(opt.InCluster)
@@ -298,8 +297,8 @@ func Run(opt *options.ServerOption) error {
 	}
 
 	if opt.KeepAlive {
-			log.Infof("Starting http server.")
-			ksServer.StartHttp(opt.Port)
+		log.Infof("Starting http server.")
+		ksServer.StartHttp(opt.Port)
 	}
 
 	return nil
