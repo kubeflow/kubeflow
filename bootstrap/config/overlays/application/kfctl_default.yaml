@@ -24,3 +24,4 @@ spec:
     pytorch-operator:
     - name: overlay
       value: application
+  enableApplications: true

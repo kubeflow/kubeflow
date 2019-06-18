@@ -303,7 +303,6 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	kfDef.Spec.UseBasicAuth = useBasicAuth
 	kfDef.Spec.UseIstio = useIstio
 	kfDef.Spec.PackageManager = packageManager
-	kfDef.Spec.EnableApplications = true
 
 	pApp := GetKfApp(kfDef)
 	return pApp, nil
