@@ -10,7 +10,7 @@ packages:
   - gcp
   - admission-webhook  
   - jupyter
-  - katib
+  - katib-v1alpha2
   - metacontroller
   - modeldb
   - mpi-job
@@ -20,6 +20,7 @@ packages:
   - tensorboard
   - tf-serving
   - tf-training
+  - profiles
 components:
 # ordering is important
   - metacontroller
@@ -31,13 +32,19 @@ components:
   - iap-ingress
   - admission-webhook  
   - jupyter-web-app
-  - katib
+  - katib-db
+  - katib-manager
+  - katib-controller
+  - katib-ui
+  - metrics-collector
+  - suggestion
   - notebook-controller
   - pipeline
   - pytorch-operator
   - spartakus
   - tensorboard
   - tf-job-operator
+  - profiles
 componentParams:
   argo:
   - initRequired: true
@@ -71,7 +78,7 @@ componentParams:
   - initRequired: true
     name: injectIstio
     value: "false"
-  katib:
+  katib-ui:
   - initRequired: true
     name: injectIstio
     value: "false"
@@ -100,4 +107,8 @@ componentParams:
   - initRequired: true
     name: injectIstio
     value: "false"
+  profiles:
+  - initRequired: true
+    name: admin
+    value: ""
 platform: gcp

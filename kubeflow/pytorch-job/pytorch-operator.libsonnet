@@ -1,6 +1,4 @@
 {
-  local util = import "kubeflow/common/util.libsonnet",
-
   all(params, env):: [
     $.parts(params, env).crd,
     $.parts(params, env).configMap(params.pytorchDefaultImage),
@@ -117,7 +115,7 @@
                   "--alsologtostderr",
                   "-v=1",
                   if deploymentScope == "namespace" then ("--namespace=" + deploymentNamespace),
-                  if util.toBool(enableGangScheduling) then (
+                  if enableGangScheduling == "true" then (
                     "--enable-gang-scheduling"
                   ),
                   if monitoringPort != null then (
@@ -321,7 +319,7 @@
             "*",
           ],
         },
-        +if util.toBool(enableGangScheduling) then (
+        +if enableGangScheduling == "true" then (
           {
             apiGroups: [
               "scheduling.incubator.k8s.io",
