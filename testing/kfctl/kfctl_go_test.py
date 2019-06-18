@@ -68,8 +68,8 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
     init_args = ["--use_basic_auth"]
   else:
     # Owned by project kubeflow-ci-deployment.
-    os.environ["CLIENT_ID"] = "CJ4qVPLTi0j0GJMkONj7Quwt"
-    os.environ["CLIENT_SECRET"] = (
+    os.environ["CLIENT_SECRET"] = "CJ4qVPLTi0j0GJMkONj7Quwt"
+    os.environ["CLIENT_ID"] = (
       "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g"
       ".apps.googleusercontent.com")
 
