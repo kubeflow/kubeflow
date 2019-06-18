@@ -111,7 +111,7 @@ def endpoint_is_ready(url, wait_min=15):
       else:
         logging.info(
             "%s: IAP not ready, request number: %s" % (url, num_req))
-    except Exception:
-      logging.info("%s: IAP not ready, exception caught, request number: %s" %
-                   (url, num_req))
+    except Exception e:
+      logging.info("%s: IAP not ready, exception caught %s, request number: %s" %
+                   (url, str(e), num_req))
   return False
