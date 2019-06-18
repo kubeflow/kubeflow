@@ -92,8 +92,7 @@ def endpoint_is_ready(url, wait_min=15):
   num_req = 0
   end_time = datetime.datetime.now() + datetime.timedelta(
       minutes=wait_min)
-  success_deploy = set()
-  while datetime.datetime.now() < end_time and len(deployments) > 0:
+  while datetime.datetime.now() < end_time:
     sleep(10)
     num_req += 1
     logging.info("Trying url: %s", url)
@@ -108,9 +107,11 @@ def endpoint_is_ready(url, wait_min=15):
           verify=False)
       if resp.status_code == 200:
         logging.info("IAP is ready for %s!", url)
+        return True
       else:
         logging.info(
-            "%s: IAP not ready, request number: %s" % (deployment, num_req))
+            "%s: IAP not ready, request number: %s" % (url, num_req))
     except Exception:
       logging.info("%s: IAP not ready, exception caught, request number: %s" %
-                   (deployment, num_req))
+                   (url, num_req))
+  return False
