@@ -966,7 +966,7 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 			for _, k := range kustomization.PatchesStrategicMerge {
 				overlayfile := filepath.Join(compDir, string(k))
 				overlay := ReadKfDef(overlayfile)
-				mergeErr := mergo.Merge(&baseKfDef.Spec.ComponentConfig, overlay.Spec.ComponentConfig, mergo.WithAppendSlice)
+				mergeErr := mergo.Merge(&baseKfDef.Spec, overlay.Spec, mergo.WithAppendSlice)
 				if mergeErr != nil {
 					return nil, mergeErr
 				}
