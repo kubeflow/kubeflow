@@ -271,10 +271,10 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			ComponentConfig: config.ComponentConfig{
 				Platform: platform,
 			},
-			Project:        project,
-			PackageManager: packageManager,
-			UseBasicAuth: useBasicAuth,
-			UseIstio: useIstio,
+			Project:            project,
+			PackageManager:     packageManager,
+			UseBasicAuth:       useBasicAuth,
+			UseIstio:           useIstio,
 			EnableApplications: true,
 		},
 	}
@@ -304,7 +304,6 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	kfDef.Spec.UseIstio = useIstio
 	kfDef.Spec.PackageManager = packageManager
 	kfDef.Spec.EnableApplications = true
-
 
 	pApp := GetKfApp(kfDef)
 	return pApp, nil
