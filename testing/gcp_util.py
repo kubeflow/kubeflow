@@ -67,6 +67,14 @@ def get_google_open_id_connect_token(service_account_credentials):
       request, OAUTH_TOKEN_URI, body)
   return token_response["id_token"]
 
+def may_get_env_var(name):
+  env_val = os.getenv(name)
+  if env_val:
+    logging.info("%s is set" % name)
+    return env_val
+  else:
+    raise Exception("%s not set" % name)
+
 def endpoint_is_ready(url, wait_min=15):
   """
   Checks if the kubeflow endpoint is ready.

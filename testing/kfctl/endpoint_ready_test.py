@@ -19,6 +19,8 @@ def test_endpoint_is_ready(project, app_name):
     project: The gcp project that we deployed kubeflow
     app_name: The name of the kubeflow deployment
   """
+  # Owned by project kubeflow-ci-deployment.
+  os.environ["CLIENT_ID"] = "CJ4qVPLTi0j0GJMkONj7Quwt"
   if not gcp_util.endpoint_is_ready(
       "https://{}.endpoints.{}.cloud.goog".format(app_name, project)):
     raise Error("GG")
