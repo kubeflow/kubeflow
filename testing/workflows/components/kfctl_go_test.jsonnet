@@ -264,7 +264,30 @@ local dagTemplates = [
     template: componentTests.argoDagTemplate,
     dependencies: ["kfctl-is-ready"],
   },
-];
+] + (
+  if util.toBool(params.testEndpoint) then [
+    {
+      template: buildTemplate(
+        "endpoint-is-ready",
+        [
+          "pytest",
+          "endpoint_ready_test.py",
+          // I think -s mean stdout/stderr will print out to aid in debugging.
+          // Failures still appear to be captured and stored in the junit file.
+          "-s",
+          // Increase the log level so that info level log statements show up.
+          "--log-cli-level=info",
+          "--junitxml=" + artifactsDir + "/junit_endpoint-is-ready-test-" + nameSuffix + ".xml",
+          // Test suite name needs to be unique based on parameters
+          "-o", "junit_suite_name=test_endpoint_is_ready_" + nameSuffix,         
+          "--app_path=" + appDir,
+        ],
+        working_dir=srcDir+ "/testing/kfctl",
+      ),
+      dependencies: ["kfctl-is-ready"],
+    },
+  ] else []
+);
 
 // Each item is a dictionary describing one step in the graph
 // to execute on exit
