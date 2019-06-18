@@ -105,13 +105,14 @@ def endpoint_is_ready(url, wait_min=15):
               "Bearer {}".format(google_open_id_connect_token)
           },
           verify=False)
+      logging.info(resp.text)
       if resp.status_code == 200:
         logging.info("IAP is ready for %s!", url)
         return True
       else:
         logging.info(
             "%s: IAP not ready, request number: %s" % (url, num_req))
-    except Exception:
-      logging.info("%s: IAP not ready, exception caught, request number: %s" %
-                   (url, num_req))
+    except Exception as e:
+      logging.info("%s: IAP not ready, exception caught %s, request number: %s" %
+                   (url, str(e), num_req))
   return False
