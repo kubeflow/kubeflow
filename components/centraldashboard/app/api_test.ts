@@ -154,36 +154,36 @@ describe('Dashboard API', () => {
     });
 
     it('Should retrieve Node CPU Utilization for default 15m interval',
-       async () => {
-         const defaultInterval = new Promise((resolve) => {
-           get(`http://localhost:${port}/api/metrics/node`, (res) => {
-             expect(res.statusCode).toBe(200);
-             expect(mockMetricsService.getNodeCpuUtilization)
-                 .toHaveBeenCalledWith(Interval.Last15m);
-             resolve();
-           });
-         });
-         const invalidQsInterval = new Promise((resolve) => {
-           get(`http://localhost:${port}/api/metrics/node?interval=100`,
-               (res) => {
-                 expect(res.statusCode).toBe(200);
-                 expect(mockMetricsService.getNodeCpuUtilization)
-                     .toHaveBeenCalledWith(Interval.Last15m);
-                 resolve();
-               });
-         });
-         await Promise.all([defaultInterval, invalidQsInterval]);
-       });
+      async () => {
+        const defaultInterval = new Promise((resolve) => {
+          get(`http://localhost:${port}/api/metrics/node`, (res) => {
+            expect(res.statusCode).toBe(200);
+            expect(mockMetricsService.getNodeCpuUtilization)
+                .toHaveBeenCalledWith(Interval.Last15m);
+            resolve();
+          });
+        });
+        const invalidQsInterval = new Promise((resolve) => {
+          get(`http://localhost:${port}/api/metrics/node?interval=100`,
+              (res) => {
+                expect(res.statusCode).toBe(200);
+                expect(mockMetricsService.getNodeCpuUtilization)
+                    .toHaveBeenCalledWith(Interval.Last15m);
+                resolve();
+              });
+        });
+        await Promise.all([defaultInterval, invalidQsInterval]);
+      });
 
     it('Should retrieve Pod CPU Utilization for default 15m interval',
-       (done) => {
-         get(`http://localhost:${port}/api/metrics/podcpu`, (res) => {
-           expect(res.statusCode).toBe(200);
-           expect(mockMetricsService.getPodCpuUtilization)
-               .toHaveBeenCalledWith(Interval.Last15m);
-           done();
-         });
-       });
+      (done) => {
+        get(`http://localhost:${port}/api/metrics/podcpu`, (res) => {
+          expect(res.statusCode).toBe(200);
+          expect(mockMetricsService.getPodCpuUtilization)
+              .toHaveBeenCalledWith(Interval.Last15m);
+          done();
+        });
+      });
 
     it('Should retrieve Pod Memory Usage for default 15m interval', (done) => {
       get(`http://localhost:${port}/api/metrics/podmem`, (res) => {
@@ -195,14 +195,14 @@ describe('Dashboard API', () => {
     });
 
     it('Should retrieve Node CPU Utilization for a user-specified interval',
-       (done) => {
-         get(`http://localhost:${port}/api/metrics/node?interval=Last60m`,
-             (res) => {
-               expect(res.statusCode).toBe(200);
-               expect(mockMetricsService.getNodeCpuUtilization)
-                   .toHaveBeenCalledWith(Interval.Last60m);
-               done();
-             });
-       });
+      (done) => {
+        get(`http://localhost:${port}/api/metrics/node?interval=Last60m`,
+            (res) => {
+              expect(res.statusCode).toBe(200);
+              expect(mockMetricsService.getNodeCpuUtilization)
+                  .toHaveBeenCalledWith(Interval.Last60m);
+              done();
+            });
+      });
   });
 });
