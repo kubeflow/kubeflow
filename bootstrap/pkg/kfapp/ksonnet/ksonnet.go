@@ -88,6 +88,8 @@ func GetKfApp(kfdefv2 *kfdefsv2.KfDef, restConfig *rest.Config, apiConfig *clien
 			IpName:          kfdefv2.Spec.IpName,
 			Hostname:        kfdefv2.Spec.Hostname,
 			Zone:            kfdefv2.Spec.Zone,
+			Region:          kfdefv2.Spec.Region,
+			Roles:           kfdefv2.Spec.Roles,
 			UseBasicAuth:    kfdefv2.Spec.UseBasicAuth,
 			SkipInitProject: kfdefv2.Spec.SkipInitProject,
 			UseIstio:        kfdefv2.Spec.UseIstio,
