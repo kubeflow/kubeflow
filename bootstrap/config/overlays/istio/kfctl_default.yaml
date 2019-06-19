@@ -38,6 +38,9 @@ spec:
     pipelines-ui:
     - name: overlay
       value: istio
+    profiles:
+    - name: overlay
+      value: istio
     tensorboard:
     - name: overlay
       value: istio
