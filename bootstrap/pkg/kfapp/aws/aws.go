@@ -125,9 +125,9 @@ func createNamespace(k8sClientset *clientset.Clientset, namespace string) error 
 }
 
 // applyAWSInfra do three things
-// 1. Create cluster if eks cluster doesn't exist
-// 2. Attach inline policies (ALB, CloudWatch. etc) to node group roles.
-// 3. Set master logs from cluster_features.yaml
+// 1. Install EKS cluster
+// 2. Attach IAM roles like ALB, FSX, EFS, cloudWatch ?
+// 3. Based on log/private access, we need to call eks api to update cluster configs. https://github.com/weaveworks/eksctl/issues/778
 func (aws *Aws) applyAWSInfra() error {
 	config, err := aws.getFeatureConfig()
 	if err != nil {
@@ -147,7 +147,6 @@ func (aws *Aws) applyAWSInfra() error {
 	// Delete cluster if it's a managed cluster created by kfctl
 	if config["managed_cluster"] == true {
 		clusterConfigFile := filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, CLUSTER_CONFIG_FILE)
-		// TODO: here we need to output cluster creation logs from eksctl
 		output, err := exec.Command("eksctl", "create", "cluster", "--config-file="+clusterConfigFile).Output()
 		log.Infoln("Please go to aws console to check CloudFormation status and double make sure your cluster has been shutdown.")
 		if err != nil {
@@ -157,7 +156,7 @@ func (aws *Aws) applyAWSInfra() error {
 				Message: fmt.Sprintf("Call 'eksctl create cluster --config-file=%s' with errors: %v", clusterConfigFile, string(output)),
 			}
 		}
-		log.Infoln(output)
+		log.Infoln(string(output))
 
 		// List all the roles and figure out nodeGroupWorkerRole
 		input := &iam.ListRolesInput{}
@@ -195,17 +194,6 @@ func (aws *Aws) applyAWSInfra() error {
 	return nil
 }
 
-// k8s. Remove ingress first and then
-// uninstall_aws_k8s() {
-//   source ${KUBEFLOW_INFRA_DIR}/cluster_features.sh
-//   kubectl delete -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-noauth.yaml
-//   kubectl delete -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/istio-crds.yaml
-//   if [ "$WORKER_NODE_GROUP_LOGGING" = true ]; then
-//     kubectl delete -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/fluentd-cloudwatch.yaml
-//   fi
-// }
-
-// TODO: move to common utils.
 func (aws *Aws) copyFile(source string, dest string) error {
 	from, err := os.Open(source)
 	if err != nil {
@@ -234,7 +222,6 @@ func (aws *Aws) copyFile(source string, dest string) error {
 	return nil
 }
 
-// Usage: a = setNameVal(a, "acmeEmail", gcp.Spec.Email, true), similar to append
 func setNameVal(entries []configtypes.NameValue, name string, val string, required bool) []configtypes.NameValue {
 	for i, nv := range entries {
 		if nv.Name == name {
@@ -308,7 +295,7 @@ func (aws *Aws) generateInfraConfigs() error {
 	destDir := path.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR)
 
 	if _, err := os.Stat(destDir); os.IsNotExist(err) {
-		log.Infof("Creating AWS infrastructure configs in directory %s", destDir)
+		log.Infof("Creating AWS infrastructure configs in directory %v", destDir)
 		destDirErr := os.MkdirAll(destDir, os.ModePerm)
 		if destDirErr != nil {
 			return &kfapis.KfError{
@@ -317,7 +304,7 @@ func (aws *Aws) generateInfraConfigs() error {
 			}
 		}
 	} else {
-		log.Infof("AWS infrastructure configs already exist in directory %s", destDir)
+		log.Infof("AWS infrastructure configs already exist in directory %v", destDir)
 	}
 
 	files := []string{"cluster_config.yaml", "cluster_features.yaml", "iam_alb_ingress_policy.json",
@@ -433,14 +420,6 @@ func (aws *Aws) Init(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	// Step 3.
-	// AWS_CLUSTER_NAME - kfDef.Name
-	// AWS_REGION - kfDef.Spec.Region
-	// AWS_NODEGROUP_ROLE_NAMES - kfDef.Spec.Roles
-	// Based on if there's a role. We need to export MANAGED_CLUSER. - better in Def
-	// Or just use node_role_names.
-	// TODO: extract to a new method
-
 	// Finish initialization and write spec to config file
 	swaggerFile := filepath.Join(path.Dir(aws.Spec.Repo), kftypes.DefaultSwaggerFile)
 	aws.Spec.ServerVersion = "file:" + swaggerFile
@@ -474,7 +453,7 @@ func (aws *Aws) Generate(resources kftypes.ResourceEnum) error {
 		aws.Spec.ComponentParams["basic-auth-ingress"] = setNameVal(aws.Spec.ComponentParams["basic-auth-ingress"], "ipName", aws.Spec.IpName, true)
 		aws.Spec.ComponentParams["basic-auth-ingress"] = setNameVal(aws.Spec.ComponentParams["basic-auth-ingress"], "hostname", aws.Spec.Hostname, true)
 	} else {
-		aws.Spec.ComponentParams["istio-ingress"] = setNameVal(aws.Spec.ComponentParams["istio-ingress"], "namespace", "istio-system", true)
+		aws.Spec.ComponentParams["istio-ingress"] = setNameVal(aws.Spec.ComponentParams["istio-ingress"], "namespace", IstioNamespace, true)
 		// Force users to use either BasicAuth or OIDC/Cognito.
 	}
 	// TODO: here we only make sure we have ComponentsParam, How to make sure we `ks generate`?
@@ -555,24 +534,6 @@ func (aws *Aws) Apply(resources kftypes.ResourceEnum) error {
 				applyInfraErr.(*kfapis.KfError).Message),
 		}
 	}
-
-	// Insert secrets into the cluster - do we want to create/add a secret there?
-	// secretsErr := gcp.createSecrets()
-	// if secretsErr != nil {
-	// 	return &kfapis.KfError{
-	// 		Code: secretsErr.(*kfapis.KfError).Code,
-	// 		Message: fmt.Sprintf("gcp apply could not create secrets Error %v",
-	// 			secretsErr.(*kfapis.KfError).Message),
-	// 	}
-	// }
-
-	// AWS infrastructure changes
-	// 1. Install EKS cluster
-	// 2. Attach IAM roles like ALB, FSX, EFS, cloudWatch ?
-	// 3. Based on log/private access, we need to call eks api to achieve that now. https://github.com/weaveworks/eksctl/issues/778
-
-	// k8s
-	// ks env, set application components.
 
 	return nil
 }
@@ -756,12 +717,12 @@ func (aws *Aws) attachIamInlinePolicy(roleName, policyName, policyDocumentPath s
 		RoleName:       awssdk.String(roleName),
 	}
 
-	result, err := aws.iamClient.PutRolePolicy(input)
+	_, err := aws.iamClient.PutRolePolicy(input)
 	if err != nil {
 		log.Warnf("Unable to attach iam inline policy %s because %v", policyName, err.Error())
 		return nil
 	}
 
-	log.Infof("Successfully attch policy to IAM Role %v", result)
+	log.Infof("Successfully attach policy to IAM Role %v", roleName)
 	return nil
 }
