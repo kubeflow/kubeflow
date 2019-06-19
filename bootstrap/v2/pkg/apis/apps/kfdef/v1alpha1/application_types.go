@@ -59,8 +59,8 @@ type KfDefSpec struct {
 	IpName             string   `json:"ipName,omitempty"`
 	Hostname           string   `json:"hostname,omitempty"`
 	Zone               string   `json:"zone,omitempty"`
-	Region                 string `json:"region,omitempty"`
-	Roles                  []string `json:"roles,omitempty"`
+	Region             string   `json:"region,omitempty"`
+	Roles              []string `json:"roles,omitempty"`
 	UseBasicAuth       bool     `json:"useBasicAuth"`
 	SkipInitProject    bool     `json:"skipInitProject,omitempty"`
 	UseIstio           bool     `json:"useIstio"`

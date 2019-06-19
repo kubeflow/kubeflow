@@ -18,9 +18,16 @@ package coordinator
 
 import (
 	"fmt"
+	"path"
+	"path/filepath"
+	"strings"
+
+	"os"
+
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/aws"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/minikube"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
@@ -28,14 +35,10 @@ import (
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/existing_arrikto"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/kustomize"
-	"github.com/mitchellh/go-homedir"
+	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	valid "k8s.io/apimachinery/v2/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
-	"os"
-	"path"
-	"path/filepath"
-	"strings"
 )
 
 // Builder defines the methods used to create KfApps.
@@ -52,7 +55,6 @@ func (b *DefaultBuilder) LoadKfAppCfgFile(cfgFile string) (kftypes.KfApp, error)
 }
 
 func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
-
 	configPath := filepath.Join(pathDir, kftypes.DefaultConfigDir)
 	overlays := []string{}
 
@@ -115,6 +117,8 @@ func getPlatform(kfdef *kfdefsv2.KfDef) (kftypes.Platform, error) {
 		return gcp.GetPlatform(kfdef)
 	case string(kftypes.EXISTING_ARRIKTO):
 		return existing_arrikto.GetPlatform(kfdef)
+	case string(kftypes.AWS):
+		return aws.GetPlatform(kfdef)
 	default:
 		// TODO(https://github.com/kubeflow/kubeflow/issues/3520) Fix dynamic loading
 		// of platform plugins.
@@ -492,6 +496,11 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]inte
 		}
 	}
 
+	roles := options[string(kftypes.ROLES)].(string)
+	if roles != "" {
+		kfdef.Spec.Roles = strings.Split(roles, ",")
+	}
+
 	// Backfill repos
 	if strings.Contains(kfdef.Spec.PackageManager, kftypes.KUSTOMIZE) {
 		pFlag := kfdef.Spec.PackageManager
@@ -593,6 +602,17 @@ func backfillKfDefFromGenerateOptions(kfdef *kfdefsv2.KfDef, options map[string]
 			}
 			log.Warnf("Defaulting Spec.Zone to %v. This is deprecated; "+
 				"Zone should be explicitly set in app.yaml", kfdef.Spec.Zone)
+		}
+	}
+
+	if kfdef.Spec.Platform == kftypes.AWS && options[string(kftypes.REGION)] != nil {
+		kfdef.Spec.Region = options[string(kftypes.REGION)].(string)
+	}
+
+	if kfdef.Spec.Platform == kftypes.AWS && options[string(kftypes.ROLES)] != nil {
+		roles := options[string(kftypes.ROLES)].(string)
+		if roles != "" {
+			kfdef.Spec.Roles = strings.Split(roles, ",")
 		}
 	}
 
