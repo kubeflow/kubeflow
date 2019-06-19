@@ -1,0 +1,75 @@
+:host {
+    @apply --layout-fit;
+    background: white;
+    --content-color: #717479;
+    --subheading-color: #404447;
+}
+h1, h2 {
+    font-family: Google Sans;
+    font-weight: 500;
+    font-size: 1.1em;
+    margin: 0;
+}
+h1 {
+    color: black;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+#Main-Content {
+    padding: 1rem;
+}
+article:not(:first-of-type) {
+    margin-top: 1.5em;
+}
+h2 {
+    @apply --layout-horizontal;
+    @apply --layout-center;
+    font-size: 1em;
+    color: var(--subheading-color);
+    margin: .5em 0;
+}
+h2 .icon {
+    color: var(--accent-color);
+    margin-right: 1rem;
+}
+.content {
+    margin-left: calc(1rem + 24px);
+    color: var(--content-color);
+    font-size: .9em;
+}
+vaadin-grid {
+    --lumo-font-size-m: 1em;
+    --lumo-body-text-color: currentColor;
+}
+#NoNamespaceError {margin-top: 1em}
+#ContribError {
+    background: #F44336
+}
+#Contribs {
+    border: 2px solid var(--accent-color);
+    border-radius: 3px;
+    padding: .5em;
+    position: relative;
+    flex-wrap: wrap;
+    @apply --layout-horizontal;
+}
+#Contribs > figcaption {
+    position: absolute;
+    top: 0;
+    left: .75em;
+    transform: translateY(-50%);
+    font-size: .8em;
+    background: white;
+    padding: .25em;
+    color: var(--accent-color);
+    font-weight: 400;
+}
+#Contribs input {
+    border: 0;
+    padding: 0;
+    outline: 0;
+    font-size: 1.2em;
+    margin: .25em .5em;
+}
+
+[hidden] {display: none !important}

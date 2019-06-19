@@ -47,6 +47,26 @@ export class NamespaceSelector extends PolymerElement {
 
                 paper-item {
                     cursor: pointer;
+                    padding-right: 2em;
+                }
+                .owned-badge {
+                    width: 0;
+                    height: 0;
+                    border: 4px solid var(--accent-color);
+                    border-radius: 50%;
+                }
+                #SelectedNamespace {
+                    display: flex;
+                    @apply --layout-center;
+                }
+                #SelectedNamespace .owned-badge {
+                    margin-right: .5em;
+                }
+                paper-item .owned-badge {
+                    position: absolute;
+                    top: 50%;
+                    right: .75em;
+                    transform: translateY(-50%);
                 }
                 paper-listbox {
                     --paper-listbox-background-color: white;
@@ -59,14 +79,21 @@ export class NamespaceSelector extends PolymerElement {
             <paper-menu-button no-overlap horizontal-align="right">
                 <paper-button id="dropdown-trigger" slot="dropdown-trigger">
                     <iron-icon icon="group-work"></iron-icon>
-                    <span>[[selected]]</span>
+                    <article id="SelectedNamespace">
+                        <aside class='owned-badge'
+                            hidden$='[[!isOwner(selectedNamespace.role)]]'>
+                        </aside>
+                        <span class='text'>[[selected]]</span>
+                    </article>
                     <iron-icon icon="arrow-drop-down"></iron-icon>
                 </paper-button>
                 <paper-listbox slot="dropdown-content"
                     attr-for-selected="name" selected="{{selected}}">
-                    <template is="dom-repeat" items="{{namespaces}}">
-                        <paper-item name="[[item.referredNamespace]]">
-                            [[item.referredNamespace]]
+                    <template is="dom-repeat" items="{{namespaces}}" as="n">
+                        <paper-item name="[[n.namespace]]" title$='[[n.role]]'>
+                            [[n.namespace]]
+                            <aside class='owned-badge'
+                                hidden$='[[!isOwner(n.role)]]'></aside>
                         </paper-item>
                     </template>
                 </paper-listbox>
@@ -87,6 +114,12 @@ export class NamespaceSelector extends PolymerElement {
                 value: '',
                 notify: true,
             },
+            selectedNamespace: {
+                type: Object,
+                readOnly: true,
+                notify: true,
+                value: () => ({}),
+            },
         };
     }
 
@@ -97,7 +130,17 @@ export class NamespaceSelector extends PolymerElement {
     static get observers() {
         return [
             '_queryParamChanged(queryParams.ns)',
+            '_ownedContextChanged(namespaces, selected)',
         ];
+    }
+
+    /**
+     * Check if role is owner
+     * @param {string} role
+     * @return {string} Is role an owner.
+     */
+    isOwner(role) {
+        return role == 'owner';
     }
 
     /**
@@ -108,6 +151,18 @@ export class NamespaceSelector extends PolymerElement {
         if (namespace && this.selected !== namespace) {
             this.selected = namespace;
         }
+    }
+
+    /**
+     * Sets the query string namespace parameter to the selected value.
+     * @param {[object]} namespaces
+     * @param {string} selected
+     */
+    _ownedContextChanged(namespaces, selected) {
+        const namespace = (namespaces || []).find((i) =>
+            i.namespace == selected
+        );
+        this._setSelectedNamespace(namespace || this.selectedNamespace);
     }
 
     /**

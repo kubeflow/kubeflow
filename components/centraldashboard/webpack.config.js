@@ -9,8 +9,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-let commit = process.env.BUILD_COMMIT || '';
+const ensureArr = a => a instanceof Array?a:[a]
 
+let commit = process.env.BUILD_COMMIT || '';
 try {
     commit = commit || `${execSync(`git rev-parse HEAD`)}`.replace(/\s/g, '');
 } catch (e) {}
@@ -36,6 +37,23 @@ const POLYFILLS = [
         flatten: true,
     },
 ];
+
+const HTML_CONFIG = ({file, pugContent, title, bundle}) => ({
+    title,
+    pugContent,
+    filename: resolve(DESTINATION, file),
+    template: resolve(SRC, 'base.pug'),
+    chunks: !bundle?undefined:ensureArr(bundle),
+    inject: true,
+    minify: ENV == 'development' ? false : {
+        collapseWhitespace: true,
+        removeComments: true,
+        removeRedundantAttributes: true,
+        removeScriptTypeAttributes: true,
+        removeStyleLinkTypeAttributes: true,
+        useShortDoctype: true,
+    },
+})
 
 /**
  * Rules for processing Polymer components to allow external Pug templates
@@ -169,20 +187,13 @@ module.exports = {
             BUILD_VERSION: JSON.stringify(BUILD_VERSION),
             VERSION: JSON.stringify(PKG_VERSION),
         }),
-        new HtmlWebpackPlugin({
-            filename: resolve(DESTINATION, 'index.html'),
-            template: resolve(SRC, 'index.html'),
-            excludeChunks: ['lib'],
-            inject: true,
-            minify: ENV == 'development' ? false : {
-                collapseWhitespace: true,
-                removeComments: true,
-                removeRedundantAttributes: true,
-                removeScriptTypeAttributes: true,
-                removeStyleLinkTypeAttributes: true,
-                useShortDoctype: true,
-            },
-        }),
+        new HtmlWebpackPlugin(
+            HTML_CONFIG({
+                file: 'index.html',
+                pugContent: 'main-page',
+                bundle: 'app',
+            })
+        ),
         new MiniCssExtractPlugin({
             filename: '[name].css',
             chunkFilename: '[id].css',
@@ -193,6 +204,7 @@ module.exports = {
     ],
     devServer: {
         port: 8081,
+        contentBase: './dist',
         proxy: {
             '/api': 'http://localhost:8082',
             '/jupyter': {
