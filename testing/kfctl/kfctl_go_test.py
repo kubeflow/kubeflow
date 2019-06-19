@@ -88,7 +88,7 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
   # pull the configs from the repo we checked out.
   run_with_retries([kfctl_path, "init", app_path, "-V", "--platform=gcp",
                     "--version=" + version,
-                    "--package-manager=kustomize",
+                    "--package-manager=kustomize@0caa70b4518859c0678d0d0e12c11a7e35345c5a",
                     "--skip-init-gcp-project",
                     "--disable_usage_report",
                     "--project=" + project] + init_args, cwd=parent_dir)
