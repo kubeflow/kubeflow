@@ -49,6 +49,8 @@ or a <name>. If just <name>, a directory <name> will be created in the current d
 		repo := initCfg.GetString(string(kftypes.REPO))
 		project := initCfg.GetString(string(kftypes.PROJECT))
 		init_gcp := initCfg.GetBool(string(kftypes.SKIP_INIT_GCP_PROJECT))
+		region := initCfg.GetString(string(kftypes.REGION))
+		roles := initCfg.GetString(string(kftypes.ROLES))
 
 		useBasicAuth := initCfg.GetBool(string(kftypes.USE_BASIC_AUTH))
 		if useBasicAuth && (os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" ||
@@ -72,6 +74,8 @@ or a <name>. If just <name>, a directory <name> will be created in the current d
 			string(kftypes.REPO):                  repo,
 			string(kftypes.PROJECT):               project,
 			string(kftypes.SKIP_INIT_GCP_PROJECT): init_gcp,
+			string(kftypes.REGION):                region,
+			string(kftypes.ROLES):                 roles,
 			string(kftypes.USE_BASIC_AUTH):        useBasicAuth,
 			string(kftypes.USE_ISTIO):             useIstio,
 			string(kftypes.DISABLE_USAGE_REPORT):  disableUsageReport,
@@ -97,7 +101,7 @@ func init() {
 	initCfg.SetConfigType("yaml")
 
 	initCmd.Flags().StringP(string(kftypes.PLATFORM), "p", "",
-		"one of 'gcp|minikube'")
+		"one of 'aws|gcp|minikube'")
 	bindErr := initCfg.BindPFlag(string(kftypes.PLATFORM), initCmd.Flags().Lookup(string(kftypes.PLATFORM)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.PLATFORM), bindErr)
@@ -162,6 +166,24 @@ func init() {
 		string(kftypes.SKIP_INIT_GCP_PROJECT)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.SKIP_INIT_GCP_PROJECT), bindErr)
+		return
+	}
+
+	// platform aws
+	initCmd.Flags().String(string(kftypes.REGION), "",
+		"name of the aws "+string(kftypes.REGION)+" if --platform aws")
+	bindErr = initCfg.BindPFlag(string(kftypes.REGION), initCmd.Flags().Lookup(string(kftypes.REGION)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.REGION), bindErr)
+		return
+	}
+
+	// platform aws
+	initCmd.Flags().String(string(kftypes.ROLES), "",
+		"name of the aws "+string(kftypes.ROLES)+" if --platform aws")
+	bindErr = initCfg.BindPFlag(string(kftypes.ROLES), initCmd.Flags().Lookup(string(kftypes.ROLES)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.ROLES), bindErr)
 		return
 	}
 
