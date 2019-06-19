@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"google.golang.org/api/option"
 	"time"
 
 	"io/ioutil"
@@ -15,6 +16,7 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/cloudresourcemanager/v1"
+	crm "google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/deploymentmanager/v2"
 	"path/filepath"
 )
@@ -307,4 +309,56 @@ func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) erro
 		return nil
 	}, exp)
 	return nil
+}
+
+// ProjectAccessChecker defines a func that can be used to check project access
+type ProjectAccessChecker func(string, oauth2.TokenSource) (bool, error)
+
+// CheckProjectAccess verifies whether the supplied token provides access to the
+// indicated project. A false could indicate the credential provides insufficient
+// privileges or is expired
+func CheckProjectAccess(project string, ts oauth2.TokenSource) (bool, error) {
+	ctx := context.Background()
+
+	s, err := crm.NewService(ctx, option.WithTokenSource(ts))
+
+	if err != nil {
+		log.Errorf("Failed to create service with error; %+v", err)
+		return false, err
+	}
+
+	p := crm.NewProjectsService(s)
+
+	// TODO(jlewi): We use setIamPolicy as a check that we have sufficient access to the project
+	// might be better to use cluster Admin or similar permission.
+	req := &crm.TestIamPermissionsRequest{
+		Permissions: []string{"resourcemanager.projects.setIamPolicy"},
+	}
+
+	exp := backoff.NewExponentialBackOff()
+	exp.InitialInterval = 2 * time.Second
+	exp.MaxInterval = 5 * time.Second
+	exp.MaxElapsedTime = time.Minute
+	exp.Reset()
+
+	isValid := false
+
+	log.Infof("Testing new token grants sufficient privileges")
+	err = backoff.Retry(func() error {
+		// Get current policy
+
+		res, err := p.TestIamPermissions(project, req).Do()
+
+		if err != nil {
+			log.Errorf("There was a problem testing IAM permissions: %v", err)
+			return err
+		}
+
+		if len(res.Permissions) > 1 {
+			isValid = true
+		}
+		return nil
+	}, exp)
+
+	return isValid, err
 }

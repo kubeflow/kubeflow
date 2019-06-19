@@ -1,9 +1,8 @@
 module github.com/kubeflow/kubeflow/bootstrap
 
 require (
-	cloud.google.com/go v0.34.0
+	cloud.google.com/go v0.38.0
 	github.com/Azure/go-autorest v11.1.0+incompatible
-	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/GeertJohan/go.rice v0.0.0-20181229193832-0af3f3b09a0a // indirect
 	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
 	github.com/Masterminds/goutils v1.1.0 // indirect
@@ -43,13 +42,12 @@ require (
 	github.com/googleapis/gax-go v2.0.2+incompatible // indirect
 	github.com/gophercloud/gophercloud v0.0.0-20190116032514-258a61a0642d // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
+	github.com/grpc-ecosystem/grpc-gateway v1.5.0 // indirect
 	github.com/hashicorp/go-getter v1.0.2
-	github.com/hashicorp/golang-lru v0.5.0 // indirect
 	github.com/howeyc/gopass v0.0.0-20170109162249-bf9dde6d0d2c // indirect
 	github.com/huandu/xstrings v1.2.0 // indirect
 	github.com/imdario/mergo v0.3.6
 	github.com/jonboulle/clockwork v0.1.0 // indirect
-	github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024 // indirect
 	github.com/ksonnet/ksonnet v0.13.1
 	github.com/ksonnet/ksonnet-lib v0.1.12 // indirect
 	github.com/mitchellh/go-homedir v1.0.0
@@ -67,12 +65,11 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.1
 	github.com/utahta/go-openuri v0.1.0
-	go.opencensus.io v0.18.1-0.20181204023538-aab39bd6a98b // indirect
 	golang.org/x/crypto v0.0.0
-	golang.org/x/net v0.0.0-20190311183353-d8887717615a
-	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
-	google.golang.org/api v0.1.0
-	google.golang.org/genproto v0.0.0-20190111180523-db91494dd46c
+	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c
+	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
+	google.golang.org/api v0.6.0
+	google.golang.org/genproto v0.0.0-20190502173448-54afdca5d873
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/resty.v1 v1.11.0
