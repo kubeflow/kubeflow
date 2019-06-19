@@ -17,12 +17,19 @@ package apps
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"path"
+	"path/filepath"
+	"plugin"
+	"regexp"
+	"strings"
+
 	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
-	"io"
-	"io/ioutil"
 	ext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	crdclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apiext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
@@ -31,12 +38,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"os"
-	"path"
-	"path/filepath"
-	"plugin"
-	"regexp"
-	"strings"
 )
 
 const (
@@ -53,6 +54,7 @@ const (
 	ManifestsRepo          = "manifests"
 	DefaultConfigDir       = "bootstrap/config"
 	DefaultZone            = "us-east1-d"
+	DefaultAwsRegion       = "us-west-2"
 	DefaultGkeApiVer       = "v1beta1"
 	DefaultAppLabel        = "app.kubernetes.io/name"
 	DefaultAppVersion      = "app.kubernetes.io/version"
@@ -85,6 +87,8 @@ const (
 	PROJECT               CliOption = "project"
 	APPNAME               CliOption = "appname"
 	DATA                  CliOption = "Data"
+	REGION                CliOption = "region" // AWS specific options
+	ROLES                 CliOption = "roles"  // AWS specific options
 	ZONE                  CliOption = "zone"
 	USE_BASIC_AUTH        CliOption = "use_basic_auth"
 	USE_ISTIO             CliOption = "use_istio"
@@ -147,8 +151,9 @@ func RemoveItem(defaults []string, name string) []string {
 
 // Platforms
 const (
-	GCP              = "gcp"
-	MINIKUBE         = "minikube"
+	AWS      = "aws"
+	GCP      = "gcp"
+	MINIKUBE = "minikube"
 	EXISTING_ARRIKTO = "existing_arrikto"
 )
 
