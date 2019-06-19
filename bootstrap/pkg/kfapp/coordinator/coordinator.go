@@ -30,6 +30,7 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/kustomize"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
+	goopenuri "github.com/utahta/go-openuri"
 	"io/ioutil"
 	valid "k8s.io/apimachinery/v2/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
@@ -79,6 +80,9 @@ func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
 		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "basic_auth"})
 	} else if kfDef.Spec.Platform != "" {
 		overlays = append(overlays, config.NameValue{Name: "overlay", Value: kfDef.Spec.Platform})
+	}
+	if kfDef.Spec.EnableApplications {
+		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "application"})
 	}
 	compPath := strings.Split(kftypes.DefaultConfigDir, "/")[1]
 	resMap, resMapErr := kustomize.GenerateKustomizationFile(kfDef,
@@ -255,6 +259,55 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
 		}
 	}
+
+	// If a config file is specified, construct the KfDef entirely from that.
+	configFile := options[string(kftypes.CONFIG)].(string)
+	if configFile != "" {
+		// Open config file
+		configFileReader, err := goopenuri.Open(configFile)
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("could not open specified config %s: %v", configFile, err),
+			}
+		}
+		// Read contents
+		configFileBytes, err := ioutil.ReadAll(configFileReader)
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("could not read from config file %s: %v", configFile, err),
+			}
+		}
+		// Unmarshal content onto KfDef struct
+		kfDef := &kfdefsv2.KfDef{}
+		if err := yaml.Unmarshal(configFileBytes, kfDef); err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("could not unmarshal config file onto KfDef struct: %v", err),
+			}
+		}
+
+		//TODO(yanniszark): sane defaults for missing fields
+		//TODO(yanniszark): validate KfDef
+
+		// Disable usage report if requested
+		disableUsageReport := options[string(kftypes.DISABLE_USAGE_REPORT)].(bool)
+		if disableUsageReport {
+			kfDef.Spec.Components = filterSpartakus(kfDef.Spec.Components)
+			delete(kfDef.Spec.ComponentParams, "spartakus")
+		}
+
+		// Override certain values
+		kfDef.Spec.AppDir = appDir
+		//TODO(yanniszark) Stop overriding this once we find a suitable way to
+		// represent the repos (https://github.com/kubeflow/kubeflow/issues/3471)
+		kfDef.Spec.Repo = path.Join(cacheDir, kftypes.KubeflowRepo)
+
+		pApp := GetKfApp(kfDef)
+		return pApp, nil
+	}
+
 	kfDef := &kfdefsv2.KfDef{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KfDef",
@@ -268,10 +321,11 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			ComponentConfig: config.ComponentConfig{
 				Platform: platform,
 			},
-			Project:        project,
-			PackageManager: packageManager,
-			UseBasicAuth:   useBasicAuth,
-			UseIstio:       useIstio,
+			Project:            project,
+			PackageManager:     packageManager,
+			UseBasicAuth:       useBasicAuth,
+			UseIstio:           useIstio,
+			EnableApplications: true,
 		},
 	}
 	configFileBuffer, configFileErr := getConfigFromCache(cacheDir, kfDef)
@@ -299,6 +353,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	kfDef.Spec.UseBasicAuth = useBasicAuth
 	kfDef.Spec.UseIstio = useIstio
 	kfDef.Spec.PackageManager = packageManager
+
 	pApp := GetKfApp(kfDef)
 	return pApp, nil
 }
