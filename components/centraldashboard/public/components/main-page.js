@@ -36,6 +36,7 @@ import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
 import './not-found-view.js';
+import './manage-users-view.js';
 import './resources/kubeflow-icons.js';
 import utilitiesMixin from './utilities-mixin.js';
 import {MESSAGE, PARENT_CONNECTED_EVENT, IFRAME_CONNECTED_EVENT,
@@ -205,6 +206,11 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             hideNamespaces = this.subRouteData.path.startsWith('/pipeline');
             this._setActiveMenuLink(this.subRouteData.path);
             this._setIframeLocation();
+            break;
+        case 'manage-users':
+            this.sidebarItemIndex = 6;
+            this.page = 'manage-users';
+            hideTabs = true;
             break;
         case '':
             this.sidebarItemIndex = 0;

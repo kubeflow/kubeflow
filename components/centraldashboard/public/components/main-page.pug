@@ -18,6 +18,10 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             template(is='dom-repeat', items='[[menuLinks]]')
                 iframe-link(href$="[[buildHref(item.link, queryParams)]]")
                     paper-item.menu-item [[item.text]]
+            template(is='dom-if', if='[[equals(isolationMode, "multi-user")]]')
+                aside.divider
+                a(href$='[[buildHref("/manage-users", queryParams)]]', tabindex='-1')
+                    paper-item.menu-item Manage Users
             aside.divider
             a(href='https://github.com/kubeflow/kubeflow',
                 tabindex='-1', target="_blank")
@@ -62,6 +66,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                         platform-info='[[platformInfo]]')
                 neon-animatable(page='activity')
                     activity-view(namespace='[[queryParams.ns]]')
+                neon-animatable(page='manage-users')
+                    manage-users-view(user='[[user]]', namespaces='[[namespaces]]', is-cluster-admin='[[isClusterAdmin]]', owned-namespace='[[ownedNamespace]]')
                 neon-animatable(page='iframe')
                     iframe#PageFrame.flex
                 neon-animatable(page='not_found')
