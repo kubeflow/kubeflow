@@ -281,6 +281,7 @@ local dagTemplates = [
           // Test suite name needs to be unique based on parameters
           "-o", "junit_suite_name=test_endpoint_is_ready_" + nameSuffix,         
           "--app_path=" + appDir,
+          "--app_name=" + appName,
         ],
         working_dir=srcDir+ "/testing/kfctl",
       ),
