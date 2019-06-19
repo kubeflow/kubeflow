@@ -213,6 +213,11 @@ func (in *KfDefSpec) DeepCopyInto(out *KfDefSpec) {
 		*out = make([]Repo, len(*in))
 		copy(*out, *in)
 	}
+	if in.Roles != nil {
+		in, out := &in.Roles, &out.Roles
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.Secrets != nil {
 		in, out := &in.Secrets, &out.Secrets
 		*out = make([]Secret, len(*in))
