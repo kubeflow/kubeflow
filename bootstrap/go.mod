@@ -66,6 +66,7 @@ require (
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.1
+	github.com/utahta/go-openuri v0.1.0
 	go.opencensus.io v0.18.1-0.20181204023538-aab39bd6a98b // indirect
 	golang.org/x/crypto v0.0.0
 	golang.org/x/net v0.0.0-20190311183353-d8887717615a
