@@ -2,22 +2,23 @@ import express from 'express';
 
 import {KubernetesService, PlatformInfo} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
-
-interface EnvironmentInfo {
-  namespaces: string[];
-  platform: PlatformInfo;
-  user: string;
-}
+import {DefaultApi, Binding as WorkgroupBinding} from './profile_controller';
 
 const IAP_HEADER = 'X-Goog-Authenticated-User-Email';
 const IAP_PREFIX = 'accounts.google.com:';
+
+interface WorkgroupInfo {
+  namespaces: WorkgroupBinding[];
+  isClusterAdmin: boolean;
+}
 
 export class Api {
   private platformInfo: PlatformInfo;
 
   constructor(
       private k8sService: KubernetesService,
-      private metricsService?: MetricsService) {}
+      private metricsService?: MetricsService,
+      private profileController?: DefaultApi) {}
 
   /** Retrieves and memoizes the PlatformInfo. */
   private async getPlatformInfo(): Promise<PlatformInfo> {
@@ -41,6 +42,22 @@ export class Api {
   }
 
   /**
+   * Retrieves user information from headers.
+   * Supports:
+   *  GCP IAP (https://cloud.google.com/iap/docs/identity-howto)
+   */
+  private async getWorkgroup(req: express.Request, user: string): Promise<WorkgroupInfo> {
+    const {profileController} = this;
+    const adminResponse = await profileController.v1RoleClusteradminGet(user);
+    const bindings = await profileController.readBindings(user);
+    const namespaces = bindings.body.bindings;
+    return {
+      isClusterAdmin: adminResponse.body,
+      namespaces,
+    };
+  }
+
+  /**
    * Returns the Express router for the API routes.
    */
   routes(): express.Router {
@@ -48,15 +65,17 @@ export class Api {
         .get(
             '/env-info',
             async (req: express.Request, res: express.Response) => {
-              const [platform, user, namespaces] = await Promise.all([
+              const user = this.getUser(req);
+              const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
                 this.getPlatformInfo(),
-                this.getUser(req),
-                this.k8sService.getNamespaces(),
+                this.getWorkgroup(req, user),
               ]);
               res.json({
                 platform,
                 user,
-                namespaces: namespaces.map((n) => n.metadata.name),
+                namespaces,
+                isClusterAdmin,
+                // namespaces: namespaces.map((n) => n.metadata.name),
               });
             })
         .get(
