@@ -208,14 +208,14 @@ func (in *KfDefList) DeepCopyObject() runtime.Object {
 func (in *KfDefSpec) DeepCopyInto(out *KfDefSpec) {
 	*out = *in
 	in.ComponentConfig.DeepCopyInto(&out.ComponentConfig)
-	if in.Repos != nil {
-		in, out := &in.Repos, &out.Repos
-		*out = make([]Repo, len(*in))
-		copy(*out, *in)
-	}
 	if in.Roles != nil {
 		in, out := &in.Roles, &out.Roles
 		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
+	if in.Repos != nil {
+		in, out := &in.Repos, &out.Repos
+		*out = make([]Repo, len(*in))
 		copy(*out, *in)
 	}
 	if in.Secrets != nil {

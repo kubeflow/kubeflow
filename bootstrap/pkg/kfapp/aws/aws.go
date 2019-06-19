@@ -31,6 +31,9 @@ import (
 	"strings"
 	"time"
 
+	awssdk "github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/ghodss/yaml"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
@@ -39,12 +42,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	v1 "k8s.io/api/core/v1"
-
-	awssdk "github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/iam"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 const (
@@ -71,7 +72,7 @@ type Aws struct {
 }
 
 // GetKfApp returns the aws kfapp. It's called by coordinator.GetKfApp
-func GetKfApp(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
+func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
 	sess := session.Must(session.NewSession())
 
 	// use aws to call sts get-caller-identity to verify aws credential works.
@@ -90,6 +91,11 @@ func GetKfApp(kfdef *kfdefs.KfDef) (kftypes.KfApp, error) {
 	}
 
 	return _aws, nil
+}
+
+func (aws *Aws) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
+
+	return nil, nil
 }
 
 // TODO: Do we need to add annnotations for AWS.
@@ -142,7 +148,7 @@ func (aws *Aws) applyAWSInfra() error {
 	if config["managed_cluster"] == true {
 		clusterConfigFile := filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, CLUSTER_CONFIG_FILE)
 		// TODO: here we need to output cluster creation logs from eksctl
-		output, err := exec.Command("eksctl", "create", "cluster", "--config-file=" + clusterConfigFile).Output()
+		output, err := exec.Command("eksctl", "create", "cluster", "--config-file="+clusterConfigFile).Output()
 		log.Infoln("Please go to aws console to check CloudFormation status and double make sure your cluster has been shutdown.")
 		if err != nil {
 			log.Fatal(err)
@@ -166,7 +172,7 @@ func (aws *Aws) applyAWSInfra() error {
 
 		var nodeGroupIamRoles []string
 		for _, output := range listRolesOutput.Roles {
-			if strings.HasPrefix(*output.RoleName, "eksctl-" + aws.KfDef.Name + "-") && strings.Contains(*output.RoleName, "NodeInstanceRole") {
+			if strings.HasPrefix(*output.RoleName, "eksctl-"+aws.KfDef.Name+"-") && strings.Contains(*output.RoleName, "NodeInstanceRole") {
 				nodeGroupIamRoles = append(nodeGroupIamRoles, *output.RoleName)
 			}
 		}
@@ -302,7 +308,7 @@ func (aws *Aws) generateInfraConfigs() error {
 	destDir := path.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR)
 
 	if _, err := os.Stat(destDir); os.IsNotExist(err) {
-		log.Infoln("Creating AWS infrastructure configs in directory %s", destDir)
+		log.Infof("Creating AWS infrastructure configs in directory %s", destDir)
 		destDirErr := os.MkdirAll(destDir, os.ModePerm)
 		if destDirErr != nil {
 			return &kfapis.KfError{
@@ -311,7 +317,7 @@ func (aws *Aws) generateInfraConfigs() error {
 			}
 		}
 	} else {
-		log.Infoln("AWS infrastructure configs already exist in directory %s", destDir)
+		log.Infof("AWS infrastructure configs already exist in directory %s", destDir)
 	}
 
 	files := []string{"cluster_config.yaml", "cluster_features.yaml", "iam_alb_ingress_policy.json",
@@ -434,7 +440,6 @@ func (aws *Aws) Init(resources kftypes.ResourceEnum) error {
 	// Based on if there's a role. We need to export MANAGED_CLUSER. - better in Def
 	// Or just use node_role_names.
 	// TODO: extract to a new method
-
 
 	// Finish initialization and write spec to config file
 	swaggerFile := filepath.Join(path.Dir(aws.Spec.Repo), kftypes.DefaultSwaggerFile)
