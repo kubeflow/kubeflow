@@ -1460,6 +1460,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 		}
 	}
 	gcp.Spec.ComponentParams["cert-manager"] = setNameVal(gcp.Spec.ComponentParams["cert-manager"], "acmeEmail", gcp.Spec.Email, true)
+	gcp.Spec.ComponentParams["profiles"] = setNameVal(gcp.Spec.ComponentParams["profiles"], "admin", gcp.Spec.Email, true)
 	if gcp.Spec.IpName == "" {
 		gcp.Spec.IpName = gcp.Name + "-ip"
 	}
