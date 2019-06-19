@@ -1,6 +1,4 @@
 {
-  local util = import "kubeflow/common/util.libsonnet",
-
   all(params, env):: [
     $.parts(params, env).crd,
     $.parts(params, env).configMap(params.pytorchDefaultImage),
@@ -117,7 +115,7 @@
                   "--alsologtostderr",
                   "-v=1",
                   if deploymentScope == "namespace" then ("--namespace=" + deploymentNamespace),
-                  if util.toBool(enableGangScheduling) then (
+                  if enableGangScheduling == "true" then (
                     "--enable-gang-scheduling"
                   ),
                   if monitoringPort != null then (
@@ -248,93 +246,95 @@
         [if deploymentScope == "namespace" then "namespace"]: deploymentNamespace,
       },
       rules: [
-        {
-          apiGroups: [
-            "kubeflow.org",
-          ],
-          resources: [
-            "pytorchjobs",
-            "pytorchjobs/status",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "apiextensions.k8s.io",
-          ],
-          resources: [
-            "customresourcedefinitions",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "storage.k8s.io",
-          ],
-          resources: [
-            "storageclasses",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "batch",
-          ],
-          resources: [
-            "jobs",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "",
-          ],
-          resources: [
-            "configmaps",
-            "pods",
-            "services",
-            "endpoints",
-            "persistentvolumeclaims",
-            "events",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "apps",
-            "extensions",
-          ],
-          resources: [
-            "deployments",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        +if util.toBool(enableGangScheduling) then (
-          {
-            apiGroups: [
-              "scheduling.incubator.k8s.io",
-            ],
-            resources: [
-              "podgroups",
-            ],
-            verbs: [
-              "*",
-            ],
-          }
-        ),
-      ],
+               {
+                 apiGroups: [
+                   "kubeflow.org",
+                 ],
+                 resources: [
+                   "pytorchjobs",
+                   "pytorchjobs/status",
+                 ],
+                 verbs: [
+                   "*",
+                 ],
+               },
+               {
+                 apiGroups: [
+                   "apiextensions.k8s.io",
+                 ],
+                 resources: [
+                   "customresourcedefinitions",
+                 ],
+                 verbs: [
+                   "*",
+                 ],
+               },
+               {
+                 apiGroups: [
+                   "storage.k8s.io",
+                 ],
+                 resources: [
+                   "storageclasses",
+                 ],
+                 verbs: [
+                   "*",
+                 ],
+               },
+               {
+                 apiGroups: [
+                   "batch",
+                 ],
+                 resources: [
+                   "jobs",
+                 ],
+                 verbs: [
+                   "*",
+                 ],
+               },
+               {
+                 apiGroups: [
+                   "",
+                 ],
+                 resources: [
+                   "configmaps",
+                   "pods",
+                   "services",
+                   "endpoints",
+                   "persistentvolumeclaims",
+                   "events",
+                 ],
+                 verbs: [
+                   "*",
+                 ],
+               },
+               {
+                 apiGroups: [
+                   "apps",
+                   "extensions",
+                 ],
+                 resources: [
+                   "deployments",
+                 ],
+                 verbs: [
+                   "*",
+                 ],
+               },
+             ]
+             + if enableGangScheduling == "true" then (
+               [{
+                 apiGroups: [
+                   "scheduling.incubator.k8s.io",
+                 ],
+                 resources: [
+                   "podgroups",
+                 ],
+                 verbs: [
+                   "*",
+                 ],
+               }]
+             ) else (
+               []
+             ),
     },  // operator-role
 
     operatorRoleBinding(deploymentScope, deploymentNamespace): {

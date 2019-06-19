@@ -10,7 +10,7 @@ spec:
   - examples
   - admission-webhook  
   - jupyter
-  - katib
+  - katib-v1alpha2
   - metacontroller
   - modeldb
   - mpi-job
@@ -23,9 +23,15 @@ spec:
   - metacontroller
   - argo
   - centraldashboard
-  - admission-webhook  
+  - webhook
+  - bootstrap  
   - jupyter-web-app
-  - katib
+  - katib-db
+  - katib-manager
+  - katib-controller
+  - katib-ui
+  - metrics-collector
+  - suggestion
   - notebook-controller
   - pytorch-job-crds
   - pytorch-operator
@@ -40,3 +46,6 @@ spec:
       - name: reportUsage
         value: "true"
         initRequired: true
+    bootstrap:
+      - name: webhookNamePrefix
+        value: admission-webhook-	
