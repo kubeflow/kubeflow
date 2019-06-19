@@ -31,15 +31,25 @@ import template from './main-page.pug';
 import logo from '../assets/logo.svg';
 import '../assets/anon-user.png';
 
+import './registration-page.js';
 import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
 import './not-found-view.js';
+import './manage-users-view.js';
 import './resources/kubeflow-icons.js';
 import utilitiesMixin from './utilities-mixin.js';
 import {MESSAGE, PARENT_CONNECTED_EVENT, IFRAME_CONNECTED_EVENT,
     NAMESPACE_SELECTED_EVENT} from '../library.js';
 import {IFRAME_LINK_PREFIX} from './iframe-link.js';
+
+export const roleMap = {
+    admin: 'owner',
+    editor: 'contributor',
+    tr(a) {
+        return this[a] || a;
+    },
+};
 
 /**
  * Entry point for application UI.
@@ -94,9 +104,22 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             hideTabs: {type: Boolean, value: false, readOnly: true},
             hideNamespaces: {type: Boolean, value: false, readOnly: true},
             notFoundInIframe: {type: Boolean, value: false, readOnly: true},
+            registrationFlow: {type: Boolean, value: false, readOnly: true},
+            workgroupStatusHasLoaded: {
+                type: Boolean,
+                value: false,
+                readOnly: true,
+            },
             namespaces: Array,
             namespace: {type: String, observer: '_namespaceChanged'},
             user: String,
+            isClusterAdmin: {type: Boolean, value: false},
+            isolationMode: {type: String, value: 'undecided', readOnly: true},
+            _shouldFetchEnv: {
+                type: Boolean,
+                // eslint-disable-next-line max-len
+                computed: 'computeShouldFetchEnv(registrationFlow, workgroupStatusHasLoaded)',
+            },
         };
     }
 
@@ -131,6 +154,37 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     }
 
     /**
+     * Return a username without the @example.com
+     * @param {string} user User email
+     * @return {string} User Name.
+     */
+    _extractLdap(user) {
+        return user.replace(/@.*$/, '');
+    }
+
+    /**
+     * Resync the app with environment information
+     */
+    async resyncApp() {
+        this.$.envInfo.generateRequest();
+        await this.sleep(500);
+        this.$.welcomeUser.show();
+    }
+
+    /**
+     * Set state for loading registration flow in case no workgroup exists
+     * @param {Event} ev AJAX-response
+     */
+    _onHasWorkgroupResponse(ev) {
+        const {user, hasWorkgroup, hasAuth} = ev.detail.response;
+        this._setIsolationMode(hasAuth ? 'multi-user' : 'single-user');
+        if (!hasAuth || hasWorkgroup) return;
+        this.user = user;
+        this._setRegistrationFlow(true);
+        this._setWorkgroupStatusHasLoaded(true);
+    }
+
+    /**
      * Handles route changes by evaluating the page path component
      * @param {string} newPage
      */
@@ -152,6 +206,11 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             hideNamespaces = this.subRouteData.path.startsWith('/pipeline');
             this._setActiveMenuLink(this.subRouteData.path);
             this._setIframeLocation();
+            break;
+        case 'manage-users':
+            this.sidebarItemIndex = 6;
+            this.page = 'manage-users';
+            hideTabs = true;
             break;
         case '':
             this.sidebarItemIndex = 0;
@@ -179,12 +238,22 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     }
 
     /**
+     * [ComputeProp] `shouldFetchEnv`
+     * @param {boolean} registrationFlow
+     * @param {boolean} workgroupStatusHasLoaded
+     * @return {boolean}
+     */
+    computeShouldFetchEnv(registrationFlow, workgroupStatusHasLoaded) {
+        return !registrationFlow && workgroupStatusHasLoaded;
+    }
+
+    /**
      * Revert the sidebar index if the item clicked is an external link
      * @param {int} curr
      * @param {int} old
      */
     _revertSidebarIndexIfExternal(curr, old=0) {
-        if (curr <= this.menuLinks.length) return;
+        if (curr <= this.menuLinks.length + 2) return;
         this.sidebarItemIndex = old;
     }
 
@@ -241,15 +310,26 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         return window.location !== window.parent.location;
     }
 
-    /* Handles the AJAX response from the platform-info API.
+    /**
+     * Handles the AJAX response from the platform-info API.
      * @param {Event} responseEvent AJAX-response
      */
     _onEnvInfoResponse(responseEvent) {
-        const {platform, user, namespaces} = responseEvent.detail.response;
-        this.user = user;
-        this.namespaces = namespaces;
+        const {platform, user,
+            namespaces, isClusterAdmin} = responseEvent.detail.response;
+        Object.assign(this, {user, isClusterAdmin});
+        this.namespaces = namespaces.map((n) => ({
+            user: n.user.name,
+            namespace: n.referredNamespace,
+            role: roleMap.tr(n.roleRef.name),
+        }));
+        if (this.namespaces.length) {
+            this._setRegistrationFlow(false);
+        }
+        this.ownedNamespace = namespaces.find((n) => n.role == 'owner');
         this.platformInfo = platform;
-        if (this.platformInfo.kubeflowVersion) {
+        const kVer = this.platformInfo.kubeflowVersion;
+        if (kVer && kVer != 'unknown') {
             this.buildVersion = this.platformInfo.kubeflowVersion;
         }
     }
