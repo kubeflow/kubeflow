@@ -62,7 +62,7 @@ const (
 	KsEnvName = "default"
 )
 
-func GetKfApp(kfdefv2 *kfdefsv2.KfDef, restConfig *rest.Config, apiConfig  *clientcmdapi.Config) kftypes.KfApp {
+func GetKfApp(kfdefv2 *kfdefsv2.KfDef, restConfig *rest.Config, apiConfig *clientcmdapi.Config) kftypes.KfApp {
 	kfdef := &kfdefs.KfDef{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       kfdefv2.Kind,
@@ -128,7 +128,7 @@ func GetKfApp(kfdefv2 *kfdefsv2.KfDef, restConfig *rest.Config, apiConfig  *clie
 }
 
 // BuildKfApp build the ksonnet kfapp from input and return it. Used by click-deploy app
-func BuildKfApp(kfdef *kfdefs.KfDef, restConfig *rest.Config, apiConfig  *clientcmdapi.Config) kftypes.KfApp {
+func BuildKfApp(kfdef *kfdefs.KfDef, restConfig *rest.Config, apiConfig *clientcmdapi.Config) kftypes.KfApp {
 	_kfapp := &ksApp{
 		KfDef:     *kfdef,
 		KsName:    KsName,

@@ -144,7 +144,7 @@ func (coord *coordinator) getPackageManagers(kfdef *kfdefsv2.KfDef) *map[string]
 // kftypes.LoadKfApp which will try and dynamically load a .so
 func getPackageManager(packagemanager string, kfdef *kfdefsv2.KfDef, platform kftypes.Platform) (kftypes.KfApp, error) {
 	var restconf *rest.Config = nil
-	var apiconf  *clientcmdapi.Config = nil
+	var apiconf *clientcmdapi.Config = nil
 	if platform != nil {
 		restconf, apiconf = platform.GetK8sConfig()
 	}
@@ -306,7 +306,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		// represent the repos (https://github.com/kubeflow/kubeflow/issues/3471)
 		kfDef.Spec.Repo = path.Join(cacheDir, kftypes.KubeflowRepo)
 
-		pApp := GetKfApp(kfDef)
+		pApp := GetKfApp(kfDef, nil)
 		return pApp, nil
 	}
 

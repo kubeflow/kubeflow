@@ -4,6 +4,7 @@ import (
 	iamadmin "cloud.google.com/go/iam/admin/apiv1"
 	"encoding/base64"
 	"fmt"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -13,7 +14,6 @@ import (
 	rbac_v1 "k8s.io/api/rbac/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 )
 
 const OauthSecretName = "kubeflow-oauth"

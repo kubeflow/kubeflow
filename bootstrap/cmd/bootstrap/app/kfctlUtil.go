@@ -41,7 +41,7 @@ func (cr *CreateRequest) ToKfdef(appDir string, repo string, istio bool) (*kfdef
 	return kfDef, nil
 }
 
-func (s *ksServer) DeployWithKfctl(req *CreateRequest) error{
+func (s *ksServer) DeployWithKfctl(req *CreateRequest) error {
 	// pull versioned kubeflow repo
 	ksRegistry := kfdefsv2.GetDefaultRegistry()
 	ksRegistry.Version = req.KfVersion
@@ -63,9 +63,9 @@ func (s *ksServer) DeployWithKfctl(req *CreateRequest) error{
 		return err
 	}
 	gcpArgs := gcp.GcpArgs{
-		AccessToken: req.Token,
+		AccessToken:   req.Token,
 		StorageOption: req.StorageOption,
-		SAClientId: req.SAClientID,
+		SAClientId:    req.SAClientID,
 	}
 	//var gcpApp kftypes.KfApp
 	// run gcp generate / apply

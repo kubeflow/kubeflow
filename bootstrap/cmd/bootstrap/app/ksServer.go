@@ -25,6 +25,7 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/client"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -39,7 +40,6 @@ import (
 	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 )
 
 // The name of the prototype for Jupyter.
@@ -190,26 +190,26 @@ func NewServer(appsDir string, registries []*kfdefs.RegistryConfig, gkeVersionOv
 // CreateRequest represents a request to create a ksonnet application.
 type CreateRequest struct {
 	// Name for the app.
-	Name 			string
+	Name string
 	// AppConfig is the config for the app.
-	AppConfig		configtypes.ComponentConfig
+	AppConfig configtypes.ComponentConfig
 
 	// Namespace for the app.
-	Namespace 		string
+	Namespace string
 
 	// Whether to try to autoconfigure the app.
-	AutoConfigure 	bool
+	AutoConfigure bool
 
 	// target GKE cLuster info
-	Cluster       	string
-	Project       	string
-	ProjectNumber 	string
-	Zone          	string
+	Cluster       string
+	Project       string
+	ProjectNumber string
+	Zone          string
 
 	// Access token, need to access target cluster in order for AutoConfigure
-	Token 			string
-	Apply 			bool
-	Email 			string
+	Token string
+	Apply bool
+	Email string
 	// temporary
 	ClientID     string
 	ClientSecret string
@@ -220,9 +220,9 @@ type CreateRequest struct {
 	// For test: GCP service account client id
 	SAClientID string
 
-	StorageOption 	configtypes.StorageOption
-	UseKfctl      	bool
-	KfVersion     	string
+	StorageOption configtypes.StorageOption
+	UseKfctl      bool
+	KfVersion     string
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -629,7 +629,7 @@ func (s *ksServer) getRegistryUri(registry *kfdefs.RegistryConfig) (string, erro
 			if err != nil {
 				os.Mkdir(registryPath, os.ModePerm)
 			}
-			fileUrl := path.Join(registry.Repo, "archive", registry.Version + ".tar.gz")
+			fileUrl := path.Join(registry.Repo, "archive", registry.Version+".tar.gz")
 
 			err = runCmd(fmt.Sprintf("curl -L -o %v %v", versionPath+".tar.gz", fileUrl))
 			if err != nil {
