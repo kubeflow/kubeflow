@@ -23,7 +23,7 @@ def test_endpoint_is_ready(project, app_name):
   os.environ["CLIENT_ID"] = "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g.apps.googleusercontent.com"
   if not gcp_util.endpoint_is_ready(
       "https://{}.endpoints.{}.cloud.goog".format(app_name, project)):
-    raise Error("GG")
+    raise Exception("Endpoint not ready")
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
