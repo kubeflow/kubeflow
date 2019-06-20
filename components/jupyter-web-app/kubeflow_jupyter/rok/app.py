@@ -35,7 +35,10 @@ def list_notebooks_route(namespace):
 @app.route("/api/namespaces/<namespace>/notebooks", methods=['POST'])
 def post_notebook(namespace):
   data = {"success": True, "log": ""}
-  body = request.form
+  body = dict(request.form)
+
+  # Use the namespace from the route in the form
+  body["ns"] = namespace
 
   # Template
   notebook = utils.create_notebook_template()
