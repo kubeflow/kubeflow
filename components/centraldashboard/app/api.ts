@@ -12,13 +12,17 @@ interface WorkgroupInfo {
   isClusterAdmin: boolean;
 }
 
+interface AuthObject {
+  [IAP_HEADER]: string;
+}
+
 export class Api {
   private platformInfo: PlatformInfo;
+  private _controller: DefaultApi;
 
   constructor(
       private k8sService: KubernetesService,
-      private metricsService?: MetricsService,
-      private profileController?: DefaultApi) {}
+      private metricsService?: MetricsService) {}
 
   /** Retrieves and memoizes the PlatformInfo. */
   private async getPlatformInfo(): Promise<PlatformInfo> {
@@ -26,6 +30,16 @@ export class Api {
       this.platformInfo = await this.k8sService.getPlatformInfo();
     }
     return this.platformInfo;
+  }
+
+  private getProfileAndAuth(req: express.Request): [DefaultApi, AuthObject] {
+    const controller = this._controller || (
+      this._controller = new DefaultApi(`${req.get('host')}/kfam`)
+    );
+    const auth = {
+      [IAP_HEADER]: req.get(IAP_HEADER),
+    };
+    return [controller, auth];
   }
 
   /**
@@ -42,14 +56,12 @@ export class Api {
   }
 
   /**
-   * Retrieves user information from headers.
-   * Supports:
-   *  GCP IAP (https://cloud.google.com/iap/docs/identity-howto)
+   * Retrieves workgroup info from Profile Controller.
    */
   private async getWorkgroup(req: express.Request, user: string): Promise<WorkgroupInfo> {
-    const {profileController} = this;
-    const adminResponse = await profileController.v1RoleClusteradminGet(user);
-    const bindings = await profileController.readBindings(user);
+    const [profileController, auth] = this.getProfileAndAuth(req);
+    const adminResponse = await profileController.v1RoleClusteradminGet(user, auth);
+    const bindings = await profileController.readBindings(user, auth);
     const namespaces = bindings.body.bindings;
     return {
       isClusterAdmin: adminResponse.body,
@@ -65,18 +77,20 @@ export class Api {
         .get(
             '/env-info',
             async (req: express.Request, res: express.Response) => {
-              const user = this.getUser(req);
-              const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
-                this.getPlatformInfo(),
-                this.getWorkgroup(req, user),
-              ]);
-              res.json({
-                platform,
-                user,
-                namespaces,
-                isClusterAdmin,
-                // namespaces: namespaces.map((n) => n.metadata.name),
-              });
+              try {
+                const user = this.getUser(req);
+                const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
+                  this.getPlatformInfo(),
+                  this.getWorkgroup(req, user),
+                ]);
+                res.json({
+                  platform,
+                  user,
+                  namespaces,
+                  isClusterAdmin,
+                  // namespaces: namespaces.map((n) => n.metadata.name),
+                });
+              } catch(e) {console.log('EXCEPTION HAPPENED:', e);}              
             })
         .get(
             '/metrics/:type((node|podcpu|podmem))',
