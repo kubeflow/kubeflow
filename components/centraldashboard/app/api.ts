@@ -52,24 +52,15 @@ export class Api {
   }
 
   /**
-<<<<<<< HEAD
    * Retrieves workgroup info from Profile Controller.
    */
   private async getWorkgroup(req: express.Request, user: string): Promise<WorkgroupInfo> {
     const {profileController} = this;
     const auth = this.getAuthOption(req);
-    const adminResponse = await profileController.v1RoleClusteradminGet(user, auth);
-    const bindings = await profileController.readBindings(user, undefined, undefined, auth);
-=======
-   * Retrieves user information from headers.
-   * Supports:
-   *  GCP IAP (https://cloud.google.com/iap/docs/identity-howto)
-   */
-  private async getWorkgroup(req: express.Request, user: string): Promise<WorkgroupInfo> {
-    const {profileController} = this;
-    const adminResponse = await profileController.v1RoleClusteradminGet(user);
-    const bindings = await profileController.readBindings(user);
->>>>>>> Multi-User Isolation:
+    const [adminResponse, bindings] = await Promise.all([
+      profileController.v1RoleClusteradminGet(user, auth),
+      profileController.readBindings(user, undefined, undefined, auth),
+    ]);
     const namespaces = bindings.body.bindings;
     return {
       isClusterAdmin: adminResponse.body,
@@ -86,6 +77,9 @@ export class Api {
             '/env-info',
             async (req: express.Request, res: express.Response) => {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Feature Updates:
               try {
                 const user = this.getUser(req);
                 const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
@@ -100,6 +94,7 @@ export class Api {
                   // namespaces: namespaces.map((n) => n.metadata.name),
                 });
               } catch(e) {console.log('EXCEPTION HAPPENED:', e);}              
+<<<<<<< HEAD
 =======
               const user = this.getUser(req);
               const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
@@ -114,6 +109,8 @@ export class Api {
                 // namespaces: namespaces.map((n) => n.metadata.name),
               });
 >>>>>>> Multi-User Isolation:
+=======
+>>>>>>> Feature Updates:
             })
         .get(
             '/metrics/:type((node|podcpu|podmem))',
