@@ -78,6 +78,7 @@ const (
 
 // Gcp implements KfApp Interface
 // It includes the KsApp along with additional Gcp types
+// TODO(jlewi): Why doesn't Gcp store GcpArgs as opposed to duplicating the options?
 type Gcp struct {
 	kfdefs.KfDef
 	configtypes.StorageOption
