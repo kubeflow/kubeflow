@@ -10,8 +10,8 @@
  * Do not edit the class manually.
  */
 
-import localVarRequest = require('request');
-import http = require('http');
+import localVarRequest from 'request';
+import http from 'http';
 
 let defaultBasePath = 'http://localhost/kfam';
 
@@ -493,7 +493,7 @@ export class DefaultApi {
      * @param body Binding spec
      * @param {*} [options] Override http request options.
      */
-    public createBinding (body: Binding, options: any = {}) : Promise<{ response: http.ClientResponse; body?: any;  }> {
+    public createBinding (body: Binding, options: any = {}) : Promise<{ response: http.IncomingMessage; body?: any;  }> {
         const localVarPath = this.basePath + '/v1/bindings';
         let localVarQueryParameters: any = {};
         let localVarHeaderParams: any = (<any>Object).assign({}, this.defaultHeaders);
@@ -527,7 +527,7 @@ export class DefaultApi {
                 localVarRequestOptions.form = localVarFormParams;
             }
         }
-        return new Promise<{ response: http.ClientResponse; body?: any;  }>((resolve, reject) => {
+        return new Promise<{ response: http.IncomingMessage; body?: any;  }>((resolve, reject) => {
             localVarRequest(localVarRequestOptions, (error, response, body) => {
                 if (error) {
                     reject(error);
@@ -547,7 +547,7 @@ export class DefaultApi {
      * @param body Profile spec
      * @param {*} [options] Override http request options.
      */
-    public createProfile (body: Profile, options: any = {}) : Promise<{ response: http.ClientResponse; body?: any;  }> {
+    public createProfile (body: Profile, options: any = {}) : Promise<{ response: http.IncomingMessage; body?: any;  }> {
         const localVarPath = this.basePath + '/v1/profiles';
         let localVarQueryParameters: any = {};
         let localVarHeaderParams: any = (<any>Object).assign({}, this.defaultHeaders);
@@ -581,7 +581,7 @@ export class DefaultApi {
                 localVarRequestOptions.form = localVarFormParams;
             }
         }
-        return new Promise<{ response: http.ClientResponse; body?: any;  }>((resolve, reject) => {
+        return new Promise<{ response: http.IncomingMessage; body?: any;  }>((resolve, reject) => {
             localVarRequest(localVarRequestOptions, (error, response, body) => {
                 if (error) {
                     reject(error);
@@ -601,7 +601,7 @@ export class DefaultApi {
      * @param body Binding spec
      * @param {*} [options] Override http request options.
      */
-    public deleteBinding (body: Binding, options: any = {}) : Promise<{ response: http.ClientResponse; body?: any;  }> {
+    public deleteBinding (body: Binding, options: any = {}) : Promise<{ response: http.IncomingMessage; body?: any;  }> {
         const localVarPath = this.basePath + '/v1/bindings';
         let localVarQueryParameters: any = {};
         let localVarHeaderParams: any = (<any>Object).assign({}, this.defaultHeaders);
@@ -635,7 +635,7 @@ export class DefaultApi {
                 localVarRequestOptions.form = localVarFormParams;
             }
         }
-        return new Promise<{ response: http.ClientResponse; body?: any;  }>((resolve, reject) => {
+        return new Promise<{ response: http.IncomingMessage; body?: any;  }>((resolve, reject) => {
             localVarRequest(localVarRequestOptions, (error, response, body) => {
                 if (error) {
                     reject(error);
@@ -655,7 +655,7 @@ export class DefaultApi {
      * @param profile Profile name
      * @param {*} [options] Override http request options.
      */
-    public deleteProfile (profile: string, options: any = {}) : Promise<{ response: http.ClientResponse; body?: any;  }> {
+    public deleteProfile (profile: string, options: any = {}) : Promise<{ response: http.IncomingMessage; body?: any;  }> {
         const localVarPath = this.basePath + '/v1/profiles/{profile}'
             .replace('{' + 'profile' + '}', encodeURIComponent(String(profile)));
         let localVarQueryParameters: any = {};
@@ -689,7 +689,7 @@ export class DefaultApi {
                 localVarRequestOptions.form = localVarFormParams;
             }
         }
-        return new Promise<{ response: http.ClientResponse; body?: any;  }>((resolve, reject) => {
+        return new Promise<{ response: http.IncomingMessage; body?: any;  }>((resolve, reject) => {
             localVarRequest(localVarRequestOptions, (error, response, body) => {
                 if (error) {
                     reject(error);
@@ -711,7 +711,7 @@ export class DefaultApi {
      * @param role Owner or editor or viewer, when not empty, only return bindings of this role
      * @param {*} [options] Override http request options.
      */
-    public readBindings (user?: string, namespace?: string, role?: string, options: any = {}) : Promise<{ response: http.ClientResponse; body: BindingEntries;  }> {
+    public readBindings (user?: string, namespace?: string, role?: string, options: any = {}) : Promise<{ response: http.IncomingMessage; body: BindingEntries;  }> {
         const localVarPath = this.basePath + '/v1/bindings';
         let localVarQueryParameters: any = {};
         let localVarHeaderParams: any = (<any>Object).assign({}, this.defaultHeaders);
@@ -751,7 +751,7 @@ export class DefaultApi {
                 localVarRequestOptions.form = localVarFormParams;
             }
         }
-        return new Promise<{ response: http.ClientResponse; body: BindingEntries;  }>((resolve, reject) => {
+        return new Promise<{ response: http.IncomingMessage; body: BindingEntries;  }>((resolve, reject) => {
             localVarRequest(localVarRequestOptions, (error, response, body) => {
                 if (error) {
                     reject(error);
@@ -772,7 +772,7 @@ export class DefaultApi {
      * @param user username / email
      * @param {*} [options] Override http request options.
      */
-    public v1RoleClusteradminGet (user: string, options: any = {}) : Promise<{ response: http.ClientResponse; body: boolean;  }> {
+    public v1RoleClusteradminGet (user: string, options: any = {}) : Promise<{ response: http.IncomingMessage; body: boolean;  }> {
         const localVarPath = this.basePath + '/v1/role/clusteradmin';
         let localVarQueryParameters: any = {};
         let localVarHeaderParams: any = (<any>Object).assign({}, this.defaultHeaders);
@@ -809,7 +809,7 @@ export class DefaultApi {
                 localVarRequestOptions.form = localVarFormParams;
             }
         }
-        return new Promise<{ response: http.ClientResponse; body: boolean;  }>((resolve, reject) => {
+        return new Promise<{ response: http.IncomingMessage; body: boolean;  }>((resolve, reject) => {
             localVarRequest(localVarRequestOptions, (error, response, body) => {
                 if (error) {
                     reject(error);
