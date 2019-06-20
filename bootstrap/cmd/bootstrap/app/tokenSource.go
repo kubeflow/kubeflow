@@ -40,6 +40,10 @@ func NewRefreshableTokenSource(p string) (*RefreshableTokenSource, error) {
 }
 
 func (s *RefreshableTokenSource) Refresh(newToken oauth2.Token) error {
+	if newToken.AccessToken == "" {
+		return fmt.Errorf("No AccessToken specified")
+	}
+
 	// Verify that the new token grants access to the project
 	ts := oauth2.StaticTokenSource(&newToken)
 

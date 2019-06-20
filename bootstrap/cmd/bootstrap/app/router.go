@@ -11,6 +11,7 @@ import (
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -164,6 +165,30 @@ const AppNameKey = "app-name"
 
 // CreateDeployment creates a Kubeflow deployment.
 func (r *kfctlRouter) CreateDeployment(ctx context.Context, req CreateRequest) (*CreateResponse, error) {
+	// Verify that user has access. We shouldn't do any processing until verifying access.
+	ts := oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: req.Token,
+	})
+
+	isValid, err := CheckProjectAccess(req.Project, ts)
+
+	if err != nil {
+		log.Errorf("CreateDeployment CheckProjectAccess failed; error %v", err)
+
+		return nil, &httpError{
+			Message: fmt.Sprintf("There was a problem verifying access to project: %v; please try again later", req.Project),
+			Code: http.StatusUnauthorized,
+		}
+	}
+
+	if !isValid {
+		log.Errorf("CreateDeployment request isn't authorized for the project")
+		return nil, &httpError{
+			Message: fmt.Sprintf("There was a problem verifying owner access to project: %v; please check the project id is correct and that you have admin priveleges", req.Project),
+			Code: http.StatusUnauthorized,
+		}
+	}
+
 	// TODO(jlewi):
 	// 1. Do IAM check
 	// 2. Check if service exists by sending request

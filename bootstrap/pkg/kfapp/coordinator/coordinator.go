@@ -44,6 +44,10 @@ import (
 // The common entry point used to retrieve an implementation of KfApp.
 // In this case it returns a composite class (coordinator) which aggregates
 // platform and package manager implementations in Children.
+//
+// TODO(jlewi): Can we eventually get rid of this function and just have
+// NewKfApp(kfDef kfdefsv2.KfDef) and NewKfApp(configFile string).
+// latter would just call the first.
 func GetKfApp(kfdef *kfdefsv2.KfDef, platformArgs []byte) kftypes.KfApp {
 	_coordinator := &coordinator{
 		Platforms:       make(map[string]kftypes.Platform),
@@ -197,6 +201,12 @@ func usageReportWarn(components []string) {
 			return
 		}
 	}
+}
+
+// NewKfAppFromConfigFile constructs a kfApp given the path to a YAML file
+// specifying a YAML config file.
+func NewKfAppFromConfigFile(configFile string) (kftypes.KfApp, error) {
+
 }
 
 // NewKfApp is called from the Init subcommand and will create a directory based on

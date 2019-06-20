@@ -3,9 +3,10 @@ package app
 import (
 	"context"
 	"encoding/json"
-	"github.com/go-kit/kit/endpoint"
+	"fmt"
 	httptransport "github.com/go-kit/kit/transport/http"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
 	"net/http"
 )
 
@@ -15,21 +16,37 @@ const KfctlCreatePath = "/kfctl/apps/v1alpha2/create"
 // kfctlServer is a server to manage a single deployment.
 // It is a wrapper around kfctl.
 type kfctlServer struct {
+	ts *RefreshableTokenSource
+	c chan CreateRequest
+
+	// TODO(jlewi): The dependency on ksServer is hacky. We should be able to
+	// get rid of it by refactoring the code once we drop legacy support and only deploy with
+	// kfctl.
+	s *ksServer
 }
 
 // NewServer returns a new kfctl server
-func NewKfctlServer() (*kfctlServer, error) {
-	return &kfctlServer{}, nil
+func NewKfctlServer(ks *ksServer) (*kfctlServer, error) {
+
+	if ks == nil {
+		return nil, fmt.Errorf("ksServer must be provided")
+	}
+	s := &kfctlServer{
+		c: make(chan CreateRequest, 10),
+	}
+
+	// Start a background thread to process requests
+	go s.process()
+
+	return s, nil
 }
 
-// makeKfctlCreateRequestEndpoint creates an endpoint to handle createdeployment requests
-// using kfctl
-func makeKfctlCreateRequestEndpoint(svc KfctlService) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(CreateRequest)
-		r, err := svc.CreateDeployment(ctx, req)
 
-		return r, err
+func (s *kfctlServer) process {
+	for;; {
+		r := <- s.c
+
+		// Create the deployment.
 	}
 }
 
@@ -60,8 +77,42 @@ func (r *kfctlServer) RegisterEndpoints() {
 	http.Handle(KfctlCreatePath, optionsHandler(createHandler))
 }
 
-// Apply runs apply on a ksonnet application.
+// CreateDeployment creates the deployment.
 func (r *kfctlServer) CreateDeployment(ctx context.Context, req CreateRequest) (*CreateResponse, error) {
+	if r.ts == nil {
+		log.Infof("Initializing token source")
+		ts, err := NewRefreshableTokenSource(req.Project)
+
+		if err != nil {
+			log.Errorf("Could not create token source; error %v", err)
+
+			return nil, &httpError {
+				Message: "Internal service error please try again later.",
+				Code: http.StatusInternalServerError,
+			}
+		}
+
+		r.ts = ts
+	}
+
+
+	// Refresh the credential. This will fail if it doesn't provide access to the project
+	err := r.ts.Refresh(oauth2.Token{
+		AccessToken: req.Token,
+	})
+
+	if err != nil {
+		log.Errorf("Refreshing the token failed; %v", err)
+		return nil, &httpError{
+			Message: fmt.Sprintf("Could not verify you have admin priveleges on project %v; please check that the project is correct and you have admin priveleges", req.Project),
+			Code:    http.StatusInternalServerError,
+		}
+	}
+
+	// Enqueue the request
+	r.c <- req
+
+	// Return the current status.
 	// TODO(jlewi):
 	// 1. Do IAM check
 	// 2. Check if service exists by sending request
