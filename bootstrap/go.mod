@@ -76,7 +76,7 @@ require (
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/resty.v1 v1.11.0
-	gopkg.in/square/go-jose.v2 v2.3.0 // indirect
+	gopkg.in/square/go-jose.v2 v2.3.0
 	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20180308224125-73d903622b73
 	k8s.io/api/v2 v2.0.0

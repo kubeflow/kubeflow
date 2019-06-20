@@ -110,7 +110,7 @@ const (
 	outputDir = "kustomize"
 )
 
-// GetKfApp is the common entry point for all implmentations of the KfApp interface
+// GetPlatform is the common entry point for all implmentations of the KfApp interface
 func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 	/*
 		kfdef := kfdefsv2.KfDef{
