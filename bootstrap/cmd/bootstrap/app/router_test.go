@@ -18,23 +18,15 @@ func TestK8sName(t *testing.T) {
 	items := []Item {
 		{
 			Project: "alpha",
-			Zone: "us-east1",
 			Name: "app1",
 		},
 		{
 			Project: "beta",
-			Zone: "us-east1",
 			Name: "app1",
 		},
 		{
-			Project: "alpha",
-			Zone: "us-west",
-			Name: "app1",
-		},
-		{
-			Project: "alpha",
-			Zone: "us-east1",
-			Name: "beta",
+			Project: "beta",
+			Name: "app2",
 		},
 	}
 
@@ -42,7 +34,7 @@ func TestK8sName(t *testing.T) {
 
 	pattern := "kf-[0-9a-z]{45}"
 	for _, i := range(items) {
-		h, err := k8sName(i.Name, i.Project, i.Zone)
+		h, err := k8sName(i.Name, i.Project)
 
 		if err != nil {
 			t.Errorf("Error getting hash for %+v; %v", i, err)
@@ -63,23 +55,16 @@ func TestK8sName(t *testing.T) {
 	emptyItems := []Item{
 		{
 			Project: "alpha",
-			Zone:    "us-east1",
 			Name:    "",
 		},
 		{
-			Project: "alpha",
-			Zone:    "",
+			Project: "",
 			Name:    "app1",
-		},
-		{
-			Project: "alpha",
-			Zone:    "us-east1",
-			Name:    "",
 		},
 	}
 
 	for _, i := range(emptyItems) {
-		h, err := k8sName(i.Name, i.Project, i.Zone)
+		h, err := k8sName(i.Name, i.Project)
 
 
 		p, _ := Pformat(i)

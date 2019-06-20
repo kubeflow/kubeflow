@@ -128,8 +128,8 @@ func copyURL(base *url.URL, path string) *url.URL {
 }
 
 // k8sName returns the unique name for the K8s resources associated with the
-// given kubeflow deployment
-func k8sName(name string, project string, zone string) (string, error) {
+// given kubeflow deployment. The name has to be unique per project.
+func k8sName(name string, project string) (string, error) {
 	// Project, name, and zone are required because they uniquely identify the resources
 	// that will spawned to handle the request.
 	if project == "" {
@@ -140,11 +140,8 @@ func k8sName(name string, project string, zone string) (string, error) {
 		return "", fmt.Errorf("name is required")
 	}
 
-	if zone == "" {
-		return "", fmt.Errorf("zone is required")
-	}
 	h := sha256.New()
-	h.Write([]byte(fmt.Sprintf("name=%s,project=%s,zone=%s", name, project, zone)))
+	h.Write([]byte(fmt.Sprintf("name=%s,project=%s", name, project)))
 
 	// Using a base32 (5 bits) encoding gives us 51.2 characters
 	id := base32.HexEncoding.WithPadding(base32.NoPadding).EncodeToString(h.Sum(nil))
@@ -175,7 +172,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req CreateRequest) (
 
 	// TODO(jlewi): The code below is just a skeleton. We will modify it in follow on
 	// PRs to properly configure the service and create a statefulset based on the request.
-	name, err := k8sName(req.Name, req.Project, req.Zone)
+	name, err := k8sName(req.Name, req.Project)
 
 	if err != nil {
 		return nil, err
