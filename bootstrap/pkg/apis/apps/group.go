@@ -94,7 +94,7 @@ const (
 
 //
 // KfApp provides a common
-// API for platforms like gcp or minikube
+// API for PackageManagers like ksonnet or kustomize
 // They all implement the API below
 //
 type KfApp interface {
@@ -102,6 +102,17 @@ type KfApp interface {
 	Delete(resources ResourceEnum) error
 	Generate(resources ResourceEnum) error
 	Init(resources ResourceEnum) error
+}
+
+//
+// Platform provides a common
+// API for platforms like gcp or minikube
+// They all implement the API below
+//
+type Platform interface {
+	KfApp
+	// Return k8s config built with platform-specific ways; or nil to use default kube config
+	GetK8sConfig() (*rest.Config, *clientcmdapi.Config)
 }
 
 //
