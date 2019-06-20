@@ -10,10 +10,12 @@ import pytest
 
 from kubeflow.testing import util
 
+
 # retry 4 times, waiting 3 minutes between retries
 @retry(stop_max_attempt_number=4, wait_fixed=180000)
 def run_with_retries(*args, **kwargs):
   util.run(*args, **kwargs)
+
 
 def verify_kubeconfig(project, zone, app_path):
   name = os.path.basename(app_path)
@@ -22,10 +24,10 @@ def verify_kubeconfig(project, zone, app_path):
     logging.info("KUBECONFIG current context name matches app name: " + name)
   else:
     msg = "KUBECONFIG not having expected context: {expected} v.s. {actual}".format(
-        expected=name,
-        actual=context)
+        expected=name, actual=context)
     logging.error(msg)
     raise RuntimeError(msg)
+
 
 def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
   """Test building and deploying Kubeflow.
@@ -38,9 +40,9 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
     logging.info("--app_path not specified")
     stamp = datetime.datetime.now().strftime("%H%M")
     parent_dir = tempfile.gettempdir()
-    app_path = os.path.join(parent_dir,
-                            "kfctl-{0}-{1}".format(stamp,
-                                                   uuid.uuid4().hex[0:4]))
+    app_path = os.path.join(
+        parent_dir, "kfctl-{0}-{1}".format(stamp,
+                                           uuid.uuid4().hex[0:4]))
   else:
     parent_dir = os.path.dirname(app_path)
 
@@ -52,8 +54,10 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
 
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-    util.run(["gcloud", "auth", "activate-service-account",
-              "--key-file=" + os.environ["GOOGLE_APPLICATION_CREDENTIALS"]])
+    util.run([
+        "gcloud", "auth", "activate-service-account",
+        "--key-file=" + os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
+    ])
 
   # We need to use retry builds because when building in the test cluster
   # we see intermittent failures pulling dependencies
@@ -70,8 +74,8 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
     # Owned by project kubeflow-ci-deployment.
     os.environ["CLIENT_ID"] = "CJ4qVPLTi0j0GJMkONj7Quwt"
     os.environ["CLIENT_SECRET"] = (
-      "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g"
-      ".apps.googleusercontent.com")
+        "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g"
+        ".apps.googleusercontent.com")
 
   if use_istio:
     init_args.append("--use_istio")
@@ -81,17 +85,21 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
   version = "master"
   if os.getenv("PULL_NUMBER"):
     version = "pull/{0}".format(os.getenv("PULL_NUMBER"))
+  pull_sha = "@0caa70b4518859c0678d0d0e12c11a7e35345c5a"
+  if os.getenv("REPO_NAME") == "manifests":
+    if os.getenv("PULL_PULL_SHA"):
+      pull_sha = "@" + os.getenv("PULL_PULL_SHA")
 
   # username and password are passed as env vars and won't appear in the logs
   # TODO(https://github.com/kubeflow/kubeflow/issues/2831): Once kfctl
   # supports loading version from a URI we should use that so that we
   # pull the configs from the repo we checked out.
-  run_with_retries([kfctl_path, "init", app_path, "-V", "--platform=gcp",
-                    "--version=" + version,
-                    "--package-manager=kustomize@0caa70b4518859c0678d0d0e12c11a7e35345c5a",
-                    "--skip-init-gcp-project",
-                    "--disable_usage_report",
-                    "--project=" + project] + init_args, cwd=parent_dir)
+  run_with_retries([
+      kfctl_path, "init", app_path, "-V", "--platform=gcp",
+      "--version=" + version, "--package-manager=kustomize" + pull_sha,
+      "--skip-init-gcp-project", "--disable_usage_report",
+      "--project=" + project
+      ] + init_args, cwd=parent_dir)
 
   # We need to specify a valid email because
   #  1. We need to create appropriate RBAC rules to allow the current user
@@ -102,9 +110,10 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
   if not email:
     raise ValueError("Could not determine GCP account being used.")
 
-  run_with_retries([kfctl_path, "generate", "-V", "all",
-                    "--email=" + email, "--zone=" + zone],
-                    cwd=app_path)
+  run_with_retries([
+      kfctl_path, "generate", "-V", "all", "--email=" + email, "--zone=" + zone
+  ],
+                   cwd=app_path)
 
   # We need to use retries because if we don't we see random failures
   # where kfctl just appears to die.
@@ -114,11 +123,13 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
 
   verify_kubeconfig(project, zone, app_path)
 
+
 if __name__ == "__main__":
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
+  logging.basicConfig(
+      level=logging.INFO,
+      format=('%(levelname)s|%(asctime)s'
+              '|%(pathname)s|%(lineno)d| %(message)s'),
+      datefmt='%Y-%m-%dT%H:%M:%S',
+  )
   logging.getLogger().setLevel(logging.INFO)
   pytest.main()
