@@ -110,7 +110,7 @@ const (
 	outputDir = "kustomize"
 )
 
-// GetPlatform is the common entry point for all implmentations of the KfApp interface
+// GetPlatform is the common entry point for all implementations of the KfApp interface
 func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 	/*
 		kfdef := kfdefsv2.KfDef{
@@ -468,14 +468,19 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum) error {
 	if len(parts) == 2 {
 		version = parts[1]
 	}
-	cacheDir, cacheDirErr := kftypesv2.DownloadToCache(kustomize.Spec.AppDir, kftypesv2.ManifestsRepo, version)
-	if cacheDirErr != nil || cacheDir == "" {
-		log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
-	}
-	kustomize.Spec.ManifestsRepo = cacheDir
-	createConfigErr := kustomize.writeConfigFile()
-	if createConfigErr != nil {
-		return fmt.Errorf("cannot create config file %v in %v", kftypesv2.KfConfigFile, kustomize.Spec.AppDir)
+
+	if len(kustomize.Spec.Repos) == 0 {
+		// TODO(jlewi): This is a legacy code path. Once we we use Spec.Repos we can get rid of this code path.
+		log.Infof("Downloading kustomize manifests from %v", kftypesv2.ManifestsRepo)
+		cacheDir, cacheDirErr := kftypesv2.DownloadToCache(kustomize.Spec.AppDir, kftypesv2.ManifestsRepo, version)
+		if cacheDirErr != nil || cacheDir == "" {
+			log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
+		}
+		kustomize.Spec.ManifestsRepo = cacheDir
+		createConfigErr := kustomize.writeConfigFile()
+		if createConfigErr != nil {
+			return fmt.Errorf("cannot create config file %v in %v", kftypesv2.KfConfigFile, kustomize.Spec.AppDir)
+		}
 	}
 	return nil
 }

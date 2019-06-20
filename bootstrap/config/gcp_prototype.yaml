@@ -1,3 +1,5 @@
+# TODO(jlewi): This file is legacy config for bootstrapper.
+# we can delete it once bootstrapper is using kfctl and KfDef.
 # Sample config for kubeflow bootstrapper for v0.4
 # App only apply if on GKE
 defaultApp:

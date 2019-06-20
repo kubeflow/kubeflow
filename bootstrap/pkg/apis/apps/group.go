@@ -47,6 +47,8 @@ const (
 	KustomizationFile      = "kustomization.yaml"
 	KustomizationParamFile = "params.env"
 	DefaultCacheDir        = ".cache"
+	KubeflowRepoName       = "kubeflow"
+	ManifestsRepoName      = "manifests"
 	KubeflowRepo           = "kubeflow"
 	ManifestsRepo          = "manifests"
 	DefaultConfigDir       = "bootstrap/config"

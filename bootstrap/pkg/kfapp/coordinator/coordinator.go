@@ -30,7 +30,6 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/kustomize"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
-	goopenuri "github.com/utahta/go-openuri"
 	"io/ioutil"
 	valid "k8s.io/apimachinery/v2/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
@@ -114,6 +113,10 @@ func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
 
 // GetPlatform will return an implementation of kftypes.GetPlatform that matches the platform string
 // It looks for statically compiled-in implementations, otherwise throws unrecognized error
+//
+// TODO(jlewi): Why is platformArgs taken as a []byte? I assume its because each platform might
+// have different types for different platforms. It would probably be better to pass an interface
+// and do type assertion.
 func getPlatform(kfdef *kfdefsv2.KfDef, platformArgs []byte) (kftypes.Platform, error) {
 	switch kfdef.Spec.Platform {
 	case string(kftypes.MINIKUBE):
@@ -241,121 +244,151 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 			Message: fmt.Sprintf(`invalid name due to %v`, strings.Join(errs, ", ")),
 		}
 	}
-	platform := options[string(kftypes.PLATFORM)].(string)
-	packageManager := options[string(kftypes.PACKAGE_MANAGER)].(string)
-	version := options[string(kftypes.VERSION)].(string)
-	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
-	useIstio := options[string(kftypes.USE_ISTIO)].(bool)
-	namespace := options[string(kftypes.NAMESPACE)].(string)
-	project := options[string(kftypes.PROJECT)].(string)
-	cacheDir := ""
-	if options[string(kftypes.REPO)].(string) != "" {
-		cacheDir = options[string(kftypes.REPO)].(string)
-		if _, err := os.Stat(cacheDir); err != nil {
-			log.Fatalf("repo %v does not exist Error %v", cacheDir, err)
-		}
-	} else {
-		var cacheDirErr error
-		cacheDir, cacheDirErr = kftypes.DownloadToCache(appDir, kftypes.KubeflowRepo, version)
-		if cacheDirErr != nil || cacheDir == "" {
-			log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
-		}
-	}
 
 	// If a config file is specified, construct the KfDef entirely from that.
 	configFile := options[string(kftypes.CONFIG)].(string)
+
+	kfDef := &kfdefsv2.KfDef{}
 	if configFile != "" {
-		// Open config file
-		configFileReader, err := goopenuri.Open(configFile)
+		newkfDef, err := kfdefsv2.DownloadAndLoadConfigFile(configFile, appDir)
+
+		kfDef = newkfDef
 		if err != nil {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("could not open specified config %s: %v", configFile, err),
-			}
-		}
-		// Read contents
-		configFileBytes, err := ioutil.ReadAll(configFileReader)
-		if err != nil {
+			log.Errorf("Could not fetch %v; error %v", configFile, err)
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: fmt.Sprintf("could not read from config file %s: %v", configFile, err),
+				Message: err.Error(),
 			}
 		}
-		// Unmarshal content onto KfDef struct
-		kfDef := &kfdefsv2.KfDef{}
-		if err := yaml.Unmarshal(configFileBytes, kfDef); err != nil {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: fmt.Sprintf("could not unmarshal config file onto KfDef struct: %v", err),
-			}
+
+		log.Infof("Synchronize cache")
+
+		if kfDef.Name != "" {
+			log.Warnf("Overriding KfDef.Spec.Name; old value %v; new value %v", kfDef.Name, appName)
+		}
+		kfDef.Name = appName
+		err = kfDef.SyncCache()
+
+		if err != nil {
+			log.Errorf("Failed to synchronize the chache; error: %v", err)
+			return nil, err
 		}
 
 		//TODO(yanniszark): sane defaults for missing fields
 		//TODO(yanniszark): validate KfDef
-
-		// Disable usage report if requested
-		disableUsageReport := options[string(kftypes.DISABLE_USAGE_REPORT)].(bool)
-		if disableUsageReport {
-			kfDef.Spec.Components = filterSpartakus(kfDef.Spec.Components)
-			delete(kfDef.Spec.ComponentParams, "spartakus")
+	} else {
+		platform := options[string(kftypes.PLATFORM)].(string)
+		packageManager := options[string(kftypes.PACKAGE_MANAGER)].(string)
+		version := options[string(kftypes.VERSION)].(string)
+		useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
+		useIstio := options[string(kftypes.USE_ISTIO)].(bool)
+		namespace := options[string(kftypes.NAMESPACE)].(string)
+		project := options[string(kftypes.PROJECT)].(string)
+		cacheDir := ""
+		if options[string(kftypes.REPO)].(string) != "" {
+			cacheDir = options[string(kftypes.REPO)].(string)
+			if _, err := os.Stat(cacheDir); err != nil {
+				log.Fatalf("repo %v does not exist Error %v", cacheDir, err)
+			}
+		} else {
+			var cacheDirErr error
+			cacheDir, cacheDirErr = kftypes.DownloadToCache(appDir, kftypes.KubeflowRepo, version)
+			if cacheDirErr != nil || cacheDir == "" {
+				log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
+			}
 		}
 
-		// Override certain values
-		kfDef.Spec.AppDir = appDir
-		//TODO(yanniszark) Stop overriding this once we find a suitable way to
-		// represent the repos (https://github.com/kubeflow/kubeflow/issues/3471)
-		kfDef.Spec.Repo = path.Join(cacheDir, kftypes.KubeflowRepo)
-
-		pApp := GetKfApp(kfDef, nil)
-		return pApp, nil
-	}
-
-	kfDef := &kfdefsv2.KfDef{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "KfDef",
-			APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      appName,
-			Namespace: namespace,
-		},
-		Spec: kfdefsv2.KfDefSpec{
-			ComponentConfig: config.ComponentConfig{
-				Platform: platform,
+		// This is a deprecated code path for constructing kfDef using kustomize style overlays
+		kfDef = &kfdefsv2.KfDef{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "KfDef",
+				APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
 			},
-			Project:            project,
-			PackageManager:     packageManager,
-			UseBasicAuth:       useBasicAuth,
-			UseIstio:           useIstio,
-			EnableApplications: true,
-		},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      appName,
+				Namespace: namespace,
+			},
+			Spec: kfdefsv2.KfDefSpec{
+				ComponentConfig: config.ComponentConfig{
+					Platform: platform,
+				},
+				Project:            project,
+				PackageManager:     packageManager,
+				UseBasicAuth:       useBasicAuth,
+				UseIstio:           useIstio,
+				EnableApplications: true,
+			},
+		}
+		configFileBuffer, configFileErr := getConfigFromCache(cacheDir, kfDef)
+		if configFileErr != nil {
+			log.Fatalf("could not get config file Error %v", configFileErr)
+		}
+		specErr := yaml.Unmarshal(configFileBuffer, kfDef)
+		if specErr != nil {
+			log.Errorf("couldn't unmarshal app.yaml. Error: %v", specErr)
+		}
+
+		kfDef.Name = appName
+		kfDef.Spec.AppDir = appDir
+		kfDef.Spec.Platform = platform
+		kfDef.Namespace = namespace
+		kfDef.Spec.Version = version
+		kfDef.Spec.Repo = path.Join(cacheDir, kftypes.KubeflowRepo)
+		kfDef.Spec.Project = options[string(kftypes.PROJECT)].(string)
+		kfDef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
+		kfDef.Spec.UseBasicAuth = useBasicAuth
+		kfDef.Spec.UseIstio = useIstio
+		kfDef.Spec.PackageManager = packageManager
 	}
-	configFileBuffer, configFileErr := getConfigFromCache(cacheDir, kfDef)
-	if configFileErr != nil {
-		log.Fatalf("could not get config file Error %v", configFileErr)
-	}
-	specErr := yaml.Unmarshal(configFileBuffer, kfDef)
-	if specErr != nil {
-		log.Errorf("couldn't unmarshal app.yaml. Error: %v", specErr)
-	}
+
+	// Disable usage report if requested
+	// TODO(jlewi): We should be able to get rid of this once we depend on this being
+	// configured in the config file.
 	disableUsageReport := options[string(kftypes.DISABLE_USAGE_REPORT)].(bool)
 	if disableUsageReport {
 		kfDef.Spec.Components = filterSpartakus(kfDef.Spec.Components)
 		delete(kfDef.Spec.ComponentParams, "spartakus")
 	}
 
-	kfDef.Name = appName
-	kfDef.Spec.AppDir = appDir
-	kfDef.Spec.Platform = platform
-	kfDef.Namespace = namespace
-	kfDef.Spec.Version = version
-	kfDef.Spec.Repo = path.Join(cacheDir, kftypes.KubeflowRepo)
-	kfDef.Spec.Project = options[string(kftypes.PROJECT)].(string)
-	kfDef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
-	kfDef.Spec.UseBasicAuth = useBasicAuth
-	kfDef.Spec.UseIstio = useIstio
-	kfDef.Spec.PackageManager = packageManager
-	pApp := GetKfApp(kfDef, nil)
+	return NewKfAppFromKfDef(*kfDef)
+}
+
+// NewKfAppFromKfDef constructs the KfApp from the supplied KfDef.
+func NewKfAppFromKfDef(kfDef kfdefsv2.KfDef) (kftypes.KfApp, error) {
+	// Validate kfDef
+	errs := valid.NameIsDNSLabel(kfDef.Name, false)
+	if errs != nil && len(errs) > 0 {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf(`invalid name due to %v`, strings.Join(errs, ", ")),
+		}
+	}
+
+	if _, err := os.Stat(kfDef.Spec.AppDir); os.IsNotExist(err) {
+		log.Infof("Creating directory %v", kfDef.Spec.AppDir)
+		appdirErr := os.MkdirAll(kfDef.Spec.AppDir, os.ModePerm)
+		if appdirErr != nil {
+			log.Errorf("couldn't create directory %v Error %v", kfDef.Spec.AppDir, appdirErr)
+			return nil, appdirErr
+		}
+	} else {
+		log.Infof("App directory exists %v", kfDef.Spec.AppDir)
+	}
+
+	// Rewrite app.yaml
+	buf, bufErr := yaml.Marshal(kfDef)
+	if bufErr != nil {
+		log.Errorf("Error marshaling kfdev; %v", bufErr)
+		return nil, bufErr
+	}
+	cfgFilePath := filepath.Join(kfDef.Spec.AppDir, kftypesv2.KfConfigFile)
+	log.Infof("Writing updated KfDef to %v", cfgFilePath)
+	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
+	if cfgFilePathErr != nil {
+		return nil, cfgFilePathErr
+	}
+
+	pApp := GetKfApp(&kfDef, nil)
 	return pApp, nil
 }
 
