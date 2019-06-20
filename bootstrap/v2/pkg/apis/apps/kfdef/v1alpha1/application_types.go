@@ -41,7 +41,7 @@ type KfDefSpec struct {
 	ManifestsRepo          string `json:"manifestsRepo,omitempty"`
 }
 
-var DefaultRegistry = &RegistryConfig{
+var DefaultRegistry = RegistryConfig{
 	Name: "kubeflow",
 	Repo: "https://github.com/kubeflow/kubeflow.git",
 	Path: "kubeflow",
@@ -172,4 +172,10 @@ type KfDefList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []KfDef `json:"items"`
+}
+
+// GetDefaultRegistry return reference of a newly copied Default Registry
+func GetDefaultRegistry() *RegistryConfig {
+	newReg := DefaultRegistry
+	return &newReg
 }

@@ -110,7 +110,7 @@ const (
 	outputDir = "kustomize"
 )
 
-// GetKfApp is the common entry point for all implmentations of the KfApp interface
+// GetPlatform is the common entry point for all implmentations of the KfApp interface
 func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 	/*
 		kfdef := kfdefsv2.KfDef{
@@ -205,13 +205,17 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	kustomizeDir := path.Join(kustomize.Spec.AppDir, outputDir)
 	for _, compName := range kustomize.Spec.Components {
 		kustomizeFile := filepath.Join(kustomizeDir, compName+".yaml")
-		if _, err := os.Stat(kustomizeFile); err == nil {
-			resourcesErr := kustomize.deployResources(kustomize.restConfig, kustomizeFile)
-			if resourcesErr != nil {
-				return &kfapisv2.KfError{
-					Code:    int(kfapisv2.INTERNAL_ERROR),
-					Message: fmt.Sprintf("couldn't create resources from %v Error: %v", kustomizeFile, resourcesErr),
-				}
+		if _, err := os.Stat(kustomizeFile); err != nil {
+			return &kfapisv2.KfError{
+				Code:    int(kfapisv2.INTERNAL_ERROR),
+				Message: fmt.Sprintf("couldn't find manifest %s for component %s", kustomizeFile, compName),
+			}
+		}
+		resourcesErr := kustomize.deployResources(kustomize.restConfig, kustomizeFile)
+		if resourcesErr != nil {
+			return &kfapisv2.KfError{
+				Code:    int(kfapisv2.INTERNAL_ERROR),
+				Message: fmt.Sprintf("couldn't create resources from %v Error: %v", kustomizeFile, resourcesErr),
 			}
 		}
 	}
@@ -417,21 +421,26 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 			}
 		}
 		for _, compName := range kustomize.Spec.Components {
-			if compPath, ok := kustomize.componentPathMap[compName]; ok {
-				resMap, err := GenerateKustomizationFile(&kustomize.KfDef, kustomize.Spec.ManifestsRepo, compPath,
-					kustomize.Spec.ComponentParams[compName])
-				if err != nil {
-					return &kfapisv2.KfError{
-						Code:    int(kfapisv2.INTERNAL_ERROR),
-						Message: fmt.Sprintf("error generating kustomization for %v Error %v", compPath, err),
-					}
+			compPath, ok := kustomize.componentPathMap[compName]
+			if !ok {
+				return &kfapisv2.KfError{
+					Code:    int(kfapisv2.INTERNAL_ERROR),
+					Message: fmt.Sprintf("couldn't find component %s", compName),
 				}
-				writeErr := WriteKustomizationFile(compName, kustomizeDir, resMap)
-				if writeErr != nil {
-					return &kfapisv2.KfError{
-						Code:    int(kfapisv2.INTERNAL_ERROR),
-						Message: fmt.Sprintf("error writing to %v Error %v", compPath, writeErr),
-					}
+			}
+			resMap, err := GenerateKustomizationFile(&kustomize.KfDef, kustomize.Spec.ManifestsRepo, compPath,
+				kustomize.Spec.ComponentParams[compName])
+			if err != nil {
+				return &kfapisv2.KfError{
+					Code:    int(kfapisv2.INTERNAL_ERROR),
+					Message: fmt.Sprintf("error generating kustomization for %v Error %v", compPath, err),
+				}
+			}
+			writeErr := WriteKustomizationFile(compName, kustomizeDir, resMap)
+			if writeErr != nil {
+				return &kfapisv2.KfError{
+					Code:    int(kfapisv2.INTERNAL_ERROR),
+					Message: fmt.Sprintf("error writing to %v Error %v", compPath, writeErr),
 				}
 			}
 		}
