@@ -50,8 +50,6 @@ workflows:
     name: kfctl-go-iap-istio
     job_types:
       - presubmit
-      - postsubmit
-      - periodic
     include_dirs:
       - bootstrap/*
       - deployment/*
