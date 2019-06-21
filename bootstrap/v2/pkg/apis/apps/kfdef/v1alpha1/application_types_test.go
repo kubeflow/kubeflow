@@ -15,9 +15,12 @@
 package v1alpha1
 
 import (
+	"github.com/ghodss/yaml"
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"path"
+	"reflect"
 	"testing"
 )
 
@@ -98,7 +101,98 @@ func TestSyncCache(t *testing.T) {
 	if d.Status.ReposCache["testrepo"].LocalPath != path.Join(expectedDir) {
 		t.Fatalf("LocalPath; want %v; got %v", expectedDir, d.Status.ReposCache["testrepo"].LocalPath)
 	}
+}
 
-	//Check file was copied
-	// os.Stat(path.jo)
+func TestWriteKfDef(t *testing.T) {
+	// Verify that if we write KfDef it will be stripped of any literal secrets.
+	type testCase struct {
+		input *KfDef
+		output *KfDef
+	}
+
+	cases := []testCase {
+		{
+			input: &KfDef {
+				Spec: KfDefSpec{
+					AppDir: "someapp",
+					Secrets: []Secret{
+						{
+							Name: "s1",
+							SecretSource: SecretSource{
+								LiteralSource: &LiteralSource{
+									Value: "somedata",
+								},
+							},
+						},
+						{
+							Name: "s2",
+							SecretSource: SecretSource{
+								EnvSource: &EnvSource{
+									Name: "somesecret",
+								},
+							},
+						},
+					},
+				},
+			},
+			output: &KfDef {
+				Spec: KfDefSpec{
+					AppDir: "someapp",
+					Secrets: []Secret{
+						{
+							Name: "s2",
+							SecretSource: SecretSource{
+								EnvSource: &EnvSource{
+									Name: "somesecret",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+
+	for _, c:= range cases {
+		testDir, _ := ioutil.TempDir("", "")
+
+		testFile := path.Join(testDir, "app.yaml")
+		err := c.input.WriteToFile(testFile)
+
+		if err != nil {
+			t.Fatalf("Could not write file; %v", err)
+		}
+
+		// Read contents
+		configFileBytes, err := ioutil.ReadFile(testFile)
+		if err != nil {
+			t.Fatalf("Could not read file; %v", err)
+		}
+
+		result := &KfDef{}
+		if err := yaml.Unmarshal(configFileBytes, result); err != nil {
+			t.Fatalf("Could not unmarshal the result; %v", err)
+		}
+
+		// Test they are equal
+		if !reflect.DeepEqual(result, c.output) {
+			pExpected, _ := Pformat(c.output)
+			pActual, _ := Pformat(result)
+
+			t.Errorf("Result wasn't properly stripped: Got:\n%v;\n Want:\n%v", pActual, pExpected)
+		}
+	}
+}
+
+// Pformat returns a pretty format output of any value.
+func Pformat(value interface{}) (string, error) {
+	if s, ok := value.(string); ok {
+		return s, nil
+	}
+	valueJson, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	return string(valueJson), nil
 }

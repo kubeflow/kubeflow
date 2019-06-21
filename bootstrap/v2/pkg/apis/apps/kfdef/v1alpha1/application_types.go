@@ -58,6 +58,7 @@ type KfDefSpec struct {
 	PackageManager     string `json:"packageManager,omitempty"`
 	ManifestsRepo      string `json:"manifestsRepo,omitempty"`
 	Repos              []Repo `json:"Repos,omitempty"`
+	Secrets            []Secret  `json:"Secrets,omitempty"`
 }
 
 var DefaultRegistry = RegistryConfig{
@@ -66,6 +67,8 @@ var DefaultRegistry = RegistryConfig{
 	Path: "kubeflow",
 }
 
+// Repo provides information about a repository providing config (e.g. kustomize packages,
+// Deployment manager configs, etc...)
 type Repo struct {
 	// Name is a name to identify the repository.
 	Name string `json:"name,omitempty"`
@@ -76,6 +79,27 @@ type Repo struct {
 
 	// Root is the relative path to use as the root.
 	Root string `json:"root,omitempty"`
+}
+
+// Secret provides information about secrets needed to configure Kubeflow.
+// Secrets can be provided via references e.g. a URI so that they won't
+// be serialized as part of the KfDefSpec which is intended to be written into source control.
+type Secret struct {
+	Name string `json:"name,omitempty"`
+	SecretSource SecretSource  `json:"secretSource,omitempty"`
+}
+
+type SecretSource struct {
+	LiteralSource *LiteralSource `json:"literalSource,omitempty"`
+	EnvSource *EnvSource `json:"envSource,omitempty"`
+}
+
+type LiteralSource struct {
+	Value string `json:"value,omitempty"`
+}
+
+type EnvSource struct {
+	Name string `json:"Name,omitempty"`
 }
 
 // RegistryConfig is used for two purposes:
@@ -337,4 +361,32 @@ func (d *KfDef) SyncCache() error {
 	}
 
 	return nil
+}
+
+// WriteToFile write the KfDef to a file.
+// WriteToFile will strip out any literal secrets before writing it
+func (d *KfDef) WriteToFile(path string) error {
+
+	stripped := *d
+
+	secrets := make([]Secret, 0)
+
+	for _, s := range stripped.Spec.Secrets {
+		if s.SecretSource.LiteralSource != nil {
+			log.Warnf("Stripping literal secret %v from KfDef before serializing it", s.Name)
+			continue
+		}
+		secrets = append(secrets, s)
+	}
+
+	stripped.Spec.Secrets = secrets
+
+	// Rewrite app.yaml
+	buf, bufErr := yaml.Marshal(stripped)
+	if bufErr != nil {
+		log.Errorf("Error marshaling kfdev; %v", bufErr)
+		return bufErr
+	}
+	log.Infof("Writing stripped KfDef to %v", path)
+	return ioutil.WriteFile(path, buf, 0644)
 }

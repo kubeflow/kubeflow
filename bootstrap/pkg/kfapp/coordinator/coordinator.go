@@ -203,12 +203,6 @@ func usageReportWarn(components []string) {
 	}
 }
 
-// NewKfAppFromConfigFile constructs a kfApp given the path to a YAML file
-// specifying a YAML config file.
-func NewKfAppFromConfigFile(configFile string) (kftypes.KfApp, error) {
-
-}
-
 // NewKfApp is called from the Init subcommand and will create a directory based on
 // the path/name argument given to the Init subcommand
 func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
@@ -386,14 +380,9 @@ func NewKfAppFromKfDef(kfDef kfdefsv2.KfDef) (kftypes.KfApp, error) {
 	}
 
 	// Rewrite app.yaml
-	buf, bufErr := yaml.Marshal(kfDef)
-	if bufErr != nil {
-		log.Errorf("Error marshaling kfdev; %v", bufErr)
-		return nil, bufErr
-	}
 	cfgFilePath := filepath.Join(kfDef.Spec.AppDir, kftypesv2.KfConfigFile)
 	log.Infof("Writing updated KfDef to %v", cfgFilePath)
-	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
+	cfgFilePathErr := (&kfDef).WriteToFile(cfgFilePath)
 	if cfgFilePathErr != nil {
 		return nil, cfgFilePathErr
 	}

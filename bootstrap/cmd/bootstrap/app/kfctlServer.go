@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	httptransport "github.com/go-kit/kit/transport/http"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"net/http"
@@ -18,6 +19,8 @@ const KfctlCreatePath = "/kfctl/apps/v1alpha2/create"
 type kfctlServer struct {
 	ts *RefreshableTokenSource
 	c  chan CreateRequest
+
+	kfApp NewKfAppFromKfDef
 }
 
 // NewServer returns a new kfctl server
@@ -33,11 +36,17 @@ func NewKfctlServer() (*kfctlServer, error) {
 }
 
 func (s *kfctlServer) process() {
-	//for;; {
-	//r := <- s.c
+	for;; {
+		r := <- s.c
 
-	// Create the deployment.
-	//}
+		kfApp, err := coordinator.NewKfAppFromKfDef(r.KfDef)
+
+		if err != nil {
+			pKfDef,_ := Pformat(r.KfDef)
+			log.Errorf("There was a problem creating the KfApp; error %v;\nKfDef:\n%v",
+				err, pKfDef)
+		}
+	}
 }
 
 // RegisterEndpoints creates the http endpoints for the router
