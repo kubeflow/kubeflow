@@ -45,13 +45,9 @@ const LoginPageHeader = "x-from-login"
 const WhoAmIPath = "whoami"
 
 func NewAuthServer(opt *options.ServerOption) *authServer {
-	data, err := base64.StdEncoding.DecodeString(opt.Pwhash)
-	if err != nil {
-		log.Fatal("error:", err)
-	}
 	server := &authServer{
 		username: opt.Username,
-		pwhash: string(data),
+		pwhash: opt.Pwhash,
 		cookies: make(map[string]time.Time),
 		allowHttp: opt.AllowHttp,
 	}
