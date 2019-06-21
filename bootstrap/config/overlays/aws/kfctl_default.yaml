@@ -1,0 +1,25 @@
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+metadata:
+  name: config
+spec:
+  components:
+  - istio-ingress
+  - aws-alb-ingress-controller
+  - nvidia-device-plugin
+  - fluend-cloud-watch
+  packages:
+  - aws
+  componentParams:
+    istio-ingress:
+    - name: name
+      value: hehe
+      initRequired: true
+    aws-alb-ingress-controller:
+    - name: clusterName
+      value: hehe
+      initRequired: true
+    - name: region
+      value: us-west-2
+      initRequired: true
+  platform: aws
