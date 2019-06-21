@@ -204,6 +204,14 @@ build-builder-container-gcb:
 		--substitutions=TAG_NAME=$(TAG),_TARGET=builder \
 		--config=cloudbuild.yaml .
 
+# build containers using GCLOUD_PROJECT
+build-bootstrap-dev-gcb:
+	gcloud --project=$(GCLOUD_PROJECT) \
+		builds submit \
+		--machine-type=n1-highcpu-32 \
+		--substitutions=TAG_NAME=$(TAG),_TARGET=bootstrap_base \
+		--config=cloudbuild.yaml .
+
 #***************************************************************************************************
 
 clean: 

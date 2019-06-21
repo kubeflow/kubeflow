@@ -32,8 +32,10 @@ type ServerOption struct {
 	Config               string
 	Email                string
 	GkeVersionOverride   string
+	Mode                 string
 	NameSpace            string
 	RegistriesConfigFile string
+	KfctlAppsNamespace   string
 }
 
 // NewServerOption creates a new CMServer with a default config.
@@ -66,4 +68,8 @@ func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&s.Config, "config", "", "Path to a YAML file describing an app to create on startup.")
 	// Whether to install istio. Remove after we always install it.
 	fs.BoolVar(&s.InstallIstio, "install-istio", false, "Whether to install istio.")
+
+	// Options below are related to the new API and router + backend design
+	fs.StringVar(&s.Mode, "mode", "router", "What mode to start the binary in. Options are router and kfctl.")
+	fs.StringVar(&s.KfctlAppsNamespace, "kfctl-apps-namespace", "", "The namespace where the kfctl apps will be created.")
 }

@@ -1,0 +1,16 @@
+# Dockerfile for building a dev version of bootstrap.
+#
+# This Dockerfile is optimized for fast build of bootstrap to enable iterative development.
+# It relies on a base image containing go module dependencies
+# It copies in the source and rebuilds it
+#
+# The intent is to quickly build a docker image with the latest code changes and deploy with skaffold.
+
+# TODO(jlewi): Figure out how to parameterize this with skaffold.
+FROM gcr.io/code-search-demo/kfctl/bootstrap_base:v0-192-g0b83e533
+RUN rm -rf bin/bootstrapper
+
+# Then copy source and build.
+COPY . .
+RUN mkdir -p /opt/kubeflow
+RUN go build -gcflags 'all=-N -l' -o /opt/kubeflow/bootstrapper cmd/bootstrap/main.go

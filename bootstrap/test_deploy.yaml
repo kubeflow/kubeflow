@@ -1,3 +1,7 @@
+# Sample deployment file.
+# Useful for deploying the bootstrapper on kubernetes to test it.
+# TODO(jlewi): Deprecated? We are starting to use skaffold which uses the 
+# kustomize manifests. See developer_guide.md for more information.
 ---
 # Namespace for bootstrapper
 apiVersion: v1
