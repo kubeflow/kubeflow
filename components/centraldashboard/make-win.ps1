@@ -23,7 +23,7 @@ $CHANGED_FILES = git diff-files --relative=components/centraldashboard
 # Changed files is empty; not dirty
 # Don't include --dirty because it could be dirty if files outside the ones we care
 # about changed.
-$GIT_VERSION = git describe --always
+$GIT_VERSION = git describe --tags --long
 if ($CHANGED_FILES) {
     $GIT_VERSION = "$GIT_VERSION-dirty-$(git diff | sha256sum | cut -c -6)"
     Write-AP "!You are building from a dirty branch, it's recommended that you commit and push all changes before building!"
