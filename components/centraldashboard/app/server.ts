@@ -5,7 +5,7 @@ import {resolve} from 'path';
 import {Api} from './api';
 import {KubernetesService} from './k8s_service';
 import {getMetricsService} from './metrics_service_factory';
-import {DefaultApi} from './profile_controller';
+import {DefaultApi} from './clients/profile_controller';
 
 async function main() {
   const {PORT_1} = process.env;  // PORT_1 was defined in an earlier version
