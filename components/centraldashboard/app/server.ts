@@ -5,6 +5,7 @@ import {resolve} from 'path';
 import {Api} from './api';
 import {KubernetesService} from './k8s_service';
 import {getMetricsService} from './metrics_service_factory';
+import {DefaultApi} from './profile_controller';
 
 async function main() {
   const {PORT_1} = process.env;  // PORT_1 was defined in an earlier version
@@ -14,10 +15,11 @@ async function main() {
   const app: express.Application = express();
   const k8sService = new KubernetesService(new KubeConfig());
   const metricsService = await getMetricsService(k8sService);
+  const profileController = new DefaultApi('http://kfam.kubeflow.svc.cluster.local/kfam/');
 
   app.use(express.json());
   app.use(express.static(frontEnd));
-  app.use('/api', new Api(k8sService, metricsService).routes());
+  app.use('/api', new Api(k8sService, metricsService, profileController).routes());
   app.get('/*', (_: express.Request, res: express.Response) => {
     res.sendFile(resolve(frontEnd, 'index.html'));
   });
