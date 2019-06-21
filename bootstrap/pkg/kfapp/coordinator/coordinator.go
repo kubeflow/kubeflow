@@ -124,6 +124,8 @@ func getPlatform(kfdef *kfdefsv2.KfDef, platformArgs []byte) (kftypes.Platform, 
 	case string(kftypes.GCP):
 		return gcp.GetPlatform(kfdef, platformArgs)
 	default:
+		// TODO(https://github.com/kubeflow/kubeflow/issues/3520) Fix dynamic loading
+		// of platform plugins.
 		log.Infof("** Unrecognized platform %v **", kfdef.Spec.Platform)
 		return nil, fmt.Errorf("Unrecognized platform %v", kfdef.Spec.Platform)
 	}
