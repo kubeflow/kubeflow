@@ -177,7 +177,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req CreateRequest) (
 
 		return nil, &httpError{
 			Message: fmt.Sprintf("There was a problem verifying access to project: %v; please try again later", req.Project),
-			Code: http.StatusUnauthorized,
+			Code:    http.StatusUnauthorized,
 		}
 	}
 
@@ -185,7 +185,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req CreateRequest) (
 		log.Errorf("CreateDeployment request isn't authorized for the project")
 		return nil, &httpError{
 			Message: fmt.Sprintf("There was a problem verifying owner access to project: %v; please check the project id is correct and that you have admin priveleges", req.Project),
-			Code: http.StatusUnauthorized,
+			Code:    http.StatusUnauthorized,
 		}
 	}
 

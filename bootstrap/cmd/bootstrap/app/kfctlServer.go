@@ -17,20 +17,11 @@ const KfctlCreatePath = "/kfctl/apps/v1alpha2/create"
 // It is a wrapper around kfctl.
 type kfctlServer struct {
 	ts *RefreshableTokenSource
-	c chan CreateRequest
-
-	// TODO(jlewi): The dependency on ksServer is hacky. We should be able to
-	// get rid of it by refactoring the code once we drop legacy support and only deploy with
-	// kfctl.
-	s *ksServer
+	c  chan CreateRequest
 }
 
 // NewServer returns a new kfctl server
-func NewKfctlServer(ks *ksServer) (*kfctlServer, error) {
-
-	if ks == nil {
-		return nil, fmt.Errorf("ksServer must be provided")
-	}
+func NewKfctlServer() (*kfctlServer, error) {
 	s := &kfctlServer{
 		c: make(chan CreateRequest, 10),
 	}
@@ -41,19 +32,18 @@ func NewKfctlServer(ks *ksServer) (*kfctlServer, error) {
 	return s, nil
 }
 
+func (s *kfctlServer) process() {
+	//for;; {
+	//r := <- s.c
 
-func (s *kfctlServer) process {
-	for;; {
-		r := <- s.c
-
-		// Create the deployment.
-	}
+	// Create the deployment.
+	//}
 }
 
 // RegisterEndpoints creates the http endpoints for the router
-func (r *kfctlServer) RegisterEndpoints() {
+func (s *kfctlServer) RegisterEndpoints() {
 	createHandler := httptransport.NewServer(
-		makeRouterCreateRequestEndpoint(r),
+		makeRouterCreateRequestEndpoint(s),
 		func(_ context.Context, r *http.Request) (interface{}, error) {
 			var request CreateRequest
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -78,26 +68,25 @@ func (r *kfctlServer) RegisterEndpoints() {
 }
 
 // CreateDeployment creates the deployment.
-func (r *kfctlServer) CreateDeployment(ctx context.Context, req CreateRequest) (*CreateResponse, error) {
-	if r.ts == nil {
+func (s *kfctlServer) CreateDeployment(ctx context.Context, req CreateRequest) (*CreateResponse, error) {
+	if s.ts == nil {
 		log.Infof("Initializing token source")
 		ts, err := NewRefreshableTokenSource(req.Project)
 
 		if err != nil {
 			log.Errorf("Could not create token source; error %v", err)
 
-			return nil, &httpError {
+			return nil, &httpError{
 				Message: "Internal service error please try again later.",
-				Code: http.StatusInternalServerError,
+				Code:    http.StatusInternalServerError,
 			}
 		}
 
-		r.ts = ts
+		s.ts = ts
 	}
 
-
 	// Refresh the credential. This will fail if it doesn't provide access to the project
-	err := r.ts.Refresh(oauth2.Token{
+	err := s.ts.Refresh(oauth2.Token{
 		AccessToken: req.Token,
 	})
 
@@ -110,7 +99,7 @@ func (r *kfctlServer) CreateDeployment(ctx context.Context, req CreateRequest) (
 	}
 
 	// Enqueue the request
-	r.c <- req
+	s.c <- req
 
 	// Return the current status.
 	// TODO(jlewi):
