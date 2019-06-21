@@ -3,21 +3,21 @@ package app
 import (
 	"context"
 	"encoding/json"
-	kubeclientset "k8s.io/client-go/kubernetes"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"fmt"
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	log "github.com/sirupsen/logrus"
+	corev1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	kubeclientset "k8s.io/client-go/kubernetes"
 	"net/http"
 )
 
 // kfctlRouter implements the kfctl API but routes requests to stateful sets
 // to handle them rather than handling them directly.
-type kfctlRouter struct{
+type kfctlRouter struct {
 	k8sclient kubeclientset.Interface
 }
 
@@ -81,7 +81,6 @@ func (r *kfctlRouter) RegisterEndpoints() {
 	http.Handle("/kfctl/apps/v1alpha2/create", optionsHandler(createHandler))
 }
 
-
 // Apply runs apply on a ksonnet application.
 func (r *kfctlRouter) CreateDeployment(ctx context.Context, req CreateRequest) error {
 	// TODO(jlewi):
@@ -100,7 +99,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req CreateRequest) e
 			Namespace: namespace,
 		},
 		Spec: corev1.ServiceSpec{
-			Type:     "ClusterIP",
+			Type: "ClusterIP",
 			// TODO(jlewi): Fix the selector
 			Selector: map[string]string{"statefulset": name},
 			Ports: []corev1.ServicePort{

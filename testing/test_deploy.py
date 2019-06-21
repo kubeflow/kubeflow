@@ -266,13 +266,15 @@ def test_successful_deployment(deployment_name):
 
 
 def test_katib(args):
-  test_successful_deployment('vizier-core')
-  test_successful_deployment('vizier-core-rest')
+  test_successful_deployment('katib-manager')
+  test_successful_deployment('katib-manager-rest')
   test_successful_deployment('katib-ui')
-  test_successful_deployment('vizier-db')
-  test_successful_deployment('vizier-suggestion-grid')
-  test_successful_deployment('vizier-suggestion-random')
-  test_successful_deployment('studyjob-controller')
+  test_successful_deployment('katib-db')
+  test_successful_deployment('katib-suggestion-grid')
+  test_successful_deployment('katib-suggestion-random')
+  test_successful_deployment('katib-suggestion-bayesianoptimization')
+  test_successful_deployment('katib-suggestion-hyperband')
+  test_successful_deployment('katib-controller')
 
 
 def deploy_argo(args):

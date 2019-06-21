@@ -34,9 +34,10 @@ def get_notebooks(namespace):
 @app.route("/api/namespaces/<namespace>/notebooks", methods=['POST'])
 def post_notebook(namespace):
   data = {"success": True, "log": ""}
-  body = request.form
+  body = dict(request.form)
 
-  namespace = body["ns"]
+  # Use the namespace from the route in the form
+  body["ns"] = namespace
   poddefaultLabels = api.get_poddefaults_labels(namespace)
 
   # Template
@@ -47,7 +48,7 @@ def post_notebook(namespace):
   # todo: jupyter-web-app should add the poddefault labels that user selected
   #  (https://github.com/kubeflow/kubeflow/issues/2992)
   utils.set_notebook_poddefaults_labels(notebook, poddefaultLabels)
-  
+
   # Set Name and Namespace
   utils.set_notebook_names(notebook, body)
 

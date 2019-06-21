@@ -7,11 +7,13 @@ spec:
   - cert-manager-crds
   - cert-manager 
   - cloud-endpoints
+  - profiles
   - gpu-driver
   - iap-ingress
   packages:
   - cert-manager 
   - gcp
+  - profiles
   componentParams:
     cert-manager:
     - name: acmeEmail
@@ -33,4 +35,8 @@ spec:
     notebook-controller:
     - name: injectGcpCredentials
       value: "true"
+    profiles:
+    - name: admin
+      value: johnDoe@acme.com
+      initRequired: true
   platform: gcp

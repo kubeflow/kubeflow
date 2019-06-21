@@ -10,7 +10,7 @@ packages:
   - gcp
   - admission-webhook  
   - jupyter
-  - katib
+  - katib-v1alpha2
   - metacontroller
   - modeldb
   - mpi-job
@@ -32,7 +32,12 @@ components:
   - iap-ingress
   - admission-webhook  
   - jupyter-web-app
-  - katib
+  - katib-db
+  - katib-manager
+  - katib-controller
+  - katib-ui
+  - metrics-collector
+  - suggestion
   - notebook-controller
   - pipeline
   - pytorch-operator
@@ -73,7 +78,7 @@ componentParams:
   - initRequired: true
     name: injectIstio
     value: "false"
-  katib:
+  katib-ui:
   - initRequired: true
     name: injectIstio
     value: "false"

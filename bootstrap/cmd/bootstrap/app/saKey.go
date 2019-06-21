@@ -4,6 +4,7 @@ import (
 	iamadmin "cloud.google.com/go/iam/admin/apiv1"
 	"encoding/base64"
 	"fmt"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -19,7 +20,7 @@ const OauthSecretName = "kubeflow-oauth"
 const LoginSecretName = "kubeflow-login"
 
 func (s *ksServer) ConfigCluster(ctx context.Context, req CreateRequest) error {
-	k8sConfig, err := buildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
+	k8sConfig, err := utils.BuildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
 	if err != nil {
 		log.Errorf("Failed getting GKE cluster config: %v", err)
 		return err
@@ -48,8 +49,8 @@ func (s *ksServer) ConfigCluster(ctx context.Context, req CreateRequest) error {
 	}
 	log.Infof("Creating cluster admin role binding...")
 	bindAccount := req.Email
-	if req.SAClientId != "" {
-		bindAccount = req.SAClientId
+	if req.SAClientID != "" {
+		bindAccount = req.SAClientID
 	}
 	roleBinding := rbac_v1.ClusterRoleBinding{
 		TypeMeta: meta_v1.TypeMeta{
@@ -71,7 +72,7 @@ func (s *ksServer) ConfigCluster(ctx context.Context, req CreateRequest) error {
 			},
 		},
 	}
-	err = createK8sRoleBing(k8sConfig, &roleBinding)
+	err = utils.CreateK8sRoleBing(k8sConfig, &roleBinding)
 	return err
 }
 
@@ -88,7 +89,7 @@ func CreateNamespace(req *CreateRequest, k8sClientset *clientset.Clientset) erro
 
 func InsertOauthCredentails(req *CreateRequest, k8sClientset *clientset.Clientset) error {
 	secretData := make(map[string][]byte)
-	ClientIdData, err := base64.StdEncoding.DecodeString(req.ClientId)
+	ClientIdData, err := base64.StdEncoding.DecodeString(req.ClientID)
 	if err != nil {
 		log.Errorf("Failed decoding client id: %v", err)
 		return err
@@ -122,7 +123,7 @@ func InsertLoginCredentails(req *CreateRequest, k8sClientset *clientset.Clientse
 	secretData := make(map[string][]byte)
 	UsernameData, err := base64.StdEncoding.DecodeString(req.Username)
 	if err != nil {
-		log.Errorf("Failed decoding client id: %v", err)
+		log.Errorf("Failed decoding username: %v", err)
 		return err
 	}
 	secretData["username"] = UsernameData

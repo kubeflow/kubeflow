@@ -62,6 +62,7 @@ or a <name>. If just <name>, a directory <name> will be created in the current d
 
 		useIstio := initCfg.GetBool(string(kftypes.USE_ISTIO))
 		disableUsageReport := initCfg.GetBool(string(kftypes.DISABLE_USAGE_REPORT))
+		config := initCfg.GetString(string(kftypes.CONFIG))
 
 		options := map[string]interface{}{
 			string(kftypes.PLATFORM):              platform,
@@ -75,6 +76,7 @@ or a <name>. If just <name>, a directory <name> will be created in the current d
 			string(kftypes.USE_ISTIO):             useIstio,
 			string(kftypes.DISABLE_USAGE_REPORT):  disableUsageReport,
 			string(kftypes.PACKAGE_MANAGER):       packageManager,
+			string(kftypes.CONFIG):                config,
 		}
 		kfApp, kfAppErr := coordinator.NewKfApp(options)
 		if kfAppErr != nil || kfApp == nil {
@@ -102,8 +104,8 @@ func init() {
 		return
 	}
 
-	initCmd.Flags().String(string(kftypes.PACKAGE_MANAGER), "ksonnet",
-		"either 'ksonnet|kustomize[@version]'")
+	initCmd.Flags().String(string(kftypes.PACKAGE_MANAGER), kftypes.KUSTOMIZE,
+		"'kustomize[@version]'")
 	bindErr = initCfg.BindPFlag(string(kftypes.PACKAGE_MANAGER), initCmd.Flags().Lookup(string(kftypes.PACKAGE_MANAGER)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.PACKAGE_MANAGER), bindErr)
@@ -188,6 +190,18 @@ func init() {
 		initCmd.Flags().Lookup(string(kftypes.DISABLE_USAGE_REPORT)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.DISABLE_USAGE_REPORT), bindErr)
+		return
+	}
+
+	// Config file option
+	initCmd.Flags().String(string(kftypes.CONFIG), "",
+		`Static config file to use. Can be either a local path or a URL.
+For example:
+--config=https://github.com/kubeflow/kubeflow/tree/master/bootstrap/config/platform_existing.yaml
+--config=platform_gcp.yaml`)
+	bindErr = initCfg.BindPFlag(string(kftypes.CONFIG), initCmd.Flags().Lookup(string(kftypes.CONFIG)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.CONFIG), bindErr)
 		return
 	}
 }

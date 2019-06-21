@@ -29,13 +29,16 @@ spec:
     jupyter-web-app:
     - name: overlay
       value: istio
-    katib:
+    katib-ui:
     - name: overlay
       value: istio
     notebook-controller:
     - name: overlay
       value: istio
     pipelines-ui:
+    - name: overlay
+      value: istio
+    profiles:
     - name: overlay
       value: istio
     tensorboard:

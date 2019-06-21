@@ -34,15 +34,17 @@ type KfDefSpec struct {
 	UseBasicAuth           bool   `json:"useBasicAuth"`
 	SkipInitProject        bool   `json:"skipInitProject,omitempty"`
 	UseIstio               bool   `json:"useIstio"`
+	EnableApplications     bool   `json:"enableApplications"`
 	ServerVersion          string `json:"serverVersion,omitempty"`
 	DeleteStorage          bool   `json:"deleteStorage,omitempty"`
 	PackageManager         string `json:"packageManager,omitempty"`
 	ManifestsRepo          string `json:"manifestsRepo,omitempty"`
 }
 
-var DefaultRegistry = &RegistryConfig{
+// Make it private to prevent user modify original struct.
+var defaultRegistry = RegistryConfig{
 	Name: "kubeflow",
-	Repo: "https://github.com/kubeflow/kubeflow.git",
+	Repo: "https://github.com/kubeflow/kubeflow",
 	Path: "kubeflow",
 }
 
@@ -175,4 +177,10 @@ type KfDefList struct {
 
 func init() {
 	SchemeBuilder.Register(&KfDef{}, &KfDefList{})
+}
+
+// GetDefaultRegistry return reference of a newly copied Default Registry
+func GetDefaultRegistry() *RegistryConfig {
+	newReg := defaultRegistry
+	return &newReg
 }

@@ -16,11 +16,10 @@ package main
 
 import (
 	"flag"
-	"github.com/onrik/logrus/filename"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
+	"github.com/onrik/logrus/filename"
+	log "github.com/sirupsen/logrus"
 )
 
 func init() {

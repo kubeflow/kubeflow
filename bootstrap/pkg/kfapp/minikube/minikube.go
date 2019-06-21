@@ -24,6 +24,8 @@ import (
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"io/ioutil"
+	"k8s.io/client-go/rest"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"os/user"
 	"path/filepath"
 	"strconv"
@@ -35,11 +37,16 @@ type Minikube struct {
 	kfdefs.KfDef
 }
 
-func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
+func Getplatform(kfdef *kfdefs.KfDef) kftypes.Platform {
 	_minikube := &Minikube{
 		KfDef: *kfdef,
 	}
 	return _minikube
+}
+
+// GetK8sConfig return nil; minikube will use default kube config file
+func (minikube *Minikube) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
+	return nil, nil
 }
 
 func (minikube *Minikube) Apply(resources kftypes.ResourceEnum) error {
