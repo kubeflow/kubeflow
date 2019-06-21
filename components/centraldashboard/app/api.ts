@@ -76,10 +76,6 @@ export class Api {
         .get(
             '/env-info',
             async (req: express.Request, res: express.Response) => {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> Feature Updates:
               try {
                 const user = this.getUser(req);
                 const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
@@ -93,24 +89,7 @@ export class Api {
                   isClusterAdmin,
                   // namespaces: namespaces.map((n) => n.metadata.name),
                 });
-              } catch(e) {console.log('EXCEPTION HAPPENED:', e);}              
-<<<<<<< HEAD
-=======
-              const user = this.getUser(req);
-              const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
-                this.getPlatformInfo(),
-                this.getWorkgroup(req, user),
-              ]);
-              res.json({
-                platform,
-                user,
-                namespaces,
-                isClusterAdmin,
-                // namespaces: namespaces.map((n) => n.metadata.name),
-              });
->>>>>>> Multi-User Isolation:
-=======
->>>>>>> Feature Updates:
+              } catch(e) {console.log('EXCEPTION HAPPENED:', e);}
             })
         .get(
             '/metrics/:type((node|podcpu|podmem))',
