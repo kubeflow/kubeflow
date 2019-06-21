@@ -64,7 +64,7 @@ paths:
     get:
       summary: "Get bindings created via kubeflow; filtered by query param"
       description: "Bindings will contain its current status"
-      operationId: "read binding"
+      operationId: "read bindings"
       consumes:
       - "application/json"
       produces:
@@ -97,7 +97,7 @@ paths:
         200:
           description: "OK"
           schema:
-            $ref: "#/definitions/Binding"
+            $ref: "#/definitions/BindingEntries"
         404:
           description: "Entry not found"
         500:
