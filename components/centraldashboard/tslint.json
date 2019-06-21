@@ -1,4 +1,9 @@
 {
+  "linterOptions": {
+    "exclude": [
+      "app/clients/**/*"
+    ]
+  },
   "rules": {
     "array-type": [true, "array-simple"],
     "arrow-return-shorthand": true,
@@ -29,11 +34,6 @@
     "interface-over-type-literal": true,
     "jsdoc-format": true,
     "label-position": true,
-    "linterOptions": {
-      "exclude": [
-          "app/clients"
-      ]
-    },
     "member-access": [true, "no-public"],
     "new-parens": true,
     "no-angle-bracket-type-assertion": true,
