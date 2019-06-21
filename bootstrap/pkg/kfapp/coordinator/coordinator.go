@@ -270,7 +270,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		err = kfDef.SyncCache()
 
 		if err != nil {
-			log.Errorf("Failed to synchronize the chache; error: %v", err)
+			log.Errorf("Failed to synchronize the cache; error: %v", err)
 			return nil, err
 		}
 
