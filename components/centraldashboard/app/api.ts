@@ -2,7 +2,7 @@ import express from 'express';
 
 import {KubernetesService, PlatformInfo} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
-import {DefaultApi, Binding as WorkgroupBinding} from './profile_controller';
+import {DefaultApi, Binding as WorkgroupBinding} from './clients/profile_controller';
 
 const IAP_HEADER = 'X-Goog-Authenticated-User-Email';
 const IAP_PREFIX = 'accounts.google.com:';
@@ -18,11 +18,11 @@ interface AuthObject {
 
 export class Api {
   private platformInfo: PlatformInfo;
-  private _controller: DefaultApi;
 
   constructor(
       private k8sService: KubernetesService,
-      private metricsService?: MetricsService) {}
+      private metricsService?: MetricsService,
+      private profileController?: DefaultApi) {}
 
   /** Retrieves and memoizes the PlatformInfo. */
   private async getPlatformInfo(): Promise<PlatformInfo> {
@@ -32,14 +32,10 @@ export class Api {
     return this.platformInfo;
   }
 
-  private getProfileAndAuth(req: express.Request): [DefaultApi, AuthObject] {
-    const controller = this._controller || (
-      this._controller = new DefaultApi(`${req.get('host')}/kfam`)
-    );
-    const auth = {
+  private getAuthOption(req: express.Request): AuthObject {
+    return {
       [IAP_HEADER]: req.get(IAP_HEADER),
     };
-    return [controller, auth];
   }
 
   /**
@@ -59,9 +55,10 @@ export class Api {
    * Retrieves workgroup info from Profile Controller.
    */
   private async getWorkgroup(req: express.Request, user: string): Promise<WorkgroupInfo> {
-    const [profileController, auth] = this.getProfileAndAuth(req);
+    const {profileController} = this;
+    const auth = this.getAuthOption(req);
     const adminResponse = await profileController.v1RoleClusteradminGet(user, auth);
-    const bindings = await profileController.readBindings(user, auth);
+    const bindings = await profileController.readBindings(user, undefined, undefined, auth);
     const namespaces = bindings.body.bindings;
     return {
       isClusterAdmin: adminResponse.body,
