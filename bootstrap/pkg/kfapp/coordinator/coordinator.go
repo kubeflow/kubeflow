@@ -122,7 +122,7 @@ func getPlatform(kfdef *kfdefsv2.KfDef, platformArgs []byte) (kftypes.Platform, 
 	case string(kftypes.GCP):
 		return gcp.GetPlatform(kfdef, platformArgs)
 	case string(kftypes.EXISTING):
-		return existing.GetKfApp(kfdef)
+		return existing.GetPlatform(kfdef)
 	default:
 		log.Infof("** Unrecognized platform %v **", kfdef.Spec.Platform)
 		return nil, fmt.Errorf("Unrecognized platform %v", kfdef.Spec.Platform)
