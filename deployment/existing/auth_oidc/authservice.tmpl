@@ -1,0 +1,53 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: authservice
+  namespace: kubeflow
+spec:
+  type: ClusterIP
+  selector:
+    app: authservice
+  ports:
+  - port: 8080
+    name: http-authservice
+    targetPort: http-api
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: authservice
+  namespace: kubeflow
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      labels:
+        app: authservice
+    spec:
+      containers:
+      - name: authservice
+        image: gcr.io/arrikto/kubeflow/oidc-authservice:v0.1
+        imagePullPolicy: Always
+        ports:
+        - name: http-api
+          containerPort: 8080
+        env:
+          - name: DISABLE_USERINFO
+            value: "true"
+          - name: PORT
+            value: "8080"
+          - name: OIDC_SCOPES
+            value: "profile email groups"
+          - name: OIDC_PROVIDER
+            value: {{.OIDCEndpoint}}
+          - name: SELF_URL
+            value: {{.KubeflowEndpoint}}
+          - name: CLIENT_ID
+            value: kubeflow-authservice-oidc
+          - name: CLIENT_SECRET
+            value: {{.AuthServiceClientSecret}} 
