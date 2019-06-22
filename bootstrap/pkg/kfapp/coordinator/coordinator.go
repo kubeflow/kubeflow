@@ -27,6 +27,7 @@ import (
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/existing"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/kustomize"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
@@ -51,7 +52,7 @@ func GetKfApp(kfdef *kfdefsv2.KfDef, platformArgs []byte) kftypes.KfApp {
 		PackageManagers: nil,
 		KfDef:           kfdef,
 	}
-	// fetch the platform [gcp,minikube]
+	// Fetch the platform [gcp,minikube]
 	platform := _coordinator.KfDef.Spec.Platform
 	if platform != "" {
 		_platform, _platformErr := getPlatform(_coordinator.KfDef, platformArgs)
@@ -120,6 +121,8 @@ func getPlatform(kfdef *kfdefsv2.KfDef, platformArgs []byte) (kftypes.Platform, 
 		return minikube.Getplatform(kfdef), nil
 	case string(kftypes.GCP):
 		return gcp.GetPlatform(kfdef, platformArgs)
+	case string(kftypes.EXISTING):
+		return existing.GetKfApp(kfdef)
 	default:
 		log.Infof("** Unrecognized platform %v **", kfdef.Spec.Platform)
 		return nil, fmt.Errorf("Unrecognized platform %v", kfdef.Spec.Platform)
