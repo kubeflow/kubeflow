@@ -5,7 +5,7 @@ metadata:
   name: myapp2
   namespace: kubeflow
 spec:
-  Repos:
+  repos:
   - name: kubeflow
     root: kubeflow-master
     uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
@@ -157,7 +157,6 @@ spec:
   - iap-ingress
   email: jlewi@google.com
   enableApplications: true
-  manifestsRepo: /tmp/myapp2/.cache/manifests/master
   packageManager: kustomize
   packages:
   - argo
@@ -180,8 +179,6 @@ spec:
   - profiles
   - application
   platform: gcp
-  repo: /tmp/myapp/.cache/kubeflow/master/kubeflow
-  serverVersion: file:/tmp/myapp/.cache/kubeflow/master/bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json
   skipInitProject: true
   useBasicAuth: false
   useIstio: true
