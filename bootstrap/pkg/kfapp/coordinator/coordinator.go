@@ -144,7 +144,7 @@ func getPlatform(kfdef *kfdefsv2.KfDef, platformArgs []byte) (kftypes.Platform, 
 	case string(kftypes.GCP):
 		return gcp.GetPlatform(kfdef, platformArgs)
 	case string(kftypes.EXISTING):
-		return existing.GetKfApp(kfdef)
+		return existing.GetPlatform(kfdef)
 	default:
 		// TODO(https://github.com/kubeflow/kubeflow/issues/3520) Fix dynamic loading
 		// of platform plugins.
