@@ -149,6 +149,7 @@ func RemoveItem(defaults []string, name string) []string {
 const (
 	GCP      = "gcp"
 	MINIKUBE = "minikube"
+	EXISTING = "existing"
 )
 
 // PackageManagers
