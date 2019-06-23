@@ -49,7 +49,7 @@ const (
 	DefaultCacheDir        = ".cache"
 	KubeflowRepo           = "kubeflow"
 	ManifestsRepo          = "manifests"
-	DefaultConfigDir       = "bootstrap/config"
+	DefaultConfigDir       = "kfctl/config"
 	DefaultZone            = "us-east1-d"
 	DefaultGkeApiVer       = "v1beta1"
 	DefaultAppLabel        = "app.kubernetes.io/name"
