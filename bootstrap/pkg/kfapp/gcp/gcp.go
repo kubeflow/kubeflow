@@ -25,6 +25,7 @@ import (
 	"github.com/ghodss/yaml"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
@@ -76,10 +77,10 @@ const (
 	KUBECONFIG_FORMAT = "gke_{project}_{zone}_{cluster}"
 
 	// Plugin parameter constants
-	GcpPluginName = "gcp"
-	GcpAccessTokenName = "accessToken"
+	GcpPluginName        = "gcp"
+	GcpAccessTokenName   = "accessToken"
 	GcpStorageOptionName = "storageOption"
-	GcpSaClientIdName = "saClientId"
+	GcpSaClientIdName    = "saClientId"
 )
 
 // Gcp implements KfApp Interface
@@ -92,9 +93,6 @@ type Gcp struct {
 	accessToken string
 	tokenSource oauth2.TokenSource
 	SAClientId  string
-	// requried when choose basic-auth
-	username        string
-	encodedPassword string
 	// requried when choose iap
 	oauthId     string
 	oauthSecret string
@@ -136,13 +134,11 @@ func GetPlatform(kfdef *kfdefs.KfDef, platformArgs []byte) (kftypes.Platform, er
 		}
 	}
 	_gcp := &Gcp{
-		KfDef:           *kfdef,
-		StorageOption:   gcpArgs.StorageOption,
-		SAClientId:      gcpArgs.SAClientId,
-		username:        gcpArgs.Username,
-		encodedPassword: gcpArgs.EncodedPassword,
-		oauthId:         gcpArgs.OauthID,
-		oauthSecret:     gcpArgs.OauthSecret,
+		KfDef:         *kfdef,
+		StorageOption: gcpArgs.StorageOption,
+		SAClientId:    gcpArgs.SAClientId,
+		oauthId:       gcpArgs.OauthID,
+		oauthSecret:   gcpArgs.OauthSecret,
 	}
 	ctx := context.Background()
 	if gcpArgs.AccessToken == "" {
@@ -794,24 +790,23 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 	if gcp.Spec.UseBasicAuth {
-		if gcp.username == "" || gcp.encodedPassword == "" {
-			if os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" || os.Getenv(kftypes.KUBEFLOW_PASSWORD) == "" {
-				return &kfapis.KfError{
-					Code: int(kfapis.INVALID_ARGUMENT),
-					Message: fmt.Sprintf("gcp apply needs ENV %v and %v set when using basic auth",
-						kftypes.KUBEFLOW_USERNAME, kftypes.KUBEFLOW_PASSWORD),
-				}
+		// TODO(jlewi): Does it make sense to do this validation here?
+		_, err := kfapp.GetBasicAuthUsername(gcp.Spec)
+
+		if err != nil {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Could not obtain the username from KfDef; error %v", err.Error()),
 			}
-			gcp.username = os.Getenv(kftypes.KUBEFLOW_USERNAME)
-			password := os.Getenv(kftypes.KUBEFLOW_PASSWORD)
-			passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
-			if err != nil {
-				return &kfapis.KfError{
-					Code:    int(kfapis.INVALID_ARGUMENT),
-					Message: fmt.Sprintf("Error when hashing password: %v", err),
-				}
+		}
+
+		_, err = kfapp.GetBasicAuthPassword(gcp.Spec)
+
+		if err != nil {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Could not obtain the password from KfDef; error %v", err.Error()),
 			}
-			gcp.encodedPassword = base64.StdEncoding.EncodeToString(passwordHash)
 		}
 	} else {
 		if gcp.oauthId == "" || gcp.oauthSecret == "" {
@@ -1434,22 +1429,45 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 
 // Use username and password provided by user and create secret for basic auth.
 func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
+	username, err := kfapp.GetBasicAuthUsername(gcp.Spec)
+
+	if err != nil {
+		log.Errorf("There was a problem getting the username for basic auth; error %v", err)
+		return err
+	}
+
+	password, err := kfapp.GetBasicAuthPassword(gcp.Spec)
+
+	if err != nil {
+		log.Errorf("There was a problem getting the password for basic auth; error %v", err)
+		return err
+	}
+
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error when hashing password: %v", err),
+		}
+	}
+	encodedPassword := base64.StdEncoding.EncodeToString(passwordHash)
+
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      BASIC_AUTH_SECRET,
 			Namespace: gcp.Namespace,
 		},
 		Data: map[string][]byte{
-			"username":     []byte(gcp.username),
-			"passwordhash": []byte(gcp.encodedPassword),
+			"username":     []byte(username),
+			"passwordhash": []byte(encodedPassword),
 		},
 	}
-	_, err := client.CoreV1().Secrets(gcp.Namespace).Update(secret)
+	_, err = client.CoreV1().Secrets(gcp.Namespace).Update(secret)
 	if err != nil {
 		log.Warnf("Updating basic auth login failed, trying to create one: %v", err)
 		return insertSecret(client, BASIC_AUTH_SECRET, gcp.Namespace, map[string][]byte{
-			"username":     []byte(gcp.username),
-			"passwordhash": []byte(gcp.encodedPassword),
+			"username":     []byte(username),
+			"passwordhash": []byte(encodedPassword),
 		})
 	}
 	return nil

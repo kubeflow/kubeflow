@@ -118,7 +118,7 @@ func TestWriteKfDef(t *testing.T) {
 					Secrets: []Secret{
 						{
 							Name: "s1",
-							SecretSource: SecretSource{
+							SecretSource: &SecretSource{
 								LiteralSource: &LiteralSource{
 									Value: "somedata",
 								},
@@ -126,7 +126,7 @@ func TestWriteKfDef(t *testing.T) {
 						},
 						{
 							Name: "s2",
-							SecretSource: SecretSource{
+							SecretSource: &SecretSource{
 								EnvSource: &EnvSource{
 									Name: "somesecret",
 								},
@@ -141,7 +141,7 @@ func TestWriteKfDef(t *testing.T) {
 					Secrets: []Secret{
 						{
 							Name: "s2",
-							SecretSource: SecretSource{
+							SecretSource: &SecretSource{
 								EnvSource: &EnvSource{
 									Name: "somesecret",
 								},
@@ -191,7 +191,7 @@ func TestKfDef_GetPluginParameter(t *testing.T) {
 			Plugins: []Plugin{
 				{
 					Name: "gcp",
-					Parameters: []PluginParameters {
+					Parameters: []PluginParameter{
 						{
 							Name:  "p1",
 							Value: "p1value",
@@ -200,11 +200,17 @@ func TestKfDef_GetPluginParameter(t *testing.T) {
 							Name:  "p2",
 							Value: "p2value",
 						},
+						{
+							Name: "password",
+							SecretRef: &SecretRef{
+								Name: "s1",
+							},
+						},
 					},
 				},
 				{
 					Name: "aws",
-					Parameters: []PluginParameters {
+					Parameters: []PluginParameter{
 						{
 							Name:  "p2",
 							Value: "p2value",
@@ -216,33 +222,48 @@ func TestKfDef_GetPluginParameter(t *testing.T) {
 					},
 				},
 			},
+			Secrets: []Secret{
+				{
+					Name: "s1",
+					SecretSource: &SecretSource{
+						LiteralSource: &LiteralSource{
+							Value: "somedata",
+						},
+					},
+				},
+			},
 		},
 	}
 
 	type testCase struct {
-		PluginName string
+		PluginName    string
 		ParameterName string
 		ExpectedValue string
 	}
 
-	cases := [] testCase{
+	cases := []testCase{
 		{
-			PluginName: "gcp",
+			PluginName:    "gcp",
 			ParameterName: "p1",
 			ExpectedValue: "p1value",
 		},
 		{
-			PluginName: "gcp",
+			PluginName:    "gcp",
 			ParameterName: "p2",
 			ExpectedValue: "p2value",
 		},
 		{
-			PluginName: "aws",
+			PluginName:    "gcp",
+			ParameterName: "password",
+			ExpectedValue: "somedata",
+		},
+		{
+			PluginName:    "aws",
 			ParameterName: "p2",
 			ExpectedValue: "p2value",
 		},
 		{
-			PluginName: "aws",
+			PluginName:    "aws",
 			ParameterName: "p3",
 			ExpectedValue: "p3value",
 		},
@@ -261,6 +282,137 @@ func TestKfDef_GetPluginParameter(t *testing.T) {
 	}
 }
 
+func TestKfDef_SetPluginParameter(t *testing.T) {
+	type testCase struct {
+		Input      KfDef
+		PluginName string
+		Parameter  PluginParameter
+		Expected   KfDef
+	}
+
+	cases := []testCase{
+		// No plugins exist
+		{
+			Input:      KfDef{},
+			PluginName: "gcp",
+			Parameter: PluginParameter{
+				Name:  "p1",
+				Value: "v1",
+			},
+			Expected: KfDef{
+				Spec: KfDefSpec{
+					Plugins: []Plugin{
+						{
+							Name: "gcp",
+							Parameters: []PluginParameter{
+								{
+									Name:  "p1",
+									Value: "v1",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		// Override a plugin value
+		{
+			Input: KfDef{
+				Spec: KfDefSpec{
+					Plugins: []Plugin{
+						{
+							Name: "gcp",
+							Parameters: []PluginParameter{
+								{
+									Name:  "p1",
+									Value: "oldvalue",
+								},
+							},
+						},
+					},
+				},
+			},
+			PluginName: "gcp",
+			Parameter: PluginParameter{
+				Name:  "p1",
+				Value: "newvalue",
+			},
+			Expected: KfDef{
+				Spec: KfDefSpec{
+					Plugins: []Plugin{
+						{
+							Name: "gcp",
+							Parameters: []PluginParameter{
+								{
+									Name:  "p1",
+									Value: "newvalue",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		// Add a plugin parameter
+		{
+			Input: KfDef{
+				Spec: KfDefSpec{
+					Plugins: []Plugin{
+						{
+							Name: "gcp",
+							Parameters: []PluginParameter{
+								{
+									Name:  "p1",
+									Value: "somevalue",
+								},
+							},
+						},
+					},
+				},
+			},
+			PluginName: "gcp",
+			Parameter: PluginParameter{
+				Name:  "p2",
+				Value: "newvalue",
+			},
+			Expected: KfDef{
+				Spec: KfDefSpec{
+					Plugins: []Plugin{
+						{
+							Name: "gcp",
+							Parameters: []PluginParameter{
+								{
+									Name:  "p1",
+									Value: "somevalue",
+								},
+								{
+									Name:  "p2",
+									Value: "newvalue",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		i := &KfDef{}
+		*i = c.Input
+		err := i.SetPluginParameter(c.PluginName, c.Parameter)
+		if err != nil {
+			t.Errorf("Error  setting plugin %v; error %v", c.PluginName, err)
+		}
+
+		if !reflect.DeepEqual(*i, c.Expected) {
+			pGot, _ := Pformat(i)
+			pWant, _ := Pformat(c.Expected)
+			t.Errorf("Error setting plugin parameter %v; got;\n%v\nwant;\n%v", c.PluginName, pGot, pWant)
+		}
+	}
+}
+
 func TestKfDef_GetSecret(t *testing.T) {
 	d := &KfDef{
 		Spec: KfDefSpec{
@@ -268,7 +420,7 @@ func TestKfDef_GetSecret(t *testing.T) {
 			Secrets: []Secret{
 				{
 					Name: "s1",
-					SecretSource: SecretSource{
+					SecretSource: &SecretSource{
 						LiteralSource: &LiteralSource{
 							Value: "somedata",
 						},
@@ -276,7 +428,7 @@ func TestKfDef_GetSecret(t *testing.T) {
 				},
 				{
 					Name: "s2",
-					SecretSource: SecretSource{
+					SecretSource: &SecretSource{
 						EnvSource: &EnvSource{
 							Name: "s2",
 						},
@@ -287,17 +439,17 @@ func TestKfDef_GetSecret(t *testing.T) {
 	}
 
 	type testCase struct {
-		SecretName string
+		SecretName    string
 		ExpectedValue string
 	}
 
-	cases := [] testCase{
+	cases := []testCase{
 		{
-			SecretName: "s1",
+			SecretName:    "s1",
 			ExpectedValue: "somedata",
 		},
 		{
-			SecretName: "s2",
+			SecretName:    "s2",
 			ExpectedValue: "somesecret",
 		},
 	}
@@ -311,6 +463,97 @@ func TestKfDef_GetSecret(t *testing.T) {
 
 		if actual != c.ExpectedValue {
 			t.Errorf("Secret %v value is wrong; got %v; want %v", c.SecretName, actual, c.ExpectedValue)
+		}
+	}
+}
+
+func TestKfDef_SetSecret(t *testing.T) {
+	type testCase struct {
+		Input    KfDef
+		Secret   Secret
+		Expected KfDef
+	}
+
+	cases := []testCase{
+		// No Secrets exist
+		{
+			Input: KfDef{},
+			Secret: Secret{
+				Name: "s1",
+				SecretSource: &SecretSource{
+					LiteralSource: &LiteralSource{
+						Value: "v1",
+					},
+				},
+			},
+			Expected: KfDef{
+				Spec: KfDefSpec{
+					Secrets: []Secret{
+						{
+							Name: "s1",
+							SecretSource: &SecretSource{
+								LiteralSource: &LiteralSource{
+									Value: "v1",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		// Override a secret
+		{
+			Input: KfDef{
+				Spec: KfDefSpec{
+					Secrets: []Secret{
+						{
+							Name: "s1",
+							SecretSource: &SecretSource{
+								LiteralSource: &LiteralSource{
+									Value: "oldvalue",
+								},
+							},
+						},
+					},
+				},
+			},
+			Secret: Secret{
+				Name: "s1",
+				SecretSource: &SecretSource{
+					LiteralSource: &LiteralSource{
+						Value: "newvalue",
+					},
+				},
+			},
+			Expected: KfDef{
+				Spec: KfDefSpec{
+					Secrets: []Secret{
+						{
+							Name: "s1",
+							SecretSource: &SecretSource{
+								LiteralSource: &LiteralSource{
+									Value: "newvalue",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		i := &KfDef{}
+		*i = c.Input
+		err := i.SetSecret(c.Secret)
+		if err != nil {
+			t.Errorf("Error  setting secret %v; error %v", c.Secret.Name, err)
+		}
+
+		if !reflect.DeepEqual(*i, c.Expected) {
+			pGot, _ := Pformat(i)
+			pWant, _ := Pformat(c.Expected)
+			t.Errorf("Error setting secret %v; got;\n%v\nwant;\n%v", c.Secret.Name, pGot, pWant)
 		}
 	}
 }

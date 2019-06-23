@@ -41,24 +41,27 @@ type KfDefSpec struct {
 	// as a way to pass the information to all the KfApps that need to know the local AppDir.
 	// A better solution might be to store AppDir in KfDef.Status to better reflect its
 	// ephemeral nature and match K8s semantics.
-	AppDir             string `json:"appdir,omitempty"`
-	Version            string `json:"version,omitempty"`
-	MountLocal         bool   `json:"mountLocal,omitempty"`
-	Project            string `json:"project,omitempty"`
-	Email              string `json:"email,omitempty"`
-	IpName             string `json:"ipName,omitempty"`
-	Hostname           string `json:"hostname,omitempty"`
-	Zone               string `json:"zone,omitempty"`
-	UseBasicAuth       bool   `json:"useBasicAuth"`
-	SkipInitProject    bool   `json:"skipInitProject,omitempty"`
-	UseIstio           bool   `json:"useIstio"`
-	EnableApplications bool   `json:"enableApplications"`
-	ServerVersion      string `json:"serverVersion,omitempty"`
-	DeleteStorage      bool   `json:"deleteStorage,omitempty"`
-	PackageManager     string `json:"packageManager,omitempty"`
-	ManifestsRepo      string `json:"manifestsRepo,omitempty"`
-	Repos              []Repo `json:"repos,omitempty"`
-	Secrets            []Secret  `json:"secrets,omitempty"`
+	AppDir     string `json:"appdir,omitempty"`
+	Version    string `json:"version,omitempty"`
+	MountLocal bool   `json:"mountLocal,omitempty"`
+
+	// TODO(jlewi): Project, Email, IpName, Hostname, Zone and other
+	// GCP specific values should be moved into GCP plugin.
+	Project            string   `json:"project,omitempty"`
+	Email              string   `json:"email,omitempty"`
+	IpName             string   `json:"ipName,omitempty"`
+	Hostname           string   `json:"hostname,omitempty"`
+	Zone               string   `json:"zone,omitempty"`
+	UseBasicAuth       bool     `json:"useBasicAuth"`
+	SkipInitProject    bool     `json:"skipInitProject,omitempty"`
+	UseIstio           bool     `json:"useIstio"`
+	EnableApplications bool     `json:"enableApplications"`
+	ServerVersion      string   `json:"serverVersion,omitempty"`
+	DeleteStorage      bool     `json:"deleteStorage,omitempty"`
+	PackageManager     string   `json:"packageManager,omitempty"`
+	ManifestsRepo      string   `json:"manifestsRepo,omitempty"`
+	Repos              []Repo   `json:"repos,omitempty"`
+	Secrets            []Secret `json:"secrets,omitempty"`
 	Plugins            []Plugin `json:"plugins,omitempty"`
 }
 
@@ -70,13 +73,20 @@ var DefaultRegistry = RegistryConfig{
 
 // Plugin can be used to customize the generation and deployment of Kubeflow
 type Plugin struct {
-	Name string `json:"name,omitempty"`
-	Parameters []PluginParameters `json:"pluginParameters,omitempty"`
+	Name       string            `json:"name,omitempty"`
+	Parameters []PluginParameter `json:"pluginParameters,omitempty"`
 }
 
-type PluginParameters struct {
+type PluginParameter struct {
+	Name      string     `json:"name,omitempty"`
+	Value     string     `json:"value,omitempty"`
+	SecretRef *SecretRef `json:"secretRef,omitempty"`
+}
+
+// SecretRef is a reference to a secret
+type SecretRef struct {
+	// Name of the secret
 	Name string `json:"name,omitempty"`
-	Value string `json:"value,omitempty"`
 }
 
 // Repo provides information about a repository providing config (e.g. kustomize packages,
@@ -97,13 +107,13 @@ type Repo struct {
 // Secrets can be provided via references e.g. a URI so that they won't
 // be serialized as part of the KfDefSpec which is intended to be written into source control.
 type Secret struct {
-	Name string `json:"name,omitempty"`
-	SecretSource SecretSource  `json:"secretSource,omitempty"`
+	Name         string        `json:"name,omitempty"`
+	SecretSource *SecretSource `json:"secretSource,omitempty"`
 }
 
 type SecretSource struct {
 	LiteralSource *LiteralSource `json:"literalSource,omitempty"`
-	EnvSource *EnvSource `json:"envSource,omitempty"`
+	EnvSource     *EnvSource     `json:"envSource,omitempty"`
 }
 
 type LiteralSource struct {
@@ -281,14 +291,13 @@ func DownloadAndLoadConfigFile(configFile string, appDir string) (*KfDef, error)
 		log.Infof("App directory exists %v", appDir)
 	}
 
-
 	// Open config file
 	//
 	// TODO(jlewi): Should we use hashicorp go-getter.GetAny here? We use that to download
 	// the tarballs for the repos. Maybe we should use that here as well to be consistent.
 	appFile := path.Join(appDir, KfConfigFile)
 
-	if _, err:= os.Stat(appFile); err == nil {
+	if _, err := os.Stat(appFile); err == nil {
 		log.Infof("%v exists not refetching", appFile)
 	} else {
 		log.Infof("Downloading %v to %v", configFile, appFile)
@@ -340,6 +349,20 @@ func (d *KfDef) GetSecret(name string) (string, error) {
 	return "", fmt.Errorf("No secret in KfDef named %v", name)
 }
 
+// SetSecret sets the specified secret; if a secret with the given name already exists it is overwritten.
+func (d *KfDef) SetSecret(newSecret Secret) error {
+	for i, s := range d.Spec.Secrets {
+		if s.Name == newSecret.Name {
+			d.Spec.Secrets[i] = newSecret
+			return nil
+		}
+	}
+
+	d.Spec.Secrets = append(d.Spec.Secrets, newSecret)
+
+	return nil
+}
+
 // GetPluginParameter gets the requested parameter or an error if the parameter or plugin is not defined
 func (d *KfDef) GetPluginParameter(pluginName string, parameterName string) (string, error) {
 	for _, p := range d.Spec.Plugins {
@@ -347,15 +370,57 @@ func (d *KfDef) GetPluginParameter(pluginName string, parameterName string) (str
 			continue
 		}
 
-		for  _, param := range p.Parameters {
+		for _, param := range p.Parameters {
 			if param.Name != parameterName {
 				continue
+			}
+
+			if param.SecretRef != nil {
+				return d.GetSecret(param.SecretRef.Name)
 			}
 			return param.Value, nil
 		}
 	}
 
 	return "", fmt.Errorf("Could not find plugin %v or it doesn't have parameter %v", pluginName, parameterName)
+}
+
+// SetPluginParameter sets the requested parameter. The plugin is added if it doesn't already exist.
+func (d *KfDef) SetPluginParameter(pluginName string, newParam PluginParameter) error {
+	index := -1
+	for i, p := range d.Spec.Plugins {
+		if p.Name == pluginName {
+			index = i
+			break
+		}
+	}
+
+	if index == -1 {
+		// Plugin in doesn't exist so add it
+		log.Infof("Adding plugin %v", pluginName)
+
+		d.Spec.Plugins = append(d.Spec.Plugins, Plugin{
+			Name: pluginName,
+		})
+
+		index = len(d.Spec.Plugins) - 1
+	}
+
+	pIndex := -1
+
+	for i, param := range d.Spec.Plugins[index].Parameters {
+		if param.Name == newParam.Name {
+			pIndex = i
+			break
+		}
+	}
+
+	if pIndex == -1 {
+		d.Spec.Plugins[index].Parameters = append(d.Spec.Plugins[index].Parameters, newParam)
+	} else {
+		d.Spec.Plugins[index].Parameters[pIndex] = newParam
+	}
+	return nil
 }
 
 // SyncCache will synchronize the local cache of any repositories.

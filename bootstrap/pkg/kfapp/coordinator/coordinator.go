@@ -21,6 +21,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/ksonnet"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/minikube"
@@ -203,6 +204,57 @@ func usageReportWarn(components []string) {
 	}
 }
 
+// backfillKfDefFromOptions fills in a KfDef spec based on various command line options.
+func backfillKfDefFromOptions(d *kfdefsv2.KfDef, options map[string]interface{}) error {
+	log.Warn("Backfilling KfDef from command line options")
+
+	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
+
+	if useBasicAuth {
+		// For backwards compatibility username and password were obtained from environment varialbes
+		log.Warnf("Configuring basic auth plugin to get username and password from environment variables")
+
+		usernameSecretName := "username"
+		passwordSecretName := "password"
+
+		d.SetPluginParameter(kfapp.BasicAuthPluginName,
+			kfdefsv2.PluginParameter{
+
+				Name: kfapp.UsernameParamName,
+				SecretRef: &kfdefsv2.SecretRef{
+					Name: usernameSecretName,
+				},
+			})
+		d.SetPluginParameter(kfapp.BasicAuthPluginName,
+			kfdefsv2.PluginParameter{
+				Name: kfapp.PasswordParamName,
+				SecretRef: &kfdefsv2.SecretRef{
+					Name: passwordSecretName,
+				},
+			})
+
+		d.SetSecret(kfdefsv2.Secret{
+			Name: usernameSecretName,
+			SecretSource: &kfdefsv2.SecretSource{
+				EnvSource: &kfdefsv2.EnvSource{
+					Name: kftypes.KUBEFLOW_USERNAME,
+				},
+			},
+		})
+
+		d.SetSecret(kfdefsv2.Secret{
+			Name: passwordSecretName,
+			SecretSource: &kfdefsv2.SecretSource{
+				EnvSource: &kfdefsv2.EnvSource{
+					Name: kftypes.KUBEFLOW_PASSWORD,
+				},
+			},
+		})
+	}
+
+	return nil
+}
+
 // NewKfApp is called from the Init subcommand and will create a directory based on
 // the path/name argument given to the Init subcommand
 func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
@@ -343,6 +395,12 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		kfDef.Spec.UseBasicAuth = useBasicAuth
 		kfDef.Spec.UseIstio = useIstio
 		kfDef.Spec.PackageManager = packageManager
+
+		err := backfillKfDefFromOptions(kfDef, options)
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Disable usage report if requested
