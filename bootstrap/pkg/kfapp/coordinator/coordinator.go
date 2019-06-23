@@ -212,47 +212,107 @@ func backfillKfDefFromOptions(d *kfdefsv2.KfDef, options map[string]interface{})
 	platform := options[string(kftypes.PLATFORM)].(string)
 
 	if useBasicAuth {
-		// For backwards compatibility username and password were obtained from environment varialbes
-		log.Warnf("Configuring basic auth plugin to get username and password from environment variables")
+		_, err := d.GetPluginParameter(platform, kfapp.UsernameParamName)
 
-		usernameSecretName := "username"
-		passwordSecretName := "password"
+		if err != nil {
+			// For backwards compatibility username and password were obtained from environment varialbes
+			log.Warnf("Configuring basic auth to get username from environment variables " +
+				      "this behavior is deprecated. Username should be set explicitly in KfDef.Spec as a plugin parameter")
 
-		d.SetPluginParameter(platform,
-			kfdefsv2.PluginParameter{
+			d.SetPluginParameter(platform,
+				kfdefsv2.PluginParameter{
 
+					Name: kfapp.UsernameParamName,
+					SecretRef: &kfdefsv2.SecretRef{
+						Name: kfapp.UsernameParamName,
+					},
+				})
+
+
+			d.SetSecret(kfdefsv2.Secret{
 				Name: kfapp.UsernameParamName,
-				SecretRef: &kfdefsv2.SecretRef{
-					Name: usernameSecretName,
+				SecretSource: &kfdefsv2.SecretSource{
+					EnvSource: &kfdefsv2.EnvSource{
+						Name: kftypes.KUBEFLOW_USERNAME,
+					},
 				},
 			})
-		d.SetPluginParameter(platform,
-			kfdefsv2.PluginParameter{
+
+		}
+
+		_, err = d.GetPluginParameter(platform, kfapp.PasswordParamName)
+
+		if err != nil {
+			log.Warnf("Configuring basic auth to get password from environment variables " +
+				"this behavior is deprecated. Password should be set explicitly in KfDef.Spec as a plugin parameter")
+			d.SetPluginParameter(platform,
+				kfdefsv2.PluginParameter{
+					Name: kfapp.PasswordParamName,
+					SecretRef: &kfdefsv2.SecretRef{
+						Name: kfapp.PasswordParamName,
+					},
+				})
+
+			d.SetSecret(kfdefsv2.Secret{
 				Name: kfapp.PasswordParamName,
-				SecretRef: &kfdefsv2.SecretRef{
-					Name: passwordSecretName,
+				SecretSource: &kfdefsv2.SecretSource{
+					EnvSource: &kfdefsv2.EnvSource{
+						Name: kftypes.KUBEFLOW_PASSWORD,
+					},
 				},
 			})
-
-		d.SetSecret(kfdefsv2.Secret{
-			Name: usernameSecretName,
-			SecretSource: &kfdefsv2.SecretSource{
-				EnvSource: &kfdefsv2.EnvSource{
-					Name: kftypes.KUBEFLOW_USERNAME,
-				},
-			},
-		})
-
-		d.SetSecret(kfdefsv2.Secret{
-			Name: passwordSecretName,
-			SecretSource: &kfdefsv2.SecretSource{
-				EnvSource: &kfdefsv2.EnvSource{
-					Name: kftypes.KUBEFLOW_PASSWORD,
-				},
-			},
-		})
+		}
 	}
 
+	if platform == kftypes.GCP {
+		if !useBasicAuth {
+			_, err := d.GetPluginParameter(gcp.GcpPluginName, gcp.GcpIapOauthClientIdParamName)
+
+			if err != nil {
+				log.Warnf("Defaulting IAP OAuth client id to environment variable. " +
+					"This behavior is deprecated. Client ID and secret should be explicitly set in KfDef.")
+
+				// ClientID isn't really a secret. The only reason we treat it is for backwards
+				// compatibility we want to read CLIENT_ID from environment variables.
+				d.SetPluginParameter(gcp.GcpPluginName, kfdefsv2.PluginParameter{
+					Name: gcp.GcpIapOauthClientIdParamName,
+					SecretRef: &kfdefsv2.SecretRef{
+						Name: gcp.GcpIapOauthClientIdParamName,
+					},
+				})
+				d.SetSecret(kfdefsv2.Secret{
+					Name: gcp.GcpIapOauthClientIdParamName,
+					SecretSource: &kfdefsv2.SecretSource{
+						EnvSource: &kfdefsv2.EnvSource{
+							Name: gcp.CLIENT_ID,
+						},
+					},
+				})
+			}
+
+			_, err = d.GetPluginParameter(gcp.GcpPluginName, gcp.GcpIapOauthClientSecretParamName)
+
+			if err != nil {
+				log.Warnf("Defaulting IAP OAuth client secret to environment variable. " +
+					"This behavior is deprecated. Client ID and secret should be explicitly set in KfDef.")
+
+				d.SetPluginParameter(gcp.GcpPluginName, kfdefsv2.PluginParameter{
+					Name: gcp.GcpIapOauthClientSecretParamName,
+					SecretRef: &kfdefsv2.SecretRef{
+						Name: gcp.GcpIapOauthClientSecretParamName,
+					},
+				})
+				d.SetSecret(kfdefsv2.Secret{
+					Name: gcp.GcpIapOauthClientSecretParamName,
+					SecretSource: &kfdefsv2.SecretSource{
+						EnvSource: &kfdefsv2.EnvSource{
+							Name: gcp.CLIENT_SECRET,
+						},
+					},
+				})
+			}
+		}
+	}
 	return nil
 }
 

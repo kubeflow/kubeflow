@@ -77,10 +77,12 @@ const (
 	KUBECONFIG_FORMAT = "gke_{project}_{zone}_{cluster}"
 
 	// Plugin parameter constants
-	GcpPluginName        = "gcp"
+	GcpPluginName        = kftypes.GCP
 	GcpAccessTokenName   = "accessToken"
 	GcpStorageOptionName = "storageOption"
 	GcpSaClientIdName    = "saClientId"
+	GcpIapOauthClientIdParamName = "iapOauthClientId"
+	GcpIapOauthClientSecretParamName = "iapOauthClientSecret"
 )
 
 // Gcp implements KfApp Interface

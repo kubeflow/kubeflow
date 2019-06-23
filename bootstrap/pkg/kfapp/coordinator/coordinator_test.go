@@ -2,6 +2,7 @@ package coordinator
 
 import (
 	"encoding/json"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
 	"reflect"
 	"testing"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
@@ -58,6 +59,147 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 							SecretSource: &kfdefsv2.SecretSource{
 								EnvSource: &kfdefsv2.EnvSource{
 									Name: kftypes.KUBEFLOW_PASSWORD,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		// If basic auth is explicitly set then it shouldn't be ovewriten.
+		{
+			Input: kfdefsv2.KfDef{
+				Spec: kfdefsv2.KfDefSpec{
+					Plugins: []kfdefsv2.Plugin {
+						{
+							Name: "gcp",
+							Parameters: []kfdefsv2.PluginParameter{
+								{
+									Name: "username",
+									Value: "someusername",
+								},
+								{
+									Name: "password",
+									Value: "somepassword",
+								},
+							},
+						},
+					},
+				},
+			},
+			Options: map[string]interface{} {
+				string(kftypes.USE_BASIC_AUTH): true,
+				string(kftypes.PLATFORM) : kftypes.GCP,
+			},
+			Expected: kfdefsv2.KfDef{
+				Spec: kfdefsv2.KfDefSpec{
+					Plugins: []kfdefsv2.Plugin {
+						{
+							Name: "gcp",
+							Parameters: []kfdefsv2.PluginParameter{
+								{
+									Name: "username",
+									Value: "someusername",
+								},
+								{
+									Name: "password",
+									Value: "somepassword",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		// GCP IAP auth should populate the GCP plugin with client id and client secret
+		// from environment variables.
+		{
+			Input: kfdefsv2.KfDef{},
+			Options: map[string]interface{} {
+				string(kftypes.USE_BASIC_AUTH): false,
+				string(kftypes.PLATFORM) : kftypes.GCP,
+			},
+			Expected: kfdefsv2.KfDef{
+				Spec: kfdefsv2.KfDefSpec{
+					Plugins: []kfdefsv2.Plugin {
+						{
+							Name: "gcp",
+							Parameters: []kfdefsv2.PluginParameter{
+								{
+									Name: "iapOauthClientId",
+									SecretRef: &kfdefsv2.SecretRef{
+										Name: "iapOauthClientId",
+									},
+								},
+								{
+									Name: "iapOauthClientSecret",
+									SecretRef: &kfdefsv2.SecretRef{
+										Name: "iapOauthClientSecret",
+									},
+								},
+							},
+						},
+					},
+					Secrets: []kfdefsv2.Secret{
+						{
+							Name: "iapOauthClientId",
+							SecretSource: &kfdefsv2.SecretSource{
+								EnvSource: &kfdefsv2.EnvSource{
+									Name: gcp.CLIENT_ID,
+								},
+							},
+						},
+						{
+							Name: "iapOauthClientSecret",
+							SecretSource: &kfdefsv2.SecretSource{
+								EnvSource: &kfdefsv2.EnvSource{
+									Name: gcp.CLIENT_SECRET,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		// GCP IAP auth client id and client secret are explicitly set in the input spec
+		// so they should not be overwritten.
+		{
+			Input: kfdefsv2.KfDef{
+				Spec: kfdefsv2.KfDefSpec{
+					Plugins: []kfdefsv2.Plugin {
+						{
+							Name: "gcp",
+							Parameters: []kfdefsv2.PluginParameter{
+								{
+									Name: "iapOauthClientId",
+									Value: "someclient",
+								},
+								{
+									Name: "iapOauthClientSecret",
+									Value: "somesecret",
+								},
+							},
+						},
+					},
+				},
+			},
+			Options: map[string]interface{} {
+				string(kftypes.USE_BASIC_AUTH): false,
+				string(kftypes.PLATFORM) : kftypes.GCP,
+			},
+			Expected: kfdefsv2.KfDef{
+				Spec: kfdefsv2.KfDefSpec{
+					Plugins: []kfdefsv2.Plugin {
+						{
+							Name: "gcp",
+							Parameters: []kfdefsv2.PluginParameter{
+								{
+									Name: "iapOauthClientId",
+									Value: "someclient",
+								},
+								{
+									Name: "iapOauthClientSecret",
+									Value: "somesecret",
 								},
 							},
 						},
