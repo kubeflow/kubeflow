@@ -209,6 +209,7 @@ func backfillKfDefFromOptions(d *kfdefsv2.KfDef, options map[string]interface{})
 	log.Warn("Backfilling KfDef from command line options")
 
 	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
+	platform := options[string(kftypes.PLATFORM)].(string)
 
 	if useBasicAuth {
 		// For backwards compatibility username and password were obtained from environment varialbes
@@ -217,7 +218,7 @@ func backfillKfDefFromOptions(d *kfdefsv2.KfDef, options map[string]interface{})
 		usernameSecretName := "username"
 		passwordSecretName := "password"
 
-		d.SetPluginParameter(kfapp.BasicAuthPluginName,
+		d.SetPluginParameter(platform,
 			kfdefsv2.PluginParameter{
 
 				Name: kfapp.UsernameParamName,
@@ -225,7 +226,7 @@ func backfillKfDefFromOptions(d *kfdefsv2.KfDef, options map[string]interface{})
 					Name: usernameSecretName,
 				},
 			})
-		d.SetPluginParameter(kfapp.BasicAuthPluginName,
+		d.SetPluginParameter(platform,
 			kfdefsv2.PluginParameter{
 				Name: kfapp.PasswordParamName,
 				SecretRef: &kfdefsv2.SecretRef{
@@ -395,12 +396,12 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		kfDef.Spec.UseBasicAuth = useBasicAuth
 		kfDef.Spec.UseIstio = useIstio
 		kfDef.Spec.PackageManager = packageManager
+	}
 
-		err := backfillKfDefFromOptions(kfDef, options)
+	err := backfillKfDefFromOptions(kfDef, options)
 
-		if err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, err
 	}
 
 	// Disable usage report if requested
