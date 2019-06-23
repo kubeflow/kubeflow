@@ -38,6 +38,7 @@ spec:
   - spartakus
   - tensorboard
   - tf-job-operator
+  - seldon-core-operator
   componentParams:
     spartakus:
       - name: usageId

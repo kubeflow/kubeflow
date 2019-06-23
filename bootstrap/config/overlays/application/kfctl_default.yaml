@@ -24,4 +24,7 @@ spec:
     pytorch-operator:
     - name: overlay
       value: application
+    seldon-core-operator:
+    - name: overlay
+      value: application
   enableApplications: true
