@@ -114,22 +114,6 @@ const (
 
 // GetPlatform is the common entry point for all implmentations of the KfApp interface
 func GetKfApp(kfdef *kfdefsv2.KfDef, platform kftypesv2.Platform) kftypesv2.KfApp {
-	/*
-		kfdef := kfdefsv2.KfDef{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       kfdef.TypeMeta.Kind,
-				APIVersion: kfdef.TypeMeta.APIVersion,
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:        kfdef.Name,
-				Namespace:   kfdef.Namespace,
-				Labels:      kfdef.Labels,
-				Annotations: kfdef.Annotations,
-				ClusterName: kfdef.ClusterName,
-			},
-			Spec: kfdef.Spec,
-		}
-	*/
 	_kustomize := &kustomize{
 		KfDef:        *kfdef,
 		out:          os.Stdout,
@@ -172,11 +156,14 @@ func GetKfApp(kfdef *kfdefsv2.KfDef, platform kftypesv2.Platform) kftypesv2.KfAp
 			Info: []application.InfoItem{},
 		},
 	}
-	if platform != nil {
+	if _kustomize.Spec.Platform != "" && platform != nil {
 		_kustomize.restConfig, _kustomize.apiConfig = platform.GetK8sConfig()
-	} else {
+	}
+	if _kustomize.restConfig == nil {
 		// build restConfig and apiConfig using $HOME/.kube/config if the file exists
 		_kustomize.restConfig = kftypesv2.GetConfig()
+	}
+	if _kustomize.apiConfig == nil {
 		_kustomize.apiConfig = kftypesv2.GetKubeConfig()
 	}
 	return _kustomize
