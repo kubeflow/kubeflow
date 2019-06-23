@@ -1,7 +1,7 @@
 #**********************************************************************
 # Builder
 # 
-# Create a go runtime suitable for building and testing bootstrap
+# Create a go runtime suitable for building and testing kfctl
 ARG GOLANG_VERSION=1.12
 FROM golang:$GOLANG_VERSION as builder
 
@@ -52,12 +52,30 @@ RUN make build-bootstrap
 
 #**********************************************************************
 #
+# kfctl_base
+#
+FROM builder as kfctl_base
+
+RUN make build-kfctl
+
+#**********************************************************************
+#
 # Final image base
 #
 
 FROM alpine:3.9.4 as barebones_base
 RUN mkdir -p /opt/kubeflow
 WORKDIR /opt/kubeflow
+
+#**********************************************************************
+#
+# kfctl
+#
+FROM barebones_base as kfctl
+
+COPY --from=kfctl_base /go/src/github.com/kubeflow/kubeflow/bootstrap/bin/kfctl /usr/local/bin
+
+CMD ["/bin/bash", "-c", "trap : TERM INT; sleep infinity & wait"]
 
 #**********************************************************************
 #

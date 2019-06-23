@@ -3,7 +3,7 @@ package app
 import (
 	"fmt"
 	"github.com/cenkalti/backoff"
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	kstypes "github.com/kubeflow/kubeflow/kfctl/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/prometheus/common/log"
 	"golang.org/x/net/context"
 	"io/ioutil"

@@ -2,13 +2,13 @@ package app
 
 import (
 	"encoding/base64"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	kftypes "github.com/kubeflow/kubeflow/kfctl/v2/pkg/apis/apps"
+	kfdefsv2 "github.com/kubeflow/kubeflow/kfctl/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/kfctl/v2/pkg/kfapp/coordinator"
+	"github.com/kubeflow/kubeflow/kfctl/v2/pkg/kfapp/gcp"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/square/go-jose.v2/json"
-	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"path"
 )
