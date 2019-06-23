@@ -1,7 +1,6 @@
 package app
 
 import (
-	"encoding/base64"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
@@ -69,18 +68,20 @@ func (s *ksServer) DeployWithKfctl(req *CreateRequest) error {
 	}
 	//var gcpApp kftypes.KfApp
 	// run gcp generate / apply
-	if kfdef.Spec.UseBasicAuth {
-		UsernameData, err := base64.StdEncoding.DecodeString(req.Username)
-		if err != nil {
-			log.Errorf("Failed decoding username: %v", err)
-			return err
-		}
-		gcpArgs.Username = string(UsernameData)
-		gcpArgs.EncodedPassword = req.PasswordHash
-	} else {
-		gcpArgs.OauthID = req.ClientID
-		gcpArgs.OauthSecret = req.ClientSecret
-	}
+
+	// TODO(jlewi): Auth should now be provided as plugin parameters.
+	//if kfdef.Spec.UseBasicAuth {
+	//	UsernameData, err := base64.StdEncoding.DecodeString(req.Username)
+	//	if err != nil {
+	//		log.Errorf("Failed decoding username: %v", err)
+	//		return err
+	//	}
+	//	gcpArgs.Username = string(UsernameData)
+	//	gcpArgs.EncodedPassword = req.PasswordHash
+	//} else {
+	//	gcpArgs.OauthID = req.ClientID
+	//	gcpArgs.OauthSecret = req.ClientSecret
+	//}
 	argBytes, err := json.Marshal(gcpArgs)
 	if err != nil {
 		log.Errorf("Failed encoding gcp args: %v", err)

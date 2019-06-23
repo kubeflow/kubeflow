@@ -95,19 +95,12 @@ type Gcp struct {
 	accessToken string
 	tokenSource oauth2.TokenSource
 	SAClientId  string
-	// requried when choose iap
-	oauthId     string
-	oauthSecret string
 }
 
 type GcpArgs struct {
 	AccessToken     string
 	StorageOption   configtypes.StorageOption
 	SAClientId      string
-	Username        string
-	EncodedPassword string
-	OauthID         string
-	OauthSecret     string
 }
 
 type dmOperationEntry struct {
@@ -139,8 +132,6 @@ func GetPlatform(kfdef *kfdefs.KfDef, platformArgs []byte) (kftypes.Platform, er
 		KfDef:         *kfdef,
 		StorageOption: gcpArgs.StorageOption,
 		SAClientId:    gcpArgs.SAClientId,
-		oauthId:       gcpArgs.OauthID,
-		oauthSecret:   gcpArgs.OauthSecret,
 	}
 	ctx := context.Background()
 	if gcpArgs.AccessToken == "" {
@@ -798,7 +789,8 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 		if err != nil {
 			return &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Could not obtain the username from KfDef; error %v", err.Error()),
+				Message: fmt.Sprintf("Could not determine the username for basic auth." +
+					"Please set the parameter %v on plugin %v", kfapp.UsernameParamName, GcpPluginName),
 			}
 		}
 
@@ -807,26 +799,37 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 		if err != nil {
 			return &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Could not obtain the password from KfDef; error %v", err.Error()),
+				Message: fmt.Sprintf("Could not determine the password for basic auth." +
+					"Please set the parameter %v on plugin %v", kfapp.PasswordParamName, GcpPluginName),
 			}
 		}
 	} else {
-		if gcp.oauthId == "" || gcp.oauthSecret == "" {
-			if os.Getenv(CLIENT_ID) == "" {
-				return &kfapis.KfError{
-					Code:    int(kfapis.INVALID_ARGUMENT),
-					Message: fmt.Sprintf("Need to set environment variable `%v` for IAP.", CLIENT_ID),
-				}
-			}
-			if os.Getenv(CLIENT_SECRET) == "" {
-				return &kfapis.KfError{
-					Code:    int(kfapis.INVALID_ARGUMENT),
-					Message: fmt.Sprintf("Need to set environment variable `%v` for IAP.", CLIENT_SECRET),
-				}
-			}
-			gcp.oauthId = os.Getenv(CLIENT_ID)
-			gcp.oauthSecret = os.Getenv(CLIENT_SECRET)
+		d := &kfdefs.KfDef{
+			Spec: gcp.Spec,
 		}
+
+		_, err := d.GetPluginParameter(GcpPluginName, GcpIapOauthClientIdParamName)
+
+		if err != nil {
+			log.Errorf("Could not read IAP OAuth ClientID from KfDef; error %v", err)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Could not determine the OAuth Client ID for IAP." +
+					"Please set the parameter %v on plugin %v", GcpIapOauthClientIdParamName, GcpPluginName),
+			}
+		}
+
+		_, err = d.GetPluginParameter(GcpPluginName, GcpIapOauthClientSecretParamName)
+
+		if err != nil {
+			log.Errorf("Could not read IAP OAuth ClientSecret from KfDef; error %v", err)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Could not determine the OAuth Client Secret for IAP." +
+					"Please set the parameter %v on plugin %v", GcpIapOauthClientSecretParamName, GcpPluginName),
+			}
+		}
+
 	}
 
 	// Update deployment manager
@@ -1423,9 +1426,26 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 		return nil
 	}
 
+	d := &kfdefs.KfDef{
+		Spec: gcp.Spec,
+	}
+
+	oauthId, err := d.GetPluginParameter(GcpPluginName, GcpIapOauthClientIdParamName)
+
+	if err != nil {
+		log.Errorf("Could not read IAP OAuth ClientID from KfDef; error %v", err)
+		return err
+	}
+
+	oauthSecret, err := d.GetPluginParameter(GcpPluginName, GcpIapOauthClientSecretParamName)
+
+	if err != nil {
+		log.Errorf("Could not read IAP OAuth ClientSecret from KfDef; error %v", err)
+		return err
+	}
 	return insertSecret(client, KUBEFLOW_OAUTH, oauthSecretNamespace, map[string][]byte{
-		strings.ToLower(CLIENT_ID):     []byte(gcp.oauthId),
-		strings.ToLower(CLIENT_SECRET): []byte(gcp.oauthSecret),
+		strings.ToLower(CLIENT_ID):     []byte(oauthId),
+		strings.ToLower(CLIENT_SECRET): []byte(oauthSecret),
 	})
 }
 
