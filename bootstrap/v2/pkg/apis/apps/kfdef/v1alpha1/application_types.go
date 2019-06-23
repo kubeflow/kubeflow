@@ -57,14 +57,26 @@ type KfDefSpec struct {
 	DeleteStorage      bool   `json:"deleteStorage,omitempty"`
 	PackageManager     string `json:"packageManager,omitempty"`
 	ManifestsRepo      string `json:"manifestsRepo,omitempty"`
-	Repos              []Repo `json:"Repos,omitempty"`
-	Secrets            []Secret  `json:"Secrets,omitempty"`
+	Repos              []Repo `json:"repos,omitempty"`
+	Secrets            []Secret  `json:"secrets,omitempty"`
+	Plugins            []Plugin `json:"plugins,omitempty"`
 }
 
 var DefaultRegistry = RegistryConfig{
 	Name: "kubeflow",
 	Repo: "https://github.com/kubeflow/kubeflow.git",
 	Path: "kubeflow",
+}
+
+// Plugin can be used to customize the generation and deployment of Kubeflow
+type Plugin struct {
+	Name string `json:"name,omitempty"`
+	Parameters []PluginParameters `json:"pluginParameters,omitempty"`
+}
+
+type PluginParameters struct {
+	Name string `json:"name,omitempty"`
+	Value string `json:"value,omitempty"`
 }
 
 // Repo provides information about a repository providing config (e.g. kustomize packages,
@@ -308,6 +320,42 @@ func DownloadAndLoadConfigFile(configFile string, appDir string) (*KfDef, error)
 	// appDir should be stored in the resulting KfDef
 	kfDef.Spec.AppDir = appDir
 	return kfDef, nil
+}
+
+// GetSecret returns the specified secret or an error if the secret isn't specified.
+func (d *KfDef) GetSecret(name string) (string, error) {
+	for _, s := range d.Spec.Secrets {
+		if s.Name != name {
+			continue
+		}
+		if s.SecretSource.LiteralSource != nil {
+			return s.SecretSource.LiteralSource.Value, nil
+		}
+		if s.SecretSource.EnvSource != nil {
+			return os.Getenv(s.SecretSource.EnvSource.Name), nil
+		}
+
+		return "", fmt.Errorf("No secret source provided for secret %v", name)
+	}
+	return "", fmt.Errorf("No secret in KfDef named %v", name)
+}
+
+// GetPluginParameter gets the requested parameter or an error if the parameter or plugin is not defined
+func (d *KfDef) GetPluginParameter(pluginName string, parameterName string) (string, error) {
+	for _, p := range d.Spec.Plugins {
+		if p.Name != pluginName {
+			continue
+		}
+
+		for  _, param := range p.Parameters {
+			if param.Name != parameterName {
+				continue
+			}
+			return param.Value, nil
+		}
+	}
+
+	return "", fmt.Errorf("Could not find plugin %v or it doesn't have parameter %v", pluginName, parameterName)
 }
 
 // SyncCache will synchronize the local cache of any repositories.

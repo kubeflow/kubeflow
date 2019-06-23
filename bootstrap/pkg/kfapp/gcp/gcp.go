@@ -74,6 +74,12 @@ const (
 	CLIENT_SECRET     = "CLIENT_SECRET"
 	BASIC_AUTH_SECRET = "kubeflow-login"
 	KUBECONFIG_FORMAT = "gke_{project}_{zone}_{cluster}"
+
+	// Plugin parameter constants
+	GcpPluginName = "gcp"
+	GcpAccessTokenName = "accessToken"
+	GcpStorageOptionName = "storageOption"
+	GcpSaClientIdName = "saClientId"
 )
 
 // Gcp implements KfApp Interface

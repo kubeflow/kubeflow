@@ -15,8 +15,8 @@
 package v1alpha1
 
 import (
-	"github.com/ghodss/yaml"
 	"encoding/json"
+	"github.com/ghodss/yaml"
 	"io/ioutil"
 	"os"
 	"path"
@@ -106,13 +106,13 @@ func TestSyncCache(t *testing.T) {
 func TestWriteKfDef(t *testing.T) {
 	// Verify that if we write KfDef it will be stripped of any literal secrets.
 	type testCase struct {
-		input *KfDef
+		input  *KfDef
 		output *KfDef
 	}
 
-	cases := []testCase {
+	cases := []testCase{
 		{
-			input: &KfDef {
+			input: &KfDef{
 				Spec: KfDefSpec{
 					AppDir: "someapp",
 					Secrets: []Secret{
@@ -135,7 +135,7 @@ func TestWriteKfDef(t *testing.T) {
 					},
 				},
 			},
-			output: &KfDef {
+			output: &KfDef{
 				Spec: KfDefSpec{
 					AppDir: "someapp",
 					Secrets: []Secret{
@@ -153,8 +153,7 @@ func TestWriteKfDef(t *testing.T) {
 		},
 	}
 
-
-	for _, c:= range cases {
+	for _, c := range cases {
 		testDir, _ := ioutil.TempDir("", "")
 
 		testFile := path.Join(testDir, "app.yaml")
@@ -181,6 +180,137 @@ func TestWriteKfDef(t *testing.T) {
 			pActual, _ := Pformat(result)
 
 			t.Errorf("Result wasn't properly stripped: Got:\n%v;\n Want:\n%v", pActual, pExpected)
+		}
+	}
+}
+
+func TestKfDef_GetPluginParameter(t *testing.T) {
+	d := &KfDef{
+		Spec: KfDefSpec{
+			AppDir: "someapp",
+			Plugins: []Plugin{
+				{
+					Name: "gcp",
+					Parameters: []PluginParameters {
+						{
+							Name:  "p1",
+							Value: "p1value",
+						},
+						{
+							Name:  "p2",
+							Value: "p2value",
+						},
+					},
+				},
+				{
+					Name: "aws",
+					Parameters: []PluginParameters {
+						{
+							Name:  "p2",
+							Value: "p2value",
+						},
+						{
+							Name:  "p3",
+							Value: "p3value",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	type testCase struct {
+		PluginName string
+		ParameterName string
+		ExpectedValue string
+	}
+
+	cases := [] testCase{
+		{
+			PluginName: "gcp",
+			ParameterName: "p1",
+			ExpectedValue: "p1value",
+		},
+		{
+			PluginName: "gcp",
+			ParameterName: "p2",
+			ExpectedValue: "p2value",
+		},
+		{
+			PluginName: "aws",
+			ParameterName: "p2",
+			ExpectedValue: "p2value",
+		},
+		{
+			PluginName: "aws",
+			ParameterName: "p3",
+			ExpectedValue: "p3value",
+		},
+	}
+
+	os.Setenv("s2", "somesecret")
+	for _, c := range cases {
+		actual, err := d.GetPluginParameter(c.PluginName, c.ParameterName)
+		if err != nil {
+			t.Errorf("Error getting plugin %v parameter %v; error %v", c.PluginName, c.PluginName, err)
+		}
+
+		if actual != c.ExpectedValue {
+			t.Errorf("Error getting plugin %v parameter %v; error %v", c.PluginName, c.PluginName, err)
+		}
+	}
+}
+
+func TestKfDef_GetSecret(t *testing.T) {
+	d := &KfDef{
+		Spec: KfDefSpec{
+			AppDir: "someapp",
+			Secrets: []Secret{
+				{
+					Name: "s1",
+					SecretSource: SecretSource{
+						LiteralSource: &LiteralSource{
+							Value: "somedata",
+						},
+					},
+				},
+				{
+					Name: "s2",
+					SecretSource: SecretSource{
+						EnvSource: &EnvSource{
+							Name: "s2",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	type testCase struct {
+		SecretName string
+		ExpectedValue string
+	}
+
+	cases := [] testCase{
+		{
+			SecretName: "s1",
+			ExpectedValue: "somedata",
+		},
+		{
+			SecretName: "s2",
+			ExpectedValue: "somesecret",
+		},
+	}
+
+	os.Setenv("s2", "somesecret")
+	for _, c := range cases {
+		actual, err := d.GetSecret(c.SecretName)
+		if err != nil {
+			t.Errorf("Error getting secret %v; error %v", c.SecretName, err)
+		}
+
+		if actual != c.ExpectedValue {
+			t.Errorf("Secret %v value is wrong; got %v; want %v", c.SecretName, actual, c.ExpectedValue)
 		}
 	}
 }

@@ -36,13 +36,13 @@ func NewKfctlServer() (*kfctlServer, error) {
 }
 
 func (s *kfctlServer) process() {
-	for;; {
-		r := <- s.c
+	for {
+		r := <-s.c
 
 		kfApp, err := coordinator.NewKfAppFromKfDef(r.KfDef)
 
 		if err != nil {
-			pKfDef,_ := Pformat(r.KfDef)
+			pKfDef, _ := Pformat(r.KfDef)
 			log.Errorf("There was a problem creating the KfApp; error %v;\nKfDef:\n%v",
 				err, pKfDef)
 		}
