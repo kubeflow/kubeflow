@@ -86,10 +86,10 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
   if os.getenv("REPO_NAME") != "manifests":
     if os.getenv("PULL_NUMBER"):
       version = "pull/{0}".format(os.getenv("PULL_NUMBER"))
-  pull_sha = "@0caa70b4518859c0678d0d0e12c11a7e35345c5a"
+  pull_no = "@pull/169"
   if os.getenv("REPO_NAME") == "manifests":
     if os.getenv("PULL_PULL_SHA"):
-      pull_sha = "@" + os.getenv("PULL_PULL_SHA")
+      pull_no = "@" + os.getenv("PULL_PULL_SHA")
 
   # username and password are passed as env vars and won't appear in the logs
   # TODO(https://github.com/kubeflow/kubeflow/issues/2831): Once kfctl
@@ -97,7 +97,7 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
   # pull the configs from the repo we checked out.
   run_with_retries([
       kfctl_path, "init", app_path, "-V", "--platform=gcp",
-      "--version=" + version, "--package-manager=kustomize" + pull_sha,
+      "--version=" + version, "--package-manager=kustomize" + pull_no,
       "--skip-init-gcp-project", "--disable_usage_report",
       "--project=" + project
       ] + init_args, cwd=parent_dir)
