@@ -2,9 +2,9 @@ package gcp
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"github.com/ghodss/yaml"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"io/ioutil"
 	"os"
 	"path"
 	"reflect"
@@ -18,8 +18,7 @@ func TestGcp_ParsePlugin(t *testing.T) {
 		Expected *GcpPluginSpec
 	}
 
-
-	cases := []testCase {
+	cases := []testCase{
 		{
 			Filename: "kfctl_gcp.yaml",
 			Expected: &GcpPluginSpec{
@@ -37,7 +36,6 @@ func TestGcp_ParsePlugin(t *testing.T) {
 	for _, c := range cases {
 		wd, _ := os.Getwd()
 		fPath := path.Join(wd, "testdata", c.Filename)
-
 
 		buf, bufErr := ioutil.ReadFile(fPath)
 		if bufErr != nil {
@@ -58,7 +56,7 @@ func TestGcp_ParsePlugin(t *testing.T) {
 			t.Fatalf("Could not marsh args; error %v", err)
 		}
 
-		p  := &GcpPlugin{}
+		p := &GcpPlugin{}
 		err = yaml.Unmarshal(argBytes, p)
 
 		if err != nil {

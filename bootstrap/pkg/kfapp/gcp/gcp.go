@@ -103,26 +103,6 @@ type GcpArgs struct {
 	SAClientId    string
 }
 
-// GcpPlugin defines the extra data provided by the GCP Plugin in KfDef
-type GcpPluginSpec struct {
-	Auth *Auth `json:"auth,omitempty"`
-}
-
-type Auth struct {
-	BasicAuth *BasicAuth `json:"basicAuth,omitempty"`
-	IAP       *IAP       `json:"iap,omitempty"`
-}
-
-type BasicAuth struct {
-	Username string            `json:"username,omitempty"`
-	Password *kfdefs.SecretRef `json:"password,omitempty"`
-}
-
-type IAP struct {
-	OAuthClientId     string            `json:"oAuthClientId,omitempty"`
-	OAuthClientSecret *kfdefs.SecretRef `json:"oAuthClientSecret,omitempty"`
-}
-
 type dmOperationEntry struct {
 	operationName string
 	// create or update dmName
@@ -802,54 +782,18 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 // Apply applies the gcp kfapp.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
-	if gcp.Spec.UseBasicAuth {
-		// TODO(jlewi): Does it make sense to do this validation here?
-		_, err := kfapp.GetBasicAuthUsername(gcp.Spec)
+	p := &GcpPluginSpec{}
 
-		if err != nil {
-			return &kfapis.KfError{
-				Code: int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Could not determine the username for basic auth."+
-					"Please set the parameter %v on plugin %v", kfapp.UsernameParamName, GcpPluginName),
-			}
-		}
+	err := gcp.Spec.GetPluginSpec(GcpPluginName, p)
 
-		_, err = kfapp.GetBasicAuthPassword(gcp.Spec)
+	if err != nil {
+		log.Errorf("Could not get GCP plugin parameters")
+		return err
+	}
 
-		if err != nil {
-			return &kfapis.KfError{
-				Code: int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Could not determine the password for basic auth."+
-					"Please set the parameter %v on plugin %v", kfapp.PasswordParamName, GcpPluginName),
-			}
-		}
-	} else {
-		d := &kfdefs.KfDef{
-			Spec: gcp.Spec,
-		}
-
-		_, err := d.GetPluginParameter(GcpPluginName, GcpIapOauthClientIdParamName)
-
-		if err != nil {
-			log.Errorf("Could not read IAP OAuth ClientID from KfDef; error %v", err)
-			return &kfapis.KfError{
-				Code: int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Could not determine the OAuth Client ID for IAP."+
-					"Please set the parameter %v on plugin %v", GcpIapOauthClientIdParamName, GcpPluginName),
-			}
-		}
-
-		_, err = d.GetPluginParameter(GcpPluginName, GcpIapOauthClientSecretParamName)
-
-		if err != nil {
-			log.Errorf("Could not read IAP OAuth ClientSecret from KfDef; error %v", err)
-			return &kfapis.KfError{
-				Code: int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Could not determine the OAuth Client Secret for IAP."+
-					"Please set the parameter %v on plugin %v", GcpIapOauthClientSecretParamName, GcpPluginName),
-			}
-		}
-
+	if isValid, msg := p.IsValid(); !isValid {
+		log.Errorf("GcpPluginSpec isn't valid; error %v", msg)
+		return fmt.Errorf(msg)
 	}
 
 	// Update deployment manager
@@ -1518,7 +1462,6 @@ func (gcp *Gcp) buildBasicAuthSecret() (*v1.Secret, error) {
 // to verify the spec for the K8s secrets without issuing any http calls.
 func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
 	//secret, err := gcp.buildBasicAuthSecret()
-
 
 	return fmt.Errorf("Need to fix this method by creating a method updateOrCreateSecret")
 	//_, err = client.CoreV1().Secrets(gcp.Namespace).Update(secret)

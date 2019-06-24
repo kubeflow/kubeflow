@@ -2,17 +2,17 @@ package coordinator
 
 import (
 	"encoding/json"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
+	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"reflect"
 	"testing"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 )
 
 func Test_backfillKfDefFromOptions(t *testing.T) {
 	type testCase struct {
 		Input    kfdefsv2.KfDef
-		Options map[string]interface{}
+		Options  map[string]interface{}
 		Expected kfdefsv2.KfDef
 	}
 
@@ -20,13 +20,13 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 		// Basic auth should populate the GCP plugin
 		{
 			Input: kfdefsv2.KfDef{},
-			Options: map[string]interface{} {
+			Options: map[string]interface{}{
 				string(kftypes.USE_BASIC_AUTH): true,
-				string(kftypes.PLATFORM) : kftypes.GCP,
+				string(kftypes.PLATFORM):       kftypes.GCP,
 			},
 			Expected: kfdefsv2.KfDef{
 				Spec: kfdefsv2.KfDefSpec{
-					Plugins: []kfdefsv2.Plugin {
+					Plugins: []kfdefsv2.Plugin{
 						{
 							Name: "gcp",
 							Parameters: []kfdefsv2.PluginParameter{
@@ -70,16 +70,16 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 		{
 			Input: kfdefsv2.KfDef{
 				Spec: kfdefsv2.KfDefSpec{
-					Plugins: []kfdefsv2.Plugin {
+					Plugins: []kfdefsv2.Plugin{
 						{
 							Name: "gcp",
 							Parameters: []kfdefsv2.PluginParameter{
 								{
-									Name: "username",
+									Name:  "username",
 									Value: "someusername",
 								},
 								{
-									Name: "password",
+									Name:  "password",
 									Value: "somepassword",
 								},
 							},
@@ -87,22 +87,22 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 					},
 				},
 			},
-			Options: map[string]interface{} {
+			Options: map[string]interface{}{
 				string(kftypes.USE_BASIC_AUTH): true,
-				string(kftypes.PLATFORM) : kftypes.GCP,
+				string(kftypes.PLATFORM):       kftypes.GCP,
 			},
 			Expected: kfdefsv2.KfDef{
 				Spec: kfdefsv2.KfDefSpec{
-					Plugins: []kfdefsv2.Plugin {
+					Plugins: []kfdefsv2.Plugin{
 						{
 							Name: "gcp",
 							Parameters: []kfdefsv2.PluginParameter{
 								{
-									Name: "username",
+									Name:  "username",
 									Value: "someusername",
 								},
 								{
-									Name: "password",
+									Name:  "password",
 									Value: "somepassword",
 								},
 							},
@@ -115,13 +115,13 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 		// from environment variables.
 		{
 			Input: kfdefsv2.KfDef{},
-			Options: map[string]interface{} {
+			Options: map[string]interface{}{
 				string(kftypes.USE_BASIC_AUTH): false,
-				string(kftypes.PLATFORM) : kftypes.GCP,
+				string(kftypes.PLATFORM):       kftypes.GCP,
 			},
 			Expected: kfdefsv2.KfDef{
 				Spec: kfdefsv2.KfDefSpec{
-					Plugins: []kfdefsv2.Plugin {
+					Plugins: []kfdefsv2.Plugin{
 						{
 							Name: "gcp",
 							Parameters: []kfdefsv2.PluginParameter{
@@ -166,16 +166,16 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 		{
 			Input: kfdefsv2.KfDef{
 				Spec: kfdefsv2.KfDefSpec{
-					Plugins: []kfdefsv2.Plugin {
+					Plugins: []kfdefsv2.Plugin{
 						{
 							Name: "gcp",
 							Parameters: []kfdefsv2.PluginParameter{
 								{
-									Name: "iapOauthClientId",
+									Name:  "iapOauthClientId",
 									Value: "someclient",
 								},
 								{
-									Name: "iapOauthClientSecret",
+									Name:  "iapOauthClientSecret",
 									Value: "somesecret",
 								},
 							},
@@ -183,22 +183,22 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 					},
 				},
 			},
-			Options: map[string]interface{} {
+			Options: map[string]interface{}{
 				string(kftypes.USE_BASIC_AUTH): false,
-				string(kftypes.PLATFORM) : kftypes.GCP,
+				string(kftypes.PLATFORM):       kftypes.GCP,
 			},
 			Expected: kfdefsv2.KfDef{
 				Spec: kfdefsv2.KfDefSpec{
-					Plugins: []kfdefsv2.Plugin {
+					Plugins: []kfdefsv2.Plugin{
 						{
 							Name: "gcp",
 							Parameters: []kfdefsv2.PluginParameter{
 								{
-									Name: "iapOauthClientId",
+									Name:  "iapOauthClientId",
 									Value: "someclient",
 								},
 								{
-									Name: "iapOauthClientSecret",
+									Name:  "iapOauthClientSecret",
 									Value: "somesecret",
 								},
 							},

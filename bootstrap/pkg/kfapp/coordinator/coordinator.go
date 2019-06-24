@@ -217,7 +217,7 @@ func backfillKfDefFromOptions(d *kfdefsv2.KfDef, options map[string]interface{})
 		if err != nil {
 			// For backwards compatibility username and password were obtained from environment varialbes
 			log.Warnf("Configuring basic auth to get username from environment variables " +
-				      "this behavior is deprecated. Username should be set explicitly in KfDef.Spec as a plugin parameter")
+				"this behavior is deprecated. Username should be set explicitly in KfDef.Spec as a plugin parameter")
 
 			d.SetPluginParameter(platform,
 				kfdefsv2.PluginParameter{
@@ -227,7 +227,6 @@ func backfillKfDefFromOptions(d *kfdefsv2.KfDef, options map[string]interface{})
 						Name: kfapp.UsernameParamName,
 					},
 				})
-
 
 			d.SetSecret(kfdefsv2.Secret{
 				Name: kfapp.UsernameParamName,

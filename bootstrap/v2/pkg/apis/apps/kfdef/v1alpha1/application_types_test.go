@@ -283,24 +283,24 @@ func TestKfDef_GetPluginParameter(t *testing.T) {
 }
 
 type FakePluginSpec struct {
-	Param string `json:"param,omitempty"`
-	BoolParam bool `json:"boolParam,omitempty"`
+	Param     string `json:"param,omitempty"`
+	BoolParam bool   `json:"boolParam,omitempty"`
 }
 
 func TestKfDef_GetPluginSpec(t *testing.T) {
 	// Test that we can properly parse the gcp structs.
 	type testCase struct {
-		Filename string
+		Filename   string
 		PluginName string
-		Expected *FakePluginSpec
+		Expected   *FakePluginSpec
 	}
 
-	cases := []testCase {
+	cases := []testCase{
 		{
-			Filename: "kfctl_plugin_test.yaml",
+			Filename:   "kfctl_plugin_test.yaml",
 			PluginName: "fakeplugin",
 			Expected: &FakePluginSpec{
-				Param: "someparam",
+				Param:     "someparam",
 				BoolParam: true,
 			},
 		},
@@ -309,7 +309,6 @@ func TestKfDef_GetPluginSpec(t *testing.T) {
 	for _, c := range cases {
 		wd, _ := os.Getwd()
 		fPath := path.Join(wd, "testdata", c.Filename)
-
 
 		buf, bufErr := ioutil.ReadFile(fPath)
 		if bufErr != nil {

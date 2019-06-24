@@ -24,6 +24,7 @@ import (
 	"io/ioutil"
 	"k8s.io/api/v2/core/v1"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/v2/pkg/runtime"
 	"os"
 	"path"
 )
@@ -74,10 +75,15 @@ var DefaultRegistry = RegistryConfig{
 // Plugin can be used to customize the generation and deployment of Kubeflow
 // TODO(jlewi): Should Plugin contain K8s TypeMeta so that we can use ApiVersion and Kind
 // to identify what it refers to?
+//
+// We disable deep-copy-gen because it chokes on type interface{}.
+// What are the implications of that? Will we eventually need to write our own DeepCopy
+// method based on marshling the object to bytes?
+//
 type Plugin struct {
-	Name       string            `json:"name,omitempty"`
-	Parameters []PluginParameter `json:"pluginParameters,omitempty"`
-	Spec       interface{}       `json:"spec,omitempty"`
+	Name string `json:"name,omitempty"`
+	//Parameters []PluginParameter `json:"pluginParameters,omitempty"`
+	Spec runtime.RawExtension `json:"spec,omitempty"`
 }
 
 type PluginParameter struct {
@@ -366,29 +372,6 @@ func (d *KfDef) SetSecret(newSecret Secret) error {
 	return nil
 }
 
-// GetPluginParameter gets the requested parameter or an error if the parameter or plugin is not defined
-func (d *KfDef) GetPluginParameter(pluginName string, parameterName string) (string, error) {
-	for _, p := range d.Spec.Plugins {
-		if p.Name != pluginName {
-			continue
-		}
-
-		for _, param := range p.Parameters {
-			if param.Name != parameterName {
-				continue
-			}
-
-			if param.SecretRef != nil {
-				return d.GetSecret(param.SecretRef.Name)
-			}
-			return param.Value, nil
-		}
-	}
-
-	return "", fmt.Errorf("Could not find plugin %v or it doesn't have parameter %v", pluginName, parameterName)
-}
-
-
 // GetPluginSpec will try to unmarshal the spec for the specified plugin to the supplied
 // interface. Returns an error if the plugin isn't defined or if there is a problem
 // unmarshaling it.
@@ -420,43 +403,82 @@ func (d *KfDef) GetPluginSpec(pluginName string, s interface{}) error {
 	return fmt.Errorf("Could not find plugin %v", pluginName)
 }
 
-// SetPluginParameter sets the requested parameter. The plugin is added if it doesn't already exist.
-func (d *KfDef) SetPluginParameter(pluginName string, newParam PluginParameter) error {
-	index := -1
-	for i, p := range d.Spec.Plugins {
-		if p.Name == pluginName {
-			index = i
-			break
-		}
+// GetPluginSpec will try to unmarshal the spec for the specified plugin to the supplied
+// interface. Returns an error if the plugin isn't defined or if there is a problem
+// unmarshaling it
+//
+// TODO(jlewi): The reason this function exists is because for types like Gcp in gcp.go
+// we embed KfDef into the Gcp struct so its not actually a type KfDef. In the future
+// we will probably refactor KfApp into an appropriate plugin in type an stop embedding
+// KfDef in it.
+func (s *KfDefSpec) GetPluginSpec(pluginName string, pluginSpec interface{}) error {
+	d := &KfDef{
+		Spec: *s,
 	}
-
-	if index == -1 {
-		// Plugin in doesn't exist so add it
-		log.Infof("Adding plugin %v", pluginName)
-
-		d.Spec.Plugins = append(d.Spec.Plugins, Plugin{
-			Name: pluginName,
-		})
-
-		index = len(d.Spec.Plugins) - 1
-	}
-
-	pIndex := -1
-
-	for i, param := range d.Spec.Plugins[index].Parameters {
-		if param.Name == newParam.Name {
-			pIndex = i
-			break
-		}
-	}
-
-	if pIndex == -1 {
-		d.Spec.Plugins[index].Parameters = append(d.Spec.Plugins[index].Parameters, newParam)
-	} else {
-		d.Spec.Plugins[index].Parameters[pIndex] = newParam
-	}
-	return nil
+	return d.GetPluginSpec(pluginName, pluginSpec)
 }
+
+// TODO(jlewi): Delete this code. We shouldn't need it now that we have PluginSpec.
+// GetPluginParameter gets the requested parameter or an error if the parameter or plugin is not defined
+//func (d *KfDef) GetPluginParameter(pluginName string, parameterName string) (string, error) {
+//	for _, p := range d.Spec.Plugins {
+//		if p.Name != pluginName {
+//			continue
+//		}
+//
+//		for _, param := range p.Parameters {
+//			if param.Name != parameterName {
+//				continue
+//			}
+//
+//			if param.SecretRef != nil {
+//				return d.GetSecret(param.SecretRef.Name)
+//			}
+//			return param.Value, nil
+//		}
+//	}
+//
+//	return "", fmt.Errorf("Could not find plugin %v or it doesn't have parameter %v", pluginName, parameterName)
+//}
+
+// TODO(jlewi): Delete this code. We shouldn't need it now that we have PluginSpec.
+//// SetPluginParameter sets the requested parameter. The plugin is added if it doesn't already exist.
+//func (d *KfDef) SetPluginParameter(pluginName string, newParam PluginParameter) error {
+//	index := -1
+//	for i, p := range d.Spec.Plugins {
+//		if p.Name == pluginName {
+//			index = i
+//			break
+//		}
+//	}
+//
+//	if index == -1 {
+//		// Plugin in doesn't exist so add it
+//		log.Infof("Adding plugin %v", pluginName)
+//
+//		d.Spec.Plugins = append(d.Spec.Plugins, Plugin{
+//			Name: pluginName,
+//		})
+//
+//		index = len(d.Spec.Plugins) - 1
+//	}
+//
+//	pIndex := -1
+//
+//	for i, param := range d.Spec.Plugins[index].Parameters {
+//		if param.Name == newParam.Name {
+//			pIndex = i
+//			break
+//		}
+//	}
+//
+//	if pIndex == -1 {
+//		d.Spec.Plugins[index].Parameters = append(d.Spec.Plugins[index].Parameters, newParam)
+//	} else {
+//		d.Spec.Plugins[index].Parameters[pIndex] = newParam
+//	}
+//	return nil
+//}
 
 // SyncCache will synchronize the local cache of any repositories.
 // On success the status is updated with pointers to the cache.
