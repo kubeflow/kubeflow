@@ -420,31 +420,8 @@ func (s *KfDefSpec) GetPluginSpec(pluginName string, pluginSpec interface{}) err
 	return d.GetPluginSpec(pluginName, pluginSpec)
 }
 
-// TODO(jlewi): Delete this code. We shouldn't need it now that we have PluginSpec.
-// GetPluginParameter gets the requested parameter or an error if the parameter or plugin is not defined
-//func (d *KfDef) GetPluginParameter(pluginName string, parameterName string) (string, error) {
-//	for _, p := range d.Spec.Plugins {
-//		if p.Name != pluginName {
-//			continue
-//		}
-//
-//		for _, param := range p.Parameters {
-//			if param.Name != parameterName {
-//				continue
-//			}
-//
-//			if param.SecretRef != nil {
-//				return d.GetSecret(param.SecretRef.Name)
-//			}
-//			return param.Value, nil
-//		}
-//	}
-//
-//	return "", fmt.Errorf("Could not find plugin %v or it doesn't have parameter %v", pluginName, parameterName)
-//}
-
-// SetPlugin sets the requested parameter. The plugin is added if it doesn't already exist.
-func (d *KfDef) SetPlugin(pluginName string, spec interface{}) error {
+// SetPluginSpec sets the requested parameter. The plugin is added if it doesn't already exist.
+func (d *KfDef) SetPluginSpec(pluginName string, spec interface{}) error {
 	// Convert spec to RawExtension
 
 	r := &runtime.RawExtension{}
