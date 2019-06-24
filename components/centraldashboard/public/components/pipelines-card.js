@@ -101,7 +101,8 @@ export class PipelinesCard extends PolymerElement {
      */
     _onResponse(responseEvent) {
         const response = responseEvent.detail.response;
-        const pipelines = response[this.artifactType].map((p) => {
+        const artifacts = response[this.artifactType] || [];
+        const pipelines = artifacts.map((p) => {
             const date = new Date(p.created_at);
             const iconTitle = p.status || '';
             let icon = 'kubeflow:pipeline';

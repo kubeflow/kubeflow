@@ -1,0 +1,6 @@
+<app-rok-error-msg
+  *ngIf="token?.value.length === 0"
+  [token]="token"
+></app-rok-error-msg>
+
+<app-main-table *ngIf="token?.value.length !== 0"></app-main-table>

@@ -1,0 +1,44 @@
+<div class="group-wrapper" [formGroup]="parentForm">
+  <h3>
+    <fa-icon [icon]="['fas', 'hdd']" class="check"></fa-icon>
+    Data Volumes
+  </h3>
+  <p>Configure the Volumes to be mounted as your Datasets.</p>
+  <p *ngIf="readonly">
+    *The Cluster Administrator has disabled editing this Section!
+  </p>
+  <button
+    mat-stroked-button
+    color="accent"
+    (click)="addVol()"
+    type="button"
+    [disabled]="readonly"
+  >
+    <mat-icon>add</mat-icon>ADD VOLUME
+  </button>
+
+  <div *ngFor="let vol of datavols; let i = index" class="volume-wrapper">
+    <app-rok-volume
+      [volume]="vol"
+      [notebookName]="parentForm.get('name').value"
+      [namespace]="parentForm.get('namespace').value"
+      [pvcs]="pvcs"
+      [ephemeral]="false"
+      [storageClasses]="storageClasses"
+      [token]="token"
+    >
+    </app-rok-volume>
+
+    <div class="del-btn">
+      <button
+        mat-icon-button
+        color="warn"
+        (click)="deleteVol(i)"
+        type="button"
+        [disabled]="readonly"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>
