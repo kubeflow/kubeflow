@@ -72,9 +72,12 @@ var DefaultRegistry = RegistryConfig{
 }
 
 // Plugin can be used to customize the generation and deployment of Kubeflow
+// TODO(jlewi): Should Plugin contain K8s TypeMeta so that we can use ApiVersion and Kind
+// to identify what it refers to?
 type Plugin struct {
 	Name       string            `json:"name,omitempty"`
 	Parameters []PluginParameter `json:"pluginParameters,omitempty"`
+	Spec       interface{}       `json:"spec,omitempty"`
 }
 
 type PluginParameter struct {
@@ -383,6 +386,38 @@ func (d *KfDef) GetPluginParameter(pluginName string, parameterName string) (str
 	}
 
 	return "", fmt.Errorf("Could not find plugin %v or it doesn't have parameter %v", pluginName, parameterName)
+}
+
+
+// GetPluginSpec will try to unmarshal the spec for the specified plugin to the supplied
+// interface. Returns an error if the plugin isn't defined or if there is a problem
+// unmarshaling it.
+func (d *KfDef) GetPluginSpec(pluginName string, s interface{}) error {
+	for _, p := range d.Spec.Plugins {
+		if p.Name != pluginName {
+			continue
+		}
+
+		// To deserialize it to a specific type we need to first serialize it to bytes
+		// and then unserialize it.
+		specBytes, err := yaml.Marshal(p.Spec)
+
+		if err != nil {
+			log.Errorf("Could not marshal plugin %v args; error %v", pluginName, err)
+			return err
+		}
+
+		err = yaml.Unmarshal(specBytes, s)
+
+		if err != nil {
+			log.Errorf("Could not unmarshal plugin %v to the provided type; error %v", pluginName, err)
+		}
+		return nil
+	}
+
+	// TODO(jlewi): We should define a specific error so we can distinguish an error
+	// due to the plugin not being defined to unmarshaling errors
+	return fmt.Errorf("Could not find plugin %v", pluginName)
 }
 
 // SetPluginParameter sets the requested parameter. The plugin is added if it doesn't already exist.

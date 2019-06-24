@@ -77,11 +77,11 @@ const (
 	KUBECONFIG_FORMAT = "gke_{project}_{zone}_{cluster}"
 
 	// Plugin parameter constants
-	GcpPluginName        = kftypes.GCP
-	GcpAccessTokenName   = "accessToken"
-	GcpStorageOptionName = "storageOption"
-	GcpSaClientIdName    = "saClientId"
-	GcpIapOauthClientIdParamName = "iapOauthClientId"
+	GcpPluginName                    = kftypes.GCP
+	GcpAccessTokenName               = "accessToken"
+	GcpStorageOptionName             = "storageOption"
+	GcpSaClientIdName                = "saClientId"
+	GcpIapOauthClientIdParamName     = "iapOauthClientId"
 	GcpIapOauthClientSecretParamName = "iapOauthClientSecret"
 )
 
@@ -98,9 +98,29 @@ type Gcp struct {
 }
 
 type GcpArgs struct {
-	AccessToken     string
-	StorageOption   configtypes.StorageOption
-	SAClientId      string
+	AccessToken   string
+	StorageOption configtypes.StorageOption
+	SAClientId    string
+}
+
+// GcpPlugin defines the extra data provided by the GCP Plugin in KfDef
+type GcpPluginSpec struct {
+	Auth *Auth `json:"auth,omitempty"`
+}
+
+type Auth struct {
+	BasicAuth *BasicAuth `json:"basicAuth,omitempty"`
+	IAP       *IAP       `json:"iap,omitempty"`
+}
+
+type BasicAuth struct {
+	Username string            `json:"username,omitempty"`
+	Password *kfdefs.SecretRef `json:"password,omitempty"`
+}
+
+type IAP struct {
+	OAuthClientId     string            `json:"oAuthClientId,omitempty"`
+	OAuthClientSecret *kfdefs.SecretRef `json:"oAuthClientSecret,omitempty"`
 }
 
 type dmOperationEntry struct {
@@ -788,8 +808,8 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 
 		if err != nil {
 			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Could not determine the username for basic auth." +
+				Code: int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Could not determine the username for basic auth."+
 					"Please set the parameter %v on plugin %v", kfapp.UsernameParamName, GcpPluginName),
 			}
 		}
@@ -798,8 +818,8 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 
 		if err != nil {
 			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Could not determine the password for basic auth." +
+				Code: int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Could not determine the password for basic auth."+
 					"Please set the parameter %v on plugin %v", kfapp.PasswordParamName, GcpPluginName),
 			}
 		}
@@ -813,8 +833,8 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 		if err != nil {
 			log.Errorf("Could not read IAP OAuth ClientID from KfDef; error %v", err)
 			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Could not determine the OAuth Client ID for IAP." +
+				Code: int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Could not determine the OAuth Client ID for IAP."+
 					"Please set the parameter %v on plugin %v", GcpIapOauthClientIdParamName, GcpPluginName),
 			}
 		}
@@ -824,8 +844,8 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 		if err != nil {
 			log.Errorf("Could not read IAP OAuth ClientSecret from KfDef; error %v", err)
 			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Could not determine the OAuth Client Secret for IAP." +
+				Code: int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Could not determine the OAuth Client Secret for IAP."+
 					"Please set the parameter %v on plugin %v", GcpIapOauthClientSecretParamName, GcpPluginName),
 			}
 		}
@@ -1351,6 +1371,8 @@ func (gcp *Gcp) generateDMConfigs() error {
 	return nil
 }
 
+// TODO(jlewi): We should refactor this method to take a K8sSecret.
+// Should we change it to be updateOrCreateSecret?
 func insertSecret(client *clientset.Clientset, secretName string, namespace string, data map[string][]byte) error {
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -1449,25 +1471,27 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 	})
 }
 
-// Use username and password provided by user and create secret for basic auth.
-func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
+// TODO(jlewi): Add a unittest to this function.
+func (gcp *Gcp) buildBasicAuthSecret() (*v1.Secret, error) {
+
+	// TODO(jlewi): Parse the GCP plugin and get the correct values.
 	username, err := kfapp.GetBasicAuthUsername(gcp.Spec)
 
 	if err != nil {
 		log.Errorf("There was a problem getting the username for basic auth; error %v", err)
-		return err
+		return nil, err
 	}
 
 	password, err := kfapp.GetBasicAuthPassword(gcp.Spec)
 
 	if err != nil {
 		log.Errorf("There was a problem getting the password for basic auth; error %v", err)
-		return err
+		return nil, err
 	}
 
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
-		return &kfapis.KfError{
+		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Error when hashing password: %v", err),
 		}
@@ -1484,15 +1508,28 @@ func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
 			"passwordhash": []byte(encodedPassword),
 		},
 	}
-	_, err = client.CoreV1().Secrets(gcp.Namespace).Update(secret)
-	if err != nil {
-		log.Warnf("Updating basic auth login failed, trying to create one: %v", err)
-		return insertSecret(client, BASIC_AUTH_SECRET, gcp.Namespace, map[string][]byte{
-			"username":     []byte(username),
-			"passwordhash": []byte(encodedPassword),
-		})
-	}
-	return nil
+
+	return secret, nil
+}
+
+// Use username and password provided by user and create secret for basic auth.
+//
+// TODO(jlewi): We should refactor this method to make it easier to test. We should make it easy
+// to verify the spec for the K8s secrets without issuing any http calls.
+func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
+	//secret, err := gcp.buildBasicAuthSecret()
+
+
+	return fmt.Errorf("Need to fix this method by creating a method updateOrCreateSecret")
+	//_, err = client.CoreV1().Secrets(gcp.Namespace).Update(secret)
+	//if err != nil {
+	//	log.Warnf("Updating basic auth login failed, trying to create one: %v", err)
+	//	return insertSecret(client, BASIC_AUTH_SECRET, gcp.Namespace, map[string][]byte{
+	//		"username":     []byte(username),
+	//		"passwordhash": []byte(encodedPassword),
+	//	})
+	//}
+	//return nil
 }
 
 func (gcp *Gcp) getIstioNamespace() string {
