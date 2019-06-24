@@ -1,0 +1,22 @@
+apiVersion: kubeflow.org/v1alpha1
+kind: Notebook
+metadata:
+  name: {name}
+  namespace: {namespace}
+  labels:
+    app: {name}
+spec:
+  template:
+    spec:
+      serviceAccountName: {serviceAccount}
+      containers:
+        - name: {name}
+          image: ""
+          volumeMounts: []
+          env: []
+          resources:
+            requests:
+              cpu: "0.1"
+              memory: "0.1Gi"
+      ttlSecondsAfterFinished: 300
+      volumes: []

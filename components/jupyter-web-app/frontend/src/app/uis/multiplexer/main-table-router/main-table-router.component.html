@@ -1,0 +1,4 @@
+<!-- This file multiplexes the different UIs -->
+<app-main-table *ngIf="env.ui === 'default'"></app-main-table>
+
+<app-rok-main-table *ngIf="env.ui === 'rok'"></app-rok-main-table>

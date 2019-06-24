@@ -1,0 +1,25 @@
+.snack-container {
+  display: flex;
+  align-items: center;
+  // width: 500px;
+}
+
+.pad {
+  margin-right: 10px;
+}
+
+.done {
+  color: green;
+}
+
+.clear {
+  color: red;
+}
+
+.warning {
+  color: orange;
+}
+
+span {
+  width: 90%;
+}

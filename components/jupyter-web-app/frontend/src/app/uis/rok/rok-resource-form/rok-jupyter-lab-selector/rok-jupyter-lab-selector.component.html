@@ -1,0 +1,34 @@
+<div class="group-wrapper" [formGroup]="parentForm">
+  <h3>
+    <fa-icon [icon]="['fas', 'link']" class="check"></fa-icon>
+    Rok JupyterLab URL
+  </h3>
+  <p>
+    Load an existing Jupyter Lab by providing a valid Rok URL.
+  </p>
+
+  <div class="inputs-wrapper">
+    <mat-form-field appearance="outline">
+      <mat-label>Rok URL</mat-label>
+      <input
+        matInput
+        placeholder="Your Rok Jupyter Lab URL goes here"
+        formControlName="labUrl"
+        (keyup.enter)="autofillJupyterLab()"
+        #name
+      />
+      <mat-error>You must enter a value</mat-error>
+    </mat-form-field>
+
+    <div class="button-wrapper">
+      <button
+        mat-raised-button
+        color="accent"
+        type="button"
+        (click)="autofillJupyterLab()"
+      >
+        AUTOFILL
+      </button>
+    </div>
+  </div>
+</div>
