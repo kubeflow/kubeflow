@@ -81,9 +81,11 @@ var DefaultRegistry = RegistryConfig{
 // method based on marshling the object to bytes?
 //
 type Plugin struct {
-	Name string `json:"name,omitempty"`
-	//Parameters []PluginParameter `json:"pluginParameters,omitempty"`
-	Spec runtime.RawExtension `json:"spec,omitempty"`
+	Name       string            `json:"name,omitempty"`
+	Parameters []PluginParameter `json:"pluginParameters,omitempty"`
+
+	// TODO(jlewi): Should we be using runtime.Object or runtime.RawExtension
+	Spec *runtime.RawExtension `json:"spec,omitempty"`
 }
 
 type PluginParameter struct {
@@ -441,44 +443,51 @@ func (s *KfDefSpec) GetPluginSpec(pluginName string, pluginSpec interface{}) err
 //	return "", fmt.Errorf("Could not find plugin %v or it doesn't have parameter %v", pluginName, parameterName)
 //}
 
-// TODO(jlewi): Delete this code. We shouldn't need it now that we have PluginSpec.
-//// SetPluginParameter sets the requested parameter. The plugin is added if it doesn't already exist.
-//func (d *KfDef) SetPluginParameter(pluginName string, newParam PluginParameter) error {
-//	index := -1
-//	for i, p := range d.Spec.Plugins {
-//		if p.Name == pluginName {
-//			index = i
-//			break
-//		}
-//	}
-//
-//	if index == -1 {
-//		// Plugin in doesn't exist so add it
-//		log.Infof("Adding plugin %v", pluginName)
-//
-//		d.Spec.Plugins = append(d.Spec.Plugins, Plugin{
-//			Name: pluginName,
-//		})
-//
-//		index = len(d.Spec.Plugins) - 1
-//	}
-//
-//	pIndex := -1
-//
-//	for i, param := range d.Spec.Plugins[index].Parameters {
-//		if param.Name == newParam.Name {
-//			pIndex = i
-//			break
-//		}
-//	}
-//
-//	if pIndex == -1 {
-//		d.Spec.Plugins[index].Parameters = append(d.Spec.Plugins[index].Parameters, newParam)
-//	} else {
-//		d.Spec.Plugins[index].Parameters[pIndex] = newParam
-//	}
-//	return nil
-//}
+// SetPlugin sets the requested parameter. The plugin is added if it doesn't already exist.
+func (d *KfDef) SetPlugin(pluginName string, spec interface{}) error {
+	// Convert spec to RawExtension
+
+	r := &runtime.RawExtension{}
+
+	// To deserialize it to a specific type we need to first serialize it to bytes
+	// and then unserialize it.
+	specBytes, err := yaml.Marshal(spec)
+
+	if err != nil {
+		log.Errorf("Could not marshal spec; error %v", err)
+		return err
+	}
+
+	err = yaml.Unmarshal(specBytes, r)
+
+	if err != nil {
+		log.Errorf("Could not unmarshal plugin to RawExtension; error %v", err)
+	}
+
+	index := -1
+
+	for i, p := range d.Spec.Plugins {
+		if p.Name == pluginName {
+			index = i
+			break
+		}
+	}
+
+	if index == -1 {
+		// Plugin in doesn't exist so add it
+		log.Infof("Adding plugin %v", pluginName)
+
+		d.Spec.Plugins = append(d.Spec.Plugins, Plugin{
+			Name: pluginName,
+		})
+
+		index = len(d.Spec.Plugins) - 1
+	}
+
+	d.Spec.Plugins[index].Spec = r
+
+	return nil
+}
 
 // SyncCache will synchronize the local cache of any repositories.
 // On success the status is updated with pointers to the cache.

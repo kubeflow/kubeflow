@@ -28,8 +28,8 @@ type IAP struct {
 // If false it will also return a string providing a message about why its invalid.
 func (s *GcpPluginSpec) IsValid() (bool, string) {
 
-	basicAuthSet := s.Auth.BasicAuth == nil
-	iapAuthSet := s.Auth.IAP == nil
+	basicAuthSet := s.Auth.BasicAuth != nil
+	iapAuthSet := s.Auth.IAP != nil
 
 	if basicAuthSet == iapAuthSet {
 		return false, "Exactly one of BasicAuth and IAP must be set; the other should be nil"
@@ -53,18 +53,22 @@ func (s *GcpPluginSpec) IsValid() (bool, string) {
 		return isValid, msg
 	}
 
-	msg := ""
-	isValid := true
+	if iapAuthSet {
+		msg := ""
+		isValid := true
 
-	if s.Auth.IAP.OAuthClientId == "" {
-		isValid = false
-		msg += "IAP requires OAuthClientId. "
+		if s.Auth.IAP.OAuthClientId == "" {
+			isValid = false
+			msg += "IAP requires OAuthClientId. "
+		}
+
+		if s.Auth.IAP.OAuthClientSecret == nil {
+			isValid = false
+			msg += "IAP requires OAuthClientSecret. "
+		}
+
+		return isValid, msg
 	}
 
-	if s.Auth.IAP.OAuthClientSecret == nil {
-		isValid = false
-		msg += "IAP requires OAuthClientSecret. "
-	}
-
-	return isValid, msg
+	return false, "Either BasicAuth or IAP must be set"
 }

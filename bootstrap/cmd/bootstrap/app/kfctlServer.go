@@ -20,7 +20,7 @@ type kfctlServer struct {
 	ts *RefreshableTokenSource
 	c  chan CreateRequest
 
-	kfApp NewKfAppFromKfDef
+	//kfApp NewKfAppFromKfDef
 }
 
 // NewServer returns a new kfctl server

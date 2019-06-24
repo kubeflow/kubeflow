@@ -25,7 +25,6 @@ import (
 	"github.com/ghodss/yaml"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
@@ -44,6 +43,7 @@ import (
 	"io/ioutil"
 	"k8s.io/api/v2/core/v1"
 	rbacv1 "k8s.io/api/v2/rbac/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -1315,8 +1315,33 @@ func (gcp *Gcp) generateDMConfigs() error {
 	return nil
 }
 
-// TODO(jlewi): We should refactor this method to take a K8sSecret.
-// Should we change it to be updateOrCreateSecret?
+// createOrUpdateSecret creates or updates the existing secret.
+func createOrUpdateSecret(client *clientset.Clientset, secret *v1.Secret) error {
+	// Try to update the secret first
+	_, err := client.CoreV1().Secrets(secret.Namespace).Update(secret)
+
+	if !k8serrors.IsNotFound(err) {
+		log.Errorf("Error trying to update secret %v.%v; error %v", secret.Namespace, secret.Name, err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: err.Error(),
+		}
+	}
+
+	// The secret doesn't exist so try creating it.
+	_, err = client.CoreV1().Secrets(secret.Namespace).Create(secret)
+
+	if err != nil {
+		log.Errorf("Error trying to create secret %v.%v; error %v", secret.Namespace, secret.Name, err)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: err.Error(),
+		}
+	}
+	return nil
+}
+
+// TODO(jlewi): We should replace all calls to this method with createOrUpdateSecret
 func insertSecret(client *clientset.Clientset, secretName string, namespace string, data map[string][]byte) error {
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -1381,6 +1406,14 @@ func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientse
 
 // User CLIENT_ID and CLIENT_SECRET from GCP to create a secret for IAP.
 func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset) error {
+	p := &GcpPluginSpec{}
+
+	err := gcp.Spec.GetPluginSpec(GcpPluginName, p)
+
+	if err != nil {
+		log.Errorf("Could not get GcpPluginSpec; error %v", err)
+		return err
+	}
 	oauthSecretNamespace := gcp.Namespace
 	if gcp.Spec.UseIstio {
 		oauthSecretNamespace = gcp.getIstioNamespace()
@@ -1396,51 +1429,64 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 		Spec: gcp.Spec,
 	}
 
-	oauthId, err := d.GetPluginParameter(GcpPluginName, GcpIapOauthClientIdParamName)
-
 	if err != nil {
 		log.Errorf("Could not read IAP OAuth ClientID from KfDef; error %v", err)
 		return err
 	}
 
-	oauthSecret, err := d.GetPluginParameter(GcpPluginName, GcpIapOauthClientSecretParamName)
+	oauthSecret, err := d.GetSecret(p.Auth.IAP.OAuthClientSecret.Name)
 
 	if err != nil {
 		log.Errorf("Could not read IAP OAuth ClientSecret from KfDef; error %v", err)
 		return err
 	}
 	return insertSecret(client, KUBEFLOW_OAUTH, oauthSecretNamespace, map[string][]byte{
-		strings.ToLower(CLIENT_ID):     []byte(oauthId),
+		strings.ToLower(CLIENT_ID):     []byte(p.Auth.IAP.OAuthClientId),
 		strings.ToLower(CLIENT_SECRET): []byte(oauthSecret),
 	})
 }
 
+func base64EncryptPassword(password string) (string, error) {
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	if err != nil {
+		return "", &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error when hashing password: %v", err),
+		}
+	}
+	encodedPassword := base64.StdEncoding.EncodeToString(passwordHash)
+
+	return encodedPassword, nil
+}
+
 // TODO(jlewi): Add a unittest to this function.
 func (gcp *Gcp) buildBasicAuthSecret() (*v1.Secret, error) {
+	p := &GcpPluginSpec{}
 
-	// TODO(jlewi): Parse the GCP plugin and get the correct values.
-	username, err := kfapp.GetBasicAuthUsername(gcp.Spec)
+	err := gcp.Spec.GetPluginSpec(GcpPluginName, p)
 
 	if err != nil {
-		log.Errorf("There was a problem getting the username for basic auth; error %v", err)
+		log.Errorf("Could not get GcpPluginSpec; error %v", err)
 		return nil, err
 	}
 
-	password, err := kfapp.GetBasicAuthPassword(gcp.Spec)
+	d := &kfdefs.KfDef{
+		Spec: gcp.Spec,
+	}
+
+	password, err := d.GetSecret(p.Auth.BasicAuth.Password.Name)
 
 	if err != nil {
 		log.Errorf("There was a problem getting the password for basic auth; error %v", err)
 		return nil, err
 	}
 
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	encodedPassword, err := base64EncryptPassword(password)
+
 	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error when hashing password: %v", err),
-		}
+		log.Errorf("There was a problem encrypting the password; %v", err)
+		return nil, err
 	}
-	encodedPassword := base64.StdEncoding.EncodeToString(passwordHash)
 
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -1448,7 +1494,7 @@ func (gcp *Gcp) buildBasicAuthSecret() (*v1.Secret, error) {
 			Namespace: gcp.Namespace,
 		},
 		Data: map[string][]byte{
-			"username":     []byte(username),
+			"username":     []byte(p.Auth.BasicAuth.Username),
 			"passwordhash": []byte(encodedPassword),
 		},
 	}
@@ -1456,23 +1502,15 @@ func (gcp *Gcp) buildBasicAuthSecret() (*v1.Secret, error) {
 	return secret, nil
 }
 
-// Use username and password provided by user and create secret for basic auth.
-//
-// TODO(jlewi): We should refactor this method to make it easier to test. We should make it easy
-// to verify the spec for the K8s secrets without issuing any http calls.
+// createBasicAuthSecret creates a secret containing basic auth information.
 func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
-	//secret, err := gcp.buildBasicAuthSecret()
+	secret, err := gcp.buildBasicAuthSecret()
 
-	return fmt.Errorf("Need to fix this method by creating a method updateOrCreateSecret")
-	//_, err = client.CoreV1().Secrets(gcp.Namespace).Update(secret)
-	//if err != nil {
-	//	log.Warnf("Updating basic auth login failed, trying to create one: %v", err)
-	//	return insertSecret(client, BASIC_AUTH_SECRET, gcp.Namespace, map[string][]byte{
-	//		"username":     []byte(username),
-	//		"passwordhash": []byte(encodedPassword),
-	//	})
-	//}
-	//return nil
+	if err != nil {
+		return err
+	}
+
+	return createOrUpdateSecret(client, secret)
 }
 
 func (gcp *Gcp) getIstioNamespace() string {

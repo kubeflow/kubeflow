@@ -2,78 +2,100 @@ package gcp
 
 import (
 	"encoding/json"
-	"github.com/ghodss/yaml"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	"io/ioutil"
-	"os"
-	"path"
+	"k8s.io/api/v2/core/v1"
+	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"reflect"
 	"testing"
 )
 
-func TestGcp_ParsePlugin(t *testing.T) {
-	// Test that we can properly parse the gcp structs.
+func TestGcp_buildBasicAuthSecret(t *testing.T) {
 	type testCase struct {
-		Filename string
-		Expected *GcpPluginSpec
+		Gcp           *Gcp
+		GcpPluginSpec *GcpPluginSpec
+		Expected      *v1.Secret
+	}
+
+	encodedPassword, err := base64EncryptPassword("somepassword")
+
+	if err != nil {
+		t.Fatalf("Could not encode password; %v", err)
 	}
 
 	cases := []testCase{
 		{
-			Filename: "kfctl_gcp.yaml",
-			Expected: &GcpPluginSpec{
-				Auth: &Auth{
-					BasicAuth: &BasicAuth{
-						Username: "someuser",
-						Password: &kfdefs.SecretRef{
-							Name: "password",
+			Gcp: &Gcp{
+				KfDef: kfdefs.KfDef{
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace: "gcpnamespace",
+					},
+					Spec: kfdefs.KfDefSpec{
+						Plugins: []kfdefs.Plugin{
+							{
+								Name: "gcp",
+							},
+						},
+						Secrets: []kfdefs.Secret{
+							{
+								Name: "passwordSecret",
+								SecretSource: &kfdefs.SecretSource{
+									LiteralSource: &kfdefs.LiteralSource{
+										Value: "somepassword",
+									},
+								},
+							},
 						},
 					},
 				},
 			},
+			GcpPluginSpec: &GcpPluginSpec{
+				Auth: &Auth{
+					BasicAuth: &BasicAuth{
+						Username: "kfuser",
+						Password: &kfdefs.SecretRef{
+							Name: "passwordSecret",
+						},
+					},
+				},
+			},
+			Expected: &v1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "kubeflow-login",
+					Namespace: "gcpnamespace",
+				},
+				Data: map[string][]byte{
+					"passwordhash": []byte(encodedPassword),
+					"username":     []byte("kfuser"),
+				},
+			},
 		},
 	}
+
 	for _, c := range cases {
-		wd, _ := os.Getwd()
-		fPath := path.Join(wd, "testdata", c.Filename)
 
-		buf, bufErr := ioutil.ReadFile(fPath)
-		if bufErr != nil {
-			t.Fatalf("Error reading file %v; error %v", fPath, bufErr)
-		}
-
-		d := &kfdefs.KfDef{}
-		err := yaml.Unmarshal(buf, d)
-		if err != nil {
-			t.Fatalf("Could not parse as KfDef error %v", err)
-		}
-
-		args := d.Spec.Plugins[0].Args
-
-		argBytes, err := yaml.Marshal(args)
+		err := c.Gcp.SetPlugin("gcp", c.GcpPluginSpec)
 
 		if err != nil {
-			t.Fatalf("Could not marsh args; error %v", err)
+			t.Fatalf("Could not set pluginspec")
 		}
-
-		p := &GcpPlugin{}
-		err = yaml.Unmarshal(argBytes, p)
+		actual, err := c.Gcp.buildBasicAuthSecret()
 
 		if err != nil {
-			t.Fatalf("Could not unmarshal as GcpPlugin; error %v", err)
+			t.Fatalf("Could not get build secret; error %v", err)
 		}
 
-		pWant, _ := Pformat(c.Expected)
-		t.Logf("Want\n%v", pWant)
-		//if !ok {
-		//	pGot, _ := Pformat(args)
-		//	t.Fatalf("Could not assert plugin args as type GcpPlugin; Got\n%v", pGot)
-		//}
+		if !reflect.DeepEqual(actual.TypeMeta, c.Expected.TypeMeta) {
+			pGot, _ := Pformat(actual.TypeMeta)
+			pWant, _ := Pformat(c.Expected.TypeMeta)
+			t.Errorf("Error building secret TypeMeta got;\n%v\nwant;\n%v", pGot, pWant)
+		}
 
-		if !reflect.DeepEqual(p, c.Expected) {
-			pGot, _ := Pformat(p)
-			pWant, _ := Pformat(c.Expected)
-			t.Errorf("Error parsing plugin parameters got;\n%v\nwant;\n%v", pGot, pWant)
+		for _, k := range []string{"username", "passwordHash"} {
+			if string(actual.Data[k]) != string(c.Expected.Data[k]) {
+				pGot, _ := actual.Data[k]
+				pWant, _ := c.Expected.Data[k]
+				t.Errorf("Error building secret Key %v got;\n%v\nwant;\n%v", k, pGot, pWant)
+			}
 		}
 	}
 }
