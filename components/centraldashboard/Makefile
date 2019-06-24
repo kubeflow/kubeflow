@@ -30,7 +30,7 @@ test: build-local
 
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
-build: test
+build:
 	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) . \
 	  --build-arg kubeflowversion=$(shell git describe --abbrev=0 --tags) \
 	  --build-arg commit=$(shell git rev-parse HEAD) \
