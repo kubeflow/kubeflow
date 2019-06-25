@@ -14,6 +14,18 @@
 
 package v1alpha1
 
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/ghodss/yaml"
+	"github.com/prometheus/common/log"
+	"io/ioutil"
+	"os"
+	"path"
+	"reflect"
+	"testing"
+)
+
 // TODO(https://github.com/kubeflow/kubeflow/issues/3056): Fix the test and uncomment.
 //import (
 //	"testing"
@@ -55,3 +67,378 @@ package v1alpha1
 //	g.Expect(c.Delete(context.TODO(), fetched)).NotTo(gomega.HaveOccurred())
 //	g.Expect(c.Get(context.TODO(), key, fetched)).To(gomega.HaveOccurred())
 //}
+
+func TestWriteKfDef(t *testing.T) {
+	// Verify that if we write KfDef it will be stripped of any literal secrets.
+	type testCase struct {
+		input  *KfDef
+		output *KfDef
+	}
+
+	cases := []testCase{
+		{
+			input: &KfDef{
+				Spec: KfDefSpec{
+					AppDir: "someapp",
+					Secrets: []Secret{
+						{
+							Name: "s1",
+							SecretSource: &SecretSource{
+								LiteralSource: &LiteralSource{
+									Value: "somedata",
+								},
+							},
+						},
+						{
+							Name: "s2",
+							SecretSource: &SecretSource{
+								EnvSource: &EnvSource{
+									Name: "somesecret",
+								},
+							},
+						},
+					},
+				},
+			},
+			output: &KfDef{
+				Spec: KfDefSpec{
+					AppDir: "someapp",
+					Secrets: []Secret{
+						{
+							Name: "s2",
+							SecretSource: &SecretSource{
+								EnvSource: &EnvSource{
+									Name: "somesecret",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		testDir, _ := ioutil.TempDir("", "")
+
+		testFile := path.Join(testDir, "app.yaml")
+		err := c.input.WriteToFile(testFile)
+
+		if err != nil {
+			t.Fatalf("Could not write file; %v", err)
+		}
+
+		// Read contents
+		configFileBytes, err := ioutil.ReadFile(testFile)
+		if err != nil {
+			t.Fatalf("Could not read file; %v", err)
+		}
+
+		result := &KfDef{}
+		if err := yaml.Unmarshal(configFileBytes, result); err != nil {
+			t.Fatalf("Could not unmarshal the result; %v", err)
+		}
+
+		// Test they are equal
+		if !reflect.DeepEqual(result, c.output) {
+			pExpected, _ := Pformat(c.output)
+			pActual, _ := Pformat(result)
+
+			t.Errorf("Result wasn't properly stripped: Got:\n%v;\n Want:\n%v", pActual, pExpected)
+		}
+	}
+}
+
+type FakePluginSpec struct {
+	Param     string `json:"param,omitempty"`
+	BoolParam bool   `json:"boolParam,omitempty"`
+}
+
+func TestKfDef_GetPluginSpec(t *testing.T) {
+	// Test that we can properly parse the gcp structs.
+	type testCase struct {
+		Filename   string
+		PluginName string
+		Expected   *FakePluginSpec
+	}
+
+	cases := []testCase{
+		{
+			Filename:   "kfctl_plugin_test.yaml",
+			PluginName: "fakeplugin",
+			Expected: &FakePluginSpec{
+				Param:     "someparam",
+				BoolParam: true,
+			},
+		},
+	}
+
+	for _, c := range cases {
+		wd, _ := os.Getwd()
+		fPath := path.Join(wd, "testdata", c.Filename)
+
+		buf, bufErr := ioutil.ReadFile(fPath)
+		if bufErr != nil {
+			t.Fatalf("Error reading file %v; error %v", fPath, bufErr)
+		}
+
+		log.Infof("Want ")
+		d := &KfDef{}
+		err := yaml.Unmarshal(buf, d)
+		if err != nil {
+			t.Fatalf("Could not parse as KfDef error %v", err)
+		}
+
+		actual := &FakePluginSpec{}
+		err = d.GetPluginSpec(c.PluginName, actual)
+
+		if err != nil {
+			t.Fatalf("Could not get plugin spec; error %v", err)
+		}
+
+		if !reflect.DeepEqual(actual, c.Expected) {
+			pGot, _ := Pformat(actual)
+			pWant, _ := Pformat(c.Expected)
+			t.Errorf("Error parsing plugin spec got;\n%v\nwant;\n%v", pGot, pWant)
+		}
+	}
+}
+
+func TestKfDef_SetPluginSpec(t *testing.T) {
+	// Test that we can properly parse the gcp structs.
+	type testCase struct {
+		PluginName string
+		Expected   *FakePluginSpec
+	}
+
+	cases := []testCase{
+		{
+			PluginName: "fakeplugin",
+			Expected: &FakePluginSpec{
+				Param:     "oldparam",
+				BoolParam: true,
+			},
+		},
+		// Override the existing plugin
+		{
+			PluginName: "fakeplugin",
+			Expected: &FakePluginSpec{
+				Param:     "newparam",
+				BoolParam: true,
+			},
+		},
+		// Add a new plugin
+		{
+			PluginName: "fakeplugin",
+			Expected: &FakePluginSpec{
+				Param:     "newparam",
+				BoolParam: true,
+			},
+		},
+	}
+
+	d := &KfDef{}
+
+	for _, c := range cases {
+		err := d.SetPluginSpec(c.PluginName, c.Expected)
+
+		if err != nil {
+			t.Fatalf("Could not set plugin spec; error %v", err)
+		}
+
+		actual := &FakePluginSpec{}
+		err = d.GetPluginSpec(c.PluginName, actual)
+
+		if err != nil {
+			t.Fatalf("Could not get plugin spec; error %v", err)
+		}
+
+		if !reflect.DeepEqual(actual, c.Expected) {
+			pGot, _ := Pformat(actual)
+			pWant, _ := Pformat(c.Expected)
+			t.Errorf("Error parsing plugin spec got;\n%v\nwant;\n%v", pGot, pWant)
+		}
+	}
+}
+
+func TestKfDef_GetSecret(t *testing.T) {
+	d := &KfDef{
+		Spec: KfDefSpec{
+			AppDir: "someapp",
+			Secrets: []Secret{
+				{
+					Name: "s1",
+					SecretSource: &SecretSource{
+						LiteralSource: &LiteralSource{
+							Value: "somedata",
+						},
+					},
+				},
+				{
+					Name: "s2",
+					SecretSource: &SecretSource{
+						EnvSource: &EnvSource{
+							Name: "s2",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	type testCase struct {
+		SecretName    string
+		ExpectedValue string
+	}
+
+	cases := []testCase{
+		{
+			SecretName:    "s1",
+			ExpectedValue: "somedata",
+		},
+		{
+			SecretName:    "s2",
+			ExpectedValue: "somesecret",
+		},
+	}
+
+	os.Setenv("s2", "somesecret")
+	for _, c := range cases {
+		actual, err := d.GetSecret(c.SecretName)
+		if err != nil {
+			t.Errorf("Error getting secret %v; error %v", c.SecretName, err)
+		}
+
+		if actual != c.ExpectedValue {
+			t.Errorf("Secret %v value is wrong; got %v; want %v", c.SecretName, actual, c.ExpectedValue)
+		}
+	}
+}
+
+func TestKfDef_SetSecret(t *testing.T) {
+	type testCase struct {
+		Input    KfDef
+		Secret   Secret
+		Expected KfDef
+	}
+
+	cases := []testCase{
+		// No Secrets exist
+		{
+			Input: KfDef{},
+			Secret: Secret{
+				Name: "s1",
+				SecretSource: &SecretSource{
+					LiteralSource: &LiteralSource{
+						Value: "v1",
+					},
+				},
+			},
+			Expected: KfDef{
+				Spec: KfDefSpec{
+					Secrets: []Secret{
+						{
+							Name: "s1",
+							SecretSource: &SecretSource{
+								LiteralSource: &LiteralSource{
+									Value: "v1",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		// Override a secret
+		{
+			Input: KfDef{
+				Spec: KfDefSpec{
+					Secrets: []Secret{
+						{
+							Name: "s1",
+							SecretSource: &SecretSource{
+								LiteralSource: &LiteralSource{
+									Value: "oldvalue",
+								},
+							},
+						},
+					},
+				},
+			},
+			Secret: Secret{
+				Name: "s1",
+				SecretSource: &SecretSource{
+					LiteralSource: &LiteralSource{
+						Value: "newvalue",
+					},
+				},
+			},
+			Expected: KfDef{
+				Spec: KfDefSpec{
+					Secrets: []Secret{
+						{
+							Name: "s1",
+							SecretSource: &SecretSource{
+								LiteralSource: &LiteralSource{
+									Value: "newvalue",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		i := &KfDef{}
+		*i = c.Input
+		err := i.SetSecret(c.Secret)
+		if err != nil {
+			t.Errorf("Error  setting secret %v; error %v", c.Secret.Name, err)
+		}
+
+		if !reflect.DeepEqual(*i, c.Expected) {
+			pGot, _ := Pformat(i)
+			pWant, _ := Pformat(c.Expected)
+			t.Errorf("Error setting secret %v; got;\n%v\nwant;\n%v", c.Secret.Name, pGot, pWant)
+		}
+	}
+}
+
+func Test_PluginNotFoundError(t *testing.T) {
+	type testCase struct {
+		Input    error
+		Expected bool
+	}
+
+	cases := []testCase{
+		{
+			Input:    NewPluginNotFound("someplugin"),
+			Expected: true,
+		},
+		{
+			Input:    fmt.Errorf("some error"),
+			Expected: false,
+		},
+	}
+
+	for _, c := range cases {
+		actual := IsPluginNotFound(c.Input)
+		if actual != c.Expected {
+			t.Errorf("IsPluginNotFound: Got %v; Want %v", actual, c.Expected)
+		}
+	}
+}
+
+// Pformat returns a pretty format output of any value.
+func Pformat(value interface{}) (string, error) {
+	if s, ok := value.(string); ok {
+		return s, nil
+	}
+	valueJson, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	return string(valueJson), nil
+}
