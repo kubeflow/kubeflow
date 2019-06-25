@@ -16,6 +16,7 @@ package v1alpha1
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/prometheus/common/log"
 	"io/ioutil"
@@ -438,6 +439,31 @@ func TestKfDef_SetSecret(t *testing.T) {
 			pGot, _ := Pformat(i)
 			pWant, _ := Pformat(c.Expected)
 			t.Errorf("Error setting secret %v; got;\n%v\nwant;\n%v", c.Secret.Name, pGot, pWant)
+		}
+	}
+}
+
+func Test_PluginNotFoundError(t *testing.T){
+	type testCase struct {
+		Input error
+		Expected bool
+	}
+
+	cases := []testCase {
+		{
+			Input: NewPluginNotFound("someplugin"),
+			Expected: true,
+		},
+		{
+			Input: fmt.Errorf("some error"),
+			Expected: false,
+		},
+	}
+
+	for _, c := range cases {
+		actual := IsPluginNotFound(c.Input)
+		if actual != c.Expected {
+			t.Errorf("IsPluginNotFound: Got %v; Want %v", actual, c.Expected)
 		}
 	}
 }

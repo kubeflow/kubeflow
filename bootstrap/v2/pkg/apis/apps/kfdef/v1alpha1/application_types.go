@@ -29,7 +29,9 @@ import (
 	"path"
 )
 
-const KfConfigFile = "app.yaml"
+const (
+	KfConfigFile = "app.yaml"
+)
 
 // KfDefSpec holds common attributes used by each platform
 type KfDefSpec struct {
@@ -400,9 +402,7 @@ func (d *KfDef) GetPluginSpec(pluginName string, s interface{}) error {
 		return nil
 	}
 
-	// TODO(jlewi): We should define a specific error so we can distinguish an error
-	// due to the plugin not being defined to unmarshaling errors
-	return fmt.Errorf("Could not find plugin %v", pluginName)
+	return NewPluginNotFound(pluginName)
 }
 
 // GetPluginSpec will try to unmarshal the spec for the specified plugin to the supplied
@@ -545,4 +545,23 @@ func (d *KfDef) WriteToFile(path string) error {
 	}
 	log.Infof("Writing stripped KfDef to %v", path)
 	return ioutil.WriteFile(path, buf, 0644)
+}
+
+type PluginNotFound struct {
+	Name string
+}
+
+func (e *PluginNotFound) Error() string {
+	return fmt.Sprintf("Missing plugin %v", e.Name)
+}
+
+func NewPluginNotFound(n string) *PluginNotFound {
+	return &PluginNotFound {
+		Name: n,
+	}
+}
+
+func IsPluginNotFound(e error) bool {
+	_, ok := e.(*PluginNotFound)
+	return ok
 }
