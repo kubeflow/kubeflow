@@ -48,9 +48,11 @@ def parse_args():
 
 @retry(stop_max_attempt_number=3)
 def create_app_and_job(args, namespace, name):
+  # The ksonnet binary
+  ks = "ks-13"
   try:
     util.run([
-        "ks", "init", "tf-job-simple-app", "--skip-default-registries",
+        ks, "init", "tf-job-simple-app", "--skip-default-registries",
         "--namespace=" + namespace
     ])
   except subprocess.CalledProcessError as e:
@@ -61,7 +63,7 @@ def create_app_and_job(args, namespace, name):
 
   os.chdir("tf-job-simple-app")
   try:
-    util.run(["ks", "registry", "add", "kubeflow", args.src_dir + "/kubeflow"])
+    util.run([ks, "registry", "add", "kubeflow", args.src_dir + "/kubeflow"])
   except subprocess.CalledProcessError as e:
     # Keep going if the registry has already been added.
     # This is a sign the a previous attempt failed and we are retrying.
@@ -69,7 +71,7 @@ def create_app_and_job(args, namespace, name):
       raise
 
   try:
-    util.run(["ks", "pkg", "install", "kubeflow/examples"])
+    util.run([ks, "pkg", "install", "kubeflow/examples"])
   except subprocess.CalledProcessError as e:
     # Keep going if the package has already been added.
     # This is a sign the a previous attempt failed and we are retrying.
@@ -84,8 +86,8 @@ def create_app_and_job(args, namespace, name):
     raise ValueError(
         "Unrecognized value for tf_job_version: %s" % args.tf_job_version)
 
-  util.run(["ks", "generate", prototype_name, name])
-  util.run(["ks", "apply", "default", "-c", "tf-job-simple"])
+  util.run([ks, "generate", prototype_name, name])
+  util.run([ks, "apply", "default", "-c", "tf-job-simple"])
 
 
 def test_tf_job_simple(test_case):  # pylint: disable=redefined-outer-name
