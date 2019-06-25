@@ -298,7 +298,8 @@ func (d *KfDef) SyncCache() error {
 	}
 	appDir := d.Spec.AppDir
 	// Loop over all the repos and download them.
-	// TODO(jlewi): We should check if we already have a local copy and not redownload it.
+	// TODO(https://github.com/kubeflow/kubeflow/issues/3545): We should check if we already have a local copy and
+	// not redownload it.
 
 	baseCacheDir := path.Join(appDir, DefaultCacheDir)
 	if _, err := os.Stat(baseCacheDir); os.IsNotExist(err) {

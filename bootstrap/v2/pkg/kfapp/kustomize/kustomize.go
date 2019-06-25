@@ -463,6 +463,8 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 // Init is called from 'kfctl init ...' and creates a <deployment> directory with an app.yaml file that
 // holds deployment information like components, parameters
 func (kustomize *kustomize) Init(resources kftypes.ResourceEnum) error {
+	// TODO(https://github.com/kubeflow/kubeflow/issues/3546): This code
+	// needs to be updated.
 	parts := strings.Split(kustomize.Spec.PackageManager, "@")
 	version := "master"
 	if len(parts) == 2 {
