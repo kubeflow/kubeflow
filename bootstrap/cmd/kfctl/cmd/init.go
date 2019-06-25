@@ -197,8 +197,8 @@ func init() {
 	initCmd.Flags().String(string(kftypes.CONFIG), "",
 		`Static config file to use. Can be either a local path or a URL.
 For example:
---config=https://github.com/kubeflow/kubeflow/tree/master/bootstrap/config/platform_existing.yaml
---config=platform_gcp.yaml`)
+--config=https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_platform_existing.yaml
+--config=kfctl_platform_gcp.yaml`)
 	bindErr = initCfg.BindPFlag(string(kftypes.CONFIG), initCmd.Flags().Lookup(string(kftypes.CONFIG)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.CONFIG), bindErr)
