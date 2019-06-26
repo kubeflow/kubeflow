@@ -30,7 +30,7 @@ const KfctlCreatePath = "/kfctl/apps/v1alpha2/create"
 // kfctlServer is a server to manage a single deployment.
 // It is a wrapper around kfctl.
 type kfctlServer struct {
-	ts *RefreshableTokenSource
+	ts TokenRefresher
 	c  chan kfdefsv2.KfDef
 
 	appsDir string
@@ -53,6 +53,7 @@ func NewKfctlServer(appsDir string) (*kfctlServer, error) {
 	s := &kfctlServer{
 		c: make(chan kfdefsv2.KfDef, 10),
 		appsDir: appsDir,
+		ts: &RefreshableTokenSource{},
 	}
 
 	// Start a background thread to process requests
@@ -193,6 +194,6 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv2.KfDef) 
 	s.kfDefMux.Lock()
 	defer s.kfDefMux.Unlock()
 
-	res := s.kfDefGetter.GetKfDef().DeepCopy()
+	res := s.latestKfDef.DeepCopy()
 	return res, nil
 }

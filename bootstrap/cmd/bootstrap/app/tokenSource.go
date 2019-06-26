@@ -26,6 +26,10 @@ type RefreshableTokenSource struct {
 	checker ProjectAccessChecker
 }
 
+type TokenRefresher interface {
+	Refresh(newToken oauth2.Token) error
+}
+
 // NewRefreshableTokenSource creates a new RefreshableTokenSource.
 func NewRefreshableTokenSource(p string) (*RefreshableTokenSource, error) {
 

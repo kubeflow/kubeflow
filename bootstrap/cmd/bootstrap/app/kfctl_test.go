@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"testing"
 	"time"
+	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 )
 
 // TestKfctlClientServerSmoke runs a smoke test of the KfctlServer.
@@ -33,7 +34,12 @@ func TestKfctlClientServerSmoke(t *testing.T) {
 		t.Errorf("There was a problem starting the server %+v", err)
 	}
 
-	kfctlServer, err := NewKfctlServer()
+	appDir, err := ioutil.TempDir("", "")
+
+	if err != nil {
+		t.Fatalf("Error creating temporary directory; error %v", err)
+	}
+	kfctlServer, err := NewKfctlServer(appDir)
 	if err != nil {
 		t.Errorf("There was a problem starting the kfctl servier %+v", err)
 	}
@@ -68,7 +74,7 @@ func TestKfctlClientServerSmoke(t *testing.T) {
 		t.Errorf("There was a problem starting the server %+v", err)
 	}
 
-	_, err = c.CreateDeployment(context.Background(), CreateRequest{})
+	_, err = c.CreateDeployment(context.Background(), kfdefsv2.KfDef{})
 
 	h, ok := err.(*httpError)
 
