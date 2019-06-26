@@ -30,7 +30,6 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/kustomize"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	valid "k8s.io/apimachinery/v2/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
@@ -358,13 +357,15 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 		delete(kfDef.Spec.ComponentParams, "spartakus")
 
 	}
+
+	return kfDef, nil
 }
 
 // CreateKfAppDir will create the application directory and persist
 // the KfDef to it as app.yaml.
 // Returns an error if the app.yaml file already exists
 // Returns path to the app.yaml file.
-func CreateKfAppCfgFile(d *kfdefsv2.KfDef)(string , error) {
+func CreateKfAppCfgFile(d *kfdefsv2.KfDef) (string, error) {
 	if _, err := os.Stat(d.Spec.AppDir); os.IsNotExist(err) {
 		log.Infof("Creating directory %v", d.Spec.AppDir)
 		appdirErr := os.MkdirAll(d.Spec.AppDir, os.ModePerm)
@@ -415,29 +416,6 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	return LoadKfAppCfgFile(cfgFilePath)
 }
 
-// unmarshalAppYaml is a local function to marshal the contents of app.yaml into
-// the KfDef type
-func unmarshalAppYaml(cfgfile string, kfdef *kfdefsv2.KfDef) error {
-	if _, err := os.Stat(cfgfile); err == nil {
-		log.Infof("reading from %v", cfgfile)
-		buf, bufErr := ioutil.ReadFile(cfgfile)
-		if bufErr != nil {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("couldn't read %v. Error: %v", cfgfile, bufErr),
-			}
-		}
-		err := yaml.Unmarshal(buf, kfdef)
-		if err != nil {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: fmt.Sprintf("could not unmarshal %v. Error: %v", cfgfile, err),
-			}
-		}
-	}
-	return nil
-}
-
 // backfillKfDefFromOptions fills in a KfDef spec based on various command line options.
 //
 // TODO(jlewi): We should eventually be able to get rid of this function once we remove
@@ -462,11 +440,11 @@ func backfillKfDefFromOptions(kfdef *kfdefsv2.KfDef, options map[string]interfac
 			if options[string(kftypes.IPNAME)] != nil && options[string(kftypes.IPNAME)].(string) != "" {
 				kfdef.Spec.IpName = options[string(kftypes.IPNAME)].(string)
 
-			} else if kfdef.Spec.Platform == kftypes.GCP && kfdef.Name != ""{
+			} else if kfdef.Spec.Platform == kftypes.GCP && kfdef.Name != "" {
 				kfdef.Spec.IpName = kfdef.Name + "-ip"
 			}
 
-			log.Warnf("Defaulting Spec.IpName to %v. This is deprecated; " +
+			log.Warnf("Defaulting Spec.IpName to %v. This is deprecated; "+
 				"IpName should be explicitly set in app.yaml", kfdef.Spec.IpName)
 		}
 
@@ -474,8 +452,8 @@ func backfillKfDefFromOptions(kfdef *kfdefsv2.KfDef, options map[string]interfac
 			if options[string(kftypes.PROJECT)] != nil && options[string(kftypes.PROJECT)].(string) != "" {
 
 				kfdef.Spec.Project = options[string(kftypes.PROJECT)].(string)
-				log.Warnf("Setting KfDef.Spec.Project to %v based on command line flags; this is deprecated. " +
-				          "Project should be set in the app.yaml file.", kfdef.Spec.Project)
+				log.Warnf("Setting KfDef.Spec.Project to %v based on command line flags; this is deprecated. "+
+					"Project should be set in the app.yaml file.", kfdef.Spec.Project)
 
 			}
 		}
@@ -485,10 +463,10 @@ func backfillKfDefFromOptions(kfdef *kfdefsv2.KfDef, options map[string]interfac
 			if options[string(kftypes.HOSTNAME)] != nil && options[string(kftypes.HOSTNAME)].(string) != "" {
 				kfdef.Spec.Hostname = options[string(kftypes.HOSTNAME)].(string)
 			} else if kfdef.Name != "" && kfdef.Spec.Project != "" && kfdef.Spec.Hostname == "" {
-					kfdef.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog", kfdef.Name, kfdef.Spec.Project)
+				kfdef.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog", kfdef.Name, kfdef.Spec.Project)
 			}
-			log.Warnf("Defaulting Spec.Hostame to %v. This is deprecated; " +
-				      "Hostname should be explicitly set in app.yaml", kfdef.Spec.Hostname)
+			log.Warnf("Defaulting Spec.Hostame to %v. This is deprecated; "+
+				"Hostname should be explicitly set in app.yaml", kfdef.Spec.Hostname)
 		}
 
 		if kfdef.Spec.Zone == "" {
@@ -516,6 +494,8 @@ func backfillKfDefFromOptions(kfdef *kfdefsv2.KfDef, options map[string]interfac
 	if options[string(kftypes.DELETE_STORAGE)] != nil && kfdef.Spec.Platform == kftypes.GCP {
 		kfdef.Spec.DeleteStorage = options[string(kftypes.DELETE_STORAGE)].(bool)
 	}
+
+	return nil
 }
 
 // LoadKfApp is called from subcommands Apply, Delete, Generate and assumes the existence of an app.yaml
@@ -533,8 +513,7 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		}
 	}
 	cfgfile := filepath.Join(appDir, kftypes.KfConfigFile)
-	kfdef := &kfdefsv2.KfDef{}
-	err := unmarshalAppYaml(cfgfile, kfdef)
+	kfdef, err :=  kfdefsv2.LoadKFDefFromURI(cfgfile)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
@@ -555,7 +534,6 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 
 	return LoadKfAppCfgFile(cfgfile)
 }
-
 
 // LoadKfApp constructs a KfApp by loading the provided app.yaml file.
 func LoadKfAppCfgFile(cfgfile string) (kftypes.KfApp, error) {
