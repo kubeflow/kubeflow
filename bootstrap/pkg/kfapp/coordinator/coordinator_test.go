@@ -2,10 +2,10 @@ package coordinator
 
 import (
 	"encoding/json"
+	config "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	config "github.com/kubeflow/kubeflow/bootstrap/config"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"os"
@@ -16,36 +16,36 @@ import (
 
 func Test_CreateKfAppCfgFile(t *testing.T) {
 	type testCase struct {
-		Input    kfdefsv2.KfDef
-		DirExists bool
+		Input         kfdefsv2.KfDef
+		DirExists     bool
 		CfgFileExists bool
-		ExpectError  bool
+		ExpectError   bool
 	}
 
 	cases := []testCase{
 		{
-			Input: kfdefsv2.KfDef{},
-			DirExists: false,
+			Input:         kfdefsv2.KfDef{},
+			DirExists:     false,
 			CfgFileExists: false,
-			ExpectError: false,
+			ExpectError:   false,
 		},
 		{
-			Input: kfdefsv2.KfDef{},
-			DirExists: true,
+			Input:         kfdefsv2.KfDef{},
+			DirExists:     true,
 			CfgFileExists: false,
-			ExpectError: false,
+			ExpectError:   false,
 		},
 		{
-			Input: kfdefsv2.KfDef{},
-			DirExists: true,
+			Input:         kfdefsv2.KfDef{},
+			DirExists:     true,
 			CfgFileExists: true,
-			ExpectError: true,
+			ExpectError:   true,
 		},
 	}
 
 	for _, c := range cases {
 
-		tDir, err := ioutil.TempDir("","")
+		tDir, err := ioutil.TempDir("", "")
 
 		if err != nil {
 			t.Fatalf("Could not create temporary directory; %v", err)
@@ -57,7 +57,6 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 				t.Fatalf("Could not delete %v; error %v", tDir, err)
 			}
 		}
-
 
 		if c.CfgFileExists {
 			existingCfgFile := path.Join(tDir, kftypesv2.KfConfigFile)
@@ -73,7 +72,7 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 
 		pCase, _ := Pformat(c)
 		hasError := err == nil
-		if  hasError != c.ExpectError {
+		if hasError != c.ExpectError {
 			t.Errorf("Test case %v;\n CreateKfAppCfgFile returns error; got %v want %v", pCase, hasError, c.ExpectError)
 		}
 
@@ -100,11 +99,11 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 		{
 			Input: kfdefsv2.KfDef{},
 			Options: map[string]interface{}{
-				string(kftypes.EMAIL): "user@kubeflow.org",
-				string(kftypes.IPNAME): "someip",
-				string(kftypes.HOSTNAME): "somehost",
-				string(kftypes.PROJECT): "someproject",
-				string(kftypes.ZONE): "somezone",
+				string(kftypes.EMAIL):          "user@kubeflow.org",
+				string(kftypes.IPNAME):         "someip",
+				string(kftypes.HOSTNAME):       "somehost",
+				string(kftypes.PROJECT):        "someproject",
+				string(kftypes.ZONE):           "somezone",
 				string(kftypes.USE_BASIC_AUTH): true,
 				string(kftypes.PLATFORM):       kftypes.GCP,
 			},
@@ -113,11 +112,11 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
-					Email: "user@kubeflow.org",
-					IpName: "someip",
-					Hostname: "somehost",
-					Project: "someproject",
-					Zone:"somezone",
+					Email:        "user@kubeflow.org",
+					IpName:       "someip",
+					Hostname:     "somehost",
+					Project:      "someproject",
+					Zone:         "somezone",
 					UseBasicAuth: true,
 				},
 			},
@@ -131,32 +130,32 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
-					Email: "user@kubeflow.org",
-					IpName: "someip",
-					Hostname: "somehost",
-					Project: "someproject",
-					Zone:"somezone",
+					Email:        "user@kubeflow.org",
+					IpName:       "someip",
+					Hostname:     "somehost",
+					Project:      "someproject",
+					Zone:         "somezone",
 					UseBasicAuth: true,
 				},
 			},
 			Options: map[string]interface{}{
-				string(kftypes.EMAIL): "newuser@kubeflow.org",
-				string(kftypes.IPNAME): "newip",
+				string(kftypes.EMAIL):    "newuser@kubeflow.org",
+				string(kftypes.IPNAME):   "newip",
 				string(kftypes.HOSTNAME): "newhost",
-				string(kftypes.PROJECT): "newproject",
-				string(kftypes.ZONE): "newezone",
-				string(kftypes.PLATFORM):       kftypes.GCP,
+				string(kftypes.PROJECT):  "newproject",
+				string(kftypes.ZONE):     "newezone",
+				string(kftypes.PLATFORM): kftypes.GCP,
 			},
 			Expected: kfdefsv2.KfDef{
 				Spec: kfdefsv2.KfDefSpec{
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
-					Email: "user@kubeflow.org",
-					IpName: "someip",
-					Hostname: "somehost",
-					Project: "someproject",
-					Zone:"somezone",
+					Email:        "user@kubeflow.org",
+					IpName:       "someip",
+					Hostname:     "somehost",
+					Project:      "someproject",
+					Zone:         "somezone",
 					UseBasicAuth: true,
 				},
 			},
@@ -174,8 +173,7 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 					},
 				},
 			},
-			Options: map[string]interface{}{
-			},
+			Options: map[string]interface{}{},
 			Expected: kfdefsv2.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "someapp",
@@ -184,9 +182,9 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
-					IpName: "someapp-ip",
+					IpName:       "someapp-ip",
 					UseBasicAuth: false,
-					Zone: "us-east1-d",
+					Zone:         "us-east1-d",
 				},
 			},
 		},
@@ -205,8 +203,7 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 					Project: "acmeproject",
 				},
 			},
-			Options: map[string]interface{}{
-			},
+			Options: map[string]interface{}{},
 			Expected: kfdefsv2.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "someapp",
@@ -215,11 +212,11 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
-					IpName: "someapp-ip",
-					Project: "acmeproject",
+					IpName:       "someapp-ip",
+					Project:      "acmeproject",
 					UseBasicAuth: false,
-					Zone: "us-east1-d",
-					Hostname: "someapp.endpoints.acmeproject.cloud.goog",
+					Zone:         "us-east1-d",
+					Hostname:     "someapp.endpoints.acmeproject.cloud.goog",
 				},
 			},
 		},

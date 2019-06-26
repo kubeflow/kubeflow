@@ -68,6 +68,44 @@ import (
 //	g.Expect(c.Get(context.TODO(), key, fetched)).To(gomega.HaveOccurred())
 //}
 
+func TestSyncCache(t *testing.T) {
+	// Verify that we can sync some files.
+	testDir, _ := ioutil.TempDir("", "")
+
+	srcDir := path.Join(testDir, "src")
+	err := os.Mkdir(srcDir, os.ModePerm)
+
+	if err != nil {
+		t.Fatalf("Failed to create directoy; %v", err)
+	}
+
+	ioutil.WriteFile(path.Join(srcDir, "file1"), []byte("hello world"), os.ModePerm)
+
+	appDir := path.Join(testDir, "app")
+	d := &KfDef{
+		Spec: KfDefSpec{
+			AppDir: appDir,
+			Repos: []Repo{{
+				Name: "testrepo",
+				Uri:  srcDir,
+			},
+			},
+		},
+	}
+
+	err = d.SyncCache()
+
+	if err != nil {
+		t.Fatalf("Could not sync cache; %v", err)
+	}
+
+	expectedDir := path.Join(appDir, ".cache", "testrepo")
+	if d.Status.ReposCache["testrepo"].LocalPath != path.Join(expectedDir) {
+		t.Fatalf("LocalPath; want %v; got %v", expectedDir, d.Status.ReposCache["testrepo"].LocalPath)
+	}
+
+}
+
 func TestWriteKfDef(t *testing.T) {
 	// Verify that if we write KfDef it will be stripped of any literal secrets.
 	type testCase struct {

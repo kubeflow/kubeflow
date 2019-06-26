@@ -522,7 +522,7 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		}
 	}
 	cfgfile := filepath.Join(appDir, kftypes.KfConfigFile)
-	kfdef, err :=  kfdefsv2.LoadKFDefFromURI(cfgfile)
+	kfdef, err := kfdefsv2.LoadKFDefFromURI(cfgfile)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
