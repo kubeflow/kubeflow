@@ -6,6 +6,7 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/ratelimit"
 	httptransport "github.com/go-kit/kit/transport/http"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"golang.org/x/time/rate"
 	"net/url"
 	"strings"
@@ -60,12 +61,12 @@ func NewKfctlClient(instance string) (KfctlService, error) {
 }
 
 // CreateDeployment issues a CreateDeployment to the requested backend
-func (c *KfctlClient) CreateDeployment(ctx context.Context, req CreateRequest) (*CreateResponse, error) {
+func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*kfdefs.KfDef, error) {
 	resp, err := c.createEndpoint(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	response, ok := resp.(CreateResponse)
+	response, ok := resp.(kfdefs.KfDef)
 
 	if ok {
 		return &response, nil

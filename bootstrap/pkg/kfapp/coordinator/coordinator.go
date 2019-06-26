@@ -568,6 +568,15 @@ type coordinator struct {
 	KfDef           *kfdefsv2.KfDef
 }
 
+type KfDefGetter interface {
+	GetKfDef() *kfdefsv2.KfDef
+}
+
+// GetKfDef returns a pointer to the KfDef used by this application.
+func (kfapp *coordinator) GetKfDef() *kfdefsv2.KfDef {
+	return kfapp.KfDef
+}
+
 func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 	platform := func() error {
 		if kfapp.KfDef.Spec.Platform != "" {

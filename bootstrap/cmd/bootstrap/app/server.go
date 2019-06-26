@@ -223,7 +223,7 @@ func Run(opt *options.ServerOption) error {
 
 	if strings.ToLower(opt.Mode) == "kfctl" {
 		log.Info("Creating kfctl server")
-		kServer, err := NewKfctlServer()
+		kServer, err := NewKfctlServer(opt.AppDir)
 
 		if err != nil {
 			return err
