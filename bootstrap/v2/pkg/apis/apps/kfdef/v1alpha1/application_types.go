@@ -390,7 +390,7 @@ func (d *KfDef) SetPluginSpec(pluginName string, spec interface{}) error {
 // WriteToFile will strip out any literal secrets before writing it
 func (d *KfDef) WriteToFile(path string) error {
 
-	stripped := *d
+	stripped := d.DeepCopy()
 
 	secrets := make([]Secret, 0)
 
