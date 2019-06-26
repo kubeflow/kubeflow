@@ -2,12 +2,89 @@ package coordinator
 
 import (
 	"encoding/json"
+	config "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
+	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"io/ioutil"
+	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"os"
+	"path"
 	"reflect"
 	"testing"
 )
+
+func Test_CreateKfAppCfgFile(t *testing.T) {
+	type testCase struct {
+		Input         kfdefsv2.KfDef
+		DirExists     bool
+		CfgFileExists bool
+		ExpectError   bool
+	}
+
+	cases := []testCase{
+		{
+			Input:         kfdefsv2.KfDef{},
+			DirExists:     false,
+			CfgFileExists: false,
+			ExpectError:   false,
+		},
+		{
+			Input:         kfdefsv2.KfDef{},
+			DirExists:     true,
+			CfgFileExists: false,
+			ExpectError:   false,
+		},
+		{
+			Input:         kfdefsv2.KfDef{},
+			DirExists:     true,
+			CfgFileExists: true,
+			ExpectError:   true,
+		},
+	}
+
+	for _, c := range cases {
+
+		tDir, err := ioutil.TempDir("", "")
+
+		if err != nil {
+			t.Fatalf("Could not create temporary directory; %v", err)
+		}
+
+		if !c.DirExists {
+			err := os.RemoveAll(tDir)
+			if err != nil {
+				t.Fatalf("Could not delete %v; error %v", tDir, err)
+			}
+		}
+
+		if c.CfgFileExists {
+			existingCfgFile := path.Join(tDir, kftypesv2.KfConfigFile)
+			err := ioutil.WriteFile(existingCfgFile, []byte("hello world"), 0644)
+
+			if err != nil {
+				t.Fatalf("Could not write %v; error %v", existingCfgFile, err)
+			}
+		}
+
+		c.Input.Spec.AppDir = tDir
+		cfgFile, err := CreateKfAppCfgFile(&c.Input)
+
+		pCase, _ := Pformat(c)
+		hasError := err == nil
+		if hasError != c.ExpectError {
+			t.Errorf("Test case %v;\n CreateKfAppCfgFile returns error; got %v want %v", pCase, hasError, c.ExpectError)
+		}
+
+		expectFile := path.Join(tDir, kftypesv2.KfConfigFile)
+
+		if !c.ExpectError {
+			if expectFile != cfgFile {
+				t.Errorf("Test case %v;\n CreateKfAppCfgFile returns cfgFile; got %v want %v", pCase, cfgFile, expectFile)
+			}
+		}
+	}
+}
 
 func Test_backfillKfDefFromOptions(t *testing.T) {
 	type testCase struct {
@@ -17,193 +94,129 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 	}
 
 	cases := []testCase{
-		// Basic auth should populate the GCP plugin
+		// Check that if a bunch of options are provided they
+		// are converted into KfDef.
 		{
 			Input: kfdefsv2.KfDef{},
 			Options: map[string]interface{}{
+				string(kftypes.EMAIL):          "user@kubeflow.org",
+				string(kftypes.IPNAME):         "someip",
+				string(kftypes.HOSTNAME):       "somehost",
+				string(kftypes.PROJECT):        "someproject",
+				string(kftypes.ZONE):           "somezone",
 				string(kftypes.USE_BASIC_AUTH): true,
 				string(kftypes.PLATFORM):       kftypes.GCP,
 			},
 			Expected: kfdefsv2.KfDef{
 				Spec: kfdefsv2.KfDefSpec{
-					Plugins: []kfdefsv2.Plugin{
-						{
-							Name: "gcp",
-							Parameters: []kfdefsv2.PluginParameter{
-								{
-									Name: "username",
-									SecretRef: &kfdefsv2.SecretRef{
-										Name: "username",
-									},
-								},
-								{
-									Name: "password",
-									SecretRef: &kfdefsv2.SecretRef{
-										Name: "password",
-									},
-								},
-							},
-						},
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
 					},
-					Secrets: []kfdefsv2.Secret{
-						{
-							Name: "username",
-							SecretSource: &kfdefsv2.SecretSource{
-								EnvSource: &kfdefsv2.EnvSource{
-									Name: kftypes.KUBEFLOW_USERNAME,
-								},
-							},
-						},
-						{
-							Name: "password",
-							SecretSource: &kfdefsv2.SecretSource{
-								EnvSource: &kfdefsv2.EnvSource{
-									Name: kftypes.KUBEFLOW_PASSWORD,
-								},
-							},
-						},
-					},
+					Email:        "user@kubeflow.org",
+					IpName:       "someip",
+					Hostname:     "somehost",
+					Project:      "someproject",
+					Zone:         "somezone",
+					UseBasicAuth: true,
 				},
 			},
 		},
-		// If basic auth is explicitly set then it shouldn't be ovewriten.
+
+		// Check that if a bunch of options are provided in the KfDef spec they
+		// are not overwritten by options.
 		{
 			Input: kfdefsv2.KfDef{
 				Spec: kfdefsv2.KfDefSpec{
-					Plugins: []kfdefsv2.Plugin{
-						{
-							Name: "gcp",
-							Parameters: []kfdefsv2.PluginParameter{
-								{
-									Name:  "username",
-									Value: "someusername",
-								},
-								{
-									Name:  "password",
-									Value: "somepassword",
-								},
-							},
-						},
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
 					},
+					Email:        "user@kubeflow.org",
+					IpName:       "someip",
+					Hostname:     "somehost",
+					Project:      "someproject",
+					Zone:         "somezone",
+					UseBasicAuth: true,
 				},
 			},
 			Options: map[string]interface{}{
-				string(kftypes.USE_BASIC_AUTH): true,
-				string(kftypes.PLATFORM):       kftypes.GCP,
+				string(kftypes.EMAIL):    "newuser@kubeflow.org",
+				string(kftypes.IPNAME):   "newip",
+				string(kftypes.HOSTNAME): "newhost",
+				string(kftypes.PROJECT):  "newproject",
+				string(kftypes.ZONE):     "newezone",
+				string(kftypes.PLATFORM): kftypes.GCP,
 			},
 			Expected: kfdefsv2.KfDef{
 				Spec: kfdefsv2.KfDefSpec{
-					Plugins: []kfdefsv2.Plugin{
-						{
-							Name: "gcp",
-							Parameters: []kfdefsv2.PluginParameter{
-								{
-									Name:  "username",
-									Value: "someusername",
-								},
-								{
-									Name:  "password",
-									Value: "somepassword",
-								},
-							},
-						},
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
 					},
+					Email:        "user@kubeflow.org",
+					IpName:       "someip",
+					Hostname:     "somehost",
+					Project:      "someproject",
+					Zone:         "somezone",
+					UseBasicAuth: true,
 				},
 			},
 		},
-		// GCP IAP auth should populate the GCP plugin with client id and client secret
-		// from environment variables.
-		{
-			Input: kfdefsv2.KfDef{},
-			Options: map[string]interface{}{
-				string(kftypes.USE_BASIC_AUTH): false,
-				string(kftypes.PLATFORM):       kftypes.GCP,
-			},
-			Expected: kfdefsv2.KfDef{
-				Spec: kfdefsv2.KfDefSpec{
-					Plugins: []kfdefsv2.Plugin{
-						{
-							Name: "gcp",
-							Parameters: []kfdefsv2.PluginParameter{
-								{
-									Name: "iapOauthClientId",
-									SecretRef: &kfdefsv2.SecretRef{
-										Name: "iapOauthClientId",
-									},
-								},
-								{
-									Name: "iapOauthClientSecret",
-									SecretRef: &kfdefsv2.SecretRef{
-										Name: "iapOauthClientSecret",
-									},
-								},
-							},
-						},
-					},
-					Secrets: []kfdefsv2.Secret{
-						{
-							Name: "iapOauthClientId",
-							SecretSource: &kfdefsv2.SecretSource{
-								EnvSource: &kfdefsv2.EnvSource{
-									Name: gcp.CLIENT_ID,
-								},
-							},
-						},
-						{
-							Name: "iapOauthClientSecret",
-							SecretSource: &kfdefsv2.SecretSource{
-								EnvSource: &kfdefsv2.EnvSource{
-									Name: gcp.CLIENT_SECRET,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		// GCP IAP auth client id and client secret are explicitly set in the input spec
-		// so they should not be overwritten.
+		// Check IP name is correctly generated from Name if not explicitly set
+		// either in KfDef or in options.
 		{
 			Input: kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "someapp",
+				},
 				Spec: kfdefsv2.KfDefSpec{
-					Plugins: []kfdefsv2.Plugin{
-						{
-							Name: "gcp",
-							Parameters: []kfdefsv2.PluginParameter{
-								{
-									Name:  "iapOauthClientId",
-									Value: "someclient",
-								},
-								{
-									Name:  "iapOauthClientSecret",
-									Value: "somesecret",
-								},
-							},
-						},
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
 					},
 				},
 			},
-			Options: map[string]interface{}{
-				string(kftypes.USE_BASIC_AUTH): false,
-				string(kftypes.PLATFORM):       kftypes.GCP,
-			},
+			Options: map[string]interface{}{},
 			Expected: kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "someapp",
+				},
 				Spec: kfdefsv2.KfDefSpec{
-					Plugins: []kfdefsv2.Plugin{
-						{
-							Name: "gcp",
-							Parameters: []kfdefsv2.PluginParameter{
-								{
-									Name:  "iapOauthClientId",
-									Value: "someclient",
-								},
-								{
-									Name:  "iapOauthClientSecret",
-									Value: "somesecret",
-								},
-							},
-						},
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
 					},
+					IpName:       "someapp-ip",
+					UseBasicAuth: false,
+					Zone:         "us-east1-d",
+				},
+			},
+		},
+		// Check hostname is correctly generated from name and project
+		// Check IP name is correctly generated from Name if not explicitly set
+		// either in KfDef or in options.
+		{
+			Input: kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "someapp",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
+					},
+					Project: "acmeproject",
+				},
+			},
+			Options: map[string]interface{}{},
+			Expected: kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "someapp",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
+					},
+					IpName:       "someapp-ip",
+					Project:      "acmeproject",
+					UseBasicAuth: false,
+					Zone:         "us-east1-d",
+					Hostname:     "someapp.endpoints.acmeproject.cloud.goog",
 				},
 			},
 		},
