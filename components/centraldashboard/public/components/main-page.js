@@ -241,11 +241,24 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * @param {Event} responseEvent AJAX-response
      */
     _onEnvInfoResponse(responseEvent) {
+        const roleMap = {
+            admin: 'owner',
+            editor: 'contributor',
+            tr(a) {
+                return this[a] || a;
+            },
+        };
         const {platform, user, namespaces} = responseEvent.detail.response;
         this.user = user;
-        this.namespaces = namespaces;
+        this.namespaces = namespaces.map((n) => ({
+            user: n.user.name,
+            namespace: n.referredNamespace,
+            role: roleMap.tr(n.RoleRef.name),
+        }));
+        this.ownedNamespace = namespaces.find((n) => n.role == 'owner');
         this.platformInfo = platform;
-        if (this.platformInfo.kubeflowVersion) {
+        const kVer = this.platformInfo.kubeflowVersion;
+        if (kVer && kVer != 'unknown') {
             this.buildVersion = this.platformInfo.kubeflowVersion;
         }
     }
