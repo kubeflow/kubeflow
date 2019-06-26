@@ -5,8 +5,9 @@ import {KubernetesService, PlatformInfo} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
 import {DefaultApi, Binding as WorkgroupBinding} from './clients/profile_controller';
 
-const IAP_HEADER = 'X-Goog-Authenticated-User-Email';
-const IAP_PREFIX = 'accounts.google.com:';
+const {env} = process;
+const IAP_HEADER = env.IAP_HEADER || 'X-Goog-Authenticated-User-Email';
+const IAP_PREFIX = env.IAP_PREFIX || 'accounts.google.com:';
 
 interface WorkgroupInfo {
   namespaces: WorkgroupBinding[];
