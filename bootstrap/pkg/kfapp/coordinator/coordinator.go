@@ -44,6 +44,13 @@ import (
 // The common entry point used to retrieve an implementation of KfApp.
 // In this case it returns a composite class (coordinator) which aggregates
 // platform and package manager implementations in Children.
+//
+// TODO(jlewi): I don't think this should be an exported method. Callers should
+// probably use NewKfApp if we are starting from scratch; e.g. Creating an app.yaml file.
+// Or LoadKfApp if creating it from an app.yaml on disk.
+// If creating from a KfDef the steps should probably be
+// 1. Persist it to disk using CreateKfAppDir
+// 2. Call LoadKfApp.
 func GetKfApp(kfdef *kfdefsv2.KfDef, platformArgs []byte) kftypes.KfApp {
 	_coordinator := &coordinator{
 		Platforms:       make(map[string]kftypes.Platform),
@@ -201,9 +208,8 @@ func usageReportWarn(components []string) {
 	}
 }
 
-// NewKfApp is called from the Init subcommand and will create a directory based on
-// the path/name argument given to the Init subcommand
-func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
+// CreateKfDefFromOptions creates a KfDef from the supplied options.
+func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, error) {
 	//appName can be a path
 	appName := options[string(kftypes.APPNAME)].(string)
 	appDir := path.Dir(appName)
@@ -350,48 +356,71 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	if disableUsageReport {
 		kfDef.Spec.Components = filterSpartakus(kfDef.Spec.Components)
 		delete(kfDef.Spec.ComponentParams, "spartakus")
-	}
 
-	return NewKfAppFromKfDef(*kfDef)
+	}
 }
 
-// NewKfAppFromKfDef constructs the KfApp from the supplied KfDef.
-func NewKfAppFromKfDef(kfDef kfdefsv2.KfDef) (kftypes.KfApp, error) {
-	// Validate kfDef
-	errs := valid.NameIsDNSLabel(kfDef.Name, false)
-	if errs != nil && len(errs) > 0 {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf(`invalid name due to %v`, strings.Join(errs, ", ")),
-		}
-	}
-
-	if _, err := os.Stat(kfDef.Spec.AppDir); os.IsNotExist(err) {
-		log.Infof("Creating directory %v", kfDef.Spec.AppDir)
-		appdirErr := os.MkdirAll(kfDef.Spec.AppDir, os.ModePerm)
+// CreateKfAppDir will create the application directory and persist
+// the KfDef to it as app.yaml.
+// Returns an error if the app.yaml file already exists
+// Returns path to the app.yaml file.
+func CreateKfAppCfgFile(d *kfdefsv2.KfDef)(string , error) {
+	if _, err := os.Stat(d.Spec.AppDir); os.IsNotExist(err) {
+		log.Infof("Creating directory %v", d.Spec.AppDir)
+		appdirErr := os.MkdirAll(d.Spec.AppDir, os.ModePerm)
 		if appdirErr != nil {
-			log.Errorf("couldn't create directory %v Error %v", kfDef.Spec.AppDir, appdirErr)
-			return nil, appdirErr
+			log.Errorf("couldn't create directory %v Error %v", d.Spec.AppDir, appdirErr)
+			return "", appdirErr
 		}
 	} else {
-		log.Infof("App directory exists %v", kfDef.Spec.AppDir)
+		log.Infof("App directory %v already exists", d.Spec.AppDir)
 	}
 
 	// Rewrite app.yaml
-	buf, bufErr := yaml.Marshal(kfDef)
+	buf, bufErr := yaml.Marshal(d)
 	if bufErr != nil {
 		log.Errorf("Error marshaling kfdev; %v", bufErr)
-		return nil, bufErr
+		return "", bufErr
 	}
-	cfgFilePath := filepath.Join(kfDef.Spec.AppDir, kftypesv2.KfConfigFile)
+	cfgFilePath := filepath.Join(d.Spec.AppDir, kftypesv2.KfConfigFile)
+
+	if _, err := os.Stat(cfgFilePath); err != nil {
+		log.Errorf("%v already exists", cfgFilePath)
+		return cfgFilePath, fmt.Errorf("%v already exists", cfgFilePath)
+	}
 	log.Infof("Writing updated KfDef to %v", cfgFilePath)
 	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
-	if cfgFilePathErr != nil {
-		return nil, cfgFilePathErr
+	return cfgFilePath, cfgFilePathErr
+}
+
+// NewKfApp is called from the Init subcommand and will create a directory based on
+// the path/name argument given to the Init subcommand
+func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
+	TODO: THis is problematic because DownloadAndLoadConfig file will persist the config file
+	To appdir Can we persist it to a different location.
+	kfDef, err := CreateKfDefFromOptions(options)
+
+	if err != nil {
+		return nil, err
 	}
 
-	pApp := GetKfApp(&kfDef, nil)
-	return pApp, nil
+	isValid, msg := kfDef.IsValid()
+
+	if !isValid {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: msg,
+		}
+	}
+
+	cfgFilePath, err := CreateKfAppCfgFile(kfDef)
+
+	if err != nil {
+		return nil, err
+	}
+
+
+	return LoadKfAppCfgFile(cfgFilePath)
 }
 
 // unmarshalAppYaml is a local function to marshal the contents of app.yaml into
@@ -417,52 +446,72 @@ func unmarshalAppYaml(cfgfile string, kfdef *kfdefsv2.KfDef) error {
 	return nil
 }
 
-// LoadKfApp is called from subcommands Apply, Delete, Generate and assumes the existence of an app.yaml
-// file which was created by the Init subcommand. It sets options needed by these subcommands
-func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
-	appDir, err := os.Getwd()
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("could not get current directory %v", err),
+// backfillKfDefFromOptions fills in a KfDef spec based on various command line options.
+//
+// TODO(jlewi): We should eventually be able to get rid of this function once we remove
+// a bunch of command line options and rely on users editing the KfDef file in app.yaml file
+// as needed. The function only overrides the KfDef spec if the option isn't already set.
+// The reason we need this is because in 0.5 different command line options were supplied as arguments
+// to different commands (e.g. init & generate) took different command line options.
+// With 0.6 we want to move to a world in which all the options should be stored in app.yaml.
+// Support for the command line otpions is only provided for backwards compatibility until
+// we remove the options.
+func backfillKfDefFromOptions(kfdef *kfdefsv2.KfDef, options map[string]interface{}) error {
+	if kfdef.Spec.Platform == kftypes.GCP {
+		if options[string(kftypes.EMAIL)] != nil && options[string(kftypes.EMAIL)].(string) != "" {
+			if kfdef.Spec.Email == "" {
+				kfdef.Spec.Email = options[string(kftypes.EMAIL)].(string)
+			} else {
+				log.Warnf("KfDef.Spec.Email is already set; not overwritting with options value")
+			}
+		}
+
+		if kfdef.Spec.IpName == "" {
+			if options[string(kftypes.IPNAME)] != nil && options[string(kftypes.IPNAME)].(string) != "" {
+				kfdef.Spec.IpName = options[string(kftypes.IPNAME)].(string)
+
+			} else if kfdef.Spec.Platform == kftypes.GCP && kfdef.Name != ""{
+				kfdef.Spec.IpName = kfdef.Name + "-ip"
+			}
+
+			log.Warnf("Defaulting Spec.IpName to %v. This is deprecated; " +
+				"IpName should be explicitly set in app.yaml", kfdef.Spec.IpName)
+		}
+
+		if kfdef.Spec.Project == "" {
+			if options[string(kftypes.PROJECT)] != nil && options[string(kftypes.PROJECT)].(string) != "" {
+
+				kfdef.Spec.Project = options[string(kftypes.PROJECT)].(string)
+				log.Warnf("Setting KfDef.Spec.Project to %v based on command line flags; this is deprecated. " +
+				          "Project should be set in the app.yaml file.", kfdef.Spec.Project)
+
+			}
+		}
+
+		if kfdef.Spec.Hostname == "" {
+
+			if options[string(kftypes.HOSTNAME)] != nil && options[string(kftypes.HOSTNAME)].(string) != "" {
+				kfdef.Spec.Hostname = options[string(kftypes.HOSTNAME)].(string)
+			} else if kfdef.Name != "" && kfdef.Spec.Project != "" && kfdef.Spec.Hostname == "" {
+					kfdef.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog", kfdef.Name, kfdef.Spec.Project)
+			}
+			log.Warnf("Defaulting Spec.Hostame to %v. This is deprecated; " +
+				      "Hostname should be explicitly set in app.yaml", kfdef.Spec.Hostname)
+		}
+
+		if kfdef.Spec.Zone == "" {
+			if options[string(kftypes.ZONE)] != nil && options[string(kftypes.ZONE)].(string) != "" {
+				kfdef.Spec.Zone = options[string(kftypes.ZONE)].(string)
+			} else {
+				kfdef.Spec.Zone = kftypes.DefaultZone
+			}
+			log.Warnf("Defaulting Spec.Zone to %v. This is deprecated; "+
+				"Zone should be explicitly set in app.yaml", kfdef.Spec.Zone)
 		}
 	}
-	cfgfile := filepath.Join(appDir, kftypes.KfConfigFile)
-	kfdef := &kfdefsv2.KfDef{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "KfDef",
-			APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
-		},
-		Spec: kfdefsv2.KfDefSpec{},
-	}
-	err = unmarshalAppYaml(cfgfile, kfdef)
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not unmarshal %v. Error: %v", cfgfile, err),
-		}
-	}
-	if options[string(kftypes.EMAIL)] != nil && options[string(kftypes.EMAIL)].(string) != "" {
-		kfdef.Spec.Email = options[string(kftypes.EMAIL)].(string)
-	}
-	if options[string(kftypes.IPNAME)] != nil && options[string(kftypes.IPNAME)].(string) != "" {
-		kfdef.Spec.IpName = options[string(kftypes.IPNAME)].(string)
-	} else if kfdef.Spec.Platform == kftypes.GCP && kfdef.Name != "" {
-		kfdef.Spec.IpName = kfdef.Name + "-ip"
-	}
-	if options[string(kftypes.PROJECT)] != nil && options[string(kftypes.PROJECT)].(string) != "" {
-		kfdef.Spec.Project = options[string(kftypes.PROJECT)].(string)
-	}
-	if options[string(kftypes.HOSTNAME)] != nil && options[string(kftypes.HOSTNAME)].(string) != "" {
-		kfdef.Spec.Hostname = options[string(kftypes.HOSTNAME)].(string)
-	} else if kfdef.Name != "" && kfdef.Spec.Project != "" && kfdef.Spec.Hostname == "" {
-		kfdef.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog", kfdef.Name, kfdef.Spec.Project)
-	}
-	if options[string(kftypes.ZONE)] != nil && options[string(kftypes.ZONE)].(string) != "" {
-		kfdef.Spec.Zone = options[string(kftypes.ZONE)].(string)
-	} else if kfdef.Spec.Platform == kftypes.GCP && kfdef.Spec.Zone == "" {
-		kfdef.Spec.Zone = kftypes.DefaultZone
-	}
+
+	// For boolean options there is no way to test whether they have been explicitly set in KfDef or
+	// not so we always override the value with the command line flag.
 	if options[string(kftypes.USE_BASIC_AUTH)] != nil {
 		kfdef.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
 	}
@@ -475,6 +524,55 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	if options[string(kftypes.DELETE_STORAGE)] != nil && kfdef.Spec.Platform == kftypes.GCP {
 		kfdef.Spec.DeleteStorage = options[string(kftypes.DELETE_STORAGE)].(bool)
 	}
+}
+
+// LoadKfApp is called from subcommands Apply, Delete, Generate and assumes the existence of an app.yaml
+// file which was created by the Init subcommand. It sets options needed by these subcommands
+//
+// TODO(jlewi): This method is deprecated. It is providing backwards compatibility with existing call sites.
+// New callers should use LoadKfAppCfgFile to load it from a file. If callers need to modify
+// KfDef they should modify it and then serialize to disk.
+func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
+	appDir, err := os.Getwd()
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("could not get current directory %v", err),
+		}
+	}
+	cfgfile := filepath.Join(appDir, kftypes.KfConfigFile)
+	kfdef := &kfdefsv2.KfDef{}
+	err := unmarshalAppYaml(cfgfile, kfdef)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not unmarshal %v. Error: %v", cfgfile, err),
+		}
+	}
+
+	err = backfillKfDefFromOptions(kfdef, options)
+
+	if err != nil {
+		log.Warnf("There was a problem filling in KfDef based on command line options", err)
+	}
+
+	TODO: we need to persist the YAML to an updated spec file.
+
+	return LoadKfAppCfgFile(cfgfile)
+}
+
+
+// LoadKfApp constructs a KfApp by loading the provided app.yaml file.
+func LoadKfAppCfgFile(cfgfile string) (kftypes.KfApp, error) {
+	// Set default TypeMeta information. This will get overwritten by explicit values if set in the cfg file.
+	kfdef := &kfdefsv2.KfDef{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "KfDef",
+			APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
+		},
+		Spec: kfdefsv2.KfDefSpec{},
+	}
+
 	pApp := GetKfApp(kfdef, nil)
 	return pApp, nil
 }
