@@ -393,10 +393,7 @@ func TestKfDef_SetSecret(t *testing.T) {
 	for _, c := range cases {
 		i := &KfDef{}
 		*i = c.Input
-		err := i.SetSecret(c.Secret)
-		if err != nil {
-			t.Errorf("Error  setting secret %v; error %v", c.Secret.Name, err)
-		}
+		i.SetSecret(c.Secret)
 
 		if !reflect.DeepEqual(*i, c.Expected) {
 			pGot, _ := Pformat(i)

@@ -285,17 +285,15 @@ func (d *KfDef) GetSecret(name string) (string, error) {
 }
 
 // SetSecret sets the specified secret; if a secret with the given name already exists it is overwritten.
-func (d *KfDef) SetSecret(newSecret Secret) error {
+func (d *KfDef) SetSecret(newSecret Secret) {
 	for i, s := range d.Spec.Secrets {
 		if s.Name == newSecret.Name {
 			d.Spec.Secrets[i] = newSecret
-			return nil
+			return
 		}
 	}
 
 	d.Spec.Secrets = append(d.Spec.Secrets, newSecret)
-
-	return nil
 }
 
 // GetPluginSpec will try to unmarshal the spec for the specified plugin to the supplied
