@@ -1,1 +1,177 @@
 package coordinator
+
+import (
+	"encoding/json"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	config "github.com/kubeflow/kubeflow/bootstrap/config"
+	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"reflect"
+	"testing"
+)
+
+func Test_backfillKfDefFromOptions(t *testing.T) {
+	type testCase struct {
+		Input    kfdefsv2.KfDef
+		Options  map[string]interface{}
+		Expected kfdefsv2.KfDef
+	}
+
+	cases := []testCase{
+		// Check that if a bunch of options are provided they
+		// are converted into KfDef.
+		{
+			Input: kfdefsv2.KfDef{},
+			Options: map[string]interface{}{
+				string(kftypes.EMAIL): "user@kubeflow.org",
+				string(kftypes.IPNAME): "someip",
+				string(kftypes.HOSTNAME): "somehost",
+				string(kftypes.PROJECT): "someproject",
+				string(kftypes.ZONE): "somezone",
+				string(kftypes.USE_BASIC_AUTH): true,
+				string(kftypes.PLATFORM):       kftypes.GCP,
+			},
+			Expected: kfdefsv2.KfDef{
+				Spec: kfdefsv2.KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
+					},
+					Email: "user@kubeflow.org",
+					IpName: "someip",
+					Hostname: "somehost",
+					Project: "someproject",
+					Zone:"somezone",
+					UseBasicAuth: true,
+				},
+			},
+		},
+
+		// Check that if a bunch of options are provided in the KfDef spec they
+		// are not overwritten by options.
+		{
+			Input: kfdefsv2.KfDef{
+				Spec: kfdefsv2.KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
+					},
+					Email: "user@kubeflow.org",
+					IpName: "someip",
+					Hostname: "somehost",
+					Project: "someproject",
+					Zone:"somezone",
+					UseBasicAuth: true,
+				},
+			},
+			Options: map[string]interface{}{
+				string(kftypes.EMAIL): "newuser@kubeflow.org",
+				string(kftypes.IPNAME): "newip",
+				string(kftypes.HOSTNAME): "newhost",
+				string(kftypes.PROJECT): "newproject",
+				string(kftypes.ZONE): "newezone",
+				string(kftypes.PLATFORM):       kftypes.GCP,
+			},
+			Expected: kfdefsv2.KfDef{
+				Spec: kfdefsv2.KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
+					},
+					Email: "user@kubeflow.org",
+					IpName: "someip",
+					Hostname: "somehost",
+					Project: "someproject",
+					Zone:"somezone",
+					UseBasicAuth: true,
+				},
+			},
+		},
+		// Check IP name is correctly generated from Name if not explicitly set
+		// either in KfDef or in options.
+		{
+			Input: kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "someapp",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
+					},
+				},
+			},
+			Options: map[string]interface{}{
+			},
+			Expected: kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "someapp",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
+					},
+					IpName: "someapp-ip",
+					UseBasicAuth: false,
+					Zone: "us-east1-d",
+				},
+			},
+		},
+		// Check hostname is correctly generated from name and project
+		// Check IP name is correctly generated from Name if not explicitly set
+		// either in KfDef or in options.
+		{
+			Input: kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "someapp",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
+					},
+					Project: "acmeproject",
+				},
+			},
+			Options: map[string]interface{}{
+			},
+			Expected: kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "someapp",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
+					},
+					IpName: "someapp-ip",
+					Project: "acmeproject",
+					UseBasicAuth: false,
+					Zone: "us-east1-d",
+					Hostname: "someapp.endpoints.acmeproject.cloud.goog",
+				},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		i := &kfdefsv2.KfDef{}
+		*i = c.Input
+		err := backfillKfDefFromOptions(i, c.Options)
+		if err != nil {
+			t.Errorf("Error backfilling KfDef error %v", err)
+		}
+
+		if !reflect.DeepEqual(*i, c.Expected) {
+			pGot, _ := Pformat(i)
+			pWant, _ := Pformat(c.Expected)
+			t.Errorf("Error backfilling KfDef got;\n%v\nwant;\n%v", pGot, pWant)
+		}
+	}
+}
+
+// Pformat returns a pretty format output of any value.
+func Pformat(value interface{}) (string, error) {
+	if s, ok := value.(string); ok {
+		return s, nil
+	}
+	valueJson, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	return string(valueJson), nil
+}

@@ -427,6 +427,15 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 // Support for the command line otpions is only provided for backwards compatibility until
 // we remove the options.
 func backfillKfDefFromOptions(kfdef *kfdefsv2.KfDef, options map[string]interface{}) error {
+	if kfdef.Spec.Platform == "" {
+		if options[string(kftypes.PLATFORM)] != nil && options[string(kftypes.PLATFORM)].(string) != "" {
+			kfdef.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
+
+			log.Warnf("Setting KfDef.Spec.Platform to %v based on command line flags; this is deprecated. "+
+				"Platform should be set in the app.yaml file.", kfdef.Spec.Platform)
+		}
+	}
+
 	if kfdef.Spec.Platform == kftypes.GCP {
 		if options[string(kftypes.EMAIL)] != nil && options[string(kftypes.EMAIL)].(string) != "" {
 			if kfdef.Spec.Email == "" {
@@ -524,7 +533,7 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	err = backfillKfDefFromOptions(kfdef, options)
 
 	if err != nil {
-		log.Warnf("There was a problem filling in KfDef based on command line options", err)
+		log.Warnf("There was a problem filling in KfDef based on command line options %v", err)
 	}
 
 	if err := kfdef.WriteToFile(cfgfile); err != nil {
