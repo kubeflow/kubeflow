@@ -7,6 +7,8 @@ import {KubernetesService} from './k8s_service';
 import {getMetricsService} from './metrics_service_factory';
 import {DefaultApi} from './clients/profile_controller';
 
+const DEFAULT_NAMESPACE = 'kubeflow';
+
 async function main() {
   const {PORT_1} = process.env;  // PORT_1 was defined in an earlier version
   const port: number = Number(PORT_1) || 8082;
@@ -15,7 +17,7 @@ async function main() {
   const app: express.Application = express();
   const k8sService = new KubernetesService(new KubeConfig());
   const metricsService = await getMetricsService(k8sService);
-  const profileController = new DefaultApi('http://kfam.kubeflow.svc.cluster.local/kfam/');
+  const profileController = new DefaultApi(`http://kfam.${DEFAULT_NAMESPACE}.svc.cluster.local/kfam/`);
 
   app.use(express.json());
   app.use(express.static(frontEnd));
