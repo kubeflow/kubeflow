@@ -4,7 +4,9 @@ import (
 	"flag"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
 	"github.com/onrik/logrus/filename"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 )
 
 func init() {
@@ -16,22 +18,9 @@ func init() {
 
 // ServerOption is the main context object for the controller manager.
 type ServerOption struct {
-	Apply                bool
-	PrintVersion         bool
-	JsonLogFormat        bool
-	InCluster            bool
-	KeepAlive            bool
-	InstallIstio         bool
-	Port                 int
-	AppName              string
-	AppDir               string
+	Project              string
+	Name                 string
 	Config               string
-	Email                string
-	GkeVersionOverride   string
-	Mode                 string
-	NameSpace            string
-	RegistriesConfigFile string
-	KfctlAppsNamespace   string
 }
 
 // NewServerOption creates a new CMServer with a default config.
@@ -44,12 +33,20 @@ func NewServerOption() *ServerOption {
 func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 
 	fs.StringVar(&s.Config, "config", "", "Path to a YAML file describing an app to create on startup.")
-	// Whether to install istio. Remove after we always install it.
-	fs.BoolVar(&s.InstallIstio, "install-istio", false, "Whether to install istio.")
+	fs.StringVar(&s.Name, "name", "", "Name for the deployment.")
+	fs.StringVar(&s.Project, "project", "", "Project.")
 
-	// Options below are related to the new API and router + backend design
-	fs.StringVar(&s.Mode, "mode", "router", "What mode to start the binary in. Options are router and kfctl.")
-	fs.StringVar(&s.KfctlAppsNamespace, "kfctl-apps-namespace", "", "The namespace where the kfctl apps will be created.")
+}
+
+func run(opt *ServerOption) error {
+
+	d, err := kfdefsv2.LoadKFDefFromURI(opt.Config)
+
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+
 }
 
 func main() {
@@ -57,5 +54,7 @@ func main() {
 	s.AddFlags(flag.CommandLine)
 
 	flag.Parse()
+
+	run(opt)
 
 }
