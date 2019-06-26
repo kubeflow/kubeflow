@@ -115,7 +115,7 @@ export class NamespaceSelector extends PolymerElement {
                 notify: true,
             },
             selectedNamespace: {
-                type: String,
+                type: Object,
                 value: () => ({}),
             },
         };
@@ -155,8 +155,8 @@ export class NamespaceSelector extends PolymerElement {
      * @param {string} selected
      */
     _onSelected(selected) {
-        this.selectedNamespace = this.namespaces
-            .find((i) => i.namespace == selected);
+        this.selectedNamespace = (this.namespaces || [])
+            .find((i) => i.namespace == selected) || this.selectedNamespace;
         this.set('queryParams.ns', selected);
     }
 }

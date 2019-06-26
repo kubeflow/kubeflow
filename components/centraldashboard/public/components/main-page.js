@@ -41,6 +41,14 @@ import {MESSAGE, PARENT_CONNECTED_EVENT, IFRAME_CONNECTED_EVENT,
     NAMESPACE_SELECTED_EVENT} from '../library.js';
 import {IFRAME_LINK_PREFIX} from './iframe-link.js';
 
+export const roleMap = {
+    admin: 'owner',
+    editor: 'contributor',
+    tr(a) {
+        return this[a] || a;
+    },
+};
+
 /**
  * Entry point for application UI.
  */
@@ -241,13 +249,6 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * @param {Event} responseEvent AJAX-response
      */
     _onEnvInfoResponse(responseEvent) {
-        const roleMap = {
-            admin: 'owner',
-            editor: 'contributor',
-            tr(a) {
-                return this[a] || a;
-            },
-        };
         const {platform, user, namespaces} = responseEvent.detail.response;
         this.user = user;
         this.namespaces = namespaces.map((n) => ({
