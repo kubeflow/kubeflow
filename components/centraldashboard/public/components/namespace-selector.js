@@ -116,6 +116,8 @@ export class NamespaceSelector extends PolymerElement {
             },
             selectedNamespace: {
                 type: Object,
+                readOnly: true,
+                notify: true,
                 value: () => ({}),
             },
         };
@@ -128,6 +130,7 @@ export class NamespaceSelector extends PolymerElement {
     static get observers() {
         return [
             '_queryParamChanged(queryParams.ns)',
+            '_ownedContextChanged(namespaces, selected)',
         ];
     }
 
@@ -152,11 +155,21 @@ export class NamespaceSelector extends PolymerElement {
 
     /**
      * Sets the query string namespace parameter to the selected value.
+     * @param {[object]} namespaces
+     * @param {string} selected
+     */
+    _ownedContextChanged(namespaces, selected) {
+        const namespace = (namespaces || []).find((i) =>
+            i.namespace == selected
+        );
+        this._setSelectedNamespace(namespace || this.selectedNamespace);
+    }
+
+    /**
+     * Sets the query string namespace parameter to the selected value.
      * @param {string} selected
      */
     _onSelected(selected) {
-        this.selectedNamespace = (this.namespaces || [])
-            .find((i) => i.namespace == selected) || this.selectedNamespace;
         this.set('queryParams.ns', selected);
     }
 }
