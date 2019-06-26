@@ -94,7 +94,6 @@ spec:
   - tf-training
   - pipeline
   - profiles
-  repo: /home/yannis/go/src/github.com/kubeflow/kubeflow/kubeflow
   useBasicAuth: false
   useIstio: true
 status: {}

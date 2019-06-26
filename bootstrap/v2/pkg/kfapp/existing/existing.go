@@ -130,6 +130,7 @@ func (existing *Existing) Apply(resources kftypes.ResourceEnum) error {
 	}
 
 	// Get the kubeflow user to add
+	// TODO(yanniszark): get this from a plugin struct eventually (https://github.com/kubeflow/kubeflow/issues/3529)
 	log.Info("Getting the Kubeflow User")
 	kubeflowUser, err := getKubeflowUser()
 	if err != nil {
