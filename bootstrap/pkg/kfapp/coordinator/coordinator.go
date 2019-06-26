@@ -258,11 +258,11 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 
 	kfDef := &kfdefsv2.KfDef{}
 	if configFile != "" {
-		newkfDef, err := kfdefsv2.DownloadAndLoadConfigFile(configFile, appDir)
+		newkfDef, err := kfdefsv2.LoadKFDefFromURI(configFile)
 
 		kfDef = newkfDef
 		if err != nil {
-			log.Errorf("Could not fetch %v; error %v", configFile, err)
+			log.Errorf("Could not load %v; error %v", configFile, err)
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INTERNAL_ERROR),
 				Message: err.Error(),
@@ -337,7 +337,6 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 		}
 
 		kfDef.Name = appName
-		kfDef.Spec.AppDir = appDir
 		kfDef.Spec.Platform = platform
 		kfDef.Namespace = namespace
 		kfDef.Spec.Version = version
@@ -348,6 +347,7 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 		kfDef.Spec.UseIstio = useIstio
 		kfDef.Spec.PackageManager = packageManager
 	}
+	kfDef.Spec.AppDir = appDir
 
 	// Disable usage report if requested
 	// TODO(jlewi): We should be able to get rid of this once we depend on this being
@@ -377,11 +377,6 @@ func CreateKfAppCfgFile(d *kfdefsv2.KfDef)(string , error) {
 	}
 
 	// Rewrite app.yaml
-	buf, bufErr := yaml.Marshal(d)
-	if bufErr != nil {
-		log.Errorf("Error marshaling kfdev; %v", bufErr)
-		return "", bufErr
-	}
 	cfgFilePath := filepath.Join(d.Spec.AppDir, kftypesv2.KfConfigFile)
 
 	if _, err := os.Stat(cfgFilePath); err != nil {
@@ -389,15 +384,13 @@ func CreateKfAppCfgFile(d *kfdefsv2.KfDef)(string , error) {
 		return cfgFilePath, fmt.Errorf("%v already exists", cfgFilePath)
 	}
 	log.Infof("Writing updated KfDef to %v", cfgFilePath)
-	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
+	cfgFilePathErr := d.WriteToFile(cfgFilePath)
 	return cfgFilePath, cfgFilePathErr
 }
 
 // NewKfApp is called from the Init subcommand and will create a directory based on
 // the path/name argument given to the Init subcommand
 func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
-	TODO: THis is problematic because DownloadAndLoadConfig file will persist the config file
-	To appdir Can we persist it to a different location.
 	kfDef, err := CreateKfDefFromOptions(options)
 
 	if err != nil {
@@ -418,7 +411,6 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	if err != nil {
 		return nil, err
 	}
-
 
 	return LoadKfAppCfgFile(cfgFilePath)
 }
@@ -556,7 +548,10 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		log.Warnf("There was a problem filling in KfDef based on command line options", err)
 	}
 
-	TODO: we need to persist the YAML to an updated spec file.
+	if err := kfdef.WriteToFile(cfgfile); err != nil {
+		log.Errorf("Could not write KfDef changes to %v; error %v", cfgfile, err)
+		return nil, err
+	}
 
 	return LoadKfAppCfgFile(cfgfile)
 }
