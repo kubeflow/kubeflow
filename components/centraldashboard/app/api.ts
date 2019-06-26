@@ -15,7 +15,7 @@ interface WorkgroupInfo {
 }
 
 interface AuthObject {
-  [IAP_HEADER]: string;
+  [iapHeader: string]: string;
 }
 
 export class Api {
