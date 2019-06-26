@@ -103,6 +103,7 @@ func TestSyncCache(t *testing.T) {
 	if d.Status.ReposCache["testrepo"].LocalPath != path.Join(expectedDir) {
 		t.Fatalf("LocalPath; want %v; got %v", expectedDir, d.Status.ReposCache["testrepo"].LocalPath)
 	}
+
 }
 
 func TestWriteKfDef(t *testing.T) {
@@ -443,19 +444,19 @@ func TestKfDef_SetSecret(t *testing.T) {
 	}
 }
 
-func Test_PluginNotFoundError(t *testing.T){
+func Test_PluginNotFoundError(t *testing.T) {
 	type testCase struct {
-		Input error
+		Input    error
 		Expected bool
 	}
 
-	cases := []testCase {
+	cases := []testCase{
 		{
-			Input: NewPluginNotFound("someplugin"),
+			Input:    NewPluginNotFound("someplugin"),
 			Expected: true,
 		},
 		{
-			Input: fmt.Errorf("some error"),
+			Input:    fmt.Errorf("some error"),
 			Expected: false,
 		},
 	}
