@@ -570,11 +570,23 @@ type coordinator struct {
 
 type KfDefGetter interface {
 	GetKfDef() *kfdefsv2.KfDef
+	GetPlugin(name string) (kftypes.KfApp, bool)
 }
 
 // GetKfDef returns a pointer to the KfDef used by this application.
 func (kfapp *coordinator) GetKfDef() *kfdefsv2.KfDef {
 	return kfapp.KfDef
+}
+
+// GetPlatform returns the specified platform.
+func (kfapp *coordinator) GetPlugin(name string) (kftypes.KfApp, bool) {
+
+	if r, ok := kfapp.Platforms[name]; ok {
+		return r, ok
+	}
+
+	r, ok := kfapp.PackageManagers[name]
+	return r,ok
 }
 
 func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {

@@ -92,9 +92,20 @@ type Gcp struct {
 	kfdefs.KfDef
 	configtypes.StorageOption
 	client      *http.Client
+	// TODO(jlewi): We should be able to remove accessToken and just use TokenSource.
 	accessToken string
 	tokenSource oauth2.TokenSource
 	SAClientId  string
+}
+
+
+type Setter interface {
+	SetTokenSource(s oauth2.TokenSource) error
+}
+
+func (gcp *Gcp) SetTokenSource(s oauth2.TokenSource) error {
+	gcp.tokenSource = s
+	return nil
 }
 
 type GcpArgs struct {

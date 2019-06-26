@@ -53,7 +53,6 @@ func NewKfctlServer(appsDir string) (*kfctlServer, error) {
 	s := &kfctlServer{
 		c: make(chan kfdefsv2.KfDef, 10),
 		appsDir: appsDir,
-		ts: &RefreshableTokenSource{},
 	}
 
 	// Start a background thread to process requests
@@ -90,20 +89,53 @@ func (s *kfctlServer) process() {
 					log.Errorf("Could not assert KfApp as type KfDefGetter; error %v", err)
 				}
 
+
+				p, ok := getter.GetPlugin(kftypes.GCP)
+				if !ok {
+					log.Errorf("Could not get GCP plugin from KfApp")
+				}
+
+				gcpPlugin, ok := p.(gcp.Setter)
+
+				if !ok {
+					log.Errorf("Plugin %v doesn't implement Setter interface; can't set TokenSource", kftypes.GCP)
+					continue
+				}
+
+				f  := func() bool {
+					s.kfDefMux.Lock()
+					defer s.kfDefMux.Unlock()
+
+					if s.ts == nil {
+						log.Errorf("No token source set; can't create KfApp")
+						return false
+					}
+
+					gcpPlugin.SetTokenSource(s.ts)
+					return true
+				}
+
+				if !f() {
+					continue
+				}
 				s.kfApp = kfApp
 				s.kfDefGetter = getter
 
 				log.Errorf("Need to set tokenSource on GCP")
+
 			}
 		}
 
 		log.Infof("Calling generate")
 		if err := s.kfApp.Generate(kftypes.ALL); err != nil {
 			// Update the latest spec.
-			s.kfDefMux.Lock()
-			defer s.kfDefMux.Unlock()
+			f := func() {
+				s.kfDefMux.Lock()
+				defer s.kfDefMux.Unlock()
 
-			s.latestKfDef = *s.kfDefGetter.GetKfDef()
+				s.latestKfDef = *s.kfDefGetter.GetKfDef()
+			}
+			f()
 			log.Errorf("Calling generate failed; %v", err)
 		}
 
@@ -116,6 +148,10 @@ func (s *kfctlServer) process() {
 			s.kfDefGetter.GetKfDef().DeepCopyInto(&s.latestKfDef)
 			log.Errorf("Calling apply failed; %v", err)
 		}
+
+		log.Errorf("Need to implement code to push app to source repo.")
+		// Push to source repo.
+		//err = SaveAppToRepo(req.Email, path.Join(repoDir, GetRepoNameKfctl(req.Project)))
 	}
 }
 
@@ -158,20 +194,29 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv2.KfDef) 
 		}
 	}
 
-	if s.ts == nil {
-		log.Infof("Initializing token source")
-		ts, err := NewRefreshableTokenSource(token)
+	initFunc := func () error {
+		s.kfDefMux.Lock()
+		defer s.kfDefMux.Unlock()
 
-		if err != nil {
-			log.Errorf("Could not create token source; error %v", err)
+		if s.ts == nil {
+			log.Infof("Initializing token source")
+			ts, err := NewRefreshableTokenSource(req.Spec.Project)
 
-			return nil, &httpError{
-				Message: "Internal service error please try again later.",
-				Code:    http.StatusInternalServerError,
+			if err != nil {
+				log.Errorf("Could not create token source; error %v", err)
+
+				return &httpError{
+					Message: "Internal service error please try again later.",
+					Code:    http.StatusInternalServerError,
+				}
 			}
-		}
 
-		s.ts = ts
+			s.ts = ts
+		}
+	}
+
+	if err:= initFunc(); err != nil {
+		return nil, err
 	}
 
 	// Refresh the credential. This will fail if it doesn't provide access to the project

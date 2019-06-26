@@ -28,6 +28,7 @@ type RefreshableTokenSource struct {
 
 type TokenRefresher interface {
 	Refresh(newToken oauth2.Token) error
+	Token() (*oauth2.Token, error)
 }
 
 // NewRefreshableTokenSource creates a new RefreshableTokenSource.

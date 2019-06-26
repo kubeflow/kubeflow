@@ -19,6 +19,10 @@ func (ts *FakeRefreshableTokenSource) Refresh(newToken oauth2.Token) error {
 	return nil
 }
 
+func (ts *FakeRefreshableTokenSource) Token()(*oauth2.Token, error) {
+	return &oauth2.Token{AccessToken: ts.token}, nil
+}
+
 func TestKfctlServer_CreateDeployment(t *testing.T) {
 	ts := &FakeRefreshableTokenSource{}
 
