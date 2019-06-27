@@ -344,13 +344,12 @@ func (d *KfDef) SyncCache() error {
 
 	for _, r := range d.Spec.Repos {
 		cacheDir := path.Join(baseCacheDir, r.Name)
-		// idempotency
-		// TODO(jlewi): Why do we remove the directory if it exists?
+		// TODO(jlewi):
 		// Can we use a checksum or other mechanism to verify if the existing location is good?
 		// If there was a problem the first time around then removing it might provide a way to recover.
-		if _, err := os.Stat(cacheDir); !os.IsNotExist(err) {
-			log.Infof("Removing %v", cacheDir)
-			_ = os.RemoveAll(cacheDir)
+		if _, err := os.Stat(cacheDir); err == nil {
+			log.Infof("%v exists; not resyncing ", cacheDir)
+			continue
 		}
 
 		log.Infof("Fetching %v to %v", r.Uri, cacheDir)

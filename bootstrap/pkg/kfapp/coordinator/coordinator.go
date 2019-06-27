@@ -268,18 +268,11 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 			}
 		}
 
-		log.Infof("Synchronize cache")
-
 		if kfDef.Name != "" {
 			log.Warnf("Overriding KfDef.Spec.Name; old value %v; new value %v", kfDef.Name, appName)
 		}
-		kfDef.Name = appName
-		err = kfDef.SyncCache()
 
-		if err != nil {
-			log.Errorf("Failed to synchronize the cache; error: %v", err)
-			return nil, err
-		}
+		kfDef.Name = appName
 
 		//TODO(yanniszark): sane defaults for missing fields
 		//TODO(yanniszark): validate KfDef
@@ -417,6 +410,27 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	cfgFilePath, err := CreateKfAppCfgFile(kfDef)
 
 	if err != nil {
+		return nil, err
+	}
+
+	log.Infof("Synchronize cache")
+
+	err = kfDef.SyncCache()
+
+	if err != nil {
+		log.Errorf("Failed to synchronize the cache; error: %v", err)
+		return nil, err
+	}
+
+	// TODO(jlewi): This is an ugly hack. We should update kustomize.go to not use ManifestsRepo
+	r, ok := kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
+
+	if ok {
+		kfDef.Spec.ManifestsRepo = r.LocalPath
+	}
+	// Save app.yaml because we need to preserve information about the cache.
+	if err := kfDef.WriteToFile(cfgFilePath); err != nil {
+		log.Errorf("Failed to save KfDef to %v; error %v", cfgFilePath, err)
 		return nil, err
 	}
 

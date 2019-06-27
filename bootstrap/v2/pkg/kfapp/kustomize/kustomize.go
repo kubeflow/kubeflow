@@ -27,6 +27,7 @@ import (
 	kfapisv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"k8s.io/api/v2/core/v1"
@@ -409,6 +410,7 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 	generate := func() error {
 		kustomizeDir := path.Join(kustomize.Spec.AppDir, outputDir)
+
 		// idempotency
 		if _, err := os.Stat(kustomizeDir); !os.IsNotExist(err) {
 			_ = os.RemoveAll(kustomizeDir)
@@ -420,17 +422,36 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 				Message: fmt.Sprintf("couldn't create directory %v Error %v", kustomizeDir, kustomizeDirErr),
 			}
 		}
+
+		manifestsRepo, ok := kustomize.Status.ReposCache[kftypes.ManifestsRepoName]
+
+		if !ok {
+			log.Infof("Repo %v not listed in KfDef.Status; Resync'ing cache", kftypes.ManifestsRepoName)
+			if err := kustomize.SyncCache(); err != nil {
+				log.Errorf("Syncing the cached failed; error %v", err)
+				return errors.WithStack(err)
+			}
+		}
+
+		manifestsRepo, ok = kustomize.Status.ReposCache[kftypes.ManifestsRepoName]
+
+		if !ok {
+			return errors.WithStack(fmt.Errorf("Repo %v not listed in KfDef.Status; ", kftypes.ManifestsRepoName))
+		}
+
 		for _, compName := range kustomize.Spec.Components {
 			compPath, ok := kustomize.componentPathMap[compName]
 			if !ok {
+				log.Errorf("Couldn't find component %v", compName)
 				return &kfapisv2.KfError{
 					Code:    int(kfapisv2.INTERNAL_ERROR),
 					Message: fmt.Sprintf("couldn't find component %s", compName),
 				}
 			}
-			resMap, err := GenerateKustomizationFile(&kustomize.KfDef, kustomize.Spec.ManifestsRepo, compPath,
+			resMap, err := GenerateKustomizationFile(&kustomize.KfDef, manifestsRepo.LocalPath, compPath,
 				kustomize.Spec.ComponentParams[compName])
 			if err != nil {
+				log.Errorf("error generating kustomization for %v Error %v", compPath, err)
 				return &kfapisv2.KfError{
 					Code:    int(kfapisv2.INTERNAL_ERROR),
 					Message: fmt.Sprintf("error generating kustomization for %v Error %v", compPath, err),
