@@ -351,6 +351,13 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 
 	}
 
+	err := backfillKfDefFromInitOptions(kfDef, options)
+
+	if err != nil {
+		log.Errorf("Could not backfill KfDef from options; error %v", err)
+		return nil, err
+	}
+
 	return kfDef, nil
 }
 
@@ -386,17 +393,6 @@ func CreateKfAppCfgFile(d *kfdefsv2.KfDef) (string, error) {
 // the path/name argument given to the Init subcommand
 func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	kfDef, err := CreateKfDefFromOptions(options)
-
-	if err != nil {
-		return nil, err
-	}
-
-	err = backfillKfDefFromInitOptions(kfDef, options)
-
-	if err != nil {
-		log.Errorf("Could not backfill KfDef from options; error %v", err)
-		return nil, err
-	}
 
 	isValid, msg := kfDef.IsValid()
 

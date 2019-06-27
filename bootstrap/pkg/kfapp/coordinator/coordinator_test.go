@@ -23,18 +23,21 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 	}
 
 	cases := []testCase{
+		// Test file is created when directory doesn't exist.
 		{
 			Input:         kfdefsv2.KfDef{},
 			DirExists:     false,
 			CfgFileExists: false,
 			ExpectError:   false,
 		},
+		// Test file is created when directory exists
 		{
 			Input:         kfdefsv2.KfDef{},
 			DirExists:     true,
 			CfgFileExists: false,
 			ExpectError:   false,
 		},
+		// Test an error is raised if the config file already exists.
 		{
 			Input:         kfdefsv2.KfDef{},
 			DirExists:     true,
