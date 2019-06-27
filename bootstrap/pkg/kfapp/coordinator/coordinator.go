@@ -380,7 +380,7 @@ func CreateKfAppCfgFile(d *kfdefsv2.KfDef) (string, error) {
 	// Rewrite app.yaml
 	cfgFilePath := filepath.Join(d.Spec.AppDir, kftypesv2.KfConfigFile)
 
-	if _, err := os.Stat(cfgFilePath); err != nil {
+	if _, err := os.Stat(cfgFilePath); err == nil {
 		log.Errorf("%v already exists", cfgFilePath)
 		return cfgFilePath, fmt.Errorf("%v already exists", cfgFilePath)
 	}
