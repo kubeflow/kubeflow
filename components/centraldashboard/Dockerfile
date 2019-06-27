@@ -1,5 +1,12 @@
 # Step 1: Builds and tests
-FROM node:10-alpine AS test
+FROM node:10-alpine AS build
+
+ARG kubeflowversion
+ARG commit
+ENV BUILD_VERSION=$kubeflowversion
+ENV BUILD_COMMIT=$commit
+ENV CHROME_BIN=/usr/bin/chromium-browser
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # Installs latest Chromium package and configures environment for testing
 RUN apk update && apk upgrade && \
@@ -9,28 +16,21 @@ RUN apk update && apk upgrade && \
     freetype@edge \
     harfbuzz@edge \
     ttf-freefont@edge
-ENV CHROME_BIN=/usr/bin/chromium-browser
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 COPY . /centraldashboard
 WORKDIR /centraldashboard
 
-RUN npm rebuild && npm install && npm test
+RUN npm rebuild && \
+    npm install && \
+    npm test && \
+    npm run build && \
+    npm prune --production
 
 # Step 2: Packages assets for serving
-FROM node:10-alpine AS build
+FROM node:10-alpine AS serve
 
-COPY --from=test /centraldashboard /centraldashboard/
-WORKDIR /centraldashboard
-
-ARG kubeflowversion
-ARG commit
-ENV BUILD_VERSION=$kubeflowversion
-ENV BUILD_COMMIT=$commit
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-
-RUN npm run build && npm prune --production
+WORKDIR /app
+COPY --from=build /centraldashboard .
 
 EXPOSE 8082
-
 ENTRYPOINT ["npm", "start"]
