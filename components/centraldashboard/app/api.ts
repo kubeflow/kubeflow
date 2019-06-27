@@ -5,17 +5,9 @@ import {KubernetesService, PlatformInfo} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
 import {DefaultApi, Binding as WorkgroupBinding} from './clients/profile_controller';
 
-const {env} = process;
-const IAP_HEADER = env.IAP_HEADER || 'X-Goog-Authenticated-User-Email';
-const IAP_PREFIX = env.IAP_PREFIX || 'accounts.google.com:';
-
 interface WorkgroupInfo {
   namespaces: WorkgroupBinding[];
   isClusterAdmin: boolean;
-}
-
-interface AuthObject {
-  [iapHeader: string]: string;
 }
 
 export class Api {
@@ -34,31 +26,12 @@ export class Api {
     return this.platformInfo;
   }
 
-  private getAuthOption(req: Request): AuthObject {
-    return {
-      [IAP_HEADER]: req.get(IAP_HEADER),
-    };
-  }
-
-  /**
-   * Retrieves user information from headers.
-   * Supports:
-   *  GCP IAP (https://cloud.google.com/iap/docs/identity-howto)
-   */
-  private getUser(req: Request): string {
-    let email = 'anonymous@kubeflow.org';
-    if (req.header(IAP_HEADER)) {
-      email = req.header(IAP_HEADER).slice(IAP_PREFIX.length);
-    }
-    return email;
-  }
-
   /**
    * Retrieves workgroup info from Profile Controller.
    */
   private async getWorkgroup(req: Request, user: string): Promise<WorkgroupInfo> {
     const {profileController} = this;
-    const auth = this.getAuthOption(req);
+    const auth = req.user.authHeaders;
     const [adminResponse, bindings] = await Promise.all([
       profileController.v1RoleClusteradminGet(user, auth),
       profileController.readBindings(user, undefined, undefined, auth),
@@ -74,7 +47,7 @@ export class Api {
    * Retrieves environment information including profile data
    */
   private async getProfileAwareEnv(req: Request, res: Response) {
-    const user = this.getUser(req);
+    const user = req.user.name;
     const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
       this.getPlatformInfo(),
       this.getWorkgroup(req, user),
@@ -86,7 +59,7 @@ export class Api {
    * Retrieves environment information without profile data
    */
   private async getBasicEnvironment(req: Request, res: Response) {
-    const user = this.getUser(req);
+    const user = req.user.name;
     const namespaces = this.kubeNamespacesORM(user, await this.k8sService.getNamespaces());
     res.json({
       platform: await this.getPlatformInfo(),
