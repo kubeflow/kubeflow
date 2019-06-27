@@ -377,7 +377,7 @@ func CreateKfAppCfgFile(d *kfdefsv2.KfDef) (string, error) {
 		log.Errorf("%v already exists", cfgFilePath)
 		return cfgFilePath, fmt.Errorf("%v already exists", cfgFilePath)
 	}
-	log.Infof("Writing updated KfDef to %v", cfgFilePath)
+	log.Infof("Writing KfDef to %v", cfgFilePath)
 	cfgFilePathErr := d.WriteToFile(cfgFilePath)
 	return cfgFilePath, cfgFilePathErr
 }
