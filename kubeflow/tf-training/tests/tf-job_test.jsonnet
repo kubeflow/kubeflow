@@ -124,7 +124,7 @@ std.assertEqual(
                 "/opt/kubeflow/tf-operator.v1",
                 "--alsologtostderr",
                 "-v=1",
-                "--monitoring-port=8443"
+                "--monitoring-port=8443",
               ],
               env: [
                 {
@@ -146,23 +146,9 @@ std.assertEqual(
               ],
               image: "gcr.io/kubeflow-images-public/tf_operator:v0.5.1",
               name: "tf-job-operator",
-              volumeMounts: [
-                {
-                  mountPath: "/etc/config",
-                  name: "config-volume",
-                },
-              ],
             },
           ],
           serviceAccountName: "tf-job-operator",
-          volumes: [
-            {
-              configMap: {
-                name: "tf-job-operator-config",
-              },
-              name: "config-volume",
-            },
-          ],
         },
       },
     },
@@ -172,32 +158,32 @@ std.assertEqual(
 std.assertEqual(
   tfjobv1.tfJobService,
   {
-    apiVersion: 'v1',
-    kind: 'Service',
+    apiVersion: "v1",
+    kind: "Service",
     metadata: {
       annotations: {
-        'prometheus.io/scrape': 'true',
-        'prometheus.io/path': '/metrics',
-        'prometheus.io/port': '8443',
+        "prometheus.io/scrape": "true",
+        "prometheus.io/path": "/metrics",
+        "prometheus.io/port": "8443",
       },
       labels: {
-        app: 'tf-job-operator',
+        app: "tf-job-operator",
       },
-      name: 'tf-job-operator',
-      namespace: 'test-kf-001',
+      name: "tf-job-operator",
+      namespace: "test-kf-001",
     },
     spec: {
       ports: [
         {
-          name: 'monitoring-port',
+          name: "monitoring-port",
           port: 8443,
           targetPort: 8443,
         },
       ],
       selector: {
-        name: 'tf-job-operator',
+        name: "tf-job-operator",
       },
-      type: 'ClusterIP',
+      type: "ClusterIP",
     },
   }
 ) &&
@@ -277,47 +263,12 @@ std.assertEqual(
       },
       {
         apiGroups: [
-          "apiextensions.k8s.io",
-        ],
-        resources: [
-          "customresourcedefinitions",
-        ],
-        verbs: [
-          "*",
-        ],
-      },
-      {
-        apiGroups: [
-          "storage.k8s.io",
-        ],
-        resources: [
-          "storageclasses",
-        ],
-        verbs: [
-          "*",
-        ],
-      },
-      {
-        apiGroups: [
-          "batch",
-        ],
-        resources: [
-          "jobs",
-        ],
-        verbs: [
-          "*",
-        ],
-      },
-      {
-        apiGroups: [
           "",
         ],
         resources: [
-          "configmaps",
           "pods",
           "services",
           "endpoints",
-          "persistentvolumeclaims",
           "events",
           "pods/log",
           "namespaces",
