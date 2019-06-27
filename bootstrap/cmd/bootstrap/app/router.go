@@ -11,6 +11,7 @@ import (
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/golang/protobuf/proto"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	apps "k8s.io/api/apps/v1"
@@ -19,7 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	kubeclientset "k8s.io/client-go/kubernetes"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"net/http"
 	"net/url"
 	"strings"
@@ -176,7 +176,6 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 			Code:    http.StatusBadRequest,
 		}
 	}
-
 
 	// Verify that user has access. We shouldn't do any processing until verifying access.
 	ts := oauth2.StaticTokenSource(&oauth2.Token{

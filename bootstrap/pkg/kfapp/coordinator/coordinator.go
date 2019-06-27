@@ -586,7 +586,7 @@ func (kfapp *coordinator) GetPlugin(name string) (kftypes.KfApp, bool) {
 	}
 
 	r, ok := kfapp.PackageManagers[name]
-	return r,ok
+	return r, ok
 }
 
 func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {

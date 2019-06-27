@@ -11,14 +11,14 @@ import (
 	"encoding/json"
 	"fmt"
 	httptransport "github.com/go-kit/kit/transport/http"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
+	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"net/http"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"os"
 	"path"
 	"sync"
@@ -33,12 +33,12 @@ type kfctlServer struct {
 	ts TokenRefresher
 	c  chan kfdefsv2.KfDef
 
-	appsDir string
-	kfApp kftypes.KfApp
+	appsDir     string
+	kfApp       kftypes.KfApp
 	kfDefGetter coordinator.KfDefGetter
 
 	// Mutex protecting the latest KfDef spec
-	kfDefMux    sync.Mutex
+	kfDefMux sync.Mutex
 
 	// latestKfDef is updated to provide the latest status information.
 	latestKfDef kfdefsv2.KfDef
@@ -51,7 +51,7 @@ func NewKfctlServer(appsDir string) (*kfctlServer, error) {
 	}
 
 	s := &kfctlServer{
-		c: make(chan kfdefsv2.KfDef, 10),
+		c:       make(chan kfdefsv2.KfDef, 10),
 		appsDir: appsDir,
 	}
 
@@ -89,7 +89,6 @@ func (s *kfctlServer) process() {
 					log.Errorf("Could not assert KfApp as type KfDefGetter; error %v", err)
 				}
 
-
 				p, ok := getter.GetPlugin(kftypes.GCP)
 				if !ok {
 					log.Errorf("Could not get GCP plugin from KfApp")
@@ -102,7 +101,7 @@ func (s *kfctlServer) process() {
 					continue
 				}
 
-				f  := func() bool {
+				f := func() bool {
 					s.kfDefMux.Lock()
 					defer s.kfDefMux.Unlock()
 
@@ -126,26 +125,22 @@ func (s *kfctlServer) process() {
 			}
 		}
 
+		updateKfDef := func() {
+			s.kfDefMux.Lock()
+			defer s.kfDefMux.Unlock()
+
+			s.latestKfDef = *s.kfDefGetter.GetKfDef()
+		}
+
 		log.Infof("Calling generate")
 		if err := s.kfApp.Generate(kftypes.ALL); err != nil {
-			// Update the latest spec.
-			f := func() {
-				s.kfDefMux.Lock()
-				defer s.kfDefMux.Unlock()
-
-				s.latestKfDef = *s.kfDefGetter.GetKfDef()
-			}
-			f()
+			updateKfDef()
 			log.Errorf("Calling generate failed; %v", err)
 		}
 
 		log.Infof("Calling apply")
 		if err := s.kfApp.Apply(kftypes.ALL); err != nil {
-			// Update the latest spec.
-			s.kfDefMux.Lock()
-			defer s.kfDefMux.Unlock()
-
-			s.kfDefGetter.GetKfDef().DeepCopyInto(&s.latestKfDef)
+			updateKfDef()
 			log.Errorf("Calling apply failed; %v", err)
 		}
 
@@ -194,7 +189,7 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv2.KfDef) 
 		}
 	}
 
-	initFunc := func () error {
+	initFunc := func() error {
 		s.kfDefMux.Lock()
 		defer s.kfDefMux.Unlock()
 
@@ -213,9 +208,10 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv2.KfDef) 
 
 			s.ts = ts
 		}
+		return nil
 	}
 
-	if err:= initFunc(); err != nil {
+	if err := initFunc(); err != nil {
 		return nil, err
 	}
 

@@ -3,9 +3,9 @@ package app
 import (
 	"context"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
+	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"golang.org/x/oauth2"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"reflect"
 	"testing"
 )
@@ -19,7 +19,7 @@ func (ts *FakeRefreshableTokenSource) Refresh(newToken oauth2.Token) error {
 	return nil
 }
 
-func (ts *FakeRefreshableTokenSource) Token()(*oauth2.Token, error) {
+func (ts *FakeRefreshableTokenSource) Token() (*oauth2.Token, error) {
 	return &oauth2.Token{AccessToken: ts.token}, nil
 }
 
@@ -74,13 +74,13 @@ func TestKfctlServer_CreateDeployment(t *testing.T) {
 		t.Fatalf("CreateDeployment error; %v", err)
 	}
 
-   if !reflect.DeepEqual(*res, s.latestKfDef) {
+	if !reflect.DeepEqual(*res, s.latestKfDef) {
 		pWant, _ := Pformat(s.latestKfDef)
 		pActual, _ := Pformat(res)
 		t.Errorf("Incorrect CreateDeployment Response:got\n:%v\nwant:%v", pActual, pWant)
 	}
 
-	v := <- s.c
+	v := <-s.c
 
 	if !reflect.DeepEqual(req, v) {
 		pWant, _ := Pformat(req)
