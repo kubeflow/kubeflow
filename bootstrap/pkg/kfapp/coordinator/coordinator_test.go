@@ -29,18 +29,18 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 			CfgFileExists: false,
 			ExpectError:   false,
 		},
-		//{
-		//	Input:         kfdefsv2.KfDef{},
-		//	DirExists:     true,
-		//	CfgFileExists: false,
-		//	ExpectError:   false,
-		//},
-		//{
-		//	Input:         kfdefsv2.KfDef{},
-		//	DirExists:     true,
-		//	CfgFileExists: true,
-		//	ExpectError:   true,
-		//},
+		{
+			Input:         kfdefsv2.KfDef{},
+			DirExists:     true,
+			CfgFileExists: false,
+			ExpectError:   false,
+		},
+		{
+			Input:         kfdefsv2.KfDef{},
+			DirExists:     true,
+			CfgFileExists: true,
+			ExpectError:   true,
+		},
 	}
 
 	for _, c := range cases {
