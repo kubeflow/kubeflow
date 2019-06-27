@@ -496,7 +496,13 @@ func (d *KfDef) IsValid() (bool, string) {
 	// Validate kfDef
 	errs := valid.NameIsDNSLabel(d.Name, false)
 	if errs != nil && len(errs) > 0 {
-		return false, fmt.Sprintf(`invalid name due to %v`, strings.Join(errs, ", "))
+		return false, fmt.Sprintf("invalid name due to %v", strings.Join(errs, ","))
+	}
+
+	// PackageManager is currently required because we will try to load the package manager and get an error if
+	// none is specified.
+	if d.Spec.PackageManager == "" {
+		return false, fmt.Sprintf("KfDef.Spec.PackageManager is required")
 	}
 	return true, ""
 }

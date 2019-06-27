@@ -86,8 +86,9 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 	}
 }
 
-func Test_backfillKfDefFromOptions(t *testing.T) {
+func Test_backfillKfDefFromInitOptions(t *testing.T) {
 	type testCase struct {
+		Name     string
 		Input    kfdefsv2.KfDef
 		Options  map[string]interface{}
 		Expected kfdefsv2.KfDef
@@ -97,13 +98,10 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 		// Check that if a bunch of options are provided they
 		// are converted into KfDef.
 		{
+			Name:  "Case 1",
 			Input: kfdefsv2.KfDef{},
 			Options: map[string]interface{}{
-				string(kftypes.EMAIL):          "user@kubeflow.org",
-				string(kftypes.IPNAME):         "someip",
-				string(kftypes.HOSTNAME):       "somehost",
 				string(kftypes.PROJECT):        "someproject",
-				string(kftypes.ZONE):           "somezone",
 				string(kftypes.USE_BASIC_AUTH): true,
 				string(kftypes.PLATFORM):       kftypes.GCP,
 			},
@@ -112,11 +110,7 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
-					Email:        "user@kubeflow.org",
-					IpName:       "someip",
-					Hostname:     "somehost",
 					Project:      "someproject",
-					Zone:         "somezone",
 					UseBasicAuth: true,
 				},
 			},
@@ -125,25 +119,17 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 		// Check that if a bunch of options are provided in the KfDef spec they
 		// are not overwritten by options.
 		{
+			Name: "Case 2",
 			Input: kfdefsv2.KfDef{
 				Spec: kfdefsv2.KfDefSpec{
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
-					Email:        "user@kubeflow.org",
-					IpName:       "someip",
-					Hostname:     "somehost",
-					Project:      "someproject",
-					Zone:         "somezone",
-					UseBasicAuth: true,
+					Project: "someproject",
 				},
 			},
 			Options: map[string]interface{}{
-				string(kftypes.EMAIL):    "newuser@kubeflow.org",
-				string(kftypes.IPNAME):   "newip",
-				string(kftypes.HOSTNAME): "newhost",
 				string(kftypes.PROJECT):  "newproject",
-				string(kftypes.ZONE):     "newezone",
 				string(kftypes.PLATFORM): kftypes.GCP,
 			},
 			Expected: kfdefsv2.KfDef{
@@ -151,18 +137,160 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
-					Email:        "user@kubeflow.org",
-					IpName:       "someip",
-					Hostname:     "somehost",
-					Project:      "someproject",
-					Zone:         "somezone",
-					UseBasicAuth: true,
+					Project: "someproject",
+				},
+			},
+		},
+		// --platform-packmanager=kustomize should add a manifests repo
+		{
+			Name: "Case kustomize",
+			Input: kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "someapp",
+				},
+				Spec: kfdefsv2.KfDefSpec{},
+			},
+			Options: map[string]interface{}{
+				string(kftypes.PACKAGE_MANAGER): kftypes.KUSTOMIZE,
+			},
+			Expected: kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "someapp",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					PackageManager: kftypes.KUSTOMIZE,
+					Repos: []kfdefsv2.Repo{
+						{
+							Name: "manifests",
+							Uri:  "https://github.com/kubeflow/manifests/archive/master.tar.gz",
+							Root: "manifests-master",
+						},
+					},
+				},
+			},
+		},
+		// --platform-packmanager=kustomize@12345 should add a manifests repo
+		{
+			Name: "Case kustomize-commit",
+			Input: kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "someapp",
+				},
+				Spec: kfdefsv2.KfDefSpec{},
+			},
+			Options: map[string]interface{}{
+				string(kftypes.PACKAGE_MANAGER): kftypes.KUSTOMIZE + "@12345",
+			},
+			Expected: kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "someapp",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					PackageManager: kftypes.KUSTOMIZE,
+					Repos: []kfdefsv2.Repo{
+						{
+							Name: "manifests",
+							Uri:  "https://github.com/kubeflow/manifests/archive/12345.tar.gz",
+							Root: "manifests-12345",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		i := &kfdefsv2.KfDef{}
+		*i = c.Input
+		err := backfillKfDefFromInitOptions(i, c.Options)
+		if err != nil {
+			t.Errorf("Error backfilling KfDef error %v", err)
+		}
+
+		if !reflect.DeepEqual(*i, c.Expected) {
+			pGot, _ := Pformat(i)
+			pWant, _ := Pformat(c.Expected)
+			t.Errorf("Case: %v; Error backfilling KfDef got;\n%v\nwant;\n%v", c.Name, pGot, pWant)
+		}
+	}
+}
+
+func Test_backfillKfDefFromGenerateOptions(t *testing.T) {
+	type testCase struct {
+		Name     string
+		Input    kfdefsv2.KfDef
+		Options  map[string]interface{}
+		Expected kfdefsv2.KfDef
+	}
+
+	cases := []testCase{
+		// Check that if a bunch of options are provided they
+		// are converted into KfDef.
+		{
+			Name: "gcp-from-options",
+			Input: kfdefsv2.KfDef{
+				Spec: kfdefsv2.KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
+					},
+				},
+			},
+			Options: map[string]interface{}{
+				string(kftypes.EMAIL):    "user@kubeflow.org",
+				string(kftypes.IPNAME):   "someip",
+				string(kftypes.HOSTNAME): "somehost",
+				string(kftypes.ZONE):     "somezone",
+			},
+			Expected: kfdefsv2.KfDef{
+				Spec: kfdefsv2.KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
+					},
+					Email:    "user@kubeflow.org",
+					IpName:   "someip",
+					Hostname: "somehost",
+					Zone:     "somezone",
+				},
+			},
+		},
+
+		// Check that if a bunch of options are provided in the KfDef spec they
+		// are not overwritten by options.
+		{
+			Name: "gcp-no-override",
+			Input: kfdefsv2.KfDef{
+				Spec: kfdefsv2.KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
+					},
+					Email:    "user@kubeflow.org",
+					IpName:   "someip",
+					Hostname: "somehost",
+					Zone:     "somezone",
+				},
+			},
+			Options: map[string]interface{}{
+				string(kftypes.EMAIL):    "newuser@kubeflow.org",
+				string(kftypes.IPNAME):   "newip",
+				string(kftypes.HOSTNAME): "newhost",
+				string(kftypes.ZONE):     "newezone",
+			},
+			Expected: kfdefsv2.KfDef{
+				Spec: kfdefsv2.KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						Platform: "gcp",
+					},
+					Email:    "user@kubeflow.org",
+					IpName:   "someip",
+					Hostname: "somehost",
+					Zone:     "somezone",
 				},
 			},
 		},
 		// Check IP name is correctly generated from Name if not explicitly set
 		// either in KfDef or in options.
 		{
+			Name: "gcp-ip-name",
 			Input: kfdefsv2.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "someapp",
@@ -192,6 +320,7 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 		// Check IP name is correctly generated from Name if not explicitly set
 		// either in KfDef or in options.
 		{
+			Name: "gcp-hostname",
 			Input: kfdefsv2.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "someapp",
@@ -225,15 +354,15 @@ func Test_backfillKfDefFromOptions(t *testing.T) {
 	for _, c := range cases {
 		i := &kfdefsv2.KfDef{}
 		*i = c.Input
-		err := backfillKfDefFromOptions(i, c.Options)
+		err := backfillKfDefFromGenerateOptions(i, c.Options)
 		if err != nil {
-			t.Errorf("Error backfilling KfDef error %v", err)
+			t.Errorf("Case %v; Error backfilling KfDef error %v", c.Name, err)
 		}
 
 		if !reflect.DeepEqual(*i, c.Expected) {
 			pGot, _ := Pformat(i)
 			pWant, _ := Pformat(c.Expected)
-			t.Errorf("Error backfilling KfDef got;\n%v\nwant;\n%v", pGot, pWant)
+			t.Errorf("Case %v; Error backfilling KfDef got;\n%v\nwant;\n%v", c.Name, pGot, pWant)
 		}
 	}
 }
