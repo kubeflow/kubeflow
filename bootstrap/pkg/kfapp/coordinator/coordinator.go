@@ -40,6 +40,13 @@ import (
 	"strings"
 )
 
+// Builder defines the methods used to create KfApps.
+// Primary purpose is to allow injecting a fake for use in testing.
+type Builder interface {
+	CreateKfAppCfgFile(def *kfdefsv2.KfDef)(string, error)
+	LoadKfAppCfgFile(cfgFile string) (kftypes.KfApp, error)
+}
+
 // The common entry point used to retrieve an implementation of KfApp.
 // In this case it returns a composite class (coordinator) which aggregates
 // platform and package manager implementations in Children.
