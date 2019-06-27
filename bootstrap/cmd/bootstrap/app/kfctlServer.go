@@ -61,95 +61,133 @@ func NewKfctlServer(appsDir string) (*kfctlServer, error) {
 	return s, nil
 }
 
+// handleDeployment handles a single deployment.
+// Returns a pointer to an updated KfDef
+//
+// Not thread safe.
+func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error) {
+	if s.kfApp == nil {
+		if r.Spec.AppDir != "" {
+			log.Warnf("r.Spec.AppDir is set it will be overwritten.")
+		}
+		r.Spec.AppDir =  path.Join(s.appsDir, r.Name)
+		cfgFile := path.Join(r.Spec.AppDir, kftypes.KfConfigFile)
+		if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
+			log.Infof("Creating cfgFile; %v", cfgFile)
+			newCfgFile, err := coordinator.CreateKfAppCfgFile(&r)
+
+			if newCfgFile != cfgFile {
+				log.Errorf("Actual config file %v; doesn't match expected %v", newCfgFile, cfgFile)
+			}
+
+			if err != nil {
+				// TODO(jlewi): We should update the KfDef.Status so that we report
+				// the failure to the user on the next call.
+				log.Errorf("There was a problem creating %v; error %v", cfgFile, err)
+				return &r, &httpError{
+					Message: "Internal service error please try again later.",
+					Code:    http.StatusInternalServerError,
+				}
+			}
+
+			kfApp, err := coordinator.LoadKfAppCfgFile(cfgFile)
+
+			getter, ok := kfApp.(coordinator.KfDefGetter)
+			if !ok {
+				log.Errorf("Could not assert KfApp as type KfDefGetter; error %v", err)
+				return &r, &httpError{
+					Message: "Internal service error please try again later.",
+					Code:    http.StatusInternalServerError,
+				}
+			}
+
+			p, ok := getter.GetPlugin(kftypes.GCP)
+			if !ok {
+				log.Errorf("Could not get GCP plugin from KfApp")
+				return &r, &httpError{
+					Message: "Internal service error please try again later.",
+					Code:    http.StatusInternalServerError,
+				}
+			}
+
+			gcpPlugin, ok := p.(gcp.Setter)
+
+			if !ok {
+				log.Errorf("Plugin %v doesn't implement Setter interface; can't set TokenSource", kftypes.GCP)
+				return &r, &httpError{
+					Message: "Internal service error please try again later.",
+					Code:    http.StatusInternalServerError,
+				}
+			}
+
+			setTokenSource := func() bool {
+				s.kfDefMux.Lock()
+				defer s.kfDefMux.Unlock()
+
+				if s.ts == nil {
+					log.Errorf("No token source set; can't create KfApp")
+					return false
+				}
+
+				gcpPlugin.SetTokenSource(s.ts)
+				return true
+			}
+
+			if !setTokenSource() {
+				return &r, &httpError{
+					Message: "Internal service error please try again later.",
+					Code:    http.StatusInternalServerError,
+				}
+			}
+			s.kfApp = kfApp
+			s.kfDefGetter = getter
+		}
+	}
+
+	log.Infof("Calling generate")
+	if err := s.kfApp.Generate(kftypes.ALL); err != nil {
+		log.Errorf("Calling generate failed; %v", err)
+		return s.kfDefGetter.GetKfDef(), &httpError{
+			Message: "Internal service error please try again later.",
+			Code:    http.StatusInternalServerError,
+		}
+	}
+
+	log.Infof("Calling apply")
+	if err := s.kfApp.Apply(kftypes.ALL); err != nil {
+		log.Errorf("Calling apply failed; %v", err)
+		return s.kfDefGetter.GetKfDef(), &httpError{
+			Message: "Internal service error please try again later.",
+			Code:    http.StatusInternalServerError,
+		}
+	}
+
+	return s.kfDefGetter.GetKfDef(), nil
+
+	log.Errorf("Need to implement code to push app to source repo.")
+	// Push to source repo.
+	//err = SaveAppToRepo(req.Email, path.Join(repoDir, GetRepoNameKfctl(req.Project)))
+}
+
 func (s *kfctlServer) process() {
 	for {
 		r := <-s.c
 
-		if s.kfApp == nil {
-			cfgFile := path.Join(s.appsDir, r.Name, kftypes.KfConfigFile)
-			if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
-				log.Infof("Creating cfgFile; %v", cfgFile)
-				newCfgFile, err := coordinator.CreateKfAppCfgFile(&r)
+		newDeployment, err := s.handleDeployment(r)
 
-				if newCfgFile != cfgFile {
-					log.Errorf("Actual config file %v; doesn't match expected %v", newCfgFile, cfgFile)
-				}
-
-				if err != nil {
-					// TODO(jlewi): We should update the KfDef.Status so that we report
-					// the failure to the user on the next call.
-					log.Errorf("There was a problem creating %v; error %v", cfgFile, err)
-					continue
-				}
-
-				kfApp, err := coordinator.LoadKfAppCfgFile(cfgFile)
-
-				getter, ok := kfApp.(coordinator.KfDefGetter)
-				if !ok {
-					log.Errorf("Could not assert KfApp as type KfDefGetter; error %v", err)
-				}
-
-				p, ok := getter.GetPlugin(kftypes.GCP)
-				if !ok {
-					log.Errorf("Could not get GCP plugin from KfApp")
-				}
-
-				gcpPlugin, ok := p.(gcp.Setter)
-
-				if !ok {
-					log.Errorf("Plugin %v doesn't implement Setter interface; can't set TokenSource", kftypes.GCP)
-					continue
-				}
-
-				f := func() bool {
-					s.kfDefMux.Lock()
-					defer s.kfDefMux.Unlock()
-
-					if s.ts == nil {
-						log.Errorf("No token source set; can't create KfApp")
-						return false
-					}
-
-					gcpPlugin.SetTokenSource(s.ts)
-					return true
-				}
-
-				if !f() {
-					continue
-				}
-				s.kfApp = kfApp
-				s.kfDefGetter = getter
-
-				log.Errorf("Need to set tokenSource on GCP")
-
-			}
+		if err != nil {
+			log.Errorf("Error occured; %v", err)
 		}
-
-		updateKfDef := func() {
-			s.kfDefMux.Lock()
-			defer s.kfDefMux.Unlock()
-
-			s.latestKfDef = *s.kfDefGetter.GetKfDef()
-		}
-
-		log.Infof("Calling generate")
-		if err := s.kfApp.Generate(kftypes.ALL); err != nil {
-			updateKfDef()
-			log.Errorf("Calling generate failed; %v", err)
-		}
-
-		log.Infof("Calling apply")
-		if err := s.kfApp.Apply(kftypes.ALL); err != nil {
-			updateKfDef()
-			log.Errorf("Calling apply failed; %v", err)
-		}
-
-		log.Errorf("Need to implement code to push app to source repo.")
-		// Push to source repo.
-		//err = SaveAppToRepo(req.Email, path.Join(repoDir, GetRepoNameKfctl(req.Project)))
+		s.setLatestKfDef(newDeployment)
 	}
 }
 
+func (s *kfctlServer) setLatestKfDef(r * kfdefsv2.KfDef) {
+	s.kfDefMux.Lock()
+	defer s.kfDefMux.Unlock()
+	s.latestKfDef = *s.kfDefGetter.GetKfDef()
+
+}
 // RegisterEndpoints creates the http endpoints for the router
 func (s *kfctlServer) RegisterEndpoints() {
 	createHandler := httptransport.NewServer(

@@ -60,6 +60,10 @@ func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
 // httpError allows us to attach add an http status code to an error
 //
 // Inspired by on https://cloud.google.com/apis/design/errors
+//
+// TODO(jlewi): We should support adding an internal message that would be logged on the server but not returned
+// to the user. We should attach to that log message a unique id that can also be returned to the user to make
+// it easy to look errors shown to the user and our logs.
 type httpError struct {
 	Message string
 	Code    int
