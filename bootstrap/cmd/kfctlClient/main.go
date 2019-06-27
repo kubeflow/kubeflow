@@ -1,23 +1,26 @@
-package kfctlClient
+package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
+	"fmt"
+	log "github.com/golang/glog"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/onrik/logrus/filename"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
+	// log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
 	dm "google.golang.org/api/deploymentmanager/v2"
 )
 
 func init() {
 	// Add filename as one of the fields of the structured log message
-	filenameHook := filename.NewHook()
-	filenameHook.Field = "filename"
-	log.AddHook(filenameHook)
+	//filenameHook := filename.NewHook()
+	//filenameHook.Field = "filename"
+	//log.AddHook(filenameHook)
 }
 
 // ServerOption is the main context object for the controller manager.
@@ -40,11 +43,28 @@ func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&s.Config, "config", "", "Path to a YAML file describing an app to create on startup.")
 	fs.StringVar(&s.Name, "name", "", "Name for the deployment.")
 	fs.StringVar(&s.Project, "project", "", "Project.")
+	fs.StringVar(&s.Endpoint, "endpoint", "", "The endpoint e.g. http://localhost:8080.")
 
 }
 
-func run(opt *ServerOption) error {
+func checkAccess(project string, token string) {
+	// Verify that user has access. We shouldn't do any processing until verifying access.
+	ts := oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: token,
+	})
 
+	isValid, err := app.CheckProjectAccess(project, ts)
+
+	if err != nil  || !isValid{
+		log.Fatalf("CheckProjectAccess failed; error %v", err)
+	}
+
+	log.Infof("You have access to project %v", project)
+}
+func run(opt *ServerOption) error {
+	if opt.Name == "" {
+		return fmt.Errorf("--name is required.")
+	}
 	d, err := kfdefsv2.LoadKFDefFromURI(opt.Config)
 
 	if err != nil {
@@ -54,11 +74,7 @@ func run(opt *ServerOption) error {
 	d.Spec.Project = opt.Project
 	d.Name = opt.Name
 
-	pKfDef, _ := Pformat(d)
-
-	log.Infof("Spec to create:\n%v", pKfDef)
-
-	log.Infof("Connecting to server: %v", opt.Endpoint)
+	fmt.Printf("Connecting to server: %v", opt.Endpoint)
 	c, err := app.NewKfctlClient(opt.Endpoint)
 
 	if err != nil {
@@ -87,8 +103,14 @@ func run(opt *ServerOption) error {
 		},
 	})
 
-	cts := context.Background()
-	res, err := c.CreateDeployment(ctx, d)
+	pKfDef, _ := Pformat(d)
+
+	fmt.Printf("Spec to create:\n%v", pKfDef)
+
+	checkAccess(opt.Project, token.AccessToken)
+
+	ctx := context.Background()
+	res, err := c.CreateDeployment(ctx, *d)
 
 	if err != nil {
 		log.Errorf("CreateDeployment failed; error %v", err)
@@ -118,5 +140,9 @@ func main() {
 
 	flag.Parse()
 
-	run(s)
+	err := run(s)
+
+	if err != nil {
+		log.Errorf("Create deployment failed; error %v", err)
+	}
 }

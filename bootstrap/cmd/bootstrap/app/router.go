@@ -136,11 +136,17 @@ func k8sName(name string, project string) (string, error) {
 	// Project, name, and zone are required because they uniquely identify the resources
 	// that will spawned to handle the request.
 	if project == "" {
-		return "", fmt.Errorf("project is required")
+		return "", &httpError{
+			Message: fmt.Sprintf("project is required"),
+			Code:    http.StatusBadRequest,
+		}
 	}
 
 	if name == "" {
-		return "", fmt.Errorf("name is required")
+		return "", &httpError{
+			Message: fmt.Sprintf("name is required"),
+			Code:    http.StatusBadRequest,
+		}
 	}
 
 	h := sha256.New()
@@ -201,6 +207,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 		}
 	}
 
+	log.Infof("User has sufficient access.")
 	// TODO(jlewi):
 	// 1. Do IAM check
 	// 2. Check if service exists by sending request
@@ -211,6 +218,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 	name, err := k8sName(req.Name, req.Spec.Project)
 
 	if err != nil {
+		log.Errorf("Could not generate the name; error %v", err)
 		return nil, err
 	}
 
@@ -243,6 +251,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 		},
 	}
 
+	log.Infof("Create K8s service")
 	newService, err := r.k8sclient.CoreV1().Services(r.namespace).Create(svc)
 
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
@@ -316,6 +325,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 		},
 	}
 
+	log.Infof("Create K8s statefulset")
 	newBackend, err := r.k8sclient.AppsV1().StatefulSets(r.namespace).Create(backend)
 
 	if err != nil && !k8serrors.IsAlreadyExists(err) {

@@ -317,6 +317,8 @@ type ProjectAccessChecker func(string, oauth2.TokenSource) (bool, error)
 // CheckProjectAccess verifies whether the supplied token provides access to the
 // indicated project. A false could indicate the credential provides insufficient
 // privileges or is expired
+//
+// TODO(jlewi): Add a unittest using https://onsi.github.io/gomega/#ghttp-testing-http-clients
 func CheckProjectAccess(project string, ts oauth2.TokenSource) (bool, error) {
 	ctx := context.Background()
 
@@ -354,7 +356,7 @@ func CheckProjectAccess(project string, ts oauth2.TokenSource) (bool, error) {
 			return err
 		}
 
-		if len(res.Permissions) > 1 {
+		if len(res.Permissions) > 0 {
 			isValid = true
 		}
 		return nil

@@ -46,7 +46,7 @@ type kfctlServer struct {
 
 // NewServer returns a new kfctl server
 func NewKfctlServer(appsDir string) (*kfctlServer, error) {
-	if appsDir != "" {
+	if appsDir == "" {
 		return nil, errors.WithStack(fmt.Errorf("appsDir must be provided"))
 	}
 

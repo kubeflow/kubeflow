@@ -4,6 +4,7 @@
 bin/**
 vendor/**
 **/.git
+.idea/**
 
 # Ignore kfctlClient because we don't want skaffold to rety
 cmd/kfctlClient/**
