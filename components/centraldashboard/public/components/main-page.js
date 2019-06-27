@@ -76,6 +76,10 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                         link: '/katib/',
                         text: 'Katib',
                     },
+                    {
+                        link: '/metadata/',
+                        text: 'Artifact Store',
+                    },
                 ],
             },
             sidebarItemIndex: {

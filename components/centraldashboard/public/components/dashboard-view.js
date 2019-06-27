@@ -107,6 +107,11 @@ export class DashboardView extends PolymerElement {
                         desc: 'Katib',
                         link: `/katib/`,
                     },
+                    {
+                        text: 'View Metadata Artifacts',
+                        desc: 'Artifact Store',
+                        link: `/metadata/`,
+                    },
                 ],
             },
             platformDetails: Object,
