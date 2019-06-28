@@ -18,7 +18,6 @@ package gcp
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/deckarep/golang-set"
@@ -28,6 +27,7 @@ import (
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/context"
@@ -79,10 +79,10 @@ const (
 	// Plugin parameter constants
 	GcpPluginName                    = kftypes.GCP
 	GcpAccessTokenName               = "accessToken"
-	GcpStorageOptionName             = "storageOption"
-	GcpSaClientIdName                = "saClientId"
-	GcpIapOauthClientIdParamName     = "iapOauthClientId"
-	GcpIapOauthClientSecretParamName = "iapOauthClientSecret"
+	//GcpStorageOptionName             = "storageOption"
+	//GcpSaClientIdName                = "saClientId"
+	//GcpIapOauthClientIdParamName     = "iapOauthClientId"
+	//GcpIapOauthClientSecretParamName = "iapOauthClientSecret"
 )
 
 // Gcp implements KfApp Interface
@@ -90,12 +90,12 @@ const (
 // TODO(jlewi): Why doesn't Gcp store GcpArgs as opposed to duplicating the options?
 type Gcp struct {
 	kfdefs.KfDef
-	configtypes.StorageOption
+	//configtypes.StorageOption
 	client *http.Client
 	// TODO(jlewi): We should be able to remove accessToken and just use TokenSource.
-	accessToken string
+	//accessToken string
 	tokenSource oauth2.TokenSource
-	SAClientId  string
+	//SAClientId  string
 }
 
 type Setter interface {
@@ -107,11 +107,11 @@ func (gcp *Gcp) SetTokenSource(s oauth2.TokenSource) error {
 	return nil
 }
 
-type GcpArgs struct {
-	AccessToken   string
-	StorageOption configtypes.StorageOption
-	SAClientId    string
-}
+//type GcpArgs struct {
+//	AccessToken   string
+//	StorageOption configtypes.StorageOption
+//	SAClientId    string
+//}
 
 type dmOperationEntry struct {
 	operationName string
@@ -119,33 +119,37 @@ type dmOperationEntry struct {
 	action string
 }
 
-func getDefaultArgs() GcpArgs {
-	return GcpArgs{
-		StorageOption: configtypes.StorageOption{
-			CreatePipelinePersistentStorage: true,
-		},
-	}
-}
+//func getDefaultArgs() GcpArgs {
+//	return GcpArgs{
+//		StorageOption: configtypes.StorageOption{
+//			CreatePipelinePersistentStorage: true,
+//		},
+//	}
+//}
 
 // GetPlatform returns the gcp kfapp. It's called by coordinator.GetPlatform
 func GetPlatform(kfdef *kfdefs.KfDef, platformArgs []byte) (kftypes.Platform, error) {
-	var gcpArgs GcpArgs
-	if platformArgs == nil {
-		gcpArgs = getDefaultArgs()
-	} else {
-		err := json.Unmarshal(platformArgs, &gcpArgs)
-		if err != nil {
-			return nil, err
-		}
-	}
 	_gcp := &Gcp{
 		KfDef:         *kfdef,
-		StorageOption: gcpArgs.StorageOption,
-		SAClientId:    gcpArgs.SAClientId,
+	}
+
+	pluginSpec := GcpPluginSpec{}
+
+	if err := kfdef.GetPluginSpec(GcpPluginName, pluginSpec); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	if isValid, msg := pluginSpec.IsValid(); !isValid {
+		log.Errorf("pluginSpec isn't valid; %v", msg)
+		return nil, fmt.Errorf("pluginSpec isn't valid: %v", msg)
 	}
 	ctx := context.Background()
-	if gcpArgs.AccessToken == "" {
+
+	accessToken, _ := kfdef.GetSecret(GcpAccessTokenName)
+
+	if accessToken == "" {
 		client, err := google.DefaultClient(ctx, gke.CloudPlatformScope)
+		// TODO(jlewi): Should we do an IAM check and verify we have the correct permissions?
 		if err != nil {
 			log.Errorf("Could not authenticate Client: %v", err)
 			log.Errorf("Try authentication command and rerun: `gcloud auth application-default login`")
@@ -163,13 +167,12 @@ func GetPlatform(kfdef *kfdefs.KfDef, platformArgs []byte) (kftypes.Platform, er
 			}
 		}
 	} else {
-		ts := oauth2.StaticTokenSource(&oauth2.Token{
-			AccessToken: gcpArgs.AccessToken,
-		})
-		_gcp.client = oauth2.NewClient(ctx, ts)
-		_gcp.accessToken = gcpArgs.AccessToken
-		_gcp.tokenSource = ts
+		// TokenSource is injected inside KfctlServer
+		log.Infof("Spec contains secret %s; will use static token source for GCP", GcpAccessTokenName)
 	}
+
+	// TODO(jlewi): We should move the code for initializing Email closer to where
+	// we construct the application.
 	if _gcp.Spec.Email == "" {
 		if err := _gcp.getAccount(); err != nil {
 			log.Infof("cannot get gcloud account email. Error: %v", err)
@@ -189,17 +192,27 @@ func getSA(name string, nameSuffix string, project string) string {
 	return fmt.Sprintf("%v-%v@%v.iam.gserviceaccount.com", name, nameSuffix, project)
 }
 
+// TODO(jlewi): We should be able to get rid of this method because it was only used
+// for ksonnet.
 func (gcp *Gcp) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
-	if gcp.accessToken == "" {
+	// TODO(jlewi): Should we unify the code by just setting ts and then calling
+	// ts.Tpken to get a token?
+	accessToken, _ := gcp.Spec.GetSecret(GcpAccessTokenName)
+
+	if accessToken == "" {
 		return nil, nil
 	}
 	ctx := context.Background()
-	restConfig, err := utils.BuildClusterConfig(ctx, gcp.accessToken, gcp.KfDef.Spec.Project,
+
+	// TODO(jlewi): Should we fix this so we can build a cluster config which takes
+	// a TokenSource which can then be pointed at either the DefaultTokenSource
+	// or the refreshable token source?
+	restConfig, err := utils.BuildClusterConfig(ctx, accessToken, gcp.KfDef.Spec.Project,
 		gcp.KfDef.Spec.Zone, gcp.KfDef.Name)
 	if err != nil {
 		return nil, nil
 	}
-	apiConfig := utils.BuildClientCmdAPI(restConfig, gcp.accessToken)
+	apiConfig := utils.BuildClientCmdAPI(restConfig, accessToken)
 	return restConfig, apiConfig
 }
 
@@ -217,7 +230,9 @@ func (gcp *Gcp) getAccount() error {
 	return nil
 }
 
+// TODO(jlewi): Why do we need this function?
 func (gcp *Gcp) writeConfigFile() error {
+	log.Fatalf("TODO(jlewi): Gcp.WriteConfigFile we don't want to call this function because it won't strip out secrets")
 	buf, bufErr := yaml.Marshal(gcp.KfDef)
 	if bufErr != nil {
 		return &kfapis.KfError{
@@ -515,9 +530,18 @@ func (gcp *Gcp) ConfigK8s() error {
 	}
 	// For deploy app, request will use service account credential instead of user credential.
 	bindAccount := gcp.Spec.Email
-	if gcp.SAClientId != "" {
-		bindAccount = gcp.SAClientId
+
+	pluginSpec := GcpPluginSpec{}
+
+	if err := gcp.GetPluginSpec(GcpPluginName, pluginSpec); err != nil {
+		return errors.WithStack(err)
 	}
+
+	if pluginSpec.SAClientId != "" {
+		log.Infof("Granting service account K8s permission.")
+		bindAccount = pluginSpec.SAClientId
+	}
+
 	if err = bindAdmin(k8sClientset, bindAccount); err != nil {
 		return err
 	}
@@ -768,7 +792,12 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 
 	// Setup kube config
 	// TODO(#3061): figure out how to properly build config without kubeconfig.
-	if gcp.accessToken == "" {
+	// TODO(jlewi): Not sure about #3061. I think we only want to run gcloud get-credentials if running
+	// as a CLI and not when running on click to deploy.
+
+	accessToken, _ := gcp.Spec.GetSecret(GcpAccessTokenName)
+
+	if accessToken == "" {
 		credCmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
 			gcp.Name,
 			"--zone="+gcp.Spec.Zone,
@@ -1600,6 +1629,14 @@ func (gcp *Gcp) createSecrets() error {
 // Generate generates the gcp kfapp manifest.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
+	pluginSpec := GcpPluginSpec{}
+	err := gcp.Spec.GetPluginSpec(GcpPluginName, pluginSpec)
+
+	if err != nil {
+		log.Errorf("Could not get GcpPluginSpec; error %v", err)
+		return err
+	}
+
 	if gcp.Spec.Email == "" {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),

@@ -7,6 +7,10 @@ import (
 // GcpPlugin defines the extra data provided by the GCP Plugin in KfDef
 type GcpPluginSpec struct {
 	Auth *Auth `json:"auth,omitempty"`
+
+	// SAClientId if supplied grant this service account cluster admin access
+	// TODO(jlewi): Might want to make it a list
+	SAClientId string `json:"username,omitempty"`
 }
 
 type Auth struct {

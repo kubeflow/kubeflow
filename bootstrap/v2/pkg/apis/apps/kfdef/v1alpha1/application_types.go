@@ -387,6 +387,20 @@ func (d *KfDef) GetSecret(name string) (string, error) {
 	return "", fmt.Errorf("No secret in KfDef named %v", name)
 }
 
+// GetSecret returns the specified secret or an error if the secret isn't specified.
+//
+// TODO(jlewi): The reason this function exists is because for types like Gcp in gcp.go
+// we embed KfDef into the Gcp struct so its not actually a type KfDef. In the future
+// we will probably refactor KfApp into an appropriate plugin in type an stop embedding
+// KfDef in it.
+func (s *KfDefSpec) GetSecret(name string)(string, error) {
+	d := &KfDef{
+		Spec: *s,
+	}
+	return d.GetSecret(name)
+}
+
+
 // SetSecret sets the specified secret; if a secret with the given name already exists it is overwritten.
 func (d *KfDef) SetSecret(newSecret Secret) {
 	for i, s := range d.Spec.Secrets {
