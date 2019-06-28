@@ -104,11 +104,11 @@ func TestGcp_buildBasicAuthSecret(t *testing.T) {
 
 func TestGcp_setGcpPluginDefaults(t *testing.T) {
 	type testCase struct {
-		Name     string
-		Input    *kfdefs.KfDef
-		Env      map[string]string
-		EmailGetter func()(string, error)
-		Expected *GcpPluginSpec
+		Name          string
+		Input         *kfdefs.KfDef
+		Env           map[string]string
+		EmailGetter   func() (string, error)
+		Expected      *GcpPluginSpec
 		ExpectedEmail string
 	}
 
@@ -175,7 +175,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 					},
 				},
 			},
-			EmailGetter: func()(string,error) {
+			EmailGetter: func() (string, error) {
 				return "myemail", nil
 			},
 			ExpectedEmail: "myemail",
@@ -197,7 +197,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		i := c.Input.DeepCopy()
 
 		gcp := &Gcp{
-			kfDef: i,
+			kfDef:            i,
 			gcpAccountGetter: c.EmailGetter,
 		}
 

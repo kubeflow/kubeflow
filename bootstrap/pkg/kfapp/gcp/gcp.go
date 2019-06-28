@@ -33,7 +33,6 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/deploymentmanager/v2"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/iam/v1"
@@ -100,7 +99,7 @@ type Gcp struct {
 
 	// Function to get the GcpAccount.
 	// Support injection for testing.
-	gcpAccountGetter func()(string, error)
+	gcpAccountGetter func() (string, error)
 }
 
 type Setter interface {
@@ -133,51 +132,57 @@ type dmOperationEntry struct {
 //}
 
 // GetPlatform returns the gcp kfapp. It's called by coordinator.GetPlatform
+//
+// TODO(jlewi): We should be able to get rid of platformArgs now. Any platform
+// specific data should now be part of kfdef.
 func GetPlatform(kfdef *kfdefs.KfDef, platformArgs []byte) (kftypes.Platform, error) {
 	_gcp := &Gcp{
-		kfDef: kfdef,
+		kfDef:            kfdef,
 		gcpAccountGetter: getGcloudDefaultAccount,
+	}
+	return _gcp, nil
+}
+
+// initGcpClient initializes the clients to talk to GCP.
+func (gcp *Gcp) initGcpClient() error {
+	if gcp.client != nil {
+		log.Infof("GCP client already configured")
+		return nil
 	}
 
 	pluginSpec := GcpPluginSpec{}
 
-	if err := kfdef.GetPluginSpec(GcpPluginName, pluginSpec); err != nil {
-		return nil, errors.Wrap(err, "GetPlatform failed")
+	if err := gcp.kfDef.GetPluginSpec(GcpPluginName, pluginSpec); err != nil {
+		return errors.Wrap(err, "initGcpClient failed to get GcpPluginSpec")
 	}
 
-	if isValid, msg := pluginSpec.IsValid(); !isValid {
-		log.Errorf("pluginSpec isn't valid; %v", msg)
-		return nil, errors.WithStack(fmt.Errorf("pluginSpec isn't valid: %v", msg))
-	}
 	ctx := context.Background()
 
-	accessToken, _ := kfdef.GetSecret(GcpAccessTokenName)
+	if gcp.tokenSource == nil {
+		// Defensive Programming.
+		// If we try to create a DefaultTokenSource when an AccessToken is provided
+		// Something has gone wrong. So we guard against that.
+		// If accessToken is provided gcp.TokenSource should be set and we should use
+		// that.
+		if _, err := gcp.kfDef.GetSecret(GcpAccessTokenName); err != nil {
+			return errors.WithStack(fmt.Errorf("Creating a default token source when AccessToken is provided is disallowed"))
+		}
+		log.Infof("Creating default token source")
+		tokenSource, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
 
-	if accessToken == "" {
-		client, err := google.DefaultClient(ctx, gke.CloudPlatformScope)
-		// TODO(jlewi): Should we do an IAM check and verify we have the correct permissions?
 		if err != nil {
-			log.Errorf("Could not authenticate Client: %v", err)
-			log.Errorf("Try authentication command and rerun: `gcloud auth application-default login`")
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: err.Error(),
-			}
+			return errors.Wrap(err, "initGcpClient failed to create default token source")
 		}
-		_gcp.client = client
-		_gcp.tokenSource, err = google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
-		if err != nil {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Get token error: %v", err),
-			}
-		}
+
+		gcp.tokenSource = tokenSource
 	} else {
-		// TokenSource is injected inside KfctlServer
-		log.Infof("Spec contains secret %s; will use static token source for GCP", GcpAccessTokenName)
+		log.Infof("Using current token source")
 	}
 
-	return _gcp, nil
+	log.Infof("Creating GCP client.")
+	gcp.client = oauth2.NewClient(ctx, gcp.tokenSource)
+
+	return nil
 }
 
 func newDefaultBackoff() *backoff.ExponentialBackOff {
@@ -811,6 +816,11 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 // Apply applies the gcp kfapp.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
+	if err := gcp.initGcpClient(); err != nil {
+		log.Errorf("There was a problem initializing the GCP client; %v", err)
+		return errors.WithMessagef(err, "Gcp.Apply Could not initatie a GCP client")
+	}
+
 	p := &GcpPluginSpec{}
 
 	err := gcp.kfDef.Spec.GetPluginSpec(GcpPluginName, p)
@@ -1794,6 +1804,11 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 }
 
 func (gcp *Gcp) gcpInitProject() error {
+	if err := gcp.initGcpClient(); err != nil {
+		log.Errorf("There was a problem initializing the GCP client; %v", err)
+		return errors.WithMessagef(err, "Gcp.gcpInitProject Could not initatie a GCP client")
+	}
+
 	ctx := context.Background()
 	serviceusageService, serviceusageServiceErr := serviceusage.New(gcp.client)
 	if serviceusageServiceErr != nil {
@@ -1863,6 +1878,7 @@ func (gcp *Gcp) gcpInitProject() error {
 
 // Init initializes a gcp kfapp
 func (gcp *Gcp) Init(resources kftypes.ResourceEnum) error {
+	// TODO(jlewi): Can we get rid of this now that we ware using kustomize?
 	swaggerFile := filepath.Join(path.Dir(gcp.kfDef.Spec.Repo), kftypes.DefaultSwaggerFile)
 	gcp.kfDef.Spec.ServerVersion = "file:" + swaggerFile
 	createConfigErr := gcp.writeConfigFile()

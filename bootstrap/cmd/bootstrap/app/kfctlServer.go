@@ -273,6 +273,10 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv2.KfDef) 
 	}
 
 	// Enqueue the request
+	// TODO(jlewi): We should strip out the AccessToken from KfDef before enqueing it.
+	// There's no reason to pass it along. Gcp now has the token source.
+	// In fact we should actually pass it along via the request body. Instead
+	// We should move it into an Auth Header.
 	s.c <- req
 
 	// Return the current status.
