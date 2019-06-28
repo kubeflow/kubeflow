@@ -26,6 +26,7 @@ async function main() {
   app.use(getProfileContext(profileController)); // Detects the auth status for the current user
   app.use('/api', new Api(k8sService, metricsService, profileController).routes());
   app.use(handleAuth(registrationPage)); // Check if user is connected to an owned profile, if not register them
+  app.get('/register', (_: express.Request, res: express.Response) => res.sendFile(resolve(frontEnd, 'registration.html')));
   app.get('/*', (_: express.Request, res: express.Response) => {
     res.sendFile(resolve(frontEnd, 'index.html'));
   });
@@ -34,4 +35,7 @@ async function main() {
       () => console.info(`Server listening on port http://localhost:${port}`));
 }
 
+process.on('unhandledRejection', (e, promise) => {
+  console.log('Unhandled Rejection at: ', {promise}, e.stack);
+});
 main();

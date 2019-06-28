@@ -9,8 +9,8 @@ import {DefaultApi, Binding as WorkgroupBinding} from './clients/profile_control
 
 
 const {env} = process;
-const IAP_HEADER = env.IAP_HEADER || 'X-Goog-Authenticated-User-Email';
-const IAP_PREFIX = env.IAP_PREFIX || 'accounts.google.com:';
+const IAP_HEADER = env.USERID_HEADER || 'X-Goog-Authenticated-User-Email';
+const IAP_PREFIX = env.USERID_PREFIX || 'accounts.google.com:';
 
 // tslint:disable-next-line: no-any
 const G = global as any;
@@ -20,25 +20,27 @@ export interface AuthObject {
     [iapHeader: string]: string;
 }
 
-export class UserData {
-    _req: Request;
-    private _name: string;
-    private profileAPI: DefaultApi;
+// tslint:disable-next-line: no-any
+const fallbackForMissingKFAM = (goodValue: any) => (e: any) => {
+    if (e.code === 'ENOTFOUND') return goodValue;
+    throw e;
+};
 
-    constructor(req: Request, profileAPI: DefaultApi) {
-        this._req = req;
-        this._name = this._getUser();
-        this.profileAPI = profileAPI;
+export class UserData {
+    private readonly name: string;
+
+    constructor(readonly req: Request, private profileAPI: DefaultApi) {
+        this.name = this._getUser();
     }
-    get user() {return this._name;}
-    get email() {return this._name;}
-    get name() {return this._name;}
-    get ldap() {return this._name.split('@')[0];}
-    get subdomain() {return this._name.split('@')[1];}
+    get user() {return this.name;}
+    get email() {return this.name;}
+    get ldap() {return this.name.split('@')[0];}
+    get subdomain() {return this.name.split('@')[1];}
 
     async hasProfile(): Promise<boolean> {
         if (G.USER_CACHE[this.name]) {return true;}
-        const namespaces = await this._fetchProfile();
+        const namespaces = await this._fetchProfile()
+            .catch(fallbackForMissingKFAM);
         const hasProfile = namespaces.length > 0;
         if (hasProfile) {
             G.USER_CACHE[this.name] = 1;
@@ -46,7 +48,7 @@ export class UserData {
         return hasProfile;
     }
     get authHeaders(): AuthObject {return {
-        [IAP_HEADER]: this._req.get(IAP_HEADER),
+        [IAP_HEADER]: this.req.get(IAP_HEADER),
     };}
 
     private async _fetchProfile(): Promise<WorkgroupBinding[]> {
@@ -55,7 +57,7 @@ export class UserData {
     }
     private _getUser(): string {
         let email = 'anonymous@kubeflow.org';
-        const req = this._req;
+        const {req} = this;
         if (req.header(IAP_HEADER)) {
             email = req.header(IAP_HEADER).slice(IAP_PREFIX.length);
         }

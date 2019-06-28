@@ -90,12 +90,16 @@ export class Api {
     return express.Router()
         .get(
             '/env-info',
-            async (req: Request, res: Response) =>
+            (req: Request, res: Response) =>
               this.getProfileAwareEnv(req, res)
                 .catch((e) => {
                   console.log('Profile based environment lookup failed, falling back to simple lookup', e);
                   this.getBasicEnvironment(req, res);
                 })
+                .catch((e) => res.status(400).json({
+                  msg: 'Could not fetch environment',
+                  error: e.toString(),
+                }))
             )
         .get(
             '/metrics/:type((node|podcpu|podmem))',
