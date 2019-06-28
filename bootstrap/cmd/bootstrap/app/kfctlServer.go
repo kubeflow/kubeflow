@@ -33,10 +33,10 @@ type kfctlServer struct {
 	ts TokenRefresher
 	c  chan kfdefsv2.KfDef
 
-	appsDir     string
+	appsDir string
 
 	// builder supports injecting the code to create the coordinator so we can inject a fake during testing.
-	builder     coordinator.Builder
+	builder coordinator.Builder
 
 	kfApp       kftypes.KfApp
 	kfDefGetter coordinator.KfDefGetter
@@ -75,7 +75,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 		if r.Spec.AppDir != "" {
 			log.Warnf("r.Spec.AppDir is set it will be overwritten.")
 		}
-		r.Spec.AppDir =  path.Join(s.appsDir, r.Name)
+		r.Spec.AppDir = path.Join(s.appsDir, r.Name)
 		cfgFile := path.Join(r.Spec.AppDir, kftypes.KfConfigFile)
 		if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
 			log.Infof("Creating cfgFile; %v", cfgFile)
@@ -187,12 +187,13 @@ func (s *kfctlServer) process() {
 	}
 }
 
-func (s *kfctlServer) setLatestKfDef(r * kfdefsv2.KfDef) {
+func (s *kfctlServer) setLatestKfDef(r *kfdefsv2.KfDef) {
 	s.kfDefMux.Lock()
 	defer s.kfDefMux.Unlock()
 	s.latestKfDef = *s.kfDefGetter.GetKfDef()
 
 }
+
 // RegisterEndpoints creates the http endpoints for the router
 func (s *kfctlServer) RegisterEndpoints() {
 	createHandler := httptransport.NewServer(

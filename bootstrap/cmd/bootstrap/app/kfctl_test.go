@@ -3,12 +3,12 @@ package app
 import (
 	"fmt"
 	"github.com/cenkalti/backoff"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/prometheus/common/log"
 	"golang.org/x/net/context"
 	"io/ioutil"
-	"net/http"
 	"testing"
 	"time"
 )
@@ -16,13 +16,13 @@ import (
 // TestKfctlClientServerSmoke runs a smoke test of the KfctlServer.
 // We start the KfctlServer in a background thread and then try sending a request using the client.
 // The client should return a suitable error since the server doesn't have valid credentials or a project.
-func TestKfctlClientServerSmoke(t *testing.T) {
-	//go func() {
-	//	Run(&options.ServerOption{
-	//		Mode: "kfctl",
-	//		KeepAlive: true,
-	//	})
-
+//
+// TODO(jlewi): The purpose of this test is to test all the encoding/decoding that happens
+// on the server & client using go-kit. This test would work better by substiting in a KfctlService
+// for the server that allows us to exactly control the response. We could then
+// run various tests in terms of returning KfDef and httpErrors and verifying the client
+// gets the correct value.
+func TestKfctlClientServer_GoKit(t *testing.T) {
 	log.Info("Creating server")
 
 	dir, err := ioutil.TempDir("", "kfctl-test")
@@ -44,6 +44,7 @@ func TestKfctlClientServerSmoke(t *testing.T) {
 		t.Errorf("There was a problem starting the kfctl servier %+v", err)
 	}
 
+	kfctlServer.ts = &FakeRefreshableTokenSource{}
 	kfctlServer.RegisterEndpoints()
 
 	go func() {
@@ -74,15 +75,18 @@ func TestKfctlClientServerSmoke(t *testing.T) {
 		t.Errorf("There was a problem starting the server %+v", err)
 	}
 
-	_, err = c.CreateDeployment(context.Background(), kfdefsv2.KfDef{})
-
-	h, ok := err.(*httpError)
-
-	if !ok {
-		t.Errorf("Want httpError got %+v", err)
-	}
-
-	if h.Code != http.StatusNotImplemented {
-		t.Errorf("Status code: Want %v got %+v", http.StatusNotImplemented, h.Code)
-	}
+	_, err = c.CreateDeployment(context.Background(), kfdefsv2.KfDef{
+		Spec: kfdefsv2.KfDefSpec{
+			Secrets: []kfdefsv2.Secret{
+				{
+					Name: gcp.GcpAccessTokenName,
+					SecretSource: &kfdefsv2.SecretSource{
+						LiteralSource: &kfdefsv2.LiteralSource{
+							Value: "1234",
+						},
+					},
+				},
+			},
+		},
+	})
 }

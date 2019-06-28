@@ -2,8 +2,8 @@
 package fake
 
 import (
-	"golang.org/x/oauth2"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	"golang.org/x/oauth2"
 )
 
 type FakeGcp struct {
@@ -11,7 +11,7 @@ type FakeGcp struct {
 }
 
 func (g *FakeGcp) Apply(resources kftypes.ResourceEnum) error {
-return nil
+	return nil
 }
 
 func (g *FakeGcp) Delete(resources kftypes.ResourceEnum) error {

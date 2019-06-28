@@ -55,7 +55,7 @@ func checkAccess(project string, token string) {
 
 	isValid, err := app.CheckProjectAccess(project, ts)
 
-	if err != nil  || !isValid{
+	if err != nil || !isValid {
 		log.Fatalf("CheckProjectAccess failed; error %v", err)
 	}
 

@@ -344,13 +344,12 @@ func (d *KfDef) SyncCache() error {
 
 	for _, r := range d.Spec.Repos {
 		cacheDir := path.Join(baseCacheDir, r.Name)
-		// idempotency
-		// TODO(jlewi): Why do we remove the directory if it exists?
+		// TODO(jlewi):
 		// Can we use a checksum or other mechanism to verify if the existing location is good?
 		// If there was a problem the first time around then removing it might provide a way to recover.
-		if _, err := os.Stat(cacheDir); !os.IsNotExist(err) {
-			log.Infof("Removing %v", cacheDir)
-			_ = os.RemoveAll(cacheDir)
+		if _, err := os.Stat(cacheDir); err == nil {
+			log.Infof("%v exists; not resyncing ", cacheDir)
+			continue
 		}
 
 		log.Infof("Fetching %v to %v", r.Uri, cacheDir)
@@ -389,17 +388,15 @@ func (d *KfDef) GetSecret(name string) (string, error) {
 }
 
 // SetSecret sets the specified secret; if a secret with the given name already exists it is overwritten.
-func (d *KfDef) SetSecret(newSecret Secret) error {
+func (d *KfDef) SetSecret(newSecret Secret) {
 	for i, s := range d.Spec.Secrets {
 		if s.Name == newSecret.Name {
 			d.Spec.Secrets[i] = newSecret
-			return nil
+			return
 		}
 	}
 
 	d.Spec.Secrets = append(d.Spec.Secrets, newSecret)
-
-	return nil
 }
 
 // GetPluginSpec will try to unmarshal the spec for the specified plugin to the supplied
@@ -498,7 +495,13 @@ func (d *KfDef) IsValid() (bool, string) {
 	// Validate kfDef
 	errs := valid.NameIsDNSLabel(d.Name, false)
 	if errs != nil && len(errs) > 0 {
-		return false, fmt.Sprintf(`invalid name due to %v`, strings.Join(errs, ", "))
+		return false, fmt.Sprintf("invalid name due to %v", strings.Join(errs, ","))
+	}
+
+	// PackageManager is currently required because we will try to load the package manager and get an error if
+	// none is specified.
+	if d.Spec.PackageManager == "" {
+		return false, fmt.Sprintf("KfDef.Spec.PackageManager is required")
 	}
 	return true, ""
 }
@@ -506,8 +509,7 @@ func (d *KfDef) IsValid() (bool, string) {
 // WriteToFile write the KfDef to a file.
 // WriteToFile will strip out any literal secrets before writing it
 func (d *KfDef) WriteToFile(path string) error {
-
-	stripped := *d
+	stripped := d.DeepCopy()
 
 	secrets := make([]Secret, 0)
 

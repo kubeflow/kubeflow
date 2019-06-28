@@ -7,6 +7,7 @@ import (
 	"github.com/go-kit/kit/ratelimit"
 	httptransport "github.com/go-kit/kit/transport/http"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/time/rate"
 	"net/url"
 	"strings"
@@ -66,10 +67,19 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 	if err != nil {
 		return nil, err
 	}
-	response, ok := resp.(kfdefs.KfDef)
+	response, ok := resp.(*kfdefs.KfDef)
 
 	if ok {
-		return &response, nil
+		return response, nil
 	}
-	return nil, fmt.Errorf("Could not parse CreateResponse from response")
+
+	resErr, ok := resp.(*httpError)
+
+	if ok {
+		return nil, resErr
+	}
+
+	pRes, _ := Pformat(resp)
+	log.Errorf("Recieved unexpected response; %v", pRes)
+	return nil, fmt.Errorf("Recieved unexpected response; %v", pRes)
 }

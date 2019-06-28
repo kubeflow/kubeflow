@@ -108,14 +108,12 @@ func TestKfctlServer_HandleDeployment(t *testing.T) {
 	ts := &FakeRefreshableTokenSource{}
 
 	s := kfctlServer{
-		builder: &fake.FakeBuilder{
-		},
+		builder: &fake.FakeBuilder{},
 		appsDir: appsDir,
-		ts: ts,
+		ts:      ts,
 	}
 
-	req := &kfdefsv2.KfDef{
-	}
+	req := &kfdefsv2.KfDef{}
 
 	req.SetPluginSpec(kftypes.GCP, &gcp.GcpPluginSpec{})
 	_, err = s.handleDeployment(*req)
