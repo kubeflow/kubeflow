@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/deckarep/golang-set"
-	"github.com/docker/docker/pkg/plugins"
 	"github.com/ghodss/yaml"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
@@ -1632,7 +1631,7 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 	pluginSpec := GcpPluginSpec{}
 	err := gcp.kfDef.Spec.GetPluginSpec(GcpPluginName, pluginSpec)
 
-	if err != nil && plugins.IsNotFound(err) {
+	if err != nil && kfdefs.IsPluginNotFound(err) {
 		log.Errorf("There was a problem getting the gcp plugin %v", err)
 		return errors.WithStack(err)
 	}

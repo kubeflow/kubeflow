@@ -393,13 +393,12 @@ func (d *KfDef) GetSecret(name string) (string, error) {
 // we embed KfDef into the Gcp struct so its not actually a type KfDef. In the future
 // we will probably refactor KfApp into an appropriate plugin in type an stop embedding
 // KfDef in it.
-func (s *KfDefSpec) GetSecret(name string)(string, error) {
+func (s *KfDefSpec) GetSecret(name string) (string, error) {
 	d := &KfDef{
 		Spec: *s,
 	}
 	return d.GetSecret(name)
 }
-
 
 // SetSecret sets the specified secret; if a secret with the given name already exists it is overwritten.
 func (d *KfDef) SetSecret(newSecret Secret) {
