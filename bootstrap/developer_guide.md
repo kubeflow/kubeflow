@@ -279,10 +279,9 @@ This section describes how to use skaffold to make iterative development/testing
   ```
   build-kfctl-client
   CONFIG=$(pwd)/config/kfctl_gcp_iap.0.6.yaml
-  kubectl port-forward service/kubeflow-router 8080:8080
-  ./kfctlClient --project=${PROJECT} --name=${KFNAME} --endpoint=http://localhost:8080 --config=${CONFIG}
+  kubectl port-forward service/kfctl-router 8080:8080
+  ./bin/kfctlClient --v=1 --project=${PROJECT} --name=${KFNAME} --endpoint=http://localhost:8080 --config=${CONFIG}
   ```
-
 
 ##### `make build-bootstrap`
 
