@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: authservice
-  namespace: kubeflow
+  namespace: istio-system
 spec:
   type: ClusterIP
   selector:
@@ -13,13 +13,16 @@ spec:
     name: http-authservice
     targetPort: http-api
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: authservice
-  namespace: kubeflow
+  namespace: istio-system
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: authservice
   strategy:
     type: RollingUpdate
   template:
@@ -29,14 +32,27 @@ spec:
       labels:
         app: authservice
     spec:
+      volumes:
+        - name: custom-ca
+          secret:
+            secretName: istio-ingressgateway-certs
+            items:
+              - key: tls.crt
+                path: tls.crt
       containers:
       - name: authservice
-        image: gcr.io/arrikto/kubeflow/oidc-authservice:v0.1
+        image: gcr.io/arrikto/kubeflow/oidc-authservice:v0.2
         imagePullPolicy: Always
         ports:
         - name: http-api
           containerPort: 8080
+        volumeMounts:
+          - name: custom-ca
+            mountPath: /etc/custom-ca
+            readOnly: true
         env:
+          - name: OIDC_PROVIDER_CA_FILE
+            value: "/etc/custom-ca/tls.crt"
           - name: DISABLE_USERINFO
             value: "true"
           - name: PORT
