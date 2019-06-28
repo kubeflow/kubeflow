@@ -12,7 +12,9 @@ type GcpPluginSpec struct {
 	// TODO(jlewi): Might want to make it a list
 	SAClientId string `json:"username,omitempty"`
 
-	CreatePipelinePersistentStorage bool `json:"createPipelinePersistentStorage"`
+	// CreatePipelinePersistentStorage indicates whether to create storage.
+	// Use a pointer so we can distinguish unset values.
+	CreatePipelinePersistentStorage *bool `json:"createPipelinePersistentStorage,omitempty"`
 }
 
 type Auth struct {
@@ -77,4 +79,13 @@ func (s *GcpPluginSpec) IsValid() (bool, string) {
 	}
 
 	return false, "Either BasicAuth or IAP must be set"
+}
+
+func (p *GcpPluginSpec) GetCreatePipelinePersistentStorage() bool {
+	if p.CreatePipelinePersistentStorage == nil {
+		return true
+	}
+
+	v := p.CreatePipelinePersistentStorage
+	return *v
 }

@@ -2,8 +2,10 @@ package gcp
 
 import (
 	"encoding/json"
+	"github.com/gogo/protobuf/proto"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+
 	"k8s.io/api/v2/core/v1"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"os"
@@ -106,6 +108,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 	type testCase struct {
 		Name          string
 		Input         *kfdefs.KfDef
+		InputSpec     *GcpPluginSpec
 		Env           map[string]string
 		EmailGetter   func() (string, error)
 		Expected      *GcpPluginSpec
@@ -124,6 +127,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 				kftypes.KUBEFLOW_USERNAME: "someuser",
 			},
 			Expected: &GcpPluginSpec{
+				CreatePipelinePersistentStorage: proto.Bool(true),
 				Auth: &Auth{
 					BasicAuth: &BasicAuth{
 						Username: "someuser",
@@ -145,6 +149,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 				CLIENT_ID: "someclient",
 			},
 			Expected: &GcpPluginSpec{
+				CreatePipelinePersistentStorage: proto.Bool(true),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -166,6 +171,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 				CLIENT_ID: "someclient",
 			},
 			Expected: &GcpPluginSpec{
+				CreatePipelinePersistentStorage: proto.Bool(true),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -192,6 +198,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 				CLIENT_ID: "someclient",
 			},
 			Expected: &GcpPluginSpec{
+				CreatePipelinePersistentStorage: proto.Bool(true),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -206,12 +213,107 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			ExpectedEmail: "myemail",
 		},
+		// Verify that we don't override createPipelinePersistentStorage.
+		{
+			// Make sure emails get trimmed.
+			Name: "no-override",
+			Input: &kfdefs.KfDef{
+				Spec: kfdefs.KfDefSpec{
+					UseBasicAuth: false,
+				},
+			},
+			InputSpec: &GcpPluginSpec{
+				CreatePipelinePersistentStorage: proto.Bool(false),
+			},
+			Env: map[string]string{
+				CLIENT_ID: "someclient",
+			},
+			Expected: &GcpPluginSpec{
+				CreatePipelinePersistentStorage: proto.Bool(false),
+				Auth: &Auth{
+					IAP: &IAP{
+						OAuthClientId: "someclient",
+						OAuthClientSecret: &kfdefs.SecretRef{
+							Name: CLIENT_SECRET,
+						},
+					},
+				},
+			},
+			EmailGetter: func() (string, error) {
+				return "\nmyemail\n", nil
+			},
+			ExpectedEmail: "myemail",
+		},
+		{
+			Name: "iap-not-overwritten",
+			Input: &kfdefs.KfDef{
+				Spec: kfdefs.KfDefSpec{
+					UseBasicAuth: false,
+				},
+			},
+			InputSpec: &GcpPluginSpec{
+				Auth: &Auth{
+					IAP: &IAP{
+						OAuthClientId: "original_client",
+						OAuthClientSecret: &kfdefs.SecretRef{
+							Name: "original_secret",
+						},
+					},
+				},
+			},
+			Env: map[string]string{
+				CLIENT_ID: "someclient",
+			},
+			Expected: &GcpPluginSpec{
+				CreatePipelinePersistentStorage: proto.Bool(true),
+				Auth: &Auth{
+					IAP: &IAP{
+						OAuthClientId: "original_client",
+						OAuthClientSecret: &kfdefs.SecretRef{
+							Name: "original_secret",
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "basic-auth-not-overwritten",
+			Input: &kfdefs.KfDef{
+				Spec: kfdefs.KfDefSpec{
+					UseBasicAuth: false,
+				},
+			},
+			InputSpec: &GcpPluginSpec{
+				Auth: &Auth{
+					BasicAuth: &BasicAuth{
+						Username: "original_user",
+						Password: &kfdefs.SecretRef{
+							Name: "original_secret",
+						},
+					},
+				},
+			},
+			Env: map[string]string{
+				CLIENT_ID: "someclient",
+			},
+			Expected: &GcpPluginSpec{
+				CreatePipelinePersistentStorage: proto.Bool(true),
+				Auth: &Auth{
+					BasicAuth: &BasicAuth{
+						Username: "original_user",
+						Password: &kfdefs.SecretRef{
+							Name: "original_secret",
+						},
+					},
+				},
+			},
+		},
 	}
 
-	for i, c := range cases {
-		if i > 0 {
+	for index, c := range cases {
+		if index > 0 {
 			// Unset previous environment variables
-			for k, _ := range cases[i-1].Env {
+			for k, _ := range cases[index-1].Env {
 				os.Unsetenv(k)
 			}
 		}
@@ -221,6 +323,10 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		}
 
 		i := c.Input.DeepCopy()
+
+		if c.InputSpec != nil {
+			i.SetPluginSpec(GcpPluginName, c.InputSpec)
+		}
 
 		gcp := &Gcp{
 			kfDef:            i,

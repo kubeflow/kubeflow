@@ -22,6 +22,7 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
+	"github.com/gogo/protobuf/proto"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
@@ -957,16 +958,12 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 }
 
 func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
-	ctx := context.Background()
-	// TODO: make client a parameter
-	client, err := google.DefaultClient(ctx, deploymentmanager.CloudPlatformScope)
-	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error getting DefaultClient: %v", err),
-		}
+	if err := gcp.initGcpClient(); err != nil {
+		log.Errorf("There was a problem initializing the GCP client; %v", err)
+		return errors.WithMessagef(err, "Gcp.gcpInitProject Could not initatie a GCP client")
 	}
-	deploymentmanagerService, err := deploymentmanager.New(client)
+	ctx := context.Background()
+	deploymentmanagerService, err := deploymentmanager.New(gcp.client)
 	if err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
@@ -995,7 +992,7 @@ func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	policy, err := utils.GetIamPolicy(project, client)
+	policy, err := utils.GetIamPolicy(project, gcp.client)
 	if err != nil {
 		return &kfapis.KfError{
 			Code:    err.(*kfapis.KfError).Code,
@@ -1017,7 +1014,7 @@ func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
 		}
 		policy.Bindings[idx].Members = cleanedMembers
 	}
-	if err = utils.SetIamPolicy(project, policy, client); err != nil {
+	if err = utils.SetIamPolicy(project, policy, gcp.client); err != nil {
 		return &kfapis.KfError{
 			Code:    err.(*kfapis.KfError).Code,
 			Message: fmt.Sprintf("Error when cleaning IAM policy: %v", err.(*kfapis.KfError).Message),
@@ -1324,7 +1321,8 @@ func (gcp *Gcp) generateDMConfigs() error {
 	if err := gcp.writeClusterConfig(from, to); err != nil {
 		return err
 	}
-	if pluginSpec.CreatePipelinePersistentStorage {
+	if pluginSpec.GetCreatePipelinePersistentStorage() {
+		log.Infof("Configuring pipelines persistent storage")
 		from = filepath.Join(sourceDir, STORAGE_FILE)
 		to = filepath.Join(gcpConfigDir, STORAGE_FILE)
 		if err := gcp.writeStorageConfig(from, to); err != nil {
@@ -1610,7 +1608,6 @@ func (gcp *Gcp) createSecrets() error {
 // setGcpPluginDefaults sets the GcpPlugin defaults.
 func (gcp *Gcp) setGcpPluginDefaults() error {
 	// Set the email
-
 	if gcp.kfDef.Spec.Email == "" && gcp.gcpAccountGetter != nil {
 		email, err := gcp.gcpAccountGetter()
 		if err != nil {
@@ -1625,14 +1622,17 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 
 	// Set the defaults that will be used if not explicitly set.
 	// If the plugin is provided these values will be overwritten,
-	pluginSpec := GcpPluginSpec{
-		CreatePipelinePersistentStorage: false,
-	}
-	err := gcp.kfDef.Spec.GetPluginSpec(GcpPluginName, pluginSpec)
+	pluginSpec := &GcpPluginSpec{}
+	err := gcp.kfDef.GetPluginSpec(GcpPluginName, pluginSpec)
 
-	if !kfdefs.IsPluginNotFound(err) {
+	if err != nil && !kfdefs.IsPluginNotFound(err) {
 		log.Errorf("There was a problem getting the gcp plugin %v", err)
 		return errors.WithStack(err)
+	}
+
+	if pluginSpec.CreatePipelinePersistentStorage == nil {
+		pluginSpec.CreatePipelinePersistentStorage = proto.Bool(pluginSpec.GetCreatePipelinePersistentStorage())
+		log.Infof("CreatePipelinePersistentStorage not set defaulting to %v", *pluginSpec.CreatePipelinePersistentStorage)
 	}
 
 	if pluginSpec.Auth == nil {
@@ -1748,7 +1748,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 		gcp.kfDef.Spec.ComponentParams["iap-ingress"] = setNameVal(gcp.kfDef.Spec.ComponentParams["iap-ingress"], "hostname", gcp.kfDef.Spec.Hostname, true)
 		gcp.kfDef.Spec.ComponentParams["profiles"] = setNameVal(gcp.kfDef.Spec.ComponentParams["profiles"], "admin", gcp.kfDef.Spec.Email, true)
 	}
-	if pluginSpec.CreatePipelinePersistentStorage {
+	if *pluginSpec.CreatePipelinePersistentStorage {
 		minioPdName := gcp.kfDef.Name + "-storage-artifact-store"
 		mysqlPdName := gcp.kfDef.Name + "-storage-metadata-store"
 		gcp.kfDef.Spec.ComponentParams["pipeline"] = setNameVal(gcp.kfDef.Spec.ComponentParams["pipeline"], "mysqlPd", mysqlPdName, false)
