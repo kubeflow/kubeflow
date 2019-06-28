@@ -13,7 +13,13 @@ webpackConfig.module.rules.push({
 
 module.exports = (config) => config.set({
     basePath: '',
-    browsers: ['ChromeHeadless'],
+    browsers: ['ChromeHeadlessTest'],
+    customLaunchers: {
+        ChromeHeadlessTest: {
+            base: 'ChromeHeadless',
+            flags: ['--no-sandbox'],
+        },
+    },
     frameworks: ['jasmine'],
     files: [
         'public/index_test.js',

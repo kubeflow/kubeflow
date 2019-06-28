@@ -1,3 +1,0 @@
-Flask==1.0.2
-kubernetes==8.0.1
-PyYAML==5.1

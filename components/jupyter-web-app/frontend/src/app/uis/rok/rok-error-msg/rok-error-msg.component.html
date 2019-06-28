@@ -1,0 +1,23 @@
+<div class="container">
+  <div class="card mat-elevation-z2">
+    <h3>
+      The Secret <code>"{{ token?.name }}"</code> could not be found in the
+      Namespace <code>kubeflow</code>
+    </h3>
+    <h4>Please follow the steps below to address this issue:</h4>
+    <p>
+      1. Log in to Rok<br />
+      2. Go to Settings -> API access<br />
+      3. From the dropdown box choose "Kubernetes secret", and download your
+      secret to your computer as a local file, e.g.,
+      <code>{{ token?.name }}.yaml</code><br />
+      4. Create a new secret on Kubernetes:
+      <code>kubectl -n {{ "kubeflow" }} create -f {{ token?.name }}.yaml</code
+      ><br />
+      5. Verify that your new secret has been created:
+      <code>kubectl -n {{ "kubeflow" }} get secret {{ "kubeflow" }}</code
+      ><br />
+      6. Refresh this page
+    </p>
+  </div>
+</div>

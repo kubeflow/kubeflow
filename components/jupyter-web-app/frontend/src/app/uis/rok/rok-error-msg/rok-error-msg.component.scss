@@ -1,0 +1,25 @@
+.margin {
+  margin: 8px 8px 8px 0px;
+}
+
+.wide {
+  width: 100%;
+}
+
+.container {
+  width: fit-content;
+  margin: 2em auto;
+}
+
+.card {
+  width: 900px;
+  padding: 16px;
+  border-radius: 5px;
+  background: white;
+}
+
+h3,
+h4,
+p {
+  color: rgba(0, 0, 0, 0.54);
+}

@@ -100,21 +100,6 @@ workflows:
       workflowName: kfctl-go
       useBasicAuth: true
       useIstio: true
-  # kfctl test runs tests on gke.
-  - app_dir: kubeflow/kubeflow/testing/workflows
-    component: kfctl_test
-    name: kfctl-beta
-    job_types:
-      - presubmit
-      - postsubmit
-      - periodic
-    include_dirs:
-      - scripts/gke/*
-      - deployment/gke/*
-    params:
-      platform: gke
-      gkeApiVersion: v1beta1
-      workflowName: kfctl-beta
   # Run unittests
   # TODO(jlewi): Need to add step to run go and python unittests
   - app_dir: kubeflow/kubeflow/testing/workflows
