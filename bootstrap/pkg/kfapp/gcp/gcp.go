@@ -77,8 +77,8 @@ const (
 	KUBECONFIG_FORMAT = "gke_{project}_{zone}_{cluster}"
 
 	// Plugin parameter constants
-	GcpPluginName                    = kftypes.GCP
-	GcpAccessTokenName               = "accessToken"
+	GcpPluginName      = kftypes.GCP
+	GcpAccessTokenName = "accessToken"
 	//GcpStorageOptionName             = "storageOption"
 	//GcpSaClientIdName                = "saClientId"
 	//GcpIapOauthClientIdParamName     = "iapOauthClientId"
@@ -131,7 +131,7 @@ type dmOperationEntry struct {
 // GetPlatform returns the gcp kfapp. It's called by coordinator.GetPlatform
 func GetPlatform(kfdef *kfdefs.KfDef, platformArgs []byte) (kftypes.Platform, error) {
 	_gcp := &Gcp{
-		kfDef:         kfdef,
+		kfDef: kfdef,
 	}
 
 	pluginSpec := GcpPluginSpec{}
@@ -1671,7 +1671,7 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 			}
 
 			pluginSpec.Auth.IAP.OAuthClientSecret = &kfdefs.SecretRef{
-				Name:  CLIENT_SECRET,
+				Name: CLIENT_SECRET,
 			}
 
 			gcp.kfDef.SetSecret(kfdefs.Secret{
@@ -1685,7 +1685,7 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 		}
 	}
 
-	gcp.kfDef.SetPluginSpec(GcpPluginName, pluginSpec)
+	return gcp.kfDef.SetPluginSpec(GcpPluginName, pluginSpec)
 }
 
 // Generate generates the gcp kfapp manifest.
