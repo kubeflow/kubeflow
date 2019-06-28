@@ -1,7 +1,13 @@
 package existing_arrikto
 
 import (
+	"bytes"
 	"context"
+	cryptorand "crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
 	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfapisv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
@@ -18,7 +24,9 @@ import (
 	"k8s.io/apimachinery/v2/pkg/types"
 	"k8s.io/client-go/rest"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"math/big"
 	"math/rand"
+	"net"
 	"os"
 	"path"
 	"sigs.k8s.io/controller-runtime/v2/pkg/client"
@@ -277,9 +285,13 @@ func getEndpoints(kubeclient client.Client) (string, string, error) {
 	if kfEndpoint == "" {
 		lbIP, err := getLBIP(kubeclient)
 		if err != nil {
-			return "", "", err
+			return "", "", errors.WithStack(err)
 		}
-		kfEndpoint = fmt.Sprintf("http://%s", lbIP)
+		// Generate certs for the LoadBalancer IP
+		if err := createSelfSignedCerts(kubeclient, lbIP); err != nil {
+			return "", "", errors.WithStack(err)
+		}
+		kfEndpoint = fmt.Sprintf("https://%s", lbIP)
 		log.Infof("KUBEFLOW_ENDPOINT not set, using %s", kfEndpoint)
 	}
 	if oidcEndpoint == "" {
@@ -288,6 +300,72 @@ func getEndpoints(kubeclient client.Client) (string, string, error) {
 	}
 
 	return kfEndpoint, oidcEndpoint, nil
+}
+
+func createSelfSignedCerts(kubeclient client.Client, addr string) error {
+	// Generate private key
+	key, err := rsa.GenerateKey(cryptorand.Reader, 2048)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	// Generate certificate
+	now := time.Now()
+	tmpl := x509.Certificate{
+		SerialNumber: new(big.Int).SetInt64(seededRand.Int63()),
+		Subject: pkix.Name{
+			CommonName:   addr,
+			Organization: []string{"kubeflow-self-signed"},
+		},
+		NotBefore:             now.UTC(),
+		NotAfter:              now.Add(time.Second * 60 * 60 * 24 * 365).UTC(),
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+		IPAddresses:           []net.IP{net.ParseIP(addr)},
+	}
+
+	certDERBytes, err := x509.CreateCertificate(cryptorand.Reader, &tmpl, &tmpl, key.Public(), key)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	certificate, err := x509.ParseCertificate(certDERBytes)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	// PEM Encode both
+	certBuffer := bytes.Buffer{}
+	if err := pem.Encode(&certBuffer, &pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: certificate.Raw,
+	}); err != nil {
+		return err
+	}
+
+	keyBuffer := bytes.Buffer{}
+	if err := pem.Encode(&keyBuffer, &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	}); err != nil {
+		return err
+	}
+
+	// Create secret from them
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "istio-ingressgateway-certs",
+			Namespace: "istio-system",
+		},
+		Data: map[string][]byte{
+			"tls.crt": certBuffer.Bytes(),
+			"tls.key": keyBuffer.Bytes(),
+		},
+	}
+	if err := kubeclient.Create(context.TODO(), secret); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
 }
 
 func getLBIP(kubeclient client.Client) (string, error) {
@@ -366,8 +444,7 @@ func generateFromGoTemplate(tmplPath, outPath string, data interface{}) error {
 	return nil
 }
 
-var seededRand = rand.New(
-	rand.NewSource(time.Now().UnixNano()))
+var seededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func genRandomString(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
