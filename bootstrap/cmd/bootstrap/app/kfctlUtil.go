@@ -85,7 +85,7 @@ func (s *ksServer) DeployWithKfctl(req *CreateRequest) error {
 	//	log.Errorf("Failed encoding gcp args: %v", err)
 	//	return err
 	//}
-	coord := coordinator.GetKfApp(kfdef, []byte{})
+	coord := coordinator.GetKfApp(kfdef)
 
 	if err = coord.Generate(kftypes.ALL); err != nil {
 		return err

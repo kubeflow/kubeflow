@@ -76,12 +76,8 @@ const (
 	KUBECONFIG_FORMAT = "gke_{project}_{zone}_{cluster}"
 
 	// Plugin parameter constants
-	GcpPluginName      = kftypes.GCP
-	GcpAccessTokenName = "accessToken"
-	//GcpStorageOptionName             = "storageOption"
-	//GcpSaClientIdName                = "saClientId"
-	//GcpIapOauthClientIdParamName     = "iapOauthClientId"
-	//GcpIapOauthClientSecretParamName = "iapOauthClientSecret"
+	GcpPluginName               = kftypes.GCP
+	GcpAccessTokenName          = "accessToken"
 	BasicAuthPasswordSecretName = "password"
 )
 
@@ -89,13 +85,9 @@ const (
 // It includes the KsApp along with additional Gcp types
 // TODO(jlewi): Why doesn't Gcp store GcpArgs as opposed to duplicating the options?
 type Gcp struct {
-	kfDef *kfdefs.KfDef
-	//configtypes.StorageOption
-	client *http.Client
-	// TODO(jlewi): We should be able to remove accessToken and just use TokenSource.
-	//accessToken string
+	kfDef       *kfdefs.KfDef
+	client      *http.Client
 	tokenSource oauth2.TokenSource
-	//SAClientId  string
 
 	// Function to get the GcpAccount.
 	// Support injection for testing.
@@ -111,31 +103,14 @@ func (gcp *Gcp) SetTokenSource(s oauth2.TokenSource) error {
 	return nil
 }
 
-//type GcpArgs struct {
-//	AccessToken   string
-//	StorageOption configtypes.StorageOption
-//	SAClientId    string
-//}
-
 type dmOperationEntry struct {
 	operationName string
 	// create or update dmName
 	action string
 }
 
-//func getDefaultArgs() GcpArgs {
-//	return GcpArgs{
-//		StorageOption: configtypes.StorageOption{
-//			CreatePipelinePersistentStorage: true,
-//		},
-//	}
-//}
-
 // GetPlatform returns the gcp kfapp. It's called by coordinator.GetPlatform
-//
-// TODO(jlewi): We should be able to get rid of platformArgs now. Any platform
-// specific data should now be part of kfdef.
-func GetPlatform(kfdef *kfdefs.KfDef, platformArgs []byte) (kftypes.Platform, error) {
+func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
 	_gcp := &Gcp{
 		kfDef:            kfdef,
 		gcpAccountGetter: getGcloudDefaultAccount,
@@ -229,7 +204,7 @@ func getGcloudDefaultAccount() (string, error) {
 			Message: fmt.Sprintf("could not call 'gcloud config get-value account': %v", err),
 		}
 	}
-	return string(output), nil
+	return strings.TrimSpace(string(output)), nil
 }
 
 func (gcp *Gcp) writeConfigFile() error {
@@ -1642,6 +1617,7 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 			log.Errorf("cannot get gcloud account email. Error: %v", err)
 			return err
 		}
+		email = strings.TrimSpace(email)
 		gcp.kfDef.Spec.Email = email
 	} else {
 		log.Warnf("gcpAccountGetter not set; can't get default email")

@@ -180,6 +180,32 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			ExpectedEmail: "myemail",
 		},
+		{
+			// Make sure emails get trimmed.
+			Name: "trim-email",
+			Input: &kfdefs.KfDef{
+				Spec: kfdefs.KfDefSpec{
+					UseBasicAuth: false,
+				},
+			},
+			Env: map[string]string{
+				CLIENT_ID: "someclient",
+			},
+			Expected: &GcpPluginSpec{
+				Auth: &Auth{
+					IAP: &IAP{
+						OAuthClientId: "someclient",
+						OAuthClientSecret: &kfdefs.SecretRef{
+							Name: CLIENT_SECRET,
+						},
+					},
+				},
+			},
+			EmailGetter: func() (string, error) {
+				return "\nmyemail\n", nil
+			},
+			ExpectedEmail: "myemail",
+		},
 	}
 
 	for i, c := range cases {
