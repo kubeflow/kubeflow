@@ -384,7 +384,7 @@ func (d *KfDef) GetSecret(name string) (string, error) {
 
 		return "", fmt.Errorf("No secret source provided for secret %v", name)
 	}
-	return "", fmt.Errorf("No secret in KfDef named %v", name)
+	return "", NewSecretNotFound(name)
 }
 
 // GetSecret returns the specified secret or an error if the secret isn't specified.
@@ -565,5 +565,27 @@ func IsPluginNotFound(e error) bool {
 		return false
 	}
 	_, ok := e.(*PluginNotFound)
+	return ok
+}
+
+type SecretNotFound struct {
+	Name string
+}
+
+func (e *SecretNotFound) Error() string {
+	return fmt.Sprintf("Missing secret %v", e.Name)
+}
+
+func NewSecretNotFound(n string) *SecretNotFound {
+	return &SecretNotFound{
+		Name: n,
+	}
+}
+
+func IsSecretNotFound(e error) bool {
+	if e == nil {
+		return false
+	}
+	_, ok := e.(*SecretNotFound)
 	return ok
 }

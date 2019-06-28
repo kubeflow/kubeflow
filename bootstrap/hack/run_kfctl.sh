@@ -21,4 +21,4 @@ ${KFCTL} init ${APPDIR} \
 
 cd ${APPDIR}
 ${KFCTL} generate all -V
-${KFCTL} all -V
+${KFCTL} apply all -V
