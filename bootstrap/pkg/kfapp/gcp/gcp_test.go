@@ -2,8 +2,8 @@ package gcp
 
 import (
 	"encoding/json"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"k8s.io/api/v2/core/v1"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"os"
@@ -102,15 +102,17 @@ func TestGcp_buildBasicAuthSecret(t *testing.T) {
 	}
 }
 
-func TestGcp_setGcpPluginDefaults (t *testing.T){
+func TestGcp_setGcpPluginDefaults(t *testing.T) {
 	type testCase struct {
-		Name string
-		Input *kfdefs.KfDef
-		Env map[string]string
+		Name     string
+		Input    *kfdefs.KfDef
+		Env      map[string]string
+		EmailGetter func()(string, error)
 		Expected *GcpPluginSpec
+		ExpectedEmail string
 	}
 
-	cases := [] testCase {
+	cases := []testCase{
 		{
 			Name: "no-plugin-basic-auth",
 			Input: &kfdefs.KfDef{
@@ -118,13 +120,13 @@ func TestGcp_setGcpPluginDefaults (t *testing.T){
 					UseBasicAuth: true,
 				},
 			},
-			Env: map[string]string {
+			Env: map[string]string{
 				kftypes.KUBEFLOW_USERNAME: "someuser",
 			},
 			Expected: &GcpPluginSpec{
 				Auth: &Auth{
 					BasicAuth: &BasicAuth{
-						Username:"someuser",
+						Username: "someuser",
 						Password: &kfdefs.SecretRef{
 							Name: BasicAuthPasswordSecretName,
 						},
@@ -139,7 +141,7 @@ func TestGcp_setGcpPluginDefaults (t *testing.T){
 					UseBasicAuth: false,
 				},
 			},
-			Env: map[string]string {
+			Env: map[string]string{
 				CLIENT_ID: "someclient",
 			},
 			Expected: &GcpPluginSpec{
@@ -153,26 +155,50 @@ func TestGcp_setGcpPluginDefaults (t *testing.T){
 				},
 			},
 		},
+		{
+			Name: "set-email",
+			Input: &kfdefs.KfDef{
+				Spec: kfdefs.KfDefSpec{
+					UseBasicAuth: false,
+				},
+			},
+			Env: map[string]string{
+				CLIENT_ID: "someclient",
+			},
+			Expected: &GcpPluginSpec{
+				Auth: &Auth{
+					IAP: &IAP{
+						OAuthClientId: "someclient",
+						OAuthClientSecret: &kfdefs.SecretRef{
+							Name: CLIENT_SECRET,
+						},
+					},
+				},
+			},
+			EmailGetter: func()(string,error) {
+				return "myemail", nil
+			},
+			ExpectedEmail: "myemail",
+		},
 	}
-
 
 	for i, c := range cases {
 		if i > 0 {
 			// Unset previous environment variables
-			for k,_ := range cases[i-1].Env {
+			for k, _ := range cases[i-1].Env {
 				os.Unsetenv(k)
 			}
 		}
 
-		for k,v := range c.Env {
+		for k, v := range c.Env {
 			os.Setenv(k, v)
 		}
 
 		i := c.Input.DeepCopy()
 
-
 		gcp := &Gcp{
 			kfDef: i,
+			gcpAccountGetter: c.EmailGetter,
 		}
 
 		if err := gcp.setGcpPluginDefaults(); err != nil {
@@ -192,6 +218,12 @@ func TestGcp_setGcpPluginDefaults (t *testing.T){
 			pGot, _ := Pformat(plugin)
 			pWant, _ := Pformat(c.Expected)
 			t.Errorf("Case %v; got:\n%v\nwant:\n%v", c.Name, pGot, pWant)
+		}
+
+		if c.ExpectedEmail != "" {
+			if c.ExpectedEmail != i.Spec.Email {
+				t.Errorf("Case %v; email: got %v; want %v", c.Name, i.Spec.Email, c.ExpectedEmail)
+			}
 		}
 	}
 }

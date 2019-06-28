@@ -3,10 +3,8 @@ package app
 import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/square/go-jose.v2/json"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"os"
 	"path"
@@ -61,11 +59,11 @@ func (s *ksServer) DeployWithKfctl(req *CreateRequest) error {
 	if err != nil {
 		return err
 	}
-	gcpArgs := gcp.GcpArgs{
-		AccessToken:   req.Token,
-		StorageOption: req.StorageOption,
-		SAClientId:    req.SAClientID,
-	}
+	//gcpArgs := gcp.GcpArgs{
+	//	AccessToken:   req.Token,
+	//	StorageOption: req.StorageOption,
+	//	SAClientId:    req.SAClientID,
+	//}
 	//var gcpApp kftypes.KfApp
 	// run gcp generate / apply
 
@@ -82,12 +80,12 @@ func (s *ksServer) DeployWithKfctl(req *CreateRequest) error {
 	//	gcpArgs.OauthID = req.ClientID
 	//	gcpArgs.OauthSecret = req.ClientSecret
 	//}
-	argBytes, err := json.Marshal(gcpArgs)
-	if err != nil {
-		log.Errorf("Failed encoding gcp args: %v", err)
-		return err
-	}
-	coord := coordinator.GetKfApp(kfdef, argBytes)
+	//argBytes, err := json.Marshal(gcpArgs)
+	//if err != nil {
+	//	log.Errorf("Failed encoding gcp args: %v", err)
+	//	return err
+	//}
+	coord := coordinator.GetKfApp(kfdef, []byte{})
 
 	if err = coord.Generate(kftypes.ALL); err != nil {
 		return err

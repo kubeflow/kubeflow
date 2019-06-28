@@ -97,6 +97,10 @@ type Gcp struct {
 	//accessToken string
 	tokenSource oauth2.TokenSource
 	//SAClientId  string
+
+	// Function to get the GcpAccount.
+	// Support injection for testing.
+	gcpAccountGetter func()(string, error)
 }
 
 type Setter interface {
@@ -132,17 +136,18 @@ type dmOperationEntry struct {
 func GetPlatform(kfdef *kfdefs.KfDef, platformArgs []byte) (kftypes.Platform, error) {
 	_gcp := &Gcp{
 		kfDef: kfdef,
+		gcpAccountGetter: getGcloudDefaultAccount,
 	}
 
 	pluginSpec := GcpPluginSpec{}
 
 	if err := kfdef.GetPluginSpec(GcpPluginName, pluginSpec); err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.Wrap(err, "GetPlatform failed")
 	}
 
 	if isValid, msg := pluginSpec.IsValid(); !isValid {
 		log.Errorf("pluginSpec isn't valid; %v", msg)
-		return nil, fmt.Errorf("pluginSpec isn't valid: %v", msg)
+		return nil, errors.WithStack(fmt.Errorf("pluginSpec isn't valid: %v", msg))
 	}
 	ctx := context.Background()
 
@@ -172,13 +177,6 @@ func GetPlatform(kfdef *kfdefs.KfDef, platformArgs []byte) (kftypes.Platform, er
 		log.Infof("Spec contains secret %s; will use static token source for GCP", GcpAccessTokenName)
 	}
 
-	// TODO(jlewi): We should move the code for initializing Email closer to where
-	// we construct the application.
-	if _gcp.kfDef.Spec.Email == "" {
-		if err := _gcp.getAccount(); err != nil {
-			log.Infof("cannot get gcloud account email. Error: %v", err)
-		}
-	}
 	return _gcp, nil
 }
 
@@ -217,18 +215,16 @@ func (gcp *Gcp) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
 	return restConfig, apiConfig
 }
 
-// getAccount if --email is not supplied try and get account info using gcloud
-func (gcp *Gcp) getAccount() error {
+// getGcloudDefaultAccount try to get the default account.
+func getGcloudDefaultAccount() (string, error) {
 	output, err := exec.Command("gcloud", "config", "get-value", "account").Output()
 	if err != nil {
-		return &kfapis.KfError{
+		return "", &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("could not call 'gcloud config get-value account': %v", err),
 		}
 	}
-	account := string(output)
-	gcp.kfDef.Spec.Email = strings.TrimSpace(account)
-	return nil
+	return string(output), nil
 }
 
 func (gcp *Gcp) writeConfigFile() error {
@@ -1628,6 +1624,19 @@ func (gcp *Gcp) createSecrets() error {
 
 // setGcpPluginDefaults sets the GcpPlugin defaults.
 func (gcp *Gcp) setGcpPluginDefaults() error {
+	// Set the email
+
+	if gcp.kfDef.Spec.Email == "" && gcp.gcpAccountGetter != nil {
+		email, err := gcp.gcpAccountGetter()
+		if err != nil {
+			log.Errorf("cannot get gcloud account email. Error: %v", err)
+			return err
+		}
+		gcp.kfDef.Spec.Email = email
+	} else {
+		log.Warnf("gcpAccountGetter not set; can't get default email")
+	}
+
 	// Set the defaults that will be used if not explicitly set.
 	// If the plugin is provided these values will be overwritten,
 	pluginSpec := GcpPluginSpec{
