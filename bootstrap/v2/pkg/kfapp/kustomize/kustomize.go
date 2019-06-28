@@ -27,6 +27,7 @@ import (
 	kfapisv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"k8s.io/api/v2/core/v1"
@@ -110,7 +111,7 @@ const (
 	outputDir = "kustomize"
 )
 
-// GetPlatform is the common entry point for all implmentations of the KfApp interface
+// GetPlatform is the common entry point for all implementations of the KfApp interface
 func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 	/*
 		kfdef := kfdefsv2.KfDef{
@@ -409,6 +410,7 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 	generate := func() error {
 		kustomizeDir := path.Join(kustomize.Spec.AppDir, outputDir)
+
 		// idempotency
 		if _, err := os.Stat(kustomizeDir); !os.IsNotExist(err) {
 			_ = os.RemoveAll(kustomizeDir)
@@ -420,17 +422,36 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 				Message: fmt.Sprintf("couldn't create directory %v Error %v", kustomizeDir, kustomizeDirErr),
 			}
 		}
+
+		manifestsRepo, ok := kustomize.Status.ReposCache[kftypes.ManifestsRepoName]
+
+		if !ok {
+			log.Infof("Repo %v not listed in KfDef.Status; Resync'ing cache", kftypes.ManifestsRepoName)
+			if err := kustomize.SyncCache(); err != nil {
+				log.Errorf("Syncing the cached failed; error %v", err)
+				return errors.WithStack(err)
+			}
+		}
+
+		manifestsRepo, ok = kustomize.Status.ReposCache[kftypes.ManifestsRepoName]
+
+		if !ok {
+			return errors.WithStack(fmt.Errorf("Repo %v not listed in KfDef.Status; ", kftypes.ManifestsRepoName))
+		}
+
 		for _, compName := range kustomize.Spec.Components {
 			compPath, ok := kustomize.componentPathMap[compName]
 			if !ok {
+				log.Errorf("Couldn't find component %v", compName)
 				return &kfapisv2.KfError{
 					Code:    int(kfapisv2.INTERNAL_ERROR),
 					Message: fmt.Sprintf("couldn't find component %s", compName),
 				}
 			}
-			resMap, err := GenerateKustomizationFile(&kustomize.KfDef, kustomize.Spec.ManifestsRepo, compPath,
+			resMap, err := GenerateKustomizationFile(&kustomize.KfDef, manifestsRepo.LocalPath, compPath,
 				kustomize.Spec.ComponentParams[compName])
 			if err != nil {
+				log.Errorf("error generating kustomization for %v Error %v", compPath, err)
 				return &kfapisv2.KfError{
 					Code:    int(kfapisv2.INTERNAL_ERROR),
 					Message: fmt.Sprintf("error generating kustomization for %v Error %v", compPath, err),
@@ -463,19 +484,26 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 // Init is called from 'kfctl init ...' and creates a <deployment> directory with an app.yaml file that
 // holds deployment information like components, parameters
 func (kustomize *kustomize) Init(resources kftypes.ResourceEnum) error {
+	// TODO(https://github.com/kubeflow/kubeflow/issues/3546): This code
+	// needs to be updated.
 	parts := strings.Split(kustomize.Spec.PackageManager, "@")
 	version := "master"
 	if len(parts) == 2 {
 		version = parts[1]
 	}
-	cacheDir, cacheDirErr := kftypesv2.DownloadToCache(kustomize.Spec.AppDir, kftypesv2.ManifestsRepo, version)
-	if cacheDirErr != nil || cacheDir == "" {
-		log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
-	}
-	kustomize.Spec.ManifestsRepo = cacheDir
-	createConfigErr := kustomize.writeConfigFile()
-	if createConfigErr != nil {
-		return fmt.Errorf("cannot create config file %v in %v", kftypesv2.KfConfigFile, kustomize.Spec.AppDir)
+
+	if len(kustomize.Spec.Repos) == 0 {
+		// TODO(jlewi): This is a legacy code path. Once we we use Spec.Repos we can get rid of this code path.
+		log.Infof("Downloading kustomize manifests from %v", kftypesv2.ManifestsRepo)
+		cacheDir, cacheDirErr := kftypesv2.DownloadToCache(kustomize.Spec.AppDir, kftypesv2.ManifestsRepo, version)
+		if cacheDirErr != nil || cacheDir == "" {
+			log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
+		}
+		kustomize.Spec.ManifestsRepo = cacheDir
+		createConfigErr := kustomize.writeConfigFile()
+		if createConfigErr != nil {
+			return fmt.Errorf("cannot create config file %v in %v", kftypesv2.KfConfigFile, kustomize.Spec.AppDir)
+		}
 	}
 	return nil
 }

@@ -268,17 +268,21 @@ This section describes how to use skaffold to make iterative development/testing
 * To start skaffold
 
   ```
-  skaffold dev -v=info --default-repo gcr.io/code-search-demo
+  REPO=gcr.io/${PROJECT}
+  skaffold dev -v=info --default-repo ${REPO}
   ```
-  * `.dockerignore` controlls which files trigger rebuilds and are uploaded as part of the context
+  * `.dockerignore` controls which files trigger rebuilds and are uploaded as part of the context
 
-* Then to send requests
+* Then to send requests use kfctlClient
 
 
   ```
-  kubectl port-forward service/kubeflow-controller 8080:8080
-  curl -d '{"project": "jlewi-dev", "name": "jlewi-test", "zone": "us-east1-d"}' -H "Content-Type: application/json" -X POST http://localhost:8080/kfctl/apps/v1alpha2/create
+  build-kfctl-client
+  CONFIG=$(pwd)/config/kfctl_gcp_iap.0.6.yaml
+  kubectl port-forward service/kfctl-router 8080:8080
+  ./bin/kfctlClient --v=1 --project=${PROJECT} --name=${KFNAME} --endpoint=http://localhost:8080 --config=${CONFIG}
   ```
+
 
 ##### `make build-bootstrap`
 
