@@ -11,6 +11,8 @@ type GcpPluginSpec struct {
 	// SAClientId if supplied grant this service account cluster admin access
 	// TODO(jlewi): Might want to make it a list
 	SAClientId string `json:"username,omitempty"`
+
+	CreatePipelinePersistentStorage bool `json:"createPipelinePersistentStorage"`
 }
 
 type Auth struct {
