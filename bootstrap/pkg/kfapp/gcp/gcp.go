@@ -119,17 +119,25 @@ func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
 	return _gcp, nil
 }
 
+// GetPluginSpec gets the plugin spec.
+func (gcp *Gcp) GetPluginSpec() *GcpPluginSpec {
+	// Not passing a pointer interface is a common cause of deserialization problems
+	pluginSpec := &GcpPluginSpec{}
+
+	// It should be fine to swallow the error
+	if err := gcp.kfDef.GetPluginSpec(GcpPluginName, pluginSpec); err != nil {
+		err := errors.Wrap(err, "failed to get GcpPluginSpec")
+		log.Errorf("%v", err)
+	}
+
+	return pluginSpec
+}
+
 // initGcpClient initializes the clients to talk to GCP.
 func (gcp *Gcp) initGcpClient() error {
 	if gcp.client != nil {
 		log.Infof("GCP client already configured")
 		return nil
-	}
-
-	pluginSpec := GcpPluginSpec{}
-
-	if err := gcp.kfDef.GetPluginSpec(GcpPluginName, pluginSpec); err != nil {
-		return errors.Wrap(err, "initGcpClient failed to get GcpPluginSpec")
 	}
 
 	ctx := context.Background()
@@ -502,11 +510,7 @@ func (gcp *Gcp) ConfigK8s() error {
 	// For deploy app, request will use service account credential instead of user credential.
 	bindAccount := gcp.kfDef.Spec.Email
 
-	pluginSpec := GcpPluginSpec{}
-
-	if err := gcp.kfDef.GetPluginSpec(GcpPluginName, pluginSpec); err != nil {
-		return errors.WithStack(err)
-	}
+	pluginSpec := gcp.GetPluginSpec()
 
 	if pluginSpec.SAClientId != "" {
 		log.Infof("Granting service account K8s permission.")
@@ -797,14 +801,7 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 		return errors.WithMessagef(err, "Gcp.Apply Could not initatie a GCP client")
 	}
 
-	p := &GcpPluginSpec{}
-
-	err := gcp.kfDef.Spec.GetPluginSpec(GcpPluginName, p)
-
-	if err != nil {
-		log.Errorf("Could not get GCP plugin parameters")
-		return err
-	}
+	p := gcp.GetPluginSpec()
 
 	if isValid, msg := p.IsValid(); !isValid {
 		log.Errorf("GcpPluginSpec isn't valid; error %v", msg)
@@ -1276,11 +1273,7 @@ func (gcp *Gcp) writeStorageConfig(src string, dest string) error {
 }
 
 func (gcp *Gcp) generateDMConfigs() error {
-	pluginSpec := GcpPluginSpec{}
-
-	if err := gcp.kfDef.GetPluginSpec(GcpPluginName, pluginSpec); err != nil {
-		return errors.WithStack(err)
-	}
+	pluginSpec := gcp.GetPluginSpec()
 
 	appDir := gcp.kfDef.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
@@ -1424,15 +1417,17 @@ func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientse
 
 // User CLIENT_ID and CLIENT_SECRET from GCP to create a secret for IAP.
 func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset) error {
-	p := &GcpPluginSpec{}
-
-	err := gcp.kfDef.Spec.GetPluginSpec(GcpPluginName, p)
-
-	if err != nil {
-		log.Errorf("Could not get GcpPluginSpec; error %v", err)
-		return err
-	}
+	p := gcp.GetPluginSpec()
 	oauthSecretNamespace := gcp.kfDef.Namespace
+
+	if p.Auth == nil {
+		return errors.WithStack(fmt.Errorf("GcpPluginSpec has no Auth"))
+	}
+
+	if p.Auth.IAP == nil {
+		return errors.WithStack(fmt.Errorf("GcpPluginSpec has no Auth.IAP"))
+	}
+
 	if gcp.kfDef.Spec.UseIstio {
 		oauthSecretNamespace = gcp.getIstioNamespace()
 	}
@@ -1443,16 +1438,7 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 		return nil
 	}
 
-	d := &kfdefs.KfDef{
-		Spec: gcp.kfDef.Spec,
-	}
-
-	if err != nil {
-		log.Errorf("Could not read IAP OAuth ClientID from KfDef; error %v", err)
-		return err
-	}
-
-	oauthSecret, err := d.GetSecret(p.Auth.IAP.OAuthClientSecret.Name)
+	oauthSecret, err := gcp.kfDef.GetSecret(p.Auth.IAP.OAuthClientSecret.Name)
 
 	if err != nil {
 		log.Errorf("Could not read IAP OAuth ClientSecret from KfDef; error %v", err)
@@ -1698,8 +1684,8 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 		return errors.WithStack(err)
 	}
 
-	pluginSpec := GcpPluginSpec{}
-	err := gcp.kfDef.Spec.GetPluginSpec(GcpPluginName, pluginSpec)
+	pluginSpec := &GcpPluginSpec{}
+	err := gcp.kfDef.GetPluginSpec(GcpPluginName, pluginSpec)
 
 	if err != nil {
 		log.Errorf("Could not get GcpPluginSpec; error %v", err)
