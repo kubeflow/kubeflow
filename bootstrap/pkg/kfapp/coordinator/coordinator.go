@@ -508,8 +508,6 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]inte
 			if r.Name == kftypes.ManifestsRepoName {
 				hasRepo = true
 			}
-			log.Warnf("Defaulting Spec.Zone to %v. This is deprecated; "+
-				"Zone should be explicitly set in app.yaml", kfdef.Spec.Zone)
 		}
 
 		if hasRepo {
