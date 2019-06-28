@@ -12,7 +12,7 @@ spec:
     application:
     - name: overlay
       value: application
-    jupyter:
+    centraldashboard:
     - name: overlay
       value: application
     jupyter-web-app:
