@@ -34,6 +34,10 @@ type kfctlServer struct {
 	c  chan kfdefsv2.KfDef
 
 	appsDir     string
+
+	// builder supports injecting the code to create the coordinator so we can inject a fake during testing.
+	builder     coordinator.Builder
+
 	kfApp       kftypes.KfApp
 	kfDefGetter coordinator.KfDefGetter
 
@@ -53,6 +57,7 @@ func NewKfctlServer(appsDir string) (*kfctlServer, error) {
 	s := &kfctlServer{
 		c:       make(chan kfdefsv2.KfDef, 10),
 		appsDir: appsDir,
+		builder: &coordinator.DefaultBuilder{},
 	}
 
 	// Start a background thread to process requests
@@ -90,7 +95,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 				}
 			}
 
-			kfApp, err := coordinator.LoadKfAppCfgFile(cfgFile)
+			kfApp, err := s.builder.LoadKfAppCfgFile(cfgFile)
 
 			getter, ok := kfApp.(coordinator.KfDefGetter)
 			if !ok {
@@ -162,9 +167,9 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 		}
 	}
 
+	log.Errorf("Need to implement code to push app to source repo.")
 	return s.kfDefGetter.GetKfDef(), nil
 
-	log.Errorf("Need to implement code to push app to source repo.")
 	// Push to source repo.
 	//err = SaveAppToRepo(req.Email, path.Join(repoDir, GetRepoNameKfctl(req.Project)))
 }

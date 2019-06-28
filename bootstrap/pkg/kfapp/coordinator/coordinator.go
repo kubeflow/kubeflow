@@ -43,8 +43,14 @@ import (
 // Builder defines the methods used to create KfApps.
 // Primary purpose is to allow injecting a fake for use in testing.
 type Builder interface {
-	CreateKfAppCfgFile(def *kfdefsv2.KfDef)(string, error)
 	LoadKfAppCfgFile(cfgFile string) (kftypes.KfApp, error)
+}
+
+type DefaultBuilder struct {
+}
+
+func (b *DefaultBuilder) LoadKfAppCfgFile (cfgFile string) (kftypes.KfApp, error) {
+	return LoadKfAppCfgFile(cfgFile)
 }
 
 // The common entry point used to retrieve an implementation of KfApp.
@@ -368,7 +374,7 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 	return kfDef, nil
 }
 
-// CreateKfAppDir will create the application directory and persist
+// CreateKfAppCfgFile will create the application directory and persist
 // the KfDef to it as app.yaml.
 // Returns an error if the app.yaml file already exists
 // Returns path to the app.yaml file.

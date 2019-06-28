@@ -2,9 +2,12 @@ package app
 
 import (
 	"context"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator/fake"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"golang.org/x/oauth2"
+	"io/ioutil"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"reflect"
 	"testing"
@@ -93,4 +96,32 @@ func TestKfctlServer_CreateDeployment(t *testing.T) {
 	if expectedToken != ts.token {
 		t.Errorf("Refresh token not reset; got %v; want %v", ts.token, expectedToken)
 	}
+}
+
+func TestKfctlServer_HandleDeployment(t *testing.T) {
+	appsDir, err := ioutil.TempDir("", "")
+
+	if err != nil {
+		t.Fatalf("Could not create temorary directory error %v", err)
+	}
+
+	ts := &FakeRefreshableTokenSource{}
+
+	s := kfctlServer{
+		builder: &fake.FakeBuilder{
+		},
+		appsDir: appsDir,
+		ts: ts,
+	}
+
+	req := &kfdefsv2.KfDef{
+	}
+
+	req.SetPluginSpec(kftypes.GCP, &gcp.GcpPluginSpec{})
+	_, err = s.handleDeployment(*req)
+
+	if err != nil {
+		t.Fatalf("handleDeployment returned error %v", err)
+	}
+
 }
