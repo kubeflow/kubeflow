@@ -561,6 +561,9 @@ func NewPluginNotFound(n string) *PluginNotFound {
 }
 
 func IsPluginNotFound(e error) bool {
+	if e == nil {
+		return false
+	}
 	_, ok := e.(*PluginNotFound)
 	return ok
 }

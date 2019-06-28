@@ -1628,12 +1628,20 @@ func (gcp *Gcp) createSecrets() error {
 
 // setGcpPluginDefaults sets the GcpPlugin defaults.
 func (gcp *Gcp) setGcpPluginDefaults() error {
-	pluginSpec := GcpPluginSpec{}
+	// Set the defaults that will be used if not explicitly set.
+	// If the plugin is provided these values will be overwritten,
+	pluginSpec := GcpPluginSpec{
+		CreatePipelinePersistentStorage: false,
+	}
 	err := gcp.kfDef.Spec.GetPluginSpec(GcpPluginName, pluginSpec)
 
-	if err != nil && kfdefs.IsPluginNotFound(err) {
+	if !kfdefs.IsPluginNotFound(err) {
 		log.Errorf("There was a problem getting the gcp plugin %v", err)
 		return errors.WithStack(err)
+	}
+
+	if pluginSpec.Auth == nil {
+		pluginSpec.Auth = &Auth{}
 	}
 
 	if pluginSpec.Auth.BasicAuth == nil && pluginSpec.Auth.IAP == nil {

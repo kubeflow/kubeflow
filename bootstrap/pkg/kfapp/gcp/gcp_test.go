@@ -3,8 +3,10 @@ package gcp
 import (
 	"encoding/json"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	"k8s.io/api/v2/core/v1"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -96,6 +98,100 @@ func TestGcp_buildBasicAuthSecret(t *testing.T) {
 				pWant, _ := c.Expected.Data[k]
 				t.Errorf("Error building secret Key %v got;\n%v\nwant;\n%v", k, pGot, pWant)
 			}
+		}
+	}
+}
+
+func TestGcp_setGcpPluginDefaults (t *testing.T){
+	type testCase struct {
+		Name string
+		Input *kfdefs.KfDef
+		Env map[string]string
+		Expected *GcpPluginSpec
+	}
+
+	cases := [] testCase {
+		{
+			Name: "no-plugin-basic-auth",
+			Input: &kfdefs.KfDef{
+				Spec: kfdefs.KfDefSpec{
+					UseBasicAuth: true,
+				},
+			},
+			Env: map[string]string {
+				kftypes.KUBEFLOW_USERNAME: "someuser",
+			},
+			Expected: &GcpPluginSpec{
+				Auth: &Auth{
+					BasicAuth: &BasicAuth{
+						Username:"someuser",
+						Password: &kfdefs.SecretRef{
+							Name: BasicAuthPasswordSecretName,
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "no-plugin-iap",
+			Input: &kfdefs.KfDef{
+				Spec: kfdefs.KfDefSpec{
+					UseBasicAuth: false,
+				},
+			},
+			Env: map[string]string {
+				CLIENT_ID: "someclient",
+			},
+			Expected: &GcpPluginSpec{
+				Auth: &Auth{
+					IAP: &IAP{
+						OAuthClientId: "someclient",
+						OAuthClientSecret: &kfdefs.SecretRef{
+							Name: CLIENT_SECRET,
+						},
+					},
+				},
+			},
+		},
+	}
+
+
+	for i, c := range cases {
+		if i > 0 {
+			// Unset previous environment variables
+			for k,_ := range cases[i-1].Env {
+				os.Unsetenv(k)
+			}
+		}
+
+		for k,v := range c.Env {
+			os.Setenv(k, v)
+		}
+
+		i := c.Input.DeepCopy()
+
+
+		gcp := &Gcp{
+			kfDef: i,
+		}
+
+		if err := gcp.setGcpPluginDefaults(); err != nil {
+			t.Errorf("Case %v; setGcpPluginDefaults() error %v", c.Name, err)
+			continue
+		}
+
+		plugin := &GcpPluginSpec{}
+		err := i.GetPluginSpec(GcpPluginName, plugin)
+
+		if err != nil {
+			t.Errorf("Case %v; GetPluginSpec() error %v", c.Name, err)
+			continue
+		}
+
+		if !reflect.DeepEqual(plugin, c.Expected) {
+			pGot, _ := Pformat(plugin)
+			pWant, _ := Pformat(c.Expected)
+			t.Errorf("Case %v; got:\n%v\nwant:\n%v", c.Name, pGot, pWant)
 		}
 	}
 }
