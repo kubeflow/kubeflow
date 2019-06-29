@@ -203,8 +203,8 @@ func DownloadToCache(appDir string, repo string, version string) (string, error)
 	return newPath, nil
 }
 
-// TODO(#2586): Consolidate kubeconfig and API calls.
 // KubeConfigPath returns the filepath to the k8 client config file
+// TODO(#2586): Consolidate kubeconfig and API calls.
 func KubeConfigPath() string {
 	kubeconfigEnv := os.Getenv("KUBECONFIG")
 	if kubeconfigEnv == "" {
@@ -223,6 +223,8 @@ func KubeConfigPath() string {
 }
 
 // GetConfig returns rest.Config using $HOME/.kube/config
+//
+// TODO(jlewi): Should this function return an error if there is a problem loading the config?
 func GetConfig() *rest.Config {
 	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 	loadingRules.ExplicitPath = KubeConfigPath()

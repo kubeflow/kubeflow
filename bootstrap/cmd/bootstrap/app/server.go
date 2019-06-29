@@ -120,6 +120,8 @@ func getKubeConfigFile() string {
 
 // gGetClusterConfig obtain the config from the Kube configuration used by kubeconfig.
 // If inCluster is true it returns the in cluster configuration.
+//
+// TODO(jlewi): We also have method KubeConfigPath in v2/pkg/apis/apps/group.go
 func getClusterConfig(inCluster bool) (*rest.Config, error) {
 	if inCluster {
 		return rest.InClusterConfig()

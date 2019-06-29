@@ -42,7 +42,7 @@ func BuildClusterConfig(ctx context.Context, token string, project string, zone 
 	}, nil
 }
 
-// BuildClientCmdAPI takeks k8s config and access token, build and return clientcmdapi.Config entry
+// BuildClientCmdAPI takes k8s config and access token, build and return clientcmdapi.Config entry
 func BuildClientCmdAPI(config *rest.Config, token string) *clientcmdapi.Config {
 	return &clientcmdapi.Config{
 		Kind:       "Config",

@@ -43,7 +43,6 @@ import (
 	rbacv1 "k8s.io/client-go/v2/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/v2/rest"
 	"k8s.io/client-go/v2/restmapper"
-	clientcmdapi "k8s.io/client-go/v2/tools/clientcmd/api"
 	"os"
 	"path"
 	"path/filepath"
@@ -102,9 +101,10 @@ type kustomize struct {
 	componentPathMap map[string]string
 	componentMap     map[string]bool
 	packageMap       map[string]*[]string
+	// TODO(jlewi): It doesn't look like the field application is every used.
+	// It is set in GetKfApp but it doesn't look it ever gets used.
 	application      *application.Application
 	restConfig       *rest.Config
-	apiConfig        *clientcmdapi.Config
 }
 
 const (
@@ -146,6 +146,11 @@ func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 		}
 		_kustomize.componentPathMap = _kustomize.mapDirs(_kustomize.Spec.ManifestsRepo, true, 0, make(map[string]string))
 	}
+
+	// TODO(jlewi): Can we get rid of this? It doesn't look like
+	// .application is ever used. Why are we defining a K8s application in code
+	// as opposed to creating a kustomize package that would get installed like
+	// all the other packages.
 	_kustomize.application = &application.Application{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Application",
@@ -172,18 +177,32 @@ func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 		},
 	}
 
-	// build restConfig and apiConfig using $HOME/.kube/config if the file exists
-	_kustomize.restConfig = kftypesv2.GetConfig()
-	_kustomize.apiConfig = kftypesv2.GetKubeConfig()
+	// We explicitly do not initiate restConfig  here.
+	// We want to delay creating the clients until we actually need them.
+	// This is for two reasons
+	// 1. We want to allow injecting the config and not relying on
+	//    $HOME/.kube/config always
+	// 2. We want to be able to generate the manifests without the K8s cluster existing.
+	// build restConfig using $HOME/.kube/config if the file exists
 	return _kustomize
 }
 
+// initK8sClients initializes the K8s clients if they haven't already been initialized.
+// it is a null op otherwise.
+func (kustomize * kustomize) initK8sClients() error {
+	if kustomize.restConfig == nil  {
+		log.Infof("Initializing a default restConfig for Kubernetes")
+		kustomize.restConfig = kftypesv2.GetConfig()
+	}
+
+	return nil
+}
 // Apply deploys kustomize generated resources to the kubenetes api server
 func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
-	if kustomize.restConfig == nil || kustomize.apiConfig == nil {
+	if err := kustomize.initK8sClients(); err != nil {
 		return &kfapisv2.KfError{
 			Code:    int(kfapisv2.INVALID_ARGUMENT),
-			Message: "Error: ksApp has nil restConfig or apiConfig, exit",
+			Message: fmt.Sprintf("Error: kustomize plugin couldn't initialize a K8s client %v", err),
 		}
 	}
 	clientset := kftypesv2.GetClientset(kustomize.restConfig)
@@ -330,6 +349,12 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 
 // deleteGlobalResources is called from Delete and deletes CRDs, ClusterRoles, ClusterRoleBindings
 func (kustomize *kustomize) deleteGlobalResources() error {
+	if err := kustomize.initK8sClients(); err != nil {
+		return &kfapisv2.KfError{
+			Code:    int(kfapisv2.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error: kustomize plugin couldn't initialize a K8s client %v", err),
+		}
+	}
 	apiextclientset, err := crdclientset.NewForConfig(kustomize.restConfig)
 	if err != nil {
 		return &kfapisv2.KfError{
@@ -374,10 +399,10 @@ func (kustomize *kustomize) deleteGlobalResources() error {
 
 // Delete is called from 'kfctl delete ...'. Will delete all resources deployed from the Apply method
 func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
-	if kustomize.restConfig == nil || kustomize.apiConfig == nil {
+	if err := kustomize.initK8sClients(); err != nil {
 		return &kfapisv2.KfError{
 			Code:    int(kfapisv2.INVALID_ARGUMENT),
-			Message: "Error: nil restConfig or apiConfig, exit",
+			Message: fmt.Sprintf("Error: kustomize plugin couldn't initialize a K8s client %v", err),
 		}
 	}
 	if err := kustomize.deleteGlobalResources(); err != nil {
