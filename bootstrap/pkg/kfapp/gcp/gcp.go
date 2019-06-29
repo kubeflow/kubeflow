@@ -1333,7 +1333,7 @@ func createOrUpdateSecret(client *clientset.Clientset, secret *v1.Secret) error 
 	// Try to update the secret first
 	_, err := client.CoreV1().Secrets(secret.Namespace).Update(secret)
 
-	if !k8serrors.IsNotFound(err) {
+	if err != nil && !k8serrors.IsNotFound(err) {
 		log.Errorf("Error trying to update secret %v.%v; error %v", secret.Namespace, secret.Name, err)
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
