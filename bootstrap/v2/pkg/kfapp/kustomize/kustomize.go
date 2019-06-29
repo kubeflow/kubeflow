@@ -111,24 +111,13 @@ const (
 	outputDir = "kustomize"
 )
 
-// GetPlatform is the common entry point for all implementations of the KfApp interface
+// Setter defines an interface for modifying the plugin.
+type Setter interface {
+	SetK8sRestConfig(r *rest.Config)
+}
+
+// GetKfApp is the common entry point for all implementations of the KfApp interface
 func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
-	/*
-		kfdef := kfdefsv2.KfDef{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       kfdef.TypeMeta.Kind,
-				APIVersion: kfdef.TypeMeta.APIVersion,
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:        kfdef.Name,
-				Namespace:   kfdef.Namespace,
-				Labels:      kfdef.Labels,
-				Annotations: kfdef.Annotations,
-				ClusterName: kfdef.ClusterName,
-			},
-			Spec: kfdef.Spec,
-		}
-	*/
 	_kustomize := &kustomize{
 		KfDef:        *kfdef,
 		out:          os.Stdout,
@@ -586,6 +575,10 @@ func (kustomize *kustomize) writeConfigFile() error {
 		return cfgFilePathErr
 	}
 	return nil
+}
+
+func (kustomize *kustomize) SetK8sRestConfig(r *rest.Config) {
+	kustomize.restConfig = r
 }
 
 // GetKustomization will read a kustomization.yaml and return Kustomization type

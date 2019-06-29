@@ -7,7 +7,9 @@ package app
 // 1 test we can right is to inject the channel.
 
 import (
+	"cloud.google.com/go/container/apiv1"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	httptransport "github.com/go-kit/kit/transport/http"
@@ -15,9 +17,13 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/kustomize"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
+	containerpb "google.golang.org/genproto/googleapis/container/v1"
+	"k8s.io/client-go/v2/rest"
 	"net/http"
 	"os"
 	"path"
@@ -70,7 +76,11 @@ func NewKfctlServer(appsDir string) (*kfctlServer, error) {
 // Returns a pointer to an updated KfDef
 //
 // Not thread safe.
+//
+// TODO(jlewi): Errors should be reported to user by adding appropriate conditions
+// to the KfDef.
 func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error) {
+	ctx := context.Background()
 	if s.kfApp == nil {
 		if r.Spec.AppDir != "" {
 			log.Warnf("r.Spec.AppDir is set it will be overwritten.")
@@ -158,9 +168,64 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 		}
 	}
 
-	log.Infof("Calling apply")
-	if err := s.kfApp.Apply(kftypes.ALL); err != nil {
-		log.Errorf("Calling apply failed; %v", err)
+	// We need to split the apply into two steps because after
+	// creating the platform we need to construct and inject the K8s client to
+	// be used with kustomize.
+	log.Infof("Calling apply platform")
+	if err := s.kfApp.Apply(kftypes.PLATFORM); err != nil {
+		log.Errorf("Calling apply platform failed; %v", err)
+		return s.kfDefGetter.GetKfDef(), &httpError{
+			Message: "Internal service error please try again later.",
+			Code:    http.StatusInternalServerError,
+		}
+	}
+
+
+	kPlugin, ok := s.kfDefGetter.GetPlugin(kftypes.KUSTOMIZE)
+	if !ok {
+		log.Errorf("Could not get %v plugin from KfApp", kftypes.KUSTOMIZE)
+		return  s.kfDefGetter.GetKfDef(), &httpError{
+			Message: "Internal service error please try again later.",
+			Code:    http.StatusInternalServerError,
+		}
+	}
+
+	kPluginSetter, ok := kPlugin.(kustomize.Setter)
+
+	if !ok {
+		log.Errorf("Plugin %v doesn't implement Setter interface; can't set K8s client", kftypes.KUSTOMIZE)
+		return  s.kfDefGetter.GetKfDef(), &httpError{
+			Message: "Internal service error please try again later.",
+			Code:    http.StatusInternalServerError,
+		}
+	}
+
+	log.Infof("Creating K8s client")
+	token, err := s.ts.Token()
+
+	if err != nil {
+		log.Errorf("Could not get a GCP token; error %v", err)
+		return  s.kfDefGetter.GetKfDef(), &httpError{
+			Message: "Internal service error please try again later.",
+			Code:    http.StatusInternalServerError,
+		}
+	}
+
+	// TODO(jlewi): BuildClusterConfig makes a call to the Containers API to get cluster info.
+	// Should we add retries?
+	k8sRest, err := BuildClusterConfig(ctx, token.AccessToken, r.Spec.Project, r.Spec.Zone, r.Name)
+	if err != nil {
+		log.Errorf("Could not build K8s client; error %v", err)
+		return  s.kfDefGetter.GetKfDef(), &httpError{
+			Message: "Internal service error please try again later.",
+			Code:    http.StatusInternalServerError,
+		}
+	}
+	kPluginSetter.SetK8sRestConfig(k8sRest)
+
+	log.Infof("Calling apply K8s")
+	if err := s.kfApp.Apply(kftypes.K8S); err != nil {
+		log.Errorf("Calling apply K8s failed; %v", err)
 		return s.kfDefGetter.GetKfDef(), &httpError{
 			Message: "Internal service error please try again later.",
 			Code:    http.StatusInternalServerError,
@@ -285,4 +350,39 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv2.KfDef) 
 
 	res := s.latestKfDef.DeepCopy()
 	return res, nil
+}
+
+// BuildClusterConfig creates a Kubernetes rest config.
+// TODO(jlewi): This is a duplicate of BuildClusterConfig defined in
+// v2/pkgs/utils/k8sAUth.go. When I tried to use that method I ran into problems
+// because here we are using "k8s.io/client-go/v2/rest" and that code is using
+// "k8s.io/client-go/rest"; duplicating the code was a quick hack.
+// I think this might go away once we remove ksonnet since then we can use a single version
+// of the go client library.
+func BuildClusterConfig(ctx context.Context, token string, project string, zone string,
+	clusterID string) (*rest.Config, error) {
+	ts := oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: token,
+	})
+	c, err := container.NewClusterManagerClient(ctx, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
+	req := &containerpb.GetClusterRequest{
+		ProjectId: project,
+		Zone:      zone,
+		ClusterId: clusterID,
+	}
+	resp, err := c.GetCluster(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	caDec, _ := base64.StdEncoding.DecodeString(resp.MasterAuth.ClusterCaCertificate)
+	return &rest.Config{
+		Host:        "https://" + resp.Endpoint,
+		BearerToken: token,
+		TLSClientConfig: rest.TLSClientConfig{
+			CAData: []byte(string(caDec)),
+		},
+	}, nil
 }
