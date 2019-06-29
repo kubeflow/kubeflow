@@ -16,8 +16,9 @@ KFCTL=${BOOTSTRAPDIR}/bin/kfctl
 ${KFCTL} init ${APPDIR} \
   --platform=gcp \
   --skip-init-gcp-project --disable_usage_report \
-  --project=jlewi-dev --use_istio \
-  --use_basic_auth
+  --project=jlewi-dev --use_istio
+  
+#--use_basic_auth
 
 
 cd ${APPDIR}
