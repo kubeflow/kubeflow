@@ -185,7 +185,7 @@ func getSA(name string, nameSuffix string, project string) string {
 func (gcp *Gcp) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
 	// TODO(jlewi): Should we unify the code by just setting ts and then calling
 	// ts.Tpken to get a token?
-	accessToken, _ := gcp.kfDef.Spec.GetSecret(GcpAccessTokenName)
+	accessToken, _ := gcp.kfDef.GetSecret(GcpAccessTokenName)
 
 	if accessToken == "" {
 		return nil, nil
@@ -768,11 +768,13 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	// Setup kube config
 	// TODO(#3061): figure out how to properly build config without kubeconfig.
 	// TODO(jlewi): Not sure about #3061. I think we only want to run gcloud get-credentials if running
-	// as a CLI and not when running on click to deploy.
+	// as a CLI and not when running on click to deploy. Should we check TokenSource? What's the best
+	// way to tell whether we are running in cluster?
 
 	accessToken, _ := gcp.kfDef.Spec.GetSecret(GcpAccessTokenName)
 
 	if accessToken == "" {
+		log.Infof("Running get-credentials to build .kubeconfig")
 		credCmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
 			gcp.kfDef.Name,
 			"--zone="+gcp.kfDef.Spec.Zone,
@@ -1465,20 +1467,9 @@ func base64EncryptPassword(password string) (string, error) {
 
 // TODO(jlewi): Add a unittest to this function.
 func (gcp *Gcp) buildBasicAuthSecret() (*v1.Secret, error) {
-	p := &GcpPluginSpec{}
+	p := gcp.GetPluginSpec()
 
-	err := gcp.kfDef.Spec.GetPluginSpec(GcpPluginName, p)
-
-	if err != nil {
-		log.Errorf("Could not get GcpPluginSpec; error %v", err)
-		return nil, err
-	}
-
-	d := &kfdefs.KfDef{
-		Spec: gcp.kfDef.Spec,
-	}
-
-	password, err := d.GetSecret(p.Auth.BasicAuth.Password.Name)
+	password, err := gcp.kfDef.GetSecret(p.Auth.BasicAuth.Password.Name)
 
 	if err != nil {
 		log.Errorf("There was a problem getting the password for basic auth; error %v", err)
