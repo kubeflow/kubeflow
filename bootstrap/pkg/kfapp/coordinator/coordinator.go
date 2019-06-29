@@ -40,6 +40,19 @@ import (
 	"strings"
 )
 
+// Builder defines the methods used to create KfApps.
+// Primary purpose is to allow injecting a fake for use in testing.
+type Builder interface {
+	LoadKfAppCfgFile(cfgFile string) (kftypes.KfApp, error)
+}
+
+type DefaultBuilder struct {
+}
+
+func (b *DefaultBuilder) LoadKfAppCfgFile(cfgFile string) (kftypes.KfApp, error) {
+	return LoadKfAppCfgFile(cfgFile)
+}
+
 // The common entry point used to retrieve an implementation of KfApp.
 // In this case it returns a composite class (coordinator) which aggregates
 // platform and package manager implementations in Children.
@@ -361,7 +374,7 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 	return kfDef, nil
 }
 
-// CreateKfAppDir will create the application directory and persist
+// CreateKfAppCfgFile will create the application directory and persist
 // the KfDef to it as app.yaml.
 // Returns an error if the app.yaml file already exists
 // Returns path to the app.yaml file.
@@ -385,6 +398,7 @@ func CreateKfAppCfgFile(d *kfdefsv2.KfDef) (string, error) {
 		return cfgFilePath, fmt.Errorf("%v already exists", cfgFilePath)
 	}
 	log.Infof("Writing KfDef to %v", cfgFilePath)
+
 	cfgFilePathErr := d.WriteToFile(cfgFilePath)
 	return cfgFilePath, cfgFilePathErr
 }
@@ -393,6 +407,10 @@ func CreateKfAppCfgFile(d *kfdefsv2.KfDef) (string, error) {
 // the path/name argument given to the Init subcommand
 func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	kfDef, err := CreateKfDefFromOptions(options)
+
+	if err != nil {
+		return nil, err
+	}
 
 	isValid, msg := kfDef.IsValid()
 
@@ -645,6 +663,27 @@ type coordinator struct {
 	Platforms       map[string]kftypes.Platform
 	PackageManagers map[string]kftypes.KfApp
 	KfDef           *kfdefsv2.KfDef
+}
+
+type KfDefGetter interface {
+	GetKfDef() *kfdefsv2.KfDef
+	GetPlugin(name string) (kftypes.KfApp, bool)
+}
+
+// GetKfDef returns a pointer to the KfDef used by this application.
+func (kfapp *coordinator) GetKfDef() *kfdefsv2.KfDef {
+	return kfapp.KfDef
+}
+
+// GetPlatform returns the specified platform.
+func (kfapp *coordinator) GetPlugin(name string) (kftypes.KfApp, bool) {
+
+	if r, ok := kfapp.Platforms[name]; ok {
+		return r, ok
+	}
+
+	r, ok := kfapp.PackageManagers[name]
+	return r, ok
 }
 
 func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
