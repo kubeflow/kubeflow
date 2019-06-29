@@ -44,7 +44,9 @@ const (
 	DefaultNamespace = "kubeflow"
 	// TODO: find the latest tag dynamically
 	DefaultVersion         = "master"
-	KfConfigFile           = "app.yaml"
+	// TODO(jlewi): Update callers to get KfConfigFile from kfdefsv2 package and then
+	// stop duplicating the constant here.
+	KfConfigFile           = kfdefsv2.KfConfigFile
 	KustomizationFile      = "kustomization.yaml"
 	KustomizationParamFile = "params.env"
 	DefaultCacheDir        = ".cache"

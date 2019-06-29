@@ -180,7 +180,6 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 		}
 	}
 
-
 	kPlugin, ok := s.kfDefGetter.GetPlugin(kftypes.KUSTOMIZE)
 	if !ok {
 		log.Errorf("Could not get %v plugin from KfApp", kftypes.KUSTOMIZE)

@@ -95,7 +95,7 @@ const (
 )
 
 type kustomize struct {
-	kfdefsv2.KfDef
+	kfDef *kfdefsv2.KfDef
 	out              *os.File
 	err              *os.File
 	componentPathMap map[string]string
@@ -119,21 +119,21 @@ type Setter interface {
 // GetKfApp is the common entry point for all implementations of the KfApp interface
 func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 	_kustomize := &kustomize{
-		KfDef:        *kfdef,
+		kfDef:        kfdef,
 		out:          os.Stdout,
 		err:          os.Stderr,
 		componentMap: make(map[string]bool),
 		packageMap:   make(map[string]*[]string),
 	}
-	if _kustomize.Spec.ManifestsRepo != "" {
-		for _, compName := range _kustomize.Spec.Components {
+	if _kustomize.kfDef.Spec.ManifestsRepo != "" {
+		for _, compName := range _kustomize.kfDef.Spec.Components {
 			_kustomize.componentMap[compName] = true
 		}
-		for _, packageName := range _kustomize.Spec.Packages {
+		for _, packageName := range _kustomize.kfDef.Spec.Packages {
 			arrayOfComponents := &[]string{}
 			_kustomize.packageMap[packageName] = arrayOfComponents
 		}
-		_kustomize.componentPathMap = _kustomize.mapDirs(_kustomize.Spec.ManifestsRepo, true, 0, make(map[string]string))
+		_kustomize.componentPathMap = _kustomize.mapDirs(_kustomize.kfDef.Spec.ManifestsRepo, true, 0, make(map[string]string))
 	}
 
 	// TODO(jlewi): Can we get rid of this? It doesn't look like
@@ -146,21 +146,21 @@ func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 			APIVersion: "app.k8s.io/v1beta1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      _kustomize.Name,
-			Namespace: _kustomize.Namespace,
+			Name:      _kustomize.kfDef.Name,
+			Namespace: _kustomize.kfDef.Namespace,
 			Labels: map[string]string{
-				kftypesv2.DefaultAppLabel: _kustomize.Name,
+				kftypesv2.DefaultAppLabel: _kustomize.kfDef.Name,
 			},
 		},
 		Spec: application.ApplicationSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					kftypesv2.DefaultAppLabel: _kustomize.Name,
+					kftypesv2.DefaultAppLabel: _kustomize.kfDef.Name,
 				},
 			},
 			Descriptor: application.Descriptor{
 				Type:    kftypesv2.DefaultAppType,
-				Version: _kustomize.Spec.Version,
+				Version: _kustomize.kfDef.Spec.Version,
 			},
 			Info: []application.InfoItem{},
 		},
@@ -195,7 +195,7 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 		}
 	}
 	clientset := kftypesv2.GetClientset(kustomize.restConfig)
-	namespace := kustomize.ObjectMeta.Namespace
+	namespace := kustomize.kfDef.ObjectMeta.Namespace
 	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
 	_, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 	if nsMissingErr != nil {
@@ -211,8 +211,8 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	kustomizeDir := path.Join(kustomize.Spec.AppDir, outputDir)
-	for _, compName := range kustomize.Spec.Components {
+	kustomizeDir := path.Join(kustomize.kfDef.Spec.AppDir, outputDir)
+	for _, compName := range kustomize.kfDef.Spec.Components {
 		kustomizeFile := filepath.Join(kustomizeDir, compName+".yaml")
 		if _, err := os.Stat(kustomizeFile); err != nil {
 			return &kfapisv2.KfError{
@@ -353,7 +353,7 @@ func (kustomize *kustomize) deleteGlobalResources() error {
 	}
 	do := &metav1.DeleteOptions{}
 	lo := metav1.ListOptions{
-		LabelSelector: kftypesv2.DefaultAppLabel + "=" + kustomize.Name,
+		LabelSelector: kftypesv2.DefaultAppLabel + "=" + kustomize.kfDef.Name,
 	}
 	crdsErr := apiextclientset.CustomResourceDefinitions().DeleteCollection(do, lo)
 	if crdsErr != nil {
@@ -404,7 +404,7 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 			Message: fmt.Sprintf("couldn't get core/v1 client Error: %v", err),
 		}
 	}
-	namespace := kustomize.Namespace
+	namespace := kustomize.kfDef.Namespace
 	log.Infof("deleting namespace: %v", namespace)
 	ns, nsMissingErr := corev1client.Namespaces().Get(namespace, metav1.GetOptions{})
 	if nsMissingErr == nil {
@@ -423,7 +423,7 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 // One yaml file per component
 func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 	generate := func() error {
-		kustomizeDir := path.Join(kustomize.Spec.AppDir, outputDir)
+		kustomizeDir := path.Join(kustomize.kfDef.Spec.AppDir, outputDir)
 
 		// idempotency
 		if _, err := os.Stat(kustomizeDir); !os.IsNotExist(err) {
@@ -437,23 +437,23 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 			}
 		}
 
-		manifestsRepo, ok := kustomize.Status.ReposCache[kftypes.ManifestsRepoName]
+		manifestsRepo, ok := kustomize.kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
 
 		if !ok {
 			log.Infof("Repo %v not listed in KfDef.Status; Resync'ing cache", kftypes.ManifestsRepoName)
-			if err := kustomize.SyncCache(); err != nil {
+			if err := kustomize.kfDef.SyncCache(); err != nil {
 				log.Errorf("Syncing the cached failed; error %v", err)
 				return errors.WithStack(err)
 			}
 		}
 
-		manifestsRepo, ok = kustomize.Status.ReposCache[kftypes.ManifestsRepoName]
+		manifestsRepo, ok = kustomize.kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
 
 		if !ok {
 			return errors.WithStack(fmt.Errorf("Repo %v not listed in KfDef.Status; ", kftypes.ManifestsRepoName))
 		}
 
-		for _, compName := range kustomize.Spec.Components {
+		for _, compName := range kustomize.kfDef.Spec.Components {
 			compPath, ok := kustomize.componentPathMap[compName]
 			if !ok {
 				log.Errorf("Couldn't find component %v", compName)
@@ -462,8 +462,8 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 					Message: fmt.Sprintf("couldn't find component %s", compName),
 				}
 			}
-			resMap, err := GenerateKustomizationFile(&kustomize.KfDef, manifestsRepo.LocalPath, compPath,
-				kustomize.Spec.ComponentParams[compName])
+			resMap, err := GenerateKustomizationFile(kustomize.kfDef, manifestsRepo.LocalPath, compPath,
+				kustomize.kfDef.Spec.ComponentParams[compName])
 			if err != nil {
 				log.Errorf("error generating kustomization for %v Error %v", compPath, err)
 				return &kfapisv2.KfError{
@@ -500,23 +500,26 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 func (kustomize *kustomize) Init(resources kftypes.ResourceEnum) error {
 	// TODO(https://github.com/kubeflow/kubeflow/issues/3546): This code
 	// needs to be updated.
-	parts := strings.Split(kustomize.Spec.PackageManager, "@")
-	version := "master"
-	if len(parts) == 2 {
-		version = parts[1]
-	}
+	// TODO(jlewi): I believe we can get rid of this code now? I believe are backfilling Repos not
+	// in the coordinator; here https://github.com/kubeflow/kubeflow/blob/865f10e98e8ca65a722bbc879a3acd8f06e86db1/bootstrap/pkg/kfapp/coordinator/coordinator.go#L443
+	if len(kustomize.kfDef.Spec.Repos) == 0 {
+		log.Warnf("kustomize.kfDef.Spec.Repos isn't set; this is deprecated. Repos should be set in app.yaml")
+		parts := strings.Split(kustomize.kfDef.Spec.PackageManager, "@")
+		version := "master"
+		if len(parts) == 2 {
+			version = parts[1]
+		}
 
-	if len(kustomize.Spec.Repos) == 0 {
 		// TODO(jlewi): This is a legacy code path. Once we we use Spec.Repos we can get rid of this code path.
 		log.Infof("Downloading kustomize manifests from %v", kftypesv2.ManifestsRepo)
-		cacheDir, cacheDirErr := kftypesv2.DownloadToCache(kustomize.Spec.AppDir, kftypesv2.ManifestsRepo, version)
+		cacheDir, cacheDirErr := kftypesv2.DownloadToCache(kustomize.kfDef.Spec.AppDir, kftypesv2.ManifestsRepo, version)
 		if cacheDirErr != nil || cacheDir == "" {
 			log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
 		}
-		kustomize.Spec.ManifestsRepo = cacheDir
-		createConfigErr := kustomize.writeConfigFile()
+		kustomize.kfDef.Spec.ManifestsRepo = cacheDir
+		createConfigErr := kustomize.kfDef.WriteToConfigFile()
 		if createConfigErr != nil {
-			return fmt.Errorf("cannot create config file %v in %v", kftypesv2.KfConfigFile, kustomize.Spec.AppDir)
+			return fmt.Errorf("cannot create config file %v in %v", kftypesv2.KfConfigFile, kustomize.kfDef.Spec.AppDir)
 		}
 	}
 	return nil
@@ -551,7 +554,7 @@ func (kustomize *kustomize) mapDirs(dirPath string, root bool, depth int, leafMa
 		}
 	}
 	if depth == 2 {
-		componentPath := extractSuffix(kustomize.Spec.ManifestsRepo, dirPath)
+		componentPath := extractSuffix(kustomize.kfDef.Spec.ManifestsRepo, dirPath)
 		packageName := strings.Split(componentPath, "/")[0]
 		if components, exists := kustomize.packageMap[packageName]; exists {
 			leafMap[path.Base(dirPath)] = componentPath
@@ -561,20 +564,6 @@ func (kustomize *kustomize) mapDirs(dirPath string, root bool, depth int, leafMa
 		}
 	}
 	return leafMap
-}
-
-// writeConfigFile will marshal kustomize to <deployment>/app.yaml
-func (kustomize *kustomize) writeConfigFile() error {
-	buf, bufErr := yaml.Marshal(kustomize)
-	if bufErr != nil {
-		return bufErr
-	}
-	cfgFilePath := filepath.Join(kustomize.Spec.AppDir, kftypesv2.KfConfigFile)
-	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
-	if cfgFilePathErr != nil {
-		return cfgFilePathErr
-	}
-	return nil
 }
 
 func (kustomize *kustomize) SetK8sRestConfig(r *rest.Config) {

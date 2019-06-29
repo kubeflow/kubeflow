@@ -216,20 +216,6 @@ func getGcloudDefaultAccount() (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-func (gcp *Gcp) writeConfigFile() error {
-	cfgFilePath := filepath.Join(gcp.kfDef.Spec.AppDir, kftypes.KfConfigFile)
-
-	cfgFilePathErr := gcp.kfDef.WriteToFile(cfgFilePath)
-
-	if cfgFilePathErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("GCP config file writing error: %v", cfgFilePathErr),
-		}
-	}
-	return nil
-}
-
 // Simple deploymentmanager.TargetConfiguration factory method. This method assumes imported paths
 // are all within the same filesystem. From gcloud CLI source codes it appears URL is a possible
 // option. We might need to update this method or find a way to work with Python source code from
@@ -1760,7 +1746,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	createConfigErr := gcp.writeConfigFile()
+	createConfigErr := gcp.kfDef.WriteToConfigFile()
 	if createConfigErr != nil {
 		return &kfapis.KfError{
 			Code: createConfigErr.(*kfapis.KfError).Code,
@@ -1849,7 +1835,7 @@ func (gcp *Gcp) Init(resources kftypes.ResourceEnum) error {
 	// TODO(jlewi): Can we get rid of this now that we ware using kustomize?
 	swaggerFile := filepath.Join(path.Dir(gcp.kfDef.Spec.Repo), kftypes.DefaultSwaggerFile)
 	gcp.kfDef.Spec.ServerVersion = "file:" + swaggerFile
-	createConfigErr := gcp.writeConfigFile()
+	createConfigErr := gcp.kfDef.WriteToConfigFile()
 	if createConfigErr != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
