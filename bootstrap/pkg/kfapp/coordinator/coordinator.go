@@ -63,7 +63,7 @@ func (b *DefaultBuilder) LoadKfAppCfgFile(cfgFile string) (kftypes.KfApp, error)
 // If creating from a KfDef the steps should probably be
 // 1. Persist it to disk using CreateKfAppDir
 // 2. Call LoadKfApp.
-func GetKfApp(kfdef *kfdefsv2.KfDef, platformArgs []byte) kftypes.KfApp {
+func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 	_coordinator := &coordinator{
 		Platforms:       make(map[string]kftypes.Platform),
 		PackageManagers: nil,
@@ -72,7 +72,7 @@ func GetKfApp(kfdef *kfdefsv2.KfDef, platformArgs []byte) kftypes.KfApp {
 	// fetch the platform [gcp,minikube]
 	platform := _coordinator.KfDef.Spec.Platform
 	if platform != "" {
-		_platform, _platformErr := getPlatform(_coordinator.KfDef, platformArgs)
+		_platform, _platformErr := getPlatform(_coordinator.KfDef)
 		if _platformErr != nil {
 			log.Fatalf("could not get platform %v Error %v **", platform, _platformErr)
 			return nil
@@ -132,16 +132,12 @@ func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
 
 // GetPlatform will return an implementation of kftypes.GetPlatform that matches the platform string
 // It looks for statically compiled-in implementations, otherwise throws unrecognized error
-//
-// TODO(jlewi): Why is platformArgs taken as a []byte? I assume its because each platform might
-// have different types for different platforms. It would probably be better to pass an interface
-// and do type assertion.
-func getPlatform(kfdef *kfdefsv2.KfDef, platformArgs []byte) (kftypes.Platform, error) {
+func getPlatform(kfdef *kfdefsv2.KfDef) (kftypes.Platform, error) {
 	switch kfdef.Spec.Platform {
 	case string(kftypes.MINIKUBE):
 		return minikube.Getplatform(kfdef), nil
 	case string(kftypes.GCP):
-		return gcp.GetPlatform(kfdef, platformArgs)
+		return gcp.GetPlatform(kfdef)
 	default:
 		// TODO(https://github.com/kubeflow/kubeflow/issues/3520) Fix dynamic loading
 		// of platform plugins.
@@ -652,7 +648,7 @@ func LoadKfAppCfgFile(cfgfile string) (kftypes.KfApp, error) {
 		}
 	}
 
-	pApp := GetKfApp(kfdef, nil)
+	pApp := GetKfApp(kfdef)
 	return pApp, nil
 }
 

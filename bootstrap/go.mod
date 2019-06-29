@@ -34,7 +34,7 @@ require (
 	github.com/go-openapi/strfmt v0.18.0 // indirect
 	github.com/go-openapi/swag v0.17.2
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/gogo/protobuf v1.2.0 // indirect
+	github.com/gogo/protobuf v1.2.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.1
 	github.com/google/go-github v17.0.0+incompatible // indirect

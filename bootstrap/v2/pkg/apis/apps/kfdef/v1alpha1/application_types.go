@@ -384,7 +384,20 @@ func (d *KfDef) GetSecret(name string) (string, error) {
 
 		return "", fmt.Errorf("No secret source provided for secret %v", name)
 	}
-	return "", fmt.Errorf("No secret in KfDef named %v", name)
+	return "", NewSecretNotFound(name)
+}
+
+// GetSecret returns the specified secret or an error if the secret isn't specified.
+//
+// TODO(jlewi): The reason this function exists is because for types like Gcp in gcp.go
+// we embed KfDef into the Gcp struct so its not actually a type KfDef. In the future
+// we will probably refactor KfApp into an appropriate plugin in type an stop embedding
+// KfDef in it.
+func (s *KfDefSpec) GetSecret(name string) (string, error) {
+	d := &KfDef{
+		Spec: *s,
+	}
+	return d.GetSecret(name)
 }
 
 // SetSecret sets the specified secret; if a secret with the given name already exists it is overwritten.
@@ -426,21 +439,6 @@ func (d *KfDef) GetPluginSpec(pluginName string, s interface{}) error {
 	}
 
 	return NewPluginNotFound(pluginName)
-}
-
-// GetPluginSpec will try to unmarshal the spec for the specified plugin to the supplied
-// interface. Returns an error if the plugin isn't defined or if there is a problem
-// unmarshaling it
-//
-// TODO(jlewi): The reason this function exists is because for types like Gcp in gcp.go
-// we embed KfDef into the Gcp struct so its not actually a type KfDef. In the future
-// we will probably refactor KfApp into an appropriate plugin in type an stop embedding
-// KfDef in it.
-func (s *KfDefSpec) GetPluginSpec(pluginName string, pluginSpec interface{}) error {
-	d := &KfDef{
-		Spec: *s,
-	}
-	return d.GetPluginSpec(pluginName, pluginSpec)
 }
 
 // SetPluginSpec sets the requested parameter. The plugin is added if it doesn't already exist.
@@ -509,7 +507,6 @@ func (d *KfDef) IsValid() (bool, string) {
 // WriteToFile write the KfDef to a file.
 // WriteToFile will strip out any literal secrets before writing it
 func (d *KfDef) WriteToFile(path string) error {
-
 	stripped := d.DeepCopy()
 
 	secrets := make([]Secret, 0)
@@ -549,6 +546,31 @@ func NewPluginNotFound(n string) *PluginNotFound {
 }
 
 func IsPluginNotFound(e error) bool {
+	if e == nil {
+		return false
+	}
 	_, ok := e.(*PluginNotFound)
+	return ok
+}
+
+type SecretNotFound struct {
+	Name string
+}
+
+func (e *SecretNotFound) Error() string {
+	return fmt.Sprintf("Missing secret %v", e.Name)
+}
+
+func NewSecretNotFound(n string) *SecretNotFound {
+	return &SecretNotFound{
+		Name: n,
+	}
+}
+
+func IsSecretNotFound(e error) bool {
+	if e == nil {
+		return false
+	}
+	_, ok := e.(*SecretNotFound)
 	return ok
 }
