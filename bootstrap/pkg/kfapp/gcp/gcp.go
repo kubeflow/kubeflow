@@ -43,7 +43,7 @@ import (
 	"io/ioutil"
 	"k8s.io/api/v2/core/v1"
 	rbacv1 "k8s.io/api/v2/rbac/v1"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	k8serrors "k8s.io/apimachinery/v2/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -1330,25 +1330,26 @@ func (gcp *Gcp) generateDMConfigs() error {
 
 // createOrUpdateSecret creates or updates the existing secret.
 func createOrUpdateSecret(client *clientset.Clientset, secret *v1.Secret) error {
-	// Try to update the secret first
-	_, err := client.CoreV1().Secrets(secret.Namespace).Update(secret)
-
-	if err != nil && !k8serrors.IsNotFound(err) {
-		log.Errorf("Error trying to update secret %v.%v; error %v", secret.Namespace, secret.Name, err)
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: err.Error(),
-		}
-	}
-
-	// The secret doesn't exist so try creating it.
-	_, err = client.CoreV1().Secrets(secret.Namespace).Create(secret)
+	// Try creating the secret
+	_, err := client.CoreV1().Secrets(secret.Namespace).Create(secret)
 
 	if err != nil {
-		log.Errorf("Error trying to create secret %v.%v; error %v", secret.Namespace, secret.Name, err)
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: err.Error(),
+		if k8serrors.IsAlreadyExists(err) {
+			_, err = client.CoreV1().Secrets(secret.Namespace).Update(secret)
+
+			if err != nil {
+				log.Errorf("Error trying to update secret %v.%v; error %v", secret.Namespace, secret.Name, err)
+				return &kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: err.Error(),
+				}
+			}
+		} else {
+			log.Errorf("Error trying to create secret %v.%v; error %v", secret.Namespace, secret.Name, err)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: err.Error(),
+			}
 		}
 	}
 	return nil
@@ -1446,10 +1447,18 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 		log.Errorf("Could not read IAP OAuth ClientSecret from KfDef; error %v", err)
 		return err
 	}
-	return insertSecret(client, KUBEFLOW_OAUTH, oauthSecretNamespace, map[string][]byte{
-		strings.ToLower(CLIENT_ID):     []byte(p.Auth.IAP.OAuthClientId),
-		strings.ToLower(CLIENT_SECRET): []byte(oauthSecret),
-	})
+
+	secret := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      KUBEFLOW_OAUTH,
+			Namespace: oauthSecretNamespace,
+		},
+		Data: map[string][]byte{
+			strings.ToLower(CLIENT_ID):     []byte(p.Auth.IAP.OAuthClientId),
+			strings.ToLower(CLIENT_SECRET): []byte(oauthSecret),
+		},
+	}
+	return createOrUpdateSecret(client, secret)
 }
 
 func base64EncryptPassword(password string) (string, error) {
@@ -1468,6 +1477,12 @@ func base64EncryptPassword(password string) (string, error) {
 // TODO(jlewi): Add a unittest to this function.
 func (gcp *Gcp) buildBasicAuthSecret() (*v1.Secret, error) {
 	p := gcp.GetPluginSpec()
+
+	if p.Auth == nil || p.Auth.BasicAuth == nil || p.Auth.BasicAuth.Password.Name == "" {
+		err := errors.WithStack(fmt.Errorf("BasicAuth.Password.Name must be set"))
+		log.Errorf("%v", err)
+		return nil, err
+	}
 
 	password, err := gcp.kfDef.GetSecret(p.Auth.BasicAuth.Password.Name)
 
