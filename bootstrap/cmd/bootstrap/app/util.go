@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -86,4 +88,19 @@ func encodeHTTPGenericRequest(_ context.Context, r *http.Request, request interf
 	}
 	r.Body = ioutil.NopCloser(&buf)
 	return nil
+}
+
+// PrettyPrint returns a pretty format output of any value.
+// TODO(jlewi): Duplicates code in pkg/utils to avoid circular dependencies
+// need to fix that.
+func PrettyPrint(value interface{}) string {
+	if s, ok := value.(string); ok {
+		return s
+	}
+	valueJson, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		log.Errorf("Failed to marshal value; error %v", err)
+		return fmt.Sprintf("%+v", value)
+	}
+	return string(valueJson)
 }

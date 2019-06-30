@@ -123,3 +123,130 @@ func TestKfctlServer_HandleDeployment(t *testing.T) {
 	}
 
 }
+
+func TestKfctlServer_isMatch(t *testing.T) {
+	type testCase struct {
+		current  *kfdefsv2.KfDef
+		new      *kfdefsv2.KfDef
+		expected bool
+	}
+
+	testCases := []testCase{
+		{
+			current:  nil,
+			new:      &kfdefsv2.KfDef{},
+			expected: true,
+		},
+		{
+			current: &kfdefsv2.KfDef{},
+			new: &kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "app1",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					Project: "p1",
+					Zone:    "z1",
+				},
+			},
+			expected: true,
+		},
+		{
+			current:  &kfdefsv2.KfDef{},
+			new:      nil,
+			expected: false,
+		},
+		{
+			current: &kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "app1",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					Project: "p1",
+					Zone:    "z1",
+				},
+			},
+			new: &kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "app1",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					Project: "p1",
+					Zone:    "z1",
+				},
+			},
+			expected: true,
+		},
+		{
+			current: &kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "app1",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					Project: "p1",
+					Zone:    "z1",
+				},
+			},
+			new: &kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "app2",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					Project: "p1",
+					Zone:    "z1",
+				},
+			},
+			expected: false,
+		},
+		{
+			current: &kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "app1",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					Project: "p1",
+					Zone:    "z1",
+				},
+			},
+			new: &kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "app1",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					Project: "p2",
+					Zone:    "z1",
+				},
+			},
+			expected: false,
+		},
+		{
+			current: &kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "app1",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					Project: "p1",
+					Zone:    "z1",
+				},
+			},
+			new: &kfdefsv2.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "app1",
+				},
+				Spec: kfdefsv2.KfDefSpec{
+					Project: "p1",
+					Zone:    "z2",
+				},
+			},
+			expected: false,
+		},
+	}
+
+	for _, c := range testCases {
+		actual := isMatch(c.current, c.new)
+
+		if actual != c.expected {
+			t.Errorf("ismatch: got %v; want %v\ncurrent:\n%v\nnew:\n%v", actual, c.expected, PrettyPrint(c.current), PrettyPrint(c.new))
+		}
+	}
+
+}

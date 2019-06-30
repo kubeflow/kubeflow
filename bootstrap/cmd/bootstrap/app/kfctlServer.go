@@ -284,7 +284,41 @@ func (s *kfctlServer) RegisterEndpoints() {
 	http.Handle(KfctlCreatePath, optionsHandler(createHandler))
 }
 
+// isMatch checks whether the incoming request is a match for the deployment
+// that is already started. If not it is rejected.
+func isMatch(current *kfdefsv2.KfDef, new *kfdefsv2.KfDef) bool {
+	// Ensure neither is nil
+	if current == nil {
+		return true
+	}
+
+	if new == nil {
+		return false
+	}
+
+	if current.Name == "" && current.Spec.Project == "" && current.Spec.Zone == "" {
+		return true
+	}
+
+	if current.Spec.Project != new.Spec.Project {
+		return false
+	}
+
+	if current.Spec.Zone != new.Spec.Zone {
+		return false
+	}
+
+	if current.Name != new.Name {
+		return false
+	}
+
+	return true
+}
+
 // CreateDeployment creates the deployment.
+//
+// Not thread safe
+// TODO(jlewi): We should check if the request matches the current deployment and if not reject
 func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv2.KfDef) (*kfdefsv2.KfDef, error) {
 	token, err := req.GetSecret(gcp.GcpAccessTokenName)
 
@@ -331,6 +365,19 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv2.KfDef) 
 		log.Errorf("Refreshing the token failed; %v", err)
 		return nil, &httpError{
 			Message: fmt.Sprintf("Could not verify you have admin priveleges on project %v; please check that the project is correct and you have admin priveleges", req.Spec.Project),
+			Code:    http.StatusBadRequest,
+		}
+	}
+
+	checkIsMatch := func() bool {
+		s.kfDefMux.Lock()
+		defer s.kfDefMux.Unlock()
+		return isMatch(&s.latestKfDef, &req)
+	}
+
+	if !checkIsMatch() {
+		return nil, &httpError{
+			Message: fmt.Sprintf("This server is already handling a deployment for project %v name %v and the new request doesn't match", req.Spec.Project, req.Name),
 			Code:    http.StatusBadRequest,
 		}
 	}

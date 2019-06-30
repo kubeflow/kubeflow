@@ -114,7 +114,7 @@ type dmOperationEntry struct {
 func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
 	_gcp := &Gcp{
 		kfDef:            kfdef,
-		gcpAccountGetter: getGcloudDefaultAccount,
+		gcpAccountGetter: GetGcloudDefaultAccount,
 	}
 	return _gcp, nil
 }
@@ -204,8 +204,8 @@ func (gcp *Gcp) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
 	return restConfig, apiConfig
 }
 
-// getGcloudDefaultAccount try to get the default account.
-func getGcloudDefaultAccount() (string, error) {
+// GetGcloudDefaultAccount try to get the default account.
+func GetGcloudDefaultAccount() (string, error) {
 	output, err := exec.Command("gcloud", "config", "get-value", "account").Output()
 	if err != nil {
 		return "", &kfapis.KfError{

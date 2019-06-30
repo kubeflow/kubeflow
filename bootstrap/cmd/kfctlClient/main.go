@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	log "github.com/golang/glog"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
@@ -74,6 +74,15 @@ func run(opt *ServerOption) error {
 	d.Spec.Project = opt.Project
 	d.Name = opt.Name
 
+	email, err := gcp.GetGcloudDefaultAccount()
+
+	if err != nil {
+		log.Errorf("Couldn't get default email; error %v", err)
+	}
+
+	log.Infof("Setting email to %v", email)
+	d.Spec.Email = email
+
 	fmt.Printf("Connecting to server: %v", opt.Endpoint)
 	c, err := app.NewKfctlClient(opt.Endpoint)
 
@@ -103,9 +112,7 @@ func run(opt *ServerOption) error {
 		},
 	})
 
-	pKfDef, _ := Pformat(d)
-
-	fmt.Printf("Spec to create:\n%v", pKfDef)
+	fmt.Printf("Spec to create:\n%v", utils.PrettyPrint(d))
 
 	checkAccess(opt.Project, token.AccessToken)
 
@@ -117,21 +124,8 @@ func run(opt *ServerOption) error {
 		return err
 	}
 
-	pResult, _ := Pformat(res)
-	log.Infof("Create succedeed. Result:\n%v", pResult)
+	log.Infof("Create succedeed. Result:\n%v", utils.PrettyPrint(res))
 	return nil
-}
-
-// Pformat returns a pretty format output of any value.
-func Pformat(value interface{}) (string, error) {
-	if s, ok := value.(string); ok {
-		return s, nil
-	}
-	valueJson, err := json.MarshalIndent(value, "", "  ")
-	if err != nil {
-		return "", err
-	}
-	return string(valueJson), nil
 }
 
 func main() {

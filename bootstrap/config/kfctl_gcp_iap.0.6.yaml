@@ -9,7 +9,7 @@ spec:
     root: kubeflow-master
     uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
   - name: manifests
-    root: master
+    root: manifests-master
     uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
   componentParams:
     application:
@@ -153,7 +153,6 @@ spec:
   - profiles
   - gpu-driver
   - iap-ingress
-  email: someuser@acme.co
   enableApplications: true
   packageManager: kustomize
   packages:
