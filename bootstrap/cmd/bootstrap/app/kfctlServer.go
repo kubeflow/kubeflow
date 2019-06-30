@@ -104,59 +104,58 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 					Code:    http.StatusInternalServerError,
 				}
 			}
-
-			kfApp, err := s.builder.LoadKfAppCfgFile(cfgFile)
-
-			getter, ok := kfApp.(coordinator.KfDefGetter)
-			if !ok {
-				log.Errorf("Could not assert KfApp as type KfDefGetter; error %v", err)
-				return &r, &httpError{
-					Message: "Internal service error please try again later.",
-					Code:    http.StatusInternalServerError,
-				}
-			}
-
-			p, ok := getter.GetPlugin(kftypes.GCP)
-			if !ok {
-				log.Errorf("Could not get GCP plugin from KfApp")
-				return &r, &httpError{
-					Message: "Internal service error please try again later.",
-					Code:    http.StatusInternalServerError,
-				}
-			}
-
-			gcpPlugin, ok := p.(gcp.Setter)
-
-			if !ok {
-				log.Errorf("Plugin %v doesn't implement Setter interface; can't set TokenSource", kftypes.GCP)
-				return &r, &httpError{
-					Message: "Internal service error please try again later.",
-					Code:    http.StatusInternalServerError,
-				}
-			}
-
-			setTokenSource := func() bool {
-				s.kfDefMux.Lock()
-				defer s.kfDefMux.Unlock()
-
-				if s.ts == nil {
-					log.Errorf("No token source set; can't create KfApp")
-					return false
-				}
-
-				gcpPlugin.SetTokenSource(s.ts)
-				return true
-			}
-
-			if !setTokenSource() {
-				return &r, &httpError{
-					Message: "Internal service error please try again later.",
-					Code:    http.StatusInternalServerError,
-				}
-			}
-			s.kfApp = kfApp
-			s.kfDefGetter = getter
 		}
+		kfApp, err := s.builder.LoadKfAppCfgFile(cfgFile)
+
+		getter, ok := kfApp.(coordinator.KfDefGetter)
+		if !ok {
+			log.Errorf("Could not assert KfApp as type KfDefGetter; error %v", err)
+			return &r, &httpError{
+				Message: "Internal service error please try again later.",
+				Code:    http.StatusInternalServerError,
+			}
+		}
+
+		p, ok := getter.GetPlugin(kftypes.GCP)
+		if !ok {
+			log.Errorf("Could not get GCP plugin from KfApp")
+			return &r, &httpError{
+				Message: "Internal service error please try again later.",
+				Code:    http.StatusInternalServerError,
+			}
+		}
+
+		gcpPlugin, ok := p.(gcp.Setter)
+
+		if !ok {
+			log.Errorf("Plugin %v doesn't implement Setter interface; can't set TokenSource", kftypes.GCP)
+			return &r, &httpError{
+				Message: "Internal service error please try again later.",
+				Code:    http.StatusInternalServerError,
+			}
+		}
+
+		setTokenSource := func() bool {
+			s.kfDefMux.Lock()
+			defer s.kfDefMux.Unlock()
+
+			if s.ts == nil {
+				log.Errorf("No token source set; can't create KfApp")
+				return false
+			}
+
+			gcpPlugin.SetTokenSource(s.ts)
+			return true
+		}
+
+		if !setTokenSource() {
+			return &r, &httpError{
+				Message: "Internal service error please try again later.",
+				Code:    http.StatusInternalServerError,
+			}
+		}
+		s.kfApp = kfApp
+		s.kfDefGetter = getter
 	}
 
 	log.Infof("Calling generate")
@@ -183,7 +182,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 	kPlugin, ok := s.kfDefGetter.GetPlugin(kftypes.KUSTOMIZE)
 	if !ok {
 		log.Errorf("Could not get %v plugin from KfApp", kftypes.KUSTOMIZE)
-		return  s.kfDefGetter.GetKfDef(), &httpError{
+		return s.kfDefGetter.GetKfDef(), &httpError{
 			Message: "Internal service error please try again later.",
 			Code:    http.StatusInternalServerError,
 		}
@@ -193,7 +192,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 
 	if !ok {
 		log.Errorf("Plugin %v doesn't implement Setter interface; can't set K8s client", kftypes.KUSTOMIZE)
-		return  s.kfDefGetter.GetKfDef(), &httpError{
+		return s.kfDefGetter.GetKfDef(), &httpError{
 			Message: "Internal service error please try again later.",
 			Code:    http.StatusInternalServerError,
 		}
@@ -204,7 +203,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 
 	if err != nil {
 		log.Errorf("Could not get a GCP token; error %v", err)
-		return  s.kfDefGetter.GetKfDef(), &httpError{
+		return s.kfDefGetter.GetKfDef(), &httpError{
 			Message: "Internal service error please try again later.",
 			Code:    http.StatusInternalServerError,
 		}
@@ -215,7 +214,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 	k8sRest, err := BuildClusterConfig(ctx, token.AccessToken, r.Spec.Project, r.Spec.Zone, r.Name)
 	if err != nil {
 		log.Errorf("Could not build K8s client; error %v", err)
-		return  s.kfDefGetter.GetKfDef(), &httpError{
+		return s.kfDefGetter.GetKfDef(), &httpError{
 			Message: "Internal service error please try again later.",
 			Code:    http.StatusInternalServerError,
 		}

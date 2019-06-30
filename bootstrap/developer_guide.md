@@ -283,6 +283,9 @@ This section describes how to use skaffold to make iterative development/testing
   ./bin/kfctlClient --v=1 --project=${PROJECT} --name=${KFNAME} --endpoint=http://localhost:8080 --config=${CONFIG}
   ```
 
+  * You can also use `hack/run_kfctl_server.sh` to start a locally
+    running instance of the server
+
 ##### `make build-bootstrap`
 
 ```sh

@@ -344,6 +344,13 @@ func (d *KfDef) SyncCache() error {
 
 	for _, r := range d.Spec.Repos {
 		cacheDir := path.Join(baseCacheDir, r.Name)
+
+		// Ensure ReposCache always points at the correct location.
+		// Should we store information about whether it is up to date?
+		d.Status.ReposCache[r.Name] = RepoCache{
+			LocalPath: path.Join(cacheDir, r.Root),
+		}
+
 		// TODO(jlewi):
 		// Can we use a checksum or other mechanism to verify if the existing location is good?
 		// If there was a problem the first time around then removing it might provide a way to recover.
@@ -362,9 +369,6 @@ func (d *KfDef) SyncCache() error {
 		}
 
 		log.Infof("Fetch succeeded")
-		d.Status.ReposCache[r.Name] = RepoCache{
-			LocalPath: path.Join(cacheDir, r.Root),
-		}
 	}
 	return nil
 }

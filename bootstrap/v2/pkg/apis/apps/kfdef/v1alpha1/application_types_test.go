@@ -68,6 +68,8 @@ import (
 //	g.Expect(c.Get(context.TODO(), key, fetched)).To(gomega.HaveOccurred())
 //}
 
+// TODO(jlewi): We should add a unittest for the case where Status.ReposCache
+// points to some incorrect locations but the actual cache dir exists and is correct.
 func TestSyncCache(t *testing.T) {
 	// Verify that we can sync some files.
 	testDir, _ := ioutil.TempDir("", "")

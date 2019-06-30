@@ -95,7 +95,7 @@ const (
 )
 
 type kustomize struct {
-	kfDef *kfdefsv2.KfDef
+	kfDef            *kfdefsv2.KfDef
 	out              *os.File
 	err              *os.File
 	componentPathMap map[string]string
@@ -103,8 +103,8 @@ type kustomize struct {
 	packageMap       map[string]*[]string
 	// TODO(jlewi): It doesn't look like the field application is every used.
 	// It is set in GetKfApp but it doesn't look it ever gets used.
-	application      *application.Application
-	restConfig       *rest.Config
+	application *application.Application
+	restConfig  *rest.Config
 }
 
 const (
@@ -178,14 +178,15 @@ func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 
 // initK8sClients initializes the K8s clients if they haven't already been initialized.
 // it is a null op otherwise.
-func (kustomize * kustomize) initK8sClients() error {
-	if kustomize.restConfig == nil  {
+func (kustomize *kustomize) initK8sClients() error {
+	if kustomize.restConfig == nil {
 		log.Infof("Initializing a default restConfig for Kubernetes")
 		kustomize.restConfig = kftypesv2.GetConfig()
 	}
 
 	return nil
 }
+
 // Apply deploys kustomize generated resources to the kubenetes api server
 func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	if err := kustomize.initK8sClients(); err != nil {

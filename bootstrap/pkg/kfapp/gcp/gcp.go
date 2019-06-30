@@ -1272,9 +1272,15 @@ func (gcp *Gcp) generateDMConfigs() error {
 			Message: fmt.Sprintf("cannot create directory %v", gcpConfigDirErr),
 		}
 	}
-	repo := gcp.kfDef.Spec.Repo
-	parentDir := path.Dir(repo)
-	sourceDir := path.Join(parentDir, "deployment/gke/deployment_manager_configs")
+	repo, ok := gcp.kfDef.Status.ReposCache[kftypes.KubeflowRepoName]
+
+	if !ok {
+		err := fmt.Errorf("Repo %v not found in KfDef.Status.ReposCache", kftypes.KubeflowRepoName)
+		log.Errorf("%v", err)
+		return errors.WithStack(err)
+	}
+
+	sourceDir := path.Join(repo.LocalPath, "deployment/gke/deployment_manager_configs")
 	files := []string{"cluster.jinja", "cluster.jinja.schema", "storage.jinja",
 		"storage.jinja.schema"}
 	for _, file := range files {
@@ -1672,6 +1678,13 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 // Generate generates the gcp kfapp manifest.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
+	if err := gcp.kfDef.SyncCache(); err != nil {
+		log.Errorf("Failed to synchronize the cache; error %v", err)
+		return errors.WithStack(err)
+	}
+
+	log.Infof("DO NOT SUBMIT; spec; %v", utils.PrettyPrint(gcp.kfDef))
+
 	if err := gcp.setGcpPluginDefaults(); err != nil {
 		return errors.WithStack(err)
 	}
