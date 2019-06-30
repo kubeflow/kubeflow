@@ -93,7 +93,7 @@ const (
 	patchesStrategicMergeMap MapType = 10
 	patchesJson6902Map       MapType = 11
 	YamlSeparator                    = "(?m)^---[ \t]*$"
-	OverlayParamName      = "overlay"
+	OverlayParamName                 = "overlay"
 )
 
 type kustomize struct {
@@ -247,7 +247,7 @@ func (kustomize *kustomize) backfillApplications() error {
 					Name: kftypes.ManifestsRepoName,
 					Path: relPath,
 				},
-				Overlays: []string{},
+				Overlays:   []string{},
 				Parameters: []config.NameValue{},
 			},
 		}
@@ -265,7 +265,8 @@ func (kustomize *kustomize) backfillApplications() error {
 		kustomize.kfDef.Spec.Applications = append(kustomize.kfDef.Spec.Applications, app)
 	}
 
-	return nil
+	// Preserve the backfill
+	return kustomize.kfDef.WriteToConfigFile()
 }
 
 // initK8sClients initializes the K8s clients if they haven't already been initialized.

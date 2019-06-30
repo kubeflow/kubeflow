@@ -2,19 +2,19 @@ package kustomize
 
 import (
 	"github.com/kubeflow/kubeflow/bootstrap/config"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	"reflect"
 	"testing"
 )
 
 func TestKustomize_BackfillOptions(t *testing.T) {
 	type testCase struct {
-		input  *kustomize
+		input    *kustomize
 		expected []kfdefsv2.Application
 	}
 
-	testCases := []testCase {
+	testCases := []testCase{
 		{
 			input: &kustomize{
 				kfDef: &kfdefsv2.KfDef{
@@ -26,14 +26,14 @@ func TestKustomize_BackfillOptions(t *testing.T) {
 							Components: []string{
 								"istio-crds",
 							},
-							ComponentParams: config.Parameters {
+							ComponentParams: config.Parameters{
 								"istio-crds": []config.NameValue{
 									{
-										Name: "overlay",
+										Name:  "overlay",
 										Value: "someoverlay",
 									},
 									{
-										Name: "p1",
+										Name:  "p1",
 										Value: "v1",
 									},
 								},
@@ -41,14 +41,14 @@ func TestKustomize_BackfillOptions(t *testing.T) {
 						},
 					},
 					Status: kfdefsv2.KfDefStatus{
-						ReposCache: map[string]kfdefsv2.RepoCache {
+						ReposCache: map[string]kfdefsv2.RepoCache{
 							"manifests": {
 								LocalPath: "/cache/manifests",
 							},
 						},
 					},
 				},
-				componentPathMap: map[string]string {
+				componentPathMap: map[string]string{
 					"istio-crds": "/cache/manifests/gcp/istio/istio-crds",
 				},
 			},
@@ -65,7 +65,7 @@ func TestKustomize_BackfillOptions(t *testing.T) {
 						},
 						Parameters: []config.NameValue{
 							{
-								Name: "p1",
+								Name:  "p1",
 								Value: "v1",
 							},
 						},

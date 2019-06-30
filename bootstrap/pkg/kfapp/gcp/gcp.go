@@ -1705,21 +1705,20 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	}
 	switch resources {
 	case kftypes.ALL:
-		gcpConfigFilesErr := gcp.generateDMConfigs()
-		if gcpConfigFilesErr != nil {
-			return &kfapis.KfError{
-				Code: gcpConfigFilesErr.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("could not generate deployment manager configs under %v Error: %v",
-					GCP_CONFIG, gcpConfigFilesErr.(*kfapis.KfError).Message),
-			}
-		}
+		fallthrough
 	case kftypes.PLATFORM:
 		gcpConfigFilesErr := gcp.generateDMConfigs()
 		if gcpConfigFilesErr != nil {
+
+			code := http.StatusInternalServerError
+			if v, ok := gcpConfigFilesErr.(*kfapis.KfError); ok {
+				code = v.Code
+			}
+
 			return &kfapis.KfError{
-				Code: gcpConfigFilesErr.(*kfapis.KfError).Code,
+				Code: code,
 				Message: fmt.Sprintf("could not generate deployment manager configs under %v Error: %v",
-					GCP_CONFIG, gcpConfigFilesErr.(*kfapis.KfError).Message),
+					GCP_CONFIG, gcpConfigFilesErr),
 			}
 		}
 	}

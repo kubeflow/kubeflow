@@ -370,6 +370,37 @@ func Test_backfillKfDefFromGenerateOptions(t *testing.T) {
 	}
 }
 
+func Test_repoVersionToRepoStruct(t *testing.T) {
+	type testCase struct {
+		name     string
+		version  string
+		expected string
+	}
+
+	testCases := []testCase{
+		{
+			name:     "kubeflow",
+			version:  "master",
+			expected: "https://github.com/kubeflow/kubeflow/tarball/master?archive=tar.gz",
+		},
+		{
+			name:     "manifests",
+			version:  "pull/189",
+			expected: "https://github.com/kubeflow/manifests/tarball/pull/189/head?archive=tar.gz",
+		},
+	}
+
+	for _, c := range testCases {
+		actual := repoVersionToUri(c.name, c.version)
+
+		if !reflect.DeepEqual(actual, c.expected) {
+			pGot, _ := Pformat(actual)
+			pWant, _ := Pformat(c.expected)
+			t.Errorf("Error converting got;\n%v\nwant;\n%v", pGot, pWant)
+		}
+	}
+}
+
 // Pformat returns a pretty format output of any value.
 func Pformat(value interface{}) (string, error) {
 	if s, ok := value.(string); ok {

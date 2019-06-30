@@ -216,6 +216,28 @@ func usageReportWarn(components []string) {
 	}
 }
 
+// repoVersionToRepoStruct converts the name of a repo and the old style version
+// into a new go-getter style syntax and a Repo spec
+//
+//   master
+//	 tag
+//	 pull/<ID>[/head]
+//
+func repoVersionToUri(repo string, version string) string {
+	// Version can be
+	// --version master
+	// --version tag
+	// --version pull/<ID>/head
+	if strings.HasPrefix(version, "pull") {
+		if !strings.HasSuffix(version, "head") {
+			version = version + "/head"
+		}
+	}
+	tarballUrl := "https://github.com/kubeflow/" + repo + "/tarball/" + version + "?archive=tar.gz"
+
+	return tarballUrl
+}
+
 // CreateKfDefFromOptions creates a KfDef from the supplied options.
 func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, error) {
 	//appName can be a path
@@ -301,6 +323,7 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 			}
 		} else {
 			var cacheDirErr error
+			// TODO(jlewi): We should call repoVersionToUri and pass the value to DownloadToCache
 			cacheDir, cacheDirErr = kftypes.DownloadToCache(appDir, kftypes.KubeflowRepo, version)
 			if cacheDirErr != nil || cacheDir == "" {
 				log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
@@ -347,6 +370,17 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 		kfDef.Spec.UseBasicAuth = useBasicAuth
 		kfDef.Spec.UseIstio = useIstio
 		kfDef.Spec.PackageManager = packageManager
+
+		// Add the repo
+		if kfDef.Spec.Repos == nil {
+			kfDef.Spec.Repos = []kfdefsv2.Repo{}
+		}
+
+		repoUri := repoVersionToUri(kftypes.KubeflowRepo, version)
+		kfDef.Spec.Repos = append(kfDef.Spec.Repos, kfdefsv2.Repo{
+			Name: kftypes.KubeflowRepoName,
+			Uri:  repoUri,
+		})
 	}
 	kfDef.Spec.AppDir = appDir
 
