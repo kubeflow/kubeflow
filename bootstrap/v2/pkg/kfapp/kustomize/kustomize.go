@@ -27,6 +27,7 @@ import (
 	kfapisv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -119,21 +120,9 @@ type Setter interface {
 // GetKfApp is the common entry point for all implementations of the KfApp interface
 func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 	_kustomize := &kustomize{
-		kfDef:        kfdef,
-		out:          os.Stdout,
-		err:          os.Stderr,
-		componentMap: make(map[string]bool),
-		packageMap:   make(map[string]*[]string),
-	}
-	if _kustomize.kfDef.Spec.ManifestsRepo != "" {
-		for _, compName := range _kustomize.kfDef.Spec.Components {
-			_kustomize.componentMap[compName] = true
-		}
-		for _, packageName := range _kustomize.kfDef.Spec.Packages {
-			arrayOfComponents := &[]string{}
-			_kustomize.packageMap[packageName] = arrayOfComponents
-		}
-		_kustomize.componentPathMap = _kustomize.mapDirs(_kustomize.kfDef.Spec.ManifestsRepo, true, 0, make(map[string]string))
+		kfDef: kfdef,
+		out:   os.Stdout,
+		err:   os.Stderr,
 	}
 
 	// TODO(jlewi): Can we get rid of this? It doesn't look like
@@ -174,6 +163,39 @@ func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 	// 2. We want to be able to generate the manifests without the K8s cluster existing.
 	// build restConfig using $HOME/.kube/config if the file exists
 	return _kustomize
+}
+
+// initComponentMaps checks if we have already initialized the maps locating the various manifest
+// packages and if not initializes them.
+func (kustomize *kustomize) initComponentMaps() error {
+	if kustomize.componentMap != nil && kustomize.packageMap != nil {
+		log.Infof("kustomize package map already initialized")
+		return nil
+	}
+
+	log.Infof("Initializing kustomize package map")
+
+	kustomize.componentMap = make(map[string]bool)
+	kustomize.packageMap = make(map[string]*[]string)
+
+	repo, ok := kustomize.kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
+
+	if !ok {
+		err := fmt.Errorf("Could not initialize kustomize component maps; missing repo cache for repo %v", kftypes.ManifestsRepoName)
+		return errors.WithStack(err)
+	}
+
+	for _, compName := range kustomize.kfDef.Spec.Components {
+		kustomize.componentMap[compName] = true
+	}
+	for _, packageName := range kustomize.kfDef.Spec.Packages {
+		arrayOfComponents := &[]string{}
+		kustomize.packageMap[packageName] = arrayOfComponents
+	}
+	kustomize.componentPathMap = kustomize.mapDirs(repo.LocalPath, true, 0, make(map[string]string))
+
+	log.Infof("Component path map: %v\n", utils.PrettyPrint(kustomize.componentPathMap))
+	return nil
 }
 
 // initK8sClients initializes the K8s clients if they haven't already been initialized.
@@ -452,6 +474,11 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 
 		if !ok {
 			return errors.WithStack(fmt.Errorf("Repo %v not listed in KfDef.Status; ", kftypes.ManifestsRepoName))
+		}
+
+		if err := kustomize.initComponentMaps(); err != nil {
+			log.Errorf("Could not initialize kustomize component map paths; error %v", err)
+			return errors.WithStack(err)
 		}
 
 		for _, compName := range kustomize.kfDef.Spec.Components {
@@ -971,6 +998,10 @@ func MergeKustomizations(kfDef *kfdefsv2.KfDef, compDir string, params []config.
 //      value: namespaced-gangscheduled
 //
 // It will return a resmap.ResMap which is an accumulated ResMap of the base + any overlays
+// TODO(https://github.com/kubeflow/kubeflow/issues/3491): As part of fixing the discovery
+// logic we should change the KfDef spec to provide a list of applications (not a map).
+// and preserve order when applying them so we can get rid of the logic hard-coding
+// moving some applications to the front.
 func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 	compPath string, params []config.NameValue) (resmap.ResMap, error) {
 

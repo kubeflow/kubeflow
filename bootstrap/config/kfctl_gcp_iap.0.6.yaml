@@ -43,7 +43,7 @@ spec:
     - initRequired: true
       name: hostname
       value: <deployName>.endpoints.<project>.cloud.goog
-    istio-crds:
+    gcp/istio-crds:
     - name: namespace
       value: istio-system
     istio-install:
