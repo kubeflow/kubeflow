@@ -93,6 +93,7 @@ const (
 	patchesStrategicMergeMap MapType = 10
 	patchesJson6902Map       MapType = 11
 	YamlSeparator                    = "(?m)^---[ \t]*$"
+	OverlayParamName      = "overlay"
 )
 
 type kustomize struct {
@@ -195,6 +196,75 @@ func (kustomize *kustomize) initComponentMaps() error {
 	kustomize.componentPathMap = kustomize.mapDirs(repo.LocalPath, true, 0, make(map[string]string))
 
 	log.Infof("Component path map: %v\n", utils.PrettyPrint(kustomize.componentPathMap))
+	return nil
+}
+
+// backfillApplications backfills the applications from the components componentParams
+func (kustomize *kustomize) backfillApplications() error {
+	currentApplications := map[string]bool{}
+
+	if kustomize.kfDef.Spec.Applications == nil {
+		kustomize.kfDef.Spec.Applications = []kfdefsv2.Application{}
+	}
+
+	// Build a set of applications currently defined.
+	for _, a := range kustomize.kfDef.Spec.Applications {
+		currentApplications[a.Name] = true
+	}
+
+	// We need repoCache to know the local path strip from componentPathMap
+	repo, ok := kustomize.kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
+
+	if !ok {
+		err := fmt.Errorf("Could not backfillApplications; missing repo cache for repo %v", kftypes.ManifestsRepoName)
+		return errors.WithStack(err)
+	}
+
+	// Loop over all the components
+	for _, cName := range kustomize.kfDef.Spec.Components {
+		if _, ok := currentApplications[cName]; ok {
+			log.Infof("There is already an application named %v; not converting component again", cName)
+			continue
+		}
+
+		log.Infof("Converting component %v to an application in KfDef.Spec", cName)
+
+		cPath, ok := kustomize.componentPathMap[cName]
+
+		if !ok {
+			log.Errorf("Could not backfill the component %v; no component path specified", cName)
+			return errors.WithStack(fmt.Errorf("Could not backfill the component %v; no component path specified", cName))
+		}
+
+		// Strip out the local path
+		relPath := strings.TrimPrefix(cPath, repo.LocalPath)
+
+		currentApplications[cName] = true
+		app := kfdefsv2.Application{
+			Name: cName,
+			KustomizeConfig: &kfdefsv2.KustomizeConfig{
+				RepoRef: &kfdefsv2.RepoRef{
+					Name: kftypes.ManifestsRepoName,
+					Path: relPath,
+				},
+				Overlays: []string{},
+				Parameters: []config.NameValue{},
+			},
+		}
+
+		if cParams, ok := kustomize.kfDef.Spec.ComponentParams[cName]; ok {
+			for _, p := range cParams {
+				if p.Name == OverlayParamName {
+					app.KustomizeConfig.Overlays = append(app.KustomizeConfig.Overlays, p.Value)
+				} else {
+					app.KustomizeConfig.Parameters = append(app.KustomizeConfig.Parameters, p)
+				}
+			}
+		}
+
+		kustomize.kfDef.Spec.Applications = append(kustomize.kfDef.Spec.Applications, app)
+	}
+
 	return nil
 }
 
@@ -478,6 +548,11 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 
 		if err := kustomize.initComponentMaps(); err != nil {
 			log.Errorf("Could not initialize kustomize component map paths; error %v", err)
+			return errors.WithStack(err)
+		}
+
+		if err := kustomize.backfillApplications(); err != nil {
+			log.Errorf("Could not backfill KfDef.Spec.Applications from components; error %v", err)
 			return errors.WithStack(err)
 		}
 
