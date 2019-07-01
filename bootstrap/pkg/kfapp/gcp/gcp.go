@@ -23,7 +23,6 @@ import (
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
 	"github.com/gogo/protobuf/proto"
-	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
@@ -1040,24 +1039,6 @@ func (gcp *Gcp) copyFile(source string, dest string) error {
 	return nil
 }
 
-// Usage: a = setNameVal(a, "acmeEmail", gcp.kfDef.Spec.Email, true), similar to append
-func setNameVal(entries []configtypes.NameValue, name string, val string, required bool) []configtypes.NameValue {
-	for i, nv := range entries {
-		if nv.Name == name {
-			log.Infof("Setting %v to %v", name, val)
-			entries[i].Value = val
-			return entries
-		}
-	}
-	log.Infof("Appending %v as %v", name, val)
-	entries = append(entries, configtypes.NameValue{
-		Name:         name,
-		Value:        val,
-		InitRequired: required,
-	})
-	return entries
-}
-
 // Helper function to generate account field for IAP.
 func (gcp *Gcp) getIapAccount() string {
 	iapAcct := "serviceAccount:" + gcp.kfDef.Spec.Email
@@ -1516,13 +1497,10 @@ func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
 }
 
 func (gcp *Gcp) getIstioNamespace() string {
-	istioNamespace := gcp.kfDef.Namespace
-	for _, v := range gcp.kfDef.Spec.ComponentParams["iap-ingress"] {
-		if v.Name == "namespace" {
-			istioNamespace = v.Value
-		}
+	if ingressNamespace, ok := gcp.kfDef.GetApplicationParameter("iap-ingress", "namespace"); ok {
+		return ingressNamespace
 	}
-	return istioNamespace
+	return gcp.kfDef.Namespace
 }
 
 func (gcp *Gcp) createSecrets() error {
@@ -1722,39 +1700,75 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 			}
 		}
 	}
-	gcp.kfDef.Spec.ComponentParams["cert-manager"] = setNameVal(gcp.kfDef.Spec.ComponentParams["cert-manager"], "acmeEmail", gcp.kfDef.Spec.Email, true)
-	gcp.kfDef.Spec.ComponentParams["profiles"] = setNameVal(gcp.kfDef.Spec.ComponentParams["profiles"], "admin", gcp.kfDef.Spec.Email, true)
+
+	// TODO(jlewi): Should we move the code into a separate function and write a unittest?
+	if err := gcp.kfDef.SetApplicationParameter("cert-manager", "acmeEmail", gcp.kfDef.Spec.Email); err != nil {
+		return errors.WithStack(err)
+	}
+
+	if err := gcp.kfDef.SetApplicationParameter("profiles", "admin", gcp.kfDef.Spec.Email); err != nil {
+		return errors.WithStack(err)
+	}
+
 	if gcp.kfDef.Spec.IpName == "" {
 		gcp.kfDef.Spec.IpName = gcp.kfDef.Name + "-ip"
 	}
 	if gcp.kfDef.Spec.Hostname == "" {
 		gcp.kfDef.Spec.Hostname = gcp.kfDef.Name + ".endpoints." + gcp.kfDef.Spec.Project + ".cloud.goog"
 	}
+
 	if gcp.kfDef.Spec.UseBasicAuth {
-		gcp.kfDef.Spec.ComponentParams["basic-auth-ingress"] = setNameVal(gcp.kfDef.Spec.ComponentParams["basic-auth-ingress"], "ipName", gcp.kfDef.Spec.IpName, true)
-		gcp.kfDef.Spec.ComponentParams["basic-auth-ingress"] = setNameVal(gcp.kfDef.Spec.ComponentParams["basic-auth-ingress"], "hostname", gcp.kfDef.Spec.Hostname, true)
+		if err := gcp.kfDef.SetApplicationParameter("basic-auth-ingress", "ipName", gcp.kfDef.Spec.IpName); err != nil {
+			return errors.WithStack(err)
+		}
+		if err := gcp.kfDef.SetApplicationParameter("basic-auth-ingress", "hostname", gcp.kfDef.Spec.Hostname); err != nil {
+			return errors.WithStack(err)
+		}
 	} else {
-		gcp.kfDef.Spec.ComponentParams["iap-ingress"] = setNameVal(gcp.kfDef.Spec.ComponentParams["iap-ingress"], "ipName", gcp.kfDef.Spec.IpName, true)
-		gcp.kfDef.Spec.ComponentParams["iap-ingress"] = setNameVal(gcp.kfDef.Spec.ComponentParams["iap-ingress"], "hostname", gcp.kfDef.Spec.Hostname, true)
-		gcp.kfDef.Spec.ComponentParams["profiles"] = setNameVal(gcp.kfDef.Spec.ComponentParams["profiles"], "admin", gcp.kfDef.Spec.Email, true)
-	}
-	if *pluginSpec.CreatePipelinePersistentStorage {
-		minioPdName := gcp.kfDef.Name + "-storage-artifact-store"
-		mysqlPdName := gcp.kfDef.Name + "-storage-metadata-store"
-		gcp.kfDef.Spec.ComponentParams["pipeline"] = setNameVal(gcp.kfDef.Spec.ComponentParams["pipeline"], "mysqlPd", mysqlPdName, false)
-		gcp.kfDef.Spec.ComponentParams["pipeline"] = setNameVal(gcp.kfDef.Spec.ComponentParams["pipeline"], "minioPd", minioPdName, false)
-		if strings.HasPrefix(gcp.kfDef.Spec.PackageManager, "kustomize") {
-			gcp.kfDef.Spec.ComponentParams["minio"] = setNameVal(gcp.kfDef.Spec.ComponentParams["minio"], "minioPd", minioPdName, false)
-			gcp.kfDef.Spec.ComponentParams["mysql"] = setNameVal(gcp.kfDef.Spec.ComponentParams["mysql"], "mysqlPd", mysqlPdName, false)
+		if err := gcp.kfDef.SetApplicationParameter("iap-ingress", "ipName", gcp.kfDef.Spec.IpName); err != nil {
+			return errors.WithStack(err)
+		}
+		if err := gcp.kfDef.SetApplicationParameter("iap-ingress", "hostname", gcp.kfDef.Spec.Hostname); err != nil {
+			return errors.WithStack(err)
+		}
+		if err := gcp.kfDef.SetApplicationParameter("profiles", "admin", gcp.kfDef.Spec.Email); err != nil {
+			return errors.WithStack(err)
 		}
 	}
-	gcp.kfDef.Spec.ComponentParams["notebook-controller"] = setNameVal(gcp.kfDef.Spec.ComponentParams["notebook-controller"], "injectGcpCredentials", "true", false)
+	if *pluginSpec.CreatePipelinePersistentStorage {
+		log.Infof("Configuring pipeline, minio, and mysql applications")
+		minioPdName := gcp.kfDef.Name + "-storage-artifact-store"
+		mysqlPdName := gcp.kfDef.Name + "-storage-metadata-store"
 
-	for _, comp := range gcp.kfDef.Spec.Components {
-		if comp == "spartakus" {
-			rand.Seed(time.Now().UnixNano())
-			gcp.kfDef.Spec.ComponentParams["spartakus"] = setNameVal(gcp.kfDef.Spec.ComponentParams["spartakus"],
-				"usageId", strconv.Itoa(rand.Int()), true)
+		// TODO(jlewi): I think we can delete this. It looks like we still had componentParams pipeline
+		// but pipeline wasn't listed in components which explains why when we migrated to Application
+		// there wasn't any Application named pipeline.
+		// Looking at https://github.com/kubeflow/manifests/tree/master/pipeline
+		// there is no base application named pipeline.
+		//if err := gcp.kfDef.SetApplicationParameter("pipeline", "mysqlPd", mysqlPdName); err != nil {
+		//	return errors.WithStack(err)
+		//}
+		//if err := gcp.kfDef.SetApplicationParameter("pipeline", "minioPd", minioPdName); err != nil {
+		//	return errors.WithStack(err)
+		//}
+		if err := gcp.kfDef.SetApplicationParameter("minio", "minioPd", minioPdName); err != nil {
+			return errors.WithStack(err)
+		}
+		if err := gcp.kfDef.SetApplicationParameter("mysql", "mysqlPd", mysqlPdName); err != nil {
+			return errors.WithStack(err)
+		}
+	}
+
+	// TODO(jlewi): Why is this hard coded here?
+	if err := gcp.kfDef.SetApplicationParameter("notebook-controller", "injectGcpCredentials", "true"); err != nil {
+		return errors.WithStack(err)
+	}
+
+	// TODO(jlewi): Why are we setting this here?
+	rand.Seed(time.Now().UnixNano())
+	if err := gcp.kfDef.SetApplicationParameter("spartakus", "usageId", strconv.Itoa(rand.Int())); err != nil {
+		if kfdefs.IsAppNotFound(err) {
+			log.Infof("Spartakus not included; not setting usageId")
 		}
 	}
 
@@ -1762,7 +1776,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	if createConfigErr != nil {
 		return &kfapis.KfError{
 			Code: createConfigErr.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("cannot create config file app.yaml in %v: %v", gcp.kfDef.Spec.AppDir,
+			Message: fmt.Sprintf("cannot create config file %v in %v: %v", kftypes.KfConfigFile, gcp.kfDef.Spec.AppDir,
 				createConfigErr.(*kfapis.KfError).Message),
 		}
 	}
