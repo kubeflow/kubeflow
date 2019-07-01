@@ -306,12 +306,12 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	}
 
 	kustomizeDir := path.Join(kustomize.kfDef.Spec.AppDir, outputDir)
-	for _, compName := range kustomize.kfDef.Spec.Components {
-		kustomizeFile := filepath.Join(kustomizeDir, compName+".yaml")
+	for _, app := range kustomize.kfDef.Spec.Applications {
+		kustomizeFile := filepath.Join(kustomizeDir, app.Name+".yaml")
 		if _, err := os.Stat(kustomizeFile); err != nil {
 			return &kfapisv2.KfError{
 				Code:    int(kfapisv2.INTERNAL_ERROR),
-				Message: fmt.Sprintf("couldn't find manifest %s for component %s", kustomizeFile, compName),
+				Message: fmt.Sprintf("couldn't find manifest %s for application %s", kustomizeFile, app.Name),
 			}
 		}
 		resourcesErr := kustomize.deployResources(kustomize.restConfig, kustomizeFile)
@@ -531,7 +531,7 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 			}
 		}
 
-		manifestsRepo, ok := kustomize.kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
+		_, ok := kustomize.kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
 
 		if !ok {
 			log.Infof("Repo %v not listed in KfDef.Status; Resync'ing cache", kftypes.ManifestsRepoName)
@@ -541,7 +541,7 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 			}
 		}
 
-		manifestsRepo, ok = kustomize.kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
+		_, ok = kustomize.kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
 
 		if !ok {
 			return errors.WithStack(fmt.Errorf("Repo %v not listed in KfDef.Status; ", kftypes.ManifestsRepoName))
@@ -557,29 +557,46 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 			return errors.WithStack(err)
 		}
 
-		for _, compName := range kustomize.kfDef.Spec.Components {
-			compPath, ok := kustomize.componentPathMap[compName]
+		for _, app := range kustomize.kfDef.Spec.Applications {
+			log.Infof("Processing application: %v", app.Name)
+
+			if app.KustomizeConfig == nil {
+				err := fmt.Errorf("Application %v is missing KustomizeConfig", app.Name)
+				log.Errorf("%v", err)
+				return &kfapisv2.KfError{
+					Code:    int(kfapisv2.INTERNAL_ERROR),
+					Message: err.Error(),
+				}
+			}
+
+			repoName := app.KustomizeConfig.RepoRef.Name
+			repoCache, ok := kustomize.kfDef.Status.ReposCache[repoName]
+
 			if !ok {
-				log.Errorf("Couldn't find component %v", compName)
+				err := fmt.Errorf("Application %v refers to repo %v which wasn't found in KfDef.Status.ReposCache", app.Name, repoName)
+				log.Errorf("%v", err)
 				return &kfapisv2.KfError{
 					Code:    int(kfapisv2.INTERNAL_ERROR),
-					Message: fmt.Sprintf("couldn't find component %s", compName),
+					Message: err.Error(),
 				}
 			}
-			resMap, err := GenerateKustomizationFile(kustomize.kfDef, manifestsRepo.LocalPath, compPath,
-				kustomize.kfDef.Spec.ComponentParams[compName])
+
+			resMap, err := GenerateKustomizationFile(kustomize.kfDef, repoCache.LocalPath, app.KustomizeConfig.RepoRef.Path,
+				app.KustomizeConfig.Overlays, app.KustomizeConfig.Parameters)
+
+			appPath := path.Join(repoCache.LocalPath, app.KustomizeConfig.RepoRef.Path)
 			if err != nil {
-				log.Errorf("error generating kustomization for %v Error %v", compPath, err)
+				log.Errorf("error generating kustomization for %v Error %v", appPath, err)
 				return &kfapisv2.KfError{
 					Code:    int(kfapisv2.INTERNAL_ERROR),
-					Message: fmt.Sprintf("error generating kustomization for %v Error %v", compPath, err),
+					Message: fmt.Sprintf("error generating kustomization for %v Error %v", appPath, err),
 				}
 			}
-			writeErr := WriteKustomizationFile(compName, kustomizeDir, resMap)
+			writeErr := WriteKustomizationFile(app.Name, kustomizeDir, resMap)
 			if writeErr != nil {
 				return &kfapisv2.KfError{
 					Code:    int(kfapisv2.INTERNAL_ERROR),
-					Message: fmt.Sprintf("error writing to %v Error %v", compPath, writeErr),
+					Message: fmt.Sprintf("error writing to %v Error %v", appPath, writeErr),
 				}
 			}
 		}
@@ -957,7 +974,7 @@ func MergeKustomization(compDir string, targetDir string, kfDef *kfdefsv2.KfDef,
 
 // MergeKustomizations will merge base and all overlay kustomization files into
 // a single kustomization file
-func MergeKustomizations(kfDef *kfdefsv2.KfDef, compDir string, params []config.NameValue) (*types.Kustomization, error) {
+func MergeKustomizations(kfDef *kfdefsv2.KfDef, compDir string, overlayParams []string, params []config.NameValue) (*types.Kustomization, error) {
 	kustomizationMaps := CreateKustomizationMaps()
 	kustomization := &types.Kustomization{
 		TypeMeta: types.TypeMeta{
@@ -993,13 +1010,10 @@ func MergeKustomizations(kfDef *kfdefsv2.KfDef, compDir string, params []config.
 			}
 		}
 	}
-	overlayParams := []string{}
 	if params != nil {
 		for _, nv := range params {
 			name := nv.Name
 			switch name {
-			case "overlay":
-				overlayParams = append(overlayParams, nv.Value)
 			case "namespace":
 				kustomization.Namespace = nv.Value
 			}
@@ -1078,8 +1092,15 @@ func MergeKustomizations(kfDef *kfdefsv2.KfDef, compDir string, params []config.
 // logic we should change the KfDef spec to provide a list of applications (not a map).
 // and preserve order when applying them so we can get rid of the logic hard-coding
 // moving some applications to the front.
+//
+// TODO(jlewi): Why is the path split between root and compPath?
+// TODO(jlewi): Why is this taking kfDef and writing kfDef? Is this because it is reordering components?
+// TODO(jlewi): This function appears to special case handling of using kustomize
+// for KfDef. Presumably this is because of the code in coordinator which is using it to generate
+// KfDef from overlays. But this function is also used to generate the manifests for the individual
+// kustomize packages.
 func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
-	compPath string, params []config.NameValue) (resmap.ResMap, error) {
+	compPath string, overlays []string, params []config.NameValue) (resmap.ResMap, error) {
 
 	moveToFront := func(item string, list []string) []string {
 		olen := len(list)
@@ -1097,7 +1118,7 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 	factory := k8sdeps.NewFactory()
 	fsys := fs.MakeRealFS()
 	compDir := path.Join(root, compPath)
-	kustomization, kustomizationErr := MergeKustomizations(kfDef, compDir, params)
+	kustomization, kustomizationErr := MergeKustomizations(kfDef, compDir, overlays, params)
 	if kustomizationErr != nil {
 		return nil, kustomizationErr
 	}
@@ -1114,6 +1135,7 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 		}
 		apiVersion := def.GetAPIVersion()
 		if apiVersion == kfDef.APIVersion {
+			// This code is only invoked when using Kustomize to generate the KFDef spec.
 			baseKfDef := ReadKfDef(basefile)
 			for _, k := range kustomization.PatchesStrategicMerge {
 				overlayfile := filepath.Join(compDir, string(k))

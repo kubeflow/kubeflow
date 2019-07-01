@@ -87,26 +87,25 @@ func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
 
 	configPath := filepath.Join(pathDir, kftypes.DefaultConfigDir)
-	overlays := []config.NameValue{
-		{
-			Name:  "overlay",
-			Value: strings.Split(kfDef.Spec.PackageManager, "@")[0],
-		},
-	}
+	overlays := []string{}
+
+	overlays = append(overlays, strings.Split(kfDef.Spec.PackageManager, "@")[0])
+
 	if kfDef.Spec.UseIstio {
-		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "istio"})
+		overlays = append(overlays, "istio")
 	}
 	if kfDef.Spec.UseBasicAuth {
-		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "basic_auth"})
+		overlays = append(overlays, "basic_auth")
 	} else if kfDef.Spec.Platform != "" {
-		overlays = append(overlays, config.NameValue{Name: "overlay", Value: kfDef.Spec.Platform})
+		overlays = append(overlays, kfDef.Spec.Platform)
 	}
 	if kfDef.Spec.EnableApplications {
-		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "application"})
+		overlays = append(overlays, "application")
 	}
 	compPath := strings.Split(kftypes.DefaultConfigDir, "/")[1]
+	params := []config.NameValue{}
 	resMap, resMapErr := kustomize.GenerateKustomizationFile(kfDef,
-		path.Dir(configPath), compPath, overlays)
+		path.Dir(configPath), compPath, overlays, params)
 	if resMapErr != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
