@@ -534,6 +534,11 @@ func (d *KfDef) WriteToFile(path string) error {
 	return ioutil.WriteFile(path, buf, 0644)
 }
 
+// WriteToConfigFile writes the config to ${APPDIR}/${KFCONFIGFILE}
+func (d *KfDef) WriteToConfigFile() error {
+	return d.WriteToFile(path.Join(d.Spec.AppDir, KfConfigFile))
+}
+
 type PluginNotFound struct {
 	Name string
 }
