@@ -1297,6 +1297,7 @@ func encodeResponse(ctx context.Context, w http.ResponseWriter, response interfa
 		return nil
 	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	log.Infof("DO NOT SUBMIT; encoding response: %+v", response)
 	return json.NewEncoder(w).Encode(response)
 }
 

@@ -247,6 +247,31 @@ type RepoCache struct {
 
 type KfDefConditionType string
 
+const (
+	// JobCreated means the job has been accepted by the system,
+	// but one or more of the pods/services has not been started.
+	// This includes time before pods being scheduled and launched.
+	KfCreated KfDefConditionType = "Created"
+
+	// JobRunning means all sub-resources (e.g. services/pods) of this job
+	// have been successfully scheduled and launched.
+	// The training is running without error.
+	KfDeploying KfDefConditionType = "Deploying"
+
+	// JobSucceeded means all sub-resources (e.g. services/pods) of this job
+	// reached phase have terminated in success.
+	// The training is complete without error.
+	KfSucceeded KfDefConditionType = "Succeeded"
+
+	// JobFailed means one or more sub-resources (e.g. services/pods) of this job
+	// reached phase failed with no restarting.
+	// The training has failed its execution.
+	KfFailed KfDefConditionType = "Failed"
+
+	// Reasons for conditions
+	InvalidKfDefSpecReason = "InvalidKfDefSpec"
+)
+
 type KfDefCondition struct {
 	// Type of deployment condition.
 	Type KfDefConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=KfDefConditionType"`
@@ -590,6 +615,7 @@ func (d *KfDef) IsValid() (bool, string) {
 	if d.Spec.PackageManager == "" {
 		return false, fmt.Sprintf("KfDef.Spec.PackageManager is required")
 	}
+
 	return true, ""
 }
 

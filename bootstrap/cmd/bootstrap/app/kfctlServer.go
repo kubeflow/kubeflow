@@ -23,6 +23,8 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 	containerpb "google.golang.org/genproto/googleapis/container/v1"
+	"k8s.io/api/v2/core/v1"
+	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"k8s.io/client-go/v2/rest"
 	"net/http"
 	"os"
@@ -382,6 +384,33 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv2.KfDef) 
 		}
 	}
 
+	// Check that it is a valid request.
+	if isValid, msg := (&req).IsValid(); !isValid {
+		req.Status.Conditions = append(req.Status.Conditions, kfdefsv2.KfDefCondition{
+			Type:               kfdefsv2.KfFailed,
+			Status:             v1.ConditionTrue,
+			Reason:             kfdefsv2.InvalidKfDefSpecReason,
+			Message:            fmt.Sprintf("KfDef.Spec is invalid; " + msg),
+			LastUpdateTime:     metav1.Now(),
+			LastTransitionTime: metav1.Now(),
+		})
+
+		return &req, nil
+	}
+
+	if isValid, msg := gcp.IsValid(req); !isValid {
+		req.Status.Conditions = append(req.Status.Conditions, kfdefsv2.KfDefCondition{
+			Type:               kfdefsv2.KfFailed,
+			Status:             v1.ConditionTrue,
+			Reason:             kfdefsv2.InvalidKfDefSpecReason,
+			Message:            fmt.Sprintf("KfDef.Spec is invalid; " + msg),
+			LastUpdateTime:     metav1.Now(),
+			LastTransitionTime: metav1.Now(),
+		})
+
+		return &req, nil
+	}
+
 	// Enqueue the request
 	// TODO(jlewi): We should strip out the AccessToken from KfDef before enqueing it.
 	// There's no reason to pass it along. Gcp now has the token source.
@@ -394,6 +423,11 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv2.KfDef) 
 	defer s.kfDefMux.Unlock()
 
 	res := s.latestKfDef.DeepCopy()
+
+	// We haven't persisted yet so just echo back what we have
+	if res.Name == "" {
+		return &req, nil
+	}
 	return res, nil
 }
 

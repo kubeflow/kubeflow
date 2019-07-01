@@ -11,6 +11,8 @@ import (
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
+	"os"
+
 	// log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
 	dm "google.golang.org/api/deploymentmanager/v2"
@@ -90,6 +92,44 @@ func run(opt *ServerOption) error {
 		log.Errorf("There was a problem connecting to the server %+v", err)
 		return err
 	}
+
+	if os.Getenv(gcp.CLIENT_ID) == "" {
+		log.Errorf("Environment variable CLIENT_ID must be set for IAP")
+		return fmt.Errorf("Must set environment variable CLIENT_ID for IAP")
+	}
+
+	if os.Getenv(gcp.CLIENT_SECRET) == "" {
+		log.Errorf("Environment variable CLIENT_SECRET must be set for IAP")
+		return fmt.Errorf("Must set environment variable CLIENT_SECRET for IAP")
+	}
+
+	// Set the GCPPluginSpec.
+	pluginSpec := &gcp.GcpPluginSpec{}
+	if err := d.GetPluginSpec(gcp.GcpPluginName, pluginSpec); err != nil && !kfdefsv2.IsPluginNotFound(err) {
+		return err
+	}
+
+	pluginSpec.Auth = &gcp.Auth{
+		IAP: &gcp.IAP{
+			OAuthClientId: os.Getenv(gcp.CLIENT_ID),
+			OAuthClientSecret: &kfdefsv2.SecretRef{
+				Name: gcp.KUBEFLOW_OAUTH,
+			},
+		},
+	}
+
+	if err := d.SetPluginSpec(gcp.GcpPluginName, pluginSpec); err != nil {
+		return err
+	}
+
+	d.SetSecret(kfdefsv2.Secret{
+		Name: gcp.KUBEFLOW_OAUTH,
+		SecretSource: &kfdefsv2.SecretSource{
+			LiteralSource: &kfdefsv2.LiteralSource{
+				Value: os.Getenv(gcp.CLIENT_SECRET),
+			},
+		},
+	})
 
 	ts, err := google.DefaultTokenSource(context.Background(), dm.CloudPlatformScope)
 

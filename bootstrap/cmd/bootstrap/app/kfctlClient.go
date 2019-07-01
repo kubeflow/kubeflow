@@ -73,11 +73,14 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 		return response, nil
 	}
 
+	log.Info("Response is not type *KfDef")
 	resErr, ok := resp.(*httpError)
 
 	if ok {
 		return nil, resErr
 	}
+
+	log.Info("Response is not type *httpError")
 
 	pRes, _ := Pformat(resp)
 	log.Errorf("Recieved unexpected response; %v", pRes)
