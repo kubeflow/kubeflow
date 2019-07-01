@@ -27,7 +27,7 @@ import (
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/existing"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/existing_arrikto"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/kustomize"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
@@ -143,8 +143,8 @@ func getPlatform(kfdef *kfdefsv2.KfDef, platformArgs []byte) (kftypes.Platform, 
 		return minikube.Getplatform(kfdef), nil
 	case string(kftypes.GCP):
 		return gcp.GetPlatform(kfdef, platformArgs)
-	case string(kftypes.EXISTING):
-		return existing.GetPlatform(kfdef)
+	case string(kftypes.EXISTING_ARRIKTO):
+		return existing_arrikto.GetPlatform(kfdef)
 	default:
 		// TODO(https://github.com/kubeflow/kubeflow/issues/3520) Fix dynamic loading
 		// of platform plugins.
