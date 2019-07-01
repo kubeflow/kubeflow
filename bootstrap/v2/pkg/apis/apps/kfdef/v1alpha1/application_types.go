@@ -68,12 +68,32 @@ type KfDefSpec struct {
 	Repos              []Repo   `json:"repos,omitempty"`
 	Secrets            []Secret `json:"secrets,omitempty"`
 	Plugins            []Plugin `json:"plugins,omitempty"`
+
+	// Applications defines a list of applications to install
+	Applications []Application `json:"applications,omitempty"`
 }
 
 var DefaultRegistry = RegistryConfig{
 	Name: "kubeflow",
 	Repo: "https://github.com/kubeflow/kubeflow.git",
 	Path: "kubeflow",
+}
+
+// Application defines an application to install
+type Application struct {
+	Name            string           `json:"name,omitempty"`
+	KustomizeConfig *KustomizeConfig `json:"kustomizeConfig,omitempty"`
+}
+
+type KustomizeConfig struct {
+	RepoRef    *RepoRef           `json:"repoRef,omitempty"`
+	Overlays   []string           `json:"overlays,omitempty"`
+	Parameters []config.NameValue `json:"parameters,omitempty"`
+}
+
+type RepoRef struct {
+	Name string `json:"name,omitempty"`
+	Path string `json:"path,omitempty"`
 }
 
 // Plugin can be used to customize the generation and deployment of Kubeflow
@@ -509,7 +529,6 @@ func (d *KfDef) IsValid() (bool, string) {
 // WriteToFile write the KfDef to a file.
 // WriteToFile will strip out any literal secrets before writing it
 func (d *KfDef) WriteToFile(path string) error {
-
 	stripped := d.DeepCopy()
 
 	secrets := make([]Secret, 0)
@@ -552,3 +571,4 @@ func IsPluginNotFound(e error) bool {
 	_, ok := e.(*PluginNotFound)
 	return ok
 }
+
