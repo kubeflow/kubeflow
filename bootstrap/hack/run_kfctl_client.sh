@@ -7,7 +7,9 @@ set -ex
 . ~/secrets/jlewi-dev.iap-oauth.sh
 BOOTSTRAPDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null && pwd )"
 
-KFNAME=kftest-$(date +%m%d-%H%M%S)
+# If we regenerate a new name the request won't match and it will get rejected.
+#KFNAME=kftest-$(date +%m%d-%H%M%S)
+KFNAME=kftest-0701-153450
 
 cd ${BOOTSTRAPDIR}
 make build-kfctl-client
@@ -20,4 +22,5 @@ ${KFCTL} \
 	--project=${PROJECT} \
 	--name=${KFNAME}  \
 	--endpoint=http://localhost:8080 \
-	--config=${CONFIG}
+	--config=${CONFIG} \
+	--zone=us-east1-d

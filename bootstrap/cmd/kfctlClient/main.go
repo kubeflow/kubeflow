@@ -31,6 +31,7 @@ type ServerOption struct {
 	Name     string
 	Config   string
 	Endpoint string
+	Zone     string
 }
 
 // NewServerOption creates a new CMServer with a default config.
@@ -46,6 +47,7 @@ func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&s.Name, "name", "", "Name for the deployment.")
 	fs.StringVar(&s.Project, "project", "", "Project.")
 	fs.StringVar(&s.Endpoint, "endpoint", "", "The endpoint e.g. http://localhost:8080.")
+	fs.StringVar(&s.Zone, "zone", "", "Zone.")
 
 }
 
@@ -151,6 +153,8 @@ func run(opt *ServerOption) error {
 			},
 		},
 	})
+
+	d.Spec.Zone = opt.Zone
 
 	fmt.Printf("Spec to create:\n%v", utils.PrettyPrint(d))
 

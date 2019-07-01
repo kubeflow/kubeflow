@@ -147,6 +147,8 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 			}
 
 			gcpPlugin.SetTokenSource(s.ts)
+			// We don't want to run get-credentials
+			gcpPlugin.SetRunGetCredentials(false)
 			return true
 		}
 

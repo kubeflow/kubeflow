@@ -92,15 +92,24 @@ type Gcp struct {
 	// Function to get the GcpAccount.
 	// Support injection for testing.
 	gcpAccountGetter func() (string, error)
+
+	runGetCredentials bool
 }
 
 type Setter interface {
 	SetTokenSource(s oauth2.TokenSource) error
+
+	// SetRunGetCredentials controls whether or not to run get credentials
+	SetRunGetCredentials(v bool)
 }
 
 func (gcp *Gcp) SetTokenSource(s oauth2.TokenSource) error {
 	gcp.tokenSource = s
 	return nil
+}
+
+func (gcp *Gcp) SetRunGetCredentials(v bool) {
+	gcp.runGetCredentials = v
 }
 
 type dmOperationEntry struct {
@@ -114,6 +123,9 @@ func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
 	_gcp := &Gcp{
 		kfDef:            kfdef,
 		gcpAccountGetter: GetGcloudDefaultAccount,
+
+		// Default to true for the CLI.
+		runGetCredentials: true,
 	}
 	return _gcp, nil
 }
@@ -750,15 +762,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	// Setup kube config
-	// TODO(#3061): figure out how to properly build config without kubeconfig.
-	// TODO(jlewi): Not sure about #3061. I think we only want to run gcloud get-credentials if running
-	// as a CLI and not when running on click to deploy. Should we check TokenSource? What's the best
-	// way to tell whether we are running in cluster?
-
-	accessToken, _ := gcp.kfDef.Spec.GetSecret(GcpAccessTokenName)
-
-	if accessToken == "" {
+	if gcp.runGetCredentials {
 		log.Infof("Running get-credentials to build .kubeconfig")
 		credCmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
 			gcp.kfDef.Name,
@@ -776,6 +780,8 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 		if _, err := os.Stat(kftypes.KubeConfigPath()); !os.IsNotExist(err) {
 			gcp.AddNamedContext()
 		}
+	} else {
+		log.Debugf("Not running gcloud get-credentials")
 	}
 	return nil
 }
