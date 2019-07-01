@@ -507,17 +507,16 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]inte
 		// Note kfdef.Spec.Packmanager might get set in getConfigFromCache.
 		// So we might need to backfill repos even if PackageManager is set.
 		hasRepo := false
-		for _, r := range kfdef.Spec.Repos {
-			if r.Name == kftypes.ManifestsRepoName {
-				hasRepo = true
-			}
+
+		if kfdef.GetRepo(kftypes.ManifestsRepoName) != nil {
+			hasRepo = true
 		}
 
 		if hasRepo {
 			log.Warnf("Repo %v exists in app.yaml ignoring version provided by --package-manager", kftypes.ManifestsRepoName)
 		} else {
 			root := fmt.Sprintf("manifests-%v", version)
-			kfdef.Spec.Repos = append(kfdef.Spec.Repos, kfdefsv2.Repo{
+			kfdef.SetRepo(kfdefsv2.Repo{
 				Name: kftypes.ManifestsRepoName,
 				Uri:  fmt.Sprintf("https://github.com/kubeflow/manifests/archive/%v.tar.gz", version),
 				Root: root,
@@ -526,6 +525,18 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]inte
 
 		// Make sure we strip out the "@"
 		kfdef.Spec.PackageManager = kftypes.KUSTOMIZE
+	}
+
+	// If we're using the new config codepath, check that a value has been given
+	// for the Kubeflow repo.
+	if options[string(kftypes.CONFIG)] != nil {
+		if kfdef.GetRepo(kftypes.KubeflowRepoName) == nil {
+			kfdef.SetRepo(kfdefsv2.Repo{
+				Name: kftypes.KubeflowRepoName,
+				Uri:  fmt.Sprintf("https://github.com/kubeflow/kubeflow/archive/master.tar.gz"),
+				Root: "kubeflow-master",
+			})
+		}
 	}
 
 	// For boolean options there is no way to test whether they have been explicitly set in KfDef or

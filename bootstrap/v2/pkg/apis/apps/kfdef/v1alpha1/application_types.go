@@ -534,6 +534,29 @@ func (d *KfDef) WriteToFile(path string) error {
 	return ioutil.WriteFile(path, buf, 0644)
 }
 
+// GetRepo returns the repo with the give name if it exists in spec,
+// otherwise it returns nil.
+func (d *KfDef) GetRepo(name string) *Repo {
+	for _, r := range d.Spec.Repos {
+		if r.Name == name {
+			return &r
+		}
+	}
+	return nil
+}
+
+// SetRepo adds the new repo to the Spec.Repos list.
+// If a repo with the same name exists, it overrides it.
+func (d *KfDef) SetRepo(new Repo) {
+	for i, r := range d.Spec.Repos {
+		if r.Name == new.Name {
+			d.Spec.Repos[i] = new
+			return
+		}
+	}
+	d.Spec.Repos = append(d.Spec.Repos, new)
+}
+
 type PluginNotFound struct {
 	Name string
 }
