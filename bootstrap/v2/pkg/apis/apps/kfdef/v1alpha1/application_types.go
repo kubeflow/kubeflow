@@ -18,8 +18,10 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
+	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"k8s.io/api/v2/core/v1"
@@ -102,6 +104,8 @@ type Repo struct {
 	Uri string `json:"uri,omitempty"`
 
 	// Root is the relative path to use as the root.
+	// TODO(jlewi): Get rid of this field. SyncCache now takes care of setting the directory
+	// as needed.
 	Root string `json:"root,omitempty"`
 }
 
@@ -319,6 +323,35 @@ func LoadKFDefFromURI(configFile string) (*KfDef, error) {
 
 // SyncCache will synchronize the local cache of any repositories.
 // On success the status is updated with pointers to the cache.
+//
+// TODO(jlewi): I'm not sure this handles head references correctly.
+// e.g. suppose we have a URI like
+// https://github.com/kubeflow/manifests/tarball/pull/189/head?archive=tar.gz
+// This gets unpacked to: kubeflow-manifests-e2c1bcb where e2c1bcb is the commit.
+// I don't think the code is currently setting the local directory for the cache correctly in
+// that case.
+//
+//
+// Using tarball vs. archive in github links affects the download path
+// e.g.
+// https://github.com/kubeflow/manifests/tarball/master?archive=tar.gz
+//    unpacks to  kubeflow-manifests-${COMMIT}
+// https://github.com/kubeflow/manifests/archive/master.tar.gz
+//    unpacks to manifests-master
+// Always use archive format so that the path is predetermined.
+//
+// Instructions: https://github.com/hashicorp/go-getter#protocol-specific-options
+//
+// What is the correct syntax for downloading pull requests?
+// The following doesn't seem to work
+// https://github.com/kubeflow/manifests/archive/master.tar.gz?ref=pull/188
+//   * Appears to download master
+//
+// This appears to work
+// https://github.com/kubeflow/manifests/tarball/pull/188/head?archive=tar.gz
+// But unpacks it into
+// kubeflow-manifests-${COMMIT}
+//
 func (d *KfDef) SyncCache() error {
 	if d.Spec.AppDir == "" {
 		return fmt.Errorf("AppDir must be specified")
@@ -344,12 +377,34 @@ func (d *KfDef) SyncCache() error {
 
 	for _, r := range d.Spec.Repos {
 		cacheDir := path.Join(baseCacheDir, r.Name)
-		// TODO(jlewi):
+
 		// Can we use a checksum or other mechanism to verify if the existing location is good?
 		// If there was a problem the first time around then removing it might provide a way to recover.
 		if _, err := os.Stat(cacheDir); err == nil {
-			log.Infof("%v exists; not resyncing ", cacheDir)
-			continue
+			if _, ok := d.Status.ReposCache[r.Name]; ok && d.Status.ReposCache[r.Name].LocalPath != "" {
+				log.Infof("%v exists; not resyncing ", cacheDir)
+				continue
+			}
+
+			log.Infof("Deleting cachedir %v because Status.ReposCache is out of date", cacheDir)
+
+			// TODO(jlewi): The reason the cachedir might exist but not be stored in KfDef.status
+			// is because of a backwards compatibility path in which we download the cache to construct
+			// the KfDef. Specifically coordinator.CreateKfDefFromOptions is calling kftypes.DownloadFromCache
+			// We don't want to rely on that method to set the cache because we have logic
+			// below to set LocalPath that we don't want to duplicate.
+			// Unfortunately this means we end up fetching the repo twice which is very inefficient.
+			if err := os.RemoveAll(cacheDir); err != nil {
+				log.Errorf("There was a problem deleting directory %v; error %v", cacheDir, err)
+				return errors.WithStack(err)
+			}
+		}
+
+		u, err := url.Parse(r.Uri)
+
+		if err != nil {
+			log.Errorf("Could not parse URI %v; error %v", r.Uri, err)
+			return errors.WithStack(err)
 		}
 
 		log.Infof("Fetching %v to %v", r.Uri, cacheDir)
@@ -361,10 +416,24 @@ func (d *KfDef) SyncCache() error {
 			}
 		}
 
-		log.Infof("Fetch succeeded")
-		d.Status.ReposCache[r.Name] = RepoCache{
-			LocalPath: path.Join(cacheDir, r.Root),
+		// This is a bit of a hack to deal with the fact that GitHub tarballs
+		// can unpack to a directory containing the commit.
+		localPath := cacheDir
+		if u.Scheme == "http" || u.Scheme == "https" {
+			files, filesErr := ioutil.ReadDir(cacheDir)
+			if filesErr != nil {
+				log.Errorf("Error reading cachedir; error %v", filesErr)
+				return errors.WithStack(filesErr)
+			}
+			subdir := files[0].Name()
+			localPath = path.Join(cacheDir, subdir)
 		}
+
+		d.Status.ReposCache[r.Name] = RepoCache{
+			LocalPath: localPath,
+		}
+
+		log.Infof("Fetch succeeded; LocalPath %v", d.Status.ReposCache[r.Name].LocalPath)
 	}
 	return nil
 }
@@ -384,7 +453,7 @@ func (d *KfDef) GetSecret(name string) (string, error) {
 
 		return "", fmt.Errorf("No secret source provided for secret %v", name)
 	}
-	return "", fmt.Errorf("No secret in KfDef named %v", name)
+	return "", NewSecretNotFound(name)
 }
 
 // SetSecret sets the specified secret; if a secret with the given name already exists it is overwritten.
@@ -509,7 +578,6 @@ func (d *KfDef) IsValid() (bool, string) {
 // WriteToFile write the KfDef to a file.
 // WriteToFile will strip out any literal secrets before writing it
 func (d *KfDef) WriteToFile(path string) error {
-
 	stripped := d.DeepCopy()
 
 	secrets := make([]Secret, 0)
@@ -534,6 +602,11 @@ func (d *KfDef) WriteToFile(path string) error {
 	return ioutil.WriteFile(path, buf, 0644)
 }
 
+// WriteToConfigFile writes the config to ${APPDIR}/${KFCONFIGFILE}
+func (d *KfDef) WriteToConfigFile() error {
+	return d.WriteToFile(path.Join(d.Spec.AppDir, KfConfigFile))
+}
+
 type PluginNotFound struct {
 	Name string
 }
@@ -549,6 +622,31 @@ func NewPluginNotFound(n string) *PluginNotFound {
 }
 
 func IsPluginNotFound(e error) bool {
+	if e == nil {
+		return false
+	}
 	_, ok := e.(*PluginNotFound)
+	return ok
+}
+
+type SecretNotFound struct {
+	Name string
+}
+
+func (e *SecretNotFound) Error() string {
+	return fmt.Sprintf("Missing secret %v", e.Name)
+}
+
+func NewSecretNotFound(n string) *SecretNotFound {
+	return &SecretNotFound{
+		Name: n,
+	}
+}
+
+func IsSecretNotFound(e error) bool {
+	if e == nil {
+		return false
+	}
+	_, ok := e.(*SecretNotFound)
 	return ok
 }

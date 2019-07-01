@@ -68,7 +68,14 @@ import (
 //	g.Expect(c.Get(context.TODO(), key, fetched)).To(gomega.HaveOccurred())
 //}
 
+// TODO(jlewi): We should add a unittest for the case where Status.ReposCache
+// points to some incorrect locations but the actual cache dir exists and is correct.
 func TestSyncCache(t *testing.T) {
+	type testCase struct {
+		input    *KfDef
+		expected map[string]RepoCache
+	}
+
 	// Verify that we can sync some files.
 	testDir, _ := ioutil.TempDir("", "")
 
@@ -81,29 +88,77 @@ func TestSyncCache(t *testing.T) {
 
 	ioutil.WriteFile(path.Join(srcDir, "file1"), []byte("hello world"), os.ModePerm)
 
-	appDir := path.Join(testDir, "app")
-	d := &KfDef{
-		Spec: KfDefSpec{
-			AppDir: appDir,
-			Repos: []Repo{{
-				Name: "testrepo",
-				Uri:  srcDir,
+	repoName := "testRepo"
+
+	testCases := []testCase{
+		{
+			input: &KfDef{
+				Spec: KfDefSpec{
+					AppDir: path.Join(testDir, "app1"),
+					Repos: []Repo{{
+						Name: repoName,
+						Uri:  srcDir,
+					},
+					},
+				},
 			},
+			expected: map[string]RepoCache{
+				repoName: {
+					LocalPath: path.Join(testDir, "app1", ".cache", repoName),
+				},
 			},
 		},
+		// The following test cases pull from GitHub. The may be worth commenting
+		// out in the unittests and only running manually
+		//{
+		//	input: &KfDef{
+		//		Spec: KfDefSpec{
+		//			AppDir: path.Join(testDir, "app2"),
+		//			Repos: []Repo{{
+		//				Name: repoName,
+		//				Uri:  "https://github.com/kubeflow/manifests/archive/master.tar.gz",
+		//			},
+		//			},
+		//		},
+		//	},
+		//	expected: map[string]RepoCache {
+		//		repoName: {
+		//			LocalPath: path.Join(testDir, "app2", ".cache", repoName, "manifests-master"),
+		//		},
+		//	},
+		//},
+		//{
+		//	input: &KfDef{
+		//		Spec: KfDefSpec{
+		//			AppDir: path.Join(testDir, "app3"),
+		//			Repos: []Repo{{
+		//				Name: repoName,
+		//				Uri:  "https://github.com/kubeflow/manifests/tarball/pull/187/head?archive=tar.gz",
+		//			},
+		//			},
+		//		},
+		//	},
+		//	expected: map[string]RepoCache {
+		//		repoName: {
+		//			LocalPath: path.Join(testDir, "app3", ".cache", repoName, "kubeflow-manifests-c04764b"),
+		//		},
+		//	},
+		//},
 	}
 
-	err = d.SyncCache()
+	for _, c := range testCases {
+		err = c.input.SyncCache()
 
-	if err != nil {
-		t.Fatalf("Could not sync cache; %v", err)
+		if err != nil {
+			t.Fatalf("Could not sync cache; %v", err)
+		}
+
+		actual := c.input.Status.ReposCache[repoName].LocalPath
+		expected := c.expected[repoName].LocalPath
+		if actual != expected {
+			t.Fatalf("LocalPath; got %v; want %v", actual, expected)
+		}
 	}
-
-	expectedDir := path.Join(appDir, ".cache", "testrepo")
-	if d.Status.ReposCache["testrepo"].LocalPath != path.Join(expectedDir) {
-		t.Fatalf("LocalPath; want %v; got %v", expectedDir, d.Status.ReposCache["testrepo"].LocalPath)
-	}
-
 }
 
 func TestWriteKfDef(t *testing.T) {
