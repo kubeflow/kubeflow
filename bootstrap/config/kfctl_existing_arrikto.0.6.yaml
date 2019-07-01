@@ -94,6 +94,11 @@ spec:
   - tf-training
   - pipeline
   - profiles
-  useBasicAuth: false
   useIstio: true
-status: {}
+  repos:
+  - name: manifests
+    root: manifests-master
+    uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
+  - name: kubeflow
+    root: kubeflow-master
+    uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
