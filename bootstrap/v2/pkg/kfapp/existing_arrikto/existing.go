@@ -45,8 +45,8 @@ type manifest struct {
 
 func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
 
-	log.Info("Repo Dir:", kfdef.Spec.Repo)
-	istioManifestsDir := path.Join(path.Dir(kfdef.Spec.Repo), "deployment/existing/istio")
+	kfRepoDir := kfdef.Status.ReposCache[kftypes.KubeflowRepoName].LocalPath
+	istioManifestsDir := path.Join(kfRepoDir, "deployment/existing/istio")
 	istioManifests := []manifest{
 		{
 			name: "Istio CRDs",
@@ -58,7 +58,7 @@ func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
 		},
 	}
 
-	authOIDCManifestsDir := path.Join(path.Dir(kfdef.Spec.Repo), "deployment/existing/auth_oidc")
+	authOIDCManifestsDir := path.Join(kfRepoDir, "deployment/existing/auth_oidc")
 	authOIDCManifests := []manifest{
 		{
 			name: "Istio Gateway",
@@ -155,7 +155,8 @@ func (existing *Existing) Apply(resources kftypes.ResourceEnum) error {
 	}
 
 	// Generate YAML from the dex, authservice templates
-	authOIDCManifestsDir := path.Join(path.Dir(existing.Spec.Repo), "deployment/existing/auth_oidc")
+	kfRepoDir := existing.Status.ReposCache[kftypesv2.KubeflowRepo].LocalPath
+	authOIDCManifestsDir := path.Join(kfRepoDir, "deployment/existing/auth_oidc")
 	err = generateFromGoTemplate(
 		path.Join(authOIDCManifestsDir, "authservice.tmpl"),
 		path.Join(authOIDCManifestsDir, "authservice.yaml"),
