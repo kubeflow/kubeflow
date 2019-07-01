@@ -109,6 +109,7 @@ func (r *kfctlRouter) RegisterEndpoints() {
 // the specific error message from the response body. Primarily useful in a
 // client.
 func decodeHTTPCreateResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	log.Infof("DO NOT SUBMIT decodeHttpCreateResponse")
 	if r.StatusCode != http.StatusOK {
 		// Try to decode the error as an httpError
 		h := httpError{}
@@ -119,7 +120,7 @@ func decodeHTTPCreateResponse(_ context.Context, r *http.Response) (interface{},
 
 		return nil, errors.New(r.Status)
 	}
-	var resp CreateResponse
+	var resp kfdefs.KfDef
 	err := json.NewDecoder(r.Body).Decode(&resp)
 	return resp, err
 }
