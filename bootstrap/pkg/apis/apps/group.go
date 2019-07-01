@@ -147,9 +147,9 @@ func RemoveItem(defaults []string, name string) []string {
 
 // Platforms
 const (
-	GCP      = "gcp"
-	MINIKUBE = "minikube"
-	EXISTING = "existing"
+	GCP              = "gcp"
+	MINIKUBE         = "minikube"
+	EXISTING_ARRIKTO = "existing_arrikto"
 )
 
 // PackageManagers

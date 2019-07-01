@@ -5,7 +5,7 @@ metadata:
   namespace: kubeflow
 spec:
   # Platform existing for pre-existing K8s
-  platform: existing
+  platform: existing_arrikto
   componentParams:
     argo:
     - name: overlay
