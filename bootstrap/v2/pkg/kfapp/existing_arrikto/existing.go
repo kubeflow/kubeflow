@@ -38,6 +38,11 @@ type Existing struct {
 	authOIDCManifests []manifest
 }
 
+type manifest struct {
+	name string
+	path string
+}
+
 func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
 
 	log.Info("Repo Dir:", kfdef.Spec.Repo)
@@ -208,7 +213,7 @@ func (existing *Existing) Delete(resources kftypes.ResourceEnum) error {
 
 	rev := func(manifests []manifest) []manifest {
 		r := []manifest{}
-		max := len(manifests) - 1
+		max := len(manifests)
 		for i := 0; i < max; i++ {
 			r = append(r, manifests[max-1-i])
 		}
@@ -313,12 +318,6 @@ func getLBIP(kubeclient client.Client) (string, error) {
 	}
 	log.Infof("Found Istio Gateway's External IP: %s", lbIP)
 	return lbIP, nil
-}
-
-type manifest struct {
-	name              string
-	path              string
-	namespaceOverride string
 }
 
 func applyManifests(manifests []manifest) error {
