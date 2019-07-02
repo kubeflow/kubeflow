@@ -303,10 +303,37 @@ func getEndpoints(kubeclient client.Client) (string, string, error) {
 }
 
 func createSelfSignedCerts(kubeclient client.Client, addr string) error {
+
+	cert, key, err := generateCert(addr)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	// Create secret from them
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "istio-ingressgateway-certs",
+			Namespace: "istio-system",
+		},
+		Data: map[string][]byte{
+			"tls.crt": cert,
+			"tls.key": key,
+		},
+	}
+	if err := kubeclient.Create(context.TODO(), secret); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
+// generateCert returns the self-signed key and cert for
+// a given address.
+func generateCert(addr string) ([]byte, []byte, error) {
 	// Generate private key
 	key, err := rsa.GenerateKey(cryptorand.Reader, 2048)
 	if err != nil {
-		return errors.WithStack(err)
+		return nil, nil, errors.WithStack(err)
 	}
 	// Generate certificate
 	now := time.Now()
@@ -321,16 +348,19 @@ func createSelfSignedCerts(kubeclient client.Client, addr string) error {
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		BasicConstraintsValid: true,
 		IsCA:                  true,
-		IPAddresses:           []net.IP{net.ParseIP(addr)},
+	}
+
+	if ip := net.ParseIP(addr); ip != nil {
+		tmpl.IPAddresses = []net.IP{ip}
 	}
 
 	certDERBytes, err := x509.CreateCertificate(cryptorand.Reader, &tmpl, &tmpl, key.Public(), key)
 	if err != nil {
-		return errors.WithStack(err)
+		return nil, nil, errors.WithStack(err)
 	}
 	certificate, err := x509.ParseCertificate(certDERBytes)
 	if err != nil {
-		return errors.WithStack(err)
+		return nil, nil, errors.WithStack(err)
 	}
 
 	// PEM Encode both
@@ -339,7 +369,7 @@ func createSelfSignedCerts(kubeclient client.Client, addr string) error {
 		Type:  "CERTIFICATE",
 		Bytes: certificate.Raw,
 	}); err != nil {
-		return err
+		return nil, nil, errors.WithStack(err)
 	}
 
 	keyBuffer := bytes.Buffer{}
@@ -347,25 +377,10 @@ func createSelfSignedCerts(kubeclient client.Client, addr string) error {
 		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(key),
 	}); err != nil {
-		return err
+		return nil, nil, errors.WithStack(err)
 	}
 
-	// Create secret from them
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "istio-ingressgateway-certs",
-			Namespace: "istio-system",
-		},
-		Data: map[string][]byte{
-			"tls.crt": certBuffer.Bytes(),
-			"tls.key": keyBuffer.Bytes(),
-		},
-	}
-	if err := kubeclient.Create(context.TODO(), secret); err != nil {
-		return errors.WithStack(err)
-	}
-
-	return nil
+	return certBuffer.Bytes(), keyBuffer.Bytes(), nil
 }
 
 func getLBIP(kubeclient client.Client) (string, error) {
