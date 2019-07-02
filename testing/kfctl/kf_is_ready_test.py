@@ -39,7 +39,7 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
       "cloud-endpoints-controller",
       "jupyter-web-app-deployment",
       "metadata-db",
-      "metadata-service",
+      "metadata-deployment",
       "metadata-ui",
       "ml-pipeline",
       "ml-pipeline-scheduledworkflow",
