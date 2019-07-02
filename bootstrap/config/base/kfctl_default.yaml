@@ -32,7 +32,9 @@ spec:
   - katib-controller
   - katib-ui
   - metrics-collector
-  - metadata
+  - metadata-db
+  - metadata-service
+  - metadata-ui
   - suggestion
   - notebook-controller
   - pytorch-job-crds

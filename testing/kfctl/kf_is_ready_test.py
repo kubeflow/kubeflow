@@ -38,6 +38,9 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
       "cert-manager",
       "cloud-endpoints-controller",
       "jupyter-web-app-deployment",
+      "metadata-db",
+      "metadata-service",
+      "metadata-ui",
       "ml-pipeline",
       "ml-pipeline-scheduledworkflow",
       "ml-pipeline-ui",
@@ -61,7 +64,7 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
   for deployment_name in deployment_names:
     logging.info("Verifying that deployment %s started...", deployment_name)
     util.wait_for_deployment(api_client, namespace, deployment_name)
-  
+
   ingress_namespace = "istio-system" if use_istio else namespace
   for deployment_name in ingress_related_deployments:
     logging.info("Verifying that deployment %s started...", deployment_name)
