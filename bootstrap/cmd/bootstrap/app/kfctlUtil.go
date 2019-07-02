@@ -2,12 +2,10 @@ package app
 
 import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
+	//"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	log "github.com/sirupsen/logrus"
+	//log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
-	"os"
-	"path"
 )
 
 // ToKfdef will output CreateRequest in format of kfdefs.KfDef
@@ -40,25 +38,25 @@ func (cr *CreateRequest) ToKfdef(appDir string, repo string, istio bool) (*kfdef
 
 func (s *ksServer) DeployWithKfctl(req *CreateRequest) error {
 	// pull versioned kubeflow repo
-	ksRegistry := kfdefsv2.GetDefaultRegistry()
-	ksRegistry.Version = req.KfVersion
-	versionedRegPath, err := s.getRegistryUri(ksRegistry)
-	if err != nil {
-		return err
-	}
-
-	// pull source repo to random tmp dir
-	repoDir, err := s.CloneRepoToLocal(req.Project, req.Token, GetRepoNameKfctl(req.Project))
-	// clean up tmp dir afterwards
-	defer os.RemoveAll(repoDir)
-	if err != nil {
-		return err
-	}
-	ksAppDir := path.Join(repoDir, GetRepoNameKfctl(req.Project), req.KfVersion, req.Name)
-	kfdef, err := req.ToKfdef(ksAppDir, versionedRegPath, s.installIstio)
-	if err != nil {
-		return err
-	}
+	//ksRegistry := kfdefsv2.GetDefaultRegistry()
+	//ksRegistry.Version = req.KfVersion
+	//versionedRegPath, err := s.getRegistryUri(ksRegistry)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//// pull source repo to random tmp dir
+	//repoDir, err := s.CloneRepoToLocal(req.Project, req.Token, GetRepoNameKfctl(req.Project))
+	//// clean up tmp dir afterwards
+	//defer os.RemoveAll(repoDir)
+	//if err != nil {
+	//	return err
+	//}
+	//ksAppDir := path.Join(repoDir, GetRepoNameKfctl(req.Project), req.KfVersion, req.Name)
+	//kfdef, err := req.ToKfdef(ksAppDir, versionedRegPath, s.installIstio)
+	//if err != nil {
+	//	return err
+	//}
 	//gcpArgs := gcp.GcpArgs{
 	//	AccessToken:   req.Token,
 	//	StorageOption: req.StorageOption,
@@ -85,19 +83,19 @@ func (s *ksServer) DeployWithKfctl(req *CreateRequest) error {
 	//	log.Errorf("Failed encoding gcp args: %v", err)
 	//	return err
 	//}
-	coord := coordinator.GetKfApp(kfdef)
-
-	if err = coord.Generate(kftypes.ALL); err != nil {
-		return err
-	}
-	if err = coord.Apply(kftypes.ALL); err != nil {
-		return err
-	}
-
-	err = SaveAppToRepo(req.Email, path.Join(repoDir, GetRepoNameKfctl(req.Project)))
-	if err != nil {
-		log.Errorf("There was a problem saving config to cloud repo; %v", err)
-		return err
-	}
+	//coord := coordinator.GetKfApp(kfdef)
+	//
+	//if err = coord.Generate(kftypes.ALL); err != nil {
+	//	return err
+	//}
+	//if err = coord.Apply(kftypes.ALL); err != nil {
+	//	return err
+	//}
+	//
+	//err = SaveAppToRepo(req.Email, path.Join(repoDir, GetRepoNameKfctl(req.Project)))
+	//if err != nil {
+	//	log.Errorf("There was a problem saving config to cloud repo; %v", err)
+	//	return err
+	//}
 	return nil
 }

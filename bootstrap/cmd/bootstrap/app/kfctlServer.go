@@ -223,6 +223,15 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 			Code:    http.StatusInternalServerError,
 		}
 	}
+
+	if k8sRest == nil {
+		log.Errorf("K8sRestConfig is nil; error %v", err)
+		return s.kfDefGetter.GetKfDef(), &httpError{
+			Message: "Internal service error please try again later.",
+			Code:    http.StatusInternalServerError,
+		}
+	}
+
 	kPluginSetter.SetK8sRestConfig(k8sRest)
 
 	log.Infof("Calling apply K8s")
