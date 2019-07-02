@@ -98,14 +98,14 @@ export class DashboardView extends PolymerElement {
                         link: `/jupyter/new?namespace=kubeflow`,
                     },
                     {
-                        text: 'View all TF Jobs',
-                        desc: 'TF Jobs',
-                        link: `/tfjobs/ui/`,
-                    },
-                    {
                         text: 'View Katib Studies',
                         desc: 'Katib',
                         link: `/katib/`,
+                    },
+                    {
+                        text: 'View Metadata Artifacts',
+                        desc: 'Artifact Store',
+                        link: `/metadata/`,
                     },
                 ],
             },
