@@ -247,6 +247,31 @@ type RepoCache struct {
 
 type KfDefConditionType string
 
+const (
+	// JobCreated means the job has been accepted by the system,
+	// but one or more of the pods/services has not been started.
+	// This includes time before pods being scheduled and launched.
+	KfCreated KfDefConditionType = "Created"
+
+	// JobRunning means all sub-resources (e.g. services/pods) of this job
+	// have been successfully scheduled and launched.
+	// The training is running without error.
+	KfDeploying KfDefConditionType = "Deploying"
+
+	// JobSucceeded means all sub-resources (e.g. services/pods) of this job
+	// reached phase have terminated in success.
+	// The training is complete without error.
+	KfSucceeded KfDefConditionType = "Succeeded"
+
+	// JobFailed means one or more sub-resources (e.g. services/pods) of this job
+	// reached phase failed with no restarting.
+	// The training has failed its execution.
+	KfFailed KfDefConditionType = "Failed"
+
+	// Reasons for conditions
+	InvalidKfDefSpecReason = "InvalidKfDefSpec"
+)
+
 type KfDefCondition struct {
 	// Type of deployment condition.
 	Type KfDefConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=KfDefConditionType"`
@@ -577,6 +602,7 @@ func (d *KfDef) IsValid() (bool, string) {
 	if d.Spec.PackageManager == "" {
 		return false, fmt.Sprintf("KfDef.Spec.PackageManager is required")
 	}
+
 	return true, ""
 }
 
@@ -654,4 +680,102 @@ func IsSecretNotFound(e error) bool {
 	}
 	_, ok := e.(*SecretNotFound)
 	return ok
+}
+
+func getParameter(parameters []config.NameValue, paramName string) (string, bool) {
+	for _, p := range parameters {
+		if p.Name == paramName {
+			return p.Value, true
+		}
+	}
+
+	return "", false
+}
+
+func setParameter(parameters []config.NameValue, paramName string, value string) []config.NameValue {
+	pIndex := -1
+
+	for i, p := range parameters {
+		if p.Name == paramName {
+			pIndex = i
+		}
+	}
+
+	if pIndex < 0 {
+		parameters = append(parameters, config.NameValue{})
+		pIndex = len(parameters) - 1
+	}
+
+	parameters[pIndex].Name = paramName
+	parameters[pIndex].Value = value
+
+	return parameters
+}
+
+type AppNotFound struct {
+	Name string
+}
+
+func (e *AppNotFound) Error() string {
+	return fmt.Sprintf("Application %v is missing", e.Name)
+}
+
+func IsAppNotFound(e error) bool {
+	if e == nil {
+		return false
+	}
+	_, ok := e.(*AppNotFound)
+	return ok
+}
+
+// GetApplicationParameter gets the desired application parameter.
+func (d *KfDef) GetApplicationParameter(appName string, paramName string) (string, bool) {
+	// First we check applications for an application with the specified name.
+	if d.Spec.Applications != nil {
+		for _, a := range d.Spec.Applications {
+			if a.Name == appName {
+				return getParameter(a.KustomizeConfig.Parameters, paramName)
+			}
+		}
+	}
+
+	// Since an application with the specified name wasn't found check the deprecated componentParams
+	if _, ok := d.Spec.ComponentParams[appName]; ok {
+		return getParameter(d.Spec.ComponentParams[appName], paramName)
+	}
+
+	return "", false
+}
+
+// SetApplicationParameter sets the desired application parameter.
+func (d *KfDef) SetApplicationParameter(appName string, paramName string, value string) error {
+	// First we check applications for an application with the specified name.
+	if d.Spec.Applications != nil {
+		appIndex := -1
+		for i, a := range d.Spec.Applications {
+			if a.Name == appName {
+				appIndex = i
+			}
+		}
+
+		if appIndex >= 0 {
+
+			if d.Spec.Applications[appIndex].KustomizeConfig == nil {
+				return errors.WithStack(fmt.Errorf("Application %v doesn't have KustomizeConfig", appName))
+			}
+
+			d.Spec.Applications[appIndex].KustomizeConfig.Parameters = setParameter(
+				d.Spec.Applications[appIndex].KustomizeConfig.Parameters, paramName, value)
+
+			return nil
+		}
+	}
+
+	// Since an application with the specified name wasn't found check the deprecated componentParams
+	if _, ok := d.Spec.ComponentParams[appName]; ok {
+		d.Spec.ComponentParams[appName] = setParameter(d.Spec.ComponentParams[appName], paramName, value)
+		return nil
+	}
+
+	return &AppNotFound{Name: appName}
 }
