@@ -4,7 +4,7 @@ from . import api
 from . import utils
 
 # The BaseApp is a Blueprint that other UIs will use
-app = Blueprint('base_app', __name__)
+app = Blueprint("base_app", __name__)
 logger = utils.create_logger(__name__)
 
 
@@ -21,11 +21,11 @@ def prefix():
 def get_notebooks(namespace):
     data = api.get_notebooks(namespace)
 
-    if not data['success']:
+    if not data["success"]:
         return jsonify(data)
 
-    data['notebooks'] = [utils.process_resource(nb)
-                         for nb in data['notebooks']['items']]
+    data["notebooks"] = [utils.process_resource(nb)
+                         for nb in data["notebooks"]["items"]]
     return jsonify(data)
 
 
@@ -33,15 +33,15 @@ def get_notebooks(namespace):
 def get_poddefaults(namespace):
     data = api.get_poddefaults(namespace)
 
-    if not data['success']:
+    if not data["success"]:
         return jsonify(data)
 
     # Return a list of (label, desc) with the pod defaults
     pdefaults = []
     for pd in data["poddefaults"]["items"]:
-        label = list(pd['spec']['selector']['matchLabels'].keys())[0]
-        desc = pd['spec']['desc']
-        pdefaults.append({'label': label, 'desc': desc})
+        label = list(pd["spec"]["selector"]["matchLabels"].keys())[0]
+        desc = pd["spec"]["desc"]
+        pdefaults.append({"label": label, "desc": desc})
 
     logger.info("Found poddefaults: {}".format(pdefaults))
     data["poddefaults"] = pdefaults
@@ -51,10 +51,10 @@ def get_poddefaults(namespace):
 @app.route("/api/namespaces/<namespace>/pvcs")
 def get_pvcs(namespace):
     data = api.get_pvcs(namespace)
-    if not data['success']:
+    if not data["success"]:
         return jsonify(data)
 
-    data['pvcs'] = [utils.process_pvc(pvc) for pvc in data['pvcs'].items]
+    data["pvcs"] = [utils.process_pvc(pvc) for pvc in data["pvcs"].items]
 
     return jsonify(data)
 
@@ -64,9 +64,9 @@ def get_namespaces():
     data = api.get_namespaces()
 
     # Result must be jsonify-able
-    if data['success']:
-        nmsps = data['namespaces']
-        data['namespaces'] = [ns.metadata.name for ns in nmsps.items]
+    if data["success"]:
+        nmsps = data["namespaces"]
+        data["namespaces"] = [ns.metadata.name for ns in nmsps.items]
 
     return jsonify(data)
 
@@ -76,9 +76,9 @@ def get_storageclasses():
     data = api.get_storageclasses()
 
     # Result must be jsonify-able
-    if data['success']:
-        scs = data['storageclasses']
-        data['storageclasses'] = [sc.metadata.name for sc in scs.items]
+    if data["success"]:
+        scs = data["storageclasses"]
+        data["storageclasses"] = [sc.metadata.name for sc in scs.items]
 
     return jsonify(data)
 
@@ -86,13 +86,13 @@ def get_storageclasses():
 @app.route("/api/storageclasses/default")
 def get_default_storageclass():
     data = api.get_storageclasses()
-    if not data['success']:
+    if not data["success"]:
         return jsonify({
-            'success': False,
-            'log': data['log']
+            "success": False,
+            "log": data["log"]
         })
 
-    strg_classes = data['storageclasses'].items
+    strg_classes = data["storageclasses"].items
     for strgclss in strg_classes:
         annotations = strgclss.metadata.annotations
         if annotations is None:
@@ -108,14 +108,14 @@ def get_default_storageclass():
             is_default = annotations.get(key, "false")
         if is_default == "true":
             return jsonify({
-                'success': True,
-                'defaultStorageClass': strgclss.metadata.name
+                "success": True,
+                "defaultStorageClass": strgclss.metadata.name
             })
 
     # No StorageClass is default
     return jsonify({
-        'success': True,
-        'defaultStorageClass': ''
+        "success": True,
+        "defaultStorageClass": ""
     })
 
 
@@ -123,25 +123,25 @@ def get_default_storageclass():
 def get_config():
     data = {"success": True}
 
-    data['config'] = utils.spawner_ui_config()
+    data["config"] = utils.spawner_ui_config()
     return jsonify(data)
 
 
 # POSTers
-@app.route("/api/namespaces/<namespace>/pvcs", methods=['POST'])
+@app.route("/api/namespaces/<namespace>/pvcs", methods=["POST"])
 def post_pvc(namespace):
     body = request.get_json()
 
     pvc = client.V1PersistentVolumeClaim(
         metadata=client.V1ObjectMeta(
-            name=body['name'],
+            name=body["name"],
             namespace=namespace
         ),
         spec=client.V1PersistentVolumeClaimSpec(
-            access_modes=[body['mode']],
+            access_modes=[body["mode"]],
             resources=client.V1ResourceRequirements(
                 requests={
-                    'storage': body['size'] + 'Gi'
+                    "storage": body["size"] + "Gi"
                 }
             )
         )
@@ -152,10 +152,10 @@ def post_pvc(namespace):
 
 # DELETErs
 @app.route("/api/namespaces/<namespace>/notebooks/<notebook>",
-           methods=['DELETE'])
+           methods=["DELETE"])
 def delete_notebook(namespace, notebook):
     return jsonify(api.delete_notebook(namespace, notebook))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(host="0.0.0.0")
