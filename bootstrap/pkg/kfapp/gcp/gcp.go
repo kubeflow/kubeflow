@@ -120,17 +120,13 @@ func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
 }
 
 // GetPluginSpec gets the plugin spec.
-func (gcp *Gcp) GetPluginSpec() *GcpPluginSpec {
+func (gcp *Gcp) GetPluginSpec() (*GcpPluginSpec, error) {
 	// Not passing a pointer interface is a common cause of deserialization problems
 	pluginSpec := &GcpPluginSpec{}
 
-	// It should be fine to swallow the error
-	if err := gcp.kfDef.GetPluginSpec(GcpPluginName, pluginSpec); err != nil {
-		err := errors.Wrap(err, "failed to get GcpPluginSpec")
-		log.Errorf("%v", err)
-	}
+	err := gcp.kfDef.GetPluginSpec(GcpPluginName, pluginSpec)
 
-	return pluginSpec
+	return pluginSpec, err
 }
 
 // initGcpClient initializes the clients to talk to GCP.
@@ -149,7 +145,7 @@ func (gcp *Gcp) initGcpClient() error {
 		// If accessToken is provided gcp.TokenSource should be set and we should use
 		// that.
 		if _, err := gcp.kfDef.GetSecret(GcpAccessTokenName); !kfdefs.IsSecretNotFound(err) {
-			return errors.WithStack(fmt.Errorf("Creating a default token source when AccessToken is provided is disallowed"))
+			return errors.WithStack(fmt.Errorf("Gcp.tokenSource is nil and secret %v is in KfDef; Gcp.tokenSource must be set explicitly; using a default token source is not allowed in this case", GcpAccessTokenName))
 		}
 		log.Infof("Creating default token source")
 		tokenSource, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
@@ -510,7 +506,11 @@ func (gcp *Gcp) ConfigK8s() error {
 	// For deploy app, request will use service account credential instead of user credential.
 	bindAccount := gcp.kfDef.Spec.Email
 
-	pluginSpec := gcp.GetPluginSpec()
+	pluginSpec, err := gcp.GetPluginSpec()
+
+	if err != nil {
+		return err
+	}
 
 	if pluginSpec.SAClientId != "" {
 		log.Infof("Granting service account K8s permission.")
@@ -803,7 +803,11 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 		return errors.WithMessagef(err, "Gcp.Apply Could not initatie a GCP client")
 	}
 
-	p := gcp.GetPluginSpec()
+	p, err := gcp.GetPluginSpec()
+
+	if err != nil {
+		return err
+	}
 
 	if isValid, msg := p.IsValid(); !isValid {
 		log.Errorf("GcpPluginSpec isn't valid; error %v", msg)
@@ -1275,7 +1279,11 @@ func (gcp *Gcp) writeStorageConfig(src string, dest string) error {
 }
 
 func (gcp *Gcp) generateDMConfigs() error {
-	pluginSpec := gcp.GetPluginSpec()
+	pluginSpec, err := gcp.GetPluginSpec()
+
+	if err != nil {
+		return nil
+	}
 
 	appDir := gcp.kfDef.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
@@ -1420,7 +1428,12 @@ func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientse
 
 // User CLIENT_ID and CLIENT_SECRET from GCP to create a secret for IAP.
 func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset) error {
-	p := gcp.GetPluginSpec()
+	p, err := gcp.GetPluginSpec()
+
+	if err != nil {
+		return err
+	}
+
 	oauthSecretNamespace := gcp.kfDef.Namespace
 
 	if p.Auth == nil {
@@ -1476,7 +1489,11 @@ func base64EncryptPassword(password string) (string, error) {
 
 // TODO(jlewi): Add a unittest to this function.
 func (gcp *Gcp) buildBasicAuthSecret() (*v1.Secret, error) {
-	p := gcp.GetPluginSpec()
+	p, err := gcp.GetPluginSpec()
+
+	if err != nil {
+		return nil, err
+	}
 
 	if p.Auth == nil || p.Auth.BasicAuth == nil || p.Auth.BasicAuth.Password.Name == "" {
 		err := errors.WithStack(fmt.Errorf("BasicAuth.Password.Name must be set"))
