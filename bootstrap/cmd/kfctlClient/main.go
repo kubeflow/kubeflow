@@ -160,6 +160,7 @@ func run(opt *ServerOption) error {
 
 	checkAccess(opt.Project, token.AccessToken)
 
+	// TODO(jlewi) continually retry and wait for success or failure
 	ctx := context.Background()
 	res, err := c.CreateDeployment(ctx, *d)
 

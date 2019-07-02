@@ -366,6 +366,8 @@ func blockingWait(project string, deploymentmanagerService *deploymentmanager.Se
 }
 
 func (gcp *Gcp) updateDeployment(deploymentmanagerService *deploymentmanager.Service, deployment string,
+	// TODO(jlewi): We should attach labels.
+	// https://cloud.google.com/deployment-manager/docs/reference/latest/deployments#resource
 	yamlfile string) (*dmOperationEntry, error) {
 	appDir := gcp.kfDef.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
@@ -373,8 +375,18 @@ func (gcp *Gcp) updateDeployment(deploymentmanagerService *deploymentmanager.Ser
 
 	filePath := filepath.Join(gcpConfigDir, yamlfile)
 	dp := &deploymentmanager.Deployment{
-		Name: deployment,
+		Name:   deployment,
+		Labels: []*deploymentmanager.DeploymentLabelEntry{},
 	}
+
+	// Add the labels
+	for k, v := range gcp.kfDef.Labels {
+		dp.Labels = append(dp.Labels, &deploymentmanager.DeploymentLabelEntry{
+			Key:   k,
+			Value: v,
+		})
+	}
+
 	if target, targetErr := generateTarget(filePath); targetErr != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
@@ -408,6 +420,7 @@ func (gcp *Gcp) updateDeployment(deploymentmanagerService *deploymentmanager.Ser
 		}, nil
 	} else {
 		log.Infof("Creating deployment %v", deployment)
+		log.Infof("Deployment spec:\n%v", utils.PrettyPrint(dp))
 		op, insertErr := deploymentmanagerService.Deployments.Insert(project, dp).Context(ctx).Do()
 		if insertErr != nil {
 			return nil, &kfapis.KfError{
@@ -641,52 +654,32 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	if _, storageStatErr := os.Stat(path.Join(gcp.kfDef.Spec.AppDir, GCP_CONFIG, STORAGE_FILE)); !os.IsNotExist(storageStatErr) {
 		storageEntry, err := gcp.updateDeployment(deploymentmanagerService, gcp.kfDef.Name+"-storage", STORAGE_FILE)
 		if err != nil {
-			return &kfapis.KfError{
-				Code: err.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("could not update %v: %v", STORAGE_FILE,
-					err.(*kfapis.KfError).Message),
-			}
+			return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("could not update %v", STORAGE_FILE))
 		}
 		dmOperationEntries = append(dmOperationEntries, storageEntry)
 	}
 	dmEntry, err := gcp.updateDeployment(deploymentmanagerService, gcp.kfDef.Name, CONFIG_FILE)
 	if err != nil {
-		return &kfapis.KfError{
-			Code: err.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("could not update %v: %v", CONFIG_FILE,
-				err.(*kfapis.KfError).Message),
-		}
+		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("could not update %v", CONFIG_FILE))
 	}
 	dmOperationEntries = append(dmOperationEntries, dmEntry)
 	if _, networkStatErr := os.Stat(path.Join(gcp.kfDef.Spec.AppDir, GCP_CONFIG, NETWORK_FILE)); networkStatErr == nil {
 		networkEntry, err := gcp.updateDeployment(deploymentmanagerService, gcp.kfDef.Name+"-network", NETWORK_FILE)
 		if err != nil {
-			return &kfapis.KfError{
-				Code: err.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("could not update %v: %v", NETWORK_FILE,
-					err.(*kfapis.KfError).Message),
-			}
+			return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("could not update %v", NETWORK_FILE))
 		}
 		dmOperationEntries = append(dmOperationEntries, networkEntry)
 	}
 	if _, gcfsStatErr := os.Stat(path.Join(gcp.kfDef.Spec.AppDir, GCP_CONFIG, GCFS_FILE)); gcfsStatErr == nil {
 		gcfsEntry, err := gcp.updateDeployment(deploymentmanagerService, gcp.kfDef.Name+"-gcfs", GCFS_FILE)
 		if err != nil {
-			return &kfapis.KfError{
-				Code: err.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("could not update %v: %v", GCFS_FILE,
-					err.(*kfapis.KfError).Message),
-			}
+			return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("could not update %v", GCFS_FILE))
 		}
 		dmOperationEntries = append(dmOperationEntries, gcfsEntry)
 	}
 
 	if err = blockingWait(gcp.kfDef.Spec.Project, deploymentmanagerService, dmOperationEntries); err != nil {
-		return &kfapis.KfError{
-			Code: err.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("could not update deployment manager entries: %v",
-				err.(*kfapis.KfError).Message),
-		}
+		return kfapis.NewKfErrorWithMessage(err, "could not update deployment manager entries")
 	}
 	exp := backoff.NewExponentialBackOff()
 	exp.InitialInterval = 1 * time.Second
@@ -697,19 +690,11 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 		// Get current policy
 		policy, policyErr := utils.GetIamPolicy(gcp.kfDef.Spec.Project, gcpClient)
 		if policyErr != nil {
-			return &kfapis.KfError{
-				Code: policyErr.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("GetIamPolicy error: %v",
-					policyErr.(*kfapis.KfError).Message),
-			}
+			return kfapis.NewKfErrorWithMessage(err, "GetIamPolicy error")
 		}
 		utils.ClearIamPolicy(policy, gcp.kfDef.Name, gcp.kfDef.Spec.Project)
 		if err := utils.SetIamPolicy(gcp.kfDef.Spec.Project, policy, gcpClient); err != nil {
-			return &kfapis.KfError{
-				Code: err.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("Set Cleared IamPolicy error: %v",
-					err.(*kfapis.KfError).Message),
-			}
+			return kfapis.NewKfErrorWithMessage(err, "Set Cleared IamPolicy error: %v")
 		}
 		return nil
 	}, exp)
@@ -1128,6 +1113,8 @@ func (gcp *Gcp) writeIamBindingsFile(src string, dest string) error {
 }
 
 // Replace placeholders and write to cluster-kubeflow.yaml
+//
+// TODO(jlewi): Is it possible to deserialize YAML to a partially known struct?
 func (gcp *Gcp) writeClusterConfig(src string, dest string) error {
 	buf, err := ioutil.ReadFile(src)
 	if err != nil {
@@ -1513,61 +1500,35 @@ func (gcp *Gcp) createSecrets() error {
 	ctx := context.Background()
 	k8sClient, err := gcp.getK8sClientset(ctx)
 	if err != nil {
-		return &kfapis.KfError{
-			Code:    err.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("Get K8s clientset error: %v", err.(*kfapis.KfError).Message),
-		}
+		return kfapis.NewKfErrorWithMessage(err, "et K8s clientset error")
 	}
 	adminEmail := getSA(gcp.kfDef.Name, "admin", gcp.kfDef.Spec.Project)
 	userEmail := getSA(gcp.kfDef.Name, "user", gcp.kfDef.Spec.Project)
 	if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME, gcp.kfDef.Namespace); err != nil {
-		return &kfapis.KfError{
-			Code:    err.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("cannot create admin secret %v Error %v", ADMIN_SECRET_NAME, err.(*kfapis.KfError).Message),
-		}
+		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create admin secret %v", ADMIN_SECRET_NAME))
 	}
 	if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME, gcp.kfDef.Namespace); err != nil {
-		return &kfapis.KfError{
-			Code:    err.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("cannot create user secret %v Error %v", USER_SECRET_NAME, err.(*kfapis.KfError).Message),
-		}
+		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create user secret %v", USER_SECRET_NAME))
 	}
 	// Also create service account secret in istio namespace
 	if gcp.kfDef.Spec.UseIstio {
 		if err = createNamespace(k8sClient, gcp.getIstioNamespace()); err != nil {
-			return &kfapis.KfError{
-				Code:    err.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("cannot create istio namespace Error %v", err.(*kfapis.KfError).Message),
-			}
+			return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create istio namespace"))
 		}
 		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME, gcp.getIstioNamespace()); err != nil {
-			return &kfapis.KfError{
-				Code: err.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("cannot create admin secret %v Error %v", ADMIN_SECRET_NAME,
-					err.(*kfapis.KfError).Message),
-			}
+			return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create admin secret %v", ADMIN_SECRET_NAME))
 		}
 		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME, gcp.getIstioNamespace()); err != nil {
-			return &kfapis.KfError{
-				Code: err.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("cannot create user secret %v Error %v", USER_SECRET_NAME,
-					err.(*kfapis.KfError).Message),
-			}
+			return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create user secret %v", USER_SECRET_NAME))
 		}
 	}
 	if gcp.kfDef.Spec.UseBasicAuth {
 		if err := gcp.createBasicAuthSecret(k8sClient); err != nil {
-			return &kfapis.KfError{
-				Code:    err.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("cannot create basic auth login secret: %v", err.(*kfapis.KfError).Message),
-			}
+			return kfapis.NewKfErrorWithMessage(err, "cannot create basic auth login secret")
 		}
 	} else {
 		if err := gcp.createIapSecret(ctx, k8sClient); err != nil {
-			return &kfapis.KfError{
-				Code:    err.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("cannot create IAP auth secret: %v", err.(*kfapis.KfError).Message),
-			}
+			return kfapis.NewKfErrorWithMessage(err, "cannot create IAP auth secret")
 		}
 	}
 	return nil
@@ -1667,8 +1628,6 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 		return errors.WithStack(err)
 	}
 
-	log.Infof("DO NOT SUBMIT; spec; %v", utils.PrettyPrint(gcp.kfDef))
-
 	if err := gcp.setGcpPluginDefaults(); err != nil {
 		return errors.WithStack(err)
 	}
@@ -1687,6 +1646,16 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 			Message: "email not specified.",
 		}
 	}
+
+	// Set default IPName and Hostname
+	// This needs to happen before calling generateDM configs.
+	if gcp.kfDef.Spec.IpName == "" {
+		gcp.kfDef.Spec.IpName = gcp.kfDef.Name + "-ip"
+	}
+	if gcp.kfDef.Spec.Hostname == "" {
+		gcp.kfDef.Spec.Hostname = gcp.kfDef.Name + ".endpoints." + gcp.kfDef.Spec.Project + ".cloud.goog"
+	}
+
 	switch resources {
 	case kftypes.ALL:
 		fallthrough
@@ -1707,20 +1676,12 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	// TODO(jlewi): Should we move the code into a separate function and write a unittest?
 	if err := gcp.kfDef.SetApplicationParameter("cert-manager", "acmeEmail", gcp.kfDef.Spec.Email); err != nil {
 		return errors.WithStack(err)
 	}
 
 	if err := gcp.kfDef.SetApplicationParameter("profiles", "admin", gcp.kfDef.Spec.Email); err != nil {
 		return errors.WithStack(err)
-	}
-
-	if gcp.kfDef.Spec.IpName == "" {
-		gcp.kfDef.Spec.IpName = gcp.kfDef.Name + "-ip"
-	}
-	if gcp.kfDef.Spec.Hostname == "" {
-		gcp.kfDef.Spec.Hostname = gcp.kfDef.Name + ".endpoints." + gcp.kfDef.Spec.Project + ".cloud.goog"
 	}
 
 	if gcp.kfDef.Spec.UseBasicAuth {

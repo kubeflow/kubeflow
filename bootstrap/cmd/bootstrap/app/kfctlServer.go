@@ -319,6 +319,37 @@ func isMatch(current *kfdefsv2.KfDef, new *kfdefsv2.KfDef) bool {
 	return true
 }
 
+// prepareSecrets prepares the secrets in the request.
+// Literal secrets are converted to environment variables except for the GcpAccessToken which is removed.
+//
+// TODO(https://github.com/kubeflow/kubeflow/issues/3592) Once the apply methods take a context we should be able
+// to use that and not rely on the environment
+func prepareSecrets(d *kfdefsv2.KfDef) {
+	secrets := []kfdefsv2.Secret{}
+
+	for _, s := range d.Spec.Secrets {
+		// Don't pass along the access token
+		if s.Name == gcp.GcpAccessTokenName {
+			continue
+		}
+
+		if s.SecretSource.LiteralSource != nil {
+			n := "KFCTL_" + s.Name
+			s.SecretSource.EnvSource = &kfdefsv2.EnvSource{
+				Name: n,
+			}
+
+			os.Setenv(n, s.SecretSource.LiteralSource.Value)
+			s.SecretSource.LiteralSource = nil
+
+		}
+
+		secrets = append(secrets, s)
+	}
+
+	d.Spec.Secrets = secrets
+}
+
 // CreateDeployment creates the deployment.
 //
 // Not thread safe
@@ -413,12 +444,12 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv2.KfDef) 
 		return &req, nil
 	}
 
+	strippedReq := req.DeepCopy()
+
 	// Enqueue the request
-	// TODO(jlewi): We should strip out the AccessToken from KfDef before enqueing it.
-	// There's no reason to pass it along. Gcp now has the token source.
-	// In fact we should actually pass it along via the request body. Instead
-	// We should move it into an Auth Header.
-	s.c <- req
+	prepareSecrets(strippedReq)
+
+	s.c <- *strippedReq
 
 	// Return the current status.
 	s.kfDefMux.Lock()

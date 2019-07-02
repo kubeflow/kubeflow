@@ -3,6 +3,8 @@ kind: KfDef
 metadata:
   creationTimestamp: null
   namespace: kubeflow
+  labels:
+    kubeflow: gcp-iap
 spec:
   repos:
   - name: kubeflow

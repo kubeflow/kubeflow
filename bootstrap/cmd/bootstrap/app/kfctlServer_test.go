@@ -6,9 +6,11 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator/fake"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	"golang.org/x/oauth2"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -249,4 +251,90 @@ func TestKfctlServer_isMatch(t *testing.T) {
 		}
 	}
 
+}
+
+func TestKfctlServer_prepareSecrets(t *testing.T) {
+	type testCase struct {
+		input           []kfdefsv2.Secret
+		expectedSecrets []kfdefsv2.Secret
+		expectedEnv     map[string]string
+	}
+
+	testCases := []testCase{
+		{
+			input: []kfdefsv2.Secret{
+				{
+					Name: "s1",
+					SecretSource: &kfdefsv2.SecretSource{
+						LiteralSource: &kfdefsv2.LiteralSource{
+							Value: "s1v1",
+						},
+					},
+				},
+				{
+					Name: "s2",
+					SecretSource: &kfdefsv2.SecretSource{
+						EnvSource: &kfdefsv2.EnvSource{
+							Name: "s2env",
+						},
+					},
+				},
+				{
+					Name: gcp.GcpAccessTokenName,
+					SecretSource: &kfdefsv2.SecretSource{
+						LiteralSource: &kfdefsv2.LiteralSource{
+							Value: "oauth",
+						},
+					},
+				},
+			},
+			expectedSecrets: []kfdefsv2.Secret{
+				{
+					Name: "s1",
+					SecretSource: &kfdefsv2.SecretSource{
+						EnvSource: &kfdefsv2.EnvSource{
+							Name: "KFCTL_s1",
+						},
+					},
+				},
+				{
+					Name: "s2",
+					SecretSource: &kfdefsv2.SecretSource{
+						EnvSource: &kfdefsv2.EnvSource{
+							Name: "s2env",
+						},
+					},
+				},
+			},
+			expectedEnv: map[string]string{
+				"KFCTL_s1": "s1v1",
+			},
+		},
+	}
+
+	for index, c := range testCases {
+
+		if index > 0 {
+			for k := range testCases[index-1].expectedEnv {
+				os.Unsetenv(k)
+			}
+		}
+		i := &kfdefsv2.KfDef{
+			Spec: kfdefsv2.KfDefSpec{
+				Secrets: c.input,
+			},
+		}
+
+		prepareSecrets(i)
+
+		if !reflect.DeepEqual(i.Spec.Secrets, c.expectedSecrets) {
+			t.Errorf("Got\n%v; want\n%v", utils.PrettyPrint(i.Spec.Secrets), utils.PrettyPrint(c.expectedSecrets))
+		}
+
+		for k, v := range c.expectedEnv {
+			if os.Getenv(k) != v {
+				t.Errorf("Env %v is wrong; Got\n%v; want\n%v", k, os.Getenv(k), v)
+			}
+		}
+	}
 }
