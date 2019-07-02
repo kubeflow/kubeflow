@@ -27,7 +27,7 @@ const fallbackForMissingKFAM = (goodValue: any) => (e: any) => {
 };
 
 export class UserData {
-    private readonly name: string;
+    public readonly name: string;
 
     constructor(readonly req: Request, private profileAPI: DefaultApi) {
         this.name = this._getUser();
