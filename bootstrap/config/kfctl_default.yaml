@@ -36,9 +36,7 @@ components:
   - katib-controller
   - katib-ui
   - metrics-collector
-  - metadata-db
-  - metadata-service
-  - metadata-ui
+  - metadata
   - suggestion
   - notebook-controller
   - pipeline
