@@ -22,7 +22,7 @@ import (
 	"os"
 	"strings"
 
-	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
+	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -318,6 +318,7 @@ func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
 			Namespace: instance.Namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
+			PodManagementPolicy: appsv1.ParallelPodManagement,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"statefulset": instance.Name,
