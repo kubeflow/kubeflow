@@ -3,7 +3,6 @@
 # So we include any files we don't want to trigger rebuilds.
 bin/**
 vendor/**
-v2/**
 **/.git
 
 # Ignore kubernetes manifests.

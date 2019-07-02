@@ -1,0 +1,44 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: kubeflow-gateway 
+  namespace: kubeflow
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 5556
+      name: dex
+      protocol: HTTP
+    hosts:
+    - "*"
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+
+--- 
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: auth-virtual-services
+  namespace: kubeflow
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - kubeflow-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /dex/
+          port: 5556
+      route:
+        - destination:
+            port:
+              number: 5556
+            host: dex.kubeflow.svc.cluster.local
