@@ -114,6 +114,7 @@ func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
 			Message: fmt.Sprintf("error writing to %v Error %v", configPath, resMapErr),
 		}
 	}
+	// TODO: Do we need to write to file here?
 	writeErr := kustomize.WriteKustomizationFile(kfDef.Name, configPath, resMap)
 	if writeErr != nil {
 		return nil, &kfapis.KfError{

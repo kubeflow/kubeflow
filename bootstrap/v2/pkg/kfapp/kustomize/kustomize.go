@@ -27,6 +27,7 @@ import (
 	kfapisv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -205,28 +206,46 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 
 	kustomizeDir := path.Join(kustomize.Spec.AppDir, outputDir)
 	for _, compName := range kustomize.Spec.Components {
-		kustomizeFile := filepath.Join(kustomizeDir, compName+".yaml")
-		if _, err := os.Stat(kustomizeFile); err != nil {
+		resMap, err := GenerateKustomizationFile(&kustomize.KfDef, kustomizeDir, compName,
+			kustomize.Spec.ComponentParams[compName])
+		if err != nil {
+			log.Errorf("error generating kustomization for %v Error %v", compName, err)
 			return &kfapisv2.KfError{
 				Code:    int(kfapisv2.INTERNAL_ERROR),
-				Message: fmt.Sprintf("couldn't find manifest %s for component %s", kustomizeFile, compName),
+				Message: fmt.Sprintf("error generating kustomization for %v Error %v", compName, err),
 			}
 		}
-		resourcesErr := kustomize.deployResources(kustomize.restConfig, kustomizeFile)
+		data, err := resMap.EncodeAsYaml()
+		if err != nil {
+			return &kfapisv2.KfError{
+				Code:    int(kfapisv2.INTERNAL_ERROR),
+				Message: fmt.Sprintf("can not encode component %v as yaml Error %v", compName, err),
+			}
+		}
+		resourcesErr := kustomize.deployResources(kustomize.restConfig, data)
 		if resourcesErr != nil {
 			return &kfapisv2.KfError{
 				Code:    int(kfapisv2.INTERNAL_ERROR),
-				Message: fmt.Sprintf("couldn't create resources from %v Error: %v", kustomizeFile, resourcesErr),
+				Message: fmt.Sprintf("couldn't create resources from %v Error: %v", compName, resourcesErr),
 			}
 		}
 	}
 	return nil
 }
 
-// deployResources creates resources from a file, just like `kubectl create -f filename`
+// deployResourcesFromFile creates resources from a file, just like `kubectl create -f filename`
 // TODO based on bootstrap/app/k8sUtil.go. Need to merge.
 // TODO: it can't handle "kind: list" yet.
-func (kustomize *kustomize) deployResources(config *rest.Config, filename string) error {
+func (kustomize *kustomize) deployResourcesFromFile(config *rest.Config, filename string) error {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	return kustomize.deployResources(config, data)
+}
+
+// deployResources creates resources with byte array.
+func (kustomize *kustomize) deployResources(config *rest.Config, data []byte) error {
 	// Create a restmapper to determine the resource type.
 	_discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
@@ -236,10 +255,6 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 	_cached.Invalidate()
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(_cached)
 
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return err
-	}
 	splitter := regexp.MustCompile(YamlSeparator)
 	objects := splitter.Split(string(data), -1)
 
@@ -448,20 +463,12 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 					Message: fmt.Sprintf("couldn't find component %s", compName),
 				}
 			}
-			resMap, err := GenerateKustomizationFile(&kustomize.KfDef, manifestsRepo.LocalPath, compPath,
-				kustomize.Spec.ComponentParams[compName])
+			// Copy the component to kustomizeDir
+			err := copy.Copy(path.Join(manifestsRepo.LocalPath, compPath), path.Join(kustomizeDir, compName))
 			if err != nil {
-				log.Errorf("error generating kustomization for %v Error %v", compPath, err)
 				return &kfapisv2.KfError{
 					Code:    int(kfapisv2.INTERNAL_ERROR),
-					Message: fmt.Sprintf("error generating kustomization for %v Error %v", compPath, err),
-				}
-			}
-			writeErr := WriteKustomizationFile(compName, kustomizeDir, resMap)
-			if writeErr != nil {
-				return &kfapisv2.KfError{
-					Code:    int(kfapisv2.INTERNAL_ERROR),
-					Message: fmt.Sprintf("error writing to %v Error %v", compPath, writeErr),
+					Message: fmt.Sprintf("couldn't copy component %s", compName),
 				}
 			}
 		}
