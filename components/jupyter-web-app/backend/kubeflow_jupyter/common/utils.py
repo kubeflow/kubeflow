@@ -347,6 +347,12 @@ def set_notebook_configurations(notebook, body, defaults):
         labels = defaults["configurations"]["value"]
         logger.info("Using default Configurations: {}".format(labels))
 
+    if not isinstance(labels, list):
+        logger.warning("Labels for PodDefaults are not list: {}".format(
+            labels)
+        )
+        return
+
     for l in labels:
         notebook_labels[l] = "true"
 
