@@ -1,0 +1,11 @@
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+spec:
+  plugins:
+    - name: gcp
+      args:
+        auth:
+          basicAuth:
+            username: someuser
+            password:
+              name: password

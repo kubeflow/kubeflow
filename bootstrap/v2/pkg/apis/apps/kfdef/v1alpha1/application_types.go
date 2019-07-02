@@ -517,21 +517,6 @@ func (d *KfDef) GetPluginSpec(pluginName string, s interface{}) error {
 	return NewPluginNotFound(pluginName)
 }
 
-// GetPluginSpec will try to unmarshal the spec for the specified plugin to the supplied
-// interface. Returns an error if the plugin isn't defined or if there is a problem
-// unmarshaling it
-//
-// TODO(jlewi): The reason this function exists is because for types like Gcp in gcp.go
-// we embed KfDef into the Gcp struct so its not actually a type KfDef. In the future
-// we will probably refactor KfApp into an appropriate plugin in type an stop embedding
-// KfDef in it.
-func (s *KfDefSpec) GetPluginSpec(pluginName string, pluginSpec interface{}) error {
-	d := &KfDef{
-		Spec: *s,
-	}
-	return d.GetPluginSpec(pluginName, pluginSpec)
-}
-
 // SetPluginSpec sets the requested parameter. The plugin is added if it doesn't already exist.
 func (d *KfDef) SetPluginSpec(pluginName string, spec interface{}) error {
 	// Convert spec to RawExtension
@@ -670,4 +655,3 @@ func IsSecretNotFound(e error) bool {
 	_, ok := e.(*SecretNotFound)
 	return ok
 }
-
