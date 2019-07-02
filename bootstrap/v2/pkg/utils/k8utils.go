@@ -14,19 +14,26 @@ limitations under the License.
 package utils
 
 import (
+	"context"
 	"fmt"
 	"github.com/cenkalti/backoff"
+	"github.com/ghodss/yaml"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"io/ioutil"
 	k8serrors "k8s.io/apimachinery/v2/pkg/api/errors"
 	"k8s.io/apimachinery/v2/pkg/api/meta"
+	"k8s.io/apimachinery/v2/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/v2/pkg/runtime/schema"
 	"k8s.io/apimachinery/v2/pkg/runtime/serializer"
 	k8stypes "k8s.io/apimachinery/v2/pkg/types"
 	"k8s.io/client-go/v2/kubernetes/scheme"
 	"k8s.io/client-go/v2/rest"
+	"regexp"
+	"sigs.k8s.io/controller-runtime/v2/pkg/client"
+	"strings"
 	"time"
-
 	// Auth plugins
 	_ "k8s.io/client-go/v2/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/v2/plugin/pkg/client/auth/oidc"
@@ -219,4 +226,90 @@ func patchOrCreate(mapping *meta.RESTMapping, config *rest.Config, group string,
 		err = createResource(mapping, config, group, version, namespace, data)
 	}
 	return err
+}
+
+func CreateResourceFromFile(config *rest.Config, filename string) error {
+	c, err := client.New(config, client.Options{})
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	splitter := regexp.MustCompile(YamlSeparator)
+	objectStrings := splitter.Split(string(data), -1)
+	for _, str := range objectStrings {
+		if strings.TrimSpace(str) == "" {
+			continue
+		}
+		u := &unstructured.Unstructured{}
+		if err := yaml.Unmarshal([]byte(str), u); err != nil {
+			return errors.WithStack(err)
+		}
+
+		name := u.GetName()
+		namespace := u.GetNamespace()
+
+		log.Infof("Creating %s", name)
+
+		err := c.Get(context.TODO(), k8stypes.NamespacedName{Name: name, Namespace: namespace}, u.DeepCopy())
+		if err == nil {
+			log.Info("object already exists...")
+			continue
+		}
+		if !k8serrors.IsNotFound(err) {
+			return errors.WithStack(err)
+		}
+
+		err = c.Create(context.TODO(), u)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+	}
+	return nil
+}
+
+func DeleteResourceFromFile(config *rest.Config, filename string) error {
+	c, err := client.New(config, client.Options{})
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	splitter := regexp.MustCompile(YamlSeparator)
+	objectStrings := splitter.Split(string(data), -1)
+	for _, str := range objectStrings {
+		if strings.TrimSpace(str) == "" {
+			continue
+		}
+		u := &unstructured.Unstructured{}
+		if err := yaml.Unmarshal([]byte(str), u); err != nil {
+			return errors.WithStack(err)
+		}
+
+		name := u.GetName()
+		namespace := u.GetNamespace()
+
+		log.Infof("Deleting %s", name)
+
+		err := c.Get(context.TODO(), k8stypes.NamespacedName{Name: name, Namespace: namespace}, u.DeepCopy())
+		if k8serrors.IsNotFound(err) {
+			log.Info("object already deleted...")
+			continue
+		}
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		err = c.Delete(context.TODO(), u)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+	}
+	return nil
 }
