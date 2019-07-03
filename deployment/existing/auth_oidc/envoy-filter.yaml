@@ -11,8 +11,8 @@ spec:
   - filterConfig:
       httpService:
         serverUri:
-          uri: http://authservice.kubeflow.svc.cluster.local
-          cluster: outbound|8080||authservice.kubeflow.svc.cluster.local
+          uri: http://authservice.istio-system.svc.cluster.local
+          cluster: outbound|8080||authservice.istio-system.svc.cluster.local
           failureModeAllow: false
           timeout: 10s
         authorizationRequest: 
@@ -26,5 +26,5 @@ spec:
     insertPosition:
       index: FIRST
     listenerMatch:
-      portNumber: 80
+      portNumber: 443
       listenerType: GATEWAY

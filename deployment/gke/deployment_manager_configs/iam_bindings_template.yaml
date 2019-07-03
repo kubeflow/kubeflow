@@ -36,6 +36,8 @@ bindings:
   - roles/logging.logWriter
   # VM service account is used to write monitoring data
   - roles/monitoring.metricWriter
+  # VM service account can retrieve monitoring data
+  - roles/monitoring.viewer
   # VM service account is used to pull image from gcr
   - roles/storage.objectViewer
 - members:
