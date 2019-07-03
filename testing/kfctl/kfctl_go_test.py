@@ -86,8 +86,7 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
   if os.getenv("REPO_NAME") != "manifests":
     if os.getenv("PULL_NUMBER"):
       version = "pull/{0}".format(os.getenv("PULL_NUMBER"))
-  # Use master by default.
-  pull_sha = ""
+  pull_sha = "@7cf5587dd9e2ec523bbdc99642d530f42fec4361"
   if os.getenv("REPO_NAME") == "manifests":
     if os.getenv("PULL_PULL_SHA"):
       pull_sha = "@" + os.getenv("PULL_PULL_SHA")
