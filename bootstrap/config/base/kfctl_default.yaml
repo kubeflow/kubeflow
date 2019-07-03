@@ -4,14 +4,15 @@ metadata:
   name: config
 spec:
   repo: /path/to/local/tmp/containing/kubeflow
-  packages: 
+  packages:
   - argo
   - common
   - examples
-  - admission-webhook  
+  - admission-webhook
   - jupyter
   - katib-v1alpha2
   - metacontroller
+  - metadata
   - modeldb
   - mpi-job
   - pytorch-job
@@ -24,13 +25,14 @@ spec:
   - argo
   - centraldashboard
   - webhook
-  - bootstrap  
+  - bootstrap
   - jupyter-web-app
   - katib-db
   - katib-manager
   - katib-controller
   - katib-ui
   - metrics-collector
+  - metadata
   - suggestion
   - notebook-controller
   - pytorch-job-crds
@@ -48,4 +50,4 @@ spec:
         initRequired: true
     bootstrap:
       - name: webhookNamePrefix
-        value: admission-webhook-	
+        value: admission-webhook-
