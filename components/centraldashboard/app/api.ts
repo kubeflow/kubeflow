@@ -102,6 +102,13 @@ export class Api {
                 }))
             )
         .get(
+            '/has-profile',
+            async (req: Request, res: Response) => {
+              const {user, hasProfile} = req.user;
+              const profile = await hasProfile();
+              res.json({user, hasProfile: profile});
+            })
+        .get(
             '/metrics/:type((node|podcpu|podmem))',
             async (req: Request, res: Response) => {
               if (!this.metricsService) {

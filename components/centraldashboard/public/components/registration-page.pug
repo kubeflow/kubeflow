@@ -1,1 +1,18 @@
-div Registration Page
+paper-card#MainCard
+    figure#Logo !{logo}
+    neon-animated-pages.Main-Content(selected='[[page]]',
+            entry-animation='fade-in-animation',
+            exit-animation='fade-out-animation')
+        neon-animatable
+            h2 Welcome
+            aside In order to use Kubeflow, a namespace for your account must be created. Follow the steps to get started
+            .actions
+                paper-button(on-click='nextPage') Start Setup
+        neon-animatable
+            h2 Namespace
+            aside A namespace is a collection of Kubeflow services. Resources created within a namespace are isolated to that namespace. By default, a namespace will be created for you.
+            paper-input(label='Namespace Name', value='[[user]]')
+            .actions
+                paper-button(on-click='finishSetup') Finish
+                paper-button(on-click='backPage') Go back
+    

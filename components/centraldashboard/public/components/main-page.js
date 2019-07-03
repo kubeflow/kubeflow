@@ -31,6 +31,7 @@ import template from './main-page.pug';
 import logo from '../assets/logo.svg';
 import '../assets/anon-user.png';
 
+import './registration-page.js';
 import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
@@ -102,6 +103,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             hideTabs: {type: Boolean, value: false, readOnly: true},
             hideNamespaces: {type: Boolean, value: false, readOnly: true},
             notFoundInIframe: {type: Boolean, value: false, readOnly: true},
+            registrationFlow: {type: Boolean, value: false, readOnly: true},
             namespaces: Array,
             namespace: {type: String, observer: '_namespaceChanged'},
             user: String,
@@ -136,6 +138,24 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         return [
             '_routePageChanged(routeData.page)',
         ];
+    }
+
+    /**
+     * Resync the app with environment information
+     */
+    resyncApp() {
+        this.$.envInfo.generateRequest();
+    }
+
+    /**
+     * Set state for loading registration flow in case no profile exists
+     * @param {Event} ev AJAX-response
+     */
+    _profileStatus(ev) {
+        const {user, hasProfile} = ev.detail.response;
+        if (hasProfile) return;
+        this.user = user;
+        this._setRegistrationFlow(true);
     }
 
     /**

@@ -28,8 +28,20 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
 
     static get properties() {
         return {
-            page: String,
+            user: String,
+            page: {type: Number, value: 0},
         };
+    }
+
+    nextPage() {
+        this.page++;
+    }
+    backPage() {
+        this.page--;
+    }
+    finishSetup() {
+        this.$.makeNamespace.generateRequest();
+        this.dispatchEvent(new CustomEvent('flowcomplete'));
     }
 }
 

@@ -75,7 +75,6 @@ module.exports = {
     mode: ENV,
     entry: {
         app: resolve(SRC, 'index.js'),
-        registration: resolve(SRC, 'registration.js'),
         dashboard_lib: resolve(SRC, 'library.js'),
     },
     output: {
@@ -193,14 +192,6 @@ module.exports = {
                 file: 'index.html',
                 pugContent: 'main-page',
                 bundle: 'app',
-            })
-        ),
-        new HtmlWebpackPlugin(
-            HTML_CONFIG({
-                file: 'registration.html',
-                pugContent: 'registration-page',
-                title: 'Registration',
-                bundle: 'registration',
             })
         ),
         new MiniCssExtractPlugin({

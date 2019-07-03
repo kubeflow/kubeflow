@@ -1,4 +1,6 @@
-iron-ajax(auto, url='/api/env-info', handle-as='json',
+iron-ajax(auto, url='/api/has-profile', handle-as='json',
+    on-response='_profileStatus')
+iron-ajax#envInfo(auto, url='/api/env-info', handle-as='json',
     on-response='_onEnvInfoResponse')
 app-drawer-layout.flex(narrow='{{narrowMode}}',
         force-narrow='[[or(inIframe, thinView, notFoundInIframe)]]',
@@ -65,3 +67,5 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     not-found-view(path="[[route.path]]")
     iron-media-query(query='(max-width: 900px)', query-matches='{{sidebarBleed}}')
     iron-media-query(query='(max-width: 1270px)', query-matches='{{thinView}}')
+template(is='dom-if', if='[[!registrationFlow]]')
+    registration-page(user='[[user]]', on-flowcomplete='resyncApp')
