@@ -15627,7 +15627,7 @@ spec:
     istio: ingressgateway
   ports:
     - 
-      name: dex
+      name: https-dex
       port: 5556
       targetPort: 5556
     -
