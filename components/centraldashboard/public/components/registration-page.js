@@ -2,6 +2,7 @@ import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/iron-media-query/iron-media-query.js';
 import '@polymer/paper-card/paper-card.js';
+import '@polymer/iron-a11y-keys/iron-a11y-keys.js';
 import 'web-animations-js/web-animations-next.min.js';
 import '@polymer/neon-animation/neon-animatable.js';
 import '@polymer/neon-animation/neon-animated-pages.js';
@@ -10,6 +11,8 @@ import '@polymer/neon-animation/animations/fade-out-animation.js';
 
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
+import './resources/carousel-indicator.js';
+import './resources/animated-checkmark.js';
 import css from './registration-page.css';
 import template from './registration-page.pug';
 import logo from '../assets/logo.svg';
@@ -28,11 +31,28 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
 
     static get properties() {
         return {
-            user: String,
+            namespaceInput: {type: Object},
+            userDetails: {type: Object, observer: '_onUserDetails'},
             page: {type: Number, value: 0},
+            namespaceName: String,
+            error: Object,
+            flowComplete: {type: Boolean, value: false},
+            showAPIText: {type: Boolean, value: false},
         };
     }
-
+    ready() {
+        super.ready();
+        this.namespaceInput = this.$.Namespace;
+    }
+    _onUserDetails(d) {
+        this.namespaceName = this.userDetails.ldap
+            // eslint-disable-next-line no-useless-escape
+            .replace(/[^\w\-]/g, '_')
+            .toLowerCase();
+    }
+    clearInvalidation() {
+        this.namespaceInput.invalid = false;
+    }
     nextPage() {
         this.page++;
     }
@@ -40,7 +60,22 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
         this.page--;
     }
     finishSetup() {
-        this.$.makeNamespace.generateRequest();
+        const API = this.$.MakeNamespace;
+        API.body = {referredNamespace: this.namespaceName};
+        API.generateRequest();
+    }
+    _successSetup() {
+        this.flowComplete = true;
+        this.sleep(800).then(() => {
+            const el = this.$.ApiMessage;
+            el.style.width = `${el.scrollWidth}px`;
+        });
+        this.sleep(6000).then(async () => {
+            this.$.ApiMessage.style.width = 0;
+            await this.sleep(250+150);
+            this.flowComplete = false;
+        });
+        this.set('error', {});
         this.dispatchEvent(new CustomEvent('flowcomplete'));
     }
 }

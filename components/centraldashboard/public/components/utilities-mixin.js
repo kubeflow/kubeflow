@@ -30,6 +30,15 @@ export default (superClass) => class extends superClass {
     }
 
     /**
+     * Allows an async block to sleep for a specified amount of time.
+     * @param {number} time
+     * @return {Promise}
+     */
+    sleep(time) {
+        return new Promise((res) => setTimeout(res, time));
+    }
+
+    /**
      * Builds and returns an href value preserving the current query string.
      * @param {string} href
      * @param {Object} queryParams

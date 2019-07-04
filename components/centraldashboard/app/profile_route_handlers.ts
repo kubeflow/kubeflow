@@ -31,16 +31,17 @@ export class UserData {
 
     constructor(readonly req: Request, private profileAPI: DefaultApi) {
         this.name = this._getUser();
+        this.hasWorkgroup = this.hasWorkgroup.bind(this);
     }
     get user() {return this.name;}
     get email() {return this.name;}
     get ldap() {return this.name.split('@')[0];}
     get subdomain() {return this.name.split('@')[1];}
 
-    async hasProfile(): Promise<boolean> {
+    async hasWorkgroup(): Promise<boolean> {
         if (G.USER_CACHE[this.name]) {return true;}
         const namespaces = await this._fetchProfile()
-            .catch(fallbackForMissingKFAM);
+            .catch(fallbackForMissingKFAM(['dummy']));
         const hasProfile = namespaces.length > 0;
         if (hasProfile) {
             G.USER_CACHE[this.name] = 1;
@@ -63,12 +64,11 @@ export class UserData {
         }
         return email;
     }
+    toJSON() {
+        const {name, email, ldap, subdomain} = this;
+        return {name, email, ldap, subdomain};
+    }
 }
-
-export const handleAuth = (registrationPage: string) => async (req: Request, res: Response, next: NextFunction) => {
-    if (await req.user.hasProfile()) return next();
-    res.sendFile(registrationPage);
-};
 
 export const getProfileContext = (profileController: DefaultApi) => (req: Request, res: Response, next: NextFunction) => {
     req.user = new UserData(req, profileController);

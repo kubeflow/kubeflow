@@ -148,13 +148,13 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     }
 
     /**
-     * Set state for loading registration flow in case no profile exists
+     * Set state for loading registration flow in case no workgroup exists
      * @param {Event} ev AJAX-response
      */
-    _profileStatus(ev) {
-        const {user, hasProfile} = ev.detail.response;
-        if (hasProfile) return;
-        this.user = user;
+    _workgroupStatus(ev) {
+        const {user, hasWorkgroup} = ev.detail.response;
+        if (hasWorkgroup) return;
+        this.userDetails = user;
         this._setRegistrationFlow(true);
     }
 

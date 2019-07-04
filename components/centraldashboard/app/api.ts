@@ -10,6 +10,9 @@ interface WorkgroupInfo {
   isClusterAdmin: boolean;
 }
 
+const apiErr = (res: Response, error: string) => 
+  res.status(400).json({error});
+
 export class Api {
   private platformInfo: PlatformInfo;
 
@@ -102,11 +105,12 @@ export class Api {
                 }))
             )
         .get(
-            '/has-profile',
+            '/has-workgroup',
             async (req: Request, res: Response) => {
-              const {user, hasProfile} = req.user;
-              const profile = await hasProfile();
-              res.json({user, hasProfile: profile});
+              const {user} = req;
+              const {hasWorkgroup} = user;
+              const profile = await hasWorkgroup();
+              res.json({user, hasWorkgroup: profile});
             })
         .get(
             '/metrics/:type((node|podcpu|podmem))',
@@ -146,6 +150,29 @@ export class Api {
             async (req: Request, res: Response) => {
               res.json(await this.k8sService.getEventsForNamespace(
                   req.params.namespace));
+            })
+        .post(
+            '/create-workgroup',
+            async (req: Request, res: Response) => {
+              const invalidChars = /[^a-z0-9\-\_]/;
+              // tslint:disable-next-line: no-any
+              const {referredNamespace} = req.body || {} as any;
+              if (!referredNamespace) return apiErr(res, 'No namespace provided');
+              if (invalidChars.test(referredNamespace)) return apiErr(res, 'Invalid characters in namespace');
+              const {profileController} = this;
+              const {user, authHeaders} = req.user;
+              const binding = Object.assign(
+                new WorkgroupBinding(),
+                {user, referredNamespace, roleRef: 'admin'}
+              );
+              profileController.createBinding(binding, authHeaders)
+                .then(data =>
+                  res.json({message: 'Successfully created your namespace!', data})
+                )
+                .catch(e => {
+                  if (e.code === 'ENOTFOUND') return apiErr(res, 'Could not find profile controller in cluster');
+                  return apiErr(res, e.stack);
+                });
             });
   }
 }

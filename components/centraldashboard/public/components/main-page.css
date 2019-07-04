@@ -48,6 +48,13 @@ app-drawer-layout[bleed] #MainDrawer {
     }
 }
 
+#PageLoader {
+    @apply --layout-fullbleed;
+    @apply --layout-center-center;
+    background: #f1f3f4;
+    z-index: 1;
+}
+
 #MainDrawer .logo {
     margin-left: 1em;
 }
