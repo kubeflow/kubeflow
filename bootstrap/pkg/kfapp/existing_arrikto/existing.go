@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/base64"
 	"encoding/pem"
 	"fmt"
 	kfapisv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
@@ -165,13 +166,23 @@ func (existing *Existing) Apply(resources kftypesv3.ResourceEnum) error {
 		KubeflowEndpoint        string
 		OIDCEndpoint            string
 		AuthServiceClientSecret string
+		AuthServiceHmacSecret   string
+		OIDCRedirectUris        []string
 		KubeflowUser            *kfUser
 	}{
 		KubeflowEndpoint:        kfEndpoint,
 		OIDCEndpoint:            oidcEndpoint,
-		AuthServiceClientSecret: genRandomString(32),
+		AuthServiceClientSecret: base64.StdEncoding.EncodeToString([]byte(genRandomString(32))),
+		AuthServiceHmacSecret:   base64.StdEncoding.EncodeToString([]byte(initialiseHMACSecretFromEnvOrGen("JWT_HMAC_SECRET", 64))),
+		OIDCRedirectUris:        getListVariableFromEnv("OIDC_REDIRECTURIS"),
 		KubeflowUser:            kubeflowUser,
-	}
+	} //hmac secret logic following https://github.com/yanniszark/ambassador-auth-oidc/blob/feature-kubeflow/login.go#L311
+
+	//HmacSecret is generated on install as needs to be the same between restarts of authService
+	//can also be set as env var to kfctl
+	//OIDCRedirectUris provides option to add entrypoints in addition to default gateway
+	log.Debugf("AuthServiceHmacSecret %s", data.AuthServiceHmacSecret)
+	log.Debugf("OIDCRedirectUris %s", data.OIDCRedirectUris)
 
 	// Generate YAML from the dex, authservice templates
 	kfRepoDir := existing.Status.ReposCache[kftypesv3.KubeflowRepo].LocalPath
@@ -184,6 +195,13 @@ func (existing *Existing) Apply(resources kftypesv3.ResourceEnum) error {
 	if err != nil {
 		return internalError(errors.WithStack(err))
 	}
+
+	//for dex the AuthServiceClientSecret shouldn't be base64 encoded
+	authServiceClientSecretDecoded, err := base64.StdEncoding.DecodeString(data.AuthServiceClientSecret)
+	if err != nil {
+		return internalError(errors.WithStack(err))
+	}
+	data.AuthServiceClientSecret = string(authServiceClientSecretDecoded)
 
 	err = generateFromGoTemplate(
 		path.Join(authOIDCManifestsDir, "dex.tmpl"),
@@ -314,6 +332,11 @@ func getEndpoints(kubeclient client.Client) (string, string, error) {
 	}
 
 	return kfEndpoint, oidcEndpoint, nil
+}
+
+func getListVariableFromEnv(variableName string) []string {
+	redirectEnvVars := os.Getenv("OIDC_REDIRECTURIS")
+	return strings.Split(redirectEnvVars, ",")
 }
 
 func createSelfSignedCerts(kubeclient client.Client, addr string) error {
@@ -503,4 +526,15 @@ func genRandomString(length int) string {
 		b[i] = charset[seededRand.Intn(len(charset))]
 	}
 	return string(b)
+}
+
+func initialiseHMACSecretFromEnvOrGen(secEnv string, reqLen int) []byte {
+	envContent := os.Getenv(secEnv)
+
+	if len(envContent) < reqLen {
+		log.Println("WARNING: HMAC secret not provided or secret too short. Generating a random one from nonce characters.")
+		return []byte(genRandomString(reqLen))
+	}
+
+	return []byte(envContent)
 }
