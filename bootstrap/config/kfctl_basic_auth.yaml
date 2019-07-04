@@ -49,6 +49,7 @@ components:
   - spartakus
   - tensorboard
   - tf-job-operator
+  - seldon-core-operator
 componentParams:
   argo:
   - initRequired: true
@@ -114,4 +115,8 @@ componentParams:
   - initRequired: true
     name: injectIstio
     value: "false"
+  seldon-core-operator:
+  - initRequired: true
+    name: injectIstio
+    value: "false"    
 platform: gcp
