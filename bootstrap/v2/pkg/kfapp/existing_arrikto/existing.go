@@ -162,10 +162,10 @@ func (existing *Existing) Apply(resources kftypes.ResourceEnum) error {
 		KubeflowEndpoint:        kfEndpoint,
 		OIDCEndpoint:            oidcEndpoint,
 		AuthServiceClientSecret: base64.StdEncoding.EncodeToString([]byte(genRandomString(32))),
-		AuthServiceHmacSecret:   base64.StdEncoding.EncodeToString([]byte("BpLnfgDsc2WD8F2qNfHK5a84jjJkwzDkh9h2fhfUVuS9jZ8uVbhV3vC5AWX39IVU")),
+		AuthServiceHmacSecret:   base64.StdEncoding.EncodeToString([]byte(initialiseHMACSecretFromEnvOrGen("JWT_HMAC_SECRET", 64))),
 		OIDCRedirectUris:        getListVariableFromEnv("OIDC_REDIRECTURIS"),
 		KubeflowUser:            kubeflowUser,
-	} //TODO: instead of hardcoding generate hmac secret following https://github.com/yanniszark/ambassador-auth-oidc/blob/feature-kubeflow/login.go#L311
+	} //hmac secret logic following https://github.com/yanniszark/ambassador-auth-oidc/blob/feature-kubeflow/login.go#L311
 
 	// Generate YAML from the dex, authservice templates
 	kfRepoDir := existing.Status.ReposCache[kftypesv2.KubeflowRepo].LocalPath
@@ -479,4 +479,25 @@ func genRandomString(length int) string {
 		b[i] = charset[seededRand.Intn(len(charset))]
 	}
 	return string(b)
+}
+
+func initialiseHMACSecretFromEnvOrGen(secEnv string, reqLen int) []byte {
+	envContent := os.Getenv(secEnv)
+
+	if len(envContent) < reqLen {
+		log.Println("WARNING: HMAC secret not provided or secret too short. Generating a random one from nonce characters.")
+		return []byte(createNonce(reqLen))
+	}
+
+	return []byte(envContent)
+}
+
+func createNonce(length int) string {
+	var nonceChars = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	var nonce = make([]rune, length)
+	for i := range nonce {
+		nonce[i] = nonceChars[rand.Intn(len(nonceChars))]
+	}
+
+	return string(nonce)
 }
