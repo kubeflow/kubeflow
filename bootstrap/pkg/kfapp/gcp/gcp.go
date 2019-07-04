@@ -23,7 +23,6 @@ import (
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
 	"github.com/gogo/protobuf/proto"
-	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
@@ -111,15 +110,6 @@ func (gcp *Gcp) SetTokenSource(s oauth2.TokenSource) error {
 
 func (gcp *Gcp) SetRunGetCredentials(v bool) {
 	gcp.runGetCredentials = v
-}
-
-type Setter interface {
-	SetTokenSource(s oauth2.TokenSource) error
-}
-
-func (gcp *Gcp) SetTokenSource(s oauth2.TokenSource) error {
-	gcp.tokenSource = s
-	return nil
 }
 
 type dmOperationEntry struct {

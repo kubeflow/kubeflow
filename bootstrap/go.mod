@@ -2,13 +2,12 @@ module github.com/kubeflow/kubeflow/bootstrap
 
 require (
 	cloud.google.com/go v0.38.0
-	github.com/Azure/go-autorest v11.1.0+incompatible
 	github.com/GeertJohan/go.rice v0.0.0-20181229193832-0af3f3b09a0a // indirect
 	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.4.2 // indirect
 	github.com/Masterminds/sprig v2.18.0+incompatible // indirect
-	github.com/NYTimes/gziphandler v1.0.1 // indirect
+	github.com/Sirupsen/logrus v0.0.0-00010101000000-000000000000 // indirect
 	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc // indirect
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
@@ -28,11 +27,9 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-kit/kit v0.8.0
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
-	github.com/go-openapi/jsonpointer v0.18.0
-	github.com/go-openapi/jsonreference v0.18.0
 	github.com/go-openapi/spec v0.18.0 // indirect
 	github.com/go-openapi/strfmt v0.18.0 // indirect
-	github.com/go-openapi/swag v0.17.2
+	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.2.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -40,7 +37,6 @@ require (
 	github.com/google/go-github v17.0.0+incompatible // indirect
 	github.com/google/go-jsonnet v0.12.1 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
-	github.com/googleapis/gax-go v2.0.2+incompatible // indirect
 	github.com/gophercloud/gophercloud v0.0.0-20190116032514-258a61a0642d // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.5.0 // indirect
@@ -54,30 +50,29 @@ require (
 	github.com/mitchellh/go-homedir v1.0.0
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/onrik/logrus v0.2.1
-	github.com/onsi/gomega v1.4.3
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v0.9.2
 	github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
 	github.com/russross/blackfriday v0.0.0-00010101000000-000000000000 // indirect
+	github.com/sergi/go-diff v1.0.0 // indirect
 	github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c // indirect
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/afero v1.2.0
 	github.com/spf13/cobra v0.0.3
-	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.1
 	github.com/utahta/go-openuri v0.1.0
+	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	golang.org/x/crypto v0.0.0
 	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c
 	google.golang.org/api v0.6.0
 	google.golang.org/genproto v0.0.0-20190502173448-54afdca5d873
+	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
-	gopkg.in/resty.v1 v1.11.0
+	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 	gopkg.in/square/go-jose.v2 v2.3.0
-	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20180308224125-73d903622b73
 	k8s.io/api/v2 v2.0.0
 	k8s.io/apiextensions-apiserver v0.0.0-20190116054503-cf30b7cf64c2
@@ -98,7 +93,7 @@ require (
 
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v9.1.0+incompatible
-	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.3.0
+	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.0.5
 	github.com/go-openapi/jsonpointer => github.com/go-openapi/jsonpointer v0.17.0
 	github.com/go-openapi/jsonreference => github.com/go-openapi/jsonreference v0.17.0
 	github.com/go-openapi/spec => github.com/go-openapi/spec v0.18.0
