@@ -80,8 +80,13 @@ data:
       # After authenticating and giving consent, dex will redirect to
       # this url for the specific client.
       - {{.KubeflowEndpoint}}/login/oidc
+      {{if .OIDCRedirectUris}}
+      {{ range $key, $value := .OIDCRedirectUris }}
+      - {{ $value }}
+      {{ end }}
+      {{end}}
       name: 'Kubeflow AuthService OIDC'
-      secret: {{.AuthServiceClientSecret}} 
+      secret: {{.AuthServiceClientSecret}}
     # Options for controlling the logger.
     logger:
       level: "debug"

@@ -66,4 +66,22 @@ spec:
           - name: CLIENT_ID
             value: kubeflow-authservice-oidc
           - name: CLIENT_SECRET
-            value: {{.AuthServiceClientSecret}} 
+            valueFrom:
+              secretKeyRef:
+                name: authservice
+                key: CLIENT_SECRET
+          - name: JWT_HMAC_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: authservice
+                key: JWT_HMAC_SECRET
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: authservice
+  namespace: istio-system
+type: Opaque
+data:
+  CLIENT_SECRET: {{.AuthServiceClientSecret}}
+  JWT_HMAC_SECRET: {{.AuthServiceHmacSecret}}

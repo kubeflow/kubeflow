@@ -32,6 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/v2/pkg/client"
 	"strings"
 	"time"
+	"encoding/base64"
 )
 
 const (
@@ -158,7 +159,8 @@ func (existing *Existing) Apply(resources kftypes.ResourceEnum) error {
 	}{
 		KubeflowEndpoint:        kfEndpoint,
 		OIDCEndpoint:            oidcEndpoint,
-		AuthServiceClientSecret: genRandomString(32),
+		AuthServiceClientSecret: EncodeToString(genRandomString(32)),
+		AuthServiceHmacSecret: EncodeToString(genRandomString(32)),
 		KubeflowUser:            kubeflowUser,
 	}
 
