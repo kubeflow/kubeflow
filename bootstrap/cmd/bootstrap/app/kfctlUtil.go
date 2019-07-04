@@ -103,5 +103,5 @@ func (s *ksServer) DeployWithKfctl(req *CreateRequest) error {
 	//	log.Errorf("There was a problem saving config to cloud repo; %v", err)
 	//	return err
 	//}
-	return nil
+	//return nil
 }

@@ -51,37 +51,6 @@ func (b *DefaultBuilder) LoadKfAppCfgFile(cfgFile string) (kftypes.KfApp, error)
 	return LoadKfAppCfgFile(cfgFile)
 }
 
-// The common entry point used to retrieve an implementation of KfApp.
-// In this case it returns a composite class (coordinator) which aggregates
-// platform and package manager implementations in Children.
-//
-// TODO(jlewi): I don't think this should be an exported method. Callers should
-// probably use NewKfApp if we are starting from scratch; e.g. Creating an app.yaml file.
-// Or LoadKfApp if creating it from an app.yaml on disk.
-// If creating from a KfDef the steps should probably be
-// 1. Persist it to disk using CreateKfAppDir
-// 2. Call LoadKfApp.
-func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
-	_coordinator := &coordinator{
-		Platforms:       make(map[string]kftypes.Platform),
-		PackageManagers: nil,
-		KfDef:           kfdef,
-	}
-	// Fetch the platform [gcp,minikube]
-	platform := _coordinator.KfDef.Spec.Platform
-	if platform != "" {
-		_platform, _platformErr := getPlatform(_coordinator.KfDef)
-		if _platformErr != nil {
-			log.Fatalf("could not get platform %v Error %v **", platform, _platformErr)
-			return nil
-		}
-		if _platform != nil {
-			_coordinator.Platforms[platform] = _platform
-		}
-	}
-	return _coordinator
-}
-
 func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
 
 	configPath := filepath.Join(pathDir, kftypes.DefaultConfigDir)
