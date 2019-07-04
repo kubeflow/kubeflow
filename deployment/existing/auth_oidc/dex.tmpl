@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dex
+  namespace: kubeflow
+spec:
+  selector:
+    app: dex
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 5556
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: dex
+  name: dex
+  namespace: kubeflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dex
+  template:
+    metadata:
+      labels:
+        app: dex
+    spec:
+      serviceAccountName: dex
+      containers:
+      - image: quay.io/coreos/dex:v2.10.0
+        name: dex
+        command: ["/usr/local/bin/dex", "serve", "/etc/dex/cfg/config.yaml"]
+
+        ports:
+        - name: http
+          containerPort: 5556
+
+        volumeMounts:
+        - name: config
+          mountPath: /etc/dex/cfg
+      volumes:
+      - name: config
+        configMap:
+          name: dex
+          items:
+          - key: config.yaml
+            path: config.yaml
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: dex
+  namespace: kubeflow
+data:
+  config.yaml: |
+    issuer: {{.OIDCEndpoint}}
+    storage:
+      type: kubernetes
+      config:
+        inCluster: true
+    web:
+      http: 0.0.0.0:5556
+    oauth2:
+      skipApprovalScreen: true
+    enablePasswordDB: true
+    {{if .KubeflowUser}}
+    staticPasswords:
+    - email: {{.KubeflowUser.UserEmail}}
+      # BCrypt Hash
+      hash: "{{.KubeflowUser.PasswordHash}}"
+      username: {{.KubeflowUser.Username}}
+      userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
+    {{end}}
+    staticClients:
+    - id: kubeflow-authservice-oidc
+      redirectURIs:
+      # After authenticating and giving consent, dex will redirect to
+      # this url for the specific client.
+      - {{.KubeflowEndpoint}}/login/oidc
+      name: 'Kubeflow AuthService OIDC'
+      secret: {{.AuthServiceClientSecret}} 
+    # Options for controlling the logger.
+    logger:
+      level: "debug"
+      format: "text"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: dex
+  name: dex
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: dex
+rules:
+- apiGroups: ["dex.coreos.com"] # API group created by dex
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: ["create"] # To manage its own resources, dex must be able to create customresourcedefinitions
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: dex
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: dex
+subjects:
+- kind: ServiceAccount
+  name: dex           # Service account assigned to the dex pod, created above
+  namespace: kubeflow
