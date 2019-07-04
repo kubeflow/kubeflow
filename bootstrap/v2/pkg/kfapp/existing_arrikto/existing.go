@@ -155,12 +155,14 @@ func (existing *Existing) Apply(resources kftypes.ResourceEnum) error {
 		KubeflowEndpoint        string
 		OIDCEndpoint            string
 		AuthServiceClientSecret string
+		//TODO: add OIDCRedirectUris as a map and populate from kfctl param
 		KubeflowUser            *kfUser
 	}{
 		KubeflowEndpoint:        kfEndpoint,
 		OIDCEndpoint:            oidcEndpoint,
 		AuthServiceClientSecret: EncodeToString(genRandomString(32)),
-		AuthServiceHmacSecret: EncodeToString(genRandomString(32)),
+		//TODO: instead of hardcoding generate hmac secret following https://github.com/yanniszark/ambassador-auth-oidc/blob/feature-kubeflow/login.go#L311
+		AuthServiceHmacSecret: EncodeToString("BpLnfgDsc2WD8F2qNfHK5a84jjJkwzDkh9h2fhfUVuS9jZ8uVbhV3vC5AWX39IVU"),
 		KubeflowUser:            kubeflowUser,
 	}
 
