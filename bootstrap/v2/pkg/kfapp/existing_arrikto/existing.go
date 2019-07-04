@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/base64"
 	"encoding/pem"
 	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
@@ -32,7 +33,6 @@ import (
 	"sigs.k8s.io/controller-runtime/v2/pkg/client"
 	"strings"
 	"time"
-	"encoding/base64"
 )
 
 const (
@@ -155,18 +155,17 @@ func (existing *Existing) Apply(resources kftypes.ResourceEnum) error {
 		KubeflowEndpoint        string
 		OIDCEndpoint            string
 		AuthServiceClientSecret string
-		AuthServiceHmacSecret        string
-		OIDCRedirectUris				[]string
+		AuthServiceHmacSecret   string
+		OIDCRedirectUris        []string
 		KubeflowUser            *kfUser
 	}{
 		KubeflowEndpoint:        kfEndpoint,
 		OIDCEndpoint:            oidcEndpoint,
-		AuthServiceClientSecret: EncodeToString(genRandomString(32)),
-		//TODO: instead of hardcoding generate hmac secret following https://github.com/yanniszark/ambassador-auth-oidc/blob/feature-kubeflow/login.go#L311
-		AuthServiceHmacSecret: EncodeToString("BpLnfgDsc2WD8F2qNfHK5a84jjJkwzDkh9h2fhfUVuS9jZ8uVbhV3vC5AWX39IVU"),
-		OIDCRedirectUris: getListVariableFromEnv("OIDC_REDIRECTURIS")
+		AuthServiceClientSecret: base64.StdEncoding.EncodeToString([]byte(genRandomString(32))),
+		AuthServiceHmacSecret:   base64.StdEncoding.EncodeToString([]byte("BpLnfgDsc2WD8F2qNfHK5a84jjJkwzDkh9h2fhfUVuS9jZ8uVbhV3vC5AWX39IVU")),
+		OIDCRedirectUris:        getListVariableFromEnv("OIDC_REDIRECTURIS"),
 		KubeflowUser:            kubeflowUser,
-	}
+	} //TODO: instead of hardcoding generate hmac secret following https://github.com/yanniszark/ambassador-auth-oidc/blob/feature-kubeflow/login.go#L311
 
 	// Generate YAML from the dex, authservice templates
 	kfRepoDir := existing.Status.ReposCache[kftypesv2.KubeflowRepo].LocalPath
@@ -309,8 +308,8 @@ func getEndpoints(kubeclient client.Client) (string, string, error) {
 }
 
 func getListVariableFromEnv(variableName string) []string {
-	redirectEnvVars := os.Getenv(OIDC_REDIRECT_URIS)
-	return strings.Split(redirectEnvVars,",")
+	redirectEnvVars := os.Getenv("OIDC_REDIRECTURIS")
+	return strings.Split(redirectEnvVars, ",")
 }
 
 func createSelfSignedCerts(kubeclient client.Client, addr string) error {
