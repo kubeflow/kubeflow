@@ -10,10 +10,11 @@ packages:
   - common
   - examples
   - gcp
-  - admission-webhook  
+  - admission-webhook
   - jupyter
   - katib-v1alpha2
   - metacontroller
+  - metadata
   - modeldb
   - mpi-job
   - pipeline
@@ -32,13 +33,14 @@ components:
   - cloud-endpoints
   - gpu-driver
   - iap-ingress
-  - admission-webhook  
+  - admission-webhook
   - jupyter-web-app
   - katib-db
   - katib-manager
   - katib-controller
   - katib-ui
   - metrics-collector
+  - metadata
   - suggestion
   - notebook-controller
   - pipeline

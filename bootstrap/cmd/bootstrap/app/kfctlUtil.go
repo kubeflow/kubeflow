@@ -1,10 +1,9 @@
 package app
 
 import (
+	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	//"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	//log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 )
 
@@ -37,6 +36,11 @@ func (cr *CreateRequest) ToKfdef(appDir string, repo string, istio bool) (*kfdef
 }
 
 func (s *ksServer) DeployWithKfctl(req *CreateRequest) error {
+	// TODO(jlewi): jlewi is in the midst of refactoring click to deploy.
+	// Comment out all this code because otherwise it won't build
+	// and wouldn't be functional otherwise.
+	// https://github.com/kubeflow/kubeflow/pull/3534 has a preview of the changes.
+	return fmt.Errorf("Not implemented.")
 	// pull versioned kubeflow repo
 	//ksRegistry := kfdefsv2.GetDefaultRegistry()
 	//ksRegistry.Version = req.KfVersion
@@ -66,6 +70,8 @@ func (s *ksServer) DeployWithKfctl(req *CreateRequest) error {
 	// run gcp generate / apply
 
 	// TODO(jlewi): Auth should now be provided as plugin parameters.
+	////var gcpApp kftypes.KfApp
+	//// run gcp generate / apply
 	//if kfdef.Spec.UseBasicAuth {
 	//	UsernameData, err := base64.StdEncoding.DecodeString(req.Username)
 	//	if err != nil {

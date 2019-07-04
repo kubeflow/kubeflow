@@ -5,7 +5,7 @@ metadata:
 spec:
   components:
   - istio-crds
-  - istio-install 
+  - istio-install
   - istio
   componentParams:
     argo:
@@ -30,6 +30,9 @@ spec:
     - name: overlay
       value: istio
     katib-ui:
+    - name: overlay
+      value: istio
+    metadata-ui:
     - name: overlay
       value: istio
     notebook-controller:
