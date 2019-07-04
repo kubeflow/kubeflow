@@ -1,19 +1,19 @@
 # Configuration file for the Jupyter UI.
-# 
-# Each Jupyter UI option is configured by two keys: `value` and `readOnly`
-# - The `value` key contains the default value
-# - The `readOnly` key determines if the option will be available to users
-# 
+#
+# Each Jupyter UI option is configured by two keys: 'value' and 'readOnly'
+# - The 'value' key contains the default value
+# - The 'readOnly' key determines if the option will be available to users
+#
 # If the 'readOnly' key is present and set to 'true', the respective option
-# will be disabled for users and only set by the admin. Also if a Notebook is
-# POSTED to the API, then the value from this config will be used for that field
-# 
+# will be disabled for users and only set by the admin. Also when a
+# Notebook is POSTED to the API if a necessary field is not present then
+# the value from the config will be used.
+#
 # If the 'readOnly' key is missing (defaults to 'false'), the respective option
-# will be available for users
-# 
-# Note that some values can be templated. Such values are the names of the 
+# will be available for users to edit.
+#
+# Note that some values can be templated. Such values are the names of the
 # Volumes as well as their StorageClass
-
 spawnerFormDefaults:
   image:
     # The container Image for the user's Jupyter Notebook
@@ -47,11 +47,11 @@ spawnerFormDefaults:
   cpu:
     # CPU for user's Notebook
     value: '0.5'
-    # readOnly: true
+    readOnly: false
   memory:
     # Memory for user's Notebook
     value: 1.0Gi
-    # readOnly: false
+    readOnly: false
   workspaceVolume:
     # Workspace Volume to be attached to user's Notebook
     # Each Workspace Volume is declared with the following attributes:
@@ -68,14 +68,14 @@ spawnerFormDefaults:
         #                  will replace this value as the user types the name
         value: 'workspace-{notebook-name}'
       size:
-        ## The Size of the Workspace Volume (in Gi)
-        value: '11Gi'
+        # The Size of the Workspace Volume (in Gi)
+        value: '10Gi'
       mountPath:
         # The Path that the Workspace Volume will be mounted
         value: /home/jovyan
       accessModes:
-        ## The Access Mode of the Workspace Volume
-        ## Supported values: 'ReadWriteOnce', 'ReadWriteMany', 'ReadOnlyMany'
+        # The Access Mode of the Workspace Volume
+        # Supported values: 'ReadWriteOnce', 'ReadWriteMany', 'ReadOnlyMany'
         value: ReadWriteOnce
       class:
         # The StrageClass the PVC will use if type is New. Special values are:
@@ -112,21 +112,26 @@ spawnerFormDefaults:
     #       name:
     #         value: '{notebook-name}-vol-2'
     #       size:
-    #         value: '15Gi'
-    #       class:
-    #         value: nfs-drive
+    #         value: '10Gi'
     #       mountPath:
     #         value: /home/jovyan/vol-2
     #       accessModes:
     #         value: ReadWriteMany
     #       class:
-    #         value: {none} 
-    # Uncomment the following line to make the Data Volumes list readonly
+    #         value: {none}
     readOnly: false
   extraResources:
     # Extra Resource Limits for user's Notebook
+    # e.x. "{'nvidia.com/gpu': 2}"
     value: "{}"
     readOnly: false
   shm:
     value: true
+    readOnly: false
+  configurations:
+    # List of labels to be selected, these are the labels from PodDefaults
+    # value:
+    #   - add-gcp-secret
+    #   - default-editor
+    value: []
     readOnly: false

@@ -5,7 +5,14 @@ import { Observable, throwError } from "rxjs";
 import { tap, map, catchError } from "rxjs/operators";
 import { environment } from "src/environments/environment";
 
-import { Resp, Resource, SnackType, Volume, Config } from "../utils/types";
+import {
+  Resp,
+  Resource,
+  SnackType,
+  Volume,
+  Config,
+  PodDefault
+} from "../utils/types";
 import { SnackBarService } from "../services/snack-bar.service";
 
 @Injectable()
@@ -85,6 +92,19 @@ export class KubernetesService {
       catchError(error => this.handleError(error)),
       map(data => {
         return data.pvcs;
+      })
+    );
+  }
+
+  getPodDefaults(ns: string): Observable<PodDefault[]> {
+    // Get existing PodDefaults in a namespace
+    const url = environment.apiUrl + `/api/namespaces/${ns}/poddefaults`;
+
+    return this.http.get<Resp>(url).pipe(
+      tap(data => this.handleBackendError(data)),
+      catchError(error => this.handleError(error)),
+      map(data => {
+        return data.poddefaults;
       })
     );
   }

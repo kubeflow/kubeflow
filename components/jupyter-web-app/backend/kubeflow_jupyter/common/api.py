@@ -43,12 +43,12 @@ def wrap_resp(rsrc, fn, *args, **kwargs):
         data[rsrc] = fn(*args, **kwargs)
     except ApiException as e:
         data[rsrc] = {}
-        data['success'] = False
-        data['log'] = parse_error(e)
+        data["success"] = False
+        data["log"] = parse_error(e)
     except Exception as e:
         data[rsrc] = {}
-        data['success'] = False
-        data['log'] = parse_error(e)
+        data["success"] = False
+        data["log"] = parse_error(e)
 
     return data
 
@@ -65,11 +65,11 @@ def wrap(fn, *args, **kwargs):
     try:
         fn(*args, **kwargs)
     except ApiException as e:
-        data['success'] = False
-        data['log'] = parse_error(e)
+        data["success"] = False
+        data["log"] = parse_error(e)
     except Exception as e:
-        data['success'] = False
-        data['log'] = parse_error(e)
+        data["success"] = False
+        data["log"] = parse_error(e)
 
     return data
 
@@ -78,21 +78,21 @@ def wrap(fn, *args, **kwargs):
 # GETers
 def get_pvcs(ns):
     return wrap_resp(
-        'pvcs',
+        "pvcs",
         v1_core.list_namespaced_persistent_volume_claim, namespace=ns
     )
 
 
 def get_pods(ns):
     return wrap_resp(
-        'pods',
+        "pods",
         v1_core.list_namespaced_pod, namespace=ns
     )
 
 
 def get_notebooks(ns):
     return wrap_resp(
-        'notebooks',
+        "notebooks",
         custom_api.list_namespaced_custom_object,
         "kubeflow.org",
         "v1alpha1",
@@ -101,23 +101,34 @@ def get_notebooks(ns):
     )
 
 
+def get_poddefaults(ns):
+    return wrap_resp(
+        "poddefaults",
+        custom_api.list_namespaced_custom_object,
+        "kubeflow.org",
+        "v1alpha1",
+        ns,
+        "poddefaults"
+    )
+
+
 def get_namespaces():
     return wrap_resp(
-        'namespaces',
+        "namespaces",
         v1_core.list_namespace
     )
 
 
 def get_storageclasses():
     return wrap_resp(
-        'storageclasses',
+        "storageclasses",
         storage_api.list_storage_class
     )
 
 
 def get_secret(ns, nm):
     return wrap_resp(
-        'secret',
+        "secret",
         v1_core.read_namespaced_secret, nm, ns
     )
 
@@ -126,7 +137,7 @@ def get_secret(ns, nm):
 def post_svc(svc):
     return wrap(
         v1_core.create_namespaced_service,
-        svc['metadata']['namespace'], svc,
+        svc["metadata"]["namespace"], svc,
     )
 
 
@@ -135,7 +146,7 @@ def post_notebook(notebook):
         custom_api.create_namespaced_custom_object,
         "kubeflow.org",
         "v1alpha1",
-        notebook['metadata']['namespace'],
+        notebook["metadata"]["namespace"],
         "notebooks",
         notebook
     )
@@ -143,7 +154,7 @@ def post_notebook(notebook):
 
 def post_pvc(pvc):
     return wrap_resp(
-        'pvc',
+        "pvc",
         v1_core.create_namespaced_persistent_volume_claim,
         pvc.metadata.namespace, pvc
     )

@@ -25,7 +25,8 @@ export function getFormDefaults(): FormGroup {
     }),
     datavols: fb.array([]),
     extra: ["", [Validators.required]],
-    shm: [true, []]
+    shm: [true, []],
+    configurations: [[], []]
   });
 }
 
@@ -141,5 +142,11 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
   formCtrl.controls.shm.setValue(config.shm.value);
   if (config.shm.readOnly) {
     formCtrl.controls.shm.disable();
+  }
+
+  // PodDefaults / Configurations. Set the pre selected labels
+  formCtrl.controls.configurations.setValue(config.configurations.value);
+  if (config.configurations.readOnly) {
+    formCtrl.controls.configurations.disable();
   }
 }

@@ -5,9 +5,6 @@
 // always include only once per project
 @include mat-core();
 
-// Primary color is not used
-$kubeflow-theme-primary: mat-palette($mat-blue, 600, 700, 900);
-
 // Loaded from the kubeflow.css
 $kubeflow-accent: (
   500: var(--accent-color),
@@ -21,9 +18,9 @@ $kubeflow-accent: (
 );
 $kubeflow-theme-accent: mat-palette($kubeflow-accent);
 
-// create theme (use mat-dark-theme for themes with dark backgrounds)
+// Use the accent color as primary
 $kubeflow-theme: mat-light-theme(
-  $kubeflow-theme-primary,
+  $kubeflow-theme-accent,
   $kubeflow-theme-accent
 );
 
