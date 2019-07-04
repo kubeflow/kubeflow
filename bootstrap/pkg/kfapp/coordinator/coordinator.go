@@ -644,8 +644,38 @@ func LoadKfAppCfgFile(cfgfile string) (kftypes.KfApp, error) {
 		}
 	}
 
-	pApp := GetKfApp(kfdef)
-	return pApp, nil
+	c := &coordinator{
+		Platforms:       make(map[string]kftypes.Platform),
+		PackageManagers: make(map[string]kftypes.KfApp),
+		KfDef:           kfdef,
+	}
+	// fetch the platform [gcp,minikube]
+	platform := c.KfDef.Spec.Platform
+	if platform != "" {
+		_platform, _platformErr := getPlatform(c.KfDef)
+		if _platformErr != nil {
+			log.Fatalf("could not get platform %v Error %v **", platform, _platformErr)
+			return nil, _platformErr
+		}
+		if _platform != nil {
+			c.Platforms[platform] = _platform
+		}
+	}
+
+	packageManager := c.KfDef.Spec.PackageManager
+
+	if packageManager != "" {
+		pkg, pkgErr := getPackageManager(c.KfDef)
+		if pkgErr != nil {
+			log.Fatalf("could not get package manager %v Error %v **", packageManager, pkgErr)
+			return nil, pkgErr
+		}
+		if pkg != nil {
+			c.PackageManagers[packageManager] = pkg
+		}
+	}
+
+	return c, nil
 }
 
 // this type holds platform implementations of KfApp
