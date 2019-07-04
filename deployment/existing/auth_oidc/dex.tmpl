@@ -81,8 +81,8 @@ data:
       # this url for the specific client.
       - {{.KubeflowEndpoint}}/login/oidc
       {{if .OIDCRedirectUris}}
-      {{ range $key, $value := .OIDCRedirectUris }}
-      - {{ $value }}
+      {{ range $element := .OIDCRedirectUris }}
+      - {{ $element }}
       {{ end }}
       {{end}}
       name: 'Kubeflow AuthService OIDC'
