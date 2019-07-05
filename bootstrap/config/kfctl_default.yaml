@@ -43,7 +43,6 @@ components:
   - pytorch-operator
   - tensorboard
   - tf-job-operator
-  - seldon-core-operator  
 componentParams:
   ambassador:
     - name: ambassadorServiceType

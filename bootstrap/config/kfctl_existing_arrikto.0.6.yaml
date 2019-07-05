@@ -48,6 +48,9 @@ spec:
     tf-job-operator:
     - name: overlay
       value: istio
+    seldon-core-operator:
+    - name: overlay
+      value: application
   components:
   - metacontroller
   - argo
@@ -76,6 +79,7 @@ spec:
   - pipelines-viewer
   - scheduledworkflow
   - profiles
+  - seldon-core-operator  
   packageManager: kustomize
   packages:
   - argo
