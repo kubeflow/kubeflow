@@ -32,7 +32,7 @@ func TestSourceRepos_test(t *testing.T) {
 		t.Fatalf("Could not create default token source; error %v", err)
 	}
 
-	s, err := NewSourceRepo(project, localDir, repoName, ts)
+	s, err := NewSourceRepo(context.Background(), project, localDir, repoName, ts)
 
 	if err != nil {
 		t.Fatalf("Could not create source repo; %v", err)

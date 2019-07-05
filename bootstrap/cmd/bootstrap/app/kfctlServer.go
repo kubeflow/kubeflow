@@ -86,19 +86,19 @@ func NewKfctlServer(appsDir string) (*kfctlServer, error) {
 func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error) {
 	ctx := context.Background()
 
-	if s.sourceRepo == nil {
-		log.Infof("Creating a sourceRepo object")
-
-		localDir := path.Join(s.appsDir, r.Name)
-		repo, err := NewSourceRepo(r.Spec.Project, localDir, r.Name, s.ts)
-
-		if err != nil {
-			log.Errorf("Could not create SourceRepo object; error %v", err)
-			return nil, errors.WithStack(err)
-		}
-
-		s.sourceRepo = repo
-	}
+	//if s.sourceRepo == nil {
+	//	log.Infof("Creating a sourceRepo object")
+	//
+	//	localDir := path.Join(s.appsDir, r.Name)
+	//	repo, err := NewSourceRepo(r.Spec.Project, localDir, r.Name, s.ts)
+	//
+	//	if err != nil {
+	//		log.Errorf("Could not create SourceRepo object; error %v", err)
+	//		return nil, errors.WithStack(err)
+	//	}
+	//
+	//	s.sourceRepo = repo
+	//}
 
 	if s.kfApp == nil {
 		if r.Spec.AppDir != "" {

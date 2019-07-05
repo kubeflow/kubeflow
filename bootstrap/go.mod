@@ -105,7 +105,6 @@ replace (
 	github.com/mitchellh/go-homedir => github.com/mitchellh/go-homedir v1.0.0
 	github.com/russross/blackfriday => github.com/russross/blackfriday v1.5.2-0.20180428102519-11635eb403ff // indirect
 	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
-	golang.org/x/net => golang.org/x/net v0.0.0-20180124060956-0ed95abb35c4
 	k8s.io/api => k8s.io/api v0.0.0-20180601181742-8b7507fac302
 	k8s.io/api/v2 => /tmp/v2/k8s.io/api
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20180601203502-8e7f43002fec

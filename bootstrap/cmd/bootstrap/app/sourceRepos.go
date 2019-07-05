@@ -27,7 +27,7 @@ type SourceRepo struct {
 	repoName string
 
 	ts oauth2.TokenSource
-	r *git.Repository
+	r  *git.Repository
 }
 
 // NewSourceRepo initializes a repo object for the specified local directory.
@@ -59,14 +59,14 @@ func NewSourceRepo(ctx context.Context, project string, localDir string, repoNam
 		return nil, errors.WithStack(fmt.Errorf("ts must be an oauth2.TokenSource; not nil"))
 	}
 
-	if _,err := os.Stat(localDir); err != nil {
+	if _, err := os.Stat(localDir); err != nil {
 		log.Infof("Directory %v exists; checking if its a git repository", localDir)
 	} else {
 		return nil, errors.WithStack(fmt.Errorf("Directory %v does not exit", localDir))
 	}
 
 	if isGitRepo(localDir) {
-		log.Infof("%v is already a git repository")
+		log.Infof("%v is already a git repository", localDir)
 	} else {
 		log.Infof("Initiliazing %v as a git repository", localDir)
 		// TODO(jlewi): Can we use  the git client library to initialize the directory
@@ -91,7 +91,7 @@ func NewSourceRepo(ctx context.Context, project string, localDir string, repoNam
 				log.Infof("Repo created successfully")
 			} else {
 				log.Errorf("Failed to create repo.")
-				return errors.Wrapf(err,"repo %v doesn't exist and create repo request failed", repoName)
+				return errors.Wrapf(err, "repo %v doesn't exist and create repo request failed", repoName)
 			}
 		} else {
 			log.Info("Repository already exists in source repos")
@@ -110,8 +110,8 @@ func NewSourceRepo(ctx context.Context, project string, localDir string, repoNam
 		project:  project,
 		localDir: localDir,
 		repoName: repoName,
-		ts: ts,
-		r: r,
+		ts:       ts,
+		r:        r,
 	}, nil
 }
 
@@ -119,7 +119,7 @@ func isGitRepo(repoDir string) bool {
 
 	gitDir := path.Join(repoDir, ".git")
 
-	if _,err := os.Stat(gitDir); err != nil {
+	if _, err := os.Stat(gitDir); err != nil {
 		return true
 	}
 
@@ -154,7 +154,7 @@ func (s *SourceRepo) CloneRepoToLocal(ctx context.Context) (string, error) {
 				log.Infof("Repo created successfully")
 			} else {
 				log.Errorf("Failed to create repo.")
-				return errors.Wrapf(err,"repo %v doesn't exist and create repo request failed", s.repoName)
+				return errors.Wrapf(err, "repo %v doesn't exist and create repo request failed", s.repoName)
 			}
 		}
 		return nil
