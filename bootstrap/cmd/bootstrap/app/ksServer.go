@@ -657,9 +657,14 @@ func (s *ksServer) getRegistryUri(registry *kfdefs.RegistryConfig) (string, erro
 }
 
 func runCmd(rawcmd string) error {
+	return runCmdFromDir(rawcmd, "")
+}
+
+func runCmdFromDir(rawcmd string, wDir string) error {
 	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
 	return backoff.Retry(func() error {
 		cmd := exec.Command("sh", "-c", rawcmd)
+		cmd.Dir = wDir
 		result, err := cmd.CombinedOutput()
 		if err != nil {
 			return fmt.Errorf("Error occrued during execute cmd %v. Error: %v", rawcmd, string(result))

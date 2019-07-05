@@ -69,6 +69,11 @@ func run(opt *ServerOption) error {
 	if opt.Name == "" {
 		return fmt.Errorf("--name is required.")
 	}
+
+	if opt.Project == "" {
+		return fmt.Errorf("--project is required.")
+	}
+
 	d, err := kfdefsv2.LoadKFDefFromURI(opt.Config)
 
 	if err != nil {

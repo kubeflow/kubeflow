@@ -54,6 +54,8 @@ type kfctlServer struct {
 
 	// latestKfDef is updated to provide the latest status information.
 	latestKfDef kfdefsv2.KfDef
+
+	sourceRepo *SourceRepo
 }
 
 // NewServer returns a new kfctl server
@@ -83,11 +85,26 @@ func NewKfctlServer(appsDir string) (*kfctlServer, error) {
 // to the KfDef.
 func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error) {
 	ctx := context.Background()
+
+	if s.sourceRepo == nil {
+		log.Infof("Creating a sourceRepo object")
+
+		localDir := path.Join(s.appsDir, r.Name)
+		repo, err := NewSourceRepo(r.Spec.Project, localDir, r.Name, s.ts)
+
+		if err != nil {
+			log.Errorf("Could not create SourceRepo object; error %v", err)
+			return nil, errors.WithStack(err)
+		}
+
+		s.sourceRepo = repo
+	}
+
 	if s.kfApp == nil {
 		if r.Spec.AppDir != "" {
 			log.Warnf("r.Spec.AppDir is set it will be overwritten.")
 		}
-		r.Spec.AppDir = path.Join(s.appsDir, r.Name)
+		r.Spec.AppDir = s.sourceRepo.localDir
 		cfgFile := path.Join(r.Spec.AppDir, kftypes.KfConfigFile)
 		if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
 			log.Infof("Creating cfgFile; %v", cfgFile)
@@ -107,6 +124,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 				}
 			}
 		}
+
 		kfApp, err := s.builder.LoadKfAppCfgFile(cfgFile)
 
 		getter, ok := kfApp.(coordinator.KfDefGetter)
@@ -170,6 +188,9 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 			Code:    http.StatusInternalServerError,
 		}
 	}
+
+	err := s.sourceRepo.CommitAndPushRepo(r.Spec.Email)
+	log.Errorf("There was a problem commiting and pushing the repo; %err", err)
 
 	// We need to split the apply into two steps because after
 	// creating the platform we need to construct and inject the K8s client to
@@ -247,6 +268,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 	return s.kfDefGetter.GetKfDef(), nil
 
 	// Push to source repo.
+	// TODO(jlewi): Copy code in CloneRepoToLocal to clone the repo.
 	//err = SaveAppToRepo(req.Email, path.Join(repoDir, GetRepoNameKfctl(req.Project)))
 }
 

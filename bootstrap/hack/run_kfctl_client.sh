@@ -8,8 +8,8 @@ set -ex
 BOOTSTRAPDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null && pwd )"
 
 # If we regenerate a new name the request won't match and it will get rejected.
-#KFNAME=kftest-$(date +%m%d-%H%M%S)
-KFNAME=kftest-0701-204548
+KFNAME=kftest-$(date +%m%d-%H%M%S)
+#KFNAME=kftest-0701-204548
 
 cd ${BOOTSTRAPDIR}
 make build-kfctl-client

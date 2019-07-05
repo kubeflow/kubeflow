@@ -416,7 +416,6 @@ func (gcp *Gcp) updateDeployment(deploymentmanagerService *deploymentmanager.Ser
 		}, nil
 	} else {
 		log.Infof("Creating deployment %v", deployment)
-		log.Infof("Deployment spec:\n%v", utils.PrettyPrint(dp))
 		op, insertErr := deploymentmanagerService.Deployments.Insert(project, dp).Context(ctx).Do()
 		if insertErr != nil {
 			return nil, &kfapis.KfError{
