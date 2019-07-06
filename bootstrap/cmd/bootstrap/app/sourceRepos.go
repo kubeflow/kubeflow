@@ -3,15 +3,17 @@ package app
 import (
 	"fmt"
 	"github.com/cenkalti/backoff"
-	"github.com/otiai10/copy"
+	"io/ioutil"
+	//"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/sourcerepo/v1"
 	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/config"
+	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"os"
-	"os/exec"
 	"path"
 	"time"
 )
@@ -29,6 +31,10 @@ type SourceRepo struct {
 	ts oauth2.TokenSource
 	r  *git.Repository
 }
+
+const (
+	RemoteName = "gcpsourcerepo"
+)
 
 // NewSourceRepo initializes a repo object for the specified local directory.
 // If the directory doesn't exist an error is raised.
@@ -60,11 +66,10 @@ func NewSourceRepo(ctx context.Context, project string, localDir string, repoNam
 	}
 
 	if _, err := os.Stat(localDir); err != nil {
-		log.Infof("Directory %v exists; checking if its a git repository", localDir)
-	} else {
 		return nil, errors.WithStack(fmt.Errorf("Directory %v does not exit", localDir))
 	}
 
+	log.Infof("Directory %v exists; checking if its a git repository", localDir)
 	if isGitRepo(localDir) {
 		log.Infof("%v is already a git repository", localDir)
 	} else {
@@ -99,144 +104,126 @@ func NewSourceRepo(ctx context.Context, project string, localDir string, repoNam
 		return nil
 	}, bo)
 
-	r, err := git.PlainOpen(path.Join(localDir, ".git"))
+	r, err := git.PlainOpen(path.Join(localDir))
 
 	if err != nil {
 		log.Errorf("Error opening the git repository; error %v", err)
 		return nil, errors.WithStack(err)
 	}
 
-	return &SourceRepo{
+	remotes, err := r.Remotes()
+
+	if err != nil {
+		log.Errorf("Could not get remotes; error %v", err)
+		return nil, errors.WithStack(err)
+	}
+
+	hasRemote := false
+	for _, remote := range remotes {
+		if remote.Config().Name == RemoteName {
+			hasRemote = true
+			break
+		}
+	}
+
+	s := &SourceRepo{
 		project:  project,
 		localDir: localDir,
 		repoName: repoName,
 		ts:       ts,
 		r:        r,
-	}, nil
+	}
+
+	url, err := s.remoteUrl()
+
+	if err != nil {
+		log.Errorf("Could not build the URL; error %v", err)
+		return nil, errors.WithStack(err)
+	}
+	if !hasRemote {
+		_, err := r.CreateRemote(&config.RemoteConfig{
+			Name: RemoteName,
+			URLs: []string{
+					url,
+			},
+		})
+
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+
+	}
+	return s, nil
 }
 
 func isGitRepo(repoDir string) bool {
-
 	gitDir := path.Join(repoDir, ".git")
 
-	if _, err := os.Stat(gitDir); err != nil {
+	if _, err := os.Stat(gitDir); err == nil {
 		return true
 	}
 
 	return false
 }
 
-// CloneRepoToLocal clones the repo.
-// The repo is created if it doesn't already exist.
-func (s *SourceRepo) CloneRepoToLocal(ctx context.Context) (string, error) {
-	repoDir, name := path.Split(s.localDir)
-
-	if name == "" {
-		return "", fmt.Errorf("%v is invalid got empty name trying to split the path", s.localDir)
-	}
-
-	if err := os.MkdirAll(repoDir, os.ModePerm); err != nil {
-		return "", err
-	}
-
-	sourcerepoService, err := sourcerepo.New(oauth2.NewClient(ctx, s.ts))
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
-	err = backoff.Retry(func() error {
-		_, err = sourcerepoService.Projects.Repos.Get(fmt.Sprintf("projects/%s/repos/%s", s.project, s.repoName)).Do()
-		if err != nil {
-			// repo does't exist in target project, create one
-			log.Infof("Creating repository")
-			_, err = sourcerepoService.Projects.Repos.Create(fmt.Sprintf("projects/%s", s.project), &sourcerepo.Repo{
-				Name: fmt.Sprintf("projects/%s/repos/%s", s.project, s.repoName),
-			}).Do()
-
-			if err == nil {
-				log.Infof("Repo created successfully")
-			} else {
-				log.Errorf("Failed to create repo.")
-				return errors.Wrapf(err, "repo %v doesn't exist and create repo request failed", s.repoName)
-			}
-		}
-		return nil
-	}, bo)
-	if err != nil {
-		log.Errorf("Failed to create repo: %v. Error: %v", s.repoName, err)
-		return "", errors.WithStack(err)
-	}
-	err = os.Chdir(repoDir)
-	if err != nil {
-		return "", err
-	}
-
+func (s *SourceRepo) remoteUrl() (string, error) {
 	token, err := s.ts.Token()
 	if err != nil {
 		log.Errorf("Could not get an OAuth token; error %v", err)
 		return "", errors.WithStack(err)
 	}
 
-	cloneCmd := fmt.Sprintf("git clone https://%s:%s@source.developers.google.com/p/%s/r/%s",
-		"user1", token.AccessToken, s.project, s.repoName)
-
-	if err := runCmd(cloneCmd); err != nil {
-		log.Errorf("Failed to clone directory; %v", err)
-		return "", fmt.Errorf("Failed to clone from source repo: %s", s.repoName)
-	}
-	return repoDir, nil
+	return fmt.Sprintf("https://%s:%s@source.developers.google.com/p/%s/r/%s",
+		"kfctl", token.AccessToken, s.project, s.repoName), nil
 }
 
 // CommitAndPush repo commits any changes and pushes them.
 //
 // Not thread safe, be aware when call it.
 func (s *SourceRepo) CommitAndPushRepo(email string) error {
-	//repoPath := path.Join(repoDir, GetRepoName(project))
-	err := os.Chdir(s.localDir)
-	if err != nil {
-		return err
-	}
-	cmds := []string{
-		fmt.Sprintf("git config user.email '%s'", email),
-		"git config user.name 'auto-commit'",
-		"git add .",
-		"git commit -m 'auto commit from deployment'",
-	}
-	for _, cmd := range cmds {
-		if err = runCmd(cmd); err != nil {
-			return err
-		}
-	}
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
-	return backoff.Retry(func() error {
-		// TODO(jlewi): How should we deal with the local repo being out of sync with the remote repo?
-		// Should we just add "-f" and force push it?
-		pushcmd := exec.Command("sh", "-c", "git push origin master")
-		result, err := pushcmd.CombinedOutput()
-		if err != nil {
-			pullcmd := exec.Command("sh", "-c", "git pull --rebase")
-			pullResult, _ := pullcmd.CombinedOutput()
-			return fmt.Errorf("Error occrued during git push. Error: %v; try rebase: %v", string(result), string(pullResult))
-		}
-		return nil
-	}, bo)
-}
+	w, err := s.r.Worktree()
 
-// CopyAndPushSource copies the specified directory to the repository directory
-// and then commits and pushes it.
-func (s *SourceRepo) CopyAndPushSource(ctx context.Context, srcDir string, email string) error {
-	copy.Copy(srcDir, s.localDir)
-	// Clone the repo.
-	// TODO(jlewi): What if they don't have the source repos API enabled then this will
-	// fail. Creating the KFApp is when the API should be turned on.
-	if _, err := s.CloneRepoToLocal(ctx); err != nil {
-		log.Errorf("Error creating or cloning the repo; error %v", err)
+	if err != nil  {
 		return errors.WithStack(err)
 	}
 
-	// TODO(jlewi): Should we commit and push the repo here?
-	// Maybe we should run commits and pushes in a back ground thread?
-	err := s.CommitAndPushRepo(email)
+	files, err := ioutil.ReadDir(s.localDir)
 
 	if err != nil {
-		log.Errorf("There was a problem commiting and pushing the repo; %err", err)
+		return errors.WithStack(err)
+	}
+
+	excludes := map[string]bool {
+		".git":true,
+		".cache": true,
+	}
+
+	for _, f := range files{
+		if _,ok := excludes[f.Name()]; ok {
+			continue
+		}
+
+		_, err := w.Add(f.Name())
+		if err != nil {
+			return errors.WithStack(err)
+		}
+	}
+
+	_, err = w.Commit("Latest changes", &git.CommitOptions{
+		Author: &object.Signature{
+			Name: "kfctl agent",
+			Email: email,
+			When: time.Now(),
+		},
+	})
+
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	if err := s.r.Push(&git.PushOptions{
+		RemoteName: RemoteName,
+	}); err !=nil {
 		return errors.WithStack(err)
 	}
 

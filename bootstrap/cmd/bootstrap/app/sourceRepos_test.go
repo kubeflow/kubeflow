@@ -38,16 +38,11 @@ func TestSourceRepos_test(t *testing.T) {
 		t.Fatalf("Could not create source repo; %v", err)
 	}
 
-	srcDir, err := ioutil.TempDir("", "")
-	if err != nil {
-		t.Fatalf("Could not create temporary directory; error %v", err)
-	}
-
-	ioutil.WriteFile(path.Join(srcDir, "README.txt"), []byte("hello world"), os.ModePerm)
+	ioutil.WriteFile(path.Join(localDir, "README.txt"), []byte("hello world"), os.ModePerm)
 
 	email := "test@kubeflow.org"
 
-	if err := s.CopyAndPushSource(context.Background(), srcDir, email); err != nil {
-		t.Fatalf("Error copying and pushing the repo; %v", err)
+	if errNew := s.CommitAndPushRepo(email); errNew != nil {
+		t.Fatalf("Error copying and pushing the repo; %v", errNew)
 	}
 }
