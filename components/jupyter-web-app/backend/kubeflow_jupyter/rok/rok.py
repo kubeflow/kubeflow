@@ -10,7 +10,7 @@ def parse_user_template(string):
 
 
 def rok_secret_name():
-    secret = os.environ.get('ROK_SECRET_NAME', 'secret-rok-user')
+    secret = os.environ.get("ROK_SECRET_NAME", "secret-rok-user")
     secret = parse_user_template(secret)
     return secret
 
@@ -18,7 +18,7 @@ def rok_secret_name():
 def attach_rok_token_secret(notebook):
     # Mount the Rok token as a Volume
     secret_name = rok_secret_name()
-    secret_volume_name = 'volume-%s' % secret_name
+    secret_volume_name = "volume-%s" % secret_name
     utils.add_notebook_volume_secret(
         notebook,
         secret_volume_name,
@@ -28,18 +28,18 @@ def attach_rok_token_secret(notebook):
     )
 
     # Set ENV variables needed for rok cli
-    notebook["spec"]['template']['spec']['containers'][0]['env'] += [
+    notebook["spec"]["template"]["spec"]["containers"][0]["env"] += [
         {
-            'name': 'ROK_GW_TOKEN',
-            'value': 'file:%s/token' % ROK_SECRET_MOUNT
+            "name": "ROK_GW_TOKEN",
+            "value": "file:%s/token" % ROK_SECRET_MOUNT
         },
         {
-            'name': 'ROK_GW_URL',
-            'value': 'file:%s/url' % ROK_SECRET_MOUNT
+            "name": "ROK_GW_URL",
+            "value": "file:%s/url" % ROK_SECRET_MOUNT
         },
         {
-            'name': 'ROK_GW_PARAM_REGISTER_JUPYTER_LAB',
-            'value': notebook['metadata']['name'] + '-0'
+            "name": "ROK_GW_PARAM_REGISTER_JUPYTER_LAB",
+            "value": notebook["metadata"]["name"] + "-0"
         },
     ]
 
@@ -66,7 +66,7 @@ def add_workspace_volume_annotations(pvc, vol):
     }
 
     if vol["type"] == "Existing":
-        annotations['rok/origin'] = vol["extraFields"].get("rokUrl", "")
+        annotations["rok/origin"] = vol["extraFields"].get("rokUrl", "")
 
     labels = {"component": "singleuser-storage"}
 
@@ -83,7 +83,7 @@ def add_data_volume_annotations(pvc, vol):
     }
 
     if vol["type"] == "Existing":
-        annotations['rok/origin'] = vol["extraFields"].get("rokUrl", "")
+        annotations["rok/origin"] = vol["extraFields"].get("rokUrl", "")
 
     labels = {"component": "singleuser-storage"}
 

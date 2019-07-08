@@ -22,6 +22,11 @@ export function emptyVolume(): Volume {
   };
 }
 
+export interface PodDefault {
+  label: string;
+  desc: string;
+}
+
 // Backend response type
 export interface Resp {
   namespaces?: string[];
@@ -30,6 +35,7 @@ export interface Resp {
   defaultStorageClass?: string;
   pvcs?: Volume[];
   config?: any;
+  poddefaults?: PodDefault[];
   success: boolean;
   log?: string;
 }
@@ -97,6 +103,10 @@ export interface Config {
   };
   shm?: {
     value: boolean;
+    readOnly?: boolean;
+  };
+  configurations?: {
+    value: string[];
     readOnly?: boolean;
   };
 }

@@ -10,7 +10,7 @@ declare global {
 @Injectable()
 export class NamespaceService {
   // Observable string sources
-  private selectedNamespaceSource = new ReplaySubject<string>();
+  private selectedNamespaceSource = new ReplaySubject<string>(1);
 
   // Observable string streams
   selectedNamespace$ = this.selectedNamespaceSource.asObservable();
@@ -30,6 +30,8 @@ export class NamespaceService {
             cdeh.onNamespaceSelected = this.updateSelectedNamespace.bind(this);
           }
         );
+      } else {
+        this.updateSelectedNamespace("kubeflow");
       }
     });
   }
@@ -41,7 +43,9 @@ export class NamespaceService {
 
   // Service message commands
   updateSelectedNamespace(namespace: string) {
-    this.selectedNamespaceSource.next(namespace);
+    if (namespace.length !== 0) {
+      this.selectedNamespaceSource.next(namespace);
+    }
   }
 
   dashboardConnected() {

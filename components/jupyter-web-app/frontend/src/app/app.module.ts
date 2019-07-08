@@ -12,7 +12,8 @@ import {
   faBook,
   faMicrochip,
   faLaptopCode,
-  faLink
+  faLink,
+  faSlidersH
 } from "@fortawesome/free-solid-svg-icons";
 import { faDocker } from "@fortawesome/free-brands-svg-icons";
 
@@ -46,6 +47,7 @@ import { RokVolumeComponent } from "./uis/rok/rok-resource-form/rok-volume/rok-v
 import { RokFormWorkspaceVolumeComponent } from "./uis/rok/rok-resource-form/rok-form-workspace-volume/rok-form-workspace-volume.component";
 import { RokFormDataVolumesComponent } from "./uis/rok/rok-resource-form/rok-form-data-volumes/rok-form-data-volumes.component";
 import { RokErrorMsgComponent } from "./uis/rok/rok-error-msg/rok-error-msg.component";
+import { FormConfigurationsComponent } from "./resource-form/form-configurations/form-configurations.component";
 
 @NgModule({
   declarations: [
@@ -71,7 +73,8 @@ import { RokErrorMsgComponent } from "./uis/rok/rok-error-msg/rok-error-msg.comp
     RokVolumeComponent,
     RokFormWorkspaceVolumeComponent,
     RokFormDataVolumesComponent,
-    RokErrorMsgComponent
+    RokErrorMsgComponent,
+    FormConfigurationsComponent
   ],
   imports: [
     BrowserModule,
@@ -96,7 +99,8 @@ export class AppModule {
       faMicrochip,
       faLaptopCode,
       faDocker,
-      faLink
+      faLink,
+      faSlidersH
     );
   }
 }
