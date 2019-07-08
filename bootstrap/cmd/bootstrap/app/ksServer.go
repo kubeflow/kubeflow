@@ -656,18 +656,6 @@ func (s *ksServer) getRegistryUri(registry *kfdefs.RegistryConfig) (string, erro
 	}
 }
 
-func runCmd(rawcmd string) error {
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
-	return backoff.Retry(func() error {
-		cmd := exec.Command("sh", "-c", rawcmd)
-		result, err := cmd.CombinedOutput()
-		if err != nil {
-			return fmt.Errorf("Error occrued during execute cmd %v. Error: %v", rawcmd, string(result))
-		}
-		return err
-	}, bo)
-}
-
 // appGenerate installs packages and creates components.
 func (s *ksServer) appGenerate(ksApp kApp.App, appConfig *configtypes.ComponentConfig) error {
 	libs, err := ksApp.Libraries()

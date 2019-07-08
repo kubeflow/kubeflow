@@ -4,10 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/cenkalti/backoff"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
+	"time"
 )
 
 func copyFile(src, dst string) error {
@@ -82,4 +86,21 @@ func encodeHTTPGenericRequest(_ context.Context, r *http.Request, request interf
 	}
 	r.Body = ioutil.NopCloser(&buf)
 	return nil
+}
+
+func runCmd(rawcmd string) error {
+	return runCmdFromDir(rawcmd, "")
+}
+
+func runCmdFromDir(rawcmd string, wDir string) error {
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
+	return backoff.Retry(func() error {
+		cmd := exec.Command("sh", "-c", rawcmd)
+		cmd.Dir = wDir
+		result, err := cmd.CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("Error occrued during execute cmd %v. Error: %v", rawcmd, string(result))
+		}
+		return err
+	}, bo)
 }
