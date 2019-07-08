@@ -74,3 +74,25 @@ animated-checkmark {
 carousel-indicator {
     margin: 1em;
 }
+
+#Links {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    position: absolute;
+    padding: 3em;
+    font-size: .8em;
+    width: 100%;
+    max-width: 500px;
+    box-sizing: border-box;
+    color: #a2a7ad;
+    @apply --layout-horizontal;
+    @apply --layout-around-justified;
+}
+#Links a {
+    text-decoration: none;
+    color: inherit;
+}
+#Links a:hover {
+    text-decoration: underline;
+}
