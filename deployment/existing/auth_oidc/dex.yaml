@@ -56,7 +56,7 @@ metadata:
   namespace: kubeflow
 data:
   config.yaml: |
-    issuer: {{.OIDCEndpoint}}
+    issuer: https://34.77.42.60:5556/dex
     storage:
       type: kubernetes
       config:
@@ -66,27 +66,27 @@ data:
     oauth2:
       skipApprovalScreen: true
     enablePasswordDB: true
-    {{if .KubeflowUser}}
+    
     staticPasswords:
-    - email: {{.KubeflowUser.UserEmail}}
+    - email: admin@kubeflow.org
       # BCrypt Hash
-      hash: "{{.KubeflowUser.PasswordHash}}"
-      username: {{.KubeflowUser.Username}}
+      hash: "$2a$13$9GaaHLes75dpNVi8aaUfp.iGVz8cU63aZgGuCCCkb94tEu254xGFO"
+      username: admin
       userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
-    {{end}}
+    
     staticClients:
     - id: kubeflow-authservice-oidc
       redirectURIs:
       # After authenticating and giving consent, dex will redirect to
       # this url for the specific client.
-      - {{.KubeflowEndpoint}}/login/oidc
-      {{if .OIDCExtraRedirectUris}}
-      {{ range $element := .OIDCExtraRedirectUris }}
-      - {{ $element }}
-      {{ end }}
-      {{end}}
+      - https://34.77.42.60/login/oidc
+      
+      
+      - http://localhost:8000/seldon-deploy/auth/callback
+      
+      
       name: 'Kubeflow AuthService OIDC'
-      secret: {{.AuthServiceClientSecret}}
+      secret: nb8KB2D8onEsZoYFfz2nzZlGpCgmxYKG
     # Options for controlling the logger.
     logger:
       level: "debug"
