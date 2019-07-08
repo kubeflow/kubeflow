@@ -46,7 +46,7 @@ require (
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/ksonnet/ksonnet v0.13.1
 	github.com/ksonnet/ksonnet-lib v0.1.12 // indirect
-	github.com/mitchellh/go-homedir v1.0.0
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/onrik/logrus v0.2.1
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
@@ -54,7 +54,6 @@ require (
 	github.com/prometheus/client_golang v0.9.2
 	github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
 	github.com/russross/blackfriday v0.0.0-00010101000000-000000000000 // indirect
-	github.com/sergi/go-diff v1.0.0 // indirect
 	github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c // indirect
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/afero v1.2.0
@@ -72,6 +71,7 @@ require (
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 	gopkg.in/square/go-jose.v2 v2.3.0
+	gopkg.in/src-d/go-git.v4 v4.12.0
 	k8s.io/api v0.0.0-20180308224125-73d903622b73
 	k8s.io/api/v2 v2.0.0
 	k8s.io/apiextensions-apiserver v0.0.0-20190116054503-cf30b7cf64c2
@@ -101,7 +101,6 @@ replace (
 	github.com/mitchellh/go-homedir => github.com/mitchellh/go-homedir v1.0.0
 	github.com/russross/blackfriday => github.com/russross/blackfriday v1.5.2-0.20180428102519-11635eb403ff // indirect
 	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
-	golang.org/x/net => golang.org/x/net v0.0.0-20180124060956-0ed95abb35c4
 	k8s.io/api => k8s.io/api v0.0.0-20180601181742-8b7507fac302
 	k8s.io/api/v2 => /tmp/v2/k8s.io/api
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20180601203502-8e7f43002fec
