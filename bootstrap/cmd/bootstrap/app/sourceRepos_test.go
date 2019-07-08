@@ -32,20 +32,24 @@ func cleanup(ctx context.Context, ts oauth2.TokenSource, repoUrl string, t *test
 	t.Logf("Deleted repository %v", repoUrl)
 }
 
+const (
+	RunManualTestsEnvName = "KUBEFLOW_RUN_MANUAL_TESTS"
+	GcpProjectEnvName = "KUBEFLOW_GCP_TEST_PROJECT"
+)
 // TestSourceRepos_test uses GCP therefore by default it will be skipped.
 // To enable the test set the environment variable:
 //   KUBEFLOW_RUN_MANUAL_TESTS = true
 func TestSourceRepos_test(t *testing.T) {
-	if strings.TrimSpace(strings.ToLower(os.Getenv("KUBEFLOW_RUN_MANUAL_TESTS"))) != "true" {
-		t.Skip("Skipping TestSourceRepos_test because environment variable KUBEFLOW_RUN_MANUAL_TEST not set to true")
+	if strings.TrimSpace(strings.ToLower(os.Getenv(RunManualTestsEnvName))) != "true" {
+		t.Skipf("Skipping TestSourceRepos_test because environment variable %v not set to true", RunManualTestsEnvName)
 	}
 
 	project := "kubeflow-ci-deployment"
-	if os.Getenv("KUBEFLOW_GCP_TEST_PROJECT") != "" {
-		project = os.Getenv("KUBEFLOW_GCP_TEST_PROJECT")
+	if os.Getenv(GcpProjectEnvName) != "" {
+		project = os.Getenv(GcpProjectEnvName)
 	}
 
-	t.Logf("Using GCP project: %v", project)
+	t.Logf("Using GCP project: %v; to override set environment variable %v", project, GcpProjectEnvName)
 	localDir, err := ioutil.TempDir("", "kfctl-test-")
 
 	if err != nil {
