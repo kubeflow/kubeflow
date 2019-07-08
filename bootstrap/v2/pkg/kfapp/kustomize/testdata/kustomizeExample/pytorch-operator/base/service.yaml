@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8443"
+    prometheus.io/scrape: "true"
+  labels:
+    app: pytorch-operator
+  name: pytorch-operator
+spec:
+  ports:
+  - name: monitoring-port
+    port: 8443
+    targetPort: 8443
+  selector:
+    name: pytorch-operator
+  type: ClusterIP
+
