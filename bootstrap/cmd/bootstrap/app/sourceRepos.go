@@ -144,7 +144,7 @@ func NewSourceRepo(ctx context.Context, project string, localDir string, repoNam
 		_, err := r.CreateRemote(&config.RemoteConfig{
 			Name: RemoteName,
 			URLs: []string{
-					url,
+				url,
 			},
 		})
 
@@ -154,6 +154,11 @@ func NewSourceRepo(ctx context.Context, project string, localDir string, repoNam
 
 	}
 	return s, nil
+}
+
+// Name returns the name of the repository as expected by Google APIs.
+func (s *SourceRepo) Name() string {
+	return fmt.Sprintf("projects/%s/repos/%s", s.project, s.repoName)
 }
 
 func isGitRepo(repoDir string) bool {
@@ -183,7 +188,7 @@ func (s *SourceRepo) remoteUrl() (string, error) {
 func (s *SourceRepo) CommitAndPushRepo(email string) error {
 	w, err := s.r.Worktree()
 
-	if err != nil  {
+	if err != nil {
 		return errors.WithStack(err)
 	}
 
@@ -193,13 +198,13 @@ func (s *SourceRepo) CommitAndPushRepo(email string) error {
 		return errors.WithStack(err)
 	}
 
-	excludes := map[string]bool {
-		".git":true,
+	excludes := map[string]bool{
+		".git":   true,
 		".cache": true,
 	}
 
-	for _, f := range files{
-		if _,ok := excludes[f.Name()]; ok {
+	for _, f := range files {
+		if _, ok := excludes[f.Name()]; ok {
 			continue
 		}
 
@@ -211,9 +216,9 @@ func (s *SourceRepo) CommitAndPushRepo(email string) error {
 
 	_, err = w.Commit("Latest changes", &git.CommitOptions{
 		Author: &object.Signature{
-			Name: "kfctl agent",
+			Name:  "kfctl agent",
 			Email: email,
-			When: time.Now(),
+			When:  time.Now(),
 		},
 	})
 
@@ -223,7 +228,7 @@ func (s *SourceRepo) CommitAndPushRepo(email string) error {
 
 	if err := s.r.Push(&git.PushOptions{
 		RemoteName: RemoteName,
-	}); err !=nil {
+	}); err != nil {
 		return errors.WithStack(err)
 	}
 
