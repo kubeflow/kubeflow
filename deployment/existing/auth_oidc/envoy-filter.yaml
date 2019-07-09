@@ -15,10 +15,11 @@ spec:
           cluster: outbound|8080||authservice.istio-system.svc.cluster.local
           failureModeAllow: false
           timeout: 10s
-        authorizationRequest: 
+        authorizationRequest:
           allowedHeaders:
             patterns:
             - exact: "cookie"
+            - exact: "X-Auth-Token"
       statusOnError:
         code: GatewayTimeout
     filterName: envoy.ext_authz
