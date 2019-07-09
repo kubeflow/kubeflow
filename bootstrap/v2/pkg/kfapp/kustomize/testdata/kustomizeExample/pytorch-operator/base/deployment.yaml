@@ -1,0 +1,39 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: pytorch-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: pytorch-operator
+  template:
+    metadata:
+      labels:
+        name: pytorch-operator
+    spec:
+      containers:
+      - command:
+        - /pytorch-operator.v1
+        - --alsologtostderr
+        - -v=1
+        - --monitoring-port=8443
+        env:
+        - name: MY_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        image: gcr.io/kubeflow-images-public/pytorch-operator:v0.5.1-5-ge775742
+        name: pytorch-operator
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      serviceAccountName: pytorch-operator
+      volumes:
+      - configMap:
+          name: pytorch-operator-config
+        name: config-volume

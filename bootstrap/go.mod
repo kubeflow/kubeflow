@@ -50,6 +50,7 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/onrik/logrus v0.2.1
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
+	github.com/otiai10/copy v1.0.1
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v0.9.2
 	github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
