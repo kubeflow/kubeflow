@@ -61,6 +61,7 @@ or a <name>. If just <name>, a directory <name> will be created in the current d
 		}
 
 		useIstio := initCfg.GetBool(string(kftypes.USE_ISTIO))
+		installIstio := initCfg.GetBool(string(kftypes.INSTALL_ISTIO))
 		disableUsageReport := initCfg.GetBool(string(kftypes.DISABLE_USAGE_REPORT))
 		config := initCfg.GetString(string(kftypes.CONFIG))
 
@@ -74,6 +75,7 @@ or a <name>. If just <name>, a directory <name> will be created in the current d
 			string(kftypes.SKIP_INIT_GCP_PROJECT): init_gcp,
 			string(kftypes.USE_BASIC_AUTH):        useBasicAuth,
 			string(kftypes.USE_ISTIO):             useIstio,
+			string(kftypes.INSTALL_ISTIO):         installIstio,
 			string(kftypes.DISABLE_USAGE_REPORT):  disableUsageReport,
 			string(kftypes.PACKAGE_MANAGER):       packageManager,
 			string(kftypes.CONFIG):                config,
@@ -180,6 +182,15 @@ func init() {
 	bindErr = initCfg.BindPFlag(string(kftypes.USE_ISTIO), initCmd.Flags().Lookup(string(kftypes.USE_ISTIO)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.USE_ISTIO), bindErr)
+		return
+	}
+
+	// Install Istio
+	initCmd.Flags().Bool(string(kftypes.INSTALL_ISTIO), true,
+		string(kftypes.INSTALL_ISTIO)+" install istio.")
+	bindErr = initCfg.BindPFlag(string(kftypes.INSTALL_ISTIO), initCmd.Flags().Lookup(string(kftypes.INSTALL_ISTIO)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.INSTALL_ISTIO), bindErr)
 		return
 	}
 

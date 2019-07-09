@@ -88,6 +88,7 @@ const (
 	ZONE                  CliOption = "zone"
 	USE_BASIC_AUTH        CliOption = "use_basic_auth"
 	USE_ISTIO             CliOption = "use_istio"
+	INSTALL_ISTIO         CliOption = "install_istio"
 	DELETE_STORAGE        CliOption = "delete_storage"
 	DISABLE_USAGE_REPORT  CliOption = "disable_usage_report"
 	PACKAGE_MANAGER       CliOption = "package-manager"

@@ -3,10 +3,6 @@ kind: KfDef
 metadata:
   name: config
 spec:
-  components:
-  - istio-crds
-  - istio-install
-  - istio
   componentParams:
     argo:
     - name: overlay

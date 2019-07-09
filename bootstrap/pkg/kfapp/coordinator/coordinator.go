@@ -85,6 +85,8 @@ func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 	return _coordinator
 }
 
+// Config itself is a kustomize package, https://github.com/kubeflow/kubeflow/tree/master/bootstrap/config.
+// getConfigFromCache returns the KfDef yaml (in bytes) with overlays applied, and also writes it to app.yaml.
 func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
 
 	configPath := filepath.Join(pathDir, kftypes.DefaultConfigDir)
@@ -96,6 +98,9 @@ func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
 	}
 	if kfDef.Spec.UseIstio {
 		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "istio"})
+	}
+	if kfDef.Spec.InstallIstio {
+		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "install_istio"})
 	}
 	if kfDef.Spec.UseBasicAuth {
 		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "basic_auth"})
@@ -121,7 +126,6 @@ func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
 			Message: fmt.Sprintf("error getting manifest %v Error %v", configPath, resMapErr),
 		}
 	}
-	// TODO: Do we need to write to file here?
 	writeErr := kustomize.WriteKustomizationFile(kfDef.Name, configPath, resMap)
 	if writeErr != nil {
 		return nil, &kfapis.KfError{
@@ -302,6 +306,7 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 		version := options[string(kftypes.VERSION)].(string)
 		useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
 		useIstio := options[string(kftypes.USE_ISTIO)].(bool)
+		installIstio := options[string(kftypes.INSTALL_ISTIO)].(bool)
 		namespace := options[string(kftypes.NAMESPACE)].(string)
 		project := options[string(kftypes.PROJECT)].(string)
 		cacheDir := ""
@@ -336,6 +341,7 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 				PackageManager:     packageManager,
 				UseBasicAuth:       useBasicAuth,
 				UseIstio:           useIstio,
+				InstallIstio:       installIstio,
 				EnableApplications: true,
 			},
 		}

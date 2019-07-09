@@ -1,0 +1,9 @@
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+metadata:
+  name: config
+spec:
+  components:
+  - istio-crds
+  - istio-install
+  - istio
