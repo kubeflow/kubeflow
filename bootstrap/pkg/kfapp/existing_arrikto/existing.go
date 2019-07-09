@@ -178,9 +178,8 @@ func (existing *Existing) Apply(resources kftypesv3.ResourceEnum) error {
 		KubeflowUser:            kubeflowUser,
 	}
 
-	//HmacSecret is generated on install as needs to be the same between restarts of authService
-	//OIDCExtraRedirectUris provides option to add entrypoints in addition to default gateway
-	log.Debugf("AuthServiceHmacSecret %s", data.AuthServiceHmacSecret)
+	// HmacSecret and client secret are generated on install as need to be the same between restarts of authService
+	// OIDCExtraRedirectUris provides option to add entrypoints in addition to default gateway
 	log.Debugf("OIDCExtraRedirectUris %s", data.OIDCExtraRedirectUris)
 
 	// Generate YAML from the dex, authservice templates
@@ -195,8 +194,8 @@ func (existing *Existing) Apply(resources kftypesv3.ResourceEnum) error {
 		return internalError(errors.WithStack(err))
 	}
 
-	//for dex the AuthServiceClientSecret shouldn't be base64 encoded as in configMap
-	//TODO: would be nice to put in secret but ideally https://github.com/dexidp/dex/issues/1099 would be fixed first
+	// For dex the AuthServiceClientSecret shouldn't be base64 encoded as in configMap
+	// TODO: would be nice to put in secret but ideally https://github.com/dexidp/dex/issues/1099 would be fixed first
 	authServiceClientSecretDecoded, err := base64.StdEncoding.DecodeString(data.AuthServiceClientSecret)
 	if err != nil {
 		return internalError(errors.WithStack(err))
