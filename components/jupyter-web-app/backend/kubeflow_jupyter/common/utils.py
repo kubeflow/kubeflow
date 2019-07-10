@@ -1,15 +1,22 @@
 import logging
+import os
 import sys
 import yaml
 import json
+from flask import request
 from kubernetes import client
 import datetime as dt
 from . import api
 
+# The backend will send the first config it will successfully load
 CONFIGS = [
     "/etc/config/spawner_ui_config.yaml",
     "./kubeflow_jupyter/common/yaml/spawner_ui_config.yaml"
 ]
+
+# The values of the headers to look for the User info
+USER_HEADER = os.getenv("USERID_HEADER", "X-Goog-Authenticated-User-Email")
+USER_PREFIX = os.getenv("USERID_PREFIX", "")
 
 
 # Logging
@@ -27,6 +34,20 @@ logger = create_logger(__name__)
 
 
 # Utils
+def get_username_from_request():
+    if USER_HEADER not in request.headers:
+        logger.warning("User header not present!")
+        username = None
+    else:
+        user = request.headers[USER_HEADER]
+        username = user.replace(USER_PREFIX, "")
+        logger.info("User: '{}' | Headers: '{}' '{}'".format(
+            username, USER_HEADER, USER_PREFIX
+        ))
+
+    return username
+
+
 def load_param_yaml(f, **kwargs):
     c = None
     try:
