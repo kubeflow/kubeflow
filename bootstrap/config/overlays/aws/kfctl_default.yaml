@@ -4,10 +4,12 @@ metadata:
   name: config
 spec:
   components:
+  - istio-crds
+  - istio-install
   - istio-ingress
   - aws-alb-ingress-controller
   - nvidia-device-plugin
-  - fluend-cloud-watch
+  - fluentd-cloud-watch
   packages:
   - aws
   componentParams:
