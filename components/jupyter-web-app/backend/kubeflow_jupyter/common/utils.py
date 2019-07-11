@@ -16,7 +16,7 @@ CONFIGS = [
 
 # The values of the headers to look for the User info
 USER_HEADER = os.getenv("USERID_HEADER", "X-Goog-Authenticated-User-Email")
-USER_PREFIX = os.getenv("USERID_PREFIX", "")
+USER_PREFIX = os.getenv("USERID_PREFIX", "accounts.google.com:")
 
 
 # Logging
