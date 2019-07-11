@@ -3,9 +3,6 @@
     "spec_files": [
         "**/*_test.ts"
     ],
-    "helpers": [
-        "helpers/**/*.ts"
-    ],
     "stopSpecOnExpectationFailure": false,
     "random": true
 }
