@@ -85,8 +85,8 @@ func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 	return _coordinator
 }
 
-// Config itself is a kustomize package, https://github.com/kubeflow/kubeflow/tree/master/bootstrap/config.
 // getConfigFromCache returns the KfDef yaml (in bytes) with overlays applied, and also writes it to app.yaml.
+// Config itself is a kustomize package, https://github.com/kubeflow/kubeflow/tree/master/bootstrap/config.
 func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
 
 	configPath := filepath.Join(pathDir, kftypes.DefaultConfigDir)
