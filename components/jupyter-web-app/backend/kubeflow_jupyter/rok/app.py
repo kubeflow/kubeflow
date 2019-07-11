@@ -1,5 +1,4 @@
 import base64
-import json
 from flask import Flask, request, jsonify, send_from_directory
 from ..common.base_app import app as base
 from ..common import utils, api
@@ -24,7 +23,8 @@ def get_token(namespace):
         "value": "",
     }
 
-    data = api.get_secret(namespace, name)
+    user = utils.get_username_from_request()
+    data = api.get_secret(namespace, name, user)
     if not data["success"]:
         logger.warning("Couldn't load ROK token in namespace '{}': {}".format(
             namespace, data["log"]
@@ -56,6 +56,7 @@ def get_token(namespace):
 # POSTers
 @app.route("/api/namespaces/<namespace>/notebooks", methods=["POST"])
 def post_notebook(namespace):
+    user = utils.get_username_from_request()
     body = request.get_json()
     defaults = utils.spawner_ui_config()
     logger.info("Got Notebook: {}".format(body))
@@ -81,7 +82,7 @@ def post_notebook(namespace):
             rok.add_workspace_volume_annotations(ws_pvc, workspace_vol)
 
         logger.info("Creating Workspace Volume: {}".format(ws_pvc.to_dict()))
-        r = api.post_pvc(ws_pvc)
+        r = api.post_pvc(ws_pvc, user)
         if not r["success"]:
             return jsonify(r)
 
@@ -101,7 +102,7 @@ def post_notebook(namespace):
             rok.add_data_volume_annotations(dtvol_pvc, vol)
 
         logger.info("Creating Data Volume {}:".format(dtvol_pvc))
-        r = api.post_pvc(dtvol_pvc)
+        r = api.post_pvc(dtvol_pvc, user)
         if not r["success"]:
             return jsonify(r)
 
@@ -121,7 +122,7 @@ def post_notebook(namespace):
     utils.set_notebook_shm(notebook, body, defaults)
 
     logger.info("Creating Notebook: {}".format(notebook))
-    return jsonify(api.post_notebook(notebook))
+    return jsonify(api.post_notebook(notebook, user))
 
 
 # Since Angular is a SPA, we serve index.html every time
