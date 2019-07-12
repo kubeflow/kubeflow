@@ -36,7 +36,8 @@ spec:
     cloud-endpoints:
     - name: secretName
       value: admin-gcp-sa
-    - name: email
+    - initRequired: true
+      name: email
       value: <email>
     iap-ingress:
     - name: namespace
