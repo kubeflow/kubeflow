@@ -99,7 +99,7 @@ createKsApp() {
   ks generate tf-job-operator tf-job-operator --injectIstio false
   ks generate tensorboard tensorboard --injectIstio false
   ks generate metacontroller metacontroller
-  ks generate profiles profiles
+  ks generate profiles profiles --admin ${CLUSTER_ADMIN}
   ks generate notebooks notebooks
   ks generate argo argo --injectIstio false
 

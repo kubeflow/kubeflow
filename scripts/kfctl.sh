@@ -69,6 +69,7 @@ createEnv() {
           'KUBEFLOW_KS_DIR=$KUBEFLOW_KS_DIR\n'
           'KUBEFLOW_DOCKER_REGISTRY=$KUBEFLOW_DOCKER_REGISTRY\n'
           'DOCKER_REGISTRY_KATIB_NAMESPACE=$DOCKER_REGISTRY_KATIB_NAMESPACE\n'
+          'CLUSTER_ADMIN=${CLUSTER_ADMIN}\n'
           'K8S_NAMESPACE=$K8S_NAMESPACE\n'
           'KUBEFLOW_PLATFORM=$KUBEFLOW_PLATFORM\n'
           'MOUNT_LOCAL=$MOUNT_LOCAL\n'
@@ -79,6 +80,7 @@ createEnv() {
            '$KUBEFLOW_DOCKER_REGISTRY'
            '$KUBEFLOW_COMPONENTS'
            '$DOCKER_REGISTRY_KATIB_NAMESPACE'
+           '$CLUSTER_ADMIN'
            '$K8S_NAMESPACE'
            '$KUBEFLOW_PLATFORM$MOUNT_LOCAL'
            '$DEPLOYMENT_NAME'
@@ -91,6 +93,7 @@ createEnv() {
   export KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"}
   export KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""}
   export DOCKER_REGISTRY_KATIB_NAMESPACE=${DOCKER_REGISTRY_KATIB_NAMESPACE:-""}
+  export CLUSTER_ADMIN=${CLUSTER_ADMIN-`whoami`}
   # Namespace where kubeflow is deployed
   export K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"}
 
@@ -284,6 +287,10 @@ parseArgs() {
       --email)
         shift
         EMAIL=$1
+        ;;
+      --clusterAdmin)
+        shift
+        CLUSTER_ADMIN=$1
         ;;
       --gkeApiVersion)
         shift
