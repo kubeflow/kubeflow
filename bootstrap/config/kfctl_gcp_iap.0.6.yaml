@@ -38,7 +38,7 @@ spec:
       value: admin-gcp-sa
     - initRequired: true
       name: email
-      value: <email>
+      value: email
     iap-ingress:
     - name: namespace
       value: istio-system
