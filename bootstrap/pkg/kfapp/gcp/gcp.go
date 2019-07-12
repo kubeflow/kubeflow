@@ -1746,6 +1746,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 		}
 	}
 	gcp.kfDef.Spec.ComponentParams["cert-manager"] = setNameVal(gcp.kfDef.Spec.ComponentParams["cert-manager"], "acmeEmail", gcp.kfDef.Spec.Email, true)
+	gcp.kfDef.Spec.ComponentParams["cloud-endpoints"] = setNameVal(gcp.kfDef.Spec.ComponentParams["cloud-endpoints"], "email", gcp.kfDef.Spec.Email, true)
 	gcp.kfDef.Spec.ComponentParams["profiles"] = setNameVal(gcp.kfDef.Spec.ComponentParams["profiles"], "admin", gcp.kfDef.Spec.Email, true)
 	if gcp.kfDef.Spec.IpName == "" {
 		gcp.kfDef.Spec.IpName = gcp.kfDef.Name + "-ip"
