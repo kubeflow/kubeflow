@@ -107,7 +107,8 @@ type kustomize struct {
 }
 
 const (
-	outputDir = "kustomize"
+	outputDir      = "kustomize"
+	debugOutputDir = "output"
 )
 
 // Setter defines an interface for modifying the plugin.
@@ -203,6 +204,14 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	}
 
 	kustomizeDir := path.Join(kustomize.kfDef.Spec.AppDir, outputDir)
+	var debugDir string
+	if kustomize.kfDef.Spec.DebugOutput {
+		debugDir = path.Join(kustomize.kfDef.Spec.AppDir, debugOutputDir)
+		debugDirErr := kftypesv2.CreateEmptyDir(debugDir)
+		if debugDirErr != nil {
+			return debugDirErr
+		}
+	}
 	for _, compName := range kustomize.kfDef.Spec.Components {
 		resMap, err := EvaluateKustomizeManifest(path.Join(kustomizeDir, compName))
 		if err != nil {
@@ -212,6 +221,15 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 				Message: fmt.Sprintf("error evaluating kustomization manifest for %v Error %v", compName, err),
 			}
 		}
+		if debugDir != "" {
+			writeErr := WriteKustomizationFile(compName, debugDir, resMap)
+			if writeErr != nil {
+				return &kfapisv2.KfError{
+					Code:    int(kfapisv2.INTERNAL_ERROR),
+					Message: fmt.Sprintf("error writing to %v Error %v", compName+".yaml", writeErr),
+				}
+			}
+		}
 		data, err := resMap.EncodeAsYaml()
 		if err != nil {
 			return &kfapisv2.KfError{
@@ -219,6 +237,7 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 				Message: fmt.Sprintf("can not encode component %v as yaml Error %v", compName, err),
 			}
 		}
+
 		resourcesErr := kustomize.deployResources(kustomize.restConfig, data)
 		if resourcesErr != nil {
 			return &kfapisv2.KfError{
@@ -428,17 +447,9 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 	generate := func() error {
 		kustomizeDir := path.Join(kustomize.kfDef.Spec.AppDir, outputDir)
-
-		// idempotency
-		if _, err := os.Stat(kustomizeDir); !os.IsNotExist(err) {
-			_ = os.RemoveAll(kustomizeDir)
-		}
-		kustomizeDirErr := os.MkdirAll(kustomizeDir, os.ModePerm)
+		kustomizeDirErr := kftypesv2.CreateEmptyDir(kustomizeDir)
 		if kustomizeDirErr != nil {
-			return &kfapisv2.KfError{
-				Code:    int(kfapisv2.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("couldn't create directory %v Error %v", kustomizeDir, kustomizeDirErr),
-			}
+			return kustomizeDirErr
 		}
 
 		_, ok := kustomize.kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
@@ -1036,7 +1047,8 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 			}
 			//TODO look at sort options
 			//See https://github.com/kubernetes-sigs/kustomize/issues/821
-			//TODO upgrade to v2.0.4 when available
+			//TODO upgrade to v3+ when available
+			baseKfDef.Spec.Components = moveToFront("profiles", baseKfDef.Spec.Components)
 			if kfDef.Spec.EnableApplications {
 				baseKfDef.Spec.Components = moveToFront("application", baseKfDef.Spec.Components)
 				baseKfDef.Spec.Components = moveToFront("application-crds", baseKfDef.Spec.Components)

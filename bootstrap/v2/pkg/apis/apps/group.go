@@ -126,6 +126,24 @@ func LoadKfApp(name string, kfdef *kfdefsv2.KfDef) (kfapps.KfApp, error) {
 	return symbol.(func(*kfdefsv2.KfDef) kfapps.KfApp)(kfdef), nil
 }
 
+// CreateEmptyDir will see if the directory exists, if so it will delete the directory and its contents
+// and then recreate it. Used where idempotent behavior is needed
+//   pathDir
+func CreateEmptyDir(pathDir string) error {
+	// idempotency
+	if _, err := os.Stat(pathDir); !os.IsNotExist(err) {
+		_ = os.RemoveAll(pathDir)
+	}
+	pathDirErr := os.MkdirAll(pathDir, os.ModePerm)
+	if pathDirErr != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("couldn't create directory %v Error %v", pathDir, pathDirErr),
+		}
+	}
+	return nil
+}
+
 // DownloadToCache will download a version of kubeflow github repo or the manifests repo where version can be
 //   master
 //	 tag
@@ -140,11 +158,7 @@ func DownloadToCache(appDir string, repo string, version string) (string, error)
 	}
 	cacheDir := path.Join(appDir, DefaultCacheDir)
 	cacheDir = path.Join(cacheDir, repo)
-	// idempotency
-	if _, err := os.Stat(cacheDir); !os.IsNotExist(err) {
-		_ = os.RemoveAll(cacheDir)
-	}
-	cacheDirErr := os.MkdirAll(cacheDir, os.ModePerm)
+	cacheDirErr := CreateEmptyDir(cacheDir)
 	if cacheDirErr != nil {
 		return "", &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
