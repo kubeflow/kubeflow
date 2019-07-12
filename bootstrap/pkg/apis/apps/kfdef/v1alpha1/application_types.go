@@ -35,7 +35,7 @@ type KfDefSpec struct {
 	SkipInitProject        bool   `json:"skipInitProject,omitempty"`
 	UseIstio               bool   `json:"useIstio"`
 	EnableApplications     bool   `json:"enableApplications"`
-	DebugOutput            bool   `json:"debugOutput"`
+	DryRun                 bool   `json:"dryRun"`
 	ServerVersion          string `json:"serverVersion,omitempty"`
 	DeleteStorage          bool   `json:"deleteStorage,omitempty"`
 	PackageManager         string `json:"packageManager,omitempty"`

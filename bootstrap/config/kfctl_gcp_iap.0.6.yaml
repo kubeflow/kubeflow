@@ -36,6 +36,8 @@ spec:
     cloud-endpoints:
     - name: secretName
       value: admin-gcp-sa
+    - name: email
+      value: <email>
     iap-ingress:
     - name: namespace
       value: istio-system

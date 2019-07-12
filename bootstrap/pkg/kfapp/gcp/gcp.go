@@ -798,6 +798,10 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 // Apply applies the gcp kfapp.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
+	if gcp.kfDef.Spec.DryRun {
+		return nil
+	}
+
 	if err := gcp.initGcpClient(); err != nil {
 		log.Errorf("There was a problem initializing the GCP client; %v", err)
 		return errors.WithMessagef(err, "Gcp.Apply Could not initatie a GCP client")

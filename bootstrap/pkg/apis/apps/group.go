@@ -79,6 +79,7 @@ const (
 	MOUNT_LOCAL           CliOption = "mount-local"
 	SKIP_INIT_GCP_PROJECT CliOption = "skip-init-gcp-project"
 	VERBOSE               CliOption = "verbose"
+	DRY_RUN               CliOption = "dry-run"
 	NAMESPACE             CliOption = "namespace"
 	VERSION               CliOption = "version"
 	REPO                  CliOption = "repo"

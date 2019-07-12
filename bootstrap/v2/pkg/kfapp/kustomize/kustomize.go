@@ -107,8 +107,8 @@ type kustomize struct {
 }
 
 const (
-	outputDir      = "kustomize"
-	debugOutputDir = "output"
+	outputDir       = "kustomize"
+	dryRunOutputDir = "output"
 )
 
 // Setter defines an interface for modifying the plugin.
@@ -187,29 +187,31 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 		}
 	}
 	clientset := kftypesv2.GetClientset(kustomize.restConfig)
-	namespace := kustomize.kfDef.ObjectMeta.Namespace
-	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
-	_, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
-	if nsMissingErr != nil {
-		log.Infof("Creating namespace: %v", namespace)
-		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
-		_, nsErr := clientset.CoreV1().Namespaces().Create(nsSpec)
-		if nsErr != nil {
-			return &kfapisv2.KfError{
-				Code: int(kfapisv2.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("couldn't create %v %v Error: %v",
-					string(kftypes.NAMESPACE), namespace, nsErr),
+	if kustomize.kfDef.Spec.DryRun == false {
+		namespace := kustomize.kfDef.ObjectMeta.Namespace
+		log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
+		_, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+		if nsMissingErr != nil {
+			log.Infof("Creating namespace: %v", namespace)
+			nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
+			_, nsErr := clientset.CoreV1().Namespaces().Create(nsSpec)
+			if nsErr != nil {
+				return &kfapisv2.KfError{
+					Code: int(kfapisv2.INVALID_ARGUMENT),
+					Message: fmt.Sprintf("couldn't create %v %v Error: %v",
+						string(kftypes.NAMESPACE), namespace, nsErr),
+				}
 			}
 		}
 	}
 
 	kustomizeDir := path.Join(kustomize.kfDef.Spec.AppDir, outputDir)
-	var debugDir string
-	if kustomize.kfDef.Spec.DebugOutput {
-		debugDir = path.Join(kustomize.kfDef.Spec.AppDir, debugOutputDir)
-		debugDirErr := kftypesv2.CreateEmptyDir(debugDir)
-		if debugDirErr != nil {
-			return debugDirErr
+	var dryRunDir string
+	if kustomize.kfDef.Spec.DryRun {
+		dryRunDir = path.Join(kustomize.kfDef.Spec.AppDir, dryRunOutputDir)
+		dryRunDirErr := kftypesv2.CreateEmptyDir(dryRunDir)
+		if dryRunDirErr != nil {
+			return dryRunDirErr
 		}
 	}
 	for _, compName := range kustomize.kfDef.Spec.Components {
@@ -221,30 +223,34 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 				Message: fmt.Sprintf("error evaluating kustomization manifest for %v Error %v", compName, err),
 			}
 		}
-		if debugDir != "" {
-			writeErr := WriteKustomizationFile(compName, debugDir, resMap)
+		if dryRunDir != "" {
+			writeErr := WriteKustomizationFile(compName, dryRunDir, resMap)
 			if writeErr != nil {
 				return &kfapisv2.KfError{
 					Code:    int(kfapisv2.INTERNAL_ERROR),
 					Message: fmt.Sprintf("error writing to %v Error %v", compName+".yaml", writeErr),
 				}
 			}
-		}
-		data, err := resMap.EncodeAsYaml()
-		if err != nil {
-			return &kfapisv2.KfError{
-				Code:    int(kfapisv2.INTERNAL_ERROR),
-				Message: fmt.Sprintf("can not encode component %v as yaml Error %v", compName, err),
+		} else {
+			data, err := resMap.EncodeAsYaml()
+			if err != nil {
+				return &kfapisv2.KfError{
+					Code:    int(kfapisv2.INTERNAL_ERROR),
+					Message: fmt.Sprintf("can not encode component %v as yaml Error %v", compName, err),
+				}
 			}
-		}
 
-		resourcesErr := kustomize.deployResources(kustomize.restConfig, data)
-		if resourcesErr != nil {
-			return &kfapisv2.KfError{
-				Code:    int(kfapisv2.INTERNAL_ERROR),
-				Message: fmt.Sprintf("couldn't create resources from %v Error: %v", compName, resourcesErr),
+			resourcesErr := kustomize.deployResources(kustomize.restConfig, data)
+			if resourcesErr != nil {
+				return &kfapisv2.KfError{
+					Code:    int(kfapisv2.INTERNAL_ERROR),
+					Message: fmt.Sprintf("couldn't create resources from %v Error: %v", compName, resourcesErr),
+				}
 			}
 		}
+	}
+	if kustomize.kfDef.Spec.DryRun {
+		log.Infof("output is in %v", dryRunDir)
 	}
 	return nil
 }

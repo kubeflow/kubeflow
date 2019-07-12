@@ -337,6 +337,7 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 				UseBasicAuth:       useBasicAuth,
 				UseIstio:           useIstio,
 				EnableApplications: true,
+				DryRun:             false,
 			},
 		}
 		configFileBuffer, configFileErr := getConfigFromCache(cacheDir, kfDef)
@@ -357,6 +358,7 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 		kfDef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
 		kfDef.Spec.UseBasicAuth = useBasicAuth
 		kfDef.Spec.UseIstio = useIstio
+		kfDef.Spec.DryRun = false
 		kfDef.Spec.PackageManager = packageManager
 	}
 	kfDef.Spec.AppDir = appDir
@@ -543,6 +545,9 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]inte
 	if options[string(kftypes.DELETE_STORAGE)] != nil && kfdef.Spec.Platform == kftypes.GCP {
 		kfdef.Spec.DeleteStorage = options[string(kftypes.DELETE_STORAGE)].(bool)
 	}
+	if options[string(kftypes.DRY_RUN)] != nil {
+		kfdef.Spec.DryRun = options[string(kftypes.DRY_RUN)].(bool)
+	}
 
 	return nil
 }
@@ -604,6 +609,10 @@ func backfillKfDefFromGenerateOptions(kfdef *kfdefsv2.KfDef, options map[string]
 
 	if options[string(kftypes.MOUNT_LOCAL)] != nil {
 		kfdef.Spec.MountLocal = options[string(kftypes.MOUNT_LOCAL)].(bool)
+	}
+
+	if options[string(kftypes.DRY_RUN)] != nil {
+		kfdef.Spec.DryRun = options[string(kftypes.DRY_RUN)].(bool)
 	}
 
 	return nil
