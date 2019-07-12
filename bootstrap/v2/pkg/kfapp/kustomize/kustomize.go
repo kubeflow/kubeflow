@@ -1003,6 +1003,16 @@ func MergeKustomizations(kfDef *kfdefsv2.KfDef, compDir string, params []config.
 func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 	compPath string, params []config.NameValue) error {
 
+	// contains tells whether a contains x.
+	contains := func(x string, a []string) bool {
+		for _, n := range a {
+			if x == n {
+				return true
+			}
+		}
+		return false
+	}
+	// moveToFront will move an item in a list to the front
 	moveToFront := func(item string, list []string) []string {
 		olen := len(list)
 		newlist := make([]string, 0)
@@ -1048,7 +1058,9 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 			//TODO look at sort options
 			//See https://github.com/kubernetes-sigs/kustomize/issues/821
 			//TODO upgrade to v3+ when available
-			baseKfDef.Spec.Components = moveToFront("profiles", baseKfDef.Spec.Components)
+			if contains("profiles", baseKfDef.Spec.Components) {
+				baseKfDef.Spec.Components = moveToFront("profiles", baseKfDef.Spec.Components)
+			}
 			if kfDef.Spec.EnableApplications {
 				baseKfDef.Spec.Components = moveToFront("application", baseKfDef.Spec.Components)
 				baseKfDef.Spec.Components = moveToFront("application-crds", baseKfDef.Spec.Components)
