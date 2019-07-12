@@ -1014,6 +1014,9 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 	}
 	// moveToFront will move an item in a list to the front
 	moveToFront := func(item string, list []string) []string {
+		if contains(item, list) == false {
+			return list
+		}
 		olen := len(list)
 		newlist := make([]string, 0)
 		for i, component := range list {
@@ -1058,9 +1061,7 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 			//TODO look at sort options
 			//See https://github.com/kubernetes-sigs/kustomize/issues/821
 			//TODO upgrade to v3+ when available
-			if contains("profiles", baseKfDef.Spec.Components) {
-				baseKfDef.Spec.Components = moveToFront("profiles", baseKfDef.Spec.Components)
-			}
+			baseKfDef.Spec.Components = moveToFront("profiles", baseKfDef.Spec.Components)
 			if kfDef.Spec.EnableApplications {
 				baseKfDef.Spec.Components = moveToFront("application", baseKfDef.Spec.Components)
 				baseKfDef.Spec.Components = moveToFront("application-crds", baseKfDef.Spec.Components)
