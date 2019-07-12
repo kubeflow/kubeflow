@@ -28,6 +28,7 @@ import (
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
+	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -203,28 +204,45 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 
 	kustomizeDir := path.Join(kustomize.kfDef.Spec.AppDir, outputDir)
 	for _, compName := range kustomize.kfDef.Spec.Components {
-		kustomizeFile := filepath.Join(kustomizeDir, compName+".yaml")
-		if _, err := os.Stat(kustomizeFile); err != nil {
+		resMap, err := EvaluateKustomizeManifest(path.Join(kustomizeDir, compName))
+		if err != nil {
+			log.Errorf("error evaluating kustomization manifest for %v Error %v", compName, err)
 			return &kfapisv2.KfError{
 				Code:    int(kfapisv2.INTERNAL_ERROR),
-				Message: fmt.Sprintf("couldn't find manifest %s for application %s", kustomizeFile, compName),
+				Message: fmt.Sprintf("error evaluating kustomization manifest for %v Error %v", compName, err),
 			}
 		}
-		resourcesErr := kustomize.deployResources(kustomize.restConfig, kustomizeFile)
+		data, err := resMap.EncodeAsYaml()
+		if err != nil {
+			return &kfapisv2.KfError{
+				Code:    int(kfapisv2.INTERNAL_ERROR),
+				Message: fmt.Sprintf("can not encode component %v as yaml Error %v", compName, err),
+			}
+		}
+		resourcesErr := kustomize.deployResources(kustomize.restConfig, data)
 		if resourcesErr != nil {
 			return &kfapisv2.KfError{
 				Code:    int(kfapisv2.INTERNAL_ERROR),
-				Message: fmt.Sprintf("couldn't create resources from %v Error: %v", kustomizeFile, resourcesErr),
+				Message: fmt.Sprintf("couldn't create resources from %v Error: %v", compName, resourcesErr),
 			}
 		}
 	}
 	return nil
 }
 
-// deployResources creates resources from a file, just like `kubectl create -f filename`
+// deployResourcesFromFile creates resources from a file, just like `kubectl create -f filename`
 // TODO based on bootstrap/app/k8sUtil.go. Need to merge.
 // TODO: it can't handle "kind: list" yet.
-func (kustomize *kustomize) deployResources(config *rest.Config, filename string) error {
+func (kustomize *kustomize) deployResourcesFromFile(config *rest.Config, filename string) error {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	return kustomize.deployResources(config, data)
+}
+
+// deployResources creates resources with byte array.
+func (kustomize *kustomize) deployResources(config *rest.Config, data []byte) error {
 	// Create a restmapper to determine the resource type.
 	_discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
@@ -234,10 +252,6 @@ func (kustomize *kustomize) deployResources(config *rest.Config, filename string
 	_cached.Invalidate()
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(_cached)
 
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return err
-	}
 	splitter := regexp.MustCompile(YamlSeparator)
 	objects := splitter.Split(string(data), -1)
 
@@ -457,20 +471,20 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 					Message: fmt.Sprintf("couldn't find component %s", compName),
 				}
 			}
-			resMap, err := GenerateKustomizationFile(kustomize.kfDef, manifestsRepo.LocalPath, compPath,
-				kustomize.kfDef.Spec.ComponentParams[compName])
+			// Copy the component to kustomizeDir
+			err := copy.Copy(path.Join(manifestsRepo.LocalPath, compPath), path.Join(kustomizeDir, compName))
 			if err != nil {
-				log.Errorf("error generating kustomization for %v Error %v", compPath, err)
 				return &kfapisv2.KfError{
 					Code:    int(kfapisv2.INTERNAL_ERROR),
-					Message: fmt.Sprintf("error generating kustomization for %v Error %v", compPath, err),
+					Message: fmt.Sprintf("couldn't copy component %s", compName),
 				}
 			}
-			writeErr := WriteKustomizationFile(compName, kustomizeDir, resMap)
-			if writeErr != nil {
+			err = GenerateKustomizationFile(kustomize.kfDef, kustomizeDir, compName,
+				kustomize.kfDef.Spec.ComponentParams[compName])
+			if err != nil {
 				return &kfapisv2.KfError{
 					Code:    int(kfapisv2.INTERNAL_ERROR),
-					Message: fmt.Sprintf("error writing to %v Error %v", compPath, writeErr),
+					Message: fmt.Sprintf("couldn't generate kustomization file for component %s", compName),
 				}
 			}
 		}
@@ -964,7 +978,6 @@ func MergeKustomizations(kfDef *kfdefsv2.KfDef, compDir string, params []config.
 //    - name: overlay
 //      value: namespaced-gangscheduled
 //
-// It will return a resmap.ResMap which is an accumulated ResMap of the base + any overlays
 // TODO(https://github.com/kubeflow/kubeflow/issues/3491): As part of fixing the discovery
 // logic we should change the KfDef spec to provide a list of applications (not a map).
 // and preserve order when applying them so we can get rid of the logic hard-coding
@@ -977,7 +990,7 @@ func MergeKustomizations(kfDef *kfdefsv2.KfDef, compDir string, params []config.
 // KfDef from overlays. But this function is also used to generate the manifests for the individual
 // kustomize packages.
 func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
-	compPath string, params []config.NameValue) (resmap.ResMap, error) {
+	compPath string, params []config.NameValue) error {
 
 	moveToFront := func(item string, list []string) []string {
 		olen := len(list)
@@ -992,12 +1005,11 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 		}
 		return newlist
 	}
-	factory := k8sdeps.NewFactory()
-	fsys := fs.MakeRealFS()
+
 	compDir := path.Join(root, compPath)
 	kustomization, kustomizationErr := MergeKustomizations(kfDef, compDir, params)
 	if kustomizationErr != nil {
-		return nil, kustomizationErr
+		return kustomizationErr
 	}
 	if kustomization.Namespace == "" {
 		kustomization.Namespace = kfDef.Namespace
@@ -1008,7 +1020,7 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 		basefile := filepath.Join(compDir, "base", basename)
 		def, err := ReadUnstructured(basefile)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		apiVersion := def.GetAPIVersion()
 		if apiVersion == kfDef.APIVersion {
@@ -1019,7 +1031,7 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 				overlay := ReadKfDef(overlayfile)
 				mergeErr := mergo.Merge(&baseKfDef.Spec, overlay.Spec, mergo.WithAppendSlice)
 				if mergeErr != nil {
-					return nil, mergeErr
+					return mergeErr
 				}
 			}
 			//TODO look at sort options
@@ -1036,20 +1048,24 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 			}
 			writeErr := WriteKfDef(baseKfDef, basefile)
 			if writeErr != nil {
-				return nil, writeErr
+				return writeErr
 			}
 			kustomization.PatchesStrategicMerge = nil
 		}
 	}
 	buf, bufErr := yaml.Marshal(kustomization)
 	if bufErr != nil {
-		return nil, bufErr
+		return bufErr
 	}
 	kustomizationPath := filepath.Join(compDir, kftypesv2.KustomizationFile)
 	kustomizationPathErr := ioutil.WriteFile(kustomizationPath, buf, 0644)
-	if kustomizationPathErr != nil {
-		return nil, kustomizationPathErr
-	}
+	return kustomizationPathErr
+}
+
+// EvaluateKustomizeManifest evaluates the kustomize dir compDir, and returns the resources.
+func EvaluateKustomizeManifest(compDir string) (resmap.ResMap, error) {
+	factory := k8sdeps.NewFactory()
+	fsys := fs.MakeRealFS()
 	_loader, loaderErr := loader.NewLoader(compDir, fsys)
 	if loaderErr != nil {
 		return nil, fmt.Errorf("could not load kustomize loader: %v", loaderErr)

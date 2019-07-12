@@ -1,0 +1,9 @@
+apiVersion: v1
+data:
+  controller_config_file.yaml: |-
+    {
+
+    }
+kind: ConfigMap
+metadata:
+  name: pytorch-operator-config

@@ -106,14 +106,22 @@ func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
 		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "application"})
 	}
 	compPath := strings.Split(kftypes.DefaultConfigDir, "/")[1]
-	resMap, resMapErr := kustomize.GenerateKustomizationFile(kfDef,
+	genErr := kustomize.GenerateKustomizationFile(kfDef,
 		path.Dir(configPath), compPath, overlays)
+	if genErr != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("error writing to kustomization.yaml %v Error %v", configPath, genErr),
+		}
+	}
+	resMap, resMapErr := kustomize.EvaluateKustomizeManifest(path.Join(path.Dir(configPath), compPath))
 	if resMapErr != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("error writing to %v Error %v", configPath, resMapErr),
+			Message: fmt.Sprintf("error getting manifest %v Error %v", configPath, resMapErr),
 		}
 	}
+	// TODO: Do we need to write to file here?
 	writeErr := kustomize.WriteKustomizationFile(kfDef.Name, configPath, resMap)
 	if writeErr != nil {
 		return nil, &kfapis.KfError{
