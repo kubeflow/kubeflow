@@ -15,6 +15,7 @@ spec:
   - metadata
   - modeldb
   - mpi-job
+  - profiles
   - pytorch-job
   - seldon
   - tensorboard
@@ -33,6 +34,7 @@ spec:
   - katib-ui
   - metrics-collector
   - metadata
+  - profiles
   - suggestion
   - notebook-controller
   - pytorch-job-crds
