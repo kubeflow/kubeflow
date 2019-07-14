@@ -248,27 +248,21 @@ type RepoCache struct {
 type KfDefConditionType string
 
 const (
-	// JobCreated means the job has been accepted by the system,
-	// but one or more of the pods/services has not been started.
-	// This includes time before pods being scheduled and launched.
+	// KfCreated means the KfDef spec has been created.
 	KfCreated KfDefConditionType = "Created"
 
-	// JobRunning means all sub-resources (e.g. services/pods) of this job
-	// have been successfully scheduled and launched.
-	// The training is running without error.
+	// KfDeploying means Kubeflow is in the process of being deployed.
 	KfDeploying KfDefConditionType = "Deploying"
 
-	// JobSucceeded means all sub-resources (e.g. services/pods) of this job
-	// reached phase have terminated in success.
-	// The training is complete without error.
+	// KfSucceeded means Kubeflow was successfully deployed.
 	KfSucceeded KfDefConditionType = "Succeeded"
 
-	// JobFailed means one or more sub-resources (e.g. services/pods) of this job
-	// reached phase failed with no restarting.
-	// The training has failed its execution.
+	// KfFailed meansthere was a problem deploying Kubeflow.
 	KfFailed KfDefConditionType = "Failed"
 
 	// Reasons for conditions
+
+	// InvalidKfDefSpecReason indicates the KfDef was not valid.
 	InvalidKfDefSpecReason = "InvalidKfDefSpec"
 )
 
