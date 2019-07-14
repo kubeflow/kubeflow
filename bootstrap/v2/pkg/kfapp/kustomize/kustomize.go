@@ -126,36 +126,6 @@ func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
 		err:   os.Stderr,
 	}
 
-	// TODO(jlewi): Can we get rid of this? It doesn't look like
-	// .application is ever used. Why are we defining a K8s application in code
-	// as opposed to creating a kustomize package that would get installed like
-	// all the other packages.
-	_kustomize.application = &application.Application{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Application",
-			APIVersion: "app.k8s.io/v1beta1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      _kustomize.kfDef.Name,
-			Namespace: _kustomize.kfDef.Namespace,
-			Labels: map[string]string{
-				kftypesv2.DefaultAppLabel: _kustomize.kfDef.Name,
-			},
-		},
-		Spec: application.ApplicationSpec{
-			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{
-					kftypesv2.DefaultAppLabel: _kustomize.kfDef.Name,
-				},
-			},
-			Descriptor: application.Descriptor{
-				Type:    kftypesv2.DefaultAppType,
-				Version: _kustomize.kfDef.Spec.Version,
-			},
-			Info: []application.InfoItem{},
-		},
-	}
-
 	// We explicitly do not initiate restConfig  here.
 	// We want to delay creating the clients until we actually need them.
 	// This is for two reasons
