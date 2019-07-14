@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ghodss/yaml"
+	"github.com/kubeflow/kubeflow/bootstrap/config"
 	"github.com/prometheus/common/log"
 	"io/ioutil"
 	"os"
@@ -517,6 +518,269 @@ func Test_PluginNotFoundError(t *testing.T) {
 		actual := IsPluginNotFound(c.Input)
 		if actual != c.Expected {
 			t.Errorf("IsPluginNotFound: Got %v; Want %v", actual, c.Expected)
+		}
+	}
+}
+
+func TestKfDef_SetApplicationParameter(t *testing.T) {
+	type testCase struct {
+		Input     *KfDef
+		AppName   string
+		ParamName string
+		Value     string
+		Expected  *KfDef
+	}
+
+	cases := []testCase{
+		// New parameter
+		{
+			Input: &KfDef{
+				Spec: KfDefSpec{
+					Applications: []Application{
+						{
+							Name:            "app1",
+							KustomizeConfig: &KustomizeConfig{},
+						},
+					},
+				},
+			},
+			AppName:   "app1",
+			ParamName: "p1",
+			Value:     "v1",
+			Expected: &KfDef{
+				Spec: KfDefSpec{
+					Applications: []Application{
+						{
+							Name: "app1",
+							KustomizeConfig: &KustomizeConfig{
+								Parameters: []config.NameValue{
+									{
+										Name:  "p1",
+										Value: "v1",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		// Override parameter
+		{
+			Input: &KfDef{
+				Spec: KfDefSpec{
+					Applications: []Application{
+						{
+							Name: "app1",
+							KustomizeConfig: &KustomizeConfig{
+								Parameters: []config.NameValue{
+									{
+										Name:  "p1",
+										Value: "old1",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			AppName:   "app1",
+			ParamName: "p1",
+			Value:     "v1",
+			Expected: &KfDef{
+				Spec: KfDefSpec{
+					Applications: []Application{
+						{
+							Name: "app1",
+							KustomizeConfig: &KustomizeConfig{
+								Parameters: []config.NameValue{
+									{
+										Name:  "p1",
+										Value: "v1",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		// Test cases below deal with backwards compatibility when we don't have an application.
+		// New parameter
+		{
+			Input: &KfDef{
+				Spec: KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						ComponentParams: config.Parameters{
+							"app1": []config.NameValue{},
+						},
+					},
+				},
+			},
+			AppName:   "app1",
+			ParamName: "p1",
+			Value:     "v1",
+			Expected: &KfDef{
+				Spec: KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						ComponentParams: config.Parameters{
+							"app1": []config.NameValue{
+								{
+									Name:  "p1",
+									Value: "v1",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		// Override parameter
+		{
+			Input: &KfDef{
+				Spec: KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						ComponentParams: config.Parameters{
+							"app1": []config.NameValue{
+								{
+									Name:  "p1",
+									Value: "oldvalue",
+								},
+							},
+						},
+					},
+				},
+			},
+			AppName:   "app1",
+			ParamName: "p1",
+			Value:     "v1",
+			Expected: &KfDef{
+				Spec: KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						ComponentParams: config.Parameters{
+							"app1": []config.NameValue{
+								{
+									Name:  "p1",
+									Value: "v1",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		c.Input.SetApplicationParameter(c.AppName, c.ParamName, c.Value)
+		if !reflect.DeepEqual(c.Input, c.Expected) {
+			pGot, _ := Pformat(c.Input)
+			pWant, _ := Pformat(c.Expected)
+			t.Errorf("Error setting App %v; Param %v; value %v; got;\n%v\nwant;\n%v", c.AppName, c.ParamName, c.Value, pGot, pWant)
+		}
+	}
+}
+
+func TestKfDef_GetApplicationParameter(t *testing.T) {
+	type testCase struct {
+		Input     *KfDef
+		AppName   string
+		ParamName string
+		Expected  string
+		HasParam  bool
+	}
+
+	cases := []testCase{
+		// No parameter
+		{
+			Input: &KfDef{
+				Spec: KfDefSpec{
+					Applications: []Application{
+						{
+							Name:            "app1",
+							KustomizeConfig: &KustomizeConfig{},
+						},
+					},
+				},
+			},
+			AppName:   "app1",
+			ParamName: "p1",
+			Expected:  "",
+			HasParam:  false,
+		},
+		// Has Parameter
+		{
+			Input: &KfDef{
+				Spec: KfDefSpec{
+					Applications: []Application{
+						{
+							Name: "app2",
+							KustomizeConfig: &KustomizeConfig{
+								Parameters: []config.NameValue{
+									{
+										Name:  "p1",
+										Value: "old1",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			AppName:   "app2",
+			ParamName: "p1",
+			Expected:  "old1",
+			HasParam:  true,
+		},
+		// Test cases below deal with backwards compatibility when we don't have an application.
+		// No parameter
+		{
+			Input: &KfDef{
+				Spec: KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						ComponentParams: config.Parameters{
+							"app3": []config.NameValue{},
+						},
+					},
+				},
+			},
+			AppName:   "app3",
+			ParamName: "p1",
+			Expected:  "",
+			HasParam:  false,
+		},
+		// Has parameter
+		{
+			Input: &KfDef{
+				Spec: KfDefSpec{
+					ComponentConfig: config.ComponentConfig{
+						ComponentParams: config.Parameters{
+							"app4": []config.NameValue{
+								{
+									Name:  "p1",
+									Value: "oldvalue",
+								},
+							},
+						},
+					},
+				},
+			},
+			AppName:   "app4",
+			ParamName: "p1",
+			Expected:  "oldvalue",
+			HasParam:  true,
+		},
+	}
+
+	for _, c := range cases {
+		v, hasParam := c.Input.GetApplicationParameter(c.AppName, c.ParamName)
+
+		if c.HasParam != hasParam {
+			t.Errorf("Error getting App %v; Param %v; hasParam; got; %v; want %v", c.AppName, c.ParamName, hasParam, c.HasParam)
+		}
+
+		if c.Expected != v {
+			t.Errorf("Error getting App %v; Param %v; got; %v; want %v", c.AppName, c.ParamName, c, c.Expected)
 		}
 	}
 }
