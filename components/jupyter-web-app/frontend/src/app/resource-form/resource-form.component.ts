@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { FormGroup, FormBuilder, Validators } from "@angular/forms";
+import { FormGroup } from "@angular/forms";
 import { NamespaceService } from "../services/namespace.service";
 import { KubernetesService } from "../services/kubernetes.service";
 import { Router } from "@angular/router";
@@ -31,9 +31,7 @@ export class ResourceFormComponent implements OnInit, OnDestroy {
     private k8s: KubernetesService,
     private router: Router,
     private popup: SnackBarService
-  ) {
-    // Init the form
-  }
+  ) {}
 
   ngOnInit() {
     // Initialize the form control
@@ -56,7 +54,10 @@ export class ResourceFormComponent implements OnInit, OnDestroy {
         this.currNamespace = namespace;
         this.formCtrl.controls.namespace.setValue(this.currNamespace);
 
-        this.updatePVCs(namespace);
+        // Get the PVCs of the new Namespace
+        this.k8s.getVolumes(namespace).subscribe(pvcs => {
+          this.pvcs = pvcs;
+        });
       })
     );
 
@@ -81,14 +82,6 @@ export class ResourceFormComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  public updatePVCs(namespace: string) {
-    this.subscriptions.add(
-      this.k8s.getVolumes(namespace).subscribe(pvcs => {
-        this.pvcs = pvcs;
-      })
-    );
-  }
-
   public onSubmit() {
     this.k8s
       .postResource(this.formCtrl.value)
@@ -97,7 +90,10 @@ export class ResourceFormComponent implements OnInit, OnDestroy {
         if (resp === "posted") {
           this.router.navigate(["/"]);
         } else if (resp === "failed") {
-          this.updatePVCs(this.currNamespace);
+          // The Notebook wasn't created, but its volumes might have been created
+          this.k8s.getVolumes(this.currNamespace).subscribe(pvcs => {
+            this.pvcs = pvcs;
+          });
         }
       });
   }

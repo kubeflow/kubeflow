@@ -1,15 +1,22 @@
 import logging
+import os
 import sys
 import yaml
 import json
+from flask import request
 from kubernetes import client
 import datetime as dt
 from . import api
 
+# The backend will send the first config it will successfully load
 CONFIGS = [
     "/etc/config/spawner_ui_config.yaml",
     "./kubeflow_jupyter/common/yaml/spawner_ui_config.yaml"
 ]
+
+# The values of the headers to look for the User info
+USER_HEADER = os.getenv("USERID_HEADER", "X-Goog-Authenticated-User-Email")
+USER_PREFIX = os.getenv("USERID_PREFIX", "accounts.google.com:")
 
 
 # Logging
@@ -27,6 +34,20 @@ logger = create_logger(__name__)
 
 
 # Utils
+def get_username_from_request():
+    if USER_HEADER not in request.headers:
+        logger.warning("User header not present!")
+        username = None
+    else:
+        user = request.headers[USER_HEADER]
+        username = user.replace(USER_PREFIX, "")
+        logger.info("User: '{}' | Headers: '{}' '{}'".format(
+            username, USER_HEADER, USER_PREFIX
+        ))
+
+    return username
+
+
 def load_param_yaml(f, **kwargs):
     c = None
     try:
@@ -52,10 +73,10 @@ def spawner_ui_config():
     for config in CONFIGS:
         c = None
         try:
-            with open(config, 'r') as f:
+            with open(config, "r") as f:
                 c = f.read()
         except IOError:
-            logger.warning('Config file "{}" is not found'.format(
+            logger.warning("Config file '{}' is not found".format(
                 config
             ))
             continue
@@ -66,7 +87,7 @@ def spawner_ui_config():
                 return {}
             else:
                 # YAML exists and is not empty
-                logger.info('Sending config file "{}"'.format(config))
+                logger.info("Sending config file '{}'".format(config))
                 return yaml.safe_load(c)["spawnerFormDefaults"]
         except yaml.YAMLError:
             logger.error("Notebook config is not a valid yaml")
@@ -92,36 +113,36 @@ def get_uptime(then):
     age = ""
     if days > 0:
         if days == 1:
-            age = str(days) + ' day'
+            age = str(days) + " day"
         else:
-            age = str(days) + ' days'
+            age = str(days) + " days"
     else:
         if hours > 0:
             if hours == 1:
-                age = str(hours) + ' hour'
+                age = str(hours) + " hour"
             else:
-                age = str(hours) + ' hours'
+                age = str(hours) + " hours"
         else:
             if mins == 0:
-                return 'just now'
+                return "just now"
             if mins == 1:
-                age = str(mins) + ' min'
+                age = str(mins) + " min"
             else:
-                age = str(mins) + ' mins'
+                age = str(mins) + " mins"
 
-    return age + ' ago'
+    return age + " ago"
 
 
 def handle_storage_class(vol):
     # handle the StorageClass
-    if 'class' not in vol:
+    if "class" not in vol:
         return None
-    if vol['class'] == '{empty}':
+    if vol["class"] == "{empty}":
         return ""
-    if vol['class'] == '{none}':
+    if vol["class"] == "{none}":
         return None
     else:
-        return vol['class']
+        return vol["class"]
 
 
 # Volume handling functions
@@ -219,31 +240,31 @@ def get_data_vols(body, defaults):
 def process_pvc(rsrc):
     # VAR: change this function according to the main resource
     res = {
-        'name': rsrc.metadata.name,
-        'namespace': rsrc.metadata.namespace,
-        'size': rsrc.spec.resources.requests['storage'],
-        'mode': rsrc.spec.access_modes[0],
-        'class': rsrc.spec.storage_class_name,
+        "name": rsrc.metadata.name,
+        "namespace": rsrc.metadata.namespace,
+        "size": rsrc.spec.resources.requests["storage"],
+        "mode": rsrc.spec.access_modes[0],
+        "class": rsrc.spec.storage_class_name,
     }
     return res
 
 
 def process_resource(rsrc):
     # VAR: change this function according to the main resource
-    cntr = rsrc['spec']['template']['spec']['containers'][0]
+    cntr = rsrc["spec"]["template"]["spec"]["containers"][0]
     status, reason = process_status(rsrc)
 
     res = {
-        'name': rsrc['metadata']['name'],
-        'namespace': rsrc['metadata']['namespace'],
-        'age': get_uptime(rsrc['metadata']['creationTimestamp']),
-        'image': cntr['image'],
-        'shortImage': cntr['image'].split("/")[-1],
-        'cpu': cntr['resources']['requests']['cpu'],
-        'memory': cntr['resources']['requests']['memory'],
-        'volumes': [v['name'] for v in cntr['volumeMounts']],
-        'status': status,
-        'reason': reason,
+        "name": rsrc["metadata"]["name"],
+        "namespace": rsrc["metadata"]["namespace"],
+        "age": get_uptime(rsrc["metadata"]["creationTimestamp"]),
+        "image": cntr["image"],
+        "shortImage": cntr["image"].split("/")[-1],
+        "cpu": cntr["resources"]["requests"]["cpu"],
+        "memory": cntr["resources"]["requests"]["memory"],
+        "volumes": [v["name"] for v in cntr["volumeMounts"]],
+        "status": status,
+        "reason": reason,
     }
     return res
 
@@ -253,32 +274,32 @@ def process_status(rsrc):
     Return status and reason. Status may be [running|waiting|warning|error]
     '''
     # If the Notebook is being deleted, the status will be waiting
-    if "deletionTimestamp" in rsrc['metadata']:
-        return 'waiting', 'Deleting Notebook Server'
+    if "deletionTimestamp" in rsrc["metadata"]:
+        return "waiting", "Deleting Notebook Server"
 
     # Check the status
     try:
-        s = rsrc['status']['containerState']
+        s = rsrc["status"]["containerState"]
     except KeyError:
         return "waiting", "No Status available"
 
-    if 'running' in s:
-        return 'running', 'Running'
-    elif 'waiting' in s:
-        reason = s['waiting']['reason']
+    if "running" in s:
+        return "running", "Running"
+    elif "waiting" in s:
+        reason = s["waiting"]["reason"]
 
-        if reason == 'ImagePullBackOff':
-            return 'error', reason
-        elif reason == 'ContainerCreating':
-            return 'waiting', reason
-        elif reason == 'PodInitializing':
-            return 'waiting', reason
+        if reason == "ImagePullBackOff":
+            return "error", reason
+        elif reason == "ContainerCreating":
+            return "waiting", reason
+        elif reason == "PodInitializing":
+            return "waiting", reason
         else:
-            return 'warning', reason
-    elif 'terminated' in s:
-        return 'error', 'The Pod has Terminated'
+            return "warning", reason
+    elif "terminated" in s:
+        return "error", "The Pod has Terminated"
     else:
-        return 'waiting', 'Scheduling the Pod'
+        return "waiting", "Scheduling the Pod"
 
 
 # Notebook YAML processing
@@ -334,6 +355,29 @@ def set_notebook_memory(notebook, body, defaults):
     container["resources"]["requests"]["memory"] = memory
 
 
+def set_notebook_configurations(notebook, body, defaults):
+    notebook_labels = notebook["metadata"]["labels"]
+
+    if defaults["configurations"].get("readOnly", False):
+        labels = defaults["configurations"]["value"]
+        logger.info("Using default Configurations: {}".format(labels))
+    elif body.get("configurations", None) is not None:
+        labels = body["configurations"]
+        logger.info("Using form's Configurations: {}".format(labels))
+    else:
+        labels = defaults["configurations"]["value"]
+        logger.info("Using default Configurations: {}".format(labels))
+
+    if not isinstance(labels, list):
+        logger.warning("Labels for PodDefaults are not list: {}".format(
+            labels)
+        )
+        return
+
+    for l in labels:
+        notebook_labels[l] = "true"
+
+
 def set_notebook_extra_resources(notebook, body, defaults):
     r = {"success": True, "log": ""}
     container = notebook["spec"]["template"]["spec"]["containers"][0]
@@ -370,8 +414,8 @@ def set_notebook_shm(notebook, body, defaults):
         if not defaults["shm"]["value"]:
             return
 
-    notebook_spec = notebook["spec"]['template']['spec']
-    notebook_cont = notebook["spec"]['template']['spec']['containers'][0]
+    notebook_spec = notebook["spec"]["template"]["spec"]
+    notebook_cont = notebook["spec"]["template"]["spec"]["containers"][0]
 
     shm_volume = {
         "name": "dshm",
@@ -379,7 +423,7 @@ def set_notebook_shm(notebook, body, defaults):
             "medium": "Memory"
         }
     }
-    notebook_spec['volumes'].append(shm_volume)
+    notebook_spec["volumes"].append(shm_volume)
     shm_mnt = {
         "mountPath": "/dev/shm",
         "name": "dshm"
@@ -388,8 +432,8 @@ def set_notebook_shm(notebook, body, defaults):
 
 
 def add_notebook_volume(notebook, vol_name, claim, mnt_path):
-    spec = notebook["spec"]['template']['spec']
-    container = notebook["spec"]['template']['spec']['containers'][0]
+    spec = notebook["spec"]["template"]["spec"]
+    container = notebook["spec"]["template"]["spec"]["containers"][0]
 
     volume = {
         "name": vol_name,
@@ -409,8 +453,8 @@ def add_notebook_volume(notebook, vol_name, claim, mnt_path):
 
 def add_notebook_volume_secret(nb, secret, secret_name, mnt_path, mode):
     # Create the volume in the Pod
-    spec = nb["spec"]['template']['spec']
-    container = nb["spec"]['template']['spec']['containers'][0]
+    spec = nb["spec"]["template"]["spec"]
+    container = nb["spec"]["template"]["spec"]["containers"][0]
 
     volume = {
         "name": secret,
@@ -419,7 +463,7 @@ def add_notebook_volume_secret(nb, secret, secret_name, mnt_path, mode):
             "secretName": secret_name,
         }
     }
-    spec['volumes'].append(volume)
+    spec["volumes"].append(volume)
 
     # Container volumeMounts
     mnt = {

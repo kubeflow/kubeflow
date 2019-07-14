@@ -1,0 +1,19 @@
+<div class="group-wrapper" [formGroup]="parentForm">
+  <h3>
+    <fa-icon [icon]="['fas', 'sliders-h']" class="check"></fa-icon>
+    Configurations
+  </h3>
+  <p>
+    Extra layers of configurations that will be applied to the new Notebook.
+    (e.g. Insert credentials as Secrets, set Environment Variables.)
+  </p>
+
+  <mat-form-field class="wide" appearance="outline">
+    <mat-label>Configurations</mat-label>
+    <mat-select [formControl]="parentForm.get('configurations')" multiple>
+      <mat-option *ngFor="let config of podDefaults" [value]="config.label">
+        {{ config.desc }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</div>

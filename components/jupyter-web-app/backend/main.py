@@ -10,8 +10,8 @@ logger = logging.getLogger("entrypoint")
 # Get the UIs
 ui = os.environ.get("UI", "default")
 apps = {
-    'default': default,
-    'rok': rok
+    "default": default,
+    "rok": rok
 }
 
 try:
