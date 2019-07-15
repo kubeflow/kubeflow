@@ -2,7 +2,11 @@ package existing_arrikto
 
 import (
 	"crypto/tls"
+	corev1 "k8s.io/api/v2/core/v1"
+	v1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"log"
+	"os"
+	"sigs.k8s.io/controller-runtime/v2/pkg/client/fake"
 	"testing"
 )
 
@@ -18,7 +22,7 @@ func TestGenerateCert(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:        "dns domain",
+			name:        "dns missing scheme",
 			addr:        "customdnsdomain.com",
 			expectError: false,
 		},
@@ -43,6 +47,173 @@ func TestGenerateCert(t *testing.T) {
 			cert, err := tls.X509KeyPair(certPEM, keyPEM)
 			if err != nil {
 				log.Fatalf("Unexpected error while loading keypair: %+v", cert)
+			}
+		})
+	}
+}
+
+func TestGetEndpoints(t *testing.T) {
+	cases := []struct {
+		name                     string
+		kubeflowEndpoint         string
+		oidcEndpoint             string
+		expectedKubeflowEndpoint string
+		expectedOIDCEndpoint     string
+		expectError              bool
+	}{
+		{
+			name:                     "ip",
+			kubeflowEndpoint:         "https://172.56.12.125",
+			expectedKubeflowEndpoint: "https://172.56.12.125",
+			expectedOIDCEndpoint:     "https://172.56.12.125:5556/dex",
+			expectError:              false,
+		},
+		{
+			name:                     "hostname",
+			kubeflowEndpoint:         "https://example.com",
+			expectedKubeflowEndpoint: "https://example.com",
+			expectedOIDCEndpoint:     "https://example.com:5556/dex",
+			expectError:              false,
+		},
+		{
+			name:             "ip without scheme",
+			kubeflowEndpoint: "172.56.12.125",
+			expectError:      true,
+		},
+		{
+			name:             "hostname without scheme",
+			kubeflowEndpoint: "example.com",
+			expectError:      true,
+		},
+		{
+			name:                     "predetermined",
+			kubeflowEndpoint:         "https://172.56.12.125",
+			oidcEndpoint:             "https://172.56.12.125:5556/dex",
+			expectedKubeflowEndpoint: "https://172.56.12.125",
+			expectedOIDCEndpoint:     "https://172.56.12.125:5556/dex",
+			expectError:              false,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			os.Setenv(KUBEFLOW_ENDPOINT, c.kubeflowEndpoint)
+			os.Setenv(OIDC_ENDPOINT, c.oidcEndpoint)
+
+			kubeflowEndpoint, oidcEndpoint, err := getEndpoints(nil)
+
+			if err != nil {
+				if !c.expectError {
+					t.Fatalf("Unexpected error occured: %+v", err)
+				} else {
+					return
+				}
+			}
+
+			if kubeflowEndpoint != c.expectedKubeflowEndpoint {
+				t.Fatalf("Wrong Kubeflow Endpoint. Got %s, expected %s.", kubeflowEndpoint, c.expectedKubeflowEndpoint)
+			}
+			if oidcEndpoint != c.expectedOIDCEndpoint {
+				t.Fatalf("Wrong Kubeflow Endpoint. Got %s, expected %s.", oidcEndpoint, c.expectedOIDCEndpoint)
+			}
+		})
+	}
+}
+
+func TestGetLBAddress(t *testing.T) {
+	cases := []struct {
+		name         string
+		lbIngresses  []corev1.LoadBalancerIngress
+		expectedAddr string
+		expectError  bool
+	}{
+		{
+			name: "ip",
+			lbIngresses: []corev1.LoadBalancerIngress{
+				{
+					IP:       "172.56.12.125",
+					Hostname: "",
+				},
+			},
+			expectedAddr: "172.56.12.125",
+			expectError:  false,
+		},
+		{
+			name: "hostname",
+			lbIngresses: []corev1.LoadBalancerIngress{
+				{
+					IP:       "",
+					Hostname: "mydomain.com",
+				},
+			},
+			expectedAddr: "mydomain.com",
+			expectError:  false,
+		},
+		{
+			name: "ip and hostname",
+			lbIngresses: []corev1.LoadBalancerIngress{
+				{
+					IP:       "172.56.12.125",
+					Hostname: "mydomain.com",
+				},
+			},
+			expectedAddr: "mydomain.com",
+			expectError:  false,
+		},
+		{
+			name: "multiple ingresses",
+			lbIngresses: []corev1.LoadBalancerIngress{
+				{
+					IP:       "172.56.12.125",
+					Hostname: "mydomain.com",
+				},
+				{
+					IP:       "163.15.42.78",
+					Hostname: "otherdomain.com",
+				},
+			},
+			expectedAddr: "mydomain.com",
+			expectError:  false,
+		},
+		{
+			name: "empty",
+			lbIngresses: []corev1.LoadBalancerIngress{
+				{
+					IP:       "",
+					Hostname: "",
+				},
+			},
+			expectError: true,
+		},
+	}
+
+	for _, c := range cases {
+
+		t.Run(c.name, func(t *testing.T) {
+			lbService := &corev1.Service{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "istio-ingressgateway",
+					Namespace: "istio-system",
+				},
+				Status: corev1.ServiceStatus{
+					LoadBalancer: corev1.LoadBalancerStatus{
+						Ingress: c.lbIngresses,
+					},
+				},
+			}
+			kubeclient := fake.NewFakeClient(lbService)
+			addr, err := getLBAddress(kubeclient)
+
+			if err != nil {
+				if !c.expectError {
+					t.Fatalf("Unexpected error occured: %+v", err)
+				} else {
+					return
+				}
+			}
+
+			if addr != c.expectedAddr {
+				t.Fatalf("Wrong address. Got %s, expected %s", addr, c.expectedAddr)
 			}
 		})
 	}
