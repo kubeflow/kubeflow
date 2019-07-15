@@ -1749,6 +1749,9 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	if gcp.kfDef.Spec.Hostname == "" {
 		gcp.kfDef.Spec.Hostname = gcp.kfDef.Name + ".endpoints." + gcp.kfDef.Spec.Project + ".cloud.goog"
 	}
+	if gcp.kfDef.Spec.Email != "" {
+		gcp.kfDef.Spec.ComponentParams["cloud-endpoints"] = setNameVal(gcp.kfDef.Spec.ComponentParams["cloud-endpoints"], "email", gcp.kfDef.Spec.Email, true)
+	}
 	if gcp.kfDef.Spec.UseBasicAuth {
 		gcp.kfDef.Spec.ComponentParams["basic-auth-ingress"] = setNameVal(gcp.kfDef.Spec.ComponentParams["basic-auth-ingress"], "ipName", gcp.kfDef.Spec.IpName, true)
 		gcp.kfDef.Spec.ComponentParams["basic-auth-ingress"] = setNameVal(gcp.kfDef.Spec.ComponentParams["basic-auth-ingress"], "hostname", gcp.kfDef.Spec.Hostname, true)

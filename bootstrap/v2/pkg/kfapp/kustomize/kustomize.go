@@ -1037,6 +1037,7 @@ func GenerateKustomizationFile(kfDef *kfdefsv2.KfDef, root string,
 			//TODO look at sort options
 			//See https://github.com/kubernetes-sigs/kustomize/issues/821
 			//TODO upgrade to v2.0.4 when available
+			baseKfDef.Spec.Components = moveToFront("profiles", baseKfDef.Spec.Components)
 			if kfDef.Spec.EnableApplications {
 				baseKfDef.Spec.Components = moveToFront("application", baseKfDef.Spec.Components)
 				baseKfDef.Spec.Components = moveToFront("application-crds", baseKfDef.Spec.Components)
