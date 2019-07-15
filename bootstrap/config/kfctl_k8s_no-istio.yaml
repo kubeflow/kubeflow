@@ -1,0 +1,130 @@
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+metadata:
+  name: demo
+  namespace: kubeflow
+spec:
+  componentParams:
+    application:
+    - name: overlay
+      value: application
+    argo:
+    - name: overlay
+      value: istio
+    centraldashboard:
+    - name: overlay
+      value: istio
+    jupyter:
+    - name: overlay
+      value: application
+    jupyter-web-app:
+    - name: overlay
+      value: istio
+    - name: overlay
+      value: application
+    katib-ui: # Issue: https://github.com/kubeflow/manifests/issues/151
+    - name: overlay
+      value: istio
+    minio:
+    - name: minioPd
+      value: dls-kf-storage-artifact-store
+    - name: minioPvName
+      value: minio-pv
+    - name: minioPvcName
+      value: minio-pv-claim
+    mysql:
+    - name: mysqlPd
+      value: dls-kf-storage-metadata-store
+    - name: mysqlPvName
+      value: mysql-pv
+    - name: mysqlPvcName
+      value: mysql-pv-claim
+    notebook-controller:
+    - name: overlay
+      value: istio
+    - name: overlay
+      value: application
+    pipelines-ui:
+    - name: overlay
+      value: istio
+    profiles:
+    - name: overlay
+      value: istio
+    - initRequired: true
+      name: admin
+      value: johnDoe@acme.com
+    spartakus:
+    - initRequired: true
+      name: usageId
+      value: <randomly-generated-id>
+    - initRequired: true
+      name: reportUsage
+      value: "true"
+    tensorboard:
+    - name: overlay
+      value: istio
+    tf-job-operator:
+    - name: overlay
+      value: istio
+    seldon-core-operator:
+    - name: overlay
+      value: application
+  components:
+  - application-crds
+  - application
+  - metacontroller
+  - argo
+  - centraldashboard
+  - bootstrap
+  - webhook
+  - jupyter-web-app
+  - katib-db
+  - katib-manager
+  - katib-controller
+  - katib-ui
+  - metrics-collector
+  - suggestion
+  - notebook-controller
+  - pytorch-job-crds
+  - pytorch-operator
+  - spartakus
+  - tensorboard
+  - tf-job-operator
+  - api-service
+  - minio
+  - mysql
+  - persistent-agent
+  - pipelines-runner
+  - pipelines-ui
+  - pipelines-viewer
+  - scheduledworkflow
+  - profiles
+  - seldon-core-operator
+  enableApplications: true
+  packageManager: kustomize
+  packages:
+  - argo
+  - common
+  - examples
+  - admission-webhook
+  - jupyter
+  - katib-v1alpha2
+  - metacontroller
+  - modeldb
+  - mpi-job
+  - pytorch-job
+  - seldon
+  - tensorboard
+  - tf-serving
+  - tf-training
+  - pipeline
+  - profiles
+  - application
+  useIstio: true
+  repos:
+  - name: manifests
+    root: manifests-master
+    uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
+  - name: kubeflow
+    root: kubeflow-master
+    uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
