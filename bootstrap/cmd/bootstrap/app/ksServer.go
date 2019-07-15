@@ -1225,11 +1225,6 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			return r, err
 		}
 
-		if req.UseKfctl {
-			go svc.DeployWithKfctl(&req)
-			return r, nil
-		}
-
 		var storageDmDeployment *deploymentmanager.Deployment
 
 		if req.StorageOption.CreatePipelinePersistentStorage {
