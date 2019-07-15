@@ -34,8 +34,9 @@ func cleanup(ctx context.Context, ts oauth2.TokenSource, repoUrl string, t *test
 
 const (
 	RunManualTestsEnvName = "KUBEFLOW_RUN_MANUAL_TESTS"
-	GcpProjectEnvName = "KUBEFLOW_GCP_TEST_PROJECT"
+	GcpProjectEnvName     = "KUBEFLOW_GCP_TEST_PROJECT"
 )
+
 // TestSourceRepos_test uses GCP therefore by default it will be skipped.
 // To enable the test set the environment variable:
 //   KUBEFLOW_RUN_MANUAL_TESTS = true

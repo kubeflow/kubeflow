@@ -10,7 +10,10 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/golang/protobuf/proto"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -63,13 +66,13 @@ func NewRouter(c kubeclientset.Interface, image string, namespace string) (*kfct
 // to deploy from the backend.
 type KfctlService interface {
 	// CreateCreateDeployment creates a Kubeflow deployment
-	CreateDeployment(context.Context, CreateRequest) (*CreateResponse, error)
+	CreateDeployment(context.Context, kfdefs.KfDef) (*kfdefs.KfDef, error)
 }
 
 // makeRouterCreateRequestEndpoint creates an endpoint to handle createdeployment requests in the router.
 func makeRouterCreateRequestEndpoint(svc KfctlService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(CreateRequest)
+		req := request.(kfdefs.KfDef)
 		r, err := svc.CreateDeployment(ctx, req)
 
 		return r, err
@@ -81,7 +84,7 @@ func (r *kfctlRouter) RegisterEndpoints() {
 	createHandler := httptransport.NewServer(
 		makeRouterCreateRequestEndpoint(r),
 		func(_ context.Context, r *http.Request) (interface{}, error) {
-			var request CreateRequest
+			var request kfdefs.KfDef
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				log.Info("Err decoding create request: " + err.Error())
 				return nil, err
@@ -116,7 +119,7 @@ func decodeHTTPCreateResponse(_ context.Context, r *http.Response) (interface{},
 
 		return nil, errors.New(r.Status)
 	}
-	var resp CreateResponse
+	var resp kfdefs.KfDef
 	err := json.NewDecoder(r.Body).Decode(&resp)
 	return resp, err
 }
@@ -133,11 +136,17 @@ func k8sName(name string, project string) (string, error) {
 	// Project, name, and zone are required because they uniquely identify the resources
 	// that will spawned to handle the request.
 	if project == "" {
-		return "", fmt.Errorf("project is required")
+		return "", &httpError{
+			Message: fmt.Sprintf("project is required"),
+			Code:    http.StatusBadRequest,
+		}
 	}
 
 	if name == "" {
-		return "", fmt.Errorf("name is required")
+		return "", &httpError{
+			Message: fmt.Sprintf("name is required"),
+			Code:    http.StatusBadRequest,
+		}
 	}
 
 	h := sha256.New()
@@ -163,7 +172,42 @@ func k8sName(name string, project string) (string, error) {
 const AppNameKey = "app-name"
 
 // CreateDeployment creates a Kubeflow deployment.
-func (r *kfctlRouter) CreateDeployment(ctx context.Context, req CreateRequest) (*CreateResponse, error) {
+func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*kfdefs.KfDef, error) {
+	token, err := req.GetSecret(gcp.GcpAccessTokenName)
+
+	if err != nil {
+		log.Errorf("Failed to get secret %v; error %v", gcp.GcpAccessTokenName, err)
+		return nil, &httpError{
+			Message: fmt.Sprintf("Could not obtain an access token from secret %v", gcp.GcpAccessTokenName),
+			Code:    http.StatusBadRequest,
+		}
+	}
+
+	// Verify that user has access. We shouldn't do any processing until verifying access.
+	ts := oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: token,
+	})
+
+	isValid, err := CheckProjectAccess(req.Spec.Project, ts)
+
+	if err != nil {
+		log.Errorf("CreateDeployment CheckProjectAccess failed; error %v", err)
+
+		return nil, &httpError{
+			Message: fmt.Sprintf("There was a problem verifying access to project: %v; please try again later", req.Spec.Project),
+			Code:    http.StatusUnauthorized,
+		}
+	}
+
+	if !isValid {
+		log.Errorf("CreateDeployment request isn't authorized for the project")
+		return nil, &httpError{
+			Message: fmt.Sprintf("There was a problem verifying owner access to project: %v; please check the project id is correct and that you have admin priveleges", req.Spec.Project),
+			Code:    http.StatusUnauthorized,
+		}
+	}
+
+	log.Infof("User has sufficient access.")
 	// TODO(jlewi):
 	// 1. Do IAM check
 	// 2. Check if service exists by sending request
@@ -171,9 +215,10 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req CreateRequest) (
 
 	// TODO(jlewi): The code below is just a skeleton. We will modify it in follow on
 	// PRs to properly configure the service and create a statefulset based on the request.
-	name, err := k8sName(req.Name, req.Project)
+	name, err := k8sName(req.Name, req.Spec.Project)
 
 	if err != nil {
+		log.Errorf("Could not generate the name; error %v", err)
 		return nil, err
 	}
 
@@ -206,6 +251,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req CreateRequest) (
 		},
 	}
 
+	log.Infof("Create K8s service")
 	newService, err := r.k8sclient.CoreV1().Services(r.namespace).Create(svc)
 
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
@@ -279,6 +325,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req CreateRequest) (
 		},
 	}
 
+	log.Infof("Create K8s statefulset")
 	newBackend, err := r.k8sclient.AppsV1().StatefulSets(r.namespace).Create(backend)
 
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
