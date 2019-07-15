@@ -71,14 +71,23 @@ func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
 	}
 	compPath := strings.Split(kftypes.DefaultConfigDir, "/")[1]
 	params := []config.NameValue{}
-	resMap, resMapErr := kustomize.GenerateKustomizationFile(kfDef,
+	genErr := kustomize.GenerateKustomizationFile(kfDef,
 		path.Dir(configPath), compPath, overlays, params)
+
+	if genErr != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("error writing to kustomization.yaml %v Error %v", configPath, genErr),
+		}
+	}
+	resMap, resMapErr := kustomize.EvaluateKustomizeManifest(path.Join(path.Dir(configPath), compPath))
 	if resMapErr != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("error writing to %v Error %v", configPath, resMapErr),
 		}
 	}
+	// TODO: Do we need to write to file here?
 	writeErr := kustomize.WriteKustomizationFile(kfDef.Name, configPath, resMap)
 	if writeErr != nil {
 		return nil, &kfapis.KfError{
