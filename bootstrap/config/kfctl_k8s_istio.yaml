@@ -39,8 +39,6 @@ spec:
     - name: minioPvcName
       value: minio-pv-claim
     mysql:
-    - name: overlay
-      value: mysqlPd
     - name: mysqlPd
       value: dls-kf-storage-metadata-store
     - name: mysqlPvName
