@@ -165,6 +165,9 @@
           "alb.ingress.kubernetes.io/listen-ports": '[{"HTTPS":443}]',
         } else {
           "alb.ingress.kubernetes.io/listen-ports": '[{"HTTP": 80}]',
+        }) + (if params.subnetIds != "null" then {
+          "alb.ingress.kubernetes.io/subnets": params.subnetIds
+        } else {
         }),
       },
       spec: {
