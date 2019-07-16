@@ -47,6 +47,7 @@ require (
 	github.com/ksonnet/ksonnet v0.13.1
 	github.com/ksonnet/ksonnet-lib v0.1.12 // indirect
 	github.com/mitchellh/go-homedir v1.0.0
+	github.com/kubeflow/kubeflow/components/profile-controller/v2 v2.0.0
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/onrik/logrus v0.2.1
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
@@ -100,6 +101,7 @@ replace (
 	github.com/go-openapi/swag => github.com/go-openapi/swag v0.17.0
 	github.com/kubeflow/kubeflow/bootstrap v0.0.0 => ./
 	github.com/mitchellh/go-homedir => github.com/mitchellh/go-homedir v1.0.0
+	github.com/kubeflow/kubeflow/components/profile-controller/v2 => /tmp/v2/github.com/kubeflow/kubeflow/components/profile-controller
 	github.com/russross/blackfriday => github.com/russross/blackfriday v1.5.2-0.20180428102519-11635eb403ff // indirect
 	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
 	golang.org/x/net => golang.org/x/net v0.0.0-20180124060956-0ed95abb35c4
