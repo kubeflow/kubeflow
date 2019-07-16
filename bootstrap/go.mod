@@ -8,8 +8,6 @@ require (
 	github.com/Masterminds/semver v1.4.2 // indirect
 	github.com/Masterminds/sprig v2.18.0+incompatible // indirect
 	github.com/Sirupsen/logrus v0.0.0-00010101000000-000000000000 // indirect
-	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc // indirect
-	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cenkalti/backoff v2.1.1+incompatible
 	github.com/coreos/etcd v3.3.11+incompatible // indirect
@@ -29,9 +27,8 @@ require (
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-openapi/spec v0.18.0 // indirect
 	github.com/go-openapi/strfmt v0.18.0 // indirect
-	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/gogo/protobuf v1.2.0
+	github.com/gogo/protobuf v1.2.1
 	github.com/golang/protobuf v1.3.1
 	github.com/google/go-github v17.0.0+incompatible // indirect
 	github.com/google/go-jsonnet v0.12.1 // indirect
@@ -42,27 +39,29 @@ require (
 	github.com/hashicorp/go-getter v1.0.2
 	github.com/howeyc/gopass v0.0.0-20170109162249-bf9dde6d0d2c // indirect
 	github.com/huandu/xstrings v1.2.0 // indirect
-	github.com/imdario/mergo v0.3.6
+	github.com/imdario/mergo v0.3.7
 	github.com/jonboulle/clockwork v0.1.0 // indirect
+	github.com/kr/pty v1.1.3 // indirect
 	github.com/ksonnet/ksonnet v0.13.1
 	github.com/ksonnet/ksonnet-lib v0.1.12 // indirect
-	github.com/mitchellh/go-homedir v1.0.0
 	github.com/kubeflow/kubeflow/components/profile-controller/v2 v2.0.0
+	github.com/mitchellh/go-homedir v1.0.0
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/onrik/logrus v0.2.1
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/otiai10/copy v1.0.1
+	github.com/otiai10/curr v0.0.0-20190513014714-f5a3d24e5776 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v0.9.2
-	github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
-	github.com/russross/blackfriday v0.0.0-00010101000000-000000000000 // indirect
+	github.com/prometheus/common v0.2.0
+	github.com/russross/blackfriday v1.5.2 // indirect
 	github.com/sergi/go-diff v1.0.0 // indirect
 	github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c // indirect
 	github.com/sirupsen/logrus v1.3.0
-	github.com/spf13/afero v1.2.0
+	github.com/spf13/afero v1.2.1
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/viper v1.3.1
-	github.com/utahta/go-openuri v0.1.0
+	github.com/utahta/go-openuri v0.1.0 // indirect
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	golang.org/x/crypto v0.0.0
 	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c
@@ -71,9 +70,8 @@ require (
 	google.golang.org/api v0.6.0
 	google.golang.org/genproto v0.0.0-20190502173448-54afdca5d873
 	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
-	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
-	gopkg.in/square/go-jose.v2 v2.3.0
+	gopkg.in/square/go-jose.v2 v2.3.0 // indirect
 	k8s.io/api v0.0.0-20180308224125-73d903622b73
 	k8s.io/api/v2 v2.0.0
 	k8s.io/apiextensions-apiserver v0.0.0-20190116054503-cf30b7cf64c2
@@ -83,9 +81,8 @@ require (
 	k8s.io/client-go v10.0.0+incompatible
 	k8s.io/client-go/v2 v2.0.0
 	k8s.io/helm v2.13.0+incompatible // indirect
-	k8s.io/kube-openapi v0.0.0-20190115222348-ced9eb3070a5 // indirect
 	k8s.io/kubernetes v0.0.0-00010101000000-000000000000 // indirect
-	sigs.k8s.io/application/v2 v2.0.0
+	sigs.k8s.io/application/v2 v2.0.0 // indirect
 	sigs.k8s.io/controller-runtime v0.0.0-00010101000000-000000000000
 	sigs.k8s.io/controller-runtime/v2 v2.0.0
 	sigs.k8s.io/kustomize/v2 v2.0.0-00010101000000-000000000000
@@ -100,8 +97,8 @@ replace (
 	github.com/go-openapi/spec => github.com/go-openapi/spec v0.18.0
 	github.com/go-openapi/swag => github.com/go-openapi/swag v0.17.0
 	github.com/kubeflow/kubeflow/bootstrap v0.0.0 => ./
-	github.com/mitchellh/go-homedir => github.com/mitchellh/go-homedir v1.0.0
 	github.com/kubeflow/kubeflow/components/profile-controller/v2 => /tmp/v2/github.com/kubeflow/kubeflow/components/profile-controller
+	github.com/mitchellh/go-homedir => github.com/mitchellh/go-homedir v1.0.0
 	github.com/russross/blackfriday => github.com/russross/blackfriday v1.5.2-0.20180428102519-11635eb403ff // indirect
 	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
 	golang.org/x/net => golang.org/x/net v0.0.0-20180124060956-0ed95abb35c4
