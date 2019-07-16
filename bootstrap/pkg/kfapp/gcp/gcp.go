@@ -1704,6 +1704,9 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 		if err := gcp.kfDef.SetApplicationParameter("basic-auth-ingress", "hostname", gcp.kfDef.Spec.Hostname); err != nil {
 			return errors.WithStack(err)
 		}
+		if err := gcp.kfDef.SetApplicationParameter("basic-auth-ingress", "project", gcp.kfDef.Spec.Project); err != nil {
+			return errors.WithStack(err)
+		}
 	} else {
 		if err := gcp.kfDef.SetApplicationParameter("iap-ingress", "ipName", gcp.kfDef.Spec.IpName); err != nil {
 			return errors.WithStack(err)
@@ -1744,7 +1747,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 		return errors.WithStack(err)
 	}
 
-	// TODO(jlewi): Why are we setting this here?
+	// TODO(jlewi): Why are we setting usage Id here (gcp.go) and not in kustomize.go so we do it for all platforms?
 	rand.Seed(time.Now().UnixNano())
 	if err := gcp.kfDef.SetApplicationParameter("spartakus", "usageId", strconv.Itoa(rand.Int())); err != nil {
 		if kfdefs.IsAppNotFound(err) {
