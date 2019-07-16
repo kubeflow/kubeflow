@@ -27,7 +27,9 @@ import (
 	kfapisv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
+	profilev2 "github.com/kubeflow/kubeflow/profile-controller/v2/pkg/apis/apps/kfdef/v1alpha1"
+
+"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -296,6 +298,10 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 				Message: fmt.Sprintf("couldn't create resources from %v Error: %v", app.Name, resourcesErr),
 			}
 		}
+	}
+
+	if kustomize.kfDef.Spec.Email != "" {
+		profile = profilev2.Profile
 	}
 	return nil
 }
