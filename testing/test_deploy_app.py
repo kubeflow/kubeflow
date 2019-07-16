@@ -425,14 +425,16 @@ def clean_up_resource(args, deployments):
   while datetime.datetime.now() < end_time:
     sleep(10)
     try:
+      logging.info("Listing deployments in project: %s", args.project)
       request = service.deployments().list(project=args.project)
       response = request.execute()
       if ('deployments' not in response) or (len(deployments & set(
           d['name'] for d in response['deployments'])) == 0):
         delete_done = True
         break
-    except Exception:
-      logging.info("Failed listing current deployments, retry in 10 seconds")
+    except Exception as e:
+      logging.info("Failed listing current deployments in project %s, "
+                   "retry in 10 seconds; error %s", args.project, e)
 
   # Delete forwarding-rules
   delete_gcloud_resource(args, 'forwarding-rules', dlt_params=['--global'])

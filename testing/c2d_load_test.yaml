@@ -23,6 +23,10 @@ spec:
           value: /secret/gcp-credentials/kf-gcp-deploy-sa.json 
         - name: PYTHONPATH
           value: /src/kubeflow/testing/py
+        # TODO(jlewi): Why is test_deploy_app.py getting this from the environment variable?
+        # it should be in the json key
+        - name: SERVICE_CLIENT_ID
+          value: "112401461927766705527"
         - name: CLIENT_ID
           valueFrom:
             secretKeyRef:
@@ -40,10 +44,10 @@ spec:
         - --kfversion="v0.5.1"
         - --project_prefix="kf-load-test-project"
         - --email="load-test-owner@kf-gcp-deploy0.iam.gserviceaccount.com"
-        - --number_projects=1
+        - --number_projects=25
         - --number_deployments_per_project=1
         # Service account client id should match that of the GCP credentials used
-        - --sa_client_id="112401461927766705527"
+        - --sa_client_id=112401461927766705527
         - --iap_wait_min=45
         volumeMounts:
         - name: gcp-credentials
