@@ -16,11 +16,11 @@ spec:
     spec:
       containers:
       - name: load-test        
-        image: gcr.io/kubeflow-ci/kfctl-c2d-load-test:v0.6.0-rc.0-9-ga1d48c9e
+        image: gcr.io/kubeflow-ci/kfctl-c2d-load-test:v0.6.0-rc.0-10-g2b99718f
         workingDir: /src/
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /secret/gcp-credentials/key.json
+          value: /secret/gcp-credentials/kf-gcp-deploy-sa.json 
         - name: PYTHONPATH
           value: /src/kubeflow/testing/py
         - name: CLIENT_ID
@@ -36,7 +36,7 @@ spec:
         command:
         - python
         - test_deploy_app.py
-        - --mode="loadtest"
+        - --mode=loadtest
         - --kfversion="v0.5.1"
         - --project_prefix="kf-load-test-project"
         - --email="load-test-owner@kf-gcp-deploy0.iam.gserviceaccount.com"

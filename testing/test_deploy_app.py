@@ -716,7 +716,7 @@ def main(unparsed_args=None):
   if args.mode == "e2e":
     wrap_test(args)
 
-  if args.mode == "prober":
+  elif args.mode == "prober":
     start_http_server(8000)
     SERVICE_HEALTH.set(0)
     PROBER_HEALTH.set(0)
@@ -752,9 +752,10 @@ def main(unparsed_args=None):
         logging.error(
             "prober request failed, retry in %s seconds" % args.wait_sec)
 
-  if args.mode == "loadtest":
+  elif args.mode == "loadtest":
     run_load_test(args)
-
+  else:
+    raise ValueError("unexpected value for mode; --mode=" + args.mode)
 
 if __name__ == '__main__':
   logging.basicConfig(
