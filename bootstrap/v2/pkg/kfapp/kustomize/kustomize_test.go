@@ -1,31 +1,96 @@
-// Copyright 2018 The Kubeflow Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package kustomize
 
 import (
 	"bytes"
-	"io/ioutil"
-	"path"
-	"testing"
-
 	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	"github.com/otiai10/copy"
-	"github.com/prometheus/common/log"
+	"io/ioutil"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"path"
+	"reflect"
+	"testing"
 )
+
+func TestKustomize_BackfillOptions(t *testing.T) {
+	type testCase struct {
+		input    *kustomize
+		expected []kfdefsv2.Application
+	}
+
+	testCases := []testCase{
+		{
+			input: &kustomize{
+				kfDef: &kfdefsv2.KfDef{
+					Spec: kfdefsv2.KfDefSpec{
+						ComponentConfig: config.ComponentConfig{
+							Packages: []string{
+								"istio-crds",
+							},
+							Components: []string{
+								"istio-crds",
+							},
+							ComponentParams: config.Parameters{
+								"istio-crds": []config.NameValue{
+									{
+										Name:  "overlay",
+										Value: "someoverlay",
+									},
+									{
+										Name:  "p1",
+										Value: "v1",
+									},
+								},
+							},
+						},
+					},
+					Status: kfdefsv2.KfDefStatus{
+						ReposCache: map[string]kfdefsv2.RepoCache{
+							"manifests": {
+								LocalPath: "/cache/manifests",
+							},
+						},
+					},
+				},
+				componentPathMap: map[string]string{
+					"istio-crds": "/cache/manifests/gcp/istio/istio-crds",
+				},
+			},
+			expected: []kfdefsv2.Application{
+				{
+					Name: "istio-crds",
+					KustomizeConfig: &kfdefsv2.KustomizeConfig{
+						RepoRef: &kfdefsv2.RepoRef{
+							Name: "manifests",
+							Path: "/gcp/istio/istio-crds",
+						},
+						Overlays: []string{
+							"someoverlay",
+						},
+						Parameters: []config.NameValue{
+							{
+								Name:  "p1",
+								Value: "v1",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, c := range testCases {
+		if err := c.input.backfillApplications(); err != nil {
+			t.Errorf("kustomize.backfillApplications error; %v", err)
+			continue
+		}
+
+		if !reflect.DeepEqual(c.input.kfDef.Spec.Applications, c.expected) {
+			t.Errorf("backfill produced incorrect results; got\n%v\nwant:\n%v", utils.PrettyPrint(c.input.kfDef.Spec.Applications), utils.PrettyPrint(c.expected))
+		}
+	}
+}
 
 // This test tests that GenerateKustomizationFile will produce correct kustomization.yaml
 func TestGenerateKustomizationFile(t *testing.T) {
@@ -34,6 +99,7 @@ func TestGenerateKustomizationFile(t *testing.T) {
 		params []config.NameValue
 		// The directory of a (testing) kustomize package
 		packageDir string
+		overlays   []string
 		// Expected kustomization.yaml
 		expectedFile string
 	}
@@ -48,11 +114,8 @@ func TestGenerateKustomizationFile(t *testing.T) {
 					PackageManager:     "kustomize",
 				},
 			},
-			params: []config.NameValue{
-				{
-					Name:  "overlay",
-					Value: "application",
-				},
+			overlays: []string{
+				"application",
 			},
 			packageDir:   "testdata/kustomizeExample/pytorch-operator",
 			expectedFile: "testdata/kustomizeExample/pytorch-operator/expected/kustomization.yaml",
@@ -64,12 +127,12 @@ func TestGenerateKustomizationFile(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create temp dir: %v", err)
 		}
-		log.Infof("testdir: %v", testDir)
+		t.Logf("testdir: %v", testDir)
 		err = copy.Copy(c.packageDir, path.Join(testDir, packageName))
 		if err != nil {
 			t.Fatalf("Failed to copy package to temp dir: %v", err)
 		}
-		err = GenerateKustomizationFile(c.kfDef, testDir, packageName, c.params)
+		err = GenerateKustomizationFile(c.kfDef, testDir, packageName, c.overlays, c.params)
 		if err != nil {
 			t.Fatalf("Failed to GenerateKustomizationFile: %v", err)
 		}
