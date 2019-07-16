@@ -464,7 +464,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 // The reason we need this is because in 0.5 different command line options were supplied as arguments
 // to different commands (e.g. init & generate) took different command line options.
 // With 0.6 we want to move to a world in which all the options should be stored in app.yaml.
-// Support for the command line otpions is only provided for backwards compatibility until
+// Support for the command line options is only provided for backwards compatibility until
 // we remove the options.
 func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]interface{}) error {
 	if kfdef.Spec.Platform == "" {
@@ -496,9 +496,19 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]inte
 		}
 	}
 
-	roles := options[string(kftypes.ROLES)].(string)
-	if roles != "" {
-		kfdef.Spec.Roles = strings.Split(roles, ",")
+	if kfdef.Spec.Platform == kftypes.AWS {
+		if options[string(kftypes.REGION)] != nil && options[string(kftypes.REGION)].(string) != "" {
+			kfdef.Spec.Region = options[string(kftypes.REGION)].(string)
+		} else {
+			log.Warnf("KfDef.Spec.Region is not set; use default region %v", kftypes.DefaultAwsRegion)
+			kfdef.Spec.Region = kftypes.DefaultAwsRegion
+		}
+
+		if options[string(kftypes.ROLES)] != nil && options[string(kftypes.ROLES)].(string) != "" {
+			kfdef.Spec.Roles = strings.Split(options[string(kftypes.ROLES)].(string), ",")
+		} else {
+			log.Warnf("KfDef.Spec.Roles is not set; Create new cluster instead.")
+		}
 	}
 
 	// Backfill repos
@@ -511,7 +521,7 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]inte
 		}
 
 		// Set the kustomize repo if its not already set.
-		// Note kfdef.Spec.Packmanager might get set in getConfigFromCache.
+		// Note kfdef.Spec.PackageManager might get set in getConfigFromCache.
 		// So we might need to backfill repos even if PackageManager is set.
 		hasRepo := false
 		for _, r := range kfdef.Spec.Repos {
@@ -559,7 +569,7 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]inte
 // The reason we need this is because in 0.5 different command line options were supplied as arguments
 // to different commands (e.g. init & generate) took different command line options.
 // With 0.6 we want to move to a world in which all the options should be stored in app.yaml.
-// Support for the command line otpions is only provided for backwards compatibility until
+// Support for the command line options is only provided for backwards compatibility until
 // we remove the options.
 func backfillKfDefFromGenerateOptions(kfdef *kfdefsv2.KfDef, options map[string]interface{}) error {
 	if kfdef.Spec.Platform == kftypes.GCP {
@@ -602,17 +612,6 @@ func backfillKfDefFromGenerateOptions(kfdef *kfdefsv2.KfDef, options map[string]
 			}
 			log.Warnf("Defaulting Spec.Zone to %v. This is deprecated; "+
 				"Zone should be explicitly set in app.yaml", kfdef.Spec.Zone)
-		}
-	}
-
-	if kfdef.Spec.Platform == kftypes.AWS && options[string(kftypes.REGION)] != nil {
-		kfdef.Spec.Region = options[string(kftypes.REGION)].(string)
-	}
-
-	if kfdef.Spec.Platform == kftypes.AWS && options[string(kftypes.ROLES)] != nil {
-		roles := options[string(kftypes.ROLES)].(string)
-		if roles != "" {
-			kfdef.Spec.Roles = strings.Split(roles, ",")
 		}
 	}
 

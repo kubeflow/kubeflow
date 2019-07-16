@@ -68,7 +68,7 @@ type Aws struct {
 	// requried when choose basic-auth
 	username        string
 	encodedPassword string
-	// required fileds for aws users
+	// required fields for aws users
 }
 
 // GetKfApp returns the aws kfapp. It's called by coordinator.GetKfApp
@@ -77,11 +77,9 @@ func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
 
 	// use aws to call sts get-caller-identity to verify aws credential works.
 	if err := utils.CheckAwsStsCallerIdentity(sess); err != nil {
-		log.Fatalf("Could not authenticate aws client: %v", err)
-		log.Fatalf("Please make sure you set up AWS credentials and regions")
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Failed to get caller identity %v", err),
+			Message: fmt.Sprintf("Could not authenticate aws client: %v, Please make sure you set up AWS credentials and regions", err),
 		}
 	}
 
@@ -93,8 +91,8 @@ func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
 	return _aws, nil
 }
 
+// GetK8sConfig is only used with ksonnet packageManager. NotImplemented in this version
 func (aws *Aws) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
-
 	return nil, nil
 }
 
@@ -126,7 +124,7 @@ func createNamespace(k8sClientset *clientset.Clientset, namespace string) error 
 
 // applyAWSInfra do three things
 // 1. Install EKS cluster
-// 2. Attach IAM roles like ALB, FSX, EFS, cloudWatch ?
+// 2. Attach IAM roles like ALB, FSX, EFS, cloudWatch Fluentd
 // 3. Based on log/private access, we need to call eks api to update cluster configs. https://github.com/weaveworks/eksctl/issues/778
 func (aws *Aws) applyAWSInfra() error {
 	config, err := aws.getFeatureConfig()
@@ -144,13 +142,12 @@ func (aws *Aws) applyAWSInfra() error {
 		}
 	}
 
-	// Delete cluster if it's a managed cluster created by kfctl
+	// 1. Create EKS cluster if there's no cluster available
 	if config["managed_cluster"] == true {
+		log.Infoln("Start to create eks cluster. Please wait for 10-15 mins...")
 		clusterConfigFile := filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, CLUSTER_CONFIG_FILE)
 		output, err := exec.Command("eksctl", "create", "cluster", "--config-file="+clusterConfigFile).Output()
-		log.Infoln("Please go to aws console to check CloudFormation status and double make sure your cluster has been shutdown.")
 		if err != nil {
-			log.Fatal(err)
 			return &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("Call 'eksctl create cluster --config-file=%s' with errors: %v", clusterConfigFile, string(output)),
@@ -178,9 +175,11 @@ func (aws *Aws) applyAWSInfra() error {
 
 		aws.Spec.Roles = nodeGroupIamRoles
 		aws.writeConfigFile()
+	} else {
+		log.Infof("You already have cluster setup. Skip creating new eks cluster. ")
 	}
 
-	// Attach IAM Policies
+	// 2. Attach IAM Policies
 	for _, iamRole := range aws.Spec.Roles {
 		aws.attachIamInlinePolicy(iamRole, "iam_alb_ingress_policy", filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, "iam_alb_ingress_policy.json"))
 		aws.attachIamInlinePolicy(iamRole, "iam_csi_fsx_policy", filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, "iam_csi_fsx_policy.json"))
@@ -190,7 +189,19 @@ func (aws *Aws) applyAWSInfra() error {
 		}
 	}
 
-	// TODO: Add private access and logging support in CloudFormation
+	// 3. Add private access and logging support for cluster.
+	// If we use cli, need dependency of awscli.
+	//if config["private_access"] == true {
+	//	// check rest value
+	//}
+	//
+	//if config["control_plane_logging"] == true {
+	//	if len(config["control_plane_logging_components"]) == 0 {
+	//		// skip
+	//	}
+	//	// construct API call
+	//}
+
 	return nil
 }
 
@@ -330,7 +341,7 @@ func (aws *Aws) generateInfraConfigs() error {
 	}
 
 	// 3. Update managed_cluster based on roles
-	// By default, let's have managed_cluster true. if user pass roles, we make it false.
+	// By default, let's have managed_cluster true. If user pass roles, we make it false.
 	featureCfg, err := aws.getFeatureConfig()
 	if err != nil {
 		return &kfapis.KfError{
@@ -341,6 +352,8 @@ func (aws *Aws) generateInfraConfigs() error {
 
 	if aws.KfDef.Spec.Roles != nil && len(aws.KfDef.Spec.Roles) == 0 {
 		featureCfg["managed_cluster"] = false
+	} else {
+		featureCfg["managed_cluster"] = true
 	}
 
 	writeFeatureCfgErr := aws.writeFeatureConfig(featureCfg)
@@ -458,8 +471,7 @@ func (aws *Aws) Generate(resources kftypes.ResourceEnum) error {
 	}
 	// TODO: here we only make sure we have ComponentsParam, How to make sure we `ks generate`?
 
-	// Special hanlding for sparkakus - is it possible to add ship to aws endpoints? at least for aws users.
-	// Or ask Kubeflow team to share.
+	// Special hanlding for sparkakus - this should be a common setup?
 	for _, component := range aws.Spec.Components {
 		if component == "spartakus" {
 			rand.Seed(time.Now().UnixNano())
