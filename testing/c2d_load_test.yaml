@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: load-test        
-        image: gcr.io/kubeflow-ci/kfctl-c2d-load-test:v0.6.0-rc.0-12-gb8d4c5df
+        image: gcr.io/kubeflow-ci/kfctl-c2d-load-test:v0.6.0-rc.0-13-g7ccb9100
         workingDir: /src/
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
@@ -47,8 +47,8 @@ spec:
         - --kfversion=v0.5.1
         - --project_prefix=kf-load-test-project
         - --email=load-test-owner@kf-gcp-deploy0.iam.gserviceaccount.com
-        - --number_projects=25
-        - --number_deployments_per_project=1
+        - --number_projects=50
+        - --number_deployments_per_project=2
         # Service account client id should match that of the GCP credentials used
         - --sa_client_id=112401461927766705527
         - --iap_wait_min=45
