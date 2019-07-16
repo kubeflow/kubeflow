@@ -1723,17 +1723,6 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 		minioPdName := gcp.kfDef.Name + "-storage-artifact-store"
 		mysqlPdName := gcp.kfDef.Name + "-storage-metadata-store"
 
-		// TODO(jlewi): I think we can delete this. It looks like we still had componentParams pipeline
-		// but pipeline wasn't listed in components which explains why when we migrated to Application
-		// there wasn't any Application named pipeline.
-		// Looking at https://github.com/kubeflow/manifests/tree/master/pipeline
-		// there is no base application named pipeline.
-		//if err := gcp.kfDef.SetApplicationParameter("pipeline", "mysqlPd", mysqlPdName); err != nil {
-		//	return errors.WithStack(err)
-		//}
-		//if err := gcp.kfDef.SetApplicationParameter("pipeline", "minioPd", minioPdName); err != nil {
-		//	return errors.WithStack(err)
-		//}
 		if err := gcp.kfDef.SetApplicationParameter("minio", "minioPd", minioPdName); err != nil {
 			return errors.WithStack(err)
 		}
