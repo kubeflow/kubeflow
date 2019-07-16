@@ -1,5 +1,8 @@
 # Run the click to deploy load test.
 # This job is intended to run in the kubeflow-ci cluster
+# 
+# Warning: Only run 1 load test at a time because the load test will delete
+# resources in the test projects
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -16,7 +19,7 @@ spec:
     spec:
       containers:
       - name: load-test        
-        image: gcr.io/kubeflow-ci/kfctl-c2d-load-test:v0.6.0-rc.0-10-g2b99718f
+        image: gcr.io/kubeflow-ci/kfctl-c2d-load-test:v0.6.0-rc.0-12-gb8d4c5df
         workingDir: /src/
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
@@ -41,9 +44,9 @@ spec:
         - python
         - test_deploy_app.py
         - --mode=loadtest
-        - --kfversion="v0.5.1"
-        - --project_prefix="kf-load-test-project"
-        - --email="load-test-owner@kf-gcp-deploy0.iam.gserviceaccount.com"
+        - --kfversion=v0.5.1
+        - --project_prefix=kf-load-test-project
+        - --email=load-test-owner@kf-gcp-deploy0.iam.gserviceaccount.com
         - --number_projects=25
         - --number_deployments_per_project=1
         # Service account client id should match that of the GCP credentials used

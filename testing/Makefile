@@ -15,10 +15,14 @@
 GCLOUD_PROJECT ?= kubeflow-ci
 TAG ?= $(eval TAG := $(shell git describe --tags --long))$(TAG)
 # build containers using GCLOUD_PROJECT
-build-gcb:
+build-gcb: Dockerfile.deploy_app
+	mkdir -p ./build
+	cp ../bootstrap/config/gcp_prototype.yaml ./build
+	cp Dockerfile.deploy_app ./build
+	cp test_deploy_app.py ./build
 	gcloud --project=$(GCLOUD_PROJECT)\
 		builds submit \
 		--machine-type=n1-highcpu-32 \
-		--substitutions=TAG_NAME=$(TAG)
-		--config=cloudbuild.yaml .
+		--substitutions=TAG_NAME=$(TAG) \
+		--config=cloudbuild.yaml ./build
 

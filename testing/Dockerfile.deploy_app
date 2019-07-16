@@ -1,8 +1,10 @@
 # Dockerfile for running the load test of click to deploy.
 FROM gcr.io/kubeflow-ci/test-worker:latest
 
-RUN mkdir -p /src/kubeflow
+RUN mkdir -p /src/kubeflow && \
+    mkdir -p /bootstrap/config
 COPY test_deploy_app.py  /src/
+COPY gcp_prototype.yaml /bootstrap/config/
 RUN git clone https://github.com/kubeflow/testing /src/kubeflow/testing
 ENV PYTHONPATH=${PYTHONPATH}:/src/kubeflow/testing/py
 
