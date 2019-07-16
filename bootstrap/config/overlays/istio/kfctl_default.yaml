@@ -50,3 +50,5 @@ spec:
     tf-job-operator:
     - name: overlay
       value: istio
+  packages:
+  - istio
