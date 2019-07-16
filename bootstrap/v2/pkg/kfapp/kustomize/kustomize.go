@@ -18,6 +18,8 @@ package kustomize
 
 import (
 	"bufio"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/ghodss/yaml"
@@ -302,15 +304,21 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	}
 
 	if kustomize.kfDef.Spec.Email != "" {
+		suffix, suffixErr := randomHex(3)
+		if suffixErr != nil {
+			return &kfapisv2.KfError{
+				Code:    int(kfapisv2.INTERNAL_ERROR),
+				Message: fmt.Sprintf("couldn't create random suffix %v", suffixErr),
+			}
+		}
+		defaultProfileNamespace := strings.NewReplacer(".", "-", "@", "-at-").Replace(kustomize.kfDef.Spec.Email)
 		profile := &profilev2.Profile{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Profile",
 				APIVersion: "kubeflow.org/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				//TODO this should be unique across namespaces
-				//perhaps Email where '.', '@' are replaced with valid chars
-				Name: "kubeflow-admin",
+				Name: defaultProfileNamespace + "-" + suffix,
 			},
 			Spec: profilev2.ProfileSpec{
 				Owner: rbacv2.Subject{
@@ -319,18 +327,23 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 				},
 			},
 		}
-		body, err := json.Marshal(profile)
-		if err != nil {
-			return err
-		}
-		resourcesErr := kustomize.deployResources(kustomize.restConfig, body)
-		if resourcesErr != nil {
-			return &kfapisv2.KfError{
-				Code:    int(kfapisv2.INTERNAL_ERROR),
-				Message: fmt.Sprintf("couldn't create default profile from %v Error: %v", profile, resourcesErr),
+		_, nsMissingErr := clientset.CoreV1().Namespaces().Get(defaultProfileNamespace, metav1.GetOptions{})
+		if nsMissingErr != nil {
+			body, err := json.Marshal(profile)
+			if err != nil {
+				return err
 			}
+			resourcesErr := kustomize.deployResources(kustomize.restConfig, body)
+			if resourcesErr != nil {
+				return &kfapisv2.KfError{
+					Code:    int(kfapisv2.INTERNAL_ERROR),
+					Message: fmt.Sprintf("couldn't create default profile from %v Error: %v", profile, resourcesErr),
+				}
+			}
+		} else {
+			log.Infof("Default profile namespace already exists: %v within owner %v", defaultProfileNamespace,
+				profile.Spec.Owner.Name)
 		}
-
 	}
 	return nil
 }
@@ -1237,6 +1250,15 @@ func readLines(path string) ([]string, error) {
 		lines = append(lines, scanner.Text())
 	}
 	return lines, scanner.Err()
+}
+
+// randoxHex reads how many bytes to return and returns a randox hex string of that length
+func randomHex(n int) (string, error) {
+	bytes := make([]byte, n)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
 }
 
 // writeLines writes a string array to the given file - one line per array entry.
