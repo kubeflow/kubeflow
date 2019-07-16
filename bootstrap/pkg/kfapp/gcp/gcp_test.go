@@ -361,6 +361,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 }
 
 // Pformat returns a pretty format output of any value.
+// TODO(jlewi): Use utils.PrettyPrint
 func Pformat(value interface{}) (string, error) {
 	if s, ok := value.(string); ok {
 		return s, nil
