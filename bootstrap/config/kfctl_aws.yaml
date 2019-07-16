@@ -1,107 +1,107 @@
-# Config entry used for deploying on GCP with basic auth enabled
-# Load this file as object (KsonnetSpec)[https://github.com/kubeflow/kubeflow/blob/master/bootstrap/pkg/apis/apps/ksonnet/v1alpha1/application_types.go#L201]
-# All TODO fields need to be changed following user's input before apply
-# TODO change repo on the fly: set it to local tmp dir containing kubeflow registry
-repo: /path/to/local/tmp/containing/kubeflow
-packages:
-  - argo
-  - aws
-  - common
-  - examples
-  - jupyter
-  - katib
-  - metacontroller
-  - modeldb
-  - mpi-job
-  - pipeline
-  - pytorch-job
-  - seldon
-  - tensorboard
-  - tf-serving
-  - tf-training
-components:
-# ordering is important
-  - metacontroller
-  - ambassador
-  - argo
-  - basic-auth
-  - basic-auth-ingress
-  - centraldashboard
-  - cert-manager
-  - cloud-endpoints
-  - gpu-driver
-  - jupyter-web-app
-  - katib
-  - notebook-controller
-  - pipeline
-  - pytorch-operator
-  - spartakus
-  - tensorboard
-  - tf-job-operator
-  - alb-ingress-controller
-  - istio-ingress
-componentParams:
-  argo:
-  - initRequired: true
-    name: injectIstio
-    value: "false"
-  centraldashboard:
-  - initRequired: true
-    name: injectIstio
-    value: "false"
-  cert-manager:
-    - name: acmeEmail
-      # TODO change value on the fly: use your email for ssl cert
-      value: johnDoe@acme.com
-      initRequired: true
-  basic-auth-ingress:
-    - name: ipName
-      # TODO change value on the fly: value of ipName need to match resource name in deployment entry.
-      value: ipName
-      initRequired: true
-    - name: hostname
-      # TODO change value on the fly: replace with user-provide parameters. This need to be fully qualified domain name to use with ingress.
-      value: <deployName>.endpoints.<Project>.cloud.goog
-      initRequired: true
-  cloud-endpoints:
-    - name: secretName
-      value: admin-gcp-sa
-  ambassador:
-    - name: ambassadorServiceType
-      value: NodePort
-  pipeline:
-    - name: mysqlPd
-      value: <deployName>-storage-metadata-store
-    - name: minioPd
-      value: <deployName>-storage-artifact-store
-    - name: injectIstio
-      value: "false"
-  spartakus:
-    - name: usageId
-      value: <randomly-generated-id>
-      initRequired: true
-    - name: reportUsage
-      value: "true"
-      initRequired: true
-  notebook-controller:
-    - name: injectGcpCredentials
-      value: "true"
-  jupyter-web-app:
-  - initRequired: true
-    name: injectIstio
-    value: "false"
-  katib:
-  - initRequired: true
-    name: injectIstio
-    value: "false"
-  tensorboard:
-  - initRequired: true
-    name: injectIstio
-    value: "false"
-  tf-job-operator:
-  - initRequired: true
-    name: injectIstio
-    value: "false"
-platform: aws
-
-## Have to make sure istio work for all the cases
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+metadata:
+  creationTimestamp: null
+  name: awsapp
+  namespace: kubeflow
+spec:
+  # Platform AWS
+  platform: aws
+  componentParams:
+    argo:
+      - name: overlay
+        value: istio
+    centraldashboard:
+      - name: overlay
+        value: istio
+    jupyter-web-app:
+      - name: overlay
+        value: istio
+    katib-ui:
+      - name: overlay
+        value: istio
+    minio:
+      - name: minioPvName
+        value: minio-pv
+      - name: minioPvcName
+        value: minio-pv-claim
+    mysql:
+      - name: mysqlPvName
+        value: mysql-pv
+      - name: mysqlPvcName
+        value: mysql-pv-claim
+    notebook-controller:
+      - name: overlay
+        value: istio
+    pipelines-ui:
+      - name: overlay
+        value: istio
+    spartakus:
+      - initRequired: true
+        name: usageId
+        value: <randomly-generated-id>
+      - initRequired: true
+        name: reportUsage
+        value: "true"
+    tensorboard:
+      - name: overlay
+        value: istio
+    tf-job-operator:
+      - name: overlay
+        value: istio
+  components:
+    - metacontroller
+    - argo
+    - centraldashboard
+    - bootstrap
+    - webhook
+    - jupyter-web-app
+    - katib-db
+    - katib-manager
+    - katib-controller
+    - katib-ui
+    - metrics-collector
+    - suggestion
+    - notebook-controller
+    - pytorch-job-crds
+    - pytorch-operator
+    - spartakus
+    - tensorboard
+    - tf-job-operator
+    - api-service
+    - minio
+    - mysql
+    - persistent-agent
+    - pipelines-runner
+    - pipelines-ui
+    - pipelines-viewer
+    - scheduledworkflow
+    - profiles
+  email: jlewi@google.com
+  enableApplications: true
+  packageManager: kustomize
+  packages:
+    - argo
+    - common
+    - examples
+    - admission-webhook
+    - jupyter
+    - katib-v1alpha2
+    - metacontroller
+    - modeldb
+    - mpi-job
+    - pytorch-job
+    - seldon
+    - tensorboard
+    - tf-serving
+    - tf-training
+    - pipeline
+    - profiles
+  useIstio: true
+  repos:
+    - name: manifests
+      root: manifests-master
+      uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
+    - name: kubeflow
+      root: kubeflow-master
+      uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
