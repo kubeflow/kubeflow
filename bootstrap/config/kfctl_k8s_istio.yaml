@@ -1,3 +1,5 @@
+# This is the config to install Kubeflow on an existing k8s cluster.
+# If the cluster already has istio, comment out the istio install part (2 places) below.
 apiVersion: kfdef.apps.kubeflow.org/v1alpha1
 kind: KfDef
 metadata:
@@ -14,6 +16,7 @@ spec:
     centraldashboard:
     - name: overlay
       value: istio
+    # Istio install. If not needed, comment out istio-crds and istio-install.
     istio-crds:
     - name: namespace
       value: istio-system
@@ -76,8 +79,10 @@ spec:
     - name: overlay
       value: application
   components:
+  # Istio install. If not needed, comment out istio-crds and istio-install.
   - istio-crds
   - istio-install
+  # This component is the istio resources for Kubeflow (e.g. gateway), not about installing istio.
   - istio
   - application-crds
   - application
