@@ -3,9 +3,9 @@ local testSuite = import "kubeflow/common/testsuite.libsonnet";
 
 local params = {
   name: "argo",
-  workflowControllerImage: "argoproj/workflow-controller:v2.3.0",
-  uiImage: "argoproj/argoui:v2.3.0",
-  executorImage: "argoproj/argoexec:v2.3.0",
+  workflowControllerImage: "gcr.io/ml-pipeline/workflow-controller:v2.3.0",
+  uiImage: "gcr.io/ml-pipeline/argoui:v2.3.0",
+  executorImage: "gcr.io/ml-pipeline/argoexec:v2.3.0",
   containerRuntimeExecutor: "docker",
   artifactRepositoryKeyPrefix: "artifacts",
   artifactRepositoryEndpoint: "minio-service.kubeflow:9000",
