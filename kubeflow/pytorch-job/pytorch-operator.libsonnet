@@ -1,7 +1,6 @@
 {
   all(params, env):: [
     $.parts(params, env).crd,
-    $.parts(params, env).configMap(params.pytorchDefaultImage),
     $.parts(params, env).serviceAccount,
     $.parts(params, env).operatorRole(params.deploymentScope, params.deploymentNamespace, params.enableGangScheduling),
     $.parts(params, env).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
@@ -150,23 +149,9 @@
                 ]),
                 image: image,
                 name: "pytorch-operator",
-                volumeMounts: [
-                  {
-                    mountPath: "/etc/config",
-                    name: "config-volume",
-                  },
-                ],
               },
             ],
             serviceAccountName: "pytorch-operator",
-            volumes: [
-              {
-                configMap: {
-                  name: "pytorch-operator-config",
-                },
-                name: "config-volume",
-              },
-            ],
           },
         },
       },
@@ -199,26 +184,6 @@
           name: "pytorch-operator",
         },
         type: "ClusterIP",
-      },
-    },
-
-    // Default value for
-    defaultControllerConfig(pytorchDefaultImage):: if pytorchDefaultImage != "" && pytorchDefaultImage != "null" then
-      {
-        pytorchImage: pytorchDefaultImage,
-      }
-    else
-      {},
-
-    configMap(pytorchDefaultImage): {
-      apiVersion: "v1",
-      data: {
-        "controller_config_file.yaml": std.manifestJson($.parts(params, env).defaultControllerConfig(pytorchDefaultImage)),
-      },
-      kind: "ConfigMap",
-      metadata: {
-        name: "pytorch-operator-config",
-        namespace: namespace,
       },
     },
 
@@ -260,60 +225,13 @@
                },
                {
                  apiGroups: [
-                   "apiextensions.k8s.io",
-                 ],
-                 resources: [
-                   "customresourcedefinitions",
-                 ],
-                 verbs: [
-                   "*",
-                 ],
-               },
-               {
-                 apiGroups: [
-                   "storage.k8s.io",
-                 ],
-                 resources: [
-                   "storageclasses",
-                 ],
-                 verbs: [
-                   "*",
-                 ],
-               },
-               {
-                 apiGroups: [
-                   "batch",
-                 ],
-                 resources: [
-                   "jobs",
-                 ],
-                 verbs: [
-                   "*",
-                 ],
-               },
-               {
-                 apiGroups: [
                    "",
                  ],
                  resources: [
-                   "configmaps",
                    "pods",
                    "services",
                    "endpoints",
-                   "persistentvolumeclaims",
                    "events",
-                 ],
-                 verbs: [
-                   "*",
-                 ],
-               },
-               {
-                 apiGroups: [
-                   "apps",
-                   "extensions",
-                 ],
-                 resources: [
-                   "deployments",
                  ],
                  verbs: [
                    "*",
