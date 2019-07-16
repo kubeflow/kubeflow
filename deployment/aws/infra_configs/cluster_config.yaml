@@ -15,10 +15,10 @@ metadata:
 # You can have several node group in your cluster.
 nodeGroups:
   - name: cpu-nodegroup
-    instanceType: m5.2xlarge
-    desiredCapacity: 1
+    instanceType: m5.xlarge
+    desiredCapacity: 2
     minSize: 0
-    maxSize: 2
+    maxSize: 3
     volumeSize: 30
 
   # Example of GPU node group
