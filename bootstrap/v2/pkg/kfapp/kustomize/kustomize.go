@@ -18,6 +18,8 @@ package kustomize
 
 import (
 	"bufio"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/ghodss/yaml"
@@ -27,12 +29,15 @@ import (
 	kfapisv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	profilev2 "github.com/kubeflow/kubeflow/components/profile-controller/v2/pkg/apis/kubeflow/v1alpha1"
+
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"k8s.io/api/v2/core/v1"
+	rbacv2 "k8s.io/api/v2/rbac/v1"
 	crdclientset "k8s.io/apiextensions-apiserver/v2/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/v2/pkg/apis/meta/v1/unstructured"
@@ -295,6 +300,49 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 				Code:    int(kfapisv2.INTERNAL_ERROR),
 				Message: fmt.Sprintf("couldn't create resources from %v Error: %v", app.Name, resourcesErr),
 			}
+		}
+	}
+
+	if kustomize.kfDef.Spec.Email != "" {
+		suffix, suffixErr := randomHex(3)
+		if suffixErr != nil {
+			return &kfapisv2.KfError{
+				Code:    int(kfapisv2.INTERNAL_ERROR),
+				Message: fmt.Sprintf("couldn't create random suffix %v", suffixErr),
+			}
+		}
+		defaultProfileNamespace := strings.NewReplacer(".", "-", "@", "-at-").Replace(kustomize.kfDef.Spec.Email)
+		profile := &profilev2.Profile{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Profile",
+				APIVersion: "kubeflow.org/v1alpha1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: defaultProfileNamespace + "-" + suffix,
+			},
+			Spec: profilev2.ProfileSpec{
+				Owner: rbacv2.Subject{
+					Kind: "User",
+					Name: kustomize.kfDef.Spec.Email,
+				},
+			},
+		}
+		_, nsMissingErr := clientset.CoreV1().Namespaces().Get(defaultProfileNamespace, metav1.GetOptions{})
+		if nsMissingErr != nil {
+			body, err := json.Marshal(profile)
+			if err != nil {
+				return err
+			}
+			resourcesErr := kustomize.deployResources(kustomize.restConfig, body)
+			if resourcesErr != nil {
+				return &kfapisv2.KfError{
+					Code:    int(kfapisv2.INTERNAL_ERROR),
+					Message: fmt.Sprintf("couldn't create default profile from %v Error: %v", profile, resourcesErr),
+				}
+			}
+		} else {
+			log.Infof("Default profile namespace already exists: %v within owner %v", defaultProfileNamespace,
+				profile.Spec.Owner.Name)
 		}
 	}
 	return nil
@@ -1202,6 +1250,15 @@ func readLines(path string) ([]string, error) {
 		lines = append(lines, scanner.Text())
 	}
 	return lines, scanner.Err()
+}
+
+// randoxHex reads how many bytes to return and returns a randox hex string of that length
+func randomHex(n int) (string, error) {
+	bytes := make([]byte, n)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
 }
 
 // writeLines writes a string array to the given file - one line per array entry.
