@@ -27,14 +27,15 @@ import (
 	kfapisv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	profilev2 "github.com/kubeflow/kubeflow/profile-controller/v2/pkg/apis/apps/kfdef/v1alpha1"
+	profilev2 "github.com/kubeflow/kubeflow/components/profile-controller/v2/pkg/apis/kubeflow/v1alpha1"
 
-"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"k8s.io/api/v2/core/v1"
+	rbacv2 "k8s.io/api/v2/rbac/v1"
 	crdclientset "k8s.io/apiextensions-apiserver/v2/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/v2/pkg/apis/meta/v1/unstructured"
@@ -301,7 +302,35 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	}
 
 	if kustomize.kfDef.Spec.Email != "" {
-		profile = profilev2.Profile
+		profile := &profilev2.Profile{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Profile",
+				APIVersion: "kubeflow.org/v1alpha1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				//TODO this should be unique across namespaces
+				//perhaps Email where '.', '@' are replaced with valid chars
+				Name: "kubeflow-admin",
+			},
+			Spec: profilev2.ProfileSpec{
+				Owner: rbacv2.Subject{
+					Kind: "User",
+					Name: kustomize.kfDef.Spec.Email,
+				},
+			},
+		}
+		body, err := json.Marshal(profile)
+		if err != nil {
+			return err
+		}
+		resourcesErr := kustomize.deployResources(kustomize.restConfig, body)
+		if resourcesErr != nil {
+			return &kfapisv2.KfError{
+				Code:    int(kfapisv2.INTERNAL_ERROR),
+				Message: fmt.Sprintf("couldn't create default profile from %v Error: %v", profile, resourcesErr),
+			}
+		}
+
 	}
 	return nil
 }
