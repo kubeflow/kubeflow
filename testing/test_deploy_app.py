@@ -710,10 +710,9 @@ def main(unparsed_args=None):
   if not args.artifacts_dir:
     args.artifacts_dir = tempfile.gettempdir()
 
-  util_run(
-      ('gcloud auth activate-service-account --key-file=' +
-       may_get_env_var("GOOGLE_APPLICATION_CREDENTIALS")).split(' '),
-      cwd=FILE_PATH)
+  secret_file = may_get_env_var("GOOGLE_APPLICATION_CREDENTIALS")
+  util_run(['gcloud', 'auth', 'activate-service-account',
+            '--key-file=' + secret_file], cwd=FILE_PATH)
   if args.mode == "e2e":
     wrap_test(args)
 

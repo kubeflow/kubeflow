@@ -1,0 +1,56 @@
+# Run the click to deploy load test.
+# This job is intended to run in the kubeflow-ci cluster
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: c2d-load-test-
+  namespace: c2d-load-test
+  labels:
+    app: c2d-load-test
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: c2d-load-test
+    spec:
+      containers:
+      - name: load-test        
+        image: gcr.io/kubeflow-ci/kfctl-c2d-load-test:v0.6.0-rc.0-9-ga1d48c9e
+        workingDir: /src/
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /secret/gcp-credentials/key.json
+        - name: PYTHONPATH
+          value: /src/kubeflow/testing/py
+        - name: CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: iap-oauth
+              key: client_id
+        - name: CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: iap-oauth
+              key: client_secret
+        command:
+        - python
+        - test_deploy_app.py
+        - --mode="loadtest"
+        - --kfversion="v0.5.1"
+        - --project_prefix="kf-load-test-project"
+        - --email="load-test-owner@kf-gcp-deploy0.iam.gserviceaccount.com"
+        - --number_projects=1
+        - --number_deployments_per_project=1
+        # Service account client id should match that of the GCP credentials used
+        - --sa_client_id="112401461927766705527"
+        - --iap_wait_min=45
+        volumeMounts:
+        - name: gcp-credentials
+          mountPath: /secret/gcp-credentials
+          readOnly: true        
+      restartPolicy: Never
+      volumes:
+      - name: gcp-credentials
+        secret:
+          secretName: user-gcp-sa

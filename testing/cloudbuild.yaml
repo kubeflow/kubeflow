@@ -1,0 +1,11 @@
+#cloudbuild.yaml
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: 
+    - 'build'
+    - '-f'
+    - 'Dockerfile.deploy_app'
+    - '-t'
+    - 'gcr.io/$PROJECT_ID/kfctl-c2d-load-test:$TAG_NAME'
+    - '.'
+images: ['gcr.io/$PROJECT_ID/kfctl-c2d-load-test:$TAG_NAME',]
