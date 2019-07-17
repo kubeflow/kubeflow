@@ -1926,5 +1926,6 @@ func (gcp *Gcp) Init(resources kftypes.ResourceEnum) error {
 			return initProjectErr
 		}
 	}
+
 	return nil
 }
