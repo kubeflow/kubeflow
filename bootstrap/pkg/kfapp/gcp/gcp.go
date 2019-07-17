@@ -806,15 +806,6 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 				secretsErr.(*kfapis.KfError).Message),
 		}
 	}
-	// Configure and create PodDefault.
-	podDefaultErr := gcp.configPodDefault()
-	if podDefaultErr != nil {
-		return &kfapis.KfError{
-			Code: secretsErr.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("gcp apply could not config PodDefault Error %v",
-				secretsErr.(*kfapis.KfError).Message),
-		}
-	}
 
 	return nil
 }
