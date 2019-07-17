@@ -18,8 +18,6 @@ package kustomize
 
 import (
 	"bufio"
-	"crypto/rand"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/ghodss/yaml"
@@ -304,13 +302,6 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	}
 
 	if kustomize.kfDef.Spec.Email != "" {
-		suffix, suffixErr := randomHex(3)
-		if suffixErr != nil {
-			return &kfapisv2.KfError{
-				Code:    int(kfapisv2.INTERNAL_ERROR),
-				Message: fmt.Sprintf("couldn't create random suffix %v", suffixErr),
-			}
-		}
 		defaultProfileNamespace := strings.NewReplacer(".", "-", "@", "-at-").Replace(kustomize.kfDef.Spec.Email)
 		profile := &profilev2.Profile{
 			TypeMeta: metav1.TypeMeta{
@@ -318,7 +309,7 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 				APIVersion: "kubeflow.org/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name: defaultProfileNamespace + "-" + suffix,
+				Name: "kubeflow-" + defaultProfileNamespace,
 			},
 			Spec: profilev2.ProfileSpec{
 				Owner: rbacv2.Subject{
@@ -1250,15 +1241,6 @@ func readLines(path string) ([]string, error) {
 		lines = append(lines, scanner.Text())
 	}
 	return lines, scanner.Err()
-}
-
-// randoxHex reads how many bytes to return and returns a randox hex string of that length
-func randomHex(n int) (string, error) {
-	bytes := make([]byte, n)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(bytes), nil
 }
 
 // writeLines writes a string array to the given file - one line per array entry.
