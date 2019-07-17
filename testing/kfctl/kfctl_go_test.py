@@ -86,10 +86,10 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
   if os.getenv("REPO_NAME") != "manifests":
     if os.getenv("PULL_NUMBER"):
       version = "pull/{0}".format(os.getenv("PULL_NUMBER"))
-  pull_sha = "@7cf5587dd9e2ec523bbdc99642d530f42fec4361"
+  pull_manifests = "@master"
   if os.getenv("REPO_NAME") == "manifests":
     if os.getenv("PULL_PULL_SHA"):
-      pull_sha = "@" + os.getenv("PULL_PULL_SHA")
+      pull_manifests = "@" + os.getenv("PULL_PULL_SHA")
 
   # username and password are passed as env vars and won't appear in the logs
   # TODO(https://github.com/kubeflow/kubeflow/issues/2831): Once kfctl
@@ -101,7 +101,7 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
   # already exists. So retrying ends up masking the original error message
   util.run([
       kfctl_path, "init", app_path, "-V", "--platform=gcp",
-      "--version=" + version, "--package-manager=kustomize" + pull_sha,
+      "--version=" + version, "--package-manager=kustomize" + pull_manifests,
       "--skip-init-gcp-project", "--disable_usage_report",
       "--project=" + project
       ] + init_args, cwd=parent_dir)
