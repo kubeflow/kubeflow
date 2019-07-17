@@ -722,10 +722,12 @@ func GetKustomization(kustomizationPath string) *types.Kustomization {
 	kustomizationFile := filepath.Join(kustomizationPath, kftypesv2.KustomizationFile)
 	data, err := ioutil.ReadFile(kustomizationFile)
 	if err != nil {
+		log.Warnf("Cannot get kustomization from %v: error %v", kustomizationPath, err)
 		return nil
 	}
 	kustomization := &types.Kustomization{}
 	if err = yaml.Unmarshal(data, kustomization); err != nil {
+		log.Warnf("Cannot unmarshal kustomization from %v: error %v", kustomizationPath, err)
 		return nil
 	}
 	return kustomization
