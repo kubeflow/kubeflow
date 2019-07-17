@@ -42,6 +42,7 @@ import (
 	"io/ioutil"
 	"k8s.io/api/v2/core/v1"
 	rbacv1 "k8s.io/api/v2/rbac/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8serrors "k8s.io/apimachinery/v2/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
@@ -1576,6 +1577,49 @@ func (gcp *Gcp) configPodDefault() error {
 	log.Infof("Creating secret %v to namespace %v", USER_SECRET_NAME, defaultNamespace)
 	if err = insertSecret(k8sClient, USER_SECRET_NAME, defaultNamespace, secret.Data); err != nil {
 		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create secret %v in namespace %v", USER_SECRET_NAME, defaultNamespace))
+	}
+
+	log.Infof("Generating PodDefault in namespace %v", defaultNamespace)
+	podDefault := &unstructured.Unstructured{}
+	podDefault.SetAPIVersion("kubeflow.org/v1alpha1")
+	podDefault.SetKind("PodDefault")
+	podDefault.SetName("add-gcp-secret")
+	podDefault.SetNamespace(defaultNamespace)
+	if err = unstructured.SetNestedField(podDefault.Object, "true", "spec", "selector", "matchLabels", "addgcpsecret"); err != nil {
+		return kfapis.NewKfErrorWithMessage(err, "Adding matchLabels for addgcpsecret is failed.")
+	}
+	if err = unstructured.SetNestedField(podDefault.Object, "add gcp credential", "desc"); err != nil {
+		return kfapis.NewKfErrorWithMessage(err, "Adding desc is failed.")
+	}
+
+	env := []interface{}{
+		map[string]interface{}{
+			"name":  "GOOGLE_APPLICATION_CREDENTIALS",
+			"value": "/secret/gcp/user-gcp-sa.json",
+		},
+	}
+	if err = unstructured.SetNestedField(podDefault.Object, env, "env"); err != nil {
+		return kfapis.NewKfErrorWithMessage(err, "Adding env is failed.")
+	}
+	volumeMounts := []interface{}{
+		map[string]interface{}{
+			"name":      "secret-volume",
+			"mountPath": "/secret/gcp",
+		},
+	}
+	if err = unstructured.SetNestedField(podDefault.Object, volumeMounts, "volumeMounts"); err != nil {
+		return kfapis.NewKfErrorWithMessage(err, "Adding volumeMounts is failed.")
+	}
+	volumes := []interface{}{
+		map[string]interface{}{
+			"name": "secret-volume",
+			"secret": map[string]interface{}{
+				"secretName": "user-gcp-sa",
+			},
+		},
+	}
+	if err = unstructured.SetNestedField(podDefault.Object, volumes, "volumes"); err != nil {
+		return kfapis.NewKfErrorWithMessage(err, "Adding volumes is failed.")
 	}
 
 	return nil
