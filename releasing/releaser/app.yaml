@@ -1,4 +1,4 @@
-apiVersion: 0.1.0
+apiVersion: 0.3.0
 environments:
   prow:
     destination:
@@ -19,12 +19,6 @@ libraries:
       commitSha: faea44afcef9dc64a672d22f6bb3808e4706ac45
       refSpec: master
     name: automation
-    registry: kubeflow
-  core:
-    gitVersion:
-      commitSha: 5c35580d76092788b089cb447be3f3097cffe60b
-      refSpec: master
-    name: core
     registry: kubeflow
 name: test-infra
 registries:

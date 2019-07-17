@@ -1792,6 +1792,9 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 		if err := gcp.kfDef.SetApplicationParameter("basic-auth-ingress", "project", gcp.kfDef.Spec.Project); err != nil {
 			return errors.WithStack(err)
 		}
+		if err := gcp.kfDef.SetApplicationParameter("istio", "clusterRbacConfig", "OFF"); err != nil {
+			return errors.WithStack(err)
+		}
 	} else {
 		if err := gcp.kfDef.SetApplicationParameter("iap-ingress", "ipName", gcp.kfDef.Spec.IpName); err != nil {
 			return errors.WithStack(err)

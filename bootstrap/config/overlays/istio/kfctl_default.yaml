@@ -20,6 +20,9 @@ spec:
     istio-install:
     - name: namespace
       value: istio-system
+    istio:
+    - name: clusterRbacConfig
+      value: "ON"
     iap-ingress:
     - name: namespace
       value: istio-system
