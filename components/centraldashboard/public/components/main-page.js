@@ -107,6 +107,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             namespaces: Array,
             namespace: {type: String, observer: '_namespaceChanged'},
             user: String,
+            isolationMode: {type: String, value: 'undecided', readOnly: true},
         };
     }
 
@@ -152,8 +153,9 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * @param {Event} ev AJAX-response
      */
     _workgroupStatus(ev) {
-        const {user, hasWorkgroup} = ev.detail.response;
-        if (hasWorkgroup) return;
+        const {user, hasWorkgroup, hasAuth} = ev.detail.response;
+        this._setIsolationMode(hasAuth?'multi-user':'single-user');
+        if (!hasAuth || hasWorkgroup) return;
         this.userDetails = user;
         this._setRegistrationFlow(true);
     }

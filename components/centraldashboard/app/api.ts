@@ -24,6 +24,7 @@ interface CreateProfileRequest {
 }
 
 interface HasWorkgroupResponse {
+  user: string;
   hasAuth: boolean;
   hasWorkgroup: boolean;
 }
@@ -96,14 +97,14 @@ export class Api {
   private mapNamespacesToWorkgroupBindings(
       user: string, namespaces: V1Namespace[]): WorkgroupBinding[] {
     return namespaces.map((n) => ({
-                            user: {kind: 'user', name: user},
-                            referredNamespace: n.metadata.name,
-                            RoleRef: {
-                              apiGroup: '',
-                              kind: 'ClusterRole',
-                              name: 'editor',
-                            },
-                          }));
+      user: {kind: 'user', name: user},
+      referredNamespace: n.metadata.name,
+      RoleRef: {
+        apiGroup: '',
+        kind: 'ClusterRole',
+        name: 'editor',
+      },
+    }));
   }
 
   /**
@@ -133,6 +134,7 @@ export class Api {
             async (req: Request, res: Response) => {
               const response: HasWorkgroupResponse = {
                 hasAuth: req.user.hasAuth,
+                user: req.user.username,
                 hasWorkgroup: false,
               };
               if (req.user.hasAuth) {

@@ -45,7 +45,7 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
         this.namespaceInput = this.$.Namespace;
     }
     _onUserDetails(d) {
-        this.namespaceName = this.userDetails.ldap
+        this.namespaceName = this.userDetails
             // eslint-disable-next-line no-useless-escape
             .replace(/[^\w\-]/g, '_')
             .toLowerCase();
