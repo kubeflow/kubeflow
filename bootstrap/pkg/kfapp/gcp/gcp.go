@@ -1622,6 +1622,8 @@ func (gcp *Gcp) configPodDefault() error {
 		return kfapis.NewKfErrorWithMessage(err, "Adding volumes is failed.")
 	}
 
+	// TODO(gabrielwen): Deploy to GKE.
+
 	return nil
 }
 
