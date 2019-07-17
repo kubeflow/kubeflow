@@ -167,6 +167,7 @@ spec:
   - common
   - examples
   - admission-webhook
+  - istio
   - jupyter
   - katib-v1alpha2
   - metacontroller

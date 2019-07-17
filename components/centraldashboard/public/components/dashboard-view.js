@@ -90,7 +90,7 @@ export class DashboardView extends PolymerElement {
                     {
                         text: 'View all pipeline runs',
                         desc: 'Pipelines',
-                        link: `/pipeline/#/archive`,
+                        link: `/pipeline/#/runs`,
                     },
                     {
                         text: 'Create a new Notebook server',

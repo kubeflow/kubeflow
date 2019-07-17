@@ -8,12 +8,14 @@ spec:
   - cert-manager-crds
   - cert-manager
   - cloud-endpoints
+  - profiles
   - gpu-driver
   - basic-auth
   - basic-auth-ingress
   packages:
   - cert-manager
   - gcp
+  - profiles
   componentParams:
     ambassador:
     - name: ambassadorServiceType
