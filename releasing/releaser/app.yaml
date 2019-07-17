@@ -20,12 +20,6 @@ libraries:
       refSpec: master
     name: automation
     registry: kubeflow
-  core:
-    gitVersion:
-      commitSha: 5c35580d76092788b089cb447be3f3097cffe60b
-      refSpec: master
-    name: core
-    registry: kubeflow
 name: test-infra
 registries:
   incubator:
