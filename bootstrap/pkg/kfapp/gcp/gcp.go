@@ -1550,7 +1550,7 @@ func (gcp *Gcp) createSecrets() error {
 }
 
 // Configure PodDefault to add secret.
-func (gcp *Gcp) configPodDefault() error {
+func (gcp *Gcp) ConfigPodDefault() error {
 	if gcp.kfDef.Spec.Email == "" {
 		return nil
 	}
