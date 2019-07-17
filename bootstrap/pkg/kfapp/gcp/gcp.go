@@ -43,6 +43,7 @@ import (
 	"k8s.io/api/v2/core/v1"
 	rbacv1 "k8s.io/api/v2/rbac/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	k8serrors "k8s.io/apimachinery/v2/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
@@ -1557,6 +1558,7 @@ func (gcp *Gcp) createSecrets() error {
 	return nil
 }
 
+// Configure PodDefault to add secret.
 func (gcp *Gcp) configPodDefault() error {
 	if gcp.kfDef.Spec.Email == "" {
 		return nil
@@ -1585,7 +1587,7 @@ func (gcp *Gcp) configPodDefault() error {
 	podDefault.SetKind("PodDefault")
 	podDefault.SetName("add-gcp-secret")
 	podDefault.SetNamespace(defaultNamespace)
-	if err = unstructured.SetNestedField(podDefault.Object, "true", "spec", "selector", "matchLabels", "addgcpsecret"); err != nil {
+	if err = unstructured.SetNestedField(podDefault.Object, "true", "spec", "selector", "matchLabels", "add-gcp-secret"); err != nil {
 		return kfapis.NewKfErrorWithMessage(err, "Adding matchLabels for addgcpsecret is failed.")
 	}
 	if err = unstructured.SetNestedField(podDefault.Object, "add gcp credential", "desc"); err != nil {
@@ -1622,9 +1624,12 @@ func (gcp *Gcp) configPodDefault() error {
 		return kfapis.NewKfErrorWithMessage(err, "Adding volumes is failed.")
 	}
 
-	// TODO(gabrielwen): Deploy to GKE.
+	resource := schema.GroupVersionResource{Group: "kubeflow.org", Version: "v1alpha1", Resource: "poddefaults"}
+	req := k8sClient.Discovery().RESTClient().Post().Resource(resource.String()).Body(podDefault.Object)
+	req = req.Namespace(defaultNamespace)
+	result := req.Do()
 
-	return nil
+	return result.Error()
 }
 
 // setGcpPluginDefaults sets the GcpPlugin defaults.
