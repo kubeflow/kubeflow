@@ -804,6 +804,15 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 				secretsErr.(*kfapis.KfError).Message),
 		}
 	}
+	// Configure and create PodDefault.
+	podDefaultErr := gcp.configPodDefault()
+	if podDefaultErr != nil {
+		return &kfapis.KfError{
+			Code: secretsErr.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("gcp apply could not config PodDefault Error %v",
+				secretsErr.(*kfapis.KfError).Message),
+		}
+	}
 
 	return nil
 }
@@ -1513,7 +1522,7 @@ func (gcp *Gcp) createSecrets() error {
 	ctx := context.Background()
 	k8sClient, err := gcp.getK8sClientset(ctx)
 	if err != nil {
-		return kfapis.NewKfErrorWithMessage(err, "et K8s clientset error")
+		return kfapis.NewKfErrorWithMessage(err, "set K8s clientset error")
 	}
 	adminEmail := getSA(gcp.kfDef.Name, "admin", gcp.kfDef.Spec.Project)
 	userEmail := getSA(gcp.kfDef.Name, "user", gcp.kfDef.Spec.Project)
@@ -1544,6 +1553,31 @@ func (gcp *Gcp) createSecrets() error {
 			return kfapis.NewKfErrorWithMessage(err, "cannot create IAP auth secret")
 		}
 	}
+	return nil
+}
+
+func (gcp *Gcp) configPodDefault() error {
+	if gcp.kfDef.Spec.Email == "" {
+		return nil
+	}
+
+	ctx := context.Background()
+	k8sClient, err := gcp.getK8sClientset(ctx)
+	if err != nil {
+		return kfapis.NewKfErrorWithMessage(err, "set K8s clientset error")
+	}
+
+	log.Infof("Downloading secret %v from namespace %v", USER_SECRET_NAME, gcp.kfDef.Namespace)
+	secret, err := k8sClient.CoreV1().Secrets(gcp.kfDef.Namespace).Get(USER_SECRET_NAME, metav1.GetOptions{})
+	if err != nil {
+		return kfapis.NewKfErrorWithMessage(err, "User service account secret is not created.")
+	}
+	defaultNamespace := strings.NewReplacer(".", "-", "@", "-at-").Replace(gcp.kfDef.Spec.Email)
+	log.Infof("Creating secret %v to namespace %v", USER_SECRET_NAME, defaultNamespace)
+	if err = insertSecret(k8sClient, USER_SECRET_NAME, defaultNamespace, secret.Data); err != nil {
+		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create secret %v in namespace %v", USER_SECRET_NAME, defaultNamespace))
+	}
+
 	return nil
 }
 
