@@ -23,7 +23,6 @@
 // @optionalParam OidcClientSecret string null OIDC Client secret
 // @optionalParam subnetIds stringList null List of subnetId or subnetName which will be used by ALB to route traffic to. At least two subnets in different AZ must be specified.
 
-
 local istioIngress = import "kubeflow/aws/istio-ingress.libsonnet";
 local instance = istioIngress.new(env, params);
 instance.list(instance.all)
