@@ -496,7 +496,7 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]inte
 	if strings.Contains(kfdef.Spec.PackageManager, kftypes.KUSTOMIZE) {
 		pFlag := kfdef.Spec.PackageManager
 		parts := strings.Split(pFlag, "@")
-		version := "master"
+		version := kftypesv2.DefaultVersion
 		if len(parts) == 2 {
 			version = parts[1]
 		}
