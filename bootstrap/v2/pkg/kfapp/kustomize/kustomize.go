@@ -20,6 +20,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
 	"github.com/imdario/mergo"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
@@ -61,6 +62,7 @@ import (
 	"sigs.k8s.io/kustomize/v2/pkg/target"
 	"sigs.k8s.io/kustomize/v2/pkg/types"
 	"strings"
+	"time"
 
 	// Auth plugins
 	_ "k8s.io/client-go/v2/plugin/pkg/client/auth/gcp"
@@ -303,13 +305,15 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 
 	if kustomize.kfDef.Spec.Email != "" {
 		defaultProfileNamespace := strings.NewReplacer(".", "-", "@", "-at-").Replace(kustomize.kfDef.Spec.Email)
+		// Profile name is also the namespace created.
+		profileName := "kubeflow-" + defaultProfileNamespace
 		profile := &profilev2.Profile{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Profile",
 				APIVersion: "kubeflow.org/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "kubeflow-" + defaultProfileNamespace,
+				Name: profileName,
 			},
 			Spec: profilev2.ProfileSpec{
 				Owner: rbacv2.Subject{
@@ -331,6 +335,22 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 					Message: fmt.Sprintf("couldn't create default profile from %v Error: %v", profile, resourcesErr),
 				}
 			}
+			b := backoff.NewExponentialBackOff()
+			b.InitialInterval = 3 * time.Second
+			b.MaxInterval = 30 * time.Second
+			b.MaxElapsedTime = 5 * time.Minute
+			return backoff.Retry(func() error {
+				_, nsErr := clientset.CoreV1().Namespaces().Get(profileName, metav1.GetOptions{})
+				if nsErr != nil {
+					msg := fmt.Sprintf("Could not find namespace %v, wait and retry: %v", profileName, nsErr)
+					log.Warnf(msg)
+					return &kfapisv2.KfError{
+						Code:    int(kfapisv2.INVALID_ARGUMENT),
+						Message: msg,
+					}
+				}
+				return nil
+			}, b)
 		} else {
 			log.Infof("Default profile namespace already exists: %v within owner %v", defaultProfileNamespace,
 				profile.Spec.Owner.Name)

@@ -1566,7 +1566,7 @@ func (gcp *Gcp) ConfigPodDefault() error {
 	if err != nil {
 		return kfapis.NewKfErrorWithMessage(err, "User service account secret is not created.")
 	}
-	defaultNamespace := strings.NewReplacer(".", "-", "@", "-at-").Replace(gcp.kfDef.Spec.Email)
+	defaultNamespace := "kubeflow-" + strings.NewReplacer(".", "-", "@", "-at-").Replace(gcp.kfDef.Spec.Email)
 	log.Infof("Creating secret %v to namespace %v", USER_SECRET_NAME, defaultNamespace)
 	if err = insertSecret(k8sClient, USER_SECRET_NAME, defaultNamespace, secret.Data); err != nil {
 		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create secret %v in namespace %v", USER_SECRET_NAME, defaultNamespace))
