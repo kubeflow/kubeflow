@@ -43,12 +43,18 @@ import (
 	"k8s.io/api/v2/core/v1"
 	rbacv1 "k8s.io/api/v2/rbac/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	k8serrors "k8s.io/apimachinery/v2/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/v2/pkg/runtime/schema"
+	"k8s.io/apimachinery/v2/pkg/runtime/serializer"
 	"k8s.io/client-go/rest"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"k8s.io/client-go/v2/discovery"
+	"k8s.io/client-go/v2/discovery/cached"
 	clientset "k8s.io/client-go/v2/kubernetes"
+	"k8s.io/client-go/v2/kubernetes/scheme"
+	restv2 "k8s.io/client-go/v2/rest"
+	"k8s.io/client-go/v2/restmapper"
 	"math/rand"
 	"net/http"
 	"os"
@@ -1572,10 +1578,13 @@ func (gcp *Gcp) ConfigPodDefault() error {
 		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create secret %v in namespace %v", USER_SECRET_NAME, defaultNamespace))
 	}
 
+	group := "kubeflow.org"
+	version := "v1alpha1"
+	kind := "PodDefault"
 	log.Infof("Generating PodDefault in namespace %v", defaultNamespace)
-	podDefault := &unstructured.Unstructured{}
-	podDefault.SetAPIVersion("kubeflow.org/v1alpha1")
-	podDefault.SetKind("PodDefault")
+	podDefault := unstructured.Unstructured{}
+	podDefault.SetAPIVersion(group + "/" + version)
+	podDefault.SetKind(kind)
 	podDefault.SetName("add-gcp-secret")
 	podDefault.SetNamespace(defaultNamespace)
 	if err = unstructured.SetNestedField(podDefault.Object, "true", "spec", "selector", "matchLabels", "add-gcp-secret"); err != nil {
@@ -1615,8 +1624,64 @@ func (gcp *Gcp) ConfigPodDefault() error {
 		return kfapis.NewKfErrorWithMessage(err, "Adding volumes is failed.")
 	}
 
-	resource := schema.GroupVersionResource{Group: "kubeflow.org", Version: "v1alpha1", Resource: "poddefaults"}
-	req := k8sClient.Discovery().RESTClient().Post().Resource(resource.String()).Body(podDefault.Object)
+	cluster, err := utils.GetClusterInfo(ctx, gcp.kfDef.Spec.Project,
+		gcp.kfDef.Spec.Zone, gcp.kfDef.Name, gcp.tokenSource)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("get Cluster error: %v", err),
+		}
+	}
+	body, err := podDefault.MarshalJSON()
+	if err != nil {
+		return kfapis.NewKfErrorWithMessage(err, "Marshal error for PodDefault config.")
+	}
+
+	// Need to re-configure restful client to remap group/kind/version.
+	config, err := utils.BuildConfigFromClusterInfo(ctx, cluster, gcp.tokenSource)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("build ClientConfig error: %v", err),
+		}
+	}
+	_discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("build DiscoveryClient error: %v", err),
+		}
+	}
+	_cached := cached.NewMemCacheClient(_discoveryClient)
+	_cached.Invalidate()
+	mapper := restmapper.NewDeferredDiscoveryRESTMapper(_cached)
+	gk := schema.GroupKind{
+		Group: group,
+		Kind:  kind,
+	}
+	mapping, err := mapper.RESTMapping(gk, version)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("config Group/Version/Kind error: %v", err),
+		}
+	}
+	c := restv2.CopyConfig(config)
+	c.GroupVersion = &schema.GroupVersion{
+		Group:   group,
+		Version: version,
+	}
+	c.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
+	c.APIPath = "/apis"
+	crdClient, err := restv2.RESTClientFor(c)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("config RestClient error: %v", err),
+		}
+	}
+
+	req := crdClient.Post().Resource(mapping.Resource.Resource).Body(body)
 	req = req.Namespace(defaultNamespace)
 	result := req.Do()
 
