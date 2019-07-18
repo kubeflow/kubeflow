@@ -18,7 +18,7 @@ usage() {
 check_installed_deps() {
   declare -a kf_deps=("ks" "kubectl")
 
-  for kf_dep in "${kf_app[@]}"; do
+  for kf_dep in "${kf_deps[@]}"; do
     if ! which "${kf_dep}" &>/dev/null && ! type -a "${kf_dep}" &>/dev/null ; then
       echo "You don't have ${kf_dep} installed. Please install ${kf_dep}."
       exit 1
