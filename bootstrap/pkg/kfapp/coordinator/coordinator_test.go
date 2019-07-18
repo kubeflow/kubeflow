@@ -2,6 +2,7 @@ package coordinator
 
 import (
 	"encoding/json"
+	"fmt"
 	config "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
@@ -165,8 +166,9 @@ func Test_backfillKfDefFromInitOptions(t *testing.T) {
 					Repos: []kfdefsv2.Repo{
 						{
 							Name: "manifests",
-							Uri:  "https://github.com/kubeflow/manifests/archive/master.tar.gz",
-							Root: "manifests-master",
+							Uri:  fmt.Sprintf("https://github.com/kubeflow/manifests/archive/%v.tar.gz",
+								kftypesv2.DefaultVersion),
+							Root: "manifests-" + kftypesv2.DefaultVersion,
 						},
 					},
 				},
