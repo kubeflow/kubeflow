@@ -345,7 +345,7 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 		kfDef.Spec.UseBasicAuth = useBasicAuth
 		kfDef.Spec.UseIstio = useIstio
 		kfDef.Spec.PackageManager = packageManager
-
+		// TODO(aws):Do we want to assign roles and region values here?
 		// Add the repo
 		if kfDef.Spec.Repos == nil {
 			kfDef.Spec.Repos = []kfdefsv2.Repo{}
