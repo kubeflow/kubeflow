@@ -304,7 +304,7 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	}
 
 	if kustomize.kfDef.Spec.Email != "" {
-		defaultProfileNamespace := strings.NewReplacer(".", "-", "@", "-at-").Replace(kustomize.kfDef.Spec.Email)
+		defaultProfileNamespace := kftypesv2.EmailToDefaultName(kustomize.kfDef.Spec.Email)
 		// Profile name is also the namespace created.
 		profileName := "kubeflow-" + defaultProfileNamespace
 		profile := &profilev2.Profile{
