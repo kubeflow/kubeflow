@@ -74,6 +74,9 @@ resources:
       podSecurityPolicyConfig:
         enabled: {{ properties['securityConfig']['podSecurityPolicy'] }}
       {% endif %}
+      {% if properties['enable-workload-identity'] %}
+      identity-namespace: {{ properties['identity-namespace'] }}
+      {% endif %}
       {% if properties['securityConfig']['privatecluster'] %}
       ipAllocationPolicy:
         createSubnetwork: true
