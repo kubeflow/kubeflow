@@ -304,16 +304,15 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	}
 
 	if kustomize.kfDef.Spec.Email != "" {
-		defaultProfileNamespace := kftypesv2.EmailToDefaultName(kustomize.kfDef.Spec.Email)
 		// Profile name is also the namespace created.
-		profileName := "kubeflow-" + defaultProfileNamespace
+		defaultProfileNamespace := kftypesv2.EmailToDefaultName(kustomize.kfDef.Spec.Email)
 		profile := &profilev2.Profile{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Profile",
 				APIVersion: "kubeflow.org/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name: profileName,
+				Name: defaultProfileNamespace,
 			},
 			Spec: profilev2.ProfileSpec{
 				Owner: rbacv2.Subject{
@@ -340,9 +339,9 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 			b.MaxInterval = 30 * time.Second
 			b.MaxElapsedTime = 5 * time.Minute
 			return backoff.Retry(func() error {
-				_, nsErr := clientset.CoreV1().Namespaces().Get(profileName, metav1.GetOptions{})
+				_, nsErr := clientset.CoreV1().Namespaces().Get(defaultProfileNamespace, metav1.GetOptions{})
 				if nsErr != nil {
-					msg := fmt.Sprintf("Could not find namespace %v, wait and retry: %v", profileName, nsErr)
+					msg := fmt.Sprintf("Could not find namespace %v, wait and retry: %v", defaultProfileNamespace, nsErr)
 					log.Warnf(msg)
 					return &kfapisv2.KfError{
 						Code:    int(kfapisv2.INVALID_ARGUMENT),
