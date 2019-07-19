@@ -92,6 +92,8 @@ resources:
       {% if properties['gkeApiVersion'] == 'v1beta1' and properties['autoprovisioning-config']['enabled'] %}
       autoscaling:
         enableNodeAutoprovisioning: true
+        autoprovisioningNodePoolDefaults:
+          oauthScopes: {{ VM_OAUTH_SCOPES }}
         resourceLimits:
         - resourceType: 'cpu'
           maximum: {{ properties['autoprovisioning-config']['max-cpu'] }}
