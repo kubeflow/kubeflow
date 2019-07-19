@@ -1580,8 +1580,13 @@ func (gcp *Gcp) setupWorkloadIdentity(namespace string) error {
 		"kf-user",
 		"kf-vm",
 	}
-	for _, k8sSa := range k8sServiceAccounts {
-		createK8sServiceAccount(k8sClient, namespace, k8sSa)
+	gcpServiceAccounts := []string{
+		fmt.Sprintf("serviceAccount:%v-admin@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
+		fmt.Sprintf("serviceAccount:%v-user@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
+		fmt.Sprintf("serviceAccount:%v-vm@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
+	}
+	for idx, k8sSa := range k8sServiceAccounts {
+		createK8sServiceAccount(k8sClient, namespace, k8sSa, gcpServiceAccounts[idx])
 	}
 
 	oClient := oauth2.NewClient(ctx, gcp.tokenSource)
@@ -1593,11 +1598,6 @@ func (gcp *Gcp) setupWorkloadIdentity(namespace string) error {
 		}
 	}
 	// Create IAM bindings under each GCP service account (different from IAM bindings for projects)
-	gcpServiceAccounts := []string{
-		fmt.Sprintf("serviceAccount:%v-admin@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
-		fmt.Sprintf("serviceAccount:%v-user@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
-		fmt.Sprintf("serviceAccount:%v-vm@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
-	}
 	for idx, gcpSa := range gcpServiceAccounts {
 		var currentPolicy *iam.Policy
 		if currentPolicy, err = iamService.Projects.ServiceAccounts.GetIamPolicy(gcpSa).Context(ctx).Do(); err != nil {
@@ -1626,7 +1626,9 @@ func (gcp *Gcp) setupWorkloadIdentity(namespace string) error {
 	return nil
 }
 
-func createK8sServiceAccount(k8sClientset *clientset.Clientset, namespace string, name string) error {
+// createK8sServiceAccount creates k8s servicea account with annotation
+// iam.gke.io/gcp-service-account=gsa
+func createK8sServiceAccount(k8sClientset *clientset.Clientset, namespace string, name string, gsa string) error {
 	log.Infof("Creating service account %v in namespace %v", name, namespace)
 	_, err := k8sClientset.CoreV1().ServiceAccounts(namespace).Get(name, metav1.GetOptions{})
 	if err == nil {
@@ -1639,6 +1641,10 @@ func createK8sServiceAccount(k8sClientset *clientset.Clientset, namespace string
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,
 				Namespace: namespace,
+				Annotations: map[string]string{
+					// We don't need the "serviceAccount:" part here
+					"iam.gke.io/gcp-service-account": strings.Split(gsa, ":")[1],
+				},
 			},
 		},
 	)
