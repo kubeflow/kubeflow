@@ -20,6 +20,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
+	"golang.org/x/crypto/bcrypt"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -40,7 +41,6 @@ import (
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/crypto/bcrypt"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
@@ -68,7 +68,6 @@ type Aws struct {
 	// requried when choose basic-auth
 	username        string
 	encodedPassword string
-	// required fields for aws users
 }
 
 // GetKfApp returns the aws kfapp. It's called by coordinator.GetKfApp
@@ -91,7 +90,7 @@ func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
 	return _aws, nil
 }
 
-// GetK8sConfig is only used with ksonnet packageManager. NotImplemented in this version
+// GetK8sConfig is only used with ksonnet packageManager. NotImplemented in this version, return nil to use default config for API compatibility.
 func (aws *Aws) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
 	return nil, nil
 }
@@ -123,9 +122,9 @@ func createNamespace(k8sClientset *clientset.Clientset, namespace string) error 
 }
 
 // applyAWSInfra do three things
-// 1. Install EKS cluster
+// 1. Create EKS cluster if needed
 // 2. Attach IAM roles like ALB, FSX, EFS, cloudWatch Fluentd
-// 3. Based on log/private access, we need to call eks api to update cluster configs. https://github.com/weaveworks/eksctl/issues/778
+// 3. Update cluster configs to enable master log or private access config.
 func (aws *Aws) applyAWSInfra() error {
 	config, err := aws.getFeatureConfig()
 	if err != nil {
@@ -180,27 +179,22 @@ func (aws *Aws) applyAWSInfra() error {
 	}
 
 	// 2. Attach IAM Policies
+	// TODO: Once pod level IAM complete, we don't need worker group roles. Authorize cloud services using service account.
 	for _, iamRole := range aws.Spec.Roles {
-		aws.attachIamInlinePolicy(iamRole, "iam_alb_ingress_policy", filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, "iam_alb_ingress_policy.json"))
-		aws.attachIamInlinePolicy(iamRole, "iam_csi_fsx_policy", filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, "iam_csi_fsx_policy.json"))
+		aws.attachIamInlinePolicy(iamRole, "iam_alb_ingress_policy",
+			filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, "iam_alb_ingress_policy.json"))
+		aws.attachIamInlinePolicy(iamRole, "iam_csi_fsx_policy",
+			filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, "iam_csi_fsx_policy.json"))
 
 		if config["worker_node_group_logging"] == "true" {
-			aws.attachIamInlinePolicy(iamRole, "iam_cloudwatch_policy", filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, "iam_cloudwatch_policy.json"))
+			aws.attachIamInlinePolicy(iamRole, "iam_cloudwatch_policy",
+				filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, "iam_cloudwatch_policy.json"))
 		}
 	}
 
 	// 3. Add private access and logging support for cluster.
-	// If we use cli, need dependency of awscli.
-	//if config["private_access"] == true {
-	//	// check rest value
-	//}
-	//
-	//if config["control_plane_logging"] == true {
-	//	if len(config["control_plane_logging_components"]) == 0 {
-	//		// skip
-	//	}
-	//	// construct API call
-	//}
+	// TODO: Once CloudFormation add support for master log/ private access, we can configure in cluster_config.yaml.
+	// https://github.com/weaveworks/eksctl/issues/778
 
 	return nil
 }
@@ -350,7 +344,7 @@ func (aws *Aws) generateInfraConfigs() error {
 		}
 	}
 
-	if aws.KfDef.Spec.Roles != nil && len(aws.KfDef.Spec.Roles) == 0 {
+	if aws.KfDef.Spec.Roles != nil && len(aws.KfDef.Spec.Roles) != 0 {
 		featureCfg["managed_cluster"] = false
 	} else {
 		featureCfg["managed_cluster"] = true
@@ -459,19 +453,28 @@ func (aws *Aws) Generate(resources kftypes.ResourceEnum) error {
 		}
 	}
 
+	awsFeatureConfig, err := aws.getFeatureConfig()
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Reading config file error: %v", err),
+		}
+	}
+
 	// Customize parameters for AWS components
 	aws.Spec.ComponentParams["aws-alb-ingress-controller"] = setNameVal(aws.Spec.ComponentParams["aws-alb-ingress-controller"], "clusterName", aws.KfDef.Name, true)
+	aws.Spec.ComponentParams["istio-ingress"] = setNameVal(aws.Spec.ComponentParams["istio-ingress"], "namespace", IstioNamespace, false)
 
-	if aws.Spec.UseBasicAuth {
-		aws.Spec.ComponentParams["basic-auth-ingress"] = setNameVal(aws.Spec.ComponentParams["basic-auth-ingress"], "ipName", aws.Spec.IpName, true)
-		aws.Spec.ComponentParams["basic-auth-ingress"] = setNameVal(aws.Spec.ComponentParams["basic-auth-ingress"], "hostname", aws.Spec.Hostname, true)
-	} else {
-		aws.Spec.ComponentParams["istio-ingress"] = setNameVal(aws.Spec.ComponentParams["istio-ingress"], "namespace", IstioNamespace, true)
-		// Force users to use either BasicAuth or OIDC/Cognito.
+	// TODO: Doesn't need mysqlPd and minioPd overlay and they bind to GCE now.
+
+	// Special handling for cloud watch logs of worker node groups
+	if awsFeatureConfig["worker_node_group_logging"] == true {
+		aws.Spec.Components = append(aws.Spec.Components, "fluentd-cloud-watch")
+		aws.Spec.ComponentParams["fluentd-cloud-watch"] = setNameVal(aws.Spec.ComponentParams["fluentd-cloud-watch"], "clusterName", aws.KfDef.Name, true)
+		aws.Spec.ComponentParams["fluentd-cloud-watch"] = setNameVal(aws.Spec.ComponentParams["fluentd-cloud-watch"], "region", aws.KfDef.Spec.Region, true)
 	}
-	// TODO: here we only make sure we have ComponentsParam, How to make sure we `ks generate`?
 
-	// Special hanlding for sparkakus - this should be a common setup?
+	// Special handling for sparkakus
 	for _, component := range aws.Spec.Components {
 		if component == "spartakus" {
 			rand.Seed(time.Now().UnixNano())
@@ -494,6 +497,7 @@ func (aws *Aws) Generate(resources kftypes.ResourceEnum) error {
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (aws *Aws) Apply(resources kftypes.ResourceEnum) error {
 	// kfctl only
+	// TODO: Enable BasicAuth later
 	if aws.Spec.UseBasicAuth {
 		if os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" || os.Getenv(kftypes.KUBEFLOW_PASSWORD) == "" {
 			return &kfapis.KfError{
@@ -514,27 +518,7 @@ func (aws *Aws) Apply(resources kftypes.ResourceEnum) error {
 		}
 		aws.encodedPassword = base64.StdEncoding.EncodeToString(passwordHash)
 	} else {
-		// TODO: anything need to do ?
-
-		// //TODO: AWS_ACCESS_KEY_ID ? What if ~/.aws/config has value? Need to validate both
-		// if os.Getenv(CLIENT_ID) == "" {
-		// 	return &kfapis.KfError{
-		// 		Code:    int(kfapis.INVALID_ARGUMENT),
-		// 		Message: fmt.Sprintf("Need to set environment variable `%v` for IAP.", CLIENT_ID),
-		// 	}
-		// }
-		// if os.Getenv(CLIENT_SECRET) == "" {
-		// 	return &kfapis.KfError{
-		// 		Code:    int(kfapis.INVALID_ARGUMENT),
-		// 		Message: fmt.Sprintf("Need to set environment variable `%v` for IAP.", CLIENT_SECRET),
-		// 	}
-		// }
-		// Requires 443 and ALB
-		// TOOD: How does this work? this is OAuth login, we should config OIDC/Coginito here?
-		// gcp.oauthId = os.Getenv(CLIENT_ID)
-		// gcp.oauthSecret = os.Getenv(CLIENT_SECRET)
-
-		// Google requires OAuthId, or OAuthSecret. We can force people either use OIDC or Coginito or BASIC_AUTHN
+		// We should force people either use OIDC or Coginito if user doesn't enable BASIC_AUTHN
 	}
 
 	// Create cluster + IAM policy + enable logs
@@ -559,37 +543,6 @@ func (aws *Aws) Delete(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	// aws.UninstallK8s
-	return nil
-}
-
-func (aws *Aws) uninstallAwsK8s() error {
-	// delete istio - this should be done by common utils
-	config, err := aws.getFeatureConfig()
-	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Reading config file error: %v", err),
-		}
-	}
-
-	if _, ok := config["worker_node_group_logging"]; !ok {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Unable to read worker_node_group_logging in YAML: %v", err),
-		}
-	}
-
-	//if config["worker_node_group_logging"] == "true" {
-	//	output, err := exec.Command("kubectl", "delete", "-f", clusterConfigFile).Output()
-	//	if err != nil {
-	//		return &kfapis.KfError{
-	//			Code:    int(kfapis.INVALID_ARGUMENT),
-	//			Message: fmt.Sprintf("could not call 'kubectl delete -f %s': %v", clusterConfigFile, err),
-	//		}
-	//	}
-	//	log.Infoln(output)
-	//}
 	return nil
 }
 
@@ -685,6 +638,7 @@ func (aws *Aws) uninstallAwsPlatform() error {
 
 	// Delete cluster if it's a managed cluster created by kfctl
 	if config["managed_cluster"] == true {
+		log.Infoln("Start to delete eks cluster. Please wait for 5 mins...")
 		clusterConfigFile := filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, CLUSTER_CONFIG_FILE)
 		output, err := exec.Command("eksctl", "delete", "cluster", "--config-file="+clusterConfigFile).Output()
 		log.Infoln("Please go to aws console to check CloudFormation status and double make sure your cluster has been shutdown.")
@@ -696,6 +650,7 @@ func (aws *Aws) uninstallAwsPlatform() error {
 		}
 		log.Infoln(string(output))
 	}
+
 	return nil
 }
 

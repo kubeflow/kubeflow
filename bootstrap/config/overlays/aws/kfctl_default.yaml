@@ -9,19 +9,38 @@ spec:
   - istio-ingress
   - aws-alb-ingress-controller
   - nvidia-device-plugin
-  - fluentd-cloud-watch
+  - profiles
   packages:
   - aws
+  - istio
+  - profiles
   componentParams:
     istio-ingress:
-    - name: name
-      value: hehe
+    - name: namespace
+      value: istio-system
       initRequired: true
     aws-alb-ingress-controller:
     - name: clusterName
-      value: hehe
+      value: kubeflow-aws-cluster
+      initRequired: true
+    fluentd-cloud-watch:
+    - name: clusterName
+      value: kubeflow-aws-cluster
       initRequired: true
     - name: region
       value: us-west-2
       initRequired: true
+    minio:
+    - name: minioPvName
+      value: minio-pv
+    - name: minioPvcName
+      value: minio-pv-claim
+    mysql:
+    - name: mysqlPvName
+      value: mysql-pv
+    - name: mysqlPvcName
+      value: mysql-pv-cla
+    istio:
+    - name: clusterRbacConfig
+      value: "OFF"
   platform: aws
