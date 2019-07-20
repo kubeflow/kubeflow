@@ -75,7 +75,8 @@ resources:
         enabled: {{ properties['securityConfig']['podSecurityPolicy'] }}
       {% endif %}
       {% if properties['enable-workload-identity'] %}
-      identityNamespace: {{ properties['identity-namespace'] }}
+      workloadIdentityConfig:
+        identityNamespace: {{ properties['identity-namespace'] }}
       {% endif %}
       {% if properties['securityConfig']['privatecluster'] %}
       ipAllocationPolicy:
