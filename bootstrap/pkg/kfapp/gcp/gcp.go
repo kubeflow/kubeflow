@@ -1592,7 +1592,7 @@ func generatePodDefault(group string, version string, kind string, namespace str
 			map[string]interface{}{
 				"name": "secret-volume",
 				"secret": map[string]interface{}{
-					"secretName": "user-gcp-sa",
+					"secretName": USER_SECRET_NAME,
 				},
 			},
 		},
