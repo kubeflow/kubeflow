@@ -360,6 +360,56 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 	}
 }
 
+func TestGcp_setPodDefault(t *testing.T) {
+	group := "kubeflow.org"
+	version := "v1alpha1"
+	kind := "PodDefault"
+	namespace := "foo-bar-baz"
+	expected := map[string]interface{}{
+		"apiVersion": group + "/" + version,
+		"kind":       kind,
+		"metadata": map[string]interface{}{
+			"name":      "add-gcp-secret",
+			"namespace": namespace,
+		},
+		"desc": "add gcp credential",
+		"spec": map[string]interface{}{
+			"selector": map[string]interface{}{
+				"matchLabels": map[string]interface{}{
+					"add-gcp-secret": "true",
+				},
+			},
+		},
+		"env": []interface{}{
+			map[string]interface{}{
+				"name":  "GOOGLE_APPLICATION_CREDENTIALS",
+				"value": "/secret/gcp/user-gcp-sa.json",
+			},
+		},
+		"volumeMounts": []interface{}{
+			map[string]interface{}{
+				"name":      "secret-volume",
+				"mountPath": "/secret/gcp",
+			},
+		},
+		"volumes": []interface{}{
+			map[string]interface{}{
+				"name": "secret-volume",
+				"secret": map[string]interface{}{
+					"secretName": "user-gcp-sa",
+				},
+			},
+		},
+	}
+
+	actual := generatePodDefault(group, version, kind, namespace)
+	if !reflect.DeepEqual(actual.UnstructuredContent(), expected) {
+		pGot, _ := Pformat(actual.UnstructuredContent())
+		pWant, _ := Pformat(expected)
+		t.Errorf("PodDefault not matching; got\n%v\nwant\n%v", pGot, pWant)
+	}
+}
+
 // Pformat returns a pretty format output of any value.
 // TODO(jlewi): Use utils.PrettyPrint
 func Pformat(value interface{}) (string, error) {
