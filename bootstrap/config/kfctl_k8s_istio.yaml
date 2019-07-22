@@ -34,6 +34,9 @@ spec:
     katib-ui: # Issue: https://github.com/kubeflow/manifests/issues/151
     - name: overlay
       value: istio
+    metadata:
+    - name: overlay
+      value: istio
     minio:
     - name: minioPd
       value: dls-kf-storage-artifact-store
