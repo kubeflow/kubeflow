@@ -1556,6 +1556,52 @@ func (gcp *Gcp) createSecrets() error {
 	return nil
 }
 
+func generatePodDefault(group string, version string, kind string, namespace string) *unstructured.Unstructured {
+	log.Infof("Generating %v in namespace %v; APIVersion %v/%v", kind, namespace, group, version)
+
+	unstructuredContent := map[string]interface{}{
+		"apiVersion": group + "/" + version,
+		"kind":       kind,
+		"metadata": map[string]interface{}{
+			"name":      "add-gcp-secret",
+			"namespace": namespace,
+		},
+		"desc": "add gcp credential",
+		"spec": map[string]interface{}{
+			"selector": map[string]interface{}{
+				"matchLabels": map[string]interface{}{
+					"add-gcp-secret": "true",
+				},
+			},
+		},
+		"env": []interface{}{
+			map[string]interface{}{
+				"name":  "GOOGLE_APPLICATION_CREDENTIALS",
+				"value": "/secret/gcp/user-gcp-sa.json",
+			},
+		},
+		"volumeMounts": []interface{}{
+			map[string]interface{}{
+				"name":      "secret-volume",
+				"mountPath": "/secret/gcp",
+			},
+		},
+		"volumes": []interface{}{
+			map[string]interface{}{
+				"name": "secret-volume",
+				"secret": map[string]interface{}{
+					"secretName": "user-gcp-sa",
+				},
+			},
+		},
+	}
+
+	podDefault := &unstructured.Unstructured{
+		Object: unstructuredContent,
+	}
+	return podDefault
+}
+
 // Configure PodDefault to add secret.
 func (gcp *Gcp) ConfigPodDefault() error {
 	if gcp.kfDef.Spec.Email == "" {
@@ -1582,49 +1628,7 @@ func (gcp *Gcp) ConfigPodDefault() error {
 	group := "kubeflow.org"
 	version := "v1alpha1"
 	kind := "PodDefault"
-	log.Infof("Generating PodDefault in namespace %v", defaultNamespace)
-	podDefault := unstructured.Unstructured{}
-	podDefault.SetAPIVersion(group + "/" + version)
-	podDefault.SetKind(kind)
-	podDefault.SetName("add-gcp-secret")
-	podDefault.SetNamespace(defaultNamespace)
-	if err = unstructured.SetNestedField(podDefault.Object, "true", "spec", "selector", "matchLabels", "add-gcp-secret"); err != nil {
-		return kfapis.NewKfErrorWithMessage(err, "Adding matchLabels for addgcpsecret is failed.")
-	}
-	if err = unstructured.SetNestedField(podDefault.Object, "add gcp credential", "desc"); err != nil {
-		return kfapis.NewKfErrorWithMessage(err, "Adding desc is failed.")
-	}
-
-	env := []interface{}{
-		map[string]interface{}{
-			"name":  "GOOGLE_APPLICATION_CREDENTIALS",
-			"value": "/secret/gcp/user-gcp-sa.json",
-		},
-	}
-	if err = unstructured.SetNestedField(podDefault.Object, env, "env"); err != nil {
-		return kfapis.NewKfErrorWithMessage(err, "Adding env is failed.")
-	}
-	volumeMounts := []interface{}{
-		map[string]interface{}{
-			"name":      "secret-volume",
-			"mountPath": "/secret/gcp",
-		},
-	}
-	if err = unstructured.SetNestedField(podDefault.Object, volumeMounts, "volumeMounts"); err != nil {
-		return kfapis.NewKfErrorWithMessage(err, "Adding volumeMounts is failed.")
-	}
-	volumes := []interface{}{
-		map[string]interface{}{
-			"name": "secret-volume",
-			"secret": map[string]interface{}{
-				"secretName": "user-gcp-sa",
-			},
-		},
-	}
-	if err = unstructured.SetNestedField(podDefault.Object, volumes, "volumes"); err != nil {
-		return kfapis.NewKfErrorWithMessage(err, "Adding volumes is failed.")
-	}
-
+	podDefault := generatePodDefault(group, version, kind, defaultNamespace)
 	cluster, err := utils.GetClusterInfo(ctx, gcp.kfDef.Spec.Project,
 		gcp.kfDef.Spec.Zone, gcp.kfDef.Name, gcp.tokenSource)
 	if err != nil {
