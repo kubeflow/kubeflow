@@ -64,7 +64,7 @@ spec:
       value: istio
     metadata:
     - name: overlay
-      value: application
+      value: istio
     minio:
     - name: overlay
       value: minioPd

@@ -19,6 +19,9 @@ spec:
     katib-ui: # Issue: https://github.com/kubeflow/manifests/issues/151
     - name: overlay
       value: istio
+    metadata:
+    - name: overlay
+      value: istio
     minio:
     - name: minioPvName
       value: minio-pv
@@ -59,6 +62,7 @@ spec:
   - katib-manager
   - katib-controller
   - katib-ui
+  - metadata
   - metrics-collector
   - suggestion
   - notebook-controller
@@ -85,6 +89,7 @@ spec:
   - jupyter
   - katib-v1alpha2
   - metacontroller
+  - metadata
   - modeldb
   - mpi-job
   - pytorch-job
