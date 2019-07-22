@@ -62,6 +62,9 @@ spec:
     katib-ui:
     - name: overlay
       value: istio
+    metadata:
+    - name: overlay
+      value: application
     minio:
     - name: overlay
       value: minioPd
@@ -119,7 +122,7 @@ spec:
       value: istio
     seldon-core-operator:
     - name: overlay
-      value: application      
+      value: application
   components:
   - istio-crds
   - istio-install
@@ -136,6 +139,7 @@ spec:
   - katib-manager
   - katib-controller
   - katib-ui
+  - metadata
   - metrics-collector
   - suggestion
   - notebook-controller
@@ -171,6 +175,7 @@ spec:
   - jupyter
   - katib-v1alpha2
   - metacontroller
+  - metadata
   - modeldb
   - mpi-job
   - pytorch-job

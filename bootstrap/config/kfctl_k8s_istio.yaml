@@ -96,6 +96,7 @@ spec:
   - katib-manager
   - katib-controller
   - katib-ui
+  - metadata
   - metrics-collector
   - suggestion
   - notebook-controller
@@ -125,6 +126,7 @@ spec:
   - jupyter
   - katib-v1alpha2
   - metacontroller
+  - metadata
   - modeldb
   - mpi-job
   - pytorch-job
