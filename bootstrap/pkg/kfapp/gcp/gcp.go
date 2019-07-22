@@ -1559,6 +1559,8 @@ func (gcp *Gcp) createSecrets() error {
 func generatePodDefault(group string, version string, kind string, namespace string) *unstructured.Unstructured {
 	log.Infof("Generating %v in namespace %v; APIVersion %v/%v", kind, namespace, group, version)
 
+	// TODO(gabrielwen): Clean up after v2 dependencies are fixed.
+	// https://github.com/kubeflow/kubeflow/issues/3713
 	unstructuredContent := map[string]interface{}{
 		"apiVersion": group + "/" + version,
 		"kind":       kind,
