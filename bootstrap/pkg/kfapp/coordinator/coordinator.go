@@ -756,14 +756,14 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 	}
 
 	gcpAddedConfig := func() error {
-		if kfapp.KfDef.Spec.Email == "" || kfapp.KfDef.Spec.Platform != "gcp" {
+		if kfapp.KfDef.Spec.Email == "" || kfapp.KfDef.Spec.Platform != kftypes.GCP {
 			return nil
 		}
 		p := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
 		if p == nil {
 			return &kfapis.KfError{
 				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: "gcp not in Platforms",
+				Message: "Platform GCP specified but not loaded.",
 			}
 		}
 		gcp := p.(*gcp.Gcp)
