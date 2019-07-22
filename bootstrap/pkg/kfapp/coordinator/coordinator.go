@@ -783,6 +783,8 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 		if err := platform(); err != nil {
 			return err
 		}
+		// TODO(gabrielwen): Need to find a more proper way of injecting plugings.
+		// https://github.com/kubeflow/kubeflow/issues/3708
 		return gcpAddedConfig()
 	case kftypes.K8S:
 		return k8s()
