@@ -126,7 +126,7 @@ createKsApp() {
   echo "Then run the following command to remove it from your ksonnet app"
   echo "  ks component rm spartakus"
   echo ""
-  echo "For more info: https://www.kubeflow.org/docs/guides/usage-reporting/"
+  echo "For more info: https://www.kubeflow.org/docs/other-guides/usage-reporting/"
   echo "****************************************************************"
   echo ""
   ks generate application application
