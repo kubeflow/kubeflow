@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestEmailToDefaultName_testCases(t *testing.T) {
+func TestEmailToDefaultName(t *testing.T) {
 	testCases := [][]string{
 		// Strips after @
 		[]string{
