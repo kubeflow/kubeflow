@@ -116,6 +116,9 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
   config_spec["spec"] = filterSpartakus(config_spec["spec"])
   if use_basic_auth:
     config_spec["spec"]["useBasicAuth"] = True
+    logging.info("yeah!!!\n\n")
+
+  logging.info(str(config_spec))
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
   util.run([
