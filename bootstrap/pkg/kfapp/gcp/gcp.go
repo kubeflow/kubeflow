@@ -25,6 +25,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
+	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	"github.com/pkg/errors"
@@ -42,11 +43,19 @@ import (
 	"io/ioutil"
 	"k8s.io/api/v2/core/v1"
 	rbacv1 "k8s.io/api/v2/rbac/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8serrors "k8s.io/apimachinery/v2/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/v2/pkg/runtime/schema"
+	"k8s.io/apimachinery/v2/pkg/runtime/serializer"
 	"k8s.io/client-go/rest"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"k8s.io/client-go/v2/discovery"
+	"k8s.io/client-go/v2/discovery/cached"
 	clientset "k8s.io/client-go/v2/kubernetes"
+	"k8s.io/client-go/v2/kubernetes/scheme"
+	restv2 "k8s.io/client-go/v2/rest"
+	"k8s.io/client-go/v2/restmapper"
 	"math/rand"
 	"net/http"
 	"os"
@@ -1543,7 +1552,7 @@ func (gcp *Gcp) createSecrets() error {
 
 	k8sClient, err := gcp.getK8sClientset(ctx)
 	if err != nil {
-		return kfapis.NewKfErrorWithMessage(err, "et K8s clientset error")
+		return kfapis.NewKfErrorWithMessage(err, "set K8s clientset error")
 	}
 	if !(*p.EnableWorkloadIdentity) {
 		adminEmail := getSA(gcp.kfDef.Name, "admin", gcp.kfDef.Spec.Project)
@@ -1672,6 +1681,145 @@ func createK8sServiceAccount(k8sClientset *clientset.Clientset, namespace string
 			Message: err.Error(),
 		}
 	}
+}
+
+func generatePodDefault(group string, version string, kind string, namespace string) *unstructured.Unstructured {
+	log.Infof("Generating %v in namespace %v; APIVersion %v/%v", kind, namespace, group, version)
+
+	// TODO(gabrielwen): Clean up after v2 dependencies are fixed.
+	// https://github.com/kubeflow/kubeflow/issues/3713
+	unstructuredContent := map[string]interface{}{
+		"apiVersion": group + "/" + version,
+		"kind":       kind,
+		"metadata": map[string]interface{}{
+			"name":      "add-gcp-secret",
+			"namespace": namespace,
+		},
+		"desc": "add gcp credential",
+		"spec": map[string]interface{}{
+			"selector": map[string]interface{}{
+				"matchLabels": map[string]interface{}{
+					"add-gcp-secret": "true",
+				},
+			},
+		},
+		"env": []interface{}{
+			map[string]interface{}{
+				"name":  "GOOGLE_APPLICATION_CREDENTIALS",
+				"value": "/secret/gcp/user-gcp-sa.json",
+			},
+		},
+		"volumeMounts": []interface{}{
+			map[string]interface{}{
+				"name":      "secret-volume",
+				"mountPath": "/secret/gcp",
+			},
+		},
+		"volumes": []interface{}{
+			map[string]interface{}{
+				"name": "secret-volume",
+				"secret": map[string]interface{}{
+					"secretName": USER_SECRET_NAME,
+				},
+			},
+		},
+	}
+
+	podDefault := &unstructured.Unstructured{
+		Object: unstructuredContent,
+	}
+	return podDefault
+}
+
+// Configure PodDefault to add secret.
+func (gcp *Gcp) ConfigPodDefault() error {
+	if gcp.kfDef.Spec.Email == "" {
+		return nil
+	}
+
+	ctx := context.Background()
+	k8sClient, err := gcp.getK8sClientset(ctx)
+	if err != nil {
+		return kfapis.NewKfErrorWithMessage(err, "set K8s clientset error")
+	}
+
+	log.Infof("Downloading secret %v from namespace %v", USER_SECRET_NAME, gcp.kfDef.Namespace)
+	secret, err := k8sClient.CoreV1().Secrets(gcp.kfDef.Namespace).Get(USER_SECRET_NAME, metav1.GetOptions{})
+	if err != nil {
+		return kfapis.NewKfErrorWithMessage(err, "User service account secret is not created.")
+	}
+	defaultNamespace := kftypesv2.EmailToDefaultName(gcp.kfDef.Spec.Email)
+	log.Infof("Creating secret %v to namespace %v", USER_SECRET_NAME, defaultNamespace)
+	if err = insertSecret(k8sClient, USER_SECRET_NAME, defaultNamespace, secret.Data); err != nil {
+		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create secret %v in namespace %v", USER_SECRET_NAME, defaultNamespace))
+	}
+
+	group := "kubeflow.org"
+	version := "v1alpha1"
+	kind := "PodDefault"
+	podDefault := generatePodDefault(group, version, kind, defaultNamespace)
+	cluster, err := utils.GetClusterInfo(ctx, gcp.kfDef.Spec.Project,
+		gcp.kfDef.Spec.Zone, gcp.kfDef.Name, gcp.tokenSource)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("get Cluster error: %v", err),
+		}
+	}
+	body, err := podDefault.MarshalJSON()
+	if err != nil {
+		return kfapis.NewKfErrorWithMessage(err, "Marshal error for PodDefault config.")
+	}
+
+	// Need to re-configure restful client to remap group/kind/version.
+	config, err := utils.BuildConfigFromClusterInfo(ctx, cluster, gcp.tokenSource)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("build ClientConfig error: %v", err),
+		}
+	}
+	_discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("build DiscoveryClient error: %v", err),
+		}
+	}
+	_cached := cached.NewMemCacheClient(_discoveryClient)
+	_cached.Invalidate()
+	mapper := restmapper.NewDeferredDiscoveryRESTMapper(_cached)
+	gk := schema.GroupKind{
+		Group: group,
+		Kind:  kind,
+	}
+	mapping, err := mapper.RESTMapping(gk, version)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("config Group/Version/Kind error: %v", err),
+		}
+	}
+	c := restv2.CopyConfig(config)
+	c.GroupVersion = &schema.GroupVersion{
+		Group:   group,
+		Version: version,
+	}
+	c.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
+	c.APIPath = "/apis"
+	crdClient, err := restv2.RESTClientFor(c)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("config RestClient error: %v", err),
+		}
+	}
+
+	req := crdClient.Post().Resource(mapping.Resource.Resource).Body(body)
+	req = req.Namespace(defaultNamespace)
+	result := req.Do()
+
+	return result.Error()
 }
 
 // setGcpPluginDefaults sets the GcpPlugin defaults.
@@ -1983,5 +2131,6 @@ func (gcp *Gcp) Init(resources kftypes.ResourceEnum) error {
 			return initProjectErr
 		}
 	}
+
 	return nil
 }
