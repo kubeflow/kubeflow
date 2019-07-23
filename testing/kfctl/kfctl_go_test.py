@@ -113,6 +113,8 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
     config_spec = yaml.load(f)
   config_spec["spec"]["project"] = project
   config_spec["spec"]["email"] = email
+  config_spec["spec"]["components"].pop("spartakus", "")
+  config_spec["spec"]["components"].pop("componentParams", "")
   if use_basic_auth:
     config_spec["spec"]["useBasicAuth"] = True
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
@@ -126,6 +128,7 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
   #     "--skip-init-gcp-project", "--disable_usage_report",
   #     "--project=" + project
   #     ] + init_args, cwd=parent_dir)
+  util.run(["cat", "app.yaml"], cwd=app_path)
 
   run_with_retries([
       kfctl_path, "generate", "-V", "all", "--email=" + email, "--zone=" + zone
