@@ -146,7 +146,7 @@ def filterSpartakus(spec):
   for i, comp in enumerate(spec["components"]):
     if comp == "spartakus":
       spec["components"].pop(i)
-  spec["componentsParams"].pop("spartakus", None)
+  spec["componentParams"].pop("spartakus", None)
   return spec
 
 if __name__ == "__main__":
