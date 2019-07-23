@@ -35,7 +35,7 @@ spec:
     katib-ui:
     - name: overlay
       value: istio
-    metadata-ui:
+    metadata:
     - name: overlay
       value: istio
     notebook-controller:
