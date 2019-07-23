@@ -1,4 +1,9 @@
 {
+  "linterOptions": {
+    "exclude": [
+      "app/clients/**/*"
+    ]
+  },
   "rules": {
     "array-type": [true, "array-simple"],
     "arrow-return-shorthand": true,

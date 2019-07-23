@@ -1,22 +1,43 @@
-import express from 'express';
+import {V1Namespace} from '@kubernetes/client-node';
+import express, {Request, Response} from 'express';
 
+import {Binding as WorkgroupBinding, DefaultApi, Profile} from './clients/profile_controller';
 import {KubernetesService, PlatformInfo} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
 
-interface EnvironmentInfo {
-  namespaces: string[];
-  platform: PlatformInfo;
-  user: string;
+interface WorkgroupInfo {
+  namespaces: WorkgroupBinding[];
+  isClusterAdmin: boolean;
 }
 
-const IAP_HEADER = 'X-Goog-Authenticated-User-Email';
-const IAP_PREFIX = 'accounts.google.com:';
+interface EnvironmentInfo {
+  namespaces: WorkgroupBinding[];
+  platform: PlatformInfo;
+  user: string;
+  isClusterAdmin: boolean;
+}
+
+// Shape of the CreateProfileRequest body
+interface CreateProfileRequest {
+  namespace?: string;
+  user?: string;
+}
+
+interface HasWorkgroupResponse {
+  hasAuth: boolean;
+  hasWorkgroup: boolean;
+}
+
+const OPERATION_NOT_SUPPORTED = {
+  error: 'Operation not supported'
+};
 
 export class Api {
   private platformInfo: PlatformInfo;
 
   constructor(
       private k8sService: KubernetesService,
+      private profilesService: DefaultApi,
       private metricsService?: MetricsService) {}
 
   /** Retrieves and memoizes the PlatformInfo. */
@@ -28,16 +49,61 @@ export class Api {
   }
 
   /**
-   * Retrieves user information from headers.
-   * Supports:
-   *  GCP IAP (https://cloud.google.com/iap/docs/identity-howto)
+   * Retrieves WorkgroupInfo from Profile Controller for the given user.
    */
-  private getUser(req: express.Request): string {
-    let email = 'anonymous@kubeflow.org';
-    if (req.header(IAP_HEADER)) {
-      email = req.header(IAP_HEADER).slice(IAP_PREFIX.length);
-    }
-    return email;
+  private async getWorkgroupInfo(user: User.User): Promise<WorkgroupInfo> {
+    const [adminResponse, bindings] = await Promise.all([
+      this.profilesService.v1RoleClusteradminGet(user.email),
+      this.profilesService.readBindings(user.email),
+    ]);
+    return {
+      isClusterAdmin: adminResponse.body,
+      namespaces: bindings.body.bindings || [],
+    };
+  }
+
+  /**
+   * Builds EnvironmentInfo for the case with identity awareness
+   */
+  private async getProfileAwareEnv(user: User.User): Promise<EnvironmentInfo> {
+    const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
+      this.getPlatformInfo(),
+      this.getWorkgroupInfo(user),
+    ]);
+    return {user: user.email, platform, namespaces, isClusterAdmin};
+  }
+
+  /**
+   * Builds EnvironmentInfo for the case without identity awareness
+   */
+  private async getBasicEnvironment(user: User.User): Promise<EnvironmentInfo> {
+    const [platform, namespaces] = await Promise.all([
+      this.getPlatformInfo(),
+      this.k8sService.getNamespaces(),
+    ]);
+    return {
+      user: user.email,
+      platform,
+      namespaces: this.mapNamespacesToWorkgroupBindings(user.email, namespaces),
+      isClusterAdmin: true,
+    };
+  }
+
+  /**
+   * Converts Kubernetes Namespace types to WorkgroupBindings to ensure
+   * compatibility between identity-aware and non-identity aware clusters
+   */
+  private mapNamespacesToWorkgroupBindings(
+      user: string, namespaces: V1Namespace[]): WorkgroupBinding[] {
+    return namespaces.map((n) => ({
+                            user: {kind: 'user', name: user},
+                            referredNamespace: n.metadata.name,
+                            roleRef: {
+                              apiGroup: '',
+                              kind: 'ClusterRole',
+                              name: 'editor',
+                            },
+                          }));
   }
 
   /**
@@ -47,23 +113,40 @@ export class Api {
     return express.Router()
         .get(
             '/env-info',
-            async (req: express.Request, res: express.Response) => {
-              const [platform, user, namespaces] = await Promise.all([
-                this.getPlatformInfo(),
-                this.getUser(req),
-                this.k8sService.getNamespaces(),
-              ]);
-              res.json({
-                platform,
-                user,
-                namespaces: namespaces.map((n) => n.metadata.name),
-              });
+            async (req: Request, res: Response) => {
+              try {
+                if (req.user.hasAuth) {
+                  res.json(await this.getProfileAwareEnv(req.user));
+                  return;
+                }
+                res.json(await this.getBasicEnvironment(req.user));
+              } catch (err) {
+                const status = (err.response && err.response.statusCode) || 400;
+                const error =
+                    err.body || 'Unexpected error getting environment info';
+                console.log(`Unable to get environment info: ${error}`);
+                res.status(status).json({error});
+              }
+            })
+        .get(
+            '/has-workgroup',
+            async (req: Request, res: Response) => {
+              const response: HasWorkgroupResponse = {
+                hasAuth: req.user.hasAuth,
+                hasWorkgroup: false,
+              };
+              if (req.user.hasAuth) {
+                const workgroup = await this.getWorkgroupInfo(req.user);
+                response.hasWorkgroup =
+                    workgroup.namespaces && workgroup.namespaces.length > 0;
+              }
+              res.json(response);
             })
         .get(
             '/metrics/:type((node|podcpu|podmem))',
-            async (req: express.Request, res: express.Response) => {
+            async (req: Request, res: Response) => {
               if (!this.metricsService) {
-                res.sendStatus(405);
+                res.status(405).json(OPERATION_NOT_SUPPORTED);
                 return;
               }
 
@@ -89,14 +172,42 @@ export class Api {
             })
         .get(
             '/namespaces',
-            async (_: express.Request, res: express.Response) => {
+            async (_: Request, res: Response) => {
               res.json(await this.k8sService.getNamespaces());
             })
         .get(
             '/activities/:namespace',
-            async (req: express.Request, res: express.Response) => {
+            async (req: Request, res: Response) => {
               res.json(await this.k8sService.getEventsForNamespace(
                   req.params.namespace));
+            })
+        .post('/create-workgroup', async (req: Request, res: Response) => {
+          if (!req.user.hasAuth) {
+            res.status(405).json(OPERATION_NOT_SUPPORTED);
+            return;
+          }
+
+          const profile = req.body as CreateProfileRequest;
+          try {
+            // Use the request body if provided, fallback to auth headers
+            await this.profilesService.createProfile({
+              metadata: {
+                name: profile.namespace || req.user.username,
+              },
+              spec: {
+                owner: {
+                  kind: 'User',
+                  name: profile.user || req.user.email,
+                }
+              },
             });
+            res.json(true);
+          } catch (err) {
+            const status = (err.response && err.response.statusCode) || 400;
+            const error = err.body || 'Unexpected error creating profile';
+            console.log(`Unable to create Profile ${error}`);
+            res.status(status).json({error});
+          }
+        });
   }
 }
