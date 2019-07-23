@@ -29,7 +29,7 @@ def verify_kubeconfig(project, zone, app_path):
     raise RuntimeError(msg)
 
 
-def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
+def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
   """Test building and deploying Kubeflow.
 
   Args:
@@ -99,12 +99,20 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
   # We don't run with retries because if kfctl init exits with an error
   # but creates app.yaml then rerunning init will fail because app.yaml
   # already exists. So retrying ends up masking the original error message
-  util.run([
-      kfctl_path, "init", app_path, "-V", "--platform=gcp",
-      "--version=" + version, "--package-manager=kustomize" + pull_manifests,
-      "--skip-init-gcp-project", "--disable_usage_report",
-      "--project=" + project
-      ] + init_args, cwd=parent_dir)
+  with open(os.path.join(src_dir, "boostrap/config/kfctl_gcp_iap_master.yaml"), 'r') as f:
+    config_spec = yaml.load(f)
+  config_spec["spec"]["project"] = project
+  if use_basic_auth:
+    config_spec["spec"]["useBasicAuth"] = "true"
+  with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
+    yaml.dump(config_spec, f)
+  util.run([kfctl_path, "init", app_path, "-V", "--config=tmp.yaml"], cwd=parent_dir)
+  # util.run([
+  #     kfctl_path, "init", app_path, "-V", "--platform=gcp",
+  #     "--version=" + version, "--package-manager=kustomize" + pull_manifests,
+  #     "--skip-init-gcp-project", "--disable_usage_report",
+  #     "--project=" + project
+  #     ] + init_args, cwd=parent_dir)
 
   # We need to specify a valid email because
   #  1. We need to create appropriate RBAC rules to allow the current user

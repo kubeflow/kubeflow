@@ -20,6 +20,10 @@ def pytest_addoption(parser):
   parser.addoption(
       "--project", action="store", default="kubeflow-ci-deployment",
       help="GCP project to deploy Kubeflow to")
+  
+  parser.addoption(
+      "--src_dir", action="store", default="",
+      help="The kubeflow/kubeflow dir")
 
   parser.addoption(
       "--use_basic_auth", action="store", default="False",
@@ -48,6 +52,10 @@ def namespace(request):
 @pytest.fixture
 def project(request):
   return request.config.getoption("--project")
+
+@pytest.fixture
+def src_dir(request):
+  return request.config.getoption("--src_dir")
 
 @pytest.fixture
 def use_basic_auth(request):
