@@ -99,7 +99,7 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
   # We don't run with retries because if kfctl init exits with an error
   # but creates app.yaml then rerunning init will fail because app.yaml
   # already exists. So retrying ends up masking the original error message
-  with open(os.path.join(src_dir, "boostrap/config/kfctl_gcp_iap_master.yaml"), 'r') as f:
+  with open(os.path.join(src_dir, "bootstrap/config/kfctl_gcp_iap_master.yaml"), 'r') as f:
     config_spec = yaml.load(f)
   config_spec["spec"]["project"] = project
   if use_basic_auth:
