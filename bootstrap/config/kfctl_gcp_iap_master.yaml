@@ -1,4 +1,4 @@
-# Please set project!
+# Please set project and email!
 apiVersion: kfdef.apps.kubeflow.org/v1alpha1
 kind: KfDef
 metadata:
@@ -63,6 +63,9 @@ spec:
     - name: overlay
       value: application
     katib-ui:
+    - name: overlay
+      value: istio
+    metadata:
     - name: overlay
       value: istio
     minio:
@@ -139,6 +142,7 @@ spec:
   - katib-manager
   - katib-controller
   - katib-ui
+  - metadata
   - metrics-collector
   - suggestion
   - notebook-controller
@@ -162,7 +166,7 @@ spec:
   - gpu-driver
   - iap-ingress
   - seldon-core-operator
-  email: jlewi@google.com
+  email: SET_EMAIL
   enableApplications: true
   packageManager: kustomize
   packages:
@@ -174,6 +178,7 @@ spec:
   - jupyter
   - katib-v1alpha2
   - metacontroller
+  - metadata
   - modeldb
   - mpi-job
   - pytorch-job

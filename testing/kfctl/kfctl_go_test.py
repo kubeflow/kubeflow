@@ -114,7 +114,7 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
   config_spec["spec"]["project"] = project
   config_spec["spec"]["email"] = email
   if use_basic_auth:
-    config_spec["spec"]["useBasicAuth"] = "true"
+    config_spec["spec"]["useBasicAuth"] = True
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
   util.run([
