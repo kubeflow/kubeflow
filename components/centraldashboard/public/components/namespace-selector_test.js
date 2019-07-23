@@ -14,7 +14,28 @@ const TEMPLATE = `
 `;
 
 describe('Namespace Selector', () => {
+    const namespaces = [
+        {
+            user: {kind: 'user', name: 'testuser'},
+            referredNamespace: 'default',
+            roleRef: {
+                apiGroup: '',
+                kind: 'ClusterRole',
+                name: 'editor',
+            },
+        },
+        {
+            user: {kind: 'user', name: 'testuser'},
+            referredNamespace: 'other-namespace',
+            roleRef: {
+                apiGroup: '',
+                kind: 'ClusterRole',
+                name: 'editor',
+            },
+        },
+    ];
     let namespaceSelector;
+
 
     beforeAll(() => {
         const div = document.createElement('div');
@@ -33,16 +54,7 @@ describe('Namespace Selector', () => {
 
     it('Sets queryParams.ns when selected', async () => {
         namespaceSelector.queryParams = {};
-        namespaceSelector.namespaces = [
-            {
-                uid: '1',
-                name: 'default',
-            },
-            {
-                uid: '2',
-                name: 'other-namespace',
-            },
-        ];
+        namespaceSelector.namespaces = namespaces;
         flush();
         const queryParamsChangedPromise = new Promise((resolve) => {
             namespaceSelector.addEventListener('query-params-changed',
@@ -60,16 +72,7 @@ describe('Namespace Selector', () => {
         namespaceSelector.queryParams = {
             ns: 'other-namespace',
         };
-        namespaceSelector.namespaces = [
-            {
-                uid: '1',
-                name: 'default',
-            },
-            {
-                uid: '2',
-                name: 'other-namespace',
-            },
-        ];
+        namespaceSelector.namespaces = namespaces;
         flush();
 
         expect(namespaceSelector.selected).toBe('other-namespace');
