@@ -113,8 +113,7 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
     config_spec = yaml.load(f)
   config_spec["spec"]["project"] = project
   config_spec["spec"]["email"] = email
-  config_spec["spec"]["components"].pop("spartakus", "")
-  config_spec["spec"]["components"].pop("componentParams", "")
+  config_spec["spec"] = filterSpartakus(config_spec["spec"])
   if use_basic_auth:
     config_spec["spec"]["useBasicAuth"] = True
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
@@ -143,6 +142,12 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
 
   verify_kubeconfig(project, zone, app_path)
 
+def filterSpartakus(spec):
+  for i, comp in enumerate(spec["components"]):
+    if comp == "spartakus":
+      spec["components"].pop(i)
+  spec["componentsParams"].pop("spartakus", None)
+  return spec
 
 if __name__ == "__main__":
   logging.basicConfig(
