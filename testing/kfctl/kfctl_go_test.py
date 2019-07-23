@@ -92,6 +92,15 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
     if os.getenv("PULL_PULL_SHA"):
       pull_manifests = "@" + os.getenv("PULL_PULL_SHA")
 
+  # We need to specify a valid email because
+  #  1. We need to create appropriate RBAC rules to allow the current user
+  #     to create the required K8s resources.
+  #  2. Setting the IAM policy will fail if the email is invalid.
+  email = util.run(["gcloud", "config", "get-value", "account"])
+
+  if not email:
+    raise ValueError("Could not determine GCP account being used.")
+
   # username and password are passed as env vars and won't appear in the logs
   # TODO(https://github.com/kubeflow/kubeflow/issues/2831): Once kfctl
   # supports loading version from a URI we should use that so that we
@@ -103,26 +112,20 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
   with open(os.path.join(src_dir, "bootstrap/config/kfctl_gcp_iap_master.yaml"), 'r') as f:
     config_spec = yaml.load(f)
   config_spec["spec"]["project"] = project
+  config_spec["spec"]["email"] = email
   if use_basic_auth:
     config_spec["spec"]["useBasicAuth"] = "true"
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
-  util.run([kfctl_path, "init", app_path, "-V", "--config=tmp.yaml"], cwd=parent_dir)
+  util.run([
+      kfctl_path, "init", app_path, "-V",
+      "--config=" + os.path.join(parent_dir, "tmp.yaml")], cwd=parent_dir)
   # util.run([
   #     kfctl_path, "init", app_path, "-V", "--platform=gcp",
   #     "--version=" + version, "--package-manager=kustomize" + pull_manifests,
   #     "--skip-init-gcp-project", "--disable_usage_report",
   #     "--project=" + project
   #     ] + init_args, cwd=parent_dir)
-
-  # We need to specify a valid email because
-  #  1. We need to create appropriate RBAC rules to allow the current user
-  #     to create the required K8s resources.
-  #  2. Setting the IAM policy will fail if the email is invalid.
-  email = util.run(["gcloud", "config", "get-value", "account"])
-
-  if not email:
-    raise ValueError("Could not determine GCP account being used.")
 
   run_with_retries([
       kfctl_path, "generate", "-V", "all", "--email=" + email, "--zone=" + zone
