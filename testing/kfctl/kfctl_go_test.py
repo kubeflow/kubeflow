@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import uuid
 from retrying import retry
+import yaml
 
 import pytest
 
