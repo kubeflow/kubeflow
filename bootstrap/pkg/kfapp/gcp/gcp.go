@@ -809,8 +809,20 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 	}
 	if *p.EnableWorkloadIdentity {
 		// Create the role binding for k8s service account
-		gcp.setupWorkloadIdentity(gcp.kfDef.Namespace)
-		gcp.setupWorkloadIdentity(gcp.getIstioNamespace())
+		if err = gcp.setupWorkloadIdentity(gcp.kfDef.Namespace); err != nil {
+			return &kfapis.KfError{
+				Code: err.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("Fail to setup workload identity: Error %v",
+					err.(*kfapis.KfError).Message),
+			}
+		}
+		if err = gcp.setupWorkloadIdentity(gcp.getIstioNamespace()); err != nil {
+			return &kfapis.KfError{
+				Code: err.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("Fail to setup workload identity: Error %v",
+					err.(*kfapis.KfError).Message),
+			}
+		}
 	}
 
 	return nil
@@ -1572,21 +1584,21 @@ func (gcp *Gcp) setupWorkloadIdentity(namespace string) error {
 	ctx := context.Background()
 	k8sClient, err := gcp.getK8sClientset(ctx)
 	if err != nil {
-		return kfapis.NewKfErrorWithMessage(err, "et K8s clientset error")
+		return kfapis.NewKfErrorWithMessage(err, "Get K8s clientset error")
 	}
 	// Create k8s service accounts
 	k8sServiceAccounts := []string{
 		"kf-admin",
-		"kf-user",
-		"kf-vm",
+		//"kf-user",
+		//"kf-vm",
 	}
 	gcpServiceAccounts := []string{
-		fmt.Sprintf("serviceAccount:%v-admin@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
-		fmt.Sprintf("serviceAccount:%v-user@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
-		fmt.Sprintf("serviceAccount:%v-vm@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
+		fmt.Sprintf("%v-admin@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
+		//fmt.Sprintf("%v-user@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
+		//fmt.Sprintf("%v-vm@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
 	}
 	for idx, k8sSa := range k8sServiceAccounts {
-		createK8sServiceAccount(k8sClient, namespace, k8sSa, gcpServiceAccounts[idx])
+		createK8sServiceAccount(k8sClient, namespace, k8sSa, "serviceAccount:"+gcpServiceAccounts[idx])
 	}
 
 	oClient := oauth2.NewClient(ctx, gcp.tokenSource)
@@ -1599,23 +1611,27 @@ func (gcp *Gcp) setupWorkloadIdentity(namespace string) error {
 	}
 	// Create IAM bindings under each GCP service account (different from IAM bindings for projects)
 	for idx, gcpSa := range gcpServiceAccounts {
+		log.Infof("Setting up iam policy for serviceaccount: %v in namespace %v", gcpSa, namespace)
+		saResource := fmt.Sprintf("projects/%v/serviceAccounts/%v", gcp.kfDef.Spec.Project, gcpSa)
 		var currentPolicy *iam.Policy
-		if currentPolicy, err = iamService.Projects.ServiceAccounts.GetIamPolicy(gcpSa).Context(ctx).Do(); err != nil {
+		if currentPolicy, err = iamService.Projects.ServiceAccounts.GetIamPolicy(saResource).Context(ctx).Do(); err != nil {
 			return &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("Get IAM Policy error: %v", err),
 			}
 		}
-		var newBinding *iam.Binding
+		log.Infof("Current policy: %v", *currentPolicy)
+		newBinding := iam.Binding{}
 		newBinding.Role = "roles/iam.workloadIdentityUser"
 		newBinding.Members = []string{
 			fmt.Sprintf("serviceAccount:%v.svc.id.goog[%v/%v]", gcp.kfDef.Spec.Project, namespace, k8sServiceAccounts[idx]),
 		}
-		currentPolicy.Bindings = append(currentPolicy.Bindings, newBinding)
+		currentPolicy.Bindings = append(currentPolicy.Bindings, &newBinding)
+		log.Infof("New policy: %v", *currentPolicy)
 		req := &iam.SetIamPolicyRequest{
 			Policy: currentPolicy,
 		}
-		_, setIamErr := iamService.Projects.ServiceAccounts.SetIamPolicy(gcpSa, req).Context(ctx).Do()
+		_, setIamErr := iamService.Projects.ServiceAccounts.SetIamPolicy(saResource, req).Context(ctx).Do()
 		if setIamErr != nil {
 			return &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
