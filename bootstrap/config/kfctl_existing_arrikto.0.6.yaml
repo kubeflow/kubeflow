@@ -102,8 +102,8 @@ spec:
   useIstio: true
   repos:
   - name: manifests
-    root: manifests-v0.6.1-rc.0
-    uri: https://github.com/kubeflow/manifests/archive/v0.6.1-rc.0.tar.gz
+    root: manifests-v0.6.0
+    uri: https://github.com/kubeflow/manifests/archive/v0.6.0.tar.gz
   - name: kubeflow
     root: kubeflow-v0.6.1-rc.0
     uri: https://github.com/kubeflow/kubeflow/archive/v0.6.1-rc.0.tar.gz
