@@ -56,7 +56,7 @@ export class NamespaceSelector extends PolymerElement {
                     --paper-button-ink-color: var(--accent-color);
                 }
             </style>
-            <paper-menu-button no-overlap horizontal-align="right">
+            <paper-menu-button no-overlap horizontal-align="left">
                 <paper-button id="dropdown-trigger" slot="dropdown-trigger">
                     <iron-icon icon="group-work"></iron-icon>
                     <span>[[selected]]</span>
