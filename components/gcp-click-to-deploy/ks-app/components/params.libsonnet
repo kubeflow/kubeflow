@@ -3,7 +3,7 @@
   components: {
     ingress: {},
     webapp: {
-      image: 'gcr.io/kubeflow-deployment-staging/gcp-click-to-deploy:v20190723-v0.4.0-rc.1-597-g8da1e470-dirty-13f482',
+      image: 'gcr.io/gabrielwen-learning/gcp-click-to-deploy:v20190724-v0.4.0-rc.1-598-gd0f4627f',
     },
     // Component-level parameters, defined initially from 'ks prototype use ...'
     // Each object below should correspond to a component in the components/ directory
