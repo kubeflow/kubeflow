@@ -143,7 +143,6 @@ build:
 	mkdir -p reg_tmp/kubeflow
 	cp -r ../kubeflow reg_tmp/kubeflow
 	cp -r ../deployment reg_tmp/kubeflow
-	cp -r ../dependencies reg_tmp/kubeflow
 	mkdir -p reg_tmp/kubeflow/bootstrap
 	cp -r k8sSpec reg_tmp/kubeflow/bootstrap
 	docker build \

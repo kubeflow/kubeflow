@@ -86,7 +86,7 @@ ARG registries
 
 COPY $registries /opt/registries
 
-COPY --from=bootstrap_base ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow/
+COPY --from=bootstrap_base /go/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow/
 
 COPY config/default.yaml /opt/kubeflow/
 COPY image_registries.yaml /opt/kubeflow/
