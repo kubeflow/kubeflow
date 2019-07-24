@@ -54,7 +54,6 @@ const (
 	ManifestsRepo          = "manifests"
 	DefaultConfigDir       = "bootstrap/config"
 	DefaultZone            = "us-east1-d"
-	DefaultAwsRegion       = "us-west-2"
 	DefaultGkeApiVer       = "v1beta1"
 	DefaultAppLabel        = "app.kubernetes.io/name"
 	DefaultAppVersion      = "app.kubernetes.io/version"
@@ -87,8 +86,6 @@ const (
 	PROJECT               CliOption = "project"
 	APPNAME               CliOption = "appname"
 	DATA                  CliOption = "Data"
-	REGION                CliOption = "region" // AWS specific options
-	ROLES                 CliOption = "roles"  // AWS specific options
 	ZONE                  CliOption = "zone"
 	USE_BASIC_AUTH        CliOption = "use_basic_auth"
 	USE_ISTIO             CliOption = "use_istio"

@@ -53,7 +53,6 @@ const (
 	ManifestsRepo          = "manifests"
 	DefaultConfigDir       = "bootstrap/config"
 	DefaultZone            = "us-east1-d"
-	DefaultAwsRegion       = "us-west-2"
 	DefaultGkeApiVer       = "v1beta1"
 	DefaultAppLabel        = "app.kubernetes.io/name"
 	DefaultAppVersion      = "app.kubernetes.io/version"

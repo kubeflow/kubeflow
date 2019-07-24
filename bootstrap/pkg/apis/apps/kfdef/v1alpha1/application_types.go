@@ -23,23 +23,21 @@ import (
 // KfDefSpec holds common attributes used by each platform
 type KfDefSpec struct {
 	config.ComponentConfig `json:",inline"`
-	AppDir                 string   `json:"appdir,omitempty"`
-	Version                string   `json:"version,omitempty"`
-	MountLocal             bool     `json:"mountLocal,omitempty"`
-	Project                string   `json:"project,omitempty"`
-	Email                  string   `json:"email,omitempty"`
-	IpName                 string   `json:"ipName,omitempty"`
-	Hostname               string   `json:"hostname,omitempty"`
-	Zone                   string   `json:"zone,omitempty"`
-	Region                 string   `json:"region,omitempty"`
-	Roles                  []string `json:"roles,omitempty"`
-	UseBasicAuth           bool     `json:"useBasicAuth"`
-	SkipInitProject        bool     `json:"skipInitProject,omitempty"`
-	UseIstio               bool     `json:"useIstio"`
-	ServerVersion          string   `json:"serverVersion,omitempty"`
-	DeleteStorage          bool     `json:"deleteStorage,omitempty"`
-	PackageManager         string   `json:"packageManager,omitempty"`
-	ManifestsRepo          string   `json:"manifestsRepo,omitempty"`
+	AppDir                 string `json:"appdir,omitempty"`
+	Version                string `json:"version,omitempty"`
+	MountLocal             bool   `json:"mountLocal,omitempty"`
+	Project                string `json:"project,omitempty"`
+	Email                  string `json:"email,omitempty"`
+	IpName                 string `json:"ipName,omitempty"`
+	Hostname               string `json:"hostname,omitempty"`
+	Zone                   string `json:"zone,omitempty"`
+	UseBasicAuth           bool   `json:"useBasicAuth"`
+	SkipInitProject        bool   `json:"skipInitProject,omitempty"`
+	UseIstio               bool   `json:"useIstio"`
+	ServerVersion          string `json:"serverVersion,omitempty"`
+	DeleteStorage          bool   `json:"deleteStorage,omitempty"`
+	PackageManager         string `json:"packageManager,omitempty"`
+	ManifestsRepo          string `json:"manifestsRepo,omitempty"`
 }
 
 // Make it private to prevent user modify original struct.
