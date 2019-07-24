@@ -275,6 +275,18 @@ func GetApiExtClientset(config *rest.Config) apiext.ApiextensionsV1beta1Interfac
 	return crdClient.ApiextensionsV1beta1()
 }
 
+// Remove unvalid characters to compile a valid name for default Profile. To prevent
+// violation to the naming length restriction, ignore everything after `@`.
+func EmailToDefaultName(email string) string {
+	name := strings.NewReplacer(".", "-").Replace(email)
+	splitted := strings.Split(name, "@")
+	if len(splitted) > 1 {
+		return "kubeflow-" + splitted[0]
+	} else {
+		return "kubeflow-" + name
+	}
+}
+
 // Capture replaces os.Stdout with a writer that buffers any data written
 // to os.Stdout. Call the returned function to cleanup and get the data
 // as a string. This is used in cases where the API we're calling writes to stdout
