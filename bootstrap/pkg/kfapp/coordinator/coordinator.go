@@ -345,7 +345,6 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 		kfDef.Spec.UseBasicAuth = useBasicAuth
 		kfDef.Spec.UseIstio = useIstio
 		kfDef.Spec.PackageManager = packageManager
-		// TODO(aws):Do we want to assign roles and region values here?
 		// Add the repo
 		if kfDef.Spec.Repos == nil {
 			kfDef.Spec.Repos = []kfdefsv2.Repo{}
@@ -493,21 +492,6 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]inte
 			kfdef.Spec.PackageManager = options[string(kftypes.PACKAGE_MANAGER)].(string)
 			log.Warnf("Defaulting Spec.PackageManager to %v. This is deprecated; "+
 				"PackageManager should be explicitly set in app.yaml", kfdef.Spec.PackageManager)
-		}
-	}
-
-	if kfdef.Spec.Platform == kftypes.AWS {
-		if options[string(kftypes.REGION)] != nil && options[string(kftypes.REGION)].(string) != "" {
-			kfdef.Spec.Region = options[string(kftypes.REGION)].(string)
-		} else {
-			log.Warnf("KfDef.Spec.Region is not set; use default region %v", kftypes.DefaultAwsRegion)
-			kfdef.Spec.Region = kftypes.DefaultAwsRegion
-		}
-
-		if options[string(kftypes.ROLES)] != nil && options[string(kftypes.ROLES)].(string) != "" {
-			kfdef.Spec.Roles = strings.Split(options[string(kftypes.ROLES)].(string), ",")
-		} else {
-			log.Warnf("KfDef.Spec.Roles is not set; Create new cluster instead.")
 		}
 	}
 

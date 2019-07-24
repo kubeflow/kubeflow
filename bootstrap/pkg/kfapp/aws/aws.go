@@ -34,12 +34,13 @@ import (
 
 	awssdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/ghodss/yaml"
-	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,24 +51,27 @@ import (
 
 const (
 	KUBEFLOW_AWS_INFRA_DIR      = "aws_config"
-	KUBEFLOW_AWS_MANIFEST_DIR   = "ks_specs"
 	CLUSTER_CONFIG_FILE         = "cluster_config.yaml"
 	CLUSTER_FEATURE_CONFIG_FILE = "cluster_features.yaml"
 	PATH                        = "path"
 	BASIC_AUTH_SECRET           = "kubeflow-login"
-)
 
-// The namespace for Istio
-const IstioNamespace = "istio-system"
+	// The namespace for Istio
+	IstioNamespace = "istio-system"
+
+	// Plugin parameter constants
+	AwsPluginName = kftypes.AWS
+)
 
 // Aws implements KfApp Interface
 // It includes the KsApp along with additional Aws types
 type Aws struct {
-	kfdefs.KfDef
+	kfDef     *kfdefs.KfDef
 	iamClient *iam.IAM
-	// requried when choose basic-auth
-	username        string
-	encodedPassword string
+	eksClient *eks.EKS
+
+	region string
+	roles  []string
 }
 
 // GetKfApp returns the aws kfapp. It's called by coordinator.GetKfApp
@@ -83,11 +87,21 @@ func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
 	}
 
 	_aws := &Aws{
-		KfDef:     *kfdef,
+		kfDef:     kfdef,
 		iamClient: iam.New(sess),
+		eksClient: eks.New(sess),
 	}
 
 	return _aws, nil
+}
+
+// GetPluginSpec gets the plugin spec.
+func (aws *Aws) GetPluginSpec() (*AwsPluginSpec, error) {
+	awsPluginSpec := &AwsPluginSpec{}
+
+	err := aws.kfDef.GetPluginSpec(AwsPluginName, awsPluginSpec)
+
+	return awsPluginSpec, err
 }
 
 // GetK8sConfig is only used with ksonnet packageManager. NotImplemented in this version, return nil to use default config for API compatibility.
@@ -95,7 +109,6 @@ func (aws *Aws) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
 	return nil, nil
 }
 
-// TODO: Do we need to add annnotations for AWS.
 func createNamespace(k8sClientset *clientset.Clientset, namespace string) error {
 	log.Infof("Creating namespace: %v", namespace)
 	_, err := k8sClientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
@@ -121,11 +134,8 @@ func createNamespace(k8sClientset *clientset.Clientset, namespace string) error 
 	}
 }
 
-// applyAWSInfra do three things
-// 1. Create EKS cluster if needed
-// 2. Attach IAM roles like ALB, FSX, EFS, cloudWatch Fluentd
-// 3. Update cluster configs to enable master log or private access config.
-func (aws *Aws) applyAWSInfra() error {
+// Create a new EKS cluster if needed
+func (aws *Aws) createEKSCluster() error {
 	config, err := aws.getFeatureConfig()
 	if err != nil {
 		return &kfapis.KfError{
@@ -141,10 +151,9 @@ func (aws *Aws) applyAWSInfra() error {
 		}
 	}
 
-	// 1. Create EKS cluster if there's no cluster available
 	if config["managed_cluster"] == true {
 		log.Infoln("Start to create eks cluster. Please wait for 10-15 mins...")
-		clusterConfigFile := filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, CLUSTER_CONFIG_FILE)
+		clusterConfigFile := filepath.Join(aws.kfDef.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, CLUSTER_CONFIG_FILE)
 		output, err := exec.Command("eksctl", "create", "cluster", "--config-file="+clusterConfigFile).Output()
 		if err != nil {
 			return &kfapis.KfError{
@@ -154,52 +163,71 @@ func (aws *Aws) applyAWSInfra() error {
 		}
 		log.Infoln(string(output))
 
-		// List all the roles and figure out nodeGroupWorkerRole
-		input := &iam.ListRolesInput{}
-		listRolesOutput, err := aws.iamClient.ListRoles(input)
-
-		if err != nil {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Call not list roles with errors: %v", err),
-			}
+		nodeGroupIamRoles, getRoleError := aws.getWorkerNodeGroupRoles(aws.kfDef.Name)
+		if getRoleError != nil {
+			return errors.WithStack(getRoleError)
 		}
 
-		var nodeGroupIamRoles []string
-		for _, output := range listRolesOutput.Roles {
-			if strings.HasPrefix(*output.RoleName, "eksctl-"+aws.KfDef.Name+"-") && strings.Contains(*output.RoleName, "NodeInstanceRole") {
-				nodeGroupIamRoles = append(nodeGroupIamRoles, *output.RoleName)
-			}
-		}
-
-		aws.Spec.Roles = nodeGroupIamRoles
-		aws.writeConfigFile()
+		aws.roles = nodeGroupIamRoles
 	} else {
 		log.Infof("You already have cluster setup. Skip creating new eks cluster. ")
 	}
 
-	// 2. Attach IAM Policies
-	// TODO: Once pod level IAM complete, we don't need worker group roles. Authorize cloud services using service account.
-	for _, iamRole := range aws.Spec.Roles {
-		aws.attachIamInlinePolicy(iamRole, "iam_alb_ingress_policy",
-			filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, "iam_alb_ingress_policy.json"))
-		aws.attachIamInlinePolicy(iamRole, "iam_csi_fsx_policy",
-			filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, "iam_csi_fsx_policy.json"))
+	return nil
+}
 
-		if config["worker_node_group_logging"] == "true" {
-			aws.attachIamInlinePolicy(iamRole, "iam_cloudwatch_policy",
-				filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, "iam_cloudwatch_policy.json"))
+func (aws *Aws) attachPoliciesToWorkerRoles() error {
+	config, err := aws.getFeatureConfig()
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Reading config file error: %v", err),
 		}
 	}
 
-	// 3. Add private access and logging support for cluster.
-	// TODO: Once CloudFormation add support for master log/ private access, we can configure in cluster_config.yaml.
-	// https://github.com/weaveworks/eksctl/issues/778
+	for _, iamRole := range aws.roles {
+		aws.attachIamInlinePolicy(iamRole, "iam_alb_ingress_policy",
+			filepath.Join(aws.kfDef.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, "iam_alb_ingress_policy.json"))
+		aws.attachIamInlinePolicy(iamRole, "iam_csi_fsx_policy",
+			filepath.Join(aws.kfDef.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, "iam_csi_fsx_policy.json"))
+
+		if config["worker_node_group_logging"] == "true" {
+			aws.attachIamInlinePolicy(iamRole, "iam_cloudwatch_policy",
+				filepath.Join(aws.kfDef.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, "iam_cloudwatch_policy.json"))
+		}
+	}
 
 	return nil
 }
 
-func (aws *Aws) copyFile(source string, dest string) error {
+// TODO: waiting to be implemented.
+func (aws *Aws) updateEKSClusterConfig() error {
+	return nil
+}
+
+func (aws *Aws) getWorkerNodeGroupRoles(clusterName string) ([]string, error) {
+	// List all the roles and figure out nodeGroupWorkerRole
+	input := &iam.ListRolesInput{}
+	listRolesOutput, err := aws.iamClient.ListRoles(input)
+
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Call not list roles with errors: %v", err),
+		}
+	}
+
+	var nodeGroupIamRoles []string
+	for _, output := range listRolesOutput.Roles {
+		if strings.HasPrefix(*output.RoleName, "eksctl-"+clusterName+"-") && strings.Contains(*output.RoleName, "NodeInstanceRole") {
+			nodeGroupIamRoles = append(nodeGroupIamRoles, *output.RoleName)
+		}
+	}
+
+	return nodeGroupIamRoles, nil
+}
+
+func copyFile(source string, dest string) error {
 	from, err := os.Open(source)
 	if err != nil {
 		return &kfapis.KfError{
@@ -225,23 +253,6 @@ func (aws *Aws) copyFile(source string, dest string) error {
 	}
 
 	return nil
-}
-
-func setNameVal(entries []configtypes.NameValue, name string, val string, required bool) []configtypes.NameValue {
-	for i, nv := range entries {
-		if nv.Name == name {
-			log.Infof("Setting %v to %v", name, val)
-			entries[i].Value = val
-			return entries
-		}
-	}
-	log.Infof("Appending %v as %v", name, val)
-	entries = append(entries, configtypes.NameValue{
-		Name:         name,
-		Value:        val,
-		InitRequired: required,
-	})
-	return entries
 }
 
 // updateClusterConfig replaces placeholders in cluster_config.yaml
@@ -272,8 +283,8 @@ func (aws *Aws) updateClusterConfig(clusterConfigFile string) error {
 
 	// Replace placeholder with clusterName and Region
 	metadata := res.(map[string]interface{})
-	metadata["name"] = aws.KfDef.Name
-	metadata["region"] = aws.KfDef.Spec.Region
+	metadata["name"] = aws.kfDef.Name
+	metadata["region"] = aws.region
 	data["metadata"] = metadata
 
 	if buf, err = yaml.Marshal(data); err != nil {
@@ -295,9 +306,9 @@ func (aws *Aws) updateClusterConfig(clusterConfigFile string) error {
 // ${KUBEFLOW_SRC}/${KFAPP}/aws_config -> destDir (dest)
 func (aws *Aws) generateInfraConfigs() error {
 	// 1. Copy and Paste all files from `sourceDir` to `destDir`
-	parentDir := path.Dir(aws.Spec.Repo)
+	parentDir := path.Dir(aws.kfDef.Spec.Repo)
 	sourceDir := path.Join(parentDir, "deployment/aws/infra_configs")
-	destDir := path.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR)
+	destDir := path.Join(aws.kfDef.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR)
 
 	if _, err := os.Stat(destDir); os.IsNotExist(err) {
 		log.Infof("Creating AWS infrastructure configs in directory %v", destDir)
@@ -318,7 +329,7 @@ func (aws *Aws) generateInfraConfigs() error {
 	for _, file := range files {
 		sourceFile := filepath.Join(sourceDir, file)
 		destFile := filepath.Join(destDir, file)
-		copyErr := aws.copyFile(sourceFile, destFile)
+		copyErr := copyFile(sourceFile, destFile)
 		if copyErr != nil {
 			return &kfapis.KfError{
 				Code: copyErr.(*kfapis.KfError).Code,
@@ -328,7 +339,7 @@ func (aws *Aws) generateInfraConfigs() error {
 		}
 	}
 
-	// 2. Reading from cluster_config.yaml and replace placeholders with values in aws.spec.
+	// 2. Reading from cluster_config.yaml and replace placeholders with values in aws.kfDef.Spec.
 	clusterConfigFile := filepath.Join(destDir, CLUSTER_CONFIG_FILE)
 	if err := aws.updateClusterConfig(clusterConfigFile); err != nil {
 		return err
@@ -344,7 +355,7 @@ func (aws *Aws) generateInfraConfigs() error {
 		}
 	}
 
-	if aws.KfDef.Spec.Roles != nil && len(aws.KfDef.Spec.Roles) != 0 {
+	if aws.roles != nil && len(aws.roles) != 0 {
 		featureCfg["managed_cluster"] = false
 	} else {
 		featureCfg["managed_cluster"] = true
@@ -382,30 +393,65 @@ func insertSecret(client *clientset.Clientset, secretName string, namespace stri
 
 // Use username and password provided by user and create secret for basic auth.
 func (aws *Aws) createBasicAuthSecret(client *clientset.Clientset) error {
+	awsPluginSpec, err := aws.GetPluginSpec()
+	if err != nil {
+		return err
+	}
+
+	if awsPluginSpec.Auth == nil || awsPluginSpec.Auth.BasicAuth == nil || awsPluginSpec.Auth.BasicAuth.Password.Name == "" {
+		err := errors.WithStack(fmt.Errorf("BasicAuth.Password.Name must be set"))
+		return err
+	}
+
+	password, err := aws.kfDef.GetSecret(awsPluginSpec.Auth.BasicAuth.Password.Name)
+	if err != nil {
+		log.Errorf("There was a problem getting the password for basic auth; error %v", err)
+		return err
+	}
+
+	encodedPassword, err := base64EncryptPassword(password)
+	if err != nil {
+		log.Errorf("There was a problem encrypting the password; %v", err)
+		return err
+	}
+
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      BASIC_AUTH_SECRET,
-			Namespace: aws.Namespace,
+			Namespace: aws.kfDef.Namespace,
 		},
 		Data: map[string][]byte{
-			"username":     []byte(aws.username),
-			"passwordhash": []byte(aws.encodedPassword),
+			"username":     []byte(awsPluginSpec.Auth.BasicAuth.Username),
+			"passwordhash": []byte(encodedPassword),
 		},
 	}
-	_, err := client.CoreV1().Secrets(aws.Namespace).Update(secret)
+	_, err = client.CoreV1().Secrets(aws.kfDef.Namespace).Update(secret)
 	if err != nil {
 		log.Warnf("Updating basic auth login failed, trying to create one: %v", err)
-		return insertSecret(client, BASIC_AUTH_SECRET, aws.Namespace, map[string][]byte{
-			"username":     []byte(aws.username),
-			"passwordhash": []byte(aws.encodedPassword),
+		return insertSecret(client, BASIC_AUTH_SECRET, aws.kfDef.Namespace, map[string][]byte{
+			"username":     []byte(awsPluginSpec.Auth.BasicAuth.Username),
+			"passwordhash": []byte(encodedPassword),
 		})
 	}
 	return nil
 }
 
+func base64EncryptPassword(password string) (string, error) {
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	if err != nil {
+		return "", &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error when hashing password: %v", err),
+		}
+	}
+	encodedPassword := base64.StdEncoding.EncodeToString(passwordHash)
+
+	return encodedPassword, nil
+}
+
 // Init initializes aws kfapp - platform
 func (aws *Aws) Init(resources kftypes.ResourceEnum) error {
-	// Step 1. Use AWS SDK to check if credentials from (~/.aws/credentials or ENV) and session verify
+	// 1. Use AWS SDK to check if credentials from (~/.aws/credentials or ENV) and session verify
 	commandsTocheck := []string{"aws", "aws-iam-authenticator", "eksctl"}
 	for _, command := range commandsTocheck {
 		if err := utils.CheckCommandExist(command); err != nil {
@@ -416,7 +462,7 @@ func (aws *Aws) Init(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	// Step 2. Check if current eksctl version meets minimum requirement
+	// 2. Check if current eksctl version meets minimum requirement
 	// [ℹ]  version.Info{BuiltAt:"", GitCommit:"", GitTag:"0.1.32"}
 	if err := utils.GetEksctlVersion(); err != nil {
 		if err != nil {
@@ -428,24 +474,24 @@ func (aws *Aws) Init(resources kftypes.ResourceEnum) error {
 	}
 
 	// Finish initialization and write spec to config file
-	swaggerFile := filepath.Join(path.Dir(aws.Spec.Repo), kftypes.DefaultSwaggerFile)
-	aws.Spec.ServerVersion = "file:" + swaggerFile
+	swaggerFile := filepath.Join(path.Dir(aws.kfDef.Spec.Repo), kftypes.DefaultSwaggerFile)
+	aws.kfDef.Spec.ServerVersion = "file:" + swaggerFile
 
-	createConfigErr := aws.writeConfigFile()
+	createConfigErr := aws.kfDef.WriteToConfigFile()
 	if createConfigErr != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Cannot create config file app.yaml in %v", aws.Spec.AppDir),
+			Message: fmt.Sprintf("Cannot create config file app.yaml in %v", aws.kfDef.Spec.AppDir),
 		}
 	}
 
 	return nil
 }
 
+// Generate generate aws infrastructure configs and aws kfapp manifest
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (aws *Aws) Generate(resources kftypes.ResourceEnum) error {
-	awsConfigFilesErr := aws.generateInfraConfigs()
-	if awsConfigFilesErr != nil {
+	if awsConfigFilesErr := aws.generateInfraConfigs(); awsConfigFilesErr != nil {
 		return &kfapis.KfError{
 			Code: awsConfigFilesErr.(*kfapis.KfError).Code,
 			Message: fmt.Sprintf("Could not generate cluster configs under %v Error: %v",
@@ -453,81 +499,128 @@ func (aws *Aws) Generate(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	awsFeatureConfig, err := aws.getFeatureConfig()
-	if err != nil {
+	awsFeatureConfig, getAwsFeatureConfigErr := aws.getFeatureConfig()
+	if getAwsFeatureConfigErr != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Reading config file error: %v", err),
+			Message: fmt.Sprintf("Reading config file error: %v", getAwsFeatureConfigErr),
 		}
 	}
 
-	// Customize parameters for AWS components
-	aws.Spec.ComponentParams["aws-alb-ingress-controller"] = setNameVal(aws.Spec.ComponentParams["aws-alb-ingress-controller"], "clusterName", aws.KfDef.Name, true)
-	aws.Spec.ComponentParams["istio-ingress"] = setNameVal(aws.Spec.ComponentParams["istio-ingress"], "namespace", IstioNamespace, false)
+	if setAwsPluginDefaultsErr := aws.setAwsPluginDefaults(); setAwsPluginDefaultsErr != nil {
+		return &kfapis.KfError{
+			Code: setAwsPluginDefaultsErr.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("aws set aws plugin defaults Error %v",
+				setAwsPluginDefaultsErr.(*kfapis.KfError).Message),
+		}
+	}
+
+	if err := aws.kfDef.SetApplicationParameter("aws-alb-ingress-controller", "clusterName", aws.kfDef.Name); err != nil {
+		return errors.WithStack(err)
+	}
+
+	if err := aws.kfDef.SetApplicationParameter("istio-ingress", "namespace", IstioNamespace); err != nil {
+		return errors.WithStack(err)
+	}
+
+	if aws.kfDef.Spec.UseBasicAuth {
+		if err := aws.kfDef.SetApplicationParameter("istio", "clusterRbacConfig", "OFF"); err != nil {
+			return errors.WithStack(err)
+		}
+	} else {
+		if err := aws.kfDef.SetApplicationParameter("istio", "clusterRbacConfig", "ON"); err != nil {
+			return errors.WithStack(err)
+		}
+	}
 
 	// TODO: Doesn't need mysqlPd and minioPd overlay and they bind to GCE now.
 
 	// Special handling for cloud watch logs of worker node groups
 	if awsFeatureConfig["worker_node_group_logging"] == true {
-		aws.Spec.Components = append(aws.Spec.Components, "fluentd-cloud-watch")
-		aws.Spec.ComponentParams["fluentd-cloud-watch"] = setNameVal(aws.Spec.ComponentParams["fluentd-cloud-watch"], "clusterName", aws.KfDef.Name, true)
-		aws.Spec.ComponentParams["fluentd-cloud-watch"] = setNameVal(aws.Spec.ComponentParams["fluentd-cloud-watch"], "region", aws.KfDef.Spec.Region, true)
-	}
-
-	// Special handling for sparkakus
-	for _, component := range aws.Spec.Components {
-		if component == "spartakus" {
-			rand.Seed(time.Now().UnixNano())
-			aws.Spec.ComponentParams["spartakus"] = setNameVal(aws.Spec.ComponentParams["spartakus"],
-				"usageId", strconv.Itoa(rand.Int()), true)
+		//aws.kfDef.Spec.Components = append(aws.kfDef.Spec.Components, "fluentd-cloud-watch")
+		if err := aws.kfDef.SetApplicationParameter("fluentd-cloud-watch", "clusterName", aws.kfDef.Name); err != nil {
+			return errors.WithStack(err)
+		}
+		if err := aws.kfDef.SetApplicationParameter("fluentd-cloud-watch", "region", aws.region); err != nil {
+			return errors.WithStack(err)
 		}
 	}
 
-	createConfigErr := aws.writeConfigFile()
-	if createConfigErr != nil {
+	// Special handling for sparkakus
+	rand.Seed(time.Now().UnixNano())
+	if err := aws.kfDef.SetApplicationParameter("spartakus", "usageId", strconv.Itoa(rand.Int())); err != nil {
+		if kfdefs.IsAppNotFound(err) {
+			log.Infof("Spartakus not included; not setting usageId")
+		}
+	}
+
+	if createConfigErr := aws.kfDef.WriteToConfigFile(); createConfigErr != nil {
 		return &kfapis.KfError{
 			Code: createConfigErr.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("Cannot create config file app.yaml in %v: %v", aws.Spec.AppDir,
+			Message: fmt.Sprintf("Cannot create config file app.yaml in %v: %v", aws.kfDef.Spec.AppDir,
 				createConfigErr.(*kfapis.KfError).Message),
 		}
 	}
 	return nil
 }
 
-// Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
-func (aws *Aws) Apply(resources kftypes.ResourceEnum) error {
-	// kfctl only
-	// TODO: Enable BasicAuth later
-	if aws.Spec.UseBasicAuth {
-		if os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" || os.Getenv(kftypes.KUBEFLOW_PASSWORD) == "" {
-			return &kfapis.KfError{
-				Code: int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("aws apply needs ENV %v and %v set when using basic auth",
-					kftypes.KUBEFLOW_USERNAME, kftypes.KUBEFLOW_PASSWORD),
-			}
-		}
+func (aws *Aws) setAwsPluginDefaults() error {
+	awsPluginSpec, err := aws.GetPluginSpec()
 
-		aws.username = os.Getenv(kftypes.KUBEFLOW_USERNAME)
-		password := os.Getenv(kftypes.KUBEFLOW_PASSWORD)
-		passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
-		if err != nil {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Error when hashing password: %v", err),
-			}
-		}
-		aws.encodedPassword = base64.StdEncoding.EncodeToString(passwordHash)
-	} else {
-		// We should force people either use OIDC or Coginito if user doesn't enable BASIC_AUTHN
+	if err != nil {
+		return err
 	}
 
-	// Create cluster + IAM policy + enable logs
-	applyInfraErr := aws.applyAWSInfra()
-	if applyInfraErr != nil {
+	if isValid, msg := awsPluginSpec.IsValid(); !isValid {
+		log.Errorf("AwsPluginSpec isn't valid; error %v", msg)
+		return fmt.Errorf(msg)
+	}
+
+	aws.region = awsPluginSpec.Region
+	aws.roles = awsPluginSpec.Roles
+
+	return nil
+}
+
+// Apply create eks cluster if needed, bind IAM policy to node group roles and enable cluster level configs.
+// Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
+func (aws *Aws) Apply(resources kftypes.ResourceEnum) error {
+	if err := aws.setAwsPluginDefaults(); err != nil {
 		return &kfapis.KfError{
-			Code: applyInfraErr.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("aws apply could not update infra Error %v",
-				applyInfraErr.(*kfapis.KfError).Message),
+			Code: err.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("aws set aws plugin defaults Error %v",
+				err.(*kfapis.KfError).Message),
+		}
+	}
+
+	// 1. Create EKS cluster if needed
+	if err := aws.createEKSCluster(); err != nil {
+		return &kfapis.KfError{
+			Code: err.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("Failed to create EKS cluster %v",
+				err.(*kfapis.KfError).Message),
+		}
+	}
+
+	// 2. Attach IAM policies like ALB, FSX, EFS, cloudWatch Fluentd to worker node group roles
+	// TODO: Once pod level IAM complete, we don't need worker group roles. Authorize cloud services using service account.
+	if err := aws.attachPoliciesToWorkerRoles(); err != nil {
+		return &kfapis.KfError{
+			Code: err.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("Failed to attach IAM policies %v",
+				err.(*kfapis.KfError).Message),
+		}
+
+	}
+
+	// 3. Update cluster configs to enable master log or private access config.
+	// TODO: Once CloudFormation add support for master log/ private access, we can configure in cluster_config.yaml.
+	// https://github.com/weaveworks/eksctl/issues/778
+	if err := aws.updateEKSClusterConfig(); err != nil {
+		return &kfapis.KfError{
+			Code: err.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("Failed to update eks cluster configs %v",
+				err.(*kfapis.KfError).Message),
 		}
 	}
 
@@ -535,34 +628,31 @@ func (aws *Aws) Apply(resources kftypes.ResourceEnum) error {
 }
 
 func (aws *Aws) Delete(resources kftypes.ResourceEnum) error {
-	awsPlatformUninstallError := aws.uninstallAwsPlatform()
-	if awsPlatformUninstallError != nil {
+	setAwsPluginDefaultsErr := aws.setAwsPluginDefaults()
+	if setAwsPluginDefaultsErr != nil {
 		return &kfapis.KfError{
-			Code:    awsPlatformUninstallError.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("Could not delete aws deployment Error: %v", awsPlatformUninstallError.(*kfapis.KfError).Message),
+			Code: setAwsPluginDefaultsErr.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("aws set aws plugin defaults Error %v",
+				setAwsPluginDefaultsErr.(*kfapis.KfError).Message),
 		}
 	}
 
-	return nil
-}
+	// 1. Detach inline policies from worker IAM Roles
+	if err := aws.detachPoliciesToWorkerRoles(); err != nil {
+		return &kfapis.KfError{
+			Code:    err.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("Could not detach iam role Error: %v", err.(*kfapis.KfError).Message),
+		}
+	}
 
-// writeConfigFile writes KfDef to app.yaml
-func (aws *Aws) writeConfigFile() error {
-	buf, bufErr := yaml.Marshal(aws.KfDef)
-	if bufErr != nil {
+	// 2. Delete EKS cluster
+	if err := aws.uninstallEKSCluster(); err != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("AWS marshaling error: %v", bufErr),
+			Code:    err.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("Could not uninstall eks cluster Error: %v", err.(*kfapis.KfError).Message),
 		}
 	}
-	cfgFilePath := filepath.Join(aws.Spec.AppDir, kftypes.KfConfigFile)
-	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
-	if cfgFilePathErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("AWS config file writing error: %v", cfgFilePathErr),
-		}
-	}
+
 	return nil
 }
 
@@ -575,7 +665,7 @@ func (aws *Aws) writeFeatureConfig(featureConfig map[string]interface{}) error {
 			Message: fmt.Sprintf("AWS marshaling error: %v", bufErr),
 		}
 	}
-	featureCfgFilePath := filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, CLUSTER_FEATURE_CONFIG_FILE)
+	featureCfgFilePath := filepath.Join(aws.kfDef.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, CLUSTER_FEATURE_CONFIG_FILE)
 	featureCfgFilePathErr := ioutil.WriteFile(featureCfgFilePath, buf, 0644)
 	if featureCfgFilePathErr != nil {
 		return &kfapis.KfError{
@@ -587,7 +677,7 @@ func (aws *Aws) writeFeatureConfig(featureConfig map[string]interface{}) error {
 }
 
 func (aws *Aws) getFeatureConfig() (map[string]interface{}, error) {
-	configPath := filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, CLUSTER_FEATURE_CONFIG_FILE)
+	configPath := filepath.Join(aws.kfDef.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, CLUSTER_FEATURE_CONFIG_FILE)
 	log.Infof("Reading config file: %v", configPath)
 
 	configBuf, bufErr := ioutil.ReadFile(configPath)
@@ -603,7 +693,7 @@ func (aws *Aws) getFeatureConfig() (map[string]interface{}, error) {
 	return config, nil
 }
 
-func (aws *Aws) uninstallAwsPlatform() error {
+func (aws *Aws) detachPoliciesToWorkerRoles() error {
 	config, err := aws.getFeatureConfig()
 	if err != nil {
 		return &kfapis.KfError{
@@ -615,7 +705,48 @@ func (aws *Aws) uninstallAwsPlatform() error {
 	if _, ok := config["worker_node_group_logging"]; !ok {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Unable to read YAML: %v", err),
+			Message: fmt.Sprintf("Unable to read feature config YAML: %v", err),
+		}
+	}
+
+	var roles []string
+
+	// Find worker roles based on new cluster kfctl created or existing cluster
+	if config["managed_cluster"] == true {
+		workerRoles, err := aws.getWorkerNodeGroupRoles(aws.kfDef.Name)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		roles = workerRoles
+	} else {
+		awsPluginSpec, err := aws.GetPluginSpec()
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		roles = awsPluginSpec.Roles
+	}
+
+	// Detach IAM Policies
+	for _, iamRole := range roles {
+		aws.deleteIamRolePolicy(iamRole, "iam_alb_ingress_policy")
+		aws.deleteIamRolePolicy(iamRole, "iam_csi_fsx_policy")
+
+		if config["worker_node_group_logging"] == "true" {
+			aws.deleteIamRolePolicy(iamRole, "iam_cloudwatch_policy")
+		}
+	}
+
+	return nil
+}
+
+func (aws *Aws) uninstallEKSCluster() error {
+	config, err := aws.getFeatureConfig()
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Reading feature config file error: %v", err),
 		}
 	}
 
@@ -626,20 +757,10 @@ func (aws *Aws) uninstallAwsPlatform() error {
 		}
 	}
 
-	// Detach IAM Policies
-	for _, iamRole := range aws.Spec.Roles {
-		aws.deleteIamRolePolicy(iamRole, "iam_alb_ingress_policy")
-		aws.deleteIamRolePolicy(iamRole, "iam_csi_fsx_policy")
-
-		if config["worker_node_group_logging"] == "true" {
-			aws.deleteIamRolePolicy(iamRole, "iam_cloudwatch_policy")
-		}
-	}
-
 	// Delete cluster if it's a managed cluster created by kfctl
 	if config["managed_cluster"] == true {
 		log.Infoln("Start to delete eks cluster. Please wait for 5 mins...")
-		clusterConfigFile := filepath.Join(aws.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, CLUSTER_CONFIG_FILE)
+		clusterConfigFile := filepath.Join(aws.kfDef.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR, CLUSTER_CONFIG_FILE)
 		output, err := exec.Command("eksctl", "delete", "cluster", "--config-file="+clusterConfigFile).Output()
 		log.Infoln("Please go to aws console to check CloudFormation status and double make sure your cluster has been shutdown.")
 		if err != nil {
