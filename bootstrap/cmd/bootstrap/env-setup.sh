@@ -2,7 +2,7 @@
 
 set -ex
 
-if [ -z ${!GOOGLE_APPLICATION_CREDENTIALS} ]; then
+if [ -z ${GOOGLE_APPLICATION_CREDENTIALS} ]; then
   echo "ENV GOOGLE_APPLICATION_CREDENTIALS not set."
   exit 1
 fi
