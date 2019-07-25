@@ -90,9 +90,12 @@ COPY --from=bootstrap_base /go/src/github.com/kubeflow/kubeflow/bootstrap/bin/bo
 
 COPY config/default.yaml /opt/kubeflow/
 COPY image_registries.yaml /opt/kubeflow/
+COPY cmd/bootstrap/env-setup.sh /opt/kubeflow/
+
 RUN mkdir -p /opt/bootstrap
 RUN mkdir -p /opt/versioned_registries
 RUN chmod a+rx /opt/kubeflow/bootstrapper
+RUN chmod a+rx /opt/kubeflow/env-setup.sh
 
 ENV PATH /opt/kubeflow:/opt/bootstrap:${PATH}
 
