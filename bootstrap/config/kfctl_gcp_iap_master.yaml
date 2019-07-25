@@ -48,6 +48,9 @@ spec:
     - initRequired: true
       name: hostname
       value: <deployName>.endpoints.<project>.cloud.goog
+    istio:
+    - name: clusterRbacConfig
+      value: "ON"
     istio-crds:
     - name: namespace
       value: istio-system
