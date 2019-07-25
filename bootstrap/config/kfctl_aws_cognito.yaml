@@ -144,7 +144,7 @@ spec:
         parameters:
           - initRequired: true
             name: usageId
-            value: "677002577233372120"
+            value: <randomly-generated-id>
           - initRequired: true
             name: reportUsage
             value: "true"
@@ -240,7 +240,7 @@ spec:
         parameters:
           - initRequired: true
             name: clusterName
-            value: kubeflow07
+            value: kubeflow-aws
         repoRef:
           name: manifests
           path: aws/aws-alb-ingress-controller
@@ -266,10 +266,10 @@ spec:
       spec:
         auth:
           cognito:
-            cognitoUserPoolArn: arn:aws:cognito-idp:us-west-2:348134392524:userpool/us-west-2_DtjdVUviC
-            cognitoAppClientId: 21p7fb1d7hbuflkqi31n2mddke
-            cognitoUserPoolDomain: kubeflow-testing
-            certArn: arn:aws:acm:us-west-2:348134392524:certificate/c7a9eb05-0975-4fc8-bb79-374197e4031c
+            cognitoUserPoolArn: arn:aws:cognito-idp:us-west-2:xxxxx:userpool/us-west-2_xxxxxx
+            cognitoAppClientId: xxxxxbxxxxxx
+            cognitoUserPoolDomain: your-user-pool
+            certArn: arn:aws:acm:us-west-2:xxxxx:certificate/xxxxxxxxxxxxx-xxxx
         roles:
-          - eksctl-kubeflow07-nodegroup-ng-a2-NodeInstanceRole-1GH2FG09D37H0
+          - eksctl-kubeflow-aws-nodegroup-ng-a2-NodeInstanceRole-xxxxx
         region: us-west-2
