@@ -110,5 +110,3 @@ ENV USER kubeflow
 ENV USER_ID 1000
 ENV GROUP_ID 1000
 ENV GROUP kubeflow
-
-# CMD ["/opt/kubeflow/bootstrapper","--in-cluster","--namespace=kubeflow","--apply"]
