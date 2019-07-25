@@ -530,8 +530,7 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]inte
 	// not so we always override the value with the command line flag.
 	// TODO(lunkai): I think we shouldn't backfill bool flags when using --config
 	// See https://github.com/kubeflow/kubeflow/issues/3744.
-	configFile := options[string(kftypes.CONFIG)].(string)
-	if configFile == "" {
+	if options[string(kftypes.CONFIG)] == nil {
 		if options[string(kftypes.USE_BASIC_AUTH)] != nil {
 			kfdef.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
 		}

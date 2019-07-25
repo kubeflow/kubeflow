@@ -109,15 +109,14 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
   # We don't run with retries because if kfctl init exits with an error
   # but creates app.yaml then rerunning init will fail because app.yaml
   # already exists. So retrying ends up masking the original error message
-  with open(os.path.join(src_dir, "bootstrap/config/kfctl_gcp_iap_master.yaml"), 'r') as f:
+  config_file = "kfctl_gcp_iap_master.yaml"
+  if use_basic_auth:
+    config_file = "kfctl_gcp_basic_auth_master.yaml"
+  with open(os.path.join(src_dir, "bootstrap/config", config_file), 'r') as f:
     config_spec = yaml.load(f)
   config_spec["spec"]["project"] = project
   config_spec["spec"]["email"] = email
   config_spec["spec"] = filterSpartakus(config_spec["spec"])
-  if use_basic_auth:
-    config_spec["spec"]["useBasicAuth"] = True
-    logging.info("yeah!!!\n\n")
-    config_spec["spec"] = replaceWithBasicAuth(config_spec["spec"])
 
   logging.info(str(config_spec))
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
@@ -151,13 +150,6 @@ def filterSpartakus(spec):
     if comp == "spartakus":
       spec["components"].pop(i)
   spec["componentParams"].pop("spartakus", None)
-  return spec
-
-def replaceWithBasicAuth(spec):
-  for i, comp in enumerate(spec["components"]):
-    if comp == "iap-ingress":
-      spec["components"].pop(i)
-  spec["components"].append("basic-auth-ingress")
   return spec
 
 if __name__ == "__main__":
