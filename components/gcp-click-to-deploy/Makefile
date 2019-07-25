@@ -45,12 +45,6 @@ push: build
 	gcloud docker -- push $(IMG):$(TAG)
 	@echo Pushed $(IMG) with  :$(TAG) tags
 
-build-push-gcb:
-	gcloud --project=$(GCLOUD_PROJECT) \
-		builds submit \
-		--machine-type=n1-highcpu-32 \
-		--tag gcr.io/$(GCLOUD_PROJECT)/gcp-click-to-deploy:$(TAG)
-
 update-image: push
 	cd ks-app && ks param set webapp image $(IMG):$(TAG)
 
