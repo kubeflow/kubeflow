@@ -47,6 +47,8 @@ COPY . .
 # and allow kfctl to run in a daemon/server mode.
 #
 FROM builder as bootstrap_base
+
+# Make binary statically linked. Dynamically linked binary will break.
 ENV CGO_ENABLED=0
 RUN make build-bootstrap
 
@@ -55,6 +57,8 @@ RUN make build-bootstrap
 # kfctl_base
 #
 FROM builder as kfctl_base
+
+# Make binary statically linked. Dynamically linked binary will break.
 ENV CGO_ENABLED=0
 RUN make build-kfctl
 
