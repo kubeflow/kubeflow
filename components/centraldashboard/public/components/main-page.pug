@@ -74,6 +74,6 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     not-found-view(path="[[route.path]]")
     iron-media-query(query='(max-width: 900px)', query-matches='{{sidebarBleed}}')
     iron-media-query(query='(max-width: 1270px)', query-matches='{{thinView}}')
-    paper-toast#welcomeUser(duration=5000) Welcome, [[_extractLdap(user)]]!
+paper-toast#welcomeUser(duration=5000) Welcome, [[_extractLdap(user)]]!
 template(is='dom-if', if='[[registrationFlow]]')
     registration-page(user-details='[[user]]', on-flowcomplete='resyncApp')

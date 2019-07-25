@@ -221,7 +221,7 @@ describe('Dashboard API', () => {
     });
 
     it('Should return for a non-identity aware cluster', async () => {
-      const expectedResponse = {hasAuth: false, hasWorkgroup: false, user: 'test@testdomain.com'};
+      const expectedResponse = {hasAuth: false, hasWorkgroup: false, user: 'anonymous'};
 
       const response = await sendTestRequest(url);
       expect(response).toEqual(expectedResponse);
@@ -246,7 +246,7 @@ describe('Dashboard API', () => {
                },
              }));
 
-         const expectedResponse = {hasAuth: true, hasWorkgroup: true, user: 'test@testdomain.com'};
+         const expectedResponse = {hasAuth: true, hasWorkgroup: true, user: 'test'};
 
          const headers = {
            [header]: `${prefix}test@testdomain.com`,
@@ -270,7 +270,7 @@ describe('Dashboard API', () => {
                body: {bindings: []},
              }));
 
-         const expectedResponse = {hasAuth: true, hasWorkgroup: false, user: 'test@testdomain.com'};
+         const expectedResponse = {hasAuth: true, hasWorkgroup: false, user: 'test'};
 
          const headers = {
            [header]: `${prefix}test@testdomain.com`,
@@ -316,7 +316,7 @@ describe('Dashboard API', () => {
         [header]: `${prefix}test@testdomain.com`,
       };
       const response = await sendTestRequest(url, headers, 200, 'post');
-      expect(response).toEqual(true);
+      expect(response).toEqual({message: 'Created namespace test'});
       expect(mockProfilesService.createProfile).toHaveBeenCalledWith({
         metadata: {
           name: 'test',
@@ -338,7 +338,7 @@ describe('Dashboard API', () => {
       const response = await sendTestRequest(
           url, headers, 200, 'post',
           {namespace: 'a_different_namespace', user: 'another_user@foo.bar'});
-      expect(response).toEqual(true);
+      expect(response).toEqual({message: 'Created namespace a_different_namespace'});
       expect(mockProfilesService.createProfile).toHaveBeenCalledWith({
         metadata: {
           name: 'a_different_namespace',
