@@ -99,7 +99,7 @@ export class Api {
     return namespaces.map((n) => ({
       user: {kind: 'user', name: user},
       referredNamespace: n.metadata.name,
-      RoleRef: {
+      roleRef: {
         apiGroup: '',
         kind: 'ClusterRole',
         name: 'editor',
@@ -200,7 +200,7 @@ export class Api {
               const {body} = await this.profilesService
                 .readBindings(undefined, namespace)
                 .catch(this.surfaceProfileControllerErrors(res, `Unable to fetch contributors for ${namespace}`));
-              if (!(body instanceof BindingEntries)) return;
+              if (!(body instanceof BindingEntries)) return; // A response was already sent
               const users = body.bindings.map((b) => 
                 b.user.name
               );
@@ -214,10 +214,11 @@ export class Api {
 
           const profile = req.body as CreateProfileRequest;
           try {
+            const namespace = profile.namespace || req.user.username;
             // Use the request body if provided, fallback to auth headers
             await this.profilesService.createProfile({
               metadata: {
-                name: profile.namespace || req.user.username,
+                name: namespace,
               },
               spec: {
                 owner: {
@@ -226,7 +227,7 @@ export class Api {
                 }
               },
             });
-            res.json(true);
+            res.json({message: `Created namespace ${namespace}`});
           } catch (err) {
             this.surfaceProfileControllerErrors(res,
               'Unexpected error creating profile')(err);

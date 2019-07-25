@@ -68,13 +68,17 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
         return (e.detail.request.response||{}).error ||
             e.detail.error || e.detail;
     }
-    onContribCreateError(e) {
-        const error = this._isolateErrorFromIronRequest(e);
-        this.contribCreateError = error;
+    handleContribCreate(e) {
+        if (e.detail.error) {
+            const error = this._isolateErrorFromIronRequest(e);
+            this.contribCreateError = error;
+            return;
+        }
+        this.contributorList = e.detail.response;
+        this.newContribEmail = this.contribCreateError = '';
     }
     onContribFetchError(e) {
         const error = this._isolateErrorFromIronRequest(e);
-        this.contribErrorType = 'fetch contributor list';
         this.contribError = error;
         this.$.ContribError.show();
         // todo: remove

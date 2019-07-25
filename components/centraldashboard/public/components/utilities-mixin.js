@@ -35,10 +35,11 @@ export default (superClass) => class extends superClass {
      * @return {boolean}
      */
     empty(o) {
-        if (!o) return;
-        if (o instanceof Array) return !o.length;
+        if (o instanceof Array || typeof o === 'string') return !o.length;
+        if (o instanceof Set) return !o.size;
+        if (o instanceof Event || o instanceof Error) return !!0;
         if (typeof o === 'object') return !Object.keys(o).length;
-        return !!1;
+        return !o;
     }
 
     /**

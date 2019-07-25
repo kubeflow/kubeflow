@@ -221,7 +221,7 @@ describe('Dashboard API', () => {
     });
 
     it('Should return for a non-identity aware cluster', async () => {
-      const expectedResponse = {hasAuth: false, hasWorkgroup: false};
+      const expectedResponse = {hasAuth: false, hasWorkgroup: false, user: 'test@testdomain.com'};
 
       const response = await sendTestRequest(url);
       expect(response).toEqual(expectedResponse);
@@ -246,7 +246,7 @@ describe('Dashboard API', () => {
                },
              }));
 
-         const expectedResponse = {hasAuth: true, hasWorkgroup: true};
+         const expectedResponse = {hasAuth: true, hasWorkgroup: true, user: 'test@testdomain.com'};
 
          const headers = {
            [header]: `${prefix}test@testdomain.com`,
@@ -270,7 +270,7 @@ describe('Dashboard API', () => {
                body: {bindings: []},
              }));
 
-         const expectedResponse = {hasAuth: true, hasWorkgroup: false};
+         const expectedResponse = {hasAuth: true, hasWorkgroup: false, user: 'test@testdomain.com'};
 
          const headers = {
            [header]: `${prefix}test@testdomain.com`,

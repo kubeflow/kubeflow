@@ -14,7 +14,7 @@ export class PaperChip extends utilitiesMixin(PolymerElement) {
                 display: inline-block;
                 border-radius: 50px;
                 overflow: hidden;
-                border: 1px solid var(--border-color, black);
+                border: 1px solid var(--divider-color, black);
                 margin: .25em;
             }
             paper-icon-button {
@@ -22,6 +22,7 @@ export class PaperChip extends utilitiesMixin(PolymerElement) {
                 width: 20px;
                 height: 20px;
                 margin-left: .5em;
+                --paper-icon-button-ink-color: var(--accent-color);
             }
             #Wrapper {
                 padding: .25em .5em .25em .75em;

@@ -32,13 +32,19 @@ h2+aside {font-size: .7em;color: var(--subtext-color)}
 #Logo>svg * {fill: currentColor}
 
 #MainCard .Main-Content {
-    height: 250px;
+    height: 275px;
 }
-
+neon-animatable {
+    @apply --layout-vertical;
+}
 .actions {
     margin-top: 1.5em;
+    flex: 1;
+    @apply --layout-horizontal-reverse;
+    @apply --layout-end;
 }
 .actions > paper-button {
+    height: 2.5em;
     font-size: .75em;
     padding: .7em 1em;
     color: var(--accent-color);
@@ -95,4 +101,9 @@ carousel-indicator {
 }
 #Links a:hover {
     text-decoration: underline;
+}
+#Namespace {
+    --paper-input-error: {
+        white-space: unset;
+    }
 }

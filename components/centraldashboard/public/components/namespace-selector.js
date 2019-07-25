@@ -41,32 +41,18 @@ export class NamespaceSelector extends PolymerElement {
                     text-overflow: ellipsis;
                     white-space: nowrap;
                 }
-                #dropdown-trigger span:empty::before {
-                    content: 'Select namespace';
-                }
 
                 paper-item {
                     cursor: pointer;
-                    padding-right: 2em;
-                }
-                .owned-badge {
-                    width: 0;
-                    height: 0;
-                    border: 4px solid var(--accent-color);
-                    border-radius: 50%;
                 }
                 #SelectedNamespace {
                     display: flex;
                     @apply --layout-center;
                 }
-                #SelectedNamespace .owned-badge {
-                    margin-right: .5em;
-                }
-                paper-item .owned-badge {
-                    position: absolute;
-                    top: 50%;
-                    right: .75em;
-                    transform: translateY(-50%);
+                [owner]:after {
+                    content: '(Owned)';
+                    margin-left: .25em;
+                    font-size: .8em;
                 }
                 paper-listbox {
                     --paper-listbox-background-color: white;
@@ -78,22 +64,21 @@ export class NamespaceSelector extends PolymerElement {
             </style>
             <paper-menu-button no-overlap horizontal-align="right">
                 <paper-button id="dropdown-trigger" slot="dropdown-trigger">
-                    <iron-icon icon="group-work"></iron-icon>
+                    <iron-icon icon="kubeflow:namespace"></iron-icon>
                     <article id="SelectedNamespace">
-                        <aside class='owned-badge'
-                            hidden$='[[!isOwner(selectedNamespace.role)]]'>
-                        </aside>
-                        <span class='text'>[[selected]]</span>
+                        <span class='text'
+                                owner$='[[selectedNamespaceIsOwned]]'>
+                            [[getNamespaceText(selected)]]
+                        </span>
                     </article>
                     <iron-icon icon="arrow-drop-down"></iron-icon>
                 </paper-button>
                 <paper-listbox slot="dropdown-content"
                     attr-for-selected="name" selected="{{selected}}">
                     <template is="dom-repeat" items="{{namespaces}}" as="n">
-                        <paper-item name="[[n.namespace]]" title$='[[n.role]]'>
+                        <paper-item name="[[n.namespace]]" title$='[[n.role]]'
+                                owner$='[[isOwner(n.role)]]'>
                             [[n.namespace]]
-                            <aside class='owned-badge'
-                                hidden$='[[!isOwner(n.role)]]'></aside>
                         </paper-item>
                     </template>
                 </paper-listbox>
@@ -114,11 +99,11 @@ export class NamespaceSelector extends PolymerElement {
                 value: '',
                 notify: true,
             },
-            selectedNamespace: {
-                type: Object,
+            selectedNamespaceIsOwned: {
+                type: Boolean,
                 readOnly: true,
                 notify: true,
-                value: () => ({}),
+                value: false,
             },
         };
     }
@@ -144,6 +129,16 @@ export class NamespaceSelector extends PolymerElement {
     }
 
     /**
+     * Check if role is owner
+     * @param {string} selected
+     * @return {string} Text that should show in namespace selector
+     */
+    getNamespaceText(selected) {
+        if (!selected) return 'Select namespace';
+        return selected;
+    }
+
+    /**
      * Allows setting the selected namespace from the initial query parameter.
      * @param {string} namespace
      */
@@ -161,8 +156,10 @@ export class NamespaceSelector extends PolymerElement {
     _ownedContextChanged(namespaces, selected) {
         const namespace = (namespaces || []).find((i) =>
             i.namespace == selected
+        ) || this.selectedNamespaceIsOwned;
+        this._setSelectedNamespaceIsOwned(
+            this.isOwner(namespace.role)
         );
-        this._setSelectedNamespace(namespace || this.selectedNamespace);
     }
 
     /**

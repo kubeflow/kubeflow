@@ -38,37 +38,53 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
             error: Object,
             flowComplete: {type: Boolean, value: false},
             showAPIText: {type: Boolean, value: false},
+            _namespaceValidationRegex: {
+                type: String,
+                readOnly: true,
+                // eslint-disable-next-line
+                value: '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*',
+            },
         };
     }
+
     ready() {
         super.ready();
         this.namespaceInput = this.$.Namespace;
     }
+
     _onUserDetails(d) {
         this.namespaceName = this.userDetails
             // eslint-disable-next-line no-useless-escape
-            .replace(/[^\w\-]/g, '_')
+            .replace(/[^\w\-\.]|_/g, '-')
             .toLowerCase();
     }
+
     clearInvalidation() {
         this.namespaceInput.invalid = false;
     }
+
     nextPage() {
         this.page++;
     }
+
     backPage() {
         this.page--;
     }
+
     finishSetup() {
         const API = this.$.MakeNamespace;
-        API.body = {referredNamespace: this.namespaceName};
+        API.body = {namespace: this.namespaceName};
         API.generateRequest();
     }
+
     _successSetup() {
         this.flowComplete = true;
         this.sleep(800).then(() => {
             const el = this.$.ApiMessage;
             el.style.width = `${el.scrollWidth}px`;
+        });
+        this.sleep(2000).then(async () => {
+            this.dispatchEvent(new CustomEvent('flowcomplete'));
         });
         this.sleep(6000).then(async () => {
             this.$.ApiMessage.style.width = 0;
@@ -76,7 +92,6 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
             this.flowComplete = false;
         });
         this.set('error', {});
-        this.dispatchEvent(new CustomEvent('flowcomplete'));
     }
 }
 

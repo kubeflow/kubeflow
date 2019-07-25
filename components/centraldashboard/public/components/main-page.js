@@ -144,10 +144,21 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     }
 
     /**
+     * Return a username without the @example.com
+     * @param {string} user User email
+     * @return {string} User Name.
+     */
+    _extractLdap(user) {
+        return user.replace(/@.*$/, '');
+    }
+
+    /**
      * Resync the app with environment information
      */
-    resyncApp() {
+    async resyncApp() {
         this.$.envInfo.generateRequest();
+        await this.sleep(500);
+        this.$.welcomeUser.show();
     }
 
     /**
@@ -156,7 +167,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      */
     _workgroupStatus(ev) {
         const {user, hasWorkgroup, hasAuth} = ev.detail.response;
-        this._setIsolationMode(hasAuth?'multi-user':'single-user');
+        this._setIsolationMode(hasAuth ? 'multi-user' : 'single-user');
         if (!hasAuth || hasWorkgroup) return;
         this.user = user;
         this._setRegistrationFlow(true);
@@ -288,8 +299,11 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         this.namespaces = namespaces.map((n) => ({
             user: n.user.name,
             namespace: n.referredNamespace,
-            role: roleMap.tr(n.RoleRef.name),
+            role: roleMap.tr(n.roleRef.name),
         }));
+        if (this.namespaces.length) {
+            this._setRegistrationFlow(false);
+        }
         this.ownedNamespace = namespaces.find((n) => n.role == 'owner');
         this.platformInfo = platform;
         const kVer = this.platformInfo.kubeflowVersion;
