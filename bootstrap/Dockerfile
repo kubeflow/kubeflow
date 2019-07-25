@@ -102,6 +102,21 @@ ENV PATH /opt/kubeflow:/opt/bootstrap:${PATH}
 
 EXPOSE 8080
 
+# Install gcloud
+ENV PATH=/root/go/bin:/usr/local/go/bin:/google-cloud-sdk/bin:/workspace:${PATH} \
+    CLOUDSDK_CORE_DISABLE_PROMPTS=1
+
+RUN go get github.com/kelseyhightower/kube-rsa
+
+RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz && \
+    tar xzf google-cloud-sdk.tar.gz -C / && \
+    rm google-cloud-sdk.tar.gz && \
+    /google-cloud-sdk/install.sh \
+    --disable-installation-options \
+    --bash-completion=false \
+    --path-update=false \
+    --usage-reporting=false && \
+    gcloud components install alpha beta
 
 # Set default values for USER, USER_ID, GROUP_ID
 # The startup script will create the user and su to that user.
