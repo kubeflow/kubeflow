@@ -547,13 +547,14 @@ func (aws *Aws) Generate(resources kftypes.ResourceEnum) error {
 
 		// TODO: enable Basic Auth later
 	} else {
-		if err := aws.kfDef.SetApplicationParameter("istio", "clusterRbacConfig", "ON"); err != nil {
-			return errors.WithStack(err)
-		}
-
-		if pluginSpec.Auth.Cognito == nil && pluginSpec.Auth.Oidc == nil {
-			return errors.WithStack(fmt.Errorf("AwsPluginSpec has no OIDC or Cognito but UseBasicAuth set to false"))
-		}
+		// TODO: Need to change profile header
+		//if err := aws.kfDef.SetApplicationParameter("istio", "clusterRbacConfig", "ON"); err != nil {
+		//	return errors.WithStack(err)
+		//}
+		//
+		//if pluginSpec.Auth.Cognito == nil && pluginSpec.Auth.Oidc == nil {
+		//	return errors.WithStack(fmt.Errorf("AwsPluginSpec has no OIDC or Cognito but UseBasicAuth set to false"))
+		//}
 
 		if pluginSpec.Auth.Cognito != nil {
 			if err := aws.kfDef.SetApplicationParameter("istio-ingress", "CognitoUserPoolArn", pluginSpec.Auth.Cognito.CognitoUserPoolArn); err != nil {
