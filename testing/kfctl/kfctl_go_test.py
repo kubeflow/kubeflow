@@ -157,7 +157,7 @@ def replaceWithBasicAuth(spec):
   for i, comp in enumerate(spec["components"]):
     if comp == "iap-ingress":
       spec["components"].pop(i)
-  spec["components"] = append(spec["components"], "basic-auth-ingress")
+  spec["components"].append("basic-auth-ingress")
   return spec
 
 if __name__ == "__main__":

@@ -528,18 +528,20 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]inte
 
 	// For boolean options there is no way to test whether they have been explicitly set in KfDef or
 	// not so we always override the value with the command line flag.
-	// TODO(lunkai): I think we shouldn't backfill bool flags.
+	// TODO(lunkai): I think we shouldn't backfill bool flags when using --config
 	// See https://github.com/kubeflow/kubeflow/issues/3744.
-
-	// if options[string(kftypes.USE_BASIC_AUTH)] != nil {
-	// 	kfdef.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
-	// }
-	// if options[string(kftypes.SKIP_INIT_GCP_PROJECT)] != nil {
-	// 	kfdef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
-	// }
-	// if options[string(kftypes.DELETE_STORAGE)] != nil && kfdef.Spec.Platform == kftypes.GCP {
-	// 	kfdef.Spec.DeleteStorage = options[string(kftypes.DELETE_STORAGE)].(bool)
-	// }
+	configFile := options[string(kftypes.CONFIG)].(string)
+	if configFile == "" {
+		if options[string(kftypes.USE_BASIC_AUTH)] != nil {
+			kfdef.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
+		}
+		if options[string(kftypes.SKIP_INIT_GCP_PROJECT)] != nil {
+			kfdef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
+		}
+		if options[string(kftypes.DELETE_STORAGE)] != nil && kfdef.Spec.Platform == kftypes.GCP {
+			kfdef.Spec.DeleteStorage = options[string(kftypes.DELETE_STORAGE)].(bool)
+		}
+	}
 
 	return nil
 }
