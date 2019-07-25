@@ -193,10 +193,10 @@ spec:
   - application
   platform: gcp
   skipInitProject: true
-  useBasicAuth: true
+  useBasicAuth: false
   useIstio: true
   version: master
-  project: kai-test2
+  project: SET_PROJECT
 status:
   reposCache:
     kubeflow:

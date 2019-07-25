@@ -1688,7 +1688,6 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 			}
 		}
 	}
-	log.Infof("Yoyoyo %v\n\n", gcp.kfDef)
 
 	if err := gcp.kfDef.SetApplicationParameter("cert-manager", "acmeEmail", gcp.kfDef.Spec.Email); err != nil {
 		return errors.WithStack(err)

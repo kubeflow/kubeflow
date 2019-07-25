@@ -219,7 +219,7 @@ spec:
   useBasicAuth: true
   useIstio: true
   version: master
-  project: kai-test2
+  project: SET_PROJECT
 status:
   reposCache:
     kubeflow:
