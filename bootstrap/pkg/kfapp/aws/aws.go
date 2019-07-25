@@ -69,6 +69,7 @@ type Aws struct {
 	kfDef     *kfdefs.KfDef
 	iamClient *iam.IAM
 	eksClient *eks.EKS
+	sess      *session.Session
 
 	region string
 	roles  []string
@@ -76,20 +77,13 @@ type Aws struct {
 
 // GetKfApp returns the aws kfapp. It's called by coordinator.GetKfApp
 func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
-	sess := session.Must(session.NewSession())
-
-	// use aws to call sts get-caller-identity to verify aws credential works.
-	if err := utils.CheckAwsStsCallerIdentity(sess); err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Could not authenticate aws client: %v, Please make sure you set up AWS credentials and regions", err),
-		}
-	}
+	session := session.Must(session.NewSession())
 
 	_aws := &Aws{
 		kfDef:     kfdef,
-		iamClient: iam.New(sess),
-		eksClient: eks.New(sess),
+		sess:      session,
+		iamClient: iam.New(session),
+		eksClient: eks.New(session),
 	}
 
 	return _aws, nil
@@ -306,8 +300,14 @@ func (aws *Aws) updateClusterConfig(clusterConfigFile string) error {
 // ${KUBEFLOW_SRC}/${KFAPP}/aws_config -> destDir (dest)
 func (aws *Aws) generateInfraConfigs() error {
 	// 1. Copy and Paste all files from `sourceDir` to `destDir`
-	parentDir := path.Dir(aws.kfDef.Spec.Repo)
-	sourceDir := path.Join(parentDir, "deployment/aws/infra_configs")
+	repo, ok := aws.kfDef.Status.ReposCache[kftypes.KubeflowRepoName]
+	if !ok {
+		err := fmt.Errorf("Repo %v not found in KfDef.Status.ReposCache", kftypes.KubeflowRepoName)
+		log.Errorf("%v", err)
+		return errors.WithStack(err)
+	}
+
+	sourceDir := path.Join(repo.LocalPath, "deployment/aws/infra_configs")
 	destDir := path.Join(aws.kfDef.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR)
 
 	if _, err := os.Stat(destDir); os.IsNotExist(err) {
@@ -491,6 +491,22 @@ func (aws *Aws) Init(resources kftypes.ResourceEnum) error {
 // Generate generate aws infrastructure configs and aws kfapp manifest
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (aws *Aws) Generate(resources kftypes.ResourceEnum) error {
+	// use aws to call sts get-caller-identity to verify aws credential works.
+	if err := utils.CheckAwsStsCallerIdentity(aws.sess); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Could not authenticate aws client: %v, Please make sure you set up AWS credentials and regions", err),
+		}
+	}
+
+	if setAwsPluginDefaultsErr := aws.setAwsPluginDefaults(); setAwsPluginDefaultsErr != nil {
+		return &kfapis.KfError{
+			Code: setAwsPluginDefaultsErr.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("aws set aws plugin defaults Error %v",
+				setAwsPluginDefaultsErr.(*kfapis.KfError).Message),
+		}
+	}
+
 	if awsConfigFilesErr := aws.generateInfraConfigs(); awsConfigFilesErr != nil {
 		return &kfapis.KfError{
 			Code: awsConfigFilesErr.(*kfapis.KfError).Code,
@@ -507,12 +523,9 @@ func (aws *Aws) Generate(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	if setAwsPluginDefaultsErr := aws.setAwsPluginDefaults(); setAwsPluginDefaultsErr != nil {
-		return &kfapis.KfError{
-			Code: setAwsPluginDefaultsErr.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("aws set aws plugin defaults Error %v",
-				setAwsPluginDefaultsErr.(*kfapis.KfError).Message),
-		}
+	pluginSpec, err := aws.GetPluginSpec()
+	if err != nil {
+		return errors.WithStack(err)
 	}
 
 	if err := aws.kfDef.SetApplicationParameter("aws-alb-ingress-controller", "clusterName", aws.kfDef.Name); err != nil {
@@ -527,13 +540,69 @@ func (aws *Aws) Generate(resources kftypes.ResourceEnum) error {
 		if err := aws.kfDef.SetApplicationParameter("istio", "clusterRbacConfig", "OFF"); err != nil {
 			return errors.WithStack(err)
 		}
+
+		if pluginSpec.Auth.BasicAuth == nil {
+			return errors.WithStack(fmt.Errorf("AwsPluginSpec has no BasicAuth but UseBasicAuth set to true"))
+		}
+
+		// TODO: enable Basic Auth later
 	} else {
 		if err := aws.kfDef.SetApplicationParameter("istio", "clusterRbacConfig", "ON"); err != nil {
 			return errors.WithStack(err)
 		}
-	}
 
-	// TODO: Doesn't need mysqlPd and minioPd overlay and they bind to GCE now.
+		if pluginSpec.Auth.Cognito == nil && pluginSpec.Auth.Oidc == nil {
+			return errors.WithStack(fmt.Errorf("AwsPluginSpec has no OIDC or Cognito but UseBasicAuth set to false"))
+		}
+
+		if pluginSpec.Auth.Cognito != nil {
+			if err := aws.kfDef.SetApplicationParameter("istio-ingress", "CognitoUserPoolArn", pluginSpec.Auth.Cognito.CognitoUserPoolArn); err != nil {
+				return errors.WithStack(err)
+			}
+
+			if err := aws.kfDef.SetApplicationParameter("istio-ingress", "CognitoUserPoolDomain", pluginSpec.Auth.Cognito.CognitoUserPoolDomain); err != nil {
+				return errors.WithStack(err)
+			}
+
+			if err := aws.kfDef.SetApplicationParameter("istio-ingress", "CognitoAppClientId", pluginSpec.Auth.Cognito.CognitoAppClientId); err != nil {
+				return errors.WithStack(err)
+			}
+
+			if err := aws.kfDef.SetApplicationParameter("istio-ingress", "certArn", pluginSpec.Auth.Cognito.CertArn); err != nil {
+				return errors.WithStack(err)
+			}
+		}
+
+		if pluginSpec.Auth.Oidc != nil {
+			if err := aws.kfDef.SetApplicationParameter("istio-ingress", "oidcIssuer", pluginSpec.Auth.Oidc.OidcIssuer); err != nil {
+				return errors.WithStack(err)
+			}
+
+			if err := aws.kfDef.SetApplicationParameter("istio-ingress", "oidcAuthorizationEndpoint", pluginSpec.Auth.Oidc.OidcAuthorizationEndpoint); err != nil {
+				return errors.WithStack(err)
+			}
+
+			if err := aws.kfDef.SetApplicationParameter("istio-ingress", "oidcTokenEndpoint", pluginSpec.Auth.Oidc.OidcTokenEndpoint); err != nil {
+				return errors.WithStack(err)
+			}
+
+			if err := aws.kfDef.SetApplicationParameter("istio-ingress", "oidcUserInfoEndpoint", pluginSpec.Auth.Oidc.OidcUserInfoEndpoint); err != nil {
+				return errors.WithStack(err)
+			}
+
+			if err := aws.kfDef.SetApplicationParameter("istio-ingress", "certArn", pluginSpec.Auth.Oidc.CertArn); err != nil {
+				return errors.WithStack(err)
+			}
+
+			if err := aws.kfDef.SetApplicationParameter("istio-ingress", "clientId", pluginSpec.Auth.Oidc.OAuthClientId); err != nil {
+				return errors.WithStack(err)
+			}
+
+			if err := aws.kfDef.SetApplicationParameter("istio-ingress", "clientSecret", pluginSpec.Auth.Oidc.OAuthClientSecret); err != nil {
+				return errors.WithStack(err)
+			}
+		}
+	}
 
 	// Special handling for cloud watch logs of worker node groups
 	if awsFeatureConfig["worker_node_group_logging"] == true {
@@ -571,10 +640,11 @@ func (aws *Aws) setAwsPluginDefaults() error {
 		return err
 	}
 
-	if isValid, msg := awsPluginSpec.IsValid(); !isValid {
-		log.Errorf("AwsPluginSpec isn't valid; error %v", msg)
-		return fmt.Errorf(msg)
-	}
+	// TODO: enable validation once we support basic auth
+	//if isValid, msg := awsPluginSpec.IsValid(); !isValid {
+	//	log.Errorf("AwsPluginSpec isn't valid; error %v", msg)
+	//	return fmt.Errorf(msg)
+	//}
 
 	aws.region = awsPluginSpec.Region
 	aws.roles = awsPluginSpec.Roles
@@ -585,6 +655,14 @@ func (aws *Aws) setAwsPluginDefaults() error {
 // Apply create eks cluster if needed, bind IAM policy to node group roles and enable cluster level configs.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (aws *Aws) Apply(resources kftypes.ResourceEnum) error {
+	// use aws to call sts get-caller-identity to verify aws credential works.
+	if err := utils.CheckAwsStsCallerIdentity(aws.sess); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Could not authenticate aws client: %v, Please make sure you set up AWS credentials and regions", err),
+		}
+	}
+
 	if err := aws.setAwsPluginDefaults(); err != nil {
 		return &kfapis.KfError{
 			Code: err.(*kfapis.KfError).Code,
@@ -628,6 +706,14 @@ func (aws *Aws) Apply(resources kftypes.ResourceEnum) error {
 }
 
 func (aws *Aws) Delete(resources kftypes.ResourceEnum) error {
+	// use aws to call sts get-caller-identity to verify aws credential works.
+	if err := utils.CheckAwsStsCallerIdentity(aws.sess); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Could not authenticate aws client: %v, Please make sure you set up AWS credentials and regions", err),
+		}
+	}
+
 	setAwsPluginDefaultsErr := aws.setAwsPluginDefaults()
 	if setAwsPluginDefaultsErr != nil {
 		return &kfapis.KfError{
