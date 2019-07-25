@@ -103,8 +103,7 @@ ENV PATH /opt/kubeflow:/opt/bootstrap:${PATH}
 EXPOSE 8080
 
 # Install gcloud
-ENV PATH=/root/go/bin:/usr/local/go/bin:/google-cloud-sdk/bin:/workspace:${PATH} \
-    CLOUDSDK_CORE_DISABLE_PROMPTS=1
+ENV CLOUDSDK_CORE_DISABLE_PROMPTS=1
 
 RUN go get github.com/kelseyhightower/kube-rsa
 
