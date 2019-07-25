@@ -117,6 +117,7 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
   if use_basic_auth:
     config_spec["spec"]["useBasicAuth"] = True
     logging.info("yeah!!!\n\n")
+    config_spec["spec"] = replaceWithBasicAuth(config_spec["spec"])
 
   logging.info(str(config_spec))
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
@@ -150,6 +151,13 @@ def filterSpartakus(spec):
     if comp == "spartakus":
       spec["components"].pop(i)
   spec["componentParams"].pop("spartakus", None)
+  return spec
+
+def replaceWithBasicAuth(spec):
+  for i, comp in enumerate(spec["components"]):
+    if comp == "iap-ingress":
+      spec["components"].pop(i)
+  spec["components"] = append(spec["components"], "basic-auth-ingress")
   return spec
 
 if __name__ == "__main__":
