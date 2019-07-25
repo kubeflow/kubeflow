@@ -226,6 +226,8 @@ spec:
           path: profiles
       name: profiles
     - kustomizeConfig:
+        overlays:
+          - cognito
         parameters:
           - initRequired: true
             name: namespace
@@ -262,11 +264,12 @@ spec:
   plugins:
     - name: aws
       spec:
+        auth:
+          cognito:
+            cognitoUserPoolArn: arn:aws:cognito-idp:us-west-2:348134392524:userpool/us-west-2_DtjdVUviC
+            cognitoAppClientId: 21p7fb1d7hbuflkqi31n2mddke
+            cognitoUserPoolDomain: kubeflow-testing
+            certArn: arn:aws:acm:us-west-2:348134392524:certificate/c7a9eb05-0975-4fc8-bb79-374197e4031c
         roles:
           - eksctl-kubeflow07-nodegroup-ng-a2-NodeInstanceRole-1GH2FG09D37H0
         region: us-west-2
-        auth:
-          basicAuth:
-            password:
-              name: password
-            username: admin

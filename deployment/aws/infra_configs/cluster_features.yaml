@@ -1,7 +1,6 @@
 private_access: false
 endpoint_public_access: true
 endpoint_private_access: false
-
 control_plane_logging: false
 control_plane_logging_components:
   - api
@@ -9,6 +8,5 @@ control_plane_logging_components:
   - authenticator
   - controllerManager
   - scheduler
-
 worker_node_group_logging: false
 
