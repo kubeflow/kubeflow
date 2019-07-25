@@ -1598,13 +1598,13 @@ func (gcp *Gcp) setupWorkloadIdentity(namespace string) error {
 	// Create k8s service accounts
 	k8sServiceAccounts := []string{
 		"kf-admin",
-		//"kf-user",
-		//"kf-vm",
+		"kf-user",
+		"kf-vm",
 	}
 	gcpServiceAccounts := []string{
 		fmt.Sprintf("%v-admin@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
-		//fmt.Sprintf("%v-user@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
-		//fmt.Sprintf("%v-vm@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
+		fmt.Sprintf("%v-user@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
+		fmt.Sprintf("%v-vm@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
 	}
 	for idx, k8sSa := range k8sServiceAccounts {
 		createK8sServiceAccount(k8sClient, namespace, k8sSa, "serviceAccount:"+gcpServiceAccounts[idx])
@@ -1619,6 +1619,8 @@ func (gcp *Gcp) setupWorkloadIdentity(namespace string) error {
 		}
 	}
 	// Create IAM bindings under each GCP service account (different from IAM bindings for projects)
+	// Could we combine the updates into a single set of Get/Set requests? 
+	// Can we also refactor the code so that we have a separate functions that generate the modified policy but don't apply it and then write a unittest that the modified policy is correct?
 	for idx, gcpSa := range gcpServiceAccounts {
 		log.Infof("Setting up iam policy for serviceaccount: %v in namespace %v", gcpSa, namespace)
 		saResource := fmt.Sprintf("projects/%v/serviceAccounts/%v", gcp.kfDef.Spec.Project, gcpSa)
@@ -1653,6 +1655,7 @@ func (gcp *Gcp) setupWorkloadIdentity(namespace string) error {
 
 // createK8sServiceAccount creates k8s servicea account with annotation
 // iam.gke.io/gcp-service-account=gsa
+// TODO(lunkai): Ideally the k8s service account should be specified by kustomize.
 func createK8sServiceAccount(k8sClientset *clientset.Clientset, namespace string, name string, gsa string) error {
 	log.Infof("Creating service account %v in namespace %v", name, namespace)
 	_, err := k8sClientset.CoreV1().ServiceAccounts(namespace).Get(name, metav1.GetOptions{})
