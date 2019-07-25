@@ -7,6 +7,8 @@ if [ -z ${GOOGLE_APPLICATION_CREDENTIALS} ]; then
   exit 1
 fi
 
+PATH=/google-cloud-sdk/bin:/workspace:${PATH}
+
 # Activate service account on bootstrapper.
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud config list
