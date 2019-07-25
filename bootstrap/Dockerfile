@@ -11,22 +11,6 @@ RUN apt-get install -y git unzip
 # junit report is used to conver go test output to junit for reporting
 RUN go get -u github.com/jstemmer/go-junit-report
 
-# Install gcloud
-ENV PATH=/google-cloud-sdk/bin:/workspace:${PATH}\
-    CLOUDSDK_CORE_DISABLE_PROMPTS=1
-
-RUN go get github.com/kelseyhightower/kube-rsa
-
-RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz && \
-    tar xzf google-cloud-sdk.tar.gz -C / && \
-    rm google-cloud-sdk.tar.gz && \
-    /google-cloud-sdk/install.sh \
-    --disable-installation-options \
-    --bash-completion=false \
-    --path-update=false \
-    --usage-reporting=false && \
-    gcloud components install alpha beta
-
 # We need gcloud to get gke credentials.
 RUN \
     cd /tmp && \
