@@ -124,12 +124,6 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
   util.run([
       kfctl_path, "init", app_path, "-V",
       "--config=" + os.path.join(parent_dir, "tmp.yaml")], cwd=parent_dir)
-  # util.run([
-  #     kfctl_path, "init", app_path, "-V", "--platform=gcp",
-  #     "--version=" + version, "--package-manager=kustomize" + pull_manifests,
-  #     "--skip-init-gcp-project", "--disable_usage_report",
-  #     "--project=" + project
-  #     ] + init_args, cwd=parent_dir)
   util.run(["cat", "app.yaml"], cwd=app_path)
 
   run_with_retries([
