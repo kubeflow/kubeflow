@@ -214,7 +214,7 @@ func UpdateWorkloadIdentityBindingsPolicy(currentPolicy *iam.Policy, project str
 }
 
 // GetServingAccountIamPolicy gets IAM policy for a service account
-func GetServingAccountIamPolicy(iamService *iam.Service, project string, gsa string) (*iam.Policy, error) {
+func GetServiceAccountIamPolicy(iamService *iam.Service, project string, gsa string) (*iam.Policy, error) {
 	ctx := context.Background()
 	saResource := fmt.Sprintf("projects/%v/serviceAccounts/%v", project, gsa)
 	currentPolicy, err := iamService.Projects.ServiceAccounts.GetIamPolicy(saResource).Context(ctx).Do()
@@ -228,7 +228,7 @@ func GetServingAccountIamPolicy(iamService *iam.Service, project string, gsa str
 }
 
 // SetServingAccountIamPolicy sets IAM policy for a service account
-func SetServingAccountIamPolicy(iamService *iam.Service, policy *iam.Policy, project string, gsa string) error {
+func SetServiceAccountIamPolicy(iamService *iam.Service, policy *iam.Policy, project string, gsa string) error {
 	ctx := context.Background()
 	saResource := fmt.Sprintf("projects/%v/serviceAccounts/%v", project, gsa)
 	req := &iam.SetIamPolicyRequest{

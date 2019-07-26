@@ -1625,7 +1625,7 @@ func (gcp *Gcp) setupWorkloadIdentity(namespace string) error {
 	// Can we also refactor the code so that we have a separate functions that generate the modified policy but don't apply it and then write a unittest that the modified policy is correct?
 	for idx, gcpSa := range gcpServiceAccounts {
 		log.Infof("Setting up iam policy for serviceaccount: %v in namespace %v", gcpSa, namespace)
-		policy, err := utils.GetServingAccountIamPolicy(iamService, gcp.kfDef.Spec.Project, gcpSa)
+		policy, err := utils.GetServiceAccountIamPolicy(iamService, gcp.kfDef.Spec.Project, gcpSa)
 		if err != nil {
 			return err
 		}
@@ -1634,7 +1634,7 @@ func (gcp *Gcp) setupWorkloadIdentity(namespace string) error {
 			return err
 		}
 		log.Infof("New policy: %v", *policy)
-		err = utils.SetServingAccountIamPolicy(iamService, policy, gcp.kfDef.Spec.Project, gcpSa)
+		err = utils.SetServiceAccountIamPolicy(iamService, policy, gcp.kfDef.Spec.Project, gcpSa)
 		if err != nil {
 			return err
 		}
