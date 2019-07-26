@@ -310,7 +310,8 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         return window.location !== window.parent.location;
     }
 
-    /* Handles the AJAX response from the platform-info API.
+    /**
+     * Handles the AJAX response from the platform-info API.
      * @param {Event} responseEvent AJAX-response
      */
     _onEnvInfoResponse(responseEvent) {
