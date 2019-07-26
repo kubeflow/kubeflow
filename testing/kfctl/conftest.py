@@ -22,8 +22,8 @@ def pytest_addoption(parser):
       help="GCP project to deploy Kubeflow to")
   
   parser.addoption(
-      "--src_dir", action="store", default="",
-      help="The kubeflow/kubeflow dir")
+      "--config_path", action="store", default="",
+      help="The config to use for kfctl init")
 
   parser.addoption(
       "--use_basic_auth", action="store", default="False",
@@ -54,8 +54,8 @@ def project(request):
   return request.config.getoption("--project")
 
 @pytest.fixture
-def src_dir(request):
-  return request.config.getoption("--src_dir")
+def config_path(request):
+  return request.config.getoption("--config_path")
 
 @pytest.fixture
 def use_basic_auth(request):

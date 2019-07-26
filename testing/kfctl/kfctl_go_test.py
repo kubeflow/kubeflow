@@ -30,7 +30,7 @@ def verify_kubeconfig(project, zone, app_path):
     raise RuntimeError(msg)
 
 
-def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
+def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_path):
   """Test building and deploying Kubeflow.
 
   Args:
@@ -109,10 +109,7 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
   # We don't run with retries because if kfctl init exits with an error
   # but creates app.yaml then rerunning init will fail because app.yaml
   # already exists. So retrying ends up masking the original error message
-  config_file = "kfctl_gcp_iap_master.yaml"
-  if use_basic_auth:
-    config_file = "kfctl_gcp_basic_auth_master.yaml"
-  with open(os.path.join(src_dir, "bootstrap/config", config_file), 'r') as f:
+  with open(config_path, 'r') as f:
     config_spec = yaml.load(f)
   config_spec["spec"]["project"] = project
   config_spec["spec"]["email"] = email
@@ -140,10 +137,9 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, src_dir):
   verify_kubeconfig(project, zone, app_path)
 
 def filterSpartakus(spec):
-  for i, comp in enumerate(spec["components"]):
-    if comp == "spartakus":
-      spec["components"].pop(i)
-  spec["componentParams"].pop("spartakus", None)
+  for i, app in enumerate(spec["applications"]):
+    if app.name == "spartakus":
+      spec["applications"].pop(i)
   return spec
 
 if __name__ == "__main__":
