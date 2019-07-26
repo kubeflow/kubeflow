@@ -42,6 +42,7 @@
       useBasicAuth: "false",
       useIstio: "true",
       testEndpoint: "false",
+      configPath: "bootstrap/config/kfctl_gcp_iap_master.yaml",
     },
     click_deploy_test: {
       bucket: "kubeflow-ci_temp",
