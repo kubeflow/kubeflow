@@ -1597,6 +1597,7 @@ func (gcp *Gcp) setupWorkloadIdentity(namespace string) error {
 		return kfapis.NewKfErrorWithMessage(err, "Get K8s clientset error")
 	}
 	// Create k8s service accounts
+	// TODO(lunkai): Might be better to specify k8s sa by kustomize
 	k8sServiceAccounts := []string{
 		"kf-admin",
 		"kf-user",
@@ -1620,35 +1621,22 @@ func (gcp *Gcp) setupWorkloadIdentity(namespace string) error {
 		}
 	}
 	// Create IAM bindings under each GCP service account (different from IAM bindings for projects)
-	// Could we combine the updates into a single set of Get/Set requests? 
+	// Could we combine the updates into a single set of Get/Set requests?
 	// Can we also refactor the code so that we have a separate functions that generate the modified policy but don't apply it and then write a unittest that the modified policy is correct?
 	for idx, gcpSa := range gcpServiceAccounts {
 		log.Infof("Setting up iam policy for serviceaccount: %v in namespace %v", gcpSa, namespace)
-		saResource := fmt.Sprintf("projects/%v/serviceAccounts/%v", gcp.kfDef.Spec.Project, gcpSa)
-		var currentPolicy *iam.Policy
-		if currentPolicy, err = iamService.Projects.ServiceAccounts.GetIamPolicy(saResource).Context(ctx).Do(); err != nil {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Get IAM Policy error: %v", err),
-			}
+		policy, err := utils.GetServingAccountIamPolicy(iamService, gcp.kfDef.Spec.Project, gcpSa)
+		if err != nil {
+			return err
 		}
-		log.Infof("Current policy: %v", *currentPolicy)
-		newBinding := iam.Binding{}
-		newBinding.Role = "roles/iam.workloadIdentityUser"
-		newBinding.Members = []string{
-			fmt.Sprintf("serviceAccount:%v.svc.id.goog[%v/%v]", gcp.kfDef.Spec.Project, namespace, k8sServiceAccounts[idx]),
+		err = utils.UpdateWorkloadIdentityBindingsPolicy(policy, gcp.kfDef.Spec.Project, namespace, k8sServiceAccounts[idx])
+		if err != nil {
+			return err
 		}
-		currentPolicy.Bindings = append(currentPolicy.Bindings, &newBinding)
-		log.Infof("New policy: %v", *currentPolicy)
-		req := &iam.SetIamPolicyRequest{
-			Policy: currentPolicy,
-		}
-		_, setIamErr := iamService.Projects.ServiceAccounts.SetIamPolicy(saResource, req).Context(ctx).Do()
-		if setIamErr != nil {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Set IAM Policy error: %v", setIamErr),
-			}
+		log.Infof("New policy: %v", *policy)
+		err = utils.SetServingAccountIamPolicy(iamService, policy, gcp.kfDef.Spec.Project, gcpSa)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
@@ -1685,6 +1673,11 @@ func createK8sServiceAccount(k8sClientset *clientset.Clientset, namespace string
 			Message: err.Error(),
 		}
 	}
+}
+
+func (gcp *Gcp) SetupDefaultNamespaceWorkloadIdentity() error {
+	defaultNamespace := kftypesv2.EmailToDefaultName(gcp.kfDef.Spec.Email)
+	return gcp.setupWorkloadIdentity(defaultNamespace)
 }
 
 func generatePodDefault(group string, version string, kind string, namespace string) *unstructured.Unstructured {
