@@ -138,8 +138,9 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
 
 def filterSpartakus(spec):
   for i, app in enumerate(spec["applications"]):
-    if app.name == "spartakus":
+    if app["name"] == "spartakus":
       spec["applications"].pop(i)
+      break
   return spec
 
 if __name__ == "__main__":
