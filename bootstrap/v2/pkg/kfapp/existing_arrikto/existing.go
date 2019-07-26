@@ -27,6 +27,7 @@ import (
 	"math/big"
 	"math/rand"
 	"net"
+	"net/url"
 	"os"
 	"path"
 	"sigs.k8s.io/controller-runtime/v2/pkg/client"
@@ -139,6 +140,17 @@ func (existing *Existing) Apply(resources kftypes.ResourceEnum) error {
 	// Get Kubeflow and Dex Endpoints
 	kfEndpoint, oidcEndpoint, err := getEndpoints(kubeclient)
 	if err != nil {
+		return internalError(errors.WithStack(err))
+	}
+	log.Infof("Got Kubeflow Endpoint: %s.", kfEndpoint)
+	log.Infof("Got OIDC Endpoint: %s", oidcEndpoint)
+
+	log.Infof("Creating self-signed cert for %s", kfEndpoint)
+	kfEndpointURL, err := url.Parse(kfEndpoint)
+	if err != nil {
+		return internalError(errors.WithStack(err))
+	}
+	if err := createSelfSignedCerts(kubeclient, kfEndpointURL.Hostname()); err != nil {
 		return internalError(errors.WithStack(err))
 	}
 
@@ -280,20 +292,23 @@ func getEndpoints(kubeclient client.Client) (string, string, error) {
 
 	// Get Istio IngressGateway Service LoadBalancer IP
 	kfEndpoint := os.Getenv(KUBEFLOW_ENDPOINT)
+	if !strings.HasPrefix(kfEndpoint, "https") && kfEndpoint != "" {
+		return "", "", errors.New("KUBEFLOW_ENDPOINT address must start with https:// scheme.")
+	}
 	oidcEndpoint := os.Getenv(OIDC_ENDPOINT)
+	if !strings.HasPrefix(oidcEndpoint, "https") && oidcEndpoint != "" {
+		return "", "", errors.New("OIDC_ENDPOINT address must start with https:// scheme.")
+	}
 
 	if kfEndpoint == "" {
-		lbIP, err := getLBIP(kubeclient)
+		lbIP, err := getLBAddress(kubeclient)
 		if err != nil {
-			return "", "", errors.WithStack(err)
-		}
-		// Generate certs for the LoadBalancer IP
-		if err := createSelfSignedCerts(kubeclient, lbIP); err != nil {
 			return "", "", errors.WithStack(err)
 		}
 		kfEndpoint = fmt.Sprintf("https://%s", lbIP)
 		log.Infof("KUBEFLOW_ENDPOINT not set, using %s", kfEndpoint)
 	}
+
 	if oidcEndpoint == "" {
 		oidcEndpoint = fmt.Sprintf("%s:5556/dex", kfEndpoint)
 		log.Infof("OIDC_ENDPOINT not set, using %s", oidcEndpoint)
@@ -320,7 +335,8 @@ func createSelfSignedCerts(kubeclient client.Client, addr string) error {
 			"tls.key": key,
 		},
 	}
-	if err := kubeclient.Create(context.TODO(), secret); err != nil {
+
+	if err := kubeclient.Create(context.TODO(), secret); err != nil && !apierrors.IsAlreadyExists(err) {
 		return errors.WithStack(err)
 	}
 
@@ -351,8 +367,12 @@ func generateCert(addr string) ([]byte, []byte, error) {
 	}
 
 	if ip := net.ParseIP(addr); ip != nil {
-		tmpl.IPAddresses = []net.IP{ip}
+		tmpl.IPAddresses = append(tmpl.IPAddresses, ip)
+	} else {
+		tmpl.DNSNames = append(tmpl.DNSNames, addr)
 	}
+
+	tmpl.DNSNames = append(tmpl.DNSNames, "localhost")
 
 	certDERBytes, err := x509.CreateCertificate(cryptorand.Reader, &tmpl, &tmpl, key.Public(), key)
 	if err != nil {
@@ -383,17 +403,19 @@ func generateCert(addr string) ([]byte, []byte, error) {
 	return certBuffer.Bytes(), keyBuffer.Bytes(), nil
 }
 
-func getLBIP(kubeclient client.Client) (string, error) {
-	// Get IngressGateway Service's ExternalIP
-	const maxRetries = 20
-	var lbIP string
+func getLBAddress(kubeclient client.Client) (string, error) {
+	// Get IngressGateway Service's address
+	const maxRetries = 40
+	var lbIngresses []corev1.LoadBalancerIngress
 	svc := &corev1.Service{}
+	lbServiceName := types.NamespacedName{Name: "istio-ingressgateway", Namespace: "istio-system"}
+
 	for i := 0; ; i++ {
-		log.Info("Trying to get istio-ingressgateway Service External IP")
+		log.Info("Trying to get istio-ingressgateway Service Address from its Status")
 
 		err := kubeclient.Get(
 			context.TODO(),
-			types.NamespacedName{Name: "istio-ingressgateway", Namespace: "istio-system"},
+			lbServiceName,
 			svc,
 		)
 
@@ -402,16 +424,25 @@ func getLBIP(kubeclient client.Client) (string, error) {
 			return "", err
 		}
 		if svc.Status.LoadBalancer.Ingress != nil {
-			lbIP = svc.Status.LoadBalancer.Ingress[0].IP
+			lbIngresses = svc.Status.LoadBalancer.Ingress
 			break
 		}
 		if i == maxRetries {
-			return "", fmt.Errorf("timed out while waiting to get istio-ingressgateway Service ExternalIP")
+			return "", errors.New("timed out while waiting to get istio-ingressgateway Service Address from its Status")
 		}
 		time.Sleep(10 * time.Second)
 	}
-	log.Infof("Found Istio Gateway's External IP: %s", lbIP)
-	return lbIP, nil
+
+	for _, lbIngress := range lbIngresses {
+		// Hostname is preferred over IP
+		if lbIngress.Hostname != "" {
+			return lbIngress.Hostname, nil
+		}
+		if lbIngress.IP != "" {
+			return lbIngress.IP, nil
+		}
+	}
+	return "", errors.New(fmt.Sprintf("Couldn't find a LoadBalancer address in Service's %v Status.", lbServiceName))
 }
 
 func applyManifests(manifests []manifest) error {
@@ -434,6 +465,10 @@ func deleteManifests(manifests []manifest) error {
 	config := kftypesv2.GetConfig()
 	for _, m := range manifests {
 		log.Infof("Deleting %s...", m.name)
+		if _, err := os.Stat(m.path); os.IsNotExist(err) {
+			log.Warnf("File %s not found", m.path)
+			continue
+		}
 		err := utils.DeleteResourceFromFile(
 			config,
 			m.path,
