@@ -1554,6 +1554,7 @@ func (gcp *Gcp) createSecrets() error {
 	if err != nil {
 		return kfapis.NewKfErrorWithMessage(err, "set K8s clientset error")
 	}
+	// If workload identity is enabled, we don't need to create secrets.
 	if !(*p.EnableWorkloadIdentity) {
 		adminEmail := getSA(gcp.kfDef.Name, "admin", gcp.kfDef.Spec.Project)
 		userEmail := getSA(gcp.kfDef.Name, "user", gcp.kfDef.Spec.Project)
