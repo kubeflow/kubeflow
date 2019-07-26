@@ -108,13 +108,12 @@ export class Api {
   }
 
   // tslint:disable-next-line: no-any
-  private surfaceProfileControllerErrors = (res: Response, errorMessage: string) => (err: any) => {
+  private surfaceProfileControllerErrors = (info: {res: Response, msg: string, err: any}) => {
+    const {res, msg, err} = info;
     const status = (err.response && err.response.statusCode) || 400;
-    const error = err.body || errorMessage;
-    console.log(`${errorMessage} ${error}`);
+    const error = err.body || msg;
+    console.log(`${msg} ${error}`);
     res.status(status).json({error});
-    // tslint:disable-next-line: no-any
-    return {body: undefined, response: undefined} as any;
   }
 
   /**
@@ -197,14 +196,20 @@ export class Api {
             '/get-contributors/:namespace',
             async (req: Request, res: Response) => {
               const {namespace} = req.params;
-              const {body} = await this.profilesService
-                .readBindings(undefined, namespace)
-                .catch(this.surfaceProfileControllerErrors(res, `Unable to fetch contributors for ${namespace}`));
-              if (!(body instanceof BindingEntries)) return; // A response was already sent
-              const users = body.bindings.map((b) => 
-                b.user.name
-              );
-              res.json(users);
+              try {
+                const {body} = await this.profilesService
+                  .readBindings(undefined, namespace);
+                const users = body.bindings.map((b) => 
+                  b.user.name
+                );
+                res.json(users);
+              } catch(err) {
+                this.surfaceProfileControllerErrors({
+                  res,
+                  msg: `Unable to fetch contributors for ${namespace}`,
+                  err,
+                });
+              }
             })
         .post('/create-workgroup', async (req: Request, res: Response) => {
           if (!req.user.hasAuth) {
@@ -229,8 +234,11 @@ export class Api {
             });
             res.json({message: `Created namespace ${namespace}`});
           } catch (err) {
-            this.surfaceProfileControllerErrors(res,
-              'Unexpected error creating profile')(err);
+            this.surfaceProfileControllerErrors({
+              res,
+              msg: 'Unexpected error creating profile',
+              err,
+            });
           }
         });
   }

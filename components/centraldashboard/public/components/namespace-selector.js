@@ -50,7 +50,7 @@ export class NamespaceSelector extends PolymerElement {
                     @apply --layout-center;
                 }
                 [owner]:after {
-                    content: '(Owned)';
+                    content: '(Owner)';
                     margin-left: .25em;
                     font-size: .8em;
                 }
@@ -149,7 +149,8 @@ export class NamespaceSelector extends PolymerElement {
     }
 
     /**
-     * Sets the query string namespace parameter to the selected value.
+     * Update the `selectedNamespaceIsOwned` property based on
+     *   selected namespace.
      * @param {[object]} namespaces
      * @param {string} selected
      */

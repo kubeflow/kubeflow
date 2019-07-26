@@ -1,6 +1,6 @@
 iron-ajax(auto, url='/api/has-workgroup', handle-as='json',
-    on-response='_workgroupStatus', loading='{{pageLoading}}')
-iron-ajax#envInfo(auto, url='/api/env-info', handle-as='json',
+    on-response='_onHasWorkgroupResponse', loading='{{pageLoading}}')
+iron-ajax#envInfo(auto='[[_shouldFetchEnv]]', url='/api/env-info', handle-as='json',
     on-response='_onEnvInfoResponse')
 aside#PageLoader(hidden='{{!pageLoading}}')
 app-drawer-layout.flex(narrow='{{narrowMode}}',

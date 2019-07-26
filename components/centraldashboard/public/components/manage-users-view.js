@@ -39,12 +39,19 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
             contributorInputEl: Object,
         };
     }
+    /**
+     * Main ready method for Polymer Elements.
+     */
     ready() {
         super.ready();
         this.contributorInputEl = this.$.ContribEmail;
     }
+    /**
+     * Returns 1 to 2 rows containing owner and contributor rows for namespaces
+     * @param {[object]} ns Namespaces array.
+     * @return {[string, [string]]} rows for namespace table.
+     */
     nsBreakdown(ns) {
-        this.ownedNamespace = this.namespaces[0];
         const {ownedNamespace, namespaces} = this;
         if (!ownedNamespace) return;
         const arr = [
@@ -59,15 +66,29 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
         );
         return arr;
     }
+    /**
+     * Triggers an API call to create a new Contributor
+     * @param {Event} e
+     */
     addNewContrib(e) {
         const api = this.$.AddContribAjax;
         api.body = {contributor: this.newContribEmail};
         api.generateRequest();
     }
+    /**
+     * Takes an event from iron-ajax and isolates the error from a request that
+     * failed
+     * @param {IronAjaxEvent} e
+     * @return {string}
+     */
     _isolateErrorFromIronRequest(e) {
         return (e.detail.request.response||{}).error ||
             e.detail.error || e.detail;
     }
+    /**
+     * Iron-Ajax response / error handler for addNewContributor
+     * @param {IronAjaxEvent} e
+     */
     handleContribCreate(e) {
         if (e.detail.error) {
             const error = this._isolateErrorFromIronRequest(e);
@@ -77,6 +98,10 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
         this.contributorList = e.detail.response;
         this.newContribEmail = this.contribCreateError = '';
     }
+    /**
+     * Iron-Ajax error handler for getContributors
+     * @param {IronAjaxEvent} e
+     */
     onContribFetchError(e) {
         const error = this._isolateErrorFromIronRequest(e);
         this.contribError = error;

@@ -105,11 +105,21 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             hideNamespaces: {type: Boolean, value: false, readOnly: true},
             notFoundInIframe: {type: Boolean, value: false, readOnly: true},
             registrationFlow: {type: Boolean, value: false, readOnly: true},
+            workgroupStatusHasLoaded: {
+                type: Boolean,
+                value: false,
+                readOnly: true,
+            },
             namespaces: Array,
             namespace: {type: String, observer: '_namespaceChanged'},
             user: String,
             isClusterAdmin: {type: Boolean, value: false},
             isolationMode: {type: String, value: 'undecided', readOnly: true},
+            _shouldFetchEnv: {
+                type: Boolean,
+                // eslint-disable-next-line max-len
+                computed: 'computeShouldFetchEnv(registrationFlow, workgroupStatusHasLoaded)',
+            },
         };
     }
 
@@ -165,12 +175,13 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * Set state for loading registration flow in case no workgroup exists
      * @param {Event} ev AJAX-response
      */
-    _workgroupStatus(ev) {
+    _onHasWorkgroupResponse(ev) {
         const {user, hasWorkgroup, hasAuth} = ev.detail.response;
         this._setIsolationMode(hasAuth ? 'multi-user' : 'single-user');
         if (!hasAuth || hasWorkgroup) return;
         this.user = user;
         this._setRegistrationFlow(true);
+        this._setWorkgroupStatusHasLoaded(true);
     }
 
     /**
@@ -197,7 +208,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             this._setIframeLocation();
             break;
         case 'manage-users':
-            this.sidebarItemIndex = 0;
+            this.sidebarItemIndex = 6;
             this.page = 'manage-users';
             hideTabs = true;
             break;
@@ -227,12 +238,22 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     }
 
     /**
+     * [ComputeProp] `shouldFetchEnv`
+     * @param {boolean} registrationFlow
+     * @param {boolean} workgroupStatusHasLoaded
+     * @return {boolean}
+     */
+    computeShouldFetchEnv(registrationFlow, workgroupStatusHasLoaded) {
+        return !registrationFlow && workgroupStatusHasLoaded;
+    }
+
+    /**
      * Revert the sidebar index if the item clicked is an external link
      * @param {int} curr
      * @param {int} old
      */
     _revertSidebarIndexIfExternal(curr, old=0) {
-        if (curr <= this.menuLinks.length) return;
+        if (curr <= this.menuLinks.length + 2) return;
         this.sidebarItemIndex = old;
     }
 
