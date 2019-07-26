@@ -97,7 +97,7 @@ func init() {
 	initCfg.SetConfigType("yaml")
 
 	initCmd.Flags().StringP(string(kftypes.PLATFORM), "p", "",
-		"one of 'gcp|minikube'")
+		"one of 'aws|gcp|minikube'")
 	bindErr := initCfg.BindPFlag(string(kftypes.PLATFORM), initCmd.Flags().Lookup(string(kftypes.PLATFORM)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.PLATFORM), bindErr)
