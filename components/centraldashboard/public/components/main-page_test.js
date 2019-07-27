@@ -203,20 +203,31 @@ describe('Main Page', () => {
                 },
             },
         ];
+        const user = 'anonymous@kubeflow.org';
         const envInfo = {
-            namespaces: namespaces,
+            namespaces,
+            user,
             platform: {
                 provider: 'gce://test-project/us-east1-c/gke-kubeflow-node-123',
                 providerName: 'gce',
                 kubeflowVersion: '1.0.0',
             },
-            user: 'anonymous@kubeflow.org',
+            isClusterAdmin: false,
         };
-        const responsePromise = mockRequest(mainPage, {
+        const hasWorkgroup = {
+            user,
+            hasWorkgroup: false,
+            hasAuth: false,
+        };
+        const getHasWorkgroup = mockRequest(mainPage, {
+            status: 200,
+            responseText: JSON.stringify(hasWorkgroup),
+        }, false, '/api/has-workgroup');
+        const getEnvInfo = mockRequest(mainPage, {
             status: 200,
             responseText: JSON.stringify(envInfo),
         }, false, '/api/env-info');
-        await responsePromise;
+        await Promise.all([getHasWorkgroup, getEnvInfo]);
         flush();
 
         const buildVersion = mainPage.shadowRoot.querySelector(
