@@ -178,9 +178,10 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     _onHasWorkgroupResponse(ev) {
         const {user, hasWorkgroup, hasAuth} = ev.detail.response;
         this._setIsolationMode(hasAuth ? 'multi-user' : 'single-user');
-        if (!hasAuth || hasWorkgroup) return;
-        this.user = user;
-        this._setRegistrationFlow(true);
+        if (hasAuth && !hasWorkgroup) {
+            this.user = user;
+            this._setRegistrationFlow(true);
+        }
         this._setWorkgroupStatusHasLoaded(true);
     }
 
