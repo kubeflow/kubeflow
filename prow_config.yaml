@@ -103,7 +103,7 @@ workflows:
       workflowName: kfctl-go
       useBasicAuth: true
       useIstio: true
-      configPath: bootstrap/config/kfctl_gcp_iap_master.yaml
+      configPath: bootstrap/config/kfctl_gcp_basic_auth_master.yaml
   # Run unittests
   # TODO(jlewi): Need to add step to run go and python unittests
   - app_dir: kubeflow/kubeflow/testing/workflows
