@@ -43,13 +43,6 @@ import {MESSAGE, PARENT_CONNECTED_EVENT, IFRAME_CONNECTED_EVENT,
     NAMESPACE_SELECTED_EVENT} from '../library.js';
 import {IFRAME_LINK_PREFIX} from './iframe-link.js';
 
-export const roleMap = {
-    admin: 'owner',
-    editor: 'contributor',
-    tr(a) {
-        return this[a] || a;
-    },
-};
 
 /**
  * Entry point for application UI.
@@ -103,6 +96,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             inIframe: {type: Boolean, value: false, readOnly: true},
             hideTabs: {type: Boolean, value: false, readOnly: true},
             hideNamespaces: {type: Boolean, value: false, readOnly: true},
+            allNamespaces: {type: Boolean, value: false, readOnly: true},
             notFoundInIframe: {type: Boolean, value: false, readOnly: true},
             registrationFlow: {type: Boolean, value: false, readOnly: true},
             workgroupStatusHasLoaded: {
@@ -194,6 +188,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         let notFoundInIframe = false;
         let hideTabs = true;
         let hideNamespaces = false;
+        let allNamespaces = false;
 
         switch (newPage) {
         case 'activity':
@@ -212,6 +207,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             this.sidebarItemIndex = 6;
             this.page = 'manage-users';
             hideTabs = true;
+            allNamespaces = true;
             break;
         case '':
             this.sidebarItemIndex = 0;
@@ -228,6 +224,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         }
         this._setNotFoundInIframe(notFoundInIframe);
         this._setHideTabs(hideTabs);
+        this._setAllNamespaces(allNamespaces);
         this._setHideNamespaces(hideNamespaces);
         this._setInIframe(isIframe);
 
@@ -319,11 +316,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         const {platform, user,
             namespaces, isClusterAdmin} = responseEvent.detail.response;
         Object.assign(this, {user, isClusterAdmin});
-        this.namespaces = namespaces.map((n) => ({
-            user: n.user.name,
-            namespace: n.referredNamespace,
-            role: roleMap.tr(n.roleRef.name),
-        }));
+        this.namespaces = namespaces;
         if (this.namespaces.length) {
             this._setRegistrationFlow(false);
         }
