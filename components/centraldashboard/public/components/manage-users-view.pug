@@ -1,6 +1,10 @@
 h1 Manage Contributors
-iron-ajax#AddContribAjax(method='POST', url='/api/add-contributor', on-response='handleContribCreate', on-error='handleContribCreate')
-iron-ajax(auto='[[!empty(ownedNamespace)]]', url='/api/get-contributors/[[ownedNamespace.namespace]]', last-response='{{contributorList}}', on-error='onContribFetchError')
+iron-ajax#AddContribAjax(method='POST', url='/api/add-contributor/[[ownedNamespace.namespace]]',
+    on-response='handleContribCreate', on-error='handleContribCreate', handle-as='json', content-type='application/json')
+iron-ajax(auto='[[!empty(ownedNamespace)]]', url='/api/get-contributors/[[ownedNamespace.namespace]]',
+    last-response='{{contributorList}}', on-error='onContribFetchError', handle-as='json')
+iron-ajax(auto='[[shouldFetchAllNamespaces(ownedNamespace, isClusterAdmin)]]', url='/api/get-all-namespaces',
+    last-response='{{allNamespaces}}', on-error='onAllNamespaceFetchError', handle-as='json')
 section#Main-Content
     article.Acct-Info
         h2
@@ -15,7 +19,7 @@ section#Main-Content
             iron-icon.icon(icon='kubeflow:namespace')
             span.text Namespaces
         .content
-            vaadin-grid(items='[[nsBreakdown(namespaces)]]', theme="no-border", height-by-rows, multi-sort)
+            vaadin-grid(items='[[nsBreakdown(namespaces, ownedNamespace)]]', theme="no-border", height-by-rows, multi-sort)
                 vaadin-grid-column(width='9em', path='0', header='Role')
                 vaadin-grid-column(width='15em', path='1', flex-grow='2', header='Namespaces')
     article.Contributors(hidden$='[[empty(ownedNamespace)]]')
@@ -27,9 +31,21 @@ section#Main-Content
                 figcaption Email Addresses
                 template(is='dom-repeat', items='[[contributorList]]')
                     paper-chip [[item]]
-                input#ContribEmail(is='iron-input', value='{{newContribEmail}}', type='email', placeholder='... Add Contributor email')
+                input(value='{{newContribEmail::input}}', placeholder='... Add Contributor email')
                 iron-a11y-keys#keys(target='[[contributorInputEl]]', keys='enter', on-keys-pressed='addNewContrib')
                 aside.Error [[contribCreateError]]
+    article.Cluster-Namespaces(hidden$='[[empty(isClusterAdmin)]]')
+        h2
+            iron-icon.icon(icon='kubeflow:namespace')
+            span.text Cluster namespaces
+        .content
+            vaadin-grid(items='[[allNamespaces]]', theme="no-border", height-by-rows, multi-sort)
+                vaadin-grid-column(width='9em', path='0', header='Namespace')
+                vaadin-grid-column(width='10em', path='1', header='Owner')
+                vaadin-grid-column(width='15em', path='2', flex-grow='2', header='Contributors')
 paper-toast#ContribError(duration=5000)
     | Failed to fetch contributor list for {{ownedNamespace.namespace}}, because: 
     strong [[contribError]]
+paper-toast#AllNamespaceError(duration=5000)
+    | Failed to fetch all namespaces, because:
+    strong [[allNamespaceError]]

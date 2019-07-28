@@ -3,6 +3,8 @@
     background: white;
     --content-color: #717479;
     --subheading-color: #404447;
+    overflow: auto;
+    @apply --layout-fit;
 }
 h1, h2 {
     font-family: Google Sans;

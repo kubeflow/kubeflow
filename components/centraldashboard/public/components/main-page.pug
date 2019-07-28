@@ -47,7 +47,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                         |!{logo}
                 namespace-selector#NamespaceSelector(
                     query-params='{{queryParams}}', namespaces='[[namespaces]]'
-                    selected='{{namespace}}', hides, hidden$='[[hideNamespaces]]')
+                    selected='{{namespace}}', hides, hidden$='[[hideNamespaces]]'
+                    all-namespaces='[[allNamespaces]]')
                 footer#User-Badge
                     iron-image.image(sizing='contain', fade,
                         src='/assets/anon-user.png', title='[[user]]')

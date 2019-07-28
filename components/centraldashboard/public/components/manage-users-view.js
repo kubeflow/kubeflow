@@ -53,7 +53,7 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
      */
     nsBreakdown(ns) {
         const {ownedNamespace, namespaces} = this;
-        if (!ownedNamespace) return;
+        if (!ownedNamespace || !namespaces) return;
         const arr = [
             ['Owner', ownedNamespace.namespace],
         ];
@@ -82,8 +82,8 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
      * @return {string}
      */
     _isolateErrorFromIronRequest(e) {
-        return (e.detail.request.response||{}).error ||
-            e.detail.error || e.detail;
+        const bd = e.detail.request.response||{};
+        return bd.error || e.detail.error || e.detail;
     }
     /**
      * Iron-Ajax response / error handler for addNewContributor
@@ -106,9 +106,24 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
         const error = this._isolateErrorFromIronRequest(e);
         this.contribError = error;
         this.$.ContribError.show();
-        // todo: remove
-        this.contributorList = ['apv.123@google.com', 'foo_bar12@google.com',
-            'dsoadopsa@google.com'];
+    }
+    /**
+     * Iron-Ajax error handler for getContributors
+     * @param {IronAjaxEvent} e
+     */
+    onAllNamespaceFetchError(e) {
+        const error = this._isolateErrorFromIronRequest(e);
+        this.allNamespaceError = error;
+        this.$.AllNamespaceError.show();
+    }
+    /**
+     * [ComputedProp] Should the ajax call for all namespaces run?
+     * @param {object} ownedNamespace
+     * @param {boolean} isClusterAdmin
+     * @return {boolean}
+     */
+    shouldFetchAllNamespaces(ownedNamespace, isClusterAdmin) {
+        return isClusterAdmin && !this.empty(ownedNamespace);
     }
 }
 
