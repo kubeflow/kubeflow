@@ -770,7 +770,15 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 			}
 		} else {
 			gcp := p.(*gcp.Gcp)
-			return gcp.ConfigPodDefault()
+			p, err := gcp.GetPluginSpec()
+			if err != nil {
+				return err
+			}
+			if *p.EnableWorkloadIdentity {
+				return gcp.SetupDefaultNamespaceWorkloadIdentity()
+			} else {
+				return gcp.ConfigPodDefault()
+			}
 		}
 	}
 

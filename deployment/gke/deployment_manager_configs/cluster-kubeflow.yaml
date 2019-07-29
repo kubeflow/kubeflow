@@ -35,6 +35,9 @@ resources:
     # Set this to v1beta1 to use beta features such as private clusterss
     # and the Kubernetes stackdriver agents.
     gkeApiVersion: SET_GKE_API_VERSION
+    # Whether to enable workload identity
+    enable-workload-identity: false
+    identity-namespace: SET_IDENTITY_NAMESPACE
     # An arbitrary string appending to name of nodepools
     # bump this if you want to modify the node pools.
     # This will cause existing node pools to be deleted and new ones to be created.
