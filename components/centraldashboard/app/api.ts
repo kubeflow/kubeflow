@@ -1,7 +1,7 @@
 import {V1Namespace} from '@kubernetes/client-node';
 import express, {Request, Response} from 'express';
 
-import {Binding as WorkgroupBinding, DefaultApi, Profile, BindingEntries} from './clients/profile_controller';
+import {Binding as WorkgroupBinding, DefaultApi} from './clients/profile_controller';
 import {KubernetesService, PlatformInfo} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
 
@@ -30,7 +30,7 @@ interface CreateProfileRequest {
 }
 
 // Shape of the AddContributorRequest body
-interface AddContributorRequest {
+interface AddOrRemoveContributorRequest {
   contributor?: string;
 }
 
@@ -42,10 +42,14 @@ interface HasWorkgroupResponse {
 
 export const roleMap = {
   admin: 'owner',
-  editor: 'contributor',
+  edit: 'contributor',
   tr(a: string) {
-      return this[a] || a;
+    return this[a] || a;
   },
+  reverse(value: string) {
+    return Object.keys(this)
+      .find((k) => (this[k] === value));
+  }
 };
 
 
@@ -132,12 +136,11 @@ export class Api {
     return namespaces.map((n) => ({
       user,
       namespace: n.metadata.name,
-      role: roleMap.tr('editor'),
+      role: roleMap.tr('edit'),
     }));
   }
   /**
-   * Converts Kubernetes Namespace types to SimpleBinding to ensure
-   * compatibility between identity-aware and non-identity aware clusters
+   * Converts Workgroup Binding from Profile Controller to SimpleBinding
    */
   private mapWorkgroupBindingToSimpleBinding(bindings: WorkgroupBinding[]): SimpleBinding[] {
     return bindings.map((n) => ({
@@ -145,6 +148,23 @@ export class Api {
       namespace: n.referredNamespace,
       role: roleMap.tr(n.roleRef.name),
     }));
+  }
+  /**
+   * Converts SimpleBinding to Workgroup Binding from Profile Controller
+   */
+  private mapSimpleBindingToWorkgroupBinding(binding: SimpleBinding): WorkgroupBinding {
+    const {user, namespace, role} = binding;
+    return {
+      user: {
+        kind: 'User',
+        name: user,
+      },
+      referredNamespace: namespace,
+      roleRef: {
+        kind: 'ClusterRole',
+        name: roleMap.reverse(role),
+      }
+    };
   }
 
   /**
@@ -163,10 +183,10 @@ export class Api {
   async getContributors(namespace: string) {
     const {body} = await this.profilesService
       .readBindings(undefined, namespace);
-    const users = body.bindings
-      .filter((b) => b.roleRef.name === 'editor')
+    const users = this.mapWorkgroupBindingToSimpleBinding(body.bindings)
+      .filter((b) => b.role === 'contributor')
       .map((b) =>
-        b.user.name
+        b.user
       );
     return users;
   }
@@ -253,6 +273,7 @@ export class Api {
               async (req: Request, res: Response) => {
                 try {
                   const {body} = await this.profilesService.readBindings();
+                  // tslint:disable-next-line: no-any
                   const namespaces = {} as any;
                   const bindings = this.mapWorkgroupBindingToSimpleBinding(
                     body.bindings
@@ -262,7 +283,7 @@ export class Api {
                     if (!namespaces[name]) {namespaces[name] = {contributors: []};}
                     const namespace = namespaces[name];
                     if (b.role === 'owner') {namespace.owner = b.user;return;}
-                    namespaces[name].push(b.user);
+                    namespaces[name].contributors.push(b.user);
                   });
                   const tabular = Object.keys(namespaces).map(namespace => [
                     namespace,
@@ -297,7 +318,7 @@ export class Api {
               '/add-contributor/:namespace',
               async (req: Request, res: Response) => {
                 const {namespace} = req.params;
-                const {contributor} = req.body as AddContributorRequest;
+                const {contributor} = req.body as AddOrRemoveContributorRequest;
                 if (!contributor || !namespace) {
                   return apiError({
                     res,
@@ -312,27 +333,65 @@ export class Api {
                 }
                 let errIndex = 0;
                 try {
-                  const {body} = await this.profilesService
-                    .createBinding({
-                      user: {
-                          kind: 'User',
-                          name: contributor,
-                      },
-                      referredNamespace: namespace,
-                      roleRef: {
-                          apiGroup: '',
-                          kind: 'ClusterRole',
-                          name: 'editor',
-                      }
-                  } as WorkgroupBinding);
-                  console.log('===================================',{body});
+                  const binding = this.mapSimpleBindingToWorkgroupBinding({
+                    user: contributor,
+                    namespace,
+                    role: 'contributor',
+                  });
+                  const {headers} = req;
+                  delete headers['content-length'];
+                  await this.profilesService
+                    .createBinding(binding, {headers});
                   errIndex++;
                   const users = await this.getContributors(namespace);
                   res.json(users);
                 } catch(err) {
                   const errMessage = [
-                    `Unable to add new contributor for ${namespace}: ${err.stack || err.toString()}`,
-                    `Unable to fetch contributors for ${namespace}: ${err.stack || err.toString()}`,
+                    `Unable to add new contributor for ${namespace}: ${err.stack || err}`,
+                    `Unable to fetch contributors for ${namespace}: ${err.stack || err}`,
+                  ][errIndex];
+                  this.surfaceProfileControllerErrors({
+                    res,
+                    msg: errMessage,
+                    err,
+                  });
+                }
+              })
+        .delete(
+              '/remove-contributor/:namespace',
+              async (req: Request, res: Response) => {
+                const {namespace} = req.params;
+                const {contributor} = req.body as AddOrRemoveContributorRequest;
+                if (!contributor || !namespace) {
+                  return apiError({
+                    res,
+                    error: `Missing contributor / namespace fields.`,
+                  });
+                }
+                if (!EMAIL_RGX.test(contributor)) {
+                  return apiError({
+                    res,
+                    error: `Contributor doesn't look like a valid email address`,
+                  });
+                }
+                let errIndex = 0;
+                try {
+                  const binding = this.mapSimpleBindingToWorkgroupBinding({
+                    user: contributor,
+                    namespace,
+                    role: 'contributor',
+                  });
+                  const {headers} = req;
+                  delete headers['content-length'];
+                  await this.profilesService
+                    .deleteBinding(binding, {headers});
+                  errIndex++;
+                  const users = await this.getContributors(namespace);
+                  res.json(users);
+                } catch(err) {
+                  const errMessage = [
+                    `Unable to remove contributor for ${namespace}: ${err.stack || err}`,
+                    `Unable to fetch contributors for ${namespace}: ${err.stack || err}`,
                   ][errIndex];
                   this.surfaceProfileControllerErrors({
                     res,
