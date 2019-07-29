@@ -68,11 +68,19 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
     }
     /**
      * Triggers an API call to create a new Contributor
-     * @param {Event} e
      */
-    addNewContrib(e) {
+    addNewContrib() {
         const api = this.$.AddContribAjax;
         api.body = {contributor: this.newContribEmail};
+        api.generateRequest();
+    }
+    /**
+     * Triggers an API call to remove a Contributor
+     * @param {Event} e
+     */
+    removeContributor(e) {
+        const api = this.$.RemoveContribAjax;
+        api.body = {contributor: e.model.item};
         api.generateRequest();
     }
     /**
@@ -90,6 +98,19 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
      * @param {IronAjaxEvent} e
      */
     handleContribCreate(e) {
+        if (e.detail.error) {
+            const error = this._isolateErrorFromIronRequest(e);
+            this.contribCreateError = error;
+            return;
+        }
+        this.contributorList = e.detail.response;
+        this.newContribEmail = this.contribCreateError = '';
+    }
+    /**
+     * Iron-Ajax response / error handler for removeContributor
+     * @param {IronAjaxEvent} e
+     */
+    handleContribDelete(e) {
         if (e.detail.error) {
             const error = this._isolateErrorFromIronRequest(e);
             this.contribCreateError = error;

@@ -1,4 +1,6 @@
 h1 Manage Contributors
+iron-ajax#RemoveContribAjax(method='DELETE', url='/api/remove-contributor/[[ownedNamespace.namespace]]',
+    on-response='handleContribDelete', on-error='handleContribDelete', handle-as='json', content-type='application/json')
 iron-ajax#AddContribAjax(method='POST', url='/api/add-contributor/[[ownedNamespace.namespace]]',
     on-response='handleContribCreate', on-error='handleContribCreate', handle-as='json', content-type='application/json')
 iron-ajax(auto='[[!empty(ownedNamespace)]]', url='/api/get-contributors/[[ownedNamespace.namespace]]',
@@ -30,7 +32,7 @@ section#Main-Content
             section#Contribs(error$='[[!empty(contribCreateError)]]')
                 figcaption Email Addresses
                 template(is='dom-repeat', items='[[contributorList]]')
-                    paper-chip [[item]]
+                    paper-chip(on-remove='removeContributor') [[item]]
                 input(value='{{newContribEmail::input}}', placeholder='... Add Contributor email')
                 iron-a11y-keys#keys(target='[[contributorInputEl]]', keys='enter', on-keys-pressed='addNewContrib')
                 aside.Error [[contribCreateError]]
