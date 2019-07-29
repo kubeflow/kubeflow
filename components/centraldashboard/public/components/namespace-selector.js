@@ -56,7 +56,7 @@ export class NamespaceSelector extends PolymerElement {
                     --paper-button-ink-color: var(--accent-color);
                 }
             </style>
-            <paper-menu-button no-overlap horizontal-align="right">
+            <paper-menu-button no-overlap horizontal-align="left">
                 <paper-button id="dropdown-trigger" slot="dropdown-trigger">
                     <iron-icon icon="group-work"></iron-icon>
                     <span>[[selected]]</span>
@@ -65,7 +65,9 @@ export class NamespaceSelector extends PolymerElement {
                 <paper-listbox slot="dropdown-content"
                     attr-for-selected="name" selected="{{selected}}">
                     <template is="dom-repeat" items="{{namespaces}}">
-                        <paper-item name="[[item]]">[[item]]</paper-item>
+                        <paper-item name="[[item.referredNamespace]]">
+                            [[item.referredNamespace]]
+                        </paper-item>
                     </template>
                 </paper-listbox>
             </paper-menu-button>

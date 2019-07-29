@@ -8,13 +8,6 @@
         "sourceMap": true,
         "outDir": "dist",
         "baseUrl": ".",
-        "paths": {
-            "*": [
-                "node_modules/*",
-                "types/*",
-                "app/*"
-            ]
-        },
         "plugins": [
             {
                 "name": "typescript-tslint-plugin"
@@ -22,6 +15,7 @@
         ]
     },
     "include": [
-        "app/**/*"
+        "app",
+        "types"
     ]
 }

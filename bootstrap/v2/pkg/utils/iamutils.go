@@ -21,8 +21,10 @@ import (
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/api/cloudresourcemanager/v1"
+	"google.golang.org/api/iam/v1"
 	"io/ioutil"
 	"net/http"
 )
@@ -197,4 +199,47 @@ func SetIamPolicy(project string, policy *cloudresourcemanager.Policy, gcpClient
 			Message: err.Error(),
 		}
 	}
+}
+
+// UpdateWorkloadIdentityBindingsPolicy updates the (service account) IAM policy with workload identity binding.
+func UpdateWorkloadIdentityBindingsPolicy(currentPolicy *iam.Policy, project string, namespace string, ksa string) error {
+	newBinding := iam.Binding{}
+	newBinding.Role = "roles/iam.workloadIdentityUser"
+	newBinding.Members = []string{
+		fmt.Sprintf("serviceAccount:%v.svc.id.goog[%v/%v]", project, namespace, ksa),
+	}
+	currentPolicy.Bindings = append(currentPolicy.Bindings, &newBinding)
+	log.Infof("New policy: %v", *currentPolicy)
+	return nil
+}
+
+// GetServingAccountIamPolicy gets IAM policy for a service account
+func GetServiceAccountIamPolicy(iamService *iam.Service, project string, gsa string) (*iam.Policy, error) {
+	ctx := context.Background()
+	saResource := fmt.Sprintf("projects/%v/serviceAccounts/%v", project, gsa)
+	currentPolicy, err := iamService.Projects.ServiceAccounts.GetIamPolicy(saResource).Context(ctx).Do()
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Get IAM Policy error: %v", err),
+		}
+	}
+	return currentPolicy, nil
+}
+
+// SetServingAccountIamPolicy sets IAM policy for a service account
+func SetServiceAccountIamPolicy(iamService *iam.Service, policy *iam.Policy, project string, gsa string) error {
+	ctx := context.Background()
+	saResource := fmt.Sprintf("projects/%v/serviceAccounts/%v", project, gsa)
+	req := &iam.SetIamPolicyRequest{
+		Policy: policy,
+	}
+	_, setIamErr := iamService.Projects.ServiceAccounts.SetIamPolicy(saResource, req).Context(ctx).Do()
+	if setIamErr != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Set IAM Policy error: %v", setIamErr),
+		}
+	}
+	return nil
 }

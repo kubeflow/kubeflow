@@ -91,7 +91,6 @@ type KsService interface {
 	Apply(ctx context.Context, req ApplyRequest) error
 	ConfigCluster(context.Context, CreateRequest) error
 	BindRole(context.Context, string, string, string) error
-	DeployWithKfctl(req *CreateRequest) error
 	InstallIstio(ctx context.Context, req CreateRequest) error
 	InsertDeployment(context.Context, CreateRequest, DmSpec) (*deploymentmanager.Deployment, error)
 	GetDeploymentStatus(context.Context, CreateRequest, string) (string, string, error)
@@ -656,18 +655,6 @@ func (s *ksServer) getRegistryUri(registry *kfdefs.RegistryConfig) (string, erro
 	}
 }
 
-func runCmd(rawcmd string) error {
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
-	return backoff.Retry(func() error {
-		cmd := exec.Command("sh", "-c", rawcmd)
-		result, err := cmd.CombinedOutput()
-		if err != nil {
-			return fmt.Errorf("Error occrued during execute cmd %v. Error: %v", rawcmd, string(result))
-		}
-		return err
-	}, bo)
-}
-
 // appGenerate installs packages and creates components.
 func (s *ksServer) appGenerate(ksApp kApp.App, appConfig *configtypes.ComponentConfig) error {
 	libs, err := ksApp.Libraries()
@@ -1218,11 +1205,6 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			r.Err = err.Error()
 			deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
 			return r, err
-		}
-
-		if req.UseKfctl {
-			go svc.DeployWithKfctl(&req)
-			return r, nil
 		}
 
 		var storageDmDeployment *deploymentmanager.Deployment

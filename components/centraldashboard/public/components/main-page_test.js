@@ -174,8 +174,37 @@ describe('Main Page', () => {
     });
 
     it('Sets information when platform info is received', async () => {
+        const namespaces = [
+            {
+                user: {kind: 'user', name: 'testuser'},
+                referredNamespace: 'default',
+                roleRef: {
+                    apiGroup: '',
+                    kind: 'ClusterRole',
+                    name: 'editor',
+                },
+            },
+            {
+                user: {kind: 'user', name: 'testuser'},
+                referredNamespace: 'kubeflow',
+                roleRef: {
+                    apiGroup: '',
+                    kind: 'ClusterRole',
+                    name: 'editor',
+                },
+            },
+            {
+                user: {kind: 'user', name: 'testuser'},
+                referredNamespace: 'namespace-2',
+                roleRef: {
+                    apiGroup: '',
+                    kind: 'ClusterRole',
+                    name: 'editor',
+                },
+            },
+        ];
         const envInfo = {
-            namespaces: ['default', 'kubeflow', 'namespace-2'],
+            namespaces: namespaces,
             platform: {
                 provider: 'gce://test-project/us-east1-c/gke-kubeflow-node-123',
                 providerName: 'gce',
@@ -201,7 +230,7 @@ describe('Main Page', () => {
             .getElementById('NamespaceSelector');
         expect(Array.from(namespaceSelector.shadowRoot
             .querySelectorAll('paper-item'))
-            .map((n) => n.innerText))
+            .map((n) => n.innerText.trim()))
             .toEqual(['default', 'kubeflow', 'namespace-2']);
     });
 

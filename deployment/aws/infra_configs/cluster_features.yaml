@@ -1,0 +1,17 @@
+# private_access enable private access for your Amazon EKS cluster's Kubernetes API server endpoint
+# and completely disable public access so that it's not accessible from the internet.
+# More info: https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html
+private_access: false
+endpoint_public_access: true
+endpoint_private_access: false
+# control_plane_logging provides audit and diagnostic logs directly from the EKS control plane
+# to CloudWatch Logs in your account. More info: https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html
+control_plane_logging: false
+control_plane_logging_components:
+  - api
+  - audit
+  - authenticator
+  - controllerManager
+  - scheduler
+# worker_node_group_logging provides audit and diagnostic logs from worker node groups to CloudWatch Logs in your account.
+worker_node_group_logging: false

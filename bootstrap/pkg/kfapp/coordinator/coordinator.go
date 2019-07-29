@@ -18,9 +18,16 @@ package coordinator
 
 import (
 	"fmt"
+	"path"
+	"path/filepath"
+	"strings"
+
+	"os"
+
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/aws"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/minikube"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
@@ -28,14 +35,10 @@ import (
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/existing_arrikto"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/kustomize"
-	"github.com/mitchellh/go-homedir"
+	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	valid "k8s.io/apimachinery/v2/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
-	"os"
-	"path"
-	"path/filepath"
-	"strings"
 )
 
 // Builder defines the methods used to create KfApps.
@@ -52,7 +55,6 @@ func (b *DefaultBuilder) LoadKfAppCfgFile(cfgFile string) (kftypes.KfApp, error)
 }
 
 func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
-
 	configPath := filepath.Join(pathDir, kftypes.DefaultConfigDir)
 	overlays := []string{}
 
@@ -115,6 +117,8 @@ func getPlatform(kfdef *kfdefsv2.KfDef) (kftypes.Platform, error) {
 		return gcp.GetPlatform(kfdef)
 	case string(kftypes.EXISTING_ARRIKTO):
 		return existing_arrikto.GetPlatform(kfdef)
+	case string(kftypes.AWS):
+		return aws.GetPlatform(kfdef)
 	default:
 		// TODO(https://github.com/kubeflow/kubeflow/issues/3520) Fix dynamic loading
 		// of platform plugins.
@@ -341,7 +345,6 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, er
 		kfDef.Spec.UseBasicAuth = useBasicAuth
 		kfDef.Spec.UseIstio = useIstio
 		kfDef.Spec.PackageManager = packageManager
-
 		// Add the repo
 		if kfDef.Spec.Repos == nil {
 			kfDef.Spec.Repos = []kfdefsv2.Repo{}
@@ -460,7 +463,7 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 // The reason we need this is because in 0.5 different command line options were supplied as arguments
 // to different commands (e.g. init & generate) took different command line options.
 // With 0.6 we want to move to a world in which all the options should be stored in app.yaml.
-// Support for the command line otpions is only provided for backwards compatibility until
+// Support for the command line options is only provided for backwards compatibility until
 // we remove the options.
 func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]interface{}) error {
 	if kfdef.Spec.Platform == "" {
@@ -502,7 +505,7 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]inte
 		}
 
 		// Set the kustomize repo if its not already set.
-		// Note kfdef.Spec.Packmanager might get set in getConfigFromCache.
+		// Note kfdef.Spec.PackageManager might get set in getConfigFromCache.
 		// So we might need to backfill repos even if PackageManager is set.
 		hasRepo := false
 		for _, r := range kfdef.Spec.Repos {
@@ -554,7 +557,7 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]inte
 // The reason we need this is because in 0.5 different command line options were supplied as arguments
 // to different commands (e.g. init & generate) took different command line options.
 // With 0.6 we want to move to a world in which all the options should be stored in app.yaml.
-// Support for the command line otpions is only provided for backwards compatibility until
+// Support for the command line options is only provided for backwards compatibility until
 // we remove the options.
 func backfillKfDefFromGenerateOptions(kfdef *kfdefsv2.KfDef, options map[string]interface{}) error {
 	if kfdef.Spec.Platform == kftypes.GCP {
@@ -759,14 +762,46 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 		return nil
 	}
 
+	gcpAddedConfig := func() error {
+		if kfapp.KfDef.Spec.Email == "" || kfapp.KfDef.Spec.Platform != kftypes.GCP {
+			return nil
+		}
+
+		if p, ok := kfapp.Platforms[kfapp.KfDef.Spec.Platform]; !ok {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: "Platform GCP specified but not loaded.",
+			}
+		} else {
+			gcp := p.(*gcp.Gcp)
+			p, err := gcp.GetPluginSpec()
+			if err != nil {
+				return err
+			}
+			if *p.EnableWorkloadIdentity {
+				return gcp.SetupDefaultNamespaceWorkloadIdentity()
+			} else {
+				return gcp.ConfigPodDefault()
+			}
+		}
+	}
+
 	switch resources {
 	case kftypes.ALL:
 		if err := platform(); err != nil {
 			return err
 		}
-		return k8s()
+		if err := k8s(); err != nil {
+			return err
+		}
+		return gcpAddedConfig()
 	case kftypes.PLATFORM:
-		return platform()
+		if err := platform(); err != nil {
+			return err
+		}
+		// TODO(gabrielwen): Need to find a more proper way of injecting plugings.
+		// https://github.com/kubeflow/kubeflow/issues/3708
+		return gcpAddedConfig()
 	case kftypes.K8S:
 		return k8s()
 	}

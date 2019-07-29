@@ -128,6 +128,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					BasicAuth: &BasicAuth{
 						Username: "someuser",
@@ -150,6 +151,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -172,6 +174,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -199,6 +202,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -230,6 +234,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -266,6 +271,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "original_client",
@@ -298,6 +304,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					BasicAuth: &BasicAuth{
 						Username: "original_user",
@@ -357,6 +364,56 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 				t.Errorf("Case %v; email: got %v; want %v", c.Name, i.Spec.Email, c.ExpectedEmail)
 			}
 		}
+	}
+}
+
+func TestGcp_setPodDefault(t *testing.T) {
+	group := "kubeflow.org"
+	version := "v1alpha1"
+	kind := "PodDefault"
+	namespace := "foo-bar-baz"
+	expected := map[string]interface{}{
+		"apiVersion": group + "/" + version,
+		"kind":       kind,
+		"metadata": map[string]interface{}{
+			"name":      "add-gcp-secret",
+			"namespace": namespace,
+		},
+		"desc": "add gcp credential",
+		"spec": map[string]interface{}{
+			"selector": map[string]interface{}{
+				"matchLabels": map[string]interface{}{
+					"add-gcp-secret": "true",
+				},
+			},
+		},
+		"env": []interface{}{
+			map[string]interface{}{
+				"name":  "GOOGLE_APPLICATION_CREDENTIALS",
+				"value": "/secret/gcp/user-gcp-sa.json",
+			},
+		},
+		"volumeMounts": []interface{}{
+			map[string]interface{}{
+				"name":      "secret-volume",
+				"mountPath": "/secret/gcp",
+			},
+		},
+		"volumes": []interface{}{
+			map[string]interface{}{
+				"name": "secret-volume",
+				"secret": map[string]interface{}{
+					"secretName": "user-gcp-sa",
+				},
+			},
+		},
+	}
+
+	actual := generatePodDefault(group, version, kind, namespace)
+	if !reflect.DeepEqual(actual.UnstructuredContent(), expected) {
+		pGot, _ := Pformat(actual.UnstructuredContent())
+		pWant, _ := Pformat(expected)
+		t.Errorf("PodDefault not matching; got\n%v\nwant\n%v", pGot, pWant)
 	}
 }
 
