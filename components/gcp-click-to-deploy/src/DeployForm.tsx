@@ -66,9 +66,27 @@ interface DeployFormState {
     spartakus: boolean;
 }
 
+interface Secret {
+    name: string;
+    secretSource: {
+        literalSource?: {value: string},
+        envSource?: {name: string},
+    };
+}
+
+interface Param {
+    name: string;
+    value: string;
+    initRequired?: boolean;
+}
+
 // From https://github.com/kubeflow/kubeflow/blob/master/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1/application_types.go#L41
 interface KfDefSpec {
-    ComponentConfig?: {};
+    repo: string;
+    components: string[];
+    packages: string[];
+    componentParams: {[name: string]: Param[]};
+    platform: string;
     appdir?: string;
     version?: string;
     mountLocal?: string;
@@ -89,8 +107,8 @@ interface KfDefSpec {
         uri: string;
         root: string;
     }>;
-    secrets?: Array<{name: string, literalSource: {value: string}}>;
-    plugins?: Array<{name: string}>;
+    secrets?: Secret[];
+    plugins?: Array<{name: string, spec: any}>;
     applications?: Array<{name: string}>;
 }
 
@@ -106,7 +124,8 @@ const logsContainerStyle = (show: boolean) => {
     } as React.CSSProperties;
 };
 
-const AMBASSADOR = 'ambassador';
+const IAP_INGRESS = 'iap-ingress';
+const BASIC_AUTH = 'basic-auth-ingress';
 const SPARTAKUS = 'spartakus';
 
 const styles: {[key: string]: React.CSSProperties} = {
@@ -399,16 +418,15 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         }
 
         const state = this.state;
-        const email = await Gapi.getSignedInEmail();
+        const email = await Gapi.getSignedInEmail() as string;
 
         // Make copy of this._configSpec before conditional changes.
         const configSpec = JSON.parse(JSON.stringify(this._configSpec));
-        const appSpec = this.state.kfversion === Version.V06 ?
-            configSpec.spec : configSpec.defaultApp;
+        const appSpec = configSpec.spec as KfDefSpec;
 
         appSpec.componentParams['cert-manager'][0].value = email;
-        for (let i = 0, len = appSpec.componentParams['iap-ingress'].length; i < len; i++) {
-            const p = appSpec.componentParams['iap-ingress'][i];
+        for (let i = 0, len = appSpec.componentParams[IAP_INGRESS].length; i < len; i++) {
+            const p = appSpec.componentParams[IAP_INGRESS][i];
             if (p.name === 'ipName') {
                 p.value = this.state.deploymentName + '-ip';
             }
@@ -420,22 +438,15 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
         if (this.state.ingress === IngressType.BasicAuth) {
             for (let i = 0, len = appSpec.components.length; i < len; i++) {
-                if (appSpec.components[i] === 'iap-ingress') {
-                    appSpec.components[i] = 'basic-auth-ingress';
+                if (appSpec.components[i] === IAP_INGRESS) {
+                    appSpec.components[i] = BASIC_AUTH;
                     break;
                 }
             }
-            appSpec.componentParams['basic-auth-ingress'] =
-                appSpec.componentParams['iap-ingress'];
-            delete appSpec.componentParams['iap-ingress'];
-            appSpec.components.push(
-                'basic-auth',
-            );
-            appSpec.componentParams[AMBASSADOR] = [{
-                initRequired: true,
-                name: 'ambassadorServiceType',
-                value: 'NodePort'
-            }];
+            appSpec.componentParams[BASIC_AUTH] =
+                appSpec.componentParams[IAP_INGRESS];
+            delete appSpec.componentParams[BASIC_AUTH];
+            appSpec.components.push('basic-auth');
         }
 
         const spartakusIndex = appSpec.components.indexOf(SPARTAKUS);
@@ -459,21 +470,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             }
         }
 
-        // v.0.6.0+ options
-        if (appSpec.componentParams.profiles) {
-            const adminSpec = appSpec.componentParams.profiles
-                .find((p: {name: string}) => p.name === 'admin');
-            if (adminSpec) {
-                adminSpec.value = email;
-            }
+        const adminSpec = appSpec.componentParams.profiles!.find(
+            (p: {name: string}) => p.name === 'admin');
+        if (adminSpec) {
+            adminSpec.value = email;
         }
-        if (appSpec.email) {
-            appSpec.email = email;
-        }
-
-        if (configSpec.metadata) {
-            configSpec.metadata.name = this.state.deploymentName;
-        }
+        appSpec.email = email;
 
         return configSpec;
     }
@@ -539,7 +541,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         let buildEndpoint: string;
         let requestBody: string;
         if (this.state.kfversion === Version.V05) {
-            buildEndpoint = `${this._configSpec.appAddress}/kfctl/e2eDeploy`;
+            // buildEndpoint = `${this._configSpec.appAddress}/kfctl/e2eDeploy`;
+            buildEndpoint = '/kfctl/e2eDeploy';
             requestBody = this.getV5BuildRequest(configSpec);
         } else {
             buildEndpoint = '/kfctl/apps/v1alpha2/create';
@@ -951,23 +954,49 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     /**
      * Helper method to facilitate building a v0.6.0 cluster
      */
-    private getV6BuildRequest(configSpec: {spec: {}}): string {
-        const {deploymentName, email, permanentStorage, project,
-            kfversion, zone} = this.state;
+    private getV6BuildRequest(configSpec: {spec: KfDefSpec}): string {
+        const {deploymentName, ingress, permanentStorage, project,
+            kfversion, saClientId, saToken, zone} = this.state;
 
-        const createBody: KfDefSpec = {
-            ComponentConfig: configSpec.spec,
-            deleteStorage: permanentStorage,
-            email,
-            enableApplications: true,
-            ipName: `${deploymentName}-ip`,
-            project,
-            useBasicAuth: this.state.ingress === IngressType.BasicAuth,
-            useIstio: true,
-            version: kfversion,
-            zone,
+        configSpec.spec.hostname = deploymentName;
+        configSpec.spec.ipName = `${deploymentName}-ip`;
+        configSpec.spec.project = project;
+        configSpec.spec.zone = zone;
+        configSpec.spec.version = kfversion;
+        configSpec.spec.secrets = [
+            {
+                name: 'accessToken',
+                secretSource: {literalSource: {value: saToken}}
+            }
+        ];
+        const gcpPlugin = {
+            name: 'gcp',
+            spec: {
+                auth: {},
+                createPipelinePersistentStorage: permanentStorage,
+                username: saClientId,
+            }
         };
-        return JSON.stringify(createBody);
+        if (ingress === IngressType.BasicAuth) {
+            gcpPlugin.spec.auth = {
+                basicAuth: {
+                    password: this.state.password,
+                    username: this.state.username,
+                }
+            };
+        } else if (ingress === IngressType.Iap) {
+            gcpPlugin.spec.auth = {
+                iap: {
+                    oAuthClientId: this.state.clientId,
+                    oAuthClientSecret: this.state.clientSecret,
+                }
+            };
+        }
+        if (!configSpec.spec.plugins) {
+            configSpec.spec.plugins = [];
+        }
+        configSpec.spec.plugins.push(gcpPlugin);
+        return JSON.stringify(configSpec);
     }
 
     private async loadConfigFile(url: string) {
