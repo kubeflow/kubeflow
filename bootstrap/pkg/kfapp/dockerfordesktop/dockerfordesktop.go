@@ -43,6 +43,10 @@ func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	return _dockerfordesktop
 }
 
+func (dockerfordesktop *DockerForDesktop) PostApply(resources kftypes.ResourceEnum) error {
+	return nil
+}
+
 func (dockerfordesktop *DockerForDesktop) Apply(resources kftypes.ResourceEnum) error {
 	//mount_local_fs
 	//setup_tunnels

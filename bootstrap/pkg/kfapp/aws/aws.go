@@ -653,6 +653,10 @@ func (aws *Aws) setAwsPluginDefaults() error {
 	return nil
 }
 
+func (aws *Aws) PostApply(resources kftypes.ResourceEnum) error {
+	return nil
+}
+
 // Apply create eks cluster if needed, bind IAM policy to node group roles and enable cluster level configs.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (aws *Aws) Apply(resources kftypes.ResourceEnum) error {

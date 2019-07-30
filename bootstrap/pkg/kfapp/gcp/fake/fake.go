@@ -10,6 +10,10 @@ type FakeGcp struct {
 	ts oauth2.TokenSource
 }
 
+func (g *FakeGcp) PostApply(resources kftypes.ResourceEnum) error {
+	return nil
+}
+
 func (g *FakeGcp) Apply(resources kftypes.ResourceEnum) error {
 	return nil
 }

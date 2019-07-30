@@ -106,6 +106,10 @@ func (existing *Existing) Generate(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
+func (existing *Existing) PostApply(resources kftypes.ResourceEnum) error {
+	return nil
+}
+
 func (existing *Existing) Apply(resources kftypes.ResourceEnum) error {
 	// Apply extra components
 	config := kftypesv2.GetConfig()

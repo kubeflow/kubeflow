@@ -13,6 +13,10 @@ type FakeCoordinator struct {
 	Plugins map[string]kftypes.KfApp
 }
 
+func (f *FakeCoordinator) PostApply(resources kftypes.ResourceEnum) error {
+	return nil
+}
+
 func (f *FakeCoordinator) Apply(resources kftypes.ResourceEnum) error {
 	return nil
 }

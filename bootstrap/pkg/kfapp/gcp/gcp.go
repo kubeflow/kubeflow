@@ -779,6 +779,10 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
+func (gcp *Gcp) PostApply(resources kftypes.ResourceEnum) error {
+	return nil
+}
+
 // Apply applies the gcp kfapp.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {

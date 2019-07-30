@@ -724,6 +724,10 @@ func (kfapp *coordinator) GetPlugin(name string) (kftypes.KfApp, bool) {
 	return r, ok
 }
 
+func (kfapp *coordinator) PostApply(resources kftypes.ResourceEnum) error {
+	return nil
+}
+
 func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 	platform := func() error {
 		if kfapp.KfDef.Spec.Platform != "" {

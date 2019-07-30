@@ -49,6 +49,10 @@ func (minikube *Minikube) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
 	return nil, nil
 }
 
+func (minikube *Minikube) PostApply(resources kftypes.ResourceEnum) error {
+	return nil
+}
+
 func (minikube *Minikube) Apply(resources kftypes.ResourceEnum) error {
 	//mount_local_fs
 	//setup_tunnels

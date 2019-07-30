@@ -149,6 +149,10 @@ func BuildKfApp(kfdef *kfdefs.KfDef, restConfig *rest.Config, apiConfig *clientc
 	return _kfapp
 }
 
+func (ksApp *ksApp) PostApply(resources kftypes.ResourceEnum) error {
+	return nil
+}
+
 // Apply applies the ksonnet components to target k8s cluster.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum) error {

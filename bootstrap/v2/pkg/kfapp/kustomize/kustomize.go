@@ -252,6 +252,10 @@ func (kustomize *kustomize) initK8sClients() error {
 	return nil
 }
 
+func (kustomize *kustomize) PostApply(resources kftypes.ResourceEnum) error {
+	return nil
+}
+
 // Apply deploys kustomize generated resources to the kubenetes api server
 func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	if err := kustomize.initK8sClients(); err != nil {
