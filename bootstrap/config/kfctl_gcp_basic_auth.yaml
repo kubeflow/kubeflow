@@ -311,6 +311,7 @@ spec:
     name: basic-auth
   - kustomizeConfig:
       overlays:
+      - certmanager
       - gcp-credential
       parameters:
       - name: namespace

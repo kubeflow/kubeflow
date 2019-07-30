@@ -283,6 +283,7 @@ spec:
     name: gpu-driver
   - kustomizeConfig:
       overlays:
+      - certmanager
       - gcp-credential
       parameters:
       - name: namespace
