@@ -47,6 +47,10 @@ var applyCmd = &cobra.Command{
 		if applyErr != nil {
 			return fmt.Errorf("couldn't apply KfApp: %v", applyErr)
 		}
+		postApplyErr := kfApp.PostApply(resource)
+		if postApplyErr != nil {
+			return fmt.Errorf("couldn't run post apply on KfApp: %v", postApplyErr)
+		}
 		return nil
 	},
 	ValidArgs: []string{"all", "platform", "k8s"},
