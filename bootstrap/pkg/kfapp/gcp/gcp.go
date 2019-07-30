@@ -780,7 +780,23 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 }
 
 func (gcp *Gcp) PostApply(resources kftypes.ResourceEnum) error {
-	return nil
+	if err := gcp.initGcpClient(); err != nil {
+		log.Errorf("There was a problem initializing the GCP client; %v", err)
+		return errors.WithMessagef(err, "Gcp.Apply Could not initatie a GCP client")
+	}
+
+	p, err := gcp.GetPluginSpec()
+
+	if err != nil {
+		return err
+	}
+
+	if isValid, msg := p.IsValid(); !isValid {
+		log.Errorf("GcpPluginSpec isn't valid; error %v", msg)
+		return fmt.Errorf(msg)
+	}
+
+	return gcp.ConfigPodDefault()
 }
 
 // Apply applies the gcp kfapp.

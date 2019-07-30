@@ -815,46 +815,14 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 		return nil
 	}
 
-	gcpAddedConfig := func() error {
-		if kfapp.KfDef.Spec.Email == "" || kfapp.KfDef.Spec.Platform != kftypes.GCP {
-			return nil
-		}
-
-		if p, ok := kfapp.Platforms[kfapp.KfDef.Spec.Platform]; !ok {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: "Platform GCP specified but not loaded.",
-			}
-		} else {
-			gcp := p.(*gcp.Gcp)
-			p, err := gcp.GetPluginSpec()
-			if err != nil {
-				return err
-			}
-			if *p.EnableWorkloadIdentity {
-				return gcp.SetupDefaultNamespaceWorkloadIdentity()
-			} else {
-				return gcp.ConfigPodDefault()
-			}
-		}
-	}
-
 	switch resources {
 	case kftypes.ALL:
 		if err := platform(); err != nil {
 			return err
 		}
-		if err := k8s(); err != nil {
-			return err
-		}
-		return gcpAddedConfig()
+		return k8s()
 	case kftypes.PLATFORM:
-		if err := platform(); err != nil {
-			return err
-		}
-		// TODO(gabrielwen): Need to find a more proper way of injecting plugings.
-		// https://github.com/kubeflow/kubeflow/issues/3708
-		return gcpAddedConfig()
+		return platform()
 	case kftypes.K8S:
 		return k8s()
 	}
