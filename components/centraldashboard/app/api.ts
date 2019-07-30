@@ -222,8 +222,8 @@ export class Api {
               };
               if (req.user.hasAuth) {
                 const workgroup = await this.getWorkgroupInfo(req.user);
-                response.hasWorkgroup =
-                    workgroup.namespaces && workgroup.namespaces.length > 0;
+                response.hasWorkgroup = !!(workgroup.namespaces || [])
+                  .find((w) => w.role === 'owner');
               }
               res.json(response);
             })
@@ -314,6 +314,39 @@ export class Api {
                 });
               }
             })
+        .post('/create-workgroup', async (req: Request, res: Response) => {
+              if (!req.user.hasAuth) {
+                return apiError({
+                  res,
+                  code: 405,
+                  error: ERRORS.operation_not_supported,
+                });
+              }
+    
+              const profile = req.body as CreateProfileRequest;
+              try {
+                const namespace = profile.namespace || req.user.username;
+                // Use the request body if provided, fallback to auth headers
+                await this.profilesService.createProfile({
+                  metadata: {
+                    name: namespace,
+                  },
+                  spec: {
+                    owner: {
+                      kind: 'User',
+                      name: profile.user || req.user.email,
+                    }
+                  },
+                });
+                res.json({message: `Created namespace ${namespace}`});
+              } catch (err) {
+                this.surfaceProfileControllerErrors({
+                  res,
+                  msg: 'Unexpected error creating profile',
+                  err,
+                });
+              }
+            })
         .post(
               '/add-contributor/:namespace',
               async (req: Request, res: Response) => {
@@ -399,39 +432,6 @@ export class Api {
                     err,
                   });
                 }
-              })
-        .post('/create-workgroup', async (req: Request, res: Response) => {
-          if (!req.user.hasAuth) {
-            return apiError({
-              res,
-              code: 405,
-              error: ERRORS.operation_not_supported,
-            });
-          }
-
-          const profile = req.body as CreateProfileRequest;
-          try {
-            const namespace = profile.namespace || req.user.username;
-            // Use the request body if provided, fallback to auth headers
-            await this.profilesService.createProfile({
-              metadata: {
-                name: namespace,
-              },
-              spec: {
-                owner: {
-                  kind: 'User',
-                  name: profile.user || req.user.email,
-                }
-              },
-            });
-            res.json({message: `Created namespace ${namespace}`});
-          } catch (err) {
-            this.surfaceProfileControllerErrors({
-              res,
-              msg: 'Unexpected error creating profile',
-              err,
-            });
-          }
-        });
+              });
   }
 }
