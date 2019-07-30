@@ -725,7 +725,56 @@ func (kfapp *coordinator) GetPlugin(name string) (kftypes.KfApp, bool) {
 }
 
 func (kfapp *coordinator) PostApply(resources kftypes.ResourceEnum) error {
+	platform := func() error {
+		if kfapp.KfDef.Spec.Platform != "" {
+			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
+			if platform != nil {
+				platformErr := platform.PostApply(resources)
+				if platformErr != nil {
+					return &kfapis.KfError{
+						Code: int(kfapis.INTERNAL_ERROR),
+						Message: fmt.Sprintf("coordinator PostApply failed for %v: %v",
+							kfapp.KfDef.Spec.Platform, platformErr),
+					}
+				}
+			} else {
+				return &kfapis.KfError{
+					Code: int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("%v not in Platforms",
+						kfapp.KfDef.Spec.Platform),
+				}
+			}
+		}
+		return nil
+	}
+
+	k8s := func() error {
+		for packageManagerName, packageManager := range kfapp.PackageManagers {
+			packageManagerErr := packageManager.PostApply(kftypes.K8S)
+			if packageManagerErr != nil {
+				return &kfapis.KfError{
+					Code: int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("kfApp PostApply failed for %v: %v",
+						packageManagerName, packageManagerErr),
+				}
+			}
+		}
+		return nil
+	}
+
+	switch resources {
+	case kftypes.ALL:
+		if err := platform(); err != nil {
+			return err
+		}
+		return k8s()
+	case kftypes.PLATFORM:
+		return platform()
+	case kftypes.K8S:
+		return k8s()
+	}
 	return nil
+
 }
 
 func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
