@@ -256,6 +256,8 @@ spec:
         path: cert-manager/cert-manager
     name: cert-manager
   - kustomizeConfig:
+      overlays:
+      - gcp-credential
       parameters:
       - name: secretName
         value: admin-gcp-sa
@@ -280,6 +282,8 @@ spec:
         path: gcp/gpu-driver
     name: gpu-driver
   - kustomizeConfig:
+      overlays:
+      - gcp-credential
       parameters:
       - name: namespace
         value: istio-system
