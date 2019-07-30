@@ -23,7 +23,7 @@ type SourceRepo struct {
 	// The GCP project
 	project string
 
-	// Local path for the repo
+	// Local path containing the repo
 	localDir string
 
 	repoName string
@@ -33,7 +33,7 @@ type SourceRepo struct {
 }
 
 const (
-	RemoteName = "gcpsourcerepo"
+	RemoteName = "origin"
 )
 
 // NewSourceRepo initializes a repo object for the specified local directory.
@@ -48,13 +48,13 @@ const (
 //
 // In the current use cases with kfctl server the directory will always exist because it is created
 // out of band by the kfctl server. So for now the code only handles the case where the repository exists.
-func NewSourceRepo(ctx context.Context, project string, localDir string, repoName string, ts oauth2.TokenSource) (*SourceRepo, error) {
+func NewSourceRepo(ctx context.Context, project string, appsDir string, repoName string, ts oauth2.TokenSource) (*SourceRepo, error) {
 	if project == "" {
 		return nil, errors.WithStack(fmt.Errorf("project can't be an empty string"))
 	}
 
-	if localDir == "" {
-		return nil, errors.WithStack(fmt.Errorf("localDir can't be an empty string"))
+	if appsDir == "" {
+		return nil, errors.WithStack(fmt.Errorf("appsDir can't be an empty string"))
 	}
 
 	if repoName == "" {
@@ -65,23 +65,14 @@ func NewSourceRepo(ctx context.Context, project string, localDir string, repoNam
 		return nil, errors.WithStack(fmt.Errorf("ts must be an oauth2.TokenSource; not nil"))
 	}
 
-	if _, err := os.Stat(localDir); err != nil {
-		return nil, errors.WithStack(fmt.Errorf("Directory %v does not exit", localDir))
+	if _, err := os.Stat(appsDir); err != nil {
+		return nil, errors.WithStack(fmt.Errorf("Directory %v does not exit", appsDir))
 	}
 
-	log.Infof("Directory %v exists; checking if its a git repository", localDir)
-	if isGitRepo(localDir) {
-		log.Infof("%v is already a git repository", localDir)
-	} else {
-		log.Infof("Initiliazing %v as a git repository", localDir)
-		// TODO(jlewi): Can we use  the git client library to initialize the directory
-		// I think we can just do something like
-		//	r, err := git.Init(...)
-		if err := runCmdFromDir("git init", localDir); err != nil {
-			log.Errorf("Failed to initialize git repository; error %v", err)
-			return nil, errors.Wrapf(err, "Failed to initialize git repository")
-		}
-	}
+	// Actual repo directory
+	localDir := path.Join(appsDir, repoName)
+
+	// Create source repo first so we can clone
 	sourcerepoService, err := sourcerepo.New(oauth2.NewClient(ctx, ts))
 	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
 	err = backoff.Retry(func() error {
@@ -104,8 +95,31 @@ func NewSourceRepo(ctx context.Context, project string, localDir string, repoNam
 		return nil
 	}, bo)
 
-	r, err := git.PlainOpen(path.Join(localDir))
+	s := &SourceRepo{
+		project:  project,
+		localDir: localDir,
+		repoName: repoName,
+		ts:       ts,
+	}
 
+	url, err := s.remoteUrl()
+	if err != nil {
+		log.Errorf("Could not build the URL; error %v", err)
+		return nil, errors.WithStack(err)
+	}
+
+	log.Infof("Checking if directory %v is a git repository", localDir)
+	if isGitRepo(localDir) {
+		log.Infof("%v is already a git repository", localDir)
+	} else {
+		log.Infof("Clone source repo to %v.", localDir)
+		if err := runCmdFromDir(fmt.Sprintf("git clone %v", url), appsDir); err != nil {
+			log.Errorf("Failed to clone git repository; error %v", err)
+			return nil, errors.Wrapf(err, "Failed to initialize git repository")
+		}
+	}
+
+	r, err := git.PlainOpen(path.Join(localDir))
 	if err != nil {
 		log.Errorf("Error opening the git repository; error %v", err)
 		return nil, errors.WithStack(err)
@@ -126,20 +140,6 @@ func NewSourceRepo(ctx context.Context, project string, localDir string, repoNam
 		}
 	}
 
-	s := &SourceRepo{
-		project:  project,
-		localDir: localDir,
-		repoName: repoName,
-		ts:       ts,
-		r:        r,
-	}
-
-	url, err := s.remoteUrl()
-
-	if err != nil {
-		log.Errorf("Could not build the URL; error %v", err)
-		return nil, errors.WithStack(err)
-	}
 	if !hasRemote {
 		_, err := r.CreateRemote(&config.RemoteConfig{
 			Name: RemoteName,
@@ -162,6 +162,10 @@ func (s *SourceRepo) Name() string {
 }
 
 func isGitRepo(repoDir string) bool {
+	if _, err := os.Stat(repoDir); err != nil {
+		// Local repo doesn't exist yet, return false
+		return false
+	}
 	gitDir := path.Join(repoDir, ".git")
 
 	if _, err := os.Stat(gitDir); err == nil {
@@ -185,14 +189,14 @@ func (s *SourceRepo) remoteUrl() (string, error) {
 // CommitAndPush repo commits any changes and pushes them.
 //
 // Not thread safe, be aware when call it.
-func (s *SourceRepo) CommitAndPushRepo(email string) error {
+func (s *SourceRepo) CommitAndPushRepo(email string, commitPath string) error {
 	w, err := s.r.Worktree()
 
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	files, err := ioutil.ReadDir(s.localDir)
+	files, err := ioutil.ReadDir(commitPath)
 
 	if err != nil {
 		return errors.WithStack(err)

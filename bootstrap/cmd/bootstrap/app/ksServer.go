@@ -52,7 +52,7 @@ const CachedRegistries = "/opt/versioned_registries"
 // key used for storing start time of a request to deploy in the request contexts
 const StartTime = "StartTime"
 
-const KubeflowFolder = "ks_app"
+const KubeflowFolder = "kf_app"
 const DmFolder = "gcp_config"
 const IstioFolder = "istio"
 

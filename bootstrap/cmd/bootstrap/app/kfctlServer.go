@@ -83,12 +83,18 @@ func NewKfctlServer(appsDir string) (*kfctlServer, error) {
 // to the KfDef.
 func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error) {
 	ctx := context.Background()
+	repoName := GetRepoName(r.Spec.Project)
+	sourceRepo, err := NewSourceRepo(ctx, r.Spec.Project, s.appsDir, repoName, s.ts)
+	if err != nil {
+		log.Warnf("SourceRepo failed to initialize, config will not be saved for future reference.")
+	}
 
 	if s.kfApp == nil {
 		if r.Spec.AppDir != "" {
 			log.Warnf("r.Spec.AppDir is set it will be overwritten.")
 		}
-		r.Spec.AppDir = path.Join(s.appsDir, r.Name)
+
+		r.Spec.AppDir = path.Join(s.appsDir, repoName, r.Spec.Version, r.Name, KubeflowFolder)
 		cfgFile := path.Join(r.Spec.AppDir, kftypes.KfConfigFile)
 		if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
 			log.Infof("Creating cfgFile; %v", cfgFile)
@@ -246,12 +252,13 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 		}
 	}
 
-	log.Errorf("Need to implement code to push app to source repo.")
-	return s.kfDefGetter.GetKfDef(), nil
-
 	// Push to source repo.
-	// TODO(jlewi): Copy code in CloneRepoToLocal to clone the repo.
-	//err = SaveAppToRepo(req.Email, path.Join(repoDir, GetRepoNameKfctl(req.Project)))
+	if sourceRepo != nil {
+		if err = sourceRepo.CommitAndPushRepo(r.Spec.Email, r.Spec.AppDir); err != nil {
+			log.Errorf("Pushing configs to source repo failed; %v", err)
+		}
+	}
+	return s.kfDefGetter.GetKfDef(), nil
 }
 
 func (s *kfctlServer) process() {
