@@ -101,6 +101,7 @@ const (
 // They all implement the API below
 //
 type KfApp interface {
+	PostApply(resources ResourceEnum) error
 	Apply(resources ResourceEnum) error
 	Delete(resources ResourceEnum) error
 	Generate(resources ResourceEnum) error
