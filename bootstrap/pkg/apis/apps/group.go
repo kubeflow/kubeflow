@@ -43,7 +43,7 @@ import (
 const (
 	DefaultNamespace = "kubeflow"
 	// TODO: find the latest tag dynamically
-	DefaultVersion         = "v0.6.1-rc.2"
+	DefaultVersion         = "v0.6.1"
 	KfConfigFile           = "app.yaml"
 	KustomizationFile      = "kustomization.yaml"
 	KustomizationParamFile = "params.env"
