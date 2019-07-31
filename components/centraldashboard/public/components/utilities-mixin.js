@@ -30,6 +30,28 @@ export default (superClass) => class extends superClass {
     }
 
     /**
+     * Return if the object passed is empty or undefined
+     * @param {any} o
+     * @return {boolean}
+     */
+    empty(o) {
+        if (o instanceof Array || typeof o === 'string') return !o.length;
+        if (o instanceof Set) return !o.size;
+        if (o instanceof Event || o instanceof Error) return !!0;
+        if (typeof o === 'object') return !Object.keys(o).length;
+        return !o;
+    }
+
+    /**
+     * Allows an async block to sleep for a specified amount of time.
+     * @param {number} time
+     * @return {Promise}
+     */
+    sleep(time) {
+        return new Promise((res) => setTimeout(res, time));
+    }
+
+    /**
      * Builds and returns an href value preserving the current query string.
      * @param {string} href
      * @param {Object} queryParams
