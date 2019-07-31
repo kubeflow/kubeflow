@@ -226,7 +226,7 @@ func copyFile(source string, dest string) error {
 	if err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("cannot create directory: %v", err),
+			Message: fmt.Sprintf("cannot open input file for copying: %v", err),
 		}
 	}
 	defer from.Close()
