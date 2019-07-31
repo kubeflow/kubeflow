@@ -256,6 +256,8 @@ spec:
         path: cert-manager/cert-manager
     name: cert-manager
   - kustomizeConfig:
+      overlays:
+      - gcp-credential
       parameters:
       - name: secretName
         value: admin-gcp-sa
@@ -308,6 +310,9 @@ spec:
         path: common/basic-auth
     name: basic-auth
   - kustomizeConfig:
+      overlays:
+      - certmanager
+      - gcp-credential
       parameters:
       - name: namespace
         value: istio-system

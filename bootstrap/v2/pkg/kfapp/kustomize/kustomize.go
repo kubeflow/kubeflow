@@ -1068,6 +1068,8 @@ func MergeKustomizations(kfDef *kfdefsv2.KfDef, compDir string, overlayParams []
 					Message: fmt.Sprintf("error merging kustomization at %v Error %v", overlayDir, err),
 				}
 			}
+		} else {
+			log.Warnf("No overlay %v for component at %v, skipping...", overlayParam, compDir)
 		}
 	}
 	if len(kustomization.PatchesJson6902) > 0 {
