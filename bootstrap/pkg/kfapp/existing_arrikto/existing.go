@@ -9,7 +9,6 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfapisv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
@@ -18,10 +17,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"html/template"
-	corev1 "k8s.io/api/v2/core/v1"
-	apierrors "k8s.io/apimachinery/v2/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/v2/pkg/types"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"math/big"
@@ -29,7 +28,7 @@ import (
 	"net"
 	"os"
 	"path"
-	"sigs.k8s.io/controller-runtime/v2/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"time"
 )
@@ -51,9 +50,9 @@ type manifest struct {
 	path string
 }
 
-func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
+func GetPlatform(kfdef *kfdefs.KfDef) (kftypesv2.Platform, error) {
 
-	kfRepoDir := kfdef.Status.ReposCache[kftypes.KubeflowRepoName].LocalPath
+	kfRepoDir := kfdef.Status.ReposCache[kftypesv2.KubeflowRepoName].LocalPath
 	istioManifestsDir := path.Join(kfRepoDir, "deployment/existing/istio")
 	istioManifests := []manifest{
 		{
@@ -98,15 +97,15 @@ func (existing *Existing) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
 	return nil, nil
 }
 
-func (existing *Existing) Init(resources kftypes.ResourceEnum) error {
+func (existing *Existing) Init(resources kftypesv2.ResourceEnum) error {
 	return nil
 }
 
-func (existing *Existing) Generate(resources kftypes.ResourceEnum) error {
+func (existing *Existing) Generate(resources kftypesv2.ResourceEnum) error {
 	return nil
 }
 
-func (existing *Existing) Apply(resources kftypes.ResourceEnum) error {
+func (existing *Existing) Apply(resources kftypesv2.ResourceEnum) error {
 	// Apply extra components
 	config := kftypesv2.GetConfig()
 
@@ -191,7 +190,7 @@ func (existing *Existing) Apply(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
-func (existing *Existing) Delete(resources kftypes.ResourceEnum) error {
+func (existing *Existing) Delete(resources kftypesv2.ResourceEnum) error {
 
 	config := kftypesv2.GetConfig()
 	kubeclient, err := client.New(config, client.Options{})
@@ -253,7 +252,7 @@ type kfUser struct {
 
 func getKubeflowUser() (*kfUser, error) {
 	kfUserEmail := os.Getenv(KUBEFLOW_USER_EMAIL)
-	kfPassword := os.Getenv(kftypes.KUBEFLOW_PASSWORD)
+	kfPassword := os.Getenv(kftypesv2.KUBEFLOW_PASSWORD)
 	kfUsername := ""
 
 	if kfUserEmail == "" || kfPassword == "" {

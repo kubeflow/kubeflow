@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/kubeflow/kubeflow/bootstrap/cmd/kfctl/cmd"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/cmd/kfctl/cmd"
 	"github.com/onrik/logrus/filename"
 	log "github.com/sirupsen/logrus"
 )

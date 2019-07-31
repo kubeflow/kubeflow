@@ -17,14 +17,17 @@
 // Package v1alpha1 contains API Schema definitions for the kfdef v1alpha1 API group
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen=package,register
-// +k8s:conversion-gen=github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef
+// +k8s:conversion-gen=github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef
 // +k8s:defaulter-gen=TypeMeta
 // +groupName=kfdef.apps.kubeflow.org
 package v1alpha1
 
 import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/scheme"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 )
 
 var (
@@ -32,13 +35,28 @@ var (
 	SchemeGroupVersion = schema.GroupVersion{Group: "kfdef.apps.kubeflow.org", Version: "v1alpha1"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
-	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
+	SchemeBuilder      = runtime.NewSchemeBuilder(addKnownTypes)
+	localSchemeBuilder = &SchemeBuilder
 
 	// AddToScheme is required by pkg/kfdef/...
-	AddToScheme = SchemeBuilder.AddToScheme
+	AddToScheme = localSchemeBuilder.AddToScheme
 )
 
 // Resource is required by pkg/kfdef/listers/...
 func Resource(resource string) schema.GroupResource {
 	return SchemeGroupVersion.WithResource(resource).GroupResource()
+}
+
+func addKnownTypes(scheme *runtime.Scheme) error {
+	scheme.AddKnownTypes(SchemeGroupVersion,
+		&KfDef{},
+		&KfDefList{},
+	)
+	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
+	return nil
+}
+
+func init() {
+	metav1.AddToGroupVersion(scheme.Scheme, SchemeGroupVersion)
+	utilruntime.Must(AddToScheme(scheme.Scheme))
 }

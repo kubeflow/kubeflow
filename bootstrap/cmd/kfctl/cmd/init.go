@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"os"
 
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -197,7 +197,7 @@ func init() {
 	initCmd.Flags().String(string(kftypes.CONFIG), "",
 		`Static config file to use. Can be either a local path or a URL.
 For example:
---config=https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_platform_existing.yaml
+--config=https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/v2/config/kfctl_platform_existing.yaml
 --config=kfctl_platform_gcp.yaml`)
 	bindErr = initCfg.BindPFlag(string(kftypes.CONFIG), initCmd.Flags().Lookup(string(kftypes.CONFIG)))
 	if bindErr != nil {

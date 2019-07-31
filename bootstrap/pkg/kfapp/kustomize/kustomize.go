@@ -23,50 +23,49 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
 	"github.com/imdario/mergo"
-	"github.com/kubeflow/kubeflow/bootstrap/config"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/config"
 	kfapisv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	profilev2 "github.com/kubeflow/kubeflow/components/profile-controller/v2/pkg/apis/kubeflow/v1alpha1"
+	profilev2 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
 
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"k8s.io/api/v2/core/v1"
-	rbacv2 "k8s.io/api/v2/rbac/v1"
-	crdclientset "k8s.io/apiextensions-apiserver/v2/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
-	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/v2/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/v2/pkg/runtime/schema"
-	"k8s.io/apimachinery/v2/pkg/runtime/serializer"
-	"k8s.io/client-go/v2/discovery"
-	"k8s.io/client-go/v2/discovery/cached"
-	"k8s.io/client-go/v2/kubernetes/scheme"
-	corev1 "k8s.io/client-go/v2/kubernetes/typed/core/v1"
-	rbacv1 "k8s.io/client-go/v2/kubernetes/typed/rbac/v1"
-	"k8s.io/client-go/v2/rest"
-	"k8s.io/client-go/v2/restmapper"
+	"k8s.io/api/core/v1"
+	rbacv2 "k8s.io/api/rbac/v1"
+	crdclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/discovery/cached"
+	"k8s.io/client-go/kubernetes/scheme"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/restmapper"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
-	"sigs.k8s.io/kustomize/v2/k8sdeps"
-	"sigs.k8s.io/kustomize/v2/pkg/fs"
-	"sigs.k8s.io/kustomize/v2/pkg/image"
-	"sigs.k8s.io/kustomize/v2/pkg/loader"
-	"sigs.k8s.io/kustomize/v2/pkg/patch"
-	"sigs.k8s.io/kustomize/v2/pkg/resmap"
-	"sigs.k8s.io/kustomize/v2/pkg/target"
-	"sigs.k8s.io/kustomize/v2/pkg/types"
+	"sigs.k8s.io/kustomize/k8sdeps"
+	"sigs.k8s.io/kustomize/pkg/fs"
+	"sigs.k8s.io/kustomize/pkg/image"
+	"sigs.k8s.io/kustomize/pkg/loader"
+	"sigs.k8s.io/kustomize/pkg/patch"
+	"sigs.k8s.io/kustomize/pkg/resmap"
+	"sigs.k8s.io/kustomize/pkg/target"
+	"sigs.k8s.io/kustomize/pkg/types"
 	"strings"
 	"time"
 
 	// Auth plugins
-	_ "k8s.io/client-go/v2/plugin/pkg/client/auth/gcp"
-	_ "k8s.io/client-go/v2/plugin/pkg/client/auth/oidc"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 )
 
 // kustomize implements KfApp Interface
@@ -97,7 +96,6 @@ const (
 	secretsMapGeneratorMap   MapType = 9
 	patchesStrategicMergeMap MapType = 10
 	patchesJson6902Map       MapType = 11
-	YamlSeparator                    = "(?m)^---[ \t]*$"
 	OverlayParamName                 = "overlay"
 )
 
@@ -121,7 +119,7 @@ type Setter interface {
 }
 
 // GetKfApp is the common entry point for all implementations of the KfApp interface
-func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
+func GetKfApp(kfdef *kfdefsv2.KfDef) kftypesv2.KfApp {
 	_kustomize := &kustomize{
 		kfDef: kfdef,
 		out:   os.Stdout,
@@ -151,10 +149,10 @@ func (kustomize *kustomize) initComponentMaps() error {
 	kustomize.componentMap = make(map[string]bool)
 	kustomize.packageMap = make(map[string]*[]string)
 
-	repo, ok := kustomize.kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
+	repo, ok := kustomize.kfDef.Status.ReposCache[kftypesv2.ManifestsRepoName]
 
 	if !ok {
-		err := fmt.Errorf("Could not initialize kustomize component maps; missing repo cache for repo %v", kftypes.ManifestsRepoName)
+		err := fmt.Errorf("Could not initialize kustomize component maps; missing repo cache for repo %v", kftypesv2.ManifestsRepoName)
 		return errors.WithStack(err)
 	}
 
@@ -185,10 +183,10 @@ func (kustomize *kustomize) backfillApplications() error {
 	}
 
 	// We need repoCache to know the local path strip from componentPathMap
-	repo, ok := kustomize.kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
+	repo, ok := kustomize.kfDef.Status.ReposCache[kftypesv2.ManifestsRepoName]
 
 	if !ok {
-		err := fmt.Errorf("Could not backfillApplications; missing repo cache for repo %v", kftypes.ManifestsRepoName)
+		err := fmt.Errorf("Could not backfillApplications; missing repo cache for repo %v", kftypesv2.ManifestsRepoName)
 		return errors.WithStack(err)
 	}
 
@@ -216,7 +214,7 @@ func (kustomize *kustomize) backfillApplications() error {
 			Name: cName,
 			KustomizeConfig: &kfdefsv2.KustomizeConfig{
 				RepoRef: &kfdefsv2.RepoRef{
-					Name: kftypes.ManifestsRepoName,
+					Name: kftypesv2.ManifestsRepoName,
 					Path: relPath,
 				},
 				Overlays:   []string{},
@@ -253,7 +251,7 @@ func (kustomize *kustomize) initK8sClients() error {
 }
 
 // Apply deploys kustomize generated resources to the kubenetes api server
-func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
+func (kustomize *kustomize) Apply(resources kftypesv2.ResourceEnum) error {
 	if err := kustomize.initK8sClients(); err != nil {
 		return &kfapisv2.KfError{
 			Code:    int(kfapisv2.INVALID_ARGUMENT),
@@ -262,7 +260,7 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 	}
 	clientset := kftypesv2.GetClientset(kustomize.restConfig)
 	namespace := kustomize.kfDef.ObjectMeta.Namespace
-	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
+	log.Infof(string(kftypesv2.NAMESPACE)+": %v", namespace)
 	_, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 	if nsMissingErr != nil {
 		log.Infof("Creating namespace: %v", namespace)
@@ -272,7 +270,7 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 			return &kfapisv2.KfError{
 				Code: int(kfapisv2.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("couldn't create %v %v Error: %v",
-					string(kftypes.NAMESPACE), namespace, nsErr),
+					string(kftypesv2.NAMESPACE), namespace, nsErr),
 			}
 		}
 	}
@@ -359,7 +357,7 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 }
 
 // deployResourcesFromFile creates resources from a file, just like `kubectl create -f filename`
-// TODO based on bootstrap/app/k8sUtil.go. Need to merge.
+// TODO based on bootstrap/v2/app/k8sUtil.go. Need to merge.
 // TODO: it can't handle "kind: list" yet.
 func (kustomize *kustomize) deployResourcesFromFile(config *rest.Config, filename string) error {
 	data, err := ioutil.ReadFile(filename)
@@ -380,7 +378,7 @@ func (kustomize *kustomize) deployResources(config *rest.Config, data []byte) er
 	_cached.Invalidate()
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(_cached)
 
-	splitter := regexp.MustCompile(YamlSeparator)
+	splitter := regexp.MustCompile(kftypesv2.YamlSeparator)
 	objects := splitter.Split(string(data), -1)
 
 	for _, object := range objects {
@@ -519,7 +517,7 @@ func (kustomize *kustomize) deleteGlobalResources() error {
 }
 
 // Delete is called from 'kfctl delete ...'. Will delete all resources deployed from the Apply method
-func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
+func (kustomize *kustomize) Delete(resources kftypesv2.ResourceEnum) error {
 	if err := kustomize.initK8sClients(); err != nil {
 		return &kfapisv2.KfError{
 			Code:    int(kfapisv2.INVALID_ARGUMENT),
@@ -553,7 +551,7 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum) error {
 
 // Generate is called from 'kfctl generate ...' and produces yaml output files under <deployment>/kustomize.
 // One yaml file per component
-func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
+func (kustomize *kustomize) Generate(resources kftypesv2.ResourceEnum) error {
 	generate := func() error {
 		kustomizeDir := path.Join(kustomize.kfDef.Spec.AppDir, outputDir)
 
@@ -569,20 +567,20 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 			}
 		}
 
-		_, ok := kustomize.kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
+		_, ok := kustomize.kfDef.Status.ReposCache[kftypesv2.ManifestsRepoName]
 
 		if !ok {
-			log.Infof("Repo %v not listed in KfDef.Status; Resync'ing cache", kftypes.ManifestsRepoName)
+			log.Infof("Repo %v not listed in KfDef.Status; Resync'ing cache", kftypesv2.ManifestsRepoName)
 			if err := kustomize.kfDef.SyncCache(); err != nil {
 				log.Errorf("Syncing the cached failed; error %v", err)
 				return errors.WithStack(err)
 			}
 		}
 
-		_, ok = kustomize.kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
+		_, ok = kustomize.kfDef.Status.ReposCache[kftypesv2.ManifestsRepoName]
 
 		if !ok {
-			return errors.WithStack(fmt.Errorf("Repo %v not listed in KfDef.Status; ", kftypes.ManifestsRepoName))
+			return errors.WithStack(fmt.Errorf("Repo %v not listed in KfDef.Status; ", kftypesv2.ManifestsRepoName))
 		}
 
 		if err := kustomize.initComponentMaps(); err != nil {
@@ -640,10 +638,10 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 	}
 
 	switch resources {
-	case kftypes.PLATFORM:
-	case kftypes.ALL:
+	case kftypesv2.PLATFORM:
+	case kftypesv2.ALL:
 		fallthrough
-	case kftypes.K8S:
+	case kftypesv2.K8S:
 		generateErr := generate()
 		if generateErr != nil {
 			return fmt.Errorf("kustomize generate failed Error: %v", generateErr)
@@ -654,11 +652,11 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum) error {
 
 // Init is called from 'kfctl init ...' and creates a <deployment> directory with an app.yaml file that
 // holds deployment information like components, parameters
-func (kustomize *kustomize) Init(resources kftypes.ResourceEnum) error {
+func (kustomize *kustomize) Init(resources kftypesv2.ResourceEnum) error {
 	// TODO(https://github.com/kubeflow/kubeflow/issues/3546): This code
 	// needs to be updated.
 	// TODO(jlewi): I believe we can get rid of this code now? I believe are backfilling Repos not
-	// in the coordinator; here https://github.com/kubeflow/kubeflow/blob/865f10e98e8ca65a722bbc879a3acd8f06e86db1/bootstrap/pkg/kfapp/coordinator/coordinator.go#L443
+	// in the coordinator; here https://github.com/kubeflow/kubeflow/blob/865f10e98e8ca65a722bbc879a3acd8f06e86db1/bootstrap/v2/pkg/kfapp/coordinator/coordinator.go#L443
 	if len(kustomize.kfDef.Spec.Repos) == 0 {
 		log.Warnf("kustomize.kfDef.Spec.Repos isn't set; this is deprecated. Repos should be set in app.yaml")
 		parts := strings.Split(kustomize.kfDef.Spec.PackageManager, "@")

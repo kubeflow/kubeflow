@@ -79,15 +79,15 @@ kfctl will statically include platforms that implement the KfApp interface.
 These include:
 
 - platform: **minikube**
-  - bootstrap/pkg/client/minikube/minikube.go
+  - bootstrap/v2/pkg/client/minikube/minikube.go
 - platform: **gcp** 
-  - bootstrap/pkg/client/gcp/gcp.go
+  - bootstrap/v2/pkg/client/gcp/gcp.go
 
 kfctl also statically links package managers that are used by the platforms.
 These include:
 
 - package manager: **ksonnet**
-  - bootstrap/pkg/client/ksonnet/ksonnet.go
+  - bootstrap/v2/pkg/client/ksonnet/ksonnet.go
 - package manager: **kustomize** 
   - bootstrap/v2/pkg/client/kustomize/kustomize.go
 
@@ -344,7 +344,7 @@ spec:
 
 ## gcp-click-to-deploy (no changes)
 
-Ksonnet types have been moved to `github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1`
+Ksonnet types have been moved to `github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/ksonnet/v1alpha1`
 
 ## golang modules and versioned packages
 

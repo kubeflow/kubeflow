@@ -19,9 +19,9 @@ package minikube
 import (
 	"fmt"
 	"github.com/ghodss/yaml"
-	"github.com/kubeflow/kubeflow/bootstrap/config"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"io/ioutil"
 	"k8s.io/client-go/rest"
