@@ -1,7 +1,7 @@
 import {V1Namespace} from '@kubernetes/client-node';
 import express, {Request, Response} from 'express';
 
-import {Binding as WorkgroupBinding, DefaultApi, Profile} from './clients/profile_controller';
+import {Binding as WorkgroupBinding, DefaultApi, Profile, BindingEntries} from './clients/profile_controller';
 import {KubernetesService, PlatformInfo} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
 
@@ -24,6 +24,7 @@ interface CreateProfileRequest {
 }
 
 interface HasWorkgroupResponse {
+  user: string;
   hasAuth: boolean;
   hasWorkgroup: boolean;
 }
@@ -96,14 +97,23 @@ export class Api {
   private mapNamespacesToWorkgroupBindings(
       user: string, namespaces: V1Namespace[]): WorkgroupBinding[] {
     return namespaces.map((n) => ({
-                            user: {kind: 'user', name: user},
-                            referredNamespace: n.metadata.name,
-                            roleRef: {
-                              apiGroup: '',
-                              kind: 'ClusterRole',
-                              name: 'editor',
-                            },
-                          }));
+      user: {kind: 'user', name: user},
+      referredNamespace: n.metadata.name,
+      roleRef: {
+        apiGroup: '',
+        kind: 'ClusterRole',
+        name: 'editor',
+      },
+    }));
+  }
+
+  // tslint:disable-next-line: no-any
+  private surfaceProfileControllerErrors = (info: {res: Response, msg: string, err: any}) => {
+    const {res, msg, err} = info;
+    const status = (err.response && err.response.statusCode) || 400;
+    const error = err.body || msg;
+    console.log(`${msg} ${error}`);
+    res.status(status).json({error});
   }
 
   /**
@@ -133,6 +143,7 @@ export class Api {
             async (req: Request, res: Response) => {
               const response: HasWorkgroupResponse = {
                 hasAuth: req.user.hasAuth,
+                user: req.user.username,
                 hasWorkgroup: false,
               };
               if (req.user.hasAuth) {
@@ -181,6 +192,25 @@ export class Api {
               res.json(await this.k8sService.getEventsForNamespace(
                   req.params.namespace));
             })
+        .get(
+            '/get-contributors/:namespace',
+            async (req: Request, res: Response) => {
+              const {namespace} = req.params;
+              try {
+                const {body} = await this.profilesService
+                  .readBindings(undefined, namespace);
+                const users = body.bindings.map((b) => 
+                  b.user.name
+                );
+                res.json(users);
+              } catch(err) {
+                this.surfaceProfileControllerErrors({
+                  res,
+                  msg: `Unable to fetch contributors for ${namespace}`,
+                  err,
+                });
+              }
+            })
         .post('/create-workgroup', async (req: Request, res: Response) => {
           if (!req.user.hasAuth) {
             res.status(405).json(OPERATION_NOT_SUPPORTED);
@@ -189,10 +219,11 @@ export class Api {
 
           const profile = req.body as CreateProfileRequest;
           try {
+            const namespace = profile.namespace || req.user.username;
             // Use the request body if provided, fallback to auth headers
             await this.profilesService.createProfile({
               metadata: {
-                name: profile.namespace || req.user.username,
+                name: namespace,
               },
               spec: {
                 owner: {
@@ -201,12 +232,13 @@ export class Api {
                 }
               },
             });
-            res.json(true);
+            res.json({message: `Created namespace ${namespace}`});
           } catch (err) {
-            const status = (err.response && err.response.statusCode) || 400;
-            const error = err.body || 'Unexpected error creating profile';
-            console.log(`Unable to create Profile ${error}`);
-            res.status(status).json({error});
+            this.surfaceProfileControllerErrors({
+              res,
+              msg: 'Unexpected error creating profile',
+              err,
+            });
           }
         });
   }
