@@ -1,9 +1,10 @@
 import {V1Namespace} from '@kubernetes/client-node';
-import express, {Request, Response} from 'express';
+import {Router, Request, Response, NextFunction} from 'express';
 
 import {Binding as WorkgroupBinding, DefaultApi} from './clients/profile_controller';
 import {KubernetesService, PlatformInfo} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
+import {contributorAPI} from './api_contributors';
 
 interface SimpleBinding {
   namespace: string;
@@ -21,17 +22,6 @@ interface EnvironmentInfo {
   platform: PlatformInfo;
   user: string;
   isClusterAdmin: boolean;
-}
-
-// Shape of the CreateProfileRequest body
-interface CreateProfileRequest {
-  namespace?: string;
-  user?: string;
-}
-
-// Shape of the AddContributorRequest body
-interface AddOrRemoveContributorRequest {
-  contributor?: string;
 }
 
 interface HasWorkgroupResponse {
@@ -53,13 +43,11 @@ export const roleMap = {
 };
 
 
-const ERRORS = {
+export const ERRORS = {
   operation_not_supported: 'Operation not supported'
 };
-// From: https://www.w3resource.com/javascript/form/email-validation.php
-const EMAIL_RGX = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
-const apiError = (a: {res: Response, error: string, code?: number}) => {
+export const apiError = (a: {res: Response, error: string, code?: number}) => {
   const {res, error} = a;
   const code = a.code || 400;
   return res.status(code).json({
@@ -67,13 +55,54 @@ const apiError = (a: {res: Response, error: string, code?: number}) => {
   });
 };
 
+/**
+ * Converts Workgroup Binding from Profile Controller to SimpleBinding
+ */
+export const mapWorkgroupBindingToSimpleBinding = (bindings: WorkgroupBinding[]): SimpleBinding[] => {
+  return bindings.map((n) => ({
+    user: n.user.name,
+    namespace: n.referredNamespace,
+    role: roleMap.tr(n.roleRef.name),
+  }));
+};
+
+/**
+ * Converts Kubernetes Namespace types to SimpleBinding to ensure
+ * compatibility between identity-aware and non-identity aware clusters
+ */
+export const mapNamespacesToSimpleBinding = (user: string, namespaces: V1Namespace[]): SimpleBinding[] => {
+  return namespaces.map((n) => ({
+    user,
+    namespace: n.metadata.name,
+    role: roleMap.tr('edit'),
+  }));
+};
+
+/**
+ * Converts SimpleBinding to Workgroup Binding from Profile Controller
+ */
+export const mapSimpleBindingToWorkgroupBinding = (binding: SimpleBinding): WorkgroupBinding => {
+  const {user, namespace, role} = binding;
+  return {
+    user: {
+      kind: 'User',
+      name: user,
+    },
+    referredNamespace: namespace,
+    roleRef: {
+      kind: 'ClusterRole',
+      name: roleMap.reverse(role),
+    }
+  };
+};
+
 export class Api {
   private platformInfo: PlatformInfo;
 
   constructor(
-      private k8sService: KubernetesService,
-      private profilesService: DefaultApi,
-      private metricsService?: MetricsService) {}
+    private k8sService: KubernetesService,
+    private profilesService: DefaultApi,
+    private metricsService?: MetricsService) {}
 
   /** Retrieves and memoizes the PlatformInfo. */
   private async getPlatformInfo(): Promise<PlatformInfo> {
@@ -91,7 +120,7 @@ export class Api {
       this.profilesService.v1RoleClusteradminGet(user.email),
       this.profilesService.readBindings(user.email),
     ]);
-    const namespaces = this.mapWorkgroupBindingToSimpleBinding(
+    const namespaces = mapWorkgroupBindingToSimpleBinding(
       bindings.body.bindings || []
     );
     return {
@@ -122,80 +151,16 @@ export class Api {
     return {
       user: user.email,
       platform,
-      namespaces: this.mapNamespacesToSimpleBinding(user.email, namespaces),
+      namespaces: mapNamespacesToSimpleBinding(user.email, namespaces),
       isClusterAdmin: true,
     };
   }
 
   /**
-   * Converts Kubernetes Namespace types to SimpleBinding to ensure
-   * compatibility between identity-aware and non-identity aware clusters
-   */
-  private mapNamespacesToSimpleBinding(
-      user: string, namespaces: V1Namespace[]): SimpleBinding[] {
-    return namespaces.map((n) => ({
-      user,
-      namespace: n.metadata.name,
-      role: roleMap.tr('edit'),
-    }));
-  }
-  /**
-   * Converts Workgroup Binding from Profile Controller to SimpleBinding
-   */
-  private mapWorkgroupBindingToSimpleBinding(bindings: WorkgroupBinding[]): SimpleBinding[] {
-    return bindings.map((n) => ({
-      user: n.user.name,
-      namespace: n.referredNamespace,
-      role: roleMap.tr(n.roleRef.name),
-    }));
-  }
-  /**
-   * Converts SimpleBinding to Workgroup Binding from Profile Controller
-   */
-  private mapSimpleBindingToWorkgroupBinding(binding: SimpleBinding): WorkgroupBinding {
-    const {user, namespace, role} = binding;
-    return {
-      user: {
-        kind: 'User',
-        name: user,
-      },
-      referredNamespace: namespace,
-      roleRef: {
-        kind: 'ClusterRole',
-        name: roleMap.reverse(role),
-      }
-    };
-  }
-
-  /**
-   * Handles an exception in an async block and converts it to a JSON
-   * response sent back to client
-   */
-  // tslint:disable-next-line: no-any
-  private surfaceProfileControllerErrors = (info: {res: Response, msg: string, err: any}) => {
-    const {res, msg, err} = info;
-    const code = (err.response && err.response.statusCode) || 400;
-    const error = err.body || msg;
-    console.log(`${msg} ${error}`);
-    apiError({res, code, error});
-  }
-
-  async getContributors(namespace: string) {
-    const {body} = await this.profilesService
-      .readBindings(undefined, namespace);
-    const users = this.mapWorkgroupBindingToSimpleBinding(body.bindings)
-      .filter((b) => b.role === 'contributor')
-      .map((b) =>
-        b.user
-      );
-    return users;
-  }
-
-  /**
    * Returns the Express router for the API routes.
    */
-  routes(): express.Router {
-    return express.Router()
+  routes(): Router {
+    return Router()
         .get(
             '/env-info',
             async (req: Request, res: Response) => {
@@ -268,170 +233,9 @@ export class Api {
               res.json(await this.k8sService.getEventsForNamespace(
                   req.params.namespace));
             })
-        .get(
-              '/get-all-namespaces',
-              async (req: Request, res: Response) => {
-                try {
-                  const {body} = await this.profilesService.readBindings();
-                  // tslint:disable-next-line: no-any
-                  const namespaces = {} as any;
-                  const bindings = this.mapWorkgroupBindingToSimpleBinding(
-                    body.bindings
-                  );
-                  bindings.forEach((b) => {
-                    const name = b.namespace;
-                    if (!namespaces[name]) {namespaces[name] = {contributors: []};}
-                    const namespace = namespaces[name];
-                    if (b.role === 'owner') {namespace.owner = b.user;return;}
-                    namespaces[name].contributors.push(b.user);
-                  });
-                  const tabular = Object.keys(namespaces).map(namespace => [
-                    namespace,
-                    namespaces[namespace].owner,
-                    namespaces[namespace].contributors.join(', '),
-                  ]);
-                  res.json(tabular);
-                } catch(err) {
-                  this.surfaceProfileControllerErrors({
-                    res,
-                    msg: `Unable to fetch all workgroup data`,
-                    err,
-                  });
-                }
-              })
-        .get(
-            '/get-contributors/:namespace',
-            async (req: Request, res: Response) => {
-              const {namespace} = req.params;
-              try {
-                const users = await this.getContributors(namespace);
-                res.json(users);
-              } catch(err) {
-                this.surfaceProfileControllerErrors({
-                  res,
-                  msg: `Unable to fetch contributors for ${namespace}`,
-                  err,
-                });
-              }
-            })
-        .post('/create-workgroup', async (req: Request, res: Response) => {
-              if (!req.user.hasAuth) {
-                return apiError({
-                  res,
-                  code: 405,
-                  error: ERRORS.operation_not_supported,
-                });
-              }
-    
-              const profile = req.body as CreateProfileRequest;
-              try {
-                const namespace = profile.namespace || req.user.username;
-                // Use the request body if provided, fallback to auth headers
-                await this.profilesService.createProfile({
-                  metadata: {
-                    name: namespace,
-                  },
-                  spec: {
-                    owner: {
-                      kind: 'User',
-                      name: profile.user || req.user.email,
-                    }
-                  },
-                });
-                res.json({message: `Created namespace ${namespace}`});
-              } catch (err) {
-                this.surfaceProfileControllerErrors({
-                  res,
-                  msg: 'Unexpected error creating profile',
-                  err,
-                });
-              }
-            })
-        .post(
-              '/add-contributor/:namespace',
-              async (req: Request, res: Response) => {
-                const {namespace} = req.params;
-                const {contributor} = req.body as AddOrRemoveContributorRequest;
-                if (!contributor || !namespace) {
-                  return apiError({
-                    res,
-                    error: `Missing contributor / namespace fields.`,
-                  });
-                }
-                if (!EMAIL_RGX.test(contributor)) {
-                  return apiError({
-                    res,
-                    error: `Contributor doesn't look like a valid email address`,
-                  });
-                }
-                let errIndex = 0;
-                try {
-                  const binding = this.mapSimpleBindingToWorkgroupBinding({
-                    user: contributor,
-                    namespace,
-                    role: 'contributor',
-                  });
-                  const {headers} = req;
-                  delete headers['content-length'];
-                  await this.profilesService
-                    .createBinding(binding, {headers});
-                  errIndex++;
-                  const users = await this.getContributors(namespace);
-                  res.json(users);
-                } catch(err) {
-                  const errMessage = [
-                    `Unable to add new contributor for ${namespace}: ${err.stack || err}`,
-                    `Unable to fetch contributors for ${namespace}: ${err.stack || err}`,
-                  ][errIndex];
-                  this.surfaceProfileControllerErrors({
-                    res,
-                    msg: errMessage,
-                    err,
-                  });
-                }
-              })
-        .delete(
-              '/remove-contributor/:namespace',
-              async (req: Request, res: Response) => {
-                const {namespace} = req.params;
-                const {contributor} = req.body as AddOrRemoveContributorRequest;
-                if (!contributor || !namespace) {
-                  return apiError({
-                    res,
-                    error: `Missing contributor / namespace fields.`,
-                  });
-                }
-                if (!EMAIL_RGX.test(contributor)) {
-                  return apiError({
-                    res,
-                    error: `Contributor doesn't look like a valid email address`,
-                  });
-                }
-                let errIndex = 0;
-                try {
-                  const binding = this.mapSimpleBindingToWorkgroupBinding({
-                    user: contributor,
-                    namespace,
-                    role: 'contributor',
-                  });
-                  const {headers} = req;
-                  delete headers['content-length'];
-                  await this.profilesService
-                    .deleteBinding(binding, {headers});
-                  errIndex++;
-                  const users = await this.getContributors(namespace);
-                  res.json(users);
-                } catch(err) {
-                  const errMessage = [
-                    `Unable to remove contributor for ${namespace}: ${err.stack || err}`,
-                    `Unable to fetch contributors for ${namespace}: ${err.stack || err}`,
-                  ][errIndex];
-                  this.surfaceProfileControllerErrors({
-                    res,
-                    msg: errMessage,
-                    err,
-                  });
-                }
-              });
+        .use('/workgroup', contributorAPI(this.profilesService))
+        .use((req: Request, res: Response, next: NextFunction) => {
+          res.status(404).json(`Could not find the route you're looking for`);
+        });
   }
 }

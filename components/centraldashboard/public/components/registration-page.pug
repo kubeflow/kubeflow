@@ -1,4 +1,4 @@
-iron-ajax#MakeNamespace(method='POST', url='/api/create-workgroup', handle-as='json', last-error='{{error}}', last-response='{{resp}}',
+iron-ajax#MakeNamespace(method='POST', url='/api/workgroup/create', handle-as='json', last-error='{{error}}', last-response='{{resp}}',
     on-response='_successSetup', content-type='application/json', loading='{{submittingWorkgroup}}', on-input='clearInvalidation')
 paper-card#MainCard
     figure#Logo !{logo}

@@ -301,7 +301,7 @@ describe('Dashboard API', () => {
             'Unable to determine system-assigned port for test API server');
       }
       port = addressInfo.port;
-      url = `http://localhost:${port}/api/create-workgroup`;
+      url = `http://localhost:${port}/api/workgroup/create`;
     });
 
     it('Should return a 405 status for a non-identity aware cluster',
