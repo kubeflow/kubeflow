@@ -23,7 +23,6 @@ import (
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
 	"github.com/gogo/protobuf/proto"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
@@ -41,21 +40,21 @@ import (
 	"google.golang.org/api/serviceusage/v1"
 	"io"
 	"io/ioutil"
-	"k8s.io/api/v2/core/v1"
-	rbacv1 "k8s.io/api/v2/rbac/v1"
+	"k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	k8serrors "k8s.io/apimachinery/v2/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/v2/pkg/runtime/schema"
-	"k8s.io/apimachinery/v2/pkg/runtime/serializer"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/discovery/cached"
+	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	restv2 "k8s.io/client-go/rest"
+	"k8s.io/client-go/restmapper"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"k8s.io/client-go/v2/discovery"
-	"k8s.io/client-go/v2/discovery/cached"
-	clientset "k8s.io/client-go/v2/kubernetes"
-	"k8s.io/client-go/v2/kubernetes/scheme"
-	restv2 "k8s.io/client-go/v2/rest"
-	"k8s.io/client-go/v2/restmapper"
 	"math/rand"
 	"net/http"
 	"os"
@@ -85,7 +84,7 @@ const (
 	KUBECONFIG_FORMAT = "gke_{project}_{zone}_{cluster}"
 
 	// Plugin parameter constants
-	GcpPluginName               = kftypes.GCP
+	GcpPluginName               = kftypesv2.GCP
 	GcpAccessTokenName          = "accessToken"
 	BasicAuthPasswordSecretName = "password"
 )
@@ -128,7 +127,7 @@ type dmOperationEntry struct {
 }
 
 // GetPlatform returns the gcp kfapp. It's called by coordinator.GetPlatform
-func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
+func GetPlatform(kfdef *kfdefs.KfDef) (kftypesv2.Platform, error) {
 	_gcp := &Gcp{
 		kfDef:            kfdef,
 		gcpAccountGetter: GetGcloudDefaultAccount,
@@ -549,7 +548,7 @@ func (gcp *Gcp) AddNamedContext() error {
 	name = strings.Replace(name, "{cluster}", gcp.kfDef.Name, 1)
 	log.Infof("KUBECONFIG name is %v", name)
 
-	buf, err := ioutil.ReadFile(kftypes.KubeConfigPath())
+	buf, err := ioutil.ReadFile(kftypesv2.KubeConfigPath())
 	if err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
@@ -637,7 +636,7 @@ func (gcp *Gcp) AddNamedContext() error {
 			Message: fmt.Sprintf("Error when marshaling KUBECONFIG: %v", err),
 		}
 	}
-	if err = ioutil.WriteFile(kftypes.KubeConfigPath(), buf, 0644); err != nil {
+	if err = ioutil.WriteFile(kftypesv2.KubeConfigPath(), buf, 0644); err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("Error when writing KUBECONFIG: %v", err),
@@ -648,7 +647,7 @@ func (gcp *Gcp) AddNamedContext() error {
 	return nil
 }
 
-func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
+func (gcp *Gcp) updateDM(resources kftypesv2.ResourceEnum) error {
 	ctx := context.Background()
 	gcpClient := oauth2.NewClient(ctx, gcp.tokenSource)
 	dmOperationEntries := []*dmOperationEntry{}
@@ -770,7 +769,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 				Message: fmt.Sprintf("Error when running gcloud container clusters get-credentials: %v", err),
 			}
 		}
-		if _, err := os.Stat(kftypes.KubeConfigPath()); !os.IsNotExist(err) {
+		if _, err := os.Stat(kftypesv2.KubeConfigPath()); !os.IsNotExist(err) {
 			gcp.AddNamedContext()
 		}
 	} else {
@@ -781,7 +780,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 
 // Apply applies the gcp kfapp.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
-func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
+func (gcp *Gcp) Apply(resources kftypesv2.ResourceEnum) error {
 	if err := gcp.initGcpClient(); err != nil {
 		log.Errorf("There was a problem initializing the GCP client; %v", err)
 		return errors.WithMessagef(err, "Gcp.Apply Could not initatie a GCP client")
@@ -961,7 +960,7 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 	}, newDefaultBackoff())
 }
 
-func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
+func (gcp *Gcp) Delete(resources kftypesv2.ResourceEnum) error {
 	if err := gcp.initGcpClient(); err != nil {
 		log.Errorf("There was a problem initializing the GCP client; %v", err)
 		return errors.WithMessagef(err, "Gcp.gcpInitProject Could not initatie a GCP client")
@@ -1178,7 +1177,7 @@ func (gcp *Gcp) writeClusterConfig(src string, dest string, gcpPluginSpec GcpPlu
 		} else {
 			properties = make(map[string]interface{})
 		}
-		properties["gkeApiVersion"] = kftypes.DefaultGkeApiVer
+		properties["gkeApiVersion"] = kftypesv2.DefaultGkeApiVer
 		properties["zone"] = gcp.kfDef.Spec.Zone
 		properties["users"] = []string{
 			gcp.getIapAccount(),
@@ -1283,10 +1282,10 @@ func (gcp *Gcp) generateDMConfigs() error {
 			Message: fmt.Sprintf("cannot create directory %v", gcpConfigDirErr),
 		}
 	}
-	repo, ok := gcp.kfDef.Status.ReposCache[kftypes.KubeflowRepoName]
+	repo, ok := gcp.kfDef.Status.ReposCache[kftypesv2.KubeflowRepoName]
 
 	if !ok {
-		err := fmt.Errorf("Repo %v not found in KfDef.Status.ReposCache", kftypes.KubeflowRepoName)
+		err := fmt.Errorf("Repo %v not found in KfDef.Status.ReposCache", kftypesv2.KubeflowRepoName)
 		log.Errorf("%v", err)
 		return errors.WithStack(err)
 	}
@@ -1866,11 +1865,11 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 
 		if gcp.kfDef.Spec.UseBasicAuth {
 			pluginSpec.Auth.BasicAuth = &BasicAuth{}
-			pluginSpec.Auth.BasicAuth.Username = os.Getenv(kftypes.KUBEFLOW_USERNAME)
+			pluginSpec.Auth.BasicAuth.Username = os.Getenv(kftypesv2.KUBEFLOW_USERNAME)
 
 			if pluginSpec.Auth.BasicAuth.Username == "" {
-				log.Errorf("Could not configure basic auth; environment variable %s not set", kftypes.KUBEFLOW_USERNAME)
-				return errors.WithStack(fmt.Errorf("Could not configure basic auth; environment variable %s not set", kftypes.KUBEFLOW_USERNAME))
+				log.Errorf("Could not configure basic auth; environment variable %s not set", kftypesv2.KUBEFLOW_USERNAME)
+				return errors.WithStack(fmt.Errorf("Could not configure basic auth; environment variable %s not set", kftypesv2.KUBEFLOW_USERNAME))
 			}
 
 			pluginSpec.Auth.BasicAuth.Password = &kfdefs.SecretRef{
@@ -1881,7 +1880,7 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 				Name: BasicAuthPasswordSecretName,
 				SecretSource: &kfdefs.SecretSource{
 					EnvSource: &kfdefs.EnvSource{
-						Name: kftypes.KUBEFLOW_PASSWORD,
+						Name: kftypesv2.KUBEFLOW_PASSWORD,
 					},
 				},
 			})
@@ -1915,7 +1914,7 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 
 // Generate generates the gcp kfapp manifest.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
-func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
+func (gcp *Gcp) Generate(resources kftypesv2.ResourceEnum) error {
 	if err := gcp.kfDef.SyncCache(); err != nil {
 		log.Errorf("Failed to synchronize the cache; error %v", err)
 		return errors.WithStack(err)
@@ -1950,9 +1949,9 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	}
 
 	switch resources {
-	case kftypes.ALL:
+	case kftypesv2.ALL:
 		fallthrough
-	case kftypes.PLATFORM:
+	case kftypesv2.PLATFORM:
 		gcpConfigFilesErr := gcp.generateDMConfigs()
 		if gcpConfigFilesErr != nil {
 
@@ -2031,7 +2030,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	if createConfigErr != nil {
 		return &kfapis.KfError{
 			Code: createConfigErr.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("cannot create config file %v in %v: %v", kftypes.KfConfigFile, gcp.kfDef.Spec.AppDir,
+			Message: fmt.Sprintf("cannot create config file %v in %v: %v", kftypesv2.KfConfigFile, gcp.kfDef.Spec.AppDir,
 				createConfigErr.(*kfapis.KfError).Message),
 		}
 	}
@@ -2112,9 +2111,9 @@ func (gcp *Gcp) gcpInitProject() error {
 }
 
 // Init initializes a gcp kfapp
-func (gcp *Gcp) Init(resources kftypes.ResourceEnum) error {
+func (gcp *Gcp) Init(resources kftypesv2.ResourceEnum) error {
 	// TODO(jlewi): Can we get rid of this now that we ware using kustomize?
-	swaggerFile := filepath.Join(path.Dir(gcp.kfDef.Spec.Repo), kftypes.DefaultSwaggerFile)
+	swaggerFile := filepath.Join(path.Dir(gcp.kfDef.Spec.Repo), kftypesv2.DefaultSwaggerFile)
 	gcp.kfDef.Spec.ServerVersion = "file:" + swaggerFile
 	createConfigErr := gcp.kfDef.WriteToConfigFile()
 	if createConfigErr != nil {

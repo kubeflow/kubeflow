@@ -2,9 +2,9 @@
 package fake
 
 import (
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	gcpFake "github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp/fake"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	gcpFake "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/gcp/fake"
 	"path"
 )
 

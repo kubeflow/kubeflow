@@ -2,12 +2,11 @@ package coordinator
 
 import (
 	"encoding/json"
-	config "github.com/kubeflow/kubeflow/bootstrap/config"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	config "github.com/kubeflow/kubeflow/bootstrap/v2/config"
 	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"io/ioutil"
-	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"path"
 	"reflect"
@@ -104,9 +103,9 @@ func Test_backfillKfDefFromInitOptions(t *testing.T) {
 			Name:  "Case 1",
 			Input: kfdefsv2.KfDef{},
 			Options: map[string]interface{}{
-				string(kftypes.PROJECT):        "someproject",
-				string(kftypes.USE_BASIC_AUTH): true,
-				string(kftypes.PLATFORM):       kftypes.GCP,
+				string(kftypesv2.PROJECT):        "someproject",
+				string(kftypesv2.USE_BASIC_AUTH): true,
+				string(kftypesv2.PLATFORM):       kftypesv2.GCP,
 			},
 			Expected: kfdefsv2.KfDef{
 				Spec: kfdefsv2.KfDefSpec{
@@ -132,8 +131,8 @@ func Test_backfillKfDefFromInitOptions(t *testing.T) {
 				},
 			},
 			Options: map[string]interface{}{
-				string(kftypes.PROJECT):  "newproject",
-				string(kftypes.PLATFORM): kftypes.GCP,
+				string(kftypesv2.PROJECT):  "newproject",
+				string(kftypesv2.PLATFORM): kftypesv2.GCP,
 			},
 			Expected: kfdefsv2.KfDef{
 				Spec: kfdefsv2.KfDefSpec{
@@ -154,14 +153,14 @@ func Test_backfillKfDefFromInitOptions(t *testing.T) {
 				Spec: kfdefsv2.KfDefSpec{},
 			},
 			Options: map[string]interface{}{
-				string(kftypes.PACKAGE_MANAGER): kftypes.KUSTOMIZE,
+				string(kftypesv2.PACKAGE_MANAGER): kftypesv2.KUSTOMIZE,
 			},
 			Expected: kfdefsv2.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "someapp",
 				},
 				Spec: kfdefsv2.KfDefSpec{
-					PackageManager: kftypes.KUSTOMIZE,
+					PackageManager: kftypesv2.KUSTOMIZE,
 					Repos: []kfdefsv2.Repo{
 						{
 							Name: "manifests",
@@ -182,14 +181,14 @@ func Test_backfillKfDefFromInitOptions(t *testing.T) {
 				Spec: kfdefsv2.KfDefSpec{},
 			},
 			Options: map[string]interface{}{
-				string(kftypes.PACKAGE_MANAGER): kftypes.KUSTOMIZE + "@12345",
+				string(kftypesv2.PACKAGE_MANAGER): kftypesv2.KUSTOMIZE + "@12345",
 			},
 			Expected: kfdefsv2.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "someapp",
 				},
 				Spec: kfdefsv2.KfDefSpec{
-					PackageManager: kftypes.KUSTOMIZE,
+					PackageManager: kftypesv2.KUSTOMIZE,
 					Repos: []kfdefsv2.Repo{
 						{
 							Name: "manifests",
@@ -239,10 +238,10 @@ func Test_backfillKfDefFromGenerateOptions(t *testing.T) {
 				},
 			},
 			Options: map[string]interface{}{
-				string(kftypes.EMAIL):    "user@kubeflow.org",
-				string(kftypes.IPNAME):   "someip",
-				string(kftypes.HOSTNAME): "somehost",
-				string(kftypes.ZONE):     "somezone",
+				string(kftypesv2.EMAIL):    "user@kubeflow.org",
+				string(kftypesv2.IPNAME):   "someip",
+				string(kftypesv2.HOSTNAME): "somehost",
+				string(kftypesv2.ZONE):     "somezone",
 			},
 			Expected: kfdefsv2.KfDef{
 				Spec: kfdefsv2.KfDefSpec{
@@ -273,10 +272,10 @@ func Test_backfillKfDefFromGenerateOptions(t *testing.T) {
 				},
 			},
 			Options: map[string]interface{}{
-				string(kftypes.EMAIL):    "newuser@kubeflow.org",
-				string(kftypes.IPNAME):   "newip",
-				string(kftypes.HOSTNAME): "newhost",
-				string(kftypes.ZONE):     "newezone",
+				string(kftypesv2.EMAIL):    "newuser@kubeflow.org",
+				string(kftypesv2.IPNAME):   "newip",
+				string(kftypesv2.HOSTNAME): "newhost",
+				string(kftypesv2.ZONE):     "newezone",
 			},
 			Expected: kfdefsv2.KfDef{
 				Spec: kfdefsv2.KfDefSpec{

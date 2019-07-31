@@ -2,12 +2,12 @@ package kustomize
 
 import (
 	"bytes"
-	"github.com/kubeflow/kubeflow/bootstrap/config"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/config"
 	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
 	"github.com/otiai10/copy"
 	"io/ioutil"
-	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"path"
 	"reflect"
 	"testing"
