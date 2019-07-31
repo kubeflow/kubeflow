@@ -254,7 +254,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error
 
 	// Push to source repo.
 	if sourceRepo != nil {
-		if err = sourceRepo.CommitAndPushRepo(r.Spec.Email, r.Spec.AppDir); err != nil {
+		if err = sourceRepo.CommitAndPushRepo(r.Spec.Email, r.Spec.AppDir, r.Name); err != nil {
 			log.Errorf("Pushing configs to source repo failed; %v", err)
 		}
 	}

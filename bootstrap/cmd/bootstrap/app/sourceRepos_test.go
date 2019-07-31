@@ -80,7 +80,7 @@ func TestSourceRepos_test(t *testing.T) {
 
 	email := "test@kubeflow.org"
 
-	if errNew := s.CommitAndPushRepo(email, s.localDir); errNew != nil {
+	if errNew := s.CommitAndPushRepo(email, s.localDir, "branch"); errNew != nil {
 		t.Fatalf("Error copying and pushing the repo; %v", errNew)
 	}
 }

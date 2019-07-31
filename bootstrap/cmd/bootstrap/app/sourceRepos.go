@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"github.com/cenkalti/backoff"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 	"io/ioutil"
 	//"github.com/otiai10/copy"
 	"github.com/pkg/errors"
@@ -119,13 +120,13 @@ func NewSourceRepo(ctx context.Context, project string, appsDir string, repoName
 		}
 	}
 
-	r, err := git.PlainOpen(path.Join(localDir))
+	s.r, err = git.PlainOpen(path.Join(localDir))
 	if err != nil {
 		log.Errorf("Error opening the git repository; error %v", err)
 		return nil, errors.WithStack(err)
 	}
 
-	remotes, err := r.Remotes()
+	remotes, err := s.r.Remotes()
 
 	if err != nil {
 		log.Errorf("Could not get remotes; error %v", err)
@@ -141,7 +142,7 @@ func NewSourceRepo(ctx context.Context, project string, appsDir string, repoName
 	}
 
 	if !hasRemote {
-		_, err := r.CreateRemote(&config.RemoteConfig{
+		_, err := s.r.CreateRemote(&config.RemoteConfig{
 			Name: RemoteName,
 			URLs: []string{
 				url,
@@ -189,7 +190,7 @@ func (s *SourceRepo) remoteUrl() (string, error) {
 // CommitAndPush repo commits any changes and pushes them.
 //
 // Not thread safe, be aware when call it.
-func (s *SourceRepo) CommitAndPushRepo(email string, commitPath string) error {
+func (s *SourceRepo) CommitAndPushRepo(email string, commitPath string, branch string) error {
 	w, err := s.r.Worktree()
 
 	if err != nil {
@@ -230,8 +231,32 @@ func (s *SourceRepo) CommitAndPushRepo(email string, commitPath string) error {
 		return errors.WithStack(err)
 	}
 
+	// Create a new branch
+	headRef, err := s.r.Head()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	// Create a new plumbing.HashReference object with the name of the branch
+	// and the hash from the HEAD. The reference name should be a full reference
+	// name and not an abbreviated one, as is used on the git cli.
+	//
+	// For tags we should use `refs/tags/%s` instead of `refs/heads/%s` used
+	// for branches.
+	refName := plumbing.ReferenceName(fmt.Sprintf("refs/heads/%v", branch))
+	ref := plumbing.NewHashReference(refName, headRef.Hash())
+
+	// The created reference is saved in the storage.
+	err = s.r.Storer.SetReference(ref)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	//Push local branch to remote.
 	if err := s.r.Push(&git.PushOptions{
 		RemoteName: RemoteName,
+		RefSpecs: []config.RefSpec{config.RefSpec(fmt.Sprintf("refs/heads/%v:refs/remotes/origin/%v",
+			branch, branch))},
 	}); err != nil {
 		return errors.WithStack(err)
 	}
