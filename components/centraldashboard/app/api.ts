@@ -1,10 +1,10 @@
 import {V1Namespace} from '@kubernetes/client-node';
-import {Router, Request, Response, NextFunction} from 'express';
+import {Router, Request, Response} from 'express';
 
 import {Binding as WorkgroupBinding, DefaultApi} from './clients/profile_controller';
 import {KubernetesService, PlatformInfo} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
-import {contributorAPI} from './api_contributors';
+import {ContributorAPI} from './api_contributors';
 
 interface SimpleBinding {
   namespace: string;
@@ -30,18 +30,16 @@ interface HasWorkgroupResponse {
   hasWorkgroup: boolean;
 }
 
-export const roleMap = {
-  admin: 'owner',
-  edit: 'contributor',
-  tr(a: string) {
-    return this[a] || a;
-  },
-  reverse(value: string) {
-    return Object.keys(this)
-      .find((k) => (this[k] === value));
-  }
-};
 
+export type SimpleRole = 'owner'| 'contributor';
+export type WorkgroupRole = 'admin' | 'edit';
+export type Role = SimpleRole | WorkgroupRole;
+export const roleMap: ReadonlyMap<Role, Role> = new Map([
+  ['admin', 'owner'],
+  ['owner', 'admin'],
+  ['edit', 'contributor'],
+  ['contributor', 'edit'],
+]);
 
 export const ERRORS = {
   operation_not_supported: 'Operation not supported'
@@ -62,7 +60,7 @@ export function mapWorkgroupBindingToSimpleBinding (bindings: WorkgroupBinding[]
   return bindings.map((n) => ({
     user: n.user.name,
     namespace: n.referredNamespace,
-    role: roleMap.tr(n.roleRef.name),
+    role: roleMap.get(n.roleRef.name as Role) as SimpleRole,
   }));
 }
 
@@ -74,7 +72,7 @@ export function mapNamespacesToSimpleBinding (user: string, namespaces: V1Namesp
   return namespaces.map((n) => ({
     user,
     namespace: n.metadata.name,
-    role: roleMap.tr('edit'),
+    role: roleMap.get('edit') as SimpleRole,
   }));
 }
 
@@ -91,18 +89,21 @@ export function mapSimpleBindingToWorkgroupBinding (binding: SimpleBinding): Wor
     referredNamespace: namespace,
     roleRef: {
       kind: 'ClusterRole',
-      name: roleMap.reverse(role),
+      name: roleMap.get(role) as WorkgroupRole,
     }
   };
 }
 
 export class Api {
   private platformInfo: PlatformInfo;
+  private contribApi: ContributorAPI;
 
   constructor(
     private k8sService: KubernetesService,
     private profilesService: DefaultApi,
-    private metricsService?: MetricsService) {}
+    private metricsService?: MetricsService) {
+      this.contribApi = new ContributorAPI(this.profilesService);
+    }
 
   /** Retrieves and memoizes the PlatformInfo. */
   private async getPlatformInfo(): Promise<PlatformInfo> {
@@ -233,8 +234,8 @@ export class Api {
               res.json(await this.k8sService.getEventsForNamespace(
                   req.params.namespace));
             })
-        .use('/workgroup', contributorAPI(this.profilesService))
-        .use((req: Request, res: Response, next: NextFunction) => {
+        .use('/workgroup', this.contribApi.routes())
+        .use((req: Request, res: Response) => {
           res.status(404).json(`Could not find the route you're looking for`);
         });
   }
