@@ -78,6 +78,8 @@ spec:
     tf-job-operator:
     - name: overlay
       value: istio
+    - name: overlay
+      value: application
     seldon-core-operator:
     - name: overlay
       value: application
