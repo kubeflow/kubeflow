@@ -113,6 +113,10 @@ func NewSourceRepo(ctx context.Context, project string, appsDir string, repoName
 	if isGitRepo(localDir) {
 		log.Infof("%v is already a git repository", localDir)
 	} else {
+		if _, err := os.Stat(localDir); err == nil {
+			// Local repo exist, but not git repo.
+			return nil, errors.Wrapf(err, "Local repo exist, but not git repo. Will skip syncing source repo")
+		}
 		log.Infof("Clone source repo to %v.", localDir)
 		if err := runCmdFromDir(fmt.Sprintf("git clone %v", url), appsDir); err != nil {
 			log.Errorf("Failed to clone git repository; error %v", err)
