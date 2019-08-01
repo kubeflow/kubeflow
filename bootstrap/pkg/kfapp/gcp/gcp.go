@@ -521,6 +521,10 @@ func (gcp *Gcp) ConfigK8s() error {
 	if err = createNamespace(k8sClientset, gcp.getIstioNamespace()); err != nil {
 		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create istio namespace"))
 	}
+	defaultNamespace := kftypesv2.EmailToDefaultName(gcp.kfDef.Spec.Email)
+	if err = createNamespace(k8sClientset, defaultNamespace); err != nil {
+		return err
+	}
 	// For deploy app, request will use service account credential instead of user credential.
 	bindAccount := gcp.kfDef.Spec.Email
 
