@@ -54,6 +54,7 @@ vaadin-grid {
     padding: .5em;
     position: relative;
     flex-wrap: wrap;
+    min-height: 2.5em;
     @apply --layout-horizontal;
 }
 #Contribs[error] {
