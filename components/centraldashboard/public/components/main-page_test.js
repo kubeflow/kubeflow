@@ -176,31 +176,19 @@ describe('Main Page', () => {
     it('Sets information when platform info is received', async () => {
         const namespaces = [
             {
-                user: {kind: 'user', name: 'testuser'},
-                referredNamespace: 'default',
-                roleRef: {
-                    apiGroup: '',
-                    kind: 'ClusterRole',
-                    name: 'editor',
-                },
+                user: 'testuser',
+                namespace: 'default',
+                role: 'editor',
             },
             {
-                user: {kind: 'user', name: 'testuser'},
-                referredNamespace: 'kubeflow',
-                roleRef: {
-                    apiGroup: '',
-                    kind: 'ClusterRole',
-                    name: 'editor',
-                },
+                user: 'testuser',
+                namespace: 'kubeflow',
+                role: 'editor',
             },
             {
-                user: {kind: 'user', name: 'testuser'},
-                referredNamespace: 'namespace-2',
-                roleRef: {
-                    apiGroup: '',
-                    kind: 'ClusterRole',
-                    name: 'editor',
-                },
+                user: 'testuser',
+                namespace: 'namespace-2',
+                role: 'editor',
             },
         ];
         const user = 'anonymous@kubeflow.org';

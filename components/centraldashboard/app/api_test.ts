@@ -96,14 +96,14 @@ describe('Dashboard API', () => {
            isClusterAdmin: true,
            namespaces: [
              {
-               user: {kind: 'user', name: 'anonymous@kubeflow.org'},
-               referredNamespace: 'default',
-               roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'editor'}
+               user: 'anonymous@kubeflow.org',
+               namespace: 'default',
+               role: 'contributor',
              },
              {
-               user: {kind: 'user', name: 'anonymous@kubeflow.org'},
-               referredNamespace: 'kubeflow',
-               roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'editor'}
+               user: 'anonymous@kubeflow.org',
+               namespace: 'kubeflow',
+               role: 'contributor',
              },
            ],
          };
@@ -134,7 +134,7 @@ describe('Dashboard API', () => {
                  bindings: [{
                    user: {kind: 'user', name: 'test@testdomain.com'},
                    referredNamespace: 'test',
-                   roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'editor'}
+                   roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'edit'}
                  }]
                },
              }));
@@ -152,9 +152,9 @@ describe('Dashboard API', () => {
            isClusterAdmin: false,
            namespaces: [
              {
-               user: {kind: 'user', name: 'test@testdomain.com'},
-               referredNamespace: 'test',
-               roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'editor'}
+               user: 'test@testdomain.com',
+               namespace: 'test',
+               role: 'contributor',
              },
            ],
          };
@@ -181,7 +181,7 @@ describe('Dashboard API', () => {
               bindings: [{
                 user: {kind: 'user', name: 'test@testdomain.com'},
                 referredNamespace: 'test',
-                roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'editor'}
+                roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'edit'}
               }]
             },
           }));
@@ -241,7 +241,7 @@ describe('Dashboard API', () => {
                  bindings: [{
                    user: {kind: 'user', name: 'test@testdomain.com'},
                    referredNamespace: 'test',
-                   roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'editor'}
+                   roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'admin'}
                  }]
                },
              }));

@@ -47,7 +47,7 @@ export const ERRORS = {
   operation_not_supported: 'Operation not supported'
 };
 
-export const apiError = (a: {res: Response, error: string, code?: number}) => {
+export function apiError (a: {res: Response, error: string, code?: number}) {
   const {res, error} = a;
   const code = a.code || 400;
   return res.status(code).json({
@@ -58,7 +58,7 @@ export const apiError = (a: {res: Response, error: string, code?: number}) => {
 /**
  * Converts Workgroup Binding from Profile Controller to SimpleBinding
  */
-export const mapWorkgroupBindingToSimpleBinding = (bindings: WorkgroupBinding[]): SimpleBinding[] => {
+export function mapWorkgroupBindingToSimpleBinding (bindings: WorkgroupBinding[]): SimpleBinding[] {
   return bindings.map((n) => ({
     user: n.user.name,
     namespace: n.referredNamespace,
@@ -70,7 +70,7 @@ export const mapWorkgroupBindingToSimpleBinding = (bindings: WorkgroupBinding[])
  * Converts Kubernetes Namespace types to SimpleBinding to ensure
  * compatibility between identity-aware and non-identity aware clusters
  */
-export const mapNamespacesToSimpleBinding = (user: string, namespaces: V1Namespace[]): SimpleBinding[] => {
+export function mapNamespacesToSimpleBinding (user: string, namespaces: V1Namespace[]): SimpleBinding[] {
   return namespaces.map((n) => ({
     user,
     namespace: n.metadata.name,
@@ -81,7 +81,7 @@ export const mapNamespacesToSimpleBinding = (user: string, namespaces: V1Namespa
 /**
  * Converts SimpleBinding to Workgroup Binding from Profile Controller
  */
-export const mapSimpleBindingToWorkgroupBinding = (binding: SimpleBinding): WorkgroupBinding => {
+export function mapSimpleBindingToWorkgroupBinding (binding: SimpleBinding): WorkgroupBinding {
   const {user, namespace, role} = binding;
   return {
     user: {
