@@ -162,6 +162,7 @@ spec:
     - kustomizeConfig:
         overlays:
           - istio
+          - application
         repoRef:
           name: manifests
           path: tf-training/tf-job-operator
