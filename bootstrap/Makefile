@@ -84,8 +84,18 @@ v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: v2/pkg/apis/apps/kfdef
 
 deepcopy: ${GOPATH}/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go 
 
+build-bootstrap-clean:
+	# Allow go clean and mod download to fail since they require /tmp/v2
+	${GO} mod download || echo "skipping mod download"
+	${GO} clean cmd/bootstrap/main.go || echo "skipping bootstrap clean"
+
 build-bootstrap: /tmp/v2 deepcopy generate fmt vet
 	${GO} build -gcflags '-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+
+build-kfctl-clean:
+	# Allow go clean and mod download to fail since they require /tmp/v2
+	${GO} mod download || echo "skipping mod download"
+	${GO} clean cmd/kfctl/main.go || echo "skipping kfctl clean"
 
 build-kfctl: /tmp/v2 deepcopy generate fmt vet
 	${GO} build -i -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctl cmd/kfctl/main.go
@@ -214,8 +224,8 @@ build-bootstrap-dev-gcb:
 
 #***************************************************************************************************
 
-clean: 
-	rm -rf test && rm -rf /tmp/v2 && mkdir test
+clean: build-kfctl-clean build-bootstrap-clean
+	rm -rf test && rm -rf /tmp/v2 && mkdir test && rm -rf bin && mkdir bin
 
 doc:
 	doctoc ./cmd/kfctl/README.md README.md k8sSpec/README.md developer_guide.md
