@@ -53,7 +53,7 @@ export function apiError (a: {res: Response, error: string, code?: number}) {
   return res.status(code).json({
     error,
   });
-};
+}
 
 /**
  * Converts Workgroup Binding from Profile Controller to SimpleBinding
@@ -64,7 +64,7 @@ export function mapWorkgroupBindingToSimpleBinding (bindings: WorkgroupBinding[]
     namespace: n.referredNamespace,
     role: roleMap.tr(n.roleRef.name),
   }));
-};
+}
 
 /**
  * Converts Kubernetes Namespace types to SimpleBinding to ensure
@@ -76,7 +76,7 @@ export function mapNamespacesToSimpleBinding (user: string, namespaces: V1Namesp
     namespace: n.metadata.name,
     role: roleMap.tr('edit'),
   }));
-};
+}
 
 /**
  * Converts SimpleBinding to Workgroup Binding from Profile Controller
@@ -94,7 +94,7 @@ export function mapSimpleBindingToWorkgroupBinding (binding: SimpleBinding): Wor
       name: roleMap.reverse(role),
     }
   };
-};
+}
 
 export class Api {
   private platformInfo: PlatformInfo;
