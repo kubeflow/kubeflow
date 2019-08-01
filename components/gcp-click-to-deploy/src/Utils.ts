@@ -1,7 +1,6 @@
 import * as bcrypt from 'bcryptjs';
 
-const GITHUB_BASE_URL =
-    'https://raw.githubusercontent.com/kubeflow/kubeflow/master/';
+const GITHUB_BASE_URL = 'https://raw.githubusercontent.com/kubeflow/kubeflow/';
 
 export function log(...args: any[]) {
   // tslint:disable-next-line:no-console

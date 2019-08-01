@@ -18,8 +18,8 @@ import {encryptPassword, flattenDeploymentOperationError, getFileContentsFromGit
 
 /** Relative paths from the root of the repository. */
 enum ConfigPath {
-    V05 = 'components/gcp-click-to-deploy/app-config.yaml',
-    V06 = 'bootstrap/config/kfctl_gcp_iap.0.6.yaml'
+    V05 = 'v0.5-branch/components/gcp-click-to-deploy/app-config.yaml',
+    V06 = 'v0.6-branch/bootstrap/config/kfctl_gcp_iap.0.6.yaml'
 }
 
 /** Versions available for deployment. */
@@ -201,7 +201,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             zone: 'us-central1-a',
         };
 
-        this.versionChanged = this.versionChanged.bind(this);
+        this._versionChanged = this._versionChanged.bind(this);
     }
 
     public async componentDidMount() {
@@ -226,7 +226,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             });
         }
         // By default, load the v0.6.0 specification
-        this.loadConfigFile(ConfigPath.V06);
+        this._loadConfigFile(ConfigPath.V06);
     }
 
     public render() {
@@ -309,7 +309,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
                 <div style={styles.row}>
                     <TextField select={true} label="Kubeflow version:" required={true} style={styles.input} variant="filled"
-                        value={this.state.kfversion} onChange={this.versionChanged}>
+                        value={this.state.kfversion} onChange={this._versionChanged}>
                         {this.state.kfversionList.map((version, i) => (
                             <MenuItem key={i} value={version}>{version}</MenuItem>
                         ))
@@ -417,8 +417,103 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             return;
         }
 
+        const email = await Gapi.getSignedInEmail() || '';
+        if (this.state.kfversion === Version.V06) {
+            return this._getV6Yaml(email);
+        } else {
+            return this._getV5Yaml(email);
+        }
+    }
+
+    private _getV5Yaml(email: string) {
         const state = this.state;
-        const email = await Gapi.getSignedInEmail() as string;
+        for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
+            const p = this._configSpec.defaultApp.parameters[i];
+            if (p.name === 'ipName') {
+                p.value = this.state.deploymentName + '-ip';
+            }
+
+            if (p.name === 'hostname') {
+                p.value = state.deploymentName + '.endpoints.' + state.project + '.cloud.goog';
+            }
+
+            if (p.name === 'acmeEmail') {
+                p.value = email;
+            }
+
+        }
+        this._configSpec.defaultApp.registries[0].version = this.state.kfversion;
+
+        // Make copy of this._configSpec before conditional changes.
+        const configSpec = JSON.parse(JSON.stringify(this._configSpec));
+
+        // Customize config for v0.4.1 compatibility
+        // TODO: remove after fully switch to kfctl / new deployment API is alive.
+        if (this.state.kfversion.startsWith('v0.4.1')) {
+            const removeComps = ['gcp-credentials-admission-webhook', 'gpu-driver', 'notebook-controller'];
+            for (let i = 0, len = removeComps.length; i < len; i++) {
+                this._removeComponent(removeComps[i], configSpec);
+            }
+            for (let i = 0, len = configSpec.defaultApp.components.length; i < len; i++) {
+                const component = configSpec.defaultApp.components[i];
+                if (component.name === 'jupyter-web-app') {
+                    component.name = 'jupyter';
+                    component.prototype = 'jupyter';
+                    break;
+                }
+            }
+            configSpec.defaultApp.parameters.push({
+                component: 'jupyter',
+                name: 'jupyterHubAuthenticator',
+                value: 'iap'
+            });
+            configSpec.defaultApp.parameters.push({
+                component: 'jupyter',
+                name: 'platform',
+                value: 'gke'
+            });
+        }
+
+        if (this.state.ingress !== IngressType.Iap) {
+            for (let i = 0, len = configSpec.defaultApp.components.length; i < len; i++) {
+                const p = configSpec.defaultApp.components[i];
+                if (p.name === 'iap-ingress') {
+                    p.name = 'basic-auth-ingress';
+                    p.prototype = 'basic-auth-ingress';
+                }
+            }
+            for (let i = 0, len = configSpec.defaultApp.parameters.length; i < len; i++) {
+                const p = configSpec.defaultApp.parameters[i];
+                if (p.component === 'iap-ingress') {
+                    p.component = 'basic-auth-ingress';
+                }
+                if (p.name === 'jupyterHubAuthenticator') {
+                    p.value = 'null';
+                }
+            }
+            configSpec.defaultApp.components.push({
+                name: 'basic-auth',
+                prototype: 'basic-auth',
+            });
+            configSpec.defaultApp.parameters.push({
+                component: 'ambassador',
+                name: 'ambassadorServiceType',
+                value: 'NodePort'
+            });
+        }
+        return configSpec;
+    }
+
+    private _getV6Yaml(email: string) {
+        if (!this.state.deploymentName) {
+            this.setState({
+                dialogAsCode: false,
+                dialogBody: 'All fields are required, but it looks like you missed something.',
+                dialogTitle: 'Missing field',
+            });
+            return;
+        }
+        const state = this.state;
 
         // Make copy of this._configSpec before conditional changes.
         const configSpec = JSON.parse(JSON.stringify(this._configSpec));
@@ -480,6 +575,20 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         return configSpec;
     }
 
+    private _removeComponent(compName: string, configSpec: any) {
+        let rmIdx = -1;
+        for (let i = 0, len = configSpec.defaultApp.components.length; i < len; i++) {
+            const component = configSpec.defaultApp.components[i];
+            if (component.name === compName) {
+                rmIdx = i;
+                break;
+            }
+        }
+        if (rmIdx !== -1) {
+            configSpec.defaultApp.components.splice(rmIdx, 1);
+        }
+    }
+
     private async _toPortForward() {
         const key = 'project';
         if (this.state[key] === '') {
@@ -516,7 +625,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // Create a  Kubeflow deployment.
     private async _createDeployment() {
         try {
-            this.validateInputFields();
+            this._validateInputFields();
         } catch (err) {return;}
 
         this.setState({
@@ -525,7 +634,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
         // Step 1: Enable all necessary GCP services
         try {
-            await this.enableGcpServices();
+            await this._enableGcpServices();
         } catch (err) {
             this._appendLine(
                 'Could not configure communication with GCP, exiting');
@@ -543,10 +652,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         if (this.state.kfversion === Version.V05) {
             // buildEndpoint = `${this._configSpec.appAddress}/kfctl/e2eDeploy`;
             buildEndpoint = '/kfctl/e2eDeploy';
-            requestBody = this.getV5BuildRequest(configSpec);
+            requestBody = this._getV5BuildRequest(configSpec);
         } else {
             buildEndpoint = '/kfctl/apps/v1alpha2/create';
-            requestBody = this.getV6BuildRequest(configSpec);
+            requestBody = this._getV6BuildRequest(configSpec);
         }
 
         try {
@@ -679,7 +788,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
      * Helper method to validate necessary input fields.
      * @throws Error on any invalid condition
      */
-    private validateInputFields(): void {
+    private _validateInputFields(): void {
         const err = new Error('Invalid inputs');
         for (const prop of ['project', 'zone', 'deploymentName']) {
             if (this.state[prop] === '') {
@@ -738,7 +847,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
      * Helper method to enable necessary GCP services to build the deployment.
      * @throws Error on any invalid condition
      */
-    private async enableGcpServices(): Promise<void> {
+    private async _enableGcpServices(): Promise<void> {
         const {project} = this.state;
         // Step 1: Enable required services
         // Enabling takes some time, so we get the list of services that need
@@ -904,7 +1013,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
      * Helper method to facilitate building a v0.5.0 cluster
      * @param configSpec
      */
-    private getV5BuildRequest(configSpec: {defaultApp: string}): string {
+    private _getV5BuildRequest(configSpec: {defaultApp: string}): string {
         const {deploymentName, email, project, projectNumber,
             kfversion, saClientId, saToken} = this.state;
         let createBody = {
@@ -954,7 +1063,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     /**
      * Helper method to facilitate building a v0.6.0 cluster
      */
-    private getV6BuildRequest(configSpec: {spec: KfDefSpec}): string {
+    private _getV6BuildRequest(configSpec: {spec: KfDefSpec}): string {
         const {deploymentName, ingress, permanentStorage, project,
             kfversion, saClientId, saToken, zone} = this.state;
 
@@ -999,7 +1108,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         return JSON.stringify(configSpec);
     }
 
-    private async loadConfigFile(url: string) {
+    private async _loadConfigFile(url: string) {
         this.setState({canSubmit: false});
         try {
             this._configSpec = jsYaml.safeLoad(
@@ -1014,11 +1123,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         }
     }
 
-    private versionChanged(event: React.ChangeEvent<HTMLSelectElement>) {
+    private _versionChanged(event: React.ChangeEvent<HTMLSelectElement>) {
         const kfversion = event.target.value;
         const configUrl = kfversion === Version.V05 ?
             ConfigPath.V05 : ConfigPath.V06;
-        this.loadConfigFile(configUrl);
+        this._loadConfigFile(configUrl);
         this.setState({kfversion});
     }
 }
