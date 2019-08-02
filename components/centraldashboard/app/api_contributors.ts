@@ -92,7 +92,7 @@ export class ContributorAPI {
             .filter((b) => b.role === 'contributor')
             .map((b) => b.user);
         return users;
-    };
+    }
     routes() {return Router()
         .post('/create', async (req: Request, res: Response) => {
             if (!req.user.hasAuth) {
