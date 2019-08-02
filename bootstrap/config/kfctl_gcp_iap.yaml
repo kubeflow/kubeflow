@@ -11,7 +11,7 @@ spec:
     root: kubeflow-master
     uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
   - name: manifests
-    root: pull/252
+    root: 252
     uri: https://github.com/kubeflow/manifests/archive/pull/252/head.tar.gz
     # To get manifest at a PR:
     #uri: https://github.com/kubeflow/manifests/archive/pull/235/head.tar.gz
