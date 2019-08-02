@@ -59,6 +59,9 @@ spec:
         path: metacontroller
     name: metacontroller
   - kustomizeConfig:
+      parameters:
+      - name: registry
+        value: kubeflowpipeline
       overlays:
       - istio
       repoRef:
