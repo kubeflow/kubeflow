@@ -4,7 +4,7 @@
 apiVersion: kfdef.apps.kubeflow.org/v1alpha1
 kind: KfDef
 metadata:
-  name: SET_APP_NAME
+  name: kubeflow_app
   namespace: kubeflow
 spec:
   repos:
@@ -14,7 +14,6 @@ spec:
   - name: kubeflow
     root: kubeflow-master
     uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
-  appdir: SET_APP_DIR
   applications:
   # Istio install. If not needed, comment out istio-crds and istio-install.
   - kustomizeConfig:
@@ -239,9 +238,7 @@ spec:
     name: seldon-core-operator
   enableApplications: true
   packageManager: kustomize
-  platform:
   skipInitProject: true
   useBasicAuth: false
   useIstio: true
   version: master
-  project: SET_PROJECT
