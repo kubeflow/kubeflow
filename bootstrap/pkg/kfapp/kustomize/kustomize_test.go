@@ -3,7 +3,7 @@ package kustomize
 import (
 	"bytes"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/config"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"github.com/otiai10/copy"
 	"io/ioutil"
@@ -16,14 +16,14 @@ import (
 func TestKustomize_BackfillOptions(t *testing.T) {
 	type testCase struct {
 		input    *kustomize
-		expected []kfdefsv2.Application
+		expected []kfdefsv3.Application
 	}
 
 	testCases := []testCase{
 		{
 			input: &kustomize{
-				kfDef: &kfdefsv2.KfDef{
-					Spec: kfdefsv2.KfDefSpec{
+				kfDef: &kfdefsv3.KfDef{
+					Spec: kfdefsv3.KfDefSpec{
 						ComponentConfig: config.ComponentConfig{
 							Packages: []string{
 								"istio-crds",
@@ -45,8 +45,8 @@ func TestKustomize_BackfillOptions(t *testing.T) {
 							},
 						},
 					},
-					Status: kfdefsv2.KfDefStatus{
-						ReposCache: map[string]kfdefsv2.RepoCache{
+					Status: kfdefsv3.KfDefStatus{
+						ReposCache: map[string]kfdefsv3.RepoCache{
 							"manifests": {
 								LocalPath: "/cache/manifests",
 							},
@@ -57,11 +57,11 @@ func TestKustomize_BackfillOptions(t *testing.T) {
 					"istio-crds": "/cache/manifests/gcp/istio/istio-crds",
 				},
 			},
-			expected: []kfdefsv2.Application{
+			expected: []kfdefsv3.Application{
 				{
 					Name: "istio-crds",
-					KustomizeConfig: &kfdefsv2.KustomizeConfig{
-						RepoRef: &kfdefsv2.RepoRef{
+					KustomizeConfig: &kfdefsv3.KustomizeConfig{
+						RepoRef: &kfdefsv3.RepoRef{
 							Name: "manifests",
 							Path: "/gcp/istio/istio-crds",
 						},
@@ -95,7 +95,7 @@ func TestKustomize_BackfillOptions(t *testing.T) {
 // This test tests that GenerateKustomizationFile will produce correct kustomization.yaml
 func TestGenerateKustomizationFile(t *testing.T) {
 	type testCase struct {
-		kfDef  *kfdefsv2.KfDef
+		kfDef  *kfdefsv3.KfDef
 		params []config.NameValue
 		// The directory of a (testing) kustomize package
 		packageDir string
@@ -105,11 +105,11 @@ func TestGenerateKustomizationFile(t *testing.T) {
 	}
 	testCases := []testCase{
 		{
-			kfDef: &kfdefsv2.KfDef{
+			kfDef: &kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: "kubeflow",
 				},
-				Spec: kfdefsv2.KfDefSpec{
+				Spec: kfdefsv3.KfDefSpec{
 					EnableApplications: true,
 					PackageManager:     "kustomize",
 				},

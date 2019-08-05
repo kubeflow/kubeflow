@@ -3,8 +3,8 @@ package coordinator
 import (
 	"encoding/json"
 	config "github.com/kubeflow/kubeflow/bootstrap/v3/config"
-	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
@@ -15,7 +15,7 @@ import (
 
 func Test_CreateKfAppCfgFile(t *testing.T) {
 	type testCase struct {
-		Input         kfdefsv2.KfDef
+		Input         kfdefsv3.KfDef
 		DirExists     bool
 		CfgFileExists bool
 		ExpectError   bool
@@ -24,21 +24,21 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 	cases := []testCase{
 		// Test file is created when directory doesn't exist.
 		{
-			Input:         kfdefsv2.KfDef{},
+			Input:         kfdefsv3.KfDef{},
 			DirExists:     false,
 			CfgFileExists: false,
 			ExpectError:   false,
 		},
 		// Test file is created when directory exists
 		{
-			Input:         kfdefsv2.KfDef{},
+			Input:         kfdefsv3.KfDef{},
 			DirExists:     true,
 			CfgFileExists: false,
 			ExpectError:   false,
 		},
 		// Test an error is raised if the config file already exists.
 		{
-			Input:         kfdefsv2.KfDef{},
+			Input:         kfdefsv3.KfDef{},
 			DirExists:     true,
 			CfgFileExists: true,
 			ExpectError:   true,
@@ -61,7 +61,7 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 		}
 
 		if c.CfgFileExists {
-			existingCfgFile := path.Join(tDir, kftypesv2.KfConfigFile)
+			existingCfgFile := path.Join(tDir, kftypesv3.KfConfigFile)
 			err := ioutil.WriteFile(existingCfgFile, []byte("hello world"), 0644)
 
 			if err != nil {
@@ -78,7 +78,7 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 			t.Errorf("Test case %v;\n CreateKfAppCfgFile returns error; got %v want %v", pCase, hasError, c.ExpectError)
 		}
 
-		expectFile := path.Join(tDir, kftypesv2.KfConfigFile)
+		expectFile := path.Join(tDir, kftypesv3.KfConfigFile)
 
 		if !c.ExpectError {
 			if expectFile != cfgFile {
@@ -91,9 +91,9 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 func Test_backfillKfDefFromInitOptions(t *testing.T) {
 	type testCase struct {
 		Name     string
-		Input    kfdefsv2.KfDef
+		Input    kfdefsv3.KfDef
 		Options  map[string]interface{}
-		Expected kfdefsv2.KfDef
+		Expected kfdefsv3.KfDef
 	}
 
 	cases := []testCase{
@@ -101,14 +101,14 @@ func Test_backfillKfDefFromInitOptions(t *testing.T) {
 		// are converted into KfDef.
 		{
 			Name:  "Case 1",
-			Input: kfdefsv2.KfDef{},
+			Input: kfdefsv3.KfDef{},
 			Options: map[string]interface{}{
-				string(kftypesv2.PROJECT):        "someproject",
-				string(kftypesv2.USE_BASIC_AUTH): true,
-				string(kftypesv2.PLATFORM):       kftypesv2.GCP,
+				string(kftypesv3.PROJECT):        "someproject",
+				string(kftypesv3.USE_BASIC_AUTH): true,
+				string(kftypesv3.PLATFORM):       kftypesv3.GCP,
 			},
-			Expected: kfdefsv2.KfDef{
-				Spec: kfdefsv2.KfDefSpec{
+			Expected: kfdefsv3.KfDef{
+				Spec: kfdefsv3.KfDefSpec{
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
@@ -122,8 +122,8 @@ func Test_backfillKfDefFromInitOptions(t *testing.T) {
 		// are not overwritten by options.
 		{
 			Name: "Case 2",
-			Input: kfdefsv2.KfDef{
-				Spec: kfdefsv2.KfDefSpec{
+			Input: kfdefsv3.KfDef{
+				Spec: kfdefsv3.KfDefSpec{
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
@@ -131,11 +131,11 @@ func Test_backfillKfDefFromInitOptions(t *testing.T) {
 				},
 			},
 			Options: map[string]interface{}{
-				string(kftypesv2.PROJECT):  "newproject",
-				string(kftypesv2.PLATFORM): kftypesv2.GCP,
+				string(kftypesv3.PROJECT):  "newproject",
+				string(kftypesv3.PLATFORM): kftypesv3.GCP,
 			},
-			Expected: kfdefsv2.KfDef{
-				Spec: kfdefsv2.KfDefSpec{
+			Expected: kfdefsv3.KfDef{
+				Spec: kfdefsv3.KfDefSpec{
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
@@ -146,22 +146,22 @@ func Test_backfillKfDefFromInitOptions(t *testing.T) {
 		// --platform-packmanager=kustomize should add a manifests repo
 		{
 			Name: "Case kustomize",
-			Input: kfdefsv2.KfDef{
+			Input: kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "someapp",
 				},
-				Spec: kfdefsv2.KfDefSpec{},
+				Spec: kfdefsv3.KfDefSpec{},
 			},
 			Options: map[string]interface{}{
-				string(kftypesv2.PACKAGE_MANAGER): kftypesv2.KUSTOMIZE,
+				string(kftypesv3.PACKAGE_MANAGER): kftypesv3.KUSTOMIZE,
 			},
-			Expected: kfdefsv2.KfDef{
+			Expected: kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "someapp",
 				},
-				Spec: kfdefsv2.KfDefSpec{
-					PackageManager: kftypesv2.KUSTOMIZE,
-					Repos: []kfdefsv2.Repo{
+				Spec: kfdefsv3.KfDefSpec{
+					PackageManager: kftypesv3.KUSTOMIZE,
+					Repos: []kfdefsv3.Repo{
 						{
 							Name: "manifests",
 							Uri:  "https://github.com/kubeflow/manifests/archive/master.tar.gz",
@@ -174,22 +174,22 @@ func Test_backfillKfDefFromInitOptions(t *testing.T) {
 		// --platform-packmanager=kustomize@12345 should add a manifests repo
 		{
 			Name: "Case kustomize-commit",
-			Input: kfdefsv2.KfDef{
+			Input: kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "someapp",
 				},
-				Spec: kfdefsv2.KfDefSpec{},
+				Spec: kfdefsv3.KfDefSpec{},
 			},
 			Options: map[string]interface{}{
-				string(kftypesv2.PACKAGE_MANAGER): kftypesv2.KUSTOMIZE + "@12345",
+				string(kftypesv3.PACKAGE_MANAGER): kftypesv3.KUSTOMIZE + "@12345",
 			},
-			Expected: kfdefsv2.KfDef{
+			Expected: kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "someapp",
 				},
-				Spec: kfdefsv2.KfDefSpec{
-					PackageManager: kftypesv2.KUSTOMIZE,
-					Repos: []kfdefsv2.Repo{
+				Spec: kfdefsv3.KfDefSpec{
+					PackageManager: kftypesv3.KUSTOMIZE,
+					Repos: []kfdefsv3.Repo{
 						{
 							Name: "manifests",
 							Uri:  "https://github.com/kubeflow/manifests/archive/12345.tar.gz",
@@ -202,7 +202,7 @@ func Test_backfillKfDefFromInitOptions(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		i := &kfdefsv2.KfDef{}
+		i := &kfdefsv3.KfDef{}
 		*i = c.Input
 		err := backfillKfDefFromInitOptions(i, c.Options)
 		if err != nil {
@@ -220,9 +220,9 @@ func Test_backfillKfDefFromInitOptions(t *testing.T) {
 func Test_backfillKfDefFromGenerateOptions(t *testing.T) {
 	type testCase struct {
 		Name     string
-		Input    kfdefsv2.KfDef
+		Input    kfdefsv3.KfDef
 		Options  map[string]interface{}
-		Expected kfdefsv2.KfDef
+		Expected kfdefsv3.KfDef
 	}
 
 	cases := []testCase{
@@ -230,21 +230,21 @@ func Test_backfillKfDefFromGenerateOptions(t *testing.T) {
 		// are converted into KfDef.
 		{
 			Name: "gcp-from-options",
-			Input: kfdefsv2.KfDef{
-				Spec: kfdefsv2.KfDefSpec{
+			Input: kfdefsv3.KfDef{
+				Spec: kfdefsv3.KfDefSpec{
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
 				},
 			},
 			Options: map[string]interface{}{
-				string(kftypesv2.EMAIL):    "user@kubeflow.org",
-				string(kftypesv2.IPNAME):   "someip",
-				string(kftypesv2.HOSTNAME): "somehost",
-				string(kftypesv2.ZONE):     "somezone",
+				string(kftypesv3.EMAIL):    "user@kubeflow.org",
+				string(kftypesv3.IPNAME):   "someip",
+				string(kftypesv3.HOSTNAME): "somehost",
+				string(kftypesv3.ZONE):     "somezone",
 			},
-			Expected: kfdefsv2.KfDef{
-				Spec: kfdefsv2.KfDefSpec{
+			Expected: kfdefsv3.KfDef{
+				Spec: kfdefsv3.KfDefSpec{
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
@@ -260,8 +260,8 @@ func Test_backfillKfDefFromGenerateOptions(t *testing.T) {
 		// are not overwritten by options.
 		{
 			Name: "gcp-no-override",
-			Input: kfdefsv2.KfDef{
-				Spec: kfdefsv2.KfDefSpec{
+			Input: kfdefsv3.KfDef{
+				Spec: kfdefsv3.KfDefSpec{
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
@@ -272,13 +272,13 @@ func Test_backfillKfDefFromGenerateOptions(t *testing.T) {
 				},
 			},
 			Options: map[string]interface{}{
-				string(kftypesv2.EMAIL):    "newuser@kubeflow.org",
-				string(kftypesv2.IPNAME):   "newip",
-				string(kftypesv2.HOSTNAME): "newhost",
-				string(kftypesv2.ZONE):     "newezone",
+				string(kftypesv3.EMAIL):    "newuser@kubeflow.org",
+				string(kftypesv3.IPNAME):   "newip",
+				string(kftypesv3.HOSTNAME): "newhost",
+				string(kftypesv3.ZONE):     "newezone",
 			},
-			Expected: kfdefsv2.KfDef{
-				Spec: kfdefsv2.KfDefSpec{
+			Expected: kfdefsv3.KfDef{
+				Spec: kfdefsv3.KfDefSpec{
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
@@ -293,22 +293,22 @@ func Test_backfillKfDefFromGenerateOptions(t *testing.T) {
 		// either in KfDef or in options.
 		{
 			Name: "gcp-ip-name",
-			Input: kfdefsv2.KfDef{
+			Input: kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "someapp",
 				},
-				Spec: kfdefsv2.KfDefSpec{
+				Spec: kfdefsv3.KfDefSpec{
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
 				},
 			},
 			Options: map[string]interface{}{},
-			Expected: kfdefsv2.KfDef{
+			Expected: kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "someapp",
 				},
-				Spec: kfdefsv2.KfDefSpec{
+				Spec: kfdefsv3.KfDefSpec{
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
@@ -323,11 +323,11 @@ func Test_backfillKfDefFromGenerateOptions(t *testing.T) {
 		// either in KfDef or in options.
 		{
 			Name: "gcp-hostname",
-			Input: kfdefsv2.KfDef{
+			Input: kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "someapp",
 				},
-				Spec: kfdefsv2.KfDefSpec{
+				Spec: kfdefsv3.KfDefSpec{
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
@@ -335,11 +335,11 @@ func Test_backfillKfDefFromGenerateOptions(t *testing.T) {
 				},
 			},
 			Options: map[string]interface{}{},
-			Expected: kfdefsv2.KfDef{
+			Expected: kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "someapp",
 				},
-				Spec: kfdefsv2.KfDefSpec{
+				Spec: kfdefsv3.KfDefSpec{
 					ComponentConfig: config.ComponentConfig{
 						Platform: "gcp",
 					},
@@ -354,7 +354,7 @@ func Test_backfillKfDefFromGenerateOptions(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		i := &kfdefsv2.KfDef{}
+		i := &kfdefsv3.KfDef{}
 		*i = c.Input
 		err := backfillKfDefFromGenerateOptions(i, c.Options)
 		if err != nil {

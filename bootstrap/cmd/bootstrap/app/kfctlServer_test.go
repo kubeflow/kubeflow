@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"golang.org/x/oauth2"
@@ -30,17 +30,17 @@ func TestKfctlServer_CreateDeployment(t *testing.T) {
 
 	s := &kfctlServer{
 		ts: ts,
-		c:  make(chan kfdefsv2.KfDef, 1),
-		latestKfDef: kfdefsv2.KfDef{
+		c:  make(chan kfdefsv3.KfDef, 1),
+		latestKfDef: kfdefsv3.KfDef{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "input",
 			},
-			Spec: kfdefsv2.KfDefSpec{
-				Secrets: []kfdefsv2.Secret{
+			Spec: kfdefsv3.KfDefSpec{
+				Secrets: []kfdefsv3.Secret{
 					{
 						Name: gcp.GcpAccessTokenName,
-						SecretSource: &kfdefsv2.SecretSource{
-							LiteralSource: &kfdefsv2.LiteralSource{
+						SecretSource: &kfdefsv3.SecretSource{
+							LiteralSource: &kfdefsv3.LiteralSource{
 								Value: "access1234",
 							},
 						},
@@ -50,17 +50,17 @@ func TestKfctlServer_CreateDeployment(t *testing.T) {
 		},
 	}
 
-	req := kfdefsv2.KfDef{
+	req := kfdefsv3.KfDef{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "input",
 		},
-		Spec: kfdefsv2.KfDefSpec{
+		Spec: kfdefsv3.KfDefSpec{
 			PackageManager: "kustomize",
-			Secrets: []kfdefsv2.Secret{
+			Secrets: []kfdefsv3.Secret{
 				{
 					Name: gcp.GcpAccessTokenName,
-					SecretSource: &kfdefsv2.SecretSource{
-						LiteralSource: &kfdefsv2.LiteralSource{
+					SecretSource: &kfdefsv3.SecretSource{
+						LiteralSource: &kfdefsv3.LiteralSource{
 							Value: "access1234",
 						},
 					},
@@ -70,11 +70,11 @@ func TestKfctlServer_CreateDeployment(t *testing.T) {
 	}
 
 	// The request stripped of secrets. This the value we expect to be enqueued in the channel.
-	expectReqStripped := kfdefsv2.KfDef{
+	expectReqStripped := kfdefsv3.KfDef{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "input",
 		},
-		Spec: kfdefsv2.KfDefSpec{
+		Spec: kfdefsv3.KfDefSpec{
 			PackageManager: "kustomize",
 		},
 	}
@@ -115,24 +115,24 @@ func TestKfctlServer_CreateDeployment(t *testing.T) {
 
 func TestKfctlServer_isMatch(t *testing.T) {
 	type testCase struct {
-		current  *kfdefsv2.KfDef
-		new      *kfdefsv2.KfDef
+		current  *kfdefsv3.KfDef
+		new      *kfdefsv3.KfDef
 		expected bool
 	}
 
 	testCases := []testCase{
 		{
 			current:  nil,
-			new:      &kfdefsv2.KfDef{},
+			new:      &kfdefsv3.KfDef{},
 			expected: true,
 		},
 		{
-			current: &kfdefsv2.KfDef{},
-			new: &kfdefsv2.KfDef{
+			current: &kfdefsv3.KfDef{},
+			new: &kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app1",
 				},
-				Spec: kfdefsv2.KfDefSpec{
+				Spec: kfdefsv3.KfDefSpec{
 					Project: "p1",
 					Zone:    "z1",
 				},
@@ -140,25 +140,25 @@ func TestKfctlServer_isMatch(t *testing.T) {
 			expected: true,
 		},
 		{
-			current:  &kfdefsv2.KfDef{},
+			current:  &kfdefsv3.KfDef{},
 			new:      nil,
 			expected: false,
 		},
 		{
-			current: &kfdefsv2.KfDef{
+			current: &kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app1",
 				},
-				Spec: kfdefsv2.KfDefSpec{
+				Spec: kfdefsv3.KfDefSpec{
 					Project: "p1",
 					Zone:    "z1",
 				},
 			},
-			new: &kfdefsv2.KfDef{
+			new: &kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app1",
 				},
-				Spec: kfdefsv2.KfDefSpec{
+				Spec: kfdefsv3.KfDefSpec{
 					Project: "p1",
 					Zone:    "z1",
 				},
@@ -166,20 +166,20 @@ func TestKfctlServer_isMatch(t *testing.T) {
 			expected: true,
 		},
 		{
-			current: &kfdefsv2.KfDef{
+			current: &kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app1",
 				},
-				Spec: kfdefsv2.KfDefSpec{
+				Spec: kfdefsv3.KfDefSpec{
 					Project: "p1",
 					Zone:    "z1",
 				},
 			},
-			new: &kfdefsv2.KfDef{
+			new: &kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app2",
 				},
-				Spec: kfdefsv2.KfDefSpec{
+				Spec: kfdefsv3.KfDefSpec{
 					Project: "p1",
 					Zone:    "z1",
 				},
@@ -187,20 +187,20 @@ func TestKfctlServer_isMatch(t *testing.T) {
 			expected: false,
 		},
 		{
-			current: &kfdefsv2.KfDef{
+			current: &kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app1",
 				},
-				Spec: kfdefsv2.KfDefSpec{
+				Spec: kfdefsv3.KfDefSpec{
 					Project: "p1",
 					Zone:    "z1",
 				},
 			},
-			new: &kfdefsv2.KfDef{
+			new: &kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app1",
 				},
-				Spec: kfdefsv2.KfDefSpec{
+				Spec: kfdefsv3.KfDefSpec{
 					Project: "p2",
 					Zone:    "z1",
 				},
@@ -208,20 +208,20 @@ func TestKfctlServer_isMatch(t *testing.T) {
 			expected: false,
 		},
 		{
-			current: &kfdefsv2.KfDef{
+			current: &kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app1",
 				},
-				Spec: kfdefsv2.KfDefSpec{
+				Spec: kfdefsv3.KfDefSpec{
 					Project: "p1",
 					Zone:    "z1",
 				},
 			},
-			new: &kfdefsv2.KfDef{
+			new: &kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app1",
 				},
-				Spec: kfdefsv2.KfDefSpec{
+				Spec: kfdefsv3.KfDefSpec{
 					Project: "p1",
 					Zone:    "z2",
 				},
@@ -242,52 +242,52 @@ func TestKfctlServer_isMatch(t *testing.T) {
 
 func TestKfctlServer_prepareSecrets(t *testing.T) {
 	type testCase struct {
-		input           []kfdefsv2.Secret
-		expectedSecrets []kfdefsv2.Secret
+		input           []kfdefsv3.Secret
+		expectedSecrets []kfdefsv3.Secret
 		expectedEnv     map[string]string
 	}
 
 	testCases := []testCase{
 		{
-			input: []kfdefsv2.Secret{
+			input: []kfdefsv3.Secret{
 				{
 					Name: "s1",
-					SecretSource: &kfdefsv2.SecretSource{
-						LiteralSource: &kfdefsv2.LiteralSource{
+					SecretSource: &kfdefsv3.SecretSource{
+						LiteralSource: &kfdefsv3.LiteralSource{
 							Value: "s1v1",
 						},
 					},
 				},
 				{
 					Name: "s2",
-					SecretSource: &kfdefsv2.SecretSource{
-						EnvSource: &kfdefsv2.EnvSource{
+					SecretSource: &kfdefsv3.SecretSource{
+						EnvSource: &kfdefsv3.EnvSource{
 							Name: "s2env",
 						},
 					},
 				},
 				{
 					Name: gcp.GcpAccessTokenName,
-					SecretSource: &kfdefsv2.SecretSource{
-						LiteralSource: &kfdefsv2.LiteralSource{
+					SecretSource: &kfdefsv3.SecretSource{
+						LiteralSource: &kfdefsv3.LiteralSource{
 							Value: "oauth",
 						},
 					},
 				},
 			},
-			expectedSecrets: []kfdefsv2.Secret{
+			expectedSecrets: []kfdefsv3.Secret{
 				{
 					Name: "s1",
-					SecretSource: &kfdefsv2.SecretSource{
-						EnvSource: &kfdefsv2.EnvSource{
+					SecretSource: &kfdefsv3.SecretSource{
+						EnvSource: &kfdefsv3.EnvSource{
 							Name: "KFCTL_s1",
 						},
 					},
 				},
 				{
 					Name: "s2",
-					SecretSource: &kfdefsv2.SecretSource{
-						EnvSource: &kfdefsv2.EnvSource{
+					SecretSource: &kfdefsv3.SecretSource{
+						EnvSource: &kfdefsv3.EnvSource{
 							Name: "s2env",
 						},
 					},
@@ -306,8 +306,8 @@ func TestKfctlServer_prepareSecrets(t *testing.T) {
 				os.Unsetenv(k)
 			}
 		}
-		i := &kfdefsv2.KfDef{
-			Spec: kfdefsv2.KfDefSpec{
+		i := &kfdefsv3.KfDef{
+			Spec: kfdefsv3.KfDefSpec{
 				Secrets: c.input,
 			},
 		}

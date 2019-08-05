@@ -2,18 +2,18 @@ package app
 
 import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // ToKfdef will output CreateRequest in format of kfdefs.KfDef
-func (cr *CreateRequest) ToKfdef(appDir string, repo string, istio bool) (*kfdefsv2.KfDef, error) {
-	kfDef := &kfdefsv2.KfDef{
+func (cr *CreateRequest) ToKfdef(appDir string, repo string, istio bool) (*kfdefsv3.KfDef, error) {
+	kfDef := &kfdefsv3.KfDef{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KfDef",
 			APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
 		},
-		Spec: kfdefsv2.KfDefSpec{},
+		Spec: kfdefsv3.KfDefSpec{},
 	}
 	kfDef.Spec.ComponentConfig = cr.AppConfig
 	kfDef.Name = cr.Name
