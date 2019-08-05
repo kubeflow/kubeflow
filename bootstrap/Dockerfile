@@ -48,6 +48,8 @@ COPY . .
 #
 FROM builder as bootstrap_base
 
+# Make binary statically linked. Dynamically linked binary will break.
+ENV CGO_ENABLED=0
 RUN make build-bootstrap
 
 #**********************************************************************
@@ -56,6 +58,8 @@ RUN make build-bootstrap
 #
 FROM builder as kfctl_base
 
+# Make binary statically linked. Dynamically linked binary will break.
+ENV CGO_ENABLED=0
 RUN make build-kfctl
 
 #**********************************************************************
@@ -86,10 +90,11 @@ ARG registries
 
 COPY $registries /opt/registries
 
-COPY --from=bootstrap_base ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow/
+COPY --from=bootstrap_base /go/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow/
 
 COPY config/default.yaml /opt/kubeflow/
 COPY image_registries.yaml /opt/kubeflow/
+
 RUN mkdir -p /opt/bootstrap
 RUN mkdir -p /opt/versioned_registries
 RUN chmod a+rx /opt/kubeflow/bootstrapper
@@ -98,7 +103,6 @@ ENV PATH /opt/kubeflow:/opt/bootstrap:${PATH}
 
 
 EXPOSE 8080
-
 
 # Set default values for USER, USER_ID, GROUP_ID
 # The startup script will create the user and su to that user.
@@ -110,5 +114,3 @@ ENV USER kubeflow
 ENV USER_ID 1000
 ENV GROUP_ID 1000
 ENV GROUP kubeflow
-
-CMD ["/opt/kubeflow/bootstrapper","--in-cluster","--namespace=kubeflow","--apply"]
