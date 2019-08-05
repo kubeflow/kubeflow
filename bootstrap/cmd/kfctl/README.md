@@ -19,7 +19,6 @@
     - [Testing kfctl (tests plugin functionality, `kfctl init`, `kfctl generate`)](#testing-kfctl-tests-plugin-functionality-kfctl-init-kfctl-generate)
     - [Testing `kfctl init` for all platforms](#testing-kfctl-init-for-all-platforms)
     - [Testing `kfctl generate` for all platforms](#testing-kfctl-generate-for-all-platforms)
-      - [app.yaml example for --platform gcp](#appyaml-example-for---platform-gcp)
   - [gcp-click-to-deploy (no changes)](#gcp-click-to-deploy-no-changes)
   - [golang modules and versioned packages](#golang-modules-and-versioned-packages)
 
@@ -79,41 +78,42 @@ kfctl will statically include platforms that implement the KfApp interface.
 These include:
 
 - platform: **minikube**
-  - bootstrap/v2/pkg/client/minikube/minikube.go
+  - bootstrap/v3/pkg/client/minikube/minikube.go
 - platform: **gcp** 
-  - bootstrap/v2/pkg/client/gcp/gcp.go
+  - bootstrap/v3/pkg/client/gcp/gcp.go
 
 kfctl also statically links package managers that are used by the platforms.
-These include:
+This includes:
 
-- package manager: **ksonnet**
-  - bootstrap/v2/pkg/client/ksonnet/ksonnet.go
 - package manager: **kustomize** 
-  - bootstrap/v2/pkg/client/kustomize/kustomize.go
+  - bootstrap/v3/pkg/client/kustomize/kustomize.go
 
 kfctl can dynamically load platforms and package managers that are not statically linked, as 
 described below in [Extending kfctl](#extending-kfctl).
 
 ## Usage
 
-```kubeflow client tool
-   
-   Usage:
-     kfctl [command]
-   
-   Available Commands:
-     apply       Deploy a generated kubeflow application.
-     delete      Delete a kubeflow application.
-     generate    Generate a kubeflow application where resources is one of 'platform|k8s|all'.
-     help        Help about any command
-     init        Create a kubeflow application under <[path/]name>
-     show        Show a generated kubeflow application.
-     version     Print the version of kfctl.
-   
-   Flags:
-     -h, --help   help for kfctl
-   
-   Use "kfctl [command] --help" for more information about a command.
+```
+A client CLI to create kubeflow applications for specific platforms or 'on-prem'
+to an existing k8s cluster.
+
+Usage:
+  kfctl [command]
+
+Available Commands:
+  apply       Deploy a generated kubeflow application.
+  completion  Generate shell completions
+  delete      Delete a kubeflow application.
+  generate    Generate a kubeflow application where resources is one of 'platform|k8s|all'.
+  help        Help about any command
+  init        Create a kubeflow application under <[path/]name>
+  show        Show a generated kubeflow application.
+  version     Print the version of kfctl.
+
+Flags:
+  -h, --help   help for kfctl
+
+Use "kfctl [command] --help" for more information about a command.
 ```
 
 Typical use-case, non-platform specific.
@@ -139,19 +139,27 @@ Usage:
   kfctl init <[path/]name> [flags]
 
 Flags:
-  -h, --help               help for init
-  -n, --namespace string   namespace where kubeflow will be deployed (default "kubeflow")
-  -p, --platform string    one of 'gcp|minikube' (default "none")
-      --project string     name of the gcp project if --platform gcp
-  -r, --repo string        local github kubeflow repo
-  -V, --verbose            verbose output default is false
-  -v, --version string     desired version Kubeflow or latest tag if not provided by user  (default "master")
+      --config string            Static config file to use. Can be either a local path or a URL.
+                                 For example:
+                                 --config=https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/v2/config/kfctl_platform_existing.yaml
+                                 --config=kfctl_platform_gcp.yaml
+      --disable_usage_report     disable_usage_report disable anonymous usage reporting.
+  -h, --help                     help for init
+  -n, --namespace string         namespace where kubeflow will be deployed (default "kubeflow")
+      --package-manager string   'kustomize[@version]' (default "kustomize")
+  -p, --platform string          one of 'aws|gcp|minikube'
+      --project string           name of the gcp project if --platform gcp
+  -r, --repo string              local github kubeflow repo
+      --skip-init-gcp-project    Set if you want to skip project initialization. Only meaningful if --platform gcp. Default to false
+      --use_basic_auth           use_basic_auth use basic auth service instead of IAP.
+      --use_istio                use_istio use istio for auth and traffic routing. (default true)
+  -V, --verbose                  verbose output default is false
+  -v, --version string           desired version of Kubeflow or master if not specified. Version can be master (eg --version master) or a git tag (eg --version=v0.5.0), or a PR (eg --version pull/<id>). (default "master")
 ```
 
 ### **generate**
 
 (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
-
 ```
 Generate a kubeflow application where resources is one of 'platform|k8s|all'.
 
@@ -171,7 +179,7 @@ Flags:
       --ipName string     ipName if '--platform gcp'
       --mount-local       mount-local if '--platform minikube'
   -V, --verbose           verbose output default is false
-      --zone string       zone if '--platform gcp' (default "us-east1-d")```
+      --zone string       zone if '--platform gcp' (default "us-east1-d")
 ```
 
 ### **apply** 
@@ -185,11 +193,21 @@ Usage:
   kfctl apply [all(=default)|k8s|platform] [flags]
 
 Flags:
-  -h, --help                  help for apply
-      --oauth_id string       OAuth Client ID, GCP only. Required if ENV CLIENT_ID is not set. Value passed will take precedence to ENV.
-      --oauth_secret string   OAuth Client ID, GCP only. Required if ENV CLIENT_SECRET is not set. Value passed will take precedence to ENV.
-  -V, --verbose               verbose output default is false```
+  -h, --help      help for apply
+  -V, --verbose   verbose output default is false
+$ ☞
+$ ☞
+$ ☞
+$ ☞
+$ ☞  kfctl help apply
+Deploy a generated kubeflow application.
 
+Usage:
+  kfctl apply [all(=default)|k8s|platform] [flags]
+
+Flags:
+  -h, --help      help for apply
+  -V, --verbose   verbose output default is false
 ```
 
 ### **delete** 
@@ -257,125 +275,11 @@ make test-init
 make test-generate
 ```
 
-#### app.yaml example for --platform gcp 
-
-```yaml
-apiVersion: client.apps.kubeflow.org/v1alpha1
-kind: Client
-metadata:
-  creationTimestamp: null
-  name: gcp
-  namespace: kubeflow
-spec:
-  appdir: /Users/kdkasrav/go/src/github.com/kubeflow/kubeflow/bootstrap/test/gcp
-  componentParams:
-    application:
-    - name: components
-      value: <list-of-components>
-    cert-manager:
-    - initRequired: true
-      name: acmeEmail
-      value: gcp-deploy@constant-cubist-173123.iam.gserviceaccount.com
-    cloud-endpoints:
-    - name: secretName
-      value: admin-gcp-sa
-    iap-ingress:
-    - initRequired: true
-      name: ipName
-      value: gcp-ip
-    - initRequired: true
-      name: hostname
-      value: gcp.endpoints.constant-cubist-173123.cloud.goog
-    jupyter:
-    - name: jupyterHubAuthenticator
-      value: iap
-    - name: platform
-      value: gke
-    pipeline:
-    - name: mysqlPd
-      value: gcp-storage-metadata-store
-    - name: minioPd
-      value: gcp-storage-artifact-store
-  components:
-    - ambassador
-    - application
-    - argo
-    - centraldashboard
-    - cert-manager
-    - cloud-endpoints
-    - iap-ingress
-    - jupyter
-    - jupyter-web-app
-    - katib
-    - metacontroller
-    - notebook-controller
-    - pipeline
-    - pytorch-operator
-    - tensorboard
-    - tf-job-operator
-    email: gcp-deploy@constant-cubist-173123.iam.gserviceaccount.com
-    hostname: gcp.endpoints.constant-cubist-173123.cloud.goog
-    ipName: gcp-ip
-    packages:
-    - application
-    - argo
-    - common
-    - examples
-    - gcp
-    - jupyter
-    - katib
-    - metacontroller
-    - modeldb
-    - mpi-job
-    - pipeline
-    - pytorch-job
-    - seldon
-    - tensorboard
-    - tf-serving
-    - tf-training
-    platform: gcp
-      project: XXXXXX
-      repo: /Users/kdkasrav/go/src/github.com/kubeflow/kubeflow/bootstrap/test/gcp/.cache/2673/kubeflow
-      useBasicAuth: false
-      version: "2673"
-      zone: us-east1-d
-    status: {}
-  ```
-
 ## gcp-click-to-deploy (no changes)
 
-Ksonnet types have been moved to `github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/ksonnet/v1alpha1`
+References to Ksonnet types have been removed
 
 ## golang modules and versioned packages
 
-Both ksonnet and kustomize package managers are loaded as .so's.
-(They will be statically linked soon see [#2635](https://github.com/kubeflow/kubeflow/issues/2635))
-The complication is that ksonnet and kustomize do not have an overlap of kubernetes versions as well 
-as client-go, and controller-runtime.
+kustomize leverages golang modules by declaring a 'v3' version in go.mod 
 
-- **ksonnet** (highest version)
-  - k8s.io/api kubernetes-1.10.4
-  - k8s.io/apimachinery kubernetes-1.10.4
-  - k8s.io/client-go v7.0.0
-  - sigs.k8s.io/controller-runtime v0.1.1
-
-- **kustomize** (cannot downgrade to kubernetes-1.10.4, client-go v7.0.0)
-  - k8s.io/api kubernetes-1.13.4
-  - k8s.io/apimachinery kubernetes-1.13.4
-  - k8s.io/client-go v10.0.0
-  - sigs.k8s.io/controller-runtime v0.1.10
-
-kustomize leverages golang modules by using 'v2' versions of 
-the above libraries.
-
-We insert golang package versioning for these libraries despite the fact that kubernetes has yet to move to golang modules. Updating these libraries to use golang modules is straight-forward and can be done using local git clones. Background information on how this is done can be found [here](https://github.com/golang/go/wiki/Modules#releasing-modules-v2-or-higher).
-
-Currently a build artifact was hand built and checked into PR #2548 as bootstrap/hack/v2.zip.
-This build artifact holds versioned packages for the above libraries. This hand-built artifact needs to be removed and replaced with a golang tool such as [mod](https://github.com/marwan-at-work/mod) that can do this algorithmically and as part of building kfctl.  
-
-The  [mod](https://github.com/marwan-at-work/mod) tool needs to be modified in the following ways:
-1. Update literal references to versioned packages as found [here](https://github.com/kubernetes/api/blob/kubernetes-1.13.4/apps/v1/generated.pb.go#L62) and [here](https://github.com/kubernetes/api/blob/kubernetes-1.13.4/apps/v1/generated.pb.go#L63).
-2. Move a subset of libraries tagged as [+incompatible](https://groups.google.com/forum/#!topic/golang-codereviews/t-xcPhCn3FI) within the go.mod file, instead of all of them.
-3. Create a local archive of these versioned packages 
-4. Update go.mod files that reference the versioned packages with a replace directive pointing to the the local archive location. 
-5. Do not update the git repos or push changes back to git
