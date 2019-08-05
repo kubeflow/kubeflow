@@ -20,7 +20,7 @@ import (
 	"cloud.google.com/go/container/apiv1"
 	"encoding/base64"
 	"fmt"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"

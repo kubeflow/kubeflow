@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 GCLOUD_PROJECT ?= kubeflow-images-public
-GOLANG_VERSION ?= 1.12
+GOLANG_VERSION ?= 1.12.7
 GOPATH ?= $(HOME)/go
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
@@ -71,12 +71,12 @@ ${GOPATH}/bin/deepcopy-gen:
 	GO111MODULE=off ${GO} get k8s.io/code-generator/cmd/deepcopy-gen
 
 config/zz_generated.deepcopy.go: config/types.go
-	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v2/config -O zz_generated.deepcopy && \
-	mv v2/config/zz_generated.deepcopy.go config/ && rm -rf v2
+	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v3/config -O zz_generated.deepcopy && \
+	mv v3/config/zz_generated.deepcopy.go config/ && rm -rf v3
 
 pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/kfdef/v1alpha1/application_types.go
-	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy && \
-	mv v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/ && rm -rf v2
+	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy && \
+	mv v3/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/ && rm -rf v3
 
 deepcopy: ${GOPATH}/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go 
 

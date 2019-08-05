@@ -2,7 +2,7 @@
 # Builder
 # 
 # Create a go runtime suitable for building and testing kfctl
-ARG GOLANG_VERSION=1.12
+ARG GOLANG_VERSION=1.12.7
 FROM golang:$GOLANG_VERSION as builder
 
 RUN apt-get update
@@ -31,8 +31,6 @@ WORKDIR ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
 # Download dependencies first to optimize Docker caching.
 COPY go.mod .
 COPY go.sum .
-COPY hack/v2.zip hack/v2.zip
-RUN unzip -q -d /tmp hack/v2.zip
 RUN go mod download
 # Copy in the source
 COPY . .
@@ -67,7 +65,7 @@ RUN make build-kfctl
 # Final image base
 #
 
-FROM alpine:3.9.4 as barebones_base
+FROM alpine:3.10.1 as barebones_base
 RUN mkdir -p /opt/kubeflow
 WORKDIR /opt/kubeflow
 

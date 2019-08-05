@@ -21,7 +21,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	config "github.com/kubeflow/kubeflow/bootstrap/v2/config"
+	config "github.com/kubeflow/kubeflow/bootstrap/v3/config"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 

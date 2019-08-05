@@ -2,9 +2,9 @@ package app
 
 import (
 	"context"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/gcp"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
+	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"golang.org/x/oauth2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"

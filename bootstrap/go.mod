@@ -1,4 +1,4 @@
-module github.com/kubeflow/kubeflow/bootstrap/v2
+module github.com/kubeflow/kubeflow/bootstrap/v3
 
 require (
 	cloud.google.com/go v0.38.0
@@ -43,7 +43,7 @@ require (
 	github.com/kr/pty v1.1.3 // indirect
 	github.com/ksonnet/ksonnet v0.13.1
 	github.com/ksonnet/ksonnet-lib v0.1.12 // indirect
-	github.com/kubeflow/kubeflow/components/profile-controller v0.6.1
+	github.com/kubeflow/kubeflow/components/profile-controller v0.0.0-20190614045418-7ca3cfb39368
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/onrik/logrus v0.2.1
@@ -88,7 +88,7 @@ replace (
 	github.com/go-openapi/jsonreference => github.com/go-openapi/jsonreference v0.17.0
 	github.com/go-openapi/spec => github.com/go-openapi/spec v0.18.0
 	github.com/go-openapi/swag => github.com/go-openapi/swag v0.17.0
-	github.com/kubeflow/kubeflow/components/profile-controller => ../components/profile-controller
+	github.com/kubeflow/kubeflow/components/profile-controller => github.com/kubeflow/kubeflow/components/profile-controller v0.0.0-20190614045418-7ca3cfb39368
 	github.com/mitchellh/go-homedir => github.com/mitchellh/go-homedir v1.0.0
 	github.com/russross/blackfriday => github.com/russross/blackfriday v1.5.2-0.20180428102519-11635eb403ff // indirect
 	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9

@@ -16,8 +16,8 @@ package main
 
 import (
 	"flag"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/cmd/bootstrap/app"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/cmd/bootstrap/app/options"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/cmd/bootstrap/app"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/cmd/bootstrap/app/options"
 	"github.com/onrik/logrus/filename"
 	log "github.com/sirupsen/logrus"
 )

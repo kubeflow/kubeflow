@@ -2,9 +2,9 @@ package coordinator
 
 import (
 	"encoding/json"
-	config "github.com/kubeflow/kubeflow/bootstrap/v2/config"
-	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	config "github.com/kubeflow/kubeflow/bootstrap/v3/config"
+	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"

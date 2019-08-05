@@ -361,6 +361,8 @@ github.com/ksonnet/ksonnet v0.13.1/go.mod h1:T8FwyGOX8fMoDyp845QmYDnk8R7AF35pImy
 github.com/ksonnet/ksonnet-lib v0.1.12 h1:dudu+eYkbWD1s8BlI6ShvHHJDRbOeF9Z+LEQqdcjmVU=
 github.com/ksonnet/ksonnet-lib v0.1.12/go.mod h1:2p66Npe1xOUtQGlGzD5aJ3UHEBjG1b6o3nbC1rVNvz4=
 github.com/kubeflow/kubeflow v0.5.1 h1:Wzq2zGMDcba4FKBcLVZpfj+y6jU8psl63Qg3UjEp+so=
+github.com/kubeflow/kubeflow/components/profile-controller v0.0.0-20190614045418-7ca3cfb39368 h1:gnKmaIcUJVpS2msVv0yZ1rn+LPcgbyDdOMFp77b8gTk=
+github.com/kubeflow/kubeflow/components/profile-controller v0.0.0-20190614045418-7ca3cfb39368/go.mod h1:8+oH8wqe/KytWmiHPYMkcJzl9wV6Ww1tJYlkty5DfhI=
 github.com/magiconair/properties v1.8.0 h1:LLgXmsheXeRoUOBOjtwPQCWIYqM/LU1ayDtDePerRcY=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/mailru/easyjson v0.0.0-20170624190925-2f5df55504eb/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=

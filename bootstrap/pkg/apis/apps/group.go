@@ -27,8 +27,8 @@ import (
 	"strings"
 
 	gogetter "github.com/hashicorp/go-getter"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	ext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	crdclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"

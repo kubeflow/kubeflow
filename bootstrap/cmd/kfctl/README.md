@@ -344,7 +344,7 @@ spec:
 
 ## gcp-click-to-deploy (no changes)
 
-Ksonnet types have been moved to `github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/ksonnet/v1alpha1`
+Ksonnet types have been moved to `github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/ksonnet/v1alpha1`
 
 ## golang modules and versioned packages
 
