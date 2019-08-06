@@ -13,19 +13,19 @@ import (
 	"encoding/json"
 	"fmt"
 	httptransport "github.com/go-kit/kit/transport/http"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/kustomize"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 	containerpb "google.golang.org/genproto/googleapis/container/v1"
-	"k8s.io/api/v2/core/v1"
-	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
-	"k8s.io/client-go/v2/rest"
+	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
 	"net/http"
 	"os"
 	"path"
@@ -39,7 +39,7 @@ const KfctlCreatePath = "/kfctl/apps/v1alpha2/create"
 // It is a wrapper around kfctl.
 type kfctlServer struct {
 	ts TokenRefresher
-	c  chan kfdefsv2.KfDef
+	c  chan kfdefsv3.KfDef
 
 	appsDir string
 
@@ -53,7 +53,7 @@ type kfctlServer struct {
 	kfDefMux sync.Mutex
 
 	// latestKfDef is updated to provide the latest status information.
-	latestKfDef kfdefsv2.KfDef
+	latestKfDef kfdefsv3.KfDef
 }
 
 // NewServer returns a new kfctl server
@@ -63,7 +63,7 @@ func NewKfctlServer(appsDir string) (*kfctlServer, error) {
 	}
 
 	s := &kfctlServer{
-		c:       make(chan kfdefsv2.KfDef, 10),
+		c:       make(chan kfdefsv3.KfDef, 10),
 		appsDir: appsDir,
 		builder: &coordinator.DefaultBuilder{},
 	}
@@ -81,7 +81,7 @@ func NewKfctlServer(appsDir string) (*kfctlServer, error) {
 //
 // TODO(jlewi): Errors should be reported to user by adding appropriate conditions
 // to the KfDef.
-func (s *kfctlServer) handleDeployment(r kfdefsv2.KfDef) (*kfdefsv2.KfDef, error) {
+func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
 	ctx := context.Background()
 
 	if s.kfApp == nil {
@@ -267,7 +267,7 @@ func (s *kfctlServer) process() {
 	}
 }
 
-func (s *kfctlServer) setLatestKfDef(r *kfdefsv2.KfDef) {
+func (s *kfctlServer) setLatestKfDef(r *kfdefsv3.KfDef) {
 	s.kfDefMux.Lock()
 	defer s.kfDefMux.Unlock()
 	s.latestKfDef = *s.kfDefGetter.GetKfDef()
@@ -279,7 +279,7 @@ func (s *kfctlServer) RegisterEndpoints() {
 	createHandler := httptransport.NewServer(
 		makeRouterCreateRequestEndpoint(s),
 		func(_ context.Context, r *http.Request) (interface{}, error) {
-			var request kfdefsv2.KfDef
+			var request kfdefsv3.KfDef
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				log.Info("Err decoding create request: " + err.Error())
 				return nil, err
@@ -303,7 +303,7 @@ func (s *kfctlServer) RegisterEndpoints() {
 
 // isMatch checks whether the incoming request is a match for the deployment
 // that is already started. If not it is rejected.
-func isMatch(current *kfdefsv2.KfDef, new *kfdefsv2.KfDef) bool {
+func isMatch(current *kfdefsv3.KfDef, new *kfdefsv3.KfDef) bool {
 	// Ensure neither is nil
 	if current == nil {
 		return true
@@ -337,8 +337,8 @@ func isMatch(current *kfdefsv2.KfDef, new *kfdefsv2.KfDef) bool {
 //
 // TODO(https://github.com/kubeflow/kubeflow/issues/3592) Once the apply methods take a context we should be able
 // to use that and not rely on the environment
-func prepareSecrets(d *kfdefsv2.KfDef) {
-	secrets := []kfdefsv2.Secret{}
+func prepareSecrets(d *kfdefsv3.KfDef) {
+	secrets := []kfdefsv3.Secret{}
 
 	for _, s := range d.Spec.Secrets {
 		// Don't pass along the access token
@@ -348,7 +348,7 @@ func prepareSecrets(d *kfdefsv2.KfDef) {
 
 		if s.SecretSource.LiteralSource != nil {
 			n := "KFCTL_" + s.Name
-			s.SecretSource.EnvSource = &kfdefsv2.EnvSource{
+			s.SecretSource.EnvSource = &kfdefsv3.EnvSource{
 				Name: n,
 			}
 
@@ -367,7 +367,7 @@ func prepareSecrets(d *kfdefsv2.KfDef) {
 //
 // Not thread safe
 // TODO(jlewi): We should check if the request matches the current deployment and if not reject
-func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv2.KfDef) (*kfdefsv2.KfDef, error) {
+func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
 	token, err := req.GetSecret(gcp.GcpAccessTokenName)
 
 	if err != nil {
@@ -432,10 +432,10 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv2.KfDef) 
 
 	// Check that it is a valid request.
 	if isValid, msg := (&req).IsValid(); !isValid {
-		req.Status.Conditions = append(req.Status.Conditions, kfdefsv2.KfDefCondition{
-			Type:               kfdefsv2.KfFailed,
+		req.Status.Conditions = append(req.Status.Conditions, kfdefsv3.KfDefCondition{
+			Type:               kfdefsv3.KfFailed,
 			Status:             v1.ConditionTrue,
-			Reason:             kfdefsv2.InvalidKfDefSpecReason,
+			Reason:             kfdefsv3.InvalidKfDefSpecReason,
 			Message:            fmt.Sprintf("KfDef.Spec is invalid; " + msg),
 			LastUpdateTime:     metav1.Now(),
 			LastTransitionTime: metav1.Now(),
@@ -446,10 +446,10 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv2.KfDef) 
 
 	// TODo(jlewi): Uncoment when gcp.IsValid is checked in.
 	//if isValid, msg := gcp.IsValid(req); !isValid {
-	//	req.Status.Conditions = append(req.Status.Conditions, kfdefsv2.KfDefCondition{
-	//		Type:               kfdefsv2.KfFailed,
+	//	req.Status.Conditions = append(req.Status.Conditions, kfdefsv3.KfDefCondition{
+	//		Type:               kfdefsv3.KfFailed,
 	//		Status:             v1.ConditionTrue,
-	//		Reason:             kfdefsv2.InvalidKfDefSpecReason,
+	//		Reason:             kfdefsv3.InvalidKfDefSpecReason,
 	//		Message:            fmt.Sprintf("KfDef.Spec is invalid; " + msg),
 	//		LastUpdateTime:     metav1.Now(),
 	//		LastTransitionTime: metav1.Now(),

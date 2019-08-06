@@ -1,7 +1,7 @@
 package aws
 
 import (
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 )
 
 // AwsPlugin defines the extra data provided by the GCP Plugin in KfDef

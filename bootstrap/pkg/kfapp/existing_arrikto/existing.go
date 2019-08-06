@@ -9,19 +9,18 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kfapisv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
-	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
+	kfapisv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
+	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"html/template"
-	corev1 "k8s.io/api/v2/core/v1"
-	apierrors "k8s.io/apimachinery/v2/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/v2/pkg/types"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"math/big"
@@ -29,7 +28,7 @@ import (
 	"net"
 	"os"
 	"path"
-	"sigs.k8s.io/controller-runtime/v2/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"time"
 )
@@ -51,9 +50,9 @@ type manifest struct {
 	path string
 }
 
-func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
+func GetPlatform(kfdef *kfdefs.KfDef) (kftypesv3.Platform, error) {
 
-	kfRepoDir := kfdef.Status.ReposCache[kftypes.KubeflowRepoName].LocalPath
+	kfRepoDir := kfdef.Status.ReposCache[kftypesv3.KubeflowRepoName].LocalPath
 	istioManifestsDir := path.Join(kfRepoDir, "deployment/existing/istio")
 	istioManifests := []manifest{
 		{
@@ -98,17 +97,17 @@ func (existing *Existing) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
 	return nil, nil
 }
 
-func (existing *Existing) Init(resources kftypes.ResourceEnum) error {
+func (existing *Existing) Init(resources kftypesv3.ResourceEnum) error {
 	return nil
 }
 
-func (existing *Existing) Generate(resources kftypes.ResourceEnum) error {
+func (existing *Existing) Generate(resources kftypesv3.ResourceEnum) error {
 	return nil
 }
 
-func (existing *Existing) Apply(resources kftypes.ResourceEnum) error {
+func (existing *Existing) Apply(resources kftypesv3.ResourceEnum) error {
 	// Apply extra components
-	config := kftypesv2.GetConfig()
+	config := kftypesv3.GetConfig()
 
 	// Create namespace
 	// Get a K8s client
@@ -163,7 +162,7 @@ func (existing *Existing) Apply(resources kftypes.ResourceEnum) error {
 	}
 
 	// Generate YAML from the dex, authservice templates
-	kfRepoDir := existing.Status.ReposCache[kftypesv2.KubeflowRepo].LocalPath
+	kfRepoDir := existing.Status.ReposCache[kftypesv3.KubeflowRepo].LocalPath
 	authOIDCManifestsDir := path.Join(kfRepoDir, "deployment/existing/auth_oidc")
 	err = generateFromGoTemplate(
 		path.Join(authOIDCManifestsDir, "authservice.tmpl"),
@@ -191,9 +190,9 @@ func (existing *Existing) Apply(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
-func (existing *Existing) Delete(resources kftypes.ResourceEnum) error {
+func (existing *Existing) Delete(resources kftypesv3.ResourceEnum) error {
 
-	config := kftypesv2.GetConfig()
+	config := kftypesv3.GetConfig()
 	kubeclient, err := client.New(config, client.Options{})
 	if err != nil {
 		return internalError(errors.WithStack(err))
@@ -239,8 +238,8 @@ func (existing *Existing) Delete(resources kftypes.ResourceEnum) error {
 }
 
 func internalError(err error) error {
-	return &kfapisv2.KfError{
-		Code:    int(kfapisv2.INTERNAL_ERROR),
+	return &kfapisv3.KfError{
+		Code:    int(kfapisv3.INTERNAL_ERROR),
 		Message: fmt.Sprintf("%+v", err),
 	}
 }
@@ -253,7 +252,7 @@ type kfUser struct {
 
 func getKubeflowUser() (*kfUser, error) {
 	kfUserEmail := os.Getenv(KUBEFLOW_USER_EMAIL)
-	kfPassword := os.Getenv(kftypes.KUBEFLOW_PASSWORD)
+	kfPassword := os.Getenv(kftypesv3.KUBEFLOW_PASSWORD)
 	kfUsername := ""
 
 	if kfUserEmail == "" || kfPassword == "" {
@@ -415,7 +414,7 @@ func getLBIP(kubeclient client.Client) (string, error) {
 }
 
 func applyManifests(manifests []manifest) error {
-	config := kftypesv2.GetConfig()
+	config := kftypesv3.GetConfig()
 	for _, m := range manifests {
 		log.Infof("Installing %s...", m.name)
 		err := utils.CreateResourceFromFile(
@@ -431,7 +430,7 @@ func applyManifests(manifests []manifest) error {
 }
 
 func deleteManifests(manifests []manifest) error {
-	config := kftypesv2.GetConfig()
+	config := kftypesv3.GetConfig()
 	for _, m := range manifests {
 		log.Infof("Deleting %s...", m.name)
 		err := utils.DeleteResourceFromFile(
