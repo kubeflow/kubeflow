@@ -258,7 +258,7 @@ spec:
     name: cert-manager
   - kustomizeConfig:
       overlays:
-      - gcp-credential
+      - gcp-credentials
       parameters:
       - name: secretName
         value: admin-gcp-sa
@@ -285,7 +285,7 @@ spec:
   - kustomizeConfig:
       overlays:
       - certmanager
-      - gcp-credential
+      - gcp-credentials
       parameters:
       - name: namespace
         value: istio-system
