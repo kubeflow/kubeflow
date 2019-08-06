@@ -8,8 +8,7 @@
 }
 h1, h2 {
     font-family: Google Sans;
-    font-weight: 500;
-    font-size: 1.1em;
+    font-size: 1.2em;
     margin: 0;
 }
 h1 {
@@ -27,17 +26,23 @@ h2 {
     @apply --layout-horizontal;
     @apply --layout-center;
     font-size: 1em;
+    font-weight: 500;
     color: var(--subheading-color);
     margin: .5em 0;
 }
 h2 .icon {
     color: var(--accent-color);
     margin-right: 1rem;
+    /* Because Hamburger icon has a padding area for ripple*/
+    padding-left: .6rem;
 }
 .content {
-    margin-left: calc(1rem + 24px);
+    margin-left: calc(1.6rem + 24px);
     color: var(--content-color);
     font-size: .9em;
+}
+.content.small {
+    max-width: 640px;
 }
 vaadin-grid {
     --lumo-font-size-m: 1em;
@@ -47,49 +52,12 @@ vaadin-grid {
 #ContribError {
     background: #F44336
 }
-#Contribs {
-    --action-color: var(--accent-color);
-    border: 2px solid var(--action-color);
-    border-radius: 3px;
-    padding: .5em;
-    position: relative;
-    flex-wrap: wrap;
-    min-height: 2.5em;
-    @apply --layout-horizontal;
-}
-#Contribs[error] {
-    --action-color: #F44336
-}
-#Contribs > figcaption {
-    position: absolute;
-    top: 0;
-    left: .75em;
-    transform: translateY(-50%);
-    font-size: .8em;
-    background: white;
-    padding: .25em;
-    color: var(--action-color);
-    font-weight: 400;
-}
-#Contribs input {
-    border: 0;
-    padding: 0;
-    outline: 0;
-    margin: .25em .5em;
-    flex: 1;
-    caret-color: var(--action-color);
-}
-#Contribs input::placeholder {
-    font-style: italic;
-}
-#Contribs .Error {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    transform: translateY(100%);
-    padding: .5em 0;
-    font-size: .8em;
-    color: var(--action-color);
+
+md2-input {
+    width: 100%;
+    --md2-input-box: {
+        min-height: 2.5em;
+    }
 }
 
 [hidden] {display: none !important}

@@ -13,8 +13,8 @@ paper-card#MainCard
         neon-animatable
             h2 Namespace
             aside A namespace is a collection of Kubeflow services. Resources created within a namespace are isolated to that namespace. By default, a namespace will be created for you.
-            paper-input#Namespace(label='Namespace Name', value='{{namespaceName}}', allowed-pattern='[[_namespaceValidationRegex]]',
-                invalid='[[error.response.error]]', error-message='[[error.response.error]]', disabled='[[submittingWorkgroup]]', maxlength=253)
+            md2-input#Namespace(label='Namespace Name', value='{{namespaceName}}', allowed-pattern='[[_namespaceValidationRegex]]',
+                error='[[error.response.error]]', disabled='[[submittingWorkgroup]]', maxlength=253)
             iron-a11y-keys#keys(target='[[namespaceInput]]', keys='enter', on-keys-pressed='finishSetup')
             .finish
                 animated-checkmark(show='[[flowComplete]]')

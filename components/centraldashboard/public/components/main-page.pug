@@ -4,7 +4,7 @@ iron-ajax#envInfo(auto='[[_shouldFetchEnv]]', url='/api/env-info', handle-as='js
     on-response='_onEnvInfoResponse')
 aside#PageLoader(hidden='{{!pageLoading}}')
 app-drawer-layout.flex(narrow='{{narrowMode}}',
-        force-narrow='[[or(inIframe, thinView, notFoundInIframe)]]',
+        force-narrow='[[or(inIframe, thinView, notFoundInIframe, hideSidebar)]]',
         bleed$='[[sidebarBleed]]')
     app-location(route='{{route}}', query-params='{{queryParams}}')
     app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
@@ -21,7 +21,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             template(is='dom-if', if='[[equals(isolationMode, "multi-user")]]')
                 aside.divider
                 a(href$='[[buildHref("/manage-users", queryParams)]]', tabindex='-1')
-                    paper-item.menu-item Manage Users
+                    paper-item.menu-item Manage Contributors
             aside.divider
             a(href='https://github.com/kubeflow/kubeflow',
                 tabindex='-1', target="_blank")

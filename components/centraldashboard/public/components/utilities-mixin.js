@@ -68,4 +68,16 @@ export default (superClass) => class extends superClass {
         }
         return url.href.slice(url.origin.length);
     }
+
+    /**
+     * Fire a custom event from an element
+     * @param {string|event} name Event Name
+     * @param {object|undefined} detail Event Details
+     */
+    fire(name, detail) {
+        const ev = name instanceof Event
+            ? name
+            : new CustomEvent(name, {detail});
+        this.dispatchEvent(ev);
+    }
 };

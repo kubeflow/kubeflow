@@ -53,7 +53,7 @@ export class PaperChip extends utilitiesMixin(PolymerElement) {
         this.selected = typeof e == 'number'?e:e.model.index;
     }
     fireRemove(e) {
-        this.dispatchEvent(new CustomEvent('remove'));
+        this.fire('remove', e.detail);
     }
 }
 

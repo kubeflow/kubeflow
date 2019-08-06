@@ -19,8 +19,8 @@ section#Main-Content
     article.Namespaces(hidden$='[[empty(ownedNamespace)]]')
         h2
             iron-icon.icon(icon='kubeflow:namespace')
-            span.text Namespaces
-        .content
+            span.text Namespace Memberships
+        .content.small
             vaadin-grid(items='[[nsBreakdown(namespaces, ownedNamespace)]]', theme="no-border", height-by-rows, multi-sort)
                 vaadin-grid-column(width='9em', path='0', header='Role')
                 vaadin-grid-column(width='15em', path='1', flex-grow='2', header='Namespaces')
@@ -28,14 +28,18 @@ section#Main-Content
         h2
             iron-icon.icon(icon='kubeflow:namespace')
             span.text Contributors to your namespace - [[ownedNamespace.namespace]]
-        .content
-            section#Contribs(error$='[[!empty(contribCreateError)]]')
-                figcaption Email Addresses
-                template(is='dom-repeat', items='[[contributorList]]')
-                    paper-chip(on-remove='removeContributor') [[item]]
-                input(value='{{newContribEmail::input}}', placeholder='... Add Contributor email')
-                iron-a11y-keys#keys(target='[[contributorInputEl]]', keys='enter', on-keys-pressed='addNewContrib')
-                aside.Error [[contribCreateError]]
+        .content.small
+            //- section#Contribs(error$='[[!empty(contribCreateError)]]')
+            //-     figcaption Email Addresses
+            //-     template(is='dom-repeat', items='[[contributorList]]')
+            //-         paper-chip(on-remove='removeContributor') [[item]]
+            //-     input(value='{{newContribEmail::input}}', placeholder='Add by email address')
+            //-     iron-a11y-keys#keys(target='[[contributorInputEl]]', keys='enter', on-keys-pressed='addNewContrib')
+            //-     aside.Error [[contribCreateError]]
+            md2-input(label='Email Addresses', value='{{newContribEmail}}', on-submit='addNewContrib', placeholder='Add by email address', error$='[[contribCreateError]]')
+                .prefix(slot='prefix')
+                    template(is='dom-repeat', items='[[contributorList]]')
+                        paper-chip(on-remove='removeContributor') [[item]]
     article.Cluster-Namespaces(hidden$='[[empty(isClusterAdmin)]]')
         h2
             iron-icon.icon(icon='kubeflow:namespace')
