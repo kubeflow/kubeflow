@@ -1,5 +1,5 @@
 import {V1Namespace} from '@kubernetes/client-node';
-import {Router, Request, Response} from 'express';
+import {Router, Request, Response, NextFunction} from 'express';
 import {Binding as WorkgroupBinding, DefaultApi} from './clients/profile_controller';
 
 import {
@@ -195,7 +195,7 @@ export class ContributorApi {
                 }
                 res.json(response);
             })
-        .post('/create', async (req: Request, res: Response) => {
+        .use((req: Request, res: Response, next: NextFunction) => {
             if (!req.user.hasAuth) {
                 return apiError({
                     res,
@@ -203,6 +203,9 @@ export class ContributorApi {
                     error: ERRORS.operation_not_supported,
                 });
             }
+            next();
+        })
+        .post('/create', async (req: Request, res: Response) => {
             const profile = req.body as CreateProfileRequest;
             try {
                 const namespace = profile.namespace || req.user.username;
