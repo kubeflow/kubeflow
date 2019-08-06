@@ -4,7 +4,7 @@ import {DefaultApi} from './clients/profile_controller';
 import {KubernetesService, PlatformInfo} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
 import {
-  ContributorAPI,
+  ContributorApi,
   mapNamespacesToSimpleBinding,
   SimpleBinding,
 } from './api_contributors';
@@ -28,17 +28,13 @@ export function apiError(a: {res: Response, error: string, code?: number}) {
   });
 }
 
-export function NO_ROUTES(req: Request, res: Response, next: NextFunction) {
-  next();
-}
-
 export class Api {
   private platformInfo: PlatformInfo;
 
   constructor(
       private k8sService: KubernetesService,
       private profilesService: DefaultApi,
-      private contribApi?: ContributorAPI,
+      private contribApi?: ContributorApi,
       private metricsService?: MetricsService,
     ) {}
 
@@ -56,7 +52,7 @@ export class Api {
   private async getProfileAwareEnv(user: User.User): Promise<EnvironmentInfo> {
     const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
       this.getPlatformInfo(),
-      ContributorAPI.getWorkgroupInfo(
+      ContributorApi.getWorkgroupInfo(
         this.profilesService,
         user,
       ),
@@ -144,7 +140,9 @@ export class Api {
             })
         .use('/workgroup', this.contribApi
           ? this.contribApi.routes()
-          : NO_ROUTES
+          : (req: Request, res: Response, next: NextFunction)  => {
+            next();
+          }
         )
         .use((req: Request, res: Response) => 
           apiError({

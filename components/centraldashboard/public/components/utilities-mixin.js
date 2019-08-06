@@ -74,7 +74,7 @@ export default (superClass) => class extends superClass {
      * @param {string|event} name Event Name
      * @param {object|undefined} detail Event Details
      */
-    fire(name, detail) {
+    fireEvent(name, detail) {
         const ev = name instanceof Event
             ? name
             : new CustomEvent(name, {detail});

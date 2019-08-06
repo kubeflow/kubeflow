@@ -84,7 +84,7 @@ export class Md2Input extends utilitiesMixin(PolymerElement) {
         return false;
     }
     fireEnter() {
-        this.fire('submit');
+        this.fireEvent('submit');
     }
 }
 window.customElements.define('md2-input', Md2Input);

@@ -5,7 +5,7 @@ import {resolve} from 'path';
 import {Api} from './api';
 import {attachUser} from './attach_user_middleware';
 import {DefaultApi} from './clients/profile_controller';
-import {ContributorAPI} from './api_contributors';
+import {ContributorApi} from './api_contributors';
 import {KubernetesService} from './k8s_service';
 import {getMetricsService} from './metrics_service_factory';
 
@@ -36,8 +36,7 @@ async function main() {
   const metricsService = await getMetricsService(k8sService);
   console.info(`Using Profiles service at ${profilesServiceUrl}`);
   const profilesService = new DefaultApi(profilesServiceUrl);
-  const contribApi = new ContributorAPI(profilesService);
-
+  const contribApi = new ContributorApi(profilesService);
 
   app.use(express.json());
   app.use(express.static(frontEnd));

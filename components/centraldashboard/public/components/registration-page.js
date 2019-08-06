@@ -85,7 +85,7 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
             el.style.width = `${el.scrollWidth}px`;
         });
         this.sleep(2000).then(async () => {
-            this.fire('flowcomplete');
+            this.fireEvent('flowcomplete');
         });
         this.sleep(6000).then(async () => {
             this.$.ApiMessage.style.width = 0;

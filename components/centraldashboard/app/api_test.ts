@@ -7,7 +7,7 @@ import {attachUser} from './attach_user_middleware';
 import {DefaultApi} from './clients/profile_controller';
 import {KubernetesService} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
-import {ContributorAPI} from './api_contributors';
+import {ContributorApi} from './api_contributors';
 import {MetricServiceClient} from '@google-cloud/monitoring';
 
 // Helper function to send a test request and return a Promise for the response
@@ -42,7 +42,7 @@ describe('Dashboard API', () => {
   const newAPI = (withMetrics = false) => new Api(
     mockK8sService,
     mockProfilesService,
-    new ContributorAPI(mockProfilesService),
+    new ContributorApi(mockProfilesService),
     withMetrics ? mockMetricsService : undefined
   );
 
@@ -379,7 +379,7 @@ describe('Dashboard API', () => {
         [header]: `${prefix}test@testdomain.com`,
       };
       const response = await sendTestRequest(url, headers, 405, 'post');
-      expect(JSON.stringify(response)).toEqual(JSON.stringify({error: 'Unexpected error creating profile'}));
+      expect(response).toEqual({error: 'Unexpected error creating profile'});
     });
   });
 

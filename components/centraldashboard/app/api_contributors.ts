@@ -11,7 +11,7 @@ import {
 const EMAIL_RGX = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
 // Valid actions for handling a contributor
-type CONTRIBUTOR_ACTIONS = 'create' | 'remove';
+type ContributorActions = 'create' | 'remove';
 
 interface CreateProfileRequest {
     namespace?: string;
@@ -104,7 +104,7 @@ const surfaceProfileControllerErrors = (info: {res: Response, msg: string, err: 
     apiError({res, code, error: devError || msg});
 };
 
-export class ContributorAPI {
+export class ContributorApi {
     constructor(private profilesService: DefaultApi) {}
     /**
      * Retrieves WorkgroupInfo from Profile Controller for the given user.
@@ -122,7 +122,7 @@ export class ContributorAPI {
             namespaces,
         };
     }
-    async handleContributor(action: CONTRIBUTOR_ACTIONS, req: Request, res: Response) {
+    async handleContributor(action: ContributorActions, req: Request, res: Response) {
         const {namespace} = req.params;
         const {contributor} = req.body as AddOrRemoveContributorRequest;
         const {profilesService} = this;
@@ -186,7 +186,7 @@ export class ContributorAPI {
                     hasWorkgroup: false,
                 };
                 if (req.user.hasAuth) {
-                    const workgroup = await ContributorAPI.getWorkgroupInfo(
+                    const workgroup = await ContributorApi.getWorkgroupInfo(
                         this.profilesService,
                         req.user,
                     );
