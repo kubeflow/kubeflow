@@ -8,7 +8,6 @@ import {DefaultApi} from './clients/profile_controller';
 import {KubernetesService} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
 import {ContributorApi} from './api_contributors';
-import {MetricServiceClient} from '@google-cloud/monitoring';
 
 // Helper function to send a test request and return a Promise for the response
 function sendTestRequest(
@@ -420,8 +419,7 @@ describe('Dashboard API', () => {
       testApp.use(express.json());
       testApp.use(
           '/api',
-          newAPI(true)
-              .routes());
+          newAPI(true).routes());
       const addressInfo = testApp.listen(0).address();
       if (typeof addressInfo === 'string') {
         throw new Error(

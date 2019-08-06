@@ -52,8 +52,7 @@ export class Api {
   private async getProfileAwareEnv(user: User.User): Promise<EnvironmentInfo> {
     const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
       this.getPlatformInfo(),
-      ContributorApi.getWorkgroupInfo(
-        this.profilesService,
+      this.contribApi.getWorkgroupInfo(
         user,
       ),
     ]);
@@ -93,7 +92,7 @@ export class Api {
                 const code = (err.response && err.response.statusCode) || 400;
                 const error =
                     err.body || 'Unexpected error getting environment info';
-                console.log(`Unable to get environment info: ${error}`);
+                console.log(`Unable to get environment info: ${error}${err.stack?'\n'+err.stack:''}`);
                 apiError({res, code, error});
               }
             })

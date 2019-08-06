@@ -109,10 +109,10 @@ export class ContributorApi {
     /**
      * Retrieves WorkgroupInfo from Profile Controller for the given user.
      */
-    static async getWorkgroupInfo(profilesService: DefaultApi, user: User.User): Promise<WorkgroupInfo> {
+    async getWorkgroupInfo(user: User.User): Promise<WorkgroupInfo> {
         const [adminResponse, bindings] = await Promise.all([
-            profilesService.v1RoleClusteradminGet(user.email),
-            profilesService.readBindings(user.email),
+            this.profilesService.v1RoleClusteradminGet(user.email),
+            this.profilesService.readBindings(user.email),
         ]);
         const namespaces = mapWorkgroupBindingToSimpleBinding(
             bindings.body.bindings || []
@@ -186,8 +186,7 @@ export class ContributorApi {
                     hasWorkgroup: false,
                 };
                 if (req.user.hasAuth) {
-                    const workgroup = await ContributorApi.getWorkgroupInfo(
-                        this.profilesService,
+                    const workgroup = await this.getWorkgroupInfo(
                         req.user,
                     );
                     response.hasWorkgroup = !!(workgroup.namespaces || [])
