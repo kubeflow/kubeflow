@@ -1036,7 +1036,7 @@ func (gcp *Gcp) copyFile(source string, dest string) error {
 	if err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("cannot create directory: %v", err),
+			Message: fmt.Sprintf("cannot open input for copying: %v", err),
 		}
 	}
 	defer from.Close()
@@ -1279,8 +1279,9 @@ func (gcp *Gcp) generateDMConfigs() error {
 	gcpConfigDirErr := os.MkdirAll(gcpConfigDir, os.ModePerm)
 	if gcpConfigDirErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("cannot create directory %v", gcpConfigDirErr),
+			Code: int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("cannot create directory %v using appdir %v",
+				gcpConfigDirErr, appDir),
 		}
 	}
 	repo, ok := gcp.kfDef.Status.ReposCache[kftypes.KubeflowRepoName]
@@ -1301,8 +1302,8 @@ func (gcp *Gcp) generateDMConfigs() error {
 		if copyErr != nil {
 			return &kfapis.KfError{
 				Code: copyErr.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("could not copy %v to %v Error %v",
-					sourceFile, destFile, copyErr.(*kfapis.KfError).Message),
+				Message: fmt.Sprintf("could not copy %v to %v using repo local path %v Error %v",
+					sourceFile, destFile, repo.LocalPath, copyErr.(*kfapis.KfError).Message),
 			}
 		}
 	}
