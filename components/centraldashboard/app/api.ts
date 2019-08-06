@@ -1,21 +1,13 @@
-import {V1Namespace} from '@kubernetes/client-node';
-import {Router, Request, Response} from 'express';
+import {Router, Request, Response, NextFunction} from 'express';
 
-import {Binding as WorkgroupBinding, DefaultApi} from './clients/profile_controller';
+import {DefaultApi} from './clients/profile_controller';
 import {KubernetesService, PlatformInfo} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
-import {ContributorAPI} from './api_contributors';
-
-interface SimpleBinding {
-  namespace: string;
-  role: 'owner' | 'contributor';
-  user: string;
-}
-
-interface WorkgroupInfo {
-  namespaces: SimpleBinding[];
-  isClusterAdmin: boolean;
-}
+import {
+  ContributorAPI,
+  mapNamespacesToSimpleBinding,
+  SimpleBinding,
+} from './api_contributors';
 
 interface EnvironmentInfo {
   namespaces: SimpleBinding[];
@@ -24,28 +16,11 @@ interface EnvironmentInfo {
   isClusterAdmin: boolean;
 }
 
-interface HasWorkgroupResponse {
-  user: string;
-  hasAuth: boolean;
-  hasWorkgroup: boolean;
-}
-
-
-export type SimpleRole = 'owner'| 'contributor';
-export type WorkgroupRole = 'admin' | 'edit';
-export type Role = SimpleRole | WorkgroupRole;
-export const roleMap: ReadonlyMap<Role, Role> = new Map([
-  ['admin', 'owner'],
-  ['owner', 'admin'],
-  ['edit', 'contributor'],
-  ['contributor', 'edit'],
-]);
-
 export const ERRORS = {
   operation_not_supported: 'Operation not supported'
 };
 
-export function apiError (a: {res: Response, error: string, code?: number}) {
+export function apiError(a: {res: Response, error: string, code?: number}) {
   const {res, error} = a;
   const code = a.code || 400;
   return res.status(code).json({
@@ -53,57 +28,19 @@ export function apiError (a: {res: Response, error: string, code?: number}) {
   });
 }
 
-/**
- * Converts Workgroup Binding from Profile Controller to SimpleBinding
- */
-export function mapWorkgroupBindingToSimpleBinding (bindings: WorkgroupBinding[]): SimpleBinding[] {
-  return bindings.map((n) => ({
-    user: n.user.name,
-    namespace: n.referredNamespace,
-    role: roleMap.get(n.roleRef.name as Role) as SimpleRole,
-  }));
-}
-
-/**
- * Converts Kubernetes Namespace types to SimpleBinding to ensure
- * compatibility between identity-aware and non-identity aware clusters
- */
-export function mapNamespacesToSimpleBinding (user: string, namespaces: V1Namespace[]): SimpleBinding[] {
-  return namespaces.map((n) => ({
-    user,
-    namespace: n.metadata.name,
-    role: roleMap.get('edit') as SimpleRole,
-  }));
-}
-
-/**
- * Converts SimpleBinding to Workgroup Binding from Profile Controller
- */
-export function mapSimpleBindingToWorkgroupBinding (binding: SimpleBinding): WorkgroupBinding {
-  const {user, namespace, role} = binding;
-  return {
-    user: {
-      kind: 'User',
-      name: user,
-    },
-    referredNamespace: namespace,
-    roleRef: {
-      kind: 'ClusterRole',
-      name: roleMap.get(role) as WorkgroupRole,
-    }
-  };
+export function NO_ROUTES(req: Request, res: Response, next: NextFunction) {
+  next();
 }
 
 export class Api {
   private platformInfo: PlatformInfo;
-  private contribApi: ContributorAPI;
 
   constructor(
-    private k8sService: KubernetesService,
-    private profilesService: DefaultApi,
-    private metricsService?: MetricsService) {
-      this.contribApi = new ContributorAPI(this.profilesService);
-    }
+      private k8sService: KubernetesService,
+      private profilesService: DefaultApi,
+      private contribApi?: ContributorAPI,
+      private metricsService?: MetricsService,
+    ) {}
 
   /** Retrieves and memoizes the PlatformInfo. */
   private async getPlatformInfo(): Promise<PlatformInfo> {
@@ -114,29 +51,15 @@ export class Api {
   }
 
   /**
-   * Retrieves WorkgroupInfo from Profile Controller for the given user.
-   */
-  private async getWorkgroupInfo(user: User.User): Promise<WorkgroupInfo> {
-    const [adminResponse, bindings] = await Promise.all([
-      this.profilesService.v1RoleClusteradminGet(user.email),
-      this.profilesService.readBindings(user.email),
-    ]);
-    const namespaces = mapWorkgroupBindingToSimpleBinding(
-      bindings.body.bindings || []
-    );
-    return {
-      isClusterAdmin: adminResponse.body,
-      namespaces,
-    };
-  }
-
-  /**
    * Builds EnvironmentInfo for the case with identity awareness
    */
   private async getProfileAwareEnv(user: User.User): Promise<EnvironmentInfo> {
     const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
       this.getPlatformInfo(),
-      this.getWorkgroupInfo(user),
+      ContributorAPI.getWorkgroupInfo(
+        this.profilesService,
+        user,
+      ),
     ]);
     return {user: user.email, platform, namespaces, isClusterAdmin};
   }
@@ -179,21 +102,6 @@ export class Api {
               }
             })
         .get(
-            '/has-workgroup',
-            async (req: Request, res: Response) => {
-              const response: HasWorkgroupResponse = {
-                hasAuth: req.user.hasAuth,
-                user: req.user.username,
-                hasWorkgroup: false,
-              };
-              if (req.user.hasAuth) {
-                const workgroup = await this.getWorkgroupInfo(req.user);
-                response.hasWorkgroup = !!(workgroup.namespaces || [])
-                  .find((w) => w.role === 'owner');
-              }
-              res.json(response);
-            })
-        .get(
             '/metrics/:type((node|podcpu|podmem))',
             async (req: Request, res: Response) => {
               if (!this.metricsService) {
@@ -234,9 +142,16 @@ export class Api {
               res.json(await this.k8sService.getEventsForNamespace(
                   req.params.namespace));
             })
-        .use('/workgroup', this.contribApi.routes())
-        .use((req: Request, res: Response) => {
-          res.status(404).json(`Could not find the route you're looking for`);
-        });
+        .use('/workgroup', this.contribApi
+          ? this.contribApi.routes()
+          : NO_ROUTES
+        )
+        .use((req: Request, res: Response) => 
+          apiError({
+            res,
+            error: `Could not find the route you're looking for`,
+            code: 404,
+          })
+        );
   }
 }

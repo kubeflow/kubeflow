@@ -1,28 +1,94 @@
-import {Router, Request, Response, NextFunction} from 'express';
-import {DefaultApi} from './clients/profile_controller';
+import {V1Namespace} from '@kubernetes/client-node';
+import {Router, Request, Response} from 'express';
+import {Binding as WorkgroupBinding, DefaultApi} from './clients/profile_controller';
+
 import {
     apiError,
-    mapWorkgroupBindingToSimpleBinding,
-    mapSimpleBindingToWorkgroupBinding,
     ERRORS,
 } from './api';
+
+// From: https://www.w3resource.com/javascript/form/email-validation.php
+const EMAIL_RGX = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
 // Valid actions for handling a contributor
 type CONTRIBUTOR_ACTIONS = 'create' | 'remove';
 
-// Shape of the CreateProfileRequest body
 interface CreateProfileRequest {
     namespace?: string;
     user?: string;
 }
 
-// Shape of the AddContributorRequest body
 interface AddOrRemoveContributorRequest {
     contributor?: string;
 }
 
-// From: https://www.w3resource.com/javascript/form/email-validation.php
-const EMAIL_RGX = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+interface HasWorkgroupResponse {
+    user: string;
+    hasAuth: boolean;
+    hasWorkgroup: boolean;
+}
+
+export type SimpleRole = 'owner'| 'contributor';
+export type WorkgroupRole = 'admin' | 'edit';
+export type Role = SimpleRole | WorkgroupRole;
+export const roleMap: ReadonlyMap<Role, Role> = new Map([
+    ['admin', 'owner'],
+    ['owner', 'admin'],
+    ['edit', 'contributor'],
+    ['contributor', 'edit'],
+]);
+
+export interface SimpleBinding {
+    namespace: string;
+    role: SimpleRole;
+    user: string;
+}
+
+export interface WorkgroupInfo {
+    namespaces: SimpleBinding[];
+    isClusterAdmin: boolean;
+}
+
+/**
+ * Converts Workgroup Binding from Profile Controller to SimpleBinding
+ */
+export function mapWorkgroupBindingToSimpleBinding (bindings: WorkgroupBinding[]): SimpleBinding[] {
+    return bindings.map((n) => ({
+        user: n.user.name,
+        namespace: n.referredNamespace,
+        role: roleMap.get(n.roleRef.name as Role) as SimpleRole,
+    }));
+}
+
+/**
+ * Converts Kubernetes Namespace types to SimpleBinding to ensure
+ * compatibility between identity-aware and non-identity aware clusters
+ */
+export function mapNamespacesToSimpleBinding (user: string, namespaces: V1Namespace[]): SimpleBinding[] {
+    return namespaces.map((n) => ({
+        user,
+        namespace: n.metadata.name,
+        role: roleMap.get('edit') as SimpleRole,
+    }));
+}
+
+/**
+ * Converts SimpleBinding to Workgroup Binding from Profile Controller
+ */
+export function mapSimpleBindingToWorkgroupBinding (binding: SimpleBinding): WorkgroupBinding {
+    const {user, namespace, role} = binding;
+    return {
+        user: {
+            kind: 'User',
+            name: user,
+        },
+        referredNamespace: namespace,
+        roleRef: {
+            kind: 'ClusterRole',
+            name: roleMap.get(role) as WorkgroupRole,
+        }
+    };
+}
 
 /**
  * Handles an exception in an async block and converts it to a JSON
@@ -32,13 +98,30 @@ const EMAIL_RGX = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 const surfaceProfileControllerErrors = (info: {res: Response, msg: string, err: any}) => {
     const {res, msg, err} = info;
     const code = (err.response && err.response.statusCode) || 400;
-    const error = err.body || msg;
-    console.error(`${msg} ${error}`);
-    apiError({res, code, error});
+    const devError = err.body || '';
+    // Msg is the developer reason of what happened, devError is the technical details as to why
+    console.error(msg+(devError?` ${devError}`:''));
+    apiError({res, code, error: devError || msg});
 };
 
 export class ContributorAPI {
     constructor(private profilesService: DefaultApi) {}
+    /**
+     * Retrieves WorkgroupInfo from Profile Controller for the given user.
+     */
+    static async getWorkgroupInfo(profilesService: DefaultApi, user: User.User): Promise<WorkgroupInfo> {
+        const [adminResponse, bindings] = await Promise.all([
+            profilesService.v1RoleClusteradminGet(user.email),
+            profilesService.readBindings(user.email),
+        ]);
+        const namespaces = mapWorkgroupBindingToSimpleBinding(
+            bindings.body.bindings || []
+        );
+        return {
+            isClusterAdmin: adminResponse.body,
+            namespaces,
+        };
+    }
     async handleContributor(action: CONTRIBUTOR_ACTIONS, req: Request, res: Response) {
         const {namespace} = req.params;
         const {contributor} = req.body as AddOrRemoveContributorRequest;
@@ -94,6 +177,24 @@ export class ContributorAPI {
         return users;
     }
     routes() {return Router()
+        .get(
+            '/exists',
+            async (req: Request, res: Response) => {
+                const response: HasWorkgroupResponse = {
+                    hasAuth: req.user.hasAuth,
+                    user: req.user.username,
+                    hasWorkgroup: false,
+                };
+                if (req.user.hasAuth) {
+                    const workgroup = await ContributorAPI.getWorkgroupInfo(
+                        this.profilesService,
+                        req.user,
+                    );
+                    response.hasWorkgroup = !!(workgroup.namespaces || [])
+                        .find((w) => w.role === 'owner');
+                }
+                res.json(response);
+            })
         .post('/create', async (req: Request, res: Response) => {
             if (!req.user.hasAuth) {
                 return apiError({

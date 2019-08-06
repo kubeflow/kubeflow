@@ -210,7 +210,7 @@ describe('Main Page', () => {
         const getHasWorkgroup = mockRequest(mainPage, {
             status: 200,
             responseText: JSON.stringify(hasWorkgroup),
-        }, false, '/api/has-workgroup');
+        }, false, '/api/workgroup/exists');
         const getEnvInfo = mockRequest(mainPage, {
             status: 200,
             responseText: JSON.stringify(envInfo),

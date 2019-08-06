@@ -7,6 +7,8 @@ import {attachUser} from './attach_user_middleware';
 import {DefaultApi} from './clients/profile_controller';
 import {KubernetesService} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
+import {ContributorAPI} from './api_contributors';
+import {MetricServiceClient} from '@google-cloud/monitoring';
 
 // Helper function to send a test request and return a Promise for the response
 function sendTestRequest(
@@ -37,6 +39,12 @@ describe('Dashboard API', () => {
   let mockProfilesService: jasmine.SpyObj<DefaultApi>;
   let testApp: express.Application;
   let port: number;
+  const newAPI = (withMetrics = false) => new Api(
+    mockK8sService,
+    mockProfilesService,
+    new ContributorAPI(mockProfilesService),
+    withMetrics ? mockMetricsService : undefined
+  );
 
   describe('Environment Information', () => {
     let url: string;
@@ -74,7 +82,7 @@ describe('Dashboard API', () => {
       testApp.use(express.json());
       testApp.use(attachUserMiddleware);
       testApp.use(
-          '/api', new Api(mockK8sService, mockProfilesService).routes());
+          '/api', newAPI().routes());
       const addressInfo = testApp.listen(0).address();
       if (typeof addressInfo === 'string') {
         throw new Error(
@@ -210,14 +218,14 @@ describe('Dashboard API', () => {
       testApp.use(express.json());
       testApp.use(attachUserMiddleware);
       testApp.use(
-          '/api', new Api(mockK8sService, mockProfilesService).routes());
+          '/api', newAPI().routes());
       const addressInfo = testApp.listen(0).address();
       if (typeof addressInfo === 'string') {
         throw new Error(
             'Unable to determine system-assigned port for test API server');
       }
       port = addressInfo.port;
-      url = `http://localhost:${port}/api/has-workgroup`;
+      url = `http://localhost:${port}/api/workgroup/exists`;
     });
 
     it('Should return for a non-identity aware cluster', async () => {
@@ -294,7 +302,7 @@ describe('Dashboard API', () => {
       testApp.use(express.json());
       testApp.use(attachUserMiddleware);
       testApp.use(
-          '/api', new Api(mockK8sService, mockProfilesService).routes());
+          '/api', newAPI().routes());
       const addressInfo = testApp.listen(0).address();
       if (typeof addressInfo === 'string') {
         throw new Error(
@@ -371,7 +379,7 @@ describe('Dashboard API', () => {
         [header]: `${prefix}test@testdomain.com`,
       };
       const response = await sendTestRequest(url, headers, 405, 'post');
-      expect(response).toEqual({error: 'Unexpected error creating profile'});
+      expect(JSON.stringify(response)).toEqual(JSON.stringify({error: 'Unexpected error creating profile'}));
     });
   });
 
@@ -383,7 +391,7 @@ describe('Dashboard API', () => {
       testApp = express();
       testApp.use(express.json());
       testApp.use(
-          '/api', new Api(mockK8sService, mockProfilesService).routes());
+          '/api', newAPI().routes());
       const addressInfo = testApp.listen(0).address();
       if (typeof addressInfo === 'string') {
         throw new Error(
@@ -412,7 +420,7 @@ describe('Dashboard API', () => {
       testApp.use(express.json());
       testApp.use(
           '/api',
-          new Api(mockK8sService, mockProfilesService, mockMetricsService)
+          newAPI(true)
               .routes());
       const addressInfo = testApp.listen(0).address();
       if (typeof addressInfo === 'string') {
