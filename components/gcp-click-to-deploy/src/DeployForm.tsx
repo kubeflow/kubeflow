@@ -14,18 +14,21 @@ import * as React from 'react';
 import * as request from 'request';
 
 import Gapi from './Gapi';
-import {encryptPassword, flattenDeploymentOperationError, getFileContentsFromGitHub, log, wait} from './Utils';
+import {
+    encryptPassword, flattenDeploymentOperationError,
+    getFileContentsFromGitHub, log, wait
+} from './Utils';
 
 /** Relative paths from the root of the repository. */
 enum ConfigPath {
     V05 = 'v0.5-branch/components/gcp-click-to-deploy/app-config.yaml',
-    V06 = 'v0.6-branch/bootstrap/config/kfctl_gcp_iap.0.6.yaml'
+    V06 = 'master/bootstrap/config/kfctl_gcp_iap.yaml'
 }
 
 /** Versions available for deployment. */
 enum Version {
     V05 = 'v0.5.0',
-    V06 = 'v0.6.0',
+    V06 = 'v0.6.1',
 }
 
 // TODO(jlewi): For the FQDN we should have a drop down box to select custom
@@ -33,12 +36,11 @@ enum Version {
 // selects auto domain then we should automatically supply the suffix
 // <hostname>.endpoints.<Project>.cloud.goog
 
-const IngressType = {
-    BasicAuth: 'Login with Username Password',
-    DeferIap: 'Setup Endpoint later',
-    Iap: 'Login with GCP IAP'
-};
-
+enum IngressType {
+    BasicAuth = 'Login with Username Password',
+    DeferIap = 'Setup Endpoint later',
+    Iap = 'Login with GCP IAP'
+}
 
 interface DeployFormState {
     canSubmit: boolean;
@@ -80,36 +82,46 @@ interface Param {
     initRequired?: boolean;
 }
 
-// From https://github.com/kubeflow/kubeflow/blob/master/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1/application_types.go#L41
+interface KustomizeConfig {
+    overlays: string[];
+    repoRef: {name: string, path: string};
+    parameters: Param[];
+}
+
+interface Application {
+    name: string;
+    kustomizeConfig: KustomizeConfig;
+}
+
+// From https://github.com/kubeflow/kubeflow/blob/master/bootstrap/pkg/apis/apps/kfdef/v1alpha1/application_types.go#L41
 interface KfDefSpec {
-    repo: string;
-    components: string[];
-    packages: string[];
-    componentParams: {[name: string]: Param[]};
-    platform: string;
     appdir?: string;
-    version?: string;
-    mountLocal?: string;
-    project?: string;
-    email?: string;
-    ipName?: string;
-    hostname?: string;
-    zone?: string;
-    useBasicAuth: boolean;
-    skipInitProject?: boolean;
-    useIstio: boolean;
-    enableApplications: boolean;
-    serverVersion?: string;
+    applications: Application[];
+    componentParams: {[name: string]: Param[]};
+    components: string[];
     deleteStorage?: boolean;
+    email?: string;
+    enableApplications: boolean;
+    hostname?: string;
+    ipName?: string;
+    mountLocal?: string;
     packageManager?: string;
+    packages: string[];
+    platform: string;
+    plugins?: Array<{name: string, spec: any}>;
+    project?: string;
     repos?: Array<{
         name: string;
         uri: string;
         root: string;
     }>;
     secrets?: Secret[];
-    plugins?: Array<{name: string, spec: any}>;
-    applications?: Array<{name: string}>;
+    serverVersion?: string;
+    skipInitProject?: boolean;
+    useBasicAuth: boolean;
+    useIstio: boolean;
+    version?: string;
+    zone?: string;
 }
 
 const logsContainerStyle = (show: boolean) => {
@@ -124,8 +136,11 @@ const logsContainerStyle = (show: boolean) => {
     } as React.CSSProperties;
 };
 
-const IAP_INGRESS = 'iap-ingress';
 const BASIC_AUTH = 'basic-auth-ingress';
+const CERT_MANAGER = 'cert-manager';
+const IAP_INGRESS = 'iap-ingress';
+const KUBEFLOW_OAUTH = 'kubeflow-oauth';
+const PROFILES = 'profiles';
 const SPARTAKUS = 'spartakus';
 
 const styles: {[key: string]: React.CSSProperties} = {
@@ -514,63 +529,63 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             return;
         }
         const state = this.state;
-
-        // Make copy of this._configSpec before conditional changes.
+        // Make copy of this._configSpec before conditional changes replacing
         const configSpec = JSON.parse(JSON.stringify(this._configSpec));
-        const appSpec = configSpec.spec as KfDefSpec;
+        configSpec.metadata.name = this.state.deploymentName;
+        delete configSpec.status;
 
-        appSpec.componentParams['cert-manager'][0].value = email;
-        for (let i = 0, len = appSpec.componentParams[IAP_INGRESS].length; i < len; i++) {
-            const p = appSpec.componentParams[IAP_INGRESS][i];
+        const appSpec = configSpec.spec as KfDefSpec;
+        delete appSpec.appdir;
+
+        appSpec.repos!.forEach((r) => {
+            r.uri = r.uri.replace('master', Version.V06);
+            r.root = `${r.name}-0.6.1`;
+        });
+
+        // Need to set applications and component parameters
+        const apps = appSpec.applications
+            .map((a): [string, Application] => [a.name, a]);
+        const applicationsByName = new Map<string, Application>(apps);
+
+        applicationsByName.get(CERT_MANAGER)!
+            .kustomizeConfig.parameters[0].value = email;
+        applicationsByName.get(PROFILES)!
+            .kustomizeConfig.parameters[0].value = email;
+
+        appSpec.version = Version.V06;
+        appSpec.useBasicAuth = this.state.ingress === IngressType.BasicAuth;
+        appSpec.email = email;
+
+        const iapIngress = applicationsByName.get(IAP_INGRESS)!;
+        for (const p of iapIngress.kustomizeConfig.parameters) {
             if (p.name === 'ipName') {
                 p.value = this.state.deploymentName + '-ip';
-            }
-
-            if (p.name === 'hostname') {
+            } else if (p.name === 'hostname') {
                 p.value = state.deploymentName + '.endpoints.' + state.project + '.cloud.goog';
             }
         }
-
+        // Swap ingress types and add new application if basic auth
         if (this.state.ingress === IngressType.BasicAuth) {
-            for (let i = 0, len = appSpec.components.length; i < len; i++) {
-                if (appSpec.components[i] === IAP_INGRESS) {
-                    appSpec.components[i] = BASIC_AUTH;
-                    break;
-                }
-            }
-            appSpec.componentParams[BASIC_AUTH] =
-                appSpec.componentParams[IAP_INGRESS];
-            delete appSpec.componentParams[BASIC_AUTH];
-            appSpec.components.push('basic-auth');
+            iapIngress.name = BASIC_AUTH;
+            iapIngress.kustomizeConfig.repoRef.path = 'gcp/basic-auth-ingress';
+            appSpec.applications.push({
+                kustomizeConfig: {
+                    overlays: [],
+                    parameters: [],
+                    repoRef: {name: 'manifests', path: 'common/basic-auth'},
+                },
+                name: 'basic-auth',
+            });
         }
 
-        const spartakusIndex = appSpec.components.indexOf(SPARTAKUS);
-        if (this.state.spartakus) {
-            if (spartakusIndex === -1) {
-                appSpec.components.push(SPARTAKUS);
-            }
-            appSpec.componentParams[SPARTAKUS] = [{
-                initRequired: true,
-                name: 'usageId',
-                value: Math.floor(Math.random() * 100000000).toString()
-            },
-            {
-                initRequired: true,
-                name: 'reportUsage',
-                value: 'true'
-            }];
-        } else {
-            if (spartakusIndex !== -1) {
-                appSpec.components.splice(spartakusIndex, 1);
+        const spartakus = applicationsByName.get(SPARTAKUS)!;
+        for (const p of spartakus.kustomizeConfig.parameters) {
+            if (p.name === 'usageId') {
+                p.value = Math.floor(Math.random() * 100000000).toString();
+            } else if (p.name === 'reportUsage') {
+                p.value = String(this.state.spartakus);
             }
         }
-
-        const adminSpec = appSpec.componentParams.profiles!.find(
-            (p: {name: string}) => p.name === 'admin');
-        if (adminSpec) {
-            adminSpec.value = email;
-        }
-        appSpec.email = email;
 
         return configSpec;
     }
@@ -1064,8 +1079,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
      * Helper method to facilitate building a v0.6.0 cluster
      */
     private _getV6BuildRequest(configSpec: {spec: KfDefSpec}): string {
-        const {deploymentName, ingress, permanentStorage, project,
-            kfversion, saClientId, saToken, zone} = this.state;
+        const {clientSecret, deploymentName, ingress, permanentStorage, project,
+            kfversion, saToken, zone} = this.state;
 
         configSpec.spec.hostname = deploymentName;
         configSpec.spec.ipName = `${deploymentName}-ip`;
@@ -1076,20 +1091,23 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             {
                 name: 'accessToken',
                 secretSource: {literalSource: {value: saToken}}
+            },
+            {
+                name: KUBEFLOW_OAUTH,
+                secretSource: {literalSource: {value: clientSecret || ''}}
             }
         ];
         const gcpPlugin = {
             name: 'gcp',
             spec: {
                 auth: {},
-                createPipelinePersistentStorage: permanentStorage,
-                username: saClientId,
+                createPipelinePersistentStorage: permanentStorage
             }
         };
         if (ingress === IngressType.BasicAuth) {
             gcpPlugin.spec.auth = {
                 basicAuth: {
-                    password: this.state.password,
+                    password: btoa(encryptPassword(this.state.password)),
                     username: this.state.username,
                 }
             };
@@ -1097,7 +1115,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             gcpPlugin.spec.auth = {
                 iap: {
                     oAuthClientId: this.state.clientId,
-                    oAuthClientSecret: this.state.clientSecret,
+                    oAuthClientSecret: {name: 'CLIENT_SECRET'},
                 }
             };
         }
