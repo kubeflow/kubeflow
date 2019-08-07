@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"crypto/md5"
 	"crypto/sha256"
 	"encoding/base32"
 	"encoding/json"
@@ -13,7 +14,6 @@ import (
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/oauth2"
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -184,28 +184,29 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 	}
 
 	// Verify that user has access. We shouldn't do any processing until verifying access.
-	ts := oauth2.StaticTokenSource(&oauth2.Token{
-		AccessToken: token,
-	})
+	//ts := oauth2.StaticTokenSource(&oauth2.Token{
+	//	AccessToken: token,
+	//})
+	log.Infof("Project: %v; Access token md5: %x", req.Spec.Project, md5.Sum([]byte(token)))
 
-	isValid, err := CheckProjectAccess(req.Spec.Project, ts)
+	//isValid, err := CheckProjectAccess(req.Spec.Project, ts)
 
-	if err != nil {
-		log.Errorf("CreateDeployment CheckProjectAccess failed; error %v", err)
-
-		return nil, &httpError{
-			Message: fmt.Sprintf("There was a problem verifying access to project: %v; please try again later", req.Spec.Project),
-			Code:    http.StatusUnauthorized,
-		}
-	}
-
-	if !isValid {
-		log.Errorf("CreateDeployment request isn't authorized for the project")
-		return nil, &httpError{
-			Message: fmt.Sprintf("There was a problem verifying owner access to project: %v; please check the project id is correct and that you have admin priveleges", req.Spec.Project),
-			Code:    http.StatusUnauthorized,
-		}
-	}
+	//if err != nil {
+	//	log.Errorf("CreateDeployment CheckProjectAccess failed; error %v", err)
+	//
+	//	return nil, &httpError{
+	//		Message: fmt.Sprintf("There was a problem verifying access to project: %v; please try again later", req.Spec.Project),
+	//		Code:    http.StatusUnauthorized,
+	//	}
+	//}
+	//
+	//if !isValid {
+	//	log.Errorf("CreateDeployment request isn't authorized for the project")
+	//	return nil, &httpError{
+	//		Message: fmt.Sprintf("There was a problem verifying owner access to project: %v; please check the project id is correct and that you have admin priveleges", req.Spec.Project),
+	//		Code:    http.StatusUnauthorized,
+	//	}
+	//}
 
 	log.Infof("User has sufficient access.")
 	// TODO(jlewi):
@@ -304,6 +305,11 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 								fmt.Sprintf("--port=%v", targetPort),
 							},
 							Image: r.image,
+							Ports: []corev1.ContainerPort{
+								{
+									ContainerPort: int32(targetPort),
+								},
+							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "apps",
@@ -357,7 +363,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 	log.Infof("Calling CreateDeployment at %s", address)
 
 	// TODO(jlewi): Set the timeout?
-	res, err := c.CreateDeployment(ctx, req)
+	res, err := c.CreateDeployment(context.Background(), req)
 	log.Infof("CreateDeployment returned; response: %+v, error: %+v", c, err)
 	return res, err
 }

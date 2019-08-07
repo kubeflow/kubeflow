@@ -50,18 +50,18 @@ func (s *RefreshableTokenSource) Refresh(newToken oauth2.Token) error {
 	}
 
 	// Verify that the new token grants access to the project
-	ts := oauth2.StaticTokenSource(&newToken)
+	//ts := oauth2.StaticTokenSource(&newToken)
 
-	isValid, err := s.checker(s.project, ts)
-	if err != nil {
-		log.Errorf("Error calling TestIam Permissions; error %+v", err)
-		return err
-	}
+	//isValid, err := s.checker(s.project, ts)
+	//if err != nil {
+	//	log.Errorf("Error calling TestIam Permissions; error %+v", err)
+	//	return err
+	//}
 
-	if !isValid {
-		// We explicitly don't log the project to avoid leaking information.
-		return fmt.Errorf("Could not refresh the TokenSource; token doesn't provide sufficient privileges")
-	}
+	//if !isValid {
+	//	// We explicitly don't log the project to avoid leaking information.
+	//	return fmt.Errorf("Could not refresh the TokenSource; token doesn't provide sufficient privileges")
+	//}
 
 	log.Infof("New token is valid")
 	s.mu.Lock()

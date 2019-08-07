@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/cenkalti/backoff"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/ratelimit"
 	httptransport "github.com/go-kit/kit/transport/http"
@@ -63,9 +64,20 @@ func NewKfctlClient(instance string) (KfctlService, error) {
 
 // CreateDeployment issues a CreateDeployment to the requested backend
 func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*kfdefs.KfDef, error) {
-	resp, err := c.createEndpoint(ctx, req)
-	if err != nil {
-		return nil, err
+	var resp interface{}
+	var err error
+	// Add retry logic
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 5)
+	permErr := backoff.Retry(func() error {
+		resp, err = c.createEndpoint(ctx, req)
+		if err != nil {
+			return err
+		}
+		return nil
+	}, bo)
+
+	if permErr != nil {
+		return nil, permErr
 	}
 	response, ok := resp.(*kfdefs.KfDef)
 

@@ -150,8 +150,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 
 			gcpPlugin.SetTokenSource(s.ts)
 			// We don't want to run get-credentials
-			// TODO(jlewi): uncomment when SetRunGetCredentials is checked in
-			// gcpPlugin.SetRunGetCredentials(false)
+			gcpPlugin.SetRunGetCredentials(false)
 			return true
 		}
 

@@ -157,12 +157,15 @@ func (kustomize *kustomize) initComponentMaps() error {
 	}
 
 	for _, compName := range kustomize.kfDef.Spec.Components {
+		log.Infof("Add Component: %v \n", compName)
 		kustomize.componentMap[compName] = true
 	}
 	for _, packageName := range kustomize.kfDef.Spec.Packages {
+		log.Infof("Add Package: %v \n", packageName)
 		arrayOfComponents := &[]string{}
 		kustomize.packageMap[packageName] = arrayOfComponents
 	}
+	log.Infof("Mapping kustomize package >> repo local path: %v; \n", repo.LocalPath)
 	kustomize.componentPathMap = kustomize.mapDirs(repo.LocalPath, true, 0, make(map[string]string))
 
 	log.Infof("Component path map: %v\n", utils.PrettyPrint(kustomize.componentPathMap))
@@ -683,6 +686,7 @@ func (kustomize *kustomize) Init(resources kftypesv3.ResourceEnum) error {
 // mapDirs is a recursive method that will return a map of component -> path-to-kustomization.yaml
 // under the manifests downloaded cache
 func (kustomize *kustomize) mapDirs(dirPath string, root bool, depth int, leafMap map[string]string) map[string]string {
+	log.Infof("mapDirs >> start process %v with depth %v \n", dirPath, depth)
 	dirName := path.Base(dirPath)
 	// package is component, stop here
 	if depth == 1 && kustomize.packageMap[dirName] != nil && kustomize.componentMap[dirName] {
@@ -693,11 +697,13 @@ func (kustomize *kustomize) mapDirs(dirPath string, root bool, depth int, leafMa
 			arrayOfComponents := *kustomize.packageMap[dirName]
 			arrayOfComponents = append(arrayOfComponents, dirName)
 			kustomize.packageMap[dirName] = &arrayOfComponents
+			log.Infof("mapDirs >> depth 1: added %v\n", dirName)
 			return leafMap
 		}
 	}
 	files, err := ioutil.ReadDir(dirPath)
 	if err != nil {
+		log.Infof("mapDirs >> Error reading %v: %v\n", dirPath, err)
 		return leafMap
 	}
 	for _, f := range files {
@@ -709,8 +715,9 @@ func (kustomize *kustomize) mapDirs(dirPath string, root bool, depth int, leafMa
 		}
 	}
 	if depth == 2 {
-		componentPath := extractSuffix(kustomize.kfDef.Spec.ManifestsRepo, dirPath)
+		componentPath := extractSuffix(kustomize.kfDef.Status.ReposCache[kftypes.ManifestsRepoName].LocalPath, dirPath)
 		packageName := strings.Split(componentPath, "/")[0]
+		log.Infof("mapDirs >> depth 2: componentPath %v packageName %v\n", componentPath, packageName)
 		if components, exists := kustomize.packageMap[packageName]; exists {
 			leafMap[path.Base(dirPath)] = componentPath
 			arrayOfComponents := *components
