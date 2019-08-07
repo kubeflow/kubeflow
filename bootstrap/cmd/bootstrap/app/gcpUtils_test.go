@@ -15,7 +15,10 @@
 package app
 
 import (
+	"crypto/md5"
 	"fmt"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
 	"testing"
 
 	"google.golang.org/api/cloudresourcemanager/v1"
@@ -180,4 +183,20 @@ func TestGetUpdatedPolicy(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestApplyIamPolicy(t *testing.T) {
+	token := "";
+	ts := oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: token,
+	})
+	log.Infof("Project: %v; Access token md5: %x", "kunming-dev5", md5.Sum([]byte(token)))
+	t.Run("testApplyIam", func(t *testing.T) {
+		ok, err := CheckProjectAccess("kunming-dev5", ts)
+		if err != nil {
+			log.Info(ok)
+			t.Error(err)
+		}
+	})
+
 }
