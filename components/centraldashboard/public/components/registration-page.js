@@ -11,6 +11,7 @@ import '@polymer/neon-animation/animations/fade-out-animation.js';
 
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
+import './resources/md2-input/md2-input.js';
 import './resources/carousel-indicator.js';
 import './resources/animated-checkmark.js';
 import css from './registration-page.css';
@@ -84,7 +85,7 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
             el.style.width = `${el.scrollWidth}px`;
         });
         this.sleep(2000).then(async () => {
-            this.dispatchEvent(new CustomEvent('flowcomplete'));
+            this.fireEvent('flowcomplete');
         });
         this.sleep(6000).then(async () => {
             this.$.ApiMessage.style.width = 0;

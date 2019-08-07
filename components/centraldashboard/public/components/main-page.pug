@@ -1,10 +1,10 @@
-iron-ajax(auto, url='/api/has-workgroup', handle-as='json',
+iron-ajax(auto, url='/api/workgroup/exists', handle-as='json',
     on-response='_onHasWorkgroupResponse', loading='{{pageLoading}}')
 iron-ajax#envInfo(auto='[[_shouldFetchEnv]]', url='/api/env-info', handle-as='json',
     on-response='_onEnvInfoResponse')
 aside#PageLoader(hidden='{{!pageLoading}}')
 app-drawer-layout.flex(narrow='{{narrowMode}}',
-        force-narrow='[[or(inIframe, thinView, notFoundInIframe)]]',
+        force-narrow='[[or(inIframe, thinView, notFoundInIframe, hideSidebar)]]',
         bleed$='[[sidebarBleed]]')
     app-location(route='{{route}}', query-params='{{queryParams}}')
     app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
@@ -18,6 +18,10 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             template(is='dom-repeat', items='[[menuLinks]]')
                 iframe-link(href$="[[buildHref(item.link, queryParams)]]")
                     paper-item.menu-item [[item.text]]
+            template(is='dom-if', if='[[equals(isolationMode, "multi-user")]]')
+                aside.divider
+                a(href$='[[buildHref("/manage-users", queryParams)]]', tabindex='-1')
+                    paper-item.menu-item Manage Contributors
             aside.divider
             a(href='https://github.com/kubeflow/kubeflow',
                 tabindex='-1', target="_blank")
@@ -43,7 +47,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                         |!{logo}
                 namespace-selector#NamespaceSelector(
                     query-params='{{queryParams}}', namespaces='[[namespaces]]'
-                    selected='{{namespace}}', hides, hidden$='[[hideNamespaces]]')
+                    selected='{{namespace}}', hides, hidden$='[[hideNamespaces]]'
+                    all-namespaces='[[allNamespaces]]')
                 footer#User-Badge
                     iron-image.image(sizing='contain', fade,
                         src='/assets/anon-user.png', title='[[user]]')
@@ -62,6 +67,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                         platform-info='[[platformInfo]]')
                 neon-animatable(page='activity')
                     activity-view(namespace='[[queryParams.ns]]')
+                neon-animatable(page='manage-users')
+                    manage-users-view(user='[[user]]', namespaces='[[namespaces]]', is-cluster-admin='[[isClusterAdmin]]', owned-namespace='[[ownedNamespace]]')
                 neon-animatable(page='iframe')
                     iframe#PageFrame.flex
                 neon-animatable(page='not_found')
