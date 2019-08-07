@@ -35,7 +35,8 @@ export class PaperChip extends utilitiesMixin(PolymerElement) {
         </style>
         <section id='Wrapper'>
             <slot class='label' slot='label'></slot>
-            <paper-icon-button class='close' icon='close'></paper-icon-button>
+            <paper-icon-button class='close' icon='close'
+                on-click='fireRemove'></paper-icon-button>
         </section>`;
     }
 
@@ -50,6 +51,9 @@ export class PaperChip extends utilitiesMixin(PolymerElement) {
     }
     selectIndex(e) {
         this.selected = typeof e == 'number'?e:e.model.index;
+    }
+    fireRemove(e) {
+        this.fireEvent('remove', e.detail);
     }
 }
 

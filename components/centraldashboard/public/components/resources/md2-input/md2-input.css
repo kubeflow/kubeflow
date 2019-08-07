@@ -1,0 +1,55 @@
+:host {
+    --action-color: var(--google-grey-500);
+    position: relative;
+    display: inline-block;
+    padding-top: .5em;
+}
+:host([focused]) {
+    --action-color: var(--accent-color)
+}
+:host([has-error]) {
+    --action-color: #F44336
+}
+.input-box {
+    @apply --layout-horizontal;
+    position: relative;
+    padding: .5em;
+    flex-wrap: wrap;
+    border: 2px solid var(--action-color);
+    border-radius: 3px;
+    transition: border-color .25s;
+    @apply --md2-input-box;
+}
+label {
+    position: absolute;
+    top: 0;
+    left: .75em;
+    transform: translateY(-50%);
+    font-size: .8em;
+    background: white;
+    padding: .25em;
+    color: var(--action-color);
+    transition: color .25s;
+    font-weight: 400;
+}
+iron-input {
+    
+    margin: .25em .5em;
+    font-size: 1em;
+    flex: 1;
+    caret-color: var(--action-color);
+    @apply --layout-horizontal;
+}
+input {
+    flex: 1;
+    outline: 0;
+    border: 0;
+    padding: 0;
+}
+.Error {
+    padding: .5em 0;
+    font-size: .8em;
+    color: var(--action-color);
+    @apply --paper-input-error;
+    @apply --md2-error;
+}

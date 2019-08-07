@@ -1,37 +1,32 @@
-import {V1Namespace} from '@kubernetes/client-node';
-import express, {Request, Response} from 'express';
+import {Router, Request, Response, NextFunction} from 'express';
 
-import {Binding as WorkgroupBinding, DefaultApi, Profile, BindingEntries} from './clients/profile_controller';
+import {DefaultApi} from './clients/profile_controller';
 import {KubernetesService, PlatformInfo} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
-
-interface WorkgroupInfo {
-  namespaces: WorkgroupBinding[];
-  isClusterAdmin: boolean;
-}
+import {
+  ContributorApi,
+  mapNamespacesToSimpleBinding,
+  SimpleBinding,
+} from './api_contributors';
 
 interface EnvironmentInfo {
-  namespaces: WorkgroupBinding[];
+  namespaces: SimpleBinding[];
   platform: PlatformInfo;
   user: string;
   isClusterAdmin: boolean;
 }
 
-// Shape of the CreateProfileRequest body
-interface CreateProfileRequest {
-  namespace?: string;
-  user?: string;
-}
-
-interface HasWorkgroupResponse {
-  user: string;
-  hasAuth: boolean;
-  hasWorkgroup: boolean;
-}
-
-const OPERATION_NOT_SUPPORTED = {
-  error: 'Operation not supported'
+export const ERRORS = {
+  operation_not_supported: 'Operation not supported'
 };
+
+export function apiError(a: {res: Response, error: string, code?: number}) {
+  const {res, error} = a;
+  const code = a.code || 400;
+  return res.status(code).json({
+    error,
+  });
+}
 
 export class Api {
   private platformInfo: PlatformInfo;
@@ -39,7 +34,9 @@ export class Api {
   constructor(
       private k8sService: KubernetesService,
       private profilesService: DefaultApi,
-      private metricsService?: MetricsService) {}
+      private contribApi?: ContributorApi,
+      private metricsService?: MetricsService,
+    ) {}
 
   /** Retrieves and memoizes the PlatformInfo. */
   private async getPlatformInfo(): Promise<PlatformInfo> {
@@ -50,26 +47,14 @@ export class Api {
   }
 
   /**
-   * Retrieves WorkgroupInfo from Profile Controller for the given user.
-   */
-  private async getWorkgroupInfo(user: User.User): Promise<WorkgroupInfo> {
-    const [adminResponse, bindings] = await Promise.all([
-      this.profilesService.v1RoleClusteradminGet(user.email),
-      this.profilesService.readBindings(user.email),
-    ]);
-    return {
-      isClusterAdmin: adminResponse.body,
-      namespaces: bindings.body.bindings || [],
-    };
-  }
-
-  /**
    * Builds EnvironmentInfo for the case with identity awareness
    */
   private async getProfileAwareEnv(user: User.User): Promise<EnvironmentInfo> {
     const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
       this.getPlatformInfo(),
-      this.getWorkgroupInfo(user),
+      this.contribApi.getWorkgroupInfo(
+        user,
+      ),
     ]);
     return {user: user.email, platform, namespaces, isClusterAdmin};
   }
@@ -85,80 +70,40 @@ export class Api {
     return {
       user: user.email,
       platform,
-      namespaces: this.mapNamespacesToWorkgroupBindings(user.email, namespaces),
+      namespaces: mapNamespacesToSimpleBinding(user.email, namespaces),
       isClusterAdmin: true,
     };
   }
 
   /**
-   * Converts Kubernetes Namespace types to WorkgroupBindings to ensure
-   * compatibility between identity-aware and non-identity aware clusters
-   */
-  private mapNamespacesToWorkgroupBindings(
-      user: string, namespaces: V1Namespace[]): WorkgroupBinding[] {
-    return namespaces.map((n) => ({
-      user: {kind: 'user', name: user},
-      referredNamespace: n.metadata.name,
-      roleRef: {
-        apiGroup: '',
-        kind: 'ClusterRole',
-        name: 'editor',
-      },
-    }));
-  }
-
-  // tslint:disable-next-line: no-any
-  private surfaceProfileControllerErrors = (info: {res: Response, msg: string, err: any}) => {
-    const {res, msg, err} = info;
-    const status = (err.response && err.response.statusCode) || 400;
-    const error = err.body || msg;
-    console.log(`${msg} ${error}`);
-    res.status(status).json({error});
-  }
-
-  /**
    * Returns the Express router for the API routes.
    */
-  routes(): express.Router {
-    return express.Router()
+  routes(): Router {
+    return Router()
         .get(
             '/env-info',
             async (req: Request, res: Response) => {
               try {
                 if (req.user.hasAuth) {
-                  res.json(await this.getProfileAwareEnv(req.user));
-                  return;
+                  return res.json(await this.getProfileAwareEnv(req.user));
                 }
                 res.json(await this.getBasicEnvironment(req.user));
               } catch (err) {
-                const status = (err.response && err.response.statusCode) || 400;
+                const code = (err.response && err.response.statusCode) || 400;
                 const error =
                     err.body || 'Unexpected error getting environment info';
-                console.log(`Unable to get environment info: ${error}`);
-                res.status(status).json({error});
+                console.log(`Unable to get environment info: ${error}${err.stack?'\n'+err.stack:''}`);
+                apiError({res, code, error});
               }
-            })
-        .get(
-            '/has-workgroup',
-            async (req: Request, res: Response) => {
-              const response: HasWorkgroupResponse = {
-                hasAuth: req.user.hasAuth,
-                user: req.user.username,
-                hasWorkgroup: false,
-              };
-              if (req.user.hasAuth) {
-                const workgroup = await this.getWorkgroupInfo(req.user);
-                response.hasWorkgroup =
-                    workgroup.namespaces && workgroup.namespaces.length > 0;
-              }
-              res.json(response);
             })
         .get(
             '/metrics/:type((node|podcpu|podmem))',
             async (req: Request, res: Response) => {
               if (!this.metricsService) {
-                res.status(405).json(OPERATION_NOT_SUPPORTED);
-                return;
+                return apiError({
+                  res, code: 405,
+                  error: ERRORS.operation_not_supported,
+                });
               }
 
               let interval = Interval.Last15m;
@@ -192,54 +137,18 @@ export class Api {
               res.json(await this.k8sService.getEventsForNamespace(
                   req.params.namespace));
             })
-        .get(
-            '/get-contributors/:namespace',
-            async (req: Request, res: Response) => {
-              const {namespace} = req.params;
-              try {
-                const {body} = await this.profilesService
-                  .readBindings(undefined, namespace);
-                const users = body.bindings.map((b) => 
-                  b.user.name
-                );
-                res.json(users);
-              } catch(err) {
-                this.surfaceProfileControllerErrors({
-                  res,
-                  msg: `Unable to fetch contributors for ${namespace}`,
-                  err,
-                });
-              }
-            })
-        .post('/create-workgroup', async (req: Request, res: Response) => {
-          if (!req.user.hasAuth) {
-            res.status(405).json(OPERATION_NOT_SUPPORTED);
-            return;
+        .use('/workgroup', this.contribApi
+          ? this.contribApi.routes()
+          : (req: Request, res: Response, next: NextFunction)  => {
+            next();
           }
-
-          const profile = req.body as CreateProfileRequest;
-          try {
-            const namespace = profile.namespace || req.user.username;
-            // Use the request body if provided, fallback to auth headers
-            await this.profilesService.createProfile({
-              metadata: {
-                name: namespace,
-              },
-              spec: {
-                owner: {
-                  kind: 'User',
-                  name: profile.user || req.user.email,
-                }
-              },
-            });
-            res.json({message: `Created namespace ${namespace}`});
-          } catch (err) {
-            this.surfaceProfileControllerErrors({
-              res,
-              msg: 'Unexpected error creating profile',
-              err,
-            });
-          }
-        });
+        )
+        .use((req: Request, res: Response) => 
+          apiError({
+            res,
+            error: `Could not find the route you're looking for`,
+            code: 404,
+          })
+        );
   }
 }
