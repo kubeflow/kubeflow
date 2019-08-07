@@ -7,7 +7,10 @@ import {attachUser} from './attach_user_middleware';
 import {DefaultApi} from './clients/profile_controller';
 import {KubernetesService} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
-import {ContributorApi} from './api_contributors';
+import {
+  WorkgroupApi,
+  mapSimpleBindingToWorkgroupBinding,
+} from './api_workgroup';
 
 // Helper function to send a test request and return a Promise for the response
 function sendTestRequest(
@@ -40,9 +43,8 @@ describe('Dashboard API', () => {
   let port: number;
   const newAPI = (withMetrics = false) => new Api(
     mockK8sService,
-    mockProfilesService,
-    new ContributorApi(mockProfilesService),
-    withMetrics ? mockMetricsService : undefined
+    new WorkgroupApi(mockProfilesService),
+    withMetrics ? mockMetricsService : undefined,
   );
 
   describe('Environment Information', () => {
@@ -52,23 +54,6 @@ describe('Dashboard API', () => {
         'getPlatformInfo',
         'getNamespaces',
       ]);
-      const namespaces = [
-        {
-          apiVersion: 'v1',
-          kind: 'Namespace',
-          metadata: {
-            name: 'default',
-          },
-        },
-        {
-          apiVersion: 'v1',
-          kind: 'Namespace',
-          metadata: {
-            name: 'kubeflow',
-          },
-        },
-      ] as V1Namespace[];
-      mockK8sService.getNamespaces.and.returnValue(Promise.resolve(namespaces));
       mockK8sService.getPlatformInfo.and.returnValue(Promise.resolve({
         provider: 'onprem',
         providerName: 'onprem',
@@ -76,6 +61,18 @@ describe('Dashboard API', () => {
       }));
       mockProfilesService = jasmine.createSpyObj<DefaultApi>(
           ['readBindings', 'v1RoleClusteradminGet']);
+
+      mockProfilesService.readBindings.withArgs()
+          .and.returnValue(Promise.resolve({
+            response: null,
+            body: {
+              bindings: [
+                {user: 'anyone@kubeflow.org', namespace: 'default', role: 'owner'},
+                {user: 'user1@kubeflow.org', namespace: 'default', role: 'contributor'},
+                {user: 'user1@kubeflow.org', namespace: 'kubeflow', role: 'owner'},
+              ].map(mapSimpleBindingToWorkgroupBinding)
+            },
+          }));
 
       testApp = express();
       testApp.use(express.json());
@@ -122,9 +119,8 @@ describe('Dashboard API', () => {
          // Second call should use cached platform information
          response = await sendTestRequest(url);
          expect(response).toEqual(expectedResponse);
-         expect(mockK8sService.getNamespaces.calls.count()).toBe(2);
          expect(mockK8sService.getPlatformInfo.calls.count()).toBe(1);
-         expect(mockProfilesService.readBindings).not.toHaveBeenCalled();
+         expect(mockProfilesService.readBindings).toHaveBeenCalled();
          expect(mockProfilesService.v1RoleClusteradminGet)
              .not.toHaveBeenCalled();
        });

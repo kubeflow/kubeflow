@@ -68,7 +68,7 @@ export function mapNamespacesToSimpleBinding (user: string, namespaces: V1Namesp
     return namespaces.map((n) => ({
         user,
         namespace: n.metadata.name,
-        role: roleMap.get('edit') as SimpleRole,
+        role: 'contributor',
     }));
 }
 
@@ -104,8 +104,23 @@ const surfaceProfileControllerErrors = (info: {res: Response, msg: string, err: 
     apiError({res, code, error: devError || msg});
 };
 
-export class ContributorApi {
+export class WorkgroupApi {
     constructor(private profilesService: DefaultApi) {}
+    /**
+     * Retrieves all namespaces in case of basic auth.
+     */
+    async getAllWorkgroups(fakeUser: string): Promise<SimpleBinding[]> {
+        const bindings = await this.profilesService.readBindings();
+        const namespaces = mapWorkgroupBindingToSimpleBinding(
+            bindings.body.bindings || []
+        );
+        const names = new Set(namespaces.map((n) => n.namespace));
+        return Array.from(names).map((n) => ({
+            namespace: n,
+            role: 'contributor',
+            user: fakeUser,
+        }));
+    }
     /**
      * Retrieves WorkgroupInfo from Profile Controller for the given user.
      */
