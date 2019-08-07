@@ -5,7 +5,7 @@ import {resolve} from 'path';
 import {Api} from './api';
 import {attachUser} from './attach_user_middleware';
 import {DefaultApi} from './clients/profile_controller';
-import {ContributorApi} from './api_contributors';
+import {WorkgroupApi} from './api_workgroup';
 import {KubernetesService} from './k8s_service';
 import {getMetricsService} from './metrics_service_factory';
 
@@ -36,13 +36,13 @@ async function main() {
   const metricsService = await getMetricsService(k8sService);
   console.info(`Using Profiles service at ${profilesServiceUrl}`);
   const profilesService = new DefaultApi(profilesServiceUrl);
-  const contribApi = new ContributorApi(profilesService);
+  const workgroupApi = new WorkgroupApi(profilesService);
 
   app.use(express.json());
   app.use(express.static(frontEnd));
   app.use(attachUser(USERID_HEADER, USERID_PREFIX));
   app.use(
-      '/api', new Api(k8sService, profilesService, contribApi, metricsService).routes());
+      '/api', new Api(k8sService, workgroupApi, metricsService).routes());
   app.get('/*', (_: express.Request, res: express.Response) => {
     res.sendFile(resolve(frontEnd, 'index.html'));
   });
