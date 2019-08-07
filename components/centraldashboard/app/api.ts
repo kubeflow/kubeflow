@@ -1,13 +1,11 @@
 import {Router, Request, Response, NextFunction} from 'express';
 
-import {DefaultApi} from './clients/profile_controller';
 import {KubernetesService, PlatformInfo} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
 import {
-  ContributorApi,
-  mapNamespacesToSimpleBinding,
+  WorkgroupApi,
   SimpleBinding,
-} from './api_contributors';
+} from './api_workgroup';
 
 interface EnvironmentInfo {
   namespaces: SimpleBinding[];
@@ -33,8 +31,7 @@ export class Api {
 
   constructor(
       private k8sService: KubernetesService,
-      private profilesService: DefaultApi,
-      private contribApi?: ContributorApi,
+      private workgroupApi?: WorkgroupApi,
       private metricsService?: MetricsService,
     ) {}
 
@@ -52,7 +49,7 @@ export class Api {
   private async getProfileAwareEnv(user: User.User): Promise<EnvironmentInfo> {
     const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
       this.getPlatformInfo(),
-      this.contribApi.getWorkgroupInfo(
+      this.workgroupApi.getWorkgroupInfo(
         user,
       ),
     ]);
@@ -65,12 +62,12 @@ export class Api {
   private async getBasicEnvironment(user: User.User): Promise<EnvironmentInfo> {
     const [platform, namespaces] = await Promise.all([
       this.getPlatformInfo(),
-      this.k8sService.getNamespaces(),
+      this.workgroupApi.getAllWorkgroups(user.email),
     ]);
     return {
       user: user.email,
       platform,
-      namespaces: mapNamespacesToSimpleBinding(user.email, namespaces),
+      namespaces,
       isClusterAdmin: true,
     };
   }
@@ -137,8 +134,8 @@ export class Api {
               res.json(await this.k8sService.getEventsForNamespace(
                   req.params.namespace));
             })
-        .use('/workgroup', this.contribApi
-          ? this.contribApi.routes()
+        .use('/workgroup', this.workgroupApi
+          ? this.workgroupApi.routes()
           : (req: Request, res: Response, next: NextFunction)  => {
             next();
           }
