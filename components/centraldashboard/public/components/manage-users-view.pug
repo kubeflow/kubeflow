@@ -11,7 +11,7 @@ section#Main-Content
     article.Acct-Info
         h2
             iron-icon.icon(icon='social:person-outline')
-            span.text Account Info
+            span.text Account info
             span(hidden$='[[!isClusterAdmin]]') &nbsp; (Cluster Admin)
         .content
             span [[user]]
@@ -19,23 +19,16 @@ section#Main-Content
     article.Namespaces(hidden$='[[empty(ownedNamespace)]]')
         h2
             iron-icon.icon(icon='kubeflow:namespace')
-            span.text Namespace Memberships
+            span.text Namespace memberships
         .content.small
             vaadin-grid(items='[[nsBreakdown(namespaces, ownedNamespace)]]', theme="no-border", height-by-rows, multi-sort)
-                vaadin-grid-column(width='9em', path='0', header='Role')
-                vaadin-grid-column(width='15em', path='1', flex-grow='2', header='Namespaces')
+                vaadin-grid-column(width='15em', path='0', flex-grow='2', header='Namespaces')
+                vaadin-grid-column(width='9em', path='1', header='Your role')
     article.Contributors(hidden$='[[empty(ownedNamespace)]]')
         h2
             iron-icon.icon(icon='kubeflow:namespace')
             span.text Contributors to your namespace - [[ownedNamespace.namespace]]
         .content.small
-            //- section#Contribs(error$='[[!empty(contribCreateError)]]')
-            //-     figcaption Email Addresses
-            //-     template(is='dom-repeat', items='[[contributorList]]')
-            //-         paper-chip(on-remove='removeContributor') [[item]]
-            //-     input(value='{{newContribEmail::input}}', placeholder='Add by email address')
-            //-     iron-a11y-keys#keys(target='[[contributorInputEl]]', keys='enter', on-keys-pressed='addNewContrib')
-            //-     aside.Error [[contribCreateError]]
             md2-input(label='Email Addresses', value='{{newContribEmail}}', on-submit='addNewContrib', placeholder='Add by email address', error$='[[contribCreateError]]')
                 .prefix(slot='prefix')
                     template(is='dom-repeat', items='[[contributorList]]')
