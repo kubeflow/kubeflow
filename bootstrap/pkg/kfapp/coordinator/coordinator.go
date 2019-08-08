@@ -442,12 +442,6 @@ func NewKfApp(options map[string]interface{}) (kftypesv3.KfApp, error) {
 		return nil, err
 	}
 
-	// TODO(jlewi): This is an ugly hack. We should update kustomize.go to not use ManifestsRepo
-	r, ok := kfDef.Status.ReposCache[kftypesv3.ManifestsRepoName]
-
-	if ok {
-		kfDef.Spec.ManifestsRepo = r.LocalPath
-	}
 	// Save app.yaml because we need to preserve information about the cache.
 	if err := kfDef.WriteToFile(cfgFilePath); err != nil {
 		log.Errorf("Failed to save KfDef to %v; error %v", cfgFilePath, err)
