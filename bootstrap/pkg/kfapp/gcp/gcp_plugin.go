@@ -28,6 +28,7 @@ type Auth struct {
 
 type BasicAuth struct {
 	Username string            `json:"username,omitempty"`
+	// Password hashed value
 	Password *kfdefs.SecretRef `json:"password,omitempty"`
 }
 

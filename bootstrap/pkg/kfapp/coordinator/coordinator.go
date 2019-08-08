@@ -792,12 +792,12 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 		}
 		return gcpAddedConfig()
 	case kftypesv3.PLATFORM:
-		if err := platform(); err != nil {
-			return err
-		}
+		return platform()
 		// TODO(gabrielwen): Need to find a more proper way of injecting plugings.
 		// https://github.com/kubeflow/kubeflow/issues/3708
-		return gcpAddedConfig()
+
+		// Cannot add gcpAddedConfig here because k8s resources doesn't exist yet
+		//return gcpAddedConfig()
 	case kftypesv3.K8S:
 		return k8s()
 	}
