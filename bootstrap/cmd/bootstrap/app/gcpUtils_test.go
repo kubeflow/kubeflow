@@ -186,7 +186,7 @@ func TestGetUpdatedPolicy(t *testing.T) {
 }
 
 func TestApplyIamPolicy(t *testing.T) {
-	token := "";
+	token := ""
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: token,
 	})
