@@ -56,14 +56,14 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
         const {ownedNamespace, namespaces} = this;
         if (!ownedNamespace || !namespaces) return;
         const arr = [
-            ['Owner of', ownedNamespace.namespace],
+            [ownedNamespace.namespace, 'Owner'],
         ];
         if (ns.length <= 1) return arr;
         const otherNamespaces = namespaces
             .filter((n) => n != ownedNamespace)
             .map((i) => i.namespace).join(', ');
         arr.push(
-            ['Contributor in', otherNamespaces],
+            [otherNamespaces, 'Contributor'],
         );
         return arr;
     }
