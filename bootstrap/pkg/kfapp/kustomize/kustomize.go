@@ -671,7 +671,6 @@ func (kustomize *kustomize) Init(resources kftypesv3.ResourceEnum) error {
 		if cacheDirErr != nil || cacheDir == "" {
 			log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
 		}
-		kustomize.kfDef.Spec.ManifestsRepo = cacheDir
 		createConfigErr := kustomize.kfDef.WriteToConfigFile()
 		if createConfigErr != nil {
 			return fmt.Errorf("cannot create config file %v in %v", kftypesv3.KfConfigFile, kustomize.kfDef.Spec.AppDir)

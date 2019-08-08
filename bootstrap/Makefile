@@ -76,7 +76,7 @@ config/zz_generated.deepcopy.go: config/types.go
 
 pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/kfdef/v1alpha1/application_types.go
 	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy && \
-	mv v3/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/ && rm -rf v3
+	mv ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/ && rm -rf v3
 
 deepcopy: ${GOPATH}/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go 
 

@@ -66,7 +66,6 @@ type KfDefSpec struct {
 	ServerVersion      string   `json:"serverVersion,omitempty"`
 	DeleteStorage      bool     `json:"deleteStorage,omitempty"`
 	PackageManager     string   `json:"packageManager,omitempty"`
-	ManifestsRepo      string   `json:"manifestsRepo,omitempty"`
 	Repos              []Repo   `json:"repos,omitempty"`
 	Secrets            []Secret `json:"secrets,omitempty"`
 	Plugins            []Plugin `json:"plugins,omitempty"`
