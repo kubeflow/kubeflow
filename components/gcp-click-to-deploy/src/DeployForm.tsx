@@ -136,10 +136,13 @@ const logsContainerStyle = (show: boolean) => {
     } as React.CSSProperties;
 };
 
+const ACCESS_TOKEN = 'accessToken';
 const BASIC_AUTH = 'basic-auth-ingress';
 const CERT_MANAGER = 'cert-manager';
+const CLIENT_SECRET = 'CLIENT_SECRET';
 const IAP_INGRESS = 'iap-ingress';
 const KUBEFLOW_OAUTH = 'kubeflow-oauth';
+const PASSWORD = 'password';
 const PROFILES = 'profiles';
 const SPARTAKUS = 'spartakus';
 
@@ -1089,14 +1092,15 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         configSpec.spec.version = kfversion;
         configSpec.spec.secrets = [
             {
-                name: 'accessToken',
+                name: ACCESS_TOKEN,
                 secretSource: {literalSource: {value: saToken}}
             },
             {
                 name: KUBEFLOW_OAUTH,
-                secretSource: {literalSource: {value: clientSecret || ''}}
+                secretSource: {literalSource: {value: clientSecret}}
             }
         ];
+
         const gcpPlugin = {
             name: 'gcp',
             spec: {
@@ -1105,9 +1109,17 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             }
         };
         if (ingress === IngressType.BasicAuth) {
+            configSpec.spec.secrets.push({
+                name: PASSWORD,
+                secretSource: {
+                    literalSource: {
+                        value: btoa(encryptPassword(this.state.password))
+                    }
+                }
+            });
             gcpPlugin.spec.auth = {
                 basicAuth: {
-                    password: btoa(encryptPassword(this.state.password)),
+                    password: {name: PASSWORD},
                     username: this.state.username,
                 }
             };
@@ -1115,7 +1127,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             gcpPlugin.spec.auth = {
                 iap: {
                     oAuthClientId: this.state.clientId,
-                    oAuthClientSecret: {name: 'CLIENT_SECRET'},
+                    oAuthClientSecret: {name: CLIENT_SECRET},
                 }
             };
         }
