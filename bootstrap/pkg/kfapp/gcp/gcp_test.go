@@ -125,6 +125,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Env: map[string]string{
 				kftypes.KUBEFLOW_USERNAME: "someuser",
+				kftypes.KUBEFLOW_PASSWORD: "password",
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
