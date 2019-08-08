@@ -47,6 +47,12 @@ h2 .icon {
 vaadin-grid {
     --lumo-font-size-m: 1em;
     --lumo-body-text-color: currentColor;
+    --lumo-space-m: 0
+}
+vaadin-grid > [slot$='content-0'],
+    vaadin-grid > [slot$='content-1'],
+    vaadin-grid > [slot$='content-2'] {
+    color: var(--subheading-color);
 }
 #NoNamespaceError {margin-top: 1em}
 #ContribError {
