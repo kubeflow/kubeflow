@@ -1,23 +1,39 @@
-import express from 'express';
+import {Router, Request, Response, NextFunction} from 'express';
 
 import {KubernetesService, PlatformInfo} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
+import {
+  WorkgroupApi,
+  SimpleBinding,
+} from './api_workgroup';
 
 interface EnvironmentInfo {
-  namespaces: string[];
+  namespaces: SimpleBinding[];
   platform: PlatformInfo;
   user: string;
+  isClusterAdmin: boolean;
 }
 
-const IAP_HEADER = 'X-Goog-Authenticated-User-Email';
-const IAP_PREFIX = 'accounts.google.com:';
+export const ERRORS = {
+  operation_not_supported: 'Operation not supported'
+};
+
+export function apiError(a: {res: Response, error: string, code?: number}) {
+  const {res, error} = a;
+  const code = a.code || 400;
+  return res.status(code).json({
+    error,
+  });
+}
 
 export class Api {
   private platformInfo: PlatformInfo;
 
   constructor(
       private k8sService: KubernetesService,
-      private metricsService?: MetricsService) {}
+      private workgroupApi?: WorkgroupApi,
+      private metricsService?: MetricsService,
+    ) {}
 
   /** Retrieves and memoizes the PlatformInfo. */
   private async getPlatformInfo(): Promise<PlatformInfo> {
@@ -28,43 +44,63 @@ export class Api {
   }
 
   /**
-   * Retrieves user information from headers.
-   * Supports:
-   *  GCP IAP (https://cloud.google.com/iap/docs/identity-howto)
+   * Builds EnvironmentInfo for the case with identity awareness
    */
-  private getUser(req: express.Request): string {
-    let email = 'anonymous@kubeflow.org';
-    if (req.header(IAP_HEADER)) {
-      email = req.header(IAP_HEADER).slice(IAP_PREFIX.length);
-    }
-    return email;
+  private async getProfileAwareEnv(user: User.User): Promise<EnvironmentInfo> {
+    const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
+      this.getPlatformInfo(),
+      this.workgroupApi.getWorkgroupInfo(
+        user,
+      ),
+    ]);
+    return {user: user.email, platform, namespaces, isClusterAdmin};
+  }
+
+  /**
+   * Builds EnvironmentInfo for the case without identity awareness
+   */
+  private async getBasicEnvironment(user: User.User): Promise<EnvironmentInfo> {
+    const [platform, namespaces] = await Promise.all([
+      this.getPlatformInfo(),
+      this.workgroupApi.getAllWorkgroups(user.email),
+    ]);
+    return {
+      user: user.email,
+      platform,
+      namespaces,
+      isClusterAdmin: true,
+    };
   }
 
   /**
    * Returns the Express router for the API routes.
    */
-  routes(): express.Router {
-    return express.Router()
+  routes(): Router {
+    return Router()
         .get(
             '/env-info',
-            async (req: express.Request, res: express.Response) => {
-              const [platform, user, namespaces] = await Promise.all([
-                this.getPlatformInfo(),
-                this.getUser(req),
-                this.k8sService.getNamespaces(),
-              ]);
-              res.json({
-                platform,
-                user,
-                namespaces: namespaces.map((n) => n.metadata.name),
-              });
+            async (req: Request, res: Response) => {
+              try {
+                if (req.user.hasAuth) {
+                  return res.json(await this.getProfileAwareEnv(req.user));
+                }
+                res.json(await this.getBasicEnvironment(req.user));
+              } catch (err) {
+                const code = (err.response && err.response.statusCode) || 400;
+                const error =
+                    err.body || 'Unexpected error getting environment info';
+                console.log(`Unable to get environment info: ${error}${err.stack?'\n'+err.stack:''}`);
+                apiError({res, code, error});
+              }
             })
         .get(
             '/metrics/:type((node|podcpu|podmem))',
-            async (req: express.Request, res: express.Response) => {
+            async (req: Request, res: Response) => {
               if (!this.metricsService) {
-                res.sendStatus(405);
-                return;
+                return apiError({
+                  res, code: 405,
+                  error: ERRORS.operation_not_supported,
+                });
               }
 
               let interval = Interval.Last15m;
@@ -89,14 +125,27 @@ export class Api {
             })
         .get(
             '/namespaces',
-            async (_: express.Request, res: express.Response) => {
+            async (_: Request, res: Response) => {
               res.json(await this.k8sService.getNamespaces());
             })
         .get(
             '/activities/:namespace',
-            async (req: express.Request, res: express.Response) => {
+            async (req: Request, res: Response) => {
               res.json(await this.k8sService.getEventsForNamespace(
                   req.params.namespace));
-            });
+            })
+        .use('/workgroup', this.workgroupApi
+          ? this.workgroupApi.routes()
+          : (req: Request, res: Response, next: NextFunction)  => {
+            next();
+          }
+        )
+        .use((req: Request, res: Response) => 
+          apiError({
+            res,
+            error: `Could not find the route you're looking for`,
+            code: 404,
+          })
+        );
   }
 }

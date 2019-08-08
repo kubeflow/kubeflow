@@ -16,7 +16,7 @@
         "test": "npm run test-client && npm run test-server",
         "test-client": "karma start --single-run",
         "test-client-debug": "karma start --browsers Chrome",
-        "test-server": "jasmine-ts --config=app/.jasmine.json",
+        "test-server": "ts-node --transpile-only node_modules/jasmine/bin/jasmine --config=app/.jasmine.json --reporter=jasmine-console-reporter",
         "tslint": "tslint -c tslint.json -p tsconfig.json",
         "coverage": "nyc npm run test-server && karma start --single-run --reporters coverage-istanbul",
         "watch-node": "nodemon dist/server.js",
@@ -31,6 +31,9 @@
     "bugs": {
         "url": "https://github.com/kubeflow/kubeflow/issues"
     },
+    "vaadin": {
+        "disableUsageStatistics": true
+    },
     "homepage": "https://github.com/kubeflow/kubeflow#readme",
     "dependencies": {
         "@babel/polyfill": "^7.4.4",
@@ -38,6 +41,7 @@
         "@kubernetes/client-node": "^0.8.2",
         "@polymer/app-layout": "^3.0.0",
         "@polymer/app-route": "^3.0.0",
+        "@polymer/iron-a11y-keys": "^3.0.1",
         "@polymer/iron-ajax": "^3.0.1",
         "@polymer/iron-collapse": "^3.0.1",
         "@polymer/iron-flex-layout": "^3.0.0",
@@ -57,8 +61,10 @@
         "@polymer/paper-progress": "^3.0.1",
         "@polymer/paper-ripple": "^3.0.1",
         "@polymer/paper-tabs": "^3.1.0",
+        "@polymer/paper-toast": "^3.0.1",
         "@polymer/polymer": "^3.2.0",
         "@types/dotenv": "^6.1.1",
+        "@vaadin/vaadin-grid": "^5.4.6",
         "@webcomponents/webcomponentsjs": "^2.2.10",
         "chart.js": "^2.8.0",
         "chartjs-plugin-crosshair": "^1.1.2",
@@ -91,7 +97,7 @@
         "istanbul-instrumenter-loader": "^3.0.1",
         "jasmine": "^3.4.0",
         "jasmine-ajax": "^3.4.0",
-        "jasmine-ts": "^0.3.0",
+        "jasmine-console-reporter": "^3.1.0",
         "karma": "^4.1.0",
         "karma-chrome-launcher": "^2.2.0",
         "karma-coverage-istanbul-reporter": "^2.0.5",
