@@ -67,7 +67,7 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 	var resp interface{}
 	var err error
 	// Add retry logic
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 5)
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 30)
 	permErr := backoff.Retry(func() error {
 		resp, err = c.createEndpoint(ctx, req)
 		if err != nil {
