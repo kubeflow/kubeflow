@@ -21,8 +21,10 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
+	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/culler"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -253,6 +255,7 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	// Check the pod status
 	pod := &corev1.Pod{}
+	podFound := false
 	err = r.Get(context.TODO(), types.NamespacedName{Name: ss.Name + "-0", Namespace: ss.Namespace}, pod)
 	if err != nil && errors.IsNotFound(err) {
 		// This should be reconciled by the StatefulSet
@@ -261,6 +264,7 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	} else {
 		// Got the pod
+		podFound = true
 		if len(pod.Status.ContainerStatuses) > 0 &&
 			pod.Status.ContainerStatuses[0].State != instance.Status.ContainerState {
 			log.Info("Updating container state: ", "namespace", instance.Namespace, "name", instance.Name)
@@ -282,7 +286,24 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 	}
 
-	return reconcile.Result{}, nil
+	// Check if the Notebook needs to be stoped / reduce replicas to 0
+	if podFound && culler.ResourceNeedsCulling(pod.ObjectMeta) {
+		log.Info(fmt.Sprintf(
+			"Notebook %s/%s needs culling. Setting annotations",
+			instance.Name, instance.Namespace))
+
+		// Set annotations to both notebook and pod
+		// TODO(kimwnasptd): Controller should set this annotation to the Pod
+		// via the StatefulSet it submits
+		culler.SetStopAnnotation(&instance.ObjectMeta)
+		err = r.Update(context.TODO(), instance)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	}
+
+	// TODO(kimwnasptd): Maybe increase the period
+	return reconcile.Result{RequeueAfter: 30 * time.Second}, nil
 }
 
 func getNextCondition(cs corev1.ContainerState) v1alpha1.NotebookCondition {
