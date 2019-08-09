@@ -1885,8 +1885,8 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 			gcp.kfDef.SetSecret(kfdefs.Secret{
 				Name: BasicAuthPasswordSecretName,
 				SecretSource: &kfdefs.SecretSource{
-					LiteralSource: &kfdefs.LiteralSource{
-						Value: encodedPassword,
+					HashedSource: &kfdefs.HashedSource{
+						HashedValue: encodedPassword,
 					},
 				},
 			})
