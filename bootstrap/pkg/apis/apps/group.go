@@ -70,6 +70,7 @@ const (
 	ALL      ResourceEnum = "all"
 	K8S      ResourceEnum = "k8s"
 	PLATFORM ResourceEnum = "platform"
+	PATCH    ResourceEnum = "patch"
 )
 
 type CliOption string

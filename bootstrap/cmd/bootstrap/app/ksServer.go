@@ -773,7 +773,7 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 func makeHealthzEndpoint() endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		r := &HealthzResponse{}
-		r.Reply = "Request accepted! Sill alive!"
+		r.Reply = "Request accepted! Still alive!"
 		return r, nil
 	}
 }
