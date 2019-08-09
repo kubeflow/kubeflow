@@ -245,6 +245,15 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 		}
 	}
 
+	log.Infof("Calling apply Patch")
+	if err := s.kfApp.Apply(kftypes.PATCH); err != nil {
+		log.Errorf("Calling apply Patch failed; %v", err)
+		return s.kfDefGetter.GetKfDef(), &httpError{
+			Message: "Internal service error please try again later.",
+			Code:    http.StatusInternalServerError,
+		}
+	}
+
 	log.Errorf("Need to implement code to push app to source repo.")
 	return s.kfDefGetter.GetKfDef(), nil
 
