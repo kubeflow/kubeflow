@@ -138,11 +138,16 @@ type Secret struct {
 
 type SecretSource struct {
 	LiteralSource *LiteralSource `json:"literalSource,omitempty"`
+	HashedSource  *HashedSource  `json:"hashedSource,omitempty"`
 	EnvSource     *EnvSource     `json:"envSource,omitempty"`
 }
 
 type LiteralSource struct {
 	Value string `json:"value,omitempty"`
+}
+
+type HashedSource struct {
+	HashedValue string `json:"value,omitempty"`
 }
 
 type EnvSource struct {
@@ -484,6 +489,9 @@ func (d *KfDef) GetSecret(name string) (string, error) {
 		}
 		if s.SecretSource.LiteralSource != nil {
 			return s.SecretSource.LiteralSource.Value, nil
+		}
+		if s.SecretSource.HashedSource != nil {
+			return s.SecretSource.HashedSource.HashedValue, nil
 		}
 		if s.SecretSource.EnvSource != nil {
 			return os.Getenv(s.SecretSource.EnvSource.Name), nil
