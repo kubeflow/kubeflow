@@ -7,12 +7,12 @@ metadata:
   namespace: kubeflow
 spec:
   repos:
-  - name: kubeflow
-    root: kubeflow-master
-    uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
   - name: manifests
-    root: master/
-    uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
+    root: manifests-v0.6.1
+    uri: https://github.com/kubeflow/manifests/archive/v0.6.1.tar.gz
+  - name: kubeflow
+    root: kubeflow-v0.6.1
+    uri: https://github.com/kubeflow/kubeflow/archive/v0.6.1.tar.gz
     # To get manifest at a PR:
     #uri: https://github.com/kubeflow/manifests/archive/pull/235/head.tar.gz
   appdir: /tmp/myapp2
