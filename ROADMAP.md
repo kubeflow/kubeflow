@@ -96,6 +96,10 @@ Engprod
    * CI for applications in scope for 1.0 (notebooks, job operators, central dashboard etc..)
    * [Kanban board](https://github.com/orgs/kubeflow/projects/13)
 
+Support for hardware accelerated training and inference
+
+   * Automatic injection of device configuration needed to use hardware accelerators
+     for training and inference
 
 ## Kubeflow 1.0
 
