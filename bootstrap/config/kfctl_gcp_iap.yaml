@@ -2,20 +2,9 @@
 apiVersion: kfdef.apps.kubeflow.org/v1alpha1
 kind: KfDef
 metadata:
-  creationTimestamp: null
-  name: myapp2
+  name: kf101
   namespace: kubeflow
 spec:
-  repos:
-  - name: kubeflow
-    root: kubeflow-master
-    uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
-  - name: manifests
-    root: master/
-    uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
-    # To get manifest at a PR:
-    #uri: https://github.com/kubeflow/manifests/archive/pull/235/head.tar.gz
-  appdir: /tmp/myapp2
   applications:
   - kustomizeConfig:
       parameters:
@@ -68,6 +57,7 @@ spec:
   - kustomizeConfig:
       overlays:
       - istio
+      - application
       repoRef:
         name: manifests
         path: common/centraldashboard
@@ -116,17 +106,17 @@ spec:
         path: katib-v1alpha2/katib-ui
     name: katib-ui
   - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/metrics-collector
+    name: metrics-collector
+  - kustomizeConfig:
       overlays:
       - istio
       repoRef:
         name: manifests
         path: metadata
     name: metadata
-  - kustomizeConfig:
-      repoRef:
-        name: manifests
-        path: katib-v1alpha2/metrics-collector
-    name: metrics-collector
   - kustomizeConfig:
       repoRef:
         name: manifests
@@ -159,7 +149,7 @@ spec:
       parameters:
       - initRequired: true
         name: usageId
-        value: "7439583937720421527"
+        value: "4950217421827598259"
       - initRequired: true
         name: reportUsage
         value: "true"
@@ -177,7 +167,6 @@ spec:
   - kustomizeConfig:
       overlays:
       - istio
-      - application
       repoRef:
         name: manifests
         path: tf-training/tf-job-operator
@@ -192,7 +181,7 @@ spec:
       - minioPd
       parameters:
       - name: minioPd
-        value: test1-storage-artifact-store
+        value: kf101-storage-artifact-store
       - name: minioPvName
         value: minio-pv
       - name: minioPvcName
@@ -206,7 +195,7 @@ spec:
       - mysqlPd
       parameters:
       - name: mysqlPd
-        value: test1-storage-metadata-store
+        value: kf101-storage-metadata-store
       - name: mysqlPvName
         value: mysql-pv
       - name: mysqlPvcName
@@ -257,8 +246,6 @@ spec:
         path: cert-manager/cert-manager
     name: cert-manager
   - kustomizeConfig:
-      overlays:
-      - gcp-credentials
       parameters:
       - name: secretName
         value: admin-gcp-sa
@@ -283,41 +270,34 @@ spec:
         path: gcp/gpu-driver
     name: gpu-driver
   - kustomizeConfig:
-      overlays:
-      - certmanager
-      - gcp-credentials
       parameters:
       - name: namespace
         value: istio-system
       - initRequired: true
         name: ipName
-        value: test1-ip
+        value: kf101-ip
       - initRequired: true
         name: hostname
-        value: test1.endpoints.SET_PROJECT.cloud.goog
+        value: kf101.endpoints.SET_PROJECT.cloud.goog
       repoRef:
         name: manifests
         path: gcp/iap-ingress
     name: iap-ingress
-  - kustomizeConfig:
-      overlays:
-      - application
-      repoRef:
-        name: manifests
-        path: seldon/seldon-core-operator
-    name: seldon-core-operator
   email: SET_EMAIL
   enableApplications: true
+  hostname: kf101.endpoints.SET_PROJECT.cloud.goog
+  ipName: kf101-ip
   packageManager: kustomize
   platform: gcp
+  project: SET_PROJECT
+  repos:
+  - name: kubeflow
+    uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
+  - name: manifests
+    root: manifests-master
+    uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
   skipInitProject: true
   useBasicAuth: false
   useIstio: true
-  version: master
-  project: SET_PROJECT
-status:
-  reposCache:
-    kubeflow:
-      localPath: '"/tmp/myapp2/.cache/kubeflow/kubeflow-master"'
-    manifests:
-      localPath: '"/tmp/myapp2/.cache/manifests/master"'
+  version: SET_VERSION
+  zone: SET_ZONE

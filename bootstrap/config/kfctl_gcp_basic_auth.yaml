@@ -2,20 +2,9 @@
 apiVersion: kfdef.apps.kubeflow.org/v1alpha1
 kind: KfDef
 metadata:
-  creationTimestamp: null
-  name: myapp2
+  name: kf101
   namespace: kubeflow
 spec:
-  repos:
-  - name: kubeflow
-    root: kubeflow-master
-    uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
-  - name: manifests
-    root: master/
-    uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
-    # To get manifest at a PR:
-    #uri: https://github.com/kubeflow/manifests/archive/pull/235/head.tar.gz
-  appdir: /tmp/myapp2
   applications:
   - kustomizeConfig:
       parameters:
@@ -68,6 +57,7 @@ spec:
   - kustomizeConfig:
       overlays:
       - istio
+      - application
       repoRef:
         name: manifests
         path: common/centraldashboard
@@ -116,17 +106,17 @@ spec:
         path: katib-v1alpha2/katib-ui
     name: katib-ui
   - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/metrics-collector
+    name: metrics-collector
+  - kustomizeConfig:
       overlays:
       - istio
       repoRef:
         name: manifests
         path: metadata
     name: metadata
-  - kustomizeConfig:
-      repoRef:
-        name: manifests
-        path: katib-v1alpha2/metrics-collector
-    name: metrics-collector
   - kustomizeConfig:
       repoRef:
         name: manifests
@@ -159,7 +149,7 @@ spec:
       parameters:
       - initRequired: true
         name: usageId
-        value: "2700513155662330975"
+        value: "8193904256713860000"
       - initRequired: true
         name: reportUsage
         value: "true"
@@ -177,7 +167,6 @@ spec:
   - kustomizeConfig:
       overlays:
       - istio
-      - application
       repoRef:
         name: manifests
         path: tf-training/tf-job-operator
@@ -192,7 +181,7 @@ spec:
       - minioPd
       parameters:
       - name: minioPd
-        value: test1-storage-artifact-store
+        value: kf101-storage-artifact-store
       - name: minioPvName
         value: minio-pv
       - name: minioPvcName
@@ -206,7 +195,7 @@ spec:
       - mysqlPd
       parameters:
       - name: mysqlPd
-        value: test1-storage-metadata-store
+        value: kf101-storage-metadata-store
       - name: mysqlPvName
         value: mysql-pv
       - name: mysqlPvcName
@@ -243,6 +232,16 @@ spec:
         path: pipeline/scheduledworkflow
     name: scheduledworkflow
   - kustomizeConfig:
+      parameters:
+      - name: ambassadorServiceType
+        value: NodePort
+      - name: namespace
+        value: istio-system
+      repoRef:
+        name: manifests
+        path: common/ambassador
+    name: ambassador
+  - kustomizeConfig:
       repoRef:
         name: manifests
         path: cert-manager/cert-manager-crds
@@ -257,17 +256,9 @@ spec:
         path: cert-manager/cert-manager
     name: cert-manager
   - kustomizeConfig:
-      overlays:
-      - gcp-credentials
       parameters:
       - name: secretName
         value: admin-gcp-sa
-      - initRequired: true
-        name: ipName
-        value: ipName
-      - initRequired: true
-        name: hostname
-        value: <deployName>.endpoints.<project>.cloud.goog
       repoRef:
         name: manifests
         path: gcp/cloud-endpoints
@@ -289,63 +280,42 @@ spec:
         path: gcp/gpu-driver
     name: gpu-driver
   - kustomizeConfig:
-      overlays:
-      - application
-      repoRef:
-        name: manifests
-        path: seldon/seldon-core-operator
-    name: seldon-core-operator
-  - kustomizeConfig:
-      parameters:
-      - name: ambassadorServiceType
-        value: NodePort
-      - name: namespace
-        value: istio-system
-      repoRef:
-        name: manifests
-        path: common/ambassador
-    name: ambassador
-  - kustomizeConfig:
       repoRef:
         name: manifests
         path: common/basic-auth
     name: basic-auth
   - kustomizeConfig:
-      overlays:
-      - certmanager
-      - gcp-credentials
       parameters:
       - name: namespace
         value: istio-system
       - initRequired: true
         name: ipName
-        value: test1-ip
+        value: kf101-ip
       - initRequired: true
         name: hostname
-        value: test1.endpoints.SET_PROJECT.cloud.goog
+        value: kf101.endpoints.SET_PROJECT.cloud.goog
       - initRequired: true
         name: project
         value: SET_PROJECT
-      - name: ingressName
-        value: envoy-ingress
-      - name: issuer
-        value: letsencrypt-prod
       repoRef:
         name: manifests
         path: gcp/basic-auth-ingress
     name: basic-auth-ingress
   email: SET_EMAIL
   enableApplications: true
+  hostname: kf101.endpoints.SET_PROJECT.cloud.goog
+  ipName: kf101-ip
   packageManager: kustomize
   platform: gcp
+  project: SET_PROJECT
+  repos:
+  - name: kubeflow
+    uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
+  - name: manifests
+    root: manifests-master
+    uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
   skipInitProject: true
   useBasicAuth: true
   useIstio: true
-  version: master
-  project: SET_PROJECT
-status:
-  reposCache:
-    kubeflow:
-      localPath: '"/tmp/myapp2/.cache/kubeflow/kubeflow-master"'
-    manifests:
-      localPath: '"/tmp/myapp2/.cache/manifests/master"'
+  version: SET_VERSION
+  zone: SET_ZONE
