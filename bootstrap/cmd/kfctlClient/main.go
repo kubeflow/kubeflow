@@ -36,7 +36,7 @@ func NewServerOption() *ServerOption {
 // AddFlags adds flags for a specific Server to the specified FlagSet
 func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 
-	fs.StringVar(&s.Config, "config", "", "Path to a YAML file describing an app to create on startup.")
+	fs.StringVar(&s.Config, "config", "https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_gcp_iap.yaml", "URI of a YAML file containing a KfDef object.")
 	fs.StringVar(&s.Name, "name", "", "Name for the deployment.")
 	fs.StringVar(&s.Project, "project", "", "Project.")
 	fs.StringVar(&s.Endpoint, "endpoint", "", "The endpoint e.g. http://localhost:8080.")
