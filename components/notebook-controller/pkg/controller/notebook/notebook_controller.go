@@ -21,7 +21,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
+
+	// "time"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/culler"
@@ -287,23 +288,28 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 
 	// Check if the Notebook needs to be stoped / reduce replicas to 0
-	if podFound && culler.ResourceNeedsCulling(pod.ObjectMeta) {
+	if podFound && culler.ResourceNeedsCulling(
+		instance.ObjectMeta, pod.ObjectMeta, service.ObjectMeta) {
 		log.Info(fmt.Sprintf(
 			"Notebook %s/%s needs culling. Setting annotations",
 			instance.Name, instance.Namespace))
 
 		// Set annotations to both notebook and pod
-		// TODO(kimwnasptd): Controller should set this annotation to the Pod
-		// via the StatefulSet it submits
 		culler.SetStopAnnotation(&instance.ObjectMeta)
 		err = r.Update(context.TODO(), instance)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
+	} else if podFound && !culler.StopAnnotationIsSet(instance.ObjectMeta) {
+		// The Pod is either too fresh, or the idle time has passed and it has
+		// received traffic. In this case we will be periodically checking if
+		// it need culling.
+		return reconcile.Result{RequeueAfter: culler.GetRequeueTime()}, nil
 	}
 
 	// TODO(kimwnasptd): Maybe increase the period
-	return reconcile.Result{RequeueAfter: 30 * time.Second}, nil
+	// return reconcile.Result{RequeueAfter: 30 * time.Second}, nil
+	return reconcile.Result{}, nil
 }
 
 func getNextCondition(cs corev1.ContainerState) v1alpha1.NotebookCondition {
@@ -333,12 +339,18 @@ func getNextCondition(cs corev1.ContainerState) v1alpha1.NotebookCondition {
 
 }
 func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
+	replicas := int32(1)
+	if culler.StopAnnotationIsSet(instance.ObjectMeta) {
+		replicas = 0
+	}
+
 	ss := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name,
 			Namespace: instance.Namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
+			Replicas: &replicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"statefulset": instance.Name,
