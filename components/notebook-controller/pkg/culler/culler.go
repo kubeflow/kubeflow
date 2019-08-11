@@ -17,14 +17,14 @@ var client = &http.Client{
 	Timeout: time.Second * 10,
 }
 
-// The Variables with name 'DEFAULT_{ENV_Var}' are the default values to be
+// The constants with name 'DEFAULT_{ENV_Var}' are the default values to be
 // used, if the respective ENV vars are not present.
 // All the time numbers correspond to minutes.
 const DEFAULT_PROMETHEUS_SVC = "prometheus.istio-system.svc.cluster.local:9090"
-const DEFAULT_IDLE_TIME = "20" // TODO(kimwnasptd): Should increase this value
+const DEFAULT_IDLE_TIME = "1440" // One day
 const DEFAULT_CULLING_CHECK_PERIOD = "1"
 const DEFAULT_ENABLE_CULLING = "false"
-const STOP_ANNOTATION = "kubeflow-resource-stop"
+const STOP_ANNOTATION = "kubeflow-resource-stopped"
 
 type PrometheusResp struct {
 	Status string                 `json:"status"`
@@ -111,7 +111,7 @@ func getPromethiusRequestsQuery(svcMeta metav1.ObjectMeta) string {
 func getRequestsCountFromResp(body *PrometheusResp) string {
 	// Get the Number of the requests on the Pod from the response
 	// of the Prometheus Service
-	// -1: No metrics for this Pod, or error ocurred
+	// None: No metrics for this Pod, or error ocurred
 	res, ok := body.Data["result"].([]interface{})
 	if !ok {
 		log.Info("Prometheus' response not as expected", "resp", body)
@@ -161,15 +161,15 @@ func podIsNew(meta metav1.ObjectMeta) bool {
 func ResourceNeedsCulling(rsrcMeta, podMeta, svcMeta metav1.ObjectMeta) bool {
 	// Decide based on Prometheus response. This function will return true if
 	// the provided resource has not been created
-	if getEnvDef("ENABLE_CULLING", DEFAULT_ENABLE_CULLING) == "false" {
-		log.Info("Culling of idle Pods is Disabled. To enable set the " +
+	if getEnvDef("ENABLE_CULLING", DEFAULT_ENABLE_CULLING) != "true" {
+		log.Info("Culling of idle Pods is Disabled. To enable it set the " +
 			"ENV Var 'ENABLE_CULLING=true'")
 		return false
 	}
 
 	nm, ns := rsrcMeta.GetName(), rsrcMeta.GetNamespace()
 	if StopAnnotationIsSet(rsrcMeta) {
-		log.Info(fmt.Sprintf("Object %s/%s is already stopping", ns, nm))
+		log.Info(fmt.Sprintf("Notebook %s/%s is already stopping", ns, nm))
 		return false
 	}
 
@@ -181,7 +181,7 @@ func ResourceNeedsCulling(rsrcMeta, podMeta, svcMeta metav1.ObjectMeta) bool {
 	if podIsNew(podMeta) {
 		log.Info(fmt.Sprintf(
 			"Pod %s/%s was created recently. Won't check for culling.",
-			podMeta.GetName(), podMeta.GetNamespace()))
+			podMeta.GetNamespace(), podMeta.GetName()))
 		return false
 	}
 
@@ -207,7 +207,7 @@ func ResourceNeedsCulling(rsrcMeta, podMeta, svcMeta metav1.ObjectMeta) bool {
 	requests := getRequestsCountFromResp(body)
 	log.Info(fmt.Sprintf(
 		"Pod %s/%s received %s requests in the last %s minutes",
-		podMeta.GetName(), podMeta.GetNamespace(),
+		podMeta.GetNamespace(), podMeta.GetName(),
 		requests, getEnvDef("IDLE_TIME", DEFAULT_IDLE_TIME)))
 
 	if requests == "None" {

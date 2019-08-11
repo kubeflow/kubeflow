@@ -22,8 +22,6 @@ import (
 	"os"
 	"strings"
 
-	// "time"
-
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/culler"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/util"
@@ -287,14 +285,14 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 	}
 
-	// Check if the Notebook needs to be stoped / reduce replicas to 0
+	// Check if the Notebook needs to be stopped
 	if podFound && culler.ResourceNeedsCulling(
 		instance.ObjectMeta, pod.ObjectMeta, service.ObjectMeta) {
 		log.Info(fmt.Sprintf(
 			"Notebook %s/%s needs culling. Setting annotations",
-			instance.Name, instance.Namespace))
+			instance.Namespace, instance.Name))
 
-		// Set annotations to both notebook and pod
+		// Set annotations to the Notebook
 		culler.SetStopAnnotation(&instance.ObjectMeta)
 		err = r.Update(context.TODO(), instance)
 		if err != nil {
@@ -303,12 +301,10 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	} else if podFound && !culler.StopAnnotationIsSet(instance.ObjectMeta) {
 		// The Pod is either too fresh, or the idle time has passed and it has
 		// received traffic. In this case we will be periodically checking if
-		// it need culling.
+		// it needs culling.
 		return reconcile.Result{RequeueAfter: culler.GetRequeueTime()}, nil
 	}
 
-	// TODO(kimwnasptd): Maybe increase the period
-	// return reconcile.Result{RequeueAfter: 30 * time.Second}, nil
 	return reconcile.Result{}, nil
 }
 
