@@ -98,7 +98,7 @@ func StopAnnotationIsSet(meta metav1.ObjectMeta) bool {
 }
 
 // Culling Logic
-func getPromethiusRequestsQuery(svcMeta metav1.ObjectMeta) string {
+func getPrometheusRequestsQuery(svcMeta metav1.ObjectMeta) string {
 	idle_time := getEnvDef("IDLE_TIME", DEFAULT_IDLE_TIME)
 	svc := fmt.Sprintf("%s.%s.svc.cluster.local",
 		svcMeta.GetName(), svcMeta.GetNamespace())
@@ -122,7 +122,7 @@ func getRequestsCountFromResp(body *PrometheusResp) string {
 		return "0"
 	}
 
-	value := res[0].(map[string]interface{})["value"]
+	value, ok := res[0].(map[string]interface{})["value"]
 	if !ok {
 		log.Info("Prometheus' response not as expected", "resp", body)
 		return "None"
@@ -186,7 +186,7 @@ func ResourceNeedsCulling(rsrcMeta, podMeta, svcMeta metav1.ObjectMeta) bool {
 	}
 
 	prometheus_svc := getEnvDef("PROMETHEUS_SVC", DEFAULT_PROMETHEUS_SVC)
-	query := getPromethiusRequestsQuery(svcMeta)
+	query := getPrometheusRequestsQuery(svcMeta)
 	url := fmt.Sprintf("http://%s/api/v1/query?"+query, prometheus_svc)
 
 	// Make the request to Prometheus to get number of requests
