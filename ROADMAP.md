@@ -90,6 +90,11 @@ Onpremise support
    * E2E CI for setup and multi-user support in on premise environments   
    * [Kanban board](https://github.com/orgs/kubeflow/projects/18)
 
+
+Data management
+
+   * Persistent Volume Management via a Central Dashboard UI
+
 Engprod
 
    * Remove ksonnet from E2E testing
