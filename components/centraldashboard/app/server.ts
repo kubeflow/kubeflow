@@ -19,7 +19,7 @@ import {getMetricsService} from './metrics_service_factory';
 const {
   PORT_1 = 8082,
   PROFILES_KFAM_SERVICE_HOST = 'localhost',
-  PROFILES_KFAM_SERVICE_PORT = '8084',
+  PROFILES_KFAM_SERVICE_PORT = '8081',
   USERID_HEADER = 'X-Goog-Authenticated-User-Email',
   USERID_PREFIX = 'accounts.google.com:',
 } = process.env;
