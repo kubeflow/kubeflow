@@ -93,9 +93,6 @@ build-kfctl-tgz: build-kfctl
 	cd bin && tar -cvzf kfctl_$(TAG)_linux.tar.gz ./kfctl
 	cp -f ./bin/kfctl_$(TAG)_linux.tar.gz ./bin/kfctl_$(TAG)_darwin.tar.gz
 
-build-kfctl-client: /tmp/v2 deepcopy generate fmt vet
-	${GO} build -i -gcflags 'all=-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctlClient cmd/kfctlClient/main.go
-
 # push the releases to a GitHub page
 push-to-github-release: build-kfctl-tgz
 	github-release upload \
