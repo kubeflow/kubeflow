@@ -74,6 +74,11 @@ Deployment
    * Upgradability between minor and major releases ([issue](https://github.com/kubeflow/kubeflow/issues/3727))
    * [Kanban board](https://github.com/orgs/kubeflow/projects/28)
 
+Monitoring
+
+   * Kubernetes' [applications](https://github.com/kubernetes-sigs/application)
+     provide a unified view of the deployed Kubeflow applications and their state
+
 Metadata
 
    * Generic logger to auto log K8s resources to metadata store
@@ -90,10 +95,9 @@ Onpremise support
    * E2E CI for setup and multi-user support in on premise environments   
    * [Kanban board](https://github.com/orgs/kubeflow/projects/18)
 
-
 Data management
 
-   * Persistent Volume Management via a Central Dashboard UI
+   * Persistent volume management via a central dashboard UI
 
 Engprod
 
@@ -131,6 +135,7 @@ Here is a preliminary list of limitations and requirements that will be part of 
 
 * ISTIO will be required as a service mesh and for AuthN and AuthZ support
 * We will only support a single shared Kubeflow deployment per Kubernetes cluster
+  * Users can consume Kubeflow in their own, isolated namespace
 * Upgrades will require downtime
 * Upgradability will not support advanced customization (e.g. custom overlays) for Kustomize packages
 
