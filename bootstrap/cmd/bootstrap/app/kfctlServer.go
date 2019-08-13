@@ -307,6 +307,7 @@ func (s *kfctlServer) RegisterEndpoints() {
 	// 3. This PR aimed at running the deployment in each pod.
 	// Depending on how we stage these changes we might need to change these URLs.
 	http.Handle(KfctlCreatePath, optionsHandler(createHandler))
+	http.Handle("/", optionsHandler(GetHealthzHandler()))
 }
 
 // isMatch checks whether the incoming request is a match for the deployment

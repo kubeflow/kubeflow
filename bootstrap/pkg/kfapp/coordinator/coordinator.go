@@ -401,10 +401,6 @@ func CreateKfAppCfgFile(d *kfdefsv3.KfDef) (string, error) {
 		return cfgFilePath, fmt.Errorf("%v already exists", cfgFilePath)
 	}
 	log.Infof("Writing KfDef to %v", cfgFilePath)
-	for idx, repo := range d.Spec.Repos {
-		d.Spec.Repos[idx].Uri = fmt.Sprintf("https://github.com/kubeflow/%v/archive/%v.tar.gz", repo.Name,
-			d.Spec.Version)
-	}
 	cfgFilePathErr := d.WriteToFile(cfgFilePath)
 	return cfgFilePath, cfgFilePathErr
 }

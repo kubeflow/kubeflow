@@ -778,16 +778,6 @@ func makeHealthzEndpoint() endpoint.Endpoint {
 	}
 }
 
-func GetHealthzHandler() http.Handler {
-	return httptransport.NewServer(
-		makeHealthzEndpoint(),
-		func(_ context.Context, r *http.Request) (interface{}, error) {
-			return nil, nil
-		},
-		encodeResponse,
-	)
-}
-
 func makeIamEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ApplyIamRequest)
@@ -907,7 +897,6 @@ func (s *ksServer) StartHttp(port int) error {
 
 	// TODO: add deployment manager config generate / deploy handler here. So we'll have user's DM configs stored in
 	// k8s storage / github, instead of gone with browser tabs.
-	http.Handle("/", optionsHandler(GetHealthzHandler()))
 	http.Handle("/kfctl/apps/apply", optionsHandler(applyAppHandler))
 	http.Handle("/kfctl/iam/apply", optionsHandler(applyIamHandler))
 	http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))

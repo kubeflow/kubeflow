@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"crypto/md5"
 	"crypto/sha256"
 	"encoding/base32"
 	"encoding/json"
@@ -80,6 +79,16 @@ func makeRouterCreateRequestEndpoint(svc KfctlService) endpoint.Endpoint {
 	}
 }
 
+func GetHealthzHandler() http.Handler {
+	return httptransport.NewServer(
+		makeHealthzEndpoint(),
+		func(_ context.Context, r *http.Request) (interface{}, error) {
+			return nil, nil
+		},
+		encodeResponse,
+	)
+}
+
 // RegisterEndpoints creates the http endpoints for the router
 func (r *kfctlRouter) RegisterEndpoints() {
 	createHandler := httptransport.NewServer(
@@ -102,6 +111,7 @@ func (r *kfctlRouter) RegisterEndpoints() {
 	// 3. This PR aimed at running the deployment in each pod.
 	// Depending on how we stage these changes we might need to change these URLs.
 	http.Handle("/kfctl/apps/v1alpha2/create", optionsHandler(createHandler))
+	http.Handle("/", optionsHandler(GetHealthzHandler()))
 }
 
 // decodeHTTPCreateResponse is a transport/http.DecodeResponseFunc that decodes a
@@ -188,7 +198,6 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: token,
 	})
-	log.Infof("Project: %v; Access token md5: %x", req.Spec.Project, md5.Sum([]byte(token)))
 
 	isValid, err := CheckProjectAccess(req.Spec.Project, ts)
 
