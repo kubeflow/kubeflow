@@ -5,7 +5,7 @@ This Dockerfile builds an image that is derived from the current [RAPIDS image](
 Requirements:
 
 * Pascal or better GPU (e.g., Tesla-P100), ideally with 32 GB
-* CUDA 9.2 or higher
+* CUDA 9.2 or 10.0
 * NVIDIA driver 396.44 or higher
 
 The image includes sample notebooks for cuML and cuDF within the sub-directories under `/rapids`.
