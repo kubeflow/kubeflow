@@ -42,9 +42,7 @@ spec:
   - kubeflow-gateway
   http:
     - match:
-        - uri:
-            prefix: /dex/
-          port: 5556
+        - port: 5556
       route:
         - destination:
             port:
