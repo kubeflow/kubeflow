@@ -51,7 +51,7 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   this_dir = os.path.dirname(__file__)
   root = os.path.abspath(os.path.join(this_dir, "..", ".."))
   build_dir = os.path.join(root, "bootstrap")
-  zone = 'us-east1-d'
+  zone = 'us-central1-a'
 
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
