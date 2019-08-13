@@ -13,7 +13,6 @@ require (
 	github.com/go-openapi/spec v0.19.2 // indirect
 	github.com/go-openapi/swag v0.19.2 // indirect
 	github.com/gogo/protobuf v1.2.1
-	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.1
 	github.com/hashicorp/go-getter v1.0.2
 	github.com/imdario/mergo v0.3.7
