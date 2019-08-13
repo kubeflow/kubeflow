@@ -34,6 +34,9 @@ spec:
     name: istio-install
   # This component is the istio resources for Kubeflow (e.g. gateway), not about installing istio.
   - kustomizeConfig:
+      parameters:
+        - name: clusterRbacConfig
+          value: "OFF"
       repoRef:
         name: manifests
         path: istio/istio
