@@ -1,6 +1,7 @@
 import {V1Namespace} from '@kubernetes/client-node';
 import {Router, Request, Response, NextFunction} from 'express';
 import {Binding as WorkgroupBinding, DefaultApi} from './clients/profile_controller';
+import {KubernetesService, PlatformInfo} from './k8s_service';
 
 import {
     apiError,
@@ -28,6 +29,13 @@ interface HasWorkgroupResponse {
     hasWorkgroup: boolean;
 }
 
+interface EnvironmentInfo {
+    namespaces: SimpleBinding[];
+    platform: PlatformInfo;
+    user: string;
+    isClusterAdmin: boolean;
+}
+
 export type SimpleRole = 'owner'| 'contributor';
 export type WorkgroupRole = 'admin' | 'edit';
 export type Role = SimpleRole | WorkgroupRole;
@@ -37,6 +45,8 @@ export const roleMap: ReadonlyMap<Role, Role> = new Map([
     ['edit', 'contributor'],
     ['contributor', 'edit'],
 ]);
+
+export type WorkgroupBinding = WorkgroupBinding;
 
 export interface SimpleBinding {
     namespace: string;
@@ -105,7 +115,46 @@ const surfaceProfileControllerErrors = (info: {res: Response, msg: string, err: 
 };
 
 export class WorkgroupApi {
-    constructor(private profilesService: DefaultApi) {}
+    private platformInfo: PlatformInfo;
+    constructor(
+        private profilesService: DefaultApi,
+        private k8sService: KubernetesService) {}
+    /** Retrieves and memoizes the PlatformInfo. */
+    private async getPlatformInfo(): Promise<PlatformInfo> {
+        if (!this.platformInfo) {
+           this.platformInfo = await this.k8sService.getPlatformInfo();
+        }
+        return this.platformInfo;
+    }
+
+    /**
+     * Builds EnvironmentInfo for the case with identity awareness
+     */
+    private async getProfileAwareEnv(user: User.User): Promise<EnvironmentInfo> {
+        const [platform, {namespaces, isClusterAdmin}] = await Promise.all([
+            this.getPlatformInfo(),
+            this.getWorkgroupInfo(
+                user,
+            ),
+        ]);
+        return {user: user.email, platform, namespaces, isClusterAdmin};
+    }
+
+    /**
+     * Builds EnvironmentInfo for the case without identity awareness
+     */
+    private async getBasicEnvironment(user: User.User): Promise<EnvironmentInfo> {
+        const [platform, namespaces] = await Promise.all([
+            this.getPlatformInfo(),
+            this.getAllWorkgroups(user.email),
+        ]);
+        return {
+            user: user.email,
+            platform,
+            namespaces,
+            isClusterAdmin: true,
+        };
+    }
     /**
      * Retrieves all namespaces in case of basic auth.
      */
