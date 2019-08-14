@@ -41,7 +41,7 @@ spec:
                 path: tls.crt
       containers:
       - name: authservice
-        image: gcr.io/arrikto/kubeflow/oidc-authservice:v0.2
+        image: gcr.io/arrikto/kubeflow/oidc-authservice:v0.3
         imagePullPolicy: Always
         ports:
         - name: http-api
@@ -51,6 +51,10 @@ spec:
             mountPath: /etc/custom-ca
             readOnly: true
         env:
+          - name: USERID_HEADER
+            value: "kubeflow-userid"
+          - name: USERID_PREFIX
+            value: ""
           - name: OIDC_PROVIDER_CA_FILE
             value: "/etc/custom-ca/tls.crt"
           - name: DISABLE_USERINFO
