@@ -323,6 +323,9 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         this.namespaces = namespaces;
         if (this.namespaces.length) {
             this._setRegistrationFlow(false);
+        } else if (this.isolationMode == 'single-user') {
+            // This case is for non-identity networks, that have no namespaces
+            this._setRegistrationFlow(true);
         }
         this.ownedNamespace = namespaces.find((n) => n.role == 'owner');
         this.platformInfo = platform;

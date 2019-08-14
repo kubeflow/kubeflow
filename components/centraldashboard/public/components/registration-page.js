@@ -32,8 +32,9 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
 
     static get properties() {
         return {
-            namespaceInput: {type: Object},
             userDetails: {type: Object, observer: '_onUserDetails'},
+            isolationMode: {type: String},
+            namespaceInput: {type: Object},
             page: {type: Number, value: 0},
             namespaceName: String,
             error: Object,
@@ -43,7 +44,7 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
                 type: String,
                 readOnly: true,
                 // eslint-disable-next-line
-                value: '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*',
+                value: '[-a-z0-9\.]',
             },
         };
     }
@@ -80,19 +81,8 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
 
     _successSetup() {
         this.flowComplete = true;
-        this.sleep(800).then(() => {
-            const el = this.$.ApiMessage;
-            el.style.width = `${el.scrollWidth}px`;
-        });
-        this.sleep(2000).then(async () => {
-            this.fireEvent('flowcomplete');
-        });
-        this.sleep(6000).then(async () => {
-            this.$.ApiMessage.style.width = 0;
-            await this.sleep(250+150);
-            this.flowComplete = false;
-        });
         this.set('error', {});
+        this.fireEvent('flowcomplete');
     }
 }
 

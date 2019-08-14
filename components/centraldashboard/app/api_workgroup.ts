@@ -209,16 +209,6 @@ export class WorkgroupApi {
                 }
                 res.json(response);
             })
-        .use((req: Request, res: Response, next: NextFunction) => {
-            if (!req.user.hasAuth) {
-                return apiError({
-                    res,
-                    code: 405,
-                    error: ERRORS.operation_not_supported,
-                });
-            }
-            next();
-        })
         .post('/create', async (req: Request, res: Response) => {
             const profile = req.body as CreateProfileRequest;
             try {
@@ -243,6 +233,16 @@ export class WorkgroupApi {
                     err,
                 });
             }
+        })
+        .use((req: Request, res: Response, next: NextFunction) => {
+            if (!req.user.hasAuth) {
+                return apiError({
+                    res,
+                    code: 405,
+                    error: 'Access to this api is denied',
+                });
+            }
+            next();
         })
         .get('/get-all-namespaces', async (req: Request, res: Response) => {
             try {
@@ -275,18 +275,18 @@ export class WorkgroupApi {
         })
 
         .get('/get-contributors/:namespace', async (req: Request, res: Response) => {
-                const {namespace} = req.params;
-                try {
-                    const users = await this.getContributors(namespace);
-                    res.json(users);
-                } catch (err) {
-                    surfaceProfileControllerErrors({
-                        res,
-                        msg: `Unable to fetch contributors for ${namespace}`,
-                        err,
-                    });
-                }
-            })
+            const {namespace} = req.params;
+            try {
+                const users = await this.getContributors(namespace);
+                res.json(users);
+            } catch (err) {
+                surfaceProfileControllerErrors({
+                    res,
+                    msg: `Unable to fetch contributors for ${namespace}`,
+                    err,
+                });
+            }
+        })
         .post('/add-contributor/:namespace', async (req: Request, res: Response) => {
             this.handleContributor('create', req, res);
         })
