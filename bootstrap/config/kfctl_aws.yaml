@@ -111,6 +111,8 @@ spec:
           path: katib-v1alpha2/metrics-collector
       name: metrics-collector
     - kustomizeConfig:
+        overlays:
+        - istio
         repoRef:
           name: manifests
           path: metadata
@@ -174,8 +176,6 @@ spec:
       name: api-service
     - kustomizeConfig:
         parameters:
-          - name: minioPvName
-            value: minio-pv
           - name: minioPvcName
             value: minio-pv-claim
         repoRef:
@@ -184,8 +184,6 @@ spec:
       name: minio
     - kustomizeConfig:
         parameters:
-          - name: mysqlPvName
-            value: mysql-pv
           - name: mysqlPvcName
             value: mysql-pv-claim
         repoRef:
@@ -226,6 +224,18 @@ spec:
           name: manifests
           path: profiles
       name: profiles
+    - kustomizeConfig:
+        overlays:
+          - application
+        repoRef:
+          name: manifests
+          path: seldon/seldon-core-operator
+    - kustomizeConfig:
+        overlays:
+          - application
+        repoRef:
+          name: manifests
+          path: mpi-job/mpi-operator
     - kustomizeConfig:
         parameters:
           - initRequired: true
