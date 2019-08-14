@@ -101,9 +101,8 @@ spec:
   - profiles
   useIstio: true
   repos:
-  - name: manifests
-    root: manifests-0.6-branch
-    uri: https://github.com/kubeflow/manifests/archive/v0.6-branch.tar.gz
   - name: kubeflow
-    root: kubeflow-0.6-branch
-    uri: https://github.com/kubeflow/kubeflow/archive/v0.6-branch.tar.gz
+    uri: https://github.com/kubeflow/kubeflow/archive/v0.6.1.tar.gz
+  - name: manifests
+    root: manifests-v0.6.1
+    uri: https://github.com/kubeflow/manifests/archive/v0.6.1.tar.gz

@@ -292,10 +292,10 @@ spec:
   project: SET_PROJECT
   repos:
   - name: kubeflow
-    uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
+    uri: https://github.com/kubeflow/kubeflow/archive/v0.6.1.tar.gz
   - name: manifests
-    root: manifests-master
-    uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
+    root: manifests-v0.6.1
+    uri: https://github.com/kubeflow/manifests/archive/v0.6.1.tar.gz
   skipInitProject: true
   useBasicAuth: false
   useIstio: true
