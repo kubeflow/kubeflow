@@ -33,6 +33,9 @@ spec:
         path: argo
     name: argo
   - kustomizeConfig:
+      parameters:
+      - name: userid-header
+        value: kubeflow-userid
       overlays:
       - istio
       repoRef:
@@ -53,6 +56,9 @@ spec:
         path: admission-webhook/bootstrap
     name: bootstrap
   - kustomizeConfig:
+      parameters:
+      - name: userid-header
+        value: kubeflow-userid
       overlays:
       - istio
       - application
@@ -193,6 +199,9 @@ spec:
         path: pipeline/scheduledworkflow
     name: scheduledworkflow
   - kustomizeConfig:
+      parameters:
+      - name: userid-header
+        value: kubeflow-userid
       overlays:
       - istio
       repoRef:
