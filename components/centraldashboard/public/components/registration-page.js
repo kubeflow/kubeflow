@@ -33,7 +33,6 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
     static get properties() {
         return {
             userDetails: {type: Object, observer: '_onUserDetails'},
-            isolationMode: {type: String},
             namespaceInput: {type: Object},
             page: {type: Number, value: 0},
             namespaceName: String,
