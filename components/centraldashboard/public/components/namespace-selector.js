@@ -76,7 +76,9 @@ export class NamespaceSelector extends PolymerElement {
                         <span class='text'
                             all-namespaces$='[[allNamespaces]]'
                             owner$='[[selectedNamespaceIsOwned]]'>
-                            [[getNamespaceText(selected, allNamespaces)]]
+                            [[getNamespaceText(selected,
+                                allNamespaces,
+                                namespaces)]]
                         </span>
                     </article>
                     <iron-icon icon="arrow-drop-down"></iron-icon>
@@ -141,10 +143,12 @@ export class NamespaceSelector extends PolymerElement {
      * Check if role is owner
      * @param {string} selected
      * @param {boolean} allNamespaces
+     * @param {[object]} namespaces
      * @return {string} Text that should show in namespace selector
      */
-    getNamespaceText(selected, allNamespaces) {
+    getNamespaceText(selected, allNamespaces, namespaces) {
         if (allNamespaces) return 'All Namespaces';
+        if (!namespaces || !namespaces.length) return 'No Namespaces';
         if (!selected) return 'Select namespace';
         return selected;
     }

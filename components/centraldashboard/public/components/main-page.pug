@@ -77,4 +77,4 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
     iron-media-query(query='(max-width: 1270px)', query-matches='{{thinView}}')
 paper-toast#welcomeUser(duration=5000) Welcome, [[_extractLdap(user)]]!
 template(is='dom-if', if='[[registrationFlow]]')
-    registration-page(user-details='[[user]]', on-flowcomplete='resyncApp')
+    registration-page(user-details='[[user]]', isolation-mode='[[isolationMode]]' on-flowcomplete='resyncApp')
