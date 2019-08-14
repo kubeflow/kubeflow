@@ -58,7 +58,6 @@ h2+aside {
 neon-animatable {
     @apply --layout-vertical;
 }
-.note {margin-top: 1em;}
 .actions {
     margin-top: 1.5em;
     flex: 1;

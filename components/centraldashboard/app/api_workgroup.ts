@@ -239,7 +239,7 @@ export class WorkgroupApi {
                 return apiError({
                     res,
                     code: 405,
-                    error: 'Access to this api is denied',
+                    error: 'Unable to ascertain user identity from request, cannot access route.',
                 });
             }
             next();
