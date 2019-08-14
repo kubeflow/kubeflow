@@ -1496,17 +1496,10 @@ func (gcp *Gcp) buildBasicAuthSecret() (*v1.Secret, error) {
 		return nil, err
 	}
 
-	password, err := gcp.kfDef.GetSecret(p.Auth.BasicAuth.Password.Name)
+	encodedPassword, err := gcp.kfDef.GetSecret(p.Auth.BasicAuth.Password.Name)
 
 	if err != nil {
 		log.Errorf("There was a problem getting the password for basic auth; error %v", err)
-		return nil, err
-	}
-
-	encodedPassword, err := base64EncryptPassword(password)
-
-	if err != nil {
-		log.Errorf("There was a problem encrypting the password; %v", err)
 		return nil, err
 	}
 
@@ -1877,11 +1870,23 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 				Name: BasicAuthPasswordSecretName,
 			}
 
+			password := os.Getenv(kftypesv3.KUBEFLOW_PASSWORD)
+			if password == "" {
+				log.Errorf("Could not configure basic auth; environment variable %s not set", kftypesv3.KUBEFLOW_PASSWORD)
+				return errors.WithStack(fmt.Errorf("Could not configure basic auth; environment variable %s not set", kftypesv3.KUBEFLOW_PASSWORD))
+			}
+			encodedPassword, err := base64EncryptPassword(password)
+
+			if err != nil {
+				log.Errorf("There was a problem encrypting the password; %v", err)
+				return errors.WithStack(err)
+			}
+
 			gcp.kfDef.SetSecret(kfdefs.Secret{
 				Name: BasicAuthPasswordSecretName,
 				SecretSource: &kfdefs.SecretSource{
-					EnvSource: &kfdefs.EnvSource{
-						Name: kftypesv3.KUBEFLOW_PASSWORD,
+					HashedSource: &kfdefs.HashedSource{
+						HashedValue: encodedPassword,
 					},
 				},
 			})

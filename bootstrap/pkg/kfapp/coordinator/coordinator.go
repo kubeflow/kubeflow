@@ -401,7 +401,6 @@ func CreateKfAppCfgFile(d *kfdefsv3.KfDef) (string, error) {
 		return cfgFilePath, fmt.Errorf("%v already exists", cfgFilePath)
 	}
 	log.Infof("Writing KfDef to %v", cfgFilePath)
-
 	cfgFilePathErr := d.WriteToFile(cfgFilePath)
 	return cfgFilePath, cfgFilePathErr
 }
@@ -439,12 +438,6 @@ func NewKfApp(options map[string]interface{}) (kftypesv3.KfApp, error) {
 		return nil, err
 	}
 
-	// TODO(jlewi): This is an ugly hack. We should update kustomize.go to not use ManifestsRepo
-	r, ok := kfDef.Status.ReposCache[kftypesv3.ManifestsRepoName]
-
-	if ok {
-		kfDef.Spec.ManifestsRepo = r.LocalPath
-	}
 	// Save app.yaml because we need to preserve information about the cache.
 	if err := kfDef.WriteToFile(cfgFilePath); err != nil {
 		log.Errorf("Failed to save KfDef to %v; error %v", cfgFilePath, err)
@@ -795,14 +788,14 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 		}
 		return gcpAddedConfig()
 	case kftypesv3.PLATFORM:
-		if err := platform(); err != nil {
+		return platform()
+	case kftypesv3.K8S:
+		if err := k8s(); err != nil {
 			return err
 		}
 		// TODO(gabrielwen): Need to find a more proper way of injecting plugings.
 		// https://github.com/kubeflow/kubeflow/issues/3708
 		return gcpAddedConfig()
-	case kftypesv3.K8S:
-		return k8s()
 	}
 	return nil
 }

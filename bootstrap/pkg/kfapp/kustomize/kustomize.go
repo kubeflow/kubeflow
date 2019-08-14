@@ -671,7 +671,6 @@ func (kustomize *kustomize) Init(resources kftypesv3.ResourceEnum) error {
 		if cacheDirErr != nil || cacheDir == "" {
 			log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
 		}
-		kustomize.kfDef.Spec.ManifestsRepo = cacheDir
 		createConfigErr := kustomize.kfDef.WriteToConfigFile()
 		if createConfigErr != nil {
 			return fmt.Errorf("cannot create config file %v in %v", kftypesv3.KfConfigFile, kustomize.kfDef.Spec.AppDir)
@@ -709,7 +708,7 @@ func (kustomize *kustomize) mapDirs(dirPath string, root bool, depth int, leafMa
 		}
 	}
 	if depth == 2 {
-		componentPath := extractSuffix(kustomize.kfDef.Spec.ManifestsRepo, dirPath)
+		componentPath := extractSuffix(kustomize.kfDef.Status.ReposCache[kftypesv3.ManifestsRepoName].LocalPath, dirPath)
 		packageName := strings.Split(componentPath, "/")[0]
 		if components, exists := kustomize.packageMap[packageName]; exists {
 			leafMap[path.Base(dirPath)] = componentPath

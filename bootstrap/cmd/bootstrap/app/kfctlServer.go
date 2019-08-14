@@ -150,8 +150,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 
 			gcpPlugin.SetTokenSource(s.ts)
 			// We don't want to run get-credentials
-			// TODO(jlewi): uncomment when SetRunGetCredentials is checked in
-			// gcpPlugin.SetRunGetCredentials(false)
+			gcpPlugin.SetRunGetCredentials(false)
 			return true
 		}
 
@@ -299,6 +298,7 @@ func (s *kfctlServer) RegisterEndpoints() {
 	// 3. This PR aimed at running the deployment in each pod.
 	// Depending on how we stage these changes we might need to change these URLs.
 	http.Handle(KfctlCreatePath, optionsHandler(createHandler))
+	http.Handle("/", optionsHandler(GetHealthzHandler()))
 }
 
 // isMatch checks whether the incoming request is a match for the deployment
