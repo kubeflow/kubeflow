@@ -166,7 +166,7 @@ func Test_backfillKfDefFromInitOptions(t *testing.T) {
 					Repos: []kfdefsv2.Repo{
 						{
 							Name: "manifests",
-							Uri:  fmt.Sprintf("https://github.com/kubeflow/manifests/archive/%v.tar.gz",
+							Uri: fmt.Sprintf("https://github.com/kubeflow/manifests/archive/%v.tar.gz",
 								kftypesv2.DefaultVersion),
 							Root: "manifests-" + kftypesv2.DefaultVersion,
 						},
