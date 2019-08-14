@@ -1969,10 +1969,6 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 		}
 	}
 
-	if err := gcp.kfDef.SetApplicationParameter("cert-manager", "acmeEmail", gcp.kfDef.Spec.Email); err != nil {
-		return errors.WithStack(err)
-	}
-
 	if err := gcp.kfDef.SetApplicationParameter("profiles", "admin", gcp.kfDef.Spec.Email); err != nil {
 		return errors.WithStack(err)
 	}
