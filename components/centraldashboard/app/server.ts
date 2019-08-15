@@ -19,7 +19,7 @@ const defaultKfam = process.env.NODE_ENV !== 'production'
  * When developing locally kubectl port-forward services/profiles-kfam
  * <localport>:8081 can be used and the environment variables set before
  * starting the server.
- */  
+ */
 const {
   PORT_1 = 8082,
   PROFILES_KFAM_SERVICE_HOST = defaultKfam,

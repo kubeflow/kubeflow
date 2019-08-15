@@ -307,13 +307,6 @@ describe('Dashboard API', () => {
       url = `http://localhost:${port}/api/workgroup/create`;
     });
 
-    it('Should return a 405 status for a non-identity aware cluster',
-       async () => {
-         const response = await sendTestRequest(url, null, 405, 'post');
-         expect(response).toEqual({error: 'Operation not supported'});
-         expect(mockProfilesService.createProfile).not.toHaveBeenCalled();
-       });
-
     it('Should use user identity if no body is provided', async () => {
       const headers = {
         [header]: `${prefix}test@testdomain.com`,
