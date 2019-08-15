@@ -280,7 +280,9 @@ spec:
         value: test1-ip
       - initRequired: true
         name: hostname
-        value: test1.endpoints.SET_PROJECT.cloud.goog
+        # The value of hostname should be the DNS address for ingress.
+        # This will be set automatically during kfctl generate.
+        # value: test1.endpoints.SET_PROJECT.cloud.goog
       repoRef:
         name: manifests
         path: gcp/iap-ingress
@@ -292,7 +294,10 @@ spec:
         name: manifests
         path: seldon/seldon-core-operator
     name: seldon-core-operator
-  email: SET_EMAIL
+  # email should  be set the google account of the person setting up Kubeflow.
+  # If its not set kfctl generate will try to set it automatically based on the default
+  # gcloud config  
+  # email: <your_email@gmail.com>
   enableApplications: true
   packageManager: kustomize
   platform: gcp
@@ -300,10 +305,7 @@ spec:
   useBasicAuth: false
   useIstio: true
   version: master
-  project: SET_PROJECT
-status:
-  reposCache:
-    kubeflow:
-      localPath: '"/tmp/myapp2/.cache/kubeflow/kubeflow-master"'
-    manifests:
-      localPath: '"/tmp/myapp2/.cache/manifests/master"'
+  # Project should be set to the GCP project you want to use.
+  # If you run kfctl init --config=<path>/kfctl_gcp_iap.yaml 
+  # kfctl will try to automatically set it.
+  # project: <your project>
