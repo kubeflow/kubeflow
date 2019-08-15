@@ -253,7 +253,8 @@ spec:
         value: ipName
       - initRequired: true
         name: hostname
-        value: <deployName>.endpoints.<project>.cloud.goog
+        # hostname will be set automatically by kfctl init & generate
+        # value: <deployName>.endpoints.<project>.cloud.goog
       repoRef:
         name: manifests
         path: gcp/cloud-endpoints
@@ -264,7 +265,8 @@ spec:
       parameters:
       - initRequired: true
         name: admin
-        value: SET_EMAIL
+        # emaill will be set automatically by kfctl init and generate
+        # value: SET_EMAIL
       repoRef:
         name: manifests
         path: profiles
@@ -308,10 +310,12 @@ spec:
         value: test1-ip
       - initRequired: true
         name: hostname
-        value: test1.endpoints.SET_PROJECT.cloud.goog
+        # project will be set automatically by kfctl init & generate
+        # value: test1.endpoints.SET_PROJECT.cloud.goog
       - initRequired: true
         name: project
-        value: SET_PROJECT
+        # Project will be set automatically by kfctl init & generate
+        # value: SET_PROJECT
       - name: ingressName
         value: envoy-ingress
       - name: issuer
@@ -320,7 +324,10 @@ spec:
         name: manifests
         path: gcp/basic-auth-ingress
     name: basic-auth-ingress
-  email: SET_EMAIL
+  # email should  be set the google account of the person setting up Kubeflow.
+  # If its not set kfctl generate will try to set it automatically based on the default
+  # gcloud config  
+  # email: <your_email@gmail.com>
   enableApplications: true
   packageManager: kustomize
   platform: gcp
@@ -328,10 +335,7 @@ spec:
   useBasicAuth: true
   useIstio: true
   version: master
-  project: SET_PROJECT
-status:
-  reposCache:
-    kubeflow:
-      localPath: '"/tmp/myapp2/.cache/kubeflow/kubeflow-master"'
-    manifests:
-      localPath: '"/tmp/myapp2/.cache/manifests/master"'
+  # Project should be set to the GCP project you want to use.
+  # If you run kfctl init --config=<path>/kfctl_gcp_iap.yaml 
+  # kfctl will try to automatically set it.
+  # project: <your project>
