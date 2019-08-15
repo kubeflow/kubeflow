@@ -9,17 +9,21 @@ import {WorkgroupApi} from './api_workgroup';
 import {KubernetesService} from './k8s_service';
 import {getMetricsService} from './metrics_service_factory';
 
+const defaultKfam = process.env.NODE_ENV !== 'production'
+  ? 'localhost'
+  : 'profiles-kfam';
+
 /* PROFILES_KFAM env vars will be set by Kubernetes if the Kfam service is
  * available
  * https://kubernetes.io/docs/concepts/containers/container-environment-variables/#cluster-information
  * When developing locally kubectl port-forward services/profiles-kfam
  * <localport>:8081 can be used and the environment variables set before
  * starting the server.
- */
+ */  
 const {
   PORT_1 = 8082,
-  PROFILES_KFAM_SERVICE_HOST = 'localhost',
-  PROFILES_KFAM_SERVICE_PORT = '8084',
+  PROFILES_KFAM_SERVICE_HOST = defaultKfam,
+  PROFILES_KFAM_SERVICE_PORT = '8081',
   USERID_HEADER = 'X-Goog-Authenticated-User-Email',
   USERID_PREFIX = 'accounts.google.com:',
 } = process.env;
