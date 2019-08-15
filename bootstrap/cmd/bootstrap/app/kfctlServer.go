@@ -12,6 +12,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
@@ -30,10 +31,19 @@ import (
 	"os"
 	"path"
 	"sync"
+	"time"
+)
+
+const (
+	StatusRunning  	= 101
+	StatusFrozen 	= 102
 )
 
 // KfctlCreatePath is the path on which to serve create requests
 const KfctlCreatePath = "/kfctl/apps/v1alpha2/create"
+
+// KfctlFreezeSvc is the path on which to freeze the statefulset so we can delete safely.
+const KfctlFreezeSvcPath = "/kfctl/apps/v1alpha2/freeze"
 
 // kfctlServer is a server to manage a single deployment.
 // It is a wrapper around kfctl.
@@ -54,6 +64,22 @@ type kfctlServer struct {
 
 	// latestKfDef is updated to provide the latest status information.
 	latestKfDef kfdefsv3.KfDef
+
+	// last request-enqueue-(to c chan)-time.
+	lastRequestTime *time.Time
+
+	// Server status, running or Frozen.
+	serverStatus	int
+}
+
+type freezeRequest struct {
+	// Threshold in second
+	threshold int `json:"threshold"`
+}
+
+type KfctlSubService interface {
+	// FreezeStafefulset try to freeze the statefulset and return whether the freeze action is succeeded.
+	FreezeStafefulset(int) bool
 }
 
 // NewServer returns a new kfctl server
@@ -273,6 +299,15 @@ func (s *kfctlServer) setLatestKfDef(r *kfdefsv3.KfDef) {
 
 }
 
+// makeRouterCreateRequestEndpoint creates an endpoint to handle createdeployment requests in the router.
+func makeServerFreezeRequestEndpoint(svc KfctlSubService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(freezeRequest)
+		r := svc.FreezeStafefulset(req.threshold)
+		return r, nil
+	}
+}
+
 // RegisterEndpoints creates the http endpoints for the router
 func (s *kfctlServer) RegisterEndpoints() {
 	createHandler := httptransport.NewServer(
@@ -281,6 +316,19 @@ func (s *kfctlServer) RegisterEndpoints() {
 			var request kfdefsv3.KfDef
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				log.Info("Err decoding create request: " + err.Error())
+				return nil, err
+			}
+			return request, nil
+		},
+		encodeResponse,
+	)
+
+	freezeHandler := httptransport.NewServer(
+		makeServerFreezeRequestEndpoint(s),
+		func(_ context.Context, r *http.Request) (interface{}, error) {
+			var request freezeRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				log.Info("Err decoding freeze request: " + err.Error())
 				return nil, err
 			}
 			return request, nil
@@ -298,6 +346,7 @@ func (s *kfctlServer) RegisterEndpoints() {
 	// 3. This PR aimed at running the deployment in each pod.
 	// Depending on how we stage these changes we might need to change these URLs.
 	http.Handle(KfctlCreatePath, optionsHandler(createHandler))
+	http.Handle(KfctlFreezeSvcPath, optionsHandler(freezeHandler))
 	http.Handle("/", optionsHandler(GetHealthzHandler()))
 }
 
@@ -363,15 +412,50 @@ func prepareSecrets(d *kfdefsv3.KfDef) {
 	d.Spec.Secrets = secrets
 }
 
+// updateLastRequestTime check server status and if is valid then set lastRequestTime to the new time in param; return the old time value
+func (s *kfctlServer) updateLastRequestTime(newTime *time.Time) (*time.Time, error) {
+	s.kfDefMux.Lock()
+	defer s.kfDefMux.Unlock()
+	// Check server status first
+	if s.serverStatus == StatusFrozen {
+		log.Errorf("Statefulset is frozen, reject all requests")
+
+		return nil, &httpError{
+			Message: "Statefulset is frozen, reject all requests",
+			Code:    http.StatusNotAcceptable,
+		}
+	}
+	oldTime := s.lastRequestTime
+	s.lastRequestTime = newTime
+	return oldTime, nil
+}
+
+func (s *kfctlServer) FreezeStafefulset(thresholdInSecond int) bool {
+	s.kfDefMux.Lock()
+	defer s.kfDefMux.Unlock()
+	if time.Now().Sub(*s.lastRequestTime).Seconds() < float64(thresholdInSecond) {
+		return false
+	}
+	s.serverStatus = StatusFrozen
+	return true
+}
+
 // CreateDeployment creates the deployment.
 //
 // Not thread safe
 // TODO(jlewi): We should check if the request matches the current deployment and if not reject
 func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
+	// Update time at begining of each request
+	currTime := time.Now()
+	oldTime, err := s.updateLastRequestTime(&currTime)
+	if err != nil {
+		return nil, err
+	}
 	token, err := req.GetSecret(gcp.GcpAccessTokenName)
 
 	if err != nil {
 		log.Errorf("Failed to get secret %v; error %v", gcp.GcpAccessTokenName, err)
+		s.updateLastRequestTime(oldTime)
 		return nil, &httpError{
 			Message: fmt.Sprintf("Could not obtain an access token from secret %v", gcp.GcpAccessTokenName),
 			Code:    http.StatusBadRequest,
@@ -401,6 +485,7 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) 
 	}
 
 	if err := initFunc(); err != nil {
+		s.updateLastRequestTime(oldTime)
 		return nil, err
 	}
 
@@ -411,6 +496,7 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) 
 
 	if err != nil {
 		log.Errorf("Refreshing the token failed; %v", err)
+		s.updateLastRequestTime(oldTime)
 		return nil, &httpError{
 			Message: fmt.Sprintf("Could not verify you have admin priveleges on project %v; please check that the project is correct and you have admin priveleges", req.Spec.Project),
 			Code:    http.StatusBadRequest,
@@ -424,6 +510,7 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) 
 	}
 
 	if !checkIsMatch() {
+		s.updateLastRequestTime(oldTime)
 		return nil, &httpError{
 			Message: fmt.Sprintf("This server is already handling a deployment for project %v name %v and the new request doesn't match", req.Spec.Project, req.Name),
 			Code:    http.StatusBadRequest,
@@ -440,7 +527,7 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) 
 			LastUpdateTime:     metav1.Now(),
 			LastTransitionTime: metav1.Now(),
 		})
-
+		s.updateLastRequestTime(oldTime)
 		return &req, nil
 	}
 
