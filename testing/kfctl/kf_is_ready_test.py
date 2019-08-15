@@ -35,7 +35,6 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
   deployment_names = [
       "argo-ui",
       "centraldashboard",
-      "cert-manager",
       "cloud-endpoints-controller",
       "jupyter-web-app-deployment",
       "metadata-db",
