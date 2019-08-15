@@ -243,20 +243,6 @@ spec:
         path: pipeline/scheduledworkflow
     name: scheduledworkflow
   - kustomizeConfig:
-      repoRef:
-        name: manifests
-        path: cert-manager/cert-manager-crds
-    name: cert-manager-crds
-  - kustomizeConfig:
-      parameters:
-      - initRequired: true
-        name: acmeEmail
-        value: SET_EMAIL
-      repoRef:
-        name: manifests
-        path: cert-manager/cert-manager
-    name: cert-manager
-  - kustomizeConfig:
       overlays:
       - gcp-credentials
       parameters:
@@ -284,8 +270,8 @@ spec:
     name: gpu-driver
   - kustomizeConfig:
       overlays:
-      - certmanager
       - gcp-credentials
+      - managed-cert
       parameters:
       - name: namespace
         value: istio-system
