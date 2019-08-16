@@ -152,9 +152,10 @@ infer_minikube_settings() {
 
   # disk
   local dd=40
-  if [[ $PLATFORM == $LINUX ]]; then
+  if [[ $PLATFORM == "${LINUX}" ]] || \
+     [[ $PLATFORM == "${OSX}" && $(command -v df) == *"coreutils"* ]]; then
     dd=$(df -BG . | awk '{print $4}' | tail -1 | sed 's/[A-Za-z]//g')
-  elif [[ $PLATFORM == $OSX ]]; then
+  elif [[ $PLATFORM == ${OSX} ]]; then
     dd=$(df -g . | awk '{print $4}' | tail -1 | sed 's/[A-Za-z]//g')
   fi
   if (($dd < 40)); then
