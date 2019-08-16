@@ -1,0 +1,8 @@
+bases:
+  - ../../base
+resources:
+  - update_job_cron.yaml
+images:
+- name: gcr.io/kubeflow-releasing/test-worker
+  newName: gcr.io/kubeflow-releasing/test-worker
+  newTag: v20190820-54db950-dirty-c63672

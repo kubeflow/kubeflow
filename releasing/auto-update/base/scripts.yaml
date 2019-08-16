@@ -1,0 +1,16 @@
+# Use a configmap to define wrapper scripts to invoke each container
+# this is a way to keep commands in sync in the job and cron job.
+apiVersion: v1
+data:
+  update_jupyter.sh: |
+    #!/bin/bash
+    set -ex
+    python3 -m kubeflow.kubeflow.ci.update_jupyter_web_app all \
+        --build-project=kubeflow-releasing \
+        --registry-project=kubeflow-images-public \
+        --remote-fork=git@github.com:kubeflow-bot/manifests.git \
+        --kustomize_file=/src/kubeflow/manifests/jupyter/jupyter-web-app/base/kustomization.yaml \
+        --add-github-host=true
+kind: ConfigMap
+metadata:
+  name: scripts

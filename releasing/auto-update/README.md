@@ -62,6 +62,28 @@ Here are some key things to know about hub CLI
 
   * The repository in which to create the PR is based on the names of the remotes see conventions in the [doc page](https://hub.github.com/hub.1.html)
 
+
+## Kustomize package
+
+Common variables should be et in `base/kustomization.yaml` and `base/params.env`; e.g.
+ 
+  * Base docker image
+  * Repos to check out
+  * Values for other flags
+
+There are two overlays corresponding to a cron job and a batch job which can be used for one off runs.
+
+To override the parameters you could add a section to the kustomization.yaml file overlay
+
+```
+configMapGenerator:
+- name: params
+  behavior: merge
+  env: params.env
+```
+
+TODO(jlewi): It might be better to mount a config map with the startup scripts
+
 ## Next steps
 
 * We'd like to use Kubeflow to run this script regularly and keep track of runs; options are
