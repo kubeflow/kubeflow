@@ -167,6 +167,34 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     }
 
     /**
+     * Show a toast error on main-page
+     * @param {string} err Error message to show
+     */
+    showError(err) {
+        const el = this.$.ErrorToast;
+        el.text = err;
+        el.show();
+    }
+
+    closeToast(ev) {
+        const t = ev.target;
+        const el = [t, t.parentNode, t.parentNode.parentNode]
+            .find((e) => e.tagName == 'PAPER-TOAST');
+        el.close();
+    }
+
+    /**
+     * Set state for loading registration flow in case no workgroup exists
+     * @param {Event} ev AJAX-response
+     */
+    _onHasWorkgroupError(ev) {
+        const error = ((ev.detail.request||{}).response||{}).error ||
+            ev.detail.error;
+        this.showError(error);
+        return;
+    }
+
+    /**
      * Set state for loading registration flow in case no workgroup exists
      * @param {Event} ev AJAX-response
      */
