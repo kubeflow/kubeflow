@@ -55,4 +55,9 @@ async function main() {
       () => console.info(`Server listening on port http://localhost:${port}`));
 }
 
+// This will allow us to inspect uncaught exceptions around the app
+process.on('unhandledRejection', error => {
+  console.log('[SEVERE] unhandledRejection', error);
+});
+
 main();

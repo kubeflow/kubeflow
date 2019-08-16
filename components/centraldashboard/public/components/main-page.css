@@ -277,6 +277,22 @@ neon-animatable {
     transform: translateY(-50%);
 }
 
+#ErrorToast {
+    background: var(--google-red-500);
+    color: white;
+    padding: .75em 1.5em;
+    @apply --layout-horizontal;
+    @apply --layout-center;
+    --paper-icon-button: {
+        color: white;
+        margin-left: 1em;
+        padding: 5px;
+        width: 32px;
+        height: 32px;
+    }
+}
+
+
 [hides] {
     transition: opacity .25s
 }
