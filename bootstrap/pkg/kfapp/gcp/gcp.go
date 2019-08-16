@@ -1568,31 +1568,31 @@ func generatePodDefault(group string, version string, kind string, namespace str
 			"name":      "add-gcp-secret",
 			"namespace": namespace,
 		},
-		"desc": "add gcp credential",
 		"spec": map[string]interface{}{
 			"selector": map[string]interface{}{
 				"matchLabels": map[string]interface{}{
 					"add-gcp-secret": "true",
 				},
 			},
-		},
-		"env": []interface{}{
-			map[string]interface{}{
-				"name":  "GOOGLE_APPLICATION_CREDENTIALS",
-				"value": "/secret/gcp/user-gcp-sa.json",
+			"desc": "add gcp credential",
+			"env": []interface{}{
+				map[string]interface{}{
+					"name":  "GOOGLE_APPLICATION_CREDENTIALS",
+					"value": "/secret/gcp/user-gcp-sa.json",
+				},
 			},
-		},
-		"volumeMounts": []interface{}{
-			map[string]interface{}{
-				"name":      "secret-volume",
-				"mountPath": "/secret/gcp",
+			"volumeMounts": []interface{}{
+				map[string]interface{}{
+					"name":      "secret-volume",
+					"mountPath": "/secret/gcp",
+				},
 			},
-		},
-		"volumes": []interface{}{
-			map[string]interface{}{
-				"name": "secret-volume",
-				"secret": map[string]interface{}{
-					"secretName": USER_SECRET_NAME,
+			"volumes": []interface{}{
+				map[string]interface{}{
+					"name": "secret-volume",
+					"secret": map[string]interface{}{
+						"secretName": USER_SECRET_NAME,
+					},
 				},
 			},
 		},
