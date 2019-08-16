@@ -56,6 +56,9 @@ spec:
         path: metacontroller
     name: metacontroller
   - kustomizeConfig:
+      parameters:
+      - name: containerRuntimeExecutor
+        value: docker
       overlays:
       - istio
       repoRef:
