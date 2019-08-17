@@ -22,7 +22,7 @@ import {
 /** Relative paths from the root of the repository. */
 enum ConfigPath {
     V05 = 'v0.5-branch/components/gcp-click-to-deploy/app-config.yaml',
-    V06 = 'master/bootstrap/config/kfctl_gcp_iap.yaml'
+    V06 = 'v0.6-branch/bootstrap/config/kfctl_gcp_iap.yaml'
 }
 
 /** Versions available for deployment. */
@@ -72,6 +72,7 @@ interface Secret {
     name: string;
     secretSource: {
         literalSource?: {value: string},
+        hashedSource?: {value: string},
         envSource?: {name: string},
     };
 }
@@ -141,7 +142,9 @@ const BASIC_AUTH = 'basic-auth-ingress';
 const CERT_MANAGER = 'cert-manager';
 const CLIENT_SECRET = 'CLIENT_SECRET';
 const IAP_INGRESS = 'iap-ingress';
-const KUBEFLOW_OAUTH = 'kubeflow-oauth';
+const ISTIO = 'istio';
+const MINIO = 'minio';
+const MYSQL = 'mysql';
 const PASSWORD = 'password';
 const PROFILES = 'profiles';
 const SPARTAKUS = 'spartakus';
@@ -554,6 +557,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             .kustomizeConfig.parameters[0].value = email;
         applicationsByName.get(PROFILES)!
             .kustomizeConfig.parameters[0].value = email;
+        applicationsByName.get(MINIO)!
+          .kustomizeConfig.parameters[0].value = this.state.deploymentName + '-storage-artifact-store';
+        applicationsByName.get(MYSQL)!
+          .kustomizeConfig.parameters[0].value = this.state.deploymentName + '-storage-metadata-store';
 
         appSpec.version = Version.V06;
         appSpec.useBasicAuth = this.state.ingress === IngressType.BasicAuth;
@@ -571,6 +578,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         if (this.state.ingress === IngressType.BasicAuth) {
             iapIngress.name = BASIC_AUTH;
             iapIngress.kustomizeConfig.repoRef.path = 'gcp/basic-auth-ingress';
+            iapIngress.kustomizeConfig.parameters.push(
+              {name: 'project', value: this.state.project, initRequired: true}
+            );
+            applicationsByName.get(ISTIO)!
+              .kustomizeConfig.parameters[0].value = 'OFF';
             appSpec.applications.push({
                 kustomizeConfig: {
                     overlays: [],
@@ -579,6 +591,18 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                 },
                 name: 'basic-auth',
             });
+            appSpec.applications.push({
+                kustomizeConfig: {
+                    overlays: [],
+                    parameters: [
+                        {name: 'ambassadorServiceType', value: 'NodePort'},
+                        {name: 'namespace', value: 'istio-system'},
+                    ],
+                    repoRef: {name: 'manifests', path: 'common/ambassador'},
+                },
+                name: 'ambassador',
+            });
+
         }
 
         const spartakus = applicationsByName.get(SPARTAKUS)!;
@@ -714,7 +738,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                 .then(r => {
                     if (r.operation!.error && r.operation!.error!.errors!.length) {
                         this._appendLine(
-                            'deployment failed with error:' + flattenDeploymentOperationError(r.operation!));
+                            'Deployment status: ' + flattenDeploymentOperationError(r.operation!));
                         clearInterval(monitorInterval);
                     } else if (r.operation!.status! && r.operation!.status === 'DONE') {
                         const readyTime = new Date();
@@ -729,7 +753,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                         this._appendLine(`${deploymentName}: Deployment Operation Status: ` + r.operation!.status!);
                     }
                 })
-                .catch(err => this._appendLine('deployment failed with error:' + err));
+                .catch(err => this._appendLine('Deployment status: operation pending.'));
         }, 10000);
     }
 
@@ -1085,7 +1109,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         const {clientSecret, deploymentName, ingress, permanentStorage, project,
             kfversion, saToken, zone} = this.state;
 
-        configSpec.spec.hostname = deploymentName;
+        configSpec.spec.hostname = deploymentName + '.endpoints.' + project + '.cloud.goog';
         configSpec.spec.ipName = `${deploymentName}-ip`;
         configSpec.spec.project = project;
         configSpec.spec.zone = zone;
@@ -1096,7 +1120,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                 secretSource: {literalSource: {value: saToken}}
             },
             {
-                name: KUBEFLOW_OAUTH,
+                name: CLIENT_SECRET,
                 secretSource: {literalSource: {value: clientSecret}}
             }
         ];
@@ -1112,7 +1136,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             configSpec.spec.secrets.push({
                 name: PASSWORD,
                 secretSource: {
-                    literalSource: {
+                    hashedSource: {
                         value: btoa(encryptPassword(this.state.password))
                     }
                 }
