@@ -41,6 +41,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/discovery/cached"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -48,6 +49,8 @@ import (
 	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
+	kubectlapply "k8s.io/kubernetes/pkg/kubectl/cmd/apply"
+	cmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
 	"os"
 	"path"
 	"path/filepath"
@@ -377,6 +380,11 @@ func (kustomize *kustomize) deployResources(config *rest.Config, data []byte) er
 	_cached := cached.NewMemCacheClient(_discoveryClient)
 	_cached.Invalidate()
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(_cached)
+	kubeConfigFlags := genericclioptions.NewConfigFlags()
+	matchVersionKubeConfigFlags := cmdutil.NewMatchVersionFlags(kubeConfigFlags)
+	f := cmdutil.NewFactory(matchVersionKubeConfigFlags)
+	applyCmd := kubectlapply.NewCmdApply("kfctl", f, genericclioptions.NewTestIOStreamsDiscard())
+	applyCmd.Run(applyCmd, []string{})
 
 	splitter := regexp.MustCompile(kftypesv3.YamlSeparator)
 	objects := splitter.Split(string(data), -1)
