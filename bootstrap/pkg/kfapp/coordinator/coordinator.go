@@ -173,13 +173,9 @@ func usageReportWarn(components []string) {
 		"To disable it\n" +
 		"If you have already deployed it run the following commands:\n" +
 		"  cd $(pwd)\n" +
-		"  ks delete default -c spartakus\n" +
 		"  kubectl -n ${K8S_NAMESPACE} delete deploy -l app=spartakus\n" +
 		"\n" +
-		"Then run the following command to remove it from your ksonnet app:\n" +
-		"  ks component rm spartakus\n" +
-		"\n" +
-		"For more info: https://www.kubeflow.org/docs/guides/usage-reporting/\n" +
+		"For more info: https://www.kubeflow.org/docs/other-guides/usage-reporting/\n" +
 		"****************************************************************\n" +
 		"\n"
 	for _, comp := range components {
