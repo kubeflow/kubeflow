@@ -98,6 +98,7 @@ Onpremise support
 Data management
 
    * Persistent volume management via a central dashboard UI
+   * Feature management through Feast. Feast Python SDK support from KF notebooks.
 
 Engprod
 
