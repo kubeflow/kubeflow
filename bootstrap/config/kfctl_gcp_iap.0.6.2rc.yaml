@@ -300,7 +300,7 @@ spec:
     uri: https://github.com/kubeflow/kubeflow/archive/v0.6.1.tar.gz
   - name: manifests
     # TODO(jlewi): This is already outdated; need to pick up kubeflow/manifests#280
-    uri: https://github.com/kubeflow/manifests/archive/v0.6.2-rc.0.tar.gz
+    uri: https://github.com/kubeflow/manifests/archive/a5c7fe3ce73d423baa2a271b19928d6a1ad0f587.tar.gz
   skipInitProject: true
   useBasicAuth: false
   useIstio: true
