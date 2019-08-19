@@ -253,6 +253,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     public render() {
         const zoneList = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b',
             'europe-west1-b', 'europe-west1-d', 'asia-east1-a', 'asia-east1-b'];
+        const {kfversion} = this.state;
         return (
             <div>
                 <div style={styles.text}>Create a Kubeflow deployment</div>
@@ -266,11 +267,15 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                         required={true} value={this.state.deploymentName} onChange={this._handleChange('deploymentName')} />
                 </div>
                 <div style={styles.row}>
-                    <TextField select={true} label="Choose how to connect to kubeflow service:" required={true} style={styles.input} variant="filled"
-                        value={this.state.ingress} onChange={this._handleChange('ingress')}>
+                    <TextField select={true} label="Choose how to connect to kubeflow service:"
+                        required={true} style={styles.input} variant="filled"
+                        value={this.state.ingress}
+                        onChange={this._handleChange('ingress')}>
                         <MenuItem key={1} value={IngressType.Iap}>{IngressType.Iap}</MenuItem>
                         <MenuItem key={2} value={IngressType.BasicAuth}>{IngressType.BasicAuth}</MenuItem>
-                        <MenuItem key={3} value={IngressType.DeferIap}>{IngressType.DeferIap}</MenuItem>
+                        {kfversion !== Version.V06 &&
+                            <MenuItem key={3} value={IngressType.DeferIap}>{IngressType.DeferIap}</MenuItem>
+                        }
                     </TextField>
                 </div>
 
@@ -558,9 +563,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         applicationsByName.get(PROFILES)!
             .kustomizeConfig.parameters[0].value = email;
         applicationsByName.get(MINIO)!
-          .kustomizeConfig.parameters[0].value = this.state.deploymentName + '-storage-artifact-store';
+            .kustomizeConfig.parameters[0].value = this.state.deploymentName + '-storage-artifact-store';
         applicationsByName.get(MYSQL)!
-          .kustomizeConfig.parameters[0].value = this.state.deploymentName + '-storage-metadata-store';
+            .kustomizeConfig.parameters[0].value = this.state.deploymentName + '-storage-metadata-store';
 
         appSpec.version = Version.V06;
         appSpec.useBasicAuth = this.state.ingress === IngressType.BasicAuth;
@@ -579,10 +584,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             iapIngress.name = BASIC_AUTH;
             iapIngress.kustomizeConfig.repoRef.path = 'gcp/basic-auth-ingress';
             iapIngress.kustomizeConfig.parameters.push(
-              {name: 'project', value: this.state.project, initRequired: true}
+                {name: 'project', value: this.state.project, initRequired: true}
             );
             applicationsByName.get(ISTIO)!
-              .kustomizeConfig.parameters[0].value = 'OFF';
+                .kustomizeConfig.parameters[0].value = 'OFF';
             appSpec.applications.push({
                 kustomizeConfig: {
                     overlays: [],
