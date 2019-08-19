@@ -1,0 +1,306 @@
+# Candidate config for 0.6.2.
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+metadata:
+  name: kf101
+  namespace: kubeflow
+spec:
+  applications:
+  - kustomizeConfig:
+      parameters:
+      - name: namespace
+        value: istio-system
+      repoRef:
+        name: manifests
+        path: istio/istio-crds
+    name: istio-crds
+  - kustomizeConfig:
+      parameters:
+      - name: namespace
+        value: istio-system
+      repoRef:
+        name: manifests
+        path: istio/istio-install
+    name: istio-install
+  - kustomizeConfig:
+      parameters:
+      - name: clusterRbacConfig
+        value: "ON"
+      repoRef:
+        name: manifests
+        path: istio/istio
+    name: istio
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: application/application-crds
+    name: application-crds
+  - kustomizeConfig:
+      overlays:
+      - application
+      repoRef:
+        name: manifests
+        path: application/application
+    name: application
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: metacontroller
+    name: metacontroller
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: argo
+    name: argo
+  - kustomizeConfig:
+      overlays:
+      - istio
+      - application
+      repoRef:
+        name: manifests
+        path: common/centraldashboard
+    name: centraldashboard
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: admission-webhook/webhook
+    name: webhook
+  - kustomizeConfig:
+      parameters:
+      - name: webhookNamePrefix
+        value: admission-webhook-
+      repoRef:
+        name: manifests
+        path: admission-webhook/bootstrap
+    name: bootstrap
+  - kustomizeConfig:
+      overlays:
+      - istio
+      - application
+      repoRef:
+        name: manifests
+        path: jupyter/jupyter-web-app
+    name: jupyter-web-app
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/katib-db
+    name: katib-db
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/katib-manager
+    name: katib-manager
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/katib-controller
+    name: katib-controller
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/katib-ui
+    name: katib-ui
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/metrics-collector
+    name: metrics-collector
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: metadata
+    name: metadata
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/suggestion
+    name: suggestion
+  - kustomizeConfig:
+      overlays:
+      - istio
+      - application
+      parameters:
+      - name: injectGcpCredentials
+        value: "true"
+      repoRef:
+        name: manifests
+        path: jupyter/notebook-controller
+    name: notebook-controller
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pytorch-job/pytorch-job-crds
+    name: pytorch-job-crds
+  - kustomizeConfig:
+      overlays:
+      - application
+      repoRef:
+        name: manifests
+        path: pytorch-job/pytorch-operator
+    name: pytorch-operator
+  - kustomizeConfig:
+      parameters:
+      - initRequired: true
+        name: usageId
+        value: "4950217421827598259"
+      - initRequired: true
+        name: reportUsage
+        value: "true"
+      repoRef:
+        name: manifests
+        path: common/spartakus
+    name: spartakus
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: tensorboard
+    name: tensorboard
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: tf-training/tf-job-operator
+    name: tf-job-operator
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pipeline/api-service
+    name: api-service
+  - kustomizeConfig:
+      overlays:
+      - minioPd
+      parameters:
+      - name: minioPd
+        value: kf101-storage-artifact-store
+      - name: minioPvName
+        value: minio-pv
+      - name: minioPvcName
+        value: minio-pv-claim
+      repoRef:
+        name: manifests
+        path: pipeline/minio
+    name: minio
+  - kustomizeConfig:
+      overlays:
+      - mysqlPd
+      parameters:
+      - name: mysqlPd
+        value: kf101-storage-metadata-store
+      - name: mysqlPvName
+        value: mysql-pv
+      - name: mysqlPvcName
+        value: mysql-pv-claim
+      repoRef:
+        name: manifests
+        path: pipeline/mysql
+    name: mysql
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pipeline/persistent-agent
+    name: persistent-agent
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pipeline/pipelines-runner
+    name: pipelines-runner
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: pipeline/pipelines-ui
+    name: pipelines-ui
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pipeline/pipelines-viewer
+    name: pipelines-viewer
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pipeline/scheduledworkflow
+    name: scheduledworkflow
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: cert-manager/cert-manager-crds
+    name: cert-manager-crds
+  - kustomizeConfig:
+      parameters:
+      - initRequired: true
+        name: acmeEmail
+        # value: SET_EMAIL
+      repoRef:
+        name: manifests
+        path: cert-manager/cert-manager
+    name: cert-manager
+  - kustomizeConfig:
+      parameters:
+      - name: secretName
+        value: admin-gcp-sa
+      repoRef:
+        name: manifests
+        path: gcp/cloud-endpoints
+    name: cloud-endpoints
+  - kustomizeConfig:
+      overlays:
+      - istio
+      parameters:
+      - initRequired: true
+        name: admin
+        # value: SET_EMAIL
+      repoRef:
+        name: manifests
+        path: profiles
+    name: profiles
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: gcp/gpu-driver
+    name: gpu-driver
+  - kustomizeConfig:
+      parameters:
+      - name: namespace
+        value: istio-system
+      - initRequired: true
+        name: ipName
+        # value: kf101-ip
+      - initRequired: true
+        name: hostname
+        # value: kf101.endpoints.SET_PROJECT.cloud.goog
+      repoRef:
+        name: manifests
+        path: gcp/iap-ingress
+    name: iap-ingress
+  # Set email to the account to grant permissions to by default. If not set it will
+  # be set automatically by kfctl.
+  # email: SET_EMAIL
+  enableApplications: true
+  # hostname: kf101.endpoints.SET_PROJECT.cloud.goog
+  #ipName: kf101-ip
+  packageManager: kustomize
+  platform: gcp
+  # Set project to your GCP project; if not set it will be automatically set
+  # by kfctl init and generate
+  # project: <Your GCP project>
+  repos:
+  - name: kubeflow
+    root: kubeflow-0.6.1
+    uri: https://github.com/kubeflow/kubeflow/archive/v0.6.1.tar.gz
+  - name: manifests
+    # TODO(jlewi): This is already outdated; need to pick up kubeflow/manifests#280
+    uri: https://github.com/kubeflow/manifests/archive/a5c7fe3ce73d423baa2a271b19928d6a1ad0f587.tar.gz
+  skipInitProject: true
+  useBasicAuth: false
+  useIstio: true
