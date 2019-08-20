@@ -62,6 +62,25 @@ workflows:
       workflowName: kfctl-go
       useBasicAuth: false
       useIstio: true
+  # Run a nightly build of kfctl and push the binary to GCS    
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: kfctl_nightly
+    name: kfctl-go-nightly
+    job_types:
+      - presubmit
+      - postsubmit
+    include_dirs:
+      - bootstrap/*
+      - deployment/*
+      - dependencies/*
+      - kubeflow/*
+      - testing/*
+    params:
+      platform: gke
+      gkeApiVersion: v1
+      workflowName: kfctl-go-nightly
+      useBasicAuth: false
+      useIstio: true
   # Run basic auth test as part of every periodic and postsubmit run. 
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_go_test

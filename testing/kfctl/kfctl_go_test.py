@@ -64,6 +64,18 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
   run_with_retries(["make", "build-kfctl"], cwd=build_dir)
   kfctl_path = os.path.join(build_dir, "bin", "kfctl")
 
+  # Push built kfctl binary to GCS bucket
+  import google.cloud.storage as storage
+  gcs_client = storage.Client()
+  bucket = gcs_client.lookup_bucket("kfctl-nightly")
+  if bucket == None:
+    logging.info("Bucket kfctl-nightly not found, creating bucket...")
+    bucket = gcs_client.create_bucket("kfctl-nightly", project=project)
+    if bucket != None:
+      logging.info("kfctl-nightly bucket was created.")
+  util.upload_file_to_gcs(kfctl_path, "gs://kfctl-nightly/kfctl"+stamp)
+  logging.info("Pushed kfctl binary to GCS bucket")
+
   # Set ENV for basic auth username/password.
   init_args = []
   if use_basic_auth:

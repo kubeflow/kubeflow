@@ -66,3 +66,12 @@ def use_istio(request):
     return True
   else:
     return False
+
+@pytest.fixture
+def nightly(request):
+  value = request.config.getoption("--nightly").lower()
+
+  if value in ["t", "true"]:
+    return True
+  else:
+    return False
