@@ -94,6 +94,11 @@ const (
 	patchesStrategicMergeMap MapType = 10
 	patchesJson6902Map       MapType = 11
 	OverlayParamName                 = "overlay"
+	// From k8s.io/client-go/rest
+	// Environment variables: Note that the duration should be long enough that the backoff
+	// persists for some reasonable time (i.e. 120 seconds).  The typical base might be "1".
+	envBackoffBase     = "KUBE_CLIENT_BACKOFF_BASE"
+	envBackoffDuration = "KUBE_CLIENT_BACKOFF_DURATION"
 )
 
 type kustomize struct {
@@ -300,7 +305,8 @@ func (kustomize *kustomize) initApplyOptions(o *kubectlapply.ApplyOptions, f cmd
 		return err
 	}
 	o.DeleteOptions = o.DeleteFlags.ToOptions(dynamicClient, o.IOStreams)
-	o.ShouldIncludeUninitialized = true
+	o.ShouldIncludeUninitialized = false
+	o.OpenApiPatch = true
 	o.OpenAPISchema, _ = f.OpenAPISchema()
 	o.Validator, err = f.Validator(false)
 	o.Builder = f.NewBuilder()
@@ -319,8 +325,32 @@ func (kustomize *kustomize) initApplyOptions(o *kubectlapply.ApplyOptions, f cmd
 	return nil
 }
 
+func (kustomize *kustomize) tempFile(data []byte) *os.File {
+	tmpfile, err := ioutil.TempFile("/tmp", "kout")
+	if err != nil {
+		log.Fatal(err)
+	}
+	if _, err := tmpfile.Write(data); err != nil {
+		log.Fatal(err)
+	}
+	if _, err := tmpfile.Seek(0, 0); err != nil {
+		log.Fatal(err)
+	}
+	return tmpfile
+}
+
+func (kustomize *kustomize) cleanup(tmpfile *os.File, stdin *os.File) error {
+	os.Stdin = stdin
+	if err := tmpfile.Close(); err != nil {
+		log.Fatal(err)
+	}
+	return os.Remove(tmpfile.Name())
+}
+
 // Apply deploys kustomize generated resources to the kubenetes api server
 func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
+	os.Setenv(envBackoffBase, "1")
+	os.Setenv(envBackoffDuration, "2")
 	kubeConfigFlags := genericclioptions.NewConfigFlags()
 	matchVersionKubeConfigFlags := cmdutil.NewMatchVersionFlags(kubeConfigFlags)
 	factory := cmdutil.NewFactory(matchVersionKubeConfigFlags)
@@ -365,25 +395,10 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 				Message: fmt.Sprintf("can not encode component %v as yaml Error %v", app.Name, err),
 			}
 		}
-		tmpfile, err := ioutil.TempFile("/tmp", "kout")
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer func() error {
-			if err := tmpfile.Close(); err != nil {
-				log.Fatal(err)
-			}
-			return os.Remove(tmpfile.Name())
-		}()
-		if _, err := tmpfile.Write(data); err != nil {
-			log.Fatal(err)
-		}
-		if _, err := tmpfile.Seek(0, 0); err != nil {
-			log.Fatal(err)
-		}
+		tmpfile := kustomize.tempFile(data)
 		oldStdin := os.Stdin
-		defer func() { os.Stdin = oldStdin }() // Restore original Stdin
 		os.Stdin = tmpfile
+		defer kustomize.cleanup(tmpfile, oldStdin)
 		ioStreams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
 		applyOptions := kubectlapply.NewApplyOptions(ioStreams)
 		applyOptions.DeleteFlags = kustomize.deleteFlags("that contains the configuration to apply")
@@ -427,25 +442,10 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 			if err != nil {
 				return err
 			}
-			tmpfile, err := ioutil.TempFile("/tmp", "kout")
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer func() error {
-				if err := tmpfile.Close(); err != nil {
-					log.Fatal(err)
-				}
-				return os.Remove(tmpfile.Name())
-			}()
-			if _, err := tmpfile.Write(body); err != nil {
-				log.Fatal(err)
-			}
-			if _, err := tmpfile.Seek(0, 0); err != nil {
-				log.Fatal(err)
-			}
+			tmpfile := kustomize.tempFile(body)
 			oldStdin := os.Stdin
-			defer func() { os.Stdin = oldStdin }() // Restore original Stdin
 			os.Stdin = tmpfile
+			defer kustomize.cleanup(tmpfile, oldStdin)
 			ioStreams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
 			applyOptions := kubectlapply.NewApplyOptions(ioStreams)
 			applyOptions.DeleteFlags = kustomize.deleteFlags("that contains the configuration to apply")
