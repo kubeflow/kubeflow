@@ -90,6 +90,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                 value: 0,
                 observer: '_revertSidebarIndexIfExternal',
             },
+            errorText: {type: String, value: ''},
             buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
             platformInfo: Object,
@@ -171,16 +172,10 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * @param {string} err Error message to show
      */
     showError(err) {
-        const el = this.$.ErrorToast;
-        el.text = err;
-        el.show();
+        this.errorText = err;
     }
-
-    closeToast(ev) {
-        const t = ev.target;
-        const el = [t, t.parentNode, t.parentNode.parentNode]
-            .find((e) => e.tagName == 'PAPER-TOAST');
-        el.close();
+    closeError() {
+        this.errorText = '';
     }
 
     /**

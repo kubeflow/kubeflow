@@ -57,7 +57,7 @@ async function main() {
 
 // This will allow us to inspect uncaught exceptions around the app
 process.on('unhandledRejection', error => {
-  console.log('[SEVERE] unhandledRejection', error);
+  console.error('[SEVERE] unhandledRejection', error);
 });
 
 main();
