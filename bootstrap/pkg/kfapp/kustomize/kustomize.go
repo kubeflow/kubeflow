@@ -27,9 +27,8 @@ import (
 	kfapisv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
-	profilev2 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
-
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
+	profilev2 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -42,6 +41,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/cli-runtime/pkg/genericclioptions/printers"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/discovery/cached"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -50,6 +50,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 	kubectlapply "k8s.io/kubernetes/pkg/kubectl/cmd/apply"
+	kubectldelete "k8s.io/kubernetes/pkg/kubectl/cmd/delete"
 	cmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
 	"os"
 	"path"
@@ -255,13 +256,26 @@ func (kustomize *kustomize) initK8sClients() error {
 
 // Apply deploys kustomize generated resources to the kubenetes api server
 func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
-	if err := kustomize.initK8sClients(); err != nil {
+	kubeConfigFlags := genericclioptions.NewConfigFlags()
+	matchVersionKubeConfigFlags := cmdutil.NewMatchVersionFlags(kubeConfigFlags)
+	factory := cmdutil.NewFactory(matchVersionKubeConfigFlags)
+	clientset, err := factory.KubernetesClientSet()
+	if err != nil {
 		return &kfapisv3.KfError{
-			Code:    int(kfapisv3.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error: kustomize plugin couldn't initialize a K8s client %v", err),
+			Code:    int(kfapisv3.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not get clientset Error %v", err),
 		}
 	}
-	clientset := kftypesv3.GetClientset(kustomize.restConfig)
+	/*
+		if err := kustomize.initK8sClients(); err != nil {
+			return &kfapisv3.KfError{
+				Code:    int(kfapisv3.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Error: kustomize plugin couldn't initialize a K8s client %v", err),
+			}
+		}
+		clientset := kftypesv3.GetClientset(kustomize.restConfig)
+	*/
+
 	namespace := kustomize.kfDef.ObjectMeta.Namespace
 	log.Infof(string(kftypesv3.NAMESPACE)+": %v", namespace)
 	_, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
@@ -295,7 +309,120 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 				Message: fmt.Sprintf("can not encode component %v as yaml Error %v", app.Name, err),
 			}
 		}
-		resourcesErr := kustomize.deployResources(kustomize.restConfig, data)
+		tmpfile, err := ioutil.TempFile("/tmp", "kout")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		defer func() error {
+			if err := tmpfile.Close(); err != nil {
+				log.Fatal(err)
+			}
+			return os.Remove(tmpfile.Name())
+		}()
+
+		if _, err := tmpfile.Write(data); err != nil {
+			log.Fatal(err)
+		}
+
+		if _, err := tmpfile.Seek(0, 0); err != nil {
+			log.Fatal(err)
+		}
+
+		oldStdin := os.Stdin
+		defer func() { os.Stdin = oldStdin }() // Restore original Stdin
+		os.Stdin = tmpfile
+		ioStreams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
+		applyOptions := kubectlapply.NewApplyOptions(ioStreams)
+		applyOptions.DeleteFlags = func(usage string) *kubectldelete.DeleteFlags {
+			cascade := true
+			gracePeriod := -1
+
+			// setup command defaults
+			all := false
+			force := false
+			ignoreNotFound := false
+			now := false
+			output := ""
+			labelSelector := ""
+			fieldSelector := ""
+			timeout := time.Duration(0)
+			wait := true
+
+			filenames := []string{"-"}
+			recursive := false
+
+			return &kubectldelete.DeleteFlags{
+				FileNameFlags: &genericclioptions.FileNameFlags{Usage: usage, Filenames: &filenames, Recursive: &recursive},
+				LabelSelector: &labelSelector,
+				FieldSelector: &fieldSelector,
+
+				Cascade:     &cascade,
+				GracePeriod: &gracePeriod,
+
+				All:            &all,
+				Force:          &force,
+				IgnoreNotFound: &ignoreNotFound,
+				Now:            &now,
+				Timeout:        &timeout,
+				Wait:           &wait,
+				Output:         &output,
+			}
+		}("that contains the configuration to apply")
+		initializeErr := func(o *kubectlapply.ApplyOptions, f cmdutil.Factory) error {
+			var err error
+
+			// allow for a success message operation to be specified at print time
+			o.ToPrinter = func(operation string) (printers.ResourcePrinter, error) {
+				o.PrintFlags.NamePrintFlags.Operation = operation
+				if o.DryRun {
+					o.PrintFlags.Complete("%s (dry run)")
+				}
+				if o.ServerDryRun {
+					o.PrintFlags.Complete("%s (server dry run)")
+				}
+				return o.PrintFlags.ToPrinter()
+			}
+			o.DiscoveryClient, err = f.ToDiscoveryClient()
+			if err != nil {
+				return err
+			}
+
+			dynamicClient, err := f.DynamicClient()
+			if err != nil {
+				return err
+			}
+			o.DeleteOptions = o.DeleteFlags.ToOptions(dynamicClient, o.IOStreams)
+			o.ShouldIncludeUninitialized = true
+			o.OpenAPISchema, _ = f.OpenAPISchema()
+			o.Validator, err = f.Validator(false)
+			o.Builder = f.NewBuilder()
+			o.Mapper, err = f.ToRESTMapper()
+			if err != nil {
+				return err
+			}
+
+			o.DynamicClient, err = f.DynamicClient()
+			if err != nil {
+				return err
+			}
+
+			o.Namespace, o.EnforceNamespace, err = f.ToRawKubeConfigLoader().Namespace()
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}(applyOptions, factory)
+		if initializeErr != nil {
+			return &kfapisv3.KfError{
+				Code:    int(kfapisv3.INTERNAL_ERROR),
+				Message: fmt.Sprintf("could not initialize  Error %v", initializeErr),
+			}
+		}
+		resourcesErr := applyOptions.Run()
+
+		//resourcesErr := kustomize.deployResources(kustomize.restConfig, data)
 		if resourcesErr != nil {
 			return &kfapisv3.KfError{
 				Code:    int(kfapisv3.INTERNAL_ERROR),
@@ -380,12 +507,6 @@ func (kustomize *kustomize) deployResources(config *rest.Config, data []byte) er
 	_cached := cached.NewMemCacheClient(_discoveryClient)
 	_cached.Invalidate()
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(_cached)
-	kubeConfigFlags := genericclioptions.NewConfigFlags()
-	matchVersionKubeConfigFlags := cmdutil.NewMatchVersionFlags(kubeConfigFlags)
-	f := cmdutil.NewFactory(matchVersionKubeConfigFlags)
-	applyCmd := kubectlapply.NewCmdApply("kfctl", f, genericclioptions.NewTestIOStreamsDiscard())
-	applyCmd.Run(applyCmd, []string{})
-
 	splitter := regexp.MustCompile(kftypesv3.YamlSeparator)
 	objects := splitter.Split(string(data), -1)
 
