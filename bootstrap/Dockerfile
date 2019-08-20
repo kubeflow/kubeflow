@@ -46,8 +46,6 @@ COPY . .
 #
 FROM builder as bootstrap_base
 
-# Make binary statically linked. Dynamically linked binary will break.
-ENV CGO_ENABLED=0
 RUN make build-bootstrap
 
 #**********************************************************************
@@ -56,8 +54,6 @@ RUN make build-bootstrap
 #
 FROM builder as kfctl_base
 
-# Make binary statically linked. Dynamically linked binary will break.
-ENV CGO_ENABLED=0
 RUN make build-kfctl
 
 #**********************************************************************

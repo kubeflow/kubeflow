@@ -1,0 +1,41 @@
+#**********************************************************************
+# Builder
+# 
+# Create a go runtime suitable for building and testing kfctl
+ARG GOLANG_VERSION=1.12.7
+ARG TAG
+FROM golang:$GOLANG_VERSION as gc_base
+
+RUN apt-get update
+RUN apt-get install -y git unzip
+
+ENV PATH /go/bin:/usr/local/go/bin:/opt/google-cloud-sdk/bin:${PATH}
+
+# use go modules
+ENV GO111MODULE=on
+ENV GOPATH=/go
+
+# Create bootstrap folder
+RUN mkdir -p ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
+WORKDIR ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
+
+# Download dependencies first to optimize Docker caching.
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+# Copy in the source
+COPY . .
+
+RUN export TAG=$TAG; make build-gc
+
+# Build the actual GC image
+FROM golang:$GOLANG_VERSION
+
+RUN mkdir -p /opt/kubeflow
+WORKDIR /opt/kubeflow
+
+
+COPY --from=gc_base /go/src/github.com/kubeflow/kubeflow/bootstrap/bin/gc /opt/kubeflow/
+
+RUN chmod a+rx /opt/kubeflow/gc
+ENV PATH /opt/kubeflow:${PATH}
