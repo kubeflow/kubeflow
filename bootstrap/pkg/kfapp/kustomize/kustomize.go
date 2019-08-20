@@ -33,29 +33,16 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"k8s.io/api/core/v1"
 	rbacv2 "k8s.io/api/rbac/v1"
 	crdclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"k8s.io/cli-runtime/pkg/genericclioptions/printers"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/discovery/cached"
-	"k8s.io/client-go/kubernetes/scheme"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/restmapper"
-	kubectlapply "k8s.io/kubernetes/pkg/kubectl/cmd/apply"
-	kubectldelete "k8s.io/kubernetes/pkg/kubectl/cmd/delete"
-	cmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
 	"os"
 	"path"
 	"path/filepath"
-	"regexp"
 	"sigs.k8s.io/kustomize/k8sdeps"
 	"sigs.k8s.io/kustomize/pkg/fs"
 	"sigs.k8s.io/kustomize/pkg/image"
@@ -115,7 +102,7 @@ type kustomize struct {
 
 const (
 	defaultUserId = "anonymous"
-	outputDir = "kustomize"
+	outputDir     = "kustomize"
 )
 
 // Setter defines an interface for modifying the plugin.
@@ -257,40 +244,9 @@ func (kustomize *kustomize) initK8sClients() error {
 
 // Apply deploys kustomize generated resources to the kubenetes api server
 func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
-	kubeConfigFlags := genericclioptions.NewConfigFlags()
-	matchVersionKubeConfigFlags := cmdutil.NewMatchVersionFlags(kubeConfigFlags)
-	factory := cmdutil.NewFactory(matchVersionKubeConfigFlags)
-	clientset, err := factory.KubernetesClientSet()
+	apply, err := utils.NewApply().Namespace(kustomize.kfDef)
 	if err != nil {
-		return &kfapisv3.KfError{
-			Code:    int(kfapisv3.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not get clientset Error %v", err),
-		}
-	}
-	/*
-		if err := kustomize.initK8sClients(); err != nil {
-			return &kfapisv3.KfError{
-				Code:    int(kfapisv3.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Error: kustomize plugin couldn't initialize a K8s client %v", err),
-			}
-		}
-		clientset := kftypesv3.GetClientset(kustomize.restConfig)
-	*/
-
-	namespace := kustomize.kfDef.ObjectMeta.Namespace
-	log.Infof(string(kftypesv3.NAMESPACE)+": %v", namespace)
-	_, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
-	if nsMissingErr != nil {
-		log.Infof("Creating namespace: %v", namespace)
-		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
-		_, nsErr := clientset.CoreV1().Namespaces().Create(nsSpec)
-		if nsErr != nil {
-			return &kfapisv3.KfError{
-				Code: int(kfapisv3.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("couldn't create %v %v Error: %v",
-					string(kftypesv3.NAMESPACE), namespace, nsErr),
-			}
-		}
+		return err
 	}
 
 	kustomizeDir := path.Join(kustomize.kfDef.Spec.AppDir, outputDir)
@@ -303,6 +259,7 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 				Message: fmt.Sprintf("error evaluating kustomization manifest for %v Error %v", app.Name, err),
 			}
 		}
+		//TODO this should be streamed
 		data, err := resMap.EncodeAsYaml()
 		if err != nil {
 			return &kfapisv3.KfError{
@@ -310,125 +267,10 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 				Message: fmt.Sprintf("can not encode component %v as yaml Error %v", app.Name, err),
 			}
 		}
-		tmpfile, err := ioutil.TempFile("/tmp", "kout")
+		defer apply.Cleanup()
+		err = apply.Init(data).Run()
 		if err != nil {
-			log.Fatal(err)
-		}
-
-		defer func() error {
-			if err := tmpfile.Close(); err != nil {
-				log.Fatal(err)
-			}
-			return os.Remove(tmpfile.Name())
-		}()
-
-		if _, err := tmpfile.Write(data); err != nil {
-			log.Fatal(err)
-		}
-
-		if _, err := tmpfile.Seek(0, 0); err != nil {
-			log.Fatal(err)
-		}
-
-		oldStdin := os.Stdin
-		defer func() { os.Stdin = oldStdin }() // Restore original Stdin
-		os.Stdin = tmpfile
-		ioStreams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
-		applyOptions := kubectlapply.NewApplyOptions(ioStreams)
-		applyOptions.DeleteFlags = func(usage string) *kubectldelete.DeleteFlags {
-			cascade := true
-			gracePeriod := -1
-
-			// setup command defaults
-			all := false
-			force := false
-			ignoreNotFound := false
-			now := false
-			output := ""
-			labelSelector := ""
-			fieldSelector := ""
-			timeout := time.Duration(0)
-			wait := true
-
-			filenames := []string{"-"}
-			recursive := false
-
-			return &kubectldelete.DeleteFlags{
-				FileNameFlags: &genericclioptions.FileNameFlags{Usage: usage, Filenames: &filenames, Recursive: &recursive},
-				LabelSelector: &labelSelector,
-				FieldSelector: &fieldSelector,
-
-				Cascade:     &cascade,
-				GracePeriod: &gracePeriod,
-
-				All:            &all,
-				Force:          &force,
-				IgnoreNotFound: &ignoreNotFound,
-				Now:            &now,
-				Timeout:        &timeout,
-				Wait:           &wait,
-				Output:         &output,
-			}
-		}("that contains the configuration to apply")
-		initializeErr := func(o *kubectlapply.ApplyOptions, f cmdutil.Factory) error {
-			var err error
-
-			// allow for a success message operation to be specified at print time
-			o.ToPrinter = func(operation string) (printers.ResourcePrinter, error) {
-				o.PrintFlags.NamePrintFlags.Operation = operation
-				if o.DryRun {
-					o.PrintFlags.Complete("%s (dry run)")
-				}
-				if o.ServerDryRun {
-					o.PrintFlags.Complete("%s (server dry run)")
-				}
-				return o.PrintFlags.ToPrinter()
-			}
-			o.DiscoveryClient, err = f.ToDiscoveryClient()
-			if err != nil {
-				return err
-			}
-
-			dynamicClient, err := f.DynamicClient()
-			if err != nil {
-				return err
-			}
-			o.DeleteOptions = o.DeleteFlags.ToOptions(dynamicClient, o.IOStreams)
-			o.ShouldIncludeUninitialized = true
-			o.OpenAPISchema, _ = f.OpenAPISchema()
-			o.Validator, err = f.Validator(false)
-			o.Builder = f.NewBuilder()
-			o.Mapper, err = f.ToRESTMapper()
-			if err != nil {
-				return err
-			}
-
-			o.DynamicClient, err = f.DynamicClient()
-			if err != nil {
-				return err
-			}
-
-			o.Namespace, o.EnforceNamespace, err = f.ToRawKubeConfigLoader().Namespace()
-			if err != nil {
-				return err
-			}
-
-			return nil
-		}(applyOptions, factory)
-		if initializeErr != nil {
-			return &kfapisv3.KfError{
-				Code:    int(kfapisv3.INTERNAL_ERROR),
-				Message: fmt.Sprintf("could not initialize  Error %v", initializeErr),
-			}
-		}
-		resourcesErr := applyOptions.Run()
-
-		//resourcesErr := kustomize.deployResources(kustomize.restConfig, data)
-		if resourcesErr != nil {
-			return &kfapisv3.KfError{
-				Code:    int(kfapisv3.INTERNAL_ERROR),
-				Message: fmt.Sprintf("couldn't create resources from %v Error: %v", app.Name, resourcesErr),
-			}
+			return err
 		}
 	}
 
@@ -457,27 +299,24 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 			},
 		},
 	}
-	_, nsMissingErr = clientset.CoreV1().Namespaces().Get(defaultProfileNamespace, metav1.GetOptions{})
-	if nsMissingErr != nil {
+
+	if !apply.DefaultProfileNamespace(defaultProfileNamespace) {
 		body, err := json.Marshal(profile)
 		if err != nil {
 			return err
 		}
-		resourcesErr := kustomize.deployResources(kustomize.restConfig, body)
-		if resourcesErr != nil {
-			return &kfapisv3.KfError{
-				Code:    int(kfapisv3.INTERNAL_ERROR),
-				Message: fmt.Sprintf("couldn't create default profile from %v Error: %v", profile, resourcesErr),
-			}
+		defer apply.Cleanup()
+		err = apply.Init(body).Run()
+		if err != nil {
+			return err
 		}
 		b := backoff.NewExponentialBackOff()
 		b.InitialInterval = 3 * time.Second
 		b.MaxInterval = 30 * time.Second
 		b.MaxElapsedTime = 5 * time.Minute
 		return backoff.Retry(func() error {
-			_, nsErr := clientset.CoreV1().Namespaces().Get(defaultProfileNamespace, metav1.GetOptions{})
-			if nsErr != nil {
-				msg := fmt.Sprintf("Could not find namespace %v, wait and retry: %v", defaultProfileNamespace, nsErr)
+			if !apply.DefaultProfileNamespace(defaultProfileNamespace) {
+				msg := fmt.Sprintf("Could not find namespace %v, wait and retry", defaultProfileNamespace)
 				log.Warnf(msg)
 				return &kfapisv3.KfError{
 					Code:    int(kfapisv3.INVALID_ARGUMENT),
@@ -489,115 +328,6 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 	} else {
 		log.Infof("Default profile namespace already exists: %v within owner %v", defaultProfileNamespace,
 			profile.Spec.Owner.Name)
-	}
-	return nil
-}
-
-// deployResourcesFromFile creates resources from a file, just like `kubectl create -f filename`
-// TODO based on bootstrap/v2/app/k8sUtil.go. Need to merge.
-// TODO: it can't handle "kind: list" yet.
-func (kustomize *kustomize) deployResourcesFromFile(config *rest.Config, filename string) error {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return err
-	}
-	return kustomize.deployResources(config, data)
-}
-
-// deployResources creates resources with byte array.
-func (kustomize *kustomize) deployResources(config *rest.Config, data []byte) error {
-	// Create a restmapper to determine the resource type.
-	_discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
-	if err != nil {
-		return err
-	}
-	_cached := cached.NewMemCacheClient(_discoveryClient)
-	_cached.Invalidate()
-	mapper := restmapper.NewDeferredDiscoveryRESTMapper(_cached)
-	splitter := regexp.MustCompile(kftypesv3.YamlSeparator)
-	objects := splitter.Split(string(data), -1)
-
-	for _, object := range objects {
-		var o map[string]interface{}
-		if err = yaml.Unmarshal([]byte(object), &o); err != nil {
-			return err
-		}
-		a := o["apiVersion"]
-		if a == nil {
-			log.Warnf("Unknown resource: %v", object)
-			continue
-		}
-		apiVersion := strings.Split(a.(string), "/")
-		var group, version string
-		if len(apiVersion) == 1 {
-			// core v1, no group. e.g. namespace
-			group, version = "", apiVersion[0]
-		} else {
-			group, version = apiVersion[0], apiVersion[1]
-		}
-		metadata := o["metadata"].(map[string]interface{})
-		var namespace string
-		if metadata["namespace"] != nil {
-			namespace = metadata["namespace"].(string)
-		} else {
-			namespace = ""
-		}
-		kind := o["kind"].(string)
-		gk := schema.GroupKind{
-			Group: group,
-			Kind:  kind,
-		}
-		mapping, retryErr := mapper.RESTMapping(gk, version)
-		if retryErr != nil {
-			return retryErr
-		}
-		// build config for restClient
-		c := rest.CopyConfig(config)
-		c.GroupVersion = &schema.GroupVersion{
-			Group:   group,
-			Version: version,
-		}
-		c.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
-		if group == "" {
-			c.APIPath = "/api"
-		} else {
-			c.APIPath = "/apis"
-		}
-		restClient, err := rest.RESTClientFor(c)
-		if err != nil {
-			return err
-		}
-
-		// build the request
-		if metadata["name"] != nil {
-			name := metadata["name"].(string)
-			log.Infof("creating %v/%v\n", kind, name)
-			body, err := json.Marshal(o)
-			if err != nil {
-				return err
-			}
-
-			request := restClient.Post().Resource(mapping.Resource.Resource).Body(body)
-			if mapping.Scope.Name() == "namespace" {
-				request = request.Namespace(namespace)
-			}
-			result := request.Do()
-			if result.Error() != nil {
-				statusCode := 200
-				result.StatusCode(&statusCode)
-				switch statusCode {
-				case 200:
-					fallthrough
-				case 409:
-					continue
-				default:
-					return result.Error()
-				}
-			}
-		} else {
-			log.Warnf("object with kind %v has no name\n", metadata["kind"])
-		}
-
 	}
 	return nil
 }
