@@ -110,7 +110,7 @@ type kustomize struct {
 }
 
 const (
-	defaultUserId = "default"
+	defaultUserId = "anonymous"
 	outputDir = "kustomize"
 )
 
