@@ -162,13 +162,13 @@ type apply struct {
 	options                     *kubectlapply.ApplyOptions
 	tmpfile                     *os.File
 	stdin                       *os.File
-	err                       *kfapis.KfError
+	err                         *kfapis.KfError
 }
 
 func NewApply() Apply {
 	apply := &apply{
 		matchVersionKubeConfigFlags: cmdutil.NewMatchVersionFlags(genericclioptions.NewConfigFlags()),
-		err: nil,
+		err:                         nil,
 	}
 	apply.factory = cmdutil.NewFactory(apply.matchVersionKubeConfigFlags)
 	clientset, err := apply.factory.KubernetesClientSet()
@@ -207,11 +207,10 @@ func (a *apply) Init(data []byte) Apply {
 	return a
 }
 
-func (a *apply) Error() error {
-	return a.err
-}
-
 func (a *apply) Run() error {
+	if a.err != nil {
+		return a.err
+	}
 	resourcesErr := a.options.Run()
 	if resourcesErr != nil {
 		return &kfapis.KfError{
@@ -241,10 +240,16 @@ func (a *apply) init() error {
 	o.ToPrinter = func(operation string) (printers.ResourcePrinter, error) {
 		o.PrintFlags.NamePrintFlags.Operation = operation
 		if o.DryRun {
-			o.PrintFlags.Complete("%s (dry run)")
+			err = o.PrintFlags.Complete("%s (dry run)")
+			if err != nil {
+				return nil, err
+			}
 		}
 		if o.ServerDryRun {
-			o.PrintFlags.Complete("%s (server dry run)")
+			err = o.PrintFlags.Complete("%s (server dry run)")
+			if err != nil {
+				return nil, err
+			}
 		}
 		return o.PrintFlags.ToPrinter()
 	}
@@ -278,6 +283,9 @@ func (a *apply) init() error {
 }
 
 func (a *apply) Namespace(kfDef *kfdefs.KfDef) (Apply, error) {
+	if a.err != nil {
+		return nil, a.err
+	}
 	namespace := kfDef.ObjectMeta.Namespace
 	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
 	_, nsMissingErr := a.clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
@@ -286,7 +294,7 @@ func (a *apply) Namespace(kfDef *kfdefs.KfDef) (Apply, error) {
 		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
 		_, nsErr := a.clientset.CoreV1().Namespaces().Create(nsSpec)
 		if nsErr != nil {
-			return a, &kfapis.KfError{
+			return nil, &kfapis.KfError{
 				Code: int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("couldn't create %v %v Error: %v",
 					string(kftypes.NAMESPACE), namespace, nsErr),
@@ -323,7 +331,7 @@ func (a *apply) deleteFlags(usage string) *kubectldelete.DeleteFlags {
 	fieldSelector := ""
 	timeout := time.Duration(0)
 	wait := true
-	filenames := []string{"-"}
+	filenames := []string{a.tmpfile.Name()}
 	recursive := false
 	return &kubectldelete.DeleteFlags{
 		FileNameFlags:  &genericclioptions.FileNameFlags{Usage: usage, Filenames: &filenames, Recursive: &recursive},
