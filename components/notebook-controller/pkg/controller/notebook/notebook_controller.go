@@ -286,8 +286,7 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 
 	// Check if the Notebook needs to be stopped
-	if podFound && culler.ResourceNeedsCulling(
-		instance.ObjectMeta, pod.ObjectMeta, service.ObjectMeta) {
+	if podFound && culler.NotebookNeedsCulling(instance.ObjectMeta) {
 		log.Info(fmt.Sprintf(
 			"Notebook %s/%s needs culling. Setting annotations",
 			instance.Namespace, instance.Name))
