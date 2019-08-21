@@ -102,7 +102,7 @@ spec:
   useIstio: true
   repos:
   - name: kubeflow
-  root: kubeflow-0.6.1
+    root: kubeflow-0.6.1
     uri: https://github.com/kubeflow/kubeflow/archive/v0.6.1.tar.gz
   - name: manifests
     root: manifests-0.6.1
