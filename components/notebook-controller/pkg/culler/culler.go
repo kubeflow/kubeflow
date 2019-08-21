@@ -25,11 +25,6 @@ const DEFAULT_CULLING_CHECK_PERIOD = "1"
 const DEFAULT_ENABLE_CULLING = "false"
 const STOP_ANNOTATION = "kubeflow-resource-stopped"
 
-type PrometheusResp struct {
-	Status string                 `json:"status"`
-	Data   map[string]interface{} `json:"data"`
-}
-
 type NotebookStatus struct {
 	Started      string `json:"started"`
 	LastActivity string `json:"last_activity"`
@@ -101,7 +96,7 @@ func SetStopAnnotation(meta *metav1.ObjectMeta) {
 
 func RemoveStopAnnotation(meta *metav1.ObjectMeta) {
 	if meta == nil {
-		log.Info("Error: Metadata is Nil. Can't set Annotations")
+		log.Info("Error: Metadata is Nil. Can't remove Annotations")
 		return
 	}
 
