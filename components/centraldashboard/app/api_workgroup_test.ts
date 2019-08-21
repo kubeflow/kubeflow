@@ -312,29 +312,28 @@ describe('Workgroup API', () => {
                     .toHaveBeenCalledWith('test@testdomain.com');
             });
 
-        it('Should return for an identity aware cluster without a Workgroup',
-            async () => {
-                mockProfilesService.v1RoleClusteradminGet
-                    .withArgs('test@testdomain.com')
-                    .and.returnValue(Promise.resolve({response: null, body: false}));
-                mockProfilesService.readBindings.withArgs('test@testdomain.com')
-                    .and.returnValue(Promise.resolve({
-                        response: null,
-                        body: {bindings: []},
-                    }));
+        it('Should return for an identity aware cluster without a Workgroup', async () => {
+            mockProfilesService.v1RoleClusteradminGet
+                .withArgs('test@testdomain.com')
+                .and.returnValue(Promise.resolve({response: null, body: false}));
+            mockProfilesService.readBindings.withArgs('test@testdomain.com')
+                .and.returnValue(Promise.resolve({
+                    response: null,
+                    body: {bindings: []},
+                }));
 
-                const expectedResponse = {hasAuth: true, hasWorkgroup: false, user: 'test'};
+            const expectedResponse = {hasAuth: true, hasWorkgroup: false, user: 'test'};
 
-                const headers = {
-                    [header.goog]: `${prefix.goog}test@testdomain.com`,
-                };
-                const response = await sendTestRequest(url, headers);
-                expect(response).toEqual(expectedResponse);
-                expect(mockProfilesService.readBindings)
-                    .toHaveBeenCalledWith('test@testdomain.com');
-                expect(mockProfilesService.v1RoleClusteradminGet)
-                    .toHaveBeenCalledWith('test@testdomain.com');
-            });
+            const headers = {
+                [header.goog]: `${prefix.goog}test@testdomain.com`,
+            };
+            const response = await sendTestRequest(url, headers);
+            expect(response).toEqual(expectedResponse);
+            expect(mockProfilesService.readBindings)
+                .toHaveBeenCalledWith('test@testdomain.com');
+            expect(mockProfilesService.v1RoleClusteradminGet)
+                .toHaveBeenCalledWith('test@testdomain.com');
+        });
     });
 
     describe('Create Workgroup', () => {
@@ -425,6 +424,83 @@ describe('Workgroup API', () => {
             };
             const response = await sendTestRequest(url, headers, 405, 'post');
             expect(response).toEqual({error: 'Unexpected error creating profile'});
+        });
+    });
+    describe('Environment Information - TODO IMPLEMENT', () => {
+        let url: string;
+        beforeEach(() => {
+            mockK8sService = jasmine.createSpyObj<KubernetesService>([
+                'getPlatformInfo',
+                'getNamespaces',
+            ]);
+            mockK8sService.getPlatformInfo.and.returnValue(Promise.resolve({
+                provider: 'onprem',
+                providerName: 'onprem',
+                kubeflowVersion: '1.0.0',
+            }));
+            mockProfilesService = jasmine.createSpyObj<DefaultApi>(
+                ['readBindings', 'v1RoleClusteradminGet']);
+
+            mockProfilesService.readBindings.withArgs()
+                .and.returnValue(Promise.resolve({
+                    response: null,
+                    body: {
+                        bindings: [
+                            {user: 'anyone@kubeflow.org', namespace: 'default', role: 'owner'},
+                            {user: 'user1@kubeflow.org', namespace: 'default', role: 'contributor'},
+                            {user: 'user1@kubeflow.org', namespace: 'kubeflow', role: 'owner'},
+                        ].map(mapSimpleBindingToWorkgroupBinding)
+                    },
+                }));
+
+            testApp = express();
+            testApp.use(express.json());
+            testApp.use(attachUserGCPMiddleware);
+            testApp.use(
+                '/api/workgroup', newAPI().routes());
+            const addressInfo = testApp.listen(0).address();
+            if (typeof addressInfo === 'string') {
+                throw new Error(
+                    'Unable to determine system-assigned port for test API server');
+            }
+            port = addressInfo.port;
+            url = `http://localhost:${port}/api/workgroup/env-info`;
+        });
+
+        it('Should retrieve information for a non-identity aware cluster', async () => {
+            const expectedResponse = {
+                platform: {
+                    provider: 'onprem',
+                    providerName: 'onprem',
+                    kubeflowVersion: '1.0.0',
+                },
+                user: 'anonymous@kubeflow.org',
+                isClusterAdmin: true,
+                namespaces: [
+                    {
+                        user: 'anonymous@kubeflow.org',
+                        namespace: 'default',
+                        role: 'contributor',
+                    },
+                    {
+                        user: 'anonymous@kubeflow.org',
+                        namespace: 'kubeflow',
+                        role: 'contributor',
+                    },
+                ],
+            };
+
+            let response = await sendTestRequest(url);
+            expect(response).toEqual(expectedResponse);
+            expect(mockK8sService.getPlatformInfo).toHaveBeenCalled();
+
+            // Second call should use cached platform information
+            response = await sendTestRequest(url);
+            expect(response).toEqual(expectedResponse);
+            expect(mockK8sService.getPlatformInfo.calls.count()).toBe(1);
+            expect(mockProfilesService.readBindings).toHaveBeenCalled();
+            expect(mockProfilesService.v1RoleClusteradminGet)
+                .not.toHaveBeenCalled();
         });
     });
 });
