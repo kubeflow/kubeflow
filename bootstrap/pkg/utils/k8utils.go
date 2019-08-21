@@ -162,17 +162,18 @@ type apply struct {
 	options                     *kubectlapply.ApplyOptions
 	tmpfile                     *os.File
 	stdin                       *os.File
-	error                       *kfapis.KfError
+	err                       *kfapis.KfError
 }
 
 func NewApply() Apply {
 	apply := &apply{
 		matchVersionKubeConfigFlags: cmdutil.NewMatchVersionFlags(genericclioptions.NewConfigFlags()),
+		err: nil,
 	}
 	apply.factory = cmdutil.NewFactory(apply.matchVersionKubeConfigFlags)
 	clientset, err := apply.factory.KubernetesClientSet()
 	if err != nil {
-		apply.error = &kfapis.KfError{
+		apply.err = &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("could not get clientset Error %v", err),
 		}
@@ -198,7 +199,7 @@ func (a *apply) Init(data []byte) Apply {
 	a.options.DeleteFlags = a.deleteFlags("that contains the configuration to apply")
 	initializeErr := a.init()
 	if initializeErr != nil {
-		a.error = &kfapis.KfError{
+		a.err = &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("could not initialize  Error %v", initializeErr),
 		}
@@ -207,18 +208,18 @@ func (a *apply) Init(data []byte) Apply {
 }
 
 func (a *apply) Error() error {
-	return a.error
+	return a.err
 }
 
 func (a *apply) Run() error {
 	resourcesErr := a.options.Run()
 	if resourcesErr != nil {
-		a.error = &kfapis.KfError{
+		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("Apply.Run  Error %v", resourcesErr),
 		}
 	}
-	return a.error
+	return nil
 }
 
 func (a *apply) Cleanup() error {
@@ -285,14 +286,14 @@ func (a *apply) Namespace(kfDef *kfdefs.KfDef) (Apply, error) {
 		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
 		_, nsErr := a.clientset.CoreV1().Namespaces().Create(nsSpec)
 		if nsErr != nil {
-			a.error = &kfapis.KfError{
+			return a, &kfapis.KfError{
 				Code: int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("couldn't create %v %v Error: %v",
 					string(kftypes.NAMESPACE), namespace, nsErr),
 			}
 		}
 	}
-	return a, a.error
+	return a, nil
 }
 
 func (a *apply) tempFile(data []byte) *os.File {
