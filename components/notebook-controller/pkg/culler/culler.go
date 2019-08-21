@@ -23,6 +23,15 @@ var client = &http.Client{
 const DEFAULT_IDLE_TIME = "1440" // One day
 const DEFAULT_CULLING_CHECK_PERIOD = "1"
 const DEFAULT_ENABLE_CULLING = "false"
+
+// When a Resource should be stopped/culled, then the controller should add this
+// annotation in the Resource's Metadata. Then, inside the reconcile loop,
+// the controller must check if this annotation is set and then apply the
+// respective culling logic for that Resource. The value of the annotation will
+// be a timestamp of when the Resource was stopped/culled.
+//
+// In case of Notebooks, the controller will reduce the replicas to 0 if
+// this annotation is set. If it's not set, then it will make the replicas 1.
 const STOP_ANNOTATION = "kubeflow-resource-stopped"
 
 type NotebookStatus struct {
@@ -33,7 +42,7 @@ type NotebookStatus struct {
 }
 
 // Some Utility Fuctions
-func getEnvDef(variable string, default_val string) string {
+func getEnvDefault(variable string, default_val string) string {
 	envVar := os.Getenv(variable)
 	if len(envVar) == 0 {
 		return default_val
@@ -50,7 +59,7 @@ func createTimestamp() string {
 func GetRequeueTime() time.Duration {
 	// The frequency in which we check if the Pod needs culling
 	// Uses ENV var: CULLING_CHECK_PERIOD
-	culling_period := getEnvDef(
+	culling_period := getEnvDefault(
 		"CULLING_CHECK_PERIOD", DEFAULT_CULLING_CHECK_PERIOD)
 	culling_period_m, err := strconv.Atoi(culling_period)
 	if err != nil {
@@ -64,7 +73,7 @@ func GetRequeueTime() time.Duration {
 }
 
 func getMaxIdleTime() time.Duration {
-	idle_time := getEnvDef("IDLE_TIME", DEFAULT_IDLE_TIME)
+	idle_time := getEnvDefault("IDLE_TIME", DEFAULT_IDLE_TIME)
 	idle_time_m, err := strconv.Atoi(idle_time)
 	if err != nil {
 		log.Info(fmt.Sprintf(
@@ -84,9 +93,7 @@ func SetStopAnnotation(meta *metav1.ObjectMeta) {
 	}
 
 	if meta.GetAnnotations() != nil {
-		annotations := meta.GetAnnotations()
-		annotations[STOP_ANNOTATION] = createTimestamp()
-		meta.SetAnnotations(annotations)
+		meta.Annotations[STOP_ANNOTATION] = createTimestamp()
 	} else {
 		meta.SetAnnotations(map[string]string{
 			STOP_ANNOTATION: createTimestamp(),
@@ -177,7 +184,7 @@ func notebookIsIdle(nm, ns string, status *NotebookStatus) bool {
 }
 
 func NotebookNeedsCulling(nbMeta metav1.ObjectMeta) bool {
-	if getEnvDef("ENABLE_CULLING", DEFAULT_ENABLE_CULLING) != "true" {
+	if getEnvDefault("ENABLE_CULLING", DEFAULT_ENABLE_CULLING) != "true" {
 		log.Info("Culling of idle Pods is Disabled. To enable it set the " +
 			"ENV Var 'ENABLE_CULLING=true'")
 		return false
