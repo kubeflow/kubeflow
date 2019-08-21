@@ -6,6 +6,7 @@
   - [Creating a release workflow using automation ksonnet package](#creating-a-release-workflow-using-automation-ksonnet-package)
 - [Release Kubeflow](#release-kubeflow)
   - [Authenticate to GCP](#authenticate-to-gcp)
+  - [Authorization to Publish a Release](#authorization-to-publish-a-release)
   - [Update TFJob](#update-tfjob)
   - [Update PyTorchJob](#update-pytorchjob)
   - [Build TF Serving Images](#build-tf-serving-images)
@@ -16,6 +17,7 @@
     - [Release branching policy](#release-branching-policy)
   - [Updating the release branch and tagging a release](#updating-the-release-branch-and-tagging-a-release)
     - [Tagging a release candidate](#tagging-a-release-candidate)
+    - [Update Version Shown on Central Dashboard](#update-version-shown-on-central-dashboard)
     - [Release votes and releases](#release-votes-and-releases)
   - [Updating the ksonnet configs for master](#updating-the-ksonnet-configs-for-master)
   - [Releasing a new version of the website](#releasing-a-new-version-of-the-website)
@@ -156,6 +158,9 @@ Use [this script](https://github.com/jlewi/kubeflow-dev/blob/master/create_conte
 create_context.sh $(kubectl config current-context) kubeflow-releasing
 ```
 
+## Authorization to Publish a Release
+
+Need to join [release team](https://github.com/kubeflow/internal-acls/blob/1234654eb219e2c06ed5fdc2c4e662a02fccc740/github-orgs/kubeflow/org.yaml#L388) before you can publish a release.
 
 ## Update TFJob
 
@@ -341,6 +346,10 @@ You can create a release branch via the GitHub UI.
 ### Tagging a release candidate
 
 A release candidate is a tag of the form `v${MAJOR}.${MINOR}.${PATCHLEVEL}-rc.${N}`, where `N` is a small integer, and a release candidate tag always points to a commit on the corresponding minor release branch.  Push this tag to GitHub and announce a release vote on kubeflow-discuss.
+
+### Update Version Shown on Central Dashboard
+
+Update release tag to central dashboard: [link](https://github.com/kubeflow/manifests/blob/eab125dd42c08b0e2495b7b2d7a7010ac64d3774/application/application/overlays/application/application.yaml#L16)
 
 ### Release votes and releases
 
