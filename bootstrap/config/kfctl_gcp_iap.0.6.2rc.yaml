@@ -296,11 +296,11 @@ spec:
   # project: <Your GCP project>
   repos:
   - name: kubeflow
-    root: kubeflow-0.6.1
-    uri: https://github.com/kubeflow/kubeflow/archive/v0.6.1.tar.gz
+    root: kubeflow-0.6.2
+    # Commit for v0.6.2-rc.1
+    uri: https://github.com/kubeflow/kubeflow/archive/0dbd2550372c003ba69069aeee283bd59fb1341f.tar.gz
   - name: manifests
-    # TODO(jlewi): This is already outdated; need to pick up kubeflow/manifests#280
-    uri: https://github.com/kubeflow/manifests/archive/a5c7fe3ce73d423baa2a271b19928d6a1ad0f587.tar.gz
+    uri: https://github.com/kubeflow/manifests/archive/6dc0c0d10a8060ff748a74da650776da1ba4e3b7.tar.gz
   skipInitProject: true
   useBasicAuth: false
   useIstio: true
