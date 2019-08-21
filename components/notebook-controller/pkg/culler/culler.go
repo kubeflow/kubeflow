@@ -20,7 +20,6 @@ var client = &http.Client{
 // The constants with name 'DEFAULT_{ENV_Var}' are the default values to be
 // used, if the respective ENV vars are not present.
 // All the time numbers correspond to minutes.
-const DEFAULT_PROMETHEUS_SVC = "prometheus.istio-system.svc.cluster.local:9090"
 const DEFAULT_IDLE_TIME = "1440" // One day
 const DEFAULT_CULLING_CHECK_PERIOD = "1"
 const DEFAULT_ENABLE_CULLING = "false"
@@ -84,6 +83,11 @@ func getMaxIdleTime() time.Duration {
 
 // Stop Annotation handling functions
 func SetStopAnnotation(meta *metav1.ObjectMeta) {
+	if meta == nil {
+		log.Info("Error: Metadata is Nil. Can't set Annotations")
+		return
+	}
+
 	if meta.GetAnnotations() != nil {
 		annotations := meta.GetAnnotations()
 		annotations[STOP_ANNOTATION] = createTimestamp()
@@ -96,6 +100,11 @@ func SetStopAnnotation(meta *metav1.ObjectMeta) {
 }
 
 func RemoveStopAnnotation(meta *metav1.ObjectMeta) {
+	if meta == nil {
+		log.Info("Error: Metadata is Nil. Can't set Annotations")
+		return
+	}
+
 	if meta.GetAnnotations() == nil {
 		return
 	}
@@ -120,10 +129,10 @@ func StopAnnotationIsSet(meta metav1.ObjectMeta) bool {
 // Culling Logic
 func getNotebookApiStatus(nm, ns string) *NotebookStatus {
 	// Get the Notebook Status from the Server's /api/status endpoint
-	url := fmt.Sprintf("http://localhost:8001/api/v1/namespaces/%s/services/%s:80/proxy/notebook/%s/%s/api/status", ns, nm, ns, nm)
-	// url := fmt.Sprintf(
-	// 	"http://%s.%s.svc.cluster.local/notebook/%s/%s/api/status",
-	// 	nm, ns, ns, nm)
+	// url := fmt.Sprintf("http://localhost:8001/api/v1/namespaces/%s/services/%s:80/proxy/notebook/%s/%s/api/status", ns, nm, ns, nm)
+	url := fmt.Sprintf(
+		"http://%s.%s.svc.cluster.local/notebook/%s/%s/api/status",
+		nm, ns, ns, nm)
 
 	resp, err := client.Get(url)
 	if err != nil {
@@ -152,6 +161,7 @@ func getNotebookApiStatus(nm, ns string) *NotebookStatus {
 }
 
 func notebookIsIdle(nm, ns string, status *NotebookStatus) bool {
+	// Being idle means that the Notebook can be culled
 	if status == nil {
 		return false
 	}
