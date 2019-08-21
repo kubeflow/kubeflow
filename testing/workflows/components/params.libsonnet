@@ -42,6 +42,7 @@
       useBasicAuth: "false",
       useIstio: "true",
       testEndpoint: "false",
+      configPath: "bootstrap/config/kfctl_gcp_iap_master.yaml",
     },
     kfctl_go_nightly: {
       bucket: "kubeflow-ci_temp",

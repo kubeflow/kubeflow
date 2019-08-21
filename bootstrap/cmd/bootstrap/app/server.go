@@ -26,10 +26,10 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
-	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/version"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/cmd/bootstrap/app/options"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/version"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -121,7 +121,7 @@ func getKubeConfigFile() string {
 // gGetClusterConfig obtain the config from the Kube configuration used by kubeconfig.
 // If inCluster is true it returns the in cluster configuration.
 //
-// TODO(jlewi): We also have method KubeConfigPath in v2/pkg/apis/apps/group.go
+// TODO(jlewi): We also have method KubeConfigPath in v3/pkg/apis/apps/group.go
 func getClusterConfig(inCluster bool) (*rest.Config, error) {
 	if inCluster {
 		return rest.InClusterConfig()

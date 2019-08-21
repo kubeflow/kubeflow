@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import uuid
 from retrying import retry
+import yaml
 
 import pytest
 
@@ -29,7 +30,7 @@ def verify_kubeconfig(project, zone, app_path):
     raise RuntimeError(msg)
 
 
-def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
+def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_path):
   """Test building and deploying Kubeflow.
 
   Args:
@@ -50,7 +51,7 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
   this_dir = os.path.dirname(__file__)
   root = os.path.abspath(os.path.join(this_dir, "..", ".."))
   build_dir = os.path.join(root, "bootstrap")
-  zone = 'us-east1-d'
+  zone = 'us-central1-a'
 
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
@@ -103,21 +104,6 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
     if os.getenv("PULL_PULL_SHA"):
       pull_manifests = "@" + os.getenv("PULL_PULL_SHA")
 
-  # username and password are passed as env vars and won't appear in the logs
-  # TODO(https://github.com/kubeflow/kubeflow/issues/2831): Once kfctl
-  # supports loading version from a URI we should use that so that we
-  # pull the configs from the repo we checked out.
-  #
-  # We don't run with retries because if kfctl init exits with an error
-  # but creates app.yaml then rerunning init will fail because app.yaml
-  # already exists. So retrying ends up masking the original error message
-  util.run([
-      kfctl_path, "init", app_path, "-V", "--platform=gcp",
-      "--version=" + version, "--package-manager=kustomize" + pull_manifests,
-      "--skip-init-gcp-project", "--disable_usage_report",
-      "--project=" + project
-      ] + init_args, cwd=parent_dir)
-
   # We need to specify a valid email because
   #  1. We need to create appropriate RBAC rules to allow the current user
   #     to create the required K8s resources.
@@ -126,6 +112,28 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
 
   if not email:
     raise ValueError("Could not determine GCP account being used.")
+
+  # username and password are passed as env vars and won't appear in the logs
+  # TODO(https://github.com/kubeflow/kubeflow/issues/2831): Once kfctl
+  # supports loading version from a URI we should use that so that we
+  # pull the configs from the repo we checked out.
+  #
+  # We don't run with retries because if kfctl init exits with an error
+  # but creates app.yaml then rerunning init will fail because app.yaml
+  # already exists. So retrying ends up masking the original error message
+  with open(config_path, 'r') as f:
+    config_spec = yaml.load(f)
+  config_spec["spec"]["project"] = project
+  config_spec["spec"]["email"] = email
+  config_spec["spec"] = filterSpartakus(config_spec["spec"])
+
+  logging.info(str(config_spec))
+  with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
+    yaml.dump(config_spec, f)
+  util.run([
+      kfctl_path, "init", app_path, "-V",
+      "--config=" + os.path.join(parent_dir, "tmp.yaml")], cwd=parent_dir)
+  util.run(["cat", "app.yaml"], cwd=app_path)
 
   run_with_retries([
       kfctl_path, "generate", "-V", "all", "--email=" + email, "--zone=" + zone
@@ -140,6 +148,12 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio):
 
   verify_kubeconfig(project, zone, app_path)
 
+def filterSpartakus(spec):
+  for i, app in enumerate(spec["applications"]):
+    if app["name"] == "spartakus":
+      spec["applications"].pop(i)
+      break
+  return spec
 
 if __name__ == "__main__":
   logging.basicConfig(

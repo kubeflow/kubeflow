@@ -48,6 +48,17 @@ app-drawer-layout[bleed] #MainDrawer {
     }
 }
 
+#PageLoader {
+    @apply --layout-fullbleed;
+    @apply --layout-center-center;
+    position: absolute;
+    width: 100vw;
+    top: 0;
+    left: 0;
+    background: #f1f3f4;
+    z-index: 1;
+}
+
 #MainDrawer .logo {
     margin-left: 1em;
 }
@@ -58,6 +69,10 @@ app-drawer-layout[bleed] #MainDrawer {
 
 #MainDrawer iframe-link:hover, #MainDrawer iron-selector>a:hover {
     text-decoration: none;
+}
+
+#MainDrawer iron-selector.flex {
+    overflow: auto;
 }
 
 #MainDrawer .menu-item {
@@ -261,6 +276,22 @@ neon-animatable {
     background: currentColor;
     transform: translateY(-50%);
 }
+
+#ErrorToast {
+    background: var(--google-red-500);
+    color: white;
+    padding: .75em 1.5em;
+    @apply --layout-horizontal;
+    @apply --layout-center;
+    --paper-icon-button: {
+        color: white;
+        margin-left: 1em;
+        padding: 5px;
+        width: 32px;
+        height: 32px;
+    }
+}
+
 
 [hides] {
     transition: opacity .25s

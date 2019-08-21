@@ -10,8 +10,8 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/golang/protobuf/proto"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	apps "k8s.io/api/apps/v1"
@@ -79,6 +79,16 @@ func makeRouterCreateRequestEndpoint(svc KfctlService) endpoint.Endpoint {
 	}
 }
 
+func GetHealthzHandler() http.Handler {
+	return httptransport.NewServer(
+		makeHealthzEndpoint(),
+		func(_ context.Context, r *http.Request) (interface{}, error) {
+			return nil, nil
+		},
+		encodeResponse,
+	)
+}
+
 // RegisterEndpoints creates the http endpoints for the router
 func (r *kfctlRouter) RegisterEndpoints() {
 	createHandler := httptransport.NewServer(
@@ -101,6 +111,7 @@ func (r *kfctlRouter) RegisterEndpoints() {
 	// 3. This PR aimed at running the deployment in each pod.
 	// Depending on how we stage these changes we might need to change these URLs.
 	http.Handle("/kfctl/apps/v1alpha2/create", optionsHandler(createHandler))
+	http.Handle("/", optionsHandler(GetHealthzHandler()))
 }
 
 // decodeHTTPCreateResponse is a transport/http.DecodeResponseFunc that decodes a
@@ -304,6 +315,11 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 								fmt.Sprintf("--port=%v", targetPort),
 							},
 							Image: r.image,
+							Ports: []corev1.ContainerPort{
+								{
+									ContainerPort: int32(targetPort),
+								},
+							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "apps",
@@ -356,8 +372,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 	// TODO(jlewi): Add backoff.
 	log.Infof("Calling CreateDeployment at %s", address)
 
-	// TODO(jlewi): Set the timeout?
-	res, err := c.CreateDeployment(ctx, req)
-	log.Infof("CreateDeployment returned; response: %+v, error: %+v", c, err)
-	return res, err
+	// Continue request process in separate thread.
+	go c.CreateDeployment(context.Background(), req)
+	return &req, nil
 }

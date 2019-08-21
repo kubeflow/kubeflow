@@ -16,6 +16,7 @@ package apis
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 )
 
 type StatusCode int
@@ -38,4 +39,26 @@ type KfError struct {
 func (e *KfError) Error() string {
 	return fmt.Sprintf(" (kubeflow.error): Code %d with message: %v",
 		e.Code, e.Message)
+}
+
+// NewKfErrorWithMessage will propogate the error with the given message.
+//
+// TODO(jlewi): Not sure this is the best way to propogate the error messages and turn them
+// into KfErrors. There was a lot of code that was doing this but not asserting that the error
+// was a KfError which was causing segmentation faults so I wrote this helper method.
+func NewKfErrorWithMessage(e error, msg string) error {
+	kErr, ok := e.(*KfError)
+
+	if !ok {
+		log.Infof("Error is not a KfError; %v", e)
+
+		return &KfError{
+			Code:    int(UNKNOWN),
+			Message: msg + "; " + e.Error(),
+		}
+	}
+	return &KfError{
+		Code:    kErr.Code,
+		Message: msg + "; " + kErr.Message,
+	}
 }

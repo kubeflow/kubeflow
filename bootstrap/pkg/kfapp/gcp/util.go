@@ -2,7 +2,7 @@ package gcp
 
 import (
 	"fmt"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 )
 
 // IsValid checks whether a KfDef is properly configured for GCP.

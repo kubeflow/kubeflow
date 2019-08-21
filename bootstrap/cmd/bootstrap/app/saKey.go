@@ -4,7 +4,7 @@ import (
 	iamadmin "cloud.google.com/go/iam/admin/apiv1"
 	"encoding/base64"
 	"fmt"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"

@@ -3,10 +3,11 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/cenkalti/backoff"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/ratelimit"
 	httptransport "github.com/go-kit/kit/transport/http"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/time/rate"
 	"net/url"
@@ -63,9 +64,20 @@ func NewKfctlClient(instance string) (KfctlService, error) {
 
 // CreateDeployment issues a CreateDeployment to the requested backend
 func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*kfdefs.KfDef, error) {
-	resp, err := c.createEndpoint(ctx, req)
-	if err != nil {
-		return nil, err
+	var resp interface{}
+	var err error
+	// Add retry logic
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 30)
+	permErr := backoff.Retry(func() error {
+		resp, err = c.createEndpoint(ctx, req)
+		if err != nil {
+			return err
+		}
+		return nil
+	}, bo)
+
+	if permErr != nil {
+		return nil, permErr
 	}
 	response, ok := resp.(*kfdefs.KfDef)
 

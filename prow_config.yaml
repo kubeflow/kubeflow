@@ -44,7 +44,8 @@ workflows:
       workflowName: kfctl-go
       useBasicAuth: false
       useIstio: true
-      testEndpoint: false
+      testEndpoint: true
+      configPath: bootstrap/config/kfctl_gcp_iap.yaml
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_go_test
     name: kfctl-go-iap-istio
@@ -81,6 +82,7 @@ workflows:
       workflowName: kfctl-go-nightly
       useBasicAuth: false
       useIstio: true
+      configPath: bootstrap/config/kfctl_gcp_iap.yaml
   # Run basic auth test as part of every periodic and postsubmit run. 
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_go_test
@@ -99,6 +101,7 @@ workflows:
       workflowName: kfctl-go
       useBasicAuth: true
       useIstio: true
+      configPath: bootstrap/config/kfctl_gcp_basic_auth.yaml
   # Only run  kfctl presubmit test with basic auth if
   # files related to basic auth are modified.
   - app_dir: kubeflow/kubeflow/testing/workflows
@@ -119,6 +122,7 @@ workflows:
       workflowName: kfctl-go
       useBasicAuth: true
       useIstio: true
+      configPath: bootstrap/config/kfctl_gcp_basic_auth.yaml
   # Run unittests
   # TODO(jlewi): Need to add step to run go and python unittests
   - app_dir: kubeflow/kubeflow/testing/workflows

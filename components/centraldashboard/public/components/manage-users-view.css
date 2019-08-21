@@ -1,0 +1,69 @@
+:host {
+    @apply --layout-fit;
+    background: white;
+    --content-color: #717479;
+    --subheading-color: #404447;
+    overflow: auto;
+    @apply --layout-fit;
+}
+h1, h2 {
+    font-family: Google Sans;
+    font-size: 1.2em;
+    margin: 0;
+}
+h1 {
+    color: black;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+#Main-Content {
+    padding: 1rem;
+}
+article:not(:first-of-type) {
+    margin-top: 1.5em;
+}
+h2 {
+    @apply --layout-horizontal;
+    @apply --layout-center;
+    font-size: 1em;
+    font-weight: 500;
+    color: var(--subheading-color);
+    margin: .5em 0;
+}
+h2 .icon {
+    color: var(--accent-color);
+    margin-right: 1rem;
+    /* Because Hamburger icon has a padding area for ripple*/
+    padding-left: .6rem;
+}
+.content {
+    margin-left: calc(1.6rem + 24px);
+    color: var(--content-color);
+    font-size: .9em;
+}
+.content.small {
+    max-width: 640px;
+}
+vaadin-grid {
+    --lumo-font-size-m: 1em;
+    --lumo-body-text-color: currentColor;
+    --lumo-space-m: 0
+}
+vaadin-grid > [slot$='content-0'],
+    vaadin-grid > [slot$='content-1'],
+    vaadin-grid > [slot$='content-2'] {
+    color: var(--subheading-color);
+}
+#NoNamespaceError {margin-top: 1em}
+#ContribError {
+    background: #F44336
+}
+
+md2-input {
+    width: 100%;
+    --md2-input-box: {
+        min-height: 2.5em;
+    }
+}
+
+[hidden] {display: none !important}

@@ -15,13 +15,19 @@ export class NamespaceSelector extends PolymerElement {
     static get template() {
         return html`
             <style>
+                :host {
+                    --icon-colors: #5f6062;
+                    --primary-background-color: var(--icon-colors);
+                }
                 paper-menu-button {
                     --paper-menu-button: {
                         font-size: 14px;
                         color: #3c4043
                     }
                 }
-
+                iron-icon {
+                    color: var(--icon-colors)
+                }
                 #dropdown-trigger {
                     @apply --layout-horizontal;
                     @apply --layout-center;
@@ -41,12 +47,18 @@ export class NamespaceSelector extends PolymerElement {
                     text-overflow: ellipsis;
                     white-space: nowrap;
                 }
-                #dropdown-trigger span:empty::before {
-                    content: 'Select namespace';
-                }
 
                 paper-item {
                     cursor: pointer;
+                }
+                #SelectedNamespace {
+                    display: flex;
+                    @apply --layout-center;
+                }
+                [owner]:not([all-namespaces]):after {
+                    content: '(Owner)';
+                    margin-left: .25em;
+                    font-size: .8em;
                 }
                 paper-listbox {
                     --paper-listbox-background-color: white;
@@ -56,17 +68,27 @@ export class NamespaceSelector extends PolymerElement {
                     --paper-button-ink-color: var(--accent-color);
                 }
             </style>
-            <paper-menu-button no-overlap horizontal-align="left">
+            <paper-menu-button no-overlap horizontal-align="left"
+                    disabled='[[allNamespaces]]'>
                 <paper-button id="dropdown-trigger" slot="dropdown-trigger">
-                    <iron-icon icon="group-work"></iron-icon>
-                    <span>[[selected]]</span>
+                    <iron-icon icon="kubeflow:namespace"></iron-icon>
+                    <article id="SelectedNamespace">
+                        <span class='text'
+                            all-namespaces$='[[allNamespaces]]'
+                            owner$='[[selectedNamespaceIsOwned]]'>
+                            [[getNamespaceText(selected,
+                                allNamespaces,
+                                namespaces)]]
+                        </span>
+                    </article>
                     <iron-icon icon="arrow-drop-down"></iron-icon>
                 </paper-button>
                 <paper-listbox slot="dropdown-content"
                     attr-for-selected="name" selected="{{selected}}">
-                    <template is="dom-repeat" items="{{namespaces}}">
-                        <paper-item name="[[item.referredNamespace]]">
-                            [[item.referredNamespace]]
+                    <template is="dom-repeat" items="{{namespaces}}" as="n">
+                        <paper-item name="[[n.namespace]]" title$='[[n.role]]'
+                                owner$='[[isOwner(n.role)]]'>
+                            [[n.namespace]]
                         </paper-item>
                     </template>
                 </paper-listbox>
@@ -87,6 +109,13 @@ export class NamespaceSelector extends PolymerElement {
                 value: '',
                 notify: true,
             },
+            allNamespaces: {type: Boolean, value: false},
+            selectedNamespaceIsOwned: {
+                type: Boolean,
+                readOnly: true,
+                notify: true,
+                value: false,
+            },
         };
     }
 
@@ -97,7 +126,31 @@ export class NamespaceSelector extends PolymerElement {
     static get observers() {
         return [
             '_queryParamChanged(queryParams.ns)',
+            '_ownedContextChanged(namespaces, selected)',
         ];
+    }
+
+    /**
+     * Check if role is owner
+     * @param {string} role
+     * @return {string} Is role an owner.
+     */
+    isOwner(role) {
+        return role == 'owner';
+    }
+
+    /**
+     * Check if role is owner
+     * @param {string} selected
+     * @param {boolean} allNamespaces
+     * @param {[object]} namespaces
+     * @return {string} Text that should show in namespace selector
+     */
+    getNamespaceText(selected, allNamespaces, namespaces) {
+        if (allNamespaces) return 'All Namespaces';
+        if (!namespaces || !namespaces.length) return 'No Namespaces';
+        if (!selected) return 'Select namespace';
+        return selected;
     }
 
     /**
@@ -108,6 +161,21 @@ export class NamespaceSelector extends PolymerElement {
         if (namespace && this.selected !== namespace) {
             this.selected = namespace;
         }
+    }
+
+    /**
+     * Update the `selectedNamespaceIsOwned` property based on
+     *   selected namespace.
+     * @param {[object]} namespaces
+     * @param {string} selected
+     */
+    _ownedContextChanged(namespaces, selected) {
+        const namespace = (namespaces || []).find((i) =>
+            i.namespace == selected
+        ) || this.selectedNamespaceIsOwned;
+        this._setSelectedNamespaceIsOwned(
+            this.isOwner(namespace.role)
+        );
     }
 
     /**

@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"os"
 
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -97,7 +97,7 @@ func init() {
 	initCfg.SetConfigType("yaml")
 
 	initCmd.Flags().StringP(string(kftypes.PLATFORM), "p", "",
-		"one of 'gcp|minikube'")
+		"one of 'aws|gcp|minikube'")
 	bindErr := initCfg.BindPFlag(string(kftypes.PLATFORM), initCmd.Flags().Lookup(string(kftypes.PLATFORM)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.PLATFORM), bindErr)

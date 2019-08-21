@@ -176,47 +176,46 @@ describe('Main Page', () => {
     it('Sets information when platform info is received', async () => {
         const namespaces = [
             {
-                user: {kind: 'user', name: 'testuser'},
-                referredNamespace: 'default',
-                roleRef: {
-                    apiGroup: '',
-                    kind: 'ClusterRole',
-                    name: 'editor',
-                },
+                user: 'testuser',
+                namespace: 'default',
+                role: 'editor',
             },
             {
-                user: {kind: 'user', name: 'testuser'},
-                referredNamespace: 'kubeflow',
-                roleRef: {
-                    apiGroup: '',
-                    kind: 'ClusterRole',
-                    name: 'editor',
-                },
+                user: 'testuser',
+                namespace: 'kubeflow',
+                role: 'editor',
             },
             {
-                user: {kind: 'user', name: 'testuser'},
-                referredNamespace: 'namespace-2',
-                roleRef: {
-                    apiGroup: '',
-                    kind: 'ClusterRole',
-                    name: 'editor',
-                },
+                user: 'testuser',
+                namespace: 'namespace-2',
+                role: 'editor',
             },
         ];
+        const user = 'anonymous@kubeflow.org';
         const envInfo = {
-            namespaces: namespaces,
+            namespaces,
+            user,
             platform: {
                 provider: 'gce://test-project/us-east1-c/gke-kubeflow-node-123',
                 providerName: 'gce',
                 kubeflowVersion: '1.0.0',
             },
-            user: 'anonymous@kubeflow.org',
+            isClusterAdmin: false,
         };
-        const responsePromise = mockRequest(mainPage, {
+        const hasWorkgroup = {
+            user,
+            hasWorkgroup: false,
+            hasAuth: false,
+        };
+        const getHasWorkgroup = mockRequest(mainPage, {
+            status: 200,
+            responseText: JSON.stringify(hasWorkgroup),
+        }, false, '/api/workgroup/exists');
+        const getEnvInfo = mockRequest(mainPage, {
             status: 200,
             responseText: JSON.stringify(envInfo),
         }, false, '/api/env-info');
-        await responsePromise;
+        await Promise.all([getHasWorkgroup, getEnvInfo]);
         flush();
 
         const buildVersion = mainPage.shadowRoot.querySelector(

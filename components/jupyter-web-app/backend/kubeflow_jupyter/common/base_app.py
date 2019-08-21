@@ -42,7 +42,11 @@ def get_poddefaults(namespace):
     pdefaults = []
     for pd in data["poddefaults"]["items"]:
         label = list(pd["spec"]["selector"]["matchLabels"].keys())[0]
-        desc = pd["spec"]["desc"]
+        if "desc" in pd["spec"]:
+            desc = pd["spec"]["desc"]
+        else:
+            desc = pd["metadata"]["name"]
+
         pdefaults.append({"label": label, "desc": desc})
 
     logger.info("Found poddefaults: {}".format(pdefaults))
