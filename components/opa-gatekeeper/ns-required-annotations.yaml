@@ -1,0 +1,15 @@
+apiVersion: constraints.gatekeeper.sh/v1alpha1
+kind: RequiredAnnotations
+metadata:
+  name: ns-required-annotations
+spec:
+  match:
+    # Policy applies to all resources
+    kinds:
+      - apiGroups: ["*"]
+        kinds: ["*"]
+  parameters:
+    # Fill in the service account name
+    usernames: ["system:serviceaccount:(NAMESPACE):(SERVICEACCOUNT)"]
+    # Replace with your own labels
+    annotations: ["kubeflow-admins", "kubeflow-users"]
