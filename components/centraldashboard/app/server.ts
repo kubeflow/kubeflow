@@ -11,7 +11,7 @@ import {getMetricsService} from './metrics_service_factory';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const defaultKfam = isProduction
-? 'profiles-kfam'
+? 'profiles-kfam.kubeflow'
 : 'localhost';
 
 /* PROFILES_KFAM env vars will be set by Kubernetes if the Kfam service is
