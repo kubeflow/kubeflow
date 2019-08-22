@@ -1,0 +1,38 @@
+apiVersion: templates.gatekeeper.sh/v1alpha1
+kind: ConstraintTemplate
+metadata:
+  name: requiredannotations 
+spec:
+  crd:
+    spec:
+      names:
+        kind: RequiredAnnotations
+        listKind: RequiredAnnotationsList
+        plural: requiredannotations
+        singular: requiredannotations
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            labels:
+              type: array
+              items: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package requiredannotations 
+
+        violation[{"msg": msg, "details": {"Invalid namespace": ns}}] {
+          actual_user := {input.review.userInfo.username}
+          restricted_users := {username | username := input.constraint.spec.parameters.usernames[_]}
+
+          ns := input.review.object.metadata.namespace
+          real_ns := data.inventory.cluster.v1.Namespace[ns]
+          actual := {annotation | annotation := real_ns.metadata.annotations["category"]}
+          required := {annotation | annotation := input.constraint.spec.parameters.annotations[_]}
+
+          count(actual_user - restricted_users) == 0
+          count(required & actual) == 0
+          
+          msg := sprintf("Missing labels for username %v namespace %v: Required one of labels: %v Actual labels: %v", [actual_user, ns, required, actual])
+        }
