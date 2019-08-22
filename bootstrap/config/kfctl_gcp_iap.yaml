@@ -295,7 +295,7 @@ spec:
     root: kubeflow-0.6.2
     uri: https://github.com/kubeflow/kubeflow/archive/0dbd2550372c003ba69069aeee283bd59fb1341f.tar.gz
   - name: manifests
-    uri: https://github.com/kubeflow/manifests/archive/6dc0c0d10a8060ff748a74da650776da1ba4e3b7.tar.gz
+    uri: https://github.com/kubeflow/manifests/archive/104c5b8c8e1df2bd09a827c4e25295ce945e3459.tar.gz
   skipInitProject: true
   useBasicAuth: false
   useIstio: true
