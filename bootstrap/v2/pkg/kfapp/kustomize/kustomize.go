@@ -112,7 +112,8 @@ type kustomize struct {
 }
 
 const (
-	outputDir = "kustomize"
+	defaultUserId = "anonymous"
+	outputDir     = "kustomize"
 )
 
 // Setter defines an interface for modifying the plugin.
@@ -303,57 +304,63 @@ func (kustomize *kustomize) Apply(resources kftypes.ResourceEnum) error {
 		}
 	}
 
+	// Create default profile
+	// When user identity available, the user will be owner of the profile
+	// Otherwise the profile would be a public one.
+	userId := defaultUserId
 	if kustomize.kfDef.Spec.Email != "" {
-		// Profile name is also the namespace created.
-		defaultProfileNamespace := kftypesv2.EmailToDefaultName(kustomize.kfDef.Spec.Email)
-		profile := &profilev2.Profile{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "Profile",
-				APIVersion: "kubeflow.org/v1alpha1",
+		// Use user email as user id if available.
+		// When platform == GCP, same user email is also identity in requests through IAP.
+		userId = kustomize.kfDef.Spec.Email
+	}
+	defaultProfileNamespace := kftypesv2.EmailToDefaultName(userId)
+	profile := &profilev2.Profile{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Profile",
+			APIVersion: "kubeflow.org/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: defaultProfileNamespace,
+		},
+		Spec: profilev2.ProfileSpec{
+			Owner: rbacv2.Subject{
+				Kind: "User",
+				Name: userId,
 			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name: defaultProfileNamespace,
-			},
-			Spec: profilev2.ProfileSpec{
-				Owner: rbacv2.Subject{
-					Kind: "User",
-					Name: kustomize.kfDef.Spec.Email,
-				},
-			},
+		},
+	}
+	_, nsMissingErr = clientset.CoreV1().Namespaces().Get(defaultProfileNamespace, metav1.GetOptions{})
+	if nsMissingErr != nil {
+		body, err := json.Marshal(profile)
+		if err != nil {
+			return err
 		}
-		_, nsMissingErr := clientset.CoreV1().Namespaces().Get(defaultProfileNamespace, metav1.GetOptions{})
-		if nsMissingErr != nil {
-			body, err := json.Marshal(profile)
-			if err != nil {
-				return err
+		resourcesErr := kustomize.deployResources(kustomize.restConfig, body)
+		if resourcesErr != nil {
+			return &kfapisv2.KfError{
+				Code:    int(kfapisv2.INTERNAL_ERROR),
+				Message: fmt.Sprintf("couldn't create default profile from %v Error: %v", profile, resourcesErr),
 			}
-			resourcesErr := kustomize.deployResources(kustomize.restConfig, body)
-			if resourcesErr != nil {
+		}
+		b := backoff.NewExponentialBackOff()
+		b.InitialInterval = 3 * time.Second
+		b.MaxInterval = 30 * time.Second
+		b.MaxElapsedTime = 5 * time.Minute
+		return backoff.Retry(func() error {
+			_, nsErr := clientset.CoreV1().Namespaces().Get(defaultProfileNamespace, metav1.GetOptions{})
+			if nsErr != nil {
+				msg := fmt.Sprintf("Could not find namespace %v, wait and retry: %v", defaultProfileNamespace, nsErr)
+				log.Warnf(msg)
 				return &kfapisv2.KfError{
-					Code:    int(kfapisv2.INTERNAL_ERROR),
-					Message: fmt.Sprintf("couldn't create default profile from %v Error: %v", profile, resourcesErr),
+					Code:    int(kfapisv2.INVALID_ARGUMENT),
+					Message: msg,
 				}
 			}
-			b := backoff.NewExponentialBackOff()
-			b.InitialInterval = 3 * time.Second
-			b.MaxInterval = 30 * time.Second
-			b.MaxElapsedTime = 5 * time.Minute
-			return backoff.Retry(func() error {
-				_, nsErr := clientset.CoreV1().Namespaces().Get(defaultProfileNamespace, metav1.GetOptions{})
-				if nsErr != nil {
-					msg := fmt.Sprintf("Could not find namespace %v, wait and retry: %v", defaultProfileNamespace, nsErr)
-					log.Warnf(msg)
-					return &kfapisv2.KfError{
-						Code:    int(kfapisv2.INVALID_ARGUMENT),
-						Message: msg,
-					}
-				}
-				return nil
-			}, b)
-		} else {
-			log.Infof("Default profile namespace already exists: %v within owner %v", defaultProfileNamespace,
-				profile.Spec.Owner.Name)
-		}
+			return nil
+		}, b)
+	} else {
+		log.Infof("Default profile namespace already exists: %v within owner %v", defaultProfileNamespace,
+			profile.Spec.Owner.Name)
 	}
 	return nil
 }
