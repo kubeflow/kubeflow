@@ -277,57 +277,57 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 	// Create default profile
 	// When user identity available, the user will be owner of the profile
 	// Otherwise the profile would be a public one.
-	userId := defaultUserId
 	if kustomize.kfDef.Spec.Email != "" {
+		userId := defaultUserId
 		// Use user email as user id if available.
 		// When platform == GCP, same user email is also identity in requests through IAP.
 		userId = kustomize.kfDef.Spec.Email
-	}
-	defaultProfileNamespace := kftypesv3.EmailToDefaultName(userId)
-	profile := &profilev2.Profile{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Profile",
-			APIVersion: "kubeflow.org/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: defaultProfileNamespace,
-		},
-		Spec: profilev2.ProfileSpec{
-			Owner: rbacv2.Subject{
-				Kind: "User",
-				Name: userId,
+		defaultProfileNamespace := kftypesv3.EmailToDefaultName(userId)
+		profile := &profilev2.Profile{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Profile",
+				APIVersion: "kubeflow.org/v1alpha1",
 			},
-		},
-	}
+			ObjectMeta: metav1.ObjectMeta{
+				Name: defaultProfileNamespace,
+			},
+			Spec: profilev2.ProfileSpec{
+				Owner: rbacv2.Subject{
+					Kind: "User",
+					Name: userId,
+				},
+			},
+		}
 
-	if !apply.DefaultProfileNamespace(defaultProfileNamespace) {
-		body, err := json.Marshal(profile)
-		if err != nil {
-			return err
-		}
-		defer apply.Cleanup()
-		err = apply.Init(body).Run()
-		if err != nil {
-			return err
-		}
-		b := backoff.NewExponentialBackOff()
-		b.InitialInterval = 3 * time.Second
-		b.MaxInterval = 30 * time.Second
-		b.MaxElapsedTime = 5 * time.Minute
-		return backoff.Retry(func() error {
-			if !apply.DefaultProfileNamespace(defaultProfileNamespace) {
-				msg := fmt.Sprintf("Could not find namespace %v, wait and retry", defaultProfileNamespace)
-				log.Warnf(msg)
-				return &kfapisv3.KfError{
-					Code:    int(kfapisv3.INVALID_ARGUMENT),
-					Message: msg,
-				}
+		if !apply.DefaultProfileNamespace(defaultProfileNamespace) {
+			body, err := json.Marshal(profile)
+			if err != nil {
+				return err
 			}
-			return nil
-		}, b)
-	} else {
-		log.Infof("Default profile namespace already exists: %v within owner %v", defaultProfileNamespace,
-			profile.Spec.Owner.Name)
+			defer apply.Cleanup()
+			err = apply.Init(body).Run()
+			if err != nil {
+				return err
+			}
+			b := backoff.NewExponentialBackOff()
+			b.InitialInterval = 3 * time.Second
+			b.MaxInterval = 30 * time.Second
+			b.MaxElapsedTime = 5 * time.Minute
+			return backoff.Retry(func() error {
+				if !apply.DefaultProfileNamespace(defaultProfileNamespace) {
+					msg := fmt.Sprintf("Could not find namespace %v, wait and retry", defaultProfileNamespace)
+					log.Warnf(msg)
+					return &kfapisv3.KfError{
+						Code:    int(kfapisv3.INVALID_ARGUMENT),
+						Message: msg,
+					}
+				}
+				return nil
+			}, b)
+		} else {
+			log.Infof("Default profile namespace already exists: %v within owner %v", defaultProfileNamespace,
+				profile.Spec.Owner.Name)
+		}
 	}
 	return nil
 }
