@@ -23,9 +23,11 @@ spec:
         package requiredannotations 
 
         violation[{"msg": msg, "details": {"Invalid namespace": ns}}] {
+          # Check if the actual user is one of the restricted_users
           actual_user := {input.review.userInfo.username}
           restricted_users := {username | username := input.constraint.spec.parameters.usernames[_]}
 
+          # Check if the namespace is annotated with the required labels
           ns := input.review.object.metadata.namespace
           real_ns := data.inventory.cluster.v1.Namespace[ns]
           actual := {annotation | annotation := real_ns.metadata.annotations["category"]}
