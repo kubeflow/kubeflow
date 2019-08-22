@@ -18,8 +18,12 @@ except ConfigException:
     # Load configuration for testing
     config.load_kube_config()
 
+aConfiguration = client.Configuration()
+aConfiguration.verify_ssl = False    
+api_client = client.ApiClient(aConfiguration)
+
 # Create the Apis
-v1_core = client.CoreV1Api()
+v1_core = client.CoreV1Api(api_client)
 custom_api = client.CustomObjectsApi()
 storage_api = client.StorageV1Api()
 
