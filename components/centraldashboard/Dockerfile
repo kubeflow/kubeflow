@@ -29,6 +29,7 @@ RUN npm rebuild && \
 # Step 2: Packages assets for serving
 FROM node:10-alpine AS serve
 
+ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /centraldashboard .
 
