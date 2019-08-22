@@ -165,6 +165,14 @@ build-gc-image:
       --tag $(GC_IMG):$(TAG) .
 	@echo Built $(GC_IMG):$(TAG)
 
+# Create GC image using cloud build
+build-gc-gcb:
+	gcloud --project=$(GCLOUD_PROJECT) \
+		builds submit \
+		--machine-type=n1-highcpu-32 \
+		--substitutions=TAG_NAME=$(TAG),_TARGET=gcserver \
+		--config=cloudbuildgc.yaml .
+
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.
 push: build

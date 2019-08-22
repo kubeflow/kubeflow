@@ -21,6 +21,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	kubeclientset "k8s.io/client-go/kubernetes"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -231,15 +232,7 @@ func (r *kfctlRouter) authCheckAndExtractService(req kfdefs.KfDef) (string, erro
 // AppNameKey is the name of the label to use containing hte name of the kfctl app.
 const AppNameKey = "app-name"
 
-// CreateDeployment creates a Kubeflow deployment.
-func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*kfdefs.KfDef, error) {
-	name, err := r.authCheckAndExtractService(req)
-
-	if err != nil {
-		log.Errorf("Could not access corresponding service; error %v", err)
-		return nil, err
-	}
-
+func (r *kfctlRouter) CreateKfctlServer(name string, currTime []byte) error {
 	labels := map[string]string{
 		"app":      "kfctl",
 		AppNameKey: name,
@@ -275,22 +268,14 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		pService, _ := Pformat(svc)
 		log.Errorf("unable to create service:%v\n\nerror:\n%+v", pService, err)
-		return nil, &httpError{
+		return &httpError{
 			Code:    http.StatusServiceUnavailable,
 			Message: "Unable to process your Kubeflow request; please try again later",
 		}
 	}
-
 	pService, _ := Pformat(newService)
 	log.Infof("Result of create service: %+v", pService)
 
-	currTime, err := time.Now().MarshalText()
-	if err != nil {
-		return nil, &httpError{
-			Code:    http.StatusServiceUnavailable,
-			Message: "Unable to process your Kubeflow request; please try again later",
-		}
-	}
 	backend := &apps.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -363,40 +348,65 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 			},
 		},
 	}
-
 	log.Infof("Create or update K8s statefulset")
 
 	newBackend, err := r.k8sclient.AppsV1().StatefulSets(r.namespace).Create(backend)
 
 	if err != nil {
-		if k8serrors.IsAlreadyExists(err) {
-			// If StatefulSet already exist, update Annotation LastRequestTime
-			currBackend, err := r.k8sclient.AppsV1().StatefulSets(r.namespace).Get(backend.Name, metav1.GetOptions{})
-			if err != nil {
-				return nil, &httpError{
-					Code:    http.StatusServiceUnavailable,
-					Message: "Unable to process your Kubeflow request; please try again later",
-				}
-			}
-			currBackend.Annotations[LastRequestTime] = string(currTime)
-			_, err = r.k8sclient.AppsV1().StatefulSets(r.namespace).Update(currBackend)
-			if err != nil {
-				return nil, &httpError{
-					Code:    http.StatusServiceUnavailable,
-					Message: "Unable to process your Kubeflow request; please try again later",
-				}
-			}
-		} else {
-			pbackend, _ := Pformat(backend)
-			log.Errorf("unable to create statefulset:%v\n\nerror:\n%+v", pbackend, err)
+		pbackend, _ := Pformat(backend)
+		log.Errorf("unable to create statefulset:%v\n\nerror:\n%+v", pbackend, err)
+		return &httpError{
+			Code:    http.StatusServiceUnavailable,
+			Message: "Unable to process your Kubeflow request; please try again later",
+		}
+	} else {
+		pBackend, _ := Pformat(newBackend)
+		log.Infof("Result of current statefulset: %+v", pBackend)
+		return nil
+	}
+}
+
+// CreateDeployment creates a Kubeflow deployment.
+func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*kfdefs.KfDef, error) {
+	name, err := r.authCheckAndExtractService(req)
+	currTime, err := time.Now().MarshalText()
+	if err != nil {
+		return nil, &httpError{
+			Code:    http.StatusServiceUnavailable,
+			Message: "Unable to process your Kubeflow request; please try again later",
+		}
+	}
+
+	if err != nil {
+		log.Errorf("Could not access corresponding service; error %v", err)
+		return nil, err
+	}
+	_, err = net.LookupIP(fmt.Sprintf("%v.%v.svc.cluster.local", name, r.namespace))
+	if err != nil {
+		log.Infof("KfctlServer service could not be resolved: %v \n Try to create them", err)
+		if err := r.CreateKfctlServer(name, currTime); err != nil {
 			return nil, &httpError{
 				Code:    http.StatusServiceUnavailable,
 				Message: "Unable to process your Kubeflow request; please try again later",
 			}
 		}
 	} else {
-		pBackend, _ := Pformat(newBackend)
-		log.Infof("Result of current statefulset: %+v", pBackend)
+		//	Update KfctlServer annotation
+		currBackend, err := r.k8sclient.AppsV1().StatefulSets(r.namespace).Get(name, metav1.GetOptions{})
+		if err != nil {
+			return nil, &httpError{
+				Code:    http.StatusServiceUnavailable,
+				Message: "Unable to process your Kubeflow request; please try again later",
+			}
+		}
+		currBackend.Annotations[LastRequestTime] = string(currTime)
+		_, err = r.k8sclient.AppsV1().StatefulSets(r.namespace).Update(currBackend)
+		if err != nil {
+			return nil, &httpError{
+				Code:    http.StatusServiceUnavailable,
+				Message: "Unable to process your Kubeflow request; please try again later",
+			}
+		}
 	}
 
 	address := fmt.Sprintf("http://%v.%v.svc.cluster.local:80", name, r.namespace)

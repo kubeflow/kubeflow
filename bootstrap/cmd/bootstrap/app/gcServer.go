@@ -1,15 +1,13 @@
 package app
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
+	apps "k8s.io/api/apps/v1"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/log"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"net/http"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 )
 
@@ -23,19 +21,12 @@ type GcService interface {
 	StartGC() error
 }
 
-func decodeFreezeResponse(_ context.Context, r *http.Response) (interface{}, error) {
-	if r.StatusCode != http.StatusOK {
-		// Try to decode the error as an httpError
-		h := httpError{}
-		err := json.NewDecoder(r.Body).Decode(&h)
-		if err == nil {
-			return nil, &h
-		}
-		return nil, errors.New(r.Status)
-	}
-	var resp bool
-	err := json.NewDecoder(r.Body).Decode(&resp)
-	return resp, err
+type ActiveError struct {
+	Message string
+}
+
+func (e ActiveError) Error() string {
+	return e.Message
 }
 
 func NewGcServer(targetnamespace string) (*gcServer, error) {
@@ -69,6 +60,29 @@ func NewGcServer(targetnamespace string) (*gcServer, error) {
 	}, nil
 }
 
+// GCResources delete statefulSet and corresponding service if they expired
+func (gc *gcServer) GCResources(statefulSet *apps.StatefulSet) error {
+	rawTime, ok := statefulSet.Annotations[LastRequestTime]
+	if ok {
+		lastRequestTime := time.Time{}
+		if err := lastRequestTime.UnmarshalText([]byte(rawTime)); err == nil {
+			if time.Now().Sub(lastRequestTime).Seconds() < float64(gc.thresholdInSec) {
+				// Keep statefulset which have not expired yet.
+				return ActiveError{
+					Message: fmt.Sprintf("target backend %v hasn't expired yet!", statefulSet.Name),
+				}
+			}
+		}
+	}
+	// We delete service & statefulset in reverse of creating them.
+	if err := gc.k8sclient.CoreV1().Services(gc.targetnamespace).Delete(statefulSet.Name,
+		&metav1.DeleteOptions{}); err != nil {
+			return err
+	}
+	return gc.k8sclient.AppsV1().StatefulSets(gc.targetnamespace).Delete(statefulSet.Name,
+		&metav1.DeleteOptions{})
+}
+
 func (gc *gcServer) StartGC() error {
 	// Infinite loop except error occurs
 	for {
@@ -78,27 +92,9 @@ func (gc *gcServer) StartGC() error {
 			return errors.WithStack(fmt.Errorf("Error listing StatefulSets in %v: %v", gc.targetnamespace, err))
 		}
 		for _, statefulSet := range statefulSets.Items {
-			rawTime, ok := statefulSet.Annotations[LastRequestTime]
-			if ok {
-				lastRequestTime := time.Time{}
-				if err := lastRequestTime.UnmarshalText([]byte(rawTime)); err == nil {
-					if time.Now().Sub(lastRequestTime).Seconds() < float64(gc.thresholdInSec) {
-						// Keep statefulset which have not expired yet.
-						continue
-					}
-				}
-			}
-			// We delete statefulset & service in reverse of creating them.
-			if err := gc.k8sclient.AppsV1().StatefulSets(gc.targetnamespace).Delete(statefulSet.Name,
-				&metav1.DeleteOptions{}); err != nil {
+			if err = gc.GCResources(&statefulSet); err != nil {
 				//	TODO(kunming): add alert signal
-				log.Errorf("Unexpected error during deleting statefulset: %v", err)
-				continue
-			}
-			if err := gc.k8sclient.CoreV1().Services(gc.targetnamespace).Delete(statefulSet.Name,
-				&metav1.DeleteOptions{}); err != nil {
-				//	TODO(kunming): add alert signal
-				log.Errorf("Unexpected error during deleting statefulset: %v", err)
+				log.Errorf("Unexpected error during GC resources: %v", err)
 			}
 		}
 	}
