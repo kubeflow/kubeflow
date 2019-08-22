@@ -244,7 +244,7 @@ func (kustomize *kustomize) initK8sClients() error {
 
 // Apply deploys kustomize generated resources to the kubenetes api server
 func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
-	apply, err := utils.NewApply().Namespace(kustomize.kfDef)
+	apply, err := utils.NewApply(kustomize.kfDef)
 	if err != nil {
 		return err
 	}
@@ -267,8 +267,7 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 				Message: fmt.Sprintf("can not encode component %v as yaml Error %v", app.Name, err),
 			}
 		}
-		defer apply.Cleanup()
-		err = apply.Init(data).Run()
+		err = apply.Apply(data)
 		if err != nil {
 			return err
 		}
@@ -304,8 +303,7 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 			if err != nil {
 				return err
 			}
-			defer apply.Cleanup()
-			err = apply.Init(body).Run()
+			err = apply.Apply(body)
 			if err != nil {
 				return err
 			}
