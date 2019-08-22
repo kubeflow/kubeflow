@@ -42,8 +42,8 @@ const (
 // KfctlCreatePath is the path on which to serve create requests
 const KfctlCreatePath = "/kfctl/apps/v1alpha2/create"
 
-// KfctlStatusPath is the path on which to query deployment status
-const KfctlStatusPath = "/kfctl/apps/v1alpha2/status"
+// KfctlGetpath is the path on which to query deployment status
+const KfctlGetpath = "/kfctl/apps/v1alpha2/get"
 
 // LastRequestTime last deploy request time.
 const LastRequestTime = "LastRequestTime"
@@ -289,7 +289,7 @@ func (s *kfctlServer) setLatestKfDef(r *kfdefsv3.KfDef) {
 	s.latestKfDef = *s.kfDefGetter.GetKfDef()
 }
 
-// makeRouterCreateRequestEndpoint creates an endpoint to handle createdeployment requests in the router.
+// makeServerStatusRequestEndpoint creates an endpoint to handle get latest kfdef requests in the router.
 func makeServerStatusRequestEndpoint(svc KfctlService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(kfdefsv3.KfDef)
@@ -335,7 +335,7 @@ func (s *kfctlServer) RegisterEndpoints() {
 	// 3. This PR aimed at running the deployment in each pod.
 	// Depending on how we stage these changes we might need to change these URLs.
 	http.Handle(KfctlCreatePath, optionsHandler(createHandler))
-	http.Handle(KfctlStatusPath, optionsHandler(statusHandler))
+	http.Handle(KfctlGetpath, optionsHandler(statusHandler))
 	http.Handle("/", optionsHandler(GetHealthzHandler()))
 }
 
