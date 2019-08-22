@@ -52,6 +52,10 @@ async function main() {
       user: req.user,
       profilesServiceUrl,
       codeEnvironment,
+      headersForIdentity: {
+        USERID_HEADER,
+        USERID_PREFIX,
+      },
     });
   });
   app.use('/api', new Api(k8sService, workgroupApi, metricsService).routes());
