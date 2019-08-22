@@ -147,42 +147,36 @@ func DeleteResourceFromFile(config *rest.Config, filename string) error {
 	return nil
 }
 
-type Apply interface {
-	Cleanup() error
-	DefaultProfileNamespace(string) bool
-	Init([]byte) Apply
-	Namespace(*kfdefs.KfDef) (Apply, error)
-	Run() error
-}
-
-type apply struct {
+type Apply struct {
 	matchVersionKubeConfigFlags *cmdutil.MatchVersionFlags
 	factory                     cmdutil.Factory
 	clientset                   *kubernetes.Clientset
 	options                     *kubectlapply.ApplyOptions
 	tmpfile                     *os.File
 	stdin                       *os.File
-	err                         *kfapis.KfError
 }
 
-func NewApply() Apply {
-	apply := &apply{
+func NewApply(kfDef *kfdefs.KfDef) (*Apply, error) {
+	apply := &Apply{
 		matchVersionKubeConfigFlags: cmdutil.NewMatchVersionFlags(genericclioptions.NewConfigFlags()),
-		err:                         nil,
 	}
 	apply.factory = cmdutil.NewFactory(apply.matchVersionKubeConfigFlags)
 	clientset, err := apply.factory.KubernetesClientSet()
 	if err != nil {
-		apply.err = &kfapis.KfError{
+		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("could not get clientset Error %v", err),
 		}
 	}
 	apply.clientset = clientset
-	return apply
+	err = apply.namespace(kfDef)
+	if err != nil {
+		return nil, err
+	}
+	return apply, nil
 }
 
-func (a *apply) DefaultProfileNamespace(name string) bool {
+func (a *Apply) DefaultProfileNamespace(name string) bool {
 	_, nsMissingErr := a.clientset.CoreV1().Namespaces().Get(name, metav1.GetOptions{})
 	if nsMissingErr != nil {
 		return false
@@ -190,27 +184,29 @@ func (a *apply) DefaultProfileNamespace(name string) bool {
 	return true
 }
 
-func (a *apply) Init(data []byte) Apply {
+func (a *Apply) Apply(data []byte) error {
 	a.tmpfile = a.tempFile(data)
 	a.stdin = os.Stdin
 	os.Stdin = a.tmpfile
+	defer a.cleanup()
 	ioStreams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
 	a.options = kubectlapply.NewApplyOptions(ioStreams)
 	a.options.DeleteFlags = a.deleteFlags("that contains the configuration to apply")
 	initializeErr := a.init()
 	if initializeErr != nil {
-		a.err = &kfapis.KfError{
+		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("could not initialize  Error %v", initializeErr),
 		}
 	}
-	return a
+	err := a.run()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (a *apply) Run() error {
-	if a.err != nil {
-		return a.err
-	}
+func (a *Apply) run() error {
 	resourcesErr := a.options.Run()
 	if resourcesErr != nil {
 		return &kfapis.KfError{
@@ -221,7 +217,7 @@ func (a *apply) Run() error {
 	return nil
 }
 
-func (a *apply) Cleanup() error {
+func (a *Apply) cleanup() error {
 	os.Stdin = a.stdin
 	if a.tmpfile != nil {
 		if err := a.tmpfile.Close(); err != nil {
@@ -232,7 +228,7 @@ func (a *apply) Cleanup() error {
 	return nil
 }
 
-func (a *apply) init() error {
+func (a *Apply) init() error {
 	var err error
 	var o = a.options
 	var f = a.factory
@@ -282,10 +278,7 @@ func (a *apply) init() error {
 	return nil
 }
 
-func (a *apply) Namespace(kfDef *kfdefs.KfDef) (Apply, error) {
-	if a.err != nil {
-		return nil, a.err
-	}
+func (a *Apply) namespace(kfDef *kfdefs.KfDef) error {
 	namespace := kfDef.ObjectMeta.Namespace
 	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
 	_, nsMissingErr := a.clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
@@ -294,17 +287,17 @@ func (a *apply) Namespace(kfDef *kfdefs.KfDef) (Apply, error) {
 		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
 		_, nsErr := a.clientset.CoreV1().Namespaces().Create(nsSpec)
 		if nsErr != nil {
-			return nil, &kfapis.KfError{
+			return &kfapis.KfError{
 				Code: int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("couldn't create %v %v Error: %v",
 					string(kftypes.NAMESPACE), namespace, nsErr),
 			}
 		}
 	}
-	return a, nil
+	return nil
 }
 
-func (a *apply) tempFile(data []byte) *os.File {
+func (a *Apply) tempFile(data []byte) *os.File {
 	tmpfile, err := ioutil.TempFile("/tmp", "kout")
 	if err != nil {
 		log.Fatal(err)
@@ -318,7 +311,7 @@ func (a *apply) tempFile(data []byte) *os.File {
 	return tmpfile
 }
 
-func (a *apply) deleteFlags(usage string) *kubectldelete.DeleteFlags {
+func (a *Apply) deleteFlags(usage string) *kubectldelete.DeleteFlags {
 	cascade := true
 	gracePeriod := -1
 	// setup command defaults
