@@ -9,9 +9,10 @@ import {WorkgroupApi} from './api_workgroup';
 import {KubernetesService} from './k8s_service';
 import {getMetricsService} from './metrics_service_factory';
 
-const defaultKfam = process.env.NODE_ENV !== 'production'
-  ? 'localhost'
-  : 'profiles-kfam';
+const isProduction = process.env.NODE_ENV === 'production';
+const defaultKfam = isProduction
+? 'profiles-kfam'
+: 'localhost';
 
 /* PROFILES_KFAM env vars will be set by Kubernetes if the Kfam service is
  * available
@@ -52,7 +53,7 @@ async function main() {
   });
   app.listen(
       port,
-      () => console.info(`Server listening on port http://localhost:${port}`));
+      () => console.info(`Server listening on port http://localhost:${port} (in ${isProduction?'production':'development'} mode)`));
 }
 
 // This will allow us to inspect uncaught exceptions around the app
