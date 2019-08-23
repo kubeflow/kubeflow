@@ -23,6 +23,7 @@ var client = &http.Client{
 const DEFAULT_IDLE_TIME = "1440" // One day
 const DEFAULT_CULLING_CHECK_PERIOD = "1"
 const DEFAULT_ENABLE_CULLING = "false"
+const DEFAULT_CLUSTER_DOMAIN = "cluster.local"
 
 // When a Resource should be stopped/culled, then the controller should add this
 // annotation in the Resource's Metadata. Then, inside the reconcile loop,
@@ -132,9 +133,10 @@ func StopAnnotationIsSet(meta metav1.ObjectMeta) bool {
 func getNotebookApiStatus(nm, ns string) *NotebookStatus {
 	// Get the Notebook Status from the Server's /api/status endpoint
 	// url := fmt.Sprintf("http://localhost:8001/api/v1/namespaces/%s/services/%s:80/proxy/notebook/%s/%s/api/status", ns, nm, ns, nm)
+	domain := getEnvDefault("CLUSTER_DOMAIN", DEFAULT_CLUSTER_DOMAIN)
 	url := fmt.Sprintf(
-		"http://%s.%s.svc.cluster.local/notebook/%s/%s/api/status",
-		nm, ns, ns, nm)
+		"http://%s.%s.svc.%s/notebook/%s/%s/api/status",
+		nm, ns, domain, ns, nm)
 
 	resp, err := client.Get(url)
 	if err != nil {
