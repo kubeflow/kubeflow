@@ -25,7 +25,7 @@ spec:
   - kustomizeConfig:
       parameters:
       - name: clusterRbacConfig
-        value: "ON"
+        value: "OFF"
       repoRef:
         name: manifests
         path: istio/istio
@@ -149,7 +149,7 @@ spec:
       parameters:
       - initRequired: true
         name: usageId
-        value: "4950217421827598259"
+        value: "8193904256713860000"
       - initRequired: true
         name: reportUsage
         value: "true"
@@ -232,6 +232,16 @@ spec:
         path: pipeline/scheduledworkflow
     name: scheduledworkflow
   - kustomizeConfig:
+      parameters:
+      - name: ambassadorServiceType
+        value: NodePort
+      - name: namespace
+        value: istio-system
+      repoRef:
+        name: manifests
+        path: common/ambassador
+    name: ambassador
+  - kustomizeConfig:
       repoRef:
         name: manifests
         path: cert-manager/cert-manager-crds
@@ -270,6 +280,11 @@ spec:
         path: gcp/gpu-driver
     name: gpu-driver
   - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: common/basic-auth
+    name: basic-auth
+  - kustomizeConfig:
       parameters:
       - name: namespace
         value: istio-system
@@ -279,10 +294,13 @@ spec:
       - initRequired: true
         name: hostname
         value: kf101.endpoints.SET_PROJECT.cloud.goog
+      - initRequired: true
+        name: project
+        value: SET_PROJECT
       repoRef:
         name: manifests
-        path: gcp/iap-ingress
-    name: iap-ingress
+        path: gcp/basic-auth-ingress
+    name: basic-auth-ingress
   email: SET_EMAIL
   enableApplications: true
   hostname: kf101.endpoints.SET_PROJECT.cloud.goog
@@ -297,7 +315,7 @@ spec:
   - name: manifests
     uri: https://github.com/kubeflow/manifests/archive/104c5b8c8e1df2bd09a827c4e25295ce945e3459.tar.gz
   skipInitProject: true
-  useBasicAuth: false
+  useBasicAuth: true
   useIstio: true
   version: SET_VERSION
   zone: SET_ZONE
