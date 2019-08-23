@@ -53,14 +53,14 @@ export class KubernetesService {
     if (context && context.namespace) {
       this.namespace = context.namespace;
     }
-    let oldCluster = this.kubeConfig.getCurrentCluster()
-    let cluster: Cluster = {
+    const oldCluster = this.kubeConfig.getCurrentCluster();
+    const cluster: Cluster = {
       name: oldCluster.name,
       caFile: oldCluster.caFile,
       server: oldCluster.server,
       skipTLSVerify: true,
-    }
-    kubeConfig.clusters = [cluster]
+    };
+    kubeConfig.clusters = [cluster];
     this.coreAPI = this.kubeConfig.makeApiClient(k8s.Core_v1Api);
     this.customObjectsAPI =
       this.kubeConfig.makeApiClient(k8s.Custom_objectsApi);
