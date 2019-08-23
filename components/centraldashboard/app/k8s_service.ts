@@ -13,6 +13,8 @@ export interface PlatformInfo {
  */
 interface V1BetaApplicationDescriptor {
   version: string;
+  type: string;
+  description: string;
 }
 
 /**
@@ -137,17 +139,20 @@ export class KubernetesService {
   private async getKubeflowVersion(): Promise<string> {
     let version = 'unknown';
     try {
+      // tslint:disable-next-line: no-any
+      const _ = (o: any) => o || {};
       const response = await this.customObjectsAPI.listNamespacedCustomObject(
           APP_API_GROUP, APP_API_VERSION, this.namespace, APP_API_NAME);
       const body = response.body as V1BetaApplicationList;
-      if (body.items && body.items.length && body.items[0].spec &&
-          body.items[0].spec.descriptor &&
-          body.items[0].spec.descriptor.version) {
-        version = body.items[0].spec.descriptor.version;
+      const kubeflowApp = (body.items || [])
+        .find((app) =>
+          /^kubeflow$/i.test(_(_(_(app).spec).descriptor).type)
+        );
+      if (kubeflowApp) {
+        version = kubeflowApp.spec.descriptor.version;
       }
     } catch (err) {
-      console.error(
-          'Unable to fetch Application information:', err.body || err);
+      console.error('Unable to fetch Application information:', err.body || err);
     }
     return version;
   }
