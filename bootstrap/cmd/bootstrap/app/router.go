@@ -381,6 +381,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 		log.Errorf("Could not access corresponding service; error %v", err)
 		return nil, err
 	}
+	// We check kube DNS record to see if target service / statefulset already exist in cluster
 	_, err = net.LookupIP(fmt.Sprintf("%v.%v.svc.cluster.local", name, r.namespace))
 	if err != nil {
 		log.Infof("KfctlServer service could not be resolved: %v \n Try to create them", err)
@@ -392,6 +393,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 		}
 	} else {
 		//	Update KfctlServer annotation
+		// TODO(kunming): we should equeue this kube-API facing call and rate limit to avoid k8s master overload during traffic spikes
 		currBackend, err := r.k8sclient.AppsV1().StatefulSets(r.namespace).Get(name, metav1.GetOptions{})
 		if err != nil {
 			return nil, &httpError{

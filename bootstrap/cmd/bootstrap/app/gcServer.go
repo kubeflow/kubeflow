@@ -2,12 +2,12 @@ package app
 
 import (
 	"fmt"
-	apps "k8s.io/api/apps/v1"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/log"
+	apps "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 )
 
@@ -19,14 +19,6 @@ type gcServer struct {
 
 type GcService interface {
 	StartGC() error
-}
-
-type ActiveError struct {
-	Message string
-}
-
-func (e ActiveError) Error() string {
-	return e.Message
 }
 
 func NewGcServer(targetnamespace string) (*gcServer, error) {
@@ -61,26 +53,18 @@ func NewGcServer(targetnamespace string) (*gcServer, error) {
 }
 
 // GCResources delete statefulSet and corresponding service if they expired
-func (gc *gcServer) GCResources(statefulSet *apps.StatefulSet) error {
+func (gc *gcServer) IsExpired(statefulSet *apps.StatefulSet) bool {
 	rawTime, ok := statefulSet.Annotations[LastRequestTime]
 	if ok {
 		lastRequestTime := time.Time{}
 		if err := lastRequestTime.UnmarshalText([]byte(rawTime)); err == nil {
 			if time.Now().Sub(lastRequestTime).Seconds() < float64(gc.thresholdInSec) {
 				// Keep statefulset which have not expired yet.
-				return ActiveError{
-					Message: fmt.Sprintf("target backend %v hasn't expired yet!", statefulSet.Name),
-				}
+				return false
 			}
 		}
 	}
-	// We delete service & statefulset in reverse of creating them.
-	if err := gc.k8sclient.CoreV1().Services(gc.targetnamespace).Delete(statefulSet.Name,
-		&metav1.DeleteOptions{}); err != nil {
-			return err
-	}
-	return gc.k8sclient.AppsV1().StatefulSets(gc.targetnamespace).Delete(statefulSet.Name,
-		&metav1.DeleteOptions{})
+	return true
 }
 
 func (gc *gcServer) StartGC() error {
@@ -92,9 +76,18 @@ func (gc *gcServer) StartGC() error {
 			return errors.WithStack(fmt.Errorf("Error listing StatefulSets in %v: %v", gc.targetnamespace, err))
 		}
 		for _, statefulSet := range statefulSets.Items {
-			if err = gc.GCResources(&statefulSet); err != nil {
-				//	TODO(kunming): add alert signal
-				log.Errorf("Unexpected error during GC resources: %v", err)
+			if gc.IsExpired(&statefulSet) {
+				// We delete service & statefulset in reverse of creating them.
+				if err := gc.k8sclient.CoreV1().Services(gc.targetnamespace).Delete(statefulSet.Name,
+					&metav1.DeleteOptions{}); err != nil {
+					//	TODO(kunming): add alert signal
+					log.Errorf("Unexpected error during GC Service: %v", err)
+				}
+				if err := gc.k8sclient.AppsV1().StatefulSets(gc.targetnamespace).Delete(statefulSet.Name,
+					&metav1.DeleteOptions{}); err != nil {
+					//	TODO(kunming): add alert signal
+					log.Errorf("Unexpected error during GC StatefulSet: %v", err)
+				}
 			}
 		}
 	}
