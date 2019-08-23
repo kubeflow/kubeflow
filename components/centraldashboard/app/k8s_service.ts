@@ -49,13 +49,21 @@ export class KubernetesService {
     console.info('Initializing Kubernetes configuration');
     this.kubeConfig.loadFromDefault();
     const context =
-        this.kubeConfig.getContextObject(this.kubeConfig.getCurrentContext());
+      this.kubeConfig.getContextObject(this.kubeConfig.getCurrentContext());
     if (context && context.namespace) {
       this.namespace = context.namespace;
     }
+    let oldCluster = this.kubeConfig.getCurrentCluster()
+    let cluster: Cluster = {
+      name: oldCluster.name,
+      caFile: oldCluster.caFile,
+      server: oldCluster.server,
+      skipTLSVerify: true,
+    }
+    kubeConfig.clusters = [cluster]
     this.coreAPI = this.kubeConfig.makeApiClient(k8s.Core_v1Api);
     this.customObjectsAPI =
-        this.kubeConfig.makeApiClient(k8s.Custom_objectsApi);
+      this.kubeConfig.makeApiClient(k8s.Custom_objectsApi);
   }
 
   /** Retrieves the list of namespaces from the Cluster. */
