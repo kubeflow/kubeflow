@@ -195,30 +195,28 @@ export class WorkgroupApi {
         .get(
             '/exists',
             async (req: Request, res: Response) => {
-                const response: HasWorkgroupResponse = {
-                    hasAuth: req.user.hasAuth,
-                    user: req.user.username,
-                    hasWorkgroup: false,
-                };
-                if (req.user.hasAuth) {
-                    const workgroup = await this.getWorkgroupInfo(
-                        req.user,
-                    );
-                    response.hasWorkgroup = !!(workgroup.namespaces || [])
-                        .find((w) => w.role === 'owner');
+                try {
+                    const response: HasWorkgroupResponse = {
+                        hasAuth: req.user.hasAuth,
+                        user: req.user.username,
+                        hasWorkgroup: false,
+                    };
+                    if (req.user.hasAuth) {
+                        const workgroup = await this.getWorkgroupInfo(
+                            req.user,
+                        );
+                        response.hasWorkgroup = !!(workgroup.namespaces || [])
+                            .find((w) => w.role === 'owner');
+                    }
+                    res.json(response);
+                } catch (err) {
+                    surfaceProfileControllerErrors({
+                        res,
+                        msg: 'Unable to contact Profile Controller',
+                        err,
+                    });
                 }
-                res.json(response);
             })
-        .use((req: Request, res: Response, next: NextFunction) => {
-            if (!req.user.hasAuth) {
-                return apiError({
-                    res,
-                    code: 405,
-                    error: ERRORS.operation_not_supported,
-                });
-            }
-            next();
-        })
         .post('/create', async (req: Request, res: Response) => {
             const profile = req.body as CreateProfileRequest;
             try {
@@ -243,6 +241,16 @@ export class WorkgroupApi {
                     err,
                 });
             }
+        })
+        .use((req: Request, res: Response, next: NextFunction) => {
+            if (!req.user.hasAuth) {
+                return apiError({
+                    res,
+                    code: 405,
+                    error: 'Unable to ascertain user identity from request, cannot access route.',
+                });
+            }
+            next();
         })
         .get('/get-all-namespaces', async (req: Request, res: Response) => {
             try {
@@ -275,18 +283,18 @@ export class WorkgroupApi {
         })
 
         .get('/get-contributors/:namespace', async (req: Request, res: Response) => {
-                const {namespace} = req.params;
-                try {
-                    const users = await this.getContributors(namespace);
-                    res.json(users);
-                } catch (err) {
-                    surfaceProfileControllerErrors({
-                        res,
-                        msg: `Unable to fetch contributors for ${namespace}`,
-                        err,
-                    });
-                }
-            })
+            const {namespace} = req.params;
+            try {
+                const users = await this.getContributors(namespace);
+                res.json(users);
+            } catch (err) {
+                surfaceProfileControllerErrors({
+                    res,
+                    msg: `Unable to fetch contributors for ${namespace}`,
+                    err,
+                });
+            }
+        })
         .post('/add-contributor/:namespace', async (req: Request, res: Response) => {
             this.handleContributor('create', req, res);
         })

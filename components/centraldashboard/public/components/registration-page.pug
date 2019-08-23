@@ -16,9 +16,6 @@ paper-card#MainCard
             md2-input#Namespace(label='Namespace Name', value='{{namespaceName}}', allowed-pattern='[[_namespaceValidationRegex]]',
                 error='[[error.response.error]]', disabled='[[submittingWorkgroup]]', maxlength=253)
             iron-a11y-keys#keys(target='[[namespaceInput]]', keys='enter', on-keys-pressed='finishSetup')
-            .finish
-                animated-checkmark(show='[[flowComplete]]')
-                aside#ApiMessage [[resp.message]]
             .actions
                 paper-button(on-click='finishSetup', disabled='[[submittingWorkgroup]]') Finish
                 paper-button(on-click='backPage', disabled='[[submittingWorkgroup]]') Go back
