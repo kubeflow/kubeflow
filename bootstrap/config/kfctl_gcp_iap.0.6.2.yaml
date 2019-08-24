@@ -273,7 +273,7 @@ spec:
       - name: userid-header
         value: X-Goog-Authenticated-User-Email
       - name: userid-prefix
-        value: ""accounts.google.com:":"
+        value: "accounts.google.com:"
       repoRef:
         name: manifests
         path: profiles
