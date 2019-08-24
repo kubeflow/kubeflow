@@ -13,6 +13,18 @@ spec:
         path: metacontroller
     name: metacontroller
   - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: application/application-crds
+    name: application-crds
+  - kustomizeConfig:
+      overlays:
+      - application
+      repoRef:
+        name: manifests
+        path: application/application
+    name: application
+  - kustomizeConfig:
       overlays:
       - istio
       repoRef:
@@ -21,6 +33,7 @@ spec:
     name: argo
   - kustomizeConfig:
       overlays:
+      - application
       - istio
       repoRef:
         name: manifests
@@ -38,6 +51,7 @@ spec:
     name: webhook
   - kustomizeConfig:
       overlays:
+      - application
       - istio
       repoRef:
         name: manifests
@@ -84,7 +98,8 @@ spec:
     name: suggestion
   - kustomizeConfig:
       overlays:
-      - istio
+      - application
+      - istio      
       repoRef:
         name: manifests
         path: jupyter/notebook-controller
@@ -95,6 +110,8 @@ spec:
         path: pytorch-job/pytorch-job-crds
     name: pytorch-job-crds
   - kustomizeConfig:
+      overlays:
+        - application
       repoRef:
         name: manifests
         path: pytorch-job/pytorch-operator
