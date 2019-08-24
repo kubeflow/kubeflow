@@ -58,6 +58,11 @@ spec:
       overlays:
       - istio
       - application
+      parameters:
+      - name: userid-header
+        value: X-Goog-Authenticated-User-Email
+      - name: userid-prefix
+        value: accounts.google.com
       repoRef:
         name: manifests
         path: common/centraldashboard
@@ -79,6 +84,11 @@ spec:
       overlays:
       - istio
       - application
+      parameters:
+      - name: userid-header
+        value: X-Goog-Authenticated-User-Email
+      - name: userid-prefix
+        value: accounts.google.com
       repoRef:
         name: manifests
         path: jupyter/jupyter-web-app
@@ -259,7 +269,11 @@ spec:
       parameters:
       - initRequired: true
         name: admin
-        # value: SET_EMAIL
+        # value: SET_EMAIL      
+      - name: userid-header
+        value: X-Goog-Authenticated-User-Email
+      - name: userid-prefix
+        value: accounts.google.com
       repoRef:
         name: manifests
         path: profiles
