@@ -6,103 +6,187 @@ metadata:
 spec:
   # Platform existing for pre-existing K8s
   platform: existing_arrikto
-  componentParams:
-    argo:
-    - name: overlay
-      value: istio
-    centraldashboard:
-    - name: overlay
-      value: istio
-    jupyter-web-app:
-    - name: overlay
-      value: istio
-    katib-ui: # Issue: https://github.com/kubeflow/manifests/issues/151
-    - name: overlay
-      value: istio
-    metadata:
-    - name: overlay
-      value: istio
-    minio:
-    - name: minioPvName
-      value: minio-pv
-    - name: minioPvcName
-      value: minio-pv-claim
-    mysql:
-    - name: mysqlPvName
-      value: mysql-pv
-    - name: mysqlPvcName
-      value: mysql-pv-claim
-    notebook-controller:
-    - name: overlay
-      value: istio
-    pipelines-ui:
-    - name: overlay
-      value: istio
-    spartakus:
-    - initRequired: true
-      name: usageId
-      value: <randomly-generated-id>
-    - initRequired: true
-      name: reportUsage
-      value: "true"
-    tensorboard:
-    - name: overlay
-      value: istio
-    tf-job-operator:
-    - name: overlay
-      value: istio
-  components:
-  - metacontroller
-  - argo
-  - centraldashboard
-  - bootstrap
-  - webhook
-  - jupyter-web-app
-  - katib-db
-  - katib-manager
-  - katib-controller
-  - katib-ui
-  - metadata
-  - metrics-collector
-  - suggestion
-  - notebook-controller
-  - pytorch-job-crds
-  - pytorch-operator
-  - spartakus
-  - tensorboard
-  - tf-job-operator
-  - api-service
-  - minio
-  - mysql
-  - persistent-agent
-  - pipelines-runner
-  - pipelines-ui
-  - pipelines-viewer
-  - scheduledworkflow
-  - profiles
-  packageManager: kustomize
-  packages:
-  - argo
-  - common
-  - examples
-  - admission-webhook
-  - jupyter
-  - katib-v1alpha2
-  - metacontroller
-  - metadata
-  - modeldb
-  - mpi-job
-  - pytorch-job
-  - seldon
-  - tensorboard
-  - tf-serving
-  - tf-training
-  - pipeline
-  - profiles
+  applications:
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: metacontroller
+    name: metacontroller
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: argo
+    name: argo
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: common/centraldashboard
+    name: centraldashboard
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: admission-webhook/bootstrap
+    name: bootstrap
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: admission-webhook/webhook
+    name: webhook
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: jupyter/jupyter-web-app
+    name: jupyter-web-app
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/katib-db
+    name: katib-db
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/katib-manager
+    name: katib-manager
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/katib-controller
+    name: katib-controller
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/katib-ui
+    name: katib-ui
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: metadata
+    name: metadata
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/metrics-collector
+    name: metrics-collector
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/suggestion
+    name: suggestion
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: jupyter/notebook-controller
+    name: notebook-controller
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pytorch-job/pytorch-job-crds
+    name: pytorch-job-crds
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pytorch-job/pytorch-operator
+    name: pytorch-operator
+  - kustomizeConfig:
+      parameters:
+      - initRequired: true
+        name: usageId
+        value: <randomly-generated-id>
+      - initRequired: true
+        name: reportUsage
+        value: "true"
+      repoRef:
+        name: manifests
+        path: common/spartakus
+    name: spartakus
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: tensorboard
+    name: tensorboard
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: tf-training/tf-job-operator
+    name: tf-job-operator
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pipeline/api-service
+    name: api-service
+  - kustomizeConfig:
+      parameters:
+      - name: minioPvName
+        value: minio-pv
+      - name: minioPvcName
+        value: minio-pv-claim
+      repoRef:
+        name: manifests
+        path: pipeline/minio
+    name: minio
+  - kustomizeConfig:
+      parameters:
+      - name: mysqlPvName
+        value: mysql-pv
+      - name: mysqlPvcName
+        value: mysql-pv-claim
+      repoRef:
+        name: manifests
+        path: pipeline/mysql
+    name: mysql
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pipeline/persistent-agent
+    name: persistent-agent
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pipeline/pipelines-runner
+    name: pipelines-runner
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: pipeline/pipelines-ui
+    name: pipelines-ui
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pipeline/pipelines-viewer
+    name: pipelines-viewer
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pipeline/scheduledworkflow
+    name: scheduledworkflow
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: profiles
+    name: profiles
   useIstio: true
+  enableApplications: true
   repos:
   - name: kubeflow
     root: kubeflow-0.6.2
     uri: https://github.com/kubeflow/kubeflow/archive/0dbd2550372c003ba69069aeee283bd59fb1341f.tar.gz
   - name: manifests
-    uri: https://github.com/kubeflow/manifests/archive/104c5b8c8e1df2bd09a827c4e25295ce945e3459.tar.gz
+    uri: https://github.com/kubeflow/manifests/archive/56e2fb1.tar.gz
