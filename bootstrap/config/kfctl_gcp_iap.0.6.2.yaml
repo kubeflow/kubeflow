@@ -58,6 +58,11 @@ spec:
       overlays:
       - istio
       - application
+      parameters:
+      - name: userid-header
+        value: X-Goog-Authenticated-User-Email
+      - name: userid-prefix
+        value: "accounts.google.com:"
       repoRef:
         name: manifests
         path: common/centraldashboard
@@ -79,6 +84,11 @@ spec:
       overlays:
       - istio
       - application
+      parameters:
+      - name: userid-header
+        value: X-Goog-Authenticated-User-Email
+      - name: userid-prefix
+        value: "accounts.google.com:"
       repoRef:
         name: manifests
         path: jupyter/jupyter-web-app
@@ -259,7 +269,11 @@ spec:
       parameters:
       - initRequired: true
         name: admin
-        # value: SET_EMAIL
+        # value: SET_EMAIL      
+      - name: userid-header
+        value: X-Goog-Authenticated-User-Email
+      - name: userid-prefix
+        value: "accounts.google.com:"
       repoRef:
         name: manifests
         path: profiles
@@ -300,7 +314,7 @@ spec:
     # Commit for v0.6.2-rc.1
     uri: https://github.com/kubeflow/kubeflow/archive/0dbd2550372c003ba69069aeee283bd59fb1341f.tar.gz
   - name: manifests
-    uri: https://github.com/kubeflow/manifests/archive/104c5b8c8e1df2bd09a827c4e25295ce945e3459.tar.gz
+    uri: https://github.com/kubeflow/manifests/archive/1099a06.tar.gz
   skipInitProject: true
   useBasicAuth: false
   useIstio: true
