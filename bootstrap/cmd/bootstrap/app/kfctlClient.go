@@ -18,6 +18,7 @@ import (
 // KfctlClient provides a client to the KfctlServer
 type KfctlClient struct {
 	createEndpoint endpoint.Endpoint
+	getEndpoint    endpoint.Endpoint
 }
 
 // NewKfctlClient returns a KfctlClient backed by an HTTP server living at the
@@ -49,9 +50,19 @@ func NewKfctlClient(instance string) (KfctlService, error) {
 			"POST",
 			copyURL(u, KfctlCreatePath),
 			encodeHTTPGenericRequest,
-			decodeHTTPCreateResponse,
+			decodeHTTPKfdefResponse,
 		).Endpoint()
 		createEndpoint = limiter(createEndpoint)
+	}
+	var getEndpoint endpoint.Endpoint
+	{
+		getEndpoint = httptransport.NewClient(
+			"POST",
+			copyURL(u, KfctlCreatePath),
+			encodeHTTPGenericRequest,
+			decodeHTTPKfdefResponse,
+		).Endpoint()
+		getEndpoint = limiter(getEndpoint)
 	}
 
 	// Returning the endpoint.Set as a service.Service relies on the
@@ -59,6 +70,7 @@ func NewKfctlClient(instance string) (KfctlService, error) {
 	// of glue code.
 	return &KfctlClient{
 		createEndpoint: createEndpoint,
+		getEndpoint:    getEndpoint,
 	}, nil
 }
 
@@ -78,6 +90,31 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 
 	if permErr != nil {
 		return nil, permErr
+	}
+	response, ok := resp.(*kfdefs.KfDef)
+
+	if ok {
+		return response, nil
+	}
+
+	log.Info("Response is not type *KfDef")
+	resErr, ok := resp.(*httpError)
+
+	if ok {
+		return nil, resErr
+	}
+
+	log.Info("Response is not type *httpError")
+
+	pRes, _ := Pformat(resp)
+	log.Errorf("Recieved unexpected response; %v", pRes)
+	return nil, fmt.Errorf("Recieved unexpected response; %v", pRes)
+}
+
+func (c *KfctlClient) GetLatestKfdef(req kfdefs.KfDef) (*kfdefs.KfDef, error) {
+	resp, err := c.getEndpoint(context.Background(), req)
+	if err != nil {
+		return nil, err
 	}
 	response, ok := resp.(*kfdefs.KfDef)
 
