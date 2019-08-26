@@ -310,7 +310,6 @@ spec:
   project: SET_PROJECT
   repos:
   - name: kubeflow
-    root: kubeflow-0.6.2
     uri: https://github.com/kubeflow/kubeflow/archive/0dbd2550372c003ba69069aeee283bd59fb1341f.tar.gz
   - name: manifests
     uri: https://github.com/kubeflow/manifests/archive/56e2fb15db286198f7a53723cb1fbfecf3fe83fb.tar.gz
