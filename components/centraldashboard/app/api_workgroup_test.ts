@@ -127,8 +127,7 @@ describe('Workgroup API', () => {
             testApp = express();
             testApp.use(express.json());
             testApp.use(attachUserGCPMiddleware);
-            testApp.use(
-                '/api/workgroup', newAPI().routes());
+            testApp.use('/api/workgroup', newAPI().routes());
             const addressInfo = testApp.listen(0).address();
             if (typeof addressInfo === 'string') {
                 throw new Error(
@@ -262,8 +261,7 @@ describe('Workgroup API', () => {
             testApp = express();
             testApp.use(express.json());
             testApp.use(attachUserGCPMiddleware);
-            testApp.use(
-                '/api/workgroup', newAPI().routes());
+            testApp.use('/api/workgroup', newAPI().routes());
             const addressInfo = testApp.listen(0).address();
             if (typeof addressInfo === 'string') {
                 throw new Error(
@@ -345,8 +343,7 @@ describe('Workgroup API', () => {
             testApp = express();
             testApp.use(express.json());
             testApp.use(attachUserGCPMiddleware);
-            testApp.use(
-                '/api/workgroup', newAPI().routes());
+            testApp.use('/api/workgroup', newAPI().routes());
             const addressInfo = testApp.listen(0).address();
             if (typeof addressInfo === 'string') {
                 throw new Error(
@@ -356,12 +353,11 @@ describe('Workgroup API', () => {
             url = `http://localhost:${port}/api/workgroup/create`;
         });
 
-        it('Should return a 405 status for a non-identity aware cluster',
-            async () => {
-                const response = await sendTestRequest(url, null, 405, 'post');
-                expect(response).toEqual({error: 'Operation not supported'});
-                expect(mockProfilesService.createProfile).not.toHaveBeenCalled();
-            });
+        it('Should return a 405 status for a non-identity aware cluster', async () => {
+            const response = await sendTestRequest(url, null, 405, 'post');
+            expect(response).toEqual({error: 'Operation not supported'});
+            expect(mockProfilesService.createProfile).not.toHaveBeenCalled();
+        });
 
         it('Should use user identity if no body is provided', async () => {
             const headers = {
@@ -426,81 +422,73 @@ describe('Workgroup API', () => {
             expect(response).toEqual({error: 'Unexpected error creating profile'});
         });
     });
-    describe('Environment Information - TODO IMPLEMENT', () => {
-        let url: string;
-        beforeEach(() => {
-            mockK8sService = jasmine.createSpyObj<KubernetesService>([
-                'getPlatformInfo',
-                'getNamespaces',
-            ]);
-            mockK8sService.getPlatformInfo.and.returnValue(Promise.resolve({
-                provider: 'onprem',
-                providerName: 'onprem',
-                kubeflowVersion: '1.0.0',
-            }));
-            mockProfilesService = jasmine.createSpyObj<DefaultApi>(
-                ['readBindings', 'v1RoleClusteradminGet']);
+    describe('Add / Remove Contributor', () => {
+        type RouteTypes = 'add' | 'remove';
+        let url: (type: RouteTypes) => string;
+        const requestBody = {contributor: 'apverma@google.com'};
 
-            mockProfilesService.readBindings.withArgs()
-                .and.returnValue(Promise.resolve({
-                    response: null,
-                    body: {
-                        bindings: [
-                            {user: 'anyone@kubeflow.org', namespace: 'default', role: 'owner'},
-                            {user: 'user1@kubeflow.org', namespace: 'default', role: 'contributor'},
-                            {user: 'user1@kubeflow.org', namespace: 'kubeflow', role: 'owner'},
-                        ].map(mapSimpleBindingToWorkgroupBinding)
-                    },
-                }));
+        beforeEach(() => {
+            mockProfilesService = jasmine.createSpyObj<DefaultApi>(['createBinding']);
+            const api = newAPI();
+            api.getContributors = async () => ['test'];
 
             testApp = express();
             testApp.use(express.json());
             testApp.use(attachUserGCPMiddleware);
-            testApp.use(
-                '/api/workgroup', newAPI().routes());
+            testApp.use('/api/workgroup', api.routes());
             const addressInfo = testApp.listen(0).address();
             if (typeof addressInfo === 'string') {
                 throw new Error(
                     'Unable to determine system-assigned port for test API server');
             }
             port = addressInfo.port;
-            url = `http://localhost:${port}/api/workgroup/env-info`;
+            url = (type: RouteTypes) =>
+                `http://localhost:${port}/api/workgroup/${type}-contributor/apverma`;
         });
 
-        it('Should retrieve information for a non-identity aware cluster', async () => {
-            const expectedResponse = {
-                platform: {
-                    provider: 'onprem',
-                    providerName: 'onprem',
-                    kubeflowVersion: '1.0.0',
+        it('Should error on missing contributor', async () => {
+            const [rAdd, rRemove] = await Promise.all([
+                sendTestRequest(url('add'), null, 400, 'post'),
+                sendTestRequest(url('remove'), null, 400, 'post'),
+            ]);
+            [rAdd, rRemove].forEach(response => {
+                expect(response).toEqual({error: `Missing contributor / namespace fields.`});
+            });
+            expect(mockProfilesService.createBinding).not.toHaveBeenCalled();
+        });
+        it('Should error on missing namespace', async () => {
+            const custUrl = (v: RouteTypes) => url(v).replace(/\/apverma$/, '');
+            const [rAdd, rRemove] = await Promise.all(
+                ['add','remove'].map((verb: RouteTypes) =>
+                    sendTestRequest(custUrl(verb), null, 400, 'post', requestBody)
+                )
+            );
+            [rAdd, rRemove].forEach(response => {
+                expect(response).toEqual({error: `Missing contributor / namespace fields.`});
+            });
+            expect(mockProfilesService.createBinding).not.toHaveBeenCalled();
+        });
+        it('Should error on invalid email for contrib', async () => {
+            const response = await sendTestRequest(url('add'), null, 400, 'post', {
+                contributor: 'apverma'
+            });
+            expect(response).toEqual({error: `Contributor doesn't look like a valid email address`});
+            expect(mockProfilesService.createBinding).not.toHaveBeenCalled();
+        });
+        it('Should successfully add and remove a contributor', async () => {
+            const response = await sendTestRequest(url('add'), null, 200, 'post', requestBody);
+            expect(response).toEqual(['test']);
+            expect(mockProfilesService.createBinding).toHaveBeenCalledWith({
+                user: {
+                    kind: 'User',
+                    name: 'apverma@google.com',
                 },
-                user: 'anonymous@kubeflow.org',
-                isClusterAdmin: true,
-                namespaces: [
-                    {
-                        user: 'anonymous@kubeflow.org',
-                        namespace: 'default',
-                        role: 'contributor',
-                    },
-                    {
-                        user: 'anonymous@kubeflow.org',
-                        namespace: 'kubeflow',
-                        role: 'contributor',
-                    },
-                ],
-            };
-
-            let response = await sendTestRequest(url);
-            expect(response).toEqual(expectedResponse);
-            expect(mockK8sService.getPlatformInfo).toHaveBeenCalled();
-
-            // Second call should use cached platform information
-            response = await sendTestRequest(url);
-            expect(response).toEqual(expectedResponse);
-            expect(mockK8sService.getPlatformInfo.calls.count()).toBe(1);
-            expect(mockProfilesService.readBindings).toHaveBeenCalled();
-            expect(mockProfilesService.v1RoleClusteradminGet)
-                .not.toHaveBeenCalled();
+                referredNamespace: 'apverma',
+                roleRef: {
+                    kind: 'ClusterRole',
+                    name: 'edit',
+                }
+            });
         });
     });
 });
