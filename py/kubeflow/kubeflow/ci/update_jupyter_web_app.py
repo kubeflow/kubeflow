@@ -168,8 +168,10 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
       kustomize_file, JUPYTER_WEB_APP_IMAGE_NAME, image)
 
     if not image_updated:
-      logging.info("Prototype not updated so not creating a PR.")
+      logging.info("kustomization not updated so not creating a PR.")
       return
+
+    application_util.regenerate_manifest_tests(self.manifests_repo_dir)
 
     branch_name = "update_jupyter_{0}".format(last_commit)
 
@@ -195,6 +197,7 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
 
     logging.info("Add file %s to repo", kustomize_file)
     repo.index.add([kustomize_file])
+    repo.index.add([os.path.join(self.manifests_repo_dir, "tests/*")])
     repo.index.commit("Update the jupyter web app image to {0}".format(image))
 
     util.run(["git", "push", "-f", remote_repo.name,

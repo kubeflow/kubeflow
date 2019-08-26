@@ -65,7 +65,7 @@ Here are some key things to know about hub CLI
 
 ## Kustomize package
 
-Common variables should be et in `base/kustomization.yaml` and `base/params.env`; e.g.
+Common variables should be set in `base/kustomization.yaml` and `base/params.env`; e.g.
  
   * Base docker image
   * Repos to check out
