@@ -343,7 +343,7 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 		b := backoff.NewExponentialBackOff()
 		b.InitialInterval = 3 * time.Second
 		b.MaxInterval = 30 * time.Second
-		b.MaxElapsedTime = 5 * time.Minute
+		b.MaxElapsedTime = 15 * time.Minute
 		return backoff.Retry(func() error {
 			_, nsErr := clientset.CoreV1().Namespaces().Get(defaultProfileNamespace, metav1.GetOptions{})
 			if nsErr != nil {
