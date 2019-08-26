@@ -20,7 +20,6 @@ import (
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/v3/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -156,7 +155,7 @@ type Apply struct {
 	stdin                       *os.File
 }
 
-func NewApply(kfDef *kfdefs.KfDef) (*Apply, error) {
+func NewApply(namespace string) (*Apply, error) {
 	apply := &Apply{
 		matchVersionKubeConfigFlags: cmdutil.NewMatchVersionFlags(genericclioptions.NewConfigFlags()),
 	}
@@ -169,7 +168,7 @@ func NewApply(kfDef *kfdefs.KfDef) (*Apply, error) {
 		}
 	}
 	apply.clientset = clientset
-	err = apply.namespace(kfDef)
+	err = apply.namespace(namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -278,8 +277,7 @@ func (a *Apply) init() error {
 	return nil
 }
 
-func (a *Apply) namespace(kfDef *kfdefs.KfDef) error {
-	namespace := kfDef.ObjectMeta.Namespace
+func (a *Apply) namespace(namespace string) error {
 	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
 	_, nsMissingErr := a.clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 	if nsMissingErr != nil {

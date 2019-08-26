@@ -244,7 +244,7 @@ func (kustomize *kustomize) initK8sClients() error {
 
 // Apply deploys kustomize generated resources to the kubenetes api server
 func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
-	apply, err := utils.NewApply(kustomize.kfDef)
+	apply, err := utils.NewApply(kustomize.kfDef.ObjectMeta.Namespace)
 	if err != nil {
 		return err
 	}
