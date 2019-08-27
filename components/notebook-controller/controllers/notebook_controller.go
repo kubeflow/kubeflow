@@ -35,6 +35,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 const DefaultContainerPort = 8888
@@ -73,7 +77,7 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("notebook", req.NamespacedName)
 
-	var instance *v1alpha1.Notebook
+	instance := &v1alpha1.Notebook{}
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
 		log.Error(err, "unable to fetch Notebook")
 		return ctrl.Result{}, ignoreNotFound(err)
@@ -449,7 +453,43 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		virtualService.SetKind("VirtualService")
 		builder.Owns(virtualService)
 	}
-	// watch underlying pod
 
-	return builder.Complete(r)
+	// TODO(lunkai): After this is fixed:
+	// https://github.com/kubernetes-sigs/controller-runtime/issues/572
+	// We don't have to call Build to get the controller.
+	c, err := builder.Build(r)
+	if err != nil {
+		return err
+	}
+
+	// watch underlying pod
+	mapFn := handler.ToRequestsFunc(
+		func(a handler.MapObject) []ctrl.Request {
+			return []ctrl.Request{
+				{NamespacedName: types.NamespacedName{
+					Name:      a.Meta.GetLabels()["notebook-name"],
+					Namespace: a.Meta.GetNamespace(),
+				}},
+			}
+		})
+	p := predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			if _, ok := e.MetaOld.GetLabels()["notebook-name"]; !ok {
+				return false
+			}
+			return e.ObjectOld != e.ObjectNew
+		},
+		CreateFunc: func(e event.CreateEvent) bool {
+			if _, ok := e.Meta.GetLabels()["notebook-name"]; !ok {
+				return false
+			}
+			return true
+		},
+	}
+	return c.Watch(
+		&source.Kind{Type: &corev1.Pod{}},
+		&handler.EnqueueRequestsFromMapFunc{
+			ToRequests: mapFn,
+		},
+		p)
 }

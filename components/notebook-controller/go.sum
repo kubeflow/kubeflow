@@ -586,6 +586,8 @@ golang.org/x/tools v0.0.0-20190501045030-23463209683d h1:D7DVZUZEUgsSIDTivnUtVeG
 golang.org/x/tools v0.0.0-20190501045030-23463209683d/go.mod h1:RgjU9mgBXZiqYHBnxXauZ1Gv1EHHAz9KjViQ78xBX0Q=
 gomodules.xyz/jsonpatch/v2 v2.0.0 h1:OyHbl+7IOECpPKfVK42oFr6N7+Y2dR+Jsb/IiDV3hOo=
 gomodules.xyz/jsonpatch/v2 v2.0.0/go.mod h1:IhYNNY4jnS53ZnfE4PAmpKtDpTCj1JFXc+3mwe7XcUU=
+gomodules.xyz/jsonpatch/v2 v2.0.1 h1:xyiBuvkD2g5n7cYzx6u2sxQvsAy4QJsZFCzGVdzOXZ0=
+gomodules.xyz/jsonpatch/v2 v2.0.1/go.mod h1:IhYNNY4jnS53ZnfE4PAmpKtDpTCj1JFXc+3mwe7XcUU=
 google.golang.org/api v0.0.0-20180910000450-7ca32eb868bf/go.mod h1:4mhQ8q/RsB7i+udVvVy5NUi08OU8ZlA0gRVgrF7VFY0=
 google.golang.org/api v0.0.0-20181030000543-1d582fd0359e/go.mod h1:4mhQ8q/RsB7i+udVvVy5NUi08OU8ZlA0gRVgrF7VFY0=
 google.golang.org/api v0.1.0/go.mod h1:UGEZY7KEX120AnNLIHFMKIo4obdJhkp2tPbaPlQx13Y=
@@ -659,6 +661,8 @@ sigs.k8s.io/controller-runtime v0.1.9 h1:ZcnTZfnCGynyToVwHsqV3bMoGXwViYlnUF8kfMg
 sigs.k8s.io/controller-runtime v0.1.9/go.mod h1:HFAYoOh6XMV+jKF1UjFwrknPbowfyHEHHRdJMf2jMX8=
 sigs.k8s.io/controller-runtime v0.2.0-beta.4 h1:S1XVfRWR1MuIXZdkYx3jN8JDw+bbQxmWZroy0i87z/A=
 sigs.k8s.io/controller-runtime v0.2.0-beta.4/go.mod h1:HweyYKQ8fBuzdu2bdaeBJvsFgAi/OqBBnrVGXcqKhME=
+sigs.k8s.io/controller-runtime v0.2.0 h1:5gL30PXOisGZl+Osi4CmLhvMUj77BO3wJeouKF2va50=
+sigs.k8s.io/controller-runtime v0.2.0/go.mod h1:ZHqrRDZi3f6BzONcvlUxkqCKgwasGk5FZrnSv9TVZF4=
 sigs.k8s.io/controller-tools v0.1.8 h1:ENPucNu31uJVaqsL6jTcFK65bGF9g++HFhCuqoPB9Ts=
 sigs.k8s.io/controller-tools v0.1.8/go.mod h1:6g08p9m9G/So3sBc1AOQifHfhxH/mb6Sc4z0LMI8XMw=
 sigs.k8s.io/controller-tools v0.2.0-beta.4 h1:W+coTe+nkVNclQrikwlRp6GJKwgcrHzvIQZ9kCaak5A=

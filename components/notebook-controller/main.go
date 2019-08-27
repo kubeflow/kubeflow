@@ -64,6 +64,7 @@ func main() {
 	if err = (&controllers.NotebookReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Notebook"),
+		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Notebook")
 		os.Exit(1)
