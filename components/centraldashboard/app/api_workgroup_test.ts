@@ -1,3 +1,4 @@
+import 'jasmine';
 import express, {Request, Response} from 'express';
 
 import {attachUser} from './attach_user_middleware';
@@ -5,30 +6,8 @@ import {DefaultApi} from './clients/profile_controller';
 import {KubernetesService} from './k8s_service';
 import {
     WorkgroupApi,
-    SimpleBinding,
-    WorkgroupBinding,
-    WorkgroupRole,
-    roleMap,
 } from './api_workgroup';
-import {sendTestRequest} from './_test_resources';
-
-/**
- * Converts SimpleBinding to Workgroup Binding from Profile Controller
- */
-function mapSimpleBindingToWorkgroupBinding(binding: SimpleBinding): WorkgroupBinding {
-    const {user, namespace, role} = binding;
-    return {
-        user: {
-            kind: 'User',
-            name: user,
-        },
-        referredNamespace: namespace,
-        roleRef: {
-            kind: 'ClusterRole',
-            name: roleMap.get(role) as WorkgroupRole,
-        }
-    };
-}
+import {sendTestRequest} from './test_resources';
 
 describe('Workgroup API', () => {
     const header = {
@@ -117,10 +96,22 @@ describe('Workgroup API', () => {
                     response: null,
                     body: {
                         bindings: [
-                            {user: 'anyone@kubeflow.org', namespace: 'default', role: 'owner'},
-                            {user: 'user1@kubeflow.org', namespace: 'default', role: 'contributor'},
-                            {user: 'user1@kubeflow.org', namespace: 'kubeflow', role: 'owner'},
-                        ].map(mapSimpleBindingToWorkgroupBinding)
+                            {
+                                user: {kind: 'User', name: 'anyone@kubeflow.org'},
+                                referredNamespace: 'default',
+                                roleRef: {kind: 'ClusterRole', name: 'admin'},
+                            },
+                            {
+                                user: {kind: 'User', name: 'user1@kubeflow.org'},
+                                referredNamespace: 'default',
+                                roleRef: {kind: 'ClusterRole', name: 'edit'},
+                            },
+                            {
+                                user: {kind: 'User', name: 'user1@kubeflow.org'},
+                                referredNamespace: 'kubeflow',
+                                roleRef: {kind: 'ClusterRole', name: 'admin'},
+                            },
+                        ]
                     },
                 }));
 

@@ -17,5 +17,9 @@
     "include": [
         "app",
         "types"
+    ],
+    "exclude": [
+        "app/**/*_test.ts",
+        "app/**/test_resources.ts",
     ]
 }
