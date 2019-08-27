@@ -114,8 +114,13 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   config_spec["spec"]["project"] = project
   config_spec["spec"]["email"] = email
   config_spec["spec"] = filterSpartakus(config_spec["spec"])
-
-  logging.info(str(config_spec))
+  repos = config_spec["spec"]["repos"]
+  if os.getenv("REPO_NAME") == "manifests":
+    for repo in repos:
+      for key, value in repo.items():
+        if value == "https://github.com/kubeflow/manifests/archive/master.tar.gz":
+          repo["uri"] = str("https://github.com/kubeflow/manifests/archive/pull/"+str(os.getenv("PULL_NUMBER"))+"/head.tar.gz")
+    logging.info(str(config_spec))
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
   util.run([
