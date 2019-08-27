@@ -58,6 +58,11 @@ spec:
       overlays:
       - istio
       - application
+      parameters:
+      - name: userid-header
+        value: X-Goog-Authenticated-User-Email
+      - name: userid-prefix
+        value: "accounts.google.com:"
       repoRef:
         name: manifests
         path: common/centraldashboard
@@ -79,6 +84,11 @@ spec:
       overlays:
       - istio
       - application
+      parameters:
+        - name: userid-header
+          value: X-Goog-Authenticated-User-Email
+        - name: userid-prefix
+          value: "accounts.google.com:"
       repoRef:
         name: manifests
         path: jupyter/jupyter-web-app
@@ -240,7 +250,7 @@ spec:
       parameters:
       - initRequired: true
         name: acmeEmail
-        value: SET_EMAIL
+        # value: SET_EMAIL
       repoRef:
         name: manifests
         path: cert-manager/cert-manager
@@ -259,7 +269,11 @@ spec:
       parameters:
       - initRequired: true
         name: admin
-        value: SET_EMAIL
+        # value: SET_EMAIL
+      - name: userid-header
+        value: X-Goog-Authenticated-User-Email
+      - name: userid-prefix
+        value: "accounts.google.com:"
       repoRef:
         name: manifests
         path: profiles
@@ -275,30 +289,30 @@ spec:
         value: istio-system
       - initRequired: true
         name: ipName
-        value: kf101-ip
+        # value: kf101-ip
       - initRequired: true
         name: hostname
-        value: kf101.endpoints.SET_PROJECT.cloud.goog
+        # value: kf101.endpoints.SET_PROJECT.cloud.goog
       repoRef:
         name: manifests
         path: gcp/iap-ingress
     name: iap-ingress
-  email: SET_EMAIL
+  # Set email to the account to grant permissions to by default. If not set it will
+  # be set automatically by kfctl.
+  # email: SET_EMAIL
   enableApplications: true
-  hostname: kf101.endpoints.SET_PROJECT.cloud.goog
-  ipName: kf101-ip
+  # hostname: kf101.endpoints.SET_PROJECT.cloud.goog
+  #ipName: kf101-ip
   packageManager: kustomize
   platform: gcp
-  project: SET_PROJECT
+  # Set project to your GCP project; if not set it will be automatically set
+  # by kfctl init and generate
+  # project: <Your GCP project>
   repos:
   - name: kubeflow
-    root: kubeflow-0.6.1
-    uri: https://github.com/kubeflow/kubeflow/archive/v0.6.1.tar.gz
+    uri: https://github.com/kubeflow/kubeflow/archive/0dbd2550372c003ba69069aeee283bd59fb1341f.tar.gz
   - name: manifests
-    root: manifests-0.6.1
-    uri: https://github.com/kubeflow/manifests/archive/v0.6.1.tar.gz
+    uri: https://github.com/kubeflow/manifests/archive/56e2fb15db286198f7a53723cb1fbfecf3fe83fb.tar.gz
   skipInitProject: true
   useBasicAuth: false
   useIstio: true
-  version: SET_VERSION
-  zone: SET_ZONE
