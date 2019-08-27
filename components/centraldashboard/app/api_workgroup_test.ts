@@ -353,10 +353,20 @@ describe('Workgroup API', () => {
             url = `http://localhost:${port}/api/workgroup/create`;
         });
 
-        it('Should return a 405 status for a non-identity aware cluster', async () => {
-            const response = await sendTestRequest(url, null, 405, 'post');
-            expect(response).toEqual({error: 'Operation not supported'});
-            expect(mockProfilesService.createProfile).not.toHaveBeenCalled();
+        it('Should work for a non-identity aware cluster', async () => {
+            const response = await sendTestRequest(url, null, 200, 'post');
+            expect(response).toEqual({message: 'Created namespace anonymous'});
+            expect(mockProfilesService.createProfile).toHaveBeenCalledWith({
+                metadata: {
+                    name: 'anonymous',
+                },
+                spec: {
+                    owner: {
+                        kind: 'User',
+                        name: 'anonymous@kubeflow.org',
+                    }
+                },
+            });
         });
 
         it('Should use user identity if no body is provided', async () => {
@@ -426,6 +436,10 @@ describe('Workgroup API', () => {
         type RouteTypes = 'add' | 'remove';
         let url: (type: RouteTypes) => string;
         const requestBody = {contributor: 'apverma@google.com'};
+        const headers = {
+            'content-type': 'application/json',
+            [header.goog]: `${prefix.goog}test@testdomain.com`,
+        };
 
         beforeEach(() => {
             mockProfilesService = jasmine.createSpyObj<DefaultApi>(['createBinding']);
@@ -445,38 +459,30 @@ describe('Workgroup API', () => {
             url = (type: RouteTypes) =>
                 `http://localhost:${port}/api/workgroup/${type}-contributor/apverma`;
         });
-
+        it('Should should show error if user auth status is not detected', async () => {
+            const response = await sendTestRequest(url('add'), null, 405, 'post', requestBody);
+            expect(response).toEqual({error: `Unable to ascertain user identity from request, cannot access route.`});
+            expect(mockProfilesService.createBinding).not.toHaveBeenCalled();
+        });
         it('Should error on missing contributor', async () => {
             const [rAdd, rRemove] = await Promise.all([
-                sendTestRequest(url('add'), null, 400, 'post'),
-                sendTestRequest(url('remove'), null, 400, 'post'),
+                sendTestRequest(url('add'), headers, 400, 'post'),
+                sendTestRequest(url('remove'), headers, 400, 'delete'),
             ]);
             [rAdd, rRemove].forEach(response => {
                 expect(response).toEqual({error: `Missing contributor / namespace fields.`});
             });
             expect(mockProfilesService.createBinding).not.toHaveBeenCalled();
         });
-        it('Should error on missing namespace', async () => {
-            const custUrl = (v: RouteTypes) => url(v).replace(/\/apverma$/, '');
-            const [rAdd, rRemove] = await Promise.all(
-                ['add','remove'].map((verb: RouteTypes) =>
-                    sendTestRequest(custUrl(verb), null, 400, 'post', requestBody)
-                )
-            );
-            [rAdd, rRemove].forEach(response => {
-                expect(response).toEqual({error: `Missing contributor / namespace fields.`});
-            });
-            expect(mockProfilesService.createBinding).not.toHaveBeenCalled();
-        });
         it('Should error on invalid email for contrib', async () => {
-            const response = await sendTestRequest(url('add'), null, 400, 'post', {
+            const response = await sendTestRequest(url('add'), headers, 400, 'post', {
                 contributor: 'apverma'
             });
             expect(response).toEqual({error: `Contributor doesn't look like a valid email address`});
             expect(mockProfilesService.createBinding).not.toHaveBeenCalled();
         });
         it('Should successfully add and remove a contributor', async () => {
-            const response = await sendTestRequest(url('add'), null, 200, 'post', requestBody);
+            const response = await sendTestRequest(url('add'), headers, 200, 'post', requestBody);
             expect(response).toEqual(['test']);
             expect(mockProfilesService.createBinding).toHaveBeenCalledWith({
                 user: {
@@ -488,7 +494,7 @@ describe('Workgroup API', () => {
                     kind: 'ClusterRole',
                     name: 'edit',
                 }
-            });
+            }, jasmine.anything());
         });
     });
 });

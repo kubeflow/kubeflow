@@ -291,6 +291,19 @@ export class WorkgroupApi {
                 });
             }
         })
+        .get('/env-info', async (req: Request, res: Response) => {
+            try {
+                if (req.user.hasAuth) {
+                    return res.json(await this.getProfileAwareEnv(req.user));
+                }
+                res.json(await this.getBasicEnvironment(req.user));
+            } catch (err) {
+                const code = (err.response && err.response.statusCode) || 400;
+                const error = err.body || 'Unexpected error getting environment info';
+                console.log(`Unable to get environment info: ${error}${err.stack?'\n'+err.stack:''}`);
+                apiError({res, code, error});
+            }
+        })
         .use((req: Request, res: Response, next: NextFunction) => {
             if (!req.user.hasAuth) {
                 return apiError({
