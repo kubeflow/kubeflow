@@ -2,7 +2,6 @@ import express from 'express';
 import {get} from 'http';
 
 import {Api} from './api';
-import {attachUser} from './attach_user_middleware';
 import {DefaultApi} from './clients/profile_controller';
 import {KubernetesService} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
