@@ -218,6 +218,6 @@ spec:
   platform: existing_arrikto
   repos:
   - name: kubeflow
-    uri: https://github.com/kubeflow/kubeflow/archive/0dbd2550372c003ba69069aeee283bd59fb1341f.tar.gz
+    uri: https://github.com/kubeflow/kubeflow/archive/77381fe66ae7bb1e83a48beacf7f3c20b4c289d8.tar.gz
   - name: manifests
     uri: https://github.com/kubeflow/manifests/archive/56e2fb15db286198f7a53723cb1fbfecf3fe83fb.tar.gz
