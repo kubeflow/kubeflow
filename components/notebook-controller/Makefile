@@ -1,6 +1,12 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= gcr.io/kubeflow-images-public/notebook-controller
+TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
+GOLANG_VERSION ?= 1.11.2
+
+# Whether to use cached images with GCB
+USE_IMAGE_CACHE ?= true
+
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
@@ -69,3 +75,28 @@ CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
+
+build-gcr: test
+	docker build -t $(IMG):$(TAG) .
+	@echo Built $(IMG):$(TAG)
+
+push-gcr: build-gcr
+	docker push $(IMG):$(TAG)
+	@echo Pushed $(IMG):$(TAG)
+
+# Build the GCB workflow
+build-gcb-spec:
+	rm -rf ./gcb_build
+	mkdir  -p gcb_build
+	jsonnet ./gcb_build.jsonnet --ext-str imageBase=$(IMG) \
+	  --ext-str gitVersion=$(GIT_VERSION) --ext-str tag=$(TAG) \
+	  --ext-str useImageCache=$(USE_IMAGE_CACHE) \
+	  > ./gcb_build/image_build.json
+
+# Build using GCB. This is useful if we are on a slow internet connection
+# and don't want to pull images locally.
+# Its also used to build from our CI system.
+build-gcb: build-gcb-spec
+	gcloud builds submit --machine-type=n1-highcpu-32 --project=kubeflow-ci \
+	    --config=./gcb_build/image_build.json \
+		--timeout=3600 .
