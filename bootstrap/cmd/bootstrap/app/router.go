@@ -320,7 +320,7 @@ func (r *kfctlRouter) CreateKfctlServer(name string, currTime []byte) error {
 	}
 	log.Infof("Create or update K8s statefulset")
 
-	newBackend, err := r.k8sclient.AppsV1().StatefulSets(r.namespace).Create(backend)
+	_, err := r.k8sclient.AppsV1().StatefulSets(r.namespace).Create(backend)
 
 	if err != nil {
 		pbackend, _ := Pformat(backend)
@@ -329,9 +329,6 @@ func (r *kfctlRouter) CreateKfctlServer(name string, currTime []byte) error {
 			Code:    http.StatusServiceUnavailable,
 			Message: "Unable to process your Kubeflow request; please try again later",
 		}
-	} else {
-		pBackend, _ := Pformat(newBackend)
-		log.Infof("Result of current statefulset: %+v", pBackend)
 	}
 
 	// Create service
@@ -358,7 +355,7 @@ func (r *kfctlRouter) CreateKfctlServer(name string, currTime []byte) error {
 	}
 
 	log.Infof("Create K8s service")
-	newService, err := r.k8sclient.CoreV1().Services(r.namespace).Create(svc)
+	_, err = r.k8sclient.CoreV1().Services(r.namespace).Create(svc)
 
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		pService, _ := Pformat(svc)
@@ -368,8 +365,6 @@ func (r *kfctlRouter) CreateKfctlServer(name string, currTime []byte) error {
 			Message: "Unable to process your Kubeflow request; please try again later",
 		}
 	}
-	pService, _ := Pformat(newService)
-	log.Infof("Result of create service: %+v", pService)
 	return nil
 }
 

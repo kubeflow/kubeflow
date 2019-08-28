@@ -96,23 +96,22 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 	}
 	response, ok := resp.(*kfdefs.KfDef)
 
-	if ok {
-		return response, nil
-	}
+	if !ok {
+		log.Info("Response is not type *KfDef")
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
+		resErr, ok := resp.(*httpError)
+		if ok {
+			return nil, resErr
+		}
 
-	log.Info("Response is not type *KfDef")
-	resErr, ok := resp.(*httpError)
-
-	if ok {
+		log.Info("Response is not type *httpError")
+		pRes, _ := Pformat(resp)
+		log.Errorf("Recieved unexpected response; %v", pRes)
 		return nil, resErr
 	}
 
-	log.Info("Response is not type *httpError")
-
-	pRes, _ := Pformat(resp)
-	log.Errorf("Recieved unexpected response; %v", pRes)
-
 	// Watch deployment status, update monitor signal as needed.
+	log.Infof("Watching deployment status")
 	bo.Reset()
 	permErr = backoff.Retry(func() error {
 		latestKfdef, err := c.GetLatestKfdef(req)
@@ -133,6 +132,7 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
 		return nil, permErr
 	}
+	log.Infof("Deployment succeeded")
 	deployReqCounter.WithLabelValues("OK").Inc()
 	kfDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 	if req.Spec.Project != "kubeflow-prober-deploy" {
