@@ -1,3 +1,4 @@
+namespace: kf-releasing
 bases:
   - ../../base
 resources:  

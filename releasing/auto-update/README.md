@@ -30,7 +30,9 @@ Here's how this works
   * We use 
 
     * **project**: kubeflow-releasing
-  	* **cluster**: kf-releasing
+  	* **cluster**: kf-releasing-v-0-6-2
+    * **kf-releasing**: This is a Kubeflow profile created namespace
+    * This is a kubeflow v0.6.2 cluster; configs should be checked in kubeflow/testing/release-infra
 
 * The ssh keys are stored as K8s secret and configured via init containers
 
@@ -39,7 +41,7 @@ Here's how this works
 1. Create secrets in the cluster containing the GitHub ssh keys.
 
     ```
-    kubectl create secret generic kubeflow-bot-ssh --from-file=id_rsa=kubeflow-bot --from-file=id_rsa.pub=kubeflow-bot.pub 
+    kubectl create -n ${NAMESPACE} secret generic kubeflow-bot-ssh --from-file=id_rsa=kubeflow-bot --from-file=id_rsa.pub=kubeflow-bot.pub 
     ```
 
     * Use a public/private SSH key that has been added to the kubeflow-bot GitHub account

@@ -5,6 +5,8 @@ data:
   update_jupyter.sh: |
     #!/bin/bash
     set -ex
+    # We clone it here and not in checkout.sh  because checkout.sh does a shallow clone
+    git clone https://github.com/kubeflow/manifests.git /src/kubeflow/manifests
     python3 -m kubeflow.kubeflow.ci.update_jupyter_web_app all \
         --build-project=kubeflow-releasing \
         --registry-project=kubeflow-images-public \
