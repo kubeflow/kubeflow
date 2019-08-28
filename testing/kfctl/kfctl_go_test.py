@@ -10,7 +10,8 @@ import yaml
 import pytest
 
 from kubeflow.testing import util
-
+from kubeflow.testing import prow_artifacts
+import google.cloud.storage as storage
 
 # retry 4 times, waiting 3 minutes between retries
 @retry(stop_max_attempt_number=4, wait_fixed=180000)
@@ -66,16 +67,18 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   kfctl_path = os.path.join(build_dir, "bin", "kfctl")
 
   # Push built kfctl binary to GCS bucket
-  import google.cloud.storage as storage
   gcs_client = storage.Client()
-  bucket = gcs_client.lookup_bucket("kfctl-nightly")
+  bucket = gcs_client.lookup_bucket("kubernetes-jenkins")
   if bucket == None:
-    logging.info("Bucket kfctl-nightly not found, creating bucket...")
-    bucket = gcs_client.create_bucket("kfctl-nightly", project=project)
-    if bucket != None:
-      logging.info("kfctl-nightly bucket was created.")
-  util.upload_file_to_gcs(kfctl_path, "gs://kfctl-nightly/kfctl"+stamp)
-  logging.info("Pushed kfctl binary to GCS bucket")
+    logging.info("Bucket kubernetes-jenkins not found")
+  else:
+    artifacts_path = "{bucket}/pr-logs/pull/{owner}_{repo}/"
+              "{pull_number}/{job}/{build}/artifacts/".format(
+                  bucket=bucket, owner=os.getenv("REPO_OWNER"),
+                  repo=os.getenv("REPO_NAME"), job=os.getenv("JOB_NAME"),
+                  build=os.getenv("BUILD_NUMBER"))
+    utils.upload_file_to_gcs(kfctl_path, artifacts_path)
+    logging.info("Pushed kfctl binary to Prow GCS bucket")
 
   # Set ENV for basic auth username/password.
   init_args = []
