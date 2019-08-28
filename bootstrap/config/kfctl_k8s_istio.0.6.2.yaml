@@ -242,4 +242,4 @@ spec:
   skipInitProject: true
   useBasicAuth: false
   useIstio: true
-  version: SET_VERSION
+  # version: SET_VERSION
