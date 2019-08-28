@@ -9,7 +9,6 @@ https://hub.github.com/hub.1.html
 
 import logging
 import os
-import re
 import tempfile
 import yaml
 
@@ -17,6 +16,7 @@ import fire
 import git
 import httplib2
 
+from kubeflow.kubeflow.ci import application_util
 from kubeflow.testing import util # pylint: disable=no-name-in-module
 
 from containerregistry.client import docker_creds
@@ -25,9 +25,13 @@ from containerregistry.client.v2_2 import docker_http
 from containerregistry.client.v2_2 import docker_image as v2_2_image
 from containerregistry.transport import transport_pool
 
+# The image name as defined in the kustomization file
+JUPYTER_WEB_APP_IMAGE_NAME = "gcr.io/kubeflow-images-public/jupyter-web-app"
+
 class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
   def __init__(self):
     self._last_commit = None
+    self.manifests_repo_dir = None
 
   def build_image(self, build_project, registry_project):
     """Build the image.
@@ -57,75 +61,6 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
       data = yaml.load(hf)
 
     return data["image"]
-
-  def _replace_parameters(self, lines, values):
-    """Replace parameters in ksonnet text.
-
-    Args:
-      lines: Lines of text
-      values: A dictionary containing the names of parameters and the values
-        to set them to.
-
-    Returns:
-      lines: Modified lines
-      old: Dictionary of old values for these parameters
-    """
-    old = {}
-    for i, line in enumerate(lines):
-      # Split the line on white space
-      pieces = re.findall(r'\S+', line)
-
-      # Check if this line is a parameter
-      # // @optionalParam image string gcr.io/myimage Some image
-      if len(pieces) < 5:
-        continue
-
-      if pieces[0] != "//" or pieces[1] != "@optionalParam":
-        continue
-
-      param_name = pieces[2]
-      if not param_name in values:
-        continue
-
-      old[param_name] = pieces[4]
-      logging.info("Changing param %s from %s to %s", param_name, pieces[4],
-                   values[param_name])
-      pieces[4] = values[param_name]
-
-      lines[i] = " ".join(pieces)
-
-    return lines, old
-
-  def update_prototype(self, image):
-    """Update the prototype file.
-
-    Args:
-      image: New image to set
-
-    Returns:
-      prototype_file: The modified prototype file or None if the image is
-        already up to date.
-    """
-    values = {"image": image}
-
-
-    prototype_file = os.path.join(self._root_dir(),
-                                  "kubeflow/jupyter/prototypes",
-                                  "jupyter-web-app.jsonnet")
-    with open(prototype_file) as f:
-      prototype = f.read().split("\n")
-
-    new_lines, old_values = self._replace_parameters(prototype, values)
-
-    if old_values["image"] == image:
-      logging.info("Existing image was already the current image; %s", image)
-      return None
-    temp_file = prototype_file + ".tmp"
-    with open(temp_file, "w") as w:
-      w.write("\n".join(new_lines))
-    os.rename(temp_file, prototype_file)
-
-    return prototype_file
 
   @property
   def last_commit(self):
@@ -160,7 +95,7 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     return None
 
   def all(self, build_project, registry_project, remote_fork, # pylint: disable=too-many-statements,too-many-branches
-          add_github_host=False):
+          kustomize_file, add_github_host=False):
     """Build the latest image and update the prototype.
 
     Args:
@@ -170,9 +105,14 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
         The remote fork used to create the PR;
          e.g. git@github.com:jlewi/kubeflow.git. currently only ssh is
          supported.
+      kustomize_file: Path to the kustomize file
       add_github_host: If true will add the github ssh host to known ssh hosts.
     """
-    repo = git.Repo(self._root_dir())
+    # TODO(jlewi): How can we automatically determine the root of the git
+    # repo containing the kustomize_file?
+    self.manifests_repo_dir = util.run(["git", "rev-parse", "--show-toplevel"],
+                                       cwd=os.path.dirname(kustomize_file))
+    repo = git.Repo(self.manifests_repo_dir)
     util.maybe_activate_service_account()
     last_commit = self.last_commit
 
@@ -222,13 +162,16 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     else:
       logging.info("Image %s already exists", image)
 
-    # We should check what the current image is if and not update it
-    # if its the existing image
-    prototype_file = self.update_prototype(image)
+    # TODO(jlewi): What if the file was already modified so we didn't
+    # modify it in this run but we still need to commit it?
+    image_updated = application_util.set_kustomize_image(
+      kustomize_file, JUPYTER_WEB_APP_IMAGE_NAME, image)
 
-    if not prototype_file:
-      logging.info("Prototype not updated so not creating a PR.")
+    if not image_updated:
+      logging.info("kustomization not updated so not creating a PR.")
       return
+
+    application_util.regenerate_manifest_tests(self.manifests_repo_dir)
 
     branch_name = "update_jupyter_{0}".format(last_commit)
 
@@ -238,9 +181,10 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
       branch_names = [b.name for b in repo.branches]
       if branch_name in branch_names:
         logging.info("Branch %s exists", branch_name)
-        util.run(["git", "checkout", branch_name], cwd=self._root_dir())
+        util.run(["git", "checkout", branch_name], cwd=self.manifests_repo_dir)
       else:
-        util.run(["git", "checkout", "-b", branch_name], cwd=self._root_dir())
+        util.run(["git", "checkout", "-b", branch_name],
+                 cwd=self.manifests_repo_dir)
 
     if self._check_if_pr_exists(commit=last_commit):
       # Since a PR already exists updating to the specified commit
@@ -251,11 +195,14 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
       # PR and a new PR will be created on the next cron run.
       return
 
-    logging.info("Add file %s to repo", prototype_file)
-    repo.index.add([prototype_file])
+    logging.info("Add file %s to repo", kustomize_file)
+    repo.index.add([kustomize_file])
+    repo.index.add([os.path.join(self.manifests_repo_dir, "tests/*")])
     repo.index.commit("Update the jupyter web app image to {0}".format(image))
 
-    util.run(["git", "push", "-f", remote_repo.name], cwd=self._root_dir())
+    util.run(["git", "push", "-f", remote_repo.name,
+              "{0}:{0}".format(branch_name)],
+             cwd=self.manifests_repo_dir)
 
     self.create_pull_request(commit=last_commit)
 
@@ -287,7 +234,7 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     # The GitHub repository is determined automatically based on the name
     # of remote repositories
     output = util.run(["hub", "pr", "list", "--format=%U;%t\n"],
-                      cwd=self._root_dir())
+                      cwd=self.manifests_repo_dir)
 
 
     lines = output.splitlines()
@@ -313,15 +260,20 @@ class WebAppUpdater(object): # pylint: disable=useless-object-inheritance
     """
     pr_title = self._pr_title(commit)
 
-    with tempfile.NamedTemporaryFile(delete=False) as hf:
-      hf.write(pr_title.encode())
+    with tempfile.NamedTemporaryFile(delete=False, mode="w") as hf:
+      hf.write(pr_title)
+      hf.write("\n")
+      hf.write("\n")
+      hf.write(
+        "Image built from commit https://github.com/kubeflow/kubeflow/"
+        "commit/{0}".format(self._last_commit))
       message_file = hf.name
 
     # TODO(jlewi): -f creates the pull requests even if there are local changes
     # this was useful during development but we may want to drop it.
     util.run(["hub", "pull-request", "-f", "--base=" + base, "-F",
               message_file],
-              cwd=self._root_dir())
+              cwd=self.manifests_repo_dir)
 
   def _root_dir(self):
     this_dir = os.path.dirname(__file__)
