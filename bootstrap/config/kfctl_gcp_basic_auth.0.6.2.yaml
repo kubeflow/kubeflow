@@ -310,7 +310,7 @@ spec:
   project: SET_PROJECT
   repos:
   - name: kubeflow
-    uri: https://github.com/kubeflow/kubeflow/archive/0dbd2550372c003ba69069aeee283bd59fb1341f.tar.gz
+    uri: https://github.com/kubeflow/kubeflow/archive/47a0e4c7532ee7b93eef662cecb3d376b5f84ca7.tar.gz
   - name: manifests
     uri: https://github.com/kubeflow/manifests/archive/56e2fb15db286198f7a53723cb1fbfecf3fe83fb.tar.gz
   skipInitProject: true
