@@ -104,7 +104,7 @@ RUN pip3 --no-cache-dir install \
     jupyter-console==6.0.0 \
     jupyterlab \
     xgboost \
-    git+https://github.com/kubeflow/fairing@a9bb9d5cc1c9f1d75efa31198ddbdccfe176b7bf \
+    git+https://github.com/kubeflow/fairing@11a4c0f25140054d5d1cda7ca981001827ff972b \
     # Kubeflow pipeline SDK
     ${PIPELINE_SDK_PACKAGE} 
 
