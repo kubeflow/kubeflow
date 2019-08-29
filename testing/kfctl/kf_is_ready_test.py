@@ -71,7 +71,7 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
 
   for stateful_set_name in stateful_set_names:
     logging.info("Verifying that stateful set %s started...", stateful_set_name)
-    util.wait_for_deployment(api_client, namespace, stateful_set_name, 10)
+    util.wait_for_statefulset(api_client, namespace, stateful_set_name)
 
   ingress_namespace = "istio-system" if use_istio else namespace
   for deployment_name in ingress_related_deployments:
