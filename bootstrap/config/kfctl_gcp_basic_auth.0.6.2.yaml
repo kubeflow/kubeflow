@@ -250,7 +250,7 @@ spec:
       parameters:
       - initRequired: true
         name: acmeEmail
-        value: SET_EMAIL
+        # value: SET_EMAIL
       repoRef:
         name: manifests
         path: cert-manager/cert-manager
@@ -269,7 +269,7 @@ spec:
       parameters:
       - initRequired: true
         name: admin
-        value: SET_EMAIL
+        # value: SET_EMAIL
       repoRef:
         name: manifests
         path: profiles
@@ -293,21 +293,21 @@ spec:
         value: kf101-ip
       - initRequired: true
         name: hostname
-        value: kf101.endpoints.SET_PROJECT.cloud.goog
+        # value: kf101.endpoints.SET_PROJECT.cloud.goog
       - initRequired: true
         name: project
-        value: SET_PROJECT
+        # value: SET_PROJECT
       repoRef:
         name: manifests
         path: gcp/basic-auth-ingress
     name: basic-auth-ingress
-  email: SET_EMAIL
+  # email: SET_EMAIL
   enableApplications: true
-  hostname: kf101.endpoints.SET_PROJECT.cloud.goog
+  # hostname: kf101.endpoints.SET_PROJECT.cloud.goog
   ipName: kf101-ip
   packageManager: kustomize
   platform: gcp
-  project: SET_PROJECT
+  # project: SET_PROJECT
   repos:
   - name: kubeflow
     uri: https://github.com/kubeflow/kubeflow/archive/0dbd2550372c003ba69069aeee283bd59fb1341f.tar.gz
@@ -316,5 +316,5 @@ spec:
   skipInitProject: true
   useBasicAuth: true
   useIstio: true
-  version: SET_VERSION
-  zone: SET_ZONE
+  # version: SET_VERSION
+  # zone: SET_ZONE
