@@ -43,7 +43,7 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
                 type: String,
                 readOnly: true,
                 // eslint-disable-next-line
-                value: '[-a-z0-9\.]',
+                value: '[-a-z0-9]',
             },
         };
     }
@@ -56,7 +56,7 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
     _onUserDetails(d) {
         this.namespaceName = this.userDetails
             // eslint-disable-next-line no-useless-escape
-            .replace(/[^\w\-\.]|_/g, '-')
+            .replace(/[^\w\-]|_/g, '-')
             .toLowerCase();
     }
 
