@@ -16,7 +16,9 @@ package cmd
 
 import (
 	"fmt"
+
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	kfapply "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/apply"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -24,6 +26,10 @@ import (
 )
 
 var applyCfg = viper.New()
+
+// ConfigFilePath is a flag for the apply sub-command to take in a config file (i.e KfDef)
+// and bootstrap a KfApp by filling in the necessary fields
+var ConfigFilePath string
 
 // applyCmd represents the apply command
 var applyCmd = &cobra.Command{
@@ -39,7 +45,19 @@ var applyCmd = &cobra.Command{
 		if resourceErr != nil {
 			return fmt.Errorf("invalid resource: %v", resourceErr)
 		}
+
+		// LoadKfApp looks for an app.yaml in the present directory and loads the KfApp
+		// from that. In the case, where an user wants to apply a configfile directly
+		// LoadKfApp would give out an error while failing to find the app.yaml
+		// In that case, we look for a -f flag and load the configfile from the flag to
+		// bootstrap a KfApp from scratch. The only caveat being that the current directory should be empty.
 		kfApp, kfAppErr := coordinator.LoadKfApp(map[string]interface{}{})
+		if kfApp == nil {
+			if ConfigFilePath == "" && kfAppErr != nil {
+				return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
+			}
+			kfAppErr = kfapply.BootstrapKubeflow(ConfigFilePath, resource)
+		}
 		if kfAppErr != nil {
 			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}
@@ -57,6 +75,9 @@ func init() {
 
 	applyCfg.SetConfigName("app")
 	applyCfg.SetConfigType("yaml")
+
+	// configfilepath as a flag
+	applyCmd.Flags().StringVarP(&ConfigFilePath, "file", "f", "", "`-f /path/to/config`")
 
 	// verbose output
 	applyCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,
