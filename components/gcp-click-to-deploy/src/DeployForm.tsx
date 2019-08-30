@@ -22,13 +22,13 @@ import {
 /** Relative paths from the root of the repository. */
 enum ConfigPath {
     V05 = 'v0.5-branch/components/gcp-click-to-deploy/app-config.yaml',
-    V06 = 'v0.6-branch/bootstrap/config/kfctl_gcp_iap.yaml'
+    V06 = 'v0.6-branch/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml'
 }
 
 /** Versions available for deployment. */
 enum Version {
     V05 = 'v0.5.0',
-    V06 = 'v0.6.1',
+    V06 = 'v0.6.2',
 }
 
 // TODO(jlewi): For the FQDN we should have a drop down box to select custom
@@ -343,10 +343,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                     </TextField>
                 </div>
                 <div style={styles.row}>
-                    <FormControlLabel label="Create Permanent Storage" control={
-                        <Checkbox checked={this.state.permanentStorage} color="primary"
-                            onChange={() => this.setState({permanentStorage: !this.state.permanentStorage})} />
-                    } />
                     <FormControlLabel label="Share Anonymous Usage Report" control={
                         <Checkbox checked={this.state.spartakus} color="primary"
                             onChange={() => this.setState({spartakus: !this.state.spartakus})} />

@@ -111,7 +111,7 @@ type kustomize struct {
 
 const (
 	defaultUserId = "anonymous"
-	outputDir = "kustomize"
+	outputDir     = "kustomize"
 )
 
 // Setter defines an interface for modifying the plugin.
