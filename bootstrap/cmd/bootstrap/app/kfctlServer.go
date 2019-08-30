@@ -264,6 +264,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 func (s *kfctlServer) process() {
 	for {
 		r := <-s.c
+		log.Infof("Channel: extract %v, channel len: %v", r.Name, len(s.c))
 
 		newDeployment, err := s.handleDeployment(r)
 
@@ -410,6 +411,7 @@ func (s *kfctlServer) GetLatestKfdef(req kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 // Not thread safe
 // TODO(jlewi): We should check if the request matches the current deployment and if not reject
 func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
+	log.Infof("New CreateDeployment for %v", req.Name)
 	token, err := req.GetSecret(gcp.GcpAccessTokenName)
 
 	if err != nil {
@@ -505,6 +507,7 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) 
 	prepareSecrets(strippedReq)
 
 	s.c <- *strippedReq
+	log.Infof("Channel: insert %v, channel len: %v", strippedReq.Name, len(s.c))
 
 	// Return the current status.
 	s.kfDefMux.Lock()
