@@ -49,7 +49,6 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
   wget \
   zip \
   emacs \
-  nodejs \
   && apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
