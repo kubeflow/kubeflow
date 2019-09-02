@@ -12,7 +12,6 @@ packages:
   - gcp
   - admission-webhook
   - jupyter
-  - katib-v1alpha2
   - metacontroller
   - metadata
   - modeldb

@@ -10,7 +10,7 @@ spec:
   - examples
   - admission-webhook
   - jupyter
-  - katib-v1alpha2
+  - katib
   - metacontroller
   - metadata
   - modeldb

@@ -93,24 +93,24 @@ spec:
   - kustomizeConfig:
       repoRef:
         name: manifests
-        path: katib-v1alpha2/katib-db
+        path: katib/katib-db
     name: katib-db
   - kustomizeConfig:
       repoRef:
         name: manifests
-        path: katib-v1alpha2/katib-manager
+        path: katib/katib-manager
     name: katib-manager
   - kustomizeConfig:
       repoRef:
         name: manifests
-        path: katib-v1alpha2/katib-controller
+        path: katib/katib-controller
     name: katib-controller
   - kustomizeConfig:
       overlays:
       - istio
       repoRef:
         name: manifests
-        path: katib-v1alpha2/katib-ui
+        path: katib/katib-ui
     name: katib-ui # Issue: https://github.com/kubeflow/manifests/issues/151
   - kustomizeConfig:
       overlays:
@@ -122,12 +122,12 @@ spec:
   - kustomizeConfig:
       repoRef:
         name: manifests
-        path: katib-v1alpha2/metrics-collector
+        path: katib/metrics-collector
     name: metrics-collector
   - kustomizeConfig:
       repoRef:
         name: manifests
-        path: katib-v1alpha2/suggestion
+        path: katib/suggestion
     name: suggestion
   - kustomizeConfig:
       overlays:
