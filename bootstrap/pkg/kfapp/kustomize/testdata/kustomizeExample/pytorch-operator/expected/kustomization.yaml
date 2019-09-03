@@ -1,6 +1,5 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
-bases:
-- base
+kind: Kustomization
 commonLabels:
   app.kubernetes.io/component: pytorch
   app.kubernetes.io/instance: pytorch-operator
@@ -8,7 +7,7 @@ commonLabels:
   app.kubernetes.io/name: pytorch-operator-application
   app.kubernetes.io/part-of: kubeflow
   app.kubernetes.io/version: v0.6.0
-kind: Kustomization
 namespace: kubeflow
 resources:
+- base
 - overlays/application/application.yaml
