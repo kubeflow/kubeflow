@@ -58,7 +58,7 @@ func NewKfctlClient(instance string) (KfctlService, error) {
 	{
 		getEndpoint = httptransport.NewClient(
 			"POST",
-			copyURL(u, KfctlCreatePath),
+			copyURL(u, KfctlGetpath),
 			encodeHTTPGenericRequest,
 			decodeHTTPKfdefResponse,
 		).Endpoint()
@@ -85,8 +85,10 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 	permErr := backoff.Retry(func() error {
 		resp, err = c.createEndpoint(ctx, req)
 		if err != nil {
+			log.Errorf("createEndpoint call failed with: %v", err)
 			return err
 		}
+		log.Errorf("createEndpoint call succeeded!")
 		return nil
 	}, bo)
 
