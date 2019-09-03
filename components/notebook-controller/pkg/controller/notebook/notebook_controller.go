@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
+	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/culler"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -253,6 +254,7 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	// Check the pod status
 	pod := &corev1.Pod{}
+	podFound := false
 	err = r.Get(context.TODO(), types.NamespacedName{Name: ss.Name + "-0", Namespace: ss.Namespace}, pod)
 	if err != nil && errors.IsNotFound(err) {
 		// This should be reconciled by the StatefulSet
@@ -261,6 +263,7 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	} else {
 		// Got the pod
+		podFound = true
 		if len(pod.Status.ContainerStatuses) > 0 &&
 			pod.Status.ContainerStatuses[0].State != instance.Status.ContainerState {
 			log.Info("Updating container state: ", "namespace", instance.Namespace, "name", instance.Name)
@@ -280,6 +283,25 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 		}
+	}
+
+	// Check if the Notebook needs to be stopped
+	if podFound && culler.NotebookNeedsCulling(instance.ObjectMeta) {
+		log.Info(fmt.Sprintf(
+			"Notebook %s/%s needs culling. Setting annotations",
+			instance.Namespace, instance.Name))
+
+		// Set annotations to the Notebook
+		culler.SetStopAnnotation(&instance.ObjectMeta)
+		err = r.Update(context.TODO(), instance)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	} else if podFound && !culler.StopAnnotationIsSet(instance.ObjectMeta) {
+		// The Pod is either too fresh, or the idle time has passed and it has
+		// received traffic. In this case we will be periodically checking if
+		// it needs culling.
+		return reconcile.Result{RequeueAfter: culler.GetRequeueTime()}, nil
 	}
 
 	return reconcile.Result{}, nil
@@ -312,12 +334,18 @@ func getNextCondition(cs corev1.ContainerState) v1alpha1.NotebookCondition {
 
 }
 func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
+	replicas := int32(1)
+	if culler.StopAnnotationIsSet(instance.ObjectMeta) {
+		replicas = 0
+	}
+
 	ss := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name,
 			Namespace: instance.Namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
+			Replicas: &replicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"statefulset": instance.Name,

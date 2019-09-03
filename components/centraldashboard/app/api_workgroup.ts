@@ -195,19 +195,27 @@ export class WorkgroupApi {
         .get(
             '/exists',
             async (req: Request, res: Response) => {
-                const response: HasWorkgroupResponse = {
-                    hasAuth: req.user.hasAuth,
-                    user: req.user.username,
-                    hasWorkgroup: false,
-                };
-                if (req.user.hasAuth) {
-                    const workgroup = await this.getWorkgroupInfo(
-                        req.user,
-                    );
-                    response.hasWorkgroup = !!(workgroup.namespaces || [])
-                        .find((w) => w.role === 'owner');
+                try {
+                    const response: HasWorkgroupResponse = {
+                        hasAuth: req.user.hasAuth,
+                        user: req.user.username,
+                        hasWorkgroup: false,
+                    };
+                    if (req.user.hasAuth) {
+                        const workgroup = await this.getWorkgroupInfo(
+                            req.user,
+                        );
+                        response.hasWorkgroup = !!(workgroup.namespaces || [])
+                            .find((w) => w.role === 'owner');
+                    }
+                    res.json(response);
+                } catch (err) {
+                    surfaceProfileControllerErrors({
+                        res,
+                        msg: 'Unable to contact Profile Controller',
+                        err,
+                    });
                 }
-                res.json(response);
             })
         .post('/create', async (req: Request, res: Response) => {
             const profile = req.body as CreateProfileRequest;

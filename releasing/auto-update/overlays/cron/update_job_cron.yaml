@@ -14,26 +14,37 @@ spec:
   jobTemplate:    
     spec:
       template:
+        metadata:
+          labels:
+            app: jupyter-updater-cron
         spec:
           initContainers:
           # This init container checks out the source code.
           - command:
             - /usr/local/bin/checkout_repos.sh
             # TODO(jlewi): Stop checking out the jlewi fork once it is merged
-            - --repos=kubeflow/kubeflow@HEAD,kubeflow/fairing@HEAD,kubeflow/testing@HEAD
+            - --repos=$(REPOS)
             - --src_dir=/src
             name: checkout
-            image: gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df
+            image: gcr.io/kubeflow-releasing/test-worker
             volumeMounts:
             - mountPath: /src
               name: src
+            env:
+            - name: REPOS
+              valueFrom:
+                configMapKeyRef:
+                  # The name here includes the common prefix
+                  # TODO(jlewi): Is it expected that the common prefix needs to be included here.
+                  name: auto-update-params
+                  key: repos
           # This init container configures the ssh keys
           - command:
             - /usr/local/bin/setup_ssh.sh
             - --ssh_dir=/root/.ssh
             - --private_key=/secret/ssh-key/id_rsa
             - --public_key=/secret/ssh-key/id_rsa.pub
-            image: gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df
+            image: gcr.io/kubeflow-releasing/test-worker
             name: setup-ssh
             volumeMounts:
             - mountPath: /root/.ssh
@@ -43,15 +54,9 @@ spec:
               readOnly: true
           containers:
           - command:
-            - python3 
-            - -m 
-            - kubeflow.kubeflow.ci.update_jupyter_web_app
-            - all
-            - --build-project=kubeflow-releasing
-            - --registry-project=kubeflow-images-public
-            - --remote-fork=git@github.com:kubeflow-bot/kubeflow.git
-            - --add-github-host=true
-            image: gcr.io/kubeflow-releasing/test-worker:v20190421-c9a1370-dirty-3a99df
+            - bash
+            - /scripts/update_jupyter.sh
+            image: gcr.io/kubeflow-releasing/test-worker
             name: update
             env:
             - name: GIT_AUTHOR_NAME
@@ -75,6 +80,8 @@ spec:
               readOnly: true
             - mountPath: /root/.ssh
               name: ssh-config
+            - mountPath: /scripts
+              name: scripts
           restartPolicy: Never
           volumes:
           - name: ssh-config
@@ -88,3 +95,6 @@ spec:
           - name: ssh
             secret:
               secretName: kubeflow-bot-ssh
+          - name: scripts
+            configMap:
+              name: auto-update-scripts

@@ -29,7 +29,7 @@ ENV PATH $CONDA_DIR/bin:$PATH
 # This is solely to make them available to install.sh
 ENV TF_PACKAGE $TF_PACKAGE
 ENV TF_PACKAGE_27 $TF_PACKAGE_PY_27
-ENV TF_SERVING_VERSION $TF_PACKAGE_PY_27
+ENV TF_SERVING_VERSION $TF_SERVING_VERSION
 ENV TFMA_VERSION $TFMA_VERSION
 ENV TFDV_VERSION $TFDV_VERSION
 ENV PIPELINE_SDK_PACKAGE $PIPELINE_SDK_PACKAGE
@@ -109,6 +109,7 @@ RUN cd /tmp && \
     conda config --system --set show_channel_urls true && \
     conda update --all && \
     conda update conda && \
+    conda install python==3.6.7 && \
     conda clean -tipsy
 
 # NOTE: Beyond this point be careful of breaking out

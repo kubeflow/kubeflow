@@ -16,6 +16,7 @@ package app
 
 import (
 	"errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"io/ioutil"
 	"net"
 	"os"
@@ -62,6 +63,72 @@ type AppConfigFile struct {
 type LibrarySpec struct {
 	Version string
 	Path    string
+}
+
+var (
+	// Counter metrics
+	// num of requests counter vec
+	// status field has values: {"OK", "UNKNOWN", "INTERNAL", "INVALID_ARGUMENT"}
+	deployReqCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "deploy_requests",
+			Help: "Number of requests for deployments",
+		},
+		[]string{"status"},
+	)
+	deploymentFailure = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "deployments_failure",
+		Help: "Number of failed Kubeflow deployments",
+	}, []string{"status"})
+
+	serviceHeartbeat = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "service_heartbeat",
+		Help: "Heartbeat signal every 10 seconds indicating pods are alive.",
+	})
+
+	deployReqCounterUser = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "deploy_requests_user",
+		Help: "Number of user requests for deployments",
+	})
+	kfDeploymentsDoneUser = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "kubeflow_deployments_done_user",
+		Help: "Number of successfully finished Kubeflow user deployments",
+	})
+
+	// Gauge metrics
+	deployReqCounterRaw = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "deploy_requests_raw",
+		Help: "Number of requests for deployments",
+	})
+	kfDeploymentsDoneRaw = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "kubeflow_deployments_done_raw",
+		Help: "Number of successfully finished Kubeflow deployments",
+	})
+
+	// latencies
+	clusterDeploymentLatencies = prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name:    "cluster_dep_duration_seconds",
+		Help:    "A histogram of the GKE cluster deployment request duration in seconds",
+		Buckets: prometheus.LinearBuckets(30, 30, 15),
+	})
+	kfDeploymentLatencies = prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name:    "kubeflow_dep_duration_seconds",
+		Help:    "A histogram of the KF deployment request duration in seconds",
+		Buckets: prometheus.LinearBuckets(150, 30, 20),
+	})
+)
+
+func init() {
+	// Register prometheus counters
+	prometheus.MustRegister(deployReqCounter)
+	prometheus.MustRegister(clusterDeploymentLatencies)
+	prometheus.MustRegister(kfDeploymentLatencies)
+	prometheus.MustRegister(deployReqCounterUser)
+	prometheus.MustRegister(kfDeploymentsDoneUser)
+	prometheus.MustRegister(deployReqCounterRaw)
+	prometheus.MustRegister(kfDeploymentsDoneRaw)
+	prometheus.MustRegister(deploymentFailure)
+	prometheus.MustRegister(serviceHeartbeat)
 }
 
 // Load yaml config
@@ -232,45 +299,54 @@ func Run(opt *options.ServerOption) error {
 		}
 		kServer.RegisterEndpoints()
 	} else {
-		log.Infof("Getting K8s client")
+		if strings.ToLower(opt.Mode) == "gc" {
+			log.Info("Creating gc server")
+			kServer, err := NewKfctlServer(opt.AppDir)
+			if err != nil {
+				return err
+			}
+			kServer.RegisterEndpoints()
+		} else {
+			log.Infof("Getting K8s client")
 
-		// Create a K8s client to talk to the cluster in which the server is running.
-		// This will be used by the router to spin up statefulsets to handle the requests.
-		config, err := getClusterConfig(opt.InCluster)
+			// Create a K8s client to talk to the cluster in which the server is running.
+			// This will be used by the router to spin up statefulsets to handle the requests.
+			config, err := getClusterConfig(opt.InCluster)
 
-		if err != nil {
-			return err
+			if err != nil {
+				return err
+			}
+
+			log.Info("Creating router")
+
+			kubeClientSet, err := kubeclientset.NewForConfig(rest.AddUserAgent(config, "kfctl-server"))
+
+			if err != nil {
+				return err
+			}
+
+			// Determine the docker image by fetching the pod spec.
+			podName := os.Getenv("MY_POD_NAME")
+			podNamespace := os.Getenv("MY_POD_NAMESPACE")
+
+			log.Infof("Running in pod %v, %v", podNamespace, podName)
+
+			pod, err := kubeClientSet.CoreV1().Pods(podNamespace).Get(podName, metav1.GetOptions{})
+
+			if err != nil {
+				log.Fatalf("Could not fetch pod info for %v.%v; Error: %+v", podNamespace, podName, err)
+				return err
+			}
+
+			image := pod.Spec.Containers[0].Image
+			log.Infof("Using image: %v", image)
+			router, err := NewRouter(kubeClientSet, image, opt.KfctlAppsNamespace)
+
+			if err != nil {
+				return err
+			}
+			router.RegisterEndpoints()
 		}
-
-		log.Info("Creating router")
-
-		kubeClientSet, err := kubeclientset.NewForConfig(rest.AddUserAgent(config, "kfctl-server"))
-
-		if err != nil {
-			return err
-		}
-
-		// Determine the docker image by fetching the pod spec.
-		podName := os.Getenv("MY_POD_NAME")
-		podNamespace := os.Getenv("MY_POD_NAMESPACE")
-
-		log.Infof("Running in pod %v, %v", podNamespace, podName)
-
-		pod, err := kubeClientSet.CoreV1().Pods(podNamespace).Get(podName, metav1.GetOptions{})
-
-		if err != nil {
-			log.Fatalf("Could not fetch pod info for %v.%v; Error: %+v", podNamespace, podName, err)
-			return err
-		}
-
-		image := pod.Spec.Containers[0].Image
-		log.Infof("Using image: %v", image)
-		router, err := NewRouter(kubeClientSet, image, opt.KfctlAppsNamespace)
-
-		if err != nil {
-			return err
-		}
-		router.RegisterEndpoints()
 	}
 
 	log.Info("Creating server")

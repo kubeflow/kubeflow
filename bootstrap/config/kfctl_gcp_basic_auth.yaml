@@ -157,6 +157,32 @@ spec:
     name: pytorch-operator
   - kustomizeConfig:
       parameters:
+      - name: namespace
+        value: knative-serving
+      repoRef:
+        name: manifests
+        path: knative/knative-serving-crds
+    name: knative-crds
+  - kustomizeConfig:
+      parameters:
+      - name: namespace
+        value: knative-serving
+      repoRef:
+        name: manifests
+        path: knative/knative-serving-install
+    name: knative-install
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: kfserving/kfserving-crds
+    name: kfserving-crds
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: kfserving/kfserving-install
+    name: kfserving-install
+  - kustomizeConfig:
+      parameters:
       - initRequired: true
         name: usageId
         value: "2700513155662330975"

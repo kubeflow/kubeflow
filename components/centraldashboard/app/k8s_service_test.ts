@@ -214,7 +214,7 @@ describe('KubernetesService', () => {
         items: [{
           apiVersion: 'app.k8s.io/v1beta1',
           kind: 'Application',
-          spec: {descriptor: {version: '1.0.0'}}
+          spec: {descriptor: {type: 'kubeflow', version: '1.0.0'}}
         }]
       };
       mockApiClient.listNode.and.returnValue(Promise.resolve(
@@ -256,7 +256,7 @@ describe('KubernetesService', () => {
         items: [{
           apiVersion: 'app.k8s.io/v1beta1',
           kind: 'Application',
-          spec: {descriptor: {version: '1.0.0'}}
+          spec: {descriptor: {type: 'kubeflow', version: '1.0.0'}}
         }]
       };
       mockApiClient.listNode.and.returnValue(Promise.resolve(

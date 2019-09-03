@@ -12,9 +12,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	//"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
@@ -34,6 +36,12 @@ import (
 
 // KfctlCreatePath is the path on which to serve create requests
 const KfctlCreatePath = "/kfctl/apps/v1alpha2/create"
+
+// KfctlGetpath is the path on which to query deployment status
+const KfctlGetpath = "/kfctl/apps/v1alpha2/get"
+
+// LastRequestTime last deploy request time.
+const LastRequestTime = "LastRequestTime"
 
 // kfctlServer is a server to manage a single deployment.
 // It is a wrapper around kfctl.
@@ -256,11 +264,19 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 func (s *kfctlServer) process() {
 	for {
 		r := <-s.c
+		log.Infof("Channel: extract %v, channel len: %v", r.Name, len(s.c))
 
 		newDeployment, err := s.handleDeployment(r)
 
 		if err != nil {
 			log.Errorf("Error occured; %v", err)
+			newDeployment.Status.Conditions = append(newDeployment.Status.Conditions, kfdefsv3.KfDefCondition{
+				Type: kfdefsv3.KfFailed,
+			})
+		} else {
+			newDeployment.Status.Conditions = append(newDeployment.Status.Conditions, kfdefsv3.KfDefCondition{
+				Type: kfdefsv3.KfSucceeded,
+			})
 		}
 		s.setLatestKfDef(newDeployment)
 	}
@@ -270,7 +286,14 @@ func (s *kfctlServer) setLatestKfDef(r *kfdefsv3.KfDef) {
 	s.kfDefMux.Lock()
 	defer s.kfDefMux.Unlock()
 	s.latestKfDef = *s.kfDefGetter.GetKfDef()
+}
 
+// makeServerStatusRequestEndpoint creates an endpoint to handle get latest kfdef requests in the router.
+func makeServerStatusRequestEndpoint(svc KfctlService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(kfdefsv3.KfDef)
+		return svc.GetLatestKfdef(req)
+	}
 }
 
 // RegisterEndpoints creates the http endpoints for the router
@@ -280,7 +303,20 @@ func (s *kfctlServer) RegisterEndpoints() {
 		func(_ context.Context, r *http.Request) (interface{}, error) {
 			var request kfdefsv3.KfDef
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-				log.Info("Err decoding create request: " + err.Error())
+				log.Info("Err decoding kfdef: " + err.Error())
+				return nil, err
+			}
+			return request, nil
+		},
+		encodeResponse,
+	)
+
+	statusHandler := httptransport.NewServer(
+		makeServerStatusRequestEndpoint(s),
+		func(_ context.Context, r *http.Request) (interface{}, error) {
+			var request kfdefsv3.KfDef
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				log.Info("Err decoding kfdef: " + err.Error())
 				return nil, err
 			}
 			return request, nil
@@ -298,6 +334,7 @@ func (s *kfctlServer) RegisterEndpoints() {
 	// 3. This PR aimed at running the deployment in each pod.
 	// Depending on how we stage these changes we might need to change these URLs.
 	http.Handle(KfctlCreatePath, optionsHandler(createHandler))
+	http.Handle(KfctlGetpath, optionsHandler(statusHandler))
 	http.Handle("/", optionsHandler(GetHealthzHandler()))
 }
 
@@ -363,11 +400,18 @@ func prepareSecrets(d *kfdefsv3.KfDef) {
 	d.Spec.Secrets = secrets
 }
 
+func (s *kfctlServer) GetLatestKfdef(req kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
+	s.kfDefMux.Lock()
+	defer s.kfDefMux.Unlock()
+	return s.latestKfDef.DeepCopy(), nil
+}
+
 // CreateDeployment creates the deployment.
 //
 // Not thread safe
 // TODO(jlewi): We should check if the request matches the current deployment and if not reject
 func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
+	log.Infof("New CreateDeployment for %v", req.Name)
 	token, err := req.GetSecret(gcp.GcpAccessTokenName)
 
 	if err != nil {
@@ -440,7 +484,6 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) 
 			LastUpdateTime:     metav1.Now(),
 			LastTransitionTime: metav1.Now(),
 		})
-
 		return &req, nil
 	}
 
@@ -464,6 +507,7 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) 
 	prepareSecrets(strippedReq)
 
 	s.c <- *strippedReq
+	log.Infof("Channel: insert %v, channel len: %v", strippedReq.Name, len(s.c))
 
 	// Return the current status.
 	s.kfDefMux.Lock()

@@ -31,11 +31,27 @@ describe('Attach User Middleware', () => {
     expect(mockNextFunction).toHaveBeenCalled();
   });
 
-  it('Should extract a default User when none is present', () => {
+  it('Should extract a default User when no user header is present in request', () => {
     const email = 'anonymous@kubeflow.org';
     mockRequest.header.withArgs(header).and.returnValue(null);
 
     middleware(mockRequest, null, mockNextFunction);
+
+    expect(mockRequest.user).toEqual({
+      auth: undefined,
+      domain: 'kubeflow.org',
+      email,
+      hasAuth: false,
+      username: 'anonymous',
+    });
+    expect(mockNextFunction).toHaveBeenCalled();
+  });
+
+  it('Should extract a default User when no userid header was passed in', () => {
+    const email = 'anonymous@kubeflow.org';
+    mockRequest.header.withArgs(header).and.returnValue(null);
+    const noHeaderMiddleware = attachUser('', '');
+    noHeaderMiddleware(mockRequest, null, mockNextFunction);
 
     expect(mockRequest.user).toEqual({
       auth: undefined,

@@ -34,6 +34,9 @@ spec:
     name: istio-install
   # This component is the istio resources for Kubeflow (e.g. gateway), not about installing istio.
   - kustomizeConfig:
+      parameters:
+        - name: clusterRbacConfig
+          value: "OFF"
       repoRef:
         name: manifests
         path: istio/istio
@@ -144,6 +147,32 @@ spec:
         name: manifests
         path: pytorch-job/pytorch-operator
     name: pytorch-operator
+  - kustomizeConfig:
+      parameters:
+      - name: namespace
+        value: knative-serving
+      repoRef:
+        name: manifests
+        path: knative/knative-serving-crds
+    name: knative-crds
+  - kustomizeConfig:
+      parameters:
+      - name: namespace
+        value: knative-serving
+      repoRef:
+        name: manifests
+        path: knative/knative-serving-install
+    name: knative-install
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: kfserving/kfserving-crds
+    name: kfserving-crds
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: kfserving/kfserving-install
+    name: kfserving-install
   - kustomizeConfig:
       parameters:
       - initRequired: true

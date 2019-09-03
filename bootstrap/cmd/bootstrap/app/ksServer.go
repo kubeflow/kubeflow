@@ -22,7 +22,6 @@ import (
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/v3/config"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
@@ -255,72 +254,6 @@ type ApplyRequest struct {
 
 	// For test: GCP service account client id
 	SAClientId string
-}
-
-var (
-	// Counter metrics
-	// num of requests counter vec
-	// status field has values: {"OK", "UNKNOWN", "INTERNAL", "INVALID_ARGUMENT"}
-	deployReqCounter = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "deploy_requests",
-			Help: "Number of requests for deployments",
-		},
-		[]string{"status"},
-	)
-	deploymentFailure = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "deployments_failure",
-		Help: "Number of failed Kubeflow deployments",
-	}, []string{"status"})
-
-	serviceHeartbeat = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "service_heartbeat",
-		Help: "Heartbeat signal every 10 seconds indicating pods are alive.",
-	})
-
-	deployReqCounterUser = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "deploy_requests_user",
-		Help: "Number of user requests for deployments",
-	})
-	kfDeploymentsDoneUser = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "kubeflow_deployments_done_user",
-		Help: "Number of successfully finished Kubeflow user deployments",
-	})
-
-	// Gauge metrics
-	deployReqCounterRaw = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "deploy_requests_raw",
-		Help: "Number of requests for deployments",
-	})
-	kfDeploymentsDoneRaw = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "kubeflow_deployments_done_raw",
-		Help: "Number of successfully finished Kubeflow deployments",
-	})
-
-	// latencies
-	clusterDeploymentLatencies = prometheus.NewHistogram(prometheus.HistogramOpts{
-		Name:    "cluster_dep_duration_seconds",
-		Help:    "A histogram of the GKE cluster deployment request duration in seconds",
-		Buckets: prometheus.LinearBuckets(30, 30, 15),
-	})
-	kfDeploymentLatencies = prometheus.NewHistogram(prometheus.HistogramOpts{
-		Name:    "kubeflow_dep_duration_seconds",
-		Help:    "A histogram of the KF deployment request duration in seconds",
-		Buckets: prometheus.LinearBuckets(150, 30, 20),
-	})
-)
-
-func init() {
-	// Register prometheus counters
-	prometheus.MustRegister(deployReqCounter)
-	prometheus.MustRegister(clusterDeploymentLatencies)
-	prometheus.MustRegister(kfDeploymentLatencies)
-	prometheus.MustRegister(deployReqCounterUser)
-	prometheus.MustRegister(kfDeploymentsDoneUser)
-	prometheus.MustRegister(deployReqCounterRaw)
-	prometheus.MustRegister(kfDeploymentsDoneRaw)
-	prometheus.MustRegister(deploymentFailure)
-	prometheus.MustRegister(serviceHeartbeat)
 }
 
 func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {

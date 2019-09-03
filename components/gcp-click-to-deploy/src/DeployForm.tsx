@@ -22,13 +22,13 @@ import {
 /** Relative paths from the root of the repository. */
 enum ConfigPath {
     V05 = 'v0.5-branch/components/gcp-click-to-deploy/app-config.yaml',
-    V06 = 'v0.6-branch/bootstrap/config/kfctl_gcp_iap.yaml'
+    V06 = 'v0.6-branch/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml'
 }
 
 /** Versions available for deployment. */
 enum Version {
     V05 = 'v0.5.0',
-    V06 = 'v0.6.1',
+    V06 = 'v0.6.2',
 }
 
 // TODO(jlewi): For the FQDN we should have a drop down box to select custom
@@ -253,6 +253,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     public render() {
         const zoneList = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b',
             'europe-west1-b', 'europe-west1-d', 'asia-east1-a', 'asia-east1-b'];
+        const {kfversion} = this.state;
         return (
             <div>
                 <div style={styles.text}>Create a Kubeflow deployment</div>
@@ -266,11 +267,15 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                         required={true} value={this.state.deploymentName} onChange={this._handleChange('deploymentName')} />
                 </div>
                 <div style={styles.row}>
-                    <TextField select={true} label="Choose how to connect to kubeflow service:" required={true} style={styles.input} variant="filled"
-                        value={this.state.ingress} onChange={this._handleChange('ingress')}>
+                    <TextField select={true} label="Choose how to connect to kubeflow service:"
+                        required={true} style={styles.input} variant="filled"
+                        value={this.state.ingress}
+                        onChange={this._handleChange('ingress')}>
                         <MenuItem key={1} value={IngressType.Iap}>{IngressType.Iap}</MenuItem>
                         <MenuItem key={2} value={IngressType.BasicAuth}>{IngressType.BasicAuth}</MenuItem>
-                        <MenuItem key={3} value={IngressType.DeferIap}>{IngressType.DeferIap}</MenuItem>
+                        {kfversion !== Version.V06 &&
+                            <MenuItem key={3} value={IngressType.DeferIap}>{IngressType.DeferIap}</MenuItem>
+                        }
                     </TextField>
                 </div>
 
@@ -338,10 +343,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                     </TextField>
                 </div>
                 <div style={styles.row}>
-                    <FormControlLabel label="Create Permanent Storage" control={
-                        <Checkbox checked={this.state.permanentStorage} color="primary"
-                            onChange={() => this.setState({permanentStorage: !this.state.permanentStorage})} />
-                    } />
                     <FormControlLabel label="Share Anonymous Usage Report" control={
                         <Checkbox checked={this.state.spartakus} color="primary"
                             onChange={() => this.setState({spartakus: !this.state.spartakus})} />
@@ -558,9 +559,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         applicationsByName.get(PROFILES)!
             .kustomizeConfig.parameters[0].value = email;
         applicationsByName.get(MINIO)!
-          .kustomizeConfig.parameters[0].value = this.state.deploymentName + '-storage-artifact-store';
+            .kustomizeConfig.parameters[0].value = this.state.deploymentName + '-storage-artifact-store';
         applicationsByName.get(MYSQL)!
-          .kustomizeConfig.parameters[0].value = this.state.deploymentName + '-storage-metadata-store';
+            .kustomizeConfig.parameters[0].value = this.state.deploymentName + '-storage-metadata-store';
 
         appSpec.version = Version.V06;
         appSpec.useBasicAuth = this.state.ingress === IngressType.BasicAuth;
@@ -579,10 +580,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             iapIngress.name = BASIC_AUTH;
             iapIngress.kustomizeConfig.repoRef.path = 'gcp/basic-auth-ingress';
             iapIngress.kustomizeConfig.parameters.push(
-              {name: 'project', value: this.state.project, initRequired: true}
+                {name: 'project', value: this.state.project, initRequired: true}
             );
             applicationsByName.get(ISTIO)!
-              .kustomizeConfig.parameters[0].value = 'OFF';
+                .kustomizeConfig.parameters[0].value = 'OFF';
             appSpec.applications.push({
                 kustomizeConfig: {
                     overlays: [],

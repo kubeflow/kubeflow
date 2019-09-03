@@ -90,6 +90,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                 value: 0,
                 observer: '_revertSidebarIndexIfExternal',
             },
+            errorText: {type: String, value: ''},
             buildVersion: {type: String, value: BUILD_VERSION},
             dashVersion: {type: String, value: VERSION},
             platformInfo: Object,
@@ -164,6 +165,28 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         this.$.envInfo.generateRequest();
         await this.sleep(500);
         this.$.welcomeUser.show();
+    }
+
+    /**
+     * Show a toast error on main-page
+     * @param {string} err Error message to show
+     */
+    showError(err) {
+        this.errorText = err;
+    }
+    closeError() {
+        this.errorText = '';
+    }
+
+    /**
+     * Set state for loading registration flow in case no workgroup exists
+     * @param {Event} ev AJAX-response
+     */
+    _onHasWorkgroupError(ev) {
+        const error = ((ev.detail.request||{}).response||{}).error ||
+            ev.detail.error;
+        this.showError(error);
+        return;
     }
 
     /**
