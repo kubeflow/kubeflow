@@ -1,3 +1,6 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
 # Adds namespace to all resources.
 namespace: profile-controller-system
 
@@ -17,7 +20,7 @@ commonLabels:
 # files that kustomize reads, modifies and emits as a
 # YAML string, with resources separated by document
 # markers ("---").
-bases:
+resources:
 - ../crds/
 - ../rbac/
 - ../manager/
@@ -25,7 +28,7 @@ bases:
   # the auth proxy (https://github.com/brancz/kube-rbac-proxy)
   # which protects your /metrics endpoint.
 
-patches:
+patchesStrategicMerge:
 - manager_image_patch.yaml
   # Protect the /metrics endpoint by putting it behind auth.
   # Only one of manager_auth_proxy_patch.yaml and
