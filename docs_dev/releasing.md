@@ -11,8 +11,7 @@
   - [Update PyTorchJob](#update-pytorchjob)
   - [Create a release branch (if necessary)](#create-a-release-branch-if-necessary)
     - [Enable Periodic tests on the release branch](#enable-periodic-tests-on-the-release-branch)
-  - [Updating ksonnet prototypes with docker image](#updating-ksonnet-prototypes-with-docker-image)
-    - [Release branching policy](#release-branching-policy)
+  - [Release branching policy](#release-branching-policy)
   - [Updating the release branch and tagging a release](#updating-the-release-branch-and-tagging-a-release)
     - [Tagging a release candidate](#tagging-a-release-candidate)
     - [Update Version Shown on Central Dashboard](#update-version-shown-on-central-dashboard)
@@ -199,55 +198,7 @@ Once the release branch is cut we need to enable periodic tests on the release b
    * Copy the entries for the most recent release branch and change it to the new release branch
 1. Submit a PR with the above changes.
 
-## Updating ksonnet prototypes with docker image
-
-Here is the general process for how we update our Docker prototypes to point to
-the correct Docker image. See sections below for component specific instructions.
-
-1. Build a Docker image using whatever tagging schema you like
-
-   * General convention is v${DATE}-${COMMIT}
-
-1. On the **release branch** update all references to images that will be updated as part
-   of the release to use the tag v${RELEASE} where ${RELEASE} will be the next release
-
-   * e.g if the next RC is v0.2.1-RC.0 then you would use tag v0.2.1
-   * You can modify and then run the script `releasing/update_components.sh` to update
-     the prototypes
-
-1. Update [image_tags.yaml](https://github.com/kubeflow/kubeflow/blob/master/releasing/image_tags.yaml) **on the master branch**
-
-   * You can do this by updating and then running **update_image_tags.sh**
-      * This invokes some python scripts that use regexes to match
-        images and apply a tag to them
-      * You can use suitable regexes to get a group of images (e.g. all the
-        notebook) images.
-   * There should be an entry for every image you want to use referenced by the sha of the image
-   * If there was a previous release using an earlier image, remove the tag v${RELEASE}
-     from that entry
-   * Run run_apply_image_tags.sh
-
-     * This script actually creates the tags in the GCR registry based on the data in image_tags.yaml
-
-     ```
-     IMAGE_PATTERN=".*tensorflow.*notebook.*:v0.2.1.*"
-     ./run_apply_image_tags.sh "${IMAGE_PATTERN}"
-
-     ```
-
-     * IMAGE_PATTERN should be a regex matching the images that you want to add the tag
-   * Create a PR checking **into master** the changes in image_tags.yaml
-
-1. Update ksonnet components using the `update_components` script. For example, to update `tf-operator` to `v0.3.2`:
-   ```
-   COMPONENT=tf-operator
-   TAG=v0.3.2
-   ./update_components.sh "${COMPONENT}" "${TAG}"
-   ```
-   Currently the script supports tf-operator, pytorch-operator, katib, jupyter-notebooks, and centraldashboard.
-
-
-### Release branching policy
+## Release branching policy
 
 A release branch should be substantially _feature complete_ with respect to the intended release.  Code that is committed to `master` may be merged or cherry-picked on to a release branch, but code that is directly committed to the release branch should be solely applicable to that release (and should not be committed back to master).  In general, unless you're committing code that only applies to the release stream (for example, temporary hotfixes, backported security fixes, or image hashes), you should commit to `master` and then merge or cherry-pick to the release branch.
 
