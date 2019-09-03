@@ -145,7 +145,7 @@ func TestGenerateKustomizationFile(t *testing.T) {
 			t.Fatalf("Failed to read expected kustomization.yaml: %v", err)
 		}
 		if bytes.Compare(data, expected) != 0 {
-			t.Fatalf("kustomization.yaml is different from expected.")
+			t.Fatalf("kustomization.yaml is different from expected.\nactual:\n--------\n%s\nexpected:\n--------\n%s\n", string(data), string(expected))
 		}
 	}
 }

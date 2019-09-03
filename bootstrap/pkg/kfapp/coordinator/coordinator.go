@@ -96,7 +96,7 @@ func getConfigFromCache(pathDir string, kfDef *kfdefsv3.KfDef) ([]byte, error) {
 			Message: fmt.Sprintf("error writing to %v Error %v", kfDef.Name, writeErr),
 		}
 	}
-	data, dataErr := resMap.EncodeAsYaml()
+	data, dataErr := resMap.AsYaml()
 	if dataErr != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
