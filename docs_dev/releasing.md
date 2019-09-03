@@ -349,7 +349,7 @@ A release candidate is a tag of the form `v${MAJOR}.${MINOR}.${PATCHLEVEL}-rc.${
 
 ### Update Version Shown on Central Dashboard
 
-Update release tag to central dashboard: [link](https://github.com/kubeflow/manifests/blob/eab125dd42c08b0e2495b7b2d7a7010ac64d3774/application/application/overlays/application/application.yaml#L16)
+Update the version for Kubeflow application resources: [link](https://github.com/kubeflow/manifests/blob/eab125dd42c08b0e2495b7b2d7a7010ac64d3774/application/application/overlays/application/application.yaml#L16)
 
 ### Release votes and releases
 
