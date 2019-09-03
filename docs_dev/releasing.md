@@ -9,8 +9,6 @@
   - [Authorization to Publish a Release](#authorization-to-publish-a-release)
   - [Update TFJob](#update-tfjob)
   - [Update PyTorchJob](#update-pytorchjob)
-  - [Build TF Serving Images](#build-tf-serving-images)
-  - [Build the Jupyter Images](#build-the-jupyter-images)
   - [Create a release branch (if necessary)](#create-a-release-branch-if-necessary)
     - [Enable Periodic tests on the release branch](#enable-periodic-tests-on-the-release-branch)
   - [Updating ksonnet prototypes with docker image](#updating-ksonnet-prototypes-with-docker-image)
@@ -152,12 +150,6 @@ gcloud config set project kubeflow-releasing
 gcloud container clusters get-credentials kubeflow-releasing --zone us-central1-a --project kubeflow-releasing
 ```
 
-Use [this script](https://github.com/jlewi/kubeflow-dev/blob/master/create_context.sh) to set up your context properly:
-
-```
-create_context.sh $(kubectl config current-context) kubeflow-releasing
-```
-
 ## Authorization to Publish a Release
 
 Need to join [release team](https://github.com/kubeflow/internal-acls/blob/1234654eb219e2c06ed5fdc2c4e662a02fccc740/github-orgs/kubeflow/org.yaml#L388) before you can publish a release.
@@ -186,78 +178,6 @@ Identify the [release](https://github.com/kubeflow/pytorch-operator/releases) of
 Update [pytorch-operator.jsonnet](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/pytorch-job/prototypes/pytorch-operator.jsonnet#L9)
 to point to the new image.
 
-## Build TF Serving Images
-
-We build TF serving images using an argo workflow.
-
-Look at the [postsubmit dashboard](https://k8s-testgrid.appspot.com/sig-big-data#kubeflow-postsubmit)
-to find the latest green postsubmit.
-
-Check out that commit
-
-```
-COMMIT=<commit to build>
-cd ${GIT_KUBEFLOW}
-git checkout ${COMMIT}
-cd releasing/releaser
-```
-
-```
-PULL_BASE_SHA=${COMMIT:0:8}
-DATE=`date +%Y%m%d`
-VERSION_TAG="v${DATE}-${PULL_BASE_SHA}"
-JOB_NAME="tf-serving-release"
-JOB_TYPE=postsubmit
-BUILD_NUMBER=$(uuidgen)
-BUILD_NUMBER=${BUILD_NUMBER:0:4}
-REPO_OWNER=kubeflow
-REPO_NAME=kubeflow
-ENV=releasing
-ks param set --env=${ENV} workflows namespace kubeflow-releasing
-ks param set --env=${ENV} workflows name "${USER}-${JOB_NAME}-${VERSION_TAG}"
-ks param set --env=${ENV} workflows prow_env "JOB_NAME=${JOB_NAME},JOB_TYPE=${JOB_TYPE},PULL_BASE_SHA=${PULL_BASE_SHA},REPO_NAME=${REPO_NAME},REPO_OWNER=${REPO_OWNER},BUILD_NUMBER=${BUILD_NUMBER}"
-ks param set --env=${ENV} workflows versionTag ${VERSION_TAG}
-ks apply ${ENV} -c workflows
-```
-
-## Build the Jupyter Images
-
-We build the Jupyter using our E2E argo workflows.
-
-Look at the [postsubmit dashboard](https://k8s-testgrid.appspot.com/sig-big-data#kubeflow-postsubmit)
-to find the latest green postsubmit.
-
-Checkout that commit
-
-```
-COMMIT=<commit to build>
-cd ${GIT_KUBEFLOW}
-git checkout ${COMMIT}
-cd components/tensorflow-notebook-image/releaser
-```
-
-```
-PULL_BASE_SHA=${COMMIT:0:8}
-DATE=`date +%Y%m%d`
-VERSION_TAG="v${DATE}-${PULL_BASE_SHA}"
-JOB_NAME="tensorflow-notebook-image-release"
-JOB_TYPE=postsubmit
-BUILD_NUMBER=$(uuidgen)
-BUILD_NUMBER=${BUILD_NUMBER:0:4}
-REPO_OWNER=kubeflow
-REPO_NAME=kubeflow
-ENV=releasing
-ks param set --env=${ENV} workflows namespace kubeflow-releasing
-ks param set --env=${ENV} workflows name "${USER}-${JOB_NAME}-${VERSION_TAG}"
-ks param set --env=${ENV} workflows versionTag "${VERSION_TAG}"
-ks param set --env=${ENV} workflows prow_env  \
-  "JOB_NAME=${JOB_NAME},JOB_TYPE=${JOB_TYPE},PULL_BASE_SHA=${PULL_BASE_SHA},REPO_NAME=${REPO_NAME},REPO_OWNER=${REPO_OWNER},BUILD_NUMBER=${BUILD_NUMBER}"
-ks apply ${ENV} -c workflows
-```
-
-Create a PR to update [kubeform_spawner.py](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/kubeform_spawner.py#L15)
-to point to the newly built Jupyter notebook images.
-
 ## Create a release branch (if necessary)
 
 If you aren't already working on a release branch (of the form `v${MAJOR}.${MINOR}-branch`, where `${MAJOR}.${MINOR}` is a major-minor version number), then create one.  Release branches serve several purposes:
@@ -274,7 +194,7 @@ Once the release branch is cut we need to enable periodic tests on the release b
 
 1. Modify [kubernetes/test-infra/blob/master/config/jobs/kubeflow/kubeflow-periodics.yaml](https://github.com/kubernetes/test-infra/blob/master/config/jobs/kubeflow/kubeflow-periodics.yaml) to define a new periodic
    prow job.
-1. Modify [kubernetes/test-infra/blob/master/testgrid/config.yaml](https://github.com/kubernetes/test-infra/blob/master/testgrid/config.yaml)
+1. Modify [kubernetes/test-infra/blob/master/config/testgrids/kubeflow/kubeflow.yaml](https://github.com/kubernetes/test-infra/blob/master/config/testgrids/kubeflow/kubeflow.yaml)
 
    * Copy the entries for the most recent release branch and change it to the new release branch
 1. Submit a PR with the above changes.
