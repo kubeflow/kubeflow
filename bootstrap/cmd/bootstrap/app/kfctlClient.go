@@ -58,7 +58,7 @@ func NewKfctlClient(instance string) (KfctlService, error) {
 	{
 		getEndpoint = httptransport.NewClient(
 			"POST",
-			copyURL(u, KfctlCreatePath),
+			copyURL(u, KfctlGetpath),
 			encodeHTTPGenericRequest,
 			decodeHTTPKfdefResponse,
 		).Endpoint()
@@ -78,37 +78,70 @@ func NewKfctlClient(instance string) (KfctlService, error) {
 func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*kfdefs.KfDef, error) {
 	var resp interface{}
 	var err error
+	bo := backoff.NewExponentialBackOff()
+	bo.InitialInterval = 3 * time.Second
+	bo.MaxElapsedTime = 30 * time.Minute
 	// Add retry logic
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 30)
 	permErr := backoff.Retry(func() error {
 		resp, err = c.createEndpoint(ctx, req)
 		if err != nil {
+			log.Errorf("createEndpoint call failed with: %v", err)
 			return err
 		}
+		log.Errorf("createEndpoint call succeeded!")
 		return nil
 	}, bo)
 
 	if permErr != nil {
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
 		return nil, permErr
 	}
 	response, ok := resp.(*kfdefs.KfDef)
 
-	if ok {
-		return response, nil
-	}
+	if !ok {
+		log.Info("Response is not type *KfDef")
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
+		resErr, ok := resp.(*httpError)
+		if ok {
+			return nil, resErr
+		}
 
-	log.Info("Response is not type *KfDef")
-	resErr, ok := resp.(*httpError)
-
-	if ok {
+		log.Info("Response is not type *httpError")
+		pRes, _ := Pformat(resp)
+		log.Errorf("Received unexpected response; %v", pRes)
 		return nil, resErr
 	}
 
-	log.Info("Response is not type *httpError")
-
-	pRes, _ := Pformat(resp)
-	log.Errorf("Recieved unexpected response; %v", pRes)
-	return nil, fmt.Errorf("Recieved unexpected response; %v", pRes)
+	// Watch deployment status, update monitor signal as needed.
+	log.Infof("Watching deployment status")
+	bo.Reset()
+	permErr = backoff.Retry(func() error {
+		latestKfdef, err := c.GetLatestKfdef(req)
+		if err != nil {
+			return backoff.Permanent(err)
+		}
+		response = latestKfdef
+		if len(response.Status.Conditions) == 0 {
+			return fmt.Errorf("deployment condition not available")
+		} else {
+			if response.Status.Conditions[0].Type == kfdefs.KfFailed {
+				return backoff.Permanent(fmt.Errorf(response.Status.Conditions[0].Message))
+			}
+		}
+		return nil
+	}, bo)
+	if permErr != nil {
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
+		return nil, permErr
+	}
+	log.Infof("Deployment succeeded")
+	deployReqCounter.WithLabelValues("OK").Inc()
+	kfDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
+	if req.Spec.Project != "kubeflow-prober-deploy" {
+		kfDeploymentsDoneRaw.Inc()
+		kfDeploymentsDoneUser.Inc()
+	}
+	return response, nil
 }
 
 func (c *KfctlClient) GetLatestKfdef(req kfdefs.KfDef) (*kfdefs.KfDef, error) {
@@ -132,6 +165,6 @@ func (c *KfctlClient) GetLatestKfdef(req kfdefs.KfDef) (*kfdefs.KfDef, error) {
 	log.Info("Response is not type *httpError")
 
 	pRes, _ := Pformat(resp)
-	log.Errorf("Recieved unexpected response; %v", pRes)
-	return nil, fmt.Errorf("Recieved unexpected response; %v", pRes)
+	log.Errorf("Received unexpected response; %v", pRes)
+	return nil, fmt.Errorf("Received unexpected response; %v", pRes)
 }
