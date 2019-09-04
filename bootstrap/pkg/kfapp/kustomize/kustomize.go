@@ -314,12 +314,13 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 			return backoff.Retry(func() error {
 				if !apply.DefaultProfileNamespace(defaultProfileNamespace) {
 					msg := fmt.Sprintf("Could not find namespace %v, wait and retry", defaultProfileNamespace)
-					log.Warnf(msg)
+					log.Infof(msg)
 					return &kfapisv3.KfError{
 						Code:    int(kfapisv3.INVALID_ARGUMENT),
 						Message: msg,
 					}
 				}
+                                log.Infof(fmt.Sprintf("Found namespace %v", defaultProfileNamespace))
 				return nil
 			}, b)
 		} else {
