@@ -35,7 +35,9 @@ import (
 	kubectlapply "k8s.io/kubernetes/pkg/kubectl/cmd/apply"
 	kubectldelete "k8s.io/kubernetes/pkg/kubectl/cmd/delete"
 	cmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
+	"math/rand"
 	"os"
+	"path"
 	"regexp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
@@ -47,7 +49,17 @@ import (
 
 const (
 	YamlSeparator = "(?m)^---[ \t]*$"
+	CertDir       = "/opt/ca"
 )
+
+func generateRandStr(length int) string {
+	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(b)
+}
 
 func CreateResourceFromFile(config *rest.Config, filename string, elems ...configtypes.NameValue) error {
 	elemsMap := make(map[string]configtypes.NameValue)
@@ -155,9 +167,19 @@ type Apply struct {
 	stdin                       *os.File
 }
 
-func NewApply(namespace string) (*Apply, error) {
+func NewApply(namespace string, restConfig *rest.Config) (*Apply, error) {
+	configFlags := genericclioptions.NewConfigFlags()
+	if restConfig != nil {
+		certFile := path.Join(CertDir, generateRandStr(10))
+		if err := ioutil.WriteFile(certFile, restConfig.TLSClientConfig.CAData, 0644); err != nil {
+			return nil, err
+		}
+		configFlags.CAFile = &certFile
+		configFlags.BearerToken = &(restConfig.BearerToken)
+		configFlags.APIServer = &(restConfig.Host)
+	}
 	apply := &Apply{
-		matchVersionKubeConfigFlags: cmdutil.NewMatchVersionFlags(genericclioptions.NewConfigFlags()),
+		matchVersionKubeConfigFlags: cmdutil.NewMatchVersionFlags(configFlags),
 	}
 	apply.factory = cmdutil.NewFactory(apply.matchVersionKubeConfigFlags)
 	clientset, err := apply.factory.KubernetesClientSet()
