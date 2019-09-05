@@ -784,7 +784,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                     const ready_test = document.getElementById('ready_test') as HTMLImageElement;
                     if (ready_test != null) {
                         setTimeout(() => {
-                            // We rotate on image addresses of v0.4 and v0.5+ t to support both v0.4 and v0.5+
+                            // We rotate on image addresses of v0.6 and v0.5 to support both of them.
                             if (ready_test.src.includes('favicon')) {
                                 ready_test.src = dashboardUri + 'assets/kf-logo_64px.svg' + '?rand=' + Math.random();
                             } else {
@@ -889,7 +889,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         if (!(filtered && this.state[deploymentNameKey] === filtered[0])) {
             this.setState({
                 dialogAsCode: false,
-                dialogBody: 'Deployment name need to match rgular expression: [a-z]([-a-z0-9]*[a-z0-9])?',
+                dialogBody: 'Deployment name: the first character must be a lowercase letter, and all following ' +
+                  'characters must be a dash, lowercase letter, or digit, except the last character, ' +
+                  'which cannot be a dash',
                 dialogTitle: 'Invalid field',
             });
             throw err;
