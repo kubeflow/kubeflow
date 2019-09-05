@@ -148,6 +148,7 @@ const MYSQL = 'mysql';
 const PASSWORD = 'password';
 const PROFILES = 'profiles';
 const SPARTAKUS = 'spartakus';
+const nameformat = '[a-z]([-a-z0-9]*[a-z0-9])?';
 
 const styles: {[key: string]: React.CSSProperties} = {
     btn: {
@@ -770,7 +771,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             this._appendLine('Validating if IAP is up and running...');
             const startTime = new Date().getTime() / 1000;
             const img = document.createElement('img');
-            img.src = dashboardUri + 'assets/kf-logo_64px.svg' + '?rand=' + Math.random();
+            img.src = dashboardUri + 'assets/favicon-32x32.png' + '?rand=' + Math.random();
             img.id = 'ready_test';
             img.onload = () => {
                 window.location.href = dashboardUri;
@@ -784,10 +785,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                     if (ready_test != null) {
                         setTimeout(() => {
                             // We rotate on image addresses of v0.4 and v0.5+ t to support both v0.4 and v0.5+
-                            if (ready_test.src.includes('hub/logo')) {
+                            if (ready_test.src.includes('favicon')) {
                                 ready_test.src = dashboardUri + 'assets/kf-logo_64px.svg' + '?rand=' + Math.random();
                             } else {
-                                ready_test.src = dashboardUri + 'hub/logo' + '?rand=' + Math.random();
+                                ready_test.src = dashboardUri + 'assets/favicon-32x32.png' + '?rand=' + Math.random();
                             }
                             this._appendLine('Waiting for the IAP setup to get ready...');
                         }, 10000);
@@ -880,6 +881,15 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             this.setState({
                 dialogAsCode: false,
                 dialogBody: 'Deployment name length need to between 4 and 20',
+                dialogTitle: 'Invalid field',
+            });
+            throw err;
+        }
+        const filtered = this.state[deploymentNameKey].match(nameformat);
+        if (!(filtered && this.state[deploymentNameKey] === filtered[0])) {
+            this.setState({
+                dialogAsCode: false,
+                dialogBody: 'Deployment name need to match rgular expression: [a-z]([-a-z0-9]*[a-z0-9])?',
                 dialogTitle: 'Invalid field',
             });
             throw err;
