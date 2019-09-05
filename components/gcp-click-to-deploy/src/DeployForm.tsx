@@ -22,7 +22,7 @@ import {
 /** Relative paths from the root of the repository. */
 enum ConfigPath {
     V05 = 'v0.5-branch/components/gcp-click-to-deploy/app-config.yaml',
-    V06 = 'v0.6-branch/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml'
+    V06 = 'c54401e/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml'
 }
 
 /** Versions available for deployment. */
