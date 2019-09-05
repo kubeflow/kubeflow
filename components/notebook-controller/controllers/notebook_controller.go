@@ -1,5 +1,4 @@
 /*
-Copyright 2019 The Kubeflow Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package notebook
+package controllers
 
 import (
 	"context"
@@ -22,30 +21,25 @@ import (
 	"os"
 	"strings"
 
-	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
+	"github.com/go-logr/logr"
+	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1alpha1"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/culler"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
-
-var log = logf.Log.WithName("controller")
 
 const DefaultContainerPort = 8888
 const DefaultServingPort = 80
@@ -54,183 +48,100 @@ const DefaultServingPort = 80
 // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#podsecuritycontext-v1-core
 const DefaultFSGroup = int64(100)
 
-// Add creates a new Notebook Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
-// and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
+/*
+We generally want to ignore (not requeue) NotFound errors, since we'll get a
+reconciliation request once the object exists, and requeuing in the meantime
+won't help.
+*/
+func ignoreNotFound(err error) error {
+	if apierrs.IsNotFound(err) {
+		return nil
+	}
+	return err
 }
 
-// newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileNotebook{Client: mgr.GetClient(), scheme: mgr.GetScheme()}
-}
-
-// add adds a new Controller to mgr with r as the reconcile.Reconciler
-func add(mgr manager.Manager, r reconcile.Reconciler) error {
-	// Create a new controller
-	c, err := controller.New("notebook-controller", mgr, controller.Options{Reconciler: r})
-	if err != nil {
-		return err
-	}
-
-	// Watch for changes to Notebook
-	err = c.Watch(&source.Kind{Type: &v1alpha1.Notebook{}}, &handler.EnqueueRequestForObject{})
-	if err != nil {
-		return err
-	}
-
-	err = c.Watch(&source.Kind{Type: &appsv1.StatefulSet{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &v1alpha1.Notebook{},
-	})
-	if err != nil {
-		return err
-	}
-
-	err = c.Watch(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &v1alpha1.Notebook{},
-	})
-	if err != nil {
-		return err
-	}
-
-	// Watch for changes to Notebook virtualservices.
-	if os.Getenv("USE_ISTIO") == "true" {
-		virtualService := &unstructured.Unstructured{}
-		virtualService.SetAPIVersion("networking.istio.io/v1alpha3")
-		virtualService.SetKind("VirtualService")
-		err = c.Watch(&source.Kind{Type: virtualService}, &handler.EnqueueRequestForOwner{
-			IsController: true,
-			OwnerType:    &v1alpha1.Notebook{},
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	// Watch underlying pod.
-	// mapFn defines the mapping from object in event to reconcile request
-	mapFn := handler.ToRequestsFunc(
-		func(a handler.MapObject) []reconcile.Request {
-			return []reconcile.Request{
-				{NamespacedName: types.NamespacedName{
-					Name:      a.Meta.GetLabels()["notebook-name"],
-					Namespace: a.Meta.GetNamespace(),
-				}},
-			}
-		})
-	p := predicate.Funcs{
-		UpdateFunc: func(e event.UpdateEvent) bool {
-			if _, ok := e.MetaOld.GetLabels()["notebook-name"]; !ok {
-				return false
-			}
-			return e.ObjectOld != e.ObjectNew
-		},
-		CreateFunc: func(e event.CreateEvent) bool {
-			if _, ok := e.Meta.GetLabels()["notebook-name"]; !ok {
-				return false
-			}
-			return true
-		},
-	}
-	err = c.Watch(
-		&source.Kind{Type: &corev1.Pod{}},
-		&handler.EnqueueRequestsFromMapFunc{
-			ToRequests: mapFn,
-		},
-		p)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-var _ reconcile.Reconciler = &ReconcileNotebook{}
-
-// ReconcileNotebook reconciles a Notebook object
-type ReconcileNotebook struct {
+// NotebookReconciler reconciles a Notebook object
+type NotebookReconciler struct {
 	client.Client
-	scheme *runtime.Scheme
+	Log    logr.Logger
+	Scheme *runtime.Scheme
 }
 
-// Reconcile reads that state of the cluster for a Notebook object and makes changes based on the state read
-// and what is in the Notebook.Spec
-// Automatically generate RBAC rules to allow the Controller to read and write StatefulSet
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=statefulsets/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=services/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks/status,verbs=get;update;patch
-func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	// Fetch the Notebook instance
+func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+	ctx := context.Background()
+	log := r.Log.WithValues("notebook", req.NamespacedName)
+
 	instance := &v1alpha1.Notebook{}
-	err := r.Get(context.TODO(), request.NamespacedName, instance)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			// Object not found, return.  Created objects are automatically garbage collected.
-			// For additional cleanup logic use finalizers.
-			return reconcile.Result{}, nil
-		}
-		// Error reading the object - requeue the request.
-		return reconcile.Result{}, err
+	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
+		log.Error(err, "unable to fetch Notebook")
+		return ctrl.Result{}, ignoreNotFound(err)
 	}
 
 	// Reconcile StatefulSet
 	ss := generateStatefulSet(instance)
-	if err := controllerutil.SetControllerReference(instance, ss, r.scheme); err != nil {
-		return reconcile.Result{}, err
+	if err := ctrl.SetControllerReference(instance, ss, r.Scheme); err != nil {
+		return ctrl.Result{}, err
 	}
 	// Check if the StatefulSet already exists
 	foundStateful := &appsv1.StatefulSet{}
 	justCreated := false
-	err = r.Get(context.TODO(), types.NamespacedName{Name: ss.Name, Namespace: ss.Namespace}, foundStateful)
-	if err != nil && errors.IsNotFound(err) {
+	err := r.Get(ctx, types.NamespacedName{Name: ss.Name, Namespace: ss.Namespace}, foundStateful)
+	if err != nil && apierrs.IsNotFound(err) {
 		log.Info("Creating StatefulSet", "namespace", ss.Namespace, "name", ss.Name)
-		err = r.Create(context.TODO(), ss)
+		err = r.Create(ctx, ss)
 		justCreated = true
 		if err != nil {
-			return reconcile.Result{}, err
+			log.Error(err, "unable to create Statefulset")
+			return ctrl.Result{}, err
 		}
 	} else if err != nil {
-		return reconcile.Result{}, err
+		log.Error(err, "error getting Statefulset")
+		return ctrl.Result{}, err
 	}
 	// Update the foundStateful object and write the result back if there are any changes
 	if !justCreated && util.CopyStatefulSetFields(ss, foundStateful) {
 		log.Info("Updating StatefulSet", "namespace", ss.Namespace, "name", ss.Name)
-		err = r.Update(context.TODO(), foundStateful)
+		err = r.Update(ctx, foundStateful)
 		if err != nil {
-			return reconcile.Result{}, err
+			log.Error(err, "unable to update Statefulset")
+			return ctrl.Result{}, err
 		}
 	}
 
 	// Reconcile service
 	service := generateService(instance)
-	if err := controllerutil.SetControllerReference(instance, service, r.scheme); err != nil {
-		return reconcile.Result{}, err
+	if err := ctrl.SetControllerReference(instance, service, r.Scheme); err != nil {
+		return ctrl.Result{}, err
 	}
 	// Check if the Service already exists
 	foundService := &corev1.Service{}
 	justCreated = false
-	err = r.Get(context.TODO(), types.NamespacedName{Name: service.Name, Namespace: service.Namespace}, foundService)
-	if err != nil && errors.IsNotFound(err) {
+	err = r.Get(ctx, types.NamespacedName{Name: service.Name, Namespace: service.Namespace}, foundService)
+	if err != nil && apierrs.IsNotFound(err) {
 		log.Info("Creating Service", "namespace", service.Namespace, "name", service.Name)
-		err = r.Create(context.TODO(), service)
+		err = r.Create(ctx, service)
 		justCreated = true
 		if err != nil {
-			return reconcile.Result{}, err
+			log.Error(err, "unable to create Service")
+			return ctrl.Result{}, err
 		}
 	} else if err != nil {
-		return reconcile.Result{}, err
+		log.Error(err, "error getting Statefulset")
+		return ctrl.Result{}, err
 	}
 	// Update the foundService object and write the result back if there are any changes
 	if !justCreated && util.CopyServiceFields(service, foundService) {
 		log.Info("Updating Service\n", "namespace", service.Namespace, "name", service.Name)
-		err = r.Update(context.TODO(), foundService)
+		err = r.Update(ctx, foundService)
 		if err != nil {
-			return reconcile.Result{}, err
+			log.Error(err, "unable to update Service")
+			return ctrl.Result{}, err
 		}
 	}
 
@@ -238,7 +149,7 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	if os.Getenv("USE_ISTIO") == "true" {
 		err = r.reconcileVirtualService(instance)
 		if err != nil {
-			return reconcile.Result{}, err
+			return ctrl.Result{}, err
 		}
 	}
 
@@ -246,21 +157,21 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	if foundStateful.Status.ReadyReplicas != instance.Status.ReadyReplicas {
 		log.Info("Updating Status", "namespace", instance.Namespace, "name", instance.Name)
 		instance.Status.ReadyReplicas = foundStateful.Status.ReadyReplicas
-		err = r.Status().Update(context.Background(), instance)
+		err = r.Status().Update(ctx, instance)
 		if err != nil {
-			return reconcile.Result{}, err
+			return ctrl.Result{}, err
 		}
 	}
 
 	// Check the pod status
 	pod := &corev1.Pod{}
 	podFound := false
-	err = r.Get(context.TODO(), types.NamespacedName{Name: ss.Name + "-0", Namespace: ss.Namespace}, pod)
-	if err != nil && errors.IsNotFound(err) {
+	err = r.Get(ctx, types.NamespacedName{Name: ss.Name + "-0", Namespace: ss.Namespace}, pod)
+	if err != nil && apierrs.IsNotFound(err) {
 		// This should be reconciled by the StatefulSet
 		log.Info("Pod not found...")
 	} else if err != nil {
-		return reconcile.Result{}, err
+		return ctrl.Result{}, err
 	} else {
 		// Got the pod
 		podFound = true
@@ -278,9 +189,9 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 				log.Info("Appending to conditions: ", "namespace", instance.Namespace, "name", instance.Name, "type", newCondition.Type, "reason", newCondition.Reason, "message", newCondition.Message)
 				instance.Status.Conditions = append([]v1alpha1.NotebookCondition{newCondition}, oldConditions...)
 			}
-			err = r.Status().Update(context.Background(), instance)
+			err = r.Status().Update(ctx, instance)
 			if err != nil {
-				return reconcile.Result{}, err
+				return ctrl.Result{}, err
 			}
 		}
 	}
@@ -293,18 +204,18 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 
 		// Set annotations to the Notebook
 		culler.SetStopAnnotation(&instance.ObjectMeta)
-		err = r.Update(context.TODO(), instance)
+		err = r.Update(ctx, instance)
 		if err != nil {
-			return reconcile.Result{}, err
+			return ctrl.Result{}, err
 		}
 	} else if podFound && !culler.StopAnnotationIsSet(instance.ObjectMeta) {
 		// The Pod is either too fresh, or the idle time has passed and it has
 		// received traffic. In this case we will be periodically checking if
 		// it needs culling.
-		return reconcile.Result{RequeueAfter: culler.GetRequeueTime()}, nil
+		return ctrl.Result{RequeueAfter: culler.GetRequeueTime()}, nil
 	}
 
-	return reconcile.Result{}, nil
+	return ctrl.Result{}, nil
 }
 
 func getNextCondition(cs corev1.ContainerState) v1alpha1.NotebookCondition {
@@ -331,8 +242,8 @@ func getNextCondition(cs corev1.ContainerState) v1alpha1.NotebookCondition {
 		Message:       nbmsg,
 	}
 	return newCondition
-
 }
+
 func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
 	replicas := int32(1)
 	if culler.StopAnnotationIsSet(instance.ObjectMeta) {
@@ -494,9 +405,10 @@ func generateVirtualService(instance *v1alpha1.Notebook) (*unstructured.Unstruct
 
 }
 
-func (r *ReconcileNotebook) reconcileVirtualService(instance *v1alpha1.Notebook) error {
+func (r *NotebookReconciler) reconcileVirtualService(instance *v1alpha1.Notebook) error {
+	log := r.Log.WithValues("notebook", instance.Namespace)
 	virtualService, err := generateVirtualService(instance)
-	if err := controllerutil.SetControllerReference(instance, virtualService, r.scheme); err != nil {
+	if err := ctrl.SetControllerReference(instance, virtualService, r.Scheme); err != nil {
 		return err
 	}
 	// Check if the virtual service already exists.
@@ -506,7 +418,7 @@ func (r *ReconcileNotebook) reconcileVirtualService(instance *v1alpha1.Notebook)
 	foundVirtual.SetKind("VirtualService")
 	err = r.Get(context.TODO(), types.NamespacedName{Name: virtualServiceName(instance.Name,
 		instance.Namespace), Namespace: instance.Namespace}, foundVirtual)
-	if err != nil && errors.IsNotFound(err) {
+	if err != nil && apierrs.IsNotFound(err) {
 		log.Info("Creating virtual service", "namespace", instance.Namespace, "name",
 			virtualServiceName(instance.Name, instance.Namespace))
 		err = r.Create(context.TODO(), virtualService)
@@ -528,4 +440,56 @@ func (r *ReconcileNotebook) reconcileVirtualService(instance *v1alpha1.Notebook)
 	}
 
 	return nil
+}
+func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	builder := ctrl.NewControllerManagedBy(mgr).
+		For(&v1alpha1.Notebook{}).
+		Owns(&appsv1.StatefulSet{}).
+		Owns(&corev1.Service{})
+	// watch Istio virturalservice
+	if os.Getenv("USE_ISTIO") == "true" {
+		virtualService := &unstructured.Unstructured{}
+		virtualService.SetAPIVersion("networking.istio.io/v1alpha3")
+		virtualService.SetKind("VirtualService")
+		builder.Owns(virtualService)
+	}
+
+	// TODO(lunkai): After this is fixed:
+	// https://github.com/kubernetes-sigs/controller-runtime/issues/572
+	// We don't have to call Build to get the controller.
+	c, err := builder.Build(r)
+	if err != nil {
+		return err
+	}
+
+	// watch underlying pod
+	mapFn := handler.ToRequestsFunc(
+		func(a handler.MapObject) []ctrl.Request {
+			return []ctrl.Request{
+				{NamespacedName: types.NamespacedName{
+					Name:      a.Meta.GetLabels()["notebook-name"],
+					Namespace: a.Meta.GetNamespace(),
+				}},
+			}
+		})
+	p := predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			if _, ok := e.MetaOld.GetLabels()["notebook-name"]; !ok {
+				return false
+			}
+			return e.ObjectOld != e.ObjectNew
+		},
+		CreateFunc: func(e event.CreateEvent) bool {
+			if _, ok := e.Meta.GetLabels()["notebook-name"]; !ok {
+				return false
+			}
+			return true
+		},
+	}
+	return c.Watch(
+		&source.Kind{Type: &corev1.Pod{}},
+		&handler.EnqueueRequestsFromMapFunc{
+			ToRequests: mapFn,
+		},
+		p)
 }
