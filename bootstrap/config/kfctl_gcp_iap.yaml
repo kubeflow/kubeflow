@@ -1,9 +1,7 @@
-# Please set project and email!
 apiVersion: kfdef.apps.kubeflow.org/v1alpha1
 kind: KfDef
 metadata:
-  creationTimestamp: null
-  name: myapp2
+  name: kf101
   namespace: kubeflow
 spec:
   repos:
@@ -15,7 +13,6 @@ spec:
     uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
     # To get manifest at a PR:
     #uri: https://github.com/kubeflow/manifests/archive/pull/235/head.tar.gz
-  appdir: /tmp/myapp2
   applications:
   - kustomizeConfig:
       parameters:
@@ -68,6 +65,12 @@ spec:
   - kustomizeConfig:
       overlays:
       - istio
+      - application
+      parameters:
+      - name: userid-header
+        value: X-Goog-Authenticated-User-Email
+      - name: userid-prefix
+        value: "accounts.google.com:"
       repoRef:
         name: manifests
         path: common/centraldashboard
@@ -89,6 +92,11 @@ spec:
       overlays:
       - istio
       - application
+      parameters:
+      - name: userid-header
+        value: X-Goog-Authenticated-User-Email
+      - name: userid-prefix
+        value: "accounts.google.com:"
       repoRef:
         name: manifests
         path: jupyter/jupyter-web-app
@@ -116,17 +124,17 @@ spec:
         path: katib-v1alpha2/katib-ui
     name: katib-ui
   - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/metrics-collector
+    name: metrics-collector
+  - kustomizeConfig:
       overlays:
       - istio
       repoRef:
         name: manifests
         path: metadata
     name: metadata
-  - kustomizeConfig:
-      repoRef:
-        name: manifests
-        path: katib-v1alpha2/metrics-collector
-    name: metrics-collector
   - kustomizeConfig:
       repoRef:
         name: manifests
@@ -218,7 +226,7 @@ spec:
       - minioPd
       parameters:
       - name: minioPd
-        value: test1-storage-artifact-store
+        value: kf101-storage-artifact-store
       - name: minioPvName
         value: minio-pv
       - name: minioPvcName
@@ -232,7 +240,7 @@ spec:
       - mysqlPd
       parameters:
       - name: mysqlPd
-        value: test1-storage-metadata-store
+        value: kf101-storage-metadata-store
       - name: mysqlPvName
         value: mysql-pv
       - name: mysqlPvcName
@@ -284,7 +292,11 @@ spec:
       parameters:
       - initRequired: true
         name: admin
-        value: SET_EMAIL
+        # value: SET_EMAIL      
+      - name: userid-header
+        value: X-Goog-Authenticated-User-Email
+      - name: userid-prefix
+        value: "accounts.google.com:"
       repoRef:
         name: manifests
         path: profiles
@@ -303,7 +315,7 @@ spec:
         value: istio-system
       - initRequired: true
         name: ipName
-        value: test1-ip
+        # value: kf101-ip
       - initRequired: true
         name: hostname
         # The value of hostname should be the DNS address for ingress.
@@ -330,8 +342,3 @@ spec:
   skipInitProject: true
   useBasicAuth: false
   useIstio: true
-  version: master
-  # Project should be set to the GCP project you want to use.
-  # If you run kfctl init --config=<path>/kfctl_gcp_iap.yaml 
-  # kfctl will try to automatically set it.
-  # project: <your project>
