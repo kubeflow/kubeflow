@@ -25,6 +25,9 @@ spec:
         #- --repos=kubeflow/kubeflow@HEAD:3958,kubeflow/fairing@HEAD,kubeflow/testing@HEAD,kubeflow/manifests@HEAD
         - --repos=$(REPOS)
         - --src_dir=/src
+        # Don't do a shallow clone because we need to compute when files were modified and shallow clones prevent pushing
+        # branches.
+        - --depth=all
         name: checkout
         image: gcr.io/kubeflow-releasing/test-worker
         volumeMounts:
