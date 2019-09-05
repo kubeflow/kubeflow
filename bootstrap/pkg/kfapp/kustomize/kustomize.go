@@ -41,6 +41,7 @@ import (
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/rest"
+	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
