@@ -441,6 +441,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         }
 
         const email = await Gapi.getSignedInEmail() || '';
+        this.setState({
+            ['email']: email,
+        });
         if (this.state.kfversion === Version.V06) {
             return this._getV6Yaml(email);
         } else {
@@ -693,11 +696,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
         let buildEndpoint: string;
         let requestBody: string;
-        const email = await Gapi.getSignedInEmail() || '';
         if (this.state.kfversion === Version.V05) {
             // buildEndpoint = `${this._configSpec.appAddress}/kfctl/e2eDeploy`;
             buildEndpoint = '/kfctl/e2eDeploy';
-            requestBody = this._getV5BuildRequest(configSpec, email);
+            requestBody = this._getV5BuildRequest(configSpec);
         } else {
             buildEndpoint = '/kfctl/apps/v1alpha2/create';
             requestBody = this._getV6BuildRequest(configSpec);
@@ -1068,10 +1070,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     /**
      * Helper method to facilitate building a v0.5.0 cluster
      * @param configSpec
-     * @param email
      */
-    private _getV5BuildRequest(configSpec: {defaultApp: string}, email: string): string {
-        const {deploymentName, project, projectNumber,
+    private _getV5BuildRequest(configSpec: {defaultApp: string}): string {
+        const {deploymentName, email, project, projectNumber,
             kfversion, saClientId, saToken} = this.state;
         let createBody = {
             AppConfig: configSpec.defaultApp,
