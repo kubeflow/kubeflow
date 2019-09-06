@@ -441,6 +441,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         }
 
         const email = await Gapi.getSignedInEmail() || '';
+        this.setState({
+            ['email']: email,
+        });
         if (this.state.kfversion === Version.V06) {
             return this._getV6Yaml(email);
         } else {
