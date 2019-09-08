@@ -14,7 +14,7 @@ ENV GO111MODULE=on
 RUN go build -gcflags 'all=-N -l' -o manager cmd/manager/main.go
 
 # Copy the controller-manager into a thin image
-FROM ubuntu:latest
+FROM ubuntu:latest AS serve
 WORKDIR /
 COPY --from=builder /go/src/github.com/kubeflow/kubeflow/components/profile-controller/manager .
 ENTRYPOINT ["/manager"]
