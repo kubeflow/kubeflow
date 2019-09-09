@@ -284,7 +284,7 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 	}
 	if container.Ports == nil {
 		container.Ports = []corev1.ContainerPort{
-			corev1.ContainerPort{
+			{
 				ContainerPort: DefaultContainerPort,
 				Name:          "notebook-port",
 				Protocol:      "TCP",
@@ -334,7 +334,7 @@ func generateService(instance *v1beta1.Notebook) *corev1.Service {
 			Type:     "ClusterIP",
 			Selector: map[string]string{"statefulset": instance.Name},
 			Ports: []corev1.ServicePort{
-				corev1.ServicePort{
+				{
 					// Make port name follow Istio pattern so it can be managed by istio rbac
 					Name:       "http-" + instance.Name,
 					Port:       DefaultServingPort,
@@ -446,7 +446,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&v1beta1.Notebook{}).
 		Owns(&appsv1.StatefulSet{}).
 		Owns(&corev1.Service{})
-	// watch Istio virturalservice
+	// watch Istio virtual service
 	if os.Getenv("USE_ISTIO") == "true" {
 		virtualService := &unstructured.Unstructured{}
 		virtualService.SetAPIVersion("networking.istio.io/v1alpha3")
