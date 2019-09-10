@@ -60,6 +60,7 @@ type NotebookCondition struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+
 // Notebook is the Schema for the notebooks API
 type Notebook struct {
 	metav1.TypeMeta   `json:",inline"`
