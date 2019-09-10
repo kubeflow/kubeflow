@@ -1,7 +1,7 @@
 package gcp
 
 import (
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 )
 
 // GcpPlugin defines the extra data provided by the GCP Plugin in KfDef
@@ -15,6 +15,10 @@ type GcpPluginSpec struct {
 	// CreatePipelinePersistentStorage indicates whether to create storage.
 	// Use a pointer so we can distinguish unset values.
 	CreatePipelinePersistentStorage *bool `json:"createPipelinePersistentStorage,omitempty"`
+
+	// EnableWorkloadIdentity indicates whether to enable workload identity.
+	// Use a pointer so we can distinguish unset values.
+	EnableWorkloadIdentity *bool `json:"enableWorkloadIdentity,omitempty"`
 }
 
 type Auth struct {
@@ -87,5 +91,14 @@ func (p *GcpPluginSpec) GetCreatePipelinePersistentStorage() bool {
 	}
 
 	v := p.CreatePipelinePersistentStorage
+	return *v
+}
+
+func (p *GcpPluginSpec) GetEnableWorkloadIdentity() bool {
+	if p.EnableWorkloadIdentity == nil {
+		return false
+	}
+
+	v := p.EnableWorkloadIdentity
 	return *v
 }

@@ -29,6 +29,7 @@
             }
         ],
         "multiline-comment-style": "error",
-        "require-jsdoc": "off"
+        "require-jsdoc": "off",
+        "linebreak-style": "off"
     }
 }

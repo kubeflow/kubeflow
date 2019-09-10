@@ -17,12 +17,19 @@ package apps
 
 import (
 	"fmt"
-	gogetter "github.com/hashicorp/go-getter"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
+	"os"
+	"path"
+	"path/filepath"
+	"plugin"
+	"regexp"
+	"strings"
+
+	gogetter "github.com/hashicorp/go-getter"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	log "github.com/sirupsen/logrus"
 	ext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	crdclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apiext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
@@ -31,12 +38,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"os"
-	"path"
-	"path/filepath"
-	"plugin"
-	"regexp"
-	"strings"
 )
 
 const (
@@ -60,6 +61,7 @@ const (
 	KUBEFLOW_USERNAME      = "KUBEFLOW_USERNAME"
 	KUBEFLOW_PASSWORD      = "KUBEFLOW_PASSWORD"
 	DefaultSwaggerFile     = "bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json"
+	YamlSeparator          = "(?m)^---[ \t]*$"
 )
 
 type ResourceEnum string
@@ -147,6 +149,7 @@ func RemoveItem(defaults []string, name string) []string {
 
 // Platforms
 const (
+	AWS              = "aws"
 	GCP              = "gcp"
 	MINIKUBE         = "minikube"
 	EXISTING_ARRIKTO = "existing_arrikto"
@@ -328,6 +331,18 @@ func GetApiExtClientset(config *rest.Config) apiext.ApiextensionsV1beta1Interfac
 		log.Fatalf("Can not get apiextensions kfdef: %v", err)
 	}
 	return crdClient.ApiextensionsV1beta1()
+}
+
+// Remove unvalid characters to compile a valid name for default Profile. To prevent
+// violation to the naming length restriction, ignore everything after `@`.
+func EmailToDefaultName(email string) string {
+	name := strings.NewReplacer(".", "-").Replace(email)
+	splitted := strings.Split(name, "@")
+	if len(splitted) > 1 {
+		return "kubeflow-" + splitted[0]
+	} else {
+		return "kubeflow-" + name
+	}
 }
 
 // Capture replaces os.Stdout with a writer that buffers any data written

@@ -14,350 +14,351 @@ limitations under the License.
 package utils
 
 import (
-	"bytes"
+	"context"
 	"fmt"
-	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
-	bootstrap "github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/pkg/apis"
+	configtypes "github.com/kubeflow/kubeflow/bootstrap/v3/config"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
+	"k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8stypes "k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/discovery/cached"
-	"k8s.io/client-go/dynamic"
-	"strings"
-	"sync"
-
-	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/cli-runtime/pkg/genericclioptions/printers"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	kubectlapply "k8s.io/kubernetes/pkg/kubectl/cmd/apply"
+	kubectldelete "k8s.io/kubernetes/pkg/kubectl/cmd/delete"
+	cmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
+	"math/rand"
+	"os"
+	"path"
+	"regexp"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"strings"
 	"time"
-
 	// Auth plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 )
 
-// RecommendedConfigPathEnvVar is a environment variable for path configuration
-const RecommendedConfigPathEnvVar = "KUBECONFIG"
-
 const (
-	maxRetries      = 5
-	backoffInterval = 5 * time.Second
+	YamlSeparator = "(?m)^---[ \t]*$"
+	CertDir       = "/opt/ca"
 )
 
-func getRESTClient(config *rest.Config, group string, version string) (*rest.RESTClient, error) {
-	c := rest.CopyConfig(config)
-	c.GroupVersion = &schema.GroupVersion{
-		Group:   group,
-		Version: version,
+func generateRandStr(length int) string {
+	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = chars[rand.Intn(len(chars))]
 	}
-	c.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
-	if group == "" {
-		c.APIPath = "/api"
-	} else {
-		c.APIPath = "/apis"
-	}
-	return rest.RESTClientFor(c)
+	return string(b)
 }
 
-// TODO: Might need to return response if needed.
-func getResource(mapping *meta.RESTMapping, config *rest.Config, group string,
-	version string, namespace string, name string) error {
-	restClient, err := getRESTClient(config, group, version)
+func CreateResourceFromFile(config *rest.Config, filename string, elems ...configtypes.NameValue) error {
+	elemsMap := make(map[string]configtypes.NameValue)
+	for _, nv := range elems {
+		elemsMap[nv.Name] = nv
+	}
+	c, err := client.New(config, client.Options{})
 	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("getResource error: %v", err),
-		}
+		return errors.WithStack(err)
 	}
-
-	if _, err = restClient.
-		Get().
-		Resource(mapping.Resource).
-		NamespaceIfScoped(namespace, mapping.Scope.Name() == "namespace").
-		Name(name).
-		Do().
-		Get(); err == nil {
-		return nil
-	} else {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("getResource error: %v", err),
-		}
-	}
-}
-
-// TODO(#2391): kubectl is hard to be used as library - it's deeply integrated with
-// Cobra. Currently using RESTClient with `kubectl create` has some issues with YAML
-// generated with `ks show`.
-func patchResource(mapping *meta.RESTMapping, config *rest.Config, group string,
-	version string, namespace string, data []byte) error {
-	restClient, err := getRESTClient(config, group, version)
-	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("patchResource error: %v", err),
-		}
-	}
-
-	if _, err = restClient.
-		Patch(k8stypes.JSONPatchType).
-		Resource(mapping.Resource).
-		NamespaceIfScoped(namespace, mapping.Scope.Name() == "namespace").
-		Body(data).
-		Do().
-		Get(); err == nil {
-		return nil
-	} else {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("patchResource error: %v", err),
-		}
-	}
-}
-
-func deleteResource(mapping *meta.RESTMapping, config *rest.Config, group string,
-	version string, namespace string, name string) error {
-	restClient, err := getRESTClient(config, group, version)
-	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("deleteResource error: %v", err),
-		}
-	}
-
-	_, err = restClient.
-		Delete().
-		Resource(mapping.Resource).
-		NamespaceIfScoped(namespace, mapping.Scope.Name() == "namespace").
-		Name(name).
-		Do().
-		Get()
-
-	if err != nil {
-		if k8serrors.IsNotFound(err) {
-			return nil
-		} else {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Resource deletion error: %v", err),
-			}
-		}
-	}
-
-	return backoff.Retry(func() error {
-		getErr := getResource(mapping, config, group, version, namespace, name)
-		if k8serrors.IsNotFound(getErr) {
-			log.Infof("%v in namespace %v is deleted ...", name, namespace)
-			return nil
-		} else {
-			msg := fmt.Sprintf("%v in namespace %v is being deleted ...",
-				name, namespace)
-			if getErr != nil {
-				msg = msg + getErr.Error()
-			}
-			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: msg,
-			}
-		}
-	}, backoff.NewExponentialBackOff())
-}
-
-func createResource(mapping *meta.RESTMapping, config *rest.Config, group string,
-	version string, namespace string, data []byte) error {
-	restClient, err := getRESTClient(config, group, version)
-	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("createResource error: %v", err),
-		}
-	}
-
-	if _, err = restClient.
-		Post().
-		Resource(mapping.Resource).
-		NamespaceIfScoped(namespace, mapping.Scope.Name() == "namespace").
-		Body(data).
-		Do().
-		Get(); err == nil {
-		return nil
-	} else {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("createResource error: %v", err),
-		}
-	}
-}
-
-// TODO(#2585): Should try to have 3 way merge functionality.
-func patchOrCreate(mapping *meta.RESTMapping, config *rest.Config, group string,
-	version string, namespace string, name string, data []byte) error {
-	log.Infof("Applying resource configuration for %v", name)
-	err := getResource(mapping, config, group, version, namespace, name)
-	if err != nil {
-		log.Infof("getResource error, treating as not found: %v", err)
-		err = createResource(mapping, config, group, version, namespace, data)
-	} else {
-		log.Infof("getResource succeeds, treating as found.")
-		err = patchResource(mapping, config, group, version, namespace, data)
-	}
-
-	for i := 1; i < maxRetries && k8serrors.IsConflict(err); i++ {
-		time.Sleep(backoffInterval)
-
-		log.Infof("Retrying patchOrCreate at %v attempt ...", i)
-		err = getResource(mapping, config, group, version, namespace, name)
-		if err != nil {
-			return err
-		}
-		err = patchResource(mapping, config, group, version, namespace, data)
-	}
-
-	if err != nil && (k8serrors.IsConflict(err) || k8serrors.IsInvalid(err) ||
-		k8serrors.IsMethodNotSupported(err)) {
-		log.Infof("Trying delete and create as last resort ...")
-		if err = deleteResource(mapping, config, group, version, namespace, name); err != nil {
-			return err
-		}
-		err = createResource(mapping, config, group, version, namespace, data)
-	}
-	return err
-}
-
-// CreateResourceFromFile creates resources from a file, just like `kubectl create -f filename`
-// We use some libraries in an old way (e.g. the RestMapper is in discovery instead of restmapper)
-// because ksonnet (one of our dependency) is using the old library version.
-// TODO: it can't handle "kind: list" yet.
-func CreateResourceFromFile(config *rest.Config, filename string) error {
-	// Create a restmapper to determine the resource type.
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
-	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: err.Error(),
-		}
-	}
-	cached := cached.NewMemCacheClient(discoveryClient)
-	mapper := discovery.NewDeferredDiscoveryRESTMapper(cached, dynamic.VersionInterfaces)
 
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: err.Error(),
-		}
+		return errors.WithStack(err)
 	}
-	objects := bytes.Split(data, []byte(bootstrap.YamlSeparator))
-	var o map[string]interface{}
-	errors := make([]error, len(objects))
-	var wg sync.WaitGroup
-	log.Infof("%v of resources creation ...", len(objects))
-	wg.Add(len(objects))
-	for idx, object := range objects {
-		if err = yaml.Unmarshal(object, &o); err != nil {
-			log.Warnf("Resource marshal error: %v", err)
-			errors[idx] = nil
-			wg.Done()
+	splitter := regexp.MustCompile(YamlSeparator)
+	objectStrings := splitter.Split(string(data), -1)
+	for _, str := range objectStrings {
+		if strings.TrimSpace(str) == "" {
 			continue
 		}
-		a := o["apiVersion"]
-		if a == nil {
-			log.Warnf("Unknown resource: %v", object)
-			errors[idx] = nil
-			wg.Done()
+		u := &unstructured.Unstructured{}
+		if err := yaml.Unmarshal([]byte(str), u); err != nil {
+			return errors.WithStack(err)
+		}
+
+		name := u.GetName()
+		namespace := u.GetNamespace()
+		if namespace == "" {
+			if val, exists := elemsMap["namespace"]; exists {
+				u.SetNamespace(val.Value)
+			} else {
+				u.SetNamespace("default")
+			}
+		}
+
+		log.Infof("Creating %s", name)
+
+		err := c.Get(context.TODO(), k8stypes.NamespacedName{Name: name, Namespace: namespace}, u.DeepCopy())
+		if err == nil {
+			log.Info("object already exists...")
 			continue
 		}
-
-		// Identify the name of deployment.
-		metadata := o["metadata"].(map[string]interface{})
-		if metadata["name"] == nil {
-			log.Warnf("Cannot name in resource: %v", string(object))
-			errors[idx] = nil
-			wg.Done()
-			continue
-		}
-		name := metadata["name"].(string)
-		log.Infof("creating %v\n", name)
-
-		apiVersion := strings.Split(a.(string), "/")
-		var group, version string
-		if len(apiVersion) == 1 {
-			// core v1, no group. e.g. namespace
-			group, version = "", apiVersion[0]
-		} else {
-			group, version = apiVersion[0], apiVersion[1]
-		}
-		log.Infof("using group (%v) and version (%v)", group, version)
-
-		var namespace string
-		if metadata["namespace"] != nil {
-			namespace = metadata["namespace"].(string)
-		} else {
-			namespace = "default"
-		}
-		log.Infof("namespace = %v", namespace)
-
-		kind := o["kind"].(string)
-		log.Infof("kind: %v", kind)
-		gk := schema.GroupKind{
-			Group: group,
-			Kind:  kind,
+		if !k8serrors.IsNotFound(err) {
+			return errors.WithStack(err)
 		}
 
-		data, err := yaml.YAMLToJSON(object)
+		err = c.Create(context.TODO(), u)
 		if err != nil {
-			log.Warnf("YAMLToJSON error for %v: %v", name, err)
-			errors[idx] = nil
-			wg.Done()
-			continue
+			return errors.WithStack(err)
 		}
+	}
+	return nil
+}
 
-		go func(idx int, gk schema.GroupKind, config *rest.Config, group string,
-			version string, namespace string, name string, data []byte) {
-			log.Infof("Goroutine for %v is started ...", name)
-			var resourceErr error
-			resourceErr = nil
-			defer func() {
-				log.Infof("Goroutine for %v is DONE ...", name)
-				errors[idx] = resourceErr
-				wg.Done()
-			}()
-
-			resourceErr = backoff.Retry(func() error {
-				// result.resource is the resource we need (e.g. pods, services)
-				mapping, retryErr := mapper.RESTMapping(gk, version)
-				if retryErr == nil {
-					retryErr = patchOrCreate(mapping, config, group, version,
-						namespace, name, data)
-				}
-				if retryErr == nil {
-					log.Infof("Resource creation for %v is finished ...", name)
-					return nil
-				}
-				log.Infof("Resource creation for %v is failed, backoff and retry: %v",
-					name, retryErr.Error())
-				return &kfapis.KfError{
-					Code:    int(kfapis.INVALID_ARGUMENT),
-					Message: retryErr.Error(),
-				}
-			}, backoff.NewExponentialBackOff())
-		}(idx, gk, config, group, version, namespace, name, data)
+func DeleteResourceFromFile(config *rest.Config, filename string) error {
+	c, err := client.New(config, client.Options{})
+	if err != nil {
+		return errors.WithStack(err)
 	}
 
-	wg.Wait()
-	for _, e := range errors {
-		if e != nil {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	splitter := regexp.MustCompile(YamlSeparator)
+	objectStrings := splitter.Split(string(data), -1)
+	for _, str := range objectStrings {
+		if strings.TrimSpace(str) == "" {
+			continue
+		}
+		u := &unstructured.Unstructured{}
+		if err := yaml.Unmarshal([]byte(str), u); err != nil {
+			return errors.WithStack(err)
+		}
+
+		name := u.GetName()
+		namespace := u.GetNamespace()
+
+		log.Infof("Deleting %s", name)
+
+		err := c.Get(context.TODO(), k8stypes.NamespacedName{Name: name, Namespace: namespace}, u.DeepCopy())
+		if k8serrors.IsNotFound(err) {
+			log.Info("object already deleted...")
+			continue
+		}
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		err = c.Delete(context.TODO(), u)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+	}
+	return nil
+}
+
+type Apply struct {
+	matchVersionKubeConfigFlags *cmdutil.MatchVersionFlags
+	factory                     cmdutil.Factory
+	clientset                   *kubernetes.Clientset
+	options                     *kubectlapply.ApplyOptions
+	tmpfile                     *os.File
+	stdin                       *os.File
+}
+
+func NewApply(namespace string, restConfig *rest.Config) (*Apply, error) {
+	configFlags := genericclioptions.NewConfigFlags()
+	if restConfig != nil {
+		certFile := path.Join(CertDir, generateRandStr(10))
+		if err := ioutil.WriteFile(certFile, restConfig.TLSClientConfig.CAData, 0644); err != nil {
+			return nil, err
+		}
+		configFlags.CAFile = &certFile
+		configFlags.BearerToken = &(restConfig.BearerToken)
+		configFlags.APIServer = &(restConfig.Host)
+	}
+	apply := &Apply{
+		matchVersionKubeConfigFlags: cmdutil.NewMatchVersionFlags(configFlags),
+	}
+	apply.factory = cmdutil.NewFactory(apply.matchVersionKubeConfigFlags)
+	clientset, err := apply.factory.KubernetesClientSet()
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not get clientset Error %v", err),
+		}
+	}
+	apply.clientset = clientset
+	err = apply.namespace(namespace)
+	if err != nil {
+		return nil, err
+	}
+	return apply, nil
+}
+
+func (a *Apply) DefaultProfileNamespace(name string) bool {
+	_, nsMissingErr := a.clientset.CoreV1().Namespaces().Get(name, metav1.GetOptions{})
+	if nsMissingErr != nil {
+		return false
+	}
+	return true
+}
+
+func (a *Apply) Apply(data []byte) error {
+	a.tmpfile = a.tempFile(data)
+	a.stdin = os.Stdin
+	os.Stdin = a.tmpfile
+	defer a.cleanup()
+	ioStreams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
+	a.options = kubectlapply.NewApplyOptions(ioStreams)
+	a.options.DeleteFlags = a.deleteFlags("that contains the configuration to apply")
+	initializeErr := a.init()
+	if initializeErr != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not initialize  Error %v", initializeErr),
+		}
+	}
+	err := a.run()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *Apply) run() error {
+	resourcesErr := a.options.Run()
+	if resourcesErr != nil {
+		cmdutil.CheckErr(resourcesErr)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Apply.Run  Error %v", resourcesErr),
+		}
+	}
+	return nil
+}
+
+func (a *Apply) cleanup() error {
+	os.Stdin = a.stdin
+	if a.tmpfile != nil {
+		if err := a.tmpfile.Close(); err != nil {
+			return err
+		}
+		return os.Remove(a.tmpfile.Name())
+	}
+	return nil
+}
+
+func (a *Apply) init() error {
+	var err error
+	var o = a.options
+	var f = a.factory
+	// allow for a success message operation to be specified at print time
+	o.ToPrinter = func(operation string) (printers.ResourcePrinter, error) {
+		o.PrintFlags.NamePrintFlags.Operation = operation
+		if o.DryRun {
+			err = o.PrintFlags.Complete("%s (dry run)")
+			if err != nil {
+				return nil, err
+			}
+		}
+		if o.ServerDryRun {
+			err = o.PrintFlags.Complete("%s (server dry run)")
+			if err != nil {
+				return nil, err
+			}
+		}
+		return o.PrintFlags.ToPrinter()
+	}
+	o.DiscoveryClient, err = f.ToDiscoveryClient()
+	if err != nil {
+		return err
+	}
+	dynamicClient, err := f.DynamicClient()
+	if err != nil {
+		return err
+	}
+	o.DeleteOptions = o.DeleteFlags.ToOptions(dynamicClient, o.IOStreams)
+	o.ShouldIncludeUninitialized = false
+	o.OpenApiPatch = true
+	o.OpenAPISchema, _ = f.OpenAPISchema()
+	o.Validator, err = f.Validator(false)
+	o.Builder = f.NewBuilder()
+	o.Mapper, err = f.ToRESTMapper()
+	if err != nil {
+		return err
+	}
+	o.DynamicClient, err = f.DynamicClient()
+	if err != nil {
+		return err
+	}
+	o.Namespace, o.EnforceNamespace, err = f.ToRawKubeConfigLoader().Namespace()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *Apply) namespace(namespace string) error {
+	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
+	_, nsMissingErr := a.clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	if nsMissingErr != nil {
+		log.Infof("Creating namespace: %v", namespace)
+		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
+		_, nsErr := a.clientset.CoreV1().Namespaces().Create(nsSpec)
+		if nsErr != nil {
 			return &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: e.Error(),
+				Code: int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("couldn't create %v %v Error: %v",
+					string(kftypes.NAMESPACE), namespace, nsErr),
 			}
 		}
 	}
 	return nil
+}
+
+func (a *Apply) tempFile(data []byte) *os.File {
+	tmpfile, err := ioutil.TempFile("/tmp", "kout")
+	if err != nil {
+		log.Fatal(err)
+	}
+	if _, err := tmpfile.Write(data); err != nil {
+		log.Fatal(err)
+	}
+	if _, err := tmpfile.Seek(0, 0); err != nil {
+		log.Fatal(err)
+	}
+	return tmpfile
+}
+
+func (a *Apply) deleteFlags(usage string) *kubectldelete.DeleteFlags {
+	cascade := true
+	gracePeriod := -1
+	// setup command defaults
+	all := false
+	force := false
+	ignoreNotFound := false
+	now := false
+	output := ""
+	labelSelector := ""
+	fieldSelector := ""
+	timeout := time.Duration(0)
+	wait := true
+	filenames := []string{a.tmpfile.Name()}
+	recursive := false
+	return &kubectldelete.DeleteFlags{
+		FileNameFlags:  &genericclioptions.FileNameFlags{Usage: usage, Filenames: &filenames, Recursive: &recursive},
+		LabelSelector:  &labelSelector,
+		FieldSelector:  &fieldSelector,
+		Cascade:        &cascade,
+		GracePeriod:    &gracePeriod,
+		All:            &all,
+		Force:          &force,
+		IgnoreNotFound: &ignoreNotFound,
+		Now:            &now,
+		Timeout:        &timeout,
+		Wait:           &wait,
+		Output:         &output,
+	}
 }

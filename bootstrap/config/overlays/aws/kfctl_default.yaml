@@ -1,0 +1,46 @@
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+metadata:
+  name: config
+spec:
+  components:
+  - istio-crds
+  - istio-install
+  - istio-ingress
+  - aws-alb-ingress-controller
+  - nvidia-device-plugin
+  - profiles
+  packages:
+  - aws
+  - istio
+  - profiles
+  componentParams:
+    istio-ingress:
+    - name: namespace
+      value: istio-system
+      initRequired: true
+    aws-alb-ingress-controller:
+    - name: clusterName
+      value: kubeflow-aws-cluster
+      initRequired: true
+    fluentd-cloud-watch:
+    - name: clusterName
+      value: kubeflow-aws-cluster
+      initRequired: true
+    - name: region
+      value: us-west-2
+      initRequired: true
+    minio:
+    - name: minioPvName
+      value: minio-pv
+    - name: minioPvcName
+      value: minio-pv-claim
+    mysql:
+    - name: mysqlPvName
+      value: mysql-pv
+    - name: mysqlPvcName
+      value: mysql-pv-cla
+    istio:
+    - name: clusterRbacConfig
+      value: "OFF"
+  platform: aws

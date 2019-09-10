@@ -7,6 +7,10 @@ import {attachUser} from './attach_user_middleware';
 import {DefaultApi} from './clients/profile_controller';
 import {KubernetesService} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
+import {
+  WorkgroupApi,
+  mapSimpleBindingToWorkgroupBinding,
+} from './api_workgroup';
 
 // Helper function to send a test request and return a Promise for the response
 function sendTestRequest(
@@ -37,6 +41,11 @@ describe('Dashboard API', () => {
   let mockProfilesService: jasmine.SpyObj<DefaultApi>;
   let testApp: express.Application;
   let port: number;
+  const newAPI = (withMetrics = false) => new Api(
+    mockK8sService,
+    new WorkgroupApi(mockProfilesService),
+    withMetrics ? mockMetricsService : undefined,
+  );
 
   describe('Environment Information', () => {
     let url: string;
@@ -45,23 +54,6 @@ describe('Dashboard API', () => {
         'getPlatformInfo',
         'getNamespaces',
       ]);
-      const namespaces = [
-        {
-          apiVersion: 'v1',
-          kind: 'Namespace',
-          metadata: {
-            name: 'default',
-          },
-        },
-        {
-          apiVersion: 'v1',
-          kind: 'Namespace',
-          metadata: {
-            name: 'kubeflow',
-          },
-        },
-      ] as V1Namespace[];
-      mockK8sService.getNamespaces.and.returnValue(Promise.resolve(namespaces));
       mockK8sService.getPlatformInfo.and.returnValue(Promise.resolve({
         provider: 'onprem',
         providerName: 'onprem',
@@ -70,11 +62,23 @@ describe('Dashboard API', () => {
       mockProfilesService = jasmine.createSpyObj<DefaultApi>(
           ['readBindings', 'v1RoleClusteradminGet']);
 
+      mockProfilesService.readBindings.withArgs()
+          .and.returnValue(Promise.resolve({
+            response: null,
+            body: {
+              bindings: [
+                {user: 'anyone@kubeflow.org', namespace: 'default', role: 'owner'},
+                {user: 'user1@kubeflow.org', namespace: 'default', role: 'contributor'},
+                {user: 'user1@kubeflow.org', namespace: 'kubeflow', role: 'owner'},
+              ].map(mapSimpleBindingToWorkgroupBinding)
+            },
+          }));
+
       testApp = express();
       testApp.use(express.json());
       testApp.use(attachUserMiddleware);
       testApp.use(
-          '/api', new Api(mockK8sService, mockProfilesService).routes());
+          '/api', newAPI().routes());
       const addressInfo = testApp.listen(0).address();
       if (typeof addressInfo === 'string') {
         throw new Error(
@@ -96,14 +100,14 @@ describe('Dashboard API', () => {
            isClusterAdmin: true,
            namespaces: [
              {
-               user: {kind: 'user', name: 'anonymous@kubeflow.org'},
-               referredNamespace: 'default',
-               roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'editor'}
+               user: 'anonymous@kubeflow.org',
+               namespace: 'default',
+               role: 'contributor',
              },
              {
-               user: {kind: 'user', name: 'anonymous@kubeflow.org'},
-               referredNamespace: 'kubeflow',
-               roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'editor'}
+               user: 'anonymous@kubeflow.org',
+               namespace: 'kubeflow',
+               role: 'contributor',
              },
            ],
          };
@@ -115,9 +119,8 @@ describe('Dashboard API', () => {
          // Second call should use cached platform information
          response = await sendTestRequest(url);
          expect(response).toEqual(expectedResponse);
-         expect(mockK8sService.getNamespaces.calls.count()).toBe(2);
          expect(mockK8sService.getPlatformInfo.calls.count()).toBe(1);
-         expect(mockProfilesService.readBindings).not.toHaveBeenCalled();
+         expect(mockProfilesService.readBindings).toHaveBeenCalled();
          expect(mockProfilesService.v1RoleClusteradminGet)
              .not.toHaveBeenCalled();
        });
@@ -134,7 +137,7 @@ describe('Dashboard API', () => {
                  bindings: [{
                    user: {kind: 'user', name: 'test@testdomain.com'},
                    referredNamespace: 'test',
-                   roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'editor'}
+                   roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'edit'}
                  }]
                },
              }));
@@ -152,9 +155,9 @@ describe('Dashboard API', () => {
            isClusterAdmin: false,
            namespaces: [
              {
-               user: {kind: 'user', name: 'test@testdomain.com'},
-               referredNamespace: 'test',
-               roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'editor'}
+               user: 'test@testdomain.com',
+               namespace: 'test',
+               role: 'contributor',
              },
            ],
          };
@@ -181,7 +184,7 @@ describe('Dashboard API', () => {
               bindings: [{
                 user: {kind: 'user', name: 'test@testdomain.com'},
                 referredNamespace: 'test',
-                roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'editor'}
+                roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'edit'}
               }]
             },
           }));
@@ -210,18 +213,18 @@ describe('Dashboard API', () => {
       testApp.use(express.json());
       testApp.use(attachUserMiddleware);
       testApp.use(
-          '/api', new Api(mockK8sService, mockProfilesService).routes());
+          '/api', newAPI().routes());
       const addressInfo = testApp.listen(0).address();
       if (typeof addressInfo === 'string') {
         throw new Error(
             'Unable to determine system-assigned port for test API server');
       }
       port = addressInfo.port;
-      url = `http://localhost:${port}/api/has-workgroup`;
+      url = `http://localhost:${port}/api/workgroup/exists`;
     });
 
     it('Should return for a non-identity aware cluster', async () => {
-      const expectedResponse = {hasAuth: false, hasWorkgroup: false};
+      const expectedResponse = {hasAuth: false, hasWorkgroup: false, user: 'anonymous'};
 
       const response = await sendTestRequest(url);
       expect(response).toEqual(expectedResponse);
@@ -241,12 +244,12 @@ describe('Dashboard API', () => {
                  bindings: [{
                    user: {kind: 'user', name: 'test@testdomain.com'},
                    referredNamespace: 'test',
-                   roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'editor'}
+                   roleRef: {apiGroup: '', kind: 'ClusterRole', name: 'admin'}
                  }]
                },
              }));
 
-         const expectedResponse = {hasAuth: true, hasWorkgroup: true};
+         const expectedResponse = {hasAuth: true, hasWorkgroup: true, user: 'test'};
 
          const headers = {
            [header]: `${prefix}test@testdomain.com`,
@@ -270,7 +273,7 @@ describe('Dashboard API', () => {
                body: {bindings: []},
              }));
 
-         const expectedResponse = {hasAuth: true, hasWorkgroup: false};
+         const expectedResponse = {hasAuth: true, hasWorkgroup: false, user: 'test'};
 
          const headers = {
            [header]: `${prefix}test@testdomain.com`,
@@ -294,29 +297,22 @@ describe('Dashboard API', () => {
       testApp.use(express.json());
       testApp.use(attachUserMiddleware);
       testApp.use(
-          '/api', new Api(mockK8sService, mockProfilesService).routes());
+          '/api', newAPI().routes());
       const addressInfo = testApp.listen(0).address();
       if (typeof addressInfo === 'string') {
         throw new Error(
             'Unable to determine system-assigned port for test API server');
       }
       port = addressInfo.port;
-      url = `http://localhost:${port}/api/create-workgroup`;
+      url = `http://localhost:${port}/api/workgroup/create`;
     });
-
-    it('Should return a 405 status for a non-identity aware cluster',
-       async () => {
-         const response = await sendTestRequest(url, null, 405, 'post');
-         expect(response).toEqual({error: 'Operation not supported'});
-         expect(mockProfilesService.createProfile).not.toHaveBeenCalled();
-       });
 
     it('Should use user identity if no body is provided', async () => {
       const headers = {
         [header]: `${prefix}test@testdomain.com`,
       };
       const response = await sendTestRequest(url, headers, 200, 'post');
-      expect(response).toEqual(true);
+      expect(response).toEqual({message: 'Created namespace test'});
       expect(mockProfilesService.createProfile).toHaveBeenCalledWith({
         metadata: {
           name: 'test',
@@ -338,7 +334,7 @@ describe('Dashboard API', () => {
       const response = await sendTestRequest(
           url, headers, 200, 'post',
           {namespace: 'a_different_namespace', user: 'another_user@foo.bar'});
-      expect(response).toEqual(true);
+      expect(response).toEqual({message: 'Created namespace a_different_namespace'});
       expect(mockProfilesService.createProfile).toHaveBeenCalledWith({
         metadata: {
           name: 'a_different_namespace',
@@ -383,7 +379,7 @@ describe('Dashboard API', () => {
       testApp = express();
       testApp.use(express.json());
       testApp.use(
-          '/api', new Api(mockK8sService, mockProfilesService).routes());
+          '/api', newAPI().routes());
       const addressInfo = testApp.listen(0).address();
       if (typeof addressInfo === 'string') {
         throw new Error(
@@ -412,8 +408,7 @@ describe('Dashboard API', () => {
       testApp.use(express.json());
       testApp.use(
           '/api',
-          new Api(mockK8sService, mockProfilesService, mockMetricsService)
-              .routes());
+          newAPI(true).routes());
       const addressInfo = testApp.listen(0).address();
       if (typeof addressInfo === 'string') {
         throw new Error(

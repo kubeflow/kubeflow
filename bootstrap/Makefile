@@ -13,11 +13,12 @@
 # limitations under the License.
 #
 GCLOUD_PROJECT ?= kubeflow-images-public
-GOLANG_VERSION ?= 1.12
+GOLANG_VERSION ?= 1.12.7
 GOPATH ?= $(HOME)/go
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
 BOOTSTRAPPER_IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
+GC_IMG ?= gcr.io/$(GCLOUD_PROJECT)/gcserver
 KFCTL_IMG ?= gcr.io/$(GCLOUD_PROJECT)/kfctl
 TAG ?= $(eval TAG := $(shell git describe --tags --long))$(TAG)
 KFCTL_TARGET ?= kfctl
@@ -58,37 +59,36 @@ auth:
 
 # Run go fmt against code
 fmt:
-	@${GO} fmt ./config ./cmd/... ./pkg/... ./v2/...
+	@${GO} fmt ./config ./cmd/... ./pkg/... 
 
 # Run go vet against code
 vet:
-	@${GO} vet ./config ./cmd/... ./pkg/... ./v2/...
+	@${GO} vet ./config ./cmd/... ./pkg/...
 
 generate:
 	@${GO} generate ./config ./pkg/apis/apps/kfdef/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
-
-/tmp/v2:
-	@[ ! -d /tmp/v2 ] && unzip -q -d /tmp hack/v2.zip
 
 ${GOPATH}/bin/deepcopy-gen:
 	GO111MODULE=off ${GO} get k8s.io/code-generator/cmd/deepcopy-gen
 
 config/zz_generated.deepcopy.go: config/types.go
-	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/config -O zz_generated.deepcopy
+	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v3/config -O zz_generated.deepcopy && \
+	mv v3/config/zz_generated.deepcopy.go config/ && rm -rf v3
 
 pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/kfdef/v1alpha1/application_types.go
-	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy
+	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy && \
+	mv ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/ && rm -rf v3
 
-v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: v2/pkg/apis/apps/kfdef/v1alpha1/application_types.go
-	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy
+deepcopy: ${GOPATH}/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go 
 
-deepcopy: ${GOPATH}/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go 
-
-build-bootstrap: /tmp/v2 deepcopy generate fmt vet
+build-bootstrap: deepcopy generate fmt vet
 	${GO} build -gcflags '-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
-build-kfctl: /tmp/v2 deepcopy generate fmt vet
+build-kfctl: deepcopy generate fmt vet
 	${GO} build -i -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctl cmd/kfctl/main.go
+
+build-gc: deepcopy generate fmt vet
+	${GO} build -i -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/gc cmd/gc/main.go
 
 # Release tarballs suitable for upload to GitHub release pages
 build-kfctl-tgz: build-kfctl
@@ -96,6 +96,9 @@ build-kfctl-tgz: build-kfctl
 	rm -f bin/*.tgz
 	cd bin && tar -cvzf kfctl_$(TAG)_linux.tar.gz ./kfctl
 	cp -f ./bin/kfctl_$(TAG)_linux.tar.gz ./bin/kfctl_$(TAG)_darwin.tar.gz
+
+build-kfctl-client: /tmp/v2 deepcopy generate fmt vet
+	${GO} build -i -gcflags 'all=-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctlClient cmd/kfctlClient/main.go
 
 # push the releases to a GitHub page
 push-to-github-release: build-kfctl-tgz
@@ -143,7 +146,6 @@ build:
 	mkdir -p reg_tmp/kubeflow
 	cp -r ../kubeflow reg_tmp/kubeflow
 	cp -r ../deployment reg_tmp/kubeflow
-	cp -r ../dependencies reg_tmp/kubeflow
 	mkdir -p reg_tmp/kubeflow/bootstrap
 	cp -r k8sSpec reg_tmp/kubeflow/bootstrap
 	docker build \
@@ -152,6 +154,24 @@ build:
 		--target=bootstrap \
 		--tag $(BOOTSTRAPPER_IMG):$(TAG) .
 	@echo Built $(BOOTSTRAPPER_IMG):$(TAG)
+
+# Create GC image
+build-gc-image:
+	rm -rf reg_tmp
+	docker build \
+      --build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+      --build-arg TAG=$(TAG) \
+      --file Dockerfile.gc \
+      --tag $(GC_IMG):$(TAG) .
+	@echo Built $(GC_IMG):$(TAG)
+
+# Create GC image using cloud build
+build-gc-gcb:
+	gcloud --project=$(GCLOUD_PROJECT) \
+		builds submit \
+		--machine-type=n1-highcpu-32 \
+		--substitutions=TAG_NAME=$(TAG),_TARGET=gcserver \
+		--config=cloudbuildgc.yaml .
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.
@@ -215,7 +235,7 @@ build-bootstrap-dev-gcb:
 #***************************************************************************************************
 
 clean: 
-	rm -rf test && rm -rf /tmp/v2 && mkdir test
+	rm -rf test && mkdir test
 
 doc:
 	doctoc ./cmd/kfctl/README.md README.md k8sSpec/README.md developer_guide.md

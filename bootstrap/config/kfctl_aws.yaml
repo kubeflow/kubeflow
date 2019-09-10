@@ -1,0 +1,283 @@
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+metadata:
+  name: kubeflow-aws
+  namespace: kubeflow
+spec:
+  platform: aws
+  applications:
+    - kustomizeConfig:
+        parameters:
+          - name: namespace
+            value: istio-system
+        repoRef:
+          name: manifests
+          path: istio/istio-crds
+      name: istio-crds
+    - kustomizeConfig:
+        parameters:
+          - name: namespace
+            value: istio-system
+        repoRef:
+          name: manifests
+          path: istio/istio-install
+      name: istio-install
+    - kustomizeConfig:
+        parameters:
+          - name: clusterRbacConfig
+            value: "OFF"
+        repoRef:
+          name: manifests
+          path: istio/istio
+      name: istio
+    - kustomizeConfig:
+        repoRef:
+          name: manifests
+          path: application/application-crds
+      name: application-crds
+    - kustomizeConfig:
+        overlays:
+          - application
+        repoRef:
+          name: manifests
+          path: application/application
+      name: application
+    - kustomizeConfig:
+        repoRef:
+          name: manifests
+          path: metacontroller
+      name: metacontroller
+    - kustomizeConfig:
+        overlays:
+          - istio
+        repoRef:
+          name: manifests
+          path: argo
+      name: argo
+    - kustomizeConfig:
+        overlays:
+          - istio
+          - application
+        repoRef:
+          name: manifests
+          path: common/centraldashboard
+      name: centraldashboard
+    - kustomizeConfig:
+        repoRef:
+          name: manifests
+          path: admission-webhook/webhook
+      name: webhook
+    - kustomizeConfig:
+        parameters:
+          - name: webhookNamePrefix
+            value: admission-webhook-
+        repoRef:
+          name: manifests
+          path: admission-webhook/bootstrap
+      name: bootstrap
+    - kustomizeConfig:
+        overlays:
+          - istio
+          - application
+        repoRef:
+          name: manifests
+          path: jupyter/jupyter-web-app
+      name: jupyter-web-app
+    - kustomizeConfig:
+        repoRef:
+          name: manifests
+          path: katib-v1alpha2/katib-db
+      name: katib-db
+    - kustomizeConfig:
+        repoRef:
+          name: manifests
+          path: katib-v1alpha2/katib-manager
+      name: katib-manager
+    - kustomizeConfig:
+        repoRef:
+          name: manifests
+          path: katib-v1alpha2/katib-controller
+      name: katib-controller
+    - kustomizeConfig:
+        overlays:
+          - istio
+        repoRef:
+          name: manifests
+          path: katib-v1alpha2/katib-ui
+      name: katib-ui
+    - kustomizeConfig:
+        repoRef:
+          name: manifests
+          path: katib-v1alpha2/metrics-collector
+      name: metrics-collector
+    - kustomizeConfig:
+        overlays:
+        - istio
+        repoRef:
+          name: manifests
+          path: metadata
+      name: metadata
+    - kustomizeConfig:
+        repoRef:
+          name: manifests
+          path: katib-v1alpha2/suggestion
+      name: suggestion
+    - kustomizeConfig:
+        overlays:
+          - istio
+          - application
+        repoRef:
+          name: manifests
+          path: jupyter/notebook-controller
+      name: notebook-controller
+    - kustomizeConfig:
+        repoRef:
+          name: manifests
+          path: pytorch-job/pytorch-job-crds
+      name: pytorch-job-crds
+    - kustomizeConfig:
+        overlays:
+          - application
+        repoRef:
+          name: manifests
+          path: pytorch-job/pytorch-operator
+      name: pytorch-operator
+    - kustomizeConfig:
+        parameters:
+          - initRequired: true
+            name: usageId
+            value: <randomly-generated-id>
+          - initRequired: true
+            name: reportUsage
+            value: "true"
+        repoRef:
+          name: manifests
+          path: common/spartakus
+      name: spartakus
+    - kustomizeConfig:
+        overlays:
+          - istio
+        repoRef:
+          name: manifests
+          path: tensorboard
+      name: tensorboard
+    - kustomizeConfig:
+        overlays:
+          - istio
+          - application
+        repoRef:
+          name: manifests
+          path: tf-training/tf-job-operator
+      name: tf-job-operator
+    - kustomizeConfig:
+        repoRef:
+          name: manifests
+          path: pipeline/api-service
+      name: api-service
+    - kustomizeConfig:
+        parameters:
+          - name: minioPvcName
+            value: minio-pv-claim
+        repoRef:
+          name: manifests
+          path: pipeline/minio
+      name: minio
+    - kustomizeConfig:
+        parameters:
+          - name: mysqlPvcName
+            value: mysql-pv-claim
+        repoRef:
+          name: manifests
+          path: pipeline/mysql
+      name: mysql
+    - kustomizeConfig:
+        repoRef:
+          name: manifests
+          path: pipeline/persistent-agent
+      name: persistent-agent
+    - kustomizeConfig:
+        repoRef:
+          name: manifests
+          path: pipeline/pipelines-runner
+      name: pipelines-runner
+    - kustomizeConfig:
+        overlays:
+          - istio
+        repoRef:
+          name: manifests
+          path: pipeline/pipelines-ui
+      name: pipelines-ui
+    - kustomizeConfig:
+        repoRef:
+          name: manifests
+          path: pipeline/pipelines-viewer
+      name: pipelines-viewer
+    - kustomizeConfig:
+        repoRef:
+          name: manifests
+          path: pipeline/scheduledworkflow
+      name: scheduledworkflow
+    - kustomizeConfig:
+        overlays:
+          - istio
+        repoRef:
+          name: manifests
+          path: profiles
+      name: profiles
+    - kustomizeConfig:
+        overlays:
+          - application
+        repoRef:
+          name: manifests
+          path: seldon/seldon-core-operator
+    - kustomizeConfig:
+        overlays:
+          - application
+        repoRef:
+          name: manifests
+          path: mpi-job/mpi-operator
+    - kustomizeConfig:
+        parameters:
+          - initRequired: true
+            name: namespace
+            value: istio-system
+        repoRef:
+          name: manifests
+          path: aws/istio-ingress
+      name: istio-ingress
+    - kustomizeConfig:
+        parameters:
+          - initRequired: true
+            name: clusterName
+            value: kubeflow-aws
+        repoRef:
+          name: manifests
+          path: aws/aws-alb-ingress-controller
+      name: aws-alb-ingress-controller
+    - kustomizeConfig:
+        repoRef:
+          name: manifests
+          path: aws/nvidia-device-plugin
+      name: nvidia-device-plugin
+  enableApplications: true
+  packageManager: kustomize
+  repos:
+    - name: kubeflow
+      uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
+    - name: manifests
+      root: manifests-master
+      uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
+  useBasicAuth: false
+  useIstio: true
+  version: master
+  plugins:
+    - name: aws
+      spec:
+        roles:
+          - eksctl-kubeflow-aws-nodegroup-ng-a2-NodeInstanceRole-xxxxxxx
+        region: us-west-2
+        auth:
+          basicAuth:
+            password:
+              name: password
+            username: admin

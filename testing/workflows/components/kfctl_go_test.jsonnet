@@ -225,6 +225,7 @@ local dagTemplates = [
         "-s",
         "--use_basic_auth=" + params.useBasicAuth,
         "--use_istio=" + params.useIstio,
+        "--config_path=" + srcDir + "/" + params.configPath,
         // Increase the log level so that info level log statements show up.
         "--log-cli-level=info",        
         "--junitxml=" + artifactsDir + "/junit_kfctl-build-test" + nameSuffix + ".xml",

@@ -1,0 +1,28 @@
+iron-ajax#MakeNamespace(method='POST', url='/api/workgroup/create', handle-as='json', last-error='{{error}}', last-response='{{resp}}',
+    on-response='_successSetup', content-type='application/json', loading='{{submittingWorkgroup}}', on-input='clearInvalidation')
+paper-card#MainCard
+    figure#Logo !{logo}
+    neon-animated-pages.Main-Content(selected='[[page]]',
+            entry-animation='fade-in-animation',
+            exit-animation='fade-out-animation')
+        neon-animatable
+            h2 Welcome
+            aside In order to use Kubeflow, a namespace for your account must be created. Follow the steps to get started
+            .actions
+                paper-button(on-click='nextPage') Start Setup
+        neon-animatable
+            h2 Namespace
+            aside A namespace is a collection of Kubeflow services. Resources created within a namespace are isolated to that namespace. By default, a namespace will be created for you.
+            md2-input#Namespace(label='Namespace Name', value='{{namespaceName}}', allowed-pattern='[[_namespaceValidationRegex]]',
+                error='[[error.response.error]]', disabled='[[submittingWorkgroup]]', maxlength=253)
+            iron-a11y-keys#keys(target='[[namespaceInput]]', keys='enter', on-keys-pressed='finishSetup')
+            .actions
+                paper-button(on-click='finishSetup', disabled='[[submittingWorkgroup]]') Finish
+                paper-button(on-click='backPage', disabled='[[submittingWorkgroup]]') Go back
+    carousel-indicator(size=2, selected='{{page}}')
+
+nav#Links
+    a(href='https://github.com/kubeflow/kubeflow', tabindex='-1', target="_blank") GitHub
+    a(href='https://www.kubeflow.org/docs/about/kubeflow/', tabindex='-1', target="_blank") Documentation
+    a(href='https://policies.google.com/privacy', tabindex='-1', target="_blank") Privacy
+    

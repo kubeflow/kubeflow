@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - env:
+        - name: ROK_SECRET_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: parameters
+              key: ROK_SECRET_NAME
+        - name: UI
+          valueFrom:
+            configMapKeyRef:
+              name: parameters
+              key: UI
+        image: gcr.io/kubeflow-images-public/jupyter-web-app:v0.5.0
+        imagePullPolicy: $(policy)
+        name: jupyter-web-app
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      serviceAccountName: service-account
+      volumes:
+      - configMap:
+          name: config
+        name: config-volume
