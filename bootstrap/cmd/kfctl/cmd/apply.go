@@ -36,7 +36,6 @@ const resource = kftypes.K8S
 
 // applyCmd represents the apply command
 var applyCmd = &cobra.Command{
-	Args:  cobra.NoArgs,
 	Use:   "apply [all(=default)|k8s|platform]",
 	Short: "Deploy a generated kubeflow application.",
 	Long:  `Deploy a generated kubeflow application.`,
@@ -59,6 +58,10 @@ var applyCmd = &cobra.Command{
 		}
 		if err != nil {
 			return fmt.Errorf("couldn't load KfApp: %v", err)
+		}
+		resource, resourceErr := processResourceArg(args)
+		if resourceErr != nil {
+			return fmt.Errorf("invalid resource: %v", resourceErr)
 		}
 		err = kfApp.Apply(resource)
 		if err != nil {
