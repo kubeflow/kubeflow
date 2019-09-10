@@ -96,6 +96,13 @@ const (
 	CONFIG                CliOption = "config"
 )
 
+type UpdateEnum string
+
+const (
+	BUILD UpdateEnum = "build"
+	APPLY UpdateEnum = "apply"
+)
+
 //
 // KfApp provides a common
 // API for PackageManagers like ksonnet or kustomize
