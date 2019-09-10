@@ -23,6 +23,7 @@ import (
 // log is for logging in this package.
 var notebooklog = logf.Log.WithName("notebook-resource")
 
+
 func (r *Notebook) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).
 		For(r).
