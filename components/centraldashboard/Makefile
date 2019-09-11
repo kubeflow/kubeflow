@@ -1,4 +1,4 @@
-IMG = gcr.io/kubeflow-images-public/centraldashboard
+IMG ?= gcr.io/kubeflow-images-public/centraldashboard
 
 # List any changed  files. We only include files in the notebooks directory.
 # because that is the code in the docker image.
