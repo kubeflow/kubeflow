@@ -159,3 +159,11 @@ func (minikube *Minikube) writeConfigFile() error {
 	}
 	return nil
 }
+
+func (minikube *Minikube) UpdateBuild(configPath string) error {
+	return nil
+}
+
+func (minikube *Minikube) UpdateApply(configPath string) error {
+	return nil
+}

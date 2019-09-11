@@ -147,3 +147,11 @@ func (dockerfordesktop *DockerForDesktop) writeConfigFile() error {
 	}
 	return nil
 }
+
+func (dockerfordesktop *DockerForDesktop) UpdateBuild(configPath string) error {
+	return nil
+}
+
+func (dockerfordesktop *DockerForDesktop) UpdateApply(configPath string) error {
+	return nil
+}

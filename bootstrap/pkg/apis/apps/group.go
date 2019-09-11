@@ -113,6 +113,8 @@ type KfApp interface {
 	Delete(resources ResourceEnum) error
 	Generate(resources ResourceEnum) error
 	Init(resources ResourceEnum) error
+	UpdateBuild(configPath string) error
+	UpdateApply(configPath string) error
 }
 
 //

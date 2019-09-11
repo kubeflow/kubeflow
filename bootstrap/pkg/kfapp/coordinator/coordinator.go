@@ -17,6 +17,10 @@ limitations under the License.
 package coordinator
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/base32"
+	"encoding/json"
 	"fmt"
 	"path"
 	"path/filepath"
@@ -441,6 +445,100 @@ func NewKfApp(options map[string]interface{}) (kftypesv3.KfApp, error) {
 	}
 
 	return LoadKfAppCfgFile(cfgFilePath)
+}
+
+func NewUpdateApp(newConfig string) (kftypesv3.KfApp, error) {
+	// First load the existing KfDef from app.yaml
+	appDir, err := os.Getwd()
+
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("could not get current directory %v", err),
+		}
+	}
+	oldConfig := filepath.Join(appDir, kftypesv3.KfConfigFile)
+
+	oldKfDef, err := kfdefsv3.LoadKFDefFromURI(oldConfig)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not load %v. Error: %v", oldConfig, err),
+		}
+	}
+
+	// Load the new KfDef from the specified config path
+	newKfDef, err := kfdefsv3.LoadKFDefFromURI(newConfig)
+
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not load %v. Error: %v", newConfig, err),
+		}
+	}
+
+	// Merge the previous KfDef's customized values into the new KfDef
+	newKfDef.Name = oldKfDef.Name
+	for appIndex, newApp := range newKfDef.Spec.Applications {
+		for _, oldApp := range oldKfDef.Spec.Applications {
+			if newApp.Name == oldApp.Name {
+				for paramIndex, newParam := range newApp.KustomizeConfig.Parameters {
+					for _, oldParam := range oldApp.KustomizeConfig.Parameters {
+						if (newParam.Name == oldParam.Name && newParam.Value != oldParam.Value && newParam.InitRequired == false) {
+							fmt.Printf(">>> Merging param: %v from %v to %v\n", newParam.Name, newParam.Value, oldParam.Value)
+							//newParam.Value = oldParam.Value
+							newKfDef.Spec.Applications[appIndex].KustomizeConfig.Parameters[paramIndex].Value = oldParam.Value
+						}
+					}
+				}
+				break
+			}
+		}
+	}
+
+	// Compute hash from the new KfDef and use it to create the new app directory
+	h, err := ComputeHash(newKfDef)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not compute sha256 hash. Error: %v", err),
+		}
+
+	}
+
+	newAppDir := filepath.Join(appDir, h)
+	newKfDef.Spec.AppDir = newAppDir
+
+	updateCfg, err := CreateKfAppCfgFile(newKfDef)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return LoadKfAppCfgFile(updateCfg)
+}
+
+func ComputeHash(d *kfdefsv3.KfDef) (string, error) {
+	h := sha256.New()
+	buf := new(bytes.Buffer)
+	json.NewEncoder(buf).Encode(d)
+	h.Write([]byte(buf.Bytes()))
+	id := base32.HexEncoding.WithPadding(base32.NoPadding).EncodeToString(h.Sum(nil))
+	id = strings.ToLower(id)[0:7]
+
+	return id, nil
+}
+
+// DELETE Pformat returns a pretty format output of any value.
+func Fformat(value interface{}) (string, error) {
+	if s, ok := value.(string); ok {
+		return s, nil
+	}
+	valueJson, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	return string(valueJson), nil
 }
 
 // backfillKfDefFromInitOptions fills in a KfDef spec based on various command line options.
@@ -1013,5 +1111,23 @@ func (kfapp *coordinator) Show(resources kftypesv3.ResourceEnum, options map[str
 			}
 		}
 	}
+	return nil
+}
+
+func (kfapp *coordinator) UpdateBuild(configPath string) error {
+	for packageManagerName, packageManager := range kfapp.PackageManagers {
+		packageManagerErr := packageManager.UpdateBuild(configPath)
+		if packageManagerErr != nil {
+			return &kfapis.KfError{
+				Code: int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("kfApp UpdateBuild failed for %v: %v",
+					packageManagerName, packageManagerErr),
+			}
+		}
+	}
+	return nil
+}
+
+func (kfapp *coordinator) UpdateApply(configPath string) error {
 	return nil
 }

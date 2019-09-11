@@ -249,6 +249,14 @@ func (existing *Existing) Delete(resources kftypesv3.ResourceEnum) error {
 	return nil
 }
 
+func (existing *Existing) UpdateBuild(configPath string) error {
+	return nil
+}
+
+func (existing *Existing) UpdateApply(configPath string) error {
+	return nil
+}
+
 func internalError(err error) error {
 	return &kfapisv3.KfError{
 		Code:    int(kfapisv3.INTERNAL_ERROR),

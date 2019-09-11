@@ -17,7 +17,7 @@ package cmd
 import (
 	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	//"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -40,7 +40,16 @@ var updateCmd = &cobra.Command{
 		}
 		switch kftypes.UpdateEnum(args[0]) {
 		case kftypes.BUILD:
-			fmt.Println("BUILDING")
+			config := updateCfg.GetString(string(kftypes.CONFIG))
+			kfApp, kfAppErr := coordinator.NewUpdateApp(config)
+
+			if kfAppErr != nil || kfApp == nil {
+				return fmt.Errorf("couldn't create KfApp: %v", kfAppErr)
+			}
+			buildErr := kfApp.UpdateBuild(config)
+			if buildErr != nil {
+				return fmt.Errorf("KfApp update build failed: %v", buildErr)
+			}
 			return nil
 		case kftypes.APPLY:
 			fmt.Println("APPLYING")
@@ -48,19 +57,6 @@ var updateCmd = &cobra.Command{
 		default:
 			return fmt.Errorf("unknown argument for update: %v", args[0])
 		}
-		//resource, resourceErr := processResourceArg(args)
-		//if resourceErr != nil {
-		//	return fmt.Errorf("invalid resource: %v", resourceErr)
-		//}
-		//kfApp, kfAppErr := coordinator.LoadKfApp(map[string]interface{}{})
-		//if kfAppErr != nil {
-		//	return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
-		//}
-		//applyErr := kfApp.Apply(resource)
-		//if applyErr != nil {
-		//	return fmt.Errorf("couldn't apply KfApp: %v", applyErr)
-		//}
-		//return nil
 	},
 	ValidArgs: []string{"build", "apply"},
 }
@@ -77,6 +73,18 @@ func init() {
 	bindErr := updateCfg.BindPFlag(string(kftypes.VERBOSE), updateCmd.Flags().Lookup(string(kftypes.VERBOSE)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERBOSE), bindErr)
+		return
+	}
+
+	// Config file option
+	updateCmd.Flags().String(string(kftypes.CONFIG), "",
+		`Static config file to use. Can be either a local path or a URL.
+For example:
+--config=https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_platform_existing.yaml
+--config=kfctl_platform_gcp.yaml`)
+	bindErr = updateCfg.BindPFlag(string(kftypes.CONFIG), updateCmd.Flags().Lookup(string(kftypes.CONFIG)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.CONFIG), bindErr)
 		return
 	}
 }

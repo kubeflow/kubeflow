@@ -2135,3 +2135,11 @@ func (gcp *Gcp) Init(resources kftypesv3.ResourceEnum) error {
 
 	return nil
 }
+
+func (gcp *Gcp) UpdateBuild(configPath string) error {
+	return nil
+}
+
+func (gcp *Gcp) UpdateApply(configPath string) error {
+	return nil
+}
