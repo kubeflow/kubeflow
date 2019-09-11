@@ -18,6 +18,7 @@ package kustomize
 
 import (
 	"bufio"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/cenkalti/backoff"
@@ -40,6 +41,7 @@ import (
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/rest"
+	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
@@ -678,6 +680,16 @@ func MergeKustomization(compDir string, targetDir string, kfDef *kfdefsv3.KfDef,
 			for i, param := range params {
 				paramName := strings.Split(param, "=")[0]
 				if val, ok := paramMap[paramName]; ok && val != "" {
+					switch paramName {
+					case "generateName":
+						arr := strings.Split(param, "=")
+						if len(arr) == 1 || arr[1] == "" {
+							b := make([]byte, 4) //equals 8 charachters
+							rand.Read(b)
+							s := hex.EncodeToString(b)
+							val += s
+						}
+					}
 					params[i] = paramName + "=" + val
 				} else {
 					switch paramName {
