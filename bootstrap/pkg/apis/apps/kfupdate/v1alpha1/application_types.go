@@ -15,11 +15,19 @@
 package v1alpha1
 
 import (
+	"fmt"
 	"github.com/ghodss/yaml"
+	gogetter "github.com/hashicorp/go-getter"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"path"
+)
+
+const (
+	KfUpdateFile = "update.yaml"
 )
 
 type KfUpdateSpec struct {
@@ -88,6 +96,50 @@ type KfUpdateList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []KfUpdate `json:"items"`
+}
+
+// LoadKfUpdateFromUri constructs a KfUpdate given the path to a YAML file.
+// configFile is the path to the YAML file containing the KfDef spec. Can be any URI supported by hashicorp
+// go-getter.
+func LoadKfUpdateFromUri(configFile string) (*KfUpdate, error) {
+	if configFile == "" {
+		return nil, fmt.Errorf("config file must be the URI of a KfDef spec")
+	}
+
+	appDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return nil, fmt.Errorf("Create a temporary directory to copy the file to.")
+	}
+	// Open config file
+	appFile := path.Join(appDir, KfUpdateFile)
+
+	log.Infof("Downloading %v to %v", configFile, appFile)
+	err = gogetter.GetFile(appFile, configFile)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, err),
+		}
+	}
+
+	// Read contents
+	configFileBytes, err := ioutil.ReadFile(appFile)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not read from config file %s: %v", configFile, err),
+		}
+	}
+	// Unmarshal content onto KfDef struct
+	kfUpdate := &KfUpdate{}
+	if err := yaml.Unmarshal(configFileBytes, kfUpdate); err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not unmarshal config file onto KfDef struct: %v", err),
+		}
+	}
+
+	return kfUpdate, nil
 }
 
 // WriteToFile write the KfUpdate to a file.

@@ -160,10 +160,10 @@ func (minikube *Minikube) writeConfigFile() error {
 	return nil
 }
 
-func (minikube *Minikube) UpdateBuild(configPath string) error {
+func (minikube *Minikube) UpdateBuild() error {
 	return nil
 }
 
-func (minikube *Minikube) UpdateApply(configPath string) error {
+func (minikube *Minikube) UpdateApply() error {
 	return nil
 }

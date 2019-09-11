@@ -31,10 +31,10 @@ func (g *FakeGcp) SetTokenSource(s oauth2.TokenSource) error {
 	return nil
 }
 
-func (g *FakeGcp) UpdateBuild(configPath string) error {
+func (g *FakeGcp) UpdateBuild() error {
 	return nil
 }
 
-func (g *FakeGcp) UpdateApply(configPath string) error {
+func (g *FakeGcp) UpdateApply() error {
 	return nil
 }

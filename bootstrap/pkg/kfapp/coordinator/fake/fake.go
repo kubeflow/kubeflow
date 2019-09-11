@@ -38,11 +38,11 @@ func (f *FakeCoordinator) GetPlugin(name string) (kftypes.KfApp, bool) {
 	return a, ok
 }
 
-func (f *FakeCoordinator) UpdateBuild(configPath string) error {
+func (f *FakeCoordinator) UpdateBuild() error {
 	return nil
 }
 
-func (f *FakeCoordinator) UpdateApply(configPath string) error {
+func (f *FakeCoordinator) UpdateApply() error {
 	return nil
 }
 

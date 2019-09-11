@@ -46,13 +46,26 @@ var updateCmd = &cobra.Command{
 			if kfAppErr != nil || kfApp == nil {
 				return fmt.Errorf("couldn't create KfApp: %v", kfAppErr)
 			}
-			buildErr := kfApp.UpdateBuild(config)
+			buildErr := kfApp.UpdateBuild()
 			if buildErr != nil {
 				return fmt.Errorf("KfApp update build failed: %v", buildErr)
 			}
 			return nil
 		case kftypes.APPLY:
-			fmt.Println("APPLYING")
+			if len(args) < 2 {
+				return fmt.Errorf("missing argument for update apply; must specify a kfUpdate file")
+			}
+
+			kfApp, kfAppErr := coordinator.LoadKfAppFromUpdateFile(args[1])
+
+			if kfAppErr != nil || kfApp == nil {
+				return fmt.Errorf("couldn't create KfApp: %v", kfAppErr)
+			}
+			applyErr := kfApp.UpdateApply()
+			if applyErr != nil {
+				return fmt.Errorf("KfApp apply build failed: %v", applyErr)
+			}
+
 			return nil
 		default:
 			return fmt.Errorf("unknown argument for update: %v", args[0])

@@ -595,13 +595,12 @@ func (kustomize *kustomize) SetK8sRestConfig(r *rest.Config) {
 	kustomize.configOverwrite = true
 }
 
-func (kustomize *kustomize) UpdateBuild(configPath string) error {
+func (kustomize *kustomize) UpdateBuild() error {
 	return kustomize.Generate(kftypesv3.K8S)
 }
 
-func (kustomize *kustomize) UpdateApply(configPath string) error {
-	log.Infof("Kustomize update apply...")
-	return nil
+func (kustomize *kustomize) UpdateApply() error {
+	return kustomize.Apply(kftypesv3.K8S)
 }
 
 // GetKustomization will read a kustomization.yaml and return Kustomization type

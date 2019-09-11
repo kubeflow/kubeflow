@@ -540,18 +540,6 @@ func ComputeHash(d *kfdefsv3.KfDef) (string, error) {
 	return id, nil
 }
 
-// DELETE Pformat returns a pretty format output of any value.
-func Fformat(value interface{}) (string, error) {
-	if s, ok := value.(string); ok {
-		return s, nil
-	}
-	valueJson, err := json.MarshalIndent(value, "", "  ")
-	if err != nil {
-		return "", err
-	}
-	return string(valueJson), nil
-}
-
 // backfillKfDefFromInitOptions fills in a KfDef spec based on various command line options.
 //
 // TODO(jlewi): We should eventually be able to get rid of this function once we remove
@@ -789,6 +777,19 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 	}
 
 	return c, nil
+}
+
+// LoadKfAppFromUpdateFile constructs a KfApp from a kfUpdate yaml file.
+func LoadKfAppFromUpdateFile(updatecfg string) (kftypesv3.KfApp, error) {
+	update, err := kfupdate.LoadKfUpdateFromUri(updatecfg)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not load %v. Error: %v", updatecfg, err),
+		}
+	}
+
+	return LoadKfAppCfgFile(update.Spec.UpdateVersion.ConfigPath)
 }
 
 // this type holds platform implementations of KfApp
@@ -1125,9 +1126,9 @@ func (kfapp *coordinator) Show(resources kftypesv3.ResourceEnum, options map[str
 	return nil
 }
 
-func (kfapp *coordinator) UpdateBuild(configPath string) error {
+func (kfapp *coordinator) UpdateBuild() error {
 	for packageManagerName, packageManager := range kfapp.PackageManagers {
-		packageManagerErr := packageManager.UpdateBuild(configPath)
+		packageManagerErr := packageManager.UpdateBuild()
 		if packageManagerErr != nil {
 			return &kfapis.KfError{
 				Code: int(kfapis.INTERNAL_ERROR),
@@ -1139,6 +1140,16 @@ func (kfapp *coordinator) UpdateBuild(configPath string) error {
 	return nil
 }
 
-func (kfapp *coordinator) UpdateApply(configPath string) error {
+func (kfapp *coordinator) UpdateApply() error {
+	for packageManagerName, packageManager := range kfapp.PackageManagers {
+		packageManagerErr := packageManager.UpdateApply()
+		if packageManagerErr != nil {
+			return &kfapis.KfError{
+				Code: int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("kfApp UpdateApply failed for %v: %v",
+					packageManagerName, packageManagerErr),
+			}
+		}
+	}
 	return nil
 }

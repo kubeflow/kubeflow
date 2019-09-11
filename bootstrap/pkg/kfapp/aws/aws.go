@@ -902,10 +902,10 @@ func (aws *Aws) attachIamInlinePolicy(roleName, policyName, policyDocumentPath s
 	return nil
 }
 
-func (aws *Aws) UpdateBuild(configPath string) error {
+func (aws *Aws) UpdateBuild() error {
 	return nil
 }
 
-func (aws *Aws) UpdateApply(configPath string) error {
+func (aws *Aws) UpdateApply() error {
 	return nil
 }

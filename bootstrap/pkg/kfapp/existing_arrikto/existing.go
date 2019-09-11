@@ -249,11 +249,11 @@ func (existing *Existing) Delete(resources kftypesv3.ResourceEnum) error {
 	return nil
 }
 
-func (existing *Existing) UpdateBuild(configPath string) error {
+func (existing *Existing) UpdateBuild() error {
 	return nil
 }
 
-func (existing *Existing) UpdateApply(configPath string) error {
+func (existing *Existing) UpdateApply() error {
 	return nil
 }
 

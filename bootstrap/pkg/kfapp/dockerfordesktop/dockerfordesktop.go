@@ -148,10 +148,10 @@ func (dockerfordesktop *DockerForDesktop) writeConfigFile() error {
 	return nil
 }
 
-func (dockerfordesktop *DockerForDesktop) UpdateBuild(configPath string) error {
+func (dockerfordesktop *DockerForDesktop) UpdateBuild() error {
 	return nil
 }
 
-func (dockerfordesktop *DockerForDesktop) UpdateApply(configPath string) error {
+func (dockerfordesktop *DockerForDesktop) UpdateApply() error {
 	return nil
 }
