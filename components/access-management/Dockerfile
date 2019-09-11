@@ -1,4 +1,4 @@
-FROM golang:1.12.4
+FROM golang:1.12.4 AS serve
 
 RUN mkdir -p /opt/kubeflow
 RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/components/access-management

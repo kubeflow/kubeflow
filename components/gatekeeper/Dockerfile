@@ -1,4 +1,4 @@
-FROM golang:1.11.2 as bootstrap_base
+FROM golang:1.11.2 as serve
 
 RUN mkdir -p /opt/kubeflow
 RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/components/gatekeeper

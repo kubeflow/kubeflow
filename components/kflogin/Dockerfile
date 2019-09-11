@@ -1,4 +1,4 @@
-FROM node:10
+FROM node:10 as serve
 COPY . /app
 WORKDIR /app
 RUN npm install

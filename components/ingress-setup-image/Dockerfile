@@ -1,4 +1,4 @@
-FROM google/cloud-sdk:alpine
+FROM google/cloud-sdk:alpine as serve
 
 RUN apk add --update jq openssl
 

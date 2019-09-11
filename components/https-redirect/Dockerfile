@@ -1,4 +1,4 @@
-FROM python:2.7-slim
+FROM python:2.7-slim as serve
 
 ADD . /app
 WORKDIR /app
