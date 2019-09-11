@@ -72,10 +72,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&nbv1beta1.Notebook{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "Captain")
-		os.Exit(1)
-	}
+	// uncomment when we need the conversion webhook.
+	// if err = (&nbv1beta1.Notebook{}).SetupWebhookWithManager(mgr); err != nil {
+	// 	setupLog.Error(err, "unable to create webhook", "webhook", "Captain")
+	// 	os.Exit(1)
+	// }
 
 	// +kubebuilder:scaffold:builder
 
