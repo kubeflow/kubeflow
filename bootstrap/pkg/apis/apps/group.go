@@ -47,6 +47,7 @@ const (
 	KfConfigFile           = "app.yaml"
 	KustomizationFile      = "kustomization.yaml"
 	KustomizationParamFile = "params.env"
+	KfUpdateFile           = "update.yaml"
 	DefaultCacheDir        = ".cache"
 	KubeflowRepoName       = "kubeflow"
 	ManifestsRepoName      = "manifests"

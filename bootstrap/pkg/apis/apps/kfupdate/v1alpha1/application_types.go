@@ -15,22 +15,11 @@
 package v1alpha1
 
 import (
-	//"fmt"
-	//"github.com/ghodss/yaml"
-	//gogetter "github.com/hashicorp/go-getter"
-	//"github.com/hashicorp/go-getter/helper/url"
-	//"github.com/kubeflow/kubeflow/bootstrap/v3/config"
-	//kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
-	//"github.com/pkg/errors"
-	//log "github.com/sirupsen/logrus"
-	//"io/ioutil"
+	"github.com/ghodss/yaml"
+	log "github.com/sirupsen/logrus"
+	"io/ioutil"
 	"k8s.io/api/core/v1"
-	//valid "k8s.io/apimachinery/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	//"k8s.io/apimachinery/pkg/runtime"
-	//"os"
-	//"path"
-	//"strings"
 )
 
 type KfUpdateSpec struct {
@@ -99,4 +88,16 @@ type KfUpdateList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []KfUpdate `json:"items"`
+}
+
+// WriteToFile write the KfUpdate to a file.
+func (u *KfUpdate) WriteToFile(path string) error {
+	// Write app.yaml
+	buf, bufErr := yaml.Marshal(u)
+	if bufErr != nil {
+		log.Errorf("Error marshaling kfdev; %v", bufErr)
+		return bufErr
+	}
+	log.Infof("Writing KfUpdate to %v", path)
+	return ioutil.WriteFile(path, buf, 0644)
 }

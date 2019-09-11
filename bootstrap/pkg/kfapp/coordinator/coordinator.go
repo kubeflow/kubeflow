@@ -33,6 +33,7 @@ import (
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	kfupdate "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfupdate/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/aws"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/existing_arrikto"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
@@ -484,7 +485,7 @@ func NewUpdateApp(newConfig string) (kftypesv3.KfApp, error) {
 			if newApp.Name == oldApp.Name {
 				for paramIndex, newParam := range newApp.KustomizeConfig.Parameters {
 					for _, oldParam := range oldApp.KustomizeConfig.Parameters {
-						if (newParam.Name == oldParam.Name && newParam.Value != oldParam.Value && newParam.InitRequired == false) {
+						if newParam.Name == oldParam.Name && newParam.Value != oldParam.Value && newParam.InitRequired == false {
 							fmt.Printf(">>> Merging param: %v from %v to %v\n", newParam.Name, newParam.Value, oldParam.Value)
 							//newParam.Value = oldParam.Value
 							newKfDef.Spec.Applications[appIndex].KustomizeConfig.Parameters[paramIndex].Value = oldParam.Value
@@ -514,6 +515,16 @@ func NewUpdateApp(newConfig string) (kftypesv3.KfApp, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Create the kfUpdate file.
+	kfUpdate := &kfupdate.KfUpdate{}
+	kfUpdate.Name = fmt.Sprintf("update-%v-%v", newKfDef.Name, h)
+	kfUpdate.Spec = kfupdate.KfUpdateSpec{}
+	kfUpdate.Spec.CurrentVersion = &kfupdate.VersionConfig{ConfigPath: oldConfig}
+	kfUpdate.Spec.UpdateVersion = &kfupdate.VersionConfig{ConfigPath: updateCfg}
+
+	updateFilePath := filepath.Join(appDir, kftypesv3.KfUpdateFile)
+	kfUpdate.WriteToFile(updateFilePath)
 
 	return LoadKfAppCfgFile(updateCfg)
 }
