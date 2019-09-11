@@ -211,15 +211,35 @@ func repoVersionToUri(repo string, version string) string {
 }
 
 // A strawman approach for reconcile semantics. We keep retrying until the fn returns nil.
-func simpleReconcile(fns []func() error) error {
+type simpleReconcileReq struct {
+	Fn      func() error
+	Requeue bool
+}
+
+func newReconcileReq(fn func() error) simpleReconcileReq {
+	return simpleReconcileReq{
+		Fn:      fn,
+		Requeue: true,
+	}
+}
+
+func simpleReconcile(requests []simpleReconcileReq) error {
 	return backoff.Retry(func() error {
 		retry := false
-		for _, fn := range fns {
-			if err := fn(); err != nil {
+		for idx := range requests {
+			if requests[idx].Requeue == false {
+				continue
+			}
+
+			if err := requests[idx].Fn(); err == nil {
+				requests[idx].Requeue = false
+			} else {
 				log.Warnf("reconcile process has error: %v; retrying...", err)
+				requests[idx].Requeue = true
 				retry = true
 			}
 		}
+
 		if retry {
 			return fmt.Errorf("Retrying to reconcile in 10 seconds.")
 		} else {
@@ -798,19 +818,19 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 	// TODO(gabrielwen): Move `gcpAddedConfig` back to gcp.go.
 	switch resources {
 	case kftypesv3.ALL:
-		return simpleReconcile([]func() error{
-			platform,
-			k8s,
-			gcpAddedConfig,
+		return simpleReconcile([]simpleReconcileReq{
+			newReconcileReq(platform),
+			newReconcileReq(k8s),
+			newReconcileReq(gcpAddedConfig),
 		})
 	case kftypesv3.PLATFORM:
-		return simpleReconcile([]func() error{
-			platform,
+		return simpleReconcile([]simpleReconcileReq{
+			newReconcileReq(platform),
 		})
 	case kftypesv3.K8S:
-		return simpleReconcile([]func() error{
-			k8s,
-			gcpAddedConfig,
+		return simpleReconcile([]simpleReconcileReq{
+			newReconcileReq(k8s),
+			newReconcileReq(gcpAddedConfig),
 		})
 	}
 	return nil
