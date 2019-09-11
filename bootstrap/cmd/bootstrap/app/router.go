@@ -78,6 +78,10 @@ type KfctlService interface {
 func makeRouterCreateRequestEndpoint(svc KfctlService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(kfdefs.KfDef)
+		if req.Spec.Project != "kubeflow-prober-deploy" {
+			deployReqCounterRaw.Inc()
+			deployReqCounterUser.Inc()
+		}
 		r, err := svc.CreateDeployment(ctx, req)
 		return r, err
 	}
@@ -101,6 +105,7 @@ func (r *kfctlRouter) RegisterEndpoints() {
 			var request kfdefs.KfDef
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				log.Info("Err decoding create request: " + err.Error())
+				deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
 				return nil, err
 			}
 			return request, nil
@@ -240,42 +245,7 @@ func (r *kfctlRouter) CreateKfctlServer(name string, currTime []byte) error {
 
 	targetPort := 8080
 
-	svc := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: r.namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.ServiceSpec{
-			Type: "ClusterIP",
-			// TODO(jlewi): Fix the selector
-			Selector: map[string]string{AppNameKey: labels[AppNameKey]},
-			Ports: []corev1.ServicePort{
-				corev1.ServicePort{
-
-					Name:       "http-" + name,
-					Port:       int32(80),
-					TargetPort: intstr.FromInt(targetPort),
-					Protocol:   "TCP",
-				},
-			},
-		},
-	}
-
-	log.Infof("Create K8s service")
-	newService, err := r.k8sclient.CoreV1().Services(r.namespace).Create(svc)
-
-	if err != nil && !k8serrors.IsAlreadyExists(err) {
-		pService, _ := Pformat(svc)
-		log.Errorf("unable to create service:%v\n\nerror:\n%+v", pService, err)
-		return &httpError{
-			Code:    http.StatusServiceUnavailable,
-			Message: "Unable to process your Kubeflow request; please try again later",
-		}
-	}
-	pService, _ := Pformat(newService)
-	log.Infof("Result of create service: %+v", pService)
-
+	// Create statefulset
 	backend := &apps.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -350,7 +320,7 @@ func (r *kfctlRouter) CreateKfctlServer(name string, currTime []byte) error {
 	}
 	log.Infof("Create or update K8s statefulset")
 
-	newBackend, err := r.k8sclient.AppsV1().StatefulSets(r.namespace).Create(backend)
+	_, err := r.k8sclient.AppsV1().StatefulSets(r.namespace).Create(backend)
 
 	if err != nil {
 		pbackend, _ := Pformat(backend)
@@ -359,33 +329,72 @@ func (r *kfctlRouter) CreateKfctlServer(name string, currTime []byte) error {
 			Code:    http.StatusServiceUnavailable,
 			Message: "Unable to process your Kubeflow request; please try again later",
 		}
-	} else {
-		pBackend, _ := Pformat(newBackend)
-		log.Infof("Result of current statefulset: %+v", pBackend)
-		return nil
 	}
+
+	// Create service
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: r.namespace,
+			Labels:    labels,
+		},
+		Spec: corev1.ServiceSpec{
+			Type: "ClusterIP",
+			// TODO(jlewi): Fix the selector
+			Selector: map[string]string{AppNameKey: labels[AppNameKey]},
+			Ports: []corev1.ServicePort{
+				corev1.ServicePort{
+
+					Name:       "http-" + name,
+					Port:       int32(80),
+					TargetPort: intstr.FromInt(targetPort),
+					Protocol:   "TCP",
+				},
+			},
+		},
+	}
+
+	log.Infof("Create K8s service")
+	_, err = r.k8sclient.CoreV1().Services(r.namespace).Create(svc)
+
+	if err != nil && !k8serrors.IsAlreadyExists(err) {
+		pService, _ := Pformat(svc)
+		log.Errorf("unable to create service:%v\n\nerror:\n%+v", pService, err)
+		return &httpError{
+			Code:    http.StatusServiceUnavailable,
+			Message: "Unable to process your Kubeflow request; please try again later",
+		}
+	}
+	return nil
 }
 
 // CreateDeployment creates a Kubeflow deployment.
 func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*kfdefs.KfDef, error) {
 	name, err := r.authCheckAndExtractService(req)
+	if err != nil {
+		deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
+		log.Errorf("User doesn't pass permission check: %v", err)
+		return nil, &httpError{
+			Code:    http.StatusServiceUnavailable,
+			Message: "Permission error; please check login identity.",
+		}
+	}
 	currTime, err := time.Now().MarshalText()
 	if err != nil {
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
+		log.Errorf("Cannot get current time; error %v", err)
 		return nil, &httpError{
 			Code:    http.StatusServiceUnavailable,
 			Message: "Unable to process your Kubeflow request; please try again later",
 		}
 	}
 
-	if err != nil {
-		log.Errorf("Could not access corresponding service; error %v", err)
-		return nil, err
-	}
 	// We check kube DNS record to see if target service / statefulset already exist in cluster
 	_, err = net.LookupIP(fmt.Sprintf("%v.%v.svc.cluster.local", name, r.namespace))
 	if err != nil {
 		log.Infof("KfctlServer service could not be resolved: %v \n Try to create them", err)
 		if err := r.CreateKfctlServer(name, currTime); err != nil {
+			deployReqCounter.WithLabelValues("INTERNAL").Inc()
 			return nil, &httpError{
 				Code:    http.StatusServiceUnavailable,
 				Message: "Unable to process your Kubeflow request; please try again later",
@@ -396,6 +405,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 		// TODO(kunming): we should equeue this kube-API facing call and rate limit to avoid k8s master overload during traffic spikes
 		currBackend, err := r.k8sclient.AppsV1().StatefulSets(r.namespace).Get(name, metav1.GetOptions{})
 		if err != nil {
+			deployReqCounter.WithLabelValues("INTERNAL").Inc()
 			return nil, &httpError{
 				Code:    http.StatusServiceUnavailable,
 				Message: "Unable to process your Kubeflow request; please try again later",
@@ -404,6 +414,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 		currBackend.Annotations[LastRequestTime] = string(currTime)
 		_, err = r.k8sclient.AppsV1().StatefulSets(r.namespace).Update(currBackend)
 		if err != nil {
+			deployReqCounter.WithLabelValues("INTERNAL").Inc()
 			return nil, &httpError{
 				Code:    http.StatusServiceUnavailable,
 				Message: "Unable to process your Kubeflow request; please try again later",
@@ -417,6 +428,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 
 	if err != nil {
 		log.Errorf("Error creating client; %v", err)
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
 		return nil, &httpError{
 			Code:    http.StatusServiceUnavailable,
 			Message: "Unable to process your Kubeflow request; please try again later",
@@ -430,7 +442,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 	return &req, nil
 }
 
-// CreateDeployment creates a Kubeflow deployment.
+// GetLatestKfdef returns latest kfdef status.
 func (r *kfctlRouter) GetLatestKfdef(req kfdefs.KfDef) (*kfdefs.KfDef, error) {
 	name, err := k8sName(req.Name, req.Spec.Project)
 	if err != nil {

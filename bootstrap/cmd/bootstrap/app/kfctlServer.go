@@ -12,10 +12,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/cenkalti/backoff"
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"time"
+
 	//"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
@@ -32,11 +35,6 @@ import (
 	"os"
 	"path"
 	"sync"
-)
-
-const (
-	StatusRunning = 101
-	StatusFrozen  = 102
 )
 
 // KfctlCreatePath is the path on which to serve create requests
@@ -67,9 +65,6 @@ type kfctlServer struct {
 
 	// latestKfDef is updated to provide the latest status information.
 	latestKfDef kfdefsv3.KfDef
-
-	// Server status, running or Frozen.
-	serverStatus int
 }
 
 // NewServer returns a new kfctl server
@@ -79,10 +74,9 @@ func NewKfctlServer(appsDir string) (*kfctlServer, error) {
 	}
 
 	s := &kfctlServer{
-		c:            make(chan kfdefsv3.KfDef, 10),
-		appsDir:      appsDir,
-		builder:      &coordinator.DefaultBuilder{},
-		serverStatus: StatusRunning,
+		c:       make(chan kfdefsv3.KfDef, 10),
+		appsDir: appsDir,
+		builder: &coordinator.DefaultBuilder{},
 	}
 
 	// Start a background thread to process requests
@@ -254,7 +248,14 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 	kPluginSetter.SetK8sRestConfig(k8sRest)
 
 	log.Infof("Calling apply K8s")
-	if err := s.kfApp.Apply(kftypes.K8S); err != nil {
+
+	// Retry up to 3 times here; since apply k8s is most flaky step.
+	err = backoff.Retry(
+		func() error {
+			return s.kfApp.Apply(kftypes.K8S)
+		},
+		backoff.WithMaxRetries(backoff.NewConstantBackOff(time.Second), 3))
+	if err != nil {
 		log.Errorf("Calling apply K8s failed; %v", err)
 		return s.kfDefGetter.GetKfDef(), &httpError{
 			Message: "Internal service error please try again later.",
@@ -273,11 +274,19 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 func (s *kfctlServer) process() {
 	for {
 		r := <-s.c
+		log.Infof("Channel: extract %v, channel len: %v", r.Name, len(s.c))
 
 		newDeployment, err := s.handleDeployment(r)
 
 		if err != nil {
 			log.Errorf("Error occured; %v", err)
+			newDeployment.Status.Conditions = append(newDeployment.Status.Conditions, kfdefsv3.KfDefCondition{
+				Type: kfdefsv3.KfFailed,
+			})
+		} else {
+			newDeployment.Status.Conditions = append(newDeployment.Status.Conditions, kfdefsv3.KfDefCondition{
+				Type: kfdefsv3.KfSucceeded,
+			})
 		}
 		s.setLatestKfDef(newDeployment)
 	}
@@ -412,6 +421,7 @@ func (s *kfctlServer) GetLatestKfdef(req kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 // Not thread safe
 // TODO(jlewi): We should check if the request matches the current deployment and if not reject
 func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
+	log.Infof("New CreateDeployment for %v", req.Name)
 	token, err := req.GetSecret(gcp.GcpAccessTokenName)
 
 	if err != nil {
@@ -507,6 +517,7 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) 
 	prepareSecrets(strippedReq)
 
 	s.c <- *strippedReq
+	log.Infof("Channel: insert %v, channel len: %v", strippedReq.Name, len(s.c))
 
 	// Return the current status.
 	s.kfDefMux.Lock()

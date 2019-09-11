@@ -22,13 +22,13 @@ import {
 /** Relative paths from the root of the repository. */
 enum ConfigPath {
     V05 = 'v0.5-branch/components/gcp-click-to-deploy/app-config.yaml',
-    V06 = 'v0.6-branch/bootstrap/config/kfctl_gcp_iap.yaml'
+    V06 = 'c54401e/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml'
 }
 
 /** Versions available for deployment. */
 enum Version {
     V05 = 'v0.5.0',
-    V06 = 'v0.6.1',
+    V06 = 'v0.6.2',
 }
 
 // TODO(jlewi): For the FQDN we should have a drop down box to select custom
@@ -148,6 +148,7 @@ const MYSQL = 'mysql';
 const PASSWORD = 'password';
 const PROFILES = 'profiles';
 const SPARTAKUS = 'spartakus';
+const nameformat = '[a-z]([-a-z0-9]*[a-z0-9])?';
 
 const styles: {[key: string]: React.CSSProperties} = {
     btn: {
@@ -343,10 +344,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                     </TextField>
                 </div>
                 <div style={styles.row}>
-                    <FormControlLabel label="Create Permanent Storage" control={
-                        <Checkbox checked={this.state.permanentStorage} color="primary"
-                            onChange={() => this.setState({permanentStorage: !this.state.permanentStorage})} />
-                    } />
                     <FormControlLabel label="Share Anonymous Usage Report" control={
                         <Checkbox checked={this.state.spartakus} color="primary"
                             onChange={() => this.setState({spartakus: !this.state.spartakus})} />
@@ -444,6 +441,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         }
 
         const email = await Gapi.getSignedInEmail() || '';
+        this.setState({
+            ['email']: email,
+        });
         if (this.state.kfversion === Version.V06) {
             return this._getV6Yaml(email);
         } else {
@@ -774,7 +774,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             this._appendLine('Validating if IAP is up and running...');
             const startTime = new Date().getTime() / 1000;
             const img = document.createElement('img');
-            img.src = dashboardUri + 'assets/kf-logo_64px.svg' + '?rand=' + Math.random();
+            img.src = dashboardUri + 'assets/favicon-32x32.png' + '?rand=' + Math.random();
             img.id = 'ready_test';
             img.onload = () => {
                 window.location.href = dashboardUri;
@@ -787,11 +787,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                     const ready_test = document.getElementById('ready_test') as HTMLImageElement;
                     if (ready_test != null) {
                         setTimeout(() => {
-                            // We rotate on image addresses of v0.4 and v0.5+ t to support both v0.4 and v0.5+
-                            if (ready_test.src.includes('hub/logo')) {
+                            // We rotate on image addresses of v0.6 and v0.5 to support both of them.
+                            if (ready_test.src.includes('favicon')) {
                                 ready_test.src = dashboardUri + 'assets/kf-logo_64px.svg' + '?rand=' + Math.random();
                             } else {
-                                ready_test.src = dashboardUri + 'hub/logo' + '?rand=' + Math.random();
+                                ready_test.src = dashboardUri + 'assets/favicon-32x32.png' + '?rand=' + Math.random();
                             }
                             this._appendLine('Waiting for the IAP setup to get ready...');
                         }, 10000);
@@ -884,6 +884,17 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             this.setState({
                 dialogAsCode: false,
                 dialogBody: 'Deployment name length need to between 4 and 20',
+                dialogTitle: 'Invalid field',
+            });
+            throw err;
+        }
+        const filtered = this.state[deploymentNameKey].match(nameformat);
+        if (!(filtered && this.state[deploymentNameKey] === filtered[0])) {
+            this.setState({
+                dialogAsCode: false,
+                dialogBody: 'Deployment name: the first character must be a lowercase letter, and all following ' +
+                  'characters must be a dash, lowercase letter, or digit, except the last character, ' +
+                  'which cannot be a dash',
                 dialogTitle: 'Invalid field',
             });
             throw err;

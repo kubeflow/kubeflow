@@ -91,6 +91,8 @@ COPY config/default.yaml /opt/kubeflow/
 COPY image_registries.yaml /opt/kubeflow/
 
 RUN mkdir -p /opt/bootstrap
+# directory for cert file
+RUN mkdir -p /opt/ca
 RUN mkdir -p /opt/versioned_registries
 RUN chmod a+rx /opt/kubeflow/bootstrapper
 
