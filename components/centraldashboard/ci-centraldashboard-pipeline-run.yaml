@@ -1,5 +1,6 @@
 ---
 # script that updates the centraldashboard image tag, regenerates the unit tests, runs "go test -v"
+# should be replaced by the python script that does the same
 apiVersion: v1
 data:
   rebuild-manifests.sh: |-
@@ -131,7 +132,7 @@ spec:
     persistentVolumeClaim:
       claimName: ci-pipeline-run-persistent-volume-claim
 ---
-# does the following:
+# Does the following:
 # updates the image tag in the local github repo which is a PipelineResource of type git
 # calls make generate; make test
 # TBD
@@ -189,7 +190,7 @@ spec:
     persistentVolumeClaim:
       claimName: ci-pipeline-run-persistent-volume-claim
 ---
-# supporting resource for PipelineRun which requires a ServiceAccount with appropriate RBAC
+# Supporting resource for PipelineRun which requires a ServiceAccount with appropriate RBAC
 apiVersion: v1
 imagePullSecrets:
 - name: docker-secret
@@ -205,7 +206,7 @@ metadata:
   name: ci-pipeline-run-service-account
   namespace: kubeflow-test-infra
 ---
-# supporting resource for PipelineRun which requires a ClusterRoleBinding with the ServiceAccount noted above.
+# Supporting resource for PipelineRun which requires a ClusterRoleBinding with the ServiceAccount noted above.
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
@@ -226,7 +227,7 @@ subjects:
   name: ci-pipeline-run-service-account
   namespace: kubeflow-test-infra
 ---
-# supporting resource needed to run kaniko
+# Supporting resource needed to run kaniko
 data:
   kaniko-secret.json: ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCiAgInByb2plY3RfaWQiOiAiY29uc3RhbnQtY3ViaXN0LTE3MzEyMyIsCiAgInByaXZhdGVfa2V5X2lkIjogImQxMjkzODQ1NWI2NGEyZDlhZWE1MDVjNjZkNzIyMjJmNmUyNDg0MzYiLAogICJwcml2YXRlX2tleSI6ICItLS0tLUJFR0lOIFBSSVZBVEUgS0VZLS0tLS1cbk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQ2dJRHptZmFqMkdKSnVcbjlvOUxsa3dDYXIvVXYyalN3MEJTRXpNeWozQlNCc3BSdXVhOG1qU3MyZTdNRjVnYmMxVGdoL21HSkNqMitZS3JcbkZDOHdyMEt5bWx6NDdRWE5aeUMxb2I2TitxUnJncEJyeXNZWE1iSkFnQUFQck1rS2lhY2VjRzBHN3JkVGhjQVNcblh2Y2hBZG9RdTFTTWhNQys4aEtHMytpM1ZETXE2K3o4ZStwL1AzeEhhdUl3UTBYcWp4RGpONE5VRlMrbTF3WG9cbmpQM2xkbE15cWJUZHFvdFNHanIrTUxJZ1U3OEowdlp1NDF5WDl1ZjY2QWJyOE91N2E4bFdpVnpJUzZubHVqSTJcbm00T3NWYXlZaUN6dHhOam5iazVCVUhaYXZpekNaLzE1YzRlWFRuYXlsQXI0S2IrS3ZHSk5XbXVjSUdjQlNkZnlcbjhGZE1aNEdSQWdNQkFBRUNnZ0VBQWhXaFdpQ1Y4d3d4dmMvMHh1UmdQVzgzQlM4OGdveXVjcmw1OWpIOGgvd0lcbkpSN3VHWWJ3bE9nUXg3Ukg3UldPVWx0YXkzYVl2b1h0ZitPOW9JYXJqTnVRclBubUlUQW1QMDhQMzRpV3RnOWdcbjZRV0UvdkROSU10VFlhMm9NdStyVHRMNzhzTG5zQ2ExMWxkaTE0QUNPS3R3Ymk0UWIwaTJ3Q0VJK1Y1a0ZsVElcbmlkZkFiWGdiakt6dDR0dFg5YmR3OVBpUEcrTkRxQkVpQ0FiaXNMYmxyWlVOWUl1WVVsVWpoTmNKS29hRWNXQkdcbkMzcS9BMk1oTElTZ2FVQlYyZnludXEyaVdVZFZQTGwxNTRNNWtMREFSNk8rS0J6UWVZVnUraGxzdVcrSE1qcGFcbjI5U05FSWhuWmYySERPTi82bUw3R1VEcVlOblhISDVCK1AvT3NnSVQ5UUtCZ1FEV3R4SWNXSks3NFdadmhYeGNcbktOR1pLdHlxQWxielhSVFI3M1NGTVpSQjZNUjdEOFloenIwN3dmRXI5UEk5ekl3QjB3V3BzR2VGRVFQUFpTYXlcbnlKaDQxcTkvYlZ2bUtiM2svRndrMmVFSy9JRFBNRzdqTHdqbVBBbG5UYVpVRUZncHVKYUw5VEVvYlBSWXZtbGVcbmpyeXNmNVRpWXBIY3RkVlhkL3IwZzRqbDNRS0JnUUMrNmg4a28yNVkrS3BPRitxaGU3UnA1Z1VZdFhwQjh6RnpcbjB1UnZacE5DQXFMUmw3Vjk5RW9YcnBZWFF5TE5CY3BSUkpDaEpVenZDMkRtWVhhRXhLUzlWbmZYSzRncG5uVzZcbnAzSitPQ0NtOUJOdUMrYStxYXp0WDluK1JrRXpaem0waFdjTFRTejVpUlhrOWkxTkRKZnY4aXBKd1ptMnhPNDBcbkNXdU5pZ2R4UlFLQmdEbllhRkNxckIxaHhDOFhUMEdrM1pMZU1VUzhES0RUMnVBVUd0Z25XMEhHYStpYmYwMXNcblhSN1VTUjBHaUp5TmxzcUhCMmVIMXR2S2tiUTJGQTdtYSsxaUtUV3pTS2JoWi85ZzNaSXdBS2p0RGViRHJad1dcbjk5YlBKZGxtMmdDYnhxUzJ6aGcybmwrOXVyYU4xZVZibndqNTlpcG5VOVNhU0RlZ1kwT3NqQjBoQW9HQkFKUzRcbnN5d0tlRktzMjVaY1FUWXN0TDF1SjNnNUh4VXpDc29NZGxGbDJiOHBhSWJYcE5XS3NSRkR1cjVDV1dEWGF1VG1cbkFialc0dGl3eDNxUVlCQkxVMzMvVnZueWVtN1pkeUxCZ0lwYzFPclo1aXpxN29TR2p5U1hiNjBLTTQ2RWtrcFRcblJaTmpPbTdsWUgzdFhCclNmYVc0dzBLVG8xZmlqeUZRV1UxNFFoWDFBb0dBSnJrcHg5TjE5UExnQ3MrWDhKa1ZcblRRZXppeHpUd0VLekdRQVU1SnJVai9Cd1g5RDBMa2tkSVdXWXBTMzZqdnpqQUM2Nk93SHBOQlF2dXRRRC9CU3FcbjZUd0ovbVhQN1p0U1hsUFd3MGExVkhNNG5oTmcrbDRXR3BHNCtmdTduZUM5bHlJZkZ2am1jZHM1d0RNNXRDOVFcbjcwOUlYSDEzamdXbzlNYzQyTExkdUxFPVxuLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLVxuIiwKICAiY2xpZW50X2VtYWlsIjogImRvY2tlckBjb25zdGFudC1jdWJpc3QtMTczMTIzLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwKICAiY2xpZW50X2lkIjogIjExMzA4NDc2Nzg5NTE3MzQ1MTIwOCIsCiAgImF1dGhfdXJpIjogImh0dHBzOi8vYWNjb3VudHMuZ29vZ2xlLmNvbS9vL29hdXRoMi9hdXRoIiwKICAidG9rZW5fdXJpIjogImh0dHBzOi8vb2F1dGgyLmdvb2dsZWFwaXMuY29tL3Rva2VuIiwKICAiYXV0aF9wcm92aWRlcl94NTA5X2NlcnRfdXJsIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL29hdXRoMi92MS9jZXJ0cyIsCiAgImNsaWVudF94NTA5X2NlcnRfdXJsIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL3JvYm90L3YxL21ldGFkYXRhL3g1MDkvZG9ja2VyJTQwY29uc3RhbnQtY3ViaXN0LTE3MzEyMy5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIKfQo=
 kind: Secret
@@ -242,7 +243,8 @@ metadata:
   namespace: kubeflow-test-infra
 type: Opaque
 ---
-# supporting resource not strictly needed
+# Supporting resource that allows deletion of all resources by using the instance label
+# including cluster resources
 apiVersion: app.k8s.io/v1beta1
 kind: Application
 metadata:
@@ -276,7 +278,7 @@ spec:
     type: ci-pipeline-run
     version: v1beta1
 ---
-# supporting resource PipelineResource of type image
+# Supporting resource PipelineResource of type image
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
@@ -295,7 +297,9 @@ spec:
     value: gcr.io/kubeflow-images-public/centraldashboard
   type: image
 ---
-# supporting resource PipelineResource of type git for kubeflow
+# Supporting resource PipelineResource of type git for kubeflow
+# TBD
+# Needs to change its url to git@github.com and the ServiceAccount needs to have the GITHUB_TOKEN secret under secrets:
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
@@ -316,7 +320,9 @@ spec:
     value: https://github.com/kubeflow/kubeflow
   type: git
 ---
-# supporting resource PipelineResource of type git for manifests
+# Supporting resource PipelineResource of type git for manifests
+# TBD
+# Needs to change its url to git@github.com and the ServiceAccount needs to have the GITHUB_TOKEN secret under secrets:
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
@@ -366,7 +372,7 @@ spec:
       name: centraldashboard
   serviceAccount: ci-pipeline-run-service-account
 ---
-# shared across Tasks as persistent storage. 
+# Shared across Tasks as persistent storage. 
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
