@@ -3,6 +3,7 @@ module github.com/kubeflow/kubeflow/components/access-management
 go 1.12
 
 require (
+	git.apache.org/thrift.git v0.0.0-20180902110319-2566ecd5d999
 	github.com/go-logr/zapr v0.1.1 // indirect
 	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/google/btree v1.0.0 // indirect
@@ -24,3 +25,5 @@ require (
 	k8s.io/klog v0.3.1 // indirect
 	sigs.k8s.io/controller-runtime v0.1.10
 )
+
+replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
