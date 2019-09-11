@@ -211,9 +211,21 @@ func repoVersionToUri(repo string, version string) string {
 }
 
 // A strawman approach for reconcile semantics. We keep retrying until the fn returns nil.
-func simpleReconcile(fn func() error) error {
+func simpleReconcile(fns []func() error) error {
 	return backoff.Retry(func() error {
-		return fn()
+		retry := false
+		for _, fn := range fns {
+			if err := fn(); err != nil {
+				log.Warnf("reconcile process has error: %v; retrying...", err)
+				retry = true
+			}
+		}
+		if retry {
+			return fmt.Errorf("Retrying to reconcile in 10 seconds.")
+		} else {
+			// Exit the simple reconcile.
+			return nil
+		}
 	}, backoff.NewConstantBackOff(10*time.Second))
 }
 
@@ -786,28 +798,19 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 	// TODO(gabrielwen): Move `gcpAddedConfig` back to gcp.go.
 	switch resources {
 	case kftypesv3.ALL:
-		return simpleReconcile(func() error {
-			if err := platform(); err != nil {
-				return err
-			}
-			if err := k8s(); err != nil {
-				return err
-			}
-			return gcpAddedConfig()
-
+		return simpleReconcile([]func() error{
+			platform,
+			k8s,
+			gcpAddedConfig,
 		})
 	case kftypesv3.PLATFORM:
-		return simpleReconcile(func() error {
-			return platform()
+		return simpleReconcile([]func() error{
+			platform,
 		})
 	case kftypesv3.K8S:
-		return simpleReconcile(func() error {
-			if err := k8s(); err != nil {
-				return err
-			}
-			// TODO(gabrielwen): Need to find a more proper way of injecting plugings.
-			// https://github.com/kubeflow/kubeflow/issues/3708
-			return gcpAddedConfig()
+		return simpleReconcile([]func() error{
+			k8s,
+			gcpAddedConfig,
 		})
 	}
 	return nil
