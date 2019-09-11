@@ -3,11 +3,11 @@ package gcp
 import (
 	"encoding/json"
 	"github.com/gogo/protobuf/proto"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 
-	"k8s.io/api/v2/core/v1"
-	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"reflect"
 	"testing"
@@ -125,9 +125,11 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Env: map[string]string{
 				kftypes.KUBEFLOW_USERNAME: "someuser",
+				kftypes.KUBEFLOW_PASSWORD: "password",
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					BasicAuth: &BasicAuth{
 						Username: "someuser",
@@ -150,6 +152,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -172,6 +175,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -199,6 +203,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -230,6 +235,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -266,6 +272,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "original_client",
@@ -298,6 +305,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					BasicAuth: &BasicAuth{
 						Username: "original_user",
@@ -372,31 +380,31 @@ func TestGcp_setPodDefault(t *testing.T) {
 			"name":      "add-gcp-secret",
 			"namespace": namespace,
 		},
-		"desc": "add gcp credential",
 		"spec": map[string]interface{}{
 			"selector": map[string]interface{}{
 				"matchLabels": map[string]interface{}{
 					"add-gcp-secret": "true",
 				},
 			},
-		},
-		"env": []interface{}{
-			map[string]interface{}{
-				"name":  "GOOGLE_APPLICATION_CREDENTIALS",
-				"value": "/secret/gcp/user-gcp-sa.json",
+			"desc": "add gcp credential",
+			"env": []interface{}{
+				map[string]interface{}{
+					"name":  "GOOGLE_APPLICATION_CREDENTIALS",
+					"value": "/secret/gcp/user-gcp-sa.json",
+				},
 			},
-		},
-		"volumeMounts": []interface{}{
-			map[string]interface{}{
-				"name":      "secret-volume",
-				"mountPath": "/secret/gcp",
+			"volumeMounts": []interface{}{
+				map[string]interface{}{
+					"name":      "secret-volume",
+					"mountPath": "/secret/gcp",
+				},
 			},
-		},
-		"volumes": []interface{}{
-			map[string]interface{}{
-				"name": "secret-volume",
-				"secret": map[string]interface{}{
-					"secretName": "user-gcp-sa",
+			"volumes": []interface{}{
+				map[string]interface{}{
+					"name": "secret-volume",
+					"secret": map[string]interface{}{
+						"secretName": "user-gcp-sa",
+					},
 				},
 			},
 		},

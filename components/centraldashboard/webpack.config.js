@@ -192,7 +192,7 @@ module.exports = {
         }),
     ],
     devServer: {
-        port: 8081,
+        port: 8080,
         proxy: {
             '/api': 'http://localhost:8082',
             '/jupyter': {

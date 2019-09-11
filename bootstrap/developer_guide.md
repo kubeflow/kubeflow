@@ -2,23 +2,27 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Developer guide for bootstrap](#developer-guide-for-bootstrap)
+- [Developer guide](#developer-guide)
   - [Prerequisites](#prerequisites)
   - [Setting up the build environment](#setting-up-the-build-environment)
-  - [Building kfctl](#building-kfctl)<br>
-        - [`make build-kfctl`](#make-build-kfctl)<br>
-        - [`make install`](#make-install)<br>
-        - [`make build-kfctl-container`](#make-build-kfctl-container)<br>
-        - [`make push-kfctl-container`](#make-push-kfctl-container)<br>
-        - [`make push-kfctl-container-latest`](#make-push-kfctl-container-latest)<br>
-        - [`make run-kfctl-container`](#make-run-kfctl-container)<br>
-        - [`make test-init`](#make-test-init)<br>
-  - [Building bootstrap](#building-bootstrap)<br>
-        - [`make build-bootstrap`](#make-build-bootstrap)<br>
-        - [`make build`](#make-build)<br>
-        - [`make push`](#make-push)<br>
-        - [`make push-latest`](#make-push-latest)<br>
-        - [`make static, make plugins`](#make-static-make-plugins)<br>
+  - [Building kfctl](#building-kfctl)
+        - [Fetch dependencies](#fetch-dependencies)
+        - [`make build-kfctl`](#make-build-kfctl)
+      - [Build and test in a container](#build-and-test-in-a-container)
+        - [`make install`](#make-install)
+        - [`make build-kfctl-container`](#make-build-kfctl-container)
+        - [`make push-kfctl-container`](#make-push-kfctl-container)
+        - [`make push-kfctl-container-latest`](#make-push-kfctl-container-latest)
+        - [`make run-kfctl-container`](#make-run-kfctl-container)
+        - [`make test-init`](#make-test-init)
+  - [kfctl unit tests](#kfctl-unit-tests)
+  - [Building bootstrap](#building-bootstrap)
+    - [Iterative Development Using Skaffold](#iterative-development-using-skaffold)
+        - [`make build-bootstrap`](#make-build-bootstrap)
+        - [`make build`](#make-build)
+        - [`make push`](#make-push)
+        - [`make push-latest`](#make-push-latest)
+        - [`make static, make plugins`](#make-static-make-plugins)
   - [How to run bootstrapper with Click-to-deploy app locally](#how-to-run-bootstrapper-with-click-to-deploy-app-locally)
   - [Releasing kfctl](#releasing-kfctl)
 
@@ -101,8 +105,6 @@ make build-kfctl
 ```
 
 * This will create `bin/kfctl` with full debug information
-
-* If you get an error about missing files in `/tmp/v2`, you are hitting [#2790](https://github.com/kubeflow/kubeflow/issues/2790) and need to delete `/tmp/v2` and rerun the build.
 
 
 #### Build and test in a container

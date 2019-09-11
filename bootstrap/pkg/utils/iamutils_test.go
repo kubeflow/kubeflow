@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"google.golang.org/api/cloudresourcemanager/v1"
+	"google.golang.org/api/iam/v1"
 )
 
 func Test(t *testing.T) {
@@ -84,7 +85,51 @@ func Test(t *testing.T) {
 	}
 }
 
+func Test_UpdateWorkloadIdentity(t *testing.T) {
+	type testCase struct {
+		currentPolicy  *iam.Policy
+		project        string
+		namespace      string
+		ksa            string
+		expectedPolicy *iam.Policy
+	}
+
+	testCases := []testCase{
+		{
+			currentPolicy: &iam.Policy{},
+			project:       "gcp-project",
+			namespace:     "ns1",
+			ksa:           "ksa",
+			expectedPolicy: &iam.Policy{
+				Bindings: []*iam.Binding{
+					{
+						Role: "roles/iam.workloadIdentityUser",
+						Members: []string{
+							"serviceAccount:gcp-project.svc.id.goog[ns1/ksa]",
+						},
+					},
+				},
+			},
+		},
+	}
+	for _, test := range testCases {
+		UpdateWorkloadIdentityBindingsPolicy(test.currentPolicy, test.project, test.namespace, test.ksa)
+		if !reflect.DeepEqual(test.currentPolicy, test.expectedPolicy) {
+			t.Errorf("Expect:\n%v; Output:\n%v", IamPolicyToString(test.expectedPolicy),
+				IamPolicyToString(test.currentPolicy))
+		}
+	}
+}
+
 func PolicyToString(input *cloudresourcemanager.Policy) string {
+	policy, err := input.MarshalJSON()
+	if err != nil {
+		return fmt.Sprintf("Unable to parse policy: %v", err)
+	}
+	return string(policy)
+}
+
+func IamPolicyToString(input *iam.Policy) string {
 	policy, err := input.MarshalJSON()
 	if err != nil {
 		return fmt.Sprintf("Unable to parse policy: %v", err)

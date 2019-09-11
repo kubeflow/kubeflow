@@ -1,0 +1,105 @@
+# Run a job to build the image from the latest code and then create
+# a PR updating the image.
+#
+# This job is expected to run in the cluster kf-releasing in project kubeflow-releasing.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: jupyter-updater
+  # kustomize seems to chocke on generateName
+  # generateName: jupyter-updater-
+  name: jupyter
+spec:
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      initContainers:
+      # This init container checks out the source code.
+      - command:
+        - /usr/local/bin/checkout_repos.sh
+        # TODO(jlewi): Why are we checkout out fairing?
+        # TODO(jlewi): Stop checking out PR for kubeflow/kubeflow once its merged
+        #- --repos=kubeflow/kubeflow@HEAD:3958,kubeflow/fairing@HEAD,kubeflow/testing@HEAD,kubeflow/manifests@HEAD
+        - --repos=$(REPOS)
+        - --src_dir=/src
+        # Don't do a shallow clone because we need to compute when files were modified and shallow clones prevent pushing
+        # branches.
+        - --depth=all
+        name: checkout
+        image: gcr.io/kubeflow-releasing/test-worker
+        volumeMounts:
+        - mountPath: /src
+          name: src
+        env:
+        - name: REPOS
+          valueFrom:
+            configMapKeyRef:
+              # The name here includes the common prefix
+              # TODO(jlewi): Is it expected that the common prefix needs to be included here.
+              name: auto-update-params
+              key: repos
+      # This init container configures the ssh keys
+      - command:
+        - /usr/local/bin/setup_ssh.sh
+        - --ssh_dir=/root/.ssh
+        - --private_key=/secret/ssh-key/id_rsa
+        - --public_key=/secret/ssh-key/id_rsa.pub
+        image: gcr.io/kubeflow-releasing/test-worker
+        name: setup-ssh
+        volumeMounts:
+        - mountPath: /root/.ssh
+          name: ssh-config
+        - mountPath: /secret/ssh-key
+          name: ssh
+          readOnly: true
+      containers:
+      - command:
+        - bash
+        - /scripts/update_jupyter.sh
+        image: gcr.io/kubeflow-releasing/test-worker
+        name: update
+        env:
+        - name: GIT_AUTHOR_NAME
+          value: kubeflow-bot
+        - name: GIT_AUTHOR_EMAIL
+          value: ci-bot-owners@kubeflow.org
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /secret/gcp-credentials/user-gcp-sa.json
+        - name: PYTHONPATH
+          value: /src/kubeflow/kubeflow/py:/src/kubeflow/testing/py:/src/kubeflow/fairing
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: github-token
+              key: github_token
+        - name: GOPATH
+          value: /src/go
+        volumeMounts:
+        - mountPath: /src
+          name: src
+        - mountPath: /secret/gcp-credentials
+          name: gcp-credentials
+          readOnly: true
+        - mountPath: /root/.ssh
+          name: ssh-config
+        - mountPath: /scripts
+          name: scripts
+      restartPolicy: Never
+      volumes:
+      - name: ssh-config
+        emptyDir: {}
+      - name: src
+        emptyDir: {}
+      - name: gcp-credentials
+        secret:
+          secretName: user-gcp-sa
+      # ssh key to push to github.com/kubeflow-bot
+      - name: ssh
+        secret:
+          secretName: kubeflow-bot-ssh
+      - name: scripts
+        configMap:
+          name: auto-update-scripts

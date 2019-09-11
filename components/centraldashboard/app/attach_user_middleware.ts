@@ -9,7 +9,7 @@ export function attachUser(
   return (req: Request, _: Response, next: NextFunction) => {
     let email = 'anonymous@kubeflow.org';
     let auth: User.AuthObject;
-    if (req.header(userIdHeader)) {
+    if (userIdHeader && req.header(userIdHeader)) {
       email = req.header(userIdHeader).slice(userIdPrefix.length);
       auth = {[userIdHeader]: email};
     }

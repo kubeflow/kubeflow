@@ -35,7 +35,6 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
   deployment_names = [
       "argo-ui",
       "centraldashboard",
-      "cert-manager",
       "cloud-endpoints-controller",
       "jupyter-web-app-deployment",
       "metadata-db",
@@ -50,31 +49,50 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
       "katib-controller",
       "workflow-controller",
   ]
+
+  stateful_set_names = [
+    "kfserving-controller-manager",
+  ]
+
   ingress_related_deployments = []
-  stateful_sets = []
+  ingress_related_stateful_sets = []
 
   if use_basic_auth:
     deployment_names.extend(["basic-auth-login"])
-    stateful_sets.extend(["backend-updater"])
+    ingress_related_stateful_sets.extend(["backend-updater"])
   else:
     ingress_related_deployments.extend(["iap-enabler"])
-    stateful_sets.extend(["backend-updater"])
+    ingress_related_stateful_sets.extend(["backend-updater"])
 
   # TODO(jlewi): Might want to parallelize this.
   for deployment_name in deployment_names:
     logging.info("Verifying that deployment %s started...", deployment_name)
     util.wait_for_deployment(api_client, namespace, deployment_name, 10)
 
+  for stateful_set_name in stateful_set_names:
+    logging.info("Verifying that stateful set %s started...", stateful_set_name)
+    util.wait_for_statefulset(api_client, namespace, stateful_set_name)
+
   ingress_namespace = "istio-system" if use_istio else namespace
   for deployment_name in ingress_related_deployments:
     logging.info("Verifying that deployment %s started...", deployment_name)
     util.wait_for_deployment(api_client, ingress_namespace, deployment_name, 10)
 
-  for name in stateful_sets:
+  for name in ingress_related_stateful_sets:
     logging.info("Verifying that statefulset %s started...", name)
     util.wait_for_statefulset(api_client, ingress_namespace, name)
 
   # TODO(jlewi): We should verify that the ingress is created and healthy.
+
+  knative_namespace = "knative-serving"
+  knative_related_deployments = [
+          "activator",
+          "autoscaler",
+          "controller",
+  ]
+  for deployment_name in knative_related_deployments:
+      logging.info("Verifying that deployment %s started...", deployment_name)
+      util.wait_for_deployment(api_client, knative_namespace, deployment_name, 10)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,

@@ -23,11 +23,10 @@ import (
 	"github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
 	"github.com/gogo/protobuf/proto"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
-	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
+	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -41,21 +40,21 @@ import (
 	"google.golang.org/api/serviceusage/v1"
 	"io"
 	"io/ioutil"
-	"k8s.io/api/v2/core/v1"
-	rbacv1 "k8s.io/api/v2/rbac/v1"
+	"k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	k8serrors "k8s.io/apimachinery/v2/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/v2/pkg/runtime/schema"
-	"k8s.io/apimachinery/v2/pkg/runtime/serializer"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/discovery/cached"
+	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	restv2 "k8s.io/client-go/rest"
+	"k8s.io/client-go/restmapper"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"k8s.io/client-go/v2/discovery"
-	"k8s.io/client-go/v2/discovery/cached"
-	clientset "k8s.io/client-go/v2/kubernetes"
-	"k8s.io/client-go/v2/kubernetes/scheme"
-	restv2 "k8s.io/client-go/v2/rest"
-	"k8s.io/client-go/v2/restmapper"
 	"math/rand"
 	"net/http"
 	"os"
@@ -85,7 +84,7 @@ const (
 	KUBECONFIG_FORMAT = "gke_{project}_{zone}_{cluster}"
 
 	// Plugin parameter constants
-	GcpPluginName               = kftypes.GCP
+	GcpPluginName               = kftypesv3.GCP
 	GcpAccessTokenName          = "accessToken"
 	BasicAuthPasswordSecretName = "password"
 )
@@ -128,7 +127,7 @@ type dmOperationEntry struct {
 }
 
 // GetPlatform returns the gcp kfapp. It's called by coordinator.GetPlatform
-func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
+func GetPlatform(kfdef *kfdefs.KfDef) (kftypesv3.Platform, error) {
 	_gcp := &Gcp{
 		kfDef:            kfdef,
 		gcpAccountGetter: GetGcloudDefaultAccount,
@@ -518,6 +517,9 @@ func (gcp *Gcp) ConfigK8s() error {
 	if err = createNamespace(k8sClientset, gcp.kfDef.Namespace); err != nil {
 		return err
 	}
+	if err = createNamespace(k8sClientset, gcp.getIstioNamespace()); err != nil {
+		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create istio namespace"))
+	}
 	// For deploy app, request will use service account credential instead of user credential.
 	bindAccount := gcp.kfDef.Spec.Email
 
@@ -546,7 +548,7 @@ func (gcp *Gcp) AddNamedContext() error {
 	name = strings.Replace(name, "{cluster}", gcp.kfDef.Name, 1)
 	log.Infof("KUBECONFIG name is %v", name)
 
-	buf, err := ioutil.ReadFile(kftypes.KubeConfigPath())
+	buf, err := ioutil.ReadFile(kftypesv3.KubeConfigPath())
 	if err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
@@ -634,7 +636,7 @@ func (gcp *Gcp) AddNamedContext() error {
 			Message: fmt.Sprintf("Error when marshaling KUBECONFIG: %v", err),
 		}
 	}
-	if err = ioutil.WriteFile(kftypes.KubeConfigPath(), buf, 0644); err != nil {
+	if err = ioutil.WriteFile(kftypesv3.KubeConfigPath(), buf, 0644); err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("Error when writing KUBECONFIG: %v", err),
@@ -645,7 +647,7 @@ func (gcp *Gcp) AddNamedContext() error {
 	return nil
 }
 
-func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
+func (gcp *Gcp) updateDM(resources kftypesv3.ResourceEnum) error {
 	ctx := context.Background()
 	gcpClient := oauth2.NewClient(ctx, gcp.tokenSource)
 	dmOperationEntries := []*dmOperationEntry{}
@@ -767,7 +769,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 				Message: fmt.Sprintf("Error when running gcloud container clusters get-credentials: %v", err),
 			}
 		}
-		if _, err := os.Stat(kftypes.KubeConfigPath()); !os.IsNotExist(err) {
+		if _, err := os.Stat(kftypesv3.KubeConfigPath()); !os.IsNotExist(err) {
 			gcp.AddNamedContext()
 		}
 	} else {
@@ -778,7 +780,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 
 // Apply applies the gcp kfapp.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
-func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
+func (gcp *Gcp) Apply(resources kftypesv3.ResourceEnum) error {
 	if err := gcp.initGcpClient(); err != nil {
 		log.Errorf("There was a problem initializing the GCP client; %v", err)
 		return errors.WithMessagef(err, "Gcp.Apply Could not initatie a GCP client")
@@ -811,6 +813,23 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
 			Code: secretsErr.(*kfapis.KfError).Code,
 			Message: fmt.Sprintf("gcp apply could not create secrets Error %v",
 				secretsErr.(*kfapis.KfError).Message),
+		}
+	}
+	if *p.EnableWorkloadIdentity {
+		// Create the role binding for k8s service account
+		if err = gcp.setupWorkloadIdentity(gcp.kfDef.Namespace); err != nil {
+			return &kfapis.KfError{
+				Code: err.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("Fail to setup workload identity: Error %v",
+					err.(*kfapis.KfError).Message),
+			}
+		}
+		if err = gcp.setupWorkloadIdentity(gcp.getIstioNamespace()); err != nil {
+			return &kfapis.KfError{
+				Code: err.(*kfapis.KfError).Code,
+				Message: fmt.Sprintf("Fail to setup workload identity: Error %v",
+					err.(*kfapis.KfError).Message),
+			}
 		}
 	}
 
@@ -941,7 +960,7 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 	}, newDefaultBackoff())
 }
 
-func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
+func (gcp *Gcp) Delete(resources kftypesv3.ResourceEnum) error {
 	if err := gcp.initGcpClient(); err != nil {
 		log.Errorf("There was a problem initializing the GCP client; %v", err)
 		return errors.WithMessagef(err, "Gcp.gcpInitProject Could not initatie a GCP client")
@@ -1016,7 +1035,7 @@ func (gcp *Gcp) copyFile(source string, dest string) error {
 	if err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("cannot create directory: %v", err),
+			Message: fmt.Sprintf("cannot open input for copying: %v", err),
 		}
 	}
 	defer from.Close()
@@ -1124,7 +1143,7 @@ func (gcp *Gcp) writeIamBindingsFile(src string, dest string) error {
 // Replace placeholders and write to cluster-kubeflow.yaml
 //
 // TODO(jlewi): Is it possible to deserialize YAML to a partially known struct?
-func (gcp *Gcp) writeClusterConfig(src string, dest string) error {
+func (gcp *Gcp) writeClusterConfig(src string, dest string, gcpPluginSpec GcpPluginSpec) error {
 	buf, err := ioutil.ReadFile(src)
 	if err != nil {
 		return &kfapis.KfError{
@@ -1158,13 +1177,17 @@ func (gcp *Gcp) writeClusterConfig(src string, dest string) error {
 		} else {
 			properties = make(map[string]interface{})
 		}
-		properties["gkeApiVersion"] = kftypes.DefaultGkeApiVer
+		properties["gkeApiVersion"] = kftypesv3.DefaultGkeApiVer
 		properties["zone"] = gcp.kfDef.Spec.Zone
 		properties["users"] = []string{
 			gcp.getIapAccount(),
 		}
 		properties["ipName"] = gcp.kfDef.Spec.IpName
 		resource["properties"] = properties
+		if *gcpPluginSpec.EnableWorkloadIdentity {
+			properties["enable-workload-identity"] = true
+			properties["identity-namespace"] = gcp.kfDef.Spec.Project + ".svc.id.goog"
+		}
 		resources[idx] = resource
 	}
 	data["resources"] = resources
@@ -1255,14 +1278,15 @@ func (gcp *Gcp) generateDMConfigs() error {
 	gcpConfigDirErr := os.MkdirAll(gcpConfigDir, os.ModePerm)
 	if gcpConfigDirErr != nil {
 		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("cannot create directory %v", gcpConfigDirErr),
+			Code: int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("cannot create directory %v using appdir %v",
+				gcpConfigDirErr, appDir),
 		}
 	}
-	repo, ok := gcp.kfDef.Status.ReposCache[kftypes.KubeflowRepoName]
+	repo, ok := gcp.kfDef.Status.ReposCache[kftypesv3.KubeflowRepoName]
 
 	if !ok {
-		err := fmt.Errorf("Repo %v not found in KfDef.Status.ReposCache", kftypes.KubeflowRepoName)
+		err := fmt.Errorf("Repo %v not found in KfDef.Status.ReposCache", kftypesv3.KubeflowRepoName)
 		log.Errorf("%v", err)
 		return errors.WithStack(err)
 	}
@@ -1277,8 +1301,8 @@ func (gcp *Gcp) generateDMConfigs() error {
 		if copyErr != nil {
 			return &kfapis.KfError{
 				Code: copyErr.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("could not copy %v to %v Error %v",
-					sourceFile, destFile, copyErr.(*kfapis.KfError).Message),
+				Message: fmt.Sprintf("could not copy %v to %v using repo local path %v Error %v",
+					sourceFile, destFile, repo.LocalPath, copyErr.(*kfapis.KfError).Message),
 			}
 		}
 	}
@@ -1292,7 +1316,7 @@ func (gcp *Gcp) generateDMConfigs() error {
 	}
 	from = filepath.Join(sourceDir, CONFIG_FILE)
 	to = filepath.Join(gcpConfigDir, CONFIG_FILE)
-	if err := gcp.writeClusterConfig(from, to); err != nil {
+	if err := gcp.writeClusterConfig(from, to, *pluginSpec); err != nil {
 		return err
 	}
 	if pluginSpec.GetCreatePipelinePersistentStorage() {
@@ -1472,17 +1496,10 @@ func (gcp *Gcp) buildBasicAuthSecret() (*v1.Secret, error) {
 		return nil, err
 	}
 
-	password, err := gcp.kfDef.GetSecret(p.Auth.BasicAuth.Password.Name)
+	encodedPassword, err := gcp.kfDef.GetSecret(p.Auth.BasicAuth.Password.Name)
 
 	if err != nil {
 		log.Errorf("There was a problem getting the password for basic auth; error %v", err)
-		return nil, err
-	}
-
-	encodedPassword, err := base64EncryptPassword(password)
-
-	if err != nil {
-		log.Errorf("There was a problem encrypting the password; %v", err)
 		return nil, err
 	}
 
@@ -1515,33 +1532,45 @@ func (gcp *Gcp) getIstioNamespace() string {
 	if ingressNamespace, ok := gcp.kfDef.GetApplicationParameter("iap-ingress", "namespace"); ok {
 		return ingressNamespace
 	}
+	if ingressNamespace, ok := gcp.kfDef.GetApplicationParameter("basic-auth-ingress", "namespace"); ok {
+		return ingressNamespace
+	}
 	return gcp.kfDef.Namespace
 }
 
 func (gcp *Gcp) createSecrets() error {
 	ctx := context.Background()
+
+	p, err := gcp.GetPluginSpec()
+	if err != nil {
+		return err
+	}
+
 	k8sClient, err := gcp.getK8sClientset(ctx)
 	if err != nil {
 		return kfapis.NewKfErrorWithMessage(err, "set K8s clientset error")
 	}
-	adminEmail := getSA(gcp.kfDef.Name, "admin", gcp.kfDef.Spec.Project)
-	userEmail := getSA(gcp.kfDef.Name, "user", gcp.kfDef.Spec.Project)
-	if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME, gcp.kfDef.Namespace); err != nil {
-		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create admin secret %v", ADMIN_SECRET_NAME))
-	}
-	if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME, gcp.kfDef.Namespace); err != nil {
-		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create user secret %v", USER_SECRET_NAME))
-	}
-	// Also create service account secret in istio namespace
-	if gcp.kfDef.Spec.UseIstio {
-		if err = createNamespace(k8sClient, gcp.getIstioNamespace()); err != nil {
-			return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create istio namespace"))
-		}
-		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME, gcp.getIstioNamespace()); err != nil {
+	// If workload identity is enabled, we don't need to create secrets.
+	if !(*p.EnableWorkloadIdentity) {
+		adminEmail := getSA(gcp.kfDef.Name, "admin", gcp.kfDef.Spec.Project)
+		userEmail := getSA(gcp.kfDef.Name, "user", gcp.kfDef.Spec.Project)
+		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME, gcp.kfDef.Namespace); err != nil {
 			return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create admin secret %v", ADMIN_SECRET_NAME))
 		}
-		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME, gcp.getIstioNamespace()); err != nil {
+		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME, gcp.kfDef.Namespace); err != nil {
 			return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create user secret %v", USER_SECRET_NAME))
+		}
+		// Also create service account secret in istio namespace
+		if gcp.kfDef.Spec.UseIstio {
+			if err = createNamespace(k8sClient, gcp.getIstioNamespace()); err != nil {
+				return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create istio namespace"))
+			}
+			if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME, gcp.getIstioNamespace()); err != nil {
+				return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create admin secret %v", ADMIN_SECRET_NAME))
+			}
+			if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME, gcp.getIstioNamespace()); err != nil {
+				return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create user secret %v", USER_SECRET_NAME))
+			}
 		}
 	}
 	if gcp.kfDef.Spec.UseBasicAuth {
@@ -1556,6 +1585,97 @@ func (gcp *Gcp) createSecrets() error {
 	return nil
 }
 
+// setupWorkloadIdentity creates the k8s service accounts and IAM bindings for them
+func (gcp *Gcp) setupWorkloadIdentity(namespace string) error {
+	ctx := context.Background()
+	k8sClient, err := gcp.getK8sClientset(ctx)
+	if err != nil {
+		return kfapis.NewKfErrorWithMessage(err, "Get K8s clientset error")
+	}
+	// Create k8s service accounts
+	// TODO(lunkai): Might be better to specify k8s sa by kustomize
+	k8sServiceAccounts := []string{
+		"kf-admin",
+		"kf-user",
+		"kf-vm",
+	}
+	gcpServiceAccounts := []string{
+		fmt.Sprintf("%v-admin@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
+		fmt.Sprintf("%v-user@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
+		fmt.Sprintf("%v-vm@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
+	}
+	for idx, k8sSa := range k8sServiceAccounts {
+		createK8sServiceAccount(k8sClient, namespace, k8sSa, "serviceAccount:"+gcpServiceAccounts[idx])
+	}
+
+	oClient := oauth2.NewClient(ctx, gcp.tokenSource)
+	iamService, err := iam.New(oClient)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Get Oauth Client error: %v", err),
+		}
+	}
+	// Create IAM bindings under each GCP service account (different from IAM bindings for projects)
+	// Could we combine the updates into a single set of Get/Set requests?
+	// Can we also refactor the code so that we have a separate functions that generate the modified policy but don't apply it and then write a unittest that the modified policy is correct?
+	for idx, gcpSa := range gcpServiceAccounts {
+		log.Infof("Setting up iam policy for serviceaccount: %v in namespace %v", gcpSa, namespace)
+		policy, err := utils.GetServiceAccountIamPolicy(iamService, gcp.kfDef.Spec.Project, gcpSa)
+		if err != nil {
+			return err
+		}
+		err = utils.UpdateWorkloadIdentityBindingsPolicy(policy, gcp.kfDef.Spec.Project, namespace, k8sServiceAccounts[idx])
+		if err != nil {
+			return err
+		}
+		log.Infof("New policy: %v", *policy)
+		err = utils.SetServiceAccountIamPolicy(iamService, policy, gcp.kfDef.Spec.Project, gcpSa)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// createK8sServiceAccount creates k8s servicea account with annotation
+// iam.gke.io/gcp-service-account=gsa
+// TODO(lunkai): Ideally the k8s service account should be specified by kustomize.
+func createK8sServiceAccount(k8sClientset *clientset.Clientset, namespace string, name string, gsa string) error {
+	log.Infof("Creating service account %v in namespace %v", name, namespace)
+	_, err := k8sClientset.CoreV1().ServiceAccounts(namespace).Get(name, metav1.GetOptions{})
+	if err == nil {
+		log.Infof("Service account already exists...")
+		return nil
+	}
+	log.Infof("Get service account error: %v", err)
+	_, err = k8sClientset.CoreV1().ServiceAccounts(namespace).Create(
+		&v1.ServiceAccount{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+				Annotations: map[string]string{
+					// We don't need the "serviceAccount:" part here
+					"iam.gke.io/gcp-service-account": strings.Split(gsa, ":")[1],
+				},
+			},
+		},
+	)
+	if err == nil {
+		return nil
+	} else {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: err.Error(),
+		}
+	}
+}
+
+func (gcp *Gcp) SetupDefaultNamespaceWorkloadIdentity() error {
+	defaultNamespace := kftypesv3.EmailToDefaultName(gcp.kfDef.Spec.Email)
+	return gcp.setupWorkloadIdentity(defaultNamespace)
+}
+
 func generatePodDefault(group string, version string, kind string, namespace string) *unstructured.Unstructured {
 	log.Infof("Generating %v in namespace %v; APIVersion %v/%v", kind, namespace, group, version)
 
@@ -1568,31 +1688,31 @@ func generatePodDefault(group string, version string, kind string, namespace str
 			"name":      "add-gcp-secret",
 			"namespace": namespace,
 		},
-		"desc": "add gcp credential",
 		"spec": map[string]interface{}{
 			"selector": map[string]interface{}{
 				"matchLabels": map[string]interface{}{
 					"add-gcp-secret": "true",
 				},
 			},
-		},
-		"env": []interface{}{
-			map[string]interface{}{
-				"name":  "GOOGLE_APPLICATION_CREDENTIALS",
-				"value": "/secret/gcp/user-gcp-sa.json",
+			"desc": "add gcp credential",
+			"env": []interface{}{
+				map[string]interface{}{
+					"name":  "GOOGLE_APPLICATION_CREDENTIALS",
+					"value": "/secret/gcp/user-gcp-sa.json",
+				},
 			},
-		},
-		"volumeMounts": []interface{}{
-			map[string]interface{}{
-				"name":      "secret-volume",
-				"mountPath": "/secret/gcp",
+			"volumeMounts": []interface{}{
+				map[string]interface{}{
+					"name":      "secret-volume",
+					"mountPath": "/secret/gcp",
+				},
 			},
-		},
-		"volumes": []interface{}{
-			map[string]interface{}{
-				"name": "secret-volume",
-				"secret": map[string]interface{}{
-					"secretName": USER_SECRET_NAME,
+			"volumes": []interface{}{
+				map[string]interface{}{
+					"name": "secret-volume",
+					"secret": map[string]interface{}{
+						"secretName": USER_SECRET_NAME,
+					},
 				},
 			},
 		},
@@ -1621,7 +1741,7 @@ func (gcp *Gcp) ConfigPodDefault() error {
 	if err != nil {
 		return kfapis.NewKfErrorWithMessage(err, "User service account secret is not created.")
 	}
-	defaultNamespace := kftypesv2.EmailToDefaultName(gcp.kfDef.Spec.Email)
+	defaultNamespace := kftypesv3.EmailToDefaultName(gcp.kfDef.Spec.Email)
 	log.Infof("Creating secret %v to namespace %v", USER_SECRET_NAME, defaultNamespace)
 	if err = insertSecret(k8sClient, USER_SECRET_NAME, defaultNamespace, secret.Data); err != nil {
 		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create secret %v in namespace %v", USER_SECRET_NAME, defaultNamespace))
@@ -1725,6 +1845,11 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 		log.Infof("CreatePipelinePersistentStorage not set defaulting to %v", *pluginSpec.CreatePipelinePersistentStorage)
 	}
 
+	if pluginSpec.EnableWorkloadIdentity == nil {
+		pluginSpec.EnableWorkloadIdentity = proto.Bool(pluginSpec.GetEnableWorkloadIdentity())
+		log.Infof("EnableWorkloadIdentity not set defaulting to %v", *pluginSpec.EnableWorkloadIdentity)
+	}
+
 	if pluginSpec.Auth == nil {
 		pluginSpec.Auth = &Auth{}
 	}
@@ -1734,22 +1859,34 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 
 		if gcp.kfDef.Spec.UseBasicAuth {
 			pluginSpec.Auth.BasicAuth = &BasicAuth{}
-			pluginSpec.Auth.BasicAuth.Username = os.Getenv(kftypes.KUBEFLOW_USERNAME)
+			pluginSpec.Auth.BasicAuth.Username = os.Getenv(kftypesv3.KUBEFLOW_USERNAME)
 
 			if pluginSpec.Auth.BasicAuth.Username == "" {
-				log.Errorf("Could not configure basic auth; environment variable %s not set", kftypes.KUBEFLOW_USERNAME)
-				return errors.WithStack(fmt.Errorf("Could not configure basic auth; environment variable %s not set", kftypes.KUBEFLOW_USERNAME))
+				log.Errorf("Could not configure basic auth; environment variable %s not set", kftypesv3.KUBEFLOW_USERNAME)
+				return errors.WithStack(fmt.Errorf("Could not configure basic auth; environment variable %s not set", kftypesv3.KUBEFLOW_USERNAME))
 			}
 
 			pluginSpec.Auth.BasicAuth.Password = &kfdefs.SecretRef{
 				Name: BasicAuthPasswordSecretName,
 			}
 
+			password := os.Getenv(kftypesv3.KUBEFLOW_PASSWORD)
+			if password == "" {
+				log.Errorf("Could not configure basic auth; environment variable %s not set", kftypesv3.KUBEFLOW_PASSWORD)
+				return errors.WithStack(fmt.Errorf("Could not configure basic auth; environment variable %s not set", kftypesv3.KUBEFLOW_PASSWORD))
+			}
+			encodedPassword, err := base64EncryptPassword(password)
+
+			if err != nil {
+				log.Errorf("There was a problem encrypting the password; %v", err)
+				return errors.WithStack(err)
+			}
+
 			gcp.kfDef.SetSecret(kfdefs.Secret{
 				Name: BasicAuthPasswordSecretName,
 				SecretSource: &kfdefs.SecretSource{
-					EnvSource: &kfdefs.EnvSource{
-						Name: kftypes.KUBEFLOW_PASSWORD,
+					HashedSource: &kfdefs.HashedSource{
+						HashedValue: encodedPassword,
 					},
 				},
 			})
@@ -1783,7 +1920,7 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 
 // Generate generates the gcp kfapp manifest.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
-func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
+func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 	if err := gcp.kfDef.SyncCache(); err != nil {
 		log.Errorf("Failed to synchronize the cache; error %v", err)
 		return errors.WithStack(err)
@@ -1818,9 +1955,9 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	}
 
 	switch resources {
-	case kftypes.ALL:
+	case kftypesv3.ALL:
 		fallthrough
-	case kftypes.PLATFORM:
+	case kftypesv3.PLATFORM:
 		gcpConfigFilesErr := gcp.generateDMConfigs()
 		if gcpConfigFilesErr != nil {
 
@@ -1835,10 +1972,6 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 					GCP_CONFIG, gcpConfigFilesErr),
 			}
 		}
-	}
-
-	if err := gcp.kfDef.SetApplicationParameter("cert-manager", "acmeEmail", gcp.kfDef.Spec.Email); err != nil {
-		return errors.WithStack(err)
 	}
 
 	if err := gcp.kfDef.SetApplicationParameter("profiles", "admin", gcp.kfDef.Spec.Email); err != nil {
@@ -1899,7 +2032,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	if createConfigErr != nil {
 		return &kfapis.KfError{
 			Code: createConfigErr.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("cannot create config file %v in %v: %v", kftypes.KfConfigFile, gcp.kfDef.Spec.AppDir,
+			Message: fmt.Sprintf("cannot create config file %v in %v: %v", kftypesv3.KfConfigFile, gcp.kfDef.Spec.AppDir,
 				createConfigErr.(*kfapis.KfError).Message),
 		}
 	}
@@ -1980,9 +2113,9 @@ func (gcp *Gcp) gcpInitProject() error {
 }
 
 // Init initializes a gcp kfapp
-func (gcp *Gcp) Init(resources kftypes.ResourceEnum) error {
+func (gcp *Gcp) Init(resources kftypesv3.ResourceEnum) error {
 	// TODO(jlewi): Can we get rid of this now that we ware using kustomize?
-	swaggerFile := filepath.Join(path.Dir(gcp.kfDef.Spec.Repo), kftypes.DefaultSwaggerFile)
+	swaggerFile := filepath.Join(path.Dir(gcp.kfDef.Spec.Repo), kftypesv3.DefaultSwaggerFile)
 	gcp.kfDef.Spec.ServerVersion = "file:" + swaggerFile
 	createConfigErr := gcp.kfDef.WriteToConfigFile()
 	if createConfigErr != nil {

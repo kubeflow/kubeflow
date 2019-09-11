@@ -3,9 +3,9 @@ package app
 import (
 	"fmt"
 	"github.com/cenkalti/backoff"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 	"github.com/prometheus/common/log"
 	"golang.org/x/net/context"
 	"io/ioutil"
@@ -75,13 +75,13 @@ func TestKfctlClientServer_GoKit(t *testing.T) {
 		t.Errorf("There was a problem starting the server %+v", err)
 	}
 
-	_, err = c.CreateDeployment(context.Background(), kfdefsv2.KfDef{
-		Spec: kfdefsv2.KfDefSpec{
-			Secrets: []kfdefsv2.Secret{
+	_, err = c.CreateDeployment(context.Background(), kfdefsv3.KfDef{
+		Spec: kfdefsv3.KfDefSpec{
+			Secrets: []kfdefsv3.Secret{
 				{
 					Name: gcp.GcpAccessTokenName,
-					SecretSource: &kfdefsv2.SecretSource{
-						LiteralSource: &kfdefsv2.LiteralSource{
+					SecretSource: &kfdefsv3.SecretSource{
+						LiteralSource: &kfdefsv3.LiteralSource{
 							Value: "1234",
 						},
 					},

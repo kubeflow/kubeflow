@@ -19,7 +19,7 @@ package aws
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/utils"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"golang.org/x/crypto/bcrypt"
 	"io"
 	"io/ioutil"
@@ -37,9 +37,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/ghodss/yaml"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
@@ -226,7 +226,7 @@ func copyFile(source string, dest string) error {
 	if err != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("cannot create directory: %v", err),
+			Message: fmt.Sprintf("cannot open input file for copying: %v", err),
 		}
 	}
 	defer from.Close()

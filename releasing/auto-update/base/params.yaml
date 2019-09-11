@@ -1,0 +1,9 @@
+# A config map used to configure various parameters used by the update jobs.
+apiVersion: v1
+data:
+kind: ConfigMap
+metadata:
+  name: params
+data:
+  # TODO(jlewi): change to kubeflow/kubeflow@HEAD when PR #3958 is merged
+  repos: "kubeflow/kubeflow@HEAD:4029,kubeflow/fairing@HEAD,kubeflow/testing@HEAD,kubeflow/manifests@HEAD"

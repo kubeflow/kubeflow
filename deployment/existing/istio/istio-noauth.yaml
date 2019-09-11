@@ -18981,3 +18981,9 @@ spec:
         maxRequestsPerConnection: 10000
 ---
 
+apiVersion: rbac.istio.io/v1alpha1
+kind: ClusterRbacConfig
+metadata:
+  name: default
+spec:
+  mode: 'ON'

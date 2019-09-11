@@ -1,6 +1,6 @@
 # This patch enables Prometheus scraping for the manager pod.
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: controller-manager
   namespace: system
