@@ -758,7 +758,7 @@ func MergeKustomization(compDir string, targetDir string, kfDef *kfdefsv3.KfDef,
 	if child.Bases == nil {
 		basePath := extractSuffix(compDir, targetDir)
 		if _, ok := kustomizationMaps[basesMap][basePath]; !ok {
-			parent.Resources = append(parent.Resources, basePath)
+			parent.Bases = append(parent.Bases, basePath)
 			kustomizationMaps[basesMap][basePath] = true
 		}
 		return nil
@@ -767,7 +767,7 @@ func MergeKustomization(compDir string, targetDir string, kfDef *kfdefsv3.KfDef,
 		baseAbsolutePath := path.Join(targetDir, value)
 		basePath := extractSuffix(compDir, baseAbsolutePath)
 		if _, ok := kustomizationMaps[basesMap][basePath]; !ok {
-			parent.Resources = append(parent.Resources, basePath)
+			parent.Bases = append(parent.Bases, basePath)
 			kustomizationMaps[basesMap][basePath] = true
 		} else {
 			childPath := extractSuffix(compDir, targetDir)

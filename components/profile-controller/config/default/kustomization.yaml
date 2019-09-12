@@ -1,6 +1,3 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
 # Adds namespace to all resources.
 namespace: profile-controller-system
 
@@ -20,7 +17,7 @@ commonLabels:
 # files that kustomize reads, modifies and emits as a
 # YAML string, with resources separated by document
 # markers ("---").
-resources:
+bases:
 - ../crds/
 - ../rbac/
 - ../manager/

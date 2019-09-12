@@ -1,8 +1,7 @@
 namespace: kf-releasing
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
+bases:
   - ../../base
+resources:  
   - update_job.yaml
 images:
 - name: gcr.io/kubeflow-releasing/test-worker
