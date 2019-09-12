@@ -191,9 +191,11 @@ spec:
     name: kfserving-install
   - kustomizeConfig:
       parameters:
-      - name: usageId
+      - initRequired: true
+        name: usageId
         value: "7439583937720421527"
-      - name: reportUsage
+      - initRequired: true
+        name: reportUsage
         value: "true"
       repoRef:
         name: manifests

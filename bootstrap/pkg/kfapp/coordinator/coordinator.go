@@ -485,7 +485,7 @@ func NewUpdateApp(newConfig string) (kftypesv3.KfApp, error) {
 			if newApp.Name == oldApp.Name {
 				for paramIndex, newParam := range newApp.KustomizeConfig.Parameters {
 					for _, oldParam := range oldApp.KustomizeConfig.Parameters {
-						if newParam.Name == oldParam.Name && newParam.Value != oldParam.Value && newParam.InitRequired == false {
+						if newParam.Name == oldParam.Name && newParam.Value != oldParam.Value {
 							log.Infof("Merging application %v param %v from %v to %v\n",
 								newApp.Name, newParam.Name, newParam.Value, oldParam.Value)
 							newKfDef.Spec.Applications[appIndex].KustomizeConfig.Parameters[paramIndex].Value = oldParam.Value
