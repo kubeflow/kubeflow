@@ -480,6 +480,7 @@ func NewUpdateApp(newConfig string) (kftypesv3.KfApp, error) {
 
 	// Merge the previous KfDef's customized values into the new KfDef
 	newKfDef.Name = oldKfDef.Name
+	newKfDef.Spec.Project = oldKfDef.Spec.Project
 	for appIndex, newApp := range newKfDef.Spec.Applications {
 		for _, oldApp := range oldKfDef.Spec.Applications {
 			if newApp.Name == oldApp.Name {
@@ -489,6 +490,7 @@ func NewUpdateApp(newConfig string) (kftypesv3.KfApp, error) {
 							log.Infof("Merging application %v param %v from %v to %v\n",
 								newApp.Name, newParam.Name, newParam.Value, oldParam.Value)
 							newKfDef.Spec.Applications[appIndex].KustomizeConfig.Parameters[paramIndex].Value = oldParam.Value
+							break
 						}
 					}
 				}
@@ -504,7 +506,6 @@ func NewUpdateApp(newConfig string) (kftypesv3.KfApp, error) {
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("could not compute sha256 hash. Error: %v", err),
 		}
-
 	}
 
 	newAppDir := filepath.Join(appDir, h)
