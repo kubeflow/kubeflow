@@ -52,7 +52,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
   && apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
-# Install Nodejs for jupytermanager
+# Install Nodejs for jupyterlab-manager
 RUN curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
 RUN apt-get update && apt-get install -yq --no-install-recommends \
   nodejs \
@@ -113,14 +113,6 @@ COPY --chown=jovyan:users requirements.txt /tmp
 
 # Add basic config
 COPY --chown=jovyan:users  jupyter_notebook_config.py /tmp
-
-# Wipe $HOME for PVC detection later
-WORKDIR $HOME
-RUN rm -fr $(ls -A $HOME)
-
-# Copy over init scripts
-COPY --chown=jovyan:users  pvc-check.sh /usr/local/bin/
-RUN chmod a+rx /usr/local/bin/*
 
 RUN docker-credential-gcr configure-docker && chown jovyan:users $HOME/.docker/config.json
 
