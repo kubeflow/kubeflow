@@ -824,9 +824,7 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 			newReconcileReq(gcpAddedConfig),
 		})
 	case kftypesv3.PLATFORM:
-		return simpleReconcile([]simpleReconcileReq{
-			newReconcileReq(platform),
-		})
+		return platform()
 	case kftypesv3.K8S:
 		return simpleReconcile([]simpleReconcileReq{
 			newReconcileReq(k8s),
