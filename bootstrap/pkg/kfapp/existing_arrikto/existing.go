@@ -38,6 +38,9 @@ const (
 	KUBEFLOW_USER_EMAIL = "KUBEFLOW_USER_EMAIL"
 	KUBEFLOW_ENDPOINT   = "KUBEFLOW_ENDPOINT"
 	OIDC_ENDPOINT       = "OIDC_ENDPOINT"
+
+	// Path in manifests repo to where the additional configs are located
+	CONFIG_LOCAL_PATH = "kfdef/generic"
 )
 
 type Existing struct {
@@ -53,8 +56,8 @@ type manifest struct {
 
 func GetPlatform(kfdef *kfdefs.KfDef) (kftypesv3.Platform, error) {
 
-	kfRepoDir := kfdef.Status.ReposCache[kftypesv3.KubeflowRepoName].LocalPath
-	istioManifestsDir := path.Join(kfRepoDir, "deployment/existing/istio")
+	kfRepoDir := kfdef.Status.ReposCache[kftypesv3.ManifestsRepoName].LocalPath
+	istioManifestsDir := path.Join(kfRepoDir, CONFIG_LOCAL_PATH, "istio")
 	istioManifests := []manifest{
 		{
 			name: "Istio CRDs",
@@ -66,7 +69,7 @@ func GetPlatform(kfdef *kfdefs.KfDef) (kftypesv3.Platform, error) {
 		},
 	}
 
-	authOIDCManifestsDir := path.Join(kfRepoDir, "deployment/existing/auth_oidc")
+	authOIDCManifestsDir := path.Join(kfRepoDir, CONFIG_LOCAL_PATH, "auth_oidc")
 	authOIDCManifests := []manifest{
 		{
 			name: "Istio Gateway",
@@ -174,8 +177,8 @@ func (existing *Existing) Apply(resources kftypesv3.ResourceEnum) error {
 	}
 
 	// Generate YAML from the dex, authservice templates
-	kfRepoDir := existing.Status.ReposCache[kftypesv3.KubeflowRepo].LocalPath
-	authOIDCManifestsDir := path.Join(kfRepoDir, "deployment/existing/auth_oidc")
+	kfRepoDir := existing.Status.ReposCache[kftypesv3.ManifestsRepoName].LocalPath
+	authOIDCManifestsDir := path.Join(kfRepoDir, CONFIG_LOCAL_PATH, "auth_oidc")
 	err = generateFromGoTemplate(
 		path.Join(authOIDCManifestsDir, "authservice.tmpl"),
 		path.Join(authOIDCManifestsDir, "authservice.yaml"),
