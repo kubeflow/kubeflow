@@ -51,18 +51,21 @@ export function mockIronAjax(component, response, respondWithError = false) {
     // eslint-disable-next-line no-console
     const finalEvent = `${respondWithError?'error':'response'}`;
     component.generateRequest = async () => {
+        const eventPayload = createRespPayload(
+            response,
+            respondWithError,
+        );
         if (respondWithError) {
-            component._setLastError({error: response});
+            component._setLastError(eventPayload.detail);
         } else {
             component._setLastResponse(response);
         }
-        const eventPayload = createRespPayload(
-            response,
-            respondWithError
-        );
         component.dispatchEvent(
             new CustomEvent(finalEvent, eventPayload)
         );
+        // eslint-disable-next-line no-console
+        console.log(`[mockIronAjax] Dispatched ${finalEvent}`, eventPayload);
+        return component.lastResponse || component.lastError;
     };
 }
 
