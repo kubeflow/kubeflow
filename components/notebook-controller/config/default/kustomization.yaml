@@ -21,12 +21,12 @@ bases:
 # [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER'. 'WEBHOOK' components are required.
 #- ../certmanager
 
-patches:
-- manager_image_patch.yaml
+#patches:
+#- manager_image_patch.yaml
   # Protect the /metrics endpoint by putting it behind auth.
   # Only one of manager_auth_proxy_patch.yaml and
   # manager_prometheus_metrics_patch.yaml should be enabled.
-- manager_auth_proxy_patch.yaml
+#- manager_auth_proxy_patch.yaml
   # If you want your controller-manager to expose the /metrics
   # endpoint w/o any authn/z, uncomment the following line and
   # comment manager_auth_proxy_patch.yaml.
@@ -45,29 +45,29 @@ patches:
 # the following config is for teaching kustomize how to do var substitution
 vars:
 # [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER' prefix.
-#- name: CERTIFICATE_NAMESPACE # namespace of the certificate CR
-#  objref:
-#    kind: Certificate
-#    group: certmanager.k8s.io
-#    version: v1alpha1
-#    name: serving-cert # this name should match the one in certificate.yaml
-#  fieldref:
-#    fieldpath: metadata.namespace
-#- name: CERTIFICATE_NAME
-#  objref:
-#    kind: Certificate
-#    group: certmanager.k8s.io
-#    version: v1alpha1
-#    name: serving-cert # this name should match the one in certificate.yaml
-#- name: SERVICE_NAMESPACE # namespace of the service
-#  objref:
-#    kind: Service
-#    version: v1
-#    name: webhook-service
-#  fieldref:
-#    fieldpath: metadata.namespace
-#- name: SERVICE_NAME
-#  objref:
-#    kind: Service
-#    version: v1
-#    name: webhook-service
+# - name: CERTIFICATE_NAMESPACE # namespace of the certificate CR
+#   objref:
+#     kind: Certificate
+#     group: certmanager.k8s.io
+#     version: v1alpha1
+#     name: serving-cert # this name should match the one in certificate.yaml
+#   fieldref:
+#     fieldpath: metadata.namespace
+# - name: CERTIFICATE_NAME
+#   objref:
+#     kind: Certificate
+#     group: certmanager.k8s.io
+#     version: v1alpha1
+#     name: serving-cert # this name should match the one in certificate.yaml
+# - name: SERVICE_NAMESPACE # namespace of the service
+#   objref:
+#     kind: Service
+#     version: v1
+#     name: webhook-service
+#   fieldref:
+#     fieldpath: metadata.namespace
+# - name: SERVICE_NAME
+#   objref:
+#     kind: Service
+#     version: v1
+#     name: webhook-service
