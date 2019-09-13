@@ -111,9 +111,6 @@ RUN pip install --upgrade pip==19.2.3 && \
 # NB: the COPY chown can't expand a bash variable for NB_USER
 COPY --chown=jovyan:users requirements.txt /tmp
 
-# Add basic config
-COPY --chown=jovyan:users  jupyter_notebook_config.py /tmp
-
 RUN docker-credential-gcr configure-docker && chown jovyan:users $HOME/.docker/config.json
 
 # Configure container startup
