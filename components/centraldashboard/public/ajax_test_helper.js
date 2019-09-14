@@ -44,7 +44,7 @@ export async function yeildForRequests() {
  * @param {boolean=} respondWithError
  */
 export function mockIronAjax(component, response, respondWithError = false) {
-    const {tagName} = component;
+    const {tagName, url} = component;
     expect(tagName).toBe(
         'IRON-AJAX', '[mockRequest] Element passed in was not iron-ajax'
     );
@@ -63,8 +63,8 @@ export function mockIronAjax(component, response, respondWithError = false) {
         component.dispatchEvent(
             new CustomEvent(finalEvent, eventPayload)
         );
-        // eslint-disable-next-line no-console
-        console.log(`[mockIronAjax] Dispatched ${finalEvent}`, eventPayload);
+        // eslint-disable-next-line no-console,max-len
+        console.log(`[mockIronAjax] ${url?url+' ':''}Dispatched ${finalEvent}`, eventPayload);
         return component.lastResponse || component.lastError;
     };
 }
