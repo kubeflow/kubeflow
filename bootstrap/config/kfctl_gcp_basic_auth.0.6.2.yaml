@@ -312,7 +312,7 @@ spec:
   - name: kubeflow
     uri: https://github.com/kubeflow/kubeflow/archive/0dbd2550372c003ba69069aeee283bd59fb1341f.tar.gz
   - name: manifests
-    uri: https://github.com/kubeflow/manifests/archive/56e2fb15db286198f7a53723cb1fbfecf3fe83fb.tar.gz
+    uri: https://github.com/kubeflow/manifests/archive/0fa9c0126f62392d1c27f31711e513b22ef28cbc.tar.gz
   skipInitProject: true
   useBasicAuth: true
   useIstio: true
