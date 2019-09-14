@@ -102,6 +102,7 @@ func SetStopAnnotation(meta *metav1.ObjectMeta) {
 	}
 }
 
+// TODO: add remove notebooks count metric
 func RemoveStopAnnotation(meta *metav1.ObjectMeta) {
 	if meta == nil {
 		log.Info("Error: Metadata is Nil. Can't remove Annotations")
