@@ -83,13 +83,13 @@ export default (superClass) => class extends superClass {
 
     /**
      * Allows the parent toast to be closed from that level or
-     * elements 3-levels deep
+     * elements 2-levels deep
      * @param {event} ev Event
      */
     closeToast(ev) {
         const t = ev.target;
         const el = [t, t.parentNode, t.parentNode.parentNode]
             .find((e) => e.tagName == 'PAPER-TOAST');
-        el.close();
+        el && el.close();
     }
 };
