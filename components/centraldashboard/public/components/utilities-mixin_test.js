@@ -81,8 +81,6 @@ describe('Utilities Mixin', () => {
 
     it('Close Toast can correctly scan ancestry to the toast element', () => {
         const {closeToast} = testObject;
-        // const el = document.createElement('div');
-        // document.body.append(el);
         const dom = html`
             <paper-toast>
                 <span id='s1'>
