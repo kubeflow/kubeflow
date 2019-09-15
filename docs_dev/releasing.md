@@ -416,19 +416,20 @@ new version on the website:
 
 1. Add the new version to the website navigation bar:
    * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml).
-   * Add a `params.versions` entry. For example, to add v0.5, add this entry:
+
+   * Update the version number for the `master` version.
+     For example, to update the master to v0.7, the text should be:
+     ```
+     version = "master (v0.7)"
+     ```
+
+   * Add a `params.versions` entry for the new version. 
+     For example, to add v0.6, add this entry:
      ```
      [[params.versions]]
      version = "v0.6"
      githubbranch = "v0.6-branch"
      url = "https://v0-6.kubeflow.org"
-     ```
-   * Update the version number on two lines in the `params.versions` entry for 
-     the `master` version.
-     For example, to update the master to v0.7, the text on both lines should 
-     be:
-     ```
-     version = "master (v0.7)"
      ```
 
 ## Release kfctl
