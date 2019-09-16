@@ -19,10 +19,9 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/go-logr/logr"
-	v1beta1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
+	"github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/culler"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
@@ -315,20 +314,6 @@ func generateService(instance *v1beta1.Notebook) *corev1.Service {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name,
 			Namespace: instance.Namespace,
-			Annotations: map[string]string{
-				"getambassador.io/config": strings.Join(
-					[]string{
-						"---",
-						"apiVersion: ambassador/v0",
-						"kind:  Mapping",
-						"name: notebook_" + instance.Namespace + "_" + instance.Name + "_mapping",
-						"prefix: /notebook/" + instance.Namespace + "/" + instance.Name,
-						"rewrite: /notebook/" + instance.Namespace + "/" + instance.Name,
-						"timeout_ms: 300000",
-						"service: " + instance.Name + "." + instance.Namespace,
-						"use_websocket: true",
-					}, "\n"),
-			},
 		},
 		Spec: corev1.ServiceSpec{
 			Type:     "ClusterIP",
