@@ -2,7 +2,7 @@
 /* eslint-disable max-len */
 import '@polymer/test-fixture/test-fixture';
 import 'jasmine-ajax';
-import {mockIronAjax, yeildForRequests} from '../ajax_test_helper';
+import {mockIronAjax, yeildForRequests as yeildForAsync} from '../ajax_test_helper';
 import {flush} from '@polymer/polymer/lib/utils/flush.js';
 
 import './dashboard-view';
@@ -16,9 +16,6 @@ const TEMPLATE = `
   </template>
 </test-fixture>
 `;
-const TEST_USER = 'test@kubeflow.org';
-const sleep = (t) => new Promise((res) => setTimeout(res, t));
-const yeildForAsync = () => sleep(1);
 
 describe('Registration Page', () => {
     let registrationPage;

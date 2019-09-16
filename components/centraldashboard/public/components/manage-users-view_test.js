@@ -15,10 +15,9 @@ const TEMPLATE = `
   </template>
 </test-fixture>
 `;
-const TEST_USER = 'test@kubeflow.org';
-const newNS = (namespace, role, user='test@kubeflow.org') => ({role, namespace, user});
-const oNs = newNS('ns1', 'owner');
-const generalNs = [oNs, newNS('ns2', 'contributor'), newNS('ns3', 'contributor')];
+const user = 'test@kubeflow.org';
+const oNs = {namespace: 'ns1', role: 'owner'};
+const generalNs = [oNs, {namespace: 'ns2', role: 'contributor', user}, {namespace: 'ns3', role: 'contributor', user}];
 
 describe('Manage Users View', () => {
     let manageUsersView;
@@ -61,7 +60,7 @@ describe('Manage Users View', () => {
             contribList,
         );
 
-        manageUsersView.user = TEST_USER;
+        manageUsersView.user = user;
         manageUsersView.ownedNamespace = oNs;
         manageUsersView.namespaces = generalNs;
 
@@ -95,7 +94,7 @@ describe('Manage Users View', () => {
     it('Should render cluster admin view correctly', async () => {
         const contribList = ['foo@kubeflow.org', 'bar@kubeflow.org'];
         const allPeeps = [
-            ['ns1', TEST_USER, contribList.join(', ')],
+            ['ns1', user, contribList.join(', ')],
         ];
         mockIronAjax(
             manageUsersView.$.GetContribsAjax,
@@ -106,7 +105,7 @@ describe('Manage Users View', () => {
             allPeeps,
         );
 
-        manageUsersView.user = TEST_USER;
+        manageUsersView.user = user;
         manageUsersView.isClusterAdmin = true;
         manageUsersView.ownedNamespace = oNs;
         manageUsersView.namespaces = [oNs];
@@ -132,7 +131,7 @@ describe('Manage Users View', () => {
             true,
         );
 
-        manageUsersView.user = TEST_USER;
+        manageUsersView.user = user;
         manageUsersView.ownedNamespace = oNs;
         manageUsersView.namespaces = [oNs];
 
@@ -160,7 +159,7 @@ describe('Manage Users View', () => {
             verificationContribs,
         );
 
-        manageUsersView.user = TEST_USER;
+        manageUsersView.user = user;
         manageUsersView.ownedNamespace = oNs;
         manageUsersView.namespaces = generalNs;
 
@@ -192,7 +191,7 @@ describe('Manage Users View', () => {
             verificationContribs,
         );
 
-        manageUsersView.user = TEST_USER;
+        manageUsersView.user = user;
         manageUsersView.ownedNamespace = oNs;
         manageUsersView.namespaces = generalNs;
 
