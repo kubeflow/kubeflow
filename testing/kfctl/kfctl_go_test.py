@@ -1,9 +1,11 @@
 import datetime
 import logging
 import os
+import requests
 import subprocess
 import tempfile
 import uuid
+import urllib
 from retrying import retry
 import yaml
 
@@ -17,6 +19,24 @@ from kubeflow.testing import util
 def run_with_retries(*args, **kwargs):
   util.run(*args, **kwargs)
 
+
+def load_config(config_path):
+  """Load specified KFDEf.
+
+  Args:
+    config_path: Path to a YAML file containing a KFDef object.
+      Can be a local path or a URI like
+      https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
+  """
+  u = urllib.parse.urlparser(config_path)
+
+  if u.scheme in ["http", "https"]:
+    data = requests.get(config_path)
+    return yaml.load(data.content)
+  else:
+    with open(config_path, 'r') as f:
+      config_spec = yaml.load(f)
+      return config_spec
 
 def verify_kubeconfig(project, zone, app_path):
   name = os.path.basename(app_path)
@@ -109,13 +129,19 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   # We don't run with retries because if kfctl init exits with an error
   # but creates app.yaml then rerunning init will fail because app.yaml
   # already exists. So retrying ends up masking the original error message
-  with open(config_path, 'r') as f:
-    config_spec = yaml.load(f)
+  config_spec = load_config(config_path)
   config_spec["spec"]["project"] = project
   config_spec["spec"]["email"] = email
   config_spec["spec"] = filterSpartakus(config_spec["spec"])
   repos = config_spec["spec"]["repos"]
+
   if os.getenv("REPO_NAME") == "manifests":
+    # kfctl_go_test.py was triggered on presubmit from the kubeflow/manifests
+    # repository. In this case we want to use the specified PR of the
+    # kubeflow/manifests repository; so we need to change the repo specification
+    # in the KFDef spec.
+    # TODO(jlewi): We should also point to a specific commit when triggering
+    # postsubmits from the kubeflow/manifests repo
     for repo in repos:
       for key, value in repo.items():
         if value == "https://github.com/kubeflow/manifests/archive/master.tar.gz":
