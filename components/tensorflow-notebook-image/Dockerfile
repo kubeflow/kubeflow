@@ -20,11 +20,6 @@ ENV HOME /home/$NB_USER
 ENV NB_PREFIX /
 
 # Export args as environment variables.
-# This is solely to make them available to install.sh
-ENV TF_PACKAGE $TF_PACKAGE
-ENV TF_SERVING_VERSION $TF_SERVING_VERSION
-ENV TFMA_VERSION $TFMA_VERSION
-ENV TFDV_VERSION $TFDV_VERSION
 ENV PIPELINE_SDK_PACKAGE $PIPELINE_SDK_PACKAGE
 
 # Use bash instead of sh
@@ -73,7 +68,7 @@ ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
 
-# Create jovyan user with UID=1000 and in the 'users' group
+# Create NB_USER user with UID=1000 and in the 'users' group
 # but allow for non-initial launches of the notebook to have
 # $HOME provided by the contents of a PV
 RUN useradd -M -s /bin/bash -N -u $NB_UID $NB_USER && \
@@ -109,13 +104,13 @@ RUN pip install --upgrade pip==19.2.3 && \
     ${PIPELINE_SDK_PACKAGE} 
 
 # NB: the COPY chown can't expand a bash variable for NB_USER
-COPY --chown=jovyan:users requirements.txt /tmp
+COPY --chown=${NB_USER}:users requirements.txt /tmp
 
-RUN docker-credential-gcr configure-docker && chown jovyan:users $HOME/.docker/config.json
+RUN docker-credential-gcr configure-docker && chown ${NB_USER}:users $HOME/.docker/config.json
 
 # Configure container startup
 EXPOSE 8888
-USER jovyan
+USER ${NB_USER}
 ENTRYPOINT ["tini", "--"]
-CMD ["sh","-c", "jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"]
+CMD ["sh","-c", "jupyter notebook --notebook-dir=/home/${NB_USER} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"]
 
