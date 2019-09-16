@@ -28,12 +28,20 @@ export function mockRequest(component, response, respondWithError = false,
 }
 
 /**
- * Simply yeilds to the next tick, so that all Promised requests can do their
+ * Async sleep function which can pause execution flow or yield for next
+ * executions in the event-loop.
+ * @param {number} t Time in ms.
+ * @return {Promise<undefined>}
+ */
+export const sleep = (t) => new Promise((res) => setTimeout(res, t));
+
+
+/**
+ * Simply yields to the next tick, so that all Promised requests can do their
  * thing.
  */
-export async function yeildForRequests() {
-    const sleep = (t) => new Promise((res) => setTimeout(res, t));
-    await sleep(1);
+export async function yieldForRequests() {
+    await sleep(1); // Waits till next tick
 }
 
 /**
