@@ -47,7 +47,10 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
   zip \
   emacs \
   python3-pip \
+<<<<<<< HEAD
   python3-dev \
+=======
+>>>>>>> fix: install python3-setuptools and python3-pip
   python3-setuptools \
   && apt-get clean && \
   rm -rf /var/lib/apt/lists/*
@@ -58,6 +61,9 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
   nodejs \
   && apt-get clean && \
   rm -rf /var/lib/apt/lists/*
+
+# Create symbolic link from pip3 to pip
+RUN ln -s /usr/bin/pip3 /usr/bin/pip
 
 ENV DOCKER_CREDENTIAL_GCR_VERSION=1.4.3
 RUN curl -LO https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v${DOCKER_CREDENTIAL_GCR_VERSION}/docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
