@@ -837,7 +837,7 @@ func (gcp *Gcp) Apply(resources kftypesv3.ResourceEnum) error {
 			}
 		}
 	}
-	if gcp.KfDef.Email == "" {
+	if gcp.kfDef.Spec.Email == "" {
 		return nil
 	}
 	if *p.EnableWorkloadIdentity {
