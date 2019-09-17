@@ -28,7 +28,7 @@ def load_config(config_path):
       Can be a local path or a URI like
       https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
   """
-  u = urllib.parse.urlparser(config_path)
+  u = urllib.parse.urlparse(config_path)
 
   if u.scheme in ["http", "https"]:
     data = requests.get(config_path)
