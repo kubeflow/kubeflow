@@ -6,21 +6,21 @@ ARG BASE_IMAGE=tensorflow/tensorflow:1.13.2-py3-jupyter
 FROM $BASE_IMAGE
 
 ARG TF_SERVING_VERSION=0.0.0
-ARG TFMA_VERSION
-ARG TFDV_VERSION
 ARG PIPELINE_SDK_PACKAGE=https://storage.googleapis.com/ml-pipeline/release/0.1.23/kfp.tar.gz
+ARG NB_USER=jovyan
 
 USER root
 
 ENV DEBIAN_FRONTEND noninteractive
 
-ENV NB_USER jovyan
+# Export args as environment variables.
+ENV PIPELINE_SDK_PACKAGE $PIPELINE_SDK_PACKAGE
+ENV NB_USER $NB_USER
+
 ENV NB_UID 1000
 ENV HOME /home/$NB_USER
 ENV NB_PREFIX /
 
-# Export args as environment variables.
-ENV PIPELINE_SDK_PACKAGE $PIPELINE_SDK_PACKAGE
 
 # Use bash instead of sh
 SHELL ["/bin/bash", "-c"]
@@ -44,6 +44,8 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
   wget \
   zip \
   emacs \
+  python3-pip \
+  python3-setuptools \
   && apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
@@ -53,6 +55,9 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
   nodejs \
   && apt-get clean && \
   rm -rf /var/lib/apt/lists/*
+
+# Create symbolic link from pip3 to pip
+RUN ln -s /usr/bin/pip3 /usr/bin/pip
 
 ENV DOCKER_CREDENTIAL_GCR_VERSION=1.4.3
 RUN curl -LO https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v${DOCKER_CREDENTIAL_GCR_VERSION}/docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
@@ -93,10 +98,8 @@ RUN cd /tmp && \
 # The image size can grow significantly.
 
 # Install base python3 packages
-RUN pip install --upgrade pip==19.2.3 && \
-    pip --no-cache-dir install \
+RUN pip --no-cache-dir install \
     jupyter-console==6.0.0 \
-    jupyterhub \
     jupyterlab \
     xgboost \
     git+https://github.com/kubeflow/fairing@a9bb9d5cc1c9f1d75efa31198ddbdccfe176b7bf \
