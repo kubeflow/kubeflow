@@ -1,8 +1,10 @@
+import datetime
 import logging
 import os
 import sys
 import yaml
 import json
+from collections import defaultdict
 from flask import request
 from kubernetes import client
 import datetime as dt
@@ -249,10 +251,14 @@ def process_pvc(rsrc):
     return res
 
 
-def process_resource(rsrc):
+def process_resource(rsrc, rsrc_events):
     # VAR: change this function according to the main resource
     cntr = rsrc["spec"]["template"]["spec"]["containers"][0]
-    status, reason = process_status(rsrc)
+    
+    if not rsrc_events:
+        status, reason = "running", "Running"
+    else:
+        status, reason = process_events_as_status(rsrc_events)
 
     res = {
         "name": rsrc["metadata"]["name"],
@@ -269,37 +275,33 @@ def process_resource(rsrc):
     return res
 
 
-def process_status(rsrc):
+def groupby(rsrc_events, by_fn):
+    groups = defaultdict(list)
+    for e in rsrc_events:
+        groups[by_fn(e)].append(e) 
+    return groups
+
+
+def process_events_as_status(rsrc_events):
     '''
     Return status and reason. Status may be [running|waiting|warning|error]
     '''
-    # If the Notebook is being deleted, the status will be waiting
-    if "deletionTimestamp" in rsrc["metadata"]:
-        return "waiting", "Deleting Notebook Server"
+    rsrc_events.sort(key=event_timestamp, reverse=True)
+    latest_event_seen = rsrc_events[0]
+    # We can't take just the last one, some events might share the same timestamp
+    for e in rsrc_events:
+        if event_timestamp(e) < event_timestamp(latest_event_seen):
+            break
+        if e.reason == "Started":
+            return "running", e.reason
+        if e.type == "Warning":
+            return "warning", e.reason
 
-    # Check the status
-    try:
-        s = rsrc["status"]["containerState"]
-    except KeyError:
-        return "waiting", "No Status available"
+    return "waiting", latest_event_seen.reason
 
-    if "running" in s:
-        return "running", "Running"
-    elif "waiting" in s:
-        reason = s["waiting"]["reason"]
 
-        if reason == "ImagePullBackOff":
-            return "error", reason
-        elif reason == "ContainerCreating":
-            return "waiting", reason
-        elif reason == "PodInitializing":
-            return "waiting", reason
-        else:
-            return "warning", reason
-    elif "terminated" in s:
-        return "error", "The Pod has Terminated"
-    else:
-        return "waiting", "Scheduling the Pod"
+def event_timestamp(event):
+    return event.metadata.creation_timestamp
 
 
 # Notebook YAML processing

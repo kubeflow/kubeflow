@@ -160,6 +160,23 @@ def get_notebooks(ns, user=None):
     )
 
 
+def get_notebook_events(ns, user=None):
+    if not is_authorized(user, ns):
+        return {
+            "success": False,
+            "log": "User '{}' is not authorized for namespace '{}'".format(
+                user, ns
+            )
+        }
+
+    return wrap_resp(
+        "notebook-events",
+        v1_core.list_namespaced_event,
+        namespace=ns,
+        field_selector="involvedObject.kind=Notebook"
+    )
+
+
 def get_poddefaults(ns, user=None):
     if not is_authorized(user, ns):
         return {

@@ -21,11 +21,15 @@ def prefix():
 def get_notebooks(namespace):
     user = utils.get_username_from_request()
     data = api.get_notebooks(namespace, user)
+    events = api.get_notebook_events(namespace, user)
 
     if not data["success"]:
         return jsonify(data)
+    if not events["success"]:
+        return jsonify(data)
 
-    data["notebooks"] = [utils.process_resource(nb)
+    events_by_nb = utils.groupby(events["notebook-events"].items, by_fn=lambda e: e.involved_object.name)
+    data["notebooks"] = [utils.process_resource(nb, events_by_nb.get(nb["metadata"]["name"]))
                          for nb in data["notebooks"]["items"]]
     return jsonify(data)
 
