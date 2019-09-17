@@ -29,53 +29,6 @@ describe('Workgroup API', () => {
         mockK8sService,
     );
 
-    describe('User Detection', () => {
-        const testEmail = 'test@testdomain.com';
-        const getHeader = (iapType: 'goog' | 'other') => ({
-            [header[iapType]]: `${prefix[iapType]}${testEmail}`,
-        });
-        let url: string;
-        const finalizeTestApp = () => {
-            testApp.get('/tests/temp-user', (req: Request, res: Response) => {
-                res.json({user: req.user.email});
-            });
-            const addressInfo = testApp.listen(0).address();
-            if (typeof addressInfo === 'string') {
-                throw new Error(
-                    'Unable to determine system-assigned port for test API server');
-            }
-            port = addressInfo.port;
-            url = `http://localhost:${port}/tests/temp-user`;
-        };
-
-        beforeEach(() => {
-            testApp = express();
-            testApp.use(express.json());
-        });
-        
-        it('Should work for Google IAP', async () => {
-            testApp.use(attachUserGCPMiddleware);
-            finalizeTestApp();
-            
-            const response = await sendTestRequest(url, getHeader('goog'));
-            expect(response).toEqual({user: testEmail});
-        });
-        it('Should work for Non-GCP IAP', async () => {
-            testApp.use(attachUserOtherIAPMiddleware);
-            finalizeTestApp();
-            
-            const response = await sendTestRequest(url, getHeader('other'));
-            expect(response).toEqual({user: testEmail});
-        });
-        it('Should return anonymous for basic / unsecured', async () => {
-            testApp.use(attachUserOtherIAPMiddleware);
-            finalizeTestApp();
-            
-            const response = await sendTestRequest(url);
-            expect(response).toEqual({user: 'anonymous@kubeflow.org'});
-        });
-    });
-
     describe('Environment Information', () => {
         let url: string;
         beforeEach(() => {
@@ -433,7 +386,7 @@ describe('Workgroup API', () => {
         };
 
         beforeEach(() => {
-            mockProfilesService = jasmine.createSpyObj<DefaultApi>(['createBinding']);
+            mockProfilesService = jasmine.createSpyObj<DefaultApi>(['createBinding', 'deleteBinding']);
             const api = newAPI();
             api.getContributors = async () => ['test'];
 
@@ -472,10 +425,27 @@ describe('Workgroup API', () => {
             expect(response).toEqual({error: `Contributor doesn't look like a valid email address`});
             expect(mockProfilesService.createBinding).not.toHaveBeenCalled();
         });
-        it('Should successfully add and remove a contributor', async () => {
+        it('Should successfully add a contributor', async () => {
             const response = await sendTestRequest(url('add'), headers, 200, 'post', requestBody);
             expect(response).toEqual(['test']);
             expect(mockProfilesService.createBinding).toHaveBeenCalledWith({
+                user: {
+                    kind: 'User',
+                    name: 'apverma@google.com',
+                },
+                referredNamespace: 'apverma',
+                roleRef: {
+                    kind: 'ClusterRole',
+                    name: 'edit',
+                }
+            }, jasmine.anything());
+            expect(mockProfilesService.deleteBinding).not.toHaveBeenCalled();
+        });
+        it('Should successfully remove a contributor', async () => {
+            const response = await sendTestRequest(url('remove'), headers, 200, 'delete', requestBody);
+            expect(response).toEqual(['test']);
+            expect(mockProfilesService.createBinding).not.toHaveBeenCalled();
+            expect(mockProfilesService.deleteBinding).toHaveBeenCalledWith({
                 user: {
                     kind: 'User',
                     name: 'apverma@google.com',
