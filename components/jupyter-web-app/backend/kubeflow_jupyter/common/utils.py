@@ -1,8 +1,10 @@
+import datetime
 import logging
 import os
 import sys
 import yaml
 import json
+from collections import defaultdict
 from flask import request
 from kubernetes import client
 import datetime as dt
@@ -17,6 +19,14 @@ CONFIGS = [
 # The values of the headers to look for the User info
 USER_HEADER = os.getenv("USERID_HEADER", "X-Goog-Authenticated-User-Email")
 USER_PREFIX = os.getenv("USERID_PREFIX", "accounts.google.com:")
+
+EVENT_TYPE_NORMAL = "Normal"
+EVENT_TYPE_WARNING = "Warning"
+
+STATUS_ERROR = "error"
+STATUS_WARNING = "warning"
+STATUS_RUNNING = "running"
+STATUS_WAITING = "waiting"
 
 
 # Logging
@@ -249,10 +259,10 @@ def process_pvc(rsrc):
     return res
 
 
-def process_resource(rsrc):
+def process_resource(rsrc, rsrc_events):
     # VAR: change this function according to the main resource
     cntr = rsrc["spec"]["template"]["spec"]["containers"][0]
-    status, reason = process_status(rsrc)
+    status, reason = process_status(rsrc, rsrc_events)
 
     res = {
         "name": rsrc["metadata"]["name"],
@@ -269,37 +279,57 @@ def process_resource(rsrc):
     return res
 
 
-def process_status(rsrc):
+def process_status(rsrc, rsrc_events):
     '''
     Return status and reason. Status may be [running|waiting|warning|error]
     '''
     # If the Notebook is being deleted, the status will be waiting
     if "deletionTimestamp" in rsrc["metadata"]:
-        return "waiting", "Deleting Notebook Server"
+        return STATUS_WAITING, "Deleting Notebook Server"
 
     # Check the status
     try:
         s = rsrc["status"]["containerState"]
     except KeyError:
-        return "waiting", "No Status available"
+        s = ""
 
+    # Use conditions on the Jupyter notebook (i.e., s) to determine overall status
     if "running" in s:
-        return "running", "Running"
-    elif "waiting" in s:
-        reason = s["waiting"]["reason"]
-
-        if reason == "ImagePullBackOff":
-            return "error", reason
-        elif reason == "ContainerCreating":
-            return "waiting", reason
-        elif reason == "PodInitializing":
-            return "waiting", reason
-        else:
-            return "warning", reason
+        status, reason = STATUS_RUNNING, "Running"
     elif "terminated" in s:
-        return "error", "The Pod has Terminated"
+        status, reason = STATUS_ERROR, "The Pod has Terminated"
     else:
-        return "waiting", "Scheduling the Pod"
+        if "waiting" in s:
+            reason = s["waiting"]["reason"]
+            status = STATUS_ERROR if reason == "ImagePullBackOff" else STATUS_WAITING
+        else:
+            status, reason = STATUS_WAITING, "Scheduling the Pod"
+        # Provide the user with detailed information (if any) about why the notebook is not starting
+        status_event, reason_event = find_error_event(rsrc_events)
+        if status_event:
+            status, reason = status_event, reason_event
+
+    return status, reason
+
+
+def find_error_event(rsrc_events):
+    '''
+    Returns status and reason from the latest event that surfaces the cause
+    of why the resource could not be created. For a Notebook, it can be due to:
+
+          EVENT_TYPE      EVENT_REASON      DESCRIPTION   
+          Warning         FailedCreate      serviceaccount not found (originated in statefulset)
+          Warning         FailedScheduling  Insufficient CPU (originated in pod)
+
+    '''
+    for e in sorted(rsrc_events, key=event_timestamp, reverse=True):
+        if e.type == EVENT_TYPE_WARNING and e.reason in ["FailedCreate", "FailedScheduling"]:
+            return STATUS_ERROR, e.message
+    return None, None
+
+
+def event_timestamp(event):
+    return event.metadata.creation_timestamp.replace(tzinfo=None)
 
 
 # Notebook YAML processing

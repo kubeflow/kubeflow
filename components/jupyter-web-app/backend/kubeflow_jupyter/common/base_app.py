@@ -1,3 +1,5 @@
+import datetime as dt
+
 from flask import jsonify, request, Blueprint
 from kubernetes import client
 from . import api
@@ -25,8 +27,20 @@ def get_notebooks(namespace):
     if not data["success"]:
         return jsonify(data)
 
-    data["notebooks"] = [utils.process_resource(nb)
-                         for nb in data["notebooks"]["items"]]
+    items = []
+    for nb in data["notebooks"]["items"]:
+        nb_name = nb["metadata"]["name"]
+        nb_creation_time = dt.datetime.strptime(
+            nb["metadata"]["creationTimestamp"], "%Y-%m-%dT%H:%M:%SZ")
+        nb_events = api.get_notebook_events(namespace, nb_name)
+        nb_events = nb_events["notebook-events"].items if nb_events["success"] else []
+        # User can delete and then create a nb server with the same name
+        # Make sure previous events are not taken into account
+        nb_events = filter(lambda e: utils.event_timestamp(e) >= nb_creation_time,
+                           nb_events)
+        items.append(utils.process_resource(nb, nb_events))
+
+    data["notebooks"] = items
     return jsonify(data)
 
 
@@ -116,7 +130,6 @@ def get_default_storageclass():
 
         for key in keys:
             is_default = annotations.get(key, "false")
-            
             if is_default == "true":
                 return jsonify({
                     "success": True,
