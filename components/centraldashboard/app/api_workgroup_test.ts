@@ -414,7 +414,7 @@ describe('Workgroup API', () => {
                 sendTestRequest(url('remove'), headers, 400, 'delete'),
             ]);
             [rAdd, rRemove].forEach(response => {
-                expect(response).toEqual({error: `Missing contributor / namespace fields.`});
+                expect(response).toEqual({error: `Missing contributor field.`});
             });
             expect(mockProfilesService.createBinding).not.toHaveBeenCalled();
         });
@@ -442,7 +442,7 @@ describe('Workgroup API', () => {
             expect(mockProfilesService.deleteBinding).not.toHaveBeenCalled();
         });
         it('Should successfully remove a contributor', async () => {
-            const response = await sendTestRequest(url('remove'), headers, 200, 'delete', requestBody);
+            const response = await sendTestRequest(url('remove'), {...headers, 'Transfer-Encoding': 'chunked'}, 200, 'delete', requestBody);
             expect(response).toEqual(['test']);
             expect(mockProfilesService.createBinding).not.toHaveBeenCalled();
             expect(mockProfilesService.deleteBinding).toHaveBeenCalledWith({
