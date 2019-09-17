@@ -11,6 +11,7 @@
   - [Update PyTorchJob](#update-pytorchjob)
   - [Create a release branch (if necessary)](#create-a-release-branch-if-necessary)
     - [Enable Periodic tests on the release branch](#enable-periodic-tests-on-the-release-branch)
+  - [Updating docker image versions](#updating-docker-image-versions)
   - [Release branching policy](#release-branching-policy)
   - [Updating the release branch and tagging a release](#updating-the-release-branch-and-tagging-a-release)
     - [Tagging a release candidate](#tagging-a-release-candidate)
@@ -197,6 +198,13 @@ Once the release branch is cut we need to enable periodic tests on the release b
 
    * Copy the entries for the most recent release branch and change it to the new release branch
 1. Submit a PR with the above changes.
+
+## Updating docker image versions
+
+Update images in [manifests](https://github.com/kubeflow/manifests) if necessary, some examples:
+- [Central Dashboard](https://github.com/kubeflow/manifests/blob/master/common/centraldashboard/base/deployment.yaml#L18)
+- [Notebook Controller](https://github.com/kubeflow/manifests/blob/master/jupyter/notebook-controller/base/deployment.yaml#L10)
+- [Profile Controller](https://github.com/kubeflow/manifests/blob/master/profiles/base/deployment.yaml#L16)
 
 ## Release branching policy
 
