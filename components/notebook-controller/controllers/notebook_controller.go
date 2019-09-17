@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/go-logr/logr"
 	reconcilehelper "github.com/kubeflow/kubeflow/components/common/reconcilehelper"
@@ -27,17 +28,20 @@ import (
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/metrics"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
@@ -63,9 +67,10 @@ func ignoreNotFound(err error) error {
 // NotebookReconciler reconciles a Notebook object
 type NotebookReconciler struct {
 	client.Client
-	Log     logr.Logger
-	Scheme  *runtime.Scheme
-	Metrics *metrics.Metrics
+	Log           logr.Logger
+	Scheme        *runtime.Scheme
+	Metrics       *metrics.Metrics
+	EventRecorder record.EventRecorder
 }
 
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
@@ -77,6 +82,24 @@ type NotebookReconciler struct {
 func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("notebook", req.NamespacedName)
+
+	event := &v1.Event{}
+	var getEventErr error
+	getEventErr = r.Get(ctx, req.NamespacedName, event)
+	if getEventErr == nil {
+		involvedNotebook := &v1beta1.Notebook{}
+		involvedNotebookKey := types.NamespacedName{Name: nbNameFromEvent(event), Namespace: req.Namespace}
+		if err := r.Get(ctx, involvedNotebookKey, involvedNotebook); err != nil {
+			log.Error(err, "unable to fetch Notebook by looking at event")
+			return ctrl.Result{}, ignoreNotFound(err)
+		}
+		r.EventRecorder.Eventf(involvedNotebook, event.Type, event.Reason,
+			"Reissued from %s/%s: %s", strings.ToLower(event.InvolvedObject.Kind), event.InvolvedObject.Name, event.Message)
+	}
+	if getEventErr != nil && !apierrs.IsNotFound(getEventErr) {
+		return ctrl.Result{}, getEventErr
+	}
+	// If not found, continue. Is not an event.
 
 	instance := &v1beta1.Notebook{}
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
@@ -436,6 +459,19 @@ func (r *NotebookReconciler) reconcileVirtualService(instance *v1beta1.Notebook)
 
 	return nil
 }
+
+func isStsOrPodEvent(event *v1.Event) bool {
+	return event.InvolvedObject.Kind == "Pod" || event.InvolvedObject.Kind == "StatefulSet"
+}
+
+func nbNameFromEvent(event *v1.Event) string {
+	nbName := event.InvolvedObject.Name
+	if event.InvolvedObject.Kind == "Pod" {
+		nbName = nbName[:strings.LastIndex(nbName, "-")]
+	}
+	return nbName
+}
+
 func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&v1beta1.Notebook{}).
@@ -481,10 +517,43 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			return true
 		},
 	}
-	return c.Watch(
+
+	eventToRequest := handler.ToRequestsFunc(
+		func(a handler.MapObject) []ctrl.Request {
+			return []reconcile.Request{
+				{NamespacedName: types.NamespacedName{
+					Name:      a.Meta.GetName(),
+					Namespace: a.Meta.GetNamespace(),
+				}},
+			}
+		})
+
+	eventsPredicates := predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			return e.ObjectOld != e.ObjectNew && isStsOrPodEvent(e.ObjectNew.(*v1.Event))
+		},
+		CreateFunc: func(e event.CreateEvent) bool {
+			return isStsOrPodEvent(e.Object.(*v1.Event))
+		},
+	}
+
+	if err = c.Watch(
 		&source.Kind{Type: &corev1.Pod{}},
 		&handler.EnqueueRequestsFromMapFunc{
 			ToRequests: mapFn,
 		},
-		p)
+		p); err != nil {
+		return err
+	}
+
+	if err = c.Watch(
+		&source.Kind{Type: &v1.Event{}},
+		&handler.EnqueueRequestsFromMapFunc{
+			ToRequests: eventToRequest,
+		},
+		eventsPredicates); err != nil {
+		return err
+	}
+
+	return nil
 }
