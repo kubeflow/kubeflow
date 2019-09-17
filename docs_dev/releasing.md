@@ -15,6 +15,7 @@
   - [Release branching policy](#release-branching-policy)
   - [Updating the release branch and tagging a release](#updating-the-release-branch-and-tagging-a-release)
     - [Tagging a release candidate](#tagging-a-release-candidate)
+    - [Creating KfDef configs for release condidate](#creating-kfdef-configs-for-release-candidate)
     - [Update Version Shown on Central Dashboard](#update-version-shown-on-central-dashboard)
     - [Release votes and releases](#release-votes-and-releases)
   - [Updating the ksonnet configs for master](#updating-the-ksonnet-configs-for-master)
@@ -225,6 +226,17 @@ You can create a release branch via the GitHub UI.
 ### Tagging a release candidate
 
 A release candidate is a tag of the form `v${MAJOR}.${MINOR}.${PATCHLEVEL}-rc.${N}`, where `N` is a small integer, and a release candidate tag always points to a commit on the corresponding minor release branch.  Push this tag to GitHub and announce a release vote on kubeflow-discuss.
+
+### Creating KfDef configs for release condidate
+
+In release branch we need to create config files for the release candidate in [manifests](https://github.com/kubeflow/manifests/tree/master/kfdef).
+
+Files we need for release candidates:
+- kfctl_gcp_basic_auth ([example](https://github.com/kubeflow/kubeflow/blob/v0.6-branch/bootstrap/config/kfctl_gcp_basic_auth.0.6.2.yaml))
+- kfctl_gcp_iap ([example](https://github.com/kubeflow/kubeflow/blob/v0.6-branch/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml))
+- kfctl_k8s_istio ([example](https://github.com/kubeflow/kubeflow/blob/v0.6-branch/bootstrap/config/kfctl_k8s_istio.0.6.2.yaml))
+
+Specifically, we need to pin `uri` in `repos` to a targeted version.
 
 ### Update Version Shown on Central Dashboard
 
