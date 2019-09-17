@@ -191,9 +191,14 @@ export class WorkgroupApi {
         const {contributor} = req.body as AddOrRemoveContributorRequest;
         const {profilesService} = this;
         if (!contributor || !namespace) {
+            const missing = [];
+            // tslint:disable: no-unused-expression
+            contributor || missing.push('contributor');
+            namespace || missing.push('namespace');
+            // tslint:enable: no-unused-expression
             return apiError({
                 res,
-                error: `Missing contributor / namespace fields.`,
+                error: `Missing ${missing.join(' and ')} field${missing.length-1?'s':''}.`,
             });
         }
         if (!EMAIL_RGX.test(contributor)) {
