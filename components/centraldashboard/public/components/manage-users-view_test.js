@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 import '@polymer/test-fixture/test-fixture';
 import 'jasmine-ajax';
-import {mockIronAjax, yeildForRequests} from '../ajax_test_helper';
+import {mockIronAjax, yieldForRequests} from '../ajax_test_helper';
 import {flush} from '@polymer/polymer/lib/utils/flush.js';
 
 import './dashboard-view';
@@ -65,7 +65,7 @@ describe('Manage Users View', () => {
         manageUsersView.namespaces = generalNs;
 
         flush();
-        await yeildForRequests();
+        await yieldForRequests();
 
         expect(manageUsersView.shadowRoot.querySelector('.Acct-Info > .content').innerText)
             .toBe('test@kubeflow.org');
@@ -111,7 +111,7 @@ describe('Manage Users View', () => {
         manageUsersView.namespaces = [oNs];
 
         flush();
-        await yeildForRequests();
+        await yieldForRequests();
 
         expect(manageUsersView.shadowRoot.querySelector('.Cluster-Namespaces')
             .hasAttribute('hidden')).toBe(false, 'Cluster Namespaces was still hidden');
@@ -136,7 +136,7 @@ describe('Manage Users View', () => {
         manageUsersView.namespaces = [oNs];
 
         flush();
-        await yeildForRequests();
+        await yieldForRequests();
 
         expect(manageUsersView.$.ContribError.opened)
             .toBe(
@@ -164,13 +164,13 @@ describe('Manage Users View', () => {
         manageUsersView.namespaces = generalNs;
 
         flush();
-        await yeildForRequests();
+        await yieldForRequests();
 
         const input = manageUsersView.shadowRoot.querySelector('.Contributors md2-input');
         input.value = 'new@google.com';
         input.fireEnter();
 
-        await yeildForRequests();
+        await yieldForRequests();
 
         expect(manageUsersView.contributorList)
             .toEqual(
@@ -196,12 +196,12 @@ describe('Manage Users View', () => {
         manageUsersView.namespaces = generalNs;
 
         flush();
-        await yeildForRequests();
+        await yieldForRequests();
 
         const chip = manageUsersView.shadowRoot.querySelector('.Contributors md2-input paper-chip:nth-of-type(1)');
         chip.fireRemove({});
 
-        await yeildForRequests();
+        await yieldForRequests();
 
         expect(manageUsersView.contributorList)
             .toEqual(

@@ -33,8 +33,9 @@ export function mockRequest(component, response, respondWithError = false,
  * @param {number} t Time in ms.
  * @return {Promise<undefined>}
  */
-export const sleep = (t) => new Promise((res) => setTimeout(res, t));
-
+export function sleep(t) {
+    return new Promise((res) => setTimeout(res, t));
+}
 
 /**
  * Simply yields to the next tick, so that all Promised requests can do their
@@ -52,7 +53,7 @@ export async function yieldForRequests() {
  * @param {boolean=} respondWithError
  */
 export function mockIronAjax(component, response, respondWithError = false) {
-    const {tagName, url} = component;
+    const {tagName} = component;
     expect(tagName).toBe(
         'IRON-AJAX', '[mockRequest] Element passed in was not iron-ajax'
     );
@@ -71,8 +72,6 @@ export function mockIronAjax(component, response, respondWithError = false) {
         component.dispatchEvent(
             new CustomEvent(finalEvent, eventPayload)
         );
-        // eslint-disable-next-line no-console,max-len
-        console.log(`[mockIronAjax] ${url?url+' ':''}Dispatched ${finalEvent}`, eventPayload);
         return component.lastResponse || component.lastError;
     };
 }

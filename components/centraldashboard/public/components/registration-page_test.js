@@ -2,7 +2,7 @@
 /* eslint-disable max-len */
 import '@polymer/test-fixture/test-fixture';
 import 'jasmine-ajax';
-import {mockIronAjax, yeildForRequests as yeildForAsync} from '../ajax_test_helper';
+import {mockIronAjax, yieldForRequests as yieldForAsync} from '../ajax_test_helper';
 import {flush} from '@polymer/polymer/lib/utils/flush.js';
 
 import './dashboard-view';
@@ -51,7 +51,7 @@ describe('Registration Page', () => {
 
         const $e = (selector) => registrationPage.shadowRoot.querySelector(selector);
         flush();
-        await yeildForAsync(); // So the view can render
+        await yieldForAsync(); // So the view can render
 
         $e('.Main-Content .iron-selected .actions > paper-button').click();
         const input = registrationPage.$.Namespace;
@@ -60,7 +60,7 @@ describe('Registration Page', () => {
 
         $e('.Main-Content .iron-selected .actions > paper-button:nth-of-type(1)').click();
 
-        await yeildForAsync(); // So the view can render
+        await yieldForAsync(); // So the view can render
 
         expect(flowcomplete).toHaveBeenCalled();
     });
@@ -74,7 +74,7 @@ describe('Registration Page', () => {
 
         const $e = (selector) => registrationPage.shadowRoot.querySelector(selector);
         flush();
-        await yeildForAsync(); // So the view can render
+        await yieldForAsync(); // So the view can render
 
         $e('.Main-Content .iron-selected .actions > paper-button').click();
         const input = registrationPage.$.Namespace;
@@ -83,7 +83,7 @@ describe('Registration Page', () => {
 
         $e('.Main-Content .iron-selected .actions > paper-button:nth-of-type(1)').click();
 
-        await yeildForAsync(); // So the view can render
+        await yieldForAsync(); // So the view can render
 
         expect(flowcomplete).not.toHaveBeenCalled();
         expect(input.error).toBe('Test Error!');

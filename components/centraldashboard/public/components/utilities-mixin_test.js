@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import utilitiesMixin from './utilities-mixin';
 import {html} from '@polymer/polymer/polymer-element.js';
 
@@ -6,15 +5,12 @@ import {html} from '@polymer/polymer/polymer-element.js';
 class TestClass extends utilitiesMixin(Object) {
 }
 
-const PASS_FUNCTION = (_) => _;
 
 describe('Utilities Mixin', () => {
     let testObject;
 
     beforeEach(() => {
         testObject = new TestClass();
-        // Since base class is not HTML
-        testObject.dispatchEvent = PASS_FUNCTION;
     });
 
     it('Correct evaluates a logical or expression', () => {
@@ -63,20 +59,27 @@ describe('Utilities Mixin', () => {
     it('FireEvent correctly fires Event-Obj or custom events', () => {
         const fireEvent = testObject.fireEvent.bind(testObject);
         let lastEvent;
-        spyOn(testObject, 'dispatchEvent').and.callFake((ev) => {
-            lastEvent = {name: ev.type, detail: ev.detail, raw: ev};
-        });
+        const _getLastEvent = () => {
+            lastEvent = testObject.dispatchEvent.calls
+                .mostRecent()
+                .args[0];
+        };
+        testObject.dispatchEvent = jasmine.createSpy();
+
         fireEvent('foo');
-        expect(lastEvent.name).toBe('foo');
+        _getLastEvent();
+        expect(lastEvent.type).toBe('foo');
         expect(lastEvent.detail).toEqual(null);
 
         fireEvent('bar', {ap: 1});
-        expect(lastEvent.name).toBe('bar');
+        _getLastEvent();
+        expect(lastEvent.type).toBe('bar');
         expect(lastEvent.detail).toEqual({ap: 1});
 
         const ev = new Event('click');
         fireEvent(ev);
-        expect(lastEvent.raw).toBe(ev);
+        _getLastEvent();
+        expect(lastEvent).toBe(ev);
     });
 
     it('Close Toast can correctly scan ancestry to the toast element', () => {
@@ -105,13 +108,21 @@ describe('Utilities Mixin', () => {
             return s;
         };
 
-        toast.click();
-        expect(toast.hasClosed()).toBe(true, 'Depth 0 should have worked (the element itself)');
-        s1.click();
-        expect(toast.hasClosed()).toBe(true, 'Depth 1 should have worked');
-        s2.click();
-        expect(toast.hasClosed()).toBe(true, 'Depth 2 should have worked');
-        s3.click();
-        expect(toast.hasClosed()).toBe(false, 'Depth 3 should NOT have worked (depth is now > 2)');
+        toast.click(); expect(toast.hasClosed()).toBe(
+            true,
+            'Depth 0 should have worked (the element itself)',
+        );
+        s1.click(); expect(toast.hasClosed()).toBe(
+            true,
+            'Depth 1 should have worked',
+        );
+        s2.click(); expect(toast.hasClosed()).toBe(
+            true,
+            'Depth 2 should have worked',
+        );
+        s3.click(); expect(toast.hasClosed()).toBe(
+            false,
+            'Depth 3 should NOT have worked (depth is now > 2)',
+        );
     });
 });
