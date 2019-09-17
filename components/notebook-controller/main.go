@@ -23,8 +23,11 @@ import (
 	nbv1beta1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
+	kubeinformers "k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	// +kubebuilder:scaffold:imports
@@ -53,6 +56,11 @@ func main() {
 
 	ctrl.SetLogger(zap.Logger(true))
 
+	kubeClient, err := kubernetes.NewForConfig(ctrl.GetConfigOrDie())
+	if err != nil {
+		klog.Fatalf("Error building kubernetes clientset: %s", err.Error())
+	}
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
@@ -63,11 +71,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.NotebookReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Notebook"),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, 0)
+	eventInformer := kubeInformerFactory.Core().V1().Events()
+	stopper := make(chan struct{})
+	defer close(stopper)
+	go eventInformer.Informer().Run(stopper)
+
+	if err = (controllers.NewNotebookReconciler(
+		mgr.GetClient(),
+		kubeClient,
+		ctrl.Log.WithName("controllers").WithName("Notebook"),
+		mgr.GetScheme(),
+		eventInformer,
+	)).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Notebook")
 		os.Exit(1)
 	}
