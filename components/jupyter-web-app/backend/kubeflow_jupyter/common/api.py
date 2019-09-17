@@ -98,6 +98,19 @@ def list_notebooks(namespace):
     )
 
 
+@auth.needs_authorization("list", "", "v1", "events")
+def list_notebook_events(namespace, nb_name):
+    '''
+    V1EventList with events whose source the Notebook with 'nb_name' from namespace 'namespace'
+    '''
+    return wrap_resp(
+        "notebook-events",
+        v1_core.list_namespaced_event,
+        namespace=namespace,
+        field_selector="involvedObject.kind=Notebook,involvedObject.name=" + nb_name
+    )
+
+
 @auth.needs_authorization("list", "kubeflow.org", "v1alpha1", "poddefaults")
 def list_poddefaults(namespace):
     return wrap_resp(
@@ -110,7 +123,7 @@ def list_poddefaults(namespace):
     )
 
 
-@auth.needs_authorization("get", "core", "v1", "secrets")
+@auth.needs_authorization("get", "", "v1", "secrets")
 def get_secret(name, namespace):
     return wrap_resp(
         "secret",
@@ -120,7 +133,7 @@ def get_secret(name, namespace):
     )
 
 
-@auth.needs_authorization("list", "core", "v1", "namespaces")
+@auth.needs_authorization("list", "", "v1", "namespaces")
 def list_namespaces():
     return wrap_resp(
         "namespaces",
