@@ -98,6 +98,19 @@ def list_notebooks(namespace):
     )
 
 
+@auth.needs_authorization("list", "core", "v1", "events")
+def list_notebook_events(ns, nb_name, user=None):
+    '''
+    V1EventList with events whose source the Notebook with nb_name from namespace ns
+    '''
+    return wrap_resp(
+        "notebook-events",
+        v1_core.list_namespaced_event,
+        namespace=ns,
+        field_selector="involvedObject.kind=Notebook,involvedObject.name=" + nb_name
+    )
+
+
 @auth.needs_authorization("list", "kubeflow.org", "v1alpha1", "poddefaults")
 def list_poddefaults(namespace):
     return wrap_resp(
