@@ -791,45 +791,16 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 		return nil
 	}
 
-	gcpAddedConfig := func() error {
-		if kfapp.KfDef.Spec.Email == "" || kfapp.KfDef.Spec.Platform != kftypesv3.GCP {
-			return nil
-		}
-
-		if p, ok := kfapp.Platforms[kfapp.KfDef.Spec.Platform]; !ok {
-			return &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: "Platform GCP specified but not loaded.",
-			}
-		} else {
-			gcp := p.(*gcp.Gcp)
-			p, err := gcp.GetPluginSpec()
-			if err != nil {
-				return err
-			}
-			if *p.EnableWorkloadIdentity {
-				return gcp.SetupDefaultNamespaceWorkloadIdentity()
-			} else {
-				return gcp.ConfigPodDefault()
-			}
-		}
-	}
-
-	// TODO(gabrielwen): Move `gcpAddedConfig` back to gcp.go.
 	switch resources {
 	case kftypesv3.ALL:
 		return simpleReconcile([]simpleReconcileReq{
 			newReconcileReq(platform),
 			newReconcileReq(k8s),
-			newReconcileReq(gcpAddedConfig),
 		})
 	case kftypesv3.PLATFORM:
 		return platform()
 	case kftypesv3.K8S:
-		return simpleReconcile([]simpleReconcileReq{
-			newReconcileReq(k8s),
-			newReconcileReq(gcpAddedConfig),
-		})
+		return k8s()
 	}
 	return nil
 }

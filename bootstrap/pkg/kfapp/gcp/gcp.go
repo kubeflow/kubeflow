@@ -837,8 +837,14 @@ func (gcp *Gcp) Apply(resources kftypesv3.ResourceEnum) error {
 			}
 		}
 	}
-
-	return nil
+	if gcp.KfDef.Email == "" {
+		return nil
+	}
+	if *p.EnableWorkloadIdentity {
+		return gcp.SetupDefaultNamespaceWorkloadIdentity()
+	} else {
+		return gcp.ConfigPodDefault()
+	}
 }
 
 // Try to get information for the deployment. If returned, delete it.
