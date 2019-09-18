@@ -25,10 +25,12 @@ def pytest_addoption(parser):
       "--config_path", action="store", default="",
       help="The config to use for kfctl init")
 
+  # TODO(jlewi): This flag is deprecated this should be determined now from the KFDef spec.
   parser.addoption(
       "--use_basic_auth", action="store", default="False",
       help="Use basic auth.")
 
+  # TODO(jlewi): This flag is deprecated this should be determined now from the KFDef spec
   parser.addoption(
       "--use_istio", action="store", default="False",
       help="Use istio.")
