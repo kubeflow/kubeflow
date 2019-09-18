@@ -28,16 +28,38 @@ func isValidUrl(toTest string) bool {
 	}
 }
 
+func copyApplications(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
+	for _, application := range from.Spec.Applications {
+		log.Infof("Loader converting KfDef from v1alpha1 to v1beta1: Application %v", application.Name)
+		app := kfdefv1beta1.Application{
+			Name: application.Name,
+			KustomizeConfig: &kfdefv1beta1.KustomizeConfig{
+				RepoRef: &kfdefv1beta1.RepoRef{
+					Name: application.KustomizeConfig.RepoRef.Name,
+					Path: application.KustomizeConfig.RepoRef.Path,
+				},
+			},
+		}
+		to.Spec.Applications = append(to.Spec.Applications, app)
+	}
+}
+
 func loadKfDefV1Alpha1(configs []byte) (*kfdefv1beta1.KfDef, error) {
-	alphaConfig := &kfdefv1alpha1.KfDef{}
-	if err := yaml.Unmarshal(configs, alphaConfig); err != nil {
+	alphaKfDef := &kfdefv1alpha1.KfDef{}
+	if err := yaml.Unmarshal(configs, alphaKfDef); err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("invalid config file format: %v", err),
 		}
 	}
 
-	return nil, fmt.Errorf("Not implemented")
+	betaKfDef := &kfdefv1beta1.KfDef{
+		TypeMeta:   alphaKfDef.TypeMeta,
+		ObjectMeta: alphaKfDef.ObjectMeta,
+	}
+	copyApplications(alphaKfDef, betaKfDef)
+
+	return betaKfDef, nil
 }
 
 func loadKfDefV1Beta1(configs []byte) (*kfdefv1beta1.KfDef, error) {
