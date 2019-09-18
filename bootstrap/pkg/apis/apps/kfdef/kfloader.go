@@ -5,7 +5,8 @@ import (
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
-	kfdefv1beta "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
+	kfdefv1alpha1 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	kfdefv1beta1 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	netUrl "net/url"
@@ -27,7 +28,30 @@ func isValidUrl(toTest string) bool {
 	}
 }
 
-func LoadKfDefFromURI(configFile string) (*kfdefv1beta.KfDef, error) {
+func loadKfDefV1Alpha1(configs []byte) (*kfdefv1beta1.KfDef, error) {
+	alphaConfig := &kfdefv1alpha1.KfDef{}
+	if err := yaml.Unmarshal(configs, alphaConfig); err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("invalid config file format: %v", err),
+		}
+	}
+
+	return nil, fmt.Errorf("Not implemented")
+}
+
+func loadKfDefV1Beta1(configs []byte) (*kfdefv1beta1.KfDef, error) {
+	kfdef := &kfdefv1beta1.KfDef{}
+	if err := yaml.Unmarshal(configs, kfdef); err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("invalid config file format: %v", err),
+		}
+	}
+	return kfdef, nil
+}
+
+func LoadKfDefFromURI(configFile string) (*kfdefv1beta1.KfDef, error) {
 	if configFile == "" {
 		return nil, fmt.Errorf("config file must be the URI of a KfDef spec")
 	}
