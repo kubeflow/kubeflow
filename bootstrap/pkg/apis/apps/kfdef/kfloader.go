@@ -2,19 +2,20 @@ package kfdef
 
 import (
 	"fmt"
-	// "github.com/ghodss/yaml"
+	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kfdefv1beta "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	// "k8s.io/apimachinery/pkg/runtime"
 	netUrl "net/url"
 	"path"
+	"strings"
 )
 
 const (
 	KfConfigFile = "app.yaml"
+	Api          = "kfdef.apps.kubeflow.org"
 )
 
 func isValidUrl(toTest string) bool {
@@ -69,7 +70,7 @@ func LoadKfDefFromURI(configFile string) (*kfdefv1beta.KfDef, error) {
 	}
 
 	// Read contents
-	_, err = ioutil.ReadFile(appFile)
+	configFileBytes, err := ioutil.ReadFile(appFile)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
@@ -78,5 +79,27 @@ func LoadKfDefFromURI(configFile string) (*kfdefv1beta.KfDef, error) {
 	}
 
 	// Check API version.
+	var obj map[string]interface{}
+	if err = yaml.Unmarshal(configFileBytes, &obj); err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("invalid config file format: %v", err),
+		}
+	}
+	apiVersion, ok := obj["apiVersion"]
+	if !ok {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: "invalid config: apiVersion is not found.",
+		}
+	}
+	apiVersionSeparated := strings.Split(apiVersion.(string), "/")
+	if len(apiVersionSeparated) < 2 || apiVersionSeparated[0] != Api {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("invalid config: apiVersion must be in the format of %v/<version>, got %v", Api, apiVersion),
+		}
+	}
+
 	return nil, nil
 }
