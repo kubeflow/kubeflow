@@ -108,19 +108,23 @@ describe('Utilities Mixin', () => {
             return s;
         };
 
-        toast.click(); expect(toast.hasClosed()).toBe(
+        toast.click();
+        expect(toast.hasClosed()).toBe(
             true,
             'Depth 0 should have worked (the element itself)',
         );
-        s1.click(); expect(toast.hasClosed()).toBe(
+        s1.click();
+        expect(toast.hasClosed()).toBe(
             true,
             'Depth 1 should have worked',
         );
-        s2.click(); expect(toast.hasClosed()).toBe(
+        s2.click();
+        expect(toast.hasClosed()).toBe(
             true,
             'Depth 2 should have worked',
         );
-        s3.click(); expect(toast.hasClosed()).toBe(
+        s3.click();
+        expect(toast.hasClosed()).toBe(
             false,
             'Depth 3 should NOT have worked (depth is now > 2)',
         );
