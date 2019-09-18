@@ -30,7 +30,6 @@ func isValidUrl(toTest string) bool {
 
 func copyApplications(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 	for _, application := range from.Spec.Applications {
-		log.Infof("Loader converting KfDef from v1alpha1 to v1beta1: Application %v", application.Name)
 		app := kfdefv1beta1.Application{
 			Name: application.Name,
 			KustomizeConfig: &kfdefv1beta1.KustomizeConfig{
@@ -54,6 +53,28 @@ func copyRepos(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 	}
 }
 
+func copySecrets(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
+	for _, secret := range from.Spec.Secrets {
+		betaSecret := kfdefv1beta1.Secret{
+			Name: secret.Name,
+		}
+		if secret.SecretSource != nil {
+			betaSecret.SecretSource = &kfdefv1beta1.SecretSource{}
+			if secret.SecretSource.LiteralSource != nil {
+				betaSecret.SecretSource.LiteralSource = &kfdefv1beta1.LiteralSource{
+					Value: secret.SecretSource.LiteralSource.Value,
+				}
+			}
+			if secret.SecretSource.EnvSource != nil {
+				betaSecret.SecretSource.EnvSource = &kfdefv1beta1.EnvSource{
+					Name: secret.SecretSource.EnvSource.Name,
+				}
+			}
+		}
+		to.Spec.Secrets = append(to.Spec.Secrets, betaSecret)
+	}
+}
+
 func loadKfDefV1Alpha1(configs []byte) (*kfdefv1beta1.KfDef, error) {
 	alphaKfDef := &kfdefv1alpha1.KfDef{}
 	if err := yaml.Unmarshal(configs, alphaKfDef); err != nil {
@@ -72,6 +93,7 @@ func loadKfDefV1Alpha1(configs []byte) (*kfdefv1beta1.KfDef, error) {
 	converters := []func(*kfdefv1alpha1.KfDef, *kfdefv1beta1.KfDef){
 		copyApplications,
 		copyRepos,
+		copySecrets,
 	}
 	for _, converter := range converters {
 		converter(alphaKfDef, betaKfDef)
