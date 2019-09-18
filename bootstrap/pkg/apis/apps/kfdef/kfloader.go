@@ -125,5 +125,22 @@ func LoadKfDefFromURI(configFile string) (*kfdefv1beta1.KfDef, error) {
 		}
 	}
 
-	return nil, nil
+	loaders := map[string]func([]byte) (*kfdefv1beta1.KfDef, error){
+		"v1alpha1": loadKfDefV1Alpha1,
+		"v1beta1":  loadKfDefV1Beta1,
+	}
+
+	loader, ok := loaders[apiVersionSeparated[1]]
+	if !ok {
+		versions := []string{}
+		for key := range loaders {
+			versions = append(versions, key)
+		}
+		return nil, &kfapis.KfError{
+			Code: int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("invalid config: version not supported; supported versions: %v, got %v",
+				strings.Join(versions, ", "), apiVersionSeparated[1]),
+		}
+	}
+	return loader(configFileBytes)
 }
