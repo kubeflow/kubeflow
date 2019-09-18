@@ -44,6 +44,16 @@ func copyApplications(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 	}
 }
 
+func copyRepos(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
+	for _, repo := range from.Spec.Repos {
+		betaRepo := kfdefv1beta1.Repo{
+			Name: repo.Name,
+			URI:  repo.Uri,
+		}
+		to.Spec.Repos = append(to.Spec.Repos, betaRepo)
+	}
+}
+
 func loadKfDefV1Alpha1(configs []byte) (*kfdefv1beta1.KfDef, error) {
 	alphaKfDef := &kfdefv1alpha1.KfDef{}
 	if err := yaml.Unmarshal(configs, alphaKfDef); err != nil {
@@ -57,7 +67,15 @@ func loadKfDefV1Alpha1(configs []byte) (*kfdefv1beta1.KfDef, error) {
 		TypeMeta:   alphaKfDef.TypeMeta,
 		ObjectMeta: alphaKfDef.ObjectMeta,
 	}
-	copyApplications(alphaKfDef, betaKfDef)
+
+	// Converting functions wrapper.
+	converters := []func(*kfdefv1alpha1.KfDef, *kfdefv1beta1.KfDef){
+		copyApplications,
+		copyRepos,
+	}
+	for _, converter := range converters {
+		converter(alphaKfDef, betaKfDef)
+	}
 
 	return betaKfDef, nil
 }
