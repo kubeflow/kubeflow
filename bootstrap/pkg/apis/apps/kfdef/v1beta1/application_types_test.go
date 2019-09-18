@@ -17,7 +17,7 @@ type FakeOAuthSecret struct {
 
 type FakeIap struct {
 	OAuthClientId     string          `json:"oAuthClientId,omitempty"`
-	OAuthClientSecret FakeOAuthSecret `json::"oAuthClientSecret,omitempty"`
+	OAuthClientSecret FakeOAuthSecret `json:"oAuthClientSecret,omitempty"`
 }
 
 type FakeAuth struct {
