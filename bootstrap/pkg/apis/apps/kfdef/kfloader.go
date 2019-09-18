@@ -2,14 +2,19 @@ package kfdef
 
 import (
 	"fmt"
-	"github.com/ghodss/yaml"
+	// "github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
+	kfdefv1beta "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
 	log "github.com/sirupsen/logrus"
-	"ioutil"
-	"k8s.io/apimachinery/pkg/runtime"
+	"io/ioutil"
+	// "k8s.io/apimachinery/pkg/runtime"
 	netUrl "net/url"
 	"path"
+)
+
+const (
+	KfConfigFile = "app.yaml"
 )
 
 func isValidUrl(toTest string) bool {
@@ -21,7 +26,7 @@ func isValidUrl(toTest string) bool {
 	}
 }
 
-func LoadKfDefFromURI(configFile string) (*KfDef, error) {
+func LoadKfDefFromURI(configFile string) (*kfdefv1beta.KfDef, error) {
 	if configFile == "" {
 		return nil, fmt.Errorf("config file must be the URI of a KfDef spec")
 	}
@@ -64,7 +69,7 @@ func LoadKfDefFromURI(configFile string) (*KfDef, error) {
 	}
 
 	// Read contents
-	configFileBytes, err := ioutil.ReadFile(appFile)
+	_, err = ioutil.ReadFile(appFile)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),

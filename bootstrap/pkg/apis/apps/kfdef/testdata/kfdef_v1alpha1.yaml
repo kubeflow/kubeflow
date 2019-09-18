@@ -1,0 +1,8 @@
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+spec:
+  plugins:
+    - name: fakeplugin
+      spec:
+        param: someparam
+        boolParam: true
