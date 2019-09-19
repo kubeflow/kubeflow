@@ -1,8 +1,12 @@
-apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+apiVersion: kfdef.apps.kubeflow.org/v1beta1
 kind: KfDef
 spec:
   plugins:
-    - name: gcp
+    - kind: kfGcpPlugin
+      apiVersion: v1beta1
+      metadata:
+        name: gcp-fake-plugin
+        namespace: kubeflow
       spec:
         auth:
           iap:
