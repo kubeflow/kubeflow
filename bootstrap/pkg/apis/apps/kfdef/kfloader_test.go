@@ -1,7 +1,8 @@
 package kfdef
 
 import (
-	kfdefv1beta "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
+	kfdefv1beta1 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
+	kfutils "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"os"
 	"path"
 	"testing"
@@ -10,13 +11,13 @@ import (
 func TestKfLoader_LoadConfigs(t *testing.T) {
 	type testCase struct {
 		Filename string
-		Expected *kfdefv1beta.KfDef
+		Expected *kfdefv1beta1.KfDef
 	}
 
 	cases := []testCase{
 		{
 			Filename: "kfdef_v1alpha1.yaml",
-			Expected: &kfdefv1beta.KfDef{},
+			Expected: &kfdefv1beta1.KfDef{},
 		},
 	}
 
@@ -24,9 +25,10 @@ func TestKfLoader_LoadConfigs(t *testing.T) {
 		wd, _ := os.Getwd()
 		fPath := path.Join(wd, "testdata", c.Filename)
 
-		_, err := LoadKfDefFromURI(fPath)
+		kfdef, err := LoadKfDefFromURI(fPath)
 		if err != nil {
 			t.Fatalf("Error when loading KfDef: %v", err)
 		}
+		t.Fatalf("GG TEST: %v", kfutils.PrettyPrint(kfdef))
 	}
 }

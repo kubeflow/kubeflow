@@ -11,6 +11,7 @@ import (
 	kfgcp "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
+	"k8s.io/apimachinery/pkg/runtime"
 	netUrl "net/url"
 	"path"
 	"strings"
@@ -128,7 +129,10 @@ func copyPlugins(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 		betaPlugin := kfdefv1beta1.Plugin{}
 		betaPlugin.Name = plugin.Name
 		betaPlugin.Kind = alphaPluginNameToBetaKind(plugin.Name)
-		*betaPlugin.Spec = *plugin.Spec
+		if plugin.Spec != nil {
+			betaPlugin.Spec = &runtime.RawExtension{}
+			*betaPlugin.Spec = *plugin.Spec
+		}
 		to.Spec.Plugins = append(to.Spec.Plugins, betaPlugin)
 	}
 
