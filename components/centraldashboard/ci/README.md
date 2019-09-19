@@ -2,16 +2,16 @@
 
 ### Use Case
 
-This is a proof of value showing a CI use case of the following
+This is a proof of value showing a CI use case for the following
 
 1. A developer makes source code changes to the centraldashboard component in his/her forked repo of kubeflow
 2. The developer has a PR open 
 3. The developer pushes changes 
-4. This triggers a prow presubmit job that calls a py_func to submit 'ci-centraldashboard-pipeline-run.yaml'
+4. This triggers a prow presubmit job that calls a py_func that submits [ci-centraldashboard-pipeline-run.yaml](./ci-centraldashboard-pipeline-run.yaml)
 
-### Design
+### Pipeline Composistion
 
-1. The 'ci-centraldashboard-pipeline-run.yaml' is a TektonCD PipelineRun and contains: 
+1. The [ci-centraldashboard-pipeline-run.yaml](./ci-centraldashboard-pipeline-run.yaml) is a TektonCD PipelineRun containing: 
 
 |      **kind**      	|                    **name**                 	|     **type** 	|
 |:----------------:	|:-----------------------------------------:	|:------------:	|
@@ -27,25 +27,30 @@ This is a proof of value showing a CI use case of the following
 2. The general relationships between TektonCD resources is shown below
 
 ```
-└── PipelineRun
-    ├── Pipeline
-    │   └── Tasks
-    └── PipelineResources
+── PipelineRun
+   ├── Pipeline
+   │   └── Tasks
+   └── PipelineResources
 ```
 
 In this particular instance, the PipelineRun instance has the following composition:
 
 ```
-└── ci-centraldashboard-pipeline-run-52fdfc07
-    ├── kubeflow(git)
-    ├── manifests(git)
-    ├── centraldashboard(image)
-    ├── kubeflow-4091(pullRequest)
-    ├── build-push(task)
-    └── update-manifests(task)
+── ci-centraldashboard-pipeline-run-52fdfc07
+   ├── resources
+   │   ├── gcr-image
+   │   │   └── centraldashboard
+   │   ├── gitrepo
+   │   │   ├── kubeflow
+   │   │   └── manifests
+   │   └── pullrequest
+   │       └── kubeflow#4112
+   └── tasks
+       ├── build-push
+       └── update-manifests
 ```
 
-The Tasks within the Pipeline share Resources provided by the PipelineRun.  The PipelineRun is shown below:
+The Tasks within the Pipeline use Resources provided by the PipelineRun.  The PipelineRun is shown below:
 
 ```
 apiVersion: tekton.dev/v1alpha1
@@ -83,7 +88,7 @@ spec:
   serviceAccount: ci-pipeline-run-service-account
 ```
 
-3 Resources are provided by the PipelineRun:
+As shown above, 3 PipelineResources are provided by the PipelineRun:
 
 - kubeflow (input)
   the github repo is mounted at /workspace/kubeflow
@@ -165,6 +170,38 @@ spec:
       name: update-manifests
 ```
 
-2 Tasks are executed by the Pipeline. These tasks require inputs or produce outputs provided by the PipelineRun and 
-referenced in the Pipeline.
+As shown above, 2 Tasks are executed by the Pipeline. These tasks consume inputs or produce outputs provided by the PipelineRun.
+
+### Pipeline Parameterization
+
+The [ci-centraldashboard-pipeline-run.yaml](./ci-centraldashboard-pipeline-run.yaml) is parameterized by the following parameters: 
+
+PipelineRun parameters:
+|           name          	|                      value                     	|                description                	|
+|:-----------------------:	|:----------------------------------------------:	|:-----------------------------------------:	|
+| namespace               	| kubeflow-ci                                    	| namespace to run the pipeline in          	|
+| generateName            	| ci-centraldashboard-pipeline-run-              	| a suffix is added to make the name unique 	|
+| pipeline                	| ci-pipeline                                    	| the pipeline that the PipelineRun uses    	|
+| image_name              	| centraldashboard                               	| name in the gcr                           	|
+| image_url               	| gcr.io/kubeflow-images-public/centraldashboard 	| gcr url                                   	|
+| kubeflow_repo_revision  	| refs/pull/4112/head                            	| the PR the developer is working in        	|
+| kubeflow_repo_url       	| git@github.com:kubeflow/kubeflow.git           	| the kubeflow repo                         	|
+| manifests_repo_revision 	| master                                         	| the manifests revision                    	|
+| manifests_repo_url      	| git@github.com:kkasravi/manifests.git          	| the forked manifests repo                 	|
+| pull_request_repo       	| kubeflow                                       	| repo for the pullRequest resource         	|
+| pull_request_id         	| 4112                                           	| the pullRequest id                        	|
+| pvc_mount_path          	| kubeflow                                       	| a shared pvc for tasks to write to        	|
+| project                 	| kubeflow-ci                                    	| the GKE project                           	|
+
+Pipeline parameters:
+|          name         	|                  value                 	|                 description                	|
+|:---------------------:	|:--------------------------------------:	|:------------------------------------------:	|
+| image_name            	| centraldashboard                       	| name of the image resource                 	|
+| docker_target         	| serve                                  	| the docker arg for multi-build dockerfiles 	|
+| path_to_context       	| components/centraldashboard            	| URI to component in kubeflow repo          	|
+| path_to_docker_file   	| components/centraldashboard/Dockerfile 	| path to Dockerfile                         	|
+| path_to_manifests_dir 	| common/centraldashboard/base           	| path to kustomization.yaml to edit         	|
+| container_image       	| gcr.io/kubeflow-ci/test-worker:latest  	| image to run in container                  	|
+| pull_request_repo     	| kubeflow                               	| repo for pullRequest resource              	|
+| pull_request_id       	| 4112                                   	| PR id for pullRequest resource             	|
 
