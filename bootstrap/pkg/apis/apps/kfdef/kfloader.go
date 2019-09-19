@@ -92,6 +92,16 @@ func copySecrets(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 	}
 }
 
+func copyPlugins(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
+	for _, plugin := range from.Spec.Plugins {
+		betaPlugin := kfdefv1beta1.Plugin{}
+		betaPlugin.Name = plugin.Name
+		betaPlugin.Kind = alphaPluginNameToBetaKind(plugin.Name)
+		*betaPlugin.Spec = *plugin.Spec
+		to.Spec.Plugins = append(to.Spec.Plugins, betaPlugin)
+	}
+}
+
 func loadKfDefV1Alpha1(configs []byte) (*kfdefv1beta1.KfDef, error) {
 	alphaKfDef := &kfdefv1alpha1.KfDef{}
 	if err := yaml.Unmarshal(configs, alphaKfDef); err != nil {
@@ -111,6 +121,7 @@ func loadKfDefV1Alpha1(configs []byte) (*kfdefv1beta1.KfDef, error) {
 		copyApplications,
 		copyRepos,
 		copySecrets,
+		copyPlugins,
 	}
 	for _, converter := range converters {
 		converter(alphaKfDef, betaKfDef)
