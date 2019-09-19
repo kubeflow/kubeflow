@@ -11,7 +11,7 @@ This is a proof of value showing a CI use case for the following
 
 ### Pipeline Composistion
 
-1. The [ci-centraldashboard-pipeline-run.yaml](./ci-centraldashboard-pipeline-run.yaml) is a TektonCD PipelineRun containing: 
+1. The [ci-centraldashboard-pipeline-run.yaml](./ci-centraldashboard-pipeline-run.yaml) is a TektonCD pipeline containing the following k8 resources: 
 
 |      **kind**      	|                    **name**                 	|     **type** 	|
 |:----------------:	|:-----------------------------------------:	|:------------:	|
@@ -24,7 +24,7 @@ This is a proof of value showing a CI use case for the following
 | PipelineResource 	| kubeflow-4091                             	| pullResource 	|
 | PipelineResource 	| manifests                                 	|      git     	|
 
-2. The general relationships between TektonCD resources is shown below
+2. The general relationships between TektonCD resources is shown below:
 
 ```
 ── PipelineRun
