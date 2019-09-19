@@ -93,13 +93,13 @@ func copySecrets(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 	}
 }
 
-func copyGcpPluginSpec(from kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) error {
+func copyGcpPluginSpec(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) error {
 	if from.Spec.Platform != kftypesv3.GCP {
 		return nil
 	}
 
 	spec := kfgcp.GcpPluginSpec{}
-	if err := to.GetPluginSpec(kftypesv3.GCP, spec); err != nil {
+	if err := to.GetPluginSpec(kftypesv3.GCP, spec); err != nil && !kfdefv1beta1.IsPluginNotFound(err) {
 		return err
 	}
 	spec.Project = from.Spec.Project
@@ -113,23 +113,25 @@ func copyGcpPluginSpec(from kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) error {
 	spec.EnableApplications = from.Spec.EnableApplications
 	spec.ServerVersion = from.Spec.ServerVersion
 	spec.DeleteStorage = from.Spec.DeleteStorage
-	return nil
+	return to.SetPluginSpec(kftypesv3.GCP, spec)
 }
 
 func copyPlugins(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
-	// specCopiers := []func(kfdefv1alpha1.Plugin, *kfdefv1beta1.Plugin) error{
-	// 	copyGcpPluginSpec,
-	// }
-
 	for _, plugin := range from.Spec.Plugins {
 		betaPlugin := kfdefv1beta1.Plugin{}
 		betaPlugin.Name = plugin.Name
 		betaPlugin.Kind = alphaPluginNameToBetaKind(plugin.Name)
 		*betaPlugin.Spec = *plugin.Spec
-		// for _, specCopier := range specCopiers {
-		// 	specCopier(from, &betaPlugin)
-		// }
 		to.Spec.Plugins = append(to.Spec.Plugins, betaPlugin)
+	}
+
+	specCopiers := []func(*kfdefv1alpha1.KfDef, *kfdefv1beta1.KfDef) error{
+		copyGcpPluginSpec,
+	}
+	for _, copier := range specCopiers {
+		if err := copier(from, to); err != nil {
+			log.Errorf("having error when copying plugin spec: %v", err)
+		}
 	}
 }
 
