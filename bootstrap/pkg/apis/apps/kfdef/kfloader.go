@@ -5,6 +5,7 @@ import (
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
+	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	kfdefv1alpha1 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	kfdefv1beta1 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
 	log "github.com/sirupsen/logrus"
@@ -25,6 +26,22 @@ func isValidUrl(toTest string) bool {
 		return false
 	} else {
 		return true
+	}
+}
+
+func alphaPluginNameToBetaKind(pluginName string) string {
+	mapping := map[string]string{
+		kftypesv3.AWS:              kftypesv3.AWS_PLUGIN_KIND,
+		kftypesv3.GCP:              kftypesv3.GCP_PLUGIN_KIND,
+		kftypesv3.MINIKUBE:         kftypesv3.MINIKUBE_PLUGIN_KIND,
+		kftypesv3.EXISTING_ARRIKTO: kftypesv3.EXISTING_ARRIKTO_PLUGIN_KIND,
+	}
+
+	kind, ok := mapping[pluginName]
+	if ok {
+		return kind
+	} else {
+		return "KfUnknownPlugin"
 	}
 }
 
