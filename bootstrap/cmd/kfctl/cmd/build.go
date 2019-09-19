@@ -18,61 +18,51 @@ import (
 	"fmt"
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/builder"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-var applyCfg = viper.New()
-
-// ConfigFilePath is a flag for the apply sub-command to take in a config file (i.e KfDef)
-// and bootstrap a KfApp by filling in the necessary fields
-var ConfigFilePath string
-
-// Resource is set to k8s by default
-const resource = kftypes.K8S
-
-// applyCmd represents the apply command
-var applyCmd = &cobra.Command{
-	Use:   "apply",
-	Short: "Deploy a generated kubeflow application.",
-	Long:  `Deploy a generated kubeflow application.`,
+// buildCmd represents the apply command
+var buildCmd = &cobra.Command{
+	Use:   "build",
+	Short: "Build a kubeflow application.",
+	Long:  `Build a kubeflow application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
 		if applyCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
 
-		kfApp, err := coordinator.LoadKfApp(map[string]interface{}{})
-		if err != nil {
-			return fmt.Errorf("couldn't load KfApp: %v", err)
+		// Use builder with the incoming config file
+		kfDef, buildErr := builder.LoadConfigFile(ConfigFilePath)
+		if buildErr != nil {
+			return fmt.Errorf("couldn't load config file - %v", buildErr)
 		}
-		resource, resourceErr := processResourceArg(args)
-		if resourceErr != nil {
-			return fmt.Errorf("invalid resource: %v", resourceErr)
-		}
-		err = kfApp.Apply(resource)
+		resource := builder.GetPlatform(kfDef)
+		kfApp := kustomize.GetKfApp(kfDef)
+		err := kfApp.Generate(resource)
 		if err != nil {
-			return fmt.Errorf("couldn't apply KfApp: %v", err)
+			return fmt.Errorf("couldn't generate KfApp: %v", err)
 		}
 		return nil
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(applyCmd)
+	rootCmd.AddCommand(buildCmd)
 
 	applyCfg.SetConfigName("app")
 	applyCfg.SetConfigType("yaml")
 
 	// configfilepath as a flag
-	applyCmd.Flags().StringVarP(&ConfigFilePath, "file", "f", "", "-f /path/to/config")
+	buildCmd.Flags().StringVarP(&ConfigFilePath, "file", "f", "", "-f path/to/config/")
 
 	// verbose output
-	applyCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,
+	buildCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,
 		string(kftypes.VERBOSE)+" output default is false")
-	bindErr := applyCfg.BindPFlag(string(kftypes.VERBOSE), applyCmd.Flags().Lookup(string(kftypes.VERBOSE)))
+	bindErr := applyCfg.BindPFlag(string(kftypes.VERBOSE), buildCmd.Flags().Lookup(string(kftypes.VERBOSE)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERBOSE), bindErr)
 		return

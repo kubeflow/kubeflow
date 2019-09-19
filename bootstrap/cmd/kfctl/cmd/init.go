@@ -35,6 +35,10 @@ var initCmd = &cobra.Command{
 or a <name>. If just <name>, a directory <name> will be created in the current directory.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
+
+		// TODO: Remove Init command in next release
+		log.Warn("DEPRECATION NOTICE: `kfctl init` will be removed in the next release, please switch to the new semantics. \n")
+
 		if initCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}

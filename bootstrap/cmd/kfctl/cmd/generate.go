@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
@@ -38,6 +39,10 @@ var generateCmd = &cobra.Command{
 The default is 'all' for any selected platform.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
+
+		// TODO: Remove Generate command in next release
+		log.Warn("DEPRECATION NOTICE: `kfctl generate` will be removed in the next release, please switch to the new semantics. \n")
+
 		if generateCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
@@ -67,7 +72,6 @@ The default is 'all' for any selected platform.`,
 		}
 		return nil
 	},
-	ValidArgs: []string{"all", "platform", "k8s"},
 }
 
 func init() {
