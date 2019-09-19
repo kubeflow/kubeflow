@@ -4,6 +4,7 @@ import os
 import subprocess
 import tempfile
 import uuid
+import yaml
 from retrying import retry
 
 import pytest
@@ -11,7 +12,7 @@ import pytest
 from kubeflow.testing import util
 from testing import deploy_utils
 
-def test_kf_is_ready(namespace, use_basic_auth, use_istio):
+def test_kf_is_ready(namespace, use_basic_auth, use_istio, checklist):
   """Test that Kubeflow was successfully deployed.
 
   Args:
@@ -28,6 +29,20 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
   api_client = deploy_utils.create_k8s_client()
 
   util.load_kube_config()
+
+  # If a checklist is provided, use that instead.
+  if checklist:
+    with open(checklist) as f:
+      items = yaml.safe_load(f)
+    for item in items:
+      if item["kind"] == "Deployment":
+        util.wait_for_deployment(api_client, item["namespace"], item["name"], 10)
+      elif item["kind"] == "StatefulSet":
+        util.wait_for_statefulset(api_client, item["namespace"], item["name"])
+      else:
+        logging.fatal("Unrecognised kind '%s' in checklist.", item["kind"])
+        raise ValueError()
+    return
 
   # Verify that components are actually deployed.
   # TODO(jlewi): We need to parameterize this list based on whether
