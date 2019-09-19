@@ -30,6 +30,16 @@ python -m kubeflow.testing.e2e_tool apply \
 
 We set kf-app-name and delete-kf to false to allow reusing the deployment
 across successive runs.
+
+To use code from a pull request set the prow envariables; e.g.
+
+export JOB_NAME="jlewi-test"
+export JOB_TYPE="presubmit"
+export BUILD_ID=1234
+export PROW_JOB_ID=1234
+export REPO_OWNER=kubeflow
+export REPO_NAME=kubeflow
+export PULL_NUMBER=4148
 """
 
 import datetime
@@ -435,6 +445,7 @@ class Builder:
                                       task_template,
                                       command, [])
 
+      kfctl_delete["container"]["workingDir"] = self.kfctl_pytest_dir
 
     step_name = "copy-artifacts"
     command = ["python",
