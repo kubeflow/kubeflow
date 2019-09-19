@@ -180,14 +180,23 @@ func (d *KfDef) GetPluginSpec(pluginName string, s interface{}) error {
 		specBytes, err := yaml.Marshal(p.Spec)
 
 		if err != nil {
-			log.Errorf("Could not marshal plugin %v args; error %v", pluginName, err)
-			return err
+			msg := fmt.Sprintf("Could not marshal plugin %v args; error %v", pluginName, err)
+			log.Errorf(msg)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: msg,
+			}
 		}
 
 		err = yaml.Unmarshal(specBytes, s)
 
 		if err != nil {
-			log.Errorf("Could not unmarshal plugin %v to the provided type; error %v", pluginName, err)
+			msg := fmt.Sprintf("Could not unmarshal plugin %v to the provided type; error %v", pluginName, err)
+			log.Errorf(msg)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: msg,
+			}
 		}
 		return nil
 	}
@@ -196,6 +205,59 @@ func (d *KfDef) GetPluginSpec(pluginName string, s interface{}) error {
 		Code:    int(kfapis.NOT_FOUND),
 		Message: fmt.Sprintf("%v %v", notFoundErrPrefix, pluginName),
 	}
+}
+
+// SetPluginSpec sets the requested parameter. The plugin is added if it doesn't already exist.
+func (d *KfDef) SetPluginSpec(pluginName string, spec interface{}) error {
+	// Convert spec to RawExtension
+	r := &runtime.RawExtension{}
+
+	// To deserialize it to a specific type we need to first serialize it to bytes
+	// and then unserialize it.
+	specBytes, err := yaml.Marshal(spec)
+
+	if err != nil {
+		msg := fmt.Sprintf("Could not marshal spec; error %v", err)
+		log.Errorf(msg)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: msg,
+		}
+	}
+
+	err = yaml.Unmarshal(specBytes, r)
+
+	if err != nil {
+		msg := fmt.Sprintf("Could not unmarshal plugin to RawExtension; error %v", err)
+		log.Errorf(msg)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: msg,
+		}
+	}
+
+	index := -1
+
+	for i, p := range d.Spec.Plugins {
+		if p.Name == pluginName {
+			index = i
+			break
+		}
+	}
+
+	if index == -1 {
+		// Plugin in doesn't exist so add it
+		log.Infof("Adding plugin %v", pluginName)
+
+		p := Plugin{}
+		p.Name = pluginName
+		d.Spec.Plugins = append(d.Spec.Plugins, p)
+
+		index = len(d.Spec.Plugins) - 1
+	}
+
+	d.Spec.Plugins[index].Spec = r
+	return nil
 }
 
 func IsPluginNotFound(e error) bool {
