@@ -92,12 +92,26 @@ func copySecrets(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 	}
 }
 
+func copyGcpPluginSpec(from kfdefv1alpha1.Plugin, to *kfdefv1beta1.Plugin) {
+	if to == nil || from.Spec == nil || to.Spec == nil ||
+		from.Name != kftypesv3.GCP {
+		return
+	}
+}
+
 func copyPlugins(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
+	specCopiers := []func(kfdefv1alpha1.Plugin, *kfdefv1beta1.Plugin){
+		copyGcpPluginSpec,
+	}
+
 	for _, plugin := range from.Spec.Plugins {
 		betaPlugin := kfdefv1beta1.Plugin{}
 		betaPlugin.Name = plugin.Name
 		betaPlugin.Kind = alphaPluginNameToBetaKind(plugin.Name)
 		*betaPlugin.Spec = *plugin.Spec
+		for _, specCopier := range specCopiers {
+			specCopier(plugin, &betaPlugin)
+		}
 		to.Spec.Plugins = append(to.Spec.Plugins, betaPlugin)
 	}
 }
