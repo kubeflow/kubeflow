@@ -1,5 +1,7 @@
 # This file configures the workflows to trigger in our Prow jobs.
 # see kubeflow/testing/py/run_e2e_workflow.py
+python_paths:
+  - kubeflow/kubeflow/py
 workflows:
   # deploy app test runs tests on gke.
   - app_dir: kubeflow/kubeflow/testing/workflows

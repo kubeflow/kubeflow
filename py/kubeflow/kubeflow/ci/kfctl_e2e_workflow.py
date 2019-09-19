@@ -11,8 +11,13 @@ NFS_VOLUME_CLAIM = "nfs-external"
 # The name to use for the volume to use to contain test data
 DATA_VOLUME = "kubeflow-test-volume"
 
+# This is the main dag with the entrypoint
 E2E_DAG_NAME = "e2e"
 EXIT_DAG_NAME = "exit-handler"
+
+# This is a sub dag containing the suite of tests to run against
+# Kubeflow deployment
+TESTS_DAG_NAME = "gke-tests"
 
 TEMPLATE_LABEL = "kfctl_e2e"
 
@@ -80,8 +85,11 @@ class Builder:
     # Config name is the name of the config file. This is used to give junit
     # files unique names.
     self.config_name = os.path.splitext(os.path.basename(config_path))[0]
-    self.app_name = "kfctl-" +  self.config_name;
-    self.app_dir = os.path.join(self.test_dir, "apps")
+
+    # app_name is the name of the Kubeflow deployment.
+    # This needs to be unique per run since we name GCP resources with it.
+    self.app_name = "kfctl-" +  self.uuid;
+    self.app_dir = os.path.join(self.test_dir, "apps", self.app_name)
     self.use_basic_auth = use_basic_auth
 
     # The name space we create KF artifacts in; e.g. TFJob and notebooks.
@@ -89,6 +97,8 @@ class Builder:
     # should move into the namespace associated with the default profile.
     self.steps_namespace = "kubeflow"
     self.test_endpoint = test_endpoint
+
+    self.kfctl_path = os.path.join(self.src_dir, "bootstrap/bin/kfctl")
 
   def _build_workflow(self):
     """Create the scaffolding for the Argo workflow"""
@@ -129,6 +139,13 @@ class Builder:
                 "tasks": [],
                 },
            "name": E2E_DAG_NAME,
+          },
+          {
+           "dag":{
+                 "tasks": [],
+                },
+           "name": TESTS_DAG_NAME,
+
           },
           {
             "dag": {
@@ -186,15 +203,203 @@ class Builder:
 
     step = argo_build_util.deep_copy(task_template)
 
-    step["name"] = "kfctl-build-deploy"
+    step["name"] = name
     step["container"]["command"] = command
 
     argo_build_util.add_task_to_dag(workflow, dag_name, step, dependences)
 
     return step
 
+
+  def _build_tests_dag(self):
+    """Build the dag for the set of tests to run against a KF deployment."""
+
+    task_template = self._build_task_template()
+
+    #***************************************************************************
+    # Test TFJob
+    step_name = "tfjob-test"
+    command = [
+      "python",
+      "-m",
+      "kubeflow.tf_operator.simple_tfjob_tests",
+      "--app_dir=" + os.path.join(self.tf_operator_root, "test/workflows"),
+      "--tfjob_version=v1",
+      # Name is used for the test case name so it should be unique across
+      # all E2E tests.
+      "--params=name=smoke-tfjob-" + self.config_name + ",namespace=" +
+      self.steps_namespace,
+      "--artifacts_path=" + self.artifacts_dir,
+      # Skip GPU tests
+      "--skip_tests=test_simple_tfjob_gpu",
+    ]
+
+    dependences = []
+    tfjob_test = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
+                                  command, dependences)
+
+    #*************************************************************************
+    # Test TFJob v1beta2
+    step_name = "tfjbo-v1beta2"
+    command = [
+                "python",
+                "-m",
+                "kubeflow.tf_operator.simple_tfjob_tests",
+                "--app_dir=" + self.tf_operator_root + "/test/workflows",
+                "--tfjob_version=v1beta2",
+                # Name is used for the test case name so it should be unique across
+                # all E2E tests.
+                "--params=name=smoke-tfjob-" + self.config_name
+                + ",namespace=" + self.steps_namespace,
+                "--artifacts_path=" +self.artifacts_dir,
+                # Skip GPU tests
+                "--skip_tests=test_simple_tfjob_gpu",
+              ]
+
+    dependences = []
+    tfjob_v1beta2 = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
+                                     command, dependences)
+
+    #*************************************************************************
+    # Test katib deploy
+    step_name = "test-katib-deploy"
+    command = ["python",
+               "-m",
+               "testing.test_deploy",
+               "--project=kubeflow-ci",
+               # TODO(jlewi): Do we need a GITHUB_TOKEN? I'm guessing that
+               # was for ksonnet.
+               # "--github_token=$(GITHUB_TOKEN)",
+               "--namespace=" + self.steps_namespace,
+               "--test_dir=" + self.test_dir,
+               "--artifacts_dir=" + self.artifacts_dir,
+               "--deploy_name=test-katib",
+               "--workflow_name=" + self.name,
+               "test_katib",
+              ]
+
+    dependences = []
+    deploy_katib = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
+                                    command, dependences)
+
+
+
+    #*************************************************************************
+    # Test pytorch job
+    step_name = "pytorch-job-deploy"
+    command = [ "python",
+                "-m",
+                "testing.test_deploy",
+                "--project=kubeflow-ci",
+                # TODO(jlewi): Do we still need a GITHUB_TOKEN?
+                # "--github_token=$(GITHUB_TOKEN)",
+                "--namespace=" + self.steps_namespace,
+                "--test_dir=" + self.test_dir,
+                "--artifacts_dir=" + self.artifacts_dir,
+                "--deploy_name=pytorch-job",
+                "--workflow_name=" + self.name,
+                "deploy_pytorchjob",
+                # TODO(jlewi): Does the image need to be updated?
+                "--params=image=pytorch/pytorch:v0.2,num_workers=1"
+             ]
+
+
+    dependences = []
+    pytorch_test = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
+                                    command, dependences)
+
+    #***************************************************************************
+    # Test tfjob simple_tfjob_tests
+    step_name = "tfjob-simple"
+    command =  [
+                "python",
+                "-m",
+                "testing.tf_job_simple_test",
+                "--src_dir=" + self.src_dir,
+                "--tf_job_version=v1",
+                "--test_dir=" + self.test_dir,
+                "--artifacts_dir=" + self.artifacts_dir,
+              ]
+
+
+    dependences = []
+    tfjob_simple_test = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
+                                         command, dependences)
+
+    #***************************************************************************
+    # Notebook test
+
+    step_name = "notebook-test"
+    command =  ["pytest",
+                # I think -s mean stdout/stderr will print out to aid in debugging.
+                # Failures still appear to be captured and stored in the junit file.
+                "-s",
+                "jupyter_test.py",
+                "--namespace=" + self.steps_namespace,
+                # Test timeout in seconds.
+                "--timeout=500",
+                "--junitxml=" + self.artifacts_dir + "/junit_jupyter-test.xml",
+             ]
+
+    dependences = []
+    notebook_test = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
+                                     command, dependences)
+
+
+  def _build_exit_dag(self):
+    """Build the exit handler dag"""
+    task_template = self._build_task_template()
+    task_template["container"]["workingDir"] = self.kfctl_path
+
+    #***********************************************************************
+    # Delete Kubeflow
+    step_name = "kfctl-delete"
+    command = [
+        "pytest",
+        "kfctl_delete_test.py",
+        "-s",
+        "--log-cli-level=info",
+        "--timeout=1000",
+        "--junitxml=" + self.artifacts_dir + "/junit_kfctl-go-delete-test.xml",
+        "--app_path=" + self.app_dir,
+        "--kfctl_path=" + self.kfctl_path,
+      ]
+
+    kfctl_delete = self._build_step(step_name, self.workflow, EXIT_DAG_NAME,
+                                    task_template,
+                                    command, [])
+
+    step_name = "copy-artifacts"
+    command = ["python",
+               "-m",
+               "kubeflow.testing.prow_artifacts",
+               "--artifacts_dir=" +
+               self.output_dir,
+               "copy_artifacts",
+               "--bucket=" + self.bucket,
+               "--suffix=fakesuffix",]
+
+    dependences = [kfctl_delete["name"]]
+
+    copy_artifacts = self._build_step(step_name, self.workflow, EXIT_DAG_NAME, task_template,
+                                      command, dependences)
+
+
+    step_name = "test-dir-delete"
+    command = ["python",
+               "-m",
+               "testing.run_with_retry",
+               "--retries=5",
+               "--",
+               "rm",
+               "-rf",
+               self.test_dir,]
+    dependences = [copy_artifacts["name"]]
+    copy_artifacts = self._build_step(step_name, self.workflow, EXIT_DAG_NAME, task_template,
+                                      command, dependences)
+
   def build(self):
-    workflow = self._build_workflow()
+    self.workflow = self._build_workflow()
     task_template = self._build_task_template()
 
     #**************************************************************************
@@ -217,7 +422,7 @@ class Builder:
                                         "--repos=" + ",".join(repos),
                                         "--src_dir=" + self.src_root_dir]
 
-    argo_build_util.add_task_to_dag(workflow, E2E_DAG_NAME, checkout, [])
+    argo_build_util.add_task_to_dag(self.workflow, E2E_DAG_NAME, checkout, [])
 
     # Change the workfing directory for all subsequent steps
     task_template["container"]["workingDir"] = os.path.join(self.src_dir,
@@ -248,7 +453,7 @@ class Builder:
     ]
 
     dependences = [checkout["name"]]
-    build_kfctl = self._build_step(step_name, workflow, E2E_DAG_NAME, task_template,
+    build_kfctl = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
                                    command, dependences)
 
     #**************************************************************************
@@ -278,8 +483,8 @@ class Builder:
          ]
 
     dependences = [build_kfctl["name"]]
-    kf_is_ready = self._build_step(step_name, workflow, E2E_DAG_NAME, task_template,
-                                  command, dependences)
+    kf_is_ready = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
+                                   command, dependences)
 
 
     #**************************************************************************
@@ -300,145 +505,22 @@ class Builder:
                  "--app_name=" + self.app_name,
               ],
 
-      dependences = [kf_is_ready["name"]]
+      dependences = []
       endpoint_ready = self._build_step(step_name, workflow, E2E_DAG_NAME, task_template,
                                         command, dependences)
 
-    #***************************************************************************
-    # Test TFJob
-    step_name = "tfjob-test"
-    command = [
-      "python",
-      "-m",
-      "kubeflow.tf_operator.simple_tfjob_tests",
-      "--app_dir=" + os.path.join(self.tf_operator_root, "test/workflows"),
-      "--tfjob_version=v1",
-      # Name is used for the test case name so it should be unique across
-      # all E2E tests.
-      "--params=name=smoke-tfjob-" + self.config_name + ",namespace=" +
-      self.steps_namespace,
-      "--artifacts_path=" + self.artifacts_dir,
-      # Skip GPU tests
-      "--skip_tests=test_simple_tfjob_gpu",
-    ]
+    self._build_tests_dag()
 
-    dependences = [kf_is_ready["name"]]
-    tfjob_test = self._build_step(step_name, workflow, E2E_DAG_NAME, task_template,
-                                  command, dependences)
-
-    #*************************************************************************
-    # Test TFJob v1beta2
-    step_name = "tfjbo-v1beta2"
-    command = [
-                "python",
-                "-m",
-                "kubeflow.tf_operator.simple_tfjob_tests",
-                "--app_dir=" + self.tf_operator_root + "/test/workflows",
-                "--tfjob_version=v1beta2",
-                # Name is used for the test case name so it should be unique across
-                # all E2E tests.
-                "--params=name=smoke-tfjob-" + self.config_name
-                + ",namespace=" + self.steps_namespace,
-                "--artifacts_path=" +self.artifacts_dir,
-                # Skip GPU tests
-                "--skip_tests=test_simple_tfjob_gpu",
-              ]
-
-    dependences = [kf_is_ready["name"]]
-    tfjob_v1beta2 = self._build_step(step_name, workflow, E2E_DAG_NAME, task_template,
-                                     command, dependences)
-
-    #*************************************************************************
-    # Test katib deploy
-    step_name = "test-katib-deploy"
-    command = ["python",
-               "-m",
-               "testing.test_deploy",
-               "--project=kubeflow-ci",
-               # TODO(jlewi): Do we need a GITHUB_TOKEN? I'm guessing that
-               # was for ksonnet.
-               # "--github_token=$(GITHUB_TOKEN)",
-               "--namespace=" + self.steps_namespace,
-               "--test_dir=" + self.test_dir,
-               "--artifacts_dir=" + self.artifacts_dir,
-               "--deploy_name=test-katib",
-               "--workflow_name=" + self.name,
-               "test_katib",
-              ]
-
-    dependences = [kf_is_ready["name"]]
-    deploy_katib = self._build_step(step_name, workflow, E2E_DAG_NAME, task_template,
-                                    command, dependences)
-
-
-
-    #*************************************************************************
-    # Test pytorch job
-    step_name = "pytorch-job-deploy"
-    command = [ "python",
-                "-m",
-                "testing.test_deploy",
-                "--project=kubeflow-ci",
-                # TODO(jlewi): Do we still need a GITHUB_TOKEN?
-                # "--github_token=$(GITHUB_TOKEN)",
-                "--namespace=" + self.steps_namespace,
-                "--test_dir=" + self.test_dir,
-                "--artifacts_dir=" + self.artifacts_dir,
-                "--deploy_name=pytorch-job",
-                "--workflow_name=" + self.name,
-                "deploy_pytorchjob",
-                # TODO(jlewi): Does the image need to be updated?
-                "--params=image=pytorch/pytorch:v0.2,num_workers=1"
-             ]
-
-
-    dependences = [kf_is_ready["name"]]
-    pytorch_test = self._build_step(step_name, workflow, E2E_DAG_NAME, task_template,
-                                    command, dependences)
-
-    #***************************************************************************
-    # Test tfjob simple_tfjob_tests
-    step_name = "tfjob-simple"
-    command =  [
-                "python",
-                "-m",
-                "testing.tf_job_simple_test",
-                "--src_dir=" + self.src_dir,
-                "--tf_job_version=v1",
-                "--test_dir=" + self.test_dir,
-                "--artifacts_dir=" + self.artifacts_dir,
-              ],
-
-
-    dependences = [kf_is_ready["name"]]
-    tfjob_simple_test = self._build_step(step_name, workflow, E2E_DAG_NAME, task_template,
-                                         command, dependences)
-
-    #***************************************************************************
-    # Notebook test
-
-    step_name = "notebook-test"
-    command =  ["pytest",
-                # I think -s mean stdout/stderr will print out to aid in debugging.
-                # Failures still appear to be captured and stored in the junit file.
-                "-s",
-                "jupyter_test.py",
-                "--namespace=" + self.steps_namespace,
-                # Test timeout in seconds.
-                "--timeout=500",
-                "--junitxml=" + self.artifacts_dir + "/junit_jupyter-test.xml",
-             ]
-
-    dependences = [kf_is_ready["name"]]
-    notebook_test = self._build_step(step_name, workflow, E2E_DAG_NAME, task_template,
-                                     command, dependences)
+    # Add a task to run the dag
+    dependencies = [kf_is_ready["name"]]
+    argo_build_util.add_task_only_to_dag(self.workflow, E2E_DAG_NAME, TESTS_DAG_NAME,
+                                         TESTS_DAG_NAME,
+                                         dependencies)
 
     #***************************************************************************
     # create_pr_symlink
     #***************************************************************************
     # TODO(jlewi): run_e2e_workflow.py should probably create the PR symlink
-    symlink = argo_build_util.deep_copy(task_template)
-
     step_name = "create-pr-symlink"
     command = ["python",
                "-m",
@@ -449,30 +531,16 @@ class Builder:
                ]
 
     dependences = [checkout["name"]]
-    symlink = self._build_step(step_name, workflow, E2E_DAG_NAME, task_template,
+    symlink = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
                                command, dependences)
-    #*****************************************************************************
-    # Exit handler workflow
-    #*****************************************************************************
-    copy_artifacts = argo_build_util.deep_copy(task_template)
 
-    copy_artifacts["name"] = "copy-artifacts"
-    copy_artifacts["container"]["command"] = ["python",
-                                              "-m",
-                                              "kubeflow.testing.prow_artifacts",
-                                              "--artifacts_dir=" +
-                                              self.output_dir,
-                                              "copy_artifacts",
-                                              "--bucket=" + self.bucket,
-                                              "--suffix=fakesuffix",]
-
-    argo_build_util.add_task_to_dag(workflow, EXIT_DAG_NAME, copy_artifacts, [])
+    self._build_exit_dag()
 
 
     # Set the labels on all templates
-    workflow = argo_build_util.set_task_template_labels(workflow)
+    self.workflow = argo_build_util.set_task_template_labels(self.workflow)
 
-    return workflow
+    return self.workflow
 
 def create_workflow(name=None, namespace=None, use_basic_auth=False,
                     bucket="kubeflow-ci_temp"): # pylint: disable=too-many-statements
