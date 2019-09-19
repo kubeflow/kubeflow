@@ -16,42 +16,6 @@ metadata:
   name: ci-pipeline-parameters
   namespace: kubeflow-ci
 ---
-apiVersion: v1
-data:
-  rebuild-manifests.sh: "#!/usr/bin/env bash\n# get branch name of kubeflow PR\nif
-    [[ -f /workspace/${pull_request_repo}-${pull_request_id}/pr.json ]]; then\n  pushd
-    /workspace/${pull_request_repo}-${pull_request_id}\n  kubeflow_forked_repo=$(cat
-    pr.json | jq .Head.Repo? | xargs)\n  kubeflow_forked_branch=$(cat pr.json | jq
-    .Head.Branch? | xargs)\n  kubeflow_forked_commit=$(cat pr.json | jq .Head.SHA?
-    | xargs)\n  new_branch_name=$(echo ${kubeflow_forked_branch}-image-update | xargs)\n
-    \ user=$(cat github/pr.json | jq .user.login | xargs)\n  popd\n  git config --global
-    user.name $user\n  git config --global user.email 'kubeflow@kubeflow.org'\n  kubectl
-    get secret github-secret -ojson | jq ' . | .data[\"ssh-publickey\"]' | xargs |
-    base64 -d > ~/.ssh/id_rsa.pub\n  cp ~/.ssh/id_github-secret ~/.ssh/id_rsa\n  chmod
-    0600 ~/.ssh/id_rsa\n  chmod 0600 ~/.ssh/id_rsa.pub\n  ssh-keyscan -t rsa github.com
-    >> ~/.ssh/known_hosts\n  ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts\n
-    \ GIT_SSH_COMMAND=\"ssh -i ~/.ssh/id_rsa\" git remote add upstream git@github.com:kubeflow/manifests.git\n
-    \ GIT_SSH_COMMAND=\"ssh -i ~/.ssh/id_rsa\" git fetch upstream master\n  GIT_SSH_COMMAND=\"ssh
-    -i ~/.ssh/id_rsa\" git checkout -b $new_branch_name upstream/master\n  kustomize
-    edit set image gcr.io/kubeflow-images-public/${image_name}=gcr.io/kubeflow-images-public/${image_name}@$(cat
-    /kubeflow/${image_name}-digest)\n  cd /workspace/manifests/tests\n  make generate
-    && make test\n  if (( $? == 0 )); then\n    GIT_SSH_COMMAND=\"ssh -i ~/.ssh/id_rsa\"
-    git commit -a -m \"image updated as part of $kubeflow_forked_repo branch:$kubeflow_forked_branch
-    PR:${pull_request_id}\"\n    GIT_SSH_COMMAND=\"ssh -i ~/.ssh/id_rsa\" git push
-    origin $new_branch_name -f\n    tmpfile=$(mktemp)\n    echo \"[auto PR] Update
-    the $image_name image to $(cat /kubeflow/${image_name}-digest)\" > $tmpfile\n
-    \   echo \"\" >> $tmpfile\n    echo \"\" >> $tmpfile\n    echo \"Image built from
-    repo:$kubeflow_forked_repo branch:$kubeflow_forked_branch commit:$kubeflow_forked_commit\"
-    >> $tmpfile\n    export GITHUB_TOKEN=$(kubectl get secrets github-token-secret
-    -ojson | jq '. | .data.token' | xargs | base64 -d)\n    GIT_SSH_COMMAND=\"ssh
-    -i ~/.ssh/id_rsa\" hub pull-request -f -b 'kubeflow:master' -F $tmpfile\n  else\n
-    \   echo 'make generate && make test' failed\n  fi\nelse \n  echo 'invalid pull-request'\n
-    \ echo /workspace/${pull_request_repo}-${pull_request_id}/pr.json does not exist\nfi"
-kind: ConfigMap
-metadata:
-  name: update-manifests-commands
-  namespace: kubeflow-ci
----
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
@@ -84,6 +48,8 @@ spec:
       - name: kubeflow
         resource: kubeflow
       outputs:
+      - name: kubeflow
+        resource: kubeflow
       - name: centraldashboard
         resource: centraldashboard
     taskRef:
@@ -96,6 +62,10 @@ spec:
       value: gcr.io/kubeflow-ci/test-worker:latest
     resources:
       inputs:
+      - from:
+        - build-push
+        name: kubeflow
+        resource: kubeflow
       - name: manifests
         resource: manifests
       - name: kubeflow-4091
@@ -134,6 +104,8 @@ spec:
       type: git
   outputs:
     resources:
+    - name: kubeflow
+      type: git
     - name: centraldashboard
       outputImageDir: /kubeflow
       type: image
@@ -182,6 +154,8 @@ spec:
     resources:
     - name: manifests
       type: git
+    - name: kubeflow
+      type: git
     - name: centraldashboard
       type: image
     - name: kubeflow-4091
@@ -192,8 +166,7 @@ spec:
       type: git
   steps:
   - command:
-    - /bin/sleep
-    - infinity
+    - /workspace/${inputs.resources.manifests.name}/py/kubeflow/kubeflow/ci/rebuild-manifests.sh
     env:
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: /secret/kaniko-secret.json
@@ -207,19 +180,31 @@ spec:
       name: kaniko-secret
     - mountPath: /kubeflow
       name: kubeflow
-    - mountPath: /update-manifests-commands
-      name: update-manifests-commands
     workingDir: /workspace/${inputs.resources.manifests.name}/${inputs.params.pathToManifestsDir}
   volumes:
   - name: kaniko-secret
     secret:
       secretName: kaniko-secret
-  - configMap:
-      name: update-manifests-commands
-    name: update-manifests-commands
   - name: kubeflow
     persistentVolumeClaim:
       claimName: ci-pipeline-run-persistent-volume-claim
+---
+apiVersion: v1
+imagePullSecrets:
+- name: docker-secret
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/component: kubeflow
+    app.kubernetes.io/instance: ci-centraldashboard-pipeline-run-52fdfc07
+    app.kubernetes.io/managed-by: kfctl
+    app.kubernetes.io/name: ci-pipeline-run
+    app.kubernetes.io/part-of: kubeflow
+    app.kubernetes.io/version: v0.6
+  name: ci-pipeline-run-service-account
+  namespace: kubeflow-ci
+secrets:
+- name: github-secret
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding

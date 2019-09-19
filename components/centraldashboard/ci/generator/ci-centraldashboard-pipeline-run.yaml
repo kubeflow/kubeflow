@@ -1,0 +1,87 @@
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+metadata:
+  name: ci-central-dashboard-pipeline-run
+  namespace: kubeflow-ci
+spec:
+  repos:
+  - name: manifests
+    root: 
+    uri: /Users/kdkasrav/go/src/github.com/kubeflow/manifests
+  - name: kubeflow
+    root: kubeflow-master
+    uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
+  applications:
+  - kustomizeConfig:
+      overlays:
+      - build-push-task
+      - update-manifests-task
+      parameters:
+      - name: pipeline
+        value: ci-pipeline
+      - name: image_name
+        value: centraldashboard
+      - name: docker_target
+        value: serve
+      - name: path_to_context
+        value: components/centraldashboard
+      - name: path_to_docker_file
+        value: components/centraldashboard/Dockerfile
+      - name: path_to_manifests_kustomization_file
+        value: common/centraldashboard
+      - name: path_to_manifests_dir
+        value: common/centraldashboard/base
+      - name: container_image
+        value: "gcr.io/kubeflow-ci/test-worker:latest"
+      - name: pull_request_repo
+        value: kubeflow
+      - name: pull_request_id
+        value: 4091
+      repoRef:
+        name: manifests
+        path: ci/ci-pipeline
+    name: ci-pipeline
+  - kustomizeConfig:
+      overlays:
+      - application
+      - kubeflow-repo-resource
+      - manifests-repo-resource
+      - image-resource
+      - pull-request-resource
+      parameters:
+      - name: namespace
+        value: kubeflow-ci
+      - name: generateName
+        value: ci-centraldashboard-pipeline-run-
+      - name: pipeline
+        value: ci-pipeline
+      - name: image_name
+        value: centraldashboard
+      - name: image_url
+        value: "gcr.io/kubeflow-images-public/centraldashboard"
+      - name: kubeflow_repo_revision
+        value: refs/pull/4091/head
+      - name: kubeflow_repo_url
+        value: git@github.com:kubeflow/kubeflow.git
+      - name: manifests_repo_revision
+        value: master
+      - name: manifests_repo_url
+        value: git@github.com:kkasravi/manifests.git
+      - name: pull_request_repo
+        value: kubeflow
+      - name: pull_request_id
+        value: 4091
+      - name: pvc_mount_path
+        value: /kubeflow
+      - name: project
+        value: kubeflow-ci
+      repoRef:
+        name: manifests
+        path: ci/ci-pipeline-run
+    name: ci-pipeline-run
+  enableApplications: true
+  packageManager: kustomize
+  skipInitProject: true
+  useBasicAuth: false
+  useIstio: false
+  version: master
