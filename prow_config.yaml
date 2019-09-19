@@ -85,6 +85,29 @@ workflows:
     kwargs:
       use_basic_auth: true
       config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_basic_auth.yaml
+  # E2E tests for kfctl_existing_arrikto 
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: kfctl_go_test
+    name: kfctl-go-existing
+    job_types:
+      - presubmit
+      - postsubmit
+    include_dirs:
+      - bootstrap/*
+      - dependencies/*
+      - kubeflow/*
+      - testing/*
+    params:
+      platform: gke
+      gkeApiVersion: v1
+      workflowName: kfctl-go
+      useBasicAuth: false
+      useIstio: true
+      testEndpoint: false
+      configPath: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_existing_arrikto.yaml
+      cluster_creation_script: create_existing_cluster.sh
+      cluster_deletion_script: delete_existing_cluster.py
+      nameSuffix: existing_arrikto
   # Only run  kfctl presubmit test with basic auth if
   # files related to basic auth are modified.
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow

@@ -4,14 +4,16 @@ import os
 import subprocess
 import tempfile
 import uuid
+import yaml
 from retrying import retry
 
 import pytest
 
+from os import path
 from kubeflow.testing import util
 from testing import deploy_utils
 
-def test_kf_is_ready(namespace, use_basic_auth, use_istio):
+def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
   """Test that Kubeflow was successfully deployed.
 
   Args:
@@ -33,36 +35,79 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
   # TODO(jlewi): We need to parameterize this list based on whether
   # we are using IAP or basic auth.
   deployment_names = [
+      "admission-deployment",
       "argo-ui",
       "centraldashboard",
-      "cloud-endpoints-controller",
       "jupyter-web-app-deployment",
+      "katib-controller",
+      "katib-manager",
+      "katib-manager-rest",
+      "katib-suggestion-bayesianoptimization",
+      "katib-suggestion-grid",
+      "katib-suggestion-hyperband",
+      "katib-suggestion-nasrl",
+      "katib-suggestion-random",
+      "katib-ui",
       "metadata-db",
       "metadata-deployment",
       "metadata-ui",
+      "minio",
       "ml-pipeline",
+      "ml-pipeline-persistenceagent",
       "ml-pipeline-scheduledworkflow",
       "ml-pipeline-ui",
+      "ml-pipeline-viewer-controller-deployment",
+      "mysql",
       "notebook-controller-deployment",
-      "tf-job-operator",
+      "profiles-deployment",
       "pytorch-operator",
-      "katib-controller",
+      "tensorboard",
+      "tf-job-dashboard",
+      "tf-job-operator",
       "workflow-controller",
   ]
 
   stateful_set_names = [
-    "kfserving-controller-manager",
+    "admission-webhook-bootstrap-stateful-set",
+    "application-controller-stateful-set",
+    "seldon-operator-controller-manager",
   ]
 
-  ingress_related_deployments = []
-  ingress_related_stateful_sets = []
+  with open(path.join(app_path, "app.yaml")) as f:
+    kfdef = yaml.safe_load(f)
+  platform = kfdef["spec"]["platform"]
 
-  if use_basic_auth:
-    deployment_names.extend(["basic-auth-login"])
-    ingress_related_stateful_sets.extend(["backend-updater"])
-  else:
-    ingress_related_deployments.extend(["iap-enabler"])
-    ingress_related_stateful_sets.extend(["backend-updater"])
+  if platform == "gcp":
+    deployment_names.extend("cloud-endpoints-controller")
+    stateful_set_names.extend("kfserving-controller-manager")
+  elif platform == "existing_arrikto":
+    deployment_names.extend("dex")
+
+  ingress_related_deployments = [
+    "istio-citadel",
+    "istio-egressgateway",
+    "istio-galley",
+    "istio-ingressgateway",
+    "istio-pilot",
+    "istio-policy",
+    "istio-sidecar-injector",
+    "istio-telemetry",
+    "istio-tracing",
+    "kiali",
+    "prometheus",
+  ]
+  ingress_related_stateful_sets = []
+  
+  if platform == "gcp":
+    if use_basic_auth:
+      deployment_names.extend(["basic-auth-login"])
+      ingress_related_stateful_sets.extend(["backend-updater"])
+    else:
+      ingress_related_deployments.extend(["iap-enabler"])
+      ingress_related_stateful_sets.extend(["backend-updater"])
+  elif platform == "existing_arrikto":
+    ingress_related_deployments.extend(["authservice"])
+
 
   # TODO(jlewi): Might want to parallelize this.
   for deployment_name in deployment_names:
@@ -91,8 +136,8 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
           "controller",
   ]
   for deployment_name in knative_related_deployments:
-      logging.info("Verifying that deployment %s started...", deployment_name)
-      util.wait_for_deployment(api_client, knative_namespace, deployment_name, 10)
+    logging.info("Verifying that deployment %s started...", deployment_name)
+    util.wait_for_deployment(api_client, knative_namespace, deployment_name, 10)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
