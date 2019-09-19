@@ -80,7 +80,7 @@ def set_env_init_args(use_basic_auth, use_istio):
     os.environ["KUBEFLOW_PASSWORD"] = str(uuid.uuid4().hex)
     init_args = ["--use_basic_auth"]
   else:
-    # Owned by project kubeflow-ci-deployment.
+    # Owned by project kubeflow/mnt/test-data-volume/jlewi-kfctl-test-20190918-211229/apps/kfctl-20190918-211230-d63-ci-deployment.
     os.environ["CLIENT_SECRET"] = "CJ4qVPLTi0j0GJMkONj7Quwt"
     os.environ["CLIENT_ID"] = (
         "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g"
@@ -193,6 +193,10 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   # username and password are passed as env vars and won't appear in the logs
   #
   config_spec = get_config_spec(config_path, project, email)
+
+  if not os.path.exists(parent_dir):
+    os.makedirs(parent_dir)
+
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
   

@@ -28,8 +28,7 @@ workflows:
     params:
       installIstio: true
       workflowName: deployapp-istio
-  - app_dir: kubeflow/kubeflow/testing/workflows
-    component: kfctl_go_test
+  - py_func: kubeflow.kubeflow.ci.kf_e2e_workflow
     name: kfctl-go-iap-endpoint
     job_types:
       - postsubmit
@@ -40,7 +39,7 @@ workflows:
       - dependencies/*
       - kubeflow/*
       - testing/*
-    params:
+    kwargs:
       platform: gke
       gkeApiVersion: v1
       workflowName: kfctl-go
