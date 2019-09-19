@@ -22,6 +22,18 @@ type GcpPluginSpec struct {
 
 	// DeploymentManagerConfig provides location of the deployment manager configs.
 	DeploymentManagerConfig *DeploymentManagerConfig `json:"deploymentManagerConfig,omitempty"`
+
+	Project            string `json:"project,omitempty"`
+	Email              string `json:"email,omitempty"`
+	IpName             string `json:"ipName,omitempty"`
+	Hostname           string `json:"hostname,omitempty"`
+	Zone               string `json:"zone,omitempty"`
+	UseBasicAuth       bool   `json:"useBasicAuth"`
+	SkipInitProject    bool   `json:"skipInitProject,omitempty"`
+	UseIstio           bool   `json:"useIstio"`
+	EnableApplications bool   `json:"enableApplications"`
+	ServerVersion      string `json:"serverVersion,omitempty"`
+	DeleteStorage      bool   `json:"deleteStorage,omitempty"`
 }
 
 type Auth struct {
