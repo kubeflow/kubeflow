@@ -15,7 +15,7 @@ if [[ -f /workspace/${pull_request_repo}-${pull_request_id}/pr.json ]]; then
   chmod 0600 ~/.ssh/id_rsa
   chmod 0600 ~/.ssh/id_rsa.pub
   ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
-  ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
+  ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts
   GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa" git remote add upstream git@github.com:kubeflow/manifests.git
   GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa" git fetch upstream master
   GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa" git checkout -b $new_branch_name upstream/master
