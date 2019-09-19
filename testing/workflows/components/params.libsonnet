@@ -43,6 +43,10 @@
       useIstio: "true",
       testEndpoint: "false",
       configPath: "bootstrap/config/kfctl_gcp_iap_master.yaml",
+      cluster_creation_script: "",
+      cluster_deletion_script: "",
+      checklist: "",
+      nameSuffix: "",
     },
     click_deploy_test: {
       bucket: "kubeflow-ci_temp",

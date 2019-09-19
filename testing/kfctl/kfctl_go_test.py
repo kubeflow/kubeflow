@@ -1,16 +1,15 @@
 import datetime
 import logging
 import os
-import subprocess
+import requests
 import tempfile
 import urllib
 import uuid
 
 import pytest
-import requests
 import yaml
-from kubeflow.testing import util
 from retrying import retry
+from kubeflow.testing import util
 
 
 # retry 4 times, waiting 3 minutes between retries
@@ -151,14 +150,14 @@ def verify_kubeconfig(app_path):
   name = os.path.basename(app_path)
   context = util.run(["kubectl", "config", "current-context"]).strip()
   if name == context:
-    logging.info("KUBECONFIG current context name matches app name: " + name)
+    logging.info("KUBECONFIG current context name matches app name: %s", name)
   else:
     msg = "KUBECONFIG not having expected context: {expected} v.s. {actual}".format(
         expected=name, actual=context)
     logging.error(msg)
     raise RuntimeError(msg)
 
-def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_path):
+def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_path, cluster_creation_script):
   """Test building and deploying Kubeflow.
 
   Args:
@@ -199,6 +198,10 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   # We don't run with retries because if kfctl init exits with an error
   # but creates app.yaml then rerunning init will fail because app.yaml
   # already exists. So retrying ends up masking the original error message
+  if cluster_creation_script:
+    logging.info("Cluster creation script specified: %s", cluster_creation_script)
+    util.run(["/bin/bash", "-c", cluster_creation_script], cwd=os.getcwd())
+
   util.run([
       kfctl_path, "init", app_path, "-V",
       "--config=" + os.path.join(parent_dir, "tmp.yaml")], cwd=parent_dir)
@@ -211,10 +214,14 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   ],
                    cwd=app_path)
 
+  # We need to use retries because if we don't we see random failures
+  # where kfctl just appears to die.
+  #
   # Do not run with retries since it masks errors
   util.run([kfctl_path, "apply", "-V", "all"], cwd=app_path)
 
-  verify_kubeconfig(app_path)
+  if not cluster_creation_script:
+    verify_kubeconfig(app_path)
 
 if __name__ == "__main__":
   logging.basicConfig(
