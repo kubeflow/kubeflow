@@ -177,7 +177,8 @@ As shown above, 2 Tasks are executed by the Pipeline. These tasks consume inputs
 The [ci-centraldashboard-pipeline-run.yaml](./ci-centraldashboard-pipeline-run.yaml) is parameterized by the following parameters: 
 
 PipelineRun parameters:
-|           name          	|                      value                     	|                description                	|
+
+|           **name**          	|                      **value**                     	|                **description**                	|
 |:-----------------------:	|:----------------------------------------------:	|:-----------------------------------------:	|
 | namespace               	| kubeflow-ci                                    	| namespace to run the pipeline in          	|
 | generateName            	| ci-centraldashboard-pipeline-run-              	| a suffix is added to make the name unique 	|
@@ -194,7 +195,8 @@ PipelineRun parameters:
 | project                 	| kubeflow-ci                                    	| the GKE project                           	|
 
 Pipeline parameters:
-|          name         	|                  value                 	|                 description                	|
+
+|          **name**         	|                  **value**                 	|                 **description**                	|
 |:---------------------:	|:--------------------------------------:	|:------------------------------------------:	|
 | image_name            	| centraldashboard                       	| name of the image resource                 	|
 | docker_target         	| serve                                  	| the docker arg for multi-build dockerfiles 	|
