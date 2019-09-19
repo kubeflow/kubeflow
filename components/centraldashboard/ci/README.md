@@ -207,3 +207,6 @@ Pipeline parameters:
 | pull_request_repo     	| kubeflow                               	| repo for pullRequest resource              	|
 | pull_request_id       	| 4112                                   	| PR id for pullRequest resource             	|
 
+### Pipeline Generation
+
+### Pipeline Supporting Resources
