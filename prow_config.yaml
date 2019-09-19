@@ -28,7 +28,7 @@ workflows:
     params:
       installIstio: true
       workflowName: deployapp-istio
-  - py_func: kubeflow.kubeflow.ci.kf_e2e_workflow
+  - py_func: kubeflow.kubeflow.ci.kf_e2e_workflow.create_workflow
     name: kfctl-go-iap-endpoint
     job_types:
       - postsubmit
@@ -47,7 +47,7 @@ workflows:
       useIstio: true
       testEndpoint: true
       configPath: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
-  - app_dir: kubeflow/kubeflow/testing/workflows
+  - py_func: kubeflow.kubeflow.ci.kf_e2e_workflow.create_workflow
     component: kfctl_go_test
     name: kfctl-go-iap-istio
     job_types:
@@ -58,7 +58,7 @@ workflows:
       - dependencies/*
       - kubeflow/*
       - testing/*
-    params:
+    kwargs:
       platform: gke
       gkeApiVersion: v1
       workflowName: kfctl-go
@@ -66,8 +66,7 @@ workflows:
       useIstio: true
       configPath: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
   # Run basic auth test as part of every periodic and postsubmit run. 
-  - app_dir: kubeflow/kubeflow/testing/workflows
-    component: kfctl_go_test
+  - py_func: kubeflow.kubeflow.ci.kf_e2e_workflow.create_workflow
     name: kfctl-go-basic-auth
     job_types:
       - postsubmit
@@ -86,19 +85,15 @@ workflows:
       configPath: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_basic_auth.yaml
   # Only run  kfctl presubmit test with basic auth if
   # files related to basic auth are modified.
-  - app_dir: kubeflow/kubeflow/testing/workflows
-    component: kfctl_go_test
+  - py_func: kubeflow.kubeflow.ci.kf_e2e_workflow.create_workflow
     name: kfctl-go-basic-auth
     job_types:
       - presubmit
     include_dirs:
       # If kfctl is modified make sure basic auth still works
       - bootstrap/*
-      - kubeflow/kubeflow/common/basic-auth.libsonnet
-      - kubeflow/kubeflow/common/prototypes/basic-auth.jsonnet
       - testing/kfctl/*
-      - testing/workflows/kfctl_go_test.jsonnet
-    params:
+    kwargs:
       platform: gke
       gkeApiVersion: v1
       workflowName: kfctl-go
