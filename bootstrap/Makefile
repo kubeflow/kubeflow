@@ -20,7 +20,9 @@ GOPATH ?= $(HOME)/go
 BOOTSTRAPPER_IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
 GC_IMG ?= gcr.io/$(GCLOUD_PROJECT)/gcserver
 KFCTL_IMG ?= gcr.io/$(GCLOUD_PROJECT)/kfctl
-TAG ?= $(eval TAG := $(shell git describe --tags --long))$(TAG)
+# We use --always because otherwise when we clone with shallow depth we might not get
+# any tags and it will fail.
+TAG ?= $(eval TAG := $(shell git describe --tags --always --long))$(TAG)
 KFCTL_TARGET ?= kfctl
 MOUNT_KUBE ?=  -v $(HOME)/.kube:/root/.kube 
 MOUNT_GCP ?=  -v $(HOME)/.config:/root/.config 
