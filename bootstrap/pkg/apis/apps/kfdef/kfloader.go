@@ -30,6 +30,8 @@ func isValidUrl(toTest string) bool {
 	}
 }
 
+// Simple mapping from plugin name to plugin kind in v1beta1. Ideally we should
+// use plugin kind to find handler functions.
 func alphaPluginNameToBetaKind(pluginName string) string {
 	mapping := map[string]string{
 		kftypesv3.AWS:              kftypesv3.AWS_PLUGIN_KIND,
@@ -46,6 +48,7 @@ func alphaPluginNameToBetaKind(pluginName string) string {
 	}
 }
 
+// Copy application configs.
 func copyApplications(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 	for _, application := range from.Spec.Applications {
 		app := kfdefv1beta1.Application{
@@ -61,6 +64,7 @@ func copyApplications(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 	}
 }
 
+// Copy repos configs.
 func copyRepos(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 	for _, repo := range from.Spec.Repos {
 		betaRepo := kfdefv1beta1.Repo{
@@ -71,6 +75,7 @@ func copyRepos(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 	}
 }
 
+// Copy secrets configs.
 func copySecrets(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 	for _, secret := range from.Spec.Secrets {
 		betaSecret := kfdefv1beta1.Secret{
@@ -93,6 +98,7 @@ func copySecrets(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 	}
 }
 
+// Copy GCP plugin spec. Will skip if platform is not GCP.
 func copyGcpPluginSpec(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) error {
 	if from.Spec.Platform != kftypesv3.GCP {
 		return nil
@@ -116,6 +122,7 @@ func copyGcpPluginSpec(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) error 
 	return to.SetPluginSpec(kftypesv3.GCP, spec)
 }
 
+// Copy plugins configs.
 func copyPlugins(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 	for _, plugin := range from.Spec.Plugins {
 		betaPlugin := kfdefv1beta1.Plugin{}
@@ -135,6 +142,7 @@ func copyPlugins(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 	}
 }
 
+// Load v1alpha1 KfDef and returns v1beta1 KfDef.
 func loadKfDefV1Alpha1(configs []byte) (*kfdefv1beta1.KfDef, error) {
 	alphaKfDef := &kfdefv1alpha1.KfDef{}
 	if err := yaml.Unmarshal(configs, alphaKfDef); err != nil {
@@ -163,6 +171,7 @@ func loadKfDefV1Alpha1(configs []byte) (*kfdefv1beta1.KfDef, error) {
 	return betaKfDef, nil
 }
 
+// Load v1beta1 KfDef.
 func loadKfDefV1Beta1(configs []byte) (*kfdefv1beta1.KfDef, error) {
 	kfdef := &kfdefv1beta1.KfDef{}
 	if err := yaml.Unmarshal(configs, kfdef); err != nil {
