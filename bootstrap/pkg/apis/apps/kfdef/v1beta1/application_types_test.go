@@ -5,6 +5,7 @@ import (
 	kfutils "github.com/kubeflow/kfctl/v3/pkg/utils"
 	"github.com/prometheus/common/log"
 	"io/ioutil"
+	"k8s.io/api/core/v1"
 	"os"
 	"path"
 	"reflect"
@@ -82,6 +83,51 @@ func TestKfDef_GetPluginSpec(t *testing.T) {
 			pGot := kfutils.PrettyPrint(actual)
 			pWant := kfutils.PrettyPrint(c.Expected)
 			t.Errorf("Error parsing plugin spec got;\n%v\nwant;\n%v", pGot, pWant)
+		}
+	}
+}
+
+func TestKfDef_ConditionStatus(t *testing.T) {
+	type testCase struct {
+		Type    KfDefConditionType
+		Status  v1.ConditionStatus
+		Name    string
+		Reason  string
+		Message string
+	}
+
+	cases := []testCase{
+		testCase{
+			Type:    KfPluginFinished,
+			Status:  v1.ConditionFalse,
+			Name:    "foo",
+			Message: "foo status",
+		},
+		testCase{
+			Type:    KfPluginFinished,
+			Status:  v1.ConditionTrue,
+			Name:    "bar",
+			Message: "bar status",
+		},
+	}
+
+	for _, c := range cases {
+		kfdef := KfDef{}
+		kfdef.SetCondition(c.Type, c.Status, c.Name, c.Reason, c.Message)
+
+		cond, err := kfdef.GetCondition(c.Type, c.Name)
+		if err != nil {
+			t.Fatalf("error when getting condition: %v", err)
+		}
+		if cond == nil {
+			t.Fatalf("condition returned is nil")
+		}
+		if cond.Type != c.Type || cond.Status != c.Status ||
+			cond.Name != c.Name || cond.Reason != c.Reason ||
+			cond.Message != c.Message {
+			t.Errorf("condition returned doesn't match the condition set;\nexpected\n%v\ngot\n%v",
+				kfutils.PrettyPrint(c),
+				kfutils.PrettyPrint(cond))
 		}
 	}
 }
