@@ -85,7 +85,6 @@ func TestKfLoad_LoadKfDefFomURI(t *testing.T) {
 		Zone:                            "us-east1-b",
 		UseBasicAuth:                    false,
 		SkipInitProject:                 true,
-		EnableApplications:              true,
 		DeleteStorage:                   true,
 		CreatePipelinePersistentStorage: &createPipelinePersistentStorage,
 		Auth: &kfgcp.Auth{

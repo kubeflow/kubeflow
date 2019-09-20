@@ -9,7 +9,6 @@ spec:
   zone: us-east1-b
   useBasicAuth: false
   skipInitProject: true
-  enableApplications: true
   deleteStorage: true
   repos:
   - name: manifests
