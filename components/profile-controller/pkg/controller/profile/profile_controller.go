@@ -19,16 +19,16 @@ package profile
 import (
 	"context"
 	"fmt"
-	"reflect"
-
+	"github.com/ghodss/yaml"
 	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/istiorbac/v1alpha1"
-	kubeflowv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
+	kubeflowv1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -83,42 +83,42 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to Profile
-	err = c.Watch(&source.Kind{Type: &kubeflowv1alpha1.Profile{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &kubeflowv1beta1.Profile{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
 
 	err = c.Watch(&source.Kind{Type: &istiorbac.ServiceRole{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    &kubeflowv1alpha1.Profile{},
+		OwnerType:    &kubeflowv1beta1.Profile{},
 	})
 	if err != nil {
 		return err
 	}
 	err = c.Watch(&source.Kind{Type: &istiorbac.ServiceRoleBinding{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    &kubeflowv1alpha1.Profile{},
+		OwnerType:    &kubeflowv1beta1.Profile{},
 	})
 	if err != nil {
 		return err
 	}
 	err = c.Watch(&source.Kind{Type: &corev1.Namespace{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    &kubeflowv1alpha1.Profile{},
+		OwnerType:    &kubeflowv1beta1.Profile{},
 	})
 	if err != nil {
 		return err
 	}
 	err = c.Watch(&source.Kind{Type: &corev1.ServiceAccount{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    &kubeflowv1alpha1.Profile{},
+		OwnerType:    &kubeflowv1beta1.Profile{},
 	})
 	if err != nil {
 		return err
 	}
 	err = c.Watch(&source.Kind{Type: &rbacv1.RoleBinding{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    &kubeflowv1alpha1.Profile{},
+		OwnerType:    &kubeflowv1beta1.Profile{},
 	})
 	if err != nil {
 		return err
@@ -147,7 +147,7 @@ type ReconcileProfile struct {
 // +kubebuilder:rbac:groups=kubeflow.org,resources=profiles/status,verbs=get;update;patch
 func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	// Fetch the Profile instance
-	instance := &kubeflowv1alpha1.Profile{}
+	instance := &kubeflowv1beta1.Profile{}
 	err := r.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -189,8 +189,8 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 		if (!ok) || val != instance.Spec.Owner.Name {
 			log.Info(fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
 				instance.Spec.Owner.Name))
-			instance.Status = kubeflowv1alpha1.ProfileStatus{
-				Status: kubeflowv1alpha1.ProfileFailed,
+			instance.Status = kubeflowv1beta1.ProfileStatus{
+				Status: kubeflowv1beta1.ProfileFailed,
 				Message: fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
 					instance.Spec.Owner.Name),
 			}
@@ -211,14 +211,14 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 	// Update service accounts
 	// Create service account "default-editor" in target namespace.
 	// "default-editor" would have k8s default "edit" permission: edit all resources in target namespace except rbac.
-	if err = r.updateServiceAccount(instance, "default-editor", "edit"); err != nil {
+	if err = r.updateServiceAccount(instance, "default-editor", "edit", nil); err != nil {
 		log.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
 			"defaultEdittor", "error", err)
 		return reconcile.Result{}, err
 	}
 	// Create service account "default-viewer" in target namespace.
 	// "default-viewer" would have k8s default "view" permission: view all resources in target namespace.
-	if err = r.updateServiceAccount(instance, "default-viewer", "view"); err != nil {
+	if err = r.updateServiceAccount(instance, "default-viewer", "view", nil); err != nil {
 		log.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
 			"defaultViewer", "error", err)
 		return reconcile.Result{}, err
@@ -231,8 +231,8 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 	roleBinding := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{USER: instance.Spec.Owner.Name, ROLE: ADMIN},
-			Name:      "namespaceAdmin",
-			Namespace: instance.Name,
+			Name:        "namespaceAdmin",
+			Namespace:   instance.Name,
 		},
 		// Use default ClusterRole 'admin' for profile/namespace owner
 		RoleRef: rbacv1.RoleRef{
@@ -249,16 +249,30 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 			"defaultEdittor", "error", err)
 		return reconcile.Result{}, err
 	}
+	gcpPlugin := &GcpPlugin{}
+	if err := GetPluginSpec(instance, "gcp", gcpPlugin); err == nil {
+		annotation := map[string]string{
+			"iam.gke.io/gcp-service-account": gcpPlugin.getGcpServiceAccount(),
+		}
+		if err = r.updateServiceAccount(instance, "kf-user", "edit", annotation); err != nil {
+			log.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
+				"kf-user", "error", err)
+			return reconcile.Result{}, err
+		}
+		if err := gcpPlugin.setupWorkloadIdentity(instance.Name, "kf-user"); err != nil {
+			return reconcile.Result{}, err
+		}
+	}
 	return reconcile.Result{}, nil
 }
 
 // updateIstioRbac create or update Istio rbac resources in target namespace owned by "profileIns". The goal is to allow service access for profile owner
-func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile) error {
+func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1beta1.Profile) error {
 	istioServiceRole := &istiorbac.ServiceRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{USER: profileIns.Spec.Owner.Name, ROLE: ADMIN},
-			Name:      SERVICEROLEISTIO,
-			Namespace: profileIns.Name,
+			Name:        SERVICEROLEISTIO,
+			Namespace:   profileIns.Name,
 		},
 		Spec: istiorbac.ServiceRoleSpec{
 			Rules: []*istiorbac.AccessRule{
@@ -299,8 +313,8 @@ func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile)
 	istioServiceRoleBinding := &istiorbac.ServiceRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{USER: profileIns.Spec.Owner.Name, ROLE: ADMIN},
-			Name:      SERVICEROLEBINDINGISTIO,
-			Namespace: profileIns.Name,
+			Name:        SERVICEROLEBINDINGISTIO,
+			Namespace:   profileIns.Name,
 		},
 		Spec: istiorbac.ServiceRoleBindingSpec{
 			Subjects: []*istiorbac.Subject{
@@ -347,12 +361,16 @@ func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1alpha1.Profile)
 }
 
 // updateServiceAccount create or update service account "saName" with role "ClusterRoleName" in target namespace owned by "profileIns"
-func (r *ReconcileProfile) updateServiceAccount(profileIns *kubeflowv1alpha1.Profile, saName string, ClusterRoleName string) error {
+func (r *ReconcileProfile) updateServiceAccount(profileIns *kubeflowv1beta1.Profile, saName string,
+	ClusterRoleName string, annotations map[string]string) error {
 	serviceAccount := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      saName,
 			Namespace: profileIns.Name,
 		},
+	}
+	if annotations != nil {
+		serviceAccount.Annotations = annotations
 	}
 	if err := controllerutil.SetControllerReference(profileIns, serviceAccount, r.scheme); err != nil {
 		return err
@@ -394,7 +412,7 @@ func (r *ReconcileProfile) updateServiceAccount(profileIns *kubeflowv1alpha1.Pro
 }
 
 // updateRoleBinding create or update roleBinding "roleBinding" in target namespace owned by "profileIns"
-func (r *ReconcileProfile) updateRoleBinding(profileIns *kubeflowv1alpha1.Profile,
+func (r *ReconcileProfile) updateRoleBinding(profileIns *kubeflowv1beta1.Profile,
 	roleBinding *rbacv1.RoleBinding) error {
 	if err := controllerutil.SetControllerReference(profileIns, roleBinding, r.scheme); err != nil {
 		return err
@@ -423,4 +441,33 @@ func (r *ReconcileProfile) updateRoleBinding(profileIns *kubeflowv1alpha1.Profil
 		}
 	}
 	return nil
+}
+
+// GetPluginSpec will try to unmarshal the spec for the specified plugin to the supplied
+// interface. Returns an error if the plugin isn't defined or if there is a problem
+// unmarshaling it.
+func GetPluginSpec(profileIns *kubeflowv1beta1.Profile, pluginName string, s interface{}) error {
+	for _, p := range profileIns.Spec.Plugins {
+		if p.Name != pluginName {
+			continue
+		}
+
+		// To deserialize it to a specific type we need to first serialize it to bytes
+		// and then unserialize it.
+		specBytes, err := yaml.Marshal(p.Spec)
+
+		if err != nil {
+			log.Info("Could not marshal plugin ", pluginName, "; error: ", err)
+			return err
+		}
+
+		err = yaml.Unmarshal(specBytes, s)
+
+		if err != nil {
+			log.Info("Could not unmarshal plugin ", pluginName, "; error: ", err)
+		}
+		return nil
+	}
+
+	return fmt.Errorf("Plugin not found: %v", pluginName)
 }
