@@ -18,6 +18,7 @@ package kustomize
 
 import (
 	"bufio"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/cenkalti/backoff"
@@ -27,31 +28,23 @@ import (
 	kfapisv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
-	profilev2 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
-
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
+	profilev2 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"k8s.io/api/core/v1"
 	rbacv2 "k8s.io/api/rbac/v1"
 	crdclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/discovery/cached"
-	"k8s.io/client-go/kubernetes/scheme"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/restmapper"
+	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
-	"regexp"
 	"sigs.k8s.io/kustomize/k8sdeps"
 	"sigs.k8s.io/kustomize/pkg/fs"
 	"sigs.k8s.io/kustomize/pkg/image"
@@ -107,6 +100,8 @@ type kustomize struct {
 	componentMap     map[string]bool
 	packageMap       map[string]*[]string
 	restConfig       *rest.Config
+	// when set to true, apply() will skip local kube config, directly build config from restConfig
+	configOverwrite bool
 }
 
 const (
@@ -253,27 +248,13 @@ func (kustomize *kustomize) initK8sClients() error {
 
 // Apply deploys kustomize generated resources to the kubenetes api server
 func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
-	if err := kustomize.initK8sClients(); err != nil {
-		return &kfapisv3.KfError{
-			Code:    int(kfapisv3.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error: kustomize plugin couldn't initialize a K8s client %v", err),
-		}
+	var restConfig *rest.Config = nil
+	if kustomize.configOverwrite && kustomize.restConfig != nil {
+		restConfig = kustomize.restConfig
 	}
-	clientset := kftypesv3.GetClientset(kustomize.restConfig)
-	namespace := kustomize.kfDef.ObjectMeta.Namespace
-	log.Infof(string(kftypesv3.NAMESPACE)+": %v", namespace)
-	_, nsMissingErr := clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
-	if nsMissingErr != nil {
-		log.Infof("Creating namespace: %v", namespace)
-		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
-		_, nsErr := clientset.CoreV1().Namespaces().Create(nsSpec)
-		if nsErr != nil {
-			return &kfapisv3.KfError{
-				Code: int(kfapisv3.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("couldn't create %v %v Error: %v",
-					string(kftypesv3.NAMESPACE), namespace, nsErr),
-			}
-		}
+	apply, err := utils.NewApply(kustomize.kfDef.ObjectMeta.Namespace, restConfig)
+	if err != nil {
+		return err
 	}
 
 	kustomizeDir := path.Join(kustomize.kfDef.Spec.AppDir, outputDir)
@@ -286,6 +267,7 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 				Message: fmt.Sprintf("error evaluating kustomization manifest for %v Error %v", app.Name, err),
 			}
 		}
+		//TODO this should be streamed
 		data, err := resMap.EncodeAsYaml()
 		if err != nil {
 			return &kfapisv3.KfError{
@@ -293,182 +275,65 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 				Message: fmt.Sprintf("can not encode component %v as yaml Error %v", app.Name, err),
 			}
 		}
-		resourcesErr := kustomize.deployResources(kustomize.restConfig, data)
-		if resourcesErr != nil {
-			return &kfapisv3.KfError{
-				Code:    int(kfapisv3.INTERNAL_ERROR),
-				Message: fmt.Sprintf("couldn't create resources from %v Error: %v", app.Name, resourcesErr),
-			}
+		err = apply.Apply(data)
+		if err != nil {
+			return err
 		}
 	}
 
 	// Create default profile
 	// When user identity available, the user will be owner of the profile
 	// Otherwise the profile would be a public one.
-	userId := defaultUserId
 	if kustomize.kfDef.Spec.Email != "" {
+		userId := defaultUserId
 		// Use user email as user id if available.
 		// When platform == GCP, same user email is also identity in requests through IAP.
 		userId = kustomize.kfDef.Spec.Email
-	}
-	defaultProfileNamespace := kftypesv3.EmailToDefaultName(userId)
-	profile := &profilev2.Profile{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Profile",
-			APIVersion: "kubeflow.org/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: defaultProfileNamespace,
-		},
-		Spec: profilev2.ProfileSpec{
-			Owner: rbacv2.Subject{
-				Kind: "User",
-				Name: userId,
+		defaultProfileNamespace := kftypesv3.EmailToDefaultName(userId)
+		profile := &profilev2.Profile{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Profile",
+				APIVersion: "kubeflow.org/v1alpha1",
 			},
-		},
-	}
-	_, nsMissingErr = clientset.CoreV1().Namespaces().Get(defaultProfileNamespace, metav1.GetOptions{})
-	if nsMissingErr != nil {
-		body, err := json.Marshal(profile)
-		if err != nil {
-			return err
-		}
-		resourcesErr := kustomize.deployResources(kustomize.restConfig, body)
-		if resourcesErr != nil {
-			return &kfapisv3.KfError{
-				Code:    int(kfapisv3.INTERNAL_ERROR),
-				Message: fmt.Sprintf("couldn't create default profile from %v Error: %v", profile, resourcesErr),
-			}
-		}
-		b := backoff.NewExponentialBackOff()
-		b.InitialInterval = 3 * time.Second
-		b.MaxInterval = 30 * time.Second
-		b.MaxElapsedTime = 15 * time.Minute
-		return backoff.Retry(func() error {
-			_, nsErr := clientset.CoreV1().Namespaces().Get(defaultProfileNamespace, metav1.GetOptions{})
-			if nsErr != nil {
-				msg := fmt.Sprintf("Could not find namespace %v, wait and retry: %v", defaultProfileNamespace, nsErr)
-				log.Warnf(msg)
-				return &kfapisv3.KfError{
-					Code:    int(kfapisv3.INVALID_ARGUMENT),
-					Message: msg,
-				}
-			}
-			return nil
-		}, b)
-	} else {
-		log.Infof("Default profile namespace already exists: %v within owner %v", defaultProfileNamespace,
-			profile.Spec.Owner.Name)
-	}
-	return nil
-}
-
-// deployResourcesFromFile creates resources from a file, just like `kubectl create -f filename`
-// TODO based on bootstrap/v2/app/k8sUtil.go. Need to merge.
-// TODO: it can't handle "kind: list" yet.
-func (kustomize *kustomize) deployResourcesFromFile(config *rest.Config, filename string) error {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return err
-	}
-	return kustomize.deployResources(config, data)
-}
-
-// deployResources creates resources with byte array.
-func (kustomize *kustomize) deployResources(config *rest.Config, data []byte) error {
-	// Create a restmapper to determine the resource type.
-	_discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
-	if err != nil {
-		return err
-	}
-	_cached := cached.NewMemCacheClient(_discoveryClient)
-	_cached.Invalidate()
-	mapper := restmapper.NewDeferredDiscoveryRESTMapper(_cached)
-
-	splitter := regexp.MustCompile(kftypesv3.YamlSeparator)
-	objects := splitter.Split(string(data), -1)
-
-	for _, object := range objects {
-		var o map[string]interface{}
-		if err = yaml.Unmarshal([]byte(object), &o); err != nil {
-			return err
-		}
-		a := o["apiVersion"]
-		if a == nil {
-			log.Warnf("Unknown resource: %v", object)
-			continue
-		}
-		apiVersion := strings.Split(a.(string), "/")
-		var group, version string
-		if len(apiVersion) == 1 {
-			// core v1, no group. e.g. namespace
-			group, version = "", apiVersion[0]
-		} else {
-			group, version = apiVersion[0], apiVersion[1]
-		}
-		metadata := o["metadata"].(map[string]interface{})
-		var namespace string
-		if metadata["namespace"] != nil {
-			namespace = metadata["namespace"].(string)
-		} else {
-			namespace = ""
-		}
-		kind := o["kind"].(string)
-		gk := schema.GroupKind{
-			Group: group,
-			Kind:  kind,
-		}
-		mapping, retryErr := mapper.RESTMapping(gk, version)
-		if retryErr != nil {
-			return retryErr
-		}
-		// build config for restClient
-		c := rest.CopyConfig(config)
-		c.GroupVersion = &schema.GroupVersion{
-			Group:   group,
-			Version: version,
-		}
-		c.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
-		if group == "" {
-			c.APIPath = "/api"
-		} else {
-			c.APIPath = "/apis"
-		}
-		restClient, err := rest.RESTClientFor(c)
-		if err != nil {
-			return err
+			ObjectMeta: metav1.ObjectMeta{
+				Name: defaultProfileNamespace,
+			},
+			Spec: profilev2.ProfileSpec{
+				Owner: rbacv2.Subject{
+					Kind: "User",
+					Name: userId,
+				},
+			},
 		}
 
-		// build the request
-		if metadata["name"] != nil {
-			name := metadata["name"].(string)
-			log.Infof("creating %v/%v\n", kind, name)
-			body, err := json.Marshal(o)
+		if !apply.DefaultProfileNamespace(defaultProfileNamespace) {
+			body, err := json.Marshal(profile)
 			if err != nil {
 				return err
 			}
-
-			request := restClient.Post().Resource(mapping.Resource.Resource).Body(body)
-			if mapping.Scope.Name() == "namespace" {
-				request = request.Namespace(namespace)
+			err = apply.Apply(body)
+			if err != nil {
+				return err
 			}
-			result := request.Do()
-			if result.Error() != nil {
-				statusCode := 200
-				result.StatusCode(&statusCode)
-				switch statusCode {
-				case 200:
-					fallthrough
-				case 409:
-					continue
-				default:
-					return result.Error()
+			b := backoff.NewExponentialBackOff()
+			b.InitialInterval = 3 * time.Second
+			b.MaxInterval = 30 * time.Second
+			b.MaxElapsedTime = 5 * time.Minute
+			return backoff.Retry(func() error {
+				if !apply.DefaultProfileNamespace(defaultProfileNamespace) {
+					msg := fmt.Sprintf("Could not find namespace %v, wait and retry", defaultProfileNamespace)
+					log.Warnf(msg)
+					return &kfapisv3.KfError{
+						Code:    int(kfapisv3.INVALID_ARGUMENT),
+						Message: msg,
+					}
 				}
-			}
+				return nil
+			}, b)
 		} else {
-			log.Warnf("object with kind %v has no name\n", metadata["kind"])
+			log.Infof("Default profile namespace already exists: %v within owner %v", defaultProfileNamespace,
+				profile.Spec.Owner.Name)
 		}
-
 	}
 	return nil
 }
@@ -729,6 +594,7 @@ func (kustomize *kustomize) mapDirs(dirPath string, root bool, depth int, leafMa
 
 func (kustomize *kustomize) SetK8sRestConfig(r *rest.Config) {
 	kustomize.restConfig = r
+	kustomize.configOverwrite = true
 }
 
 // GetKustomization will read a kustomization.yaml and return Kustomization type
@@ -814,6 +680,16 @@ func MergeKustomization(compDir string, targetDir string, kfDef *kfdefsv3.KfDef,
 			for i, param := range params {
 				paramName := strings.Split(param, "=")[0]
 				if val, ok := paramMap[paramName]; ok && val != "" {
+					switch paramName {
+					case "generateName":
+						arr := strings.Split(param, "=")
+						if len(arr) == 1 || arr[1] == "" {
+							b := make([]byte, 4) //equals 8 charachters
+							rand.Read(b)
+							s := hex.EncodeToString(b)
+							val += s
+						}
+					}
 					params[i] = paramName + "=" + val
 				} else {
 					switch paramName {

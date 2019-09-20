@@ -12,6 +12,9 @@ metadata:
   name: jupyter
 spec:
   template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
     spec:
       initContainers:
       # This init container checks out the source code.
@@ -22,6 +25,9 @@ spec:
         #- --repos=kubeflow/kubeflow@HEAD:3958,kubeflow/fairing@HEAD,kubeflow/testing@HEAD,kubeflow/manifests@HEAD
         - --repos=$(REPOS)
         - --src_dir=/src
+        # Don't do a shallow clone because we need to compute when files were modified and shallow clones prevent pushing
+        # branches.
+        - --depth=all
         name: checkout
         image: gcr.io/kubeflow-releasing/test-worker
         volumeMounts:
@@ -51,15 +57,8 @@ spec:
           readOnly: true
       containers:
       - command:
-        - python3 
-        - -m 
-        - kubeflow.kubeflow.ci.update_jupyter_web_app
-        - all
-        - --build-project=kubeflow-releasing
-        - --registry-project=kubeflow-images-public
-        - --remote-fork=git@github.com:kubeflow-bot/manifests.git 
-        - --kustomize_file=/src/kubeflow/manifests/jupyter/jupyter-web-app/base/kustomization.yaml 
-        - --add-github-host=true
+        - bash
+        - /scripts/update_jupyter.sh
         image: gcr.io/kubeflow-releasing/test-worker
         name: update
         env:
@@ -76,6 +75,8 @@ spec:
             secretKeyRef:
               name: github-token
               key: github_token
+        - name: GOPATH
+          value: /src/go
         volumeMounts:
         - mountPath: /src
           name: src
@@ -84,6 +85,8 @@ spec:
           readOnly: true
         - mountPath: /root/.ssh
           name: ssh-config
+        - mountPath: /scripts
+          name: scripts
       restartPolicy: Never
       volumes:
       - name: ssh-config
@@ -97,3 +100,6 @@ spec:
       - name: ssh
         secret:
           secretName: kubeflow-bot-ssh
+      - name: scripts
+        configMap:
+          name: auto-update-scripts

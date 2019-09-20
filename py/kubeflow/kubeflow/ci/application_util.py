@@ -82,7 +82,7 @@ def regenerate_manifest_tests(manifests_dir):
     os.symlink(manifests_dir, target)
 
   test_dir = os.path.join(target, "tests")
-  with tempfile.NamedTemporaryFile(delete=False) as hf:
+  with tempfile.NamedTemporaryFile(delete=False, mode="w") as hf:
     hf.write("#!/bin/bash\n")
     hf.write("set -ex\n")
     hf.write("cd {0}\n".format(test_dir))

@@ -1,0 +1,16 @@
+apiVersion: kfdef.apps.kubeflow.org/v1beta1
+kind: KfDef
+spec:
+  plugins:
+    - kind: kfGcpPlugin
+      apiVersion: v1beta1
+      metadata:
+        name: gcp-fake-plugin
+        namespace: kubeflow
+      spec:
+        auth:
+          iap:
+            oAuthClientId: foo-user
+            oAuthClientSecret:
+              name: CLIENT_SECRET
+        createPipelinePersistentStorage: true
