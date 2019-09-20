@@ -41,7 +41,6 @@ workflows:
       - testing/*
     kwargs:
       use_basic_auth: false
-      use_istio: true
       test_endpoint: true
       config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
@@ -57,7 +56,6 @@ workflows:
       - testing/*
     kwargs:
       use_basic_auth: false
-      use_istio: true
       config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
   # Run basic auth test as part of every periodic and postsubmit run. 
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
@@ -70,9 +68,8 @@ workflows:
       - deployment/*
       - kubeflow/*
       - testing/*
-    params:
+    kwargs:
       use_basic_auth: true
-      use_istio: true
       config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_basic_auth.yaml
   # Only run  kfctl presubmit test with basic auth if
   # files related to basic auth are modified.
