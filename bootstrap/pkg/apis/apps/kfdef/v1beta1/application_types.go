@@ -207,6 +207,7 @@ func (d *KfDef) GetPluginSpec(pluginName string, s interface{}) error {
 	}
 }
 
+// Sets condition and status to KfDef.
 func (d *KfDef) SetCondition(condType KfDefConditionType,
 	status v1.ConditionStatus,
 	name string,
@@ -237,6 +238,7 @@ func (d *KfDef) SetCondition(condType KfDefConditionType,
 	d.Status.Conditions = append(d.Status.Conditions, cond)
 }
 
+// Gets condition from KfDef.
 func (d *KfDef) GetCondition(condType KfDefConditionType,
 	name string) (*KfDefCondition, error) {
 	for i := range d.Status.Conditions {
@@ -252,6 +254,7 @@ func (d *KfDef) GetCondition(condType KfDefConditionType,
 	}
 }
 
+// Check if a plugin is finished.
 func (d *KfDef) IsPluginFinished(pluginName string) bool {
 	cond, err := d.GetCondition(KfPluginFinished, pluginName)
 	if err != nil {
@@ -260,6 +263,7 @@ func (d *KfDef) IsPluginFinished(pluginName string) bool {
 	return cond.Status == v1.ConditionTrue
 }
 
+// Set a plugin as finished.
 func (d *KfDef) SetPluginFinished(pluginName string) {
 	d.SetCondition(KfPluginFinished, v1.ConditionTrue, pluginName, "", "")
 }
