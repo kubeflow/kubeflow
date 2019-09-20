@@ -2,6 +2,7 @@ package kfdef
 
 import (
 	kfutils "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
+	"io/ioutil"
 	"os"
 	"path"
 	"reflect"
@@ -23,5 +24,7 @@ func TestKfLoader_LoadKfDefBackwardCompatibility(t *testing.T) {
 		t.Errorf("KfDef loaded is not compatible;\n%v\nv.s.\n%v",
 			kfutils.PrettyPrint(alpha),
 			kfutils.PrettyPrint(beta))
+		_ = ioutil.WriteFile(path.Join(wd, "alpha.txt"), []byte(kfutils.PrettyPrint(alpha)), 0644)
+		_ = ioutil.WriteFile(path.Join(wd, "beta.txt"), []byte(kfutils.PrettyPrint(beta)), 0644)
 	}
 }

@@ -31,12 +31,9 @@ spec:
     name: istio
   plugins:
     - kind: KfGcpPlugin
-      apiVersion: v1beta1
       metadata:
         name: gcp
-        namespace: kubeflow
       spec:
-        platform: gcp
         project: foo-project
         email: foo@gmail.com
         ipName: foo-ip
