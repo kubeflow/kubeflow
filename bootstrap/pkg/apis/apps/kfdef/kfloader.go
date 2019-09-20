@@ -196,6 +196,7 @@ func loadKfDefV1Beta1(configs []byte) (*kfdefv1beta1.KfDef, error) {
 	return kfdef, nil
 }
 
+// Loads KfDef fild and returns KfDef in v1beta1. v1alpha1 will be converted to the new version.
 func LoadKfDefFromURI(configFile string) (*kfdefv1beta1.KfDef, error) {
 	if configFile == "" {
 		return nil, fmt.Errorf("config file must be the URI of a KfDef spec")
