@@ -20,6 +20,7 @@ import (
 	"os"
 
 	nbv1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1alpha1"
+	nbv1beta1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -38,6 +39,7 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = nbv1alpha1.AddToScheme(scheme)
+	_ = nbv1beta1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -69,6 +71,13 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Notebook")
 		os.Exit(1)
 	}
+
+	// uncomment when we need the conversion webhook.
+	// if err = (&nbv1beta1.Notebook{}).SetupWebhookWithManager(mgr); err != nil {
+	// 	setupLog.Error(err, "unable to create webhook", "webhook", "Captain")
+	// 	os.Exit(1)
+	// }
+
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")

@@ -4251,8 +4251,12 @@ spec:
           - readyReplicas
           type: object
       type: object
+  version: v1alpha1
   versions:
   - name: v1alpha1
+    served: true
+    storage: false
+  - name: v1beta1
     served: true
     storage: true
 status:

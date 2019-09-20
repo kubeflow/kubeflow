@@ -20,7 +20,9 @@ GOPATH ?= $(HOME)/go
 BOOTSTRAPPER_IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
 GC_IMG ?= gcr.io/$(GCLOUD_PROJECT)/gcserver
 KFCTL_IMG ?= gcr.io/$(GCLOUD_PROJECT)/kfctl
-TAG ?= $(eval TAG := $(shell git describe --tags --long))$(TAG)
+# We use --always because otherwise when we clone with shallow depth we might not get
+# any tags and it will fail.
+TAG ?= $(eval TAG := $(shell git describe --tags --always --long))$(TAG)
 KFCTL_TARGET ?= kfctl
 MOUNT_KUBE ?=  -v $(HOME)/.kube:/root/.kube 
 MOUNT_GCP ?=  -v $(HOME)/.config:/root/.config 
@@ -35,7 +37,7 @@ JUNIT_FILE ?= /tmp/report.xml
 
 %.so:
 	cd cmd/plugins/$* && \
-	${GO} build -i -gcflags '-N -l' -o ../../../bin/$*.so -buildmode=plugin $*.go
+	${GO} build -gcflags '-N -l' -o ../../../bin/$*.so -buildmode=plugin $*.go
 
 %.init:
 	@echo kfctl init test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) --version master && \
@@ -79,16 +81,20 @@ pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/kfdef/v1alp
 	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy && \
 	mv ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/ && rm -rf v3
 
-deepcopy: ${GOPATH}/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go 
+pkg/apis/apps/kfdef/v1beta1/zz_generated.deepcopy.go: pkg/apis/apps/kfdef/v1beta1/application_types.go
+	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy && \
+	mv ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/ && rm -rf v3
+
+deepcopy: ${GOPATH}/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1beta1/zz_generated.deepcopy.go
 
 build-bootstrap: deepcopy generate fmt vet
 	${GO} build -gcflags '-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
 build-kfctl: deepcopy generate fmt vet
-	${GO} build -i -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctl cmd/kfctl/main.go
+	${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctl cmd/kfctl/main.go
 
 build-gc: deepcopy generate fmt vet
-	${GO} build -i -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/gc cmd/gc/main.go
+	${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/gc cmd/gc/main.go
 
 # Release tarballs suitable for upload to GitHub release pages
 build-kfctl-tgz: build-kfctl
@@ -98,7 +104,7 @@ build-kfctl-tgz: build-kfctl
 	cp -f ./bin/kfctl_$(TAG)_linux.tar.gz ./bin/kfctl_$(TAG)_darwin.tar.gz
 
 build-kfctl-client: /tmp/v2 deepcopy generate fmt vet
-	${GO} build -i -gcflags 'all=-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctlClient cmd/kfctlClient/main.go
+	${GO} build -gcflags 'all=-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctlClient cmd/kfctlClient/main.go
 
 # push the releases to a GitHub page
 push-to-github-release: build-kfctl-tgz

@@ -299,6 +299,7 @@ github.com/kr/pty v1.1.3/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
 github.com/kubeflow/kubeflow v0.4.1 h1:zrmzxaiA6MT+0PZ0caUTres2GS2W6Pyn+JVS0w/tgwQ=
 github.com/kubeflow/kubeflow v0.6.1 h1:axO7NmMp07hw+4EUeUCFsUEy8OBi4F5tDT4xFykrB6E=
+github.com/kubeflow/kubeflow v0.6.2 h1:VmCSCFBGK4DpFPYuqBkwADT8CYXDlnVc82S9znP64uE=
 github.com/lib/pq v1.0.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/markbates/deplist v1.0.4/go.mod h1:gRRbPbbuA8TmMiRvaOzUlRfzfjeCCBqX2A6arxN01MM=
@@ -667,6 +668,8 @@ sigs.k8s.io/controller-tools v0.1.8 h1:ENPucNu31uJVaqsL6jTcFK65bGF9g++HFhCuqoPB9
 sigs.k8s.io/controller-tools v0.1.8/go.mod h1:6g08p9m9G/So3sBc1AOQifHfhxH/mb6Sc4z0LMI8XMw=
 sigs.k8s.io/controller-tools v0.2.0-beta.4 h1:W+coTe+nkVNclQrikwlRp6GJKwgcrHzvIQZ9kCaak5A=
 sigs.k8s.io/controller-tools v0.2.0-beta.4/go.mod h1:8t/X+FVWvk6TaBcsa+UKUBbn7GMtvyBKX30SGl4em6Y=
+sigs.k8s.io/controller-tools v0.2.0 h1:AmQ/0JKBJAjyAiPAkrAf9QW06jkx2lc5hpxMjamsFpw=
+sigs.k8s.io/controller-tools v0.2.0/go.mod h1:8t/X+FVWvk6TaBcsa+UKUBbn7GMtvyBKX30SGl4em6Y=
 sigs.k8s.io/testing_frameworks v0.1.1 h1:cP2l8fkA3O9vekpy5Ks8mmA0NW/F7yBdXf8brkWhVrs=
 sigs.k8s.io/testing_frameworks v0.1.1/go.mod h1:VVBKrHmJ6Ekkfz284YKhQePcdycOzNH9qL6ht1zEr/U=
 sigs.k8s.io/yaml v1.1.0 h1:4A07+ZFc2wgJwo8YNlQpr1rVlgUDlxXHhPJciaPY5gs=

@@ -214,7 +214,7 @@ describe('Main Page', () => {
         const getEnvInfo = mockRequest(mainPage, {
             status: 200,
             responseText: JSON.stringify(envInfo),
-        }, false, '/api/env-info');
+        }, false, '/api/workgroup/env-info');
         await Promise.all([getHasWorkgroup, getEnvInfo]);
         flush();
 
