@@ -9,7 +9,6 @@ spec:
   zone: us-east1-b
   useBasicAuth: false
   skipInitProject: true
-  useIstio: true
   enableApplications: true
   deleteStorage: true
   repos:

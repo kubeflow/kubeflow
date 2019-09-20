@@ -30,7 +30,6 @@ type GcpPluginSpec struct {
 	Zone               string `json:"zone,omitempty"`
 	UseBasicAuth       bool   `json:"useBasicAuth"`
 	SkipInitProject    bool   `json:"skipInitProject,omitempty"`
-	UseIstio           bool   `json:"useIstio"`
 	EnableApplications bool   `json:"enableApplications"`
 	ServerVersion      string `json:"serverVersion,omitempty"`
 	DeleteStorage      bool   `json:"deleteStorage,omitempty"`
