@@ -106,7 +106,7 @@ func copyGcpPluginSpec(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) error 
 	}
 
 	spec := kfgcp.GcpPluginSpec{}
-	if err := to.GetPluginSpec(kftypesv3.GCP, spec); err != nil && !kfdefv1beta1.IsPluginNotFound(err) {
+	if err := to.GetPluginSpec(kftypesv3.GCP, &spec); err != nil && !kfdefv1beta1.IsPluginNotFound(err) {
 		return err
 	}
 	spec.Project = from.Spec.Project
@@ -160,6 +160,7 @@ func loadKfDefV1Alpha1(configs []byte) (*kfdefv1beta1.KfDef, error) {
 		TypeMeta:   alphaKfDef.TypeMeta,
 		ObjectMeta: alphaKfDef.ObjectMeta,
 	}
+	betaKfDef.APIVersion = Api + "/v1beta1"
 
 	// Converting functions wrapper.
 	converters := []func(*kfdefv1alpha1.KfDef, *kfdefv1beta1.KfDef){

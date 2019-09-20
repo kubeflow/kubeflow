@@ -1,34 +1,27 @@
 package kfdef
 
 import (
-	kfdefv1beta1 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
 	kfutils "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"os"
 	"path"
+	"reflect"
 	"testing"
 )
 
-func TestKfLoader_LoadConfigs(t *testing.T) {
-	type testCase struct {
-		Filename string
-		Expected *kfdefv1beta1.KfDef
+func TestKfLoader_LoadKfDefBackwardCompatibility(t *testing.T) {
+	wd, _ := os.Getwd()
+
+	alpha, err := LoadKfDefFromURI(path.Join(wd, "testdata", "kfdef_v1alpha1.yaml"))
+	if err != nil {
+		t.Fatalf("error when loading v1alpha1 KfDef: %v", err)
 	}
-
-	cases := []testCase{
-		{
-			Filename: "kfdef_v1alpha1.yaml",
-			Expected: &kfdefv1beta1.KfDef{},
-		},
+	beta, err := LoadKfDefFromURI(path.Join(wd, "testdata", "kfdef_v1beta1.yaml"))
+	if err != nil {
+		t.Fatalf("error when loading v1beta1 KfDef: %v", err)
 	}
-
-	for _, c := range cases {
-		wd, _ := os.Getwd()
-		fPath := path.Join(wd, "testdata", c.Filename)
-
-		kfdef, err := LoadKfDefFromURI(fPath)
-		if err != nil {
-			t.Fatalf("Error when loading KfDef: %v", err)
-		}
-		t.Fatalf("GG TEST: %v", kfutils.PrettyPrint(kfdef))
+	if !reflect.DeepEqual(alpha, beta) {
+		t.Errorf("KfDef loaded is not compatible;\n%v\nv.s.\n%v",
+			kfutils.PrettyPrint(alpha),
+			kfutils.PrettyPrint(beta))
 	}
 }
