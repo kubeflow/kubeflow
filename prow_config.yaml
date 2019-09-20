@@ -28,7 +28,7 @@ workflows:
     params:
       installIstio: true
       workflowName: deployapp-istio
-  - py_func: kubeflow.kubeflow.ci.kf_e2e_workflow.create_workflow
+  - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
     name: kfctl-go-iap-endpoint
     job_types:
       - postsubmit
@@ -66,7 +66,7 @@ workflows:
       useIstio: true
       configPath: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
   # Run basic auth test as part of every periodic and postsubmit run. 
-  - py_func: kubeflow.kubeflow.ci.kf_e2e_workflow.create_workflow
+  - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
     name: kfctl-go-basic-auth
     job_types:
       - postsubmit
@@ -85,7 +85,7 @@ workflows:
       configPath: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_basic_auth.yaml
   # Only run  kfctl presubmit test with basic auth if
   # files related to basic auth are modified.
-  - py_func: kubeflow.kubeflow.ci.kf_e2e_workflow.create_workflow
+  - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
     name: kfctl-go-basic-auth
     job_types:
       - presubmit
