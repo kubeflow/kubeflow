@@ -18,7 +18,9 @@ import (
 	"fmt"
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/builder"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -30,8 +32,7 @@ var applyCfg = viper.New()
 // and bootstrap a KfApp by filling in the necessary fields
 var ConfigFilePath string
 
-// Resource is set to k8s by default
-const resource = kftypes.K8S
+var resource kftypes.ResourceEnum
 
 // applyCmd represents the apply command
 var applyCmd = &cobra.Command{
@@ -44,18 +45,39 @@ var applyCmd = &cobra.Command{
 			log.SetLevel(log.WarnLevel)
 		}
 
-		kfApp, err := coordinator.LoadKfApp(map[string]interface{}{})
-		if err != nil {
-			return fmt.Errorf("couldn't load KfApp: %v", err)
+		var kfApp kftypes.KfApp
+		var err error
+
+		// Check if file flag was passed.
+		if ConfigFilePath != "" {
+			// Use builder with the incoming config file
+			kfDef, err := builder.LoadConfigFile(ConfigFilePath)
+			if err != nil {
+				return fmt.Errorf("couldn't load config file - %v", err)
+			}
+			resource = builder.GetPlatform(kfDef)
+			kfApp := kustomize.GetKfApp(kfDef)
+
+			generateErr := kfApp.Generate(resource)
+			if generateErr != nil {
+				return fmt.Errorf("couldn't generate KfApp: %v", generateErr)
+			}
+		} else {
+			kfApp, err = coordinator.LoadKfApp(map[string]interface{}{})
+			if err != nil {
+				return fmt.Errorf("couldn't load KfApp: %v", err)
+			}
+			resource, err = processResourceArg(args)
+			if err != nil {
+				return fmt.Errorf("invalid resource: %v", err)
+			}
 		}
-		resource, resourceErr := processResourceArg(args)
-		if resourceErr != nil {
-			return fmt.Errorf("invalid resource: %v", resourceErr)
-		}
+
 		err = kfApp.Apply(resource)
 		if err != nil {
 			return fmt.Errorf("couldn't apply KfApp: %v", err)
 		}
+
 		return nil
 	},
 }
