@@ -4,7 +4,7 @@
 
 - [Kubeflow CI with tektoncd pipelines](#kubeflow-ci-with-tektoncd-pipelines)
   - [Use Case](#use-case)
-  - [Pipeline Composistion](#pipeline-composistion)
+  - [Pipeline Composition](#pipeline-composition)
   - [Pipeline Parameterization](#pipeline-parameterization)
     - [PipelineRun parameters:](#pipelinerun-parameters)
     - [Pipeline parameters:](#pipeline-parameters)
@@ -48,7 +48,7 @@ This is a proof of value showing a CI use case for the following
    1. Creates a PR.
   
 
-### Pipeline Composistion
+### Pipeline Composition
 
 1. The [ci-centraldashboard-pipeline-run.yaml](./ci-centraldashboard-pipeline-run.yaml) is a TektonCD pipeline containing the following k8 resources: 
 
