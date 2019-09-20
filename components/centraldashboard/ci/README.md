@@ -8,6 +8,25 @@ This is a proof of value showing a CI use case for the following
 2. The developer has a PR open 
 3. The developer pushes changes 
 4. This triggers a prow presubmit job that calls a py_func that submits [ci-centraldashboard-pipeline-run.yaml](./ci-centraldashboard-pipeline-run.yaml)
+5. The pipeline has 2 tasks: build-push and update-manifests.
+6. Before starting the build-push task, the pipeline mounts the kubeflow repo revision refs/pull/4112/head at /workspace/kubeflow/head 
+7. The build-push task uses kaniko to generate a centraldashboard image and pushes it to gcr.io/kubeflow_public_images/centraldashboard
+8. The build-push task makes both kubeflow and centraldashboard resources availabe to the next task
+9. The update-manifests task has the kubeflow github resource, the manifests github resource, the kubeflow PR and the centraldashboard resource as inputs
+10. The update-manifests does the following by running kubeflow/kubeflow/py/kubeflow/kubeflow/ci/rebuild-manifests.sh
+  1. Goes to the /workspace/kubeflow-4112 directory where the PR is.
+  1. Parses pr.json to get the forked repo, branch and sha.
+  1. Parses github/pr.json to get the user of the forked repo
+  1. sets up ~/.ssh/{id_rsa,id_rsa.pub,known_hosts} by using the secret: github-secret 
+  1. does the following git operations on the forked repo
+    1. git remote add upstream git@github.com:kubeflow/manifests.git 
+    1. git fetch upstream master
+    1. git checkout -b $new_branch_name upstream/master
+  1. Calls kustomize edit set image using the image digest written to /workspace/centraldashboard.digest by build-push
+  1. Goes to /manifests/tests and calls `make generate; make test` 
+  1. if the build && test is successful calls git commit; git push
+  1. Creates a PR.
+  
 
 ### Pipeline Composistion
 
