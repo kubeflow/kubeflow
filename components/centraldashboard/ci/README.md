@@ -117,7 +117,7 @@ As shown above, 3 PipelineResources are provided by the PipelineRun:
 - centraldashboard (output)
   the image is pushed to gcr
 - kubeflow-4112
-  the pullRequest 
+  the pullRequest is mounted at /workspace/kubeflow-4112 and holds info about the PR
 
 
 The Pipeline 'ci-pipeline' is shown below:
