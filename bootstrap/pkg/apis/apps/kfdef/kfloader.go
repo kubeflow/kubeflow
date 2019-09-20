@@ -59,7 +59,15 @@ func copyApplications(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 					Name: application.KustomizeConfig.RepoRef.Name,
 					Path: application.KustomizeConfig.RepoRef.Path,
 				},
+				Overlays: application.KustomizeConfig.Overlays,
 			},
+		}
+		for _, param := range application.KustomizeConfig.Parameters {
+			app.KustomizeConfig.Parameters = append(app.KustomizeConfig.Parameters,
+				kfdefv1beta1.NameValue{
+					Name:  param.Name,
+					Value: param.Value,
+				})
 		}
 		to.Spec.Applications = append(to.Spec.Applications, app)
 	}
