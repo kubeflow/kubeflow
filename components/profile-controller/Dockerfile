@@ -1,20 +1,26 @@
 # Build the manager binary
-ARG GOLANG_VERSION=1.12.7
+ARG GOLANG_VERSION=1.12.5
 FROM golang:${GOLANG_VERSION} as builder
 
-# Copy in the go src
-WORKDIR /go/src/github.com/kubeflow/kubeflow/components/profile-controller
-COPY pkg/    pkg/
-COPY cmd/    cmd/
-COPY go.mod .
+WORKDIR /workspace
+# Copy the Go Modules manifests
+COPY go.mod go.mod
+COPY go.sum go.sum
+# cache deps before building and copying source so that we don't need to re-download as much
+# and so that source changes don't invalidate our downloaded layer
+RUN go mod download
 
-ENV GO111MODULE=on
+# Copy the go source
+COPY main.go main.go
+COPY api/ api/
+COPY controllers/ controllers/
 
 # Build
-RUN go build -gcflags 'all=-N -l' -o manager cmd/manager/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go
 
-# Copy the controller-manager into a thin image
-FROM ubuntu:latest
+# Use distroless as minimal base image to package the manager binary
+# Refer to https://github.com/GoogleContainerTools/distroless for more details
+FROM gcr.io/distroless/static:latest
 WORKDIR /
-COPY --from=builder /go/src/github.com/kubeflow/kubeflow/components/profile-controller/manager .
+COPY --from=builder /workspace/manager .
 ENTRYPOINT ["/manager"]

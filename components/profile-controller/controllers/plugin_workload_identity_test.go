@@ -1,4 +1,5 @@
 /*
+Copyright 2019 The Kubeflow Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -12,3 +13,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
+package controllers
+
+import (
+	"github.com/onsi/gomega"
+	"testing"
+)
+
+func TestGetProjectID(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	instance := &GcpWorkloadIdentity{GcpServiceAccount: "kubeflow@project-id.iam.gserviceaccount.com"}
+	projId, _ := instance.GetProjectID()
+
+	g.Expect(projId, "project-id")
+
+}

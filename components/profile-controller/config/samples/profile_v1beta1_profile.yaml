@@ -1,0 +1,17 @@
+apiVersion: profile.kubeflow.org/v1beta1
+kind: Profile
+metadata:
+  name: kubeflow-user1
+spec:
+  owner:
+    kind: User
+    name: user1@abcd.com
+  plugins:
+  - kind: WorkloadIdentity
+    spec:
+      GcpServiceAccount: kubeflow2@project-id.iam.gserviceaccount.com
+  resourcequotaspec:
+    hard:
+      cpu: "10"
+      memory: 20Gi
+      pods: "20"
