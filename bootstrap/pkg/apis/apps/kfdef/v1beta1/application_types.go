@@ -30,7 +30,11 @@ const (
 
 	// Used for populating plugin missing errors and identifying those
 	// errors.
-	notFoundErrPrefix = "Missing plugin"
+	pluginNotFoundErrPrefix = "Missing plugin"
+
+	// Used for populating plugin missing errors and identifying those
+	// errors.
+	conditionNotFoundErrPrefix = "Missing condition"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -199,7 +203,53 @@ func (d *KfDef) GetPluginSpec(pluginName string, s interface{}) error {
 
 	return &kfapis.KfError{
 		Code:    int(kfapis.NOT_FOUND),
-		Message: fmt.Sprintf("%v %v", notFoundErrPrefix, pluginName),
+		Message: fmt.Sprintf("%v %v", pluginNotFoundErrPrefix, pluginName),
+	}
+}
+
+func (d *KfDef) SetCondition(condType KfDefConditionType,
+	status v1.ConditionStatus,
+	name string,
+	reason string,
+	message string) {
+	now := metav1.Now()
+	cond := KfDefCondition{
+		Type:               condType,
+		Status:             status,
+		LastUpdateTime:     now,
+		LastTransitionTime: now,
+		Name:               name,
+		Reason:             reason,
+		Message:            message,
+	}
+
+	for i := range d.Status.Conditions {
+		if d.Status.Conditions[i].Name != name ||
+			d.Status.Conditions[i].Type != condType {
+			continue
+		}
+		if d.Status.Conditions[i].Status == status {
+			cond.LastTransitionTime = d.Status.Conditions[i].LastTransitionTime
+		}
+		d.Status.Conditions[i] = cond
+		return
+	}
+	d.Status.Conditions = append(d.Status.Conditions, cond)
+}
+
+func (d *KfDef) GetCondition(condType KfDefConditionType,
+	name string) (*KfDefCondition, error) {
+	for i := range d.Status.Conditions {
+		if d.Status.Conditions[i].Type != condType ||
+			d.Status.Conditions[i].Name != name {
+			continue
+		}
+		return &d.Status.Conditions[i], nil
+	}
+	return nil, &kfapis.KfError{
+		Code: int(kfapis.NOT_FOUND),
+		Message: fmt.Sprintf("%v %v",
+			conditionNotFoundErrPrefix, name),
 	}
 }
 
@@ -217,10 +267,37 @@ func (d *KfDef) IsPluginFinished(pluginName string) bool {
 	return false
 }
 
+func (d *KfDef) SetPluginFinished(pluginName string) {
+	now := metav1.Now()
+	cond := KfDefCondition{
+		Type:               KfPluginFinished,
+		Status:             v1.ConditionTrue,
+		LastUpdateTime:     now,
+		LastTransitionTime: now,
+		Name:               pluginName,
+	}
+
+	for i := range d.Status.Conditions {
+		if d.Status.Conditions[i].Name != pluginName ||
+			d.Status.Conditions[i].Type != KfPluginFinished {
+			continue
+		}
+		if d.Status.Conditions[i].Status == v1.ConditionTrue {
+			// It's already logged, return with no op.
+			return
+		}
+		d.Status.Conditions[i] = cond
+		return
+	}
+
+	// Not found, append to the list.
+	d.Status.Conditions = append(d.Status.Conditions, cond)
+}
+
 func IsPluginNotFound(e error) bool {
 	if e == nil {
 		return false
 	}
 	err, ok := e.(*kfapis.KfError)
-	return ok && err.Code == int(kfapis.NOT_FOUND) && strings.HasPrefix(err.Message, notFoundErrPrefix)
+	return ok && err.Code == int(kfapis.NOT_FOUND) && strings.HasPrefix(err.Message, pluginNotFoundErrPrefix)
 }
