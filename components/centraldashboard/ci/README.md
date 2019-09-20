@@ -194,7 +194,7 @@ As shown above, 2 Tasks are executed by the Pipeline. These tasks consume inputs
 
 ### Pipeline Parameterization
 
-The [ci-centraldashboard-pipeline-run.yaml](./ci-centraldashboard-pipeline-run.yaml) is parameterized by the following parameters: 
+The [ci-centraldashboard-pipeline-run.yaml](./ci-centraldashboard-pipeline-run.yaml) is parameterized by the following parameters that are in PipelineRun and Pipeline. Changing just a few of the parameters allows a different component to be run using this pipeline. This is covered in a later section. 
 
 PipelineRun parameters:
 
