@@ -2,7 +2,7 @@ import {KubeConfig} from '@kubernetes/client-node';
 import express, {Request, Response} from 'express';
 import {resolve} from 'path';
 
-import {Api} from './api';
+import {Api, apiError} from './api';
 import {attachUser} from './attach_user_middleware';
 import {DefaultApi} from './clients/profile_controller';
 import {WorkgroupApi} from './api_workgroup';
@@ -42,7 +42,6 @@ async function main() {
   const metricsService = await getMetricsService(k8sService);
   console.info(`Using Profiles service at ${profilesServiceUrl}`);
   const profilesService = new DefaultApi(profilesServiceUrl);
-  const workgroupApi = new WorkgroupApi(profilesService);
 
   app.use(express.json());
   app.use(express.static(frontEnd));
@@ -58,7 +57,15 @@ async function main() {
       },
     });
   });
-  app.use('/api', new Api(k8sService, workgroupApi, metricsService).routes());
+  app.use('/api', new Api(k8sService, metricsService).routes());
+  app.use('/api/workgroup', new WorkgroupApi(profilesService, k8sService).routes());
+  app.use('/api', (req: Request, res: Response) => 
+    apiError({
+      res,
+      error: `Could not find the route you're looking for`,
+      code: 404,
+    })
+  );
   app.get('/*', (_: express.Request, res: express.Response) => {
     res.sendFile(resolve(frontEnd, 'index.html'));
   });

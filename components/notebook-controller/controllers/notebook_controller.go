@@ -22,7 +22,7 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
-	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1alpha1"
+	v1beta1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/culler"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
@@ -77,7 +77,7 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("notebook", req.NamespacedName)
 
-	instance := &v1alpha1.Notebook{}
+	instance := &v1beta1.Notebook{}
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
 		log.Error(err, "unable to fetch Notebook")
 		return ctrl.Result{}, ignoreNotFound(err)
@@ -187,7 +187,7 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 				oldConditions[0].Reason != newCondition.Reason ||
 				oldConditions[0].Message != newCondition.Message {
 				log.Info("Appending to conditions: ", "namespace", instance.Namespace, "name", instance.Name, "type", newCondition.Type, "reason", newCondition.Reason, "message", newCondition.Message)
-				instance.Status.Conditions = append([]v1alpha1.NotebookCondition{newCondition}, oldConditions...)
+				instance.Status.Conditions = append([]v1beta1.NotebookCondition{newCondition}, oldConditions...)
 			}
 			err = r.Status().Update(ctx, instance)
 			if err != nil {
@@ -218,7 +218,7 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	return ctrl.Result{}, nil
 }
 
-func getNextCondition(cs corev1.ContainerState) v1alpha1.NotebookCondition {
+func getNextCondition(cs corev1.ContainerState) v1beta1.NotebookCondition {
 	var nbtype = ""
 	var nbreason = ""
 	var nbmsg = ""
@@ -235,7 +235,7 @@ func getNextCondition(cs corev1.ContainerState) v1alpha1.NotebookCondition {
 		nbmsg = cs.Terminated.Reason
 	}
 
-	newCondition := v1alpha1.NotebookCondition{
+	newCondition := v1beta1.NotebookCondition{
 		Type:          nbtype,
 		LastProbeTime: metav1.Now(),
 		Reason:        nbreason,
@@ -244,7 +244,7 @@ func getNextCondition(cs corev1.ContainerState) v1alpha1.NotebookCondition {
 	return newCondition
 }
 
-func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
+func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 	replicas := int32(1)
 	if culler.StopAnnotationIsSet(instance.ObjectMeta) {
 		replicas = 0
@@ -304,7 +304,7 @@ func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
 	return ss
 }
 
-func generateService(instance *v1alpha1.Notebook) *corev1.Service {
+func generateService(instance *v1beta1.Notebook) *corev1.Service {
 	// Define the desired Service object
 	port := DefaultContainerPort
 	containerPorts := instance.Spec.Template.Spec.Containers[0].Ports
@@ -351,7 +351,7 @@ func virtualServiceName(kfName string, namespace string) string {
 	return fmt.Sprintf("notebook-%s-%s", namespace, kfName)
 }
 
-func generateVirtualService(instance *v1alpha1.Notebook) (*unstructured.Unstructured, error) {
+func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructured, error) {
 	name := instance.Name
 	namespace := instance.Namespace
 	prefix := fmt.Sprintf("/notebook/%s/%s", namespace, name)
@@ -405,7 +405,7 @@ func generateVirtualService(instance *v1alpha1.Notebook) (*unstructured.Unstruct
 
 }
 
-func (r *NotebookReconciler) reconcileVirtualService(instance *v1alpha1.Notebook) error {
+func (r *NotebookReconciler) reconcileVirtualService(instance *v1beta1.Notebook) error {
 	log := r.Log.WithValues("notebook", instance.Namespace)
 	virtualService, err := generateVirtualService(instance)
 	if err := ctrl.SetControllerReference(instance, virtualService, r.Scheme); err != nil {
@@ -443,7 +443,7 @@ func (r *NotebookReconciler) reconcileVirtualService(instance *v1alpha1.Notebook
 }
 func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	builder := ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.Notebook{}).
+		For(&v1beta1.Notebook{}).
 		Owns(&appsv1.StatefulSet{}).
 		Owns(&corev1.Service{})
 	// watch Istio virturalservice

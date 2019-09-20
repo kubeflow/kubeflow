@@ -80,7 +80,14 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 	var err error
 	bo := backoff.NewExponentialBackOff()
 	bo.InitialInterval = 3 * time.Second
-	bo.MaxElapsedTime = 30 * time.Minute
+
+	if d, ok := ctx.Deadline(); ok {
+		bo.MaxElapsedTime = d.Sub(time.Now())
+	} else {
+		// TODO(https://github.com/kubeflow/kubeflow/issues/4131) we should be able to set a more reasonable O(minute)
+		// timeout if we move alerting and monitoring from the router into kfctl server.
+		bo.MaxElapsedTime = 30 * time.Minute
+	}
 	// Add retry logic
 	permErr := backoff.Retry(func() error {
 		resp, err = c.createEndpoint(ctx, req)
@@ -114,6 +121,14 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 
 	// Watch deployment status, update monitor signal as needed.
 	log.Infof("Watching deployment status")
+
+	if d, ok := ctx.Deadline(); ok {
+		bo.MaxElapsedTime = d.Sub(time.Now())
+	} else {
+		// TODO(https://github.com/kubeflow/kubeflow/issues/4131) we should be able to set a more reasonable O(minute)
+		// timeout if we move alerting and monitoring from the router into kfctl server.
+		bo.MaxElapsedTime = 30 * time.Minute
+	}
 	bo.Reset()
 	permErr = backoff.Retry(func() error {
 		latestKfdef, err := c.GetLatestKfdef(req)

@@ -22,7 +22,7 @@ import {
 /** Relative paths from the root of the repository. */
 enum ConfigPath {
     V05 = 'v0.5-branch/components/gcp-click-to-deploy/app-config.yaml',
-    V06 = 'c54401e/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml'
+    V06 = 'a18d7b07/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml'
 }
 
 /** Versions available for deployment. */
@@ -546,12 +546,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         delete configSpec.status;
 
         const appSpec = configSpec.spec as KfDefSpec;
-        delete appSpec.appdir;
-
-        appSpec.repos!.forEach((r) => {
-            r.uri = r.uri.replace('master', Version.V06);
-            r.root = `${r.name}-0.6.1`;
-        });
 
         // Need to set applications and component parameters
         const apps = appSpec.applications

@@ -138,6 +138,12 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 						},
 					},
 				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "kubeflow",
+						Path: "deployment/gke/deployment_manager_configs",
+					},
+				},
 			},
 		},
 		{
@@ -161,6 +167,12 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 						},
 					},
 				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "kubeflow",
+						Path: "deployment/gke/deployment_manager_configs",
+					},
+				},
 			},
 		},
 		{
@@ -182,6 +194,12 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 						OAuthClientSecret: &kfdefs.SecretRef{
 							Name: CLIENT_SECRET,
 						},
+					},
+				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "kubeflow",
+						Path: "deployment/gke/deployment_manager_configs",
 					},
 				},
 			},
@@ -210,6 +228,12 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 						OAuthClientSecret: &kfdefs.SecretRef{
 							Name: CLIENT_SECRET,
 						},
+					},
+				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "kubeflow",
+						Path: "deployment/gke/deployment_manager_configs",
 					},
 				},
 			},
@@ -242,6 +266,12 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 						OAuthClientSecret: &kfdefs.SecretRef{
 							Name: CLIENT_SECRET,
 						},
+					},
+				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "kubeflow",
+						Path: "deployment/gke/deployment_manager_configs",
 					},
 				},
 			},
@@ -281,6 +311,12 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 						},
 					},
 				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "kubeflow",
+						Path: "deployment/gke/deployment_manager_configs",
+					},
+				},
 			},
 		},
 		{
@@ -312,6 +348,57 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 						Password: &kfdefs.SecretRef{
 							Name: "original_secret",
 						},
+					},
+				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "kubeflow",
+						Path: "deployment/gke/deployment_manager_configs",
+					},
+				},
+			},
+		},
+		{
+			Name: "dm-configs-not-overwritten",
+			Input: &kfdefs.KfDef{
+				Spec: kfdefs.KfDefSpec{
+					UseBasicAuth: false,
+				},
+			},
+			InputSpec: &GcpPluginSpec{
+				Auth: &Auth{
+					BasicAuth: &BasicAuth{
+						Username: "original_user",
+						Password: &kfdefs.SecretRef{
+							Name: "original_secret",
+						},
+					},
+				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "somerepo",
+						Path: "somepath",
+					},
+				},
+			},
+			Env: map[string]string{
+				CLIENT_ID: "someclient",
+			},
+			Expected: &GcpPluginSpec{
+				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
+				Auth: &Auth{
+					BasicAuth: &BasicAuth{
+						Username: "original_user",
+						Password: &kfdefs.SecretRef{
+							Name: "original_secret",
+						},
+					},
+				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "somerepo",
+						Path: "somepath",
 					},
 				},
 			},

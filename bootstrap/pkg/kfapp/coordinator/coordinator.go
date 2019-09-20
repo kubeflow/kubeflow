@@ -28,6 +28,7 @@ import (
 
 	"os"
 
+	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
@@ -43,6 +44,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	valid "k8s.io/apimachinery/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 // Builder defines the methods used to create KfApps.
@@ -211,6 +213,45 @@ func repoVersionToUri(repo string, version string) string {
 	tarballUrl := "https://github.com/kubeflow/" + repo + "/tarball/" + version + "?archive=tar.gz"
 
 	return tarballUrl
+}
+
+// A strawman approach for reconcile semantics. We keep retrying until the fn returns nil.
+type simpleReconcileReq struct {
+	Fn      func() error
+	Requeue bool
+}
+
+func newReconcileReq(fn func() error) simpleReconcileReq {
+	return simpleReconcileReq{
+		Fn:      fn,
+		Requeue: true,
+	}
+}
+
+func simpleReconcile(requests []simpleReconcileReq) error {
+	return backoff.Retry(func() error {
+		retry := false
+		for idx := range requests {
+			if requests[idx].Requeue == false {
+				continue
+			}
+
+			if err := requests[idx].Fn(); err == nil {
+				requests[idx].Requeue = false
+			} else {
+				log.Warnf("reconcile process has error: %v; retrying...", err)
+				requests[idx].Requeue = true
+				retry = true
+			}
+		}
+
+		if retry {
+			return fmt.Errorf("Retrying to reconcile in 10 seconds.")
+		} else {
+			// Exit the simple reconcile.
+			return nil
+		}
+	}, backoff.NewConstantBackOff(10*time.Second))
 }
 
 // CreateKfDefFromOptions creates a KfDef from the supplied options.
@@ -885,24 +926,21 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 		}
 	}
 
+	// TODO(gabrielwen): Move `gcpAddedConfig` back to gcp.go.
 	switch resources {
 	case kftypesv3.ALL:
-		if err := platform(); err != nil {
-			return err
-		}
-		if err := k8s(); err != nil {
-			return err
-		}
-		return gcpAddedConfig()
+		return simpleReconcile([]simpleReconcileReq{
+			newReconcileReq(platform),
+			newReconcileReq(k8s),
+			newReconcileReq(gcpAddedConfig),
+		})
 	case kftypesv3.PLATFORM:
 		return platform()
 	case kftypesv3.K8S:
-		if err := k8s(); err != nil {
-			return err
-		}
-		// TODO(gabrielwen): Need to find a more proper way of injecting plugings.
-		// https://github.com/kubeflow/kubeflow/issues/3708
-		return gcpAddedConfig()
+		return simpleReconcile([]simpleReconcileReq{
+			newReconcileReq(k8s),
+			newReconcileReq(gcpAddedConfig),
+		})
 	}
 	return nil
 }
