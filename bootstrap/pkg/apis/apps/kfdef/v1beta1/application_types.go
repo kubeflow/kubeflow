@@ -142,6 +142,9 @@ const (
 
 	// KfDegraded means functionality of Kubeflow is limited.
 	KfDegraded KfDefConditionType = "Degraded"
+
+	// KfPluginSucceeded means a plugin is successfully applied.
+	KfPluginSucceeded KfDefConditionType = "KfPluginSucceeded"
 )
 
 type KfDefConditionReason string
@@ -160,6 +163,8 @@ type KfDefCondition struct {
 	LastUpdateTime metav1.Time `json:"lastUpdateTime,omitempty"`
 	// Last time the condition transitioned from one status to another.
 	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
+	// Name of the component this condition points to.
+	Name string `json:"name,omitempty"`
 	// The reason for the condition's last transition.
 	Reason string `json:"reason,omitempty"`
 	// A human readable message indicating details about the transition.
