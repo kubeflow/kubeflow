@@ -2,7 +2,6 @@ package kfdef
 
 import (
 	kfutils "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
-	"io/ioutil"
 	"os"
 	"path"
 	"reflect"
