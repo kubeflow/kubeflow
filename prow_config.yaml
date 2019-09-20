@@ -83,7 +83,6 @@ workflows:
       - testing/kfctl/*
     kwargs:
       use_basic_auth: true
-      use_istio: true
       config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_basic_auth.yaml
   # Run unittests
   # TODO(jlewi): Need to add step to run go and python unittests

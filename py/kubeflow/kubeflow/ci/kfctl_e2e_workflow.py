@@ -624,6 +624,9 @@ class Builder:
 
     return self.workflow
 
+# TODO(jlewi): This is an unnecessary layer of indirection around the builder
+# We should allow py_func in prow_config to point to the builder and
+# let e2e_tool take care of this.
 def create_workflow(**kwargs): # pylint: disable=too-many-statements
   """Create workflow returns an Argo workflow to test kfctl upgrades.
 
