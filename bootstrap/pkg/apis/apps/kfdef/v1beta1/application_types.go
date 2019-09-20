@@ -240,11 +240,10 @@ func (d *KfDef) SetCondition(condType KfDefConditionType,
 func (d *KfDef) GetCondition(condType KfDefConditionType,
 	name string) (*KfDefCondition, error) {
 	for i := range d.Status.Conditions {
-		if d.Status.Conditions[i].Type != condType ||
-			d.Status.Conditions[i].Name != name {
-			continue
+		if d.Status.Conditions[i].Type == condType &&
+			d.Status.Conditions[i].Name == name {
+			return &d.Status.Conditions[i], nil
 		}
-		return &d.Status.Conditions[i], nil
 	}
 	return nil, &kfapis.KfError{
 		Code: int(kfapis.NOT_FOUND),
@@ -254,44 +253,15 @@ func (d *KfDef) GetCondition(condType KfDefConditionType,
 }
 
 func (d *KfDef) IsPluginFinished(pluginName string) bool {
-	for _, cond := range d.Status.Conditions {
-		if cond.Type != KfPluginFinished ||
-			cond.Status != v1.ConditionTrue {
-			continue
-		}
-		if cond.Name == pluginName {
-			return true
-		}
+	cond, err := d.GetCondition(KfPluginFinished, pluginName)
+	if err != nil {
+		return false
 	}
-
-	return false
+	return cond.Status == v1.ConditionTrue
 }
 
 func (d *KfDef) SetPluginFinished(pluginName string) {
-	now := metav1.Now()
-	cond := KfDefCondition{
-		Type:               KfPluginFinished,
-		Status:             v1.ConditionTrue,
-		LastUpdateTime:     now,
-		LastTransitionTime: now,
-		Name:               pluginName,
-	}
-
-	for i := range d.Status.Conditions {
-		if d.Status.Conditions[i].Name != pluginName ||
-			d.Status.Conditions[i].Type != KfPluginFinished {
-			continue
-		}
-		if d.Status.Conditions[i].Status == v1.ConditionTrue {
-			// It's already logged, return with no op.
-			return
-		}
-		d.Status.Conditions[i] = cond
-		return
-	}
-
-	// Not found, append to the list.
-	d.Status.Conditions = append(d.Status.Conditions, cond)
+	d.SetCondition(KfPluginFinished, v1.ConditionTrue, pluginName, "", "")
 }
 
 func IsPluginNotFound(e error) bool {
