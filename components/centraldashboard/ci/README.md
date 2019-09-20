@@ -19,9 +19,9 @@ This is a proof of value showing a CI use case for the following
    1. Parses github/pr.json to get the user of the forked repo
    1. sets up ~/.ssh/{id_rsa,id_rsa.pub,known_hosts} by using the secret: github-secret 
    1. does the following git operations on the forked repo
-      1. git remote add upstream git@github.com:kubeflow/manifests.git 
-      1. git fetch upstream master
-      1. git checkout -b $new_branch_name upstream/master
+      1. Calls `git remote add upstream git@github.com:kubeflow/manifests.git`
+      1. Calls `git fetch upstream master` 
+      1. Calls `git checkout -b $new_branch_name upstream/master`
    1. Calls kustomize edit set image using the image digest written to /workspace/centraldashboard.digest by build-push
    1. Goes to /manifests/tests and calls `make generate; make test` 
    1. if the build && test is successful calls git commit; git push
