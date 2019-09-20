@@ -101,12 +101,6 @@ apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
   labels:
-    app.kubernetes.io/component: kubeflow
-    app.kubernetes.io/instance: ci-centraldashboard-pipeline-run-52fdfc07
-    app.kubernetes.io/managed-by: kfctl
-    app.kubernetes.io/name: ci-pipeline-run
-    app.kubernetes.io/part-of: kubeflow
-    app.kubernetes.io/version: v0.6
     scope: kubeflow-ci
   name: ci-centraldashboard-pipeline-run-52fdfc07
   namespace: kubeflow-ci
@@ -132,14 +126,14 @@ spec:
   serviceAccount: ci-pipeline-run-service-account
 ```
 
-As shown above, 3 PipelineResources are provided by the PipelineRun:
+As noted, 4 PipelineResources are provided by the PipelineRun:
 
 - kubeflow (input)
   the github repo is mounted at /workspace/kubeflow
 - manifests (input)
   the github repo is mounted at /workspace/manifests
 - centraldashboard (output)
-  the image is pushed to gcr
+  the image is built and pushed to gcr
 - kubeflow-4112
   the pullRequest is mounted at /workspace/kubeflow-4112 and holds info about the PR
 
@@ -214,7 +208,7 @@ spec:
       name: update-manifests
 ```
 
-As shown above, 2 Tasks are executed by the Pipeline. These tasks consume inputs or produce outputs provided by the PipelineRun.
+2 Tasks are referenced by the Pipeline. These tasks consume inputs or produce outputs provided by the PipelineRun.
 
 ### Pipeline Parameterization
 
