@@ -40,13 +40,10 @@ workflows:
       - kubeflow/*
       - testing/*
     kwargs:
-      platform: gke
-      gkeApiVersion: v1
-      workflowName: kfctl-go
-      useBasicAuth: false
-      useIstio: true
-      testEndpoint: true
-      configPath: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
+      use_basic_auth: false
+      use_istio: true
+      test_endpoint: true
+      config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
     component: kfctl_go_test
     name: kfctl-go-iap-istio
@@ -59,12 +56,9 @@ workflows:
       - kubeflow/*
       - testing/*
     kwargs:
-      platform: gke
-      gkeApiVersion: v1
-      workflowName: kfctl-go
-      useBasicAuth: false
-      useIstio: true
-      configPath: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
+      use_basic_auth: false
+      use_istio: true
+      config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
   # Run basic auth test as part of every periodic and postsubmit run. 
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
     name: kfctl-go-basic-auth
@@ -77,12 +71,9 @@ workflows:
       - kubeflow/*
       - testing/*
     params:
-      platform: gke
-      gkeApiVersion: v1
-      workflowName: kfctl-go
-      useBasicAuth: true
-      useIstio: true
-      configPath: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_basic_auth.yaml
+      use_basic_auth: true
+      use_istio: true
+      config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_basic_auth.yaml
   # Only run  kfctl presubmit test with basic auth if
   # files related to basic auth are modified.
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
@@ -94,12 +85,9 @@ workflows:
       - bootstrap/*
       - testing/kfctl/*
     kwargs:
-      platform: gke
-      gkeApiVersion: v1
-      workflowName: kfctl-go
-      useBasicAuth: true
-      useIstio: true
-      configPath: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_basic_auth.yaml
+      use_basic_auth: true
+      use_istio: true
+      config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_basic_auth.yaml
   # Run unittests
   # TODO(jlewi): Need to add step to run go and python unittests
   - app_dir: kubeflow/kubeflow/testing/workflows
