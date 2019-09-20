@@ -1,0 +1,92 @@
+{
+  "kind": "KfDef",
+  "apiVersion": "kfdef.apps.kubeflow.org/v1beta1",
+  "metadata": {
+    "creationTimestamp": null
+  },
+  "spec": {
+    "applications": [
+      {
+        "name": "istio-crds",
+        "kustomizeConfig": {
+          "repoRef": {
+            "name": "manifests",
+            "path": "istio/istio-crds"
+          },
+          "parameters": [
+            {
+              "name": "namespace",
+              "value": "istio-system"
+            }
+          ]
+        }
+      },
+      {
+        "name": "istio-install",
+        "kustomizeConfig": {
+          "repoRef": {
+            "name": "manifests",
+            "path": "istio/istio-install"
+          },
+          "parameters": [
+            {
+              "name": "namespace",
+              "value": "istio-system"
+            }
+          ]
+        }
+      },
+      {
+        "name": "istio",
+        "kustomizeConfig": {
+          "repoRef": {
+            "name": "manifests",
+            "path": "istio/istio"
+          },
+          "parameters": [
+            {
+              "name": "clusterRbacConfig",
+              "value": "ON"
+            }
+          ]
+        }
+      }
+    ],
+    "plugins": [
+      {
+        "kind": "KfGcpPlugin",
+        "metadata": {
+          "name": "gcp",
+          "creationTimestamp": null
+        },
+        "spec": {
+          "auth": {
+            "iap": {
+              "oAuthClientId": "foo-user",
+              "oAuthClientSecret": {
+                "name": "CLIENT_SECRET"
+              }
+            }
+          },
+          "createPipelinePersistentStorage": true,
+          "deleteStorage": true,
+          "email": "foo@gmail.com",
+          "enableApplications": true,
+          "hostname": "foo.endpoints.foo-project.cloud.goog",
+          "ipName": "foo-ip",
+          "project": "foo-project",
+          "skipInitProject": true,
+          "useBasicAuth": false,
+          "zone": "us-east1-b"
+        }
+      }
+    ],
+    "repos": [
+      {
+        "name": "manifests",
+        "uri": "https://github.com/kubeflow/manifests/archive/master.tar.gz"
+      }
+    ]
+  },
+  "status": {}
+}

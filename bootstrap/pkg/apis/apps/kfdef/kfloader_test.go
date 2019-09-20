@@ -75,7 +75,7 @@ func TestKfLoad_LoadKfDefFomURI(t *testing.T) {
 			},
 		},
 	}
-	expectedOutput.Kind = "KdDef"
+	expectedOutput.Kind = "KfDef"
 	expectedOutput.APIVersion = "kfdef.apps.kubeflow.org/v1beta1"
 	gcpPluginSpec := &kfgcp.GcpPluginSpec{
 		Project:                         "foo-project",
@@ -104,6 +104,10 @@ func TestKfLoad_LoadKfDefFomURI(t *testing.T) {
 
 	testCases := []testCase{
 		testCase{
+			filename: "kfdef_v1alpha1.yaml",
+			expected: expectedOutput,
+		},
+		testCase{
 			filename: "kfdef_v1beta1.yaml",
 			expected: expectedOutput,
 		},
@@ -111,33 +115,15 @@ func TestKfLoad_LoadKfDefFomURI(t *testing.T) {
 
 	for _, c := range testCases {
 		wd, _ := os.Getwd()
-		path := path.Join(wd, "testdata", c.filename)
-		kfdef, err := LoadKfDefFromURI(path)
+		p := path.Join(wd, "testdata", c.filename)
+		kfdef, err := LoadKfDefFromURI(p)
 		if err != nil {
 			t.Fatalf("error when loading kfdef: %v", err)
 		}
-		if !reflect.DeepEqual(kfdef, *c.expected) {
+		if !reflect.DeepEqual(kfdef, c.expected) {
 			t.Errorf("KfDef loaded doesn't match expected;\nloaded\n%v\nexpected\n%v",
 				kfutils.PrettyPrint(kfdef),
 				kfutils.PrettyPrint(*c.expected))
 		}
-	}
-}
-
-func TestKfLoader_LoadKfDefBackwardCompatible(t *testing.T) {
-	wd, _ := os.Getwd()
-
-	alpha, err := LoadKfDefFromURI(path.Join(wd, "testdata", "kfdef_v1alpha1.yaml"))
-	if err != nil {
-		t.Fatalf("error when loading v1alpha1 KfDef: %v", err)
-	}
-	beta, err := LoadKfDefFromURI(path.Join(wd, "testdata", "kfdef_v1beta1.yaml"))
-	if err != nil {
-		t.Fatalf("error when loading v1beta1 KfDef: %v", err)
-	}
-	if !reflect.DeepEqual(alpha, beta) {
-		t.Errorf("KfDef loaded is not compatible;\nalpha\n%v\nbeta\n%v",
-			kfutils.PrettyPrint(alpha),
-			kfutils.PrettyPrint(beta))
 	}
 }
