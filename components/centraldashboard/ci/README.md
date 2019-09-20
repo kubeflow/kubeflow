@@ -55,18 +55,19 @@ This is a proof of value showing a CI use case for the following
 In this particular instance, the PipelineRun instance has the following composition:
 
 ```
-── ci-centraldashboard-pipeline-run-52fdfc07
-   ├── resources
-   │   ├── gcr-image
-   │   │   └── centraldashboard
-   │   ├── gitrepo
-   │   │   ├── kubeflow
-   │   │   └── manifests
-   │   └── pullrequest
-   │       └── kubeflow#4112
-   └── tasks
-       ├── build-push
-       └── update-manifests
+└── ci-centraldashboard-pipeline-run-52fdfc07
+    ├── pipeline
+    │   └── tasks
+    │       ├── build-push
+    │       └── update-manifests
+    └── resources
+        ├── gcr-image
+        │   └── centraldashboard
+        ├── gitrepo
+        │   ├── kubeflow
+        │   └── manifests
+        └── pullrequest
+            └── kubeflow#4112
 ```
 
 The Tasks within the Pipeline use Resources provided by the PipelineRun.  The PipelineRun is shown below:
