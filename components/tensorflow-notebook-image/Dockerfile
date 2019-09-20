@@ -47,10 +47,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
   zip \
   emacs \
   python3-pip \
-<<<<<<< HEAD
   python3-dev \
-=======
->>>>>>> fix: install python3-setuptools and python3-pip
   python3-setuptools \
   && apt-get clean && \
   rm -rf /var/lib/apt/lists/*
