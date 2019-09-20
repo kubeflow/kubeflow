@@ -624,9 +624,7 @@ class Builder:
 
     return self.workflow
 
-def create_workflow(name=None, namespace=None, use_basic_auth=False,
-                    test_endpoint=False, bucket="kubeflow-ci_temp",
-                    kf_app_name=None, delete_kf=True): # pylint: disable=too-many-statements
+def create_workflow(**kwargs): # pylint: disable=too-many-statements
   """Create workflow returns an Argo workflow to test kfctl upgrades.
 
   Args:
@@ -634,7 +632,6 @@ def create_workflow(name=None, namespace=None, use_basic_auth=False,
      associated with the workflow.
   """
 
-  builder = Builder(name=name, namespace=namespace, bucket=bucket,
-                    kf_app_name=kf_app_name, delete_kf=delete_kf)
+  builder = Builder(**kwargs)
 
   return builder.build()
