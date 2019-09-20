@@ -1,3 +1,23 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Kubeflow CI with tektoncd pipelines](#kubeflow-ci-with-tektoncd-pipelines)
+  - [Use Case](#use-case)
+  - [Pipeline Composistion](#pipeline-composistion)
+  - [Pipeline Parameterization](#pipeline-parameterization)
+    - [PipelineRun parameters:](#pipelinerun-parameters)
+    - [Pipeline parameters:](#pipeline-parameters)
+  - [Pipeline Generation](#pipeline-generation)
+    - [Current Approach](#current-approach)
+      - [/manifests/ci/{ci-pipeline-run, ci-pipeline}](#manifestscici-pipeline-run-ci-pipeline)
+    - [Alternatives](#alternatives)
+  - [Pipeline Supporting Resources](#pipeline-supporting-resources)
+    - [Secrets](#secrets)
+    - [Persitent Volumes](#persitent-volumes)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Kubeflow CI with tektoncd pipelines
 
 ### Use Case
@@ -196,7 +216,7 @@ As shown above, 2 Tasks are executed by the Pipeline. These tasks consume inputs
 
 The [ci-centraldashboard-pipeline-run.yaml](./ci-centraldashboard-pipeline-run.yaml) is parameterized by the following parameters that are listed under the params sections in PipelineRun and Pipeline. Changing just a few of the parameters allows a different component to be run using this pipeline. This is covered in a later section. 
 
-PipelineRun parameters:
+#### PipelineRun parameters:
 
 |           **name**          	|                      **value**                     	|                **description**                	|
 |:-----------------------:	|:----------------------------------------------:	|:-----------------------------------------:	|
@@ -214,7 +234,7 @@ PipelineRun parameters:
 | pvc_mount_path          	| kubeflow                                       	| a shared pvc for tasks to write to        	|
 | project                 	| kubeflow-ci                                    	| the GKE project                           	|
 
-Pipeline parameters:
+#### Pipeline parameters:
 
 |          **name**         	|                  **value**                 	|                 **description**                	|
 |:---------------------:	|:--------------------------------------:	|:------------------------------------------:	|
