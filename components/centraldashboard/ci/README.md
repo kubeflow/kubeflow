@@ -90,7 +90,11 @@ In this particular instance, the PipelineRun instance has the following composit
             └── kubeflow#4112
 ```
 
-The Tasks within the Pipeline use Resources provided by the PipelineRun.  The PipelineRun is shown below:
+As the diagram shows, the PipelineRun references a Pipeline that has 2 tasks. 
+It also contains PipelineResources of type image (1), git (2), and pullRequest (1). 
+The tasks will reference these resources in their inputs or outputs. 
+
+The PipelineRun is shown below:
 
 ```
 apiVersion: tekton.dev/v1alpha1
