@@ -143,8 +143,8 @@ const (
 	// KfDegraded means functionality of Kubeflow is limited.
 	KfDegraded KfDefConditionType = "Degraded"
 
-	// KfPluginSucceeded means a plugin is successfully applied.
-	KfPluginSucceeded KfDefConditionType = "KfPluginSucceeded"
+	// KfPluginFinished means a plugin is successfully applied.
+	KfPluginFinished KfDefConditionType = "KfPluginSucceeded"
 )
 
 type KfDefConditionReason string
@@ -201,6 +201,20 @@ func (d *KfDef) GetPluginSpec(pluginName string, s interface{}) error {
 		Code:    int(kfapis.NOT_FOUND),
 		Message: fmt.Sprintf("%v %v", notFoundErrPrefix, pluginName),
 	}
+}
+
+func (d *KfDef) IsPluginFinished(pluginName string) bool {
+	for _, cond := range d.Status.Conditions {
+		if cond.Type != KfPluginFinished ||
+			cond.Status != v1.ConditionTrue {
+			continue
+		}
+		if cond.Name == pluginName {
+			return true
+		}
+	}
+
+	return false
 }
 
 func IsPluginNotFound(e error) bool {
