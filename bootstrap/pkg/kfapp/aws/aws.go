@@ -473,10 +473,6 @@ func (aws *Aws) Init(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	// Finish initialization and write spec to config file
-	swaggerFile := filepath.Join(path.Dir(aws.kfDef.Spec.Repo), kftypes.DefaultSwaggerFile)
-	aws.kfDef.Spec.ServerVersion = "file:" + swaggerFile
-
 	createConfigErr := aws.kfDef.WriteToConfigFile()
 	if createConfigErr != nil {
 		return &kfapis.KfError{

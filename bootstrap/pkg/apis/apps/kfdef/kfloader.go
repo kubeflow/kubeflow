@@ -125,7 +125,6 @@ func copyGcpPluginSpec(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) error 
 	spec.UseBasicAuth = from.Spec.UseBasicAuth
 	spec.SkipInitProject = from.Spec.SkipInitProject
 	spec.EnableApplications = from.Spec.EnableApplications
-	spec.ServerVersion = from.Spec.ServerVersion
 	spec.DeleteStorage = from.Spec.DeleteStorage
 	return to.SetPluginSpec(kftypesv3.GCP, spec)
 }
