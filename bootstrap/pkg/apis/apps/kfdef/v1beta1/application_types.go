@@ -111,6 +111,12 @@ type EnvSource struct {
 	Name string `json:"Name,omitempty"`
 }
 
+// SecretRef is a reference to a secret
+type SecretRef struct {
+	// Name of the secret
+	Name string `json:"name,omitempty"`
+}
+
 // Repo provides information about a repository providing config (e.g. kustomize packages,
 // Deployment manager configs, etc...)
 type Repo struct {
