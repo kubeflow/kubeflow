@@ -47,7 +47,7 @@ workflows:
       useIstio: true
       testEndpoint: true
       configPath: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
-  - py_func: kubeflow.kubeflow.ci.kf_e2e_workflow.create_workflow
+  - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
     component: kfctl_go_test
     name: kfctl-go-iap-istio
     job_types:
