@@ -9,6 +9,8 @@ ARG TF_SERVING_VERSION=0.0.0
 ARG PIPELINE_SDK_PACKAGE=https://storage.googleapis.com/ml-pipeline/release/0.1.23/kfp.tar.gz
 ARG NB_USER=jovyan
 
+# TODO: User should be refactored instead of hard coded jovyan
+
 USER root
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -106,14 +108,13 @@ RUN pip --no-cache-dir install \
     # Kubeflow pipeline SDK
     ${PIPELINE_SDK_PACKAGE} 
 
-# NB: the COPY chown can't expand a bash variable for NB_USER
-COPY --chown=${NB_USER}:users requirements.txt /tmp
+COPY --chown=jovyan:users requirements.txt /tmp
 
 RUN docker-credential-gcr configure-docker && chown ${NB_USER}:users $HOME/.docker/config.json
 
 # Configure container startup
 EXPOSE 8888
-USER ${NB_USER}
+USER jovyan
 ENTRYPOINT ["tini", "--"]
 CMD ["sh","-c", "jupyter notebook --notebook-dir=/home/${NB_USER} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"]
 
