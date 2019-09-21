@@ -47,6 +47,8 @@ const USERIDPREFIX = "userid-prefix"
 const SERVICEROLEISTIO = "ns-access-istio"
 const SERVICEROLEBINDINGISTIO = "owner-binding-istio"
 
+const KUBEFLOW_PREFIX = "kubeflow-"
+
 // annotation key, consumed by kfam API
 const USER = "user"
 const ROLE = "role"
@@ -238,7 +240,7 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
 			Kind:     "ClusterRole",
-			Name:     ADMIN,
+			Name:     KUBEFLOW_PREFIX + ADMIN,
 		},
 		Subjects: []rbacv1.Subject{
 			instance.Spec.Owner,
@@ -380,7 +382,7 @@ func (r *ReconcileProfile) updateServiceAccount(profileIns *kubeflowv1alpha1.Pro
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
 			Kind:     "ClusterRole",
-			Name:     ClusterRoleName,
+			Name:     KUBEFLOW_PREFIX + ClusterRoleName,
 		},
 		Subjects: []rbacv1.Subject{
 			{
