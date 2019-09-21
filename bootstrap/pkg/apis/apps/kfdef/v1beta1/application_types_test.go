@@ -131,3 +131,51 @@ func TestKfDef_ConditionStatus(t *testing.T) {
 		}
 	}
 }
+
+func TestKfDef_PluginStatus(t *testing.T) {
+	type testCase struct {
+		kfdef    KfDef
+		name     string
+		expected bool
+	}
+
+	cases := []testCase{
+		testCase{
+			kfdef: KfDef{
+				Status: KfDefStatus{
+					Conditions: []KfDefCondition{
+						KfDefCondition{
+							Type:   KfPluginFinished,
+							Status: v1.ConditionTrue,
+							Name:   "foo",
+						},
+					},
+				},
+			},
+			name:     "foo",
+			expected: true,
+		},
+		testCase{
+			kfdef: KfDef{
+				Status: KfDefStatus{
+					Conditions: []KfDefCondition{
+						KfDefCondition{
+							Type:   KfPluginFinished,
+							Status: v1.ConditionFalse,
+							Name:   "bar",
+						},
+					},
+				},
+			},
+			name:     "bar",
+			expected: false,
+		},
+	}
+
+	for _, c := range cases {
+		if c.kfdef.IsPluginFinished(c.name) != c.expected {
+			t.Errorf("IsPluginFinished doesn't matched expected; expected %v; got %v",
+				c.expected, c.kfdef.IsPluginFinished(c.name))
+		}
+	}
+}
