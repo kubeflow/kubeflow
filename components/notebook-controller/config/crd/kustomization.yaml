@@ -5,7 +5,7 @@ resources:
 - bases/kubeflow.org_notebooks.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
-patches:
+patchesStrategicMerge:
 - patches/trivial_conversion_patch.yaml
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix.
 # patches here are for enabling the conversion webhook for each CRD

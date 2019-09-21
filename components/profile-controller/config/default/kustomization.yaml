@@ -25,7 +25,7 @@ bases:
   # the auth proxy (https://github.com/brancz/kube-rbac-proxy)
   # which protects your /metrics endpoint.
 
-patches:
+patchesStrategicMerge:
 - manager_image_patch.yaml
   # Protect the /metrics endpoint by putting it behind auth.
   # Only one of manager_auth_proxy_patch.yaml and
