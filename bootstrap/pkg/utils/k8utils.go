@@ -15,6 +15,7 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/ghodss/yaml"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/v3/config"
@@ -313,6 +314,54 @@ func (a *Apply) namespace(namespace string) error {
 				Message: fmt.Sprintf("couldn't create %v %v Error: %v",
 					string(kftypes.NAMESPACE), namespace, nsErr),
 			}
+		}
+	}
+	return nil
+}
+
+//LabelClusterRole labels ClusterRoles with labelKey: labelValue pair
+func (a *Apply) LabelClusterRole(clusterRoleName string, labelKey string,
+	labelValue string) error {
+	clusterRole, clusterRoleMissingErr := a.clientset.RbacV1().ClusterRoles().Get(clusterRoleName,
+		metav1.GetOptions{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "rbac.authorization.k8s.io/v1beta1",
+				Kind:       "ClusterRole",
+			},
+		})
+	if clusterRoleMissingErr == nil {
+		var labelPatchMap = map[string]map[string]map[string]string{
+			"metadata": map[string]map[string]string{
+				"labels": map[string]string{
+					labelKey: labelValue,
+				},
+			},
+		}
+		labelPatchJSON, jsonErr := json.Marshal(labelPatchMap)
+		if jsonErr != nil {
+			return &kfapis.KfError{
+				Code: int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Couldn't marshal labelPatchJSON %v Error: %v",
+					labelPatchMap, jsonErr),
+			}
+		}
+		log.Infof("Labeling ClusterRole: %v", clusterRoleName)
+		_, labelingErr := a.clientset.RbacV1().ClusterRoles().Patch(
+			clusterRoleName,
+			"application/strategic-merge-patch+json",
+			[]byte(labelPatchJSON),
+		)
+		if labelingErr != nil {
+			return &kfapis.KfError{
+				Code: int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("Couldn't label ClusterRole %v Error: %v",
+					clusterRole, labelingErr),
+			}
+		}
+	} else {
+		return &kfapis.KfError{
+			Code:    int(kfapis.NOT_FOUND),
+			Message: fmt.Sprintf("Default Kubernetes role %v not found.", clusterRole),
 		}
 	}
 	return nil

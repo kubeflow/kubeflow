@@ -104,6 +104,13 @@ type kustomize struct {
 	configOverwrite bool
 }
 
+// k8sClusterRolePairs are used to define clusterrole names which need to be
+// aggregated to Kubeflow clusterroles.
+type k8sClusterRolePair struct {
+	clusterRoleName         string
+	clusterAggregationLabel string
+}
+
 const (
 	defaultUserId = "anonymous"
 	outputDir     = "kustomize"
@@ -246,6 +253,38 @@ func (kustomize *kustomize) initK8sClients() error {
 	return nil
 }
 
+func applyK8sAggregationLabels(apply *utils.Apply) error {
+	var k8sClusterRolePairs = []k8sClusterRolePair{
+		k8sClusterRolePair{
+			clusterRoleName:         "cluster-admin",
+			clusterAggregationLabel: "rbac.authorization.kubeflow.org/aggregate-to-kubeflow-cluster-admin",
+		},
+		k8sClusterRolePair{
+			clusterRoleName:         "admin",
+			clusterAggregationLabel: "rbac.authorization.kubeflow.org/aggregate-to-kubeflow-admin",
+		},
+		k8sClusterRolePair{
+			clusterRoleName:         "edit",
+			clusterAggregationLabel: "rbac.authorization.kubeflow.org/aggregate-to-kubeflow-edit",
+		},
+		k8sClusterRolePair{
+			clusterRoleName:         "view",
+			clusterAggregationLabel: "rbac.authorization.kubeflow.org/aggregate-to-kubeflow-view",
+		},
+	}
+	for _, clusterRolePair := range k8sClusterRolePairs {
+		labelErr := apply.LabelClusterRole(
+			clusterRolePair.clusterRoleName,
+			clusterRolePair.clusterAggregationLabel,
+			"true",
+		)
+		if labelErr != nil {
+			return labelErr
+		}
+	}
+	return nil
+}
+
 // Apply deploys kustomize generated resources to the kubenetes api server
 func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 	var restConfig *rest.Config = nil
@@ -257,6 +296,10 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 		return err
 	}
 
+	labelErr := applyK8sAggregationLabels(apply)
+	if labelErr != nil {
+		return labelErr
+	}
 	kustomizeDir := path.Join(kustomize.kfDef.Spec.AppDir, outputDir)
 	for _, app := range kustomize.kfDef.Spec.Applications {
 		resMap, err := EvaluateKustomizeManifest(path.Join(kustomizeDir, app.Name))
