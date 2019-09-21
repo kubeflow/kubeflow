@@ -316,4 +316,66 @@ These resource are also composable in any order. For ci-centraldashboard-pipelin
 
 #### Secrets
 
-#### Persitent Volumes
+The following secrets are used:
+
+- docker-secret
+  The secret needs to have a path of data.dockerconfigjson and is used to pull secrets from gcr.
+  The resource with token removed is below:
+
+```
+apiVersion: v1
+data:
+  .dockerconfigjson: <token>
+kind: Secret
+metadata:
+  name: docker-secret
+type: kubernetes.io/dockerconfigjson
+```
+
+- kaniko-secret
+  The secret needs to have GKE IAM role of Storage Editor or Storage Admin
+  The resource with token removed is below:
+
+```
+apiVersion: v1
+data:
+  kaniko-secret.json: <token>
+kind: Secret
+metadata:
+  name: kaniko-secret
+type: Opaque
+```
+
+- github-secret
+  The secret is used for git operations on repos of the form git@github:kubeflow
+  The resource with token removed is below:
+
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-secret
+  annotations:
+    tekton.dev/git-0: github.com
+type: kubernetes.io/ssh-auth
+data:
+  known_hosts: <token>
+  ssh-privatekey: <token>
+  ssh-publickey: <token>
+```
+
+- github-token-secret
+  GITHUB_TOKEN - used to create pull requests
+  The resource with token removed is below:
+
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-token-secret
+type: Opaque
+data:
+  token: <token>
+```
+
+#### Persistent Volumes
