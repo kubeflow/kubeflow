@@ -3,38 +3,20 @@ module github.com/kubeflow/kubeflow/bootstrap/v3
 require (
 	cloud.google.com/go v0.38.0
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
-	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
-	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/Sirupsen/logrus v0.0.0-00010101000000-000000000000 // indirect
 	github.com/aws/aws-sdk-go v1.15.78
 	github.com/cenkalti/backoff v2.1.1+incompatible
 	github.com/deckarep/golang-set v1.7.1
-<<<<<<< HEAD
-	github.com/ghodss/yaml v1.0.0
-	github.com/go-kit/kit v0.8.0
-=======
-	github.com/docker/docker v1.13.1 // indirect
-	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
 	github.com/elazarl/goproxy v0.0.0-20190711103511-473e67f1d7d2 // indirect
 	github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2 // indirect
-	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
-	github.com/fatih/camelcase v1.0.0 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-kit/kit v0.8.0
-	github.com/go-openapi/jsonpointer v0.19.2 // indirect
-	github.com/go-openapi/jsonreference v0.18.0 // indirect
-	github.com/go-openapi/swag v0.19.2 // indirect
->>>>>>> master
 	github.com/gogo/protobuf v1.2.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.1
 	github.com/hashicorp/go-getter v1.0.2
 	github.com/imdario/mergo v0.3.7
-<<<<<<< HEAD
 	github.com/kubeflow/kfctl/v3 v3.0.0-20190917231916-6ebaf60b014a
-=======
-	github.com/jonboulle/clockwork v0.1.0 // indirect
->>>>>>> master
 	github.com/kubeflow/kubeflow/components/profile-controller v0.0.0-20190614045418-7ca3cfb39368
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/onrik/logrus v0.2.1
@@ -61,6 +43,7 @@ require (
 	k8s.io/cli-runtime v0.0.0-20190228180923-a9e421a79326
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/kubernetes v1.13.4
+	k8s.io/utils v0.0.0-20190920012459-5008bf6f8cd6 // indirect
 	sigs.k8s.io/controller-runtime v0.1.12
 	sigs.k8s.io/kustomize/v3 v3.1.0
 )
