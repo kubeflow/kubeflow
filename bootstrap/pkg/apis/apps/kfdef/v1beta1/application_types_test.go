@@ -98,24 +98,22 @@ func TestKfDef_ConditionStatus(t *testing.T) {
 
 	cases := []testCase{
 		testCase{
-			Type:    KfPluginFinished,
+			Type:    KfAWSPluginSucceeded,
 			Status:  v1.ConditionFalse,
-			Name:    "foo",
 			Message: "foo status",
 		},
 		testCase{
-			Type:    KfPluginFinished,
+			Type:    KfGCPPluginSucceeded,
 			Status:  v1.ConditionTrue,
-			Name:    "bar",
 			Message: "bar status",
 		},
 	}
 
 	for _, c := range cases {
 		kfdef := KfDef{}
-		kfdef.SetCondition(c.Type, c.Status, c.Name, c.Reason, c.Message)
+		kfdef.SetCondition(c.Type, c.Status, c.Reason, c.Message)
 
-		cond, err := kfdef.GetCondition(c.Type, c.Name)
+		cond, err := kfdef.GetCondition(c.Type)
 		if err != nil {
 			t.Fatalf("error when getting condition: %v", err)
 		}
@@ -123,8 +121,7 @@ func TestKfDef_ConditionStatus(t *testing.T) {
 			t.Fatalf("condition returned is nil")
 		}
 		if cond.Type != c.Type || cond.Status != c.Status ||
-			cond.Name != c.Name || cond.Reason != c.Reason ||
-			cond.Message != c.Message {
+			cond.Reason != c.Reason || cond.Message != c.Message {
 			t.Errorf("condition returned doesn't match the condition set;\nexpected\n%v\ngot\n%v",
 				kfutils.PrettyPrint(c),
 				kfutils.PrettyPrint(cond))
@@ -134,9 +131,11 @@ func TestKfDef_ConditionStatus(t *testing.T) {
 
 func TestKfDef_PluginStatus(t *testing.T) {
 	type testCase struct {
-		kfdef    KfDef
-		name     string
-		expected bool
+		kfdef KfDef
+		name  string
+
+		pluginKind string
+		expected   bool
 	}
 
 	cases := []testCase{
@@ -145,37 +144,35 @@ func TestKfDef_PluginStatus(t *testing.T) {
 				Status: KfDefStatus{
 					Conditions: []KfDefCondition{
 						KfDefCondition{
-							Type:   KfPluginFinished,
+							Type:   KfAWSPluginSucceeded,
 							Status: v1.ConditionTrue,
-							Name:   "foo",
 						},
 					},
 				},
 			},
-			name:     "foo",
-			expected: true,
+			pluginKind: "KfAwsPlugin",
+			expected:   true,
 		},
 		testCase{
 			kfdef: KfDef{
 				Status: KfDefStatus{
 					Conditions: []KfDefCondition{
 						KfDefCondition{
-							Type:   KfPluginFinished,
+							Type:   KfExistingArriktoPluginSucceeded,
 							Status: v1.ConditionFalse,
-							Name:   "bar",
 						},
 					},
 				},
 			},
-			name:     "bar",
-			expected: false,
+			pluginKind: "KfExistingArriktoPlugin",
+			expected:   false,
 		},
 	}
 
 	for _, c := range cases {
-		if c.kfdef.IsPluginFinished(c.name) != c.expected {
+		if c.kfdef.IsPluginFinished(c.pluginKind) != c.expected {
 			t.Errorf("IsPluginFinished doesn't matched expected; expected %v; got %v",
-				c.expected, c.kfdef.IsPluginFinished(c.name))
+				c.expected, c.kfdef.IsPluginFinished(c.pluginKind))
 		}
 	}
 }
