@@ -147,8 +147,17 @@ const (
 	// KfDegraded means functionality of Kubeflow is limited.
 	KfDegraded KfDefConditionType = "Degraded"
 
-	// KfPluginFinished means a plugin is successfully applied.
-	KfPluginFinished KfDefConditionType = "KfPluginSucceeded"
+	// Plugin conditions.
+	KfAWSPluginSucceeded             KfDefConditionType = "AWSPluginSucceeded"
+	KfExistingArriktoPluginSucceeded KfDefConditionType = "ExistingArriktoPluginSucceeded"
+	KfGCPPluginSucceeded             KfDefConditionType = "GCPPluginSucceeded"
+	KfMinikubePluginSucceeded        KfDefConditionType = "MinikubePluginSucceeded"
+
+	// Conditions indicating plugin.Apply is failed permanently and unable to recover.
+	KfAWSPluginFailed             KfDefConditionType = "AWSPluginFailed"
+	KfExistingArriktoPluginFailed KfDefConditionType = "ExistingArriktoPluginFailed"
+	KfGCPPluginFailed             KfDefConditionType = "GCPPluginFailed"
+	KfMinikubePluginFailed        KfDefConditionType = "MinikubePluginFailed"
 )
 
 type KfDefConditionReason string
