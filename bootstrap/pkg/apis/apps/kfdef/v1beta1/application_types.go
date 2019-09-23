@@ -182,6 +182,42 @@ type KfDefCondition struct {
 	Message string `json:"message,omitempty"`
 }
 
+func kindToCondition(kind string, failedCondition bool) (KfDefConditionType, error) {
+	// TODO(gabrielwen): Use kind enum.
+	mapper := map[string][]KfDefConditionType{
+		"KfAwsPlugin": []KfDefConditionType{
+			KfAWSPluginSucceeded,
+			KfAWSPluginFailed,
+		},
+		"KfGcpPlugin": []KfDefConditionType{
+			KfGCPPluginSucceeded,
+			KfGCPPluginFailed,
+		},
+		"KfMinikubePlugin": []KfDefConditionType{
+			KfMinikubePluginSucceeded,
+			KfMinikubePluginFailed,
+		},
+		"KfExistingArriktoPlugin": []KfDefConditionType{
+			KfExistingArriktoPluginSucceeded,
+			KfExistingArriktoPluginFailed,
+		},
+	}
+
+	conds, ok := mapper[kind]
+	if ok {
+		if failedCondition {
+			return conds[1], nil
+		} else {
+			return conds[0], nil
+		}
+	} else {
+		return "", &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Unknown plugin kind: %v", kind),
+		}
+	}
+}
+
 // GetPluginSpec will try to unmarshal the spec for the specified plugin to the supplied
 // interface. Returns an error if the plugin isn't defined or if there is a problem
 // unmarshaling it.
@@ -218,7 +254,6 @@ func (d *KfDef) GetPluginSpec(pluginName string, s interface{}) error {
 // Sets condition and status to KfDef.
 func (d *KfDef) SetCondition(condType KfDefConditionType,
 	status v1.ConditionStatus,
-	name string,
 	reason string,
 	message string) {
 	now := metav1.Now()
@@ -232,11 +267,9 @@ func (d *KfDef) SetCondition(condType KfDefConditionType,
 	}
 
 	for i := range d.Status.Conditions {
-		// TODO(gabrielwen): Use condition type to find plugin status.
-		// if d.Status.Conditions[i].Name != name ||
-		// 	d.Status.Conditions[i].Type != condType {
-		// 	continue
-		// }
+		if d.Status.Conditions[i].Type != condType {
+			continue
+		}
 		if d.Status.Conditions[i].Status == status {
 			cond.LastTransitionTime = d.Status.Conditions[i].LastTransitionTime
 		}
@@ -247,34 +280,42 @@ func (d *KfDef) SetCondition(condType KfDefConditionType,
 }
 
 // Gets condition from KfDef.
-func (d *KfDef) GetCondition(condType KfDefConditionType,
-	name string) (*KfDefCondition, error) {
+func (d *KfDef) GetCondition(condType KfDefConditionType) (*KfDefCondition, error) {
 	for i := range d.Status.Conditions {
-		// TODO(gabrielwen): Use condition type to find plugin status.
-		// if d.Status.Conditions[i].Type == condType &&
-		// 	d.Status.Conditions[i].Name == name {
-		// 	return &d.Status.Conditions[i], nil
-		// }
+		if d.Status.Conditions[i].Type == condType {
+			return &d.Status.Conditions[i], nil
+		}
 	}
 	return nil, &kfapis.KfError{
-		Code: int(kfapis.NOT_FOUND),
-		Message: fmt.Sprintf("%v %v",
-			conditionNotFoundErrPrefix, name),
+		Code:    int(kfapis.NOT_FOUND),
+		Message: fmt.Sprintf("%v %v", conditionNotFoundErrPrefix, condType),
 	}
 }
 
 // Check if a plugin is finished.
-func (d *KfDef) IsPluginFinished(pluginName string) bool {
-	cond, err := d.GetCondition(KfPluginFinished, pluginName)
+func (d *KfDef) IsPluginFinished(pluginKind string) bool {
+	condType, err := kindToCondition(pluginKind, false)
 	if err != nil {
+		log.Warnf("error when looking for plugin condition type: %v", err)
+		return false
+	}
+	cond, err := d.GetCondition(condType)
+	if err != nil {
+		log.Warnf("error when getting condition info: %v", err)
 		return false
 	}
 	return cond.Status == v1.ConditionTrue
 }
 
 // Set a plugin as finished.
-func (d *KfDef) SetPluginFinished(pluginName string) {
-	d.SetCondition(KfPluginFinished, v1.ConditionTrue, pluginName, "", "")
+func (d *KfDef) SetPluginFinished(pluginKind string) {
+	condType, err := kindToCondition(pluginKind, false)
+	if err != nil {
+		log.Warnf("error when looking for plugin condition type: %v", err)
+		return
+	}
+
+	d.SetCondition(condType, v1.ConditionTrue, "", "")
 }
 
 func IsPluginNotFound(e error) bool {
