@@ -91,18 +91,6 @@ def set_env_init_args(use_basic_auth, use_istio):
   else:
     init_args.append("--use_istio=false")
 
-# Its not clear why this code is needed.
-# Will delete if approved.
-def dummy_version_repo_master():
-  version = "master"
-  if os.getenv("REPO_NAME") != "manifests":
-    if os.getenv("PULL_NUMBER"):
-      version = "pull/{0}".format(os.getenv("PULL_NUMBER"))
-  pull_manifests = "@master"
-  if os.getenv("REPO_NAME") == "manifests":
-    if os.getenv("PULL_PULL_SHA"):
-      pull_manifests = "@" + os.getenv("PULL_PULL_SHA")
-
 def filter_spartakus(spec):
   """Filter our Spartakus from KfDef spec.
 
@@ -192,8 +180,6 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
 
   # Set ENV for basic auth username/password.
   set_env_init_args(use_basic_auth, use_istio)
-
-  dummy_version_repo_master()
 
   # We need to specify a valid email because
   #  1. We need to create appropriate RBAC rules to allow the current user
