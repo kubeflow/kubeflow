@@ -176,3 +176,31 @@ func TestKfDef_PluginStatus(t *testing.T) {
 		}
 	}
 }
+
+func TestKfDef_SetPluginFinished(t *testing.T) {
+	type testCase struct {
+		pluginKind string
+		expected   bool
+	}
+
+	cases := []testCase{
+		testCase{
+			pluginKind: "KfGcpPlugin",
+			expected:   true,
+		},
+		testCase{
+			pluginKind: "KfExistingArriktoPlugin",
+			expected:   true,
+		},
+	}
+
+	for _, c := range cases {
+		kfdef := KfDef{}
+		kfdef.SetPluginFinished(c.pluginKind)
+		actual := kfdef.IsPluginFinished(c.pluginKind)
+		if actual != c.expected {
+			t.Errorf("IsPluginFinished doesn't returned expected value; expected %v; got %v",
+				c.expected, actual)
+		}
+	}
+}
