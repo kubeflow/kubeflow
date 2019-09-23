@@ -1,0 +1,184 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  name: kfdefs.kfdef.apps.kubeflow.org
+spec:
+  group: kfdef.apps.kubeflow.org
+  names:
+    kind: KfDef
+    listKind: KfDefList
+    plural: kfdefs
+    shortNames:
+    - kfdef
+    singular: kfdef
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: KfDef is the Schema for the applications API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          properties:
+            applications:
+              items:
+                description: Application defines an application to install
+                properties:
+                  kustomizeConfig:
+                    properties:
+                      overlays:
+                        items:
+                          type: string
+                        type: array
+                      parameters:
+                        items:
+                          properties:
+                            name:
+                              type: string
+                            value:
+                              type: string
+                          type: object
+                        type: array
+                      repoRef:
+                        properties:
+                          name:
+                            type: string
+                          path:
+                            type: string
+                        type: object
+                    type: object
+                  name:
+                    type: string
+                type: object
+              type: array
+            plugins:
+              items:
+                description: Plugin can be used to customize the generation and deployment
+                  of Kubeflow
+                properties:
+                  apiVersion:
+                    type: string
+                  kind:
+                    type: string
+                  metadata:
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    type: object
+                  spec:
+                    type: object
+                type: object
+              type: array
+            repos:
+              items:
+                description: Repo provides information about a repository providing
+                  config (e.g. kustomize packages, Deployment manager configs, etc...)
+                properties:
+                  name:
+                    description: Name is a name to identify the repository.
+                    type: string
+                  uri:
+                    description: 'URI where repository can be obtained. Can use any
+                      URI understood by go-getter: https://github.com/hashicorp/go-getter/blob/master/README.md#installation-and-usage'
+                    type: string
+                type: object
+              type: array
+            secrets:
+              items:
+                description: Secret provides information about secrets needed to configure
+                  Kubeflow. Secrets can be provided via references.
+                properties:
+                  name:
+                    type: string
+                  secretSource:
+                    properties:
+                      envSource:
+                        properties:
+                          name:
+                            type: string
+                        type: object
+                      literalSource:
+                        properties:
+                          value:
+                            type: string
+                        type: object
+                    type: object
+                type: object
+              type: array
+          type: object
+        status:
+          description: KfDefStatus defines the observed state of KfDef
+          properties:
+            conditions:
+              items:
+                properties:
+                  lastTransitionTime:
+                    description: Last time the condition transitioned from one status
+                      to another.
+                    format: date-time
+                    type: string
+                  lastUpdateTime:
+                    description: The last time this condition was updated.
+                    format: date-time
+                    type: string
+                  message:
+                    description: A human readable message indicating details about
+                      the transition.
+                    type: string
+                  reason:
+                    description: The reason for the condition's last transition.
+                    type: string
+                  status:
+                    description: Status of the condition, one of True, False, Unknown.
+                    type: string
+                  type:
+                    description: Type of deployment condition.
+                    type: string
+                required:
+                - status
+                - type
+                type: object
+              type: array
+            reposCache:
+              description: ReposCache is used to cache information about local caching
+                of the URIs.
+              items:
+                properties:
+                  localPath:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - localPath
+                type: object
+              type: array
+          type: object
+      type: object
+  version: v1beta1
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

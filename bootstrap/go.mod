@@ -11,6 +11,7 @@ require (
 	github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-kit/kit v0.8.0
+	github.com/go-openapi/spec v0.19.2
 	github.com/gogo/protobuf v1.2.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.1
@@ -42,6 +43,7 @@ require (
 	k8s.io/apimachinery v0.0.0-20190313205120-d7deff9243b1
 	k8s.io/cli-runtime v0.0.0-20190228180923-a9e421a79326
 	k8s.io/client-go v11.0.0+incompatible
+	k8s.io/kube-openapi v0.0.0-20190603182131-db7b694dc208
 	k8s.io/kubernetes v1.13.4
 	k8s.io/utils v0.0.0-20190920012459-5008bf6f8cd6 // indirect
 	sigs.k8s.io/controller-runtime v0.1.12

@@ -22,7 +22,9 @@ type NameValue struct {
 	InitRequired bool   `json:"initRequired,omitempty"`
 }
 
-type Parameters map[string][]NameValue
+type NameValues []NameValue
+
+type Parameters map[string]NameValues
 
 // Default components configuration definitions.
 type ComponentConfig struct {
