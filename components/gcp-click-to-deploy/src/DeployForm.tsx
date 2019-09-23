@@ -260,7 +260,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                 <div style={styles.text}>Create a Kubeflow deployment</div>
 
                 <div style={styles.row}>
-                    <TextField label="Project" spellCheck={false} style={styles.input} variant="filled"
+                    <TextField label="Project ID" spellCheck={false} style={styles.input} variant="filled"
                         required={true} value={this.state.project} onChange={this._handleChange('project')} />
                 </div>
                 <div style={styles.row}>
@@ -761,6 +761,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     }
 
     private _redirectToKFDashboard(deploymentState: DeployFormState, dashboardUri: string) {
+        const expectedTimeSecs = 30 * 60; // 30m
+        const startTime = new Date().getTime() / 1000;
         if (deploymentState.ingress === IngressType.Iap) {
             // relying on Kubeflow / JupyterHub logo image to be available when the site is ready.
             // The dashboard URI is hosted at a domain different from the deployer
@@ -769,8 +771,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             // an image served by the target site, the img load is a simple html
             // request and not an AJAX request, thus bypassing the CORS in this
             // case.
-            const expectedTimeSecs = 30 * 60; // 30m
-            const startTime = new Date().getTime() / 1000;
             const img = document.createElement('img');
             const iconFilename = deploymentState.kfversion === Version.V06 ?
                 'favicon-32x32.png' : 'kf-logo_64px.svg';
@@ -811,7 +811,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                             clearInterval(monitorInterval);
                             window.location.href = loginUri;
                         } else {
-                            this._appendLine('Waiting for the Kubeflow ingress to get ready...');
+                            const elapsedSecs = (new Date().getTime() / 1000) - startTime;
+                            let estimatedTimeMin = (expectedTimeSecs - elapsedSecs) / 60;
+                            if (estimatedTimeMin <= 0) {
+                                estimatedTimeMin = 0;
+                            }
+                            this._appendLine(`Waiting for the Kubeflow ingress to get ready...(Expected time remaining: ${estimatedTimeMin.toFixed(0)}m)`);
                         }
                     }
                 );
