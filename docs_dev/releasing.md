@@ -262,44 +262,75 @@ Ideally, this process will be automated to a greater extent in the future.
 
 ## Releasing a new version of the website
 
-With each stable release, we should also release a corresponding version of the Kubeflow [website](www.kubeflow.org). Each version of the website is generated from a separate [branch](https://github.com/kubeflow/website/branches)
-of the kubeflow/website repository. If documentation needs to be fixed, the changes should be committed to master and then cherry-picked to the proper release branch.
+For each stable release, we also publish a corresponding version of the 
+Kubeflow [website](www.kubeflow.org). Each version of the website is generated 
+from a separate [branch](https://github.com/kubeflow/website/branches)
+of the kubeflow/website repository. 
 
-Releasing a new version on the website requires the following steps:
+We usually create the website branch for a version a few weeks after the 
+software release of that version, because it takes a while to finish updating 
+the docs.
 
-1. When documentation for a release is complete, create a new versioned branch under the website [repository](https://github.com/kubeflow/website). This should follow the same format as Kubeflow releases (i.e.
-`v${MAJOR}.${MINOR}-branch`).
+If the documentation for a version needs to be fixed after we've created
+the version branch, the changes should be committed to master and then 
+cherry-picked to the proper release branch.
 
-1. Set up [netlify](https://www.netlify.com/):
-   * Login with your Github credentials
-   * Click on *New site from Git*
-   * Click on *GitHub* under Continuous Deployment
-   * Select `kubeflow/website` from the list
-   * Under "branch to deploy", select the new versioned branch.
-   * Click on *Deploy site*. This should give you a site URL ending with `netlify.com`.
+When documentation for a release is complete, follow these steps to release a
+new version on the website:
+
+1. Create a new versioned branch under the 
+  [website repository](https://github.com/kubeflow/website). The branch name
+  should have the same format as Kubeflow releases:
+  `v${MAJOR}.${MINOR}-branch`. (You can create a branch on the GitHub UI. See 
+  the GitHub guide to [creating branches in your 
+  repo](https://help.github.com/en/articles/creating-and-deleting-branches-within-your-repository).)
+
+1. Set up [Netlify](https://www.netlify.com/):
+   * Log in with your GitHub credentials.
+   * Click **New site from Git**.
+   * Click **GitHub** under **Continuous Deployment**.
+   * Select **kubeflow** from the dropdown list of organizations.
+   * Select **website** from the list of repositories. You are now configuring
+     the deployment settings for `kubeflow/website`.
+   * Under **Branch to deploy**, select the new versioned branch.
+   * Click **Deploy site**. This should give you a site URL ending with 
+     `netlify.com`.
 
 1. Set up DNS for the new site:
-   * In [Cloud DNS](https://pantheon.corp.google.com/net-services/dns/zones?project=kubeflow-dns&organizationId=714441643818), select the kubeflow.org zone
-   * Create a new CNAME record for `v${MAJOR}.${MINOR}.kubeflow.org`, pointing to the new site (`something-something.netlify.com`), TTL 5 minutes
+   * In [Cloud DNS](http://console.cloud.google.com/net-services/dns/zones?project=kubeflow-dns&organizationId=714441643818), 
+     select the `kubeflow.org` zone.
+   * Create a new CNAME record for `v${MAJOR}-${MINOR}.kubeflow.org`, pointing
+     to the new site (`something-something.netlify.com`), with TTL of 5 minutes.
 
-1. Configure custom domain for the new site:
-   * Go back to the Netlify configuration page, find the new website, and select *Settings*
-   * Select *Domain settings*
-   * Under *Custom domains*, add a domain alias for `v${MAJOR}.${MINOR}.kubeflow.org`.
-   * You can also add a domain alias for `www.kubeflow.org`, so that the website points to the latest stable version by default.
-   * Under *HTTPS*, enable the SSL certificate for the new site.
-   * Navigate to `v${MAJOR}.${MINOR}.kubeflow.org` in your browser to verify that this is done. If all the steps are done, you should not see any privacy or certificate warnings.
+1. Configure a custom domain for the new site:
+   * Go back to the Netlify configuration page, find the new website, and select
+     **Settings**.
+   * Click **Domain settings**.
+   * Under **Custom domains**, add a domain alias for 
+     `v${MAJOR}-${MINOR}.kubeflow.org`.
+   * Under **HTTPS**, enable the SSL certificate for the new site
+     by clicking **Verify DNS configuration**.
+   * In your browser, go to `v${MAJOR}-${MINOR}.kubeflow.org` to verify 
+     the setup. If all the steps are done, you should not see any privacy or 
+     certificate warnings.
 
-1. Add the new version to the navigation bar:
-   * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml)
-   * Add a new version:
-    ```
-    [[Params.versions]]
-      version = "vX.Y"
-      githubbranch = "vX.Y-branch"
-      url = "https://vX-Y.kubeflow.org"
-    ```
-   * Make this change in the master branch, and then cherry-pick the commit back to the newly released branch. This allows the user to browse between all the released versions on the website.
+1. Add the new version to the website navigation bar:
+   * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml).
+
+   * Update the version number for the `master` version.
+     For example, to update the master to v0.7, the text should be:
+     ```
+     version = "master (v0.7)"
+     ```
+
+   * Add a `params.versions` entry for the new version. 
+     For example, to add v0.6, add this entry:
+     ```
+     [[params.versions]]
+     version = "v0.6"
+     githubbranch = "v0.6-branch"
+     url = "https://v0-6.kubeflow.org"
+     ```
 
 ## Release kfctl
 

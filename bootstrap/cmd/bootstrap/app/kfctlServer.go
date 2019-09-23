@@ -12,10 +12,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/cenkalti/backoff"
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"time"
+
 	//"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
@@ -245,7 +248,14 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 	kPluginSetter.SetK8sRestConfig(k8sRest)
 
 	log.Infof("Calling apply K8s")
-	if err := s.kfApp.Apply(kftypes.K8S); err != nil {
+
+	// Retry up to 3 times here; since apply k8s is most flaky step.
+	err = backoff.Retry(
+		func() error {
+			return s.kfApp.Apply(kftypes.K8S)
+		},
+		backoff.WithMaxRetries(backoff.NewConstantBackOff(time.Second), 3))
+	if err != nil {
 		log.Errorf("Calling apply K8s failed; %v", err)
 		return s.kfDefGetter.GetKfDef(), &httpError{
 			Message: "Internal service error please try again later.",

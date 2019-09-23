@@ -15,6 +15,8 @@ spec:
     spec:
       template:
         metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
           labels:
             app: jupyter-updater-cron
         spec:
@@ -25,6 +27,9 @@ spec:
             # TODO(jlewi): Stop checking out the jlewi fork once it is merged
             - --repos=$(REPOS)
             - --src_dir=/src
+            # Don't do a shallow clone because we need to compute when files were modified and shallow clones prevent pushing
+            # branches.
+            - --depth=all
             name: checkout
             image: gcr.io/kubeflow-releasing/test-worker
             volumeMounts:
@@ -72,6 +77,8 @@ spec:
                 secretKeyRef:
                   name: github-token
                   key: github_token
+            - name: GOPATH
+              value: /src/go
             volumeMounts:
             - mountPath: /src
               name: src
