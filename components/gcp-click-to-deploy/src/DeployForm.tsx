@@ -932,7 +932,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         let saClientId: string;
         try {
             saClientId = await Gapi.iam.getServiceAccountId(project, saEmail);
-            if (saClientId === null) {
+            if (!saClientId) {
                 saClientId = await Gapi.iam
                     .createServiceAccount(project, accountId);
             }
@@ -960,12 +960,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                 if (returnPolicy !== undefined) {
                     break;
                 }
-                await wait(10000);
             } catch (err) {
                 this._appendLine('Pending on project environment sync up');
             }
+            await wait(10000);
         }
-        if (returnPolicy === undefined) {
+        if (!returnPolicy) {
             this.setState({
                 dialogAsCode: false,
                 dialogBody: 'Failed to set IAM policy, please make sure you have enough permissions.',
@@ -1001,12 +1001,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                     this.setState({saToken});
                     break;
                 }
-                await wait(10000);
             } catch (err) {
                 this._appendLine('Pending on new service account policy sync up');
             }
+            await wait(10000);
         }
-        if (saToken === undefined) {
+        if (!saToken) {
             this.setState({
                 dialogAsCode: false,
                 dialogBody: 'Failed to create service account token, please make sure you have enough permissions.',
