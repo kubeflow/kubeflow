@@ -1,139 +1,5 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Image Auto Release](#image-auto-release)
-  - [Creating a release workflow using automation ksonnet package](#creating-a-release-workflow-using-automation-ksonnet-package)
-- [Release Kubeflow](#release-kubeflow)
-  - [Authenticate to GCP](#authenticate-to-gcp)
-  - [Authorization to Publish a Release](#authorization-to-publish-a-release)
-  - [Update TFJob](#update-tfjob)
-  - [Update PyTorchJob](#update-pytorchjob)
-  - [Create a release branch (if necessary)](#create-a-release-branch-if-necessary)
-    - [Enable Periodic tests on the release branch](#enable-periodic-tests-on-the-release-branch)
-  - [Updating docker image versions](#updating-docker-image-versions)
-  - [Release branching policy](#release-branching-policy)
-  - [Updating the release branch and tagging a release](#updating-the-release-branch-and-tagging-a-release)
-    - [Tagging a release candidate](#tagging-a-release-candidate)
-    - [Creating KfDef configs for release condidate](#creating-kfdef-configs-for-release-candidate)
-    - [Update Version Shown on Central Dashboard](#update-version-shown-on-central-dashboard)
-    - [Release votes and releases](#release-votes-and-releases)
-  - [Updating the ksonnet configs for master](#updating-the-ksonnet-configs-for-master)
-  - [Releasing a new version of the website](#releasing-a-new-version-of-the-website)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-# Image Auto Release
-
-We use prow and Argo workflows to regularly push updated Docker images to the public registry
-**gcr.io/kubeflow-images-public**.
-
-You write and manage these Argo workflows just like [E2E test workflows](https://github.com/kubeflow/testing).
-
-In fact the recommended pattern is to have a single Argo workflow that builds and tests the docker image.
-This workflow should be parameterized such that in Prow postsubmit and periodic jobs the image is pushed
-to **gcr.io/kubeflow-images-public** but the presubmit uses **gcr.io/kubeflow-ci**.
-
-Here are some guidelines for writing workflows that work well for auto-pushing images.
-
-1. The Docker registry should be passed as a ksonnet parameter to your workflow spec
-
-   * For an example you can look at [Katib Workflow](https://github.com/kubeflow/katib/blob/master/test/workflows/components/workflows.libsonnet)
-   * The [automation ksonnet package](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/automation)
-     contains a ksonnet prototype for an argo workflow that uses Docker in Docker to build images
-
-     * This is a good starting point for creating an Argo workflow to build your container if you
-       don't already have one.
-
-     * See instructions below.
-
-1. The registry should be configured in the prow_config.yaml as follows
-
-   *  presubmits - Use gcr.io/kubeflow-ci
-
-      * The point of running on presubmit is to ensure the workflow works; it is not to make the images
-        publicly available.
-
-   *  postsubmits/periodic jobs - Use gcr.io/kubeflow-images-public
-
-1. As with E2E tests the workflow should be defined in the same repo as the source code for the image
-
-   * This ensures the workflow is triggered when source is modified
-
-1. There are a number of different ways to build docker images in cluster
-
-   * Docker in Docker
-
-      * The [automation ksonnet package](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/automation)
-        contains a ksonnet prototype for an argo workflow that uses Docker in Docker to build images
-
-   * Google Container Builder - For example see Katib
-
-     * [Katib Workflow](https://github.com/kubeflow/katib/blob/master/test/workflows/components/workflows.libsonnet)
-     * [Katib build script](https://github.com/kubeflow/katib/blob/master/test/scripts/build-studyjobctr.sh)
-
-## Creating a release workflow using [automation ksonnet package](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/automation)
-
-Here are some detailed instructions for using [automation ksonnet package](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/automation) to create an Argo workflow that can be run on pre/postsubmit to push kubeflow images.
-
-This is a good place to start if you don't have an existing E2E workflow that is building the Docker images.
-
-1. To use the package you need a **build_image.sh** that the workflow invokes to build the image
-
-   ```
-   build_image.sh ${DOCKERFILE} ${IMAGE} ${TAG} ...EXTRA_ARGS
-   ```
-
-   * build_image.sh should build image and push to gcr.
-   * Example [build_image.sh](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/build_image.sh) for bootstrapper
-
-1. If you don't already have a ksonnet app for E2E workflows in your repo create one
-
-   ```
-   ks init ${APP}
-   ```
-
-1. Add the Kubeflow registry and automation package to your ksonnet app
-
-   ```
-   cd ${APP}
-   ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
-   ks pkg install kubeflow/automation
-   ```
-
-1. Ensure vendor gets checked in
-
-   ```
-   git add -f vendor
-   ```
-
-1. Create a component using the prototype
-
-   ```
-   cd ${APP}
-   export RELEASENAME=<name it>
-   ks generate release ${RELEASENAME} --image=<your image name> --dockerfileDir=kubeflow/${REPO_NAME}/<path to docker build context>
-   ```
-
-  * Example: for bootstrapper release we can do
-
-    ```
-    ks generate release bootstrapper-release --image=bootstrapper --dockerfileDir=kubeflow/kubeflow/bootstrap
-    ```
-
-  * If your build context is not in kubeflow repo, like pytorch-operator, add param:
-
-    ```
-    --extra_repos=kubeflow/testing@HEAD;kubeflow/pytorch-operator@HEAD
-    ```
-    when run ```ks generate``` to have your repo checked out during release.
-
-
-1. Follow [E2E test workflows](https://github.com/kubeflow/testing) to add the workflow to prow.
-
-# Release Kubeflow
-
-Some preliminary instructions for how to cut a release.
+# Releasing Prerequisities
 
 ## Authenticate to GCP
 
@@ -155,38 +21,54 @@ gcloud container clusters get-credentials kubeflow-releasing --zone us-central1-
 
 Need to join [release team](https://github.com/kubeflow/internal-acls/blob/1234654eb219e2c06ed5fdc2c4e662a02fccc740/github-orgs/kubeflow/org.yaml#L388) before you can publish a release.
 
-## Update TFJob
 
-Identify the TFJob [release](https://github.com/kubeflow/tf-operator/releases) you
-want to use.
+# Release tracking
 
-  * If you need to cut a new TFJob release follow the instructions in
-[kubeflow/tf-operator](https://github.com/kubeflow/tf-operator/blob/master/releasing.md)
+## Create an issue for release tracking
 
-Update [all.jsonnet](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/prototypes/all.jsonnet#L10)
-to point to the new image.
+- Create an issue in [kubeflow/kubeflow](https://github.com/kubeflow/kubeflow/issues)
+- Label the issue with `priority p0`
+- Label the issue with `kind process`
+- Example: [link](https://github.com/kubeflow/kubeflow/issues/3702)
 
-Update [workflows.libsonnet](https://github.com/kubeflow/kubeflow/blob/master/testing/workflows/components/workflows.libsonnet#L183)
-to checkout kubeflow/tf-operator at the tag corresponding to the release.
+## Announce the Release and Tracking Link
 
-**Note** We should make extra_repos and their versions a ksonnet parameter and
-set it in prow_config.yaml. We can then set it differently on the release branch.
+Announce the release in `#release` channel in kubeflow.slack.com. Also please link the tracking issue to the announcement.
 
-## Update PyTorchJob
-Identify the [release](https://github.com/kubeflow/pytorch-operator/releases) of pytorch-operator you want to use.
-  * If you need to cut a new PyTorch operator release follow the instructions in [kubeflow/pytorch-operator](https://github.com/kubeflow/pytorch-operator/blob/master/releasing.md)
+# Releasing Kubeflow Components
 
-Update [pytorch-operator.jsonnet](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/pytorch-job/prototypes/pytorch-operator.jsonnet#L9)
-to point to the new image.
+A release branch should be substantially _feature complete_ with respect to the intended release.  Code that is committed to `master` may be merged or cherry-picked on to a release branch, but code that is directly committed to the release branch should be solely applicable to that release (and should not be committed back to master).  In general, unless you're committing code that only applies to the release stream (for example, temporary hotfixes, backported security fixes, or image hashes), you should commit to `master` and then merge or cherry-pick to the release branch.
 
-## Create a release branch (if necessary)
+You can create a release branch via the GitHub UI.
+
+Releaser needs to do the following to the components listed:
+- Cut a release branch if necessary (during major release)
+- Enable periodic tests if creating a release branch to components.
+- Update `prow_config.yaml` if necessary.
+- Make sure newly added periodic tests are green.
+- Build and push docker images to `gcr.io/kubeflow-images-public`
+- Update kustomize manifests on [kubeflow/manifests](https://github.com/kubeflow/manifests)
+
+## List of Components
+
+- [Kubeflow](https://github.com/kubeflow/kubeflow)
+- [TfJob](https://github.com/kubeflow/tf-operator)
+- [PyTorch](https://github.com/kubeflow/pytorch-operator)
+- [Katib](https://github.com/kubeflow/katib)
+- [CentralDashboard](https://github.com/kubeflow/kubeflow/tree/master/components/centraldashboard)
+- [ProfileController](https://github.com/kubeflow/kubeflow/tree/master/components/profile-controller)
+- [NotebookController](https://github.com/kubeflow/kubeflow/tree/master/components/notebook-controller)
+
+**JupyterWebApp**: This component is automatically released: [example](https://github.com/kubeflow/manifests/commit/723f310a60c9765bcadc2ed75053d5819f429c60)
+
+## Create a release branch
 
 If you aren't already working on a release branch (of the form `v${MAJOR}.${MINOR}-branch`, where `${MAJOR}.${MINOR}` is a major-minor version number), then create one.  Release branches serve several purposes:
 
 1.  They allow a release wrangler or other developers to focus on a release without interrupting development on `master`,
-2.  they allow developers to track the development of a release before a release candidate is declared,
-2.  they allow sophisticated users to track the development of a release (by using the release branch as a `ksonnet` registry), and
-4.  they simplify backporting critical bugfixes to a patchlevel release particular release stream (e.g., producing a `v0.1.1` from `v0.1-branch`), when appropriate.
+1.  they allow developers to track the development of a release before a release candidate is declared,
+1.  they allow sophisticated users to track the development of a release, and
+1.  they simplify backporting critical bugfixes to a patchlevel release particular release stream (e.g., producing a `v0.1.1` from `v0.1-branch`), when appropriate.
 
 ### Enable Periodic tests on the release branch
 
@@ -200,65 +82,58 @@ Once the release branch is cut we need to enable periodic tests on the release b
    * Copy the entries for the most recent release branch and change it to the new release branch
 1. Submit a PR with the above changes.
 
-## Updating docker image versions
+# Getting Ready to Cut a Release
 
-Update images in [manifests](https://github.com/kubeflow/manifests) if necessary, some examples:
-- [Central Dashboard](https://github.com/kubeflow/manifests/blob/master/common/centraldashboard/base/deployment.yaml#L18)
-- [Notebook Controller](https://github.com/kubeflow/manifests/blob/master/jupyter/notebook-controller/base/deployment.yaml#L10)
-- [Profile Controller](https://github.com/kubeflow/manifests/blob/master/profiles/base/deployment.yaml#L16)
+After you have completed the steps to release the components, it's time for you to wrap up the release and send to the community for review.
 
-## Release branching policy
+## Cut Release Branch for kubeflow/manifests
 
-A release branch should be substantially _feature complete_ with respect to the intended release.  Code that is committed to `master` may be merged or cherry-picked on to a release branch, but code that is directly committed to the release branch should be solely applicable to that release (and should not be committed back to master).  In general, unless you're committing code that only applies to the release stream (for example, temporary hotfixes, backported security fixes, or image hashes), you should commit to `master` and then merge or cherry-pick to the release branch.
+Create a release branch (when releasing major release) in [kubeflow/manifests](https://github.com/kubeflow/manifests)
 
-You can create a release branch via the GitHub UI.
+## Update Application Versions
 
-## Updating the release branch and tagging a release
+Update versions tag in descripter for all application:
+- [TfJob](https://github.com/kubeflow/manifests/blob/0fa9c0126f62392d1c27f31711e513b22ef28cbc/tf-training/tf-job-operator/overlays/application/application.yaml#L27)
+- [PyTorch](https://github.com/kubeflow/manifests/blob/0fa9c0126f62392d1c27f31711e513b22ef28cbc/pytorch-job/pytorch-operator/overlays/application/application.yaml#L27)
+- [Application](https://github.com/kubeflow/manifests/blob/0fa9c0126f62392d1c27f31711e513b22ef28cbc/application/application/overlays/application/application.yaml#L16)
+- [CentralDashboard](https://github.com/kubeflow/manifests/blob/0fa9c0126f62392d1c27f31711e513b22ef28cbc/common/centraldashboard/overlays/application/application.yaml#L29)
+- [JupyterWebApp](https://github.com/kubeflow/manifests/blob/0fa9c0126f62392d1c27f31711e513b22ef28cbc/jupyter/jupyter-web-app/overlays/application/application.yaml#L29)
+- [NotebookController](https://github.com/kubeflow/manifests/blob/0fa9c0126f62392d1c27f31711e513b22ef28cbc/jupyter/notebook-controller/overlays/application/application.yaml#L23)
 
-0. Ensure that the release notes are up to date.
-1. Update the ksonnet configs on the release branch to use the latest images built in the previous steps.
-2. Presubmit tests should verify that the ksonnet configs work.
-3. Submit a PR to the release branch.
-4. Wait for a passing postsubmit of the submitted PR.
-5. Once it passes, update this document on the release branch with specific image hashes.
-6. If no known blocker issues remain, tag a release candidate.
+## Add new KfDef for the Release
 
-### Tagging a release candidate
+A KfDef config file is used to pin the version for the repos we use.
+- Example file: [link](https://github.com/kubeflow/kubeflow/blob/v0.6-branch/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml)
+- Add the file to [kubeflow/manifests/kfdef](https://github.com/kubeflow/manifests/tree/master/kfdef) in the release branch.
 
-A release candidate is a tag of the form `v${MAJOR}.${MINOR}.${PATCHLEVEL}-rc.${N}`, where `N` is a small integer, and a release candidate tag always points to a commit on the corresponding minor release branch.  Push this tag to GitHub and announce a release vote on kubeflow-discuss.
+## Build and Upload KFCTL Binaries
 
-### Creating KfDef configs for release condidate
+You can use the [CLI github-release](https://github.com/aktau/github-release) to automate uploading artifacts.
+Alternatively you can use the UI.
 
-In release branch we need to create config files for the release candidate in [manifests](https://github.com/kubeflow/manifests/tree/master/kfdef).
+1. Get aktau/github-release
 
-Files we need for release candidates:
-- kfctl_gcp_basic_auth ([example](https://github.com/kubeflow/kubeflow/blob/v0.6-branch/bootstrap/config/kfctl_gcp_basic_auth.0.6.2.yaml))
-- kfctl_gcp_iap ([example](https://github.com/kubeflow/kubeflow/blob/v0.6-branch/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml))
-- kfctl_k8s_istio ([example](https://github.com/kubeflow/kubeflow/blob/v0.6-branch/bootstrap/config/kfctl_k8s_istio.0.6.2.yaml))
+   ```
+   go get github.com/aktau/github-release
+   ```
 
-Specifically, we need to pin `uri` in `repos` to a targeted version.
+1. You'll need a GitHub token to authenticate to GitHub see [docs](https://github.com/aktau/github-release)
 
-### Update Version Shown on Central Dashboard
+1. Checkout the release commit
 
-Update the version for Kubeflow application resources: [link](https://github.com/kubeflow/manifests/blob/eab125dd42c08b0e2495b7b2d7a7010ac64d3774/application/application/overlays/application/application.yaml#L16)
+   ```
+   git checkout ${COMMIT}
+   ```
 
-### Release votes and releases
+   * TODO(jlewi): Ideally we automate the builds and publish them e.g. to a GCS bucket on postsubmit.
 
-_NB:  release votes will take effect beginning with the 0.2 release stream; the specifics of the release vote policy will be finalized before then._
+1. Build kfctl for linux and mac
 
-A release candidate that has passed a community vote should be tagged as an official release.  This simply involves creating another tag for the commit pointed to by the RC tag and pushing this to GitHub.  Tags that resemble version numbers or release candidates should automatically show up in the "releases" tab for the repo, but you can use the "draft a release" feature to add release notes.
-
-## Updating the ksonnet configs for master
-
-Independently of numbered releases, it is a good idea to periodically update the ksonnet configs for `master` to keep them up-to-date.  The process is very similar to updating the ksonnet configurations on a release branch:
-
-1. Create a PR to update the ksonnet configs to use the latest images built in the previous steps.
-2. Presubmit tests should verify that the ksonnet configs work.
-3. Submit the PR.
-4. Wait for a passing postsubmit of the submitted PR.
-5. Tag the commit corresponding to the passing postsubmit with the appropriate tags for the release.
-
-Ideally, this process will be automated to a greater extent in the future.
+   ```
+   cd bootstrap
+   TAG=v0.5.0-rc.1 make push-to-github-release
+   ```
+   * Set the tag to be the correct version for the tag.
 
 ## Releasing a new version of the website
 
@@ -332,35 +207,6 @@ new version on the website:
      url = "https://v0-6.kubeflow.org"
      ```
 
-## Release kfctl
-
-You can use the [CLI github-release](https://github.com/aktau/github-release) to automate uploading artifacts.
-Alternatively you can use the UI.
-
-1. Get aktau/github-release
-
-   ```
-   go get github.com/aktau/github-release
-   ```
-
-1. You'll need a GitHub token to authenticate to GitHub see [docs](https://github.com/aktau/github-release)
-
-1. Checkout the release commit
-
-   ```
-   git checkout ${COMMIT}
-   ```
-
-   * TODO(jlewi): Ideally we automate the builds and publish them e.g. to a GCS bucket on postsubmit.
-
-1. Build kfctl for linux and mac
-
-   ```
-   cd bootstrap
-   TAG=v0.5.0-rc.1 make push-to-github-release
-   ```
-   * Set the tag to be the correct version for the tag.
-
 ## Update the changelog
 
 1. After the release branch is created run the following script to update the changelog
@@ -372,3 +218,9 @@ Alternatively you can use the UI.
 1. Create a PR with the resulting changes.
 
 1. Repeat above steps as new release candidates are created
+
+## Get Votes for the Release
+
+_NB:  release votes will take effect beginning with the 0.2 release stream; the specifics of the release vote policy will be finalized before then._
+
+A release candidate that has passed a community vote should be tagged as an official release.  This simply involves creating another tag for the commit pointed to by the RC tag and pushing this to GitHub.  Tags that resemble version numbers or release candidates should automatically show up in the "releases" tab for the repo, but you can use the "draft a release" feature to add release notes.
