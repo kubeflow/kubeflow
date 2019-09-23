@@ -26,6 +26,7 @@ from retrying import retry
 import six
 
 import pytest
+import yaml
 
 from kubernetes.config import kube_config
 from kubernetes import client as k8s_client
