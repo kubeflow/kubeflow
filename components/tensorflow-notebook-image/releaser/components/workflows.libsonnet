@@ -102,26 +102,8 @@
 
       // Subdirectory containing the version config.
       local supportedVersions = [
-        ["1.4.1", "cpu"],
-        ["1.4.1gpu", "gpu"],
-        ["1.5.1", "cpu"],
-        ["1.5.1gpu", "gpu"],
-        ["1.6.0", "cpu"],
-        ["1.6.0gpu", "gpu"],
-        ["1.7.0", "cpu"],
-        ["1.7.0gpu", "gpu"],
-        ["1.8.0", "cpu"],
-        ["1.8.0gpu", "gpu"],
-        ["1.9.0", "cpu"],
-        ["1.9.0gpu", "gpu"],
-        ["1.10.1", "cpu"],
-        ["1.10.1gpu", "gpu"],
-        ["1.11.0", "cpu"],
-        ["1.11.0gpu", "gpu"],
-        ["1.12.0", "cpu"],
-        ["1.12.0gpu", "gpu"],
-        ["1.13.1","cpu"],
-        ["1.13.1gpu","gpu"],
+        ["1.14.0","cpu"],
+        ["1.14.0gpu","gpu"],
         ["2.0.0a0","cpu"],
         ["2.0.0a0gpu","gpu"],
       ];
