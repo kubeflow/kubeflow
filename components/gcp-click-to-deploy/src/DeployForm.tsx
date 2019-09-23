@@ -148,7 +148,7 @@ const MYSQL = 'mysql';
 const PASSWORD = 'password';
 const PROFILES = 'profiles';
 const SPARTAKUS = 'spartakus';
-const nameformat = '[a-z]([-a-z0-9]*[a-z0-9])?';
+const NAME_FORMAT = '[a-z]([-a-z0-9]*[a-z0-9])?';
 
 const styles: {[key: string]: React.CSSProperties} = {
     btn: {
@@ -357,19 +357,21 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                     </Button>
 
                     {!(this.state.ingress === IngressType.DeferIap) && (
-                        <Button style={styles.btn} variant="contained" color="default" onClick={this._kubeflowAddress.bind(this)}>
+                        <Button style={styles.btn} variant="contained" color="default"
+                            onClick={this._kubeflowAddress.bind(this)}>
                             Kubeflow Service Endpoint
-            </Button>
+                        </Button>
                     )}
                     {this.state.ingress === IngressType.DeferIap && (
-                        <Button style={styles.btn} variant="contained" color="default" onClick={this._toPortForward.bind(this)}>
+                        <Button style={styles.btn} variant="contained" color="default"
+                            onClick={this._toPortForward.bind(this)}>
                             Port Forward
-            </Button>
+                        </Button>
                     )}
-
-                    <Button style={styles.yamlBtn} variant="outlined" color="default" onClick={this._showYaml.bind(this)}>
+                    <Button style={styles.yamlBtn} variant="outlined" color="default"
+                        onClick={this._showYaml.bind(this)}>
                         View YAML
-          </Button>
+                    </Button>
                 </div>
 
                 <div style={logsContainerStyle(this.state.showLogs)} >
@@ -660,7 +662,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             showLogs: true,
         });
         const dashboardUri = 'https://' + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog/';
-        this._redirectToKFDashboard(dashboardUri);
+        this._redirectToKFDashboard(this.state, dashboardUri);
     }
 
     // Create a  Kubeflow deployment.
@@ -717,8 +719,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             }
 
             this._appendLine('Deploy acknowledged by backend');
-            this._monitorDeployment(this.state.project,
-                this.state.deploymentName);
+            this._monitorDeployment();
         } catch (err) {
             this._appendLine('Error: ' + err);
             this.setState({
@@ -730,10 +731,13 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         }
     }
 
-    private _monitorDeployment(project: string, deploymentName: string) {
-        const dashboardUri = 'https://' + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog/';
+    private _monitorDeployment() {
+        // Capture the state at the time of the Deployment
+        const capturedState = JSON.parse(JSON.stringify(this.state)) as DeployFormState;
+        const {deploymentName, project} = capturedState;
+        const dashboardUri = 'https://' + deploymentName + '.endpoints.' + project + '.cloud.goog/';
         const monitorInterval = setInterval(() => {
-            Gapi.deploymentmanager.get(this.state.project, deploymentName)
+            Gapi.deploymentmanager.get(project, deploymentName)
                 .then(r => {
                     if (r.operation!.error && r.operation!.error!.errors!.length) {
                         this._appendLine(
@@ -741,12 +745,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                         clearInterval(monitorInterval);
                     } else if (r.operation!.status! && r.operation!.status === 'DONE') {
                         const readyTime = new Date();
-                        readyTime.setTime(readyTime.getTime() + (20 * 60 * 1000));
+                        readyTime.setTime(readyTime.getTime() + (30 * 60 * 1000));
                         this._appendLine('Deployment initialized, configuring environment');
-                        this._appendLine('your kubeflow service url should be ready within 20 minutes (by '
+                        this._appendLine('your kubeflow service url should be ready within 30 minutes (by '
                             + readyTime.toLocaleTimeString() + '): https://'
-                            + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
-                        this._redirectToKFDashboard(dashboardUri);
+                            + deploymentName + '.endpoints.' + project + '.cloud.goog');
+                        this._redirectToKFDashboard(capturedState, dashboardUri);
                         clearInterval(monitorInterval);
                     } else {
                         this._appendLine(`${deploymentName}: Deployment Operation Status: ` + r.operation!.status!);
@@ -756,8 +760,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         }, 10000);
     }
 
-    private _redirectToKFDashboard(dashboardUri: string) {
-        if (this.state.ingress === IngressType.Iap) {
+    private _redirectToKFDashboard(deploymentState: DeployFormState, dashboardUri: string) {
+        if (deploymentState.ingress === IngressType.Iap) {
             // relying on Kubeflow / JupyterHub logo image to be available when the site is ready.
             // The dashboard URI is hosted at a domain different from the deployer
             // app. Fetching a GET on the dashboard is blocked by the browser due
@@ -765,57 +769,55 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             // an image served by the target site, the img load is a simple html
             // request and not an AJAX request, thus bypassing the CORS in this
             // case.
-            this._appendLine('Validating if IAP is up and running...');
+            const expectedTimeSecs = 30 * 60; // 30m
             const startTime = new Date().getTime() / 1000;
             const img = document.createElement('img');
-            img.src = dashboardUri + 'assets/favicon-32x32.png' + '?rand=' + Math.random();
+            const iconFilename = deploymentState.kfversion === Version.V06 ?
+                'favicon-32x32.png' : 'kf-logo_64px.svg';
+            const imgSource = `${dashboardUri}/assets/${iconFilename}`;
+            this._appendLine('Validating if IAP is up and running...');
+            img.src = `${imgSource}?rand=${Math.random()}`;
             img.id = 'ready_test';
             img.onload = () => {
                 window.location.href = dashboardUri;
             };
             img.onerror = () => {
-                const timeSince = (new Date().getTime() / 1000) - startTime;
-                if (timeSince > 1500) {
-                    this._appendLine('Could not redirect to Kubeflow Dashboard at: ' + dashboardUri);
-                } else {
-                    const ready_test = document.getElementById('ready_test') as HTMLImageElement;
-                    if (ready_test != null) {
-                        setTimeout(() => {
-                            // We rotate on image addresses of v0.6 and v0.5 to support both of them.
-                            if (ready_test.src.includes('favicon')) {
-                                ready_test.src = dashboardUri + 'assets/kf-logo_64px.svg' + '?rand=' + Math.random();
-                            } else {
-                                ready_test.src = dashboardUri + 'assets/favicon-32x32.png' + '?rand=' + Math.random();
-                            }
-                            this._appendLine('Waiting for the IAP setup to get ready...');
-                        }, 10000);
-                    }
+                const elapsedSecs = (new Date().getTime() / 1000) - startTime;
+                let estimatedTimeMin = (expectedTimeSecs - elapsedSecs) / 60;
+                if (estimatedTimeMin <= 0) {
+                    estimatedTimeMin = 0;
+                }
+                const readyImg = document.getElementById('ready_test') as HTMLImageElement;
+                if (readyImg != null) {
+                    setTimeout(() => {
+                        readyImg.src = `${imgSource}?rand=${Math.random()}`;
+                        this._appendLine(
+                            `Waiting for the IAP setup to get ready...(Expected time remaining: ${estimatedTimeMin.toFixed(0)}m)`);
+                    }, 30000);
                 }
             };
             img.style.display = 'none';
             document.body.appendChild(img);
-        } else {
-            if (this.state.ingress === IngressType.BasicAuth) {
-                const loginUri = 'https://' + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog/kflogin';
-                const monitorInterval = setInterval(() => {
-                    request(
-                        {
-                            method: 'GET',
-                            uri: loginUri,
-                        },
-                        (error, response, body) => {
-                            if (!error) {
-                                clearInterval(monitorInterval);
-                                window.location.href = loginUri;
-                            } else {
-                                this._appendLine('Waiting for the kubeflow ingress to get ready...');
-                            }
+        } else if (deploymentState.ingress === IngressType.BasicAuth) {
+            const loginUri = `https://${dashboardUri}/kflogin`;
+            const monitorInterval = setInterval(() => {
+                request(
+                    {
+                        method: 'GET',
+                        uri: loginUri,
+                    },
+                    (error, response, body) => {
+                        if (!error) {
+                            clearInterval(monitorInterval);
+                            window.location.href = loginUri;
+                        } else {
+                            this._appendLine('Waiting for the Kubeflow ingress to get ready...');
                         }
-                    );
-                }, 10000);
-            } else {
-                this._appendLine('Please use port forward to connect to kubeflow when Skip Endpoint');
-            }
+                    }
+                );
+            }, 10000);
+        } else {
+            this._appendLine('Please use port forward to connect to kubeflow when Skip Endpoint');
         }
     }
 
@@ -882,7 +884,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             });
             throw err;
         }
-        const filtered = this.state[deploymentNameKey].match(nameformat);
+        const filtered = this.state[deploymentNameKey].match(NAME_FORMAT);
         if (!(filtered && this.state[deploymentNameKey] === filtered[0])) {
             this.setState({
                 dialogAsCode: false,
