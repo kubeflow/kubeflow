@@ -1,3 +1,28 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Releasing Prerequisities](#releasing-prerequisities)
+  - [Authenticate to GCP](#authenticate-to-gcp)
+  - [Authorization to Publish a Release](#authorization-to-publish-a-release)
+- [Release tracking](#release-tracking)
+  - [Create an issue for release tracking](#create-an-issue-for-release-tracking)
+  - [Announce the Release and Tracking Link](#announce-the-release-and-tracking-link)
+- [Releasing Kubeflow Components](#releasing-kubeflow-components)
+  - [List of Components](#list-of-components)
+  - [Create a release branch](#create-a-release-branch)
+    - [Enable Periodic tests on the release branch](#enable-periodic-tests-on-the-release-branch)
+- [Getting Ready to Cut a Release](#getting-ready-to-cut-a-release)
+  - [Cut Release Branch for kubeflow/manifests](#cut-release-branch-for-kubeflowmanifests)
+  - [Update Application Versions](#update-application-versions)
+  - [Add new KfDef for the Release](#add-new-kfdef-for-the-release)
+  - [Build and Upload KFCTL Binaries](#build-and-upload-kfctl-binaries)
+  - [Releasing a new version of the website](#releasing-a-new-version-of-the-website)
+  - [Update the changelog](#update-the-changelog)
+  - [Get Votes for the Release](#get-votes-for-the-release)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 
 # Releasing Prerequisities
 
