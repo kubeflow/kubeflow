@@ -1,0 +1,34 @@
+apiVersion: kubeflow.org/v1beta1
+kind: Notebook
+metadata:
+  labels:
+    addgcpsecret: "true"
+    app: xgboost-demo
+  name: xgboost-demo
+  namespace: xboost-demo
+spec:
+  template:
+    spec:
+      containers:
+      - env: []
+        image: gcr.io/kubeflow-images-public/tensorflow-1.13.1-notebook-cpu:v0.5.0
+        name: xgboost-demo
+        resources:
+          limits: {}
+          requests:
+            cpu: "4"
+            memory: 1.0Gi
+        volumeMounts:
+        - mountPath: /home/jovyan
+          name: workspace-xgboost-demo
+        - mountPath: /dev/shm
+          name: dshm
+      serviceAccountName: default-editor
+      ttlSecondsAfterFinished: 300
+      volumes:
+      - name: workspace-xgboost-demo
+        persistentVolumeClaim:
+          claimName: workspace-xgboost-demo
+      - emptyDir:
+          medium: Memory
+        name: dshm

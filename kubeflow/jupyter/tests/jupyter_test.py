@@ -29,13 +29,12 @@ import pytest
 
 from kubernetes.config import kube_config
 from kubernetes import client as k8s_client
-from kubeflow.testing import ks_util
 from kubeflow.testing import util
 
 GROUP = "kubeflow.org"
 PLURAL = "notebooks"
 KIND = "Notebook"
-VERSION = "v1alpha1"
+VERSION = "v1beta1"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -112,19 +111,17 @@ def test_jupyter(env, namespace):
   host = api_client.configuration.host
   logging.info("Kubernetes master: %s", host)
   master = host.rsplit("/", 1)[-1]
+  service = "jupyter-test"
+
+  with open("jupyter_test.yaml") as params: 
+    wf_result = yaml.load(params)
+    namespace = wf_result['metadata']['namespace']
+    name = wf_result['metadata']['name']
 
   this_dir = os.path.dirname(__file__)
   app_dir = os.path.join(this_dir, "test_app")
 
-  ks_cmd = ks_util.get_ksonnet_cmd(app_dir)
-
-  name = "jupyter-test"
-  service = "jupyter-test"
-  component = "jupyter"
-  params = ""
-  ks_util.setup_ks_app(app_dir, env, namespace, component, params)
-
-  util.run([ks_cmd, "apply", env, "-c", component], cwd=app_dir)
+  util.run([kubectl, "apply", "-f", "jupyter_test.yaml"], cwd=app_dir)
   conditions = ["Running"]
   results = util.wait_for_cr_condition(api_client, GROUP, PLURAL, VERSION,
                                        namespace, name, conditions)
