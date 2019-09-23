@@ -487,7 +487,7 @@ func bindAdmin(k8sClientset *clientset.Clientset, user string) error {
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
 			Kind:     "ClusterRole",
-			Name:     "kubeflow-cluster-admin",
+			Name:     "cluster-admin",
 		},
 		Subjects: []rbacv1.Subject{
 			{
