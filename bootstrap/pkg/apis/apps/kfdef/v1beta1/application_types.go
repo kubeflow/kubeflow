@@ -167,8 +167,6 @@ type KfDefCondition struct {
 	LastUpdateTime metav1.Time `json:"lastUpdateTime,omitempty"`
 	// Last time the condition transitioned from one status to another.
 	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
-	// Name of the component this condition points to.
-	Name string `json:"name,omitempty"`
 	// The reason for the condition's last transition.
 	Reason string `json:"reason,omitempty"`
 	// A human readable message indicating details about the transition.
@@ -180,9 +178,10 @@ type KfDefCondition struct {
 // unmarshaling it.
 func (d *KfDef) GetPluginSpec(pluginName string, s interface{}) error {
 	for _, p := range d.Spec.Plugins {
-		if p.Name != pluginName {
-			continue
-		}
+		// TODO(gabrielwen): Use condition type to find plugin status.
+		// if p.Name != pluginName {
+		// 	continue
+		// }
 
 		// To deserialize it to a specific type we need to first serialize it to bytes
 		// and then unserialize it.
@@ -219,16 +218,16 @@ func (d *KfDef) SetCondition(condType KfDefConditionType,
 		Status:             status,
 		LastUpdateTime:     now,
 		LastTransitionTime: now,
-		Name:               name,
 		Reason:             reason,
 		Message:            message,
 	}
 
 	for i := range d.Status.Conditions {
-		if d.Status.Conditions[i].Name != name ||
-			d.Status.Conditions[i].Type != condType {
-			continue
-		}
+		// TODO(gabrielwen): Use condition type to find plugin status.
+		// if d.Status.Conditions[i].Name != name ||
+		// 	d.Status.Conditions[i].Type != condType {
+		// 	continue
+		// }
 		if d.Status.Conditions[i].Status == status {
 			cond.LastTransitionTime = d.Status.Conditions[i].LastTransitionTime
 		}
@@ -242,10 +241,11 @@ func (d *KfDef) SetCondition(condType KfDefConditionType,
 func (d *KfDef) GetCondition(condType KfDefConditionType,
 	name string) (*KfDefCondition, error) {
 	for i := range d.Status.Conditions {
-		if d.Status.Conditions[i].Type == condType &&
-			d.Status.Conditions[i].Name == name {
-			return &d.Status.Conditions[i], nil
-		}
+		// TODO(gabrielwen): Use condition type to find plugin status.
+		// if d.Status.Conditions[i].Type == condType &&
+		// 	d.Status.Conditions[i].Name == name {
+		// 	return &d.Status.Conditions[i], nil
+		// }
 	}
 	return nil, &kfapis.KfError{
 		Code: int(kfapis.NOT_FOUND),
