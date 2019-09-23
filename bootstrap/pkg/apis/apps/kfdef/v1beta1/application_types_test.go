@@ -129,78 +129,47 @@ func TestKfDef_ConditionStatus(t *testing.T) {
 	}
 }
 
-func TestKfDef_PluginStatus(t *testing.T) {
+func TestKfDef_SetPluginStatus(t *testing.T) {
 	type testCase struct {
-		kfdef KfDef
-		name  string
-
-		pluginKind string
-		expected   bool
+		PluginKind string
+		Failed     bool
+		Expected   bool
 	}
 
 	cases := []testCase{
 		testCase{
-			kfdef: KfDef{
-				Status: KfDefStatus{
-					Conditions: []KfDefCondition{
-						KfDefCondition{
-							Type:   KfAWSPluginSucceeded,
-							Status: v1.ConditionTrue,
-						},
-					},
-				},
-			},
-			pluginKind: "KfAwsPlugin",
-			expected:   true,
+			PluginKind: "KfGcpPlugin",
+			Failed:     false,
+			Expected:   true,
 		},
 		testCase{
-			kfdef: KfDef{
-				Status: KfDefStatus{
-					Conditions: []KfDefCondition{
-						KfDefCondition{
-							Type:   KfExistingArriktoPluginSucceeded,
-							Status: v1.ConditionFalse,
-						},
-					},
-				},
-			},
-			pluginKind: "KfExistingArriktoPlugin",
-			expected:   false,
-		},
-	}
-
-	for _, c := range cases {
-		if c.kfdef.IsPluginFinished(c.pluginKind) != c.expected {
-			t.Errorf("IsPluginFinished doesn't matched expected; expected %v; got %v",
-				c.expected, c.kfdef.IsPluginFinished(c.pluginKind))
-		}
-	}
-}
-
-func TestKfDef_SetPluginFinished(t *testing.T) {
-	type testCase struct {
-		pluginKind string
-		expected   bool
-	}
-
-	cases := []testCase{
-		testCase{
-			pluginKind: "KfGcpPlugin",
-			expected:   true,
+			PluginKind: "KfExistingArriktoPlugin",
+			Failed:     false,
+			Expected:   true,
 		},
 		testCase{
-			pluginKind: "KfExistingArriktoPlugin",
-			expected:   true,
+			PluginKind: "KfMinikubePlugin",
+			Failed:     true,
+			Expected:   true,
 		},
 	}
 
 	for _, c := range cases {
 		kfdef := KfDef{}
-		kfdef.SetPluginFinished(c.pluginKind)
-		actual := kfdef.IsPluginFinished(c.pluginKind)
-		if actual != c.expected {
+		if c.Failed {
+			kfdef.SetPluginFailed(c.PluginKind, "")
+		} else {
+			kfdef.SetPluginFinished(c.PluginKind, "")
+		}
+		actual := false
+		if c.Failed {
+			actual = kfdef.IsPluginFailed(c.PluginKind)
+		} else {
+			actual = kfdef.IsPluginFinished(c.PluginKind)
+		}
+		if actual != c.Expected {
 			t.Errorf("IsPluginFinished doesn't returned expected value; expected %v; got %v",
-				c.expected, actual)
+				c.Expected, actual)
 		}
 	}
 }

@@ -308,14 +308,41 @@ func (d *KfDef) IsPluginFinished(pluginKind string) bool {
 }
 
 // Set a plugin as finished.
-func (d *KfDef) SetPluginFinished(pluginKind string) {
+func (d *KfDef) SetPluginFinished(pluginKind string, msg string) {
 	condType, err := kindToCondition(pluginKind, false)
 	if err != nil {
 		log.Warnf("error when looking for plugin condition type: %v", err)
 		return
 	}
 
-	d.SetCondition(condType, v1.ConditionTrue, "", "")
+	d.SetCondition(condType, v1.ConditionTrue, "", msg)
+}
+
+func (d *KfDef) IsPluginFailed(pluginKind string) bool {
+	condType, err := kindToCondition(pluginKind, true)
+	if err != nil {
+		log.Warnf("error when looking for plugin condition type: %v", err)
+		return false
+	}
+	cond, err := d.GetCondition(condType)
+	if err != nil {
+		if IsConditionNotFound(err) {
+			return false
+		}
+		log.Warnf("error when getting condition info: %v", err)
+		return false
+	}
+	return cond.Status == v1.ConditionTrue
+}
+
+func (d *KfDef) SetPluginFailed(pluginKind string, msg string) {
+	condType, err := kindToCondition(pluginKind, true)
+	if err != nil {
+		log.Warnf("error when looking for plugin condition type: %v", err)
+		return
+	}
+
+	d.SetCondition(condType, v1.ConditionTrue, "", msg)
 }
 
 func IsPluginNotFound(e error) bool {
@@ -324,4 +351,13 @@ func IsPluginNotFound(e error) bool {
 	}
 	err, ok := e.(*kfapis.KfError)
 	return ok && err.Code == int(kfapis.NOT_FOUND) && strings.HasPrefix(err.Message, pluginNotFoundErrPrefix)
+}
+
+func IsConditionNotFound(e error) bool {
+	if e == nil {
+		return false
+	}
+	err, ok := e.(*kfapis.KfError)
+	return ok && err.Code == int(kfapis.NOT_FOUND) &&
+		strings.HasPrefix(err.Message, conditionNotFoundErrPrefix)
 }
