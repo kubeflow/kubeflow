@@ -330,11 +330,9 @@ func (a *Apply) LabelClusterRole(clusterRoleName string, labelKey string,
 			},
 		})
 	if clusterRoleMissingErr == nil {
-		var labelPatchMap = map[string]map[string]map[string]string{
-			"metadata": map[string]map[string]string{
-				"labels": map[string]string{
-					labelKey: labelValue,
-				},
+		var labelPatchMap = map[string]metav1.ObjectMeta{
+			"metadata": metav1.ObjectMeta{
+				Labels: map[string]string{labelKey: labelValue},
 			},
 		}
 		labelPatchJSON, jsonErr := json.Marshal(labelPatchMap)
