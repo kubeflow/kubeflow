@@ -1,0 +1,53 @@
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: centraldashboard
+  namespace: kubeflow-ci
+spec:
+  params:
+  - name: url
+    value: gcr.io/kubeflow-images-public/centraldashboard
+  type: image
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: kubeflow
+  namespace: kubeflow-ci
+spec:
+  params:
+  - name: revision
+    value: refs/pull/4112/head
+  - name: url
+    value: git@github.com:kubeflow/kubeflow.git
+  type: git
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: kubeflow-4112
+  namespace: kubeflow-ci
+spec:
+  params:
+  - name: url
+    value: https://github.com/kubeflow/kubeflow/pulls/4112
+  secrets:
+  - fieldName: githubToken
+    secretKey: token
+    secretName: github-token-secret
+  type: pullRequest
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: manifests
+  namespace: kubeflow-ci
+spec:
+  params:
+  - name: revision
+    value: master
+  - name: url
+    value: git@github.com:kkasravi/manifests.git
+  type: git
+---

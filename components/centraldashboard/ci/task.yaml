@@ -1,0 +1,108 @@
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: build-push
+  namespace: kubeflow-ci
+spec:
+  inputs:
+    params:
+    - description: The path to the dockerfile to build
+      name: pathToDockerfile
+      type: string
+    - description: The build context used by Kaniko
+      name: pathToContext
+      type: string
+    - description: docker target arg
+      name: dockerTarget
+      type: string
+    resources:
+    - name: kubeflow
+      type: git
+  outputs:
+    resources:
+    - name: kubeflow
+      type: git
+    - name: centraldashboard
+      outputImageDir: /kubeflow
+      type: image
+  steps:
+  - command:
+    - /kaniko/executor
+    args:
+    - --dockerfile=/workspace/${inputs.resources.kubeflow.name}/${inputs.params.pathToDockerfile}
+    - --destination=${outputs.resources.centraldashboard.url}
+    - --context=/workspace/${inputs.resources.kubeflow.name}/${inputs.params.pathToContext}
+    - --target=${inputs.params.dockerTarget}
+    - --digest-file=/kubeflow/centraldashboard-digest
+    env:
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /secret/kaniko-secret.json
+    image: gcr.io/kaniko-project/executor:v0.11.0
+    name: build-push
+    volumeMounts:
+    - mountPath: /secret
+      name: kaniko-secret
+    - mountPath: /kubeflow
+      name: kubeflow
+  volumes:
+  - name: kaniko-secret
+    secret:
+      secretName: kaniko-secret
+  - name: kubeflow
+    persistentVolumeClaim:
+      claimName: ci-pipeline-run-persistent-volume-claim
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: update-manifests
+  namespace: kubeflow-ci
+spec:
+  inputs:
+    params:
+    - default: /workspace/manifests
+      description: Where the components manifest dir is
+      name: pathToManifestsDir
+      type: string
+    - description: pod container image
+      name: containerImage
+      type: string
+    resources:
+    - name: manifests
+      type: git
+    - name: kubeflow
+      type: git
+    - name: centraldashboard
+      type: image
+    - name: kubeflow-4112
+      type: pullRequest
+  outputs:
+    resources:
+    - name: manifests
+      type: git
+  steps:
+  - command:
+    - /workspace/${inputs.resources.kubeflow.name}/py/kubeflow/kubeflow/ci/rebuild-manifests.sh
+    env:
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /secret/kaniko-secret.json
+    envFrom:
+    - configMapRef:
+        name: ci-pipeline-run-parameters
+    image: ${inputs.params.containerImage}
+    name: update-manifests
+    volumeMounts:
+    - mountPath: /secret
+      name: kaniko-secret
+    - mountPath: /kubeflow
+      name: kubeflow
+    workingDir: /workspace/${inputs.resources.manifests.name}/${inputs.params.pathToManifestsDir}
+  volumes:
+  - name: kaniko-secret
+    secret:
+      secretName: kaniko-secret
+  - name: kubeflow
+    persistentVolumeClaim:
+      claimName: ci-pipeline-run-persistent-volume-claim
+---

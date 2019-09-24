@@ -1,0 +1,40 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  name: ci-centraldashboard-pipeline-run
+  namespace: kubeflow-ci
+spec:
+  pipelineRef:
+    name: ci-pipeline
+  podTemplate:
+    securityContext:
+      runAsNonRoot: true
+  params:
+  - name: container_image
+    value: "gcr.io/kubeflow-ci/test-worker:latest"
+  - name: docker_target
+    value: serve
+  - name: path_to_context
+    value: components/centraldashboard
+  - name: path_to_docker_file
+    value: components/centraldashboard/Dockerfile
+  - name: path_to_manifests_dir
+    value: common/centraldashboard/base
+  - name: pull_request_id
+    value: "4112"
+  - name: pull_request_repo
+    value: kubeflow
+  resources:
+  - name: kubeflow
+    resourceRef:
+      name: kubeflow
+  - name: manifests
+    resourceRef:
+      name: manifests
+  - name: centraldashboard
+    resourceRef:
+      name: centraldashboard
+  - name: kubeflow-4112
+    resourceRef:
+      name: kubeflow-4112
+  serviceAccount: ci-pipeline-run-service-account
