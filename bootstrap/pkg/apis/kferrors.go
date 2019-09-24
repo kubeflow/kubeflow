@@ -24,7 +24,7 @@ type StatusCode int
 const (
 	OK               StatusCode = 200
 	INVALID_ARGUMENT StatusCode = 400
-  NOT_FOUND        StatusCode = 404
+	NOT_FOUND        StatusCode = 404
 	INTERNAL_ERROR   StatusCode = 500
 	UNKNOWN          StatusCode = 520
 )

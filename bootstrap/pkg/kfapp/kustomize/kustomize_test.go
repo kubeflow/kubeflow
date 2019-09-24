@@ -110,8 +110,7 @@ func TestGenerateKustomizationFile(t *testing.T) {
 					Namespace: "kubeflow",
 				},
 				Spec: kfdefsv3.KfDefSpec{
-					EnableApplications: true,
-					PackageManager:     "kustomize",
+					PackageManager: "kustomize",
 				},
 			},
 			overlays: []string{
