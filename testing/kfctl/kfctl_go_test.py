@@ -83,6 +83,7 @@ def set_env_init_args(use_basic_auth, use_istio):
     init_args = ["--use_basic_auth"]
   else:
     # Owned by project kubeflow kubeflow-ci-deployment
+    logging.info("Seeting environment variables CLIENT_SECRET and CLIENT_ID")
     os.environ["CLIENT_SECRET"] = "CJ4qVPLTi0j0GJMkONj7Quwt"
     os.environ["CLIENT_ID"] = (
         "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g"
@@ -179,10 +180,7 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
 
   logging.info("Using app path %s", app_path)
   zone = 'us-central1-a'
-
-  # Set ENV for basic auth username/password.
-  set_env_init_args(use_basic_auth, use_istio)
-
+  
   # We need to specify a valid email because
   #  1. We need to create appropriate RBAC rules to allow the current user
   #     to create the required K8s resources.
@@ -201,6 +199,17 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
 
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
+
+  # TODO(jlewi): When we switch to KfDef v1beta1 this logic will need to change because 
+  # use_base_auth will move into the plugin spec
+  use_basic_auth = config_spec.get("useBasicAuth", False)  
+  logging.info("use_basic_auth=%s", use_basic_auth)
+  
+  use_istio = config_spec.get("useIstio", True)
+  logging.info("use_istio=%s", use_istio)
+    
+  # Set ENV for basic auth username/password.
+  set_env_init_args(use_basic_auth, use_istio)
   
   logging.info("Running kfctl init with config:\n%s", yaml.safe_dump(config_spec))
 
