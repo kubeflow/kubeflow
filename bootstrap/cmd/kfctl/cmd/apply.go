@@ -18,6 +18,7 @@ import (
 	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfupgrade"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -35,6 +36,24 @@ var applyCmd = &cobra.Command{
 		if applyCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
+
+		file := applyCfg.GetString(string(kftypes.FILE))
+		if file != "" {
+			// Find the new KfDef
+			kfApp, err := kfupgrade.LoadKfUpgrade(file)
+			if err != nil {
+				return fmt.Errorf("couldn't load KfUpgrade: %v", err)
+			}
+
+			// Apply
+			err = kfApp.Apply(kftypes.K8S)
+			if err != nil {
+				return fmt.Errorf("couldn't apply KfUpgrade: %v", err)
+			}
+
+			return nil
+		}
+
 		resource, resourceErr := processResourceArg(args)
 		if resourceErr != nil {
 			return fmt.Errorf("invalid resource: %v", resourceErr)
@@ -58,10 +77,19 @@ func init() {
 	applyCfg.SetConfigName("app")
 	applyCfg.SetConfigType("yaml")
 
+	// Input file
+	applyCmd.Flags().StringP(string(kftypes.FILE), "f", "",
+		string(kftypes.FILE)+" to point to a KF upgrade file")
+	bindErr := applyCfg.BindPFlag(string(kftypes.FILE), applyCmd.Flags().Lookup(string(kftypes.FILE)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.FILE), bindErr)
+		return
+	}
+
 	// verbose output
 	applyCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,
 		string(kftypes.VERBOSE)+" output default is false")
-	bindErr := applyCfg.BindPFlag(string(kftypes.VERBOSE), applyCmd.Flags().Lookup(string(kftypes.VERBOSE)))
+	bindErr = applyCfg.BindPFlag(string(kftypes.VERBOSE), applyCmd.Flags().Lookup(string(kftypes.VERBOSE)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERBOSE), bindErr)
 		return

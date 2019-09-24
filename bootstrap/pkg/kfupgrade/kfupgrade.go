@@ -28,6 +28,7 @@ import (
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	kfupgrade "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfupgrade/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -41,7 +42,6 @@ func NewKfUpgrade(upgradeConfig string) (kftypesv3.KfApp, error) {
 		}
 	}
 
-	// First find the existing KfDef
 	appDir, err := os.Getwd()
 
 	if err != nil {
@@ -50,13 +50,13 @@ func NewKfUpgrade(upgradeConfig string) (kftypesv3.KfApp, error) {
 			Message: fmt.Sprintf("could not get current directory %v", err),
 		}
 	}
-	oldConfig := filepath.Join(appDir, kftypesv3.KfConfigFile)
 
-	oldKfDef, err := kfdefsv3.LoadKFDefFromURI(oldConfig)
+	// Find the existing KfDef
+	oldKfDef, err := FindKfDef(upgrade.Spec.CurrentKfDef)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not load %v. Error: %v", oldConfig, err),
+			Message: fmt.Sprintf("could not load %v. Error: %v", upgrade.Spec.CurrentKfDef.Name, err),
 		}
 	}
 
@@ -72,6 +72,134 @@ func NewKfUpgrade(upgradeConfig string) (kftypesv3.KfApp, error) {
 	}
 
 	// Merge the previous KfDef's customized values into the new KfDef
+	MergeKfDef(oldKfDef, newKfDef)
+
+	// Compute hash from the new KfDef and use it to create the new app directory
+	h, err := ComputeHash(newKfDef)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not compute sha256 hash. Error: %v", err),
+		}
+	}
+
+	newAppDir := filepath.Join(appDir, h)
+	newKfDef.Spec.AppDir = newAppDir
+	newKfDef.Spec.Version = upgrade.Spec.NewKfDef.Version
+
+	updateCfg, err := coordinator.CreateKfAppCfgFile(newKfDef)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return coordinator.LoadKfAppCfgFile(updateCfg)
+}
+
+func LoadKfUpgrade(upgradeConfig string) (kftypesv3.KfApp, error) {
+	upgrade, err := kfupgrade.LoadKfUpgradeFromUri(upgradeConfig)
+	if err != nil {
+		log.Errorf("Could not load %v; error %v", upgradeConfig, err)
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: err.Error(),
+		}
+	}
+
+	kfDef, err := FindKfDef(upgrade.Spec.NewKfDef)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not load %v. Error: %v", upgrade.Spec.NewKfDef.Name, err),
+		}
+	}
+
+	if kfDef != nil {
+		return kustomize.GetKfApp(kfDef), nil
+	} else {
+		newKfApp, err := NewKfUpgrade(upgradeConfig)
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("Failed to create new KfApp. Error: %v", err),
+			}
+		}
+
+		err = newKfApp.Generate(kftypesv3.K8S)
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("Failed to build KfApp. Error: %v", err),
+			}
+		}
+		return newKfApp, nil
+	}
+}
+
+func ComputeHash(d *kfdefsv3.KfDef) (string, error) {
+	h := sha256.New()
+	buf := new(bytes.Buffer)
+	json.NewEncoder(buf).Encode(d)
+	h.Write([]byte(buf.Bytes()))
+	id := base32.HexEncoding.WithPadding(base32.NoPadding).EncodeToString(h.Sum(nil))
+	id = strings.ToLower(id)[0:7]
+
+	return id, nil
+}
+
+func FindKfDef(kfDefRef *kfupgrade.KfDefRef) (*kfdefsv3.KfDef, error) {
+	var target *kfdefsv3.KfDef
+	err := filepath.Walk(".",
+		func(path string, info os.FileInfo, err error) error {
+			if target != nil {
+				// If we already found the target directory, skip
+				return nil
+			}
+
+			if !info.Mode().IsDir() {
+				// Skip non-directories
+				return nil
+			}
+
+			if strings.Contains(path, ".cache") {
+				// Skip cache directories
+				return nil
+			}
+
+			config := filepath.Join(path, kftypesv3.KfConfigFile)
+			info, err = os.Stat(config)
+			if os.IsNotExist(err) {
+				// App.yaml does not exist, skip this directory
+				return nil
+			}
+
+			kfDef, err := kfdefsv3.LoadKFDefFromURI(config)
+			if err != nil {
+				log.Warnf("Failed to load KfDef from %v", config)
+				return nil
+			}
+
+			if kfDef.Name == kfDefRef.Name && kfDef.Spec.Version == kfDefRef.Version {
+				if kfDefRef.Version == "" {
+					log.Infof("Found KfDef with matching name: %v", kfDef.Name)
+					target = kfDef
+				} else if kfDef.Spec.Version == kfDefRef.Version {
+					log.Infof("Found KfDef with matching name: %v version: %v", kfDef.Name, kfDef.Spec.Version)
+					target = kfDef
+				}
+			}
+
+			return err
+		})
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return target, err
+}
+
+func MergeKfDef(oldKfDef *kfdefsv3.KfDef, newKfDef *kfdefsv3.KfDef) {
 	newKfDef.Name = oldKfDef.Name
 	newKfDef.Spec.Project = oldKfDef.Spec.Project
 	for appIndex, newApp := range newKfDef.Spec.Applications {
@@ -91,35 +219,4 @@ func NewKfUpgrade(upgradeConfig string) (kftypesv3.KfApp, error) {
 			}
 		}
 	}
-
-	// Compute hash from the new KfDef and use it to create the new app directory
-	h, err := ComputeHash(newKfDef)
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not compute sha256 hash. Error: %v", err),
-		}
-	}
-
-	newAppDir := filepath.Join(appDir, h)
-	newKfDef.Spec.AppDir = newAppDir
-
-	updateCfg, err := coordinator.CreateKfAppCfgFile(newKfDef)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return coordinator.LoadKfAppCfgFile(updateCfg)
-}
-
-func ComputeHash(d *kfdefsv3.KfDef) (string, error) {
-	h := sha256.New()
-	buf := new(bytes.Buffer)
-	json.NewEncoder(buf).Encode(d)
-	h.Write([]byte(buf.Bytes()))
-	id := base32.HexEncoding.WithPadding(base32.NoPadding).EncodeToString(h.Sum(nil))
-	id = strings.ToLower(id)[0:7]
-
-	return id, nil
 }

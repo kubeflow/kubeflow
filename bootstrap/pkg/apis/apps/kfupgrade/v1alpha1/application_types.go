@@ -47,9 +47,9 @@ type KfDefRef struct {
 	// Name of the referrent.
 	Name string `json:"name,omitempty"`
 
-	// App version of the referent.
+	// Version of the referent.
 	// +optional
-	AppVersion string `json:"appVersion,omitempty"`
+	Version string `json:"version,omitempty"`
 }
 
 // KfUpgradeStatus defines the observed state of KfUpgrade
