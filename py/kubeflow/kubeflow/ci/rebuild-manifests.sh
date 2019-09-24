@@ -14,6 +14,17 @@
 # it extracts the github user from /workspace/kubeflow-<pr>/github/pr.json
 # it extracts the image digest from /workspace/${image_name}-digest which was created by the build-push task.
 #
+# the script does the following in forked manifests repo
+# - edits the image tag in the kustomization.yaml (its workingdir is where the component's manifest is)
+# - calls `make generate; make test` under manifests/tests 
+# - if successful 
+#   - commits the changes 
+#   - creates a PR.
+#
+if [[ -z $pull_request_id || -z $pull_request_repo || -z $image_name ]]; then
+  echo 'invalid env var pull_request_id='$pull_request_id' pull_request_repo='$pull_request_repo' image_name='$image_name
+  exit 1
+fi
 if [[ -f /workspace/${pull_request_repo}-${pull_request_id}/pr.json ]]; then
   pushd /workspace/${pull_request_repo}-${pull_request_id}
   kubeflow_forked_repo=$(cat pr.json | jq .Head.Repo? | xargs)

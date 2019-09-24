@@ -3,7 +3,7 @@ apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
   name: centraldashboard
-  namespace: kubeflow-ci
+  namespace: kubeflow-test-infra
 spec:
   params:
   - name: url
@@ -14,7 +14,7 @@ apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
   name: kubeflow
-  namespace: kubeflow-ci
+  namespace: kubeflow-test-infra
 spec:
   params:
   - name: revision
@@ -27,7 +27,7 @@ apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
   name: kubeflow-4112
-  namespace: kubeflow-ci
+  namespace: kubeflow-test-infra
 spec:
   params:
   - name: url
@@ -35,14 +35,14 @@ spec:
   secrets:
   - fieldName: githubToken
     secretKey: token
-    secretName: github-token-secret
+    secretName: github-token
   type: pullRequest
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
   name: manifests
-  namespace: kubeflow-ci
+  namespace: kubeflow-test-infra
 spec:
   params:
   - name: revision
