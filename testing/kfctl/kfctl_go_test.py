@@ -76,11 +76,13 @@ def set_env_init_args(use_basic_auth, use_istio):
   init_args = []
   # Set ENV for basic auth username/password.
   if use_basic_auth:
+    # Don't log the password.
+    logging.info("Seeting environment variables KUBEFLOW_USERNAME and KUBEFLOW_PASSWORD")
     os.environ["KUBEFLOW_USERNAME"] = "kf-test-user"
     os.environ["KUBEFLOW_PASSWORD"] = str(uuid.uuid4().hex)
     init_args = ["--use_basic_auth"]
   else:
-    # Owned by project kubeflow/mnt/test-data-volume/jlewi-kfctl-test-20190918-211229/apps/kfctl-20190918-211230-d63-ci-deployment.
+    # Owned by project kubeflow kubeflow-ci-deployment
     os.environ["CLIENT_SECRET"] = "CJ4qVPLTi0j0GJMkONj7Quwt"
     os.environ["CLIENT_ID"] = (
         "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g"
