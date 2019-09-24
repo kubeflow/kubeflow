@@ -597,14 +597,6 @@ func (kustomize *kustomize) SetK8sRestConfig(r *rest.Config) {
 	kustomize.configOverwrite = true
 }
 
-func (kustomize *kustomize) UpdateBuild() error {
-	return kustomize.Generate(kftypesv3.K8S)
-}
-
-func (kustomize *kustomize) UpdateApply() error {
-	return kustomize.Apply(kftypesv3.K8S)
-}
-
 // GetKustomization will read a kustomization.yaml and return Kustomization type
 func GetKustomization(kustomizationPath string) *types.Kustomization {
 	kustomizationFile := filepath.Join(kustomizationPath, kftypesv3.KustomizationFile)

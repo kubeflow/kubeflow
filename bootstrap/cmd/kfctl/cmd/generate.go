@@ -18,6 +18,7 @@ import (
 	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfupgrade"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -41,6 +42,7 @@ The default is 'all' for any selected platform.`,
 		if generateCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
+
 		resource, resourceErr := processResourceArg(args)
 		if resourceErr != nil {
 			return fmt.Errorf("invalid resource: %v", resourceErr)
@@ -50,6 +52,22 @@ The default is 'all' for any selected platform.`,
 		hostName := generateCfg.GetString(string(kftypes.HOSTNAME))
 		zone := generateCfg.GetString(string(kftypes.ZONE))
 		mountLocal := generateCfg.GetBool(string(kftypes.MOUNT_LOCAL))
+
+		file := generateCfg.GetString(string(kftypes.FILE))
+
+		if file != "" {
+			log.Infof(">>>> FILE: %v", file)
+			kfUpgrade, kfUpgradeErr := kfupgrade.NewKfUpgrade(file)
+			if kfUpgradeErr != nil {
+				return fmt.Errorf("couldn't load KfUpgrade: %v", kfUpgradeErr)
+			}
+
+			generateErr := kfUpgrade.Generate(kftypes.K8S)
+			if generateErr != nil {
+				return fmt.Errorf("couldn't generate KfApp: %v", generateErr)
+			}
+			return nil
+		}
 		options := map[string]interface{}{
 			string(kftypes.EMAIL):       email,
 			string(kftypes.IPNAME):      ipName,
@@ -118,6 +136,15 @@ func init() {
 	bindErr = generateCfg.BindPFlag(string(kftypes.MOUNT_LOCAL), generateCmd.Flags().Lookup(string(kftypes.MOUNT_LOCAL)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.MOUNT_LOCAL), bindErr)
+		return
+	}
+
+	// Input file
+	generateCmd.Flags().StringP(string(kftypes.FILE), "f", "",
+		string(kftypes.FILE)+" to point to a KF upgrade file")
+	bindErr = generateCfg.BindPFlag(string(kftypes.FILE), generateCmd.Flags().Lookup(string(kftypes.FILE)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.FILE), bindErr)
 		return
 	}
 

@@ -27,44 +27,57 @@ import (
 )
 
 const (
-	KfUpdateFile = "update.yaml"
+	KfUpgradeFile = "update.yaml"
 )
 
-type KfUpdateSpec struct {
-	CurrentVersion *VersionConfig `json:"currentVersion,omitempty"`
-	UpdateVersion  *VersionConfig `json:"updateVersion,omitempty"`
+type KfUpgradeSpec struct {
+	// Reference to the current (existing) KfDef.
+	CurrentKfDef *KfDefRef `json:"currentKfDef,omitempty"`
+
+	// Reference to the new KfDef.
+	// +optional
+	NewKfDef *KfDefRef `json:"newKfDef,omitempty"`
+
+	// Base config file used to generate the new KfDef.
+	// +optional
+	BaseConfigPath string `json:"baseConfigPath,omitempty"`
 }
 
-type VersionConfig struct {
-	ConfigPath string `json:"configPath,omitempty"`
+type KfDefRef struct {
+	// Name of the referrent.
+	Name string `json:"name,omitempty"`
+
+	// App version of the referent.
+	// +optional
+	AppVersion string `json:"appVersion,omitempty"`
 }
 
-// KfUpdateStatus defines the observed state of KfUpdate
-type KfUpdateStatus struct {
-	Conditions []KfUpdateCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,6,rep,name=conditions"`
+// KfUpgradeStatus defines the observed state of KfUpgrade
+type KfUpgradeStatus struct {
+	Conditions []KfUpgradeCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,6,rep,name=conditions"`
 }
 
-type KfUpdateConditionType string
+type KfUpgradeConditionType string
 
 const (
 	// KfDeploying means Kubeflow is in the process of being deployed.
-	KfUpdateInProgress KfUpdateConditionType = "InProgress"
+	KfUpgradeInProgress KfUpgradeConditionType = "InProgress"
 
 	// KfSucceeded means Kubeflow was successfully deployed.
-	KfUpdateSucceeded KfUpdateConditionType = "Succeeded"
+	KfUpgradeSucceeded KfUpgradeConditionType = "Succeeded"
 
 	// KfFailed meansthere was a problem deploying Kubeflow.
-	KfUpdateFailed KfUpdateConditionType = "Failed"
+	KfUpgradeFailed KfUpgradeConditionType = "Failed"
 
 	// Reasons for conditions
 
-	// InvalidKfUpdateSpecReason indicates the KfUpdate was not valid.
-	InvalidKfUpdateSpecReason = "InvalidKfUpdateSpec"
+	// InvalidKfUpgradeSpecReason indicates the KfUpgrade was not valid.
+	InvalidKfUpgradeSpecReason = "InvalidKfUpgradeSpec"
 )
 
-type KfUpdateCondition struct {
+type KfUpgradeCondition struct {
 	// Type of deployment condition.
-	Type KfUpdateConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=KfDefConditionType"`
+	Type KfUpgradeConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=KfDefConditionType"`
 	// Status of the condition, one of True, False, Unknown.
 	Status v1.ConditionStatus `json:"status" protobuf:"bytes,2,opt,name=status,casttype=k8s.io/api/core/v1.ConditionStatus"`
 	// The last time this condition was updated.
@@ -79,29 +92,29 @@ type KfUpdateCondition struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KfUpdate is the Schema for the applications API
+// KfUpgrade is the Schema for the applications API
 // +k8s:openapi-gen=true
-type KfUpdate struct {
+type KfUpgrade struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   KfUpdateSpec   `json:"spec,omitempty"`
-	Status KfUpdateStatus `json:"status,omitempty"`
+	Spec   KfUpgradeSpec   `json:"spec,omitempty"`
+	Status KfUpgradeStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KfUpdateList contains a list of KfUpdate
-type KfUpdateList struct {
+// KfUpgradeList contains a list of KfUpgrade
+type KfUpgradeList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []KfUpdate `json:"items"`
+	Items           []KfUpgrade `json:"items"`
 }
 
-// LoadKfUpdateFromUri constructs a KfUpdate given the path to a YAML file.
+// LoadKfUpgradeFromUri constructs a KfUpgrade given the path to a YAML file.
 // configFile is the path to the YAML file containing the KfDef spec. Can be any URI supported by hashicorp
 // go-getter.
-func LoadKfUpdateFromUri(configFile string) (*KfUpdate, error) {
+func LoadKfUpgradeFromUri(configFile string) (*KfUpgrade, error) {
 	if configFile == "" {
 		return nil, fmt.Errorf("config file must be the URI of a KfDef spec")
 	}
@@ -111,7 +124,7 @@ func LoadKfUpdateFromUri(configFile string) (*KfUpdate, error) {
 		return nil, fmt.Errorf("Create a temporary directory to copy the file to.")
 	}
 	// Open config file
-	appFile := path.Join(appDir, KfUpdateFile)
+	appFile := path.Join(appDir, KfUpgradeFile)
 
 	log.Infof("Downloading %v to %v", configFile, appFile)
 	err = gogetter.GetFile(appFile, configFile)
@@ -130,26 +143,26 @@ func LoadKfUpdateFromUri(configFile string) (*KfUpdate, error) {
 			Message: fmt.Sprintf("could not read from config file %s: %v", configFile, err),
 		}
 	}
-	// Unmarshal content onto KfDef struct
-	kfUpdate := &KfUpdate{}
-	if err := yaml.Unmarshal(configFileBytes, kfUpdate); err != nil {
+	// Unmarshal content onto KfUpgrade struct
+	kfUpgrade := &KfUpgrade{}
+	if err := yaml.Unmarshal(configFileBytes, kfUpgrade); err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not unmarshal config file onto KfDef struct: %v", err),
+			Message: fmt.Sprintf("could not unmarshal config file onto KfUpgrade struct: %v", err),
 		}
 	}
 
-	return kfUpdate, nil
+	return kfUpgrade, nil
 }
 
-// WriteToFile write the KfUpdate to a file.
-func (u *KfUpdate) WriteToFile(path string) error {
+// WriteToFile write the KfUpgrade to a file.
+func (u *KfUpgrade) WriteToFile(path string) error {
 	// Write app.yaml
 	buf, bufErr := yaml.Marshal(u)
 	if bufErr != nil {
 		log.Errorf("Error marshaling kfdev; %v", bufErr)
 		return bufErr
 	}
-	log.Infof("Writing KfUpdate to %v", path)
+	log.Infof("Writing KfUpgrade to %v", path)
 	return ioutil.WriteFile(path, buf, 0644)
 }

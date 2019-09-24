@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package v1alpha1 contains API Schema definitions for the kfupdate v1alpha1 API group
+// Package v1alpha1 contains API Schema definitions for the kfupgrade v1alpha1 API group
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen=package,register
-// +k8s:conversion-gen=github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfupdate
+// +k8s:conversion-gen=github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfupgrade
 // +k8s:defaulter-gen=TypeMeta
-// +groupName=kfupdate.apps.kubeflow.org
+// +groupName=kfupgrade.apps.kubeflow.org
 
 package v1alpha1

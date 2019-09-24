@@ -95,6 +95,7 @@ const (
 	DISABLE_USAGE_REPORT  CliOption = "disable_usage_report"
 	PACKAGE_MANAGER       CliOption = "package-manager"
 	CONFIG                CliOption = "config"
+	FILE                  CliOption = "file"
 )
 
 type UpdateEnum string
@@ -114,8 +115,6 @@ type KfApp interface {
 	Delete(resources ResourceEnum) error
 	Generate(resources ResourceEnum) error
 	Init(resources ResourceEnum) error
-	UpdateBuild() error
-	UpdateApply() error
 }
 
 //

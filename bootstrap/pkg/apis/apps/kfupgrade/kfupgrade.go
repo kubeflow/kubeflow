@@ -12,5 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package kfupdate contains kfupdate related types
-package kfupdate
+// Package kfupgrade contains kfupgrade related types
+package kfupgrade

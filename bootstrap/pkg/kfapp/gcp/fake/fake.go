@@ -30,11 +30,3 @@ func (g *FakeGcp) SetTokenSource(s oauth2.TokenSource) error {
 	g.ts = s
 	return nil
 }
-
-func (g *FakeGcp) UpdateBuild() error {
-	return nil
-}
-
-func (g *FakeGcp) UpdateApply() error {
-	return nil
-}

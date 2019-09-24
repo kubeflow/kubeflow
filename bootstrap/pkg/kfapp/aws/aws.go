@@ -901,11 +901,3 @@ func (aws *Aws) attachIamInlinePolicy(roleName, policyName, policyDocumentPath s
 	log.Infof("Successfully attach policy to IAM Role %v", roleName)
 	return nil
 }
-
-func (aws *Aws) UpdateBuild() error {
-	return nil
-}
-
-func (aws *Aws) UpdateApply() error {
-	return nil
-}
