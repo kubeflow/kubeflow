@@ -2,11 +2,12 @@ apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
   labels:
-    scope: kubeflow-ci
+    scope: kubeflow-test-infra
   name: ci-pipeline
-  namespace: kubeflow-ci
+  namespace: kubeflow-test-infra
 spec:
   params: 
+  - name: image_name
   - name: container_image
   - name: docker_target
   - name: path_to_context
@@ -48,10 +49,16 @@ spec:
     runAfter:
     - build-push
     params:
+    - name: imageName
+      value: "${params.image_name}"
     - name: pathToManifestsDir
       value: "${params.path_to_manifests_dir}"
     - name: containerImage
       value: "${params.container_image}"
+    - name: pullRequestRepo
+      value: "${params.pull_request_repo}"
+    - name: pullRequestId
+      value: "${params.pull_request_id}"
     resources:
       inputs:
       - name: kubeflow

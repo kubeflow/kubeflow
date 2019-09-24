@@ -3,7 +3,7 @@ apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
   name: build-push
-  namespace: kubeflow-ci
+  namespace: kubeflow-test-infra
 spec:
   inputs:
     params:
@@ -37,18 +37,18 @@ spec:
     - --digest-file=/kubeflow/centraldashboard-digest
     env:
     - name: GOOGLE_APPLICATION_CREDENTIALS
-      value: /secret/kaniko-secret.json
+      value: /secret/gcp-credentials.json
     image: gcr.io/kaniko-project/executor:v0.11.0
     name: build-push
     volumeMounts:
     - mountPath: /secret
-      name: kaniko-secret
+      name: gcp-credentials
     - mountPath: /kubeflow
       name: kubeflow
   volumes:
-  - name: kaniko-secret
+  - name: gcp-credentials
     secret:
-      secretName: kaniko-secret
+      secretName: gcp-credentials
   - name: kubeflow
     persistentVolumeClaim:
       claimName: ci-pipeline-run-persistent-volume-claim
@@ -57,16 +57,24 @@ apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
   name: update-manifests
-  namespace: kubeflow-ci
+  namespace: kubeflow-test-infra
 spec:
   inputs:
     params:
-    - default: /workspace/manifests
-      description: Where the components manifest dir is
+    - description: name of the image to push
+      name: imageName
+      type: string
+    - description: Where the components manifest dir is
       name: pathToManifestsDir
       type: string
     - description: pod container image
       name: containerImage
+      type: string
+    - description: pull request repo
+      name: pullRequestRepo
+      type: string
+    - description: pull request id
+      name: pullRequestId
       type: string
     resources:
     - name: manifests
@@ -86,22 +94,25 @@ spec:
     - /workspace/${inputs.resources.kubeflow.name}/py/kubeflow/kubeflow/ci/rebuild-manifests.sh
     env:
     - name: GOOGLE_APPLICATION_CREDENTIALS
-      value: /secret/kaniko-secret.json
-    envFrom:
-    - configMapRef:
-        name: ci-pipeline-run-parameters
+      value: /secret/gcp-credentials.json
+    - name: image_name
+      value: ${inputs.params.imageName}
+    - name: pull_request_repo
+      value: ${inputs.params.pullRequestRepo}
+    - name: pull_request_id
+      value: ${inputs.params.pullRequestId}
     image: ${inputs.params.containerImage}
     name: update-manifests
     volumeMounts:
     - mountPath: /secret
-      name: kaniko-secret
+      name: gcp-credentials
     - mountPath: /kubeflow
       name: kubeflow
     workingDir: /workspace/${inputs.resources.manifests.name}/${inputs.params.pathToManifestsDir}
   volumes:
-  - name: kaniko-secret
+  - name: gcp-credentials
     secret:
-      secretName: kaniko-secret
+      secretName: gcp-credentials
   - name: kubeflow
     persistentVolumeClaim:
       claimName: ci-pipeline-run-persistent-volume-claim

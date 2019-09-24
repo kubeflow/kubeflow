@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
   name: ci-centraldashboard-pipeline-run
-  namespace: kubeflow-ci
+  namespace: kubeflow-test-infra
 spec:
   pipelineRef:
     name: ci-pipeline
@@ -10,6 +10,8 @@ spec:
     securityContext:
       runAsNonRoot: true
   params:
+  - name: image_name
+    value: centraldashboard
   - name: container_image
     value: "gcr.io/kubeflow-ci/test-worker:latest"
   - name: docker_target
