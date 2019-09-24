@@ -1,5 +1,5 @@
 {
-  "BASE_IMAGE": "tensorflow/tensorflow:1.13.1-py3-jupyter",
+  "BASE_IMAGE": "tensorflow/tensorflow:1.14.0-py3-jupyter",
   "TFMA_VERSION": "0.13.0",
   "TFDV_VERSION": "0.13.1"
 }
