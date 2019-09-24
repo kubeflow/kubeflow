@@ -11,7 +11,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import * as jsYaml from 'js-yaml';
 import * as React from 'react';
-import * as request from 'request';
 
 import Gapi from './Gapi';
 import {
@@ -763,6 +762,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     private _redirectToKFDashboard(deploymentState: DeployFormState, dashboardUri: string) {
         const expectedTimeSecs = 30 * 60; // 30m
         const startTime = new Date().getTime() / 1000;
+        const img = document.createElement('img');
+        let imgSource = '';
         if (deploymentState.ingress === IngressType.Iap) {
             // relying on Kubeflow / JupyterHub logo image to be available when the site is ready.
             // The dashboard URI is hosted at a domain different from the deployer
@@ -771,59 +772,38 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             // an image served by the target site, the img load is a simple html
             // request and not an AJAX request, thus bypassing the CORS in this
             // case.
-            const img = document.createElement('img');
             const iconFilename = deploymentState.kfversion === Version.V06 ?
-                'favicon-32x32.png' : 'kf-logo_64px.svg';
-            const imgSource = `${dashboardUri}/assets/${iconFilename}`;
-            this._appendLine('Validating if IAP is up and running...');
-            img.src = `${imgSource}?rand=${Math.random()}`;
-            img.id = 'ready_test';
-            img.onload = () => {
-                window.location.href = dashboardUri;
-            };
-            img.onerror = () => {
-                const elapsedSecs = (new Date().getTime() / 1000) - startTime;
-                let estimatedTimeMin = (expectedTimeSecs - elapsedSecs) / 60;
-                if (estimatedTimeMin <= 0) {
-                    estimatedTimeMin = 0;
-                }
-                const readyImg = document.getElementById('ready_test') as HTMLImageElement;
-                if (readyImg != null) {
-                    setTimeout(() => {
-                        readyImg.src = `${imgSource}?rand=${Math.random()}`;
-                        this._appendLine(
-                            `Waiting for the IAP setup to get ready...(Expected time remaining: ${estimatedTimeMin.toFixed(0)}m)`);
-                    }, 30000);
-                }
-            };
-            img.style.display = 'none';
-            document.body.appendChild(img);
+              'favicon-32x32.png' : 'kf-logo_64px.svg';
+            imgSource = `${dashboardUri}/assets/${iconFilename}`;
         } else if (deploymentState.ingress === IngressType.BasicAuth) {
-            const loginUri = `https://${dashboardUri}/kflogin`;
-            const monitorInterval = setInterval(() => {
-                request(
-                    {
-                        method: 'GET',
-                        uri: loginUri,
-                    },
-                    (error, response, body) => {
-                        if (!error) {
-                            clearInterval(monitorInterval);
-                            window.location.href = loginUri;
-                        } else {
-                            const elapsedSecs = (new Date().getTime() / 1000) - startTime;
-                            let estimatedTimeMin = (expectedTimeSecs - elapsedSecs) / 60;
-                            if (estimatedTimeMin <= 0) {
-                                estimatedTimeMin = 0;
-                            }
-                            this._appendLine(`Waiting for the Kubeflow ingress to get ready...(Expected time remaining: ${estimatedTimeMin.toFixed(0)}m)`);
-                        }
-                    }
-                );
-            }, 10000);
+            imgSource = `${dashboardUri}/kflogin/favicon.ico`;
         } else {
             this._appendLine('Please use port forward to connect to kubeflow when Skip Endpoint');
+            return;
         }
+        this._appendLine('Validating if kubeflow service endpoint is up...');
+        img.src = `${imgSource}?rand=${Math.random()}`;
+        img.id = 'ready_test';
+        img.onload = () => {
+            window.location.href = dashboardUri;
+        };
+        img.onerror = () => {
+            const elapsedSecs = (new Date().getTime() / 1000) - startTime;
+            let estimatedTimeMin = (expectedTimeSecs - elapsedSecs) / 60;
+            if (estimatedTimeMin <= 0) {
+                estimatedTimeMin = 0;
+            }
+            const readyImg = document.getElementById('ready_test') as HTMLImageElement;
+            if (readyImg != null) {
+                setTimeout(() => {
+                    readyImg.src = `${imgSource}?rand=${Math.random()}`;
+                    this._appendLine(
+                        `Waiting for the kubeflow service endpoint to get ready...(Expected time remaining: ${estimatedTimeMin.toFixed(0)}m)`);
+                }, 30000);
+            }
+        };
+        img.style.display = 'none';
+        document.body.appendChild(img);
     }
 
     private _handleChange = (name: string) => (event: React.ChangeEvent) => {
