@@ -1,0 +1,74 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  labels:
+    scope: kubeflow-ci
+  name: ci-pipeline
+  namespace: kubeflow-ci
+spec:
+  params: 
+  - name: container_image
+  - name: docker_target
+  - name: path_to_context
+  - name: path_to_docker_file
+  - name: path_to_manifests_dir
+  - name: pull_request_id
+  - name: pull_request_repo
+  resources:
+  - name: kubeflow
+    type: git
+  - name: centraldashboard
+    type: image
+  - name: manifests
+    type: git
+  - name: kubeflow-4112
+    type: pullRequest
+  tasks:
+  - name: build-push
+    params:
+    - name: pathToDockerfile
+      value: ${params.path_to_docker_file}
+    - name: pathToContext
+      value: ${params.path_to_context}
+    - name: dockerTarget
+      value: ${params.docker_target}
+    resources:
+      inputs:
+      - name: kubeflow
+        resource: kubeflow
+      outputs:
+      - name: kubeflow
+        resource: kubeflow
+      - name: centraldashboard
+        resource: centraldashboard
+    taskRef:
+      name: build-push
+      kind: namespaced
+  - name: update-manifests
+    runAfter:
+    - build-push
+    params:
+    - name: pathToManifestsDir
+      value: "${params.path_to_manifests_dir}"
+    - name: containerImage
+      value: "${params.container_image}"
+    resources:
+      inputs:
+      - name: kubeflow
+        resource: kubeflow
+        from:
+        - build-push
+      - name: manifests
+        resource: manifests
+      - name: kubeflow-4112
+        resource: kubeflow-4112
+      - name: centraldashboard
+        resource: centraldashboard
+        from:
+        - build-push
+      outputs:
+      - name: manifests
+        resource: manifests
+    taskRef:
+      name: update-manifests
+      kind: namespaced

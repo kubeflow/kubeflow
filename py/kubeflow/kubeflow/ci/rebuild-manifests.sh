@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
-# get branch name of kubeflow PR
+# 
+# this script assumes the following
+#  - PipelineResource of type pullRequest for kubeflow is mounted /workspace/kubeflow-<pr>
+#  - PipelineResource of type git for kubeflow is mounted at /workspace/kubeflow
+#  - PipelineResource of type git for manifests is mounted at /workspace/manifests
+# 
+# this scripts expects the following env vars
+# $image_name
+# $pull_request_repo
+# $pull_request_id
+# 
+# this script extracts the forked repo, branch and commit from /workspace/kubeflow-<pr>/pr.json
+# it extracts the github user from /workspace/kubeflow-<pr>/github/pr.json
+# it extracts the image digest from /workspace/${image_name}-digest which was created by the build-push task.
+#
 if [[ -f /workspace/${pull_request_repo}-${pull_request_id}/pr.json ]]; then
   pushd /workspace/${pull_request_repo}-${pull_request_id}
   kubeflow_forked_repo=$(cat pr.json | jq .Head.Repo? | xargs)
@@ -8,7 +22,7 @@ if [[ -f /workspace/${pull_request_repo}-${pull_request_id}/pr.json ]]; then
   new_branch_name=$(echo ${kubeflow_forked_branch}-image-update | xargs)
   user=$(cat github/pr.json | jq .user.login | xargs)
   export GITHUB_TOKEN=$(kubectl get secrets github-token-secret -ojson | jq '. | .data.token' | xargs | base64 -d)
-  email=$(curl "https://api.github.com/users/kkasravi?access_token=${GITHUB_TOKEN}" -s | jq .email | xargs
+  email=$(curl "https://api.github.com/users/${user}?access_token=${GITHUB_TOKEN}" -s | jq .email | xargs
   popd
   git config --global user.name $user
   git config --global user.email $email
