@@ -330,6 +330,16 @@ func (d *KfDef) SetPluginFinished(pluginKind string, msg string) {
 		return
 	}
 
+	failedCond, err := kindToCondition(pluginKind, true)
+	if err != nil {
+		log.Warnf("error when looking for plugin condition type: %v", err)
+		return
+	}
+	if _, err := d.GetCondition(failedCond); err == nil {
+		d.SetCondition(failedCond, v1.ConditionFalse,
+			"", "Reset to false as the plugin is set to be finished.")
+	}
+
 	d.SetCondition(condType, v1.ConditionTrue, "", msg)
 }
 
@@ -355,6 +365,16 @@ func (d *KfDef) SetPluginFailed(pluginKind string, msg string) {
 	if err != nil {
 		log.Warnf("error when looking for plugin condition type: %v", err)
 		return
+	}
+
+	succeededCond, err := kindToCondition(pluginKind, false)
+	if err != nil {
+		log.Warnf("error when looking for plugin condition type: %v", err)
+		return
+	}
+	if _, err := d.GetCondition(succeededCond); err == nil {
+		d.SetCondition(succeededCond, v1.ConditionFalse,
+			"", "Reset to false as the plugin is set to be failed.")
 	}
 
 	d.SetCondition(condType, v1.ConditionTrue, "", msg)
