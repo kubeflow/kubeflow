@@ -56,7 +56,6 @@ The default is 'all' for any selected platform.`,
 		file := generateCfg.GetString(string(kftypes.FILE))
 
 		if file != "" {
-			log.Infof(">>>> FILE: %v", file)
 			kfUpgrade, kfUpgradeErr := kfupgrade.NewKfUpgrade(file)
 			if kfUpgradeErr != nil {
 				return fmt.Errorf("couldn't load KfUpgrade: %v", kfUpgradeErr)

@@ -723,21 +723,6 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 	return c, nil
 }
 
-// REMOVE
-// LoadKfAppFromUpdateFile constructs a KfApp from a kfUpdate yaml file.
-func LoadKfAppFromUpdateFile(updatecfg string) (kftypesv3.KfApp, error) {
-	return nil, nil
-	//update, err := kfupdate.LoadKfUpdateFromUri(updatecfg)
-	//if err != nil {
-	//	return nil, &kfapis.KfError{
-	//		Code:    int(kfapis.INTERNAL_ERROR),
-	//		Message: fmt.Sprintf("could not load %v. Error: %v", updatecfg, err),
-	//	}
-	//}
-
-	//return LoadKfAppCfgFile(update.Spec.UpdateVersion.ConfigPath)
-}
-
 // this type holds platform implementations of KfApp
 // eg Platforms[kftypesv3.GCP], Platforms[kftypes.MINIKUBE], PackageManagers["kustomize"]
 // The data attributes in kfdefsv3.KfDef are used by different KfApp implementations

@@ -47,7 +47,6 @@ const (
 	KfConfigFile           = "app.yaml"
 	KustomizationFile      = "kustomization.yaml"
 	KustomizationParamFile = "params.env"
-	KfUpdateFile           = "update.yaml"
 	DefaultCacheDir        = ".cache"
 	KubeflowRepoName       = "kubeflow"
 	ManifestsRepoName      = "manifests"
@@ -96,13 +95,6 @@ const (
 	PACKAGE_MANAGER       CliOption = "package-manager"
 	CONFIG                CliOption = "config"
 	FILE                  CliOption = "file"
-)
-
-type UpdateEnum string
-
-const (
-	BUILD UpdateEnum = "build"
-	APPLY UpdateEnum = "apply"
 )
 
 //
