@@ -241,7 +241,7 @@ def test_successful_deployment(deployment_name):
     if i == retries:
       raise Exception('Deployment failed: ' + deployment_name)
     try:
-      output = util.run(["kubectl", "get", "deployment", deployment_name])
+      output = util.run(["kubectl", "get", "deployment", deployment_name, "-n", "kubeflow"])
       logging.info("output = \n" + output)
       if output.count('\n') == 1:
         output = output.split('\n')[1]
