@@ -478,7 +478,8 @@ class Builder:
     copy_artifacts = self._build_step(step_name, self.workflow, EXIT_DAG_NAME, task_template,
                                       command, dependences)
 
-    copy_artifacts["container"]["workingDir"] = self.src_dir
+    # We don't want to run from the directory we are trying to delete.
+    copy_artifacts["container"]["workingDir"] = "/"
 
   def build(self):
     self.workflow = self._build_workflow()
