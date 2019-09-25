@@ -32,7 +32,7 @@ func isValidUrl(toTest string) bool {
 }
 
 // Simple mapping from plugin name to plugin kind in v1beta1. Ideally we should
-// use plugin kind to find handler functions.
+// use plugin kind to find handler functions. Only used for backward compatibility.
 func alphaPluginNameToBetaKind(pluginName string) kfdefv1beta1.PluginKindType {
 	mapping := map[string]kfdefv1beta1.PluginKindType{
 		kftypesv3.AWS:              kfdefv1beta1.AWS_PLUGIN_KIND,
