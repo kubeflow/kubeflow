@@ -1,0 +1,87 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- service-account.yaml
+- role-binding.yaml
+- pipeline.yaml
+- persistent-volume-claim.yaml
+- pipeline-resource.yaml
+- task.yaml
+- pipeline-run.yaml
+namespace: kubeflow-test-infra
+configMapGenerator:
+- name: ci-pipeline-run-parameters
+  env: params.env
+vars:
+- name: container_image
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.container_image
+- name: docker_target
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.path_to_manifests_dir
+- name: image_name
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.image_name
+- name: kubeflow_repo_revision
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.kubeflow_repo_revision
+- name: kubeflow_repo_url
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.kubeflow_repo_url
+- name: path_to_context
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.path_to_context
+- name: path_to_docker_file
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.path_to_docker_file
+- name: path_to_manifests_dir
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.path_to_manifests_dir
+- name: pull_request_repo
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.pull_request_repo
+- name: pull_request_id
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.pull_request_id
+configurations:
+- params.yaml

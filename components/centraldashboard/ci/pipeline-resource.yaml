@@ -18,9 +18,9 @@ metadata:
 spec:
   params:
   - name: revision
-    value: refs/pull/4112/head
+    value: $(kubeflow_repo_revision)
   - name: url
-    value: git@github.com:kubeflow/kubeflow.git
+    value: $(kubeflow_repo_url)
   type: git
 ---
 apiVersion: tekton.dev/v1alpha1
