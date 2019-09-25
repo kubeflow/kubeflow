@@ -18,8 +18,7 @@ import (
 	"fmt"
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/builder"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -36,13 +35,11 @@ var buildCmd = &cobra.Command{
 		}
 
 		// Use builder with the incoming config file
-		kfDef, buildErr := builder.LoadConfigFile(ConfigFilePath)
+		kfApp, buildErr := coordinator.NewKfAppFromURI(configFilePath)
 		if buildErr != nil {
 			return fmt.Errorf("couldn't load config file - %v", buildErr)
 		}
-		resource := builder.GetPlatform(kfDef)
-		kfApp := kustomize.GetKfApp(kfDef)
-		err := kfApp.Generate(resource)
+		err := kfApp.Generate(kftypes.ALL)
 		if err != nil {
 			return fmt.Errorf("couldn't generate KfApp: %v", err)
 		}
@@ -57,7 +54,7 @@ func init() {
 	applyCfg.SetConfigType("yaml")
 
 	// configfilepath as a flag
-	buildCmd.Flags().StringVarP(&ConfigFilePath, "file", "f", "", "-f path/to/config/")
+	buildCmd.Flags().StringVarP(&configFilePath, "file", "f", "", "-f path/to/config/")
 
 	// verbose output
 	buildCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,

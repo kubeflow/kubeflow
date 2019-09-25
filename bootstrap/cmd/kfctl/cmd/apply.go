@@ -18,9 +18,7 @@ import (
 	"fmt"
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/builder"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -28,9 +26,9 @@ import (
 
 var applyCfg = viper.New()
 
-// ConfigFilePath is a flag for the apply sub-command to take in a config file (i.e KfDef)
+// configFilePath is a flag for the apply sub-command to take in a config file (i.e KfDef)
 // and bootstrap a KfApp by filling in the necessary fields
-var ConfigFilePath string
+var configFilePath string
 
 var resource kftypes.ResourceEnum
 
@@ -49,16 +47,14 @@ var applyCmd = &cobra.Command{
 		var err error
 
 		// Check if file flag was passed.
-		if ConfigFilePath != "" {
+		if configFilePath != "" {
 			// Use builder with the incoming config file
-			kfDef, err := builder.LoadConfigFile(ConfigFilePath)
+			kfApp, err := coordinator.NewKfAppFromURI(configFilePath)
 			if err != nil {
 				return fmt.Errorf("couldn't load config file - %v", err)
 			}
-			resource = builder.GetPlatform(kfDef)
-			kfApp := kustomize.GetKfApp(kfDef)
 
-			generateErr := kfApp.Generate(resource)
+			generateErr := kfApp.Generate(kftypes.ALL)
 			if generateErr != nil {
 				return fmt.Errorf("couldn't generate KfApp: %v", generateErr)
 			}
@@ -89,7 +85,7 @@ func init() {
 	applyCfg.SetConfigType("yaml")
 
 	// configfilepath as a flag
-	applyCmd.Flags().StringVarP(&ConfigFilePath, "file", "f", "", "-f /path/to/config")
+	applyCmd.Flags().StringVarP(&configFilePath, "file", "f", "", "-f /path/to/config")
 
 	// verbose output
 	applyCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,

@@ -17,15 +17,20 @@ limitations under the License.
 package coordinator
 
 import (
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"path"
 	"path/filepath"
 	"strings"
 
 	"os"
 
+	"time"
+
 	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
+	gogetter "github.com/hashicorp/go-getter"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
@@ -39,7 +44,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	valid "k8s.io/apimachinery/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 )
 
 // Builder defines the methods used to create KfApps.
@@ -442,8 +446,115 @@ func CreateKfAppCfgFile(d *kfdefsv3.KfDef) (string, error) {
 	return cfgFilePath, cfgFilePathErr
 }
 
+// isCwdEmpty - quick check to determine if the working directory is empty
+func isCwdEmpty() (string, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	files, err := ioutil.ReadDir(cwd)
+	if err != nil {
+		return "", err
+	}
+	if len(files) > 0 {
+		return "", errors.New("Current working directory not empty")
+	}
+	return cwd, nil
+}
+
+// NewKfAppFromURI takes in a config file and generates the KfDef for it
+func NewKfAppFromURI(configFilePath string) (kftypesv3.KfApp, error) {
+	log.SetLevel(log.InfoLevel)
+
+	// Check if current working directory is empty
+	cwd, err := isCwdEmpty()
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("%v", err),
+		}
+	}
+
+	// Creates a temporary directory by default is set to `/tmp` when arguments are ("", "")
+	tempDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code: int(kfapis.INTERNAL_ERROR),
+			// See: https://github.com/golang/go/blob/master/src/os/file.go#L352
+			Message: fmt.Sprintf("temporary directory does not exist or could not access: %v", err),
+		}
+	}
+
+	// GetAny is used because configFilePath can be either a URL or a local file
+	// one of the design goals for the latest kfctl semantics
+	err = gogetter.GetAny(tempDir, configFilePath)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("could not fetch config file %v", err),
+		}
+	}
+	var tempFile string
+	err = filepath.Walk(tempDir, func(path string, info os.FileInfo, err error) error {
+		tempFile = path
+		return nil
+	})
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("couldn't read config file %v", err),
+		}
+	}
+	// Read appFile in-memory and unmarshal into KfDef struct
+	configFileBytes, err := ioutil.ReadFile(tempFile)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("couldn't read config file %v", err),
+		}
+	}
+	kfDef := &kfdefsv3.KfDef{}
+	if err := yaml.Unmarshal(configFileBytes, kfDef); err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not unmarshal config file onto KfDef struct: %v", err),
+		}
+	}
+
+	kfDef.Spec.AppDir = cwd
+	// Download to Cache
+	parts := strings.Split(kfDef.Spec.PackageManager, "@")
+	version := "master"
+	if len(parts) == 2 {
+		version = parts[1]
+	}
+	cacheDir, cacheDirErr := kftypesv3.DownloadToCache(cwd, kftypesv3.ManifestsRepo, version)
+	if cacheDirErr != nil || cacheDir == "" {
+		log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
+	}
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not sync cache to app directory: %v", err),
+		}
+	}
+
+	// Write KfDef to current directory as app.yaml
+	err = kfDef.WriteToFile(cwd + "/app.yaml")
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not write kfDef to file: %v", err),
+		}
+	}
+
+	return LoadKfAppCfgFile(cwd + "/app.yaml")
+}
+
 // NewKfApp is called from the Init subcommand and will create a directory based on
 // the path/name argument given to the Init subcommand
+// TODO(swiftdiaries): This function is deprecated in favor of the NewKfDefFromURI
+// and generate the KfApp from that
 func NewKfApp(options map[string]interface{}) (kftypesv3.KfApp, error) {
 	kfDef, err := CreateKfDefFromOptions(options)
 
