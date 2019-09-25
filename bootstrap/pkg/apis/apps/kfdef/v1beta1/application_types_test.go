@@ -98,12 +98,12 @@ func TestKfDef_ConditionStatus(t *testing.T) {
 
 	cases := []testCase{
 		testCase{
-			Type:    KfAWSPluginSucceeded,
+			Type:    GetPluginSucceededCondition(AWS_PLUGIN_KIND),
 			Status:  v1.ConditionFalse,
 			Message: "foo status",
 		},
 		testCase{
-			Type:    KfGCPPluginSucceeded,
+			Type:    GetPluginSucceededCondition(GCP_PLUGIN_KIND),
 			Status:  v1.ConditionTrue,
 			Message: "bar status",
 		},
