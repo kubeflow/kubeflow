@@ -114,7 +114,7 @@ func copyGcpPluginSpec(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) error 
 	}
 
 	spec := kfgcp.GcpPluginSpec{}
-	if err := to.GetPluginSpec(kftypesv3.GCP, &spec); err != nil && !kfdefv1beta1.IsPluginNotFound(err) {
+	if err := to.GetPluginSpec(kfdefv1beta1.GCP_PLUGIN_KIND, &spec); err != nil && !kfdefv1beta1.IsPluginNotFound(err) {
 		return err
 	}
 	spec.Project = from.Spec.Project
@@ -125,7 +125,7 @@ func copyGcpPluginSpec(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) error 
 	spec.UseBasicAuth = from.Spec.UseBasicAuth
 	spec.SkipInitProject = from.Spec.SkipInitProject
 	spec.DeleteStorage = from.Spec.DeleteStorage
-	return to.SetPluginSpec(kftypesv3.GCP, spec)
+	return to.SetPluginSpec(kfdefv1beta1.GCP_PLUGIN_KIND, spec)
 }
 
 // Copy plugins configs.
