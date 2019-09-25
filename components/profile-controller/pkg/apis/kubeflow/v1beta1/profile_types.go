@@ -27,7 +27,12 @@ import (
 type Plugin struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              *runtime.RawExtension `json:"spec,omitempty"`
+	Spec	*runtime.RawExtension `json:"spec,omitempty"`
+}
+
+type ProfileCondition struct {
+	Message	string `json:"message,omitempty"`
+	Status	string `json:"status,omitempty"`
 }
 
 // ProfileSpec defines the desired state of Profile
@@ -39,20 +44,15 @@ type ProfileSpec struct {
 	ResourceQuotaSpec v1.ResourceQuotaSpec `json:"resourcequotaspec,omitempty"`
 }
 
-type ProfileState string
-
 const (
-	ProfileSucceed ProfileState = "Successful"
-	ProfileFailed  ProfileState = "Failed"
-	ProfileUnknown ProfileState = "Unknown"
+	ProfileSucceed = "Successful"
+	ProfileFailed  = "Failed"
+	ProfileUnknown = "Unknown"
 )
 
 // ProfileStatus defines the observed state of Profile
 type ProfileStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-	Status  ProfileState `json:"status,omitempty"`
-	Message string       `json:"message,omitempty"`
+	Conditions  []ProfileCondition `json:"conditions,omitempty"`
 }
 
 // +genclient

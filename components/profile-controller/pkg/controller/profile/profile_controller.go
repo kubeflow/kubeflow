@@ -48,10 +48,15 @@ const PLUGIN = "plugin"
 const SERVICEROLEISTIO = "ns-access-istio"
 const SERVICEROLEBINDINGISTIO = "owner-binding-istio"
 
+const KFQUOTA = "kf-resource-quota"
+
 // annotation key, consumed by kfam API
 const USER = "user"
 const ROLE = "role"
 const ADMIN = "admin"
+
+const DEFAULT_EDITOR = "default-editor"
+const DEFAULT_VIEWER = "default-viewer"
 
 type Plugin interface {
 	ApplyPlugin(*ReconcileProfile, *kubeflowv1beta1.Profile) error
@@ -196,11 +201,11 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 		if (!ok) || val != instance.Spec.Owner.Name {
 			log.Info(fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
 				instance.Spec.Owner.Name))
-			instance.Status = kubeflowv1beta1.ProfileStatus{
+			instance.Status.Conditions = append(instance.Status.Conditions, kubeflowv1beta1.ProfileCondition{
 				Status: kubeflowv1beta1.ProfileFailed,
 				Message: fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
 					instance.Spec.Owner.Name),
-			}
+			})
 			if err := r.Update(context.TODO(), instance); err != nil {
 				return reconcile.Result{}, err
 			}
@@ -218,14 +223,14 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 	// Update service accounts
 	// Create service account "default-editor" in target namespace.
 	// "default-editor" would have k8s default "edit" permission: edit all resources in target namespace except rbac.
-	if err = r.updateServiceAccount(instance, "default-editor", "edit", nil); err != nil {
+	if err = r.updateServiceAccount(instance, DEFAULT_EDITOR, "edit"); err != nil {
 		log.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
 			"defaultEdittor", "error", err)
 		return reconcile.Result{}, err
 	}
 	// Create service account "default-viewer" in target namespace.
 	// "default-viewer" would have k8s default "view" permission: view all resources in target namespace.
-	if err = r.updateServiceAccount(instance, "default-viewer", "view", nil); err != nil {
+	if err = r.updateServiceAccount(instance, DEFAULT_VIEWER, "view"); err != nil {
 		log.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
 			"defaultViewer", "error", err)
 		return reconcile.Result{}, err
@@ -252,6 +257,21 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 		},
 	}
 	if err = r.updateRoleBinding(instance, roleBinding); err != nil {
+		log.Info("Failed Updating Owner Rolebinding", "namespace", instance.Name, "name",
+			"defaultEdittor", "error", err)
+		return reconcile.Result{}, err
+	}
+	// Create resource quota for target namespace if resources are specified in profile.
+	if len(instance.Spec.ResourceQuotaSpec.Hard) > 0 {
+		resourceQuota := &corev1.ResourceQuota{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        KFQUOTA,
+				Namespace:   instance.Name,
+			},
+			Spec: instance.Spec.ResourceQuotaSpec,
+		}
+	}
+	if err = r.updateResourceQuota(instance, roleBinding); err != nil {
 		log.Info("Failed Updating Owner Rolebinding", "namespace", instance.Name, "name",
 			"defaultEdittor", "error", err)
 		return reconcile.Result{}, err
@@ -359,16 +379,45 @@ func (r *ReconcileProfile) updateIstioRbac(profileIns *kubeflowv1beta1.Profile) 
 }
 
 // updateServiceAccount create or update service account "saName" with role "ClusterRoleName" in target namespace owned by "profileIns"
+func (r *ReconcileProfile) updateResourceQuota(profileIns *kubeflowv1beta1.Profile,
+	resourceQuota *corev1.ResourceQuota) error {
+	ctx := context.Background()
+	if err := controllerutil.SetControllerReference(profileIns, resourceQuota, r.scheme); err != nil {
+		return err
+	}
+	found := &corev1.ResourceQuota{}
+	err := r.Get(ctx, types.NamespacedName{Name: resourceQuota.Name, Namespace: resourceQuota.Namespace}, found)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating ResourceQuota", "namespace", resourceQuota.Namespace, "name", resourceQuota.Name)
+			err = r.Create(ctx, resourceQuota)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		if !(reflect.DeepEqual(resourceQuota.Spec, found.Spec)) {
+			found.Spec = resourceQuota.Spec
+			log.Info("Updating ResourceQuota", "namespace", resourceQuota.Namespace, "name", resourceQuota.Name)
+			err = r.Update(ctx, found)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// updateServiceAccount create or update service account "saName" with role "ClusterRoleName" in target namespace owned by "profileIns"
 func (r *ReconcileProfile) updateServiceAccount(profileIns *kubeflowv1beta1.Profile, saName string,
-	ClusterRoleName string, annotations map[string]string) error {
+	ClusterRoleName string) error {
 	serviceAccount := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      saName,
 			Namespace: profileIns.Name,
 		},
-	}
-	if annotations != nil {
-		serviceAccount.Annotations = annotations
 	}
 	if err := controllerutil.SetControllerReference(profileIns, serviceAccount, r.scheme); err != nil {
 		return err

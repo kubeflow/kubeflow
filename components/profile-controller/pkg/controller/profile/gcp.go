@@ -6,24 +6,23 @@ import (
 	kubeflowv1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1beta1"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iam/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
+const GCP_ANNOTATION_KEY = "iam.gke.io/gcp-service-account"
 // GcpPlugin defines the extra data provided for GCP actions
 type GcpPlugin struct {
 	Deployname string `json:"deployname,omitempty"`
 	Project    string `json:"project,omitempty"`
 }
 
+// ApplyPlugin will grant GCP workload identity to service account DEFAULT_EDITOR
 func (gcp *GcpPlugin) ApplyPlugin(r *ReconcileProfile, profile *kubeflowv1beta1.Profile) error {
-	annotation := map[string]string{
-		"iam.gke.io/gcp-service-account": gcp.getGcpServiceAccount(),
-	}
-	if err := r.updateServiceAccount(profile, "kf-user", "edit", annotation); err != nil {
-		log.Info("Failed Updating ServiceAccount", "namespace", profile.Name, "name",
-			"kf-user", "error", err)
+	if err := gcp.patchAnnotation(r, profile.Name, DEFAULT_EDITOR); err != nil {
 		return err
 	}
-	return gcp.setupWorkloadIdentity(profile.Name, "kf-user")
+	return gcp.setupWorkloadIdentity(profile.Name, DEFAULT_EDITOR)
 }
 
 func (gcp *GcpPlugin) getGcpServiceAccount() string {
@@ -31,8 +30,22 @@ func (gcp *GcpPlugin) getGcpServiceAccount() string {
 }
 
 // setupWorkloadIdentity creates the k8s service accounts and IAM bindings for them
+func (gcp *GcpPlugin) patchAnnotation(r *ReconcileProfile, namespace string, ksa string) error {
+	ctx := context.Background()
+	found := &corev1.ServiceAccount{}
+	err := r.Get(ctx, types.NamespacedName{Name: ksa, Namespace: namespace}, found)
+	if err != nil {
+		return err
+	}
+	found.Annotations[GCP_ANNOTATION_KEY] = gcp.getGcpServiceAccount()
+	log.Info("Patch Annotation for service account: ", "namespace ", namespace, "name ", ksa)
+	return r.Update(ctx, found)
+}
+
+// setupWorkloadIdentity creates the k8s service accounts and IAM bindings for them
 func (gcp *GcpPlugin) setupWorkloadIdentity(namespace string, ksa string) error {
 	ctx := context.Background()
+	gcpSa := gcp.getGcpServiceAccount()
 	// Get credentials.
 	client, err := google.DefaultClient(context.Background(), iam.CloudPlatformScope)
 	if err != nil {
@@ -44,7 +57,6 @@ func (gcp *GcpPlugin) setupWorkloadIdentity(namespace string, ksa string) error 
 	if err != nil {
 		return err
 	}
-	gcpSa := gcp.getGcpServiceAccount()
 	log.Info("Setting up iam policy for serviceaccount: ", gcpSa, " in namespace ", namespace)
 	saResource := fmt.Sprintf("projects/%v/serviceAccounts/%v", gcp.Project, gcpSa)
 
