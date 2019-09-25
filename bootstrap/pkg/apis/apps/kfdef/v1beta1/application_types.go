@@ -176,6 +176,14 @@ const (
 	KfMinikubePluginFailed        KfDefConditionType = "MinikubePluginFailed"
 )
 
+func GetPluginSucceededCondition(pluginKind PluginKindType) KfDefConditionType {
+	return KfDefConditionType(fmt.Sprintf("%vSucceeded", pluginKind))
+}
+
+func GetPluginFailedCondition(pluginKind PluginKindType) KfDefConditionType {
+	return KfDefConditionType(fmt.Sprintf("%vFailed", pluginKind))
+}
+
 type KfDefConditionReason string
 
 const (
@@ -196,41 +204,6 @@ type KfDefCondition struct {
 	Reason string `json:"reason,omitempty"`
 	// A human readable message indicating details about the transition.
 	Message string `json:"message,omitempty"`
-}
-
-func kindToCondition(kind PluginKindType, failedCondition bool) (KfDefConditionType, error) {
-	mapper := map[PluginKindType][]KfDefConditionType{
-		AWS_PLUGIN_KIND: []KfDefConditionType{
-			KfAWSPluginSucceeded,
-			KfAWSPluginFailed,
-		},
-		GCP_PLUGIN_KIND: []KfDefConditionType{
-			KfGCPPluginSucceeded,
-			KfGCPPluginFailed,
-		},
-		MINIKUBE_PLUGIN_KIND: []KfDefConditionType{
-			KfMinikubePluginSucceeded,
-			KfMinikubePluginFailed,
-		},
-		EXISTING_ARRIKTO_PLUGIN_KIND: []KfDefConditionType{
-			KfExistingArriktoPluginSucceeded,
-			KfExistingArriktoPluginFailed,
-		},
-	}
-
-	conds, ok := mapper[kind]
-	if ok {
-		if failedCondition {
-			return conds[1], nil
-		} else {
-			return conds[0], nil
-		}
-	} else {
-		return "", &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Unknown plugin kind: %v", kind),
-		}
-	}
 }
 
 // GetPluginSpec will try to unmarshal the spec for the specified plugin to the supplied
@@ -317,11 +290,7 @@ func (d *KfDef) GetCondition(condType KfDefConditionType) (*KfDefCondition, erro
 
 // Check if a plugin is finished.
 func (d *KfDef) IsPluginFinished(pluginKind PluginKindType) bool {
-	condType, err := kindToCondition(pluginKind, false)
-	if err != nil {
-		log.Warnf("error when looking for plugin condition type: %v", err)
-		return false
-	}
+	condType := GetPluginSucceededCondition(pluginKind)
 	cond, err := d.GetCondition(condType)
 	if err != nil {
 		log.Warnf("error when getting condition info: %v", err)
@@ -332,31 +301,18 @@ func (d *KfDef) IsPluginFinished(pluginKind PluginKindType) bool {
 
 // Set a plugin as finished.
 func (d *KfDef) SetPluginFinished(pluginKind PluginKindType, msg string) {
-	condType, err := kindToCondition(pluginKind, false)
-	if err != nil {
-		log.Warnf("error when looking for plugin condition type: %v", err)
-		return
-	}
-
-	failedCond, err := kindToCondition(pluginKind, true)
-	if err != nil {
-		log.Warnf("error when looking for plugin condition type: %v", err)
-		return
-	}
+	succeededCond := GetPluginSucceededCondition(pluginKind)
+	failedCond := GetPluginFailedCondition(pluginKind)
 	if _, err := d.GetCondition(failedCond); err == nil {
 		d.SetCondition(failedCond, v1.ConditionFalse,
 			"", "Reset to false as the plugin is set to be finished.")
 	}
 
-	d.SetCondition(condType, v1.ConditionTrue, "", msg)
+	d.SetCondition(succeededCond, v1.ConditionTrue, "", msg)
 }
 
 func (d *KfDef) IsPluginFailed(pluginKind PluginKindType) bool {
-	condType, err := kindToCondition(pluginKind, true)
-	if err != nil {
-		log.Warnf("error when looking for plugin condition type: %v", err)
-		return false
-	}
+	condType := GetPluginFailedCondition(pluginKind)
 	cond, err := d.GetCondition(condType)
 	if err != nil {
 		if IsConditionNotFound(err) {
@@ -369,23 +325,14 @@ func (d *KfDef) IsPluginFailed(pluginKind PluginKindType) bool {
 }
 
 func (d *KfDef) SetPluginFailed(pluginKind PluginKindType, msg string) {
-	condType, err := kindToCondition(pluginKind, true)
-	if err != nil {
-		log.Warnf("error when looking for plugin condition type: %v", err)
-		return
-	}
-
-	succeededCond, err := kindToCondition(pluginKind, false)
-	if err != nil {
-		log.Warnf("error when looking for plugin condition type: %v", err)
-		return
-	}
+	succeededCond := GetPluginSucceededCondition(pluginKind)
+	failedCond := GetPluginFailedCondition(pluginKind)
 	if _, err := d.GetCondition(succeededCond); err == nil {
 		d.SetCondition(succeededCond, v1.ConditionFalse,
 			"", "Reset to false as the plugin is set to be failed.")
 	}
 
-	d.SetCondition(condType, v1.ConditionTrue, "", msg)
+	d.SetCondition(failedCond, v1.ConditionTrue, "", msg)
 }
 
 // SetPluginSpec sets the requested parameter. The plugin is added if it doesn't already exist.
