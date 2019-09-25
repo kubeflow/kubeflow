@@ -2,19 +2,17 @@
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
-  name: centraldashboard
-  namespace: kubeflow-test-infra
+  name: $(image_name)
 spec:
   params:
   - name: url
-    value: gcr.io/kubeflow-images-public/centraldashboard
+    value: gcr.io/kubeflow-images-public/$(image_name)
   type: image
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
   name: kubeflow
-  namespace: kubeflow-test-infra
 spec:
   params:
   - name: revision
@@ -26,12 +24,11 @@ spec:
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
-  name: kubeflow-4112
-  namespace: kubeflow-test-infra
+  name: $(pull_request_repo)-$(pull_request_id)
 spec:
   params:
   - name: url
-    value: https://github.com/kubeflow/kubeflow/pulls/4112
+    value: https://github.com/kubeflow/kubeflow/pulls/$(pull_request_id)
   secrets:
   - fieldName: githubToken
     secretKey: token
@@ -42,12 +39,11 @@ apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
   name: manifests
-  namespace: kubeflow-test-infra
 spec:
   params:
   - name: revision
-    value: master
+    value: $(manifests_repo_revision)
   - name: url
-    value: git@github.com:kkasravi/manifests.git
+    value: $(manifests_repo_url)
   type: git
 ---

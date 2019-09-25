@@ -51,12 +51,18 @@ The PipelineRun references a Pipeline that has 2 tasks,
 and 4 PipelineResources of type image (1), git (2), and pullRequest (1). 
 The tasks reference these resources in their inputs or outputs. 
 
+### Parameterization 
+
 The PipelineRun params are passed down to the the Pipeline and Tasks.
 Reuse of centraldashboard requires changing the parameters in PipelineRun.
-The tasks are parameterized and remain the same across the other kubeflow components.
+The pipeline, tasks and pipelineresources are parameterized by both tektoncd parameters
+and kustomize vars and remain the same across the other kubeflow components.*
 
-The PipelineRun parameters could be provided by using kustomize vars.
-These parameters are then passed to Pipeline and it's Tasks.
+The PipelineRun parameters are provided by using kustomize vars.
+These parameters are then passed to Pipeline and its Tasks.†
+
+† tektoncd will not apply its parameters to the resources section in both pipeline and task
+
 The parameters are noted below, those with an asterix would need to change per component:
 
   container_image=gcr.io/kubeflow-ci/test-worker:latet

@@ -1,10 +1,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
-  labels:
-    scope: kubeflow-test-infra
   name: ci-pipeline
-  namespace: kubeflow-test-infra
 spec:
   params: 
   - name: container_image
@@ -16,34 +13,30 @@ spec:
   - name: pull_request_id
   - name: pull_request_repo
   resources:
-  - name: $(params.pull_request_repo)
+  - name: $(pull_request_repo)
     type: git
-  - name: $(params.image_name)
+  - name: $(image_name)
     type: image
   - name: manifests
     type: git
-  - name: $(params.pull_request_repo)-$(params.pull_request_id)
+  - name: $(pull_request_repo)-$(pull_request_id)
     type: pullRequest
   tasks:
   - name: build-push
     params:
     - name: dockerTarget
       value: $(params.docker_target)
-    - name: imageName
-      value: $(params.image_name)
     - name: pathToContext
       value: $(params.path_to_context)
     - name: pathToDockerfile
       value: $(params.path_to_docker_file)
-    - name: pullRequestRepo
-      value: $(params.pull_request_repo)
     resources:
       inputs:
-      - name: $(params.pullRequestRepo)
-        resource: $(params.pullRequestRepo)
+      - name: $(pull_request_repo)
+        resource: $(pull_request_repo)
       outputs:
-      - name: $(params.imageName)
-        resource: $(params.imageName)
+      - name: $(image_name)
+        resource: $(image_name)
     taskRef:
       name: build-push
       kind: namespaced
@@ -63,16 +56,14 @@ spec:
       value: "$(params.pull_request_id)"
     resources:
       inputs:
-      - name: $(params.pullRequestRepo)
-        resource: $(params.pullRequestRepo)
-        from:
-        - build-push
+      - name: $(pull_request_repo)
+        resource: $(pull_request_repo)
       - name: manifests
         resource: manifests
-      - name: $(params.pullRequestRepo)-$(params.pullRequestId)
-        resource: $(params.pullRequestRepo)-$(params.pullRequestId)
-      - name: $(params.imageName)
-        resource: $(params.imageName)
+      - name: $(pull_request_repo)-$(pull_request_id)
+        resource: $(pull_request_repo)-$(pull_request_id)
+      - name: $(image_name)
+        resource: $(image_name)
         from:
         - build-push
     taskRef:
