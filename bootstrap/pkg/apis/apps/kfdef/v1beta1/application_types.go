@@ -389,7 +389,7 @@ func (d *KfDef) SetPluginFailed(pluginKind PluginKindType, msg string) {
 }
 
 // SetPluginSpec sets the requested parameter. The plugin is added if it doesn't already exist.
-func (d *KfDef) SetPluginSpec(pluginName string, spec interface{}) error {
+func (d *KfDef) SetPluginSpec(pluginKind PluginKindType, spec interface{}) error {
 	// Convert spec to RawExtension
 	r := &runtime.RawExtension{}
 
@@ -420,7 +420,7 @@ func (d *KfDef) SetPluginSpec(pluginName string, spec interface{}) error {
 	index := -1
 
 	for i, p := range d.Spec.Plugins {
-		if p.Name == pluginName {
+		if p.Kind == string(pluginKind) {
 			index = i
 			break
 		}
@@ -428,10 +428,11 @@ func (d *KfDef) SetPluginSpec(pluginName string, spec interface{}) error {
 
 	if index == -1 {
 		// Plugin in doesn't exist so add it
-		log.Infof("Adding plugin %v", pluginName)
+		log.Infof("Adding plugin %v", pluginKind)
 
 		p := Plugin{}
-		p.Name = pluginName
+		p.Name = string(pluginKind)
+		p.Kind = string(pluginKind)
 		d.Spec.Plugins = append(d.Spec.Plugins, p)
 
 		index = len(d.Spec.Plugins) - 1
