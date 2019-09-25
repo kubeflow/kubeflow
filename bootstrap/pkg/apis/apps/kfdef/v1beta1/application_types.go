@@ -189,7 +189,8 @@ type KfDefCondition struct {
 }
 
 func kindToCondition(kind string, failedCondition bool) (KfDefConditionType, error) {
-	// TODO(gabrielwen): Use kind enum.
+	// TODO(gabrielwen): Use AWS_PLUGIN_KIND/GCP_PLUGIN_KIND/MINIKUBE_PLUGIN_KIND/
+	// EXISTING_ARRIKTO_PLUGIN_KIND after v1alpha1 is removed from group.go deps.
 	mapper := map[string][]KfDefConditionType{
 		"KfAwsPlugin": []KfDefConditionType{
 			KfAWSPluginSucceeded,
@@ -227,19 +228,18 @@ func kindToCondition(kind string, failedCondition bool) (KfDefConditionType, err
 // GetPluginSpec will try to unmarshal the spec for the specified plugin to the supplied
 // interface. Returns an error if the plugin isn't defined or if there is a problem
 // unmarshaling it.
-func (d *KfDef) GetPluginSpec(pluginName string, s interface{}) error {
+func (d *KfDef) GetPluginSpec(pluginKind string, s interface{}) error {
 	for _, p := range d.Spec.Plugins {
-		// TODO(gabrielwen): Use condition type to find plugin status.
-		// if p.Name != pluginName {
-		// 	continue
-		// }
+		if p.Kind != pluginKind {
+			continue
+		}
 
 		// To deserialize it to a specific type we need to first serialize it to bytes
 		// and then unserialize it.
 		specBytes, err := yaml.Marshal(p.Spec)
 
 		if err != nil {
-			msg := fmt.Sprintf("Could not marshal plugin %v args; error %v", pluginName, err)
+			msg := fmt.Sprintf("Could not marshal plugin %v args; error %v", pluginKind, err)
 			log.Errorf(msg)
 			return &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
@@ -250,7 +250,7 @@ func (d *KfDef) GetPluginSpec(pluginName string, s interface{}) error {
 		err = yaml.Unmarshal(specBytes, s)
 
 		if err != nil {
-			msg := fmt.Sprintf("Could not unmarshal plugin %v to the provided type; error %v", pluginName, err)
+			msg := fmt.Sprintf("Could not unmarshal plugin %v to the provided type; error %v", pluginKind, err)
 			log.Errorf(msg)
 			return &kfapis.KfError{
 				Code:    int(kfapis.INTERNAL_ERROR),
@@ -262,7 +262,7 @@ func (d *KfDef) GetPluginSpec(pluginName string, s interface{}) error {
 
 	return &kfapis.KfError{
 		Code:    int(kfapis.NOT_FOUND),
-		Message: fmt.Sprintf("%v %v", pluginNotFoundErrPrefix, pluginName),
+		Message: fmt.Sprintf("%v %v", pluginNotFoundErrPrefix, pluginKind),
 	}
 }
 

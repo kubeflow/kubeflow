@@ -34,14 +34,14 @@ func TestKfDef_GetPluginSpec(t *testing.T) {
 	// Test that we can properly parse the gcp structs.
 	type testCase struct {
 		Filename   string
-		PluginName string
+		PluginKind string
 		Expected   *GcpFakePluginSpec
 	}
 
 	cases := []testCase{
 		{
 			Filename:   "kfctl_plugin_test.yaml",
-			PluginName: "gcp-fake-plugin",
+			PluginKind: "kfGcpPlugin",
 			Expected: &GcpFakePluginSpec{
 				Auth: FakeAuth{
 					Iap: FakeIap{
@@ -73,7 +73,7 @@ func TestKfDef_GetPluginSpec(t *testing.T) {
 		}
 
 		actual := &GcpFakePluginSpec{}
-		err = d.GetPluginSpec(c.PluginName, actual)
+		err = d.GetPluginSpec(c.PluginKind, actual)
 
 		if err != nil {
 			t.Fatalf("Could not get plugin spec; error %v", err)
