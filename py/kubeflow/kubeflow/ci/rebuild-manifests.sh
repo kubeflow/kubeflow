@@ -25,11 +25,11 @@ if [[ -z $pull_request_id || -z $pull_request_repo || -z $image_name ]]; then
   echo 'invalid env var pull_request_id='$pull_request_id' pull_request_repo='$pull_request_repo' image_name='$image_name
   exit 1
 fi
-if [[ -f /workspace/${pull_request_repo}-${pull_request_id}/pr.json ]]; then
+if [[ -f /workspace/${pull_request_repo}-${pull_request_id}/head.json ]]; then
   pushd /workspace/${pull_request_repo}-${pull_request_id}
-  kubeflow_forked_repo=$(cat pr.json | jq .Head.Repo? | xargs)
-  kubeflow_forked_branch=$(cat pr.json | jq .Head.Branch? | xargs)
-  kubeflow_forked_commit=$(cat pr.json | jq .Head.SHA? | xargs)
+  kubeflow_forked_repo=$(cat head.json | jq .Head.Repo? | xargs)
+  kubeflow_forked_branch=$(cat head.json | jq .Head.Branch? | xargs)
+  kubeflow_forked_commit=$(cat head.json | jq .Head.SHA? | xargs)
   new_branch_name=$(echo ${kubeflow_forked_branch}-image-update | xargs)
   user=$(cat github/pr.json | jq .user.login | xargs)
   export GITHUB_TOKEN=$(kubectl get secrets github-token-secret -ojson | jq '. | .data.token' | xargs | base64 -d)
