@@ -73,9 +73,7 @@ func getConfigFromCache(pathDir string, kfDef *kfdefsv3.KfDef) ([]byte, error) {
 	} else if kfDef.Spec.Platform != "" {
 		overlays = append(overlays, kfDef.Spec.Platform)
 	}
-	if kfDef.Spec.EnableApplications {
-		overlays = append(overlays, "application")
-	}
+	overlays = append(overlays, "application")
 	compPath := strings.Split(kftypesv3.DefaultConfigDir, "/")[1]
 	params := []config.NameValue{}
 	genErr := kustomize.GenerateKustomizationFile(kfDef,
@@ -102,7 +100,7 @@ func getConfigFromCache(pathDir string, kfDef *kfdefsv3.KfDef) ([]byte, error) {
 			Message: fmt.Sprintf("error writing to %v Error %v", kfDef.Name, writeErr),
 		}
 	}
-	data, dataErr := resMap.EncodeAsYaml()
+	data, dataErr := resMap.AsYaml()
 	if dataErr != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
@@ -359,11 +357,10 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv3.KfDef, er
 				ComponentConfig: config.ComponentConfig{
 					Platform: platform,
 				},
-				Project:            project,
-				PackageManager:     packageManager,
-				UseBasicAuth:       useBasicAuth,
-				UseIstio:           useIstio,
-				EnableApplications: true,
+				Project:        project,
+				PackageManager: packageManager,
+				UseBasicAuth:   useBasicAuth,
+				UseIstio:       useIstio,
 			},
 		}
 		configFileBuffer, configFileErr := getConfigFromCache(cacheDir, kfDef)

@@ -61,6 +61,9 @@ const (
 
 	// Plugin parameter constants
 	AwsPluginName = kftypes.AWS
+
+	// Path in manifests repo to where the additional configs are located
+	CONFIG_LOCAL_PATH = "aws/infra_configs"
 )
 
 // Aws implements KfApp Interface
@@ -300,14 +303,14 @@ func (aws *Aws) updateClusterConfig(clusterConfigFile string) error {
 // ${KUBEFLOW_SRC}/${KFAPP}/aws_config -> destDir (dest)
 func (aws *Aws) generateInfraConfigs() error {
 	// 1. Copy and Paste all files from `sourceDir` to `destDir`
-	repo, ok := aws.kfDef.Status.ReposCache[kftypes.KubeflowRepoName]
+	repo, ok := aws.kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
 	if !ok {
-		err := fmt.Errorf("Repo %v not found in KfDef.Status.ReposCache", kftypes.KubeflowRepoName)
+		err := fmt.Errorf("Repo %v not found in KfDef.Status.ReposCache", kftypes.ManifestsRepoName)
 		log.Errorf("%v", err)
 		return errors.WithStack(err)
 	}
 
-	sourceDir := path.Join(repo.LocalPath, "deployment/aws/infra_configs")
+	sourceDir := path.Join(repo.LocalPath, CONFIG_LOCAL_PATH)
 	destDir := path.Join(aws.kfDef.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR)
 
 	if _, err := os.Stat(destDir); os.IsNotExist(err) {
@@ -472,10 +475,6 @@ func (aws *Aws) Init(resources kftypes.ResourceEnum) error {
 			}
 		}
 	}
-
-	// Finish initialization and write spec to config file
-	swaggerFile := filepath.Join(path.Dir(aws.kfDef.Spec.Repo), kftypes.DefaultSwaggerFile)
-	aws.kfDef.Spec.ServerVersion = "file:" + swaggerFile
 
 	createConfigErr := aws.kfDef.WriteToConfigFile()
 	if createConfigErr != nil {

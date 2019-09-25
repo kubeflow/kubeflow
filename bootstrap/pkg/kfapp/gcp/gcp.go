@@ -2131,9 +2131,6 @@ func (gcp *Gcp) gcpInitProject() error {
 
 // Init initializes a gcp kfapp
 func (gcp *Gcp) Init(resources kftypesv3.ResourceEnum) error {
-	// TODO(jlewi): Can we get rid of this now that we ware using kustomize?
-	swaggerFile := filepath.Join(path.Dir(gcp.kfDef.Spec.Repo), kftypesv3.DefaultSwaggerFile)
-	gcp.kfDef.Spec.ServerVersion = "file:" + swaggerFile
 	createConfigErr := gcp.kfDef.WriteToConfigFile()
 	if createConfigErr != nil {
 		return &kfapis.KfError{
