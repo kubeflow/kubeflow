@@ -4,6 +4,8 @@
 
 - [Kubeflow CI with tektoncd pipelines](#kubeflow-ci-with-tektoncd-pipelines)
   - [Use Case](#use-case)
+  - [TektonCD pipelineruns, pipelines and tasks](#tektoncd-pipelineruns-pipelines-and-tasks)
+  - [Parameterization](#parameterization)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
