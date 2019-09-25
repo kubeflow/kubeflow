@@ -1,9 +1,7 @@
----
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
   name: build-push
-  namespace: kubeflow-test-infra
 spec:
   inputs:
     params:
@@ -17,23 +15,21 @@ spec:
       name: dockerTarget
       type: string
     resources:
-    - name: kubeflow
+    - name: $(pull_request_repo)
       type: git
   outputs:
     resources:
-    - name: kubeflow
-      type: git
-    - name: centraldashboard
+    - name: $(image_name)
       outputImageDir: /kubeflow
       type: image
   steps:
   - command:
     - /kaniko/executor
     args:
-    - --dockerfile=/workspace/${inputs.resources.kubeflow.name}/${inputs.params.pathToDockerfile}
-    - --destination=${outputs.resources.centraldashboard.url}
-    - --context=/workspace/${inputs.resources.kubeflow.name}/${inputs.params.pathToContext}
-    - --target=${inputs.params.dockerTarget}
+    - --dockerfile=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.pathToDockerfile)
+    - --destination=$(outputs.resources.centraldashboard.url)
+    - --context=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.pathToContext)
+    - --target=$(inputs.params.dockerTarget)
     - --digest-file=/kubeflow/centraldashboard-digest
     env:
     - name: GOOGLE_APPLICATION_CREDENTIALS
@@ -57,7 +53,6 @@ apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
   name: update-manifests
-  namespace: kubeflow-test-infra
 spec:
   inputs:
     params:
@@ -79,36 +74,32 @@ spec:
     resources:
     - name: manifests
       type: git
-    - name: kubeflow
+    - name: $(pull_request_repo)
       type: git
-    - name: centraldashboard
+    - name: $(image_name)
       type: image
-    - name: kubeflow-4112
+    - name: $(pull_request_repo)-$(pull_request_id)
       type: pullRequest
-  outputs:
-    resources:
-    - name: manifests
-      type: git
   steps:
   - command:
-    - /workspace/${inputs.resources.kubeflow.name}/py/kubeflow/kubeflow/ci/rebuild-manifests.sh
+    - /workspace/$(inputs.resources.kubeflow.name)/py/kubeflow/kubeflow/ci/rebuild-manifests.sh
     env:
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: /secret/gcp-credentials.json
     - name: image_name
-      value: ${inputs.params.imageName}
+      value: $(inputs.params.imageName)
     - name: pull_request_repo
-      value: ${inputs.params.pullRequestRepo}
+      value: $(inputs.params.pullRequestRepo)
     - name: pull_request_id
-      value: ${inputs.params.pullRequestId}
-    image: ${inputs.params.containerImage}
+      value: $(inputs.params.pullRequestId)
+    image: $(inputs.params.containerImage)
     name: update-manifests
     volumeMounts:
     - mountPath: /secret
       name: gcp-credentials
     - mountPath: /kubeflow
       name: kubeflow
-    workingDir: /workspace/${inputs.resources.manifests.name}/${inputs.params.pathToManifestsDir}
+    workingDir: /workspace/$(inputs.resources.manifests.name)/$(inputs.params.pathToManifestsDir)
   volumes:
   - name: gcp-credentials
     secret:
@@ -116,4 +107,3 @@ spec:
   - name: kubeflow
     persistentVolumeClaim:
       claimName: ci-pipeline-run-persistent-volume-claim
----

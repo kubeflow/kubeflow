@@ -2,7 +2,6 @@ apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
   name: ci-centraldashboard
-  namespace: kubeflow-test-infra
 spec:
   pipelineRef:
     name: ci-pipeline

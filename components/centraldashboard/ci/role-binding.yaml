@@ -9,4 +9,3 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: ci-pipeline-run-service-account
-  namespace: kubeflow-test-infra
