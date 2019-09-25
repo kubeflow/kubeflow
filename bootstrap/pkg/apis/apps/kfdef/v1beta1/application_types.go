@@ -87,6 +87,16 @@ type NameValue struct {
 	Value string `json:"value,omitempty"`
 }
 
+type PluginKindType string
+
+// Plugin kind used starting from v1beta1
+const (
+	AWS_PLUGIN_KIND              PluginKindType = "KfAwsPlugin"
+	GCP_PLUGIN_KIND              PluginKindType = "KfGcpPlugin"
+	MINIKUBE_PLUGIN_KIND         PluginKindType = "KfMinikubePlugin"
+	EXISTING_ARRIKTO_PLUGIN_KIND PluginKindType = "KfExistingArriktoPlugin"
+)
+
 // Plugin can be used to customize the generation and deployment of Kubeflow
 type Plugin struct {
 	metav1.TypeMeta   `json:",inline"`
