@@ -73,7 +73,7 @@ func TestKfDef_GetPluginSpec(t *testing.T) {
 		}
 
 		actual := &GcpFakePluginSpec{}
-		err = d.GetPluginSpec(c.PluginKind, actual)
+		err = d.GetPluginSpec(PluginKindType(c.PluginKind), actual)
 
 		if err != nil {
 			t.Fatalf("Could not get plugin spec; error %v", err)
@@ -157,15 +157,15 @@ func TestKfDef_SetPluginStatus(t *testing.T) {
 	for _, c := range cases {
 		kfdef := KfDef{}
 		if c.Failed {
-			kfdef.SetPluginFailed(c.PluginKind, "")
+			kfdef.SetPluginFailed(PluginKindType(c.PluginKind), "")
 		} else {
-			kfdef.SetPluginFinished(c.PluginKind, "")
+			kfdef.SetPluginFinished(PluginKindType(c.PluginKind), "")
 		}
 		actual := false
 		if c.Failed {
-			actual = kfdef.IsPluginFailed(c.PluginKind)
+			actual = kfdef.IsPluginFailed(PluginKindType(c.PluginKind))
 		} else {
-			actual = kfdef.IsPluginFinished(c.PluginKind)
+			actual = kfdef.IsPluginFinished(PluginKindType(c.PluginKind))
 		}
 		if actual != c.Expected {
 			t.Errorf("IsPluginFinished doesn't returned expected value; expected %v; got %v",

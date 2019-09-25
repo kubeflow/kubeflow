@@ -198,23 +198,21 @@ type KfDefCondition struct {
 	Message string `json:"message,omitempty"`
 }
 
-func kindToCondition(kind string, failedCondition bool) (KfDefConditionType, error) {
-	// TODO(gabrielwen): Use AWS_PLUGIN_KIND/GCP_PLUGIN_KIND/MINIKUBE_PLUGIN_KIND/
-	// EXISTING_ARRIKTO_PLUGIN_KIND after v1alpha1 is removed from group.go deps.
-	mapper := map[string][]KfDefConditionType{
-		"KfAwsPlugin": []KfDefConditionType{
+func kindToCondition(kind PluginKindType, failedCondition bool) (KfDefConditionType, error) {
+	mapper := map[PluginKindType][]KfDefConditionType{
+		AWS_PLUGIN_KIND: []KfDefConditionType{
 			KfAWSPluginSucceeded,
 			KfAWSPluginFailed,
 		},
-		"KfGcpPlugin": []KfDefConditionType{
+		GCP_PLUGIN_KIND: []KfDefConditionType{
 			KfGCPPluginSucceeded,
 			KfGCPPluginFailed,
 		},
-		"KfMinikubePlugin": []KfDefConditionType{
+		MINIKUBE_PLUGIN_KIND: []KfDefConditionType{
 			KfMinikubePluginSucceeded,
 			KfMinikubePluginFailed,
 		},
-		"KfExistingArriktoPlugin": []KfDefConditionType{
+		EXISTING_ARRIKTO_PLUGIN_KIND: []KfDefConditionType{
 			KfExistingArriktoPluginSucceeded,
 			KfExistingArriktoPluginFailed,
 		},
@@ -238,9 +236,9 @@ func kindToCondition(kind string, failedCondition bool) (KfDefConditionType, err
 // GetPluginSpec will try to unmarshal the spec for the specified plugin to the supplied
 // interface. Returns an error if the plugin isn't defined or if there is a problem
 // unmarshaling it.
-func (d *KfDef) GetPluginSpec(pluginKind string, s interface{}) error {
+func (d *KfDef) GetPluginSpec(pluginKind PluginKindType, s interface{}) error {
 	for _, p := range d.Spec.Plugins {
-		if p.Kind != pluginKind {
+		if p.Kind != string(pluginKind) {
 			continue
 		}
 
@@ -318,7 +316,7 @@ func (d *KfDef) GetCondition(condType KfDefConditionType) (*KfDefCondition, erro
 }
 
 // Check if a plugin is finished.
-func (d *KfDef) IsPluginFinished(pluginKind string) bool {
+func (d *KfDef) IsPluginFinished(pluginKind PluginKindType) bool {
 	condType, err := kindToCondition(pluginKind, false)
 	if err != nil {
 		log.Warnf("error when looking for plugin condition type: %v", err)
@@ -333,7 +331,7 @@ func (d *KfDef) IsPluginFinished(pluginKind string) bool {
 }
 
 // Set a plugin as finished.
-func (d *KfDef) SetPluginFinished(pluginKind string, msg string) {
+func (d *KfDef) SetPluginFinished(pluginKind PluginKindType, msg string) {
 	condType, err := kindToCondition(pluginKind, false)
 	if err != nil {
 		log.Warnf("error when looking for plugin condition type: %v", err)
@@ -353,7 +351,7 @@ func (d *KfDef) SetPluginFinished(pluginKind string, msg string) {
 	d.SetCondition(condType, v1.ConditionTrue, "", msg)
 }
 
-func (d *KfDef) IsPluginFailed(pluginKind string) bool {
+func (d *KfDef) IsPluginFailed(pluginKind PluginKindType) bool {
 	condType, err := kindToCondition(pluginKind, true)
 	if err != nil {
 		log.Warnf("error when looking for plugin condition type: %v", err)
@@ -370,7 +368,7 @@ func (d *KfDef) IsPluginFailed(pluginKind string) bool {
 	return cond.Status == v1.ConditionTrue
 }
 
-func (d *KfDef) SetPluginFailed(pluginKind string, msg string) {
+func (d *KfDef) SetPluginFailed(pluginKind PluginKindType, msg string) {
 	condType, err := kindToCondition(pluginKind, true)
 	if err != nil {
 		log.Warnf("error when looking for plugin condition type: %v", err)
