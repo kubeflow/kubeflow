@@ -162,24 +162,14 @@ const (
 
 	// KfDegraded means functionality of Kubeflow is limited.
 	KfDegraded KfDefConditionType = "Degraded"
-
-	// Plugin conditions.
-	KfAWSPluginSucceeded             KfDefConditionType = "AWSPluginSucceeded"
-	KfExistingArriktoPluginSucceeded KfDefConditionType = "ExistingArriktoPluginSucceeded"
-	KfGCPPluginSucceeded             KfDefConditionType = "GCPPluginSucceeded"
-	KfMinikubePluginSucceeded        KfDefConditionType = "MinikubePluginSucceeded"
-
-	// Conditions indicating plugin.Apply is failed permanently and unable to recover.
-	KfAWSPluginFailed             KfDefConditionType = "AWSPluginFailed"
-	KfExistingArriktoPluginFailed KfDefConditionType = "ExistingArriktoPluginFailed"
-	KfGCPPluginFailed             KfDefConditionType = "GCPPluginFailed"
-	KfMinikubePluginFailed        KfDefConditionType = "MinikubePluginFailed"
 )
 
+// Define plugin related conditions to be the format:
+// - conditions for successful plugins: ${PluginKind}Succeeded
+// - conditions for failed plugins: ${PluginKind}Failed
 func GetPluginSucceededCondition(pluginKind PluginKindType) KfDefConditionType {
 	return KfDefConditionType(fmt.Sprintf("%vSucceeded", pluginKind))
 }
-
 func GetPluginFailedCondition(pluginKind PluginKindType) KfDefConditionType {
 	return KfDefConditionType(fmt.Sprintf("%vFailed", pluginKind))
 }
