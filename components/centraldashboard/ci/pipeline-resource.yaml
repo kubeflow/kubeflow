@@ -1,4 +1,3 @@
----
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
@@ -46,4 +45,3 @@ spec:
   - name: url
     value: $(manifests_repo_url)
   type: git
----
