@@ -32,7 +32,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Given a KfUpgrade config, create a new KfApp.
 func NewKfUpgrade(upgradeConfig string) (kftypesv3.KfApp, error) {
+	// Parse the KfUpgrade spec
 	upgrade, err := kfupgrade.LoadKfUpgradeFromUri(upgradeConfig)
 	if err != nil {
 		log.Errorf("Could not load %v; error %v", upgradeConfig, err)
@@ -53,10 +55,10 @@ func NewKfUpgrade(upgradeConfig string) (kftypesv3.KfApp, error) {
 
 	// Find the existing KfDef
 	oldKfDef, err := FindKfDef(upgrade.Spec.CurrentKfDef)
-	if err != nil {
+	if err != nil || oldKfDef == nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not load %v. Error: %v", upgrade.Spec.CurrentKfDef.Name, err),
+			Message: fmt.Sprintf("could not find existing KfDef %v. Error: %v", upgrade.Spec.CurrentKfDef.Name, err),
 		}
 	}
 
@@ -96,7 +98,10 @@ func NewKfUpgrade(upgradeConfig string) (kftypesv3.KfApp, error) {
 	return coordinator.LoadKfAppCfgFile(updateCfg)
 }
 
+// Given a KfUpgrade config, either find the KfApp that matches the NewKfDef reference or
+// create a new one.
 func LoadKfUpgrade(upgradeConfig string) (kftypesv3.KfApp, error) {
+	// Parse the KfUpgrade spec.
 	upgrade, err := kfupgrade.LoadKfUpgradeFromUri(upgradeConfig)
 	if err != nil {
 		log.Errorf("Could not load %v; error %v", upgradeConfig, err)
@@ -106,17 +111,20 @@ func LoadKfUpgrade(upgradeConfig string) (kftypesv3.KfApp, error) {
 		}
 	}
 
+	// Try to find the new KfDef.
 	kfDef, err := FindKfDef(upgrade.Spec.NewKfDef)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not load %v. Error: %v", upgrade.Spec.NewKfDef.Name, err),
+			Message: fmt.Sprintf("could not find %v. Error: %v", upgrade.Spec.NewKfDef.Name, err),
 		}
 	}
 
 	if kfDef != nil {
+		// If we find the exising KfDef, return it
 		return kustomize.GetKfApp(kfDef), nil
 	} else {
+		// If we cannot find one, create a new one and generate the kustomize packages for it.
 		newKfApp, err := NewKfUpgrade(upgradeConfig)
 		if err != nil {
 			return nil, &kfapis.KfError{
