@@ -36,13 +36,10 @@ func main() {
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	var userIdHeader string
 	var userIdPrefix string
-	var plugin string
 	flag.StringVar(&userIdHeader, profile.USERIDHEADER, "x-goog-authenticated-user-email", "Key of request header containing user id")
 	flag.StringVar(&userIdPrefix, profile.USERIDPREFIX, "accounts.google.com:", "Request header user id common prefix")
-	flag.StringVar(&plugin, profile.PLUGIN, "", "Name of the plugin that will be executed along with main profile resources")
 	flag.Parse()
-	inputArgs := map[string]string{profile.USERIDHEADER: userIdHeader, profile.USERIDPREFIX: userIdPrefix,
-		profile.PLUGIN: plugin}
+	inputArgs := map[string]string{profile.USERIDHEADER: userIdHeader, profile.USERIDPREFIX: userIdPrefix}
 	logf.SetLogger(logf.ZapLogger(false))
 	log := logf.Log.WithName("entrypoint")
 

@@ -10,10 +10,11 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+const GCP_PLUGIN = "gcp"
 const GCP_ANNOTATION_KEY = "iam.gke.io/gcp-service-account"
 // GcpPlugin defines the extra data provided for GCP actions
 type GcpPlugin struct {
-	Deployname string `json:"deployname,omitempty"`
+	GcpServiceAccount string `json:"gcpserviceaccount,omitempty"`
 	Project    string `json:"project,omitempty"`
 }
 
@@ -25,10 +26,6 @@ func (gcp *GcpPlugin) ApplyPlugin(r *ReconcileProfile, profile *kubeflowv1beta1.
 	return gcp.setupWorkloadIdentity(profile.Name, DEFAULT_EDITOR)
 }
 
-func (gcp *GcpPlugin) getGcpServiceAccount() string {
-	return fmt.Sprintf("%v-user@%v.iam.gserviceaccount.com", gcp.Deployname, gcp.Project)
-}
-
 // setupWorkloadIdentity creates the k8s service accounts and IAM bindings for them
 func (gcp *GcpPlugin) patchAnnotation(r *ReconcileProfile, namespace string, ksa string) error {
 	ctx := context.Background()
@@ -37,7 +34,7 @@ func (gcp *GcpPlugin) patchAnnotation(r *ReconcileProfile, namespace string, ksa
 	if err != nil {
 		return err
 	}
-	found.Annotations[GCP_ANNOTATION_KEY] = gcp.getGcpServiceAccount()
+	found.Annotations[GCP_ANNOTATION_KEY] = gcp.GcpServiceAccount
 	log.Info("Patch Annotation for service account: ", "namespace ", namespace, "name ", ksa)
 	return r.Update(ctx, found)
 }
@@ -45,7 +42,7 @@ func (gcp *GcpPlugin) patchAnnotation(r *ReconcileProfile, namespace string, ksa
 // setupWorkloadIdentity creates the k8s service accounts and IAM bindings for them
 func (gcp *GcpPlugin) setupWorkloadIdentity(namespace string, ksa string) error {
 	ctx := context.Background()
-	gcpSa := gcp.getGcpServiceAccount()
+	gcpSa := gcp.GcpServiceAccount
 	// Get credentials.
 	client, err := google.DefaultClient(context.Background(), iam.CloudPlatformScope)
 	if err != nil {

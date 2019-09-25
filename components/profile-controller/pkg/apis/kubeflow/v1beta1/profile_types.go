@@ -31,8 +31,9 @@ type Plugin struct {
 }
 
 type ProfileCondition struct {
-	Message	string `json:"message,omitempty"`
-	Status	string `json:"status,omitempty"`
+	Type	string	`json:"type,omitempty"`
+	Status	string	`json:"status,omitempty" description:"status of the condition, one of True, False, Unknown"`
+	Message	string 	`json:"message,omitempty"`
 }
 
 // ProfileSpec defines the desired state of Profile

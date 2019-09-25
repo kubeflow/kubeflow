@@ -43,7 +43,6 @@ var log = logf.Log.WithName("controller")
 
 const USERIDHEADER = "userid-header"
 const USERIDPREFIX = "userid-prefix"
-const PLUGIN = "plugin"
 
 const SERVICEROLEISTIO = "ns-access-istio"
 const SERVICEROLEBINDINGISTIO = "owner-binding-istio"
@@ -71,17 +70,16 @@ func Add(mgr manager.Manager, args map[string]string) error {
 	if _, ok := args[USERIDPREFIX]; !ok {
 		return fmt.Errorf("%v not set!", USERIDPREFIX)
 	}
-	return add(mgr, newReconciler(mgr, args[USERIDHEADER], args[USERIDPREFIX], args[PLUGIN]))
+	return add(mgr, newReconciler(mgr, args[USERIDHEADER], args[USERIDPREFIX]))
 }
 
 // newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager, userIdHeader string, userIdPrefix string, plugin string) reconcile.Reconciler {
+func newReconciler(mgr manager.Manager, userIdHeader string, userIdPrefix string) reconcile.Reconciler {
 	return &ReconcileProfile{
 		Client:       mgr.GetClient(),
 		scheme:       mgr.GetScheme(),
 		userIdHeader: userIdHeader,
 		userIdPrefix: userIdPrefix,
-		plugin:       plugin,
 	}
 }
 
@@ -146,7 +144,6 @@ type ReconcileProfile struct {
 	scheme       *runtime.Scheme
 	userIdHeader string
 	userIdPrefix string
-	plugin       string
 }
 
 // Reconcile reads that state of the cluster for a Profile object and makes changes based on the state read
@@ -202,7 +199,7 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 			log.Info(fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
 				instance.Spec.Owner.Name))
 			instance.Status.Conditions = append(instance.Status.Conditions, kubeflowv1beta1.ProfileCondition{
-				Status: kubeflowv1beta1.ProfileFailed,
+				Type: kubeflowv1beta1.ProfileFailed,
 				Message: fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
 					instance.Spec.Owner.Name),
 			})
@@ -270,15 +267,16 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 			},
 			Spec: instance.Spec.ResourceQuotaSpec,
 		}
-	}
-	if err = r.updateResourceQuota(instance, roleBinding); err != nil {
-		log.Info("Failed Updating Owner Rolebinding", "namespace", instance.Name, "name",
-			"defaultEdittor", "error", err)
-		return reconcile.Result{}, err
-	}
-	if plugin, err := GetPluginSpec(instance, r.plugin); err == nil {
-		if err := plugin.ApplyPlugin(r, instance); err != nil {
+		if err = r.updateResourceQuota(instance, resourceQuota); err != nil {
+			log.Info("Failed Updating resource quota", "namespace", instance.Name, "error", err)
 			return reconcile.Result{}, err
+		}
+	}
+	if plugins, err := GetPluginSpec(instance); err == nil {
+		for _, plugin := range plugins {
+			if err := plugin.ApplyPlugin(r, instance); err != nil {
+				return reconcile.Result{}, err
+			}
 		}
 	}
 	return reconcile.Result{}, nil
@@ -492,19 +490,15 @@ func (r *ReconcileProfile) updateRoleBinding(profileIns *kubeflowv1beta1.Profile
 
 // GetPluginSpec will try to unmarshal the plugin spec inside profile for the specified plugin
 // Returns an error if the plugin isn't defined or if there is a problem
-func GetPluginSpec(profileIns *kubeflowv1beta1.Profile, pluginName string) (Plugin, error) {
-	var pluginIns Plugin
-	switch pluginName {
-	case "gcp":
-		pluginIns = &GcpPlugin{}
-	default:
-		pluginIns = nil
-	}
-	if pluginIns == nil {
-		return nil, fmt.Errorf("Plugin not recgonized: %v", pluginName)
-	}
+func GetPluginSpec(profileIns *kubeflowv1beta1.Profile) ([]Plugin, error) {
+	plugins := []Plugin{}
 	for _, p := range profileIns.Spec.Plugins {
-		if p.Name != pluginName {
+		var pluginIns Plugin
+		switch p.Name {
+		case GCP_PLUGIN:
+			pluginIns = &GcpPlugin{}
+		default:
+			log.Info("Plugin not recgonized: ", "name", p.Name)
 			continue
 		}
 
@@ -513,16 +507,16 @@ func GetPluginSpec(profileIns *kubeflowv1beta1.Profile, pluginName string) (Plug
 		specBytes, err := yaml.Marshal(p.Spec)
 
 		if err != nil {
-			log.Info("Could not marshal plugin ", pluginName, "; error: ", err)
+			log.Info("Could not marshal plugin ", p.Name, "; error: ", err)
 			return nil, err
 		}
 
 		err = yaml.Unmarshal(specBytes, pluginIns)
-
 		if err != nil {
-			log.Info("Could not unmarshal plugin ", pluginName, "; error: ", err)
+			log.Info("Could not unmarshal plugin ", p.Name, "; error: ", err)
+			return nil, err
 		}
-		return pluginIns, nil
+		plugins = append(plugins, pluginIns)
 	}
-	return nil, fmt.Errorf("Plugin not found: %v", pluginName)
+	return plugins, nil
 }
