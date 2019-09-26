@@ -47,12 +47,26 @@ const USERIDPREFIX = "userid-prefix"
 const SERVICEROLEISTIO = "ns-access-istio"
 const SERVICEROLEBINDINGISTIO = "owner-binding-istio"
 
-const KUBEFLOW_PREFIX = "kubeflow-"
-
 // annotation key, consumed by kfam API
 const USER = "user"
 const ROLE = "role"
 const ADMIN = "admin"
+
+// Kubeflow default role names
+// TODO: Make kubeflow roles configurable (krishnadurai)
+// This will enable customization of roles.
+const(
+	kubeflowAdmin =	"kubeflow-admin"
+	kubeflowEdit =	"kubeflow-edit"
+	kubeflowView =	"kubeflow-view"
+)
+
+//roleBindingNameMap maps frontend role names to k8s role names
+var roleBindingNameMap = map[string]string {
+	"admin":	kubeflowAdmin,
+	"edit":		kubeflowEdit,
+	"view":		kubeflowView,
+}
 
 // Add creates a new Profile Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -240,7 +254,7 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
 			Kind:     "ClusterRole",
-			Name:     KUBEFLOW_PREFIX + ADMIN,
+			Name:     kubeflowAdmin,
 		},
 		Subjects: []rbacv1.Subject{
 			instance.Spec.Owner,
@@ -382,7 +396,7 @@ func (r *ReconcileProfile) updateServiceAccount(profileIns *kubeflowv1alpha1.Pro
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
 			Kind:     "ClusterRole",
-			Name:     KUBEFLOW_PREFIX + ClusterRoleName,
+			Name:     roleBindingNameMap[ClusterRoleName],
 		},
 		Subjects: []rbacv1.Subject{
 			{
