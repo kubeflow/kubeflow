@@ -341,9 +341,6 @@ class Builder:
                "-m",
                "testing.test_deploy",
                "--project=kubeflow-ci",
-               # TODO(jlewi): Do we need a GITHUB_TOKEN? I'm guessing that
-               # was for ksonnet.
-               # "--github_token=$(GITHUB_TOKEN)",
                "--namespace=" + self.steps_namespace,
                "--test_dir=" + self.test_dir,
                "--artifacts_dir=" + self.artifacts_dir,
@@ -365,8 +362,6 @@ class Builder:
                 "-m",
                 "testing.test_deploy",
                 "--project=kubeflow-ci",
-                # TODO(jlewi): Do we still need a GITHUB_TOKEN?
-                # "--github_token=$(GITHUB_TOKEN)",
                 "--namespace=" + self.steps_namespace,
                 "--test_dir=" + self.test_dir,
                 "--artifacts_dir=" + self.artifacts_dir,
