@@ -155,14 +155,6 @@ const (
 	EXISTING_ARRIKTO = "existing_arrikto"
 )
 
-// Plugin kind used starting from v1beta1
-const (
-	AWS_PLUGIN_KIND              = "KfAwsPlugin"
-	GCP_PLUGIN_KIND              = "KfGcpPlugin"
-	MINIKUBE_PLUGIN_KIND         = "KfMinikubePlugin"
-	EXISTING_ARRIKTO_PLUGIN_KIND = "KfExistingArriktoPlugin"
-)
-
 // PackageManagers
 const (
 	KSONNET   = "ksonnet"
