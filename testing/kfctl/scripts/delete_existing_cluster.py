@@ -22,7 +22,7 @@ if __name__ == "__main__":
         must_getenv("GOOGLE_APPLICATION_CREDENTIALS")
     ])
 
-    cluster_name = "existing-arrikto-" + must_getenv("REPO_NAME") + "-" + must_getenv("PULL_NUMBER")
+    cluster_name = "kfctl-arr-" + must_getenv("REPO_NAME") + "-" + must_getenv("BUILD_ID")
     credentials = GoogleCredentials.get_application_default()
     service = discovery.build('container', 'v1', credentials=credentials)
     util.delete_cluster(service, cluster_name, "kubeflow-ci", "us-central1-a")

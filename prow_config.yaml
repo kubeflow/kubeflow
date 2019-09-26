@@ -89,9 +89,9 @@ workflows:
     name: kfctl-go-existing
     job_types:
       - presubmit
+      - postsubmit
     include_dirs:
       - bootstrap/*
-      - deployment/*
       - dependencies/*
       - kubeflow/*
       - testing/*
@@ -104,7 +104,7 @@ workflows:
       testEndpoint: false
       configPath: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_existing_arrikto.yaml
       cluster_creation_script: create_existing_cluster.sh
-      cluster_deletion_script: delete_existing_cluster.sh
+      cluster_deletion_script: delete_existing_cluster.py
       checklist: kfctl_existing_arrikto_checklist.yaml
       nameSuffix: existing_arrikto
   # Only run  kfctl presubmit test with basic auth if

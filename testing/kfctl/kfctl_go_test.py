@@ -195,13 +195,14 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
 
-  # We don't run with retries because if kfctl init exits with an error
-  # but creates app.yaml then rerunning init will fail because app.yaml
-  # already exists. So retrying ends up masking the original error message
+  # TODO(yanniszark): split this into a separate workflow step
   if cluster_creation_script:
     logging.info("Cluster creation script specified: %s", cluster_creation_script)
     util.run(["/bin/bash", "-c", cluster_creation_script], cwd=os.getcwd())
 
+  # We don't run with retries because if kfctl init exits with an error
+  # but creates app.yaml then rerunning init will fail because app.yaml
+  # already exists. So retrying ends up masking the original error message
   util.run([
       kfctl_path, "init", app_path, "-V",
       "--config=" + os.path.join(parent_dir, "tmp.yaml")], cwd=parent_dir)

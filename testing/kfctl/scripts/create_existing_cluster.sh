@@ -6,7 +6,7 @@ export PROJECT="kubeflow-ci"
 export GCP_ZONE="us-central1-a"
 export GCP_USER="$(gcloud config list account --format "value(core.account)" )"
 export GCP_PROJECT="$(gcloud config list project --format "value(core.project)" )"
-export CLUSTER_NAME="existing-arrikto-${REPO_NAME}-${PULL_NUMBER}"
+export CLUSTER_NAME="kfctl-arr-${REPO_NAME}-${BUILD_ID}"
 export CLUSTER_VERSION="$(gcloud container get-server-config --zone=${GCP_ZONE} --format="value(validMasterVersions[0])" )"
 
 ############################
