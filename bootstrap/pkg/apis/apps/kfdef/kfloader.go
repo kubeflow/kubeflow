@@ -32,13 +32,13 @@ func isValidUrl(toTest string) bool {
 }
 
 // Simple mapping from plugin name to plugin kind in v1beta1. Ideally we should
-// use plugin kind to find handler functions.
-func alphaPluginNameToBetaKind(pluginName string) string {
-	mapping := map[string]string{
-		kftypesv3.AWS:              kftypesv3.AWS_PLUGIN_KIND,
-		kftypesv3.GCP:              kftypesv3.GCP_PLUGIN_KIND,
-		kftypesv3.MINIKUBE:         kftypesv3.MINIKUBE_PLUGIN_KIND,
-		kftypesv3.EXISTING_ARRIKTO: kftypesv3.EXISTING_ARRIKTO_PLUGIN_KIND,
+// use plugin kind to find handler functions. Only used for backward compatibility.
+func alphaPluginNameToBetaKind(pluginName string) kfdefv1beta1.PluginKindType {
+	mapping := map[string]kfdefv1beta1.PluginKindType{
+		kftypesv3.AWS:              kfdefv1beta1.AWS_PLUGIN_KIND,
+		kftypesv3.GCP:              kfdefv1beta1.GCP_PLUGIN_KIND,
+		kftypesv3.MINIKUBE:         kfdefv1beta1.MINIKUBE_PLUGIN_KIND,
+		kftypesv3.EXISTING_ARRIKTO: kfdefv1beta1.EXISTING_ARRIKTO_PLUGIN_KIND,
 	}
 
 	kind, ok := mapping[pluginName]
@@ -114,7 +114,7 @@ func copyGcpPluginSpec(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) error 
 	}
 
 	spec := kfgcp.GcpPluginSpec{}
-	if err := to.GetPluginSpec(kftypesv3.GCP, &spec); err != nil && !kfdefv1beta1.IsPluginNotFound(err) {
+	if err := to.GetPluginSpec(kfdefv1beta1.GCP_PLUGIN_KIND, &spec); err != nil && !kfdefv1beta1.IsPluginNotFound(err) {
 		return err
 	}
 	spec.Project = from.Spec.Project
@@ -125,7 +125,7 @@ func copyGcpPluginSpec(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) error 
 	spec.UseBasicAuth = from.Spec.UseBasicAuth
 	spec.SkipInitProject = from.Spec.SkipInitProject
 	spec.DeleteStorage = from.Spec.DeleteStorage
-	return to.SetPluginSpec(kftypesv3.GCP, spec)
+	return to.SetPluginSpec(kfdefv1beta1.GCP_PLUGIN_KIND, spec)
 }
 
 // Copy plugins configs.
@@ -133,7 +133,7 @@ func copyPlugins(from *kfdefv1alpha1.KfDef, to *kfdefv1beta1.KfDef) {
 	for _, plugin := range from.Spec.Plugins {
 		betaPlugin := kfdefv1beta1.Plugin{}
 		betaPlugin.Name = plugin.Name
-		betaPlugin.Kind = alphaPluginNameToBetaKind(plugin.Name)
+		betaPlugin.Kind = string(alphaPluginNameToBetaKind(plugin.Name))
 		if plugin.Spec != nil {
 			betaPlugin.Spec = &runtime.RawExtension{}
 			*betaPlugin.Spec = *plugin.Spec
