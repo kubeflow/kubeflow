@@ -15,10 +15,9 @@
 package cmd
 
 import (
-	"fmt"
+	"errors"
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -41,36 +40,8 @@ The default is 'all' for any selected platform.`,
 		log.SetLevel(log.InfoLevel)
 
 		// TODO: Remove Generate command in next release
-		log.Warn("DEPRECATION NOTICE: `kfctl generate` will be removed in the next release, please switch to the new semantics. \n")
-
-		if generateCfg.GetBool(string(kftypes.VERBOSE)) != true {
-			log.SetLevel(log.WarnLevel)
-		}
-		resource, resourceErr := processResourceArg(args)
-		if resourceErr != nil {
-			return fmt.Errorf("invalid resource: %v", resourceErr)
-		}
-		email := generateCfg.GetString(string(kftypes.EMAIL))
-		ipName := generateCfg.GetString(string(kftypes.IPNAME))
-		hostName := generateCfg.GetString(string(kftypes.HOSTNAME))
-		zone := generateCfg.GetString(string(kftypes.ZONE))
-		mountLocal := generateCfg.GetBool(string(kftypes.MOUNT_LOCAL))
-		options := map[string]interface{}{
-			string(kftypes.EMAIL):       email,
-			string(kftypes.IPNAME):      ipName,
-			string(kftypes.HOSTNAME):    hostName,
-			string(kftypes.ZONE):        zone,
-			string(kftypes.MOUNT_LOCAL): mountLocal,
-		}
-		kfApp, kfAppErr := coordinator.LoadKfApp(options)
-		if kfAppErr != nil {
-			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
-		}
-		generateErr := kfApp.Generate(resource)
-		if generateErr != nil {
-			return fmt.Errorf("couldn't generate KfApp: %v", generateErr)
-		}
-		return nil
+		log.Warn("DEPRECATION NOTICE: `kfctl generate` will be removed in the next release.")
+		return errors.New("please switch to the new semantics")
 	},
 }
 

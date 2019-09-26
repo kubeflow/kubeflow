@@ -33,11 +33,12 @@ var buildCmd = &cobra.Command{
 		if applyCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
-
-		// Use builder with the incoming config file
-		kfApp, buildErr := coordinator.NewKfAppFromURI(configFilePath)
+		kfApp, buildErr := coordinator.NewLoadKfAppFromConfig(configFilePath)
 		if buildErr != nil {
 			return fmt.Errorf("couldn't load config file - %v", buildErr)
+		}
+		if kfApp == nil {
+			return fmt.Errorf("couldn't build kfapp from config")
 		}
 		err := kfApp.Generate(kftypes.ALL)
 		if err != nil {

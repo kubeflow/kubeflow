@@ -2,6 +2,11 @@ package kfdef
 
 import (
 	"fmt"
+	"io/ioutil"
+	netUrl "net/url"
+	"path"
+	"strings"
+
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
@@ -10,11 +15,7 @@ import (
 	kfdefv1beta1 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
 	kfgcp "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	"k8s.io/apimachinery/pkg/runtime"
-	netUrl "net/url"
-	"path"
-	"strings"
 )
 
 const (

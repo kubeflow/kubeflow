@@ -30,7 +30,8 @@ var applyCfg = viper.New()
 // and bootstrap a KfApp by filling in the necessary fields
 var configFilePath string
 
-var resource kftypes.ResourceEnum
+var kfApp kftypes.KfApp
+var err error
 
 // applyCmd represents the apply command
 var applyCmd = &cobra.Command{
@@ -42,34 +43,23 @@ var applyCmd = &cobra.Command{
 		if applyCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
-
-		var kfApp kftypes.KfApp
-		var err error
-
 		// Check if file flag was passed.
 		if configFilePath != "" {
 			// Use builder with the incoming config file
-			kfApp, err := coordinator.NewKfAppFromURI(configFilePath)
+			kfApp, err = coordinator.NewLoadKfAppFromConfig(configFilePath)
 			if err != nil {
 				return fmt.Errorf("couldn't load config file - %v", err)
-			}
-
-			generateErr := kfApp.Generate(kftypes.ALL)
-			if generateErr != nil {
-				return fmt.Errorf("couldn't generate KfApp: %v", generateErr)
 			}
 		} else {
 			kfApp, err = coordinator.LoadKfApp(map[string]interface{}{})
 			if err != nil {
 				return fmt.Errorf("couldn't load KfApp: %v", err)
 			}
-			resource, err = processResourceArg(args)
-			if err != nil {
-				return fmt.Errorf("invalid resource: %v", err)
-			}
 		}
-
-		err = kfApp.Apply(resource)
+		if kfApp == nil {
+			return fmt.Errorf("couldn't apply kfapp")
+		}
+		err := kfApp.Apply(kftypes.ALL)
 		if err != nil {
 			return fmt.Errorf("couldn't apply KfApp: %v", err)
 		}

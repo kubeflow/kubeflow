@@ -17,7 +17,6 @@ limitations under the License.
 package coordinator
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"path"
@@ -30,11 +29,11 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
-	gogetter "github.com/hashicorp/go-getter"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	kfdefv1beta1 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/aws"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/existing_arrikto"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
@@ -444,108 +443,64 @@ func CreateKfAppCfgFile(d *kfdefsv3.KfDef) (string, error) {
 }
 
 // isCwdEmpty - quick check to determine if the working directory is empty
-func isCwdEmpty() (string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	files, err := ioutil.ReadDir(cwd)
-	if err != nil {
-		return "", err
-	}
+func isCwdEmpty() bool {
+	cwd, _ := os.Getwd()
+	files, _ := ioutil.ReadDir(cwd)
 	if len(files) > 0 {
-		return "", errors.New("Current working directory not empty")
+		return false
 	}
-	return cwd, nil
+	return true
 }
 
-// NewKfAppFromURI takes in a config file and generates the KfDef for it
-func NewKfAppFromURI(configFilePath string) (kftypesv3.KfApp, error) {
-	log.SetLevel(log.InfoLevel)
+// generateCheck - quick check to determine if generate needs to be called from Apply
+// if generateCheck returns true then Generate should be called from Apply
+func generateCheck() bool {
+	cwd, _ := os.Getwd()
+	files, _ := ioutil.ReadDir(cwd)
+	if len(files) < 2 {
+		return true
+	}
+	return false
+}
 
-	// Check if current working directory is empty
-	cwd, err := isCwdEmpty()
+// NewLoadKfAppFromConfig used to get KfApp from v1beta1 configfiles
+func NewLoadKfAppFromConfig(configFilePath string) (kftypesv3.KfApp, error) {
+	kfDef, err := kfdefsv3.LoadKFDefFromURI(configFilePath)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("%v", err),
+			Message: fmt.Sprintf("invalid config, couldn't generate KfDef: %v", err),
 		}
 	}
-
-	// Creates a temporary directory by default is set to `/tmp` when arguments are ("", "")
-	tempDir, err := ioutil.TempDir("", "")
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code: int(kfapis.INTERNAL_ERROR),
-			// See: https://github.com/golang/go/blob/master/src/os/file.go#L352
-			Message: fmt.Sprintf("temporary directory does not exist or could not access: %v", err),
-		}
-	}
-
-	// GetAny is used because configFilePath can be either a URL or a local file
-	// one of the design goals for the latest kfctl semantics
-	err = gogetter.GetAny(tempDir, configFilePath)
+	cwd, err := os.Getwd()
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("could not fetch config file %v", err),
+			Message: fmt.Sprintf("couldn't fetch current working directory: %v", err),
 		}
 	}
-	var tempFile string
-	err = filepath.Walk(tempDir, func(path string, info os.FileInfo, err error) error {
-		tempFile = path
-		return nil
-	})
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("couldn't read config file %v", err),
-		}
-	}
-	// Read appFile in-memory and unmarshal into KfDef struct
-	configFileBytes, err := ioutil.ReadFile(tempFile)
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("couldn't read config file %v", err),
-		}
-	}
-	kfDef := &kfdefsv3.KfDef{}
-	if err := yaml.Unmarshal(configFileBytes, kfDef); err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not unmarshal config file onto KfDef struct: %v", err),
-		}
-	}
-
 	kfDef.Spec.AppDir = cwd
-	// Download to Cache
-	parts := strings.Split(kfDef.Spec.PackageManager, "@")
-	version := "master"
-	if len(parts) == 2 {
-		version = parts[1]
-	}
-	cacheDir, cacheDirErr := kftypesv3.DownloadToCache(cwd, kftypesv3.ManifestsRepo, version)
-	if cacheDirErr != nil || cacheDir == "" {
-		log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
-	}
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not sync cache to app directory: %v", err),
-		}
-	}
-
-	// Write KfDef to current directory as app.yaml
 	err = kfDef.WriteToFile(cwd + "/app.yaml")
 	if err != nil {
 		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not write kfDef to file: %v", err),
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("couldn't write KfDef to app.yaml: %v", err),
 		}
 	}
-
+	log.Print("Wrote KfDef to app.yaml")
 	return LoadKfAppCfgFile(cwd + "/app.yaml")
+}
+
+func writeToFile(kfDef *kfdefv1beta1.KfDef) error {
+	kfDefBuffer, err := yaml.Marshal(kfDef)
+	if err != nil {
+		return err
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(cwd+"/app.yaml", kfDefBuffer, 0644)
 }
 
 // NewKfApp is called from the Init subcommand and will create a directory based on
@@ -862,6 +817,15 @@ func (kfapp *coordinator) GetPlugin(name string) (kftypesv3.KfApp, bool) {
 }
 
 func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
+	if generateCheck() {
+		err := kfapp.Generate(resources)
+		if err != nil {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("KfApp could not be generated: %v", err),
+			}
+		}
+	}
 	platform := func() error {
 		if kfapp.KfDef.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
@@ -1006,6 +970,30 @@ func (kfapp *coordinator) Delete(resources kftypesv3.ResourceEnum) error {
 }
 
 func (kfapp *coordinator) Generate(resources kftypesv3.ResourceEnum) error {
+	err := kfapp.Init(kftypesv3.ALL)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("KfApp couldn't be initialized"),
+		}
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("current directory cannot be used: %v", err),
+		}
+	}
+	cacheDir, cacheDirErr := kftypesv3.DownloadToCache(cwd, kftypesv3.ManifestsRepo, "master")
+	if cacheDirErr != nil || cacheDir == "" {
+		log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
+	}
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not sync cache to app directory: %v", err),
+		}
+	}
 	platform := func() error {
 		if kfapp.KfDef.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]

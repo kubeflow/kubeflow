@@ -15,11 +15,9 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
+	"errors"
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -37,60 +35,8 @@ or a <name>. If just <name>, a directory <name> will be created in the current d
 		log.SetLevel(log.InfoLevel)
 
 		// TODO: Remove Init command in next release
-		log.Warn("DEPRECATION NOTICE: `kfctl init` will be removed in the next release, please switch to the new semantics. \n")
-
-		if initCfg.GetBool(string(kftypes.VERBOSE)) != true {
-			log.SetLevel(log.WarnLevel)
-		}
-		if len(args) == 0 {
-			return fmt.Errorf("name is required")
-		}
-		appName := args[0]
-		platform := initCfg.GetString(string(kftypes.PLATFORM))
-		packageManager := initCfg.GetString(string(kftypes.PACKAGE_MANAGER))
-		namespace := initCfg.GetString(string(kftypes.NAMESPACE))
-		version := initCfg.GetString(string(kftypes.VERSION))
-		repo := initCfg.GetString(string(kftypes.REPO))
-		project := initCfg.GetString(string(kftypes.PROJECT))
-		init_gcp := initCfg.GetBool(string(kftypes.SKIP_INIT_GCP_PROJECT))
-
-		useBasicAuth := initCfg.GetBool(string(kftypes.USE_BASIC_AUTH))
-		if useBasicAuth && (os.Getenv(kftypes.KUBEFLOW_USERNAME) == "" ||
-			os.Getenv(kftypes.KUBEFLOW_PASSWORD) == "") {
-			// Printing warning message instead of bailing out as both ENV are used in apply,
-			// not init.
-			log.Warnf("you need to set the environment variable %s to the username you "+
-				"want to use to login and variable %s to the password you want to use.",
-				kftypes.KUBEFLOW_USERNAME, kftypes.KUBEFLOW_PASSWORD)
-		}
-
-		useIstio := initCfg.GetBool(string(kftypes.USE_ISTIO))
-		disableUsageReport := initCfg.GetBool(string(kftypes.DISABLE_USAGE_REPORT))
-		config := initCfg.GetString(string(kftypes.CONFIG))
-
-		options := map[string]interface{}{
-			string(kftypes.PLATFORM):              platform,
-			string(kftypes.NAMESPACE):             namespace,
-			string(kftypes.VERSION):               version,
-			string(kftypes.APPNAME):               appName,
-			string(kftypes.REPO):                  repo,
-			string(kftypes.PROJECT):               project,
-			string(kftypes.SKIP_INIT_GCP_PROJECT): init_gcp,
-			string(kftypes.USE_BASIC_AUTH):        useBasicAuth,
-			string(kftypes.USE_ISTIO):             useIstio,
-			string(kftypes.DISABLE_USAGE_REPORT):  disableUsageReport,
-			string(kftypes.PACKAGE_MANAGER):       packageManager,
-			string(kftypes.CONFIG):                config,
-		}
-		kfApp, kfAppErr := coordinator.NewKfApp(options)
-		if kfAppErr != nil || kfApp == nil {
-			return fmt.Errorf("couldn't create KfApp: %v", kfAppErr)
-		}
-		initErr := kfApp.Init(kftypes.ALL)
-		if initErr != nil {
-			return fmt.Errorf("KfApp initialization failed: %v", initErr)
-		}
-		return nil
+		log.Warn("DEPRECATION NOTICE: `kfctl init` will be removed in the next release.")
+		return errors.New("please switch to the new semantics")
 	},
 }
 
