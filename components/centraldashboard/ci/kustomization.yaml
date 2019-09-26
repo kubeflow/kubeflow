@@ -36,6 +36,13 @@ vars:
     apiVersion: v1
   fieldref:
     fieldpath: data.image_name
+- name: image_url
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.image_url
 - name: kubeflow_repo_revision
   objref:
     kind: ConfigMap
@@ -85,19 +92,5 @@ vars:
     apiVersion: v1
   fieldref:
     fieldpath: data.path_to_manifests_dir
-- name: pull_request_repo
-  objref:
-    kind: ConfigMap
-    name: ci-pipeline-run-parameters
-    apiVersion: v1
-  fieldref:
-    fieldpath: data.pull_request_repo
-- name: pull_request_id
-  objref:
-    kind: ConfigMap
-    name: ci-pipeline-run-parameters
-    apiVersion: v1
-  fieldref:
-    fieldpath: data.pull_request_id
 configurations:
 - params.yaml

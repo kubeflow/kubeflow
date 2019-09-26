@@ -1,47 +1,33 @@
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
-  name: $(image_name)
+  name: manifests
 spec:
+  type: git
   params:
-  - name: url
-    value: gcr.io/kubeflow-images-public/$(image_name)
-  type: image
+    - name: revision
+      value: $(manifests_repo_revision)
+    - name: url
+      value: $(manifests_repo_url)
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
   name: kubeflow
 spec:
-  params:
-  - name: revision
-    value: $(kubeflow_repo_revision)
-  - name: url
-    value: $(kubeflow_repo_url)
   type: git
+  params:
+    - name: revision
+      value: $(kubeflow_repo_revision)
+    - name: url
+      value: $(kubeflow_repo_url)
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
-  name: $(pull_request_repo)-$(pull_request_id)
+  name: $(image_name)
 spec:
+  type: image
   params:
   - name: url
-    value: https://github.com/kubeflow/kubeflow/pulls/$(pull_request_id)
-  secrets:
-  - fieldName: githubToken
-    secretKey: token
-    secretName: github-token
-  type: pullRequest
----
-apiVersion: tekton.dev/v1alpha1
-kind: PipelineResource
-metadata:
-  name: manifests
-spec:
-  params:
-  - name: revision
-    value: $(manifests_repo_revision)
-  - name: url
-    value: $(manifests_repo_url)
-  type: git
+    value: $(image_url)/$(image_name)

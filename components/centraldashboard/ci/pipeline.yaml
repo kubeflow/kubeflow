@@ -10,30 +10,28 @@ spec:
   - name: path_to_context
   - name: path_to_docker_file
   - name: path_to_manifests_dir
-  - name: pull_request_id
-  - name: pull_request_repo
   resources:
-  - name: $(pull_request_repo)
+  - name: kubeflow
+    type: git
+  - name: manifests
     type: git
   - name: $(image_name)
     type: image
-  - name: manifests
-    type: git
-  - name: $(pull_request_repo)-$(pull_request_id)
-    type: pullRequest
   tasks:
   - name: build-push
     params:
     - name: dockerTarget
       value: $(params.docker_target)
+    - name: imageName
+      value: $(params.image_name)
     - name: pathToContext
       value: $(params.path_to_context)
     - name: pathToDockerfile
       value: $(params.path_to_docker_file)
     resources:
       inputs:
-      - name: $(pull_request_repo)
-        resource: $(pull_request_repo)
+      - name: kubeflow
+        resource: kubeflow
       outputs:
       - name: $(image_name)
         resource: $(image_name)
@@ -50,18 +48,12 @@ spec:
       value: $(params.image_name)
     - name: pathToManifestsDir
       value: "$(params.path_to_manifests_dir)"
-    - name: pullRequestRepo
-      value: "$(params.pull_request_repo)"
-    - name: pullRequestId
-      value: "$(params.pull_request_id)"
     resources:
       inputs:
-      - name: $(pull_request_repo)
-        resource: $(pull_request_repo)
+      - name: kubeflow
+        resource: kubeflow
       - name: manifests
         resource: manifests
-      - name: $(pull_request_repo)-$(pull_request_id)
-        resource: $(pull_request_repo)-$(pull_request_id)
       - name: $(image_name)
         resource: $(image_name)
         from:

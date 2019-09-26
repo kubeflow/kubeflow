@@ -18,21 +18,14 @@ spec:
     value: $(path_to_docker_file)
   - name: path_to_manifests_dir
     value: $(path_to_manifests_dir)
-  - name: pull_request_id
-    value: $(pull_request_id)
-  - name: pull_request_repo
-    value: $(pull_request_repo)
   resources:
-  - name: $(pull_request_repo)
+  - name: kubeflow
     resourceRef:
-      name: $(pull_request_repo)
+      name: kubeflow
   - name: manifests
     resourceRef:
       name: manifests
   - name: $(image_name)
     resourceRef:
       name: $(image_name)
-  - name: $(pull_request_repo)-$(pull_request_id)
-    resourceRef:
-      name: $(pull_request_repo)-$(pull_request_id) 
   serviceAccount: ci-pipeline-run-service-account

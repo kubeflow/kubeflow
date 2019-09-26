@@ -3,7 +3,7 @@ varReference:
   kind: PipelineRun
 - path: spec/resources/name
   kind: PipelineRun
-- path: spec/resources/resourceRef/name
+- path: spec/resources/resourceSpec/params/value
   kind: PipelineRun
 - path: spec/resources/name
   kind: Pipeline
@@ -18,6 +18,8 @@ varReference:
 - path: spec/inputs/resources/name
   kind: Task
 - path: spec/outputs/resources/name
+  kind: Task
+- path: spec/steps/args
   kind: Task
 - path: spec/params/value
   kind: PipelineResource

@@ -13,10 +13,16 @@
 
 ### Use Case
 
-This shows a TektonCD [pipelinerun](https://github.com/tektoncd/pipeline/blob/master/docs/pipelineruns.md) that is intended to be run as a postsubmit following a centraldashboard PR commit. This shows a continuous integration feature where the post submit will update manifests/common/centraldashboard/base/kustomization.yaml with the new image tag generated from this PR. 
+This shows a TektonCD [pipelinerun](https://github.com/tektoncd/pipeline/blob/master/docs/pipelineruns.md) that is intended to be run as a postsubmit following a centraldashboard PR commit. This shows a continuous integration feature where the post submit will update manifests/common/centraldashboard/base/kustomization.yaml with the new image tag generated from this PR. Specifically:
 
+1. A PR is merged into kubeflow/kubeflow updating central dashboard
+1. The merged commit is 1234
+1. This tekton pipelinerun is triggered to build the central dashboard image from code @1234.
+1. The pipelinerun edits manifests/common/centraldashboard/base/kustomization.yaml and adds the new image tag
+1. The pipelinerun calls `make generate; make test` and if successful opens a PR to update kubeflow/manifests to use the newly built image
+1. Approvers LGTM the PR to kubeflow/manifests and it gets merged
 
-### TektonCD pipelineruns, pipelines and tasks
+### Background information on TektonCD pipelineruns, pipelines and tasks
 
 A TektonCD PipelineRun takes 1 Pipeline and N PipelineResources.
 The PipelineResources can be git repos, git pull requests, docker images.
@@ -36,53 +42,43 @@ In this use case the following instance is created:
 ```
 ── ci-centraldashboard-pipeline-run
    ├── resources
-   │   ├── gcr image
-   │   │   └── centraldashboard
-   │   ├── git repo
-   │   │   ├── kubeflow pull/4112/head
-   │   │   └── manifests master
-   │   └── pull request
-   │       └── kubeflow PR#4112
+   │   ├── image
+   │   │   └── centraldashboard+digest
+   │   └── git 
+   │       ├── kubeflow+revision
+   │       └── manifests+revision 
    └── pipeline
        └── tasks
            ├── build-push
            └── update-manifests
 ```
 
-The PipelineRun references a Pipeline that has 2 tasks, 
-and 4 PipelineResources of type image (1), git (2), and pullRequest (1). 
-The tasks reference these resources in their inputs or outputs. 
+The PipelineRun includes a Pipeline that has 2 tasks and 4 PipelineResources of type image (centraldashboard) and git (kubeflow, manifests).
+The Tasks reference these resources in their inputs or outputs. 
 
 ### Parameterization 
 
 The PipelineRun params are passed down to the the Pipeline and Tasks.
 Reuse of centraldashboard requires changing the parameters in PipelineRun.
-The pipeline, tasks and pipelineresources are parameterized by both tektoncd parameters
-and kustomize vars and remain the same across the other kubeflow components.*
+The pipeline, tasks and pipelineresources are parameterized by kustomize vars.
+Changing the values in params.env will allow a different component to be used.
 
-The PipelineRun parameters are provided by using kustomize vars.
-These parameters are then passed to Pipeline and its Tasks.†
+The parameters are noted below, those with an asterix should change per component:
+Those parameters without an asterix allow different gcr.io locations, namespace and pvc_mount_path.
+This can be run locally (for example using a local cluster via `kind create cluster`)
 
-† tektoncd will not apply its parameters to the resources section in both pipeline and task
-
-The parameters are noted below, those with an asterix would need to change per component:
-
+```
   container_image=gcr.io/kubeflow-ci/test-worker:latet
 * docker_target=serve
-* generateName=ci-centraldashboard-pipeline-run-
 * image_name=centraldashboard
-* image_url=gcr.io/kubeflow_public_images/centraldashboard
+  image_url=gcr.io/kubeflow_public_images
 * kubeflow_repo_revision=refs/pull/4112/head
 * kubeflow_repo_url=git@github.com:kubeflow/kubeflow.git
-  manifests_repo_revision=master
+* manifests_repo_revision=master
 * manifests_repo_url=git@github.com:kkasravi/manifests.git
   namespace=kubeflow-test-infra
 * path_to_context=components/centraldashboard
 * path_to_docker_file=components/centraldashboard/Dockerfile
 * path_to_manifests_dir=common/centraldashboard/base
-* path_to_manifests_kustomization_file=common/centraldashboard
-  pipeline=ci-pipeline
-  project=kubeflow-ci
-* pull_request_id=4112
-  pull_request_repo=kubeflow
   pvc_mount_path=/kubeflow
+```

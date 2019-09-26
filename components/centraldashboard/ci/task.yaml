@@ -5,32 +5,35 @@ metadata:
 spec:
   inputs:
     params:
+    - description: docker target arg
+      name: dockerTarget
+      type: string
+    - description: image target name
+      name: imageName
+      type: string
     - description: The path to the dockerfile to build
       name: pathToDockerfile
       type: string
     - description: The build context used by Kaniko
       name: pathToContext
       type: string
-    - description: docker target arg
-      name: dockerTarget
-      type: string
     resources:
-    - name: $(pull_request_repo)
+    - name: kubeflow
       type: git
   outputs:
     resources:
-    - name: $(image_name)
-      outputImageDir: /kubeflow
+    - name: $(inputs.params.imageName)
       type: image
+      outputImageDir: /kubeflow
   steps:
   - command:
     - /kaniko/executor
     args:
     - --dockerfile=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.pathToDockerfile)
-    - --destination=$(outputs.resources.centraldashboard.url)
+    - --destination=$(outputs.resources.$(inputs.params.imageName).url)
     - --context=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.pathToContext)
     - --target=$(inputs.params.dockerTarget)
-    - --digest-file=/kubeflow/centraldashboard-digest
+    - --digest-file=/kubeflow/$(inputs.params.imageName)-digest
     env:
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: /secret/gcp-credentials.json
@@ -56,30 +59,22 @@ metadata:
 spec:
   inputs:
     params:
+    - description: pod container image
+      name: containerImage
+      type: string
     - description: name of the image to push
       name: imageName
       type: string
     - description: Where the components manifest dir is
       name: pathToManifestsDir
       type: string
-    - description: pod container image
-      name: containerImage
-      type: string
-    - description: pull request repo
-      name: pullRequestRepo
-      type: string
-    - description: pull request id
-      name: pullRequestId
-      type: string
     resources:
+    - name: kubeflow
+      type: git
     - name: manifests
       type: git
-    - name: $(pull_request_repo)
-      type: git
-    - name: $(image_name)
+    - name: $(inputs.params.imageName)
       type: image
-    - name: $(pull_request_repo)-$(pull_request_id)
-      type: pullRequest
   steps:
   - command:
     - /workspace/$(inputs.resources.kubeflow.name)/py/kubeflow/kubeflow/ci/rebuild-manifests.sh
@@ -88,10 +83,6 @@ spec:
       value: /secret/gcp-credentials.json
     - name: image_name
       value: $(inputs.params.imageName)
-    - name: pull_request_repo
-      value: $(inputs.params.pullRequestRepo)
-    - name: pull_request_id
-      value: $(inputs.params.pullRequestId)
     image: $(inputs.params.containerImage)
     name: update-manifests
     volumeMounts:
