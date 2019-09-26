@@ -209,6 +209,11 @@ class Builder:
     if extra_repos:
       self.extra_repos = extra_repos.split(',')
 
+    # Keep track of step names that subclasses might want to list as dependencies
+    self._run_tests_step_name = None
+    self._test_endpoint_step_name = None
+    self._test_endpoint_template_name = None
+
   def _build_workflow(self):
     """Create the scaffolding for the Argo workflow"""
     workflow = {
@@ -553,7 +558,7 @@ class Builder:
     #**************************************************************************
     # Wait for endpoint to be ready
     if self.test_endpoint:
-      step_name = "endpoint-is-ready"
+      self._test_endpoint_step_name = "endpoint-is-ready"
       command = ["pytest",
                  "endpoint_ready_test.py",
                  # I think -s mean stdout/stderr will print out to aid in debugging.
@@ -598,12 +603,17 @@ class Builder:
     kf_second_apply = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
                                        command, dependences)
 
+      self._test_endpoint_template_name = endpoint_ready["name"]
+
     self._build_tests_dag()
 
     # Add a task to run the dag
     dependencies = [kf_is_ready["name"]]
-    argo_build_util.add_task_only_to_dag(self.workflow, E2E_DAG_NAME, TESTS_DAG_NAME,
-                                         TESTS_DAG_NAME,
+
+    self._run_tests_step_name = TESTS_DAG_NAME
+    run_tests_template_name = TESTS_DAG_NAME
+    argo_build_util.add_task_only_to_dag(self.workflow, E2E_DAG_NAME, self._run_tests_step_name,
+                                         run_tests_template_name,
                                          dependencies)
 
     #***************************************************************************
