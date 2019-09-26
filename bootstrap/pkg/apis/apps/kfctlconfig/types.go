@@ -18,6 +18,7 @@ type KfctlConfig struct {
 	Plugins      []Plugin
 	Secrets      []Secret
 	Repos        []Repo
+	Status       Status
 }
 
 type Platform struct {
@@ -128,4 +129,9 @@ func GetPluginSucceededCondition(pluginKind PluginKindType) ConditionType {
 }
 func GetPluginFailedCondition(pluginKind PluginKindType) ConditionType {
 	return ConditionType(fmt.Sprintf("%vFailed", pluginKind))
+}
+
+type Cache struct {
+	Name      string
+	LocalPath string
 }
