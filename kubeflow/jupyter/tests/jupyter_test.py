@@ -118,11 +118,15 @@ def test_jupyter(env, namespace):
     wf_result = yaml.load(params)
     namespace = wf_result['metadata']['namespace']
     name = wf_result['metadata']['name']
+    k8s_apps_v1 = k8s_client.AppsV1Api()
+    resp = k8s_apps_v1.create_namespaced_deployment(
+      body=wf_result, namespace=namespace)
+    logging.info("Deployment created: status='%s'" % resp.metadata.name)
 
-  this_dir = os.path.dirname(__file__)
-  app_dir = os.path.join(this_dir, "test_app")
+  # this_dir = os.path.dirname(__file__)
+  # app_dir = os.path.join(this_dir, "test_app")
 
-  util.run(["kubectl", "apply", "-f", "jupyter_test.yaml"], cwd=app_dir)
+  # util.run(["kubectl", "apply", "-f", "jupyter_test.yaml"], cwd=app_dir)
   conditions = ["Running"]
   results = util.wait_for_cr_condition(api_client, GROUP, PLURAL, VERSION,
                                        namespace, name, conditions)
