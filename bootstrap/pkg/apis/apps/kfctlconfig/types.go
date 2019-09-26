@@ -111,6 +111,16 @@ type Condition struct {
 	Message string
 }
 
+type PluginKindType string
+
+// Plugin kind used starting from v1beta1
+const (
+	AWS_PLUGIN_KIND              PluginKindType = "KfAwsPlugin"
+	GCP_PLUGIN_KIND              PluginKindType = "KfGcpPlugin"
+	MINIKUBE_PLUGIN_KIND         PluginKindType = "KfMinikubePlugin"
+	EXISTING_ARRIKTO_PLUGIN_KIND PluginKindType = "KfExistingArriktoPlugin"
+)
+
 type ConditionType string
 
 const (
