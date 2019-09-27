@@ -23,7 +23,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis"
+	"github.com/kubeflow/kubeflow/components/profile-controller/v2/pkg/apis"
 	"github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
