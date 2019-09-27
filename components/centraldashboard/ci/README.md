@@ -13,13 +13,15 @@
 
 ### Use Case
 
-This shows a TektonCD [pipelinerun](https://github.com/tektoncd/pipeline/blob/master/docs/pipelineruns.md) that is intended to be run as a postsubmit following a centraldashboard PR commit. This shows a continuous integration feature where the post submit will update manifests/common/centraldashboard/base/kustomization.yaml with the new image tag generated from this PR. Specifically:
+This uses TektonCD [pipelinerun](https://github.com/tektoncd/pipeline/blob/master/docs/pipelineruns.md) to enable the following use case:
 
 1. A PR is merged into kubeflow/kubeflow updating central dashboard
 1. The merged commit is 1234
 1. This tekton pipelinerun is triggered to build the central dashboard image from code @1234.
 1. The pipelinerun edits manifests/common/centraldashboard/base/kustomization.yaml and adds the new image tag
-1. The pipelinerun calls `make generate; make test` and if successful opens a PR to update kubeflow/manifests to use the newly built image
+1. The pipelinerun calls `make generate; make test` 
+1. If successful then checks in the changes 
+1. Opens a PR with the updated kubeflow/manifests that uses the newly built image
 1. Approvers LGTM the PR to kubeflow/manifests and it gets merged
 
 ### Background information on TektonCD pipelineruns, pipelines and tasks
