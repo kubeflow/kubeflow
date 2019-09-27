@@ -11,11 +11,11 @@ spec:
     - description: image target name
       name: imageName
       type: string
-    - description: The path to the dockerfile to build
-      name: pathToDockerfile
-      type: string
     - description: The build context used by Kaniko
       name: pathToContext
+      type: string
+    - description: The path to the dockerfile to build
+      name: pathToDockerfile
       type: string
     resources:
     - name: kubeflow
@@ -76,21 +76,22 @@ spec:
     - name: $(inputs.params.imageName)
       type: image
   steps:
-  - command:
+  - name: update-manifests
+    workingDir: /workspace/$(inputs.resources.manifests.name)/$(inputs.params.pathToManifestsDir)
+    image: $(inputs.params.containerImage)
+    command:
     - /workspace/$(inputs.resources.kubeflow.name)/py/kubeflow/kubeflow/ci/rebuild-manifests.sh
     env:
     - name: GOOGLE_APPLICATION_CREDENTIALS
-      value: /secret/gcp-credentials.json
-    - name: image_name
-      value: $(inputs.params.imageName)
-    image: $(inputs.params.containerImage)
-    name: update-manifests
+      value: /secret/gcp-credentials/key.json
+    envFrom:
+    - configMapRef:
+        name: ci-pipeline-run-parameters
     volumeMounts:
     - mountPath: /secret
       name: gcp-credentials
     - mountPath: /kubeflow
       name: kubeflow
-    workingDir: /workspace/$(inputs.resources.manifests.name)/$(inputs.params.pathToManifestsDir)
   volumes:
   - name: gcp-credentials
     secret:

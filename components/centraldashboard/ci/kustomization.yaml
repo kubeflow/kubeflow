@@ -14,6 +14,8 @@ namespace: kubeflow-ci
 configMapGenerator:
 - name: ci-pipeline-run-parameters
   env: params.env
+generatorOptions:
+  disableNameSuffixHash: true
 vars:
 - name: container_image
   objref:

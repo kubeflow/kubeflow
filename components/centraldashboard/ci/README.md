@@ -70,7 +70,7 @@ Those parameters without an asterix allow different gcr.io locations, namespace 
 This can be run locally (for example using a local cluster via `kind create cluster`)
 
 ```
-  container_image=gcr.io/kubeflow-ci/test-worker:latet
+  container_image=gcr.io/kubeflow-ci/test-worker:latest
 * docker_target=serve
 * image_name=centraldashboard
   image_url=gcr.io/kubeflow_public_images
