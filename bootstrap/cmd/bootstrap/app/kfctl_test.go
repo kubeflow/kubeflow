@@ -75,7 +75,7 @@ func TestKfctlClientServer_GoKit(t *testing.T) {
 		t.Errorf("There was a problem starting the server %+v", err)
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), 3 * time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
 	_, err = c.CreateDeployment(ctx, kfdefsv3.KfDef{
 		Spec: kfdefsv3.KfDefSpec{
 			Secrets: []kfdefsv3.Secret{

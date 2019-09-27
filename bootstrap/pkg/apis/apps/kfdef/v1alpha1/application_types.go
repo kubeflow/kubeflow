@@ -29,7 +29,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	netUrl "net/url"
-        "os"
+	"os"
 	"path"
 	"strings"
 )
@@ -314,14 +314,16 @@ func GetDefaultRegistry() *RegistryConfig {
 }
 
 const DefaultCacheDir = ".cache"
+
 func isValidUrl(toTest string) bool {
-        _, err := netUrl.ParseRequestURI(toTest)
-        if err != nil {
-                return false
-        } else {
-                return true
-        }
+	_, err := netUrl.ParseRequestURI(toTest)
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
 }
+
 // LoadKFDefFromURI constructs a KfDef given the path to a YAML file
 // specifying a YAML config file.
 // configFile is the path to the YAML file containing the KfDef spec. Can be any URI supported by hashicorp
@@ -344,29 +346,29 @@ func LoadKFDefFromURI(configFile string) (*KfDef, error) {
 	appFile := path.Join(appDir, KfConfigFile)
 
 	log.Infof("Downloading %v to %v", configFile, appFile)
-        configFileUri, err:= netUrl.Parse(configFile)
-        if err != nil {
-            log.Errorf("could not parse configFile url")
-        }
-        if isValidUrl(configFile) {
-          errGet := gogetter.GetFile(appFile, configFile)
-          if errGet != nil {
-                return nil, &kfapis.KfError{
-                        Code:    int(kfapis.INVALID_ARGUMENT),
-                        Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, err),
-                }
-          }
-        }else{
-        g := new(gogetter.FileGetter)
-        g.Copy = true
-        errGet :=  g.GetFile(appFile, configFileUri)
-         if errGet != nil {
-                return nil, &kfapis.KfError{
-                        Code:    int(kfapis.INVALID_ARGUMENT),
-                        Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, err),
-                }
-          }
-        }
+	configFileUri, err := netUrl.Parse(configFile)
+	if err != nil {
+		log.Errorf("could not parse configFile url")
+	}
+	if isValidUrl(configFile) {
+		errGet := gogetter.GetFile(appFile, configFile)
+		if errGet != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, err),
+			}
+		}
+	} else {
+		g := new(gogetter.FileGetter)
+		g.Copy = true
+		errGet := g.GetFile(appFile, configFileUri)
+		if errGet != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, err),
+			}
+		}
+	}
 
 	// Read contents
 	configFileBytes, err := ioutil.ReadFile(appFile)
