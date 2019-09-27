@@ -1,4 +1,4 @@
-module github.com/kubeflow/kubeflow/components/profile-controller
+module github.com/kubeflow/kubeflow/components/profile-controller/v2
 
 require (
 	cloud.google.com/go v0.36.0

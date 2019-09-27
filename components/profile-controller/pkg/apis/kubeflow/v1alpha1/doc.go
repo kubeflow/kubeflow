@@ -17,7 +17,7 @@ limitations under the License.
 // Package v1alpha1 contains API Schema definitions for the kubeflow v1alpha1 API group
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen=package,register
-// +k8s:conversion-gen=github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow
+// +k8s:conversion-gen=github.com/kubeflow/kubeflow/components/profile-controller/v2/pkg/apis/kubeflow
 // +k8s:defaulter-gen=TypeMeta
 // +groupName=kubeflow.org
 package v1alpha1

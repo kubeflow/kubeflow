@@ -17,7 +17,7 @@ limitations under the License.
 package controller
 
 import (
-	"github.com/kubeflow/kubeflow/components/profile-controller/pkg/controller/profile"
+	"github.com/kubeflow/kubeflow/components/profile-controller/v2/pkg/controller/profile"
 )
 
 func init() {

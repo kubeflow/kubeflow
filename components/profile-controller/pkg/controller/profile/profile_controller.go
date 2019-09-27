@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"reflect"
 
-	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/istiorbac/v1alpha1"
-	kubeflowv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
+	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/v2/pkg/apis/istiorbac/v1alpha1"
+	kubeflowv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/v2/pkg/apis/kubeflow/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

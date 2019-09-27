@@ -2,7 +2,7 @@ package v1beta1
 
 import (
 	"github.com/ghodss/yaml"
-	kfutils "github.com/kubeflow/kfctl/v3/pkg/utils"
+	kfutils "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"github.com/prometheus/common/log"
 	"io/ioutil"
 	"k8s.io/api/core/v1"
