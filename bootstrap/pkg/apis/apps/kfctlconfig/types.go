@@ -2,6 +2,9 @@ package kfctlconfig
 
 import (
 	"fmt"
+	"github.com/ghodss/yaml"
+	kfapis "github.com/kubeflow/kfctl/v3/pkg/apis"
+	log "github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -11,7 +14,8 @@ import (
 type KfctlConfig struct {
 	// Shared fields among all components. should limit this list.
 	// TODO(gabrielwen): Deprecate AppDir and move it to cache in Status.
-	AppDir       string
+	AppDir string
+	// TODO(gabrielwen): Can we infer this from Applications?
 	UseBasicAuth bool
 
 	Applications []Application
@@ -51,6 +55,7 @@ type NameValue struct {
 type Plugin struct {
 	Name      string
 	Namespace string
+	Kind      string
 	Spec      *runtime.RawExtension
 }
 
@@ -113,6 +118,16 @@ type Condition struct {
 
 type PluginKindType string
 
+const (
+	// Used for populating plugin missing errors and identifying those
+	// errors.
+	pluginNotFoundErrPrefix = "Missing plugin"
+
+	// Used for populating plugin missing errors and identifying those
+	// errors.
+	conditionNotFoundErrPrefix = "Missing condition"
+)
+
 // Plugin kind used starting from v1beta1
 const (
 	AWS_PLUGIN_KIND              PluginKindType = "KfAwsPlugin"
@@ -144,4 +159,38 @@ func GetPluginFailedCondition(pluginKind PluginKindType) ConditionType {
 type Cache struct {
 	Name      string
 	LocalPath string
+}
+
+func (c *KfctlConfig) GetPluginSpec(pluginKind PluginKindType, s interface{}) error {
+	for _, p := range c.Plugins {
+		if p.Kind != string(pluginKind) {
+			continue
+		}
+
+		// To deserialize it to a specific type we need to first serialize it to bytes
+		// and then unserialize it.
+		specBytes, err := yaml.Marshal(p.Spec)
+		if err != nil {
+			msg := fmt.Sprintf("Could not marshal plugin %v args; error %v", pluginKind, err)
+			log.Errorf(msg)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: msg,
+			}
+		}
+		err = yaml.Unmarshal(specBytes, s)
+		if err != nil {
+			msg := fmt.Sprintf("Could not unmarshal plugin %v to the provided type; error %v", pluginKind, err)
+			log.Errorf(msg)
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: msg,
+			}
+		}
+		return nil
+	}
+	return &kfapis.KfError{
+		Code:    int(kfapis.NOT_FOUND),
+		Message: fmt.Sprintf("%v %v", pluginNotFoundErrPrefix, pluginKind),
+	}
 }
