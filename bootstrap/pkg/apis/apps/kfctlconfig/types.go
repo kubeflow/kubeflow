@@ -8,6 +8,7 @@ import (
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"strings"
 )
 
 // Internal data structure to hold app related info.
@@ -234,4 +235,21 @@ func (c *KfctlConfig) GetCondition(condType ConditionType) (*Condition, error) {
 		Code:    int(kfapis.NOT_FOUND),
 		Message: fmt.Sprintf("%v %v", conditionNotFoundErrPrefix, condType),
 	}
+}
+
+func IsPluginNotFound(e error) bool {
+	if e == nil {
+		return false
+	}
+	err, ok := e.(*kfapis.KfError)
+	return ok && err.Code == int(kfapis.NOT_FOUND) && strings.HasPrefix(err.Message, pluginNotFoundErrPrefix)
+}
+
+func IsConditionNotFound(e error) bool {
+	if e == nil {
+		return false
+	}
+	err, ok := e.(*kfapis.KfError)
+	return ok && err.Code == int(kfapis.NOT_FOUND) &&
+		strings.HasPrefix(err.Message, conditionNotFoundErrPrefix)
 }
