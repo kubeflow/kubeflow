@@ -11,3 +11,10 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfctlConfig, error) {
 		Message: "Not implemented.",
 	}
 }
+
+func WriteConfigToFile(config kfconfig.KfctlConfig, path string) error {
+	return &kfapis.KfError{
+		Code:    int(kfapis.INTERNAL_ERROR),
+		Message: "Not implemented.",
+	}
+}
