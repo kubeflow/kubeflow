@@ -29,7 +29,7 @@ import (
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
-	profilev2 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
+	profilev2 "github.com/kubeflow/kubeflow/components/profile-controller/v2/pkg/apis/kubeflow/v1alpha1"
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -1069,10 +1069,8 @@ func GenerateKustomizationFile(kfDef *kfdefsv3.KfDef, root string,
 			//TODO look at sort options
 			//See https://github.com/kubernetes-sigs/kustomize/issues/821
 			//TODO upgrade to v2.0.4 when available
-			if kfDef.Spec.EnableApplications {
-				baseKfDef.Spec.Components = moveToFront("application", baseKfDef.Spec.Components)
-				baseKfDef.Spec.Components = moveToFront("application-crds", baseKfDef.Spec.Components)
-			}
+			baseKfDef.Spec.Components = moveToFront("application", baseKfDef.Spec.Components)
+			baseKfDef.Spec.Components = moveToFront("application-crds", baseKfDef.Spec.Components)
 			if kfDef.Spec.UseIstio {
 				baseKfDef.Spec.Components = moveToFront("istio", baseKfDef.Spec.Components)
 				baseKfDef.Spec.Components = moveToFront("istio-install", baseKfDef.Spec.Components)

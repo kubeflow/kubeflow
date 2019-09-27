@@ -154,7 +154,7 @@ def get_notebooks(ns, user=None):
         "notebooks",
         custom_api.list_namespaced_custom_object,
         "kubeflow.org",
-        "v1alpha1",
+        "v1beta1",
         ns,
         "notebooks"
     )
@@ -173,7 +173,7 @@ def get_poddefaults(ns, user=None):
         "poddefaults",
         custom_api.list_namespaced_custom_object,
         "kubeflow.org",
-        "v1alpha1",
+        "v1beta1",
         ns,
         "poddefaults"
     )
@@ -221,7 +221,7 @@ def post_notebook(notebook, user=None):
     return wrap(
         custom_api.create_namespaced_custom_object,
         "kubeflow.org",
-        "v1alpha1",
+        "v1beta1",
         notebook["metadata"]["namespace"],
         "notebooks",
         notebook
@@ -257,7 +257,7 @@ def delete_notebook(namespace, notebook_name, user=None):
     return wrap(
         custom_api.delete_namespaced_custom_object,
         "kubeflow.org",
-        "v1alpha1",
+        "v1beta1",
         namespace,
         "notebooks",
         notebook_name,

@@ -324,6 +324,7 @@ func isValidUrl(toTest string) bool {
 	}
 }
 
+// TODO: THIS FUNCTION IS DEPRECATED. PLEASE USE `LoadKFDefFromURI` in kfloader.go
 // LoadKFDefFromURI constructs a KfDef given the path to a YAML file
 // specifying a YAML config file.
 // configFile is the path to the YAML file containing the KfDef spec. Can be any URI supported by hashicorp

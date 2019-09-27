@@ -5,6 +5,8 @@
 ARG GOLANG_VERSION=1.12.7
 FROM golang:$GOLANG_VERSION as builder
 
+ARG BRANCH=master
+ARG REPO=https://github.com/kubeflow/kubeflow
 RUN apt-get update
 RUN apt-get install -y git unzip
 
@@ -26,6 +28,11 @@ ENV GOPATH=/go
 
 # Create bootstrap folder
 RUN mkdir -p ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
+WORKDIR /tmp
+RUN mkdir kubeflow
+RUN echo REPO=${REPO} branch=${BRANCH}
+RUN git clone ${REPO} --depth=1 --branch ${BRANCH} --single-branch kubeflow
+RUN mv /tmp/kubeflow/components ${GOPATH}/src/github.com/kubeflow/kubeflow
 WORKDIR ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
 
 # Download dependencies first to optimize Docker caching.
@@ -34,6 +41,7 @@ COPY go.sum .
 RUN go mod download
 # Copy in the source
 COPY . .
+
 
 #**********************************************************************
 # Bootstrap base

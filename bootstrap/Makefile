@@ -23,6 +23,8 @@ KFCTL_IMG ?= gcr.io/$(GCLOUD_PROJECT)/kfctl
 # We use --always because otherwise when we clone with shallow depth we might not get
 # any tags and it will fail.
 TAG ?= $(eval TAG := $(shell git describe --tags --always --long))$(TAG)
+REPO ?= $(shell echo $$(git config --get remote.origin.url) | sed 's/git@\(.*\):\(.*\).git$$/https:\/\/\1\/\2/')
+BRANCH ?= $(shell git branch | grep '^*' | awk '{print $$2}')
 KFCTL_TARGET ?= kfctl
 MOUNT_KUBE ?=  -v $(HOME)/.kube:/root/.kube 
 MOUNT_GCP ?=  -v $(HOME)/.config:/root/.config 
@@ -128,6 +130,8 @@ push-to-github-release: build-kfctl-tgz
 
 build-kfctl-container:
 	DOCKER_BUILDKIT=1 docker build \
+                --build-arg REPO="$(REPO)" \
+                --build-arg BRANCH=$(BRANCH) \
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(TAG) \
 		--target=$(KFCTL_TARGET) \
