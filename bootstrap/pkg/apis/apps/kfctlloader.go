@@ -53,6 +53,28 @@ func kfdefToConfigV1alpha1(kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
 		config.Applications = append(config.Applications, application)
 	}
 
+	for _, secret := range kfdef.Spec.Secrets {
+		s := kfconfig.Secret{
+			Name: secret.Name,
+		}
+		if secret.SecretSource == nil {
+			config.Secrets = append(config.Secrets, s)
+			continue
+		}
+		src := &kfconfig.SecretSource{}
+		if secret.SecretSource.LiteralSource != nil {
+			src.LiteralSource = &kfconfig.LiteralSource{
+				Value: secret.SecretSource.LiteralSource.Value,
+			}
+		} else if secret.SecretSource.EnvSource != nil {
+			src.EnvSource = &kfconfig.EnvSource{
+				Name: secret.SecretSource.EnvSource.Name,
+			}
+		}
+		s.SecretSource = src
+		config.Secrets = append(config.Secrets, s)
+	}
+
 	return config, nil
 }
 
