@@ -1,7 +1,7 @@
 import logging
 import os
 import pytest
-import yaml
+
 from kubeflow.ci import kfctl_go_test_utils as kfctl_util
 from kubeflow.testing import util
 from retrying import retry
