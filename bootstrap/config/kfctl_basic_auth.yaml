@@ -23,6 +23,7 @@ packages:
   - tensorboard
   - tf-serving
   - tf-training
+  - spark
 components:
 # ordering is important
   - metacontroller
@@ -49,6 +50,7 @@ components:
   - spartakus
   - tensorboard
   - tf-job-operator
+  - spark
 componentParams:
   argo:
   - initRequired: true

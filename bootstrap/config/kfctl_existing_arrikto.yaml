@@ -215,6 +215,13 @@ spec:
         name: manifests
         path: seldon/seldon-core-operator
     name: seldon-core-operator
+  - kustomizeConfig:
+      overlays:
+      - application
+      repoRef:
+        name: manifests
+        path: spark/spark-operator
+    name: spark
   platform: existing_arrikto
   repos:
   - name: manifests

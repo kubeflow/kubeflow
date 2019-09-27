@@ -265,6 +265,13 @@ spec:
           name: manifests
           path: aws/nvidia-device-plugin
       name: nvidia-device-plugin
+  - kustomizeConfig:
+      overlays:
+      - application
+      repoRef:
+        name: manifests
+        path: spark/spark-operator
+    name: spark
   enableApplications: true
   packageManager: kustomize
   repos:

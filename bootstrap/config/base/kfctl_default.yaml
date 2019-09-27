@@ -40,6 +40,7 @@ spec:
   - spartakus
   - tensorboard
   - tf-job-operator
+  - spark
   componentParams:
     spartakus:
       - name: usageId
