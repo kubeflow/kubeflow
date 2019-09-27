@@ -194,3 +194,44 @@ func (c *KfctlConfig) GetPluginSpec(pluginKind PluginKindType, s interface{}) er
 		Message: fmt.Sprintf("%v %v", pluginNotFoundErrPrefix, pluginKind),
 	}
 }
+
+// Sets condition and status to KfctlConfig.
+func (c *KfctlConfig) SetCondition(condType ConditionType,
+	status v1.ConditionStatus,
+	reason string,
+	message string) {
+	now := metav1.Now()
+	cond := Condition{
+		Type:               condType,
+		Status:             status,
+		LastUpdateTime:     now,
+		LastTransitionTime: now,
+		Reason:             reason,
+		Message:            message,
+	}
+
+	for i := range c.Status.Conditions {
+		if c.Status.Conditions[i].Type != condType {
+			continue
+		}
+		if c.Status.Conditions[i].Status == status {
+			cond.LastTransitionTime = c.Status.Conditions[i].LastTransitionTime
+		}
+		c.Status.Conditions[i] = cond
+		return
+	}
+	c.Status.Conditions = append(c.Status.Conditions, cond)
+}
+
+// Gets condition from KfctlConfig.
+func (c *KfctlConfig) GetCondition(condType ConditionType) (*Condition, error) {
+	for i := range c.Status.Conditions {
+		if c.Status.Conditions[i].Type == condType {
+			return &c.Status.Conditions[i], nil
+		}
+	}
+	return nil, &kfapis.KfError{
+		Code:    int(kfapis.NOT_FOUND),
+		Message: fmt.Sprintf("%v %v", conditionNotFoundErrPrefix, condType),
+	}
+}
