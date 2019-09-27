@@ -50,12 +50,26 @@ workflows:
       - presubmit
     include_dirs:
       - bootstrap/*
-      - deployment/*
-      - dependencies/*
       - kubeflow/*
       - testing/*
     kwargs:
       use_basic_auth: false
+      config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
+  # If the kfctl_e2e_workflow.py was modified then on presubmit we also want to run with test_endpoint true
+  # to ensure that test still pasess
+  - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
+    component: kfctl_go_test
+    name: kfctl-gcp-e2e-changed
+    job_types:
+      - presubmit
+    include_dirs:
+      - bootstrap/*
+      - kubeflow/*
+      - testing/*
+      - py/kubeflow/kubeflow/ci/kfctl_e2e_workflow.py 
+    kwargs:
+      use_basic_auth: false
+      test_endpoint: true
       config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
   # Run basic auth test as part of every periodic and postsubmit run. 
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow

@@ -584,7 +584,7 @@ class Builder:
               ],
 
       dependences = []
-      endpoint_ready = self._build_step(step_name, workflow, E2E_DAG_NAME, task_template,
+      endpoint_ready = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
                                         command, dependences)
 
     self._build_tests_dag()
