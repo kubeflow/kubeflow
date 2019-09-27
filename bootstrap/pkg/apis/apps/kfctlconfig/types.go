@@ -25,8 +25,8 @@ type KfctlConfig struct {
 	Repos        []Repo
 	Status       Status
 
-	// Private field, used to track source KfDef version.
-	sourceVersion string
+	// Used to track source KfDef version.
+	SourceVersion string
 }
 
 type Platform struct {
