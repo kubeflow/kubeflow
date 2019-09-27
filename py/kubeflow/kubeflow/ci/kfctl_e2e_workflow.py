@@ -576,6 +576,8 @@ class Builder:
                  "-s",
                  # Increase the log level so that info level log statements show up.
                  "--log-cli-level=info",
+                 # Test timeout in seconds.
+                 "--timeout=1800",                 
                  "--junitxml=" + self.artifacts_dir + "/junit_endpoint-is-ready-test-" + self.config_name + ".xml",
                  # Test suite name needs to be unique based on parameters
                  "-o", "junit_suite_name=test_endpoint_is_ready_" + self.config_name,
