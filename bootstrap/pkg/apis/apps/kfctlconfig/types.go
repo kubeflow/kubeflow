@@ -59,7 +59,7 @@ type NameValue struct {
 type Plugin struct {
 	Name      string
 	Namespace string
-	Kind      string
+	Kind      PluginKindType
 	Spec      *runtime.RawExtension
 }
 
@@ -167,7 +167,7 @@ type Cache struct {
 
 func (c *KfctlConfig) GetPluginSpec(pluginKind PluginKindType, s interface{}) error {
 	for _, p := range c.Plugins {
-		if p.Kind != string(pluginKind) {
+		if p.Kind != pluginKind {
 			continue
 		}
 
@@ -320,7 +320,7 @@ func (c *KfctlConfig) SetPluginSpec(pluginKind PluginKindType, spec interface{})
 	index := -1
 
 	for i, p := range c.Plugins {
-		if p.Kind == string(pluginKind) {
+		if p.Kind == pluginKind {
 			index = i
 			break
 		}
@@ -332,7 +332,7 @@ func (c *KfctlConfig) SetPluginSpec(pluginKind PluginKindType, spec interface{})
 
 		p := Plugin{}
 		p.Name = string(pluginKind)
-		p.Kind = string(pluginKind)
+		p.Kind = pluginKind
 		c.Plugins = append(c.Plugins, p)
 
 		index = len(c.Plugins) - 1

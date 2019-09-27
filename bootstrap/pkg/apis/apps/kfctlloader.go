@@ -8,6 +8,21 @@ import (
 	kfdefv1alpha1 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 )
 
+func pluginNameToKind(pluginName string) kfconfig.PluginKindType {
+	mapper := map[string]kfconfig.PluginKindType{
+		AWS:              kfconfig.AWS_PLUGIN_KIND,
+		GCP:              kfconfig.GCP_PLUGIN_KIND,
+		MINIKUBE:         kfconfig.MINIKUBE_PLUGIN_KIND,
+		EXISTING_ARRIKTO: kfconfig.EXISTING_ARRIKTO_PLUGIN_KIND,
+	}
+	kind, ok := mapper[pluginName]
+	if ok {
+		return kind
+	} else {
+		return kfconfig.PluginKindType("KfUnknownPlugin")
+	}
+}
+
 func kfdefToConfigV1alpha1(kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
 	kfdef := &kfdefv1alpha1.KfDef{}
 	if err := yaml.Unmarshal(kfdefBytes, kfdef); err != nil {
@@ -51,6 +66,16 @@ func kfdefToConfigV1alpha1(kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
 			application.KustomizeConfig = kconfig
 		}
 		config.Applications = append(config.Applications, application)
+	}
+
+	for _, plugin := range kfdef.Spec.Plugins {
+		p := kfconfig.Plugin{
+			Name:      plugin.Name,
+			Namespace: kfdef.Namespace,
+			Kind:      pluginNameToKind(plugin.Name),
+			Spec:      plugin.Spec,
+		}
+		config.Plugins = append(config.Plugins, p)
 	}
 
 	for _, secret := range kfdef.Spec.Secrets {
