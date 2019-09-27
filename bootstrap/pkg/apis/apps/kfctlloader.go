@@ -37,6 +37,10 @@ func kfdefToConfigV1alpha1(kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
 		UseBasicAuth:  kfdef.Spec.UseBasicAuth,
 		SourceVersion: "v1alpha1",
 	}
+	config.Name = kfdef.Name
+	config.Namespace = kfdef.Namespace
+	config.APIVersion = kfdef.APIVersion
+	config.Kind = "KfctlConfig"
 	for _, app := range kfdef.Spec.Applications {
 		kustomizeConfig := &kfconfig.KustomizeConfig{
 			Overlays: app.KustomizeConfig.Overlays,

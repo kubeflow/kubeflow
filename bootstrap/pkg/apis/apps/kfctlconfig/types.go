@@ -13,6 +13,9 @@ import (
 
 // Internal data structure to hold app related info.
 type KfctlConfig struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
 	// Shared fields among all components. should limit this list.
 	// TODO(gabrielwen): Deprecate AppDir and move it to cache in Status.
 	AppDir string
