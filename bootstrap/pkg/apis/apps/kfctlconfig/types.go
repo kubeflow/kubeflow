@@ -237,6 +237,54 @@ func (c *KfctlConfig) GetCondition(condType ConditionType) (*Condition, error) {
 	}
 }
 
+func (c *KfctlConfig) IsPluginFinished(pluginKind PluginKindType) bool {
+	condType := GetPluginSucceededCondition(pluginKind)
+	cond, err := c.GetCondition(condType)
+	if err != nil {
+		if IsConditionNotFound(err) {
+			return false
+		}
+		log.Warnf("error when getting condition info: %v", err)
+		return false
+	}
+	return cond.Status == v1.ConditionTrue
+}
+
+func (c *KfctlConfig) SetPluginFinished(pluginKind PluginKindType, msg string) {
+	succeededCond := GetPluginSucceededCondition(pluginKind)
+	failedCond := GetPluginFailedCondition(pluginKind)
+	if _, err := c.GetCondition(failedCond); err == nil {
+		c.SetCondition(failedCond, v1.ConditionFalse, "",
+			"Reset to false as the plugin is set to be finished.")
+	}
+
+	c.SetCondition(succeededCond, v1.ConditionTrue, "", msg)
+}
+
+func (c *KfctlConfig) IsPluginFailed(pluginKind PluginKindType) bool {
+	condType := GetPluginFailedCondition(pluginKind)
+	cond, err := c.GetCondition(condType)
+	if err != nil {
+		if IsConditionNotFound(err) {
+			return false
+		}
+		log.Warnf("error when getting condition info: %v", err)
+		return false
+	}
+	return cond.Status == v1.ConditionTrue
+}
+
+func (c *KfctlConfig) SetPluginFailed(pluginKind PluginKindType, msg string) {
+	succeededCond := GetPluginSucceededCondition(pluginKind)
+	failedCond := GetPluginFailedCondition(pluginKind)
+	if _, err := c.GetCondition(succeededCond); err == nil {
+		c.SetCondition(succeededCond, v1.ConditionFalse,
+			"", "Reset to false as the plugin is set to be failed.")
+	}
+
+	c.SetCondition(failedCond, v1.ConditionTrue, "", msg)
+}
+
 func IsPluginNotFound(e error) bool {
 	if e == nil {
 		return false
