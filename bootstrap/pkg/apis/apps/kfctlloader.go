@@ -112,6 +112,25 @@ func kfdefToConfigV1alpha1(kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
 		config.Repos = append(config.Repos, r)
 	}
 
+	for _, cond := range kfdef.Status.Conditions {
+		c := kfconfig.Condition{
+			Type:               kfconfig.ConditionType(cond.Type),
+			Status:             cond.Status,
+			LastUpdateTime:     cond.LastUpdateTime,
+			LastTransitionTime: cond.LastTransitionTime,
+			Reason:             cond.Reason,
+			Message:            cond.Message,
+		}
+		config.Status.Conditions = append(config.Status.Conditions, c)
+	}
+	for name, cache := range kfdef.Status.ReposCache {
+		c := kfconfig.Cache{
+			Name:      name,
+			LocalPath: cache.LocalPath,
+		}
+		config.Status.Caches = append(config.Status.Caches, c)
+	}
+
 	return config, nil
 }
 
