@@ -75,6 +75,14 @@ func kfdefToConfigV1alpha1(kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
 		config.Secrets = append(config.Secrets, s)
 	}
 
+	for _, repo := range kfdef.Spec.Repos {
+		r := kfconfig.Repo{
+			Name: repo.Name,
+			URI:  repo.Uri,
+		}
+		config.Repos = append(config.Repos, r)
+	}
+
 	return config, nil
 }
 
