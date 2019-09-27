@@ -262,6 +262,40 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfctlConfig, error) {
 	}
 }
 
+func configToKfDefSerializedV1alpha1(config kfconfig.KfctlConfig) ([]byte, error) {
+	kfdef := &kfdefv1alpha1.KfDef{}
+	kfdef.Name = config.Name
+	kfdef.Namespace = config.Namespace
+	kfdef.APIVersion = config.APIVersion
+	kfdef.Kind = "KfDef"
+
+	kfdef.Spec.AppDir = config.AppDir
+	kfdef.Spec.UseBasicAuth = config.UseBasicAuth
+	// Should be deprecated, hardcode it just to be safe.
+	kfdef.Spec.EnableApplications = true
+	kfdef.Spec.UseIstio = true
+	kfdef.Spec.PackageManager = "kustomize"
+
+	// gcpPluginSpec := kfgcp.GcpPluginSpec{}
+	// if err := config.GetPluginSpec(kfconfig.GCP_PLUGIN_KIND, &gcpPluginSpec); err == nil {
+	// 	kfdef.Spec.Project = gcpPluginSpec.Project
+	// 	kfdef.Spec.Email = gcpPluginSpec.Email
+	// 	kfdef.Spec.IpName = gcpPluginSpec.IpName
+	// 	kfdef.Spec.Hostname = gcpPluginSpec.Hostname
+	// 	kfdef.Spec.Zone = gcpPluginSpec.Zone
+	// 	kfdef.Spec.SkipInitProject = gcpPluginSpec.SkipInitProject
+	// 	kfdef.Spec.DeleteStorage = gcpPluginSpec.DeleteStorage
+	// }
+
+	return yaml.Marshal(kfdef)
+}
+
+func configToKfDefSerializedV1beta1(config kfconfig.KfctlConfig) ([]byte, error) {
+	kfdef := &kfdefv1beta1.KfDef{}
+
+	return yaml.Marshal(kfdef)
+}
+
 func WriteConfigToFile(config kfconfig.KfctlConfig) error {
 	return &kfapis.KfError{
 		Code:    int(kfapis.INTERNAL_ERROR),
