@@ -581,11 +581,11 @@ class Builder:
                  "-o", "junit_suite_name=test_endpoint_is_ready_" + self.config_name,
                  "--app_path=" + self.app_dir,
                  "--app_name=" + self.app_name,
-              ],
+              ]
 
-      dependences = []
+      dependencies = [build_kfctl["name"]]
       endpoint_ready = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
-                                        command, dependences)
+                                        command, dependencies)
 
     self._build_tests_dag()
 
