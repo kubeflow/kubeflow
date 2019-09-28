@@ -32,20 +32,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Given a KfUpgrade config, create a new KfApp.
-func NewKfUpgrade(upgradeConfig string) (kftypesv3.KfApp, error) {
-	// Parse the KfUpgrade spec
-	upgrade, err := kfupgrade.LoadKfUpgradeFromUri(upgradeConfig)
-	if err != nil {
-		log.Errorf("Could not load %v; error %v", upgradeConfig, err)
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: err.Error(),
-		}
-	}
+type KfUpgrader struct {
+	OldKfDef *kfdefsv3.KfDef
+	NewKfDef *kfdefsv3.KfDef
+}
 
+// Given a path to a base config and the existing KfDef, create and return a new KfApp
+// while keeping the existing KfApp's customizations.
+func createNewKfApp(baseConfig string, oldKfDef *kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
 	appDir, err := os.Getwd()
-
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
@@ -53,23 +48,13 @@ func NewKfUpgrade(upgradeConfig string) (kftypesv3.KfApp, error) {
 		}
 	}
 
-	// Find the existing KfDef
-	oldKfDef, err := FindKfDef(upgrade.Spec.CurrentKfDef)
-	if err != nil || oldKfDef == nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not find existing KfDef %v. Error: %v", upgrade.Spec.CurrentKfDef.Name, err),
-		}
-	}
-
 	// Load the new KfDef from the base config
-	newConfig := upgrade.Spec.BaseConfigPath
-	newKfDef, err := kfdefsv3.LoadKFDefFromURI(newConfig)
+	newKfDef, err := kfdefsv3.LoadKFDefFromURI(baseConfig)
 
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not load %v. Error: %v", newConfig, err),
+			Message: fmt.Sprintf("Could not load %v. Error: %v", baseConfig, err),
 		}
 	}
 
@@ -77,30 +62,29 @@ func NewKfUpgrade(upgradeConfig string) (kftypesv3.KfApp, error) {
 	MergeKfDef(oldKfDef, newKfDef)
 
 	// Compute hash from the new KfDef and use it to create the new app directory
-	h, err := ComputeHash(newKfDef)
+	h, err := computeHash(newKfDef)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not compute sha256 hash. Error: %v", err),
+			Message: fmt.Sprintf("Could not compute sha256 hash. Error: %v", err),
 		}
 	}
 
 	newAppDir := filepath.Join(appDir, h)
 	newKfDef.Spec.AppDir = newAppDir
-	newKfDef.Spec.Version = upgrade.Spec.NewKfDef.Version
 
-	updateCfg, err := coordinator.CreateKfAppCfgFile(newKfDef)
-
+	// Make sure the new KfApp is created.
+	_, err = coordinator.CreateKfAppCfgFile(newKfDef)
 	if err != nil {
 		return nil, err
 	}
 
-	return coordinator.LoadKfAppCfgFile(updateCfg)
+	return newKfDef, nil
 }
 
 // Given a KfUpgrade config, either find the KfApp that matches the NewKfDef reference or
 // create a new one.
-func LoadKfUpgrade(upgradeConfig string) (kftypesv3.KfApp, error) {
+func NewKfUpgrade(upgradeConfig string) (*KfUpgrader, error) {
 	// Parse the KfUpgrade spec.
 	upgrade, err := kfupgrade.LoadKfUpgradeFromUri(upgradeConfig)
 	if err != nil {
@@ -111,40 +95,42 @@ func LoadKfUpgrade(upgradeConfig string) (kftypesv3.KfApp, error) {
 		}
 	}
 
+	// Try to find the old KfDef.
+	oldKfDef, err := findKfDef(upgrade.Spec.CurrentKfDef)
+	if err != nil || oldKfDef == nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("Could not find existing KfDef %v. Error: %v", upgrade.Spec.CurrentKfDef.Name, err),
+		}
+	}
+
 	// Try to find the new KfDef.
-	kfDef, err := FindKfDef(upgrade.Spec.NewKfDef)
+	newKfDef, err := findKfDef(upgrade.Spec.NewKfDef)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not find %v. Error: %v", upgrade.Spec.NewKfDef.Name, err),
+			Message: fmt.Sprintf("Encountered error while trying to find %v: %v", upgrade.Spec.NewKfDef.Name, err),
 		}
 	}
 
-	if kfDef != nil {
-		// If we find the exising KfDef, return it
-		return kustomize.GetKfApp(kfDef), nil
-	} else {
-		// If we cannot find one, create a new one and generate the kustomize packages for it.
-		newKfApp, err := NewKfUpgrade(upgradeConfig)
+	// If the new KfDef is not found, create it
+	if newKfDef == nil {
+		newKfDef, err = createNewKfApp(upgrade.Spec.BaseConfigPath, oldKfDef)
 		if err != nil {
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: fmt.Sprintf("Failed to create new KfApp. Error: %v", err),
+				Message: fmt.Sprintf("Encountered error while creating new KfApp %v: %v", upgrade.Spec.NewKfDef.Name, err),
 			}
 		}
-
-		err = newKfApp.Generate(kftypesv3.K8S)
-		if err != nil {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: fmt.Sprintf("Failed to build KfApp. Error: %v", err),
-			}
-		}
-		return newKfApp, nil
 	}
+
+	return &KfUpgrader{
+		OldKfDef: oldKfDef,
+		NewKfDef: newKfDef,
+	}, nil
 }
 
-func ComputeHash(d *kfdefsv3.KfDef) (string, error) {
+func computeHash(d *kfdefsv3.KfDef) (string, error) {
 	h := sha256.New()
 	buf := new(bytes.Buffer)
 	json.NewEncoder(buf).Encode(d)
@@ -155,7 +141,7 @@ func ComputeHash(d *kfdefsv3.KfDef) (string, error) {
 	return id, nil
 }
 
-func FindKfDef(kfDefRef *kfupgrade.KfDefRef) (*kfdefsv3.KfDef, error) {
+func findKfDef(kfDefRef *kfupgrade.KfDefRef) (*kfdefsv3.KfDef, error) {
 	var target *kfdefsv3.KfDef
 	err := filepath.Walk(".",
 		func(path string, info os.FileInfo, err error) error {
@@ -187,7 +173,7 @@ func FindKfDef(kfDefRef *kfupgrade.KfDefRef) (*kfdefsv3.KfDef, error) {
 				return nil
 			}
 
-			if kfDef.Name == kfDefRef.Name && kfDef.Spec.Version == kfDefRef.Version {
+			if kfDef.Name == kfDefRef.Name {
 				if kfDefRef.Version == "" {
 					log.Infof("Found KfDef with matching name: %v", kfDef.Name)
 					target = kfDef
@@ -227,4 +213,20 @@ func MergeKfDef(oldKfDef *kfdefsv3.KfDef, newKfDef *kfdefsv3.KfDef) {
 			}
 		}
 	}
+}
+
+func (upgrader *KfUpgrader) Generate() error {
+	kfApp := kustomize.GetKfApp(upgrader.NewKfDef)
+	return kfApp.Generate(kftypesv3.K8S)
+}
+
+func (upgrader *KfUpgrader) Apply() error {
+	kfApp := kustomize.GetKfApp(upgrader.NewKfDef)
+	err := kfApp.Generate(kftypesv3.K8S)
+	if err != nil {
+		log.Errorf("Failed to generate KfApp: %v", err)
+		return err
+	}
+
+	return kfApp.Apply(kftypesv3.K8S)
 }

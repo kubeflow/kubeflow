@@ -39,18 +39,15 @@ var applyCmd = &cobra.Command{
 
 		file := applyCfg.GetString(string(kftypes.FILE))
 		if file != "" {
-			// Find the new KfDef
-			kfApp, err := kfupgrade.LoadKfUpgrade(file)
-			if err != nil {
-				return fmt.Errorf("couldn't load KfUpgrade: %v", err)
+			kfUpgrade, kfUpgradeErr := kfupgrade.NewKfUpgrade(file)
+			if kfUpgradeErr != nil {
+				return fmt.Errorf("couldn't load KfUpgrade: %v", kfUpgradeErr)
 			}
 
-			// Apply
-			err = kfApp.Apply(kftypes.K8S)
-			if err != nil {
-				return fmt.Errorf("couldn't apply KfUpgrade: %v", err)
+			applyErr := kfUpgrade.Apply()
+			if applyErr != nil {
+				return fmt.Errorf("couldn't apply KfUpgrade: %v", applyErr)
 			}
-
 			return nil
 		}
 

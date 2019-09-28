@@ -61,7 +61,7 @@ The default is 'all' for any selected platform.`,
 				return fmt.Errorf("couldn't load KfUpgrade: %v", kfUpgradeErr)
 			}
 
-			generateErr := kfUpgrade.Generate(kftypes.K8S)
+			generateErr := kfUpgrade.Generate()
 			if generateErr != nil {
 				return fmt.Errorf("couldn't generate KfApp: %v", generateErr)
 			}
