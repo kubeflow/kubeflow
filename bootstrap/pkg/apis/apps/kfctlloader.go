@@ -349,6 +349,14 @@ func configToKfDefSerializedV1alpha1(config kfconfig.KfctlConfig) ([]byte, error
 		kfdef.Spec.Secrets = append(kfdef.Spec.Secrets, s)
 	}
 
+	for _, repo := range config.Repos {
+		r := kfdefv1alpha1.Repo{
+			Name: repo.Name,
+			Uri:  repo.URI,
+		}
+		kfdef.Spec.Repos = append(kfdef.Spec.Repos, r)
+	}
+
 	return yaml.Marshal(kfdef)
 }
 
