@@ -17,8 +17,8 @@ limitations under the License.
 package apis
 
 import (
-	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/istiorbac/v1alpha1"
-	kfv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
+	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/v2/pkg/apis/istiorbac/v1alpha1"
+	kfv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/v2/pkg/apis/kubeflow/v1alpha1"
 )
 
 func init() {

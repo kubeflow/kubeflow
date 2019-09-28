@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	kubeflowv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
+	kubeflowv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/v2/pkg/apis/kubeflow/v1alpha1"
 	"github.com/onsi/gomega"
 	"golang.org/x/net/context"
 	appsv1 "k8s.io/api/apps/v1"
