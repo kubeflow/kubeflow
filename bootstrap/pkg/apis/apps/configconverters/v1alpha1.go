@@ -224,13 +224,27 @@ func (v *V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error
 		kfdef.Spec.Applications = append(kfdef.Spec.Applications, application)
 	}
 
+	platform := ""
 	for _, plugin := range config.Plugins {
 		p := kfdeftypes.Plugin{
 			Name: plugin.Name,
 			Spec: plugin.Spec,
 		}
 		kfdef.Spec.Plugins = append(kfdef.Spec.Plugins, p)
+
+		if plugin.Name == kftypesv3.AWS {
+			platform = kftypesv3.AWS
+		} else if plugin.Name == kftypesv3.GCP {
+			platform = kftypesv3.GCP
+		}
 	}
+	if platform == "" {
+		return []byte(""), &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: "Not able to find platform in plugins",
+		}
+	}
+	kfdef.Spec.Platform = platform
 
 	for _, secret := range config.Secrets {
 		s := kfdeftypes.Secret{

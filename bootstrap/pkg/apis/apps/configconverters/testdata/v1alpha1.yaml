@@ -186,11 +186,9 @@ spec:
     name: kfserving-install
   - kustomizeConfig:
       parameters:
-      - initRequired: true
-        name: usageId
+      - name: usageId
         value: "123456"
-      - initRequired: true
-        name: reportUsage
+      - name: reportUsage
         value: "true"
       repoRef:
         name: manifests
@@ -280,8 +278,7 @@ spec:
       overlays:
       - istio
       parameters:
-      - initRequired: true
-        name: admin
+      - name: admin
         value: SET_EMAIL
       - name: userid-header
         value: X-Goog-Authenticated-User-Email
@@ -302,11 +299,9 @@ spec:
       parameters:
       - name: namespace
         value: istio-system
-      - initRequired: true
-        name: ipName
+      - name: ipName
         value: myapp2-ip
-      - initRequired: true
-        name: hostname
+      - name: hostname
         value: myapp2.endpoints.foo-project.cloud.goog
       repoRef:
         name: manifests
@@ -332,8 +327,8 @@ spec:
           name: manifests
           path: gcp/deployment_manager_configs
       enableWorkloadIdentity: true
+      useBasicAuth: false
   skipInitProject: true
   useBasicAuth: false
   useIstio: true
-  version: master
   project: foo-project
