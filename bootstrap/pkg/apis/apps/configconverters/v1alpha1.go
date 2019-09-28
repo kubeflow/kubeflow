@@ -51,7 +51,7 @@ func copyGcpPluginSpec(from *kfdeftypes.KfDef, to *kfconfig.KfctlConfig) error {
 	return to.SetPluginSpec(kfconfig.GCP_PLUGIN_KIND, spec)
 }
 
-func (v *V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
+func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
 	kfdef := &kfdeftypes.KfDef{}
 	if err := yaml.Unmarshal(kfdefBytes, kfdef); err != nil {
 		return nil, &kfapis.KfError{
@@ -172,7 +172,7 @@ func (v *V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.Kfctl
 	return config, nil
 }
 
-func (v *V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error) {
+func (v V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error) {
 	kfdef := &kfdeftypes.KfDef{}
 	kfdef.Name = config.Name
 	kfdef.Namespace = config.Namespace

@@ -12,7 +12,7 @@ import (
 type V1beta1 struct {
 }
 
-func (v *V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
+func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
 	kfdef := &kfdeftypes.KfDef{}
 	if err := yaml.Unmarshal(kfdefBytes, kfdef); err != nil {
 		return nil, &kfapis.KfError{
@@ -125,7 +125,7 @@ func (v *V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlC
 
 }
 
-func (v *V1beta1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error) {
+func (v V1beta1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error) {
 	kfdef := &kfdeftypes.KfDef{}
 	kfdef.Name = config.Name
 	kfdef.Namespace = config.Namespace
