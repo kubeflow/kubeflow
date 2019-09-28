@@ -321,6 +321,14 @@ func configToKfDefSerializedV1alpha1(config kfconfig.KfctlConfig) ([]byte, error
 		kfdef.Spec.Applications = append(kfdef.Spec.Applications, application)
 	}
 
+	for _, plugin := range config.Plugins {
+		p := kfdefv1alpha1.Plugin{
+			Name: plugin.Name,
+			Spec: plugin.Spec,
+		}
+		kfdef.Spec.Plugins = append(kfdef.Spec.Plugins, p)
+	}
+
 	return yaml.Marshal(kfdef)
 }
 
