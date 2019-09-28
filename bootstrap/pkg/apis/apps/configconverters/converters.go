@@ -126,5 +126,40 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfctlConfig, error) {
 	return converter.ToKfConfig(appDir, configFileBytes)
 }
 
-func WriteConfigToFile(config kfconfig.KfctlConfig, filename string) {
+func WriteConfigToFile(config kfconfig.KfctlConfig, filename string) error {
+	converters := map[string]Converter{
+		"v1alpha1": V1alpha1{},
+		"v1beta1":  V1beta1{},
+	}
+	apiVersionSeparated := strings.Split(config.APIVersion, "/")
+	if len(apiVersionSeparated) < 2 || apiVersionSeparated[0] != Api {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("invalid config: apiVersion must be in the format of %v/<version>, got %v", Api, config.APIVersion),
+		}
+	}
+
+	converter, ok := converters[apiVersionSeparated[1]]
+	if !ok {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("invalid config: unable to find converter for version %v", config.APIVersion),
+		}
+	}
+
+	kfdefBytes, err := converter.ToKfDefSerialized(config)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("error when marshaling KfDef: %v", err),
+		}
+	}
+	err = ioutil.WriteFile(filename, kfdefBytes, 0644)
+	if err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("error when writing KfDef: %v", err),
+		}
+	}
+	return nil
 }
