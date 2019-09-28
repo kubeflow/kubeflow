@@ -7,7 +7,7 @@ import (
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfctlconfig"
-	kfdefv1alpha1 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	kfdeftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	kfgcp "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 )
 
@@ -30,7 +30,7 @@ func pluginNameToKind(pluginName string) kfconfig.PluginKindType {
 }
 
 func (v *V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
-	kfdef := &kfdefv1alpha1.KfDef{}
+	kfdef := &kfdeftypes.KfDef{}
 	if err := yaml.Unmarshal(kfdefBytes, kfdef); err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
@@ -139,7 +139,7 @@ func (v *V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.Kfctl
 }
 
 func (v *V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error) {
-	kfdef := &kfdefv1alpha1.KfDef{}
+	kfdef := &kfdeftypes.KfDef{}
 	kfdef.Name = config.Name
 	kfdef.Namespace = config.Namespace
 	kfdef.APIVersion = config.APIVersion
@@ -164,15 +164,15 @@ func (v *V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error
 	}
 
 	for _, app := range config.Applications {
-		application := kfdefv1alpha1.Application{
+		application := kfdeftypes.Application{
 			Name: app.Name,
 		}
 		if app.KustomizeConfig != nil {
-			kconfig := &kfdefv1alpha1.KustomizeConfig{
+			kconfig := &kfdeftypes.KustomizeConfig{
 				Overlays: app.KustomizeConfig.Overlays,
 			}
 			if app.KustomizeConfig.RepoRef != nil {
-				kref := &kfdefv1alpha1.RepoRef{
+				kref := &kfdeftypes.RepoRef{
 					Name: app.KustomizeConfig.RepoRef.Name,
 					Path: app.KustomizeConfig.RepoRef.Path,
 				}
@@ -191,7 +191,7 @@ func (v *V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error
 	}
 
 	for _, plugin := range config.Plugins {
-		p := kfdefv1alpha1.Plugin{
+		p := kfdeftypes.Plugin{
 			Name: plugin.Name,
 			Spec: plugin.Spec,
 		}
@@ -199,18 +199,18 @@ func (v *V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error
 	}
 
 	for _, secret := range config.Secrets {
-		s := kfdefv1alpha1.Secret{
+		s := kfdeftypes.Secret{
 			Name: secret.Name,
 		}
 		if secret.SecretSource != nil {
-			s.SecretSource = &kfdefv1alpha1.SecretSource{}
+			s.SecretSource = &kfdeftypes.SecretSource{}
 			if secret.SecretSource.LiteralSource != nil {
-				s.SecretSource.LiteralSource = &kfdefv1alpha1.LiteralSource{
+				s.SecretSource.LiteralSource = &kfdeftypes.LiteralSource{
 					Value: secret.SecretSource.LiteralSource.Value,
 				}
 			}
 			if secret.SecretSource.EnvSource != nil {
-				s.SecretSource.EnvSource = &kfdefv1alpha1.EnvSource{
+				s.SecretSource.EnvSource = &kfdeftypes.EnvSource{
 					Name: secret.SecretSource.EnvSource.Name,
 				}
 			}
@@ -219,7 +219,7 @@ func (v *V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error
 	}
 
 	for _, repo := range config.Repos {
-		r := kfdefv1alpha1.Repo{
+		r := kfdeftypes.Repo{
 			Name: repo.Name,
 			Uri:  repo.URI,
 		}
@@ -227,8 +227,8 @@ func (v *V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error
 	}
 
 	for _, cond := range config.Status.Conditions {
-		c := kfdefv1alpha1.KfDefCondition{
-			Type:               kfdefv1alpha1.KfDefConditionType(cond.Type),
+		c := kfdeftypes.KfDefCondition{
+			Type:               kfdeftypes.KfDefConditionType(cond.Type),
 			Status:             cond.Status,
 			LastUpdateTime:     cond.LastUpdateTime,
 			LastTransitionTime: cond.LastTransitionTime,
@@ -239,7 +239,7 @@ func (v *V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error
 	}
 
 	for _, cache := range config.Status.Caches {
-		kfdef.Status.ReposCache[cache.Name] = kfdefv1alpha1.RepoCache{
+		kfdef.Status.ReposCache[cache.Name] = kfdeftypes.RepoCache{
 			LocalPath: cache.LocalPath,
 		}
 	}
