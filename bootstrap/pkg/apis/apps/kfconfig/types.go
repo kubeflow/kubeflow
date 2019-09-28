@@ -27,10 +27,6 @@ type KfConfig struct {
 	Secrets      []Secret      `json:"secrets,omitempty"`
 	Repos        []Repo        `json:"repos,omitempty"`
 	Status       Status        `json:"status,omitempty"`
-
-	// Used to track source KfDef version.
-	// TODO(gabrielwen): Remove this, we don't need it.
-	SourceVersion string
 }
 
 // Application defines an application to install

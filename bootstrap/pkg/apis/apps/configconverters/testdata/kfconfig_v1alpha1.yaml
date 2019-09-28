@@ -1,4 +1,3 @@
-SourceVersion: ""
 apiVersion: kfdef.apps.kubeflow.org/v1alpha1
 appDir: /tmp/myapp2
 applications:
