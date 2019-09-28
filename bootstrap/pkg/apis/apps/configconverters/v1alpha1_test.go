@@ -126,8 +126,6 @@ func TestV1alpha1_ConvertToKfDef(t *testing.T) {
 		if !reflect.DeepEqual(got, want) {
 			pGot := kfutils.PrettyPrint(got)
 			pWant := kfutils.PrettyPrint(want)
-			_ = ioutil.WriteFile(path.Join(wd, "got.txt"), []byte(pGot), 0644)
-			_ = ioutil.WriteFile(path.Join(wd, "want.txt"), []byte(pWant), 0644)
 			t.Errorf("Loaded KfConfig doesn't match;\nexpected\n%v\ngot\n%v\n", pWant, pGot)
 		}
 	}
