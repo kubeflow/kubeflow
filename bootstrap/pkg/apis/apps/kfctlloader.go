@@ -329,6 +329,26 @@ func configToKfDefSerializedV1alpha1(config kfconfig.KfctlConfig) ([]byte, error
 		kfdef.Spec.Plugins = append(kfdef.Spec.Plugins, p)
 	}
 
+	for _, secret := range config.Secrets {
+		s := kfdefv1alpha1.Secret{
+			Name: secret.Name,
+		}
+		if secret.SecretSource != nil {
+			s.SecretSource = &kfdefv1alpha1.SecretSource{}
+			if secret.SecretSource.LiteralSource != nil {
+				s.SecretSource.LiteralSource = &kfdefv1alpha1.LiteralSource{
+					Value: secret.SecretSource.LiteralSource.Value,
+				}
+			}
+			if secret.SecretSource.EnvSource != nil {
+				s.SecretSource.EnvSource = &kfdefv1alpha1.EnvSource{
+					Name: secret.SecretSource.EnvSource.Name,
+				}
+			}
+		}
+		kfdef.Spec.Secrets = append(kfdef.Spec.Secrets, s)
+	}
+
 	return yaml.Marshal(kfdef)
 }
 
