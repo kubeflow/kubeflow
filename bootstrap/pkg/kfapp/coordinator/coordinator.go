@@ -412,9 +412,12 @@ func isCwdEmpty() bool {
 // generateCheck - quick check to determine if generate needs to be called from Apply
 // if generateCheck returns true then Generate should be called from Apply
 func generateCheck() bool {
-	cwd, _ := os.Getwd()
-	files, _ := ioutil.ReadDir(cwd)
-	if len(files) < 2 {
+	cfgFile, err := kftypesv3.GetCfgFile()
+	if err != nil {
+		return false
+	}
+	files, _ := ioutil.ReadDir(filepath.Dir(cfgFile))
+	if len(files) <= 2 {
 		return true
 	}
 	return false
@@ -456,16 +459,15 @@ func NewLoadKfAppFromConfig(configFilePath string) (kftypesv3.KfApp, error) {
 			Message: "Current directory not empty.",
 		}
 	}
-
 	kfDef.Spec.AppDir = filepath.Dir(configFilePath)
-	err = kfDef.WriteToFile(filepath.Dir(configFilePath) + "/" + filepath.Base(configFilePath))
+	err = kfDef.WriteToFile(filepath.Dir(configFilePath) + "/app.yaml")
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("couldn't write KfDef to %v: %v", filepath.Base(configFilePath), err),
+			Message: fmt.Sprintf("couldn't write KfDef to %v: %v", filepath.Dir(configFilePath)+"/app.yaml", err),
 		}
 	}
-	return LoadKfAppCfgFile(filepath.Dir(configFilePath) + "/" + filepath.Base(configFilePath))
+	return LoadKfAppCfgFile(filepath.Dir(configFilePath) + "/app.yaml")
 }
 
 func writeContextToFile(kfAppContext *kftypesv3.KfAppContext) error {
@@ -826,7 +828,22 @@ func (kfapp *coordinator) GetPlugin(name string) (kftypesv3.KfApp, bool) {
 
 func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 	if generateCheck() {
-		err := kfapp.Generate(resources)
+		// Set this file to the app.yaml which is created by build
+		cfgFile, err := kftypesv3.GetCfgFile()
+		if err != nil {
+			return fmt.Errorf("couldn't load app.yaml: %v", err)
+		}
+		kfApp, err := LoadKfAppCfgFile(cfgFile)
+		if err != nil {
+			return fmt.Errorf("couldn't load KfApp: %v", err)
+		}
+		if kfApp == nil {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("KfApp could not be generated: %v", err),
+			}
+		}
+		err = kfApp.Generate(resources)
 		if err != nil {
 			return &kfapis.KfError{
 				Code:    int(kfapis.INTERNAL_ERROR),
