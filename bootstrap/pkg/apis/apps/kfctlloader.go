@@ -3,6 +3,7 @@ package apps
 import (
 	"fmt"
 	"github.com/ghodss/yaml"
+	configsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfctlconfig"
 	kfdefv1alpha1 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
@@ -46,12 +47,8 @@ func kfdefToConfigV1alpha1(appdir string, kfdefBytes []byte) (*kfconfig.KfctlCon
 	config.APIVersion = kfdef.APIVersion
 	config.Kind = "KfctlConfig"
 	for _, app := range kfdef.Spec.Applications {
-		kustomizeConfig := &kfconfig.KustomizeConfig{
-			Overlays: app.KustomizeConfig.Overlays,
-		}
 		application := kfconfig.Application{
-			Name:            app.Name,
-			KustomizeConfig: kustomizeConfig,
+			Name: app.Name,
 		}
 		if app.KustomizeConfig != nil {
 			kconfig := &kfconfig.KustomizeConfig{
@@ -158,12 +155,8 @@ func kfdefToConfigV1beta1(appdir string, kfdefBytes []byte) (*kfconfig.KfctlConf
 	config.APIVersion = kfdef.APIVersion
 	config.Kind = "KfctlConfig"
 	for _, app := range kfdef.Spec.Applications {
-		kustomizeConfig := &kfconfig.KustomizeConfig{
-			Overlays: app.KustomizeConfig.Overlays,
-		}
 		application := kfconfig.Application{
-			Name:            app.Name,
-			KustomizeConfig: kustomizeConfig,
+			Name: app.Name,
 		}
 		if app.KustomizeConfig != nil {
 			kconfig := &kfconfig.KustomizeConfig{
@@ -276,16 +269,57 @@ func configToKfDefSerializedV1alpha1(config kfconfig.KfctlConfig) ([]byte, error
 	kfdef.Spec.UseIstio = true
 	kfdef.Spec.PackageManager = "kustomize"
 
-	// gcpPluginSpec := kfgcp.GcpPluginSpec{}
-	// if err := config.GetPluginSpec(kfconfig.GCP_PLUGIN_KIND, &gcpPluginSpec); err == nil {
-	// 	kfdef.Spec.Project = gcpPluginSpec.Project
-	// 	kfdef.Spec.Email = gcpPluginSpec.Email
-	// 	kfdef.Spec.IpName = gcpPluginSpec.IpName
-	// 	kfdef.Spec.Hostname = gcpPluginSpec.Hostname
-	// 	kfdef.Spec.Zone = gcpPluginSpec.Zone
-	// 	kfdef.Spec.SkipInitProject = gcpPluginSpec.SkipInitProject
-	// 	kfdef.Spec.DeleteStorage = gcpPluginSpec.DeleteStorage
-	// }
+	// Use generic type to prevent cyclic dependency.
+	var gcpPluginSpec map[string]interface{}
+	if err := config.GetPluginSpec(kfconfig.GCP_PLUGIN_KIND, &gcpPluginSpec); err == nil {
+		if p, ok := gcpPluginSpec["project"]; ok {
+			kfdef.Spec.Project = p.(string)
+		}
+		if e, ok := gcpPluginSpec["email"]; ok {
+			kfdef.Spec.Email = e.(string)
+		}
+		if i, ok := gcpPluginSpec["ipName"]; ok {
+			kfdef.Spec.IpName = i.(string)
+		}
+		if h, ok := gcpPluginSpec["hostname"]; ok {
+			kfdef.Spec.Hostname = h.(string)
+		}
+		if z, ok := gcpPluginSpec["zone"]; ok {
+			kfdef.Spec.Zone = z.(string)
+		}
+		if s, ok := gcpPluginSpec["skipInitProject"]; ok {
+			kfdef.Spec.SkipInitProject = s.(bool)
+		}
+		if d, ok := gcpPluginSpec["deleteStorage"]; ok {
+			kfdef.Spec.DeleteStorage = d.(bool)
+		}
+	}
+	for _, app := range config.Applications {
+		application := kfdefv1alpha1.Application{
+			Name: app.Name,
+		}
+		if app.KustomizeConfig != nil {
+			kconfig := &kfdefv1alpha1.KustomizeConfig{
+				Overlays: app.KustomizeConfig.Overlays,
+			}
+			if app.KustomizeConfig.RepoRef != nil {
+				kref := &kfdefv1alpha1.RepoRef{
+					Name: app.KustomizeConfig.RepoRef.Name,
+					Path: app.KustomizeConfig.RepoRef.Path,
+				}
+				kconfig.RepoRef = kref
+			}
+			for _, param := range app.KustomizeConfig.Parameters {
+				p := configsv3.NameValue{
+					Name:  param.Name,
+					Value: param.Value,
+				}
+				kconfig.Parameters = append(kconfig.Parameters, p)
+			}
+			application.KustomizeConfig = kconfig
+		}
+		kfdef.Spec.Applications = append(kfdef.Spec.Applications, application)
+	}
 
 	return yaml.Marshal(kfdef)
 }
