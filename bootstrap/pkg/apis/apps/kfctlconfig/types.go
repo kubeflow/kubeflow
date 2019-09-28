@@ -198,6 +198,60 @@ func (c *KfctlConfig) GetPluginSpec(pluginKind PluginKindType, s interface{}) er
 	}
 }
 
+// SetPluginSpec sets the requested parameter. The plugin is added if it doesn't already exist.
+func (c *KfctlConfig) SetPluginSpec(pluginKind PluginKindType, spec interface{}) error {
+	// Convert spec to RawExtension
+	r := &runtime.RawExtension{}
+
+	// To deserialize it to a specific type we need to first serialize it to bytes
+	// and then unserialize it.
+	specBytes, err := yaml.Marshal(spec)
+
+	if err != nil {
+		msg := fmt.Sprintf("Could not marshal spec; error %v", err)
+		log.Errorf(msg)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: msg,
+		}
+	}
+
+	err = yaml.Unmarshal(specBytes, r)
+
+	if err != nil {
+		msg := fmt.Sprintf("Could not unmarshal plugin to RawExtension; error %v", err)
+		log.Errorf(msg)
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: msg,
+		}
+	}
+
+	index := -1
+
+	for i, p := range c.Plugins {
+		if p.Kind == pluginKind {
+			index = i
+			break
+		}
+	}
+
+	if index == -1 {
+		// Plugin in doesn't exist so add it
+		log.Infof("Adding plugin %v", pluginKind)
+
+		p := Plugin{}
+		p.Name = string(pluginKind)
+		p.Kind = pluginKind
+		c.Plugins = append(c.Plugins, p)
+
+		index = len(c.Plugins) - 1
+	}
+
+	c.Plugins[index].Spec = r
+	return nil
+}
+
 // Sets condition and status to KfctlConfig.
 func (c *KfctlConfig) SetCondition(condType ConditionType,
 	status v1.ConditionStatus,

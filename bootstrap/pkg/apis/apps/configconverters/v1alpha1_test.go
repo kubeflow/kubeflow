@@ -20,7 +20,7 @@ func TestV1alpha1_ConvertToKfConfigs(t *testing.T) {
 	cases := []testCase{
 		testCase{
 			Input:    "v1alpha1.yaml",
-			Expected: "kfconfig.yaml",
+			Expected: "kfconfig_v1alpha1.yaml",
 		},
 	}
 

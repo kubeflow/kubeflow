@@ -30,6 +30,27 @@ func pluginNameToKind(pluginName string) kfconfig.PluginKindType {
 	}
 }
 
+// Copy GCP plugin spec. Will skip if platform is not GCP.
+func copyGcpPluginSpec(from *kfdeftypes.KfDef, to *kfconfig.KfctlConfig) error {
+	if from.Spec.Platform != kftypesv3.GCP {
+		return nil
+	}
+
+	spec := kfgcp.GcpPluginSpec{}
+	if err := to.GetPluginSpec(kfconfig.GCP_PLUGIN_KIND, &spec); err != nil && !kfconfig.IsPluginNotFound(err) {
+		return err
+	}
+	spec.Project = from.Spec.Project
+	spec.Email = from.Spec.Email
+	spec.IpName = from.Spec.IpName
+	spec.Hostname = from.Spec.Hostname
+	spec.Zone = from.Spec.Zone
+	spec.UseBasicAuth = from.Spec.UseBasicAuth
+	spec.SkipInitProject = from.Spec.SkipInitProject
+	spec.DeleteStorage = from.Spec.DeleteStorage
+	return to.SetPluginSpec(kfconfig.GCP_PLUGIN_KIND, spec)
+}
+
 func (v *V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
 	kfdef := &kfdeftypes.KfDef{}
 	if err := yaml.Unmarshal(kfdefBytes, kfdef); err != nil {
@@ -85,6 +106,18 @@ func (v *V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.Kfctl
 			Spec:      plugin.Spec,
 		}
 		config.Plugins = append(config.Plugins, p)
+	}
+	specCopiers := []func(*kfdeftypes.KfDef, *kfconfig.KfctlConfig) error{
+		copyGcpPluginSpec,
+	}
+	for _, copier := range specCopiers {
+		if err := copier(kfdef, config); err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("error copying plugin specs: %v", err),
+			}
+
+		}
 	}
 
 	for _, secret := range kfdef.Spec.Secrets {

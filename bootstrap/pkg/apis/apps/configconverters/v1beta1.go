@@ -23,9 +23,8 @@ func (v *V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlC
 
 	// Set UseBasicAuth later.
 	config := &kfconfig.KfctlConfig{
-		AppDir:        appdir,
-		UseBasicAuth:  false,
-		SourceVersion: "v1beta1",
+		AppDir:       appdir,
+		UseBasicAuth: false,
 	}
 	config.Name = kfdef.Name
 	config.Namespace = kfdef.Namespace

@@ -1,6 +1,4 @@
-SourceVersion: ""
-apiVersion: kfdef.apps.kubeflow.org/v1alpha1
-appDir: /tmp/myapp2
+apiVersion: kfdef.apps.kubeflow.org/v1beta1
 applications:
 - kustomizeConfig:
     parameters:
@@ -321,7 +319,11 @@ plugins:
       repoRef:
         name: manifests
         path: gcp/deployment_manager_configs
+    email: foo@gmail.com
     enableWorkloadIdentity: true
+    project: foo-project
+    skipInitProject: true
+    useBasicAuth: false
 repos:
 - name: manifests
   uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
