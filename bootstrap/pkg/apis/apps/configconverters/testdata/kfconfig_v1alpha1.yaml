@@ -306,7 +306,7 @@ applications:
       name: manifests
       path: seldon/seldon-core-operator
   name: seldon-core-operator
-kind: KfctlConfig
+kind: KfConfig
 metadata:
   creationTimestamp: null
   name: myapp2

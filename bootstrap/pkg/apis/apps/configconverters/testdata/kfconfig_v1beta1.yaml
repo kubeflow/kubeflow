@@ -1,4 +1,5 @@
 apiVersion: kfdef.apps.kubeflow.org/v1beta1
+kind: KfConfig
 applications:
 - kustomizeConfig:
     parameters:
@@ -304,7 +305,6 @@ applications:
       name: manifests
       path: seldon/seldon-core-operator
   name: seldon-core-operator
-kind: KfctlConfig
 metadata:
   creationTimestamp: null
   name: myapp2
