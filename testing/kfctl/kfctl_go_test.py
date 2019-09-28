@@ -218,8 +218,8 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   # already exists. So retrying ends up masking the original error message)  
   util.run([
       kfctl_path, "apply", "-V",
-      "-f=" + os.path.join(parent_dir, "tmp.yaml")], cwd=app_path)
-  util.run(["cat", "app.yaml"], cwd=app_path)
+      "-f=" + os.path.join(parent_dir, "tmp.yaml")], cwd=parent_dir)
+  util.run(["cat", "app.yaml"], cwd=parent_dir)
 
   verify_kubeconfig(app_path)
 
