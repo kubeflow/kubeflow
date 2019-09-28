@@ -55,7 +55,7 @@ func init() {
 	applyCfg.SetConfigType("yaml")
 
 	// configfilepath as a flag
-	buildCmd.Flags().StringVarP(&configFilePath, "file", "f", "", "-f path/to/config/")
+	buildCmd.PersistentFlags().StringVarP(&configFilePath, "file", "f", "", "-f path/to/config/")
 
 	// verbose output
 	buildCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,

@@ -16,6 +16,7 @@
 package apps
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -26,6 +27,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
@@ -108,6 +110,13 @@ type KfApp interface {
 	Init(resources ResourceEnum) error
 }
 
+// KfAppContext stores the context of current KfApp
+// This is used to pass information between the build and apply stages
+type KfAppContext struct {
+	//KubeContext string
+	KfAppDir string
+}
+
 //
 // Platform provides a common
 // API for platforms like gcp or minikube
@@ -124,6 +133,34 @@ type Platform interface {
 //
 type KfShow interface {
 	Show(resources ResourceEnum, options map[string]interface{}) error
+}
+
+func getKfAppContext() (*KfAppContext, error) {
+	kfAppContextBuffer, err := ioutil.ReadFile("/tmp/.kfctl/config")
+	if err != nil {
+		return nil, err
+	}
+	var kfAppContext *KfAppContext
+	err = yaml.Unmarshal(kfAppContextBuffer, &kfAppContext)
+	if err != nil {
+		return nil, err
+	}
+	return kfAppContext, nil
+}
+
+// GetCfgFile gets the KfAppDir from the KfAppContext
+func GetCfgFile() (string, error) {
+	kfAppContext, err := getKfAppContext()
+	if err != nil {
+		return "", err
+	}
+	if kfAppContext == nil {
+		return "", errors.New("couldn't get KfAppContext")
+	}
+	if kfAppContext.KfAppDir == "" {
+		return "", errors.New("couldn't get KfAppContext")
+	}
+	return kfAppContext.KfAppDir + "/app.yaml", nil
 }
 
 // QuoteItems will place quotes around the string arrays items

@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
@@ -35,25 +36,22 @@ var deleteCmd = &cobra.Command{
 		if deleteCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
-		resource, resourceErr := processResourceArg(args)
-		if resourceErr != nil {
-			return fmt.Errorf("invalid resource: %v", resourceErr)
+		// TODO(swiftdiaries): Put deleteStorage backin
+		// Set this file to the app.yaml which is created by build
+		cfgFile, err := kftypes.GetCfgFile()
+		if err != nil {
+			return fmt.Errorf("couldn't load app.yaml: %v", err)
 		}
-		deleteStorage := deleteCfg.GetBool(string(kftypes.DELETE_STORAGE))
-		options := map[string]interface{}{
-			string(kftypes.DELETE_STORAGE): deleteStorage,
-		}
-		kfApp, kfAppErr := coordinator.LoadKfApp(options)
+		kfApp, kfAppErr := coordinator.LoadKfAppCfgFile(cfgFile)
 		if kfAppErr != nil {
 			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}
-		deleteErr := kfApp.Delete(resource)
+		deleteErr := kfApp.Delete(kftypes.ALL)
 		if deleteErr != nil {
 			return fmt.Errorf("couldn't delete KfApp: %v", deleteErr)
 		}
 		return nil
 	},
-	ValidArgs: []string{"all", "platform", "k8s"},
 }
 
 func init() {

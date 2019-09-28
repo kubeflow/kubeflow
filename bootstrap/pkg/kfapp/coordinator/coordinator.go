@@ -463,7 +463,7 @@ func generateCheck() bool {
 	return false
 }
 
-// NewLoadKfAppFromConfig used to get KfApp from v1beta1 configfiles
+// NewLoadKfAppFromConfig used to get KfApp for new semantics
 func NewLoadKfAppFromConfig(configFilePath string) (kftypesv3.KfApp, error) {
 	kfDef, err := kfdefsv3.LoadKFDefFromURI(configFilePath)
 	if err != nil {
@@ -472,6 +472,7 @@ func NewLoadKfAppFromConfig(configFilePath string) (kftypesv3.KfApp, error) {
 			Message: fmt.Sprintf("invalid config, couldn't generate KfDef: %v", err),
 		}
 	}
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		return nil, &kfapis.KfError{
@@ -479,16 +480,54 @@ func NewLoadKfAppFromConfig(configFilePath string) (kftypesv3.KfApp, error) {
 			Message: fmt.Sprintf("couldn't fetch current working directory: %v", err),
 		}
 	}
-	kfDef.Spec.AppDir = cwd
-	err = kfDef.WriteToFile(cwd + "/app.yaml")
+
+	if kfdefsv3.IsValidUrl(configFilePath) {
+		if isCwdEmpty() {
+			kfDef.Spec.AppDir = cwd
+			err = kfDef.WriteToFile(cwd + "/app.yaml")
+			if err != nil {
+				return nil, &kfapis.KfError{
+					Code:    int(kfapis.INVALID_ARGUMENT),
+					Message: fmt.Sprintf("couldn't write KfDef to app.yaml: %v", err),
+				}
+			}
+			log.Print("Wrote KfDef to app.yaml")
+			return LoadKfAppCfgFile(cwd + "/app.yaml")
+		}
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: "Current directory not empty.",
+		}
+	}
+
+	kfDef.Spec.AppDir = filepath.Dir(configFilePath)
+	err = kfDef.WriteToFile(filepath.Dir(configFilePath) + "/" + filepath.Base(configFilePath))
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("couldn't write KfDef to app.yaml: %v", err),
+			Message: fmt.Sprintf("couldn't write KfDef to %v: %v", filepath.Base(configFilePath), err),
 		}
 	}
-	log.Print("Wrote KfDef to app.yaml")
-	return LoadKfAppCfgFile(cwd + "/app.yaml")
+	return LoadKfAppCfgFile(filepath.Dir(configFilePath) + "/" + filepath.Base(configFilePath))
+}
+
+func writeContextToFile(kfAppContext *kftypesv3.KfAppContext) error {
+	kfAppBuffer, err := yaml.Marshal(kfAppContext)
+	if err != nil {
+		return err
+	}
+	kfctlHome := "/tmp/.kfctl/"
+	if file, err := os.Stat(kfctlHome); err != nil {
+		err = os.MkdirAll(kfctlHome, 0755)
+		if err != nil {
+			return err
+		}
+	} else if !file.IsDir() {
+		return err
+	}
+	log.Infoln("Writing KfAppContext to file")
+	log.Printf("The current KfAppContext is: %v", kfAppContext)
+	return ioutil.WriteFile(kfctlHome+"config", kfAppBuffer, 0755)
 }
 
 func writeToFile(kfDef *kfdefv1beta1.KfDef) error {
@@ -743,6 +782,18 @@ func LoadKfApp(options map[string]interface{}) (kftypesv3.KfApp, error) {
 
 // LoadKfAppCfgFile constructs a KfApp by loading the provided app.yaml file.
 func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
+	basePath := filepath.Dir(cfgfile)
+	log.Printf("The current app directory is: %v", basePath)
+	kfContext := &kftypesv3.KfAppContext{
+		KfAppDir: basePath,
+	}
+	err := writeContextToFile(kfContext)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("couldn't write kfAppContext to file: %v", err),
+		}
+	}
 	// Set default TypeMeta information. This will get overwritten by explicit values if set in the cfg file.
 	kfdef, err := kfdefsv3.LoadKFDefFromURI(cfgfile)
 	if err != nil {
@@ -975,23 +1026,6 @@ func (kfapp *coordinator) Generate(resources kftypesv3.ResourceEnum) error {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("KfApp couldn't be initialized"),
-		}
-	}
-	cwd, err := os.Getwd()
-	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("current directory cannot be used: %v", err),
-		}
-	}
-	cacheDir, cacheDirErr := kftypesv3.DownloadToCache(cwd, kftypesv3.ManifestsRepo, "master")
-	if cacheDirErr != nil || cacheDir == "" {
-		log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
-	}
-	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not sync cache to app directory: %v", err),
 		}
 	}
 	platform := func() error {

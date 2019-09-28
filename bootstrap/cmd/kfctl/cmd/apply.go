@@ -51,7 +51,12 @@ var applyCmd = &cobra.Command{
 				return fmt.Errorf("couldn't load config file - %v", err)
 			}
 		} else {
-			kfApp, err = coordinator.LoadKfApp(map[string]interface{}{})
+			// Set this file to the app.yaml which is created by build
+			cfgFile, err := kftypes.GetCfgFile()
+			if err != nil {
+				return fmt.Errorf("couldn't load app.yaml: %v", err)
+			}
+			kfApp, err = coordinator.LoadKfAppCfgFile(cfgFile)
 			if err != nil {
 				return fmt.Errorf("couldn't load KfApp: %v", err)
 			}
@@ -75,7 +80,7 @@ func init() {
 	applyCfg.SetConfigType("yaml")
 
 	// configfilepath as a flag
-	applyCmd.Flags().StringVarP(&configFilePath, "file", "f", "", "-f /path/to/config")
+	applyCmd.PersistentFlags().StringVarP(&configFilePath, "file", "f", "", "-f /path/to/config")
 
 	// verbose output
 	applyCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,

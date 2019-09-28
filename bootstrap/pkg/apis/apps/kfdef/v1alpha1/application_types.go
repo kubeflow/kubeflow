@@ -16,6 +16,12 @@ package v1alpha1
 
 import (
 	"fmt"
+	"io/ioutil"
+	netUrl "net/url"
+	"os"
+	"path"
+	"strings"
+
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	"github.com/hashicorp/go-getter/helper/url"
@@ -23,15 +29,10 @@ import (
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	valid "k8s.io/apimachinery/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	netUrl "net/url"
-	"os"
-	"path"
-	"strings"
 )
 
 const (
@@ -315,7 +316,7 @@ func GetDefaultRegistry() *RegistryConfig {
 
 const DefaultCacheDir = ".cache"
 
-func isValidUrl(toTest string) bool {
+func IsValidUrl(toTest string) bool {
 	_, err := netUrl.ParseRequestURI(toTest)
 	if err != nil {
 		return false
@@ -351,7 +352,7 @@ func LoadKFDefFromURI(configFile string) (*KfDef, error) {
 	if err != nil {
 		log.Errorf("could not parse configFile url")
 	}
-	if isValidUrl(configFile) {
+	if IsValidUrl(configFile) {
 		errGet := gogetter.GetFile(appFile, configFile)
 		if errGet != nil {
 			return nil, &kfapis.KfError{
