@@ -211,15 +211,19 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   # Set ENV for basic auth username/password.
   set_env_init_args(use_basic_auth, use_istio)
   
-  logging.info("Running kfctl init with config:\n%s", yaml.safe_dump(config_spec))
-
+  logging.info("Running kfctl with config:\n%s", yaml.safe_dump(config_spec))
+  logging.info("Using kfctl App Directory: %s", parent_dir)
   # We don't run with retries because if kfctl init exits with an error
   # but creates app.yaml then rerunning init will fail because app.yaml
-  # already exists. So retrying ends up masking the original error message)  
+  # already exists. So retrying ends up masking the original error message)
+  app_dir = os.path.join(parent_dir, "kfctl_app_dir")
+  if not os.path.exists(app_dir):
+    os.makedirs(app_dir)
+  
   util.run([
       kfctl_path, "apply", "-V",
-      "-f=" + os.path.join(parent_dir, "tmp.yaml")], cwd=parent_dir)
-  util.run(["cat", "app.yaml"], cwd=parent_dir)
+      "-f=" + os.path.join(parent_dir, "tmp.yaml")], cwd=app_dir)
+  util.run(["cat", "app.yaml"], cwd=app_dir)
 
   verify_kubeconfig(app_path)
 
