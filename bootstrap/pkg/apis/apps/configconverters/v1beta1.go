@@ -3,34 +3,16 @@ package configconverters
 import (
 	"fmt"
 	"github.com/ghodss/yaml"
-	configsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
-	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfctlconfig"
-	kfdeftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
-	kfgcp "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
+	kfdeftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
 )
 
 // Empty struct - used to implement Converter interface.
-type V1alpha1 struct {
+type V1beta1 struct {
 }
 
-func pluginNameToKind(pluginName string) kfconfig.PluginKindType {
-	mapper := map[string]kfconfig.PluginKindType{
-		kftypesv3.AWS:              kfconfig.AWS_PLUGIN_KIND,
-		kftypesv3.GCP:              kfconfig.GCP_PLUGIN_KIND,
-		kftypesv3.MINIKUBE:         kfconfig.MINIKUBE_PLUGIN_KIND,
-		kftypesv3.EXISTING_ARRIKTO: kfconfig.EXISTING_ARRIKTO_PLUGIN_KIND,
-	}
-	kind, ok := mapper[pluginName]
-	if ok {
-		return kind
-	} else {
-		return kfconfig.PluginKindType("KfUnknownPlugin")
-	}
-}
-
-func (v *V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
+func (v *V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
 	kfdef := &kfdeftypes.KfDef{}
 	if err := yaml.Unmarshal(kfdefBytes, kfdef); err != nil {
 		return nil, &kfapis.KfError{
@@ -39,12 +21,11 @@ func (v *V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.Kfctl
 		}
 	}
 
+	// Set UseBasicAuth later.
 	config := &kfconfig.KfctlConfig{
-		AppDir:       kfdef.Spec.AppDir,
-		UseBasicAuth: kfdef.Spec.UseBasicAuth,
-	}
-	if config.AppDir == "" {
-		config.AppDir = appdir
+		AppDir:        appdir,
+		UseBasicAuth:  false,
+		SourceVersion: "v1beta1",
 	}
 	config.Name = kfdef.Name
 	config.Namespace = kfdef.Namespace
@@ -64,6 +45,11 @@ func (v *V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.Kfctl
 					Path: app.KustomizeConfig.RepoRef.Path,
 				}
 				kconfig.RepoRef = kref
+
+				// Use application to infer whether UseBasicAuth is true.
+				if kref.Path == "common/basic-auth" {
+					config.UseBasicAuth = true
+				}
 			}
 			for _, param := range app.KustomizeConfig.Parameters {
 				p := kfconfig.NameValue{
@@ -81,7 +67,7 @@ func (v *V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.Kfctl
 		p := kfconfig.Plugin{
 			Name:      plugin.Name,
 			Namespace: kfdef.Namespace,
-			Kind:      pluginNameToKind(plugin.Name),
+			Kind:      kfconfig.PluginKindType(plugin.Kind),
 			Spec:      plugin.Spec,
 		}
 		config.Plugins = append(config.Plugins, p)
@@ -112,7 +98,7 @@ func (v *V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.Kfctl
 	for _, repo := range kfdef.Spec.Repos {
 		r := kfconfig.Repo{
 			Name: repo.Name,
-			URI:  repo.Uri,
+			URI:  repo.URI,
 		}
 		config.Repos = append(config.Repos, r)
 	}
@@ -128,41 +114,24 @@ func (v *V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.Kfctl
 		}
 		config.Status.Conditions = append(config.Status.Conditions, c)
 	}
-	for name, cache := range kfdef.Status.ReposCache {
+	for _, cache := range kfdef.Status.ReposCache {
 		c := kfconfig.Cache{
-			Name:      name,
+			Name:      cache.Name,
 			LocalPath: cache.LocalPath,
 		}
 		config.Status.Caches = append(config.Status.Caches, c)
 	}
 
 	return config, nil
+
 }
 
-func (v *V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error) {
+func (v *V1beta1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error) {
 	kfdef := &kfdeftypes.KfDef{}
 	kfdef.Name = config.Name
 	kfdef.Namespace = config.Namespace
 	kfdef.APIVersion = config.APIVersion
 	kfdef.Kind = "KfDef"
-
-	kfdef.Spec.AppDir = config.AppDir
-	kfdef.Spec.UseBasicAuth = config.UseBasicAuth
-	// Should be deprecated, hardcode it just to be safe.
-	kfdef.Spec.EnableApplications = true
-	kfdef.Spec.UseIstio = true
-	kfdef.Spec.PackageManager = "kustomize"
-
-	gcpSpec := &kfgcp.GcpPluginSpec{}
-	if err := config.GetPluginSpec(kfconfig.GCP_PLUGIN_KIND, gcpSpec); err == nil {
-		kfdef.Spec.Project = gcpSpec.Project
-		kfdef.Spec.Email = gcpSpec.Email
-		kfdef.Spec.IpName = gcpSpec.IpName
-		kfdef.Spec.Hostname = gcpSpec.Hostname
-		kfdef.Spec.Zone = gcpSpec.Zone
-		kfdef.Spec.SkipInitProject = gcpSpec.SkipInitProject
-		kfdef.Spec.DeleteStorage = gcpSpec.DeleteStorage
-	}
 
 	for _, app := range config.Applications {
 		application := kfdeftypes.Application{
@@ -180,7 +149,7 @@ func (v *V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error
 				kconfig.RepoRef = kref
 			}
 			for _, param := range app.KustomizeConfig.Parameters {
-				p := configsv3.NameValue{
+				p := kfdeftypes.NameValue{
 					Name:  param.Name,
 					Value: param.Value,
 				}
@@ -193,9 +162,9 @@ func (v *V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error
 
 	for _, plugin := range config.Plugins {
 		p := kfdeftypes.Plugin{
-			Name: plugin.Name,
 			Spec: plugin.Spec,
 		}
+		p.Name = plugin.Name
 		kfdef.Spec.Plugins = append(kfdef.Spec.Plugins, p)
 	}
 
@@ -222,7 +191,7 @@ func (v *V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error
 	for _, repo := range config.Repos {
 		r := kfdeftypes.Repo{
 			Name: repo.Name,
-			Uri:  repo.URI,
+			URI:  repo.URI,
 		}
 		kfdef.Spec.Repos = append(kfdef.Spec.Repos, r)
 	}
@@ -240,9 +209,11 @@ func (v *V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error
 	}
 
 	for _, cache := range config.Status.Caches {
-		kfdef.Status.ReposCache[cache.Name] = kfdeftypes.RepoCache{
+		c := kfdeftypes.RepoCache{
+			Name:      cache.Name,
 			LocalPath: cache.LocalPath,
 		}
+		kfdef.Status.ReposCache = append(kfdef.Status.ReposCache, c)
 	}
 
 	kfdefBytes, err := yaml.Marshal(kfdef)
