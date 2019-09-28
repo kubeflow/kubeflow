@@ -5,7 +5,7 @@ import (
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
-	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfctlconfig"
+	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	netUrl "net/url"
@@ -14,8 +14,8 @@ import (
 )
 
 type Converter interface {
-	ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlConfig, error)
-	ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error)
+	ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfig, error)
+	ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error)
 }
 
 const (
@@ -32,7 +32,7 @@ func isValidUrl(toTest string) bool {
 	}
 }
 
-func LoadConfigFromURI(configFile string) (*kfconfig.KfctlConfig, error) {
+func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 	if configFile == "" {
 		return nil, fmt.Errorf("config file must be the URI of a KfDef spec")
 	}
@@ -126,7 +126,7 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfctlConfig, error) {
 	return converter.ToKfConfig(appDir, configFileBytes)
 }
 
-func WriteConfigToFile(config kfconfig.KfctlConfig, filename string) error {
+func WriteConfigToFile(config kfconfig.KfConfig, filename string) error {
 	converters := map[string]Converter{
 		"v1alpha1": V1alpha1{},
 		"v1beta1":  V1beta1{},

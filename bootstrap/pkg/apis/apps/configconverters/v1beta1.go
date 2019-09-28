@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
-	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfctlconfig"
+	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdeftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
 )
 
@@ -12,7 +12,7 @@ import (
 type V1beta1 struct {
 }
 
-func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
+func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfig, error) {
 	kfdef := &kfdeftypes.KfDef{}
 	if err := yaml.Unmarshal(kfdefBytes, kfdef); err != nil {
 		return nil, &kfapis.KfError{
@@ -22,14 +22,14 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlCo
 	}
 
 	// Set UseBasicAuth later.
-	config := &kfconfig.KfctlConfig{
+	config := &kfconfig.KfConfig{
 		AppDir:       appdir,
 		UseBasicAuth: false,
 	}
 	config.Name = kfdef.Name
 	config.Namespace = kfdef.Namespace
 	config.APIVersion = kfdef.APIVersion
-	config.Kind = "KfctlConfig"
+	config.Kind = "KfConfig"
 	for _, app := range kfdef.Spec.Applications {
 		application := kfconfig.Application{
 			Name: app.Name,
@@ -125,7 +125,7 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlCo
 
 }
 
-func (v V1beta1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error) {
+func (v V1beta1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 	kfdef := &kfdeftypes.KfDef{}
 	kfdef.Name = config.Name
 	kfdef.Namespace = config.Namespace

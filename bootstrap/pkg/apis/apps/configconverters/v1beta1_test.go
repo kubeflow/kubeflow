@@ -2,7 +2,7 @@ package configconverters
 
 import (
 	"github.com/ghodss/yaml"
-	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfctlconfig"
+	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfutils "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"io/ioutil"
 	"os"
@@ -44,7 +44,7 @@ func TestV1beta1_expectedConfig(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Error when reading KfConfig: %v", err)
 		}
-		expectedConfig := &kfconfig.KfctlConfig{}
+		expectedConfig := &kfconfig.KfConfig{}
 		err = yaml.Unmarshal(eBuf, expectedConfig)
 		if err != nil {
 			t.Fatalf("Error when unmarshaling KfConfig: %v", err)

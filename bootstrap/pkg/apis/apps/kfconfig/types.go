@@ -1,4 +1,4 @@
-package kfctlconfig
+package kfconfig
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 )
 
 // Internal data structure to hold app related info.
-type KfctlConfig struct {
+type KfConfig struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
@@ -164,7 +164,7 @@ type Cache struct {
 	LocalPath string `json:"localPath,omitempty"`
 }
 
-func (c *KfctlConfig) GetPluginSpec(pluginKind PluginKindType, s interface{}) error {
+func (c *KfConfig) GetPluginSpec(pluginKind PluginKindType, s interface{}) error {
 	for _, p := range c.Plugins {
 		if p.Kind != pluginKind {
 			continue
@@ -199,7 +199,7 @@ func (c *KfctlConfig) GetPluginSpec(pluginKind PluginKindType, s interface{}) er
 }
 
 // SetPluginSpec sets the requested parameter. The plugin is added if it doesn't already exist.
-func (c *KfctlConfig) SetPluginSpec(pluginKind PluginKindType, spec interface{}) error {
+func (c *KfConfig) SetPluginSpec(pluginKind PluginKindType, spec interface{}) error {
 	// Convert spec to RawExtension
 	r := &runtime.RawExtension{}
 
@@ -252,8 +252,8 @@ func (c *KfctlConfig) SetPluginSpec(pluginKind PluginKindType, spec interface{})
 	return nil
 }
 
-// Sets condition and status to KfctlConfig.
-func (c *KfctlConfig) SetCondition(condType ConditionType,
+// Sets condition and status to KfConfig.
+func (c *KfConfig) SetCondition(condType ConditionType,
 	status v1.ConditionStatus,
 	reason string,
 	message string) {
@@ -280,8 +280,8 @@ func (c *KfctlConfig) SetCondition(condType ConditionType,
 	c.Status.Conditions = append(c.Status.Conditions, cond)
 }
 
-// Gets condition from KfctlConfig.
-func (c *KfctlConfig) GetCondition(condType ConditionType) (*Condition, error) {
+// Gets condition from KfConfig.
+func (c *KfConfig) GetCondition(condType ConditionType) (*Condition, error) {
 	for i := range c.Status.Conditions {
 		if c.Status.Conditions[i].Type == condType {
 			return &c.Status.Conditions[i], nil
@@ -293,7 +293,7 @@ func (c *KfctlConfig) GetCondition(condType ConditionType) (*Condition, error) {
 	}
 }
 
-func (c *KfctlConfig) IsPluginFinished(pluginKind PluginKindType) bool {
+func (c *KfConfig) IsPluginFinished(pluginKind PluginKindType) bool {
 	condType := GetPluginSucceededCondition(pluginKind)
 	cond, err := c.GetCondition(condType)
 	if err != nil {
@@ -306,7 +306,7 @@ func (c *KfctlConfig) IsPluginFinished(pluginKind PluginKindType) bool {
 	return cond.Status == v1.ConditionTrue
 }
 
-func (c *KfctlConfig) SetPluginFinished(pluginKind PluginKindType, msg string) {
+func (c *KfConfig) SetPluginFinished(pluginKind PluginKindType, msg string) {
 	succeededCond := GetPluginSucceededCondition(pluginKind)
 	failedCond := GetPluginFailedCondition(pluginKind)
 	if _, err := c.GetCondition(failedCond); err == nil {
@@ -317,7 +317,7 @@ func (c *KfctlConfig) SetPluginFinished(pluginKind PluginKindType, msg string) {
 	c.SetCondition(succeededCond, v1.ConditionTrue, "", msg)
 }
 
-func (c *KfctlConfig) IsPluginFailed(pluginKind PluginKindType) bool {
+func (c *KfConfig) IsPluginFailed(pluginKind PluginKindType) bool {
 	condType := GetPluginFailedCondition(pluginKind)
 	cond, err := c.GetCondition(condType)
 	if err != nil {
@@ -330,7 +330,7 @@ func (c *KfctlConfig) IsPluginFailed(pluginKind PluginKindType) bool {
 	return cond.Status == v1.ConditionTrue
 }
 
-func (c *KfctlConfig) SetPluginFailed(pluginKind PluginKindType, msg string) {
+func (c *KfConfig) SetPluginFailed(pluginKind PluginKindType, msg string) {
 	succeededCond := GetPluginSucceededCondition(pluginKind)
 	failedCond := GetPluginFailedCondition(pluginKind)
 	if _, err := c.GetCondition(succeededCond); err == nil {

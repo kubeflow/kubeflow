@@ -3,7 +3,7 @@ package configconverters
 import (
 	"github.com/ghodss/yaml"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfctlconfig"
+	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdeftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	kfgcp "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 	kfutils "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
@@ -47,7 +47,7 @@ func TestV1alpha1_ConvertToKfConfigs(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Error when reading KfConfig: %v", err)
 		}
-		expectedConfig := &kfconfig.KfctlConfig{}
+		expectedConfig := &kfconfig.KfConfig{}
 		err = yaml.Unmarshal(eBuf, expectedConfig)
 		if err != nil {
 			t.Fatalf("Error when unmarshaling KfConfig: %v", err)
@@ -82,7 +82,7 @@ func TestV1alpha1_ConvertToKfDef(t *testing.T) {
 		if bufErr != nil {
 			t.Fatalf("Error reading file %v; error %v", fPath, bufErr)
 		}
-		config := &kfconfig.KfctlConfig{}
+		config := &kfconfig.KfConfig{}
 		err := yaml.Unmarshal(buf, config)
 		if err != nil {
 			t.Fatalf("Error when unmarshaling KfConfig: %v", err)

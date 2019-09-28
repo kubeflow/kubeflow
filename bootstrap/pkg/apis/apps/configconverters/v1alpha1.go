@@ -6,7 +6,7 @@ import (
 	configsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfctlconfig"
+	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdeftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	kfgcp "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 )
@@ -31,7 +31,7 @@ func pluginNameToKind(pluginName string) kfconfig.PluginKindType {
 }
 
 // Copy GCP plugin spec. Will skip if platform is not GCP.
-func copyGcpPluginSpec(from *kfdeftypes.KfDef, to *kfconfig.KfctlConfig) error {
+func copyGcpPluginSpec(from *kfdeftypes.KfDef, to *kfconfig.KfConfig) error {
 	if from.Spec.Platform != kftypesv3.GCP {
 		return nil
 	}
@@ -51,7 +51,7 @@ func copyGcpPluginSpec(from *kfdeftypes.KfDef, to *kfconfig.KfctlConfig) error {
 	return to.SetPluginSpec(kfconfig.GCP_PLUGIN_KIND, spec)
 }
 
-func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlConfig, error) {
+func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfig, error) {
 	kfdef := &kfdeftypes.KfDef{}
 	if err := yaml.Unmarshal(kfdefBytes, kfdef); err != nil {
 		return nil, &kfapis.KfError{
@@ -60,7 +60,7 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlC
 		}
 	}
 
-	config := &kfconfig.KfctlConfig{
+	config := &kfconfig.KfConfig{
 		AppDir:       kfdef.Spec.AppDir,
 		UseBasicAuth: kfdef.Spec.UseBasicAuth,
 	}
@@ -70,7 +70,7 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlC
 	config.Name = kfdef.Name
 	config.Namespace = kfdef.Namespace
 	config.APIVersion = kfdef.APIVersion
-	config.Kind = "KfctlConfig"
+	config.Kind = "KfConfig"
 	for _, app := range kfdef.Spec.Applications {
 		application := kfconfig.Application{
 			Name: app.Name,
@@ -107,7 +107,7 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlC
 		}
 		config.Plugins = append(config.Plugins, p)
 	}
-	specCopiers := []func(*kfdeftypes.KfDef, *kfconfig.KfctlConfig) error{
+	specCopiers := []func(*kfdeftypes.KfDef, *kfconfig.KfConfig) error{
 		copyGcpPluginSpec,
 	}
 	for _, copier := range specCopiers {
@@ -172,7 +172,7 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfctlC
 	return config, nil
 }
 
-func (v V1alpha1) ToKfDefSerialized(config kfconfig.KfctlConfig) ([]byte, error) {
+func (v V1alpha1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 	kfdef := &kfdeftypes.KfDef{}
 	kfdef.Name = config.Name
 	kfdef.Namespace = config.Namespace
