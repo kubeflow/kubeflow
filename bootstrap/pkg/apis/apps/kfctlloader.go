@@ -357,6 +357,24 @@ func configToKfDefSerializedV1alpha1(config kfconfig.KfctlConfig) ([]byte, error
 		kfdef.Spec.Repos = append(kfdef.Spec.Repos, r)
 	}
 
+	for _, cond := range config.Status.Conditions {
+		c := kfdefv1alpha1.KfDefCondition{
+			Type:               kfdefv1alpha1.KfDefConditionType(cond.Type),
+			Status:             cond.Status,
+			LastUpdateTime:     cond.LastUpdateTime,
+			LastTransitionTime: cond.LastTransitionTime,
+			Reason:             cond.Reason,
+			Message:            cond.Message,
+		}
+		kfdef.Status.Conditions = append(kfdef.Status.Conditions, c)
+	}
+
+	for _, cache := range config.Status.Caches {
+		kfdef.Status.ReposCache[cache.Name] = kfdefv1alpha1.RepoCache{
+			LocalPath: cache.LocalPath,
+		}
+	}
+
 	return yaml.Marshal(kfdef)
 }
 
