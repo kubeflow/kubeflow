@@ -123,7 +123,7 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfctlConfig, error) {
 				strings.Join(versions, ", "), apiVersionSeparated[1]),
 		}
 	}
-	return converter.ToKfConfig("", configFileBytes)
+	return converter.ToKfConfig(appDir, configFileBytes)
 }
 
 func WriteConfigToFile(config kfconfig.KfctlConfig, filename string) {
