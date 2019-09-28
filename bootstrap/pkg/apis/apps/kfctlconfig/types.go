@@ -18,109 +18,105 @@ type KfctlConfig struct {
 
 	// Shared fields among all components. should limit this list.
 	// TODO(gabrielwen): Deprecate AppDir and move it to cache in Status.
-	AppDir string
+	AppDir string `json:"appDir,omitempty"`
 	// TODO(gabrielwen): Can we infer this from Applications?
-	UseBasicAuth bool
+	UseBasicAuth bool `json:"useBasicAuth,omitempty"`
 
-	Applications []Application
-	Plugins      []Plugin
-	Secrets      []Secret
-	Repos        []Repo
-	Status       Status
+	Applications []Application `json:"applications,omitempty"`
+	Plugins      []Plugin      `json:"plugins,omitempty"`
+	Secrets      []Secret      `json:"secrets,omitempty"`
+	Repos        []Repo        `json:"repos,omitempty"`
+	Status       Status        `json:"status,omitempty"`
 
 	// Used to track source KfDef version.
+	// TODO(gabrielwen): Remove this, we don't need it.
 	SourceVersion string
-}
-
-type Platform struct {
-	Name string
-	Spec *runtime.RawExtension
 }
 
 // Application defines an application to install
 type Application struct {
-	Name            string
-	KustomizeConfig *KustomizeConfig
+	Name            string           `json:"name,omitempty"`
+	KustomizeConfig *KustomizeConfig `json:"kustomizeConfig,omitempty"`
 }
 
 type KustomizeConfig struct {
-	RepoRef    *RepoRef
-	Overlays   []string
-	Parameters []NameValue
+	RepoRef    *RepoRef    `json:"repoRef,omitempty"`
+	Overlays   []string    `json:"overlays,omitempty"`
+	Parameters []NameValue `json:"parameters,omitempty"`
 }
 
 type RepoRef struct {
-	Name string
-	Path string
+	Name string `json:"name,omitempty"`
+	Path string `json:"path,omitempty"`
 }
 
 type NameValue struct {
-	Name  string
-	Value string
+	Name  string `json:"name,omitempty"`
+	Value string `json:"value,omitempty"`
 }
 
 type Plugin struct {
-	Name      string
-	Namespace string
-	Kind      PluginKindType
-	Spec      *runtime.RawExtension
+	Name      string                `json:"name,omitempty"`
+	Namespace string                `json:"namespace,omitempty"`
+	Kind      PluginKindType        `json:"kind,omitempty"`
+	Spec      *runtime.RawExtension `json:"spec,omitempty"`
 }
 
 // Secret provides information about secrets needed to configure Kubeflow.
 // Secrets can be provided via references.
 type Secret struct {
-	Name         string
-	SecretSource *SecretSource
+	Name         string        `json:"name,omitempty"`
+	SecretSource *SecretSource `json:"secretSource,omitempty"`
 }
 
 type SecretSource struct {
-	LiteralSource *LiteralSource
-	EnvSource     *EnvSource
+	LiteralSource *LiteralSource `json:"literalSource,omitempty"`
+	EnvSource     *EnvSource     `json:"envSource,omitempty"`
 }
 
 type LiteralSource struct {
-	Value string
+	Value string `json:"value,omitempty"`
 }
 
 type EnvSource struct {
-	Name string
+	Name string `json:"name,omitempty"`
 }
 
 // SecretRef is a reference to a secret
 type SecretRef struct {
 	// Name of the secret
-	Name string
+	Name string `json:"name,omitempty"`
 }
 
 // Repo provides information about a repository providing config (e.g. kustomize packages,
 // Deployment manager configs, etc...)
 type Repo struct {
 	// Name is a name to identify the repository.
-	Name string
+	Name string `json:"name,omitempty"`
 	// URI where repository can be obtained.
 	// Can use any URI understood by go-getter:
 	// https://github.com/hashicorp/go-getter/blob/master/README.md#installation-and-usage
-	URI string
+	URI string `json:"uri,omitempty"`
 }
 
 type Status struct {
-	Conditions []Condition
-	Caches     []Cache
+	Conditions []Condition `json:"conditions,omitempty"`
+	Caches     []Cache     `json:"caches,omitempty"`
 }
 
 type Condition struct {
 	// Type of deployment condition.
-	Type ConditionType
+	Type ConditionType `json:"type,omitempty"`
 	// Status of the condition, one of True, False, Unknown.
-	Status v1.ConditionStatus
+	Status v1.ConditionStatus `json:"status,omitempty"`
 	// The last time this condition was updated.
-	LastUpdateTime metav1.Time
+	LastUpdateTime metav1.Time `json:"lastUpdateTime,omitempty"`
 	// Last time the condition transitioned from one status to another.
-	LastTransitionTime metav1.Time
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
 	// The reason for the condition's last transition.
-	Reason string
+	Reason string `json:"reason,omitempty"`
 	// A human readable message indicating details about the transition.
-	Message string
+	Message string `json:"message,omitempty"`
 }
 
 type PluginKindType string
@@ -164,8 +160,8 @@ func GetPluginFailedCondition(pluginKind PluginKindType) ConditionType {
 }
 
 type Cache struct {
-	Name      string
-	LocalPath string
+	Name      string `json:"name,omitempty"`
+	LocalPath string `json:"localPath,omitempty"`
 }
 
 func (c *KfctlConfig) GetPluginSpec(pluginKind PluginKindType, s interface{}) error {
