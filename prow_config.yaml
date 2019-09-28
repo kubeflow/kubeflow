@@ -84,6 +84,16 @@ workflows:
     kwargs:
       use_basic_auth: true
       config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_basic_auth.yaml
+  - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
+    name: kf-k8s
+    job_types:
+      - presubmit
+    include_dirs:
+      # If kfctl is modified make sure basic auth still works
+      - bootstrap/*
+      - testing/kfctl/*
+    kwargs:
+      config_path: https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_k8s_istio.yaml
   # Run unittests
   # TODO(jlewi): Need to add step to run go and python unittests
   - app_dir: kubeflow/kubeflow/testing/workflows

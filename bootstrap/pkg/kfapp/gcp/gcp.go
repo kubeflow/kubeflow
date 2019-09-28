@@ -19,8 +19,20 @@ package gcp
 import (
 	"encoding/base64"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"math/rand"
+	"net/http"
+	"os"
+	"os/exec"
+	"path"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/cenkalti/backoff"
-	"github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
 	"github.com/gogo/protobuf/proto"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
@@ -38,9 +50,7 @@ import (
 	"google.golang.org/api/iam/v1"
 	"google.golang.org/api/servicemanagement/v1"
 	"google.golang.org/api/serviceusage/v1"
-	"io"
-	"io/ioutil"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -55,15 +65,6 @@ import (
 	restv2 "k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"math/rand"
-	"net/http"
-	"os"
-	"os/exec"
-	"path"
-	"path/filepath"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // TODO: golint complains that we should not use all capital var name.
@@ -796,7 +797,9 @@ func (gcp *Gcp) Apply(resources kftypesv3.ResourceEnum) error {
 	if err != nil {
 		return err
 	}
-
+	if p == nil {
+		return fmt.Errorf("gcp plugin spec is nil: %v", p)
+	}
 	if isValid, msg := p.IsValid(); !isValid {
 		log.Errorf("GcpPluginSpec isn't valid; error %v", msg)
 		return fmt.Errorf(msg)
