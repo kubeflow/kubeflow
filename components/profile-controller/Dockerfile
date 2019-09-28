@@ -1,5 +1,5 @@
 # Build the manager binary
-ARG GOLANG_VERSION=1.11.5
+ARG GOLANG_VERSION=1.12.7
 FROM golang:${GOLANG_VERSION} as builder
 
 # Copy in the go src

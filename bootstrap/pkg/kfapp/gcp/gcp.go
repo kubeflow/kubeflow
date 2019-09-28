@@ -1376,6 +1376,10 @@ func insertSecret(client *clientset.Clientset, secretName string, namespace stri
 	if err == nil {
 		return nil
 	} else {
+		if k8serrors.IsAlreadyExists(err) {
+			log.Infof("Secret %v.%v already exists", namespace, secretName)
+			return nil
+		}
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: err.Error(),
