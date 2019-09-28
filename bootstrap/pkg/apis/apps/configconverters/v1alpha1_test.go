@@ -2,10 +2,12 @@ package configconverters
 
 import (
 	"github.com/ghodss/yaml"
-	// "github.com/prometheus/common/log"
+	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfctlconfig"
+	kfutils "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"io/ioutil"
 	"os"
 	"path"
+	"reflect"
 	"testing"
 )
 
@@ -37,14 +39,21 @@ func TestV1alpha1_ConvertToKfConfigs(t *testing.T) {
 			t.Fatalf("Error converting to KfConfig: %v", err)
 		}
 
-		configBytes, err := yaml.Marshal(*config)
+		ePath := path.Join(wd, "testdata", c.Expected)
+		eBuf, err := ioutil.ReadFile(ePath)
 		if err != nil {
-			t.Fatalf("Error when unmarshaling: %v", err)
+			t.Fatalf("Error when reading KfConfig: %v", err)
 		}
-		oPath := path.Join(wd, "testdata", c.Expected)
-		err = ioutil.WriteFile(oPath, configBytes, 0644)
+		expectedConfig := &kfconfig.KfctlConfig{}
+		err = yaml.Unmarshal(eBuf, expectedConfig)
 		if err != nil {
-			t.Fatalf("Error when writing out KfConfig: %v", err)
+			t.Fatalf("Error when unmarshaling KfConfig: %v", err)
+		}
+
+		if !reflect.DeepEqual(config, expectedConfig) {
+			pGot := kfutils.PrettyPrint(config)
+			pWant := kfutils.PrettyPrint(expectedConfig)
+			t.Errorf("Loaded KfConfig doesn't match;\nexpected\n%v\ngot\n%v\n", pWant, pGot)
 		}
 	}
 }
