@@ -53,8 +53,6 @@ func TestV1beta1_expectedConfig(t *testing.T) {
 		if !reflect.DeepEqual(config, expectedConfig) {
 			pGot := kfutils.PrettyPrint(config)
 			pWant := kfutils.PrettyPrint(expectedConfig)
-			_ = ioutil.WriteFile(path.Join(wd, "got.txt"), []byte(pGot), 0644)
-			_ = ioutil.WriteFile(path.Join(wd, "want.txt"), []byte(pWant), 0644)
 			t.Errorf("Loaded KfConfig doesn't match;\nexpected\n%v\ngot\n%v\n", pWant, pGot)
 		}
 	}
