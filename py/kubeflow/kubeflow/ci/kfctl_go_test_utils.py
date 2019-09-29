@@ -173,14 +173,14 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   """Deploy kubeflow.
 
   Args:
-    app_path: The path to the Kubeflow app.
-    project: The GCP project to use.
-    use_basic_auth: Whether to use basic_auth.
-    use_istio: Whether to use Istio or not
-    config_path: Path to the KFDef spec file.
-    kfctl_path: Path to the kfctl go binary
+  app_path: The path to the Kubeflow app.
+  project: The GCP project to use.
+  use_basic_auth: Whether to use basic_auth.
+  use_istio: Whether to use Istio or not
+  config_path: Path to the KFDef spec file.
+  kfctl_path: Path to the kfctl go binary
   Returns:
-    app_path: Path where Kubeflow is installed
+  app_path: Path where Kubeflow is installed
   """
   app_path, parent_dir = get_app_path_and_parent_dir(app_path)
 
@@ -193,7 +193,7 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
 
   # We need to specify a valid email because
   #  1. We need to create appropriate RBAC rules to allow the current user
-  #     to create the required K8s resources.
+  #   to create the required K8s resources.
   #  2. Setting the IAM policy will fail if the email is invalid.
   email = util.run(["gcloud", "config", "get-value", "account"])
 
@@ -207,9 +207,9 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   if not os.path.exists(parent_dir):
     os.makedirs(parent_dir)
 
-  # TODO(jlewi): When we switch to KfDef v1beta1 this logic will need to change because 
+  # TODO(jlewi): When we switch to KfDef v1beta1 this logic will need to change because
   # use_base_auth will move into the plugin spec
-  use_basic_auth = config_spec["spec"].get("useBasicAuth", False)  
+  use_basic_auth = config_spec["spec"].get("useBasicAuth", False)
   logging.info("use_basic_auth=%s", use_basic_auth)
 
   use_istio = config_spec["spec"].get("useIstio", True)
@@ -222,16 +222,16 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   # but creates app.yaml then rerunning init will fail because app.yaml
   # already exists. So retrying ends up masking the original error message
   util.run([
-      kfctl_path, "init", app_path, "-V",
-      "--config=" + os.path.join(parent_dir, "tmp.yaml")], cwd=parent_dir)
+    kfctl_path, "init", app_path, "-V",
+    "--config=" + os.path.join(parent_dir, "tmp.yaml")], cwd=parent_dir)
   util.run(["cat", "app.yaml"], cwd=app_path)
 
   # We need to use retries because if we don't we see random failures
   # where kfctl just appears to die.
   run_with_retries([
-      kfctl_path, "generate", "-V", "all", "--email=" + email, "--zone=" + zone
+    kfctl_path, "generate", "-V", "all", "--email=" + email, "--zone=" + zone
   ],
-                   cwd=app_path)
+           cwd=app_path)
 
   # Do not run with retries since it masks errors
   util.run([kfctl_path, "apply", "-V", "all"], cwd=app_path)
@@ -246,7 +246,7 @@ def verify_kubeconfig(app_path):
   name = os.path.basename(app_path)
   context = util.run(["kubectl", "config", "current-context"]).strip()
   if name == context:
-    logging.info("KUBECONFIG current context name matches app name: " + name)
+    logging.info("KUBECONFIG current context name matches app name: %s", name)
   else:
     msg = "KUBECONFIG not having expected context: {expected} v.s. {actual}".format(
       expected=name, actual=context)
