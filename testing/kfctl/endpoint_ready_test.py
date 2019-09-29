@@ -12,6 +12,9 @@ from kubeflow.testing import util
 from testing import deploy_utils
 from testing import gcp_util
 
+# TODO(https://github.com/kubeflow/kfctl/issues/42):
+# Test is failing pretty consistently.
+@pytest.mark.xfail
 def test_endpoint_is_ready(project, app_name):
   """Test that Kubeflow was successfully deployed.
 

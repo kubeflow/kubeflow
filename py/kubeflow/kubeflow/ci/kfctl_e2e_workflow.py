@@ -576,16 +576,18 @@ class Builder:
                  "-s",
                  # Increase the log level so that info level log statements show up.
                  "--log-cli-level=info",
+                 # Test timeout in seconds.
+                 "--timeout=1800",                 
                  "--junitxml=" + self.artifacts_dir + "/junit_endpoint-is-ready-test-" + self.config_name + ".xml",
                  # Test suite name needs to be unique based on parameters
                  "-o", "junit_suite_name=test_endpoint_is_ready_" + self.config_name,
                  "--app_path=" + self.app_dir,
                  "--app_name=" + self.app_name,
-              ],
+              ]
 
-      dependences = []
-      endpoint_ready = self._build_step(step_name, workflow, E2E_DAG_NAME, task_template,
-                                        command, dependences)
+      dependencies = [build_kfctl["name"]]
+      endpoint_ready = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
+                                        command, dependencies)
 
     self._build_tests_dag()
 
