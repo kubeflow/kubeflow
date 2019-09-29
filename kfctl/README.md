@@ -11,20 +11,11 @@ be implemented in golang. The port to golang is because:
 
 ## Usage
 
-The initial version of kfctl will seek parity with kfctl.sh by implementing the following subcommands:
+The  kfctl implements the following subcommands:
 - `init`            Initialize a kubeflow application.
-- `generate`        Generate the k8 manifests of the kubeflow application.
-- `apply`           Submit the k8 manifests to the api-server
+- `generate`        Generate the k8s manifests of the kubeflow application.
+- `apply`           Submit the k8s manifests to the api-server
 - `delete`          Delete the kubeflow application
-
-Typical usage of `kfctl.sh` is as follows:
-
-```sh
-kfctl.sh init myapp --platform generatic
-cd myapp
-kfctl.sh generate all
-kfctl.sh apply all
-```
 
 This will be implemented by the golang version (ie: remove .sh).
 
