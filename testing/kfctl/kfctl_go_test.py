@@ -2,10 +2,8 @@ import logging
 import os
 import pytest
 
-from kubeflow.ci import kfctl_go_test_utils as kfctl_util
+from kubeflow.kubeflow.ci import kfctl_go_test_utils as kfctl_util
 from kubeflow.testing import util
-from retrying import retry
-
 
 def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_path):
   """Test building and deploying Kubeflow.
