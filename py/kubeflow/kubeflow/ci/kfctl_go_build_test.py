@@ -3,7 +3,7 @@ import os
 
 import pytest
 from kubeflow.testing import util
-from kubeflow.ci import kfctl_go_test_utils as kfctl_util
+import kfctl_go_test_utils as kfctl_util
 
 def test_build_kfctl_go():
   """Test building of kfctl go.
