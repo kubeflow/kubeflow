@@ -485,7 +485,7 @@ func writeContextToFile(kfAppContext *kftypesv3.KfAppContext) error {
 		return err
 	}
 	log.Infoln("Writing KfAppContext to file")
-	log.Printf("The current KfAppContext is: %v", kfAppContext)
+	log.Printf("The current KfAppContext is: %v", kfAppContext.KfAppDir)
 	return ioutil.WriteFile(kfctlHome+"config", kfAppBuffer, 0755)
 }
 
@@ -741,12 +741,18 @@ func LoadKfApp(options map[string]interface{}) (kftypesv3.KfApp, error) {
 
 // LoadKfAppCfgFile constructs a KfApp by loading the provided app.yaml file.
 func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
-	basePath := filepath.Dir(cfgfile)
+	basePath, err := filepath.Abs(filepath.Dir(cfgfile))
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("error getting absolute path for KfApp directory: %v", err),
+		}
+	}
 	log.Printf("The current app directory is: %v", basePath)
 	kfContext := &kftypesv3.KfAppContext{
 		KfAppDir: basePath,
 	}
-	err := writeContextToFile(kfContext)
+	err = writeContextToFile(kfContext)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),

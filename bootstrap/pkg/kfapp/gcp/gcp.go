@@ -792,8 +792,16 @@ func (gcp *Gcp) Apply(resources kftypesv3.ResourceEnum) error {
 		return errors.WithMessagef(err, "Gcp.Apply Could not initatie a GCP client")
 	}
 
-	p, err := gcp.GetPluginSpec()
+	if err := gcp.setGcpPluginDefaults(); err != nil {
+		return errors.WithStack(err)
+	}
 
+	p := &GcpPluginSpec{}
+	err := gcp.kfDef.GetPluginSpec(kftypesv3.GCP, p)
+	if err != nil {
+		log.Errorf("Could not get GcpPluginSpec; error %v", err)
+		return err
+	}
 	if err != nil {
 		return err
 	}
