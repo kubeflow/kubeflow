@@ -63,6 +63,11 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 	config := &kfconfig.KfConfig{
 		AppDir:       kfdef.Spec.AppDir,
 		UseBasicAuth: kfdef.Spec.UseBasicAuth,
+		Project:      kfdef.Spec.Project,
+		Email:        kfdef.Spec.Email,
+		IpName:       kfdef.Spec.IpName,
+		Hostname:     kfdef.Spec.Hostname,
+		Zone:         kfdef.Spec.Zone,
 	}
 	if config.AppDir == "" {
 		config.AppDir = appdir
