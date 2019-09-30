@@ -4,7 +4,7 @@
 
 - [Kubeflow CI with tektoncd pipelines](#kubeflow-ci-with-tektoncd-pipelines)
   - [Use Case](#use-case)
-  - [TektonCD pipelineruns, pipelines and tasks](#tektoncd-pipelineruns-pipelines-and-tasks)
+  - [Background information on TektonCD pipelineruns, pipelines and tasks](#background-information-on-tektoncd-pipelineruns-pipelines-and-tasks)
   - [Parameterization](#parameterization)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -77,7 +77,7 @@ This can be run locally (for example using a local cluster via `kind create clus
 * kubeflow_repo_revision=refs/pull/4112/head
 * kubeflow_repo_url=git@github.com:kubeflow/kubeflow.git
 * manifests_repo_revision=master
-* manifests_repo_url=git@github.com:kkasravi/manifests.git
+* manifests_repo_url=git@github.com:kubeflow/manifests.git
   namespace=kubeflow-test-infra
 * path_to_context=components/centraldashboard
 * path_to_docker_file=components/centraldashboard/Dockerfile
