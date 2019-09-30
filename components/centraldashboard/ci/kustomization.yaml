@@ -9,8 +9,7 @@ resources:
 - task.yaml
 - pipeline.yaml
 - pipeline-run.yaml
-#namespace: kubeflow-test-infra
-namespace: kubeflow-ci
+namespace: kubeflow-test-infra
 configMapGenerator:
 - name: ci-pipeline-run-parameters
   env: params.env
