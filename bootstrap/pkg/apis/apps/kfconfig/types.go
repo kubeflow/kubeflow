@@ -22,6 +22,13 @@ type KfConfig struct {
 	// TODO(gabrielwen): Can we infer this from Applications?
 	UseBasicAuth bool `json:"useBasicAuth,omitempty"`
 
+  // TODO(gabrielwen): Deprecate these fields as they only makes sense to GCP.
+	Project         string `json:"project,omitempty"`
+	Email           string `json:"email,omitempty"`
+	IpName          string `json:"ipName,omitempty"`
+	Hostname        string `json:"hostname,omitempty"`
+	Zone            string `json:"zone,omitempty"`
+
 	Applications []Application `json:"applications,omitempty"`
 	Plugins      []Plugin      `json:"plugins,omitempty"`
 	Secrets      []Secret      `json:"secrets,omitempty"`
