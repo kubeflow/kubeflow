@@ -93,8 +93,8 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
   ingress_related_stateful_sets = []
   
   if platform == "gcp":
-    deployment_names.extend("cloud-endpoints-controller")
-    stateful_set_names.extend("kfserving-controller-manager")
+    deployment_names.extend(["cloud-endpoints-controller"])
+    stateful_set_names.extend(["kfserving-controller-manager"])
     if use_basic_auth:
       deployment_names.extend(["basic-auth-login"])
       ingress_related_stateful_sets.extend(["backend-updater"])
@@ -102,7 +102,7 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
       ingress_related_deployments.extend(["iap-enabler"])
       ingress_related_stateful_sets.extend(["backend-updater"])
   elif platform == "existing_arrikto":
-    deployment_names.extend("dex")
+    deployment_names.extend(["dex"])
     ingress_related_deployments.extend(["authservice"])
 
 
