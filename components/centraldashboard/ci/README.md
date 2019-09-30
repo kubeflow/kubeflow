@@ -56,8 +56,7 @@ In this use case the following instance is created:
            └── update-manifests
 ```
 
-The PipelineRun includes a Pipeline that has 2 tasks and 4 PipelineResources of type image (centraldashboard) and git (kubeflow, manifests).
-The Tasks reference these resources in their inputs or outputs. 
+The PipelineRun includes a Pipeline that has 2 tasks and 3 PipelineResources of type image (centraldashboard) and git (kubeflow, manifests). The Tasks reference these resources in their inputs or outputs. 
 
 ### Parameterization 
 
