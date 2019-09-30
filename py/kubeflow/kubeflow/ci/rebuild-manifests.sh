@@ -36,6 +36,9 @@ cp ~/.ssh/id_github-ssh ~/.ssh/id_rsa
 chmod 0600 ~/.ssh/id_rsa
 chmod 0600 ~/.ssh/id_rsa.pub
 ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+if [[ ! -d /root/.ssh ]]; then
+  mkdir /root/.ssh
+fi
 ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts
 GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa" git fetch origin master
 GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa" git checkout -b $new_branch_name origin/master
@@ -52,7 +55,7 @@ if (( $? == 0 )); then
   echo "" >> $tmpfile
   echo "" >> $tmpfile
   echo "Image built from repo:$manifests_repo_url branch:$new_branch_name commit:$(git rev-parse HEAD)" >> $tmpfile
-  GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa" hub pull-request -f -b 'manifests:master' -F $tmpfile
+  GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa" hub pull-request -f -b 'kubeflow:master' -F $tmpfile
 else
   echo 'make generate && make test' failed
 fi
