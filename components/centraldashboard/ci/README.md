@@ -17,7 +17,7 @@ This uses TektonCD [pipelinerun](https://github.com/tektoncd/pipeline/blob/maste
 
 1. A PR is merged into kubeflow/kubeflow updating central dashboard
 1. The merged commit is 1234
-1. This tekton pipelinerun is triggered to build the central dashboard image from code @1234.
+1. This tekton pipelinerun is triggered to build the central dashboard image from commit @1234 in kubeflow.
 1. The pipelinerun edits manifests/common/centraldashboard/base/kustomization.yaml and adds the new image tag
 1. The pipelinerun calls `make generate; make test` 
 1. If successful then checks in the changes 
@@ -60,9 +60,10 @@ The Tasks reference these resources in their inputs or outputs.
 
 ### Parameterization 
 
-The PipelineRun params are passed down to the the Pipeline and Tasks.
-Reuse of centraldashboard requires changing the parameters in PipelineRun.
-The pipeline, tasks and pipelineresources are parameterized by kustomize vars.
+The PipelineRun specifies PipelineResources which are passed down to the the Pipeline and Tasks.
+The Pipeline specifies Task References and their parameters. 
+Reuse of centraldashboard requires changing the parameters in PipelineRun and Pipeline.
+The PipelineRun, Pipeline, Tasks and PipelineResources are parameterized by kustomize vars.
 Changing the values in params.env will allow a different component to be used.
 
 The parameters are noted below, those with an asterix should change per component:
@@ -74,7 +75,7 @@ This can be run locally (for example using a local cluster via `kind create clus
 * docker_target=serve
 * image_name=centraldashboard
   image_url=gcr.io/kubeflow_public_images
-* kubeflow_repo_revision=refs/pull/4112/head
+* kubeflow_repo_revision=1234
 * kubeflow_repo_url=git@github.com:kubeflow/kubeflow.git
 * manifests_repo_revision=master
 * manifests_repo_url=git@github.com:kubeflow/manifests.git
@@ -84,3 +85,12 @@ This can be run locally (for example using a local cluster via `kind create clus
 * path_to_manifests_dir=common/centraldashboard/base
   pvc_mount_path=/kubeflow
 ```
+
+### Secrets
+
+The secrets file has been supplied with no tokens and should have tokens generated. 
+The file itself should not be checked in with valid tokens. 
+- gcp-credentials
+- kaniko-secret (same as gcp-credentials, use by kaniko)
+- github-ssh
+- github-token

@@ -6,34 +6,34 @@ spec:
   inputs:
     params:
     - description: docker target arg
-      name: dockerTarget
+      name: docker_target
       type: string
     - description: image target name
-      name: imageName
+      name: image_name
       type: string
     - description: The build context used by Kaniko
-      name: pathToContext
+      name: path_to_context
       type: string
     - description: The path to the dockerfile to build
-      name: pathToDockerfile
+      name: path_to_docker_file
       type: string
     resources:
     - name: kubeflow
       type: git
   outputs:
     resources:
-    - name: $(inputs.params.imageName)
+    - name: $(inputs.params.image_name)
       type: image
       outputImageDir: /kubeflow
   steps:
   - command:
     - /kaniko/executor
     args:
-    - --dockerfile=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.pathToDockerfile)
-    - --destination=$(outputs.resources.$(inputs.params.imageName).url)
-    - --context=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.pathToContext)
+    - --dockerfile=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.path_to_docker_file)
+    - --destination=$(outputs.resources.$(inputs.params.image_name).url)
+    - --context=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.path_to_context)
     - --target=$(inputs.params.dockerTarget)
-    - --digest-file=/kubeflow/$(inputs.params.imageName)-digest
+    - --digest-file=/kubeflow/$(inputs.params.image_name)-digest
     env:
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: /secret/gcp-credentials.json
@@ -60,25 +60,22 @@ spec:
   inputs:
     params:
     - description: pod container image
-      name: containerImage
-      type: string
-    - description: name of the image to push
-      name: imageName
+      name: container_image
       type: string
     - description: Where the components manifest dir is
-      name: pathToManifestsDir
+      name: path_to_manifests_dir
       type: string
     resources:
     - name: kubeflow
       type: git
     - name: manifests
       type: git
-    - name: $(inputs.params.imageName)
+    - name: $(image_name)
       type: image
   steps:
   - name: update-manifests
-    workingDir: /workspace/$(inputs.resources.manifests.name)/$(inputs.params.pathToManifestsDir)
-    image: $(inputs.params.containerImage)
+    workingDir: /workspace/$(inputs.resources.manifests.name)/$(inputs.params.path_to_manifests_dir)
+    image: $(inputs.params.container_image)
     command:
     - /workspace/$(inputs.resources.kubeflow.name)/py/kubeflow/kubeflow/ci/rebuild-manifests.sh
     env:

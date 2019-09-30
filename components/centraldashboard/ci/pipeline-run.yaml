@@ -5,19 +5,6 @@ metadata:
 spec:
   pipelineRef:
     name: ci-pipeline
-  params:
-  - name: container_image
-    value: $(container_image)
-  - name: docker_target
-    value: $(docker_target)
-  - name: image_name
-    value: $(image_name)
-  - name: path_to_context
-    value: $(path_to_context)
-  - name: path_to_docker_file
-    value: $(path_to_docker_file)
-  - name: path_to_manifests_dir
-    value: $(path_to_manifests_dir)
   resources:
   - name: kubeflow
     resourceRef:

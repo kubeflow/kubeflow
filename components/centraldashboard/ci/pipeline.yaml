@@ -3,13 +3,7 @@ kind: Pipeline
 metadata:
   name: ci-pipeline
 spec:
-  params: 
-  - name: container_image
-  - name: docker_target
-  - name: image_name
-  - name: path_to_context
-  - name: path_to_docker_file
-  - name: path_to_manifests_dir
+  params: []
   resources:
   - name: kubeflow
     type: git
@@ -20,14 +14,14 @@ spec:
   tasks:
   - name: build-push
     params:
-    - name: dockerTarget
-      value: $(params.docker_target)
-    - name: imageName
-      value: $(params.image_name)
-    - name: pathToContext
-      value: $(params.path_to_context)
-    - name: pathToDockerfile
-      value: $(params.path_to_docker_file)
+    - name: docker_target
+      value: $(docker_target)
+    - name: image_name
+      value: $(image_name)
+    - name: path_to_context
+      value: $(path_to_context)
+    - name: path_to_docker_file
+      value: $(path_to_docker_file)
     resources:
       inputs:
       - name: kubeflow
@@ -42,12 +36,10 @@ spec:
     runAfter:
     - build-push
     params:
-    - name: containerImage
-      value: "$(params.container_image)"
-    - name: imageName
-      value: $(params.image_name)
-    - name: pathToManifestsDir
-      value: "$(params.path_to_manifests_dir)"
+    - name: container_image
+      value: "$(container_image)"
+    - name: path_to_manifests_dir
+      value: "$(path_to_manifests_dir)"
     resources:
       inputs:
       - name: kubeflow
