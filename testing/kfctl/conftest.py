@@ -41,11 +41,6 @@ def pytest_addoption(parser):
       "--cluster_deletion_script", action="store", default="",
       help="The script to use to delete a K8s cluster before running kfctl.")
   
-  parser.addoption(
-      "--checklist", action="store", default="",
-      help="Checklist of Deployments/StatefulSets"
-  )
-
 @pytest.fixture
 def app_path(request):
   return request.config.getoption("--app_path")
@@ -77,10 +72,6 @@ def cluster_creation_script(request):
 @pytest.fixture
 def cluster_deletion_script(request):
   return request.config.getoption("--cluster_deletion_script")
-
-@pytest.fixture
-def checklist(request):
-  return request.config.getoption("--checklist")
 
 @pytest.fixture
 def use_basic_auth(request):
