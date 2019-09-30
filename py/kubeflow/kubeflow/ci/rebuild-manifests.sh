@@ -16,12 +16,15 @@
 #   github-ssh
 #   kubeflow-oauth
 # 
-# The script does the following in a forked manifests repo
+# The script does the following in the kubeflow manifests repo
 # - edits the image tag in the kustomization.yaml (its workingdir is where the component's manifest is)
 # - calls `make generate; make test` under manifests/tests 
 # - if successful 
 #   - commits the changes 
 #   - creates a PR.
+#
+# how to set env vars from configmap if debugging
+# for i in $(kubectl get cm ci-pipeline-run-parameters -ojson | jq -r '.data | keys[] as $k | "\($k)=\(.[$k])"'); do echo export $i; export $i; done
 #
 echo '--env--'
 env
