@@ -6,6 +6,7 @@
   - [Use Case](#use-case)
   - [Background information on TektonCD pipelineruns, pipelines and tasks](#background-information-on-tektoncd-pipelineruns-pipelines-and-tasks)
   - [Parameterization](#parameterization)
+  - [Secrets](#secrets)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
