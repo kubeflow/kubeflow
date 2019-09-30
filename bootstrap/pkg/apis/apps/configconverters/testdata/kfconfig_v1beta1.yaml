@@ -1,5 +1,7 @@
 apiVersion: kfdef.apps.kubeflow.org/v1beta1
 kind: KfConfig
+project: foo-project
+email: foo@gmail.com
 applications:
 - kustomizeConfig:
     parameters:
