@@ -35,7 +35,7 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
   # TODO(jlewi): We need to parameterize this list based on whether
   # we are using IAP or basic auth.
   deployment_names = [
-      "admission-deployment",
+      "admission-webhook-deployment",
       "argo-ui",
       "centraldashboard",
       "jupyter-web-app-deployment",
@@ -77,12 +77,6 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
     kfdef = yaml.safe_load(f)
   platform = kfdef["spec"]["platform"]
 
-  if platform == "gcp":
-    deployment_names.extend("cloud-endpoints-controller")
-    stateful_set_names.extend("kfserving-controller-manager")
-  elif platform == "existing_arrikto":
-    deployment_names.extend("dex")
-
   ingress_related_deployments = [
     "istio-citadel",
     "istio-egressgateway",
@@ -99,6 +93,8 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
   ingress_related_stateful_sets = []
   
   if platform == "gcp":
+    deployment_names.extend("cloud-endpoints-controller")
+    stateful_set_names.extend("kfserving-controller-manager")
     if use_basic_auth:
       deployment_names.extend(["basic-auth-login"])
       ingress_related_stateful_sets.extend(["backend-updater"])
@@ -106,6 +102,7 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
       ingress_related_deployments.extend(["iap-enabler"])
       ingress_related_stateful_sets.extend(["backend-updater"])
   elif platform == "existing_arrikto":
+    deployment_names.extend("dex")
     ingress_related_deployments.extend(["authservice"])
 
 
