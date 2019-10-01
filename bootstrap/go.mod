@@ -7,14 +7,9 @@ require (
 	github.com/Sirupsen/logrus v0.0.0-00010101000000-000000000000 // indirect
 	github.com/aws/aws-sdk-go v1.15.78
 	github.com/cenkalti/backoff v2.1.1+incompatible
-	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1 // indirect
 	github.com/deckarep/golang-set v1.7.1
-	github.com/docker/docker v1.13.1 // indirect
-	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
 	github.com/elazarl/goproxy v0.0.0-20190711103511-473e67f1d7d2 // indirect
 	github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2 // indirect
-	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
-	github.com/fatih/camelcase v1.0.0 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-kit/kit v0.8.0
 	github.com/gogo/protobuf v1.2.1
@@ -22,17 +17,14 @@ require (
 	github.com/golang/protobuf v1.3.1
 	github.com/hashicorp/go-getter v1.0.2
 	github.com/imdario/mergo v0.3.7
-	github.com/jonboulle/clockwork v0.1.0 // indirect
-	github.com/kr/pty v1.1.3 // indirect
+	github.com/kubeflow/kfctl/v3 v3.0.0-20190917231916-6ebaf60b014a
 	github.com/kubeflow/kubeflow/components/profile-controller/v2 v2.0.0
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/onrik/logrus v0.2.1
 	github.com/otiai10/copy v1.0.1
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v0.9.2
 	github.com/prometheus/common v0.2.0
-	github.com/russross/blackfriday v1.5.2 // indirect
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v0.0.3
