@@ -1,4 +1,4 @@
-// Copyright 2018 The Kubeflow Authors
+// Copyright © 2019 NAME HERE <EMAIL ADDRESS>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
@@ -25,68 +22,46 @@ import (
 	"github.com/spf13/viper"
 )
 
-var applyCfg = viper.New()
-var kfApp kftypes.KfApp
-var err error
+var configFilePath string
+var buildCfg = viper.New()
 
-// applyCmd represents the apply command
-var applyCmd = &cobra.Command{
-	Use:   "apply [all(=default)|k8s|platform]",
-	Short: "Deploy a generated kubeflow application.",
-	Long:  `Deploy a generated kubeflow application.`,
+// buildCmd represents the build command
+var buildCmd = &cobra.Command{
+	Use:   "build",
+	Short: "Builds a KF App from a config file",
+	Long:  `Builds a KF App from a config file`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
-		if applyCfg.GetBool(string(kftypes.VERBOSE)) != true {
+		if buildCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
-		if configFilePath != "" {
-			kfApp, err = coordinator.BuildKfAppFromURI(configFilePath)
-			if err != nil {
-				return fmt.Errorf("error building KfApp")
-			}
-		} else {
-			cwd, err := os.Getwd()
-			if err != nil {
-				return fmt.Errorf("cannot fetch current directory for apply: %v")
-			}
-			kfApp, err = coordinator.LoadKfAppCfgFile(cwd + "/app.yaml")
-			if err != nil || kfApp == nil {
-				return fmt.Errorf("error loading kfapp: %v", err)
-			}
-		}
-		if kfApp == nil {
-			return fmt.Errorf("kfApp is nil")
-		}
-		applyErr := kfApp.Apply(kftypes.ALL)
-		if applyErr != nil {
-			return fmt.Errorf("couldn't apply KfApp: %v", applyErr)
-		}
-		return nil
+		_, err := coordinator.BuildKfAppFromURI(configFilePath)
+		return err
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(applyCmd)
+	rootCmd.AddCommand(buildCmd)
 
-	applyCfg.SetConfigName("app")
-	applyCfg.SetConfigType("yaml")
+	buildCfg.SetConfigName("app")
+	buildCfg.SetConfigType("yaml")
 
 	// Config file option
-	applyCmd.PersistentFlags().StringVarP(&configFilePath, "file", "f", "",
+	buildCmd.PersistentFlags().StringVarP(&configFilePath, "file", "f", "",
 		`Static config file to use. Can be either a local path or a URL.
 For example:
 --config=https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_platform_existing.yaml
 --config=kfctl_platform_gcp.yaml`)
-	bindErr := applyCfg.BindPFlag(string(kftypes.CONFIG), applyCmd.Flags().Lookup(string(kftypes.CONFIG)))
+	bindErr := buildCfg.BindPFlag(string(kftypes.CONFIG), buildCmd.Flags().Lookup(string(kftypes.CONFIG)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.CONFIG), bindErr)
 		return
 	}
 
 	// verbose output
-	applyCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,
+	buildCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,
 		string(kftypes.VERBOSE)+" output default is false")
-	bindErr = applyCfg.BindPFlag(string(kftypes.VERBOSE), applyCmd.Flags().Lookup(string(kftypes.VERBOSE)))
+	bindErr = buildCfg.BindPFlag(string(kftypes.VERBOSE), buildCmd.Flags().Lookup(string(kftypes.VERBOSE)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERBOSE), bindErr)
 		return

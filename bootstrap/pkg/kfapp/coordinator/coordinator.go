@@ -18,6 +18,7 @@ package coordinator
 
 import (
 	"fmt"
+	"io/ioutil"
 	"path"
 	"path/filepath"
 	"strings"
@@ -370,21 +371,88 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv3.KfDef, er
 	return kfDef, nil
 }
 
-// CreateKfAppCfgFile will create the application directory and persist
+// NewLoadKfAppFromURI takes in a config file and constructs the KfApp
+// used by the build and apply semantics for kfctl
+func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
+	kfDef, err := kfdefsv3.LoadKFDefFromURI(configFile)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: "Error creating KfApp from config file",
+		}
+	}
+	// basic auth check and warn
+	useBasicAuth := kfDef.Spec.UseBasicAuth
+	if useBasicAuth && (os.Getenv(kftypesv3.KUBEFLOW_USERNAME) == "" ||
+		os.Getenv(kftypesv3.KUBEFLOW_PASSWORD) == "") {
+		// Printing warning message instead of bailing out as both ENV are used in apply,
+		// not init.
+		log.Warnf("you need to set the environment variable %s to the username you "+
+			"want to use to login and variable %s to the password you want to use.",
+			kftypesv3.KUBEFLOW_USERNAME, kftypesv3.KUBEFLOW_PASSWORD)
+	}
+	appFile, err := CreateKfAppCfgFile(kfDef)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: "Error creating KfApp from config file",
+		}
+	}
+	kfApp, err := LoadKfAppCfgFile(appFile)
+	if err != nil || kfApp == nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: "Error creating KfApp from config file",
+		}
+	}
+	return kfApp, nil
+}
+
+
+// BuildKfAppFromURI used by both build and apply for the new code path
+func BuildKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
+	// Construct KfApp from config file
+	kfApp, err := NewLoadKfAppFromURI(configFile)
+	if err != nil || kfApp == nil {
+		return nil, err
+	}
+
+	// KfApp Init
+	err = kfApp.Init(kftypesv3.ALL)
+	if err != nil {
+		return nil, fmt.Errorf("KfApp initiliazation failed")
+	}
+
+	// kfApp Generate
+	generateErr := kfApp.Generate(kftypesv3.ALL)
+	if generateErr != nil {
+		return nil, fmt.Errorf("couldn't generate KfApp: %v", generateErr)
+	}
+	return kfApp, nil
+}
+
+// isCwdEmpty - quick check to determine if the working directory is empty
+// if the current working directory
+func isCwdEmpty() string {
+	cwd, _ := os.Getwd()
+	files, _ := ioutil.ReadDir(cwd)
+	if len(files) > 0 {
+		return ""
+	}
+	return cwd
+}
+
+// CreateKfAppCfgFile will use the current directory
+// check if it's empty and persist
 // the KfDef to it as app.yaml.
-// Returns an error if the app.yaml file already exists
+// Overwrites the app.yaml file already exists
 // Returns path to the app.yaml file.
 func CreateKfAppCfgFile(d *kfdefsv3.KfDef) (string, error) {
-	if _, err := os.Stat(d.Spec.AppDir); os.IsNotExist(err) {
-		log.Infof("Creating directory %v", d.Spec.AppDir)
-		appdirErr := os.MkdirAll(d.Spec.AppDir, os.ModePerm)
-		if appdirErr != nil {
-			log.Errorf("couldn't create directory %v Error %v", d.Spec.AppDir, appdirErr)
-			return "", appdirErr
-		}
-	} else {
-		log.Infof("App directory %v already exists", d.Spec.AppDir)
+	cwd := isCwdEmpty()
+	if cwd == "" {
+		return "", fmt.Errorf("current directory not empty, please switch directories")
 	}
+	d.Spec.AppDir = cwd
 
 	// Rewrite app.yaml
 	cfgFilePath := filepath.Join(d.Spec.AppDir, kftypesv3.KfConfigFile)
