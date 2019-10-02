@@ -57,6 +57,7 @@ interface DeployFormState {
     kfctlLib: boolean;
     kfversion: string;
     kfversionList: string[];
+    logLines: string[];
     clientId: string;
     clientSecret: string;
     username: string;
@@ -157,6 +158,16 @@ const styles: {[key: string]: React.CSSProperties} = {
     input: {
         width: '100%',
     },
+    logLine: {
+        margin: '0.2em 0'
+    },
+    logLineItem: {
+        margin: '0 0.2em'
+    },
+    logLineLink: {
+        color: '#fff',
+        margin: '0 0.2em'
+    },
     logsArea: {
         backgroundColor: '#333',
         border: 0,
@@ -165,6 +176,7 @@ const styles: {[key: string]: React.CSSProperties} = {
         fontFamily: 'Source Code Pro',
         fontSize: 15,
         height: '100%',
+        overflowY: 'scroll',
         padding: 20,
         width: '100%',
     },
@@ -193,6 +205,7 @@ const styles: {[key: string]: React.CSSProperties} = {
 export default class DeployForm extends React.Component<any, DeployFormState> {
 
     private _configSpec: any;
+    private _logContainerRef: React.RefObject<HTMLDivElement>;
 
     constructor(props: any) {
         super(props);
@@ -209,6 +222,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             kfversion: Version.V06,
             // Version for local test. Staging and Prod with overwrite with their env vars.
             kfversionList: [Version.V06, Version.V05],
+            logLines: [],
             password: '',
             password2: '',
             permanentStorage: true,
@@ -222,7 +236,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             zone: 'us-central1-a',
         };
 
+        this._logContainerRef = React.createRef();
         this._versionChanged = this._versionChanged.bind(this);
+        this._renderLogLine = this._renderLogLine.bind(this);
     }
 
     public async componentDidMount() {
@@ -376,8 +392,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                 <div style={logsContainerStyle(this.state.showLogs)} >
                     <Button style={styles.logsToggle} onClick={this._toggleLogs.bind(this)} >
                         {this.state.showLogs ? 'Hide ' : 'Show '} Logs
-          </Button>
-                    <textarea style={styles.logsArea} id="logs" readOnly={true} />
+                    </Button>
+                    <div ref={this._logContainerRef} style={styles.logsArea}>
+                        {this.state.logLines.map(this._renderLogLine)}
+                    </div>
                 </div>
 
                 <Dialog open={!!this.state.dialogTitle || !!this.state.dialogBody} keepMounted={true}
@@ -416,10 +434,14 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         return timeStr;
     }
 
-    private _appendLine(newLine: any) {
-        const logsEl = document.querySelector('#logs') as HTMLInputElement;
-        logsEl.value += (!!logsEl.value ? '\n' : '') + this._currentTime() + newLine;
-        logsEl.scrollTop = logsEl.scrollHeight;
+    private _appendLine(newLine: string) {
+        const line = `${this._currentTime()} ${newLine}`;
+        const logLines = this.state.logLines.concat([line]);
+        this.setState({logLines});
+        const div = this._logContainerRef.current;
+        if (div) {
+            div.scrollTop = div.scrollHeight;
+        }
     }
 
     private async _showYaml() {
@@ -759,7 +781,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         }, 10000);
     }
 
-    private _redirectToKFDashboard(deploymentState: DeployFormState, dashboardUri: string) {
+    private _redirectToKFDashboard(deploymentState: DeployFormState,
+        dashboardUri: string) {
         const expectedTimeSecs = 30 * 60; // 30m
         const startTime = new Date().getTime() / 1000;
         const img = document.createElement('img');
@@ -781,7 +804,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             this._appendLine('Please use port forward to connect to kubeflow when Skip Endpoint');
             return;
         }
-        this._appendLine('Validating if kubeflow service endpoint is up...');
+        this._appendLine('Determining if Kubeflow deployment endpoint is available...');
         img.src = `${imgSource}?rand=${Math.random()}`;
         img.id = 'ready_test';
         img.onload = () => {
@@ -799,6 +822,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                     readyImg.src = `${imgSource}?rand=${Math.random()}`;
                     this._appendLine(
                         `Waiting for the kubeflow service endpoint to get ready...(Expected time remaining: ${estimatedTimeMin.toFixed(0)}m)`);
+                    if (estimatedTimeMin <= 10 &&
+                        Math.floor(estimatedTimeMin) % 2 === 0) {
+                        this._appendLine(`You may also to try to access your deployment in a new tab at ${dashboardUri}`);
+                    }
                 }, 30000);
             }
         };
@@ -1180,5 +1207,19 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             ConfigPath.V05 : ConfigPath.V06;
         this._loadConfigFile(configUrl);
         this.setState({kfversion});
+    }
+
+    // Renders a log line by extracting any links to anchor tags
+    private _renderLogLine(line: string, index: number) {
+        const pieces = line.split(' ');
+        const lineContent = pieces.map((s, i) =>
+            s.startsWith('http') ?
+                <a target="_blank" className="logLineLink"
+                    style={styles.logLineLink} href={s} key={i}>{s}</a> :
+                <span style={styles.logLineItem} key={i}>{s}</span>
+        );
+        return <p key={index} style={styles.logLine}>
+            {lineContent.map((s) => s)}
+        </p>;
     }
 }
