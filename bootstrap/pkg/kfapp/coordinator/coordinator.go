@@ -747,7 +747,8 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 		return nil
 	}
 
-	gcpAddedConfig := func() error {
+	// TODO(kunming): move to profile v1beta1 so it can be applied to all user namespaces
+	_ = func() error {
 		if kfapp.KfDef.Spec.Email == "" || kfapp.KfDef.Spec.Platform != kftypesv3.GCP {
 			return nil
 		}
@@ -779,7 +780,7 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 		if err := k8s(); err != nil {
 			return err
 		}
-		return gcpAddedConfig()
+		return nil
 	case kftypesv3.PLATFORM:
 		return platform()
 	case kftypesv3.K8S:
@@ -788,7 +789,7 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 		}
 		// TODO(gabrielwen): Need to find a more proper way of injecting plugings.
 		// https://github.com/kubeflow/kubeflow/issues/3708
-		return gcpAddedConfig()
+		return nil
 	}
 	return nil
 }
