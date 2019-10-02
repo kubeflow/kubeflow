@@ -9,10 +9,11 @@ ENV CHROME_BIN=/usr/bin/chromium-browser
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # Installs latest Chromium package and configures environment for testing
+# Fall back to chromium@edge=72.0.3626.121-r0 see https://github.com/Zenika/alpine-chrome/issues/39
 RUN apk update && apk upgrade && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
-    apk add --no-cache bash chromium@edge nss@edge \
+    apk add --no-cache bash chromium@edge=72.0.3626.121-r0 nss@edge \
     freetype@edge \
     harfbuzz@edge \
     ttf-freefont@edge
