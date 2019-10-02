@@ -214,7 +214,7 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   set_env_init_args(use_basic_auth, use_istio)
   
   logging.info("Running kfctl with config:\n%s", yaml.safe_dump(config_spec))
-  util.run([kfctl_path, "apply", "-V", "-f=", + os.path.join(parent_dir, "tmp.yaml")], cwd=app_path)
+  util.run([kfctl_path, "apply", "-V", "-f=" + os.path.join(parent_dir, "tmp.yaml")], cwd=app_path)
   verify_kubeconfig(app_path)
 
 if __name__ == "__main__":
