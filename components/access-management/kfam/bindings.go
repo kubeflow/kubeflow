@@ -32,6 +32,15 @@ const ServiceRoleBinding = "servicerolebindings"
 const SERVICEROLEISTIO = "ns-access-istio"
 const USER = "user"
 const ROLE = "role"
+//roleBindingNameMap maps frontend role names to k8s role names and vice-versa
+var roleBindingNameMap = map[string]string {
+	"kubeflow-admin":	"admin",
+	"kubeflow-edit":	"edit",
+	"kubeflow-view":	"view",
+	"admin":					"kubeflow-admin",
+	"edit":						"kubeflow-edit",
+	"view":						"kubeflow-view",
+}
 
 type BindingInterface interface {
 	Create(binding *Binding, userIdHeader string, userIdPrefix string) error
@@ -73,7 +82,11 @@ func (c *BindingClient) Create(binding *Binding, userIdHeader string, userIdPref
 			Annotations: map[string]string{USER: binding.User.Name, ROLE: binding.RoleRef.Name},
 			Name: bindingName,
 		},
-		RoleRef: *binding.RoleRef,
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: binding.RoleRef.APIGroup,
+			Kind: binding.RoleRef.Kind,
+			Name: roleBindingNameMap[binding.RoleRef.Name],
+		},
 		Subjects: []rbacv1.Subject{
 			*binding.User,
 		},
@@ -187,7 +200,7 @@ func (c *BindingClient) List(user string, namespaces []string, role string) (*Bi
 				RoleRef:
 					&rbacv1.RoleRef{
 						Kind: roleBinding.RoleRef.Kind,
-						Name: roleBinding.RoleRef.Name,
+						Name: roleBindingNameMap[roleBinding.RoleRef.Name],
 					},
 			}
 			bindings = append(bindings, binding)
