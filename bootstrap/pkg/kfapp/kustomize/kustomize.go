@@ -256,6 +256,23 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 		return err
 	}
 
+	// We need to apply application crd first.
+	moveToFront := func(item string, list []kfdefsv3.Application) []kfdefsv3.Application {
+		olen := len(list)
+		newlist := make([]kfdefsv3.Application, 0)
+		for i, component := range list {
+			if component.Name == item {
+				newlist = append(newlist, list[i])
+				newlist = append(newlist, list[0:i]...)
+				newlist = append(newlist, list[i+1:olen]...)
+				break
+			}
+		}
+		return newlist
+	}
+	kustomize.kfDef.Spec.Applications = moveToFront("application", kustomize.kfDef.Spec.Applications)
+	kustomize.kfDef.Spec.Applications = moveToFront("application-crds", kustomize.kfDef.Spec.Applications)
+
 	kustomizeDir := path.Join(kustomize.kfDef.Spec.AppDir, outputDir)
 	for _, app := range kustomize.kfDef.Spec.Applications {
 		resMap, err := EvaluateKustomizeManifest(path.Join(kustomizeDir, app.Name))
@@ -1039,13 +1056,14 @@ func GenerateKustomizationFile(kfDef *kfdefsv3.KfDef, root string,
 			//TODO look at sort options
 			//See https://github.com/kubernetes-sigs/kustomize/issues/821
 			//TODO upgrade to v2.0.4 when available
-			baseKfDef.Spec.Components = moveToFront("application", baseKfDef.Spec.Components)
-			baseKfDef.Spec.Components = moveToFront("application-crds", baseKfDef.Spec.Components)
 			if kfDef.Spec.UseIstio {
 				baseKfDef.Spec.Components = moveToFront("istio", baseKfDef.Spec.Components)
 				baseKfDef.Spec.Components = moveToFront("istio-install", baseKfDef.Spec.Components)
 				baseKfDef.Spec.Components = moveToFront("istio-crds", baseKfDef.Spec.Components)
 			}
+			// application-crds need to be installed first
+			baseKfDef.Spec.Components = moveToFront("application", baseKfDef.Spec.Components)
+			baseKfDef.Spec.Components = moveToFront("application-crds", baseKfDef.Spec.Components)
 			writeErr := WriteKfDef(baseKfDef, basefile)
 			if writeErr != nil {
 				return writeErr
