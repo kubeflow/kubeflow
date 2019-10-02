@@ -18,7 +18,6 @@ package coordinator
 
 import (
 	"fmt"
-	"io/ioutil"
 	"path"
 	"path/filepath"
 	"strings"
@@ -430,28 +429,21 @@ func BuildKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 	return kfApp, nil
 }
 
-// isCwdEmpty - quick check to determine if the working directory is empty
-// if the current working directory
-func isCwdEmpty() string {
-	cwd, _ := os.Getwd()
-	files, _ := ioutil.ReadDir(cwd)
-	if len(files) > 0 {
-		return ""
-	}
-	return cwd
-}
-
-// CreateKfAppCfgFile will use the current directory
-// check if it's empty and persist
+// CreateKfAppCfgFile will create the application directory and persist
 // the KfDef to it as app.yaml.
-// Overwrites the app.yaml file already exists
+// Returns an error if the app.yaml file already exists
 // Returns path to the app.yaml file.
 func CreateKfAppCfgFile(d *kfdefsv3.KfDef) (string, error) {
-	cwd := isCwdEmpty()
-	if cwd == "" {
-		return "", fmt.Errorf("current directory not empty, please switch directories")
+	if _, err := os.Stat(d.Spec.AppDir); os.IsNotExist(err) {
+		log.Infof("Creating directory %v", d.Spec.AppDir)
+		appdirErr := os.MkdirAll(d.Spec.AppDir, os.ModePerm)
+		if appdirErr != nil {
+			log.Errorf("couldn't create directory %v Error %v", d.Spec.AppDir, appdirErr)
+			return "", appdirErr
+		}
+	} else {
+		log.Infof("App directory %v already exists", d.Spec.AppDir)
 	}
-	d.Spec.AppDir = cwd
 
 	// Rewrite app.yaml
 	cfgFilePath := filepath.Join(d.Spec.AppDir, kftypesv3.KfConfigFile)

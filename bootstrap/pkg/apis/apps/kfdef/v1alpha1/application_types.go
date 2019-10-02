@@ -16,6 +16,12 @@ package v1alpha1
 
 import (
 	"fmt"
+	"io/ioutil"
+	netUrl "net/url"
+	"os"
+	"path"
+	"strings"
+
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	"github.com/hashicorp/go-getter/helper/url"
@@ -23,15 +29,10 @@ import (
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	valid "k8s.io/apimachinery/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	netUrl "net/url"
-	"os"
-	"path"
-	"strings"
 )
 
 const (
@@ -324,6 +325,17 @@ func isValidUrl(toTest string) bool {
 	}
 }
 
+// isCwdEmpty - quick check to determine if the working directory is empty
+// if the current working directory
+func isCwdEmpty() string {
+	cwd, _ := os.Getwd()
+	files, _ := ioutil.ReadDir(cwd)
+	if len(files) > 1 {
+		return ""
+	}
+	return cwd
+}
+
 // TODO: THIS FUNCTION IS DEPRECATED. PLEASE USE `LoadKFDefFromURI` in kfloader.go
 // LoadKFDefFromURI constructs a KfDef given the path to a YAML file
 // specifying a YAML config file.
@@ -345,13 +357,19 @@ func LoadKFDefFromURI(configFile string) (*KfDef, error) {
 	// TODO(jlewi): Should we use hashicorp go-getter.GetAny here? We use that to download
 	// the tarballs for the repos. Maybe we should use that here as well to be consistent.
 	appFile := path.Join(appDir, KfConfigFile)
-
 	log.Infof("Downloading %v to %v", configFile, appFile)
 	configFileUri, err := netUrl.Parse(configFile)
 	if err != nil {
 		log.Errorf("could not parse configFile url")
 	}
 	if isValidUrl(configFile) {
+		cwd := isCwdEmpty()
+		if cwd == "" {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: "current directory not empty, please switch directories",
+			}
+		}
 		errGet := gogetter.GetFile(appFile, configFile)
 		if errGet != nil {
 			return nil, &kfapis.KfError{
@@ -387,6 +405,15 @@ func LoadKFDefFromURI(configFile string) (*KfDef, error) {
 			Message: fmt.Sprintf("could not unmarshal config file onto KfDef struct: %v", err),
 		}
 	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
+		}
+	}
+	kfDef.Spec.AppDir = cwd
 
 	return kfDef, nil
 }
