@@ -42,12 +42,12 @@ var applyCmd = &cobra.Command{
 		if configFilePath != "" {
 			kfApp, err = coordinator.BuildKfAppFromURI(configFilePath)
 			if err != nil {
-				return fmt.Errorf("error building KfApp")
+				return fmt.Errorf("error building KfApp: %v", err)
 			}
 		} else {
 			cwd, err := os.Getwd()
 			if err != nil {
-				return fmt.Errorf("cannot fetch current directory for apply: %v")
+				return fmt.Errorf("cannot fetch current directory for apply: %v", err)
 			}
 			kfApp, err = coordinator.LoadKfAppCfgFile(cwd + "/app.yaml")
 			if err != nil || kfApp == nil {

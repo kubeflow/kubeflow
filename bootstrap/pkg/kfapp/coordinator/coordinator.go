@@ -378,7 +378,7 @@ func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: "Error creating KfApp from config file",
+			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
 		}
 	}
 	// basic auth check and warn
@@ -395,19 +395,18 @@ func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: "Error creating KfApp from config file",
+			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
 		}
 	}
 	kfApp, err := LoadKfAppCfgFile(appFile)
 	if err != nil || kfApp == nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: "Error creating KfApp from config file",
+			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
 		}
 	}
 	return kfApp, nil
 }
-
 
 // BuildKfAppFromURI used by both build and apply for the new code path
 func BuildKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {

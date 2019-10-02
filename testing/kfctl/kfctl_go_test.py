@@ -216,20 +216,9 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   # We don't run with retries because if kfctl init exits with an error
   # but creates app.yaml then rerunning init will fail because app.yaml
   # already exists. So retrying ends up masking the original error message)  
-  util.run([
-      kfctl_path, "init", app_path, "-V",
-      "--config=" + os.path.join(parent_dir, "tmp.yaml")], cwd=parent_dir)
-  util.run(["cat", "app.yaml"], cwd=app_path)
-
-  # We need to use retries because if we don't we see random failures
-  # where kfctl just appears to die.
-  run_with_retries([
-      kfctl_path, "generate", "-V", "all", "--email=" + email, "--zone=" + zone
-  ],
-                   cwd=app_path)
-
+  
   # Do not run with retries since it masks errors
-  util.run([kfctl_path, "apply", "-V", "all"], cwd=app_path)
+  util.run([kfctl_path, "apply", "-V", "-f=", + os.path.join(parent_dir, "tmp.yaml")], cwd=app_path)
 
   verify_kubeconfig(app_path)
 
