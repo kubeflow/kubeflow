@@ -66,7 +66,7 @@ workflows:
       - testing/*
     kwargs:
       use_basic_auth: false
-      config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_k8s_istio.yaml
+      config_path: https://raw.githubusercontent.com/kubeflow/kubeflow/v0.6-branch/bootstrap/config/kfctl_k8s_istio.0.6.2.yaml
   # If the kfctl_e2e_workflow.py was modified then on presubmit we also want to run with test_endpoint true
   # to ensure that test still pasess
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
