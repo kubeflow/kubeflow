@@ -52,6 +52,15 @@ const USER = "user"
 const ROLE = "role"
 const ADMIN = "admin"
 
+// Kubeflow default role names
+// TODO: Make kubeflow roles configurable (krishnadurai)
+// This will enable customization of roles.
+const(
+	kubeflowAdmin =	"kubeflow-admin"
+	kubeflowEdit =	"kubeflow-edit"
+	kubeflowView =	"kubeflow-view"
+)
+
 // Add creates a new Profile Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager, args map[string]string) error {
@@ -210,15 +219,15 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	// Update service accounts
 	// Create service account "default-editor" in target namespace.
-	// "default-editor" would have k8s default "edit" permission: edit all resources in target namespace except rbac.
-	if err = r.updateServiceAccount(instance, "default-editor", "edit"); err != nil {
+	// "default-editor" would have kubeflowEdit permission: edit all resources in target namespace except rbac.
+	if err = r.updateServiceAccount(instance, "default-editor", kubeflowEdit); err != nil {
 		log.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
 			"defaultEdittor", "error", err)
 		return reconcile.Result{}, err
 	}
 	// Create service account "default-viewer" in target namespace.
-	// "default-viewer" would have k8s default "view" permission: view all resources in target namespace.
-	if err = r.updateServiceAccount(instance, "default-viewer", "view"); err != nil {
+	// "default-viewer" would have kubeflowView permission: view all resources in target namespace.
+	if err = r.updateServiceAccount(instance, "default-viewer", kubeflowView); err != nil {
 		log.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
 			"defaultViewer", "error", err)
 		return reconcile.Result{}, err
@@ -238,7 +247,7 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
 			Kind:     "ClusterRole",
-			Name:     ADMIN,
+			Name:     kubeflowAdmin,
 		},
 		Subjects: []rbacv1.Subject{
 			instance.Spec.Owner,
