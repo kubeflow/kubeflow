@@ -123,10 +123,6 @@ def test_jupyter(env, namespace):
       body=wf_result, namespace=namespace)
     logging.info("Deployment created: status='%s'" % resp.metadata.name)
 
-  # this_dir = os.path.dirname(__file__)
-  # app_dir = os.path.join(this_dir, "test_app")
-
-  # util.run(["kubectl", "apply", "-f", "jupyter_test.yaml"], cwd=app_dir)
   conditions = ["Running"]
   results = util.wait_for_cr_condition(api_client, GROUP, PLURAL, VERSION,
                                        namespace, name, conditions)
