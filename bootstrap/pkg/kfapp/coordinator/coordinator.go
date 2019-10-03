@@ -390,6 +390,11 @@ func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 			"want to use to login and variable %s to the password you want to use.",
 			kftypesv3.KUBEFLOW_USERNAME, kftypesv3.KUBEFLOW_PASSWORD)
 	}
+	// check if zone is set and warn ONLY for GCP
+	isPlatformGCP := kfDef.Spec.Platform == "gcp"
+	if isPlatformGCP && os.Getenv("ZONE") == "" {
+		log.Warn("you need to set the environment variable `ZONE` to the GCP zone you want to use")
+	}
 	appFile, err := CreateKfAppCfgFile(kfDef)
 	if err != nil {
 		return nil, &kfapis.KfError{
@@ -418,7 +423,7 @@ func BuildKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 	// KfApp Init
 	err = kfApp.Init(kftypesv3.ALL)
 	if err != nil {
-		return nil, fmt.Errorf("KfApp initiliazation failed")
+		return nil, fmt.Errorf("KfApp initiliazation failed: %v", err)
 	}
 
 	// kfApp Generate

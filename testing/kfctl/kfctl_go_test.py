@@ -180,13 +180,13 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
 
   logging.info("Using app path %s", app_path)
   zone = 'us-central1-a'
-  
+  os.environ["ZONE"] = zone
   # We need to specify a valid email because
   #  1. We need to create appropriate RBAC rules to allow the current user
   #     to create the required K8s resources.
   #  2. Setting the IAM policy will fail if the email is invalid.
   email = util.run(["gcloud", "config", "get-value", "account"])
-
+  os.environ["EMAIL"] = email
   if not email:
     raise ValueError("Could not determine GCP account being used.")
 

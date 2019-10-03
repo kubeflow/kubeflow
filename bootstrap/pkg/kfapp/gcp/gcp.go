@@ -1959,13 +1959,20 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 		return err
 	}
 
+	gcp.kfDef.Spec.Zone = os.Getenv("EMAIL")
 	if gcp.kfDef.Spec.Email == "" {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: "email not specified.",
 		}
 	}
-
+	gcp.kfDef.Spec.Zone = os.Getenv("ZONE")
+	if gcp.kfDef.Spec.Zone == "" {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: "zone not specified.",
+		}	
+	}
 	// Set default IPName and Hostname
 	// This needs to happen before calling generateDM configs.
 	if gcp.kfDef.Spec.IpName == "" {
