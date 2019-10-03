@@ -270,10 +270,6 @@ def test_katib(args):
   test_successful_deployment('katib-manager-rest')
   test_successful_deployment('katib-ui')
   test_successful_deployment('katib-db')
-  test_successful_deployment('katib-suggestion-grid')
-  test_successful_deployment('katib-suggestion-random')
-  test_successful_deployment('katib-suggestion-bayesianoptimization')
-  test_successful_deployment('katib-suggestion-hyperband')
   test_successful_deployment('katib-controller')
 
 
