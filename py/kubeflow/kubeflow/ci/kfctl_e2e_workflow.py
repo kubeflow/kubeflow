@@ -131,6 +131,8 @@ class Builder:
                                          "kubeflow/tf-operator")
     self.tf_operator_py = os.path.join(self.tf_operator_root, "py")
 
+    self.jupyter_tests_py = os.path.join(self.src_dir, "kubeflow/jupyter/tests")
+
     self.go_path = self.test_dir
 
     # Name for the Kubeflow app.
@@ -258,7 +260,8 @@ class Builder:
     common_env = [
       {'name': 'PYTHONPATH',
        'value': ":".join([self.kubeflow_py, self.kubeflow_testing_py,
-                          self.tf_operator_py])},
+                          self.tf_operator_py, self.kfctl_pytest_dir,
+                          self.jupyter_tests_py])},
       {'name': 'GOPATH',
         'value': self.go_path},
       {'name': 'KUBECONFIG',
