@@ -29,7 +29,8 @@ var deleteCfg = viper.New()
 
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
-	Use:   "delete [all(=default)|k8s|platform]",
+	Args:  cobra.NoArgs,
+	Use:   "delete",
 	Short: "Delete a kubeflow application.",
 	Long:  `Delete a kubeflow application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -41,7 +42,7 @@ var deleteCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("cannot fetch current directory for apply: %v", err)
 		}
-		kfApp, err = coordinator.LoadKfAppCfgFile(cwd + "/app.yaml")
+		kfApp, err = coordinator.GetKfAppFromCfgFile(cwd + "/app.yaml")
 		if err != nil || kfApp == nil {
 			return fmt.Errorf("error loading kfapp: %v", err)
 		}

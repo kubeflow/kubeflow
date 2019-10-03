@@ -18,6 +18,7 @@ package coordinator
 
 import (
 	"fmt"
+	"io/ioutil"
 	"path"
 	"path/filepath"
 	"strings"
@@ -696,6 +697,63 @@ func LoadKfApp(options map[string]interface{}) (kftypesv3.KfApp, error) {
 	}
 
 	return LoadKfAppCfgFile(cfgfile)
+}
+
+// GetKfAppFromCfgFile gets the KfApp from app.yaml for `kfctl delete`
+// Why not use LoadKfAppCfgFile?
+// Because LoadKfAppCfgFile is used by the build and apply commands for checking if the cwd is empty
+// For delete, the cwd is not emptyu so we need a different way to load the KfApp
+func GetKfAppFromCfgFile(appFile string) (kftypesv3.KfApp, error) {
+	// Read contents
+	configFileBytes, err := ioutil.ReadFile(appFile)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not read from config file %s: %v", appFile, err),
+		}
+	}
+	// Unmarshal content onto KfDef struct
+	kfDef := &kfdefsv3.KfDef{}
+	if err := yaml.Unmarshal(configFileBytes, kfDef); err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not unmarshal config file onto KfDef struct: %v", err),
+		}
+	}
+
+	c := &coordinator{
+		Platforms:       make(map[string]kftypesv3.Platform),
+		PackageManagers: make(map[string]kftypesv3.KfApp),
+		KfDef:           kfDef,
+	}
+	// fetch the platform [gcp,minikube]
+	platform := c.KfDef.Spec.Platform
+	if platform != "" {
+		_platform, _platformErr := getPlatform(c.KfDef)
+		if _platformErr != nil {
+			log.Fatalf("could not get platform %v Error %v **", platform, _platformErr)
+			return nil, _platformErr
+		}
+		if _platform != nil {
+			c.Platforms[platform] = _platform
+		}
+	}
+
+	packageManager := c.KfDef.Spec.PackageManager
+
+	if packageManager != "" {
+		pkg, pkgErr := getPackageManager(c.KfDef)
+		if pkgErr != nil {
+			log.Fatalf("could not get package manager %v Error %v **", packageManager, pkgErr)
+			return nil, pkgErr
+		}
+		if pkg != nil {
+			c.PackageManagers[packageManager] = pkg
+		}
+	}
+
+	return c, nil
+
 }
 
 // LoadKfAppCfgFile constructs a KfApp by loading the provided app.yaml file.

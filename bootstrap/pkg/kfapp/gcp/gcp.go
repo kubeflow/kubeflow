@@ -19,8 +19,20 @@ package gcp
 import (
 	"encoding/base64"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"math/rand"
+	"net/http"
+	"os"
+	"os/exec"
+	"path"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/cenkalti/backoff"
-	"github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set"
 	"github.com/ghodss/yaml"
 	"github.com/gogo/protobuf/proto"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
@@ -38,9 +50,7 @@ import (
 	"google.golang.org/api/iam/v1"
 	"google.golang.org/api/servicemanagement/v1"
 	"google.golang.org/api/serviceusage/v1"
-	"io"
-	"io/ioutil"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -55,15 +65,6 @@ import (
 	restv2 "k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"math/rand"
-	"net/http"
-	"os"
-	"os/exec"
-	"path"
-	"path/filepath"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // TODO: golint complains that we should not use all capital var name.
@@ -1958,7 +1959,15 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 		log.Errorf("Could not get GcpPluginSpec; error %v", err)
 		return err
 	}
-
+	// the runGetGCPCredentials don't seem to work because those are shelled out commands
+	// Added an alternate way to set using enironment variables
+	gcp.kfDef.Spec.Project = os.Getenv("PROJECT")
+	if gcp.kfDef.Spec.Project == "" {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: "Project not specified.",
+		}
+	}
 	gcp.kfDef.Spec.Zone = os.Getenv("EMAIL")
 	if gcp.kfDef.Spec.Email == "" {
 		return &kfapis.KfError{
@@ -1971,7 +1980,7 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: "zone not specified.",
-		}	
+		}
 	}
 	// Set default IPName and Hostname
 	// This needs to happen before calling generateDM configs.

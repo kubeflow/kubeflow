@@ -181,6 +181,8 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   logging.info("Using app path %s", app_path)
   zone = 'us-central1-a'
   os.environ["ZONE"] = zone
+  if not zone:
+    raise ValueError("Could not get zone being used")
   # We need to specify a valid email because
   #  1. We need to create appropriate RBAC rules to allow the current user
   #     to create the required K8s resources.
@@ -189,7 +191,9 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   os.environ["EMAIL"] = email
   if not email:
     raise ValueError("Could not determine GCP account being used.")
-
+  os.environ["PROJECT"] = project
+  if not project:
+    raise ValueError("Could not get project being used")
   # username and password are passed as env vars and won't appear in the logs
   #
   config_spec = get_config_spec(config_path, project, email)
