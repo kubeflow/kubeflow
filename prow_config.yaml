@@ -42,7 +42,7 @@ workflows:
     kwargs:
       use_basic_auth: false
       test_endpoint: true
-      config_path: https://raw.githubusercontent.com/kubeflow/manifests/ddc01316951a4fe9aab41cdd40521783597c54ae/kfdef/kfctl_gcp_iap.yaml
+      config_path: https://raw.githubusercontent.com/swiftdiaries/manifests/kfdef/kfdef/kfctl_gcp_iap.yaml
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
     component: kfctl_go_test
     name: kfctl-go-iap-istio
@@ -54,7 +54,7 @@ workflows:
       - testing/*
     kwargs:
       use_basic_auth: false
-      config_path: https://raw.githubusercontent.com/kubeflow/manifests/ddc01316951a4fe9aab41cdd40521783597c54ae/kfdef/kfctl_gcp_iap.yaml
+      config_path: https://raw.githubusercontent.com/swiftdiaries/manifests/kfdef/kfdef/kfctl_gcp_iap.yaml
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
     component: kfctl_go_test
     name: kfctl-go-k8s
@@ -66,7 +66,7 @@ workflows:
       - testing/*
     kwargs:
       use_basic_auth: false
-      config_path: https://raw.githubusercontent.com/kubeflow/manifests/ddc01316951a4fe9aab41cdd40521783597c54ae/kfdef/kfctl_k8s_istio.yaml
+      config_path: https://raw.githubusercontent.com/swiftdiaries/manifests/kfdef/kfdef/kfctl_k8s_istio.yaml
   # If the kfctl_e2e_workflow.py was modified then on presubmit we also want to run with test_endpoint true
   # to ensure that test still pasess
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
@@ -82,7 +82,7 @@ workflows:
     kwargs:
       use_basic_auth: false
       test_endpoint: true
-      config_path: https://raw.githubusercontent.com/kubeflow/manifests/ddc01316951a4fe9aab41cdd40521783597c54ae/kfdef/kfctl_gcp_iap.yaml
+      config_path: https://raw.githubusercontent.com/swiftdiaries/manifests/kfdef/kfdef/kfctl_gcp_iap.yaml
   # Run basic auth test as part of every periodic and postsubmit run. 
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
     name: kfctl-go-basic-auth
@@ -109,7 +109,7 @@ workflows:
       - testing/kfctl/*
     kwargs:
       use_basic_auth: true
-      config_path: https://raw.githubusercontent.com/kubeflow/manifests/ddc01316951a4fe9aab41cdd40521783597c54ae/kfdef/kfctl_gcp_basic_auth.yaml
+      config_path: https://raw.githubusercontent.com/swiftdiaries/manifests/kfdef/kfdef/kfctl_gcp_basic_auth.yaml
   # Run unittests
   # TODO(jlewi): Need to add step to run go and python unittests
   - app_dir: kubeflow/kubeflow/testing/workflows
