@@ -22,7 +22,7 @@ spec:
       type: git
   outputs:
     resources:
-    - name: $(inputs.params.image_name)
+    - name: $(image_name)
       type: image
       outputImageDir: /kubeflow
   steps:
@@ -32,7 +32,7 @@ spec:
     - --dockerfile=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.path_to_docker_file)
     - --destination=$(outputs.resources.$(inputs.params.image_name).url)
     - --context=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.path_to_context)
-    - --target=$(inputs.params.dockerTarget)
+    - --target=$(inputs.params.docker_target)
     - --digest-file=/kubeflow/$(inputs.params.image_name)-digest
     env:
     - name: GOOGLE_APPLICATION_CREDENTIALS
@@ -76,8 +76,9 @@ spec:
   - name: update-manifests
     workingDir: /workspace/$(inputs.resources.manifests.name)/$(inputs.params.path_to_manifests_dir)
     image: $(inputs.params.container_image)
-    command:
-    - /workspace/$(inputs.resources.kubeflow.name)/py/kubeflow/kubeflow/ci/rebuild-manifests.sh
+    command: ["/bin/sleep", "infinity"]
+    #command:
+    #- /workspace/$(inputs.resources.kubeflow.name)/py/kubeflow/kubeflow/ci/rebuild-manifests.sh
     env:
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: /secret/gcp-credentials/key.json

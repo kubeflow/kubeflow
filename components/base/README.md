@@ -12,11 +12,17 @@
 
 ## Kubeflow CI with tektoncd pipelines
 
-### Use Case
+### Use Cases
 
+The following use cases can be run on the following components:
+- `kustomize build --reorder none `*centraldashboard*`/ci   | kubectl apply -f -`
+- `kustomize build --reorder none `*jupyter-web-app*`/ci    | kubectl apply -f -`
+- `kustomize build --reorder none `*notebook-controller*`/ci | kubectl apply -f -`
+- `kustomize build --reorder none `*profile-controller*`/ci | kubectl apply -f -
+ 
 This uses TektonCD [pipelinerun](https://github.com/tektoncd/pipeline/blob/master/docs/pipelineruns.md) to enable the following use case:
 
-1. A PR is merged into kubeflow/kubeflow updating central dashboard
+1. A PR is merged into kubeflow/kubeflow updating the component
 1. The merged commit is 1234
 1. This tekton pipelinerun is triggered to build the central dashboard image from commit @1234 in kubeflow.
 1. The pipelinerun edits manifests/common/centraldashboard/base/kustomization.yaml and adds the new image tag
