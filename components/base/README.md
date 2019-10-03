@@ -15,10 +15,10 @@
 ### Use Cases
 
 The following use cases can be run on the following components:
-- `kustomize build --reorder none `*centraldashboard*`/ci   | kubectl apply -f -`
-- `kustomize build --reorder none `*jupyter-web-app*`/ci    | kubectl apply -f -`
-- `kustomize build --reorder none `*notebook-controller*`/ci | kubectl apply -f -`
-- `kustomize build --reorder none `*profile-controller*`/ci | kubectl apply -f -
+- `cd ..; kustomize build --reorder none `*centraldashboard*`/ci   | kubectl apply -f -`
+- `cd ..; kustomize build --reorder none `*jupyter-web-app*`/ci    | kubectl apply -f -`
+- `cd ..; kustomize build --reorder none `*notebook-controller*`/ci | kubectl apply -f -`
+- `cd ..; kustomize build --reorder none `*profile-controller*`/ci | kubectl apply -f -
  
 This uses TektonCD [pipelinerun](https://github.com/tektoncd/pipeline/blob/master/docs/pipelineruns.md) to enable the following use case:
 
@@ -100,3 +100,5 @@ The file itself should not be checked in with valid tokens.
 - kaniko-secret (same as gcp-credentials, use by kaniko)
 - github-ssh
 - github-token
+
+For the github-ssh and github-token secrets the kubeflow-bot github user should be used.

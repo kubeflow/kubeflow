@@ -26,28 +26,28 @@ spec:
       type: image
       outputImageDir: /kubeflow
   steps:
-  - command:
+  - name: build-push
+    image: gcr.io/kaniko-project/executor:v0.11.0
+    command:
     - /kaniko/executor
-    args:
-    - --dockerfile=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.path_to_docker_file)
-    - --destination=$(outputs.resources.$(inputs.params.image_name).url)
-    - --context=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.path_to_context)
-    - --target=$(inputs.params.docker_target)
-    - --digest-file=/kubeflow/$(inputs.params.image_name)-digest
     env:
     - name: GOOGLE_APPLICATION_CREDENTIALS
-      value: /secret/gcp-credentials.json
-    image: gcr.io/kaniko-project/executor:v0.11.0
-    name: build-push
+      value: /secret/kaniko/kaniko-secret.json
+    args:
+    - "--dockerfile=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.path_to_docker_file)"
+    - "--destination=$(outputs.resources.$(inputs.params.image_name).url)"
+    - "--context=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.path_to_context)"
+    - "--target=$(inputs.params.docker_target)"
+    - "--digest-file=/kubeflow/$(inputs.params.image_name)-digest"
     volumeMounts:
-    - mountPath: /secret
-      name: gcp-credentials
-    - mountPath: /kubeflow
-      name: kubeflow
+    - name: kaniko-secret
+      mountPath: /secret/kaniko
+    - name: kubeflow
+      mountPath: /kubeflow
   volumes:
-  - name: gcp-credentials
+  - name: kaniko-secret
     secret:
-      secretName: gcp-credentials
+      secretName: kaniko-secret
   - name: kubeflow
     persistentVolumeClaim:
       claimName: ci-pipeline-run-persistent-volume-claim
