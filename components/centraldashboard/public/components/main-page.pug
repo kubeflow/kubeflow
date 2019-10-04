@@ -70,7 +70,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                 neon-animatable(page='manage-users')
                     manage-users-view(user='[[user]]', namespaces='[[namespaces]]', is-cluster-admin='[[isClusterAdmin]]', owned-namespace='[[ownedNamespace]]')
                 neon-animatable(page='iframe')
-                    iframe#PageFrame.flex
+                    iframe-container(namespace='[[namespace]]',
+                        src='[[iframeSrc]]', page="{{iframePage}}")
                 neon-animatable(page='not_found')
                     not-found-view(path="[[route.path]]")
     iron-media-query(query='(max-width: 900px)', query-matches='{{sidebarBleed}}')
