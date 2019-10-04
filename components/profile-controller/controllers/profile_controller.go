@@ -47,6 +47,7 @@ const SERVICEROLEISTIO = "ns-access-istio"
 const SERVICEROLEBINDINGISTIO = "owner-binding-istio"
 
 const KFQUOTA = "kf-resource-quota"
+const PROFILEFINALIZER = "profile-finalizer"
 
 // annotation key, consumed by kfam API
 const USER = "user"
@@ -68,7 +69,8 @@ const DEFAULT_VIEWER = "default-viewer"
 type Plugin interface {
 	// Called when profile CR is created / updated
 	ApplyPlugin(*ProfileReconciler, *profilev1beta1.Profile) error
-	// TODO(kunming): Called when profile CR is deleted, to cleanup any non-k8s resources created via ApplyPlugin
+	// Called when profile CR is being deleted, to cleanup any non-k8s resources created via ApplyPlugin
+	// RevokePlugin logic need to be IDEMPOTENT
 	RevokePlugin(*ProfileReconciler, *profilev1beta1.Profile) error
 }
 
@@ -229,6 +231,39 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 				return reconcile.Result{}, err
 			}
 		}
+	}
+
+	// examine DeletionTimestamp to determine if object is under deletion
+	if instance.ObjectMeta.DeletionTimestamp.IsZero() {
+		// The object is not being deleted, so if it does not have our finalizer,
+		// then lets add the finalizer and update the object. This is equivalent
+		// registering our finalizer.
+		if !containsString(instance.ObjectMeta.Finalizers, PROFILEFINALIZER) {
+			instance.ObjectMeta.Finalizers = append(instance.ObjectMeta.Finalizers, PROFILEFINALIZER)
+			if err := r.Update(ctx, instance); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+	} else {
+		// The object is being deleted
+		if containsString(instance.ObjectMeta.Finalizers, PROFILEFINALIZER) {
+			// our finalizer is present, so lets revoke all Plugins to clean up any external dependencies
+			if plugins, err := r.GetPluginSpec(instance); err == nil {
+				for _, plugin := range plugins {
+					if err := plugin.RevokePlugin(r, instance); err != nil {
+						return reconcile.Result{}, err
+					}
+				}
+			}
+
+			// remove our finalizer from the list and update it.
+			instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, PROFILEFINALIZER)
+			if err := r.Update(ctx, instance); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+
+		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil
@@ -487,4 +522,23 @@ func (r *ProfileReconciler) GetPluginSpec(profileIns *profilev1beta1.Profile) ([
 		plugins = append(plugins, pluginIns)
 	}
 	return plugins, nil
+}
+
+func containsString(slice []string, s string) bool {
+	for _, item := range slice {
+		if item == s {
+			return true
+		}
+	}
+	return false
+}
+
+func removeString(slice []string, s string) (result []string) {
+	for _, item := range slice {
+		if item == s {
+			continue
+		}
+		result = append(result, item)
+	}
+	return
 }
