@@ -198,6 +198,9 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   #
   config_spec = get_config_spec(config_path, project, email)
 
+  # Set KfDef name to be unique
+  config_spec["metadata"]["name"] = app_path
+
   if not os.path.exists(parent_dir):
     os.makedirs(parent_dir)
   if not os.path.exists(app_path):
