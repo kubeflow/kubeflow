@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import urllib
 import uuid
+import re
 
 import pytest
 import requests
@@ -199,7 +200,9 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   config_spec = get_config_spec(config_path, project, email)
 
   # Set KfDef name to be unique
-  config_spec["metadata"]["name"] = app_path
+  regex = re.compile('[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?')
+  kfdef_name = regex.findall(app_path)[-1]
+  config_spec["metadata"]["name"] = kfdef_name
 
   if not os.path.exists(parent_dir):
     os.makedirs(parent_dir)
