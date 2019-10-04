@@ -97,7 +97,7 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
       {
         // Add the source directories to the python path.
         name: "PYTHONPATH",
-        value: kubeflowPy + ":" + kubeflowTestingPy,
+        value: kubeflowPy + ":" +  kubeflowPy + "/py" + ":" + kubeflowTestingPy,
       },
       {
         name: "GOOGLE_APPLICATION_CREDENTIALS",
