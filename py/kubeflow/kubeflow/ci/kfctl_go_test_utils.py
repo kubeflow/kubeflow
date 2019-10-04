@@ -191,8 +191,15 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
 
   app_path, parent_dir = get_or_create_app_path_and_parent_dir(app_path)
 
-  logging.info("Using app path %s \n kfctl path %s", app_path, kfctl_path)
+  logging.info("Project: %s", project)
+  logging.info("app path %s", app_path)
+  logging.info("kfctl path %s", kfctl_path)
+  # TODO(nrchakradhar): Probably move all the environ sets to set_env_init_args
   zone = 'us-central1-a'
+  os.environ["ZONE"] = zone
+  if not zone:
+    raise ValueError("Could not get zone being used")
+
   # We need to specify a valid email because
   #  1. We need to create appropriate RBAC rules to allow the current user
   #   to create the required K8s resources.
@@ -201,6 +208,10 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
 
   if not email:
     raise ValueError("Could not determine GCP account being used.")
+  os.environ["EMAIL"] = email
+  if not project:
+    raise ValueError("Could not get project being used")
+  os.environ["PROJECT"] = project
 
   config_spec = get_config_spec(config_path, project, email, app_path)
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
