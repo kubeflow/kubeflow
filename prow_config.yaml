@@ -88,7 +88,7 @@ workflows:
   # Only run  kfctl presubmit test with basic auth if
   # files related to basic auth are modified.
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
-    name: kfctl-go-basic-auth
+    name: kfctl-go-build-deploy
     job_types:
       - presubmit
     include_dirs:
