@@ -19,9 +19,7 @@ package kustomize
 import (
 	"bufio"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
-	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
 	"github.com/imdario/mergo"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/config"
@@ -29,12 +27,10 @@ import (
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
-	profilev2 "github.com/kubeflow/kubeflow/components/profile-controller/v2/pkg/apis/kubeflow/v1alpha1"
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	rbacv2 "k8s.io/api/rbac/v1"
 	crdclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -58,7 +54,6 @@ import (
 	"sigs.k8s.io/kustomize/v3/pkg/validators"
 	"sigs.k8s.io/kustomize/v3/plugin/builtin"
 	"strings"
-	"time"
 
 	// Auth plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -285,61 +280,36 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 		}
 	}
 
-	// Create default profile
+	// TODO(kunming): Create default profile through manifests entry.
+	//userId := defaultUserId
+	//defaultProfileNamespace := defaultUserId
+
 	// When user identity available, the user will be owner of the profile
 	// Otherwise the profile would be a public one.
-	if kustomize.kfDef.Spec.Email != "" {
-		userId := defaultUserId
-		// Use user email as user id if available.
-		// When platform == GCP, same user email is also identity in requests through IAP.
-		userId = kustomize.kfDef.Spec.Email
-		defaultProfileNamespace := kftypesv3.EmailToDefaultName(userId)
-		profile := &profilev2.Profile{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "Profile",
-				APIVersion: "kubeflow.org/v1alpha1",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name: defaultProfileNamespace,
-			},
-			Spec: profilev2.ProfileSpec{
-				Owner: rbacv2.Subject{
-					Kind: "User",
-					Name: userId,
-				},
-			},
-		}
+	//if kustomize.kfDef.Spec.Email != "" {
+	//
+	//	// Use user email as user id if available.
+	//	// When platform == GCP, same user email is also identity in requests through IAP.
+	//	userId = kustomize.kfDef.Spec.Email
+	//	defaultProfileNamespace = kftypesv3.EmailToDefaultName(userId)
+	//}
 
-		if !apply.DefaultProfileNamespace(defaultProfileNamespace) {
-			body, err := json.Marshal(profile)
-			if err != nil {
-				return err
-			}
-			err = apply.Apply(body)
-			if err != nil {
-				return err
-			}
-			b := backoff.NewExponentialBackOff()
-			b.InitialInterval = 3 * time.Second
-			b.MaxInterval = 30 * time.Second
-			b.MaxElapsedTime = 5 * time.Minute
-			return backoff.Retry(func() error {
-				if !apply.DefaultProfileNamespace(defaultProfileNamespace) {
-					msg := fmt.Sprintf("Could not find namespace %v, wait and retry", defaultProfileNamespace)
-					log.Warnf(msg)
-					return &kfapisv3.KfError{
-						Code:    int(kfapisv3.INVALID_ARGUMENT),
-						Message: msg,
-					}
-				}
-				return nil
-			}, b)
-		} else {
-			log.Infof("Default profile namespace already exists: %v within owner %v", defaultProfileNamespace,
-				profile.Spec.Owner.Name)
-		}
-	}
 	return nil
+	//b := backoff.NewExponentialBackOff()
+	//b.InitialInterval = 3 * time.Second
+	//b.MaxInterval = 30 * time.Second
+	//b.MaxElapsedTime = 5 * time.Minute
+	//return backoff.Retry(func() error {
+	//	if !apply.DefaultProfileNamespace(defaultProfileNamespace) {
+	//		msg := fmt.Sprintf("Could not find namespace %v, wait and retry", defaultProfileNamespace)
+	//		log.Warnf(msg)
+	//		return &kfapisv3.KfError{
+	//			Code:    int(kfapisv3.INVALID_ARGUMENT),
+	//			Message: msg,
+	//		}
+	//	}
+	//	return nil
+	//}, b)
 }
 
 // deleteGlobalResources is called from Delete and deletes CRDs, ClusterRoles, ClusterRoleBindings

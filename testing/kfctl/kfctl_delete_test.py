@@ -47,7 +47,7 @@ def test_kfctl_delete(kfctl_path, app_path, project):
   logging.info("Using kfctl path %s", kfctl_path)
   logging.info("Using app path %s", app_path)
 
-  util.run([kfctl_path, "delete", "all", "--delete_storage", "-V"],
+  util.run([kfctl_path, "delete", "--delete_storage", "-V"],
            cwd=app_path)
 
   # Use services.list instead of services.get because error returned is not

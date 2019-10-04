@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import urllib
 import uuid
+import re
 
 import pytest
 import requests
@@ -180,22 +181,33 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
 
   logging.info("Using app path %s", app_path)
   zone = 'us-central1-a'
-  
+  os.environ["ZONE"] = zone
+  if not zone:
+    raise ValueError("Could not get zone being used")
   # We need to specify a valid email because
   #  1. We need to create appropriate RBAC rules to allow the current user
   #     to create the required K8s resources.
   #  2. Setting the IAM policy will fail if the email is invalid.
   email = util.run(["gcloud", "config", "get-value", "account"])
-
+  os.environ["EMAIL"] = email
   if not email:
     raise ValueError("Could not determine GCP account being used.")
-
+  os.environ["PROJECT"] = project
+  if not project:
+    raise ValueError("Could not get project being used")
   # username and password are passed as env vars and won't appear in the logs
   #
   config_spec = get_config_spec(config_path, project, email)
 
+  # Set KfDef name to be unique
+  regex = re.compile('[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?')
+  kfdef_name = regex.findall(app_path)[-1]
+  config_spec["metadata"]["name"] = kfdef_name
+
   if not os.path.exists(parent_dir):
     os.makedirs(parent_dir)
+  if not os.path.exists(app_path):
+    os.makedirs(app_path)
 
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
@@ -211,26 +223,8 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
   # Set ENV for basic auth username/password.
   set_env_init_args(use_basic_auth, use_istio)
   
-  logging.info("Running kfctl init with config:\n%s", yaml.safe_dump(config_spec))
-
-  # We don't run with retries because if kfctl init exits with an error
-  # but creates app.yaml then rerunning init will fail because app.yaml
-  # already exists. So retrying ends up masking the original error message)  
-  util.run([
-      kfctl_path, "init", app_path, "-V",
-      "--config=" + os.path.join(parent_dir, "tmp.yaml")], cwd=parent_dir)
-  util.run(["cat", "app.yaml"], cwd=app_path)
-
-  # We need to use retries because if we don't we see random failures
-  # where kfctl just appears to die.
-  run_with_retries([
-      kfctl_path, "generate", "-V", "all", "--email=" + email, "--zone=" + zone
-  ],
-                   cwd=app_path)
-
-  # Do not run with retries since it masks errors
-  util.run([kfctl_path, "apply", "-V", "all"], cwd=app_path)
-
+  logging.info("Running kfctl with config:\n%s", yaml.safe_dump(config_spec))
+  util.run([kfctl_path, "apply", "-V", "-f=" + os.path.join(parent_dir, "tmp.yaml")], cwd=app_path)
   verify_kubeconfig(app_path)
 
 if __name__ == "__main__":
