@@ -73,6 +73,7 @@ class Builder:
                bucket="kubeflow-ci_temp",
                test_endpoint=False,
                use_basic_auth=False,
+               build_and_apply=False,
                kf_app_name=None, delete_kf=True,):
     """Initialize a builder.
 
@@ -94,6 +95,7 @@ class Builder:
     self.namespace = namespace
     self.bucket = bucket
     self.config_path = config_path
+    self.build_and_apply = build_and_apply
     #****************************************************************************
     # Define directory locations
     #****************************************************************************
@@ -529,6 +531,8 @@ class Builder:
         # set a unique artifacts dir for each workflow with the proper
         # prefix that should work.
         "--log-cli-level=info",
+        # set build_and_apply for new semantics
+        "--build_and_apply="+self.build_and_apply,
         "--junitxml=" + self.artifacts_dir + "/junit_kfctl-build-test"
         + self.config_name + ".xml",
         # TODO(jlewi) Test suite name needs to be unique based on parameters.
