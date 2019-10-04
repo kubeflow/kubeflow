@@ -38,11 +38,9 @@ import './activity-view.js';
 import './not-found-view.js';
 import './manage-users-view.js';
 import './resources/kubeflow-icons.js';
+import './iframe-container.js';
 import utilitiesMixin from './utilities-mixin.js';
-import {MESSAGE, PARENT_CONNECTED_EVENT, IFRAME_CONNECTED_EVENT,
-    NAMESPACE_SELECTED_EVENT} from '../library.js';
 import {IFRAME_LINK_PREFIX} from './iframe-link.js';
-
 
 /**
  * Entry point for application UI.
@@ -63,7 +61,8 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                 type: Object,
                 value: null, // Necessary to preserve queryString from load
             },
-            iframeRoute: Object,
+            iframeSrc: String,
+            iframePage: {type: String, observer: '_iframePageChanged'},
             menuLinks: {
                 type: Array,
                 value: [
@@ -107,7 +106,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                 readOnly: true,
             },
             namespaces: Array,
-            namespace: {type: String, observer: '_namespaceChanged'},
+            namespace: String,
             user: String,
             isClusterAdmin: {type: Boolean, value: false},
             isolationMode: {type: String, value: 'undecided', readOnly: true},
@@ -117,26 +116,6 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                 computed: 'computeShouldFetchEnv(registrationFlow, workgroupStatusHasLoaded)',
             },
         };
-    }
-
-    /**
-     * Initializes private iframe state variables and attaches a listener for
-     * messages received by the window object.
-     */
-    ready() {
-        super.ready();
-        this._iframeConnected = false;
-        this._iframeOrigin = null;
-        this._messageListener = this._onMessageReceived.bind(this);
-        window.addEventListener(MESSAGE, this._messageListener);
-    }
-
-    /**
-     * Remove the event listener for messages.
-     */
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        window.removeEventListener(MESSAGE, this._messageListener);
     }
 
     /**
@@ -174,6 +153,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     showError(err) {
         this.errorText = err;
     }
+
     closeError() {
         this.errorText = '';
     }
@@ -226,7 +206,8 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             isIframe = true;
             hideNamespaces = this.subRouteData.path.startsWith('/pipeline');
             this._setActiveMenuLink(this.subRouteData.path);
-            this._setIframeLocation();
+            this.iframeSrc = new URL(this.subRouteData.path,
+                window.location.origin).toString();
             break;
         case 'manage-users':
             this.sidebarItemIndex = 6;
@@ -255,11 +236,19 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         this._setInIframe(isIframe);
         this._setHideSidebar(hideSidebar);
 
-        this._iframeConnected = this._iframeConnected && isIframe;
         // If iframe <-> [non-frame OR other iframe]
         if (hideSidebar || isIframe !== this.inIframe || isIframe) {
             this.$.MainDrawer.close();
         }
+    }
+
+    /**
+     * Observer to reflect navigation in iframed pages and push to history.
+     * @param {string} newPage - iframe page path
+     */
+    _iframePageChanged(newPage) {
+        window.history.pushState(null, null,
+            `/${IFRAME_LINK_PREFIX}${newPage}`);
     }
 
     /**
@@ -283,17 +272,6 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     }
 
     /**
-     * Handles namespace change. Sends message if the value has changed.
-     * @param {string} newValue
-     * @param {string} oldValue
-     */
-    _namespaceChanged(newValue, oldValue) {
-        if (newValue && newValue !== oldValue) {
-            this._sendNamespaceMessage();
-        }
-    }
-
-    /**
      * Tries to determine which menu link to activate based on the provided
      * path.
      * @param {string} path
@@ -306,23 +284,6 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             this.sidebarItemIndex = menuLinkIndex + 1;
         } else {
             this.sidebarItemIndex = -1;
-        }
-    }
-
-    /**
-     * Sets the location of the emebedded iframe based on the current route.
-     * This method avoids including the ns query parameter to the iframe,
-     * and only replaces the location when it has changed.
-     */
-    _setIframeLocation() {
-        const iframeUrl = new URL(this.subRouteData.path,
-            window.location.origin);
-        const iframeLocation = this.$.PageFrame.contentWindow.location;
-        iframeUrl.hash = window.location.hash;
-        iframeUrl.search = window.location.search;
-        iframeUrl.searchParams.delete('ns');
-        if (iframeUrl.toString() !== iframeLocation.toString()) {
-            iframeLocation.replace(iframeUrl.toString());
         }
     }
 
@@ -355,37 +316,6 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         const kVer = this.platformInfo.kubeflowVersion;
         if (kVer && kVer != 'unknown') {
             this.buildVersion = this.platformInfo.kubeflowVersion;
-        }
-    }
-
-    /**
-     * Sends a message to the iframe message bus. This is used on the iframe
-     * load event as well as when the namespace changes.
-     */
-    _sendNamespaceMessage() {
-        if (!this._iframeConnected) return;
-        this.$.PageFrame.contentWindow.postMessage({
-            type: NAMESPACE_SELECTED_EVENT,
-            value: this.namespace,
-        }, this._iframeOrigin);
-    }
-
-    /**
-     * Receives a message from an iframe page and passes the selected namespace.
-     * @param {MessageEvent} event
-     */
-    _onMessageReceived(event) {
-        const {data, origin} = event;
-        this._iframeOrigin = origin;
-        switch (data.type) {
-        case IFRAME_CONNECTED_EVENT:
-            this._iframeConnected = true;
-            this.$.PageFrame.contentWindow.postMessage({
-                type: PARENT_CONNECTED_EVENT,
-                value: null,
-            }, origin);
-            this._sendNamespaceMessage();
-            break;
         }
     }
 }
