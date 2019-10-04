@@ -16,6 +16,8 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
@@ -27,7 +29,8 @@ var deleteCfg = viper.New()
 
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
-	Use:   "delete [all(=default)|k8s|platform]",
+	Args:  cobra.NoArgs,
+	Use:   "delete",
 	Short: "Delete a kubeflow application.",
 	Long:  `Delete a kubeflow application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -35,25 +38,21 @@ var deleteCmd = &cobra.Command{
 		if deleteCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
-		resource, resourceErr := processResourceArg(args)
-		if resourceErr != nil {
-			return fmt.Errorf("invalid resource: %v", resourceErr)
+		cwd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("cannot fetch current directory for apply: %v", err)
 		}
 		deleteStorage := deleteCfg.GetBool(string(kftypes.DELETE_STORAGE))
-		options := map[string]interface{}{
-			string(kftypes.DELETE_STORAGE): deleteStorage,
+		kfApp, err = coordinator.GetKfAppFromCfgFile(cwd+"/app.yaml", deleteStorage)
+		if err != nil || kfApp == nil {
+			return fmt.Errorf("error loading kfapp: %v", err)
 		}
-		kfApp, kfAppErr := coordinator.LoadKfApp(options)
-		if kfAppErr != nil {
-			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
-		}
-		deleteErr := kfApp.Delete(resource)
+		deleteErr := kfApp.Delete(kftypes.ALL)
 		if deleteErr != nil {
 			return fmt.Errorf("couldn't delete KfApp: %v", deleteErr)
 		}
 		return nil
 	},
-	ValidArgs: []string{"all", "platform", "k8s"},
 }
 
 func init() {
