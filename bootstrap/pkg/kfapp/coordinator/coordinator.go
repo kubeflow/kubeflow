@@ -703,7 +703,7 @@ func LoadKfApp(options map[string]interface{}) (kftypesv3.KfApp, error) {
 // Why not use LoadKfAppCfgFile?
 // Because LoadKfAppCfgFile is used by the build and apply commands for checking if the cwd is empty
 // For delete, the cwd is not emptyu so we need a different way to load the KfApp
-func GetKfAppFromCfgFile(appFile string) (kftypesv3.KfApp, error) {
+func GetKfAppFromCfgFile(appFile string, deleteStorage bool) (kftypesv3.KfApp, error) {
 	// Read contents
 	configFileBytes, err := ioutil.ReadFile(appFile)
 	if err != nil {
@@ -720,7 +720,7 @@ func GetKfAppFromCfgFile(appFile string) (kftypesv3.KfApp, error) {
 			Message: fmt.Sprintf("could not unmarshal config file onto KfDef struct: %v", err),
 		}
 	}
-
+	kfDef.Spec.DeleteStorage = deleteStorage
 	c := &coordinator{
 		Platforms:       make(map[string]kftypesv3.Platform),
 		PackageManagers: make(map[string]kftypesv3.KfApp),

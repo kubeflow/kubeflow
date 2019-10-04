@@ -42,7 +42,8 @@ var deleteCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("cannot fetch current directory for apply: %v", err)
 		}
-		kfApp, err = coordinator.GetKfAppFromCfgFile(cwd + "/app.yaml")
+		deleteStorage := deleteCfg.GetBool(string(kftypes.DELETE_STORAGE))
+		kfApp, err = coordinator.GetKfAppFromCfgFile(cwd+"/app.yaml", deleteStorage)
 		if err != nil || kfApp == nil {
 			return fmt.Errorf("error loading kfapp: %v", err)
 		}
