@@ -12,7 +12,6 @@ import yaml
 from kubeflow.testing import util
 from retrying import retry
 
-
 # retry 4 times, waiting 3 minutes between retries
 @retry(stop_max_attempt_number=4, wait_fixed=180000)
 def run_with_retries(*args, **kwargs):
@@ -51,8 +50,8 @@ def build_kfctl_go():
   run_with_retries(["make", "build-kfctl"], cwd=build_dir)
   return kfctl_path
 
-def get_app_path_and_parent_dir(app_path):
-  """Get a valid app_path and parent dir.
+def get_or_create_app_path_and_parent_dir(app_path):
+  """Get a valid app_path and parent dir. Create if they are not existing.
   """
   if not app_path:
     logging.info("--app_path not specified")
@@ -63,8 +62,13 @@ def get_app_path_and_parent_dir(app_path):
                          uuid.uuid4().hex[0:4]))
   else:
     parent_dir = os.path.dirname(app_path)
-  return app_path, parent_dir
 
+  if not os.path.exists(parent_dir):
+    os.makedirs(parent_dir)
+  if not os.path.exists(app_path):
+    os.makedirs(app_path)
+
+  return app_path, parent_dir
 
 def load_config(config_path):
   """Load specified KFDef.
@@ -85,7 +89,6 @@ def load_config(config_path):
     with open(config_path, 'r') as f:
       config_spec = yaml.load(f)
       return config_spec
-
 
 def set_env_init_args(use_basic_auth, use_istio):
   # Is it really needed?
@@ -110,7 +113,6 @@ def set_env_init_args(use_basic_auth, use_istio):
   else:
     init_args.append("--use_istio=false")
 
-
 def filter_spartakus(spec):
   """Filter our Spartakus from KfDef spec.
 
@@ -125,7 +127,6 @@ def filter_spartakus(spec):
       spec["applications"].pop(i)
       break
   return spec
-
 
 def get_config_spec(config_path, project, email, app_path):
   """Generate KfDef spec.
@@ -147,13 +148,13 @@ def get_config_spec(config_path, project, email, app_path):
   config_spec["spec"]["project"] = project
   config_spec["spec"]["email"] = email
   config_spec["spec"] = filter_spartakus(config_spec["spec"])
-  repos = config_spec["spec"]["repos"]
 
   # Set KfDef name to be unique
   regex = re.compile('[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?')
   kfdef_name = regex.findall(app_path)[-1]
   config_spec["metadata"]["name"] = kfdef_name
-  
+
+  repos = config_spec["spec"]["repos"]
   if os.getenv("REPO_NAME") == "manifests":
     # kfctl_go_test.py was triggered on presubmit from the kubeflow/manifests
     # repository. In this case we want to use the specified PR of the
@@ -182,15 +183,16 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   Returns:
   app_path: Path where Kubeflow is installed
   """
-  app_path, parent_dir = get_app_path_and_parent_dir(app_path)
 
-  logging.info("Using app path %s \n kfctl path %s", app_path, kfctl_path)
-  zone = 'us-central1-a'
   if not os.path.exists(kfctl_path):
     msg = "kfctl Go binary not found: {path}".format(path=kfctl_path)
     logging.error(msg)
     raise RuntimeError(msg)
 
+  app_path, parent_dir = get_or_create_app_path_and_parent_dir(app_path)
+
+  logging.info("Using app path %s \n kfctl path %s", app_path, kfctl_path)
+  zone = 'us-central1-a'
   # We need to specify a valid email because
   #  1. We need to create appropriate RBAC rules to allow the current user
   #   to create the required K8s resources.
@@ -203,10 +205,6 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   config_spec = get_config_spec(config_path, project, email, app_path)
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
-
-  if not os.path.exists(parent_dir):
-    os.makedirs(parent_dir)
-
   # TODO(jlewi): When we switch to KfDef v1beta1 this logic will need to change because
   # use_base_auth will move into the plugin spec
   use_basic_auth = config_spec["spec"].get("useBasicAuth", False)
@@ -218,23 +216,9 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   # Set ENV for basic auth username/password.
   set_env_init_args(use_basic_auth, use_istio)
 
-  # We don't run with retries because if kfctl init exits with an error
-  # but creates app.yaml then rerunning init will fail because app.yaml
-  # already exists. So retrying ends up masking the original error message
-  util.run([
-    kfctl_path, "init", app_path, "-V",
-    "--config=" + os.path.join(parent_dir, "tmp.yaml")], cwd=parent_dir)
-  util.run(["cat", "app.yaml"], cwd=app_path)
-
-  # We need to use retries because if we don't we see random failures
-  # where kfctl just appears to die.
-  run_with_retries([
-    kfctl_path, "generate", "-V", "all", "--email=" + email, "--zone=" + zone
-  ],
-           cwd=app_path)
-
   # Do not run with retries since it masks errors
-  util.run([kfctl_path, "apply", "-V", "all"], cwd=app_path)
+  logging.info("Running kfctl with config:\n%s", yaml.safe_dump(config_spec))
+  util.run([kfctl_path, "apply", "-V", "-f=" + os.path.join(parent_dir, "tmp.yaml")], cwd=app_path)
   return app_path
 
 def verify_kubeconfig(app_path):
