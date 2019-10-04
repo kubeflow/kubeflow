@@ -531,8 +531,6 @@ class Builder:
         # set a unique artifacts dir for each workflow with the proper
         # prefix that should work.
         "--log-cli-level=info",
-        # set build_and_apply for new semantics
-        "--build_and_apply="self.build_and_apply,
         "--junitxml=" + self.artifacts_dir + "/junit_kfctl-build-test"
         + self.config_name + ".xml",
         # TODO(jlewi) Test suite name needs to be unique based on parameters.
