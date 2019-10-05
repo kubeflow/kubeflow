@@ -1,11 +1,11 @@
 apiVersion: kfupgrade.apps.kubeflow.org/v1alpha1
 kind: KfUpgrade
 metadata:
-  name: update-kubeflow
+  name: update-kf-upgrade
 spec:
   currentKfDef:
-    name: kubeflow
+    name: kf101
   newKfDef:
-    name: kubeflow
-    version: v0.7.0
-  baseConfigPath: https://raw.githubusercontent.com/kubeflow/kubeflow/v0.6-branch/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml
+    name: kf101
+    version: master
+  baseConfigPath: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
