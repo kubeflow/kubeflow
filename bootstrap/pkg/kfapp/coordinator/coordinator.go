@@ -401,6 +401,16 @@ func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
 		}
 	}
+
+	cwd, err = os.Getwd()
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
+		}
+	}
+	kfDef.Spec.AppDir = cwd
+
 	// basic auth check and warn
 	useBasicAuth := kfDef.Spec.UseBasicAuth
 	if useBasicAuth && (os.Getenv(kftypesv3.KUBEFLOW_USERNAME) == "" ||

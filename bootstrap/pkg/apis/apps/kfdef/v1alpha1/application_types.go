@@ -388,15 +388,6 @@ func LoadKFDefFromURI(configFile string) (*KfDef, error) {
 		}
 	}
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
-		}
-	}
-	kfDef.Spec.AppDir = cwd
-
 	return kfDef, nil
 }
 
