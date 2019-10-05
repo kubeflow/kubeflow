@@ -371,9 +371,29 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv3.KfDef, er
 	return kfDef, nil
 }
 
+// isCwdEmpty - quick check to determine if the working directory is empty
+// if the current working directory
+func isCwdEmpty() string {
+	cwd, _ := os.Getwd()
+	files, _ := ioutil.ReadDir(cwd)
+	if len(files) > 1 {
+		return ""
+	}
+	return cwd
+}
+
 // NewLoadKfAppFromURI takes in a config file and constructs the KfApp
 // used by the build and apply semantics for kfctl
 func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
+	cwd := isCwdEmpty()
+	if cwd == "" {
+		wd, _ := os.Getwd()
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("current directory %v not empty, please switch directories", wd),
+		}
+	}
+
 	kfDef, err := kfdefsv3.LoadKFDefFromURI(configFile)
 	if err != nil {
 		return nil, &kfapis.KfError{

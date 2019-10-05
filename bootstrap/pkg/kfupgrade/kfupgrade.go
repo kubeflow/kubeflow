@@ -50,7 +50,6 @@ func createNewKfApp(baseConfig string, oldKfDef *kfdefsv3.KfDef) (*kfdefsv3.KfDe
 
 	// Load the new KfDef from the base config
 	newKfDef, err := kfdefsv3.LoadKFDefFromURI(baseConfig)
-
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),

@@ -325,17 +325,6 @@ func isValidUrl(toTest string) bool {
 	}
 }
 
-// isCwdEmpty - quick check to determine if the working directory is empty
-// if the current working directory
-func isCwdEmpty() string {
-	cwd, _ := os.Getwd()
-	files, _ := ioutil.ReadDir(cwd)
-	if len(files) > 1 {
-		return ""
-	}
-	return cwd
-}
-
 // TODO: THIS FUNCTION IS DEPRECATED. PLEASE USE `LoadKFDefFromURI` in kfloader.go
 // LoadKFDefFromURI constructs a KfDef given the path to a YAML file
 // specifying a YAML config file.
@@ -363,13 +352,6 @@ func LoadKFDefFromURI(configFile string) (*KfDef, error) {
 		log.Errorf("could not parse configFile url")
 	}
 	if isValidUrl(configFile) {
-		cwd := isCwdEmpty()
-		if cwd == "" {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: "current directory not empty, please switch directories",
-			}
-		}
 		errGet := gogetter.GetFile(appFile, configFile)
 		if errGet != nil {
 			return nil, &kfapis.KfError{
