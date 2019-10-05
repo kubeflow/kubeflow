@@ -14,9 +14,11 @@ limitations under the License.
 package utils
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/ghodss/yaml"
+	gogetter "github.com/hashicorp/go-getter"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/v3/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
@@ -28,6 +30,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8stypes "k8s.io/apimachinery/pkg/types"
+	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/cli-runtime/pkg/genericclioptions/printers"
 	"k8s.io/client-go/kubernetes"
@@ -113,6 +116,51 @@ func CreateResourceFromFile(config *rest.Config, filename string, elems ...confi
 		}
 	}
 	return nil
+}
+
+func GetObjectKindFromUri(configFile string) (string, error) {
+	if configFile == "" {
+		return "", fmt.Errorf("config file must be a URI or a path")
+	}
+
+	appDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return "", fmt.Errorf("Create a temporary directory to copy the file to.")
+	}
+	// Open config file
+	appFile := path.Join(appDir, "tmp.yaml")
+
+	log.Infof("Downloading %v to %v", configFile, appFile)
+	err = gogetter.GetFile(appFile, configFile)
+	if err != nil {
+		return "", &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, err),
+		}
+	}
+
+	// Read contents
+	configFileBytes, err := ioutil.ReadFile(appFile)
+	if err != nil {
+		return "", &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not read from config file %s: %v", configFile, err),
+		}
+	}
+
+	BUFSIZE := 1024
+	buf := bytes.NewBufferString(string(configFileBytes))
+
+	job := &unstructured.Unstructured{}
+	err = k8syaml.NewYAMLOrJSONDecoder(buf, BUFSIZE).Decode(job)
+	if err != nil {
+		return "", &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("could not decode specified config %s: %v", configFile, err),
+		}
+	}
+
+	return job.GetKind(), nil
 }
 
 func DeleteResourceFromFile(config *rest.Config, filename string) error {

@@ -1,25 +1,30 @@
 import * as monitoring from '@google-cloud/monitoring';
+import fetch from 'node-fetch';
 
 import {Interval, MetricsService, TimeSeriesPoint} from './metrics_service';
 
-const INSTANCE_METRIC_TYPE_PREFIX = 'compute.googleapis.com/instance';
-const INSTANCE_CPU_UTILIZATION_METRIC_TYPE =
-    `${INSTANCE_METRIC_TYPE_PREFIX}/cpu/utilization`;
-const CONTAINER_METRIC_TYPE_PREFIX = 'container.googleapis.com/container';
+const CLUSTER_NAME_URL =
+    'http://metadata.google.internal/computeMetadata/v1/instance/attributes/cluster-name';
+const BASE = 'kubernetes.io';
+const NODE_CPU_UTILIZATION_METRIC_TYPE =
+    `${BASE}/node/cpu/allocatable_utilization`;
 const CONTAINER_CPU_UTILIZATION_METRIC_TYPE =
-    `${CONTAINER_METRIC_TYPE_PREFIX}/cpu/utilization`;
-const CONTAINER_MEMORY_USED_METRIC_TYPE =
-    `${CONTAINER_METRIC_TYPE_PREFIX}/memory/bytes_used`;
+    `${BASE}/container/cpu/limit_utilization`;
+const CONTAINER_MEMORY_USED_METRIC_TYPE = `${BASE}/container/memory/used_bytes`;
 
 export class StackdriverMetricsService implements MetricsService {
+  private clusterName: string;
+
   constructor(
-      private client: monitoring.MetricServiceClient, private projectId: string,
-      private nodeNames: string[]) {}
+      private client: monitoring.MetricServiceClient,
+      private projectId: string,
+      private nodeNames: string[],
+  ) {}
 
   async getNodeCpuUtilization(interval: Interval): Promise<TimeSeriesPoint[]> {
     const response: TimeSeriesPoint[] = [];
-    let filter = `metric.type="${
-        INSTANCE_CPU_UTILIZATION_METRIC_TYPE}" AND metric.label.instance_name = `;
+    let filter = `metric.type="${NODE_CPU_UTILIZATION_METRIC_TYPE}" ` +
+        'AND resource.label.node_name=';
     if (this.nodeNames.length > 1) {
       filter += `one_of("${this.nodeNames.join('", "')}")`;
     } else {
@@ -35,7 +40,7 @@ export class StackdriverMetricsService implements MetricsService {
               (p.interval.endTime as unknown) as monitoring.Timestamp;
           response.push({
             timestamp: Number(endTime.seconds),
-            label: ts.metric.labels['instance_name'],
+            label: ts.resource.labels['node_name'],
             value: p.value.doubleValue,
           });
         });
@@ -51,7 +56,11 @@ export class StackdriverMetricsService implements MetricsService {
 
   async getPodCpuUtilization(interval: Interval): Promise<TimeSeriesPoint[]> {
     const response: TimeSeriesPoint[] = [];
-    const filter = `metric.type="${CONTAINER_CPU_UTILIZATION_METRIC_TYPE}"`;
+    let filter = `metric.type="${CONTAINER_CPU_UTILIZATION_METRIC_TYPE}"`;
+    const clusterName = await this.getClusterName();
+    if (clusterName) {
+      filter += ` AND resource.label.cluster_name="${clusterName}"`;
+    }
     try {
       const timeSeries = await this.fetchTimeSeries(filter, interval);
       timeSeries.forEach((ts) => {
@@ -63,7 +72,7 @@ export class StackdriverMetricsService implements MetricsService {
           response.push({
             timestamp: Number(endTime.seconds),
             label: ts.resource.labels['container_name'] ||
-                ts.resource.labels['pod_id'],
+                ts.resource.labels['pod_name'],
             value: p.value.doubleValue,
           });
         });
@@ -78,8 +87,12 @@ export class StackdriverMetricsService implements MetricsService {
 
   async getPodMemoryUsage(interval: Interval): Promise<TimeSeriesPoint[]> {
     const response: TimeSeriesPoint[] = [];
-    const filter = `metric.type="${CONTAINER_MEMORY_USED_METRIC_TYPE}" AND ` +
-        `metric.label.memory_type = "non-evictable"`;
+    let filter = `metric.type="${CONTAINER_MEMORY_USED_METRIC_TYPE}"` +
+        ' AND metric.label.memory_type = "non-evictable"';
+    const clusterName = await this.getClusterName();
+    if (clusterName) {
+      filter += ` AND resource.label.cluster_name="${clusterName}"`;
+    }
     try {
       const timeSeries = await this.fetchTimeSeries(filter, interval);
       timeSeries.forEach((ts) => {
@@ -91,7 +104,7 @@ export class StackdriverMetricsService implements MetricsService {
           response.push({
             timestamp: Number(endTime.seconds),
             label: ts.resource.labels['container_name'] ||
-                ts.resource.labels['pod_id'],
+                ts.resource.labels['pod_name'],
             value: Number(p.value.doubleValue)
           });
         });
@@ -158,5 +171,27 @@ export class StackdriverMetricsService implements MetricsService {
       startTime: {seconds: now - (60 * minutesToSubtract)},
       endTime: {seconds: now},
     };
+  }
+
+  // Fetches the cluster name from the GCE instance metadata
+  private async getClusterName(): Promise<string> {
+    if (this.clusterName === undefined) {
+      try {
+        console.info('Requesting cluster name from Metadata server');
+        const response = await fetch(CLUSTER_NAME_URL, {
+          headers: {
+            'Metadata-Flavor': 'Google',
+          }
+        });
+        if (response.ok) {
+          this.clusterName = await response.text();
+          console.info(`Retrieved cluster name ${this.clusterName}`);
+        }
+      } catch (err) {
+        console.warn('Unable to obtain cluster name from Metadata server');
+        this.clusterName = '';
+      }
+    }
+    return this.clusterName;
   }
 }

@@ -50,7 +50,7 @@ NAMESPACE=kubeflow-test-infra
 After starting `kubectl proxy` on `127.0.0.1:8001`, you can connect to the Argo UI via the local proxy at
 
 ```
-http://127.0.0.1:8001/api/v1/proxy/namespaces/kubeflow-test-infra/services/argo-ui:80/
+http://127.0.0.1:8001/api/v1/namespaces/kubeflow-test-infra/services/argo-ui:80/proxy/
 ```
 
 TODO(jlewi): We can probably make the UI publicly available since I don't think it offers any ability to launch workflows.

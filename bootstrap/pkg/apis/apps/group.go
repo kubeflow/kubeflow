@@ -64,6 +64,13 @@ const (
 	YamlSeparator          = "(?m)^---[ \t]*$"
 )
 
+type SupportedResourceType string
+
+const (
+	KFDEF     SupportedResourceType = "KfDef"
+	KFUPGRADE SupportedResourceType = "KfUpgrade"
+)
+
 type ResourceEnum string
 
 const (
