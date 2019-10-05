@@ -236,6 +236,9 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   # Set ENV for basic auth username/password.
   set_env_init_args(use_basic_auth, use_istio)
 
+  # build_and_apply
+  logging.info("running kfctl with build and apply:%s \n", build_and_apply)
+
   # Do not run with retries since it masks errors
   logging.info("Running kfctl with config:\n%s", yaml.safe_dump(config_spec))
   if build_and_apply:
