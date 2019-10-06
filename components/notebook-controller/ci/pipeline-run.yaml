@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
-  name: ci-profile-controller
+  name: ci-notebook-controller
 spec:
   pipelineRef:
     name: ci-pipeline

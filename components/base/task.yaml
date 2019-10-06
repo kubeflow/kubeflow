@@ -34,11 +34,11 @@ spec:
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: /secret/kaniko/kaniko-secret.json
     args:
-    - "--dockerfile=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.path_to_docker_file)"
-    - "--destination=$(outputs.resources.$(inputs.params.image_name).url)"
-    - "--context=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.path_to_context)"
-    - "--target=$(inputs.params.docker_target)"
-    - "--digest-file=/kubeflow/$(inputs.params.image_name)-digest"
+    - --dockerfile=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.path_to_docker_file)
+    - --target=$(inputs.params.docker_target)
+    - --destination=$(outputs.resources.$(inputs.params.image_name).url)
+    - --context=/workspace/$(inputs.resources.kubeflow.name)/$(inputs.params.path_to_context)
+    - --digest-file=/kubeflow/$(inputs.params.image_name)-digest
     volumeMounts:
     - name: kaniko-secret
       mountPath: /secret/kaniko

@@ -16,7 +16,7 @@ vars:
     name: ci-pipeline-run-parameters
     apiVersion: v1
   fieldref:
-    fieldpath: data.path_to_manifests_dir
+    fieldpath: data.docker_target
 - name: image_name
   objref:
     kind: ConfigMap
