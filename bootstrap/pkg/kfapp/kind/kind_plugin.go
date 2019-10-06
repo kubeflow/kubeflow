@@ -5,6 +5,8 @@ import (
 	kindv1alpha3 "sigs.k8s.io/kind/pkg/apis/config/v1alpha3"
 )
 
+// TODO(swiftdiaries): Add Basic Auth related tests with a plugin
+
 type KindPluginSpec struct {
 	Auth                *Auth
 	UseBasicAuth        bool
