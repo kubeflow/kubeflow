@@ -85,6 +85,17 @@ workflows:
     kwargs:
       use_basic_auth: true
       config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_basic_auth.yaml
+  - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
+    name: kfctl-go-k8s
+    job_types:
+      - presubmit
+    include_dirs:
+      # If kfctl is modified, make sure kfctl_k8s_istio.yaml works with the changes.
+      - bootstrap/*
+      - testing/kfctl/*
+    kwargs:
+      # TODO(swiftdiaries): Once this PR is merged, change URL
+      config_path: https://raw.githubusercontent.com/swiftdiaries/manifests/kfctl_k8s_e2e/kfdef/kfctl_k8s_istio_kind.yaml
   # Only run  kfctl presubmit test with basic auth if
   # files related to basic auth are modified.
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
