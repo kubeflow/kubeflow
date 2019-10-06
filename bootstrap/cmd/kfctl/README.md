@@ -39,7 +39,7 @@ The new `kfctl` client replaces `kfctl.sh` and is implemented in golang.
  - Separate different platform implementations of the [KfApp Interface](#kfapp-interface).
 
  - Separate different package manager implementations of the [KfApp Interface](#kfapp-interface).
- 
+
  - Allow new platforms to be added to kfctl without rebuilding or reshipping kfctl (see [Extending kfctl](#extending-kfctl) below).
 
  - Do not change existing `REST` entrypoints or the `KsService` interface in `ksServer.go` at this time.
@@ -63,7 +63,7 @@ const (
 
 //
 // KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
-// API for different platforms implementations like gcp and minikube. 
+// API for different platforms implementations like gcp and minikube.
 // KfApp is also implemented by different package managers (ksonnet, kustomize).
 //
 type KfApp interface {
@@ -74,21 +74,21 @@ type KfApp interface {
 }
 ```
 
-kfctl will statically include platforms that implement the KfApp interface. 
+kfctl will statically include platforms that implement the KfApp interface.
 These include:
 
 - platform: **minikube**
   - bootstrap/v3/pkg/client/minikube/minikube.go
-- platform: **gcp** 
+- platform: **gcp**
   - bootstrap/v3/pkg/client/gcp/gcp.go
 
 kfctl also statically links package managers that are used by the platforms.
 This includes:
 
-- package manager: **kustomize** 
+- package manager: **kustomize**
   - bootstrap/v3/pkg/client/kustomize/kustomize.go
 
-kfctl can dynamically load platforms and package managers that are not statically linked, as 
+kfctl can dynamically load platforms and package managers that are not statically linked, as
 described below in [Extending kfctl](#extending-kfctl).
 
 ## Usage
@@ -127,7 +127,7 @@ kfctl apply all
 
 ## Subcommands
 
-### **init** 
+### **init**
 
 (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
 
@@ -182,7 +182,7 @@ Flags:
       --zone string       zone if '--platform gcp' (default "us-east1-d")
 ```
 
-### **apply** 
+### **apply**
 
 (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
 
@@ -210,7 +210,7 @@ Flags:
   -V, --verbose   verbose output default is false
 ```
 
-### **delete** 
+### **delete**
 
 (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
 
@@ -223,6 +223,30 @@ Usage:
 Flags:
   -h, --help      help for delete
   -V, --verbose   verbose output default is false
+```
+
+### **set-image-name**
+
+(kubeflow/bootstrap/cmd/kfctl/cmd/set-image-name.go)
+
+```text
+Sets custom image names for kubeflow components.
+
+Replaces the image name in kubeflow manifests with the specified prefix, to support custom image registries.
+It assumes that all components specify images in kustomization.yaml, base or overlay. Expected prefix format is
+<registry>[:port][/component]*
+
+The filter flag sets the custom image name only for images with matching prefix.
+The flatten flag discards both registry and name components except for the last one, to support registries with a flat hierarchical path.
+
+Usage:
+  kfctl set-image-name <prefix> [flags]
+
+Flags:
+  -f, --filter string   Only set name for images with matching prefix
+      --flatten         Set to true for registries not supporting hierarchical paths with more than two components
+  -h, --help            help for set-image-name
+  -V, --verbose         Enable verbose output
 ```
 
 ---
@@ -263,13 +287,13 @@ make build-dockerfordesktop-plugin
 make test-kfctl
 ```
 
-### Testing `kfctl init` for all platforms 
+### Testing `kfctl init` for all platforms
 
 ```
 make test-init
 ```
 
-### Testing `kfctl generate` for all platforms 
+### Testing `kfctl generate` for all platforms
 
 ```
 make test-generate
@@ -281,5 +305,5 @@ References to Ksonnet types have been removed
 
 ## golang modules and versioned packages
 
-kustomize leverages golang modules by declaring a 'v3' version in go.mod 
+kustomize leverages golang modules by declaring a 'v3' version in go.mod
 
