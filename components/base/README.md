@@ -3,7 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Kubeflow CI with tektoncd pipelines](#kubeflow-ci-with-tektoncd-pipelines)
-  - [Use Case](#use-case)
+  - [Use Cases](#use-cases)
   - [Background information on TektonCD pipelineruns, pipelines and tasks](#background-information-on-tektoncd-pipelineruns-pipelines-and-tasks)
   - [Parameterization](#parameterization)
   - [Secrets](#secrets)
