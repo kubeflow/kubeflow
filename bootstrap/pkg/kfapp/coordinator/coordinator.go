@@ -33,6 +33,7 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/aws"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/existing_arrikto"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kind"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/minikube"
 	homedir "github.com/mitchellh/go-homedir"
@@ -117,6 +118,8 @@ func getPlatform(kfdef *kfdefsv3.KfDef) (kftypesv3.Platform, error) {
 		return existing_arrikto.GetPlatform(kfdef)
 	case string(kftypesv3.AWS):
 		return aws.GetPlatform(kfdef)
+	case string(kftypesv3.Kind):
+		return kind.GetPlatform(kfdef)
 	default:
 		// TODO(https://github.com/kubeflow/kubeflow/issues/3520) Fix dynamic loading
 		// of platform plugins.
