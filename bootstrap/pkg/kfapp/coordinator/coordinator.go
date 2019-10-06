@@ -767,6 +767,13 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 		}
 	}
 
+	if err := kfdef.SyncCache(); err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not sync cache. Error: %v", err),
+		}
+	}
+
 	c := &coordinator{
 		Platforms:       make(map[string]kftypesv3.Platform),
 		PackageManagers: make(map[string]kftypesv3.KfApp),
