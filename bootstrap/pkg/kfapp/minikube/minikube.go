@@ -22,6 +22,7 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/v3/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"io/ioutil"
 	"k8s.io/client-go/rest"
@@ -56,6 +57,10 @@ func (minikube *Minikube) Apply(resources kftypes.ResourceEnum) error {
 }
 
 func (minikube *Minikube) Delete(resources kftypes.ResourceEnum) error {
+	return nil
+}
+
+func (minikube *Minikube) GetKfConfig() *kfconfig.KfConfig {
 	return nil
 }
 

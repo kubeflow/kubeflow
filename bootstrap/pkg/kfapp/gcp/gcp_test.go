@@ -431,8 +431,8 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		}
 
 		if c.ExpectedEmail != "" {
-			if c.ExpectedEmail != i.Spec.Email {
-				t.Errorf("Case %v; email: got %v; want %v", c.Name, i.Spec.Email, c.ExpectedEmail)
+			if c.ExpectedEmail != i.Email {
+				t.Errorf("Case %v; email: got %v; want %v", c.Name, i.Email, c.ExpectedEmail)
 			}
 		}
 	}

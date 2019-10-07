@@ -1003,6 +1003,14 @@ func (kfapp *coordinator) Generate(resources kftypesv3.ResourceEnum) error {
 							kfapp.KfDef.Spec.Platform, platformErr),
 					}
 				}
+				createConfigErr := configconverters.WriteConfigToFile(*platform.GetKfConfig(), kftypesv3.KfConfigFile)
+				if createConfigErr != nil {
+					return &kfapis.KfError{
+						Code: createConfigErr.(*kfapis.KfError).Code,
+						Message: fmt.Sprintf("cannot create config file %v: %v", kftypesv3.KfConfigFile,
+							createConfigErr.(*kfapis.KfError).Message),
+					}
+				}
 			} else {
 				return &kfapis.KfError{
 					Code: int(kfapis.INTERNAL_ERROR),

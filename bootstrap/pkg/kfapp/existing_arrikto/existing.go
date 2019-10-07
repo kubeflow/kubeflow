@@ -11,6 +11,7 @@ import (
 	"fmt"
 	kfapisv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"github.com/pkg/errors"
@@ -249,6 +250,10 @@ func (existing *Existing) Delete(resources kftypesv3.ResourceEnum) error {
 	if err := deleteManifests(rev(existing.istioManifests)); err != nil {
 		return internalError(errors.WithStack(err))
 	}
+	return nil
+}
+
+func (existing *Existing) GetKfConfig() *kfconfig.KfConfig {
 	return nil
 }
 
