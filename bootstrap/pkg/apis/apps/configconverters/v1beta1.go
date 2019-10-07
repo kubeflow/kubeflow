@@ -90,6 +90,7 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 				}
 			}
 			if p, ok := s["project"]; ok {
+<<<<<<< HEAD
 				config.Spec.Project = p.(string)
 			}
 			if e, ok := s["email"]; ok {
@@ -106,6 +107,24 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 			}
 			if z, ok := s["zone"]; ok {
 				config.Spec.Zone = z.(string)
+=======
+				config.Project = p.(string)
+			}
+			if e, ok := s["email"]; ok {
+				config.Email = e.(string)
+			}
+			if i, ok := s["ipName"]; ok {
+				config.IpName = i.(string)
+			}
+			if h, ok := s["hostname"]; ok {
+				config.Hostname = h.(string)
+			}
+			if h, ok := s["skipInitProject"]; ok {
+				config.SkipInitProject = h.(string)
+			}
+			if z, ok := s["zone"]; ok {
+				config.Zone = z.(string)
+>>>>>>> e0cf7637... gcp use kfconfig
 			}
 		}
 	}
