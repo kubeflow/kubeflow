@@ -142,7 +142,13 @@ func (coord *coordinator) getPackageManagers(kfdef *kfdefsv3.KfDef) *map[string]
 // kftypesv3.LoadKfApp which will try and dynamically load a .so
 //
 func getPackageManager(kfdef *kfdefsv3.KfDef) (kftypesv3.KfApp, error) {
-	switch kfdef.Spec.PackageManager {
+
+	packageManager := kfdef.Spec.PackageManager
+	if packageManager == "" {
+		packageManager = kftypesv3.KUSTOMIZE
+	}
+
+	switch packageManager {
 	case kftypesv3.KUSTOMIZE:
 		return kustomize.GetKfApp(kfdef), nil
 	case kftypesv3.KSONNET:
@@ -739,17 +745,13 @@ func GetKfAppFromCfgFile(appFile string, deleteStorage bool) (kftypesv3.KfApp, e
 		}
 	}
 
-	packageManager := c.KfDef.Spec.PackageManager
-
-	if packageManager != "" {
-		pkg, pkgErr := getPackageManager(c.KfDef)
-		if pkgErr != nil {
-			log.Fatalf("could not get package manager %v Error %v **", packageManager, pkgErr)
-			return nil, pkgErr
-		}
-		if pkg != nil {
-			c.PackageManagers[packageManager] = pkg
-		}
+	pkg, pkgErr := getPackageManager(c.KfDef)
+	if pkgErr != nil {
+		log.Fatalf("could not get package manager %v Error %v **", c.KfDef.Spec.PackageManager, pkgErr)
+		return nil, pkgErr
+	}
+	if pkg != nil {
+		c.PackageManagers[c.KfDef.Spec.PackageManager] = pkg
 	}
 
 	return c, nil
@@ -792,17 +794,13 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 		}
 	}
 
-	packageManager := c.KfDef.Spec.PackageManager
-
-	if packageManager != "" {
-		pkg, pkgErr := getPackageManager(c.KfDef)
-		if pkgErr != nil {
-			log.Fatalf("could not get package manager %v Error %v **", packageManager, pkgErr)
-			return nil, pkgErr
-		}
-		if pkg != nil {
-			c.PackageManagers[packageManager] = pkg
-		}
+	pkg, pkgErr := getPackageManager(c.KfDef)
+	if pkgErr != nil {
+		log.Fatalf("could not get package manager %v Error %v **", c.KfDef.Spec.PackageManager, pkgErr)
+		return nil, pkgErr
+	}
+	if pkg != nil {
+		c.PackageManagers[c.KfDef.Spec.PackageManager] = pkg
 	}
 
 	return c, nil
