@@ -456,11 +456,18 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			t.Errorf("Case %v; got:\n%v\nwant:\n%v", c.Name, pGot, pWant)
 		}
 
+<<<<<<< HEAD
 		if c.ExpectedEmail != "" && c.ExpectedEmail != i.Spec.Email {
 			t.Errorf("Case %v; email: got %v; want %v", c.Name, i.Spec.Email, c.ExpectedEmail)
 		}
 		if c.ExpectedProject != "" && c.ExpectedProject != i.Spec.Project {
 			t.Errorf("Case %v; project: got %v; want %v", c.Name, i.Spec.Project, c.ExpectedProject)
+=======
+		if c.ExpectedEmail != "" {
+			if c.ExpectedEmail != i.Email {
+				t.Errorf("Case %v; email: got %v; want %v", c.Name, i.Email, c.ExpectedEmail)
+			}
+>>>>>>> 76342527... fix
 		}
 		if c.ExpectedZone != "" && c.ExpectedZone != i.Spec.Zone {
 			t.Errorf("Case %v; zone: got %v; want %v", c.Name, i.Spec.Zone, c.ExpectedZone)

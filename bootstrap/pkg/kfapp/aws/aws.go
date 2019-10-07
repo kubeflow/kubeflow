@@ -39,6 +39,7 @@ import (
 	"github.com/ghodss/yaml"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -104,6 +105,10 @@ func (aws *Aws) GetPluginSpec() (*AwsPluginSpec, error) {
 // GetK8sConfig is only used with ksonnet packageManager. NotImplemented in this version, return nil to use default config for API compatibility.
 func (aws *Aws) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
 	return nil, nil
+}
+
+func (aws *Aws) GetKfConfig() *kfconfig.KfConfig {
+	return nil
 }
 
 func createNamespace(k8sClientset *clientset.Clientset, namespace string) error {

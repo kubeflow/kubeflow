@@ -64,6 +64,7 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 
 	config := &kfconfig.KfConfig{
 <<<<<<< HEAD
+<<<<<<< HEAD
 		Spec: kfconfig.KfConfigSpec{
 			AppDir:          kfdef.Spec.AppDir,
 			UseBasicAuth:    kfdef.Spec.UseBasicAuth,
@@ -86,6 +87,16 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 		SkipInitProject: kfdef.Spec.SkipInitProject
 		Zone:         kfdef.Spec.Zone,
 >>>>>>> e0cf7637... gcp use kfconfig
+=======
+		AppDir:          kfdef.Spec.AppDir,
+		UseBasicAuth:    kfdef.Spec.UseBasicAuth,
+		Project:         kfdef.Spec.Project,
+		Email:           kfdef.Spec.Email,
+		IpName:          kfdef.Spec.IpName,
+		Hostname:        kfdef.Spec.Hostname,
+		SkipInitProject: kfdef.Spec.SkipInitProject,
+		Zone:            kfdef.Spec.Zone,
+>>>>>>> 76342527... fix
 	}
 	if config.Spec.AppDir == "" {
 		config.Spec.AppDir = appdir

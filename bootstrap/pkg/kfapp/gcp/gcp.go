@@ -37,7 +37,6 @@ import (
 	"github.com/gogo/protobuf/proto"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/configconverters"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
@@ -85,7 +84,6 @@ const (
 	CLIENT_SECRET     = "CLIENT_SECRET"
 	BASIC_AUTH_SECRET = "kubeflow-login"
 	KUBECONFIG_FORMAT = "gke_{project}_{zone}_{cluster}"
-	KF_CONFIG_FILE    = "app.yaml"
 
 	// The default path in kubeflow/kubeflow to the deployment manager configs.
 	// TODO(jlewi): This is only provided for legacy reasons. In 0.7 the path should be set explicitly
@@ -120,6 +118,10 @@ type Setter interface {
 
 	// SetRunGetCredentials controls whether or not to run get credentials
 	SetRunGetCredentials(v bool)
+}
+
+func (gcp *Gcp) GetKfConfig() *kfconfig.KfConfig {
+	return gcp.kfDef
 }
 
 func (gcp *Gcp) SetTokenSource(s oauth2.TokenSource) error {
@@ -2132,14 +2134,6 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 		}
 	}
 
-	createConfigErr := configconverters.WriteConfigToFile(gcp.kfdef, KfConfigFile)
-	if createConfigErr != nil {
-		return &kfapis.KfError{
-			Code: createConfigErr.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("cannot create config file %v in %v: %v", kftypesv3.KfConfigFile, gcp.kfDef.AppDir,
-				createConfigErr.(*kfapis.KfError).Message),
-		}
-	}
 	return nil
 }
 
@@ -2218,13 +2212,13 @@ func (gcp *Gcp) gcpInitProject() error {
 
 // Init initializes a gcp kfapp
 func (gcp *Gcp) Init(resources kftypesv3.ResourceEnum) error {
-	createConfigErr := gcp.kfDef.WriteToConfigFile()
-	if createConfigErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("cannot create config file app.yaml in %v", gcp.kfDef.AppDir),
-		}
-	}
+	// createConfigErr := gcp.kfDef.WriteToConfigFile()
+	// if createConfigErr != nil {
+	// 	return &kfapis.KfError{
+	// 		Code:    int(kfapis.INVALID_ARGUMENT),
+	// 		Message: fmt.Sprintf("cannot create config file app.yaml in %v", gcp.kfDef.AppDir),
+	// 	}
+	// }
 
 	if !gcp.kfDef.SkipInitProject {
 		log.Infof("Not skipping GCP project init, running gcpInitProject.")
