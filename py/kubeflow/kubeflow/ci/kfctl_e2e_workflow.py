@@ -526,6 +526,7 @@ class Builder:
         # Failures still appear to be captured and stored in the junit file.
         "-s",
         "--config_path=" + self.config_path,
+        "--build_and_apply=" + str(self.build_and_apply),
         # Increase the log level so that info level log statements show up.
         # TODO(https://github.com/kubeflow/testing/issues/372): If we
         # set a unique artifacts dir for each workflow with the proper
