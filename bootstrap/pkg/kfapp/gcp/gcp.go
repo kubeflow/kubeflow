@@ -1965,21 +1965,21 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 	if gcp.kfDef.Spec.Project == "" {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: "Project not specified.",
+			Message: "Project not specified. Set PROJECT environment variable.",
 		}
 	}
 	gcp.kfDef.Spec.Zone = os.Getenv("EMAIL")
 	if gcp.kfDef.Spec.Email == "" {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: "email not specified.",
+			Message: "email not specified. Set EMAIL environment variable.",
 		}
 	}
 	gcp.kfDef.Spec.Zone = os.Getenv("ZONE")
 	if gcp.kfDef.Spec.Zone == "" {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: "zone not specified.",
+			Message: "zone not specified. Set ZONE environment variable.",
 		}
 	}
 	// Set default IPName and Hostname
