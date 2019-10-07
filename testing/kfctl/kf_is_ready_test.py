@@ -87,6 +87,13 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
     "prometheus",
   ]
   ingress_related_stateful_sets = []
+
+  knative_namespace = "knative-serving"
+  knative_related_deployments = [
+          "activator",
+          "autoscaler",
+          "controller",
+  ]
   
   if platform == "gcp":
     deployment_names.extend(["cloud-endpoints-controller"])
@@ -100,6 +107,7 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
   elif platform == "existing_arrikto":
     deployment_names.extend(["dex"])
     ingress_related_deployments.extend(["authservice"])
+    knative_related_deployments = []
 
 
   # TODO(jlewi): Might want to parallelize this.
@@ -127,12 +135,6 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
 
   # TODO(jlewi): We should verify that the ingress is created and healthy.
 
-  knative_namespace = "knative-serving"
-  knative_related_deployments = [
-          "activator",
-          "autoscaler",
-          "controller",
-  ]
   for deployment_name in knative_related_deployments:
     logging.info("Verifying that deployment %s started...", deployment_name)
     util.wait_for_deployment(api_client, knative_namespace, deployment_name, 10)
