@@ -365,11 +365,6 @@ func (c *KfConfig) SetPluginFailed(pluginKind PluginKindType, msg string) {
 	c.SetCondition(failedCond, v1.ConditionTrue, "", msg)
 }
 
-// TODO: Implement this.
-func (c *KfConfig) WriteToConfigFile() error {
-	return nil
-}
-
 // SyncCache will synchronize the local cache of any repositories.
 // On success the status is updated with pointers to the cache.
 //
