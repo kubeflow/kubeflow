@@ -24,7 +24,6 @@
       spec: {
         group: "kubeflow.org",
         scope: "Namespaced",
-        version: "v1",
         names: {
           kind: "PyTorchJob",
           singular: "pytorchjob",
@@ -50,11 +49,6 @@
             name: "v1",
             served: true,
             storage: true,
-          },
-          {
-            name: "v1beta2",
-            served: true,
-            storage: false,
           },
         ],
         validation: {

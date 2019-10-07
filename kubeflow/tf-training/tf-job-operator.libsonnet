@@ -85,11 +85,6 @@
             served: true,
             storage: true,
           },
-          {
-            name: "v1beta2",
-            served: true,
-            storage: false,
-          },
         ],
       },
     },
@@ -231,7 +226,6 @@
     local rules = {
       tfJobsRule:: rule.new() + rule.
         withApiGroupsMixin([
-        "tensorflow.org",
         "kubeflow.org",
       ],).
         withResourcesMixin([
@@ -250,17 +244,6 @@
         "services",
         "endpoints",
         "events",
-      ],).
-        withVerbsMixin([
-        "*",
-      ],),
-      tfAppsRule:: rule.new() + rule.
-        withApiGroupsMixin([
-        "apps",
-        "extensions",
-      ],).
-        withResourcesMixin([
-        "deployments",
       ],).
         withVerbsMixin([
         "*",
