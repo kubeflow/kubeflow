@@ -64,13 +64,6 @@ The flatten flag discards both registry and name components except for the last 
 			return err
 		}
 
-		changeList := []string{}
-		defer func() {
-			for _, change := range changeList {
-				fmt.Println(change)
-			}
-		}()
-
 		return filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -95,7 +88,7 @@ The flatten flag discards both registry and name components except for the last 
 						newName := setImageName(image.Name, newNameComponents)
 						log.Infof("Replacing image name from %s to %s", image.Name, newName)
 						kustomization.Images[i].NewName = newName
-						changeList = append(changeList, fmt.Sprintf("%s=%s", imageToString(image), imageToString(kustomization.Images[i])))
+						fmt.Printf("%s=%s\n", imageToString(image), imageToString(kustomization.Images[i]))
 					}
 
 					if err := os.Remove(kustomizationFilePath); err != nil {
