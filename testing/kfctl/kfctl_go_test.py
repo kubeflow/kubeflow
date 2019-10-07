@@ -14,7 +14,8 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
     project: The GCP project to use.
     use_basic_auth: Whether to use basic_auth.
     use_istio: Whether to use Istio or not
-    config_path: config_path: Path to the KFDef spec file.
+    config_path: Path to the KFDef spec file.
+    build_and_apply: whether to build and apply or apply
   """
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
