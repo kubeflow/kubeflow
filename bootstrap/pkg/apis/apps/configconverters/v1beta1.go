@@ -71,38 +71,41 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 		}
 		config.Plugins = append(config.Plugins, p)
 
-    if plugin.Kind == string(kfconfig.GCP_PLUGIN_KIND) {
-            specBytes, err := yaml.Marshal(plugin.Spec)
-            if err != nil {
-                    return nil, &kfapis.KfError{
-                            Code: int(kfapis.INTERNAL_ERROR),
-                            Message: fmt.Sprintf("could not marshal GCP plugin spec: %v", err),
-                    }
-            }
-            var s map[string]interface{}
-            err = yaml.Unmarshal(specBytes, &s)
-            if err != nil {
-                    return nil, &kfapis.KfError{
-                            Code: int(kfapis.INTERNAL_ERROR),
-                            Message: fmt.Sprintf("could not unmarshal GCP plugin spec: %v", err),
-                    }
-            }
-            if p, ok := s["project"]; ok {
-                    config.Project = p.(string)
-            }
-            if e, ok := s["email"]; ok {
-                    config.Email = e.(string)
-            }
-            if i, ok := s["ipName"]; ok {
-                    config.IpName = i.(string)
-            }
-            if h, ok := s["hostname"]; ok {
-                    config.Hostname = h.(string)
-            }
-            if z, ok := s["zone"]; ok {
-                    config.Zone = z.(string)
-            }
-    }
+		if plugin.Kind == string(kfconfig.GCP_PLUGIN_KIND) {
+			specBytes, err := yaml.Marshal(plugin.Spec)
+			if err != nil {
+				return nil, &kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("could not marshal GCP plugin spec: %v", err),
+				}
+			}
+			var s map[string]interface{}
+			err = yaml.Unmarshal(specBytes, &s)
+			if err != nil {
+				return nil, &kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("could not unmarshal GCP plugin spec: %v", err),
+				}
+			}
+			if p, ok := s["project"]; ok {
+				config.Project = p.(string)
+			}
+			if e, ok := s["email"]; ok {
+				config.Email = e.(string)
+			}
+			if i, ok := s["ipName"]; ok {
+				config.IpName = i.(string)
+			}
+			if h, ok := s["hostname"]; ok {
+				config.Hostname = h.(string)
+			}
+			if h, ok := s["skipInitProject"]; ok {
+				config.SkipInitProject = h.(string)
+			}
+			if z, ok := s["zone"]; ok {
+				config.Zone = z.(string)
+			}
+		}
 	}
 
 	for _, secret := range kfdef.Spec.Secrets {

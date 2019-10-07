@@ -67,6 +67,7 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 		Email:        kfdef.Spec.Email,
 		IpName:       kfdef.Spec.IpName,
 		Hostname:     kfdef.Spec.Hostname,
+		SkipInitProject: kfdef.Spec.SkipInitProject
 		Zone:         kfdef.Spec.Zone,
 	}
 	if config.AppDir == "" {

@@ -28,6 +28,7 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/v3/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/configconverters"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/aws"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/existing_arrikto"
@@ -107,11 +108,21 @@ func getConfigFromCache(pathDir string, kfDef *kfdefsv3.KfDef) ([]byte, error) {
 // GetPlatform will return an implementation of kftypesv3.GetPlatform that matches the platform string
 // It looks for statically compiled-in implementations, otherwise throws unrecognized error
 func getPlatform(kfdef *kfdefsv3.KfDef) (kftypesv3.Platform, error) {
+	kfdefBytes, err := yaml.Marshal(kfdef)
+	if err != nil {
+		return nil, err
+	}
+	converter := configconverters.V1alpha1{}
+	kfconfig, err := converter.ToKfConfig(kfdef.Spec.AppDir, kfdefBytes)
+	if err != nil {
+		return nil, err
+	}
+
 	switch kfdef.Spec.Platform {
 	case string(kftypesv3.MINIKUBE):
 		return minikube.Getplatform(kfdef), nil
 	case string(kftypesv3.GCP):
-		return gcp.GetPlatform(kfdef)
+		return gcp.GetPlatform(kfconfig)
 	case string(kftypesv3.EXISTING_ARRIKTO):
 		return existing_arrikto.GetPlatform(kfdef)
 	case string(kftypesv3.AWS):
