@@ -402,6 +402,7 @@ func (c *KfConfig) SetPluginFailed(pluginKind PluginKindType, msg string) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // TODO: Implement this.
 func (c *KfConfig) WriteToConfigFile() error {
@@ -409,6 +410,8 @@ func (c *KfConfig) WriteToConfigFile() error {
 }
 
 >>>>>>> e0cf7637... gcp use kfconfig
+=======
+>>>>>>> e000efa9... fix write config
 // SyncCache will synchronize the local cache of any repositories.
 // On success the status is updated with pointers to the cache.
 //

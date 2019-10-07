@@ -37,6 +37,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/configconverters"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
@@ -84,6 +85,7 @@ const (
 	CLIENT_SECRET     = "CLIENT_SECRET"
 	BASIC_AUTH_SECRET = "kubeflow-login"
 	KUBECONFIG_FORMAT = "gke_{project}_{zone}_{cluster}"
+	KF_CONFIG_FILE    = "app.yaml"
 
 	// The default path in kubeflow/kubeflow to the deployment manager configs.
 	// TODO(jlewi): This is only provided for legacy reasons. In 0.7 the path should be set explicitly
@@ -2130,7 +2132,7 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 		}
 	}
 
-	createConfigErr := gcp.kfDef.WriteToConfigFile()
+	createConfigErr := configconverters.WriteConfigToFile(gcp.kfdef, KfConfigFile)
 	if createConfigErr != nil {
 		return &kfapis.KfError{
 			Code: createConfigErr.(*kfapis.KfError).Code,
