@@ -11,10 +11,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/pkg/errors"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"sigs.k8s.io/kind/pkg/cluster"
 	"sigs.k8s.io/kind/pkg/cluster/create"
@@ -95,7 +95,7 @@ func (kind *Kind) Delete(resources kftypesv3.ResourceEnum) error {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("Could not delete KinD cluster: %v", err),
-		}	
+		}
 	}
 	return nil
 }
@@ -119,12 +119,12 @@ func CreateKindCluster(clusterName string, kind *Kind) error {
 	kindManifestsDir := kind.KfDef.Status.ReposCache["manifests"].LocalPath + "/kind"
 	kindConfigFilePath := kindManifestsDir + "/kind-config.yaml"
 	// KinD Node Image version
-	imageName := "kindest/node:v1.15.0@sha256:b4d092fd2b507843dd096fe6c85d06a27a0cbd740a0b32a880fe61aba24bb478"
+	//imageName := "kindest/node:v1.15.0@sha256:b4d092fd2b507843dd096fe6c85d06a27a0cbd740a0b32a880fe61aba24bb478"
 
 	// Create KinD cluster
 	if err = ctx.Create(
 		create.WithConfigFile(kindConfigFilePath),
-		create.WithNodeImage(imageName),
+		//create.WithNodeImage(imageName),
 		create.Retain(true),
 		create.WaitForReady(time.Duration(60)*time.Second),
 	); err != nil {
@@ -136,7 +136,7 @@ func CreateKindCluster(clusterName string, kind *Kind) error {
 		}
 		return errors.Wrap(err, "failed to create cluster")
 	}
-	
+
 	// Set Kubeconfig to the newly created cluster
 	os.Setenv("KUBECONFIG", KubeconfigPath)
 	time.Sleep(30 * time.Second)
