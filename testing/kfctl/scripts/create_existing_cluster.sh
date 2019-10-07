@@ -18,7 +18,7 @@ gcloud container clusters create "${CLUSTER_NAME}" \
 --zone "${GCP_ZONE}" \
 --username "admin" \
 --cluster-version "${CLUSTER_VERSION}" \
---machine-type "n1-standard-4" --num-nodes "1" \
+--machine-type "custom-6-23040" --num-nodes "1" \
 --image-type "UBUNTU" \
 --local-ssd-count=4 \
 --disk-type "pd-ssd" --disk-size "50" \
