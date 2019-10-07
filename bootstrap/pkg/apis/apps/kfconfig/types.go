@@ -23,7 +23,10 @@ const (
 	DefaultCacheDir = ".cache"
 )
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // Internal data structure to hold app related info.
+// +k8s:openapi-gen=true
 type KfConfig struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

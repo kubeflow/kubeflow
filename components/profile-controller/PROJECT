@@ -1,3 +1,7 @@
-version: "1"
+version: "2"
 domain: kubeflow.org
-repo: github.com/kubeflow/kubeflow/components/profile-controller
+repo: github.com/kubeflow/kubeflow
+resources:
+- group: profile
+  version: v1beta1
+  kind: Profile

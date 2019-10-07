@@ -4,9 +4,6 @@ import {flush} from '@polymer/polymer/lib/utils/flush.js';
 
 import './main-page';
 import {mockRequest} from '../ajax_test_helper';
-import {
-    IFRAME_CONNECTED_EVENT, PARENT_CONNECTED_EVENT, NAMESPACE_SELECTED_EVENT,
-} from '../library';
 
 const FIXTURE_ID = 'main-page-fixture';
 const MAIN_PAGE_SELECTOR_ID = 'test-main-page';
@@ -96,10 +93,6 @@ describe('Main Page', () => {
     it('Sets view state when iframe page is active', () => {
         spyOn(mainPage.$.MainDrawer, 'close');
 
-        const locationSpy = jasmine.createSpyObj('spyLocation', ['replace']);
-        spyOnProperty(mainPage.$.PageFrame, 'contentWindow')
-            .and.returnValue({location: locationSpy});
-
         mainPage.set('queryParams.ns', 'test');
         mainPage.subRouteData.path = '/jupyter/';
         mainPage._routePageChanged('_');
@@ -112,11 +105,6 @@ describe('Main Page', () => {
         expect(mainPage.shadowRoot.getElementById('ViewTabs')
             .hasAttribute('hidden')).toBe(true);
         expect(mainPage.$.MainDrawer.close).toHaveBeenCalled();
-
-        const expected = new RegExp(`^${window.location.origin}/jupyter/`);
-        const calledWith = locationSpy.replace.calls.argsFor(0);
-        expect(calledWith).toMatch(expected);
-        expect(calledWith).not.toContain('ns=test');
     });
 
     it('Sets view state when an invalid page is specified from an iframe',
@@ -233,30 +221,13 @@ describe('Main Page', () => {
             .toEqual(['default', 'kubeflow', 'namespace-2']);
     });
 
-    it('Communicates with iframed page after it connects', async () => {
-        mainPage.namespace = 'another-namespace';
-        const iframeMessagesPromise = new Promise((resolve) => {
-            const messages = [];
-            spyOn(mainPage.$.PageFrame.contentWindow,
-                'postMessage').and.callFake((m) => {
-                messages.push(m);
-                if (messages.length === 2) {
-                    resolve(messages);
-                }
-            });
-        });
-
-        window.postMessage({type: IFRAME_CONNECTED_EVENT});
-        const messages = await iframeMessagesPromise;
-        expect(messages).toEqual([
-            {
-                type: PARENT_CONNECTED_EVENT,
-                value: null,
-            },
-            {
-                type: NAMESPACE_SELECTED_EVENT,
-                value: 'another-namespace',
-            },
-        ]);
+    it('Pushes to history when iframe page changes', () => {
+        const historySpy = spyOn(window.history, 'pushState');
+        mainPage.iframePage = '/notebooks?blah=bar';
+        mainPage.iframePage = '/pipelines/create/new';
+        expect(historySpy).toHaveBeenCalledWith(null, null,
+            '/_/notebooks?blah=bar');
+        expect(historySpy).toHaveBeenCalledWith(null, null,
+            '/_/pipelines/create/new');
     });
 });

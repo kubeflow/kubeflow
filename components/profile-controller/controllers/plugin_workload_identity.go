@@ -1,0 +1,129 @@
+/*
+Copyright 2019 The Kubeflow Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package controllers
+
+import (
+	"context"
+	"fmt"
+	"github.com/go-logr/logr"
+	profilev1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/iam/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"regexp"
+)
+
+// plugin kind
+const WORKLOAD_IDENTITY = "WorkloadIdentity"
+
+const GCP_ANNOTATION_KEY = "iam.gke.io/gcp-service-account"
+const GCP_SA_SUFFIX = ".iam.gserviceaccount.com"
+
+// GcpWorkloadIdentity: plugin that setup GKE workload identity (credentials for GCP API) for target profile namespace.
+type GcpWorkloadIdentity struct {
+	GcpServiceAccount string `json:"gcpserviceaccount,omitempty"`
+}
+
+// ApplyPlugin will grant GCP workload identity to service account DEFAULT_EDITOR
+func (gcp *GcpWorkloadIdentity) ApplyPlugin(r *ProfileReconciler, profile *profilev1beta1.Profile) error {
+	logger := r.Log.WithValues("profile", profile.Name)
+	if err := gcp.patchAnnotation(r, profile.Name, DEFAULT_EDITOR, logger); err != nil {
+		return err
+	}
+	logger.Info("Setting up iam policy.", "ServiceAccount", gcp.GcpServiceAccount)
+	return gcp.setupWorkloadIdentity(profile.Name, DEFAULT_EDITOR)
+}
+
+// GetProjectID will return GCP project id of GcpServiceAccount. Will return empty string if cannot parse GcpServiceAccount
+func (gcp *GcpWorkloadIdentity) GetProjectID() (string, error) {
+	if gcp.GcpServiceAccount[len(gcp.GcpServiceAccount)-len(GCP_SA_SUFFIX):len(gcp.GcpServiceAccount)] !=
+		GCP_SA_SUFFIX {
+		return "", fmt.Errorf("%v is not a valid GCP service account.", gcp.GcpServiceAccount)
+	}
+	re := regexp.MustCompile("\\@(.*?)\\.")
+	match := re.FindStringSubmatch(gcp.GcpServiceAccount)
+	if match == nil {
+		return "", fmt.Errorf("Cannot extract project id from %v.", gcp.GcpServiceAccount)
+	}
+	return match[1], nil
+}
+
+// setupWorkloadIdentity creates the k8s service accounts and IAM bindings for them
+func (gcp *GcpWorkloadIdentity) patchAnnotation(r *ProfileReconciler, namespace string, ksa string, logger logr.Logger) error {
+	ctx := context.Background()
+	found := &corev1.ServiceAccount{}
+	err := r.Get(ctx, types.NamespacedName{Name: ksa, Namespace: namespace}, found)
+	if err != nil {
+		return err
+	}
+	if found.Annotations == nil {
+		found.Annotations = map[string]string{GCP_ANNOTATION_KEY: gcp.GcpServiceAccount}
+	} else {
+		found.Annotations[GCP_ANNOTATION_KEY] = gcp.GcpServiceAccount
+	}
+	logger.Info("Patch Annotation for service account: ", "namespace ", namespace, "name ", ksa)
+	return r.Update(ctx, found)
+}
+
+// setupWorkloadIdentity creates the k8s service accounts and IAM bindings for them
+func (gcp *GcpWorkloadIdentity) setupWorkloadIdentity(namespace string, ksa string) error {
+	projectID, err := gcp.GetProjectID()
+	if err != nil {
+		return err
+	}
+	ctx := context.Background()
+	gcpSa := gcp.GcpServiceAccount
+	// Get credentials.
+	client, err := google.DefaultClient(context.Background(), iam.CloudPlatformScope)
+	if err != nil {
+		return err
+	}
+
+	// Create the Cloud IAM service object.
+	iamService, err := iam.New(client)
+	if err != nil {
+		return err
+	}
+	saResource := fmt.Sprintf("projects/%v/serviceAccounts/%v", projectID, gcpSa)
+
+	// get policy
+	currentPolicy, err := iamService.Projects.ServiceAccounts.GetIamPolicy(saResource).Context(ctx).Do()
+	if err != nil {
+		return err
+	}
+
+	// update policy
+	newBinding := iam.Binding{}
+	newBinding.Role = "roles/iam.workloadIdentityUser"
+	newBinding.Members = []string{
+		fmt.Sprintf("serviceAccount:%v.svc.id.goog[%v/%v]", projectID, namespace, ksa),
+	}
+	currentPolicy.Bindings = append(currentPolicy.Bindings, &newBinding)
+
+	// Set iam policy
+	req := &iam.SetIamPolicyRequest{
+		Policy: currentPolicy,
+	}
+	_, err = iamService.Projects.ServiceAccounts.SetIamPolicy(saResource, req).Context(ctx).Do()
+	return err
+}
+
+// RevokePlugin: do nothing today.
+func (gcp *GcpWorkloadIdentity) RevokePlugin(r *ProfileReconciler, profile *profilev1beta1.Profile) error {
+	return nil
+}

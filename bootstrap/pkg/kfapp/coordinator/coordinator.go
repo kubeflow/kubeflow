@@ -18,6 +18,7 @@ package coordinator
 
 import (
 	"fmt"
+	"io/ioutil"
 	"path"
 	"path/filepath"
 	"strings"
@@ -381,6 +382,70 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv3.KfDef, er
 	return kfDef, nil
 }
 
+// NewLoadKfAppFromURI takes in a config file and constructs the KfApp
+// used by the build and apply semantics for kfctl
+func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
+	kfDef, err := kfdefsv3.LoadKFDefFromURI(configFile)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
+		}
+	}
+	// basic auth check and warn
+	useBasicAuth := kfDef.Spec.UseBasicAuth
+	if useBasicAuth && (os.Getenv(kftypesv3.KUBEFLOW_USERNAME) == "" ||
+		os.Getenv(kftypesv3.KUBEFLOW_PASSWORD) == "") {
+		// Printing warning message instead of bailing out as both ENV are used in apply,
+		// not init.
+		log.Warnf("you need to set the environment variable %s to the username you "+
+			"want to use to login and variable %s to the password you want to use.",
+			kftypesv3.KUBEFLOW_USERNAME, kftypesv3.KUBEFLOW_PASSWORD)
+	}
+	// check if zone is set and warn ONLY for GCP
+	isPlatformGCP := kfDef.Spec.Platform == "gcp"
+	if isPlatformGCP && os.Getenv("ZONE") == "" {
+		log.Warn("you need to set the environment variable `ZONE` to the GCP zone you want to use")
+	}
+	appFile, err := CreateKfAppCfgFile(kfDef)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
+		}
+	}
+	kfApp, err := LoadKfAppCfgFile(appFile)
+	if err != nil || kfApp == nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
+		}
+	}
+	return kfApp, nil
+}
+
+// BuildKfAppFromURI used by both build and apply for the new code path
+func BuildKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
+	// Construct KfApp from config file
+	kfApp, err := NewLoadKfAppFromURI(configFile)
+	if err != nil || kfApp == nil {
+		return nil, err
+	}
+
+	// KfApp Init
+	err = kfApp.Init(kftypesv3.ALL)
+	if err != nil {
+		return nil, fmt.Errorf("KfApp initiliazation failed: %v", err)
+	}
+
+	// kfApp Generate
+	generateErr := kfApp.Generate(kftypesv3.ALL)
+	if generateErr != nil {
+		return nil, fmt.Errorf("couldn't generate KfApp: %v", generateErr)
+	}
+	return kfApp, nil
+}
+
 // CreateKfAppCfgFile will create the application directory and persist
 // the KfDef to it as app.yaml.
 // Returns an error if the app.yaml file already exists
@@ -645,6 +710,63 @@ func LoadKfApp(options map[string]interface{}) (kftypesv3.KfApp, error) {
 	return LoadKfAppCfgFile(cfgfile)
 }
 
+// GetKfAppFromCfgFile gets the KfApp from app.yaml for `kfctl delete`
+// Why not use LoadKfAppCfgFile?
+// Because LoadKfAppCfgFile is used by the build and apply commands for checking if the cwd is empty
+// For delete, the cwd is not emptyu so we need a different way to load the KfApp
+func GetKfAppFromCfgFile(appFile string, deleteStorage bool) (kftypesv3.KfApp, error) {
+	// Read contents
+	configFileBytes, err := ioutil.ReadFile(appFile)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not read from config file %s: %v", appFile, err),
+		}
+	}
+	// Unmarshal content onto KfDef struct
+	kfDef := &kfdefsv3.KfDef{}
+	if err := yaml.Unmarshal(configFileBytes, kfDef); err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not unmarshal config file onto KfDef struct: %v", err),
+		}
+	}
+	kfDef.Spec.DeleteStorage = deleteStorage
+	c := &coordinator{
+		Platforms:       make(map[string]kftypesv3.Platform),
+		PackageManagers: make(map[string]kftypesv3.KfApp),
+		KfDef:           kfDef,
+	}
+	// fetch the platform [gcp,minikube]
+	platform := c.KfDef.Spec.Platform
+	if platform != "" {
+		_platform, _platformErr := getPlatform(c.KfDef)
+		if _platformErr != nil {
+			log.Fatalf("could not get platform %v Error %v **", platform, _platformErr)
+			return nil, _platformErr
+		}
+		if _platform != nil {
+			c.Platforms[platform] = _platform
+		}
+	}
+
+	packageManager := c.KfDef.Spec.PackageManager
+
+	if packageManager != "" {
+		pkg, pkgErr := getPackageManager(c.KfDef)
+		if pkgErr != nil {
+			log.Fatalf("could not get package manager %v Error %v **", packageManager, pkgErr)
+			return nil, pkgErr
+		}
+		if pkg != nil {
+			c.PackageManagers[packageManager] = pkg
+		}
+	}
+
+	return c, nil
+
+}
+
 // LoadKfAppCfgFile constructs a KfApp by loading the provided app.yaml file.
 func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 	// Set default TypeMeta information. This will get overwritten by explicit values if set in the cfg file.
@@ -758,7 +880,8 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 		return nil
 	}
 
-	gcpAddedConfig := func() error {
+	// TODO(kunming): move to profile v1beta1 so it can be applied to all user namespaces
+	_ = func() error {
 		if kfapp.KfDef.Spec.Email == "" || kfapp.KfDef.Spec.Platform != kftypesv3.GCP {
 			return nil
 		}
@@ -790,7 +913,7 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 		if err := k8s(); err != nil {
 			return err
 		}
-		return gcpAddedConfig()
+		return nil
 	case kftypesv3.PLATFORM:
 		return platform()
 	case kftypesv3.K8S:
@@ -799,7 +922,7 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 		}
 		// TODO(gabrielwen): Need to find a more proper way of injecting plugings.
 		// https://github.com/kubeflow/kubeflow/issues/3708
-		return gcpAddedConfig()
+		return nil
 	}
 	return nil
 }
