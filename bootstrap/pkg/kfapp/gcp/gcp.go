@@ -1963,19 +1963,19 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 	// Added an alternate way to set using enironment variables
 	if gcp.kfDef.Spec.Project == "" {
 		return &kfapis.KfError{
-			Code:    kftypesv3.INVALID_ARGUMENT,
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: "GCP Project is not set, please set it in KFDef.",
 		}
 	}
 	if gcp.kfDef.Spec.Email == "" {
 		return &kfapis.KfError{
-			Code:    kftypesv3.INVALID_ARGUMENT,
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: "GCP account could not be determined, please set Email in KFDef.",
 		}
 	}
 	if gcp.kfDef.Spec.Zone == "" {
 		return &kfapis.KfError{
-			Code:    kftypesv3.INVALID_ARGUMENT,
+			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: "GCP Zone is not set, please set it in KFDef.",
 		}
 	}
