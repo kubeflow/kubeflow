@@ -23,8 +23,10 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 
 	// Set UseBasicAuth later.
 	config := &kfconfig.KfConfig{
-		AppDir:       appdir,
-		UseBasicAuth: false,
+		Spec: kfconfig.KfConfigSpec{
+			AppDir:       appdir,
+			UseBasicAuth: false,
+		},
 	}
 	config.Name = kfdef.Name
 	config.Namespace = kfdef.Namespace
@@ -47,7 +49,7 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 
 				// Use application to infer whether UseBasicAuth is true.
 				if kref.Path == "common/basic-auth" {
-					config.UseBasicAuth = true
+					config.Spec.UseBasicAuth = true
 				}
 			}
 			for _, param := range app.KustomizeConfig.Parameters {
@@ -59,7 +61,7 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 			}
 			application.KustomizeConfig = kconfig
 		}
-		config.Applications = append(config.Applications, application)
+		config.Spec.Applications = append(config.Spec.Applications, application)
 	}
 
 	for _, plugin := range kfdef.Spec.Plugins {
@@ -69,7 +71,7 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 			Kind:      kfconfig.PluginKindType(plugin.Kind),
 			Spec:      plugin.Spec,
 		}
-		config.Plugins = append(config.Plugins, p)
+		config.Spec.Plugins = append(config.Spec.Plugins, p)
 
 		if plugin.Kind == string(kfconfig.GCP_PLUGIN_KIND) {
 			specBytes, err := yaml.Marshal(plugin.Spec)
@@ -88,22 +90,22 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 				}
 			}
 			if p, ok := s["project"]; ok {
-				config.Project = p.(string)
+				config.Spec.Project = p.(string)
 			}
 			if e, ok := s["email"]; ok {
-				config.Email = e.(string)
+				config.Spec.Email = e.(string)
 			}
 			if i, ok := s["ipName"]; ok {
-				config.IpName = i.(string)
+				config.Spec.IpName = i.(string)
 			}
 			if h, ok := s["hostname"]; ok {
-				config.Hostname = h.(string)
+				config.Spec.Hostname = h.(string)
 			}
 			if h, ok := s["skipInitProject"]; ok {
 				config.SkipInitProject = h.(bool)
 			}
 			if z, ok := s["zone"]; ok {
-				config.Zone = z.(string)
+				config.Spec.Zone = z.(string)
 			}
 		}
 	}
@@ -113,7 +115,7 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 			Name: secret.Name,
 		}
 		if secret.SecretSource == nil {
-			config.Secrets = append(config.Secrets, s)
+			config.Spec.Secrets = append(config.Spec.Secrets, s)
 			continue
 		}
 		src := &kfconfig.SecretSource{}
@@ -127,7 +129,7 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 			}
 		}
 		s.SecretSource = src
-		config.Secrets = append(config.Secrets, s)
+		config.Spec.Secrets = append(config.Spec.Secrets, s)
 	}
 
 	for _, repo := range kfdef.Spec.Repos {
@@ -135,7 +137,7 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 			Name: repo.Name,
 			URI:  repo.URI,
 		}
-		config.Repos = append(config.Repos, r)
+		config.Spec.Repos = append(config.Spec.Repos, r)
 	}
 
 	for _, cond := range kfdef.Status.Conditions {
@@ -168,7 +170,7 @@ func (v V1beta1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 	kfdef.APIVersion = config.APIVersion
 	kfdef.Kind = "KfDef"
 
-	for _, app := range config.Applications {
+	for _, app := range config.Spec.Applications {
 		application := kfdeftypes.Application{
 			Name: app.Name,
 		}
@@ -195,7 +197,7 @@ func (v V1beta1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 		kfdef.Spec.Applications = append(kfdef.Spec.Applications, application)
 	}
 
-	for _, plugin := range config.Plugins {
+	for _, plugin := range config.Spec.Plugins {
 		p := kfdeftypes.Plugin{
 			Spec: plugin.Spec,
 		}
@@ -203,7 +205,7 @@ func (v V1beta1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 		kfdef.Spec.Plugins = append(kfdef.Spec.Plugins, p)
 	}
 
-	for _, secret := range config.Secrets {
+	for _, secret := range config.Spec.Secrets {
 		s := kfdeftypes.Secret{
 			Name: secret.Name,
 		}
@@ -223,7 +225,7 @@ func (v V1beta1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 		kfdef.Spec.Secrets = append(kfdef.Spec.Secrets, s)
 	}
 
-	for _, repo := range config.Repos {
+	for _, repo := range config.Spec.Repos {
 		r := kfdeftypes.Repo{
 			Name: repo.Name,
 			URI:  repo.URI,

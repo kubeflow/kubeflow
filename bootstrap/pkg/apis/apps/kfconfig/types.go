@@ -31,6 +31,12 @@ type KfConfig struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
+	Spec   KfConfigSpec `json:"spec,omitempty"`
+	Status Status       `json:"status,omitempty"`
+}
+
+// The spec of kKfConfig
+type KfConfigSpec struct {
 	// Shared fields among all components. should limit this list.
 	// TODO(gabrielwen): Deprecate AppDir and move it to cache in Status.
 	AppDir string `json:"appDir,omitempty"`
@@ -52,7 +58,6 @@ type KfConfig struct {
 	Plugins      []Plugin      `json:"plugins,omitempty"`
 	Secrets      []Secret      `json:"secrets,omitempty"`
 	Repos        []Repo        `json:"repos,omitempty"`
-	Status       Status        `json:"status,omitempty"`
 }
 
 // Application defines an application to install
@@ -192,7 +197,7 @@ func GetPluginFailedCondition(pluginKind PluginKindType) ConditionType {
 }
 
 func (c *KfConfig) GetPluginSpec(pluginKind PluginKindType, s interface{}) error {
-	for _, p := range c.Plugins {
+	for _, p := range c.Spec.Plugins {
 		if p.Kind != pluginKind {
 			continue
 		}
@@ -256,7 +261,7 @@ func (c *KfConfig) SetPluginSpec(pluginKind PluginKindType, spec interface{}) er
 
 	index := -1
 
-	for i, p := range c.Plugins {
+	for i, p := range c.Spec.Plugins {
 		if p.Kind == pluginKind {
 			index = i
 			break
@@ -270,12 +275,12 @@ func (c *KfConfig) SetPluginSpec(pluginKind PluginKindType, spec interface{}) er
 		p := Plugin{}
 		p.Name = string(pluginKind)
 		p.Kind = pluginKind
-		c.Plugins = append(c.Plugins, p)
+		c.Spec.Plugins = append(c.Spec.Plugins, p)
 
-		index = len(c.Plugins) - 1
+		index = len(c.Spec.Plugins) - 1
 	}
 
-	c.Plugins[index].Spec = r
+	c.Spec.Plugins[index].Spec = r
 	return nil
 }
 
