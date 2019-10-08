@@ -405,11 +405,11 @@ func (c *KfConfig) SetPluginFailed(pluginKind PluginKindType, msg string) {
 // kubeflow-manifests-${COMMIT}
 //
 func (c *KfConfig) SyncCache() error {
-	if c.AppDir == "" {
+	if c.Spec.AppDir == "" {
 		return fmt.Errorf("AppDir must be specified")
 	}
 
-	appDir := c.AppDir
+	appDir := c.Spec.AppDir
 	// Loop over all the repos and download them.
 	// TODO(https://github.com/kubeflow/kubeflow/issues/3545): We should check if we already have a local copy and
 	// not redownload it.
@@ -424,7 +424,7 @@ func (c *KfConfig) SyncCache() error {
 		}
 	}
 
-	for _, r := range c.Repos {
+	for _, r := range c.Spec.Repos {
 		cacheDir := path.Join(baseCacheDir, r.Name)
 
 		// Can we use a checksum or other mechanism to verify if the existing location is good?
@@ -498,7 +498,7 @@ func (c *KfConfig) SyncCache() error {
 
 // GetSecret returns the specified secret or an error if the secret isn't specified.
 func (c *KfConfig) GetSecret(name string) (string, error) {
-	for _, s := range c.Secrets {
+	for _, s := range c.Spec.Secrets {
 		if s.Name != name {
 			continue
 		}
@@ -520,8 +520,8 @@ func (c *KfConfig) GetSecret(name string) (string, error) {
 // GetApplicationParameter gets the desired application parameter.
 func (c *KfConfig) GetApplicationParameter(appName string, paramName string) (string, bool) {
 	// First we check applications for an application with the specified name.
-	if c.Applications != nil {
-		for _, a := range c.Applications {
+	if c.Spec.Applications != nil {
+		for _, a := range c.Spec.Applications {
 			if a.Name == appName {
 				return getParameter(a.KustomizeConfig.Parameters, paramName)
 			}
@@ -534,9 +534,9 @@ func (c *KfConfig) GetApplicationParameter(appName string, paramName string) (st
 // SetApplicationParameter sets the desired application parameter.
 func (c *KfConfig) SetApplicationParameter(appName string, paramName string, value string) error {
 	// First we check applications for an application with the specified name.
-	if c.Applications != nil {
+	if c.Spec.Applications != nil {
 		appIndex := -1
-		for i, a := range c.Applications {
+		for i, a := range c.Spec.Applications {
 			if a.Name == appName {
 				appIndex = i
 			}
@@ -544,12 +544,12 @@ func (c *KfConfig) SetApplicationParameter(appName string, paramName string, val
 
 		if appIndex >= 0 {
 
-			if c.Applications[appIndex].KustomizeConfig == nil {
+			if c.Spec.Applications[appIndex].KustomizeConfig == nil {
 				return errors.WithStack(fmt.Errorf("Application %v doesn't have KustomizeConfig", appName))
 			}
 
-			c.Applications[appIndex].KustomizeConfig.Parameters = setParameter(
-				c.Applications[appIndex].KustomizeConfig.Parameters, paramName, value)
+			c.Spec.Applications[appIndex].KustomizeConfig.Parameters = setParameter(
+				c.Spec.Applications[appIndex].KustomizeConfig.Parameters, paramName, value)
 
 			return nil
 		}
@@ -560,14 +560,14 @@ func (c *KfConfig) SetApplicationParameter(appName string, paramName string, val
 
 // SetSecret sets the specified secret; if a secret with the given name already exists it is overwritten.
 func (c *KfConfig) SetSecret(newSecret Secret) {
-	for i, s := range c.Secrets {
+	for i, s := range c.Spec.Secrets {
 		if s.Name == newSecret.Name {
-			c.Secrets[i] = newSecret
+			c.Spec.Secrets[i] = newSecret
 			return
 		}
 	}
 
-	c.Secrets = append(c.Secrets, newSecret)
+	c.Spec.Secrets = append(c.Spec.Secrets, newSecret)
 }
 
 func IsPluginNotFound(e error) bool {

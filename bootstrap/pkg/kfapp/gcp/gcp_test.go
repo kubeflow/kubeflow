@@ -34,17 +34,19 @@ func TestGcp_buildBasicAuthSecret(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Namespace: "gcpnamespace",
 					},
-					Plugins: []kfconfig.Plugin{
-						{
-							Name: "gcp",
+					Spec: kfconfig.KfConfigSpec{
+						Plugins: []kfconfig.Plugin{
+							{
+								Name: "gcp",
+							},
 						},
-					},
-					Secrets: []kfconfig.Secret{
-						{
-							Name: "passwordSecret",
-							SecretSource: &kfconfig.SecretSource{
-								LiteralSource: &kfconfig.LiteralSource{
-									Value: "somepassword",
+						Secrets: []kfconfig.Secret{
+							{
+								Name: "passwordSecret",
+								SecretSource: &kfconfig.SecretSource{
+									LiteralSource: &kfconfig.LiteralSource{
+										Value: "somepassword",
+									},
 								},
 							},
 						},
@@ -118,7 +120,9 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		{
 			Name: "no-plugin-basic-auth",
 			Input: &kfconfig.KfConfig{
-				UseBasicAuth: true,
+				Spec: kfconfig.KfConfigSpec{
+					UseBasicAuth: true,
+				},
 			},
 			Env: map[string]string{
 				kftypes.KUBEFLOW_USERNAME: "someuser",
@@ -146,7 +150,9 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		{
 			Name: "no-plugin-iap",
 			Input: &kfconfig.KfConfig{
-				UseBasicAuth: false,
+				Spec: kfconfig.KfConfigSpec{
+					UseBasicAuth: true,
+				},
 			},
 			Env: map[string]string{
 				CLIENT_ID: "someclient",
@@ -173,7 +179,9 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		{
 			Name: "set-email",
 			Input: &kfconfig.KfConfig{
-				UseBasicAuth: false,
+				Spec: kfconfig.KfConfigSpec{
+					UseBasicAuth: true,
+				},
 			},
 			Env: map[string]string{
 				CLIENT_ID: "someclient",
@@ -205,7 +213,9 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			// Make sure emails get trimmed.
 			Name: "trim-email",
 			Input: &kfconfig.KfConfig{
-				UseBasicAuth: false,
+				Spec: kfconfig.KfConfigSpec{
+					UseBasicAuth: true,
+				},
 			},
 			Env: map[string]string{
 				CLIENT_ID: "someclient",
@@ -238,7 +248,9 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			// Make sure emails get trimmed.
 			Name: "no-override",
 			Input: &kfconfig.KfConfig{
-				UseBasicAuth: false,
+				Spec: kfconfig.KfConfigSpec{
+					UseBasicAuth: true,
+				},
 			},
 			InputSpec: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(false),
@@ -272,7 +284,9 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		{
 			Name: "iap-not-overwritten",
 			Input: &kfconfig.KfConfig{
-				UseBasicAuth: false,
+				Spec: kfconfig.KfConfigSpec{
+					UseBasicAuth: true,
+				},
 			},
 			InputSpec: &GcpPluginSpec{
 				Auth: &Auth{
@@ -309,7 +323,9 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		{
 			Name: "basic-auth-not-overwritten",
 			Input: &kfconfig.KfConfig{
-				UseBasicAuth: false,
+				Spec: kfconfig.KfConfigSpec{
+					UseBasicAuth: true,
+				},
 			},
 			InputSpec: &GcpPluginSpec{
 				Auth: &Auth{
@@ -346,7 +362,9 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		{
 			Name: "dm-configs-not-overwritten",
 			Input: &kfconfig.KfConfig{
-				UseBasicAuth: false,
+				Spec: kfconfig.KfConfigSpec{
+					UseBasicAuth: true,
+				},
 			},
 			InputSpec: &GcpPluginSpec{
 				Auth: &Auth{
@@ -431,8 +449,8 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		}
 
 		if c.ExpectedEmail != "" {
-			if c.ExpectedEmail != i.Email {
-				t.Errorf("Case %v; email: got %v; want %v", c.Name, i.Email, c.ExpectedEmail)
+			if c.ExpectedEmail != i.Spec.Email {
+				t.Errorf("Case %v; email: got %v; want %v", c.Name, i.Spec.Email, c.ExpectedEmail)
 			}
 		}
 	}

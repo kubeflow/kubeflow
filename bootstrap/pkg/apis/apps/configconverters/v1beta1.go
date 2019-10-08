@@ -102,7 +102,7 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 				config.Spec.Hostname = h.(string)
 			}
 			if h, ok := s["skipInitProject"]; ok {
-				config.SkipInitProject = h.(bool)
+				config.Spec.SkipInitProject = h.(bool)
 			}
 			if z, ok := s["zone"]; ok {
 				config.Spec.Zone = z.(string)

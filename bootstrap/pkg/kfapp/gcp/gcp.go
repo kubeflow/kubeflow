@@ -382,7 +382,7 @@ func blockingWait(project string, deploymentmanagerService *deploymentmanager.Se
 }
 
 func (gcp *Gcp) updateDeployment(deploymentmanagerService *deploymentmanager.Service, deployment string, yamlfile string) (*dmOperationEntry, error) {
-	appDir := gcp.kfDef.AppDir
+	appDir := gcp.kfDef.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
 	ctx := context.Background()
 
@@ -670,7 +670,7 @@ func (gcp *Gcp) updateDM(resources kftypesv3.ResourceEnum) error {
 			Message: fmt.Sprintf("Error creating deploymentmanagerService: %v", err),
 		}
 	}
-	if _, storageStatErr := os.Stat(path.Join(gcp.kfDef.AppDir, GCP_CONFIG, STORAGE_FILE)); !os.IsNotExist(storageStatErr) {
+	if _, storageStatErr := os.Stat(path.Join(gcp.kfDef.Spec.AppDir, GCP_CONFIG, STORAGE_FILE)); !os.IsNotExist(storageStatErr) {
 		storageEntry, err := gcp.updateDeployment(deploymentmanagerService, gcp.kfDef.Name+"-storage", STORAGE_FILE)
 		if err != nil {
 			return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("could not update %v", STORAGE_FILE))
@@ -682,14 +682,14 @@ func (gcp *Gcp) updateDM(resources kftypesv3.ResourceEnum) error {
 		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("could not update %v", CONFIG_FILE))
 	}
 	dmOperationEntries = append(dmOperationEntries, dmEntry)
-	if _, networkStatErr := os.Stat(path.Join(gcp.kfDef.AppDir, GCP_CONFIG, NETWORK_FILE)); networkStatErr == nil {
+	if _, networkStatErr := os.Stat(path.Join(gcp.kfDef.Spec.AppDir, GCP_CONFIG, NETWORK_FILE)); networkStatErr == nil {
 		networkEntry, err := gcp.updateDeployment(deploymentmanagerService, gcp.kfDef.Name+"-network", NETWORK_FILE)
 		if err != nil {
 			return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("could not update %v", NETWORK_FILE))
 		}
 		dmOperationEntries = append(dmOperationEntries, networkEntry)
 	}
-	if _, gcfsStatErr := os.Stat(path.Join(gcp.kfDef.AppDir, GCP_CONFIG, GCFS_FILE)); gcfsStatErr == nil {
+	if _, gcfsStatErr := os.Stat(path.Join(gcp.kfDef.Spec.AppDir, GCP_CONFIG, GCFS_FILE)); gcfsStatErr == nil {
 		gcfsEntry, err := gcp.updateDeployment(deploymentmanagerService, gcp.kfDef.Name+"-gcfs", GCFS_FILE)
 		if err != nil {
 			return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("could not update %v", GCFS_FILE))
@@ -721,7 +721,7 @@ func (gcp *Gcp) updateDM(resources kftypesv3.ResourceEnum) error {
 		return err
 	}
 
-	appDir := gcp.kfDef.AppDir
+	appDir := gcp.kfDef.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
 	iamPolicy, iamPolicyErr := utils.ReadIamBindingsYAML(
 		filepath.Join(gcpConfigDir, "iam_bindings.yaml"))
@@ -994,10 +994,10 @@ func (gcp *Gcp) Delete(resources kftypesv3.ResourceEnum) error {
 	if gcp.kfDef.Spec.DeleteStorage {
 		deletingDeployments = append(deletingDeployments, gcp.kfDef.Name+"-storage")
 	}
-	if _, networkStatErr := os.Stat(path.Join(gcp.kfDef.AppDir, GCP_CONFIG, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
+	if _, networkStatErr := os.Stat(path.Join(gcp.kfDef.Spec.AppDir, GCP_CONFIG, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
 		deletingDeployments = append(deletingDeployments, gcp.kfDef.Name+"-network")
 	}
-	if _, gcfsStatErr := os.Stat(path.Join(gcp.kfDef.AppDir, GCP_CONFIG, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
+	if _, gcfsStatErr := os.Stat(path.Join(gcp.kfDef.Spec.AppDir, GCP_CONFIG, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
 		deletingDeployments = append(deletingDeployments, gcp.kfDef.Name+"-gcfs")
 	}
 
@@ -1285,7 +1285,7 @@ func (gcp *Gcp) generateDMConfigs() error {
 		return nil
 	}
 
-	appDir := gcp.kfDef.AppDir
+	appDir := gcp.kfDef.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
 	gcpConfigDirErr := os.MkdirAll(gcpConfigDir, os.ModePerm)
 	if gcpConfigDirErr != nil {
@@ -2162,11 +2162,11 @@ func (gcp *Gcp) Init(resources kftypesv3.ResourceEnum) error {
 	// if createConfigErr != nil {
 	// 	return &kfapis.KfError{
 	// 		Code:    int(kfapis.INVALID_ARGUMENT),
-	// 		Message: fmt.Sprintf("cannot create config file app.yaml in %v", gcp.kfDef.AppDir),
+	// 		Message: fmt.Sprintf("cannot create config file app.yaml in %v", gcp.kfDef.Spec.AppDir),
 	// 	}
 	// }
 
-	if !gcp.kfDef.SkipInitProject {
+	if !gcp.kfDef.Spec.SkipInitProject {
 		log.Infof("Not skipping GCP project init, running gcpInitProject.")
 		initProjectErr := gcp.gcpInitProject()
 		if initProjectErr != nil {
