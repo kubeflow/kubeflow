@@ -396,6 +396,11 @@ func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 	if isPlatformGCP && os.Getenv("ZONE") == "" {
 		log.Warn("you need to set the environment variable `ZONE` to the GCP zone you want to use")
 	}
+
+	if kfDef.Spec.PackageManager == "" {
+		kfDef.Spec.PackageManager = kftypesv3.KUSTOMIZE
+	}
+
 	appFile, err := CreateKfAppCfgFile(kfDef)
 	if err != nil {
 		return nil, &kfapis.KfError{
