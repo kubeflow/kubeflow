@@ -329,4 +329,5 @@ plugins:
 repos:
 - name: manifests
   uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
+skipInitProject: true
 status: {}

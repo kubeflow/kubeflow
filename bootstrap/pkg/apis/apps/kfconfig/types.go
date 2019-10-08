@@ -10,7 +10,7 @@ import (
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	"github.com/hashicorp/go-getter/helper/url"
-	kfapis "github.com/kubeflow/kfctl/v3/pkg/apis"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
