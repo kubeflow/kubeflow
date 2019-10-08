@@ -282,6 +282,7 @@ func (v V1alpha1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 		kfdef.Spec.Repos = append(kfdef.Spec.Repos, r)
 	}
 
+	kfdef.Status = kfdeftypes.KfDefStatus{}
 	for _, cond := range config.Status.Conditions {
 		c := kfdeftypes.KfDefCondition{
 			Type:               kfdeftypes.KfDefConditionType(cond.Type),
@@ -294,6 +295,7 @@ func (v V1alpha1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 		kfdef.Status.Conditions = append(kfdef.Status.Conditions, c)
 	}
 
+	kfdef.Status.ReposCache = make(map[string]kfdeftypes.RepoCache)
 	for _, cache := range config.Status.Caches {
 		kfdef.Status.ReposCache[cache.Name] = kfdeftypes.RepoCache{
 			LocalPath: cache.LocalPath,

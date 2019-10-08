@@ -91,7 +91,7 @@ const (
 	DEFAULT_DM_PATH = "deployment/gke/deployment_manager_configs"
 
 	// Plugin parameter constants
-	GcpPluginName               = kftypesv3.GCP
+	GcpPluginName               = "KfGcpPlugin"
 	GcpAccessTokenName          = "accessToken"
 	BasicAuthPasswordSecretName = "password"
 )
@@ -2158,14 +2158,6 @@ func (gcp *Gcp) gcpInitProject() error {
 
 // Init initializes a gcp kfapp
 func (gcp *Gcp) Init(resources kftypesv3.ResourceEnum) error {
-	// createConfigErr := gcp.kfDef.WriteToConfigFile()
-	// if createConfigErr != nil {
-	// 	return &kfapis.KfError{
-	// 		Code:    int(kfapis.INVALID_ARGUMENT),
-	// 		Message: fmt.Sprintf("cannot create config file app.yaml in %v", gcp.kfDef.Spec.AppDir),
-	// 	}
-	// }
-
 	if !gcp.kfDef.Spec.SkipInitProject {
 		log.Infof("Not skipping GCP project init, running gcpInitProject.")
 		initProjectErr := gcp.gcpInitProject()
