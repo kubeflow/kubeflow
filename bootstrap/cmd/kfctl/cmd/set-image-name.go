@@ -45,6 +45,8 @@ var setImageNameCmd = &cobra.Command{
 	Long: `Sets custom image names for kubeflow components.
 
 Replaces the image name in kubeflow manifests with the specified prefix, to support custom image registries.
+Changes are printed to stdout in the form of <old>=<new>, which can then be used to mirror the images.
+
 It assumes that all components specify images in kustomization.yaml, base or overlay. Expected prefix format is
 <registry>[:port][/component]*
 
