@@ -333,6 +333,7 @@ spec:
   repos:
   - name: manifests
     uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
+<<<<<<< HEAD
   skipInitProject: true
   useIstio: true
 =======
@@ -356,4 +357,7 @@ repos:
   uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
 skipInitProject: true
 >>>>>>> 6dcd08a7... fix test
+=======
+  SkipInitProject: true
+>>>>>>> d54bfc48... fix test
 status: {}

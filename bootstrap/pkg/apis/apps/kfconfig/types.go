@@ -449,6 +449,7 @@ func (c *KfConfig) WriteToConfigFile() error {
 //
 func (c *KfConfig) SyncCache() error {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if c.Spec.AppDir == "" {
 		return fmt.Errorf("AppDir must be specified")
 	}
@@ -461,6 +462,13 @@ func (c *KfConfig) SyncCache() error {
 
 	appDir := c.AppDir
 >>>>>>> e0cf7637... gcp use kfconfig
+=======
+	if c.Spec.AppDir == "" {
+		return fmt.Errorf("AppDir must be specified")
+	}
+
+	appDir := c.Spec.AppDir
+>>>>>>> d54bfc48... fix test
 	// Loop over all the repos and download them.
 	// TODO(https://github.com/kubeflow/kubeflow/issues/3545): We should check if we already have a local copy and
 	// not redownload it.
@@ -476,10 +484,14 @@ func (c *KfConfig) SyncCache() error {
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	for _, r := range c.Spec.Repos {
 =======
 	for _, r := range c.Repos {
 >>>>>>> e0cf7637... gcp use kfconfig
+=======
+	for _, r := range c.Spec.Repos {
+>>>>>>> d54bfc48... fix test
 		cacheDir := path.Join(baseCacheDir, r.Name)
 
 		// Can we use a checksum or other mechanism to verify if the existing location is good?
@@ -554,10 +566,14 @@ func (c *KfConfig) SyncCache() error {
 // GetSecret returns the specified secret or an error if the secret isn't specified.
 func (c *KfConfig) GetSecret(name string) (string, error) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	for _, s := range c.Spec.Secrets {
 =======
 	for _, s := range c.Secrets {
 >>>>>>> e0cf7637... gcp use kfconfig
+=======
+	for _, s := range c.Spec.Secrets {
+>>>>>>> d54bfc48... fix test
 		if s.Name != name {
 			continue
 		}
@@ -580,12 +596,17 @@ func (c *KfConfig) GetSecret(name string) (string, error) {
 func (c *KfConfig) GetApplicationParameter(appName string, paramName string) (string, bool) {
 	// First we check applications for an application with the specified name.
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if c.Spec.Applications != nil {
 		for _, a := range c.Spec.Applications {
 =======
 	if c.Applications != nil {
 		for _, a := range c.Applications {
 >>>>>>> e0cf7637... gcp use kfconfig
+=======
+	if c.Spec.Applications != nil {
+		for _, a := range c.Spec.Applications {
+>>>>>>> d54bfc48... fix test
 			if a.Name == appName {
 				return getParameter(a.KustomizeConfig.Parameters, paramName)
 			}
@@ -599,6 +620,7 @@ func (c *KfConfig) GetApplicationParameter(appName string, paramName string) (st
 func (c *KfConfig) SetApplicationParameter(appName string, paramName string, value string) error {
 	// First we check applications for an application with the specified name.
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if c.Spec.Applications != nil {
 		appIndex := -1
 		for i, a := range c.Spec.Applications {
@@ -607,6 +629,11 @@ func (c *KfConfig) SetApplicationParameter(appName string, paramName string, val
 		appIndex := -1
 		for i, a := range c.Applications {
 >>>>>>> e0cf7637... gcp use kfconfig
+=======
+	if c.Spec.Applications != nil {
+		appIndex := -1
+		for i, a := range c.Spec.Applications {
+>>>>>>> d54bfc48... fix test
 			if a.Name == appName {
 				appIndex = i
 			}
@@ -614,6 +641,7 @@ func (c *KfConfig) SetApplicationParameter(appName string, paramName string, val
 
 		if appIndex >= 0 {
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 			if c.Spec.Applications[appIndex].KustomizeConfig == nil {
 				return errors.WithStack(fmt.Errorf("Application %v doesn't have KustomizeConfig", appName))
@@ -629,6 +657,14 @@ func (c *KfConfig) SetApplicationParameter(appName string, paramName string, val
 			c.Applications[appIndex].KustomizeConfig.Parameters = setParameter(
 				c.Applications[appIndex].KustomizeConfig.Parameters, paramName, value)
 >>>>>>> e0cf7637... gcp use kfconfig
+=======
+			if c.Spec.Applications[appIndex].KustomizeConfig == nil {
+				return errors.WithStack(fmt.Errorf("Application %v doesn't have KustomizeConfig", appName))
+			}
+
+			c.Spec.Applications[appIndex].KustomizeConfig.Parameters = setParameter(
+				c.Spec.Applications[appIndex].KustomizeConfig.Parameters, paramName, value)
+>>>>>>> d54bfc48... fix test
 
 			return nil
 		}
@@ -640,6 +676,7 @@ func (c *KfConfig) SetApplicationParameter(appName string, paramName string, val
 // SetSecret sets the specified secret; if a secret with the given name already exists it is overwritten.
 func (c *KfConfig) SetSecret(newSecret Secret) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	for i, s := range c.Spec.Secrets {
 		if s.Name == newSecret.Name {
 			c.Spec.Secrets[i] = newSecret
@@ -648,15 +685,24 @@ func (c *KfConfig) SetSecret(newSecret Secret) {
 		if s.Name == newSecret.Name {
 			c.Secrets[i] = newSecret
 >>>>>>> e0cf7637... gcp use kfconfig
+=======
+	for i, s := range c.Spec.Secrets {
+		if s.Name == newSecret.Name {
+			c.Spec.Secrets[i] = newSecret
+>>>>>>> d54bfc48... fix test
 			return
 		}
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	c.Spec.Secrets = append(c.Spec.Secrets, newSecret)
 =======
 	c.Secrets = append(c.Secrets, newSecret)
 >>>>>>> e0cf7637... gcp use kfconfig
+=======
+	c.Spec.Secrets = append(c.Spec.Secrets, newSecret)
+>>>>>>> d54bfc48... fix test
 }
 
 func IsPluginNotFound(e error) bool {
