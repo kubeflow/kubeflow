@@ -137,7 +137,8 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 				},
 				backoff.WithMaxRetries(backoff.NewConstantBackOff(3*time.Second), 5))
 			if err != nil {
-				return reconcile.Result{}, err
+				return r.appendErrorConditionAndReturn(ctx, instance,
+					"Owning namespace failed to create within 15 seconds")
 			}
 			logger.Info("Created Namespace: "+foundNs.Name, "status", foundNs.Status.Phase)
 		} else {
@@ -149,15 +150,8 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 		if (!ok) || val != instance.Spec.Owner.Name {
 			logger.Info(fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
 				instance.Spec.Owner.Name))
-			instance.Status.Conditions = append(instance.Status.Conditions, profilev1beta1.ProfileCondition{
-				Type: profilev1beta1.ProfileFailed,
-				Message: fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
-					instance.Spec.Owner.Name),
-			})
-			if err := r.Update(ctx, instance); err != nil {
-				return reconcile.Result{}, err
-			}
-			return reconcile.Result{}, nil
+			return r.appendErrorConditionAndReturn(ctx, instance, fmt.Sprintf(
+				"namespace already exist, but not owned by profile creator %v", instance.Spec.Owner.Name))
 		}
 	}
 
@@ -262,11 +256,22 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 				return ctrl.Result{}, err
 			}
 		}
-
-		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil
+}
+
+// appendErrorConditionAndReturn append failure status to profile CR and mark Reconcile done. If update condition failed, request will be requeued.
+func (r *ProfileReconciler) appendErrorConditionAndReturn(ctx context.Context, instance *profilev1beta1.Profile,
+	message string) (ctrl.Result, error) {
+	instance.Status.Conditions = append(instance.Status.Conditions, profilev1beta1.ProfileCondition{
+		Type: profilev1beta1.ProfileFailed,
+		Message: message,
+	})
+	if err := r.Update(ctx, instance); err != nil {
+		return reconcile.Result{}, err
+	}
+	return reconcile.Result{}, nil
 }
 
 func (r *ProfileReconciler) SetupWithManager(mgr ctrl.Manager) error {
