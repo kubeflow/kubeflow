@@ -17,7 +17,10 @@ limitations under the License.
 package controllers
 
 import (
+	"fmt"
+	"google.golang.org/api/iam/v1"
 	"github.com/onsi/gomega"
+	"reflect"
 	"testing"
 )
 
@@ -25,7 +28,107 @@ func TestGetProjectID(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 	instance := &GcpWorkloadIdentity{GcpServiceAccount: "kubeflow@project-id.iam.gserviceaccount.com"}
 	projId, _ := instance.GetProjectID()
-
 	g.Expect(projId, "project-id")
+}
 
+type TestCase struct {
+	// Original iam policy.
+	currentPolicy *iam.Policy
+	// member pending change
+	member string
+	// Expected output policy
+	expectedPolicy *iam.Policy
+}
+
+func IamPolicyToString(input *iam.Policy) string {
+	policy, err := input.MarshalJSON()
+	if err != nil {
+		return fmt.Sprintf("Unable to parse policy: %v", err)
+	}
+	return string(policy)
+}
+
+func TestAddBinding(t *testing.T) {
+	tests := []TestCase{
+		{
+			currentPolicy: &iam.Policy{
+				Bindings: []*iam.Binding{
+					{
+						Role: "roles/iam.workloadIdentityUser",
+						Members: []string{
+							"serviceAccount:kfctl.svc.id.goog[istio-system/kf-user]",
+							"serviceAccount:kfctl.svc.id.goog[kubeflow-user1/default-editor]",
+						},
+					},
+				},
+				Etag: "ShouldKeep",
+			},
+			member: "serviceAccount:kfctl.svc.id.goog[should/add]",
+			expectedPolicy: &iam.Policy{
+				Bindings: []*iam.Binding{
+					{
+						Role: "roles/iam.workloadIdentityUser",
+						Members: []string{
+							"serviceAccount:kfctl.svc.id.goog[istio-system/kf-user]",
+							"serviceAccount:kfctl.svc.id.goog[kubeflow-user1/default-editor]",
+						},
+					},
+					{
+						Role: "roles/iam.workloadIdentityUser",
+						Members: []string{
+							"serviceAccount:kfctl.svc.id.goog[should/add]",
+						},
+					},
+				},
+				Etag: "ShouldKeep",
+			},
+		},
+	}
+	for _, test := range tests {
+		addBinding(test.currentPolicy, test.member)
+		if !reflect.DeepEqual(test.currentPolicy, test.expectedPolicy) {
+			t.Errorf("Expect:\n%v; Output:\n%v", IamPolicyToString(test.expectedPolicy),
+				IamPolicyToString(test.currentPolicy))
+		}
+	}
+}
+
+func TestRevokeBinding(t *testing.T) {
+	tests := []TestCase{
+		{
+			currentPolicy: &iam.Policy{
+				Bindings: []*iam.Binding{
+					{
+						Role: "roles/iam.workloadIdentityUser",
+						Members: []string{
+							"serviceAccount:kfctl.svc.id.goog[istio-system/kf-user]",
+							"serviceAccount:kfctl.svc.id.goog[kubeflow-user1/default-editor]",
+							"serviceAccount:kfctl.svc.id.goog[should/remove]",
+						},
+					},
+				},
+				Etag: "ShouldKeep",
+			},
+			member: "serviceAccount:kfctl.svc.id.goog[should/remove]",
+			expectedPolicy: &iam.Policy{
+				Bindings: []*iam.Binding{
+					{
+						Role: "roles/iam.workloadIdentityUser",
+						Members: []string{
+							"serviceAccount:kfctl.svc.id.goog[istio-system/kf-user]",
+							"serviceAccount:kfctl.svc.id.goog[kubeflow-user1/default-editor]",
+						},
+					},
+				},
+				Etag: "ShouldKeep",
+			},
+		},
+	}
+	for _, test := range tests {
+		revokeBinding(test.currentPolicy, test.member)
+		if !reflect.DeepEqual(test.currentPolicy, test.expectedPolicy) {
+			t.Errorf("Expect:\n%v; Output:\n%v", IamPolicyToString(test.expectedPolicy),
+				IamPolicyToString(test.currentPolicy))
+		}
+	}
 }
