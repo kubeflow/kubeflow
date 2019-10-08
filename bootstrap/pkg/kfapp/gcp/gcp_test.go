@@ -167,7 +167,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			Name: "no-plugin-iap",
 			Input: &kfconfig.KfConfig{
 				Spec: kfconfig.KfConfigSpec{
-					UseBasicAuth: true,
+					UseBasicAuth: false,
 				},
 			},
 			Env: map[string]string{
@@ -196,7 +196,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			Name: "set-email",
 			Input: &kfconfig.KfConfig{
 				Spec: kfconfig.KfConfigSpec{
-					UseBasicAuth: true,
+					UseBasicAuth: false,
 				},
 			},
 			Env: map[string]string{
@@ -238,7 +238,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			Name: "trim-email",
 			Input: &kfconfig.KfConfig{
 				Spec: kfconfig.KfConfigSpec{
-					UseBasicAuth: true,
+					UseBasicAuth: false,
 				},
 			},
 			Env: map[string]string{
@@ -273,7 +273,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			Name: "no-override",
 			Input: &kfconfig.KfConfig{
 				Spec: kfconfig.KfConfigSpec{
-					UseBasicAuth: true,
+					UseBasicAuth: false,
 				},
 			},
 			InputSpec: &GcpPluginSpec{
@@ -309,7 +309,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			Name: "iap-not-overwritten",
 			Input: &kfconfig.KfConfig{
 				Spec: kfconfig.KfConfigSpec{
-					UseBasicAuth: true,
+					UseBasicAuth: false,
 				},
 			},
 			InputSpec: &GcpPluginSpec{
