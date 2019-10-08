@@ -11,10 +11,14 @@ import (
 	gogetter "github.com/hashicorp/go-getter"
 	"github.com/hashicorp/go-getter/helper/url"
 <<<<<<< HEAD
+<<<<<<< HEAD
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 =======
 	kfapis "github.com/kubeflow/kfctl/v3/pkg/apis"
 >>>>>>> e0cf7637... gcp use kfconfig
+=======
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
+>>>>>>> 6dcd08a7... fix test
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"

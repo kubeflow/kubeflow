@@ -1,0 +1,31 @@
+metadata:
+  creationTimestamp: null
+spec:
+  applications:
+  - kustomizeConfig:
+      overlays:
+      - someoverlay
+      parameters:
+      - name: p1
+        value: v1
+      repoRef:
+        name: manifests
+        path: /gcp/istio/istio-crds
+    name: istio-crds
+  componentParams:
+    istio-crds:
+    - name: overlay
+      value: someoverlay
+    - name: p1
+      value: v1
+  components:
+  - istio-crds
+  enableApplications: false
+  packages:
+  - istio-crds
+  useBasicAuth: false
+  useIstio: false
+status:
+  reposCache:
+    manifests:
+      localPath: '"/cache/manifests"'

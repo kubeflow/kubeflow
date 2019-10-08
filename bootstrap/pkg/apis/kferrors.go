@@ -42,6 +42,11 @@ func (e *KfError) Error() string {
 		e.Code, e.Message)
 }
 
+func IsNotFound(e error) bool {
+	kfError, ok := e.(*KfError)
+	return ok && kfError.Code == int(NOT_FOUND)
+}
+
 // NewKfErrorWithMessage will propogate the error with the given message.
 //
 // TODO(jlewi): Not sure this is the best way to propogate the error messages and turn them

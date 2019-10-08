@@ -1912,7 +1912,7 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 	pluginSpec := &GcpPluginSpec{}
 	err := gcp.kfDef.GetPluginSpec(GcpPluginName, pluginSpec)
 
-	if err != nil && !kfdefs.IsPluginNotFound(err) {
+	if err != nil && !kfapis.IsNotFound(err) {
 		log.Errorf("There was a problem getting the gcp plugin %v", err)
 		return errors.WithStack(err)
 	}
