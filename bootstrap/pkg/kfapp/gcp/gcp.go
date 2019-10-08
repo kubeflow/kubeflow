@@ -178,7 +178,7 @@ func (gcp *Gcp) initGcpClient() error {
 		// Something has gone wrong. So we guard against that.
 		// If accessToken is provided gcp.TokenSource should be set and we should use
 		// that.
-		if _, err := gcp.kfDef.GetSecret(GcpAccessTokenName); !kfdefs.IsSecretNotFound(err) {
+		if _, err := gcp.kfDef.GetSecret(GcpAccessTokenName); !kfconfig.IsSecretNotFound(err) {
 			return errors.WithStack(fmt.Errorf("Gcp.tokenSource is nil and secret %v is in KfDef; Gcp.tokenSource must be set explicitly; using a default token source is not allowed in this case", GcpAccessTokenName))
 		}
 		log.Infof("Creating default token source")
