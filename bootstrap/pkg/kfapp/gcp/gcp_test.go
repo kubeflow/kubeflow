@@ -78,7 +78,7 @@ func TestGcp_buildBasicAuthSecret(t *testing.T) {
 
 	for _, c := range cases {
 
-		err := c.Gcp.kfDef.SetPluginSpec("gcp", c.GcpPluginSpec)
+		err := c.Gcp.kfDef.SetPluginSpec("KfGcpPlugin", c.GcpPluginSpec)
 
 		if err != nil {
 			t.Fatalf("Could not set pluginspec")
