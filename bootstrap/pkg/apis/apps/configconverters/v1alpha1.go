@@ -61,16 +61,18 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 	}
 
 	config := &kfconfig.KfConfig{
-		AppDir:       kfdef.Spec.AppDir,
-		UseBasicAuth: kfdef.Spec.UseBasicAuth,
-		Project:      kfdef.Spec.Project,
-		Email:        kfdef.Spec.Email,
-		IpName:       kfdef.Spec.IpName,
-		Hostname:     kfdef.Spec.Hostname,
-		Zone:         kfdef.Spec.Zone,
+		Spec: kfconfig.KfConfigSpec{
+			AppDir:       kfdef.Spec.AppDir,
+			UseBasicAuth: kfdef.Spec.UseBasicAuth,
+			Project:      kfdef.Spec.Project,
+			Email:        kfdef.Spec.Email,
+			IpName:       kfdef.Spec.IpName,
+			Hostname:     kfdef.Spec.Hostname,
+			Zone:         kfdef.Spec.Zone,
+		},
 	}
-	if config.AppDir == "" {
-		config.AppDir = appdir
+	if config.Spec.AppDir == "" {
+		config.Spec.AppDir = appdir
 	}
 	config.Name = kfdef.Name
 	config.Namespace = kfdef.Namespace
@@ -100,7 +102,7 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 			}
 			application.KustomizeConfig = kconfig
 		}
-		config.Applications = append(config.Applications, application)
+		config.Spec.Applications = append(config.Spec.Applications, application)
 	}
 
 	for _, plugin := range kfdef.Spec.Plugins {
@@ -110,7 +112,7 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 			Kind:      pluginNameToKind(plugin.Name),
 			Spec:      plugin.Spec,
 		}
-		config.Plugins = append(config.Plugins, p)
+		config.Spec.Plugins = append(config.Spec.Plugins, p)
 	}
 	specCopiers := []func(*kfdeftypes.KfDef, *kfconfig.KfConfig) error{
 		copyGcpPluginSpec,
@@ -130,7 +132,7 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 			Name: secret.Name,
 		}
 		if secret.SecretSource == nil {
-			config.Secrets = append(config.Secrets, s)
+			config.Spec.Secrets = append(config.Spec.Secrets, s)
 			continue
 		}
 		src := &kfconfig.SecretSource{}
@@ -144,7 +146,7 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 			}
 		}
 		s.SecretSource = src
-		config.Secrets = append(config.Secrets, s)
+		config.Spec.Secrets = append(config.Spec.Secrets, s)
 	}
 
 	for _, repo := range kfdef.Spec.Repos {
@@ -152,7 +154,7 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 			Name: repo.Name,
 			URI:  repo.Uri,
 		}
-		config.Repos = append(config.Repos, r)
+		config.Spec.Repos = append(config.Spec.Repos, r)
 	}
 
 	for _, cond := range kfdef.Status.Conditions {
@@ -184,8 +186,8 @@ func (v V1alpha1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 	kfdef.APIVersion = config.APIVersion
 	kfdef.Kind = "KfDef"
 
-	kfdef.Spec.AppDir = config.AppDir
-	kfdef.Spec.UseBasicAuth = config.UseBasicAuth
+	kfdef.Spec.AppDir = config.Spec.AppDir
+	kfdef.Spec.UseBasicAuth = config.Spec.UseBasicAuth
 	// Should be deprecated, hardcode it just to be safe.
 	kfdef.Spec.EnableApplications = true
 	kfdef.Spec.UseIstio = true
@@ -202,7 +204,7 @@ func (v V1alpha1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 		kfdef.Spec.DeleteStorage = gcpSpec.DeleteStorage
 	}
 
-	for _, app := range config.Applications {
+	for _, app := range config.Spec.Applications {
 		application := kfdeftypes.Application{
 			Name: app.Name,
 		}
@@ -230,7 +232,7 @@ func (v V1alpha1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 	}
 
 	platform := ""
-	for _, plugin := range config.Plugins {
+	for _, plugin := range config.Spec.Plugins {
 		p := kfdeftypes.Plugin{
 			Name: plugin.Name,
 			Spec: plugin.Spec,
@@ -251,7 +253,7 @@ func (v V1alpha1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 	}
 	kfdef.Spec.Platform = platform
 
-	for _, secret := range config.Secrets {
+	for _, secret := range config.Spec.Secrets {
 		s := kfdeftypes.Secret{
 			Name: secret.Name,
 		}
@@ -271,7 +273,7 @@ func (v V1alpha1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 		kfdef.Spec.Secrets = append(kfdef.Spec.Secrets, s)
 	}
 
-	for _, repo := range config.Repos {
+	for _, repo := range config.Spec.Repos {
 		r := kfdeftypes.Repo{
 			Name: repo.Name,
 			Uri:  repo.URI,
