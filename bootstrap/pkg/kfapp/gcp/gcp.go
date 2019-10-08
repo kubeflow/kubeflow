@@ -1962,13 +1962,22 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 	// the runGetGCPCredentials don't seem to work because those are shelled out commands
 	// Added an alternate way to set using enironment variables
 	if gcp.kfDef.Spec.Project == "" {
-		log.Warnf("GCP Project is not set, please set it in KFDef.")
+		return &kfapis.KfError{
+			Code:    kftypesv3.INVALID_ARGUMENT,
+			Message: "GCP Project is not set, please set it in KFDef.",
+		}
 	}
 	if gcp.kfDef.Spec.Email == "" {
-		log.Warnf("GCP account could not be determined, please set Email in KFDef.")
+		return &kfapis.KfError{
+			Code:    kftypesv3.INVALID_ARGUMENT,
+			Message: "GCP account could not be determined, please set Email in KFDef.",
+		}
 	}
 	if gcp.kfDef.Spec.Zone == "" {
-		log.Warnf("GCP Zone is not set, please set it in KFDef.")
+		return &kfapis.KfError{
+			Code:    kftypesv3.INVALID_ARGUMENT,
+			Message: "GCP Zone is not set, please set it in KFDef.",
+		}
 	}
 	// Set default IPName and Hostname
 	// This needs to happen before calling generateDM configs.
