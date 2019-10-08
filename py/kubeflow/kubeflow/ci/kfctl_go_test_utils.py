@@ -128,7 +128,7 @@ def filter_spartakus(spec):
       break
   return spec
 
-def get_config_spec(config_path, project, email, app_path):
+def get_config_spec(config_path, project, email, zone, app_path):
   """Generate KfDef spec.
 
   Args:
@@ -137,6 +137,7 @@ def get_config_spec(config_path, project, email, app_path):
     https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
     project: The GCP project to use.
     email: a valid email of the GCP account
+    zone: a valid GCP zone for the cluster.
     app_path: The path to the Kubeflow app.
   Returns:
     config_spec: Updated KfDef spec
@@ -147,6 +148,7 @@ def get_config_spec(config_path, project, email, app_path):
   config_spec = load_config(config_path)
   config_spec["spec"]["project"] = project
   config_spec["spec"]["email"] = email
+  config_spec["spec"]["zone"] = zone
   config_spec["spec"] = filter_spartakus(config_spec["spec"])
 
   # Set KfDef name to be unique
@@ -196,7 +198,6 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   logging.info("kfctl path %s", kfctl_path)
   # TODO(nrchakradhar): Probably move all the environ sets to set_env_init_args
   zone = 'us-central1-a'
-  os.environ["ZONE"] = zone
   if not zone:
     raise ValueError("Could not get zone being used")
 
@@ -208,12 +209,10 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
 
   if not email:
     raise ValueError("Could not determine GCP account being used.")
-  os.environ["EMAIL"] = email
   if not project:
     raise ValueError("Could not get project being used")
-  os.environ["PROJECT"] = project
-
-  config_spec = get_config_spec(config_path, project, email, app_path)
+  
+  config_spec = get_config_spec(config_path, project, email, zone, app_path)
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
   # TODO(jlewi): When we switch to KfDef v1beta1 this logic will need to change because
