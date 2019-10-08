@@ -196,7 +196,6 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   logging.info("kfctl path %s", kfctl_path)
   # TODO(nrchakradhar): Probably move all the environ sets to set_env_init_args
   zone = 'us-central1-a'
-  os.environ["ZONE"] = zone
   if not zone:
     raise ValueError("Could not get zone being used")
 
@@ -208,11 +207,9 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
 
   if not email:
     raise ValueError("Could not determine GCP account being used.")
-  os.environ["EMAIL"] = email
   if not project:
     raise ValueError("Could not get project being used")
-  os.environ["PROJECT"] = project
-
+  
   config_spec = get_config_spec(config_path, project, email, app_path)
   with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
