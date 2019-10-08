@@ -1961,25 +1961,22 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 	}
 	// the runGetGCPCredentials don't seem to work because those are shelled out commands
 	// Added an alternate way to set using enironment variables
-	gcp.kfDef.Spec.Project = os.Getenv("PROJECT")
 	if gcp.kfDef.Spec.Project == "" {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: "Project not specified.",
+			Message: "GCP Project is not set, please set it in KFDef.",
 		}
 	}
-	gcp.kfDef.Spec.Zone = os.Getenv("EMAIL")
 	if gcp.kfDef.Spec.Email == "" {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: "email not specified.",
+			Message: "GCP account could not be determined, please set Email in KFDef.",
 		}
 	}
-	gcp.kfDef.Spec.Zone = os.Getenv("ZONE")
 	if gcp.kfDef.Spec.Zone == "" {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: "zone not specified.",
+			Message: "GCP Zone is not set, please set it in KFDef.",
 		}
 	}
 	// Set default IPName and Hostname
