@@ -253,6 +253,9 @@ func CreateKfAppCfgFile(d *kfconfig.KfConfig) (string, error) {
 	}
 	log.Infof("Writing KfDef to %v", cfgFilePath)
 	cfgFilePathErr := configconverters.WriteConfigToFile(*d, cfgFilePath)
+	if cfgFilePathErr != nil {
+		log.Errorf("failed to write config: %v", cfgFilePathErr)
+	}
 	return cfgFilePath, cfgFilePathErr
 }
 

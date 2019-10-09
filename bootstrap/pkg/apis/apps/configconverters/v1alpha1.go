@@ -246,12 +246,13 @@ func (v V1alpha1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 			platform = kftypesv3.GCP
 		}
 	}
-	if platform == "" {
-		return []byte(""), &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: "Not able to find platform in plugins",
-		}
-	}
+	// TODO: Platform is not always needed?
+	// if platform == "" {
+	// 	return []byte(""), &kfapis.KfError{
+	// 		Code:    int(kfapis.INVALID_ARGUMENT),
+	// 		Message: "Not able to find platform in plugins",
+	// 	}
+	// }
 	kfdef.Spec.Platform = platform
 
 	for _, secret := range config.Spec.Secrets {

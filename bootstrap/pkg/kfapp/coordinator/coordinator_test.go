@@ -25,21 +25,33 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 	cases := []testCase{
 		// Test file is created when directory doesn't exist.
 		{
-			Input:         kfconfig.KfConfig{},
+			Input: kfconfig.KfConfig{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
+				},
+			},
 			DirExists:     false,
 			CfgFileExists: false,
 			ExpectError:   false,
 		},
 		// Test file is created when directory exists
 		{
-			Input:         kfconfig.KfConfig{},
+			Input: kfconfig.KfConfig{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
+				},
+			},
 			DirExists:     true,
 			CfgFileExists: false,
 			ExpectError:   false,
 		},
 		// Test an error is raised if the config file already exists.
 		{
-			Input:         kfconfig.KfConfig{},
+			Input: kfconfig.KfConfig{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
+				},
+			},
 			DirExists:     true,
 			CfgFileExists: true,
 			ExpectError:   true,
