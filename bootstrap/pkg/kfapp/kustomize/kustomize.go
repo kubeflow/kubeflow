@@ -164,76 +164,6 @@ func (kustomize *kustomize) initComponentMaps() error {
 	return nil
 }
 
-// backfillApplications backfills the applications from the components componentParams
-func (kustomize *kustomize) backfillApplications() error {
-	currentApplications := map[string]bool{}
-
-	if kustomize.kfDef.Spec.Applications == nil {
-		kustomize.kfDef.Spec.Applications = []kfdefsv3.Application{}
-	}
-
-	// Build a set of applications currently defined.
-	for _, a := range kustomize.kfDef.Spec.Applications {
-		currentApplications[a.Name] = true
-	}
-
-	// We need repoCache to know the local path strip from componentPathMap
-	repo, ok := kustomize.kfDef.Status.ReposCache[kftypesv3.ManifestsRepoName]
-
-	if !ok {
-		err := fmt.Errorf("Could not backfillApplications; missing repo cache for repo %v", kftypesv3.ManifestsRepoName)
-		return errors.WithStack(err)
-	}
-
-	// Loop over all the components
-	for _, cName := range kustomize.kfDef.Spec.Components {
-		if _, ok := currentApplications[cName]; ok {
-			log.Infof("There is already an application named %v; not converting component again", cName)
-			continue
-		}
-
-		log.Infof("Converting component %v to an application in KfDef.Spec", cName)
-
-		cPath, ok := kustomize.componentPathMap[cName]
-
-		if !ok {
-			log.Errorf("Could not backfill the component %v; no component path specified", cName)
-			return errors.WithStack(fmt.Errorf("Could not backfill the component %v; no component path specified", cName))
-		}
-
-		// Strip out the local path
-		relPath := strings.TrimPrefix(cPath, repo.LocalPath)
-
-		currentApplications[cName] = true
-		app := kfdefsv3.Application{
-			Name: cName,
-			KustomizeConfig: &kfdefsv3.KustomizeConfig{
-				RepoRef: &kfdefsv3.RepoRef{
-					Name: kftypesv3.ManifestsRepoName,
-					Path: relPath,
-				},
-				Overlays:   []string{},
-				Parameters: []config.NameValue{},
-			},
-		}
-
-		if cParams, ok := kustomize.kfDef.Spec.ComponentParams[cName]; ok {
-			for _, p := range cParams {
-				if p.Name == OverlayParamName {
-					app.KustomizeConfig.Overlays = append(app.KustomizeConfig.Overlays, p.Value)
-				} else {
-					app.KustomizeConfig.Parameters = append(app.KustomizeConfig.Parameters, p)
-				}
-			}
-		}
-
-		kustomize.kfDef.Spec.Applications = append(kustomize.kfDef.Spec.Applications, app)
-	}
-
-	// Preserve the backfill
-	return kustomize.kfDef.WriteToConfigFile()
-}
-
 // initK8sClients initializes the K8s clients if they haven't already been initialized.
 // it is a null op otherwise.
 func (kustomize *kustomize) initK8sClients() error {
@@ -434,11 +364,6 @@ func (kustomize *kustomize) Generate(resources kftypesv3.ResourceEnum) error {
 			return errors.WithStack(err)
 		}
 
-		if err := kustomize.backfillApplications(); err != nil {
-			log.Errorf("Could not backfill KfDef.Spec.Applications from components; error %v", err)
-			return errors.WithStack(err)
-		}
-
 		for _, app := range kustomize.kfDef.Spec.Applications {
 			log.Infof("Processing application: %v", app.Name)
 
@@ -517,6 +442,7 @@ func (kustomize *kustomize) Init(resources kftypesv3.ResourceEnum) error {
 		if cacheDirErr != nil || cacheDir == "" {
 			log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
 		}
+		// TODO: do we need this write?
 		createConfigErr := kustomize.kfDef.WriteToConfigFile()
 		if createConfigErr != nil {
 			return fmt.Errorf("cannot create config file %v in %v", kftypesv3.KfConfigFile, kustomize.kfDef.Spec.AppDir)
