@@ -85,14 +85,14 @@ local prowDict = {
 // We use separate kubeConfig files for separate clusters
 local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=[]) = {
   name: step_name,
-  activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
+  activeDeadlineSeconds: 3000,  // Set 50 minute timeout for each template
   workingDir: working_dir,
   container: {
     command: command,
     image: image,
     workingDir: working_dir,
     // TODO(jlewi): Change to IfNotPresent.
-    imagePullPolicy: "Always",    
+    imagePullPolicy: "Always",
     env: [
       {
         // Add the source directories to the python path.
