@@ -1,0 +1,42 @@
+# Step 1: Builds and tests
+FROM node:10-stretch AS build
+
+ARG kubeflowversion
+ARG commit
+ENV BUILD_VERSION=$kubeflowversion
+ENV BUILD_COMMIT=$commit
+ENV CHROME_BIN=/usr/bin/chromium-browser
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
+# Install the Chromium package and configure environment for testing
+RUN echo deb http://us.ports.ubuntu.com/ubuntu-ports/ bionic universe >> /etc/apt/sources.list && \
+    echo deb http://us.ports.ubuntu.com/ubuntu-ports/ bionic main restricted >> /etc/apt/sources.list && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32 && \
+    echo deb http://ppa.quickbuild.io/raptor-engineering-public/chromium/ubuntu bionic main >> /etc/apt/sources.list && \
+    apt-key adv --keyserver keyserver.quickbuild.pearsoncomputing.net --recv-keys F0A175FC && \
+    apt update
+
+RUN apt install -y libavcodec57 libavformat57 libavutil55 libc6 libevent-2.1-6 libfontconfig1 libharfbuzz0b libjpeg8 libopenjp2-7 libre2-4 libva2 libvpx5 libwebpmux3 chromium-sandbox chromium
+
+RUN ln -s /usr/bin/chromium /usr/bin/chromium-browser
+
+COPY . /centraldashboard
+WORKDIR /centraldashboard
+
+RUN npm rebuild && \
+    npm install && \
+    npm test && \
+    npm run build && \
+    npm prune --production
+
+# Step 2: Packages assets for serving
+FROM node:10-stretch AS serve
+
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=build /centraldashboard .
+
+RUN ln -s /app/node_modules/grpc/src/node/extension_binary/node-v64-linux-ppc64-glibc /app/node_modules/grpc/src/node/extension_binary/node-v64-linux-ppc64-musl
+
+EXPOSE 8082
+ENTRYPOINT ["npm", "start"]
