@@ -131,6 +131,42 @@ func GetKfApp(kfdef *kfdefsv3.KfDef) kftypesv3.KfApp {
 	return _kustomize
 }
 
+<<<<<<< HEAD
+=======
+// initComponentMaps checks if we have already initialized the maps locating the various manifest
+// packages and if not initializes them.
+func (kustomize *kustomize) initComponentMaps() error {
+	if kustomize.componentMap != nil && kustomize.packageMap != nil {
+		log.Infof("kustomize package map already initialized")
+		return nil
+	}
+
+	log.Infof("Initializing kustomize package map")
+
+	kustomize.componentMap = make(map[string]bool)
+	kustomize.packageMap = make(map[string]*[]string)
+
+	repo, ok := kustomize.kfDef.Status.ReposCache[kftypesv3.ManifestsRepoName]
+
+	if !ok {
+		err := fmt.Errorf("Could not initialize kustomize component maps; missing repo cache for repo %v", kftypesv3.ManifestsRepoName)
+		return errors.WithStack(err)
+	}
+
+	for _, compName := range kustomize.kfDef.Spec.Components {
+		kustomize.componentMap[compName] = true
+	}
+	for _, packageName := range kustomize.kfDef.Spec.Packages {
+		arrayOfComponents := &[]string{}
+		kustomize.packageMap[packageName] = arrayOfComponents
+	}
+	kustomize.componentPathMap = kustomize.mapDirs(repo.LocalPath, true, 0, make(map[string]string))
+
+	log.Infof("Component path map: %v\n", utils.PrettyPrint(kustomize.componentPathMap))
+	return nil
+}
+
+>>>>>>> b3fe1af9... remove backfill app
 // initK8sClients initializes the K8s clients if they haven't already been initialized.
 // it is a null op otherwise.
 func (kustomize *kustomize) initK8sClients() error {
@@ -326,6 +362,14 @@ func (kustomize *kustomize) Generate(resources kftypesv3.ResourceEnum) error {
 			return errors.WithStack(fmt.Errorf("Repo %v not listed in KfDef.Status; ", kftypesv3.ManifestsRepoName))
 		}
 
+<<<<<<< HEAD
+=======
+		if err := kustomize.initComponentMaps(); err != nil {
+			log.Errorf("Could not initialize kustomize component map paths; error %v", err)
+			return errors.WithStack(err)
+		}
+
+>>>>>>> b3fe1af9... remove backfill app
 		for _, app := range kustomize.kfDef.Spec.Applications {
 			log.Infof("Processing application: %v", app.Name)
 
@@ -386,6 +430,33 @@ func (kustomize *kustomize) Generate(resources kftypesv3.ResourceEnum) error {
 // Init is called from 'kfctl init ...' and creates a <deployment> directory with an app.yaml file that
 // holds deployment information like components, parameters
 func (kustomize *kustomize) Init(resources kftypesv3.ResourceEnum) error {
+<<<<<<< HEAD
+=======
+	// TODO(https://github.com/kubeflow/kubeflow/issues/3546): This code
+	// needs to be updated.
+	// TODO(jlewi): I believe we can get rid of this code now? I believe are backfilling Repos not
+	// in the coordinator; here https://github.com/kubeflow/kubeflow/blob/865f10e98e8ca65a722bbc879a3acd8f06e86db1/bootstrap/v2/pkg/kfapp/coordinator/coordinator.go#L443
+	if len(kustomize.kfDef.Spec.Repos) == 0 {
+		log.Warnf("kustomize.kfDef.Spec.Repos isn't set; this is deprecated. Repos should be set in app.yaml")
+		parts := strings.Split(kustomize.kfDef.Spec.PackageManager, "@")
+		version := "master"
+		if len(parts) == 2 {
+			version = parts[1]
+		}
+
+		// TODO(jlewi): This is a legacy code path. Once we we use Spec.Repos we can get rid of this code path.
+		log.Infof("Downloading kustomize manifests from %v", kftypesv3.ManifestsRepo)
+		cacheDir, cacheDirErr := kftypesv3.DownloadToCache(kustomize.kfDef.Spec.AppDir, kftypesv3.ManifestsRepo, version)
+		if cacheDirErr != nil || cacheDir == "" {
+			log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
+		}
+		// TODO: do we need this write?
+		createConfigErr := kustomize.kfDef.WriteToConfigFile()
+		if createConfigErr != nil {
+			return fmt.Errorf("cannot create config file %v in %v", kftypesv3.KfConfigFile, kustomize.kfDef.Spec.AppDir)
+		}
+	}
+>>>>>>> b3fe1af9... remove backfill app
 	return nil
 }
 
