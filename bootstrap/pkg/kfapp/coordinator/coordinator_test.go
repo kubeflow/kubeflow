@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	config "github.com/kubeflow/kubeflow/bootstrap/v3/config"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,7 +16,7 @@ import (
 
 func Test_CreateKfAppCfgFile(t *testing.T) {
 	type testCase struct {
-		Input         kfdefsv3.KfDef
+		Input         kfconfig.KfConfig
 		DirExists     bool
 		CfgFileExists bool
 		ExpectError   bool
@@ -24,21 +25,21 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 	cases := []testCase{
 		// Test file is created when directory doesn't exist.
 		{
-			Input:         kfdefsv3.KfDef{},
+			Input:         kfconfig.KfConfig{},
 			DirExists:     false,
 			CfgFileExists: false,
 			ExpectError:   false,
 		},
 		// Test file is created when directory exists
 		{
-			Input:         kfdefsv3.KfDef{},
+			Input:         kfconfig.KfConfig{},
 			DirExists:     true,
 			CfgFileExists: false,
 			ExpectError:   false,
 		},
 		// Test an error is raised if the config file already exists.
 		{
-			Input:         kfdefsv3.KfDef{},
+			Input:         kfconfig.KfConfig{},
 			DirExists:     true,
 			CfgFileExists: true,
 			ExpectError:   true,

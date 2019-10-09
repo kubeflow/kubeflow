@@ -43,6 +43,8 @@ type KfConfigSpec struct {
 	// TODO(gabrielwen): Can we infer this from Applications?
 	UseBasicAuth bool `json:"useBasicAuth,omitempty"`
 
+	Platform string `json:"platform,omitempty"`
+
 	// TODO(gabrielwen): Deprecate these fields as they only makes sense to GCP.
 	Project         string `json:"project,omitempty"`
 	Email           string `json:"email,omitempty"`

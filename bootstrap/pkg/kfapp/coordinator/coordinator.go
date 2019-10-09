@@ -18,11 +18,11 @@ package coordinator
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
-	"os"
-
+	"github.com/ghodss/yaml"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/configconverters"
@@ -147,7 +147,7 @@ func repoVersionToUri(repo string, version string) string {
 // used by the build and apply semantics for kfctl
 func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 	// kfDef is a kfconfig
-	kfDef, err := kfdefsv3.LoadKFDefFromURI(configFile)
+	kfDef, err := configconverters.LoadConfigFromURI(configFile)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
@@ -170,9 +170,9 @@ func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 		log.Warn("you need to set the environment variable `ZONE` to the GCP zone you want to use")
 	}
 
-	if kfDef.Spec.PackageManager == "" {
-		kfDef.Spec.PackageManager = kftypesv3.KUSTOMIZE
-	}
+	// if kfDef.Spec.PackageManager == "" {
+	// 	kfDef.Spec.PackageManager = kftypesv3.KUSTOMIZE
+	// }
 
 	appFile, err := CreateKfAppCfgFile(kfDef)
 	if err != nil {
@@ -213,11 +213,26 @@ func BuildKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 	return kfApp, nil
 }
 
+// TODO: remove this
+// This is for kfctlServer. We can remove this after kfctlServer uses kfconfig
+func CreateKfAppCfgFileWithKfDef(d *kfdefsv3.KfDef) (string, error) {
+	alphaConverter := configconverters.V1alpha1{}
+	kfdefBytes, err := yaml.Marshal(d)
+	if err != nil {
+		return "", err
+	}
+	kfconfig, err := alphaConverter.ToKfConfig(d.Spec.AppDir, kfdefBytes)
+	if err != nil {
+		return "", err
+	}
+	return CreateKfAppCfgFile(kfconfig)
+}
+
 // CreateKfAppCfgFile will create the application directory and persist
 // the KfDef to it as app.yaml.
 // Returns an error if the app.yaml file already exists
 // Returns path to the app.yaml file.
-func CreateKfAppCfgFile(d *kfdefsv3.KfDef) (string, error) {
+func CreateKfAppCfgFile(d *kfconfig.KfConfig) (string, error) {
 	if _, err := os.Stat(d.Spec.AppDir); os.IsNotExist(err) {
 		log.Infof("Creating directory %v", d.Spec.AppDir)
 		appdirErr := os.MkdirAll(d.Spec.AppDir, os.ModePerm)
@@ -237,7 +252,7 @@ func CreateKfAppCfgFile(d *kfdefsv3.KfDef) (string, error) {
 		return cfgFilePath, fmt.Errorf("%v already exists", cfgFilePath)
 	}
 	log.Infof("Writing KfDef to %v", cfgFilePath)
-	cfgFilePathErr := d.WriteToFile(cfgFilePath)
+	cfgFilePathErr := configconverters.WriteConfigToFile(*d, cfgFilePath)
 	return cfgFilePath, cfgFilePathErr
 }
 
@@ -530,8 +545,9 @@ type coordinator struct {
 	KfDef           *kfconfig.KfConfig
 }
 
+// TODO: change this
 type KfDefGetter interface {
-	GetKfDef() *kfconfig.KfConfig
+	GetKfDef() *kfdefsv3.KfDef
 	GetPlugin(name string) (kftypesv3.KfApp, bool)
 }
 
