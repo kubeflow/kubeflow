@@ -18,8 +18,8 @@ package controllers
 
 import (
 	"fmt"
-	"google.golang.org/api/iam/v1"
 	"github.com/onsi/gomega"
+	"google.golang.org/api/iam/v1"
 	"reflect"
 	"testing"
 )

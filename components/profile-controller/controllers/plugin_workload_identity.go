@@ -29,7 +29,7 @@ import (
 )
 
 // plugin kind
-const WORKLOAD_IDENTITY = "WorkloadIdentity"
+const KIND_WORKLOAD_IDENTITY = "WorkloadIdentity"
 
 const GCP_ANNOTATION_KEY = "iam.gke.io/gcp-service-account"
 const GCP_SA_SUFFIX = ".iam.gserviceaccount.com"
