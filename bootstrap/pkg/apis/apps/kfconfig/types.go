@@ -196,6 +196,17 @@ func GetPluginFailedCondition(pluginKind PluginKindType) ConditionType {
 	return ConditionType(fmt.Sprintf("%vFailed", pluginKind))
 }
 
+// Returns the repo with the name and true if repo exists.
+// nil and false otherwise.
+func (c *KfConfig) GetRepoCache(repoName string) (Cache, bool) {
+	for _, r := range c.Status.Caches {
+		if r.Name == repoName {
+			return r, true
+		}
+	}
+	return Cache{}, false
+}
+
 func (c *KfConfig) GetPluginSpec(pluginKind PluginKindType, s interface{}) error {
 	for _, p := range c.Spec.Plugins {
 		if p.Kind != pluginKind {
