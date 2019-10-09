@@ -24,5 +24,5 @@ if __name__ == "__main__":
 
     cluster_name = "kfctl-arr-" + must_getenv("REPO_NAME") + "-" + must_getenv("BUILD_ID")
     credentials = GoogleCredentials.get_application_default()
-    service = discovery.build('container', 'v1', credentials=credentials)
+    service = discovery.build('container', 'v1', credentials=credentials, cache_discovery=False)
     util.delete_cluster(service, cluster_name, "kubeflow-ci", "us-central1-a")
