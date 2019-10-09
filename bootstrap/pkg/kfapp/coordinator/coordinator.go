@@ -41,7 +41,7 @@ import (
 	//"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/existing_arrikto"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
-	//"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/minikube"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/minikube"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -62,8 +62,8 @@ func (b *DefaultBuilder) LoadKfAppCfgFile(cfgFile string) (kftypesv3.KfApp, erro
 // It looks for statically compiled-in implementations, otherwise throws unrecognized error
 func getPlatform(kfdef *kfconfig.KfConfig) (kftypesv3.Platform, error) {
 	switch kfdef.Spec.Platform {
-	// case string(kftypesv3.MINIKUBE):
-	// 	return minikube.Getplatform(kfdef), nil
+	case string(kftypesv3.MINIKUBE):
+		return minikube.Getplatform(kfdef), nil
 	case string(kftypesv3.GCP):
 		return gcp.GetPlatform(kfdef)
 	// case string(kftypesv3.EXISTING_ARRIKTO):
