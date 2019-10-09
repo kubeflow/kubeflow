@@ -38,7 +38,7 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/aws"
-	//"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/existing_arrikto"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/existing_arrikto"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/minikube"
@@ -66,8 +66,8 @@ func getPlatform(kfdef *kfconfig.KfConfig) (kftypesv3.Platform, error) {
 		return minikube.Getplatform(kfdef), nil
 	case string(kftypesv3.GCP):
 		return gcp.GetPlatform(kfdef)
-	// case string(kftypesv3.EXISTING_ARRIKTO):
-	// 	return existing_arrikto.GetPlatform(kfdef)
+	case string(kftypesv3.EXISTING_ARRIKTO):
+		return existing_arrikto.GetPlatform(kfdef)
 	case string(kftypesv3.AWS):
 		return aws.GetPlatform(kfdef)
 	default:
