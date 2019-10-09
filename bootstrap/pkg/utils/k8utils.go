@@ -16,6 +16,7 @@ package utils
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
@@ -51,8 +52,9 @@ import (
 )
 
 const (
-	YamlSeparator = "(?m)^---[ \t]*$"
-	CertDir       = "/opt/ca"
+	YamlSeparator              = "(?m)^---[ \t]*$"
+	CertDir                    = "/opt/ca"
+	katibMetricsCollectorLabel = "katib-metricscollector-injection"
 )
 
 func generateRandStr(length int) string {
@@ -348,9 +350,34 @@ func (a *Apply) init() error {
 	return nil
 }
 
+func (a *Apply) patchNamespaceWithLabel(namespace string, labelKey string,
+	labelValue string) error {
+	var labelPatchMap = map[string]metav1.ObjectMeta{
+		"metadata": metav1.ObjectMeta{
+			Labels: map[string]string{labelKey: labelValue},
+		},
+	}
+	labelPatchJSON, err := json.Marshal(labelPatchMap)
+	if err != nil {
+		return err
+	}
+	log.Infof("Labeling Namespace: %v", namespace)
+	_, err = a.clientset.CoreV1().Namespaces().Patch(
+		namespace,
+		"application/strategic-merge-patch+json",
+		[]byte(labelPatchJSON),
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Apply) namespace(namespace string) error {
 	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
-	_, nsMissingErr := a.clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	namespaceInstance, nsMissingErr := a.clientset.CoreV1().Namespaces().Get(
+		namespace, metav1.GetOptions{},
+	)
 	if nsMissingErr != nil {
 		log.Infof("Creating namespace: %v", namespace)
 		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
@@ -360,6 +387,18 @@ func (a *Apply) namespace(namespace string) error {
 				Code: int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("couldn't create %v %v Error: %v",
 					string(kftypes.NAMESPACE), namespace, nsErr),
+			}
+		}
+	} else {
+		if _, ok := namespaceInstance.ObjectMeta.Labels[katibMetricsCollectorLabel]; !ok {
+			patchErr := a.patchNamespaceWithLabel(
+				namespace, katibMetricsCollectorLabel, "enable",
+			)
+			if patchErr != nil {
+				return &kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("couldn't patch %v Error: %v", namespace, patchErr),
+				}
 			}
 		}
 	}

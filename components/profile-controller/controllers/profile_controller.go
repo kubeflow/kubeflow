@@ -55,9 +55,11 @@ const ADMIN = "admin"
 // TODO: Make kubeflow roles configurable (krishnadurai)
 // This will enable customization of roles.
 const (
-	kubeflowAdmin = "kubeflow-admin"
-	kubeflowEdit  = "kubeflow-edit"
-	kubeflowView  = "kubeflow-view"
+	kubeflowAdmin              = "kubeflow-admin"
+	kubeflowEdit               = "kubeflow-edit"
+	kubeflowView               = "kubeflow-view"
+	istioInjectionLabel        = "istio-injection"
+	katibMetricsCollectorLabel = "katib-metricscollector-injection"
 )
 
 const DEFAULT_EDITOR = "default-editor"
@@ -112,8 +114,11 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{"owner": instance.Spec.Owner.Name},
 			// inject istio sidecar to all pods in target namespace by default.
-			Labels: map[string]string{"istio-injection": "enabled"},
-			Name:   instance.Name,
+			Labels: map[string]string{
+				istioInjectionLabel:        "enabled",
+				katibMetricsCollectorLabel: "enabled",
+			},
+			Name: instance.Name,
 		},
 	}
 	if err := controllerutil.SetControllerReference(instance, ns, r.Scheme); err != nil {
