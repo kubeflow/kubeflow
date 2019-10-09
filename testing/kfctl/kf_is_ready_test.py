@@ -43,11 +43,6 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
       "katib-manager",
       "katib-manager-rest",
       "katib-ui",
-      "metadata-db",
-      "metadata-deployment",
-      "metadata-envoy-deployment",
-      "metadata-grpc-deployment",
-      "metadata-ui",
       "minio",
       "ml-pipeline",
       "ml-pipeline-persistenceagent",
@@ -62,6 +57,19 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
       "tf-job-operator",
       "workflow-controller",
   ]
+
+  # TODO(yanniszark): these deployments seems to cause flakiness in the test.
+  # More specifically, they take a long time to get ready.
+  # Look into creating test clusters with bigger machines or longer timeout limits.
+  postsubmit_deployments = [
+      "metadata-db",
+      "metadata-deployment",
+      "metadata-envoy-deployment",
+      "metadata-grpc-deployment",
+      "metadata-ui",
+  ]
+  if os.getenv("JOB_TYPE") == "postsubmit":
+    deployment_names.extend(postsubmit_deployments)
 
   stateful_set_names = [
     "admission-webhook-bootstrap-stateful-set",
