@@ -939,7 +939,6 @@ func MergeKustomizations(kfDef *kfdefsv3.KfDef, compDir string, overlayParams []
 			}
 		}
 		kustomization.PatchesJson6902 = make([]types.PatchJson6902, 0)
-		aggregatedPatchOps := make([]byte, 0)
 		patchFile := ""
 		for key, values := range patches {
 			aggregatedPatch := new(types.PatchJson6902)
@@ -959,14 +958,13 @@ func MergeKustomizations(kfDef *kfdefsv3.KfDef, compDir string, overlayParams []
 					if err != nil {
 						return nil, err
 					}
-					aggregatedPatchOps = append(aggregatedPatchOps, data...)
+					patchErr := ioutil.WriteFile(patchFile, data, 0644)
+					if patchErr != nil {
+						return nil, patchErr
+					}
 				}
 			}
 			kustomization.PatchesJson6902 = append(kustomization.PatchesJson6902, *aggregatedPatch)
-		}
-		patchErr := ioutil.WriteFile(patchFile, aggregatedPatchOps, 0644)
-		if patchErr != nil {
-			return nil, patchErr
 		}
 	}
 	return kustomization, nil

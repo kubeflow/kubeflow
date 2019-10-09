@@ -426,6 +426,11 @@ func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 	if isPlatformGCP && os.Getenv("ZONE") == "" {
 		log.Warn("you need to set the environment variable `ZONE` to the GCP zone you want to use")
 	}
+
+	if kfDef.Spec.PackageManager == "" {
+		kfDef.Spec.PackageManager = kftypesv3.KUSTOMIZE
+	}
+
 	appFile, err := CreateKfAppCfgFile(kfDef)
 	if err != nil {
 		return nil, &kfapis.KfError{
@@ -924,6 +929,13 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 		}
 	}
 
+	if err := kfapp.KfDef.SyncCache(); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not sync cache. Error: %v", err),
+		}
+	}
+
 	switch resources {
 	case kftypesv3.ALL:
 		if err := platform(); err != nil {
@@ -982,6 +994,13 @@ func (kfapp *coordinator) Delete(resources kftypesv3.ResourceEnum) error {
 			}
 		}
 		return nil
+	}
+
+	if err := kfapp.KfDef.SyncCache(); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not sync cache. Error: %v", err),
+		}
 	}
 
 	switch resources {
@@ -1049,6 +1068,13 @@ func (kfapp *coordinator) Generate(resources kftypesv3.ResourceEnum) error {
 
 	// Print out warning message if using usage reporting component.
 	usageReportWarn(kfapp.KfDef.Spec.Components)
+
+	if err := kfapp.KfDef.SyncCache(); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not sync cache. Error: %v", err),
+		}
+	}
 
 	switch resources {
 	case kftypesv3.ALL:

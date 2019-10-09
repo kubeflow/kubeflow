@@ -56,6 +56,10 @@ type manifest struct {
 
 func GetPlatform(kfdef *kfdefs.KfDef) (kftypesv3.Platform, error) {
 
+	if err := kfdef.SyncCache(); err != nil {
+		return nil, internalError(err)
+	}
+
 	kfRepoDir := kfdef.Status.ReposCache[kftypesv3.ManifestsRepoName].LocalPath
 	istioManifestsDir := path.Join(kfRepoDir, CONFIG_LOCAL_PATH, "istio")
 	istioManifests := []manifest{

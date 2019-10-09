@@ -248,13 +248,6 @@ neon-animatable {
     }
 }
 
-#PageFrame {
-    border: 0;
-    display: inline-block;
-    height: 100%;
-    width: 100%;
-}
-
 #MainDrawer .menu-item iron-icon.external {
     width: .75em;
     transform: translateY(-25%);

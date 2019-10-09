@@ -123,8 +123,6 @@ type KfApp interface {
 //
 type Platform interface {
 	KfApp
-	// Return k8s config built with platform-specific ways; or nil to use default kube config
-	GetK8sConfig() (*rest.Config, *clientcmdapi.Config)
 }
 
 //
