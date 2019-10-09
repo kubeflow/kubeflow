@@ -19,6 +19,7 @@ package coordinator
 import (
 	"fmt"
 	"io/ioutil"
+	netUrl "net/url"
 	"path"
 	"path/filepath"
 	"strings"
@@ -385,12 +386,30 @@ func isCwdEmpty() string {
 // NewLoadKfAppFromURI takes in a config file and constructs the KfApp
 // used by the build and apply semantics for kfctl
 func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
-	cwd := isCwdEmpty()
-	if cwd == "" {
-		wd, _ := os.Getwd()
+	url, err := netUrl.ParseRequestURI(configFile)
+	isRemoteFile := false
+	cwd := ""
+	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("current directory %v not empty, please switch directories", wd),
+			Message: fmt.Sprintf("Error parsing config file path: %v", err),
+		}
+	} else {
+		if url.Scheme != "" {
+			isRemoteFile = true
+		}
+	}
+
+	// If the config file is downloaded remotely, check to see if the current directory
+	// is empty because we will be generating the KfApp there.
+	if isRemoteFile {
+		cwd = isCwdEmpty()
+		if cwd == "" {
+			wd, _ := os.Getwd()
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("current directory %v not empty, please switch directories", wd),
+			}
 		}
 	}
 
@@ -402,14 +421,20 @@ func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 		}
 	}
 
-	cwd, err = os.Getwd()
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
+	// If the config file is downloaded remotely, use the current working directory to create the KfApp.
+	// Otherwise use the directory where the config file is stored.
+	if isRemoteFile {
+		cwd, err = os.Getwd()
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
+			}
 		}
+		kfDef.Spec.AppDir = cwd
+	} else {
+		kfDef.Spec.AppDir = path.Dir(configFile)
 	}
-	kfDef.Spec.AppDir = cwd
 
 	// basic auth check and warn
 	useBasicAuth := kfDef.Spec.UseBasicAuth
