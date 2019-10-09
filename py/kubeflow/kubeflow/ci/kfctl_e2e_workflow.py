@@ -73,6 +73,7 @@ class Builder:
                bucket="kubeflow-ci_temp",
                test_endpoint=False,
                use_basic_auth=False,
+               use_kind=False,
                kf_app_name=None, delete_kf=True,):
     """Initialize a builder.
 
@@ -84,6 +85,7 @@ class Builder:
       test_endpoint: Whether to test the endpoint is ready. Should only
         be true for IAP.
       use_basic_auth: Whether to use basic_auth.
+      use_kind: Whether to use KinD.
       kf_app_name: (Optional) Name to use for the Kubeflow deployment.
         If not set a unique name is assigned. Only set this if you want to
         reuse an existing deployment across runs.
@@ -131,6 +133,7 @@ class Builder:
                                          "kubeflow/tf-operator")
     self.tf_operator_py = os.path.join(self.tf_operator_root, "py")
 
+    self.kind_root = os.path.join(self.src_root_dir, "kubernetes-sigs/kind")
     self.go_path = self.test_dir
 
     # Name for the Kubeflow app.
@@ -165,6 +168,10 @@ class Builder:
     # Directory for the KF app.
     self.app_dir = os.path.join(self.test_dir, self.app_name)
     self.use_basic_auth = use_basic_auth
+
+    ## Some configs need a cluster to start with
+    ## For E2E testing of those configs, we use Kubernetes in Docker (KinD).
+    self.use_kind = use_kind
 
     # The name space we create KF artifacts in; e.g. TFJob and notebooks.
     # TODO(jlewi): These should no longer be running the system namespace but
@@ -449,6 +456,24 @@ class Builder:
 
       kfctl_delete["container"]["workingDir"] = self.kfctl_pytest_dir
 
+    #**************************************************************************
+    # Delete KinD cluster
+    step_name = "delete-kind-cluster"
+    command = [
+        "pytest",
+        "delete_kind_cluster.py",
+        "-s",
+        "--log-cli-level=info",
+        "--junitxml=" + self.artifacts_dir + "/junit_delete-kind-cluster"
+        + self.config_name + ".xml",
+        "-o", "junit_suite_name=test_delete_kind_cluster_" + self.config_name,
+    ]
+
+    if self.use_kind:
+      dependences = [kfctl_delete["name"]]
+      delete_kind_cluster = self._build_step(step_name, self.workflow, EXIT_DAG_NAME, task_template,
+                                              command, dependences)
+
     step_name = "copy-artifacts"
     command = ["python",
                "-m",
@@ -460,8 +485,11 @@ class Builder:
                "--suffix=fakesuffix",]
 
     dependences = []
-    if self.delete_kf:
-      dependences = [kfctl_delete["name"]]
+    if self.use_kind:
+      dependences = [delete_kind_cluster["name"]]
+    else:
+      if self.delete_kf:
+        dependences = [kfctl_delete["name"]]
 
     copy_artifacts = self._build_step(step_name, self.workflow, EXIT_DAG_NAME, task_template,
                                       command, dependences)
@@ -500,6 +528,10 @@ class Builder:
 
     repos.extend(EXTRA_REPOS)
 
+    # Checkout KinD from source if use_kind is set.
+    if self.use_kind:
+      repos.extend("kubernetes-sigs/kind@HEAD")
+    
     checkout = argo_build_util.deep_copy(task_template)
 
     checkout["name"] = "checkout"
@@ -512,7 +544,25 @@ class Builder:
     # Change the workfing directory for all subsequent steps
     task_template["container"]["workingDir"] = os.path.join(
       self.kfctl_pytest_dir)
+    
+    #**************************************************************************
+    # Create KinD cluster
 
+    step_name = "create-kind-cluster"
+    command = [
+        "pytest",
+        "kind_create_cluster.py",
+        "-s",
+        "--log-cli-level=info",
+        "--junitxml=" + self.artifacts_dir + "/junit_create-kind-cluster"
+        + self.config_name + ".xml",
+        "-o", "junit_suite_name=test_create_kind_cluster_" + self.config_name,
+    ]
+    
+    if self.use_kind:
+      dependences = [checkout["name"]]
+      create_kind_cluster = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
+                                              command, dependences)
     #**************************************************************************
     # Run build_kfctl and deploy kubeflow
 
@@ -537,7 +587,10 @@ class Builder:
         "--app_path=" + self.app_dir,
     ]
 
-    dependences = [checkout["name"]]
+    if self.use_kind:
+      dependences = [create_kind_cluster["name"]]
+    else:
+      dependences = [checkout["name"]]
     build_kfctl = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
                                    command, dependences)
 

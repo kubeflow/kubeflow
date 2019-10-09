@@ -95,6 +95,7 @@ workflows:
       - testing/kfctl/*
     kwargs:
       # TODO(swiftdiaries): Once this PR is merged, change URL
+      use_kind: true
       config_path: https://raw.githubusercontent.com/swiftdiaries/manifests/kfctl_k8s_e2e/kfdef/kfctl_k8s_istio_kind.yaml
   # Only run  kfctl presubmit test with basic auth if
   # files related to basic auth are modified.
