@@ -37,8 +37,9 @@ type KfUpgrader struct {
 	NewKfDef *kfdefsv3.KfDef
 }
 
-// Given a path to a base config and the existing KfDef, create and return a new KfApp
-// while keeping the existing KfApp's customizations.
+// Given a path to a base config and the existing KfDef, create and return a new KfDef
+// while keeping the existing KfApp's customizations. Also create a new KfApp in the
+// current working directory.
 func createNewKfApp(baseConfig string, oldKfDef *kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
 	appDir, err := os.Getwd()
 	if err != nil {
