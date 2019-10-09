@@ -2,8 +2,7 @@ package kustomize
 
 import (
 	"bytes"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/config"
-	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	"github.com/otiai10/copy"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,8 +13,8 @@ import (
 // This test tests that GenerateKustomizationFile will produce correct kustomization.yaml
 func TestGenerateKustomizationFile(t *testing.T) {
 	type testCase struct {
-		kfDef  *kfdefsv3.KfDef
-		params []config.NameValue
+		kfDef  *kfconfig.KfConfig
+		params []kfconfig.NameValue
 		// The directory of a (testing) kustomize package
 		packageDir string
 		overlays   []string
@@ -24,13 +23,11 @@ func TestGenerateKustomizationFile(t *testing.T) {
 	}
 	testCases := []testCase{
 		{
-			kfDef: &kfdefsv3.KfDef{
+			kfDef: &kfconfig.KfConfig{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: "kubeflow",
 				},
-				Spec: kfdefsv3.KfDefSpec{
-					PackageManager: "kustomize",
-				},
+				Spec: kfconfig.KfConfigSpec{},
 			},
 			overlays: []string{
 				"application",

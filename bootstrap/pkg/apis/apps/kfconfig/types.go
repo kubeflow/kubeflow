@@ -215,6 +215,9 @@ func GetPluginFailedCondition(pluginKind PluginKindType) ConditionType {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 68437bad... kustomize changes
 // Returns the repo with the name and true if repo exists.
 // nil and false otherwise.
 func (c *KfConfig) GetRepoCache(repoName string) (Cache, bool) {
@@ -226,8 +229,11 @@ func (c *KfConfig) GetRepoCache(repoName string) (Cache, bool) {
 	return Cache{}, false
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> e0cf7637... gcp use kfconfig
+=======
+>>>>>>> 68437bad... kustomize changes
 func (c *KfConfig) GetPluginSpec(pluginKind PluginKindType, s interface{}) error {
 	for _, p := range c.Spec.Plugins {
 		if p.Kind != pluginKind {
