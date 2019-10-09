@@ -70,7 +70,7 @@ const (
 // Aws implements KfApp Interface
 // It includes the KsApp along with additional Aws types
 type Aws struct {
-	kfDef     *kfdefs.KfDef
+	kfDef     *kfconfig.KfConfig
 	iamClient *iam.IAM
 	eksClient *eks.EKS
 	sess      *session.Session
@@ -80,7 +80,7 @@ type Aws struct {
 }
 
 // GetKfApp returns the aws kfapp. It's called by coordinator.GetKfApp
-func GetPlatform(kfdef *kfdefs.KfDef) (kftypes.Platform, error) {
+func GetPlatform(kfdef *kfconfig.KfConfig) (kftypes.Platform, error) {
 	session := session.Must(session.NewSession())
 
 	_aws := &Aws{
@@ -308,7 +308,7 @@ func (aws *Aws) updateClusterConfig(clusterConfigFile string) error {
 // ${KUBEFLOW_SRC}/${KFAPP}/aws_config -> destDir (dest)
 func (aws *Aws) generateInfraConfigs() error {
 	// 1. Copy and Paste all files from `sourceDir` to `destDir`
-	repo, ok := aws.kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
+	repo, ok := aws.kfDef.GetRepoCache(kftypes.ManifestsRepoName)
 	if !ok {
 		err := fmt.Errorf("Repo %v not found in KfDef.Status.ReposCache", kftypes.ManifestsRepoName)
 		log.Errorf("%v", err)
@@ -481,13 +481,14 @@ func (aws *Aws) Init(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	createConfigErr := aws.kfDef.WriteToConfigFile()
-	if createConfigErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Cannot create config file app.yaml in %v", aws.kfDef.Spec.AppDir),
-		}
-	}
+	// Should not need to write config here?
+	// createConfigErr := aws.kfDef.WriteToConfigFile()
+	// if createConfigErr != nil {
+	// 	return &kfapis.KfError{
+	// 		Code:    int(kfapis.INVALID_ARGUMENT),
+	// 		Message: fmt.Sprintf("Cannot create config file app.yaml in %v", aws.kfDef.Spec.AppDir),
+	// 	}
+	// }
 
 	return nil
 }
@@ -628,13 +629,14 @@ func (aws *Aws) Generate(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	if createConfigErr := aws.kfDef.WriteToConfigFile(); createConfigErr != nil {
-		return &kfapis.KfError{
-			Code: createConfigErr.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("Cannot create config file app.yaml in %v: %v", aws.kfDef.Spec.AppDir,
-				createConfigErr.(*kfapis.KfError).Message),
-		}
-	}
+	// Should not need to write config here.
+	// if createConfigErr := aws.kfDef.WriteToConfigFile(); createConfigErr != nil {
+	// 	return &kfapis.KfError{
+	// 		Code: createConfigErr.(*kfapis.KfError).Code,
+	// 		Message: fmt.Sprintf("Cannot create config file app.yaml in %v: %v", aws.kfDef.Spec.AppDir,
+	// 			createConfigErr.(*kfapis.KfError).Message),
+	// 	}
+	// }
 	return nil
 }
 
