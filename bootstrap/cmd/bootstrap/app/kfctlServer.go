@@ -103,7 +103,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 		cfgFile := path.Join(r.Spec.AppDir, kftypes.KfConfigFile)
 		if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
 			log.Infof("Creating cfgFile; %v", cfgFile)
-			newCfgFile, err := coordinator.CreateKfAppCfgFile(&r)
+			newCfgFile, err := coordinator.CreateKfAppCfgFileWithKfDef(&r)
 
 			if newCfgFile != cfgFile {
 				log.Errorf("Actual config file %v; doesn't match expected %v", newCfgFile, cfgFile)
