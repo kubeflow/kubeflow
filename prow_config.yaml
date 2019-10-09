@@ -90,7 +90,8 @@ workflows:
     component: kfctl_go_test
     name: kfctl-go-existing
     job_types:
-      - presubmit
+      # Enable once we have confirmed the stability of the test
+      # - presubmit
       - postsubmit
     include_dirs:
       - bootstrap/*
