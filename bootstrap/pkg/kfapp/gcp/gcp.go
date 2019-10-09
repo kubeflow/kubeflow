@@ -106,6 +106,8 @@ type Gcp struct {
 	// Function to get the GcpAccount.
 	// Support injection for testing.
 	gcpAccountGetter func() (string, error)
+	gcpProjectGetter func() (string, error)
+	gcpZoneGetter    func() (string, error)
 
 	runGetCredentials bool
 }
@@ -137,7 +139,8 @@ func GetPlatform(kfdef *kfdefs.KfDef) (kftypesv3.Platform, error) {
 	_gcp := &Gcp{
 		kfDef:            kfdef,
 		gcpAccountGetter: GetGcloudDefaultAccount,
-
+		gcpProjectGetter: GetGcloudDefaultProject,
+		gcpZoneGetter:    GetGcloudDefaultZone,
 		// Default to true for the CLI.
 		runGetCredentials: true,
 	}
@@ -223,6 +226,30 @@ func (gcp *Gcp) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
 	}
 	apiConfig := utils.BuildClientCmdAPI(restConfig, accessToken)
 	return restConfig, apiConfig
+}
+
+// GetGcloudDefaultProject try to get the default project.
+func GetGcloudDefaultProject() (string, error) {
+	output, err := exec.Command("gcloud", "config", "get-value", "project").Output()
+	if err != nil {
+		return "", &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("could not call 'gcloud config get-value project': %v", err),
+		}
+	}
+	return strings.TrimSpace(string(output)), nil
+}
+
+// GetGcloudDefaultZone try to get the default zone.
+func GetGcloudDefaultZone() (string, error) {
+	output, err := exec.Command("gcloud", "config", "get-value", "compute/zone").Output()
+	if err != nil {
+		return "", &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("could not call 'gcloud config get-value compute/zone': %v", err),
+		}
+	}
+	return strings.TrimSpace(string(output)), nil
 }
 
 // GetGcloudDefaultAccount try to get the default account.
@@ -1834,10 +1861,31 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 			log.Errorf("cannot get gcloud account email. Error: %v", err)
 			return err
 		}
-		email = strings.TrimSpace(email)
-		gcp.kfDef.Spec.Email = email
+		gcp.kfDef.Spec.Email = strings.TrimSpace(email)
 	} else {
 		log.Warnf("gcpAccountGetter not set; can't get default email")
+	}
+	// Set the project
+	if gcp.kfDef.Spec.Project == "" && gcp.gcpProjectGetter != nil {
+		project, err := gcp.gcpProjectGetter()
+		if err != nil {
+			log.Errorf("cannot get gcloud project. Error: %v", err)
+			return err
+		}
+		gcp.kfDef.Spec.Project = strings.TrimSpace(project)
+	} else {
+		log.Warnf("gcpProjectGetter not set; can't get default project")
+	}
+	// Set the zone
+	if gcp.kfDef.Spec.Zone == "" && gcp.gcpZoneGetter != nil {
+		zone, err := gcp.gcpZoneGetter()
+		if err != nil {
+			log.Errorf("cannot get gcloud compute/zone. Error: %v", err)
+			return err
+		}
+		gcp.kfDef.Spec.Zone = strings.TrimSpace(zone)
+	} else {
+		log.Warnf("gcpZoneGetter not set; can't get default zone")
 	}
 
 	// Set the defaults that will be used if not explicitly set.
