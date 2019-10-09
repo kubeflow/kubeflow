@@ -28,6 +28,8 @@ const USERIDHEADER = "userid-header"
 const USERIDPREFIX = "userid-prefix"
 // set cluster admin user id here.
 const CLUSTERADMIN = "cluster-admin"
+// identity used for workload-identity plugin.
+const WORKLOADIDENTITY = "workload-identity"
 
 
 func main() {
@@ -35,15 +37,17 @@ func main() {
 	var userIdHeader string
 	var userIdPrefix string
 	var clusterAdmin string
+	var workloadIdentity string
 	flag.StringVar(&userIdHeader, USERIDHEADER, "x-goog-authenticated-user-email", "Key of request header containing user id")
 	flag.StringVar(&userIdPrefix, USERIDPREFIX, "accounts.google.com:", "Request header user id common prefix")
 	flag.StringVar(&clusterAdmin, CLUSTERADMIN, "", "cluster admin")
+	flag.StringVar(&workloadIdentity, WORKLOADIDENTITY, "", "GCP service account that will be binded through profile workload-identity plugin")
 	flag.Parse()
 
 	profile.AddToScheme(scheme.Scheme)
 	istio.AddToScheme(scheme.Scheme)
 
-	profileClient, err := kfam.NewKfamClient(userIdHeader, userIdPrefix, clusterAdmin)
+	profileClient, err := kfam.NewKfamClient(userIdHeader, userIdPrefix, clusterAdmin, workloadIdentity)
 	if err != nil {
 		log.Print(err)
 		panic(err)

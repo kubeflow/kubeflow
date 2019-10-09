@@ -12,10 +12,13 @@ package kfam
 
 import (
 	"encoding/json"
+	"fmt"
 	istioRegister "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/istiorbac/v1alpha1"
 	profileRegister "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1beta1"
 	profilev1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
+	profileControllers "github.com/kubeflow/kubeflow/components/profile-controller/controllers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	clientset "k8s.io/client-go/kubernetes"
@@ -44,9 +47,11 @@ type KfamV1Alpha1Client struct {
 	clusterAdmin []string
 	userIdHeader string
 	userIdPrefix string
+	workloadIdentity string
 }
 
-func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string) (*KfamV1Alpha1Client, error) {
+func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string,
+	workloadIdentity string) (*KfamV1Alpha1Client, error) {
 	profileRESTClient, err := getRESTClient(profileRegister.GroupName, profileRegister.GroupVersion)
 	if err != nil {
 		return nil, err
@@ -74,6 +79,7 @@ func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string
 		clusterAdmin: []string{clusterAdmin},
 		userIdHeader: userIdHeader,
 		userIdPrefix: userIdPrefix,
+		workloadIdentity: workloadIdentity,
 	}, nil
 }
 
@@ -126,6 +132,22 @@ func (c *KfamV1Alpha1Client) CreateProfile(w http.ResponseWriter, r *http.Reques
 	} else {
 		w.WriteHeader(http.StatusForbidden)
 		w.Write([]byte(err.Error()))
+	}
+}
+
+func (c *KfamV1Alpha1Client) PatchProfilePlugins(profile *profilev1beta1.Profile) {
+	//	Check and patch workloadIdentity plugin
+	if c.workloadIdentity != "" {
+		pluginRaw := fmt.Sprintf(`{"gcpserviceaccount": "%v"}`, c.workloadIdentity)
+		workloadIdentityPlugin := profilev1beta1.Plugin{
+			TypeMeta: metav1.TypeMeta{
+				Kind: profileControllers.WORKLOAD_IDENTITY,
+			},
+			Spec: &runtime.RawExtension{
+				Raw: []byte(pluginRaw),
+			},
+		}
+		profile.Spec.Plugins = append(profile.Spec.Plugins, workloadIdentityPlugin)
 	}
 }
 
