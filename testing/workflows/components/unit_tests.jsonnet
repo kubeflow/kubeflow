@@ -45,7 +45,7 @@ local project = "kubeflow-ci";
 // We use separate kubeConfig files for separate clusters
 local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=[]) = {
   name: step_name,
-  activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
+  activeDeadlineSeconds: 3000,  // Set 50 minute timeout for each template
   workingDir: working_dir,
   container+: {
     command: command,
@@ -115,12 +115,12 @@ local dagTemplates = [
       srcDir + "/kubeflow" + "," +
       srcDir + "/testing",
     ]),  // flake8-test
-    
+
     dependencies: ["checkout"],
   },
   {
     // Run the kfctl go unittests
-    template: buildTemplate("go-kfctl-unit-tests", [      
+    template: buildTemplate("go-kfctl-unit-tests", [
       "make",
       "test-junit",
     ], working_dir=srcDir + "/bootstrap",
@@ -134,7 +134,7 @@ local dagTemplates = [
         image: "gcr.io/kubeflow-ci/kfctl/builder:v20190418-v0-30-g5e3bd23d-dirty-73d1fe",
       },
     },  // go-kfctl-unit-tests
-    
+
     dependencies: ["checkout"],
   },
   {
