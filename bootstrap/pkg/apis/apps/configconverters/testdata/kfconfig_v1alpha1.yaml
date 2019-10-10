@@ -6,6 +6,7 @@ metadata:
   namespace: kubeflow
 spec:
   appDir: /tmp/myapp2
+  platform: gcp
   project: foo-project
   email: foo@gmail.com
   applications:

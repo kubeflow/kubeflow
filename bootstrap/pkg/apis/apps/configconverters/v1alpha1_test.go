@@ -57,7 +57,7 @@ func TestV1alpha1_ConvertToKfConfigs(t *testing.T) {
 		if !reflect.DeepEqual(config, expectedConfig) {
 			pGot := kfutils.PrettyPrint(config)
 			pWant := kfutils.PrettyPrint(expectedConfig)
-			t.Errorf("Loaded KfConfig doesn't match;\nexpected\n%v\ngot\n%v\n", pWant, pGot)
+			t.Errorf("Loaded KfConfig doesn't match: %v", cmp.Diff(pGot, pWant))
 		}
 	}
 }
