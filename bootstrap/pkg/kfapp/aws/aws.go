@@ -107,10 +107,6 @@ func (aws *Aws) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
 	return nil, nil
 }
 
-func (aws *Aws) GetKfConfig() *kfconfig.KfConfig {
-	return nil
-}
-
 func createNamespace(k8sClientset *clientset.Clientset, namespace string) error {
 	log.Infof("Creating namespace: %v", namespace)
 	_, err := k8sClientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})

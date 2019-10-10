@@ -258,10 +258,6 @@ func (existing *Existing) Delete(resources kftypesv3.ResourceEnum) error {
 	return nil
 }
 
-func (existing *Existing) GetKfConfig() *kfconfig.KfConfig {
-	return nil
-}
-
 func internalError(err error) error {
 	return &kfapisv3.KfError{
 		Code:    int(kfapisv3.INTERNAL_ERROR),
