@@ -211,10 +211,9 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
     raise ValueError("Could not determine GCP account being used.")
   if not project:
     raise ValueError("Could not get project being used")
-  
+
   config_spec = get_config_spec(config_path, project, email, zone, app_path)
-  with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
-    yaml.dump(config_spec, f)
+
   # TODO(jlewi): When we switch to KfDef v1beta1 this logic will need to change because
   # use_base_auth will move into the plugin spec
   use_basic_auth = config_spec["spec"].get("useBasicAuth", False)
@@ -228,7 +227,7 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
 
   # Do not run with retries since it masks errors
   logging.info("Running kfctl with config:\n%s", yaml.safe_dump(config_spec))
-  util.run([kfctl_path, "apply", "-V", "-f=" + os.path.join(parent_dir, "tmp.yaml")], cwd=app_path)
+  util.run([kfctl_path, "apply", "-V", "-f=" + config_path], cwd=app_path)
   return app_path
 
 def verify_kubeconfig(app_path):
