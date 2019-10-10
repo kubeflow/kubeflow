@@ -196,6 +196,9 @@ func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 		}
 	}
 
+	b, _ := yaml.Marshal(kfDef)
+	log.Infof("KfConfig:\n%v", string(b))
+
 	// If the config file is downloaded remotely, use the current working directory to create the KfApp.
 	// Otherwise use the directory where the config file is stored.
 	if isRemoteFile {
