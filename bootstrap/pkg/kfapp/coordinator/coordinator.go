@@ -19,8 +19,8 @@ package coordinator
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	netUrl "net/url"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -146,9 +146,47 @@ func repoVersionToUri(repo string, version string) string {
 	return tarballUrl
 }
 
+// isCwdEmpty - quick check to determine if the working directory is empty
+// if the current working directory
+func isCwdEmpty() string {
+	cwd, _ := os.Getwd()
+	files, _ := ioutil.ReadDir(cwd)
+	if len(files) > 1 {
+		return ""
+	}
+	return cwd
+}
+
 // NewLoadKfAppFromURI takes in a config file and constructs the KfApp
 // used by the build and apply semantics for kfctl
 func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
+	url, err := netUrl.ParseRequestURI(configFile)
+	isRemoteFile := false
+	cwd := ""
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error parsing config file path: %v", err),
+		}
+	} else {
+		if url.Scheme != "" {
+			isRemoteFile = true
+		}
+	}
+
+	// If the config file is downloaded remotely, check to see if the current directory
+	// is empty because we will be generating the KfApp there.
+	if isRemoteFile {
+		cwd = isCwdEmpty()
+		if cwd == "" {
+			wd, _ := os.Getwd()
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("current directory %v not empty, please switch directories", wd),
+			}
+		}
+	}
+
 	// kfDef is a kfconfig
 	kfDef, err := configconverters.LoadConfigFromURI(configFile)
 	if err != nil {
