@@ -49,6 +49,9 @@ var applyCmd = &cobra.Command{
 
 			if kind == string(kftypes.KFDEF) {
 				kfApp, err = coordinator.BuildKfAppFromURI(configFilePath)
+				if err != nil {
+					return fmt.Errorf("couldn't load KfDef: %v", err)
+				}
 			} else if kind == string(kftypes.KFUPGRADE) {
 				kfUpgrade, err := kfupgrade.NewKfUpgrade(configFilePath)
 				if err != nil {
