@@ -135,7 +135,7 @@ page and the Dashboard, use the following example which would disable a
 `<select>` element and assign the value from the Dashboard's Namespace selector
 when it changes:
 
-```
+```js
 window.addEventListener('DOMContentLoaded', function (event) {
     if (window.centraldashboard.CentralDashboardEventHandler) {
         // Init method will invoke the callback with the event handler instance
