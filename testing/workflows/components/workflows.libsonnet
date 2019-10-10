@@ -434,7 +434,7 @@
       // We use separate kubeConfig files for separate clusters
       local buildTemplate(step_name, command, env_vars=[], sidecars=[], kubeConfig="config") = {
         name: step_name,
-        activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
+        activeDeadlineSeconds: 3000,  // Set 50 minute timeout for each template
         container: {
           command: command,
           image: image,
