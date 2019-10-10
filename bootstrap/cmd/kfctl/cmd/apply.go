@@ -20,6 +20,8 @@ import (
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfupgrade"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -40,9 +42,26 @@ var applyCmd = &cobra.Command{
 			log.SetLevel(log.WarnLevel)
 		}
 		if configFilePath != "" {
-			kfApp, err = coordinator.BuildKfAppFromURI(configFilePath)
+			kind, err := utils.GetObjectKindFromUri(configFilePath)
 			if err != nil {
-				return fmt.Errorf("error building KfApp: %v", err)
+				return fmt.Errorf("Cannot determine the object kind: %v", err)
+			}
+
+			if kind == string(kftypes.KFDEF) {
+				kfApp, err = coordinator.BuildKfAppFromURI(configFilePath)
+			} else if kind == string(kftypes.KFUPGRADE) {
+				kfUpgrade, err := kfupgrade.NewKfUpgrade(configFilePath)
+				if err != nil {
+					return fmt.Errorf("couldn't load KfUpgrade: %v", err)
+				}
+
+				err = kfUpgrade.Apply()
+				if err != nil {
+					return fmt.Errorf("couldn't apply KfUpgrade: %v", err)
+				}
+				return nil
+			} else {
+				return fmt.Errorf("Unsupported object kind: %v", kind)
 			}
 		} else {
 			cwd, err := os.Getwd()
@@ -72,7 +91,7 @@ func init() {
 	applyCfg.SetConfigType("yaml")
 
 	// Config file option
-	applyCmd.PersistentFlags().StringVarP(&configFilePath, "file", "f", "",
+	applyCmd.PersistentFlags().StringVarP(&configFilePath, string(kftypes.FILE), "f", "",
 		`Static config file to use. Can be either a local path or a URL.
 For example:
 --config=https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_platform_existing.yaml
