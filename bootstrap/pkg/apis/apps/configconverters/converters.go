@@ -57,13 +57,6 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 		log.Errorf("could not parse configFile url")
 	}
 	if isValidUrl(configFile) {
-		cwd := isCwdEmpty()
-		if cwd == "" {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: "current directory not empty, please switch directories",
-			}
-		}
 		errGet := gogetter.GetFile(appFile, configFile)
 		if errGet != nil {
 			return nil, &kfapis.KfError{
