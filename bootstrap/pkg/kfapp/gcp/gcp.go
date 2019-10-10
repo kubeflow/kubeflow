@@ -925,6 +925,7 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 	services := servicemanagement.NewServicesService(servicemanagementService)
 	op, deleteErr := services.Delete(gcp.kfDef.Spec.Hostname).Context(ctx).Do()
 	if deleteErr != nil {
+		log.Warningf("endpoint deletion error: %v", deleteErr)
 		nextPage := ""
 		// Use a loop to read multi-page managed services list.
 		for {

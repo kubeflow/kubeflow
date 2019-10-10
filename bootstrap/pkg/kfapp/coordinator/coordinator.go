@@ -20,12 +20,16 @@ import (
 	"fmt"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	"io/ioutil"
 	netUrl "net/url"
 	"path"
 =======
 >>>>>>> 236085d3... coordinator use kfconfig wip
 =======
+=======
+	"io/ioutil"
+>>>>>>> 111a8d84... fix delete
 	"os"
 >>>>>>> 65dbea91... coordinator can compile now
 	"path/filepath"
@@ -663,7 +667,17 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 // For delete, the cwd is not emptyu so we need a different way to load the KfApp
 func GetKfAppFromCfgFile(appFile string, deleteStorage bool) (kftypesv3.KfApp, error) {
 	// Read contents
-	kfdef, err := configconverters.LoadConfigFromURI(appFile)
+	configFileBytes, err := ioutil.ReadFile(appFile)
+	// TODO: can we use this?
+	// kfdef, err := configconverters.LoadConfigFromURI(appFile)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not read from config file %s: %v", appFile, err),
+		}
+	}
+	alpha1Converter := configconverters.V1alpha1{}
+	kfdef, err := alpha1Converter.ToKfConfig(filepath.Dir(appFile), configFileBytes)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
