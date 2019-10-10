@@ -15,18 +15,18 @@
 package kfam
 
 import (
-	"github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
+	"github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 )
 
 type ProfileInterface interface {
-	Create(profile *v1alpha1.Profile) (*v1alpha1.Profile, error)
+	Create(profile *v1beta1.Profile) (*v1beta1.Profile, error)
 	Delete(name string, opts *metav1.DeleteOptions) error
-	Get(name string, opts metav1.GetOptions) (*v1alpha1.Profile, error)
-	List(opts metav1.ListOptions) (*v1alpha1.ProfileList, error)
-	Update(profile *v1alpha1.Profile) (*v1alpha1.Profile, error)
+	Get(name string, opts metav1.GetOptions) (*v1beta1.Profile, error)
+	List(opts metav1.ListOptions) (*v1beta1.ProfileList, error)
+	Update(profile *v1beta1.Profile) (*v1beta1.Profile, error)
 }
 
 type ProfileClient struct {
@@ -35,8 +35,8 @@ type ProfileClient struct {
 
 const Profiles = "profiles"
 
-func (c *ProfileClient) Create(profile *v1alpha1.Profile) (*v1alpha1.Profile, error) {
-	result := v1alpha1.Profile{}
+func (c *ProfileClient) Create(profile *v1beta1.Profile) (*v1beta1.Profile, error) {
+	result := v1beta1.Profile{}
 	err := c.restClient.
 		Post().
 		Resource(Profiles).
@@ -57,8 +57,8 @@ func (c *ProfileClient) Delete(name string, opts *metav1.DeleteOptions) error {
 		Error()
 }
 
-func (c *ProfileClient) Get(name string, opts metav1.GetOptions) (*v1alpha1.Profile, error) {
-	result := v1alpha1.Profile{}
+func (c *ProfileClient) Get(name string, opts metav1.GetOptions) (*v1beta1.Profile, error) {
+	result := v1beta1.Profile{}
 	err := c.restClient.
 		Get().
 		Resource(Profiles).
@@ -70,8 +70,8 @@ func (c *ProfileClient) Get(name string, opts metav1.GetOptions) (*v1alpha1.Prof
 	return &result, err
 }
 
-func (c *ProfileClient) List(opts metav1.ListOptions) (*v1alpha1.ProfileList, error) {
-	result := v1alpha1.ProfileList{}
+func (c *ProfileClient) List(opts metav1.ListOptions) (*v1beta1.ProfileList, error) {
+	result := v1beta1.ProfileList{}
 	err := c.restClient.
 		Get().
 		Resource(Profiles).
@@ -82,8 +82,8 @@ func (c *ProfileClient) List(opts metav1.ListOptions) (*v1alpha1.ProfileList, er
 	return &result, err
 }
 
-func (c *ProfileClient) Update(profile *v1alpha1.Profile) (*v1alpha1.Profile, error) {
-	result := v1alpha1.Profile{}
+func (c *ProfileClient) Update(profile *v1beta1.Profile) (*v1beta1.Profile, error) {
+	result := v1beta1.Profile{}
 	err := c.restClient.
 		Put().
 		Resource(Profiles).
