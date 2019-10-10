@@ -1484,6 +1484,7 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 	if gcp.kfDef.Spec.UseIstio {
 		oauthSecretNamespace = gcp.getIstioNamespace()
 	}
+	log.Infof("OAuthSecretNS: %v", oauthSecretNamespace)
 
 	if _, err := client.CoreV1().Secrets(oauthSecretNamespace).
 		Get(KUBEFLOW_OAUTH, metav1.GetOptions{}); err == nil {
@@ -1592,6 +1593,7 @@ func (gcp *Gcp) createSecrets() error {
 	if err != nil {
 		return kfapis.NewKfErrorWithMessage(err, "set K8s clientset error")
 	}
+	log.Infof("Creating GCP secrets...")
 	// If workload identity is enabled, we don't need to create secrets.
 	if !(*p.EnableWorkloadIdentity) {
 		adminEmail := getSA(gcp.kfDef.Name, "admin", gcp.kfDef.Spec.Project)
@@ -1616,10 +1618,12 @@ func (gcp *Gcp) createSecrets() error {
 		}
 	}
 	if gcp.kfDef.Spec.UseBasicAuth {
+		log.Infof("Creating GCP secrets for basic auth...")
 		if err := gcp.createBasicAuthSecret(k8sClient); err != nil {
 			return kfapis.NewKfErrorWithMessage(err, "cannot create basic auth login secret")
 		}
 	} else {
+		log.Infof("Creating GCP secrets for IAP...")
 		if err := gcp.createIapSecret(ctx, k8sClient); err != nil {
 			return kfapis.NewKfErrorWithMessage(err, "cannot create IAP auth secret")
 		}

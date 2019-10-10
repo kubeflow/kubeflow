@@ -250,6 +250,7 @@ func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 		}
 	}
 
+<<<<<<< HEAD
 	// If a config file is specified, construct the KfDef entirely from that.
 	configFile := options[string(kftypesv3.CONFIG)].(string)
 
@@ -258,6 +259,15 @@ func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 		newkfDef, err := kfdefsv3.LoadKFDefFromURI(configFile)
 
 		kfDef = newkfDef
+=======
+	b, _ := yaml.Marshal(kfDef)
+	log.Infof("KfConfig:\n%v", string(b))
+
+	// If the config file is downloaded remotely, use the current working directory to create the KfApp.
+	// Otherwise use the directory where the config file is stored.
+	if isRemoteFile {
+		cwd, err = os.Getwd()
+>>>>>>> cfc38b2f... logs
 		if err != nil {
 			log.Errorf("Could not load %v; error %v", configFile, err)
 			return nil, &kfapis.KfError{
