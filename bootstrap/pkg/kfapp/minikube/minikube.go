@@ -60,10 +60,6 @@ func (minikube *Minikube) Delete(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
-func (minikube *Minikube) GetKfConfig() *kfconfig.KfConfig {
-	return nil
-}
-
 func (minikube *Minikube) generate() error {
 	// TODO: fix with applications
 

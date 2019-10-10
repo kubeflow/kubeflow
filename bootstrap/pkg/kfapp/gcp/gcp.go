@@ -120,10 +120,6 @@ type Setter interface {
 	SetRunGetCredentials(v bool)
 }
 
-func (gcp *Gcp) GetKfConfig() *kfconfig.KfConfig {
-	return gcp.kfDef
-}
-
 func (gcp *Gcp) SetTokenSource(s oauth2.TokenSource) error {
 	gcp.tokenSource = s
 	return nil
@@ -1322,15 +1318,7 @@ func (gcp *Gcp) generateDMConfigs() error {
 				gcpConfigDirErr, appDir),
 		}
 	}
-	foundRepo := false
-	var repo kfconfig.Cache
-	for _, r := range gcp.kfDef.Status.Caches {
-		if r.Name == pluginSpec.DeploymentManagerConfig.RepoRef.Name {
-			foundRepo = true
-			repo = r
-			break
-		}
-	}
+	repo, foundRepo := gcp.kfDef.GetRepoCache(pluginSpec.DeploymentManagerConfig.RepoRef.Name)
 
 	if !foundRepo {
 		err := fmt.Errorf("Repo %v not found in KfDef.Status.Caches", pluginSpec.DeploymentManagerConfig.RepoRef.Name)
