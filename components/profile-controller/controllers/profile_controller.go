@@ -149,8 +149,16 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 		}
 	} else {
 		// Check exising namespace ownership before move forward
-		val, ok := foundNs.Annotations["owner"]
-		if (!ok) || val != instance.Spec.Owner.Name {
+		owner, ok := foundNs.Annotations["owner"]
+		if ok && owner == instance.Spec.Owner.Name {
+			if _, ok = foundNs.Labels[katibMetricsCollectorLabel]; !ok {
+				foundNs.Labels[katibMetricsCollectorLabel] = "enabled"
+				err = r.Update(ctx, foundNs)
+				if err != nil {
+					return reconcile.Result{}, err
+				}
+			}
+		} else {
 			logger.Info(fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
 				instance.Spec.Owner.Name))
 			return r.appendErrorConditionAndReturn(ctx, instance, fmt.Sprintf(
