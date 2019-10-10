@@ -70,6 +70,7 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 			Hostname:        kfdef.Spec.Hostname,
 			SkipInitProject: kfdef.Spec.SkipInitProject,
 			Zone:            kfdef.Spec.Zone,
+			Platform:        kfdef.Spec.Platform,
 		},
 	}
 	if config.Spec.AppDir == "" {
