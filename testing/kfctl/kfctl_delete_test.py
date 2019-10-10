@@ -19,7 +19,8 @@ from oauth2client.client import GoogleCredentials
 # TODO(gabrielwen): Move this to a separate test "kfctl_go_check_post_delete"
 def get_endpoints_list(project):
   cred = GoogleCredentials.get_application_default()
-  services_mgt = discovery.build('servicemanagement', 'v1', credentials=cred)
+  services_mgt = discovery.build(
+    'servicemanagement', 'v1', credentials=cred, cache_discovery=False)
   services = services_mgt.services()
   next_page_token = None
   endpoints = []
