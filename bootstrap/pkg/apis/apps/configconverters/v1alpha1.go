@@ -49,7 +49,6 @@ func copyGcpPluginSpec(from *kfdeftypes.KfDef, to *kfconfig.KfConfig) error {
 	spec.UseBasicAuth = from.Spec.UseBasicAuth
 	spec.SkipInitProject = from.Spec.SkipInitProject
 	spec.DeleteStorage = from.Spec.DeleteStorage
-	spec.UseIstio = true
 	return to.SetPluginSpec(kfconfig.GCP_PLUGIN_KIND, spec)
 }
 
@@ -79,11 +78,14 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 <<<<<<< HEAD
 			Platform:        kfdef.Spec.Platform,
 			UseIstio:        true,
+<<<<<<< HEAD
 =======
 >>>>>>> d54bfc48... fix test
 =======
 			Platform:        kfdef.Spec.Platform,
 >>>>>>> 6d5ac58b... fix appdir
+=======
+>>>>>>> e217e22e... set missing specs
 		},
 =======
 		AppDir:       kfdef.Spec.AppDir,

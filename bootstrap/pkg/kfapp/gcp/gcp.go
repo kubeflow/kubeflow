@@ -2067,9 +2067,11 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 	// This needs to happen before calling generateDM configs.
 	if gcp.kfDef.Spec.IpName == "" {
 		gcp.kfDef.Spec.IpName = gcp.kfDef.Name + "-ip"
+		pluginSpec.IpName = gcp.kfDef.Spec.IpName
 	}
 	if gcp.kfDef.Spec.Hostname == "" {
 		gcp.kfDef.Spec.Hostname = gcp.kfDef.Name + ".endpoints." + gcp.kfDef.Spec.Project + ".cloud.goog"
+		pluginSpec.Hostname = gcp.kfDef.Spec.Hostname
 	}
 
 	switch resources {
@@ -2144,6 +2146,10 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 		if kfdefs.IsAppNotFound(err) {
 			log.Infof("Spartakus not included; not setting usageId")
 		}
+	}
+
+	if err := gcp.kfDef.SetPluginSpec(GcpPluginName, pluginSpec); err != nil {
+		return errors.WithStack(err)
 	}
 
 	return nil
