@@ -73,6 +73,7 @@ class Builder:
                bucket="kubeflow-ci_temp",
                test_endpoint=False,
                use_basic_auth=False,
+               build_and_apply=False,
                kf_app_name=None, delete_kf=True,):
     """Initialize a builder.
 
@@ -94,6 +95,7 @@ class Builder:
     self.namespace = namespace
     self.bucket = bucket
     self.config_path = config_path
+    self.build_and_apply = build_and_apply
     #****************************************************************************
     # Define directory locations
     #****************************************************************************
@@ -502,6 +504,7 @@ class Builder:
         # Failures still appear to be captured and stored in the junit file.
         "-s",
         "--config_path=" + self.config_path,
+        "--build_and_apply=" + str(self.build_and_apply),
         # Increase the log level so that info level log statements show up.
         # TODO(https://github.com/kubeflow/testing/issues/372): If we
         # set a unique artifacts dir for each workflow with the proper

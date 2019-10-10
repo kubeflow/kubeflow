@@ -30,6 +30,10 @@ import (
 	// +kubebuilder:scaffold:imports
 )
 
+const USERIDHEADER = "userid-header"
+const USERIDPREFIX = "userid-prefix"
+const WORKLOADIDENTITY = "workload-identity"
+
 var (
 	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
@@ -48,11 +52,13 @@ func main() {
 	var enableLeaderElection bool
 	var userIdHeader string
 	var userIdPrefix string
+	var workloadIdentity string
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
-	flag.StringVar(&userIdHeader, controllers.USERIDHEADER, "x-goog-authenticated-user-email", "Key of request header containing user id")
-	flag.StringVar(&userIdPrefix, controllers.USERIDPREFIX, "accounts.google.com:", "Request header user id common prefix")
+	flag.StringVar(&userIdHeader, USERIDHEADER, "x-goog-authenticated-user-email", "Key of request header containing user id")
+	flag.StringVar(&userIdPrefix, USERIDPREFIX, "accounts.google.com:", "Request header user id common prefix")
+	flag.StringVar(&workloadIdentity, WORKLOADIDENTITY, "", "Default identity (GCP service account) for workload_identity plugin")
 	flag.Parse()
 
 	ctrl.SetLogger(zap.Logger(true))
@@ -68,11 +74,12 @@ func main() {
 	}
 
 	if err = (&controllers.ProfileReconciler{
-		Client:       mgr.GetClient(),
-		Scheme:       mgr.GetScheme(),
-		Log:          ctrl.Log.WithName("controllers").WithName("Profile"),
-		UserIdHeader: userIdHeader,
-		UserIdPrefix: userIdPrefix,
+		Client:           mgr.GetClient(),
+		Scheme:           mgr.GetScheme(),
+		Log:              ctrl.Log.WithName("controllers").WithName("Profile"),
+		UserIdHeader:     userIdHeader,
+		UserIdPrefix:     userIdPrefix,
+		WorkloadIdentity: workloadIdentity,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Profile")
 		os.Exit(1)
