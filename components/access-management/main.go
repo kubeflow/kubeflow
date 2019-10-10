@@ -17,7 +17,7 @@ import (
 	"net/http"
 
 	"github.com/kubeflow/kubeflow/components/access-management/kfam"
-	profile "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1alpha1"
+	profile "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1beta1"
 	istio "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/istiorbac/v1alpha1"
 )
 

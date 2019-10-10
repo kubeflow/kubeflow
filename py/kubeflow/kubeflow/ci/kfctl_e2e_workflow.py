@@ -73,6 +73,7 @@ class Builder:
                bucket="kubeflow-ci_temp",
                test_endpoint=False,
                use_basic_auth=False,
+               build_and_apply=False,
                kf_app_name=None, delete_kf=True,):
     """Initialize a builder.
 
@@ -94,6 +95,7 @@ class Builder:
     self.namespace = namespace
     self.bucket = bucket
     self.config_path = config_path
+    self.build_and_apply = build_and_apply
     #****************************************************************************
     # Define directory locations
     #****************************************************************************
@@ -320,28 +322,6 @@ class Builder:
                                   command, dependences)
 
     #*************************************************************************
-    # Test TFJob v1beta2
-    step_name = "tfjbo-v1beta2"
-    command = [
-                "python",
-                "-m",
-                "kubeflow.tf_operator.simple_tfjob_tests",
-                "--app_dir=" + self.tf_operator_root + "/test/workflows",
-                "--tfjob_version=v1beta2",
-                # Name is used for the test case name so it should be unique across
-                # all E2E tests.
-                "--params=name=smoke-tfjob-" + self.config_name
-                + ",namespace=" + self.steps_namespace,
-                "--artifacts_path=" +self.artifacts_dir,
-                # Skip GPU tests
-                "--skip_tests=test_simple_tfjob_gpu",
-              ]
-
-    dependences = []
-    tfjob_v1beta2 = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
-                                     command, dependences)
-
-    #*************************************************************************
     # Test katib deploy
     step_name = "test-katib-deploy"
     command = ["python",
@@ -524,6 +504,7 @@ class Builder:
         # Failures still appear to be captured and stored in the junit file.
         "-s",
         "--config_path=" + self.config_path,
+        "--build_and_apply=" + str(self.build_and_apply),
         # Increase the log level so that info level log statements show up.
         # TODO(https://github.com/kubeflow/testing/issues/372): If we
         # set a unique artifacts dir for each workflow with the proper

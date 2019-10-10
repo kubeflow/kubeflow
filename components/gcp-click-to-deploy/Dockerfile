@@ -1,14 +1,9 @@
-# Build, prune, and copy for serving.
-FROM node:10-alpine AS build
-
-COPY . /build
-WORKDIR /build
-
-RUN npm install && npm run build && npm prune --production
-
-FROM node:10-alpine AS serve
-
+# Build
+FROM node:10 AS serve
 WORKDIR /app
-COPY --from=build /build .
+COPY . .
 
-ENTRYPOINT ["npm", "run", "serve"]
+RUN npm install
+RUN chmod +x build_serve.sh
+
+ENTRYPOINT ["/app/build_serve.sh"]

@@ -20,7 +20,7 @@ import (
 	"regexp"
 	"strings"
 
-	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/istiorbac/v1alpha1"
+	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/api/istiorbac/v1alpha1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"

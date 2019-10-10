@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	netUrl "net/url"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -155,6 +157,22 @@ func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
 		}
 	}
+
+	// If the config file is downloaded remotely, use the current working directory to create the KfApp.
+	// Otherwise use the directory where the config file is stored.
+	if isRemoteFile {
+		cwd, err = os.Getwd()
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
+			}
+		}
+		kfDef.Spec.AppDir = cwd
+	} else {
+		kfDef.Spec.AppDir = path.Dir(configFile)
+	}
+
 	// basic auth check and warn
 	useBasicAuth := kfDef.Spec.UseBasicAuth
 	if useBasicAuth && (os.Getenv(kftypesv3.KUBEFLOW_USERNAME) == "" ||
