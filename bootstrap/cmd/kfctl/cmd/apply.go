@@ -43,8 +43,31 @@ var applyCmd = &cobra.Command{
 			log.SetLevel(log.WarnLevel)
 		}
 
+<<<<<<< HEAD
 		// Load config from exisiting app.yaml
 		if configFilePath == "" {
+=======
+			if kind == string(kftypes.KFDEF) {
+				kfApp, err = coordinator.BuildKfAppFromURI(configFilePath)
+				if err != nil {
+					return fmt.Errorf("couldn't load KfDef: %v", err)
+				}
+			} else if kind == string(kftypes.KFUPGRADE) {
+				kfUpgrade, err := kfupgrade.NewKfUpgrade(configFilePath)
+				if err != nil {
+					return fmt.Errorf("couldn't load KfUpgrade: %v", err)
+				}
+
+				err = kfUpgrade.Apply()
+				if err != nil {
+					return fmt.Errorf("couldn't apply KfUpgrade: %v", err)
+				}
+				return nil
+			} else {
+				return fmt.Errorf("Unsupported object kind: %v", kind)
+			}
+		} else {
+>>>>>>> 10603027... populate err msg
 			cwd, err := os.Getwd()
 			if err != nil {
 				return fmt.Errorf("cannot fetch current directory for apply: %v", err)
