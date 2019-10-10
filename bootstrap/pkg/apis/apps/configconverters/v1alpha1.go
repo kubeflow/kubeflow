@@ -75,10 +75,14 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 			SkipInitProject: kfdef.Spec.SkipInitProject,
 			Zone:            kfdef.Spec.Zone,
 <<<<<<< HEAD
+<<<<<<< HEAD
 			Platform:        kfdef.Spec.Platform,
 			UseIstio:        true,
 =======
 >>>>>>> d54bfc48... fix test
+=======
+			Platform:        kfdef.Spec.Platform,
+>>>>>>> 6d5ac58b... fix appdir
 		},
 =======
 		AppDir:       kfdef.Spec.AppDir,
