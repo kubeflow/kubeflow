@@ -332,7 +332,14 @@ func (a *Apply) namespace(namespace string) error {
 	)
 	if nsMissingErr != nil {
 		log.Infof("Creating namespace: %v", namespace)
-		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
+		nsSpec := &v1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: namespace,
+				Labels: map[string]string{
+					katibMetricsCollectorLabel: "enabled",
+				},
+			},
+		}
 		_, nsErr := a.clientset.CoreV1().Namespaces().Create(nsSpec)
 		if nsErr != nil {
 			return &kfapis.KfError{
