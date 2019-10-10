@@ -23,6 +23,7 @@ import (
 <<<<<<< HEAD
 	"io/ioutil"
 	netUrl "net/url"
+	"os"
 	"path"
 =======
 >>>>>>> 236085d3... coordinator use kfconfig wip
@@ -157,6 +158,7 @@ func repoVersionToUri(repo string, version string) string {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // CreateKfDefFromOptions creates a KfDef from the supplied options.
 func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv3.KfDef, error) {
 	//appName can be a path
@@ -196,6 +198,52 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv3.KfDef, er
 	}
 	errs := valid.NameIsDNSLabel(appName, false)
 	if errs != nil && len(errs) > 0 {
+=======
+// isCwdEmpty - quick check to determine if the working directory is empty
+// if the current working directory
+func isCwdEmpty() string {
+	cwd, _ := os.Getwd()
+	files, _ := ioutil.ReadDir(cwd)
+	if len(files) > 1 {
+		return ""
+	}
+	return cwd
+}
+
+// NewLoadKfAppFromURI takes in a config file and constructs the KfApp
+// used by the build and apply semantics for kfctl
+func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
+	url, err := netUrl.ParseRequestURI(configFile)
+	isRemoteFile := false
+	cwd := ""
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error parsing config file path: %v", err),
+		}
+	} else {
+		if url.Scheme != "" {
+			isRemoteFile = true
+		}
+	}
+
+	// If the config file is downloaded remotely, check to see if the current directory
+	// is empty because we will be generating the KfApp there.
+	if isRemoteFile {
+		cwd = isCwdEmpty()
+		if cwd == "" {
+			wd, _ := os.Getwd()
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("current directory %v not empty, please switch directories", wd),
+			}
+		}
+	}
+
+	// kfDef is a kfconfig
+	kfDef, err := configconverters.LoadConfigFromURI(configFile)
+	if err != nil {
+>>>>>>> e25a3a1a... fix?
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf(`invalid name due to %v`, strings.Join(errs, ", ")),

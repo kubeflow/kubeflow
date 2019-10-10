@@ -28,7 +28,7 @@ import (
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	kfupgrade "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfupgrade/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
+	//"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -74,7 +74,7 @@ func createNewKfApp(baseConfig string, oldKfDef *kfdefsv3.KfDef) (*kfdefsv3.KfDe
 	newKfDef.Spec.AppDir = newAppDir
 
 	// Make sure the new KfApp is created.
-	_, err = coordinator.CreateKfAppCfgFile(newKfDef)
+	_, err = coordinator.CreateKfAppCfgFileWithKfDef(newKfDef)
 	if err != nil {
 		return nil, err
 	}
@@ -216,17 +216,21 @@ func MergeKfDef(oldKfDef *kfdefsv3.KfDef, newKfDef *kfdefsv3.KfDef) {
 }
 
 func (upgrader *KfUpgrader) Generate() error {
-	kfApp := kustomize.GetKfApp(upgrader.NewKfDef)
-	return kfApp.Generate(kftypesv3.K8S)
+	// TODO: fix this
+	// kfApp := kustomize.GetKfApp(upgrader.NewKfDef)
+	// return kfApp.Generate(kftypesv3.K8S)
+	return nil
 }
 
 func (upgrader *KfUpgrader) Apply() error {
-	kfApp := kustomize.GetKfApp(upgrader.NewKfDef)
-	err := kfApp.Generate(kftypesv3.K8S)
-	if err != nil {
-		log.Errorf("Failed to generate KfApp: %v", err)
-		return err
-	}
+	// TODO: fix this
+	// kfApp := kustomize.GetKfApp(upgrader.NewKfDef)
+	// err := kfApp.Generate(kftypesv3.K8S)
+	// if err != nil {
+	// 	log.Errorf("Failed to generate KfApp: %v", err)
+	// 	return err
+	// }
 
-	return kfApp.Apply(kftypesv3.K8S)
+	// return kfApp.Apply(kftypesv3.K8S)
+	return nil
 }
