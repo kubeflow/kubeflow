@@ -41,29 +41,9 @@ var applyCmd = &cobra.Command{
 		if applyCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
-		if configFilePath != "" {
-			kind, err := utils.GetObjectKindFromUri(configFilePath)
-			if err != nil {
-				return fmt.Errorf("Cannot determine the object kind: %v", err)
-			}
 
-			if kind == string(kftypes.KFDEF) {
-				kfApp, err = coordinator.BuildKfAppFromURI(configFilePath)
-			} else if kind == string(kftypes.KFUPGRADE) {
-				kfUpgrade, err := kfupgrade.NewKfUpgrade(configFilePath)
-				if err != nil {
-					return fmt.Errorf("couldn't load KfUpgrade: %v", err)
-				}
-
-				err = kfUpgrade.Apply()
-				if err != nil {
-					return fmt.Errorf("couldn't apply KfUpgrade: %v", err)
-				}
-				return nil
-			} else {
-				return fmt.Errorf("Unsupported object kind: %v", kind)
-			}
-		} else {
+		// Load config from exisiting app.yaml
+		if configFilePath == "" {
 			cwd, err := os.Getwd()
 			if err != nil {
 				return fmt.Errorf("cannot fetch current directory for apply: %v", err)
@@ -72,15 +52,35 @@ var applyCmd = &cobra.Command{
 			if err != nil || kfApp == nil {
 				return fmt.Errorf("error loading kfapp: %v", err)
 			}
+			return kfApp.Apply(kftypes.ALL)
 		}
-		if kfApp == nil {
-			return fmt.Errorf("kfApp is nil")
+
+		// Otherwise load or upgrade kfApp from configFilePath
+		kind, err := utils.GetObjectKindFromUri(configFilePath)
+		if err != nil {
+			return fmt.Errorf("Cannot determine the object kind: %v", err)
 		}
-		applyErr := kfApp.Apply(kftypes.ALL)
-		if applyErr != nil {
-			return fmt.Errorf("couldn't apply KfApp: %v", applyErr)
+		switch kind {
+		case string(kftypes.KFDEF):
+			kfApp, err = coordinator.BuildKfAppFromURI(configFilePath)
+			if err != nil {
+				return fmt.Errorf("failed to build kfApp from URI %s: %v", configFilePath, err)
+			}
+			return kfApp.Apply(kftypes.ALL)
+		case string(kftypes.KFUPGRADE):
+			kfUpgrade, err := kfupgrade.NewKfUpgrade(configFilePath)
+			if err != nil {
+				return fmt.Errorf("couldn't load KfUpgrade: %v", err)
+			}
+
+			err = kfUpgrade.Apply()
+			if err != nil {
+				return fmt.Errorf("couldn't apply KfUpgrade: %v", err)
+			}
+			return nil
+		default:
+			return fmt.Errorf("Unsupported object kind: %v", kind)
 		}
-		return nil
 	},
 }
 
