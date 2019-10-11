@@ -110,8 +110,13 @@ func TestGcp_buildBasicAuthSecret(t *testing.T) {
 func TestGcp_setGcpPluginDefaults(t *testing.T) {
 	type testCase struct {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		Name            string
 		Input           *kfdefs.KfDef
+=======
+		Name            string
+		Input           *kfconfig.KfConfig
+>>>>>>> 10d0dcdd... fix unit test
 		InputSpec       *GcpPluginSpec
 		Env             map[string]string
 		EmailGetter     func() (string, error)
