@@ -118,10 +118,15 @@ def test_jupyter(env, namespace):
     wf_result = yaml.load(params)
     namespace = wf_result['metadata']['namespace']
     name = wf_result['metadata']['name']
-    k8s_apps_v1 = k8s_client.AppsV1Api()
-    resp = k8s_apps_v1.create_namespaced_deployment(
-      body=wf_result, namespace=namespace)
-    logging.info("Deployment created: status='%s'" % resp.metadata.name)
+    group, version = wf_result['apiVersion'].split('/')
+    k8s_co = k8s_client.CustomObjectsApi()
+    resp = k8s_co.create_namespaced_custom_object(
+      group=group,
+      version=version,
+      plural='notebooks',
+      body=wf_result,
+      namespace=namespace)
+    logging.info("Notebook created: status='%s'" % resp.metadata.name)
 
   conditions = ["Running"]
   results = util.wait_for_cr_condition(api_client, GROUP, PLURAL, VERSION,
