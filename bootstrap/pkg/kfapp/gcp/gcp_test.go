@@ -109,10 +109,10 @@ func TestGcp_buildBasicAuthSecret(t *testing.T) {
 
 func TestGcp_setGcpPluginDefaults(t *testing.T) {
 	type testCase struct {
-		Name          string
-		Input         *kfconfig.KfConfig
-		InputSpec     *GcpPluginSpec
-		Env           map[string]string
+		Name            string
+		Input           *kfconfig.KfConfig
+		InputSpec       *GcpPluginSpec
+		Env             map[string]string
 		EmailGetter     func() (string, error)
 		ProjectGetter   func() (string, error)
 		ZoneGetter      func() (string, error)

@@ -54,7 +54,7 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 			},
 			DirExists:     true,
 			CfgFileExists: true,
-			ExpectError:   true,
+			ExpectError:   false,
 		},
 	}
 
