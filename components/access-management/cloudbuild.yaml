@@ -1,0 +1,9 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/${_REGISTRY}/kfam:${_GIT_VERSION}'
+      - '--label=git-version=${_GIT_VERSION}'
+      - '.'
+images: ['gcr.io/${_REGISTRY}/kfam:${_GIT_VERSION}']
