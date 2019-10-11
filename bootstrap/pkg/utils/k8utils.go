@@ -399,7 +399,7 @@ func (a *Apply) namespace(namespace string) error {
 	} else {
 		if _, ok := namespaceInstance.ObjectMeta.Labels[katibMetricsCollectorLabel]; !ok {
 			patchErr := a.patchNamespaceWithLabel(
-				namespace, katibMetricsCollectorLabel, "enable",
+				namespace, katibMetricsCollectorLabel, "enabled",
 			)
 			if patchErr != nil {
 				return &kfapis.KfError{
