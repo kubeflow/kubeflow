@@ -2,4 +2,8 @@ module github.com/kubeflow/kubeflow
 
 go 1.12
 
-require k8s.io/apimachinery v0.0.0-20191006235458-f9f2f3f8ab02 // indirect
+require (
+	github.com/sirupsen/logrus v1.4.2 // indirect
+	k8s.io/api v0.0.0-20191010143144-fbf594f18f80 // indirect
+	k8s.io/client-go v11.0.0+incompatible // indirect
+)

@@ -17,6 +17,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
@@ -48,14 +49,9 @@ var applyCmd = &cobra.Command{
 			if err != nil {
 				return fmt.Errorf("cannot fetch current directory for apply: %v", err)
 			}
-			kfApp, err = coordinator.GetKfAppFromCfgFile(cwd+"/app.yaml", false)
-			if err != nil || kfApp == nil {
-				return fmt.Errorf("error loading kfapp: %v", err)
-			}
-			return kfApp.Apply(kftypes.ALL)
+			configFilePath = filepath.Join(cwd, "app.yaml")
 		}
 
-		// Otherwise load or upgrade kfApp from configFilePath
 		kind, err := utils.GetObjectKindFromUri(configFilePath)
 		if err != nil {
 			return fmt.Errorf("Cannot determine the object kind: %v", err)

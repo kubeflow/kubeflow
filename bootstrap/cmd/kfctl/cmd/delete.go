@@ -15,8 +15,10 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
@@ -43,7 +45,13 @@ var deleteCmd = &cobra.Command{
 			return fmt.Errorf("cannot fetch current directory for apply: %v", err)
 		}
 		deleteStorage := deleteCfg.GetBool(string(kftypes.DELETE_STORAGE))
-		kfApp, err = coordinator.GetKfAppFromCfgFile(cwd+"/app.yaml", deleteStorage)
+		kfApp, err = coordinator.BuildKfAppFromURI(filepath.Join(cwd, "app.yaml"))
+		kfGetter, ok := kfApp.(coordinator.KfDefGetter)
+		if !ok {
+			return errors.New("internal error: coordinator does not implement KfDefGetter")
+		}
+		kfDef := kfGetter.GetKfDef()
+		kfDef.Spec.DeleteStorage = deleteStorage
 		if err != nil || kfApp == nil {
 			return fmt.Errorf("error loading kfapp: %v", err)
 		}
