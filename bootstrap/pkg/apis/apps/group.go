@@ -100,7 +100,6 @@ const (
 	DELETE_STORAGE        CliOption = "delete_storage"
 	DISABLE_USAGE_REPORT  CliOption = "disable_usage_report"
 	PACKAGE_MANAGER       CliOption = "package-manager"
-	CONFIG                CliOption = "config"
 	FILE                  CliOption = "file"
 )
 

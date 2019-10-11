@@ -254,7 +254,7 @@ func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv3.KfDef, er
 	}
 
 	// If a config file is specified, construct the KfDef entirely from that.
-	configFile := options[string(kftypesv3.CONFIG)].(string)
+	configFile := options[string(kftypesv3.FILE)].(string)
 
 	kfDef := &kfdefsv3.KfDef{}
 	if configFile != "" {
@@ -643,7 +643,7 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv3.KfDef, options map[string]inte
 	// not so we always override the value with the command line flag.
 	// TODO(lunkai): I think we shouldn't backfill bool flags when using --config
 	// See https://github.com/kubeflow/kubeflow/issues/3744.
-	if options[string(kftypesv3.CONFIG)] == nil {
+	if options[string(kftypesv3.FILE] == nil {
 		if options[string(kftypesv3.USE_BASIC_AUTH)] != nil {
 			kfdef.Spec.UseBasicAuth = options[string(kftypesv3.USE_BASIC_AUTH)].(bool)
 		}
