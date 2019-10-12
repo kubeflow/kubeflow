@@ -21,9 +21,9 @@ import (
 	"os"
 
 	"github.com/go-logr/logr"
+	reconcilehelper "github.com/kubeflow/kubeflow/components/common/reconcilehelper"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/culler"
-	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
@@ -104,7 +104,7 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 	// Update the foundStateful object and write the result back if there are any changes
-	if !justCreated && util.CopyStatefulSetFields(ss, foundStateful) {
+	if !justCreated && reconcilehelper.CopyStatefulSetFields(ss, foundStateful) {
 		log.Info("Updating StatefulSet", "namespace", ss.Namespace, "name", ss.Name)
 		err = r.Update(ctx, foundStateful)
 		if err != nil {
@@ -135,7 +135,7 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 	// Update the foundService object and write the result back if there are any changes
-	if !justCreated && util.CopyServiceFields(service, foundService) {
+	if !justCreated && reconcilehelper.CopyServiceFields(service, foundService) {
 		log.Info("Updating Service\n", "namespace", service.Namespace, "name", service.Name)
 		err = r.Update(ctx, foundService)
 		if err != nil {
@@ -420,7 +420,7 @@ func (r *NotebookReconciler) reconcileVirtualService(instance *v1beta1.Notebook)
 		return err
 	}
 
-	if !justCreated && util.CopyVirtualService(virtualService, foundVirtual) {
+	if !justCreated && reconcilehelper.CopyVirtualService(virtualService, foundVirtual) {
 		log.Info("Updating virtual service", "namespace", instance.Namespace, "name",
 			virtualServiceName(instance.Name, instance.Namespace))
 		err = r.Update(context.TODO(), foundVirtual)

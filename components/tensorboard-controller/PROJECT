@@ -1,0 +1,7 @@
+version: "2"
+domain: kubeflow.org
+repo: tensorboard-controller
+resources:
+- group: tensorboard
+  version: v1alpha1
+  kind: Tensorboard
