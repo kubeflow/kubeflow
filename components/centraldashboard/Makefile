@@ -1,4 +1,10 @@
-IMG ?= gcr.io/kubeflow-images-public/centraldashboard
+# Project used with GCB
+PROJECT ?= kubeflow-dev
+# Registry where the image should be published
+REGISTRY_PROJECT ?= kubeflow-dev
+KUBEFLOWVERSION ?= 0.7.0
+
+IMG ?= gcr.io/$(REGISTRY_PROJECT)/centraldashboard
 
 # List any changed  files. We only include files in the notebooks directory.
 # because that is the code in the docker image.
@@ -13,6 +19,8 @@ GIT_VERSION := $(shell git describe --tags --long)
 else
 GIT_VERSION := $(shell git describe --tags --long)-dirty-$(shell git diff | shasum -a256 | cut -c -6)
 endif
+
+COMMIT = $(shell git rev-parse HEAD)
 
 TAG := $(shell date +v%Y%m%d)-$(GIT_VERSION)
 all: build
@@ -38,6 +46,13 @@ build:
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):latest
 	@echo Built $(IMG):$(TAG)
+
+build-gcb:
+	gcloud --project=$(PROJECT) \
+		builds submit \
+		--machine-type=n1-highcpu-32 \
+		--substitutions=_GIT_VERSION=$(GIT_VERSION),_REGISTRY=$(REGISTRY_PROJECT),_KUBEFLOWVERSION=$(KUBEFLOWVERSION),_COMMIT=$(COMMIT) \
+		--config=cloudbuild.yaml .
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.
