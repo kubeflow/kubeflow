@@ -6,7 +6,7 @@ ARG BASE_IMAGE=tensorflow/tensorflow:1.13.2-py3-jupyter
 FROM $BASE_IMAGE
 
 ARG TF_SERVING_VERSION=0.0.0
-ARG PIPELINE_SDK_PACKAGE=https://storage.googleapis.com/ml-pipeline/release/0.1.23/kfp.tar.gz
+ARG PIPELINE_SDK_PACKAGE=kfp
 ARG NB_USER=jovyan
 
 # TODO: User should be refactored instead of hard coded jovyan
