@@ -6,6 +6,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"sigs.k8s.io/kustomize/v3/pkg/image"
 	"strings"
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
@@ -44,6 +45,8 @@ var setImageNameCmd = &cobra.Command{
 	Long: `Sets custom image names for kubeflow components.
 
 Replaces the image name in kubeflow manifests with the specified prefix, to support custom image registries.
+Changes are printed to stdout in the form of <old>=<new>, which can then be used to mirror the images.
+
 It assumes that all components specify images in kustomization.yaml, base or overlay. Expected prefix format is
 <registry>[:port][/component]*
 
@@ -54,7 +57,7 @@ The flatten flag discards both registry and name components except for the last 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.WarnLevel)
 		if setImageNameCfg.GetBool(string(kftypes.VERBOSE)) {
-			log.SetLevel(log.WarnLevel)
+			log.SetLevel(log.InfoLevel)
 		}
 		log.Debugf("Using prefix %s (filter %s, flatten %t)\n", args[0], filter, flatten)
 
@@ -87,6 +90,7 @@ The flatten flag discards both registry and name components except for the last 
 						newName := setImageName(image.Name, newNameComponents)
 						log.Infof("Replacing image name from %s to %s", image.Name, newName)
 						kustomization.Images[i].NewName = newName
+						fmt.Printf("%s=%s\n", imageToString(image), imageToString(kustomization.Images[i]))
 					}
 
 					if err := os.Remove(kustomizationFilePath); err != nil {
@@ -178,4 +182,19 @@ func setImageName(oldName string, newNameComponents map[string]string) string {
 	resultSlice = append(resultSlice, image)
 
 	return path.Join(resultSlice...)
+}
+
+func imageToString(image image.Image) string {
+	res := image.Name
+	if image.NewName != "" {
+		res = image.NewName
+	}
+	if image.Digest != "" {
+		res = res + "@" + image.Digest
+	} else if image.NewTag != "" {
+		res = res + ":" + image.NewTag
+	} else {
+		res = res + ":latest"
+	}
+	return res
 }
