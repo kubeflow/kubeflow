@@ -112,7 +112,7 @@ describe('Registration Page', () => {
         expect(flowcomplete).not.toHaveBeenCalled();
         expect(input.error).not.toBe('Ajax Ran!');
         expect(input.error).toBe(
-            `Name has can only start and end with alpha-num, `+
+            `Name can only start and end with alpha-num characters, `+
             `dashes are only permitted between start and end. (minlength >= 1)`
         );
     });
