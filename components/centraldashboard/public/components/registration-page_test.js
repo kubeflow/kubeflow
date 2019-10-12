@@ -88,4 +88,32 @@ describe('Registration Page', () => {
         expect(flowcomplete).not.toHaveBeenCalled();
         expect(input.error).toBe('Test Error!');
     });
+
+    it('Should show validate client side errors', async () => {
+        mockIronAjax(
+            registrationPage.$.MakeNamespace,
+            {error: 'Ajax Ran!'},
+            true,
+        );
+
+        const $e = (selector) => registrationPage.shadowRoot.querySelector(selector);
+        flush();
+        await yieldForAsync(); // So the view can render
+
+        $e('.Main-Content .iron-selected .actions > paper-button').click();
+        const input = registrationPage.$.Namespace;
+        input.value = 'kubeflow-';
+        input.fireEnter();
+
+        $e('.Main-Content .iron-selected .actions > paper-button:nth-of-type(1)').click();
+
+        await yieldForAsync(); // So the view can render
+
+        expect(flowcomplete).not.toHaveBeenCalled();
+        expect(input.error).not.toBe('Ajax Ran!');
+        expect(input.error).toBe(
+            `Name has can only start and end with alpha-num, `+
+            `dashes are only permitted between start and end. (minlength >= 1)`
+        );
+    });
 });

@@ -56,7 +56,8 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
     _onUserDetails(d) {
         this.namespaceName = this.userDetails
             // eslint-disable-next-line no-useless-escape
-            .replace(/[^\w]|_|\./g, '-')
+            .replace(/[^\w]|\./g, '-')
+            .replace(/^-+|-+$|_/g, '')
             .toLowerCase();
     }
 
@@ -72,8 +73,22 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
         this.page--;
     }
 
+    showError(msg) {
+        this.set('error', {error: {response: {error: msg}}});
+    }
+
+    validateNamespace() {
+        const finalRgx = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/;
+        if (finalRgx.test(this.namespaceName)) return true;
+        this.showError(
+            `Name has can only start and end with alpha-num, `+
+            `dashes are only permitted between start and end. (minlength >= 1)`
+        );
+    }
+
     finishSetup() {
         const API = this.$.MakeNamespace;
+        if (!this.validateNamespace()) return;
         API.body = {namespace: this.namespaceName};
         API.generateRequest();
     }
