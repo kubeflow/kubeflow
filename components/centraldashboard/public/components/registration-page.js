@@ -74,14 +74,14 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
     }
 
     showError(msg) {
-        this.set('error', {error: {response: {error: msg}}});
+        this.set('error', {response: {error: msg}});
     }
 
     validateNamespace() {
         const finalRgx = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/;
         if (finalRgx.test(this.namespaceName)) return true;
         this.showError(
-            `Name has can only start and end with alpha-num, `+
+            `Name can only start and end with alpha-num characters, `+
             `dashes are only permitted between start and end. (minlength >= 1)`
         );
     }
