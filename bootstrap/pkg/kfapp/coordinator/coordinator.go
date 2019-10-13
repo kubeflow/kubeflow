@@ -335,6 +335,23 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 		}
 	}
 
+	// Since we know we have a local file we can set a default name if none is set based on the local directory
+	if kfdef.Name == "" {
+		absAppPath, err := filepath.Abs(appFile)
+
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("KfDef.Name isn't set and there was a problem inferring the name based on the path %v; error: %v\nPlease set the name explicitly in the KFDef spec.", appFile, err),
+			}
+		}
+
+		appDir := filepath.Dir(absAppPath)
+
+		kfdef.Name = filepath.Base(appDir)
+		log.Infof("No name specified in KfDef.Metadata.Name; defaulting to %v based on location of config file: %v.", kfdef.Name, appFile)
+	}
+
 	c := &coordinator{
 		Platforms:       make(map[string]kftypesv3.Platform),
 		PackageManagers: make(map[string]kftypesv3.KfApp),
