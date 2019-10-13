@@ -149,6 +149,10 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 			src.EnvSource = &kfconfig.EnvSource{
 				Name: secret.SecretSource.EnvSource.Name,
 			}
+		} else if secret.SecretSource.HashedSource != nil {
+			src.HashedSource = &kfconfig.HashedSource{
+				HashedValue: secret.SecretSource.HashedSource.HashedValue,
+			}
 		}
 		s.SecretSource = src
 		config.Spec.Secrets = append(config.Spec.Secrets, s)
