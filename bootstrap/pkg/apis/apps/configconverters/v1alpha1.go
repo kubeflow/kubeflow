@@ -275,6 +275,11 @@ func (v V1alpha1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 					Name: secret.SecretSource.EnvSource.Name,
 				}
 			}
+			if secret.SecretSource.HashedSource != nil {
+				s.SecretSource.HashedSource = &kfdeftypes.HashedSource{
+					HashedValue: secret.SecretSource.HashedSource.HashedValue,
+				}
+			}
 		}
 		kfdef.Spec.Secrets = append(kfdef.Spec.Secrets, s)
 	}
