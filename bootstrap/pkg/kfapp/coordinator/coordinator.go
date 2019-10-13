@@ -160,94 +160,15 @@ func isCwdEmpty() string {
 // NewLoadKfAppFromURI takes in a config file and constructs the KfApp
 // used by the build and apply semantics for kfctl
 func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
-	url, err := netUrl.ParseRequestURI(configFile)
-	isRemoteFile := false
-	cwd := ""
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error parsing config file path: %v", err),
-		}
-	} else {
-		if url.Scheme != "" {
-			isRemoteFile = true
-		}
-	}
-
-	// If the config file is downloaded remotely, check to see if the current directory
-	// is empty because we will be generating the KfApp there.
-	if isRemoteFile {
-		cwd = isCwdEmpty()
-		if cwd == "" {
-			wd, _ := os.Getwd()
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("current directory %v not empty, please switch directories", wd),
-			}
-		}
-	}
-
-	// kfDef is a kfconfig
-	kfDef, err := configconverters.LoadConfigFromURI(configFile)
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
-		}
-	}
-
-	b, _ := yaml.Marshal(kfDef)
-	log.Infof("KfConfig:\n%v", string(b))
-
-	// If the config file is downloaded remotely, use the current working directory to create the KfApp.
-	// Otherwise use the directory where the config file is stored.
-	if isRemoteFile {
-		cwd, err = os.Getwd()
-		if err != nil {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
-			}
-		}
-		kfDef.Spec.AppDir = cwd
-	} else {
-		kfDef.Spec.AppDir = path.Dir(configFile)
-	}
-
-	// basic auth check and warn
-	useBasicAuth := kfDef.Spec.UseBasicAuth
-	if useBasicAuth && (os.Getenv(kftypesv3.KUBEFLOW_USERNAME) == "" ||
-		os.Getenv(kftypesv3.KUBEFLOW_PASSWORD) == "") {
-		// Printing warning message instead of bailing out as both ENV are used in apply,
-		// not init.
-		log.Warnf("you need to set the environment variable %s to the username you "+
-			"want to use to login and variable %s to the password you want to use.",
-			kftypesv3.KUBEFLOW_USERNAME, kftypesv3.KUBEFLOW_PASSWORD)
-	}
-	// check if zone is set and warn ONLY for GCP
-	isPlatformGCP := kfDef.Spec.Platform == "gcp"
-	if isPlatformGCP && os.Getenv("ZONE") == "" {
-		log.Warn("you need to set the environment variable `ZONE` to the GCP zone you want to use")
-	}
-
-	// if kfDef.Spec.PackageManager == "" {
-	// 	kfDef.Spec.PackageManager = kftypesv3.KUSTOMIZE
-	// }
-
-	appFile, err := CreateKfAppCfgFile(kfDef)
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
-		}
-	}
-	kfApp, err := LoadKfAppCfgFile(appFile)
+	// TODO(jlewi): Can we merge NewLoadKfAppFromURI and LoadKFAppCfgFile
+	kfApp, err := LoadKfAppCfgFile(configFile)
 	if err != nil || kfApp == nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
 		}
 	}
+
 	return kfApp, nil
 }
 
@@ -566,8 +487,52 @@ func GetKfAppFromCfgFile(appFile string, deleteStorage bool) (kftypesv3.KfApp, e
 
 // LoadKfAppCfgFile constructs a KfApp by loading the provided app.yaml file.
 func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
+	url, err := netUrl.ParseRequestURI(cfgfile)
+	isRemoteFile := false
+	cwd := ""
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error parsing config file path: %v", err),
+		}
+	} else {
+		if url.Scheme != "" {
+			isRemoteFile = true
+		}
+	}
+
+	// If the config file is a remote URI, check to see if the current directory
+	// is empty because we will be generating the KfApp there.
+	appFile := cfgfile
+	if isRemoteFile {
+		cwd = isCwdEmpty()
+		if cwd == "" {
+			wd, _ := os.Getwd()
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("current directory %v not empty, please switch directories", wd),
+			}
+		}
+
+		kfdef, err := configconverters.LoadConfigFromURI(cfgfile)
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
+			}
+		}
+
+		appFile, err = CreateKfAppCfgFile(kfdef)
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
+			}
+		}
+	}
+
 	// Set default TypeMeta information. This will get overwritten by explicit values if set in the cfg file.
-	kfdef, err := configconverters.LoadConfigFromURI(cfgfile)
+	kfdef, err := configconverters.LoadConfigFromURI(appFile)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
@@ -580,6 +545,7 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 		PackageManagers: make(map[string]kftypesv3.KfApp),
 		KfDef:           kfdef,
 	}
+
 	// fetch the platform [gcp,minikube]
 	platform := c.KfDef.Spec.Platform
 	if platform != "" {
@@ -601,6 +567,28 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 	if pkg != nil {
 		c.PackageManagers[kftypesv3.KUSTOMIZE] = pkg
 	}
+
+	// If the config file is downloaded remotely, use the current working directory to create the KfApp.
+	// Otherwise use the directory where the config file is stored.
+	if isRemoteFile {
+		cwd, err = os.Getwd()
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
+			}
+		}
+		c.KfDef.Spec.AppDir = cwd
+	} else {
+		c.KfDef.Spec.AppDir = path.Dir(cfgfile)
+	}
+
+	// Set some defaults
+	// TODO(jlewi): This code doesn't belong here. It should probably be called from inside KfApp; e.g. from
+	// KfApp.generate. We should do all initialization of defaults as part of the reconcile loop in one function.
+	// if c.KfDef.Spec.PackageManager == "" {
+	// 	c.KfDef.Spec.PackageManager = kftypesv3.KUSTOMIZE
+	// }
 
 	return c, nil
 }

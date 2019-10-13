@@ -55,9 +55,11 @@ const ADMIN = "admin"
 // TODO: Make kubeflow roles configurable (krishnadurai)
 // This will enable customization of roles.
 const (
-	kubeflowAdmin = "kubeflow-admin"
-	kubeflowEdit  = "kubeflow-edit"
-	kubeflowView  = "kubeflow-view"
+	kubeflowAdmin              = "kubeflow-admin"
+	kubeflowEdit               = "kubeflow-edit"
+	kubeflowView               = "kubeflow-view"
+	istioInjectionLabel        = "istio-injection"
+	katibMetricsCollectorLabel = "katib-metricscollector-injection"
 )
 
 const DEFAULT_EDITOR = "default-editor"
@@ -112,8 +114,11 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{"owner": instance.Spec.Owner.Name},
 			// inject istio sidecar to all pods in target namespace by default.
-			Labels: map[string]string{"istio-injection": "enabled"},
-			Name:   instance.Name,
+			Labels: map[string]string{
+				istioInjectionLabel:        "enabled",
+				katibMetricsCollectorLabel: "enabled",
+			},
+			Name: instance.Name,
 		},
 	}
 	if err := controllerutil.SetControllerReference(instance, ns, r.Scheme); err != nil {
@@ -144,8 +149,16 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 		}
 	} else {
 		// Check exising namespace ownership before move forward
-		val, ok := foundNs.Annotations["owner"]
-		if (!ok) || val != instance.Spec.Owner.Name {
+		owner, ok := foundNs.Annotations["owner"]
+		if ok && owner == instance.Spec.Owner.Name {
+			if _, ok = foundNs.Labels[katibMetricsCollectorLabel]; !ok {
+				foundNs.Labels[katibMetricsCollectorLabel] = "enabled"
+				err = r.Update(ctx, foundNs)
+				if err != nil {
+					return reconcile.Result{}, err
+				}
+			}
+		} else {
 			logger.Info(fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
 				instance.Spec.Owner.Name))
 			return r.appendErrorConditionAndReturn(ctx, instance, fmt.Sprintf(

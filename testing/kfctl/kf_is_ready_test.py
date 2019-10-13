@@ -69,18 +69,23 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio):
     logging.info("Verifying that deployment %s started...", deployment_name)
     util.wait_for_deployment(api_client, namespace, deployment_name, 10)
 
-  for stateful_set_name in stateful_set_names:
-    logging.info("Verifying that stateful set %s started...", stateful_set_name)
-    util.wait_for_statefulset(api_client, namespace, stateful_set_name)
-
   ingress_namespace = "istio-system" if use_istio else namespace
   for deployment_name in ingress_related_deployments:
     logging.info("Verifying that deployment %s started...", deployment_name)
     util.wait_for_deployment(api_client, ingress_namespace, deployment_name, 10)
 
-  for name in ingress_related_stateful_sets:
-    logging.info("Verifying that statefulset %s started...", name)
-    util.wait_for_statefulset(api_client, ingress_namespace, name)
+
+  all_stateful_sets = [(namespace, name) for name in stateful_set_names]
+  all_stateful_sets.extend([(ingress_namespace, name) for name in ingress_related_stateful_sets])
+
+  for ss_namespace, name in all_stateful_sets:
+    logging.info("Verifying that stateful set %s.%s started...", ss_namespace, name)
+    try:
+      util.wait_for_statefulset(api_client, ss_namespace, name)
+    except:
+      # Collect debug information by running describe
+      util.run(["kubectl", "-n", ss_namespace, "describe", "statefulsets", name])
+      raise
 
   # TODO(jlewi): We should verify that the ingress is created and healthy.
 
