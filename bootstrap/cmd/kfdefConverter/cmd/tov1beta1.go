@@ -41,6 +41,7 @@ var tov1beta1Cmd = &cobra.Command{
 			outPath = args[0]
 		}
 
+		// A hack to force converter to output KfDef in v1beta1.
 		apiVersion := strings.Split(config.APIVersion, "/")
 		if len(apiVersion) != 2 {
 			return fmt.Errorf("Unknown format of API version: %v", config.APIVersion)
