@@ -89,8 +89,8 @@ type ProfileReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=namespaces,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=serviceaccount,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rbac,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=profile.kubeflow.org,resources=profiles,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=profile.kubeflow.org,resources=profiles/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=kubeflow.org,resources=profiles,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=kubeflow.org,resources=profiles/status,verbs=get;update;patch
 func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	logger := r.Log.WithValues("profile", request.NamespacedName)

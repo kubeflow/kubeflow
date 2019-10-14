@@ -15,7 +15,7 @@ limitations under the License.
 
 // Package v1beta1 contains API Schema definitions for the profile v1beta1 API group
 // +kubebuilder:object:generate=true
-// +groupName=profile.kubeflow.org
+// +groupName=kubeflow.org
 package v1beta1
 
 import (
@@ -25,7 +25,7 @@ import (
 
 var (
 	// GroupVersion is group version used to register these objects
-	GroupVersion = schema.GroupVersion{Group: "profile.kubeflow.org", Version: "v1beta1"}
+	GroupVersion = schema.GroupVersion{Group: "kubeflow.org", Version: "v1beta1"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}
