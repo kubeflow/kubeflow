@@ -2012,19 +2012,19 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 	if gcp.kfDef.Spec.Project == "" {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: "GCP Project is not set, please set it in KFDef.",
+			Message: "GCP Project is not set, please set it in KFDef or use gcloud config set project to set a default.",
 		}
 	}
 	if gcp.kfDef.Spec.Email == "" {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: "GCP account could not be determined, please set Email in KFDef.",
+			Message: "GCP account could not be determined, please set Email in KFDef or use gcloud config set account to set a default.",
 		}
 	}
 	if gcp.kfDef.Spec.Zone == "" {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: "GCP Zone is not set, please set it in KFDef.",
+			Message: "GCP Zone is not set, please set it in KFDef or use gcloud config set compute/zone to set a default.",
 		}
 	}
 	// Set default IPName and Hostname
