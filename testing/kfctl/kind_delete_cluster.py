@@ -2,21 +2,14 @@
 
 We use pytest in order to generate a junit_xml file.
 """
-import datetime
 import logging
-import os
-import subprocess
-import tempfile
-import uuid
-from retrying import retry
-
 import pytest
-import docker
 
+from kubeflow.kubeflow.ci import kfctl_kind_util as kind_util
 from kubeflow.testing import util
 
 def delete_kind_cluster():
-    kind_path = download_kind_binary()
+    kind_path = kind_util.download_kind_binary()
     util.run(kind_path, "delete", "cluster","--name=kubeflow_kind")
 
 if __name__ == "__main__":
