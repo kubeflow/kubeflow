@@ -26,7 +26,6 @@ import (
 
 	"os"
 
-	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/config"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
@@ -36,10 +35,7 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/minikube"
-	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
-	valid "k8s.io/apimachinery/pkg/api/validation"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Builder defines the methods used to create KfApps.
@@ -208,170 +204,6 @@ func repoVersionToUri(repo string, version string) string {
 	return tarballUrl
 }
 
-// CreateKfDefFromOptions creates a KfDef from the supplied options.
-func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv3.KfDef, error) {
-	//appName can be a path
-	appName := options[string(kftypesv3.APPNAME)].(string)
-	appDir := path.Dir(appName)
-	if appDir == "" || appDir == "." {
-		cwd, err := os.Getwd()
-		if err != nil {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("could not get current directory %v", err),
-			}
-		}
-		appDir = path.Join(cwd, appName)
-	} else {
-		if appDir == "~" {
-			home, homeErr := homedir.Dir()
-			if homeErr != nil {
-				return nil, &kfapis.KfError{
-					Code:    int(kfapis.INVALID_ARGUMENT),
-					Message: fmt.Sprintf("could not get home directory %v", homeErr),
-				}
-			}
-			expanded, expandedErr := homedir.Expand(home)
-			if expandedErr != nil {
-				return nil, &kfapis.KfError{
-					Code:    int(kfapis.INVALID_ARGUMENT),
-					Message: fmt.Sprintf("could not expand home directory %v", homeErr),
-				}
-			}
-			appName = path.Base(appName)
-			appDir = path.Join(expanded, appName)
-		} else {
-			appName = path.Base(appName)
-			appDir = path.Join(appDir, appName)
-		}
-	}
-	errs := valid.NameIsDNSLabel(appName, false)
-	if errs != nil && len(errs) > 0 {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf(`invalid name due to %v`, strings.Join(errs, ", ")),
-		}
-	}
-
-	// If a config file is specified, construct the KfDef entirely from that.
-	configFile := options[string(kftypesv3.FILE)].(string)
-
-	kfDef := &kfdefsv3.KfDef{}
-	if configFile != "" {
-		newkfDef, err := kfdefsv3.LoadKFDefFromURI(configFile)
-
-		kfDef = newkfDef
-		if err != nil {
-			log.Errorf("Could not load %v; error %v", configFile, err)
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: err.Error(),
-			}
-		}
-
-		if kfDef.Name != "" {
-			log.Warnf("Overriding KfDef.Spec.Name; old value %v; new value %v", kfDef.Name, appName)
-		}
-
-		kfDef.Name = appName
-
-		//TODO(yanniszark): sane defaults for missing fields
-		//TODO(yanniszark): validate KfDef
-	} else {
-		platform := options[string(kftypesv3.PLATFORM)].(string)
-		packageManager := options[string(kftypesv3.PACKAGE_MANAGER)].(string)
-		version := options[string(kftypesv3.VERSION)].(string)
-		useBasicAuth := options[string(kftypesv3.USE_BASIC_AUTH)].(bool)
-		useIstio := options[string(kftypesv3.USE_ISTIO)].(bool)
-		namespace := options[string(kftypesv3.NAMESPACE)].(string)
-		project := options[string(kftypesv3.PROJECT)].(string)
-		cacheDir := ""
-		if options[string(kftypesv3.REPO)].(string) != "" {
-			cacheDir = options[string(kftypesv3.REPO)].(string)
-			if _, err := os.Stat(cacheDir); err != nil {
-				log.Fatalf("repo %v does not exist Error %v", cacheDir, err)
-			}
-		} else {
-			var cacheDirErr error
-			// TODO(jlewi): We should call repoVersionToUri and pass the value to DownloadToCache
-			cacheDir, cacheDirErr = kftypesv3.DownloadToCache(appDir, kftypesv3.KubeflowRepo, version)
-			if cacheDirErr != nil || cacheDir == "" {
-				log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
-			}
-		}
-
-		// This is a deprecated code path for constructing kfDef using kustomize style overlays
-		kfDef = &kfdefsv3.KfDef{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "KfDef",
-				APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      appName,
-				Namespace: namespace,
-			},
-			Spec: kfdefsv3.KfDefSpec{
-				ComponentConfig: config.ComponentConfig{
-					Platform: platform,
-				},
-				Project:        project,
-				PackageManager: packageManager,
-				UseBasicAuth:   useBasicAuth,
-				UseIstio:       useIstio,
-			},
-		}
-		configFileBuffer, configFileErr := getConfigFromCache(cacheDir, kfDef)
-		if configFileErr != nil {
-			log.Fatalf("could not get config file Error %v", configFileErr)
-		}
-		specErr := yaml.Unmarshal(configFileBuffer, kfDef)
-		if specErr != nil {
-			log.Errorf("couldn't unmarshal app.yaml. Error: %v", specErr)
-		}
-
-		kfDef.Name = appName
-		kfDef.Spec.Platform = platform
-		kfDef.Namespace = namespace
-		kfDef.Spec.Version = version
-		kfDef.Spec.Repo = path.Join(cacheDir, kftypesv3.KubeflowRepo)
-		kfDef.Spec.Project = options[string(kftypesv3.PROJECT)].(string)
-		kfDef.Spec.SkipInitProject = options[string(kftypesv3.SKIP_INIT_GCP_PROJECT)].(bool)
-		kfDef.Spec.UseBasicAuth = useBasicAuth
-		kfDef.Spec.UseIstio = useIstio
-		kfDef.Spec.PackageManager = packageManager
-		// Add the repo
-		if kfDef.Spec.Repos == nil {
-			kfDef.Spec.Repos = []kfdefsv3.Repo{}
-		}
-
-		repoUri := repoVersionToUri(kftypesv3.KubeflowRepo, version)
-		kfDef.Spec.Repos = append(kfDef.Spec.Repos, kfdefsv3.Repo{
-			Name: kftypesv3.KubeflowRepoName,
-			Uri:  repoUri,
-		})
-	}
-	kfDef.Spec.AppDir = appDir
-
-	// Disable usage report if requested
-	// TODO(jlewi): We should be able to get rid of this once we depend on this being
-	// configured in the config file.
-	disableUsageReport := options[string(kftypesv3.DISABLE_USAGE_REPORT)].(bool)
-	if disableUsageReport {
-		kfDef.Spec.Components = filterSpartakus(kfDef.Spec.Components)
-		delete(kfDef.Spec.ComponentParams, "spartakus")
-
-	}
-
-	err := backfillKfDefFromInitOptions(kfDef, options)
-
-	if err != nil {
-		log.Errorf("Could not backfill KfDef from options; error %v", err)
-		return nil, err
-	}
-
-	return kfDef, nil
-}
-
 // isCwdEmpty - quick check to determine if the working directory is empty
 // if the current working directory
 func isCwdEmpty() string {
@@ -526,7 +358,7 @@ func backfillKfDefFromInitOptions(kfdef *kfdefsv3.KfDef, options map[string]inte
 	// not so we always override the value with the command line flag.
 	// TODO(lunkai): I think we shouldn't backfill bool flags when using --config
 	// See https://github.com/kubeflow/kubeflow/issues/3744.
-	if options[string(kftypesv3.FILE] == nil {
+	if options[string(kftypesv3.FILE)] == nil {
 		if options[string(kftypesv3.USE_BASIC_AUTH)] != nil {
 			kfdef.Spec.UseBasicAuth = options[string(kftypesv3.USE_BASIC_AUTH)].(bool)
 		}
