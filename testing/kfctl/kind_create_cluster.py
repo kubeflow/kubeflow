@@ -16,11 +16,11 @@ import docker
 from kubeflow.testing import util
 
 # TODO(swiftdiaries): switch repos once tests pass and PR is merged.
-kind_config_path = "https://raw.githubusercontent.com/swiftdiaries/manifests/"
+kind_config_path = "https://raw.githubusercontent.com/swiftdiaries/manifests/" \
                     "kfctl_k8s_e2e/kind/kind-config.yaml"
-kind_sc_path =  "https://raw.githubusercontent.com/swiftdiaries/manifests/"
+kind_sc_path =  "https://raw.githubusercontent.com/swiftdiaries/manifests/" \
                     "kfctl_k8s_e2e/kind/local-path-storage.yaml"
-kind_image_name = "kindest/node:v1.15.0"
+kind_image_name = "kindest/node:v1.15.0" \
                     "@sha256:b4d092fd2b507843dd096fe6c85d06a27a0cbd740a0b32a880fe61aba24bb478"
 kind_sc_patch = '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
