@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/configconverters"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -17,7 +18,21 @@ var tov1beta1Cmd = &cobra.Command{
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
-		return fmt.Errorf("Not implemented.")
+
+		if len(args) > 1 {
+			return fmt.Errorf("Unknown args: %v", args[1:])
+		} else if len(args) < 1 {
+			return fmt.Errorf("Filename to converting KfDef is required.")
+		}
+
+		config, err := configconverters.LoadConfigFromURI(args[0])
+		if err != nil {
+			return fmt.Errorf("Error when loading KfDef: %v", err)
+		}
+
+		log.Infof("Loaded: %+v", config)
+
+		return nil
 	},
 }
 
