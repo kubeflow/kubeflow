@@ -257,7 +257,7 @@ generate-kfdef-converter: generate
 	@${GO} generate ./cmd/kfdefConverter/...
 
 build-kfdef-converter: generate-kfdef-converter fmt vet
-	${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfdef_converter cmd/kfdefConverter/main.go
+	${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfdef-converter cmd/kfdefConverter/main.go
 
 #***************************************************************************************************
 
