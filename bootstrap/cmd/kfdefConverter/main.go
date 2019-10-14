@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/kubeflow/kubeflow/bootstrap/v3/cmd/kfdefConverter/cmd"
 	"github.com/onrik/logrus/filename"
 	log "github.com/sirupsen/logrus"
 )
@@ -17,5 +18,5 @@ func init() {
 }
 
 func main() {
-	log.Info("Hello world.")
+	cmd.Execute(VERSION)
 }
