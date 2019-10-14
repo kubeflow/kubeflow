@@ -40,14 +40,13 @@ var showCmd = &cobra.Command{
 		if resourceErr != nil {
 			return fmt.Errorf("invalid resource: %v", resourceErr)
 		}
-		options := map[string]interface{}{}
 		kfApp, kfAppErr := coordinator.LoadKfAppCfgFile(configFilePath)
 		if kfAppErr != nil {
 			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}
 		show, ok := kfApp.(kftypes.KfShow)
 		if ok && show != nil {
-			showErr := show.Show(resource, options)
+			showErr := show.Show(resource)
 			if showErr != nil {
 				return fmt.Errorf("couldn't show KfApp: %v", showErr)
 			}

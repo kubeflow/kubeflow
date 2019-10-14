@@ -128,7 +128,7 @@ type Platform interface {
 // This is used in the ksonnet implementation for `ks show`
 //
 type KfShow interface {
-	Show(resources ResourceEnum, options map[string]interface{}) error
+	Show(resources ResourceEnum) error
 }
 
 // QuoteItems will place quotes around the string arrays items

@@ -698,7 +698,7 @@ func (kfapp *coordinator) Init(resources kftypesv3.ResourceEnum) error {
 	return nil
 }
 
-func (kfapp *coordinator) Show(resources kftypesv3.ResourceEnum, options map[string]interface{}) error {
+func (kfapp *coordinator) Show(resources kftypesv3.ResourceEnum) error {
 	switch resources {
 	case kftypesv3.K8S:
 		fallthrough
@@ -709,7 +709,7 @@ func (kfapp *coordinator) Show(resources kftypesv3.ResourceEnum, options map[str
 			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
 			show, ok := platform.(kftypesv3.KfShow)
 			if ok && show != nil {
-				showErr := show.Show(resources, options)
+				showErr := show.Show(resources)
 				if showErr != nil {
 					return &kfapis.KfError{
 						Code: int(kfapis.INTERNAL_ERROR),
@@ -734,7 +734,7 @@ func (kfapp *coordinator) Show(resources kftypesv3.ResourceEnum, options map[str
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
 			show, ok := packageManager.(kftypesv3.KfShow)
 			if ok && show != nil {
-				showErr := show.Show(kftypesv3.K8S, options)
+				showErr := show.Show(kftypesv3.K8S)
 				if showErr != nil {
 					return &kfapis.KfError{
 						Code: int(kfapis.INTERNAL_ERROR),
