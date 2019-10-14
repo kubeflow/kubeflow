@@ -2,8 +2,53 @@ package cmd
 
 import (
 	"reflect"
+	"sigs.k8s.io/kustomize/v3/pkg/image"
 	"testing"
 )
+
+func Test_imageToString(t *testing.T) {
+	tests := []struct {
+		name  string
+		image image.Image
+		want  string
+	}{
+		{
+			name: "docker-newtag",
+			image: image.Image{
+				Name:   "mysql",
+				NewTag: "15.0",
+			},
+			want: "mysql:15.0",
+		},
+		{
+			name: "docker-digest",
+			image: image.Image{
+				Name:   "mysql",
+				Digest: "sha256:5645412634544",
+			},
+			want: "mysql@sha256:5645412634544",
+		},
+		{
+			name: "gcr-newname-tag",
+			image: image.Image{
+				Name:    "gcr.io/kubeflow/katib",
+				NewName: "gcr.io/myproject/katib",
+				NewTag:  "15.0",
+			},
+			want: "gcr.io/myproject/katib:15.0",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := imageToString(test.image)
+			if got != test.want {
+				t.Fatalf("Got: %s. Want %s.", got, test.want)
+			}
+		})
+
+	}
+}
 
 func Test_parseImageName(t *testing.T) {
 	tests := []struct {
