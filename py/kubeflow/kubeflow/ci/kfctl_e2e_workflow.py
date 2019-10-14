@@ -40,6 +40,17 @@ export PROW_JOB_ID=1234
 export REPO_OWNER=kubeflow
 export REPO_NAME=kubeflow
 export PULL_NUMBER=4148
+
+To show the built Argo Workflow:
+
+python -m kubeflow.testing.e2e_tool show \
+  kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
+  --name=${USER}-kfctl-test-$(date +%Y%m%d-%H%M%S) \
+  --namespace=kubeflow-test-infra \
+  --test-endpoint=true \
+  --kf-app-name=${KFAPPNAME} \
+  --delete-kf=false
+  --open-in-chrome=true
 """
 
 import datetime
@@ -468,7 +479,7 @@ class Builder:
         + self.config_name + ".xml",
         "-o", "junit_suite_name=test_delete_kind_cluster_" + self.config_name,
     ]
-
+    dependences = []
     if self.use_kind:
       dependences = [kfctl_delete["name"]]
       delete_kind_cluster = self._build_step(step_name, self.workflow, EXIT_DAG_NAME, task_template,
@@ -484,7 +495,6 @@ class Builder:
                "--bucket=" + self.bucket,
                "--suffix=fakesuffix",]
 
-    dependences = []
     if self.use_kind:
       dependences = [delete_kind_cluster["name"]]
     else:
@@ -528,10 +538,6 @@ class Builder:
 
     repos.extend(EXTRA_REPOS)
 
-    # Checkout KinD from source if use_kind is set.
-    if self.use_kind:
-      repos.extend("kubernetes-sigs/kind@HEAD")
-    
     checkout = argo_build_util.deep_copy(task_template)
 
     checkout["name"] = "checkout"
