@@ -8,10 +8,10 @@ import os
 import subprocess
 import tempfile
 import uuid
+import os
 from retrying import retry
 
 import pytest
-import docker
 
 from kubeflow.testing import util
 
