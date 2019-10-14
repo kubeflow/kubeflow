@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/configconverters"
 	log "github.com/sirupsen/logrus"
@@ -10,6 +11,10 @@ import (
 )
 
 var tov1beta1Cfg = viper.New()
+
+var (
+	OutPathFlag = "out"
+)
 
 var tov1beta1Cmd = &cobra.Command{
 	Use:   "tov1beta1 <kfdef-v1alpha1-filename>",
@@ -30,9 +35,19 @@ var tov1beta1Cmd = &cobra.Command{
 			return fmt.Errorf("Error when loading KfDef: %v", err)
 		}
 
-		log.Infof("Loaded: %+v", config)
+		log.Infof("KfDef loaded for %v, converting.", args[0])
+		outPath := tov1beta1Cfg.GetString(OutPathFlag)
+		if outPath == "" {
+			outPath = args[0]
+		}
 
-		return nil
+		apiVersion := strings.Split(config.APIVersion, "/")
+		if len(apiVersion) != 2 {
+			return fmt.Errorf("Unknown format of API version: %v", config.APIVersion)
+		}
+		apiVersion[1] = "v1beta1"
+		config.APIVersion = strings.Join(apiVersion, "/")
+		return configconverters.WriteConfigToFile(*config, outPath)
 	},
 }
 
@@ -42,10 +57,10 @@ func init() {
 	tov1beta1Cfg.SetConfigName("conversion")
 	tov1beta1Cfg.SetConfigType("yaml")
 
-	tov1beta1Cmd.Flags().StringP("out", "o", "",
+	tov1beta1Cmd.Flags().StringP(OutPathFlag, "o", "",
 		"Path to write converted KfDef. If not set, the original file will be overriden.")
-	if err := tov1beta1Cfg.BindPFlag("out", tov1beta1Cmd.Flags().Lookup("out")); err != nil {
-		log.Errorf("couldn't set flag --out: %v", err)
+	if err := tov1beta1Cfg.BindPFlag(OutPathFlag, tov1beta1Cmd.Flags().Lookup(OutPathFlag)); err != nil {
+		log.Errorf("couldn't set flag --%v: %v", OutPathFlag, err)
 		return
 	}
 }
