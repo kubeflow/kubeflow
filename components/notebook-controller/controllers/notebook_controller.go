@@ -19,10 +19,9 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/go-logr/logr"
-	v1beta1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
+	"github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/culler"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
@@ -284,7 +283,7 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 	}
 	if container.Ports == nil {
 		container.Ports = []corev1.ContainerPort{
-			corev1.ContainerPort{
+			{
 				ContainerPort: DefaultContainerPort,
 				Name:          "notebook-port",
 				Protocol:      "TCP",
@@ -315,26 +314,12 @@ func generateService(instance *v1beta1.Notebook) *corev1.Service {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name,
 			Namespace: instance.Namespace,
-			Annotations: map[string]string{
-				"getambassador.io/config": strings.Join(
-					[]string{
-						"---",
-						"apiVersion: ambassador/v0",
-						"kind:  Mapping",
-						"name: notebook_" + instance.Namespace + "_" + instance.Name + "_mapping",
-						"prefix: /notebook/" + instance.Namespace + "/" + instance.Name,
-						"rewrite: /notebook/" + instance.Namespace + "/" + instance.Name,
-						"timeout_ms: 300000",
-						"service: " + instance.Name + "." + instance.Namespace,
-						"use_websocket: true",
-					}, "\n"),
-			},
 		},
 		Spec: corev1.ServiceSpec{
 			Type:     "ClusterIP",
 			Selector: map[string]string{"statefulset": instance.Name},
 			Ports: []corev1.ServicePort{
-				corev1.ServicePort{
+				{
 					// Make port name follow Istio pattern so it can be managed by istio rbac
 					Name:       "http-" + instance.Name,
 					Port:       DefaultServingPort,
@@ -446,7 +431,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&v1beta1.Notebook{}).
 		Owns(&appsv1.StatefulSet{}).
 		Owns(&corev1.Service{})
-	// watch Istio virturalservice
+	// watch Istio virtual service
 	if os.Getenv("USE_ISTIO") == "true" {
 		virtualService := &unstructured.Unstructured{}
 		virtualService.SetAPIVersion("networking.istio.io/v1alpha3")
