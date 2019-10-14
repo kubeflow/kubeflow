@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
 	log "github.com/sirupsen/logrus"
@@ -40,7 +41,7 @@ var showCmd = &cobra.Command{
 			return fmt.Errorf("invalid resource: %v", resourceErr)
 		}
 		options := map[string]interface{}{}
-		kfApp, kfAppErr := coordinator.LoadKfApp(options)
+		kfApp, kfAppErr := coordinator.LoadKfAppCfgFile(configFilePath)
 		if kfAppErr != nil {
 			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}
@@ -60,7 +61,6 @@ func init() {
 
 	showCfg.SetConfigName("app")
 	showCfg.SetConfigType("yaml")
-
 	// verbose output
 	showCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,
 		string(kftypes.VERBOSE)+" output default is false")
