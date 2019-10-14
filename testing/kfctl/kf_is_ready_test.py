@@ -9,7 +9,6 @@ from retrying import retry
 
 import pytest
 
-from os import path
 from kubeflow.testing import util
 from testing import deploy_utils
 
@@ -34,15 +33,11 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
   # Verify that components are actually deployed.
   # TODO(jlewi): We need to parameterize this list based on whether
   # we are using IAP or basic auth.
+  # TODO(yanniszark): This list is incomplete and missing a lot of components.
   deployment_names = [
-      "admission-webhook-deployment",
       "argo-ui",
       "centraldashboard",
       "jupyter-web-app-deployment",
-      "katib-controller",
-      "katib-manager",
-      "katib-manager-rest",
-      "katib-ui",
       "minio",
       "ml-pipeline",
       "ml-pipeline-persistenceagent",
@@ -53,31 +48,13 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
       "notebook-controller-deployment",
       "profiles-deployment",
       "pytorch-operator",
-      "tensorboard",
       "tf-job-operator",
       "workflow-controller",
   ]
 
-  # TODO(yanniszark): these deployments seems to cause flakiness in the test.
-  # More specifically, they take a long time to get ready.
-  # Look into creating test clusters with bigger machines or longer timeout limits.
-  postsubmit_deployments = [
-      "metadata-db",
-      "metadata-deployment",
-      "metadata-envoy-deployment",
-      "metadata-grpc-deployment",
-      "metadata-ui",
-  ]
-  if os.getenv("JOB_TYPE") == "postsubmit":
-    deployment_names.extend(postsubmit_deployments)
+  stateful_set_names = []
 
-  stateful_set_names = [
-    "admission-webhook-bootstrap-stateful-set",
-    "application-controller-stateful-set",
-    "seldon-operator-controller-manager",
-  ]
-
-  with open(path.join(app_path, "app.yaml")) as f:
+  with open(os.path.join(app_path, "app.yaml")) as f:
     kfdef = yaml.safe_load(f)
   platform = kfdef["spec"]["platform"]
 
@@ -102,7 +79,7 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
           "autoscaler",
           "controller",
   ]
-  
+
   if platform == "gcp":
     deployment_names.extend(["cloud-endpoints-controller"])
     stateful_set_names.extend(["kfserving-controller-manager"])
