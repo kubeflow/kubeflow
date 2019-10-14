@@ -38,6 +38,14 @@ def pytest_addoption(parser):
       "--use_istio", action="store", default="False",
       help="Use istio.")
 
+  parser.addoption(
+      "--cluster_creation_script", action="store", default="",
+      help="The script to use to create a K8s cluster before running kfctl.")
+
+  parser.addoption(
+      "--cluster_deletion_script", action="store", default="",
+      help="The script to use to delete a K8s cluster before running kfctl.")
+
 @pytest.fixture
 def app_path(request):
   return request.config.getoption("--app_path")
@@ -61,6 +69,14 @@ def project(request):
 @pytest.fixture
 def config_path(request):
   return request.config.getoption("--config_path")
+
+@pytest.fixture
+def cluster_creation_script(request):
+  return request.config.getoption("--cluster_creation_script")
+
+@pytest.fixture
+def cluster_deletion_script(request):
+  return request.config.getoption("--cluster_deletion_script")
 
 @pytest.fixture
 def build_and_apply(request):

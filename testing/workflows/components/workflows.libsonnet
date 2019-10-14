@@ -317,7 +317,7 @@
             "jupyter_test.py",
             // Test timeout in seconds.
             "--namespace=" + tests.stepsNamespace,
-            "--timeout=500",
+            "--timeout=1000",
             "--junitxml=" + tests.artifactsDir + "/junit_jupyter-test.xml",
           ],
           workingDir: tests.srcDir + "/kubeflow/jupyter/tests",
