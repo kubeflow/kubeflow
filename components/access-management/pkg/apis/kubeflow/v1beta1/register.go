@@ -31,7 +31,7 @@ import (
 	profilev1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
 )
 
-const GroupName = "profile.kubeflow.org"
+const GroupName = "kubeflow.org"
 const GroupVersion = "v1beta1"
 
 var (
