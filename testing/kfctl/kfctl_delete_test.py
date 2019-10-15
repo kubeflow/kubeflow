@@ -62,6 +62,8 @@ def test_kfctl_delete(kfctl_path, app_path, project, cluster_deletion_script):
     util.run([kfctl_path, "delete", "--delete_storage", "-V"],
              cwd=app_path)
 
+  run_delete()
+
   # Use services.list instead of services.get because error returned is not
   # 404, it's 403 which is confusing.
   name = os.path.basename(app_path)
