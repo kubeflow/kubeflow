@@ -44,7 +44,7 @@ const (
 )
 
 type Existing struct {
-	kfdefs.KfDef
+	*kfdefs.KfDef
 	istioManifests    []manifest
 	authOIDCManifests []manifest
 }
@@ -94,7 +94,7 @@ func GetPlatform(kfdef *kfdefs.KfDef) (kftypesv3.Platform, error) {
 	}
 
 	existing := &Existing{
-		KfDef:             *kfdef,
+		KfDef:             kfdef,
 		istioManifests:    istioManifests,
 		authOIDCManifests: authOIDCManifests,
 	}
