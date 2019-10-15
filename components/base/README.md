@@ -3,7 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Kubeflow CI with tektoncd pipelines](#kubeflow-ci-with-tektoncd-pipelines)
-  - [Use Case](#use-case)
+  - [Use Cases](#use-cases)
   - [Background information on TektonCD pipelineruns, pipelines and tasks](#background-information-on-tektoncd-pipelineruns-pipelines-and-tasks)
   - [Parameterization](#parameterization)
   - [Secrets](#secrets)
@@ -12,18 +12,25 @@
 
 ## Kubeflow CI with tektoncd pipelines
 
-### Use Case
+### Use Cases
 
+The following use cases can be run on the following components (should be run from the components directory):
+- `kustomize build --reorder none `*centraldashboard*`/ci   | kubectl apply -f -`
+- `kustomize build --reorder none `*jupyter-web-app*`/ci    | kubectl apply -f -`
+- `kustomize build --reorder none `*notebook-controller*`/ci | kubectl apply -f -`
+- `kustomize build --reorder none `*profile-controller*`/ci | kubectl apply -f -
+ 
 This uses TektonCD [pipelinerun](https://github.com/tektoncd/pipeline/blob/master/docs/pipelineruns.md) to enable the following use case:
 
-1. A PR is merged into kubeflow/kubeflow updating central dashboard
+1. A PR is merged into kubeflow/kubeflow updating the component
 1. The merged commit is 1234
-1. This tekton pipelinerun is triggered to build the central dashboard image from commit @1234 in kubeflow.
-1. The pipelinerun edits manifests/common/centraldashboard/base/kustomization.yaml and adds the new image tag
+1. This tekton pipelinerun is triggered to build the component image from commit @1234.
+1. The pipelinerun edits manifests/common/centraldashboard/base/kustomization.yaml (using kubeflow-bot repo) and adds the new image tag
 1. The pipelinerun calls `make generate; make test` 
-1. If successful then checks in the changes 
-1. Opens a PR with the updated kubeflow/manifests that uses the newly built image
-1. Approvers LGTM the PR to kubeflow/manifests and it gets merged
+1. If successful then 
+1.   The pipeline checks in the changes 
+1.   Opens a PR with the updated kubeflow/manifests that uses the newly built image
+1.   Approvers LGTM the PR to kubeflow/manifests and it gets merged
 
 ### Background information on TektonCD pipelineruns, pipelines and tasks
 
@@ -46,7 +53,7 @@ In this use case the following instance is created:
 ── ci-centraldashboard-pipeline-run
    ├── resources
    │   ├── image
-   │   │   └── centraldashboard+digest
+   │   │   └── component
    │   └── git 
    │       ├── kubeflow+revision
    │       └── manifests+revision 
@@ -56,15 +63,13 @@ In this use case the following instance is created:
            └── update-manifests
 ```
 
-The PipelineRun includes a Pipeline that has 2 tasks and 3 PipelineResources of type image (centraldashboard) and git (kubeflow, manifests). The Tasks reference these resources in their inputs or outputs. 
+The PipelineRun includes a Pipeline that has 2 tasks and 3 PipelineResources of type image (component) and git (kubeflow, manifests). The Tasks reference these resources in their inputs or outputs. 
 
 ### Parameterization 
 
-The PipelineRun specifies PipelineResources which are passed down to the the Pipeline and Tasks.
-The Pipeline specifies Task References and their parameters. 
-Reuse of centraldashboard requires changing the parameters in PipelineRun and Pipeline.
-The PipelineRun, Pipeline, Tasks and PipelineResources are parameterized by kustomize vars.
-Changing the values in params.env will allow a different component to be used.
+The PipelineRun uses parameterized PipelineResources which are passed down to the the Pipeline and Tasks.
+The Pipeline uses parameterized Tasks.
+Reusing this pipeline only requires changing parameters in params.env in the target component
 
 The parameters are noted below, those with an asterix should change per component:
 Those parameters without an asterix allow different gcr.io locations, namespace and pvc_mount_path.
@@ -94,3 +99,5 @@ The file itself should not be checked in with valid tokens.
 - kaniko-secret (same as gcp-credentials, use by kaniko)
 - github-ssh
 - github-token
+
+For the github-ssh and github-token secrets the kubeflow-bot github user and it's forked repo should be used.
