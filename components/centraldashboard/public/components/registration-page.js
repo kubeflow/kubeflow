@@ -38,6 +38,7 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
             namespaceName: String,
             error: Object,
             flowComplete: {type: Boolean, value: false},
+            waitForRedirect: {type: Boolean, value: false},
             showAPIText: {type: Boolean, value: false},
             _namespaceValidationRegex: {
                 type: String,
@@ -86,11 +87,20 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
         );
     }
 
-    finishSetup() {
+    async finishSetup() {
         const API = this.$.MakeNamespace;
         if (!this.validateNamespace()) return;
         API.body = {namespace: this.namespaceName};
-        API.generateRequest();
+        this.waitForRedirect = true;
+        await API.generateRequest();
+        await this.sleep(500);
+        if (this.error && this.error.response) {
+            return this.waitForRedirect = false;
+        }
+        // If request completed and 6 seconds pass, probably let
+        // the user click next again!
+        await this.sleep(6000);
+        this.waitForRedirect = false;
     }
 
     _successSetup() {
