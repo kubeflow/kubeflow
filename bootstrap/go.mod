@@ -19,7 +19,6 @@ require (
 	github.com/hashicorp/go-getter v1.0.2
 	github.com/imdario/mergo v0.3.7
 	github.com/kubeflow/kfctl/v3 v3.0.0-20190917231916-6ebaf60b014a
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/onrik/logrus v0.2.1
 	github.com/otiai10/copy v1.0.1
 	github.com/pkg/errors v0.8.1

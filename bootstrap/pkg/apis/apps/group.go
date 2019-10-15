@@ -100,7 +100,6 @@ const (
 	DELETE_STORAGE        CliOption = "delete_storage"
 	DISABLE_USAGE_REPORT  CliOption = "disable_usage_report"
 	PACKAGE_MANAGER       CliOption = "package-manager"
-	CONFIG                CliOption = "config"
 	FILE                  CliOption = "file"
 )
 
@@ -129,7 +128,7 @@ type Platform interface {
 // This is used in the ksonnet implementation for `ks show`
 //
 type KfShow interface {
-	Show(resources ResourceEnum, options map[string]interface{}) error
+	Show(resources ResourceEnum) error
 }
 
 // QuoteItems will place quotes around the string arrays items

@@ -95,7 +95,7 @@ func GetPlatform(kfdef *kfconfig.KfConfig) (kftypesv3.Platform, error) {
 	}
 
 	existing := &Existing{
-		KfConfig:          *kfdef,
+		KfDef:             kfdef,
 		istioManifests:    istioManifests,
 		authOIDCManifests: authOIDCManifests,
 	}
