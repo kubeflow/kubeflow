@@ -38,7 +38,14 @@ def get_endpoints_list(project):
 
   return endpoints
 
-def test_kfctl_delete(kfctl_path, app_path, project):
+def test_kfctl_delete(kfctl_path, app_path, project, cluster_deletion_script):
+
+  # TODO(yanniszark): split this into a separate workflow step
+  if cluster_deletion_script:
+    logging.info("cluster_deletion_script specified: %s", cluster_deletion_script)
+    util.run(["/bin/bash", "-c", cluster_deletion_script])
+    return
+
   if not kfctl_path:
     raise ValueError("kfctl_path is required")
 

@@ -413,7 +413,7 @@ func generateCert(addr string) ([]byte, []byte, error) {
 
 func getLBAddress(kubeclient client.Client) (string, error) {
 	// Get IngressGateway Service's address
-	const maxRetries = 40
+	const maxRetries = 80
 	var lbIngresses []corev1.LoadBalancerIngress
 	svc := &corev1.Service{}
 	lbServiceName := types.NamespacedName{Name: "istio-ingressgateway", Namespace: "istio-system"}

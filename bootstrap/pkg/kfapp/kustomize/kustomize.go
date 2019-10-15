@@ -325,11 +325,6 @@ func (kustomize *kustomize) Generate(resources kftypesv3.ResourceEnum) error {
 			return errors.WithStack(fmt.Errorf("Repo %v not listed in KfDef.Status; ", kftypesv3.ManifestsRepoName))
 		}
 
-		// if err := kustomize.initComponentMaps(); err != nil {
-		// 	log.Errorf("Could not initialize kustomize component map paths; error %v", err)
-		// 	return errors.WithStack(err)
-		// }
-
 		for _, app := range kustomize.kfDef.Spec.Applications {
 			log.Infof("Processing application: %v", app.Name)
 
