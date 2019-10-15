@@ -134,8 +134,6 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 	}
 
 	return converter.ToKfConfig(cwd, configFileBytes)
-<<<<<<< HEAD
-=======
 }
 
 func isCwdEmpty() string {
@@ -145,7 +143,6 @@ func isCwdEmpty() string {
 		return ""
 	}
 	return cwd
->>>>>>> 6d5ac58b... fix appdir
 }
 
 func WriteConfigToFile(config kfconfig.KfConfig, filename string) error {

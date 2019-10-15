@@ -18,21 +18,10 @@ package coordinator
 
 import (
 	"fmt"
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 	"io/ioutil"
 	netUrl "net/url"
 	"os"
 	"path"
-=======
->>>>>>> 236085d3... coordinator use kfconfig wip
-=======
-=======
-	"io/ioutil"
->>>>>>> 111a8d84... fix delete
-	"os"
->>>>>>> 65dbea91... coordinator can compile now
 	"path/filepath"
 	"strings"
 
@@ -157,228 +146,6 @@ func repoVersionToUri(repo string, version string) string {
 	return tarballUrl
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-// CreateKfDefFromOptions creates a KfDef from the supplied options.
-func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv3.KfDef, error) {
-	//appName can be a path
-	appName := options[string(kftypesv3.APPNAME)].(string)
-	appDir := path.Dir(appName)
-	if appDir == "" || appDir == "." {
-		cwd, err := os.Getwd()
-		if err != nil {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("could not get current directory %v", err),
-			}
-		}
-		appDir = path.Join(cwd, appName)
-	} else {
-		if appDir == "~" {
-			home, homeErr := homedir.Dir()
-			if homeErr != nil {
-				return nil, &kfapis.KfError{
-					Code:    int(kfapis.INVALID_ARGUMENT),
-					Message: fmt.Sprintf("could not get home directory %v", homeErr),
-				}
-			}
-			expanded, expandedErr := homedir.Expand(home)
-			if expandedErr != nil {
-				return nil, &kfapis.KfError{
-					Code:    int(kfapis.INVALID_ARGUMENT),
-					Message: fmt.Sprintf("could not expand home directory %v", homeErr),
-				}
-			}
-			appName = path.Base(appName)
-			appDir = path.Join(expanded, appName)
-		} else {
-			appName = path.Base(appName)
-			appDir = path.Join(appDir, appName)
-		}
-	}
-	errs := valid.NameIsDNSLabel(appName, false)
-	if errs != nil && len(errs) > 0 {
-=======
-// isCwdEmpty - quick check to determine if the working directory is empty
-// if the current working directory
-func isCwdEmpty() string {
-	cwd, _ := os.Getwd()
-	files, _ := ioutil.ReadDir(cwd)
-	if len(files) > 1 {
-		return ""
-	}
-	return cwd
-}
-
-// NewLoadKfAppFromURI takes in a config file and constructs the KfApp
-// used by the build and apply semantics for kfctl
-func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
-	url, err := netUrl.ParseRequestURI(configFile)
-	isRemoteFile := false
-	cwd := ""
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error parsing config file path: %v", err),
-		}
-	} else {
-		if url.Scheme != "" {
-			isRemoteFile = true
-		}
-	}
-
-	// If the config file is downloaded remotely, check to see if the current directory
-	// is empty because we will be generating the KfApp there.
-	if isRemoteFile {
-		cwd = isCwdEmpty()
-		if cwd == "" {
-			wd, _ := os.Getwd()
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("current directory %v not empty, please switch directories", wd),
-			}
-		}
-	}
-
-	// kfDef is a kfconfig
-	kfDef, err := configconverters.LoadConfigFromURI(configFile)
-	if err != nil {
->>>>>>> e25a3a1a... fix?
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf(`invalid name due to %v`, strings.Join(errs, ", ")),
-		}
-	}
-
-<<<<<<< HEAD
-	// If a config file is specified, construct the KfDef entirely from that.
-	configFile := options[string(kftypesv3.CONFIG)].(string)
-
-	kfDef := &kfdefsv3.KfDef{}
-	if configFile != "" {
-		newkfDef, err := kfdefsv3.LoadKFDefFromURI(configFile)
-
-		kfDef = newkfDef
-=======
-	b, _ := yaml.Marshal(kfDef)
-	log.Infof("KfConfig:\n%v", string(b))
-
-	// If the config file is downloaded remotely, use the current working directory to create the KfApp.
-	// Otherwise use the directory where the config file is stored.
-	if isRemoteFile {
-		cwd, err = os.Getwd()
->>>>>>> cfc38b2f... logs
-		if err != nil {
-			log.Errorf("Could not load %v; error %v", configFile, err)
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: err.Error(),
-			}
-		}
-
-		if kfDef.Name != "" {
-			log.Warnf("Overriding KfDef.Spec.Name; old value %v; new value %v", kfDef.Name, appName)
-		}
-
-		kfDef.Name = appName
-
-		//TODO(yanniszark): sane defaults for missing fields
-		//TODO(yanniszark): validate KfDef
-	} else {
-		platform := options[string(kftypesv3.PLATFORM)].(string)
-		packageManager := options[string(kftypesv3.PACKAGE_MANAGER)].(string)
-		version := options[string(kftypesv3.VERSION)].(string)
-		useBasicAuth := options[string(kftypesv3.USE_BASIC_AUTH)].(bool)
-		useIstio := options[string(kftypesv3.USE_ISTIO)].(bool)
-		namespace := options[string(kftypesv3.NAMESPACE)].(string)
-		project := options[string(kftypesv3.PROJECT)].(string)
-		cacheDir := ""
-		if options[string(kftypesv3.REPO)].(string) != "" {
-			cacheDir = options[string(kftypesv3.REPO)].(string)
-			if _, err := os.Stat(cacheDir); err != nil {
-				log.Fatalf("repo %v does not exist Error %v", cacheDir, err)
-			}
-		} else {
-			var cacheDirErr error
-			// TODO(jlewi): We should call repoVersionToUri and pass the value to DownloadToCache
-			cacheDir, cacheDirErr = kftypesv3.DownloadToCache(appDir, kftypesv3.KubeflowRepo, version)
-			if cacheDirErr != nil || cacheDir == "" {
-				log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
-			}
-		}
-
-		// This is a deprecated code path for constructing kfDef using kustomize style overlays
-		kfDef = &kfdefsv3.KfDef{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "KfDef",
-				APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      appName,
-				Namespace: namespace,
-			},
-			Spec: kfdefsv3.KfDefSpec{
-				ComponentConfig: config.ComponentConfig{
-					Platform: platform,
-				},
-				Project:        project,
-				PackageManager: packageManager,
-				UseBasicAuth:   useBasicAuth,
-				UseIstio:       useIstio,
-			},
-		}
-		configFileBuffer, configFileErr := getConfigFromCache(cacheDir, kfDef)
-		if configFileErr != nil {
-			log.Fatalf("could not get config file Error %v", configFileErr)
-		}
-		specErr := yaml.Unmarshal(configFileBuffer, kfDef)
-		if specErr != nil {
-			log.Errorf("couldn't unmarshal app.yaml. Error: %v", specErr)
-		}
-
-		kfDef.Name = appName
-		kfDef.Spec.Platform = platform
-		kfDef.Namespace = namespace
-		kfDef.Spec.Version = version
-		kfDef.Spec.Repo = path.Join(cacheDir, kftypesv3.KubeflowRepo)
-		kfDef.Spec.Project = options[string(kftypesv3.PROJECT)].(string)
-		kfDef.Spec.SkipInitProject = options[string(kftypesv3.SKIP_INIT_GCP_PROJECT)].(bool)
-		kfDef.Spec.UseBasicAuth = useBasicAuth
-		kfDef.Spec.UseIstio = useIstio
-		kfDef.Spec.PackageManager = packageManager
-		// Add the repo
-		if kfDef.Spec.Repos == nil {
-			kfDef.Spec.Repos = []kfdefsv3.Repo{}
-		}
-
-		repoUri := repoVersionToUri(kftypesv3.KubeflowRepo, version)
-		kfDef.Spec.Repos = append(kfDef.Spec.Repos, kfdefsv3.Repo{
-			Name: kftypesv3.KubeflowRepoName,
-			Uri:  repoUri,
-		})
-	}
-	kfDef.Spec.AppDir = appDir
-
-	// Disable usage report if requested
-	// TODO(jlewi): We should be able to get rid of this once we depend on this being
-	// configured in the config file.
-	disableUsageReport := options[string(kftypesv3.DISABLE_USAGE_REPORT)].(bool)
-	if disableUsageReport {
-		kfDef.Spec.Components = filterSpartakus(kfDef.Spec.Components)
-		delete(kfDef.Spec.ComponentParams, "spartakus")
-
-	}
-
-	err := backfillKfDefFromInitOptions(kfDef, options)
-
-	if err != nil {
-		log.Errorf("Could not backfill KfDef from options; error %v", err)
-		return nil, err
-	}
-
-	return kfDef, nil
-}
-
 // isCwdEmpty - quick check to determine if the working directory is empty
 // if the current working directory
 func isCwdEmpty() string {
@@ -395,47 +162,6 @@ func isCwdEmpty() string {
 func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 	// TODO(jlewi): Can we merge NewLoadKfAppFromURI and LoadKFAppCfgFile
 	kfApp, err := LoadKfAppCfgFile(configFile)
-=======
-// NewLoadKfAppFromURI takes in a config file and constructs the KfApp
-// used by the build and apply semantics for kfctl
-func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
-	// kfDef is a kfconfig
-	kfDef, err := configconverters.LoadConfigFromURI(configFile)
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
-		}
-	}
-	// basic auth check and warn
-	useBasicAuth := kfDef.Spec.UseBasicAuth
-	if useBasicAuth && (os.Getenv(kftypesv3.KUBEFLOW_USERNAME) == "" ||
-		os.Getenv(kftypesv3.KUBEFLOW_PASSWORD) == "") {
-		// Printing warning message instead of bailing out as both ENV are used in apply,
-		// not init.
-		log.Warnf("you need to set the environment variable %s to the username you "+
-			"want to use to login and variable %s to the password you want to use.",
-			kftypesv3.KUBEFLOW_USERNAME, kftypesv3.KUBEFLOW_PASSWORD)
-	}
-	// check if zone is set and warn ONLY for GCP
-	isPlatformGCP := kfDef.Spec.Platform == "gcp"
-	if isPlatformGCP && os.Getenv("ZONE") == "" {
-		log.Warn("you need to set the environment variable `ZONE` to the GCP zone you want to use")
-	}
-
-	// if kfDef.Spec.PackageManager == "" {
-	// 	kfDef.Spec.PackageManager = kftypesv3.KUSTOMIZE
-	// }
-
-	appFile, err := CreateKfAppCfgFile(kfDef)
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
-		}
-	}
-	kfApp, err := LoadKfAppCfgFile(appFile)
->>>>>>> 236085d3... coordinator use kfconfig wip
 	if err != nil || kfApp == nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
@@ -704,17 +430,6 @@ func LoadKfApp(options map[string]interface{}) (kftypesv3.KfApp, error) {
 	return LoadKfAppCfgFile(cfgfile)
 }
 
-<<<<<<< HEAD
-// LoadKfAppCfgFile constructs a KfApp by loading the provided app.yaml file.
-func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
-	url, err := netUrl.ParseRequestURI(cfgfile)
-	isRemoteFile := false
-	cwd := ""
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error parsing config file path: %v", err),
-=======
 // GetKfAppFromCfgFile gets the KfApp from app.yaml for `kfctl delete`
 // Why not use LoadKfAppCfgFile?
 // Because LoadKfAppCfgFile is used by the build and apply commands for checking if the cwd is empty
@@ -751,7 +466,34 @@ func GetKfAppFromCfgFile(appFile string, deleteStorage bool) (kftypesv3.KfApp, e
 		if _platformErr != nil {
 			log.Fatalf("could not get platform %v Error %v **", platform, _platformErr)
 			return nil, _platformErr
->>>>>>> 236085d3... coordinator use kfconfig wip
+		}
+		if _platform != nil {
+			c.Platforms[platform] = _platform
+		}
+	}
+
+	pkg, pkgErr := getPackageManager(c.KfDef)
+	if pkgErr != nil {
+		log.Fatalf("could not get package manager %v Error %v **", kftypesv3.KUSTOMIZE, pkgErr)
+		return nil, pkgErr
+	}
+	if pkg != nil {
+		c.PackageManagers[kftypesv3.KUSTOMIZE] = pkg
+	}
+
+	return c, nil
+
+}
+
+// LoadKfAppCfgFile constructs a KfApp by loading the provided app.yaml file.
+func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
+	url, err := netUrl.ParseRequestURI(cfgfile)
+	isRemoteFile := false
+	cwd := ""
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error parsing config file path: %v", err),
 		}
 	} else {
 		if url.Scheme != "" {
@@ -759,7 +501,6 @@ func GetKfAppFromCfgFile(appFile string, deleteStorage bool) (kftypesv3.KfApp, e
 		}
 	}
 
-<<<<<<< HEAD
 	// If the config file is a remote URI, check to see if the current directory
 	// is empty because we will be generating the KfApp there.
 	appFile := cfgfile
@@ -773,7 +514,7 @@ func GetKfAppFromCfgFile(appFile string, deleteStorage bool) (kftypesv3.KfApp, e
 			}
 		}
 
-		kfDef, err := kfdefsv3.LoadKFDefFromURI(cfgfile)
+		kfdef, err := configconverters.LoadConfigFromURI(cfgfile)
 		if err != nil {
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
@@ -781,30 +522,17 @@ func GetKfAppFromCfgFile(appFile string, deleteStorage bool) (kftypesv3.KfApp, e
 			}
 		}
 
-		appFile, err = CreateKfAppCfgFile(kfDef)
+		appFile, err = CreateKfAppCfgFile(kfdef)
 		if err != nil {
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
 				Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
 			}
 		}
-=======
-	pkg, pkgErr := getPackageManager(c.KfDef)
-	if pkgErr != nil {
-		log.Fatalf("could not get package manager %v Error %v **", kftypesv3.KUSTOMIZE, pkgErr)
-		return nil, pkgErr
-	}
-	if pkg != nil {
-		c.PackageManagers[kftypesv3.KUSTOMIZE] = pkg
->>>>>>> 236085d3... coordinator use kfconfig wip
 	}
 
 	// Set default TypeMeta information. This will get overwritten by explicit values if set in the cfg file.
-<<<<<<< HEAD
-	kfdef, err := kfdefsv3.LoadKFDefFromURI(appFile)
-=======
-	kfdef, err := configconverters.LoadConfigFromURI(cfgfile)
->>>>>>> 236085d3... coordinator use kfconfig wip
+	kfdef, err := configconverters.LoadConfigFromURI(appFile)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
@@ -858,9 +586,9 @@ func GetKfAppFromCfgFile(appFile string, deleteStorage bool) (kftypesv3.KfApp, e
 	// Set some defaults
 	// TODO(jlewi): This code doesn't belong here. It should probably be called from inside KfApp; e.g. from
 	// KfApp.generate. We should do all initialization of defaults as part of the reconcile loop in one function.
-	if c.KfDef.Spec.PackageManager == "" {
-		c.KfDef.Spec.PackageManager = kftypesv3.KUSTOMIZE
-	}
+	// if c.KfDef.Spec.PackageManager == "" {
+	// 	c.KfDef.Spec.PackageManager = kftypesv3.KUSTOMIZE
+	// }
 
 	return c, nil
 }

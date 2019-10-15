@@ -109,14 +109,8 @@ func TestGcp_buildBasicAuthSecret(t *testing.T) {
 
 func TestGcp_setGcpPluginDefaults(t *testing.T) {
 	type testCase struct {
-<<<<<<< HEAD
-<<<<<<< HEAD
-		Name            string
-		Input           *kfdefs.KfDef
-=======
 		Name            string
 		Input           *kfconfig.KfConfig
->>>>>>> 10d0dcdd... fix unit test
 		InputSpec       *GcpPluginSpec
 		Env             map[string]string
 		EmailGetter     func() (string, error)
@@ -126,15 +120,6 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		ExpectedEmail   string
 		ExpectedProject string
 		ExpectedZone    string
-=======
-		Name          string
-		Input         *kfconfig.KfConfig
-		InputSpec     *GcpPluginSpec
-		Env           map[string]string
-		EmailGetter   func() (string, error)
-		Expected      *GcpPluginSpec
-		ExpectedEmail string
->>>>>>> e0cf7637... gcp use kfconfig
 	}
 
 	cases := []testCase{
@@ -479,18 +464,11 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			t.Errorf("Case %v; got:\n%v\nwant:\n%v", c.Name, pGot, pWant)
 		}
 
-<<<<<<< HEAD
 		if c.ExpectedEmail != "" && c.ExpectedEmail != i.Spec.Email {
 			t.Errorf("Case %v; email: got %v; want %v", c.Name, i.Spec.Email, c.ExpectedEmail)
 		}
 		if c.ExpectedProject != "" && c.ExpectedProject != i.Spec.Project {
 			t.Errorf("Case %v; project: got %v; want %v", c.Name, i.Spec.Project, c.ExpectedProject)
-=======
-		if c.ExpectedEmail != "" {
-			if c.ExpectedEmail != i.Spec.Email {
-				t.Errorf("Case %v; email: got %v; want %v", c.Name, i.Spec.Email, c.ExpectedEmail)
-			}
->>>>>>> 76342527... fix
 		}
 		if c.ExpectedZone != "" && c.ExpectedZone != i.Spec.Zone {
 			t.Errorf("Case %v; zone: got %v; want %v", c.Name, i.Spec.Zone, c.ExpectedZone)

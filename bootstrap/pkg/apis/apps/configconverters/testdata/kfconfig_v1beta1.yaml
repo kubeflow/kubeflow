@@ -4,7 +4,6 @@ metadata:
   creationTimestamp: null
   name: myapp2
   namespace: kubeflow
-<<<<<<< HEAD
 spec:
   project: foo-project
   email: foo@gmail.com
@@ -332,28 +331,4 @@ spec:
   - name: manifests
     uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
   SkipInitProject: true
-<<<<<<< HEAD
-=======
-plugins:
-- kind: KfGcpPlugin
-  name: gcp
-  namespace: kubeflow
-  spec:
-    createPipelinePersistentStorage: true
-    deploymentManagerConfig:
-      repoRef:
-        name: manifests
-        path: gcp/deployment_manager_configs
-    email: foo@gmail.com
-    enableWorkloadIdentity: true
-    project: foo-project
-    skipInitProject: true
-    useBasicAuth: false
-repos:
-- name: manifests
-  uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
-skipInitProject: true
->>>>>>> 6dcd08a7... fix test
-=======
->>>>>>> d54bfc48... fix test
 status: {}

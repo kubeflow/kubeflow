@@ -1870,16 +1870,7 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 			log.Errorf("cannot get gcloud account email. Error: %v", err)
 			return err
 		}
-<<<<<<< HEAD
 		gcp.kfDef.Spec.Email = strings.TrimSpace(email)
-=======
-		email = strings.TrimSpace(email)
-<<<<<<< HEAD
-		gcp.kfDef.Email = email
->>>>>>> e0cf7637... gcp use kfconfig
-=======
-		gcp.kfDef.Spec.Email = email
->>>>>>> 589a9a2d... put back spec wip
 	} else {
 		log.Warnf("gcpAccountGetter not set; can't get default email")
 	}
@@ -2025,38 +2016,21 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 		log.Errorf("Could not get GcpPluginSpec; error %v", err)
 		return err
 	}
-<<<<<<< HEAD
+
 	// the runGetGCPCredentials don't seem to work because those are shelled out commands
 	// Added an alternate way to set using enironment variables
-<<<<<<< HEAD
-=======
-	gcp.kfDef.Spec.Project = os.Getenv("PROJECT")
->>>>>>> 589a9a2d... put back spec wip
 	if gcp.kfDef.Spec.Project == "" {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: "GCP Project is not set, please set it in KFDef or use gcloud config set project to set a default.",
 		}
 	}
-<<<<<<< HEAD
 	if gcp.kfDef.Spec.Email == "" {
-=======
-
-	if gcp.kfDef.Email == "" {
->>>>>>> e0cf7637... gcp use kfconfig
-=======
-	gcp.kfDef.Spec.Email = os.Getenv("EMAIL")
-	if gcp.kfDef.Spec.Email == "" {
->>>>>>> 589a9a2d... put back spec wip
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: "GCP account could not be determined, please set Email in KFDef or use gcloud config set account to set a default.",
 		}
 	}
-<<<<<<< HEAD
-=======
-	gcp.kfDef.Spec.Zone = os.Getenv("ZONE")
->>>>>>> 589a9a2d... put back spec wip
 	if gcp.kfDef.Spec.Zone == "" {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
