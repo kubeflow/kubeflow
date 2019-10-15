@@ -479,10 +479,44 @@ class Builder:
         + self.config_name + ".xml",
         "-o", "junit_suite_name=test_delete_kind_cluster_" + self.config_name,
     ]
+
+    # Accessing the docker daemon on the host could be dangerous
+    # So, we're running a sidecar with docker-in-docker and mounting
+    # the docker daemon from the sidecar
+    # See: https://github.com/argoproj/argo/tree/master/examples#docker-in-docker-using-sidecars
+    kind_task_template = {'activeDeadlineSeconds': 3000,
+     'container': {'command': [],
+      'env': [
+        {"name": "GOOGLE_APPLICATION_CREDENTIALS",
+         "value": "/secret/gcp-credentials/key.json"}
+       ],
+      'image': 'gcr.io/kubeflow-ci/test-worker:latest',
+      'imagePullPolicy': 'Always',
+      'name': '',
+      'resources': {'limits': {'cpu': '6', 'memory': '6Gi'},
+       'requests': {'cpu': '1', 'memory': '1536Mi'}},
+      'volumeMounts': [{'mountPath': '/mnt/test-data-volume',
+        'name': 'kubeflow-test-volume'},
+       {'mountPath': '/secret/gcp-credentials', 'name': 'gcp-credentials'}]},
+     'sidecars': [
+       {"name": "dind",
+        "image": "docker:18.09-dind",
+        "mirrorVolumeMounts": "true",
+        "securityContext": [],
+          "priviledged": "true"}
+     ],
+     'metadata': {'labels': {
+       'workflow_template': TEMPLATE_LABEL}},
+     'outputs': {}}
+
+    docker_env = {"name": "DOCKER_HOST",
+                    "value": '127.0.0.1'}
+    kind_task_template["container"]["env"].extend(docker_env)
+
     dependences = []
     if self.use_kind:
       dependences = [kfctl_delete["name"]]
-      delete_kind_cluster = self._build_step(step_name, self.workflow, EXIT_DAG_NAME, task_template,
+      delete_kind_cluster = self._build_step(step_name, self.workflow, EXIT_DAG_NAME, kind_task_template,
                                               command, dependences)
 
     step_name = "copy-artifacts"
@@ -564,10 +598,10 @@ class Builder:
         + self.config_name + ".xml",
         "-o", "junit_suite_name=test_create_kind_cluster_" + self.config_name,
     ]
-    
+
     if self.use_kind:
       dependences = [checkout["name"]]
-      create_kind_cluster = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
+      create_kind_cluster = self._build_step(step_name, self.workflow, E2E_DAG_NAME, kind_task_template,
                                               command, dependences)
     #**************************************************************************
     # Run build_kfctl and deploy kubeflow
