@@ -8,7 +8,7 @@ import pytest
 from kubeflow.kubeflow.ci import kfctl_kind_util as kind_util
 from kubeflow.testing import util
 
-def delete_kind_cluster():
+def test_delete_kind_cluster():
     kind_path = kind_util.download_kind_binary()
     util.run(kind_path, "delete", "cluster","--name=kubeflow_kind")
 
