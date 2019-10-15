@@ -56,13 +56,7 @@ type manifest struct {
 
 func GetPlatform(kfdef *kfconfig.KfConfig) (kftypesv3.Platform, error) {
 
-	if err := kfdef.SyncCache(); err != nil {
-		return nil, internalError(err)
-	}
-
-	repoCache, _ := kfdef.GetRepoCache(kftypesv3.ManifestsRepoName)
-	kfRepoDir := repoCache.LocalPath
-	istioManifestsDir := path.Join(kfRepoDir, CONFIG_LOCAL_PATH, "istio")
+	istioManifestsDir := path.Join(CONFIG_LOCAL_PATH, "istio")
 	istioManifests := []manifest{
 		{
 			name: "Istio CRDs",
@@ -74,7 +68,7 @@ func GetPlatform(kfdef *kfconfig.KfConfig) (kftypesv3.Platform, error) {
 		},
 	}
 
-	authOIDCManifestsDir := path.Join(kfRepoDir, CONFIG_LOCAL_PATH, "auth_oidc")
+	authOIDCManifestsDir := path.Join(CONFIG_LOCAL_PATH, "auth_oidc")
 	authOIDCManifests := []manifest{
 		{
 			name: "Istio Gateway",
@@ -115,6 +109,24 @@ func (existing *Existing) Generate(resources kftypesv3.ResourceEnum) error {
 }
 
 func (existing *Existing) Apply(resources kftypesv3.ResourceEnum) error {
+
+	if err := existing.SyncCache(); err != nil {
+		return internalError(err)
+	}
+
+	manifestRepo, ok := existing.GetRepoCache(kftypesv3.ManifestsRepoName)
+	if !ok {
+		return internalError(errors.New("Manifests repo is not defined."))
+	}
+	kfRepoDir := manifestRepo.LocalPath
+
+	for i := range existing.istioManifests {
+		existing.istioManifests[i].path = path.Join(kfRepoDir, existing.istioManifests[i].path)
+	}
+	for i := range existing.authOIDCManifests {
+		existing.authOIDCManifests[i].path = path.Join(kfRepoDir, existing.authOIDCManifests[i].path)
+	}
+
 	// Apply extra components
 	config := kftypesv3.GetConfig()
 
@@ -182,8 +194,6 @@ func (existing *Existing) Apply(resources kftypesv3.ResourceEnum) error {
 	}
 
 	// Generate YAML from the dex, authservice templates
-	repoCache, _ := existing.GetRepoCache(kftypesv3.ManifestsRepoName)
-	kfRepoDir := repoCache.LocalPath
 	authOIDCManifestsDir := path.Join(kfRepoDir, CONFIG_LOCAL_PATH, "auth_oidc")
 	err = generateFromGoTemplate(
 		path.Join(authOIDCManifestsDir, "authservice.tmpl"),
