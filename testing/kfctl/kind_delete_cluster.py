@@ -10,7 +10,7 @@ from kubeflow.testing import util
 
 def test_delete_kind_cluster():
     kind_path = kind_util.download_kind_binary()
-    util.run(kind_path, "delete", "cluster","--name=kubeflow_kind")
+    util.run([kind_path, "delete", "cluster","--name=kubeflow_kind"])
 
 if __name__ == "__main__":
   logging.basicConfig(

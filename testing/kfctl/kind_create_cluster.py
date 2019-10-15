@@ -18,8 +18,8 @@ kind_image_name = "kindest/node:v1.15.0" \
 
 def test_create_kind_cluster():
     kind_path = kind_util.download_kind_binary()
-    util.run(kind_path, "create", "cluster", "--name=kubeflow_kind","--config="+kind_config_path, 
-                "--image="+kind_image_name, "--loglevel=debug")
+    util.run([kind_path, "create", "cluster", "--name=kubeflow_kind","--config="+kind_config_path, 
+                "--image="+kind_image_name, "--loglevel=debug"])
     kind_util.switch_storage_class()
 
 # def create_gcloud_cluster():
