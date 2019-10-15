@@ -1,11 +1,11 @@
 varReference:
 - path: metadata/name
-  kind: PipelineRun
+  kind: Namespace
 - path: spec/params/value
   kind: PipelineRun
 - path: spec/resources/name
   kind: PipelineRun
-- path: spec/resources/resourceRef/name
+- path: spec/resources/resourceSpec/params/value
   kind: PipelineRun
 - path: spec/resources/name
   kind: Pipeline
@@ -30,4 +30,20 @@ varReference:
 - path: metadata/name
   kind: PipelineResource
 - path: metadata/namespace
-  kind: PipelineRun
+  kind: Task
+- path: metadata/namespace
+  kind: ServiceAccount
+- path: metadata/namespace
+  kind: RoleBinding
+- path: subjects/namespace
+  kind: RoleBinding
+- path: metadata/namespace
+  kind: ConfigMap
+- path: metadata/namespace
+  kind: Secret
+- path: metadata/namespace
+  kind: Pipeline
+- path: metadata/namespace
+  kind: PipelineResource
+- path: metadata/namespace
+  kind: PersistentVolumeClaim
