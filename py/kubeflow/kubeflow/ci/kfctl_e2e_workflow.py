@@ -251,6 +251,44 @@ class Builder:
 
     return workflow
 
+  def _build_kind_task_template(self):
+    """Return a template for KinD tasks
+       with sidecars for DinD"""
+    # Accessing the docker daemon on the host could be dangerous
+    # So, we're running a sidecar with docker-in-docker and mounting
+    # the docker daemon from the sidecar
+    # See: https://github.com/argoproj/argo/tree/master/examples#docker-in-docker-using-sidecars
+    kind_task_template = {'activeDeadlineSeconds': 3000,
+     'container': {'command': [],
+      'env': [
+        {"name": "GOOGLE_APPLICATION_CREDENTIALS",
+         "value": "/secret/gcp-credentials/key.json"}
+       ],
+      'image': 'gcr.io/kubeflow-ci/test-worker:latest',
+      'imagePullPolicy': 'Always',
+      'name': '',
+      'resources': {'limits': {'cpu': '6', 'memory': '6Gi'},
+       'requests': {'cpu': '1', 'memory': '1536Mi'}},
+      'volumeMounts': [{'mountPath': '/mnt/test-data-volume',
+        'name': 'kubeflow-test-volume'},
+       {'mountPath': '/secret/gcp-credentials', 'name': 'gcp-credentials'}]},
+     'sidecars': [
+       {"name": "dind",
+        "image": "docker:18.09-dind",
+        "mirrorVolumeMounts": "true",
+        "securityContext": [],
+          "priviledged": "true"}
+     ],
+     'metadata': {'labels': {
+       'workflow_template': TEMPLATE_LABEL}},
+     'outputs': {}}
+
+    docker_env = {"name": "DOCKER_HOST",
+                    "value": '127.0.0.1'}
+    kind_task_template["container"]["env"].extend(docker_env)
+
+    return kind_task_template
+
   def _build_task_template(self):
     """Return a template for all the tasks"""
 
@@ -445,7 +483,7 @@ class Builder:
   def _build_exit_dag(self):
     """Build the exit handler dag"""
     task_template = self._build_task_template()
-
+    kind_task_template = self._build_kind_task_template()
     #***********************************************************************
     # Delete Kubeflow
     step_name = "kfctl-delete"
@@ -479,39 +517,6 @@ class Builder:
         + self.config_name + ".xml",
         "-o", "junit_suite_name=test_delete_kind_cluster_" + self.config_name,
     ]
-
-    # Accessing the docker daemon on the host could be dangerous
-    # So, we're running a sidecar with docker-in-docker and mounting
-    # the docker daemon from the sidecar
-    # See: https://github.com/argoproj/argo/tree/master/examples#docker-in-docker-using-sidecars
-    kind_task_template = {'activeDeadlineSeconds': 3000,
-     'container': {'command': [],
-      'env': [
-        {"name": "GOOGLE_APPLICATION_CREDENTIALS",
-         "value": "/secret/gcp-credentials/key.json"}
-       ],
-      'image': 'gcr.io/kubeflow-ci/test-worker:latest',
-      'imagePullPolicy': 'Always',
-      'name': '',
-      'resources': {'limits': {'cpu': '6', 'memory': '6Gi'},
-       'requests': {'cpu': '1', 'memory': '1536Mi'}},
-      'volumeMounts': [{'mountPath': '/mnt/test-data-volume',
-        'name': 'kubeflow-test-volume'},
-       {'mountPath': '/secret/gcp-credentials', 'name': 'gcp-credentials'}]},
-     'sidecars': [
-       {"name": "dind",
-        "image": "docker:18.09-dind",
-        "mirrorVolumeMounts": "true",
-        "securityContext": [],
-          "priviledged": "true"}
-     ],
-     'metadata': {'labels': {
-       'workflow_template': TEMPLATE_LABEL}},
-     'outputs': {}}
-
-    docker_env = {"name": "DOCKER_HOST",
-                    "value": '127.0.0.1'}
-    kind_task_template["container"]["env"].extend(docker_env)
 
     dependences = []
     if self.use_kind:
@@ -558,7 +563,7 @@ class Builder:
   def build(self):
     self.workflow = self._build_workflow()
     task_template = self._build_task_template()
-
+    kind_task_template = self._build_kind_task_template()
     #**************************************************************************
     # Checkout
 
