@@ -40,7 +40,7 @@ type KfUpgrader struct {
 // Given a path to a base config and the existing KfDef, create and return a new KfDef
 // while keeping the existing KfApp's customizations. Also create a new KfApp in the
 // current working directory.
-func createNewKfApp(baseConfig string, oldKfDef *kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
+func createNewKfApp(baseConfig string, version string, oldKfDef *kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
 	appDir, err := os.Getwd()
 	if err != nil {
 		return nil, &kfapis.KfError{
@@ -72,6 +72,7 @@ func createNewKfApp(baseConfig string, oldKfDef *kfdefsv3.KfDef) (*kfdefsv3.KfDe
 
 	newAppDir := filepath.Join(appDir, h)
 	newKfDef.Spec.AppDir = newAppDir
+	newKfDef.Spec.Version = version
 
 	// Make sure the new KfApp is created.
 	_, err = coordinator.CreateKfAppCfgFile(newKfDef)
@@ -115,7 +116,7 @@ func NewKfUpgrade(upgradeConfig string) (*KfUpgrader, error) {
 
 	// If the new KfDef is not found, create it
 	if newKfDef == nil {
-		newKfDef, err = createNewKfApp(upgrade.Spec.BaseConfigPath, oldKfDef)
+		newKfDef, err = createNewKfApp(upgrade.Spec.BaseConfigPath, upgrade.Spec.NewKfDef.Version, oldKfDef)
 		if err != nil {
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INTERNAL_ERROR),
