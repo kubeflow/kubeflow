@@ -460,8 +460,7 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 		return nil
 	}
 
-	// TODO(kunming): move to profile v1beta1 so it can be applied to all user namespaces
-	_ = func() error {
+	gcpAddedConfig := func() error {
 		if kfapp.KfDef.Spec.Email == "" || kfapp.KfDef.Spec.Platform != kftypesv3.GCP {
 			return nil
 		}
@@ -473,15 +472,11 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 			}
 		} else {
 			gcp := p.(*gcp.Gcp)
-			p, err := gcp.GetPluginSpec()
-			if err != nil {
+			if err := gcp.SetupWorkloadIdentityPermission(); err != nil {
 				return err
 			}
-			if *p.EnableWorkloadIdentity {
-				return gcp.SetupDefaultNamespaceWorkloadIdentity()
-			} else {
-				return gcp.ConfigPodDefault()
-			}
+			// Keep podDefault for backward compatibility
+			return gcp.ConfigPodDefault()
 		}
 	}
 
@@ -500,7 +495,7 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 		if err := k8s(); err != nil {
 			return err
 		}
-		return nil
+		return gcpAddedConfig()
 	case kftypesv3.PLATFORM:
 		return platform()
 	case kftypesv3.K8S:
@@ -509,7 +504,7 @@ func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 		}
 		// TODO(gabrielwen): Need to find a more proper way of injecting plugings.
 		// https://github.com/kubeflow/kubeflow/issues/3708
-		return nil
+		return gcpAddedConfig()
 	}
 	return nil
 }
