@@ -2,10 +2,6 @@ package coordinator
 
 import (
 	"encoding/json"
-	config "github.com/kubeflow/kubeflow/bootstrap/v3/config"
-	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
-	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"io/ioutil"
 	"os"
 	"path"
@@ -13,7 +9,8 @@ import (
 	"testing"
 
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func Test_CreateKfAppCfgFile(t *testing.T) {
