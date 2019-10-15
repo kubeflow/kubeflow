@@ -12,13 +12,21 @@ import pytest
 from kubeflow.testing import util
 from testing import deploy_utils
 
+def set_logging():
+  logging.basicConfig(level=logging.INFO,
+                      format=('%(levelname)s|%(asctime)s'
+                              '|%(pathname)s|%(lineno)d| %(message)s'),
+                      datefmt='%Y-%m-%dT%H:%M:%S',
+                      )
+  logging.getLogger().setLevel(logging.INFO)
+
 def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
   """Test that Kubeflow was successfully deployed.
 
   Args:
     namespace: The namespace Kubeflow is deployed to.
   """
-
+  set_logging()
   logging.info("Using namespace %s", namespace)
 
   # Need to activate account for scopes.
