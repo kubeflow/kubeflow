@@ -21,3 +21,10 @@ Flags:
 
 Use "kfdef-converter [command] --help" for more information about a command.
 ```
+
+### Example conversion
+
+Converting to `v1beta1`:
+```bash
+kfdef-converter tov1beta1 foo/kfdef.yaml -o path/to/output.yaml
+```
