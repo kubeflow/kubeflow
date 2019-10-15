@@ -80,4 +80,4 @@ paper-toast#welcomeUser(duration=5000) Welcome, [[_extractLdap(user)]]!
 paper-toast#ErrorToast(duration=0, opened='[[!empty(errorText)]]', on-click='closeError') [[errorText]]
     paper-icon-button(icon='close')
 template(is='dom-if', if='[[registrationFlow]]')
-    registration-page(user-details='[[user]]' on-flowcomplete='resyncApp')
+    registration-page(user-details='[[_extractLdap(user)]]' on-flowcomplete='resyncApp')
