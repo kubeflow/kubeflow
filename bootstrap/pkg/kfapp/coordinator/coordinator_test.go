@@ -118,6 +118,36 @@ func Test_repoVersionToRepoStruct(t *testing.T) {
 	}
 }
 
+func Test_nameFromAppFile(t *testing.T) {
+	type testCase struct {
+		appFile string
+		expectedName string
+	}
+
+	testCases := []testCase{
+		{
+			appFile: "/mykfapp/kfctl.yaml",
+			expectedName: "mykfapp",
+		},
+		{
+			appFile: "/parentdir/subapp/app.yaml",
+			expectedName: "subapp",
+		},
+		{
+			appFile:     "/kfctl.yaml",
+			expectedName: "",
+		},
+	}
+
+	for _, c := range testCases {
+		actual := nameFromAppFile(c.appFile)
+
+		if actual != c.expectedName {
+			t.Errorf("Error getting name from %v got;\n%v\nwant;\n%v", c.appFile, actual, c.expectedName)
+		}
+	}
+}
+
 // Pformat returns a pretty format output of any value.
 func Pformat(value interface{}) (string, error) {
 	if s, ok := value.(string); ok {
