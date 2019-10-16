@@ -136,6 +136,15 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 	return converter.ToKfConfig(cwd, configFileBytes)
 }
 
+func isCwdEmpty() string {
+	cwd, _ := os.Getwd()
+	files, _ := ioutil.ReadDir(cwd)
+	if len(files) > 1 {
+		return ""
+	}
+	return cwd
+}
+
 func WriteConfigToFile(config kfconfig.KfConfig, filename string) error {
 	converters := map[string]Converter{
 		"v1alpha1": V1alpha1{},
