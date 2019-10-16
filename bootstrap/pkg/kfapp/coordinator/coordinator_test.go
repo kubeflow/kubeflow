@@ -133,21 +133,21 @@ func Test_repoVersionToRepoStruct(t *testing.T) {
 
 func Test_nameFromAppFile(t *testing.T) {
 	type testCase struct {
-		appFile string
+		appFile      string
 		expectedName string
 	}
 
 	testCases := []testCase{
 		{
-			appFile: "/mykfapp/kfctl.yaml",
+			appFile:      "/mykfapp/kfctl.yaml",
 			expectedName: "mykfapp",
 		},
 		{
-			appFile: "/parentdir/subapp/app.yaml",
+			appFile:      "/parentdir/subapp/app.yaml",
 			expectedName: "subapp",
 		},
 		{
-			appFile:     "/kfctl.yaml",
+			appFile:      "/kfctl.yaml",
 			expectedName: "",
 		},
 	}

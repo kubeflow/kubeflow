@@ -73,7 +73,7 @@ class Builder:
                bucket="kubeflow-ci_temp",
                test_endpoint=False,
                use_basic_auth=False,
-               build_and_apply=False,
+               build_and_apply=True,
                kf_app_name=None, delete_kf=True,):
     """Initialize a builder.
 
