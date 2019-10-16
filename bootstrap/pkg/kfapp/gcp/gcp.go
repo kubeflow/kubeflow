@@ -732,7 +732,7 @@ func (gcp *Gcp) updateDM(resources kftypesv3.ResourceEnum) error {
 		// Get current policy
 		policy, policyErr := utils.GetIamPolicy(gcp.kfDef.Spec.Project, gcpClient)
 		if policyErr != nil {
-			return kfapis.NewKfErrorWithMessage(err, "GetIamPolicy error")
+			return kfapis.NewKfErrorWithMessage(policyErr, "GetIamPolicy error")
 		}
 		utils.ClearIamPolicy(policy, gcp.kfDef.Name, gcp.kfDef.Spec.Project)
 		if err := utils.SetIamPolicy(gcp.kfDef.Spec.Project, policy, gcpClient); err != nil {
