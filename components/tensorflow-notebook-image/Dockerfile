@@ -10,6 +10,8 @@ ARG TFMA_VERSION
 ARG TFDV_VERSION
 ARG NB_USER=jovyan
 
+# TODO: User should be refactored instead of hard coded jovyan
+
 USER root
 
 ENV DEBIAN_FRONTEND noninteractive
