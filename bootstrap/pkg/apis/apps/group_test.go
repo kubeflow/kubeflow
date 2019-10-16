@@ -5,7 +5,14 @@ import (
 )
 
 func TestEmailToDefaultName(t *testing.T) {
+
 	testCases := [][]string{
+		[]string{
+			"EmailToDefaultName", "kubeflow-emailtodefaultname",
+		},
+		[]string{
+			"very-long-name-very-long-name-very-long-name", "kubeflow-very-long-name-very-l",
+		},
 		// Strips after @
 		[]string{
 			"foo@bar.com", "kubeflow-foo",

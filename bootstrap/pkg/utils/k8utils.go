@@ -247,7 +247,7 @@ func NewApply(namespace string, restConfig *rest.Config) (*Apply, error) {
 	return apply, nil
 }
 
-func (a *Apply) DefaultProfileNamespace(name string) bool {
+func (a *Apply) IfNamespaceExist(name string) bool {
 	_, nsMissingErr := a.clientset.CoreV1().Namespaces().Get(name, metav1.GetOptions{})
 	if nsMissingErr != nil {
 		return false
