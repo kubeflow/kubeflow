@@ -4,12 +4,37 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
+	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdeftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
 )
 
 // Empty struct - used to implement Converter interface.
 type V1beta1 struct {
+}
+
+func isPlatform(pluginKind string) bool {
+	platforms := map[string]bool{
+		string(kfconfig.AWS_PLUGIN_KIND): true,
+		string(kfconfig.GCP_PLUGIN_KIND): true,
+	}
+
+	_, ok := platforms[pluginKind]
+	return ok
+}
+
+func maybeGetPlatform(pluginKind string) string {
+	platforms := map[string]string{
+		string(kfconfig.AWS_PLUGIN_KIND): kftypesv3.AWS,
+		string(kfconfig.GCP_PLUGIN_KIND): kftypesv3.GCP,
+	}
+
+	p, ok := platforms[pluginKind]
+	if ok {
+		return p
+	} else {
+		return ""
+	}
 }
 
 func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfig, error) {
@@ -107,6 +132,9 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 			if z, ok := s["zone"]; ok {
 				config.Spec.Zone = z.(string)
 			}
+		}
+		if p := maybeGetPlatform(plugin.Kind); p != "" {
+			config.Spec.Platform = p
 		}
 	}
 
