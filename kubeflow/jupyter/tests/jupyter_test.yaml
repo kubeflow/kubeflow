@@ -5,7 +5,7 @@ metadata:
     addgcpsecret: "true"
     app: xgboost-demo
   name: xgboost-demo
-  namespace: kubeflow
+  namespace: xboost-demo
 spec:
   template:
     spec:
