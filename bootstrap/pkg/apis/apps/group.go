@@ -62,8 +62,8 @@ const (
 	KUBEFLOW_PASSWORD      = "KUBEFLOW_PASSWORD"
 	DefaultSwaggerFile     = "bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json"
 	YamlSeparator          = "(?m)^---[ \t]*$"
-    Dns1123LabelFmt 	   = "[a-z0-9]([-a-z0-9]*[a-z0-9])?"
-	ProfileNameMaxLen 	   = 30
+	Dns1123LabelFmt        = "[a-z0-9]([-a-z0-9]*[a-z0-9])?"
+	ProfileNameMaxLen      = 30
 )
 
 type SupportedResourceType string

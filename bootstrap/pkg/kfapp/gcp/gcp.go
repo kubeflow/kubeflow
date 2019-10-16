@@ -732,7 +732,7 @@ func (gcp *Gcp) updateDM(resources kftypesv3.ResourceEnum) error {
 		// Get current policy
 		policy, policyErr := utils.GetIamPolicy(gcp.kfDef.Spec.Project, gcpClient)
 		if policyErr != nil {
-			return kfapis.NewKfErrorWithMessage(err, "GetIamPolicy error")
+			return kfapis.NewKfErrorWithMessage(policyErr, "GetIamPolicy error")
 		}
 		utils.ClearIamPolicy(policy, gcp.kfDef.Name, gcp.kfDef.Spec.Project)
 		if err := utils.SetIamPolicy(gcp.kfDef.Spec.Project, policy, gcpClient); err != nil {
@@ -850,37 +850,35 @@ func (gcp *Gcp) Apply(resources kftypesv3.ResourceEnum) error {
 				secretsErr.(*kfapis.KfError).Message),
 		}
 	}
-	if *p.EnableWorkloadIdentity {
-		gcpAdminSa := fmt.Sprintf("%v-admin@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project)
-		gcpUserSa := fmt.Sprintf("%v-user@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project)
-		if err = gcp.allowAdmineditUserSA(gcpAdminSa, gcpUserSa); err != nil {
-			return &kfapis.KfError{
-				Code: err.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("Fail to setup workload identity: Error %v",
-					err.(*kfapis.KfError).Message),
-			}
+	gcpAdminSa := fmt.Sprintf("%v-admin@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project)
+	gcpUserSa := fmt.Sprintf("%v-user@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project)
+	if err = gcp.allowAdmineditUserSA(gcpAdminSa, gcpUserSa); err != nil {
+		return &kfapis.KfError{
+			Code: err.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("Fail to setup workload identity: Error %v",
+				err.(*kfapis.KfError).Message),
 		}
-		// Create the role binding for k8s service account
-		kubeflowWorkloadIdentityMapping := map[string]string{
-			"kf-admin": gcpAdminSa,
-			"kf-user": gcpUserSa,
+	}
+	// Create the role binding for k8s service account
+	kubeflowWorkloadIdentityMapping := map[string]string{
+		"kf-admin": gcpAdminSa,
+		"kf-user":  gcpUserSa,
+	}
+	if err = gcp.setupWorkloadIdentity(gcp.kfDef.Namespace, kubeflowWorkloadIdentityMapping); err != nil {
+		return &kfapis.KfError{
+			Code: err.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("Fail to setup workload identity: Error %v",
+				err.(*kfapis.KfError).Message),
 		}
-		if err = gcp.setupWorkloadIdentity(gcp.kfDef.Namespace, kubeflowWorkloadIdentityMapping); err != nil {
-			return &kfapis.KfError{
-				Code: err.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("Fail to setup workload identity: Error %v",
-					err.(*kfapis.KfError).Message),
-			}
-		}
-		istioWorkloadIdentityMapping := map[string]string{
-			"kf-admin": gcpAdminSa,
-		}
-		if err = gcp.setupWorkloadIdentity(gcp.getIstioNamespace(), istioWorkloadIdentityMapping); err != nil {
-			return &kfapis.KfError{
-				Code: err.(*kfapis.KfError).Code,
-				Message: fmt.Sprintf("Fail to setup workload identity: Error %v",
-					err.(*kfapis.KfError).Message),
-			}
+	}
+	istioWorkloadIdentityMapping := map[string]string{
+		"kf-admin": gcpAdminSa,
+	}
+	if err = gcp.setupWorkloadIdentity(gcp.getIstioNamespace(), istioWorkloadIdentityMapping); err != nil {
+		return &kfapis.KfError{
+			Code: err.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("Fail to setup workload identity: Error %v",
+				err.(*kfapis.KfError).Message),
 		}
 	}
 
@@ -1238,10 +1236,8 @@ func (gcp *Gcp) writeClusterConfig(src string, dest string, gcpPluginSpec GcpPlu
 		}
 		properties["ipName"] = gcp.kfDef.Spec.IpName
 		resource["properties"] = properties
-		if *gcpPluginSpec.EnableWorkloadIdentity {
-			properties["enable-workload-identity"] = true
-			properties["identity-namespace"] = gcp.kfDef.Spec.Project + ".svc.id.goog"
-		}
+		properties["enable-workload-identity"] = true
+		properties["identity-namespace"] = gcp.kfDef.Spec.Project + ".svc.id.goog"
 		resources[idx] = resource
 	}
 	data["resources"] = resources
@@ -1600,38 +1596,19 @@ func (gcp *Gcp) getIstioNamespace() string {
 func (gcp *Gcp) createSecrets() error {
 	ctx := context.Background()
 
-	p, err := gcp.GetPluginSpec()
-	if err != nil {
-		return err
-	}
-
 	k8sClient, err := gcp.getK8sClientset(ctx)
 	if err != nil {
 		return kfapis.NewKfErrorWithMessage(err, "set K8s clientset error")
 	}
 	log.Infof("Creating GCP secrets...")
-	// If workload identity is enabled, we don't need to create secrets.
-	if !(*p.EnableWorkloadIdentity) {
-		adminEmail := getSA(gcp.kfDef.Name, "admin", gcp.kfDef.Spec.Project)
-		userEmail := getSA(gcp.kfDef.Name, "user", gcp.kfDef.Spec.Project)
-		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME, gcp.kfDef.Namespace); err != nil {
-			return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create admin secret %v", ADMIN_SECRET_NAME))
-		}
-		if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME, gcp.kfDef.Namespace); err != nil {
-			return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create user secret %v", USER_SECRET_NAME))
-		}
-		// Also create service account secret in istio namespace
-		if gcp.kfDef.Spec.UseIstio {
-			if err = createNamespace(k8sClient, gcp.getIstioNamespace()); err != nil {
-				return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create istio namespace"))
-			}
-			if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME, gcp.getIstioNamespace()); err != nil {
-				return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create admin secret %v", ADMIN_SECRET_NAME))
-			}
-			if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME, gcp.getIstioNamespace()); err != nil {
-				return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create user secret %v", USER_SECRET_NAME))
-			}
-		}
+	// Always create secrets in kubeflow namespace for backward compatiblility.
+	adminEmail := getSA(gcp.kfDef.Name, "admin", gcp.kfDef.Spec.Project)
+	userEmail := getSA(gcp.kfDef.Name, "user", gcp.kfDef.Spec.Project)
+	if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME, gcp.kfDef.Namespace); err != nil {
+		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create admin secret %v", ADMIN_SECRET_NAME))
+	}
+	if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME, gcp.kfDef.Namespace); err != nil {
+		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create user secret %v", USER_SECRET_NAME))
 	}
 	if gcp.kfDef.Spec.UseBasicAuth {
 		log.Infof("Creating GCP secrets for basic auth...")
@@ -1727,12 +1704,9 @@ func createOrUpdateK8sServiceAccount(k8sClientset *clientset.Clientset, namespac
 	if err == nil {
 		log.Infof("Service account already exists...")
 		if currSA.Annotations == nil {
-			currSA.Annotations = map[string]string{
-				"iam.gke.io/gcp-service-account": gsa,
-			}
-		} else {
-			currSA.Annotations["iam.gke.io/gcp-service-account"] = gsa
+			currSA.Annotations = map[string]string{}
 		}
+		currSA.Annotations["iam.gke.io/gcp-service-account"] = gsa
 		_, err = k8sClientset.CoreV1().ServiceAccounts(namespace).Update(currSA)
 		if err != nil {
 			return &kfapis.KfError{
@@ -1767,8 +1741,7 @@ func createOrUpdateK8sServiceAccount(k8sClientset *clientset.Clientset, namespac
 // SetupWorkloadIdentityPermission bind gcp admin service account to owner of gcp "user" service account, so controller can edit WorkloadIdentity
 func (gcp *Gcp) SetupWorkloadIdentityPermission() error {
 	kubeflowWorkloadIdentityMapping := map[string]string{
-		"profiles-controller-service-account":
-		fmt.Sprintf("%v-admin@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
+		"profiles-controller-service-account": fmt.Sprintf("%v-admin@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project),
 	}
 	if err := gcp.setupWorkloadIdentity(gcp.kfDef.Namespace, kubeflowWorkloadIdentityMapping); err != nil {
 		return &kfapis.KfError{

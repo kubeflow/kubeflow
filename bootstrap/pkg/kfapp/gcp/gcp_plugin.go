@@ -112,7 +112,7 @@ func (p *GcpPluginSpec) GetCreatePipelinePersistentStorage() bool {
 
 func (p *GcpPluginSpec) GetEnableWorkloadIdentity() bool {
 	if p.EnableWorkloadIdentity == nil {
-		return false
+		return true
 	}
 
 	v := p.EnableWorkloadIdentity

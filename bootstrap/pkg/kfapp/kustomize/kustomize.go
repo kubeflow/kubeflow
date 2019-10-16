@@ -20,6 +20,7 @@ import (
 	"bufio"
 	"encoding/hex"
 	"fmt"
+	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
 	"github.com/imdario/mergo"
 	kfapisv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
@@ -54,6 +55,7 @@ import (
 	"sigs.k8s.io/kustomize/v3/pkg/validators"
 	"sigs.k8s.io/kustomize/v3/plugin/builtin"
 	"strings"
+	"time"
 
 	// Auth plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -177,36 +179,25 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 		}
 	}
 
-	// TODO(kunming): Create default profile through manifests entry.
-	//userId := defaultUserId
-	//defaultProfileNamespace := defaultUserId
-
-	// When user identity available, the user will be owner of the profile
-	// Otherwise the profile would be a public one.
-	//if kustomize.kfDef.Spec.Email != "" {
-	//
-	//	// Use user email as user id if available.
-	//	// When platform == GCP, same user email is also identity in requests through IAP.
-	//	userId = kustomize.kfDef.Spec.Email
-	//	defaultProfileNamespace = kftypesv3.EmailToDefaultName(userId)
-	//}
-
-	return nil
-	//b := backoff.NewExponentialBackOff()
-	//b.InitialInterval = 3 * time.Second
-	//b.MaxInterval = 30 * time.Second
-	//b.MaxElapsedTime = 5 * time.Minute
-	//return backoff.Retry(func() error {
-	//	if !apply.DefaultProfileNamespace(defaultProfileNamespace) {
-	//		msg := fmt.Sprintf("Could not find namespace %v, wait and retry", defaultProfileNamespace)
-	//		log.Warnf(msg)
-	//		return &kfapisv3.KfError{
-	//			Code:    int(kfapisv3.INVALID_ARGUMENT),
-	//			Message: msg,
-	//		}
-	//	}
-	//	return nil
-	//}, b)
+	// Default user namespace when multi-tenancy enabled
+	defaultProfileNamespace := kftypesv3.EmailToDefaultName(kustomize.kfDef.Spec.Email)
+	// Default user namespace when multi-tenancy disabled
+	anonymousNamespace := "anonymous"
+	b := backoff.NewExponentialBackOff()
+	b.InitialInterval = 3 * time.Second
+	b.MaxInterval = 30 * time.Second
+	b.MaxElapsedTime = 5 * time.Minute
+	return backoff.Retry(func() error {
+		if !(apply.IfNamespaceExist(defaultProfileNamespace) || apply.IfNamespaceExist(anonymousNamespace)) {
+			msg := "Default user namespace pending creation..."
+			log.Warnf(msg)
+			return &kfapisv3.KfError{
+				Code:    int(kfapisv3.INVALID_ARGUMENT),
+				Message: msg,
+			}
+		}
+		return nil
+	}, b)
 }
 
 // deleteGlobalResources is called from Delete and deletes CRDs, ClusterRoles, ClusterRoleBindings
