@@ -40,6 +40,9 @@ type KfConfigSpec struct {
 	// Shared fields among all components. should limit this list.
 	// TODO(gabrielwen): Deprecate AppDir and move it to cache in Status.
 	AppDir string `json:"appDir,omitempty"`
+
+	Version string `json:"version,omitempty"`
+
 	// TODO(gabrielwen): Can we infer this from Applications?
 	UseBasicAuth bool `json:"useBasicAuth,omitempty"`
 

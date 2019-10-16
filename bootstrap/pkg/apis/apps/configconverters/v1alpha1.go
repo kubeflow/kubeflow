@@ -65,6 +65,7 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 	config := &kfconfig.KfConfig{
 		Spec: kfconfig.KfConfigSpec{
 			AppDir:          kfdef.Spec.AppDir,
+			Version:         kfdef.Spec.Version,
 			UseBasicAuth:    kfdef.Spec.UseBasicAuth,
 			Project:         kfdef.Spec.Project,
 			Email:           kfdef.Spec.Email,
@@ -196,6 +197,7 @@ func (v V1alpha1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 	kfdef.Kind = "KfDef"
 
 	kfdef.Spec.AppDir = config.Spec.AppDir
+	kfdef.Spec.Version = config.Spec.Version
 	kfdef.Spec.UseBasicAuth = config.Spec.UseBasicAuth
 	// Should be deprecated, hardcode it just to be safe.
 	kfdef.Spec.EnableApplications = true
