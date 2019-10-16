@@ -34,7 +34,7 @@ func Deployment(ctx context.Context, r client.Client, deployment *appsv1.Deploym
 	if !justCreated && CopyDeploymentSetFields(deployment, foundDeployment) {
 		log.Info("Updating Deployment", "namespace", deployment.Namespace, "name", deployment.Name)
 		if err := r.Update(ctx, foundDeployment); err != nil {
-			log.Error(err, "unable to update Statefulset")
+			log.Error(err, "unable to update deployment")
 			return err
 		}
 	}
