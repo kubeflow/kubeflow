@@ -53,6 +53,9 @@ type PodDefaultSpec struct {
 	// VolumeMounts defines the collection of VolumeMount to inject into containers.
 	// +optional
 	VolumeMounts []v1.VolumeMount `json:"volumeMounts,omitempty"`
+
+	// ImagePullSecrets defines the collection of ImagePullSecrets to inject into the Pod.
+	ImagePullSecrets []v1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 }
 
 // PodDefaultStatus defines the observed state of PodDefault
