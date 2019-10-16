@@ -2106,6 +2106,13 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 		"%v-user@%v.iam.gserviceaccount.com", gcp.kfDef.Name, gcp.kfDef.Spec.Project)); err != nil {
 		return errors.WithStack(err)
 	}
+	if err := gcp.kfDef.SetApplicationParameter("default-install", "user", gcp.kfDef.Spec.Email); err != nil {
+		return errors.WithStack(err)
+	}
+	if err := gcp.kfDef.SetApplicationParameter("default-install", "profile-name",
+		kftypesv3.EmailToDefaultName(gcp.kfDef.Spec.Email)); err != nil {
+		return errors.WithStack(err)
+	}
 
 	if gcp.kfDef.Spec.UseBasicAuth {
 		if err := gcp.kfDef.SetApplicationParameter("basic-auth-ingress", "ipName", gcp.kfDef.Spec.IpName); err != nil {
@@ -2125,13 +2132,6 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 			return errors.WithStack(err)
 		}
 		if err := gcp.kfDef.SetApplicationParameter("iap-ingress", "hostname", gcp.kfDef.Spec.Hostname); err != nil {
-			return errors.WithStack(err)
-		}
-		if err := gcp.kfDef.SetApplicationParameter("default-install", "user", gcp.kfDef.Spec.Email); err != nil {
-			return errors.WithStack(err)
-		}
-		if err := gcp.kfDef.SetApplicationParameter("default-install", "profile-name",
-			kftypesv3.EmailToDefaultName(gcp.kfDef.Spec.Email)); err != nil {
 			return errors.WithStack(err)
 		}
 	}
