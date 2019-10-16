@@ -13,20 +13,11 @@ import (
 type V1beta1 struct {
 }
 
-func isPlatform(pluginKind string) bool {
-	platforms := map[string]bool{
-		string(kfconfig.AWS_PLUGIN_KIND): true,
-		string(kfconfig.GCP_PLUGIN_KIND): true,
-	}
-
-	_, ok := platforms[pluginKind]
-	return ok
-}
-
 func maybeGetPlatform(pluginKind string) string {
 	platforms := map[string]string{
-		string(kfconfig.AWS_PLUGIN_KIND): kftypesv3.AWS,
-		string(kfconfig.GCP_PLUGIN_KIND): kftypesv3.GCP,
+		string(kfconfig.AWS_PLUGIN_KIND):              kftypesv3.AWS,
+		string(kfconfig.GCP_PLUGIN_KIND):              kftypesv3.GCP,
+		string(kfconfig.EXISTING_ARRIKTO_PLUGIN_KIND): kftypesv3.EXISTING_ARRIKTO,
 	}
 
 	p, ok := platforms[pluginKind]
