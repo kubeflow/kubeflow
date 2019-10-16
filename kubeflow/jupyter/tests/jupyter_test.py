@@ -116,7 +116,7 @@ def test_jupyter(env, namespace):
 
   with open("jupyter_test.yaml") as params: 
     wf_result = yaml.load(params)
-    namespace = "kubeflow"
+    ns = "kubeflow"
     name = wf_result['metadata']['name']
     group, version = wf_result['apiVersion'].split('/')
     k8s_co = k8s_client.CustomObjectsApi()
@@ -125,12 +125,12 @@ def test_jupyter(env, namespace):
       version=version,
       plural='notebooks',
       body=wf_result,
-      namespace=namespace)
+      namespace=ns)
     logging.info("Notebook created:\n%s", yaml.safe_dump(resp))
 
   conditions = ["Running"]
   results = util.wait_for_cr_condition(api_client, GROUP, PLURAL, VERSION,
-                                       namespace, name, conditions)
+                                       ns, name, conditions)
 
   logging.info("Result of CRD:\n%s", results)
 
