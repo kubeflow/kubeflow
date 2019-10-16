@@ -275,9 +275,8 @@ class Builder:
      'sidecars': [
        {"name": "dind",
         "image": "docker:18.09-dind",
-        "mirrorVolumeMounts": "true",
-        "securityContext": [],
-          "priviledged": "true"}
+        "securityContext": {"priviledged": "true"},
+        "mirrorVolumeMounts": "true"}
      ],
      'metadata': {'labels': {
        'workflow_template': TEMPLATE_LABEL}},
