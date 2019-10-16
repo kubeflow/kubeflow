@@ -85,11 +85,6 @@
             served: true,
             storage: true,
           },
-          {
-            name: "v1beta2",
-            served: true,
-            storage: false,
-          },
         ],
       },
     },
@@ -104,12 +99,12 @@
              params.deploymentNamespace != null then [
         "--namespace=" + params.deploymentNamespace,
       ] else []
-        + if util.toBool(params.enableGangScheduling) then [
-        "--enable-gang-scheduling",
-      ] else []
-        + if params.monitoringPort != null then [
-          "--monitoring-port=" + params.monitoringPort,
-      ] else [],
+             + if util.toBool(params.enableGangScheduling) then [
+               "--enable-gang-scheduling",
+             ] else []
+                    + if params.monitoringPort != null then [
+                      "--monitoring-port=" + params.monitoringPort,
+                    ] else [],
       env:
         if params.deploymentScope == "namespace" && params.deploymentNamespace != null then [{
           name: "KUBEFLOW_NAMESPACE",
@@ -139,12 +134,6 @@
 
       image: params.tfJobImage,
       name: "tf-job-operator",
-      volumeMounts: [
-        {
-          mountPath: "/etc/config",
-          name: "config-volume",
-        },
-      ],
     },
     tfJobContainer:: tfJobContainer,
 
@@ -168,14 +157,6 @@
               tfJobContainer,
             ],
             serviceAccountName: "tf-job-operator",
-            volumes: [
-              {
-                configMap: {
-                  name: "tf-job-operator-config",
-                },
-                name: "config-volume",
-              },
-            ],
           },
         },
       },
@@ -202,8 +183,8 @@
           {
             name: "monitoring-port",
             port: std.parseInt(params.monitoringPort),
-            targetPort: std.parseInt(params.monitoringPort)
-          }
+            targetPort: std.parseInt(params.monitoringPort),
+          },
         ],
         selector: {
           name: "tf-job-operator",
@@ -212,24 +193,6 @@
       },
     },  // tfJobService
     tfJobService:: tfJobService,
-
-    local tfConfigMap = {
-      apiVersion: "v1",
-      data: {
-        "controller_config_file.yaml": std.manifestJson({
-          grpcServerFilePath: "/opt/mlkube/grpc_tensorflow_server/grpc_tensorflow_server.py",
-        } + if params.tfDefaultImage != "" &&
-               params.tfDefaultImage != "null" then {
-          tfImage: params.tfDefaultImage,
-        } else {},),
-      },
-      kind: "ConfigMap",
-      metadata: {
-        name: "tf-job-operator-config",
-        namespace: params.namespace,
-      },
-    },
-    tfConfigMap:: tfConfigMap,
 
     local tfServiceAccount = {
       apiVersion: "v1",
@@ -263,7 +226,6 @@
     local rules = {
       tfJobsRule:: rule.new() + rule.
         withApiGroupsMixin([
-        "tensorflow.org",
         "kubeflow.org",
       ],).
         withResourcesMixin([
@@ -273,58 +235,15 @@
         withVerbsMixin([
         "*",
       ],),
-      tfCrdRule:: rule.new() + rule.
-        withApiGroupsMixin([
-        "apiextensions.k8s.io",
-      ],).
-        withResourcesMixin([
-        "customresourcedefinitions",
-      ],).
-        withVerbsMixin([
-        "*",
-      ],),
-      tfStorageRule:: rule.new() + rule.
-        withApiGroupsMixin([
-        "storage.k8s.io",
-      ],).
-        withResourcesMixin([
-        "storageclasses",
-      ],).
-        withVerbsMixin([
-        "*",
-      ],),
-      tfBatchRule:: rule.new() + rule.
-        withApiGroupsMixin([
-        "batch",
-      ],).
-        withResourcesMixin([
-        "jobs",
-      ],).
-        withVerbsMixin([
-        "*",
-      ],),
       tfCoreRule:: rule.new() + rule.
         withApiGroupsMixin([
         "",
       ],).
         withResourcesMixin([
-        "configmaps",
         "pods",
         "services",
         "endpoints",
-        "persistentvolumeclaims",
         "events",
-      ],).
-        withVerbsMixin([
-        "*",
-      ],),
-      tfAppsRule:: rule.new() + rule.
-        withApiGroupsMixin([
-        "apps",
-        "extensions",
-      ],).
-        withResourcesMixin([
-        "deployments",
       ],).
         withVerbsMixin([
         "*",
@@ -360,9 +279,6 @@
         },
       } + k.rbac.v1beta1.role.withRulesMixin([
         rules.tfJobsRule,
-        rules.tfCrdRule,
-        rules.tfStorageRule,
-        rules.tfBatchRule,
         rules.tfCoreRule,
         rules.tfAppsRule,
       ] + if util.toBool(params.enableGangScheduling) then [
@@ -551,9 +467,6 @@
       },
     } + k.rbac.v1beta1.role.withRulesMixin([
       rules.tfJobsRule,
-      rules.tfCrdRule,
-      rules.tfStorageRule,
-      rules.tfBatchRule,
       rules.tfCoreRule.withResourcesMixin([
         "pods/log",
         "namespaces",
@@ -591,7 +504,6 @@
       self.tfJobCrd,
       self.tfJobDeployment,
       self.tfJobService,
-      self.tfConfigMap,
       self.tfServiceAccount,
       self.tfOperatorRole,
       self.tfOperatorRoleBinding,

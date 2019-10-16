@@ -1,0 +1,33 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: manifests
+spec:
+  type: git
+  params:
+    - name: revision
+      value: $(manifests_repo_revision)
+    - name: url
+      value: $(manifests_repo_url)
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: kubeflow
+spec:
+  type: git
+  params:
+    - name: revision
+      value: $(kubeflow_repo_revision)
+    - name: url
+      value: $(kubeflow_repo_url)
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: $(image_name)
+spec:
+  type: image
+  params:
+  - name: url
+    value: $(image_url)/$(image_name)

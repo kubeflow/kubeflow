@@ -16,14 +16,21 @@ package cmd
 
 import (
 	"fmt"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/coordinator"
+	"os"
+	"path/filepath"
+
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfupgrade"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var applyCfg = viper.New()
+var kfApp kftypes.KfApp
+var err error
 
 // applyCmd represents the apply command
 var applyCmd = &cobra.Command{
@@ -35,21 +42,42 @@ var applyCmd = &cobra.Command{
 		if applyCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
-		resource, resourceErr := processResourceArg(args)
-		if resourceErr != nil {
-			return fmt.Errorf("invalid resource: %v", resourceErr)
+
+		// Load config from exisiting app.yaml
+		if configFilePath == "" {
+			cwd, err := os.Getwd()
+			if err != nil {
+				return fmt.Errorf("cannot fetch current directory for apply: %v", err)
+			}
+			configFilePath = filepath.Join(cwd, "app.yaml")
 		}
-		kfApp, kfAppErr := coordinator.LoadKfApp(map[string]interface{}{})
-		if kfAppErr != nil {
-			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
+
+		kind, err := utils.GetObjectKindFromUri(configFilePath)
+		if err != nil {
+			return fmt.Errorf("Cannot determine the object kind: %v", err)
 		}
-		applyErr := kfApp.Apply(resource)
-		if applyErr != nil {
-			return fmt.Errorf("couldn't apply KfApp: %v", applyErr)
+		switch kind {
+		case string(kftypes.KFDEF):
+			kfApp, err = coordinator.BuildKfAppFromURI(configFilePath)
+			if err != nil {
+				return fmt.Errorf("failed to build kfApp from URI %s: %v", configFilePath, err)
+			}
+			return kfApp.Apply(kftypes.ALL)
+		case string(kftypes.KFUPGRADE):
+			kfUpgrade, err := kfupgrade.NewKfUpgrade(configFilePath)
+			if err != nil {
+				return fmt.Errorf("couldn't load KfUpgrade: %v", err)
+			}
+
+			err = kfUpgrade.Apply()
+			if err != nil {
+				return fmt.Errorf("couldn't apply KfUpgrade: %v", err)
+			}
+			return nil
+		default:
+			return fmt.Errorf("Unsupported object kind: %v", kind)
 		}
-		return nil
 	},
-	ValidArgs: []string{"all", "platform", "k8s"},
 }
 
 func init() {
@@ -57,6 +85,13 @@ func init() {
 
 	applyCfg.SetConfigName("app")
 	applyCfg.SetConfigType("yaml")
+
+	// Config file option
+	applyCmd.PersistentFlags().StringVarP(&configFilePath, string(kftypes.FILE), "f", "",
+		`Static config file to use. Can be either a local path or a URL.
+For example:
+--file=https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_platform_existing.yaml
+--file=kfctl_platform_gcp.yaml`)
 
 	// verbose output
 	applyCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,

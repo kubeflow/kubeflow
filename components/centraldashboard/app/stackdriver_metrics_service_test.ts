@@ -1,4 +1,5 @@
 import * as monitoring from '@google-cloud/monitoring';
+import * as fetch from 'node-fetch';
 
 import {Interval} from './metrics_service';
 import {StackdriverMetricsService} from './stackdriver_metrics_service';
@@ -17,6 +18,7 @@ describe('StackdriverMetricsService', () => {
   };
   let stackdriverClient: jasmine.SpyObj<monitoring.MetricServiceClient>;
   let service: StackdriverMetricsService;
+  let mockFetch: jasmine.Spy;
 
   beforeEach(() => {
     jasmine.clock().install();
@@ -25,6 +27,12 @@ describe('StackdriverMetricsService', () => {
         'mockStackdriverClient', ['listTimeSeries', 'projectPath']);
     stackdriverClient.projectPath.withArgs(projectId).and.returnValue(
         `projects/${projectId}`);
+    const response = {
+      ok: true,
+      text: () => Promise.resolve('test-cluster'),
+    } as fetch.Response;
+    mockFetch =
+        spyOn(fetch, 'default').and.returnValue(Promise.resolve(response));
     service =
         new StackdriverMetricsService(stackdriverClient, projectId, nodeNames);
   });
@@ -38,7 +46,7 @@ describe('StackdriverMetricsService', () => {
       const response =
           ([
             {
-              metric: {labels: {instance_name: 'node-1-gce-instance-abc'}},
+              resource: {labels: {node_name: 'node-1-gce-instance-abc'}},
               points: [
                 {
                   interval: {
@@ -61,7 +69,7 @@ describe('StackdriverMetricsService', () => {
               ]
             },
             {
-              metric: {labels: {instance_name: 'node-2-gce-instance-xyz'}},
+              resource: {labels: {node_name: 'node-2-gce-instance-xyz'}},
               points: [
                 {
                   interval: {
@@ -89,8 +97,8 @@ describe('StackdriverMetricsService', () => {
           .withArgs({
             name: 'projects/test-project',
             filter:
-                'metric.type="compute.googleapis.com/instance/cpu/utilization" ' +
-                'AND metric.label.instance_name = one_of("node-1", "node-2")',
+                'metric.type="kubernetes.io/node/cpu/allocatable_utilization" ' +
+                'AND resource.label.node_name=one_of("node-1", "node-2")',
             interval: {
               startTime: {seconds: 1557705300},
               endTime: {seconds: 1557705600}
@@ -114,8 +122,8 @@ describe('StackdriverMetricsService', () => {
       const request = {
         name: 'projects/test-project',
         filter:
-            'metric.type="compute.googleapis.com/instance/cpu/utilization" ' +
-            'AND metric.label.instance_name = "node-1"',
+            'metric.type="kubernetes.io/node/cpu/allocatable_utilization" ' +
+            'AND resource.label.node_name="node-1"',
         interval: {
           startTime: {seconds: 1557705300},
           endTime: {seconds: 1557705600},
@@ -147,8 +155,8 @@ describe('StackdriverMetricsService', () => {
       const request = {
         name: 'projects/test-project',
         filter:
-            'metric.type="compute.googleapis.com/instance/cpu/utilization" ' +
-            'AND metric.label.instance_name = "node-1"',
+            'metric.type="kubernetes.io/node/cpu/allocatable_utilization" ' +
+            'AND resource.label.node_name="node-1"',
         interval: {
           startTime: {seconds: 1557704700},
           endTime: {seconds: 1557705600},
@@ -204,7 +212,7 @@ describe('StackdriverMetricsService', () => {
             },
             {
               resource:
-                  {labels: {pod_id: 'fe1f5b92-66a8-11e9-9fd0-42010a800178'}},
+                  {labels: {pod_name: 'fe1f5b92-66a8-11e9-9fd0-42010a800178'}},
               points: [
                 {
                   interval: {
@@ -227,12 +235,12 @@ describe('StackdriverMetricsService', () => {
               ]
             }
           ] as unknown) as gapi.client.monitoring.TimeSeries[];
-
       stackdriverClient.listTimeSeries
           .withArgs({
             name: 'projects/test-project',
             filter:
-                'metric.type="container.googleapis.com/container/cpu/utilization"',
+                'metric.type="kubernetes.io/container/cpu/limit_utilization"' +
+                ' AND resource.label.cluster_name="test-cluster"',
             interval: {
               startTime: {seconds: 1557705300},
               endTime: {seconds: 1557705600}
@@ -266,6 +274,26 @@ describe('StackdriverMetricsService', () => {
           value: 0.12,
         }
       ]);
+
+      // Call again to validate that cluster-name is cached
+      await service.getPodCpuUtilization(Interval.Last5m);
+      expect(mockFetch).toHaveBeenCalledWith(
+          'http://metadata.google.internal/computeMetadata/v1/instance/attributes/cluster-name',
+          {headers: {'Metadata-Flavor': 'Google'}});
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('Filters without cluster name', async () => {
+      const response = {ok: false} as unknown as fetch.Response;
+      mockFetch.and.returnValue(Promise.resolve(response));
+      await service.getPodCpuUtilization(Interval.Last5m);
+      expect(stackdriverClient.listTimeSeries).toHaveBeenCalledWith({
+        name: 'projects/test-project',
+        filter: 'metric.type="kubernetes.io/container/cpu/limit_utilization"',
+        interval:
+            {startTime: {seconds: 1557705300}, endTime: {seconds: 1557705600}},
+        aggregation
+      });
     });
 
     it('Returns an empty list on error', async () => {
@@ -305,7 +333,7 @@ describe('StackdriverMetricsService', () => {
             },
             {
               resource:
-                  {labels: {pod_id: 'fe1f5b92-66a8-11e9-9fd0-42010a800178'}},
+                  {labels: {pod_name: 'fe1f5b92-66a8-11e9-9fd0-42010a800178'}},
               points: [
                 {
                   interval: {
@@ -332,9 +360,9 @@ describe('StackdriverMetricsService', () => {
       stackdriverClient.listTimeSeries
           .withArgs({
             name: 'projects/test-project',
-            filter: 'metric.type="container.googleapis.com/container/' +
-                'memory/bytes_used" AND ' +
-                'metric.label.memory_type = "non-evictable"',
+            filter: 'metric.type="kubernetes.io/container/memory/used_bytes"' +
+                ' AND metric.label.memory_type = "non-evictable"' +
+                ' AND resource.label.cluster_name="test-cluster"',
             interval: {
               startTime: {seconds: 1557705300},
               endTime: {seconds: 1557705600}
@@ -367,12 +395,33 @@ describe('StackdriverMetricsService', () => {
           value: 1200,
         }
       ]);
+
+      // Call again to validate that cluster-name is cached
+      await service.getPodMemoryUsage(Interval.Last5m);
+      expect(mockFetch).toHaveBeenCalledWith(
+          'http://metadata.google.internal/computeMetadata/v1/instance/attributes/cluster-name',
+          {headers: {'Metadata-Flavor': 'Google'}});
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
     it('Returns an empty list on error', async () => {
       stackdriverClient.listTimeSeries.and.throwError('Stackdriver error');
       const timeSeriesPoints = await service.getPodMemoryUsage(Interval.Last5m);
       expect(timeSeriesPoints.length).toBe(0);
+    });
+
+    it('Filters without cluster name', async () => {
+      mockFetch.and.returnValue(
+          Promise.reject(new Error('Unable to get Metadata')));
+      await service.getPodMemoryUsage(Interval.Last5m);
+      expect(stackdriverClient.listTimeSeries).toHaveBeenCalledWith({
+        name: 'projects/test-project',
+        filter: 'metric.type="kubernetes.io/container/memory/used_bytes"' +
+            ' AND metric.label.memory_type = "non-evictable"',
+        interval:
+            {startTime: {seconds: 1557705300}, endTime: {seconds: 1557705600}},
+        aggregation
+      });
     });
   });
 });

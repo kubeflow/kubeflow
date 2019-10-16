@@ -1,5 +1,9 @@
-FROM node:10
-COPY . /app
+# Build
+FROM node:10 AS serve
 WORKDIR /app
+COPY . .
+
 RUN npm install
-ENTRYPOINT npm start
+RUN chmod +x build_serve.sh
+
+ENTRYPOINT ["/app/build_serve.sh"]

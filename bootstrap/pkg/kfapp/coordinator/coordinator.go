@@ -18,137 +18,52 @@ package coordinator
 
 import (
 	"fmt"
-	"github.com/ghodss/yaml"
-	"github.com/kubeflow/kubeflow/bootstrap/config"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/gcp"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/ksonnet"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/kfapp/minikube"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
-	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/existing_arrikto"
-	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/kfapp/kustomize"
-	"github.com/mitchellh/go-homedir"
-	log "github.com/sirupsen/logrus"
-	valid "k8s.io/apimachinery/v2/pkg/api/validation"
-	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
-	"k8s.io/client-go/rest"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"io/ioutil"
+	netUrl "net/url"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/ghodss/yaml"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
+	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/configconverters"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
+	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/aws"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/existing_arrikto"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/minikube"
+	log "github.com/sirupsen/logrus"
 )
 
 // Builder defines the methods used to create KfApps.
 // Primary purpose is to allow injecting a fake for use in testing.
 type Builder interface {
-	LoadKfAppCfgFile(cfgFile string) (kftypes.KfApp, error)
+	LoadKfAppCfgFile(cfgFile string) (kftypesv3.KfApp, error)
 }
 
 type DefaultBuilder struct {
 }
 
-func (b *DefaultBuilder) LoadKfAppCfgFile(cfgFile string) (kftypes.KfApp, error) {
+func (b *DefaultBuilder) LoadKfAppCfgFile(cfgFile string) (kftypesv3.KfApp, error) {
 	return LoadKfAppCfgFile(cfgFile)
 }
 
-// The common entry point used to retrieve an implementation of KfApp.
-// In this case it returns a composite class (coordinator) which aggregates
-// platform and package manager implementations in Children.
-//
-// TODO(jlewi): I don't think this should be an exported method. Callers should
-// probably use NewKfApp if we are starting from scratch; e.g. Creating an app.yaml file.
-// Or LoadKfApp if creating it from an app.yaml on disk.
-// If creating from a KfDef the steps should probably be
-// 1. Persist it to disk using CreateKfAppDir
-// 2. Call LoadKfApp.
-func GetKfApp(kfdef *kfdefsv2.KfDef) kftypes.KfApp {
-	_coordinator := &coordinator{
-		Platforms:       make(map[string]kftypes.Platform),
-		PackageManagers: nil,
-		KfDef:           kfdef,
-	}
-	// Fetch the platform [gcp,minikube]
-	platform := _coordinator.KfDef.Spec.Platform
-	if platform != "" {
-		_platform, _platformErr := getPlatform(_coordinator.KfDef)
-		if _platformErr != nil {
-			log.Fatalf("could not get platform %v Error %v **", platform, _platformErr)
-			return nil
-		}
-		if _platform != nil {
-			_coordinator.Platforms[platform] = _platform
-		}
-	}
-	return _coordinator
-}
-
-func getConfigFromCache(pathDir string, kfDef *kfdefsv2.KfDef) ([]byte, error) {
-
-	configPath := filepath.Join(pathDir, kftypes.DefaultConfigDir)
-	overlays := []config.NameValue{
-		{
-			Name:  "overlay",
-			Value: strings.Split(kfDef.Spec.PackageManager, "@")[0],
-		},
-	}
-	if kfDef.Spec.UseIstio {
-		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "istio"})
-	}
-	if kfDef.Spec.UseBasicAuth {
-		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "basic_auth"})
-	} else if kfDef.Spec.Platform != "" {
-		overlays = append(overlays, config.NameValue{Name: "overlay", Value: kfDef.Spec.Platform})
-	}
-	if kfDef.Spec.EnableApplications {
-		overlays = append(overlays, config.NameValue{Name: "overlay", Value: "application"})
-	}
-	compPath := strings.Split(kftypes.DefaultConfigDir, "/")[1]
-	genErr := kustomize.GenerateKustomizationFile(kfDef,
-		path.Dir(configPath), compPath, overlays)
-	if genErr != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("error writing to kustomization.yaml %v Error %v", configPath, genErr),
-		}
-	}
-	resMap, resMapErr := kustomize.EvaluateKustomizeManifest(path.Join(path.Dir(configPath), compPath))
-	if resMapErr != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("error getting manifest %v Error %v", configPath, resMapErr),
-		}
-	}
-	// TODO: Do we need to write to file here?
-	writeErr := kustomize.WriteKustomizationFile(kfDef.Name, configPath, resMap)
-	if writeErr != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("error writing to %v Error %v", kfDef.Name, writeErr),
-		}
-	}
-	data, dataErr := resMap.EncodeAsYaml()
-	if dataErr != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("can not encode as yaml Error %v", dataErr),
-		}
-	}
-	return data, nil
-}
-
-// GetPlatform will return an implementation of kftypes.GetPlatform that matches the platform string
+// GetPlatform will return an implementation of kftypesv3.GetPlatform that matches the platform string
 // It looks for statically compiled-in implementations, otherwise throws unrecognized error
-func getPlatform(kfdef *kfdefsv2.KfDef) (kftypes.Platform, error) {
+func getPlatform(kfdef *kfconfig.KfConfig) (kftypesv3.Platform, error) {
 	switch kfdef.Spec.Platform {
-	case string(kftypes.MINIKUBE):
+	case string(kftypesv3.MINIKUBE):
 		return minikube.Getplatform(kfdef), nil
-	case string(kftypes.GCP):
+	case string(kftypesv3.GCP):
 		return gcp.GetPlatform(kfdef)
-	case string(kftypes.EXISTING_ARRIKTO):
+	case string(kftypesv3.EXISTING_ARRIKTO):
 		return existing_arrikto.GetPlatform(kfdef)
+	case string(kftypesv3.AWS):
+		return aws.GetPlatform(kfdef)
 	default:
 		// TODO(https://github.com/kubeflow/kubeflow/issues/3520) Fix dynamic loading
 		// of platform plugins.
@@ -157,38 +72,24 @@ func getPlatform(kfdef *kfdefsv2.KfDef) (kftypes.Platform, error) {
 	}
 }
 
-func (coord *coordinator) getPackageManagers(kfdef *kfdefsv2.KfDef) *map[string]kftypes.KfApp {
-	platform := coord.Platforms[coord.KfDef.Spec.Platform]
-	var packagemanagers = make(map[string]kftypes.KfApp)
-	_packagemanager, _packagemanagerErr := getPackageManager(kfdef, platform)
+func (coord *coordinator) getPackageManagers(kfdef *kfconfig.KfConfig) *map[string]kftypesv3.KfApp {
+	var packagemanagers = make(map[string]kftypesv3.KfApp)
+	_packagemanager, _packagemanagerErr := getPackageManager(kfdef)
 	if _packagemanagerErr != nil {
-		log.Fatalf("could not get packagemanager %v Error %v **", kfdef.Spec.PackageManager, _packagemanagerErr)
+		log.Fatalf("could not get packagemanager %v Error %v **", kftypesv3.KUSTOMIZE, _packagemanagerErr)
 	}
 	if _packagemanager != nil {
-		packagemanagers[kfdef.Spec.PackageManager] = _packagemanager
+		packagemanagers[kftypesv3.KUSTOMIZE] = _packagemanager
 	}
 	return &packagemanagers
 }
 
-// getPackageManager will return an implementation of kftypes.KfApp that matches the packagemanager string
+// getPackageManager will return an implementation of kftypesv3.KfApp that matches the packagemanager string
 // It looks for statically compiled-in implementations, otherwise it delegates to
-// kftypes.LoadKfApp which will try and dynamically load a .so
-func getPackageManager(kfdef *kfdefsv2.KfDef, platform kftypes.Platform) (kftypes.KfApp, error) {
-	var restconf *rest.Config = nil
-	var apiconf *clientcmdapi.Config = nil
-	if platform != nil {
-		restconf, apiconf = platform.GetK8sConfig()
-	}
-
-	switch kfdef.Spec.PackageManager {
-	case kftypes.KUSTOMIZE:
-		return kustomize.GetKfApp(kfdef), nil
-	case kftypes.KSONNET:
-		return ksonnet.GetKfApp(kfdef, restconf, apiconf), nil
-	default:
-		log.Infof("** loading %v.so for package manager %v **", kfdef.Spec.PackageManager, kfdef.Spec.PackageManager)
-		return kftypesv2.LoadKfApp(kfdef.Spec.PackageManager, kfdef)
-	}
+// kftypesv3.LoadKfApp which will try and dynamically load a .so
+//
+func getPackageManager(kfdef *kfconfig.KfConfig) (kftypesv3.KfApp, error) {
+	return kustomize.GetKfApp(kfdef), nil
 }
 
 // Helper function to filter out spartakus.
@@ -203,189 +104,116 @@ func filterSpartakus(components []string) []string {
 }
 
 // Helper function to print out warning message if using usage reporting.
-func usageReportWarn(components []string) {
+func usageReportWarn(applications []kfconfig.Application) {
 	msg := "\n" +
 		"****************************************************************\n" +
 		"Notice anonymous usage reporting enabled using spartakus\n" +
 		"To disable it\n" +
 		"If you have already deployed it run the following commands:\n" +
 		"  cd $(pwd)\n" +
-		"  ks delete default -c spartakus\n" +
 		"  kubectl -n ${K8S_NAMESPACE} delete deploy -l app=spartakus\n" +
 		"\n" +
-		"Then run the following command to remove it from your ksonnet app:\n" +
-		"  ks component rm spartakus\n" +
-		"\n" +
-		"For more info: https://www.kubeflow.org/docs/guides/usage-reporting/\n" +
+		"For more info: https://www.kubeflow.org/docs/other-guides/usage-reporting/\n" +
 		"****************************************************************\n" +
 		"\n"
-	for _, comp := range components {
-		if comp == "spartakus" {
+	for _, app := range applications {
+		if app.Name == "spartakus" {
 			log.Infof(msg)
 			return
 		}
 	}
 }
 
-// CreateKfDefFromOptions creates a KfDef from the supplied options.
-func CreateKfDefFromOptions(options map[string]interface{}) (*kfdefsv2.KfDef, error) {
-	//appName can be a path
-	appName := options[string(kftypes.APPNAME)].(string)
-	appDir := path.Dir(appName)
-	if appDir == "" || appDir == "." {
-		cwd, err := os.Getwd()
-		if err != nil {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("could not get current directory %v", err),
-			}
-		}
-		appDir = path.Join(cwd, appName)
-	} else {
-		if appDir == "~" {
-			home, homeErr := homedir.Dir()
-			if homeErr != nil {
-				return nil, &kfapis.KfError{
-					Code:    int(kfapis.INVALID_ARGUMENT),
-					Message: fmt.Sprintf("could not get home directory %v", homeErr),
-				}
-			}
-			expanded, expandedErr := homedir.Expand(home)
-			if expandedErr != nil {
-				return nil, &kfapis.KfError{
-					Code:    int(kfapis.INVALID_ARGUMENT),
-					Message: fmt.Sprintf("could not expand home directory %v", homeErr),
-				}
-			}
-			appName = path.Base(appName)
-			appDir = path.Join(expanded, appName)
-		} else {
-			appName = path.Base(appName)
-			appDir = path.Join(appDir, appName)
+// repoVersionToRepoStruct converts the name of a repo and the old style version
+// into a new go-getter style syntax and a Repo spec
+//
+//   master
+//	 tag
+//	 pull/<ID>[/head]
+//
+func repoVersionToUri(repo string, version string) string {
+	// Version can be
+	// --version master
+	// --version tag
+	// --version pull/<ID>/head
+	if strings.HasPrefix(version, "pull") {
+		if !strings.HasSuffix(version, "head") {
+			version = version + "/head"
 		}
 	}
-	errs := valid.NameIsDNSLabel(appName, false)
-	if errs != nil && len(errs) > 0 {
+	tarballUrl := "https://github.com/kubeflow/" + repo + "/tarball/" + version + "?archive=tar.gz"
+
+	return tarballUrl
+}
+
+// isCwdEmpty - quick check to determine if the working directory is empty
+// if the current working directory
+func isCwdEmpty() string {
+	cwd, _ := os.Getwd()
+	files, _ := ioutil.ReadDir(cwd)
+	if len(files) > 1 {
+		return ""
+	}
+	return cwd
+}
+
+// NewLoadKfAppFromURI takes in a config file and constructs the KfApp
+// used by the build and apply semantics for kfctl
+func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
+	// TODO(jlewi): Can we merge NewLoadKfAppFromURI and LoadKFAppCfgFile
+	kfApp, err := LoadKfAppCfgFile(configFile)
+	if err != nil || kfApp == nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf(`invalid name due to %v`, strings.Join(errs, ", ")),
+			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
 		}
 	}
 
-	// If a config file is specified, construct the KfDef entirely from that.
-	configFile := options[string(kftypes.CONFIG)].(string)
+	return kfApp, nil
+}
 
-	kfDef := &kfdefsv2.KfDef{}
-	if configFile != "" {
-		newkfDef, err := kfdefsv2.LoadKFDefFromURI(configFile)
-
-		kfDef = newkfDef
-		if err != nil {
-			log.Errorf("Could not load %v; error %v", configFile, err)
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: err.Error(),
-			}
-		}
-
-		if kfDef.Name != "" {
-			log.Warnf("Overriding KfDef.Spec.Name; old value %v; new value %v", kfDef.Name, appName)
-		}
-
-		kfDef.Name = appName
-
-		//TODO(yanniszark): sane defaults for missing fields
-		//TODO(yanniszark): validate KfDef
-	} else {
-		platform := options[string(kftypes.PLATFORM)].(string)
-		packageManager := options[string(kftypes.PACKAGE_MANAGER)].(string)
-		version := options[string(kftypes.VERSION)].(string)
-		useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
-		useIstio := options[string(kftypes.USE_ISTIO)].(bool)
-		namespace := options[string(kftypes.NAMESPACE)].(string)
-		project := options[string(kftypes.PROJECT)].(string)
-		cacheDir := ""
-		if options[string(kftypes.REPO)].(string) != "" {
-			cacheDir = options[string(kftypes.REPO)].(string)
-			if _, err := os.Stat(cacheDir); err != nil {
-				log.Fatalf("repo %v does not exist Error %v", cacheDir, err)
-			}
-		} else {
-			var cacheDirErr error
-			cacheDir, cacheDirErr = kftypes.DownloadToCache(appDir, kftypes.KubeflowRepo, version)
-			if cacheDirErr != nil || cacheDir == "" {
-				log.Fatalf("could not download repo to cache Error %v", cacheDirErr)
-			}
-		}
-
-		// This is a deprecated code path for constructing kfDef using kustomize style overlays
-		kfDef = &kfdefsv2.KfDef{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "KfDef",
-				APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      appName,
-				Namespace: namespace,
-			},
-			Spec: kfdefsv2.KfDefSpec{
-				ComponentConfig: config.ComponentConfig{
-					Platform: platform,
-				},
-				Project:            project,
-				PackageManager:     packageManager,
-				UseBasicAuth:       useBasicAuth,
-				UseIstio:           useIstio,
-				EnableApplications: true,
-			},
-		}
-		configFileBuffer, configFileErr := getConfigFromCache(cacheDir, kfDef)
-		if configFileErr != nil {
-			log.Fatalf("could not get config file Error %v", configFileErr)
-		}
-		specErr := yaml.Unmarshal(configFileBuffer, kfDef)
-		if specErr != nil {
-			log.Errorf("couldn't unmarshal app.yaml. Error: %v", specErr)
-		}
-
-		kfDef.Name = appName
-		kfDef.Spec.Platform = platform
-		kfDef.Namespace = namespace
-		kfDef.Spec.Version = version
-		kfDef.Spec.Repo = path.Join(cacheDir, kftypes.KubeflowRepo)
-		kfDef.Spec.Project = options[string(kftypes.PROJECT)].(string)
-		kfDef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
-		kfDef.Spec.UseBasicAuth = useBasicAuth
-		kfDef.Spec.UseIstio = useIstio
-		kfDef.Spec.PackageManager = packageManager
-	}
-	kfDef.Spec.AppDir = appDir
-
-	// Disable usage report if requested
-	// TODO(jlewi): We should be able to get rid of this once we depend on this being
-	// configured in the config file.
-	disableUsageReport := options[string(kftypes.DISABLE_USAGE_REPORT)].(bool)
-	if disableUsageReport {
-		kfDef.Spec.Components = filterSpartakus(kfDef.Spec.Components)
-		delete(kfDef.Spec.ComponentParams, "spartakus")
-
-	}
-
-	err := backfillKfDefFromInitOptions(kfDef, options)
-
-	if err != nil {
-		log.Errorf("Could not backfill KfDef from options; error %v", err)
+// BuildKfAppFromURI used by both build and apply for the new code path
+func BuildKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
+	// Construct KfApp from config file
+	kfApp, err := NewLoadKfAppFromURI(configFile)
+	if err != nil || kfApp == nil {
 		return nil, err
 	}
 
-	return kfDef, nil
+	// KfApp Init
+	err = kfApp.Init(kftypesv3.ALL)
+	if err != nil {
+		return nil, fmt.Errorf("KfApp initiliazation failed: %v", err)
+	}
+
+	// kfApp Generate
+	generateErr := kfApp.Generate(kftypesv3.ALL)
+	if generateErr != nil {
+		return nil, fmt.Errorf("couldn't generate KfApp: %v", generateErr)
+	}
+	return kfApp, nil
+}
+
+// TODO: remove this
+// This is for kfctlServer. We can remove this after kfctlServer uses kfconfig
+func CreateKfAppCfgFileWithKfDef(d *kfdefsv3.KfDef) (string, error) {
+	alphaConverter := configconverters.V1alpha1{}
+	kfdefBytes, err := yaml.Marshal(d)
+	if err != nil {
+		return "", err
+	}
+	kfconfig, err := alphaConverter.ToKfConfig(d.Spec.AppDir, kfdefBytes)
+	if err != nil {
+		return "", err
+	}
+	return CreateKfAppCfgFile(kfconfig)
 }
 
 // CreateKfAppCfgFile will create the application directory and persist
 // the KfDef to it as app.yaml.
 // Returns an error if the app.yaml file already exists
 // Returns path to the app.yaml file.
-func CreateKfAppCfgFile(d *kfdefsv2.KfDef) (string, error) {
+func CreateKfAppCfgFile(d *kfconfig.KfConfig) (string, error) {
 	if _, err := os.Stat(d.Spec.AppDir); os.IsNotExist(err) {
 		log.Infof("Creating directory %v", d.Spec.AppDir)
 		appdirErr := os.MkdirAll(d.Spec.AppDir, os.ModePerm)
@@ -398,260 +226,86 @@ func CreateKfAppCfgFile(d *kfdefsv2.KfDef) (string, error) {
 	}
 
 	// Rewrite app.yaml
-	cfgFilePath := filepath.Join(d.Spec.AppDir, kftypesv2.KfConfigFile)
+	cfgFilePath := filepath.Join(d.Spec.AppDir, kftypesv3.KfConfigFile)
 
-	if _, err := os.Stat(cfgFilePath); err == nil {
-		log.Errorf("%v already exists", cfgFilePath)
-		return cfgFilePath, fmt.Errorf("%v already exists", cfgFilePath)
-	}
 	log.Infof("Writing KfDef to %v", cfgFilePath)
-
-	cfgFilePathErr := d.WriteToFile(cfgFilePath)
+	cfgFilePathErr := configconverters.WriteConfigToFile(*d, cfgFilePath)
+	if cfgFilePathErr != nil {
+		log.Errorf("failed to write config: %v", cfgFilePathErr)
+	}
 	return cfgFilePath, cfgFilePathErr
 }
 
-// NewKfApp is called from the Init subcommand and will create a directory based on
-// the path/name argument given to the Init subcommand
-func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
-	kfDef, err := CreateKfDefFromOptions(options)
+// nameFromAppFile infers a default name given the path to the KFDef file.
+// returns the empty string if there is a problem getting the name.
+func nameFromAppFile(appFile string) string {
+	absAppPath, err := filepath.Abs(appFile)
 
 	if err != nil {
-		return nil, err
+		log.Errorf("KfDef.Name isn't set and there was a problem inferring the name based on the path %v; error: %v\nPlease set the name explicitly in the KFDef spec.", appFile, err)
+		return ""
 	}
 
-	isValid, msg := kfDef.IsValid()
+	appDir := filepath.Dir(absAppPath)
 
-	if !isValid {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: msg,
-		}
+	name := filepath.Base(appDir)
+
+	if name == appDir {
+		// This case happens if appFile is in the root directory
+		return ""
 	}
 
-	cfgFilePath, err := CreateKfAppCfgFile(kfDef)
-
-	if err != nil {
-		return nil, err
-	}
-
-	log.Infof("Synchronize cache")
-
-	err = kfDef.SyncCache()
-
-	if err != nil {
-		log.Errorf("Failed to synchronize the cache; error: %v", err)
-		return nil, err
-	}
-
-	// TODO(jlewi): This is an ugly hack. We should update kustomize.go to not use ManifestsRepo
-	r, ok := kfDef.Status.ReposCache[kftypes.ManifestsRepoName]
-
-	if ok {
-		kfDef.Spec.ManifestsRepo = r.LocalPath
-	}
-	// Save app.yaml because we need to preserve information about the cache.
-	if err := kfDef.WriteToFile(cfgFilePath); err != nil {
-		log.Errorf("Failed to save KfDef to %v; error %v", cfgFilePath, err)
-		return nil, err
-	}
-
-	return LoadKfAppCfgFile(cfgFilePath)
-}
-
-// backfillKfDefFromInitOptions fills in a KfDef spec based on various command line options.
-//
-// TODO(jlewi): We should eventually be able to get rid of this function once we remove
-// a bunch of command line options and rely on users editing the KfDef file in app.yaml file
-// as needed. The function only overrides the KfDef spec if the option isn't already set.
-// The reason we need this is because in 0.5 different command line options were supplied as arguments
-// to different commands (e.g. init & generate) took different command line options.
-// With 0.6 we want to move to a world in which all the options should be stored in app.yaml.
-// Support for the command line otpions is only provided for backwards compatibility until
-// we remove the options.
-func backfillKfDefFromInitOptions(kfdef *kfdefsv2.KfDef, options map[string]interface{}) error {
-	if kfdef.Spec.Platform == "" {
-		if options[string(kftypes.PLATFORM)] != nil && options[string(kftypes.PLATFORM)].(string) != "" {
-			kfdef.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
-
-			log.Warnf("Setting KfDef.Spec.Platform to %v based on command line flags; this is deprecated. "+
-				"Platform should be set in the app.yaml file.", kfdef.Spec.Platform)
-		}
-	}
-
-	if kfdef.Spec.Platform == kftypes.GCP {
-		if kfdef.Spec.Project == "" {
-			if options[string(kftypes.PROJECT)] != nil && options[string(kftypes.PROJECT)].(string) != "" {
-
-				kfdef.Spec.Project = options[string(kftypes.PROJECT)].(string)
-				log.Warnf("Setting KfDef.Spec.Project to %v based on command line flags; this is deprecated. "+
-					"Project should be set in the app.yaml file.", kfdef.Spec.Project)
-
-			}
-		}
-	}
-
-	if options[string(kftypes.PACKAGE_MANAGER)] != nil && options[string(kftypes.PACKAGE_MANAGER)].(string) != "" {
-		if kfdef.Spec.PackageManager == "" {
-			kfdef.Spec.PackageManager = options[string(kftypes.PACKAGE_MANAGER)].(string)
-			log.Warnf("Defaulting Spec.PackageManager to %v. This is deprecated; "+
-				"PackageManager should be explicitly set in app.yaml", kfdef.Spec.PackageManager)
-		}
-	}
-
-	// Backfill repos
-	if strings.Contains(kfdef.Spec.PackageManager, kftypes.KUSTOMIZE) {
-		pFlag := kfdef.Spec.PackageManager
-		parts := strings.Split(pFlag, "@")
-		version := "master"
-		if len(parts) == 2 {
-			version = parts[1]
-		}
-
-		// Set the kustomize repo if its not already set.
-		// Note kfdef.Spec.Packmanager might get set in getConfigFromCache.
-		// So we might need to backfill repos even if PackageManager is set.
-		hasRepo := false
-		for _, r := range kfdef.Spec.Repos {
-			if r.Name == kftypes.ManifestsRepoName {
-				hasRepo = true
-			}
-		}
-
-		if hasRepo {
-			log.Warnf("Repo %v exists in app.yaml ignoring version provided by --package-manager", kftypes.ManifestsRepoName)
-		} else {
-			root := fmt.Sprintf("manifests-%v", version)
-			kfdef.Spec.Repos = append(kfdef.Spec.Repos, kfdefsv2.Repo{
-				Name: kftypes.ManifestsRepoName,
-				Uri:  fmt.Sprintf("https://github.com/kubeflow/manifests/archive/%v.tar.gz", version),
-				Root: root,
-			})
-		}
-
-		// Make sure we strip out the "@"
-		kfdef.Spec.PackageManager = kftypes.KUSTOMIZE
-	}
-
-	// For boolean options there is no way to test whether they have been explicitly set in KfDef or
-	// not so we always override the value with the command line flag.
-	if options[string(kftypes.USE_BASIC_AUTH)] != nil {
-		kfdef.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
-	}
-	if options[string(kftypes.SKIP_INIT_GCP_PROJECT)] != nil {
-		kfdef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
-	}
-	if options[string(kftypes.DELETE_STORAGE)] != nil && kfdef.Spec.Platform == kftypes.GCP {
-		kfdef.Spec.DeleteStorage = options[string(kftypes.DELETE_STORAGE)].(bool)
-	}
-
-	return nil
-}
-
-// backfillKfDefFromGenerateOptions fills in a KfDef spec based on various command line options passed
-// during kfctl generate
-//
-// TODO(jlewi): We should eventually be able to get rid of this function once we remove
-// a bunch of command line options and rely on users editing the KfDef file in app.yaml file
-// as needed. The function only overrides the KfDef spec if the option isn't already set.
-// The reason we need this is because in 0.5 different command line options were supplied as arguments
-// to different commands (e.g. init & generate) took different command line options.
-// With 0.6 we want to move to a world in which all the options should be stored in app.yaml.
-// Support for the command line otpions is only provided for backwards compatibility until
-// we remove the options.
-func backfillKfDefFromGenerateOptions(kfdef *kfdefsv2.KfDef, options map[string]interface{}) error {
-	if kfdef.Spec.Platform == kftypes.GCP {
-		if options[string(kftypes.EMAIL)] != nil && options[string(kftypes.EMAIL)].(string) != "" {
-			if kfdef.Spec.Email == "" {
-				kfdef.Spec.Email = options[string(kftypes.EMAIL)].(string)
-			} else {
-				log.Warnf("KfDef.Spec.Email is already set; not overwritting with options value")
-			}
-		}
-
-		if kfdef.Spec.IpName == "" {
-			if options[string(kftypes.IPNAME)] != nil && options[string(kftypes.IPNAME)].(string) != "" {
-				kfdef.Spec.IpName = options[string(kftypes.IPNAME)].(string)
-
-			} else if kfdef.Spec.Platform == kftypes.GCP && kfdef.Name != "" {
-				kfdef.Spec.IpName = kfdef.Name + "-ip"
-			}
-
-			log.Warnf("Defaulting Spec.IpName to %v. This is deprecated; "+
-				"IpName should be explicitly set in app.yaml", kfdef.Spec.IpName)
-		}
-
-		if kfdef.Spec.Hostname == "" {
-
-			if options[string(kftypes.HOSTNAME)] != nil && options[string(kftypes.HOSTNAME)].(string) != "" {
-				kfdef.Spec.Hostname = options[string(kftypes.HOSTNAME)].(string)
-			} else if kfdef.Name != "" && kfdef.Spec.Project != "" && kfdef.Spec.Hostname == "" {
-				kfdef.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog", kfdef.Name, kfdef.Spec.Project)
-			}
-			log.Warnf("Defaulting Spec.Hostame to %v. This is deprecated; "+
-				"Hostname should be explicitly set in app.yaml", kfdef.Spec.Hostname)
-		}
-
-		if kfdef.Spec.Zone == "" {
-			if options[string(kftypes.ZONE)] != nil && options[string(kftypes.ZONE)].(string) != "" {
-				kfdef.Spec.Zone = options[string(kftypes.ZONE)].(string)
-			} else {
-				kfdef.Spec.Zone = kftypes.DefaultZone
-			}
-			log.Warnf("Defaulting Spec.Zone to %v. This is deprecated; "+
-				"Zone should be explicitly set in app.yaml", kfdef.Spec.Zone)
-		}
-	}
-
-	if options[string(kftypes.MOUNT_LOCAL)] != nil {
-		kfdef.Spec.MountLocal = options[string(kftypes.MOUNT_LOCAL)].(bool)
-	}
-
-	return nil
-}
-
-// LoadKfApp is called from subcommands Apply, Delete, Generate and assumes the existence of an app.yaml
-// file which was created by the Init subcommand. It sets options needed by these subcommands
-//
-// TODO(jlewi): This method is deprecated. It is providing backwards compatibility with existing call sites.
-// New callers should use LoadKfAppCfgFile to load it from a file. If callers need to modify
-// KfDef they should modify it and then serialize to disk.
-func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
-	appDir, err := os.Getwd()
-
-	// Handle backfilling options.
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("could not get current directory %v", err),
-		}
-	}
-	cfgfile := filepath.Join(appDir, kftypes.KfConfigFile)
-	kfdef, err := kfdefsv2.LoadKFDefFromURI(cfgfile)
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not load %v. Error: %v", cfgfile, err),
-		}
-	}
-
-	err = backfillKfDefFromGenerateOptions(kfdef, options)
-
-	if err != nil {
-		log.Warnf("There was a problem filling in KfDef based on command line options %v", err)
-	}
-
-	if err := kfdef.WriteToFile(cfgfile); err != nil {
-		log.Errorf("Could not write KfDef changes to %v; error %v", cfgfile, err)
-		return nil, err
-	}
-
-	return LoadKfAppCfgFile(cfgfile)
+	return name
 }
 
 // LoadKfAppCfgFile constructs a KfApp by loading the provided app.yaml file.
-func LoadKfAppCfgFile(cfgfile string) (kftypes.KfApp, error) {
+func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
+	url, err := netUrl.ParseRequestURI(cfgfile)
+	isRemoteFile := false
+	cwd := ""
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error parsing config file path: %v", err),
+		}
+	} else {
+		if url.Scheme != "" {
+			isRemoteFile = true
+		}
+	}
+
+	// If the config file is a remote URI, check to see if the current directory
+	// is empty because we will be generating the KfApp there.
+	appFile := cfgfile
+	if isRemoteFile {
+		cwd = isCwdEmpty()
+		if cwd == "" {
+			wd, _ := os.Getwd()
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("current directory %v not empty, please switch directories", wd),
+			}
+		}
+
+		kfdef, err := configconverters.LoadConfigFromURI(cfgfile)
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
+			}
+		}
+
+		appFile, err = CreateKfAppCfgFile(kfdef)
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
+			}
+		}
+	}
+
 	// Set default TypeMeta information. This will get overwritten by explicit values if set in the cfg file.
-	kfdef, err := kfdefsv2.LoadKFDefFromURI(cfgfile)
+	kfdef, err := configconverters.LoadConfigFromURI(appFile)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
@@ -659,31 +313,93 @@ func LoadKfAppCfgFile(cfgfile string) (kftypes.KfApp, error) {
 		}
 	}
 
-	pApp := GetKfApp(kfdef)
-	return pApp, nil
+	// Since we know we have a local file we can set a default name if none is set based on the local directory
+	if kfdef.Name == "" {
+		kfdef.Name = nameFromAppFile(appFile)
+		if kfdef.Name == "" {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("KfDef.Name isn't set and there was a problem inferring the name based on the path %v\nPlease set the name explicitly in the KFDef spec.", appFile),
+			}
+		}
+		log.Infof("No name specified in KfDef.Metadata.Name; defaulting to %v based on location of config file: %v.", kfdef.Name, appFile)
+	}
+
+	c := &coordinator{
+		Platforms:       make(map[string]kftypesv3.Platform),
+		PackageManagers: make(map[string]kftypesv3.KfApp),
+		KfDef:           kfdef,
+	}
+
+	// fetch the platform [gcp,minikube]
+	platform := c.KfDef.Spec.Platform
+	if platform != "" {
+		_platform, _platformErr := getPlatform(c.KfDef)
+		if _platformErr != nil {
+			log.Fatalf("could not get platform %v Error %v **", platform, _platformErr)
+			return nil, _platformErr
+		}
+		if _platform != nil {
+			c.Platforms[platform] = _platform
+		}
+	}
+
+	pkg, pkgErr := getPackageManager(c.KfDef)
+	if pkgErr != nil {
+		log.Fatalf("could not get package manager %v Error %v **", kftypesv3.KUSTOMIZE, pkgErr)
+		return nil, pkgErr
+	}
+	if pkg != nil {
+		c.PackageManagers[kftypesv3.KUSTOMIZE] = pkg
+	}
+
+	// If the config file is downloaded remotely, use the current working directory to create the KfApp.
+	// Otherwise use the directory where the config file is stored.
+	if isRemoteFile {
+		cwd, err = os.Getwd()
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
+			}
+		}
+		c.KfDef.Spec.AppDir = cwd
+	} else {
+		c.KfDef.Spec.AppDir = path.Dir(cfgfile)
+	}
+
+	// Set some defaults
+	// TODO(jlewi): This code doesn't belong here. It should probably be called from inside KfApp; e.g. from
+	// KfApp.generate. We should do all initialization of defaults as part of the reconcile loop in one function.
+	// if c.KfDef.Spec.PackageManager == "" {
+	// 	c.KfDef.Spec.PackageManager = kftypesv3.KUSTOMIZE
+	// }
+
+	return c, nil
 }
 
 // this type holds platform implementations of KfApp
-// eg Platforms[kftypes.GCP], Platforms[kftypes.MINIKUBE], PackageManagers["kustomize"]
-// The data attributes in kfdefsv2.KfDef are used by different KfApp implementations
+// eg Platforms[kftypesv3.GCP], Platforms[kftypes.MINIKUBE], PackageManagers["kustomize"]
+// The data attributes in kfconfig.KfConfig are used by different KfApp implementations
 type coordinator struct {
-	Platforms       map[string]kftypes.Platform
-	PackageManagers map[string]kftypes.KfApp
-	KfDef           *kfdefsv2.KfDef
+	Platforms       map[string]kftypesv3.Platform
+	PackageManagers map[string]kftypesv3.KfApp
+	KfDef           *kfconfig.KfConfig
 }
 
+// TODO: change this
 type KfDefGetter interface {
-	GetKfDef() *kfdefsv2.KfDef
-	GetPlugin(name string) (kftypes.KfApp, bool)
+	GetKfDef() *kfdefsv3.KfDef
+	GetPlugin(name string) (kftypesv3.KfApp, bool)
 }
 
 // GetKfDef returns a pointer to the KfDef used by this application.
-func (kfapp *coordinator) GetKfDef() *kfdefsv2.KfDef {
+func (kfapp *coordinator) GetKfDef() *kfconfig.KfConfig {
 	return kfapp.KfDef
 }
 
 // GetPlatform returns the specified platform.
-func (kfapp *coordinator) GetPlugin(name string) (kftypes.KfApp, bool) {
+func (kfapp *coordinator) GetPlugin(name string) (kftypesv3.KfApp, bool) {
 
 	if r, ok := kfapp.Platforms[name]; ok {
 		return r, ok
@@ -693,7 +409,7 @@ func (kfapp *coordinator) GetPlugin(name string) (kftypes.KfApp, bool) {
 	return r, ok
 }
 
-func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
+func (kfapp *coordinator) Apply(resources kftypesv3.ResourceEnum) error {
 	platform := func() error {
 		if kfapp.KfDef.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
@@ -718,9 +434,8 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 	}
 
 	k8s := func() error {
-		kfapp.PackageManagers = *kfapp.getPackageManagers(kfapp.KfDef)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
-			packageManagerErr := packageManager.Apply(kftypes.K8S)
+			packageManagerErr := packageManager.Apply(kftypesv3.K8S)
 			if packageManagerErr != nil {
 				return &kfapis.KfError{
 					Code: int(kfapis.INTERNAL_ERROR),
@@ -732,21 +447,61 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 		return nil
 	}
 
+	// TODO(kunming): move to profile v1beta1 so it can be applied to all user namespaces
+	_ = func() error {
+		if kfapp.KfDef.Spec.Email == "" || kfapp.KfDef.Spec.Platform != kftypesv3.GCP {
+			return nil
+		}
+
+		if p, ok := kfapp.Platforms[kfapp.KfDef.Spec.Platform]; !ok {
+			return &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: "Platform GCP specified but not loaded.",
+			}
+		} else {
+			gcp := p.(*gcp.Gcp)
+			p, err := gcp.GetPluginSpec()
+			if err != nil {
+				return err
+			}
+			if *p.EnableWorkloadIdentity {
+				return gcp.SetupDefaultNamespaceWorkloadIdentity()
+			} else {
+				return gcp.ConfigPodDefault()
+			}
+		}
+	}
+
+	if err := kfapp.KfDef.SyncCache(); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not sync cache. Error: %v", err),
+		}
+	}
+
 	switch resources {
-	case kftypes.ALL:
+	case kftypesv3.ALL:
 		if err := platform(); err != nil {
 			return err
 		}
-		return k8s()
-	case kftypes.PLATFORM:
+		if err := k8s(); err != nil {
+			return err
+		}
+		return nil
+	case kftypesv3.PLATFORM:
 		return platform()
-	case kftypes.K8S:
-		return k8s()
+	case kftypesv3.K8S:
+		if err := k8s(); err != nil {
+			return err
+		}
+		// TODO(gabrielwen): Need to find a more proper way of injecting plugings.
+		// https://github.com/kubeflow/kubeflow/issues/3708
+		return nil
 	}
 	return nil
 }
 
-func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum) error {
+func (kfapp *coordinator) Delete(resources kftypesv3.ResourceEnum) error {
 	platform := func() error {
 		if kfapp.KfDef.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
@@ -771,9 +526,8 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum) error {
 	}
 
 	k8s := func() error {
-		kfapp.PackageManagers = *kfapp.getPackageManagers(kfapp.KfDef)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
-			packageManagerErr := packageManager.Delete(kftypes.K8S)
+			packageManagerErr := packageManager.Delete(kftypesv3.K8S)
 			if packageManagerErr != nil {
 				return &kfapis.KfError{
 					Code: int(kfapis.INTERNAL_ERROR),
@@ -785,8 +539,15 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum) error {
 		return nil
 	}
 
+	if err := kfapp.KfDef.SyncCache(); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not sync cache. Error: %v", err),
+		}
+	}
+
 	switch resources {
-	case kftypes.ALL:
+	case kftypesv3.ALL:
 		// if we're deleting ALL, any problems with deleting k8s will abort and not delete the platform
 		if err := k8s(); err != nil {
 			return err
@@ -794,7 +555,7 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum) error {
 		if err := platform(); err != nil {
 			return err
 		}
-	case kftypes.PLATFORM:
+	case kftypesv3.PLATFORM:
 		// deleting the PLATFORM means deleting the cluster. We remove k8s first in order free up any cloud vendor
 		// resources. Deleting k8 resources is a best effort and partial delete or failure should not
 		// prevent PLATFORM (cluster) deletion
@@ -802,7 +563,7 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum) error {
 		if err := platform(); err != nil {
 			return err
 		}
-	case kftypes.K8S:
+	case kftypesv3.K8S:
 		if err := k8s(); err != nil {
 			return err
 		}
@@ -810,7 +571,7 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
-func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum) error {
+func (kfapp *coordinator) Generate(resources kftypesv3.ResourceEnum) error {
 	platform := func() error {
 		if kfapp.KfDef.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
@@ -823,60 +584,12 @@ func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum) error {
 							kfapp.KfDef.Spec.Platform, platformErr),
 					}
 				}
-			} else {
-				return &kfapis.KfError{
-					Code: int(kfapis.INTERNAL_ERROR),
-					Message: fmt.Sprintf("%v not in Platforms",
-						kfapp.KfDef.Spec.Platform),
-				}
-			}
-		}
-		return nil
-	}
-
-	k8s := func() error {
-		kfapp.PackageManagers = *kfapp.getPackageManagers(kfapp.KfDef)
-		for packageManagerName, packageManager := range kfapp.PackageManagers {
-			packageManagerErr := packageManager.Generate(kftypes.K8S)
-			if packageManagerErr != nil {
-				return &kfapis.KfError{
-					Code: int(kfapis.INTERNAL_ERROR),
-					Message: fmt.Sprintf("kfApp Generate failed for %v: %v",
-						packageManagerName, packageManagerErr),
-				}
-			}
-		}
-		return nil
-	}
-
-	// Print out warning message if using usage reporting component.
-	usageReportWarn(kfapp.KfDef.Spec.Components)
-
-	switch resources {
-	case kftypes.ALL:
-		if err := platform(); err != nil {
-			return err
-		}
-		return k8s()
-	case kftypes.PLATFORM:
-		return platform()
-	case kftypes.K8S:
-		return k8s()
-	}
-	return nil
-}
-
-func (kfapp *coordinator) Init(resources kftypes.ResourceEnum) error {
-	platform := func() error {
-		if kfapp.KfDef.Spec.Platform != "" {
-			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
-			if platform != nil {
-				platformErr := platform.Init(resources)
-				if platformErr != nil {
+				createConfigErr := configconverters.WriteConfigToFile(*kfapp.KfDef, kftypesv3.KfConfigFile)
+				if createConfigErr != nil {
 					return &kfapis.KfError{
-						Code: int(kfapis.INTERNAL_ERROR),
-						Message: fmt.Sprintf("coordinator Init failed for %v: %v",
-							kfapp.KfDef.Spec.Platform, platformErr),
+						Code: createConfigErr.(*kfapis.KfError).Code,
+						Message: fmt.Sprintf("cannot create config file %v: %v", kftypesv3.KfConfigFile,
+							createConfigErr.(*kfapis.KfError).Message),
 					}
 				}
 			} else {
@@ -891,9 +604,78 @@ func (kfapp *coordinator) Init(resources kftypes.ResourceEnum) error {
 	}
 
 	k8s := func() error {
-		kfapp.PackageManagers = *kfapp.getPackageManagers(kfapp.KfDef)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
-			packageManagerErr := packageManager.Init(kftypes.K8S)
+			packageManagerErr := packageManager.Generate(kftypesv3.K8S)
+			if packageManagerErr != nil {
+				return &kfapis.KfError{
+					Code: int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("kfApp Generate failed for %v: %v",
+						packageManagerName, packageManagerErr),
+				}
+			}
+		}
+		return nil
+	}
+
+	// Print out warning message if using usage reporting component.
+	usageReportWarn(kfapp.KfDef.Spec.Applications)
+
+	if err := kfapp.KfDef.SyncCache(); err != nil {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not sync cache. Error: %v", err),
+		}
+	}
+
+	switch resources {
+	case kftypesv3.ALL:
+		if err := platform(); err != nil {
+			return err
+		}
+		return k8s()
+	case kftypesv3.PLATFORM:
+		return platform()
+	case kftypesv3.K8S:
+		return k8s()
+	}
+	return nil
+}
+
+func (kfapp *coordinator) Init(resources kftypesv3.ResourceEnum) error {
+	platform := func() error {
+		if kfapp.KfDef.Spec.Platform != "" {
+			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
+			if platform != nil {
+				platformErr := platform.Init(resources)
+				if platformErr != nil {
+					return &kfapis.KfError{
+						Code: int(kfapis.INTERNAL_ERROR),
+						Message: fmt.Sprintf("coordinator Init failed for %v: %v",
+							kfapp.KfDef.Spec.Platform, platformErr),
+					}
+				}
+				createConfigErr := configconverters.WriteConfigToFile(*kfapp.KfDef, kftypesv3.KfConfigFile)
+				if createConfigErr != nil {
+					return &kfapis.KfError{
+						Code: createConfigErr.(*kfapis.KfError).Code,
+						Message: fmt.Sprintf("cannot create config file %v: %v", kftypesv3.KfConfigFile,
+							createConfigErr.(*kfapis.KfError).Message),
+					}
+				}
+			} else {
+				return &kfapis.KfError{
+					Code: int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("%v not in Platforms",
+						kfapp.KfDef.Spec.Platform),
+				}
+			}
+		}
+		return nil
+	}
+
+	k8s := func() error {
+		for packageManagerName, packageManager := range kfapp.PackageManagers {
+			packageManagerErr := packageManager.Init(kftypesv3.K8S)
 			if packageManagerErr != nil {
 				return &kfapis.KfError{
 					Code: int(kfapis.INTERNAL_ERROR),
@@ -906,31 +688,31 @@ func (kfapp *coordinator) Init(resources kftypes.ResourceEnum) error {
 	}
 
 	switch resources {
-	case kftypes.ALL:
+	case kftypesv3.ALL:
 		if err := platform(); err != nil {
 			return err
 		}
 		return k8s()
-	case kftypes.PLATFORM:
+	case kftypesv3.PLATFORM:
 		return platform()
-	case kftypes.K8S:
+	case kftypesv3.K8S:
 		return k8s()
 	}
 	return nil
 }
 
-func (kfapp *coordinator) Show(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+func (kfapp *coordinator) Show(resources kftypesv3.ResourceEnum) error {
 	switch resources {
-	case kftypes.K8S:
+	case kftypesv3.K8S:
 		fallthrough
-	case kftypes.PLATFORM:
+	case kftypesv3.PLATFORM:
 		fallthrough
-	case kftypes.ALL:
+	case kftypesv3.ALL:
 		if kfapp.KfDef.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
-			show, ok := platform.(kftypes.KfShow)
+			show, ok := platform.(kftypesv3.KfShow)
 			if ok && show != nil {
-				showErr := show.Show(resources, options)
+				showErr := show.Show(resources)
 				if showErr != nil {
 					return &kfapis.KfError{
 						Code: int(kfapis.INTERNAL_ERROR),
@@ -952,11 +734,10 @@ func (kfapp *coordinator) Show(resources kftypes.ResourceEnum, options map[strin
 					kfapp.KfDef.Spec.Platform),
 			}
 		}
-		kfapp.PackageManagers = *kfapp.getPackageManagers(kfapp.KfDef)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
-			show, ok := packageManager.(kftypes.KfShow)
+			show, ok := packageManager.(kftypesv3.KfShow)
 			if ok && show != nil {
-				showErr := show.Show(kftypes.K8S, options)
+				showErr := show.Show(kftypesv3.K8S)
 				if showErr != nil {
 					return &kfapis.KfError{
 						Code: int(kfapis.INTERNAL_ERROR),

@@ -13,13 +13,18 @@
 # limitations under the License.
 #
 GCLOUD_PROJECT ?= kubeflow-images-public
-GOLANG_VERSION ?= 1.12
+GOLANG_VERSION ?= 1.12.7
 GOPATH ?= $(HOME)/go
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
 BOOTSTRAPPER_IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
+GC_IMG ?= gcr.io/$(GCLOUD_PROJECT)/gcserver
 KFCTL_IMG ?= gcr.io/$(GCLOUD_PROJECT)/kfctl
-TAG ?= $(eval TAG := $(shell git describe --tags --long))$(TAG)
+# We use --always because otherwise when we clone with shallow depth we might not get
+# any tags and it will fail.
+TAG ?= $(eval TAG := $(shell git describe --tags --always --long))$(TAG)
+REPO ?= $(shell echo $$(git config --get remote.origin.url) | sed 's/git@\(.*\):\(.*\).git$$/https:\/\/\1\/\2/')
+BRANCH ?= $(shell git branch | grep '^*' | awk '{print $$2}')
 KFCTL_TARGET ?= kfctl
 MOUNT_KUBE ?=  -v $(HOME)/.kube:/root/.kube 
 MOUNT_GCP ?=  -v $(HOME)/.config:/root/.config 
@@ -34,7 +39,7 @@ JUNIT_FILE ?= /tmp/report.xml
 
 %.so:
 	cd cmd/plugins/$* && \
-	${GO} build -i -gcflags 'all=-N -l' -o ../../../bin/$*.so -buildmode=plugin $*.go
+	${GO} build -gcflags '-N -l' -o ../../../bin/$*.so -buildmode=plugin $*.go
 
 %.init:
 	@echo kfctl init test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) --version master && \
@@ -58,37 +63,49 @@ auth:
 
 # Run go fmt against code
 fmt:
-	@${GO} fmt ./config ./cmd/... ./pkg/... ./v2/...
+	@${GO} fmt ./config ./cmd/... ./pkg/... 
 
 # Run go vet against code
 vet:
-	@${GO} vet ./config ./cmd/... ./pkg/... ./v2/...
+	@${GO} vet ./config ./cmd/... ./pkg/...
 
 generate:
-	@${GO} generate ./config ./pkg/apis/apps/kfdef/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
-
-/tmp/v2:
-	@[ ! -d /tmp/v2 ] && unzip -q -d /tmp hack/v2.zip
+	@${GO} generate ./config ./pkg/apis/apps/kfdef/... ./pkg/apis/apps/kfupgrade/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./pkg/kfupgrade/... ./cmd/kfctl/...
 
 ${GOPATH}/bin/deepcopy-gen:
 	GO111MODULE=off ${GO} get k8s.io/code-generator/cmd/deepcopy-gen
 
 config/zz_generated.deepcopy.go: config/types.go
-	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/config -O zz_generated.deepcopy
+	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v3/config -O zz_generated.deepcopy && \
+	mv v3/config/zz_generated.deepcopy.go config/ && rm -rf v3
 
 pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/kfdef/v1alpha1/application_types.go
-	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy
+	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy && \
+	mv ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/ && rm -rf v3
 
-v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: v2/pkg/apis/apps/kfdef/v1alpha1/application_types.go
-	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy
+pkg/apis/apps/kfdef/v1beta1/zz_generated.deepcopy.go: pkg/apis/apps/kfdef/v1beta1/application_types.go
+	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy && \
+	mv ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1beta1/ && rm -rf v3
 
-deepcopy: ${GOPATH}/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go 
+pkg/apis/apps/kfupgrade/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/kfupgrade/v1alpha1/application_types.go
+	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfupgrade/... -O zz_generated.deepcopy && \
+	mv ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfupgrade/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/kfupgrade/v1alpha1/ && rm -rf v3
 
-build-bootstrap: /tmp/v2 deepcopy generate fmt vet
-	${GO} build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+pkg/apis/apps/kfconfig/zz_generated.deepcopy.go: pkg/apis/apps/kfconfig/types.go
+	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig/... -O zz_generated.deepcopy && \
+	mv ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig/zz_generated.deepcopy.go pkg/apis/apps/kfconfig/ && rm -rf v3
 
-build-kfctl: /tmp/v2 deepcopy generate fmt vet
-	${GO} build -i -gcflags 'all=-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctl cmd/kfctl/main.go
+deepcopy: ${GOPATH}/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1beta1/zz_generated.deepcopy.go \
+	pkg/apis/apps/kfconfig/zz_generated.deepcopy.go pkg/apis/apps/kfupgrade/v1alpha1/zz_generated.deepcopy.go
+
+build-bootstrap: deepcopy generate fmt vet
+	${GO} build -gcflags '-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+
+build-kfctl: deepcopy generate fmt vet
+	${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctl cmd/kfctl/main.go
+
+build-gc: deepcopy generate fmt vet
+	${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/gc cmd/gc/main.go
 
 # Release tarballs suitable for upload to GitHub release pages
 build-kfctl-tgz: build-kfctl
@@ -96,6 +113,9 @@ build-kfctl-tgz: build-kfctl
 	rm -f bin/*.tgz
 	cd bin && tar -cvzf kfctl_$(TAG)_linux.tar.gz ./kfctl
 	cp -f ./bin/kfctl_$(TAG)_linux.tar.gz ./bin/kfctl_$(TAG)_darwin.tar.gz
+
+build-kfctl-client: /tmp/v2 deepcopy generate fmt vet
+	${GO} build -gcflags 'all=-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctlClient cmd/kfctlClient/main.go
 
 # push the releases to a GitHub page
 push-to-github-release: build-kfctl-tgz
@@ -111,9 +131,11 @@ push-to-github-release: build-kfctl-tgz
 	    --tag $(TAG) \
 	    --name "kfctl_$(TAG)_darwin.tar.gz" \
 	    --file bin/kfctl_$(TAG)_darwin.tar.gz
-	 
+
 build-kfctl-container:
 	DOCKER_BUILDKIT=1 docker build \
+                --build-arg REPO="$(REPO)" \
+                --build-arg BRANCH=$(BRANCH) \
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(TAG) \
 		--target=$(KFCTL_TARGET) \
@@ -143,7 +165,6 @@ build:
 	mkdir -p reg_tmp/kubeflow
 	cp -r ../kubeflow reg_tmp/kubeflow
 	cp -r ../deployment reg_tmp/kubeflow
-	cp -r ../dependencies reg_tmp/kubeflow
 	mkdir -p reg_tmp/kubeflow/bootstrap
 	cp -r k8sSpec reg_tmp/kubeflow/bootstrap
 	docker build \
@@ -152,6 +173,24 @@ build:
 		--target=bootstrap \
 		--tag $(BOOTSTRAPPER_IMG):$(TAG) .
 	@echo Built $(BOOTSTRAPPER_IMG):$(TAG)
+
+# Create GC image
+build-gc-image:
+	rm -rf reg_tmp
+	docker build \
+      --build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+      --build-arg TAG=$(TAG) \
+      --file Dockerfile.gc \
+      --tag $(GC_IMG):$(TAG) .
+	@echo Built $(GC_IMG):$(TAG)
+
+# Create GC image using cloud build
+build-gc-gcb:
+	gcloud --project=$(GCLOUD_PROJECT) \
+		builds submit \
+		--machine-type=n1-highcpu-32 \
+		--substitutions=TAG_NAME=$(TAG),_TARGET=gcserver \
+		--config=cloudbuildgc.yaml .
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.
@@ -214,8 +253,16 @@ build-bootstrap-dev-gcb:
 
 #***************************************************************************************************
 
+generate-kfdef-converter: generate
+	@${GO} generate ./cmd/kfdefConverter/...
+
+build-kfdef-converter: generate-kfdef-converter fmt vet
+	${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfdef-converter cmd/kfdefConverter/main.go
+
+#***************************************************************************************************
+
 clean: 
-	rm -rf test && rm -rf /tmp/v2 && mkdir test
+	rm -rf test && mkdir test
 
 doc:
 	doctoc ./cmd/kfctl/README.md README.md k8sSpec/README.md developer_guide.md
@@ -225,7 +272,7 @@ doc:
 # rules to run unittests
 #
 test: build-kfctl
-	go test ./...
+	go test ./... -v
 
 
 # Run the unittests and output a junit report for use with prow

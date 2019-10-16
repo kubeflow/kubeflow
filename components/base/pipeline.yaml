@@ -1,0 +1,54 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: ci-pipeline
+spec:
+  resources:
+  - name: kubeflow
+    type: git
+  - name: manifests
+    type: git
+  - name: $(image_name)
+    type: image
+  tasks:
+  - name: build-push
+    params:
+    - name: docker_target
+      value: $(docker_target)
+    - name: image_name
+      value: $(image_name)
+    - name: path_to_context
+      value: $(path_to_context)
+    - name: path_to_docker_file
+      value: $(path_to_docker_file)
+    resources:
+      inputs:
+      - name: kubeflow
+        resource: kubeflow
+      outputs:
+      - name: $(image_name)
+        resource: $(image_name)
+    taskRef:
+      name: build-push
+      kind: namespaced
+  - name: update-manifests
+    runAfter:
+    - build-push
+    params:
+    - name: container_image
+      value: "$(container_image)"
+    - name: path_to_manifests_dir
+      value: "$(path_to_manifests_dir)"
+    resources:
+      inputs:
+      - name: kubeflow
+        resource: kubeflow
+      - name: manifests
+        resource: manifests
+      - name: $(image_name)
+        resource: $(image_name)
+        from:
+        - build-push
+    taskRef:
+      name: update-manifests
+      kind: namespaced

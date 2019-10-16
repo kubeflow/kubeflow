@@ -2,21 +2,20 @@ package coordinator
 
 import (
 	"encoding/json"
-	config "github.com/kubeflow/kubeflow/bootstrap/config"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kftypesv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 	"io/ioutil"
-	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"os"
 	"path"
 	"reflect"
 	"testing"
+
+	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func Test_CreateKfAppCfgFile(t *testing.T) {
 	type testCase struct {
-		Input         kfdefsv2.KfDef
+		Input         kfconfig.KfConfig
 		DirExists     bool
 		CfgFileExists bool
 		ExpectError   bool
@@ -25,24 +24,36 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 	cases := []testCase{
 		// Test file is created when directory doesn't exist.
 		{
-			Input:         kfdefsv2.KfDef{},
+			Input: kfconfig.KfConfig{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
+				},
+			},
 			DirExists:     false,
 			CfgFileExists: false,
 			ExpectError:   false,
 		},
 		// Test file is created when directory exists
 		{
-			Input:         kfdefsv2.KfDef{},
+			Input: kfconfig.KfConfig{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
+				},
+			},
 			DirExists:     true,
 			CfgFileExists: false,
 			ExpectError:   false,
 		},
 		// Test an error is raised if the config file already exists.
 		{
-			Input:         kfdefsv2.KfDef{},
+			Input: kfconfig.KfConfig{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
+				},
+			},
 			DirExists:     true,
 			CfgFileExists: true,
-			ExpectError:   true,
+			ExpectError:   false,
 		},
 	}
 
@@ -62,7 +73,7 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 		}
 
 		if c.CfgFileExists {
-			existingCfgFile := path.Join(tDir, kftypesv2.KfConfigFile)
+			existingCfgFile := path.Join(tDir, kftypesv3.KfConfigFile)
 			err := ioutil.WriteFile(existingCfgFile, []byte("hello world"), 0644)
 
 			if err != nil {
@@ -79,7 +90,7 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 			t.Errorf("Test case %v;\n CreateKfAppCfgFile returns error; got %v want %v", pCase, hasError, c.ExpectError)
 		}
 
-		expectFile := path.Join(tDir, kftypesv2.KfConfigFile)
+		expectFile := path.Join(tDir, kftypesv3.KfConfigFile)
 
 		if !c.ExpectError {
 			if expectFile != cfgFile {
@@ -89,283 +100,63 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 	}
 }
 
-func Test_backfillKfDefFromInitOptions(t *testing.T) {
+func Test_repoVersionToRepoStruct(t *testing.T) {
 	type testCase struct {
-		Name     string
-		Input    kfdefsv2.KfDef
-		Options  map[string]interface{}
-		Expected kfdefsv2.KfDef
+		name     string
+		version  string
+		expected string
 	}
 
-	cases := []testCase{
-		// Check that if a bunch of options are provided they
-		// are converted into KfDef.
+	testCases := []testCase{
 		{
-			Name:  "Case 1",
-			Input: kfdefsv2.KfDef{},
-			Options: map[string]interface{}{
-				string(kftypes.PROJECT):        "someproject",
-				string(kftypes.USE_BASIC_AUTH): true,
-				string(kftypes.PLATFORM):       kftypes.GCP,
-			},
-			Expected: kfdefsv2.KfDef{
-				Spec: kfdefsv2.KfDefSpec{
-					ComponentConfig: config.ComponentConfig{
-						Platform: "gcp",
-					},
-					Project:      "someproject",
-					UseBasicAuth: true,
-				},
-			},
+			name:     "kubeflow",
+			version:  "master",
+			expected: "https://github.com/kubeflow/kubeflow/tarball/master?archive=tar.gz",
 		},
-
-		// Check that if a bunch of options are provided in the KfDef spec they
-		// are not overwritten by options.
 		{
-			Name: "Case 2",
-			Input: kfdefsv2.KfDef{
-				Spec: kfdefsv2.KfDefSpec{
-					ComponentConfig: config.ComponentConfig{
-						Platform: "gcp",
-					},
-					Project: "someproject",
-				},
-			},
-			Options: map[string]interface{}{
-				string(kftypes.PROJECT):  "newproject",
-				string(kftypes.PLATFORM): kftypes.GCP,
-			},
-			Expected: kfdefsv2.KfDef{
-				Spec: kfdefsv2.KfDefSpec{
-					ComponentConfig: config.ComponentConfig{
-						Platform: "gcp",
-					},
-					Project: "someproject",
-				},
-			},
-		},
-		// --platform-packmanager=kustomize should add a manifests repo
-		{
-			Name: "Case kustomize",
-			Input: kfdefsv2.KfDef{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "someapp",
-				},
-				Spec: kfdefsv2.KfDefSpec{},
-			},
-			Options: map[string]interface{}{
-				string(kftypes.PACKAGE_MANAGER): kftypes.KUSTOMIZE,
-			},
-			Expected: kfdefsv2.KfDef{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "someapp",
-				},
-				Spec: kfdefsv2.KfDefSpec{
-					PackageManager: kftypes.KUSTOMIZE,
-					Repos: []kfdefsv2.Repo{
-						{
-							Name: "manifests",
-							Uri:  "https://github.com/kubeflow/manifests/archive/master.tar.gz",
-							Root: "manifests-master",
-						},
-					},
-				},
-			},
-		},
-		// --platform-packmanager=kustomize@12345 should add a manifests repo
-		{
-			Name: "Case kustomize-commit",
-			Input: kfdefsv2.KfDef{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "someapp",
-				},
-				Spec: kfdefsv2.KfDefSpec{},
-			},
-			Options: map[string]interface{}{
-				string(kftypes.PACKAGE_MANAGER): kftypes.KUSTOMIZE + "@12345",
-			},
-			Expected: kfdefsv2.KfDef{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "someapp",
-				},
-				Spec: kfdefsv2.KfDefSpec{
-					PackageManager: kftypes.KUSTOMIZE,
-					Repos: []kfdefsv2.Repo{
-						{
-							Name: "manifests",
-							Uri:  "https://github.com/kubeflow/manifests/archive/12345.tar.gz",
-							Root: "manifests-12345",
-						},
-					},
-				},
-			},
+			name:     "manifests",
+			version:  "pull/189",
+			expected: "https://github.com/kubeflow/manifests/tarball/pull/189/head?archive=tar.gz",
 		},
 	}
 
-	for _, c := range cases {
-		i := &kfdefsv2.KfDef{}
-		*i = c.Input
-		err := backfillKfDefFromInitOptions(i, c.Options)
-		if err != nil {
-			t.Errorf("Error backfilling KfDef error %v", err)
-		}
+	for _, c := range testCases {
+		actual := repoVersionToUri(c.name, c.version)
 
-		if !reflect.DeepEqual(*i, c.Expected) {
-			pGot, _ := Pformat(i)
-			pWant, _ := Pformat(c.Expected)
-			t.Errorf("Case: %v; Error backfilling KfDef got;\n%v\nwant;\n%v", c.Name, pGot, pWant)
+		if !reflect.DeepEqual(actual, c.expected) {
+			pGot, _ := Pformat(actual)
+			pWant, _ := Pformat(c.expected)
+			t.Errorf("Error converting got;\n%v\nwant;\n%v", pGot, pWant)
 		}
 	}
 }
 
-func Test_backfillKfDefFromGenerateOptions(t *testing.T) {
+func Test_nameFromAppFile(t *testing.T) {
 	type testCase struct {
-		Name     string
-		Input    kfdefsv2.KfDef
-		Options  map[string]interface{}
-		Expected kfdefsv2.KfDef
+		appFile string
+		expectedName string
 	}
 
-	cases := []testCase{
-		// Check that if a bunch of options are provided they
-		// are converted into KfDef.
+	testCases := []testCase{
 		{
-			Name: "gcp-from-options",
-			Input: kfdefsv2.KfDef{
-				Spec: kfdefsv2.KfDefSpec{
-					ComponentConfig: config.ComponentConfig{
-						Platform: "gcp",
-					},
-				},
-			},
-			Options: map[string]interface{}{
-				string(kftypes.EMAIL):    "user@kubeflow.org",
-				string(kftypes.IPNAME):   "someip",
-				string(kftypes.HOSTNAME): "somehost",
-				string(kftypes.ZONE):     "somezone",
-			},
-			Expected: kfdefsv2.KfDef{
-				Spec: kfdefsv2.KfDefSpec{
-					ComponentConfig: config.ComponentConfig{
-						Platform: "gcp",
-					},
-					Email:    "user@kubeflow.org",
-					IpName:   "someip",
-					Hostname: "somehost",
-					Zone:     "somezone",
-				},
-			},
+			appFile: "/mykfapp/kfctl.yaml",
+			expectedName: "mykfapp",
 		},
-
-		// Check that if a bunch of options are provided in the KfDef spec they
-		// are not overwritten by options.
 		{
-			Name: "gcp-no-override",
-			Input: kfdefsv2.KfDef{
-				Spec: kfdefsv2.KfDefSpec{
-					ComponentConfig: config.ComponentConfig{
-						Platform: "gcp",
-					},
-					Email:    "user@kubeflow.org",
-					IpName:   "someip",
-					Hostname: "somehost",
-					Zone:     "somezone",
-				},
-			},
-			Options: map[string]interface{}{
-				string(kftypes.EMAIL):    "newuser@kubeflow.org",
-				string(kftypes.IPNAME):   "newip",
-				string(kftypes.HOSTNAME): "newhost",
-				string(kftypes.ZONE):     "newezone",
-			},
-			Expected: kfdefsv2.KfDef{
-				Spec: kfdefsv2.KfDefSpec{
-					ComponentConfig: config.ComponentConfig{
-						Platform: "gcp",
-					},
-					Email:    "user@kubeflow.org",
-					IpName:   "someip",
-					Hostname: "somehost",
-					Zone:     "somezone",
-				},
-			},
+			appFile: "/parentdir/subapp/app.yaml",
+			expectedName: "subapp",
 		},
-		// Check IP name is correctly generated from Name if not explicitly set
-		// either in KfDef or in options.
 		{
-			Name: "gcp-ip-name",
-			Input: kfdefsv2.KfDef{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "someapp",
-				},
-				Spec: kfdefsv2.KfDefSpec{
-					ComponentConfig: config.ComponentConfig{
-						Platform: "gcp",
-					},
-				},
-			},
-			Options: map[string]interface{}{},
-			Expected: kfdefsv2.KfDef{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "someapp",
-				},
-				Spec: kfdefsv2.KfDefSpec{
-					ComponentConfig: config.ComponentConfig{
-						Platform: "gcp",
-					},
-					IpName:       "someapp-ip",
-					UseBasicAuth: false,
-					Zone:         "us-east1-d",
-				},
-			},
-		},
-		// Check hostname is correctly generated from name and project
-		// Check IP name is correctly generated from Name if not explicitly set
-		// either in KfDef or in options.
-		{
-			Name: "gcp-hostname",
-			Input: kfdefsv2.KfDef{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "someapp",
-				},
-				Spec: kfdefsv2.KfDefSpec{
-					ComponentConfig: config.ComponentConfig{
-						Platform: "gcp",
-					},
-					Project: "acmeproject",
-				},
-			},
-			Options: map[string]interface{}{},
-			Expected: kfdefsv2.KfDef{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "someapp",
-				},
-				Spec: kfdefsv2.KfDefSpec{
-					ComponentConfig: config.ComponentConfig{
-						Platform: "gcp",
-					},
-					IpName:       "someapp-ip",
-					Project:      "acmeproject",
-					UseBasicAuth: false,
-					Zone:         "us-east1-d",
-					Hostname:     "someapp.endpoints.acmeproject.cloud.goog",
-				},
-			},
+			appFile:     "/kfctl.yaml",
+			expectedName: "",
 		},
 	}
 
-	for _, c := range cases {
-		i := &kfdefsv2.KfDef{}
-		*i = c.Input
-		err := backfillKfDefFromGenerateOptions(i, c.Options)
-		if err != nil {
-			t.Errorf("Case %v; Error backfilling KfDef error %v", c.Name, err)
-		}
+	for _, c := range testCases {
+		actual := nameFromAppFile(c.appFile)
 
-		if !reflect.DeepEqual(*i, c.Expected) {
-			pGot, _ := Pformat(i)
-			pWant, _ := Pformat(c.Expected)
-			t.Errorf("Case %v; Error backfilling KfDef got;\n%v\nwant;\n%v", c.Name, pGot, pWant)
+		if actual != c.expectedName {
+			t.Errorf("Error getting name from %v got;\n%v\nwant;\n%v", c.appFile, actual, c.expectedName)
 		}
 	}
 }

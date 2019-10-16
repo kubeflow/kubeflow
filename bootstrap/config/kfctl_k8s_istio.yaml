@@ -1,0 +1,273 @@
+# This is the config to install Kubeflow on an existing k8s cluster.
+# If the cluster already has istio, comment out the istio install part below.
+
+apiVersion: kfdef.apps.kubeflow.org/v1alpha1
+kind: KfDef
+metadata:
+  name: kubeflow_app
+  namespace: kubeflow
+spec:
+  repos:
+  - name: manifests
+    root: manifests-master
+    uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
+  - name: kubeflow
+    root: kubeflow-master
+    uri: https://github.com/kubeflow/kubeflow/archive/master.tar.gz
+  applications:
+  # Istio install. If not needed, comment out istio-crds and istio-install.
+  - kustomizeConfig:
+      parameters:
+      - name: namespace
+        value: istio-system
+      repoRef:
+        name: manifests
+        path: istio/istio-crds
+    name: istio-crds
+  - kustomizeConfig:
+      parameters:
+      - name: namespace
+        value: istio-system
+      repoRef:
+        name: manifests
+        path: istio/istio-install
+    name: istio-install
+  # This component is the istio resources for Kubeflow (e.g. gateway), not about installing istio.
+  - kustomizeConfig:
+      parameters:
+        - name: clusterRbacConfig
+          value: "OFF"
+      repoRef:
+        name: manifests
+        path: istio/istio
+    name: istio
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: application/application-crds
+    name: application-crds
+  - kustomizeConfig:
+      overlays:
+      - application
+      repoRef:
+        name: manifests
+        path: application/application
+    name: application
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: metacontroller
+    name: metacontroller
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: argo
+    name: argo
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: common/centraldashboard
+    name: centraldashboard
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: admission-webhook/bootstrap
+    name: bootstrap
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: admission-webhook/webhook
+    name: webhook
+  - kustomizeConfig:
+      overlays:
+      - istio
+      - application
+      repoRef:
+        name: manifests
+        path: jupyter/jupyter-web-app
+    name: jupyter-web-app
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/katib-db
+    name: katib-db
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/katib-manager
+    name: katib-manager
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/katib-controller
+    name: katib-controller
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/katib-ui
+    name: katib-ui # Issue: https://github.com/kubeflow/manifests/issues/151
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: metadata
+    name: metadata
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/metrics-collector
+    name: metrics-collector
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: katib-v1alpha2/suggestion
+    name: suggestion
+  - kustomizeConfig:
+      overlays:
+      - istio
+      - application
+      repoRef:
+        name: manifests
+        path: jupyter/notebook-controller
+    name: notebook-controller
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pytorch-job/pytorch-job-crds
+    name: pytorch-job-crds
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pytorch-job/pytorch-operator
+    name: pytorch-operator
+  - kustomizeConfig:
+      parameters:
+      - name: namespace
+        value: knative-serving
+      repoRef:
+        name: manifests
+        path: knative/knative-serving-crds
+    name: knative-crds
+  - kustomizeConfig:
+      parameters:
+      - name: namespace
+        value: knative-serving
+      repoRef:
+        name: manifests
+        path: knative/knative-serving-install
+    name: knative-install
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: kfserving/kfserving-crds
+    name: kfserving-crds
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: kfserving/kfserving-install
+    name: kfserving-install
+  - kustomizeConfig:
+      parameters:
+      - initRequired: true
+        name: usageId
+        value: <randomly-generated-id>
+      - initRequired: true
+        name: reportUsage
+        value: "true"
+      repoRef:
+        name: manifests
+        path: common/spartakus
+    name: spartakus
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: tensorboard
+    name: tensorboard
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: tf-training/tf-job-operator
+    name: tf-job-operator
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pipeline/api-service
+    name: api-service
+  - kustomizeConfig:
+      parameters:
+      - name: minioPvcName
+        value: minio-pv-claim
+      repoRef:
+        name: manifests
+        path: pipeline/minio
+    name: minio
+  - kustomizeConfig:
+      parameters:
+      - name: mysqlPvcName
+        value: mysql-pv-claim
+      repoRef:
+        name: manifests
+        path: pipeline/mysql
+    name: mysql
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pipeline/persistent-agent
+    name: persistent-agent
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pipeline/pipelines-runner
+    name: pipelines-runner
+  - kustomizeConfig:
+      overlays:
+      - istio
+      repoRef:
+        name: manifests
+        path: pipeline/pipelines-ui
+    name: pipelines-ui
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pipeline/pipelines-viewer
+    name: pipelines-viewer
+  - kustomizeConfig:
+      repoRef:
+        name: manifests
+        path: pipeline/scheduledworkflow
+    name: scheduledworkflow
+  - kustomizeConfig:
+      overlays:
+      - istio
+      parameters:
+      - initRequired: true
+        name: admin
+        value: johnDoe@acme.com
+      repoRef:
+        name: manifests
+        path: profiles
+    name: profiles
+  - kustomizeConfig:
+      overlays:
+      - application
+      repoRef:
+        name: manifests
+        path: seldon/seldon-core-operator
+    name: seldon-core-operator
+  enableApplications: true
+  packageManager: kustomize
+  skipInitProject: true
+  useBasicAuth: false
+  useIstio: true
+  version: master

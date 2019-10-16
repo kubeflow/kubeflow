@@ -156,23 +156,9 @@ local testCases = [
                 ],
                 image: "pyControllerImage",
                 name: "pytorch-operator",
-                volumeMounts: [
-                  {
-                    mountPath: "/etc/config",
-                    name: "config-volume",
-                  },
-                ],
               },
             ],
             serviceAccountName: "pytorch-operator",
-            volumes: [
-              {
-                configMap: {
-                  name: "pytorch-operator-config",
-                },
-                name: "config-volume",
-              },
-            ],
           },
         },
       },

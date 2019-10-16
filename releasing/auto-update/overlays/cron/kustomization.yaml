@@ -1,0 +1,9 @@
+namespace: kf-releasing
+bases:
+  - ../../base
+resources:
+  - update_job_cron.yaml
+images:
+- name: gcr.io/kubeflow-releasing/test-worker
+  newName: gcr.io/kubeflow-releasing/test-worker
+  newTag: v20190905-cff62af-dirty-f45ce7

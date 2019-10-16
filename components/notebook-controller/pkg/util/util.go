@@ -41,6 +41,11 @@ func CopyStatefulSetFields(from, to *appsv1.StatefulSet) bool {
 	}
 	to.Annotations = from.Annotations
 
+	if from.Spec.Replicas != to.Spec.Replicas {
+		to.Spec.Replicas = from.Spec.Replicas
+		requireUpdate = true
+	}
+
 	if !reflect.DeepEqual(to.Spec.Template.Spec, from.Spec.Template.Spec) {
 		requireUpdate = true
 	}

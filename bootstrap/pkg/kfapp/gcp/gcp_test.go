@@ -2,15 +2,18 @@ package gcp
 
 import (
 	"encoding/json"
-	"github.com/gogo/protobuf/proto"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 
-	"k8s.io/api/v2/core/v1"
-	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
+	"github.com/gogo/protobuf/proto"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+
 	"os"
 	"reflect"
 	"testing"
+
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestGcp_buildBasicAuthSecret(t *testing.T) {
@@ -29,21 +32,21 @@ func TestGcp_buildBasicAuthSecret(t *testing.T) {
 	cases := []testCase{
 		{
 			Gcp: &Gcp{
-				kfDef: &kfdefs.KfDef{
+				kfDef: &kfconfig.KfConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Namespace: "gcpnamespace",
 					},
-					Spec: kfdefs.KfDefSpec{
-						Plugins: []kfdefs.Plugin{
+					Spec: kfconfig.KfConfigSpec{
+						Plugins: []kfconfig.Plugin{
 							{
 								Name: "gcp",
 							},
 						},
-						Secrets: []kfdefs.Secret{
+						Secrets: []kfconfig.Secret{
 							{
 								Name: "passwordSecret",
-								SecretSource: &kfdefs.SecretSource{
-									LiteralSource: &kfdefs.LiteralSource{
+								SecretSource: &kfconfig.SecretSource{
+									LiteralSource: &kfconfig.LiteralSource{
 										Value: "somepassword",
 									},
 								},
@@ -77,7 +80,7 @@ func TestGcp_buildBasicAuthSecret(t *testing.T) {
 
 	for _, c := range cases {
 
-		err := c.Gcp.kfDef.SetPluginSpec("gcp", c.GcpPluginSpec)
+		err := c.Gcp.kfDef.SetPluginSpec("KfGcpPlugin", c.GcpPluginSpec)
 
 		if err != nil {
 			t.Fatalf("Could not set pluginspec")
@@ -106,28 +109,34 @@ func TestGcp_buildBasicAuthSecret(t *testing.T) {
 
 func TestGcp_setGcpPluginDefaults(t *testing.T) {
 	type testCase struct {
-		Name          string
-		Input         *kfdefs.KfDef
-		InputSpec     *GcpPluginSpec
-		Env           map[string]string
-		EmailGetter   func() (string, error)
-		Expected      *GcpPluginSpec
-		ExpectedEmail string
+		Name            string
+		Input           *kfconfig.KfConfig
+		InputSpec       *GcpPluginSpec
+		Env             map[string]string
+		EmailGetter     func() (string, error)
+		ProjectGetter   func() (string, error)
+		ZoneGetter      func() (string, error)
+		Expected        *GcpPluginSpec
+		ExpectedEmail   string
+		ExpectedProject string
+		ExpectedZone    string
 	}
 
 	cases := []testCase{
 		{
 			Name: "no-plugin-basic-auth",
-			Input: &kfdefs.KfDef{
-				Spec: kfdefs.KfDefSpec{
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
 					UseBasicAuth: true,
 				},
 			},
 			Env: map[string]string{
 				kftypes.KUBEFLOW_USERNAME: "someuser",
+				kftypes.KUBEFLOW_PASSWORD: "password",
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					BasicAuth: &BasicAuth{
 						Username: "someuser",
@@ -136,12 +145,18 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 						},
 					},
 				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "kubeflow",
+						Path: "deployment/gke/deployment_manager_configs",
+					},
+				},
 			},
 		},
 		{
 			Name: "no-plugin-iap",
-			Input: &kfdefs.KfDef{
-				Spec: kfdefs.KfDefSpec{
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
 					UseBasicAuth: false,
 				},
 			},
@@ -150,20 +165,27 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
 						OAuthClientSecret: &kfdefs.SecretRef{
 							Name: CLIENT_SECRET,
 						},
+					},
+				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "kubeflow",
+						Path: "deployment/gke/deployment_manager_configs",
 					},
 				},
 			},
 		},
 		{
 			Name: "set-email",
-			Input: &kfdefs.KfDef{
-				Spec: kfdefs.KfDefSpec{
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
 					UseBasicAuth: false,
 				},
 			},
@@ -172,6 +194,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -180,17 +203,31 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 						},
 					},
 				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "kubeflow",
+						Path: "deployment/gke/deployment_manager_configs",
+					},
+				},
 			},
 			EmailGetter: func() (string, error) {
 				return "myemail", nil
 			},
-			ExpectedEmail: "myemail",
+			ProjectGetter: func() (string, error) {
+				return "\nmyproject ", nil
+			},
+			ZoneGetter: func() (string, error) {
+				return "\nus-east1-b\n", nil
+			},
+			ExpectedEmail:   "myemail",
+			ExpectedProject: "myproject",
+			ExpectedZone:    "us-east1-b",
 		},
 		{
 			// Make sure emails get trimmed.
 			Name: "trim-email",
-			Input: &kfdefs.KfDef{
-				Spec: kfdefs.KfDefSpec{
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
 					UseBasicAuth: false,
 				},
 			},
@@ -199,12 +236,19 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
 						OAuthClientSecret: &kfdefs.SecretRef{
 							Name: CLIENT_SECRET,
 						},
+					},
+				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "kubeflow",
+						Path: "deployment/gke/deployment_manager_configs",
 					},
 				},
 			},
@@ -217,8 +261,8 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		{
 			// Make sure emails get trimmed.
 			Name: "no-override",
-			Input: &kfdefs.KfDef{
-				Spec: kfdefs.KfDefSpec{
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
 					UseBasicAuth: false,
 				},
 			},
@@ -230,12 +274,19 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
 						OAuthClientSecret: &kfdefs.SecretRef{
 							Name: CLIENT_SECRET,
 						},
+					},
+				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "kubeflow",
+						Path: "deployment/gke/deployment_manager_configs",
 					},
 				},
 			},
@@ -246,8 +297,8 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		},
 		{
 			Name: "iap-not-overwritten",
-			Input: &kfdefs.KfDef{
-				Spec: kfdefs.KfDefSpec{
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
 					UseBasicAuth: false,
 				},
 			},
@@ -266,21 +317,28 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "original_client",
 						OAuthClientSecret: &kfdefs.SecretRef{
 							Name: "original_secret",
 						},
+					},
+				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "kubeflow",
+						Path: "deployment/gke/deployment_manager_configs",
 					},
 				},
 			},
 		},
 		{
 			Name: "basic-auth-not-overwritten",
-			Input: &kfdefs.KfDef{
-				Spec: kfdefs.KfDefSpec{
-					UseBasicAuth: false,
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					UseBasicAuth: true,
 				},
 			},
 			InputSpec: &GcpPluginSpec{
@@ -298,12 +356,64 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
 				Auth: &Auth{
 					BasicAuth: &BasicAuth{
 						Username: "original_user",
 						Password: &kfdefs.SecretRef{
 							Name: "original_secret",
 						},
+					},
+				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "kubeflow",
+						Path: "deployment/gke/deployment_manager_configs",
+					},
+				},
+			},
+		},
+		{
+			Name: "dm-configs-not-overwritten",
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					UseBasicAuth: true,
+				},
+			},
+			InputSpec: &GcpPluginSpec{
+				Auth: &Auth{
+					BasicAuth: &BasicAuth{
+						Username: "original_user",
+						Password: &kfdefs.SecretRef{
+							Name: "original_secret",
+						},
+					},
+				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "somerepo",
+						Path: "somepath",
+					},
+				},
+			},
+			Env: map[string]string{
+				CLIENT_ID: "someclient",
+			},
+			Expected: &GcpPluginSpec{
+				CreatePipelinePersistentStorage: proto.Bool(true),
+				EnableWorkloadIdentity:          proto.Bool(false),
+				Auth: &Auth{
+					BasicAuth: &BasicAuth{
+						Username: "original_user",
+						Password: &kfdefs.SecretRef{
+							Name: "original_secret",
+						},
+					},
+				},
+				DeploymentManagerConfig: &DeploymentManagerConfig{
+					RepoRef: &kfdefs.RepoRef{
+						Name: "somerepo",
+						Path: "somepath",
 					},
 				},
 			},
@@ -331,6 +441,8 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		gcp := &Gcp{
 			kfDef:            i,
 			gcpAccountGetter: c.EmailGetter,
+			gcpProjectGetter: c.ProjectGetter,
+			gcpZoneGetter:    c.ZoneGetter,
 		}
 
 		if err := gcp.setGcpPluginDefaults(); err != nil {
@@ -352,15 +464,71 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			t.Errorf("Case %v; got:\n%v\nwant:\n%v", c.Name, pGot, pWant)
 		}
 
-		if c.ExpectedEmail != "" {
-			if c.ExpectedEmail != i.Spec.Email {
-				t.Errorf("Case %v; email: got %v; want %v", c.Name, i.Spec.Email, c.ExpectedEmail)
-			}
+		if c.ExpectedEmail != "" && c.ExpectedEmail != i.Spec.Email {
+			t.Errorf("Case %v; email: got %v; want %v", c.Name, i.Spec.Email, c.ExpectedEmail)
 		}
+		if c.ExpectedProject != "" && c.ExpectedProject != i.Spec.Project {
+			t.Errorf("Case %v; project: got %v; want %v", c.Name, i.Spec.Project, c.ExpectedProject)
+		}
+		if c.ExpectedZone != "" && c.ExpectedZone != i.Spec.Zone {
+			t.Errorf("Case %v; zone: got %v; want %v", c.Name, i.Spec.Zone, c.ExpectedZone)
+		}
+
+	}
+}
+
+func TestGcp_setPodDefault(t *testing.T) {
+	group := "kubeflow.org"
+	version := "v1alpha1"
+	kind := "PodDefault"
+	namespace := "foo-bar-baz"
+	expected := map[string]interface{}{
+		"apiVersion": group + "/" + version,
+		"kind":       kind,
+		"metadata": map[string]interface{}{
+			"name":      "add-gcp-secret",
+			"namespace": namespace,
+		},
+		"spec": map[string]interface{}{
+			"selector": map[string]interface{}{
+				"matchLabels": map[string]interface{}{
+					"add-gcp-secret": "true",
+				},
+			},
+			"desc": "add gcp credential",
+			"env": []interface{}{
+				map[string]interface{}{
+					"name":  "GOOGLE_APPLICATION_CREDENTIALS",
+					"value": "/secret/gcp/user-gcp-sa.json",
+				},
+			},
+			"volumeMounts": []interface{}{
+				map[string]interface{}{
+					"name":      "secret-volume",
+					"mountPath": "/secret/gcp",
+				},
+			},
+			"volumes": []interface{}{
+				map[string]interface{}{
+					"name": "secret-volume",
+					"secret": map[string]interface{}{
+						"secretName": "user-gcp-sa",
+					},
+				},
+			},
+		},
+	}
+
+	actual := generatePodDefault(group, version, kind, namespace)
+	if !reflect.DeepEqual(actual.UnstructuredContent(), expected) {
+		pGot, _ := Pformat(actual.UnstructuredContent())
+		pWant, _ := Pformat(expected)
+		t.Errorf("PodDefault not matching; got\n%v\nwant\n%v", pGot, pWant)
 	}
 }
 
 // Pformat returns a pretty format output of any value.
+// TODO(jlewi): Use utils.PrettyPrint
 func Pformat(value interface{}) (string, error) {
 	if s, ok := value.(string); ok {
 		return s, nil

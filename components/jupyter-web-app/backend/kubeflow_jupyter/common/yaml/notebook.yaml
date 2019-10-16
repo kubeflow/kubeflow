@@ -1,4 +1,4 @@
-apiVersion: kubeflow.org/v1alpha1
+apiVersion: kubeflow.org/v1beta1
 kind: Notebook
 metadata:
   name: {name}

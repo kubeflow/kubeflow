@@ -28,6 +28,7 @@
             "error",
             4
         ],
-        "require-jsdoc": "off"
+        "require-jsdoc": "off",
+        "linebreak-style": "off"
     }
 }

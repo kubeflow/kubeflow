@@ -19,27 +19,28 @@ package minikube
 import (
 	"fmt"
 	"github.com/ghodss/yaml"
-	"github.com/kubeflow/kubeflow/bootstrap/config"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kfapis "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
+	//"github.com/kubeflow/kubeflow/bootstrap/v3/config"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
+	//kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"io/ioutil"
 	"k8s.io/client-go/rest"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"os/user"
+	//"os/user"
 	"path/filepath"
-	"strconv"
-	"strings"
+	//"strconv"
+	//"strings"
 )
 
 // Minikube implements KfApp Interface
 type Minikube struct {
-	kfdefs.KfDef
+	kfconfig.KfConfig
 }
 
-func Getplatform(kfdef *kfdefs.KfDef) kftypes.Platform {
+func Getplatform(kfdef *kfconfig.KfConfig) kftypes.Platform {
 	_minikube := &Minikube{
-		KfDef: *kfdef,
+		KfConfig: *kfdef,
 	}
 	return _minikube
 }
@@ -60,56 +61,58 @@ func (minikube *Minikube) Delete(resources kftypes.ResourceEnum) error {
 }
 
 func (minikube *Minikube) generate() error {
+	// TODO: fix with applications
+
 	// remove Katib package and component
-	minikube.Spec.Packages = kftypes.RemoveItem(minikube.Spec.Packages, "katib")
-	minikube.Spec.Components = kftypes.RemoveItem(minikube.Spec.Components, "katib")
-	minikube.Spec.ComponentParams["application"] = []config.NameValue{
-		{
-			Name:  "components",
-			Value: "[" + strings.Join(kftypes.QuoteItems(minikube.Spec.Components), ",") + "]",
-		},
-	}
-	usr, err := user.Current()
-	if err != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Could not get current user; error %v", err),
-		}
-	}
-	uid := usr.Uid
-	gid := usr.Gid
-	minikube.Spec.ComponentParams["jupyter"] = []config.NameValue{
-		{
-			Name:  string(kftypes.PLATFORM),
-			Value: minikube.Spec.Platform,
-		},
-		{
-			Name:  "accessLocalFs",
-			Value: strconv.FormatBool(minikube.Spec.MountLocal),
-		},
-		{
-			Name:  "disks",
-			Value: "local-notebooks",
-		},
-		{
-			Name:  "notebookUid",
-			Value: uid,
-		},
-		{
-			Name:  "notebookGid",
-			Value: gid,
-		},
-	}
-	minikube.Spec.ComponentParams["ambassador"] = []config.NameValue{
-		{
-			Name:  string(kftypes.PLATFORM),
-			Value: minikube.Spec.Platform,
-		},
-		{
-			Name:  "replicas",
-			Value: "1",
-		},
-	}
+	// minikube.Spec.Packages = kftypes.RemoveItem(minikube.Spec.Packages, "katib")
+	// minikube.Spec.Components = kftypes.RemoveItem(minikube.Spec.Components, "katib")
+	// minikube.Spec.ComponentParams["application"] = []config.NameValue{
+	// 	{
+	// 		Name:  "components",
+	// 		Value: "[" + strings.Join(kftypes.QuoteItems(minikube.Spec.Components), ",") + "]",
+	// 	},
+	// }
+	// usr, err := user.Current()
+	// if err != nil {
+	// 	return &kfapis.KfError{
+	// 		Code:    int(kfapis.INVALID_ARGUMENT),
+	// 		Message: fmt.Sprintf("Could not get current user; error %v", err),
+	// 	}
+	// }
+	// uid := usr.Uid
+	// gid := usr.Gid
+	// minikube.Spec.ComponentParams["jupyter"] = []config.NameValue{
+	// 	{
+	// 		Name:  string(kftypes.PLATFORM),
+	// 		Value: minikube.Spec.Platform,
+	// 	},
+	// 	{
+	// 		Name:  "accessLocalFs",
+	// 		Value: strconv.FormatBool(minikube.Spec.MountLocal),
+	// 	},
+	// 	{
+	// 		Name:  "disks",
+	// 		Value: "local-notebooks",
+	// 	},
+	// 	{
+	// 		Name:  "notebookUid",
+	// 		Value: uid,
+	// 	},
+	// 	{
+	// 		Name:  "notebookGid",
+	// 		Value: gid,
+	// 	},
+	// }
+	// minikube.Spec.ComponentParams["ambassador"] = []config.NameValue{
+	// 	{
+	// 		Name:  string(kftypes.PLATFORM),
+	// 		Value: minikube.Spec.Platform,
+	// 	},
+	// 	{
+	// 		Name:  "replicas",
+	// 		Value: "1",
+	// 	},
+	// }
 	return nil
 }
 
@@ -131,7 +134,7 @@ func (minikube *Minikube) Generate(resources kftypes.ResourceEnum) error {
 	if createConfigErr != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("cannot create config file app.yaml in %v", minikube.KfDef.Spec.AppDir),
+			Message: fmt.Sprintf("cannot create config file app.yaml in %v", minikube.KfConfig.Spec.AppDir),
 		}
 	}
 	return nil
@@ -142,14 +145,14 @@ func (minikube *Minikube) Init(kftypes.ResourceEnum) error {
 }
 
 func (minikube *Minikube) writeConfigFile() error {
-	buf, bufErr := yaml.Marshal(minikube.KfDef)
+	buf, bufErr := yaml.Marshal(minikube.KfConfig)
 	if bufErr != nil {
 		return &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("cannot marshal config file: %v", bufErr),
 		}
 	}
-	cfgFilePath := filepath.Join(minikube.KfDef.Spec.AppDir, kftypes.KfConfigFile)
+	cfgFilePath := filepath.Join(minikube.KfConfig.Spec.AppDir, kftypes.KfConfigFile)
 	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
 	if cfgFilePathErr != nil {
 		return &kfapis.KfError{

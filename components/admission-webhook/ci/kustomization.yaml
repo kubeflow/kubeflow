@@ -1,0 +1,50 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../base
+- pipeline-run.yaml
+configMapGenerator:
+- name: ci-pipeline-run-parameters
+  behavior: merge
+  env: params.env
+generatorOptions:
+  disableNameSuffixHash: true
+vars:
+- name: docker_target
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.docker_target
+- name: image_name
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.image_name
+- name: path_to_context
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.path_to_context
+- name: path_to_docker_file
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.path_to_docker_file
+- name: path_to_manifests_dir
+  objref:
+    kind: ConfigMap
+    name: ci-pipeline-run-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.path_to_manifests_dir
+configurations:
+- params.yaml
+namespace: $(namespace)

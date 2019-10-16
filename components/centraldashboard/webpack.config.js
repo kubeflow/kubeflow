@@ -192,12 +192,16 @@ module.exports = {
         }),
     ],
     devServer: {
-        port: 8081,
+        port: 8080,
         proxy: {
             '/api': 'http://localhost:8082',
             '/jupyter': {
-                target: 'http://localhost:8083/api/v1/namespaces/kubeflow/services/jupyter-web-app:80/proxy',
+                target: 'http://localhost:8083/api/v1/namespaces/kubeflow/services/jupyter-web-app-service:80/proxy',
                 pathRewrite: {'^/jupyter': ''},
+            },
+            '/metadata': {
+                target: 'http://localhost:8083/api/v1/namespaces/kubeflow/services/metadata-ui:80/proxy',
+                pathRewrite: {'^/metadata': ''},
             },
             '/notebook': {
                 target: 'http://localhost:8083/api/v1/namespaces/',
@@ -207,7 +211,7 @@ module.exports = {
                 },
             },
             '/pipeline': {
-                target: 'http://localhost:8083/api/v1/namespaces/kubeflow/services/ml-pipeline:8888/proxy',
+                target: 'http://localhost:8083/api/v1/namespaces/kubeflow/services/ml-pipeline-ui:80/proxy',
                 pathRewrite: {'^/pipeline': ''},
             },
         },

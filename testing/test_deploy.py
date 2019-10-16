@@ -241,7 +241,7 @@ def test_successful_deployment(deployment_name):
     if i == retries:
       raise Exception('Deployment failed: ' + deployment_name)
     try:
-      output = util.run(["kubectl", "get", "deployment", deployment_name])
+      output = util.run(["kubectl", "get", "deployment", deployment_name, "-n", "kubeflow"])
       logging.info("output = \n" + output)
       if output.count('\n') == 1:
         output = output.split('\n')[1]
@@ -267,13 +267,8 @@ def test_successful_deployment(deployment_name):
 
 def test_katib(args):
   test_successful_deployment('katib-manager')
-  test_successful_deployment('katib-manager-rest')
   test_successful_deployment('katib-ui')
   test_successful_deployment('katib-db')
-  test_successful_deployment('katib-suggestion-grid')
-  test_successful_deployment('katib-suggestion-random')
-  test_successful_deployment('katib-suggestion-bayesianoptimization')
-  test_successful_deployment('katib-suggestion-hyperband')
   test_successful_deployment('katib-controller')
 
 

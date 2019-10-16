@@ -33,7 +33,13 @@ local runPath = srcDir + "/testing/workflows/run.sh";
 local kfCtlPath = srcDir + "/bootstrap/bin/kfctl";
 local kubeConfig = testDir + "/kfctl_test/.kube/kubeconfig";
 
-// Name for the Kubeflow app.
+// cluster_creation_script specifies the script to run in order to create 
+// a cluster before running kfctl.
+// Only applicable to configs that don't create their own clusters.
+local cluster_creation_script = if (params.cluster_creation_script=="") then "" else srcDir + "/testing/kfctl/scripts/" + params.cluster_creation_script;
+local cluster_deletion_script = if (params.cluster_deletion_script=="") then "" else srcDir + "/testing/kfctl/scripts/" + params.cluster_deletion_script;
+
+
 // This needs to be unique for each test run because it is
 // used to name GCP resources
 // We take the suffix of the name because it should provide some random salt.
@@ -97,7 +103,7 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
       {
         // Add the source directories to the python path.
         name: "PYTHONPATH",
-        value: kubeflowPy + ":" + kubeflowTestingPy,
+        value: kubeflowPy + ":" +  kubeflowPy + "/py" + ":" + kubeflowTestingPy,
       },
       {
         name: "GOOGLE_APPLICATION_CREDENTIALS",
@@ -185,10 +191,12 @@ local nameSuffix1 = if util.toBool(params.useBasicAuth) then
   "basic-auth"
   else
   "iap";
-local nameSuffix = if util.toBool(params.useIstio) then
+local nameSuffix2 = if util.toBool(params.useIstio) then
   nameSuffix1 + "-istio"
   else
   nameSuffix1;
+
+local nameSuffix = if (params.nameSuffix=="") then nameSuffix2 else params.nameSuffix;
 
 // Create a list of dictionary.c
 // Each item is a dictionary describing one step in the graph.
@@ -225,6 +233,8 @@ local dagTemplates = [
         "-s",
         "--use_basic_auth=" + params.useBasicAuth,
         "--use_istio=" + params.useIstio,
+        "--config_path=" + params.configPath,
+        "--cluster_creation_script=" + cluster_creation_script,
         // Increase the log level so that info level log statements show up.
         "--log-cli-level=info",        
         "--junitxml=" + artifactsDir + "/junit_kfctl-build-test" + nameSuffix + ".xml",
@@ -311,6 +321,7 @@ local deleteStep = if deleteKubeflow then
         "--junitxml=" + artifactsDir + "/junit_kfctl-go-delete-test.xml",
         "--app_path=" + appDir,
         "--kfctl_path=" + kfCtlPath,
+        "--cluster_deletion_script=" + cluster_deletion_script,
       ],
       working_dir=srcDir+ "/testing/kfctl",
     ),

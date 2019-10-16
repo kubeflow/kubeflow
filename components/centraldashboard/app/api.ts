@@ -1,70 +1,39 @@
-import express from 'express';
-
-import {KubernetesService, PlatformInfo} from './k8s_service';
+import {Router, Request, Response, NextFunction} from 'express';
+import {KubernetesService} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
 
-interface EnvironmentInfo {
-  namespaces: string[];
-  platform: PlatformInfo;
-  user: string;
+export const ERRORS = {
+  operation_not_supported: 'Operation not supported'
+};
+
+export function apiError(a: {res: Response, error: string, code?: number}) {
+  const {res, error} = a;
+  const code = a.code || 400;
+  return res.status(code).json({
+    error,
+  });
 }
 
-const IAP_HEADER = 'X-Goog-Authenticated-User-Email';
-const IAP_PREFIX = 'accounts.google.com:';
-
 export class Api {
-  private platformInfo: PlatformInfo;
-
   constructor(
       private k8sService: KubernetesService,
-      private metricsService?: MetricsService) {}
+      private metricsService?: MetricsService,
+    ) {}
 
-  /** Retrieves and memoizes the PlatformInfo. */
-  private async getPlatformInfo(): Promise<PlatformInfo> {
-    if (!this.platformInfo) {
-      this.platformInfo = await this.k8sService.getPlatformInfo();
-    }
-    return this.platformInfo;
-  }
-
-  /**
-   * Retrieves user information from headers.
-   * Supports:
-   *  GCP IAP (https://cloud.google.com/iap/docs/identity-howto)
-   */
-  private getUser(req: express.Request): string {
-    let email = 'anonymous@kubeflow.org';
-    if (req.header(IAP_HEADER)) {
-      email = req.header(IAP_HEADER).slice(IAP_PREFIX.length);
-    }
-    return email;
-  }
 
   /**
    * Returns the Express router for the API routes.
    */
-  routes(): express.Router {
-    return express.Router()
-        .get(
-            '/env-info',
-            async (req: express.Request, res: express.Response) => {
-              const [platform, user, namespaces] = await Promise.all([
-                this.getPlatformInfo(),
-                this.getUser(req),
-                this.k8sService.getNamespaces(),
-              ]);
-              res.json({
-                platform,
-                user,
-                namespaces: namespaces.map((n) => n.metadata.name),
-              });
-            })
+  routes(): Router {
+    return Router()
         .get(
             '/metrics/:type((node|podcpu|podmem))',
-            async (req: express.Request, res: express.Response) => {
+            async (req: Request, res: Response) => {
               if (!this.metricsService) {
-                res.sendStatus(405);
-                return;
+                return apiError({
+                  res, code: 405,
+                  error: ERRORS.operation_not_supported,
+                });
               }
 
               let interval = Interval.Last15m;
@@ -89,14 +58,15 @@ export class Api {
             })
         .get(
             '/namespaces',
-            async (_: express.Request, res: express.Response) => {
+            async (_: Request, res: Response) => {
               res.json(await this.k8sService.getNamespaces());
             })
         .get(
             '/activities/:namespace',
-            async (req: express.Request, res: express.Response) => {
+            async (req: Request, res: Response) => {
               res.json(await this.k8sService.getEventsForNamespace(
                   req.params.namespace));
-            });
+            }
+        );
   }
 }
