@@ -9,12 +9,13 @@ import (
 	"testing"
 
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func Test_CreateKfAppCfgFile(t *testing.T) {
 	type testCase struct {
-		Input         kfdefsv3.KfDef
+		Input         kfconfig.KfConfig
 		DirExists     bool
 		CfgFileExists bool
 		ExpectError   bool
@@ -23,24 +24,36 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 	cases := []testCase{
 		// Test file is created when directory doesn't exist.
 		{
-			Input:         kfdefsv3.KfDef{},
+			Input: kfconfig.KfConfig{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
+				},
+			},
 			DirExists:     false,
 			CfgFileExists: false,
 			ExpectError:   false,
 		},
 		// Test file is created when directory exists
 		{
-			Input:         kfdefsv3.KfDef{},
+			Input: kfconfig.KfConfig{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
+				},
+			},
 			DirExists:     true,
 			CfgFileExists: false,
 			ExpectError:   false,
 		},
 		// Test an error is raised if the config file already exists.
 		{
-			Input:         kfdefsv3.KfDef{},
+			Input: kfconfig.KfConfig{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
+				},
+			},
 			DirExists:     true,
 			CfgFileExists: true,
-			ExpectError:   true,
+			ExpectError:   false,
 		},
 	}
 
@@ -114,6 +127,36 @@ func Test_repoVersionToRepoStruct(t *testing.T) {
 			pGot, _ := Pformat(actual)
 			pWant, _ := Pformat(c.expected)
 			t.Errorf("Error converting got;\n%v\nwant;\n%v", pGot, pWant)
+		}
+	}
+}
+
+func Test_nameFromAppFile(t *testing.T) {
+	type testCase struct {
+		appFile      string
+		expectedName string
+	}
+
+	testCases := []testCase{
+		{
+			appFile:      "/mykfapp/kfctl.yaml",
+			expectedName: "mykfapp",
+		},
+		{
+			appFile:      "/parentdir/subapp/app.yaml",
+			expectedName: "subapp",
+		},
+		{
+			appFile:      "/kfctl.yaml",
+			expectedName: "",
+		},
+	}
+
+	for _, c := range testCases {
+		actual := nameFromAppFile(c.appFile)
+
+		if actual != c.expectedName {
+			t.Errorf("Error getting name from %v got;\n%v\nwant;\n%v", c.appFile, actual, c.expectedName)
 		}
 	}
 }

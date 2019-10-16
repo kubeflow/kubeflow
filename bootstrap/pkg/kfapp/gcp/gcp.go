@@ -37,6 +37,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"github.com/pkg/errors"
@@ -90,7 +91,7 @@ const (
 	DEFAULT_DM_PATH = "deployment/gke/deployment_manager_configs"
 
 	// Plugin parameter constants
-	GcpPluginName               = kftypesv3.GCP
+	GcpPluginName               = "KfGcpPlugin"
 	GcpAccessTokenName          = "accessToken"
 	BasicAuthPasswordSecretName = "password"
 )
@@ -99,7 +100,7 @@ const (
 // It includes the KsApp along with additional Gcp types
 // TODO(jlewi): Why doesn't Gcp store GcpArgs as opposed to duplicating the options?
 type Gcp struct {
-	kfDef       *kfdefs.KfDef
+	kfDef       *kfconfig.KfConfig
 	client      *http.Client
 	tokenSource oauth2.TokenSource
 
@@ -135,7 +136,8 @@ type dmOperationEntry struct {
 }
 
 // GetPlatform returns the gcp kfapp. It's called by coordinator.GetPlatform
-func GetPlatform(kfdef *kfdefs.KfDef) (kftypesv3.Platform, error) {
+func GetPlatform(kfdef *kfconfig.KfConfig) (kftypesv3.Platform, error) {
+
 	_gcp := &Gcp{
 		kfDef:            kfdef,
 		gcpAccountGetter: GetGcloudDefaultAccount,
@@ -172,7 +174,7 @@ func (gcp *Gcp) initGcpClient() error {
 		// Something has gone wrong. So we guard against that.
 		// If accessToken is provided gcp.TokenSource should be set and we should use
 		// that.
-		if _, err := gcp.kfDef.GetSecret(GcpAccessTokenName); !kfdefs.IsSecretNotFound(err) {
+		if _, err := gcp.kfDef.GetSecret(GcpAccessTokenName); !kfconfig.IsSecretNotFound(err) {
 			return errors.WithStack(fmt.Errorf("Gcp.tokenSource is nil and secret %v is in KfDef; Gcp.tokenSource must be set explicitly; using a default token source is not allowed in this case", GcpAccessTokenName))
 		}
 		log.Infof("Creating default token source")
@@ -920,12 +922,15 @@ func (gcp *Gcp) deleteEndpoints(ctx context.Context) error {
 		}
 	}
 
+	log.Infof("deleting endpoint: %v", gcp.kfDef.Spec.Hostname)
 	services := servicemanagement.NewServicesService(servicemanagementService)
 	op, deleteErr := services.Delete(gcp.kfDef.Spec.Hostname).Context(ctx).Do()
 	if deleteErr != nil {
+		log.Warningf("endpoint deletion error: %v", deleteErr)
 		nextPage := ""
 		// Use a loop to read multi-page managed services list.
 		for {
+			log.Info("checking all endpoints...")
 			list := services.List().ProducerProjectId(gcp.kfDef.Spec.Project)
 			if nextPage != "" {
 				list = list.PageToken(nextPage)
@@ -1316,10 +1321,10 @@ func (gcp *Gcp) generateDMConfigs() error {
 				gcpConfigDirErr, appDir),
 		}
 	}
-	repo, ok := gcp.kfDef.Status.ReposCache[pluginSpec.DeploymentManagerConfig.RepoRef.Name]
+	repo, foundRepo := gcp.kfDef.GetRepoCache(pluginSpec.DeploymentManagerConfig.RepoRef.Name)
 
-	if !ok {
-		err := fmt.Errorf("Repo %v not found in KfDef.Status.ReposCache", pluginSpec.DeploymentManagerConfig.RepoRef.Name)
+	if !foundRepo {
+		err := fmt.Errorf("Repo %v not found in KfDef.Status.Caches", pluginSpec.DeploymentManagerConfig.RepoRef.Name)
 		log.Errorf("%v", err)
 		return errors.WithStack(err)
 	}
@@ -1479,6 +1484,7 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 	if gcp.kfDef.Spec.UseIstio {
 		oauthSecretNamespace = gcp.getIstioNamespace()
 	}
+	log.Infof("OAuthSecretNS: %v", oauthSecretNamespace)
 
 	if _, err := client.CoreV1().Secrets(oauthSecretNamespace).
 		Get(KUBEFLOW_OAUTH, metav1.GetOptions{}); err == nil {
@@ -1587,6 +1593,7 @@ func (gcp *Gcp) createSecrets() error {
 	if err != nil {
 		return kfapis.NewKfErrorWithMessage(err, "set K8s clientset error")
 	}
+	log.Infof("Creating GCP secrets...")
 	// If workload identity is enabled, we don't need to create secrets.
 	if !(*p.EnableWorkloadIdentity) {
 		adminEmail := getSA(gcp.kfDef.Name, "admin", gcp.kfDef.Spec.Project)
@@ -1611,10 +1618,12 @@ func (gcp *Gcp) createSecrets() error {
 		}
 	}
 	if gcp.kfDef.Spec.UseBasicAuth {
+		log.Infof("Creating GCP secrets for basic auth...")
 		if err := gcp.createBasicAuthSecret(k8sClient); err != nil {
 			return kfapis.NewKfErrorWithMessage(err, "cannot create basic auth login secret")
 		}
 	} else {
+		log.Infof("Creating GCP secrets for IAP...")
 		if err := gcp.createIapSecret(ctx, k8sClient); err != nil {
 			return kfapis.NewKfErrorWithMessage(err, "cannot create IAP auth secret")
 		}
@@ -1893,7 +1902,7 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 	pluginSpec := &GcpPluginSpec{}
 	err := gcp.kfDef.GetPluginSpec(GcpPluginName, pluginSpec)
 
-	if err != nil && !kfdefs.IsPluginNotFound(err) {
+	if err != nil && !kfapis.IsNotFound(err) {
 		log.Errorf("There was a problem getting the gcp plugin %v", err)
 		return errors.WithStack(err)
 	}
@@ -1940,10 +1949,10 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 				return errors.WithStack(err)
 			}
 
-			gcp.kfDef.SetSecret(kfdefs.Secret{
+			gcp.kfDef.SetSecret(kfconfig.Secret{
 				Name: BasicAuthPasswordSecretName,
-				SecretSource: &kfdefs.SecretSource{
-					HashedSource: &kfdefs.HashedSource{
+				SecretSource: &kfconfig.SecretSource{
+					HashedSource: &kfconfig.HashedSource{
 						HashedValue: encodedPassword,
 					},
 				},
@@ -1962,10 +1971,10 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 				Name: CLIENT_SECRET,
 			}
 
-			gcp.kfDef.SetSecret(kfdefs.Secret{
+			gcp.kfDef.SetSecret(kfconfig.Secret{
 				Name: CLIENT_SECRET,
-				SecretSource: &kfdefs.SecretSource{
-					EnvSource: &kfdefs.EnvSource{
+				SecretSource: &kfconfig.SecretSource{
+					EnvSource: &kfconfig.EnvSource{
 						Name: CLIENT_SECRET,
 					},
 				},
@@ -2007,6 +2016,7 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 		log.Errorf("Could not get GcpPluginSpec; error %v", err)
 		return err
 	}
+
 	// the runGetGCPCredentials don't seem to work because those are shelled out commands
 	// Added an alternate way to set using enironment variables
 	if gcp.kfDef.Spec.Project == "" {
@@ -2031,9 +2041,11 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 	// This needs to happen before calling generateDM configs.
 	if gcp.kfDef.Spec.IpName == "" {
 		gcp.kfDef.Spec.IpName = gcp.kfDef.Name + "-ip"
+		pluginSpec.IpName = gcp.kfDef.Spec.IpName
 	}
 	if gcp.kfDef.Spec.Hostname == "" {
 		gcp.kfDef.Spec.Hostname = gcp.kfDef.Name + ".endpoints." + gcp.kfDef.Spec.Project + ".cloud.goog"
+		pluginSpec.Hostname = gcp.kfDef.Spec.Hostname
 	}
 
 	switch resources {
@@ -2110,14 +2122,10 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 		}
 	}
 
-	createConfigErr := gcp.kfDef.WriteToConfigFile()
-	if createConfigErr != nil {
-		return &kfapis.KfError{
-			Code: createConfigErr.(*kfapis.KfError).Code,
-			Message: fmt.Sprintf("cannot create config file %v in %v: %v", kftypesv3.KfConfigFile, gcp.kfDef.Spec.AppDir,
-				createConfigErr.(*kfapis.KfError).Message),
-		}
+	if err := gcp.kfDef.SetPluginSpec(GcpPluginName, pluginSpec); err != nil {
+		return errors.WithStack(err)
 	}
+
 	return nil
 }
 
@@ -2196,14 +2204,6 @@ func (gcp *Gcp) gcpInitProject() error {
 
 // Init initializes a gcp kfapp
 func (gcp *Gcp) Init(resources kftypesv3.ResourceEnum) error {
-	createConfigErr := gcp.kfDef.WriteToConfigFile()
-	if createConfigErr != nil {
-		return &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("cannot create config file app.yaml in %v", gcp.kfDef.Spec.AppDir),
-		}
-	}
-
 	if !gcp.kfDef.Spec.SkipInitProject {
 		log.Infof("Not skipping GCP project init, running gcpInitProject.")
 		initProjectErr := gcp.gcpInitProject()

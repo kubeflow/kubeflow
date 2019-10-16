@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -48,11 +47,12 @@ var deleteCmd = &cobra.Command{
 		if err != nil || kfApp == nil {
 			return fmt.Errorf("error loading kfapp: %v", err)
 		}
-		kfGetter, ok := kfApp.(coordinator.KfDefGetter)
-		if !ok {
-			return errors.New("internal error: coordinator does not implement KfDefGetter")
-		}
-		kfGetter.GetKfDef().Spec.DeleteStorage = deleteCfg.GetBool(string(kftypes.DELETE_STORAGE))
+		// TODO(lunkai): do we need set delete storage here?
+		// kfGetter, ok := kfApp.(coordinator.KfDefGetter)
+		// if !ok {
+		// 	return errors.New("internal error: coordinator does not implement KfDefGetter")
+		// }
+		// kfGetter.GetKfDef().Spec.DeleteStorage = deleteCfg.GetBool(string(kftypes.DELETE_STORAGE))
 		deleteErr := kfApp.Delete(kftypes.ALL)
 		if deleteErr != nil {
 			return fmt.Errorf("couldn't delete KfApp: %v", deleteErr)
