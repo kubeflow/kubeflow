@@ -202,6 +202,7 @@ func (v V1beta1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 			Spec: plugin.Spec,
 		}
 		p.Name = plugin.Name
+		p.Kind = string(plugin.Kind)
 		kfdef.Spec.Plugins = append(kfdef.Spec.Plugins, p)
 	}
 
