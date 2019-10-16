@@ -136,7 +136,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					BasicAuth: &BasicAuth{
 						Username: "someuser",
@@ -165,7 +165,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -194,7 +194,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -236,7 +236,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -274,7 +274,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(false),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -317,7 +317,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "original_client",
@@ -356,7 +356,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					BasicAuth: &BasicAuth{
 						Username: "original_user",
@@ -401,7 +401,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					BasicAuth: &BasicAuth{
 						Username: "original_user",
