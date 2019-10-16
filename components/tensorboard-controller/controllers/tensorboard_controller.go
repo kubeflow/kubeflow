@@ -122,7 +122,7 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard) *appsv1.Deployment 
 					RestartPolicy: v1.RestartPolicyAlways,
 					Containers: []v1.Container{
 						{
-							Name:            "tensoroboard",
+							Name:            "tensorboard",
 							Image:           "tensorflow/tensorflow:1.8.0",
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"/usr/local/bin/tensorboard"},
