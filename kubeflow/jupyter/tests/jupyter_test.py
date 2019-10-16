@@ -130,7 +130,7 @@ def test_jupyter(env, namespace):
 
   conditions = ["Running"]
   results = util.wait_for_cr_condition(api_client, GROUP, PLURAL, VERSION,
-                                       namespace, name, conditions)
+                                       ns, name, conditions)
 
   logging.info("Result of CRD:\n%s", results)
 
