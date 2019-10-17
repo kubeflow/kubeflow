@@ -40,6 +40,7 @@ import (
 	kubectldelete "k8s.io/kubernetes/pkg/kubectl/cmd/delete"
 	cmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
 	"math/rand"
+	netUrl "net/url"
 	"os"
 	"path"
 	"regexp"
@@ -125,19 +126,38 @@ func GetObjectKindFromUri(configFile string) (string, error) {
 		return "", fmt.Errorf("config file must be a URI or a path")
 	}
 
-	appDir, err := ioutil.TempDir("", "")
-	if err != nil {
-		return "", fmt.Errorf("Create a temporary directory to copy the file to.")
-	}
-	// Open config file
-	appFile := path.Join(appDir, "tmp.yaml")
-
-	log.Infof("Downloading %v to %v", configFile, appFile)
-	err = gogetter.GetFile(appFile, configFile)
+	// Check if configFile is a remote file.
+	url, err := netUrl.Parse(configFile)
+	isRemoteFile := false
 	if err != nil {
 		return "", &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, err),
+			Message: fmt.Sprintf("Error parsing config file path: %v", err),
+		}
+	} else {
+		if url.Scheme != "" {
+			isRemoteFile = true
+		}
+	}
+
+	// We will read from appFile.
+	appFile := configFile
+	if isRemoteFile {
+		// Download it to a tmp file, and set appFile.
+		appDir, err := ioutil.TempDir("", "")
+		if err != nil {
+			return "", fmt.Errorf("Create a temporary directory to copy the file to.")
+		}
+		// Open config file
+		appFile = path.Join(appDir, "tmp.yaml")
+
+		log.Infof("Downloading %v to %v", configFile, appFile)
+		err = gogetter.GetFile(appFile, configFile)
+		if err != nil {
+			return "", &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, err),
+			}
 		}
 	}
 

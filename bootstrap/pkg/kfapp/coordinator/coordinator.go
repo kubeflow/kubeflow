@@ -260,7 +260,7 @@ func nameFromAppFile(appFile string) string {
 
 // LoadKfAppCfgFile constructs a KfApp by loading the provided app.yaml file.
 func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
-	url, err := netUrl.ParseRequestURI(cfgfile)
+	url, err := netUrl.Parse(cfgfile)
 	isRemoteFile := false
 	cwd := ""
 	if err != nil {
