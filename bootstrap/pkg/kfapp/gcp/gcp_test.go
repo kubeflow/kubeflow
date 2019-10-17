@@ -209,6 +209,9 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 						Path: "deployment/gke/deployment_manager_configs",
 					},
 				},
+				Project: "myproject",
+				Email:   "myemail",
+				Zone:    "us-east1-b",
 			},
 			EmailGetter: func() (string, error) {
 				return "myemail", nil
@@ -251,6 +254,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 						Path: "deployment/gke/deployment_manager_configs",
 					},
 				},
+				Email: "myemail",
 			},
 			EmailGetter: func() (string, error) {
 				return "\nmyemail\n", nil
@@ -289,6 +293,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 						Path: "deployment/gke/deployment_manager_configs",
 					},
 				},
+				Email: "myemail",
 			},
 			EmailGetter: func() (string, error) {
 				return "\nmyemail\n", nil
