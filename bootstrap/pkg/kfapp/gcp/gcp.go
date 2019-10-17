@@ -1491,7 +1491,7 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 		return errors.WithStack(fmt.Errorf("GcpPluginSpec has no Auth.IAP"))
 	}
 
-	oauthSecretNamespace = gcp.getIstioNamespace()
+	oauthSecretNamespace := gcp.getIstioNamespace()
 	log.Infof("OAuthSecretNS: %v", oauthSecretNamespace)
 
 	if _, err := client.CoreV1().Secrets(oauthSecretNamespace).
