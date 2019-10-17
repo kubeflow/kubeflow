@@ -22,6 +22,11 @@ def test_endpoint_is_ready(project, app_name):
     project: The gcp project that we deployed kubeflow
     app_name: The name of the kubeflow deployment
   """
+  if os.getenv("JUNIT_CLASS_NAME"):
+    # Override the classname attribute in the junit file.
+    # This makes it easy to group related tests in test grid.
+    # http://doc.pytest.org/en/latest/usage.html#record-xml-attribute
+    record_xml_attribute("classname", os.getenv("JUNIT_CLASS_NAME"))
   # Owned by project kubeflow-ci-deployment.
   os.environ["CLIENT_ID"] = "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g.apps.googleusercontent.com"
   if not gcp_util.endpoint_is_ready(

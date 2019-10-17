@@ -18,6 +18,12 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
     cluster_creation_script: script invoked to create a new cluster
     build_and_apply: whether to build and apply or apply
   """
+  if os.getenv("JUNIT_CLASS_NAME"):
+    # Override the classname attribute in the junit file.
+    # This makes it easy to group related tests in test grid.
+    # http://doc.pytest.org/en/latest/usage.html#record-xml-attribute
+    record_xml_attribute("classname", os.getenv("JUNIT_CLASS_NAME"))
+
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
     util.run([

@@ -13,6 +13,12 @@ def test_deploy_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pa
     app_path: The path to the Kubeflow app.
     project: The GCP project to use.
   """
+  if os.getenv("JUNIT_CLASS_NAME"):
+    # Override the classname attribute in the junit file.
+    # This makes it easy to group related tests in test grid.
+    # http://doc.pytest.org/en/latest/usage.html#record-xml-attribute
+    record_xml_attribute("classname", os.getenv("JUNIT_CLASS_NAME"))
+
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
     util.run([

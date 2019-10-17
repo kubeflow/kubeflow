@@ -74,6 +74,7 @@ class Builder:
                test_endpoint=False,
                use_basic_auth=False,
                build_and_apply=False,
+               junit_class_name=None,
                kf_app_name=None, delete_kf=True,):
     """Initialize a builder.
 
@@ -85,6 +86,7 @@ class Builder:
       test_endpoint: Whether to test the endpoint is ready. Should only
         be true for IAP.
       use_basic_auth: Whether to use basic_auth.
+      junit_class_name: (Optional) Name to use for the junit_class_name
       kf_app_name: (Optional) Name to use for the Kubeflow deployment.
         If not set a unique name is assigned. Only set this if you want to
         reuse an existing deployment across runs.
@@ -148,6 +150,20 @@ class Builder:
     # Config name is the name of the config file. This is used to give junit
     # files unique names.
     self.config_name = os.path.splitext(os.path.basename(config_path))[0]
+
+    # The class name to label junit files.
+    # We want to be able to group related tests in test grid.
+    # Test grid allows grouping by target which corresponds to the classname
+    # attribute in junit files.
+    # So we set an environment variable to the desired class name.
+    # The pytest modules can then look at this environment variable to
+    # explicitly override the classname.
+    # The classname should be unique for each run so it should take into
+    # account the different parameters
+    if junit_class_name:
+      self.junit_class_name = junit_class_name
+    else:
+      self.junit_class_name = self.config_name
 
     # app_name is the name of the Kubeflow deployment.
     # This needs to be unique per run since we name GCP resources with it.
@@ -242,7 +258,9 @@ class Builder:
      'container': {'command': [],
       'env': [
         {"name": "GOOGLE_APPLICATION_CREDENTIALS",
-         "value": "/secret/gcp-credentials/key.json"}
+         "value": "/secret/gcp-credentials/key.json"},
+        {"name": "JUNIT_CLASS_NAME",
+         "value": self.junit_class_name},
        ],
       'image': 'gcr.io/kubeflow-ci/test-worker:latest',
       'imagePullPolicy': 'Always',

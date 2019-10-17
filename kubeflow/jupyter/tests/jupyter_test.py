@@ -98,6 +98,12 @@ def send_request(*args, **kwargs):
 
 
 def test_jupyter(env, namespace):
+  if os.getenv("JUNIT_CLASS_NAME"):
+    # Override the classname attribute in the junit file.
+    # This makes it easy to group related tests in test grid.
+    # http://doc.pytest.org/en/latest/usage.html#record-xml-attribute
+    record_xml_attribute("classname", os.getenv("JUNIT_CLASS_NAME"))
+
   app_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
   if app_credentials:
     logging.info("Activate service account")
