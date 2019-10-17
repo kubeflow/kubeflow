@@ -25,14 +25,14 @@ export class IframeContainer extends PolymerElement {
                     width: 100%;
                 }
             </style>
-            <iframe id="iframe" src="[[src]]"></iframe>
+            <iframe id="iframe"></iframe>
         `;
     }
 
     static get properties() {
         return {
             namespace: {type: String, observer: '_sendNamespaceMessage'},
-            src: String,
+            src: {type: String, observer: '_srcChanged'},
             page: {type: String, notify: true},
         };
     }
@@ -68,6 +68,17 @@ export class IframeContainer extends PolymerElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         window.removeEventListener(MESSAGE, this._messageListener);
+    }
+
+    /**
+     * Programmatically sets the iframe's src when the property changes.
+     * @param {string} newSrc
+     */
+    _srcChanged(newSrc) {
+        const iframe = this.$.iframe;
+        if (iframe.contentWindow.location.toString() !== newSrc) {
+            iframe.contentWindow.location.replace(newSrc);
+        }
     }
 
     /**
