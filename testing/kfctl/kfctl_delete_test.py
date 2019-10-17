@@ -43,11 +43,7 @@ def get_endpoints_list(project):
 @pytest.mark.xfail
 def test_kfctl_delete(record_xml_attribute, kfctl_path, app_path, project,
                       cluster_deletion_script):
-  if os.getenv("JUNIT_CLASS_NAME"):
-    # Override the classname attribute in the junit file.
-    # This makes it easy to group related tests in test grid.
-    # http://doc.pytest.org/en/latest/usage.html#record-xml-attribute
-    record_xml_attribute("classname", os.getenv("JUNIT_CLASS_NAME"))
+  util.set_pytest_junit("test_kfctl_delete")
 
   # TODO(yanniszark): split this into a separate workflow step
   if cluster_deletion_script:

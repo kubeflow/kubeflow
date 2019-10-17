@@ -28,12 +28,7 @@ def test_kf_is_ready(record_xml_attribute, namespace, use_basic_auth, use_istio,
     namespace: The namespace Kubeflow is deployed to.
   """
   set_logging()
-  if os.getenv("JUNIT_CLASS_NAME"):
-    # Override the classname attribute in the junit file.
-    # This makes it easy to group related tests in test grid.
-    # http://doc.pytest.org/en/latest/usage.html#record-xml-attribute
-    record_xml_attribute("classname", os.getenv("JUNIT_CLASS_NAME"))
-  logging.info("Using namespace %s", namespace)
+  util.set_pytest_junit("test_kf_is_ready")
 
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):

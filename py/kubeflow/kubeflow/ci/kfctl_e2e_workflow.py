@@ -77,7 +77,7 @@ class Builder:
                test_endpoint=False,
                use_basic_auth=False,
                build_and_apply=False,
-               junit_class_name=None,
+               test_target_name=None,
                kf_app_name=None, delete_kf=True,):
     """Initialize a builder.
 
@@ -89,7 +89,8 @@ class Builder:
       test_endpoint: Whether to test the endpoint is ready. Should only
         be true for IAP.
       use_basic_auth: Whether to use basic_auth.
-      junit_class_name: (Optional) Name to use for the junit_class_name
+      test_target_name: (Optional) Name to use as the test target to group
+        tests.
       kf_app_name: (Optional) Name to use for the Kubeflow deployment.
         If not set a unique name is assigned. Only set this if you want to
         reuse an existing deployment across runs.
@@ -163,10 +164,10 @@ class Builder:
     # explicitly override the classname.
     # The classname should be unique for each run so it should take into
     # account the different parameters
-    if junit_class_name:
-      self.junit_class_name = junit_class_name
+    if test_target_name:
+      self.test_target_name = test_target_name
     else:
-      self.junit_class_name = self.config_name
+      self.test_target_name = self.config_name
 
     # app_name is the name of the Kubeflow deployment.
     # This needs to be unique per run since we name GCP resources with it.
@@ -262,8 +263,8 @@ class Builder:
       'env': [
         {"name": "GOOGLE_APPLICATION_CREDENTIALS",
          "value": "/secret/gcp-credentials/key.json"},
-        {"name": "JUNIT_CLASS_NAME",
-         "value": self.junit_class_name},
+        {"name": "TEST_TARGET_NAME",
+         "value": self.test_target_name},
        ],
       'image': 'gcr.io/kubeflow-ci/test-worker:latest',
       'imagePullPolicy': 'Always',

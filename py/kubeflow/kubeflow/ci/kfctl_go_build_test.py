@@ -9,11 +9,7 @@ def test_build_kfctl_go(record_xml_attribute):
   """Test building of kfctl go.
 
   """
-  if os.getenv("JUNIT_CLASS_NAME"):
-    # Override the classname attribute in the junit file.
-    # This makes it easy to group related tests in test grid.
-    # http://doc.pytest.org/en/latest/usage.html#record-xml-attribute
-    record_xml_attribute("classname", os.getenv("JUNIT_CLASS_NAME"))
+  util.set_pytest_junit("test_build_kfctl_go")
 
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
