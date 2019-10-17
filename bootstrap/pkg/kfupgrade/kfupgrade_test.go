@@ -1,30 +1,29 @@
 package kfupgrade
 
 import (
-	"github.com/kubeflow/kubeflow/bootstrap/v3/config"
-	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"reflect"
 	"testing"
 )
 
-func Test_MergeKfDef(t *testing.T) {
+func Test_MergeKfCfg(t *testing.T) {
 	type testCase struct {
-		oldKf    *kfdefsv3.KfDef
-		newKf    *kfdefsv3.KfDef
-		expected *kfdefsv3.KfDef
+		oldKf    *kfconfig.KfConfig
+		newKf    *kfconfig.KfConfig
+		expected *kfconfig.KfConfig
 	}
 
 	testCases := []testCase{
 		// Param names are different; no merging.
 		{
-			oldKf: &kfdefsv3.KfDef{
-				Spec: kfdefsv3.KfDefSpec{
-					Applications: []kfdefsv3.Application{
+			oldKf: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					Applications: []kfconfig.Application{
 						{
 							Name: "app1",
-							KustomizeConfig: &kfdefsv3.KustomizeConfig{
-								Parameters: []config.NameValue{
+							KustomizeConfig: &kfconfig.KustomizeConfig{
+								Parameters: []kfconfig.NameValue{
 									{
 										Name:  "p1",
 										Value: "old1",
@@ -35,13 +34,13 @@ func Test_MergeKfDef(t *testing.T) {
 					},
 				},
 			},
-			newKf: &kfdefsv3.KfDef{
-				Spec: kfdefsv3.KfDefSpec{
-					Applications: []kfdefsv3.Application{
+			newKf: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					Applications: []kfconfig.Application{
 						{
 							Name: "app1",
-							KustomizeConfig: &kfdefsv3.KustomizeConfig{
-								Parameters: []config.NameValue{
+							KustomizeConfig: &kfconfig.KustomizeConfig{
+								Parameters: []kfconfig.NameValue{
 									{
 										Name:  "p2",
 										Value: "old2",
@@ -52,13 +51,13 @@ func Test_MergeKfDef(t *testing.T) {
 					},
 				},
 			},
-			expected: &kfdefsv3.KfDef{
-				Spec: kfdefsv3.KfDefSpec{
-					Applications: []kfdefsv3.Application{
+			expected: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					Applications: []kfconfig.Application{
 						{
 							Name: "app1",
-							KustomizeConfig: &kfdefsv3.KustomizeConfig{
-								Parameters: []config.NameValue{
+							KustomizeConfig: &kfconfig.KustomizeConfig{
+								Parameters: []kfconfig.NameValue{
 									{
 										Name:  "p2",
 										Value: "old2",
@@ -72,13 +71,13 @@ func Test_MergeKfDef(t *testing.T) {
 		},
 		// App names are different, no merging
 		{
-			oldKf: &kfdefsv3.KfDef{
-				Spec: kfdefsv3.KfDefSpec{
-					Applications: []kfdefsv3.Application{
+			oldKf: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					Applications: []kfconfig.Application{
 						{
 							Name: "app2",
-							KustomizeConfig: &kfdefsv3.KustomizeConfig{
-								Parameters: []config.NameValue{
+							KustomizeConfig: &kfconfig.KustomizeConfig{
+								Parameters: []kfconfig.NameValue{
 									{
 										Name:  "p1",
 										Value: "old1",
@@ -89,13 +88,13 @@ func Test_MergeKfDef(t *testing.T) {
 					},
 				},
 			},
-			newKf: &kfdefsv3.KfDef{
-				Spec: kfdefsv3.KfDefSpec{
-					Applications: []kfdefsv3.Application{
+			newKf: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					Applications: []kfconfig.Application{
 						{
 							Name: "app3",
-							KustomizeConfig: &kfdefsv3.KustomizeConfig{
-								Parameters: []config.NameValue{
+							KustomizeConfig: &kfconfig.KustomizeConfig{
+								Parameters: []kfconfig.NameValue{
 									{
 										Name:  "p1",
 										Value: "new1",
@@ -106,13 +105,13 @@ func Test_MergeKfDef(t *testing.T) {
 					},
 				},
 			},
-			expected: &kfdefsv3.KfDef{
-				Spec: kfdefsv3.KfDefSpec{
-					Applications: []kfdefsv3.Application{
+			expected: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					Applications: []kfconfig.Application{
 						{
 							Name: "app3",
-							KustomizeConfig: &kfdefsv3.KustomizeConfig{
-								Parameters: []config.NameValue{
+							KustomizeConfig: &kfconfig.KustomizeConfig{
+								Parameters: []kfconfig.NameValue{
 									{
 										Name:  "p1",
 										Value: "new1",
@@ -126,13 +125,13 @@ func Test_MergeKfDef(t *testing.T) {
 		},
 		// Merging old param values to new
 		{
-			oldKf: &kfdefsv3.KfDef{
-				Spec: kfdefsv3.KfDefSpec{
-					Applications: []kfdefsv3.Application{
+			oldKf: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					Applications: []kfconfig.Application{
 						{
 							Name: "app1",
-							KustomizeConfig: &kfdefsv3.KustomizeConfig{
-								Parameters: []config.NameValue{
+							KustomizeConfig: &kfconfig.KustomizeConfig{
+								Parameters: []kfconfig.NameValue{
 									{
 										Name:  "p1",
 										Value: "old1",
@@ -147,13 +146,13 @@ func Test_MergeKfDef(t *testing.T) {
 					},
 				},
 			},
-			newKf: &kfdefsv3.KfDef{
-				Spec: kfdefsv3.KfDefSpec{
-					Applications: []kfdefsv3.Application{
+			newKf: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					Applications: []kfconfig.Application{
 						{
 							Name: "app1",
-							KustomizeConfig: &kfdefsv3.KustomizeConfig{
-								Parameters: []config.NameValue{
+							KustomizeConfig: &kfconfig.KustomizeConfig{
+								Parameters: []kfconfig.NameValue{
 									{
 										Name:  "p1",
 										Value: "new1",
@@ -168,13 +167,13 @@ func Test_MergeKfDef(t *testing.T) {
 					},
 				},
 			},
-			expected: &kfdefsv3.KfDef{
-				Spec: kfdefsv3.KfDefSpec{
-					Applications: []kfdefsv3.Application{
+			expected: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					Applications: []kfconfig.Application{
 						{
 							Name: "app1",
-							KustomizeConfig: &kfdefsv3.KustomizeConfig{
-								Parameters: []config.NameValue{
+							KustomizeConfig: &kfconfig.KustomizeConfig{
+								Parameters: []kfconfig.NameValue{
 									{
 										Name:  "p1",
 										Value: "old1",
@@ -192,13 +191,13 @@ func Test_MergeKfDef(t *testing.T) {
 		},
 		// Merging two apps
 		{
-			oldKf: &kfdefsv3.KfDef{
-				Spec: kfdefsv3.KfDefSpec{
-					Applications: []kfdefsv3.Application{
+			oldKf: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					Applications: []kfconfig.Application{
 						{
 							Name: "app1",
-							KustomizeConfig: &kfdefsv3.KustomizeConfig{
-								Parameters: []config.NameValue{
+							KustomizeConfig: &kfconfig.KustomizeConfig{
+								Parameters: []kfconfig.NameValue{
 									{
 										Name:  "p1",
 										Value: "old1",
@@ -208,8 +207,8 @@ func Test_MergeKfDef(t *testing.T) {
 						},
 						{
 							Name: "app2",
-							KustomizeConfig: &kfdefsv3.KustomizeConfig{
-								Parameters: []config.NameValue{
+							KustomizeConfig: &kfconfig.KustomizeConfig{
+								Parameters: []kfconfig.NameValue{
 									{
 										Name:  "p2",
 										Value: "old2",
@@ -220,13 +219,13 @@ func Test_MergeKfDef(t *testing.T) {
 					},
 				},
 			},
-			newKf: &kfdefsv3.KfDef{
-				Spec: kfdefsv3.KfDefSpec{
-					Applications: []kfdefsv3.Application{
+			newKf: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					Applications: []kfconfig.Application{
 						{
 							Name: "app1",
-							KustomizeConfig: &kfdefsv3.KustomizeConfig{
-								Parameters: []config.NameValue{
+							KustomizeConfig: &kfconfig.KustomizeConfig{
+								Parameters: []kfconfig.NameValue{
 									{
 										Name:  "p1",
 										Value: "new1",
@@ -236,8 +235,8 @@ func Test_MergeKfDef(t *testing.T) {
 						},
 						{
 							Name: "app2",
-							KustomizeConfig: &kfdefsv3.KustomizeConfig{
-								Parameters: []config.NameValue{
+							KustomizeConfig: &kfconfig.KustomizeConfig{
+								Parameters: []kfconfig.NameValue{
 									{
 										Name:  "p2",
 										Value: "new2",
@@ -248,13 +247,13 @@ func Test_MergeKfDef(t *testing.T) {
 					},
 				},
 			},
-			expected: &kfdefsv3.KfDef{
-				Spec: kfdefsv3.KfDefSpec{
-					Applications: []kfdefsv3.Application{
+			expected: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					Applications: []kfconfig.Application{
 						{
 							Name: "app1",
-							KustomizeConfig: &kfdefsv3.KustomizeConfig{
-								Parameters: []config.NameValue{
+							KustomizeConfig: &kfconfig.KustomizeConfig{
+								Parameters: []kfconfig.NameValue{
 									{
 										Name:  "p1",
 										Value: "old1",
@@ -264,8 +263,8 @@ func Test_MergeKfDef(t *testing.T) {
 						},
 						{
 							Name: "app2",
-							KustomizeConfig: &kfdefsv3.KustomizeConfig{
-								Parameters: []config.NameValue{
+							KustomizeConfig: &kfconfig.KustomizeConfig{
+								Parameters: []kfconfig.NameValue{
 									{
 										Name:  "p2",
 										Value: "old2",
@@ -280,9 +279,9 @@ func Test_MergeKfDef(t *testing.T) {
 	}
 
 	for _, c := range testCases {
-		MergeKfDef(c.oldKf, c.newKf)
+		MergeKfCfg(c.oldKf, c.newKf)
 		if !reflect.DeepEqual(c.newKf, c.expected) {
-			t.Errorf("MergeKfDef produced incorrect results; got\n%v\nwant:\n%v", utils.PrettyPrint(c.newKf), utils.PrettyPrint(c.expected))
+			t.Errorf("MergeKfCfg produced incorrect results; got\n%v\nwant:\n%v", utils.PrettyPrint(c.newKf), utils.PrettyPrint(c.expected))
 		}
 	}
 }
