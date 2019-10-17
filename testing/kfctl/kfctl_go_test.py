@@ -20,7 +20,7 @@ def test_build_kfctl_go(record_xml_attribute, app_path, project, use_basic_auth,
     cluster_creation_script: script invoked to create a new cluster
     build_and_apply: whether to build and apply or apply
   """
-  util.set_pytest_junit("test_build_kfctl_go")
+  util.set_pytest_junit(record_xml_attribute, "test_build_kfctl_go")
 
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):

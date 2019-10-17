@@ -14,7 +14,7 @@ def test_deploy_kfctl_go(record_xml_attribute, app_path, project,
     app_path: The path to the Kubeflow app.
     project: The GCP project to use.
   """
-  util.set_pytest_junit("test_deploy_kfctl_go")
+  util.set_pytest_junit(record_xml_attribute, "test_deploy_kfctl_go")
 
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):

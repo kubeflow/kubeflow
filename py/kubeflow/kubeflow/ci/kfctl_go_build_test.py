@@ -9,7 +9,7 @@ def test_build_kfctl_go(record_xml_attribute):
   """Test building of kfctl go.
 
   """
-  util.set_pytest_junit("test_build_kfctl_go")
+  util.set_pytest_junit(record_xml_attribute, "test_build_kfctl_go")
 
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):

@@ -43,7 +43,7 @@ def get_endpoints_list(project):
 @pytest.mark.xfail
 def test_kfctl_delete(record_xml_attribute, kfctl_path, app_path, project,
                       cluster_deletion_script):
-  util.set_pytest_junit("test_kfctl_delete")
+  util.set_pytest_junit(record_xml_attribute, "test_kfctl_delete")
 
   # TODO(yanniszark): split this into a separate workflow step
   if cluster_deletion_script:

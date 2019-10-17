@@ -28,7 +28,7 @@ def test_kf_is_ready(record_xml_attribute, namespace, use_basic_auth, use_istio,
     namespace: The namespace Kubeflow is deployed to.
   """
   set_logging()
-  util.set_pytest_junit("test_kf_is_ready")
+  util.set_pytest_junit(record_xml_attribute, "test_kf_is_ready")
 
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
