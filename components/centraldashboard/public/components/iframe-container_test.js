@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import '@polymer/test-fixture/test-fixture';
 
 import {
@@ -34,7 +33,7 @@ describe('Iframe Container', () => {
         iframeContainer = document.getElementById(IFRAME_CONTAINER_SELECTOR_ID);
 
         // Set iframe src and spy on child iframe component
-        iframeContainer.src = 'about:blank';
+        iframeContainer.src = 'about:test';
         await new Promise((resolve) => {
             iframeContainer.$.iframe.addEventListener('load', () => {
                 postMessageSpy = spyOn(iframeContainer.$.iframe.contentWindow,
@@ -48,6 +47,25 @@ describe('Iframe Container', () => {
         document.getElementById(FIXTURE_ID).restore();
     });
 
+    it('Should replace iframe location when src changes', async () => {
+        const locationSpy = jasmine.createSpyObj('spyLocation', ['replace']);
+        spyOnProperty(iframeContainer.$.iframe, 'contentWindow')
+            .and.returnValue({location: locationSpy});
+
+        iframeContainer.src = 'http://foo.bar';
+        iframeContainer.src = 'http://foo.bar';
+        iframeContainer.src = 'http://foo.bar?test=1';
+        iframeContainer.src = 'http://other.bar/#/path';
+
+        expect(locationSpy.replace).toHaveBeenCalledTimes(3);
+        const calledWith = locationSpy.replace.calls.all()
+            .map((a) => a.args[0]);
+        expect(calledWith).toEqual([
+            'http://foo.bar',
+            'http://foo.bar?test=1',
+            'http://other.bar/#/path',
+        ]);
+    });
 
     it('Should reflect iframe URL changes to page property', async () => {
         const fakeLocation = {
