@@ -64,7 +64,10 @@ TESTS_DAG_NAME = "gke-tests"
 TEMPLATE_LABEL = "kfctl_e2e"
 
 MAIN_REPO = "kubeflow/kubeflow"
-EXTRA_REPOS = ["kubeflow/testing@HEAD", "kubeflow/tf-operator@HEAD"]
+
+# DO NOT SUBMIT wait for kubeflow/testing#490 to be submitted and then
+# go back to using kubeflow/testing@HEAD
+EXTRA_REPOS = ["kubeflow/testing@HEAD:490", "kubeflow/tf-operator@HEAD"]
 
 class Builder:
   def __init__(self, name=None, namespace=None,
