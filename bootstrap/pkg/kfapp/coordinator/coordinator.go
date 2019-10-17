@@ -19,7 +19,6 @@ package coordinator
 import (
 	"fmt"
 	"io/ioutil"
-	netUrl "net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -36,6 +35,7 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/minikube"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -260,22 +260,14 @@ func nameFromAppFile(appFile string) string {
 
 // LoadKfAppCfgFile constructs a KfApp by loading the provided app.yaml file.
 func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
-	url, err := netUrl.Parse(cfgfile)
-	isRemoteFile := false
-	cwd := ""
+	isRemoteFile, err := utils.IsRemoteFile(cfgfile)
 	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error parsing config file path: %v", err),
-		}
-	} else {
-		if url.Scheme != "" {
-			isRemoteFile = true
-		}
+		return nil, err
 	}
 
 	// If the config file is a remote URI, check to see if the current directory
 	// is empty because we will be generating the KfApp there.
+	cwd := ""
 	appFile := cfgfile
 	if isRemoteFile {
 		cwd = isCwdEmpty()

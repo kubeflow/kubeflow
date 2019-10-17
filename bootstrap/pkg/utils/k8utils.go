@@ -121,23 +121,29 @@ func CreateResourceFromFile(config *rest.Config, filename string, elems ...confi
 	return nil
 }
 
-func GetObjectKindFromUri(configFile string) (string, error) {
+// Checks if the path configFile is remote (e.g. http://github...)
+func IsRemoteFile(configFile string) (bool, error) {
 	if configFile == "" {
-		return "", fmt.Errorf("config file must be a URI or a path")
+		return false, fmt.Errorf("config file must be a URI or a path")
 	}
-
-	// Check if configFile is a remote file.
 	url, err := netUrl.Parse(configFile)
-	isRemoteFile := false
 	if err != nil {
-		return "", &kfapis.KfError{
+		return false, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error parsing config file path: %v", err),
+			Message: fmt.Sprintf("Error parsing file path: %v", err),
 		}
 	} else {
 		if url.Scheme != "" {
-			isRemoteFile = true
+			return true, nil
 		}
+		return false, nil
+	}
+}
+
+func GetObjectKindFromUri(configFile string) (string, error) {
+	isRemoteFile, err := IsRemoteFile(configFile)
+	if err != nil {
+		return "", err
 	}
 
 	// We will read from appFile.
