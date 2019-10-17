@@ -41,7 +41,8 @@ def get_endpoints_list(project):
 # and more importantly failures block upload of GCS artifacts so for now we mark
 # it as expected to fail.
 @pytest.mark.xfail
-def test_kfctl_delete(kfctl_path, app_path, project, cluster_deletion_script):
+def test_kfctl_delete(record_xml_attribute, kfctl_path, app_path, project,
+                      cluster_deletion_script):
   if os.getenv("JUNIT_CLASS_NAME"):
     # Override the classname attribute in the junit file.
     # This makes it easy to group related tests in test grid.

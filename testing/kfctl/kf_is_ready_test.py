@@ -20,7 +20,8 @@ def set_logging():
                       )
   logging.getLogger().setLevel(logging.INFO)
 
-def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
+def test_kf_is_ready(record_xml_attribute, namespace, use_basic_auth, use_istio,
+                     app_path):
   """Test that Kubeflow was successfully deployed.
 
   Args:

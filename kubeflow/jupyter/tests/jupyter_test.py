@@ -97,7 +97,7 @@ def send_request(*args, **kwargs):
   return r
 
 
-def test_jupyter(env, namespace):
+def test_jupyter(record_xml_attribute, env, namespace):
   if os.getenv("JUNIT_CLASS_NAME"):
     # Override the classname attribute in the junit file.
     # This makes it easy to group related tests in test grid.
