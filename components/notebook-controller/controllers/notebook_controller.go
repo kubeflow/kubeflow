@@ -168,7 +168,6 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// Check the pod status
 	pod := &corev1.Pod{}
-	podFound := false
 	err = r.Get(ctx, types.NamespacedName{Name: ss.Name + "-0", Namespace: ss.Namespace}, pod)
 	if err != nil && apierrs.IsNotFound(err) {
 		// This should be reconciled by the StatefulSet
@@ -177,7 +176,6 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	} else {
 		// Got the pod
-		podFound = true
 		if len(pod.Status.ContainerStatuses) > 0 &&
 			pod.Status.ContainerStatuses[0].State != instance.Status.ContainerState {
 			log.Info("Updating container state: ", "namespace", instance.Namespace, "name", instance.Name)
@@ -199,8 +197,19 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 	}
 
+	ep := &corev1.Endpoints{}
+	epFound := false
+	err = r.Get(ctx, types.NamespacedName{Name: ss.Name, Namespace: ss.Namespace}, ep)
+	if err != nil && apierrs.IsNotFound(err) {
+		log.Info("Endpoints not found...")
+	} else if err != nil {
+		return ctrl.Result{}, err
+	} else if len(ep.Subsets) > 0 {
+		epFound = true
+	}
+
 	// Check if the Notebook needs to be stopped
-	if podFound && culler.NotebookNeedsCulling(instance.ObjectMeta) {
+	if epFound && culler.NotebookNeedsCulling(instance.ObjectMeta) {
 		log.Info(fmt.Sprintf(
 			"Notebook %s/%s needs culling. Setting annotations",
 			instance.Namespace, instance.Name))
@@ -211,10 +220,9 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-	} else if podFound && !culler.StopAnnotationIsSet(instance.ObjectMeta) {
-		// The Pod is either too fresh, or the idle time has passed and it has
-		// received traffic. In this case we will be periodically checking if
-		// it needs culling.
+	} else if epFound && !culler.StopAnnotationIsSet(instance.ObjectMeta) {
+		// The idle time of pod has passed and it has received traffic.
+		// In this case we will be periodically checking if it needs culling.
 		return ctrl.Result{RequeueAfter: culler.GetRequeueTime()}, nil
 	}
 
