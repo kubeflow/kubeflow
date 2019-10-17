@@ -146,9 +146,22 @@ def get_config_spec(config_path, project, email, zone, app_path):
   # supports loading version from a URI we should use that so that we
   # pull the configs from the repo we checked out.
   config_spec = load_config(config_path)
-  config_spec["spec"]["project"] = project
-  config_spec["spec"]["email"] = email
-  config_spec["spec"]["zone"] = zone
+  apiVersion = config_spec["apiVersion"].strip().split("/")
+  if len(apiVersion) != 2:
+    raise RuntimeError("Invalid apiVersion: " + config_spec["apiVersion"].strip())
+  if apiVersion[-1] == "v1alpha1":
+    config_spec["spec"]["project"] = project
+    config_spec["spec"]["email"] = email
+    config_spec["spec"]["zone"] = zone
+  elif apiVersion[-1] == "v1beta1":
+    for plugin in config_spec["spec"].get("plugins", []):
+      if plugin.get("kind", "") == "KfGcpPlugin":
+        plugin["spec"]["project"] = project
+        plugin["spec"]["email"] = email
+        plugin["spec"]["zone"] = zone
+        break
+  else:
+    raise RuntimeError("Unknown version: " + apiVersion[-1])
   config_spec["spec"] = filter_spartakus(config_spec["spec"])
 
   # Set KfDef name to be unique
