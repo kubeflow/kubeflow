@@ -70,7 +70,7 @@ class Builder:
   def __init__(self, name=None, namespace=None,
                config_path=("https://raw.githubusercontent.com/kubeflow"
                             "/manifests/master/kfdef/kfctl_gcp_iap.yaml"),
-               bucket="kubeflow-ci_temp",
+               bucket=None,
                test_endpoint=False,
                use_basic_auth=False,
                build_and_apply=False,
@@ -81,7 +81,7 @@ class Builder:
       name: Name for the workflow.
       namespace: Namespace for the workflow.
       config_path: Path to the KFDef spec file.
-      bucket: The bucket to upload artifacts to.
+      bucket: The bucket to upload artifacts to. If not set use default determined by prow_artifacts.py.
       test_endpoint: Whether to test the endpoint is ready. Should only
         be true for IAP.
       use_basic_auth: Whether to use basic_auth.
@@ -435,9 +435,10 @@ class Builder:
                "kubeflow.testing.prow_artifacts",
                "--artifacts_dir=" +
                self.output_dir,
-               "copy_artifacts",
-               "--bucket=" + self.bucket,
-               "--suffix=fakesuffix",]
+               "copy_artifacts"]
+
+    if self.bucket:
+      command = append("--bucket=" + self.bucket)
 
     dependences = []
     if self.delete_kf:
@@ -594,9 +595,10 @@ class Builder:
                "-m",
                "kubeflow.testing.prow_artifacts",
                "--artifacts_dir=" + self.output_dir,
-               "create_pr_symlink",
-               "--bucket=" + self.bucket,
-               ]
+               "create_pr_symlink"]
+
+    if self.bucket:
+      command.append(self.bucket)
 
     dependences = [checkout["name"]]
     symlink = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
