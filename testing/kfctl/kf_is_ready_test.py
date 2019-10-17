@@ -20,14 +20,15 @@ def set_logging():
                       )
   logging.getLogger().setLevel(logging.INFO)
 
-def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
+def test_kf_is_ready(record_xml_attribute, namespace, use_basic_auth, use_istio,
+                     app_path):
   """Test that Kubeflow was successfully deployed.
 
   Args:
     namespace: The namespace Kubeflow is deployed to.
   """
   set_logging()
-  logging.info("Using namespace %s", namespace)
+  util.set_pytest_junit(record_xml_attribute, "test_kf_is_ready")
 
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
