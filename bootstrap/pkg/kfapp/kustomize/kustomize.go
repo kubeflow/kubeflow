@@ -27,6 +27,8 @@ import (
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize/kindfiltertransformer"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize/kindordertransformer"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
@@ -51,6 +53,7 @@ import (
 	"sigs.k8s.io/kustomize/v3/pkg/resmap"
 	"sigs.k8s.io/kustomize/v3/pkg/resource"
 	"sigs.k8s.io/kustomize/v3/pkg/target"
+	"sigs.k8s.io/kustomize/v3/pkg/transformers"
 	"sigs.k8s.io/kustomize/v3/pkg/types"
 	"sigs.k8s.io/kustomize/v3/pkg/validators"
 	"sigs.k8s.io/kustomize/v3/plugin/builtin"
@@ -920,6 +923,28 @@ func GenerateKustomizationFile(kfDef *kfconfig.KfConfig, root string,
 	return kustomizationPathErr
 }
 
+// LoadOrderTransformer allows to reorder object from the output.
+func LoadOrderTransformer(transformername string) (transformers.Transformer, error) {
+	if transformername == "legacy" {
+		return builtin.NewLegacyOrderTransformerPlugin(), nil
+	}
+
+	return kindordertransformer.NewKindOrderTransformer(transformername), nil
+}
+
+// LoadFilterTransformer allows to include or excludes resources from the output
+func LoadFilterTransformer(applyphase string) (transformers.Transformer, error) {
+	includes := []string{}
+	excludes := []string{"CustomResourceDefinition"}
+
+	if applyphase == "crds" {
+		includes = []string{"CustomResourceDefinition"}
+		excludes = []string{}
+	}
+
+	return kindfiltertransformer.NewKindFilterTransformer(includes, excludes), nil
+}
+
 // EvaluateKustomizeManifest evaluates the kustomize dir compDir, and returns the resources.
 func EvaluateKustomizeManifest(compDir string) (resmap.ResMap, error) {
 	fsys := fs.MakeRealFS()
@@ -939,10 +964,19 @@ func EvaluateKustomizeManifest(compDir string) (resmap.ResMap, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = builtin.NewLegacyOrderTransformerPlugin().Transform(allResources)
+	ordert, err := LoadOrderTransformer("legacy")
 	if err != nil {
 		return nil, err
 	}
+	err = ordert.Transform(allResources)
+	if err != nil {
+		return nil, err
+	}
+
+	// It is possible here to apply a filter
+	// filtert, err := LoadFilterTransformer("phase1")
+	// err = filter.Transform(allResources)
+
 	return allResources, nil
 }
 
