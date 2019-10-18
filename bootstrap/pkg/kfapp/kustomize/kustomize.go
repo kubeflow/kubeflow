@@ -53,7 +53,6 @@ import (
 	"sigs.k8s.io/kustomize/v3/pkg/target"
 	"sigs.k8s.io/kustomize/v3/pkg/types"
 	"sigs.k8s.io/kustomize/v3/pkg/validators"
-	"sigs.k8s.io/kustomize/v3/plugin/builtin"
 	"strings"
 	"time"
 
@@ -936,10 +935,6 @@ func EvaluateKustomizeManifest(compDir string) (resmap.ResMap, error) {
 		return nil, err
 	}
 	allResources, err := kt.MakeCustomizedResMap()
-	if err != nil {
-		return nil, err
-	}
-	err = builtin.NewLegacyOrderTransformerPlugin().Transform(allResources)
 	if err != nil {
 		return nil, err
 	}
