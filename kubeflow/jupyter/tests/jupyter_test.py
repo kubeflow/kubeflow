@@ -98,6 +98,13 @@ def send_request(*args, **kwargs):
 
 
 def test_jupyter(record_xml_attribute, env, namespace):
+  """Test the jupyter notebook.
+
+  Args:
+    record_xml_attribute: Test fixture provided by pytest.
+    env: ksonnet environment.
+    namespace: namespace to run in.
+  """
   util.set_pytest_junit(record_xml_attribute, "jupyter_test")
 
   app_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
