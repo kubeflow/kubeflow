@@ -42,6 +42,7 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 		Spec: kfconfig.KfConfigSpec{
 			AppDir:       appdir,
 			UseBasicAuth: false,
+			UseIstio:     true,
 		},
 	}
 	config.Name = kfdef.Name
