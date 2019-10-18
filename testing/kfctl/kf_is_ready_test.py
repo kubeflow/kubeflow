@@ -7,6 +7,9 @@ import uuid
 import yaml
 from retrying import retry
 
+import googleapiclient.discovery
+from oauth2client.client import GoogleCredentials
+
 import pytest
 
 from kubeflow.testing import util
@@ -20,7 +23,7 @@ def set_logging():
                       )
   logging.getLogger().setLevel(logging.INFO)
 
-def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
+def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_name, project):
   """Test that Kubeflow was successfully deployed.
 
   Args:
@@ -80,16 +83,13 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
     raise RuntimeError("Unknown version: " + apiVersion[-1])
 
   ingress_related_deployments = [
-    "istio-citadel",
     "istio-egressgateway",
-    "istio-galley",
     "istio-ingressgateway",
     "istio-pilot",
     "istio-policy",
     "istio-sidecar-injector",
     "istio-telemetry",
     "istio-tracing",
-    "kiali",
     "prometheus",
   ]
   ingress_related_stateful_sets = []
@@ -144,6 +144,34 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
   for deployment_name in knative_related_deployments:
     logging.info("Verifying that deployment %s started...", deployment_name)
     util.wait_for_deployment(api_client, knative_namespace, deployment_name, 10)
+
+  if platform == "gcp":
+    # check secret
+    util.wait_for_secret(api_client, namespace, "user-gcp-sa")
+
+    cred = GoogleCredentials.get_application_default()
+    # Create the Cloud IAM service object
+    service = googleapiclient.discovery.build('iam', 'v1', credentials=cred)
+
+    userSa = 'projects/%s/serviceAccounts/%s-user@%s.iam.gserviceaccount.com' % (project, app_name, project)
+    adminSa = 'serviceAccount:%s-admin@%s.iam.gserviceaccount.com' % (app_name, project)
+
+    request = service.projects().serviceAccounts().getIamPolicy(resource=userSa)
+    response = request.execute()
+    roleToMembers = {}
+    for binding in response['bindings']:
+      roleToMembers[binding['role']] = set(binding['members'])
+
+    if 'roles/owner' not in roleToMembers:
+      raise Exception("roles/owner missing in iam-policy of %s" % userSa)
+
+    if adminSa not in roleToMembers['roles/owner']:
+      raise Exception("Admin %v should be owner of user %s" % (adminSa, userSa))
+
+    workloadIdentityRole = 'roles/iam.workloadIdentityUser'
+    if workloadIdentityRole not in roleToMembers:
+      raise Exception("roles/iam.workloadIdentityUser missing in iam-policy of %s" % userSa)
+
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
