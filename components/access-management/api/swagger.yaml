@@ -254,8 +254,6 @@ definitions:
         $ref: "#/definitions/Metadata"
       spec:
         $ref: "#/definitions/Profile_spec"
-      status:
-        $ref: "#/definitions/Profile_status"
     example:
       metadata:
         name: "name"
@@ -265,9 +263,6 @@ definitions:
           kind: "kind"
           name: "name"
           namespace: "namespace"
-      status:
-        message: "message"
-        status: "status"
   ErrorMessage:
     type: "object"
     properties:
@@ -283,14 +278,3 @@ definitions:
         kind: "kind"
         name: "name"
         namespace: "namespace"
-  Profile_status:
-    properties:
-      status:
-        type: "string"
-        description: "Status of the profile, one of Succeeded, Failed, Unknown."
-      message:
-        type: "string"
-        description: "Non empty when at Failed status, containing detailed error messages"
-    example:
-      message: "message"
-      status: "status"

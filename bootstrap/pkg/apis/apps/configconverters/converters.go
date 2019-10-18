@@ -2,6 +2,8 @@ package configconverters
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
@@ -123,7 +125,24 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 				strings.Join(versions, ", "), apiVersionSeparated[1]),
 		}
 	}
-	return converter.ToKfConfig(appDir, configFileBytes)
+	cwd, err := os.Getwd()
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INTERNAL_ERROR),
+			Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
+		}
+	}
+
+	return converter.ToKfConfig(cwd, configFileBytes)
+}
+
+func isCwdEmpty() string {
+	cwd, _ := os.Getwd()
+	files, _ := ioutil.ReadDir(cwd)
+	if len(files) > 1 {
+		return ""
+	}
+	return cwd
 }
 
 func WriteConfigToFile(config kfconfig.KfConfig, filename string) error {

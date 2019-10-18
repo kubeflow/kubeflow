@@ -84,6 +84,10 @@ Metadata
    * Generic logger to auto log K8s resources to metadata store
    * [Kanban board](https://github.com/orgs/kubeflow/projects/12)
 
+Pipelines
+   * Local execution of pipelines for easy development
+   * Enhanced metadata integration
+
 Enterprise support
 
    * Restrict kubeflow access to subset of namespaces ([kubeflow/kubeflow#3623](https://github.com/orgs/kubeflow/projects/18))
@@ -130,6 +134,9 @@ The following applications will likely be of beta quality for the 1.0 release wi
 * fairing SDK to facilite use of notebooks for build-train-deploy
 * Metadata SDK, UI, and backend
 * KFServing for model deployment and inference
+* Pipelines
+   * CI/CD integration and Pipeline versioning are targeted for Q4 2019
+   * Multi-tenancy and RBAC features are targeted for early Q1 2020
 
 Here is a preliminary list of limitations and requirements that will be part of our 1.0 release
 

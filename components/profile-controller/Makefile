@@ -1,6 +1,6 @@
-
+PROJECT ?= kubeflow-dev
 # Image URL to use all building/pushing image targets
-IMG ?= gcr.io/kubeflow-images-public/profile-controller
+IMG ?= gcr.io/$(PROJECT)/profile-controller
 TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
 GOLANG_VERSION ?= 1.12.5
 
@@ -57,6 +57,13 @@ generate: controller-gen
 build:
 	docker build -t ${IMG}:${TAG} .
 	@echo Built ${IMG}:${TAG}
+
+build-gcb:
+	gcloud --project=$(PROJECT) \
+		builds submit \
+		--machine-type=n1-highcpu-32 \
+		--substitutions=_TAG=$(TAG),_REGISTRY=$(PROJECT) \
+		--config=cloudbuild.yaml .
 
 # Push the docker image
 push: build

@@ -3,7 +3,6 @@ kind: Pipeline
 metadata:
   name: ci-pipeline
 spec:
-  params: []
   resources:
   - name: kubeflow
     type: git

@@ -42,11 +42,11 @@ type NotebookStatus struct {
 	Kernels      int    `json:"kernels"`
 }
 
-// Some Utility Fuctions
-func getEnvDefault(variable string, default_val string) string {
+// Some Utility Functions
+func getEnvDefault(variable string, defaultVal string) string {
 	envVar := os.Getenv(variable)
 	if len(envVar) == 0 {
-		return default_val
+		return defaultVal
 	}
 	return envVar
 }
@@ -60,30 +60,30 @@ func createTimestamp() string {
 func GetRequeueTime() time.Duration {
 	// The frequency in which we check if the Pod needs culling
 	// Uses ENV var: CULLING_CHECK_PERIOD
-	culling_period := getEnvDefault(
+	cullingPeriod := getEnvDefault(
 		"CULLING_CHECK_PERIOD", DEFAULT_CULLING_CHECK_PERIOD)
-	culling_period_m, err := strconv.Atoi(culling_period)
+	realCullingPeriod, err := strconv.Atoi(cullingPeriod)
 	if err != nil {
 		log.Info(fmt.Sprintf(
 			"Culling Period should be Int. Got '%s'. Using default value.",
-			culling_period))
-		culling_period_m, _ = strconv.Atoi(DEFAULT_CULLING_CHECK_PERIOD)
+			cullingPeriod))
+		realCullingPeriod, _ = strconv.Atoi(DEFAULT_CULLING_CHECK_PERIOD)
 	}
 
-	return time.Duration(culling_period_m) * time.Minute
+	return time.Duration(realCullingPeriod) * time.Minute
 }
 
 func getMaxIdleTime() time.Duration {
-	idle_time := getEnvDefault("IDLE_TIME", DEFAULT_IDLE_TIME)
-	idle_time_m, err := strconv.Atoi(idle_time)
+	idleTime := getEnvDefault("IDLE_TIME", DEFAULT_IDLE_TIME)
+	realIdleTime, err := strconv.Atoi(idleTime)
 	if err != nil {
 		log.Info(fmt.Sprintf(
 			"IDLE_TIME should be Int. Got %s instead. Using default value.",
-			idle_time))
-		idle_time_m, _ = strconv.Atoi(DEFAULT_IDLE_TIME)
+			idleTime))
+		realIdleTime, _ = strconv.Atoi(DEFAULT_IDLE_TIME)
 	}
 
-	return time.Minute * time.Duration(idle_time_m)
+	return time.Minute * time.Duration(realIdleTime)
 }
 
 // Stop Annotation handling functions
@@ -102,6 +102,7 @@ func SetStopAnnotation(meta *metav1.ObjectMeta) {
 	}
 }
 
+// TODO: add remove notebooks count metric
 func RemoveStopAnnotation(meta *metav1.ObjectMeta) {
 	if meta == nil {
 		log.Info("Error: Metadata is Nil. Can't remove Annotations")
@@ -132,7 +133,6 @@ func StopAnnotationIsSet(meta metav1.ObjectMeta) bool {
 // Culling Logic
 func getNotebookApiStatus(nm, ns string) *NotebookStatus {
 	// Get the Notebook Status from the Server's /api/status endpoint
-	// url := fmt.Sprintf("http://localhost:8001/api/v1/namespaces/%s/services/%s:80/proxy/notebook/%s/%s/api/status", ns, nm, ns, nm)
 	domain := getEnvDefault("CLUSTER_DOMAIN", DEFAULT_CLUSTER_DOMAIN)
 	url := fmt.Sprintf(
 		"http://%s.%s.svc.%s/notebook/%s/%s/api/status",
@@ -177,12 +177,11 @@ func notebookIsIdle(nm, ns string, status *NotebookStatus) bool {
 		return false
 	}
 
-	time_cap := lastActivity.Add(getMaxIdleTime())
-	if time.Now().After(time_cap) {
+	timeCap := lastActivity.Add(getMaxIdleTime())
+	if time.Now().After(timeCap) {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 func NotebookNeedsCulling(nbMeta metav1.ObjectMeta) bool {

@@ -2,15 +2,18 @@ package gcp
 
 import (
 	"encoding/json"
+
 	"github.com/gogo/protobuf/proto"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 
-	"k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"reflect"
 	"testing"
+
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestGcp_buildBasicAuthSecret(t *testing.T) {
@@ -29,21 +32,21 @@ func TestGcp_buildBasicAuthSecret(t *testing.T) {
 	cases := []testCase{
 		{
 			Gcp: &Gcp{
-				kfDef: &kfdefs.KfDef{
+				kfDef: &kfconfig.KfConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Namespace: "gcpnamespace",
 					},
-					Spec: kfdefs.KfDefSpec{
-						Plugins: []kfdefs.Plugin{
+					Spec: kfconfig.KfConfigSpec{
+						Plugins: []kfconfig.Plugin{
 							{
 								Name: "gcp",
 							},
 						},
-						Secrets: []kfdefs.Secret{
+						Secrets: []kfconfig.Secret{
 							{
 								Name: "passwordSecret",
-								SecretSource: &kfdefs.SecretSource{
-									LiteralSource: &kfdefs.LiteralSource{
+								SecretSource: &kfconfig.SecretSource{
+									LiteralSource: &kfconfig.LiteralSource{
 										Value: "somepassword",
 									},
 								},
@@ -77,7 +80,7 @@ func TestGcp_buildBasicAuthSecret(t *testing.T) {
 
 	for _, c := range cases {
 
-		err := c.Gcp.kfDef.SetPluginSpec("gcp", c.GcpPluginSpec)
+		err := c.Gcp.kfDef.SetPluginSpec("KfGcpPlugin", c.GcpPluginSpec)
 
 		if err != nil {
 			t.Fatalf("Could not set pluginspec")
@@ -106,20 +109,24 @@ func TestGcp_buildBasicAuthSecret(t *testing.T) {
 
 func TestGcp_setGcpPluginDefaults(t *testing.T) {
 	type testCase struct {
-		Name          string
-		Input         *kfdefs.KfDef
-		InputSpec     *GcpPluginSpec
-		Env           map[string]string
-		EmailGetter   func() (string, error)
-		Expected      *GcpPluginSpec
-		ExpectedEmail string
+		Name            string
+		Input           *kfconfig.KfConfig
+		InputSpec       *GcpPluginSpec
+		Env             map[string]string
+		EmailGetter     func() (string, error)
+		ProjectGetter   func() (string, error)
+		ZoneGetter      func() (string, error)
+		Expected        *GcpPluginSpec
+		ExpectedEmail   string
+		ExpectedProject string
+		ExpectedZone    string
 	}
 
 	cases := []testCase{
 		{
 			Name: "no-plugin-basic-auth",
-			Input: &kfdefs.KfDef{
-				Spec: kfdefs.KfDefSpec{
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
 					UseBasicAuth: true,
 				},
 			},
@@ -129,7 +136,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					BasicAuth: &BasicAuth{
 						Username: "someuser",
@@ -148,8 +155,8 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		},
 		{
 			Name: "no-plugin-iap",
-			Input: &kfdefs.KfDef{
-				Spec: kfdefs.KfDefSpec{
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
 					UseBasicAuth: false,
 				},
 			},
@@ -158,7 +165,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -177,8 +184,8 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		},
 		{
 			Name: "set-email",
-			Input: &kfdefs.KfDef{
-				Spec: kfdefs.KfDefSpec{
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
 					UseBasicAuth: false,
 				},
 			},
@@ -187,7 +194,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -202,17 +209,28 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 						Path: "deployment/gke/deployment_manager_configs",
 					},
 				},
+				Project: "myproject",
+				Email:   "myemail",
+				Zone:    "us-east1-b",
 			},
 			EmailGetter: func() (string, error) {
 				return "myemail", nil
 			},
-			ExpectedEmail: "myemail",
+			ProjectGetter: func() (string, error) {
+				return "\nmyproject ", nil
+			},
+			ZoneGetter: func() (string, error) {
+				return "\nus-east1-b\n", nil
+			},
+			ExpectedEmail:   "myemail",
+			ExpectedProject: "myproject",
+			ExpectedZone:    "us-east1-b",
 		},
 		{
 			// Make sure emails get trimmed.
 			Name: "trim-email",
-			Input: &kfdefs.KfDef{
-				Spec: kfdefs.KfDefSpec{
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
 					UseBasicAuth: false,
 				},
 			},
@@ -221,7 +239,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -236,6 +254,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 						Path: "deployment/gke/deployment_manager_configs",
 					},
 				},
+				Email: "myemail",
 			},
 			EmailGetter: func() (string, error) {
 				return "\nmyemail\n", nil
@@ -246,8 +265,8 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		{
 			// Make sure emails get trimmed.
 			Name: "no-override",
-			Input: &kfdefs.KfDef{
-				Spec: kfdefs.KfDefSpec{
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
 					UseBasicAuth: false,
 				},
 			},
@@ -259,7 +278,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(false),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "someclient",
@@ -274,6 +293,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 						Path: "deployment/gke/deployment_manager_configs",
 					},
 				},
+				Email: "myemail",
 			},
 			EmailGetter: func() (string, error) {
 				return "\nmyemail\n", nil
@@ -282,8 +302,8 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		},
 		{
 			Name: "iap-not-overwritten",
-			Input: &kfdefs.KfDef{
-				Spec: kfdefs.KfDefSpec{
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
 					UseBasicAuth: false,
 				},
 			},
@@ -302,7 +322,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					IAP: &IAP{
 						OAuthClientId: "original_client",
@@ -321,9 +341,9 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		},
 		{
 			Name: "basic-auth-not-overwritten",
-			Input: &kfdefs.KfDef{
-				Spec: kfdefs.KfDefSpec{
-					UseBasicAuth: false,
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					UseBasicAuth: true,
 				},
 			},
 			InputSpec: &GcpPluginSpec{
@@ -341,7 +361,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					BasicAuth: &BasicAuth{
 						Username: "original_user",
@@ -360,9 +380,9 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		},
 		{
 			Name: "dm-configs-not-overwritten",
-			Input: &kfdefs.KfDef{
-				Spec: kfdefs.KfDefSpec{
-					UseBasicAuth: false,
+			Input: &kfconfig.KfConfig{
+				Spec: kfconfig.KfConfigSpec{
+					UseBasicAuth: true,
 				},
 			},
 			InputSpec: &GcpPluginSpec{
@@ -386,7 +406,7 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			},
 			Expected: &GcpPluginSpec{
 				CreatePipelinePersistentStorage: proto.Bool(true),
-				EnableWorkloadIdentity:          proto.Bool(false),
+				EnableWorkloadIdentity:          proto.Bool(true),
 				Auth: &Auth{
 					BasicAuth: &BasicAuth{
 						Username: "original_user",
@@ -426,6 +446,8 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 		gcp := &Gcp{
 			kfDef:            i,
 			gcpAccountGetter: c.EmailGetter,
+			gcpProjectGetter: c.ProjectGetter,
+			gcpZoneGetter:    c.ZoneGetter,
 		}
 
 		if err := gcp.setGcpPluginDefaults(); err != nil {
@@ -447,11 +469,16 @@ func TestGcp_setGcpPluginDefaults(t *testing.T) {
 			t.Errorf("Case %v; got:\n%v\nwant:\n%v", c.Name, pGot, pWant)
 		}
 
-		if c.ExpectedEmail != "" {
-			if c.ExpectedEmail != i.Spec.Email {
-				t.Errorf("Case %v; email: got %v; want %v", c.Name, i.Spec.Email, c.ExpectedEmail)
-			}
+		if c.ExpectedEmail != "" && c.ExpectedEmail != i.Spec.Email {
+			t.Errorf("Case %v; email: got %v; want %v", c.Name, i.Spec.Email, c.ExpectedEmail)
 		}
+		if c.ExpectedProject != "" && c.ExpectedProject != i.Spec.Project {
+			t.Errorf("Case %v; project: got %v; want %v", c.Name, i.Spec.Project, c.ExpectedProject)
+		}
+		if c.ExpectedZone != "" && c.ExpectedZone != i.Spec.Zone {
+			t.Errorf("Case %v; zone: got %v; want %v", c.Name, i.Spec.Zone, c.ExpectedZone)
+		}
+
 	}
 }
 

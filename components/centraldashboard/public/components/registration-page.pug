@@ -17,7 +17,7 @@ paper-card#MainCard
                 error='[[error.response.error]]', disabled='[[submittingWorkgroup]]', maxlength=253)
             iron-a11y-keys#keys(target='[[namespaceInput]]', keys='enter', on-keys-pressed='finishSetup')
             .actions
-                paper-button(on-click='finishSetup', disabled='[[submittingWorkgroup]]') Finish
+                paper-button(on-click='finishSetup', disabled='[[or(submittingWorkgroup, waitForRedirect)]]') Finish
                 paper-button(on-click='backPage', disabled='[[submittingWorkgroup]]') Go back
     carousel-indicator(size=2, selected='{{page}}')
 
@@ -25,4 +25,3 @@ nav#Links
     a(href='https://github.com/kubeflow/kubeflow', tabindex='-1', target="_blank") GitHub
     a(href='https://www.kubeflow.org/docs/about/kubeflow/', tabindex='-1', target="_blank") Documentation
     a(href='https://policies.google.com/privacy', tabindex='-1', target="_blank") Privacy
-    

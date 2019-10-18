@@ -11,7 +11,7 @@ import (
 	"fmt"
 	kfapisv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -44,7 +44,7 @@ const (
 )
 
 type Existing struct {
-	kfdefs.KfDef
+	*kfconfig.KfConfig
 	istioManifests    []manifest
 	authOIDCManifests []manifest
 }
@@ -54,9 +54,14 @@ type manifest struct {
 	path string
 }
 
-func GetPlatform(kfdef *kfdefs.KfDef) (kftypesv3.Platform, error) {
+func GetPlatform(kfdef *kfconfig.KfConfig) (kftypesv3.Platform, error) {
 
-	kfRepoDir := kfdef.Status.ReposCache[kftypesv3.ManifestsRepoName].LocalPath
+	if err := kfdef.SyncCache(); err != nil {
+		return nil, internalError(err)
+	}
+
+	repoCache, _ := kfdef.GetRepoCache(kftypesv3.ManifestsRepoName)
+	kfRepoDir := repoCache.LocalPath
 	istioManifestsDir := path.Join(kfRepoDir, CONFIG_LOCAL_PATH, "istio")
 	istioManifests := []manifest{
 		{
@@ -90,7 +95,7 @@ func GetPlatform(kfdef *kfdefs.KfDef) (kftypesv3.Platform, error) {
 	}
 
 	existing := &Existing{
-		KfDef:             *kfdef,
+		KfConfig:          kfdef,
 		istioManifests:    istioManifests,
 		authOIDCManifests: authOIDCManifests,
 	}
@@ -177,7 +182,8 @@ func (existing *Existing) Apply(resources kftypesv3.ResourceEnum) error {
 	}
 
 	// Generate YAML from the dex, authservice templates
-	kfRepoDir := existing.Status.ReposCache[kftypesv3.ManifestsRepoName].LocalPath
+	repoCache, _ := existing.GetRepoCache(kftypesv3.ManifestsRepoName)
+	kfRepoDir := repoCache.LocalPath
 	authOIDCManifestsDir := path.Join(kfRepoDir, CONFIG_LOCAL_PATH, "auth_oidc")
 	err = generateFromGoTemplate(
 		path.Join(authOIDCManifestsDir, "authservice.tmpl"),
@@ -407,7 +413,7 @@ func generateCert(addr string) ([]byte, []byte, error) {
 
 func getLBAddress(kubeclient client.Client) (string, error) {
 	// Get IngressGateway Service's address
-	const maxRetries = 40
+	const maxRetries = 80
 	var lbIngresses []corev1.LoadBalancerIngress
 	svc := &corev1.Service{}
 	lbServiceName := types.NamespacedName{Name: "istio-ingressgateway", Namespace: "istio-system"}

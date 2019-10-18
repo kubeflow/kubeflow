@@ -38,6 +38,7 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
             namespaceName: String,
             error: Object,
             flowComplete: {type: Boolean, value: false},
+            waitForRedirect: {type: Boolean, value: false},
             showAPIText: {type: Boolean, value: false},
             _namespaceValidationRegex: {
                 type: String,
@@ -56,7 +57,8 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
     _onUserDetails(d) {
         this.namespaceName = this.userDetails
             // eslint-disable-next-line no-useless-escape
-            .replace(/[^\w]|_|\./g, '-')
+            .replace(/[^\w]|\./g, '-')
+            .replace(/^-+|-+$|_/g, '')
             .toLowerCase();
     }
 
@@ -72,10 +74,33 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
         this.page--;
     }
 
-    finishSetup() {
+    showError(msg) {
+        this.set('error', {response: {error: msg}});
+    }
+
+    validateNamespace() {
+        const finalRgx = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/;
+        if (finalRgx.test(this.namespaceName)) return true;
+        this.showError(
+            `Name can only start and end with alpha-num characters, `+
+            `dashes are only permitted between start and end. (minlength >= 1)`
+        );
+    }
+
+    async finishSetup() {
         const API = this.$.MakeNamespace;
+        if (!this.validateNamespace()) return;
         API.body = {namespace: this.namespaceName};
-        API.generateRequest();
+        this.waitForRedirect = true;
+        await API.generateRequest();
+        await this.sleep(500);
+        if (this.error && this.error.response) {
+            return this.waitForRedirect = false;
+        }
+        // If request completed and 6 seconds pass, probably let
+        // the user click next again!
+        await this.sleep(6000);
+        this.waitForRedirect = false;
     }
 
     _successSetup() {

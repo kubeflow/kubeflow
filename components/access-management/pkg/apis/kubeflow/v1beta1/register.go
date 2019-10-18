@@ -22,17 +22,17 @@ limitations under the License.
 // +k8s:conversion-gen=github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow
 // +k8s:defaulter-gen=TypeMeta
 // +groupName=kubeflow.org
-package v1alpha1
+package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	profileV1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
+	profilev1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
 )
 
 const GroupName = "kubeflow.org"
-const GroupVersion = "v1alpha1"
+const GroupVersion = "v1beta1"
 
 var (
 	// SchemeGroupVersion is group version used to register these objects
@@ -47,8 +47,8 @@ var (
 
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-		&profileV1alpha1.Profile{},
-		&profileV1alpha1.ProfileList{},
+		&profilev1beta1.Profile{},
+		&profilev1beta1.ProfileList{},
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil

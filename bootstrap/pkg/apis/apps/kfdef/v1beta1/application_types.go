@@ -46,6 +46,7 @@ type KfDefList struct {
 }
 
 type KfDefSpec struct {
+	Version      string        `json:"version,omitempty"`
 	Applications []Application `json:"applications,omitempty"`
 	Plugins      []Plugin      `json:"plugins,omitempty"`
 	Secrets      []Secret      `json:"secrets,omitempty"`

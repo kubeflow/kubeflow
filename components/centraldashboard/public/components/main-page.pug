@@ -70,7 +70,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                 neon-animatable(page='manage-users')
                     manage-users-view(user='[[user]]', namespaces='[[namespaces]]', is-cluster-admin='[[isClusterAdmin]]', owned-namespace='[[ownedNamespace]]')
                 neon-animatable(page='iframe')
-                    iframe#PageFrame.flex
+                    iframe-container(namespace='[[namespace]]',
+                        src='[[iframeSrc]]', page="{{iframePage}}")
                 neon-animatable(page='not_found')
                     not-found-view(path="[[route.path]]")
     iron-media-query(query='(max-width: 900px)', query-matches='{{sidebarBleed}}')
@@ -79,4 +80,4 @@ paper-toast#welcomeUser(duration=5000) Welcome, [[_extractLdap(user)]]!
 paper-toast#ErrorToast(duration=0, opened='[[!empty(errorText)]]', on-click='closeError') [[errorText]]
     paper-icon-button(icon='close')
 template(is='dom-if', if='[[registrationFlow]]')
-    registration-page(user-details='[[user]]' on-flowcomplete='resyncApp')
+    registration-page(user-details='[[_extractLdap(user)]]' on-flowcomplete='resyncApp')

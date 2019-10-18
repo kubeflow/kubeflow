@@ -15,10 +15,10 @@ require (
 	github.com/gogo/protobuf v1.2.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.1
+	github.com/google/go-cmp v0.3.0
 	github.com/hashicorp/go-getter v1.0.2
 	github.com/imdario/mergo v0.3.7
 	github.com/kubeflow/kfctl/v3 v3.0.0-20190917231916-6ebaf60b014a
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/onrik/logrus v0.2.1
 	github.com/otiai10/copy v1.0.1
 	github.com/pkg/errors v0.8.1
@@ -37,6 +37,7 @@ require (
 	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 	gopkg.in/src-d/go-git.v4 v4.12.0
+	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20190409021203-6e4e0e4f393b
 	k8s.io/apiextensions-apiserver v0.0.0-20190409022649-727a075fdec8
 	k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d

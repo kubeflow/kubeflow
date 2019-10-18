@@ -62,6 +62,15 @@ const (
 	KUBEFLOW_PASSWORD      = "KUBEFLOW_PASSWORD"
 	DefaultSwaggerFile     = "bootstrap/k8sSpec/v1.11.7/api/openapi-spec/swagger.json"
 	YamlSeparator          = "(?m)^---[ \t]*$"
+	Dns1123LabelFmt        = "[a-z0-9]([-a-z0-9]*[a-z0-9])?"
+	ProfileNameMaxLen      = 30
+)
+
+type SupportedResourceType string
+
+const (
+	KFDEF     SupportedResourceType = "KfDef"
+	KFUPGRADE SupportedResourceType = "KfUpgrade"
 )
 
 type ResourceEnum string
@@ -93,7 +102,7 @@ const (
 	DELETE_STORAGE        CliOption = "delete_storage"
 	DISABLE_USAGE_REPORT  CliOption = "disable_usage_report"
 	PACKAGE_MANAGER       CliOption = "package-manager"
-	CONFIG                CliOption = "config"
+	FILE                  CliOption = "file"
 )
 
 //
@@ -121,7 +130,7 @@ type Platform interface {
 // This is used in the ksonnet implementation for `ks show`
 //
 type KfShow interface {
-	Show(resources ResourceEnum, options map[string]interface{}) error
+	Show(resources ResourceEnum) error
 }
 
 // QuoteItems will place quotes around the string arrays items
@@ -335,12 +344,23 @@ func GetApiExtClientset(config *rest.Config) apiext.ApiextensionsV1beta1Interfac
 // Remove unvalid characters to compile a valid name for default Profile. To prevent
 // violation to the naming length restriction, ignore everything after `@`.
 func EmailToDefaultName(email string) string {
-	name := strings.NewReplacer(".", "-").Replace(email)
+	name := strings.NewReplacer(".", "-").Replace(strings.ToLower(email))
 	splitted := strings.Split(name, "@")
+	re := regexp.MustCompile(Dns1123LabelFmt)
+	toDns1123 := func(input string) string {
+		result := re.Find([]byte(input))
+		if result == nil {
+			return ""
+		}
+		if len(result) > ProfileNameMaxLen {
+			result = result[0:ProfileNameMaxLen]
+		}
+		return string(result)
+	}
 	if len(splitted) > 1 {
-		return "kubeflow-" + splitted[0]
+		return toDns1123("kubeflow-" + splitted[0])
 	} else {
-		return "kubeflow-" + name
+		return toDns1123("kubeflow-" + name)
 	}
 }
 

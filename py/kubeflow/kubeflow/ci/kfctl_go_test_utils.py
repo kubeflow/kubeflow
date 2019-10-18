@@ -128,7 +128,7 @@ def filter_spartakus(spec):
       break
   return spec
 
-def get_config_spec(config_path, project, email, app_path):
+def get_config_spec(config_path, project, email, zone, app_path):
   """Generate KfDef spec.
 
   Args:
@@ -137,6 +137,7 @@ def get_config_spec(config_path, project, email, app_path):
     https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
     project: The GCP project to use.
     email: a valid email of the GCP account
+    zone: a valid GCP zone for the cluster.
     app_path: The path to the Kubeflow app.
   Returns:
     config_spec: Updated KfDef spec
@@ -145,11 +146,27 @@ def get_config_spec(config_path, project, email, app_path):
   # supports loading version from a URI we should use that so that we
   # pull the configs from the repo we checked out.
   config_spec = load_config(config_path)
-  config_spec["spec"]["project"] = project
-  config_spec["spec"]["email"] = email
+  apiVersion = config_spec["apiVersion"].strip().split("/")
+  if len(apiVersion) != 2:
+    raise RuntimeError("Invalid apiVersion: " + config_spec["apiVersion"].strip())
+  if apiVersion[-1] == "v1alpha1":
+    config_spec["spec"]["project"] = project
+    config_spec["spec"]["email"] = email
+    config_spec["spec"]["zone"] = zone
+  elif apiVersion[-1] == "v1beta1":
+    for plugin in config_spec["spec"].get("plugins", []):
+      if plugin.get("kind", "") == "KfGcpPlugin":
+        plugin["spec"]["project"] = project
+        plugin["spec"]["email"] = email
+        plugin["spec"]["zone"] = zone
+        break
+  else:
+    raise RuntimeError("Unknown version: " + apiVersion[-1])
   config_spec["spec"] = filter_spartakus(config_spec["spec"])
 
   # Set KfDef name to be unique
+  # TODO(swiftdiaries): this is already being set at app_name
+  # we need to reuse that
   regex = re.compile('[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?')
   kfdef_name = regex.findall(app_path)[-1]
   config_spec["metadata"]["name"] = kfdef_name
@@ -170,7 +187,7 @@ def get_config_spec(config_path, project, email, app_path):
     logging.info(str(config_spec))
   return config_spec
 
-def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_path, kfctl_path):
+def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_path, kfctl_path, build_and_apply):
   """Deploy kubeflow.
 
   Args:
@@ -180,9 +197,16 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   use_istio: Whether to use Istio or not
   config_path: Path to the KFDef spec file.
   kfctl_path: Path to the kfctl go binary
+  build_and_apply: whether to build and apply or apply
   Returns:
   app_path: Path where Kubeflow is installed
   """
+  # build_and_apply is a boolean used for testing both the new semantics
+  # test case 1: build_and_apply
+  # kfctl build -f <config file>
+  # kfctl apply
+  # test case 2: apply
+  # kfctl apply -f <config file>
 
   if not os.path.exists(kfctl_path):
     msg = "kfctl Go binary not found: {path}".format(path=kfctl_path)
@@ -196,7 +220,6 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   logging.info("kfctl path %s", kfctl_path)
   # TODO(nrchakradhar): Probably move all the environ sets to set_env_init_args
   zone = 'us-central1-a'
-  os.environ["ZONE"] = zone
   if not zone:
     raise ValueError("Could not get zone being used")
 
@@ -208,14 +231,13 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
 
   if not email:
     raise ValueError("Could not determine GCP account being used.")
-  os.environ["EMAIL"] = email
   if not project:
     raise ValueError("Could not get project being used")
-  os.environ["PROJECT"] = project
 
-  config_spec = get_config_spec(config_path, project, email, app_path)
-  with open(os.path.join(parent_dir, "tmp.yaml"), "w") as f:
+  config_spec = get_config_spec(config_path, project, email, zone, app_path)
+  with open(os.path.join(app_path, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
+
   # TODO(jlewi): When we switch to KfDef v1beta1 this logic will need to change because
   # use_base_auth will move into the plugin spec
   use_basic_auth = config_spec["spec"].get("useBasicAuth", False)
@@ -227,9 +249,27 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   # Set ENV for basic auth username/password.
   set_env_init_args(use_basic_auth, use_istio)
 
+  # build_and_apply
+  logging.info("running kfctl with build and apply: %s \n", build_and_apply)
+
+  logging.info("switching working directory to: %s \n", app_path)
+  os.chdir(app_path)
+
   # Do not run with retries since it masks errors
   logging.info("Running kfctl with config:\n%s", yaml.safe_dump(config_spec))
-  util.run([kfctl_path, "apply", "-V", "-f=" + os.path.join(parent_dir, "tmp.yaml")], cwd=app_path)
+  if build_and_apply:
+    build_and_apply_kubeflow(kfctl_path, app_path)
+  else:
+    apply_kubeflow(kfctl_path, app_path)
+  return app_path
+
+def apply_kubeflow(kfctl_path, app_path):
+  util.run([kfctl_path, "apply", "-V", "-f=" + os.path.join(app_path, "tmp.yaml")], cwd=app_path) 
+  return app_path
+
+def build_and_apply_kubeflow(kfctl_path, app_path):
+  util.run([kfctl_path, "build", "-V", "-f=" + os.path.join(app_path, "tmp.yaml")], cwd=app_path)
+  util.run([kfctl_path, "apply", "-V"], cwd=app_path)
   return app_path
 
 def verify_kubeconfig(app_path):

@@ -40,13 +40,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const USERIDHEADER = "userid-header"
-const USERIDPREFIX = "userid-prefix"
-
 const SERVICEROLEISTIO = "ns-access-istio"
 const SERVICEROLEBINDINGISTIO = "owner-binding-istio"
 
 const KFQUOTA = "kf-resource-quota"
+const PROFILEFINALIZER = "profile-finalizer"
 
 // annotation key, consumed by kfam API
 const USER = "user"
@@ -57,9 +55,11 @@ const ADMIN = "admin"
 // TODO: Make kubeflow roles configurable (krishnadurai)
 // This will enable customization of roles.
 const (
-	kubeflowAdmin = "kubeflow-admin"
-	kubeflowEdit  = "kubeflow-edit"
-	kubeflowView  = "kubeflow-view"
+	kubeflowAdmin              = "kubeflow-admin"
+	kubeflowEdit               = "kubeflow-edit"
+	kubeflowView               = "kubeflow-view"
+	istioInjectionLabel        = "istio-injection"
+	katibMetricsCollectorLabel = "katib-metricscollector-injection"
 )
 
 const DEFAULT_EDITOR = "default-editor"
@@ -68,17 +68,19 @@ const DEFAULT_VIEWER = "default-viewer"
 type Plugin interface {
 	// Called when profile CR is created / updated
 	ApplyPlugin(*ProfileReconciler, *profilev1beta1.Profile) error
-	// TODO(kunming): Called when profile CR is deleted, to cleanup any non-k8s resources created via ApplyPlugin
+	// Called when profile CR is being deleted, to cleanup any non-k8s resources created via ApplyPlugin
+	// RevokePlugin logic need to be IDEMPOTENT
 	RevokePlugin(*ProfileReconciler, *profilev1beta1.Profile) error
 }
 
 // ProfileReconciler reconciles a Profile object
 type ProfileReconciler struct {
 	client.Client
-	Scheme       *runtime.Scheme
-	Log          logr.Logger
-	UserIdHeader string
-	UserIdPrefix string
+	Scheme           *runtime.Scheme
+	Log              logr.Logger
+	UserIdHeader     string
+	UserIdPrefix     string
+	WorkloadIdentity string
 }
 
 // Reconcile reads that state of the cluster for a Profile object and makes changes based on the state read
@@ -87,8 +89,8 @@ type ProfileReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=namespaces,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=serviceaccount,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rbac,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=profile.kubeflow.org,resources=profiles,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=profile.kubeflow.org,resources=profiles/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=kubeflow.org,resources=profiles,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=kubeflow.org,resources=profiles/status,verbs=get;update;patch
 func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	logger := r.Log.WithValues("profile", request.NamespacedName)
@@ -112,8 +114,11 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{"owner": instance.Spec.Owner.Name},
 			// inject istio sidecar to all pods in target namespace by default.
-			Labels: map[string]string{"istio-injection": "enabled"},
-			Name:   instance.Name,
+			Labels: map[string]string{
+				istioInjectionLabel:        "enabled",
+				katibMetricsCollectorLabel: "enabled",
+			},
+			Name: instance.Name,
 		},
 	}
 	if err := controllerutil.SetControllerReference(instance, ns, r.Scheme); err != nil {
@@ -135,7 +140,8 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 				},
 				backoff.WithMaxRetries(backoff.NewConstantBackOff(3*time.Second), 5))
 			if err != nil {
-				return reconcile.Result{}, err
+				return r.appendErrorConditionAndReturn(ctx, instance,
+					"Owning namespace failed to create within 15 seconds")
 			}
 			logger.Info("Created Namespace: "+foundNs.Name, "status", foundNs.Status.Phase)
 		} else {
@@ -143,19 +149,20 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 		}
 	} else {
 		// Check exising namespace ownership before move forward
-		val, ok := foundNs.Annotations["owner"]
-		if (!ok) || val != instance.Spec.Owner.Name {
+		owner, ok := foundNs.Annotations["owner"]
+		if ok && owner == instance.Spec.Owner.Name {
+			if _, ok = foundNs.Labels[katibMetricsCollectorLabel]; !ok {
+				foundNs.Labels[katibMetricsCollectorLabel] = "enabled"
+				err = r.Update(ctx, foundNs)
+				if err != nil {
+					return reconcile.Result{}, err
+				}
+			}
+		} else {
 			logger.Info(fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
 				instance.Spec.Owner.Name))
-			instance.Status.Conditions = append(instance.Status.Conditions, profilev1beta1.ProfileCondition{
-				Type: profilev1beta1.ProfileFailed,
-				Message: fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
-					instance.Spec.Owner.Name),
-			})
-			if err := r.Update(ctx, instance); err != nil {
-				return reconcile.Result{}, err
-			}
-			return reconcile.Result{}, nil
+			return r.appendErrorConditionAndReturn(ctx, instance, fmt.Sprintf(
+				"namespace already exist, but not owned by profile creator %v", instance.Spec.Owner.Name))
 		}
 	}
 
@@ -223,6 +230,9 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 	} else {
 		logger.Info("No update on resource quota", "spec", instance.Spec.ResourceQuotaSpec.String())
 	}
+	if err := r.PatchDefaultPluginSpec(ctx, instance); err != nil {
+		return reconcile.Result{}, err
+	}
 	if plugins, err := r.GetPluginSpec(instance); err == nil {
 		for _, plugin := range plugins {
 			if err := plugin.ApplyPlugin(r, instance); err != nil {
@@ -231,7 +241,51 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 		}
 	}
 
+	// examine DeletionTimestamp to determine if object is under deletion
+	if instance.ObjectMeta.DeletionTimestamp.IsZero() {
+		// The object is not being deleted, so if it does not have our finalizer,
+		// then lets add the finalizer and update the object. This is equivalent
+		// registering our finalizer.
+		if !containsString(instance.ObjectMeta.Finalizers, PROFILEFINALIZER) {
+			instance.ObjectMeta.Finalizers = append(instance.ObjectMeta.Finalizers, PROFILEFINALIZER)
+			if err := r.Update(ctx, instance); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+	} else {
+		// The object is being deleted
+		if containsString(instance.ObjectMeta.Finalizers, PROFILEFINALIZER) {
+			// our finalizer is present, so lets revoke all Plugins to clean up any external dependencies
+			if plugins, err := r.GetPluginSpec(instance); err == nil {
+				for _, plugin := range plugins {
+					if err := plugin.RevokePlugin(r, instance); err != nil {
+						return reconcile.Result{}, err
+					}
+				}
+			}
+
+			// remove our finalizer from the list and update it.
+			instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, PROFILEFINALIZER)
+			if err := r.Update(ctx, instance); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+	}
+
 	return ctrl.Result{}, nil
+}
+
+// appendErrorConditionAndReturn append failure status to profile CR and mark Reconcile done. If update condition failed, request will be requeued.
+func (r *ProfileReconciler) appendErrorConditionAndReturn(ctx context.Context, instance *profilev1beta1.Profile,
+	message string) (ctrl.Result, error) {
+	instance.Status.Conditions = append(instance.Status.Conditions, profilev1beta1.ProfileCondition{
+		Type:    profilev1beta1.ProfileFailed,
+		Message: message,
+	})
+	if err := r.Update(ctx, instance); err != nil {
+		return reconcile.Result{}, err
+	}
+	return reconcile.Result{}, nil
 }
 
 func (r *ProfileReconciler) SetupWithManager(mgr ctrl.Manager) error {
@@ -463,7 +517,7 @@ func (r *ProfileReconciler) GetPluginSpec(profileIns *profilev1beta1.Profile) ([
 	for _, p := range profileIns.Spec.Plugins {
 		var pluginIns Plugin
 		switch p.Kind {
-		case WORKLOAD_IDENTITY:
+		case KIND_WORKLOAD_IDENTITY:
 			pluginIns = &GcpWorkloadIdentity{}
 		default:
 			logger.Info("Plugin not recgonized: ", "Kind", p.Kind)
@@ -487,4 +541,49 @@ func (r *ProfileReconciler) GetPluginSpec(profileIns *profilev1beta1.Profile) ([
 		plugins = append(plugins, pluginIns)
 	}
 	return plugins, nil
+}
+
+// PatchDefaultPluginSpec patch default plugins to profile CR instance if user doesn't specify plugin of same kind in CR.
+func (r *ProfileReconciler) PatchDefaultPluginSpec(ctx context.Context, profileIns *profilev1beta1.Profile) error {
+	// read existing plugins into map
+	plugins := make(map[string]profilev1beta1.Plugin)
+	for _, p := range profileIns.Spec.Plugins {
+		plugins[p.Kind] = p
+	}
+	// Patch default plugins if same kind doesn't exist yet.
+	if r.WorkloadIdentity != "" {
+		if _, ok := plugins[KIND_WORKLOAD_IDENTITY]; !ok {
+			profileIns.Spec.Plugins = append(profileIns.Spec.Plugins, profilev1beta1.Plugin{
+				TypeMeta: metav1.TypeMeta{
+					Kind: KIND_WORKLOAD_IDENTITY,
+				},
+				Spec: &runtime.RawExtension{
+					Raw: []byte(fmt.Sprintf(`{"GcpServiceAccount": "%v"}`, r.WorkloadIdentity)),
+				},
+			})
+		}
+	}
+	if err := r.Update(ctx, profileIns); err != nil {
+		return err
+	}
+	return nil
+}
+
+func containsString(slice []string, s string) bool {
+	for _, item := range slice {
+		if item == s {
+			return true
+		}
+	}
+	return false
+}
+
+func removeString(slice []string, s string) (result []string) {
+	for _, item := range slice {
+		if item == s {
+			continue
+		}
+		result = append(result, item)
+	}
+	return
 }

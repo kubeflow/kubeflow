@@ -29,10 +29,11 @@ import (
 )
 
 // plugin kind
-const WORKLOAD_IDENTITY = "WorkloadIdentity"
+const KIND_WORKLOAD_IDENTITY = "WorkloadIdentity"
 
 const GCP_ANNOTATION_KEY = "iam.gke.io/gcp-service-account"
 const GCP_SA_SUFFIX = ".iam.gserviceaccount.com"
+const WORKLOAD_IDENTITY_ROLE = "roles/iam.workloadIdentityUser"
 
 // GcpWorkloadIdentity: plugin that setup GKE workload identity (credentials for GCP API) for target profile namespace.
 type GcpWorkloadIdentity struct {
@@ -46,7 +47,7 @@ func (gcp *GcpWorkloadIdentity) ApplyPlugin(r *ProfileReconciler, profile *profi
 		return err
 	}
 	logger.Info("Setting up iam policy.", "ServiceAccount", gcp.GcpServiceAccount)
-	return gcp.setupWorkloadIdentity(profile.Name, DEFAULT_EDITOR)
+	return gcp.updateWorkloadIdentity(profile.Name, DEFAULT_EDITOR, addBinding)
 }
 
 // GetProjectID will return GCP project id of GcpServiceAccount. Will return empty string if cannot parse GcpServiceAccount
@@ -63,7 +64,7 @@ func (gcp *GcpWorkloadIdentity) GetProjectID() (string, error) {
 	return match[1], nil
 }
 
-// setupWorkloadIdentity creates the k8s service accounts and IAM bindings for them
+// patchAnnotation will patch annotation to k8s service account in order to pair up with GCP identity
 func (gcp *GcpWorkloadIdentity) patchAnnotation(r *ProfileReconciler, namespace string, ksa string, logger logr.Logger) error {
 	ctx := context.Background()
 	found := &corev1.ServiceAccount{}
@@ -80,8 +81,8 @@ func (gcp *GcpWorkloadIdentity) patchAnnotation(r *ProfileReconciler, namespace 
 	return r.Update(ctx, found)
 }
 
-// setupWorkloadIdentity creates the k8s service accounts and IAM bindings for them
-func (gcp *GcpWorkloadIdentity) setupWorkloadIdentity(namespace string, ksa string) error {
+// updateWorkloadIdentity update GCP service account IAM binding with provided binding update function f
+func (gcp *GcpWorkloadIdentity) updateWorkloadIdentity(namespace string, ksa string, f func(*iam.Policy, string)) error {
 	projectID, err := gcp.GetProjectID()
 	if err != nil {
 		return err
@@ -108,12 +109,8 @@ func (gcp *GcpWorkloadIdentity) setupWorkloadIdentity(namespace string, ksa stri
 	}
 
 	// update policy
-	newBinding := iam.Binding{}
-	newBinding.Role = "roles/iam.workloadIdentityUser"
-	newBinding.Members = []string{
-		fmt.Sprintf("serviceAccount:%v.svc.id.goog[%v/%v]", projectID, namespace, ksa),
-	}
-	currentPolicy.Bindings = append(currentPolicy.Bindings, &newBinding)
+	bindingMember := fmt.Sprintf("serviceAccount:%v.svc.id.goog[%v/%v]", projectID, namespace, ksa)
+	f(currentPolicy, bindingMember)
 
 	// Set iam policy
 	req := &iam.SetIamPolicyRequest{
@@ -123,7 +120,30 @@ func (gcp *GcpWorkloadIdentity) setupWorkloadIdentity(namespace string, ksa stri
 	return err
 }
 
-// RevokePlugin: do nothing today.
+// addBinding add binding for <member, WORKLOAD_IDENTITY_ROLE>
+func addBinding(currentPolicy *iam.Policy, member string) {
+	// add new binding to policy
+	newBinding := iam.Binding{}
+	newBinding.Role = WORKLOAD_IDENTITY_ROLE
+	newBinding.Members = []string{
+		member,
+	}
+	currentPolicy.Bindings = append(currentPolicy.Bindings, &newBinding)
+}
+
+// revokeBinding remove binding for <member, WORKLOAD_IDENTITY_ROLE>
+func revokeBinding(currentPolicy *iam.Policy, member string) {
+	// remove binding member from policy
+	for _, binding := range currentPolicy.Bindings {
+		if binding.Role == WORKLOAD_IDENTITY_ROLE {
+			binding.Members = removeString(binding.Members, member)
+		}
+	}
+}
+
+// RevokePlugin: undo changes made by ApplyPlugin.
 func (gcp *GcpWorkloadIdentity) RevokePlugin(r *ProfileReconciler, profile *profilev1beta1.Profile) error {
-	return nil
+	logger := r.Log.WithValues("profile", profile.Name)
+	logger.Info("Clean up Gcp Workload Identity.", "ServiceAccount", gcp.GcpServiceAccount)
+	return gcp.updateWorkloadIdentity(profile.Name, DEFAULT_EDITOR, revokeBinding)
 }
