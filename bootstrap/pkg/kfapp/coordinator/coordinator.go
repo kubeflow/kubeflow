@@ -146,15 +146,13 @@ func repoVersionToUri(repo string, version string) string {
 	return tarballUrl
 }
 
-// isCwdEmpty - quick check to determine if the working directory is empty
-// if the current working directory
-func isCwdEmpty() string {
-	cwd, _ := os.Getwd()
-	files, _ := ioutil.ReadDir(cwd)
+// isDirEmpty - quick check to determine if the  directory is empty
+func isDirEmpty(dir string) bool {
+	files, _ := ioutil.ReadDir(dir)
 	if len(files) > 1 {
-		return ""
+		return false
 	}
-	return cwd
+	return true
 }
 
 // NewLoadKfAppFromURI takes in a config file and constructs the KfApp
@@ -270,12 +268,11 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 	cwd := ""
 	appFile := cfgfile
 	if isRemoteFile {
-		cwd = isCwdEmpty()
-		if cwd == "" {
-			wd, _ := os.Getwd()
+		cwd, _ := os.Getwd()
+		if !isDirEmpty(cwd) {
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("current directory %v not empty, please switch directories", wd),
+				Message: fmt.Sprintf("current directory %v not empty, please switch directories", cwd),
 			}
 		}
 

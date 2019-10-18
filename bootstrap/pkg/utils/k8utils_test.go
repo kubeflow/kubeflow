@@ -23,6 +23,10 @@ func Test_IsRemoteFile(t *testing.T) {
 			filePath: "/ab/c.txt",
 			isRemote: false,
 		},
+		{
+			filePath: "abc.txt",
+			isRemote: false,
+		},
 	}
 
 	for _, test := range testCases {

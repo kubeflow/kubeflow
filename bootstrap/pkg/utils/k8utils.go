@@ -132,12 +132,11 @@ func IsRemoteFile(configFile string) (bool, error) {
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("Error parsing file path: %v", err),
 		}
-	} else {
-		if url.Scheme != "" {
-			return true, nil
-		}
-		return false, nil
 	}
+	if url.Scheme != "" {
+		return true, nil
+	}
+	return false, nil
 }
 
 func GetObjectKindFromUri(configFile string) (string, error) {
