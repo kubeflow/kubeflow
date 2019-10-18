@@ -1,0 +1,31 @@
+sudo: required
+language: go
+go:
+    - "1.13"
+
+services:
+  - docker
+
+install: true
+
+script: 
+  - cd bootstrap
+  - make build-kfctl
+  - wget -O bin/ https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_k8s_istio.yaml
+  - ./bin/kfctl apply -f $(pwd)/bin/kfctl_k8s_istio.yaml
+  - sleep 60
+  - ../kubectl get po -n kubeflow
+
+before_install:
+  # Download and install KinD and kubectl
+  - GO111MODULE=on go get sigs.k8s.io/kind
+  - kind create cluster --config testing/kind-config.yaml
+  - export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"
+  - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+  - chmod +x ./kubectl
+  - ./kubectl get nodes -o wide
+  - ./kubectl get pods --all-namespaces -o wide
+  - ./kubectl get services --all-namespaces -o wide
+  - ./kubectl create -f testing/local-storage-class.yaml
+  - ./kubectl delete storageclass standard
+  - ./kubectl patch sc local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'

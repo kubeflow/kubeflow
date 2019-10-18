@@ -233,13 +233,6 @@ class Builder:
            "name": E2E_DAG_NAME,
           },
           {
-           "dag":{
-                 "tasks": [],
-                },
-           "name": TESTS_DAG_NAME,
-
-          },
-          {
             "dag": {
               "tasks": [],
               },
@@ -303,45 +296,6 @@ class Builder:
     kind_task_template = argo_build_util.add_prow_env(kind_task_template)
     return kind_task_template
 
-  def _build_task_template(self):
-    """Return a template for all the tasks"""
-
-    task_template = {'activeDeadlineSeconds': 3000,
-     'container': {'command': [],
-      'env': [
-        {"name": "GOOGLE_APPLICATION_CREDENTIALS",
-         "value": "/secret/gcp-credentials/key.json"}
-       ],
-      'image': 'gcr.io/kubeflow-ci/test-worker:latest',
-      'imagePullPolicy': 'Always',
-      'name': '',
-      'resources': {'limits': {'cpu': '4', 'memory': '4Gi'},
-       'requests': {'cpu': '1', 'memory': '1536Mi'}},
-      'volumeMounts': [{'mountPath': '/mnt/test-data-volume',
-        'name': 'kubeflow-test-volume'},
-       {'mountPath': '/secret/gcp-credentials', 'name': 'gcp-credentials'}]},
-     'metadata': {'labels': {
-       'workflow_template': TEMPLATE_LABEL}},
-     'outputs': {}}
-
-    # Define common environment variables to be added to all steps
-    common_env = [
-      {'name': 'PYTHONPATH',
-       'value': ":".join([self.kubeflow_py, self.kubeflow_py + "/py",
-                          self.kubeflow_testing_py,
-                          self.tf_operator_py])},
-      {'name': 'GOPATH',
-        'value': self.go_path},
-      {'name': 'KUBECONFIG',
-       'value': os.path.join(self.test_dir, 'kfctl_test/.kube/kubeconfig')},
-    ]
-
-    task_template["container"]["env"].extend(common_env)
-
-    task_template = argo_build_util.add_prow_env(task_template)
-
-    return task_template
-
   def _build_step(self, name, workflow, dag_name, task_template,
                   command, dependences):
     """Syntactic sugar to add a step to the workflow"""
@@ -361,138 +315,6 @@ class Builder:
     workflow["spec"]["templates"].append(new_template)
 
     return None
-
-  def _build_tests_dag(self):
-    """Build the dag for the set of tests to run against a KF deployment."""
-
-    task_template = self._build_task_template()
-    kind_task_template = self._build_kind_task_template()
-    #***************************************************************************
-    # Test TFJob
-    step_name = "tfjob-test"
-    command = [
-      "python",
-      "-m",
-      "kubeflow.tf_operator.simple_tfjob_tests",
-      "--app_dir=" + os.path.join(self.tf_operator_root, "test/workflows"),
-      "--tfjob_version=v1",
-      # Name is used for the test case name so it should be unique across
-      # all E2E tests.
-      "--params=name=smoke-tfjob-" + self.config_name + ",namespace=" +
-      self.steps_namespace,
-      "--artifacts_path=" + self.artifacts_dir,
-      # Skip GPU tests
-      "--skip_tests=test_simple_tfjob_gpu",
-    ]
-
-    dependences = []
-    tfjob_test = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
-                                  command, dependences)
-
-    #*************************************************************************
-    # Test TFJob v1beta2
-    step_name = "tfjbo-v1beta2"
-    command = [
-                "python",
-                "-m",
-                "kubeflow.tf_operator.simple_tfjob_tests",
-                "--app_dir=" + self.tf_operator_root + "/test/workflows",
-                "--tfjob_version=v1beta2",
-                # Name is used for the test case name so it should be unique across
-                # all E2E tests.
-                "--params=name=smoke-tfjob-" + self.config_name
-                + ",namespace=" + self.steps_namespace,
-                "--artifacts_path=" +self.artifacts_dir,
-                # Skip GPU tests
-                "--skip_tests=test_simple_tfjob_gpu",
-              ]
-
-    dependences = []
-    tfjob_v1beta2 = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
-                                     command, dependences)
-
-    #*************************************************************************
-    # Test katib deploy
-    step_name = "test-katib-deploy"
-    command = ["python",
-               "-m",
-               "testing.test_deploy",
-               "--project=kubeflow-ci",
-               "--namespace=" + self.steps_namespace,
-               "--test_dir=" + self.test_dir,
-               "--artifacts_dir=" + self.artifacts_dir,
-               "--deploy_name=test-katib",
-               "--workflow_name=" + self.name,
-               "test_katib",
-              ]
-
-    dependences = []
-    deploy_katib = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
-                                    command, dependences)
-
-
-
-    #*************************************************************************
-    # Test pytorch job
-    step_name = "pytorch-job-deploy"
-    command = [ "python",
-                "-m",
-                "testing.test_deploy",
-                "--project=kubeflow-ci",
-                "--namespace=" + self.steps_namespace,
-                "--test_dir=" + self.test_dir,
-                "--artifacts_dir=" + self.artifacts_dir,
-                "--deploy_name=pytorch-job",
-                "--workflow_name=" + self.name,
-                "deploy_pytorchjob",
-                # TODO(jlewi): Does the image need to be updated?
-                "--params=image=pytorch/pytorch:v0.2,num_workers=1"
-             ]
-
-
-    dependences = []
-    pytorch_test = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
-                                    command, dependences)
-
-    #***************************************************************************
-    # Test tfjob simple_tfjob_tests
-    step_name = "tfjob-simple"
-    command =  [
-                "python",
-                "-m",
-                "testing.tf_job_simple_test",
-                "--src_dir=" + self.src_dir,
-                "--tf_job_version=v1",
-                "--test_dir=" + self.test_dir,
-                "--artifacts_dir=" + self.artifacts_dir,
-              ]
-
-
-    dependences = []
-    tfjob_simple_test = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
-                                         command, dependences)
-
-    #***************************************************************************
-    # Notebook test
-
-    step_name = "notebook-test"
-    command =  ["pytest",
-                "jupyter_test.py",
-                # I think -s mean stdout/stderr will print out to aid in debugging.
-                # Failures still appear to be captured and stored in the junit file.
-                "-s",
-                "--namespace=" + self.steps_namespace,
-                # Test timeout in seconds.
-                "--timeout=500",
-                "--junitxml=" + self.artifacts_dir + "/junit_jupyter-test.xml",
-             ]
-
-    dependences = []
-    notebook_test = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
-                                     command, dependences)
-
-    notebook_test["container"]["workingDir"] =  os.path.join(
-      self.src_dir, "kubeflow/jupyter/tests")
 
   def _build_exit_dag(self):
     """Build the exit handler dag"""
@@ -554,7 +376,6 @@ class Builder:
   def build(self):
     self.workflow = self._build_workflow()
     task_template = self._build_task_template()
-    kind_task_template = self._build_kind_task_template()
     #**************************************************************************
     # Checkout
 
@@ -661,11 +482,10 @@ class Builder:
               ]
 
       dependencies = [build_kfctl["name"]]
-      if not self.use_kind:
-        endpoint_ready = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
+      endpoint_ready = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
                                         command, dependencies)
-    if not self.use_kind:
-      self._build_tests_dag()
+
+    self._build_tests_dag()
 
     # Add a task to run the dag
     dependencies = [kf_is_ready["name"]]
