@@ -23,7 +23,26 @@ def set_logging():
                       )
   logging.getLogger().setLevel(logging.INFO)
 
-def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_name, project):
+def get_paltform(app_path):
+  with open(os.path.join(app_path, "app.yaml")) as f:
+    kfdef = yaml.safe_load(f)
+  platform = ""
+  apiVersion = kfdef["apiVersion"].strip().split("/")
+  if len(apiVersion) != 2:
+    raise RuntimeError("Invalid apiVersion: " + apiVersion)
+  if apiVersion[-1] == "v1alpha1":
+    platform = kfdef["spec"]["platform"]
+  elif apiVersion[-1] == "v1beta1":
+    for plugin in kfdef["spec"].get("plugins", []):
+      if plugin.get("kind", "") == "KfGcpPlugin":
+        platform = "gcp"
+      elif plugin.get("kind", "") == "KfExistingArriktoPlugin":
+        platform = "existing_arrikto"
+  else:
+    raise RuntimeError("Unknown version: " + apiVersion[-1])
+  return platform
+
+def test_kf_is_ready(namespace, use_basic_auth, app_path, use_istio):
   """Test that Kubeflow was successfully deployed.
 
   Args:
@@ -65,22 +84,7 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_name, project):
 
   stateful_set_names = []
 
-  with open(os.path.join(app_path, "app.yaml")) as f:
-    kfdef = yaml.safe_load(f)
-  platform = ""
-  apiVersion = kfdef["apiVersion"].strip().split("/")
-  if len(apiVersion) != 2:
-    raise RuntimeError("Invalid apiVersion: " + config_spec["apiVersion"].strip())
-  if apiVersion[-1] == "v1alpha1":
-    platform = kfdef["spec"]["platform"]
-  elif apiVersion[-1] == "v1beta1":
-    for plugin in config_spec["spec"].get("plugins", []):
-      if plugin.get("kind", "") == "KfGcpPlugin":
-        platform = "gcp"
-      elif plugin.get("kind", "") == "KfExistingArriktoPlugin":
-        platform = "existing_arrikto"
-  else:
-    raise RuntimeError("Unknown version: " + apiVersion[-1])
+  platform = get_paltform(app_path)
 
   ingress_related_deployments = [
     "istio-egressgateway",
@@ -145,16 +149,34 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_name, project):
     logging.info("Verifying that deployment %s started...", deployment_name)
     util.wait_for_deployment(api_client, knative_namespace, deployment_name, 10)
 
+
+def test_gcp_access(namespace, app_path, app_name, project_id):
+  """Test that Kubeflow gcp was configured with workload_identity and GCP service account credentails.
+
+  Args:
+    namespace: The namespace Kubeflow is deployed to.
+  """
+  set_logging()
+  logging.info("Using namespace %s", namespace)
+
+  # Need to activate account for scopes.
+  if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+    util.run(["gcloud", "auth", "activate-service-account",
+              "--key-file=" + os.environ["GOOGLE_APPLICATION_CREDENTIALS"]])
+
+  api_client = deploy_utils.create_k8s_client()
+
+  platform = get_paltform(app_path)
   if platform == "gcp":
     # check secret
-    util.wait_for_secret(api_client, namespace, "user-gcp-sa")
+    util.check_secret(api_client, namespace, "user-gcp-sa")
 
     cred = GoogleCredentials.get_application_default()
     # Create the Cloud IAM service object
     service = googleapiclient.discovery.build('iam', 'v1', credentials=cred)
 
-    userSa = 'projects/%s/serviceAccounts/%s-user@%s.iam.gserviceaccount.com' % (project, app_name, project)
-    adminSa = 'serviceAccount:%s-admin@%s.iam.gserviceaccount.com' % (app_name, project)
+    userSa = 'projects/%s/serviceAccounts/%s-user@%s.iam.gserviceaccount.com' % (project_id, app_name, project_id)
+    adminSa = 'serviceAccount:%s-admin@%s.iam.gserviceaccount.com' % (app_name, project_id)
 
     request = service.projects().serviceAccounts().getIamPolicy(resource=userSa)
     response = request.execute()
