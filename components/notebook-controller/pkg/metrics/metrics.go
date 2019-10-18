@@ -11,10 +11,12 @@ import (
 
 // Metrics includes metrics used in notebook controller
 type Metrics struct {
-	cli                  client.Client
-	runningNotebooks     *prometheus.GaugeVec
-	NotebookCreation     *prometheus.CounterVec
-	NotebookFailCreation *prometheus.CounterVec
+	cli                      client.Client
+	runningNotebooks         *prometheus.GaugeVec
+	NotebookCreation         *prometheus.CounterVec
+	NotebookFailCreation     *prometheus.CounterVec
+	NotebookCullingCount     *prometheus.CounterVec
+	NotebookCullingTimestamp *prometheus.GaugeVec
 }
 
 func NewMetrics(cli client.Client) *Metrics {
@@ -40,6 +42,20 @@ func NewMetrics(cli client.Client) *Metrics {
 				Help: "Total failure times of creating notebooks",
 			},
 			[]string{"namespace"},
+		),
+		NotebookCullingCount: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Name: "notebook_culling_total",
+				Help: "Total times of culling notebooks",
+			},
+			[]string{"namespace", "name"},
+		),
+		NotebookCullingTimestamp: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Name: "last_notebook_culling_timestamp_seconds",
+				Help: "Timestamp of the last notebook culling in seconds",
+			},
+			[]string{"namespace", "name"},
 		),
 	}
 
