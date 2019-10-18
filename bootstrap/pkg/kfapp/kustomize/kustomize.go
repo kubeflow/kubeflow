@@ -20,11 +20,12 @@ import (
 	"bufio"
 	"encoding/hex"
 	"fmt"
+	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
 	"github.com/imdario/mergo"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/config"
 	kfapisv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"github.com/otiai10/copy"
@@ -54,6 +55,7 @@ import (
 	"sigs.k8s.io/kustomize/v3/pkg/validators"
 	"sigs.k8s.io/kustomize/v3/plugin/builtin"
 	"strings"
+	"time"
 
 	// Auth plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -92,7 +94,7 @@ const (
 )
 
 type kustomize struct {
-	kfDef            *kfdefsv3.KfDef
+	kfDef            *kfconfig.KfConfig
 	out              *os.File
 	err              *os.File
 	componentPathMap map[string]string
@@ -114,7 +116,7 @@ type Setter interface {
 }
 
 // GetKfApp is the common entry point for all implementations of the KfApp interface
-func GetKfApp(kfdef *kfdefsv3.KfDef) kftypesv3.KfApp {
+func GetKfApp(kfdef *kfconfig.KfConfig) kftypesv3.KfApp {
 	_kustomize := &kustomize{
 		kfDef: kfdef,
 		out:   os.Stdout,
@@ -177,36 +179,25 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 		}
 	}
 
-	// TODO(kunming): Create default profile through manifests entry.
-	//userId := defaultUserId
-	//defaultProfileNamespace := defaultUserId
-
-	// When user identity available, the user will be owner of the profile
-	// Otherwise the profile would be a public one.
-	//if kustomize.kfDef.Spec.Email != "" {
-	//
-	//	// Use user email as user id if available.
-	//	// When platform == GCP, same user email is also identity in requests through IAP.
-	//	userId = kustomize.kfDef.Spec.Email
-	//	defaultProfileNamespace = kftypesv3.EmailToDefaultName(userId)
-	//}
-
-	return nil
-	//b := backoff.NewExponentialBackOff()
-	//b.InitialInterval = 3 * time.Second
-	//b.MaxInterval = 30 * time.Second
-	//b.MaxElapsedTime = 5 * time.Minute
-	//return backoff.Retry(func() error {
-	//	if !apply.DefaultProfileNamespace(defaultProfileNamespace) {
-	//		msg := fmt.Sprintf("Could not find namespace %v, wait and retry", defaultProfileNamespace)
-	//		log.Warnf(msg)
-	//		return &kfapisv3.KfError{
-	//			Code:    int(kfapisv3.INVALID_ARGUMENT),
-	//			Message: msg,
-	//		}
-	//	}
-	//	return nil
-	//}, b)
+	// Default user namespace when multi-tenancy enabled
+	defaultProfileNamespace := kftypesv3.EmailToDefaultName(kustomize.kfDef.Spec.Email)
+	// Default user namespace when multi-tenancy disabled
+	anonymousNamespace := "anonymous"
+	b := backoff.NewExponentialBackOff()
+	b.InitialInterval = 3 * time.Second
+	b.MaxInterval = 30 * time.Second
+	b.MaxElapsedTime = 5 * time.Minute
+	return backoff.Retry(func() error {
+		if !(apply.IfNamespaceExist(defaultProfileNamespace) || apply.IfNamespaceExist(anonymousNamespace)) {
+			msg := "Default user namespace pending creation..."
+			log.Warnf(msg)
+			return &kfapisv3.KfError{
+				Code:    int(kfapisv3.INVALID_ARGUMENT),
+				Message: msg,
+			}
+		}
+		return nil
+	}, b)
 }
 
 // deleteGlobalResources is called from Delete and deletes CRDs, ClusterRoles, ClusterRoleBindings
@@ -310,8 +301,7 @@ func (kustomize *kustomize) Generate(resources kftypesv3.ResourceEnum) error {
 			}
 		}
 
-		_, ok := kustomize.kfDef.Status.ReposCache[kftypesv3.ManifestsRepoName]
-
+		_, ok := kustomize.kfDef.GetRepoCache(kftypesv3.ManifestsRepoName)
 		if !ok {
 			log.Infof("Repo %v not listed in KfDef.Status; Resync'ing cache", kftypesv3.ManifestsRepoName)
 			if err := kustomize.kfDef.SyncCache(); err != nil {
@@ -320,11 +310,16 @@ func (kustomize *kustomize) Generate(resources kftypesv3.ResourceEnum) error {
 			}
 		}
 
-		_, ok = kustomize.kfDef.Status.ReposCache[kftypesv3.ManifestsRepoName]
-
+		// Check again after sync
+		_, ok = kustomize.kfDef.GetRepoCache(kftypesv3.ManifestsRepoName)
 		if !ok {
 			return errors.WithStack(fmt.Errorf("Repo %v not listed in KfDef.Status; ", kftypesv3.ManifestsRepoName))
 		}
+
+		// if err := kustomize.initComponentMaps(); err != nil {
+		// 	log.Errorf("Could not initialize kustomize component map paths; error %v", err)
+		// 	return errors.WithStack(err)
+		// }
 
 		for _, app := range kustomize.kfDef.Spec.Applications {
 			log.Infof("Processing application: %v", app.Name)
@@ -339,8 +334,7 @@ func (kustomize *kustomize) Generate(resources kftypesv3.ResourceEnum) error {
 			}
 
 			repoName := app.KustomizeConfig.RepoRef.Name
-			repoCache, ok := kustomize.kfDef.Status.ReposCache[repoName]
-
+			repoCache, ok := kustomize.kfDef.GetRepoCache(repoName)
 			if !ok {
 				err := fmt.Errorf("Application %v refers to repo %v which wasn't found in KfDef.Status.ReposCache", app.Name, repoName)
 				log.Errorf("%v", err)
@@ -418,7 +412,11 @@ func (kustomize *kustomize) mapDirs(dirPath string, root bool, depth int, leafMa
 		}
 	}
 	if depth == 2 {
-		componentPath := extractSuffix(kustomize.kfDef.Status.ReposCache[kftypesv3.ManifestsRepoName].LocalPath, dirPath)
+		repoCache, ok := kustomize.kfDef.GetRepoCache(kftypesv3.ManifestsRepoName)
+		if !ok {
+			log.Fatal("manifest repo not found in cache")
+		}
+		componentPath := extractSuffix(repoCache.LocalPath, dirPath)
 		packageName := strings.Split(componentPath, "/")[0]
 		if components, exists := kustomize.packageMap[packageName]; exists {
 			leafMap[path.Base(dirPath)] = componentPath
@@ -496,7 +494,7 @@ func WriteKfDef(kfdef *kfdefsv3.KfDef, kfdefpath string) error {
 // Multiple overlays are constrained in what they can merge
 // which exclude NamePrefixes, NameSuffixes, CommonLabels, CommonAnnotations.
 // Any of these will generate an error
-func MergeKustomization(compDir string, targetDir string, kfDef *kfdefsv3.KfDef, params []config.NameValue,
+func MergeKustomization(compDir string, targetDir string, kfDef *kfconfig.KfConfig, params []kfconfig.NameValue,
 	parent *types.Kustomization, child *types.Kustomization, kustomizationMaps map[MapType]map[string]bool) error {
 
 	paramMap := make(map[string]string)
@@ -730,7 +728,7 @@ func MergeKustomization(compDir string, targetDir string, kfDef *kfdefsv3.KfDef,
 
 // MergeKustomizations will merge base and all overlay kustomization files into
 // a single kustomization file
-func MergeKustomizations(kfDef *kfdefsv3.KfDef, compDir string, overlayParams []string, params []config.NameValue) (*types.Kustomization, error) {
+func MergeKustomizations(kfDef *kfconfig.KfConfig, compDir string, overlayParams []string, params []kfconfig.NameValue) (*types.Kustomization, error) {
 	kustomizationMaps := CreateKustomizationMaps()
 	kustomization := &types.Kustomization{
 		TypeMeta: types.TypeMeta{
@@ -854,8 +852,8 @@ func MergeKustomizations(kfDef *kfdefsv3.KfDef, compDir string, overlayParams []
 // for KfDef. Presumably this is because of the code in coordinator which is using it to generate
 // KfDef from overlays. But this function is also used to generate the manifests for the individual
 // kustomize packages.
-func GenerateKustomizationFile(kfDef *kfdefsv3.KfDef, root string,
-	compPath string, overlays []string, params []config.NameValue) error {
+func GenerateKustomizationFile(kfDef *kfconfig.KfConfig, root string,
+	compPath string, overlays []string, params []kfconfig.NameValue) error {
 
 	moveToFront := func(item string, list []string) []string {
 		olen := len(list)
@@ -903,11 +901,9 @@ func GenerateKustomizationFile(kfDef *kfdefsv3.KfDef, root string,
 			//TODO upgrade to v2.0.4 when available
 			baseKfDef.Spec.Components = moveToFront("application", baseKfDef.Spec.Components)
 			baseKfDef.Spec.Components = moveToFront("application-crds", baseKfDef.Spec.Components)
-			if kfDef.Spec.UseIstio {
-				baseKfDef.Spec.Components = moveToFront("istio", baseKfDef.Spec.Components)
-				baseKfDef.Spec.Components = moveToFront("istio-install", baseKfDef.Spec.Components)
-				baseKfDef.Spec.Components = moveToFront("istio-crds", baseKfDef.Spec.Components)
-			}
+			baseKfDef.Spec.Components = moveToFront("istio", baseKfDef.Spec.Components)
+			baseKfDef.Spec.Components = moveToFront("istio-install", baseKfDef.Spec.Components)
+			baseKfDef.Spec.Components = moveToFront("istio-crds", baseKfDef.Spec.Components)
 			writeErr := WriteKfDef(baseKfDef, basefile)
 			if writeErr != nil {
 				return writeErr

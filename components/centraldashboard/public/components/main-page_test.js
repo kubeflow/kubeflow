@@ -17,6 +17,7 @@ const TEMPLATE = `
 
 describe('Main Page', () => {
     let mainPage;
+    let beforeHash;
 
     beforeAll(() => {
         jasmine.Ajax.install();
@@ -26,13 +27,16 @@ describe('Main Page', () => {
     });
 
     beforeEach(() => {
+        beforeHash = window.location.hash;
         document.getElementById(FIXTURE_ID).create();
         mainPage = document.getElementById(MAIN_PAGE_SELECTOR_ID);
     });
 
     afterEach(() => {
         mainPage.set('queryParams.ns', null);
+        mainPage.set('queryParams.foo', null);
         document.getElementById(FIXTURE_ID).restore();
+        window.location.hash = beforeHash;
     });
 
     afterAll(() => {
@@ -230,4 +234,33 @@ describe('Main Page', () => {
         expect(historySpy).toHaveBeenCalledWith(null, null,
             '/_/pipelines/create/new');
     });
+
+    it('Sets iframeSrc with hash and query values from parent', () => {
+        const hash = '#/hash/route/fragments';
+        window.location.hash = hash;
+        mainPage.set('queryParams.ns', 'test');
+        mainPage.set('queryParams.foo', 'bar');
+        mainPage.subRouteData.path = '/pipeline/';
+        mainPage._routePageChanged('_');
+        flush();
+
+        expect(mainPage.iframeSrc).toMatch(
+            new RegExp(`${window.location.origin}/pipeline/?.*foo=bar${hash}`));
+    });
+
+    it('Sets iframeSrc to about:blank when user navigates to non-iframe page',
+        () => {
+            mainPage.subRouteData.path = '/pipeline/';
+            mainPage._routePageChanged('_');
+            flush();
+
+            expect(mainPage.iframeSrc).toMatch(
+                new RegExp(`${window.location.origin}/pipeline/`));
+
+            mainPage.subRouteData.path = '';
+            mainPage._routePageChanged('activity');
+            flush();
+
+            expect(mainPage.iframeSrc).toBe('about:blank');
+        });
 });

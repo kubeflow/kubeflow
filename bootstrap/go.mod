@@ -15,6 +15,7 @@ require (
 	github.com/gogo/protobuf v1.2.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.1
+	github.com/google/go-cmp v0.3.0
 	github.com/hashicorp/go-getter v1.0.2
 	github.com/imdario/mergo v0.3.7
 	github.com/kubeflow/kfctl/v3 v3.0.0-20190917231916-6ebaf60b014a

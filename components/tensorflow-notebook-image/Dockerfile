@@ -6,7 +6,6 @@ ARG BASE_IMAGE=tensorflow/tensorflow:1.13.2-py3-jupyter
 FROM $BASE_IMAGE
 
 ARG TF_SERVING_VERSION=0.0.0
-ARG PIPELINE_SDK_PACKAGE=https://storage.googleapis.com/ml-pipeline/release/0.1.23/kfp.tar.gz
 ARG NB_USER=jovyan
 
 # TODO: User should be refactored instead of hard coded jovyan
@@ -15,8 +14,6 @@ USER root
 
 ENV DEBIAN_FRONTEND noninteractive
 
-# Export args as environment variables.
-ENV PIPELINE_SDK_PACKAGE $PIPELINE_SDK_PACKAGE
 ENV NB_USER $NB_USER
 
 ENV NB_UID 1000
@@ -107,9 +104,7 @@ RUN pip3 --no-cache-dir install \
     jupyter-console==6.0.0 \
     jupyterlab \
     xgboost \
-    git+https://github.com/kubeflow/fairing@a9bb9d5cc1c9f1d75efa31198ddbdccfe176b7bf \
-    # Kubeflow pipeline SDK
-    ${PIPELINE_SDK_PACKAGE} 
+    git+https://github.com/kubeflow/fairing@a9bb9d5cc1c9f1d75efa31198ddbdccfe176b7bf
 
 COPY --chown=jovyan:users requirements.txt /tmp
 

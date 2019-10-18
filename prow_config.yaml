@@ -29,48 +29,23 @@ workflows:
       installIstio: true
       workflowName: deployapp-istio
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
-    name: kfctl-go-iap-endpoint
+    name: kfctl-go-iap
     job_types:
+      - presubmit
       - postsubmit
       - periodic
     include_dirs:
       - bootstrap/*
-      - deployment/*
-      - dependencies/*
-      - kubeflow/*
-      - testing/*
-    kwargs:
-      use_basic_auth: false
-      test_endpoint: true
-      config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
-  - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
-    component: kfctl_go_test
-    name: kfctl-go-iap-istio
-    job_types:
-      - presubmit
-    include_dirs:
-      - bootstrap/*
-      - kubeflow/*
-      - testing/*
-    kwargs:
-      use_basic_auth: false
-      config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
-  # If the kfctl_e2e_workflow.py was modified then on presubmit we also want to run with test_endpoint true
-  # to ensure that test still pasess
-  - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
-    component: kfctl_go_test
-    name: kfctl-gcp-e2e-changed
-    job_types:
-      - presubmit
-    include_dirs:
-      - bootstrap/*
-      - kubeflow/*
       - testing/*
       - py/kubeflow/kubeflow/ci/kfctl_e2e_workflow.py 
     kwargs:
       use_basic_auth: false
+      # Run build and then apply rather than just apply
+      build_and_apply: true
+      # test_endpoint flag is actually deprecated; we use pytest annotations to skip on
+      # presubmit.
       test_endpoint: true
-      config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml
+      config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml  
   # Run basic auth test as part of every periodic and postsubmit run. 
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
     name: kfctl-go-basic-auth
@@ -92,7 +67,10 @@ workflows:
     job_types:
       # Enable once we have confirmed the stability of the test
       # - presubmit
+      # TODO(jlewi): I don't think we want to enable on presubmit. 
+      # see https://github.com/kubeflow/kfctl/issues/57
       - postsubmit
+      - periodic
     include_dirs:
       - bootstrap/*
       - dependencies/*
@@ -108,35 +86,7 @@ workflows:
       configPath: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_existing_arrikto.yaml
       cluster_creation_script: create_existing_cluster.sh
       cluster_deletion_script: delete_existing_cluster.py
-      nameSuffix: existing_arrikto
-  # Only run  kfctl presubmit test with basic auth if
-  # files related to basic auth are modified.
-  - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
-    name: kfctl-go-build-deploy
-    job_types:
-      - presubmit
-    include_dirs:
-      # If kfctl is modified make sure basic auth still works
-      - bootstrap/*
-      - testing/kfctl/*
-    kwargs:
-      use_basic_auth: true
-      # test new semantics - kfctl build -f -> kfctl apply
-      build_and_apply: true
-      config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_basic_auth.yaml
-  # Only run  kfctl presubmit test with basic auth if
-  # files related to basic auth are modified.
-  - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
-    name: kfctl-go-basic-auth
-    job_types:
-      - presubmit
-    include_dirs:
-      # If kfctl is modified make sure basic auth still works
-      - bootstrap/*
-      - testing/kfctl/*
-    kwargs:
-      use_basic_auth: true
-      config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_basic_auth.yaml
+      nameSuffix: existing_arrikto  
   # Run unittests
   # TODO(jlewi): Need to add step to run go and python unittests
   - app_dir: kubeflow/kubeflow/testing/workflows

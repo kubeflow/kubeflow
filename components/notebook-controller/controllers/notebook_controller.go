@@ -23,6 +23,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/culler"
+	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/metrics"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -62,8 +63,9 @@ func ignoreNotFound(err error) error {
 // NotebookReconciler reconciles a Notebook object
 type NotebookReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log     logr.Logger
+	Scheme  *runtime.Scheme
+	Metrics *metrics.Metrics
 }
 
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
@@ -93,10 +95,12 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	err := r.Get(ctx, types.NamespacedName{Name: ss.Name, Namespace: ss.Namespace}, foundStateful)
 	if err != nil && apierrs.IsNotFound(err) {
 		log.Info("Creating StatefulSet", "namespace", ss.Namespace, "name", ss.Name)
+		r.Metrics.NotebookCreation.WithLabelValues(ss.Namespace).Inc()
 		err = r.Create(ctx, ss)
 		justCreated = true
 		if err != nil {
 			log.Error(err, "unable to create Statefulset")
+			r.Metrics.NotebookFailCreation.WithLabelValues(ss.Namespace).Inc()
 			return ctrl.Result{}, err
 		}
 	} else if err != nil {
@@ -202,7 +206,8 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			instance.Namespace, instance.Name))
 
 		// Set annotations to the Notebook
-		culler.SetStopAnnotation(&instance.ObjectMeta)
+		culler.SetStopAnnotation(&instance.ObjectMeta, r.Metrics)
+		r.Metrics.NotebookCullingCount.WithLabelValues(instance.Namespace, instance.Name).Inc()
 		err = r.Update(ctx, instance)
 		if err != nil {
 			return ctrl.Result{}, err

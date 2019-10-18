@@ -206,8 +206,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             isIframe = true;
             hideNamespaces = this.subRouteData.path.startsWith('/pipeline');
             this._setActiveMenuLink(this.subRouteData.path);
-            this.iframeSrc = new URL(this.subRouteData.path,
-                window.location.origin).toString();
+            this._setIframeSrc();
             break;
         case 'manage-users':
             this.sidebarItemIndex = 6;
@@ -240,6 +239,23 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         if (hideSidebar || isIframe !== this.inIframe || isIframe) {
             this.$.MainDrawer.close();
         }
+
+        if (!isIframe) {
+            this.iframeSrc = 'about:blank';
+        }
+    }
+
+    /**
+     * Builds the new iframeSrc string based on the subroute path, current
+     * hash fragment, and the query string parameters other than ns.
+     */
+    _setIframeSrc() {
+        const iframeUrl = new URL(this.subRouteData.path,
+            window.location.origin);
+        iframeUrl.hash = window.location.hash;
+        iframeUrl.search = window.location.search;
+        iframeUrl.searchParams.delete('ns');
+        this.iframeSrc = iframeUrl.toString();
     }
 
     /**
