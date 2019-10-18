@@ -98,7 +98,7 @@ def send_request(*args, **kwargs):
 
 
 def test_jupyter(record_xml_attribute, env, namespace):
-  util.set_pytest_junit("jupyter_test")
+  util.set_pytest_junit(record_xml_attribute, "jupyter_test")
 
   app_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
   if app_credentials:
