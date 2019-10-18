@@ -239,6 +239,10 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         if (hideSidebar || isIframe !== this.inIframe || isIframe) {
             this.$.MainDrawer.close();
         }
+
+        if (!isIframe) {
+            this.iframeSrc = 'about:blank';
+        }
     }
 
     /**

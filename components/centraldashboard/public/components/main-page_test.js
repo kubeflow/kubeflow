@@ -247,4 +247,20 @@ describe('Main Page', () => {
         expect(mainPage.iframeSrc).toMatch(
             new RegExp(`${window.location.origin}/pipeline/?.*foo=bar${hash}`));
     });
+
+    it('Sets iframeSrc to about:blank when user navigates to non-iframe page',
+        () => {
+            mainPage.subRouteData.path = '/pipeline/';
+            mainPage._routePageChanged('_');
+            flush();
+
+            expect(mainPage.iframeSrc).toMatch(
+                new RegExp(`${window.location.origin}/pipeline/`));
+
+            mainPage.subRouteData.path = '';
+            mainPage._routePageChanged('activity');
+            flush();
+
+            expect(mainPage.iframeSrc).toBe('about:blank');
+        });
 });
