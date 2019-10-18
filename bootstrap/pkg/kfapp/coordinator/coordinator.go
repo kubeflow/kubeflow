@@ -206,11 +206,13 @@ func CreateKfAppCfgFileWithKfDef(d *kfdefsv3.KfDef) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	kfconfig.Spec.ConfigFileName = kftypesv3.KfConfigFile
 	return CreateKfAppCfgFile(kfconfig)
 }
 
 // CreateKfAppCfgFile will create the application directory and persist
 // the KfDef to it as app.yaml.
+// This is only used when the config file is remote (https://github...)
 // Returns an error if the app.yaml file already exists
 // Returns path to the app.yaml file.
 func CreateKfAppCfgFile(d *kfconfig.KfConfig) (string, error) {
@@ -225,15 +227,12 @@ func CreateKfAppCfgFile(d *kfconfig.KfConfig) (string, error) {
 		log.Infof("App directory %v already exists", d.Spec.AppDir)
 	}
 
-	// Rewrite app.yaml
-	cfgFilePath := filepath.Join(d.Spec.AppDir, kftypesv3.KfConfigFile)
-
-	log.Infof("Writing KfDef to %v", cfgFilePath)
-	cfgFilePathErr := configconverters.WriteConfigToFile(*d, cfgFilePath)
+	log.Infof("Writing KfDef to %v", d.Spec.ConfigFileName)
+	cfgFilePathErr := configconverters.WriteConfigToFile(*d)
 	if cfgFilePathErr != nil {
 		log.Errorf("failed to write config: %v", cfgFilePathErr)
 	}
-	return cfgFilePath, cfgFilePathErr
+	return d.Spec.ConfigFileName, cfgFilePathErr
 }
 
 // nameFromAppFile infers a default name given the path to the KFDef file.
@@ -295,7 +294,11 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 			}
 		}
 
-		appFile, err = CreateKfAppCfgFile(kfdef)
+		// cfgfile is remote, default the local config to app.yaml
+		appFile = kftypesv3.KfConfigFile
+		kfdef.Spec.ConfigFileName = appFile
+
+		_, err = CreateKfAppCfgFile(kfdef)
 		if err != nil {
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
@@ -312,6 +315,9 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 			Message: fmt.Sprintf("could not load %v. Error: %v", cfgfile, err),
 		}
 	}
+
+	// Set the ConfigFileName for kfdef. This is used when we WriteToConfig.
+	kfdef.Spec.ConfigFileName = filepath.Base(appFile)
 
 	// Since we know we have a local file we can set a default name if none is set based on the local directory
 	if kfdef.Name == "" {
@@ -579,7 +585,7 @@ func (kfapp *coordinator) Generate(resources kftypesv3.ResourceEnum) error {
 							kfapp.KfDef.Spec.Platform, platformErr),
 					}
 				}
-				createConfigErr := configconverters.WriteConfigToFile(*kfapp.KfDef, kftypesv3.KfConfigFile)
+				createConfigErr := configconverters.WriteConfigToFile(*kfapp.KfDef)
 				if createConfigErr != nil {
 					return &kfapis.KfError{
 						Code: createConfigErr.(*kfapis.KfError).Code,
@@ -649,7 +655,7 @@ func (kfapp *coordinator) Init(resources kftypesv3.ResourceEnum) error {
 							kfapp.KfDef.Spec.Platform, platformErr),
 					}
 				}
-				createConfigErr := configconverters.WriteConfigToFile(*kfapp.KfDef, kftypesv3.KfConfigFile)
+				createConfigErr := configconverters.WriteConfigToFile(*kfapp.KfDef)
 				if createConfigErr != nil {
 					return &kfapis.KfError{
 						Code: createConfigErr.(*kfapis.KfError).Code,

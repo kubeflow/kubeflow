@@ -42,7 +42,7 @@ type FakeBuilder struct {
 }
 
 func (b *FakeBuilder) CreateKfAppCfgFile(def *kfdefsv3.KfDef) (string, error) {
-	return path.Join(def.Spec.AppDir, kfdefsv3.KfConfigFile), nil
+	return path.Join(def.Spec.AppDir, kftypes.KfConfigFile), nil
 }
 
 func (b *FakeBuilder) LoadKfAppCfgFile(cfgFile string) (kftypes.KfApp, error) {

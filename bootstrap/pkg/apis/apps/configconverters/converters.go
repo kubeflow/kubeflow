@@ -21,8 +21,7 @@ type Converter interface {
 }
 
 const (
-	KfConfigFile = "app.yaml"
-	Api          = "kfdef.apps.kubeflow.org"
+	Api = "kfdef.apps.kubeflow.org"
 )
 
 func isValidUrl(toTest string) bool {
@@ -49,7 +48,7 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 	//
 	// TODO(jlewi): Should we use hashicorp go-getter.GetAny here? We use that to download
 	// the tarballs for the repos. Maybe we should use that here as well to be consistent.
-	appFile := path.Join(appDir, KfConfigFile)
+	appFile := path.Join(appDir, "tmp_app.yaml")
 
 	log.Infof("Downloading %v to %v", configFile, appFile)
 	configFileUri, err := netUrl.Parse(configFile)
@@ -145,7 +144,20 @@ func isCwdEmpty() string {
 	return cwd
 }
 
-func WriteConfigToFile(config kfconfig.KfConfig, filename string) error {
+func WriteConfigToFile(config kfconfig.KfConfig) error {
+	if config.Spec.AppDir == "" {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: "No AppDir, cannot write to file.",
+		}
+	}
+	if config.Spec.ConfigFileName == "" {
+		return &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: "No ConfigFileName, cannot write to file.",
+		}
+	}
+	filename := filepath.Join(config.Spec.AppDir, config.Spec.ConfigFileName)
 	converters := map[string]Converter{
 		"v1alpha1": V1alpha1{},
 		"v1beta1":  V1beta1{},
