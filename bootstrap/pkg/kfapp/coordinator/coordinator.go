@@ -19,9 +19,7 @@ package coordinator
 import (
 	"fmt"
 	"io/ioutil"
-	netUrl "net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -36,6 +34,7 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/minikube"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -146,15 +145,13 @@ func repoVersionToUri(repo string, version string) string {
 	return tarballUrl
 }
 
-// isCwdEmpty - quick check to determine if the working directory is empty
-// if the current working directory
-func isCwdEmpty() string {
-	cwd, _ := os.Getwd()
-	files, _ := ioutil.ReadDir(cwd)
+// isDirEmpty - quick check to determine if the  directory is empty
+func isDirEmpty(dir string) bool {
+	files, _ := ioutil.ReadDir(dir)
 	if len(files) > 1 {
-		return ""
+		return false
 	}
-	return cwd
+	return true
 }
 
 // NewLoadKfAppFromURI takes in a config file and constructs the KfApp
@@ -260,30 +257,20 @@ func nameFromAppFile(appFile string) string {
 
 // LoadKfAppCfgFile constructs a KfApp by loading the provided app.yaml file.
 func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
-	url, err := netUrl.ParseRequestURI(cfgfile)
-	isRemoteFile := false
-	cwd := ""
+	isRemoteFile, err := utils.IsRemoteFile(cfgfile)
 	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error parsing config file path: %v", err),
-		}
-	} else {
-		if url.Scheme != "" {
-			isRemoteFile = true
-		}
+		return nil, err
 	}
 
 	// If the config file is a remote URI, check to see if the current directory
 	// is empty because we will be generating the KfApp there.
 	appFile := cfgfile
 	if isRemoteFile {
-		cwd = isCwdEmpty()
-		if cwd == "" {
-			wd, _ := os.Getwd()
+		cwd, _ := os.Getwd()
+		if !isDirEmpty(cwd) {
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("current directory %v not empty, please switch directories", wd),
+				Message: fmt.Sprintf("current directory %v not empty, please switch directories", cwd),
 			}
 		}
 
@@ -313,6 +300,7 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 		}
 	}
 
+	kfdef.Spec.AppDir = filepath.Dir(appFile)
 	// Since we know we have a local file we can set a default name if none is set based on the local directory
 	if kfdef.Name == "" {
 		kfdef.Name = nameFromAppFile(appFile)
@@ -351,21 +339,6 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 	}
 	if pkg != nil {
 		c.PackageManagers[kftypesv3.KUSTOMIZE] = pkg
-	}
-
-	// If the config file is downloaded remotely, use the current working directory to create the KfApp.
-	// Otherwise use the directory where the config file is stored.
-	if isRemoteFile {
-		cwd, err = os.Getwd()
-		if err != nil {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
-			}
-		}
-		c.KfDef.Spec.AppDir = cwd
-	} else {
-		c.KfDef.Spec.AppDir = path.Dir(cfgfile)
 	}
 
 	// Set some defaults
@@ -579,7 +552,8 @@ func (kfapp *coordinator) Generate(resources kftypesv3.ResourceEnum) error {
 							kfapp.KfDef.Spec.Platform, platformErr),
 					}
 				}
-				createConfigErr := configconverters.WriteConfigToFile(*kfapp.KfDef, kftypesv3.KfConfigFile)
+				createConfigErr := configconverters.WriteConfigToFile(
+					*kfapp.KfDef, filepath.Join(kfapp.KfDef.Spec.AppDir, kftypesv3.KfConfigFile))
 				if createConfigErr != nil {
 					return &kfapis.KfError{
 						Code: createConfigErr.(*kfapis.KfError).Code,
@@ -649,7 +623,8 @@ func (kfapp *coordinator) Init(resources kftypesv3.ResourceEnum) error {
 							kfapp.KfDef.Spec.Platform, platformErr),
 					}
 				}
-				createConfigErr := configconverters.WriteConfigToFile(*kfapp.KfDef, kftypesv3.KfConfigFile)
+				createConfigErr := configconverters.WriteConfigToFile(
+					*kfapp.KfDef, filepath.Join(kfapp.KfDef.Spec.AppDir, kftypesv3.KfConfigFile))
 				if createConfigErr != nil {
 					return &kfapis.KfError{
 						Code: createConfigErr.(*kfapis.KfError).Code,

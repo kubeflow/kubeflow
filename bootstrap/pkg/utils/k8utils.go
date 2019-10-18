@@ -40,6 +40,7 @@ import (
 	kubectldelete "k8s.io/kubernetes/pkg/kubectl/cmd/delete"
 	cmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
 	"math/rand"
+	netUrl "net/url"
 	"os"
 	"path"
 	"regexp"
@@ -120,24 +121,48 @@ func CreateResourceFromFile(config *rest.Config, filename string, elems ...confi
 	return nil
 }
 
-func GetObjectKindFromUri(configFile string) (string, error) {
+// Checks if the path configFile is remote (e.g. http://github...)
+func IsRemoteFile(configFile string) (bool, error) {
 	if configFile == "" {
-		return "", fmt.Errorf("config file must be a URI or a path")
+		return false, fmt.Errorf("config file must be a URI or a path")
 	}
-
-	appDir, err := ioutil.TempDir("", "")
+	url, err := netUrl.Parse(configFile)
 	if err != nil {
-		return "", fmt.Errorf("Create a temporary directory to copy the file to.")
-	}
-	// Open config file
-	appFile := path.Join(appDir, "tmp.yaml")
-
-	log.Infof("Downloading %v to %v", configFile, appFile)
-	err = gogetter.GetFile(appFile, configFile)
-	if err != nil {
-		return "", &kfapis.KfError{
+		return false, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, err),
+			Message: fmt.Sprintf("Error parsing file path: %v", err),
+		}
+	}
+	if url.Scheme != "" {
+		return true, nil
+	}
+	return false, nil
+}
+
+func GetObjectKindFromUri(configFile string) (string, error) {
+	isRemoteFile, err := IsRemoteFile(configFile)
+	if err != nil {
+		return "", err
+	}
+
+	// We will read from appFile.
+	appFile := configFile
+	if isRemoteFile {
+		// Download it to a tmp file, and set appFile.
+		appDir, err := ioutil.TempDir("", "")
+		if err != nil {
+			return "", fmt.Errorf("Create a temporary directory to copy the file to.")
+		}
+		// Open config file
+		appFile = path.Join(appDir, "tmp.yaml")
+
+		log.Infof("Downloading %v to %v", configFile, appFile)
+		err = gogetter.GetFile(appFile, configFile)
+		if err != nil {
+			return "", &kfapis.KfError{
+				Code:    int(kfapis.INVALID_ARGUMENT),
+				Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, err),
+			}
 		}
 	}
 
