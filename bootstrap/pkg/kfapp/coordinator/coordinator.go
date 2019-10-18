@@ -300,6 +300,7 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 		}
 	}
 
+	kfdef.Spec.AppDir = filepath.Dir(appFile)
 	// Since we know we have a local file we can set a default name if none is set based on the local directory
 	if kfdef.Name == "" {
 		kfdef.Name = nameFromAppFile(appFile)
@@ -339,8 +340,6 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 	if pkg != nil {
 		c.PackageManagers[kftypesv3.KUSTOMIZE] = pkg
 	}
-
-	c.KfDef.Spec.AppDir = filepath.Dir(appFile)
 
 	// Set some defaults
 	// TODO(jlewi): This code doesn't belong here. It should probably be called from inside KfApp; e.g. from
@@ -553,7 +552,8 @@ func (kfapp *coordinator) Generate(resources kftypesv3.ResourceEnum) error {
 							kfapp.KfDef.Spec.Platform, platformErr),
 					}
 				}
-				createConfigErr := configconverters.WriteConfigToFile(*kfapp.KfDef, kftypesv3.KfConfigFile)
+				createConfigErr := configconverters.WriteConfigToFile(
+					*kfapp.KfDef, filepath.Join(kfapp.KfDef.Spec.AppDir, kftypesv3.KfConfigFile))
 				if createConfigErr != nil {
 					return &kfapis.KfError{
 						Code: createConfigErr.(*kfapis.KfError).Code,
@@ -623,7 +623,8 @@ func (kfapp *coordinator) Init(resources kftypesv3.ResourceEnum) error {
 							kfapp.KfDef.Spec.Platform, platformErr),
 					}
 				}
-				createConfigErr := configconverters.WriteConfigToFile(*kfapp.KfDef, kftypesv3.KfConfigFile)
+				createConfigErr := configconverters.WriteConfigToFile(
+					*kfapp.KfDef, filepath.Join(kfapp.KfDef.Spec.AppDir, kftypesv3.KfConfigFile))
 				if createConfigErr != nil {
 					return &kfapis.KfError{
 						Code: createConfigErr.(*kfapis.KfError).Code,
