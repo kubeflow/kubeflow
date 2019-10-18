@@ -40,7 +40,7 @@ func TestSetStopAnnotation(t *testing.T) {
 
 	for _, c := range testCases {
 		t.Run(c.testName, func(t *testing.T) {
-			SetStopAnnotation(c.meta)
+			SetStopAnnotation(c.meta, nil)
 			if c.meta == nil {
 				return
 			}
