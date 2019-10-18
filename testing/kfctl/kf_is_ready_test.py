@@ -150,7 +150,7 @@ def test_kf_is_ready(namespace, use_basic_auth, app_path, use_istio):
     util.wait_for_deployment(api_client, knative_namespace, deployment_name, 10)
 
 
-def test_gcp_access(namespace, app_path, app_name, project_id):
+def test_gcp_access(namespace, app_path, app_name, project):
   """Test that Kubeflow gcp was configured with workload_identity and GCP service account credentails.
 
   Args:
@@ -175,8 +175,8 @@ def test_gcp_access(namespace, app_path, app_name, project_id):
     # Create the Cloud IAM service object
     service = googleapiclient.discovery.build('iam', 'v1', credentials=cred)
 
-    userSa = 'projects/%s/serviceAccounts/%s-user@%s.iam.gserviceaccount.com' % (project_id, app_name, project_id)
-    adminSa = 'serviceAccount:%s-admin@%s.iam.gserviceaccount.com' % (app_name, project_id)
+    userSa = 'projects/%s/serviceAccounts/%s-user@%s.iam.gserviceaccount.com' % (project, app_name, project)
+    adminSa = 'serviceAccount:%s-admin@%s.iam.gserviceaccount.com' % (app_name, project)
 
     request = service.projects().serviceAccounts().getIamPolicy(resource=userSa)
     response = request.execute()
