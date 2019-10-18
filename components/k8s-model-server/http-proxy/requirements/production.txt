@@ -1,4 +1,0 @@
-grpcio==1.10.1
-tornado==4.5.2
-tensorflow==1.6.0
-tensorflow-serving-api==1.6.0
