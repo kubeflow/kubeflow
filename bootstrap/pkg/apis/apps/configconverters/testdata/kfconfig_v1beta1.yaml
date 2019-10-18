@@ -332,4 +332,5 @@ spec:
   - name: manifests
     uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
   SkipInitProject: true
+  useIstio: true
 status: {}

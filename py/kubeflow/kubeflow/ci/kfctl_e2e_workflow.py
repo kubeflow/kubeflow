@@ -74,7 +74,8 @@ class Builder:
                test_endpoint=False,
                use_basic_auth=False,
                build_and_apply=False,
-               kf_app_name=None, delete_kf=True,):
+               kf_app_name=None, delete_kf=True,
+               **kwargs):
     """Initialize a builder.
 
     Args:

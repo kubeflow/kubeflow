@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/metrics"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
@@ -87,22 +88,25 @@ func getMaxIdleTime() time.Duration {
 }
 
 // Stop Annotation handling functions
-func SetStopAnnotation(meta *metav1.ObjectMeta) {
+func SetStopAnnotation(meta *metav1.ObjectMeta, m *metrics.Metrics) {
 	if meta == nil {
 		log.Info("Error: Metadata is Nil. Can't set Annotations")
 		return
 	}
-
+	t := time.Now()
 	if meta.GetAnnotations() != nil {
-		meta.Annotations[STOP_ANNOTATION] = createTimestamp()
+		meta.Annotations[STOP_ANNOTATION] = t.Format(time.RFC3339)
 	} else {
 		meta.SetAnnotations(map[string]string{
-			STOP_ANNOTATION: createTimestamp(),
+			STOP_ANNOTATION: t.Format(time.RFC3339),
 		})
+	}
+	if m != nil {
+		m.NotebookCullingCount.WithLabelValues(meta.Namespace, meta.Name).Inc()
+		m.NotebookCullingTimestamp.WithLabelValues(meta.Namespace, meta.Name).Set(float64(t.Unix()))
 	}
 }
 
-// TODO: add remove notebooks count metric
 func RemoveStopAnnotation(meta *metav1.ObjectMeta) {
 	if meta == nil {
 		log.Info("Error: Metadata is Nil. Can't remove Annotations")

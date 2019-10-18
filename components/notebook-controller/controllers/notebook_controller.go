@@ -206,7 +206,8 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			instance.Namespace, instance.Name))
 
 		// Set annotations to the Notebook
-		culler.SetStopAnnotation(&instance.ObjectMeta)
+		culler.SetStopAnnotation(&instance.ObjectMeta, r.Metrics)
+		r.Metrics.NotebookCullingCount.WithLabelValues(instance.Namespace, instance.Name).Inc()
 		err = r.Update(ctx, instance)
 		if err != nil {
 			return ctrl.Result{}, err

@@ -1483,8 +1483,6 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 		return err
 	}
 
-	oauthSecretNamespace := gcp.kfDef.Namespace
-
 	if p.Auth == nil {
 		return errors.WithStack(fmt.Errorf("GcpPluginSpec has no Auth"))
 	}
@@ -1493,9 +1491,7 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 		return errors.WithStack(fmt.Errorf("GcpPluginSpec has no Auth.IAP"))
 	}
 
-	if gcp.kfDef.Spec.UseIstio {
-		oauthSecretNamespace = gcp.getIstioNamespace()
-	}
+	oauthSecretNamespace := gcp.getIstioNamespace()
 	log.Infof("OAuthSecretNS: %v", oauthSecretNamespace)
 
 	if _, err := client.CoreV1().Secrets(oauthSecretNamespace).
@@ -1894,40 +1890,6 @@ func (gcp *Gcp) ConfigPodDefault() error {
 
 // setGcpPluginDefaults sets the GcpPlugin defaults.
 func (gcp *Gcp) setGcpPluginDefaults() error {
-	// Set the email
-	if gcp.kfDef.Spec.Email == "" && gcp.gcpAccountGetter != nil {
-		email, err := gcp.gcpAccountGetter()
-		if err != nil {
-			log.Errorf("cannot get gcloud account email. Error: %v", err)
-			return err
-		}
-		gcp.kfDef.Spec.Email = strings.TrimSpace(email)
-	} else {
-		log.Warnf("gcpAccountGetter not set; can't get default email")
-	}
-	// Set the project
-	if gcp.kfDef.Spec.Project == "" && gcp.gcpProjectGetter != nil {
-		project, err := gcp.gcpProjectGetter()
-		if err != nil {
-			log.Errorf("cannot get gcloud project. Error: %v", err)
-			return err
-		}
-		gcp.kfDef.Spec.Project = strings.TrimSpace(project)
-	} else {
-		log.Warnf("gcpProjectGetter not set; can't get default project")
-	}
-	// Set the zone
-	if gcp.kfDef.Spec.Zone == "" && gcp.gcpZoneGetter != nil {
-		zone, err := gcp.gcpZoneGetter()
-		if err != nil {
-			log.Errorf("cannot get gcloud compute/zone. Error: %v", err)
-			return err
-		}
-		gcp.kfDef.Spec.Zone = strings.TrimSpace(zone)
-	} else {
-		log.Warnf("gcpZoneGetter not set; can't get default zone")
-	}
-
 	// Set the defaults that will be used if not explicitly set.
 	// If the plugin is provided these values will be overwritten,
 	pluginSpec := &GcpPluginSpec{}
@@ -2023,6 +1985,46 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 			Name: kftypesv3.KubeflowRepoName,
 			Path: DEFAULT_DM_PATH,
 		}
+	}
+
+	// Set the email
+	if gcp.kfDef.Spec.Email == "" && gcp.gcpAccountGetter != nil {
+		email, err := gcp.gcpAccountGetter()
+		if err != nil {
+			log.Errorf("cannot get gcloud account email. Error: %v", err)
+			return err
+		}
+		gcp.kfDef.Spec.Email = strings.TrimSpace(email)
+		pluginSpec.Email = strings.TrimSpace(email)
+		log.Infof("Setting Email to default: %v", gcp.kfDef.Spec.Email)
+	} else {
+		log.Warnf("gcpAccountGetter not set; can't get default email")
+	}
+	// Set the project
+	if gcp.kfDef.Spec.Project == "" && gcp.gcpProjectGetter != nil {
+		project, err := gcp.gcpProjectGetter()
+		if err != nil {
+			log.Errorf("cannot get gcloud project. Error: %v", err)
+			return err
+		}
+		gcp.kfDef.Spec.Project = strings.TrimSpace(project)
+		pluginSpec.Project = strings.TrimSpace(project)
+		log.Infof("Setting Project to default: %v", gcp.kfDef.Spec.Project)
+	} else {
+		log.Warnf("gcpProjectGetter not set; can't get default project")
+	}
+	// Set the zone
+	if gcp.kfDef.Spec.Zone == "" && gcp.gcpZoneGetter != nil {
+		zone, err := gcp.gcpZoneGetter()
+		if err != nil {
+			log.Errorf("cannot get gcloud compute/zone. Error: %v", err)
+			return err
+		}
+		gcp.kfDef.Spec.Zone = strings.TrimSpace(zone)
+		pluginSpec.Zone = strings.TrimSpace(zone)
+		log.Infof("Setting Zone to default: %v", gcp.kfDef.Spec.Zone)
+	} else {
+		log.Warnf("gcpZoneGetter not set; can't get default zone")
 	}
 
 	return gcp.kfDef.SetPluginSpec(GcpPluginName, pluginSpec)

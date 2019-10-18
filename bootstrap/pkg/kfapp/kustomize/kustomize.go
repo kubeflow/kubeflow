@@ -901,11 +901,9 @@ func GenerateKustomizationFile(kfDef *kfconfig.KfConfig, root string,
 			//TODO upgrade to v2.0.4 when available
 			baseKfDef.Spec.Components = moveToFront("application", baseKfDef.Spec.Components)
 			baseKfDef.Spec.Components = moveToFront("application-crds", baseKfDef.Spec.Components)
-			if kfDef.Spec.UseIstio {
-				baseKfDef.Spec.Components = moveToFront("istio", baseKfDef.Spec.Components)
-				baseKfDef.Spec.Components = moveToFront("istio-install", baseKfDef.Spec.Components)
-				baseKfDef.Spec.Components = moveToFront("istio-crds", baseKfDef.Spec.Components)
-			}
+			baseKfDef.Spec.Components = moveToFront("istio", baseKfDef.Spec.Components)
+			baseKfDef.Spec.Components = moveToFront("istio-install", baseKfDef.Spec.Components)
+			baseKfDef.Spec.Components = moveToFront("istio-crds", baseKfDef.Spec.Components)
 			writeErr := WriteKfDef(baseKfDef, basefile)
 			if writeErr != nil {
 				return writeErr

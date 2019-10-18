@@ -64,7 +64,20 @@ def test_kf_is_ready(namespace, use_basic_auth, use_istio, app_path):
 
   with open(os.path.join(app_path, "app.yaml")) as f:
     kfdef = yaml.safe_load(f)
-  platform = kfdef["spec"]["platform"]
+  platform = ""
+  apiVersion = kfdef["apiVersion"].strip().split("/")
+  if len(apiVersion) != 2:
+    raise RuntimeError("Invalid apiVersion: " + config_spec["apiVersion"].strip())
+  if apiVersion[-1] == "v1alpha1":
+    platform = kfdef["spec"]["platform"]
+  elif apiVersion[-1] == "v1beta1":
+    for plugin in config_spec["spec"].get("plugins", []):
+      if plugin.get("kind", "") == "KfGcpPlugin":
+        platform = "gcp"
+      elif plugin.get("kind", "") == "KfExistingArriktoPlugin":
+        platform = "existing_arrikto"
+  else:
+    raise RuntimeError("Unknown version: " + apiVersion[-1])
 
   ingress_related_deployments = [
     "istio-citadel",
