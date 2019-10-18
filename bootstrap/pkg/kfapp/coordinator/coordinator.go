@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -265,7 +264,6 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 
 	// If the config file is a remote URI, check to see if the current directory
 	// is empty because we will be generating the KfApp there.
-	cwd := ""
 	appFile := cfgfile
 	if isRemoteFile {
 		cwd, _ := os.Getwd()
@@ -342,20 +340,7 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 		c.PackageManagers[kftypesv3.KUSTOMIZE] = pkg
 	}
 
-	// If the config file is downloaded remotely, use the current working directory to create the KfApp.
-	// Otherwise use the directory where the config file is stored.
-	if isRemoteFile {
-		cwd, err = os.Getwd()
-		if err != nil {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INTERNAL_ERROR),
-				Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
-			}
-		}
-		c.KfDef.Spec.AppDir = cwd
-	} else {
-		c.KfDef.Spec.AppDir = path.Dir(cfgfile)
-	}
+	c.KfDef.Spec.AppDir = filepath.Dir(appFile)
 
 	// Set some defaults
 	// TODO(jlewi): This code doesn't belong here. It should probably be called from inside KfApp; e.g. from
