@@ -23,13 +23,13 @@ def set_logging():
                       )
   logging.getLogger().setLevel(logging.INFO)
 
-def get_paltform(app_path):
+def get_platform(app_path):
   with open(os.path.join(app_path, "app.yaml")) as f:
     kfdef = yaml.safe_load(f)
   platform = ""
   apiVersion = kfdef["apiVersion"].strip().split("/")
   if len(apiVersion) != 2:
-    raise RuntimeError("Invalid apiVersion: " + apiVersion)
+    raise RuntimeError("Invalid apiVersion: " + kfdef["apiVersion"].strip())
   if apiVersion[-1] == "v1alpha1":
     platform = kfdef["spec"]["platform"]
   elif apiVersion[-1] == "v1beta1":
@@ -84,7 +84,7 @@ def test_kf_is_ready(namespace, use_basic_auth, app_path, use_istio):
 
   stateful_set_names = []
 
-  platform = get_paltform(app_path)
+  platform = get_platform(app_path)
 
   ingress_related_deployments = [
     "istio-egressgateway",
@@ -166,7 +166,7 @@ def test_gcp_access(namespace, app_path, app_name, project_id):
 
   api_client = deploy_utils.create_k8s_client()
 
-  platform = get_paltform(app_path)
+  platform = get_platform(app_path)
   if platform == "gcp":
     # check secret
     util.check_secret(api_client, namespace, "user-gcp-sa")
