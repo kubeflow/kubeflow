@@ -34,9 +34,11 @@ var err error
 
 // applyCmd represents the apply command
 var applyCmd = &cobra.Command{
-	Use:   "apply [all(=default)|k8s|platform]",
-	Short: "Deploy a generated kubeflow application.",
-	Long:  `Deploy a generated kubeflow application.`,
+	Use:   "apply -f ${CONFIG}",
+	Short: "deploys a kubeflow application.",
+	Long: `'kfctl apply' builds and deploys a kubeflow application from a KFDef config.` + "\n" +
+		`To install Kubeflow run -> ` + DeprecatedPrint("kfctl apply -f ${CONFIG}") + "\n" +
+		`For more information, run 'kfctl apply -h' or the docs at www.kubeflow.org.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
 		if applyCfg.GetBool(string(kftypes.VERBOSE)) != true {
@@ -90,8 +92,10 @@ func init() {
 	applyCmd.PersistentFlags().StringVarP(&configFilePath, string(kftypes.FILE), "f", "",
 		`Static config file to use. Can be either a local path or a URL.
 For example:
---file=https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_platform_existing.yaml
---file=kfctl_platform_gcp.yaml`)
+export CONFIG=https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_platform_existing.yaml
+	or
+export CONFIG=kfctl_platform_gcp.yaml
+kfctl apply -V --file=${CONFIG}`)
 
 	// verbose output
 	applyCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,
