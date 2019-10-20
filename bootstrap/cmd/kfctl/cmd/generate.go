@@ -20,11 +20,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var generateDeprecationMessage = DeprecatedPrint("'kfctl generate' has been DEPRECATED.") + "\n" +
-`Please switch to new semantics.
-To build a KFAPP run -> ` + DeprecatedPrint("kfctl build -f ${CONFIG}") + "\n" +
-`Then to install -> ` + DeprecatedPrint("kfctl apply") + "\n" +
-`For more information, run 'kfctl build -h' or the docs at www.kubeflow.org.`
+var generateDeprecationMessage = ColorPrint("'kfctl generate' has been replaced by 'kfctl build'") + "\n" +
+	`Please switch to new semantics.
+To build a KFAPP run -> ` + ColorPrint("kfctl build -f ${CONFIG}") + "\n" +
+	`Then to install -> ` + ColorPrint("kfctl apply") + "\n" +
+	`For more information, run 'kfctl build -h' or read the docs at www.kubeflow.org.`
+
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
 	Use:   "generate",

@@ -32,13 +32,21 @@ var applyCfg = viper.New()
 var kfApp kftypes.KfApp
 var err error
 
+// KFDef example configs to be printed out from apply --help
+const (
+	arritkoConfig = "https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_existing_arrikto.yaml"
+	awsConfig     = "https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_aws.yaml"
+	gcpConfig     = "https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.yaml"
+	k8sConfig     = "https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_k8s_istio.yaml"
+)
+
 // applyCmd represents the apply command
 var applyCmd = &cobra.Command{
 	Use:   "apply -f ${CONFIG}",
 	Short: "deploys a kubeflow application.",
 	Long: `'kfctl apply' builds and deploys a kubeflow application from a KFDef config.` + "\n" +
-		`To install Kubeflow run -> ` + DeprecatedPrint("kfctl apply -f ${CONFIG}") + "\n" +
-		`For more information, run 'kfctl apply -h' or the docs at www.kubeflow.org.`,
+		`To install run -> ` + ColorPrint("kfctl apply -f ${CONFIG}") + "\n" +
+		`For more information, run 'kfctl apply -h' or read the docs at www.kubeflow.org.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
 		if applyCfg.GetBool(string(kftypes.VERBOSE)) != true {
@@ -92,9 +100,10 @@ func init() {
 	applyCmd.PersistentFlags().StringVarP(&configFilePath, string(kftypes.FILE), "f", "",
 		`Static config file to use. Can be either a local path or a URL.
 For example:
-export CONFIG=https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_platform_existing.yaml
-	or
-export CONFIG=kfctl_platform_gcp.yaml
+export CONFIG=`+arritkoConfig+`
+export CONFIG=`+awsConfig+`
+export CONFIG=`+gcpConfig+`
+export CONFIG=`+k8sConfig+`
 kfctl apply -V --file=${CONFIG}`)
 
 	// verbose output

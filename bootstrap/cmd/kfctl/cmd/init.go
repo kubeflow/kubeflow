@@ -17,16 +17,17 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 )
 
-// DeprecatedPrint sets the color for deprecation warnings
-var DeprecatedPrint = color.New(color.FgYellow).SprintFunc()
-var initDeprecationMessage = DeprecatedPrint("'kfctl init' has been DEPRECATED.") + "\n" +
-`Please switch to new semantics.
-To install run -> ` + DeprecatedPrint("kfctl apply -f ${CONFIG}") + "\n" +
-`For more information, run 'kfctl apply -h' or the docs at www.kubeflow.org.`
+// ColorPrint Sprintf with yellow color
+var ColorPrint = color.New(color.FgYellow).SprintFunc()
+var initDeprecationMessage = ColorPrint("'kfctl init' has been removed.") + "\n" +
+	`Please switch to new semantics.
+To install run -> ` + ColorPrint("kfctl apply -f ${CONFIG}") + "\n" +
+	`For more information, run 'kfctl apply -h' or read the docs at www.kubeflow.org.`
+
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
