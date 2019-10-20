@@ -61,7 +61,7 @@ const (
 	IstioNamespace = "istio-system"
 
 	// Plugin parameter constants
-	AwsPluginName = kftypes.AWS
+	AwsPluginName = kfconfig.AWS_PLUGIN_KIND
 
 	// Path in manifests repo to where the additional configs are located
 	CONFIG_LOCAL_PATH = "aws/infra_configs"
