@@ -284,6 +284,7 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 		// cfgfile is remote, default the local config to app.yaml
 		appFile = kftypesv3.KfConfigFile
 		kfdef.Spec.ConfigFileName = appFile
+		kfdef.Spec.AppDir = cwd
 
 		_, err = CreateKfAppCfgFile(kfdef)
 		if err != nil {

@@ -37,6 +37,9 @@ var deleteCmd = &cobra.Command{
 		if deleteCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
+		if configFilePath == "" {
+			return fmt.Errorf("Must pass in -f flag.")
+		}
 		kfApp, err = coordinator.BuildKfAppFromURI(configFilePath)
 		if err != nil || kfApp == nil {
 			return fmt.Errorf("error loading kfapp: %v", err)
