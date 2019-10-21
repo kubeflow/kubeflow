@@ -38,6 +38,7 @@ import (
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/rest"
+	cmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
 	"math/rand"
 	"os"
 	"path"
@@ -55,6 +56,7 @@ import (
 	"sigs.k8s.io/kustomize/v3/pkg/validators"
 	"sigs.k8s.io/kustomize/v3/plugin/builtin"
 	"strings"
+	"time"
 	// Auth plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth/azure"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -172,14 +174,20 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 				Message: fmt.Sprintf("can not encode component %v as yaml Error %v", app.Name, err),
 			}
 		}
-		err = backoff.Retry(func() error {
+		retryableApply := func() error {
 			err := apply.Apply(data)
 			if err != nil {
+				log.Errorf("error applying kustomization manifest for %v Error %v", app.Name, err)
 				return err
 			}
 			return nil
-		}, utils.NewDefaultBackoff())
+		}
+		notify := func(err error, t time.Duration) {
+			log.Warnf("retrying to apply kustomization manifest: %v", app.Name)
+		}
+		err = backoff.RetryNotify(retryableApply, utils.NewDefaultBackoff(), notify)
 		if err != nil {
+			cmdutil.CheckErr(err)
 			return err
 		}
 	}

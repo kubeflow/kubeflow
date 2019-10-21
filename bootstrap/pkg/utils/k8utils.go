@@ -315,7 +315,6 @@ func (a *Apply) Apply(data []byte) error {
 func (a *Apply) run() error {
 	resourcesErr := a.options.Run()
 	if resourcesErr != nil {
-		cmdutil.CheckErr(resourcesErr)
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("Apply.Run  Error %v", resourcesErr),
