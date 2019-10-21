@@ -123,20 +123,6 @@ workflows:
       - testing/workflows/components/workflows.jsonnet
       - testing/workflows/components/workflows.libsonnet
       - testing/install_minikube.sh
-  - app_dir: kubeflow/kubeflow/testing/workflows
-    component: tfserving
-    name: tf-serving
-    job_types:
-      - presubmit
-      - postsubmit
-      - periodic
-    include_dirs:
-      - kubeflow/tf-serving/*
-      - components/k8s-model-server/*
-      - testing/*
-    params:
-      workflowName: tfserving
-
   # Image Auto Release workflows.
   # The workflows below are related to auto building our Docker images.
   # We have separate pre/postsubmit jobs because we want to use different
