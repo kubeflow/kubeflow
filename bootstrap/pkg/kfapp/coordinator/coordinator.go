@@ -294,7 +294,6 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 			}
 		}
 	}
-	// ??
 
 	// Set default TypeMeta information. This will get overwritten by explicit values if set in the cfg file.
 	kfdef, err := configconverters.LoadConfigFromURI(appFile)
