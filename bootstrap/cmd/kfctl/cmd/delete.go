@@ -16,6 +16,8 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
