@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/v3/config"
@@ -48,6 +49,7 @@ import (
 	"strings"
 	"time"
 	// Auth plugins
+	_ "k8s.io/client-go/plugin/pkg/client/auth/azure"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 )
@@ -65,6 +67,14 @@ func generateRandStr(length int) string {
 		b[i] = chars[rand.Intn(len(chars))]
 	}
 	return string(b)
+}
+
+func NewDefaultBackoff() *backoff.ExponentialBackOff {
+	b := backoff.NewExponentialBackOff()
+	b.InitialInterval = 3 * time.Second
+	b.MaxInterval = 30 * time.Second
+	b.MaxElapsedTime = 5 * time.Minute
+	return b
 }
 
 func CreateResourceFromFile(config *rest.Config, filename string, elems ...configtypes.NameValue) error {
