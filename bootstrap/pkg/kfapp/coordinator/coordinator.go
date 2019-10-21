@@ -256,36 +256,28 @@ func nameFromAppFile(appFile string) string {
 
 // LoadKfAppCfgFile constructs a KfApp by loading the provided app.yaml file.
 func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
+	kfdef, err := configconverters.LoadConfigFromURI(cfgfile)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
+		}
+	}
+
 	isRemoteFile, err := utils.IsRemoteFile(cfgfile)
 	if err != nil {
 		return nil, err
 	}
-
-	// If the config file is a remote URI, check to see if the current directory
+	// If the config file is a remote URI, check to see if the AppDir
 	// is empty because we will be generating the KfApp there.
-	appFile := cfgfile
 	if isRemoteFile {
-		cwd, _ := os.Getwd()
-		if !isDirEmpty(cwd) {
+		// AppDir should be the cwd.
+		if !isDirEmpty(kfdef.Spec.AppDir) {
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("current directory %v not empty, please switch directories", cwd),
+				Message: fmt.Sprintf("current directory %v not empty, please switch directories", kfdef.Spec.AppDir),
 			}
 		}
-
-		kfdef, err := configconverters.LoadConfigFromURI(cfgfile)
-		if err != nil {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
-			}
-		}
-
-		// cfgfile is remote, default the local config to app.yaml
-		appFile = kftypesv3.KfConfigFile
-		kfdef.Spec.ConfigFileName = appFile
-		kfdef.Spec.AppDir = cwd
-
 		_, err = CreateKfAppCfgFile(kfdef)
 		if err != nil {
 			return nil, &kfapis.KfError{
@@ -295,21 +287,10 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 		}
 	}
 
-	// Set default TypeMeta information. This will get overwritten by explicit values if set in the cfg file.
-	kfdef, err := configconverters.LoadConfigFromURI(appFile)
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not load %v. Error: %v", cfgfile, err),
-		}
-	}
-
-	// Set the ConfigFileName for kfdef. This is used when we WriteToConfig.
-	kfdef.Spec.ConfigFileName = filepath.Base(appFile)
-	kfdef.Spec.AppDir = filepath.Dir(appFile)
+	appFile := filepath.Join(kfdef.Spec.AppDir, kfdef.Spec.ConfigFileName)
 	// Since we know we have a local file we can set a default name if none is set based on the local directory
 	if kfdef.Name == "" {
-		kfdef.Name = nameFromAppFile(appFile)
+		kfdef.Name = nameFromAppFile(filepath.Join(kfdef.Spec.AppDir, kfdef.Spec.ConfigFileName))
 		if kfdef.Name == "" {
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),

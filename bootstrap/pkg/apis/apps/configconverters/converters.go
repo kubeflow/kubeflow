@@ -9,6 +9,7 @@ import (
 	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	netUrl "net/url"
@@ -34,44 +35,60 @@ func isValidUrl(toTest string) bool {
 	}
 }
 
+// LoadConfigFromURI reads the kfdef from a remote URI or local file,
+// and returns the kfconfig.
+// It will set the AppDir and ConfigFilename in kfconfig:
+//   AppDir = cwd if configFile is remote, or it will be the dir of configFile.
+//   ConfigFilename = the file name of configFile.
 func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 	if configFile == "" {
 		return nil, fmt.Errorf("config file must be the URI of a KfDef spec")
 	}
 
-	// TODO(jlewi): We should check if configFile doesn't specify a protocol or the protocol
-	// is file:// then we can just read it rather than fetching with go-getter.
-	appDir, err := ioutil.TempDir("", "")
+	isRemoteFile, err := utils.IsRemoteFile(configFile)
 	if err != nil {
-		return nil, fmt.Errorf("Create a temporary directory to copy the file to.")
+		return nil, err
 	}
-	// Open config file
-	//
-	// TODO(jlewi): Should we use hashicorp go-getter.GetAny here? We use that to download
-	// the tarballs for the repos. Maybe we should use that here as well to be consistent.
-	appFile := path.Join(appDir, "tmp_app.yaml")
 
-	log.Infof("Downloading %v to %v", configFile, appFile)
-	configFileUri, err := netUrl.Parse(configFile)
-	if err != nil {
-		log.Errorf("could not parse configFile url")
-	}
-	if isValidUrl(configFile) {
-		errGet := gogetter.GetFile(appFile, configFile)
-		if errGet != nil {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, errGet),
-			}
+	// appFile is configFile if configFile is local.
+	// Otherwise (configFile is remote), appFile points to a downloaded copy of configFile in tmp.
+	appFile := configFile
+	// If config is remote, download it to a temp dir.
+	if isRemoteFile {
+		// TODO(jlewi): We should check if configFile doesn't specify a protocol or the protocol
+		// is file:// then we can just read it rather than fetching with go-getter.
+		appDir, err := ioutil.TempDir("", "")
+		if err != nil {
+			return nil, fmt.Errorf("Create a temporary directory to copy the file to.")
 		}
-	} else {
-		g := new(gogetter.FileGetter)
-		g.Copy = true
-		errGet := g.GetFile(appFile, configFileUri)
-		if errGet != nil {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, err),
+		// Open config file
+		//
+		// TODO(jlewi): Should we use hashicorp go-getter.GetAny here? We use that to download
+		// the tarballs for the repos. Maybe we should use that here as well to be consistent.
+		appFile = path.Join(appDir, "tmp_app.yaml")
+
+		log.Infof("Downloading %v to %v", configFile, appFile)
+		configFileUri, err := netUrl.Parse(configFile)
+		if err != nil {
+			log.Errorf("could not parse configFile url")
+		}
+		if isValidUrl(configFile) {
+			errGet := gogetter.GetFile(appFile, configFile)
+			if errGet != nil {
+				return nil, &kfapis.KfError{
+					Code:    int(kfapis.INVALID_ARGUMENT),
+					Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, errGet),
+				}
+			}
+		} else {
+			g := new(gogetter.FileGetter)
+			g.Copy = true
+			errGet := g.GetFile(appFile, configFileUri)
+			if errGet != nil {
+				return nil, &kfapis.KfError{
+					Code:    int(kfapis.INVALID_ARGUMENT),
+					Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, err),
+				}
 			}
 		}
 	}
@@ -125,6 +142,8 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 				strings.Join(versions, ", "), apiVersionSeparated[1]),
 		}
 	}
+
+	// TODO(lunkai): We should not need to pass a appdir to ToKfConfig.
 	cwd, err := os.Getwd()
 	if err != nil {
 		return nil, &kfapis.KfError{
@@ -132,8 +151,20 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 			Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
 		}
 	}
+	kfconfig, err := converter.ToKfConfig(cwd, configFileBytes)
+	if err != nil {
+		log.Errorf("Failed to convert kfdef to kfconfig: %v", err)
+		return nil, err
+	}
 
-	return converter.ToKfConfig(cwd, configFileBytes)
+	// Set the AppDir and ConfigFileName for kfconfig
+	if isRemoteFile {
+		kfconfig.Spec.AppDir = cwd
+	} else {
+		kfconfig.Spec.AppDir = filepath.Dir(configFile)
+	}
+	kfconfig.Spec.ConfigFileName = filepath.Base(configFile)
+	return kfconfig, nil
 }
 
 func isCwdEmpty() string {
