@@ -102,6 +102,7 @@ build-bootstrap: deepcopy generate fmt vet
 	${GO} build -gcflags '-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
 build-kfctl: deepcopy generate fmt vet
+	GOOS=darwin GOARCH=amd64 ${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=${TAG}" -o bin/kfctl-darwin cmd/kfctl/main.go
 	${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctl cmd/kfctl/main.go
 
 build-gc: deepcopy generate fmt vet
@@ -112,8 +113,8 @@ build-kfctl-tgz: build-kfctl
 	chmod a+rx ./bin/kfctl
 	rm -f bin/*.tgz
 	cd bin && tar -cvzf kfctl_$(TAG)_linux.tar.gz ./kfctl
-	cp -f ./bin/kfctl_$(TAG)_linux.tar.gz ./bin/kfctl_$(TAG)_darwin.tar.gz
-
+	tar -cvzf kfctl_${TAG}_darwin.tar.gz ./kfctl-darwin
+	
 build-kfctl-client: /tmp/v2 deepcopy generate fmt vet
 	${GO} build -gcflags 'all=-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctlClient cmd/kfctlClient/main.go
 
