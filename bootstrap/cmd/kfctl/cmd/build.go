@@ -75,9 +75,12 @@ func init() {
 	// Config file option
 	buildCmd.PersistentFlags().StringVarP(&configFilePath, string(kftypes.FILE), "f", "",
 		`Static config file to use. Can be either a local path or a URL.
-For example:
---file=https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_platform_existing.yaml
---file=kfctl_platform_gcp.yaml`)
+	For example:
+	export CONFIG=`+arritkoConfig+`
+	export CONFIG=`+awsConfig+`
+	export CONFIG=`+gcpConfig+`
+	export CONFIG=`+k8sConfig+`
+	kfctl apply -V --file=${CONFIG}`)
 
 	// verbose output
 	buildCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,
