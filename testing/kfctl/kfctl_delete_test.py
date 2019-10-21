@@ -63,7 +63,7 @@ def test_kfctl_delete(kfctl_path, app_path, project, cluster_deletion_script):
   # This has a potential downside of hiding errors that are fixed by retrying.
   @retry(stop_max_delay=60*3*1000)
   def run_delete():
-    util.run([kfctl_path, "delete", "--delete_storage", "-V"],
+    util.run([kfctl_path, "delete", "--delete_storage", "-V", "-f", os.path.join(app_path, "tmp.yaml")],
              cwd=app_path)
 
   run_delete()

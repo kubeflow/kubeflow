@@ -16,8 +16,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
@@ -55,12 +53,7 @@ var applyCmd = &cobra.Command{
 
 		// Load config from exisiting app.yaml
 		if configFilePath == "" {
-			log.Warning("Should pass in -f configFileName. Default to cwd/app.yaml")
-			cwd, err := os.Getwd()
-			if err != nil {
-				return fmt.Errorf("cannot fetch current directory for apply: %v", err)
-			}
-			configFilePath = filepath.Join(cwd, "app.yaml")
+			return fmt.Errorf("Must pass in -f configFile")
 		}
 
 		kind, err := utils.GetObjectKindFromUri(configFilePath)
