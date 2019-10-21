@@ -53,7 +53,12 @@ var applyCmd = &cobra.Command{
 
 		// Load config from exisiting app.yaml
 		if configFilePath == "" {
-			return fmt.Errorf("Must pass in -f flag.")
+			log.Warning("Should pass in -f configFileName. Default to cwd/app.yaml")
+			cwd, err := os.Getwd()
+			if err != nil {
+				return fmt.Errorf("cannot fetch current directory for apply: %v", err)
+			}
+			configFilePath = filepath.Join(cwd, "app.yaml")
 		}
 
 		kind, err := utils.GetObjectKindFromUri(configFilePath)
