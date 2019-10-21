@@ -205,7 +205,6 @@ workflows:
       step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
     include_dirs:
       - components/jupyter-web-app/*
-
   #***************************************************************************************************************************************
   # v0-7 tests
   #
@@ -214,23 +213,23 @@ workflows:
   # is cut. At that point we should probably get rid of them and just update the tests earlier in this file
   # to pull the kfdef specs from the v0.7 branch of manifests.
   #***************************************************************************************************************************************
-    - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
-    name: kfctl-go-iap-v07
-    job_types:
-      - postsubmit
-      - periodic
-    include_dirs:
-      - bootstrap/*
-      - testing/*
-      - py/kubeflow/kubeflow/ci/kfctl_e2e_workflow.py 
-    kwargs:
-      use_basic_auth: false
-      # Run build and then apply rather than just apply
-      build_and_apply: true
-      # test_endpoint flag is actually deprecated; we use pytest annotations to skip on
-      # presubmit.
-      test_endpoint: true
-      config_path: https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.yaml
+  - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
+  name: kfctl-go-iap-v07
+  job_types:
+    - postsubmit
+    - periodic
+  include_dirs:
+    - bootstrap/*
+    - testing/*
+    - py/kubeflow/kubeflow/ci/kfctl_e2e_workflow.py 
+  kwargs:
+    use_basic_auth: false
+    # Run build and then apply rather than just apply
+    build_and_apply: true
+    # test_endpoint flag is actually deprecated; we use pytest annotations to skip on
+    # presubmit.
+    test_endpoint: true
+    config_path: https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.yaml
   # Run basic auth test as part of every periodic and postsubmit run. 
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
     name: kfctl-go-basic-auth-v07
