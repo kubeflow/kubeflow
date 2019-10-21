@@ -23,9 +23,10 @@ def set_logging():
                       )
   logging.getLogger().setLevel(logging.INFO)
 
-def get_platform(app_path):
+def get_platform_app_name(app_path):
   with open(os.path.join(app_path, "app.yaml")) as f:
     kfdef = yaml.safe_load(f)
+  app_name = kfdef["metadata"]["name"]
   platform = ""
   apiVersion = kfdef["apiVersion"].strip().split("/")
   if len(apiVersion) != 2:
@@ -40,7 +41,7 @@ def get_platform(app_path):
         platform = "existing_arrikto"
   else:
     raise RuntimeError("Unknown version: " + apiVersion[-1])
-  return platform
+  return platform, app_name
 
 def test_kf_is_ready(namespace, use_basic_auth, app_path, use_istio):
   """Test that Kubeflow was successfully deployed.
@@ -84,7 +85,7 @@ def test_kf_is_ready(namespace, use_basic_auth, app_path, use_istio):
 
   stateful_set_names = []
 
-  platform = get_platform(app_path)
+  platform, _ = get_platform_app_name(app_path)
 
   ingress_related_deployments = [
     "istio-egressgateway",
@@ -150,14 +151,14 @@ def test_kf_is_ready(namespace, use_basic_auth, app_path, use_istio):
     util.wait_for_deployment(api_client, knative_namespace, deployment_name, 10)
 
 
-def test_gcp_access(namespace, app_path, app_name, project):
+def test_gcp_access(record_xml_attribute, namespace, app_path, project):
   """Test that Kubeflow gcp was configured with workload_identity and GCP service account credentails.
 
   Args:
     namespace: The namespace Kubeflow is deployed to.
   """
   set_logging()
-  logging.info("Using namespace %s", namespace)
+  util.set_pytest_junit(record_xml_attribute, "test_gcp_access")
 
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
@@ -166,7 +167,7 @@ def test_gcp_access(namespace, app_path, app_name, project):
 
   api_client = deploy_utils.create_k8s_client()
 
-  platform = get_platform(app_path)
+  platform, app_name = get_platform_app_name(app_path)
   if platform == "gcp":
     # check secret
     util.check_secret(api_client, namespace, "user-gcp-sa")
