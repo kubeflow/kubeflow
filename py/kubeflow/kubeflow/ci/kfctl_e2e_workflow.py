@@ -64,16 +64,18 @@ TESTS_DAG_NAME = "gke-tests"
 TEMPLATE_LABEL = "kfctl_e2e"
 
 MAIN_REPO = "kubeflow/kubeflow"
+
 EXTRA_REPOS = ["kubeflow/testing@HEAD", "kubeflow/tf-operator@HEAD"]
 
 class Builder:
   def __init__(self, name=None, namespace=None,
                config_path=("https://raw.githubusercontent.com/kubeflow"
                             "/manifests/master/kfdef/kfctl_gcp_iap.yaml"),
-               bucket="kubeflow-ci_temp",
+               bucket=None,
                test_endpoint=False,
                use_basic_auth=False,
                build_and_apply=False,
+               test_target_name=None,
                kf_app_name=None, delete_kf=True,
                **kwargs):
     """Initialize a builder.
@@ -82,10 +84,12 @@ class Builder:
       name: Name for the workflow.
       namespace: Namespace for the workflow.
       config_path: Path to the KFDef spec file.
-      bucket: The bucket to upload artifacts to.
+      bucket: The bucket to upload artifacts to. If not set use default determined by prow_artifacts.py.
       test_endpoint: Whether to test the endpoint is ready. Should only
         be true for IAP.
       use_basic_auth: Whether to use basic_auth.
+      test_target_name: (Optional) Name to use as the test target to group
+        tests.
       kf_app_name: (Optional) Name to use for the Kubeflow deployment.
         If not set a unique name is assigned. Only set this if you want to
         reuse an existing deployment across runs.
@@ -149,6 +153,20 @@ class Builder:
     # Config name is the name of the config file. This is used to give junit
     # files unique names.
     self.config_name = os.path.splitext(os.path.basename(config_path))[0]
+
+    # The class name to label junit files.
+    # We want to be able to group related tests in test grid.
+    # Test grid allows grouping by target which corresponds to the classname
+    # attribute in junit files.
+    # So we set an environment variable to the desired class name.
+    # The pytest modules can then look at this environment variable to
+    # explicitly override the classname.
+    # The classname should be unique for each run so it should take into
+    # account the different parameters
+    if test_target_name:
+      self.test_target_name = test_target_name
+    else:
+      self.test_target_name = self.config_name
 
     # app_name is the name of the Kubeflow deployment.
     # This needs to be unique per run since we name GCP resources with it.
@@ -243,7 +261,9 @@ class Builder:
      'container': {'command': [],
       'env': [
         {"name": "GOOGLE_APPLICATION_CREDENTIALS",
-         "value": "/secret/gcp-credentials/key.json"}
+         "value": "/secret/gcp-credentials/key.json"},
+        {"name": "TEST_TARGET_NAME",
+         "value": self.test_target_name},
        ],
       'image': 'gcr.io/kubeflow-ci/test-worker:latest',
       'imagePullPolicy': 'Always',
@@ -302,6 +322,7 @@ class Builder:
 
     #***************************************************************************
     # Test TFJob
+    job_name = self.config_name.replace("_", "-")
     step_name = "tfjob-test"
     command = [
       "python",
@@ -311,7 +332,7 @@ class Builder:
       "--tfjob_version=v1",
       # Name is used for the test case name so it should be unique across
       # all E2E tests.
-      "--params=name=smoke-tfjob-" + self.config_name + ",namespace=" +
+      "--params=name=smoke-tfjob-" + job_name + ",namespace=" +
       self.steps_namespace,
       "--artifacts_path=" + self.artifacts_dir,
       # Skip GPU tests
@@ -436,9 +457,10 @@ class Builder:
                "kubeflow.testing.prow_artifacts",
                "--artifacts_dir=" +
                self.output_dir,
-               "copy_artifacts",
-               "--bucket=" + self.bucket,
-               "--suffix=fakesuffix",]
+               "copy_artifacts"]
+
+    if self.bucket:
+      command = append("--bucket=" + self.bucket)
 
     dependences = []
     if self.delete_kf:
@@ -595,9 +617,10 @@ class Builder:
                "-m",
                "kubeflow.testing.prow_artifacts",
                "--artifacts_dir=" + self.output_dir,
-               "create_pr_symlink",
-               "--bucket=" + self.bucket,
-               ]
+               "create_pr_symlink"]
+
+    if self.bucket:
+      command.append(self.bucket)
 
     dependences = [checkout["name"]]
     symlink = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,

@@ -5,10 +5,12 @@ import pytest
 from kubeflow.testing import util
 import kfctl_go_test_utils as kfctl_util
 
-def test_build_kfctl_go():
+def test_build_kfctl_go(record_xml_attribute):
   """Test building of kfctl go.
 
   """
+  util.set_pytest_junit(record_xml_attribute, "test_build_kfctl_go")
+
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
     util.run([

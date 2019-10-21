@@ -6,7 +6,9 @@ import pytest
 from kubeflow.kubeflow.ci import kfctl_go_test_utils as kfctl_util
 from kubeflow.testing import util
 
-def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_path, build_and_apply, cluster_creation_script):
+def test_build_kfctl_go(record_xml_attribute, app_path, project, use_basic_auth,
+                        use_istio, config_path, build_and_apply,
+                        cluster_creation_script):
   """Test building and deploying Kubeflow.
 
   Args:
@@ -18,6 +20,8 @@ def test_build_kfctl_go(app_path, project, use_basic_auth, use_istio, config_pat
     cluster_creation_script: script invoked to create a new cluster
     build_and_apply: whether to build and apply or apply
   """
+  util.set_pytest_junit(record_xml_attribute, "test_build_kfctl_go")
+
   # Need to activate account for scopes.
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
     util.run([

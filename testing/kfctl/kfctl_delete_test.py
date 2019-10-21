@@ -41,7 +41,9 @@ def get_endpoints_list(project):
 # and more importantly failures block upload of GCS artifacts so for now we mark
 # it as expected to fail.
 @pytest.mark.xfail
-def test_kfctl_delete(kfctl_path, app_path, project, cluster_deletion_script):
+def test_kfctl_delete(record_xml_attribute, kfctl_path, app_path, project,
+                      cluster_deletion_script):
+  util.set_pytest_junit(record_xml_attribute, "test_kfctl_delete")
 
   # TODO(yanniszark): split this into a separate workflow step
   if cluster_deletion_script:
