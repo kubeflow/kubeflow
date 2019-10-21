@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -92,7 +91,6 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 		}
 
 		c.Input.Spec.AppDir = tDir
-		c.Input.Spec.ConfigFileName = filepath.Join(tDir, kftypesv3.KfConfigFile)
 		cfgFile, err := CreateKfAppCfgFile(&c.Input)
 
 		pCase, _ := Pformat(c)

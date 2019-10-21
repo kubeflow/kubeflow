@@ -3,6 +3,7 @@ package configconverters
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
@@ -60,7 +61,7 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 		if errGet != nil {
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, err),
+				Message: fmt.Sprintf("could not fetch specified config %s: %v", configFile, errGet),
 			}
 		}
 	} else {

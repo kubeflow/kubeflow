@@ -229,7 +229,7 @@ func CreateKfAppCfgFile(d *kfconfig.KfConfig) (string, error) {
 	if cfgFilePathErr != nil {
 		log.Errorf("failed to write config: %v", cfgFilePathErr)
 	}
-	return d.Spec.ConfigFileName, cfgFilePathErr
+	return filepath.Join(d.Spec.AppDir, d.Spec.ConfigFileName), cfgFilePathErr
 }
 
 // nameFromAppFile infers a default name given the path to the KFDef file.
@@ -293,6 +293,7 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 			}
 		}
 	}
+	// ??
 
 	// Set default TypeMeta information. This will get overwritten by explicit values if set in the cfg file.
 	kfdef, err := configconverters.LoadConfigFromURI(appFile)
@@ -557,8 +558,7 @@ func (kfapp *coordinator) Generate(resources kftypesv3.ResourceEnum) error {
 							kfapp.KfDef.Spec.Platform, platformErr),
 					}
 				}
-				createConfigErr := configconverters.WriteConfigToFile(
-					*kfapp.KfDef, filepath.Join(kfapp.KfDef.Spec.AppDir, kftypesv3.KfConfigFile))
+				createConfigErr := configconverters.WriteConfigToFile(*kfapp.KfDef)
 				if createConfigErr != nil {
 					return &kfapis.KfError{
 						Code: createConfigErr.(*kfapis.KfError).Code,
@@ -628,8 +628,7 @@ func (kfapp *coordinator) Init(resources kftypesv3.ResourceEnum) error {
 							kfapp.KfDef.Spec.Platform, platformErr),
 					}
 				}
-				createConfigErr := configconverters.WriteConfigToFile(
-					*kfapp.KfDef, filepath.Join(kfapp.KfDef.Spec.AppDir, kftypesv3.KfConfigFile))
+				createConfigErr := configconverters.WriteConfigToFile(*kfapp.KfDef)
 				if createConfigErr != nil {
 					return &kfapis.KfError{
 						Code: createConfigErr.(*kfapis.KfError).Code,
