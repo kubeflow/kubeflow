@@ -7,6 +7,7 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/ratelimit"
 	httptransport "github.com/go-kit/kit/transport/http"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/time/rate"
@@ -19,6 +20,13 @@ import (
 type KfctlClient struct {
 	createEndpoint endpoint.Endpoint
 	getEndpoint    endpoint.Endpoint
+}
+
+type KfctlService interface {
+	// CreateCreateDeployment creates a Kubeflow deployment
+	CreateDeployment(context.Context, kfconfig.KfConfig) (*kfconfig.Status, error)
+	// GetLatestKfdef returns latest KfDef copy which include deployment status
+	GetLatestStatus(KfctlRequest) (*kfconfig.Status, error)
 }
 
 // NewKfctlClient returns a KfctlClient backed by an HTTP server living at the
@@ -75,7 +83,7 @@ func NewKfctlClient(instance string) (KfctlService, error) {
 }
 
 // CreateDeployment issues a CreateDeployment to the requested backend
-func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*kfdefs.KfDef, error) {
+func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfconfig.KfConfig) (*kfconfig.Status, error) {
 	var resp interface{}
 	var err error
 	bo := backoff.NewExponentialBackOff()
@@ -103,7 +111,7 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
 		return nil, permErr
 	}
-	response, ok := resp.(*kfdefs.KfDef)
+	response, ok := resp.(*kfconfig.Status)
 
 	if !ok {
 		log.Info("Response is not type *KfDef")
@@ -159,27 +167,29 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 	return response, nil
 }
 
-func (c *KfctlClient) GetLatestKfdef(req kfdefs.KfDef) (*kfdefs.KfDef, error) {
-	resp, err := c.getEndpoint(context.Background(), req)
-	if err != nil {
-		return nil, err
-	}
-	response, ok := resp.(*kfdefs.KfDef)
-
-	if ok {
-		return response, nil
-	}
-
-	log.Info("Response is not type *KfDef")
-	resErr, ok := resp.(*httpError)
-
-	if ok {
-		return nil, resErr
-	}
-
-	log.Info("Response is not type *httpError")
-
-	pRes, _ := Pformat(resp)
-	log.Errorf("Received unexpected response; %v", pRes)
-	return nil, fmt.Errorf("Received unexpected response; %v", pRes)
+func (c *KfctlClient) GetLatestStatus(req KfctlRequest) (*kfconfig.Status, error) {
+	//resp, err := c.getEndpoint(context.Background(), req)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//response, ok := resp.(*kfdefs.KfDef)
+	//
+	//if ok {
+	//	return response, nil
+	//}
+	//
+	//log.Info("Response is not type *KfDef")
+	//resErr, ok := resp.(*httpError)
+	//
+	//if ok {
+	//	return nil, resErr
+	//}
+	//
+	//log.Info("Response is not type *httpError")
+	//
+	//pRes, _ := Pformat(resp)
+	//log.Errorf("Received unexpected response; %v", pRes)
+	//return nil, fmt.Errorf("Received unexpected response; %v", pRes)
+	// TODO (kunming) finish implementaion; not blocking because it's not been used.
+	return &kfconfig.Status{}, nil
 }

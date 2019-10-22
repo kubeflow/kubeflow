@@ -10,8 +10,7 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/golang/protobuf/proto"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
+	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	apps "k8s.io/api/apps/v1"
@@ -38,6 +37,47 @@ type kfctlRouter struct {
 
 	// namespace is the namespace to launch the kfctl servers in
 	namespace string
+}
+
+type BasicAuth struct {
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
+}
+
+type IAP struct {
+	OAuthClientId     string `json:"oAuthClientId,omitempty"`
+	OAuthClientSecret string `json:"oAuthClientSecret,omitempty"`
+}
+
+// For GCP cloud endpoint
+type EndpointConfig struct {
+	BasicAuth BasicAuth `json:"basicAuth,omitempty"`
+	IAP       IAP       `json:"iap,omitempty"`
+}
+
+// KfctlRequest is the request body for CreateDeployment and GetLatestStatus API
+type KfctlRequest struct {
+	//ConfigFile URL
+	ConfigFile string
+
+	// GCP Project Id
+	Project string
+
+	// deploy Name
+	Name string
+
+	EndpointConfig EndpointConfig
+
+	// GKE Zone
+	Zone string
+
+	// kubeflow Version
+	Version string
+
+	shareAnonymousUsage bool
+
+	// Temporary service account access Token
+	Token string
 }
 
 // NewRouter returns a new router
@@ -67,18 +107,18 @@ func NewRouter(c kubeclientset.Interface, image string, namespace string) (*kfct
 //
 // https://github.com/kubeflow/kubeflow/pull/3045 is pending and contains changes to use kfctl
 // to deploy from the backend.
-type KfctlService interface {
+type RouterService interface {
 	// CreateCreateDeployment creates a Kubeflow deployment
-	CreateDeployment(context.Context, kfdefs.KfDef) (*kfdefs.KfDef, error)
+	CreateDeployment(context.Context, KfctlRequest) (*kfconfig.Status, error)
 	// GetLatestKfdef returns latest KfDef copy which include deployment status
-	GetLatestKfdef(kfdefs.KfDef) (*kfdefs.KfDef, error)
+	GetLatestStatus(KfctlRequest) (*kfconfig.Status, error)
 }
 
 // makeRouterCreateRequestEndpoint creates an endpoint to handle createdeployment requests in the router.
-func makeRouterCreateRequestEndpoint(svc KfctlService) endpoint.Endpoint {
+func makeRouterCreateRequestEndpoint(svc RouterService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(kfdefs.KfDef)
-		if req.Spec.Project != "kubeflow-prober-deploy" {
+		req := request.(KfctlRequest)
+		if req.Project != "kubeflow-prober-deploy" {
 			deployReqCounterRaw.Inc()
 			deployReqCounterUser.Inc()
 		}
@@ -102,7 +142,7 @@ func (r *kfctlRouter) RegisterEndpoints() {
 	createHandler := httptransport.NewServer(
 		makeRouterCreateRequestEndpoint(r),
 		func(_ context.Context, r *http.Request) (interface{}, error) {
-			var request kfdefs.KfDef
+			var request KfctlRequest
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				log.Info("Err decoding create request: " + err.Error())
 				deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
@@ -119,7 +159,7 @@ func (r *kfctlRouter) RegisterEndpoints() {
 	// 2. Migrating to a new REST API for deployments
 	// 3. This PR aimed at running the deployment in each pod.
 	// Depending on how we stage these changes we might need to change these URLs.
-	http.Handle("/kfctl/apps/v1alpha2/create", optionsHandler(createHandler))
+	http.Handle("/kfctl/apps/v1beta1/create", optionsHandler(createHandler))
 	http.Handle("/", optionsHandler(GetHealthzHandler()))
 }
 
@@ -139,7 +179,7 @@ func decodeHTTPKfdefResponse(_ context.Context, r *http.Response) (interface{}, 
 
 		return nil, errors.New(r.Status)
 	}
-	var resp kfdefs.KfDef
+	var resp kfconfig.Status
 	err := json.NewDecoder(r.Body).Decode(&resp)
 	return &resp, err
 }
@@ -189,29 +229,19 @@ func k8sName(name string, project string) (string, error) {
 }
 
 // authCheckAndExtractService: 1. check if request is owner of target project; 2. return service name that handle the request.
-func (r *kfctlRouter) authCheckAndExtractService(req kfdefs.KfDef) (string, error) {
-	token, err := req.GetSecret(gcp.GcpAccessTokenName)
-
-	if err != nil {
-		log.Errorf("Failed to get secret %v; error %v", gcp.GcpAccessTokenName, err)
-		return "", &httpError{
-			Message: fmt.Sprintf("Could not obtain an access token from secret %v", gcp.GcpAccessTokenName),
-			Code:    http.StatusBadRequest,
-		}
-	}
-
+func (r *kfctlRouter) authCheckAndExtractService(req KfctlRequest) (string, error) {
 	// Verify that user has access. We shouldn't do any processing until verifying access.
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
-		AccessToken: token,
+		AccessToken: req.Token,
 	})
 
-	isValid, err := CheckProjectAccess(req.Spec.Project, ts)
+	isValid, err := CheckProjectAccess(req.Project, ts)
 
 	if err != nil {
 		log.Errorf("CreateDeployment CheckProjectAccess failed; error %v", err)
 
 		return "", &httpError{
-			Message: fmt.Sprintf("There was a problem verifying access to project: %v; please try again later", req.Spec.Project),
+			Message: fmt.Sprintf("There was a problem verifying access to project: %v; please try again later", req.Project),
 			Code:    http.StatusUnauthorized,
 		}
 	}
@@ -219,13 +249,13 @@ func (r *kfctlRouter) authCheckAndExtractService(req kfdefs.KfDef) (string, erro
 	if !isValid {
 		log.Errorf("CreateDeployment request isn't authorized for the project")
 		return "", &httpError{
-			Message: fmt.Sprintf("There was a problem verifying owner access to project: %v; please check the project id is correct and that you have admin priveleges", req.Spec.Project),
+			Message: fmt.Sprintf("There was a problem verifying owner access to project: %v; please check the project id is correct and that you have admin priveleges", req.GcpPluginSpec.Project),
 			Code:    http.StatusUnauthorized,
 		}
 	}
 
 	log.Infof("User has sufficient access.")
-	name, err := k8sName(req.Name, req.Spec.Project)
+	name, err := k8sName(req.Name, req.Project)
 
 	if err != nil {
 		log.Errorf("Could not generate the name; error %v", err)
@@ -234,7 +264,7 @@ func (r *kfctlRouter) authCheckAndExtractService(req kfdefs.KfDef) (string, erro
 	return name, nil
 }
 
-// AppNameKey is the name of the label to use containing hte name of the kfctl app.
+// AppNameKey is the name of the label to use containing the name of the kfctl app.
 const AppNameKey = "app-name"
 
 func (r *kfctlRouter) CreateKfctlServer(name string, currTime []byte) error {
@@ -369,7 +399,7 @@ func (r *kfctlRouter) CreateKfctlServer(name string, currTime []byte) error {
 }
 
 // CreateDeployment creates a Kubeflow deployment.
-func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*kfdefs.KfDef, error) {
+func (r *kfctlRouter) CreateDeployment(ctx context.Context, req KfctlRequest) (*kfconfig.Status, error) {
 	name, err := r.authCheckAndExtractService(req)
 	if err != nil {
 		deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
@@ -439,12 +469,12 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req kfdefs.KfDef) (*
 
 	// Continue request process in separate thread.
 	go c.CreateDeployment(context.Background(), req)
-	return &req, nil
+	return &kfconfig.Status{}, nil
 }
 
 // GetLatestKfdef returns latest kfdef status.
-func (r *kfctlRouter) GetLatestKfdef(req kfdefs.KfDef) (*kfdefs.KfDef, error) {
-	name, err := k8sName(req.Name, req.Spec.Project)
+func (r *kfctlRouter) GetLatestStatus(req KfctlRequest) (*kfconfig.Status, error) {
+	name, err := k8sName(req.Name, req.Project)
 	if err != nil {
 		log.Errorf("Could not generate the name; error %v", err)
 		return nil, err
@@ -452,5 +482,5 @@ func (r *kfctlRouter) GetLatestKfdef(req kfdefs.KfDef) (*kfdefs.KfDef, error) {
 	address := fmt.Sprintf("http://%v.%v.svc.cluster.local:80", name, r.namespace)
 	log.Infof("Creating client for %v", address)
 	c, err := NewKfctlClient(address)
-	return c.GetLatestKfdef(req)
+	return c.GetLatestStatus(req)
 }

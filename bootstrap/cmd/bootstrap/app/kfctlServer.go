@@ -16,6 +16,7 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"time"
 
@@ -64,7 +65,7 @@ type kfctlServer struct {
 	kfDefMux sync.Mutex
 
 	// latestKfDef is updated to provide the latest status information.
-	latestKfDef kfdefsv3.KfDef
+	latestKfConfig kfconfig.KfConfig
 }
 
 // NewServer returns a new kfctl server
@@ -410,7 +411,7 @@ func prepareSecrets(d *kfdefsv3.KfDef) {
 	d.Spec.Secrets = secrets
 }
 
-func (s *kfctlServer) GetLatestKfdef(req kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
+func (s *kfctlServer) GetLatestStatus(req KfctlRequest) (*kfconfig.Status, error) {
 	s.kfDefMux.Lock()
 	defer s.kfDefMux.Unlock()
 	return s.latestKfDef.DeepCopy(), nil
@@ -420,7 +421,7 @@ func (s *kfctlServer) GetLatestKfdef(req kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 //
 // Not thread safe
 // TODO(jlewi): We should check if the request matches the current deployment and if not reject
-func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
+func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfconfig.KfConfig) (*kfconfig.Status, error) {
 	log.Infof("New CreateDeployment for %v", req.Name)
 	token, err := req.GetSecret(gcp.GcpAccessTokenName)
 
@@ -486,8 +487,8 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) 
 
 	// Check that it is a valid request.
 	if isValid, msg := (&req).IsValid(); !isValid {
-		req.Status.Conditions = append(req.Status.Conditions, kfdefsv3.KfDefCondition{
-			Type:               kfdefsv3.KfFailed,
+		req.Status.Conditions = append(req.Status.Conditions, kfconfig.Condition{
+			Type:               kfconfig.Unhealthy,
 			Status:             v1.ConditionTrue,
 			Reason:             kfdefsv3.InvalidKfDefSpecReason,
 			Message:            fmt.Sprintf("KfDef.Spec is invalid; " + msg),

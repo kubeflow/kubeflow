@@ -2160,11 +2160,6 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 		}
 	}
 
-	// TODO(jlewi): Why is this hard coded here?
-	if err := gcp.kfDef.SetApplicationParameter("notebook-controller", "injectGcpCredentials", "true"); err != nil {
-		return errors.WithStack(err)
-	}
-
 	// TODO(jlewi): Why are we setting usage Id here (gcp.go) and not in kustomize.go so we do it for all platforms?
 	rand.Seed(time.Now().UnixNano())
 	if err := gcp.kfDef.SetApplicationParameter("spartakus", "usageId", strconv.Itoa(rand.Int())); err != nil {
