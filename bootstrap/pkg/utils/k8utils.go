@@ -279,6 +279,12 @@ func NewApply(namespace string, restConfig *rest.Config) (*Apply, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Change behaviour of error from exit to panic.
+	cmdutil.BehaviorOnFatal(func(s string, i int) {
+		panic(fmt.Errorf("Encountered error: %s. Exiting with code: %d.", s, i))
+	})
+
 	return apply, nil
 }
 
@@ -305,7 +311,15 @@ func (a *Apply) Apply(data []byte) error {
 			Message: fmt.Sprintf("could not initialize  Error %v", initializeErr),
 		}
 	}
-	err := a.run()
+	var err error
+	func() {
+		defer func() {
+			if temp := recover(); temp != nil {
+				err = temp.(error)
+			}
+		}()
+		err = a.run()
+	}()
 	if err != nil {
 		return err
 	}
@@ -315,7 +329,6 @@ func (a *Apply) Apply(data []byte) error {
 func (a *Apply) run() error {
 	resourcesErr := a.options.Run()
 	if resourcesErr != nil {
-		cmdutil.CheckErr(resourcesErr)
 		return &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
 			Message: fmt.Sprintf("Apply.Run  Error %v", resourcesErr),
