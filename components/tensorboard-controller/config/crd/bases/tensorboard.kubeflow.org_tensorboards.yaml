@@ -32,12 +32,12 @@ spec:
         spec:
           description: TensorboardSpec defines the desired state of Tensorboard
           properties:
-            logscloudpath:
+            logspath:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                 Important: Run "make" to regenerate code after modifying this file'
               type: string
           required:
-          - logscloudpath
+          - logspath
           type: object
         status:
           description: TensorboardStatus defines the observed state of Tensorboard

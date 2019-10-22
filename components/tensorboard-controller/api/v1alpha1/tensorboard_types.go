@@ -26,7 +26,7 @@ import (
 type TensorboardSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	LogsCloudPath string `json:"logscloudpath"`
+	LogsPath string `json:"logspath"`
 }
 
 // TensorboardStatus defines the observed state of Tensorboard

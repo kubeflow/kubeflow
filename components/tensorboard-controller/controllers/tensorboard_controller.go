@@ -18,9 +18,11 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/gogo/protobuf/proto"
+	"github.com/golang/gddo/log"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -28,6 +30,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -66,7 +69,7 @@ func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	}
 
 	// Reconcile k8s deployment.
-	deployment := generateDeployment(instance)
+	deployment := generateDeployment(instance, logger)
 	if err := ctrl.SetControllerReference(instance, deployment, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -92,6 +95,17 @@ func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 		return ctrl.Result{}, err
 	}
 
+	foundDeployment := &appsv1.Deployment{}
+	justCreated := false
+	if err := r.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: deployment.Namespace}, deployment); err != nil {
+		if apierrs.IsNotFound(err) {
+			log.Info("Deployment not found", "namespace", deployment.Namespace, "name", deployment.Name)
+		} else {
+			log.Error(err, "error getting deployment")
+			return ctrl.Result{}, err
+		}
+	}
+
 	return reconcile.Result{}, nil
 }
 
@@ -101,7 +115,43 @@ func (r *TensorboardReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func generateDeployment(tb *tensorboardv1alpha1.Tensorboard) *appsv1.Deployment {
+func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger) *appsv1.Deployment {
+	volumeMounts := []v1.VolumeMount{
+		{
+			Name:      "gcp-creds",
+			ReadOnly:  true,
+			MountPath: "/secret/gcp",
+		},
+	}
+	volumes := []v1.Volume{
+		{
+			Name: "gcp-creds",
+			VolumeSource: v1.VolumeSource{
+				Secret: &v1.SecretVolumeSource{
+					SecretName: "user-gcp-sa",
+				},
+			},
+		},
+	}
+	// pvc is required for training metrics if logspath is a local directly(rather than cloudpath)
+	if !isCloudPath(tb.Spec.LogsPath) {
+		volumeMounts = append(volumeMounts,
+			v1.VolumeMount{
+				Name:      "tbpd",
+				ReadOnly:  true,
+				MountPath: tb.Spec.LogsPath,
+			})
+		volumes = append(volumes,
+			v1.Volume{
+				Name: "tbpd",
+				VolumeSource: v1.VolumeSource{
+					PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+						ClaimName: "tb-volume",
+					},
+				},
+			})
+	}
+
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      tb.Name,
@@ -127,7 +177,7 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard) *appsv1.Deployment 
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"/usr/local/bin/tensorboard"},
 							Args: []string{
-								"--logdir=" + tb.Spec.LogsCloudPath, //example: "--logdir=gs://tf_mnist_writebycode1/mnist_tutorial/",
+								"--logdir=" + tb.Spec.LogsPath, //example: "--logdir=gs://tf_mnist_writebycode1/mnist_tutorial/",
 								"--port=6006",
 							},
 							Ports: []v1.ContainerPort{
@@ -135,25 +185,10 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard) *appsv1.Deployment 
 									ContainerPort: 6006,
 								},
 							},
-							VolumeMounts: []v1.VolumeMount{
-								{
-									Name:      "gcp-creds",
-									ReadOnly:  true,
-									MountPath: "/secret/gcp",
-								},
-							},
+							VolumeMounts: volumeMounts,
 						},
 					},
-					Volumes: []v1.Volume{
-						{
-							Name: "gcp-creds",
-							VolumeSource: v1.VolumeSource{
-								Secret: &v1.SecretVolumeSource{
-									SecretName: "user-gcp-sa",
-								},
-							},
-						},
-					},
+					Volumes: volumes,
 				},
 			},
 		},
@@ -227,4 +262,8 @@ func generateVirtualService(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.
 	}
 
 	return vsvc, nil
+}
+
+func isCloudPath(path string) bool {
+	return strings.HasPrefix(path, "gs://") || strings.HasPrefix(path, "s3://") || strings.HasPrefix(path, "/cns/")
 }
