@@ -295,10 +295,15 @@ func (kustomize *kustomize) Generate(resources kftypesv3.ResourceEnum) error {
 	generate := func() error {
 		kustomizeDir := path.Join(kustomize.kfDef.Spec.AppDir, outputDir)
 
-		if _, err := os.Stat(kustomizeDir); !os.IsNotExist(err) {
+		if _, err := os.Stat(kustomizeDir); err == nil {
 			// Noop if the directory already exists.
+			log.Infof("folder %v exists, skip kustomize.Generate", kustomizeDir)
 			return nil
+		} else if !os.IsNotExist(err) {
+			log.Errorf("Stat folder %v error: %v; try deleting it...", kustomizeDir, err)
+			_ = os.RemoveAll(kustomizeDir)
 		}
+
 		kustomizeDirErr := os.MkdirAll(kustomizeDir, os.ModePerm)
 		if kustomizeDirErr != nil {
 			return &kfapisv3.KfError{
