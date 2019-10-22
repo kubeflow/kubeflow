@@ -295,9 +295,9 @@ func (kustomize *kustomize) Generate(resources kftypesv3.ResourceEnum) error {
 	generate := func() error {
 		kustomizeDir := path.Join(kustomize.kfDef.Spec.AppDir, outputDir)
 
-		// idempotency
 		if _, err := os.Stat(kustomizeDir); !os.IsNotExist(err) {
-			_ = os.RemoveAll(kustomizeDir)
+			// Noop if the directory already exists.
+			return nil
 		}
 		kustomizeDirErr := os.MkdirAll(kustomizeDir, os.ModePerm)
 		if kustomizeDirErr != nil {
