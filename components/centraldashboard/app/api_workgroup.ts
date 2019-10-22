@@ -348,7 +348,6 @@ export class WorkgroupApi {
                 });
             }
         })
-
         .get('/get-contributors/:namespace', async (req: Request, res: Response) => {
             const {namespace} = req.params;
             try {
