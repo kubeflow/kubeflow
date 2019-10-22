@@ -299,54 +299,45 @@ func Run(opt *options.ServerOption) error {
 		}
 		kServer.RegisterEndpoints()
 	} else {
-		if strings.ToLower(opt.Mode) == "gc" {
-			log.Info("Creating gc server")
-			kServer, err := NewKfctlServer(opt.AppDir)
-			if err != nil {
-				return err
-			}
-			kServer.RegisterEndpoints()
-		} else {
-			log.Infof("Getting K8s client")
+		log.Infof("Getting K8s client")
 
-			// Create a K8s client to talk to the cluster in which the server is running.
-			// This will be used by the router to spin up statefulsets to handle the requests.
-			config, err := getClusterConfig(opt.InCluster)
+		// Create a K8s client to talk to the cluster in which the server is running.
+		// This will be used by the router to spin up statefulsets to handle the requests.
+		config, err := getClusterConfig(opt.InCluster)
 
-			if err != nil {
-				return err
-			}
-
-			log.Info("Creating router")
-
-			kubeClientSet, err := kubeclientset.NewForConfig(rest.AddUserAgent(config, "kfctl-server"))
-
-			if err != nil {
-				return err
-			}
-
-			// Determine the docker image by fetching the pod spec.
-			podName := os.Getenv("MY_POD_NAME")
-			podNamespace := os.Getenv("MY_POD_NAMESPACE")
-
-			log.Infof("Running in pod %v, %v", podNamespace, podName)
-
-			pod, err := kubeClientSet.CoreV1().Pods(podNamespace).Get(podName, metav1.GetOptions{})
-
-			if err != nil {
-				log.Fatalf("Could not fetch pod info for %v.%v; Error: %+v", podNamespace, podName, err)
-				return err
-			}
-
-			image := pod.Spec.Containers[0].Image
-			log.Infof("Using image: %v", image)
-			router, err := NewRouter(kubeClientSet, image, opt.KfctlAppsNamespace)
-
-			if err != nil {
-				return err
-			}
-			router.RegisterEndpoints()
+		if err != nil {
+			return err
 		}
+
+		log.Info("Creating router")
+
+		kubeClientSet, err := kubeclientset.NewForConfig(rest.AddUserAgent(config, "kfctl-server"))
+
+		if err != nil {
+			return err
+		}
+
+		// Determine the docker image by fetching the pod spec.
+		podName := os.Getenv("MY_POD_NAME")
+		podNamespace := os.Getenv("MY_POD_NAMESPACE")
+
+		log.Infof("Running in pod %v, %v", podNamespace, podName)
+
+		pod, err := kubeClientSet.CoreV1().Pods(podNamespace).Get(podName, metav1.GetOptions{})
+
+		if err != nil {
+			log.Fatalf("Could not fetch pod info for %v.%v; Error: %+v", podNamespace, podName, err)
+			return err
+		}
+
+		image := pod.Spec.Containers[0].Image
+		log.Infof("Using image: %v", image)
+		router, err := NewRouter(kubeClientSet, image, opt.KfctlAppsNamespace)
+
+		if err != nil {
+			return err
+		}
+		router.RegisterEndpoints()
 	}
 
 	log.Info("Creating server")
