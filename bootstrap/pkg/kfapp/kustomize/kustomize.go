@@ -712,9 +712,11 @@ func MergeKustomization(compDir string, targetDir string, kfDef *kfconfig.KfConf
 		patchJson.Target = value.Target
 		patchAbsolutePath := filepath.Join(targetDir, value.Path)
 		patchJson.Path = extractSuffix(compDir, patchAbsolutePath)
-		if _, ok := kustomizationMaps[patchesJson6902Map][patchJson.Path]; !ok {
+		// patchJson.Path can be used for multiple targets, hence kustomizationMaps key is patchJson.Path+"-"+patchJson.Target.Name"
+		patchJsonMapKey := patchJson.Path + "-" + patchJson.Target.Name
+		if _, ok := kustomizationMaps[patchesJson6902Map][patchJsonMapKey]; !ok {
 			parent.PatchesJson6902 = append(parent.PatchesJson6902, *patchJson)
-			kustomizationMaps[patchesJson6902Map][patchJson.Path] = true
+			kustomizationMaps[patchesJson6902Map][patchJsonMapKey] = true
 		}
 	}
 	for _, value := range child.Configurations {
@@ -822,9 +824,16 @@ func MergeKustomizations(kfDef *kfconfig.KfConfig, compDir string, overlayParams
 					if err != nil {
 						return nil, err
 					}
-					patchErr := ioutil.WriteFile(patchFile, data, 0644)
+					f, patchErr := os.OpenFile(patchFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 					if patchErr != nil {
 						return nil, patchErr
+					}
+					if _, err := f.Write(data); err != nil {
+						f.Close()
+						return nil, err
+					}
+					if err := f.Close(); err != nil {
+						return nil, err
 					}
 				}
 			}
