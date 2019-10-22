@@ -91,7 +91,7 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 		}
 
 		c.Input.Spec.AppDir = tDir
-		cfgFile, err := CreateKfAppCfgFile(&c.Input)
+		cfgFile, err := createKfAppCfgFile(&c.Input)
 
 		pCase, _ := Pformat(c)
 		hasError := err != nil

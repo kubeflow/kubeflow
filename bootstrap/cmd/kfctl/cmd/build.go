@@ -46,7 +46,7 @@ var buildCmd = &cobra.Command{
 		}
 
 		if kind == string(kftypes.KFDEF) {
-			_, err = coordinator.BuildKfAppFromURI(configFilePath)
+			_, err = coordinator.NewLoadKfAppFromURI(configFilePath)
 		} else if kind == string(kftypes.KFUPGRADE) {
 			kfUpgrade, kfUpgradeErr := kfupgrade.NewKfUpgrade(configFilePath)
 			if kfUpgradeErr != nil {
