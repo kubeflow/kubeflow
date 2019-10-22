@@ -55,6 +55,8 @@ import (
 	"sigs.k8s.io/kustomize/v3/pkg/validators"
 	"sigs.k8s.io/kustomize/v3/plugin/builtin"
 	"strings"
+	"time"
+
 	// Auth plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth/azure"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -172,13 +174,15 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 				Message: fmt.Sprintf("can not encode component %v as yaml Error %v", app.Name, err),
 			}
 		}
-		err = backoff.Retry(func() error {
-			err := apply.Apply(data)
-			if err != nil {
-				return err
-			}
-			return nil
-		}, utils.NewDefaultBackoff())
+		err = backoff.RetryNotify(
+			func() error {
+				return apply.Apply(data)
+			},
+			utils.NewDefaultBackoff(),
+			func(e error, duration time.Duration) {
+				log.Warnf("Encountered error during apply: %v", err)
+				log.Warnf("Will retry in %.0f seconds.", duration.Seconds())
+			})
 		if err != nil {
 			return err
 		}
