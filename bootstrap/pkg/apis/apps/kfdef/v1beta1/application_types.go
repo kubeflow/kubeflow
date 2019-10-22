@@ -20,10 +20,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-const (
-	KfConfigFile = "app.yaml"
-)
-
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // KfDef is the Schema for the applications API

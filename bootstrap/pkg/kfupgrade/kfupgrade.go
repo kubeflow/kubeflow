@@ -88,7 +88,7 @@ func createNewKfApp(baseConfig string, version string, oldKfCfg *kfconfig.KfConf
 		log.Infof("App directory %v already exists", newAppDir)
 	}
 
-	err = configconverters.WriteConfigToFile(*newKfCfg, outputFilePath)
+	err = configconverters.WriteConfigToFile(*newKfCfg)
 	if err != nil {
 		return nil, "", err
 	}

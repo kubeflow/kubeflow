@@ -28,6 +28,9 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
 				},
+				Spec: kfconfig.KfConfigSpec{
+					ConfigFileName: kftypesv3.KfConfigFile,
+				},
 			},
 			DirExists:     false,
 			CfgFileExists: false,
@@ -39,6 +42,9 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
 				},
+				Spec: kfconfig.KfConfigSpec{
+					ConfigFileName: kftypesv3.KfConfigFile,
+				},
 			},
 			DirExists:     true,
 			CfgFileExists: false,
@@ -49,6 +55,9 @@ func Test_CreateKfAppCfgFile(t *testing.T) {
 			Input: kfconfig.KfConfig{
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: "kfdef.apps.kubeflow.org/v1alpha1",
+				},
+				Spec: kfconfig.KfConfigSpec{
+					ConfigFileName: kftypesv3.KfConfigFile,
 				},
 			},
 			DirExists:     true,

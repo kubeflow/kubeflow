@@ -203,11 +203,13 @@ func CreateKfAppCfgFileWithKfDef(d *kfdefsv3.KfDef) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	kfconfig.Spec.ConfigFileName = kftypesv3.KfConfigFile
 	return CreateKfAppCfgFile(kfconfig)
 }
 
 // CreateKfAppCfgFile will create the application directory and persist
 // the KfDef to it as app.yaml.
+// This is only used when the config file is remote (https://github...)
 // Returns an error if the app.yaml file already exists
 // Returns path to the app.yaml file.
 func CreateKfAppCfgFile(d *kfconfig.KfConfig) (string, error) {
@@ -222,15 +224,12 @@ func CreateKfAppCfgFile(d *kfconfig.KfConfig) (string, error) {
 		log.Infof("App directory %v already exists", d.Spec.AppDir)
 	}
 
-	// Rewrite app.yaml
-	cfgFilePath := filepath.Join(d.Spec.AppDir, kftypesv3.KfConfigFile)
-
-	log.Infof("Writing KfDef to %v", cfgFilePath)
-	cfgFilePathErr := configconverters.WriteConfigToFile(*d, cfgFilePath)
+	log.Infof("Writing KfDef to %v", d.Spec.ConfigFileName)
+	cfgFilePathErr := configconverters.WriteConfigToFile(*d)
 	if cfgFilePathErr != nil {
 		log.Errorf("failed to write config: %v", cfgFilePathErr)
 	}
-	return cfgFilePath, cfgFilePathErr
+	return filepath.Join(d.Spec.AppDir, d.Spec.ConfigFileName), cfgFilePathErr
 }
 
 // nameFromAppFile infers a default name given the path to the KFDef file.
@@ -257,32 +256,29 @@ func nameFromAppFile(appFile string) string {
 
 // LoadKfAppCfgFile constructs a KfApp by loading the provided app.yaml file.
 func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
+	kfdef, err := configconverters.LoadConfigFromURI(cfgfile)
+	if err != nil {
+		return nil, &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
+		}
+	}
+
 	isRemoteFile, err := utils.IsRemoteFile(cfgfile)
 	if err != nil {
 		return nil, err
 	}
-
-	// If the config file is a remote URI, check to see if the current directory
+	// If the config file is a remote URI, check to see if the AppDir
 	// is empty because we will be generating the KfApp there.
-	appFile := cfgfile
 	if isRemoteFile {
-		cwd, _ := os.Getwd()
-		if !isDirEmpty(cwd) {
+		// AppDir should be the cwd.
+		if !isDirEmpty(kfdef.Spec.AppDir) {
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("current directory %v not empty, please switch directories", cwd),
+				Message: fmt.Sprintf("current directory %v not empty, please switch directories", kfdef.Spec.AppDir),
 			}
 		}
-
-		kfdef, err := configconverters.LoadConfigFromURI(cfgfile)
-		if err != nil {
-			return nil, &kfapis.KfError{
-				Code:    int(kfapis.INVALID_ARGUMENT),
-				Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
-			}
-		}
-
-		appFile, err = CreateKfAppCfgFile(kfdef)
+		_, err = CreateKfAppCfgFile(kfdef)
 		if err != nil {
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
@@ -291,19 +287,10 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 		}
 	}
 
-	// Set default TypeMeta information. This will get overwritten by explicit values if set in the cfg file.
-	kfdef, err := configconverters.LoadConfigFromURI(appFile)
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not load %v. Error: %v", cfgfile, err),
-		}
-	}
-
-	kfdef.Spec.AppDir = filepath.Dir(appFile)
+	appFile := filepath.Join(kfdef.Spec.AppDir, kfdef.Spec.ConfigFileName)
 	// Since we know we have a local file we can set a default name if none is set based on the local directory
 	if kfdef.Name == "" {
-		kfdef.Name = nameFromAppFile(appFile)
+		kfdef.Name = nameFromAppFile(filepath.Join(kfdef.Spec.AppDir, kfdef.Spec.ConfigFileName))
 		if kfdef.Name == "" {
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
@@ -552,8 +539,7 @@ func (kfapp *coordinator) Generate(resources kftypesv3.ResourceEnum) error {
 							kfapp.KfDef.Spec.Platform, platformErr),
 					}
 				}
-				createConfigErr := configconverters.WriteConfigToFile(
-					*kfapp.KfDef, filepath.Join(kfapp.KfDef.Spec.AppDir, kftypesv3.KfConfigFile))
+				createConfigErr := configconverters.WriteConfigToFile(*kfapp.KfDef)
 				if createConfigErr != nil {
 					return &kfapis.KfError{
 						Code: createConfigErr.(*kfapis.KfError).Code,
@@ -623,8 +609,7 @@ func (kfapp *coordinator) Init(resources kftypesv3.ResourceEnum) error {
 							kfapp.KfDef.Spec.Platform, platformErr),
 					}
 				}
-				createConfigErr := configconverters.WriteConfigToFile(
-					*kfapp.KfDef, filepath.Join(kfapp.KfDef.Spec.AppDir, kftypesv3.KfConfigFile))
+				createConfigErr := configconverters.WriteConfigToFile(*kfapp.KfDef)
 				if createConfigErr != nil {
 					return &kfapis.KfError{
 						Code: createConfigErr.(*kfapis.KfError).Code,

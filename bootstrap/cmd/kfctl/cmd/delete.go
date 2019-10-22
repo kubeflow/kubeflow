@@ -16,8 +16,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
@@ -39,11 +37,11 @@ var deleteCmd = &cobra.Command{
 		if deleteCfg.GetBool(string(kftypes.VERBOSE)) != true {
 			log.SetLevel(log.WarnLevel)
 		}
-		cwd, err := os.Getwd()
-		if err != nil {
-			return fmt.Errorf("cannot fetch current directory for apply: %v", err)
+		// Load config from exisiting app.yaml
+		if configFilePath == "" {
+			return fmt.Errorf("Must pass in -f configFile")
 		}
-		kfApp, err = coordinator.BuildKfAppFromURI(filepath.Join(cwd, "app.yaml"))
+		kfApp, err = coordinator.BuildKfAppFromURI(configFilePath)
 		if err != nil || kfApp == nil {
 			return fmt.Errorf("error loading kfapp: %v", err)
 		}
@@ -66,6 +64,9 @@ func init() {
 
 	deleteCfg.SetConfigName("app")
 	deleteCfg.SetConfigType("yaml")
+
+	deleteCmd.PersistentFlags().StringVarP(&configFilePath, string(kftypes.FILE), "f", "",
+		"The local config file of KfDef.")
 
 	// verbose output
 	deleteCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,

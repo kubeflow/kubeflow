@@ -19,7 +19,6 @@ import (
 )
 
 const (
-	KfConfigFile    = "app.yaml"
 	DefaultCacheDir = ".cache"
 )
 
@@ -40,6 +39,9 @@ type KfConfigSpec struct {
 	// Shared fields among all components. should limit this list.
 	// TODO(gabrielwen): Deprecate AppDir and move it to cache in Status.
 	AppDir string `json:"appDir,omitempty"`
+	// The filename of the config, e.g. app.yaml.
+	// Base name only, as the directory is AppDir above.
+	ConfigFileName string `json:"configFileName,omitempty"`
 
 	Version string `json:"version,omitempty"`
 

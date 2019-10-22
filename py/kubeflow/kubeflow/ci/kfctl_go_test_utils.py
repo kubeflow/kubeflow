@@ -269,7 +269,7 @@ def apply_kubeflow(kfctl_path, app_path):
 
 def build_and_apply_kubeflow(kfctl_path, app_path):
   util.run([kfctl_path, "build", "-V", "-f=" + os.path.join(app_path, "tmp.yaml")], cwd=app_path)
-  util.run([kfctl_path, "apply", "-V"], cwd=app_path)
+  util.run([kfctl_path, "apply", "-V", "-f=" + os.path.join(app_path, "tmp.yaml")], cwd=app_path)
   return app_path
 
 def verify_kubeconfig(app_path):

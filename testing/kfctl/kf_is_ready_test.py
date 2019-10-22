@@ -24,7 +24,7 @@ def set_logging():
   logging.getLogger().setLevel(logging.INFO)
 
 def get_platform_app_name(app_path):
-  with open(os.path.join(app_path, "app.yaml")) as f:
+  with open(os.path.join(app_path, "tmp.yaml")) as f:
     kfdef = yaml.safe_load(f)
   app_name = kfdef["metadata"]["name"]
   platform = ""

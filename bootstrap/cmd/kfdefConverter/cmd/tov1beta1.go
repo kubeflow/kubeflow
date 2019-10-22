@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/configconverters"
@@ -40,6 +41,8 @@ var tov1beta1Cmd = &cobra.Command{
 		if outPath == "" {
 			outPath = args[0]
 		}
+		config.Spec.AppDir = filepath.Dir(outPath)
+		config.Spec.ConfigFileName = filepath.Base(outPath)
 
 		// A hack to force converter to output KfDef in v1beta1.
 		apiVersion := strings.Split(config.APIVersion, "/")
@@ -48,7 +51,7 @@ var tov1beta1Cmd = &cobra.Command{
 		}
 		apiVersion[1] = "v1beta1"
 		config.APIVersion = strings.Join(apiVersion, "/")
-		return configconverters.WriteConfigToFile(*config, outPath)
+		return configconverters.WriteConfigToFile(*config)
 	},
 }
 
