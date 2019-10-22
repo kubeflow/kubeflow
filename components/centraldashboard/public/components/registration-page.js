@@ -92,7 +92,7 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
         if (!this.validateNamespace()) return;
         API.body = {namespace: this.namespaceName};
         this.waitForRedirect = true;
-        await API.generateRequest();
+        await API.generateRequest().completes;
         await this.sleep(500);
         if (this.error && this.error.response) {
             return this.waitForRedirect = false;

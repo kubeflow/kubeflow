@@ -141,8 +141,8 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * Resync the app with environment information
      */
     async resyncApp() {
-        this.$.envInfo.generateRequest();
-        await this.sleep(500);
+        await this.$.envInfo.generateRequest().completes;
+        await this.sleep(100);
         this.$.welcomeUser.show();
     }
 
