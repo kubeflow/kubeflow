@@ -19,8 +19,6 @@ package aws
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
-	"golang.org/x/crypto/bcrypt"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -31,6 +29,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
+	"golang.org/x/crypto/bcrypt"
 
 	awssdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -52,6 +53,7 @@ import (
 
 const (
 	KUBEFLOW_AWS_INFRA_DIR      = "aws_config"
+	KUBEFLOW_MANIFEST_DIR       = "kustomize"
 	CLUSTER_CONFIG_FILE         = "cluster_config.yaml"
 	CLUSTER_FEATURE_CONFIG_FILE = "cluster_features.yaml"
 	PATH                        = "path"
@@ -77,17 +79,45 @@ type Aws struct {
 
 	region string
 	roles  []string
+
+	istioManifests   []manifest
+	ingressManifests []manifest
+}
+
+type manifest struct {
+	name string
+	path string
 }
 
 // GetKfApp returns the aws kfapp. It's called by coordinator.GetKfApp
 func GetPlatform(kfdef *kfconfig.KfConfig) (kftypes.Platform, error) {
+	istioManifests := []manifest{
+		{
+			name: "Istio CRDs",
+			path: path.Join(KUBEFLOW_MANIFEST_DIR, "istio-crds", "base", "crds.yaml"),
+		},
+		{
+			name: "Istio Control Plane",
+			path: path.Join(KUBEFLOW_MANIFEST_DIR, "istio-install", "base", "istio-noauth.yaml"),
+		},
+	}
+
+	ingressManifests := []manifest{
+		{
+			name: "ALB Ingress",
+			path: path.Join(KUBEFLOW_MANIFEST_DIR, "istio-ingress", "base", "ingress.yaml"),
+		},
+	}
+
 	session := session.Must(session.NewSession())
 
 	_aws := &Aws{
-		kfDef:     kfdef,
-		sess:      session,
-		iamClient: iam.New(session),
-		eksClient: eks.New(session),
+		kfDef:            kfdef,
+		sess:             session,
+		iamClient:        iam.New(session),
+		eksClient:        eks.New(session),
+		istioManifests:   istioManifests,
+		ingressManifests: ingressManifests,
 	}
 
 	return _aws, nil
@@ -726,7 +756,15 @@ func (aws *Aws) Delete(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	// 1. Detach inline policies from worker IAM Roles
+	// 1. Delete ingress and istio dependencies
+	if err := aws.uninstallK8sDependencies(); err != nil {
+		return &kfapis.KfError{
+			Code:    err.(*kfapis.KfError).Code,
+			Message: fmt.Sprintf("Could not uninstall eks cluster Error: %v", err.(*kfapis.KfError).Message),
+		}
+	}
+
+	// 2. Detach inline policies from worker IAM Roles
 	if err := aws.detachPoliciesToWorkerRoles(); err != nil {
 		return &kfapis.KfError{
 			Code:    err.(*kfapis.KfError).Code,
@@ -734,7 +772,7 @@ func (aws *Aws) Delete(resources kftypes.ResourceEnum) error {
 		}
 	}
 
-	// 2. Delete EKS cluster
+	// 3. Delete EKS cluster
 	if err := aws.uninstallEKSCluster(); err != nil {
 		return &kfapis.KfError{
 			Code:    err.(*kfapis.KfError).Code,
@@ -780,6 +818,51 @@ func (aws *Aws) getFeatureConfig() (map[string]interface{}, error) {
 	}
 
 	return config, nil
+}
+
+func (aws *Aws) uninstallK8sDependencies() error {
+	rev := func(manifests []manifest) []manifest {
+		var r []manifest
+		max := len(manifests)
+		for i := 0; i < max; i++ {
+			r = append(r, manifests[max-1-i])
+		}
+		return r
+	}
+
+	if err := deleteManifests(rev(aws.ingressManifests)); err != nil {
+		return errors.WithStack(err)
+	}
+
+	var albCleanUpInSeconds = 15
+	log.Infof("Wait for %d seconds for alb ingress controller to clean up ALB", albCleanUpInSeconds)
+	time.Sleep(time.Duration(albCleanUpInSeconds) * time.Second)
+
+	if err := deleteManifests(rev(aws.istioManifests)); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
+func deleteManifests(manifests []manifest) error {
+	config := kftypes.GetConfig()
+	for _, m := range manifests {
+		log.Infof("Deleting %s...", m.name)
+		if _, err := os.Stat(m.path); os.IsNotExist(err) {
+			log.Warnf("File %s not found", m.path)
+			continue
+		}
+		err := utils.DeleteResourceFromFile(
+			config,
+			m.path,
+		)
+		if err != nil {
+			log.Errorf("Failed to delete %s: %+v", m.name, err)
+			return err
+		}
+	}
+	return nil
 }
 
 func (aws *Aws) detachPoliciesToWorkerRoles() error {
