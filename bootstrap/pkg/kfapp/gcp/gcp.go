@@ -1997,7 +1997,7 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 		gcp.kfDef.Spec.Email = strings.TrimSpace(email)
 		pluginSpec.Email = strings.TrimSpace(email)
 		log.Infof("Setting Email to default: %v", gcp.kfDef.Spec.Email)
-	} else {
+	} else if gcp.kfDef.Spec.Email == "" {
 		log.Warnf("gcpAccountGetter not set; can't get default email")
 	}
 	// Set the project
@@ -2010,7 +2010,7 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 		gcp.kfDef.Spec.Project = strings.TrimSpace(project)
 		pluginSpec.Project = strings.TrimSpace(project)
 		log.Infof("Setting Project to default: %v", gcp.kfDef.Spec.Project)
-	} else {
+	} else if gcp.kfDef.Spec.Project == "" {
 		log.Warnf("gcpProjectGetter not set; can't get default project")
 	}
 	// Set the zone
@@ -2023,7 +2023,7 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 		gcp.kfDef.Spec.Zone = strings.TrimSpace(zone)
 		pluginSpec.Zone = strings.TrimSpace(zone)
 		log.Infof("Setting Zone to default: %v", gcp.kfDef.Spec.Zone)
-	} else {
+	} else if gcp.kfDef.Spec.Zone == "" {
 		log.Warnf("gcpZoneGetter not set; can't get default zone")
 	}
 

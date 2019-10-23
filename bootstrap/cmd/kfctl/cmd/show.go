@@ -40,7 +40,7 @@ var showCmd = &cobra.Command{
 		if resourceErr != nil {
 			return fmt.Errorf("invalid resource: %v", resourceErr)
 		}
-		kfApp, kfAppErr := coordinator.LoadKfAppCfgFile(configFilePath)
+		kfApp, kfAppErr := coordinator.NewLoadKfAppFromURI(configFilePath)
 		if kfAppErr != nil {
 			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}

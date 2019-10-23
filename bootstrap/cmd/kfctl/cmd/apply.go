@@ -62,7 +62,7 @@ var applyCmd = &cobra.Command{
 		}
 		switch kind {
 		case string(kftypes.KFDEF):
-			kfApp, err = coordinator.BuildKfAppFromURI(configFilePath)
+			kfApp, err = coordinator.NewLoadKfAppFromURI(configFilePath)
 			if err != nil {
 				return fmt.Errorf("failed to build kfApp from URI %s: %v", configFilePath, err)
 			}
