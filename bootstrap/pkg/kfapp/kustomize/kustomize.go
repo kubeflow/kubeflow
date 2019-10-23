@@ -204,7 +204,9 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 		}
 		return nil
 	}, b)
-	log.Warnf("Default namespace creation skipped")
+	if err != nil {
+		log.Warnf("Default namespace creation skipped")
+	}
 	return nil
 }
 
