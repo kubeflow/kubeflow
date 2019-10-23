@@ -571,6 +571,8 @@ func (c *KfConfig) SetApplicationParameter(appName string, paramName string, val
 
 			return nil
 		}
+		log.Warnf("Application %v not found", appName)
+		return nil
 	}
 
 	return &AppNotFound{Name: appName}

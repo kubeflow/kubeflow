@@ -193,7 +193,7 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 	// Default user namespace when multi-tenancy disabled
 	anonymousNamespace := "anonymous"
 	b := utils.NewDefaultBackoff()
-	return backoff.Retry(func() error {
+	err = backoff.Retry(func() error {
 		if !(apply.IfNamespaceExist(defaultProfileNamespace) || apply.IfNamespaceExist(anonymousNamespace)) {
 			msg := "Default user namespace pending creation..."
 			log.Warnf(msg)
@@ -204,6 +204,8 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 		}
 		return nil
 	}, b)
+	log.Warnf("Default namespace creation skipped")
+	return nil
 }
 
 // deleteGlobalResources is called from Delete and deletes CRDs, ClusterRoles, ClusterRoleBindings
