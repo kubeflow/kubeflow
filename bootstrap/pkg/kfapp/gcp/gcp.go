@@ -2033,6 +2033,16 @@ func (gcp *Gcp) setGcpPluginDefaults() error {
 // Generate generates the gcp kfapp manifest.
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
+	gcpDir := path.Join(gcp.kfDef.Spec.AppDir, GCP_CONFIG)
+	if _, err := os.Stat(gcpDir); err == nil {
+		// Noop if the directory already exists.
+		log.Infof("folder %v exists, skip gcp.Generate", gcpDir)
+		return nil
+	} else if !os.IsNotExist(err) {
+		log.Errorf("Stat folder %v error: %v; try deleting it...", gcpDir, err)
+		_ = os.RemoveAll(gcpDir)
+	}
+
 	if err := gcp.kfDef.SyncCache(); err != nil {
 		log.Errorf("Failed to synchronize the cache; error %v", err)
 		return errors.WithStack(err)
