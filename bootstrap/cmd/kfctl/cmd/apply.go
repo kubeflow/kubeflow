@@ -68,9 +68,21 @@ var applyCmd = &cobra.Command{
 		}
 		switch kind {
 		case string(kftypes.KFDEF):
-			kfApp, err = coordinator.BuildKfAppFromURI(configFilePath)
+			kfApp, err = coordinator.NewLoadKfAppFromURI(configFilePath)
+			if err != nil || kfApp == nil {
+				return fmt.Errorf("couldn't create KfApp from config: %v", err)
+			}
+
+			// KfApp Init
+			err = kfApp.Init(kftypesv3.ALL)
 			if err != nil {
-				return fmt.Errorf("failed to build kfApp from URI %s: %v", configFilePath, err)
+				return nil, fmt.Errorf("KfApp initiliazation failed: %v", err)
+			}
+
+			// kfApp Generate
+			generateErr := kfApp.Generate(kftypesv3.ALL)
+			if generateErr != nil {
+				return nil, fmt.Errorf("couldn't generate KfApp: %v", generateErr)
 			}
 			return kfApp.Apply(kftypes.ALL)
 		case string(kftypes.KFUPGRADE):

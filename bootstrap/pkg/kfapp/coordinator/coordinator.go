@@ -47,9 +47,9 @@ type Builder interface {
 type DefaultBuilder struct {
 }
 
-func (b *DefaultBuilder) LoadKfAppCfgFile(cfgFile string) (kftypesv3.KfApp, error) {
-	return LoadKfAppCfgFile(cfgFile)
-}
+// func (b *DefaultBuilder) LoadKfAppCfgFile(cfgFile string) (kftypesv3.KfApp, error) {
+// 	return LoadKfAppCfgFile(cfgFile)
+// }
 
 // GetPlatform will return an implementation of kftypesv3.GetPlatform that matches the platform string
 // It looks for statically compiled-in implementations, otherwise throws unrecognized error
@@ -154,43 +154,6 @@ func isDirEmpty(dir string) bool {
 	return true
 }
 
-// NewLoadKfAppFromURI takes in a config file and constructs the KfApp
-// used by the build and apply semantics for kfctl
-func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
-	// TODO(jlewi): Can we merge NewLoadKfAppFromURI and LoadKFAppCfgFile
-	kfApp, err := LoadKfAppCfgFile(configFile)
-	if err != nil || kfApp == nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error creating KfApp from config file: %v", err),
-		}
-	}
-
-	return kfApp, nil
-}
-
-// BuildKfAppFromURI used by both build and apply for the new code path
-func BuildKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
-	// Construct KfApp from config file
-	kfApp, err := NewLoadKfAppFromURI(configFile)
-	if err != nil || kfApp == nil {
-		return nil, err
-	}
-
-	// KfApp Init
-	err = kfApp.Init(kftypesv3.ALL)
-	if err != nil {
-		return nil, fmt.Errorf("KfApp initiliazation failed: %v", err)
-	}
-
-	// kfApp Generate
-	generateErr := kfApp.Generate(kftypesv3.ALL)
-	if generateErr != nil {
-		return nil, fmt.Errorf("couldn't generate KfApp: %v", generateErr)
-	}
-	return kfApp, nil
-}
-
 // TODO: remove this
 // This is for kfctlServer. We can remove this after kfctlServer uses kfconfig
 func CreateKfAppCfgFileWithKfDef(d *kfdefsv3.KfDef) (string, error) {
@@ -255,8 +218,9 @@ func nameFromAppFile(appFile string) string {
 	return name
 }
 
-// LoadKfAppCfgFile constructs a KfApp by loading the provided app.yaml file.
-func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
+// NewLoadKfAppFromURI takes in a config file and constructs the KfApp
+// used by the build and apply semantics for kfctl
+func NewLoadKfAppFromURI(cfgfile string) (kftypesv3.KfApp, error) {
 	isRemoteFile, err := utils.IsRemoteFile(cfgfile)
 	if err != nil {
 		return nil, err
@@ -340,13 +304,6 @@ func LoadKfAppCfgFile(cfgfile string) (kftypesv3.KfApp, error) {
 	if pkg != nil {
 		c.PackageManagers[kftypesv3.KUSTOMIZE] = pkg
 	}
-
-	// Set some defaults
-	// TODO(jlewi): This code doesn't belong here. It should probably be called from inside KfApp; e.g. from
-	// KfApp.generate. We should do all initialization of defaults as part of the reconcile loop in one function.
-	// if c.KfDef.Spec.PackageManager == "" {
-	// 	c.KfDef.Spec.PackageManager = kftypesv3.KUSTOMIZE
-	// }
 
 	return c, nil
 }

@@ -41,6 +41,10 @@ func (f *FakeCoordinator) GetPlugin(name string) (kftypes.KfApp, bool) {
 type FakeBuilder struct {
 }
 
+func (b *FakeBuilder) BuildKfAppFromURI(configFile string) (kftypes.KfApp, error) {
+
+}
+
 func (b *FakeBuilder) CreateKfAppCfgFile(def *kfdefsv3.KfDef) (string, error) {
 	return path.Join(def.Spec.AppDir, kfdefsv3.KfConfigFile), nil
 }

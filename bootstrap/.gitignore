@@ -3,3 +3,4 @@
 /app.override.yaml
 /reg_tmp/**
 /test
+/pkg/kfapp/testdir
