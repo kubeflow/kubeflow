@@ -13,6 +13,42 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+func Test_NewLoadKfAppFromURI(t *testing.T) {
+	// Table Driven Test
+	// testCase holds the items for testing
+	type testCase struct {
+		Input       string
+		IsRemote    bool
+		IsDirEmpty  bool
+		IsKfAppNil  bool
+		ExpectError bool
+	}
+
+	// we construct the Table with cases
+	cases := []testCase{
+		{
+			Input:       "https://raw.githubusercontent.com/kubeflow/kubeflow/master/bootstrap/config/kfctl_k8s_istio.yaml",
+			IsRemote:    true,
+			IsDirEmpty:  false,
+			IsKfAppNil:  true,
+			ExpectError: true,
+		},
+	}
+	for _, c := range cases {
+		kfApp, err := NewLoadKfAppFromURI(c.Input)
+
+		pCase, _ := Pformat(c)
+		hasError := err != nil
+		if hasError != c.ExpectError {
+			t.Errorf("Test case %v;\n NewLoadKfAppFromURI returns error; got %v want %v", pCase, hasError, c.ExpectError)
+		}
+		hasKfApp := kfApp == nil
+		if hasKfApp != c.IsKfAppNil {
+			t.Errorf("Test Case: %v;\n NewLoadKfAppFromURI returns nil KfApp; got %v want %v", pCase, hasKfApp, c.IsKfAppNil)
+		}
+	}
+}
+
 func Test_CreateKfAppCfgFile(t *testing.T) {
 	type testCase struct {
 		Input         kfconfig.KfConfig
