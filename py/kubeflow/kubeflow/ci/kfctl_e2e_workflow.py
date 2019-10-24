@@ -63,7 +63,7 @@ TESTS_DAG_NAME = "gke-tests"
 
 TEMPLATE_LABEL = "kfctl_e2e"
 
-MAIN_REPO = "kubeflow/kubeflow"
+DEFAULT_REPO = "kubeflow/kubeflow"
 
 EXTRA_REPOS = ["kubeflow/testing@HEAD", "kubeflow/tf-operator@HEAD"]
 
@@ -494,12 +494,12 @@ class Builder:
     # Checkout
 
     # create the checkout step
+    # always include the default repo
+    repos = [DEFAULT_REPO + "@HEAD"]
     main_repo = argo_build_util.get_repo_from_prow_env()
-    if not main_repo:
-      logging.info("Prow environment variables for repo not set")
-      main_repo = MAIN_REPO + "@HEAD"
-    logging.info("Main repository: %s", main_repo)
-    repos = [main_repo]
+    if main_repo and !main_repo.startswith(DEFAULT_REPO):
+      logging.info("Main repository: %s", main_repo)
+      repos.extend(main_repo)
 
     repos.extend(EXTRA_REPOS)
 
