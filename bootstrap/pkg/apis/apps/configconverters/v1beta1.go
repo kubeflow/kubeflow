@@ -28,7 +28,7 @@ func maybeGetPlatform(pluginKind string) string {
 	}
 }
 
-func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfig, error) {
+func (v V1beta1) ToKfConfig(kfdefBytes []byte) (*kfconfig.KfConfig, error) {
 	kfdef := &kfdeftypes.KfDef{}
 	if err := yaml.Unmarshal(kfdefBytes, kfdef); err != nil {
 		return nil, &kfapis.KfError{
@@ -40,7 +40,6 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 	// Set UseBasicAuth later.
 	config := &kfconfig.KfConfig{
 		Spec: kfconfig.KfConfigSpec{
-			AppDir:       appdir,
 			UseBasicAuth: false,
 			UseIstio:     true,
 		},

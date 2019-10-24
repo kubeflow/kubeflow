@@ -18,7 +18,7 @@ import (
 )
 
 type Converter interface {
-	ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfig, error)
+	ToKfConfig(kfdefBytes []byte) (*kfconfig.KfConfig, error)
 	ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error)
 }
 
@@ -143,15 +143,7 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 		}
 	}
 
-	// TODO(lunkai): We should not need to pass a appdir to ToKfConfig.
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
-		}
-	}
-	kfconfig, err := converter.ToKfConfig(cwd, configFileBytes)
+	kfconfig, err := converter.ToKfConfig(configFileBytes)
 	if err != nil {
 		log.Errorf("Failed to convert kfdef to kfconfig: %v", err)
 		return nil, err
@@ -159,6 +151,13 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 
 	// Set the AppDir and ConfigFileName for kfconfig
 	if isRemoteFile {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
+			}
+		}
 		kfconfig.Spec.AppDir = cwd
 	} else {
 		kfconfig.Spec.AppDir = filepath.Dir(configFile)

@@ -35,7 +35,7 @@ func TestV1beta1_expectedConfig(t *testing.T) {
 		}
 
 		v1beta1 := V1beta1{}
-		config, err := v1beta1.ToKfConfig("", buf)
+		config, err := v1beta1.ToKfConfig(buf)
 		if err != nil {
 			t.Fatalf("Error converting to KfConfig: %v", err)
 		}
