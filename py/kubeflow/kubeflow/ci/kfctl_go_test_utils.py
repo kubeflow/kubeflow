@@ -261,6 +261,9 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
     build_and_apply_kubeflow(kfctl_path, app_path)
   else:
     apply_kubeflow(kfctl_path, app_path)
+  # Run 2nd apply to make sure it works in periodic test.
+  if os.getenv("JOB_TYPE") == "periodic":
+    apply_kubeflow(kfctl_path, app_path)
   return app_path
 
 def apply_kubeflow(kfctl_path, app_path):
