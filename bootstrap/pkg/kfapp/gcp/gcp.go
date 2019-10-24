@@ -1881,6 +1881,12 @@ func (gcp *Gcp) ConfigPodDefault() error {
 		}
 	}
 
+	getReq := crdClient.Get().Resource(mapping.Resource.Resource).Namespace(defaultNamespace).Name("add-gcp-secret")
+	if err := getReq.Do().Error(); err == nil {
+		// pod default already exists.
+		return nil
+	}
+
 	req := crdClient.Post().Resource(mapping.Resource.Resource).Body(body)
 	req = req.Namespace(defaultNamespace)
 	result := req.Do()
