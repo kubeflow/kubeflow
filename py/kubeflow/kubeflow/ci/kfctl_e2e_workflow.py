@@ -497,7 +497,7 @@ class Builder:
     # always include the default repo
     repos = [DEFAULT_REPO + "@HEAD"]
     main_repo = argo_build_util.get_repo_from_prow_env()
-    if main_repo and !main_repo.startswith(DEFAULT_REPO):
+    if (main_repo and !main_repo.startswith(DEFAULT_REPO)):
       logging.info("Main repository: %s", main_repo)
       repos.extend(main_repo)
 
