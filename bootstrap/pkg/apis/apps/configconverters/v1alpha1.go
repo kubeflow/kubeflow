@@ -9,7 +9,6 @@ import (
 	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	kfdeftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	kfgcp "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
-	log "github.com/sirupsen/logrus"
 )
 
 // Empty struct - used to implement Converter interface.
@@ -52,8 +51,7 @@ func copyGcpPluginSpec(from *kfdeftypes.KfDef, to *kfconfig.KfConfig) error {
 	return to.SetPluginSpec(kfconfig.GCP_PLUGIN_KIND, spec)
 }
 
-func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfig, error) {
-	log.Infof("converting to kfconfig, appdir=%v", appdir)
+func (v V1alpha1) ToKfConfig(kfdefBytes []byte) (*kfconfig.KfConfig, error) {
 	kfdef := &kfdeftypes.KfDef{}
 	if err := yaml.Unmarshal(kfdefBytes, kfdef); err != nil {
 		return nil, &kfapis.KfError{
@@ -76,9 +74,6 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 			Platform:        kfdef.Spec.Platform,
 			UseIstio:        true,
 		},
-	}
-	if config.Spec.AppDir == "" {
-		config.Spec.AppDir = appdir
 	}
 	config.Name = kfdef.Name
 	config.Namespace = kfdef.Namespace
