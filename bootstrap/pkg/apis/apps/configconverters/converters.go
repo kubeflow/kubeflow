@@ -5,16 +5,17 @@ import (
 	"os"
 	"path/filepath"
 
+	"io/ioutil"
+	netUrl "net/url"
+	"path"
+	"strings"
+
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
-	netUrl "net/url"
-	"path"
-	"strings"
 )
 
 type Converter interface {
@@ -123,6 +124,18 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("invalid config: apiVersion must be in the format of %v/<version>, got %v", Api, apiVersion),
 		}
+	}
+
+	// Add this check because kfctl binary can not properly install Kubeflow using v1alpha1 configuration.
+	// See https://github.com/kubeflow/kubeflow/issues/4371.
+	if apiVersionSeparated[1] == "v1alpha1" {
+		return nil, &kfapis.KfError{
+			Code: int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf(
+				"KfDef version v1alpha1 is not supported by this binary. Please use configs at %s for to deploy Kubeflow 0.7 or use old kfctl at %s to deploy Kubeflow 0.6",
+				"https://github.com/kubeflow/manifests/tree/v0.7-branch/kfdef",
+				"https://github.com/kubeflow/kubeflow/releases/tag/v0.6.2",
+			)}
 	}
 
 	converters := map[string]Converter{
