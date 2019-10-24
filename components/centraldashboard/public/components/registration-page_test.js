@@ -2,7 +2,7 @@
 /* eslint-disable max-len */
 import '@polymer/test-fixture/test-fixture';
 import 'jasmine-ajax';
-import {mockIronAjax, yieldForRequests as yieldForAsync} from '../ajax_test_helper';
+import {mockIronAjax, yieldForRequests as yieldForAsync, sleep} from '../ajax_test_helper';
 import {flush} from '@polymer/polymer/lib/utils/flush.js';
 
 import './dashboard-view';
@@ -45,6 +45,35 @@ describe('Registration Page', () => {
 
     it('Should work in a Normal Flow', async () => {
         mockIronAjax(
+            registrationPage.$.GetMyNamespace,
+            {hasWorkgroup: true, hasAuth: true, user: 'test'},
+        );
+        mockIronAjax(
+            registrationPage.$.MakeNamespace,
+            {message: 'Success!'},
+        );
+
+        const $e = (selector) => registrationPage.shadowRoot.querySelector(selector);
+        flush();
+        await yieldForAsync(); // So the view can render
+
+        $e('.Main-Content .iron-selected .actions > paper-button').click();
+        const input = registrationPage.$.Namespace;
+        input.value = 'kubeflow';
+        input.fireEnter();
+
+        $e('.Main-Content .iron-selected .actions > paper-button:nth-of-type(1)').click();
+        await sleep(5);
+
+        expect(flowcomplete).toHaveBeenCalled();
+    });
+
+    it('Should work when API DB is not consistent (use polling)', async () => {
+        mockIronAjax(
+            registrationPage.$.GetMyNamespace,
+            {hasWorkgroup: false, hasAuth: true, user: 'test'},
+        );
+        mockIronAjax(
             registrationPage.$.MakeNamespace,
             {message: 'Success!'},
         );
@@ -60,8 +89,15 @@ describe('Registration Page', () => {
 
         $e('.Main-Content .iron-selected .actions > paper-button:nth-of-type(1)').click();
 
-        await yieldForAsync(); // So the view can render
+        await sleep(5);
+        expect(flowcomplete).not.toHaveBeenCalled();
 
+        mockIronAjax(
+            registrationPage.$.GetMyNamespace,
+            {hasWorkgroup: true, hasAuth: true, user: 'test'},
+        );
+
+        await sleep(300);
         expect(flowcomplete).toHaveBeenCalled();
     });
 
