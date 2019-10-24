@@ -88,7 +88,7 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
     }
 
     async pollProfile(times = 10, delay = 500) {
-        const profileAPI = this.$.getMyNamespace;
+        const profileAPI = this.$.GetMyNamespace;
         if (times < 1) throw Error('Cannot poll profile < 1 times!');
         for (let i = 0; i < times; i++) {
             const req = profileAPI.generateRequest();
@@ -108,9 +108,10 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
         if (this.error && this.error.response) {
             return this.waitForRedirect = false;
         }
-        // Poll for profile over a span of 6 seconds
+        // Poll for profile over a span of 20 seconds (every 500ms)
         // if still not there, let the user click next again!
-        await this.pollProfile(20, 300);
+        const success = await this.pollProfile(40, 500);
+        if (success) this._successSetup();
         this.waitForRedirect = false;
     }
 
