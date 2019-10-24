@@ -522,6 +522,15 @@ func (aws *Aws) Init(resources kftypes.ResourceEnum) error {
 // Generate generate aws infrastructure configs and aws kfapp manifest
 // Remind: Need to be thread-safe: this entry is share among kfctl and deploy app
 func (aws *Aws) Generate(resources kftypes.ResourceEnum) error {
+	awsDir := path.Join(aws.kfDef.Spec.AppDir, KUBEFLOW_AWS_INFRA_DIR)
+	if _, err := os.Stat(awsDir); err == nil {
+		log.Infof("folder %v exists, skip aws.Generate", awsDir)
+		return nil
+	} else if !os.IsNotExist(err) {
+		log.Errorf("Stat folder %v error: %v; try deleting it...", awsDir, err)
+		_ = os.RemoveAll(awsDir)
+	}
+
 	// use aws to call sts get-caller-identity to verify aws credential works.
 	if err := utils.CheckAwsStsCallerIdentity(aws.sess); err != nil {
 		return &kfapis.KfError{
