@@ -558,7 +558,7 @@ func (r *ProfileReconciler) PatchDefaultPluginSpec(ctx context.Context, profileI
 					Kind: KIND_WORKLOAD_IDENTITY,
 				},
 				Spec: &runtime.RawExtension{
-					Raw: []byte(fmt.Sprintf(`{"GcpServiceAccount": "%v"}`, r.WorkloadIdentity)),
+					Raw: []byte(fmt.Sprintf(`{"gcpServiceAccount": "%v"}`, r.WorkloadIdentity)),
 				},
 			})
 		}

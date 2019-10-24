@@ -37,7 +37,7 @@ const WORKLOAD_IDENTITY_ROLE = "roles/iam.workloadIdentityUser"
 
 // GcpWorkloadIdentity: plugin that setup GKE workload identity (credentials for GCP API) for target profile namespace.
 type GcpWorkloadIdentity struct {
-	GcpServiceAccount string `json:"gcpserviceaccount,omitempty"`
+	GcpServiceAccount string `json:"gcpServiceAccount,omitempty"`
 }
 
 // ApplyPlugin will grant GCP workload identity to service account DEFAULT_EDITOR
