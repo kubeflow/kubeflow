@@ -84,6 +84,8 @@ func (v V1alpha1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConf
 	config.Namespace = kfdef.Namespace
 	config.APIVersion = kfdef.APIVersion
 	config.Kind = "KfConfig"
+	config.Labels = kfdef.Labels
+	config.Annotations = kfdef.Annotations
 	for _, app := range kfdef.Spec.Applications {
 		application := kfconfig.Application{
 			Name: app.Name,
@@ -195,6 +197,8 @@ func (v V1alpha1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 	kfdef.Namespace = config.Namespace
 	kfdef.APIVersion = config.APIVersion
 	kfdef.Kind = "KfDef"
+	kfdef.Labels = config.Labels
+	kfdef.Annotations = config.Annotations
 
 	kfdef.Spec.AppDir = config.Spec.AppDir
 	kfdef.Spec.Version = config.Spec.Version
