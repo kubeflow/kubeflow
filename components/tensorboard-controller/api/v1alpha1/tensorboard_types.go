@@ -16,6 +16,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -29,10 +30,19 @@ type TensorboardSpec struct {
 	LogsPath string `json:"logspath"`
 }
 
+// TensorboardCondition defines the observed state of Tensorboard
+type TensorboardCondition struct {
+	// Deployment status, 'Available', 'Progressing', 'ReplicaFailure' .
+	DeploymentState appsv1.DeploymentConditionType `json:"deploymentState"`
+
+	// Last time we probed the condition.
+	LastProbeTime metav1.Time `json:"lastProbeTime,omitempty"`
+}
+
 // TensorboardStatus defines the observed state of Tensorboard
 type TensorboardStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Conditions is an array of current conditions
+	Conditions []TensorboardCondition `json:"conditions"`
 }
 
 // +kubebuilder:object:root=true

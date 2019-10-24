@@ -26,9 +26,11 @@ import (
 	"k8s.io/api/core/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -93,7 +95,30 @@ func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 		return ctrl.Result{}, err
 	}
 
-	return reconcile.Result{}, nil
+	if err := r.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: deployment.Namespace}, deployment); err != nil {
+		if apierrs.IsNotFound(err) {
+			logger.Info("Deployment not found...", "deployment", deployment.Name)
+		} else {
+			return ctrl.Result{}, err
+		}
+	}
+	if len(deployment.Status.Conditions) > 0 {
+		condition := tensorboardv1alpha1.TensorboardCondition{
+			DeploymentState: deployment.Status.Conditions[0].Type,
+			LastProbeTime:   deployment.Status.Conditions[0].LastUpdateTime,
+		}
+		clen := len(instance.Status.Conditions)
+		if clen == 0 || instance.Status.Conditions[clen-1].DeploymentState != condition.DeploymentState {
+			instance.Status.Conditions = append(instance.Status.Conditions, condition)
+		}
+		logger.Info("instance condition..", "condition", instance)
+		err = r.Update(ctx, instance)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	return ctrl.Result{}, nil
 }
 
 func (r *TensorboardReconciler) SetupWithManager(mgr ctrl.Manager) error {
