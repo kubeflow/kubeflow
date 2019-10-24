@@ -76,7 +76,7 @@ export function mockIronAjax(component, response, respondWithError = false) {
 
         // So that code can await when using this dynamically
         resp.completes = new Promise((res, rej) =>
-            (respondWithError?rej:res)(resp)
+            (respondWithError ? rej : res)(resp)
         );
         return resp;
     };

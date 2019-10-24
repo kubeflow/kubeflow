@@ -87,6 +87,17 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
         );
     }
 
+    async pollProfile(times = 10, delay = 500) {
+        const profileAPI = this.$.getMyNamespace;
+        if (times < 1) throw Error('Cannot poll profile < 1 times!');
+        for (let i = 0; i < times; i++) {
+            const req = profileAPI.generateRequest();
+            await req.completes;
+            if (req.response && req.response.hasWorkgroup) return true;
+            await this.sleep(delay);
+        }
+    }
+
     async finishSetup() {
         const API = this.$.MakeNamespace;
         if (!this.validateNamespace()) return;
@@ -97,9 +108,9 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
         if (this.error && this.error.response) {
             return this.waitForRedirect = false;
         }
-        // If request completed and 6 seconds pass, probably let
-        // the user click next again!
-        await this.sleep(6000);
+        // Poll for profile over a span of 6 seconds
+        // if still not there, let the user click next again!
+        await this.pollProfile(20, 300);
         this.waitForRedirect = false;
     }
 
