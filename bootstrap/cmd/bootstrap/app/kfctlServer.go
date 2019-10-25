@@ -17,7 +17,7 @@ import (
 	httptransport "github.com/go-kit/kit/transport/http"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
-	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
 	"time"
 
 	//"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
@@ -39,13 +39,20 @@ import (
 )
 
 // KfctlCreatePath is the path on which to serve create requests
-const KfctlCreatePath = "/kfctl/apps/v1alpha2/create"
+const KfctlCreatePath = "/kfctl/apps/v1beta1/create"
 
 // KfctlGetpath is the path on which to query deployment status
-const KfctlGetpath = "/kfctl/apps/v1alpha2/get"
+const KfctlGetpath = "/kfctl/apps/v1beta1/get"
 
 // LastRequestTime last deploy request time.
 const LastRequestTime = "LastRequestTime"
+
+type KfctlService interface {
+	// CreateCreateDeployment creates a Kubeflow deployment
+	CreateDeployment(context.Context, kfdefsv3.KfDef) (*kfdefsv3.KfDef, error)
+	// GetLatestKfdef returns latest KfDef copy which include deployment status
+	GetLatestKfdef(kfconfig.KfConfig) (*kfdefsv3.KfDef, error)
+}
 
 // kfctlServer is a server to manage a single deployment.
 // It is a wrapper around kfctl.
@@ -65,7 +72,7 @@ type kfctlServer struct {
 	kfDefMux sync.Mutex
 
 	// latestKfDef is updated to provide the latest status information.
-	latestKfConfig kfconfig.KfConfig
+	latestKfConfig kfdefsv3.KfDef
 }
 
 // NewServer returns a new kfctl server
@@ -97,11 +104,8 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 	ctx := context.Background()
 
 	if s.kfApp == nil {
-		if r.Spec.AppDir != "" {
-			log.Warnf("r.Spec.AppDir is set it will be overwritten.")
-		}
-		r.Spec.AppDir = path.Join(s.appsDir, r.Name)
-		cfgFile := path.Join(r.Spec.AppDir, kftypes.KfConfigFile)
+		AppDir := path.Join(s.appsDir, r.Name)
+		cfgFile := path.Join(AppDir, kftypes.KfConfigFile)
 		if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
 			log.Infof("Creating cfgFile; %v", cfgFile)
 			newCfgFile, err := coordinator.CreateKfAppCfgFileWithKfDef(&r)
@@ -299,6 +303,14 @@ func (s *kfctlServer) setLatestKfDef(r *kfdefsv3.KfDef) {
 	s.latestKfDef = *s.kfDefGetter.GetKfDef()
 }
 
+func makeKfctlCreateRequestEndpoint(svc KfctlService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(kfconfig.KfConfig)
+		r, err := svc.CreateDeployment(ctx, req)
+		return r, err
+	}
+}
+
 // makeServerStatusRequestEndpoint creates an endpoint to handle get latest kfdef requests in the router.
 func makeServerStatusRequestEndpoint(svc KfctlService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
@@ -312,9 +324,9 @@ func (s *kfctlServer) RegisterEndpoints() {
 	createHandler := httptransport.NewServer(
 		makeRouterCreateRequestEndpoint(s),
 		func(_ context.Context, r *http.Request) (interface{}, error) {
-			var request kfdefsv3.KfDef
+			var request kfconfig.KfConfig
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-				log.Info("Err decoding kfdef: " + err.Error())
+				log.Info("Err decoding KfConfig: " + err.Error())
 				return nil, err
 			}
 			return request, nil
@@ -325,9 +337,9 @@ func (s *kfctlServer) RegisterEndpoints() {
 	statusHandler := httptransport.NewServer(
 		makeServerStatusRequestEndpoint(s),
 		func(_ context.Context, r *http.Request) (interface{}, error) {
-			var request kfdefsv3.KfDef
+			var request kfconfig.KfConfig
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-				log.Info("Err decoding kfdef: " + err.Error())
+				log.Info("Err decoding KfConfig: " + err.Error())
 				return nil, err
 			}
 			return request, nil
@@ -410,8 +422,7 @@ func prepareSecrets(d *kfdefsv3.KfDef) {
 
 	d.Spec.Secrets = secrets
 }
-
-func (s *kfctlServer) GetLatestStatus(req KfctlRequest) (*kfconfig.Status, error) {
+func (s *kfctlServer) GetLatestKfdef(req kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
 	s.kfDefMux.Lock()
 	defer s.kfDefMux.Unlock()
 	return s.latestKfDef.DeepCopy(), nil
@@ -421,7 +432,7 @@ func (s *kfctlServer) GetLatestStatus(req KfctlRequest) (*kfconfig.Status, error
 //
 // Not thread safe
 // TODO(jlewi): We should check if the request matches the current deployment and if not reject
-func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfconfig.KfConfig) (*kfconfig.Status, error) {
+func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
 	log.Infof("New CreateDeployment for %v", req.Name)
 	token, err := req.GetSecret(gcp.GcpAccessTokenName)
 

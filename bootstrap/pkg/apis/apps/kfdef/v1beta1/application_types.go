@@ -132,10 +132,13 @@ type KfDefConditionType string
 
 const (
 	// KfAvailable means Kubeflow is serving.
-	KfAvailable KfDefConditionType = "Available"
+	Healthy KfDefConditionType = "Healthy"
 
-	// KfDegraded means functionality of Kubeflow is limited.
-	KfDegraded KfDefConditionType = "Degraded"
+	// Unhealthy means one or more Kubeflow services are not healthy.
+	Unhealthy KfDefConditionType = "Unhealthy"
+
+	// Pending means Kubeflow services is being updated.
+	Pending KfDefConditionType = "Pending"
 )
 
 type KfDefCondition struct {

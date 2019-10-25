@@ -242,7 +242,7 @@ func MergeKfCfg(oldKfCfg *kfconfig.KfConfig, newKfCfg *kfconfig.KfConfig) {
 }
 
 func (upgrader *KfUpgrader) Generate() error {
-	kfApp, err := coordinator.LoadKfAppCfgFile(upgrader.TargetPath)
+	kfApp, err := coordinator.NewLoadKfAppFromURI(upgrader.TargetPath)
 	if err != nil {
 		log.Errorf("Failed to build KfApp from URI: %v", err)
 		return err
@@ -252,7 +252,7 @@ func (upgrader *KfUpgrader) Generate() error {
 }
 
 func (upgrader *KfUpgrader) Apply() error {
-	kfApp, err := coordinator.LoadKfAppCfgFile(upgrader.TargetPath)
+	kfApp, err := coordinator.NewLoadKfAppFromURI(upgrader.TargetPath)
 	if err != nil {
 		log.Errorf("Failed to build KfApp from URI: %v", err)
 		return err
