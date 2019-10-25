@@ -471,3 +471,19 @@ def add_notebook_volume_secret(nb, secret, secret_name, mnt_path, mode):
         "name": secret,
     }
     container["volumeMounts"].append(mnt)
+
+
+def set_notebook_command(notebook, body, defaults):
+    container = notebook["spec"]["template"]["spec"]["containers"][0]
+    if body.get("command", []) is not None:
+        command = body.get("command", [])
+        logger.info("Using form's command: {}".format(command))
+        container["command"] = command
+
+
+def set_notebook_env(notebook, body, defaults):
+    container = notebook["spec"]["template"]["spec"]["containers"][0]
+    if body.get("env", []) is not None:
+        env = body.get("env", [])
+        logger.info("Using form's env: {}".format(env))
+        container["env"] = env
