@@ -94,6 +94,8 @@ const (
 	GcpPluginName               = "KfGcpPlugin"
 	GcpAccessTokenName          = "accessToken"
 	BasicAuthPasswordSecretName = "password"
+	// The PodDefault in default namespace
+	PodDefaultName = "add-gcp-secret"
 )
 
 // Gcp implements KfApp Interface
@@ -1758,7 +1760,7 @@ func generatePodDefault(group string, version string, kind string, namespace str
 		"apiVersion": group + "/" + version,
 		"kind":       kind,
 		"metadata": map[string]interface{}{
-			"name":      "add-gcp-secret",
+			"name":      PodDefaultName,
 			"namespace": namespace,
 		},
 		"spec": map[string]interface{}{
@@ -1881,7 +1883,7 @@ func (gcp *Gcp) ConfigPodDefault() error {
 		}
 	}
 
-	getReq := crdClient.Get().Resource(mapping.Resource.Resource).Namespace(defaultNamespace).Name("add-gcp-secret")
+	getReq := crdClient.Get().Resource(mapping.Resource.Resource).Namespace(defaultNamespace).Name(PodDefaultName)
 	if err := getReq.Do().Error(); err == nil {
 		// pod default already exists.
 		return nil
