@@ -112,8 +112,8 @@ build-gc: deepcopy generate fmt vet
 build-kfctl-tgz: build-kfctl
 	chmod a+rx ./bin/kfctl
 	rm -f bin/*.tgz
-	cd bin && tar -cvzf kfctl_$(TAG)_linux.tar.gz ./kfctl
-	cd bin && tar -cvzf kfctl_${TAG}_darwin.tar.gz ./kfctl-darwin
+	cd bin && tar -cvzf kfctl_$(TAG)_linux.tar.gz ./kfctl && rm ./kfctl
+	cd bin && mv ./kfctl-darwin ./kfctl && tar -cvzf kfctl_${TAG}_darwin.tar.gz ./kfctl
 	
 build-kfctl-client: /tmp/v2 deepcopy generate fmt vet
 	${GO} build -gcflags 'all=-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctlClient cmd/kfctlClient/main.go
