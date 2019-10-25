@@ -142,7 +142,6 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      */
     async resyncApp() {
         await this.$.envInfo.generateRequest().completes;
-        await this.sleep(100);
         this.$.welcomeUser.show();
     }
 

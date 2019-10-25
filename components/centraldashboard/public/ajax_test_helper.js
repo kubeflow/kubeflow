@@ -59,7 +59,7 @@ export function mockIronAjax(component, response, respondWithError = false) {
     );
     // eslint-disable-next-line no-console
     const finalEvent = `${respondWithError?'error':'response'}`;
-    component.generateRequest = async () => {
+    component.generateRequest = () => {
         const eventPayload = createRespPayload(
             response,
             respondWithError,
@@ -75,10 +75,10 @@ export function mockIronAjax(component, response, respondWithError = false) {
         const resp = component.lastResponse || component.lastError;
 
         // So that code can await when using this dynamically
-        resp.completes = new Promise((res, rej) =>
-            (respondWithError?rej:res)(resp)
+        const completes = new Promise((res, rej) =>
+            (respondWithError ? rej : res)(resp)
         );
-        return resp;
+        return {response: resp, completes};
     };
 }
 
