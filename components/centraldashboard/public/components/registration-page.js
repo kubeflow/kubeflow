@@ -87,12 +87,12 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
         );
     }
 
-    async pollProfile(times = 10, delay = 500) {
+    async pollProfile(times, delay) {
         const profileAPI = this.$.GetMyNamespace;
         if (times < 1) throw Error('Cannot poll profile < 1 times!');
         for (let i = 0; i < times; i++) {
             const req = profileAPI.generateRequest();
-            await req.completes;
+            await req.completes.catch(() => 0);
             if (req.response && req.response.hasWorkgroup) return true;
             await this.sleep(delay);
         }
