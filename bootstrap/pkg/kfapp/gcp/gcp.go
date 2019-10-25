@@ -1809,12 +1809,17 @@ func (gcp *Gcp) ConfigPodDefault() error {
 		return kfapis.NewKfErrorWithMessage(err, "set K8s clientset error")
 	}
 
+	defaultNamespace := kftypesv3.EmailToDefaultName(gcp.kfDef.Spec.Email)
+	_, err = k8sClient.CoreV1().Namespaces().Get(defaultNamespace, metav1.GetOptions{})
+	if err != nil {
+		log.Warnf("Default namespace %v creation skipped", defaultNamespace)
+		return nil
+	}
 	log.Infof("Downloading secret %v from namespace %v", USER_SECRET_NAME, gcp.kfDef.Namespace)
 	secret, err := k8sClient.CoreV1().Secrets(gcp.kfDef.Namespace).Get(USER_SECRET_NAME, metav1.GetOptions{})
 	if err != nil {
 		return kfapis.NewKfErrorWithMessage(err, "User service account secret is not created.")
 	}
-	defaultNamespace := kftypesv3.EmailToDefaultName(gcp.kfDef.Spec.Email)
 	log.Infof("Creating secret %v to namespace %v", USER_SECRET_NAME, defaultNamespace)
 	if err = insertSecret(k8sClient, USER_SECRET_NAME, defaultNamespace, secret.Data); err != nil {
 		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create secret %v in namespace %v", USER_SECRET_NAME, defaultNamespace))
