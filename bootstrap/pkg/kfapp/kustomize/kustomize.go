@@ -180,7 +180,7 @@ func (kustomize *kustomize) Apply(resources kftypesv3.ResourceEnum) error {
 			},
 			utils.NewDefaultBackoff(),
 			func(e error, duration time.Duration) {
-				log.Warnf("Encountered error during apply: %v", err)
+				log.Warnf("Encountered error during apply: %v", e)
 				log.Warnf("Will retry in %.0f seconds.", duration.Seconds())
 			})
 		if err != nil {
