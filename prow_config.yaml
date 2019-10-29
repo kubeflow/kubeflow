@@ -37,7 +37,7 @@ workflows:
     include_dirs:
       - bootstrap/*
       - testing/*
-      - py/kubeflow/kubeflow/ci/kfctl_e2e_workflow.py 
+      - py/kubeflow/kubeflow/ci/* 
     kwargs:
       use_basic_auth: false
       # Run build and then apply rather than just apply
