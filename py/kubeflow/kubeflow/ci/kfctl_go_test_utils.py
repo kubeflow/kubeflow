@@ -184,19 +184,20 @@ def get_config_spec(config_path, project, email, zone, app_path):
       if repo["name"] !=  manifests_repo_name:
         continue
 
-      version = os.getenv("PULL_NUMBER")
+      version = None
 
-      if not version:
-        # Postsubmit
-        version = os.getenv("PULL_BASE_SHA")
+      if os.getenv("PULL_PULL_SHA"):
+        # Presubmit
+        version = os.getenv("PULL_PULL_SHA")
 
       # See https://github.com/kubernetes/test-infra/blob/45246b09ed105698aa8fb928b7736d14480def29/prow/jobs.md#job-environment-variables  # pylint: disable=line-too-long
-      if version:
+      elif os.getenv("PULL_BASE_SHA"):
+        version = os.getenv("PULL_BASE_SHA")
 
-      elif os.getenv("PULL_PULL_SHA"):
-        # Postsubmit
+      if version:
         repo["uri"] = ("https://github.com/kubeflow/manifests/archive/"
                        "{0}.tar.gz").format(version)
+        logging.info("Overwriting the URI")
       else:
         # Its a periodic job so use whatever value is set in the KFDef
         logging.info("Not overwriting manifests version")
