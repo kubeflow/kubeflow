@@ -63,9 +63,11 @@ TESTS_DAG_NAME = "gke-tests"
 
 TEMPLATE_LABEL = "kfctl_e2e"
 
-DEFAULT_REPO = "kubeflow/kubeflow"
-
-EXTRA_REPOS = ["kubeflow/testing@HEAD", "kubeflow/tf-operator@HEAD"]
+DEFAULT_REPOS = {
+    "kubeflow/kubeflow": "HEAD",
+    "kubeflow/testing": "HEAD",
+    "kubeflow/tf-operator": "HEAD"
+}
 
 class Builder:
   def __init__(self, name=None, namespace=None,
@@ -77,6 +79,7 @@ class Builder:
                build_and_apply=False,
                test_target_name=None,
                kf_app_name=None, delete_kf=True,
+               extra_repos="",
                **kwargs):
     """Initialize a builder.
 
@@ -194,6 +197,44 @@ class Builder:
     self.test_endpoint = test_endpoint
 
     self.kfctl_path = os.path.join(self.src_dir, "bootstrap/bin/kfctl")
+
+    # Fetch the main repo from Prow environment.
+    self.main_repo = argo_build_util.get_repo_from_prow_env()
+
+    # extra_repos is a list of comma separated repo names with commits,
+    # in the format <repo_owner>/<repo_name>@<commit>,
+    # e.g. "kubeflow/tf-operator@12345,kubeflow/manifests@23456".
+    # This will be used to override the default repo branches.
+    self.extra_repos = []
+    if extra_repos:
+      self.extra_repos = extra_repos.split(',')
+
+  def _build_repos_str(self):
+    # 1. Convert main_repo and extra_repos to a dictionary
+    # where key is "repo_owner/repo_name" and value is the
+    # commit hash.
+    user_repos = {}
+    if self.main_repo:
+      parts = self.main_repo.split('@')
+      user_repos[parts[0]] = parts[1]
+    for er in self.extra_repos:
+      parts = er.split('@')
+      user_repos[parts[0]] = parts[1]
+
+    # 2. Starting with the default repos, merge in any user-defined
+    # repos with commit hashes.
+    repos = DEFAULT_REPOS
+    repos.update(user_repos)
+
+    # 3. Construct a string of the merged repos
+    repos_str = ""
+    for key in repos:
+      if repos_str:
+        repos_str = repos_str + "," + key + "@" + repos[key]
+      else:
+        repos_str = key + "@" + repos[key]
+
+    return repos_str
 
   def _build_workflow(self):
     """Create the scaffolding for the Argo workflow"""
@@ -494,20 +535,13 @@ class Builder:
     # Checkout
 
     # create the checkout step
-    # always include the default repo
-    repos = [DEFAULT_REPO + "@HEAD"]
-    main_repo = argo_build_util.get_repo_from_prow_env()
-    if (main_repo and not main_repo.startswith(DEFAULT_REPO)):
-      logging.info("Main repository: %s", main_repo)
-      repos.extend(main_repo)
-
-    repos.extend(EXTRA_REPOS)
 
     checkout = argo_build_util.deep_copy(task_template)
+    repos_str = self._build_repos_str()
 
     checkout["name"] = "checkout"
     checkout["container"]["command"] = ["/usr/local/bin/checkout_repos.sh",
-                                        "--repos=" + ",".join(repos),
+                                        "--repos=" + repos_str,
                                         "--src_dir=" + self.src_root_dir]
 
     argo_build_util.add_task_to_dag(self.workflow, E2E_DAG_NAME, checkout, [])
