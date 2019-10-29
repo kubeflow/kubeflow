@@ -12,6 +12,8 @@ import yaml
 from kubeflow.testing import util
 from retrying import retry
 
+GCP_PLUGIN_SPEC = "KfGcpPlugin"
+
 # retry 4 times, waiting 3 minutes between retries
 @retry(stop_max_attempt_number=4, wait_fixed=180000)
 def run_with_retries(*args, **kwargs):
@@ -155,7 +157,7 @@ def get_config_spec(config_path, project, email, zone, app_path):
     config_spec["spec"]["zone"] = zone
   elif apiVersion[-1] == "v1beta1":
     for plugin in config_spec["spec"].get("plugins", []):
-      if plugin.get("kind", "") == "KfGcpPlugin":
+      if plugin.get("kind", "") == GCP_PLUGIN_KIND:
         plugin["spec"]["project"] = project
         plugin["spec"]["email"] = email
         plugin["spec"]["zone"] = zone
@@ -238,12 +240,16 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   with open(os.path.join(app_path, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
 
-  # TODO(jlewi): When we switch to KfDef v1beta1 this logic will need to change because
-  # use_base_auth will move into the plugin spec
-  use_basic_auth = config_spec["spec"].get("useBasicAuth", False)
+  gcp_plugin = {}
+
+  for p in config_spec["spec"].get("plugins", []):
+    if p["kind"] == GCP_PLUGIN_SPEC:
+      gcp_plugin = p
+
+  use_basic_auth = gcp_plugin.get("useBasicAuth", False)
   logging.info("use_basic_auth=%s", use_basic_auth)
 
-  use_istio = config_spec["spec"].get("useIstio", True)
+  use_istio = g.get("useIstio", True)
   logging.info("use_istio=%s", use_istio)
 
   # Set ENV for basic auth username/password.
@@ -264,7 +270,7 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   return app_path
 
 def apply_kubeflow(kfctl_path, app_path):
-  util.run([kfctl_path, "apply", "-V", "-f=" + os.path.join(app_path, "tmp.yaml")], cwd=app_path) 
+  util.run([kfctl_path, "apply", "-V", "-f=" + os.path.join(app_path, "tmp.yaml")], cwd=app_path)
   return app_path
 
 def build_and_apply_kubeflow(kfctl_path, app_path):
