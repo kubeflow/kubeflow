@@ -38,7 +38,7 @@ func TestV1alpha1_ConvertToKfConfigs(t *testing.T) {
 		}
 
 		v1alpha1 := V1alpha1{}
-		config, err := v1alpha1.ToKfConfig("", buf)
+		config, err := v1alpha1.ToKfConfig(buf)
 		if err != nil {
 			t.Fatalf("Error converting to KfConfig: %v", err)
 		}
