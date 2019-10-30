@@ -9,8 +9,8 @@ import (
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/configconverters"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
+	kfdefsv1alpha1 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/time/rate"
 	"net/url"
@@ -79,7 +79,7 @@ func NewKfctlClient(instance string) (*KfctlClient, error) {
 }
 
 // CreateDeployment issues a CreateDeployment to the requested backend
-func (c *KfctlClient) CreateDeployment(ctx context.Context, req C2DRequest) (*kfdefs.KfDef, error) {
+func (c *KfctlClient) CreateDeployment(ctx context.Context, req C2DRequest) (*kfconfig.KfConfig, error) {
 	configFileBytes, err := configconverters.LoadFileFromURI(req.ConfigFile)
 	if err != nil {
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
@@ -96,6 +96,21 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req C2DRequest) (*kf
 
 	// Fill in user input
 	kfconfigIns.Name = req.Name
+	kfconfigIns.Spec.Version = req.Version
+	kfconfigIns.Spec.Project = req.Project
+	kfconfigIns.Spec.Email = req.Email
+	kfconfigIns.Spec.Zone = req.Zone
+	kfconfigIns.Spec.SkipInitProject = true
+
+	kfconfigIns.SetSecret(kfconfig.Secret{
+		Name: gcp.GcpAccessTokenName,
+		SecretSource: &kfconfig.SecretSource{
+			LiteralSource: &kfconfig.LiteralSource{
+				Value: req.Token,
+			},
+		},
+	})
+
 	// Not passing a pointer interface is a common cause of deserialization problems
 	pluginSpec := &gcp.GcpPluginSpec{}
 
@@ -107,14 +122,54 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req C2DRequest) (*kf
 	}
 	pluginSpec.Project = req.Project
 	pluginSpec.Zone = req.Zone
-	if req.EndpointConfig.BasicAuth.Username != "" && req.EndpointConfig.BasicAuth.Password != "" {
+	pluginSpec.Email = req.Email
+	pluginSpec.SkipInitProject = true
 
+	if req.EndpointConfig.BasicAuth.Username != "" && req.EndpointConfig.BasicAuth.Password != "" {
+		pluginSpec.Auth = &gcp.Auth{
+			BasicAuth: &gcp.BasicAuth{
+				Username: req.EndpointConfig.BasicAuth.Username,
+				Password: &kfdefsv1alpha1.SecretRef{
+					Name: gcp.BasicAuthPasswordSecretName,
+				},
+			},
+		}
+		kfconfigIns.SetSecret(kfconfig.Secret{
+			Name: gcp.BasicAuthPasswordSecretName,
+			SecretSource: &kfconfig.SecretSource{
+				HashedSource: &kfconfig.HashedSource{
+					HashedValue: req.EndpointConfig.BasicAuth.Password,
+				},
+			},
+		})
 	} else {
 		if req.EndpointConfig.IAP.OAuthClientId != "" && req.EndpointConfig.IAP.OAuthClientSecret != "" {
-
+			pluginSpec.Auth = &gcp.Auth{
+				IAP: &gcp.IAP{
+					OAuthClientId: req.EndpointConfig.IAP.OAuthClientId,
+					OAuthClientSecret: &kfdefsv1alpha1.SecretRef{
+						Name: gcp.CLIENT_SECRET,
+					},
+				},
+			}
+			kfconfigIns.SetSecret(kfconfig.Secret{
+				Name: gcp.CLIENT_SECRET,
+				SecretSource: &kfconfig.SecretSource{
+					LiteralSource: &kfconfig.LiteralSource{
+						Value: req.EndpointConfig.IAP.OAuthClientSecret,
+					},
+				},
+			})
 		} else {
-
+			log.Errorf("No valid EndpointConfig found in request body!")
+			return nil, fmt.Errorf("No valid EndpointConfig found in request body!")
 		}
+	}
+	if err := kfconfigIns.SetPluginSpec(gcp.GcpPluginName, pluginSpec); err != nil {
+		return nil, err
+	}
+	if !req.shareAnonymousUsage {
+		kfconfigIns.DeleteApplication("spartakus")
 	}
 
 	var resp interface{}
@@ -171,15 +226,15 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req C2DRequest) (*kf
 	}
 	bo.Reset()
 	permErr = backoff.Retry(func() error {
-		latestKfdef, err := c.GetLatestKfdef(*kfconfigIns)
+		latestKfConfig, err := c.GetLatestKfConfig(*kfconfigIns)
 		if err != nil {
 			return backoff.Permanent(err)
 		}
-		response = latestKfdef
-		if len(latestKfdef.Status.Conditions) == 0 {
+		response = latestKfConfig
+		if len(latestKfConfig.Status.Conditions) == 0 {
 			return fmt.Errorf("deployment condition not available")
 		} else {
-			if response.Status.Conditions[0].Type == kfdefs.Unhealthy {
+			if response.Status.Conditions[0].Type == kfconfig.Unhealthy {
 				return backoff.Permanent(fmt.Errorf(response.Status.Conditions[0].Message))
 			}
 		}
@@ -199,29 +254,27 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req C2DRequest) (*kf
 	return response, nil
 }
 
-func (c *KfctlClient) GetLatestKfdef(req kfconfig.KfConfig) (*kfconfig.KfConfig, error) {
-	//resp, err := c.getEndpoint(context.Background(), req)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//response, ok := resp.(*kfdefs.KfDef)
-	//
-	//if ok {
-	//	return response, nil
-	//}
-	//
-	//log.Info("Response is not type *KfDef")
-	//resErr, ok := resp.(*httpError)
-	//
-	//if ok {
-	//	return nil, resErr
-	//}
-	//
-	//log.Info("Response is not type *httpError")
-	//
-	//pRes, _ := Pformat(resp)
-	//log.Errorf("Received unexpected response; %v", pRes)
-	//return nil, fmt.Errorf("Received unexpected response; %v", pRes)
-	// TODO (kunming) finish implementaion; not blocking because it's not been used.
-	return &kfconfig.Status{}, nil
+func (c *KfctlClient) GetLatestKfConfig(req kfconfig.KfConfig) (*kfconfig.KfConfig, error) {
+	resp, err := c.getEndpoint(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+	response, ok := resp.(*kfconfig.KfConfig)
+
+	if ok {
+		return response, nil
+	}
+
+	log.Info("Response is not type *kfconfig")
+	resErr, ok := resp.(*httpError)
+
+	if ok {
+		return nil, resErr
+	}
+
+	log.Info("Response is not type *httpError")
+
+	pRes, _ := Pformat(resp)
+	log.Errorf("Received unexpected response; %v", pRes)
+	return nil, fmt.Errorf("Received unexpected response; %v", pRes)
 }

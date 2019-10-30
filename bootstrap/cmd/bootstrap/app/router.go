@@ -42,6 +42,7 @@ type kfctlRouter struct {
 
 type BasicAuth struct {
 	Username string `json:"username,omitempty"`
+	// Encoded password
 	Password string `json:"password,omitempty"`
 }
 
@@ -66,6 +67,9 @@ type C2DRequest struct {
 
 	// deploy Name
 	Name string
+
+	// user email
+	Email string
 
 	EndpointConfig EndpointConfig
 
@@ -228,19 +232,19 @@ func k8sName(name string, project string) (string, error) {
 }
 
 // authCheckAndExtractService: 1. check if request is owner of target project; 2. return service name that handle the request.
-func (r *kfctlRouter) authCheckAndExtractService(project string, name string, token string) (string, error) {
+func (r *kfctlRouter) authCheckAndExtractService(req C2DRequest) (string, error) {
 	// Verify that user has access. We shouldn't do any processing until verifying access.
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
-		AccessToken: token,
+		AccessToken: req.Token,
 	})
 
-	isValid, err := CheckProjectAccess(project, ts)
+	isValid, err := CheckProjectAccess(req.Project, ts)
 
 	if err != nil {
 		log.Errorf("CreateDeployment CheckProjectAccess failed; error %v", err)
 
 		return "", &httpError{
-			Message: fmt.Sprintf("There was a problem verifying access to project: %v; please try again later", project),
+			Message: fmt.Sprintf("There was a problem verifying access to project: %v; please try again later", req.Project),
 			Code:    http.StatusUnauthorized,
 		}
 	}
@@ -248,13 +252,13 @@ func (r *kfctlRouter) authCheckAndExtractService(project string, name string, to
 	if !isValid {
 		log.Errorf("CreateDeployment request isn't authorized for the project")
 		return "", &httpError{
-			Message: fmt.Sprintf("There was a problem verifying owner access to project: %v; please check the project id is correct and that you have admin priveleges", project),
+			Message: fmt.Sprintf("There was a problem verifying owner access to project: %v; please check the project id is correct and that you have admin priveleges", req.Project),
 			Code:    http.StatusUnauthorized,
 		}
 	}
 
 	log.Infof("User has sufficient access.")
-	serviceName, err := k8sName(name, project)
+	serviceName, err := k8sName(req.Name, req.Project)
 
 	if err != nil {
 		log.Errorf("Could not generate the name; error %v", err)
@@ -471,7 +475,8 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req C2DRequest) (*kf
 	// TODO
 	return &kfdefs.KfDef{}, nil
 }
-//
+
+// TODO (kunming) finish implementaion; not blocking because it's not been used.
 //// GetLatestKfdef returns latest kfdef status.
 //func (r *kfctlRouter) GetLatestStatus(req C2DRequest) (*kfconfig.Status, error) {
 //	name, err := k8sName(req.Name, req.Project)

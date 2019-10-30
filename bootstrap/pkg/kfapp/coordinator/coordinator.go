@@ -180,7 +180,7 @@ func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 				Message: fmt.Sprintf("current directory %v not empty, please switch directories", kfdef.Spec.AppDir),
 			}
 		}
-		_, err = createKfAppCfgFile(kfdef)
+		_, err = CreateKfAppCfgFile(kfdef)
 		if err != nil {
 			return nil, &kfapis.KfError{
 				Code:    int(kfapis.INVALID_ARGUMENT),
@@ -254,15 +254,15 @@ func CreateKfAppCfgFileWithKfDef(d *kfdefsv3.KfDef) (string, error) {
 		return "", err
 	}
 	kfconfig.Spec.ConfigFileName = kftypesv3.KfConfigFile
-	return createKfAppCfgFile(kfconfig)
+	return CreateKfAppCfgFile(kfconfig)
 }
 
-// createKfAppCfgFile will create the application directory and persist
+// CreateKfAppCfgFile will create the application directory and persist
 // the KfDef to it as app.yaml.
 // This is only used when the config file is remote (https://github...)
 // Returns an error if the app.yaml file already exists
 // Returns path to the app.yaml file.
-func createKfAppCfgFile(d *kfconfig.KfConfig) (string, error) {
+func CreateKfAppCfgFile(d *kfconfig.KfConfig) (string, error) {
 	if _, err := os.Stat(d.Spec.AppDir); os.IsNotExist(err) {
 		log.Infof("Creating directory %v", d.Spec.AppDir)
 		appdirErr := os.MkdirAll(d.Spec.AppDir, os.ModePerm)
@@ -313,14 +313,13 @@ type coordinator struct {
 	KfDef           *kfconfig.KfConfig
 }
 
-// TODO: change this
-type KfDefGetter interface {
-	GetKfDef() *kfdefsv3.KfDef
+type KfConfigGetter interface {
+	GetKfConfig() *kfconfig.KfConfig
 	GetPlugin(name string) (kftypesv3.KfApp, bool)
 }
 
 // GetKfDef returns a pointer to the KfDef used by this application.
-func (kfapp *coordinator) GetKfDef() *kfconfig.KfConfig {
+func (kfapp *coordinator) GetKfConfig() *kfconfig.KfConfig {
 	return kfapp.KfDef
 }
 

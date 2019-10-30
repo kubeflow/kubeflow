@@ -3,9 +3,7 @@ package app
 import (
 	"fmt"
 	"github.com/cenkalti/backoff"
-	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
 	"github.com/prometheus/common/log"
 	"golang.org/x/net/context"
 	"io/ioutil"
@@ -76,18 +74,18 @@ func TestKfctlClientServer_GoKit(t *testing.T) {
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
-	_, err = c.CreateDeployment(ctx, kfdefsv3.KfDef{
-		Spec: kfdefsv3.KfDefSpec{
-			Secrets: []kfdefsv3.Secret{
-				{
-					Name: gcp.GcpAccessTokenName,
-					SecretSource: &kfdefsv3.SecretSource{
-						LiteralSource: &kfdefsv3.LiteralSource{
-							Value: "1234",
-						},
-					},
-				},
-			},
-		},
+	_, err = c.CreateDeployment(ctx, C2DRequest{
+		//Spec: kfdefsv3.KfDefSpec{
+		//	Secrets: []kfdefsv3.Secret{
+		//		{
+		//			Name: gcp.GcpAccessTokenName,
+		//			SecretSource: &kfdefsv3.SecretSource{
+		//				LiteralSource: &kfdefsv3.LiteralSource{
+		//					Value: "1234",
+		//				},
+		//			},
+		//		},
+		//	},
+		//},
 	})
 }
