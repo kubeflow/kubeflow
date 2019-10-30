@@ -216,12 +216,19 @@ describe('Workgroup API', () => {
         });
 
         it('Should return for a non-identity aware cluster', async () => {
+            mockProfilesService.readBindings.withArgs()
+                .and.returnValue(Promise.resolve({
+                    response: null,
+                    body: {
+                        bindings: []
+                    },
+                }));
             const expectedResponse = {hasAuth: false, hasWorkgroup: false, user: 'anonymous'};
 
             const response = await sendTestRequest(url);
             expect(response).toEqual(expectedResponse);
             expect(mockProfilesService.v1RoleClusteradminGet).not.toHaveBeenCalled();
-            expect(mockProfilesService.readBindings).not.toHaveBeenCalled();
+            expect(mockProfilesService.readBindings).toHaveBeenCalledWith();
         });
 
         it('Should return for an identity aware cluster with a Workgroup',
