@@ -366,24 +366,6 @@ class Builder:
                                     command, dependences)
 
     #***************************************************************************
-    # Test tfjob simple_tfjob_tests
-    step_name = "tfjob-simple"
-    command =  [
-                "python",
-                "-m",
-                "testing.tf_job_simple_test",
-                "--src_dir=" + self.src_dir,
-                "--tf_job_version=v1",
-                "--test_dir=" + self.test_dir,
-                "--artifacts_dir=" + self.artifacts_dir,
-              ]
-
-
-    dependences = []
-    tfjob_simple_test = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
-                                         command, dependences)
-
-    #***************************************************************************
     # Notebook test
 
     step_name = "notebook-test"
