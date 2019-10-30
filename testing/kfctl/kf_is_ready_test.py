@@ -43,6 +43,36 @@ def get_platform_app_name(app_path):
     raise RuntimeError("Unknown version: " + apiVersion[-1])
   return platform, app_name
 
+
+def test_katib_is_ready(record_xml_attribute, namespace):
+  """Test that Kubeflow was successfully deployed.
+
+  Args:
+    namespace: The namespace Kubeflow is deployed to.
+  """
+  set_logging()
+  util.set_pytest_junit(record_xml_attribute, "test_katib_is_ready")
+
+  # Need to activate account for scopes.
+  if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+    util.run(["gcloud", "auth", "activate-service-account",
+              "--key-file=" + os.environ["GOOGLE_APPLICATION_CREDENTIALS"]])
+
+  api_client = deploy_utils.create_k8s_client()
+
+  util.load_kube_config()
+
+  deployment_names = [
+    "katib-controller",
+    "katib-db",
+    "katib-manager",
+    "katib-ui",
+  ]
+  for deployment_name in deployment_names:
+    logging.info("Verifying that deployment %s started...", deployment_name)
+    util.wait_for_deployment(api_client, namespace, deployment_name, 10)
+
+
 def test_kf_is_ready(record_xml_attribute, namespace, use_basic_auth, use_istio,
                      app_path):
   """Test that Kubeflow was successfully deployed.
@@ -70,10 +100,6 @@ def test_kf_is_ready(record_xml_attribute, namespace, use_basic_auth, use_istio,
       "argo-ui",
       "centraldashboard",
       "jupyter-web-app-deployment",
-      "katib-controller",
-      "katib-db",
-      "katib-manager",
-      "katib-ui",
       "minio",
       "ml-pipeline",
       "ml-pipeline-persistenceagent",
