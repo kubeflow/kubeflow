@@ -1,8 +1,9 @@
 package gcp
 
 import (
-	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 	"testing"
+
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 )
 
 func TestGcpPluginSpec_IsValid(t *testing.T) {
@@ -112,6 +113,12 @@ func TestGcpPluginSpec_IsValid(t *testing.T) {
 						},
 					},
 				},
+			},
+			expected: false,
+		},
+		{
+			input: &GcpPluginSpec{
+				Hostname: "this-kfApp-name-is-very-long.endpoints.my-gcp-project-for-kubeflow.cloud.goog",
 			},
 			expected: false,
 		},

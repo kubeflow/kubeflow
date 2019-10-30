@@ -1,6 +1,8 @@
 package gcp
 
 import (
+	"fmt"
+
 	kfdefs "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
 )
 
@@ -55,7 +57,9 @@ type DeploymentManagerConfig struct {
 // IsValid returns true if the spec is a valid and complete spec.
 // If false it will also return a string providing a message about why its invalid.
 func (s *GcpPluginSpec) IsValid() (bool, string) {
-
+	if len(s.Hostname) > 63 {
+		return false, fmt.Sprintf("Invaid host name: host name %s is longer than 63 characters. Please shorten the KfApp name.", s.Hostname)
+	}
 	basicAuthSet := s.Auth.BasicAuth != nil
 	iapAuthSet := s.Auth.IAP != nil
 
