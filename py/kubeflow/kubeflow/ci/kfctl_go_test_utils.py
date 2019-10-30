@@ -241,7 +241,7 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   # TODO(jlewi): When we switch to KfDef v1beta1 this logic will need to change because
   # use_base_auth will move into the plugin spec
   gcp_plugin = {}
-  for plugin in config_spec["spec"]["plugins"]:
+  for plugin in config_spec["spec"].get("plugins", []):
     if plugin["kind"] == "KfGcpPlugin":
       gcp_plugin = plugin
       break
