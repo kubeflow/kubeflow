@@ -245,10 +245,10 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
     if plugin["kind"] == "KfGcpPlugin":
       gcp_plugin = plugin
       break
-  use_basic_auth = gcp_plugin.get("useBasicAuth", False)
+  use_basic_auth = gcp_plugin.get("spec", {}).get("useBasicAuth", False)
   logging.info("use_basic_auth=%s", use_basic_auth)
 
-  use_istio = gcp_plugin.get("useIstio", True)
+  use_istio = gcp_plugin.get("spec", {}).get("useIstio", True)
   logging.info("use_istio=%s", use_istio)
 
   # Set ENV for basic auth username/password.
