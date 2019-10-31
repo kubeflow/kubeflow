@@ -137,12 +137,12 @@ func (v V1beta1) ToKfConfig(kfdefBytes []byte) (*kfconfig.KfConfig, error) {
 		s := kfconfig.Secret{
 			Name: secret.Name,
 		}
-		if secret.SecretSource == nil {
+		// We don't want to store literalSource explictly, becasue we want the config to be checked into source control and don't want secrets in source control.
+		if secret.SecretSource == nil || secret.SecretSource.LiteralSource != nil {
 			config.Spec.Secrets = append(config.Spec.Secrets, s)
 			continue
 		}
 		src := &kfconfig.SecretSource{}
-		// We don't want to store HashSource and LiteralSource explictly.
 		if secret.SecretSource.EnvSource != nil {
 			src.EnvSource = &kfconfig.EnvSource{
 				Name: secret.SecretSource.EnvSource.Name,

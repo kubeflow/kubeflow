@@ -1,15 +1,16 @@
 package configconverters
 
 import (
-	"github.com/ghodss/yaml"
-	"github.com/google/go-cmp/cmp"
-	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
-	kfutils "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"io/ioutil"
 	"os"
 	"path"
 	"reflect"
 	"testing"
+
+	"github.com/ghodss/yaml"
+	"github.com/google/go-cmp/cmp"
+	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
+	kfutils "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 )
 
 func TestV1beta1_expectedConfig(t *testing.T) {
