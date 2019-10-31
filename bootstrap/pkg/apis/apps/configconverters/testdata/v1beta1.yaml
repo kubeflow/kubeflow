@@ -333,4 +333,13 @@ spec:
   repos:
   - name: manifests
     uri: https://github.com/kubeflow/manifests/archive/master.tar.gz
+  secrets:
+  - name: env_password
+    secretSource:
+      envSource:
+        name: ENV_PASSWORD_NAME
+  - name: plain_text_password
+    secretSource:
+      literalSource:
+        value: 12345
 status: {}
