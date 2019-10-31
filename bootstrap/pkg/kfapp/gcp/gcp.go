@@ -2099,10 +2099,8 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 		gcp.kfDef.Spec.IpName = gcp.kfDef.Name + "-ip"
 		pluginSpec.IpName = gcp.kfDef.Spec.IpName
 	}
-	if gcp.kfDef.Spec.Hostname == "" {
-		gcp.kfDef.Spec.Hostname = gcp.kfDef.Name + ".endpoints." + gcp.kfDef.Spec.Project + ".cloud.goog"
-		pluginSpec.Hostname = gcp.kfDef.Spec.Hostname
-	}
+	gcp.kfDef.Spec.Hostname = gcp.kfDef.Name + ".endpoints." + gcp.kfDef.Spec.Project + ".cloud.goog"
+	pluginSpec.Hostname = gcp.kfDef.Spec.Hostname
 
 	switch resources {
 	case kftypesv3.ALL:
