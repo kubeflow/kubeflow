@@ -75,7 +75,7 @@ def may_get_env_var(name):
   else:
     raise Exception("%s not set" % name)
 
-def endpoint_is_ready(url, wait_min=15):
+def iap_endpoint_is_ready(url, wait_min=15):
   """
   Checks if the kubeflow endpoint is ready.
 
