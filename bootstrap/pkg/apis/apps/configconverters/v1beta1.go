@@ -28,7 +28,7 @@ func maybeGetPlatform(pluginKind string) string {
 	}
 }
 
-func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfig, error) {
+func (v V1beta1) ToKfConfig(kfdefBytes []byte) (*kfconfig.KfConfig, error) {
 	kfdef := &kfdeftypes.KfDef{}
 	if err := yaml.Unmarshal(kfdefBytes, kfdef); err != nil {
 		return nil, &kfapis.KfError{
@@ -40,7 +40,6 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 	// Set UseBasicAuth later.
 	config := &kfconfig.KfConfig{
 		Spec: kfconfig.KfConfigSpec{
-			AppDir:       appdir,
 			UseBasicAuth: false,
 			UseIstio:     true,
 		},
@@ -49,6 +48,8 @@ func (v V1beta1) ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfi
 	config.Namespace = kfdef.Namespace
 	config.APIVersion = kfdef.APIVersion
 	config.Kind = "KfConfig"
+	config.Labels = kfdef.Labels
+	config.Annotations = kfdef.Annotations
 	config.Spec.Version = kfdef.Spec.Version
 	for _, app := range kfdef.Spec.Applications {
 		application := kfconfig.Application{
@@ -190,6 +191,8 @@ func (v V1beta1) ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error) {
 	kfdef.Namespace = config.Namespace
 	kfdef.APIVersion = config.APIVersion
 	kfdef.Kind = "KfDef"
+	kfdef.Labels = config.Labels
+	kfdef.Annotations = config.Annotations
 	kfdef.Spec.Version = config.Spec.Version
 
 	for _, app := range config.Spec.Applications {

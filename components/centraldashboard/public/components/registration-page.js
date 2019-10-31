@@ -87,19 +87,31 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
         );
     }
 
+    async pollProfile(times, delay) {
+        const profileAPI = this.$.GetMyNamespace;
+        if (times < 1) throw Error('Cannot poll profile < 1 times!');
+        for (let i = 0; i < times; i++) {
+            const req = profileAPI.generateRequest();
+            await req.completes.catch(() => 0);
+            if (req.response && req.response.hasWorkgroup) return true;
+            await this.sleep(delay);
+        }
+    }
+
     async finishSetup() {
         const API = this.$.MakeNamespace;
         if (!this.validateNamespace()) return;
         API.body = {namespace: this.namespaceName};
         this.waitForRedirect = true;
         await API.generateRequest().completes;
-        await this.sleep(500);
+        await this.sleep(1); // So the errors and callbacks can schedule
         if (this.error && this.error.response) {
             return this.waitForRedirect = false;
         }
-        // If request completed and 6 seconds pass, probably let
-        // the user click next again!
-        await this.sleep(6000);
+        // Poll for profile over a span of 20 seconds (every 300ms)
+        // if still not there, let the user click next again!
+        const success = await this.pollProfile(66, 300);
+        if (success) this._successSetup();
         this.waitForRedirect = false;
     }
 

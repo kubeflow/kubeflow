@@ -9,8 +9,8 @@ spec:
   plugins:
   - kind: WorkloadIdentity
     spec:
-      GcpServiceAccount: kubeflow2@project-id.iam.gserviceaccount.com
-  resourcequotaspec:
+      gcpServiceAccount: kubeflow2@project-id.iam.gserviceaccount.com
+  resourceQuotaSpec:
     hard:
       cpu: "10"
       memory: 20Gi

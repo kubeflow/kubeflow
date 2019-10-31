@@ -5,20 +5,21 @@ import (
 	"os"
 	"path/filepath"
 
+	"io/ioutil"
+	netUrl "net/url"
+	"path"
+	"strings"
+
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kfconfig "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
-	netUrl "net/url"
-	"path"
-	"strings"
 )
 
 type Converter interface {
-	ToKfConfig(appdir string, kfdefBytes []byte) (*kfconfig.KfConfig, error)
+	ToKfConfig(kfdefBytes []byte) (*kfconfig.KfConfig, error)
 	ToKfDefSerialized(config kfconfig.KfConfig) ([]byte, error)
 }
 
@@ -125,6 +126,18 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 		}
 	}
 
+	// Add this check because kfctl binary can not properly install Kubeflow using v1alpha1 configuration.
+	// See https://github.com/kubeflow/kubeflow/issues/4371.
+	if apiVersionSeparated[1] == "v1alpha1" {
+		return nil, &kfapis.KfError{
+			Code: int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf(
+				"KfDef version v1alpha1 is not supported by this binary. Please use configs at %s for to deploy Kubeflow 0.7 or use old kfctl at %s to deploy Kubeflow 0.6",
+				"https://github.com/kubeflow/manifests/tree/v0.7-branch/kfdef",
+				"https://github.com/kubeflow/kubeflow/releases/tag/v0.6.2",
+			)}
+	}
+
 	converters := map[string]Converter{
 		"v1alpha1": V1alpha1{},
 		"v1beta1":  V1beta1{},
@@ -143,15 +156,7 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 		}
 	}
 
-	// TODO(lunkai): We should not need to pass a appdir to ToKfConfig.
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
-		}
-	}
-	kfconfig, err := converter.ToKfConfig(cwd, configFileBytes)
+	kfconfig, err := converter.ToKfConfig(configFileBytes)
 	if err != nil {
 		log.Errorf("Failed to convert kfdef to kfconfig: %v", err)
 		return nil, err
@@ -159,6 +164,13 @@ func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 
 	// Set the AppDir and ConfigFileName for kfconfig
 	if isRemoteFile {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
+			}
+		}
 		kfconfig.Spec.AppDir = cwd
 	} else {
 		kfconfig.Spec.AppDir = filepath.Dir(configFile)

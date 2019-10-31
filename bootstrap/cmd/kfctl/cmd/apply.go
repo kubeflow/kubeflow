@@ -32,10 +32,10 @@ var err error
 
 // KFDef example configs to be printed out from apply --help
 const (
-	arritkoConfig = "https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_existing_arrikto.yaml"
-	awsConfig     = "https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_aws.yaml"
-	gcpConfig     = "https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.yaml"
-	k8sConfig     = "https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_k8s_istio.yaml"
+	arritkoConfig = "https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_existing_arrikto.0.7.0.yaml"
+	awsConfig     = "https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_aws.0.7.0.yaml"
+	gcpConfig     = "https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.0.7.0.yaml"
+	k8sConfig     = "https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_k8s_istio.0.7.0.yaml"
 )
 
 // applyCmd represents the apply command
@@ -92,13 +92,14 @@ func init() {
 
 	// Config file option
 	applyCmd.PersistentFlags().StringVarP(&configFilePath, string(kftypes.FILE), "f", "",
-		`Static config file to use. Can be either a local path or a URL.
-For example:
-export CONFIG=`+arritkoConfig+`
-export CONFIG=`+awsConfig+`
-export CONFIG=`+gcpConfig+`
-export CONFIG=`+k8sConfig+`
-kfctl apply -V --file=${CONFIG}`)
+		`Static config file to use. Can be either a local path:
+		export CONFIG=./kfctl_gcp_iap.yaml
+	or a URL:
+		export CONFIG=`+gcpConfig+`
+		export CONFIG=`+arritkoConfig+`
+		export CONFIG=`+awsConfig+`
+		export CONFIG=`+k8sConfig+`
+	kfctl apply -V --file=${CONFIG}`)
 
 	// verbose output
 	applyCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,

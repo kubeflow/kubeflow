@@ -40,7 +40,7 @@ type ProfileSpec struct {
 	Owner   rbacv1.Subject `json:"owner,omitempty"`
 	Plugins []Plugin       `json:"plugins,omitempty"`
 	// Resourcequota that will be applied to target namespace
-	ResourceQuotaSpec v1.ResourceQuotaSpec `json:"resourcequotaspec,omitempty"`
+	ResourceQuotaSpec v1.ResourceQuotaSpec `json:"resourceQuotaSpec,omitempty"`
 }
 
 const (

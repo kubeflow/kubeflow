@@ -94,6 +94,8 @@ const (
 	GcpPluginName               = "KfGcpPlugin"
 	GcpAccessTokenName          = "accessToken"
 	BasicAuthPasswordSecretName = "password"
+	// The PodDefault in default namespace
+	PodDefaultName = "add-gcp-secret"
 )
 
 // Gcp implements KfApp Interface
@@ -1758,7 +1760,7 @@ func generatePodDefault(group string, version string, kind string, namespace str
 		"apiVersion": group + "/" + version,
 		"kind":       kind,
 		"metadata": map[string]interface{}{
-			"name":      "add-gcp-secret",
+			"name":      PodDefaultName,
 			"namespace": namespace,
 		},
 		"spec": map[string]interface{}{
@@ -1809,12 +1811,17 @@ func (gcp *Gcp) ConfigPodDefault() error {
 		return kfapis.NewKfErrorWithMessage(err, "set K8s clientset error")
 	}
 
+	defaultNamespace := kftypesv3.EmailToDefaultName(gcp.kfDef.Spec.Email)
+	_, err = k8sClient.CoreV1().Namespaces().Get(defaultNamespace, metav1.GetOptions{})
+	if err != nil {
+		log.Warnf("Default namespace %v creation skipped", defaultNamespace)
+		return nil
+	}
 	log.Infof("Downloading secret %v from namespace %v", USER_SECRET_NAME, gcp.kfDef.Namespace)
 	secret, err := k8sClient.CoreV1().Secrets(gcp.kfDef.Namespace).Get(USER_SECRET_NAME, metav1.GetOptions{})
 	if err != nil {
 		return kfapis.NewKfErrorWithMessage(err, "User service account secret is not created.")
 	}
-	defaultNamespace := kftypesv3.EmailToDefaultName(gcp.kfDef.Spec.Email)
 	log.Infof("Creating secret %v to namespace %v", USER_SECRET_NAME, defaultNamespace)
 	if err = insertSecret(k8sClient, USER_SECRET_NAME, defaultNamespace, secret.Data); err != nil {
 		return kfapis.NewKfErrorWithMessage(err, fmt.Sprintf("cannot create secret %v in namespace %v", USER_SECRET_NAME, defaultNamespace))
@@ -1879,6 +1886,12 @@ func (gcp *Gcp) ConfigPodDefault() error {
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("config RestClient error: %v", err),
 		}
+	}
+
+	getReq := crdClient.Get().Resource(mapping.Resource.Resource).Namespace(defaultNamespace).Name(PodDefaultName)
+	if err := getReq.Do().Error(); err == nil {
+		// pod default already exists.
+		return nil
 	}
 
 	req := crdClient.Post().Resource(mapping.Resource.Resource).Body(body)
@@ -2086,10 +2099,8 @@ func (gcp *Gcp) Generate(resources kftypesv3.ResourceEnum) error {
 		gcp.kfDef.Spec.IpName = gcp.kfDef.Name + "-ip"
 		pluginSpec.IpName = gcp.kfDef.Spec.IpName
 	}
-	if gcp.kfDef.Spec.Hostname == "" {
-		gcp.kfDef.Spec.Hostname = gcp.kfDef.Name + ".endpoints." + gcp.kfDef.Spec.Project + ".cloud.goog"
-		pluginSpec.Hostname = gcp.kfDef.Spec.Hostname
-	}
+	gcp.kfDef.Spec.Hostname = gcp.kfDef.Name + ".endpoints." + gcp.kfDef.Spec.Project + ".cloud.goog"
+	pluginSpec.Hostname = gcp.kfDef.Spec.Hostname
 
 	switch resources {
 	case kftypesv3.ALL:

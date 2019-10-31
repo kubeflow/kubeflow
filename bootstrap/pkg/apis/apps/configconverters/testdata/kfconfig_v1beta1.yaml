@@ -4,6 +4,10 @@ metadata:
   creationTimestamp: null
   name: myapp2
   namespace: kubeflow
+  annotations:
+    testAnnotation: "dummy"
+  labels:
+    key1: "value1"
 spec:
   project: foo-project
   email: foo@gmail.com

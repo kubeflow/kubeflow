@@ -73,7 +73,7 @@ spec:
                     type: object
                 type: object
               type: array
-            resourcequotaspec:
+            resourceQuotaSpec:
               description: Resourcequota that will be applied to target namespace
               properties:
                 hard:

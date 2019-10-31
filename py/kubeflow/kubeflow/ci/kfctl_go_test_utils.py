@@ -172,7 +172,8 @@ def get_config_spec(config_path, project, email, zone, app_path):
   config_spec["metadata"]["name"] = kfdef_name
 
   repos = config_spec["spec"]["repos"]
-  if os.getenv("REPO_NAME") == "manifests":
+  manifests_repo_name = "manifests"
+  if os.getenv("REPO_NAME") == manifests_repo_name:
     # kfctl_go_test.py was triggered on presubmit from the kubeflow/manifests
     # repository. In this case we want to use the specified PR of the
     # kubeflow/manifests repository; so we need to change the repo specification
@@ -180,10 +181,26 @@ def get_config_spec(config_path, project, email, zone, app_path):
     # TODO(jlewi): We should also point to a specific commit when triggering
     # postsubmits from the kubeflow/manifests repo
     for repo in repos:
-      for key, value in repo.items():
-        if value == "https://github.com/kubeflow/manifests/archive/master.tar.gz":
-          repo["uri"] = str("https://github.com/kubeflow/manifests/archive/pull/" + str(
-            os.getenv("PULL_NUMBER")) + "/head.tar.gz")
+      if repo["name"] !=  manifests_repo_name:
+        continue
+
+      version = None
+
+      if os.getenv("PULL_PULL_SHA"):
+        # Presubmit
+        version = os.getenv("PULL_PULL_SHA")
+
+      # See https://github.com/kubernetes/test-infra/blob/45246b09ed105698aa8fb928b7736d14480def29/prow/jobs.md#job-environment-variables  # pylint: disable=line-too-long
+      elif os.getenv("PULL_BASE_SHA"):
+        version = os.getenv("PULL_BASE_SHA")
+
+      if version:
+        repo["uri"] = ("https://github.com/kubeflow/manifests/archive/"
+                       "{0}.tar.gz").format(version)
+        logging.info("Overwriting the URI")
+      else:
+        # Its a periodic job so use whatever value is set in the KFDef
+        logging.info("Not overwriting manifests version")
     logging.info(str(config_spec))
   return config_spec
 
@@ -240,10 +257,15 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
 
   # TODO(jlewi): When we switch to KfDef v1beta1 this logic will need to change because
   # use_base_auth will move into the plugin spec
-  use_basic_auth = config_spec["spec"].get("useBasicAuth", False)
+  gcp_plugin = {}
+  for plugin in config_spec["spec"]["plugins"]:
+    if plugin["kind"] == "KfGcpPlugin":
+      gcp_plugin = plugin
+      break
+  use_basic_auth = gcp_plugin.get("spec", {}).get("useBasicAuth", False)
   logging.info("use_basic_auth=%s", use_basic_auth)
 
-  use_istio = config_spec["spec"].get("useIstio", True)
+  use_istio = gcp_plugin.get("spec", {}).get("useIstio", True)
   logging.info("use_istio=%s", use_istio)
 
   # Set ENV for basic auth username/password.
@@ -267,7 +289,7 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   return app_path
 
 def apply_kubeflow(kfctl_path, app_path):
-  util.run([kfctl_path, "apply", "-V", "-f=" + os.path.join(app_path, "tmp.yaml")], cwd=app_path) 
+  util.run([kfctl_path, "apply", "-V", "-f=" + os.path.join(app_path, "tmp.yaml")], cwd=app_path)
   return app_path
 
 def build_and_apply_kubeflow(kfctl_path, app_path):

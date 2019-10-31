@@ -102,8 +102,11 @@ build-bootstrap: deepcopy generate fmt vet
 	${GO} build -gcflags '-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
 build-kfctl: deepcopy generate fmt vet
-	GOOS=darwin GOARCH=amd64 ${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=${TAG}" -o bin/kfctl-darwin cmd/kfctl/main.go
-	${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctl cmd/kfctl/main.go
+	# TODO(swiftdiaries): figure out import conflict errors for windows
+	#GOOS=windows GOARCH=amd64 ${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/windows/kfctl.exe cmd/kfctl/main.go
+	GOOS=darwin GOARCH=amd64 ${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=${TAG}" -o bin/darwin/kfctl cmd/kfctl/main.go
+	GOOS=linux GOARCH=amd64 ${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/linux/kfctl cmd/kfctl/main.go
+	cp bin/linux/kfctl bin/kfctl
 
 build-gc: deepcopy generate fmt vet
 	${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/gc cmd/gc/main.go
@@ -111,10 +114,11 @@ build-gc: deepcopy generate fmt vet
 # Release tarballs suitable for upload to GitHub release pages
 build-kfctl-tgz: build-kfctl
 	chmod a+rx ./bin/kfctl
-	rm -f bin/*.tgz
-	cd bin && tar -cvzf kfctl_$(TAG)_linux.tar.gz ./kfctl
-	cd bin && tar -cvzf kfctl_${TAG}_darwin.tar.gz ./kfctl-darwin
-	
+	rm -f bin/*.tar.gz
+	cd bin/linux && tar -cvzf kfctl_$(TAG)_linux.tar.gz ./kfctl
+	cd bin/darwin && tar -cvzf kfctl_${TAG}_darwin.tar.gz ./kfctl
+	#cd bin/windows && tar -cvzf kfctl_${TAG}_darwin.tar.gz ./kfctl.exe
+
 build-kfctl-client: /tmp/v2 deepcopy generate fmt vet
 	${GO} build -gcflags 'all=-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctlClient cmd/kfctlClient/main.go
 
@@ -125,13 +129,13 @@ push-to-github-release: build-kfctl-tgz
 	    --repo kubeflow \
 	    --tag $(TAG) \
 	    --name "kfctl_$(TAG)_linux.tar.gz" \
-	    --file bin/kfctl_$(TAG)_linux.tar.gz
+	    --file bin/linux/kfctl_$(TAG)_linux.tar.gz
 	github-release upload \
 	    --user kubeflow \
 	    --repo kubeflow \
 	    --tag $(TAG) \
 	    --name "kfctl_$(TAG)_darwin.tar.gz" \
-	    --file bin/kfctl_$(TAG)_darwin.tar.gz
+	    --file bin/darwin/kfctl_$(TAG)_darwin.tar.gz
 
 build-kfctl-container:
 	DOCKER_BUILDKIT=1 docker build \

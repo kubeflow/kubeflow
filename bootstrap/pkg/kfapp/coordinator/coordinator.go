@@ -249,7 +249,7 @@ func CreateKfAppCfgFileWithKfDef(d *kfdefsv3.KfDef) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	kfconfig, err := alphaConverter.ToKfConfig(d.Spec.AppDir, kfdefBytes)
+	kfconfig, err := alphaConverter.ToKfConfig(kfdefBytes)
 	if err != nil {
 		return "", err
 	}

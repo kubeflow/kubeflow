@@ -47,6 +47,9 @@ var buildCmd = &cobra.Command{
 
 		if kind == string(kftypes.KFDEF) {
 			_, err = coordinator.NewLoadKfAppFromURI(configFilePath)
+			if err != nil {
+				return fmt.Errorf("failed to build kfApp from URI %s: %v", configFilePath, err)
+			}
 		} else if kind == string(kftypes.KFUPGRADE) {
 			kfUpgrade, kfUpgradeErr := kfupgrade.NewKfUpgrade(configFilePath)
 			if kfUpgradeErr != nil {
@@ -74,13 +77,14 @@ func init() {
 
 	// Config file option
 	buildCmd.PersistentFlags().StringVarP(&configFilePath, string(kftypes.FILE), "f", "",
-		`Static config file to use. Can be either a local path or a URL.
-	For example:
-	export CONFIG=`+arritkoConfig+`
-	export CONFIG=`+awsConfig+`
-	export CONFIG=`+gcpConfig+`
-	export CONFIG=`+k8sConfig+`
-	kfctl apply -V --file=${CONFIG}`)
+		`Static config file to use. Can be either a local path:
+		export CONFIG=./kfctl_gcp_iap.yaml
+	or a URL:
+		export CONFIG=`+gcpConfig+`
+		export CONFIG=`+arritkoConfig+`
+		export CONFIG=`+awsConfig+`
+		export CONFIG=`+k8sConfig+`
+	kfctl build -V --file=${CONFIG}`)
 
 	// verbose output
 	buildCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,
