@@ -135,7 +135,6 @@ def basic_auth_endpoint_ready(url, username, password, wait_min=15):
     sleep(10)
     num_req += 1
     logging.info("Trying url: %s", url)
-    print("Trying url: %s", url)
     try:
       resp = requests.request(
           "GET",
@@ -143,7 +142,7 @@ def basic_auth_endpoint_ready(url, username, password, wait_min=15):
           verify=False)
       logging.info(resp.text)
       if resp.status_code == 200:
-        logging.info("Basic auth is ready for %s!", url)
+        logging.info("Basic auth landing page is ready for %s !", url)
       else:
         logging.info("%s: basic auth is not ready, request number: %s" % (url, num_req))
     except Exception as e:
