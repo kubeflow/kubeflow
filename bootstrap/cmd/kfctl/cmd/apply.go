@@ -66,7 +66,11 @@ var applyCmd = &cobra.Command{
 			if err != nil {
 				return fmt.Errorf("failed to build kfApp from URI %s: %v", configFilePath, err)
 			}
-			return kfApp.Apply(kftypes.ALL)
+			if err := kfApp.Apply(kftypes.ALL); err != nil {
+				return fmt.Errorf("failed to apply: %s", err)
+			}
+			log.Info("Applied the configuration Successfully!")
+			return nil
 		case string(kftypes.KFUPGRADE):
 			kfUpgrade, err := kfupgrade.NewKfUpgrade(configFilePath)
 			if err != nil {
