@@ -116,3 +116,28 @@ def endpoint_is_ready(url, wait_min=15):
       logging.info("%s: IAP not ready, exception caught %s, request number: %s" %
                    (url, str(e), num_req))
   return False
+
+def basic_auth_endpoint_ready(url, username, password, wait_min=15):
+  """
+  Checks if the kubeflow basic auth endpoint is ready.
+
+  Args:
+    url: The url endpoint
+    username: basic auth login username.
+    password: basic auth login password.
+  Returns:
+    True if the url is ready.
+  """
+  num_req = 0
+  end_time = datetime.datetime.now() + datetime.timedelta(
+      minutes=wait_min)
+  while datetime.datetime.now() < end_time:
+    sleep(10)
+    num_req += 1
+    logging.info("Trying url: %s", url)
+    try:
+      pass
+    except Exception as e:
+      logging.info("%s: basic auth is not ready, exception caught %s, request number: %s" %
+                   (url, str(e), num_req))
+  return False
