@@ -58,7 +58,7 @@ type DeploymentManagerConfig struct {
 // If false it will also return a string providing a message about why its invalid.
 func (s *GcpPluginSpec) IsValid() (bool, string) {
 	if len(s.Hostname) > 63 {
-		return false, fmt.Sprintf("Invaid host name: host name %s is longer than 63 characters. Please shorten the metadata.name and hostname.", s.Hostname)
+		return false, fmt.Sprintf("Invaid host name: host name %s is longer than 63 characters. Please shorten the metadata.name.", s.Hostname)
 	}
 	basicAuthSet := s.Auth.BasicAuth != nil
 	iapAuthSet := s.Auth.IAP != nil
