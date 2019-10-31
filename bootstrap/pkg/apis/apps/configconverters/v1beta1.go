@@ -2,6 +2,7 @@ package configconverters
 
 import (
 	"fmt"
+
 	"github.com/ghodss/yaml"
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
@@ -141,11 +142,8 @@ func (v V1beta1) ToKfConfig(kfdefBytes []byte) (*kfconfig.KfConfig, error) {
 			continue
 		}
 		src := &kfconfig.SecretSource{}
-		if secret.SecretSource.LiteralSource != nil {
-			src.LiteralSource = &kfconfig.LiteralSource{
-				Value: secret.SecretSource.LiteralSource.Value,
-			}
-		} else if secret.SecretSource.EnvSource != nil {
+		// We don't want to store HashSource and LiteralSource explictly.
+		if secret.SecretSource.EnvSource != nil {
 			src.EnvSource = &kfconfig.EnvSource{
 				Name: secret.SecretSource.EnvSource.Name,
 			}

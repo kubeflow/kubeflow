@@ -15,7 +15,7 @@
 package v1beta1
 
 import (
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -96,7 +96,7 @@ type LiteralSource struct {
 }
 
 type EnvSource struct {
-	Name string `json:"Name,omitempty"`
+	Name string `json:"name,omitempty"`
 }
 
 // SecretRef is a reference to a secret
