@@ -1,6 +1,7 @@
 package kfconfig
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -13,7 +14,8 @@ import (
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"k8s.io/api/core/v1"
+	"golang.org/x/crypto/bcrypt"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -514,23 +516,43 @@ func (c *KfConfig) SyncCache() error {
 	return nil
 }
 
-// GetSecret returns the specified secret or an error if the secret isn't specified.
-func (c *KfConfig) GetSecret(name string) (string, error) {
+// Base64Encrypt encrypts a string to based64 encoding.
+func Base64Encrypt(password string) (string, error) {
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	if err != nil {
+		return "", &kfapis.KfError{
+			Code:    int(kfapis.INVALID_ARGUMENT),
+			Message: fmt.Sprintf("Error when hashing password: %v", err),
+		}
+	}
+	encodedPassword := base64.StdEncoding.EncodeToString(passwordHash)
+
+	return encodedPassword, nil
+}
+
+// GetEncodedSecret returns the encoded secret value or an error if the secret isn't specified.
+func (c *KfConfig) GetEncodedSecret(name string) (string, error) {
 	for _, s := range c.Spec.Secrets {
 		if s.Name != name {
 			continue
 		}
-		if s.SecretSource.LiteralSource != nil {
-			return s.SecretSource.LiteralSource.Value, nil
-		}
 		if s.SecretSource.HashedSource != nil {
 			return s.SecretSource.HashedSource.HashedValue, nil
 		}
+		var plainSecret string
 		if s.SecretSource.EnvSource != nil {
-			return os.Getenv(s.SecretSource.EnvSource.Name), nil
+			plainSecret = os.Getenv(s.SecretSource.EnvSource.Name)
+		} else if s.SecretSource.LiteralSource != nil {
+			plainSecret = s.SecretSource.LiteralSource.Value
+		} else {
+			return "", fmt.Errorf("No secret source provided for secret %v", name)
 		}
-
-		return "", fmt.Errorf("No secret source provided for secret %v", name)
+		encodedSecret, err := Base64Encrypt(plainSecret)
+		if err != nil {
+			log.Errorf("There was a problem encrypting the secret; %v", err)
+			return "", errors.WithStack(err)
+		}
+		return encodedSecret, nil
 	}
 	return "", NewSecretNotFound(name)
 }

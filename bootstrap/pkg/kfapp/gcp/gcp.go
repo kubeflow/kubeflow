@@ -42,7 +42,6 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -176,7 +175,7 @@ func (gcp *Gcp) initGcpClient() error {
 		// Something has gone wrong. So we guard against that.
 		// If accessToken is provided gcp.TokenSource should be set and we should use
 		// that.
-		if _, err := gcp.kfDef.GetSecret(GcpAccessTokenName); !kfconfig.IsSecretNotFound(err) {
+		if _, err := gcp.kfDef.GetEncodedSecret(GcpAccessTokenName); !kfconfig.IsSecretNotFound(err) {
 			return errors.WithStack(fmt.Errorf("Gcp.tokenSource is nil and secret %v is in KfDef; Gcp.tokenSource must be set explicitly; using a default token source is not allowed in this case", GcpAccessTokenName))
 		}
 		log.Infof("Creating default token source")
@@ -213,7 +212,7 @@ func getSA(name string, nameSuffix string, project string) string {
 func (gcp *Gcp) GetK8sConfig() (*rest.Config, *clientcmdapi.Config) {
 	// TODO(jlewi): Should we unify the code by just setting ts and then calling
 	// ts.Tpken to get a token?
-	accessToken, _ := gcp.kfDef.GetSecret(GcpAccessTokenName)
+	accessToken, _ := gcp.kfDef.GetEncodedSecret(GcpAccessTokenName)
 
 	if accessToken == "" {
 		return nil, nil
@@ -1502,7 +1501,7 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 		return nil
 	}
 
-	oauthSecret, err := gcp.kfDef.GetSecret(p.Auth.IAP.OAuthClientSecret.Name)
+	oauthSecret, err := gcp.kfDef.GetEncodedSecret(p.Auth.IAP.OAuthClientSecret.Name)
 
 	if err != nil {
 		log.Errorf("Could not read IAP OAuth ClientSecret from KfDef; error %v", err)
@@ -1522,19 +1521,6 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 	return createOrUpdateSecret(client, secret)
 }
 
-func base64EncryptPassword(password string) (string, error) {
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
-	if err != nil {
-		return "", &kfapis.KfError{
-			Code:    int(kfapis.INVALID_ARGUMENT),
-			Message: fmt.Sprintf("Error when hashing password: %v", err),
-		}
-	}
-	encodedPassword := base64.StdEncoding.EncodeToString(passwordHash)
-
-	return encodedPassword, nil
-}
-
 // TODO(jlewi): Add a unittest to this function.
 func (gcp *Gcp) buildBasicAuthSecret() (*v1.Secret, error) {
 	p, err := gcp.GetPluginSpec()
@@ -1549,7 +1535,7 @@ func (gcp *Gcp) buildBasicAuthSecret() (*v1.Secret, error) {
 		return nil, err
 	}
 
-	encodedPassword, err := gcp.kfDef.GetSecret(p.Auth.BasicAuth.Password.Name)
+	encodedPassword, err := gcp.kfDef.GetEncodedSecret(p.Auth.BasicAuth.Password.Name)
 
 	if err != nil {
 		log.Errorf("There was a problem getting the password for basic auth; error %v", err)

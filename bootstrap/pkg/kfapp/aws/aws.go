@@ -437,7 +437,7 @@ func (aws *Aws) createBasicAuthSecret(client *clientset.Clientset) error {
 		return err
 	}
 
-	password, err := aws.kfDef.GetSecret(awsPluginSpec.Auth.BasicAuth.Password.Name)
+	password, err := aws.kfDef.GetEncodedSecret(awsPluginSpec.Auth.BasicAuth.Password.Name)
 	if err != nil {
 		log.Errorf("There was a problem getting the password for basic auth; error %v", err)
 		return err

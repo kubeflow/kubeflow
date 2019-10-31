@@ -23,7 +23,7 @@ func TestGcp_buildBasicAuthSecret(t *testing.T) {
 		Expected      *v1.Secret
 	}
 
-	encodedPassword, err := base64EncryptPassword("somepassword")
+	encodedPassword, err := kfconfig.Base64Encrypt("somepassword")
 
 	if err != nil {
 		t.Fatalf("Could not encode password; %v", err)
