@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"io/ioutil"
+	netUrl "net/url"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -25,9 +26,21 @@ const (
 	Api = "kfdef.apps.kubeflow.org"
 )
 
-// This function should be thread safe and should not write to disk.
-// LoadFileFromURI: get file content from URI (lcoal or remote) and return as []byte
-func LoadFileFromURI(configFile string) ([]byte, error) {
+func isValidUrl(toTest string) bool {
+	_, err := netUrl.ParseRequestURI(toTest)
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
+}
+
+// LoadConfigFromURI reads the kfdef from a remote URI or local file,
+// and returns the kfconfig.
+// It will set the AppDir and ConfigFilename in kfconfig:
+//   AppDir = cwd if configFile is remote, or it will be the dir of configFile.
+//   ConfigFilename = the file name of configFile.
+func LoadConfigFromURI(configFile string, appDir string) (*kfconfig.KfConfig, error) {
 	if configFile == "" {
 		return nil, fmt.Errorf("config file must be the URI of a KfDef spec")
 	}
@@ -37,7 +50,8 @@ func LoadFileFromURI(configFile string) ([]byte, error) {
 		return nil, err
 	}
 
-	// If config is remote, do http get.
+	var configFileBytes []byte
+	// If config is remote, get file content via http get.
 	if isRemoteFile {
 		var client http.Client
 		resp, err := client.Get(configFile)
@@ -45,19 +59,27 @@ func LoadFileFromURI(configFile string) ([]byte, error) {
 			return nil, fmt.Errorf("Failed fetching file %v: %v", configFile, err)
 		}
 		defer resp.Body.Close()
-
-		return ioutil.ReadAll(resp.Body)
+		configFileBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("could not read from config file %s: %v", configFile, err),
+			}
+		}
 	} else {
-		// If config is lcoal, read file.
-		return ioutil.ReadFile(configFile)
+		// Read contents
+		configFileBytes, err = ioutil.ReadFile(configFile)
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("could not read from config file %s: %v", configFile, err),
+			}
+		}
 	}
-}
 
-// KfdefByteToKfConfig takes Kfdef in bytes and convert to KfConfig
-func KfdefByteToKfConfig(KfdefByte []byte, appDir string) (*kfconfig.KfConfig, error) {
 	// Check API version.
 	var obj map[string]interface{}
-	if err := yaml.Unmarshal(KfdefByte, &obj); err != nil {
+	if err = yaml.Unmarshal(configFileBytes, &obj); err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),
 			Message: fmt.Sprintf("invalid config file format: %v", err),
@@ -108,57 +130,31 @@ func KfdefByteToKfConfig(KfdefByte []byte, appDir string) (*kfconfig.KfConfig, e
 		}
 	}
 
-	kfconfig, err := converter.ToKfConfig(KfdefByte)
+	kfconfig, err := converter.ToKfConfig(configFileBytes)
 	if err != nil {
 		log.Errorf("Failed to convert kfdef to kfconfig: %v", err)
 		return nil, err
 	}
-	kfconfig.Spec.AppDir = appDir
+
+	// Set the AppDir for kfconfig
+	if appDir != "" {
+		kfconfig.Spec.AppDir = appDir
+	} else {
+		if isRemoteFile {
+			cwd, err := os.Getwd()
+			if err != nil {
+				return nil, &kfapis.KfError{
+					Code:    int(kfapis.INTERNAL_ERROR),
+					Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
+				}
+			}
+			kfconfig.Spec.AppDir = cwd
+		} else {
+			kfconfig.Spec.AppDir = filepath.Dir(configFile)
+		}
+	}
+	kfconfig.Spec.ConfigFileName = filepath.Base(configFile)
 	return kfconfig, nil
-}
-
-// LoadConfigFromURI reads the kfdef from a remote URI or local file,
-// and returns the kfconfig.
-// It will set the AppDir and ConfigFilename in kfconfig:
-//   AppDir = cwd if configFile is remote, or it will be the dir of configFile.
-//   ConfigFilename = the file name of configFile.
-func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
-	// Read contents
-	configFileBytes, err := LoadFileFromURI(configFile)
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not read from config file %s: %v", configFile, err),
-		}
-	}
-
-	// Determine appDir
-	// TODO(lunkai): We should not need to pass a appdir to ToKfConfig.
-	appDir, err := os.Getwd()
-	if err != nil {
-		return nil, &kfapis.KfError{
-			Code:    int(kfapis.INTERNAL_ERROR),
-			Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
-		}
-	}
-
-	isRemoteFile, err := utils.IsRemoteFile(configFile)
-	if err != nil {
-		return nil, err
-	}
-
-	if !isRemoteFile {
-		appDir = filepath.Dir(configFile)
-	}
-
-	// Convert to kfconfig
-	kfconfigIns, err := KfdefByteToKfConfig(configFileBytes, appDir)
-	if err != nil {
-		log.Errorf("Failed to convert kfdef-byte to kfconfig: %v", err)
-		return nil, err
-	}
-	kfconfigIns.Spec.ConfigFileName = filepath.Base(configFile)
-	return kfconfigIns, nil
 }
 
 func WriteConfigToFile(config kfconfig.KfConfig) error {

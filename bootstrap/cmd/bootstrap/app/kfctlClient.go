@@ -14,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/time/rate"
 	"net/url"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -24,6 +25,9 @@ type KfctlClient struct {
 	createEndpoint endpoint.Endpoint
 	getEndpoint    endpoint.Endpoint
 }
+
+// Default apps dir, could be rewrite on kfctl server side.
+const DEFAULT_APPS_PATH  = "/opt/bootstrap"
 
 // NewKfctlClient returns a KfctlClient backed by an HTTP server living at the
 // remote instance.
@@ -80,16 +84,10 @@ func NewKfctlClient(instance string) (*KfctlClient, error) {
 
 // CreateDeployment issues a CreateDeployment to the requested backend
 func (c *KfctlClient) CreateDeployment(ctx context.Context, req C2DRequest) (*kfconfig.KfConfig, error) {
-	configFileBytes, err := configconverters.LoadFileFromURI(req.ConfigFile)
+	kfconfigIns, err := configconverters.LoadConfigFromURI(req.ConfigFile, path.Join(DEFAULT_APPS_PATH, req.Name))
 	if err != nil {
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		return nil, err
-	}
-	// appdir will be reset on kfctl server.
-	kfconfigIns, err := configconverters.KfdefByteToKfConfig(configFileBytes, "/opt/bootstrap")
-	if err != nil {
-		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		log.Errorf("Failed to convert kfdef-byte to kfconfig: %v", err)
+		log.Errorf("Failed to load config from URI to kfconfig: %v", err)
 		return nil, err
 	}
 	kfconfigIns.Spec.ConfigFileName = filepath.Base(req.ConfigFile)

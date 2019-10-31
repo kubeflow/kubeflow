@@ -476,7 +476,7 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req C2DRequest) (*kf
 	return &kfdefs.KfDef{}, nil
 }
 
-// TODO (kunming) finish implementaion; not blocking because it's not been used.
+// TODO (kunming) finish implementaion; we should support it so frontend can query to get real time deploy status
 //// GetLatestKfdef returns latest kfdef status.
 //func (r *kfctlRouter) GetLatestStatus(req C2DRequest) (*kfconfig.Status, error) {
 //	name, err := k8sName(req.Name, req.Project)

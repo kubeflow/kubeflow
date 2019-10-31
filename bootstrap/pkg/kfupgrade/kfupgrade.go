@@ -51,7 +51,7 @@ func createNewKfApp(baseConfig string, version string, oldKfCfg *kfconfig.KfConf
 	}
 
 	// Load the new KfCfg from the base config
-	newKfCfg, err := configconverters.LoadConfigFromURI(baseConfig)
+	newKfCfg, err := configconverters.LoadConfigFromURI(baseConfig, "")
 	if err != nil {
 		return nil, "", &kfapis.KfError{
 			Code:    int(kfapis.INTERNAL_ERROR),
@@ -183,7 +183,7 @@ func findKfCfg(kfDefRef *kfupgrade.KfDefRef) (*kfconfig.KfConfig, string, error)
 				return nil
 			}
 
-			kfCfg, err := configconverters.LoadConfigFromURI(config)
+			kfCfg, err := configconverters.LoadConfigFromURI(config, "")
 			if err != nil {
 				log.Warnf("Failed to load KfCfg from %v", config)
 				return nil

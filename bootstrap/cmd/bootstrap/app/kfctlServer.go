@@ -46,6 +46,10 @@ const KfctlGetpath = "/kfctl/apps/v1beta1/get"
 // LastRequestTime last deploy request time.
 const LastRequestTime = "LastRequestTime"
 
+// TODO(kunming): this should be replaced by a versioned API
+// KfctlServiceV1Alpha1
+// KfctlServiceV1Beta1
+// KfctlServiceV1
 type KfctlService interface {
 	// CreateCreateDeployment creates a Kubeflow deployment
 	CreateDeployment(context.Context, kfconfig.KfConfig) (*kfconfig.KfConfig, error)
