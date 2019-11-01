@@ -85,8 +85,7 @@ class Builder:
       namespace: Namespace for the workflow.
       config_path: Path to the KFDef spec file.
       bucket: The bucket to upload artifacts to. If not set use default determined by prow_artifacts.py.
-      test_endpoint: Whether to test the endpoint is ready. Should only
-        be true for IAP.
+      test_endpoint: Whether to test the endpoint is ready.
       use_basic_auth: Whether to use basic_auth.
       test_target_name: (Optional) Name to use as the test target to group
         tests.
@@ -555,6 +554,7 @@ class Builder:
                  "-o", "junit_suite_name=test_endpoint_is_ready_" + self.config_name,
                  "--app_path=" + self.app_dir,
                  "--app_name=" + self.app_name,
+                 "--use_basic_auth={0}".format(self.use_basic_auth),
               ]
 
       dependencies = [build_kfctl["name"]]

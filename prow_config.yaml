@@ -35,6 +35,7 @@ workflows:
       - testing/*
     kwargs:
       use_basic_auth: true
+      test_endpoint: true
       config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_basic_auth.yaml
   # E2E tests for kfctl_existing_arrikto 
   - app_dir: kubeflow/kubeflow/testing/workflows
