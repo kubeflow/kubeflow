@@ -26,6 +26,7 @@ from retrying import retry
 
 IAM_SCOPE = "https://www.googleapis.com/auth/iam"
 OAUTH_TOKEN_URI = "https://www.googleapis.com/oauth2/v4/token"
+COOKIE_NAME = "KUBEFLOW-AUTH-KEY"
 
 def get_service_account_credentials(client_id_key):
   # Figure out what environment we're running in and get some preliminary
@@ -127,23 +128,54 @@ def endpoint_is_ready(url, use_basic_auth, wait_min=15):
   return False
 
 def basic_auth_login_is_ready(url, username, password, wait_min=15):
-  post_url = url + "/apikflogin"
   get_url = url + "/kflogin"
+  post_url = url + "/apikflogin"
 
   req_num = 0
   end_time = datetime.datetime.now() + datetime.timedelta(
       minutes=wait_min)
   while datetime.datetime.now() < end_time:
-    sleep(10)
+    sleep(2)
     req_num += 1
     logging.info("Trying url: %s", get_url)
     resp = requests.request(
         "GET",
-        url,
+        get_url,
         verify=False)
     if resp.status_code != 200:
       logging.info("Basic auth login is not ready, request number %s: %s" % (req_num, get_url))
       continue
 
     logging.info("%s: endpoint is ready, testing login API; request number %s" % (get_url, req_num))
-    return True
+    resp = requests.post(
+        post_url,
+        auth=(username, password),
+        headers={
+            "x-from-login": "true",
+        },
+        verify=False)
+    logging.info("%s: %s" % (post_url, resp.text))
+    if resp.status_code != 205:
+      logging.error("%s: login is failed", post_url)
+      return False
+
+    cookie = None
+    for c in resp.cookies:
+      if c.name == COOKIE_NAME:
+        cookie = c
+        break
+    if cookie is None:
+      logging.error("%s: auth cookie cannot be found; name: %s" % (post_url, COOKIE_NAME))
+      return False
+
+    resp = requests.get(
+        url,
+        cookies={
+            cookie.name: cookie.value,
+        },
+        verify=False)
+    logging.info("%s: %s" % (url, resp.status_code))
+    logging.info(resp.content)
+    return resp.status_code == 200
+
+  return False
