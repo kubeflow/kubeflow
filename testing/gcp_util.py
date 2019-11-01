@@ -99,17 +99,21 @@ def endpoint_is_ready(url, use_basic_auth, wait_min=15):
     num_req += 1
     logging.info("Trying url: %s", url)
     try:
-      resp = requests.request(
-          "GET",
-          url,
-          verify=False) if use_basic_auth else requests.request(
-              "GET",
-              url,
-              headers={
-                  "Authorization":
-                  "Bearer {}".format(google_open_id_connect_token)
-              },
-              verify=False)
+      resp = None
+      if use_basic_auth:
+        resp = requests.request(
+            "GET",
+            url,
+            verify=False)
+      else:
+        resp = requests.request(
+            "GET",
+            url,
+            headers={
+                "Authorization":
+                "Bearer {}".format(google_open_id_connect_token)
+            },
+            verify=False)
       logging.info(resp.text)
       if resp.status_code == 200:
         logging.info("Endpoint is ready for %s!", url)
