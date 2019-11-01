@@ -13,7 +13,7 @@ import (
 	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -533,6 +533,17 @@ func (c *KfConfig) GetSecret(name string) (string, error) {
 		return "", fmt.Errorf("No secret source provided for secret %v", name)
 	}
 	return "", NewSecretNotFound(name)
+}
+
+// GetSecretSource returns the SecretSource of the specified name or an error if the secret isn't specified.
+func (c *KfConfig) GetSecretSource(name string) (*SecretSource, error) {
+	for _, s := range c.Spec.Secrets {
+		if s.Name != name {
+			continue
+		}
+		return s.SecretSource, nil
+	}
+	return nil, NewSecretNotFound(name)
 }
 
 // GetApplicationParameter gets the desired application parameter.
