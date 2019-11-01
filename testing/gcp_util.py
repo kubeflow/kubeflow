@@ -125,3 +125,25 @@ def endpoint_is_ready(url, use_basic_auth, wait_min=15):
       logging.info("%s: Endpoint not ready, exception caught %s, request number: %s" %
                    (url, str(e), num_req))
   return False
+
+def basic_auth_login_is_ready(url, username, password, wait_min=15):
+  post_url = url + "/apikflogin"
+  get_url = url + "/kflogin"
+
+  req_num = 0
+  end_time = datetime.datetime.now() + datetime.timedelta(
+      minutes=wait_min)
+  while datetime.datetime.now() < end_time:
+    sleep(10)
+    req_num += 1
+    logging.info("Trying url: %s", get_url)
+    resp = requests.request(
+        "GET",
+        url,
+        verify=False)
+    if resp.status_code != 200:
+      logging.info("Basic auth login is not ready, request number %s: %s" % (req_num, get_url))
+      continue
+
+    logging.info("%s: endpoint is ready, testing login API; request number %s" % (get_url, req_num))
+    return True
