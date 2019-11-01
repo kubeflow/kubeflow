@@ -28,15 +28,13 @@ def test_endpoint_is_ready(record_xml_attribute, project, app_name, use_basic_au
   """
   util.set_pytest_junit(record_xml_attribute, "test_endpoint_is_ready")
 
-  url = "https://{}.endpoints.{}.cloud.goog".format(app_name, project)
-  if use_basic_auth:
-    if not gcp_util.basic_auth_endpoint_ready(url):
-      raise Exception("Endpoint not ready")
-  else:
+  if not use_basic_auth:
     # Owned by project kubeflow-ci-deployment.
     os.environ["CLIENT_ID"] = "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g.apps.googleusercontent.com"
-    if not gcp_util.iap_endpoint_is_ready(url, wait_min=25):
-      raise Exception("Endpoint not ready")
+
+  url = "https://{}.endpoints.{}.cloud.goog".format(app_name, project)
+  if not gcp_util.endpoint_is_ready(url, use_basic_auth):
+    raise Exception("Endpoint not ready")
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
