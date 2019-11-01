@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import os
 import subprocess
@@ -19,7 +20,7 @@ from testing import gcp_util
 # We shouldn't need it to feel confident that kfctl is working.
 @pytest.mark.skipif(os.getenv("JOB_TYPE") == "presubmit",
                     reason="test endpoint doesn't run in presubmits")
-def test_endpoint_is_ready(record_xml_attribute, project, app_name, use_basic_auth):
+def test_endpoint_is_ready(record_xml_attribute, project, app_path, app_name, use_basic_auth):
   """Test that Kubeflow was successfully deployed.
 
   Args:
@@ -28,7 +29,13 @@ def test_endpoint_is_ready(record_xml_attribute, project, app_name, use_basic_au
   """
   util.set_pytest_junit(record_xml_attribute, "test_endpoint_is_ready")
 
-  if not use_basic_auth:
+  if use_basic_auth:
+    with open(os.path.join(app_path, "login.json"), "r") as f:
+      login = json.load(f)
+      # Let it fail if login info cannot be found.
+      username = login["KUBEFLOW_USERNAME"]
+      password = login["KUBEFLOW_PASSWORD"]
+  else:
     # Owned by project kubeflow-ci-deployment.
     os.environ["CLIENT_ID"] = "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g.apps.googleusercontent.com"
 

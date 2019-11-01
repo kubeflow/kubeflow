@@ -1,5 +1,6 @@
 """Common reusable steps for kfctl go testing."""
 import datetime
+import json
 import logging
 import os
 import tempfile
@@ -99,6 +100,12 @@ def set_env_init_args(use_basic_auth, use_istio):
     # logging.info("Setting environment variables KUBEFLOW_USERNAME and KUBEFLOW_PASSWORD")
     os.environ["KUBEFLOW_USERNAME"] = "kf-test-user"
     os.environ["KUBEFLOW_PASSWORD"] = str(uuid.uuid4().hex)
+    with open(os.path.join(app_path, "login.json"), "w") as f:
+      login = {
+          "KUBEFLOW_USERNAME": os.environ["KUBEFLOW_USERNAME"],
+          "KUBEFLOW_PASSWORD": os.environ["KUBEFLOW_PASSWORD"],
+      }
+      json.dump(login, f)
     init_args = ["--use_basic_auth"]
   else:
     # Owned by project kubeflow-ci-deployment.
