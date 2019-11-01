@@ -75,7 +75,7 @@ def may_get_env_var(name):
   else:
     raise Exception("%s not set" % name)
 
-def iap_endpoint_is_ready(url, wait_min=15):
+def endpoint_is_ready(url, use_basic_auth, wait_min=15):
   """
   Checks if the kubeflow endpoint is ready.
 
@@ -84,10 +84,12 @@ def iap_endpoint_is_ready(url, wait_min=15):
   Returns:
     True if the url is ready
   """
-  service_account_credentials = get_service_account_credentials("CLIENT_ID")
+  google_open_id_connect_token = None
 
-  google_open_id_connect_token = get_google_open_id_connect_token(
-      service_account_credentials)
+  if not use_basic_auth:
+    service_account_credentials = get_service_account_credentials("CLIENT_ID")
+    google_open_id_connect_token = get_google_open_id_connect_token(
+        service_account_credentials)
   # Wait up to 30 minutes for IAP access test.
   num_req = 0
   end_time = datetime.datetime.now() + datetime.timedelta(
@@ -100,50 +102,22 @@ def iap_endpoint_is_ready(url, wait_min=15):
       resp = requests.request(
           "GET",
           url,
-          headers={
-              "Authorization":
-              "Bearer {}".format(google_open_id_connect_token)
-          },
-          verify=False)
+          verify=False) if use_basic_auth else requests.request(
+              "GET",
+              url,
+              headers={
+                  "Authorization":
+                  "Bearer {}".format(google_open_id_connect_token)
+              },
+              verify=False)
       logging.info(resp.text)
       if resp.status_code == 200:
-        logging.info("IAP is ready for %s!", url)
+        logging.info("Endpoint is ready for %s!", url)
         return True
       else:
         logging.info(
-            "%s: IAP not ready, request number: %s" % (url, num_req))
+            "%s: Endpoint not ready, request number: %s" % (url, num_req))
     except Exception as e:
-      logging.info("%s: IAP not ready, exception caught %s, request number: %s" %
-                   (url, str(e), num_req))
-  return False
-
-def basic_auth_endpoint_ready(url, wait_min=15):
-  """
-  Checks if the kubeflow basic auth endpoint is ready.
-
-  Args:
-    url: The url endpoint
-  Returns:
-    True if the url is ready.
-  """
-  num_req = 0
-  end_time = datetime.datetime.now() + datetime.timedelta(
-      minutes=wait_min)
-  while datetime.datetime.now() < end_time:
-    sleep(10)
-    num_req += 1
-    logging.info("Trying url: %s", url)
-    try:
-      resp = requests.request(
-          "GET",
-          url,
-          verify=False)
-      if resp.status_code == 200:
-        logging.info("Basic auth landing page is ready for %s !", url)
-        return True
-      else:
-        logging.info("%s: basic auth is not ready (%d), request number: %s" % (url, resp.status_code, num_req))
-    except Exception as e:
-      logging.info("%s: basic auth is not ready, exception caught %s, request number: %s" %
+      logging.info("%s: Endpoint not ready, exception caught %s, request number: %s" %
                    (url, str(e), num_req))
   return False
