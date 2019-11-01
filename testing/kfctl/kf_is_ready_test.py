@@ -125,12 +125,12 @@ def test_kf_is_ready(record_xml_attribute, namespace, use_basic_auth, use_istio,
   # TODO(jlewi): Might want to parallelize this.
   for deployment_name in deployment_names:
     logging.info("Verifying that deployment %s started...", deployment_name)
-    util.wait_for_deployment(api_client, namespace, deployment_name, 10)
+    util.wait_for_deployment(api_client, namespace, deployment_name, 15)
 
   ingress_namespace = "istio-system" if use_istio else namespace
   for deployment_name in ingress_related_deployments:
     logging.info("Verifying that deployment %s started...", deployment_name)
-    util.wait_for_deployment(api_client, ingress_namespace, deployment_name, 10)
+    util.wait_for_deployment(api_client, ingress_namespace, deployment_name, 15)
 
 
   all_stateful_sets = [(namespace, name) for name in stateful_set_names]
