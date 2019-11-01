@@ -538,10 +538,9 @@ func (c *KfConfig) GetSecret(name string) (string, error) {
 // GetSecretSource returns the SecretSource of the specified name or an error if the secret isn't specified.
 func (c *KfConfig) GetSecretSource(name string) (*SecretSource, error) {
 	for _, s := range c.Spec.Secrets {
-		if s.Name != name {
-			continue
+		if s.Name == name {
+			return s.SecretSource, nil
 		}
-		return s.SecretSource, nil
 	}
 	return nil, NewSecretNotFound(name)
 }
