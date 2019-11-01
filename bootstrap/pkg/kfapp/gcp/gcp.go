@@ -1549,11 +1549,26 @@ func (gcp *Gcp) buildBasicAuthSecret() (*v1.Secret, error) {
 		return nil, err
 	}
 
-	encodedPassword, err := gcp.kfDef.GetSecret(p.Auth.BasicAuth.Password.Name)
-
+	password, err := gcp.kfDef.GetSecret(p.Auth.BasicAuth.Password.Name)
 	if err != nil {
 		log.Errorf("There was a problem getting the password for basic auth; error %v", err)
 		return nil, err
+	}
+	ss, err := gcp.kfDef.GetSecretSource(p.Auth.BasicAuth.Password.Name)
+	if err != nil {
+		log.Errorf("There was a problem getting the password for basic auth; error %v", err)
+		return nil, err
+	}
+	// For backward compatibility, we encode passward that is not hashed.
+	var encodedPassword string
+	if ss.HashedSource != nil {
+		encodedPassword = password
+	} else {
+		encodedPassword, err = base64EncryptPassword(password)
+		if err != nil {
+			log.Errorf("There was a problem encrypting the password; %v", err)
+			return nil, errors.WithStack(err)
+		}
 	}
 
 	secret := &v1.Secret{
