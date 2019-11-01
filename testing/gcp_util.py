@@ -117,14 +117,12 @@ def iap_endpoint_is_ready(url, wait_min=15):
                    (url, str(e), num_req))
   return False
 
-def basic_auth_endpoint_ready(url, username, password, wait_min=15):
+def basic_auth_endpoint_ready(url, wait_min=15):
   """
   Checks if the kubeflow basic auth endpoint is ready.
 
   Args:
     url: The url endpoint
-    username: basic auth login username.
-    password: basic auth login password.
   Returns:
     True if the url is ready.
   """
