@@ -76,7 +76,7 @@ def may_get_env_var(name):
   else:
     raise Exception("%s not set" % name)
 
-def endpoint_is_ready(url, use_basic_auth, wait_min=15):
+def iap_is_ready(url, wait_min=15):
   """
   Checks if the kubeflow endpoint is ready.
 
@@ -87,10 +87,9 @@ def endpoint_is_ready(url, use_basic_auth, wait_min=15):
   """
   google_open_id_connect_token = None
 
-  if not use_basic_auth:
-    service_account_credentials = get_service_account_credentials("CLIENT_ID")
-    google_open_id_connect_token = get_google_open_id_connect_token(
-        service_account_credentials)
+  service_account_credentials = get_service_account_credentials("CLIENT_ID")
+  google_open_id_connect_token = get_google_open_id_connect_token(
+      service_account_credentials)
   # Wait up to 30 minutes for IAP access test.
   num_req = 0
   end_time = datetime.datetime.now() + datetime.timedelta(
@@ -101,20 +100,14 @@ def endpoint_is_ready(url, use_basic_auth, wait_min=15):
     logging.info("Trying url: %s", url)
     try:
       resp = None
-      if use_basic_auth:
-        resp = requests.request(
-            "GET",
-            url,
-            verify=False)
-      else:
-        resp = requests.request(
-            "GET",
-            url,
-            headers={
-                "Authorization":
-                "Bearer {}".format(google_open_id_connect_token)
-            },
-            verify=False)
+      resp = requests.request(
+          "GET",
+          url,
+          headers={
+              "Authorization":
+              "Bearer {}".format(google_open_id_connect_token)
+          },
+          verify=False)
       logging.info(resp.text)
       if resp.status_code == 200:
         logging.info("Endpoint is ready for %s!", url)
@@ -127,7 +120,7 @@ def endpoint_is_ready(url, use_basic_auth, wait_min=15):
                    (url, str(e), num_req))
   return False
 
-def basic_auth_login_is_ready(url, username, password, wait_min=15):
+def basic_auth_is_ready(url, username, password, wait_min=15):
   get_url = url + "/kflogin"
   post_url = url + "/apikflogin"
 

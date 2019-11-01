@@ -29,19 +29,20 @@ def test_endpoint_is_ready(record_xml_attribute, project, app_path, app_name, us
   """
   util.set_pytest_junit(record_xml_attribute, "test_endpoint_is_ready")
 
+  url = "https://{}.endpoints.{}.cloud.goog".format(app_name, project)
   if use_basic_auth:
     with open(os.path.join(app_path, "login.json"), "r") as f:
       login = json.load(f)
       # Let it fail if login info cannot be found.
       username = login["KUBEFLOW_USERNAME"]
       password = login["KUBEFLOW_PASSWORD"]
+    if not gcp_util.basic_auth_is_ready(url, username, password):
+      raise Exception("Basic auth endpoint is not ready")
   else:
     # Owned by project kubeflow-ci-deployment.
     os.environ["CLIENT_ID"] = "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g.apps.googleusercontent.com"
-
-  url = "https://{}.endpoints.{}.cloud.goog".format(app_name, project)
-  if not gcp_util.endpoint_is_ready(url, use_basic_auth):
-    raise Exception("Endpoint not ready")
+    if not gcp_util.iap_is_ready(url):
+      raise Exception("IAP endpoint is not ready")
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
