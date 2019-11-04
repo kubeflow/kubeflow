@@ -105,7 +105,7 @@ styleElement.innerHTML = `
 
         paper-progress {
             width: 100%;
-            --paper-progress-active-color: #669df6;
+            --paper-progress-active-color: #5ee395;
             --paper-progress-container-color: #f1f3f4;
         }
         #message {

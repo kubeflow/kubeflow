@@ -18,26 +18,28 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             template(is='dom-repeat', items='[[menuLinks]]')
                 iframe-link(href$="[[buildHref(item.link, queryParams)]]")
                     paper-item.menu-item [[item.text]]
-            template(is='dom-if', if='[[equals(isolationMode, "multi-user")]]')
-                aside.divider
-                a(href$='[[buildHref("/manage-users", queryParams)]]', tabindex='-1')
-                    paper-item.menu-item Manage Contributors
-            aside.divider
-            a(href='https://github.com/kubeflow/kubeflow',
-                tabindex='-1', target="_blank")
-                paper-item.menu-item GitHub
+                iframe-link()#Disabled
+                    paper-item.menu-item Uploadings
+            //template(is='dom-if', if='[[equals(isolationMode, "multi-user")]]')
+            //    aside.divider
+            //    a(href$='[[buildHref("/manage-users", queryParams)]]', tabindex='-1')
+            //        paper-item.menu-item Manage Contributors
+            //aside.divider
+            //a(href='https://github.com/kubeflow/kubeflow',
+            //    tabindex='-1', target="_blank")
+            //    paper-item.menu-item GitHub
+            //        iron-icon.external(icon="launch")
+            //a(href='https://www.kubeflow.org/docs/about/kubeflow/',
+            //    tabindex='-1', target="_blank")
+            //    paper-item.menu-item Documentation
                     iron-icon.external(icon="launch")
-            a(href='https://www.kubeflow.org/docs/about/kubeflow/',
-                tabindex='-1', target="_blank")
-                paper-item.menu-item Documentation
-                    iron-icon.external(icon="launch")
-        footer.footer
-            section.information
-                a.privacy(title='Kubeflow Privacy Policy', target='_blank', href='https://policies.google.com/privacy') Privacy
-                .bullet
-                a.usage(title='Kubeflow Usage Reporting', target='_blank', href='https://www.kubeflow.org/docs/other-guides/usage-reporting/') Usage Reporting
-            section.build build version&nbsp;
-                span(title="Build: [[buildVersion]] | Dashboard: v[[dashVersion]] | Isolation-Mode: [[isolationMode]]") [[buildVersion]]
+        //footer.footer
+        //    section.information
+        //        a.privacy(title='Kubeflow Privacy Policy', target='_blank', href='https://policies.google.com/privacy') Privacy
+        //        .bullet
+        //        a.usage(title='Kubeflow Usage Reporting', target='_blank', href='https://www.kubeflow.org/docs/other-guides/usage-reporting/') Usage Reporting
+        //    section.build build version&nbsp;
+        //        span(title="Build: [[buildVersion]] | Dashboard: v[[dashVersion]] | Isolation-Mode: [[isolationMode]]") [[buildVersion]]
     app-header-layout(fullbleed)
         app-header(slot='header', hides, hidden$='[[notFoundInIframe]]')
             app-toolbar
@@ -49,9 +51,9 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     query-params='{{queryParams}}', namespaces='[[namespaces]]'
                     selected='{{namespace}}', hides, hidden$='[[hideNamespaces]]'
                     all-namespaces='[[allNamespaces]]')
-                footer#User-Badge
-                    iron-image.image(sizing='contain', fade,
-                        src='/assets/anon-user.png', title='[[user]]')
+                //footer#User-Badge
+                //    iron-image.image(sizing='contain', fade,
+                //        src='/assets/anon-user.png', title='[[user]]')
         main#Content
             section#ViewTabs(hidden$='[[hideTabs]]')
                 paper-tabs(selected='[[page]]', attr-for-selected='page')

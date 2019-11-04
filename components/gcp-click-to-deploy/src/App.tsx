@@ -18,7 +18,7 @@ declare global {
 
 const styles: { [p: string]: React.CSSProperties } = {
   app: {
-    backgroundColor: CommonCss.accent,
+    backgroundColor: CommonCss.main,
     display: 'flex',
     flexFlow: 'column',
     fontFamily: '"google sans", Helvetica',
@@ -33,7 +33,7 @@ const styles: { [p: string]: React.CSSProperties } = {
     margin: '5% 10%',
   },
   leftPane: {
-    color: '#fff',
+    color: CommonCss.accent,
     flexBasis: '40%',
     fontSize: '1.1em',
     fontWeight: 400,
@@ -45,9 +45,9 @@ const styles: { [p: string]: React.CSSProperties } = {
     marginBottom: 60,
   },
   logoImg: {
-    height: 40,
+    height: 60,
     marginRight: 25,
-    width: 40,
+    width: 152,
   },
   logoText: {
     width: 120,

@@ -4,12 +4,13 @@
 
 :host {
     @apply --layout-vertical;
-    --accent-color: #007dfc;
-    --primary-background-color: #0a3b71;
+    --accent-color: #000;
+    --primary-background-color: #313332;
     --sidebar-default-color: rgba(255, 255, 255, 0.5);
     --divider-color: #dadce0;
     --border-color: #eeeeef;
     --icon-color: #202124;
+    --icon-color-accent: #5ee395;
     --external-icon-color: var(--google-grey-700);
     --iframe-link: {
         text-decoration: none;
@@ -111,7 +112,11 @@ app-drawer-layout[bleed] #MainDrawer {
     bottom: 0;
     left: 0;
     width: 3px;
-    background: white;
+    background: #5ee395;
+}
+
+#MainDrawer .menu-item:hover {
+    background: #5ee395;
 }
 
 #MainDrawer .footer {
@@ -130,7 +135,7 @@ app-drawer-layout[bleed] #MainDrawer {
 app-toolbar {
     @apply --layout-horizontal;
     @apply --layout-center;
-    background: white;
+    background: #313332;
     transition: background .25s;
 }
 
@@ -219,6 +224,11 @@ app-header-layout {
     height: 100%;
 }
 
+#Disabled {
+    pointer-events: none;
+    opacity: 50%;
+}
+
 neon-animated-pages {
     height: 100%;
 }
@@ -244,7 +254,7 @@ neon-animatable {
     --paper-icon-button: {
         width: 44px;
         height: 44px;
-        color: var(--primary-background-color);
+        color: var(--icon-color-accent);
     }
 }
 
@@ -306,6 +316,6 @@ a[href] {
 }
 
 a[href]:hover, iframe-link:hover {
-    color: var(--paper-blue-700);
+    color: var(--icon-color-accent);
     text-decoration: underline;
 }

@@ -4,7 +4,7 @@
     overflow: auto;
     width: 100%;
     flex: 1;
-    --accent-color: #007dfc;
+    --accent-color: #5ee395;
     --primary-background-color: white;
     --paper-item-body-secondary: {
         font-size: 12px;
@@ -38,7 +38,7 @@
 
 
 #Platform-Links {
-    --paper-card-header-color: #2c6acb;
+    --paper-card-header-color: #f8fafb;
     --paper-card-header-image-text: {
         flex: 1;
         padding: 16px 0;

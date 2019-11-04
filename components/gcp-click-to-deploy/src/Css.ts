@@ -1,7 +1,8 @@
 import createMuiTheme from '@material-ui/core/styles/createMuiTheme';
 
 export const CommonCss = {
-  accent: '#3b78e7',
+  accent: '#000',
+  main: '#fff',
 };
 
 export const palette = {
@@ -19,9 +20,9 @@ export const theme = createMuiTheme({
     MuiButton: {
       containedPrimary: {
         '&:hover': {
-          backgroundColor: '#3d8df5',
+          backgroundColor: '#313332',
         },
-        backgroundColor: '#1a73e8',
+        backgroundColor: '#000',
       },
       root: {
         fontFamily: '"google sans", Helvetica',

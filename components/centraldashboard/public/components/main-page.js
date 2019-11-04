@@ -66,22 +66,22 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             menuLinks: {
                 type: Array,
                 value: [
-                    {
-                        link: '/pipeline/',
-                        text: 'Pipelines',
-                    },
+                    // {
+                    //     link: '/pipeline/',
+                    //     text: 'Pipelines',
+                    // },
                     {
                         link: '/jupyter/',
                         text: 'Notebook Servers',
                     },
-                    {
-                        link: '/katib/',
-                        text: 'Katib',
-                    },
-                    {
-                        link: '/metadata/',
-                        text: 'Artifact Store',
-                    },
+                    // {
+                    //     link: '/katib/',
+                    //     text: 'Katib',
+                    // },
+                    // {
+                    //     link: '/metadata/',
+                    //     text: 'Artifact Store',
+                    // },
                 ],
             },
             sidebarItemIndex: {
@@ -193,6 +193,10 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         let hideNamespaces = false;
         let allNamespaces = false;
         let hideSidebar = false;
+        // eslint-disable-next-line no-console
+        console.dir(newPage);
+        // eslint-disable-next-line no-console
+        console.dir(this.subRouteData);
 
         switch (newPage) {
         case 'activity':
@@ -215,6 +219,15 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             hideSidebar = true;
             break;
         case '':
+
+            window.location.replace('/_/jupyter');
+            // this.page = 'iframe';
+            // isIframe = true;
+            // hideNamespaces = this.subRouteData.path.startsWith('/pipeline');
+            // this._setActiveMenuLink('jupyter');
+            // this._setIframeSrc();
+            // break;
+
             this.sidebarItemIndex = 0;
             this.page = 'dashboard';
             hideTabs = false;

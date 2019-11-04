@@ -22,7 +22,7 @@ export class NamespaceSelector extends PolymerElement {
                 paper-menu-button {
                     --paper-menu-button: {
                         font-size: 14px;
-                        color: #3c4043
+                        color: #757575;
                     }
                 }
                 iron-icon {
