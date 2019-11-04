@@ -282,7 +282,7 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
     yaml.dump(config_spec, f)
 
   # Set ENV for credentials IAP/basic auth needs.
-  set_env_init_args(use_basic_auth, use_istio, app_path)
+  set_env_init_args(config_spec)
 
   # Write basic auth login username/password to a file for later tests.
   # If the ENVs are not set, this function call will be noop.
