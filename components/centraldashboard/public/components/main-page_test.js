@@ -226,7 +226,7 @@ describe('Main Page', () => {
     });
 
     it('Pushes to history when iframe page changes', () => {
-        const historySpy = spyOn(window.history, 'pushState');
+        const historySpy = spyOn(window.history, 'replaceState');
         mainPage.iframePage = '/notebooks?blah=bar';
         mainPage.iframePage = '/pipelines/create/new';
         expect(historySpy).toHaveBeenCalledWith(null, null,
