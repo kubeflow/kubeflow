@@ -64,11 +64,11 @@ TESTS_DAG_NAME = "gke-tests"
 
 TEMPLATE_LABEL = "kfctl_e2e"
 
-DEFAULT_REPOS = {
-    "kubeflow/kubeflow": "HEAD",
-    "kubeflow/testing": "HEAD",
-    "kubeflow/tf-operator": "HEAD"
-}
+DEFAULT_REPOS = [
+    "kubeflow/kubeflow@HEAD",
+    "kubeflow/testing@HEAD",
+    "kubeflow/tf-operator@HEAD"
+]
 
 class Builder:
   def __init__(self, name=None, namespace=None,
