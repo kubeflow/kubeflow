@@ -44,6 +44,7 @@ export PULL_NUMBER=4148
 
 import datetime
 from kubeflow.testing import argo_build_util
+from kubeflow.testing import util
 import logging
 import os
 import uuid
@@ -63,9 +64,11 @@ TESTS_DAG_NAME = "gke-tests"
 
 TEMPLATE_LABEL = "kfctl_e2e"
 
-MAIN_REPO = "kubeflow/kubeflow"
-
-EXTRA_REPOS = ["kubeflow/testing@HEAD", "kubeflow/tf-operator@HEAD"]
+DEFAULT_REPOS = [
+    "kubeflow/kubeflow@HEAD",
+    "kubeflow/testing@HEAD",
+    "kubeflow/tf-operator@HEAD"
+]
 
 class Builder:
   def __init__(self, name=None, namespace=None,
@@ -77,6 +80,7 @@ class Builder:
                build_and_apply=False,
                test_target_name=None,
                kf_app_name=None, delete_kf=True,
+               extra_repos="",
                **kwargs):
     """Initialize a builder.
 
@@ -193,6 +197,17 @@ class Builder:
     self.test_endpoint = test_endpoint
 
     self.kfctl_path = os.path.join(self.src_dir, "bootstrap/bin/kfctl")
+
+    # Fetch the main repo from Prow environment.
+    self.main_repo = argo_build_util.get_repo_from_prow_env()
+
+    # extra_repos is a list of comma separated repo names with commits,
+    # in the format <repo_owner>/<repo_name>@<commit>,
+    # e.g. "kubeflow/tf-operator@12345,kubeflow/manifests@23456".
+    # This will be used to override the default repo branches.
+    self.extra_repos = []
+    if extra_repos:
+      self.extra_repos = extra_repos.split(',')
 
   def _build_workflow(self):
     """Create the scaffolding for the Argo workflow"""
@@ -454,20 +469,19 @@ class Builder:
     # Checkout
 
     # create the checkout step
-    main_repo = argo_build_util.get_repo_from_prow_env()
-    if not main_repo:
-      logging.info("Prow environment variables for repo not set")
-      main_repo = MAIN_REPO + "@HEAD"
-    logging.info("Main repository: %s", main_repo)
-    repos = [main_repo]
-
-    repos.extend(EXTRA_REPOS)
 
     checkout = argo_build_util.deep_copy(task_template)
 
+    # Construct the list of repos to checkout
+    list_of_repos = DEFAULT_REPOS
+    list_of_repos.append(self.main_repo)
+    list_of_repos.extend(self.extra_repos)
+    repos = util.combine_repos(list_of_repos)
+    repos_str = ','.join(['%s@%s' % (key, value) for (key, value) in repos.items()])
+
     checkout["name"] = "checkout"
     checkout["container"]["command"] = ["/usr/local/bin/checkout_repos.sh",
-                                        "--repos=" + ",".join(repos),
+                                        "--repos=" + repos_str,
                                         "--src_dir=" + self.src_root_dir]
 
     argo_build_util.add_task_to_dag(self.workflow, E2E_DAG_NAME, checkout, [])
