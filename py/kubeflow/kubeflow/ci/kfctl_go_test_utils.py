@@ -91,7 +91,7 @@ def load_config(config_path):
       config_spec = yaml.load(f)
       return config_spec
 
-def set_env_init_args(use_basic_auth, use_istio):
+def set_env_init_args(use_basic_auth, use_istio, app_path):
   # Is it really needed?
   init_args = []
   # Set ENV for basic auth username/password.
@@ -276,7 +276,7 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   logging.info("use_istio=%s", use_istio)
 
   # Set ENV for basic auth username/password.
-  set_env_init_args(use_basic_auth, use_istio)
+  set_env_init_args(use_basic_auth, use_istio, app_path)
 
   # build_and_apply
   logging.info("running kfctl with build and apply: %s \n", build_and_apply)
