@@ -119,8 +119,25 @@ def set_env_init_args(config_spec):
   # TODO(gabrielwen): We should be able to remove this flag.
   init_args.append("--use_istio")
 
-def write_basic_auth_login(app_path):
-  pass
+def write_basic_auth_login(filename):
+  """Read basic auth login from ENV and write to the filename given. If username/password
+  cannot be found in ENV, this function will silently return.
+
+  Args:
+    filename: The filename (directory/file name) the login is writing to.
+  """
+  username = os.environ.get("KUBEFLOW_USERNAME", "")
+  password = os.environ.get("KUBEFLOW_PASSWORD", "")
+
+  if not username or not password:
+    return
+
+  with open(filename, "w") as f:
+    login = {
+        "username": username,
+        "password": password,
+    }
+    json.dump(login, f)
 
 def filter_spartakus(spec):
   """Filter our Spartakus from KfDef spec.
@@ -266,6 +283,10 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
 
   # Set ENV for credentials IAP/basic auth needs.
   set_env_init_args(use_basic_auth, use_istio, app_path)
+
+  # Write basic auth login username/password to a file for later tests.
+  # If the ENVs are not set, this function call will be noop.
+  write_basic_auth_login(os.path.join(app_path, "login.json"))
 
   # build_and_apply
   logging.info("running kfctl with build and apply: %s \n", build_and_apply)
