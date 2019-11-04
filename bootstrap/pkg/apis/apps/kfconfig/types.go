@@ -14,7 +14,6 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
-	valid "k8s.io/apimachinery/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -60,7 +59,6 @@ type KfConfigSpec struct {
 	Zone            string `json:"zone,omitempty"`
 
 	DeleteStorage bool `json:"deleteStorage,omitempty"`
-	UseIstio      bool `json:"useIstio"`
 
 	Applications []Application `json:"applications,omitempty"`
 	Plugins      []Plugin      `json:"plugins,omitempty"`
@@ -579,31 +577,6 @@ func (c *KfConfig) SetApplicationParameter(appName string, paramName string, val
 	}
 	log.Warnf("Application %v not found", appName)
 	return nil
-}
-
-func (c *KfConfig) DeleteApplication(appName string) {
-	// First we check applications for an application with the specified name.
-	if c.Spec.Applications != nil {
-		applications := []Application{}
-		for _, a := range c.Spec.Applications {
-			if a.Name != appName {
-				applications = append(applications, a)
-			}
-		}
-		c.Spec.Applications = applications
-	}
-}
-
-// IsValid returns true if the spec is a valid and complete spec.
-// If false it will also return a string providing a message about why its invalid.
-func (c *KfConfig) IsValid() (bool, string) {
-	// Validate KfConfig
-	errs := valid.NameIsDNSLabel(c.Name, false)
-	if errs != nil && len(errs) > 0 {
-		return false, fmt.Sprintf("invalid name due to %v", strings.Join(errs, ","))
-	}
-
-	return true, ""
 }
 
 // SetSecret sets the specified secret; if a secret with the given name already exists it is overwritten.

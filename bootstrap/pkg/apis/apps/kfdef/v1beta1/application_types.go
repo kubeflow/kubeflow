@@ -15,9 +15,16 @@
 package v1beta1
 
 import (
+	"fmt"
+	"github.com/ghodss/yaml"
+	kfapis "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis"
+	log "github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
+	valid "k8s.io/apimachinery/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"os"
+	"strings"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -154,4 +161,137 @@ type KfDefCondition struct {
 	Reason string `json:"reason,omitempty"`
 	// A human readable message indicating details about the transition.
 	Message string `json:"message,omitempty"`
+}
+
+// GetPluginSpec will try to unmarshal the spec for the specified plugin to the supplied
+// interface. Returns an error if the plugin isn't defined or if there is a problem
+// unmarshaling it.
+func (d *KfDef) GetPluginSpec(pluginKind string, s interface{}) error {
+	for _, p := range d.Spec.Plugins {
+		if p.Kind != pluginKind {
+			continue
+		}
+		// To deserialize it to a specific type we need to first serialize it to bytes
+		// and then unserialize it.
+		specBytes, err := yaml.Marshal(p.Spec)
+
+		if err != nil {
+			log.Errorf("Could not marshal plugin %v args; error %v", pluginKind, err)
+			return err
+		}
+
+		err = yaml.Unmarshal(specBytes, s)
+
+		if err != nil {
+			log.Errorf("Could not unmarshal plugin %v to the provided type; error %v", pluginKind, err)
+		}
+		return nil
+	}
+	return &kfapis.KfError{
+		Code:    int(kfapis.NOT_FOUND),
+		Message: fmt.Sprintf("Plugin not found: %v", pluginKind),
+	}
+}
+
+// SetPluginSpec sets the requested parameter: add the plugin if it doesn't already exist, or replace existing plugin.
+func (d *KfDef) SetPluginSpec(pluginKind string, spec interface{}) error {
+	// Convert spec to RawExtension
+
+	r := &runtime.RawExtension{}
+
+	// To deserialize it to a specific type we need to first serialize it to bytes
+	// and then unserialize it.
+	specBytes, err := yaml.Marshal(spec)
+
+	if err != nil {
+		log.Errorf("Could not marshal spec; error %v", err)
+		return err
+	}
+
+	err = yaml.Unmarshal(specBytes, r)
+
+	if err != nil {
+		log.Errorf("Could not unmarshal plugin to RawExtension; error %v", err)
+	}
+
+	index := -1
+
+	for i, p := range d.Spec.Plugins {
+		if p.Kind == pluginKind {
+			index = i
+			break
+		}
+	}
+
+	if index == -1 {
+		// Plugin in doesn't exist so add it
+		log.Infof("Adding plugin %v", pluginKind)
+
+		p := Plugin{}
+		p.Name = string(pluginKind)
+		p.Kind = pluginKind
+		d.Spec.Plugins = append(d.Spec.Plugins, p)
+
+		index = len(d.Spec.Plugins) - 1
+	}
+
+	d.Spec.Plugins[index].Spec = r
+	return nil
+}
+
+// GetSecret returns the specified secret or an error if the secret isn't specified.
+func (d *KfDef) GetSecret(name string) (string, error) {
+	for _, s := range d.Spec.Secrets {
+		if s.Name != name {
+			continue
+		}
+		if s.SecretSource.LiteralSource != nil {
+			return s.SecretSource.LiteralSource.Value, nil
+		}
+		if s.SecretSource.EnvSource != nil {
+			return os.Getenv(s.SecretSource.EnvSource.Name), nil
+		}
+
+		return "", fmt.Errorf("No secret source provided for secret %v", name)
+	}
+	return "", &kfapis.KfError{
+		Code:    int(kfapis.NOT_FOUND),
+		Message: fmt.Sprintf("Secret not found: %v", name),
+	}
+}
+
+// SetSecret sets the specified secret; if a secret with the given name already exists it is overwritten.
+func (d *KfDef) SetSecret(newSecret Secret) {
+	for i, s := range d.Spec.Secrets {
+		if s.Name == newSecret.Name {
+			d.Spec.Secrets[i] = newSecret
+			return
+		}
+	}
+	d.Spec.Secrets = append(d.Spec.Secrets, newSecret)
+}
+
+func (d *KfDef) DeleteApplication(appName string) {
+	// First we check applications for an application with the specified name.
+	if d.Spec.Applications != nil {
+		applications := []Application{}
+		for _, a := range d.Spec.Applications {
+			if a.Name != appName {
+				applications = append(applications, a)
+			}
+		}
+		d.Spec.Applications = applications
+	}
+}
+
+// IsValid returns true if the spec is a valid and complete spec.
+// If false it will also return a string providing a message about why its invalid.
+func (d *KfDef) IsValid() (bool, string) {
+	// Validate KfConfig
+	errs := valid.NameIsDNSLabel(d.Name, false)
+	if errs != nil && len(errs) > 0 {
+		return false, fmt.Sprintf("invalid name due to %v", strings.Join(errs, ","))
+	}
+
+	return true, ""
 }

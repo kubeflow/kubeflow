@@ -31,7 +31,7 @@ var tov1beta1Cmd = &cobra.Command{
 			return fmt.Errorf("Filename to converting KfDef is required.")
 		}
 
-		config, err := configconverters.LoadConfigFromURI(args[0], "")
+		config, err := configconverters.LoadConfigFromURI(args[0])
 		if err != nil {
 			return fmt.Errorf("Error when loading KfDef: %v", err)
 		}

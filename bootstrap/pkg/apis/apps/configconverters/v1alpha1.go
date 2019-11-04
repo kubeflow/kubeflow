@@ -72,7 +72,6 @@ func (v V1alpha1) ToKfConfig(kfdefBytes []byte) (*kfconfig.KfConfig, error) {
 			SkipInitProject: kfdef.Spec.SkipInitProject,
 			Zone:            kfdef.Spec.Zone,
 			Platform:        kfdef.Spec.Platform,
-			UseIstio:        true,
 		},
 	}
 	config.Name = kfdef.Name

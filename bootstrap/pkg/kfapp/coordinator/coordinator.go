@@ -158,7 +158,7 @@ func isDirEmpty(dir string) bool {
 // NewLoadKfAppFromURI takes in a config file and constructs the KfApp
 // used by the build and apply semantics for kfctl
 func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
-	kfdef, err := configconverters.LoadConfigFromURI(configFile, "")
+	kfdef, err := configconverters.LoadConfigFromURI(configFile)
 	if err != nil {
 		return nil, &kfapis.KfError{
 			Code:    int(kfapis.INVALID_ARGUMENT),

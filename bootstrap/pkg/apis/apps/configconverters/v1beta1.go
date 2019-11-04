@@ -41,7 +41,6 @@ func (v V1beta1) ToKfConfig(kfdefBytes []byte) (*kfconfig.KfConfig, error) {
 	config := &kfconfig.KfConfig{
 		Spec: kfconfig.KfConfigSpec{
 			UseBasicAuth: false,
-			UseIstio:     true,
 		},
 	}
 	config.Name = kfdef.Name

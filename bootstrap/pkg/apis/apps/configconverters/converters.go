@@ -40,7 +40,7 @@ func isValidUrl(toTest string) bool {
 // It will set the AppDir and ConfigFilename in kfconfig:
 //   AppDir = cwd if configFile is remote, or it will be the dir of configFile.
 //   ConfigFilename = the file name of configFile.
-func LoadConfigFromURI(configFile string, appDir string) (*kfconfig.KfConfig, error) {
+func LoadConfigFromURI(configFile string) (*kfconfig.KfConfig, error) {
 	if configFile == "" {
 		return nil, fmt.Errorf("config file must be the URI of a KfDef spec")
 	}
@@ -136,22 +136,17 @@ func LoadConfigFromURI(configFile string, appDir string) (*kfconfig.KfConfig, er
 		return nil, err
 	}
 
-	// Set the AppDir for kfconfig
-	if appDir != "" {
-		kfconfig.Spec.AppDir = appDir
-	} else {
-		if isRemoteFile {
-			cwd, err := os.Getwd()
-			if err != nil {
-				return nil, &kfapis.KfError{
-					Code:    int(kfapis.INTERNAL_ERROR),
-					Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
-				}
+	if isRemoteFile {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, &kfapis.KfError{
+				Code:    int(kfapis.INTERNAL_ERROR),
+				Message: fmt.Sprintf("could not get current directory for KfDef %v", err),
 			}
-			kfconfig.Spec.AppDir = cwd
-		} else {
-			kfconfig.Spec.AppDir = filepath.Dir(configFile)
 		}
+		kfconfig.Spec.AppDir = cwd
+	} else {
+		kfconfig.Spec.AppDir = filepath.Dir(configFile)
 	}
 	kfconfig.Spec.ConfigFileName = filepath.Base(configFile)
 	return kfconfig, nil
