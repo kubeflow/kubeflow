@@ -115,6 +115,8 @@ def set_env_init_args(config_spec):
     os.environ["CLIENT_ID"] = (
       "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g"
       ".apps.googleusercontent.com")
+  # Always use ISTIO.
+  # TODO(gabrielwen): We should be able to remove this flag.
   init_args.append("--use_istio")
 
 def filter_spartakus(spec):
