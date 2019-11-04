@@ -13,7 +13,7 @@ workflows:
     include_dirs:
       - bootstrap/*
       - testing/*
-      - py/kubeflow/kubeflow/ci/* 
+      - py/kubeflow/kubeflow/ci/*
     kwargs:
       use_basic_auth: false
       # Run build and then apply rather than just apply
@@ -22,7 +22,7 @@ workflows:
       # presubmit.
       test_endpoint: true
       config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_iap.yaml  
-  # Run basic auth test as part of every periodic and postsubmit run. 
+  # Run basic auth test as part of every periodic and postsubmit run.
   - py_func: kubeflow.kubeflow.ci.kfctl_e2e_workflow.create_workflow
     name: kfctl-go-basic-auth
     job_types:
@@ -33,18 +33,19 @@ workflows:
       - deployment/*
       - kubeflow/*
       - testing/*
+      - py/kubeflow/kubeflow/ci/*
     kwargs:
       use_basic_auth: true
       test_endpoint: true
       config_path: https://raw.githubusercontent.com/kubeflow/manifests/master/kfdef/kfctl_gcp_basic_auth.yaml
-  # E2E tests for kfctl_existing_arrikto 
+  # E2E tests for kfctl_existing_arrikto
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_go_test
     name: kfctl-go-existing
     job_types:
       # Enable once we have confirmed the stability of the test
       # - presubmit
-      # TODO(jlewi): I don't think we want to enable on presubmit. 
+      # TODO(jlewi): I don't think we want to enable on presubmit.
       # see https://github.com/kubeflow/kfctl/issues/57
       - postsubmit
       - periodic
@@ -184,7 +185,7 @@ workflows:
     include_dirs:
       - bootstrap/*
       - testing/*
-      - py/kubeflow/kubeflow/ci/kfctl_e2e_workflow.py 
+      - py/kubeflow/kubeflow/ci/*
     kwargs:
       use_basic_auth: false
       # Run build and then apply rather than just apply
@@ -204,6 +205,7 @@ workflows:
       - deployment/*
       - kubeflow/*
       - testing/*
+      - py/kubeflow/kubeflow/ci/*
     kwargs:
       use_basic_auth: true
       config_path: https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_basic_auth.0.7.0.yaml
@@ -233,4 +235,4 @@ workflows:
       configPath: https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_existing_arrikto.yaml
       cluster_creation_script: create_existing_cluster.sh
       cluster_deletion_script: delete_existing_cluster.py
-      nameSuffix: existing_arrikto    
+      nameSuffix: existing_arrikto
