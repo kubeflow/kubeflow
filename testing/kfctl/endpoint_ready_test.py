@@ -13,9 +13,6 @@ from kubeflow.testing import util
 from testing import deploy_utils
 from testing import gcp_util
 
-# TODO(https://github.com/kubeflow/kfctl/issues/42):
-# Test is failing pretty consistently.
-@pytest.mark.xfail
 # There's really no good reason to run test_endpoint during presubmits.
 # We shouldn't need it to feel confident that kfctl is working.
 @pytest.mark.skipif(os.getenv("JOB_TYPE") == "presubmit",
