@@ -97,7 +97,7 @@ def verifyRolebindings(api_client, name):
   rolebindingsList = rbacV1.list_namespaced_role_binding(namespace=name, watch=False)
   rb_dict = {}
   for i in rolebindingsList.items:
-    rb_dict[i.roleRef.name] = i.metadata.name
+    rb_dict[i.role_ref.name] = i.metadata.name
 
   if {'kubeflow-admin', 'kubeflow-edit', 'kubeflow-view'} <= rb_dict.keys():
     logging.info("all default rolebindings are present\n")
