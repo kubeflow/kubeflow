@@ -119,6 +119,9 @@ def set_env_init_args(config_spec):
   # TODO(gabrielwen): We should be able to remove this flag.
   init_args.append("--use_istio")
 
+def write_basic_auth_login(app_path):
+  pass
+
 def filter_spartakus(spec):
   """Filter our Spartakus from KfDef spec.
 
@@ -261,7 +264,7 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   with open(os.path.join(app_path, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
 
-  # Set ENV for basic auth username/password.
+  # Set ENV for credentials IAP/basic auth needs.
   set_env_init_args(use_basic_auth, use_istio, app_path)
 
   # build_and_apply
