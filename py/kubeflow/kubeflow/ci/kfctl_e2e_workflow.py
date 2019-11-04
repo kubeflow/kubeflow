@@ -386,6 +386,27 @@ class Builder:
     notebook_test["container"]["workingDir"] =  os.path.join(
       self.src_dir, "kubeflow/jupyter/tests")
 
+    #***************************************************************************
+    # Profiles test
+
+    step_name = "profiles-test"
+    command =  ["pytest",
+                "profiles_test.py",
+                # I think -s mean stdout/stderr will print out to aid in debugging.
+                # Failures still appear to be captured and stored in the junit file.
+                "-s",
+                # Test timeout in seconds.
+                "--timeout=600",
+                "--junitxml=" + self.artifacts_dir + "/junit_profiles-test.xml",
+             ]
+
+    dependences = []
+    profiles_test = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
+                                     command, dependences)
+
+    profiles_test["container"]["workingDir"] =  os.path.join(
+      self.src_dir, "kubeflow/profiles/tests")
+
   def _build_exit_dag(self):
     """Build the exit handler dag"""
     task_template = self._build_task_template()
