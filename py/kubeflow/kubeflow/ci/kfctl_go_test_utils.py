@@ -93,8 +93,8 @@ def load_config(config_path):
 
 def set_env_init_args(config_spec):
   gcp_plugin = {}
-  for plugin in config_spec["spec"]["plugins"]:
-    if plugin["kind"] == "KfGcpPlugin":
+  for plugin in config_spec.get("spec", {}).get("plugins", []):
+    if plugin.get("kind", "") == "KfGcpPlugin":
       gcp_plugin = plugin
       break
   use_basic_auth = gcp_plugin.get("spec", {}).get("useBasicAuth", False)
