@@ -44,6 +44,7 @@ export PULL_NUMBER=4148
 
 import datetime
 from kubeflow.testing import argo_build_util
+from kubeflow.testing import util
 import logging
 import os
 import uuid
@@ -208,33 +209,6 @@ class Builder:
     self.extra_repos = []
     if extra_repos:
       self.extra_repos = extra_repos.split(',')
-
-  def _build_repos_str(self):
-    # 1. Convert main_repo and extra_repos to a dictionary
-    # where key is "repo_owner/repo_name" and value is the
-    # commit hash.
-    user_repos = {}
-    if self.main_repo:
-      parts = self.main_repo.split('@')
-      user_repos[parts[0]] = parts[1]
-    for er in self.extra_repos:
-      parts = er.split('@')
-      user_repos[parts[0]] = parts[1]
-
-    # 2. Starting with the default repos, merge in any user-defined
-    # repos with commit hashes.
-    repos = DEFAULT_REPOS
-    repos.update(user_repos)
-
-    # 3. Construct a string of the merged repos
-    repos_str = ""
-    for key in repos:
-      if repos_str:
-        repos_str = repos_str + "," + key + "@" + repos[key]
-      else:
-        repos_str = key + "@" + repos[key]
-
-    return repos_str
 
   def _build_workflow(self):
     """Create the scaffolding for the Argo workflow"""
@@ -537,7 +511,13 @@ class Builder:
     # create the checkout step
 
     checkout = argo_build_util.deep_copy(task_template)
-    repos_str = self._build_repos_str()
+
+    # Construct the list of repos to checkout
+    list_of_repos = DEFAULT_REPOS
+    list_of_repos.append(self.main_repo)
+    list_of_repos.extend(self.extra_repos)
+    repos = util.combine_repos(list_of_repos)
+    repos_str = ','.join(['%s@%s' % (key, value) for (key, value) in repos.items()])
 
     checkout["name"] = "checkout"
     checkout["container"]["command"] = ["/usr/local/bin/checkout_repos.sh",
