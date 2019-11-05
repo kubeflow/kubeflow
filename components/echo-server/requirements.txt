@@ -1,4 +1,4 @@
-Flask==0.12.2
+Flask==1.0
 flask-cors==3.0.3
 gunicorn==19.7.1
 six==1.11.0
