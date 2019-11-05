@@ -91,7 +91,14 @@ def load_config(config_path):
       config_spec = yaml.load(f)
       return config_spec
 
-def set_env_init_args(use_basic_auth, use_istio, app_path):
+def set_env_init_args(config_spec):
+  gcp_plugin = {}
+  for plugin in config_spec.get("spec", {}).get("plugins", []):
+    if plugin.get("kind", "") == "KfGcpPlugin":
+      gcp_plugin = plugin
+      break
+  use_basic_auth = gcp_plugin.get("spec", {}).get("useBasicAuth", False)
+  logging.info("use_basic_auth=%s", use_basic_auth)
   # Is it really needed?
   init_args = []
   # Set ENV for basic auth username/password.
@@ -100,12 +107,6 @@ def set_env_init_args(use_basic_auth, use_istio, app_path):
     # logging.info("Setting environment variables KUBEFLOW_USERNAME and KUBEFLOW_PASSWORD")
     os.environ["KUBEFLOW_USERNAME"] = "kf-test-user"
     os.environ["KUBEFLOW_PASSWORD"] = str(uuid.uuid4().hex)
-    with open(os.path.join(app_path, "login.json"), "w") as f:
-      login = {
-          "KUBEFLOW_USERNAME": os.environ["KUBEFLOW_USERNAME"],
-          "KUBEFLOW_PASSWORD": os.environ["KUBEFLOW_PASSWORD"],
-      }
-      json.dump(login, f)
     init_args = ["--use_basic_auth"]
   else:
     # Owned by project kubeflow-ci-deployment.
@@ -114,11 +115,29 @@ def set_env_init_args(use_basic_auth, use_istio, app_path):
     os.environ["CLIENT_ID"] = (
       "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g"
       ".apps.googleusercontent.com")
+  # Always use ISTIO.
+  # TODO(gabrielwen): We should be able to remove this flag.
+  init_args.append("--use_istio")
 
-  if use_istio:
-    init_args.append("--use_istio")
-  else:
-    init_args.append("--use_istio=false")
+def write_basic_auth_login(filename):
+  """Read basic auth login from ENV and write to the filename given. If username/password
+  cannot be found in ENV, this function will silently return.
+
+  Args:
+    filename: The filename (directory/file name) the login is writing to.
+  """
+  username = os.environ.get("KUBEFLOW_USERNAME", "")
+  password = os.environ.get("KUBEFLOW_PASSWORD", "")
+
+  if not username or not password:
+    return
+
+  with open(filename, "w") as f:
+    login = {
+        "username": username,
+        "password": password,
+    }
+    json.dump(login, f)
 
 def filter_spartakus(spec):
   """Filter our Spartakus from KfDef spec.
@@ -262,21 +281,12 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   with open(os.path.join(app_path, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
 
-  # TODO(jlewi): When we switch to KfDef v1beta1 this logic will need to change because
-  # use_base_auth will move into the plugin spec
-  gcp_plugin = {}
-  for plugin in config_spec["spec"]["plugins"]:
-    if plugin["kind"] == "KfGcpPlugin":
-      gcp_plugin = plugin
-      break
-  use_basic_auth = gcp_plugin.get("spec", {}).get("useBasicAuth", False)
-  logging.info("use_basic_auth=%s", use_basic_auth)
+  # Set ENV for credentials IAP/basic auth needs.
+  set_env_init_args(config_spec)
 
-  use_istio = gcp_plugin.get("spec", {}).get("useIstio", True)
-  logging.info("use_istio=%s", use_istio)
-
-  # Set ENV for basic auth username/password.
-  set_env_init_args(use_basic_auth, use_istio, app_path)
+  # Write basic auth login username/password to a file for later tests.
+  # If the ENVs are not set, this function call will be noop.
+  write_basic_auth_login(os.path.join(app_path, "login.json"))
 
   # build_and_apply
   logging.info("running kfctl with build and apply: %s \n", build_and_apply)
