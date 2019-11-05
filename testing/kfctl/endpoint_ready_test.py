@@ -31,8 +31,8 @@ def test_endpoint_is_ready(record_xml_attribute, project, app_path, app_name, us
     with open(os.path.join(app_path, "login.json"), "r") as f:
       login = json.load(f)
       # Let it fail if login info cannot be found.
-      username = login["KUBEFLOW_USERNAME"]
-      password = login["KUBEFLOW_PASSWORD"]
+      username = login["username"]
+      password = login["password"]
     if not gcp_util.basic_auth_is_ready(url, username, password):
       raise Exception("Basic auth endpoint is not ready")
   else:
