@@ -34,7 +34,7 @@ func TestKfctlServer_CreateDeployment(t *testing.T) {
 	s := &kfctlServer{
 		ts: ts,
 		c:  make(chan kfdefsv3.KfDef, 1),
-		latestKfconfig: kfconfig.KfConfig{
+		latestKfdef: kfconfig.KfConfig{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "input",
 			},
@@ -106,8 +106,8 @@ func TestKfctlServer_CreateDeployment(t *testing.T) {
 	kfDefbytes , _ := yaml.Marshal(*res)
 	respKfconfig, _ := configconverters.V1beta1{}.ToKfConfig(kfDefbytes)
 
-	if !reflect.DeepEqual(respKfconfig.Spec, s.latestKfconfig.Spec) {
-		pWant, _ := Pformat(s.latestKfconfig)
+	if !reflect.DeepEqual(respKfconfig.Spec, s.latestKfdef.Spec) {
+		pWant, _ := Pformat(s.latestKfdef)
 		pActual, _ := Pformat(*respKfconfig)
 		t.Fatalf("Incorrect CreateDeployment Response:got\n:%v\nwant:%v", pActual, pWant)
 	}

@@ -28,7 +28,7 @@ import (
 	kftypesv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/configconverters"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig"
-	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	kfdefsv1beta1 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1beta1"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/aws"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/existing_arrikto"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
@@ -241,22 +241,6 @@ func NewLoadKfAppFromURI(configFile string) (kftypesv3.KfApp, error) {
 	return c, nil
 }
 
-// TODO: remove this
-// This is for kfctlServer. We can remove this after kfctlServer uses kfconfig
-func CreateKfAppCfgFileWithKfDef(d *kfdefsv3.KfDef) (string, error) {
-	alphaConverter := configconverters.V1alpha1{}
-	kfdefBytes, err := yaml.Marshal(d)
-	if err != nil {
-		return "", err
-	}
-	kfconfig, err := alphaConverter.ToKfConfig(kfdefBytes)
-	if err != nil {
-		return "", err
-	}
-	kfconfig.Spec.ConfigFileName = kftypesv3.KfConfigFile
-	return CreateKfAppCfgFile(kfconfig)
-}
-
 // CreateKfAppCfgFile will create the application directory and persist
 // the KfDef to it as app.yaml.
 // This is only used when the config file is remote (https://github...)
@@ -313,14 +297,31 @@ type coordinator struct {
 	KfDef           *kfconfig.KfConfig
 }
 
-type KfConfigGetter interface {
-	GetKfConfig() *kfconfig.KfConfig
+type KfDefGetter interface {
+	GetKfDefV1Beta1() *kfdefsv1beta1.KfDef
 	GetPlugin(name string) (kftypesv3.KfApp, bool)
 }
 
-// GetKfDef returns a pointer to the KfDef used by this application.
-func (kfapp *coordinator) GetKfConfig() *kfconfig.KfConfig {
-	return kfapp.KfDef
+// GetKfDefV1Beta1 returns a pointer to the KfDef V1Beta1 used by this application.
+func (kfapp *coordinator) GetKfDefV1Beta1() *kfdefsv1beta1.KfDef {
+	kfdefIns := &kfdefsv1beta1.KfDef{}
+	kfdefByte, err := configconverters.V1beta1{}.ToKfDefSerialized(*(kfapp.KfDef.DeepCopy()))
+	if err != nil {
+		kfdefIns.Status.Conditions = append(kfdefIns.Status.Conditions, kfdefsv1beta1.KfDefCondition{
+			Type: 		kfdefsv1beta1.Unhealthy,
+			Message: 	err.Error(),
+		})
+		return kfdefIns
+	}
+
+	if err := yaml.Unmarshal(kfdefByte, kfdefIns); err != nil {
+		kfdefIns.Status.Conditions = append(kfdefIns.Status.Conditions, kfdefsv1beta1.KfDefCondition{
+			Type: 		kfdefsv1beta1.Unhealthy,
+			Message: 	err.Error(),
+		})
+		return kfdefIns
+	}
+	return kfdefIns
 }
 
 // GetPlatform returns the specified platform.
