@@ -128,14 +128,20 @@ def basic_auth_is_ready(url, username, password, wait_min=15):
   end_time = datetime.datetime.now() + datetime.timedelta(
       minutes=wait_min)
   while datetime.datetime.now() < end_time:
-    sleep(2)
+    sleep(10)
     req_num += 1
-    logging.info("Trying url: %s", get_url)
-    resp = requests.request(
-        "GET",
-        get_url,
-        verify=False)
-    if resp.status_code != 200:
+    logging.info("Trying url: %s request number %s" % (get_url, req_num))
+    resp = None
+    try:
+      resp = requests.request(
+          "GET",
+          get_url,
+          verify=False)
+    except Exception as e:
+      logging.info(
+          "%s: Endpoint not ready, request number: %s" % (url, num_req))
+      continue
+    if not resp or resp.status_code != 200:
       logging.info("Basic auth login is not ready, request number %s: %s" % (req_num, get_url))
       continue
 
