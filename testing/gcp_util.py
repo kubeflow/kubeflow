@@ -23,6 +23,8 @@ import google.auth.iam
 import google.oauth2.credentials
 import google.oauth2.service_account
 from retrying import retry
+from requests.exceptions import SSLError
+from requests.exceptions import ConnectionError as ReqConnectionError
 
 IAM_SCOPE = "https://www.googleapis.com/auth/iam"
 OAUTH_TOKEN_URI = "https://www.googleapis.com/oauth2/v4/token"
@@ -137,7 +139,10 @@ def basic_auth_is_ready(url, username, password, wait_min=15):
           "GET",
           get_url,
           verify=False)
-    except Exception as e:
+    except SSLError as e:
+      logging.warning("%s: Endpoint SSL handshake error: %s; request number: %s" % (url, e, num_req))
+      continue
+    except ReqConnectionError:
       logging.info(
           "%s: Endpoint not ready, request number: %s" % (url, num_req))
       continue
