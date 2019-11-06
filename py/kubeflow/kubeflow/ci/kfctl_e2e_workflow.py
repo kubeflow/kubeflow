@@ -507,6 +507,28 @@ class Builder:
                                    command, dependences)
 
     #**************************************************************************
+    # Do kfctl apply again. This test will be skip if it's presubmit.
+    step_name = "kfctl-second-apply"
+    command = [
+           "pytest",
+           "kfctl_second_apply.py",
+           # I think -s mean stdout/stderr will print out to aid in debugging.
+           # Failures still appear to be captured and stored in the junit file.
+           "-s",
+           "--log-cli-level=info",
+           "--junitxml=" + os.path.join(self.artifacts_dir,
+                                        "junit_kfctl-second-apply-test-" +
+                                        self.config_name + ".xml"),
+           # Test suite name needs to be unique based on parameters
+           "-o", "junit_suite_name=test_kfctl_second_apply_" + self.config_name,
+           "--app_path=" + self.app_dir,
+         ]
+
+    dependences = [build_kfctl["name"]]
+    kf_second_apply = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
+                                       command, dependences)
+
+    #**************************************************************************
     # Wait for Kubeflow to be ready
     step_name = "kubeflow-is-ready"
     command = [
@@ -532,7 +554,7 @@ class Builder:
            "--app_path=" + self.app_dir,
          ]
 
-    dependences = [build_kfctl["name"]]
+    dependences = [kf_second_apply["name"]]
     kf_is_ready = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
                                    command, dependences)
 
