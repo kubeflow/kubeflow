@@ -1,9 +1,0 @@
-apiVersion: kubeflow.org/v1alpha1
-kind: Profile
-metadata:
-  name: john
-spec:
-  owner:
-    kind: User
-    apiGroup: rbac.authorization.k8s.io
-    name: john@foo.com
