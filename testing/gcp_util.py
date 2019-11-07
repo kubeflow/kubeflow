@@ -139,10 +139,10 @@ def basic_auth_is_ready(url, username, password, wait_min=15):
           get_url,
           verify=False)
     except SSLError as e:
-      logging.warning("%s: Endpoint SSL handshake error: %s; request number: %s" % (url, e, num_req))
+      logging.warning("%s: Endpoint SSL handshake error: %s; request number: %s" % (url, e, req_num))
     except ReqConnectionError:
       logging.info(
-          "%s: Endpoint not ready, request number: %s" % (url, num_req))
+          "%s: Endpoint not ready, request number: %s" % (url, req_num))
     if not resp or resp.status_code != 200:
       logging.info("Basic auth login is not ready, request number %s: %s" % (req_num, get_url))
     else:
