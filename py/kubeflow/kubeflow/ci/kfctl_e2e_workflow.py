@@ -600,10 +600,11 @@ class Builder:
       dependences = [kf_is_ready["name"], endpoint_ready["name"]]
     else:
       dependences = [kf_is_ready["name"]]
+
     kf_second_apply = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
                                        command, dependences)
 
-      self._test_endpoint_template_name = endpoint_ready["name"]
+    self._test_endpoint_template_name = endpoint_ready["name"]
 
     self._build_tests_dag()
 
