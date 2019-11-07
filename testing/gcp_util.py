@@ -23,6 +23,8 @@ import google.auth.iam
 import google.oauth2.credentials
 import google.oauth2.service_account
 from retrying import retry
+from requests.exceptions import SSLError
+from requests.exceptions import ConnectionError as ReqConnectionError
 
 IAM_SCOPE = "https://www.googleapis.com/auth/iam"
 OAUTH_TOKEN_URI = "https://www.googleapis.com/oauth2/v4/token"
@@ -95,7 +97,6 @@ def iap_is_ready(url, wait_min=15):
   end_time = datetime.datetime.now() + datetime.timedelta(
       minutes=wait_min)
   while datetime.datetime.now() < end_time:
-    sleep(10)
     num_req += 1
     logging.info("Trying url: %s", url)
     try:
@@ -118,6 +119,7 @@ def iap_is_ready(url, wait_min=15):
     except Exception as e:
       logging.info("%s: Endpoint not ready, exception caught %s, request number: %s" %
                    (url, str(e), num_req))
+    sleep(10)
   return False
 
 def basic_auth_is_ready(url, username, password, wait_min=15):
@@ -128,47 +130,53 @@ def basic_auth_is_ready(url, username, password, wait_min=15):
   end_time = datetime.datetime.now() + datetime.timedelta(
       minutes=wait_min)
   while datetime.datetime.now() < end_time:
-    sleep(2)
     req_num += 1
-    logging.info("Trying url: %s", get_url)
-    resp = requests.request(
-        "GET",
-        get_url,
-        verify=False)
-    if resp.status_code != 200:
+    logging.info("Trying url: %s request number %s" % (get_url, req_num))
+    resp = None
+    try:
+      resp = requests.request(
+          "GET",
+          get_url,
+          verify=False)
+    except SSLError as e:
+      logging.warning("%s: Endpoint SSL handshake error: %s; request number: %s" % (url, e, num_req))
+    except ReqConnectionError:
+      logging.info(
+          "%s: Endpoint not ready, request number: %s" % (url, num_req))
+    if not resp or resp.status_code != 200:
       logging.info("Basic auth login is not ready, request number %s: %s" % (req_num, get_url))
-      continue
+    else:
+      break
+    sleep(10)
 
-    logging.info("%s: endpoint is ready, testing login API; request number %s" % (get_url, req_num))
-    resp = requests.post(
-        post_url,
-        auth=(username, password),
-        headers={
-            "x-from-login": "true",
-        },
-        verify=False)
-    logging.info("%s: %s" % (post_url, resp.text))
-    if resp.status_code != 205:
-      logging.error("%s: login is failed", post_url)
-      return False
+  logging.info("%s: endpoint is ready, testing login API; request number %s" % (get_url, req_num))
+  resp = requests.post(
+      post_url,
+      auth=(username, password),
+      headers={
+          "x-from-login": "true",
+      },
+      verify=False)
+  logging.info("%s: %s" % (post_url, resp.text))
+  if resp.status_code != 205:
+    logging.error("%s: login is failed", post_url)
+    return False
 
-    cookie = None
-    for c in resp.cookies:
-      if c.name == COOKIE_NAME:
-        cookie = c
-        break
-    if cookie is None:
-      logging.error("%s: auth cookie cannot be found; name: %s" % (post_url, COOKIE_NAME))
-      return False
+  cookie = None
+  for c in resp.cookies:
+    if c.name == COOKIE_NAME:
+      cookie = c
+      break
+  if cookie is None:
+    logging.error("%s: auth cookie cannot be found; name: %s" % (post_url, COOKIE_NAME))
+    return False
 
-    resp = requests.get(
-        url,
-        cookies={
-            cookie.name: cookie.value,
-        },
-        verify=False)
-    logging.info("%s: %s" % (url, resp.status_code))
-    logging.info(resp.content)
-    return resp.status_code == 200
-
-  return False
+  resp = requests.get(
+      url,
+      cookies={
+          cookie.name: cookie.value,
+      },
+      verify=False)
+  logging.info("%s: %s" % (url, resp.status_code))
+  logging.info(resp.content)
+  return resp.status_code == 200
