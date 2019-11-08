@@ -215,7 +215,7 @@ getting the correct installation instructions etc. Here are the steps to follow:
    * Update the version number. For example, if the upcoming release is 
      Kubeflow v0.7.0:
      ```
-     version_menu = "v0.7.0"
+     v0.7.0
      ```
 
 1. Update **all** the shortcodes that hold the config file names and URIs
