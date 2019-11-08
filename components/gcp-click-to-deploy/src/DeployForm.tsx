@@ -20,14 +20,15 @@ import {
 
 /** Relative paths from the root of the repository. */
 enum ConfigPath {
-    V05 = 'v0.5-branch/components/gcp-click-to-deploy/app-config.yaml',
-    V06 = 'a18d7b07/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml'
+    V06 = 'a18d7b07/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml',
+    V07IAP = 'https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.0.7.0.yaml',
+    V07BasicAuth = 'https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_basic_auth.0.7.0.yaml',
 }
 
 /** Versions available for deployment. */
 enum Version {
-    V05 = 'v0.5.0',
     V06 = 'v0.6.2',
+    V07 = 'v0.7',
 }
 
 // TODO(jlewi): For the FQDN we should have a drop down box to select custom
@@ -123,6 +124,41 @@ interface KfDefSpec {
     useIstio: boolean;
     version?: string;
     zone?: string;
+}
+
+interface BasicAuth {
+    username?: string;
+    password?: string;
+}
+
+interface IAP {
+    oAuthClientId?: string;
+    oAuthClientSecret?: string;
+}
+
+interface EndpointConfig {
+    basicAuth?: BasicAuth;
+    iap?: IAP;
+}
+
+// Request body for kubeflow version v0.7+
+interface C2DRequest {
+    configFile?: string;
+    // GCP Project Id
+    project?: string;
+    // deploy Name
+    name?: string;
+    // user email
+    email?: string;
+
+    endpointConfig?: EndpointConfig;
+    // GKE Zone
+    zone?: string;
+    // kubeflow Version
+    version?: string;
+    shareAnonymousUsage?: boolean;
+    // Temporary service account access Token
+    token?: string;
 }
 
 const logsContainerStyle = (show: boolean) => {
@@ -221,7 +257,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             kfctlLib: false,
             kfversion: Version.V06,
             // Version for local test. Staging and Prod with overwrite with their env vars.
-            kfversionList: [Version.V06, Version.V05],
+            kfversionList: ['v0.7.0', Version.V06],
             logLines: [],
             password: '',
             password2: '',
@@ -237,7 +273,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         };
 
         this._logContainerRef = React.createRef();
-        this._versionChanged = this._versionChanged.bind(this);
         this._renderLogLine = this._renderLogLine.bind(this);
     }
 
@@ -351,7 +386,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
                 <div style={styles.row}>
                     <TextField select={true} label="Kubeflow version:" required={true} style={styles.input} variant="filled"
-                        value={this.state.kfversion} onChange={this._versionChanged}>
+                        value={this.state.kfversion} onChange={this._handleChange('kfversion')}>
                         {this.state.kfversionList.map((version, i) => (
                             <MenuItem key={i} value={version}>{version}</MenuItem>
                         ))
@@ -469,88 +504,16 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         });
         if (this.state.kfversion === Version.V06) {
             return this._getV6Yaml(email);
-        } else {
-            return this._getV5Yaml(email);
         }
-    }
-
-    private _getV5Yaml(email: string) {
-        const state = this.state;
-        for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
-            const p = this._configSpec.defaultApp.parameters[i];
-            if (p.name === 'ipName') {
-                p.value = this.state.deploymentName + '-ip';
-            }
-
-            if (p.name === 'hostname') {
-                p.value = state.deploymentName + '.endpoints.' + state.project + '.cloud.goog';
-            }
-
-            if (p.name === 'acmeEmail') {
-                p.value = email;
-            }
-
+        if (this.state.kfversion.startsWith(Version.V07)) {
+            return this._getV7Yaml();
         }
-        this._configSpec.defaultApp.registries[0].version = this.state.kfversion;
-
-        // Make copy of this._configSpec before conditional changes.
-        const configSpec = JSON.parse(JSON.stringify(this._configSpec));
-
-        // Customize config for v0.4.1 compatibility
-        // TODO: remove after fully switch to kfctl / new deployment API is alive.
-        if (this.state.kfversion.startsWith('v0.4.1')) {
-            const removeComps = ['gcp-credentials-admission-webhook', 'gpu-driver', 'notebook-controller'];
-            for (let i = 0, len = removeComps.length; i < len; i++) {
-                this._removeComponent(removeComps[i], configSpec);
-            }
-            for (let i = 0, len = configSpec.defaultApp.components.length; i < len; i++) {
-                const component = configSpec.defaultApp.components[i];
-                if (component.name === 'jupyter-web-app') {
-                    component.name = 'jupyter';
-                    component.prototype = 'jupyter';
-                    break;
-                }
-            }
-            configSpec.defaultApp.parameters.push({
-                component: 'jupyter',
-                name: 'jupyterHubAuthenticator',
-                value: 'iap'
-            });
-            configSpec.defaultApp.parameters.push({
-                component: 'jupyter',
-                name: 'platform',
-                value: 'gke'
-            });
-        }
-
-        if (this.state.ingress !== IngressType.Iap) {
-            for (let i = 0, len = configSpec.defaultApp.components.length; i < len; i++) {
-                const p = configSpec.defaultApp.components[i];
-                if (p.name === 'iap-ingress') {
-                    p.name = 'basic-auth-ingress';
-                    p.prototype = 'basic-auth-ingress';
-                }
-            }
-            for (let i = 0, len = configSpec.defaultApp.parameters.length; i < len; i++) {
-                const p = configSpec.defaultApp.parameters[i];
-                if (p.component === 'iap-ingress') {
-                    p.component = 'basic-auth-ingress';
-                }
-                if (p.name === 'jupyterHubAuthenticator') {
-                    p.value = 'null';
-                }
-            }
-            configSpec.defaultApp.components.push({
-                name: 'basic-auth',
-                prototype: 'basic-auth',
-            });
-            configSpec.defaultApp.parameters.push({
-                component: 'ambassador',
-                name: 'ambassadorServiceType',
-                value: 'NodePort'
-            });
-        }
-        return configSpec;
+        this.setState({
+            dialogAsCode: false,
+            dialogBody: 'Unsupported kubeflow version!',
+            dialogTitle: 'Version Unsupported',
+        });
+        return;
     }
 
     private _getV6Yaml(email: string) {
@@ -639,18 +602,40 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         return configSpec;
     }
 
-    private _removeComponent(compName: string, configSpec: any) {
-        let rmIdx = -1;
-        for (let i = 0, len = configSpec.defaultApp.components.length; i < len; i++) {
-            const component = configSpec.defaultApp.components[i];
-            if (component.name === compName) {
-                rmIdx = i;
-                break;
-            }
+    /**
+     * Helper method to facilitate building a v0.7 cluster
+     */
+    private _getV7Yaml() {
+        const {deploymentName, email, project,
+            kfversion, saToken, spartakus, zone} = this.state;
+        const createBody: C2DRequest = {
+            email,
+            name: deploymentName,
+            project,
+            shareAnonymousUsage: spartakus,
+            token: saToken,
+            version: kfversion,
+            zone,
+        };
+        if (this.state.ingress === IngressType.Iap) {
+            createBody.configFile = ConfigPath.V07IAP;
+            createBody.endpointConfig = {
+                iap: {
+                    oAuthClientId: btoa(this.state.clientId),
+                    oAuthClientSecret: btoa(this.state.clientSecret),
+                }
+            };
         }
-        if (rmIdx !== -1) {
-            configSpec.defaultApp.components.splice(rmIdx, 1);
+        else {
+            createBody.configFile = ConfigPath.V07BasicAuth;
+            createBody.endpointConfig = {
+                basicAuth: {
+                    password: btoa(encryptPassword(this.state.password)),
+                    username: btoa(this.state.username),
+                }
+            };
         }
+        return createBody;
     }
 
     private async _toPortForward() {
@@ -705,21 +690,28 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             return;
         }
 
-        // Step 2: Submit the configuration to the backend service
-        const configSpec = await this._getYaml();
-        if (!configSpec) {
-            return;
-        }
 
         let buildEndpoint: string;
         let requestBody: string;
-        if (this.state.kfversion === Version.V05) {
-            // buildEndpoint = `${this._configSpec.appAddress}/kfctl/e2eDeploy`;
-            buildEndpoint = '/kfctl/e2eDeploy';
-            requestBody = this._getV5BuildRequest(configSpec);
+        if (this.state.kfversion.startsWith(Version.V07)) {
+            buildEndpoint = '/kfctl/apps/v1beta1/create';
+            requestBody = JSON.stringify(this._getYaml());
         } else {
-            buildEndpoint = '/kfctl/apps/v1alpha2/create';
-            requestBody = this._getV6BuildRequest(configSpec);
+            if (this.state.kfversion === Version.V06) {
+                const configSpec = await this._getYaml();
+                if (!configSpec) {
+                    return;
+                }
+                buildEndpoint = '/kfctl/apps/v1alpha2/create';
+                requestBody = this._getV6BuildRequest(configSpec);
+            } else {
+                this.setState({
+                    dialogAsCode: false,
+                    dialogBody: 'Unsupported kubeflow version!',
+                    dialogTitle: 'Version Unsupported',
+                });
+                return;
+            }
         }
 
         try {
@@ -1076,57 +1068,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     }
 
     /**
-     * Helper method to facilitate building a v0.5.0 cluster
-     * @param configSpec
-     */
-    private _getV5BuildRequest(configSpec: {defaultApp: string}): string {
-        const {deploymentName, email, project, projectNumber,
-            kfversion, saClientId, saToken} = this.state;
-        let createBody = {
-            AppConfig: configSpec.defaultApp,
-            Apply: true,
-            AutoConfigure: true,
-            Cluster: deploymentName,
-            Email: email,
-            IpName: deploymentName + '-ip',
-            KfVersion: kfversion,
-            Name: deploymentName,
-            Namespace: 'kubeflow',
-            Project: project,
-            ProjectNumber: projectNumber,
-            SAClientId: saClientId,
-            Token: saToken,
-            UseKfctl: this.state.kfctlLib,
-            Zone: this.state.zone,
-        };
-        if (this.state.ingress === IngressType.Iap) {
-            createBody = {
-                ...createBody, ...{
-                    ClientId: btoa(this.state.clientId),
-                    ClientSecret: btoa(this.state.clientSecret),
-                }
-            };
-        }
-        else if (this.state.ingress === IngressType.BasicAuth) {
-            createBody = {
-                ...createBody, ...{
-                    PasswordHash: btoa(encryptPassword(this.state.password)),
-                    Username: btoa(this.state.username),
-                }
-            };
-        }
-
-        if (this.state.permanentStorage) {
-            createBody = {
-                ...createBody, ...{
-                    StorageOption: {CreatePipelinePersistentStorage: true},
-                }
-            };
-        }
-        return JSON.stringify(createBody);
-    }
-
-    /**
      * Helper method to facilitate building a v0.6.0 cluster
      */
     private _getV6BuildRequest(configSpec: {spec: KfDefSpec}): string {
@@ -1199,14 +1140,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                 dialogTitle: 'Config loading Error',
             });
         }
-    }
-
-    private _versionChanged(event: React.ChangeEvent<HTMLSelectElement>) {
-        const kfversion = event.target.value;
-        const configUrl = kfversion === Version.V05 ?
-            ConfigPath.V05 : ConfigPath.V06;
-        this._loadConfigFile(configUrl);
-        this.setState({kfversion});
     }
 
     // Renders a log line by extracting any links to anchor tags
