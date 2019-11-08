@@ -191,7 +191,9 @@ need to update various version numbers on the website, to ensure users are
 getting the correct installation instructions etc. Here are the steps to follow:
 
 1. Make sure the website branch for the current major/minor version has been 
-  created. If that's not yet done, do it now before updating any docs for the 
+  created. For example, if we are working towards release v0.7 then make sure
+  the website branch for v0.6 exists.
+  If not, create the branch now before updating any docs for the 
   upcoming version. See [below](#create-website-branch).
 
 1. Edit the version numbers in the site configuration file:
