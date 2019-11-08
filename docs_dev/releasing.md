@@ -160,14 +160,92 @@ Alternatively you can use the UI.
    ```
    * Set the tag to be the correct version for the tag.
 
-## Releasing a new version of the website
+## Versioning the website
 
-For each stable release, we also publish a corresponding version of the 
-Kubeflow [website](www.kubeflow.org). Each version of the website is generated 
-from a separate [branch](https://github.com/kubeflow/website/branches)
-of the kubeflow/website repository. 
+The main Kubeflow website at [www.kubeflow.org](www.kubeflow.org) points to the
+**master** branch of the `kubeflow/website` repo. Similarly, 
+[master.kubeflow.org](https://master.kubeflow.org/) also points to the master
+branch.
 
-We usually create the website branch for a version a few weeks after the 
+For each minor (X.Y) release, we also publish a corresponding version of the 
+website. Each version of the website is generated from a separate 
+[branch](https://github.com/kubeflow/website/branches)
+of the `kubeflow/website` repository. The naming convention is as follows:
+The site at `vX-Y.kubeflow.org` points to the release at vX.Y-branch.
+For example, the [documentation for v0.6](https://v0-6.kubeflow.org) is 
+maintained in the
+[v0.6-branch](https://github.com/kubeflow/website/tree/v0.6-branch).
+
+There are two release phases when we need to update the website:
+* Updating version numbers etc for an upcoming release (major, minor, or patch).
+* Creating a website branch for the latest major or minor release.
+
+### Updating version numbers etc for the upcoming release (major, minor, or patch)
+
+We usually start updating the website for the upcoming major/minor release when
+we've released a good RC for that release. At this point, it's useful for
+users to start experimenting with the upcoming release.
+
+When we're ready to start updating the docs for the upcoming version, we
+need to update various version numbers on the website, to ensure users are
+getting the correct installation instructions etc. Here are the steps to follow:
+
+1. Make sure the website branch for the current major/minor version has been 
+  created. If that's not yet done, do it now before updating any docs for the 
+  upcoming version. See [below](#create-website-branch).
+
+1. Edit the version numbers in the site configuration file:
+   * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml).
+
+   * Update the text label for the version menu in the top bar of the website.
+     For example, if the upcoming release is Kubeflow v0.7:
+     ```
+     version_menu = "v0.7"
+     ```
+
+   * Update the GitHub branch number. For example:
+     ```
+     githubbranch = "v0.7-branch"
+     ```
+
+1. Update the shortcode that holds the latest Kubeflow version:
+
+   * Edit [kf-latest-version.html](https://github.com/kubeflow/website/blob/master/layouts/shortcodes/kf-latest-version.html).
+
+   * Update the version number. For example, if the upcoming release is 
+     Kubeflow v0.7.0:
+     ```
+     version_menu = "v0.7.0"
+     ```
+
+1. Update **all** the shortcodes that hold the config file names and URIs
+  for the KFDef YAML files - for every platform. For example:
+
+   * Update the GCP IAP config file name in [config-file-gcp-iap.html](https://github.com/kubeflow/website/blob/master/layouts/shortcodes/config-file-gcp-iap.html).
+     ```
+     kfctl_gcp_iap.0.7.0.yaml
+     ```
+
+   * Update the GCP IAP config URI in [config-uri-gcp-iap.html](https://github.com/kubeflow/website/blob/master/layouts/shortcodes/config-uri-gcp-iap.html).
+     ```
+     https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.0.7.0.yaml
+     ```
+
+   * And so on: All the `config-uri-xxx.html` and `config-file-xxx.html` 
+     shortcodes for AWS, kfctl_k8s_istio, kfctl_existing_arrikto, and more.
+
+1. Update the matrix of Kubernetes versions on 
+  [the Kubernetes overview](https://www.kubeflow.org/docs/started/k8s/overview/).
+
+1. Update the application version matrix on the version policy. (This is a 
+  placeholder for the task, as the page does
+  not yet exist. We'll have the page for version 1.0 onwards. See 
+  [PR #1308](https://github.com/kubeflow/website/pull/1308).)
+
+<a id="create-website-branch"></a>
+### Creating a website branch for the latest major or minor release
+
+We usually create the website branch for a new version a few weeks after the 
 software release of that version, because it takes a while to finish updating 
 the docs.
 
@@ -216,12 +294,6 @@ new version on the website:
 
 1. Add the new version to the website navigation bar:
    * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml).
-
-   * Update the version number for the `master` version.
-     For example, to update the master to v0.7, the text should be:
-     ```
-     version = "master (v0.7)"
-     ```
 
    * Add a `params.versions` entry for the new version. 
      For example, to add v0.6, add this entry:
