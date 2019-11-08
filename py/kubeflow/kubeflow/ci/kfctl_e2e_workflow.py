@@ -577,8 +577,11 @@ class Builder:
               ]
 
       dependencies = [build_kfctl["name"]]
-      endpoint_ready = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
+      endpoint_ready = self._build_step(self._test_endpoint_step_name,
+                                        self.workflow, E2E_DAG_NAME, task_template,
                                         command, dependencies)
+      self._test_endpoint_template_name = endpoint_ready["name"]
+
     #**************************************************************************
     # Do kfctl apply again. This test will be skip if it's presubmit.
     step_name = "kfctl-second-apply"
@@ -603,8 +606,6 @@ class Builder:
 
     kf_second_apply = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
                                        command, dependences)
-
-    self._test_endpoint_template_name = endpoint_ready["name"]
 
     self._build_tests_dag()
 
