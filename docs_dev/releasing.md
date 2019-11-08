@@ -231,7 +231,7 @@ getting the correct installation instructions etc. Here are the steps to follow:
      https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.0.7.0.yaml
      ```
 
-   * And so on: All the `config-uri-xxx.html` and `config-file-xxx.html` 
+   * And so on, for all the `config-uri-xxx.html` and `config-file-xxx.html` 
      shortcodes for AWS, kfctl_k8s_istio, kfctl_existing_arrikto, and more.
 
 1. Update the matrix of Kubernetes versions on 
