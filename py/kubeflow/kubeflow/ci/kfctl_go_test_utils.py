@@ -18,37 +18,20 @@ from retrying import retry
 def run_with_retries(*args, **kwargs):
   util.run(*args, **kwargs)
 
-def get_kfctl_go_build_dir_binary_path():
-  """return the build directory and path to kfctl go binary.
-
-  Args:
-    None
-
-  Return:
-    build_dir (str): Path to start build will be Kubeflow/kubeflow/bootstrap/
-    kfctl_path (str): Path where kfctl go binary has been built.
-            will be Kubeflow/kubeflow/bootstrap/bin/kfctl
-  """
-  this_dir = os.path.dirname(__file__)
-  root = os.path.abspath(os.path.join(this_dir, "..", "..", "..", ".."))
-  build_dir = os.path.join(root, "bootstrap")
-  kfctl_path = os.path.join(build_dir, "bin", "kfctl")
-  return build_dir, kfctl_path
-
-def build_kfctl_go():
+def build_kfctl_go(kfctl_repo_path):
   """build the kfctl go binary and return the path for the same.
 
   Args:
-    None
+    kfctl_repo_path (str): Path to kfctl repo.
 
   Return:
     kfctl_path (str): Path where kfctl go binary has been built.
             will be Kubeflow/kubeflow/bootstrap/bin/kfctl
   """
-  build_dir, kfctl_path = get_kfctl_go_build_dir_binary_path()
+  kfctl_path = os.path.join(kfctl_repo_path, "bin", "kfctl")
   # We need to use retry builds because when building in the test cluster
   # we see intermittent failures pulling dependencies
-  run_with_retries(["make", "build-kfctl"], cwd=build_dir)
+  run_with_retries(["make", "build-kfctl"], cwd=kfctl_repo_path)
   return kfctl_path
 
 def get_or_create_app_path_and_parent_dir(app_path):
