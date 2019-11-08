@@ -535,6 +535,7 @@ class Builder:
         #
         "-o", "junit_suite_name=test_kfctl_go_deploy_" + self.config_name,
         "--app_path=" + self.app_dir,
+        "--kfctl_repo_path=" + self.src_dir,
     ]
 
     dependences = [checkout["name"]]
