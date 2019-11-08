@@ -124,14 +124,15 @@ class Builder:
 
     # source directory where all repos should be checked out
     self.src_root_dir = self.test_dir + "/src"
-    # The directory containing the kubeflow/kubeflow repo
-    self.src_dir = self.src_root_dir + "/kubeflow/kubeflow"
+    # The directory containing the kubeflow/kfctl repo
+    self.src_dir = self.src_root_dir + "/kubeflow/kfctl"
+    self.kubeflow_dir = self.src_root_dir + "/kubeflow/kubeflow"
 
-    # Directory in kubeflow/kubeflow containing the pytest files for kfctl
-    self.kfctl_pytest_dir = os.path.join(self.src_dir, "testing/kfctl")
+    # Directory in kubeflow/kfctl containing the pytest files.
+    self.kfctl_pytest_dir = os.path.join(self.src_dir, "testing/e2e")
 
     # Top level directories for python code
-    self.kubeflow_py = self.src_dir
+    self.kubeflow_py = self.kubeflow_dir
 
     # The directory within the kubeflow_testing submodule containing
     # py scripts to use.
@@ -196,7 +197,7 @@ class Builder:
     self.steps_namespace = "kubeflow"
     self.test_endpoint = test_endpoint
 
-    self.kfctl_path = os.path.join(self.src_dir, "bootstrap/bin/kfctl")
+    self.kfctl_path = os.path.join(self.src_dir, "bin/kfctl")
 
     # Fetch the main repo from Prow environment.
     self.main_repo = argo_build_util.get_repo_from_prow_env()
@@ -399,7 +400,7 @@ class Builder:
                                      command, dependences)
 
     notebook_test["container"]["workingDir"] =  os.path.join(
-      self.src_dir, "kubeflow/jupyter/tests")
+      self.kubeflow_dir, "kubeflow/jupyter/tests")
 
     #***************************************************************************
     # Profiles test
@@ -420,7 +421,7 @@ class Builder:
                                      command, dependences)
 
     profiles_test["container"]["workingDir"] =  os.path.join(
-      self.src_dir, "kubeflow/profiles/tests")
+      self.kubeflow_dir, "kubeflow/profiles/tests")
 
   def _build_exit_dag(self):
     """Build the exit handler dag"""
