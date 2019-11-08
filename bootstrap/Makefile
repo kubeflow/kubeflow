@@ -63,14 +63,11 @@ auth:
 
 # Run go fmt against code
 fmt:
-	@${GO} fmt ./config ./cmd/... ./pkg/... 
+	@${GO} fmt ./cmd/...
 
 # Run go vet against code
 vet:
-	@${GO} vet ./config ./cmd/... ./pkg/...
-
-generate:
-	@${GO} generate ./config ./pkg/apis/apps/kfdef/... ./pkg/apis/apps/kfupgrade/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./pkg/kfupgrade/... ./cmd/kfctl/...
+	@${GO} vet ./cmd/...
 
 ${GOPATH}/bin/deepcopy-gen:
 	GO111MODULE=off ${GO} get k8s.io/code-generator/cmd/deepcopy-gen
@@ -95,18 +92,8 @@ pkg/apis/apps/kfconfig/zz_generated.deepcopy.go: pkg/apis/apps/kfconfig/types.go
 	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig/... -O zz_generated.deepcopy && \
 	mv ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig/zz_generated.deepcopy.go pkg/apis/apps/kfconfig/ && rm -rf v3
 
-deepcopy: ${GOPATH}/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1beta1/zz_generated.deepcopy.go \
-	pkg/apis/apps/kfconfig/zz_generated.deepcopy.go pkg/apis/apps/kfupgrade/v1alpha1/zz_generated.deepcopy.go
-
-build-bootstrap: deepcopy generate fmt vet
+build-bootstrap: fmt vet
 	${GO} build -gcflags '-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
-
-build-kfctl: deepcopy generate fmt vet
-	# TODO(swiftdiaries): figure out import conflict errors for windows
-	#GOOS=windows GOARCH=amd64 ${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/windows/kfctl.exe cmd/kfctl/main.go
-	GOOS=darwin GOARCH=amd64 ${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=${TAG}" -o bin/darwin/kfctl cmd/kfctl/main.go
-	GOOS=linux GOARCH=amd64 ${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/linux/kfctl cmd/kfctl/main.go
-	cp bin/linux/kfctl bin/kfctl
 
 build-gc: deepcopy generate fmt vet
 	${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/gc cmd/gc/main.go

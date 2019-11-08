@@ -119,25 +119,6 @@ local dagTemplates = [
     dependencies: ["checkout"],
   },
   {
-    // Run the kfctl go unittests
-    template: buildTemplate("go-kfctl-unit-tests", [      
-      "make",
-      "test-junit",
-    ], working_dir=srcDir + "/bootstrap",
-       env_vars=[{
-          name: "JUNIT_FILE",
-          value: artifactsDir + "/junit_go-kfctl-unit-tests.xml",
-       }],
-       ) + {
-      someRandomField: "jeremy",
-      container+:{
-        image: "gcr.io/kubeflow-ci/kfctl/builder:v20190418-v0-30-g5e3bd23d-dirty-73d1fe",
-      },
-    },  // go-kfctl-unit-tests
-    
-    dependencies: ["checkout"],
-  },
-  {
     template: buildTemplate("jsonnet-test", [
       "python",
       "-m",
