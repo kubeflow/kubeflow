@@ -5,11 +5,9 @@ import (
 	"flag"
 	"fmt"
 	log "github.com/golang/glog"
+	"github.com/kubeflow/kfctl/v3/pkg/kfapp/gcp"
+	"github.com/kubeflow/kfctl/v3/pkg/utils"
 	"github.com/kubeflow/kubeflow/bootstrap/v3/cmd/bootstrap/app"
-	kfdefsv2 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
-	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 	"os"
 
@@ -67,13 +65,9 @@ func run(opt *ServerOption) error {
 		return fmt.Errorf("--project is required.")
 	}
 
-	d, err := kfdefsv2.LoadKFDefFromURI(opt.Config)
+	d := app.C2DRequest{}
 
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	d.Spec.Project = opt.Project
+	d.Project = opt.Project
 	d.Name = opt.Name
 
 	email, err := gcp.GetGcloudDefaultAccount()
@@ -83,7 +77,7 @@ func run(opt *ServerOption) error {
 	}
 
 	log.Infof("Setting email to %v", email)
-	d.Spec.Email = email
+	d.Email = email
 
 	fmt.Printf("Connecting to server: %v", opt.Endpoint)
 	c, err := app.NewKfctlClient(opt.Endpoint)
@@ -104,32 +98,12 @@ func run(opt *ServerOption) error {
 	}
 
 	// Set the GCPPluginSpec.
-	pluginSpec := &gcp.GcpPluginSpec{}
-	if err := d.GetPluginSpec(gcp.GcpPluginName, pluginSpec); err != nil && !kfdefsv2.IsPluginNotFound(err) {
-		return err
-	}
-
-	pluginSpec.Auth = &gcp.Auth{
-		IAP: &gcp.IAP{
-			OAuthClientId: os.Getenv(gcp.CLIENT_ID),
-			OAuthClientSecret: &kfdefsv2.SecretRef{
-				Name: gcp.KUBEFLOW_OAUTH,
-			},
+	d.EndpointConfig = app.EndpointConfig{
+		IAP: app.IAP{
+			OAuthClientId:     os.Getenv(gcp.CLIENT_ID),
+			OAuthClientSecret: os.Getenv(gcp.CLIENT_SECRET),
 		},
 	}
-
-	if err := d.SetPluginSpec(gcp.GcpPluginName, pluginSpec); err != nil {
-		return err
-	}
-
-	d.SetSecret(kfdefsv2.Secret{
-		Name: gcp.KUBEFLOW_OAUTH,
-		SecretSource: &kfdefsv2.SecretSource{
-			LiteralSource: &kfdefsv2.LiteralSource{
-				Value: os.Getenv(gcp.CLIENT_SECRET),
-			},
-		},
-	})
 
 	ts, err := google.DefaultTokenSource(context.Background(), dm.CloudPlatformScope)
 
@@ -143,16 +117,9 @@ func run(opt *ServerOption) error {
 		return err
 	}
 
-	d.SetSecret(kfdefsv2.Secret{
-		Name: gcp.GcpAccessTokenName,
-		SecretSource: &kfdefsv2.SecretSource{
-			LiteralSource: &kfdefsv2.LiteralSource{
-				Value: token.AccessToken,
-			},
-		},
-	})
+	d.Token = token.AccessToken
 
-	d.Spec.Zone = opt.Zone
+	d.Zone = opt.Zone
 
 	fmt.Printf("Spec to create:\n%v", utils.PrettyPrint(d))
 
@@ -160,7 +127,7 @@ func run(opt *ServerOption) error {
 
 	// TODO(jlewi) continually retry and wait for success or failure
 	ctx := context.Background()
-	res, err := c.CreateDeployment(ctx, *d)
+	res, err := c.CreateDeployment(ctx, d)
 
 	if err != nil {
 		log.Errorf("CreateDeployment failed; error %v", err)

@@ -3,15 +3,9 @@ module github.com/kubeflow/kubeflow/bootstrap/v3
 require (
 	cloud.google.com/go v0.38.0
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
-	github.com/Azure/go-autorest/autorest v0.9.1 // indirect
-	github.com/Azure/go-autorest/autorest/adal v0.6.0 // indirect
-	github.com/MakeNowJust/heredoc v1.0.0 // indirect
-	github.com/Sirupsen/logrus v0.0.0-00010101000000-000000000000 // indirect
 	github.com/aws/aws-sdk-go v1.15.78
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/deckarep/golang-set v1.7.1
-	github.com/elazarl/goproxy v0.0.0-20190711103511-473e67f1d7d2 // indirect
-	github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2 // indirect
 	github.com/fatih/color v1.7.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-kit/kit v0.8.0
@@ -21,7 +15,7 @@ require (
 	github.com/google/go-cmp v0.3.0
 	github.com/hashicorp/go-getter v1.0.2
 	github.com/imdario/mergo v0.3.7
-	github.com/kubeflow/kfctl/v3 v3.0.0-20190917231916-6ebaf60b014a
+	github.com/kubeflow/kfctl/v3 v3.0.0-20191108194452-6c3fbeaf081a
 	github.com/onrik/logrus v0.2.1
 	github.com/otiai10/copy v1.0.1
 	github.com/pkg/errors v0.8.1
@@ -47,7 +41,6 @@ require (
 	k8s.io/cli-runtime v0.0.0-20190228180923-a9e421a79326
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/kubernetes v1.13.4
-	k8s.io/utils v0.0.0-20190920012459-5008bf6f8cd6 // indirect
 	sigs.k8s.io/controller-runtime v0.2.0
 	sigs.k8s.io/kustomize/v3 v3.1.0
 )
