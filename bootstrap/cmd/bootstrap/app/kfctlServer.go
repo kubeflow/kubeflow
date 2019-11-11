@@ -446,7 +446,10 @@ func prepareSecrets(d *kfdefsv1beta1.KfDef) {
 func (s *kfctlServer) GetLatestKfDef(req kfdefsv1beta1.KfDef) (*kfdefsv1beta1.KfDef, error) {
 	s.kfDefMux.Lock()
 	defer s.kfDefMux.Unlock()
-	return s.latestKfdef.DeepCopy(), nil
+	kfdefcp := s.latestKfdef.DeepCopy()
+	// remove secret from return value
+	kfdefcp.Spec.Secrets = []kfdefsv1beta1.Secret{}
+	return kfdefcp, nil
 }
 
 // CreateDeployment creates the deployment.

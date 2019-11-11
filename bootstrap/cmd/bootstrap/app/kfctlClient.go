@@ -25,9 +25,6 @@ type KfctlClient struct {
 	getEndpoint    endpoint.Endpoint
 }
 
-// Default apps dir, could be rewrite on kfctl server side.
-const DEFAULT_APPS_PATH = "/opt/bootstrap"
-
 // NewKfctlClient returns a KfctlClient backed by an HTTP server living at the
 // remote instance.
 func NewKfctlClient(instance string) (*KfctlClient, error) {
@@ -123,7 +120,7 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req C2DRequest) (*kf
 	pluginSpec.Project = req.Project
 	pluginSpec.Zone = req.Zone
 	pluginSpec.Email = req.Email
-	pluginSpec.SkipInitProject = true
+	pluginSpec.SkipInitProject = req.SkipInitProject
 
 	if req.EndpointConfig.BasicAuth.Username != "" && req.EndpointConfig.BasicAuth.Password != "" {
 		pluginSpec.Auth = &gcp.Auth{
@@ -169,7 +166,7 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req C2DRequest) (*kf
 		return nil, err
 	}
 
-	if !req.shareAnonymousUsage {
+	if !req.ShareAnonymousUsage {
 		kfdef.DeleteApplication("spartakus")
 	}
 

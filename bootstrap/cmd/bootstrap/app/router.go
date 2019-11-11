@@ -60,29 +60,31 @@ type EndpointConfig struct {
 // C2DRequest is the request body from click to deploy frontend
 type C2DRequest struct {
 	//ConfigFile URL
-	ConfigFile string
+	ConfigFile string `json:"configFile,omitempty"`
 
 	// GCP Project Id
-	Project string
+	Project string `json:"project,omitempty"`
 
 	// deploy Name
-	Name string
+	Name string `json:"name,omitempty"`
 
 	// user email
-	Email string
+	Email string `json:"email,omitempty"`
 
-	EndpointConfig EndpointConfig
+	EndpointConfig EndpointConfig `json:"endpointConfig,omitempty"`
 
 	// GKE Zone
-	Zone string
+	Zone string `json:"zone,omitempty"`
 
 	// kubeflow Version
-	Version string
+	Version string `json:"version,omitempty"`
 
-	shareAnonymousUsage bool
+	ShareAnonymousUsage bool `json:"shareAnonymousUsage,omitempty"`
+
+	SkipInitProject bool `json:"skipInitProject,omitempty"`
 
 	// Temporary service account access Token
-	Token string
+	Token string `json:"token,omitempty"`
 }
 
 // NewRouter returns a new router
@@ -478,14 +480,3 @@ func (r *kfctlRouter) CreateDeployment(ctx context.Context, req C2DRequest) (*kf
 
 // TODO (kunming) finish implementaion; we should support it so frontend can query to get real time deploy status
 //// GetLatestKfdef returns latest kfdef status.
-//func (r *kfctlRouter) GetLatestStatus(req C2DRequest) (*kfconfig.Status, error) {
-//	name, err := k8sName(req.Name, req.Project)
-//	if err != nil {
-//		log.Errorf("Could not generate the name; error %v", err)
-//		return nil, err
-//	}
-//	address := fmt.Sprintf("http://%v.%v.svc.cluster.local:80", name, r.namespace)
-//	log.Infof("Creating client for %v", address)
-//	c, err := NewKfctlClient(address)
-//	return c.GetLatestKfdef(req)
-//}

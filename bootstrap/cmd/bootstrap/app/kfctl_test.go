@@ -74,17 +74,6 @@ func TestKfctlClientServer_GoKit(t *testing.T) {
 
 	ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
 	_, err = c.CreateDeployment(ctx, C2DRequest{
-		//Spec: kfdefsv3.KfDefSpec{
-		//	Secrets: []kfdefsv3.Secret{
-		//		{
-		//			Name: gcp.GcpAccessTokenName,
-		//			SecretSource: &kfdefsv3.SecretSource{
-		//				LiteralSource: &kfdefsv3.LiteralSource{
-		//					Value: "1234",
-		//				},
-		//			},
-		//		},
-		//	},
-		//},
+		Token: "1234",
 	})
 }
