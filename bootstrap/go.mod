@@ -15,7 +15,7 @@ require (
 	github.com/google/go-cmp v0.3.0
 	github.com/hashicorp/go-getter v1.0.2
 	github.com/imdario/mergo v0.3.7
-	github.com/kubeflow/kfctl/v3 v3.0.0-20191108194452-6c3fbeaf081a
+	github.com/kubeflow/kfctl/v3 v3.0.0-20191111235806-ba6d750a7d1d
 	github.com/onrik/logrus v0.2.1
 	github.com/otiai10/copy v1.0.1
 	github.com/pkg/errors v0.8.1

@@ -65,8 +65,9 @@ type kfctlServer struct {
 	// builder supports injecting the code to create the coordinator so we can inject a fake during testing.
 	builder coordinator.Builder
 
-	kfApp       kftypes.KfApp
-	KfDefGetter coordinator.KfDefGetterV1beta1
+	kfApp        kftypes.KfApp
+	KfDefGetter  coordinator.KfDefGetterV1beta1
+	PluginGetter coordinator.PluginGetter
 
 	// Mutex protecting the latest KfDef spec
 	kfDefMux sync.Mutex
@@ -146,16 +147,16 @@ func (s *kfctlServer) handleDeployment(req kfdefsv1beta1.KfDef) (*kfdefsv1beta1.
 			}
 		}
 
-		getter, ok := kfApp.(coordinator.KfDefGetterV1beta1)
+		pluginGetter, ok := kfApp.(coordinator.PluginGetter)
 		if !ok {
-			log.Errorf("Could not assert KfApp as type KfDefGetter; error %v", err)
+			log.Errorf("Could not assert KfApp as type PluginGetter; error %v", err)
 			return &req, &httpError{
 				Message: "Internal service error please try again later.",
 				Code:    http.StatusInternalServerError,
 			}
 		}
 
-		p, ok := getter.GetPlugin(kftypes.GCP)
+		p, ok := pluginGetter.GetPlugin(kftypes.GCP)
 		if !ok {
 			log.Errorf("Could not get GCP plugin from KfApp")
 			return &req, &httpError{
@@ -197,8 +198,17 @@ func (s *kfctlServer) handleDeployment(req kfdefsv1beta1.KfDef) (*kfdefsv1beta1.
 				Code:    http.StatusInternalServerError,
 			}
 		}
+		kfdefGetter, ok := kfApp.(coordinator.KfDefGetterV1beta1)
+		if !ok {
+			log.Errorf("Could not assert KfApp as type KfDefGetter; error %v", err)
+			return &req, &httpError{
+				Message: "Internal service error please try again later.",
+				Code:    http.StatusInternalServerError,
+			}
+		}
 		s.kfApp = kfApp
-		s.KfDefGetter = getter
+		s.KfDefGetter = kfdefGetter
+		s.PluginGetter = pluginGetter
 	}
 
 	// We need to split the apply into two steps because after
@@ -213,7 +223,7 @@ func (s *kfctlServer) handleDeployment(req kfdefsv1beta1.KfDef) (*kfdefsv1beta1.
 		}
 	}
 
-	kPlugin, ok := s.KfDefGetter.GetPlugin(kftypes.KUSTOMIZE)
+	kPlugin, ok := s.PluginGetter.GetPlugin(kftypes.KUSTOMIZE)
 	if !ok {
 		log.Errorf("Could not get %v plugin from KfApp", kftypes.KUSTOMIZE)
 		return s.KfDefGetter.GetKfDefV1Beta1(), &httpError{
@@ -447,8 +457,6 @@ func (s *kfctlServer) GetLatestKfDef(req kfdefsv1beta1.KfDef) (*kfdefsv1beta1.Kf
 	s.kfDefMux.Lock()
 	defer s.kfDefMux.Unlock()
 	kfdefcp := s.latestKfdef.DeepCopy()
-	// remove secret from return value
-	kfdefcp.Spec.Secrets = []kfdefsv1beta1.Secret{}
 	return kfdefcp, nil
 }
 
