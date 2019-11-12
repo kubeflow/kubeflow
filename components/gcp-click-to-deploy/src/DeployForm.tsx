@@ -157,6 +157,8 @@ interface C2DRequest {
     // kubeflow Version
     version?: string;
     shareAnonymousUsage?: boolean;
+
+    skipInitProject?: boolean;
     // Temporary service account access Token
     token?: string;
 }
@@ -304,7 +306,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     public render() {
         const zoneList = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b',
             'europe-west1-b', 'europe-west1-d', 'asia-east1-a', 'asia-east1-b'];
-        const {kfversion} = this.state;
         return (
             <div>
                 <div style={styles.text}>Create a Kubeflow deployment</div>
@@ -324,9 +325,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                         onChange={this._handleChange('ingress')}>
                         <MenuItem key={1} value={IngressType.Iap}>{IngressType.Iap}</MenuItem>
                         <MenuItem key={2} value={IngressType.BasicAuth}>{IngressType.BasicAuth}</MenuItem>
-                        {kfversion !== Version.V06 &&
-                            <MenuItem key={3} value={IngressType.DeferIap}>{IngressType.DeferIap}</MenuItem>
-                        }
                     </TextField>
                 </div>
 
@@ -613,9 +611,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             name: deploymentName,
             project,
             shareAnonymousUsage: spartakus,
+            skipInitProject: true,
             token: saToken,
             version: kfversion,
             zone,
+
         };
         if (this.state.ingress === IngressType.Iap) {
             createBody.configFile = ConfigPath.V07IAP;
@@ -693,15 +693,15 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
         let buildEndpoint: string;
         let requestBody: string;
+        const configSpec = await this._getYaml();
+        if (!configSpec) {
+            return;
+        }
         if (this.state.kfversion.startsWith(Version.V07)) {
             buildEndpoint = '/kfctl/apps/v1beta1/create';
-            requestBody = JSON.stringify(this._getYaml());
+            requestBody = JSON.stringify(configSpec);
         } else {
             if (this.state.kfversion === Version.V06) {
-                const configSpec = await this._getYaml();
-                if (!configSpec) {
-                    return;
-                }
                 buildEndpoint = '/kfctl/apps/v1alpha2/create';
                 requestBody = this._getV6BuildRequest(configSpec);
             } else {
@@ -880,10 +880,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             }
         }
         const deploymentNameKey = 'deploymentName';
-        if (this.state[deploymentNameKey].length < 4 || this.state[deploymentNameKey].length > 20) {
+        const projectKey = 'project';
+        const maxNameLen = 41 - this.state[projectKey].length;
+        if (this.state[deploymentNameKey].length < 4 || this.state[deploymentNameKey].length > maxNameLen) {
             this.setState({
                 dialogAsCode: false,
-                dialogBody: 'Deployment name length need to between 4 and 20',
+                dialogBody: 'For current project id, deployment name length need to be between 4 and ' + maxNameLen,
                 dialogTitle: 'Invalid field',
             });
             throw err;
