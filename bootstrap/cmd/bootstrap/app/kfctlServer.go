@@ -331,7 +331,11 @@ func (s *kfctlServer) process() {
 func (s *kfctlServer) setLatestKfDef(r *kfdefsv1beta1.KfDef) {
 	s.kfDefMux.Lock()
 	defer s.kfDefMux.Unlock()
-	s.latestKfdef = *s.KfDefGetter.GetKfDefV1Beta1()
+	if s.KfDefGetter != nil {
+		s.latestKfdef = *s.KfDefGetter.GetKfDefV1Beta1()
+	} else {
+		s.latestKfdef = *r
+	}
 }
 
 func makeKfctlCreateRequestEndpoint(svc KfctlServiceV1Beta1) endpoint.Endpoint {
@@ -406,7 +410,7 @@ func isMatch(current *kfdefsv1beta1.KfDef, new *kfdefsv1beta1.KfDef) bool {
 	curPluginSpec := &gcp.GcpPluginSpec{}
 	err := current.GetPluginSpec(gcp.GcpPluginName, curPluginSpec)
 	if err != nil {
-		return false
+		return true
 	}
 	newPluginSpec := &gcp.GcpPluginSpec{}
 	err = new.GetPluginSpec(gcp.GcpPluginName, newPluginSpec)
