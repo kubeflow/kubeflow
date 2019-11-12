@@ -2,9 +2,11 @@ package app
 
 import (
 	"context"
-	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/utils"
+	"github.com/ghodss/yaml"
+	"github.com/kubeflow/kfctl/v3/pkg/apis/apps/configconverters"
+	kfdefsv3 "github.com/kubeflow/kfctl/v3/pkg/apis/apps/kfdef/v1beta1"
+	"github.com/kubeflow/kfctl/v3/pkg/kfapp/gcp"
+	"github.com/kubeflow/kfctl/v3/pkg/utils"
 	"golang.org/x/oauth2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
@@ -31,7 +33,7 @@ func TestKfctlServer_CreateDeployment(t *testing.T) {
 	s := &kfctlServer{
 		ts: ts,
 		c:  make(chan kfdefsv3.KfDef, 1),
-		latestKfDef: kfdefsv3.KfDef{
+		latestKfdef: kfdefsv3.KfDef{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "input",
 			},
@@ -55,7 +57,6 @@ func TestKfctlServer_CreateDeployment(t *testing.T) {
 			Name: "input",
 		},
 		Spec: kfdefsv3.KfDefSpec{
-			PackageManager: "kustomize",
 			Secrets: []kfdefsv3.Secret{
 				{
 					Name: gcp.GcpAccessTokenName,
@@ -63,6 +64,13 @@ func TestKfctlServer_CreateDeployment(t *testing.T) {
 						LiteralSource: &kfdefsv3.LiteralSource{
 							Value: "access1234",
 						},
+					},
+				},
+			},
+			Plugins: []kfdefsv3.Plugin{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind: gcp.GcpPluginName,
 					},
 				},
 			},
@@ -75,7 +83,14 @@ func TestKfctlServer_CreateDeployment(t *testing.T) {
 			Name: "input",
 		},
 		Spec: kfdefsv3.KfDefSpec{
-			PackageManager: "kustomize",
+			Plugins: []kfdefsv3.Plugin{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind: gcp.GcpPluginName,
+					},
+				},
+			},
+			Secrets: []kfdefsv3.Secret{},
 		},
 	}
 
@@ -86,10 +101,12 @@ func TestKfctlServer_CreateDeployment(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateDeployment error; %v", err)
 	}
+	kfDefbytes, _ := yaml.Marshal(*res)
+	respKfconfig, _ := configconverters.V1beta1{}.ToKfConfig(kfDefbytes)
 
-	if !reflect.DeepEqual(*res, s.latestKfDef) {
-		pWant, _ := Pformat(s.latestKfDef)
-		pActual, _ := Pformat(res)
+	if !reflect.DeepEqual(respKfconfig.Spec, s.latestKfdef.Spec) {
+		pWant, _ := Pformat(s.latestKfdef)
+		pActual, _ := Pformat(*respKfconfig)
 		t.Fatalf("Incorrect CreateDeployment Response:got\n:%v\nwant:%v", pActual, pWant)
 	}
 
@@ -100,9 +117,9 @@ func TestKfctlServer_CreateDeployment(t *testing.T) {
 	// TODO(jlewi): DeepEqual is returning false even though when a pretty print them the results
 	// look the same. Need to figure out how to validate the test properly.
 	//if !reflect.DeepEqual(expectReqStripped, v)
-	if !reflect.DeepEqual(expectReqStripped.Spec.PackageManager, v.Spec.PackageManager) {
-		pWant, _ := Pformat(expectReqStripped)
-		pActual, _ := Pformat(v)
+	if !reflect.DeepEqual(expectReqStripped.Spec, v.Spec) {
+		pWant, _ := Pformat(expectReqStripped.Spec)
+		pActual, _ := Pformat(v.Spec)
 		t.Errorf("Incorrect CreateDeployment on channel :got\n:%v\nwant:%v", pActual, pWant)
 	}
 
@@ -132,10 +149,6 @@ func TestKfctlServer_isMatch(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app1",
 				},
-				Spec: kfdefsv3.KfDefSpec{
-					Project: "p1",
-					Zone:    "z1",
-				},
 			},
 			expected: true,
 		},
@@ -149,18 +162,10 @@ func TestKfctlServer_isMatch(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app1",
 				},
-				Spec: kfdefsv3.KfDefSpec{
-					Project: "p1",
-					Zone:    "z1",
-				},
 			},
 			new: &kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app1",
-				},
-				Spec: kfdefsv3.KfDefSpec{
-					Project: "p1",
-					Zone:    "z1",
 				},
 			},
 			expected: true,
@@ -170,18 +175,23 @@ func TestKfctlServer_isMatch(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app1",
 				},
-				Spec: kfdefsv3.KfDefSpec{
-					Project: "p1",
-					Zone:    "z1",
-				},
 			},
 			new: &kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app2",
 				},
-				Spec: kfdefsv3.KfDefSpec{
-					Project: "p1",
-					Zone:    "z1",
+			},
+			expected: false,
+		},
+		{
+			current: &kfdefsv3.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "app1",
+				},
+			},
+			new: &kfdefsv3.KfDef{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "app1",
 				},
 			},
 			expected: false,
@@ -191,50 +201,21 @@ func TestKfctlServer_isMatch(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app1",
 				},
-				Spec: kfdefsv3.KfDefSpec{
-					Project: "p1",
-					Zone:    "z1",
-				},
 			},
 			new: &kfdefsv3.KfDef{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app1",
-				},
-				Spec: kfdefsv3.KfDefSpec{
-					Project: "p2",
-					Zone:    "z1",
-				},
-			},
-			expected: false,
-		},
-		{
-			current: &kfdefsv3.KfDef{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "app1",
-				},
-				Spec: kfdefsv3.KfDefSpec{
-					Project: "p1",
-					Zone:    "z1",
-				},
-			},
-			new: &kfdefsv3.KfDef{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "app1",
-				},
-				Spec: kfdefsv3.KfDefSpec{
-					Project: "p1",
-					Zone:    "z2",
 				},
 			},
 			expected: false,
 		},
 	}
 
-	for _, c := range testCases {
+	for idx, c := range testCases {
 		actual := isMatch(c.current, c.new)
 
 		if actual != c.expected {
-			t.Errorf("ismatch: got %v; want %v\ncurrent:\n%v\nnew:\n%v", actual, c.expected, PrettyPrint(c.current), PrettyPrint(c.new))
+			t.Errorf("Test case %v: \n ismatch: got %v; want %v\ncurrent:\n%v\nnew:\n%v", idx, actual, c.expected, PrettyPrint(c.current), PrettyPrint(c.new))
 		}
 	}
 
