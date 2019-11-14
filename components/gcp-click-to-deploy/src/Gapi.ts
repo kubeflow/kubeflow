@@ -116,6 +116,22 @@ export default class Gapi {
     }
 
   };
+  public static servicemanagement = class {
+    public static async enable(project: string, serviceName: string) {
+      await Gapi.load();
+      const consumerId = `project:${project}`;
+      return gapi.client.request({
+        body: {
+          consumerId
+        },
+        method: 'POST',
+        path: `https://content-servicemanagement.googleapis.com/v1/services/${serviceName}:enable`,
+      }).then(response => response.result as EnableServiceRequest,
+        badResult => {
+          throw new Error('Errors enabling service: ' + flattenDeploymentOperationError(badResult.result));
+        });
+    }
+  };
 
   public static cloudresourcemanager = class {
 

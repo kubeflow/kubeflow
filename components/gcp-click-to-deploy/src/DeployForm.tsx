@@ -621,8 +621,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             createBody.configFile = ConfigPath.V07IAP;
             createBody.endpointConfig = {
                 iap: {
-                    oAuthClientId: btoa(this.state.clientId),
-                    oAuthClientSecret: btoa(this.state.clientSecret),
+                    oAuthClientId: this.state.clientId,
+                    oAuthClientSecret: this.state.clientSecret,
                 }
             };
         }
@@ -630,8 +630,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             createBody.configFile = ConfigPath.V07BasicAuth;
             createBody.endpointConfig = {
                 basicAuth: {
-                    password: btoa(encryptPassword(this.state.password)),
-                    username: btoa(this.state.username),
+                    password: this.state.password,
+                    username: this.state.username,
                 }
             };
         }
@@ -685,6 +685,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         try {
             await this._enableGcpServices();
         } catch (err) {
+            this.setState({
+                dialogAsCode: false,
+                dialogBody: 'Please enable cloud resource manager API: https://console.developers.google.com/apis/api/cloudresourcemanager.googleapis.com/' +
+                ' and iam API: https://console.developers.google.com/apis/api/iam.googleapis.com/',
+                dialogTitle: 'Please enable APIs for your project and try again',
+            });
             this._appendLine(
                 'Could not configure communication with GCP, exiting');
             return;
@@ -920,15 +926,19 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         let projectNumber: number;
         try {
             projectNumber = await Gapi.cloudresourcemanager
-                .getProjectNumber(project);
+              .getProjectNumber(project);
             this.setState({projectNumber});
         } catch (err) {
-            this.setState({
-                dialogAsCode: false,
-                dialogBody: `Error trying to get the project number: ${err}`,
-                dialogTitle: 'Deployment Error',
-            });
-            throw err;
+            await Gapi.servicemanagement.enable(project, 'cloudresourcemanager.googleapis.com')
+              .catch(e => this.setState({
+                  dialogAsCode: false,
+                  dialogBody: `Please enable cloud resource manager API for your project: https://console.developers.google.com/apis/api/cloudresourcemanager.googleapis.com/`,
+                  dialogTitle: 'Please enable cloud resource manager API',
+              }));
+            await wait(10000);
+            projectNumber = await Gapi.cloudresourcemanager
+              .getProjectNumber(project);
+            this.setState({projectNumber});
         }
 
         this._appendLine('Proceeding with project number: ' + projectNumber);
@@ -936,20 +946,38 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         const accountId = 'kubeflow-deploy-admin';
         const saEmail = accountId + '@' + project + '.iam.gserviceaccount.com';
         let saClientId: string;
+
         try {
             saClientId = await Gapi.iam.getServiceAccountId(project, saEmail);
             if (!saClientId) {
                 saClientId = await Gapi.iam
-                    .createServiceAccount(project, accountId);
+                  .createServiceAccount(project, accountId);
             }
             this.setState({saClientId});
         } catch (err) {
-            this.setState({
-                dialogAsCode: false,
-                dialogBody: 'Failed creating Service Account in target project, please verify if have permission',
-                dialogTitle: 'Unable to obtain Service Account'
-            });
-            throw err;
+            this._appendLine('Enabling API: iam.googleapis.com');
+            await Gapi.servicemanagement.enable(project, 'iam.googleapis.com')
+              .catch(e => this.setState({
+                  dialogAsCode: false,
+                  dialogBody: `Please enable iam API for your project: https://console.developers.google.com/apis/api/iam.googleapis.com/`,
+                  dialogTitle: 'Please enable iam API',
+              }));
+            await wait(10000);
+            try {
+                saClientId = await Gapi.iam.getServiceAccountId(project, saEmail);
+                if (!saClientId) {
+                    saClientId = await Gapi.iam
+                      .createServiceAccount(project, accountId);
+                }
+                this.setState({saClientId});
+            } catch (err) {
+                this.setState({
+                    dialogAsCode: false,
+                    dialogBody: 'Failed creating Service Account in target project, please verify if have permission',
+                    dialogTitle: 'Unable to obtain Service Account'
+                });
+                throw err;
+            }
         }
 
         const currProjPolicy = await Gapi.cloudresourcemanager.getIamPolicy(project);
