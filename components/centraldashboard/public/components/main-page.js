@@ -203,7 +203,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         case IFRAME_LINK_PREFIX:
             this.page = 'iframe';
             isIframe = true;
-            hideNamespaces = this.subRouteData.path.startsWith('/pipeline');
+            hideNamespaces = false;
             this._setActiveMenuLink(this.subRouteData.path);
             this._setIframeSrc();
             break;
