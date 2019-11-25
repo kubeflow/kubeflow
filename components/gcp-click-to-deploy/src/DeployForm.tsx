@@ -20,14 +20,15 @@ import {
 
 /** Relative paths from the root of the repository. */
 enum ConfigPath {
-    V05 = 'v0.5-branch/components/gcp-click-to-deploy/app-config.yaml',
-    V06 = 'a18d7b07/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml'
+    V06 = 'a18d7b07/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml',
+    V07IAP = 'https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.0.7.0.yaml',
+    V07BasicAuth = 'https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_basic_auth.0.7.0.yaml',
 }
 
 /** Versions available for deployment. */
 enum Version {
-    V05 = 'v0.5.0',
     V06 = 'v0.6.2',
+    V07 = 'v0.7',
 }
 
 // TODO(jlewi): For the FQDN we should have a drop down box to select custom
@@ -123,6 +124,43 @@ interface KfDefSpec {
     useIstio: boolean;
     version?: string;
     zone?: string;
+}
+
+interface BasicAuth {
+    username?: string;
+    password?: string;
+}
+
+interface IAP {
+    oAuthClientId?: string;
+    oAuthClientSecret?: string;
+}
+
+interface EndpointConfig {
+    basicAuth?: BasicAuth;
+    iap?: IAP;
+}
+
+// Request body for kubeflow version v0.7+
+interface C2DRequest {
+    configFile?: string;
+    // GCP Project Id
+    project?: string;
+    // deploy Name
+    name?: string;
+    // user email
+    email?: string;
+
+    endpointConfig?: EndpointConfig;
+    // GKE Zone
+    zone?: string;
+    // kubeflow Version
+    version?: string;
+    shareAnonymousUsage?: boolean;
+
+    skipInitProject?: boolean;
+    // Temporary service account access Token
+    token?: string;
 }
 
 const logsContainerStyle = (show: boolean) => {
@@ -221,7 +259,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             kfctlLib: false,
             kfversion: Version.V06,
             // Version for local test. Staging and Prod with overwrite with their env vars.
-            kfversionList: [Version.V06, Version.V05],
+            kfversionList: ['v0.7.0', Version.V06],
             logLines: [],
             password: '',
             password2: '',
@@ -237,7 +275,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         };
 
         this._logContainerRef = React.createRef();
-        this._versionChanged = this._versionChanged.bind(this);
         this._renderLogLine = this._renderLogLine.bind(this);
     }
 
@@ -269,7 +306,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     public render() {
         const zoneList = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b',
             'europe-west1-b', 'europe-west1-d', 'asia-east1-a', 'asia-east1-b'];
-        const {kfversion} = this.state;
         return (
             <div>
                 <div style={styles.text}>Create a Kubeflow deployment</div>
@@ -289,9 +325,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                         onChange={this._handleChange('ingress')}>
                         <MenuItem key={1} value={IngressType.Iap}>{IngressType.Iap}</MenuItem>
                         <MenuItem key={2} value={IngressType.BasicAuth}>{IngressType.BasicAuth}</MenuItem>
-                        {kfversion !== Version.V06 &&
-                            <MenuItem key={3} value={IngressType.DeferIap}>{IngressType.DeferIap}</MenuItem>
-                        }
                     </TextField>
                 </div>
 
@@ -351,7 +384,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
                 <div style={styles.row}>
                     <TextField select={true} label="Kubeflow version:" required={true} style={styles.input} variant="filled"
-                        value={this.state.kfversion} onChange={this._versionChanged}>
+                        value={this.state.kfversion} onChange={this._handleChange('kfversion')}>
                         {this.state.kfversionList.map((version, i) => (
                             <MenuItem key={i} value={version}>{version}</MenuItem>
                         ))
@@ -469,88 +502,16 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         });
         if (this.state.kfversion === Version.V06) {
             return this._getV6Yaml(email);
-        } else {
-            return this._getV5Yaml(email);
         }
-    }
-
-    private _getV5Yaml(email: string) {
-        const state = this.state;
-        for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
-            const p = this._configSpec.defaultApp.parameters[i];
-            if (p.name === 'ipName') {
-                p.value = this.state.deploymentName + '-ip';
-            }
-
-            if (p.name === 'hostname') {
-                p.value = state.deploymentName + '.endpoints.' + state.project + '.cloud.goog';
-            }
-
-            if (p.name === 'acmeEmail') {
-                p.value = email;
-            }
-
+        if (this.state.kfversion.startsWith(Version.V07)) {
+            return this._getV7Yaml();
         }
-        this._configSpec.defaultApp.registries[0].version = this.state.kfversion;
-
-        // Make copy of this._configSpec before conditional changes.
-        const configSpec = JSON.parse(JSON.stringify(this._configSpec));
-
-        // Customize config for v0.4.1 compatibility
-        // TODO: remove after fully switch to kfctl / new deployment API is alive.
-        if (this.state.kfversion.startsWith('v0.4.1')) {
-            const removeComps = ['gcp-credentials-admission-webhook', 'gpu-driver', 'notebook-controller'];
-            for (let i = 0, len = removeComps.length; i < len; i++) {
-                this._removeComponent(removeComps[i], configSpec);
-            }
-            for (let i = 0, len = configSpec.defaultApp.components.length; i < len; i++) {
-                const component = configSpec.defaultApp.components[i];
-                if (component.name === 'jupyter-web-app') {
-                    component.name = 'jupyter';
-                    component.prototype = 'jupyter';
-                    break;
-                }
-            }
-            configSpec.defaultApp.parameters.push({
-                component: 'jupyter',
-                name: 'jupyterHubAuthenticator',
-                value: 'iap'
-            });
-            configSpec.defaultApp.parameters.push({
-                component: 'jupyter',
-                name: 'platform',
-                value: 'gke'
-            });
-        }
-
-        if (this.state.ingress !== IngressType.Iap) {
-            for (let i = 0, len = configSpec.defaultApp.components.length; i < len; i++) {
-                const p = configSpec.defaultApp.components[i];
-                if (p.name === 'iap-ingress') {
-                    p.name = 'basic-auth-ingress';
-                    p.prototype = 'basic-auth-ingress';
-                }
-            }
-            for (let i = 0, len = configSpec.defaultApp.parameters.length; i < len; i++) {
-                const p = configSpec.defaultApp.parameters[i];
-                if (p.component === 'iap-ingress') {
-                    p.component = 'basic-auth-ingress';
-                }
-                if (p.name === 'jupyterHubAuthenticator') {
-                    p.value = 'null';
-                }
-            }
-            configSpec.defaultApp.components.push({
-                name: 'basic-auth',
-                prototype: 'basic-auth',
-            });
-            configSpec.defaultApp.parameters.push({
-                component: 'ambassador',
-                name: 'ambassadorServiceType',
-                value: 'NodePort'
-            });
-        }
-        return configSpec;
+        this.setState({
+            dialogAsCode: false,
+            dialogBody: 'Unsupported kubeflow version!',
+            dialogTitle: 'Version Unsupported',
+        });
+        return;
     }
 
     private _getV6Yaml(email: string) {
@@ -639,18 +600,42 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         return configSpec;
     }
 
-    private _removeComponent(compName: string, configSpec: any) {
-        let rmIdx = -1;
-        for (let i = 0, len = configSpec.defaultApp.components.length; i < len; i++) {
-            const component = configSpec.defaultApp.components[i];
-            if (component.name === compName) {
-                rmIdx = i;
-                break;
-            }
+    /**
+     * Helper method to facilitate building a v0.7 cluster
+     */
+    private _getV7Yaml() {
+        const {deploymentName, email, project,
+            kfversion, saToken, spartakus, zone} = this.state;
+        const createBody: C2DRequest = {
+            email,
+            name: deploymentName,
+            project,
+            shareAnonymousUsage: spartakus,
+            skipInitProject: true,
+            token: saToken,
+            version: kfversion,
+            zone,
+
+        };
+        if (this.state.ingress === IngressType.Iap) {
+            createBody.configFile = ConfigPath.V07IAP;
+            createBody.endpointConfig = {
+                iap: {
+                    oAuthClientId: this.state.clientId,
+                    oAuthClientSecret: this.state.clientSecret,
+                }
+            };
         }
-        if (rmIdx !== -1) {
-            configSpec.defaultApp.components.splice(rmIdx, 1);
+        else {
+            createBody.configFile = ConfigPath.V07BasicAuth;
+            createBody.endpointConfig = {
+                basicAuth: {
+                    password: this.state.password,
+                    username: this.state.username,
+                }
+            };
         }
+        return createBody;
     }
 
     private async _toPortForward() {
@@ -700,26 +685,39 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         try {
             await this._enableGcpServices();
         } catch (err) {
+            this.setState({
+                dialogAsCode: false,
+                dialogBody: 'Please enable cloud resource manager API: https://console.developers.google.com/apis/api/cloudresourcemanager.googleapis.com/' +
+                ' and iam API: https://console.developers.google.com/apis/api/iam.googleapis.com/',
+                dialogTitle: 'Please enable APIs for your project and try again',
+            });
             this._appendLine(
                 'Could not configure communication with GCP, exiting');
             return;
         }
 
-        // Step 2: Submit the configuration to the backend service
+
+        let buildEndpoint: string;
+        let requestBody: string;
         const configSpec = await this._getYaml();
         if (!configSpec) {
             return;
         }
-
-        let buildEndpoint: string;
-        let requestBody: string;
-        if (this.state.kfversion === Version.V05) {
-            // buildEndpoint = `${this._configSpec.appAddress}/kfctl/e2eDeploy`;
-            buildEndpoint = '/kfctl/e2eDeploy';
-            requestBody = this._getV5BuildRequest(configSpec);
+        if (this.state.kfversion.startsWith(Version.V07)) {
+            buildEndpoint = '/kfctl/apps/v1beta1/create';
+            requestBody = JSON.stringify(configSpec);
         } else {
-            buildEndpoint = '/kfctl/apps/v1alpha2/create';
-            requestBody = this._getV6BuildRequest(configSpec);
+            if (this.state.kfversion === Version.V06) {
+                buildEndpoint = '/kfctl/apps/v1alpha2/create';
+                requestBody = this._getV6BuildRequest(configSpec);
+            } else {
+                this.setState({
+                    dialogAsCode: false,
+                    dialogBody: 'Unsupported kubeflow version!',
+                    dialogTitle: 'Version Unsupported',
+                });
+                return;
+            }
         }
 
         try {
@@ -844,9 +842,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
      * @throws Error on any invalid condition
      */
     private _validateInputFields(): void {
+        const {clientId, clientSecret, deploymentName, project,
+            password, password2, username, zone} = this.state;
         const err = new Error('Invalid inputs');
-        for (const prop of ['project', 'zone', 'deploymentName']) {
-            if (this.state[prop] === '') {
+        for (const prop of [project, zone, deploymentName]) {
+            if (prop === '') {
                 this.setState({
                     dialogAsCode: false,
                     dialogBody: 'Some required fields (project, zone, deploymentName) are missing',
@@ -856,8 +856,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             }
         }
         if (this.state.ingress === IngressType.Iap) {
-            for (const prop of ['clientId', 'clientSecret']) {
-                if (this.state[prop] === '') {
+            for (const prop of [clientId, clientSecret]) {
+                if (prop === '') {
                     this.setState({
                         dialogAsCode: false,
                         dialogBody: 'Some required fields (IAP Oauth Client ID, IAP Oauth Client Secret) are missing',
@@ -868,8 +868,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             }
         }
         if (this.state.ingress === IngressType.BasicAuth) {
-            for (const prop of ['username', 'password', 'password2']) {
-                if (this.state[prop] === '') {
+            for (const prop of [username, password, password2]) {
+                if (prop === '') {
                     this.setState({
                         dialogAsCode: false,
                         dialogBody: 'Some required fields (username, password) are missing',
@@ -878,7 +878,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                     throw err;
                 }
             }
-            if (this.state.password !== this.state.password2) {
+            if (password !== password2) {
                 this.setState({
                     dialogAsCode: false,
                     dialogBody: 'Two passwords does not match',
@@ -887,17 +887,17 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                 throw err;
             }
         }
-        const deploymentNameKey = 'deploymentName';
-        if (this.state[deploymentNameKey].length < 4 || this.state[deploymentNameKey].length > 20) {
+        const maxNameLen = 41 - project.length;
+        if (deploymentName.length < 4 || deploymentName.length > maxNameLen) {
             this.setState({
                 dialogAsCode: false,
-                dialogBody: 'Deployment name length need to between 4 and 20',
+                dialogBody: 'For current project id, deployment name length need to be between 4 and ' + maxNameLen,
                 dialogTitle: 'Invalid field',
             });
             throw err;
         }
-        const filtered = this.state[deploymentNameKey].match(NAME_FORMAT);
-        if (!(filtered && this.state[deploymentNameKey] === filtered[0])) {
+        const filtered = deploymentName.match(NAME_FORMAT);
+        if (!(filtered && deploymentName === filtered[0])) {
             this.setState({
                 dialogAsCode: false,
                 dialogBody: 'Deployment name: the first character must be a lowercase letter, and all following ' +
@@ -926,15 +926,19 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         let projectNumber: number;
         try {
             projectNumber = await Gapi.cloudresourcemanager
-                .getProjectNumber(project);
+              .getProjectNumber(project);
             this.setState({projectNumber});
         } catch (err) {
-            this.setState({
-                dialogAsCode: false,
-                dialogBody: `Error trying to get the project number: ${err}`,
-                dialogTitle: 'Deployment Error',
-            });
-            throw err;
+            await Gapi.servicemanagement.enable(project, 'cloudresourcemanager.googleapis.com')
+              .catch(e => this.setState({
+                  dialogAsCode: false,
+                  dialogBody: `Please enable cloud resource manager API for your project: https://console.developers.google.com/apis/api/cloudresourcemanager.googleapis.com/`,
+                  dialogTitle: 'Please enable cloud resource manager API',
+              }));
+            await wait(10000);
+            projectNumber = await Gapi.cloudresourcemanager
+              .getProjectNumber(project);
+            this.setState({projectNumber});
         }
 
         this._appendLine('Proceeding with project number: ' + projectNumber);
@@ -942,20 +946,38 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         const accountId = 'kubeflow-deploy-admin';
         const saEmail = accountId + '@' + project + '.iam.gserviceaccount.com';
         let saClientId: string;
+
         try {
             saClientId = await Gapi.iam.getServiceAccountId(project, saEmail);
             if (!saClientId) {
                 saClientId = await Gapi.iam
-                    .createServiceAccount(project, accountId);
+                  .createServiceAccount(project, accountId);
             }
             this.setState({saClientId});
         } catch (err) {
-            this.setState({
-                dialogAsCode: false,
-                dialogBody: 'Failed creating Service Account in target project, please verify if have permission',
-                dialogTitle: 'Unable to obtain Service Account'
-            });
-            throw err;
+            this._appendLine('Enabling API: iam.googleapis.com');
+            await Gapi.servicemanagement.enable(project, 'iam.googleapis.com')
+              .catch(e => this.setState({
+                  dialogAsCode: false,
+                  dialogBody: `Please enable iam API for your project: https://console.developers.google.com/apis/api/iam.googleapis.com/`,
+                  dialogTitle: 'Please enable iam API',
+              }));
+            await wait(10000);
+            try {
+                saClientId = await Gapi.iam.getServiceAccountId(project, saEmail);
+                if (!saClientId) {
+                    saClientId = await Gapi.iam
+                      .createServiceAccount(project, accountId);
+                }
+                this.setState({saClientId});
+            } catch (err) {
+                this.setState({
+                    dialogAsCode: false,
+                    dialogBody: 'Failed creating Service Account in target project, please verify if have permission',
+                    dialogTitle: 'Unable to obtain Service Account'
+                });
+                throw err;
+            }
         }
 
         const currProjPolicy = await Gapi.cloudresourcemanager.getIamPolicy(project);
@@ -1076,57 +1098,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     }
 
     /**
-     * Helper method to facilitate building a v0.5.0 cluster
-     * @param configSpec
-     */
-    private _getV5BuildRequest(configSpec: {defaultApp: string}): string {
-        const {deploymentName, email, project, projectNumber,
-            kfversion, saClientId, saToken} = this.state;
-        let createBody = {
-            AppConfig: configSpec.defaultApp,
-            Apply: true,
-            AutoConfigure: true,
-            Cluster: deploymentName,
-            Email: email,
-            IpName: deploymentName + '-ip',
-            KfVersion: kfversion,
-            Name: deploymentName,
-            Namespace: 'kubeflow',
-            Project: project,
-            ProjectNumber: projectNumber,
-            SAClientId: saClientId,
-            Token: saToken,
-            UseKfctl: this.state.kfctlLib,
-            Zone: this.state.zone,
-        };
-        if (this.state.ingress === IngressType.Iap) {
-            createBody = {
-                ...createBody, ...{
-                    ClientId: btoa(this.state.clientId),
-                    ClientSecret: btoa(this.state.clientSecret),
-                }
-            };
-        }
-        else if (this.state.ingress === IngressType.BasicAuth) {
-            createBody = {
-                ...createBody, ...{
-                    PasswordHash: btoa(encryptPassword(this.state.password)),
-                    Username: btoa(this.state.username),
-                }
-            };
-        }
-
-        if (this.state.permanentStorage) {
-            createBody = {
-                ...createBody, ...{
-                    StorageOption: {CreatePipelinePersistentStorage: true},
-                }
-            };
-        }
-        return JSON.stringify(createBody);
-    }
-
-    /**
      * Helper method to facilitate building a v0.6.0 cluster
      */
     private _getV6BuildRequest(configSpec: {spec: KfDefSpec}): string {
@@ -1199,14 +1170,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                 dialogTitle: 'Config loading Error',
             });
         }
-    }
-
-    private _versionChanged(event: React.ChangeEvent<HTMLSelectElement>) {
-        const kfversion = event.target.value;
-        const configUrl = kfversion === Version.V05 ?
-            ConfigPath.V05 : ConfigPath.V06;
-        this._loadConfigFile(configUrl);
-        this.setState({kfversion});
     }
 
     // Renders a log line by extracting any links to anchor tags
