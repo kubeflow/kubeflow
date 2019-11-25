@@ -328,6 +328,10 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 			FSGroup: &fsGroup,
 		}
 	}
+	schedulerName := os.Getenv("SCHEDULER_NAME")
+	if len(schedulerName) > 0 {
+		podSpec.SchedulerName = schedulerName
+	}
 	return ss
 }
 
