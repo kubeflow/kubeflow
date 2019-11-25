@@ -5,20 +5,11 @@
 ARG GOLANG_VERSION=1.12.7
 FROM golang:$GOLANG_VERSION as builder
 
-ARG BRANCH=master
-ARG REPO=https://github.com/kubeflow/kubeflow
 RUN apt-get update
 RUN apt-get install -y git unzip
 
 # junit report is used to conver go test output to junit for reporting
 RUN go get -u github.com/jstemmer/go-junit-report
-
-# We need gcloud to get gke credentials.
-RUN \
-    cd /tmp && \
-    wget -nv https://dl.google.com/dl/cloudsdk/release/install_google_cloud_sdk.bash && \
-    chmod +x install_google_cloud_sdk.bash && \
-    ./install_google_cloud_sdk.bash --disable-prompts --install-dir=/opt/
 
 ENV PATH /go/bin:/usr/local/go/bin:/opt/google-cloud-sdk/bin:${PATH}
 
@@ -28,11 +19,6 @@ ENV GOPATH=/go
 
 # Create bootstrap folder
 RUN mkdir -p ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
-WORKDIR /tmp
-RUN mkdir kubeflow
-RUN echo REPO=${REPO} branch=${BRANCH}
-RUN git clone ${REPO} --depth=1 --branch ${BRANCH} --single-branch kubeflow
-RUN mv /tmp/kubeflow/components ${GOPATH}/src/github.com/kubeflow/kubeflow
 WORKDIR ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
 
 # Download dependencies first to optimize Docker caching.
@@ -41,64 +27,20 @@ COPY go.sum .
 RUN go mod download
 # Copy in the source
 COPY . .
-
-
-#**********************************************************************
-# Bootstrap base
-#
-# A container that builds bootstrap. 
-#
-# TODO(https://github.com/kubeflow/kubeflow/issues/2870): We
-# might get rid of the bootstrap binary and instead just have kfctl
-# and allow kfctl to run in a daemon/server mode.
-#
-FROM builder as bootstrap_base
-
 RUN make build-bootstrap
-
-#**********************************************************************
-#
-# kfctl_base
-#
-FROM builder as kfctl_base
-
-RUN make build-kfctl
-
-#**********************************************************************
-#
-# Final image base
-#
-
-FROM golang:$GOLANG_VERSION as barebones_base
-
-RUN mkdir -p /opt/kubeflow
-WORKDIR /opt/kubeflow
-
-#**********************************************************************
-#
-# kfctl
-#
-FROM barebones_base as kfctl
-
-COPY --from=kfctl_base /go/src/github.com/kubeflow/kubeflow/bootstrap/bin/kfctl /usr/local/bin
-
-CMD ["/bin/bash", "-c", "trap : TERM INT; sleep infinity & wait"]
 
 #**********************************************************************
 #
 # bootstrap
 #
-FROM barebones_base as bootstrap
-ARG registries
+FROM golang:$GOLANG_VERSION as bootstrap
 
-COPY $registries /opt/registries
+RUN mkdir -p /opt/kubeflow
+WORKDIR /opt/kubeflow
 
-COPY --from=bootstrap_base /go/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow/
+COPY --from=builder /go/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow/
 
-COPY config/default.yaml /opt/kubeflow/
-COPY image_registries.yaml /opt/kubeflow/
-
-RUN mkdir -p /opt/bootstrap
+RUN mkdir -p /opt/kfapps
 # directory for cert file
 RUN mkdir -p /opt/ca
 RUN mkdir -p /opt/versioned_registries

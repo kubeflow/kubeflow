@@ -153,15 +153,8 @@ build-local: build-bootstrap build-kfctl
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
 build:
-	rm -rf reg_tmp
-	mkdir -p reg_tmp/kubeflow
-	cp -r ../kubeflow reg_tmp/kubeflow
-	cp -r ../deployment reg_tmp/kubeflow
-	mkdir -p reg_tmp/kubeflow/bootstrap
-	cp -r k8sSpec reg_tmp/kubeflow/bootstrap
 	docker build \
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
-		--build-arg registries=reg_tmp \
 		--target=bootstrap \
 		--tag $(BOOTSTRAPPER_IMG):$(TAG) .
 	@echo Built $(BOOTSTRAPPER_IMG):$(TAG)
