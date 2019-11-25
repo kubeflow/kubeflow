@@ -842,9 +842,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
      * @throws Error on any invalid condition
      */
     private _validateInputFields(): void {
+        const {clientId, clientSecret, deploymentName, project,
+            password, password2, username, zone} = this.state;
         const err = new Error('Invalid inputs');
-        for (const prop of ['project', 'zone', 'deploymentName']) {
-            if (this.state[prop] === '') {
+        for (const prop of [project, zone, deploymentName]) {
+            if (prop === '') {
                 this.setState({
                     dialogAsCode: false,
                     dialogBody: 'Some required fields (project, zone, deploymentName) are missing',
@@ -854,8 +856,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             }
         }
         if (this.state.ingress === IngressType.Iap) {
-            for (const prop of ['clientId', 'clientSecret']) {
-                if (this.state[prop] === '') {
+            for (const prop of [clientId, clientSecret]) {
+                if (prop === '') {
                     this.setState({
                         dialogAsCode: false,
                         dialogBody: 'Some required fields (IAP Oauth Client ID, IAP Oauth Client Secret) are missing',
@@ -866,8 +868,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             }
         }
         if (this.state.ingress === IngressType.BasicAuth) {
-            for (const prop of ['username', 'password', 'password2']) {
-                if (this.state[prop] === '') {
+            for (const prop of [username, password, password2]) {
+                if (prop === '') {
                     this.setState({
                         dialogAsCode: false,
                         dialogBody: 'Some required fields (username, password) are missing',
@@ -876,7 +878,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                     throw err;
                 }
             }
-            if (this.state.password !== this.state.password2) {
+            if (password !== password2) {
                 this.setState({
                     dialogAsCode: false,
                     dialogBody: 'Two passwords does not match',
@@ -885,10 +887,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
                 throw err;
             }
         }
-        const deploymentNameKey = 'deploymentName';
-        const projectKey = 'project';
-        const maxNameLen = 41 - this.state[projectKey].length;
-        if (this.state[deploymentNameKey].length < 4 || this.state[deploymentNameKey].length > maxNameLen) {
+        const maxNameLen = 41 - project.length;
+        if (deploymentName.length < 4 || deploymentName.length > maxNameLen) {
             this.setState({
                 dialogAsCode: false,
                 dialogBody: 'For current project id, deployment name length need to be between 4 and ' + maxNameLen,
@@ -896,8 +896,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             });
             throw err;
         }
-        const filtered = this.state[deploymentNameKey].match(NAME_FORMAT);
-        if (!(filtered && this.state[deploymentNameKey] === filtered[0])) {
+        const filtered = deploymentName.match(NAME_FORMAT);
+        if (!(filtered && deploymentName === filtered[0])) {
             this.setState({
                 dialogAsCode: false,
                 dialogBody: 'Deployment name: the first character must be a lowercase letter, and all following ' +
