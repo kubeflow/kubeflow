@@ -261,6 +261,9 @@ export class WorkgroupApi {
                         );
                         response.hasWorkgroup = !!(workgroup.namespaces || [])
                             .find((w) => w.role === 'owner');
+                    } else {
+                        // Basic auth workgroup condition
+                        response.hasWorkgroup = !!(await this.getAllWorkgroups(req.user.username)).length;
                     }
                     res.json(response);
                 } catch (err) {
@@ -348,7 +351,6 @@ export class WorkgroupApi {
                 });
             }
         })
-
         .get('/get-contributors/:namespace', async (req: Request, res: Response) => {
             const {namespace} = req.params;
             try {

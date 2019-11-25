@@ -1,5 +1,6 @@
 """Common reusable steps for kfctl go testing."""
 import datetime
+import json
 import logging
 import os
 import tempfile
@@ -17,37 +18,20 @@ from retrying import retry
 def run_with_retries(*args, **kwargs):
   util.run(*args, **kwargs)
 
-def get_kfctl_go_build_dir_binary_path():
-  """return the build directory and path to kfctl go binary.
-
-  Args:
-    None
-
-  Return:
-    build_dir (str): Path to start build will be Kubeflow/kubeflow/bootstrap/
-    kfctl_path (str): Path where kfctl go binary has been built.
-            will be Kubeflow/kubeflow/bootstrap/bin/kfctl
-  """
-  this_dir = os.path.dirname(__file__)
-  root = os.path.abspath(os.path.join(this_dir, "..", "..", "..", ".."))
-  build_dir = os.path.join(root, "bootstrap")
-  kfctl_path = os.path.join(build_dir, "bin", "kfctl")
-  return build_dir, kfctl_path
-
-def build_kfctl_go():
+def build_kfctl_go(kfctl_repo_path):
   """build the kfctl go binary and return the path for the same.
 
   Args:
-    None
+    kfctl_repo_path (str): Path to kfctl repo.
 
   Return:
     kfctl_path (str): Path where kfctl go binary has been built.
             will be Kubeflow/kubeflow/bootstrap/bin/kfctl
   """
-  build_dir, kfctl_path = get_kfctl_go_build_dir_binary_path()
+  kfctl_path = os.path.join(kfctl_repo_path, "bin", "kfctl")
   # We need to use retry builds because when building in the test cluster
   # we see intermittent failures pulling dependencies
-  run_with_retries(["make", "build-kfctl"], cwd=build_dir)
+  run_with_retries(["make", "build-kfctl"], cwd=kfctl_repo_path)
   return kfctl_path
 
 def get_or_create_app_path_and_parent_dir(app_path):
@@ -90,7 +74,14 @@ def load_config(config_path):
       config_spec = yaml.load(f)
       return config_spec
 
-def set_env_init_args(use_basic_auth, use_istio):
+def set_env_init_args(config_spec):
+  gcp_plugin = {}
+  for plugin in config_spec.get("spec", {}).get("plugins", []):
+    if plugin.get("kind", "") == "KfGcpPlugin":
+      gcp_plugin = plugin
+      break
+  use_basic_auth = gcp_plugin.get("spec", {}).get("useBasicAuth", False)
+  logging.info("use_basic_auth=%s", use_basic_auth)
   # Is it really needed?
   init_args = []
   # Set ENV for basic auth username/password.
@@ -107,11 +98,29 @@ def set_env_init_args(use_basic_auth, use_istio):
     os.environ["CLIENT_ID"] = (
       "29647740582-7meo6c7a9a76jvg54j0g2lv8lrsb4l8g"
       ".apps.googleusercontent.com")
+  # Always use ISTIO.
+  # TODO(gabrielwen): We should be able to remove this flag.
+  init_args.append("--use_istio")
 
-  if use_istio:
-    init_args.append("--use_istio")
-  else:
-    init_args.append("--use_istio=false")
+def write_basic_auth_login(filename):
+  """Read basic auth login from ENV and write to the filename given. If username/password
+  cannot be found in ENV, this function will silently return.
+
+  Args:
+    filename: The filename (directory/file name) the login is writing to.
+  """
+  username = os.environ.get("KUBEFLOW_USERNAME", "")
+  password = os.environ.get("KUBEFLOW_PASSWORD", "")
+
+  if not username or not password:
+    return
+
+  with open(filename, "w") as f:
+    login = {
+        "username": username,
+        "password": password,
+    }
+    json.dump(login, f)
 
 def filter_spartakus(spec):
   """Filter our Spartakus from KfDef spec.
@@ -172,7 +181,8 @@ def get_config_spec(config_path, project, email, zone, app_path):
   config_spec["metadata"]["name"] = kfdef_name
 
   repos = config_spec["spec"]["repos"]
-  if os.getenv("REPO_NAME") == "manifests":
+  manifests_repo_name = "manifests"
+  if os.getenv("REPO_NAME") == manifests_repo_name:
     # kfctl_go_test.py was triggered on presubmit from the kubeflow/manifests
     # repository. In this case we want to use the specified PR of the
     # kubeflow/manifests repository; so we need to change the repo specification
@@ -180,10 +190,26 @@ def get_config_spec(config_path, project, email, zone, app_path):
     # TODO(jlewi): We should also point to a specific commit when triggering
     # postsubmits from the kubeflow/manifests repo
     for repo in repos:
-      for key, value in repo.items():
-        if value == "https://github.com/kubeflow/manifests/archive/master.tar.gz":
-          repo["uri"] = str("https://github.com/kubeflow/manifests/archive/pull/" + str(
-            os.getenv("PULL_NUMBER")) + "/head.tar.gz")
+      if repo["name"] !=  manifests_repo_name:
+        continue
+
+      version = None
+
+      if os.getenv("PULL_PULL_SHA"):
+        # Presubmit
+        version = os.getenv("PULL_PULL_SHA")
+
+      # See https://github.com/kubernetes/test-infra/blob/45246b09ed105698aa8fb928b7736d14480def29/prow/jobs.md#job-environment-variables  # pylint: disable=line-too-long
+      elif os.getenv("PULL_BASE_SHA"):
+        version = os.getenv("PULL_BASE_SHA")
+
+      if version:
+        repo["uri"] = ("https://github.com/kubeflow/manifests/archive/"
+                       "{0}.tar.gz").format(version)
+        logging.info("Overwriting the URI")
+      else:
+        # Its a periodic job so use whatever value is set in the KFDef
+        logging.info("Not overwriting manifests version")
     logging.info(str(config_spec))
   return config_spec
 
@@ -238,16 +264,12 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   with open(os.path.join(app_path, "tmp.yaml"), "w") as f:
     yaml.dump(config_spec, f)
 
-  # TODO(jlewi): When we switch to KfDef v1beta1 this logic will need to change because
-  # use_base_auth will move into the plugin spec
-  use_basic_auth = config_spec["spec"].get("useBasicAuth", False)
-  logging.info("use_basic_auth=%s", use_basic_auth)
+  # Set ENV for credentials IAP/basic auth needs.
+  set_env_init_args(config_spec)
 
-  use_istio = config_spec["spec"].get("useIstio", True)
-  logging.info("use_istio=%s", use_istio)
-
-  # Set ENV for basic auth username/password.
-  set_env_init_args(use_basic_auth, use_istio)
+  # Write basic auth login username/password to a file for later tests.
+  # If the ENVs are not set, this function call will be noop.
+  write_basic_auth_login(os.path.join(app_path, "login.json"))
 
   # build_and_apply
   logging.info("running kfctl with build and apply: %s \n", build_and_apply)
@@ -264,12 +286,12 @@ def kfctl_deploy_kubeflow(app_path, project, use_basic_auth, use_istio, config_p
   return app_path
 
 def apply_kubeflow(kfctl_path, app_path):
-  util.run([kfctl_path, "apply", "-V", "-f=" + os.path.join(app_path, "tmp.yaml")], cwd=app_path) 
+  util.run([kfctl_path, "apply", "-V", "-f=" + os.path.join(app_path, "tmp.yaml")], cwd=app_path)
   return app_path
 
 def build_and_apply_kubeflow(kfctl_path, app_path):
   util.run([kfctl_path, "build", "-V", "-f=" + os.path.join(app_path, "tmp.yaml")], cwd=app_path)
-  util.run([kfctl_path, "apply", "-V"], cwd=app_path)
+  util.run([kfctl_path, "apply", "-V", "-f=" + os.path.join(app_path, "tmp.yaml")], cwd=app_path)
   return app_path
 
 def verify_kubeconfig(app_path):

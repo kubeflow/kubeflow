@@ -63,14 +63,11 @@ auth:
 
 # Run go fmt against code
 fmt:
-	@${GO} fmt ./config ./cmd/... ./pkg/... 
+	@${GO} fmt ./cmd/...
 
 # Run go vet against code
 vet:
-	@${GO} vet ./config ./cmd/... ./pkg/...
-
-generate:
-	@${GO} generate ./config ./pkg/apis/apps/kfdef/... ./pkg/apis/apps/kfupgrade/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./pkg/kfupgrade/... ./cmd/kfctl/...
+	@${GO} vet ./cmd/...
 
 ${GOPATH}/bin/deepcopy-gen:
 	GO111MODULE=off ${GO} get k8s.io/code-generator/cmd/deepcopy-gen
@@ -95,14 +92,8 @@ pkg/apis/apps/kfconfig/zz_generated.deepcopy.go: pkg/apis/apps/kfconfig/types.go
 	${GOPATH}/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig/... -O zz_generated.deepcopy && \
 	mv ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfconfig/zz_generated.deepcopy.go pkg/apis/apps/kfconfig/ && rm -rf v3
 
-deepcopy: ${GOPATH}/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1beta1/zz_generated.deepcopy.go \
-	pkg/apis/apps/kfconfig/zz_generated.deepcopy.go pkg/apis/apps/kfupgrade/v1alpha1/zz_generated.deepcopy.go
-
-build-bootstrap: deepcopy generate fmt vet
+build-bootstrap: fmt vet
 	${GO} build -gcflags '-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
-
-build-kfctl: deepcopy generate fmt vet
-	${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctl cmd/kfctl/main.go
 
 build-gc: deepcopy generate fmt vet
 	${GO} build -gcflags '-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/gc cmd/gc/main.go
@@ -110,9 +101,10 @@ build-gc: deepcopy generate fmt vet
 # Release tarballs suitable for upload to GitHub release pages
 build-kfctl-tgz: build-kfctl
 	chmod a+rx ./bin/kfctl
-	rm -f bin/*.tgz
-	cd bin && tar -cvzf kfctl_$(TAG)_linux.tar.gz ./kfctl
-	cp -f ./bin/kfctl_$(TAG)_linux.tar.gz ./bin/kfctl_$(TAG)_darwin.tar.gz
+	rm -f bin/*.tar.gz
+	cd bin/linux && tar -cvzf kfctl_$(TAG)_linux.tar.gz ./kfctl
+	cd bin/darwin && tar -cvzf kfctl_${TAG}_darwin.tar.gz ./kfctl
+	#cd bin/windows && tar -cvzf kfctl_${TAG}_darwin.tar.gz ./kfctl.exe
 
 build-kfctl-client: /tmp/v2 deepcopy generate fmt vet
 	${GO} build -gcflags 'all=-N -l' -ldflags "-X main.VERSION=$(TAG)" -o bin/kfctlClient cmd/kfctlClient/main.go
@@ -124,13 +116,13 @@ push-to-github-release: build-kfctl-tgz
 	    --repo kubeflow \
 	    --tag $(TAG) \
 	    --name "kfctl_$(TAG)_linux.tar.gz" \
-	    --file bin/kfctl_$(TAG)_linux.tar.gz
+	    --file bin/linux/kfctl_$(TAG)_linux.tar.gz
 	github-release upload \
 	    --user kubeflow \
 	    --repo kubeflow \
 	    --tag $(TAG) \
 	    --name "kfctl_$(TAG)_darwin.tar.gz" \
-	    --file bin/kfctl_$(TAG)_darwin.tar.gz
+	    --file bin/darwin/kfctl_$(TAG)_darwin.tar.gz
 
 build-kfctl-container:
 	DOCKER_BUILDKIT=1 docker build \

@@ -135,8 +135,8 @@ def setup_kubeflow_ks_app(args, api_client):
 
   # Install required packages
   packages = [
-      "kubeflow/common", "kubeflow/tf-serving", "kubeflow/tf-training",
-      "kubeflow/pytorch-job", "kubeflow/argo"
+      "kubeflow/common", "kubeflow/tf-training", "kubeflow/pytorch-job",
+      "kubeflow/argo"
   ]
 
   # Instead of installing packages we edit the app.yaml file directly
@@ -266,9 +266,9 @@ def test_successful_deployment(deployment_name):
 
 
 def test_katib(args):
+  test_successful_deployment('katib-db')
   test_successful_deployment('katib-manager')
   test_successful_deployment('katib-ui')
-  test_successful_deployment('katib-db')
   test_successful_deployment('katib-controller')
 
 

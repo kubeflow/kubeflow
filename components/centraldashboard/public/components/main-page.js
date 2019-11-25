@@ -141,8 +141,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * Resync the app with environment information
      */
     async resyncApp() {
-        this.$.envInfo.generateRequest();
-        await this.sleep(500);
+        await this.$.envInfo.generateRequest().completes;
         this.$.welcomeUser.show();
     }
 
@@ -259,11 +258,11 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     }
 
     /**
-     * Observer to reflect navigation in iframed pages and push to history.
+     * Observer to reflect navigation in iframed pages and replace history.
      * @param {string} newPage - iframe page path
      */
     _iframePageChanged(newPage) {
-        window.history.pushState(null, null,
+        window.history.replaceState(null, null,
             `/${IFRAME_LINK_PREFIX}${newPage}`);
     }
 

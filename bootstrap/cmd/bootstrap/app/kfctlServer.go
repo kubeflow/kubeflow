@@ -13,16 +13,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cenkalti/backoff"
+	"github.com/ghodss/yaml"
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps"
-	kfdefsv3 "github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
+	kftypes "github.com/kubeflow/kfctl/v3/pkg/apis/apps"
+	"io/ioutil"
 	"time"
 
-	//"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/apis/apps/kfdef/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/coordinator"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/gcp"
-	"github.com/kubeflow/kubeflow/bootstrap/v3/pkg/kfapp/kustomize"
+	kfdefsv1beta1 "github.com/kubeflow/kfctl/v3/pkg/apis/apps/kfdef/v1beta1"
+	"github.com/kubeflow/kfctl/v3/pkg/kfapp/coordinator"
+	"github.com/kubeflow/kfctl/v3/pkg/kfapp/gcp"
+	"github.com/kubeflow/kfctl/v3/pkg/kfapp/kustomize"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
@@ -38,33 +39,41 @@ import (
 )
 
 // KfctlCreatePath is the path on which to serve create requests
-const KfctlCreatePath = "/kfctl/apps/v1alpha2/create"
+const KfctlCreatePath = "/kfctl/apps/v1beta1/create"
 
 // KfctlGetpath is the path on which to query deployment status
-const KfctlGetpath = "/kfctl/apps/v1alpha2/get"
+const KfctlGetpath = "/kfctl/apps/v1beta1/get"
 
 // LastRequestTime last deploy request time.
 const LastRequestTime = "LastRequestTime"
+
+type KfctlServiceV1Beta1 interface {
+	// CreateCreateDeployment creates a Kubeflow deployment
+	CreateDeployment(context.Context, kfdefsv1beta1.KfDef) (*kfdefsv1beta1.KfDef, error)
+	// GetLatestKfdef returns latest KfDef copy which include deployment status
+	GetLatestKfDef(kfdefsv1beta1.KfDef) (*kfdefsv1beta1.KfDef, error)
+}
 
 // kfctlServer is a server to manage a single deployment.
 // It is a wrapper around kfctl.
 type kfctlServer struct {
 	ts TokenRefresher
-	c  chan kfdefsv3.KfDef
+	c  chan kfdefsv1beta1.KfDef
 
 	appsDir string
 
 	// builder supports injecting the code to create the coordinator so we can inject a fake during testing.
 	builder coordinator.Builder
 
-	kfApp       kftypes.KfApp
-	kfDefGetter coordinator.KfDefGetter
+	kfApp        kftypes.KfApp
+	KfDefGetter  coordinator.KfDefGetterV1beta1
+	PluginGetter coordinator.PluginGetter
 
 	// Mutex protecting the latest KfDef spec
 	kfDefMux sync.Mutex
 
 	// latestKfDef is updated to provide the latest status information.
-	latestKfDef kfdefsv3.KfDef
+	latestKfdef kfdefsv1beta1.KfDef
 }
 
 // NewServer returns a new kfctl server
@@ -74,7 +83,7 @@ func NewKfctlServer(appsDir string) (*kfctlServer, error) {
 	}
 
 	s := &kfctlServer{
-		c:       make(chan kfdefsv3.KfDef, 10),
+		c:       make(chan kfdefsv1beta1.KfDef, 10),
 		appsDir: appsDir,
 		builder: &coordinator.DefaultBuilder{},
 	}
@@ -86,55 +95,71 @@ func NewKfctlServer(appsDir string) (*kfctlServer, error) {
 }
 
 // handleDeployment handles a single deployment.
-// Returns a pointer to an updated KfDef
+// Returns a pointer to an updated kfdef
 //
 // Not thread safe.
 //
 // TODO(jlewi): Errors should be reported to user by adding appropriate conditions
-// to the KfDef.
-func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
+// to the kfconfig.
+func (s *kfctlServer) handleDeployment(req kfdefsv1beta1.KfDef) (*kfdefsv1beta1.KfDef, error) {
 	ctx := context.Background()
-
 	if s.kfApp == nil {
-		if r.Spec.AppDir != "" {
-			log.Warnf("r.Spec.AppDir is set it will be overwritten.")
-		}
-		r.Spec.AppDir = path.Join(s.appsDir, r.Name)
-		cfgFile := path.Join(r.Spec.AppDir, kftypes.KfConfigFile)
-		if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
-			log.Infof("Creating cfgFile; %v", cfgFile)
-			newCfgFile, err := coordinator.CreateKfAppCfgFileWithKfDef(&r)
+		appDir := path.Join(s.appsDir, req.Name)
+		cfgFile := path.Join(appDir, kftypes.KfConfigFile)
 
-			if newCfgFile != cfgFile {
-				log.Errorf("Actual config file %v; doesn't match expected %v", newCfgFile, cfgFile)
-			}
-
-			if err != nil {
-				// TODO(jlewi): We should update the KfDef.Status so that we report
-				// the failure to the user on the next call.
-				log.Errorf("There was a problem creating %v; error %v", cfgFile, err)
-				return &r, &httpError{
-					Message: "Internal service error please try again later.",
-					Code:    http.StatusInternalServerError,
+		writeConfig := func() error {
+			s.kfDefMux.Lock()
+			defer s.kfDefMux.Unlock()
+			if _, err := os.Stat(appDir); os.IsNotExist(err) {
+				log.Infof("Creating directory %v", appDir)
+				appdirErr := os.MkdirAll(appDir, os.ModePerm)
+				if appdirErr != nil {
+					log.Errorf("couldn't create directory %v Error %v", appDir, appdirErr)
+					return appdirErr
 				}
 			}
+			kfdefBytes, err := yaml.Marshal(req)
+			if err != nil {
+				return err
+			}
+			if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
+				log.Infof("Creating cfgFile; %v", cfgFile)
+				if err := ioutil.WriteFile(cfgFile, kfdefBytes, 0644); err != nil {
+					return err
+				}
+			}
+			return nil
 		}
 
-		kfApp, err := s.builder.LoadKfAppCfgFile(cfgFile)
+		if err := writeConfig(); err != nil {
+			return &req, &httpError{
+				Message: "failed to create kfdef config file",
+				Code:    http.StatusInternalServerError,
+			}
+		}
 
-		getter, ok := kfApp.(coordinator.KfDefGetter)
-		if !ok {
-			log.Errorf("Could not assert KfApp as type KfDefGetter; error %v", err)
-			return &r, &httpError{
+		kfApp, err := coordinator.NewLoadKfAppFromURI(cfgFile)
+		if err != nil {
+			log.Errorf("failed to build kfApp from URI: %v", err)
+			return &req, &httpError{
 				Message: "Internal service error please try again later.",
 				Code:    http.StatusInternalServerError,
 			}
 		}
 
-		p, ok := getter.GetPlugin(kftypes.GCP)
+		pluginGetter, ok := kfApp.(coordinator.PluginGetter)
+		if !ok {
+			log.Errorf("Could not assert KfApp as type PluginGetter; error %v", err)
+			return &req, &httpError{
+				Message: "Internal service error please try again later.",
+				Code:    http.StatusInternalServerError,
+			}
+		}
+
+		p, ok := pluginGetter.GetPlugin(kftypes.GCP)
 		if !ok {
 			log.Errorf("Could not get GCP plugin from KfApp")
-			return &r, &httpError{
+			return &req, &httpError{
 				Message: "Internal service error please try again later.",
 				Code:    http.StatusInternalServerError,
 			}
@@ -144,7 +169,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 
 		if !ok {
 			log.Errorf("Plugin %v doesn't implement Setter interface; can't set TokenSource", kftypes.GCP)
-			return &r, &httpError{
+			return &req, &httpError{
 				Message: "Internal service error please try again later.",
 				Code:    http.StatusInternalServerError,
 			}
@@ -159,29 +184,31 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 				return false
 			}
 
-			gcpPlugin.SetTokenSource(s.ts)
+			if err := gcpPlugin.SetTokenSource(s.ts); err != nil {
+				return false
+			}
 			// We don't want to run get-credentials
 			gcpPlugin.SetRunGetCredentials(false)
 			return true
 		}
 
 		if !setTokenSource() {
-			return &r, &httpError{
+			return &req, &httpError{
+				Message: "Internal service error please try again later.",
+				Code:    http.StatusInternalServerError,
+			}
+		}
+		kfdefGetter, ok := kfApp.(coordinator.KfDefGetterV1beta1)
+		if !ok {
+			log.Errorf("Could not assert KfApp as type KfDefGetter; error %v", err)
+			return &req, &httpError{
 				Message: "Internal service error please try again later.",
 				Code:    http.StatusInternalServerError,
 			}
 		}
 		s.kfApp = kfApp
-		s.kfDefGetter = getter
-	}
-
-	log.Infof("Calling generate")
-	if err := s.kfApp.Generate(kftypes.ALL); err != nil {
-		log.Errorf("Calling generate failed; %v", err)
-		return s.kfDefGetter.GetKfDef(), &httpError{
-			Message: "Internal service error please try again later.",
-			Code:    http.StatusInternalServerError,
-		}
+		s.KfDefGetter = kfdefGetter
+		s.PluginGetter = pluginGetter
 	}
 
 	// We need to split the apply into two steps because after
@@ -190,16 +217,16 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 	log.Infof("Calling apply platform")
 	if err := s.kfApp.Apply(kftypes.PLATFORM); err != nil {
 		log.Errorf("Calling apply platform failed; %v", err)
-		return s.kfDefGetter.GetKfDef(), &httpError{
+		return s.KfDefGetter.GetKfDefV1Beta1(), &httpError{
 			Message: "Internal service error please try again later.",
 			Code:    http.StatusInternalServerError,
 		}
 	}
 
-	kPlugin, ok := s.kfDefGetter.GetPlugin(kftypes.KUSTOMIZE)
+	kPlugin, ok := s.PluginGetter.GetPlugin(kftypes.KUSTOMIZE)
 	if !ok {
 		log.Errorf("Could not get %v plugin from KfApp", kftypes.KUSTOMIZE)
-		return s.kfDefGetter.GetKfDef(), &httpError{
+		return s.KfDefGetter.GetKfDefV1Beta1(), &httpError{
 			Message: "Internal service error please try again later.",
 			Code:    http.StatusInternalServerError,
 		}
@@ -209,7 +236,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 
 	if !ok {
 		log.Errorf("Plugin %v doesn't implement Setter interface; can't set K8s client", kftypes.KUSTOMIZE)
-		return s.kfDefGetter.GetKfDef(), &httpError{
+		return s.KfDefGetter.GetKfDefV1Beta1(), &httpError{
 			Message: "Internal service error please try again later.",
 			Code:    http.StatusInternalServerError,
 		}
@@ -220,18 +247,27 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 
 	if err != nil {
 		log.Errorf("Could not get a GCP token; error %v", err)
-		return s.kfDefGetter.GetKfDef(), &httpError{
+		return s.KfDefGetter.GetKfDefV1Beta1(), &httpError{
 			Message: "Internal service error please try again later.",
+			Code:    http.StatusInternalServerError,
+		}
+	}
+	pluginSpec := &gcp.GcpPluginSpec{}
+
+	err = req.GetPluginSpec(gcp.GcpPluginName, pluginSpec)
+	if err != nil {
+		return s.KfDefGetter.GetKfDefV1Beta1(), &httpError{
+			Message: fmt.Sprintf("Failed to load GcpPluginSpec: %v", err),
 			Code:    http.StatusInternalServerError,
 		}
 	}
 
 	// TODO(jlewi): BuildClusterConfig makes a call to the Containers API to get cluster info.
 	// Should we add retries?
-	k8sRest, err := BuildClusterConfig(ctx, token.AccessToken, r.Spec.Project, r.Spec.Zone, r.Name)
+	k8sRest, err := BuildClusterConfig(ctx, token.AccessToken, pluginSpec.Project, pluginSpec.Zone, req.Name)
 	if err != nil {
 		log.Errorf("Could not build K8s client; error %v", err)
-		return s.kfDefGetter.GetKfDef(), &httpError{
+		return s.KfDefGetter.GetKfDefV1Beta1(), &httpError{
 			Message: "Internal service error please try again later.",
 			Code:    http.StatusInternalServerError,
 		}
@@ -239,7 +275,7 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 
 	if k8sRest == nil {
 		log.Errorf("K8sRestConfig is nil; error %v", err)
-		return s.kfDefGetter.GetKfDef(), &httpError{
+		return s.KfDefGetter.GetKfDefV1Beta1(), &httpError{
 			Message: "Internal service error please try again later.",
 			Code:    http.StatusInternalServerError,
 		}
@@ -257,14 +293,14 @@ func (s *kfctlServer) handleDeployment(r kfdefsv3.KfDef) (*kfdefsv3.KfDef, error
 		backoff.WithMaxRetries(backoff.NewConstantBackOff(time.Second), 3))
 	if err != nil {
 		log.Errorf("Calling apply K8s failed; %v", err)
-		return s.kfDefGetter.GetKfDef(), &httpError{
+		return s.KfDefGetter.GetKfDefV1Beta1(), &httpError{
 			Message: "Internal service error please try again later.",
 			Code:    http.StatusInternalServerError,
 		}
 	}
 
 	log.Errorf("Need to implement code to push app to source repo.")
-	return s.kfDefGetter.GetKfDef(), nil
+	return s.KfDefGetter.GetKfDefV1Beta1(), nil
 
 	// Push to source repo.
 	// TODO(jlewi): Copy code in CloneRepoToLocal to clone the repo.
@@ -280,40 +316,48 @@ func (s *kfctlServer) process() {
 
 		if err != nil {
 			log.Errorf("Error occured; %v", err)
-			newDeployment.Status.Conditions = append(newDeployment.Status.Conditions, kfdefsv3.KfDefCondition{
-				Type: kfdefsv3.KfFailed,
+			newDeployment.Status.Conditions = append(newDeployment.Status.Conditions, kfdefsv1beta1.KfDefCondition{
+				Type: kfdefsv1beta1.KfDegraded,
 			})
 		} else {
-			newDeployment.Status.Conditions = append(newDeployment.Status.Conditions, kfdefsv3.KfDefCondition{
-				Type: kfdefsv3.KfSucceeded,
+			newDeployment.Status.Conditions = append(newDeployment.Status.Conditions, kfdefsv1beta1.KfDefCondition{
+				Type: kfdefsv1beta1.KfAvailable,
 			})
 		}
 		s.setLatestKfDef(newDeployment)
 	}
 }
 
-func (s *kfctlServer) setLatestKfDef(r *kfdefsv3.KfDef) {
+func (s *kfctlServer) setLatestKfDef(r *kfdefsv1beta1.KfDef) {
 	s.kfDefMux.Lock()
 	defer s.kfDefMux.Unlock()
-	s.latestKfDef = *s.kfDefGetter.GetKfDef()
+	s.latestKfdef = *s.KfDefGetter.GetKfDefV1Beta1()
+}
+
+func makeKfctlCreateRequestEndpoint(svc KfctlServiceV1Beta1) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(kfdefsv1beta1.KfDef)
+		r, err := svc.CreateDeployment(ctx, req)
+		return r, err
+	}
 }
 
 // makeServerStatusRequestEndpoint creates an endpoint to handle get latest kfdef requests in the router.
-func makeServerStatusRequestEndpoint(svc KfctlService) endpoint.Endpoint {
+func makeServerStatusRequestEndpoint(svc KfctlServiceV1Beta1) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(kfdefsv3.KfDef)
-		return svc.GetLatestKfdef(req)
+		req := request.(kfdefsv1beta1.KfDef)
+		return svc.GetLatestKfDef(req)
 	}
 }
 
 // RegisterEndpoints creates the http endpoints for the router
 func (s *kfctlServer) RegisterEndpoints() {
 	createHandler := httptransport.NewServer(
-		makeRouterCreateRequestEndpoint(s),
+		makeKfctlCreateRequestEndpoint(s),
 		func(_ context.Context, r *http.Request) (interface{}, error) {
-			var request kfdefsv3.KfDef
+			var request kfdefsv1beta1.KfDef
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-				log.Info("Err decoding kfdef: " + err.Error())
+				log.Info("Err decoding Kfdef: " + err.Error())
 				return nil, err
 			}
 			return request, nil
@@ -324,9 +368,9 @@ func (s *kfctlServer) RegisterEndpoints() {
 	statusHandler := httptransport.NewServer(
 		makeServerStatusRequestEndpoint(s),
 		func(_ context.Context, r *http.Request) (interface{}, error) {
-			var request kfdefsv3.KfDef
+			var request kfdefsv1beta1.KfDef
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-				log.Info("Err decoding kfdef: " + err.Error())
+				log.Info("Err decoding Kfdef: " + err.Error())
 				return nil, err
 			}
 			return request, nil
@@ -350,7 +394,7 @@ func (s *kfctlServer) RegisterEndpoints() {
 
 // isMatch checks whether the incoming request is a match for the deployment
 // that is already started. If not it is rejected.
-func isMatch(current *kfdefsv3.KfDef, new *kfdefsv3.KfDef) bool {
+func isMatch(current *kfdefsv1beta1.KfDef, new *kfdefsv1beta1.KfDef) bool {
 	// Ensure neither is nil
 	if current == nil {
 		return true
@@ -359,16 +403,26 @@ func isMatch(current *kfdefsv3.KfDef, new *kfdefsv3.KfDef) bool {
 	if new == nil {
 		return false
 	}
-
-	if current.Name == "" && current.Spec.Project == "" && current.Spec.Zone == "" {
-		return true
+	curPluginSpec := &gcp.GcpPluginSpec{}
+	err := current.GetPluginSpec(gcp.GcpPluginName, curPluginSpec)
+	if err != nil {
+		return false
 	}
-
-	if current.Spec.Project != new.Spec.Project {
+	newPluginSpec := &gcp.GcpPluginSpec{}
+	err = new.GetPluginSpec(gcp.GcpPluginName, newPluginSpec)
+	if err != nil {
 		return false
 	}
 
-	if current.Spec.Zone != new.Spec.Zone {
+	if current.Name == "" && curPluginSpec.Project == "" && curPluginSpec.Zone == "" {
+		return true
+	}
+
+	if curPluginSpec.Project != newPluginSpec.Project {
+		return false
+	}
+
+	if curPluginSpec.Zone != newPluginSpec.Zone {
 		return false
 	}
 
@@ -384,24 +438,13 @@ func isMatch(current *kfdefsv3.KfDef, new *kfdefsv3.KfDef) bool {
 //
 // TODO(https://github.com/kubeflow/kubeflow/issues/3592) Once the apply methods take a context we should be able
 // to use that and not rely on the environment
-func prepareSecrets(d *kfdefsv3.KfDef) {
-	secrets := []kfdefsv3.Secret{}
+func prepareSecrets(d *kfdefsv1beta1.KfDef) {
+	secrets := []kfdefsv1beta1.Secret{}
 
 	for _, s := range d.Spec.Secrets {
 		// Don't pass along the access token
 		if s.Name == gcp.GcpAccessTokenName {
 			continue
-		}
-
-		if s.SecretSource.LiteralSource != nil {
-			n := "KFCTL_" + s.Name
-			s.SecretSource.EnvSource = &kfdefsv3.EnvSource{
-				Name: n,
-			}
-
-			os.Setenv(n, s.SecretSource.LiteralSource.Value)
-			s.SecretSource.LiteralSource = nil
-
 		}
 
 		secrets = append(secrets, s)
@@ -410,17 +453,18 @@ func prepareSecrets(d *kfdefsv3.KfDef) {
 	d.Spec.Secrets = secrets
 }
 
-func (s *kfctlServer) GetLatestKfdef(req kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
+func (s *kfctlServer) GetLatestKfDef(req kfdefsv1beta1.KfDef) (*kfdefsv1beta1.KfDef, error) {
 	s.kfDefMux.Lock()
 	defer s.kfDefMux.Unlock()
-	return s.latestKfDef.DeepCopy(), nil
+	kfdefcp := s.latestKfdef.DeepCopy()
+	return kfdefcp, nil
 }
 
 // CreateDeployment creates the deployment.
 //
 // Not thread safe
 // TODO(jlewi): We should check if the request matches the current deployment and if not reject
-func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) (*kfdefsv3.KfDef, error) {
+func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv1beta1.KfDef) (*kfdefsv1beta1.KfDef, error) {
 	log.Infof("New CreateDeployment for %v", req.Name)
 	token, err := req.GetSecret(gcp.GcpAccessTokenName)
 
@@ -431,6 +475,14 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) 
 			Code:    http.StatusBadRequest,
 		}
 	}
+	pluginSpec := &gcp.GcpPluginSpec{}
+
+	err = req.GetPluginSpec(gcp.GcpPluginName, pluginSpec)
+	if err != nil {
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
+		log.Errorf("Failed to load GcpPluginSpec: %v", err)
+		return nil, err
+	}
 
 	initFunc := func() error {
 		s.kfDefMux.Lock()
@@ -438,7 +490,7 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) 
 
 		if s.ts == nil {
 			log.Infof("Initializing token source")
-			ts, err := NewRefreshableTokenSource(req.Spec.Project)
+			ts, err := NewRefreshableTokenSource(pluginSpec.Project)
 
 			if err != nil {
 				log.Errorf("Could not create token source; error %v", err)
@@ -466,7 +518,7 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) 
 	if err != nil {
 		log.Errorf("Refreshing the token failed; %v", err)
 		return nil, &httpError{
-			Message: fmt.Sprintf("Could not verify you have admin priveleges on project %v; please check that the project is correct and you have admin priveleges", req.Spec.Project),
+			Message: fmt.Sprintf("Could not verify you have admin priveleges on project %v; please check that the project is correct and you have admin priveleges", pluginSpec.Project),
 			Code:    http.StatusBadRequest,
 		}
 	}
@@ -474,29 +526,29 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) 
 	checkIsMatch := func() bool {
 		s.kfDefMux.Lock()
 		defer s.kfDefMux.Unlock()
-		return isMatch(&s.latestKfDef, &req)
+		return isMatch(&s.latestKfdef, &req)
 	}
 
 	if !checkIsMatch() {
 		return nil, &httpError{
-			Message: fmt.Sprintf("This server is already handling a deployment for project %v name %v and the new request doesn't match", req.Spec.Project, req.Name),
+			Message: fmt.Sprintf("This server is already handling a deployment for project %v name %v and the new request doesn't match", pluginSpec.Project, req.Name),
 			Code:    http.StatusBadRequest,
 		}
 	}
 
 	// Check that it is a valid request.
 	if isValid, msg := (&req).IsValid(); !isValid {
-		req.Status.Conditions = append(req.Status.Conditions, kfdefsv3.KfDefCondition{
-			Type:               kfdefsv3.KfFailed,
+		req.Status.Conditions = append(req.Status.Conditions, kfdefsv1beta1.KfDefCondition{
+			Type:               kfdefsv1beta1.KfDegraded,
 			Status:             v1.ConditionTrue,
-			Reason:             kfdefsv3.InvalidKfDefSpecReason,
-			Message:            fmt.Sprintf("KfDef.Spec is invalid; " + msg),
+			Message:            fmt.Sprintf("Kfdef.Spec is invalid; " + msg),
 			LastUpdateTime:     metav1.Now(),
 			LastTransitionTime: metav1.Now(),
 		})
 		return &req, nil
 	}
 
+	// TODO integrate once https://github.com/kubeflow/kubeflow/pull/4436 merged.
 	// TODo(jlewi): Uncoment when gcp.IsValid is checked in.
 	//if isValid, msg := gcp.IsValid(req); !isValid {
 	//	req.Status.Conditions = append(req.Status.Conditions, kfdefsv3.KfDefCondition{
@@ -519,17 +571,13 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv3.KfDef) 
 	s.c <- *strippedReq
 	log.Infof("Channel: insert %v, channel len: %v", strippedReq.Name, len(s.c))
 
-	// Return the current status.
-	s.kfDefMux.Lock()
-	defer s.kfDefMux.Unlock()
-
-	res := s.latestKfDef.DeepCopy()
+	latestKfdef, err := s.GetLatestKfDef(req)
 
 	// We haven't persisted yet so just echo back what we have
-	if res.Name == "" {
+	if latestKfdef.Name == "" {
 		return &req, nil
 	}
-	return res, nil
+	return latestKfdef, nil
 }
 
 // BuildClusterConfig creates a Kubernetes rest config.

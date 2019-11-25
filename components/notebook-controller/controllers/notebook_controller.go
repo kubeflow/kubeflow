@@ -19,25 +19,29 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/go-logr/logr"
+	reconcilehelper "github.com/kubeflow/kubeflow/components/common/reconcilehelper"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/culler"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/metrics"
-	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
@@ -63,9 +67,10 @@ func ignoreNotFound(err error) error {
 // NotebookReconciler reconciles a Notebook object
 type NotebookReconciler struct {
 	client.Client
-	Log     logr.Logger
-	Scheme  *runtime.Scheme
-	Metrics *metrics.Metrics
+	Log           logr.Logger
+	Scheme        *runtime.Scheme
+	Metrics       *metrics.Metrics
+	EventRecorder record.EventRecorder
 }
 
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
@@ -77,6 +82,24 @@ type NotebookReconciler struct {
 func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("notebook", req.NamespacedName)
+
+	event := &v1.Event{}
+	var getEventErr error
+	getEventErr = r.Get(ctx, req.NamespacedName, event)
+	if getEventErr == nil {
+		involvedNotebook := &v1beta1.Notebook{}
+		involvedNotebookKey := types.NamespacedName{Name: nbNameFromInvolvedObject(&event.InvolvedObject), Namespace: req.Namespace}
+		if err := r.Get(ctx, involvedNotebookKey, involvedNotebook); err != nil {
+			log.Error(err, "unable to fetch Notebook by looking at event")
+			return ctrl.Result{}, ignoreNotFound(err)
+		}
+		r.EventRecorder.Eventf(involvedNotebook, event.Type, event.Reason,
+			"Reissued from %s/%s: %s", strings.ToLower(event.InvolvedObject.Kind), event.InvolvedObject.Name, event.Message)
+	}
+	if getEventErr != nil && !apierrs.IsNotFound(getEventErr) {
+		return ctrl.Result{}, getEventErr
+	}
+	// If not found, continue. Is not an event.
 
 	instance := &v1beta1.Notebook{}
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
@@ -108,7 +131,7 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 	// Update the foundStateful object and write the result back if there are any changes
-	if !justCreated && util.CopyStatefulSetFields(ss, foundStateful) {
+	if !justCreated && reconcilehelper.CopyStatefulSetFields(ss, foundStateful) {
 		log.Info("Updating StatefulSet", "namespace", ss.Namespace, "name", ss.Name)
 		err = r.Update(ctx, foundStateful)
 		if err != nil {
@@ -139,7 +162,7 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 	// Update the foundService object and write the result back if there are any changes
-	if !justCreated && util.CopyServiceFields(service, foundService) {
+	if !justCreated && reconcilehelper.CopyServiceFields(service, foundService) {
 		log.Info("Updating Service\n", "namespace", service.Namespace, "name", service.Name)
 		err = r.Update(ctx, foundService)
 		if err != nil {
@@ -344,8 +367,8 @@ func virtualServiceName(kfName string, namespace string) string {
 func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructured, error) {
 	name := instance.Name
 	namespace := instance.Namespace
-	prefix := fmt.Sprintf("/notebook/%s/%s", namespace, name)
-	rewrite := fmt.Sprintf("/notebook/%s/%s", namespace, name)
+	prefix := fmt.Sprintf("/notebook/%s/%s/", namespace, name)
+	rewrite := fmt.Sprintf("/notebook/%s/%s/", namespace, name)
 	// TODO(gabrielwen): Make clusterDomain an option.
 	service := fmt.Sprintf("%s.%s.svc.cluster.local", name, namespace)
 
@@ -425,7 +448,7 @@ func (r *NotebookReconciler) reconcileVirtualService(instance *v1beta1.Notebook)
 		return err
 	}
 
-	if !justCreated && util.CopyVirtualService(virtualService, foundVirtual) {
+	if !justCreated && reconcilehelper.CopyVirtualService(virtualService, foundVirtual) {
 		log.Info("Updating virtual service", "namespace", instance.Namespace, "name",
 			virtualServiceName(instance.Name, instance.Namespace))
 		err = r.Update(context.TODO(), foundVirtual)
@@ -436,6 +459,27 @@ func (r *NotebookReconciler) reconcileVirtualService(instance *v1beta1.Notebook)
 
 	return nil
 }
+
+func isStsOrPodEvent(event *v1.Event) bool {
+	return event.InvolvedObject.Kind == "Pod" || event.InvolvedObject.Kind == "StatefulSet"
+}
+
+func nbNameFromInvolvedObject(object *v1.ObjectReference) string {
+	nbName := object.Name
+	if object.Kind == "Pod" {
+		nbName = nbName[:strings.LastIndex(nbName, "-")]
+	}
+	return nbName
+}
+
+func nbNameExists(client client.Client, nbName string, namespace string) bool {
+	if err := client.Get(context.Background(), types.NamespacedName{namespace, nbName}, &v1beta1.Notebook{}); err != nil {
+		// If error != NotFound, trigger the reconcile call anyway to avoid loosing a potential relevant event
+		return !apierrs.IsNotFound(err)
+	}
+	return true
+}
+
 func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&v1beta1.Notebook{}).
@@ -481,10 +525,48 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			return true
 		},
 	}
-	return c.Watch(
+
+	eventToRequest := handler.ToRequestsFunc(
+		func(a handler.MapObject) []ctrl.Request {
+			return []reconcile.Request{
+				{NamespacedName: types.NamespacedName{
+					Name:      a.Meta.GetName(),
+					Namespace: a.Meta.GetNamespace(),
+				}},
+			}
+		})
+
+	eventsPredicates := predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			event := e.ObjectNew.(*v1.Event)
+			return e.ObjectOld != e.ObjectNew &&
+				isStsOrPodEvent(event) &&
+				nbNameExists(r.Client, nbNameFromInvolvedObject(&event.InvolvedObject), e.MetaNew.GetNamespace())
+		},
+		CreateFunc: func(e event.CreateEvent) bool {
+			event := e.Object.(*v1.Event)
+			return isStsOrPodEvent(event) &&
+				nbNameExists(r.Client, nbNameFromInvolvedObject(&event.InvolvedObject), e.Meta.GetNamespace())
+		},
+	}
+
+	if err = c.Watch(
 		&source.Kind{Type: &corev1.Pod{}},
 		&handler.EnqueueRequestsFromMapFunc{
 			ToRequests: mapFn,
 		},
-		p)
+		p); err != nil {
+		return err
+	}
+
+	if err = c.Watch(
+		&source.Kind{Type: &v1.Event{}},
+		&handler.EnqueueRequestsFromMapFunc{
+			ToRequests: eventToRequest,
+		},
+		eventsPredicates); err != nil {
+		return err
+	}
+
+	return nil
 }

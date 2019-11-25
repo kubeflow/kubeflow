@@ -23,9 +23,12 @@ import google.auth.iam
 import google.oauth2.credentials
 import google.oauth2.service_account
 from retrying import retry
+from requests.exceptions import SSLError
+from requests.exceptions import ConnectionError as ReqConnectionError
 
 IAM_SCOPE = "https://www.googleapis.com/auth/iam"
 OAUTH_TOKEN_URI = "https://www.googleapis.com/oauth2/v4/token"
+COOKIE_NAME = "KUBEFLOW-AUTH-KEY"
 
 def get_service_account_credentials(client_id_key):
   # Figure out what environment we're running in and get some preliminary
@@ -75,7 +78,7 @@ def may_get_env_var(name):
   else:
     raise Exception("%s not set" % name)
 
-def endpoint_is_ready(url, wait_min=15):
+def iap_is_ready(url, wait_min=15):
   """
   Checks if the kubeflow endpoint is ready.
 
@@ -84,8 +87,9 @@ def endpoint_is_ready(url, wait_min=15):
   Returns:
     True if the url is ready
   """
-  service_account_credentials = get_service_account_credentials("CLIENT_ID")
+  google_open_id_connect_token = None
 
+  service_account_credentials = get_service_account_credentials("CLIENT_ID")
   google_open_id_connect_token = get_google_open_id_connect_token(
       service_account_credentials)
   # Wait up to 30 minutes for IAP access test.
@@ -93,10 +97,10 @@ def endpoint_is_ready(url, wait_min=15):
   end_time = datetime.datetime.now() + datetime.timedelta(
       minutes=wait_min)
   while datetime.datetime.now() < end_time:
-    sleep(10)
     num_req += 1
     logging.info("Trying url: %s", url)
     try:
+      resp = None
       resp = requests.request(
           "GET",
           url,
@@ -107,12 +111,72 @@ def endpoint_is_ready(url, wait_min=15):
           verify=False)
       logging.info(resp.text)
       if resp.status_code == 200:
-        logging.info("IAP is ready for %s!", url)
+        logging.info("Endpoint is ready for %s!", url)
         return True
       else:
         logging.info(
-            "%s: IAP not ready, request number: %s" % (url, num_req))
+            "%s: Endpoint not ready, request number: %s" % (url, num_req))
     except Exception as e:
-      logging.info("%s: IAP not ready, exception caught %s, request number: %s" %
+      logging.info("%s: Endpoint not ready, exception caught %s, request number: %s" %
                    (url, str(e), num_req))
+    sleep(10)
   return False
+
+def basic_auth_is_ready(url, username, password, wait_min=15):
+  get_url = url + "/kflogin"
+  post_url = url + "/apikflogin"
+
+  req_num = 0
+  end_time = datetime.datetime.now() + datetime.timedelta(
+      minutes=wait_min)
+  while datetime.datetime.now() < end_time:
+    req_num += 1
+    logging.info("Trying url: %s request number %s" % (get_url, req_num))
+    resp = None
+    try:
+      resp = requests.request(
+          "GET",
+          get_url,
+          verify=False)
+    except SSLError as e:
+      logging.warning("%s: Endpoint SSL handshake error: %s; request number: %s" % (url, e, req_num))
+    except ReqConnectionError:
+      logging.info(
+          "%s: Endpoint not ready, request number: %s" % (url, req_num))
+    if not resp or resp.status_code != 200:
+      logging.info("Basic auth login is not ready, request number %s: %s" % (req_num, get_url))
+    else:
+      break
+    sleep(10)
+
+  logging.info("%s: endpoint is ready, testing login API; request number %s" % (get_url, req_num))
+  resp = requests.post(
+      post_url,
+      auth=(username, password),
+      headers={
+          "x-from-login": "true",
+      },
+      verify=False)
+  logging.info("%s: %s" % (post_url, resp.text))
+  if resp.status_code != 205:
+    logging.error("%s: login is failed", post_url)
+    return False
+
+  cookie = None
+  for c in resp.cookies:
+    if c.name == COOKIE_NAME:
+      cookie = c
+      break
+  if cookie is None:
+    logging.error("%s: auth cookie cannot be found; name: %s" % (post_url, COOKIE_NAME))
+    return False
+
+  resp = requests.get(
+      url,
+      cookies={
+          cookie.name: cookie.value,
+      },
+      verify=False)
+  logging.info("%s: %s" % (url, resp.status_code))
+  logging.info(resp.content)
+  return resp.status_code == 200

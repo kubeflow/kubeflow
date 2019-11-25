@@ -44,6 +44,7 @@ export PULL_NUMBER=4148
 
 import datetime
 from kubeflow.testing import argo_build_util
+from kubeflow.testing import util
 import logging
 import os
 import uuid
@@ -63,18 +64,23 @@ TESTS_DAG_NAME = "gke-tests"
 
 TEMPLATE_LABEL = "kfctl_e2e"
 
-MAIN_REPO = "kubeflow/kubeflow"
-EXTRA_REPOS = ["kubeflow/testing@HEAD", "kubeflow/tf-operator@HEAD"]
+DEFAULT_REPOS = [
+    "kubeflow/kubeflow@HEAD",
+    "kubeflow/testing@HEAD",
+    "kubeflow/tf-operator@HEAD"
+]
 
 class Builder:
   def __init__(self, name=None, namespace=None,
                config_path=("https://raw.githubusercontent.com/kubeflow"
                             "/manifests/master/kfdef/kfctl_gcp_iap.yaml"),
-               bucket="kubeflow-ci_temp",
+               bucket=None,
                test_endpoint=False,
                use_basic_auth=False,
                build_and_apply=False,
+               test_target_name=None,
                kf_app_name=None, delete_kf=True,
+               extra_repos="",
                **kwargs):
     """Initialize a builder.
 
@@ -82,10 +88,11 @@ class Builder:
       name: Name for the workflow.
       namespace: Namespace for the workflow.
       config_path: Path to the KFDef spec file.
-      bucket: The bucket to upload artifacts to.
-      test_endpoint: Whether to test the endpoint is ready. Should only
-        be true for IAP.
+      bucket: The bucket to upload artifacts to. If not set use default determined by prow_artifacts.py.
+      test_endpoint: Whether to test the endpoint is ready.
       use_basic_auth: Whether to use basic_auth.
+      test_target_name: (Optional) Name to use as the test target to group
+        tests.
       kf_app_name: (Optional) Name to use for the Kubeflow deployment.
         If not set a unique name is assigned. Only set this if you want to
         reuse an existing deployment across runs.
@@ -117,14 +124,15 @@ class Builder:
 
     # source directory where all repos should be checked out
     self.src_root_dir = self.test_dir + "/src"
-    # The directory containing the kubeflow/kubeflow repo
-    self.src_dir = self.src_root_dir + "/kubeflow/kubeflow"
+    # The directory containing the kubeflow/kfctl repo
+    self.src_dir = self.src_root_dir + "/kubeflow/kfctl"
+    self.kubeflow_dir = self.src_root_dir + "/kubeflow/kubeflow"
 
-    # Directory in kubeflow/kubeflow containing the pytest files for kfctl
-    self.kfctl_pytest_dir = os.path.join(self.src_dir, "testing/kfctl")
+    # Directory in kubeflow/kfctl containing the pytest files.
+    self.kfctl_pytest_dir = os.path.join(self.src_dir, "testing/e2e")
 
     # Top level directories for python code
-    self.kubeflow_py = self.src_dir
+    self.kubeflow_py = self.kubeflow_dir
 
     # The directory within the kubeflow_testing submodule containing
     # py scripts to use.
@@ -149,6 +157,20 @@ class Builder:
     # Config name is the name of the config file. This is used to give junit
     # files unique names.
     self.config_name = os.path.splitext(os.path.basename(config_path))[0]
+
+    # The class name to label junit files.
+    # We want to be able to group related tests in test grid.
+    # Test grid allows grouping by target which corresponds to the classname
+    # attribute in junit files.
+    # So we set an environment variable to the desired class name.
+    # The pytest modules can then look at this environment variable to
+    # explicitly override the classname.
+    # The classname should be unique for each run so it should take into
+    # account the different parameters
+    if test_target_name:
+      self.test_target_name = test_target_name
+    else:
+      self.test_target_name = self.config_name
 
     # app_name is the name of the Kubeflow deployment.
     # This needs to be unique per run since we name GCP resources with it.
@@ -175,7 +197,18 @@ class Builder:
     self.steps_namespace = "kubeflow"
     self.test_endpoint = test_endpoint
 
-    self.kfctl_path = os.path.join(self.src_dir, "bootstrap/bin/kfctl")
+    self.kfctl_path = os.path.join(self.src_dir, "bin/kfctl")
+
+    # Fetch the main repo from Prow environment.
+    self.main_repo = argo_build_util.get_repo_from_prow_env()
+
+    # extra_repos is a list of comma separated repo names with commits,
+    # in the format <repo_owner>/<repo_name>@<commit>,
+    # e.g. "kubeflow/tf-operator@12345,kubeflow/manifests@23456".
+    # This will be used to override the default repo branches.
+    self.extra_repos = []
+    if extra_repos:
+      self.extra_repos = extra_repos.split(',')
 
   def _build_workflow(self):
     """Create the scaffolding for the Argo workflow"""
@@ -243,7 +276,9 @@ class Builder:
      'container': {'command': [],
       'env': [
         {"name": "GOOGLE_APPLICATION_CREDENTIALS",
-         "value": "/secret/gcp-credentials/key.json"}
+         "value": "/secret/gcp-credentials/key.json"},
+        {"name": "TEST_TARGET_NAME",
+         "value": self.test_target_name},
        ],
       'image': 'gcr.io/kubeflow-ci/test-worker:latest',
       'imagePullPolicy': 'Always',
@@ -302,6 +337,7 @@ class Builder:
 
     #***************************************************************************
     # Test TFJob
+    job_name = self.config_name.replace("_", "-")
     step_name = "tfjob-test"
     command = [
       "python",
@@ -311,7 +347,7 @@ class Builder:
       "--tfjob_version=v1",
       # Name is used for the test case name so it should be unique across
       # all E2E tests.
-      "--params=name=smoke-tfjob-" + self.config_name + ",namespace=" +
+      "--params=name=smoke-tfjob-" + job_name + ",namespace=" +
       self.steps_namespace,
       "--artifacts_path=" + self.artifacts_dir,
       # Skip GPU tests
@@ -321,27 +357,6 @@ class Builder:
     dependences = []
     tfjob_test = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
                                   command, dependences)
-
-    #*************************************************************************
-    # Test katib deploy
-    step_name = "test-katib-deploy"
-    command = ["python",
-               "-m",
-               "testing.test_deploy",
-               "--project=kubeflow-ci",
-               "--namespace=" + self.steps_namespace,
-               "--test_dir=" + self.test_dir,
-               "--artifacts_dir=" + self.artifacts_dir,
-               "--deploy_name=test-katib",
-               "--workflow_name=" + self.name,
-               "test_katib",
-              ]
-
-    dependences = []
-    deploy_katib = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
-                                    command, dependences)
-
-
 
     #*************************************************************************
     # Test pytorch job
@@ -366,24 +381,6 @@ class Builder:
                                     command, dependences)
 
     #***************************************************************************
-    # Test tfjob simple_tfjob_tests
-    step_name = "tfjob-simple"
-    command =  [
-                "python",
-                "-m",
-                "testing.tf_job_simple_test",
-                "--src_dir=" + self.src_dir,
-                "--tf_job_version=v1",
-                "--test_dir=" + self.test_dir,
-                "--artifacts_dir=" + self.artifacts_dir,
-              ]
-
-
-    dependences = []
-    tfjob_simple_test = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
-                                         command, dependences)
-
-    #***************************************************************************
     # Notebook test
 
     step_name = "notebook-test"
@@ -403,7 +400,28 @@ class Builder:
                                      command, dependences)
 
     notebook_test["container"]["workingDir"] =  os.path.join(
-      self.src_dir, "kubeflow/jupyter/tests")
+      self.kubeflow_dir, "kubeflow/jupyter/tests")
+
+    #***************************************************************************
+    # Profiles test
+
+    step_name = "profiles-test"
+    command =  ["pytest",
+                "profiles_test.py",
+                # I think -s mean stdout/stderr will print out to aid in debugging.
+                # Failures still appear to be captured and stored in the junit file.
+                "-s",
+                # Test timeout in seconds.
+                "--timeout=600",
+                "--junitxml=" + self.artifacts_dir + "/junit_profiles-test.xml",
+             ]
+
+    dependences = []
+    profiles_test = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
+                                     command, dependences)
+
+    profiles_test["container"]["workingDir"] =  os.path.join(
+      self.kubeflow_dir, "kubeflow/profiles/tests")
 
   def _build_exit_dag(self):
     """Build the exit handler dag"""
@@ -436,9 +454,10 @@ class Builder:
                "kubeflow.testing.prow_artifacts",
                "--artifacts_dir=" +
                self.output_dir,
-               "copy_artifacts",
-               "--bucket=" + self.bucket,
-               "--suffix=fakesuffix",]
+               "copy_artifacts"]
+
+    if self.bucket:
+      command = append("--bucket=" + self.bucket)
 
     dependences = []
     if self.delete_kf:
@@ -472,20 +491,19 @@ class Builder:
     # Checkout
 
     # create the checkout step
-    main_repo = argo_build_util.get_repo_from_prow_env()
-    if not main_repo:
-      logging.info("Prow environment variables for repo not set")
-      main_repo = MAIN_REPO + "@HEAD"
-    logging.info("Main repository: %s", main_repo)
-    repos = [main_repo]
-
-    repos.extend(EXTRA_REPOS)
 
     checkout = argo_build_util.deep_copy(task_template)
 
+    # Construct the list of repos to checkout
+    list_of_repos = DEFAULT_REPOS
+    list_of_repos.append(self.main_repo)
+    list_of_repos.extend(self.extra_repos)
+    repos = util.combine_repos(list_of_repos)
+    repos_str = ','.join(['%s@%s' % (key, value) for (key, value) in repos.items()])
+
     checkout["name"] = "checkout"
     checkout["container"]["command"] = ["/usr/local/bin/checkout_repos.sh",
-                                        "--repos=" + ",".join(repos),
+                                        "--repos=" + repos_str,
                                         "--src_dir=" + self.src_root_dir]
 
     argo_build_util.add_task_to_dag(self.workflow, E2E_DAG_NAME, checkout, [])
@@ -517,6 +535,7 @@ class Builder:
         #
         "-o", "junit_suite_name=test_kfctl_go_deploy_" + self.config_name,
         "--app_path=" + self.app_dir,
+        "--kfctl_repo_path=" + self.src_dir,
     ]
 
     dependences = [checkout["name"]]
@@ -572,11 +591,35 @@ class Builder:
                  "-o", "junit_suite_name=test_endpoint_is_ready_" + self.config_name,
                  "--app_path=" + self.app_dir,
                  "--app_name=" + self.app_name,
+                 "--use_basic_auth={0}".format(self.use_basic_auth),
               ]
 
       dependencies = [build_kfctl["name"]]
       endpoint_ready = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
                                         command, dependencies)
+    #**************************************************************************
+    # Do kfctl apply again. This test will be skip if it's presubmit.
+    step_name = "kfctl-second-apply"
+    command = [
+           "pytest",
+           "kfctl_second_apply.py",
+           # I think -s mean stdout/stderr will print out to aid in debugging.
+           # Failures still appear to be captured and stored in the junit file.
+           "-s",
+           "--log-cli-level=info",
+           "--junitxml=" + os.path.join(self.artifacts_dir,
+                                        "junit_kfctl-second-apply-test-" +
+                                        self.config_name + ".xml"),
+           # Test suite name needs to be unique based on parameters
+           "-o", "junit_suite_name=test_kfctl_second_apply_" + self.config_name,
+           "--app_path=" + self.app_dir,
+         ]
+    if self.test_endpoint:
+      dependences = [kf_is_ready["name"], endpoint_ready["name"]]
+    else:
+      dependences = [kf_is_ready["name"]]
+    kf_second_apply = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,
+                                       command, dependences)
 
     self._build_tests_dag()
 
@@ -595,9 +638,10 @@ class Builder:
                "-m",
                "kubeflow.testing.prow_artifacts",
                "--artifacts_dir=" + self.output_dir,
-               "create_pr_symlink",
-               "--bucket=" + self.bucket,
-               ]
+               "create_pr_symlink"]
+
+    if self.bucket:
+      command.append(self.bucket)
 
     dependences = [checkout["name"]]
     symlink = self._build_step(step_name, self.workflow, E2E_DAG_NAME, task_template,

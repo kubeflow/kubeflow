@@ -19,14 +19,15 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"time"
+
 	"github.com/ghodss/yaml"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 
 	"github.com/cenkalti/backoff"
 	"github.com/go-logr/logr"
@@ -178,7 +179,7 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 	// "default-editor" would have kubeflowEdit permission: edit all resources in target namespace except rbac.
 	if err = r.updateServiceAccount(instance, DEFAULT_EDITOR, kubeflowEdit); err != nil {
 		logger.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
-			"defaultEdittor", "error", err)
+			"defaultEditor", "error", err)
 		return reconcile.Result{}, err
 	}
 	// Create service account "default-viewer" in target namespace.
@@ -394,7 +395,7 @@ func (r *ProfileReconciler) updateIstioRbac(profileIns *profilev1beta1.Profile) 
 	return nil
 }
 
-// updateServiceAccount create or update service account "saName" with role "ClusterRoleName" in target namespace owned by "profileIns"
+// updateResourceQuota create or update ResourceQuota for target namespace
 func (r *ProfileReconciler) updateResourceQuota(profileIns *profilev1beta1.Profile,
 	resourceQuota *corev1.ResourceQuota) error {
 	ctx := context.Background()
@@ -558,7 +559,7 @@ func (r *ProfileReconciler) PatchDefaultPluginSpec(ctx context.Context, profileI
 					Kind: KIND_WORKLOAD_IDENTITY,
 				},
 				Spec: &runtime.RawExtension{
-					Raw: []byte(fmt.Sprintf(`{"GcpServiceAccount": "%v"}`, r.WorkloadIdentity)),
+					Raw: []byte(fmt.Sprintf(`{"gcpServiceAccount": "%v"}`, r.WorkloadIdentity)),
 				},
 			})
 		}

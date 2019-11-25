@@ -1,9 +1,0 @@
-{
-  "base_image": "nvidia/cuda:9.0-cudnn7-runtime-ubuntu16.04",
-  "tf_version": "1.7.0",
-  "cuda_version": "9.0",
-  "cudnn_version": "7",
-  "bazel_version": "0.10.0",
-  "tf_cuda_compatibility": "3.5,5.2,6.1,7.0",
-  "cuda_config_version": "9-0",
-}

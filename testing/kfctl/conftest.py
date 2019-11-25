@@ -35,7 +35,7 @@ def pytest_addoption(parser):
 
   # TODO(jlewi): This flag is deprecated this should be determined now from the KFDef spec
   parser.addoption(
-      "--use_istio", action="store", default="False",
+      "--use_istio", action="store", default="True",
       help="Use istio.")
 
   parser.addoption(
