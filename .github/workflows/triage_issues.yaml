@@ -13,4 +13,8 @@ jobs:
         with:
           # Letting input NEEDS_TRIAGE_PROJECT_CARD_ID use the default value
           ISSUE_NUMBER: ${{ github.event.issue.number }}
+<<<<<<< HEAD
           PERSONAL_ACCESS_TOKEN: ${{ secrets.triage_projects_github_token }}
+=======
+          GITHUB_PERSONAL_ACCESS_TOKEN: ${{ secrets.triage_projects_github_token }}
+>>>>>>> 29591dab... Fix the GitHub action workflow to add issue triage issues
