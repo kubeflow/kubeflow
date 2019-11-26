@@ -1,5 +1,7 @@
+# Define a GitHub action workflow to determine whether issues 
+# should be added or removed from the Needs Triage Kanban board.
 name: Check Triage Status of Issue
-on: 
+on:
   issues:
     types: [opened, closed, reopened, transferred, labeled, unlabeled]
     # Issue is created, Issue is closed, Issue added or removed from projects, Labels added/removed
@@ -13,4 +15,5 @@ jobs:
         with:
           # Letting input NEEDS_TRIAGE_PROJECT_CARD_ID use the default value
           ISSUE_NUMBER: ${{ github.event.issue.number }}
-          PERSONAL_ACCESS_TOKEN: ${{ secrets.triage_projects_github_token }}
+          GITHUB_PERSONAL_ACCESS_TOKEN: ${{ secrets.triage_projects_github_token }}
+
