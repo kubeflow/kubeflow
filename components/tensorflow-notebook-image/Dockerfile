@@ -110,6 +110,8 @@ COPY --chown=jovyan:users requirements.txt /tmp
 
 RUN docker-credential-gcr configure-docker && chown ${NB_USER}:users $HOME/.docker/config.json
 
+RUN chown -R ${NB_USER}:users $HOME
+
 # Configure container startup
 EXPOSE 8888
 USER jovyan
