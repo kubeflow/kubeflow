@@ -108,6 +108,10 @@ func safeToApplyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.Pod
 			errs = append(errs, err)
 		}
 	}
+
+	if _, err := mergeMetadata(pod.ObjectMeta, podDefaults); err != nil {
+		errs = append(errs, err)
+	}
 	return utilerrors.NewAggregate(errs)
 }
 
@@ -275,6 +279,43 @@ func mergeVolumes(volumes []corev1.Volume, podDefaults []*settingsapi.PodDefault
 	return mergedVolumes, err
 }
 
+func mergeMetadata(metadata metav1.ObjectMeta, podDefaults []*settingsapi.PodDefault) (*metav1.ObjectMeta, error) {
+	mergedMetadata := metadata.DeepCopy()
+
+	var errs []error
+	for _, pd := range podDefaults {
+		for k, v := range pd.Annotations {
+			ov, ok := metadata.Annotations[k]
+			if !ok {
+				mergedMetadata.Annotations[k] = v
+				continue
+			}
+
+			if ov != v {
+				errs = append(errs, fmt.Errorf("merging annotations for %s has conflict on %s: \n%#v\ndoes not match\n%#v\n in pod", pd.GetName(), k, v, ov))
+			}
+		}
+		for k, v := range pd.Labels {
+			ov, ok := metadata.Labels[k]
+			if !ok {
+				mergedMetadata.Labels[k] = v
+				continue
+			}
+
+			if ov != v {
+				errs = append(errs, fmt.Errorf("merging labels for %s has conflict on %s: \n%#v\ndoes not match\n%#v\n in pod", pd.GetName(), k, v, ov))
+			}
+		}
+	}
+
+	err := utilerrors.NewAggregate(errs)
+	if err != nil {
+		klog.Error(err)
+		return nil, err
+	}
+	return mergedMetadata, err
+}
+
 // applyPodDefaultsOnPod updates the PodSpec with merged information from all the
 // applicable PodDefaults. It ignores the errors of merge functions because merge
 // errors have already been checked in safeToApplyPodDefaultsOnPod function.
@@ -290,6 +331,12 @@ func applyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.PodDefaul
 		klog.Error(err)
 	}
 	pod.Spec.Volumes = volumes
+
+	meta, err := mergeMetadata(pod.ObjectMeta, podDefaults)
+	if err != nil {
+		klog.Error(err)
+	}
+	pod.ObjectMeta = *meta
 
 	for i, ctr := range pod.Spec.Containers {
 		applyPodDefaultsOnContainer(&ctr, podDefaults)
