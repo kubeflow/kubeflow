@@ -108,6 +108,21 @@ func safeToApplyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.Pod
 			errs = append(errs, err)
 		}
 	}
+
+	var (
+		defaultAnnotations = make([]*map[string]string, len(podDefaults))
+		defaultLabels      = make([]*map[string]string, len(podDefaults))
+	)
+	for i, pd := range podDefaults {
+		defaultAnnotations[i] = &pd.Annotations
+		defaultLabels[i] = &pd.Labels
+	}
+	if _, err := mergeMap(pod.Annotations, defaultAnnotations); err != nil {
+		errs = append(errs, err)
+	}
+	if _, err := mergeMap(pod.Labels, defaultLabels); err != nil {
+		errs = append(errs, err)
+	}
 	return utilerrors.NewAggregate(errs)
 }
 
@@ -275,6 +290,31 @@ func mergeVolumes(volumes []corev1.Volume, podDefaults []*settingsapi.PodDefault
 	return mergedVolumes, err
 }
 
+// mergeMap copies the existing map and adds the keys in defaults. It returns
+// an error if it detects any conflict during the merge.
+func mergeMap(existing map[string]string, defaults []*map[string]string) (map[string]string, error) {
+	var (
+		out  = map[string]string{}
+		errs []error
+	)
+	for k, v := range existing {
+		out[k] = v
+	}
+	for _, def := range defaults {
+		for k, v := range *def {
+			ov, ok := out[k]
+			if !ok {
+				out[k] = v
+				continue
+			}
+			if ov != v {
+				errs = append(errs, fmt.Errorf("merging has conflict on %s: \n%#v\ndoes not match\n%#v\n in pod", k, v, ov))
+			}
+		}
+	}
+	return out, utilerrors.NewAggregate(errs)
+}
+
 // applyPodDefaultsOnPod updates the PodSpec with merged information from all the
 // applicable PodDefaults. It ignores the errors of merge functions because merge
 // errors have already been checked in safeToApplyPodDefaultsOnPod function.
@@ -290,6 +330,26 @@ func applyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.PodDefaul
 		klog.Error(err)
 	}
 	pod.Spec.Volumes = volumes
+
+	var (
+		defaultAnnotations = make([]*map[string]string, len(podDefaults))
+		defaultLabels      = make([]*map[string]string, len(podDefaults))
+	)
+	for i, pd := range podDefaults {
+		defaultAnnotations[i] = &pd.Annotations
+		defaultLabels[i] = &pd.Labels
+	}
+	annotations, err := mergeMap(pod.Annotations, defaultAnnotations)
+	if err != nil {
+		klog.Error(err)
+	}
+	pod.ObjectMeta.Annotations = annotations
+
+	labels, err := mergeMap(pod.Labels, defaultLabels)
+	if err != nil {
+		klog.Error(err)
+	}
+	pod.ObjectMeta.Labels = labels
 
 	for i, ctr := range pod.Spec.Containers {
 		applyPodDefaultsOnContainer(&ctr, podDefaults)

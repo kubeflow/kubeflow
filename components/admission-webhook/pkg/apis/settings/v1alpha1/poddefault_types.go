@@ -53,6 +53,12 @@ type PodDefaultSpec struct {
 	// VolumeMounts defines the collection of VolumeMount to inject into containers.
 	// +optional
 	VolumeMounts []v1.VolumeMount `json:"volumeMounts,omitempty"`
+
+	// Annotations defines the annotations to inject into the pod.
+	Annotations map[string]string `json:"annotations,omitempty"`
+
+	// Labels defines the labels to inject into the pod.
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 // PodDefaultStatus defines the observed state of PodDefault
