@@ -54,8 +54,11 @@ type PodDefaultSpec struct {
 	// +optional
 	VolumeMounts []v1.VolumeMount `json:"volumeMounts,omitempty"`
 
-	// ObjectMeta defines the metadata to inject labels and annotations from into the metadata field of a pod.
-	metav1.ObjectMeta `json:"metadata,omitempty"`
+	// Annotations defines the annotations to inject into the pod.
+	Annotations map[string]string `json:"annotations,omitempty"`
+
+	// Labels defines the labels to inject into the pod.
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 // PodDefaultStatus defines the observed state of PodDefault
