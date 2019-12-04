@@ -56,12 +56,16 @@ const ADMIN = "admin"
 // TODO: Make kubeflow roles configurable (krishnadurai)
 // This will enable customization of roles.
 const (
-	kubeflowAdmin              = "kubeflow-admin"
-	kubeflowEdit               = "kubeflow-edit"
-	kubeflowView               = "kubeflow-view"
-	istioInjectionLabel        = "istio-injection"
-	katibMetricsCollectorLabel = "katib-metricscollector-injection"
+	kubeflowAdmin       = "kubeflow-admin"
+	kubeflowEdit        = "kubeflow-edit"
+	kubeflowView        = "kubeflow-view"
+	istioInjectionLabel = "istio-injection"
 )
+
+var kubeflowNamespaceLabels = map[string]string{
+	"katib-metricscollector-injection":      "enabled",
+	"serving.kubeflow.org/inferenceservice": "enabled",
+}
 
 const DEFAULT_EDITOR = "default-editor"
 const DEFAULT_VIEWER = "default-viewer"
@@ -116,12 +120,12 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 			Annotations: map[string]string{"owner": instance.Spec.Owner.Name},
 			// inject istio sidecar to all pods in target namespace by default.
 			Labels: map[string]string{
-				istioInjectionLabel:        "enabled",
-				katibMetricsCollectorLabel: "enabled",
+				istioInjectionLabel: "enabled",
 			},
 			Name: instance.Name,
 		},
 	}
+	updateNamespaceLabels(ns)
 	if err := controllerutil.SetControllerReference(instance, ns, r.Scheme); err != nil {
 		return reconcile.Result{}, err
 	}
@@ -152,8 +156,7 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 		// Check exising namespace ownership before move forward
 		owner, ok := foundNs.Annotations["owner"]
 		if ok && owner == instance.Spec.Owner.Name {
-			if _, ok = foundNs.Labels[katibMetricsCollectorLabel]; !ok {
-				foundNs.Labels[katibMetricsCollectorLabel] = "enabled"
+			if updated := updateNamespaceLabels(foundNs); updated {
 				err = r.Update(ctx, foundNs)
 				if err != nil {
 					return reconcile.Result{}, err
@@ -587,4 +590,18 @@ func removeString(slice []string, s string) (result []string) {
 		result = append(result, item)
 	}
 	return
+}
+
+func updateNamespaceLabels(ns *corev1.Namespace) bool {
+	updated := false
+	if ns.Labels == nil {
+		ns.Labels = make(map[string]string)
+	}
+	for k, v := range kubeflowNamespaceLabels {
+		if _, ok := ns.Labels[k]; !ok {
+			ns.Labels[k] = v
+			updated = true
+		}
+	}
+	return updated
 }
