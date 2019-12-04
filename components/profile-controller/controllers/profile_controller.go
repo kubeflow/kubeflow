@@ -598,7 +598,7 @@ func updateNamespaceLabels(ns *corev1.Namespace) bool {
 		ns.Labels = make(map[string]string)
 	}
 	for k, v := range kubeflowNamespaceLabels {
-		if _, ok := ns.Labels[k]; !ok || ns.Labels[k] != v {
+		if _, ok := ns.Labels[k]; !ok {
 			ns.Labels[k] = v
 			updated = true
 		}
