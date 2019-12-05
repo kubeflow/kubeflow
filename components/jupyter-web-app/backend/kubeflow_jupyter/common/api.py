@@ -173,7 +173,7 @@ def get_poddefaults(ns, user=None):
         "poddefaults",
         custom_api.list_namespaced_custom_object,
         "kubeflow.org",
-        "v1beta1",
+        "v1alpha1",
         ns,
         "poddefaults"
     )
