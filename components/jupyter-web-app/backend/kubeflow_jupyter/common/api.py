@@ -1,15 +1,11 @@
 import json
-import os
-import requests
 from kubernetes import client, config
 from kubernetes.config import ConfigException
 from kubernetes.client.rest import ApiException
+from . import auth
 from . import utils
 
 logger = utils.create_logger(__name__)
-
-KFAM = os.getenv("KFAM", "profiles-kfam.kubeflow.svc.cluster.local:8081")
-
 
 try:
     # Load configuration inside the Pod
@@ -31,36 +27,6 @@ def parse_error(e):
         err = str(e)
 
     return err
-
-
-def is_authorized(user, namespace):
-    '''
-    Queries KFAM for whether the provided user has access
-    to the specific namespace
-    '''
-    if user is None:
-        # In case a user is not present, preserve the behavior from 0.5
-        # Pass the authorization check and make the calls with the webapp's SA
-        return True
-
-    try:
-        resp = requests.get("http://{}/kfam/v1/bindings?namespace={}".format(
-            KFAM, namespace)
-        )
-    except Exception as e:
-        logger.warning("Error talking to KFAM: {}".format(parse_error(e)))
-        return False
-
-    if resp.status_code == 200:
-        # Iterate through the namespace's bindings and check for the user
-        for binding in resp.json().get("bindings", []):
-            if binding["user"]["name"] == user:
-                return True
-
-        return False
-    else:
-        logger.warning("{}: Error talking to KFAM!".format(resp.status_code))
-        return False
 
 
 # Wrapper Functions for error handling
@@ -111,149 +77,100 @@ def wrap(fn, *args, **kwargs):
 
 # API Functions
 # GETers
-def get_pvcs(ns, user=None):
-    if not is_authorized(user, ns):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, ns
-            )
-        }
-
+@auth.needs_authorization("get", "pvcs")
+def get_pvcs(namespace):
     return wrap_resp(
         "pvcs",
-        v1_core.list_namespaced_persistent_volume_claim, namespace=ns
+        v1_core.list_namespaced_persistent_volume_claim,
+        namespace=namespace
     )
 
 
-def get_pods(ns, user=None):
-    if not is_authorized(user, ns):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, ns
-            )
-        }
-
+@auth.needs_authorization("get", "pods")
+def get_pods(namespace):
     return wrap_resp(
         "pods",
-        v1_core.list_namespaced_pod, namespace=ns
+        v1_core.list_namespaced_pod,
+        namespace
     )
 
 
-def get_notebooks(ns, user=None):
-    if not is_authorized(user, ns):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, ns
-            )
-        }
-
+@auth.needs_authorization("get", "notebooks")
+def get_notebooks(namespace):
     return wrap_resp(
         "notebooks",
         custom_api.list_namespaced_custom_object,
         "kubeflow.org",
         "v1beta1",
-        ns,
+        namespace,
         "notebooks"
     )
 
 
-def get_poddefaults(ns, user=None):
-    if not is_authorized(user, ns):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, ns
-            )
-        }
-
+@auth.needs_authorization("get", "poddefaults")
+def get_poddefaults(namespace):
     return wrap_resp(
         "poddefaults",
         custom_api.list_namespaced_custom_object,
         "kubeflow.org",
         "v1alpha1",
-        ns,
+        namespace,
         "poddefaults"
     )
 
 
-def get_namespaces(user=None):
+@auth.needs_authorization("get", "secrets")
+def get_secret(namespace, name):
+    return wrap_resp(
+        "secret",
+        v1_core.read_namespaced_secret,
+        name,
+        namespace
+    )
+
+
+@auth.needs_authorization("get", "namespaces")
+def get_namespaces():
     return wrap_resp(
         "namespaces",
         v1_core.list_namespace
     )
 
 
-def get_storageclasses(user=None):
+@auth.needs_authorization("get", "storageclasses")
+def get_storageclasses():
     return wrap_resp(
         "storageclasses",
         storage_api.list_storage_class
     )
 
 
-def get_secret(ns, nm, user=None):
-    if not is_authorized(user, ns):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, ns
-            )
-        }
-
-    return wrap_resp(
-        "secret",
-        v1_core.read_namespaced_secret, nm, ns
-    )
-
-
 # POSTers
-def post_notebook(notebook, user=None):
-    if not is_authorized(user, notebook["metadata"]["namespace"]):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, notebook["metadata"]["namespace"]
-            )
-        }
-
+@auth.needs_authorization("post", "notebooks")
+def post_notebook(namespace, notebook):
     return wrap(
         custom_api.create_namespaced_custom_object,
         "kubeflow.org",
         "v1beta1",
-        notebook["metadata"]["namespace"],
+        namespace,
         "notebooks",
         notebook
     )
 
 
-def post_pvc(pvc, user=None):
-    if not is_authorized(user, pvc.metadata.namespace):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, pvc.metadata.namespace
-            )
-        }
-
+@auth.needs_authorization("post", "pvcs")
+def post_pvc(namespace, pvc):
     return wrap_resp(
         "pvc",
         v1_core.create_namespaced_persistent_volume_claim,
-        pvc.metadata.namespace, pvc
+        namespace,
+        pvc
     )
 
 
 # DELETEers
-def delete_notebook(namespace, notebook_name, user=None):
-    if not is_authorized(user, namespace):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, namespace
-            )
-        }
-
+@auth.needs_authorization("delete", "notebooks")
+def delete_notebook(namespace, notebook_name):
     return wrap(
         custom_api.delete_namespaced_custom_object,
         "kubeflow.org",
