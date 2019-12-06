@@ -1,46 +1,71 @@
-import os
-import requests
 import functools
+from kubernetes import client, config
+from kubernetes.config import ConfigException
+from kubernetes.client.rest import ApiException
 from . import utils
 
 logger = utils.create_logger(__name__)
 
-KFAM = os.getenv("KFAM", "profiles-kfam.kubeflow.svc.cluster.local:8081")
+try:
+    # Load configuration inside the Pod
+    config.load_incluster_config()
+except ConfigException:
+    # Load configuration for testing
+    config.load_kube_config()
+
+# The API object for submitting SubjecAccessReviews
+api = client.AuthorizationV1Api()
 
 
-def is_authorized(user, namespace):
+def create_subject_access_review(user, verb, namespace, group, version,
+                                 resource):
     '''
-    Queries KFAM for whether the provided user has access
-    to the specific namespace
+    Create the SubjecAccessReview object which we will use to determine if the
+    user is authorized.
+    '''
+    return client.V1SubjectAccessReview(
+        spec=client.V1SubjectAccessReviewSpec(
+            user=user,
+            resource_attributes=client.V1ResourceAttributes(
+                group=group,
+                namespace=namespace,
+                verb=verb,
+                resource=resource,
+                version=version
+            )
+        )
+    )
+
+
+def is_authorized(user, verb, namespace, group, version, resource):
+    '''
+    Create a SubjectAccessReview to the K8s API to determine if the user is
+    authorized to perform a specific verb on a resource.
     '''
     if user is None:
         # In case a user is not present, preserve the behavior from 0.5
         # Pass the authorization check and make the calls with the webapp's SA
         return True
 
+    sar = create_subject_access_review(user, verb, namespace, group, version,
+                                       resource)
     try:
-        resp = requests.get("http://{}/kfam/v1/bindings?namespace={}".format(
-            KFAM, namespace)
-        )
-    except Exception as e:
-        logger.warning(
-            "Error talking to KFAM: {}".format(utils.parse_error(e))
+        obj = api.create_subject_access_review(sar)
+    except ApiException as e:
+        logger.error(
+            "Error submitting SubjecAccessReview: {}, {}".format(
+                sar, utils.parse_error(e))
         )
         return False
 
-    if resp.status_code == 200:
-        # Iterate through the namespace's bindings and check for the user
-        for binding in resp.json().get("bindings", []):
-            if binding["user"]["name"] == user:
-                return True
-
-        return False
+    if obj.status is not None:
+        return obj.status.allowed
     else:
-        logger.warning("{}: Error talking to KFAM!".format(resp.status_code))
+        logger.error("SubjectAccessReview doesn't have status.")
         return False
 
 
-def needs_authorization(verb, rsrc):
+def needs_authorization(verb, group, version, resource):
     '''
     This function will serve as a decorator. It will be used to make sure that
     the decorated function is authorized to perform the corresponding k8s api
@@ -50,15 +75,19 @@ def needs_authorization(verb, rsrc):
         @functools.wraps(func)
         def runner(*args, **kwargs):
             user = utils.get_username_from_request()
-            ns = kwargs.get("namespace", None)
+            namespace = kwargs.get("namespace", None)
 
-            if is_authorized(user, ns):
+            if is_authorized(user, verb, namespace, group, version, resource):
                 # If the user is authorized, then perform the func
                 return func(*args, **kwargs)
             else:
                 # If the user is not authorized, then we don't perform the
                 # func and return an unauthorized message
-                msg = f"User '{user}' is not authorized for namespace '{ns}'"
+                msg = ("User {} is not authorized to {} {} for namespace: "
+                       "{}").format(user,
+                                    verb,
+                                    group + "/" + version + "/" + resource,
+                                    namespace)
                 return {
                     "success": False,
                     "log": msg,
