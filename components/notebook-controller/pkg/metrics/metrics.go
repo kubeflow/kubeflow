@@ -81,7 +81,7 @@ func (m *Metrics) Collect(ch chan<- prometheus.Metric) {
 // scrape gets current running notebooks.
 func (m *Metrics) scrape() {
 	nbLists := &v1beta1.NotebookList{}
-	if err := m.cache.List(context.Background(), nbLists); err != nil {
+	if err := m.cache.List(context.TODO(), nbLists); err != nil {
 		return
 	}
 	nbCache := map[string]int{}
