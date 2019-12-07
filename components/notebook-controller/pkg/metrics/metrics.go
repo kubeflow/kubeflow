@@ -3,15 +3,15 @@ package metrics
 import (
 	"context"
 
+	"github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
 	"github.com/prometheus/client_golang/prometheus"
-	appsv1 "k8s.io/api/apps/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 )
 
 // Metrics includes metrics used in notebook controller
 type Metrics struct {
-	cli                      client.Client
+	cache                    cache.Cache
 	runningNotebooks         *prometheus.GaugeVec
 	NotebookCreation         *prometheus.CounterVec
 	NotebookFailCreation     *prometheus.CounterVec
@@ -19,9 +19,9 @@ type Metrics struct {
 	NotebookCullingTimestamp *prometheus.GaugeVec
 }
 
-func NewMetrics(cli client.Client) *Metrics {
+func NewMetrics(c cache.Cache) *Metrics {
 	m := &Metrics{
-		cli: cli,
+		cache: c,
 		runningNotebooks: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Name: "notebook_running",
@@ -78,22 +78,17 @@ func (m *Metrics) Collect(ch chan<- prometheus.Metric) {
 	m.NotebookFailCreation.Collect(ch)
 }
 
-// scrape gets current running notebook statefulsets.
+// scrape gets current running notebooks.
 func (m *Metrics) scrape() {
-	stsList := &appsv1.StatefulSetList{}
-	err := m.cli.List(context.TODO(), stsList)
-	if err != nil {
+	nbLists := &v1beta1.NotebookList{}
+	if err := m.cache.List(context.Background(), nbLists); err != nil {
 		return
 	}
-	stsCache := make(map[string]float64)
-	for _, v := range stsList.Items {
-		name, ok := v.Spec.Template.GetLabels()["notebook-name"]
-		if ok && name == v.Name {
-			stsCache[v.Namespace] += 1
-		}
+	nbCache := map[string]int{}
+	for _, nb := range nbLists.Items {
+		nbCache[nb.Namespace] += 1
 	}
-
-	for ns, v := range stsCache {
-		m.runningNotebooks.WithLabelValues(ns).Set(v)
+	for ns, v := range nbCache {
+		m.runningNotebooks.WithLabelValues(ns).Set(float64(v))
 	}
 }
