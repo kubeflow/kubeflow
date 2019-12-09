@@ -33,7 +33,7 @@ def post_notebook(namespace):
         ws_pvc = utils.pvc_from_dict(workspace_vol, namespace)
 
         logger.info("Creating Workspace Volume: {}".format(ws_pvc.to_dict()))
-        r = api.post_pvc(ws_pvc, namespace=namespace)
+        r = api.create_pvc(ws_pvc, namespace=namespace)
         if not r["success"]:
             return jsonify(r)
 
@@ -52,7 +52,7 @@ def post_notebook(namespace):
             dtvol_pvc = utils.pvc_from_dict(vol, namespace)
 
             logger.info("Creating Data Volume {}:".format(dtvol_pvc))
-            r = api.post_pvc(dtvol_pvc, namespace=namespace)
+            r = api.create_pvc(dtvol_pvc, namespace=namespace)
             if not r["success"]:
                 return jsonify(r)
 
@@ -72,7 +72,7 @@ def post_notebook(namespace):
     utils.set_notebook_shm(notebook, body, defaults)
 
     logger.info("Creating Notebook: {}".format(notebook))
-    return jsonify(api.post_notebook(notebook, namespace=namespace))
+    return jsonify(api.create_notebook(notebook, namespace=namespace))
 
 
 # Since Angular is a SPA, we serve index.html every time

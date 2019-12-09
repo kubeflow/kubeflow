@@ -77,8 +77,8 @@ def wrap(fn, *args, **kwargs):
 
 # API Functions
 # GETers
-@auth.needs_authorization("get", "core", "v1", "pvcs")
-def get_pvcs(namespace):
+@auth.needs_authorization("list", "core", "v1", "pvcs")
+def list_pvcs(namespace):
     return wrap_resp(
         "pvcs",
         v1_core.list_namespaced_persistent_volume_claim,
@@ -86,17 +86,8 @@ def get_pvcs(namespace):
     )
 
 
-@auth.needs_authorization("get", "core", "v1", "pods")
-def get_pods(namespace):
-    return wrap_resp(
-        "pods",
-        v1_core.list_namespaced_pod,
-        namespace
-    )
-
-
-@auth.needs_authorization("get", "kubeflow.org", "v1beta1", "notebooks")
-def get_notebooks(namespace):
+@auth.needs_authorization("list", "kubeflow.org", "v1beta1", "notebooks")
+def list_notebooks(namespace):
     return wrap_resp(
         "notebooks",
         custom_api.list_namespaced_custom_object,
@@ -107,8 +98,8 @@ def get_notebooks(namespace):
     )
 
 
-@auth.needs_authorization("get", "kubeflow.org", "v1alpha1", "poddefaults")
-def get_poddefaults(namespace):
+@auth.needs_authorization("list", "kubeflow.org", "v1alpha1", "poddefaults")
+def list_poddefaults(namespace):
     return wrap_resp(
         "poddefaults",
         custom_api.list_namespaced_custom_object,
@@ -129,16 +120,21 @@ def get_secret(namespace, name):
     )
 
 
-@auth.needs_authorization("get", "core", "v1", "namespaces")
-def get_namespaces():
+@auth.needs_authorization("list", "core", "v1", "namespaces")
+def list_namespaces():
     return wrap_resp(
         "namespaces",
         v1_core.list_namespace
     )
 
 
-@auth.needs_authorization("get", "storage.k8s.io", "v1", "storageclasses")
-def get_storageclasses():
+# @auth.needs_authorization("list", "storage.k8s.io", "v1", "storageclasses")
+# NOTE: This function is only used from the backend in order to determine if a
+# default StorageClass is set. Currently, the role aggregation does not use a
+# ClusterRoleBinding, thus we can't currently give this permission to a user.
+# The backend does not expose any endpoint that would allow an unauthorized
+# user to list the storage classes using this function.
+def list_storageclasses():
     return wrap_resp(
         "storageclasses",
         storage_api.list_storage_class
@@ -146,8 +142,8 @@ def get_storageclasses():
 
 
 # POSTers
-@auth.needs_authorization("post", "kubeflow.org", "v1beta1", "notebooks")
-def post_notebook(namespace, notebook):
+@auth.needs_authorization("create", "kubeflow.org", "v1beta1", "notebooks")
+def create_notebook(namespace, notebook):
     return wrap(
         custom_api.create_namespaced_custom_object,
         "kubeflow.org",
@@ -158,8 +154,8 @@ def post_notebook(namespace, notebook):
     )
 
 
-@auth.needs_authorization("post", "core", "v1", "pvcs")
-def post_pvc(namespace, pvc):
+@auth.needs_authorization("create", "core", "v1", "pvcs")
+def create_pvc(namespace, pvc):
     return wrap_resp(
         "pvc",
         v1_core.create_namespaced_persistent_volume_claim,

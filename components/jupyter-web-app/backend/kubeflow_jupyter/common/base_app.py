@@ -19,7 +19,7 @@ def prefix():
 # REST Routes
 @app.route("/api/namespaces/<namespace>/notebooks")
 def get_notebooks(namespace):
-    data = api.get_notebooks(namespace=namespace)
+    data = api.list_notebooks(namespace=namespace)
 
     if not data["success"]:
         return jsonify(data)
@@ -31,7 +31,7 @@ def get_notebooks(namespace):
 
 @app.route("/api/namespaces/<namespace>/poddefaults")
 def get_poddefaults(namespace):
-    data = api.get_poddefaults(namespace=namespace)
+    data = api.list_poddefaults(namespace=namespace)
 
     if not data["success"]:
         return jsonify(data)
@@ -54,7 +54,7 @@ def get_poddefaults(namespace):
 
 @app.route("/api/namespaces/<namespace>/pvcs")
 def get_pvcs(namespace):
-    data = api.get_pvcs(namespace=namespace)
+    data = api.list_pvcs(namespace=namespace)
     if not data["success"]:
         return jsonify(data)
 
@@ -65,7 +65,7 @@ def get_pvcs(namespace):
 
 @app.route("/api/namespaces")
 def get_namespaces():
-    data = api.get_namespaces()
+    data = api.list_namespaces()
 
     # Result must be jsonify-able
     if data["success"]:
@@ -75,21 +75,9 @@ def get_namespaces():
     return jsonify(data)
 
 
-@app.route("/api/storageclasses")
-def get_storageclasses():
-    data = api.get_storageclasses()
-
-    # Result must be jsonify-able
-    if data["success"]:
-        scs = data["storageclasses"]
-        data["storageclasses"] = [sc.metadata.name for sc in scs.items]
-
-    return jsonify(data)
-
-
 @app.route("/api/storageclasses/default")
 def get_default_storageclass():
-    data = api.get_storageclasses()
+    data = api.list_storageclasses()
     if not data["success"]:
         return jsonify({
             "success": False,
