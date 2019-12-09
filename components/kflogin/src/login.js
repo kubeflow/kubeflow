@@ -63,8 +63,8 @@ class Login extends Component {
 
   handleClick(){
     try {
-      const hostname = window.location.hostname;
-      axios.post("https://" + hostname + "/apikflogin", {"req-num": "1"}, {
+      const host = window.location.host;
+      axios.post("https://" + host + "/apikflogin", {"req-num": "1"}, {
         auth: {
           username: this.state.username,
           password: this.state.password
