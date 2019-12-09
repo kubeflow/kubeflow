@@ -77,7 +77,7 @@ def wrap(fn, *args, **kwargs):
 
 # API Functions
 # GETers
-@auth.needs_authorization("list", "core", "v1", "pvcs")
+@auth.needs_authorization("list", "", "v1", "persistentvolumeclaims")
 def list_pvcs(namespace):
     return wrap_resp(
         "pvcs",
@@ -111,7 +111,7 @@ def list_poddefaults(namespace):
 
 
 @auth.needs_authorization("get", "core", "v1", "secrets")
-def get_secret(namespace, name):
+def get_secret(name, namespace):
     return wrap_resp(
         "secret",
         v1_core.read_namespaced_secret,
@@ -143,7 +143,7 @@ def list_storageclasses():
 
 # POSTers
 @auth.needs_authorization("create", "kubeflow.org", "v1beta1", "notebooks")
-def create_notebook(namespace, notebook):
+def create_notebook(notebook, namespace):
     return wrap(
         custom_api.create_namespaced_custom_object,
         "kubeflow.org",
@@ -154,8 +154,8 @@ def create_notebook(namespace, notebook):
     )
 
 
-@auth.needs_authorization("create", "core", "v1", "pvcs")
-def create_pvc(namespace, pvc):
+@auth.needs_authorization("create", "", "v1", "persistentvolumeclaims")
+def create_pvc(pvc, namespace):
     return wrap_resp(
         "pvc",
         v1_core.create_namespaced_persistent_volume_claim,
@@ -163,10 +163,9 @@ def create_pvc(namespace, pvc):
         pvc
     )
 
-
 # DELETErs
 @auth.needs_authorization("delete", "kubeflow.org", "v1beta1", "notebooks")
-def delete_notebook(namespace, notebook_name):
+def delete_notebook(notebook_name, namespace):
     return wrap(
         custom_api.delete_namespaced_custom_object,
         "kubeflow.org",

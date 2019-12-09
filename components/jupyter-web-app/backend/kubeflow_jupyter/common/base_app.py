@@ -139,7 +139,7 @@ def post_pvc(namespace):
         )
     )
 
-    return jsonify(api.post_pvc(pvc, namespace=namespace))
+    return jsonify(api.create_pvc(pvc, namespace=namespace))
 
 
 # DELETErs

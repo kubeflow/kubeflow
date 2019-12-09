@@ -43,9 +43,12 @@ def is_authorized(user, verb, namespace, group, version, resource):
     authorized to perform a specific verb on a resource.
     '''
     if user is None:
-        # In case a user is not present, preserve the behavior from 0.5
-        # Pass the authorization check and make the calls with the webapp's SA
-        return True
+        logger.warning(
+            ("No user credentials were found! Make sure you"
+             " have correctly set the USERID_HEADER in the"
+             "Jupyter Web App's deployment.")
+        )
+        return False
 
     sar = create_subject_access_review(user, verb, namespace, group, version,
                                        resource)
@@ -78,15 +81,12 @@ def needs_authorization(verb, group, version, resource):
             namespace = kwargs.get("namespace", None)
 
             if is_authorized(user, verb, namespace, group, version, resource):
-                # If the user is authorized, then perform the func
                 return func(*args, **kwargs)
             else:
-                # If the user is not authorized, then we don't perform the
-                # func and return an unauthorized message
                 msg = ("User {} is not authorized to {} {} for namespace: "
                        "{}").format(user,
                                     verb,
-                                    group + "/" + version + "/" + resource,
+                                    f"{group}.{version}.{resource}",
                                     namespace)
                 return {
                     "success": False,
