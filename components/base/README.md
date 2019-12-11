@@ -10,7 +10,11 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## Kubeflow CI with tektoncd pipelines
+## Kubeflow CD with tektoncd pipelines
+
+This directory contains Tekton pipelines intended to rebuild Kubeflow docker images 
+and open PRs to update Kubeflow kustomize manifests to use the newly built images.
+
 
 ### Use Cases
 
@@ -19,7 +23,7 @@ The following use cases can be run on the following components (should be run fr
 - `kustomize build --reorder none `*jupyter-web-app*`/ci    | kubectl apply -f -`
 - `kustomize build --reorder none `*notebook-controller*`/ci | kubectl apply -f -`
 - `kustomize build --reorder none `*profile-controller*`/ci | kubectl apply -f -
- 
+
 This uses TektonCD [pipelinerun](https://github.com/tektoncd/pipeline/blob/master/docs/pipelineruns.md) to enable the following use case:
 
 1. A PR is merged into kubeflow/kubeflow updating the component
@@ -59,11 +63,10 @@ In this use case the following instance is created:
    │       └── manifests+revision 
    └── pipeline
        └── tasks
-           ├── build-push
-           └── update-manifests
+           ├── build-push      
 ```
 
-The PipelineRun includes a Pipeline that has 2 tasks and 3 PipelineResources of type image (component) and git (kubeflow, manifests). The Tasks reference these resources in their inputs or outputs. 
+The PipelineRun includes a Pipeline that has 1 tasks and 3 PipelineResources of type image (component) and git (kubeflow, manifests). The Tasks reference these resources in their inputs or outputs. 
 
 ### Parameterization 
 
@@ -72,8 +75,7 @@ The Pipeline uses parameterized Tasks.
 Reusing this pipeline only requires changing parameters in params.env in the target component
 
 The parameters are noted below, those with an asterix should change per component:
-Those parameters without an asterix allow different gcr.io locations, namespace and pvc_mount_path.
-This can be run locally (for example using a local cluster via `kind create cluster`)
+Those parameters without an asterix allow different gcr.io locations and namespace.
 
 ```
   container_image=gcr.io/kubeflow-ci/test-worker:latest
@@ -91,13 +93,41 @@ This can be run locally (for example using a local cluster via `kind create clus
   pvc_mount_path=/kubeflow
 ```
 
-### Secrets
+### Setting up a cluster to run the pipelines
 
-The secrets file has been supplied with no tokens and should have tokens generated. 
-The file itself should not be checked in with valid tokens. 
-- gcp-credentials
-- kaniko-secret (same as gcp-credentials, use by kaniko)
-- github-ssh
-- github-token
+The kustomize manifests are currently written so as to run in a Kubeflow releasing cluster.
 
-For the github-ssh and github-token secrets the kubeflow-bot github user and it's forked repo should be used.
+The current release cluster is
+
+* **project**: **kf-releasing**
+* **cluster**: **kf-releasing-0-6-2**
+* **namespace**: **kf-releasing**
+
+This is a Kubeflow cluster (v0.6.2) and we rely on that to configure certain things like the secrets and service accounts.
+
+1. Follow [Tektons' instructions](https://github.com/tektoncd/pipeline/blob/master/docs/auth.md#ssh-authentication-git) for
+   creating a secret containing ssh credentials for use with GitHub
+
+   * We are currently using the secret named **kubeflow-bot-github-ssh**
+
+
+1. Ensure the GCP service account used with Kaniko has storage admin permissions for the project
+   where the images are pushed.
+
+   * most likely **gcr.io/kubeflow-images-public**
+
+1. Create a secret named **github-token** containing a github token to be used by the hub CLI to create PRs.
+
+### Run a pipeline
+
+1. Modify `base/params.env`
+
+   * set namespace to the namespace where it will run
+
+1. Run
+    
+   ```
+   kustomize build --reorder none `*profile-controller*`/ci | kubectl apply -f -
+   ```
+
+

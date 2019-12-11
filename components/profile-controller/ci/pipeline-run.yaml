@@ -15,4 +15,4 @@ spec:
   - name: $(image_name)
     resourceRef:
       name: $(image_name)
-  serviceAccount: ci-pipeline-run-service-account
+  serviceAccountName: ci-pipeline-run-service-account
