@@ -110,7 +110,9 @@ COPY --chown=jovyan:users requirements.txt /tmp
 
 RUN docker-credential-gcr configure-docker && chown ${NB_USER}:users $HOME/.docker/config.json
 
-RUN chown -R ${NB_USER}:users $HOME
+# Following the recomendations in https://docs.openshift.com/container-platform/4.2/openshift_images/create-images.html#images-create-guide-openshift_create-images
+# tu support arbitrary user ids. When no PV is bound, notebooks are saved in the home directory
+RUN chown -R ${NB_USER}:users $HOME && chgrp -R 0 $HOME && chmod -R g=u $HOME
 
 # Configure container startup
 EXPOSE 8888
