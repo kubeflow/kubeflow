@@ -4,7 +4,6 @@ go 1.12
 
 require (
 	github.com/go-logr/logr v0.1.0
-	github.com/kubeflow/kubeflow v0.7.0-rc.5.0.20191205174032-2da148904248
 	github.com/prometheus/client_golang v0.9.0
 	k8s.io/api v0.0.0-20190409021203-6e4e0e4f393b
 	k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d
