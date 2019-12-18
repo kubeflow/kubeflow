@@ -36,12 +36,12 @@ logger = create_logger(__name__)
 # Utils
 def get_username_from_request():
     if USER_HEADER not in request.headers:
-        logger.warning("User header not present!")
+        logger.debug("User header not present!")
         username = None
     else:
         user = request.headers[USER_HEADER]
         username = user.replace(USER_PREFIX, "")
-        logger.info("User: '{}' | Headers: '{}' '{}'".format(
+        logger.debug("User: '{}' | Headers: '{}' '{}'".format(
             username, USER_HEADER, USER_PREFIX
         ))
 
