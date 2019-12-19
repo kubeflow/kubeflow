@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import { ConfigVolume, Config } from "src/app/utils/types";
 import { Validators, FormBuilder, FormGroup, FormArray } from "@angular/forms";
+=======
+import { ConfigVolume, Config, GPU } from 'src/app/utils/types';
+import { Validators, FormBuilder, FormGroup, FormArray } from '@angular/forms';
+>>>>>>> cca6faf4... TypeScript logic and the UI mechanics
 
 const fb = new FormBuilder();
 
@@ -12,6 +17,12 @@ export function getFormDefaults(): FormGroup {
     customImageCheck: [false, []],
     cpu: ["", [Validators.required]],
     memory: ["", [Validators.required]],
+    cpu: ['', [Validators.required]],
+    memory: ['', [Validators.required]],
+    gpus: fb.group({
+      vendor: ['', []],
+      num: ['', []],
+    }),
     noWorkspace: [false, []],
     workspace: fb.group({
       type: ["", [Validators.required]],
@@ -24,7 +35,6 @@ export function getFormDefaults(): FormGroup {
       extraFields: fb.group({})
     }),
     datavols: fb.array([]),
-    extra: ["", [Validators.required]],
     shm: [true, []],
     configurations: [[], []]
   });
@@ -100,6 +110,23 @@ export function addDataVolume(
   vols.push(ctrl);
 }
 
+export function updateGPUControl(formCtrl: FormGroup, gpuConf: any) {
+  // If the backend didn't send the value, default to none
+  if (gpuConf == null) {
+    formCtrl.get('num').setValue('none');
+    return;
+  } else {
+    const gpu = gpuConf.value as GPU;
+    formCtrl.get('num').setValue(gpu.num);
+    formCtrl.get('vendor').setValue(gpu.vendor);
+  }
+
+  if (gpuConf.readOnly) {
+    formCtrl.get('num').disable();
+    formCtrl.get('vendor').disable();
+  }
+}
+
 export function initFormControls(formCtrl: FormGroup, config: Config) {
   // Sets the values from our internal dict. This is an initialization step
   // that should be only run once
@@ -134,10 +161,8 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
     addDataVolume(formCtrl, vol.value, config.dataVolumes.readOnly);
   });
 
-  formCtrl.controls.extra.setValue(config.extraResources.value);
-  if (config.extraResources.readOnly) {
-    formCtrl.controls.extra.disable();
-  }
+  // GPUs
+  updateGPUControl(formCtrl.get('gpus') as FormGroup, config.gpus);
 
   formCtrl.controls.shm.setValue(config.shm.value);
   if (config.shm.readOnly) {

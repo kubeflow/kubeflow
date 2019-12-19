@@ -1,6 +1,5 @@
 <div class="group-wrapper" [formGroup]="parentForm">
   <h3>
-    <!--<fa-icon [icon]="['fas', 'cogs']" class="check"></fa-icon>-->
     <mat-icon class="gpu">memory</mat-icon>
     GPUs
   </h3>
@@ -9,10 +8,10 @@
     Server's Container.
   </p>
 
-  <div class="inputs-wrapper">
+  <div class="inputs-wrapper" [formGroup]="parentForm.get('gpus')">
     <mat-form-field class="wide" appearance="outline">
       <mat-label>Number of GPUs</mat-label>
-      <mat-select matNativeControl>
+      <mat-select matNativeControl formControlName="num">
         <mat-option value="none">None</mat-option>
         <mat-option *ngFor="let v of gpusCount" [value]="v">
           {{ v }}
@@ -22,10 +21,11 @@
 
     <mat-form-field class="wide" appearance="outline">
       <mat-label>GPU Vendor</mat-label>
-      <mat-select matNativeControl>
-        <mat-option value="NVIDIA">NVIDIA</mat-option>
-        <mat-option value="AMD">AMD</mat-option>
+      <mat-select matNativeControl formControlName="vendor">
+        <mat-option value="nvidia">NVIDIA</mat-option>
+        <mat-option value="amd">AMD</mat-option>
       </mat-select>
+      <mat-error>{{ getVendorError() }}</mat-error>
     </mat-form-field>
   </div>
 </div>

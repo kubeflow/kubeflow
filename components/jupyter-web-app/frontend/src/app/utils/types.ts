@@ -27,6 +27,11 @@ export interface PodDefault {
   desc: string;
 }
 
+export interface GPU {
+  vendor?: string;
+  num?: string;
+}
+
 // Backend response type
 export interface Resp {
   namespaces?: string[];
@@ -79,32 +84,39 @@ export interface Config {
     options: string[];
     readOnly?: boolean;
   };
+
   cpu?: {
     value: string;
     readOnly?: boolean;
   };
+
   memory?: {
     value: string;
     readOnly?: boolean;
   };
+
   workspaceVolume?: {
     value: ConfigVolume;
     readOnly?: boolean;
   };
+
   dataVolumes?: {
     value: {
       value: ConfigVolume;
     }[];
     readOnly?: boolean;
   };
-  extraResources?: {
-    value: any;
-    readOnly?: boolean;
-  };
+
   shm?: {
     value: boolean;
     readOnly?: boolean;
   };
+
+  gpus?: {
+    value?: GPU;
+    readOnly?: boolean;
+  };
+
   configurations?: {
     value: string[];
     readOnly?: boolean;
