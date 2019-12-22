@@ -47,6 +47,7 @@ import (
 
 const DefaultContainerPort = 8888
 const DefaultServingPort = 80
+var DefaultClusterDomain = "cluster.local"
 
 // The default fsGroup of PodSecurityContext.
 // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#podsecuritycontext-v1-core
@@ -370,7 +371,11 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 	prefix := fmt.Sprintf("/notebook/%s/%s/", namespace, name)
 	rewrite := fmt.Sprintf("/notebook/%s/%s/", namespace, name)
 	// TODO(gabrielwen): Make clusterDomain an option.
-	service := fmt.Sprintf("%s.%s.svc.cluster.local", name, namespace)
+	clusterDomain := os.Getenv("CLUSTER_DOMAIN")
+	if clusterDomain == "" {
+		clusterDomain = DefaultClusterDomain
+	}
+	service := fmt.Sprintf("%s.%s.svc.%s", name, namespace, clusterDomain)
 
 	vsvc := &unstructured.Unstructured{}
 	vsvc.SetAPIVersion("networking.istio.io/v1alpha3")
