@@ -113,6 +113,7 @@ def get_default_storageclass():
 
         for key in keys:
             is_default = annotations.get(key, "false")
+
             if is_default == "true":
                 return jsonify({
                     "success": True,

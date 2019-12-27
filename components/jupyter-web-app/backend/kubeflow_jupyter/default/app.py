@@ -24,6 +24,7 @@ def post_notebook(namespace):
     utils.set_notebook_image(notebook, body, defaults)
     utils.set_notebook_cpu(notebook, body, defaults)
     utils.set_notebook_memory(notebook, body, defaults)
+    utils.set_notebook_gpus(notebook, body, defaults)
     utils.set_notebook_configurations(notebook, body, defaults)
 
     # Workspace Volume
@@ -62,11 +63,6 @@ def post_notebook(namespace):
             vol["name"],
             vol["path"]
         )
-
-    # Extra Resources
-    r = utils.set_notebook_extra_resources(notebook, body, defaults)
-    if not r["success"]:
-        return jsonify(r)
 
     # shm
     utils.set_notebook_shm(notebook, body, defaults)

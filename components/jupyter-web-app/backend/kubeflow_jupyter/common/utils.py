@@ -387,6 +387,59 @@ def set_notebook_memory(notebook, body, defaults):
     container["resources"]["requests"]["memory"] = memory
 
 
+def set_notebook_gpus(notebook, body, defaults):
+    gpus = None
+    gpuDefaults = defaults.get("gpus", {})
+    if gpuDefaults.get("readOnly", False):
+        # The server should not allow the user to set the GPUs
+        # if the config's value is readOnly. Use the config's value
+        gpus = gpuDefaults["value"]
+        logger.info(f"Using default GPU config: {gpus}")
+
+    elif "gpus" not in body:
+        # Try to load the default values. If they don't exist, don't use GPUs
+        if "gpus" not in defaults:
+            logger.info("No 'gpus' value in neither the form's body nor in"
+                        " the default config's values. Will not use any GPUs")
+            return
+        else:
+            gpus = gpuDefaults["value"]
+            logger.info(f"Using default GPU config: {gpus}")
+
+    else:
+        # Make sure the GPUs value in the request is properly formatted
+        gpus = body["gpus"]
+        logger.info(f"Using form's GPUs: {gpus}")
+
+        if "num" not in gpus:
+            logger.error("'gpus' must have a 'num' field")
+            return
+
+        if gpus["num"] != "none" and "vendor" not in gpus:
+            logger.error("'gpus' must have a 'vendor' field")
+            return
+
+        if gpus["num"] != "none":
+            try:
+                int(gpus["num"])
+            except ValueError:
+                logger.error(f"gpus.num is not a valid number: {gpus['num']}")
+                return
+
+    # Add the GPU annotation
+    if gpus["num"] == "none":
+        return
+
+    container = notebook["spec"]["template"]["spec"]["containers"][0]
+    vendor = gpus["vendor"]
+    num = int(gpus["num"])
+
+    limits = container["resources"].get("limits", {})
+    limits[f"{vendor}.com/gpu"] = num
+
+    container["resources"]["limits"] = limits
+
+
 def set_notebook_configurations(notebook, body, defaults):
     notebook_labels = notebook["metadata"]["labels"]
 
