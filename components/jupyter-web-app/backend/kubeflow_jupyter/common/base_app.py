@@ -149,5 +149,20 @@ def delete_notebook(namespace, notebook):
     return jsonify(api.delete_notebook(notebook, namespace=namespace))
 
 
+# Liveness/Readiness Probes
+@app.route("/healthz/liveness", methods=["GET"])
+def liveness_probe():
+    return jsonify("alive"), 200
+
+
+@app.route("/healthz/readiness", methods=["GET"])
+def readiness_probe():
+    # Check if the backend can communicate with the k8s API Server
+    if not api.can_connect_to_k8s():
+        return jsonify("not ready"), 503
+
+    return jsonify("ready"), 200
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0")
