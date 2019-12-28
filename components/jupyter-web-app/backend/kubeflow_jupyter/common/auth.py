@@ -3,6 +3,7 @@ from kubernetes import client, config
 from kubernetes.config import ConfigException
 from kubernetes.client.rest import ApiException
 from . import utils
+from . import settings
 
 logger = utils.create_logger(__name__)
 
@@ -42,12 +43,18 @@ def is_authorized(user, verb, namespace, group, version, resource):
     Create a SubjectAccessReview to the K8s API to determine if the user is
     authorized to perform a specific verb on a resource.
     '''
-    return True
+    if settings.DEV_MODE:
+        logger.warning(
+            ("Running in developement mode. No authorization checks will be"
+             " issued")
+        )
+        return True
+
     if user is None:
         logger.warning(
             ("No user credentials were found! Make sure you"
              " have correctly set the USERID_HEADER in the"
-             "Jupyter Web App's deployment.")
+             " Jupyter Web App's deployment.")
         )
         return False
 
