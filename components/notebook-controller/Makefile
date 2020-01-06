@@ -19,6 +19,10 @@ endif
 
 all: manager
 
+# check license
+check-license:
+	./third_party/check-license.sh
+
 # Run tests
 test: generate fmt vet manifests
 	go test ./api/... ./controllers/... -coverprofile cover.out
