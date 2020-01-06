@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 set -ex
 # Copyright 2018 The Kubeflow Authors All rights reserved.
