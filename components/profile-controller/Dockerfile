@@ -26,5 +26,6 @@ RUN if [ "$(uname -m)" = "aarch64" ]; then \
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:latest as serve
 WORKDIR /
+COPY third_party third_party
 COPY --from=builder /workspace/manager .
 ENTRYPOINT ["/manager"]
