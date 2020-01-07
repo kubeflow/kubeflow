@@ -1,5 +1,6 @@
 REGISTRY_PROJECT ?= kubeflow-dev
 GOLANG_VERSION ?= 1.12
+GCLOUD_PROJECT ?= kubeflow-images-public
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/kfam
 PROJECT ?= kubeflow-dev
 TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
