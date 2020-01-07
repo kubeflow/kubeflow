@@ -19,8 +19,12 @@ endif
 
 all: manager
 
+# check license
+check-license:
+	./third_party/check-license.sh
+
 # Run tests
-test: generate fmt vet manifests
+test: generate fmt vet manifests check-license
 	go test ./api/... ./controllers/... -coverprofile cover.out
 
 # Build manager binary
