@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "format": "prettier --write './**/*.{ts,html,css}'",
     "start": "ng serve --base-href /jupyter/ --deploy-url /jupyter/",
     "build": "ng build --base-href /jupyter/ --deploy-url /jupyter/",
     "test": "ng test",
