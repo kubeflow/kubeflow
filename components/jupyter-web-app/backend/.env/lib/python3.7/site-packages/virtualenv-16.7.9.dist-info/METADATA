@@ -1,0 +1,92 @@
+Metadata-Version: 2.1
+Name: virtualenv
+Version: 16.7.9
+Summary: Virtual Python Environment builder
+Home-page: https://virtualenv.pypa.io/
+Author: Ian Bicking
+Author-email: ianb@colorstudy.com
+Maintainer: Bernat Gabor
+Maintainer-email: gaborjbernat@gmail.com
+License: MIT
+Project-URL: Source, https://github.com/pypa/virtualenv
+Project-URL: Tracker, https://github.com/pypa/virtualenv/issues
+Keywords: virtual,environments,isolated
+Platform: any
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: POSIX
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Topic :: Software Development :: Testing
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: Utilities
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Requires-Python: !=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7
+Provides-Extra: docs
+Requires-Dist: sphinx (<2,>=1.8.0) ; extra == 'docs'
+Requires-Dist: towncrier (>=18.5.0) ; extra == 'docs'
+Requires-Dist: sphinx-rtd-theme (<1,>=0.4.2) ; extra == 'docs'
+Provides-Extra: testing
+Requires-Dist: pytest (<5,>=4.0.0) ; extra == 'testing'
+Requires-Dist: coverage (<5,>=4.5.0) ; extra == 'testing'
+Requires-Dist: pytest-timeout (<2,>=1.3.0) ; extra == 'testing'
+Requires-Dist: six (<2,>=1.10.0) ; extra == 'testing'
+Requires-Dist: pytest-xdist ; extra == 'testing'
+Requires-Dist: pytest-localserver ; extra == 'testing'
+Requires-Dist: pypiserver ; extra == 'testing'
+Requires-Dist: mock ; (python_version < "3.3") and extra == 'testing'
+Requires-Dist: xonsh ; (python_version >= "3.5") and extra == 'testing'
+
+virtualenv
+==========
+
+A tool for creating isolated 'virtual' python environments.
+
+.. image:: https://img.shields.io/pypi/v/virtualenv.svg
+  :target: https://pypi.org/project/virtualenv
+  :alt: Latest version on PyPi
+.. image:: https://img.shields.io/pypi/pyversions/virtualenv.svg
+  :target: https://pypi.org/project/virtualenv/
+  :alt: Supported Python versions
+.. image:: https://dev.azure.com/pypa/virtualenv/_apis/build/status/pypa.virtualenv?branchName=master
+  :target: https://dev.azure.com/pypa/virtualenv/_build/latest?definitionId=11&branchName=master
+  :alt: Azure Pipelines build status
+.. image:: https://readthedocs.org/projects/virtualenv/badge/?version=latest&style=flat-square
+  :target: https://virtualenv.readthedocs.io/en/latest/?badge=latest
+  :alt: Documentation status
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+  :target: https://github.com/ambv/black
+  :alt: Code style: black
+.. image:: https://pepy.tech/badge/virtualenv/month
+  :target: https://pepy.tech/project/virtualenv/month
+  :alt: Downloads
+
+* `Installation <https://virtualenv.pypa.io/en/latest/installation.html>`_
+* `Documentation <https://virtualenv.pypa.io/>`_
+* `Changelog <https://virtualenv.pypa.io/en/latest/changes.html>`_
+* `Issues <https://github.com/pypa/virtualenv/issues>`_
+* `PyPI <https://pypi.org/project/virtualenv/>`_
+* `Github <https://github.com/pypa/virtualenv>`_
+* `User mailing list <http://groups.google.com/group/python-virtualenv>`_
+* `Dev mailing list <http://groups.google.com/group/pypa-dev>`_
+* User IRC: `#pypa on Freenode <https://webchat.freenode.net/?channels=%23pypa>`_
+* Dev IRC: `#pypa-dev on Freenode <https://webchat.freenode.net/?channels=%23pypa-dev>`_
+
+
+Code of Conduct
+---------------
+
+Everyone interacting in the virtualenv project's codebases, issue trackers,
+chat rooms, and mailing lists is expected to follow the
+`PyPA Code of Conduct`_.
+
+.. _PyPA Code of Conduct: https://www.pypa.io/en/latest/code-of-conduct/
+
+

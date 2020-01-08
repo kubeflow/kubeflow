@@ -1,0 +1,27 @@
+Metadata-Version: 2.1
+Name: adal
+Version: 1.2.2
+Summary: The ADAL for Python library makes it easy for python application to authenticate to Azure Active Directory (AAD) in order to access AAD protected web resources.
+Home-page: https://github.com/AzureAD/azure-activedirectory-library-for-python
+Author: Microsoft Corporation
+Author-email: nugetaad@microsoft.com
+License: MIT
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: License :: OSI Approved :: MIT License
+Requires-Dist: PyJWT (>=1.0.0)
+Requires-Dist: requests (>=2.0.0)
+Requires-Dist: python-dateutil (>=2.1.0)
+Requires-Dist: cryptography (>=1.1.0)
+
+UNKNOWN
+
+

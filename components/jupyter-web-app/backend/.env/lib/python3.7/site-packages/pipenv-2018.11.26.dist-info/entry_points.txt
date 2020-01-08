@@ -1,0 +1,4 @@
+[console_scripts]
+pipenv = pipenv:cli
+pipenv-resolver = pipenv.resolver:main
+
