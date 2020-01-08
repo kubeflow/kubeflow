@@ -21,9 +21,12 @@
 
     <mat-form-field class="wide" appearance="outline">
       <mat-label>GPU Vendor</mat-label>
-      <mat-select matNativeControl formControlName="vendor">
-        <mat-option value="nvidia">NVIDIA</mat-option>
-        <mat-option value="amd">AMD</mat-option>
+      <mat-select matNativeControl formControlName="vendor" id="gpu-vendor">
+        <mat-option *ngFor="let v of vendors" [value]="v.limitsKey">
+          {{ v.uiName }}
+        </mat-option>
+        <!--<mat-option value="nvidia">NVIDIA</mat-option>-->
+        <!--<mat-option value="amd">AMD</mat-option>-->
       </mat-select>
       <mat-error>{{ getVendorError() }}</mat-error>
     </mat-form-field>

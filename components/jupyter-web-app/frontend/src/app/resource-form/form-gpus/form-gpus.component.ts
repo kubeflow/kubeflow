@@ -1,6 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { GPUVendor } from 'src/app/utils/types';
 
 @Component({
   selector: 'app-form-gpus',
@@ -9,6 +10,7 @@ import { Subscription } from 'rxjs';
 })
 export class FormGpusComponent implements OnInit {
   @Input() parentForm: FormGroup;
+  @Input() vendors: GPUVendor[];
   private gpuCtrl: FormGroup;
   subscriptions = new Subscription();
 

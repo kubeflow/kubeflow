@@ -1,22 +1,15 @@
-<<<<<<< HEAD
-import { ConfigVolume, Config } from "src/app/utils/types";
-import { Validators, FormBuilder, FormGroup, FormArray } from "@angular/forms";
-=======
 import { ConfigVolume, Config, GPU } from 'src/app/utils/types';
 import { Validators, FormBuilder, FormGroup, FormArray } from '@angular/forms';
->>>>>>> cca6faf4... TypeScript logic and the UI mechanics
 
 const fb = new FormBuilder();
 
 export function getFormDefaults(): FormGroup {
   return fb.group({
-    name: ["", [Validators.required]],
-    namespace: ["", [Validators.required]],
-    image: ["", [Validators.required]],
-    customImage: ["", []],
+    name: ['', [Validators.required]],
+    namespace: ['', [Validators.required]],
+    image: ['', [Validators.required]],
+    customImage: ['', []],
     customImageCheck: [false, []],
-    cpu: ["", [Validators.required]],
-    memory: ["", [Validators.required]],
     cpu: ['', [Validators.required]],
     memory: ['', [Validators.required]],
     gpus: fb.group({
@@ -25,18 +18,18 @@ export function getFormDefaults(): FormGroup {
     }),
     noWorkspace: [false, []],
     workspace: fb.group({
-      type: ["", [Validators.required]],
-      name: ["", [Validators.required]],
-      templatedName: ["", []],
-      size: ["", [Validators.required]],
-      path: [{ value: "", disabled: true }, [Validators.required]],
-      mode: ["", [Validators.required]],
-      class: ["{none}", [Validators.required]],
-      extraFields: fb.group({})
+      type: ['', [Validators.required]],
+      name: ['', [Validators.required]],
+      templatedName: ['', []],
+      size: ['', [Validators.required]],
+      path: [{ value: '', disabled: true }, [Validators.required]],
+      mode: ['', [Validators.required]],
+      class: ['{none}', [Validators.required]],
+      extraFields: fb.group({}),
     }),
     datavols: fb.array([]),
     shm: [true, []],
-    configurations: [[], []]
+    configurations: [[], []],
   });
 }
 
@@ -48,8 +41,8 @@ export function createVolumeControl(vol: ConfigVolume, readonly = false) {
     size: [vol.size.value, [Validators.required]],
     path: [vol.mountPath.value, [Validators.required]],
     mode: [vol.accessModes.value, [Validators.required]],
-    class: ["{none}", []],
-    extraFields: fb.group({})
+    class: ['{none}', []],
+    extraFields: fb.group({}),
   });
 
   if (readonly) {
@@ -62,14 +55,14 @@ export function createVolumeControl(vol: ConfigVolume, readonly = false) {
 export function updateVolumeControl(
   volCtrl: FormGroup,
   vol: ConfigVolume,
-  readonly = false
+  readonly = false,
 ) {
-  volCtrl.get("name").setValue(vol.name.value);
-  volCtrl.get("type").setValue(vol.type.value);
-  volCtrl.get("size").setValue(vol.size.value);
-  volCtrl.get("mode").setValue(vol.accessModes.value);
-  volCtrl.get("path").setValue(vol.mountPath.value);
-  volCtrl.get("templatedName").setValue(vol.name.value);
+  volCtrl.get('name').setValue(vol.name.value);
+  volCtrl.get('type').setValue(vol.type.value);
+  volCtrl.get('size').setValue(vol.size.value);
+  volCtrl.get('mode').setValue(vol.accessModes.value);
+  volCtrl.get('path').setValue(vol.mountPath.value);
+  volCtrl.get('templatedName').setValue(vol.name.value);
 
   if (readonly) {
     volCtrl.disable();
@@ -79,7 +72,7 @@ export function updateVolumeControl(
 export function addDataVolume(
   formCtrl: FormGroup,
   vol: ConfigVolume = null,
-  readonly = false
+  readonly = false,
 ) {
   // If no vol is provided create one with default values
   if (vol === null) {
@@ -87,26 +80,26 @@ export function addDataVolume(
 
     vol = {
       type: {
-        value: "New"
+        value: 'New',
       },
       name: {
-        value: "{notebook-name}-vol-" + (l + 1)
+        value: '{notebook-name}-vol-' + (l + 1),
       },
       size: {
-        value: "10Gi"
+        value: '10Gi',
       },
       mountPath: {
-        value: "/home/jovyan/data-vol-" + (l + 1)
+        value: '/home/jovyan/data-vol-' + (l + 1),
       },
       accessModes: {
-        value: "ReadWriteOnce"
-      }
+        value: 'ReadWriteOnce',
+      },
     };
   }
 
   // Push it to the control
   const ctrl = createVolumeControl(vol, readonly);
-  const vols = formCtrl.get("datavols") as FormArray;
+  const vols = formCtrl.get('datavols') as FormArray;
   vols.push(ctrl);
 }
 
@@ -115,12 +108,14 @@ export function updateGPUControl(formCtrl: FormGroup, gpuConf: any) {
   if (gpuConf == null) {
     formCtrl.get('num').setValue('none');
     return;
-  } else {
-    const gpu = gpuConf.value as GPU;
-    formCtrl.get('num').setValue(gpu.num);
-    formCtrl.get('vendor').setValue(gpu.vendor);
   }
 
+  // Set the values
+  const gpu = gpuConf.value as GPU;
+  formCtrl.get('num').setValue(gpu.num);
+  formCtrl.get('vendor').setValue(gpu.vendor);
+
+  // Don't allow the user to edit them if the admin does not allow it
   if (gpuConf.readOnly) {
     formCtrl.get('num').disable();
     formCtrl.get('vendor').disable();
@@ -146,9 +141,9 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
   }
 
   updateVolumeControl(
-    formCtrl.get("workspace") as FormGroup,
+    formCtrl.get('workspace') as FormGroup,
     config.workspaceVolume.value,
-    config.workspaceVolume.readOnly
+    config.workspaceVolume.readOnly,
   );
 
   // Disable the mount path by default
