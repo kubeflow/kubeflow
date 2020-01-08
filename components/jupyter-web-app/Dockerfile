@@ -16,7 +16,7 @@ RUN npm run build frontend -- --output-path=./dist/out/rok --configuration=rok-p
 FROM ubuntu:18.04
 
 RUN apt-get update -y && \
-    apt-get install -y apt-utils  build-essential curl \
+    apt-get install -y apt-utils  build-essential curl wget\
 	python-dev python3-pip \
     libssl-dev libffi-dev python3-bcrypt
 
