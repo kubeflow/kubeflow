@@ -1,5 +1,0 @@
-certifi,certifi/python-certifi
-cffi,https://bitbucket.org/cffi/cffi/src/default/LICENSE
-requests,psf/requests
-rsa,sybrenstuvel/python-rsa
-python-dateutil,dateutil/dateutil

@@ -1,2 +1,0 @@
-virtualenv
-virtualenv_support
