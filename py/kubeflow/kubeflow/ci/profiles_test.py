@@ -174,7 +174,7 @@ def createProfile(api_client, profileTestYamlFile):
   time.sleep(20)
   return group, version, name
 
-def test_profiles(record_xml_attribute, profileFile= "profile_v1beta1_profile.yaml"):
+def test_profiles(record_xml_attribute, profileFile= "test_data/profile_v1beta1_profile.yaml"):
   util.set_pytest_junit(record_xml_attribute, "test_profile_e2e")
   app_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
   util.maybe_activate_service_account()
