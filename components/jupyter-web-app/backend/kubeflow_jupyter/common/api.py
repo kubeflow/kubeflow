@@ -175,3 +175,20 @@ def delete_notebook(notebook_name, namespace):
         notebook_name,
         client.V1DeleteOptions(propagation_policy="Foreground")
     )
+
+
+# Readiness Probe helper
+def can_connect_to_k8s():
+    try:
+        custom_api.list_namespaced_custom_object(
+            "kubeflow.org",
+            "v1beta1",
+            "default",
+            "notebooks",
+        )
+        return True
+
+    except ApiException:
+        return False
+
+    return True
