@@ -15,6 +15,7 @@ COPY main.go main.go
 COPY api/ api/
 COPY controllers/ controllers/
 COPY pkg/ pkg/
+COPY third_party/ third_party/
 
 # Build
 RUN if [ "$(uname -m)" = "aarch64" ]; then \
@@ -25,7 +26,8 @@ RUN if [ "$(uname -m)" = "aarch64" ]; then \
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:latest
+FROM gcr.io/distroless/base:debug
 WORKDIR /
 COPY --from=builder /workspace/manager .
+COPY --from=builder /workspace/third_party/license.txt third_party/license.txt
 ENTRYPOINT ["/manager"]
