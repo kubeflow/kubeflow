@@ -14,6 +14,7 @@ FROM gcr.io/distroless/base:latest as serve
 WORKDIR /
 COPY third_party third_party
 COPY --from=builder /workspace/access-management .
+COPY --from=builder /go/pkg/mod/github.com/hashicorp third_party/library/
 
 EXPOSE 8081
 
