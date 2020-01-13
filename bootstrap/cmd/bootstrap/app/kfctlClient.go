@@ -10,6 +10,8 @@ import (
 	httptransport "github.com/go-kit/kit/transport/http"
 	kfdefsv1beta1 "github.com/kubeflow/kfctl/v3/pkg/apis/apps/kfdef/v1beta1"
 	"github.com/kubeflow/kfctl/v3/pkg/kfapp/gcp"
+	"github.com/kubeflow/kfctl/v3/pkg/kfconfig"
+	"github.com/kubeflow/kfctl/v3/pkg/kfconfig/gcpplugin"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/time/rate"
 	"io/ioutil"
@@ -109,7 +111,7 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req C2DRequest) (*kf
 	})
 
 	// Not passing a pointer interface is a common cause of deserialization problems
-	pluginSpec := &gcp.GcpPluginSpec{}
+	pluginSpec := &gcpplugin.GcpPluginSpec{}
 
 	err = kfdef.GetPluginSpec(gcp.GcpPluginName, pluginSpec)
 	if err != nil {
@@ -123,10 +125,10 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req C2DRequest) (*kf
 	pluginSpec.SkipInitProject = req.SkipInitProject
 
 	if req.EndpointConfig.BasicAuth.Username != "" && req.EndpointConfig.BasicAuth.Password != "" {
-		pluginSpec.Auth = &gcp.Auth{
-			BasicAuth: &gcp.BasicAuth{
+		pluginSpec.Auth = &gcpplugin.Auth{
+			BasicAuth: &gcpplugin.BasicAuth{
 				Username: req.EndpointConfig.BasicAuth.Username,
-				Password: &gcp.SecretRef{
+				Password: &kfconfig.SecretRef{
 					Name: gcp.BasicAuthPasswordSecretName,
 				},
 			},
@@ -141,10 +143,10 @@ func (c *KfctlClient) CreateDeployment(ctx context.Context, req C2DRequest) (*kf
 		})
 	} else {
 		if req.EndpointConfig.IAP.OAuthClientId != "" && req.EndpointConfig.IAP.OAuthClientSecret != "" {
-			pluginSpec.Auth = &gcp.Auth{
-				IAP: &gcp.IAP{
+			pluginSpec.Auth = &gcpplugin.Auth{
+				IAP: &gcpplugin.IAP{
 					OAuthClientId: req.EndpointConfig.IAP.OAuthClientId,
-					OAuthClientSecret: &gcp.SecretRef{
+					OAuthClientSecret: &kfconfig.SecretRef{
 						Name: gcp.CLIENT_SECRET,
 					},
 				},
