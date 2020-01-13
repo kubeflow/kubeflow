@@ -7,3 +7,6 @@ resources:
 - group: kubeflow.org
   version: v1beta1
   kind: Notebook
+- group: kubeflow.org
+  version: v1
+  kind: Notebook
