@@ -16,7 +16,7 @@ RUN npm run build frontend -- --output-path=./dist/out/rok --configuration=rok-p
 FROM ubuntu:18.04
 
 RUN apt-get update -y && \
-    apt-get install -y apt-utils  build-essential curl \
+    apt-get install -y apt-utils  build-essential curl wget\
 	python-dev python3-pip \
     libssl-dev libffi-dev python3-bcrypt
 
@@ -28,6 +28,9 @@ RUN pip3 install -r /app/requirements.txt
 # Backend code
 COPY ./backend/kubeflow_jupyter /app/kubeflow_jupyter
 COPY ./backend/main.py /app/main.py
+# Copy backend third party library licenses and source code if need.
+COPY ./backend/third_party /app/third_party
+RUN wget https://github.com/certifi/python-certifi -O /app/third_party/python-certifi
 
 # Frontend code
 COPY --from=build-stage /app/dist/out/default /app/kubeflow_jupyter/default/static/
