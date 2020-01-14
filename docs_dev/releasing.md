@@ -163,16 +163,16 @@ Alternatively you can use the UI.
 ## Versioning the website
 
 The main Kubeflow website at [www.kubeflow.org](www.kubeflow.org) points to the
-**master** branch of the `kubeflow/website` repo. Similarly, 
+**master** branch of the `kubeflow/website` repo. Similarly,
 [master.kubeflow.org](https://master.kubeflow.org/) also points to the master
 branch.
 
-For each minor (X.Y) release, we also publish a corresponding version of the 
-website. Each version of the website is generated from a separate 
+For each minor (X.Y) release, we also publish a corresponding version of the
+website. Each version of the website is generated from a separate
 [branch](https://github.com/kubeflow/website/branches)
 of the `kubeflow/website` repository. The naming convention is as follows:
 The site at `vX-Y.kubeflow.org` points to the release at vX.Y-branch.
-For example, the [documentation for v0.6](https://v0-6.kubeflow.org) is 
+For example, the [documentation for v0.6](https://v0-6.kubeflow.org) is
 maintained in the
 [v0.6-branch](https://github.com/kubeflow/website/tree/v0.6-branch).
 
@@ -190,10 +190,10 @@ When we're ready to start updating the docs for the upcoming version, we
 need to update various version numbers on the website, to ensure users are
 getting the correct installation instructions etc. Here are the steps to follow:
 
-1. Make sure the website branch for the current major/minor version has been 
+1. Make sure the website branch for the current major/minor version has been
   created. For example, if we are working towards release v0.7 then make sure
   the website branch for v0.6 exists.
-  If not, create the branch now before updating any docs for the 
+  If not, create the branch now before updating any docs for the
   upcoming version. See [below](#create-website-branch).
 
 1. Edit the version numbers in the site configuration file:
@@ -214,7 +214,7 @@ getting the correct installation instructions etc. Here are the steps to follow:
 
    * Edit [kf-latest-version.html](https://github.com/kubeflow/website/blob/master/layouts/shortcodes/kf-latest-version.html).
 
-   * Update the version number. For example, if the upcoming release is 
+   * Update the version number. For example, if the upcoming release is
      Kubeflow v0.7.0:
      ```
      v0.7.0
@@ -230,39 +230,39 @@ getting the correct installation instructions etc. Here are the steps to follow:
 
    * Update the GCP IAP config URI in [config-uri-gcp-iap.html](https://github.com/kubeflow/website/blob/master/layouts/shortcodes/config-uri-gcp-iap.html).
      ```
-     https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.0.7.0.yaml
+     https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.0.7.1.yaml
      ```
 
-   * And so on, for all the `config-uri-xxx.html` and `config-file-xxx.html` 
+   * And so on, for all the `config-uri-xxx.html` and `config-file-xxx.html`
      shortcodes for AWS, kfctl_k8s_istio, kfctl_existing_arrikto, and more.
 
-1. Update the matrix of Kubernetes versions on 
+1. Update the matrix of Kubernetes versions on
   [the Kubernetes overview](https://www.kubeflow.org/docs/started/k8s/overview/).
 
-1. Update the application version matrix on the version policy. (This is a 
+1. Update the application version matrix on the version policy. (This is a
   placeholder for the task, as the page does
-  not yet exist. We'll have the page for version 1.0 onwards. See 
+  not yet exist. We'll have the page for version 1.0 onwards. See
   [PR #1308](https://github.com/kubeflow/website/pull/1308).)
 
 <a id="create-website-branch"></a>
 ### Creating a website branch for the latest major or minor release
 
-We usually create the website branch for a new version a few weeks after the 
-software release of that version, because it takes a while to finish updating 
+We usually create the website branch for a new version a few weeks after the
+software release of that version, because it takes a while to finish updating
 the docs.
 
 If the documentation for a version needs to be fixed after we've created
-the version branch, the changes should be committed to master and then 
+the version branch, the changes should be committed to master and then
 cherry-picked to the proper release branch.
 
 When documentation for a release is complete, follow these steps to release a
 new version on the website:
 
-1. Create a new versioned branch under the 
+1. Create a new versioned branch under the
   [website repository](https://github.com/kubeflow/website). The branch name
   should have the same format as Kubeflow releases:
-  `v${MAJOR}.${MINOR}-branch`. (You can create a branch on the GitHub UI. See 
-  the GitHub guide to [creating branches in your 
+  `v${MAJOR}.${MINOR}-branch`. (You can create a branch on the GitHub UI. See
+  the GitHub guide to [creating branches in your
   repo](https://help.github.com/en/articles/creating-and-deleting-branches-within-your-repository).)
 
 1. Set up [Netlify](https://www.netlify.com/):
@@ -273,11 +273,11 @@ new version on the website:
    * Select **website** from the list of repositories. You are now configuring
      the deployment settings for `kubeflow/website`.
    * Under **Branch to deploy**, select the new versioned branch.
-   * Click **Deploy site**. This should give you a site URL ending with 
+   * Click **Deploy site**. This should give you a site URL ending with
      `netlify.com`.
 
 1. Set up DNS for the new site:
-   * In [Cloud DNS](http://console.cloud.google.com/net-services/dns/zones?project=kubeflow-dns&organizationId=714441643818), 
+   * In [Cloud DNS](http://console.cloud.google.com/net-services/dns/zones?project=kubeflow-dns&organizationId=714441643818),
      select the `kubeflow.org` zone.
    * Create a new CNAME record for `v${MAJOR}-${MINOR}.kubeflow.org`, pointing
      to the new site (`something-something.netlify.com`), with TTL of 5 minutes.
@@ -286,18 +286,18 @@ new version on the website:
    * Go back to the Netlify configuration page, find the new website, and select
      **Settings**.
    * Click **Domain settings**.
-   * Under **Custom domains**, add a domain alias for 
+   * Under **Custom domains**, add a domain alias for
      `v${MAJOR}-${MINOR}.kubeflow.org`.
    * Under **HTTPS**, enable the SSL certificate for the new site
      by clicking **Verify DNS configuration**.
-   * In your browser, go to `v${MAJOR}-${MINOR}.kubeflow.org` to verify 
-     the setup. If all the steps are done, you should not see any privacy or 
+   * In your browser, go to `v${MAJOR}-${MINOR}.kubeflow.org` to verify
+     the setup. If all the steps are done, you should not see any privacy or
      certificate warnings.
 
 1. Add the new version to the website navigation bar:
    * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml).
 
-   * Add a `params.versions` entry for the new version. 
+   * Add a `params.versions` entry for the new version.
      For example, to add v0.6, add this entry:
      ```
      [[params.versions]]

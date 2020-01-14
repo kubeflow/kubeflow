@@ -21,8 +21,8 @@ import {
 /** Relative paths from the root of the repository. */
 enum ConfigPath {
     V06 = 'a18d7b07/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml',
-    V07IAP = 'https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.0.7.0.yaml',
-    V07BasicAuth = 'https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_basic_auth.0.7.0.yaml',
+    V07IAP = 'https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.0.7.1.yaml',
+    V07BasicAuth = 'https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_basic_auth.0.7.1.yaml',
 }
 
 /** Versions available for deployment. */
