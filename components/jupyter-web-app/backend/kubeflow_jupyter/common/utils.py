@@ -400,7 +400,7 @@ def set_notebook_gpus(notebook, body, defaults):
         # Try to load the default values. If they don't exist, don't use GPUs
         if "gpus" not in defaults:
             logger.info(
-                "No 'gpus' value in neither the form's body nor in"
+                "No 'gpus' value in either the form's body or in"
                 " the default config's values. Will not use any GPUs"
             )
             return
