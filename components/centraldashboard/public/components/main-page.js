@@ -328,8 +328,6 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             this._setRegistrationFlow(true);
         }
         this.ownedNamespace = namespaces.find((n) => n.role == 'owner');
-        this.$.NamespaceSelector.validate();
-
         this.platformInfo = platform;
         const kVer = this.platformInfo.kubeflowVersion;
         if (kVer && kVer != 'unknown') {

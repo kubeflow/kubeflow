@@ -161,12 +161,9 @@ export class NamespaceSelector extends PolymerElement {
         const {namespaces} = this;
         if (!namespaces) return;
         const nsSet = new Set(namespaces.map((i) => i.namespace));
-        const owned = namespaces.find((n) => n.role == 'owner');
-
         if (nsSet.has(this.selected)) return;
 
-        // eslint-disable-next-line
-        console.log({own: (owned||[]).namespace, namespaces, ns: this.selected, yeah: namespaces.includes('kubeflow')});
+        const owned = namespaces.find((n) => n.role == 'owner');
         this.selected = (owned && owned.namespace)
             || (nsSet.has('kubeflow')
                 ? 'kubeflow'
