@@ -120,10 +120,19 @@ spawnerFormDefaults:
     #       class:
     #         value: {none}
     readOnly: false
-  extraResources:
-    # Extra Resource Limits for user's Notebook
-    # e.x. "{'nvidia.com/gpu': 2}"
-    value: "{}"
+  gpus:
+    # Number of GPUs to be assigned to the Notebook Container
+    value:
+      # values: "none", "1", "2", "4", "8"
+      num: "none"
+      # Determines what the UI will show and send to the backend
+      vendors:
+        - limitsKey: "nvidia.com/gpu"
+          uiName: "NVIDIA"
+        - limitsKey: "amd.com/gpu"
+          uiName: "AMD"
+      # Values: "" or a `limits-key` from the vendors list
+      vendor: ""
     readOnly: false
   shm:
     value: true

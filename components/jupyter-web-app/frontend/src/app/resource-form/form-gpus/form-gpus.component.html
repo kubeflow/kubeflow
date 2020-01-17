@@ -1,0 +1,34 @@
+<div class="group-wrapper" [formGroup]="parentForm">
+  <h3>
+    <mat-icon class="gpu">memory</mat-icon>
+    GPUs
+  </h3>
+  <p>
+    Specify the number and Vendor of GPUs that will be assigned to the Notebook
+    Server's Container.
+  </p>
+
+  <div class="inputs-wrapper" [formGroup]="parentForm.get('gpus')">
+    <mat-form-field class="wide" appearance="outline">
+      <mat-label>Number of GPUs</mat-label>
+      <mat-select matNativeControl formControlName="num">
+        <mat-option value="none">None</mat-option>
+        <mat-option *ngFor="let v of gpusCount" [value]="v">
+          {{ v }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="wide" appearance="outline">
+      <mat-label>GPU Vendor</mat-label>
+      <mat-select matNativeControl formControlName="vendor" id="gpu-vendor">
+        <mat-option *ngFor="let v of vendors" [value]="v.limitsKey">
+          {{ v.uiName }}
+        </mat-option>
+        <!--<mat-option value="nvidia">NVIDIA</mat-option>-->
+        <!--<mat-option value="amd">AMD</mat-option>-->
+      </mat-select>
+      <mat-error>{{ getVendorError() }}</mat-error>
+    </mat-form-field>
+  </div>
+</div>

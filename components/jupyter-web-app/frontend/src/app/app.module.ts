@@ -48,6 +48,8 @@ import { RokFormWorkspaceVolumeComponent } from "./uis/rok/rok-resource-form/rok
 import { RokFormDataVolumesComponent } from "./uis/rok/rok-resource-form/rok-form-data-volumes/rok-form-data-volumes.component";
 import { RokErrorMsgComponent } from "./uis/rok/rok-error-msg/rok-error-msg.component";
 import { FormConfigurationsComponent } from "./resource-form/form-configurations/form-configurations.component";
+import { FormGpusComponent } from "./resource-form/form-gpus/form-gpus.component";
+
 
 @NgModule({
   declarations: [
@@ -74,7 +76,8 @@ import { FormConfigurationsComponent } from "./resource-form/form-configurations
     RokFormWorkspaceVolumeComponent,
     RokFormDataVolumesComponent,
     RokErrorMsgComponent,
-    FormConfigurationsComponent
+    FormConfigurationsComponent,
+    FormGpusComponent,
   ],
   imports: [
     BrowserModule,
