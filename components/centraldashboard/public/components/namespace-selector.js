@@ -127,6 +127,7 @@ export class NamespaceSelector extends PolymerElement {
         return [
             '_queryParamChanged(queryParams.ns)',
             '_ownedContextChanged(namespaces, selected)',
+            'validate(selected, namespaces)',
         ];
     }
 
@@ -151,6 +152,25 @@ export class NamespaceSelector extends PolymerElement {
         if (!namespaces || !namespaces.length) return 'No Namespaces';
         if (!selected) return 'Select namespace';
         return selected;
+    }
+
+    /**
+     * Check if role is owner
+     */
+    validate() {
+        const {namespaces} = this;
+        if (!namespaces) return;
+        const nsSet = new Set(namespaces.map((i) => i.namespace));
+        const owned = namespaces.find((n) => n.role == 'owner');
+
+        if (nsSet.has(this.selected)) return;
+
+        // eslint-disable-next-line
+        console.log({own: (owned||[]).namespace, namespaces, ns: this.selected, yeah: namespaces.includes('kubeflow')});
+        this.selected = (owned && owned.namespace)
+            || (nsSet.has('kubeflow')
+                ? 'kubeflow'
+                : '');
     }
 
     /**

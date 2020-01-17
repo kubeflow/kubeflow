@@ -316,8 +316,9 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * @param {Event} responseEvent AJAX-response
      */
     _onEnvInfoResponse(responseEvent) {
-        const {platform, user,
-            namespaces, isClusterAdmin} = responseEvent.detail.response;
+        const {
+            platform, user, namespaces, isClusterAdmin,
+        } = responseEvent.detail.response;
         Object.assign(this, {user, isClusterAdmin});
         this.namespaces = namespaces;
         if (this.namespaces.length) {
@@ -327,6 +328,8 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             this._setRegistrationFlow(true);
         }
         this.ownedNamespace = namespaces.find((n) => n.role == 'owner');
+        this.$.NamespaceSelector.validate();
+
         this.platformInfo = platform;
         const kVer = this.platformInfo.kubeflowVersion;
         if (kVer && kVer != 'unknown') {
