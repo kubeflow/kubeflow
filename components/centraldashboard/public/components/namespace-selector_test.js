@@ -16,22 +16,14 @@ const TEMPLATE = `
 describe('Namespace Selector', () => {
     const namespaces = [
         {
-            user: {kind: 'user', name: 'testuser'},
-            referredNamespace: 'default',
-            roleRef: {
-                apiGroup: '',
-                kind: 'ClusterRole',
-                name: 'editor',
-            },
+            user: 'testuser',
+            namespace: 'default',
+            role: 'contributor',
         },
         {
-            user: {kind: 'user', name: 'testuser'},
-            referredNamespace: 'other-namespace',
-            roleRef: {
-                apiGroup: '',
-                kind: 'ClusterRole',
-                name: 'editor',
-            },
+            user: 'testuser',
+            namespace: 'other-namespace',
+            role: 'contributor',
         },
     ];
     let namespaceSelector;
