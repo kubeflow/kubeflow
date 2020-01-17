@@ -127,6 +127,7 @@ export class NamespaceSelector extends PolymerElement {
         return [
             '_queryParamChanged(queryParams.ns)',
             '_ownedContextChanged(namespaces, selected)',
+            'validate(selected, namespaces)',
         ];
     }
 
@@ -140,7 +141,8 @@ export class NamespaceSelector extends PolymerElement {
     }
 
     /**
-     * Check if role is owner
+     * Convert the current state of this component to the visual text seen in
+     * the selector
      * @param {string} selected
      * @param {boolean} allNamespaces
      * @param {[object]} namespaces
@@ -151,6 +153,23 @@ export class NamespaceSelector extends PolymerElement {
         if (!namespaces || !namespaces.length) return 'No Namespaces';
         if (!selected) return 'Select namespace';
         return selected;
+    }
+
+    /**
+     * Validate internal state of the selector, and change selected state
+     * if needed
+     */
+    validate() {
+        const {namespaces} = this;
+        if (!namespaces) return;
+        const nsSet = new Set(namespaces.map((i) => i.namespace));
+        if (nsSet.has(this.selected)) return;
+
+        const owned = namespaces.find((n) => n.role == 'owner');
+        this.selected = (owned && owned.namespace)
+            || (nsSet.has('kubeflow')
+                ? 'kubeflow'
+                : '');
     }
 
     /**
