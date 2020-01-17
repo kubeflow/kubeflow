@@ -141,7 +141,8 @@ export class NamespaceSelector extends PolymerElement {
     }
 
     /**
-     * Check if role is owner
+     * Convert the current state of this component to the visual text seen in
+     * the selector
      * @param {string} selected
      * @param {boolean} allNamespaces
      * @param {[object]} namespaces
@@ -155,7 +156,8 @@ export class NamespaceSelector extends PolymerElement {
     }
 
     /**
-     * Check if role is owner
+     * Validate internal state of the selector, and change selected state
+     * if needed
      */
     validate() {
         const {namespaces} = this;
