@@ -24,6 +24,7 @@ import (
 	"github.com/kubeflow/kfctl/v3/pkg/kfapp/coordinator"
 	"github.com/kubeflow/kfctl/v3/pkg/kfapp/gcp"
 	"github.com/kubeflow/kfctl/v3/pkg/kfapp/kustomize"
+	"github.com/kubeflow/kfctl/v3/pkg/kfconfig/gcpplugin"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
@@ -252,7 +253,7 @@ func (s *kfctlServer) handleDeployment(req kfdefsv1beta1.KfDef) (*kfdefsv1beta1.
 			Code:    http.StatusInternalServerError,
 		}
 	}
-	pluginSpec := &gcp.GcpPluginSpec{}
+	pluginSpec := &gcpplugin.GcpPluginSpec{}
 
 	err = req.GetPluginSpec(gcp.GcpPluginName, pluginSpec)
 	if err != nil {
@@ -407,12 +408,12 @@ func isMatch(current *kfdefsv1beta1.KfDef, new *kfdefsv1beta1.KfDef) bool {
 	if new == nil {
 		return false
 	}
-	curPluginSpec := &gcp.GcpPluginSpec{}
+	curPluginSpec := &gcpplugin.GcpPluginSpec{}
 	err := current.GetPluginSpec(gcp.GcpPluginName, curPluginSpec)
 	if err != nil {
 		return true
 	}
-	newPluginSpec := &gcp.GcpPluginSpec{}
+	newPluginSpec := &gcpplugin.GcpPluginSpec{}
 	err = new.GetPluginSpec(gcp.GcpPluginName, newPluginSpec)
 	if err != nil {
 		return false
@@ -479,7 +480,7 @@ func (s *kfctlServer) CreateDeployment(ctx context.Context, req kfdefsv1beta1.Kf
 			Code:    http.StatusBadRequest,
 		}
 	}
-	pluginSpec := &gcp.GcpPluginSpec{}
+	pluginSpec := &gcpplugin.GcpPluginSpec{}
 
 	err = req.GetPluginSpec(gcp.GcpPluginName, pluginSpec)
 	if err != nil {

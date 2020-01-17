@@ -2,10 +2,9 @@ package app
 
 import (
 	"context"
-	"github.com/ghodss/yaml"
-	"github.com/kubeflow/kfctl/v3/pkg/apis/apps/configconverters"
 	kfdefsv3 "github.com/kubeflow/kfctl/v3/pkg/apis/apps/kfdef/v1beta1"
 	"github.com/kubeflow/kfctl/v3/pkg/kfapp/gcp"
+	"github.com/kubeflow/kfctl/v3/pkg/kfconfig/loaders"
 	"github.com/kubeflow/kfctl/v3/pkg/utils"
 	"golang.org/x/oauth2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -101,8 +100,8 @@ func TestKfctlServer_CreateDeployment(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateDeployment error; %v", err)
 	}
-	kfDefbytes, _ := yaml.Marshal(*res)
-	respKfconfig, _ := configconverters.V1beta1{}.ToKfConfig(kfDefbytes)
+	//kfDefbytes, _ := yaml.Marshal(*res)
+	respKfconfig, _ := loaders.V1beta1{}.LoadKfConfig(*res)
 
 	if !reflect.DeepEqual(respKfconfig.Spec, s.latestKfdef.Spec) {
 		pWant, _ := Pformat(s.latestKfdef)
