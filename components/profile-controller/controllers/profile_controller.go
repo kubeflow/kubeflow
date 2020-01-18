@@ -35,7 +35,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/api/istiorbac/v1alpha1"
-	profilev1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
+	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -72,10 +72,10 @@ const DEFAULT_VIEWER = "default-viewer"
 
 type Plugin interface {
 	// Called when profile CR is created / updated
-	ApplyPlugin(*ProfileReconciler, *profilev1beta1.Profile) error
+	ApplyPlugin(*ProfileReconciler, *profilev1.Profile) error
 	// Called when profile CR is being deleted, to cleanup any non-k8s resources created via ApplyPlugin
 	// RevokePlugin logic need to be IDEMPOTENT
-	RevokePlugin(*ProfileReconciler, *profilev1beta1.Profile) error
+	RevokePlugin(*ProfileReconciler, *profilev1.Profile) error
 }
 
 // ProfileReconciler reconciles a Profile object
@@ -101,7 +101,7 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 	logger := r.Log.WithValues("profile", request.NamespacedName)
 
 	// Fetch the Profile instance
-	instance := &profilev1beta1.Profile{}
+	instance := &profilev1.Profile{}
 	logger.Info("Start to Reconcile.", "namespace", request.Namespace, "name", request.Name)
 	err := r.Get(ctx, request.NamespacedName, instance)
 	if err != nil {
@@ -280,10 +280,10 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 }
 
 // appendErrorConditionAndReturn append failure status to profile CR and mark Reconcile done. If update condition failed, request will be requeued.
-func (r *ProfileReconciler) appendErrorConditionAndReturn(ctx context.Context, instance *profilev1beta1.Profile,
+func (r *ProfileReconciler) appendErrorConditionAndReturn(ctx context.Context, instance *profilev1.Profile,
 	message string) (ctrl.Result, error) {
-	instance.Status.Conditions = append(instance.Status.Conditions, profilev1beta1.ProfileCondition{
-		Type:    profilev1beta1.ProfileFailed,
+	instance.Status.Conditions = append(instance.Status.Conditions, profilev1.ProfileCondition{
+		Type:    profilev1.ProfileFailed,
 		Message: message,
 	})
 	if err := r.Update(ctx, instance); err != nil {
@@ -294,7 +294,7 @@ func (r *ProfileReconciler) appendErrorConditionAndReturn(ctx context.Context, i
 
 func (r *ProfileReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&profilev1beta1.Profile{}).
+		For(&profilev1.Profile{}).
 		Owns(&istiorbac.ServiceRole{}).
 		Owns(&istiorbac.ServiceRoleBinding{}).
 		Owns(&corev1.Namespace{}).
@@ -304,7 +304,7 @@ func (r *ProfileReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 // updateIstioRbac create or update Istio rbac resources in target namespace owned by "profileIns". The goal is to allow service access for profile owner
-func (r *ProfileReconciler) updateIstioRbac(profileIns *profilev1beta1.Profile) error {
+func (r *ProfileReconciler) updateIstioRbac(profileIns *profilev1.Profile) error {
 	logger := r.Log.WithValues("profile", profileIns.Name)
 	istioServiceRole := &istiorbac.ServiceRole{
 		ObjectMeta: metav1.ObjectMeta{
@@ -399,7 +399,7 @@ func (r *ProfileReconciler) updateIstioRbac(profileIns *profilev1beta1.Profile) 
 }
 
 // updateResourceQuota create or update ResourceQuota for target namespace
-func (r *ProfileReconciler) updateResourceQuota(profileIns *profilev1beta1.Profile,
+func (r *ProfileReconciler) updateResourceQuota(profileIns *profilev1.Profile,
 	resourceQuota *corev1.ResourceQuota) error {
 	ctx := context.Background()
 	logger := r.Log.WithValues("profile", profileIns.Name)
@@ -432,7 +432,7 @@ func (r *ProfileReconciler) updateResourceQuota(profileIns *profilev1beta1.Profi
 }
 
 // updateServiceAccount create or update service account "saName" with role "ClusterRoleName" in target namespace owned by "profileIns"
-func (r *ProfileReconciler) updateServiceAccount(profileIns *profilev1beta1.Profile, saName string,
+func (r *ProfileReconciler) updateServiceAccount(profileIns *profilev1.Profile, saName string,
 	ClusterRoleName string) error {
 	logger := r.Log.WithValues("profile", profileIns.Name)
 	serviceAccount := &corev1.ServiceAccount{
@@ -481,7 +481,7 @@ func (r *ProfileReconciler) updateServiceAccount(profileIns *profilev1beta1.Prof
 }
 
 // updateRoleBinding create or update roleBinding "roleBinding" in target namespace owned by "profileIns"
-func (r *ProfileReconciler) updateRoleBinding(profileIns *profilev1beta1.Profile,
+func (r *ProfileReconciler) updateRoleBinding(profileIns *profilev1.Profile,
 	roleBinding *rbacv1.RoleBinding) error {
 	logger := r.Log.WithValues("profile", profileIns.Name)
 	if err := controllerutil.SetControllerReference(profileIns, roleBinding, r.Scheme); err != nil {
@@ -515,7 +515,7 @@ func (r *ProfileReconciler) updateRoleBinding(profileIns *profilev1beta1.Profile
 
 // GetPluginSpec will try to unmarshal the plugin spec inside profile for the specified plugin
 // Returns an error if the plugin isn't defined or if there is a problem
-func (r *ProfileReconciler) GetPluginSpec(profileIns *profilev1beta1.Profile) ([]Plugin, error) {
+func (r *ProfileReconciler) GetPluginSpec(profileIns *profilev1.Profile) ([]Plugin, error) {
 	logger := r.Log.WithValues("profile", profileIns.Name)
 	plugins := []Plugin{}
 	for _, p := range profileIns.Spec.Plugins {
@@ -548,16 +548,16 @@ func (r *ProfileReconciler) GetPluginSpec(profileIns *profilev1beta1.Profile) ([
 }
 
 // PatchDefaultPluginSpec patch default plugins to profile CR instance if user doesn't specify plugin of same kind in CR.
-func (r *ProfileReconciler) PatchDefaultPluginSpec(ctx context.Context, profileIns *profilev1beta1.Profile) error {
+func (r *ProfileReconciler) PatchDefaultPluginSpec(ctx context.Context, profileIns *profilev1.Profile) error {
 	// read existing plugins into map
-	plugins := make(map[string]profilev1beta1.Plugin)
+	plugins := make(map[string]profilev1.Plugin)
 	for _, p := range profileIns.Spec.Plugins {
 		plugins[p.Kind] = p
 	}
 	// Patch default plugins if same kind doesn't exist yet.
 	if r.WorkloadIdentity != "" {
 		if _, ok := plugins[KIND_WORKLOAD_IDENTITY]; !ok {
-			profileIns.Spec.Plugins = append(profileIns.Spec.Plugins, profilev1beta1.Plugin{
+			profileIns.Spec.Plugins = append(profileIns.Spec.Plugins, profilev1.Plugin{
 				TypeMeta: metav1.TypeMeta{
 					Kind: KIND_WORKLOAD_IDENTITY,
 				},
