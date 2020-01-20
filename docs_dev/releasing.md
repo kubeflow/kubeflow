@@ -17,7 +17,7 @@
   - [Update Application Versions](#update-application-versions)
   - [Add new KfDef for the Release](#add-new-kfdef-for-the-release)
   - [Build and Upload KFCTL Binaries](#build-and-upload-kfctl-binaries)
-  - [Releasing a new version of the website](#releasing-a-new-version-of-the-website)
+  - [Version the website](#version-the-website)
   - [Update the changelog](#update-the-changelog)
   - [Get Votes for the Release](#get-votes-for-the-release)
 
@@ -160,7 +160,7 @@ Alternatively you can use the UI.
    ```
    * Set the tag to be the correct version for the tag.
 
-## Versioning the website
+## Version the website
 
 The main Kubeflow website at [www.kubeflow.org](www.kubeflow.org) points to the
 **master** branch of the `kubeflow/website` repo. Similarly, 
@@ -258,12 +258,33 @@ cherry-picked to the proper release branch.
 When documentation for a release is complete, follow these steps to release a
 new version on the website:
 
+1. In the config for the **master branch**,
+  add the new version to the website navigation bar:
+
+   * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml).
+
+   * Add a `params.versions` entry for the new version. 
+     For example, to add v0.6, add this entry:
+     ```
+     [[params.versions]]
+     version = "v0.6"
+     githubbranch = "v0.6-branch"
+     url = "https://v0-6.kubeflow.org"
+     ```
+
 1. Create a new versioned branch under the 
   [website repository](https://github.com/kubeflow/website). The branch name
   should have the same format as Kubeflow releases:
   `v${MAJOR}.${MINOR}-branch`. (You can create a branch on the GitHub UI. See 
   the GitHub guide to [creating branches in your 
   repo](https://help.github.com/en/articles/creating-and-deleting-branches-within-your-repository).)
+
+1. In the `config.toml` for the **versioned branch**,
+  set the `archived_version` parameter to `true`:
+
+    ```
+    archived_version = true
+    ```
 
 1. Set up [Netlify](https://www.netlify.com/):
    * Log in with your GitHub credentials.
@@ -293,18 +314,6 @@ new version on the website:
    * In your browser, go to `v${MAJOR}-${MINOR}.kubeflow.org` to verify 
      the setup. If all the steps are done, you should not see any privacy or 
      certificate warnings.
-
-1. Add the new version to the website navigation bar:
-   * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml).
-
-   * Add a `params.versions` entry for the new version. 
-     For example, to add v0.6, add this entry:
-     ```
-     [[params.versions]]
-     version = "v0.6"
-     githubbranch = "v0.6-branch"
-     url = "https://v0-6.kubeflow.org"
-     ```
 
 ## Update the changelog
 
