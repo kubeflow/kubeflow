@@ -114,8 +114,8 @@ func safeToApplyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.Pod
 		defaultLabels      = make([]*map[string]string, len(podDefaults))
 	)
 	for i, pd := range podDefaults {
-		defaultAnnotations[i] = &pd.Annotations
-		defaultLabels[i] = &pd.Labels
+		defaultAnnotations[i] = &pd.Spec.Annotations
+		defaultLabels[i] = &pd.Spec.Labels
 	}
 	if _, err := mergeMap(pod.Annotations, defaultAnnotations); err != nil {
 		errs = append(errs, err)
@@ -336,8 +336,8 @@ func applyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.PodDefaul
 		defaultLabels      = make([]*map[string]string, len(podDefaults))
 	)
 	for i, pd := range podDefaults {
-		defaultAnnotations[i] = &pd.Annotations
-		defaultLabels[i] = &pd.Labels
+		defaultAnnotations[i] = &pd.Spec.Annotations
+		defaultLabels[i] = &pd.Spec.Labels
 	}
 	annotations, err := mergeMap(pod.Annotations, defaultAnnotations)
 	if err != nil {
