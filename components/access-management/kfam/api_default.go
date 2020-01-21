@@ -95,11 +95,9 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	const action = "create"
 	var binding Binding
 	if err := json.NewDecoder(r.Body).Decode(&binding); err != nil {
-		IncRequestErrorCounter("decode error", "", action, r.URL.Path,
+		IncRequestErrorCounter("decode request error", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
-		if err := json.NewEncoder(w).Encode(err); err != nil {
-			log.Error(err)
-		}
+		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -107,20 +105,17 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	useremail := c.getUserEmail(r.Header)
 	if c.isOwnerOrAdmin(useremail, binding.ReferredNamespace) {
 		err := c.bindingClient.Create(&binding, c.userIdHeader, c.userIdPrefix)
-		if err == nil {
-			IncRequestCounter("", useremail, action, r.URL.Path)
-			w.WriteHeader(http.StatusOK)
-		} else {
+		if err != nil {
 			IncRequestErrorCounter(err.Error(), useremail, action, r.URL.Path,
 				SEVERITY_MAJOR)
 			w.WriteHeader(http.StatusForbidden)
-			if _, err := w.Write([]byte(err.Error())); err != nil {
-				log.Error(err)
-			}
+			writeResponse(w, []byte(err.Error()))
+			return
 		}
+		IncRequestCounter("", useremail, action, r.URL.Path)
+		w.WriteHeader(http.StatusOK)
 	} else {
-		IncRequestErrorCounter("forbidden", useremail, action, r.URL.Path,
-			SEVERITY_MINOR)
+		IncRequestCounter("forbidden", useremail, action, r.URL.Path)
 		w.WriteHeader(http.StatusForbidden)
 	}
 }
@@ -132,24 +127,20 @@ func (c *KfamV1Alpha1Client) CreateProfile(w http.ResponseWriter, r *http.Reques
 	if err := json.NewDecoder(r.Body).Decode(&profile); err != nil {
 		IncRequestErrorCounter("decode error", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
-		if err := json.NewEncoder(w).Encode(err); err != nil {
-			log.Error(err)
-		}
+		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 	_, err := c.profileClient.Create(&profile)
-	if err == nil {
-		IncRequestCounter("", "", action, r.URL.Path)
-		w.WriteHeader(http.StatusOK)
-	} else {
+	if err != nil {
 		IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
 			SEVERITY_MAJOR)
 		w.WriteHeader(http.StatusForbidden)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Error(err)
-		}
+		writeResponse(w, []byte(err.Error()))
+		return
 	}
+	IncRequestCounter("", "", action, r.URL.Path)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (c *KfamV1Alpha1Client) DeleteBinding(w http.ResponseWriter, r *http.Request) {
@@ -159,9 +150,7 @@ func (c *KfamV1Alpha1Client) DeleteBinding(w http.ResponseWriter, r *http.Reques
 	if err := json.NewDecoder(r.Body).Decode(&binding); err != nil {
 		IncRequestErrorCounter("decode error", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
-		if err := json.NewEncoder(w).Encode(err); err != nil {
-			log.Error(err)
-		}
+		writeResponse(w, []byte(err.Error()))
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -169,20 +158,17 @@ func (c *KfamV1Alpha1Client) DeleteBinding(w http.ResponseWriter, r *http.Reques
 	useremail := c.getUserEmail(r.Header)
 	if c.isOwnerOrAdmin(useremail, binding.ReferredNamespace) {
 		err := c.bindingClient.Delete(&binding)
-		if err == nil {
-			IncRequestCounter("", useremail, action, r.URL.Path)
-			w.WriteHeader(http.StatusOK)
-		} else {
+		if err != nil {
 			IncRequestErrorCounter(err.Error(), useremail, action, r.URL.Path,
 				SEVERITY_MAJOR)
 			w.WriteHeader(http.StatusForbidden)
-			if _, err := w.Write([]byte(err.Error())); err != nil {
-				log.Error(err)
-			}
+			writeResponse(w, []byte(err.Error()))
+			return
 		}
+		IncRequestCounter("", useremail, action, r.URL.Path)
+		w.WriteHeader(http.StatusOK)
 	} else {
-		IncRequestErrorCounter("forbidden", useremail, action, r.URL.Path,
-			SEVERITY_MINOR)
+		IncRequestCounter("forbidden", useremail, action, r.URL.Path)
 		w.WriteHeader(http.StatusForbidden)
 	}
 }
@@ -195,20 +181,17 @@ func (c *KfamV1Alpha1Client) DeleteProfile(w http.ResponseWriter, r *http.Reques
 	// check permission before delete
 	if c.isOwnerOrAdmin(useremail, profileName) {
 		err := c.profileClient.Delete(profileName, nil)
-		if err == nil {
-			IncRequestCounter("", useremail, action, r.URL.Path)
-			w.WriteHeader(http.StatusOK)
-		} else {
+		if err != nil {
 			IncRequestErrorCounter(err.Error(), useremail, action, r.URL.Path,
 				SEVERITY_MAJOR)
 			w.WriteHeader(http.StatusUnauthorized)
-			if _, err := w.Write([]byte(err.Error())); err != nil {
-				log.Error(err)
-			}
+			writeResponse(w, []byte(err.Error()))
+			return
 		}
+		IncRequestCounter("", useremail, action, r.URL.Path)
+		w.WriteHeader(http.StatusOK)
 	} else {
-		IncRequestErrorCounter("forbidden", useremail, action, r.URL.Path,
-			SEVERITY_MINOR)
+		IncRequestCounter("forbidden", useremail, action, r.URL.Path)
 		w.WriteHeader(http.StatusUnauthorized)
 	}
 }
@@ -221,9 +204,8 @@ func (c *KfamV1Alpha1Client) ReadBinding(w http.ResponseWriter, r *http.Request)
 		IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
 			SEVERITY_MAJOR)
 		w.WriteHeader(http.StatusForbidden)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Error(err)
-		}
+		writeResponse(w, []byte(err.Error()))
+		return
 	}
 	namespaces := []string{}
 	// by default scan all namespaces created by profile CR
@@ -231,9 +213,7 @@ func (c *KfamV1Alpha1Client) ReadBinding(w http.ResponseWriter, r *http.Request)
 		profList, err := c.profileClient.List(metav1.ListOptions{})
 		if err != nil {
 			w.WriteHeader(http.StatusForbidden)
-			if _, err := w.Write([]byte(err.Error())); err != nil {
-				log.Error(err)
-			}
+			writeResponse(w, []byte(err.Error()))
 		}
 		for _, profile := range profList.Items {
 			namespaces = append(namespaces, profile.Name)
@@ -242,26 +222,25 @@ func (c *KfamV1Alpha1Client) ReadBinding(w http.ResponseWriter, r *http.Request)
 		namespaces = append(namespaces, queries.Get("namespace"))
 	}
 	bindingList, err := c.bindingClient.List(queries.Get("user"), namespaces, queries.Get("role"))
-	if err == nil {
-		result, err := json.Marshal(*bindingList)
-		if err != nil {
-			IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
-				SEVERITY_MAJOR)
-			w.WriteHeader(http.StatusInternalServerError)
-		} else {
-			IncRequestCounter("", "", action, r.URL.Path)
-			w.WriteHeader(http.StatusOK)
-			if _, err := w.Write(result); err != nil {
-				log.Error(err)
-			}
-		}
-	} else {
+	if err != nil {
 		IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
 			SEVERITY_MAJOR)
 		w.WriteHeader(http.StatusUnauthorized)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Error(err)
-		}
+		writeResponse(w, []byte(err.Error()))
+		return
+	}
+	result, err := json.Marshal(*bindingList)
+	if err != nil {
+		IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
+			SEVERITY_MAJOR)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	IncRequestCounter("", "", action, r.URL.Path)
+	if writeResponse(w, result) {
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
@@ -273,31 +252,27 @@ func (c *KfamV1Alpha1Client) QueryClusterAdmin(w http.ResponseWriter, r *http.Re
 		IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
 			SEVERITY_MAJOR)
 		w.WriteHeader(http.StatusForbidden)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Error(err)
-		}
+		writeResponse(w, []byte(err.Error()))
 		return
 	}
 	queryUser := queries.Get("user")
-	if c.isClusterAdmin(queryUser) {
+	if writeResponse(w, []byte(strconv.FormatBool(c.isClusterAdmin(queryUser)))) {
+		IncRequestCounter("", "", action, r.URL.Path)
 		w.WriteHeader(http.StatusOK)
-		if _, err := w.Write([]byte(strconv.FormatBool(true))); err != nil {
-			IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
-				SEVERITY_MAJOR)
-			log.Error(err)
-		} else {
-			IncRequestCounter("", "", action, r.URL.Path)
-		}
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-	if _, err := w.Write([]byte(strconv.FormatBool(false))); err != nil {
+	} else {
 		IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
 			SEVERITY_MAJOR)
-		log.Error(err)
-	} else {
-		IncRequestCounter("", "", action, r.URL.Path)
+		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+// writeResponse will write msg to w, log any error that occurs, and return whether the write succeeded.
+func writeResponse(w http.ResponseWriter, msg []byte) bool {
+	if _, err := w.Write(msg); err != nil {
+		log.Errorf("Failed to write message with ResponseWriter: %v", err)
+		return false
+	}
+	return true
 }
 
 func (c *KfamV1Alpha1Client) getUserEmail(header http.Header) string {
