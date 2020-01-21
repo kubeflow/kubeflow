@@ -12,6 +12,7 @@ package kfam
 
 import (
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"strings"
 
@@ -76,6 +77,12 @@ func NewRouter(kfamV1Alpha1 KfamV1Alpha1Interface) *mux.Router {
 			strings.ToUpper("Get"),
 			"/kfam/v1/role/clusteradmin",
 			kfamV1Alpha1.QueryClusterAdmin,
+		},
+		Route{
+			"PrometheusMetrics",
+			strings.ToUpper("Get"),
+			"/metrics",
+			promhttp.Handler().ServeHTTP,
 		},
 	}
 	for _, route := range routes {

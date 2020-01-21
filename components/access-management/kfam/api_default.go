@@ -12,6 +12,7 @@ package kfam
 
 import (
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
 	istioRegister "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/istiorbac/v1alpha1"
 	profileRegister "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1beta1"
 	profilev1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
@@ -91,9 +92,14 @@ func getRESTClient(group string, version string) (*rest.RESTClient, error) {
 
 func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	const action = "create"
 	var binding Binding
 	if err := json.NewDecoder(r.Body).Decode(&binding); err != nil {
-		json.NewEncoder(w).Encode(err)
+		IncRequestErrorCounter("decode error", "", action, r.URL.Path,
+			SEVERITY_MAJOR)
+		if err := json.NewEncoder(w).Encode(err); err != nil {
+			log.Error(err)
+		}
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -102,38 +108,60 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	if c.isOwnerOrAdmin(useremail, binding.ReferredNamespace) {
 		err := c.bindingClient.Create(&binding, c.userIdHeader, c.userIdPrefix)
 		if err == nil {
+			IncRequestCounter("", useremail, action, r.URL.Path)
 			w.WriteHeader(http.StatusOK)
 		} else {
+			IncRequestErrorCounter(err.Error(), useremail, action, r.URL.Path,
+				SEVERITY_MAJOR)
 			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte(err.Error()))
+			if _, err := w.Write([]byte(err.Error())); err != nil {
+				log.Error(err)
+			}
 		}
 	} else {
+		IncRequestErrorCounter("forbidden", useremail, action, r.URL.Path,
+			SEVERITY_MINOR)
 		w.WriteHeader(http.StatusForbidden)
 	}
 }
 
 func (c *KfamV1Alpha1Client) CreateProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	const action = "create"
 	var profile profilev1beta1.Profile
 	if err := json.NewDecoder(r.Body).Decode(&profile); err != nil {
-		json.NewEncoder(w).Encode(err)
+		IncRequestErrorCounter("decode error", "", action, r.URL.Path,
+			SEVERITY_MAJOR)
+		if err := json.NewEncoder(w).Encode(err); err != nil {
+			log.Error(err)
+		}
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 	_, err := c.profileClient.Create(&profile)
 	if err == nil {
+		IncRequestCounter("", "", action, r.URL.Path)
 		w.WriteHeader(http.StatusOK)
 	} else {
+		IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
+			SEVERITY_MAJOR)
 		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(err.Error()))
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Error(err)
+		}
 	}
 }
 
 func (c *KfamV1Alpha1Client) DeleteBinding(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	const action = "delete"
 	var binding Binding
 	if err := json.NewDecoder(r.Body).Decode(&binding); err != nil {
-		json.NewEncoder(w).Encode(err)
+		IncRequestErrorCounter("decode error", "", action, r.URL.Path,
+			SEVERITY_MAJOR)
+		if err := json.NewEncoder(w).Encode(err); err != nil {
+			log.Error(err)
+		}
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -142,40 +170,60 @@ func (c *KfamV1Alpha1Client) DeleteBinding(w http.ResponseWriter, r *http.Reques
 	if c.isOwnerOrAdmin(useremail, binding.ReferredNamespace) {
 		err := c.bindingClient.Delete(&binding)
 		if err == nil {
+			IncRequestCounter("", useremail, action, r.URL.Path)
 			w.WriteHeader(http.StatusOK)
 		} else {
+			IncRequestErrorCounter(err.Error(), useremail, action, r.URL.Path,
+				SEVERITY_MAJOR)
 			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte(err.Error()))
+			if _, err := w.Write([]byte(err.Error())); err != nil {
+				log.Error(err)
+			}
 		}
 	} else {
+		IncRequestErrorCounter("forbidden", useremail, action, r.URL.Path,
+			SEVERITY_MINOR)
 		w.WriteHeader(http.StatusForbidden)
 	}
 }
 
 func (c *KfamV1Alpha1Client) DeleteProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	const action = "delete"
 	useremail := c.getUserEmail(r.Header)
 	profileName := path.Base(r.RequestURI)
 	// check permission before delete
 	if c.isOwnerOrAdmin(useremail, profileName) {
 		err := c.profileClient.Delete(profileName, nil)
 		if err == nil {
+			IncRequestCounter("", useremail, action, r.URL.Path)
 			w.WriteHeader(http.StatusOK)
 		} else {
+			IncRequestErrorCounter(err.Error(), useremail, action, r.URL.Path,
+				SEVERITY_MAJOR)
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(err.Error()))
+			if _, err := w.Write([]byte(err.Error())); err != nil {
+				log.Error(err)
+			}
 		}
 	} else {
+		IncRequestErrorCounter("forbidden", useremail, action, r.URL.Path,
+			SEVERITY_MINOR)
 		w.WriteHeader(http.StatusUnauthorized)
 	}
 }
 
 func (c *KfamV1Alpha1Client) ReadBinding(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	const action = "read"
 	queries, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
+		IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
+			SEVERITY_MAJOR)
 		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(err.Error()))
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Error(err)
+		}
 	}
 	namespaces := []string{}
 	// by default scan all namespaces created by profile CR
@@ -183,7 +231,9 @@ func (c *KfamV1Alpha1Client) ReadBinding(w http.ResponseWriter, r *http.Request)
 		profList, err := c.profileClient.List(metav1.ListOptions{})
 		if err != nil {
 			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte(err.Error()))
+			if _, err := w.Write([]byte(err.Error())); err != nil {
+				log.Error(err)
+			}
 		}
 		for _, profile := range profList.Items {
 			namespaces = append(namespaces, profile.Name)
@@ -195,33 +245,59 @@ func (c *KfamV1Alpha1Client) ReadBinding(w http.ResponseWriter, r *http.Request)
 	if err == nil {
 		result, err := json.Marshal(*bindingList)
 		if err != nil {
+			IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
+				SEVERITY_MAJOR)
 			w.WriteHeader(http.StatusInternalServerError)
 		} else {
+			IncRequestCounter("", "", action, r.URL.Path)
 			w.WriteHeader(http.StatusOK)
-			w.Write(result)
+			if _, err := w.Write(result); err != nil {
+				log.Error(err)
+			}
 		}
 	} else {
+		IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
+			SEVERITY_MAJOR)
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(err.Error()))
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Error(err)
+		}
 	}
 }
 
 func (c *KfamV1Alpha1Client) QueryClusterAdmin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	const action = "read"
 	queries, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
+		IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
+			SEVERITY_MAJOR)
 		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(err.Error()))
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Error(err)
+		}
 		return
 	}
 	queryUser := queries.Get("user")
 	if c.isClusterAdmin(queryUser) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(strconv.FormatBool(true)))
+		if _, err := w.Write([]byte(strconv.FormatBool(true))); err != nil {
+			IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
+				SEVERITY_MAJOR)
+			log.Error(err)
+		} else {
+			IncRequestCounter("", "", action, r.URL.Path)
+		}
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(strconv.FormatBool(false)))
+	if _, err := w.Write([]byte(strconv.FormatBool(false))); err != nil {
+		IncRequestErrorCounter(err.Error(), "", action, r.URL.Path,
+			SEVERITY_MAJOR)
+		log.Error(err)
+	} else {
+		IncRequestCounter("", "", action, r.URL.Path)
+	}
 }
 
 func (c *KfamV1Alpha1Client) getUserEmail(header http.Header) string {
