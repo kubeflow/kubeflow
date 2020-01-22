@@ -30,4 +30,6 @@ COPY third_party third_party
 COPY --from=builder /workspace/manager .
 COPY --from=builder /go/pkg/mod/github.com/hashicorp third_party/library/
 
+EXPOSE 8080
+
 ENTRYPOINT ["/manager"]
