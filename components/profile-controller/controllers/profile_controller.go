@@ -108,9 +108,12 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 		if errors.IsNotFound(err) {
 			// Object not found, return.  Created objects are automatically garbage collected.
 			// For additional cleanup logic use finalizers.
+			IncRequestCounter("profile deletion")
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
+		IncRequestErrorCounter("error reading the profile object", SEVERITY_MAJOR)
+		logger.Error(err, "error reading the profile object")
 		return reconcile.Result{}, err
 	}
 
@@ -127,6 +130,8 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 	}
 	updateNamespaceLabels(ns)
 	if err := controllerutil.SetControllerReference(instance, ns, r.Scheme); err != nil {
+		IncRequestErrorCounter("error setting ControllerReference", SEVERITY_MAJOR)
+		logger.Error(err, "error setting ControllerReference")
 		return reconcile.Result{}, err
 	}
 	foundNs := &corev1.Namespace{}
@@ -136,6 +141,8 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 			logger.Info("Creating Namespace: " + ns.Name)
 			err = r.Create(ctx, ns)
 			if err != nil {
+				IncRequestErrorCounter("error creating namespace", SEVERITY_MAJOR)
+				logger.Error(err, "error creating namespace")
 				return reconcile.Result{}, err
 			}
 			// wait 15 seconds for new namespace creation.
@@ -145,11 +152,15 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 				},
 				backoff.WithMaxRetries(backoff.NewConstantBackOff(3*time.Second), 5))
 			if err != nil {
+				IncRequestErrorCounter("error namespace create completion", SEVERITY_MAJOR)
+				logger.Error(err, "error namespace create completion")
 				return r.appendErrorConditionAndReturn(ctx, instance,
 					"Owning namespace failed to create within 15 seconds")
 			}
 			logger.Info("Created Namespace: "+foundNs.Name, "status", foundNs.Status.Phase)
 		} else {
+			IncRequestErrorCounter("error reading namespace", SEVERITY_MAJOR)
+			logger.Error(err, "error reading namespace")
 			return reconcile.Result{}, err
 		}
 	} else {
@@ -159,12 +170,15 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 			if updated := updateNamespaceLabels(foundNs); updated {
 				err = r.Update(ctx, foundNs)
 				if err != nil {
+					IncRequestErrorCounter("error updating namespace label", SEVERITY_MAJOR)
+					logger.Error(err, "error updating namespace label")
 					return reconcile.Result{}, err
 				}
 			}
 		} else {
 			logger.Info(fmt.Sprintf("namespace already exist, but not owned by profile creator %v",
 				instance.Spec.Owner.Name))
+			IncRequestCounter("reject profile taking over existing namespace")
 			return r.appendErrorConditionAndReturn(ctx, instance, fmt.Sprintf(
 				"namespace already exist, but not owned by profile creator %v", instance.Spec.Owner.Name))
 		}
@@ -173,7 +187,8 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 	// Update Istio Rbac
 	// Create Istio ServiceRole and ServiceRoleBinding in target namespace; which will give ns owner permission to access services in ns.
 	if err = r.updateIstioRbac(instance); err != nil {
-		logger.Info("Failed Updating Istio rbac permission", "namespace", instance.Name, "error", err)
+		logger.Error(err, "error Updating Istio rbac permission", "namespace", instance.Name)
+		IncRequestErrorCounter("error updating Istio rbac permission", SEVERITY_MAJOR)
 		return reconcile.Result{}, err
 	}
 
@@ -181,15 +196,17 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 	// Create service account "default-editor" in target namespace.
 	// "default-editor" would have kubeflowEdit permission: edit all resources in target namespace except rbac.
 	if err = r.updateServiceAccount(instance, DEFAULT_EDITOR, kubeflowEdit); err != nil {
-		logger.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
-			"defaultEditor", "error", err)
+		logger.Error(err, "error Updating ServiceAccount", "namespace", instance.Name, "name",
+			"defaultEditor")
+		IncRequestErrorCounter("error updating ServiceAccount", SEVERITY_MAJOR)
 		return reconcile.Result{}, err
 	}
 	// Create service account "default-viewer" in target namespace.
 	// "default-viewer" would have k8s default "view" permission: view all resources in target namespace.
 	if err = r.updateServiceAccount(instance, DEFAULT_VIEWER, kubeflowView); err != nil {
-		logger.Info("Failed Updating ServiceAccount", "namespace", instance.Name, "name",
-			"defaultViewer", "error", err)
+		logger.Error(err, "error Updating ServiceAccount", "namespace", instance.Name, "name",
+			"defaultViewer")
+		IncRequestErrorCounter("error updating ServiceAccount", SEVERITY_MAJOR)
 		return reconcile.Result{}, err
 	}
 
@@ -214,8 +231,9 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 		},
 	}
 	if err = r.updateRoleBinding(instance, roleBinding); err != nil {
-		logger.Info("Failed Updating Owner Rolebinding", "namespace", instance.Name, "name",
-			"defaultEdittor", "error", err)
+		logger.Error(err, "error Updating Owner Rolebinding", "namespace", instance.Name, "name",
+			"defaultEdittor")
+		IncRequestErrorCounter("error updating Owner Rolebinding", SEVERITY_MAJOR)
 		return reconcile.Result{}, err
 	}
 	// Create resource quota for target namespace if resources are specified in profile.
@@ -228,19 +246,24 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 			Spec: instance.Spec.ResourceQuotaSpec,
 		}
 		if err = r.updateResourceQuota(instance, resourceQuota); err != nil {
-			logger.Info("Failed Updating resource quota", "namespace", instance.Name, "error", err)
+			logger.Error(err, "error Updating resource quota", "namespace", instance.Name)
+			IncRequestErrorCounter("error updating resource quota", SEVERITY_MAJOR)
 			return reconcile.Result{}, err
 		}
 	} else {
 		logger.Info("No update on resource quota", "spec", instance.Spec.ResourceQuotaSpec.String())
 	}
 	if err := r.PatchDefaultPluginSpec(ctx, instance); err != nil {
+		IncRequestErrorCounter("error patching DefaultPluginSpec", SEVERITY_MAJOR)
+		logger.Error(err, "Failed patching DefaultPluginSpec", "namespace", instance.Name)
 		return reconcile.Result{}, err
 	}
 	if plugins, err := r.GetPluginSpec(instance); err == nil {
 		for _, plugin := range plugins {
-			if err := plugin.ApplyPlugin(r, instance); err != nil {
-				return reconcile.Result{}, err
+			if err2 := plugin.ApplyPlugin(r, instance); err2 != nil {
+				logger.Error(err2, "Failed applying plugin", "namespace", instance.Name)
+				IncRequestErrorCounter("error applying plugin", SEVERITY_MAJOR)
+				return reconcile.Result{}, err2
 			}
 		}
 	}
@@ -253,6 +276,8 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 		if !containsString(instance.ObjectMeta.Finalizers, PROFILEFINALIZER) {
 			instance.ObjectMeta.Finalizers = append(instance.ObjectMeta.Finalizers, PROFILEFINALIZER)
 			if err := r.Update(ctx, instance); err != nil {
+				logger.Error(err, "error updating finalizer", "namespace", instance.Name)
+				IncRequestErrorCounter("error updating finalizer", SEVERITY_MAJOR)
 				return ctrl.Result{}, err
 			}
 		}
@@ -263,6 +288,8 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 			if plugins, err := r.GetPluginSpec(instance); err == nil {
 				for _, plugin := range plugins {
 					if err := plugin.RevokePlugin(r, instance); err != nil {
+						logger.Error(err, "error revoking plugin", "namespace", instance.Name)
+						IncRequestErrorCounter("error revoking plugin", SEVERITY_MAJOR)
 						return reconcile.Result{}, err
 					}
 				}
@@ -271,11 +298,13 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 			// remove our finalizer from the list and update it.
 			instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, PROFILEFINALIZER)
 			if err := r.Update(ctx, instance); err != nil {
+				logger.Error(err, "error removing finalizer", "namespace", instance.Name)
+				IncRequestErrorCounter("error removing finalizer", SEVERITY_MAJOR)
 				return ctrl.Result{}, err
 			}
 		}
 	}
-
+	IncRequestCounter("reconcile")
 	return ctrl.Result{}, nil
 }
 
