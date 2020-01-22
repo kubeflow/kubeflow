@@ -27,3 +27,4 @@ certifi/python-certifi,https://github.com/certifi/python-certifi/blob/master/LIC
 psf/requests,https://github.com/psf/requests/blob/master/LICENSE,Apache License 2.0,https://raw.githubusercontent.com/psf/requests/master/LICENSE
 sybrenstuvel/python-rsa,https://github.com/sybrenstuvel/python-rsa/blob/master/LICENSE,Apache License 2.0,https://raw.githubusercontent.com/sybrenstuvel/python-rsa/master/LICENSE
 dateutil/dateutil,https://github.com/dateutil/dateutil/blob/master/LICENSE,Apache License 2.0,https://raw.githubusercontent.com/dateutil/dateutil/master/LICENSE
+cffi,https://bitbucket.org/cffi/cffi/raw/default/LICENSE,MIT License,https://bitbucket.org/cffi/cffi/raw/default/LICENSE
