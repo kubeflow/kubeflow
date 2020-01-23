@@ -51,14 +51,19 @@ export class IframeContainer extends PolymerElement {
         // the captured iframe and set the page property which notifies
         const iframe = this.$.iframe;
         iframe.addEventListener('load', () => {
-            iframe.contentDocument.addEventListener('click', () => {
+            const syncIframePage = () => {
                 const iframeLocation = iframe.contentWindow.location;
                 const newIframePage = iframeLocation.href.slice(
                     iframeLocation.origin.length);
                 if (this.page !== newIframePage) {
                     this.page = newIframePage;
                 }
-            });
+            };
+            iframe.contentDocument.addEventListener('click', syncIframePage);
+            iframe.contentDocument.addEventListener(
+                'hashchange',
+                syncIframePage
+            );
         });
     }
 
