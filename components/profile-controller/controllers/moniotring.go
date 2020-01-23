@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"sigs.k8s.io/controller-runtime/pkg/metrics"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -44,9 +45,9 @@ var (
 
 func init() {
 	// Register prometheus counters
-	prometheus.MustRegister(requestCounter)
-	prometheus.MustRegister(requestErrorCounter)
-	prometheus.MustRegister(serviceHeartbeat)
+	metrics.Registry.MustRegister(requestCounter)
+	metrics.Registry.MustRegister(requestErrorCounter)
+	metrics.Registry.MustRegister(serviceHeartbeat)
 	// Count heartbeat
 	go func() {
 		labels := prometheus.Labels{COMPONENT: PROFILE, SEVERITY: SEVERITY_CRITICAL}
