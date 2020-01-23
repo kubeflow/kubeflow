@@ -84,8 +84,6 @@ Releaser needs to do the following to the components listed:
 - [ProfileController](https://github.com/kubeflow/kubeflow/tree/master/components/profile-controller)
 - [NotebookController](https://github.com/kubeflow/kubeflow/tree/master/components/notebook-controller)
 
-**JupyterWebApp**: This component is automatically released: [example](https://github.com/kubeflow/manifests/commit/723f310a60c9765bcadc2ed75053d5819f429c60)
-
 ## Create a release branch
 
 If you aren't already working on a release branch (of the form `v${MAJOR}.${MINOR}-branch`, where `${MAJOR}.${MINOR}` is a major-minor version number), then create one.  Release branches serve several purposes:
@@ -94,6 +92,27 @@ If you aren't already working on a release branch (of the form `v${MAJOR}.${MINO
 1.  they allow developers to track the development of a release before a release candidate is declared,
 1.  they allow sophisticated users to track the development of a release, and
 1.  they simplify backporting critical bugfixes to a patchlevel release particular release stream (e.g., producing a `v0.1.1` from `v0.1-branch`), when appropriate.
+
+
+## Configure Auto Building of Docker Images and Updating of Kustomize Applications
+
+* Most applications should be configured to be built continuously from their release branch
+  and the relevant kustomize manifests to be updated ([docs](https://github.com/kubeflow/testing/tree/master/apps-cd))
+
+* Follow these steps
+
+1. Add a `version` for the new release to [applications.yaml](https://github.com/kubeflow/testing/blob/master/apps-cd/applications.yaml)
+
+1. Set the `version` for each repository to point to the release branch e.g. v0.x.y for kubeflow/kubeflow
+
+1. Set the tag associated with this version
+
+1. Merge the PR. 
+
+1. Once the PR is merged Tekton Pipelines will be submitted to automatically build the docker
+   images and open PRs to update the kustomzie manifests
+
+1. Approve the PRs updating the kustomize manifests to use the new images.
 
 ### Enable Periodic tests on the release branch
 
