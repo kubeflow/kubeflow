@@ -247,39 +247,26 @@ getting the correct installation instructions etc. Here are the steps to follow:
 <a id="create-website-branch"></a>
 ### Creating a website branch for the latest major or minor release
 
-We usually create the website branch for a new version a few weeks after the 
-software release of that version, because it takes a while to finish updating 
-the docs.
+We usually create the website branch for the current version close to the date
+of the next upcoming major/minor release. The website branch is in effect an
+archived snapshot of the docs. (We need to wait at least a few weeks after the 
+software release of the current version before creating the website branch, 
+because it takes a while to finish updating the docs.)
 
 If the documentation for a version needs to be fixed after we've created
-the version branch, the changes should be committed to master and then 
-cherry-picked to the proper release branch.
+the website branch, the changes should be committed to master and then 
+cherry-picked to the proper version branch.
 
-When documentation for a release is complete, follow these steps to release a
-new version on the website:
+Follow these steps to create a version branch of the website:
 
-1. In the config for the **master branch**,
-  add the new version to the website navigation bar:
-
-   * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml).
-
-   * Add a `params.versions` entry for the new version. 
-     For example, to add v0.6, add this entry:
-     ```
-     [[params.versions]]
-     version = "v0.6"
-     githubbranch = "v0.6-branch"
-     url = "https://v0-6.kubeflow.org"
-     ```
-
-1. Create a new versioned branch under the 
+1. Create a new version branch under the 
   [website repository](https://github.com/kubeflow/website). The branch name
-  should have the same format as Kubeflow releases:
-  `v${MAJOR}.${MINOR}-branch`. (You can create a branch on the GitHub UI. See 
-  the GitHub guide to [creating branches in your 
+  should have the following format: `v${MAJOR}.${MINOR}-branch`, where 
+  `v${MAJOR}.${MINOR}` is the Kubeflow version. (You can create a branch on the
+  GitHub UI. See the GitHub guide to [creating branches in your 
   repo](https://help.github.com/en/articles/creating-and-deleting-branches-within-your-repository).)
 
-1. In the `config.toml` for the **versioned branch**,
+1. In the `config.toml` for the **version branch**,
   set the `archived_version` parameter to `true`:
 
     ```
@@ -293,7 +280,7 @@ new version on the website:
    * Select **kubeflow** from the dropdown list of organizations.
    * Select **website** from the list of repositories. You are now configuring
      the deployment settings for `kubeflow/website`.
-   * Under **Branch to deploy**, select the new versioned branch.
+   * Under **Branch to deploy**, select the new version branch.
    * Click **Deploy site**. This should give you a site URL ending with 
      `netlify.com`.
 
@@ -314,6 +301,20 @@ new version on the website:
    * In your browser, go to `v${MAJOR}-${MINOR}.kubeflow.org` to verify 
      the setup. If all the steps are done, you should not see any privacy or 
      certificate warnings.
+
+1. In the config for the **master branch**,
+  add the new version to the website navigation bar:
+
+   * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml).
+
+   * Add a `params.versions` entry for the new version. 
+     For example, to add v0.6, add this entry:
+     ```
+     [[params.versions]]
+     version = "v0.6"
+     githubbranch = "v0.6-branch"
+     url = "https://v0-6.kubeflow.org"
+     ```
 
 ## Update the changelog
 
