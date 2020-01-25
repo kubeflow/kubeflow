@@ -59,11 +59,9 @@ export class IframeContainer extends PolymerElement {
                     this.page = newIframePage;
                 }
             };
-            iframe.contentDocument.addEventListener('click', syncIframePage);
-            iframe.contentDocument.addEventListener(
-                'hashchange',
-                syncIframePage
-            );
+            const {contentDocument} = iframe;
+            contentDocument.addEventListener('click', syncIframePage);
+            contentDocument.addEventListener('hashchange', syncIframePage);
         });
     }
 
