@@ -296,9 +296,9 @@ Follow these steps to create a version branch of the website:
      select the `kubeflow.org` zone.
    * Create a new CNAME record set for `v${MAJOR}-${MINOR}.kubeflow.org`, pointing
      to the new site (`something-something.netlify.com`), with TTL of 5 minutes.
-     **Note:** The version format in the URL is differnt from that in the GitHub
-     branch name! The URL has a **dash** between major and minor version. For
-     example: `v0-6.kubeflow.org`.
+     **Note:** The version format in the URL is different from that in the
+     GitHub branch name! The URL has a **dash** between major and minor version.
+     For example: `v0-6.kubeflow.org`.
 
 1. Configure a custom domain for the new site:
    * Go back to the Netlify configuration page, find the new website, and select
