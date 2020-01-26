@@ -17,7 +17,7 @@
   - [Update Application Versions](#update-application-versions)
   - [Add new KfDef for the Release](#add-new-kfdef-for-the-release)
   - [Build and Upload KFCTL Binaries](#build-and-upload-kfctl-binaries)
-  - [Releasing a new version of the website](#releasing-a-new-version-of-the-website)
+  - [Version the website](#version-the-website)
   - [Update the changelog](#update-the-changelog)
   - [Get Votes for the Release](#get-votes-for-the-release)
 
@@ -179,7 +179,7 @@ Alternatively you can use the UI.
    ```
    * Set the tag to be the correct version for the tag.
 
-## Versioning the website
+## Version the website
 
 The main Kubeflow website at [www.kubeflow.org](www.kubeflow.org) points to the
 **master** branch of the `kubeflow/website` repo. Similarly, 
@@ -218,13 +218,15 @@ getting the correct installation instructions etc. Here are the steps to follow:
 1. Edit the version numbers in the site configuration file:
    * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml).
 
-   * Update the text label for the version menu in the top bar of the website.
+   * Update the parameters that set the version number for various purposes.
      For example, if the upcoming release is Kubeflow v0.7:
      ```
      version_menu = "v0.7"
+     version = "v0.7"
      ```
 
-   * Update the GitHub branch number. For example:
+   * Update the GitHub branch number. For example, if the upcoming release is
+     Kubeflow v0.7:
      ```
      githubbranch = "v0.7-branch"
      ```
@@ -266,23 +268,36 @@ getting the correct installation instructions etc. Here are the steps to follow:
 <a id="create-website-branch"></a>
 ### Creating a website branch for the latest major or minor release
 
-We usually create the website branch for a new version a few weeks after the 
-software release of that version, because it takes a while to finish updating 
-the docs.
+We usually create the website branch for the current version close to the date
+of the next upcoming major/minor release. The website branch is in effect an
+archived snapshot of the docs. (We need to wait at least a few weeks after the 
+software release of the current version before creating the website branch, 
+because it takes a while to finish updating the docs.)
 
 If the documentation for a version needs to be fixed after we've created
-the version branch, the changes should be committed to master and then 
-cherry-picked to the proper release branch.
+the website branch, the changes should be committed to master and then 
+cherry-picked to the proper version branch.
 
-When documentation for a release is complete, follow these steps to release a
-new version on the website:
+Follow these steps to create a version branch of the website:
 
-1. Create a new versioned branch under the 
+1. Create a new version branch under the 
   [website repository](https://github.com/kubeflow/website). The branch name
-  should have the same format as Kubeflow releases:
-  `v${MAJOR}.${MINOR}-branch`. (You can create a branch on the GitHub UI. See 
-  the GitHub guide to [creating branches in your 
+  should have the following format: `v${MAJOR}.${MINOR}-branch`, where 
+  `v${MAJOR}.${MINOR}` is the Kubeflow version. For example, `v0.6-branch`.
+  (You can create a branch on the GitHub UI. See the GitHub guide to
+  [creating branches in your
   repo](https://help.github.com/en/articles/creating-and-deleting-branches-within-your-repository).)
+
+1. In the `config.toml` for the **version branch**,
+  set the `archived_version` parameter to `true`:
+
+    ```
+    archived_version = true
+    ```
+
+   Create a PR for the above update, setting the **base branch** in the PR
+   to the **version** branch (not **master**). Then request a review and merge
+   the PR.
 
 1. Set up [Netlify](https://www.netlify.com/):
    * Log in with your GitHub credentials.
@@ -291,29 +306,34 @@ new version on the website:
    * Select **kubeflow** from the dropdown list of organizations.
    * Select **website** from the list of repositories. You are now configuring
      the deployment settings for `kubeflow/website`.
-   * Under **Branch to deploy**, select the new versioned branch.
+   * Under **Branch to deploy**, select the new version branch.
    * Click **Deploy site**. This should give you a site URL ending with 
      `netlify.com`.
 
 1. Set up DNS for the new site:
    * In [Cloud DNS](http://console.cloud.google.com/net-services/dns/zones?project=kubeflow-dns&organizationId=714441643818), 
      select the `kubeflow.org` zone.
-   * Create a new CNAME record for `v${MAJOR}-${MINOR}.kubeflow.org`, pointing
+   * Create a new CNAME record set for `v${MAJOR}-${MINOR}.kubeflow.org`, pointing
      to the new site (`something-something.netlify.com`), with TTL of 5 minutes.
+     **Note:** The version format in the URL is different from that in the
+     GitHub branch name! The URL has a **dash** between major and minor version.
+     For example: `v0-6.kubeflow.org`.
 
 1. Configure a custom domain for the new site:
    * Go back to the Netlify configuration page, find the new website, and select
      **Settings**.
    * Click **Domain settings**.
    * Under **Custom domains**, add a domain alias for 
-     `v${MAJOR}-${MINOR}.kubeflow.org`.
+     `v${MAJOR}-${MINOR}.kubeflow.org`. For example: `v0-6.kubeflow.org`.
    * Under **HTTPS**, enable the SSL certificate for the new site
      by clicking **Verify DNS configuration**.
    * In your browser, go to `v${MAJOR}-${MINOR}.kubeflow.org` to verify 
      the setup. If all the steps are done, you should not see any privacy or 
      certificate warnings.
 
-1. Add the new version to the website navigation bar:
+1. In the config for the **master branch**,
+  add the new version to the website navigation bar:
+
    * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml).
 
    * Add a `params.versions` entry for the new version. 
