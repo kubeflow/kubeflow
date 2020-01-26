@@ -199,13 +199,15 @@ getting the correct installation instructions etc. Here are the steps to follow:
 1. Edit the version numbers in the site configuration file:
    * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml).
 
-   * Update the text label for the version menu in the top bar of the website.
+   * Update the parameters that set the version number for various purposes.
      For example, if the upcoming release is Kubeflow v0.7:
      ```
      version_menu = "v0.7"
+     version = "v0.7"
      ```
 
-   * Update the GitHub branch number. For example:
+   * Update the GitHub branch number. For example, if the upcoming release is
+     Kubeflow v0.7:
      ```
      githubbranch = "v0.7-branch"
      ```
@@ -262,8 +264,9 @@ Follow these steps to create a version branch of the website:
 1. Create a new version branch under the 
   [website repository](https://github.com/kubeflow/website). The branch name
   should have the following format: `v${MAJOR}.${MINOR}-branch`, where 
-  `v${MAJOR}.${MINOR}` is the Kubeflow version. (You can create a branch on the
-  GitHub UI. See the GitHub guide to [creating branches in your 
+  `v${MAJOR}.${MINOR}` is the Kubeflow version. For example, `v0.6-branch`.
+  (You can create a branch on the GitHub UI. See the GitHub guide to
+  [creating branches in your
   repo](https://help.github.com/en/articles/creating-and-deleting-branches-within-your-repository).)
 
 1. In the `config.toml` for the **version branch**,
@@ -272,6 +275,10 @@ Follow these steps to create a version branch of the website:
     ```
     archived_version = true
     ```
+
+   Create a PR for the above update, setting the **base branch** in the PR
+   to the **version** branch (not **master**). Then request a review and merge
+   the PR.
 
 1. Set up [Netlify](https://www.netlify.com/):
    * Log in with your GitHub credentials.
@@ -287,15 +294,18 @@ Follow these steps to create a version branch of the website:
 1. Set up DNS for the new site:
    * In [Cloud DNS](http://console.cloud.google.com/net-services/dns/zones?project=kubeflow-dns&organizationId=714441643818), 
      select the `kubeflow.org` zone.
-   * Create a new CNAME record for `v${MAJOR}-${MINOR}.kubeflow.org`, pointing
+   * Create a new CNAME record set for `v${MAJOR}-${MINOR}.kubeflow.org`, pointing
      to the new site (`something-something.netlify.com`), with TTL of 5 minutes.
+     **Note:** The version format in the URL is differnt from that in the GitHub
+     branch name! The URL has a **dash** between major and minor version. For
+     example: `v0-6.kubeflow.org`.
 
 1. Configure a custom domain for the new site:
    * Go back to the Netlify configuration page, find the new website, and select
      **Settings**.
    * Click **Domain settings**.
    * Under **Custom domains**, add a domain alias for 
-     `v${MAJOR}-${MINOR}.kubeflow.org`.
+     `v${MAJOR}-${MINOR}.kubeflow.org`. For example: `v0-6.kubeflow.org`.
    * Under **HTTPS**, enable the SSL certificate for the new site
      by clicking **Verify DNS configuration**.
    * In your browser, go to `v${MAJOR}-${MINOR}.kubeflow.org` to verify 
