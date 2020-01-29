@@ -150,6 +150,20 @@ A KfDef config file is used to pin the version for the repos we use.
 - Example file: [link](https://github.com/kubeflow/kubeflow/blob/v0.6-branch/bootstrap/config/kfctl_gcp_iap.0.6.2.yaml)
 - Add the file to [kubeflow/manifests/kfdef](https://github.com/kubeflow/manifests/tree/master/kfdef) in the release branch.
 
+* Starting with kubeflow/manifests#778
+
+On the **master** branch
+
+1. Define a kustomize overlay: `source/vX.Y.Z`
+1. For every kfdef add a patch that overrides the repo spec and version in the KFDef
+   * Look at the existing config
+1. Run `hack/build_kfdef_spec.py` to generate KFDef YAMLs in `kfdefs/`
+1. Check in all modified files
+
+On the **vX.Y.Z-branch** branch
+
+1. Cherry pick the changes from above
+
 ## Build and Upload KFCTL Binaries
 
 You can use the [CLI github-release](https://github.com/aktau/github-release) to automate uploading artifacts.
