@@ -98,7 +98,10 @@ def list_notebooks(namespace):
     )
 
 
-@auth.needs_authorization("list", "", "v1", "events")
+# We don't do a subject access review on notebook events because
+# notebook events are cluster scoped resources. Users however are only
+# granted access to particular namespacs. We rely on the notebook webserver
+# to filter out information a user shouldn't see.
 def list_notebook_events(namespace, nb_name):
     '''
     V1EventList with events whose source the Notebook with 'nb_name' from namespace 'namespace'
