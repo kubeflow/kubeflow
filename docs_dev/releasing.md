@@ -11,15 +11,22 @@
 - [Releasing Kubeflow Components](#releasing-kubeflow-components)
   - [List of Components](#list-of-components)
   - [Create a release branch](#create-a-release-branch)
+  - [Configure Auto Building of Docker Images and Updating of Kustomize Applications](#configure-auto-building-of-docker-images-and-updating-of-kustomize-applications)
     - [Enable Periodic tests on the release branch](#enable-periodic-tests-on-the-release-branch)
 - [Getting Ready to Cut a Release](#getting-ready-to-cut-a-release)
   - [Cut Release Branch for kubeflow/manifests](#cut-release-branch-for-kubeflowmanifests)
   - [Update Application Versions](#update-application-versions)
   - [Add new KfDef for the Release](#add-new-kfdef-for-the-release)
   - [Build and Upload KFCTL Binaries](#build-and-upload-kfctl-binaries)
-  - [Version the website](#version-the-website)
-  - [Update the changelog](#update-the-changelog)
-  - [Get Votes for the Release](#get-votes-for-the-release)
+- [Version the website](#version-the-website)
+  - [Lifcycle](#lifcycle)
+  - [Updating version numbers etc for the upcoming release (major, minor, or patch)](#updating-version-numbers-etc-for-the-upcoming-release-major-minor-or-patch)
+  - [Creating and publishing a website branch for v.X.Y](#creating-and-publishing-a-website-branch-for-vxy)
+  - [Archiving docs](#archiving-docs)
+  - [Changing the version `www.kubeflow.org` points to](#changing-the-version-wwwkubefloworg-points-to)
+  - [Some notes about Kubeflow's Netlify Setup](#some-notes-about-kubeflows-netlify-setup)
+- [Update the changelog](#update-the-changelog)
+- [Get Votes for the Release](#get-votes-for-the-release)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -179,27 +186,51 @@ Alternatively you can use the UI.
    ```
    * Set the tag to be the correct version for the tag.
 
-## Version the website
+# Version the website
 
 The main Kubeflow website at [www.kubeflow.org](www.kubeflow.org) points to the
-**master** branch of the `kubeflow/website` repo. Similarly, 
-[master.kubeflow.org](https://master.kubeflow.org/) also points to the master
-branch.
+version of the website we want users to see.
+
+* Most of the time this will correspond to the **master** branch of the `kubeflow/website` repo
+
+* However, leading up to the release of vY.0.0 [www.kubeflow.org](www.kubeflow.org) 
+  will point at a branch containing a stable version of the docs corresponding to vX.0.0
 
 For each minor (X.Y) release, we also publish a corresponding version of the 
 website. Each version of the website is generated from a separate 
 [branch](https://github.com/kubeflow/website/branches)
-of the `kubeflow/website` repository. The naming convention is as follows:
+of the `kubeflow/website` repository. 
+
+* The naming convention is as follows:
 The site at `vX-Y.kubeflow.org` points to the release at vX.Y-branch.
 For example, the [documentation for v0.6](https://v0-6.kubeflow.org) is 
 maintained in the
 [v0.6-branch](https://github.com/kubeflow/website/tree/v0.6-branch).
 
-There are two release phases when we need to update the website:
-* Updating version numbers etc for an upcoming release (major, minor, or patch).
-* Creating a website branch for the latest major or minor release.
+* Per [kubeflow/website#1581](https://github.com/kubeflow/kubeflow/pull/4717) the naming
+  convention might change when we switch to using Netlify's deploy branch feature
+  rather than creating multiple Netlify sites.
 
-### Updating version numbers etc for the upcoming release (major, minor, or patch)
+## Lifcycle
+
+Our typical process when getting ready to release vY.0.0 is
+
+1. Follow the [instructions below](#create-website-branch) to create a release branch for vX.0.0
+1. Update `www.kubeflow.org` to point at the vX.0.0 branch ([see below](#update-kubeflow-org))
+1. Develop vY.0.0 docs on the master branch
+ 
+   * Follow the [instructions](#prepare-docs) below to update version numbers etc. on master for the upcoming vY.0.0 release
+
+   * Docs for the master branch should be available on [https://master.kubeflow.org](https://master.kubeflow.org)
+     * There is currently an SSL certificate error see [kubeflow/website#1586](https://github.com/kubeflow/website/issues/1586)
+     * Docs for master can also be accessed at [https://master--competent-brattain-de2d6d.netlify.com/](https://master--competent-brattain-de2d6d.netlify.com/)
+1. When we are ready to publish docs for vY.0.0, follow the [instructions](#update-kubeflow-org) below to
+   point [www.kubeflow.org](https://www.kubeflow.org)  at the master branch 
+
+1. Follow the [instructions](#archive) to mark the docs on the vX.0.0 branch as archived
+
+<a id="prepare-docs"></a>
+##  Updating version numbers etc for the upcoming release (major, minor, or patch)
 
 We usually start updating the website for the upcoming major/minor release when
 we've released a good RC for that release. At this point, it's useful for
@@ -265,20 +296,9 @@ getting the correct installation instructions etc. Here are the steps to follow:
   not yet exist. We'll have the page for version 1.0 onwards. See 
   [PR #1308](https://github.com/kubeflow/website/pull/1308).)
 
-<a id="create-website-branch"></a>
-### Creating a website branch for the latest major or minor release
 
-We usually create the website branch for the current version close to the date
-of the next upcoming major/minor release. The website branch is in effect an
-archived snapshot of the docs. (We need to wait at least a few weeks after the 
-software release of the current version before creating the website branch, 
-because it takes a while to finish updating the docs.)
-
-If the documentation for a version needs to be fixed after we've created
-the website branch, the changes should be committed to master and then 
-cherry-picked to the proper version branch.
-
-Follow these steps to create a version branch of the website:
+<a id="create-website-branch"></a> 
+## Creating and publishing a website branch for v.X.Y
 
 1. Create a new version branch under the 
   [website repository](https://github.com/kubeflow/website). The branch name
@@ -288,64 +308,90 @@ Follow these steps to create a version branch of the website:
   [creating branches in your
   repo](https://help.github.com/en/articles/creating-and-deleting-branches-within-your-repository).)
 
+
+1. Netlify should auto deploy this branch once its created (see [Branch Deploys](https://docs.netlify.com/site-deploys/overview/#branch-deploy-controls))
+
+   * Netlify publishes the website on `${BRANCHNAME}--competent-brattain-de2d6d.netlify.com`
+   * **Note** Periods in the branch name are automatically replaced with dash names
+   * e.g. `v0.7-branch` is https://v0-7-branch--competent-brattain-de2d6d.netlify.com
+
+   * You can check under deploys to see if Netlify deployed it
+   * If no deploys show up you can push a commit to the branch to trigger a deploy
+
+1. Set up DNS for the new site:
+   * In [Cloud DNS](http://console.cloud.google.com/net-services/dns/zones?project=kubeflow-dns&organizationId=714441643818), 
+     select the `kubeflow.org` zone.
+   * Create a new CNAME record set for `v${MAJOR}-${MINOR}-branch.kubeflow.org`, pointing
+     to the new site (`something-something.netlify.com`), with TTL of 5 minutes.
+     **Note:** The version format in the URL is different from that in the
+     GitHub branch name! The URL has a **dash** between major and minor version.
+     For example: `v0-6.kubeflow.org`.
+
+1. Wait for the DNS record to propogate. You can use `nslookup` to check this.
+
+   ```
+   nslookup v0-7-branch.kubeflow.org
+   Server:   127.0.0.1
+   Address:  127.0.0.1#53
+
+   Non-authoritative answer:
+   v0-7-branch.kubeflow.org  canonical name = v0-7-branch--competent-brattain-de2d6d.netlify.com.
+   Name: v0-7-branch--competent-brattain-de2d6d.netlify.com
+   Address: 206.189.73.52
+   Name: v0-7-branch--competent-brattain-de2d6d.netlify.com
+   Address: 2604:a880:2:d0::21e9:b001
+   ```
+
+1. At this point you should be able to access the branch at `https://${BRANCHNAME}.kubeflow.org` but
+   you will get an ``NET::ERR_CERT_COMMON_NAME_INVALID` SSL certificate error
+   
+   * You should be able to proceed through to see the site but you may need to be incognito mode
+
+1. File a support request with Netlify to fix the SSL certificate
+
+   * The [external DNS docs](https://community.netlify.com/t/common-issue-how-to-use-netlify-s-branch-deploy-feature-without-netlify-dns/128)
+     say to file a support request to fix the domain to work with branch deploys when
+     using external DNS
+
+<a id="archive"></a>
+##  Archiving docs
+
+At some point we will to mark the docs for vX.0.0 as being archived and point users at the docs for v1.0
+
+1. On the branch corresponding to vX.0.0
 1. In the `config.toml` for the **version branch**,
   set the `archived_version` parameter to `true`:
 
     ```
     archived_version = true
     ```
+    * This will add a banner at the top of all the docs letting users know they are viewing
+      an archived version.
 
-   Create a PR for the above update, setting the **base branch** in the PR
+1. Create a PR for the above update, setting the **base branch** in the PR
    to the **version** branch (not **master**). Then request a review and merge
    the PR.
 
-1. Set up [Netlify](https://www.netlify.com/):
-   * Log in with your GitHub credentials.
-   * Click **New site from Git**.
-   * Click **GitHub** under **Continuous Deployment**.
-   * Select **kubeflow** from the dropdown list of organizations.
-   * Select **website** from the list of repositories. You are now configuring
-     the deployment settings for `kubeflow/website`.
-   * Under **Branch to deploy**, select the new version branch.
-   * Click **Deploy site**. This should give you a site URL ending with 
-     `netlify.com`.
+<a id="update-kubeflow-org"></a>
+## Changing the version `www.kubeflow.org` points to
 
-1. Set up DNS for the new site:
-   * In [Cloud DNS](http://console.cloud.google.com/net-services/dns/zones?project=kubeflow-dns&organizationId=714441643818), 
-     select the `kubeflow.org` zone.
-   * Create a new CNAME record set for `v${MAJOR}-${MINOR}.kubeflow.org`, pointing
-     to the new site (`something-something.netlify.com`), with TTL of 5 minutes.
-     **Note:** The version format in the URL is different from that in the
-     GitHub branch name! The URL has a **dash** between major and minor version.
-     For example: `v0-6.kubeflow.org`.
+1. In netlify select Build & Deploy -> Deploy Contexts
+1. Click Edit Settings
+1. Change the production branch to the branch to surface
 
-1. Configure a custom domain for the new site:
-   * Go back to the Netlify configuration page, find the new website, and select
-     **Settings**.
-   * Click **Domain settings**.
-   * Under **Custom domains**, add a domain alias for 
-     `v${MAJOR}-${MINOR}.kubeflow.org`. For example: `v0-6.kubeflow.org`.
-   * Under **HTTPS**, enable the SSL certificate for the new site
-     by clicking **Verify DNS configuration**.
-   * In your browser, go to `v${MAJOR}-${MINOR}.kubeflow.org` to verify 
-     the setup. If all the steps are done, you should not see any privacy or 
-     certificate warnings.
+## Some notes about Kubeflow's Netlify Setup
 
-1. In the config for the **master branch**,
-  add the new version to the website navigation bar:
+* We use external DNS (Cloud DNS); we do not use Netlify DNS
 
-   * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml).
+* We have an A record to redirect kubeflow.org to Netlify
+  * Ref [kubeflow/website#5](https://github.com/kubeflow/website/issues/5#issuecomment-389037774) 
+    original setup of Netflix
 
-   * Add a `params.versions` entry for the new version. 
-     For example, to add v0.6, add this entry:
-     ```
-     [[params.versions]]
-     version = "v0.6"
-     githubbranch = "v0.6-branch"
-     url = "https://v0-6.kubeflow.org"
-     ```
+* We use CNAME records to map `v${MAJOR}-${MINOR}-branch.kubeflow.org` to
+  `{BRNACHNAME}---competent-brattain-de2d6d.netlify.com`
 
-## Update the changelog
+
+# Update the changelog
 
 1. After the release branch is created run the following script to update the changelog
 
@@ -357,7 +403,7 @@ Follow these steps to create a version branch of the website:
 
 1. Repeat above steps as new release candidates are created
 
-## Get Votes for the Release
+# Get Votes for the Release
 
 _NB:  release votes will take effect beginning with the 0.2 release stream; the specifics of the release vote policy will be finalized before then._
 
