@@ -2,6 +2,7 @@ import datetime as dt
 import json
 import logging
 import os
+import re
 import sys
 
 import yaml
@@ -24,6 +25,8 @@ USER_PREFIX = os.getenv("USERID_PREFIX", "accounts.google.com:")
 EVENT_TYPE_NORMAL = "Normal"
 EVENT_TYPE_WARNING = "Warning"
 
+EVENT_ERROR_MSG_REGEX = re.compile(
+    r"^.*\b(error looking up service account|Insufficient cpu)\b.*$")
 STATUS_ERROR = "error"
 STATUS_WARNING = "warning"
 STATUS_RUNNING = "running"
@@ -320,13 +323,14 @@ def find_error_event(rsrc_events):
     of why the resource could not be created. For a Notebook, it can be due to:
 
           EVENT_TYPE      EVENT_REASON      DESCRIPTION   
-          Warning         FailedCreate      serviceaccount not found (originated in statefulset)
-          Warning         FailedScheduling  Insufficient CPU (originated in pod)
+          Warning         FailedCreate      pods "x" is forbidden: error looking up service account ... (originated in statefulset)
+          Warning         FailedScheduling  0/1 nodes are available: 1 Insufficient cpu (originated in pod)
 
     '''
     for e in sorted(rsrc_events, key=event_timestamp, reverse=True):
         if e.type == EVENT_TYPE_WARNING and e.reason in ["FailedCreate", "FailedScheduling"]:
-            return STATUS_ERROR, e.message
+            if EVENT_ERROR_MSG_REGEX.match(e.message):
+                return STATUS_ERROR, e.message
     return None, None
 
 
@@ -529,7 +533,7 @@ def add_notebook_volume_secret(nb, secret, secret_name, mnt_path, mode):
 
     volume = {
         "name": secret,
-        "secret": {"defaultMode": mode, "secretName": secret_name,},
+        "secret": {"defaultMode": mode, "secretName": secret_name, },
     }
     spec["volumes"].append(volume)
 
