@@ -39,7 +39,7 @@ def deploy_kubeflow(_):
       "tf-job-operator", "pytorch-operator", "studyjob-controller"
   ]
   for deployment_name in deployment_names:
-    logging.info("Verifying that %s started...", deployment_name)
+    logging.info("Verifying that {} started...".format(deployment_name))
     util.wait_for_deployment(api_client, namespace, deployment_name)
 
 
