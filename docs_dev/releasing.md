@@ -109,7 +109,7 @@ If you aren't already working on a release branch (of the form `v${MAJOR}.${MINO
 
 1. Add a `version` for the new release to [applications.yaml](https://github.com/kubeflow/testing/blob/master/apps-cd/applications.yaml)
 
-1. Set the `version` for each repository to point to the release branch e.g. v0.x.y for kubeflow/kubeflow
+1. Set the `version` for each repository to point to the release branch e.g. vX.Y for kubeflow/kubeflow
 
 1. Set the tag associated with this version
 
@@ -192,10 +192,10 @@ version of the website we want users to see.
 
 * Most of the time this will correspond to the **master** branch of the `kubeflow/website` repo
 
-* However, leading up to a minor release (0.Y) [www.kubeflow.org](www.kubeflow.org) 
-  will point at a branch containing a stable version of the docs corresponding to v0.X
+* However, leading up to a minor release (vX.Y) [www.kubeflow.org](www.kubeflow.org) 
+  will point at a branch containing a stable version of the docs corresponding to vX.Y
 
-For each minor (0.Y) release, we also publish a corresponding version of the 
+For each minor (vX.Y) release, we also publish a corresponding version of the 
 website. Each version of the website is generated from a separate 
 [branch](https://github.com/kubeflow/website/branches)
 of the `kubeflow/website` repository. 
@@ -208,8 +208,8 @@ maintained in the
 
 ## Lifecycle
 
-Our typical process when getting ready to do a minor release X.Y 
-(i.e. going from X.Y to X.Z); this process doesn't apply for patch releases.
+Our typical process when getting ready to do a minor release vX.Y 
+(i.e. going from vX.Y to vX.Z); this process doesn't apply for patch releases.
 
 1. Follow the [instructions below](#create-website-branch) to create a release branch for vX.Y
 1. Update `www.kubeflow.org` to point at the vX.Y branch ([see below](#update-kubeflow-org))
@@ -286,14 +286,26 @@ getting the correct installation instructions etc. Here are the steps to follow:
 1. Update the matrix of Kubernetes versions on 
   [the Kubernetes overview](https://www.kubeflow.org/docs/started/k8s/overview/).
 
-1. Update the application version matrix on the version policy. (This is a 
-  placeholder for the task, as the page does
-  not yet exist. We'll have the page for version 1.0 onwards. See 
-  [PR #1308](https://github.com/kubeflow/website/pull/1308).)
+1. Update the application version matrix on the [version policy page](https://github.com/kubeflow/website/edit/master/content/docs/reference/version-policy.md)
 
+   * There are a number of different ways to get the application versions
+
+     1. You can look at the [kustomization.yaml](https://github.com/kubeflow/manifests/blob/30b666f2b8a0d1b5217a095cfe18f6a03f22231f/metadata/overlays/application/kustomization.yaml#L10)
+        file at the label `app.kubernetes.io/version`
+
+        * TODO(https://github.com/kubeflow/testing/issues/600): Create a script to get all application
+          version 
+   
+     1. You can get the application versions in a running Kubeflow deployment by doing
+
+        ```
+        kubectl -n kubeflow get applications 
+        ```
+ 
+        * You can use one of the [auto-deployed clusters](https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/auto_deploy/)
 
 <a id="create-website-branch"></a> 
-## Creating and publishing a website branch for v.X.Y
+## Creating and publishing a website branch for vX.Y
 
 1. Create a new version branch under the 
   [website repository](https://github.com/kubeflow/website). The branch name
@@ -351,9 +363,9 @@ getting the correct installation instructions etc. Here are the steps to follow:
 <a id="archive"></a>
 ##  Archiving docs
 
-At some point we will to mark the docs for vX.0.0 as being archived and point users at the docs for v1.0
+When the website branch exists for the previous version of the docs (vX.X) and www.kubeflow.org is pointing to the new version (vX.Y), we must mark the docs for vX.X as being archived and point users at the docs for vX.Y.
 
-1. On the branch corresponding to vX.0.0
+1. On the branch corresponding to vX.X
 1. In the `config.toml` for the **version branch**,
   set the `archived_version` parameter to `true`:
 
