@@ -102,10 +102,10 @@
 
       // Subdirectory containing the version config.
       local supportedVersions = [
-        ["1.15.0","cpu"],
-        ["1.15.0gpu","gpu"],
-        ["2.0.0a0","cpu"],
-        ["2.0.0a0gpu","gpu"],
+        ["1.15.2","cpu"],
+        ["1.15.2gpu","gpu"],
+        ["2.1.0","cpu"],
+        ["2.1.0gpu","gpu"],
       ];
 
       // Build an Argo template to execute a particular command.
