@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 from flask_cors import CORS
+from kubeflow_jupyter.common import settings
 from kubeflow_jupyter.default.app import app as default
 from kubeflow_jupyter.rok.app import app as rok
 
@@ -17,8 +18,9 @@ apps = {
 try:
     app = apps[ui]
 
-    # Enable CORS for dev
-    if "--enable-cors" in sys.argv:
+    if "--dev" in sys.argv:
+        settings.DEV_MODE = True
+
         logger.warning("Enabling CORS")
         CORS(app)
 

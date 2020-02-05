@@ -19,6 +19,7 @@ import (
 	"flag"
 	"os"
 
+	nbv1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1"
 	nbv1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1alpha1"
 	nbv1beta1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/controllers"
@@ -41,6 +42,7 @@ func init() {
 
 	_ = nbv1alpha1.AddToScheme(scheme)
 	_ = nbv1beta1.AddToScheme(scheme)
+	_ = nbv1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 

@@ -1,0 +1,30 @@
+kubeflow/kubeflow,https://github.com/kubeflow/kubeflow/blob/master/LICENSE,Apache License 2.0,https://raw.githubusercontent.com/kubeflow/kubeflow/master/LICENSE
+AzureAD/azure-activedirectory-library-for-python,https://github.com/AzureAD/azure-activedirectory-library-for-python/blob/dev/LICENSE,MIT License,https://raw.githubusercontent.com/AzureAD/azure-activedirectory-library-for-python/dev/LICENSE
+tkem/cachetools,https://github.com/tkem/cachetools/blob/master/LICENSE,MIT License,https://raw.githubusercontent.com/tkem/cachetools/master/LICENSE
+chardet/chardet,https://github.com/chardet/chardet/blob/master/LICENSE,GNU Lesser General Public License v2.1,https://raw.githubusercontent.com/chardet/chardet/master/LICENSE
+pallets/click,https://github.com/pallets/click/blob/master/LICENSE.rst,BSD 3-Clause "New" or "Revised" License,https://raw.githubusercontent.com/pallets/click/master/LICENSE.rst
+pyca/cryptography,https://github.com/pyca/cryptography/blob/master/LICENSE,MIT License,https://raw.githubusercontent.com/pyca/cryptography/master/LICENSE
+pallets/flask,https://github.com/pallets/flask/blob/master/LICENSE.rst,BSD 3-Clause "New" or "Revised" License,https://raw.githubusercontent.com/pallets/flask/master/LICENSE.rst
+corydolphin/flask-cors,https://github.com/corydolphin/flask-cors/blob/master/LICENSE,MIT License,https://raw.githubusercontent.com/corydolphin/flask-cors/master/LICENSE
+googleapis/google-auth-library-python,https://github.com/googleapis/google-auth-library-python/blob/master/LICENSE,Apache License 2.0,https://raw.githubusercontent.com/googleapis/google-auth-library-python/master/LICENSE
+kjd/idna,https://github.com/kjd/idna/blob/master/LICENSE.rst,BSD 3-Clause "New" or "Revised" License,https://raw.githubusercontent.com/kjd/idna/master/LICENSE.rst
+pallets/itsdangerous,https://github.com/pallets/itsdangerous/blob/master/LICENSE.rst,BSD 3-Clause "New" or "Revised" License,https://raw.githubusercontent.com/pallets/itsdangerous/master/LICENSE.rst
+pallets/jinja,https://github.com/pallets/jinja/blob/master/LICENSE.rst,BSD 3-Clause "New" or "Revised" License,https://raw.githubusercontent.com/pallets/jinja/master/LICENSE.rst
+kubernetes-client/python,https://github.com/kubernetes-client/python/blob/master/LICENSE,Apache License 2.0,https://raw.githubusercontent.com/kubernetes-client/python/master/LICENSE
+pallets/markupsafe,https://github.com/pallets/markupsafe/blob/master/LICENSE.rst,BSD 3-Clause "New" or "Revised" License,https://raw.githubusercontent.com/pallets/markupsafe/master/LICENSE.rst
+oauthlib/oauthlib,https://github.com/oauthlib/oauthlib/blob/master/LICENSE,BSD 3-Clause "New" or "Revised" License,https://raw.githubusercontent.com/oauthlib/oauthlib/master/LICENSE
+etingof/pyasn1,https://github.com/etingof/pyasn1/blob/master/LICENSE.rst,BSD 2-Clause "Simplified" License,https://raw.githubusercontent.com/etingof/pyasn1/master/LICENSE.rst
+etingof/pyasn1-modules,https://github.com/etingof/pyasn1-modules/blob/master/LICENSE.txt,BSD 2-Clause "Simplified" License,https://raw.githubusercontent.com/etingof/pyasn1-modules/master/LICENSE.txt
+eliben/pycparser,https://github.com/eliben/pycparser/blob/master/LICENSE,BSD 3-Clause "New" or "Revised" License,https://raw.githubusercontent.com/eliben/pycparser/master/LICENSE
+jpadilla/pyjwt,https://github.com/jpadilla/pyjwt/blob/master/LICENSE,MIT License,https://raw.githubusercontent.com/jpadilla/pyjwt/master/LICENSE
+yaml/pyyaml,https://github.com/yaml/pyyaml/blob/master/LICENSE,MIT License,https://raw.githubusercontent.com/yaml/pyyaml/master/LICENSE
+requests/requests-oauthlib,https://github.com/requests/requests-oauthlib/blob/master/LICENSE,ISC License,https://raw.githubusercontent.com/requests/requests-oauthlib/master/LICENSE
+benjaminp/six,https://github.com/benjaminp/six/blob/master/LICENSE,MIT License,https://raw.githubusercontent.com/benjaminp/six/master/LICENSE
+urllib3/urllib3,https://github.com/urllib3/urllib3/blob/master/LICENSE.txt,MIT License,https://raw.githubusercontent.com/urllib3/urllib3/master/LICENSE.txt
+websocket-client/websocket-client,https://github.com/websocket-client/websocket-client/blob/master/LICENSE,BSD 3-Clause "New" or "Revised" License,https://raw.githubusercontent.com/websocket-client/websocket-client/master/LICENSE
+pallets/werkzeug,https://github.com/pallets/werkzeug/blob/master/LICENSE.rst,BSD 3-Clause "New" or "Revised" License,https://raw.githubusercontent.com/pallets/werkzeug/master/LICENSE.rst
+certifi/python-certifi,https://github.com/certifi/python-certifi/blob/master/LICENSE,MPL 2.0,https://raw.githubusercontent.com/certifi/python-certifi/master/LICENSE
+psf/requests,https://github.com/psf/requests/blob/master/LICENSE,Apache License 2.0,https://raw.githubusercontent.com/psf/requests/master/LICENSE
+sybrenstuvel/python-rsa,https://github.com/sybrenstuvel/python-rsa/blob/master/LICENSE,Apache License 2.0,https://raw.githubusercontent.com/sybrenstuvel/python-rsa/master/LICENSE
+dateutil/dateutil,https://github.com/dateutil/dateutil/blob/master/LICENSE,Apache License 2.0,https://raw.githubusercontent.com/dateutil/dateutil/master/LICENSE
+cffi,https://bitbucket.org/cffi/cffi/raw/default/LICENSE,MIT License,https://bitbucket.org/cffi/cffi/raw/default/LICENSE

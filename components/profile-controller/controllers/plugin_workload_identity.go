@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
-	profilev1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
+	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iam/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -41,7 +41,7 @@ type GcpWorkloadIdentity struct {
 }
 
 // ApplyPlugin will grant GCP workload identity to service account DEFAULT_EDITOR
-func (gcp *GcpWorkloadIdentity) ApplyPlugin(r *ProfileReconciler, profile *profilev1beta1.Profile) error {
+func (gcp *GcpWorkloadIdentity) ApplyPlugin(r *ProfileReconciler, profile *profilev1.Profile) error {
 	logger := r.Log.WithValues("profile", profile.Name)
 	if err := gcp.patchAnnotation(r, profile.Name, DEFAULT_EDITOR, logger); err != nil {
 		return err
@@ -142,7 +142,7 @@ func revokeBinding(currentPolicy *iam.Policy, member string) {
 }
 
 // RevokePlugin: undo changes made by ApplyPlugin.
-func (gcp *GcpWorkloadIdentity) RevokePlugin(r *ProfileReconciler, profile *profilev1beta1.Profile) error {
+func (gcp *GcpWorkloadIdentity) RevokePlugin(r *ProfileReconciler, profile *profilev1.Profile) error {
 	logger := r.Log.WithValues("profile", profile.Name)
 	logger.Info("Clean up Gcp Workload Identity.", "ServiceAccount", gcp.GcpServiceAccount)
 	return gcp.updateWorkloadIdentity(profile.Name, DEFAULT_EDITOR, revokeBinding)

@@ -203,7 +203,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         case IFRAME_LINK_PREFIX:
             this.page = 'iframe';
             isIframe = true;
-            hideNamespaces = this.subRouteData.path.startsWith('/pipeline');
+            hideNamespaces = false;
             this._setActiveMenuLink(this.subRouteData.path);
             this._setIframeSrc();
             break;
@@ -316,8 +316,9 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * @param {Event} responseEvent AJAX-response
      */
     _onEnvInfoResponse(responseEvent) {
-        const {platform, user,
-            namespaces, isClusterAdmin} = responseEvent.detail.response;
+        const {
+            platform, user, namespaces, isClusterAdmin,
+        } = responseEvent.detail.response;
         Object.assign(this, {user, isClusterAdmin});
         this.namespaces = namespaces;
         if (this.namespaces.length) {

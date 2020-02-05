@@ -149,22 +149,6 @@ describe('Main Page', () => {
         hrefs.forEach((h) => expect(h).toContain('?ns=another-namespace'));
     });
 
-    it('Hides namespace selector when showing Pipelines dashboard', () => {
-        expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
-            .hasAttribute('hidden')).toBe(false);
-
-        mainPage.subRouteData.path = '/pipeline/';
-        mainPage._routePageChanged('_');
-        flush();
-        expect(mainPage.shadowRoot.querySelector('#NamespaceSelector')
-            .hasAttribute('hidden')).toBe(true);
-        expect(mainPage.page).toBe('iframe');
-        expect(mainPage.sidebarItemIndex).toBe(1);
-        expect(mainPage.inIframe).toBe(true);
-        expect(mainPage.shadowRoot.getElementById('ViewTabs')
-            .hasAttribute('hidden')).toBe(true);
-    });
-
     it('Sets information when platform info is received', async () => {
         const namespaces = [
             {

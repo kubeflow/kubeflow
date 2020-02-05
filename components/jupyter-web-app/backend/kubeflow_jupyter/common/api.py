@@ -1,15 +1,11 @@
 import json
-import os
-import requests
 from kubernetes import client, config
 from kubernetes.config import ConfigException
 from kubernetes.client.rest import ApiException
+from . import auth
 from . import utils
 
 logger = utils.create_logger(__name__)
-
-KFAM = os.getenv("KFAM", "profiles-kfam.kubeflow.svc.cluster.local:8081")
-
 
 try:
     # Load configuration inside the Pod
@@ -31,36 +27,6 @@ def parse_error(e):
         err = str(e)
 
     return err
-
-
-def is_authorized(user, namespace):
-    '''
-    Queries KFAM for whether the provided user has access
-    to the specific namespace
-    '''
-    if user is None:
-        # In case a user is not present, preserve the behavior from 0.5
-        # Pass the authorization check and make the calls with the webapp's SA
-        return True
-
-    try:
-        resp = requests.get("http://{}/kfam/v1/bindings?namespace={}".format(
-            KFAM, namespace)
-        )
-    except Exception as e:
-        logger.warning("Error talking to KFAM: {}".format(parse_error(e)))
-        return False
-
-    if resp.status_code == 200:
-        # Iterate through the namespace's bindings and check for the user
-        for binding in resp.json().get("bindings", []):
-            if binding["user"]["name"] == user:
-                return True
-
-        return False
-    else:
-        logger.warning("{}: Error talking to KFAM!".format(resp.status_code))
-        return False
 
 
 # Wrapper Functions for error handling
@@ -111,149 +77,111 @@ def wrap(fn, *args, **kwargs):
 
 # API Functions
 # GETers
-def get_pvcs(ns, user=None):
-    if not is_authorized(user, ns):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, ns
-            )
-        }
-
+@auth.needs_authorization("list", "", "v1", "persistentvolumeclaims")
+def list_pvcs(namespace):
     return wrap_resp(
         "pvcs",
-        v1_core.list_namespaced_persistent_volume_claim, namespace=ns
+        v1_core.list_namespaced_persistent_volume_claim,
+        namespace=namespace
     )
 
 
-def get_pods(ns, user=None):
-    if not is_authorized(user, ns):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, ns
-            )
-        }
-
-    return wrap_resp(
-        "pods",
-        v1_core.list_namespaced_pod, namespace=ns
-    )
-
-
-def get_notebooks(ns, user=None):
-    if not is_authorized(user, ns):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, ns
-            )
-        }
-
+@auth.needs_authorization("list", "kubeflow.org", "v1beta1", "notebooks")
+def list_notebooks(namespace):
     return wrap_resp(
         "notebooks",
         custom_api.list_namespaced_custom_object,
         "kubeflow.org",
         "v1beta1",
-        ns,
+        namespace,
         "notebooks"
     )
 
 
-def get_poddefaults(ns, user=None):
-    if not is_authorized(user, ns):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, ns
-            )
-        }
+# We don't do a subject access review on notebook events because
+# notebook events are cluster scoped resources. Users however are only
+# granted access to particular namespacs. We rely on the notebook webserver
+# to filter out information a user shouldn't see.
+def list_notebook_events(namespace, nb_name):
+    '''
+    V1EventList with events whose source the Notebook with 'nb_name' from namespace 'namespace'
+    '''
+    return wrap_resp(
+        "notebook-events",
+        v1_core.list_namespaced_event,
+        namespace=namespace,
+        field_selector="involvedObject.kind=Notebook,involvedObject.name=" + nb_name
+    )
 
+
+@auth.needs_authorization("list", "kubeflow.org", "v1alpha1", "poddefaults")
+def list_poddefaults(namespace):
     return wrap_resp(
         "poddefaults",
         custom_api.list_namespaced_custom_object,
         "kubeflow.org",
-        "v1beta1",
-        ns,
+        "v1alpha1",
+        namespace,
         "poddefaults"
     )
 
 
-def get_namespaces(user=None):
+@auth.needs_authorization("get", "", "v1", "secrets")
+def get_secret(name, namespace):
+    return wrap_resp(
+        "secret",
+        v1_core.read_namespaced_secret,
+        name,
+        namespace
+    )
+
+
+@auth.needs_authorization("list", "", "v1", "namespaces")
+def list_namespaces():
     return wrap_resp(
         "namespaces",
         v1_core.list_namespace
     )
 
 
-def get_storageclasses(user=None):
+# @auth.needs_authorization("list", "storage.k8s.io", "v1", "storageclasses")
+# NOTE: This function is only used from the backend in order to determine if a
+# default StorageClass is set. Currently, the role aggregation does not use a
+# ClusterRoleBinding, thus we can't currently give this permission to a user.
+# The backend does not expose any endpoint that would allow an unauthorized
+# user to list the storage classes using this function.
+def list_storageclasses():
     return wrap_resp(
         "storageclasses",
         storage_api.list_storage_class
     )
 
 
-def get_secret(ns, nm, user=None):
-    if not is_authorized(user, ns):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, ns
-            )
-        }
-
-    return wrap_resp(
-        "secret",
-        v1_core.read_namespaced_secret, nm, ns
-    )
-
-
 # POSTers
-def post_notebook(notebook, user=None):
-    if not is_authorized(user, notebook["metadata"]["namespace"]):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, notebook["metadata"]["namespace"]
-            )
-        }
-
+@auth.needs_authorization("create", "kubeflow.org", "v1beta1", "notebooks")
+def create_notebook(notebook, namespace):
     return wrap(
         custom_api.create_namespaced_custom_object,
         "kubeflow.org",
         "v1beta1",
-        notebook["metadata"]["namespace"],
+        namespace,
         "notebooks",
         notebook
     )
 
 
-def post_pvc(pvc, user=None):
-    if not is_authorized(user, pvc.metadata.namespace):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, pvc.metadata.namespace
-            )
-        }
-
+@auth.needs_authorization("create", "", "v1", "persistentvolumeclaims")
+def create_pvc(pvc, namespace):
     return wrap_resp(
         "pvc",
         v1_core.create_namespaced_persistent_volume_claim,
-        pvc.metadata.namespace, pvc
+        namespace,
+        pvc
     )
 
-
-# DELETEers
-def delete_notebook(namespace, notebook_name, user=None):
-    if not is_authorized(user, namespace):
-        return {
-            "success": False,
-            "log": "User '{}' is not authorized for namespace '{}'".format(
-                user, namespace
-            )
-        }
-
+# DELETErs
+@auth.needs_authorization("delete", "kubeflow.org", "v1beta1", "notebooks")
+def delete_notebook(notebook_name, namespace):
     return wrap(
         custom_api.delete_namespaced_custom_object,
         "kubeflow.org",
@@ -263,3 +191,20 @@ def delete_notebook(namespace, notebook_name, user=None):
         notebook_name,
         client.V1DeleteOptions(propagation_policy="Foreground")
     )
+
+
+# Readiness Probe helper
+def can_connect_to_k8s():
+    try:
+        custom_api.list_namespaced_custom_object(
+            "kubeflow.org",
+            "v1beta1",
+            "default",
+            "notebooks",
+        )
+        return True
+
+    except ApiException:
+        return False
+
+    return True

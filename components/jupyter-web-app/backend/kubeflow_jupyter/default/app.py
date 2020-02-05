@@ -12,7 +12,6 @@ NOTEBOOK = "./kubeflow_jupyter/common/yaml/notebook.yaml"
 # POSTers
 @app.route("/api/namespaces/<namespace>/notebooks", methods=["POST"])
 def post_notebook(namespace):
-    user = utils.get_username_from_request()
     body = request.get_json()
     defaults = utils.spawner_ui_config()
     logger.info("Got Notebook: {}".format(body))
@@ -25,6 +24,7 @@ def post_notebook(namespace):
     utils.set_notebook_image(notebook, body, defaults)
     utils.set_notebook_cpu(notebook, body, defaults)
     utils.set_notebook_memory(notebook, body, defaults)
+    utils.set_notebook_gpus(notebook, body, defaults)
     utils.set_notebook_configurations(notebook, body, defaults)
 
     # Workspace Volume
@@ -34,7 +34,7 @@ def post_notebook(namespace):
         ws_pvc = utils.pvc_from_dict(workspace_vol, namespace)
 
         logger.info("Creating Workspace Volume: {}".format(ws_pvc.to_dict()))
-        r = api.post_pvc(ws_pvc, user)
+        r = api.create_pvc(ws_pvc, namespace=namespace)
         if not r["success"]:
             return jsonify(r)
 
@@ -53,7 +53,7 @@ def post_notebook(namespace):
             dtvol_pvc = utils.pvc_from_dict(vol, namespace)
 
             logger.info("Creating Data Volume {}:".format(dtvol_pvc))
-            r = api.post_pvc(dtvol_pvc, user)
+            r = api.create_pvc(dtvol_pvc, namespace=namespace)
             if not r["success"]:
                 return jsonify(r)
 
@@ -64,16 +64,11 @@ def post_notebook(namespace):
             vol["path"]
         )
 
-    # Extra Resources
-    r = utils.set_notebook_extra_resources(notebook, body, defaults)
-    if not r["success"]:
-        return jsonify(r)
-
     # shm
     utils.set_notebook_shm(notebook, body, defaults)
 
     logger.info("Creating Notebook: {}".format(notebook))
-    return jsonify(api.post_notebook(notebook, user))
+    return jsonify(api.create_notebook(notebook, namespace=namespace))
 
 
 # Since Angular is a SPA, we serve index.html every time

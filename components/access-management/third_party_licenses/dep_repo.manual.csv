@@ -1,0 +1,5 @@
+git.apache.org/thrift.git,apache/thrift
+gomodules.xyz/jsonpatch/v2,gomodules/jsonpatch
+honnef.co/go/tools,dominikh/go-tools
+sourcegraph.com/sourcegraph/go-diff,sourcegraph/go-diff
+sourcegraph.com/sqs/pbtypes,sqs/pbtypes

@@ -24,7 +24,12 @@ RUN if [ "$(uname -m)" = "aarch64" ]; then \
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:latest as serve
+FROM gcr.io/distroless/base:latest as serve
 WORKDIR /
+COPY third_party third_party
 COPY --from=builder /workspace/manager .
+COPY --from=builder /go/pkg/mod/github.com/hashicorp third_party/library/
+
+EXPOSE 8080
+
 ENTRYPOINT ["/manager"]

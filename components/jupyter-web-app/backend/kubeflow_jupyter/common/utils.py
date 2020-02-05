@@ -1,29 +1,43 @@
+import datetime as dt
+import json
 import logging
 import os
 import sys
+
 import yaml
-import json
+from collections import defaultdict
 from flask import request
 from kubernetes import client
-import datetime as dt
+
 from . import api
 
 # The backend will send the first config it will successfully load
 CONFIGS = [
     "/etc/config/spawner_ui_config.yaml",
-    "./kubeflow_jupyter/common/yaml/spawner_ui_config.yaml"
+    "./kubeflow_jupyter/common/yaml/spawner_ui_config.yaml",
 ]
 
 # The values of the headers to look for the User info
 USER_HEADER = os.getenv("USERID_HEADER", "X-Goog-Authenticated-User-Email")
 USER_PREFIX = os.getenv("USERID_PREFIX", "accounts.google.com:")
 
+EVENT_TYPE_NORMAL = "Normal"
+EVENT_TYPE_WARNING = "Warning"
+
+STATUS_ERROR = "error"
+STATUS_WARNING = "warning"
+STATUS_RUNNING = "running"
+STATUS_WAITING = "waiting"
+
 
 # Logging
 def create_logger(name):
     handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(logging.Formatter(
-        "%(asctime)s | %(name)s | %(levelname)s | %(message)s"))
+    handler.setFormatter(
+        logging.Formatter(
+            "%(asctime)s | %(name)s | %(levelname)s | %(message)s"
+        )
+    )
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
     logger.addHandler(handler)
@@ -36,14 +50,16 @@ logger = create_logger(__name__)
 # Utils
 def get_username_from_request():
     if USER_HEADER not in request.headers:
-        logger.warning("User header not present!")
+        logger.debug("User header not present!")
         username = None
     else:
         user = request.headers[USER_HEADER]
         username = user.replace(USER_PREFIX, "")
-        logger.info("User: '{}' | Headers: '{}' '{}'".format(
-            username, USER_HEADER, USER_PREFIX
-        ))
+        logger.debug(
+            "User: '{}' | Headers: '{}' '{}'".format(
+                username, USER_HEADER, USER_PREFIX
+            )
+        )
 
     return username
 
@@ -76,9 +92,7 @@ def spawner_ui_config():
             with open(config, "r") as f:
                 c = f.read()
         except IOError:
-            logger.warning("Config file '{}' is not found".format(
-                config
-            ))
+            logger.warning("Config file '{}' is not found".format(config))
             continue
 
         try:
@@ -93,9 +107,9 @@ def spawner_ui_config():
             logger.error("Notebook config is not a valid yaml")
             return {}
         except AttributeError as e:
-            logger.error("Can't load the config at {}: {}".format(
-                config, str(e)
-            ))
+            logger.error(
+                "Can't load the config at {}: {}".format(config, str(e))
+            )
 
     logger.warning("Couldn't load any config")
     return {}
@@ -147,13 +161,12 @@ def handle_storage_class(vol):
 
 # Volume handling functions
 def volume_from_config(config_vol, notebook):
-    '''
+    """
     Create a Volume Dict from the config.yaml. This dict has the same fields as
     a Volume returned from the frontend
-    '''
+    """
     vol_name = config_vol["name"]["value"].replace(
-        "{notebook-name}",
-        notebook["name"]
+        "{notebook-name}", notebook["name"]
     )
     vol_class = handle_storage_class(config_vol["class"]["value"])
 
@@ -173,29 +186,24 @@ def pvc_from_dict(vol, namespace):
         return None
 
     return client.V1PersistentVolumeClaim(
-        metadata=client.V1ObjectMeta(
-            name=vol["name"],
-            namespace=namespace,
-        ),
+        metadata=client.V1ObjectMeta(name=vol["name"], namespace=namespace,),
         spec=client.V1PersistentVolumeClaimSpec(
             access_modes=[vol["mode"]],
             storage_class_name=handle_storage_class(vol),
             resources=client.V1ResourceRequirements(
-                requests={
-                    "storage": vol["size"]
-                }
-            )
-        )
+                requests={"storage": vol["size"]}
+            ),
+        ),
     )
 
 
 def get_workspace_vol(body, defaults):
-    '''
+    """
     Checks the config and the form values and returns a Volume Dict for the
     workspace. If the workspace is readOnly, then the value from the config
     will be used instead. The Volume Dict has the same format as the Volume
     interface of the frontend.
-    '''
+    """
     default_ws = volume_from_config(defaults["workspaceVolume"]["value"], body)
     form_ws = body.get("workspace", None)
 
@@ -213,14 +221,16 @@ def get_workspace_vol(body, defaults):
 
 
 def get_data_vols(body, defaults):
-    '''
+    """
     Checks the config and the form values and returns a list of Volume
     Dictionaries for the Notebook's Data Volumes. If the Data Volumes are
     readOnly, then the value from the config will be used instead. The Volume
     Dict has the same format as the Volume interface of the frontend.
-    '''
-    default_vols = [volume_from_config(vol["value"], body)
-                    for vol in defaults["dataVolumes"]["value"]]
+    """
+    default_vols = [
+        volume_from_config(vol["value"], body)
+        for vol in defaults["dataVolumes"]["value"]
+    ]
     form_vols = body.get("datavols", [])
 
     if defaults["dataVolumes"].get("readOnly", False):
@@ -249,10 +259,10 @@ def process_pvc(rsrc):
     return res
 
 
-def process_resource(rsrc):
+def process_resource(rsrc, rsrc_events):
     # VAR: change this function according to the main resource
     cntr = rsrc["spec"]["template"]["spec"]["containers"][0]
-    status, reason = process_status(rsrc)
+    status, reason = process_status(rsrc, rsrc_events)
 
     res = {
         "name": rsrc["metadata"]["name"],
@@ -269,44 +279,66 @@ def process_resource(rsrc):
     return res
 
 
-def process_status(rsrc):
-    '''
+def process_status(rsrc, rsrc_events):
+    """
     Return status and reason. Status may be [running|waiting|warning|error]
-    '''
+    """
     # If the Notebook is being deleted, the status will be waiting
     if "deletionTimestamp" in rsrc["metadata"]:
-        return "waiting", "Deleting Notebook Server"
+        return STATUS_WAITING, "Deleting Notebook Server"
 
     # Check the status
     try:
         s = rsrc["status"]["containerState"]
     except KeyError:
-        return "waiting", "No Status available"
+        s = ""
 
+    # Use conditions on the Jupyter notebook (i.e., s) to determine overall status
+    # If no container state is available, we try to extract information about why
+    # the notebook is not starting from the notebook's events (see find_error_event)
     if "running" in s:
-        return "running", "Running"
-    elif "waiting" in s:
-        reason = s["waiting"]["reason"]
-
-        if reason == "ImagePullBackOff":
-            return "error", reason
-        elif reason == "ContainerCreating":
-            return "waiting", reason
-        elif reason == "PodInitializing":
-            return "waiting", reason
-        else:
-            return "warning", reason
+        status, reason = STATUS_RUNNING, "Running"
     elif "terminated" in s:
-        return "error", "The Pod has Terminated"
+        status, reason = STATUS_ERROR, "The Pod has Terminated"
     else:
-        return "waiting", "Scheduling the Pod"
+        if "waiting" in s:
+            reason = s["waiting"]["reason"]
+            status = STATUS_ERROR if reason == "ImagePullBackOff" else STATUS_WAITING
+        else:
+            status, reason = STATUS_WAITING, "Scheduling the Pod"
+        # Provide the user with detailed information (if any) about why the notebook is not starting
+        status_event, reason_event = find_error_event(rsrc_events)
+        if status_event:
+            status, reason = status_event, reason_event
+
+    return status, reason
+
+
+def find_error_event(rsrc_events):
+    '''
+    Returns status and reason from the latest event that surfaces the cause
+    of why the resource could not be created. For a Notebook, it can be due to:
+
+          EVENT_TYPE      EVENT_REASON      DESCRIPTION   
+          Warning         FailedCreate      serviceaccount not found (originated in statefulset)
+          Warning         FailedScheduling  Insufficient CPU (originated in pod)
+
+    '''
+    for e in sorted(rsrc_events, key=event_timestamp, reverse=True):
+        if e.type == EVENT_TYPE_WARNING and e.reason in ["FailedCreate", "FailedScheduling"]:
+            return STATUS_ERROR, e.message
+    return None, None
+
+
+def event_timestamp(event):
+    return event.metadata.creation_timestamp.replace(tzinfo=None)
 
 
 # Notebook YAML processing
 def set_notebook_image(notebook, body, defaults):
-    '''
+    """
     If the image is set to readOnly, use only the value from the config
-    '''
+    """
     if defaults["image"].get("readOnly", False):
         image = defaults["image"]["value"]
         logger.info("Using default Image: " + image)
@@ -355,6 +387,61 @@ def set_notebook_memory(notebook, body, defaults):
     container["resources"]["requests"]["memory"] = memory
 
 
+def set_notebook_gpus(notebook, body, defaults):
+    gpus = None
+    gpuDefaults = defaults.get("gpus", {})
+    if gpuDefaults.get("readOnly", False):
+        # The server should not allow the user to set the GPUs
+        # if the config's value is readOnly. Use the config's value
+        gpus = gpuDefaults["value"]
+        logger.info(f"Using default GPU config: {gpus}")
+
+    elif "gpus" not in body:
+        # Try to load the default values. If they don't exist, don't use GPUs
+        if "gpus" not in defaults:
+            logger.info(
+                "No 'gpus' value in either the form's body or in"
+                " the default config's values. Will not use any GPUs"
+            )
+            return
+        else:
+            gpus = gpuDefaults["value"]
+            logger.info(f"Using default GPU config: {gpus}")
+
+    else:
+        # Make sure the GPUs value in the request is properly formatted
+        gpus = body["gpus"]
+        logger.info(f"Using form's GPUs: {gpus}")
+
+        if "num" not in gpus:
+            logger.error("'gpus' must have a 'num' field")
+            return
+
+        if gpus["num"] != "none" and "vendor" not in gpus:
+            logger.error("'gpus' must have a 'vendor' field")
+            return
+
+        if gpus["num"] != "none":
+            try:
+                int(gpus["num"])
+            except ValueError:
+                logger.error(f"gpus.num is not a valid number: {gpus['num']}")
+                return
+
+    # Add the GPU annotation
+    if gpus["num"] == "none":
+        return
+
+    container = notebook["spec"]["template"]["spec"]["containers"][0]
+    vendor = gpus["vendor"]
+    num = int(gpus["num"])
+
+    limits = container["resources"].get("limits", {})
+    limits[vendor] = num
+
+    container["resources"]["limits"] = limits
+
+
 def set_notebook_configurations(notebook, body, defaults):
     notebook_labels = notebook["metadata"]["labels"]
 
@@ -369,8 +456,8 @@ def set_notebook_configurations(notebook, body, defaults):
         logger.info("Using default Configurations: {}".format(labels))
 
     if not isinstance(labels, list):
-        logger.warning("Labels for PodDefaults are not list: {}".format(
-            labels)
+        logger.warning(
+            "Labels for PodDefaults are not list: {}".format(labels)
         )
         return
 
@@ -417,17 +504,9 @@ def set_notebook_shm(notebook, body, defaults):
     notebook_spec = notebook["spec"]["template"]["spec"]
     notebook_cont = notebook["spec"]["template"]["spec"]["containers"][0]
 
-    shm_volume = {
-        "name": "dshm",
-        "emptyDir": {
-            "medium": "Memory"
-        }
-    }
+    shm_volume = {"name": "dshm", "emptyDir": {"medium": "Memory"}}
     notebook_spec["volumes"].append(shm_volume)
-    shm_mnt = {
-        "mountPath": "/dev/shm",
-        "name": "dshm"
-    }
+    shm_mnt = {"mountPath": "/dev/shm", "name": "dshm"}
     notebook_cont["volumeMounts"].append(shm_mnt)
 
 
@@ -435,19 +514,11 @@ def add_notebook_volume(notebook, vol_name, claim, mnt_path):
     spec = notebook["spec"]["template"]["spec"]
     container = notebook["spec"]["template"]["spec"]["containers"][0]
 
-    volume = {
-        "name": vol_name,
-        "persistentVolumeClaim": {
-            "claimName": claim
-        }
-    }
+    volume = {"name": vol_name, "persistentVolumeClaim": {"claimName": claim}}
     spec["volumes"].append(volume)
 
     # Container Mounts
-    mnt = {
-        "mountPath": mnt_path,
-        "name": vol_name
-    }
+    mnt = {"mountPath": mnt_path, "name": vol_name}
     container["volumeMounts"].append(mnt)
 
 
@@ -458,10 +529,7 @@ def add_notebook_volume_secret(nb, secret, secret_name, mnt_path, mode):
 
     volume = {
         "name": secret,
-        "secret": {
-            "defaultMode": mode,
-            "secretName": secret_name,
-        }
+        "secret": {"defaultMode": mode, "secretName": secret_name,},
     }
     spec["volumes"].append(volume)
 

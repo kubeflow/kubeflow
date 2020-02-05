@@ -473,7 +473,7 @@ func nbNameFromInvolvedObject(object *v1.ObjectReference) string {
 }
 
 func nbNameExists(client client.Client, nbName string, namespace string) bool {
-	if err := client.Get(context.Background(), types.NamespacedName{namespace, nbName}, &v1beta1.Notebook{}); err != nil {
+	if err := client.Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: nbName}, &v1beta1.Notebook{}); err != nil {
 		// If error != NotFound, trigger the reconcile call anyway to avoid loosing a potential relevant event
 		return !apierrs.IsNotFound(err)
 	}
