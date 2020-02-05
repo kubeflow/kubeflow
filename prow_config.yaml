@@ -43,27 +43,6 @@ workflows:
   # The workflows below are related to auto building our Docker images.
   # We have separate pre/postsubmit jobs because we want to use different
   # registries
-  - app_dir: kubeflow/kubeflow/releasing/releaser
-    component: centraldashboard
-    name: dashboard-release
-    job_types:
-      - presubmit
-    params:
-      registry: "gcr.io/kubeflow-ci"
-    include_dirs:
-      - components/centraldashboard/*
-      - releasing/releaser/components/centraldashboard.jsonnet
-  # The postsubmit run publishes the docker images to gcr.io/kubeflow-images-public
-  - app_dir: kubeflow/kubeflow/releasing/releaser
-    component: centraldashboard
-    name: dashboard-release
-    job_types:
-      - postsubmit
-    params:
-      registry: "gcr.io/kubeflow-images-public"
-    include_dirs:
-      - components/centraldashboard/*
-      - releasing/releaser/components/centraldashboard.jsonnet
   - app_dir: kubeflow/kubeflow/components/tensorflow-notebook-image/releaser
     component: workflows
     name: tf-notebook-release
@@ -84,26 +63,4 @@ workflows:
       registry: "gcr.io/kubeflow-images-public"
       step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
     include_dirs:
-      - components/tensorflow-notebook-image/*
-  # Jupyter-web-app presubmit
-  - app_dir: kubeflow/kubeflow/components/jupyter-web-app/releaser
-    component: workflows
-    name: jupyterui-release
-    job_types:
-      - presubmit
-    params:
-      registry: "gcr.io/kubeflow-ci"
-      step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
-    include_dirs:
-      - components/jupyter-web-app/*
-  # Jupyter-web-app postsubmit that publishes the docker image to gcr.io/kubeflow-images-public
-  - app_dir: kubeflow/kubeflow/components/jupyter-web-app/releaser
-    component: workflows
-    name: jupyterui-release
-    job_types:
-      - postsubmit
-    params:
-      registry: "gcr.io/kubeflow-images-public"
-      step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
-    include_dirs:
-      - components/jupyter-web-app/*
+      - components/tensorflow-notebook-image/*  
