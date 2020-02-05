@@ -30,7 +30,6 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-
 # Releasing Prerequisities
 
 ## Authenticate to GCP
@@ -193,10 +192,10 @@ version of the website we want users to see.
 
 * Most of the time this will correspond to the **master** branch of the `kubeflow/website` repo
 
-* However, leading up to the release of vY.0.0 [www.kubeflow.org](www.kubeflow.org) 
-  will point at a branch containing a stable version of the docs corresponding to vX.0.0
+* However, leading up to a minor release (0.Y) [www.kubeflow.org](www.kubeflow.org) 
+  will point at a branch containing a stable version of the docs corresponding to v0.X
 
-For each minor (X.Y) release, we also publish a corresponding version of the 
+For each minor (0.Y) release, we also publish a corresponding version of the 
 website. Each version of the website is generated from a separate 
 [branch](https://github.com/kubeflow/website/branches)
 of the `kubeflow/website` repository. 
@@ -207,27 +206,23 @@ For example, the [documentation for v0.6](https://v0-6.kubeflow.org) is
 maintained in the
 [v0.6-branch](https://github.com/kubeflow/website/tree/v0.6-branch).
 
-* Per [kubeflow/website#1581](https://github.com/kubeflow/kubeflow/pull/4717) the naming
-  convention might change when we switch to using Netlify's deploy branch feature
-  rather than creating multiple Netlify sites.
+## Lifecycle
 
-## Lifcycle
+Our typical process when getting ready to do a minor release 0.Y 
+(i.e. going from 0.X to 0.Y); this process doesn't apply for patch releases.
 
-Our typical process when getting ready to release vY.0.0 is
-
-1. Follow the [instructions below](#create-website-branch) to create a release branch for vX.0.0
+1. Follow the [instructions below](#create-website-branch) to create a release branch for v0.X
 1. Update `www.kubeflow.org` to point at the vX.0.0 branch ([see below](#update-kubeflow-org))
-1. Develop vY.0.0 docs on the master branch
+1. Develop v0.X docs on the master branch
  
-   * Follow the [instructions](#prepare-docs) below to update version numbers etc. on master for the upcoming vY.0.0 release
+   * Follow the [instructions](#prepare-docs) below to update version numbers etc. on master for the upcoming v0.Y release
 
    * Docs for the master branch should be available on [https://master.kubeflow.org](https://master.kubeflow.org)
-     * There is currently an SSL certificate error see [kubeflow/website#1586](https://github.com/kubeflow/website/issues/1586)
-     * Docs for master can also be accessed at [https://master--competent-brattain-de2d6d.netlify.com/](https://master--competent-brattain-de2d6d.netlify.com/)
-1. When we are ready to publish docs for vY.0.0, follow the [instructions](#update-kubeflow-org) below to
+  
+1. When we are ready to publish docs for v0.Y, follow the [instructions](#update-kubeflow-org) below to
    point [www.kubeflow.org](https://www.kubeflow.org)  at the master branch 
 
-1. Follow the [instructions](#archive) to mark the docs on the vX.0.0 branch as archived
+1. Follow the [instructions](#archive) to mark the docs on the v0.Y branch as archived
 
 <a id="prepare-docs"></a>
 ##  Updating version numbers etc for the upcoming release (major, minor, or patch)
