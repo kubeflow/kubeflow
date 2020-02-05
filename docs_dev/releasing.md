@@ -208,21 +208,21 @@ maintained in the
 
 ## Lifecycle
 
-Our typical process when getting ready to do a minor release 0.Y 
-(i.e. going from 0.X to 0.Y); this process doesn't apply for patch releases.
+Our typical process when getting ready to do a minor release X.Y 
+(i.e. going from X.Y to X.Z); this process doesn't apply for patch releases.
 
-1. Follow the [instructions below](#create-website-branch) to create a release branch for v0.X
-1. Update `www.kubeflow.org` to point at the vX.0.0 branch ([see below](#update-kubeflow-org))
-1. Develop v0.X docs on the master branch
+1. Follow the [instructions below](#create-website-branch) to create a release branch for vX.Y
+1. Update `www.kubeflow.org` to point at the vX.Y branch ([see below](#update-kubeflow-org))
+1. Develop vX.Z docs on the master branch
  
-   * Follow the [instructions](#prepare-docs) below to update version numbers etc. on master for the upcoming v0.Y release
+   * Follow the [instructions](#prepare-docs) below to update version numbers etc. on master for the upcoming vX.Z release
 
    * Docs for the master branch should be available on [https://master.kubeflow.org](https://master.kubeflow.org)
   
-1. When we are ready to publish docs for v0.Y, follow the [instructions](#update-kubeflow-org) below to
+1. When we are ready to publish docs for vX.Z, follow the [instructions](#update-kubeflow-org) below to
    point [www.kubeflow.org](https://www.kubeflow.org)  at the master branch 
 
-1. Follow the [instructions](#archive) to mark the docs on the v0.Y branch as archived
+1. Follow the [instructions](#archive) to mark the docs on the vX.Y branch as archived
 
 <a id="prepare-docs"></a>
 ##  Updating version numbers etc for the upcoming release (major, minor, or patch)
