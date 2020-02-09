@@ -552,6 +552,8 @@ func (r *ProfileReconciler) GetPluginSpec(profileIns *profilev1.Profile) ([]Plug
 		switch p.Kind {
 		case KIND_WORKLOAD_IDENTITY:
 			pluginIns = &GcpWorkloadIdentity{}
+		case KIND_AWS_IAM_FOR_SERVICE_ACCOUNT:
+			pluginIns = &AwsIAMForServiceAccount{}
 		default:
 			logger.Info("Plugin not recgonized: ", "Kind", p.Kind)
 			continue
