@@ -85,6 +85,8 @@ type ProfileReconciler struct {
 	Log              logr.Logger
 	UserIdHeader     string
 	UserIdPrefix     string
+	AttributeName    string
+	AttributeType    string
 	WorkloadIdentity string
 }
 
@@ -377,6 +379,14 @@ func (r *ProfileReconciler) updateIstioRbac(profileIns *profilev1.Profile) error
 			}
 		}
 	}
+
+	// Check all options here https://istio.io/docs/reference/config/policy-and-telemetry/attribute-vocabulary/
+	var propertyKey string
+	if r.AttributeType == "map" {
+		propertyKey = fmt.Sprintf("%s[%v]", r.AttributeName, r.UserIdHeader)
+	} else {
+		propertyKey = fmt.Sprintf("%s", r.AttributeName)
+	}
 	istioServiceRoleBinding := &istiorbac.ServiceRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{USER: profileIns.Spec.Owner.Name, ROLE: ADMIN},
@@ -386,7 +396,7 @@ func (r *ProfileReconciler) updateIstioRbac(profileIns *profilev1.Profile) error
 		Spec: istiorbac.ServiceRoleBindingSpec{
 			Subjects: []*istiorbac.Subject{
 				{
-					Properties: map[string]string{fmt.Sprintf("request.headers[%v]", r.UserIdHeader): r.UserIdPrefix + profileIns.Spec.Owner.Name},
+					Properties: map[string]string{propertyKey: r.UserIdPrefix + profileIns.Spec.Owner.Name},
 				},
 			},
 			RoleRef: &istiorbac.RoleRef{

@@ -30,9 +30,13 @@ import (
 	// +kubebuilder:scaffold:imports
 )
 
-const USERIDHEADER = "userid-header"
-const USERIDPREFIX = "userid-prefix"
-const WORKLOADIDENTITY = "workload-identity"
+const (
+	USERIDHEADER = "userid-header"
+	USERIDPREFIX = "userid-prefix"
+	WORKLOADIDENTITY = "workload-identity"
+	ATTRIBUTENAME = "attribute-name"
+	ATTRIBUTETYPE = "attribute-type"
+)
 
 var (
 	scheme   = runtime.NewScheme()
@@ -52,12 +56,16 @@ func main() {
 	var enableLeaderElection bool
 	var userIdHeader string
 	var userIdPrefix string
+	var attributeName string
+	var attributeType string
 	var workloadIdentity string
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
 	flag.StringVar(&userIdHeader, USERIDHEADER, "x-goog-authenticated-user-email", "Key of request header containing user id")
 	flag.StringVar(&userIdPrefix, USERIDPREFIX, "accounts.google.com:", "Request header user id common prefix")
+	flag.StringVar(&attributeName, ATTRIBUTENAME, "request.headers", "Istio Attributes used in creating istio rbac, check istio doc #attribute-vocabulary for more details")
+	flag.StringVar(&attributeType, ATTRIBUTETYPE, "map", "Istio Attributed type used in creating istio rbac, check istio doc #attribute-vocabulary for more details")
 	flag.StringVar(&workloadIdentity, WORKLOADIDENTITY, "", "Default identity (GCP service account) for workload_identity plugin")
 	flag.Parse()
 
@@ -79,6 +87,8 @@ func main() {
 		Log:              ctrl.Log.WithName("controllers").WithName("Profile"),
 		UserIdHeader:     userIdHeader,
 		UserIdPrefix:     userIdPrefix,
+		AttributeName:    attributeName,
+		AttributeType:    attributeType,
 		WorkloadIdentity: workloadIdentity,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Profile")
