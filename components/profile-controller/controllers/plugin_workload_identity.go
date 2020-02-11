@@ -89,8 +89,8 @@ func (gcp *GcpWorkloadIdentity) updateWorkloadIdentity(namespace string, ksa str
 	}
 	ctx := context.Background()
 	gcpSa := gcp.GcpServiceAccount
-	// Get credentials.
-	client, err := google.DefaultClient(context.Background(), iam.CloudPlatformScope)
+	// Get client.
+	client, err := google.DefaultClient(ctx, iam.CloudPlatformScope)
 	if err != nil {
 		return err
 	}
@@ -102,14 +102,21 @@ func (gcp *GcpWorkloadIdentity) updateWorkloadIdentity(namespace string, ksa str
 	}
 	saResource := fmt.Sprintf("projects/%v/serviceAccounts/%v", projectID, gcpSa)
 
-	// get policy
+	// Get credentials.
+	credentials, err := google.FindDefaultCredentials(ctx, iam.CloudPlatformScope)
+	if err != nil {
+		return err
+	}
+
+	// Get policy
 	currentPolicy, err := iamService.Projects.ServiceAccounts.GetIamPolicy(saResource).Context(ctx).Do()
 	if err != nil {
 		return err
 	}
 
-	// update policy
-	bindingMember := fmt.Sprintf("serviceAccount:%v.svc.id.goog[%v/%v]", projectID, namespace, ksa)
+	// Update policy
+	// Use ProjectID from the default credentials for identity namespace.
+	bindingMember := fmt.Sprintf("serviceAccount:%v.svc.id.goog[%v/%v]", credentials.ProjectID, namespace, ksa)
 	f(currentPolicy, bindingMember)
 
 	// Set iam policy
