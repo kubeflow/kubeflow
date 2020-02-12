@@ -8,7 +8,7 @@
 
 # Serving with IAP enabled
 
-To sending prediction request through ingress and IAP, read doc
+To send prediction request through ingress and IAP, read doc
 [here](https://www.kubeflow.org/docs/components/serving/tfserving_new/#sending-prediction-request-through-ingress-and-iap)
 
 
