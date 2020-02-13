@@ -20,7 +20,6 @@ const (
 	// plugin kind
 	KIND_AWS_IAM_FOR_SERVICE_ACCOUNT = "AwsIamForServiceAccount"
 	AWS_ANNOTATION_KEY               = "eks.amazonaws.com/role-arn"
-	AWS_IAM_ROLE                     = "arn:aws:iam::AWS_ACCOUNT_ID:role/IAM_ROLE_NAME"
 	AWS_TRUST_IDENTITY_SUBJECT       = "system:serviceaccount:%s:%s"
 	AWS_DEFAULT_AUDIENCE             = "sts.amazonaws.com"
 )
@@ -28,7 +27,6 @@ const (
 type AwsIAMForServiceAccount struct {
 	AwsIAMRole string `json:"awsIamRole,omitempty"`
 }
-
 
 // ApplyPlugin annotate service account with the ARN of the IAM role and update trust relationship of IAM role
 func (aws *AwsIAMForServiceAccount) ApplyPlugin(r *ProfileReconciler, profile *profilev1.Profile) error {
@@ -71,7 +69,7 @@ func (aws *AwsIAMForServiceAccount) updateIAMForServiceAccount(serviceAccountNam
 	// we should run a test
 	svc := iam.New(session.New())
 	roleInput := &iam.GetRoleInput{
-		RoleName: awssdk.String(aws.AwsIAMRole),
+		RoleName: awssdk.String(getIAMRoleNameFromIAMRoleArn(aws.AwsIAMRole)),
 	}
 
 	output, err := svc.GetRole(roleInput)
@@ -87,11 +85,14 @@ func (aws *AwsIAMForServiceAccount) updateIAMForServiceAccount(serviceAccountNam
 
 	updatedRolePolicy, err := updateAssumeRolePolicy(decodeValue, serviceAccountNamespace, serviceAccountName)
 	if err != nil {
-		return err
+		if _, ok := err.(*ConditionExistError); ok {
+			// we just skip role update here
+			return nil
+		}
 	}
 
 	input := &iam.UpdateAssumeRolePolicyInput{
-		RoleName:       awssdk.String(aws.AwsIAMRole),
+		RoleName:       awssdk.String(getIAMRoleNameFromIAMRoleArn(aws.AwsIAMRole)),
 		PolicyDocument: awssdk.String(updatedRolePolicy),
 	}
 	if _, err = svc.UpdateAssumeRolePolicy(input); err != nil {
@@ -101,17 +102,17 @@ func (aws *AwsIAMForServiceAccount) updateIAMForServiceAccount(serviceAccountNam
 	return nil
 }
 
-// addIAMRoleAnnotation add `eks.amazonaws.com/role-arn:roleName` to service account annotations
-func addIAMRoleAnnotation(sa *corev1.ServiceAccount, iamRoleName string) {
+// addIAMRoleAnnotation add `eks.amazonaws.com/role-arn:roleArn` to service account annotations
+func addIAMRoleAnnotation(sa *corev1.ServiceAccount, iamRoleArn string) {
 	if sa.Annotations == nil {
-		sa.Annotations = map[string]string{AWS_ANNOTATION_KEY : iamRoleName}
+		sa.Annotations = map[string]string{AWS_ANNOTATION_KEY : iamRoleArn}
 	} else {
-		sa.Annotations[AWS_ANNOTATION_KEY] = iamRoleName
+		sa.Annotations[AWS_ANNOTATION_KEY] = iamRoleArn
 	}
 }
 
-// removeIAMRoleAnnotation remove `eks.amazonaws.com/role-arn:roleName` in service account annotations
-func removeIAMRoleAnnotation(sa *corev1.ServiceAccount, iamRoleName string) {
+// removeIAMRoleAnnotation remove `eks.amazonaws.com/role-arn:roleArn` in service account annotations
+func removeIAMRoleAnnotation(sa *corev1.ServiceAccount, iamRoleArn string) {
 	if sa.Annotations == nil {
 	} else {
 		if _, ok := sa.Annotations[AWS_ANNOTATION_KEY]; ok {
@@ -132,7 +133,22 @@ func addServiceAccountInAssumeRolePolicy(policyDocument, serviceAccountNamespace
 	json.Unmarshal(statementInBytes, &statements)
 
 	oidcRoleArn := gjson.Get(policyDocument, "Statement.0.Principal.Federated").String()
-	issuerUrlWithProtocol := getIssuerUrlFromRoleArn(oidcRoleArn)
+	issuerUrlWithProtocol := getIssuerUrlFromProviderArn(oidcRoleArn)
+
+	// If statement already have this, we will skip it
+	key := fmt.Sprintf("%s:sub", issuerUrlWithProtocol)
+	trustIdentity := fmt.Sprintf(AWS_TRUST_IDENTITY_SUBJECT, serviceAccountNamespace, serviceAccountName)
+	for _, statement := range statements {
+		statementInBytes, err := json.Marshal(statement)
+		if err != nil {
+			return "", err
+		}
+		identities := gjson.Get(string(statementInBytes), "Condition.StringEquals").Map()
+		val, ok := identities[key]
+		if ok && val.Str == trustIdentity {
+			return policyDocument, &ConditionExistError{}
+		}
+	}
 
 	document := MakeAssumeRoleWithWebIdentityPolicyDocument(oidcRoleArn, MapOfInterfaces{
 		"StringEquals": map[string]string{
@@ -161,7 +177,7 @@ func removeServiceAccountInAssumeRolePolicy(policyDocument, serviceAccountNamesp
 	json.Unmarshal(statementInBytes, &statements)
 
 	oidcRoleArn := gjson.Get(policyDocument, "Statement.0.Principal.Federated").String()
-	issuerUrlWithProtocol := getIssuerUrlFromRoleArn(oidcRoleArn)
+	issuerUrlWithProtocol := getIssuerUrlFromProviderArn(oidcRoleArn)
 	key := fmt.Sprintf("%s:sub", issuerUrlWithProtocol)
 	trustIdentity := fmt.Sprintf(AWS_TRUST_IDENTITY_SUBJECT, serviceAccountNamespace, serviceAccountName)
 	var newStatements []MapOfInterfaces
@@ -188,9 +204,13 @@ func removeServiceAccountInAssumeRolePolicy(policyDocument, serviceAccountNamesp
 }
 
 
-// getIssuerUrlFromRoleArn parse issuerUrl from Arn: arn:aws:iam::${accountId}:oidc-provider/${issuerUrl}
-func getIssuerUrlFromRoleArn(arn string) string {
+// getIssuerUrlFromProviderArn parse issuerUrl from Arn: arn:aws:iam::${accountId}:oidc-provider/${issuerUrl}
+func getIssuerUrlFromProviderArn(arn string) string {
 	return arn[strings.Index(arn, "/")+1:]
+}
+
+func getIAMRoleNameFromIAMRoleArn(arn string) string {
+	return arn[strings.LastIndex(arn, "/")+1:]
 }
 
 // MakeAssumeRoleWithWebIdentityPolicyDocument constructs a trust policy for given a web identity provider with given conditions
@@ -216,11 +236,16 @@ func MakePolicyDocument(statements ...MapOfInterfaces) MapOfInterfaces {
 type (
 	// MapOfInterfaces is an alias for map[string]interface{}
 	MapOfInterfaces = map[string]interface{}
-
-	// SliceOfInterfaces is an alias for []interface{}
-	SliceOfInterfaces = []interface{}
 )
 
 type IAMRole struct {
 	AssumeRolePolicyDocument MapOfInterfaces `json:",omitempty"`
+}
+
+type ConditionExistError struct {
+	msg string
+}
+
+func (e *ConditionExistError) Error() string {
+	return e.msg
 }
