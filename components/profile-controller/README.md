@@ -86,6 +86,11 @@ Plugin owners have full control over plugin spec struct and implementation.
   - Type: credential binding
   - WorkloadIdentity plugin will bind k8s service account to GCP service account, 
   so pods in profile namespace can talk to GCP APIs as GCP service account identity.
+- [IAMForServiceAccount](controllers/plugin_iam.go)
+  - Platform: EKS
+  - Type: credential binding
+  - IAM For Service Account plugin will grant k8s service account permission of IAM role,
+  so pods in profile namespace can authenticate AWS services as IAM role.
 
 ## Dev Instruction
 
