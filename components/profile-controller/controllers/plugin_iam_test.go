@@ -9,13 +9,23 @@ import (
 	"testing"
 )
 
+type AWSTestCase struct {
+	// Original document policy.
+	policy string
+	// Expected document policy
+	expectedPolicy string
+	// service account namespace
+	serviceAccountNamespace string
+	// service account name
+	serviceAccountName string
+}
 
 func TestAddIAMRoleAnnotation(t *testing.T) {
 	roleName := "arn:aws:iam::34892524:role/s3-reader"
 	sa := &corev1.ServiceAccount{
 		ObjectMeta: v1.ObjectMeta{
 			Namespace: "default",
-			Name: "sa",
+			Name:      "sa",
 		},
 	}
 
@@ -28,9 +38,9 @@ func TestRemoveIAMRoleAnnotation(t *testing.T) {
 	roleName := "arn:aws:iam::34892524:role/s3-reader"
 	sa := &corev1.ServiceAccount{
 		ObjectMeta: v1.ObjectMeta{
-			Namespace: "default",
-			Name: "sa",
-			Annotations: map[string]string {AWS_ANNOTATION_KEY: roleName},
+			Namespace:   "default",
+			Name:        "sa",
+			Annotations: map[string]string{AWS_ANNOTATION_KEY: roleName},
 		},
 	}
 
@@ -53,127 +63,230 @@ func TestGetIAMRoleNameFromIAMRoleArn(t *testing.T) {
 	assert.Equal(t, result, roleName)
 }
 
-
 func TestAddServiceAccountInAssumeRolePolicy(t *testing.T) {
-	serviceAccountNamespace := "ns1"
-	serviceAccountName := "sa1"
+	tests := []AWSTestCase{
+		{
+			policy: `
+				{
+				  "Version": "2012-10-17",
+				  "Statement": [
+					{
+					  "Effect": "Allow",
+					  "Principal": {
+						"Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
+					  },
+					  "Action": "sts:AssumeRoleWithWebIdentity",
+					  "Condition": {
+						"StringEquals": {
+						}
+					  }
+					}
+				  ]
+				}
+				`,
+			expectedPolicy: `
+				{
+				  "Version": "2012-10-17",
+				  "Statement": [
+					{
+					  "Effect": "Allow",
+					  "Principal": {
+						"Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
+					  },
+					  "Action": "sts:AssumeRoleWithWebIdentity",
+					  "Condition": {
+						"StringEquals": {
+						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub": ["system:serviceaccount:ns1:sa1"]
+						}
+					  }
+					}
+				  ]
+				}
+				`,
+			serviceAccountNamespace: "ns1",
+			serviceAccountName:      "sa1",
+		},
+		{
+			policy: `
+				{
+				  "Version": "2012-10-17",
+				  "Statement": [
+					{
+					  "Effect": "Allow",
+					  "Principal": {
+						"Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
+					  },
+					  "Action": "sts:AssumeRoleWithWebIdentity",
+					  "Condition": {
+						"StringEquals": {
+							"oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub":[]
+						}
+					  }
+					}
+				  ]
+				}
+				`,
+			expectedPolicy: `
+				{
+				  "Version": "2012-10-17",
+				  "Statement": [
+					{
+					  "Effect": "Allow",
+					  "Principal": {
+						"Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
+					  },
+					  "Action": "sts:AssumeRoleWithWebIdentity",
+					  "Condition": {
+						"StringEquals": {
+						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub": ["system:serviceaccount:ns1:sa1"]
+						}
+					  }
+					}
+				  ]
+				}
+				`,
+			serviceAccountNamespace: "ns1",
+			serviceAccountName:      "sa1",
+		},
+		{
+			policy: `
+				{
+				  "Version": "2012-10-17",
+				  "Statement": [
+					{
+					  "Effect": "Allow",
+					  "Principal": {
+						"Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
+					  },
+					  "Action": "sts:AssumeRoleWithWebIdentity",
+					  "Condition": {
+						"StringEquals": {
+							"oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub":["system:serviceaccount:ns1:sa2"]
+						}
+					  }
+					}
+				  ]
+				}
+				`,
+			expectedPolicy: `
+				{
+				  "Version": "2012-10-17",
+				  "Statement": [
+					{
+					  "Effect": "Allow",
+					  "Principal": {
+						"Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
+					  },
+					  "Action": "sts:AssumeRoleWithWebIdentity",
+					  "Condition": {
+						"StringEquals": {
+						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub": ["system:serviceaccount:ns1:sa2", "system:serviceaccount:ns1:sa1"]
+						}
+					  }
+					}
+				  ]
+				}
+				`,
+			serviceAccountNamespace: "ns1",
+			serviceAccountName:      "sa1",
+		},
+	}
 
-	policy := `
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
-      },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "StringEquals": {
-          "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": "sts.amazonaws.com"
-        }
-      }
-    }
-  ]
+	for _, test := range tests {
+		result, _ := addServiceAccountInAssumeRolePolicy(test.policy, test.serviceAccountNamespace, test.serviceAccountName)
+		require.JSONEq(t, test.expectedPolicy, result)
+	}
 }
-`
-
-	expectedPolicy := `
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
-      },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "StringEquals": {
-          "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": "sts.amazonaws.com"
-        }
-      }
-    },
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
-      },
-      "Action": [
-        "sts:AssumeRoleWithWebIdentity"
-      ],
-      "Condition": {
-        "StringEquals": {
-          "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": "sts.amazonaws.com",
-          "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub": "system:serviceaccount:ns1:sa1"
-        }
-      }
-    }
-  ]
-}
-`
-	result, _ := addServiceAccountInAssumeRolePolicy(policy, serviceAccountNamespace, serviceAccountName)
-	require.JSONEq(t, expectedPolicy, result)
-}
-
 
 func TestRemoveServiceAccountInAssumeRolePolicy(t *testing.T) {
-	serviceAccountNamespace := "ns1"
-	serviceAccountName := "sa1"
-	policy := `
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
-      },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "StringEquals": {
-          "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": "sts.amazonaws.com"
-        }
-      }
-    },
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
-      },
-      "Action": [
-        "sts:AssumeRoleWithWebIdentity"
-      ],
-      "Condition": {
-        "StringEquals": {
-          "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": "sts.amazonaws.com",
-          "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub": "system:serviceaccount:ns1:sa1"
-        }
-      }
-    }
-  ]
-}
-`
+	tests := []AWSTestCase{
+		{
+			policy: `
+				{
+				  "Version": "2012-10-17",
+				  "Statement": [
+					{
+					  "Effect": "Allow",
+					  "Principal": {
+						"Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
+					  },
+					  "Action": [
+						"sts:AssumeRoleWithWebIdentity"
+					  ],
+					  "Condition": {
+						"StringEquals": {
+						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub": ["system:serviceaccount:ns1:sa1", "system:serviceaccount:ns1:sa2"]
+						}
+					  }
+					}
+				  ]
+				}`,
+			expectedPolicy: `
+				{
+				  "Version": "2012-10-17",
+				  "Statement": [
+					{
+					  "Effect": "Allow",
+					  "Principal": {
+						"Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
+					  },
+					  "Action": "sts:AssumeRoleWithWebIdentity",
+					  "Condition": {
+						"StringEquals": {
+						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub": ["system:serviceaccount:ns1:sa1"]
+						}
+					  }
+					}
+				  ]
+				}`,
+			serviceAccountNamespace: "ns1",
+			serviceAccountName:      "sa2",
+		},
+		{
+			policy: `
+				{
+				  "Version": "2012-10-17",
+				  "Statement": [
+					{
+					  "Effect": "Allow",
+					  "Principal": {
+						"Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
+					  },
+					  "Action": [
+						"sts:AssumeRoleWithWebIdentity"
+					  ],
+					  "Condition": {
+						"StringEquals": {
+						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub": ["system:serviceaccount:ns1:sa2"]
+						}
+					  }
+					}
+				  ]
+				}`,
+			expectedPolicy: `
+				{
+				  "Version": "2012-10-17",
+				  "Statement": [
+					{
+					  "Effect": "Allow",
+					  "Principal": {
+						"Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
+					  },
+					  "Action": "sts:AssumeRoleWithWebIdentity",
+					  "Condition": {
+						"StringEquals": {
+						}
+					  }
+					}
+				  ]
+				}`,
+			serviceAccountNamespace: "ns1",
+			serviceAccountName:      "sa2",
+		},
+	}
 
-	expectedPolicy := `
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "arn:aws:iam::34892524:oidc-provider/oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72"
-      },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "StringEquals": {
-          "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": "sts.amazonaws.com"
-        }
-      }
-    }
-  ]
-}
-`
-	result, _ := removeServiceAccountInAssumeRolePolicy(policy, serviceAccountNamespace, serviceAccountName)
-	require.JSONEq(t, expectedPolicy, result)
+	for _, test := range tests {
+		result, _ := removeServiceAccountInAssumeRolePolicy(test.policy, test.serviceAccountNamespace, test.serviceAccountName)
+		require.JSONEq(t, test.expectedPolicy, result)
+	}
 }
