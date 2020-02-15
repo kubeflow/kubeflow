@@ -48,7 +48,6 @@ func (aws *AwsIAMForServiceAccount) RevokePlugin(r *ProfileReconciler, profile *
 	return aws.updateIAMForServiceAccount(profile.Name, DEFAULT_EDITOR, removeServiceAccountInAssumeRolePolicy)
 }
 
-
 // patchAnnotation will patch annotation to k8s service account in order to pair up with GCP identity
 func (aws *AwsIAMForServiceAccount) patchAnnotation(r *ProfileReconciler, namespace string, ksa string, annotationFunc func(*corev1.ServiceAccount, string), logger logr.Logger) error {
 	ctx := context.Background()
@@ -64,12 +63,11 @@ func (aws *AwsIAMForServiceAccount) patchAnnotation(r *ProfileReconciler, namesp
 }
 
 // updateIAMForServiceAccount update AWS IAM Roles trust relationship with namespace and service account
-// in this case.
-func (aws *AwsIAMForServiceAccount) updateIAMForServiceAccount(serviceAccountNamespace, serviceAccountName string, updateAssumeRolePolicy func(string, string, string)(string, error)) error {
-	// we should run a test
+func (aws *AwsIAMForServiceAccount) updateIAMForServiceAccount(serviceAccountNamespace, serviceAccountName string, updateAssumeRolePolicy func(string, string, string) (string, error)) error {
 	svc := iam.New(session.New())
+	roleName := getIAMRoleNameFromIAMRoleArn(aws.AwsIAMRole)
 	roleInput := &iam.GetRoleInput{
-		RoleName: awssdk.String(getIAMRoleNameFromIAMRoleArn(aws.AwsIAMRole)),
+		RoleName: awssdk.String(roleName),
 	}
 
 	output, err := svc.GetRole(roleInput)
@@ -92,7 +90,7 @@ func (aws *AwsIAMForServiceAccount) updateIAMForServiceAccount(serviceAccountNam
 	}
 
 	input := &iam.UpdateAssumeRolePolicyInput{
-		RoleName:       awssdk.String(getIAMRoleNameFromIAMRoleArn(aws.AwsIAMRole)),
+		RoleName:       awssdk.String(roleName),
 		PolicyDocument: awssdk.String(updatedRolePolicy),
 	}
 	if _, err = svc.UpdateAssumeRolePolicy(input); err != nil {
@@ -105,7 +103,7 @@ func (aws *AwsIAMForServiceAccount) updateIAMForServiceAccount(serviceAccountNam
 // addIAMRoleAnnotation add `eks.amazonaws.com/role-arn:roleArn` to service account annotations
 func addIAMRoleAnnotation(sa *corev1.ServiceAccount, iamRoleArn string) {
 	if sa.Annotations == nil {
-		sa.Annotations = map[string]string{AWS_ANNOTATION_KEY : iamRoleArn}
+		sa.Annotations = map[string]string{AWS_ANNOTATION_KEY: iamRoleArn}
 	} else {
 		sa.Annotations[AWS_ANNOTATION_KEY] = iamRoleArn
 	}
@@ -135,30 +133,38 @@ func addServiceAccountInAssumeRolePolicy(policyDocument, serviceAccountNamespace
 	oidcRoleArn := gjson.Get(policyDocument, "Statement.0.Principal.Federated").String()
 	issuerUrlWithProtocol := getIssuerUrlFromProviderArn(oidcRoleArn)
 
-	// If statement already have this, we will skip it
 	key := fmt.Sprintf("%s:sub", issuerUrlWithProtocol)
 	trustIdentity := fmt.Sprintf(AWS_TRUST_IDENTITY_SUBJECT, serviceAccountNamespace, serviceAccountName)
-	for _, statement := range statements {
-		statementInBytes, err := json.Marshal(statement)
-		if err != nil {
-			return "", err
-		}
-		identities := gjson.Get(string(statementInBytes), "Condition.StringEquals").Map()
-		val, ok := identities[key]
-		if ok && val.Str == trustIdentity {
-			return policyDocument, &ConditionExistError{}
+
+	// We assume we only operator on first statement, don't add/remove new statement
+	statement := statements[0]
+	statementInBytes, err = json.Marshal(statement)
+	if err != nil {
+		return "", err
+	}
+	identities := gjson.Get(string(statementInBytes), "Condition.StringEquals").Map()
+
+	var originalIdentities []string
+	val, ok := identities[key]
+	if ok {
+		for _, identity := range val.Array() {
+			if identity.Str == trustIdentity {
+				// check if trustIdentity is in the list, if so, we skip add it
+				return policyDocument, &ConditionExistError{}
+			}
+			originalIdentities = append(originalIdentities, identity.Str)
 		}
 	}
 
+	// add new serviceAccountNamespace/serviceAccountName record
+	originalIdentities = append(originalIdentities, fmt.Sprintf(AWS_TRUST_IDENTITY_SUBJECT, serviceAccountNamespace, serviceAccountName))
 	document := MakeAssumeRoleWithWebIdentityPolicyDocument(oidcRoleArn, MapOfInterfaces{
-		"StringEquals": map[string]string{
-			issuerUrlWithProtocol + ":sub": fmt.Sprintf(AWS_TRUST_IDENTITY_SUBJECT, serviceAccountNamespace, serviceAccountName),
-			issuerUrlWithProtocol + ":aud": AWS_DEFAULT_AUDIENCE,
+		"StringEquals": map[string][]string{
+			issuerUrlWithProtocol + ":sub": originalIdentities,
 		},
 	})
 
-	statements = append(statements, document)
-	newAssumeRolePolicyDocument := MakePolicyDocument(statements...)
+	newAssumeRolePolicyDocument := MakePolicyDocument(document)
 	newPolicyDoc, err := json.Marshal(newAssumeRolePolicyDocument)
 	if err != nil {
 		return "", err
@@ -178,31 +184,50 @@ func removeServiceAccountInAssumeRolePolicy(policyDocument, serviceAccountNamesp
 
 	oidcRoleArn := gjson.Get(policyDocument, "Statement.0.Principal.Federated").String()
 	issuerUrlWithProtocol := getIssuerUrlFromProviderArn(oidcRoleArn)
+
 	key := fmt.Sprintf("%s:sub", issuerUrlWithProtocol)
 	trustIdentity := fmt.Sprintf(AWS_TRUST_IDENTITY_SUBJECT, serviceAccountNamespace, serviceAccountName)
-	var newStatements []MapOfInterfaces
-	for _, statement := range statements {
-		statementInBytes, err := json.Marshal(statement)
-		if err != nil {
-			return "", err
+	statement := statements[0]
+
+	statementInBytes, err = json.Marshal(statement)
+	if err != nil {
+		return "", err
+	}
+	identities := gjson.Get(string(statementInBytes), "Condition.StringEquals").Map()
+
+	var newIdentities []string
+	val, ok := identities[key]
+	if ok {
+		for _, identity := range val.Array() {
+			if identity.Str != trustIdentity {
+				newIdentities = append(newIdentities, identity.Str)
+			}
 		}
-		identities := gjson.Get(string(statementInBytes), "Condition.StringEquals").Map()
-		val, ok := identities[key]
-		if ok && val.Str == trustIdentity {
-			// exclude any statement has this trust identity
-			continue
-		}
-		newStatements = append(newStatements, statement)
 	}
 
-	newAssumeRolePolicyDocument := MakePolicyDocument(newStatements...)
+	// The reason we use this way is because if newIdentities is empty and Marshal will give a null which break policy regulation
+	var conditions MapOfInterfaces
+	if len(newIdentities) == 0 {
+		conditions = MapOfInterfaces{
+			"StringEquals": map[string][]string{},
+		}
+	} else {
+		conditions = MapOfInterfaces{
+			"StringEquals": map[string][]string{
+				issuerUrlWithProtocol + ":sub": newIdentities,
+			},
+		}
+	}
+
+	document := MakeAssumeRoleWithWebIdentityPolicyDocument(oidcRoleArn, conditions)
+
+	newAssumeRolePolicyDocument := MakePolicyDocument(document)
 	newPolicyDoc, err := json.Marshal(newAssumeRolePolicyDocument)
 	if err != nil {
 		return "", err
 	}
 	return string(newPolicyDoc), nil
 }
-
 
 // getIssuerUrlFromProviderArn parse issuerUrl from Arn: arn:aws:iam::${accountId}:oidc-provider/${issuerUrl}
 func getIssuerUrlFromProviderArn(arn string) string {
@@ -217,7 +242,7 @@ func getIAMRoleNameFromIAMRoleArn(arn string) string {
 func MakeAssumeRoleWithWebIdentityPolicyDocument(providerARN string, condition MapOfInterfaces) MapOfInterfaces {
 	return MapOfInterfaces{
 		"Effect": "Allow",
-		"Action": []string{"sts:AssumeRoleWithWebIdentity"},
+		"Action": "sts:AssumeRoleWithWebIdentity",
 		"Principal": map[string]string{
 			"Federated": providerARN,
 		},
