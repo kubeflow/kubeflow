@@ -78,6 +78,7 @@ func TestAddServiceAccountInAssumeRolePolicy(t *testing.T) {
 					  "Action": "sts:AssumeRoleWithWebIdentity",
 					  "Condition": {
 						"StringEquals": {
+						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": ["sts.amazonaws.com"],
 						}
 					  }
 					}
@@ -96,6 +97,7 @@ func TestAddServiceAccountInAssumeRolePolicy(t *testing.T) {
 					  "Action": "sts:AssumeRoleWithWebIdentity",
 					  "Condition": {
 						"StringEquals": {
+						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": ["sts.amazonaws.com"],
 						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub": ["system:serviceaccount:ns1:sa1"]
 						}
 					  }
@@ -119,6 +121,7 @@ func TestAddServiceAccountInAssumeRolePolicy(t *testing.T) {
 					  "Action": "sts:AssumeRoleWithWebIdentity",
 					  "Condition": {
 						"StringEquals": {
+						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": ["sts.amazonaws.com"],
 							"oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub":[]
 						}
 					  }
@@ -138,6 +141,7 @@ func TestAddServiceAccountInAssumeRolePolicy(t *testing.T) {
 					  "Action": "sts:AssumeRoleWithWebIdentity",
 					  "Condition": {
 						"StringEquals": {
+						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": ["sts.amazonaws.com"],
 						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub": ["system:serviceaccount:ns1:sa1"]
 						}
 					  }
@@ -161,6 +165,7 @@ func TestAddServiceAccountInAssumeRolePolicy(t *testing.T) {
 					  "Action": "sts:AssumeRoleWithWebIdentity",
 					  "Condition": {
 						"StringEquals": {
+						  	"oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": ["sts.amazonaws.com"],
 							"oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub":["system:serviceaccount:ns1:sa2"]
 						}
 					  }
@@ -180,6 +185,7 @@ func TestAddServiceAccountInAssumeRolePolicy(t *testing.T) {
 					  "Action": "sts:AssumeRoleWithWebIdentity",
 					  "Condition": {
 						"StringEquals": {
+						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": ["sts.amazonaws.com"],
 						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub": ["system:serviceaccount:ns1:sa2", "system:serviceaccount:ns1:sa1"]
 						}
 					  }
@@ -215,6 +221,7 @@ func TestRemoveServiceAccountInAssumeRolePolicy(t *testing.T) {
 					  ],
 					  "Condition": {
 						"StringEquals": {
+ 						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": ["sts.amazonaws.com"],
 						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub": ["system:serviceaccount:ns1:sa1", "system:serviceaccount:ns1:sa2"]
 						}
 					  }
@@ -233,6 +240,7 @@ func TestRemoveServiceAccountInAssumeRolePolicy(t *testing.T) {
 					  "Action": "sts:AssumeRoleWithWebIdentity",
 					  "Condition": {
 						"StringEquals": {
+						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": ["sts.amazonaws.com"],
 						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub": ["system:serviceaccount:ns1:sa1"]
 						}
 					  }
@@ -257,6 +265,7 @@ func TestRemoveServiceAccountInAssumeRolePolicy(t *testing.T) {
 					  ],
 					  "Condition": {
 						"StringEquals": {
+						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": ["sts.amazonaws.com"],
 						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:sub": ["system:serviceaccount:ns1:sa2"]
 						}
 					  }
@@ -275,6 +284,7 @@ func TestRemoveServiceAccountInAssumeRolePolicy(t *testing.T) {
 					  "Action": "sts:AssumeRoleWithWebIdentity",
 					  "Condition": {
 						"StringEquals": {
+						  "oidc.beta.us-west-2.wesley.amazonaws.com/id/50D94CFC65139194EDC21891B611EF72:aud": ["sts.amazonaws.com"]
 						}
 					  }
 					}

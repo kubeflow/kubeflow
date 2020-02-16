@@ -160,6 +160,7 @@ func addServiceAccountInAssumeRolePolicy(policyDocument, serviceAccountNamespace
 	originalIdentities = append(originalIdentities, fmt.Sprintf(AWS_TRUST_IDENTITY_SUBJECT, serviceAccountNamespace, serviceAccountName))
 	document := MakeAssumeRoleWithWebIdentityPolicyDocument(oidcRoleArn, MapOfInterfaces{
 		"StringEquals": map[string][]string{
+			issuerUrlWithProtocol + ":aud": []string{AWS_DEFAULT_AUDIENCE},
 			issuerUrlWithProtocol + ":sub": originalIdentities,
 		},
 	})
@@ -209,11 +210,14 @@ func removeServiceAccountInAssumeRolePolicy(policyDocument, serviceAccountNamesp
 	var conditions MapOfInterfaces
 	if len(newIdentities) == 0 {
 		conditions = MapOfInterfaces{
-			"StringEquals": map[string][]string{},
+			"StringEquals": map[string][]string{
+				issuerUrlWithProtocol + ":aud": []string{AWS_DEFAULT_AUDIENCE},
+			},
 		}
 	} else {
 		conditions = MapOfInterfaces{
 			"StringEquals": map[string][]string{
+				issuerUrlWithProtocol + ":aud": []string{AWS_DEFAULT_AUDIENCE},
 				issuerUrlWithProtocol + ":sub": newIdentities,
 			},
 		}
