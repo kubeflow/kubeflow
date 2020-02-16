@@ -64,7 +64,11 @@ func (aws *AwsIAMForServiceAccount) patchAnnotation(r *ProfileReconciler, namesp
 
 // updateIAMForServiceAccount update AWS IAM Roles trust relationship with namespace and service account
 func (aws *AwsIAMForServiceAccount) updateIAMForServiceAccount(serviceAccountNamespace, serviceAccountName string, updateAssumeRolePolicy func(string, string, string) (string, error)) error {
-	svc := iam.New(session.New())
+	sess, err := session.NewSession()
+	if err != nil {
+		return fmt.Errorf("error getting AWS session while retrieving region: %v", err)
+	}
+	svc := iam.New(sess)
 	roleName := getIAMRoleNameFromIAMRoleArn(aws.AwsIAMRole)
 	roleInput := &iam.GetRoleInput{
 		RoleName: awssdk.String(roleName),
