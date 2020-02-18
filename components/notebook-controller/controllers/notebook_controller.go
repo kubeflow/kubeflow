@@ -322,10 +322,17 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 		Name:  "NB_PREFIX",
 		Value: "/notebook/" + instance.Namespace + "/" + instance.Name,
 	})
-	if podSpec.SecurityContext == nil {
-		fsGroup := DefaultFSGroup
-		podSpec.SecurityContext = &corev1.PodSecurityContext{
-			FSGroup: &fsGroup,
+
+	// For some platforms (like OpenShift), adding fsGroup: 100 is troublesome.
+	// This allows for those platforms to bypass the automatic addition of the fsGroup
+	// and will allow for the Pod Security Policy controller to make an appropriate choice
+	// https://github.com/kubernetes-sigs/controller-runtime/issues/4617
+	if value, exists := os.LookupEnv("ADD_FSGROUP"); !exists || value == "true" {
+		if podSpec.SecurityContext == nil {
+			fsGroup := DefaultFSGroup
+			podSpec.SecurityContext = &corev1.PodSecurityContext{
+				FSGroup: &fsGroup,
+			}
 		}
 	}
 	return ss
