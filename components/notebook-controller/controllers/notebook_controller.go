@@ -83,6 +83,7 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("notebook", req.NamespacedName)
 
+	// TODO(yanniszark): Can we avoid reconciling Events and Notebook in the same queue?
 	event := &v1.Event{}
 	var getEventErr error
 	getEventErr = r.Get(ctx, req.NamespacedName, event)
@@ -466,7 +467,7 @@ func isStsOrPodEvent(event *v1.Event) bool {
 
 func nbNameFromInvolvedObject(object *v1.ObjectReference) string {
 	nbName := object.Name
-	if object.Kind == "Pod" {
+	if object.Kind == "Pod" && strings.Contains(nbName, "-") {
 		nbName = nbName[:strings.LastIndex(nbName, "-")]
 	}
 	return nbName
