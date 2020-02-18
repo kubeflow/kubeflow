@@ -464,6 +464,7 @@ func isStsOrPodEvent(event *v1.Event) bool {
 	return event.InvolvedObject.Kind == "Pod" || event.InvolvedObject.Kind == "StatefulSet"
 }
 
+// It is assumed that object is either a Pod or StatefulSet.
 func nbNameFromInvolvedObject(object *v1.ObjectReference) string {
 	nbName := object.Name
 	if object.Kind == "Pod" && strings.Contains(nbName, "-") {
@@ -528,9 +529,10 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	eventToRequest := handler.ToRequestsFunc(
 		func(a handler.MapObject) []ctrl.Request {
+			event := a.Object.(*v1.Event)
 			return []reconcile.Request{
 				{NamespacedName: types.NamespacedName{
-					Name:      a.Meta.GetName(),
+					Name:      nbNameFromInvolvedObject(&event.InvolvedObject),
 					Namespace: a.Meta.GetNamespace(),
 				}},
 			}
