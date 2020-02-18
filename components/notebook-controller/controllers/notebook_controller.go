@@ -466,7 +466,7 @@ func isStsOrPodEvent(event *v1.Event) bool {
 
 func nbNameFromInvolvedObject(object *v1.ObjectReference) string {
 	nbName := object.Name
-	if object.Kind == "Pod" {
+	if object.Kind == "Pod" && strings.Contains(nbName, "-") {
 		nbName = nbName[:strings.LastIndex(nbName, "-")]
 	}
 	return nbName
