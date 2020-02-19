@@ -18,10 +18,12 @@ const {
     SERVICE_ACCOUNT_KEY,   // Should be a JSON file downloaded from cloud console service accounts
 } = process.env;
 
-if (!KF_HOST) {console.log('KF_HOST environment variable must be set');process.exit(1);}
+['KF_HOST', 'CLIENT_ID', 'SERVICE_ACCOUNT_EMAIL', 'SERVICE_ACCOUNT_KEY'].forEach(envVar => {
+    if (!process.env[envVar]) {console.log(`${envVar} environment variable must be set`);process.exit(1);}
+});
 if (!/^https?:\/\/\S+/.test(KF_HOST)) {console.log('Invalid HOST url provided, must be like http*://*');process.exit(1);}
 
-function getAuth(iapHost: string): Promise<Credentials> {
+function getAuth(): Promise<Credentials> {
     const client = new JWT({
         keyFile: SERVICE_ACCOUNT_KEY,
         additionalClaims: {target_audience: CLIENT_ID}
@@ -57,7 +59,7 @@ describe('Kubeflow Dashboard Tests', () => {
 
     it('Should allow the user to register on first access', async () => {
         const browser = await launch();
-        const credentials = await getAuth(KF_HOST);
+        const credentials = await getAuth();
         const page = await browser.newPage();
         page.setExtraHTTPHeaders({Authorization: `Bearer ${credentials.id_token}`});
         console.log(`   Connecting to ${KF_HOST}`);
