@@ -8,6 +8,7 @@ Please refer to the official docs at [kubeflow.org](http://kubeflow.org).
 ## Quick Links
 * [Prow test dashboard](https://k8s-testgrid.appspot.com/sig-big-data)
 * [Prow jobs dashboard](https://prow.k8s.io/?repo=kubeflow%2Fkubeflow)
+* [PR Dashboard](https://k8s-gubernator.appspot.com/pr)
 * [Argo UI for E2E tests](http://testing-argo.kubeflow.org)
 
 ## Get Involved
