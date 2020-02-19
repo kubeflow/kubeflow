@@ -1,0 +1,28 @@
+apiVersion: kubeflow.org/v1
+kind: Notebook
+metadata:
+  name: jupyter-test
+spec:
+  template:
+    spec:
+      serviceAccountName: default-editor
+      volumes:
+        - name: test-vol
+          persistentVolumeClaim:
+            claimName: test-pvc
+        - emptyDir:
+            medium: Memory
+          name: dshm
+      containers:
+      - image: gcr.io/kubeflow-images-public/tensorflow-1.14.0-notebook-cpu:v1.0.0
+        name: notebook
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        volumeMounts:
+          - mountPath: /home/jovyan
+            name: test-vol
+          - mountPath: /dev/shm
+            name: dshm
+      
