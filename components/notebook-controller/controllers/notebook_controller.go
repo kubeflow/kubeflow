@@ -83,12 +83,17 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("notebook", req.NamespacedName)
 
+	// TODO(yanniszark): Can we avoid reconciling Events and Notebook in the same queue?
 	event := &v1.Event{}
 	var getEventErr error
 	getEventErr = r.Get(ctx, req.NamespacedName, event)
 	if getEventErr == nil {
 		involvedNotebook := &v1beta1.Notebook{}
-		involvedNotebookKey := types.NamespacedName{Name: nbNameFromInvolvedObject(&event.InvolvedObject), Namespace: req.Namespace}
+		nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		involvedNotebookKey := types.NamespacedName{Name: nbName, Namespace: req.Namespace}
 		if err := r.Get(ctx, involvedNotebookKey, involvedNotebook); err != nil {
 			log.Error(err, "unable to fetch Notebook by looking at event")
 			return ctrl.Result{}, ignoreNotFound(err)
@@ -464,12 +469,30 @@ func isStsOrPodEvent(event *v1.Event) bool {
 	return event.InvolvedObject.Kind == "Pod" || event.InvolvedObject.Kind == "StatefulSet"
 }
 
-func nbNameFromInvolvedObject(object *v1.ObjectReference) string {
-	nbName := object.Name
-	if object.Kind == "Pod" {
-		nbName = nbName[:strings.LastIndex(nbName, "-")]
+func nbNameFromInvolvedObject(c client.Client, object *v1.ObjectReference) (string, error) {
+	name, namespace := object.Name, object.Namespace
+
+	if object.Kind == "StatefulSet" {
+		return name, nil
 	}
-	return nbName
+	if object.Kind == "Pod" {
+		pod := &corev1.Pod{}
+		err := c.Get(
+			context.TODO(),
+			types.NamespacedName {
+				Namespace: namespace,
+				Name:      name,
+			},
+			pod,
+		)
+		if err != nil {
+			return "", err
+		}
+		if nbName, ok := pod.Labels["notebook-name"]; ok {
+			return nbName, nil
+		}
+	}
+	return "", fmt.Errorf("object isn't related to a Notebook")
 }
 
 func nbNameExists(client client.Client, nbName string, namespace string) bool {
@@ -539,14 +562,22 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	eventsPredicates := predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			event := e.ObjectNew.(*v1.Event)
+			nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
+			if err != nil {
+				return false
+			}
 			return e.ObjectOld != e.ObjectNew &&
 				isStsOrPodEvent(event) &&
-				nbNameExists(r.Client, nbNameFromInvolvedObject(&event.InvolvedObject), e.MetaNew.GetNamespace())
+				nbNameExists(r.Client, nbName, e.MetaNew.GetNamespace())
 		},
 		CreateFunc: func(e event.CreateEvent) bool {
 			event := e.Object.(*v1.Event)
+			nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
+			if err != nil {
+				return false
+			}
 			return isStsOrPodEvent(event) &&
-				nbNameExists(r.Client, nbNameFromInvolvedObject(&event.InvolvedObject), e.Meta.GetNamespace())
+				nbNameExists(r.Client, nbName, e.Meta.GetNamespace())
 		},
 	}
 
