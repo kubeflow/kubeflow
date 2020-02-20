@@ -2,13 +2,15 @@ import datetime
 import logging
 import os
 from time import sleep
+from urllib import parse
 
-import pytest
-from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+
+import pytest
+from seleniumwire import webdriver
 
 from . import auth
 
@@ -22,7 +24,8 @@ STATE_WARNING = "WARNING"
 STATE_ERROR = "ERROR"
 
 logging.basicConfig(
-    level=logging.INFO, format=("%(levelname)s|%(lineno)d| %(message)s"),
+    level=logging.INFO,
+    format=("%(levelname)s | %(lineno)d | E2E TEST | %(message)s"),
 )
 
 
@@ -30,9 +33,9 @@ def login_to_kubeflow(driver):
     if AUTH_METHOD == "dex":
         username = os.environ.get("DEX_USERNAME", "kimwnasptd@kubeflow.org")
         password = os.environ.get("DEX_PASSWORD", "asdf")
-        auth.login_to_kubeflow_dex(driver, username, password)
+        auth.login_to_kubeflow_dex(driver, KUBEFLOW_URL, username, password)
     elif AUTH_METHOD == "iap":
-        auth.login_to_kubeflow_iap(driver)
+        auth.login_to_kubeflow_iap(driver, KUBEFLOW_URL)
     else:
         logging.warning("No authentication method for: '{AUTH_METHOD}'")
 
@@ -50,7 +53,6 @@ def tests_setup(request):
     # use the same driver for all the test cases
     request.cls.driver = driver
 
-    driver.get(KUBEFLOW_URL)
     login_to_kubeflow(driver)
 
     # Run the test cases
@@ -148,7 +150,7 @@ class CentralDashboard:
 
     def navigate_to_home(self):
         logging.info("Navigating to CentralDashboard")
-        self.driver.get(KUBEFLOW_URL + "/")
+        self.driver.get(parse.urljoin(KUBEFLOW_URL, "/"))
 
     def get_iframe(self):
         self.switch_selenium_context()
@@ -173,7 +175,11 @@ class CentralDashboard:
         for ns in namespaces:
             if ns.text == namespace:
                 self.driver.execute_script("arguments[0].click()", ns)
+                logging.info(f"Switched to {namespace}")
                 return
+
+        logging.error(f"Couldn't locate namespace '{namespace}'")
+        assert False
 
 
 class NotebookRow:
@@ -227,9 +233,9 @@ class JWAIndexPage:
 
     def navigate(self):
         logging.info("Navigating to JWA's index page")
-        self.driver.get(KUBEFLOW_URL + "/_/jupyter/")
+        self.driver.get(parse.urljoin(KUBEFLOW_URL, "/_/jupyter/"))
 
-    def rendered(self):
+    def appeared(self):
         try:
             WebDriverWait(self.driver, 3).until(
                 EC.presence_of_element_located(
@@ -289,9 +295,9 @@ class JWAFormPage:
 
     def navigate(self):
         logging.info("Navigating to JWA's form page")
-        self.driver.get(KUBEFLOW_URL + "/_/jupyter/new")
+        self.driver.get(parse.urljoin(KUBEFLOW_URL, "/_/jupyter/new"))
 
-    def rendered(self):
+    def appeared(self):
         try:
             WebDriverWait(self.driver, 3).until(
                 EC.presence_of_element_located((By.TAG_NAME, "form"))
@@ -380,7 +386,7 @@ class TestJWA:
 
         # Test if the index page has loaded
         jwa.switch_selenium_context()
-        assert jwa.index_page.rendered()
+        assert jwa.index_page.appeared()
         logging.info("JWA's index page successfully rendered")
 
         # Test if an error appeared as a snackbar
@@ -403,8 +409,9 @@ class TestJWA:
         dashboard.select_namespace(KF_NAMESPACE)
 
         # Test if the index page has loaded
+        jwa.form_page.navigate()
         jwa.switch_selenium_context()
-        assert jwa.form_page.rendered()
+        assert jwa.form_page.appeared()
         logging.info("JWA's form page successfully rendered")
 
         # Test if an error appeared as a snackbar
