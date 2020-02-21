@@ -22,7 +22,7 @@ const {
 ['KF_HOST', 'CLIENT_ID', 'SERVICE_ACCOUNT_EMAIL', 'SERVICE_ACCOUNT_KEY'].forEach(envVar => {
     if (!process.env[envVar]) {console.log(`${envVar} environment variable must be set`);process.exit(1);}
 });
-if (!/^https?:\/\/\S+/.test(KF_HOST)) {console.log('Invalid HOST url provided, must be like http*://*');process.exit(1);}
+if (!/^https:\/\/\S+/.test(KF_HOST)) {console.log('Invalid HOST url provided, must be like https://*');process.exit(1);}
 const HOST = KF_HOST.replace(/\/$/, '');
 
 function getAuth(): Promise<Credentials> {
@@ -51,9 +51,9 @@ async function interceptHeadersForDebugging(page: Page) {
 }
 
 /**
- * This function should help any dev down the line quickly inspect all
- *  request headers as they arrive in the browser
- * @param page Page to intercept headers for
+ * A helper function that allows you to clear the service-user account
+ *  created with the tests below
+ * @param credentials The credential OAuth token generated via `getAuth()`
  */
 async function clearServiceUser(credentials: Credentials) {
     const body = await new Promise((res, rej) => request.delete(`${HOST}/api/workgroup/nuke-self`, {
