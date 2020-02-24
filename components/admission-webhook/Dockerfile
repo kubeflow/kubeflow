@@ -10,10 +10,10 @@ COPY . .
 ENV GO111MODULE=on
 
 # Build
-RUN go build  -o webhook .
+RUN CGO_ENABLED=0 GOOS=linux go build -o webhook -ldflags "-w" -a .
 
-# Copy the controller-manager into a thin image
-FROM gcr.io/distroless/base-debian10:latest
+# Copy the controller-manager into a distroless image
+FROM gcr.io/distroless/static:latest
 WORKDIR /
 COPY --from=builder /go/src/github.com/kubeflow/kubeflow/components/admission-webhook/webhook .
 ENTRYPOINT ["/webhook"]
