@@ -3,6 +3,8 @@ PROJECT ?= kubeflow-dev
 IMG ?= gcr.io/$(PROJECT)/profile-controller
 TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
 GOLANG_VERSION ?= 1.12.5
+GO = GO111MODULE=on go
+GOARCH ?= amd64
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
@@ -18,15 +20,18 @@ all: manager
 
 # Run tests
 test: generate fmt vet
-	go test ./... -coverprofile cover.out
+	$(GO) test ./... -v -coverprofile cover.out
 
 # Build manager binary
 manager: generate fmt vet
-	go build -o bin/manager main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=$(GOARCH) $(GO) build \
+	-a -ldflags '-extldflags "-static"' \
+	-o bin/manager \
+	.
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet
-	go run ./main.go
+	$(GO) run ./main.go
 
 # Install CRDs into a cluster
 install:
@@ -43,11 +48,11 @@ manifests: controller-gen
 
 # Run go fmt against code
 fmt:
-	go fmt ./...
+	$(GO) fmt ./...
 
 # Run go vet against code
 vet:
-	go vet ./...
+	$(GO) vet ./...
 
 # Generate code
 generate: controller-gen
@@ -74,7 +79,7 @@ push: build
 # download controller-gen if necessary
 controller-gen:
 ifeq (, $(shell which controller-gen))
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.0
+	$(GO) get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.0
 CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)

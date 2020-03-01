@@ -94,6 +94,22 @@ Plugin owners have full control over plugin spec struct and implementation.
 
 ## Dev Instruction
 
+##### How to run unit tests
+
+In order to run the unit tests of this component, you need to have the
+[Kubebuilder v2.3.0 binaries](https://github.com/kubernetes-sigs/kubebuilder/releases/tag/v2.3.0).
+For example:
+
+```bash
+wget -O kubebuilder.tag.gz 'https://github.com/kubernetes-sigs/kubebuilder/releases/download/v2.3.0/kubebuilder_2.3.0_linux_amd64.tar.gz'
+mkdir -p bin/.kubebuilder
+tar xvfz kubebuilder.tag.gz -C bin/.kubebuilder --strip-components=2
+rm kubebuilder.tag.gz
+
+# Point to kubebuilder assets directory and run tests
+KUBEBUILDER_ASSETS=$(pwd)/bin/.kubebuilder make test
+```
+
 ##### How to generate Istio rbac CRD types
 
 - We use kube builder https://book.kubebuilder.io/quick_start.html
