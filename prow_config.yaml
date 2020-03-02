@@ -10,35 +10,6 @@ workflows:
     name: unittests
     params:
       workflowName: unittest
-  # TODO(jlewi): We should be running the minikube workflow
-  # on presubmit when the minikube E2E test itself changes
-  # so we verify the test is working before submitting
-  # changes to it. But right now we can't match a regex or
-  # glob.
-  # see: https://github.com/kubeflow/testing/issues/187
-  # see: https://github.com/kubeflow/kubeflow/issues/1350
-  #
-  # Run tests on minikube
-  - app_dir: kubeflow/kubeflow/testing/workflows
-    component: workflows
-    name: kubeflow-e2e-minikube
-    job_types:
-      # TODO(https://github.com/kubeflow/kubeflow/issues/2703): Reenable minikube on presubmit
-      # when the test is fixed.
-      # - presubmit
-      - postsubmit
-      - periodic
-    params:
-      platform: minikube
-      workflowName: e2e-minikube
-    include_dirs:
-      # Run on presubmit if any files used by minikube change
-      - kubeflow/core/*
-      - kubeflow/pytorch-job/*
-      - testing/deploy_kubeflow.py
-      - testing/workflows/components/workflows.jsonnet
-      - testing/workflows/components/workflows.libsonnet
-      - testing/install_minikube.sh
   # Image Auto Release workflows.
   # The workflows below are related to auto building our Docker images.
   # We have separate pre/postsubmit jobs because we want to use different
@@ -53,14 +24,3 @@ workflows:
       step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
     include_dirs:
       - components/tensorflow-notebook-image/*
-  # The postsubmit run publishes the docker images to gcr.io/kubeflow-images-public
-  - app_dir: kubeflow/kubeflow/components/tensorflow-notebook-image/releaser
-    component: workflows
-    name: tf-notebook-release
-    job_types:
-      - postsubmit
-    params:
-      registry: "gcr.io/kubeflow-images-public"
-      step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
-    include_dirs:
-      - components/tensorflow-notebook-image/*  
