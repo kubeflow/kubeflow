@@ -33,6 +33,12 @@ That is, the user should specify what and how to run.
 
 All other fields will be filled in with default value if not specified.
 
+## Environment parameters
+
+ADD_FSGROUP:  If the value is true or unset, fsGroup: 100 will be included
+in the pod's security context. If this value is present and set to false, it will suppress the
+automatic addition of fsGroup: 100 to the security context of the pod.  
+
 ## Implementation detail
 
 This part is WIP as we are still developing.

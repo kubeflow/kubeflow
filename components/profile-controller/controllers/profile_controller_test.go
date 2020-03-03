@@ -52,7 +52,7 @@ func TestUpdateNamespaceLabels(t *testing.T) {
 	for _, test := range tests {
 		updateNamespaceLabels(test["current"])
 		if !reflect.DeepEqual(test["expected"], test["current"]) {
-			t.Errorf("Expect:\n%v; Output:\n%v", test[current], test["expected"])
+			t.Errorf("Expect:\n%v; Output:\n%v", test["current"], test["expected"])
 		}
 	}
 }
