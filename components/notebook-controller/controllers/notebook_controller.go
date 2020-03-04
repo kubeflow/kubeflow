@@ -207,9 +207,9 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		// Got the pod
 		podFound = true
 		if len(pod.Status.ContainerStatuses) > 0 &&
-			pod.Status.ContainerStatuses[0].State != instance.Status.ContainerState {
+			getNotebookContainerState(pod, instance) != instance.Status.ContainerState {
 			log.Info("Updating container state: ", "namespace", instance.Namespace, "name", instance.Name)
-			cs := pod.Status.ContainerStatuses[0].State
+			cs := getNotebookContainerState(pod, instance)
 			instance.Status.ContainerState = cs
 			oldConditions := instance.Status.Conditions
 			newCondition := getNextCondition(cs)
@@ -248,6 +248,30 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	return ctrl.Result{}, nil
+}
+
+// getNotebookContainerState returns the ContainerState of the Notebook container.
+// The Notebook container is expected to have the same name as the Notebook.
+// However, that isn't necessarily and relies on the user to specify the correct
+// container name.
+// If that isn't found, fall back to the first container's ContainerState.
+// It is expected that the ContainerStatuses slice isn't empty.
+// FIXME: Ensure a deterministic container name for the Notebook container.
+// This can be done by an admission webhook, or by plainly ignoring the provided container
+// name in the controller.
+func getNotebookContainerState(
+	pod *corev1.Pod,
+	instance *v1beta1.Notebook,
+) corev1.ContainerState {
+
+	for _, status := range pod.Status.ContainerStatuses {
+		if status.Name == instance.Name {
+			return status.State
+		}
+	}
+
+	// TODO: Remove this defaulting once we can be sure of the Notebook's container name
+	return pod.Status.ContainerStatuses[0].State
 }
 
 func getNextCondition(cs corev1.ContainerState) v1beta1.NotebookCondition {
@@ -311,6 +335,10 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 
 	podSpec := &ss.Spec.Template.Spec
 	container := &podSpec.Containers[0]
+
+	// Ensure the Notebook container name is equal to the Notebook name.
+	// This enables us to deterministically get the container's state.
+	container.Name = instance.Name
 	if container.WorkingDir == "" {
 		container.WorkingDir = "/home/jovyan"
 	}
@@ -486,7 +514,7 @@ func nbNameFromInvolvedObject(c client.Client, object *v1.ObjectReference) (stri
 		pod := &corev1.Pod{}
 		err := c.Get(
 			context.TODO(),
-			types.NamespacedName {
+			types.NamespacedName{
 				Namespace: namespace,
 				Name:      name,
 			},
