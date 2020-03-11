@@ -38,7 +38,7 @@ export class DashboardView extends PolymerElement {
                 type: Array,
                 value: [
                     {
-                        text: 'Data Sciencce Platform Docs',
+                        text: 'Data Science Platform Docs',
                         desc: 'Get your machine-learning workflow up and ' +
                             'running',
                         link: `${VDOCS}`,
