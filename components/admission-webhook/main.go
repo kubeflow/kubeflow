@@ -112,15 +112,20 @@ func safeToApplyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.Pod
 	var (
 		defaultAnnotations = make([]*map[string]string, len(podDefaults))
 		defaultLabels      = make([]*map[string]string, len(podDefaults))
+		defaultTolerations = make([]*corev1.Toleration, len(podDefaults))
 	)
 	for i, pd := range podDefaults {
 		defaultAnnotations[i] = &pd.Spec.Annotations
 		defaultLabels[i] = &pd.Spec.Labels
+		defaultTolerations[i] = &pd.Spec.Tolerations
 	}
 	if _, err := mergeMap(pod.Annotations, defaultAnnotations); err != nil {
 		errs = append(errs, err)
 	}
 	if _, err := mergeMap(pod.Labels, defaultLabels); err != nil {
+		errs = append(errs, err)
+	}
+	if _, err := mergeTolerations(pod.Spec.Tolerations, defaultTolerations); err != nil {
 		errs = append(errs, err)
 	}
 	return utilerrors.NewAggregate(errs)
@@ -290,6 +295,51 @@ func mergeVolumes(volumes []corev1.Volume, podDefaults []*settingsapi.PodDefault
 	return mergedVolumes, err
 }
 
+
+// mergeTolerations merges given list of Tolerations with the tolerations injected by given
+// podDefaults. It returns an error if it detects any conflict during the merge.
+func mergeTolerations(tolerations []corev1.Toleration, podDefaults []*settingsapi.PodDefault) ([]corev1.Toleration, error) {
+	origTolerations := map[string]corev1.Toleration{}
+	for _, t := range tolerations {
+		origTolerations[t.Key] = t
+	}
+
+	mergedTolerations := make([]corev1.Toleration, len(tolerations))
+	copy(mergedTolerations, tolerations)
+
+	var errs []error
+
+	for _, pd := range podDefaults {
+		for _, t := range pd.Spec.Tolerations {
+			found, ok := origTolerations[t.Key]
+			if !ok {
+				// if we don't already have it append it and continue
+				origTolerations[t.Key] = t
+				mergedTolerations = append(mergedTolerations, t)
+				continue
+			}
+
+			// make sure they are identical or throw an error
+			if !reflect.DeepEqual(found, t) {
+				errs = append(errs, fmt.Errorf("merging tolerations for %s has a conflict on %s: \n%#v\ndoes not match\n%#v\n in container", pd.GetName(), t.Key, t, found))
+			}
+		}
+	}
+
+	err := utilerrors.NewAggregate(errs)
+	if err != nil {
+		klog.Error(err)
+		return nil, err
+	}
+
+	if len(mergedTolerations) == 0 {
+		return nil, nil
+	}
+
+	return mergedTolerations, err
+}
+
+
 // mergeMap copies the existing map and adds the keys in defaults. It returns
 // an error if it detects any conflict during the merge.
 func mergeMap(existing map[string]string, defaults []*map[string]string) (map[string]string, error) {
@@ -334,10 +384,12 @@ func applyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.PodDefaul
 	var (
 		defaultAnnotations = make([]*map[string]string, len(podDefaults))
 		defaultLabels      = make([]*map[string]string, len(podDefaults))
+		defaultTolerations = make([]*corev1.Toleration, len(podDefaults))
 	)
 	for i, pd := range podDefaults {
 		defaultAnnotations[i] = &pd.Spec.Annotations
 		defaultLabels[i] = &pd.Spec.Labels
+		defaultTolerations = &pd.Spec.Tolerations
 	}
 	annotations, err := mergeMap(pod.Annotations, defaultAnnotations)
 	if err != nil {
@@ -350,6 +402,12 @@ func applyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.PodDefaul
 		klog.Error(err)
 	}
 	pod.ObjectMeta.Labels = labels
+
+	tolerations, err := mergeTolerations(pod.Spec.Tolerations, defaultTolerations)
+	if err != nil {
+		klog.Error(err)
+	}
+	pod.Spec.Tolerations = tolerations
 
 	for i, ctr := range pod.Spec.Containers {
 		applyPodDefaultsOnContainer(&ctr, podDefaults)
