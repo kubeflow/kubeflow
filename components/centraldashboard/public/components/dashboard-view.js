@@ -16,7 +16,8 @@ import './pipelines-card.js';
 import './resource-chart.js';
 import {getGCPData} from './resources/cloud-platform-data.js';
 
-const DOCS = 'https://www.kubeflow.org/docs';
+
+const VDOCS = 'https://docs.eu.dev.volvodata.io';
 
 export class DashboardView extends PolymerElement {
     static get template() {
@@ -37,44 +38,20 @@ export class DashboardView extends PolymerElement {
                 type: Array,
                 value: [
                     {
-                        text: 'Getting Started with Kubeflow',
+                        text: 'Data Sciencce Platform Docs',
                         desc: 'Get your machine-learning workflow up and ' +
-                            'running on Kubeflow',
-                        link: `${DOCS}/started/getting-started/`,
+                            'running',
+                        link: `${VDOCS}`,
                     },
                     {
-                        text: 'MiniKF',
-                        desc: 'A fast and easy way to deploy Kubeflow locally',
-                        link: `${DOCS}/started/getting-started-minikf/`,
+                        text: 'Submit an Issue',
+                        desc: 'Notice something that should be fixed?',
+                        link: `https://github.com/volvo-cars/ds-platform-docs/issues/new`,
                     },
                     {
-                        text: 'Microk8s for Kubeflow',
-                        desc: 'Quickly get Kubeflow running locally on ' +
-                            'native hypervisors',
-                        link: `${DOCS}/started/getting-started-multipass/`,
-                    },
-                    {
-                        text: 'Minikube for Kubeflow',
-                        desc: 'Quickly get Kubeflow running locally',
-                        link: `${DOCS}/started/getting-started-minikube/`,
-                    },
-                    {
-                        text: 'Kubeflow on GCP',
-                        desc: 'Running Kubeflow on Kubernetes Engine and ' +
-                            'Google Cloud Platform',
-                        link: `${DOCS}/gke/`,
-                    },
-                    {
-                        text: 'Kubeflow on AWS',
-                        desc: 'Running Kubeflow on Elastic Container Service ' +
-                            'and Amazon Web Services',
-                        link: `${DOCS}/aws/`,
-                    },
-                    {
-                        text: 'Requirements for Kubeflow',
-                        desc: 'Get more detailed information about using ' +
-                'Kubeflow and its components',
-                        link: `${DOCS}/started/requirements/`,
+                        text: 'Contact Core team',
+                        desc: 'Send us an e-mail',
+                        link: `data.science@volvocars.com`,
                     },
                 ],
             },

@@ -25,10 +25,9 @@ import '@polymer/neon-animation/animations/fade-in-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
 
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
-
 import css from './main-page.css';
 import template from './main-page.pug';
-import logo from '../assets/logo.svg';
+import logo from '../assets/volvo.svg';
 import '../assets/anon-user.png';
 
 import './registration-page.js';
