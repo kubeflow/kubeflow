@@ -86,7 +86,6 @@ ENV LANGUAGE en_US.UTF-8
 # but allow for non-initial launches of the notebook to have
 # $HOME provided by the contents of a PV
 RUN useradd -M -s /bin/bash -N -u $NB_UID $NB_USER && \
-    chown -R ${NB_USER}:users /usr/local/bin && \
     mkdir -p $HOME
 
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
