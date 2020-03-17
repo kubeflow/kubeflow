@@ -11,7 +11,7 @@ export function attachUser(
     let auth: User.AuthObject;
     if (userIdHeader && req.header(userIdHeader)) {
       email = req.header(userIdHeader).slice(userIdPrefix.length);
-      auth = {[userIdHeader]: email};
+      auth = {[userIdHeader]: req.header(userIdHeader)};
     }
     req.user = {
       email,

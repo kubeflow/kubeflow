@@ -320,8 +320,7 @@ export class WorkgroupApi {
         })
         .delete('/nuke-self', async (req: Request, res: Response) => {
             try {
-                const {headers} = req;
-                delete headers['content-length'];
+                const headers = req.user.auth;
                 const namespace = req.user.username;
                 const {body: serverBody} = await this.profilesService.deleteProfile(namespace, {headers});
                 res.json({message: `Removed namespace/profile ${namespace}`, serverBody});
