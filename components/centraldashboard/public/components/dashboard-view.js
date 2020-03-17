@@ -98,7 +98,7 @@ export class DashboardView extends PolymerElement {
                         link: `/jupyter/new?namespace=kubeflow`,
                     },
                     {
-                        text: 'View Katib Studies',
+                        text: 'View Katib Experiments',
                         desc: 'Katib',
                         link: `/katib/`,
                     },
