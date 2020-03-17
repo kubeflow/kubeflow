@@ -95,14 +95,25 @@ describe('Kubeflow Dashboard Tests', () => {
                 prelimContent,
             ].join('\n'));
         }
-
         console.log(`   Waiting for page load`);
         await page.waitForFunction(() => document.querySelector('body > main-page').shadowRoot);
+        await page.waitForFunction(() => {
+            const root = document.querySelector('body > main-page').shadowRoot;
+            const ajax = root.querySelector('iron-ajax[url="/api/workgroup/exists"]');
+            // tslint:disable-next-line: no-any
+            return !!(ajax && (ajax as any).lastRequest);
+        });
+        await page.evaluate(() =>
+            (document.querySelector('body > main-page').shadowRoot
+                // tslint:disable-next-line: no-any
+                .querySelector('iron-ajax[url="/api/workgroup/exists"]') as any)
+                .lastRequest.completes
+        );
 
         console.log(`   Checking for registration flow (user state)`);
         const isRegistrationPresent = await page.evaluate(() => 
-            document.querySelector('body > main-page')
-                .shadowRoot.querySelector('registration-page')
+            (document.querySelector('body > main-page')
+                .shadowRoot.querySelector('registration-page')||{}).tagName
         );
         if (!isRegistrationPresent) {
             throw Error([
@@ -138,6 +149,7 @@ describe('Kubeflow Dashboard Tests', () => {
         const namespaceTextContent = await namespace.jsonValue() as string;
         expect(namespaceTextContent.trim())
             .toBe(SERVICE_ACCOUNT_EMAIL.split('@')[0]);
+        
         console.log('   Clearing Test Data');
         await clearServiceUser(credentials);
     });
