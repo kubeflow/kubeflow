@@ -39,7 +39,7 @@ RUN npm rebuild && \
     npm prune --production
 
 # Step 2: Packages assets for serving
-FROM node:10-alpine AS serve
+FROM gcr.io/distroless/nodejs AS serve
 
 ENV NODE_ENV=production
 WORKDIR /app
