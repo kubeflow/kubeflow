@@ -19,6 +19,7 @@ ENV NB_USER $NB_USER
 ENV NB_UID 1000
 ENV HOME /home/$NB_USER
 ENV NB_PREFIX /
+ENV PATH $HOME/.local/bin:$PATH
 
 
 # Use bash instead of sh
