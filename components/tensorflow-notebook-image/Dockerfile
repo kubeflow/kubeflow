@@ -87,8 +87,8 @@ ENV LANGUAGE en_US.UTF-8
 # $HOME provided by the contents of a PV
 RUN useradd -M -s /bin/bash -N -u $NB_UID $NB_USER && \
     chown -R ${NB_USER}:users /usr/local/bin && \
-    chown -R ${NB_USER}:users ${HOME} && \
-    mkdir -p $HOME
+    mkdir -p $HOME && \
+    chown -R ${NB_USER}:users ${HOME}
 
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
