@@ -160,7 +160,7 @@ On the **master** branch
 1. Run `hack/build_kfdef_spec.py` to generate KFDef YAMLs in `kfdefs/`
 1. Check in all modified files
 
-On the **vX.Y.Z-branch** branch
+On the **vX.Y-branch** branch
 
 1. Cherry pick the changes from above
 
