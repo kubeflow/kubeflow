@@ -12,13 +12,13 @@ export interface Volume {
 
 export function emptyVolume(): Volume {
   return {
-    type: "",
-    name: "",
-    size: "",
-    path: "",
-    mode: "",
+    type: '',
+    name: '',
+    size: '',
+    path: '',
+    mode: '',
     extraFields: {},
-    templatedName: ""
+    templatedName: '',
   };
 }
 
@@ -82,6 +82,9 @@ export interface ConfigVolume {
   accessModes: {
     value: string;
   };
+  class: {
+    value: string;
+  };
 }
 
 export interface Config {
@@ -134,5 +137,5 @@ export enum SnackType {
   Success,
   Error,
   Warning,
-  Info
+  Info,
 }

@@ -1,15 +1,15 @@
-import { Component, OnInit, Input, OnDestroy } from "@angular/core";
-import { FormGroup } from "@angular/forms";
-import { Volume } from "src/app/utils/types";
-import { Subscription } from "rxjs";
+import { Component, OnInit, Input, OnDestroy } from '@angular/core';
+import { FormGroup } from '@angular/forms';
+import { Volume } from 'src/app/utils/types';
+import { Subscription } from 'rxjs';
 
 @Component({
-  selector: "app-volume",
-  templateUrl: "./volume.component.html",
-  styleUrls: ["./volume.component.scss"]
+  selector: 'app-volume',
+  templateUrl: './volume.component.html',
+  styleUrls: ['./volume.component.scss'],
 })
 export class VolumeComponent implements OnInit, OnDestroy {
-  private _notebookName = "";
+  private _notebookName = '';
   private _defaultStorageClass: boolean;
 
   currentPVC: Volume;
@@ -60,22 +60,59 @@ export class VolumeComponent implements OnInit, OnDestroy {
 
   // ----- Get macros -----
   get selectedVolIsExistingType(): boolean {
-    return (
-      this.existingPVCs.has(this.volume.value.name) || !this.defaultStorageClass
-    );
+    if (this.existingPVCs.has(this.volume.value.name)) {
+      return true;
+    }
+
+    if (
+      this.volume.get('class').value === '{none}' &&
+      !this.defaultStorageClass
+    ) {
+      return true;
+    }
+
+    return false;
   }
 
   get currentVolName(): string {
-    return this.renderVolName(this.volume.get("templatedName").value);
+    return this.renderVolName(this.volume.get('templatedName').value);
+  }
+
+  // ----- Functions for handling the New volume type -----
+  newTypeIsDisabled(): boolean {
+    // This option should only be disabled if the class value is set to
+    // use the default StorageClass, but none is set in the cluster
+    if (this.volume.get('class').value !== '{none}') {
+      return false;
+    }
+
+    if (!this.defaultStorageClass) {
+      return true;
+    }
+
+    return false;
+  }
+
+  newTypeTooltip(): string {
+    const volClass = this.volume.get('class').value;
+    if (volClass !== '{none}') {
+      return '';
+    }
+
+    if (!this.defaultStorageClass) {
+      return `No default StorageClass is detected in the cluster`;
+    }
+
+    return '';
   }
 
   // ----- utility functions -----
   renderVolName(name: string): string {
-    return name.replace("{notebook-name}", this.notebookName);
+    return name.replace('{notebook-name}', this.notebookName);
   }
 
   setVolumeType(type: string) {
-    if (type === "Existing") {
+    if (type === 'Existing') {
       this.volume.controls.size.disable();
       this.volume.controls.mode.disable();
     } else {
@@ -90,11 +127,11 @@ export class VolumeComponent implements OnInit, OnDestroy {
       // Disable all fields
       this.volume.controls.size.disable();
       this.volume.controls.mode.disable();
-      this.volume.controls.type.setValue("Existing");
+      this.volume.controls.type.setValue('Existing');
     } else {
       this.volume.controls.size.enable();
       this.volume.controls.mode.enable();
-      this.volume.controls.type.setValue("New");
+      this.volume.controls.type.setValue('New');
     }
   }
 
@@ -104,18 +141,18 @@ export class VolumeComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // type
     this.subscriptions.add(
-      this.volume.get("type").valueChanges.subscribe((type: string) => {
+      this.volume.get('type').valueChanges.subscribe((type: string) => {
         this.setVolumeType(type);
-      })
+      }),
     );
 
     // name
     this.subscriptions.add(
-      this.volume.get("name").valueChanges.subscribe((name: string) => {
+      this.volume.get('name').valueChanges.subscribe((name: string) => {
         // Update the fields if the volume is an existing one
-        this.volume.get("name").setValue(name, { emitEvent: false });
+        this.volume.get('name').setValue(name, { emitEvent: false });
         this.updateVolInputFields();
-      })
+      }),
     );
   }
 

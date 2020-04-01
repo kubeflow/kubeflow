@@ -62,6 +62,7 @@ export function updateVolumeControl(
   volCtrl.get('size').setValue(vol.size.value);
   volCtrl.get('mode').setValue(vol.accessModes.value);
   volCtrl.get('path').setValue(vol.mountPath.value);
+  volCtrl.get('class').setValue(vol.class.value);
   volCtrl.get('templatedName').setValue(vol.name.value);
 
   if (readonly) {
@@ -93,6 +94,9 @@ export function addDataVolume(
       },
       accessModes: {
         value: 'ReadWriteOnce',
+      },
+      class: {
+        value: '{none}',
       },
     };
   }
