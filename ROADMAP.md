@@ -114,37 +114,39 @@ Support for hardware accelerated training and inference
    * Automatic injection of device configuration needed to use hardware accelerators
      for training and inference
 
+ 
 ## Kubeflow 1.0
+Kubeflow 1.0 was released on March 2, 2020. The 1.0 release consists of the following key pieces
+* A core set of applications targeting the critical user journey of build-train-deploy
+* Scaffolding to securely deploy and manage multi-user Kubeflow environments on-prem and in the cloud.
+* A process to graduate Kubeflow components to a stable version based upon an Application Requirements definition that has been defined and validated by the Community’s testing process.
 
-We are targeting a 1.0 release in January 2020. Our 1.0 release consists of the following key pieces
-
-1. A core set of applications targeting the critical user journey of build-train-deploy
-1. Scaffolding to securely deploy and manage multi-user Kubeflow environments on-prem and in the cloud.
-
-We are currently targeting the following applications to graduate to 1.0 as part of the initial Kubeflow release
-
+The following applications graduated to stable versions in Kubeflow 1.0.
 * kfctl for deployment and upgrades
-* TFJob and PyTorch for distributed training (already 1.0)
+* TFJob and PyTorch for distributed training
 * Jupyter notebook controller and web app
 * Profile controller and UI for multiuser management
 
-The following applications will likely be of beta quality for the 1.0 release with a goal of graduating to 1.0 in Q1 2020
-
+The following applications are considered in a beta version in Kubeflow 1.0.
 * Katib for hyper-parameter tuning
-* fairing SDK to facilite use of notebooks for build-train-deploy
-* Metadata SDK, UI, and backend
+* fairing SDK to facilitate use of notebooks for build-train-deploy
+* Kale which extends jupyter notebooks to create, create, run, explore KF pipelines
+Metadata SDK, UI, and backend
 * KFServing for model deployment and inference
 * Pipelines
-   * CI/CD integration and Pipeline versioning are targeted for Q4 2019
-   * Multi-tenancy and RBAC features are targeted for early Q1 2020
 
 Here is a preliminary list of limitations and requirements that will be part of our 1.0 release
-
 * ISTIO will be required as a service mesh and for AuthN and AuthZ support
 * We will only support a single shared Kubeflow deployment per Kubernetes cluster
-  * Users can consume Kubeflow in their own, isolated namespace
-* Upgrades will require downtime
-* Upgradability will not support advanced customization (e.g. custom overlays) for Kustomize packages
+Users can consume Kubeflow in their own, isolated namespace
+Upgrades will require downtime
 
-  * We expect application to expose a list of parameters that can be customized without breaking upgradability
-  * Customization beyond these parameters will require manual configuration on upgrade
+## Kubeflow 1.1 Features, Target release: June 2020
+
+Initial features under review include:
+
+* Improved upgradability functionality
+* Enhanced security use cases for GCP users
+* CVE scanning and mitigation
+* Improved workflow automation tools (fairing and kale) to simplify and mature the Core and EcoSystem supported CUJs
+
