@@ -1,5 +1,5 @@
 ---
-name: Qustions about this project
+name: Questions about this project
 about: Ask whatever you want to know or confusion about this project
 
 ---
