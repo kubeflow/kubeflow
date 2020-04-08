@@ -10,7 +10,7 @@ COPY . .
 ENV GO111MODULE=on
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux go build -o webhook -ldflags "-w" -a .
+RUN CGO_ENABLED=0 GOOS=linux go build -o webhook -a .
 
 # Copy the controller-manager into a distroless image
 FROM gcr.io/distroless/static-debian10:fd0d99e8c54d7d7b2f3dd29f5093d030d192cbbc
