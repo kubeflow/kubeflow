@@ -71,6 +71,12 @@ export class DashboardView extends PolymerElement {
                         link: `${DOCS}/aws/`,
                     },
                     {
+                        text: 'Kubeflow on Azure',
+                        desc: 'Running Kubeflow on Azure Kubernetes Service ' +
+                            'and Microsoft Azure',
+                        link: `${DOCS}/azure/`,
+                    },
+                    {
                         text: 'Requirements for Kubeflow',
                         desc: 'Get more detailed information about using ' +
                 'Kubeflow and its components',
