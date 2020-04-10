@@ -26,36 +26,31 @@ ENV PATH $HOME/.local/bin:$PATH
 SHELL ["/bin/bash", "-c"]
 
 RUN apt-get update && apt-get install -yq --no-install-recommends \
-  apt-transport-https \
-  build-essential \
-  bzip2 \
-  ca-certificates \
-  curl \
-  g++ \
-  git \
-  gnupg \
-  graphviz \
-  locales \
-  lsb-release \
-  openssh-client \
-  sudo \
-  unzip \
-  vim \
-  wget \
-  zip \
-  emacs \
-  python3-pip \
-  python3-dev \
-  python3-setuptools \
-  && apt-get clean && \
-  rm -rf /var/lib/apt/lists/*
+    apt-transport-https \
+    build-essential \
+    bzip2 \
+    ca-certificates \
+    curl \
+    emacs \
+    g++ \
+    git \
+    gnupg \
+    graphviz \
+    locales \
+    lsb-release \
+    openssh-client \
+    python3-dev \
+    python3-pip \
+    python3-setuptools \
+    sudo \
+    unzip \
+    vim \
+    wget \
+    zip
 
 # Install Nodejs for jupyterlab-manager
 RUN curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
-RUN apt-get update && apt-get install -yq --no-install-recommends \
-  nodejs \
-  && apt-get clean && \
-  rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -yq --no-install-recommends nodejs
 
 ENV DOCKER_CREDENTIAL_GCR_VERSION=1.4.3
 RUN curl -LO https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v${DOCKER_CREDENTIAL_GCR_VERSION}/docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
@@ -97,6 +92,9 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     apt-get update && \
     apt-get install -y google-cloud-sdk kubectl
 
+# Cleanup APT
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
 # Install Tini - used as entrypoint for container
 RUN cd /tmp && \
     wget --quiet https://github.com/krallin/tini/releases/download/v0.18.0/tini && \
@@ -124,4 +122,3 @@ EXPOSE 8888
 USER jovyan
 ENTRYPOINT ["tini", "--"]
 CMD ["sh","-c", "jupyter notebook --notebook-dir=/home/${NB_USER} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"]
-
