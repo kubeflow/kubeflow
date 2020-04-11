@@ -130,7 +130,7 @@ The following applications graduated to stable versions in Kubeflow 1.0.
 The following applications are considered in a beta version in Kubeflow 1.0.
 * Katib for hyper-parameter tuning
 * fairing SDK to facilitate use of notebooks for build-train-deploy
-* Kale which extends jupyter notebooks to create, create, run, explore KF pipelines
+* Kale which extends jupyter notebooks to create, run, and explore KF pipelines
 Metadata SDK, UI, and backend
 * KFServing for model deployment and inference
 * Pipelines
@@ -149,4 +149,3 @@ Initial features under review include:
 * Enhanced security use cases for GCP users
 * CVE scanning and mitigation
 * Improved workflow automation tools (fairing and kale) to simplify and mature the Core and EcoSystem supported CUJs
-
