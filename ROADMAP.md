@@ -143,9 +143,14 @@ Upgrades will require downtime
 
 ## Kubeflow 1.1 Features, Target release: June 2020
 
-Initial features under review include:
+Kubeflow 1.1 will continue to enhance enteprise grade functionality for secure operations and upgrades.   1.1 will also simplify ML workflows to improve data scientist productivity.
 
-* Improved upgradability functionality
-* Enhanced security use cases for GCP users
-* CVE scanning and mitigation
+The following features are under design review:
+
+* Process and tools for upgrades from N-1 to N i.e. 1.0.x to 1.1
+* Additional security use cases for GCP users (including support for private GKE & Anthos Service Mesh)
+* A CVE scanning report and mitigation process
+* Refinement of the multi-user architecture and multi-user integration with additional Kubeflow components 
 * Improved workflow automation tools (fairing and kale) to simplify and mature the Core and EcoSystem supported CUJs
+
+The features for Kubeflow 1.1 are tracked in Kanban boards and the 1.1 Kanban board is available here: https://github.com/orgs/kubeflow/projects/36 
