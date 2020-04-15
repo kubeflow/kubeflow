@@ -147,7 +147,7 @@ Kubeflow 1.1 will continue to enhance enteprise grade functionality for secure o
 
 The following features are under design review:
 
-* Process and tools for upgrades from N-1 to N i.e. 1.0.x to 1.1
+* Process and tools for upgrades from Release N-1 to N i.e. 1.0.x to 1.1, https://github.com/kubeflow/kfctl/issues/304
 * Additional security use cases for GCP users (including support for private GKE & Anthos Service Mesh)
 * A CVE scanning report and mitigation process
 * Refinement of the multi-user architecture and multi-user integration with additional Kubeflow components 
