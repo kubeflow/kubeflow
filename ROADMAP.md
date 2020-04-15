@@ -138,8 +138,8 @@ Metadata SDK, UI, and backend
 Here is a preliminary list of limitations and requirements that will be part of our 1.0 release
 * ISTIO will be required as a service mesh and for AuthN and AuthZ support
 * We will only support a single shared Kubeflow deployment per Kubernetes cluster
-Users can consume Kubeflow in their own, isolated namespace
-Upgrades will require downtime
+* Users can consume Kubeflow in their own, isolated namespace
+* Upgrades will require downtime
 
 ## Kubeflow 1.1 Features, Target release: Late June 2020
 
