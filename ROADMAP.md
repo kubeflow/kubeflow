@@ -149,7 +149,7 @@ The following features are under design review:
 
 * Process and tools for upgrades from Release N-1 to N i.e. 1.0.x to 1.1, [#304](https://github.com/kubeflow/kfctl/issues/304)
 * Additional security use cases for GCP users (including support for private GKE & Anthos Service Mesh),[design doc](https://cloud.google.com/service-mesh/docs); [#1705](https://github.com/kubeflow/website/issues/1705)
-* A CVE scanning report and mitigation process
+* A CVE scanning report and mitigation process, [4590](https://github.com/kubeflow/kubeflow/issues/4590)
 * Refinement of the multi-user architecture and multi-user integration with additional Kubeflow components 
 * Improved workflow automation tools (fairing and kale) to simplify and mature the Core and EcoSystem supported CUJs
 
