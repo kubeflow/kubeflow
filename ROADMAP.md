@@ -150,7 +150,12 @@ The following features are under design review:
 * Process and tools for upgrades from Release N-1 to N i.e. 1.0.x to 1.1, [#304](https://github.com/kubeflow/kfctl/issues/304)
 * Additional security use cases for GCP users (including support for private GKE & Anthos Service Mesh),[design doc](https://cloud.google.com/service-mesh/docs); [#1705](https://github.com/kubeflow/website/issues/1705)
 * A CVE scanning report and mitigation process, [4590](https://github.com/kubeflow/kubeflow/issues/4590)
-* Refinement of the multi-user architecture and multi-user integration with additional Kubeflow components 
 * Improved workflow automation tools (fairing and kale) to simplify and mature the Core and EcoSystem supported CUJs
+
+* Establishment of Kubeflow Policy / Guidelines on how to implement authorization in web applications. Propose SubjectAccessReview in order to use K8s RBAC as the source of truth for Authz. [4899](https://github.com/kubeflow/community#327)
+* Guidelines on how cluster admins can interact with Kubeflow's authorization. There are already some difficulties with the self-serve model, process of adding contributors to a namespace and the way KFAM is using magic annotations on RoleBindings (#4574 #4889 #4936 #4924 #4938). Document current workarounds. [#4960](https://github.com/kubeflow/kubeflow/issues/4960)
+* Decide when the CentralDashboard should show a namespace. Right now, this is done with KFAM in an error-prone way (magic annotations on RoleBindings). Design doc exploring different options (change KFAM to use SubjectAccessReview, use a model like GCP Console checking read permission on namespace, etc.) This is also related to item above. [#4960](https://github.com/kubeflow/kubeflow/issues/4960)
+* Ability to turn off the self-serve mode, as in many environments there are mechanisms other than the Kubeflow Dashboard that provision/share an environment for/with the user. (#4942)
+* Multi-User Authorization: Add support for K8s RBAC via SubjectAccessReview [#3513](https://github.com/kubeflow/pipelines/issues/3513)
 
 The 1.1 features are tracked in this [Kanban board](https://github.com/orgs/kubeflow/projects/36) 
