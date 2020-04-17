@@ -235,6 +235,11 @@ const styles: {[key: string]: React.CSSProperties} = {
         fontSize: 20,
         margin: '30px 60px',
     },
+    warning: {
+        color: '#ff0000',
+        fontSize: 18,
+        margin: '30px 60px',
+    },
     yamlBtn: {
         width: 125,
     },
@@ -309,6 +314,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         return (
             <div>
                 <div style={styles.text}>Create a Kubeflow deployment</div>
+
+                <div style={styles.warning}>Warning: Kubeflow Deploy Site will be deprecated soon. </div>
 
                 <div style={styles.row}>
                     <TextField label="Project ID" spellCheck={false} style={styles.input} variant="filled"
