@@ -237,7 +237,7 @@ const styles: {[key: string]: React.CSSProperties} = {
     },
     warning: {
         color: '#ff0000',
-        fontSize: 18,
+        fontSize: 16,
         margin: '30px 60px',
     },
     yamlBtn: {
@@ -315,7 +315,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             <div>
                 <div style={styles.text}>Create a Kubeflow deployment</div>
 
-                <div style={styles.warning}>Warning: Kubeflow Deploy Site will be deprecated soon. </div>
+                <div style={styles.warning}>Warning: This Kubeflow Deploy Site will be deprecated soon.<br/>
+                    <a href="https://www.kubeflow.org/docs/gke/deploy/deploy-cli/">Please use CLI to deploy kubeflow on GCP.</a>
+                </div>
+
 
                 <div style={styles.row}>
                     <TextField label="Project ID" spellCheck={false} style={styles.input} variant="filled"
