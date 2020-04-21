@@ -6,7 +6,8 @@ iron-ajax#envInfo(auto='[[_shouldFetchEnv]]', url='/api/workgroup/env-info', han
     on-response='_onEnvInfoResponse')
 aside#PageLoader(hidden='{{!pageLoading}}')
 app-drawer-layout.flex(narrow='{{narrowMode}}',
-        force-narrow='[[or(inIframe, thinView, notFoundInIframe, hideSidebar)]]',
+        force-narrow='[[or(thinView, hideSidebar)]]',
+        persistent='[[persistent]]'
         bleed$='[[sidebarBleed]]')
     app-location(route='{{route}}', query-params='{{queryParams}}')
     app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
@@ -50,10 +51,11 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
     app-header-layout(fullbleed)
         app-header(slot='header', hides, hidden$='[[notFoundInIframe]]')
             app-toolbar
-                aside#Narrow-Slider(hides, hidden$='[[!narrowMode]]')
-                    paper-icon-button#Menu(icon='menu', drawer-toggle)
-                    figure.Logo
-                        |!{logo}
+                template(is='dom-if', if='![[persistent]]')
+                    aside#Narrow-Slider(hides, hidden$='[[!narrowMode]]')
+                        paper-icon-button#Menu(icon='menu', drawer-toggle)
+                        figure.Logo
+                            |!{logo}
                 namespace-selector#NamespaceSelector(
                     query-params='{{queryParams}}', namespaces='[[namespaces]]'
                     selected='{{namespace}}', hides, hidden$='[[hideNamespaces]]'

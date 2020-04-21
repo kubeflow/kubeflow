@@ -90,6 +90,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             inIframe: {type: Boolean, value: false, readOnly: true},
             hideTabs: {type: Boolean, value: false, readOnly: true},
             hideSidebar: {type: Boolean, value: false, readOnly: true},
+            persistent: {type: Boolean, value: true, readOnly: true},
             hideNamespaces: {type: Boolean, value: false, readOnly: true},
             allNamespaces: {type: Boolean, value: false, readOnly: true},
             notFoundInIframe: {type: Boolean, value: false, readOnly: true},
@@ -239,7 +240,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             this.page = 'manage-users';
             hideTabs = true;
             allNamespaces = true;
-            hideSidebar = true;
+            hideSidebar = false;
             break;
         case '':
             this.sidebarItemIndex = 0;
@@ -262,7 +263,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         this._setHideSidebar(hideSidebar);
 
         // If iframe <-> [non-frame OR other iframe]
-        if (hideSidebar || isIframe !== this.inIframe || isIframe) {
+        if (hideSidebar || isIframe !== this.inIframe) {
             this.$.MainDrawer.close();
         }
 
