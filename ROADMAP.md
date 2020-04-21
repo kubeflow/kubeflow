@@ -143,7 +143,7 @@ Here is a preliminary list of limitations and requirements that will be part of 
 
 ## Kubeflow 1.1 Features, Target release: Late June 2020
 
-Kubeflow 1.1 will continue to enhance enteprise grade functionality for secure operations and upgrades.   1.1 will also simplify ML workflows to improve data scientist productivity.
+Kubeflow 1.1 will continue to enhance enterprise grade functionality for secure operations and upgrades.   1.1 will also simplify ML workflows to improve data scientist productivity.
 
 The following features are under design review:
 
