@@ -10,19 +10,32 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
         persistent='[[persistent]]'
         bleed$='[[sidebarBleed]]')
     app-location(route='{{route}}', query-params='{{queryParams}}')
+    app-location(route='{{routeHash}}', use-hash-as-path)
     app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
         tail='{{subRouteData}}')
     app-drawer#MainDrawer(slot='drawer')
         figure.logo
             |!{logo}
-        iron-selector.flex(selected='{{sidebarItemIndex}}')
+        div.flex
             a(href$='[[buildHref("/", queryParams)]]', tabindex='-1')
-                paper-item.menu-item
-                    iron-icon(icon="home")
+                paper-item.menu-item#home
+                    iron-icon(icon='home')
                     | Home
+
             template(is='dom-repeat', items='[[menuLinks]]')
-                iframe-link(href$="[[buildHref(item.link, queryParams)]]")
-                    paper-item.menu-item [[item.text]]
+                template(is='dom-if', if='[[equals(item.type, "section")]]')
+                    paper-item.menu-item.section-item(on-click='_toggleMenuSection')
+                        iron-icon(icon='[[item.icon]]')
+                        | [[item.text]]
+                    iron-collapse
+                        template(is='dom-repeat', items='[[item.items]]')
+                            iframe-link(href$="[[buildHref(item.link, queryParams)]]")
+                                paper-item.menu-item.inner-menu-item [[item.text]]
+                template(is='dom-if', if='[[!equals(item.type, "section")]]')
+                    iframe-link(href$="[[buildHref(item.link, queryParams)]]")
+                        paper-item.menu-item
+                            iron-icon(icon='[[item.icon]]')
+                            | [[item.text]]
             template(is='dom-repeat', items='[[externalLinks]]')
                 template(is='dom-if', if='[[item.iframe]]')
                     iframe-link(href$="[[buildHref(item.link, queryParams)]]")
@@ -37,7 +50,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             template(is='dom-if', if='[[equals(isolationMode, "multi-user")]]')
                 aside.divider
                 a(href$='[[buildHref("/manage-users", queryParams)]]', tabindex='-1')
-                    paper-item.menu-item Manage Contributors
+                    paper-item.menu-item#contributors Manage Contributors
             aside.divider
             a(href='https://github.com/kubeflow/kubeflow',
                 tabindex='-1', target="_blank")

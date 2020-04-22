@@ -64,7 +64,8 @@ app-drawer-layout[bleed] #MainDrawer {
 }
 
 #MainDrawer a:hover {
-    color: inherit
+    color: inherit;
+    text-decoration: none;
 }
 
 #MainDrawer iframe-link:hover, #MainDrawer iron-selector>a:hover {
@@ -88,6 +89,19 @@ app-drawer-layout[bleed] #MainDrawer {
 
 }
 
+#MainDrawer .inner-menu-item {
+    padding-left: 65px;
+    margin: 0;
+    font-size: 13px;
+    min-height: 30px;
+}
+
+#MainDrawer .section-item {
+    margin-bottom: 0;
+    border-bottom:1px ;
+    position: relative;
+}
+
 #MainDrawer iron-icon {
     margin-right: 20px;
     height: 20px;
@@ -104,11 +118,11 @@ app-drawer-layout[bleed] #MainDrawer {
     background: #ffffff1b
 }
 
-#MainDrawer .iron-selected>.menu-item {
+#MainDrawer .iron-selected {
     color: #fff;
 }
 
-#MainDrawer .iron-selected>.menu-item::after {
+#MainDrawer .iron-selected::after {
     content: '';
     display: block;
     position: absolute;
