@@ -57,7 +57,6 @@ type BindingClient struct {
 
 //getBindingName returns bindingName, which is combination of user kind, username, RoleRef kind, RoleRef name.
 func getBindingName(binding *Binding) (string, error) {
-	//Lalith Change
 	// Only keep lower case letters, replace other with -
 	reg, err := regexp.Compile("[^a-z0-9]+")
 	if err != nil {
