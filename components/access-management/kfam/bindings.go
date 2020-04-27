@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/api/istiorbac/v1alpha1"
+
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
@@ -32,14 +33,15 @@ const ServiceRoleBinding = "servicerolebindings"
 const SERVICEROLEISTIO = "ns-access-istio"
 const USER = "user"
 const ROLE = "role"
+
 //roleBindingNameMap maps frontend role names to k8s role names and vice-versa
-var roleBindingNameMap = map[string]string {
-	"kubeflow-admin":	"admin",
-	"kubeflow-edit":	"edit",
-	"kubeflow-view":	"view",
-	"admin":					"kubeflow-admin",
-	"edit":						"kubeflow-edit",
-	"view":						"kubeflow-view",
+var roleBindingNameMap = map[string]string{
+	"kubeflow-admin": "admin",
+	"kubeflow-edit":  "edit",
+	"kubeflow-view":  "view",
+	"admin":          "kubeflow-admin",
+	"edit":           "kubeflow-edit",
+	"view":           "kubeflow-view",
 }
 
 type BindingInterface interface {
@@ -55,19 +57,21 @@ type BindingClient struct {
 
 //getBindingName returns bindingName, which is combination of user kind, username, RoleRef kind, RoleRef name.
 func getBindingName(binding *Binding) (string, error) {
-	nameRaw := strings.ToLower(
-		strings.Join([]string{
-			binding.User.Kind,
-			url.QueryEscape(binding.User.Name),
-			binding.RoleRef.Kind,
-			binding.RoleRef.Name,
-		},"-"),
-	)
+	//Lalith Change
 	// Only keep lower case letters, replace other with -
-	reg, err := regexp.Compile("[^a-z]+")
+	reg, err := regexp.Compile("[^a-z0-9]+")
 	if err != nil {
 		return "", err
 	}
+	nameRaw := strings.ToLower(
+		strings.Join([]string{
+			binding.User.Kind,
+			url.QueryEscape(reg.ReplaceAllString(binding.User.Name, "-")),
+			binding.RoleRef.Kind,
+			binding.RoleRef.Name,
+		}, "-"),
+	)
+
 	return reg.ReplaceAllString(nameRaw, "-"), nil
 }
 
@@ -80,12 +84,12 @@ func (c *BindingClient) Create(binding *Binding, userIdHeader string, userIdPref
 	roleBinding := rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{USER: binding.User.Name, ROLE: binding.RoleRef.Name},
-			Name: bindingName,
+			Name:        bindingName,
 		},
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: binding.RoleRef.APIGroup,
-			Kind: binding.RoleRef.Kind,
-			Name: roleBindingNameMap[binding.RoleRef.Name],
+			Kind:     binding.RoleRef.Kind,
+			Name:     roleBindingNameMap[binding.RoleRef.Name],
 		},
 		Subjects: []rbacv1.Subject{
 			*binding.User,
@@ -100,8 +104,8 @@ func (c *BindingClient) Create(binding *Binding, userIdHeader string, userIdPref
 	istioServiceRoleBinding := &istiorbac.ServiceRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{USER: binding.User.Name, ROLE: binding.RoleRef.Name},
-			Name:      bindingName,
-			Namespace: binding.ReferredNamespace,
+			Name:        bindingName,
+			Namespace:   binding.ReferredNamespace,
 		},
 		Spec: istiorbac.ServiceRoleBindingSpec{
 			Subjects: []*istiorbac.Subject{
@@ -164,6 +168,7 @@ func (c *BindingClient) Delete(binding *Binding) error {
 }
 
 func (c *BindingClient) List(user string, namespaces []string, role string) (*BindingEntries, error) {
+
 	bindings := []Binding{}
 	for _, ns := range namespaces {
 		roleBindingList, err := c.kubeClient.RbacV1().RoleBindings(ns).List(metav1.ListOptions{})
@@ -190,18 +195,15 @@ func (c *BindingClient) List(user string, namespaces []string, role string) (*Bi
 					len(roleBinding.Subjects))
 			}
 			binding := Binding{
-				User:
-					&rbacv1.Subject{
-						Kind: roleBinding.Subjects[0].Kind,
-						Name: roleBinding.Subjects[0].Name,
-
-					},
-				ReferredNamespace: 	ns,
-				RoleRef:
-					&rbacv1.RoleRef{
-						Kind: roleBinding.RoleRef.Kind,
-						Name: roleBindingNameMap[roleBinding.RoleRef.Name],
-					},
+				User: &rbacv1.Subject{
+					Kind: roleBinding.Subjects[0].Kind,
+					Name: roleBinding.Subjects[0].Name,
+				},
+				ReferredNamespace: ns,
+				RoleRef: &rbacv1.RoleRef{
+					Kind: roleBinding.RoleRef.Kind,
+					Name: roleBindingNameMap[roleBinding.RoleRef.Name],
+				},
 			}
 			bindings = append(bindings, binding)
 		}
