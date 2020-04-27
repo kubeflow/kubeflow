@@ -83,10 +83,15 @@ app-drawer-layout[bleed] #MainDrawer {
     font-weight: 500;
     letter-spacing: 0.3px;
     line-height: 24px;
-    margin: .5em 0;
     transition: background .25s;
     --paper-item-icon-width: 36px;
 
+}
+
+#MainDrawer iron-icon {
+    margin-right: 20px;
+    height: 20px;
+    width: 20px;
 }
 
 #MainDrawer .divider {

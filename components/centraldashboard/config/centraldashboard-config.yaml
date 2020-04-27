@@ -9,11 +9,13 @@ data:
       "menuLinks": [
         {
           "link": "/pipeline/",
-          "text": "Pipelines"
+          "text": "Pipelines",
+          "icon": "kubeflow:pipeline-centered"
         },
         {
           "link": "/jupyter/",
-          "text": "Notebook Servers"
+          "text": "Notebook Servers",
+          "icon": "book"
         },
         {
           "link": "/katib/",

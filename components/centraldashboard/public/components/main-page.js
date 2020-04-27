@@ -221,7 +221,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         switch (newPage) {
         case 'logout':
             window.top.location.href = '/logout';
-            break;  
+            break;
         case 'activity':
             this.sidebarItemIndex = 0;
             this.page = 'activity';
