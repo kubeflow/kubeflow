@@ -64,7 +64,8 @@ export class VolumeComponent implements OnInit, OnDestroy {
       return true;
     }
 
-    if (
+    return this.volume.get('class').value === '{none}' &&
+      !this.defaultStorageClass
       this.volume.get('class').value === '{none}' &&
       !this.defaultStorageClass
     ) {
