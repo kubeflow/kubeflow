@@ -64,14 +64,9 @@ export class VolumeComponent implements OnInit, OnDestroy {
       return true;
     }
 
-    if (
-      this.volume.get('class').value === '{none}' &&
-      !this.defaultStorageClass
-    ) {
-      return true;
-    }
-
-    return false;
+    return (
+      this.volume.get('class').value === '{none}' && !this.defaultStorageClass
+    );
   }
 
   get currentVolName(): string {
@@ -86,11 +81,7 @@ export class VolumeComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    if (!this.defaultStorageClass) {
-      return true;
-    }
-
-    return false;
+    return !this.defaultStorageClass;
   }
 
   newTypeTooltip(): string {
