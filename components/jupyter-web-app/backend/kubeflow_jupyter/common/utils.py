@@ -3,11 +3,12 @@ import json
 import logging
 import os
 import sys
-
-import yaml
 from collections import defaultdict
+
 from flask import request
 from kubernetes import client
+
+import yaml
 
 from . import api
 
@@ -288,45 +289,59 @@ def process_status(rsrc, rsrc_events):
         return STATUS_WAITING, "Deleting Notebook Server"
 
     # Check the status
-    try:
-        s = rsrc["status"]["containerState"]
-    except KeyError:
-        s = ""
+    state = rsrc.get("status", {}).get("containerState", "")
+    readyReplicas = rsrc.get("status", {}).get("readyReplicas", 0)
 
     # Use conditions on the Jupyter notebook (i.e., s) to determine overall status
     # If no container state is available, we try to extract information about why
     # the notebook is not starting from the notebook's events (see find_error_event)
-    if "running" in s:
-        status, reason = STATUS_RUNNING, "Running"
-    elif "terminated" in s:
-        status, reason = STATUS_ERROR, "The Pod has Terminated"
-    else:
-        if "waiting" in s:
-            reason = s["waiting"]["reason"]
-            status = STATUS_ERROR if reason == "ImagePullBackOff" else STATUS_WAITING
-        else:
-            status, reason = STATUS_WAITING, "Scheduling the Pod"
-        # Provide the user with detailed information (if any) about why the notebook is not starting
-        status_event, reason_event = find_error_event(rsrc_events)
-        if status_event:
-            status, reason = status_event, reason_event
+    if readyReplicas == 1:
+        return STATUS_RUNNING, "Running"
+
+    if "terminated" in state:
+        return STATUS_ERROR, "The Pod has Terminated"
+
+    if "waiting" in state:
+        status = STATUS_WAITING
+        reason = state["waiting"]["reason"]
+
+        # make the icon a warning on some cases we know are errors
+        warning_states = set(["ImagePullBackOff"])
+        if reason in warning_states:
+            status = STATUS_WARNING
+
+        return status, reason
+
+    # Provide the user with detailed information (if any) about why the
+    # notebook is not starting
+    status, reason = STATUS_WAITING, "Scheduling the Pod"
+    status_event, reason_event = find_error_event(rsrc_events)
+    if status_event:
+        status, reason = status_event, reason_event
 
     return status, reason
 
 
 def find_error_event(rsrc_events):
-    '''
+    """
     Returns status and reason from the latest event that surfaces the cause
     of why the resource could not be created. For a Notebook, it can be due to:
 
-          EVENT_TYPE      EVENT_REASON      DESCRIPTION   
+          EVENT_TYPE      EVENT_REASON      DESCRIPTION
           Warning         FailedCreate      pods "x" is forbidden: error looking up service account ... (originated in statefulset)
           Warning         FailedScheduling  0/1 nodes are available: 1 Insufficient cpu (originated in pod)
 
-    '''
+    """
     for e in sorted(rsrc_events, key=event_timestamp, reverse=True):
         if e.type == EVENT_TYPE_WARNING:
-            return STATUS_WAITING, e.message
+            # remove the "Reissued from <pod/statefulset>:" suffix
+            msg = e.message
+            if "Reissued from" in msg:
+                msg_words_list = msg.split(":")
+                msg_words_list.pop(0)
+                msg = ":".join(msg_words_list)
+
+            return STATUS_WAITING, msg
     return None, None
 
 
@@ -529,7 +544,7 @@ def add_notebook_volume_secret(nb, secret, secret_name, mnt_path, mode):
 
     volume = {
         "name": secret,
-        "secret": {"defaultMode": mode, "secretName": secret_name, },
+        "secret": {"defaultMode": mode, "secretName": secret_name,},
     }
     spec["volumes"].append(volume)
 
