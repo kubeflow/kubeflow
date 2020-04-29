@@ -86,7 +86,7 @@ export class VolumeComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    if (!this.defaultStorageClass) {
+    return !this.defaultStorageClass
       return true;
     }
 
