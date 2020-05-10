@@ -57,7 +57,7 @@ RUN chown -R ${NB_USER}:users /usr/local/bin && \
 RUN pip install --no-cache-dir \
     seldon-core==1.0.2 \
     papermill[s3]==2.1.1 \
-    auto-sklearn==0.6.0 \
+    auto-sklearn==0.7.0 \
     featuretools==0.13.4 \
     git+https://github.com/platiagro/sdk.git@master \
     git+https://github.com/platiagro/notebook.git@platiagro \
