@@ -1,6 +1,6 @@
 # PlatIAgro notebook
 
-This Dockerfile builds an image that is derived from the latest [jupyter/base-notebook](https://jupyter-docker-stacks.readthedocs.io/en/latest/using/selecting.html#jupyter-base-notebook) but which is compatible for launching from the Kubeflow notebook controller.
+This Dockerfile builds an image that is derived from the latest [ubuntu](https://hub.docker.com/_/ubuntu/) but which is compatible for launching from the Kubeflow notebook controller.
 
 Important notes:
 * this notebook is not curated by the Kubeflow project and is not regularly tested
