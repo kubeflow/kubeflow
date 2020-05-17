@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/api/istiorbac/v1alpha1"
-
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
@@ -57,7 +56,7 @@ type BindingClient struct {
 
 //getBindingName returns bindingName, which is combination of user kind, username, RoleRef kind, RoleRef name.
 func getBindingName(binding *Binding) (string, error) {
-	// Only keep lower case letters, replace other with -
+	// Only keep lower case letters and numbers, replace other with -
 	reg, err := regexp.Compile("[^a-z0-9]+")
 	if err != nil {
 		return "", err
@@ -167,7 +166,6 @@ func (c *BindingClient) Delete(binding *Binding) error {
 }
 
 func (c *BindingClient) List(user string, namespaces []string, role string) (*BindingEntries, error) {
-
 	bindings := []Binding{}
 	for _, ns := range namespaces {
 		roleBindingList, err := c.kubeClient.RbacV1().RoleBindings(ns).List(metav1.ListOptions{})

@@ -11,7 +11,7 @@ func getBindingObject(binding string) *Binding {
 
 	return &Binding{
 		User: &rbacv1.Subject{
-			Kind: "user",
+			Kind: rbacv1.UserKind,
 			Name: binding,
 		},
 		RoleRef: &rbacv1.RoleRef{
@@ -20,19 +20,6 @@ func getBindingObject(binding string) *Binding {
 		},
 	}
 
-}
-
-//Table driven tests
-var tests = []struct {
-	in       *Binding
-	out      string
-	hasError bool
-}{
-	{getBindingObject("lalith.vaka@zq.msds.kp.org"), "user-lalith-vaka-zq-msds-kp-org-clusterrole-edit", false},
-	{getBindingObject("397401@zq.msds.kp.org"), "user-397401-zq-msds-kp-org-clusterrole-edit", false},
-	{getBindingObject("lalith.397401@zq.msds.kp.org"), "user-lalith-397401-zq-msds-kp-org-clusterrole-edit", false},
-	{getBindingObject("397401.vaka@zq.msds.kp.org"), "user-397401-vaka-zq-msds-kp-org-clusterrole-edit", false},
-	{getBindingObject("i397401@zq.msds.kp.org"), "user-i397401-zq-msds-kp-org-clusterrole-edit", false},
 }
 
 func TestGetBindingName(t *testing.T) {
@@ -44,27 +31,33 @@ func TestGetBindingName(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	*/
+
+	//Table driven tests
+	var tests = []struct {
+		in       *Binding
+		out      string
+		hasError bool
+	}{
+		{getBindingObject("lalith.vaka@zq.msds.kp.org"), "user-lalith-vaka-zq-msds-kp-org-clusterrole-edit", false},
+		{getBindingObject("397401@zq.msds.kp.org"), "user-397401-zq-msds-kp-org-clusterrole-edit", false},
+		{getBindingObject("lalith.397401@zq.msds.kp.org"), "user-lalith-397401-zq-msds-kp-org-clusterrole-edit", false},
+		{getBindingObject("397401.vaka@zq.msds.kp.org"), "user-397401-vaka-zq-msds-kp-org-clusterrole-edit", false},
+		{getBindingObject("i397401@zq.msds.kp.org"), "user-i397401-zq-msds-kp-org-clusterrole-edit", false},
+	}
+
 	//format := "--- %s: %s (%s)\n"
 	for _, tt := range tests {
-
-		s, error := getBindingName(tt.in)
-
+		s, errorReturned := getBindingName(tt.in)
 		if tt.hasError {
 			// expected an error
-			if error == nil {
+			if errorReturned == nil {
 				t.Errorf("got %q, want %q", tt.in, s)
-			} else {
-				//t.Logf("getBindingName() with args %v PASSED and got value '%v'", tt.in, error)
 			}
-
 		} else {
 			//expected a value
 			if s != tt.out {
 				t.Errorf("got %q, want %q", s, tt.out)
-			} else {
-				//t.Logf("getBindingName() with args %v PASSED and got value '%v'", tt.in, s)
 			}
 		}
 	}
