@@ -23,43 +23,39 @@ func getBindingObject(binding string) *Binding {
 }
 
 func TestGetBindingName(t *testing.T) {
-
-	/* Read the test data from a file if needed
-
-	// create a testdata folder under this package and add files as needed
-	file, err := os.Open("./testdata/file.go")
-	if err != nil {
-		log.Fatal(err)
-	}
-	*/
-
 	//Table driven tests
 	var tests = []struct {
+		name     string
 		in       *Binding
 		out      string
 		hasError bool
 	}{
-		{getBindingObject("lalith.vaka@zq.msds.kp.org"), "user-lalith-vaka-zq-msds-kp-org-clusterrole-edit", false},
-		{getBindingObject("397401@zq.msds.kp.org"), "user-397401-zq-msds-kp-org-clusterrole-edit", false},
-		{getBindingObject("lalith.397401@zq.msds.kp.org"), "user-lalith-397401-zq-msds-kp-org-clusterrole-edit", false},
-		{getBindingObject("397401.vaka@zq.msds.kp.org"), "user-397401-vaka-zq-msds-kp-org-clusterrole-edit", false},
-		{getBindingObject("i397401@zq.msds.kp.org"), "user-i397401-zq-msds-kp-org-clusterrole-edit", false},
+		{"letters", getBindingObject("lalith.vaka@zq.msds.kp.org"), "user-lalith-vaka-zq-msds-kp-org-clusterrole-edit", false},
+		{"numbers", getBindingObject("397401@zq.msds.kp.org"), "user-397401-zq-msds-kp-org-clusterrole-edit", false},
+		{"letters-numbers", getBindingObject("lalith.397401@zq.msds.kp.org"), "user-lalith-397401-zq-msds-kp-org-clusterrole-edit", false},
+		{"numbers-letters", getBindingObject("397401.vaka@zq.msds.kp.org"), "user-397401-vaka-zq-msds-kp-org-clusterrole-edit", false},
+		{"lettersnumbers", getBindingObject("i397401@zq.msds.kp.org"), "user-i397401-zq-msds-kp-org-clusterrole-edit", false},
 	}
 
 	//format := "--- %s: %s (%s)\n"
 	for _, tt := range tests {
-		s, errorReturned := getBindingName(tt.in)
-		if tt.hasError {
-			// expected an error
-			if errorReturned == nil {
-				t.Errorf("got %q, want %q", tt.in, s)
+		t.Run(tt.name, func(t *testing.T) {
+			s, errorReturned := getBindingName(tt.in)
+			if tt.hasError {
+				// expected an error
+				if errorReturned == nil {
+					t.Fatalf("Expected error but got none:  input: %q", tt.in)
+				}
+			} else {
+				//expected a value
+				if errorReturned != nil {
+					t.Fatalf("unExpected occured:  input: %q, errorReturned: %q", tt.in, errorReturned)
+				}
+				if s != tt.out {
+					t.Fatalf("Value different than expected: input: %q, output: %q", s, tt.out)
+				}
 			}
-		} else {
-			//expected a value
-			if s != tt.out {
-				t.Errorf("got %q, want %q", s, tt.out)
-			}
-		}
+		})
 	}
 
 }
