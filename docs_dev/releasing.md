@@ -83,8 +83,8 @@ Releaser needs to do the following to the components listed:
 ## List of Components
 
 - [Kubeflow](https://github.com/kubeflow/kubeflow)
-- [TfJob](https://github.com/kubeflow/tf-operator)
-- [PyTorch](https://github.com/kubeflow/pytorch-operator)
+- [TFJob](https://github.com/kubeflow/tf-operator)
+- [PyTorchJob](https://github.com/kubeflow/pytorch-operator)
 - [Katib](https://github.com/kubeflow/katib)
 - [CentralDashboard](https://github.com/kubeflow/kubeflow/tree/master/components/centraldashboard)
 - [ProfileController](https://github.com/kubeflow/kubeflow/tree/master/components/profile-controller)
@@ -105,20 +105,20 @@ If you aren't already working on a release branch (of the form `v${MAJOR}.${MINO
 * Most applications should be configured to be built continuously from their release branch
   and the relevant kustomize manifests to be updated ([docs](https://github.com/kubeflow/testing/tree/master/apps-cd))
 
-* Follow these steps
+* Follow the following steps:
 
-1. Add a `version` for the new release to [applications.yaml](https://github.com/kubeflow/testing/blob/master/apps-cd/applications.yaml)
+  1. Add a `version` for the new release to [applications.yaml](https://github.com/kubeflow/testing/blob/master/apps-cd/applications.yaml)
 
-1. Set the `version` for each repository to point to the release branch e.g. vX.Y for kubeflow/kubeflow
+  1. Set the `version` for each repository to point to the release branch e.g. vX.Y for kubeflow/kubeflow
 
-1. Set the tag associated with this version
+  1. Set the tag associated with this version
 
-1. Merge the PR. 
+  1. Merge the PR. 
 
-1. Once the PR is merged Tekton Pipelines will be submitted to automatically build the docker
+  1. Once the PR is merged Tekton Pipelines will be submitted to automatically build the docker
    images and open PRs to update the kustomzie manifests
 
-1. Approve the PRs updating the kustomize manifests to use the new images.
+  1. Approve the PRs updating the kustomize manifests to use the new images.
 
 ### Enable Periodic tests on the release branch
 
@@ -143,8 +143,8 @@ Create a release branch (when releasing major release) in [kubeflow/manifests](h
 ## Update Application Versions
 
 Update versions tag in descripter for all application:
-- [TfJob](https://github.com/kubeflow/manifests/blob/0fa9c0126f62392d1c27f31711e513b22ef28cbc/tf-training/tf-job-operator/overlays/application/application.yaml#L27)
-- [PyTorch](https://github.com/kubeflow/manifests/blob/0fa9c0126f62392d1c27f31711e513b22ef28cbc/pytorch-job/pytorch-operator/overlays/application/application.yaml#L27)
+- [TFJob](https://github.com/kubeflow/manifests/blob/0fa9c0126f62392d1c27f31711e513b22ef28cbc/tf-training/tf-job-operator/overlays/application/application.yaml#L27)
+- [PyTorchJob](https://github.com/kubeflow/manifests/blob/0fa9c0126f62392d1c27f31711e513b22ef28cbc/pytorch-job/pytorch-operator/overlays/application/application.yaml#L27)
 - [Application](https://github.com/kubeflow/manifests/blob/0fa9c0126f62392d1c27f31711e513b22ef28cbc/application/application/overlays/application/application.yaml#L16)
 - [CentralDashboard](https://github.com/kubeflow/manifests/blob/0fa9c0126f62392d1c27f31711e513b22ef28cbc/common/centraldashboard/overlays/application/application.yaml#L29)
 - [JupyterWebApp](https://github.com/kubeflow/manifests/blob/0fa9c0126f62392d1c27f31711e513b22ef28cbc/jupyter/jupyter-web-app/overlays/application/application.yaml#L29)
