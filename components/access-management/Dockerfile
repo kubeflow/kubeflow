@@ -5,7 +5,12 @@ WORKDIR /workspace
 
 COPY . .
 RUN go mod download
-RUN go build -gcflags 'all=-N -l' -o access-management main.go
+RUN if [ "$(uname -m)" = "aarch64" ]; then \
+        CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -gcflags 'all=-N -l' -o access-management main.go; \
+    else \
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -gcflags 'all=-N -l' -o access-management main.go; \
+    fi
+
 RUN chmod a+rx access-management
 
 # Use distroless as minimal base image to package the manager binary
