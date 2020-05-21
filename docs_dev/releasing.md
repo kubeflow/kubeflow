@@ -38,7 +38,7 @@ If you're new to using GKE or are new to the release team, you'll need to authen
 
 ```
 gcloud config set account your-account@yourdomain.org
-gcloud auth
+gcloud auth login
 ```
 
 This will open your browser to authenticate you.  Then you can proceed as follows:
