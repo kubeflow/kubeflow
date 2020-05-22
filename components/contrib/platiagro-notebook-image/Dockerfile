@@ -112,22 +112,21 @@ RUN conda install --quiet --yes 'tini=0.18.0' \
 # Do all this in a single RUN command to avoid duplicating all of the
 # files across image layers when the permissions change
 RUN conda install --quiet --yes \
-    'nodejs' \
+    'notebook=6.0.3' \
+    'jupyterhub=1.1.0' \
+    'jupyterlab=2.1.2' \
     'ipywidgets=7.5.*' \
     'widgetsnbextension=3.5.*' \
  && conda clean --all -f -y \
- && pip --no-cache-dir install \
-    git+https://github.com/platiagro/notebook.git@platiagro \
- && git clone -b platiagro https://github.com/platiagro/jupyterlab.git /tmp/jupyterlab \
- && cd /tmp/jupyterlab \
- && pip --no-cache-dir install -e . \
- && npm install \
     # Activate ipywidgets extension in the environment that runs the notebook server
  && jupyter nbextension enable --py widgetsnbextension --sys-prefix \
     # Also activate ipywidgets extension for JupyterLab
     # Check this URL for most recent compatibilities
     # https://github.com/jupyter-widgets/ipywidgets/tree/master/packages/jupyterlab-manager
  && jupyter labextension install @jupyter-widgets/jupyterlab-manager@^2.0.0 --no-build \
+    # Install PlatIAgro extension for JupyterLab
+ && pip --no-cache-dir install \
+    git+https://github.com/platiagro/jupyterlab-extension.git@feature/v1 \
  && jupyter lab build -y \
  && jupyter lab clean -y \
  && npm cache clean --force \
