@@ -115,7 +115,7 @@ class App extends React.Component<any, { signedIn: boolean }> {
                     <li> (Optional) Choose GKE zone where you want Kubeflow to be deployed </li>
                     <li> (Optional) Choose Kubeflow version </li>
                     <li> Click Create Deployment </li>
-                    <li> If your deployment include endpoint, will redirect once endpoint is ready </li>
+                    <li> If your deployment includes an endpoint, you will be redirected to the endpoint once it is ready </li>
                   </ul>
                 </div>
                 <div>
