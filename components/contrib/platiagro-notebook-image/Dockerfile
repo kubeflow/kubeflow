@@ -127,6 +127,10 @@ RUN conda install --quiet --yes \
     # Install PlatIAgro extension for JupyterLab
  && pip --no-cache-dir install \
     git+https://github.com/platiagro/jupyterlab-extension.git@feature/v1 \
+ && pip --no-cache-dir install \
+    jupyter-http-over-ws==0.0.8 \
+    # Activate jupyter_http_over_ws extension
+ && jupyter serverextension enable --py jupyter_http_over_ws \
  && jupyter lab build -y \
  && jupyter lab clean -y \
  && npm cache clean --force \
@@ -143,6 +147,8 @@ RUN conda install --quiet --yes \
 # - JupyterLab - web-based user interface for Project Jupyter
 # - Seldon Core - platform to deploy machine learning models
 # - Papermill - tool for parameterizing and executing Jupyter Notebooks
+# - Category Encoders - scikit-learn-style transformers
+# - imbalanced-learn - re-sampling techniques used in datasets showing between-class imbalance
 # - auto-sklearn - toolkit for automated machine learning
 # - Featuretools -  library for automated feature engineering
 # - Tensorflow - machine learning library
@@ -155,6 +161,8 @@ RUN curl -sSL https://raw.githubusercontent.com/automl/auto-sklearn/v.0.7.0/requ
  && pip install --no-cache-dir \
     seldon-core==1.0.2 \
     papermill[s3]==2.1.1 \
+    category-encoders==2.2.2 \
+    imbalanced-learn==0.6.2 \
     auto-sklearn==0.7.0 \
     featuretools==0.14.0 \
     tensorflow==2.2.0 \
