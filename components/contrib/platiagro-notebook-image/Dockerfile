@@ -184,9 +184,14 @@ USER root
 COPY upload-to-jupyter.sh /usr/local/bin/
 RUN chmod a+rx /usr/local/bin/upload-to-jupyter.sh
 
-USER $NB_UID
+# Unfortunately, Kubeflow pipelines mount volumes as root root (user group).
+# If we want to use this image in a ContainerOp where there are mount volumes,
+# the user must remain as root.
+# Kubeflow must add support to PodsecurityContext before we can change this.
+# https://github.com/kubeflow/pipelines/blob/master/sdk/python/kfp/components/structures/kubernetes/v1.py
+# USER $NB_UID
 
 EXPOSE 8888
 
 ENTRYPOINT ["tini", "--"]
-CMD ["sh", "-c", "jupyter lab --notebook-dir=/home/${NB_USER} --ip=0.0.0.0 --no-browser --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"]
+CMD ["sh", "-c", "jupyter lab --allow-root --notebook-dir=/home/${NB_USER} --ip=0.0.0.0 --no-browser --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"]
