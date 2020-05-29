@@ -395,7 +395,7 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 
 	istioGateway := os.Getenv("ISTIO_GATEWAY")
 	if len(istioGateway) == 0 {
-		istioGateway = "kubeflow/kubeflow-gateway"
+		istioGateway = "istio-system/kubeflow-gateway"
 	}
 	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{istioGateway},
 		"spec", "gateways"); err != nil {
@@ -486,7 +486,7 @@ func nbNameFromInvolvedObject(c client.Client, object *v1.ObjectReference) (stri
 		pod := &corev1.Pod{}
 		err := c.Get(
 			context.TODO(),
-			types.NamespacedName {
+			types.NamespacedName{
 				Namespace: namespace,
 				Name:      name,
 			},

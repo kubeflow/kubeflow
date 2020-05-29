@@ -23,7 +23,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/gogo/protobuf/proto"
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/api/core/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
@@ -239,7 +238,7 @@ func generateVirtualService(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.
 	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"*"}, "spec", "hosts"); err != nil {
 		return nil, fmt.Errorf("Set .spec.hosts error: %v", err)
 	}
-	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"kubeflow/kubeflow-gateway"},
+	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"istio-system/kubeflow-gateway"},
 		"spec", "gateways"); err != nil {
 		return nil, fmt.Errorf("Set .spec.gateways error: %v", err)
 	}
