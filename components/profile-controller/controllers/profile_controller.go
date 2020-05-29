@@ -65,6 +65,7 @@ const (
 var kubeflowNamespaceLabels = map[string]string{
 	"katib-metricscollector-injection":      "enabled",
 	"serving.kubeflow.org/inferenceservice": "enabled",
+	"app.kubernetes.io/part-of":             "kubeflow-profile",
 }
 
 const DEFAULT_EDITOR = "default-editor"
