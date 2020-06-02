@@ -1,21 +1,21 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
-import { FormGroup } from "@angular/forms";
-import { NamespaceService } from "../services/namespace.service";
-import { KubernetesService } from "../services/kubernetes.service";
-import { Router } from "@angular/router";
-import { catchError } from "rxjs/operators";
-import { Subscription, of } from "rxjs";
-import { Volume, Config, SnackType } from "../utils/types";
-import { SnackBarService } from "../services/snack-bar.service";
-import { getFormDefaults, initFormControls } from "../utils/common";
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormGroup } from '@angular/forms';
+import { NamespaceService } from '../services/namespace.service';
+import { KubernetesService } from '../services/kubernetes.service';
+import { Router } from '@angular/router';
+import { catchError } from 'rxjs/operators';
+import { Subscription, of } from 'rxjs';
+import { Volume, Config, SnackType } from '../utils/types';
+import { SnackBarService } from '../services/snack-bar.service';
+import { getFormDefaults, initFormControls } from '../utils/common';
 
 @Component({
-  selector: "app-resource-form",
-  templateUrl: "./resource-form.component.html",
-  styleUrls: ["./resource-form.component.scss"]
+  selector: 'app-resource-form',
+  templateUrl: './resource-form.component.html',
+  styleUrls: ['./resource-form.component.scss'],
 })
 export class ResourceFormComponent implements OnInit, OnDestroy {
-  currNamespace = "";
+  currNamespace = '';
   formCtrl: FormGroup;
   config: Config;
 
@@ -30,7 +30,7 @@ export class ResourceFormComponent implements OnInit, OnDestroy {
     private namespaceService: NamespaceService,
     private k8s: KubernetesService,
     private router: Router,
-    private popup: SnackBarService
+    private popup: SnackBarService,
   ) {}
 
   ngOnInit() {
@@ -58,19 +58,13 @@ export class ResourceFormComponent implements OnInit, OnDestroy {
         this.k8s.getVolumes(namespace).subscribe(pvcs => {
           this.pvcs = pvcs;
         });
-      })
+      }),
     );
 
     // Check if a default StorageClass is set
     this.k8s.getDefaultStorageClass().subscribe(defaultClass => {
       if (defaultClass.length === 0) {
         this.defaultStorageclass = false;
-        this.popup.show(
-          "No default Storage Class is set. Can't create new Disks for the " +
-            "new Notebook. Please use an Existing Disk.",
-          SnackType.Warning,
-          0
-        );
       } else {
         this.defaultStorageclass = true;
       }
@@ -85,11 +79,11 @@ export class ResourceFormComponent implements OnInit, OnDestroy {
   public onSubmit() {
     this.k8s
       .postResource(this.formCtrl.value)
-      .pipe(catchError(_ => of("failed")))
+      .pipe(catchError(_ => of('failed')))
       .subscribe(resp => {
-        if (resp === "posted") {
-          this.router.navigate(["/"]);
-        } else if (resp === "failed") {
+        if (resp === 'posted') {
+          this.router.navigate(['/']);
+        } else if (resp === 'failed') {
           // The Notebook wasn't created, but its volumes might have been created
           this.k8s.getVolumes(this.currNamespace).subscribe(pvcs => {
             this.pvcs = pvcs;
