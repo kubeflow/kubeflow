@@ -152,6 +152,7 @@ RUN conda install --quiet --yes \
 # - auto-sklearn - toolkit for automated machine learning
 # - Featuretools -  library for automated feature engineering
 # - Tensorflow - machine learning library
+# - NetworkX - creates and manipulates graphs and networks
 # - Platiagro SDK - helper functions to build components
 # - PyTorch - machine learning library
 # - PyTorch Lightning - lightweight PyTorch wrapper for ML researchers
@@ -166,6 +167,7 @@ RUN curl -sSL https://raw.githubusercontent.com/automl/auto-sklearn/v.0.7.0/requ
     auto-sklearn==0.7.0 \
     featuretools==0.14.0 \
     tensorflow==2.2.0 \
+    networkx==2.4 \
     git+https://github.com/platiagro/sdk.git@master \
  && pip install --no-cache-dir \
     -f https://download.pytorch.org/whl/torch_stable.html \
