@@ -20,7 +20,7 @@
     <mat-label>Image</mat-label>
     <mat-select placeholder="Docker Image" formControlName="image">
       <mat-option *ngFor="let img of images" [value]="img">
-        {{ img }}
+        {{ imageDisplayName(img) }}
       </mat-option>
     </mat-select>
   </mat-form-field>
