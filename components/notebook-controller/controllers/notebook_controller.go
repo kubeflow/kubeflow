@@ -28,7 +28,6 @@ import (
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/metrics"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -84,7 +83,7 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("notebook", req.NamespacedName)
 
 	// TODO(yanniszark): Can we avoid reconciling Events and Notebook in the same queue?
-	event := &v1.Event{}
+	event := &corev1.Event{}
 	var getEventErr error
 	getEventErr = r.Get(ctx, req.NamespacedName, event)
 	if getEventErr == nil {
@@ -472,11 +471,11 @@ func (r *NotebookReconciler) reconcileVirtualService(instance *v1beta1.Notebook)
 	return nil
 }
 
-func isStsOrPodEvent(event *v1.Event) bool {
+func isStsOrPodEvent(event *corev1.Event) bool {
 	return event.InvolvedObject.Kind == "Pod" || event.InvolvedObject.Kind == "StatefulSet"
 }
 
-func nbNameFromInvolvedObject(c client.Client, object *v1.ObjectReference) (string, error) {
+func nbNameFromInvolvedObject(c client.Client, object *corev1.ObjectReference) (string, error) {
 	name, namespace := object.Name, object.Namespace
 
 	if object.Kind == "StatefulSet" {
@@ -568,7 +567,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	eventsPredicates := predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
-			event := e.ObjectNew.(*v1.Event)
+			event := e.ObjectNew.(*corev1.Event)
 			nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
 			if err != nil {
 				return false
@@ -578,7 +577,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 				nbNameExists(r.Client, nbName, e.MetaNew.GetNamespace())
 		},
 		CreateFunc: func(e event.CreateEvent) bool {
-			event := e.Object.(*v1.Event)
+			event := e.Object.(*corev1.Event)
 			nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
 			if err != nil {
 				return false
@@ -598,7 +597,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	if err = c.Watch(
-		&source.Kind{Type: &v1.Event{}},
+		&source.Kind{Type: &corev1.Event{}},
 		&handler.EnqueueRequestsFromMapFunc{
 			ToRequests: eventToRequest,
 		},
