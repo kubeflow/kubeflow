@@ -127,40 +127,39 @@ func (r *TensorboardReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger) *appsv1.Deployment {
-	volumeMounts := []corev1.VolumeMount{
-		{
+	var volumeMounts []corev1.VolumeMount
+	var volumes []corev1.Volume
+
+	//In this case, a PVC is used as a log storage for the Tensorboard server
+	if !isCloudPath(tb.Spec.LogsPath) {
+		volumeMounts = append(volumeMounts, corev1.VolumeMount{
+			Name:      "tbpd",
+			ReadOnly:  true,
+			MountPath: tb.Spec.LogsPath,
+		})
+		volumes = append(volumes, corev1.Volume{
+			Name: "tbpd",
+			VolumeSource: corev1.VolumeSource{
+				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+					ClaimName: "tb-volume",
+				},
+			},
+		})
+	} else if isGoogleCloudPath(tb.Spec.LogsPath) {
+		//In this case, a Google cloud bucket is used as a log storage for the Tensorboard server
+		volumeMounts = append(volumeMounts, corev1.VolumeMount{
 			Name:      "gcp-creds",
 			ReadOnly:  true,
 			MountPath: "/secret/gcp",
-		},
-	}
-	volumes := []corev1.Volume{
-		{
+		})
+		volumes = append(volumes, corev1.Volume{
 			Name: "gcp-creds",
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "user-gcp-sa",
 				},
 			},
-		},
-	}
-	// pvc is required for training metrics if logspath is a local directly(rather than cloudpath)
-	if !isCloudPath(tb.Spec.LogsPath) {
-		volumeMounts = append(volumeMounts,
-			corev1.VolumeMount{
-				Name:      "tbpd",
-				ReadOnly:  true,
-				MountPath: tb.Spec.LogsPath,
-			})
-		volumes = append(volumes,
-			corev1.Volume{
-				Name: "tbpd",
-				VolumeSource: corev1.VolumeSource{
-					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-						ClaimName: "tb-volume",
-					},
-				},
-			})
+		})
 	}
 
 	return &appsv1.Deployment{
@@ -276,5 +275,9 @@ func generateVirtualService(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.
 }
 
 func isCloudPath(path string) bool {
-	return strings.HasPrefix(path, "gs://") || strings.HasPrefix(path, "s3://") || strings.HasPrefix(path, "/cns/")
+	return isGoogleCloudPath(path) || strings.HasPrefix(path, "s3://") || strings.HasPrefix(path, "/cns/")
+}
+
+func isGoogleCloudPath(path string) bool {
+	return strings.HasPrefix(path, "gs://")
 }
