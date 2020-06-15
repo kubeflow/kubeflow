@@ -8,6 +8,8 @@
         [parentForm]="formCtrl"
         [images]="config?.image?.options"
         [readonly]="config?.image?.readOnly"
+        [hideRegistry]="config?.image?.hideRegistry"
+        [hideVersion]="config?.image?.hideVersion"
       ></app-form-image>
 
       <app-form-specs [parentForm]="formCtrl"></app-form-specs>
