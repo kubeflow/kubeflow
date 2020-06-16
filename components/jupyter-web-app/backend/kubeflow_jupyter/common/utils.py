@@ -263,6 +263,19 @@ def process_resource(rsrc, rsrc_events):
     # VAR: change this function according to the main resource
     cntr = rsrc["spec"]["template"]["spec"]["containers"][0]
     status, reason = process_status(rsrc, rsrc_events)
+    
+    # GPUs may not have been assigned to a pod 
+    gpu = 0
+    gpuvendor = 'nvidia'
+    try:
+        gpu = cntr["resources"]["limits"]["nvidia.com/gpu"]
+    except KeyError:
+        try:
+            gpu = cntr["resources"]["limits"]["amd.com/gpu"]
+            gpuvendor = 'amd'
+        except KeyError:
+            gpu = 0
+            gpuvendor = ''
 
     res = {
         "name": rsrc["metadata"]["name"],
@@ -271,6 +284,8 @@ def process_resource(rsrc, rsrc_events):
         "image": cntr["image"],
         "shortImage": cntr["image"].split("/")[-1],
         "cpu": cntr["resources"]["requests"]["cpu"],
+        "gpu": gpu,
+        "gpuvendor": gpuvendor,
         "memory": cntr["resources"]["requests"]["memory"],
         "volumes": [v["name"] for v in cntr["volumeMounts"]],
         "status": status,
