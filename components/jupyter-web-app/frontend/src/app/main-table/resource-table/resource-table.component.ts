@@ -31,6 +31,7 @@ export class ResourceTableComponent implements OnInit {
     "name",
     "age",
     "image",
+    "gpu",
     "cpu",
     "memory",
     "volumes",
