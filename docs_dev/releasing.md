@@ -19,9 +19,9 @@
   - [Add new KfDef for the Release](#add-new-kfdef-for-the-release)
   - [Build and Upload KFCTL Binaries](#build-and-upload-kfctl-binaries)
 - [Version the website](#version-the-website)
-  - [Lifcycle](#lifcycle)
+  - [Lifecycle](#lifecycle)
   - [Updating version numbers etc for the upcoming release (major, minor, or patch)](#updating-version-numbers-etc-for-the-upcoming-release-major-minor-or-patch)
-  - [Creating and publishing a website branch for v.X.Y](#creating-and-publishing-a-website-branch-for-vxy)
+  - [Creating and publishing a website branch for vX.Y](#creating-and-publishing-a-website-branch-for-vxy)
   - [Archiving docs](#archiving-docs)
   - [Changing the version `www.kubeflow.org` points to](#changing-the-version-wwwkubefloworg-points-to)
   - [Some notes about Kubeflow's Netlify Setup](#some-notes-about-kubeflows-netlify-setup)
@@ -174,6 +174,10 @@ On the **vX.Y-branch** branch
 
 You can use the [CLI github-release](https://github.com/aktau/github-release) to automate uploading artifacts.
 Alternatively you can use the UI.
+
+Note: While the kubeflow-operator is built from the kfctl repo, the image is currently not part of the
+release process.  It will be manually built and pushed after the release is out.  There are plans to integrate
+this into the release process at some point in the future.
 
 1. Get aktau/github-release
 
