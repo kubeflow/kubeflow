@@ -23,7 +23,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/gogo/protobuf/proto"
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/api/core/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
@@ -128,40 +127,39 @@ func (r *TensorboardReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger) *appsv1.Deployment {
-	volumeMounts := []v1.VolumeMount{
-		{
+	var volumeMounts []corev1.VolumeMount
+	var volumes []corev1.Volume
+
+	//In this case, a PVC is used as a log storage for the Tensorboard server
+	if !isCloudPath(tb.Spec.LogsPath) {
+		volumeMounts = append(volumeMounts, corev1.VolumeMount{
+			Name:      "tbpd",
+			ReadOnly:  true,
+			MountPath: tb.Spec.LogsPath,
+		})
+		volumes = append(volumes, corev1.Volume{
+			Name: "tbpd",
+			VolumeSource: corev1.VolumeSource{
+				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+					ClaimName: "tb-volume",
+				},
+			},
+		})
+	} else if isGoogleCloudPath(tb.Spec.LogsPath) {
+		//In this case, a Google cloud bucket is used as a log storage for the Tensorboard server
+		volumeMounts = append(volumeMounts, corev1.VolumeMount{
 			Name:      "gcp-creds",
 			ReadOnly:  true,
 			MountPath: "/secret/gcp",
-		},
-	}
-	volumes := []v1.Volume{
-		{
+		})
+		volumes = append(volumes, corev1.Volume{
 			Name: "gcp-creds",
-			VolumeSource: v1.VolumeSource{
-				Secret: &v1.SecretVolumeSource{
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
 					SecretName: "user-gcp-sa",
 				},
 			},
-		},
-	}
-	// pvc is required for training metrics if logspath is a local directly(rather than cloudpath)
-	if !isCloudPath(tb.Spec.LogsPath) {
-		volumeMounts = append(volumeMounts,
-			v1.VolumeMount{
-				Name:      "tbpd",
-				ReadOnly:  true,
-				MountPath: tb.Spec.LogsPath,
-			})
-		volumes = append(volumes,
-			v1.Volume{
-				Name: "tbpd",
-				VolumeSource: v1.VolumeSource{
-					PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
-						ClaimName: "tb-volume",
-					},
-				},
-			})
+		})
 	}
 
 	return &appsv1.Deployment{
@@ -176,13 +174,13 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger) *a
 					"app": tb.Name,
 				},
 			},
-			Template: v1.PodTemplateSpec{
+			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{"app": tb.Name},
 				},
-				Spec: v1.PodSpec{
-					RestartPolicy: v1.RestartPolicyAlways,
-					Containers: []v1.Container{
+				Spec: corev1.PodSpec{
+					RestartPolicy: corev1.RestartPolicyAlways,
+					Containers: []corev1.Container{
 						{
 							Name:            "tensorboard",
 							Image:           "tensorflow/tensorflow:1.8.0",
@@ -192,7 +190,7 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger) *a
 								"--logdir=" + tb.Spec.LogsPath, //example: "--logdir=gs://tf_mnist_writebycode1/mnist_tutorial/",
 								"--port=6006",
 							},
-							Ports: []v1.ContainerPort{
+							Ports: []corev1.ContainerPort{
 								{
 									ContainerPort: 6006,
 								},
@@ -277,5 +275,9 @@ func generateVirtualService(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.
 }
 
 func isCloudPath(path string) bool {
-	return strings.HasPrefix(path, "gs://") || strings.HasPrefix(path, "s3://") || strings.HasPrefix(path, "/cns/")
+	return isGoogleCloudPath(path) || strings.HasPrefix(path, "s3://") || strings.HasPrefix(path, "/cns/")
+}
+
+func isGoogleCloudPath(path string) bool {
+	return strings.HasPrefix(path, "gs://")
 }
