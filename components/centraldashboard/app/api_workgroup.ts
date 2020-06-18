@@ -27,6 +27,7 @@ interface HasWorkgroupResponse {
     user: string;
     hasAuth: boolean;
     hasWorkgroup: boolean;
+    namespaceCreation: boolean;
 }
 
 interface EnvironmentInfo {
@@ -116,7 +117,8 @@ export class WorkgroupApi {
     private platformInfo: PlatformInfo;
     constructor(
         private profilesService: DefaultApi,
-        private k8sService: KubernetesService) {}
+        private k8sService: KubernetesService,
+        private namespaceCreation: boolean) {}
     /** Retrieves and memoizes the PlatformInfo. */
     private async getPlatformInfo(): Promise<PlatformInfo> {
         if (!this.platformInfo) {
@@ -250,6 +252,7 @@ export class WorkgroupApi {
                     hasAuth: req.user.hasAuth,
                     user: req.user.username,
                     hasWorkgroup: false,
+                    namespaceCreation: this.namespaceCreation,
                 };
                 if (req.user.hasAuth) {
                     const workgroup = await this.getWorkgroupInfo(
