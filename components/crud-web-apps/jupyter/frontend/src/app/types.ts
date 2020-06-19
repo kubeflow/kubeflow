@@ -163,6 +163,8 @@ export interface Config {
   imagePullPolicy?: {
     value: string;
     readOnly?: boolean;
+    hideRegistry?: boolean;
+    hideVersion?: boolean;
   };
 
   cpu?: {
