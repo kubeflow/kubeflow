@@ -114,6 +114,8 @@ export interface Config {
     value: string;
     options: string[];
     readOnly?: boolean;
+    hideRegistry?: boolean;
+    hideVersion?: boolean;
   };
 
   cpu?: {
