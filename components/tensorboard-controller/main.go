@@ -1,11 +1,8 @@
 /*
-
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,9 +17,8 @@ import (
 	"os"
 
 	tensorboardv1alpha1 "github.com/kubeflow/kubeflow/components/tensorboard-controller/api/v1alpha1"
-
 	"github.com/kubeflow/kubeflow/components/tensorboard-controller/controllers"
-
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -61,6 +57,27 @@ func main() {
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
+		os.Exit(1)
+	}
+
+	cache := mgr.GetCache()
+
+	//This Indexer Function returns a list of the raw ClaimName values of
+	//the PersistentVolumeClaims that are mounted by a Pod
+	pvcIndexFunc := func(o runtime.Object) []string {
+		var res []string
+		for _, vol := range o.(*corev1.Pod).Spec.Volumes {
+			if vol.PersistentVolumeClaim == nil {
+				continue
+			}
+			res = append(res, vol.PersistentVolumeClaim.ClaimName)
+		}
+		return res
+	}
+
+	//This is a custom Field Indexer for the "pod.spec.volumes.persistentvolumeclaim.claimname" field
+	if err := cache.IndexField(&corev1.Pod{}, "spec.volumes.persistentvolumeclaim.claimname", pvcIndexFunc); err != nil {
+		setupLog.Error(err, "unable to index pod.spec.volumes.persistentvolumeclaim.claimname field")
 		os.Exit(1)
 	}
 
