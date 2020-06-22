@@ -19,13 +19,13 @@ on:
 # Environment variables available to all jobs and steps in this workflow
 env:
   REGISTRY_NAME: k8scc01covidacr
-  CLUSTER_NAME: k8s-cancentral-01-covid-aks
+  CLUSTER_NAME: k8s-cancentral-02-covid-aks
   CLUSTER_RESOURCE_GROUP: k8s-cancentral-01-covid-aks
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@stc-master
+    - uses: actions/checkout@master
 
     # Connect to Azure Container registry (ACR)
     - uses: azure/docker-login@v1
