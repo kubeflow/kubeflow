@@ -45,7 +45,7 @@ jobs:
     # Container build and push to a Azure Container registry (ACR)
     - run: |
         # Jupyter Web App
-        docker build -f components/jupyter-web-app/Dockerfile -t ${{ env.REGISTRY_NAME }}.azurecr.io/jupyter-web-app:${{ github.sha }} .
+        docker build -f components/jupyter-web-app/Dockerfile -t ${{ env.REGISTRY_NAME }}.azurecr.io/jupyter-web-app:${{ github.sha }} components/jupyter-web-app
         docker push ${{ env.REGISTRY_NAME }}.azurecr.io/jupyter-web-app:${{ github.sha }}
         docker tag ${{ env.REGISTRY_NAME }}.azurecr.io/jupyter-web-app:${{ github.sha }} ${{ env.REGISTRY_NAME }}.azurecr.io/jupyter-web-app:${GITHUB_REF#refs/*/}
         docker push ${{ env.REGISTRY_NAME }}.azurecr.io/jupyter-web-app:${GITHUB_REF#refs/*/}
