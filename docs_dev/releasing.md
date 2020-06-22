@@ -399,6 +399,9 @@ When the website branch exists for the previous version of the docs (vX.X) and w
 1. In netlify select Build & Deploy -> Deploy Contexts
 1. Click Edit Settings
 1. Change the production branch to the branch to surface
+1. Redeploy both branches
+
+   * You can trigger a redeploy by pushing commits to the branches
 
 ## Some notes about Kubeflow's Netlify Setup
 
