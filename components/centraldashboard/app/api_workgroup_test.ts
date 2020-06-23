@@ -20,6 +20,7 @@ describe('Workgroup API', () => {
     };
     const attachUserGCPMiddleware = attachUser(header.goog, prefix.goog);
     const attachUserOtherIAPMiddleware = attachUser(header.other, prefix.other);
+    const registrationFlowAllowed = true;
     let mockK8sService: jasmine.SpyObj<KubernetesService>;
     let mockProfilesService: jasmine.SpyObj<DefaultApi>;
     let testApp: express.Application;
@@ -27,6 +28,7 @@ describe('Workgroup API', () => {
     const newAPI = () => new WorkgroupApi(
         mockProfilesService,
         mockK8sService,
+        registrationFlowAllowed,
     );
 
     describe('Environment Information', () => {
@@ -223,7 +225,8 @@ describe('Workgroup API', () => {
                         bindings: []
                     },
                 }));
-            const expectedResponse = {hasAuth: false, hasWorkgroup: false, user: 'anonymous'};
+            const expectedResponse = {hasAuth: false, hasWorkgroup: false, 
+                user: 'anonymous', registrationFlowAllowed: true};
 
             const response = await sendTestRequest(url);
             expect(response).toEqual(expectedResponse);
@@ -248,7 +251,8 @@ describe('Workgroup API', () => {
                         },
                     }));
 
-                const expectedResponse = {hasAuth: true, hasWorkgroup: true, user: 'test'};
+                const expectedResponse = {hasAuth: true, hasWorkgroup: true, 
+                    user: 'test', registrationFlowAllowed: true};
 
                 const headers = {
                     [header.goog]: `${prefix.goog}test@testdomain.com`,
@@ -271,7 +275,8 @@ describe('Workgroup API', () => {
                     body: {bindings: []},
                 }));
 
-            const expectedResponse = {hasAuth: true, hasWorkgroup: false, user: 'test'};
+            const expectedResponse = {hasAuth: true, hasWorkgroup: false, 
+                user: 'test', registrationFlowAllowed: true};
 
             const headers = {
                 [header.goog]: `${prefix.goog}test@testdomain.com`,
