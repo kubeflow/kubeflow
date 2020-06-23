@@ -66,9 +66,9 @@ export class VolumeComponent implements OnInit, OnDestroy {
 // ----- onChange of the New / Existing Volume -----
   selectType(event): void {
     this.typeSelected = event.value;
-    if (this.typeSelected === 'New') {
-      this.volume.controls.name.setValue(this.currentVolName);
-    }
+    if (this.typeSelected != 'New') return;
+    this.volume.controls.name.setValue(this.currentVolName);
+    
   }
 
   // ----- Get macros -----
