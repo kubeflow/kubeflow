@@ -182,6 +182,7 @@ describe('Main Page', () => {
             user,
             hasWorkgroup: false,
             hasAuth: false,
+            registrationFlowAllowed: true,
         };
         const getHasWorkgroup = mockRequest(mainPage, {
             status: 200,
