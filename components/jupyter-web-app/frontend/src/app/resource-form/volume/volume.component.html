@@ -7,7 +7,7 @@
         <mat-option *ngFor="let i of types"
         [disabled]="newTypeIsDisabled()"
         [matTooltip]="newTypeTooltip()"
-        value={{i}}>{{i}}</mat-option>
+        value="{{i}}">{{i}}</mat-option>
       </mat-select>
     </mat-form-field>
   
@@ -21,7 +21,7 @@
       <mat-label>Name</mat-label>
       <mat-select formControlName="name">
         <mat-option *ngFor="let i of existingPVCs"
-          value={{i}}>{{i}}</mat-option>
+          value="{{i}}">{{i}}</mat-option>
       </mat-select>
     </mat-form-field>
 
