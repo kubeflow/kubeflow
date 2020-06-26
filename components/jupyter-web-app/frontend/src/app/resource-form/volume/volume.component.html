@@ -10,7 +10,10 @@
   <!-- Volume Name Input -->
   <mat-form-field appearance="outline" id="name">
     <mat-label>Name</mat-label>
-    <input matInput formControlName="name" />
+    <input matInput formControlName="name" *ngIf="volume.value.type == 'New'" />
+    <mat-select formControlName="name" *ngIf="volume.value.type == 'Existing'">
+      <mat-option *ngFor="let pvc of existingPVCs" [value]="pvc">{{ pvc }}</mat-option>
+    </mat-select>
   </mat-form-field>
 
   <!-- Size Input -->
@@ -24,8 +27,6 @@
     <mat-label>Mode</mat-label>
     <mat-select formControlName="mode">
       <mat-option value="ReadWriteOnce">ReadWriteOnce</mat-option>
-      <mat-option value="ReadOnlyMany">ReadOnlyMany</mat-option>
-      <mat-option value="ReadWriteMany">ReadWriteMany</mat-option>
     </mat-select>
   </mat-form-field>
 
