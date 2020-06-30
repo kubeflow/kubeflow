@@ -259,10 +259,7 @@ def process_pvc(rsrc):
     return res
 
 
-def process_resource(rsrc, rsrc_events):
-    # VAR: change this function according to the main resource
-    cntr = rsrc["spec"]["template"]["spec"]["containers"][0]
-    status, reason = process_status(rsrc, rsrc_events)
+def process_gpu(cntr):
     
     # GPUs may not have been assigned to a pod 
     gpu = 0
@@ -277,6 +274,15 @@ def process_resource(rsrc, rsrc_events):
             gpu = 0
             gpuvendor = ''
 
+    return gpu, gpuvendor
+    
+
+def process_resource(rsrc, rsrc_events):
+    # VAR: change this function according to the main resource
+    cntr = rsrc["spec"]["template"]["spec"]["containers"][0]
+    status, reason = process_status(rsrc, rsrc_events)
+    gpu, gpuvendor = process_gpu(cntr)
+   
     res = {
         "name": rsrc["metadata"]["name"],
         "namespace": rsrc["metadata"]["namespace"],
