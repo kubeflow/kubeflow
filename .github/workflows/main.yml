@@ -22,7 +22,7 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
         registry: registry.hub.docker.com
         repository: platiagro/platiagro-notebook-image
-        tags: 0.0.2
+        tags: 0.1.0
     - uses: actions/checkout@v2
       with:
         repository: platiagro/pipelines
@@ -34,4 +34,4 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
         registry: registry.hub.docker.com
         repository: platiagro/platiagro-deployment-image
-        tags: 0.0.2
+        tags: 0.1.0
