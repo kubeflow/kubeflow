@@ -402,10 +402,10 @@ def ks_deploy(app_dir,
 
   logging.info("Using app directory: %s", app_dir)
 
-  if not namespace:
-    util.run([ks, "env", "add", env], cwd=app_dir)
-  else:
-    util.run([ks, "env", "add", env, "--namespace=" + namespace], cwd=app_dir)
+  cmd = [ks, "env", "add", env]
+  if namespace:
+    cmd.append("--namespace=" + namespace)
+  util.run(cmd, cwd=app_dir)
 
   for k, v in params.iteritems():
     util.run([ks, "param", "set", "--env=" + env, component, k, v],
