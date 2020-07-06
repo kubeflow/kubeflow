@@ -495,9 +495,7 @@ def deploy_minikube(args):
       logging.error(
           "Either the VM or the disk %s already exists in zone "
           "%s in project %s ", args.vm_name, args.zone, args.project)
-      raise
-    else:
-      raise
+    raise
 
   op_id = response.get("name")
   final_op = vm_util.wait_for_operation(gce, args.project, args.zone, op_id)
