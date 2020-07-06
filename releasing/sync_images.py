@@ -24,13 +24,13 @@ import subprocess
 def normalize_repo(repo):
   repo_names = repo.split('/', 3)
   if len(repo_names) == 1:
-    repo_names = ['docker.io', 'library', repo_names[0]]
+    return ['docker.io', 'library', repo_names[0]]
   if len(repo_names) == 2:
-    repo_names = ['docker.io', repo_names[0], repo_names[1]]
+    return ['docker.io', repo_names[0], repo_names[1]]
   if len(repo_names) == 4:
     # gcr.io/kubeflow-images-public/katib/tfevent-metrics-collector:v0.4.0
     # -> gcr.io/katib/tfevent-metrics-collector:v0.4.0
-    repo_names = [repo_names[0], repo_names[2], repo_names[3]]
+    return [repo_names[0], repo_names[2], repo_names[3]]
   return repo_names
 
 
