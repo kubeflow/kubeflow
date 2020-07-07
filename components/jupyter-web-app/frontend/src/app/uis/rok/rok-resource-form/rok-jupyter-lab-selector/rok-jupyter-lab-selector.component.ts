@@ -47,7 +47,7 @@ export class RokJupyterLabSelectorComponent implements OnInit {
   }
 
   setLabValues(lab: JupyterLab) {
-    this.parentForm.get("customImage").setValue(lab.image);
+    this.parentForm.get("customImage").setValue(lab.image.trim());
     this.parentForm.get("customImageCheck").setValue(true);
     this.parentForm.get("cpu").setValue(lab.cpu);
     this.parentForm.get("memory").setValue(lab.memory);
