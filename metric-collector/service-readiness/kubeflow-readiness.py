@@ -29,12 +29,9 @@ def metric_update(args, google_open_id_connect_token):
       headers={
           'Authorization': 'Bearer {}'.format(google_open_id_connect_token)
       })
-  if resp.status_code == 200:
-    KUBEFLOW_AVAILABILITY.set(1)
-    return 1
-  else:
-    KUBEFLOW_AVAILABILITY.set(0)
-    return 0
+  v = 1 if resp.status_code == 200 else 0
+  KUBEFLOW_AVAILABILITY.set(v)
+  return v
 
 
 def main(unparsed_args=None):
