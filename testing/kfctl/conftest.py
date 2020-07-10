@@ -84,8 +84,7 @@ def build_and_apply(request):
 
   if value in ["t", "true"]:
     return True
-  else:
-    return False
+  return False
 
 
 @pytest.fixture
@@ -94,8 +93,7 @@ def use_basic_auth(request):
 
   if value in ["t", "true"]:
     return True
-  else:
-    return False
+  return False
 
 @pytest.fixture
 def use_istio(request):
@@ -103,5 +101,4 @@ def use_istio(request):
 
   if value in ["t", "true"]:
     return True
-  else:
-    return False
+  return False
