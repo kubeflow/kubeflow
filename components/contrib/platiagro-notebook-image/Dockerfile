@@ -96,7 +96,10 @@ RUN cd /tmp \
  && conda clean --all -f -y \
  && rm -rf /home/$NB_USER/.cache/yarn \
  && fix-permissions $CONDA_DIR \
- && fix-permissions /home/$NB_USER
+ && fix-permissions /home/$NB_USER \
+ && git clone https://github.com/platiagro/datasets/ \
+ && mv datasets/samples/*.csv datasets \
+ && find datasets -mindepth 1 -type f,d -not -name '*.csv' -delete
 
 # Install Tini
 RUN conda install --quiet --yes 'tini=0.18.0' \
