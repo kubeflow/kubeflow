@@ -99,7 +99,8 @@ RUN cd /tmp \
  && fix-permissions /home/$NB_USER \
  && git clone https://github.com/platiagro/datasets/ \
  && mv datasets/samples/*.csv datasets \
- && find datasets -mindepth 1 -type f,d -not -name '*.csv' -delete
+ && find datasets -mindepth 1 -type f,d -not -name '*.csv' -delete \
+ && mv datasets data
 
 # Install Tini
 RUN conda install --quiet --yes 'tini=0.18.0' \
