@@ -71,10 +71,10 @@ export class Api {
         .get(
           '/dashboard-links',
           async (_: Request, res: Response) => {
-            let linksData = await this.k8sService.getDashboardLinks();
-            let links = {}
+            const linksData = await this.k8sService.getDashboardLinks();
+            let links = {};
             try {
-              links=JSON.parse(linksData.data["links"])
+              links=JSON.parse(linksData.data["links"]);
             }catch(e){
               return apiError({
                 res, code: 500,
