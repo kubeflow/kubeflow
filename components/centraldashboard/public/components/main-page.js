@@ -232,7 +232,8 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             this._setIframeSrc();
             break;
         case 'manage-users':
-            this.sidebarItemIndex = 6;
+            this.sidebarItemIndex = this.menuLinks.length
+                                    + this.externalLinks.length + 1;
             this.page = 'manage-users';
             hideTabs = true;
             allNamespaces = true;
@@ -316,13 +317,19 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * @param {string} path
      */
     _setActiveMenuLink(path) {
-        const menuLinkIndex = this.menuLinks
+        let menuLinkIndex = this.menuLinks
             .findIndex((m) => path.startsWith(m.link));
         if (menuLinkIndex >= 0) {
             // Adds 1 since Overview is hard-coded
             this.sidebarItemIndex = menuLinkIndex + 1;
         } else {
-            this.sidebarItemIndex = -1;
+            menuLinkIndex = this.externalLinks
+                .findIndex((m) => path.startsWith(m.link));
+            if (menuLinkIndex >= 0) {
+                this.sidebarItemIndex = menuLinkIndex + this.menuLinks.length+1;
+            } else {
+                this.sidebarItemIndex = -1;
+            }
         }
     }
 
