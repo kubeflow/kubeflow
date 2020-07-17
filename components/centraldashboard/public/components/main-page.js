@@ -63,26 +63,21 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             },
             iframeSrc: String,
             iframePage: {type: String, observer: '_iframePageChanged'},
+            documentationItems: {
+                type: Array,
+                value: [],
+            },
+            quickLinks: {
+                type: Array,
+                value: [],
+            },
             menuLinks: {
                 type: Array,
-                value: [
-                    {
-                        link: '/pipeline/',
-                        text: 'Pipelines',
-                    },
-                    {
-                        link: '/jupyter/',
-                        text: 'Notebook Servers',
-                    },
-                    {
-                        link: '/katib/',
-                        text: 'Katib',
-                    },
-                    {
-                        link: '/metadata/',
-                        text: 'Artifact Store',
-                    },
-                ],
+                value: [],
+            },
+            externalLinks: {
+                type: Array,
+                value: [],
             },
             sidebarItemIndex: {
                 type: Number,
@@ -158,6 +153,34 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     }
 
     /**
+     * Set state for loading registration flow in case no dashboard links exists
+     * @param {Event} ev AJAX-response
+     */
+    _onHasDashboardLinksError(ev) {
+        const error = ((ev.detail.request||{}).response||{}).error ||
+            ev.detail.error;
+        this.showError(error);
+        return;
+    }
+
+    /**
+     * Set state for Central dashboard links
+     * @param {Event} ev AJAX-response
+     */
+    _onHasDashboardLinksResponse(ev) {
+        const {
+            menuLinks,
+            externalLinks,
+            quickLinks,
+            documentationItems,
+        } = ev.detail.response;
+        this.menuLinks = menuLinks || [];
+        this.externalLinks = externalLinks || [];
+        this.quickLinks = quickLinks || [];
+        this.documentationItems = documentationItems || [];
+    }
+
+    /**
      * Set state for loading registration flow in case no workgroup exists
      * @param {Event} ev AJAX-response
      */
@@ -173,7 +196,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * @param {Event} ev AJAX-response
      */
     _onHasWorkgroupResponse(ev) {
-        const {user, hasWorkgroup, hasAuth, 
+        const {user, hasWorkgroup, hasAuth,
             registrationFlowAllowed} = ev.detail.response;
         this._setIsolationMode(hasAuth ? 'multi-user' : 'single-user');
         if (registrationFlowAllowed && hasAuth && !hasWorkgroup) {

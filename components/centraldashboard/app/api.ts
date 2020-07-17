@@ -3,7 +3,8 @@ import {KubernetesService} from './k8s_service';
 import {Interval, MetricsService} from './metrics_service';
 
 export const ERRORS = {
-  operation_not_supported: 'Operation not supported'
+  operation_not_supported: 'Operation not supported',
+  invalid_links_config: 'Dashboard Links ConfigMap is invalid'
 };
 
 export function apiError(a: {res: Response, error: string, code?: number}) {
@@ -66,7 +67,21 @@ export class Api {
             async (req: Request, res: Response) => {
               res.json(await this.k8sService.getEventsForNamespace(
                   req.params.namespace));
+            })
+        .get(
+          '/dashboard-links',
+          async (_: Request, res: Response) => {
+            let linksData = await this.k8sService.getDashboardLinks();
+            let links = {}
+            try {
+              links=JSON.parse(linksData.data["links"])
+            }catch(e){
+              return apiError({
+                res, code: 500,
+                error: ERRORS.invalid_links_config,
+              });
             }
-        );
+            res.json(links);
+          });
   }
 }
