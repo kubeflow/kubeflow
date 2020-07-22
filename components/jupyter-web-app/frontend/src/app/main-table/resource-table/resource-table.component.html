@@ -72,6 +72,14 @@
         <span [matTooltip]="elem.image">{{ elem.shortImage }}</span>
       </td>
     </ng-container>
+ 
+    <!-- GPU Column -->
+    <ng-container matColumnDef="gpu">
+      <th mat-header-cell *matHeaderCellDef>GPU</th>
+      <td mat-cell *matCellDef="let elem">
+        <span [matTooltip]="elem.gpuvendor">{{ elem.gpu }}</span>
+      </td>
+    </ng-container>
 
     <!-- CPU Column -->
     <ng-container matColumnDef="cpu">
