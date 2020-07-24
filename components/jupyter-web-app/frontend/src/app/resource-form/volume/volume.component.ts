@@ -3,6 +3,7 @@ import { FormGroup } from '@angular/forms';
 import { Volume } from 'src/app/utils/types';
 import { Subscription } from 'rxjs';
 
+
 @Component({
   selector: 'app-volume',
   templateUrl: './volume.component.html',
@@ -14,6 +15,10 @@ export class VolumeComponent implements OnInit, OnDestroy {
 
   currentPVC: Volume;
   existingPVCs: Set<string> = new Set();
+
+  //New - Existing dropdown
+  types: string[] = ['New', 'Existing'];
+  typeSelected = 'New';
 
   subscriptions = new Subscription();
 
@@ -56,6 +61,14 @@ export class VolumeComponent implements OnInit, OnDestroy {
     if (!this.volume.disabled) {
       this.updateVolInputFields();
     }
+  }
+
+// ----- onChange of the New / Existing Volume -----
+  selectType(event): void {
+    this.typeSelected = event.value;
+    if (this.typeSelected != 'New') return;
+    this.volume.controls.name.setValue(this.currentVolName);
+    
   }
 
   // ----- Get macros -----
