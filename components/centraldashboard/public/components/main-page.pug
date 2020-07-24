@@ -1,5 +1,7 @@
 iron-ajax(auto, url='/api/workgroup/exists', handle-as='json',
     on-response='_onHasWorkgroupResponse', on-error='_onHasWorkgroupError', loading='{{pageLoading}}')
+iron-ajax(auto, url='/api/dashboard-links', handle-as='json',
+    on-response='_onHasDashboardLinksResponse', on-error='_onHasDashboardLinksError', loading='{{pageLoading}}')
 iron-ajax#envInfo(auto='[[_shouldFetchEnv]]', url='/api/workgroup/env-info', handle-as='json',
     on-response='_onEnvInfoResponse')
 aside#PageLoader(hidden='{{!pageLoading}}')
@@ -18,6 +20,13 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             template(is='dom-repeat', items='[[menuLinks]]')
                 iframe-link(href$="[[buildHref(item.link, queryParams)]]")
                     paper-item.menu-item [[item.text]]
+            template(is='dom-repeat', items='[[externalLinks]]')
+                template(is='dom-if', if='[[item.iframe]]')
+                    iframe-link(href$="[[buildHref(item.link, queryParams)]]")
+                        paper-item.menu-item [[item.text]]
+                template(is='dom-if', if='[[!item.iframe]]')
+                    a(href$="[[item.link]]",tabindex='-1', target="_blank")
+                        paper-item.menu-item [[item.text]]
             template(is='dom-if', if='[[equals(isolationMode, "multi-user")]]')
                 aside.divider
                 a(href$='[[buildHref("/manage-users", queryParams)]]', tabindex='-1')
@@ -64,7 +73,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                                 exit-animation='fade-out-animation')
                 neon-animatable(page='dashboard')
                     dashboard-view(namespace='[[namespace]]',
-                        platform-info='[[platformInfo]]')
+                        platform-info='[[platformInfo]]', quick-links='[[quickLinks]]', documentation-items='[[documentationItems]]')
                 neon-animatable(page='activity')
                     activity-view(namespace='[[queryParams.ns]]')
                 neon-animatable(page='manage-users')
