@@ -60,6 +60,8 @@ export interface Resource {
   age: string;
   image: string;
   volumes: string[];
+  gpu: string;
+  gpuvendor: string;
   cpu: string;
   memory: string;
   shortImage: string;
