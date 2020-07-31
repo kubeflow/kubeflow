@@ -30,6 +30,7 @@ import css from './main-page.css';
 import template from './main-page.pug';
 import logo from '../assets/logo.svg';
 import '../assets/anon-user.png';
+import '../assets/signout.png';
 
 import './registration-page.js';
 import './namespace-selector.js';
@@ -219,6 +220,9 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         let hideSidebar = false;
 
         switch (newPage) {
+        case 'logout':
+            window.top.location.href = '/logout';
+            break;  
         case 'activity':
             this.sidebarItemIndex = 0;
             this.page = 'activity';
