@@ -234,10 +234,8 @@ neon-animatable {
     position: absolute;
 }
 
-#User-Badge>.image {
-    width: 2em;
-    height: 2em;
-    border-radius: 50%;
+#User-Badge .icon {
+    color: var(--primary-background-color);
 }
 
 #Menu {
