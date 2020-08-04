@@ -200,8 +200,6 @@ describe('Main Page', () => {
         // textContent is used because innerText would be empty if sidebar is
         // hidden
         expect(buildVersion.textContent).toEqual('1.0.0');
-        expect(mainPage.shadowRoot.querySelector('#User-Badge iron-image')
-            .title).toBe('anonymous@kubeflow.org');
         const namespaceSelector = mainPage.shadowRoot
             .getElementById('NamespaceSelector');
         expect(Array.from(namespaceSelector.shadowRoot
