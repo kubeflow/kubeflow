@@ -9,7 +9,7 @@ spec:
       containers:
       - name: manager
         ports:
-        - containerPort: 443
+        - containerPort: 9443
           name: webhook-server
           protocol: TCP
         volumeMounts:

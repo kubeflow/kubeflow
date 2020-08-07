@@ -1,12 +1,12 @@
-version: "2"
 repo: github.com/kubeflow/kubeflow/components/notebook-controller
 resources:
 - group: kubeflow.org
+  kind: Notebook
   version: v1alpha1
-  kind: Notebook
 - group: kubeflow.org
+  kind: Notebook
   version: v1beta1
-  kind: Notebook
 - group: kubeflow.org
-  version: v1
   kind: Notebook
+  version: v1
+version: "2"
