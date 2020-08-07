@@ -340,7 +340,7 @@ def find_error_event(rsrc_events):
     Returns status and reason from the latest event that surfaces the cause
     of why the resource could not be created. For a Notebook, it can be due to:
 
-          EVENT_TYPE      EVENT_REASON      DESCRIPTION   
+          EVENT_TYPE      EVENT_REASON      DESCRIPTION
           Warning         FailedCreate      pods "x" is forbidden: error looking up service account ... (originated in statefulset)
           Warning         FailedScheduling  0/1 nodes are available: 1 Insufficient cpu (originated in pod)
 
@@ -364,7 +364,7 @@ def set_notebook_image(notebook, body, defaults):
         image = defaults["image"]["value"]
         logger.info("Using default Image: " + image)
     elif body.get("customImageCheck", False):
-        image = body["customImage"]
+        image = body["customImage"].strip()
         logger.info("Using form's custom Image: " + image)
     elif "image" in body:
         image = body["image"]
