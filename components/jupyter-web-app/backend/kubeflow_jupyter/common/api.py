@@ -19,7 +19,6 @@ v1_core = client.CoreV1Api()
 custom_api = client.CustomObjectsApi()
 storage_api = client.StorageV1Api()
 
-
 def parse_error(e):
     try:
         err = json.loads(e.body)["message"]
@@ -82,7 +81,8 @@ def list_pvcs(namespace):
     return wrap_resp(
         "pvcs",
         v1_core.list_namespaced_persistent_volume_claim,
-        namespace=namespace
+        namespace=namespace,
+        _request_timeout=2
     )
 
 
@@ -94,7 +94,8 @@ def list_notebooks(namespace):
         "kubeflow.org",
         "v1beta1",
         namespace,
-        "notebooks"
+        "notebooks",
+        _request_timeout=2
     )
 
 
@@ -110,7 +111,8 @@ def list_notebook_events(namespace, nb_name):
         "notebook-events",
         v1_core.list_namespaced_event,
         namespace=namespace,
-        field_selector="involvedObject.kind=Notebook,involvedObject.name=" + nb_name
+        field_selector="involvedObject.kind=Notebook,involvedObject.name=" + nb_name,
+        _request_timeout=2
     )
 
 
@@ -122,7 +124,8 @@ def list_poddefaults(namespace):
         "kubeflow.org",
         "v1alpha1",
         namespace,
-        "poddefaults"
+        "poddefaults",
+        _request_timeout=2
     )
 
 
@@ -132,7 +135,8 @@ def get_secret(name, namespace):
         "secret",
         v1_core.read_namespaced_secret,
         name,
-        namespace
+        namespace,
+        _request_timeout=2
     )
 
 
@@ -140,7 +144,8 @@ def get_secret(name, namespace):
 def list_namespaces():
     return wrap_resp(
         "namespaces",
-        v1_core.list_namespace
+        v1_core.list_namespace,
+        _request_timeout=2
     )
 
 
@@ -153,7 +158,8 @@ def list_namespaces():
 def list_storageclasses():
     return wrap_resp(
         "storageclasses",
-        storage_api.list_storage_class
+        storage_api.list_storage_class,
+        _request_timeout=2
     )
 
 
@@ -166,7 +172,8 @@ def create_notebook(notebook, namespace):
         "v1beta1",
         namespace,
         "notebooks",
-        notebook
+        notebook,
+        _request_timeout=2
     )
 
 
@@ -176,7 +183,8 @@ def create_pvc(pvc, namespace):
         "pvc",
         v1_core.create_namespaced_persistent_volume_claim,
         namespace,
-        pvc
+        pvc,
+        _request_timeout=2
     )
 
 # DELETErs
@@ -189,7 +197,8 @@ def delete_notebook(notebook_name, namespace):
         namespace,
         "notebooks",
         notebook_name,
-        propagation_policy="Foreground"
+        propagation_policy="Foreground",
+        _request_timeout=2
     )
 
 
