@@ -38,5 +38,8 @@ COPY --from=build-stage /app/dist/out/rok /app/kubeflow_jupyter/rok/static/
 
 WORKDIR /app/
 
-ENTRYPOINT ["python3"]
-CMD ["main.py"]
+ENV WORKERS 4
+ENV THREADS 8
+ENV PORT 5000
+
+CMD ["sh","-c","gunicorn --bind 0.0.0.0:$PORT --workers $WORKERS --threads $THREADS main:app"]
