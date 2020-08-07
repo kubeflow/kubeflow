@@ -15,6 +15,8 @@ apps = {
     "rok": rok
 }
 
+app = None
+
 try:
     app = apps[ui]
 
@@ -24,7 +26,8 @@ try:
         logger.warning("Enabling CORS")
         CORS(app)
 
-    app.run(host="0.0.0.0")
+    if __name__ == "__main__":
+        app.run(host="0.0.0.0")
 except KeyError:
     logger.warning("There is no " + ui + " UI to load.")
     exit(1)

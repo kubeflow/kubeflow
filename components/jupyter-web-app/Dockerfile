@@ -43,5 +43,8 @@ COPY --from=build-stage /app/node_modules /app/third_party/frontend/node_modules
 
 WORKDIR /app/
 
-ENTRYPOINT ["python3"]
-CMD ["main.py"]
+ENV WORKERS 4
+ENV THREADS 8
+ENV PORT 5000
+
+CMD ["sh","-c","gunicorn --bind 0.0.0.0:$PORT --workers $WORKERS --threads $THREADS main:app"]
