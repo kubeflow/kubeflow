@@ -19,6 +19,7 @@ v1_core = client.CoreV1Api()
 custom_api = client.CustomObjectsApi()
 storage_api = client.StorageV1Api()
 
+
 def parse_error(e):
     try:
         err = json.loads(e.body)["message"]
