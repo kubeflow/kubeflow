@@ -189,7 +189,7 @@ def delete_notebook(notebook_name, namespace):
         namespace,
         "notebooks",
         notebook_name,
-        client.V1DeleteOptions(propagation_policy="Foreground")
+        propagation_policy="Foreground"
     )
 
 
