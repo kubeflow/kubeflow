@@ -18,6 +18,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -165,21 +166,29 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 			},
 		})
 
-		//Get the PVC that will be accessed by the Tensorboard Server.
-		var pvc = &corev1.PersistentVolumeClaim{}
-		if err := r.Get(context.Background(), client.ObjectKey{
-			Namespace: tb.Namespace,
-			Name:      pvcname,
-		}, pvc); err != nil {
-			return nil, fmt.Errorf("Get PersistentVolumeClaim error: %v", err)
-		}
+		if err, sch := rwoPVCScheduling(); err != nil {
+			return nil, err
+		} else if sch {
+			//If 'RWO_PVC_SCHEDULING' env var is set to "true", an extra scheduling functionality is added,
+			//for the case that the Tensorboard Server is using a RWO PVC (as a log storage)
+			//and the PVC is already mounted by another pod.
 
-		//If the PVC is mounted as a ReadWriteOnce volume by a pod that is running on a node X,
-		//then we find the NodeName of X so that the Tensorboard server
-		//(that must access the volume) will be deployed on X using nodeAffinity.
-		if pvc.Status.AccessModes[0] == corev1.ReadWriteOnce {
-			if err := generateNodeAffinity(affinity, pvcname, r, tb); err != nil {
-				return nil, err
+			//Get the PVC that will be accessed by the Tensorboard Server.
+			var pvc = &corev1.PersistentVolumeClaim{}
+			if err := r.Get(context.Background(), client.ObjectKey{
+				Namespace: tb.Namespace,
+				Name:      pvcname,
+			}, pvc); err != nil {
+				return nil, fmt.Errorf("Get PersistentVolumeClaim error: %v", err)
+			}
+
+			//If the PVC is mounted as a ReadWriteOnce volume by a pod that is running on a node X,
+			//then we find the NodeName of X so that the Tensorboard server
+			//(that must access the volume) will be deployed on X using nodeAffinity.
+			if pvc.Status.AccessModes[0] == corev1.ReadWriteOnce {
+				if err := generateNodeAffinity(affinity, pvcname, r, tb); err != nil {
+					return nil, err
+				}
 			}
 		}
 	} else if isGoogleCloudPath(tb.Spec.LogsPath) {
@@ -381,25 +390,41 @@ func generateNodeAffinity(affinity *corev1.Affinity, pvcname string, r *Tensorbo
 	//In this case, there is a running pod that uses the PVC, therefore we create
 	//a nodeAffinity field so that the Tensorboard server will be scheduled (if possible)
 	//on the same node as the running pod.
-	if nodename != "" {
-		*affinity = corev1.Affinity{
-			NodeAffinity: &corev1.NodeAffinity{
-				PreferredDuringSchedulingIgnoredDuringExecution: []corev1.PreferredSchedulingTerm{
-					{
-						Weight: 100,
-						Preference: corev1.NodeSelectorTerm{
-							MatchExpressions: []corev1.NodeSelectorRequirement{
-								{
-									Key:      "kubernetes.io/hostname",
-									Operator: "In",
-									Values:   []string{nodename},
-								},
+	if nodename == "" {
+		return nil
+	}
+	*affinity = corev1.Affinity{
+		NodeAffinity: &corev1.NodeAffinity{
+			PreferredDuringSchedulingIgnoredDuringExecution: []corev1.PreferredSchedulingTerm{
+				{
+					Weight: 100,
+					Preference: corev1.NodeSelectorTerm{
+						MatchExpressions: []corev1.NodeSelectorRequirement{
+							{
+								Key:      "kubernetes.io/hostname",
+								Operator: "In",
+								Values:   []string{nodename},
 							},
 						},
 					},
 				},
 			},
-		}
+		},
 	}
 	return nil
+}
+
+//Checks the value of 'RWO_PVC_SCHEDULING' env var (if present in the environment) and returns
+//'true' or 'false' accordingly. If 'RWO_PVC_SCHEDULING' is NOT present, then the value of the
+//returned boolean is set to 'false', so that the scheduling functionality is off by default.
+func rwoPVCScheduling() (error, bool) {
+	if value, exists := os.LookupEnv("RWO_PVC_SCHEDULING"); !exists || value == "false" || value == "False" || value == "FALSE" {
+		return nil, false
+	} else if value == "true" || value == "True" || value == "TRUE" {
+		return nil, true
+	}
+
+	//If 'RWO_PVC_SCHEDULING' is present in the environment but has an invalid value,
+	//then an error is returned.
+	return fmt.Errorf("Invalid value for 'RWO_PVC_SCEDULING' env var."), false
 }
