@@ -10,11 +10,7 @@ def parse_tensorboard(tensorboard):
         "name": tensorboard["metadata"]["name"],
         "namespace": tensorboard["metadata"]["namespace"],
         "logspath": tensorboard["spec"]["logspath"],
-        "age": {
-            "uptime": helpers.get_uptime(
-                tensorboard["metadata"]["creationTimestamp"]),
-            "timestamp": tensorboard["metadata"]["creationTimestamp"],
-        },
+        "age": helpers.get_age(tensorboard),
     }
 
     return parsed_tensorboard
