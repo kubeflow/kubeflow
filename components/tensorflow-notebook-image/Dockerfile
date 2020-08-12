@@ -117,7 +117,7 @@ RUN pip3 --no-cache-dir install \
 
 COPY --chown=jovyan:users requirements.txt /tmp
 
-RUN docker-credential-gcr configure-docker && chown ${NB_USER}:users $HOME/.docker/config.json
+RUN docker-credential-gcr configure-docker && chown -R ${NB_USER}:users $HOME/.docker
 
 # Configure container startup
 EXPOSE 8888
