@@ -318,6 +318,13 @@ getting the correct installation instructions etc. Here are the steps to follow:
  
         * You can use one of the [auto-deployed clusters](https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/auto_deploy/)
 
+1. Add outdated banner to documentation that hasn't been updated recently
+
+   * Run [this script][outdated-script] from within the `website` repository to add the
+     outdated banner
+
+[outdated-script]: https://github.com/kubeflow/website/blob/master/scripts/add_outdated_banner.py
+
 <a id="create-website-branch"></a> 
 ## Creating and publishing a website branch for vX.Y
 
