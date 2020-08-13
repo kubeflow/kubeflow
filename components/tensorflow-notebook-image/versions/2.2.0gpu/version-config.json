@@ -1,0 +1,4 @@
+{
+  "BASE_IMAGE": "tensorflow/tensorflow:2.2.0-gpu-jupyter",
+  "INSTALL_TFMA": "yes"
+}
