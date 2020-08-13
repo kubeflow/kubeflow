@@ -113,7 +113,7 @@ RUN pip3 --no-cache-dir install \
     jupyter-console==6.0.0 \
     jupyterlab \
     xgboost \
-    kubeflow-fairing==0.7.1
+    kubeflow-fairing==0.7.2
 
 COPY --chown=jovyan:users requirements.txt /tmp
 
