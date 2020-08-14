@@ -16,6 +16,8 @@ package kfam
 
 import (
 	"fmt"
+	"k8s.io/apimachinery/pkg/labels"
+	v1 "k8s.io/client-go/listers/rbac/v1"
 	"net/url"
 	"regexp"
 	"strings"
@@ -52,7 +54,7 @@ type BindingInterface interface {
 }
 
 type BindingClient struct {
-	restClient        rest.Interface
+		restClient        rest.Interface
 	kubeClient        *clientset.Clientset
 	roleBindingLister v1.RoleBindingLister
 }
