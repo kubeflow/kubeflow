@@ -54,8 +54,8 @@ type BindingInterface interface {
 }
 
 type BindingClient struct {
-		restClient        rest.Interface
-	kubeClient        *clientset.Clientset
+	restClient rest.Interface
+	kubeClient *clientset.Clientset
 	roleBindingLister v1.RoleBindingLister
 }
 
