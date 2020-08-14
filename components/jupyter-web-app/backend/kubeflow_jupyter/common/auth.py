@@ -61,7 +61,7 @@ def is_authorized(user, verb, namespace, group, version, resource):
     sar = create_subject_access_review(user, verb, namespace, group, version,
                                        resource)
     try:
-        obj = api.create_subject_access_review(sar)
+        obj = api.create_subject_access_review(sar, _request_timeout=2)
     except ApiException as e:
         logger.error(
             "Error submitting SubjecAccessReview: {}, {}".format(
