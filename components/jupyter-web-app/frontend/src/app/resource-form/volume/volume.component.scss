@@ -1,21 +1,28 @@
+/** Modified other input percentage to fit storage class input**/
 #type {
-  max-width: 15%;
-}
-
-#size {
   max-width: 10%;
 }
 
+#size {
+  max-width: 7%;
+}
+
 #mode {
-  max-width: 20%;
+  max-width: 10%;
 }
 
 #name {
-  max-width: 30%;
+  max-width: 20%;
 }
 
 #path {
-  max-width: 25%;
+  max-width: 20%;
+}
+
+/** Added for storage class input**/
+
+#class {
+  max-width: 20%;
 }
 
 .volume-wrapper {
