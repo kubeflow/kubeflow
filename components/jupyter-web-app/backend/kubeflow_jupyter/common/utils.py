@@ -390,7 +390,6 @@ def set_notebook_cpu(notebook, body, defaults):
         logger.info("Using default CPU: " + cpu)
 
     container["resources"]["requests"]["cpu"] = cpu
-    container["resources"]["limits"]["cpu"] = cpu
 
 
 def set_notebook_memory(notebook, body, defaults):
@@ -407,7 +406,6 @@ def set_notebook_memory(notebook, body, defaults):
         logger.info("Using default Memory: " + memory)
 
     container["resources"]["requests"]["memory"] = memory
-    container["resources"]["limits"]["memory"] = memory
 
 
 def set_notebook_gpus(notebook, body, defaults):
