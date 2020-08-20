@@ -101,3 +101,18 @@ def get_uptime(then):
                 age = str(mins) + " mins"
 
     return age + " ago"
+
+
+def get_age(k8s_object):
+    """
+    k8s_object: k8s custom resource | dictionary
+
+    Return a dictionary that contains the creationTimestamp (timestamp) of the
+    given k8s object and the amount of time that has passed from that timestamp
+    (uptime).
+    """
+    return {
+        "uptime": get_uptime(
+            k8s_object["metadata"]["creationTimestamp"]),
+        "timestamp": k8s_object["metadata"]["creationTimestamp"],
+    }
