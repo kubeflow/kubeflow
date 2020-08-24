@@ -27,6 +27,20 @@ export interface PodDefault {
   desc: string;
 }
 
+export interface TolerationGroup {
+  groupKey: string;
+  displayName: string;
+  tolerations: Toleration[];
+}
+
+export interface Toleration {
+  key: string;
+  operator: string;
+  value: string;
+  effect: string;
+  tolerationSeconds?: bigint;
+}
+
 export interface GPUVendor {
   limitsKey: string;
   uiName: string;
@@ -130,6 +144,12 @@ export interface Config {
 
   configurations?: {
     value: string[];
+    readOnly?: boolean;
+  };
+
+  tolerationGroup?: {
+    value: string;
+    options: TolerationGroup[];
     readOnly?: boolean;
   };
 }

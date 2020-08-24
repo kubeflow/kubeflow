@@ -144,3 +144,24 @@ spawnerFormDefaults:
     #   - default-editor
     value: []
     readOnly: false
+  tolerationGroup:
+    # The default `groupKey` from the options list
+    # If readonly, the default value will be the only option
+    value: "none"
+    # The list of available tolerationGroup configs
+    options:
+      - groupKey: "none"
+        displayName: "None"
+        tolerations: []
+    # - groupKey: "group_1"
+    #   displayName: "Group 1: description"
+    #   tolerations:
+    #     - key: "key1"
+    #       operator: "Equal"
+    #       value: "value1"
+    #       effect: "NoSchedule"
+    #     - key: "key2"
+    #       operator: "Equal"
+    #       value: "value2"
+    #       effect: "NoSchedule"
+    readOnly: false

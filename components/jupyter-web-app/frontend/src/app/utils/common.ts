@@ -30,6 +30,7 @@ export function getFormDefaults(): FormGroup {
     datavols: fb.array([]),
     shm: [true, []],
     configurations: [[], []],
+    tolerationGroup: ['', []],
   });
 }
 
@@ -162,6 +163,12 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
 
   // GPUs
   updateGPUControl(formCtrl.get('gpus') as FormGroup, config.gpus);
+
+  // Tolerations
+  formCtrl.controls.tolerationGroup.setValue(config.tolerationGroup.value);
+  if (config.tolerationGroup.readOnly) {
+    formCtrl.controls.tolerationGroup.disable();
+  }
 
   formCtrl.controls.shm.setValue(config.shm.value);
   if (config.shm.readOnly) {

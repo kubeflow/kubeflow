@@ -32,6 +32,11 @@
         [parentForm]="formCtrl"
       ></app-form-configurations>
 
+      <app-form-tolerations
+        [parentForm]="formCtrl"
+        [tolerationGroups]="config?.tolerationGroup?.options"
+      ></app-form-tolerations>
+
       <app-form-gpus
         [parentForm]="formCtrl"
         [vendors]="config?.gpus?.value.vendors"
