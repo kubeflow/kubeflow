@@ -30,6 +30,7 @@ export function getFormDefaults(): FormGroup {
     datavols: fb.array([]),
     shm: [true, []],
     configurations: [[], []],
+    affinityConfig: ['', []],
     tolerationGroup: ['', []],
   });
 }
@@ -163,6 +164,12 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
 
   // GPUs
   updateGPUControl(formCtrl.get('gpus') as FormGroup, config.gpus);
+
+  // Affinity
+  formCtrl.controls.affinityConfig.setValue(config.affinityConfig.value);
+  if (config.affinityConfig.readOnly) {
+    formCtrl.controls.affinityConfig.disable();
+  }
 
   // Tolerations
   formCtrl.controls.tolerationGroup.setValue(config.tolerationGroup.value);

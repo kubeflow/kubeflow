@@ -27,6 +27,12 @@ export interface PodDefault {
   desc: string;
 }
 
+export interface AffinityConfig {
+  configKey: string;
+  displayName: string;
+  affinity: object;
+}
+
 export interface TolerationGroup {
   groupKey: string;
   displayName: string;
@@ -146,6 +152,12 @@ export interface Config {
     value: string[];
     readOnly?: boolean;
   };
+
+  affinityConfig?: {
+    value: string;
+    options: AffinityConfig[];
+    readOnly?: boolean;
+  }
 
   tolerationGroup?: {
     value: string;

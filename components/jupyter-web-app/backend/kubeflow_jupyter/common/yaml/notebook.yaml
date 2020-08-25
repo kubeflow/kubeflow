@@ -8,6 +8,7 @@ metadata:
 spec:
   template:
     spec:
+      affinity: {{}}
       serviceAccountName: {serviceAccount}
       containers:
         - name: {name}

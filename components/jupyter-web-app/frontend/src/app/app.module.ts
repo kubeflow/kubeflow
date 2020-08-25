@@ -14,7 +14,8 @@ import {
   faLaptopCode,
   faLink,
   faSlidersH,
-  faCheckSquare
+  faCheckSquare,
+  faBullseye
 } from "@fortawesome/free-solid-svg-icons";
 import { faDocker } from "@fortawesome/free-brands-svg-icons";
 
@@ -51,6 +52,7 @@ import { RokErrorMsgComponent } from "./uis/rok/rok-error-msg/rok-error-msg.comp
 import { FormConfigurationsComponent } from "./resource-form/form-configurations/form-configurations.component";
 import { FormGpusComponent } from "./resource-form/form-gpus/form-gpus.component";
 import { FormTolerationsComponent } from "./resource-form/form-tolerations/form-tolerations.component";
+import { FormAffinityComponent } from "./resource-form/form-affinity/form-affinity.component";
 
 @NgModule({
   declarations: [
@@ -80,6 +82,7 @@ import { FormTolerationsComponent } from "./resource-form/form-tolerations/form-
     FormConfigurationsComponent,
     FormGpusComponent,
     FormTolerationsComponent,
+    FormAffinityComponent,
   ],
   imports: [
     BrowserModule,
@@ -106,7 +109,8 @@ export class AppModule {
       faDocker,
       faLink,
       faSlidersH,
-      faCheckSquare
+      faCheckSquare,
+      faBullseye
     );
   }
 }
