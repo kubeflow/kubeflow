@@ -1,0 +1,13 @@
+<mat-form-field appearance="outline" class="wide">
+  <mat-label>{{ label }}</mat-label>
+  <input
+    matInput
+    type="number"
+    [min]="min"
+    [step]="step"
+    [formControl]="sizeControl"
+  />
+  <mat-error *ngIf="sizeControl.hasError('min')">
+    Cannot be negative.
+  </mat-error>
+</mat-form-field>

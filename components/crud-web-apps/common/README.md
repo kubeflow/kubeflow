@@ -30,6 +30,7 @@ This will install all the dependencies of the package and you will now be able t
 
 In order to build a Docker image and use this code you coud build a wheel and then install it:
 ```dockerfile
+### Docker
 FROM python:3.7 AS backend-kubeflow-wheel
 
 WORKDIR /src
@@ -45,4 +46,69 @@ WORKDIR /package
 COPY --from=backend-kubeflow-wheel /src .
 RUN pip3 install .
 ...
+```
+## Frontend
+
+The common Angular library contains common code for:
+* Communicating with the Central Dashboard to handle the Namespace selection
+* Making http calls and handing their errors
+* Surfacing errors and warnings
+* Polling mechanisms
+* Universal styling accross the different web apps
+* Handling forms
+
+### How to use
+```bash
+# build the common library
+cd common/frontend/kubeflow-common-lib
+npm i
+npm run build
+
+# for development link the created module to the app
+cd dist/kubeflow
+npm link
+
+# navigate to the corresponding app's frontend
+cd crud-web-apps/volumes/frontend
+npm i
+npm link kubeflow
+
+```
+### Common errors
+```
+NullInjectorError: StaticInjectorError(AppModule)[ApplicationRef -> NgZone]:
+  StaticInjectorError(Platform: core)[ApplicationRef -> NgZone]:
+    NullInjectorError: No provider for NgZone!
+```
+
+You also need to add `"preserveSymlinks": true` to the app's frontend `angular.json` at `projects.frontend.architect.build.options`.
+
+### Docker
+
+```dockerfile
+# --- Build the frontend kubeflow library ---
+FROM node:12 as frontend-kubeflow-lib
+
+WORKDIR /src
+
+COPY ./components/crud-web-apps/common/frontend/kubeflow-common-lib/package*.json ./
+RUN npm install
+
+COPY ./components/crud-web-apps/common/frontend/kubeflow-common-lib/ .
+RUN npm run build
+
+...
+# --- Build the frontend ---
+FROM node:12 as frontend
+RUN npm install -g @angular/cli
+
+WORKDIR /src
+COPY ./components/crud-web-apps/volumes/frontend/package*.json ./
+RUN npm install
+COPY --from=frontend-kubeflow-lib /src/dist/kubeflow/ ./node_modules/kubeflow/
+
+COPY ./components/crud-web-apps/volumes/frontend/ .
+
+RUN npm run build -- --output-path=./dist/default --configuration=production
+
 ```
