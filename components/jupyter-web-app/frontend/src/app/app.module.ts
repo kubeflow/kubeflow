@@ -4,8 +4,7 @@ import { HttpClientModule } from "@angular/common/http";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 
-import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
-import { library } from "@fortawesome/fontawesome-svg-core";
+import { FontAwesomeModule, FaIconLibrary } from "@fortawesome/angular-fontawesome";
 import {
   faCogs,
   faHdd,
@@ -94,8 +93,8 @@ import { FormGpusComponent } from "./resource-form/form-gpus/form-gpus.component
   entryComponents: [SnackBarComponent, ConfirmDialogComponent]
 })
 export class AppModule {
-  constructor() {
-    library.add(
+  constructor(library: FaIconLibrary) {
+    library.addIcons(
       faCogs,
       faHdd,
       faBook,
