@@ -1,0 +1,11 @@
+.waiting-button-wrapper {
+  display: flex;
+}
+
+.waiting-button-wrapper mat-spinner {
+  margin: auto 0.2rem;
+}
+
+.error {
+  color: red;
+}

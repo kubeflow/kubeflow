@@ -1,0 +1,9 @@
+<button
+  mat-button
+  [matTooltip]="action.tooltip"
+  (click)="emitClickedEvent()"
+  [color]="action.color"
+  [disabled]="!isPhaseReady()"
+>
+  {{ action.text }}
+</button>
