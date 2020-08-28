@@ -5,15 +5,30 @@ def parse_tensorboard(tensorboard):
     """
     Process the Tensorboard object and format it as the UI expects it.
     """
+    
+    if tensorboard.get("status", {}).get("readyReplicas", 0) == 1: 
+        status = "ready"
+    else:
+        status = "unavailable"
 
     parsed_tensorboard = {
         "name": tensorboard["metadata"]["name"],
         "namespace": tensorboard["metadata"]["namespace"],
         "logspath": tensorboard["spec"]["logspath"],
         "age": helpers.get_age(tensorboard),
+        "status": {
+            "phase": status, 
+        }
     }
 
     return parsed_tensorboard
+
+def getPVCName(pvc):
+    """
+    Return name of given PVC.
+    """
+
+    return pvc.metadata.name
 
 
 def get_tensorboard_dict(namespace, body):
