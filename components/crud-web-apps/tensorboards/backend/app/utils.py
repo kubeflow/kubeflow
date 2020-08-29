@@ -7,9 +7,11 @@ def parse_tensorboard(tensorboard):
     """
     
     if tensorboard.get("status", {}).get("readyReplicas", 0) == 1: 
-        status = "ready"
+        phase = "ready"
+        message = "The Tensorboard server is ready to connect"
     else:
-        status = "unavailable"
+        phase = "unavailable"
+        message = "The Tensorboard server is currently unavailble"
 
     parsed_tensorboard = {
         "name": tensorboard["metadata"]["name"],
@@ -17,7 +19,8 @@ def parse_tensorboard(tensorboard):
         "logspath": tensorboard["spec"]["logspath"],
         "age": helpers.get_age(tensorboard),
         "status": {
-            "phase": status, 
+            "phase": phase,
+            "message": message, 
         }
     }
 
