@@ -52,6 +52,12 @@ type TensorboardReconciler struct {
 // and what is in the Tensorboard.Spec
 // +kubebuilder:rbac:groups=tensorboard.kubeflow.org,resources=tensorboards,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=tensorboard.kubeflow.org,resources=tensorboards/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update
+// +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update
+// +kubebuilder:rbac:groups=networking.istio.io,resources=virtualservices,verbs=get;list;watch;create;update
+// +kubebuilder:rbac:groups=core,resources=persistentvolumeclaims,verbs=get;list;watch
+// +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
+
 func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	logger := r.Log.WithValues("tensorboard", req.NamespacedName)
@@ -277,7 +283,7 @@ func generateService(tb *tensorboardv1alpha1.Tensorboard) *corev1.Service {
 			Ports: []corev1.ServicePort{
 				corev1.ServicePort{
 					Name:       "http-" + tb.Name,
-					Port:       9000,
+					Port:       80,
 					TargetPort: intstr.FromInt(6006),
 				},
 			},
@@ -286,7 +292,8 @@ func generateService(tb *tensorboardv1alpha1.Tensorboard) *corev1.Service {
 }
 
 func generateVirtualService(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.Unstructured, error) {
-	prefix := "/tensorboard/" + tb.Name
+	prefix := fmt.Sprintf("/tensorboard/%s/%s/", tb.Namespace, tb.Name)
+	rewrite := "/"
 	service := fmt.Sprintf("%s.%s.svc.cluster.local", tb.Name, tb.Namespace)
 
 	vsvc := &unstructured.Unstructured{}
@@ -312,14 +319,14 @@ func generateVirtualService(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.
 				},
 			},
 			"rewrite": map[string]interface{}{
-				"uri": "/",
+				"uri": rewrite,
 			},
 			"route": []interface{}{
 				map[string]interface{}{
 					"destination": map[string]interface{}{
 						"host": service,
 						"port": map[string]interface{}{
-							"number": int64(9000),
+							"number": int64(80),
 						},
 					},
 				},

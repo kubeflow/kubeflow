@@ -52,7 +52,7 @@ generate: controller-gen
 
 # Build the docker image
 docker-build: test
-	docker build . -t ${IMG}
+	cd .. && docker build -f tensorboard-controller/Dockerfile . -t ${IMG}
 
 # Push the docker image
 docker-push:
