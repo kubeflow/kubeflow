@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -55,7 +56,6 @@ func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	ctx := context.Background()
 	logger := r.Log.WithValues("tensorboard", req.NamespacedName)
 
-	// your logic here
 	instance := &tensorboardv1alpha1.Tensorboard{}
 	err := r.Get(ctx, req.NamespacedName, instance)
 	if err != nil {
@@ -76,7 +76,7 @@ func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	if err := ctrl.SetControllerReference(instance, deployment, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
-	if err := reconcilehelper.Deployment(ctx, r, deployment, logger); err != nil {
+	if err := Deployment(ctx, r, deployment, logger); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -98,26 +98,38 @@ func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 		return ctrl.Result{}, err
 	}
 
-	if err := r.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: deployment.Namespace}, deployment); err != nil {
+	foundDeployment := &appsv1.Deployment{}
+	//Update the instance.Status.ReadyReplicas if the foundDeployment.Status.ReadyReplicas
+	//has changed.
+	_err := r.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: deployment.Namespace}, foundDeployment)
+
+	if _err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Info("Deployment not found...", "deployment", deployment.Name)
 		} else {
-			return ctrl.Result{}, err
+			return ctrl.Result{}, _err
 		}
-	}
-	if len(deployment.Status.Conditions) > 0 {
-		condition := tensorboardv1alpha1.TensorboardCondition{
-			DeploymentState: deployment.Status.Conditions[0].Type,
-			LastProbeTime:   deployment.Status.Conditions[0].LastUpdateTime,
+	} else {
+		if len(foundDeployment.Status.Conditions) > 0 {
+			condition := tensorboardv1alpha1.TensorboardCondition{
+				DeploymentState: foundDeployment.Status.Conditions[0].Type,
+				LastProbeTime:   foundDeployment.Status.Conditions[0].LastUpdateTime,
+			}
+			clen := len(instance.Status.Conditions)
+			if clen == 0 || instance.Status.Conditions[clen-1].DeploymentState != condition.DeploymentState {
+				instance.Status.Conditions = append(instance.Status.Conditions, condition)
+			}
+			logger.Info("instance condition..", "condition", instance)
 		}
-		clen := len(instance.Status.Conditions)
-		if clen == 0 || instance.Status.Conditions[clen-1].DeploymentState != condition.DeploymentState {
-			instance.Status.Conditions = append(instance.Status.Conditions, condition)
+
+		if foundDeployment.Status.ReadyReplicas != instance.Status.ReadyReplicas {
+			logger.Info("Updating Status", "namespace", instance.Namespace, "name", instance.Name)
+			instance.Status.ReadyReplicas = foundDeployment.Status.ReadyReplicas
 		}
-		logger.Info("instance condition..", "condition", instance)
-		err = r.Update(ctx, instance)
-		if err != nil {
-			return ctrl.Result{}, err
+
+		_err = r.Update(ctx, instance)
+		if _err != nil {
+			return ctrl.Result{}, _err
 		}
 	}
 
@@ -127,6 +139,7 @@ func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 func (r *TensorboardReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&tensorboardv1alpha1.Tensorboard{}).
+		Owns(&appsv1.Deployment{}).
 		Complete(r)
 }
 
@@ -427,4 +440,53 @@ func rwoPVCScheduling() (error, bool) {
 	//If 'RWO_PVC_SCHEDULING' is present in the environment but has an invalid value,
 	//then an error is returned.
 	return fmt.Errorf("Invalid value for 'RWO_PVC_SCEDULING' env var."), false
+}
+
+func Deployment(ctx context.Context, r client.Client, deployment *appsv1.Deployment, log logr.Logger) error {
+	foundDeployment := &appsv1.Deployment{}
+	justCreated := false
+	if err := r.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: deployment.Namespace}, foundDeployment); err != nil {
+		if apierrs.IsNotFound(err) {
+			log.Info("Creating Deployment", "namespace", deployment.Namespace, "name", deployment.Name)
+			if err := r.Create(ctx, deployment); err != nil {
+				log.Error(err, "unable to create deployment")
+				return err
+			}
+			justCreated = true
+		} else {
+			log.Error(err, "error getting deployment")
+			return err
+		}
+	}
+	if !justCreated && CopyDeploymentSetFields(deployment, foundDeployment) {
+		log.Info("Updating Deployment", "namespace", deployment.Namespace, "name", deployment.Name)
+		if err := r.Update(ctx, foundDeployment); err != nil {
+			log.Error(err, "unable to update deployment")
+			return err
+		}
+	}
+
+	return nil
+}
+
+func CopyDeploymentSetFields(from, to *appsv1.Deployment) bool {
+	requireUpdate := false
+	for k, v := range to.Labels {
+		if from.Labels[k] != v {
+			requireUpdate = true
+		}
+	}
+	to.Labels = from.Labels
+
+	if *from.Spec.Replicas != *to.Spec.Replicas {
+		to.Spec.Replicas = from.Spec.Replicas
+		requireUpdate = true
+	}
+
+	if !reflect.DeepEqual(to.Spec.Template.Spec.Affinity, from.Spec.Template.Spec.Affinity) {
+		requireUpdate = true
+	}
+	to.Spec.Template.Spec.Affinity = from.Spec.Template.Spec.Affinity
+
+	return requireUpdate
 }
