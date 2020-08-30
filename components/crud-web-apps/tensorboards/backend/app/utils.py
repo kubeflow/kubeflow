@@ -1,4 +1,4 @@
-from kubeflow.kubeflow.crud_backend import helpers
+from kubeflow.kubeflow.crud_backend import helpers, status
 
 
 def parse_tensorboard(tensorboard):
@@ -7,10 +7,10 @@ def parse_tensorboard(tensorboard):
     """
     
     if tensorboard.get("status", {}).get("readyReplicas", 0) == 1: 
-        phase = "ready"
+        phase = status.STATUS_PHASE.READY
         message = "The Tensorboard server is ready to connect"
     else:
-        phase = "unavailable"
+        phase = status.STATUS_PHASE.UNAVAILABLE
         message = "The Tensorboard server is currently unavailble"
 
     parsed_tensorboard = {
