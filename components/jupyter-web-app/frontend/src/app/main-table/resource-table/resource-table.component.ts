@@ -1,5 +1,7 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
-import { MatSort, MatTableDataSource, MatDialog } from "@angular/material";
+import { MatDialog } from "@angular/material/dialog";
+import { MatSort } from "@angular/material/sort";
+import { MatTableDataSource } from "@angular/material/table";
 import { Subscription } from "rxjs";
 import { first } from "rxjs/operators";
 import { isEqual } from "lodash";
@@ -16,7 +18,7 @@ import { ConfirmDialogComponent } from "./confirm-dialog/confirm-dialog.componen
   styleUrls: ["./resource-table.component.scss"]
 })
 export class ResourceTableComponent implements OnInit {
-  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   // Logic data
   resources = [];
