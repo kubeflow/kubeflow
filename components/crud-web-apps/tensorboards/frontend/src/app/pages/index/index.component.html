@@ -1,0 +1,11 @@
+<lib-namespace-select
+  *ngIf="!env.production"
+  [apiUrl]="env.apiUrl"
+></lib-namespace-select>
+
+<lib-resource-table
+  [config]="config"
+  [data]="processedData"
+  [trackByFn]="tensorboardTrackByFn"
+  (actionsEmitter)="reactToAction($event)"
+></lib-resource-table>
