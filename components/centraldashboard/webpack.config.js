@@ -194,7 +194,15 @@ module.exports = {
     devServer: {
         port: 8080,
         proxy: {
-            '/api': 'http://localhost:8082',
+            '/api': {
+                target: 'http://localhost:8082',
+                bypass: function(req) {
+                    const uidHeader = process.env.KF_USER_ID;
+                    if (uidHeader) {
+                        req.headers['kubeflow-userid'] = uidHeader;
+                    }
+                }
+            },
             '/jupyter': {
                 target: 'http://localhost:8083/api/v1/namespaces/kubeflow/services/jupyter-web-app-service:80/proxy',
                 pathRewrite: {'^/jupyter': ''},
