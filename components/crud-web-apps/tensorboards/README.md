@@ -1,6 +1,9 @@
-# GSoC 2020 - TENSORBOARD WEB-APP
+# GSoC 2020 - Tensorboard web-app
 
-## RUN TENSORBOARD WEB-APP LOCALLY
+This part of the project entails the [code for the FRONTEND and BACKEND](https://github.com/kubeflow/kubeflow/tree/master/components/crud-web-apps/tensorboards) of the Tensorboard web-app. The project also entailed extending the Tensorboard controller to support RWO PVCs as log storages for Tensorboard servers. You can find the code for the Tensorboard controller [here](https://github.com/kubeflow/kubeflow/tree/master/components/tensorboard-controller), and you can also find the corresponding documentation [here](https://github.com/kubeflow/kubeflow/blob/master/components/tensorboard-controller/README.md).
+
+
+## Run Tensorboard web-app locally
 
 #### Prequisites to run the BACKEND locally:
 
@@ -40,7 +43,9 @@
 
 6. Run: `npm link kubeflow` to link the `kubeflow` module to the frontend
 
-#### To use the whole app, you will also need to run the [Tensorboard Controller](https://github.com/kandrio98/kubeflow/blob/master/components/tensorboard-controller/README.md).
+7. Run: `ng serve`
+
+#### To use the whole app, you will also need to run the [Tensorboard Controller](https://github.com/kubeflow/kubeflow/blob/master/components/tensorboard-controller/README.md).
 
 - The UI of the TWA is simple and intuitive
 
@@ -60,7 +65,7 @@ Since the TWA is not yet fully integrated with Kubeflow, in order to connect to 
 
 ![Tensorboard Server](https://github.com/kandrio98/kubeflow/blob/pictures-branch/components/crud-web-apps/tensorboards/pictures/tensorboard_server.png?raw=true)
 
-## BUILD TENSORBOARD WEB-APP IMAGE
+## Build Tensorboard web-app image
 
 ### Prequisites to build the image:
 
@@ -71,3 +76,21 @@ Since the TWA is not yet fully integrated with Kubeflow, in order to connect to 
 1. Change directories to `components/crud-web-apps/tensorboards`
 
 2. Run: `make image IMG=YOUR_REPO VER=YOUR_VERSION`
+
+# Challenges of the project
+
+Due to the nature of this project, which entailed the development of 3 major parts of the TWA (controller, backend and frontend), we faced a lot of difficulties during the summer. These mainly included building errors and library code malfunctions. Kimonas and Ilias, my mentors, were really helpful as the always provided feedback and made sure I was moving towards the right direction.
+
+In addition, the covid-19 pandemic greatly affected my work schedule as my college exams were pushed forward in the summer and scheduled in July, which was a crucial month for the development of my GSoC project.
+
+# Further Improvements
+
+I hope to be able to maintain and improve the TWA, using it where possibly throughout my further studies. Some identifiable improvements are:
+
+- The creation of a scipt to auto build the Tensorboard web app image
+- The integration of the TWA in the Kubeflow dashboard
+- The development of an [extensible story](https://github.com/kubeflow/kubeflow/issues/3578#issuecomment-655724933) for deploying our stateful apps, like Jupyter and Tensorboard
+
+# Acknowledgements
+
+First and foremost, I would like to thank my mentors Kimonas and Ilias. Both of them, despite their busy timelines were always willing to answer my (very often) questions and provide suggestions. They were always there for me, and I can't thank them enough for that. Also, Kubeflow, which introduced me to the world of open-source programming and gave me the opportunity to work on such an exiting project. Finally the Google Summer of Code program, that provided the necessary funding so I could undertake this project throughout the summer months and have a wonderful experience. 
