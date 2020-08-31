@@ -1,0 +1,59 @@
+name: component/centraldashboard
+on:
+  push:
+    branches:
+      - stc-master
+    paths:
+      - components/centraldashboard/**
+
+# Environment variables available to all jobs and steps in this workflow
+env:
+  REGISTRY_NAME: k8scc01covidacr
+  CLUSTER_NAME: k8s-cancentral-02-covid-aks
+  CLUSTER_RESOURCE_GROUP: k8s-cancentral-01-covid-aks
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    # Connect to Azure Container registry (ACR)
+    - uses: azure/docker-login@v1
+      with:
+        login-server: ${{ env.REGISTRY_NAME }}.azurecr.io
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+
+    - name: Free disk space
+      run: |
+        sudo swapoff -a
+        sudo rm -f /swapfile
+        sudo apt clean
+        docker rmi $(docker image ls -aq)
+        df -h
+
+    # Container build and push to a Azure Container registry (ACR)
+    - name: Docker build/push
+      run: |
+        docker build \
+          -t ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${{ github.sha }} \
+          --build-arg kubeflowversion=$(git describe --abbrev=0 --tags) \
+          --build-arg commit=$(git rev-parse HEAD) \
+          components/centraldashboard/
+        docker push ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${{ github.sha }}
+        docker tag ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${{ github.sha }} \
+          ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${GITHUB_REF#refs/*/}
+        docker push ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${GITHUB_REF#refs/*/}
+        docker system prune -f -a
+
+  container-scan:
+    needs: build-push
+    runs-on: ubuntu-latest
+    steps:
+    # Scan image for vulnerabilities
+    - uses: Azure/container-scan@v0
+      with:
+        image-name: ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${{ github.sha }}
+        severity-threshold: CRITICAL
+        run-quality-checks: false
