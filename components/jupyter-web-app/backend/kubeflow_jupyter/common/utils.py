@@ -410,6 +410,63 @@ def set_notebook_memory(notebook, body, defaults):
     container["resources"]["limits"]["memory"] = memory
 
 
+def set_notebook_affinity(notebook, body, defaults):
+    affinity_configs = defaults.get("affinityConfig", {})
+    aff_default = affinity_configs.get("value", None)
+    aff_options = affinity_configs.get("options", [])
+
+    if affinity_configs.get("readOnly", False):
+        configKey = aff_default
+        logger.info("Using default AffinityConfig: {}".format(configKey))
+    elif body.get("affinityConfig", None) is not None:
+        configKey = body["affinityConfig"]
+        logger.info("Using form's AffinityConfig: {}".format(configKey))
+    else:
+        configKey = aff_default
+        logger.info("Using default AffinityConfig: {}".format(configKey))
+
+    aff_group_match = [
+        aff_conf for aff_conf in aff_options if aff_conf["configKey"] == configKey
+    ]
+    if len(aff_group_match) == 0:
+        logger.error("AffinityConfig `{}` not in provided options".format(configKey))
+        return
+    elif len(aff_group_match) > 1:
+        logger.warning("AffinityConfig `{}` matched multiple options, using first match"
+                       .format(configKey))
+
+    notebook_spec = notebook["spec"]["template"]["spec"]
+    notebook_spec["affinity"] = aff_group_match[0]["affinity"]
+
+
+def set_notebook_tolerations(notebook, body, defaults):
+    toleration_configs = defaults.get("tolerationGroup", {})
+    tol_group_default = toleration_configs.get("value", None)
+    tol_group_options = toleration_configs.get("options", [])
+
+    if toleration_configs.get("readOnly", False):
+        groupKey = tol_group_default
+        logger.info("Using default TolerationGroup: {}".format(groupKey))
+    elif body.get("tolerationGroup", None) is not None:
+        groupKey = body["tolerationGroup"]
+        logger.info("Using form's TolerationGroup: {}".format(groupKey))
+    else:
+        groupKey = tol_group_default
+        logger.info("Using default TolerationGroup: {}".format(groupKey))
+
+    tol_group_match = [
+        tol_group for tol_group in tol_group_options if tol_group["groupKey"] == groupKey
+    ]
+    if len(tol_group_match) == 0:
+        logger.error("TolerationGroup `{}` not in provided options".format(groupKey))
+        return
+
+    notebook_tolerations = notebook["spec"]["template"]["spec"]["tolerations"]
+    for tol_group in tol_group_match:
+        for toleration in tol_group["tolerations"]:
+            notebook_tolerations.append(toleration)
+
+
 def set_notebook_gpus(notebook, body, defaults):
     gpus = None
     gpuDefaults = defaults.get("gpus", {})

@@ -12,7 +12,9 @@ import {
   faMicrochip,
   faLaptopCode,
   faLink,
-  faSlidersH
+  faSlidersH,
+  faCheckSquare,
+  faBullseye
 } from "@fortawesome/free-solid-svg-icons";
 import { faDocker } from "@fortawesome/free-brands-svg-icons";
 
@@ -48,7 +50,8 @@ import { RokFormDataVolumesComponent } from "./uis/rok/rok-resource-form/rok-for
 import { RokErrorMsgComponent } from "./uis/rok/rok-error-msg/rok-error-msg.component";
 import { FormConfigurationsComponent } from "./resource-form/form-configurations/form-configurations.component";
 import { FormGpusComponent } from "./resource-form/form-gpus/form-gpus.component";
-
+import { FormTolerationsComponent } from "./resource-form/form-tolerations/form-tolerations.component";
+import { FormAffinityComponent } from "./resource-form/form-affinity/form-affinity.component";
 
 @NgModule({
   declarations: [
@@ -77,6 +80,8 @@ import { FormGpusComponent } from "./resource-form/form-gpus/form-gpus.component
     RokErrorMsgComponent,
     FormConfigurationsComponent,
     FormGpusComponent,
+    FormTolerationsComponent,
+    FormAffinityComponent,
   ],
   imports: [
     BrowserModule,
@@ -102,7 +107,9 @@ export class AppModule {
       faLaptopCode,
       faDocker,
       faLink,
-      faSlidersH
+      faSlidersH,
+      faCheckSquare,
+      faBullseye
     );
   }
 }

@@ -144,3 +144,59 @@ spawnerFormDefaults:
     #   - default-editor
     value: []
     readOnly: false
+  affinityConfig:
+    # The default `configKey` from the options list
+    # If readonly, the default value will be the only option
+    value: "none"
+    # The list of available affinity configs
+    options:
+      - configKey: "none"
+        displayName: "None"
+        affinity: {}
+    # # (DESC) Pod gets an exclusive "n1-standard-2" Node
+    # # (TIP) set PreferNoSchedule taint on this node-pool
+    # # (TIP) enable cluster-autoscaler on this node-pool
+    # # (TIP) dont let users request more CPU/MEMORY than the size of this node
+    # - configKey: "exclusive__n1-standard-2"
+    #   displayName: "Exclusive: n1-standard-2"
+    #   affinity:
+    #     # (Require) Node having label: `node_pool=notebook-n1-standard-2`
+    #     nodeAffinity:
+    #       requiredDuringSchedulingIgnoredDuringExecution:
+    #         nodeSelectorTerms:
+    #           - matchExpressions:
+    #               - key: "node_pool"
+    #                 operator: "In"
+    #                 values:
+    #                   - "notebook-n1-standard-2"
+    #     # (Require) Node WITHOUT existing Pod having label: `notebook-name`
+    #     podAntiAffinity:
+    #       requiredDuringSchedulingIgnoredDuringExecution:
+    #         - labelSelector:
+    #             matchExpressions:
+    #               - key: "notebook-name"
+    #                 operator: "Exists"
+    #           namespaces: []
+    #           topologyKey: "kubernetes.io/hostname"
+    readOnly: false
+  tolerationGroup:
+    # The default `groupKey` from the options list
+    # If readonly, the default value will be the only option
+    value: "none"
+    # The list of available tolerationGroup configs
+    options:
+      - groupKey: "none"
+        displayName: "None"
+        tolerations: []
+    # - groupKey: "group_1"
+    #   displayName: "Group 1: description"
+    #   tolerations:
+    #     - key: "key1"
+    #       operator: "Equal"
+    #       value: "value1"
+    #       effect: "NoSchedule"
+    #     - key: "key2"
+    #       operator: "Equal"
+    #       value: "value2"
+    #       effect: "NoSchedule"
+    readOnly: false

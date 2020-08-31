@@ -8,6 +8,7 @@ metadata:
 spec:
   template:
     spec:
+      affinity: {{}}
       serviceAccountName: {serviceAccount}
       containers:
         - name: {name}
@@ -22,4 +23,5 @@ spec:
               cpu: "0.1"
               memory: "0.1Gi"
       ttlSecondsAfterFinished: 300
+      tolerations: []
       volumes: []

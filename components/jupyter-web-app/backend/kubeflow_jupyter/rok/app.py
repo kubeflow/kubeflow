@@ -68,6 +68,8 @@ def post_notebook(namespace):
     utils.set_notebook_image(notebook, body, defaults)
     utils.set_notebook_cpu(notebook, body, defaults)
     utils.set_notebook_memory(notebook, body, defaults)
+    utils.set_notebook_affinity(notebook, body, defaults)
+    utils.set_notebook_tolerations(notebook, body, defaults)
     utils.set_notebook_gpus(notebook, body, defaults)
     utils.set_notebook_configurations(notebook, body, defaults)
 

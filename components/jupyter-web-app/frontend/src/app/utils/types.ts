@@ -27,6 +27,26 @@ export interface PodDefault {
   desc: string;
 }
 
+export interface AffinityConfig {
+  configKey: string;
+  displayName: string;
+  affinity: object;
+}
+
+export interface TolerationGroup {
+  groupKey: string;
+  displayName: string;
+  tolerations: Toleration[];
+}
+
+export interface Toleration {
+  key: string;
+  operator: string;
+  value: string;
+  effect: string;
+  tolerationSeconds?: bigint;
+}
+
 export interface GPUVendor {
   limitsKey: string;
   uiName: string;
@@ -130,6 +150,18 @@ export interface Config {
 
   configurations?: {
     value: string[];
+    readOnly?: boolean;
+  };
+
+  affinityConfig?: {
+    value: string;
+    options: AffinityConfig[];
+    readOnly?: boolean;
+  }
+
+  tolerationGroup?: {
+    value: string;
+    options: TolerationGroup[];
     readOnly?: boolean;
   };
 }
