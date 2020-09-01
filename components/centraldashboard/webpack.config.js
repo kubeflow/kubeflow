@@ -91,7 +91,10 @@ module.exports = {
             },
             // Roboto Font and Material Icons
             {
-                test: /(iconfont|roboto)\/.*\.(eot|svg|ttf|woff2?)$/,
+                test: /\.(eot|svg|ttf|woff2?)$/,
+                include: [
+                    resolve(__dirname, 'public/assets/fonts')
+                ],
                 use: {
                     loader: 'url-loader',
                     options: {
