@@ -59,6 +59,8 @@ type PodDefaultSpec struct {
 
 	// Labels defines the labels to inject into the pod.
 	Labels map[string]string `json:"labels,omitempty"`
+
+	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
 }
 
 // PodDefaultStatus defines the observed state of PodDefault
