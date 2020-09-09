@@ -18,9 +18,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"os"
-	"strings"
-
 	"github.com/go-logr/logr"
 	reconcilehelper "github.com/kubeflow/kubeflow/components/common/reconcilehelper"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
@@ -35,6 +32,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/tools/record"
+	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -42,6 +40,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"strings"
 )
 
 const DefaultContainerPort = 8888
@@ -323,6 +322,36 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 			},
 		}
 	}
+	if len(container.Ports) == 1 {
+		container.LivenessProbe = &corev1.Probe{
+			Handler: corev1.Handler{
+				HTTPGet: &corev1.HTTPGetAction{
+					Path:   "/notebook/" + instance.Namespace + "/" + instance.Name + "/api/status",
+					Port:   intstr.FromInt(int(container.Ports[0].ContainerPort)),
+					Scheme: corev1.URISchemeHTTP,
+				},
+			},
+			InitialDelaySeconds: 20,
+			TimeoutSeconds:      10,
+			PeriodSeconds:       30,
+			SuccessThreshold:    1,
+			FailureThreshold:    3,
+		}
+		container.ReadinessProbe = &corev1.Probe{
+			Handler: corev1.Handler{
+				HTTPGet: &corev1.HTTPGetAction{
+					Path:   "/notebook/" + instance.Namespace + "/" + instance.Name + "/api/status",
+					Port:   intstr.FromInt(int(container.Ports[0].ContainerPort)),
+					Scheme: corev1.URISchemeHTTP,
+				},
+			},
+			InitialDelaySeconds: 20,
+			TimeoutSeconds:      10,
+			PeriodSeconds:       30,
+			SuccessThreshold:    1,
+			FailureThreshold:    3,
+		}
+	}
 	container.Env = append(container.Env, corev1.EnvVar{
 		Name:  "NB_PREFIX",
 		Value: "/notebook/" + instance.Namespace + "/" + instance.Name,
@@ -489,7 +518,7 @@ func nbNameFromInvolvedObject(c client.Client, object *corev1.ObjectReference) (
 		pod := &corev1.Pod{}
 		err := c.Get(
 			context.TODO(),
-			types.NamespacedName {
+			types.NamespacedName{
 				Namespace: namespace,
 				Name:      name,
 			},
