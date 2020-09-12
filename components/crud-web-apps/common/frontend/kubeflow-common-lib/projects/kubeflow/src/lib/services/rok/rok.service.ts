@@ -67,7 +67,9 @@ export class RokService extends BackendService {
     return this.http
       .head<any>(url, {
         headers: new HttpHeaders({
+          // X-Auth-Token header is deprecated by Authorization header
           'X-Auth-Token': this.csrfToken,
+          'Authorization': this.csrfToken,
         }),
         observe: 'response',
       })

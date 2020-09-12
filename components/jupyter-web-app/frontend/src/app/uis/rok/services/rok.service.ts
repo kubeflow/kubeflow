@@ -43,7 +43,9 @@ export class RokService {
     return this.http
       .head<RokResponse>(url, {
         headers: new HttpHeaders({
-          "X-Auth-Token": token
+          // X-Auth-Token header is deprecated by Authorization header
+          "X-Auth-Token": token,
+          "Authorization": token,
         }),
         observe: "response"
       })
@@ -104,7 +106,9 @@ export class RokService {
     return this.http
       .head<RokResponse>(url, {
         headers: new HttpHeaders({
-          "X-Auth-Token": token
+          // X-Auth-Token header is deprecated by Authorization header
+          "X-Auth-Token": token,
+          "Authorization": token,
         }),
         observe: "response"
       })
