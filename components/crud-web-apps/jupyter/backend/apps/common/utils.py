@@ -38,6 +38,7 @@ def load_spawner_ui_config():
         config_dict = helpers.load_yaml(config)
 
         if config_dict is not None:
+            log.info("Using config file: %s", config)
             return config_dict["spawnerFormDefaults"]
 
     log.error("Couldn't find any config file.")

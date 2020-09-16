@@ -151,6 +151,54 @@ def set_notebook_memory(notebook, body, defaults):
     container["resources"]["requests"]["memory"] = memory
 
 
+def set_notebook_tolerations(notebook, body, defaults):
+    tolerations_group_key = get_form_value(body, defaults, "tolerationGroup")
+
+    if tolerations_group_key == "none":
+        return
+
+    notebook_tolerations = notebook["spec"]["template"]["spec"]["tolerations"]
+    config = utils.load_spawner_ui_config()
+    toleration_groups = config.get("tolerationGroup", {}).get("options", [])
+
+    for group in toleration_groups:
+        if group["groupKey"] != tolerations_group_key:
+            continue
+
+        log.info("Appending Notebook tolerations: %s", group["tolerations"])
+        notebook_tolerations.extend(group["tolerations"])
+        return
+
+    log.warning(
+        "Didn't find any Toleration Group with key '%s' in the config",
+        tolerations_group_key,
+    )
+
+
+def set_notebook_affinity(notebook, body, defaults):
+    affinity_config_key = get_form_value(body, defaults, "affinityConfig")
+
+    if affinity_config_key == "none":
+        return
+
+    notebook_spec = notebook["spec"]["template"]["spec"]
+    config = utils.load_spawner_ui_config()
+    affinity_configs = config.get("affinityConfig", {}).get("options", [])
+
+    for affinity_config in affinity_configs:
+        if affinity_config["configKey"] != affinity_config_key:
+            continue
+
+        log.info("Setting Notebook affinity: %s", affinity_config["affinity"])
+        notebook_spec["affinity"] = affinity_config["affinity"]
+        return
+
+    log.warning(
+        "Didn't find any Affinity Config with key '%s' in the config",
+        affinity_config_key,
+    )
+
+
 def set_notebook_gpus(notebook, body, defaults):
     gpus = get_form_value(body, defaults, "gpus")
 

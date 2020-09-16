@@ -30,6 +30,8 @@ def post_pvc(namespace):
     form.set_notebook_cpu(notebook, body, defaults)
     form.set_notebook_memory(notebook, body, defaults)
     form.set_notebook_gpus(notebook, body, defaults)
+    form.set_notebook_tolerations(notebook, body, defaults)
+    form.set_notebook_affinity(notebook, body, defaults)
     form.set_notebook_configurations(notebook, body, defaults)
 
     # Workspace Volume
