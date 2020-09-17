@@ -97,9 +97,12 @@ describe('Pipelines Card', () => {
             status: 200,
             responseText: JSON.stringify({runs}),
         }, false, '/pipeline/apis/v1beta1/runs?' +
-                'page_size=5&sort_by=created_at%20desc');
+                'page_size=5&sort_by=created_at%20desc' +
+                '&resource_reference_key.type=NAMESPACE' +
+                '&resource_reference_key.id=kubeflow-user');
 
         pipelinesCard.artifactType = 'runs';
+        pipelinesCard.namespace = 'kubeflow-user';
         await requestPromise;
         flush();
 
@@ -159,8 +162,11 @@ describe('Pipelines Card', () => {
             status: 500,
             responseText: 'Some internal error',
         }, true, '/pipeline/apis/v1beta1/runs?' +
-                'page_size=5&sort_by=created_at%20desc');
+                'page_size=5&sort_by=created_at%20desc' +
+                '&resource_reference_key.type=NAMESPACE' +
+                '&resource_reference_key.id=kubeflow-user');
         pipelinesCard.artifactType = 'runs';
+        pipelinesCard.namespace = 'kubeflow-user';
         await requestPromise;
         flush();
 
