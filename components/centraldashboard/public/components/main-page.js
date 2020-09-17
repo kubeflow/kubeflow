@@ -269,6 +269,15 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         }
     }
 
+    _buildHref(href, queryParamsChange) {
+        // The "queryParams" value from "queryParamsChange" is not updated as
+        // expected in the "iframe-link", but it works in anchor element.
+        // A temporary workaround is  to use "this.queryParams" as an input
+        // instead of "queryParamsChange.base".
+        // const queryParams = queryParamsChange.base;
+        return this.buildHref(href, this.queryParams);
+    }
+
     /**
      * Builds the new iframeSrc string based on the subroute path, current
      * hash fragment, and the query string parameters other than ns.
