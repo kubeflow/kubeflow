@@ -11,6 +11,7 @@ class STATUS_PHASE:
     UNINITIALIZED = "uninitialized"
     UNAVAILABLE = "unavailable"
     TERMINATING = "terminating"
+    STOPPED = "stopped"
 
 
 def create_status(phase="", message="", state=""):

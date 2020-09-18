@@ -43,7 +43,7 @@ def check_authentication():
     want a function to not have authentication check then we can decorate it
     with the `no_authentication` decorator.
     """
-    if current_app.config.get("ENV") == config.DEV_MODE:
+    if config.dev_mode_enabled():
         log.debug("Skipping authentication check in development mode")
         return
 

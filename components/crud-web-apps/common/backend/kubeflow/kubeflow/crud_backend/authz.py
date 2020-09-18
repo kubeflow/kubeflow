@@ -108,7 +108,7 @@ def needs_authorization(verb, group, version, resource, namespace=None):
         @functools.wraps(func)
         def runner(*args, **kwargs):
             # Run the decorated function only if the user is authorized
-            ensure_authorized(verb, group, version, resource, namespace)
+            ensure_authorized(verb, namespace, group, version, resource)
             return func(*args, **kwargs)
 
         return runner

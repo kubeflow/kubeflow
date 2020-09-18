@@ -1,25 +1,32 @@
-import logging
 import os
+import enum
+import logging
 
 from flask import current_app
-
-DEV_MODE = "development"
-PROD_MODE = "production"
 
 
 log = logging.getLogger(__name__)
 
 
+class BackendMode(enum.Enum):
+    DEVELOPMENT = "dev"
+    DEVELOPMENT_FULL = "development"
+    PRODUCTION = "prod"
+    PRODUCTION_FULL = "production"
+
+
 def dev_mode_enabled():
-    return current_app.config["ENV"] == DEV_MODE
+    return (current_app.config.get("ENV") == BackendMode.DEVELOPMENT_FULL.value
+            or current_app.config.get("ENV") == BackendMode.DEVELOPMENT.value)
 
 
 class Config(object):
-    ENV = PROD_MODE
+    ENV = "generic"
     DEBUG = False
     STATIC_DIR = "./static/"
     JSONIFY_PRETTYPRINT_REGULAR = True
     LOG_LEVEL = logging.INFO
+    PREFIX = "/"
 
     def __init__(self):
         if os.environ.get("LOG_LEVEL_DEBUG", "false") == "true":
@@ -27,7 +34,7 @@ class Config(object):
 
 
 class DevConfig(Config):
-    ENV = DEV_MODE
+    ENV = BackendMode.DEVELOPMENT_FULL.value
     DEBUG = True
     LOG_LEVEL = logging.DEBUG
 
@@ -37,4 +44,4 @@ class DevConfig(Config):
 
 
 class ProdConfig(Config):
-    ENV = PROD_MODE
+    ENV = BackendMode.PRODUCTION_FULL.value
