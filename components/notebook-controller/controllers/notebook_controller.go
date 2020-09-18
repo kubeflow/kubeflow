@@ -206,23 +206,34 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	} else {
 		// Got the pod
 		podFound = true
-		if len(pod.Status.ContainerStatuses) > 0 &&
-			pod.Status.ContainerStatuses[0].State != instance.Status.ContainerState {
-			log.Info("Updating container state: ", "namespace", instance.Namespace, "name", instance.Name)
-			cs := pod.Status.ContainerStatuses[0].State
-			instance.Status.ContainerState = cs
-			oldConditions := instance.Status.Conditions
-			newCondition := getNextCondition(cs)
-			// Append new condition
-			if len(oldConditions) == 0 || oldConditions[0].Type != newCondition.Type ||
-				oldConditions[0].Reason != newCondition.Reason ||
-				oldConditions[0].Message != newCondition.Message {
-				log.Info("Appending to conditions: ", "namespace", instance.Namespace, "name", instance.Name, "type", newCondition.Type, "reason", newCondition.Reason, "message", newCondition.Message)
-				instance.Status.Conditions = append([]v1beta1.NotebookCondition{newCondition}, oldConditions...)
+
+		if len(pod.Status.ContainerStatuses) > 0 {
+			notebookContainerFound := false
+			for i := range pod.Status.ContainerStatuses {
+				if pod.Status.ContainerStatuses[i].Name == instance.Name &&
+					pod.Status.ContainerStatuses[i].State != instance.Status.ContainerState {
+					log.Info("Updating Notebook CR state: ", "namespace", instance.Namespace, "name", instance.Name)
+					cs := pod.Status.ContainerStatuses[i].State
+					instance.Status.ContainerState = cs
+					oldConditions := instance.Status.Conditions
+					newCondition := getNextCondition(cs)
+					// Append new condition
+					if len(oldConditions) == 0 || oldConditions[0].Type != newCondition.Type ||
+						oldConditions[0].Reason != newCondition.Reason ||
+						oldConditions[0].Message != newCondition.Message {
+						log.Info("Appending to conditions: ", "namespace", instance.Namespace, "name", instance.Name, "type", newCondition.Type, "reason", newCondition.Reason, "message", newCondition.Message)
+						instance.Status.Conditions = append([]v1beta1.NotebookCondition{newCondition}, oldConditions...)
+					}
+					err = r.Status().Update(ctx, instance)
+					if err != nil {
+						return ctrl.Result{}, err
+					}
+					notebookContainerFound = true
+					break
+				}
 			}
-			err = r.Status().Update(ctx, instance)
-			if err != nil {
-				return ctrl.Result{}, err
+			if !notebookContainerFound {
+				log.Info("WARNING: Notebook container is not found, so could not update State of Notebook CR")
 			}
 		}
 	}
@@ -489,7 +500,7 @@ func nbNameFromInvolvedObject(c client.Client, object *corev1.ObjectReference) (
 		pod := &corev1.Pod{}
 		err := c.Get(
 			context.TODO(),
-			types.NamespacedName {
+			types.NamespacedName{
 				Namespace: namespace,
 				Name:      name,
 			},
