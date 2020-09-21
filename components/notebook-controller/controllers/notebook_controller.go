@@ -207,6 +207,9 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		// Got the pod
 		podFound = true
 
+		// Update status of the CR using the ContainerState of
+		// the container that has the same name as the CR.
+		// If no container of same name is found, the state of the CR is not updated.
 		if len(pod.Status.ContainerStatuses) > 0 {
 			notebookContainerFound := false
 			for i := range pod.Status.ContainerStatuses {
@@ -233,7 +236,7 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 				}
 			}
 			if !notebookContainerFound {
-				log.Info("WARNING: Notebook container is not found, so could not update State of Notebook CR")
+				log.Error(nil, "Could not found the Notebook container, will not update the status of the CR. No container has the same name as the CR.", "CR name:", instance.Name)
 			}
 		}
 	}
