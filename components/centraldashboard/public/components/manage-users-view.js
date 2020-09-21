@@ -48,25 +48,32 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
         this.contributorInputEl = this.$.ContribEmail;
     }
     /**
-     * Returns 1 to 2 rows containing owner and contributor rows for namespaces
+     * Returns namespaces and roles
      * @param {[object]} ns Namespaces array.
      * @return {[string, [string]]} rows for namespace table.
      */
     nsBreakdown(ns) {
         const {ownedNamespace, namespaces} = this;
         if (!ownedNamespace || !namespaces) return;
-        const arr = [
-            [ownedNamespace.namespace, 'Owner'],
-        ];
-        if (ns.length <= 1) return arr;
-        const otherNamespaces = namespaces
-            .filter((n) => n != ownedNamespace)
-            .map((i) => i.namespace).join(', ');
-        arr.push(
-            [otherNamespaces, 'Contributor'],
-        );
+        const arr = [];
+        for (let i = 0; i < namespaces.length; i++) {
+            arr.push(
+                [namespaces[i].namespace,
+                    this.uppercaseFirst(namespaces[i].role)],
+            );
+        }
         return arr;
     }
+
+    /**
+     * Used to uppercase the first letter of the role name
+     * @param {string} string A string
+     * @return {string} A string where the first character is capitalized
+     */
+    uppercaseFirst(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
     /**
      * Triggers an API call to create a new Contributor
      */

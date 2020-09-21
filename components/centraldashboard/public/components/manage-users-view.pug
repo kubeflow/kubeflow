@@ -3,8 +3,6 @@ iron-ajax#RemoveContribAjax(method='DELETE', url='/api/workgroup/remove-contribu
     on-response='handleContribDelete', on-error='handleContribDelete', handle-as='json', content-type='application/json')
 iron-ajax#AddContribAjax(method='POST', url='/api/workgroup/add-contributor/[[ownedNamespace.namespace]]',
     on-response='handleContribCreate', on-error='handleContribCreate', handle-as='json', content-type='application/json')
-iron-ajax#GetContribsAjax(auto='[[!empty(ownedNamespace)]]', url='/api/workgroup/get-contributors/[[ownedNamespace.namespace]]',
-    last-response='{{contributorList}}', on-error='onContribFetchError', handle-as='json')
 iron-ajax#GetAllNamespacesAjax(auto='[[shouldFetchAllNamespaces(ownedNamespace, isClusterAdmin)]]', url='/api/workgroup/get-all-namespaces',
     last-response='{{allNamespaces}}', on-error='onAllNamespaceFetchError', handle-as='json')
 section#Main-Content
@@ -25,14 +23,17 @@ section#Main-Content
                 vaadin-grid-column(width='15em', path='0', flex-grow='2', header='Namespaces')
                 vaadin-grid-column(width='9em', path='1', header='Your role')
     article.Contributors(hidden$='[[empty(ownedNamespace)]]')
-        h2
-            iron-icon.icon(icon='kubeflow:namespace')
-            span.text Contributors to your namespace - [[ownedNamespace.namespace]]
-        .content.small
-            md2-input(label='Email Addresses', value='{{newContribEmail}}', on-submit='addNewContrib', placeholder='Add by email address', error$='[[contribCreateError]]')
-                .prefix(slot='prefix')
-                    template(is='dom-repeat', items='[[contributorList]]')
-                        paper-chip(on-remove='removeContributor') [[item]]
+        template(is='dom-repeat', items='[[multiOwnedNamespaces]]' as='multiOwnedNamespace')
+            iron-ajax#GetContribsAjax(auto='[[!empty(ownedNamespace)]]', url='/api/workgroup/get-contributors/[[multiOwnedNamespace.namespace]]',
+            last-response='{{multiOwnedNamespace.contributorList}}', on-error='onContribFetchError', handle-as='json')
+            h2
+                iron-icon.icon(icon='kubeflow:namespace')
+                span.text Contributors to your namespace - [[multiOwnedNamespace.namespace]]
+            .content.small
+                md2-input(label='Email Addresses', value='{{newContribEmail}}', on-submit='addNewContrib', placeholder='Add by email address', error$='[[contribCreateError]]')
+                    .prefix(slot='prefix')
+                        template(is='dom-repeat', items='{{multiOwnedNamespace.contributorList}}')
+                            paper-chip(on-remove='removeContributor') [[item]]
     article.Cluster-Namespaces(hidden$='[[empty(isClusterAdmin)]]')
         h2
             iron-icon.icon(icon='kubeflow:namespace')
