@@ -5,6 +5,7 @@
 
 .card {
   width: 900px;
+  background: white;
 }
 
 .spacer {
@@ -30,7 +31,7 @@ table {
   cursor: pointer;
 }
 
-.resource-row:not(.expanded):hover {
+.resource-row:hover {
   background: #fafafa;
 }
 
@@ -40,7 +41,6 @@ table {
 
 .detail-row {
   height: 0;
-  background: #fafafa;
 }
 
 .detail-row-content {
@@ -62,8 +62,7 @@ table {
 .cards-wrapper {
   display: flex;
   box-sizing: border-box;
-  margin-top: 0.75rem;
-  margin-bottom: 0.75rem;
+  margin: 0.90rem 0.4rem;
 }
 
 .cards-wrapper > * {
@@ -73,12 +72,12 @@ table {
 
 .resources-card {
   max-width: 30%;
-  padding-right: 0.75rem;
+  padding-right: 0.90rem;
 }
 
 .volumes-card {
   max-width: 30%;
-  padding-right: 0.75rem;
+  padding-right: 0.90rem;
 }
 
 // ------------
