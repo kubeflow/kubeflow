@@ -448,7 +448,20 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             platform, user, namespaces, isClusterAdmin,
         } = responseEvent.detail.response;
         Object.assign(this, {user, isClusterAdmin});
-        this.namespaces = namespaces;
+        const ownerRoleNamespaces = [];
+        const otherRoleNamespaces = [];
+        for (let i = 0; i < namespaces.length; i++) {
+            if (namespaces[i].role == 'owner') {
+                ownerRoleNamespaces.push(
+                    namespaces[i],
+                );
+            } else {
+                otherRoleNamespaces.push(
+                    namespaces[i],
+                );
+            }
+        }
+        this.namespaces = ownerRoleNamespaces.concat(otherRoleNamespaces);
         if (this.namespaces.length) {
             this._setRegistrationFlow(false);
         } else if (this.isolationMode == 'single-user') {
@@ -456,6 +469,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             this._setRegistrationFlow(true);
         }
         this.ownedNamespace = namespaces.find((n) => n.role == 'owner');
+        this.multiOwnedNamespaces = ownerRoleNamespaces;
         this.platformInfo = platform;
         const kVer = this.platformInfo.kubeflowVersion;
         if (kVer && kVer != 'unknown') {
