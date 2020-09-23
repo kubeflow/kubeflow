@@ -18,6 +18,7 @@ spec:
           resources:
             requests: {{}}
             limits: {{}}
+          ports: []
       ttlSecondsAfterFinished: 300
       tolerations: []
       volumes: []

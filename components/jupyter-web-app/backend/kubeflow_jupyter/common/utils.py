@@ -570,6 +570,24 @@ def set_notebook_configurations(notebook, body, defaults):
         notebook_labels[l] = "true"
 
 
+def set_notebook_ports(notebook, defaults):
+    ports_configs = defaults.get("ports", {})
+    container_port = ports_configs.get("containerPort", None)
+    host_port = ports_configs.get("hostPort", None)
+    notebook_port = {
+        "name": "notebook-port",
+        "containerPort": 8888
+    }
+
+    if container_port:
+        notebook_port["containerPort"] = container_port
+    if host_port:
+        notebook_port["hostPort"] = host_port
+
+    container = notebook["spec"]["template"]["spec"]["containers"][0]
+    container["ports"].append(notebook_port)
+
+
 def set_notebook_extra_resources(notebook, body, defaults):
     r = {"success": True, "log": ""}
     container = notebook["spec"]["template"]["spec"]["containers"][0]

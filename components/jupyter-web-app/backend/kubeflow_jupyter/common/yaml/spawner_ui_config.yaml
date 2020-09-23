@@ -144,16 +144,17 @@ spawnerFormDefaults:
       - configKey: "none"
         displayName: "None"
         affinity: {}
-    ## (DESC) Pod gets an exclusive "n1-standard-2" Node
-    ## (TIP) set PreferNoSchedule taint on this node-pool
+    ## (DESC) select "n1-standard-2" node-pool
+    ## (TIP) set `ports.hostPort` to stop Notebooks being on the same Node
+    ## (TIP) set a `PreferNoSchedule` taint on this node-pool
     ## (TIP) enable cluster-autoscaler on this node-pool
-    ## (TIP) dont let users request more CPU/MEMORY than the size of this node
-    ##       or set: `cpu.value=null`, `cpu.readOnly=true`
-    ##               `memory.value=null`, `memory.readOnly=true`
+    ## (TIP) tell users NOT to request more CPU/RAM than the size of the Node,
+    ##       or disable CPU/RAM requests by setting:
+    ##         `cpu.value=null`, `cpu.readOnly=true`
+    ##         `memory.value=null`, `memory.readOnly=true`
     # - configKey: "exclusive__n1-standard-2"
     #   displayName: "Exclusive: n1-standard-2"
     #   affinity:
-    #     # (Require) Node having label: `node_pool=notebook-n1-standard-2`
     #     nodeAffinity:
     #       requiredDuringSchedulingIgnoredDuringExecution:
     #         nodeSelectorTerms:
@@ -162,15 +163,6 @@ spawnerFormDefaults:
     #                 operator: "In"
     #                 values:
     #                   - "notebook-n1-standard-2"
-    #     # (Require) Node WITHOUT existing Pod having label: `notebook-name`
-    #     podAntiAffinity:
-    #       requiredDuringSchedulingIgnoredDuringExecution:
-    #         - labelSelector:
-    #             matchExpressions:
-    #               - key: "notebook-name"
-    #                 operator: "Exists"
-    #           namespaces: []
-    #           topologyKey: "kubernetes.io/hostname"
     readOnly: false
   tolerationGroup:
     # the `options.groupKey` to pre-select
@@ -200,3 +192,9 @@ spawnerFormDefaults:
     # the default state of the "Enable Shared Memory" toggle
     value: true
     readOnly: false
+  ports:
+    # the web port exposed by the notebook container
+    containerPort: 8888
+    # the Node hostPort assigned to the notebook container
+    # (TIP) setting this will stop Notebook Pods being assigned to the same Node
+    hostPort: null
