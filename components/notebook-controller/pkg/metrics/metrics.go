@@ -68,6 +68,8 @@ func (m *Metrics) Describe(ch chan<- *prometheus.Desc) {
 	m.runningNotebooks.Describe(ch)
 	m.NotebookCreation.Describe(ch)
 	m.NotebookFailCreation.Describe(ch)
+        m.NotebookCullingCount.Describe(ch)
+        m.NotebookCullingTimestamp.Describe(ch)
 }
 
 // Collect implements the prometheus.Collector interface.
@@ -76,6 +78,8 @@ func (m *Metrics) Collect(ch chan<- prometheus.Metric) {
 	m.runningNotebooks.Collect(ch)
 	m.NotebookCreation.Collect(ch)
 	m.NotebookFailCreation.Collect(ch)
+        m.NotebookCullingCount.Collect(ch)
+        m.NotebookCullingTimestamp.Collect(ch)
 }
 
 // scrape gets current running notebook statefulsets.
