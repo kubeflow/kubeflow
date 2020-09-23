@@ -22,7 +22,6 @@ div#grid
     .column
         notebooks-card(namespace='[[namespace]]')
         pipelines-card(heading="{{localize('dashboardView.headingRecentPipelines')}}", artifact-type='pipelines')
-        pipelines-card(heading='Recent Pipeline Runs', artifact-type='runs', namespace='[[namespace]]')
     .column
         template(is='dom-if', if='[[platformDetails.links]]')
             paper-card#Platform-Links(class$='[[platformDetails.name]]',
