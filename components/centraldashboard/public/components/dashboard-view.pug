@@ -18,6 +18,7 @@ div#grid
                 interval='Last60m',
                 external-link='[[platformDetails.resourceChartsLink]]'
                 external-link-text='[[platformDetails.resourceChartsLinkText]]')
+        pipelines-card(heading='Recent Pipeline Runs', artifact-type='runs')
     .column
         notebooks-card(namespace='[[namespace]]')
         pipelines-card(heading='Recent Pipelines', artifact-type='pipelines', namespace='[[namespace]]')
