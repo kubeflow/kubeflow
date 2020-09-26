@@ -1,5 +1,5 @@
 # Stage 0: UI Build Stage
-FROM node:10 as build-stage
+FROM node:10-buster-slim as build-stage
 
 WORKDIR /app
 
