@@ -36,14 +36,14 @@ describe('Activities List', () => {
         const today = new Date();
         const yesterday = new Date(today - ONE_DAY);
         activitiesList.activities = [{
-            lastTimestamp: today.toLocaleString(),
+            lastTimestamp: today.toISOString(),
             message: 'Something happened',
             type: 'Normal',
             involvedObject: {
                 name: 'some-pod',
             },
         }, {
-            lastTimestamp: yesterday.toLocaleString(),
+            lastTimestamp: yesterday.toISOString(),
             message: 'Something bad happened',
             type: 'Error',
             involvedObject: {
@@ -68,7 +68,7 @@ describe('Activities List', () => {
             // Add i hours to each activities
             activities.push({
                 lastTimestamp: new Date(eventDate - (i * 60 * 60 * 1000))
-                    .toLocaleString(),
+                    .toISOString(),
                 message: `Something happened ${i}`,
                 type: 'Normal',
                 involvedObject: {
