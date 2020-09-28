@@ -46,8 +46,6 @@ export const roleMap: ReadonlyMap<Role, Role> = new Map([
     ['contributor', 'edit'],
 ]);
 
-export type WorkgroupBinding = WorkgroupBinding;
-
 export interface SimpleBinding {
     namespace: string;
     role: SimpleRole;
