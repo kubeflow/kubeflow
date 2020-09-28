@@ -16,7 +16,6 @@ import './pipelines-card.js';
 import './resource-chart.js';
 import {getGCPData} from './resources/cloud-platform-data.js';
 
-const DOCS = 'https://www.kubeflow.org/docs';
 
 export class DashboardView extends PolymerElement {
     static get template() {
@@ -37,44 +36,28 @@ export class DashboardView extends PolymerElement {
                 type: Array,
                 value: [
                     {
-                        text: 'Getting Started with Kubeflow',
-                        desc: 'Get your machine-learning workflow up and ' +
-                            'running on Kubeflow',
-                        link: `${DOCS}/started/getting-started/`,
+                        text: 'Advanced Analytics Workspace Docs',
+                        desc: 'Helpful guides about our data and analysis ' +
+                            'tools',
+                        link: `https://statcan.github.io/daaas/`,
                     },
                     {
-                        text: 'MiniKF',
-                        desc: 'A fast and easy way to deploy Kubeflow locally',
-                        link: `${DOCS}/started/getting-started-minikf/`,
+                        text: 'Video Tutorial Series',
+                        desc: 'YouTube playlist of videos for getting ' +
+                            'started with Advanced Analytics Workspace tools',
+                        link: `https://www.youtube.com/playlist?list=PL1zlA2D7AHugkDdiyeUHWOKGKUd3MB_nD`,
                     },
                     {
-                        text: 'Microk8s for Kubeflow',
-                        desc: 'Quickly get Kubeflow running locally on ' +
-                            'native hypervisors',
-                        link: `${DOCS}/started/getting-started-multipass/`,
+                        text: 'Community Chat',
+                        desc: 'Slack workspace for discussion/support - ' +
+                            'requires sign-up for emails outside @canada.ca',
+                        link: `https://statcan-aaw.slack.com/`,
                     },
                     {
-                        text: 'Minikube for Kubeflow',
-                        desc: 'Quickly get Kubeflow running locally',
-                        link: `${DOCS}/started/getting-started-minikube/`,
-                    },
-                    {
-                        text: 'Kubeflow on GCP',
-                        desc: 'Running Kubeflow on Kubernetes Engine and ' +
-                            'Google Cloud Platform',
-                        link: `${DOCS}/gke/`,
-                    },
-                    {
-                        text: 'Kubeflow on AWS',
-                        desc: 'Running Kubeflow on Elastic Container Service ' +
-                            'and Amazon Web Services',
-                        link: `${DOCS}/aws/`,
-                    },
-                    {
-                        text: 'Requirements for Kubeflow',
-                        desc: 'Get more detailed information about using ' +
-                'Kubeflow and its components',
-                        link: `${DOCS}/started/requirements/`,
+                        text: 'Official Kubeflow Docs',
+                        desc: 'Advanced documentation for installing, ' +
+                            'running, and using Kubeflow',
+                        link: `https://www.kubeflow.org/docs/`,
                     },
                 ],
             },
