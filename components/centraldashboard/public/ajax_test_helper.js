@@ -73,11 +73,12 @@ export function mockIronAjax(component, response, respondWithError = false) {
             new CustomEvent(finalEvent, eventPayload)
         );
         const resp = component.lastResponse || component.lastError;
-
         // So that code can await when using this dynamically
         const completes = new Promise((res, rej) =>
             (respondWithError ? rej : res)(resp)
         );
+        completes.catch(() => {});
+
         return {response: resp, completes};
     };
 }
