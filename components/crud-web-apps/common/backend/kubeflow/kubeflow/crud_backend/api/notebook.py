@@ -4,6 +4,15 @@ from .. import authz
 from . import custom_api, v1_core
 
 
+def get_notebook(notebook, namespace):
+    authz.ensure_authorized(
+        "get", "kubeflow.org", "v1beta1", "notebooks", namespace
+    )
+    return custom_api.get_namespaced_custom_object(
+        "kubeflow.org", "v1beta1", namespace, "notebooks", notebook
+    )
+
+
 def create_notebook(notebook, namespace):
     authz.ensure_authorized(
         "create", "kubeflow.org", "v1beta1", "notebooks", namespace
@@ -33,6 +42,16 @@ def delete_notebook(notebook, namespace):
         "notebooks",
         notebook,
         client.V1DeleteOptions(propagation_policy="Foreground"),
+    )
+
+
+def patch_notebook(notebook, namespace, body):
+    authz.ensure_authorized(
+        "patch", "kubeflow.org", "v1beta1", "notebooks", namespace
+    )
+
+    return custom_api.patch_namespaced_custom_object(
+        "kubeflow.org", "v1beta1", namespace, "notebooks", notebook, body
     )
 
 

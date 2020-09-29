@@ -1,6 +1,8 @@
 import logging
 
-from flask import Blueprint, current_app, send_from_directory
+from flask import Blueprint, Response, request
+
+from . import helpers
 
 bp = Blueprint("serving", __name__)
 log = logging.getLogger(__name__)
@@ -14,14 +16,16 @@ log = logging.getLogger(__name__)
 # cache them for as long as possible
 
 
-@bp.route("/")
 @bp.route("/index.html")
-@bp.route("/<path:path>")
-def serve_index(path="/"):
+@bp.route("/")
+@bp.route("/new")
+@bp.route("/form")
+def serve_index():
     # Serve the index file in all other cases
-    static_dir = current_app.config["STATIC_DIR"]
-    log.info("Serving root file index.html for path %s", path)
+    log.info("Serving index.html for path: %s", request.path)
 
-    resp = send_from_directory(static_dir, "index.html")
-    resp.headers["Cache-Control"] = "public, no-cache"
-    return resp
+    return Response(
+        helpers.get_prefixed_index_html(),
+        mimetype="text/html",
+        headers={"Cache-Control": "public, no-cache"},
+    )

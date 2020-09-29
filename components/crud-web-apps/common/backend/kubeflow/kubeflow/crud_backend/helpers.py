@@ -3,10 +3,31 @@ Common helper functions for handling k8s objects information
 """
 import datetime as dt
 import logging
+import os
+import re
 
 import yaml
+from flask import current_app
 
 log = logging.getLogger(__name__)
+
+
+def get_prefixed_index_html():
+    """
+    The backend should modify the <base> element of the index.html file to
+    align with the configured prefix the backend is listening
+    """
+    prefix = os.path.join("/", current_app.config["PREFIX"], "")
+    static_dir = current_app.config["STATIC_DIR"]
+
+    log.info("Setting the <base> to reflect the prefix: %s", prefix)
+    with open(os.path.join(static_dir, "index.html"), "r") as f:
+        index_html = f.read()
+        index_prefixed = re.sub(
+            r"\<base href=\".*\"\>", '<base href="%s">' % prefix, index_html,
+        )
+
+        return index_prefixed
 
 
 def load_yaml(f):
@@ -112,7 +133,6 @@ def get_age(k8s_object):
     (uptime).
     """
     return {
-        "uptime": get_uptime(
-            k8s_object["metadata"]["creationTimestamp"]),
+        "uptime": get_uptime(k8s_object["metadata"]["creationTimestamp"]),
         "timestamp": k8s_object["metadata"]["creationTimestamp"],
     }

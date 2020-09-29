@@ -10,4 +10,5 @@ def get_rok_storageclasses():
     """
     Return a list of k8s storage classes that are provided from Rok
     """
+    # TODO(kimwnasptd): Should use annotations on storage classes instead
     return api.success_response("storageClasses", ["rok"])
