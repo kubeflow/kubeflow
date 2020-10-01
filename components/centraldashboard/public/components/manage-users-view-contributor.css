@@ -1,10 +1,6 @@
 :host {
-    @apply --layout-fit;
     background: white;
-    --content-color: #717479;
-    --subheading-color: #404447;
-    overflow: auto;
-    @apply --layout-fit;
+    position: relative;
 }
 h1, h2 {
     font-family: Google Sans;
@@ -15,9 +11,6 @@ h1 {
     color: black;
     padding: 1rem;
     border-bottom: 1px solid var(--border-color);
-}
-#Main-Content {
-    padding: 1rem;
 }
 article:not(:first-of-type) {
     margin-top: 1.5em;
@@ -44,16 +37,17 @@ h2 .icon {
 .content.small {
     max-width: 640px;
 }
-vaadin-grid {
-    --lumo-font-size-m: 1em;
-    --lumo-body-text-color: currentColor;
-    --lumo-space-m: 0
+#ContribError {
+    background: #F44336
 }
-vaadin-grid > [slot$='content-0'],
-    vaadin-grid > [slot$='content-1'],
-    vaadin-grid > [slot$='content-2'] {
-    color: var(--subheading-color);
+.contributor {
+    @apply --layout-horizontal;
+    position: relative;
+    padding: .5em;
+    flex-wrap: wrap;
+    border: 2px solid var(--action-color);
+    border-radius: 3px;
+    transition: border-color .25s;
+    display: block;
 }
-#NoNamespaceError {margin-top: 1em}
-
 [hidden] {display: none !important}
