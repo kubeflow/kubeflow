@@ -1,9 +1,10 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import {
-  getNameValidators,
   getNameError,
   MAX_NAME_LENGTH,
+  getNameSyncValidators,
+  getNameAsyncValidators,
 } from '../../validators';
 
 @Component({
@@ -29,18 +30,21 @@ export class NameInputComponent implements OnInit {
   }
   set existingNames(names: Set<string>) {
     this.existingNamesPrv = names;
-    this.setNameValidators();
+
+    this.nameControl.setAsyncValidators(
+      getNameAsyncValidators(this.existingNamesPrv, this.maxLength),
+    );
+
+    this.nameControl.setValidators(getNameSyncValidators());
   }
   constructor() {}
 
   ngOnInit() {
-    this.setNameValidators();
-  }
-
-  setNameValidators() {
-    this.nameControl.setValidators(
-      getNameValidators(this.existingNamesPrv, this.maxLength),
+    this.nameControl.setAsyncValidators(
+      getNameAsyncValidators(this.existingNamesPrv, this.maxLength),
     );
+
+    this.nameControl.setValidators(getNameSyncValidators());
   }
 
   nameError() {

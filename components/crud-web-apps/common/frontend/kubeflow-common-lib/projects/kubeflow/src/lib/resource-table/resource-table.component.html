@@ -79,6 +79,7 @@
                   <!--Button-->
                   <lib-action-button
                     *ngIf="isActionButtonValue(action)"
+                    class="action-button"
                     [action]="action"
                     [data]="element"
                     (emitter)="actionTriggered($event)"

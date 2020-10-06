@@ -61,6 +61,39 @@ export const cpuValidator: IValidator = {
     "followed by 'm'",
 };
 
+export const DEBOUNCE_TIME = 500;
+
+// Create an async validator that adds debounce time to synchronous validators
+export function mergeAndDebounceValidators(
+  syncValidators: ValidatorFn[],
+): AsyncValidatorFn {
+  return (control: AbstractControl): Observable<ValidationErrors | null> => {
+    return timer(DEBOUNCE_TIME).pipe(
+      switchMap(() => {
+        // Run all synchronous validators and return their concatenated output
+        let validationResult: ValidationErrors = {};
+        for (const validator of syncValidators) {
+          const res = validator(control);
+
+          // No errors
+          if (res === null) {
+            continue;
+          }
+
+          validationResult = Object.assign({}, res, validationResult);
+        }
+
+        // Return the concatenated result from all the validators
+        if (Object.keys(validationResult).length === 0) {
+          return observableOf(null);
+        }
+
+        return observableOf(validationResult);
+      }),
+    );
+  };
+}
+
 // Name Validators
 export const MAX_NAME_LENGTH = 50;
 
@@ -83,15 +116,20 @@ export function getExistingNameValidator(names: Set<string>): ValidatorFn {
   };
 }
 
-export function getNameValidators(
+export function getNameSyncValidators() {
+  return [Validators.required];
+}
+
+export function getNameAsyncValidators(
   existingNames = new Set<string>(),
   maxLength = MAX_NAME_LENGTH,
-): ValidatorFn[] {
+): AsyncValidatorFn[] {
   return [
-    Validators.required,
-    Validators.pattern(dns1035Validator.regex),
-    Validators.maxLength(maxLength),
-    getExistingNameValidator(existingNames),
+    mergeAndDebounceValidators([
+      Validators.pattern(dns1035Validator.regex),
+      Validators.maxLength(maxLength),
+      getExistingNameValidator(existingNames),
+    ]),
   ];
 }
 
@@ -117,7 +155,7 @@ export function rokUrlValidator(rok: RokService): AsyncValidatorFn {
 
     // Ensure a protocol is given
     // Don't fire while the user is writting
-    return timer(400).pipe(
+    return timer(DEBOUNCE_TIME).pipe(
       switchMap(() => {
         return rok.getObjectMetadata(url, false).pipe(
           map(resp => {

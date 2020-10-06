@@ -18,4 +18,11 @@
   <mat-icon *ngIf="getIcon() === 'gpuSectionIcon'" [inline]="true" class="gpu">
     memory
   </mat-icon>
+
+  <!--Stopped Resource-->
+  <fa-icon
+    *ngIf="getIcon() === 'stoppedResource'"
+    class="stoppedResource"
+    [icon]="['fas', 'stop-circle']"
+  ></fa-icon>
 </ng-container>

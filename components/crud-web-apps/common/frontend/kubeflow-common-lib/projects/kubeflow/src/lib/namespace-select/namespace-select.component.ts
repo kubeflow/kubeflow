@@ -16,11 +16,6 @@ export class NamespaceSelectComponent implements OnInit, OnDestroy {
   private poller: ExponentialBackoff;
   private subscriptions = new Subscription();
 
-  @Input()
-  set apiUrl(apiUrl: string) {
-    this.backend.setApiUrl(apiUrl);
-  }
-
   constructor(
     private namespaceService: NamespaceService,
     private backend: BackendService,

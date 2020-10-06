@@ -12,6 +12,12 @@
     [matTooltip]="status?.message"
   ></mat-spinner>
 
+  <lib-icon
+    *ngSwitchCase="STATUS_TYPE.STOPPED"
+    [matTooltip]="status?.message"
+    icon="custom:stoppedResource"
+  ></lib-icon>
+
   <mat-icon
     *ngSwitchDefault
     [ngClass]="getCssClasses()"

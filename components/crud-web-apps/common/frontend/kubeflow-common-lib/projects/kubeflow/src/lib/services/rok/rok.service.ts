@@ -87,7 +87,7 @@ export class RokService extends BackendService {
     showSnackBar = true,
   ): Observable<string[]> {
     // Get existing PVCs in a namespace
-    const url = this.getUrl(`/api/rok/storageclasses`);
+    const url = `api/rok/storageclasses`;
 
     return this.http.get<BackendResponse>(url).pipe(
       catchError(error => this.handleError(error, showSnackBar)),

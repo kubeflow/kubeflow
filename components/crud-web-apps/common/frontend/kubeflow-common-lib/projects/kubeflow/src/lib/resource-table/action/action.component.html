@@ -2,7 +2,7 @@
 <button
   *ngIf="isPhaseReady()"
   mat-icon-button
-  [matTooltip]="action.tooltip"
+  [matTooltip]="tooltipReady"
   [color]="action.color"
   (click)="emitClickedEvent()"
 >
@@ -13,7 +13,7 @@
 <button
   *ngIf="isPhaseInit()"
   mat-icon-button
-  [matTooltip]="action.tooltip"
+  [matTooltip]="tooltipInit"
   [color]="action.color"
   (click)="emitClickedEvent()"
 >

@@ -20,6 +20,7 @@ import { NameInputComponent } from './name-namespace-inputs/name-input/name-inpu
 import { IconModule } from '../icon/icon.module';
 import { PositiveNumberInputComponent } from './positive-number-input/positive-number-input.component';
 import { RokUrlInputComponent } from './rok-url-input/rok-url-input.component';
+import { AdvancedOptionsComponent } from './advanced-options/advanced-options.component';
 
 @NgModule({
   declarations: [
@@ -28,6 +29,7 @@ import { RokUrlInputComponent } from './rok-url-input/rok-url-input.component';
     NameInputComponent,
     PositiveNumberInputComponent,
     RokUrlInputComponent,
+    AdvancedOptionsComponent,
   ],
   imports: [
     CommonModule,
@@ -45,6 +47,7 @@ import { RokUrlInputComponent } from './rok-url-input/rok-url-input.component';
     NameInputComponent,
     PositiveNumberInputComponent,
     RokUrlInputComponent,
+    AdvancedOptionsComponent,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,

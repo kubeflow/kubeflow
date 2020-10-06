@@ -123,3 +123,8 @@ body {
   padding-right: 0.5rem;
   padding-left: 0.5rem;
 }
+
+.mat-button.button-with-icon .mat-button-wrapper {
+  display: flex;
+  align-items: center;
+}

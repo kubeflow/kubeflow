@@ -1,0 +1,16 @@
+<div class="options-wrapper" #options>
+  <ng-content></ng-content>
+</div>
+
+<div>
+  <button
+    class="toggle-button button-with-icon"
+    color="primary"
+    mat-button
+    (click)="toggleClicked()"
+    type="button"
+  >
+    <lib-icon class="blue" [icon]="buttonIcon"></lib-icon>
+    Advanced options
+  </button>
+</div>

@@ -16,6 +16,8 @@ import {
   faLaptopCode,
   faLink,
   faSlidersH,
+  faBullseye,
+  faStopCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import { faDocker } from '@fortawesome/free-brands-svg-icons';
 
@@ -35,6 +37,8 @@ export class IconModule {
       faDocker,
       faLink,
       faSlidersH,
+      faBullseye,
+      faStopCircle,
     );
   }
 }
