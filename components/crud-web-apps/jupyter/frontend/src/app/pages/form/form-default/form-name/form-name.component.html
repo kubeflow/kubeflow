@@ -1,0 +1,17 @@
+<lib-form-section
+  [title]="'Name'"
+  [text]="
+    'Specify the name of the Notebook Server and the Namespace it
+        will belong to.'
+  "
+  icon="fa:fas:book"
+>
+  <lib-form-name-namespace-inputs
+    [nameControl]="parentForm.get('name')"
+    maxLength="40"
+    [namespaceControl]="parentForm.get('namespace')"
+    resourceName="Notebook Server"
+    [existingNames]="existingNotebooks"
+  >
+  </lib-form-name-namespace-inputs>
+</lib-form-section>

@@ -1,0 +1,23 @@
+<lib-form-section
+  title="Workspace Volume"
+  text="
+  Configure the Volume to be mounted as your personal Workspace.
+  "
+  icon="fa:fas:laptop-code"
+>
+  <div [formGroup]="parentForm">
+    <mat-checkbox formControlName="noWorkspace"
+      >Don't use Persistent Storage for User's home</mat-checkbox
+    >
+
+    <app-volume
+      [volume]="parentForm.get('workspace')"
+      [notebookName]="parentForm.value.name"
+      [pvcs]="pvcs"
+      [ephemeral]="parentForm.value.noWorkspace"
+      [namespace]="parentForm.value.namespace"
+      [defaultStorageClass]="defaultStorageClass"
+    >
+    </app-volume>
+  </div>
+</lib-form-section>
