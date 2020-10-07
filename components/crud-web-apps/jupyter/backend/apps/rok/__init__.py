@@ -1,6 +1,6 @@
 import os
 
-from kubeflow.kubeflow.flask_rest_backend import config, logging, rok
+from kubeflow.kubeflow.crud_backend import config, logging, rok
 
 from ..common import create_app as create_default_app
 from .routes import bp as routes_bp

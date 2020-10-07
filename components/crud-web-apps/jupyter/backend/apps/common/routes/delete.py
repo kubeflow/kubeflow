@@ -1,4 +1,4 @@
-from kubeflow.kubeflow.flask_rest_backend import api, logging
+from kubeflow.kubeflow.crud_backend import api, logging
 
 from . import bp
 

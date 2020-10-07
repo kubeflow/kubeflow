@@ -2,7 +2,7 @@ import json
 
 from werkzeug.exceptions import BadRequest
 
-from kubeflow.kubeflow.flask_rest_backend import logging
+from kubeflow.kubeflow.crud_backend import logging
 
 from . import utils
 

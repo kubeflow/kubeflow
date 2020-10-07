@@ -2,7 +2,7 @@ import os
 import sys
 
 from apps import default, rok
-from kubeflow.kubeflow.flask_rest_backend import config, logging
+from kubeflow.kubeflow.crud_backend import config, logging
 
 log = logging.getLogger(__name__)
 
