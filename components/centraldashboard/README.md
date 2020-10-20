@@ -45,6 +45,8 @@ Make sure you have the latest LTS version of `node` installed along with `npm`.
       from the front-end starting with `/api` are proxied to the Express
       server. All other requests are handled by the front-end server which
       mirrors the production configuration.
+4. To access the Kubenetes REST API, run `kubectl proxy --port=8083`.
+   - This runs [kubectl proxy](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#proxy) to create a reverse proxy at http://localhost:8083. Requests from the front-end starting with `/jupyter`, `/metadata`, `/notebook` and `/pipeline` are proxied to the [Kubenetes API server](https://kubernetes.io/docs/tasks/administer-cluster/access-cluster-api/). See the [webpack config file](https://github.com/kubeflow/kubeflow/blob/master/components/centraldashboard/webpack.config.js) for more details.
 
 ### Server Components
 
