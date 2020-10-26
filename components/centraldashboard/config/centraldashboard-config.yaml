@@ -8,85 +8,74 @@ data:
     {
       "menuLinks": [
         {
-          "link": "/jupyter/",
-          "text": "Notebooks",
-          "icon": "book"
+          link: '/pipeline/',
+          text: 'mainPage.menuPipelines',
         },
         {
-          "link": "/tensorboards/",
-          "text": "Tensorboards",
-          "icon": "assessment"
+          link: '/jupyter/',
+          text: 'mainPage.menuNotebookServers',
         },
         {
-          "link": "/pipeline/",
-          "text": "Pipelines"
+          link: '/katib/',
+          text: 'mainPage.menuKatib',
         },
         {
-          "link": "/jupyter/",
-          "text": "Notebook Servers"
-        },
-        {
-          "link": "/katib/",
-          "text": "Katib"
-        }
+          link: '/metadata/',
+          text: 'mainPage.menuArtifactStore',
+        },  
       ],
       "externalLinks": [],
       "quickLinks": [
         {
-          "text": "Upload a pipeline",
-          "desc": "Pipelines",
-          "link": "/pipeline/"
+          text: 'dashboardView.quicklinkUploadText',
+          desc: 'dashboardView.quicklinkUploadDesc',
+          link: `/pipeline/`,
         },
         {
-          "text": "View all pipeline runs",
-          "desc": "Pipelines",
-          "link": "/pipeline/#/runs"
+          text: 'dashboardView.quicklinkViewAllText',
+          desc: 'dashboardView.quicklinkViewAllDesc',
+          link: `/pipeline/#/runs`,
         },
         {
-          "text": "Create a new Notebook server",
-          "desc": "Notebook Servers",
-          "link": "/jupyter/new?namespace=kubeflow"
+          text: 'dashboardView.quicklinkCreateNewText',
+          desc: 'dashboardView.quicklinkCreateNewDesc',
+          link: `/jupyter/new?namespace=kubeflow`,
         },
         {
-          "text": "View Katib Experiments",
-          "desc": "Katib",
-          "link": "/katib/"
-        }
+          text: 'dashboardView.quicklinkViewKatibText',
+          desc: 'dashboardView.quicklinkViewKatibDesc',
+          link: `/katib/`,
+        },
+        {
+          text: 'dashboardView.quicklinkMetadataArtifactsText',
+          desc: 'dashboardView.quicklinkMetadataArtifactsDesc',
+          link: `/metadata/`,
+        },
       ],
       "documentationItems": [
         {
-          "text": "Getting Started with Kubeflow",
-          "desc": "Get your machine-learning workflow up and running on Kubeflow",
-          "link": "https://www.kubeflow.org/docs/started/getting-started/"
+          text: 'dashboardView.docItemAawdText',
+          desc: 'dashboardView.docItemAawdDesc',
+          link: 'dashboardView.docItemAawdLink',
         },
         {
-          "text": "MiniKF",
-          "desc": "A fast and easy way to deploy Kubeflow locally",
-          "link": "https://www.kubeflow.org/docs/distributions/minikf/"
+          text: 'dashboardView.docItemVideoTutorialText',
+          desc: 'dashboardView.docItemVideoTutorialDesc',
+          link: 'dashboardView.docItemVideoTutorialLink',
         },
         {
-          "text": "Microk8s for Kubeflow",
-          "desc": "Quickly get Kubeflow running locally on native hypervisors",
-          "link": "https://www.kubeflow.org/docs/distributions/microk8s/kubeflow-on-microk8s/"
+          text: 'dashboardView.docItemCommunityChatText',
+          desc: 'dashboardView.docItemCommunityChatDesc',
+          link: 'dashboardView.docItemCommunityChatLink',
         },
         {
-          "text": "Kubeflow on GCP",
-          "desc": "Running Kubeflow on Kubernetes Engine and Google Cloud Platform",
-          "link": "https://www.kubeflow.org/docs/gke/"
+          text: 'dashboardView.docItemOfficialKubeflowDocsText',
+          desc: 'dashboardView.docItemOfficialKubeflowDocsDesc',
+          link: 'dashboardView.docItemOfficialKubeflowDocsLink',
         },
-        {
-          "text": "Kubeflow on AWS",
-          "desc": "Running Kubeflow on Elastic Container Service and Amazon Web Services",
-          "link": "https://www.kubeflow.org/docs/aws/"
-        },
-        {
-          "text": "Requirements for Kubeflow",
-          "desc": "Get more detailed information about using Kubeflow and its components",
-          "link": "https://www.kubeflow.org/docs/started/requirements/"
-        }
       ]
     }
 kind: ConfigMap
 metadata:
-  name: centraldashboard-config
+  name: centraldashboard-links-config
   namespace: kubeflow

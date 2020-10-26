@@ -21,7 +21,14 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                 paper-item.menu-item {{localize('mainPage.menuHome')}}
             template(is='dom-repeat', items='[[menuLinks]]')
                 iframe-link(href$="[[buildHref(item.link, queryParams)]]")
-                    paper-item.menu-item {{localize(item.text)}}       
+                    paper-item.menu-item {{localize(item.text)}}
+            template(is='dom-repeat', items='[[externalLinks]]')
+                template(is='dom-if', if='[[item.iframe]]')
+                    iframe-link(href$="[[buildHref(item.link, queryParams)]]")
+                        paper-item.menu-item [[item.text]]
+                template(is='dom-if', if='[[!item.iframe]]')
+                    a(href$="[[item.link]]",tabindex='-1', target="_blank")
+                        paper-item.menu-item [[item.text]]       
             template(is='dom-if', if='[[equals(isolationMode, "multi-user")]]')
                 aside.divider
                 a(href$='[[buildHref("/manage-users", queryParams)]]', tabindex='-1')
