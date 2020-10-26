@@ -156,7 +156,7 @@ describe('Registration Page', () => {
     it('Should show errors correctly', async () => {
         mockIronAjax(
             registrationPage.$.MakeNamespace,
-            {error: 'Test Error!'},
+            {error: "registrationPage.errTest"},
             true,
         );
 

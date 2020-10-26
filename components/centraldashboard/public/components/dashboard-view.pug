@@ -1,13 +1,13 @@
 div#grid
     .column
-        paper-card#Quick-Links(heading='Quick shortcuts')
+        paper-card#Quick-Links(heading="{{localize('dashboardView.headingQuickLinks')}}")
             template(is='dom-repeat', items='[[quickLinks]]')
                 iframe-link.link(href$="[[item.link]]")
                     paper-icon-item
                         iron-icon(icon='kubeflow:bolt', slot='item-icon')
                         paper-item-body(two-line)
-                            .header [[item.text]]
-                            aside(secondary) [[item.desc]]
+                            .header {{localize(item.text)}}
+                            aside(secondary) {{localize(item.desc)}}
                         paper-ripple
         template(is='dom-if', if='[[platformDetails.resourceChartsLink]]')
             resource-chart(header-text='Cluster CPU Utilization', metric='cpu',
@@ -18,10 +18,10 @@ div#grid
                 interval='Last60m',
                 external-link='[[platformDetails.resourceChartsLink]]'
                 external-link-text='[[platformDetails.resourceChartsLinkText]]')
-        pipelines-card(heading='Recent Pipeline Runs', artifact-type='runs')
+        pipelines-card(heading="{{localize('dashboardView.headingRecentPipelinesRuns')}}", artifact-type='runs')
     .column
         notebooks-card(namespace='[[namespace]]')
-        pipelines-card(heading='Recent Pipelines', artifact-type='pipelines', namespace='[[namespace]]')
+        pipelines-card(heading="{{localize('dashboardView.headingRecentPipelines')}}", artifact-type='pipelines')
         pipelines-card(heading='Recent Pipeline Runs', artifact-type='runs', namespace='[[namespace]]')
     .column
         template(is='dom-if', if='[[platformDetails.links]]')
@@ -36,14 +36,14 @@ div#grid
                                 aside(secondary) [[item.secondaryText]]
                             paper-icon-button.button(icon='open-in-new',
                                 slot='item-icon', alt='[[item.text]]', tabindex=-1)
-        paper-card#Documentation(heading='Documentation')
+        paper-card#Documentation(heading="{{localize('dashboardView.headingDocumentation')}}")
             template(is='dom-repeat', items='[[documentationItems]]')
-                a.link(href$='[[item.link]]', tabindex='-1',
+                a.link(href$="{{localize(item.link)}}", tabindex='-1',
                             target='_blank')
                     paper-icon-item.external
                         paper-ripple
                         paper-item-body(two-line)
-                            .header [[item.text]]
-                            aside(secondary) [[item.desc]]
+                            .header  {{localize(item.text)}}
+                            aside(secondary) {{localize(item.desc)}}
                         paper-icon-button.button(icon='open-in-new',
-                            slot='item-icon', alt='[[item.text]]', tabindex=-1)
+                            slot='item-icon', alt='{{localize(item.text)}}', tabindex=-1)

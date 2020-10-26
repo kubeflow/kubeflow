@@ -20,8 +20,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             a(href$='[[_buildHref("/", queryParams.*)]]', tabindex='-1')
                 paper-item.menu-item#home
                     iron-icon(icon='home')
-                    | Home
-
+                    | {{localize('mainPage.menuHome')}}
             template(is='dom-repeat', items='[[menuLinks]]')
                 template(is='dom-if', if='[[equals(item.type, "section")]]')
                     paper-item.menu-item.section-item(on-click='_toggleMenuSection')
@@ -50,23 +49,23 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             template(is='dom-if', if='[[equals(isolationMode, "multi-user")]]')
                 aside.divider
                 a(href$='[[_buildHref("/manage-users", queryParams.*)]]', tabindex='-1')
-                    paper-item.menu-item#contributors Manage Contributors
+                    paper-item.menu-item {{localize('mainPage.menuHome')}}
             aside.divider
             a(href='https://github.com/kubeflow/kubeflow',
                 tabindex='-1', target="_blank")
-                paper-item.menu-item GitHub
+                paper-item.menu-item {{localize('mainPage.menuGitHub')}}
                     iron-icon.external(icon="launch")
             a(href='https://www.kubeflow.org/docs/about/kubeflow/',
                 tabindex='-1', target="_blank")
-                paper-item.menu-item Documentation
+                paper-item.menu-item {{localize('mainPage.menuDocumentation')}}
                     iron-icon.external(icon="launch")
         footer.footer
             section.information
-                a.privacy(title='Kubeflow Privacy Policy', target='_blank', href='https://policies.google.com/privacy') Privacy
+                a.privacy(title="{{localize('mainPage.menuPrivacyTitle')}}", target='_blank', href='https://policies.google.com/privacy') {{localize('mainPage.menuPrivacy')}}
                 .bullet
-                a.usage(title='Kubeflow Usage Reporting', target='_blank', href='https://www.kubeflow.org/docs/other-guides/usage-reporting/') Usage Reporting
+                a.usage(title="{{localize('mainPage.menuUsageReportingTitle')}}", target='_blank', href='https://www.kubeflow.org/docs/other-guides/usage-reporting/') {{localize('mainPage.menuUsageReporting')}}
             section.build build version&nbsp;
-                span(title="Build: [[buildVersion]] | Dashboard: v[[dashVersion]] | Isolation-Mode: [[isolationMode]]") [[buildVersion]]
+                span(title="{{localize('mainPage.footerBuildVersion', 'buildVersion', buildVersion, 'dashVersion', dashVersion, 'isolationMode', isolationMode)}}") [[buildVersion]]
     app-header-layout(fullbleed)
         app-header(slot='header', hides, hidden$='[[notFoundInIframe]]')
             app-toolbar
@@ -86,9 +85,9 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             section#ViewTabs(hidden$='[[hideTabs]]')
                 paper-tabs(selected='[[page]]', attr-for-selected='page')
                     paper-tab(page='dashboard', link)
-                        a.link(tabindex='-1', href$='[[_buildHref("/", queryParams.*)]]') Dashboard
+                        a.link(tabindex='-1', href$='[[_buildHref("/", queryParams.*)]]') {{localize('mainPage.tabDashboard')}}
                     paper-tab(page='activity', link)
-                        a.link(tabindex='-1', href$='[[_buildHref("/activity", queryParams.*)]]') Activity
+                        a.link(tabindex='-1', href$='[[_buildHref("/activity", queryParams.*)]]') {{localize('mainPage.tabActivity')}}
             neon-animated-pages(selected='[[page]]', attr-for-selected='page',
                                 entry-animation='fade-in-animation',
                                 exit-animation='fade-out-animation')
@@ -107,7 +106,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
     iron-media-query(query='(max-width: 900px)', query-matches='{{sidebarBleed}}')
     iron-media-query(query='(max-width: 1270px)', query-matches='{{thinView}}')
 paper-toast#welcomeUser(duration=5000) Welcome, [[_extractLdap(user)]]!
-paper-toast#ErrorToast(duration=0, opened='[[!empty(errorText)]]', on-click='closeError') [[errorText]]
+paper-toast#ErrorToast(duration=0, opened='[[!empty(errorText)]]', on-click='closeError') {{localize(errorText)}}
     paper-icon-button(icon='close')
 template(is='dom-if', if='[[registrationFlow]]')
     registration-page(user-details='[[_extractLdap(user)]]' on-flowcomplete='resyncApp')

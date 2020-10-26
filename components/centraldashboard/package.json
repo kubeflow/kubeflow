@@ -41,6 +41,7 @@
         "@google-cloud/monitoring": "^2.1.1",
         "@kubernetes/client-node": "^0.12.3",
         "@polymer/app-layout": "^3.1.0",
+        "@polymer/app-localize-behavior": "^3.0.1",
         "@polymer/app-route": "^3.0.0",
         "@polymer/iron-a11y-keys": "^3.0.1",
         "@polymer/iron-ajax": "^3.0.1",

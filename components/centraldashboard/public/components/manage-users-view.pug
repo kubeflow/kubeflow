@@ -1,35 +1,35 @@
-h1 Manage Contributors
+h1 {{localize('manageUsersView.lblManageContributors')}}
 iron-ajax#GetAllNamespacesAjax(auto='[[shouldFetchAllNamespaces(multiOwnedNamespaces, isClusterAdmin)]]', url='/api/workgroup/get-all-namespaces',
     last-response='{{allNamespaces}}', on-error='onAllNamespaceFetchError', handle-as='json')
 section#Main-Content
     article.Acct-Info
         h2
             iron-icon.icon(icon='social:person-outline')
-            span.text Account info
-            span(hidden$='[[!isClusterAdmin]]') &nbsp; (Cluster Admin)
+            span.text {{localize('manageUsersView.lblAccountInfo')}}
+            span(hidden$='[[!isClusterAdmin]]') &nbsp; {{localize('manageUsersView.lblClusterAdmin')}}
         .content
             span [[user]]
-    h2#NoNamespaceError(hidden$='[[!empty(multiOwnedNamespaces)]]') You have no owned namespaces!
+    h2#NoNamespaceError(hidden$='[[!empty(multiOwnedNamespaces)]]') {{localize('manageUsersView.lblNoOwnedNamespaces')}}
     article.Namespaces(hidden$='[[empty(multiOwnedNamespaces)]]')
         h2
             iron-icon.icon(icon='kubeflow:namespace')
-            span.text Namespace memberships
+            span.text {{localize('manageUsersView.lblNamespaceMemberships')}}
         .content.small
             vaadin-grid(items='[[nsBreakdown(namespaces)]]', theme="no-border", height-by-rows, multi-sort)
-                vaadin-grid-column(width='15em', path='0', flex-grow='2', header='Namespaces')
-                vaadin-grid-column(width='9em', path='1', header='Your role')
+                vaadin-grid-column(width='15em', path='0', flex-grow='2', header="{{localize('manageUsersView.headerNamespaces')}}")
+                vaadin-grid-column(width='9em', path='1', header="{{localize('manageUsersView.headerYouRole')}}")
     article.Contributors(hidden$='[[empty(multiOwnedNamespaces)]]')     
         template(is='dom-repeat', items='[[multiOwnedNamespaces]]' as='multiOwnedNamespace')
             manage-users-view-contributor(owned-namespace='[[multiOwnedNamespace]]')
     article.Cluster-Namespaces(hidden$='[[empty(isClusterAdmin)]]')
         h2
             iron-icon.icon(icon='kubeflow:namespace')
-            span.text Cluster namespaces
+            span.text {{localize('manageUsersView.lblClusterNamespaces')}}
         .content
             vaadin-grid(items='[[allNamespaces]]', theme="no-border", height-by-rows, multi-sort)
-                vaadin-grid-column(width='9em', path='0', header='Namespace')
-                vaadin-grid-column(width='10em', path='1', header='Owner')
-                vaadin-grid-column(width='15em', path='2', flex-grow='2', header='Contributors')
+                vaadin-grid-column(width='9em', path='0', header="{{localize('manageUsersView.headerNamespace')}}")
+                vaadin-grid-column(width='10em', path='1', header="{{localize('manageUsersView.headerOwner')}}")
+                vaadin-grid-column(width='15em', path='2', flex-grow='2', header="{{localize('manageUsersView.headerContributors')}}")
 paper-toast#AllNamespaceError(duration=5000)
-    | Failed to fetch all namespaces, because:
+    | {{localize('manageUsersView.errorAllNamespaces')}}
     strong [[allNamespaceError]]
