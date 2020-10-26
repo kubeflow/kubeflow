@@ -23,6 +23,7 @@ import '@polymer/neon-animation/neon-animatable.js';
 import '@polymer/neon-animation/neon-animated-pages.js';
 import '@polymer/neon-animation/animations/fade-in-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
+import localizationMixin from './localization-mixin.js';
 
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
@@ -44,7 +45,8 @@ import {IFRAME_LINK_PREFIX} from './iframe-link.js';
 /**
  * Entry point for application UI.
  */
-export class MainPage extends utilitiesMixin(PolymerElement) {
+// eslint-disable-next-line max-len
+export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) {
     static get template() {
         const vars = {logo};
         return html([
@@ -182,9 +184,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * @param {Event} ev AJAX-response
      */
     _onHasWorkgroupError(ev) {
-        const error = ((ev.detail.request||{}).response||{}).error ||
-            ev.detail.error;
-        this.showError(error);
+        this.showError('mainPage.errGeneric');
         return;
     }
 
@@ -292,11 +292,11 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         // instead of "queryParamsChange.base".
         // const queryParams = queryParamsChange.base;
         const queryParams = this.queryParams;
-        if (!queryParams || !queryParams["ns"]) {
+        if (!queryParams || !queryParams['ns']) {
             return this.buildHref(href, this.queryParams);
         }
-        return this.buildHref(href.replace('{ns}', queryParams["ns"]),
-                              queryParams);
+        return this.buildHref(href.replace('{ns}', queryParams['ns']),
+            queryParams);
     }
 
     /**
@@ -352,11 +352,11 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             return m.type === 'section' ? m.items.map((x) => x.link) : m.link;
         }).flat().sort().map((m) => {
             // replace namespaced menu items
-            const queryParams = this.queryParams
-            if (!queryParams || !queryParams["ns"]) {
+            const queryParams = this.queryParams;
+            if (!queryParams || !queryParams['ns']) {
                 return m;
             }
-            return m.replace('{ns}', queryParams["ns"]);
+            return m.replace('{ns}', queryParams['ns']);
         });
         if (hashPath) {
             matchPath = path + '#' + hashPath;

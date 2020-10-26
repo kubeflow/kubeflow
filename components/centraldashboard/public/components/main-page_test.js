@@ -49,7 +49,7 @@ const MENU_LINKS = [
     {
         link: '/myapp/{ns}',
         text: 'MyApp',
-    }
+    },
 ];
 
 describe('Main Page', () => {
@@ -341,8 +341,8 @@ describe('Main Page', () => {
             flush();
             mainPage.set('queryParams.ns', 'test');
             expect(mainPage._buildHref('/myapp/{ns}', {ns: 'test'})).toBe(
-                   '/myapp/test?ns=test');
-       })
+                '/myapp/test?ns=test');
+        });
 
     it('Sets active menu item from namespaced URL',
         () => {
@@ -354,7 +354,6 @@ describe('Main Page', () => {
             const activeMenuItem = getSelectedMenuItem();
             expect(activeMenuItem.length).toBe(1);
             expect(activeMenuItem[0].parentElement.href).toBe(
-                   '/myapp/test?ns=test');
-       });
-
+                '/myapp/test?ns=test');
+        });
 });
