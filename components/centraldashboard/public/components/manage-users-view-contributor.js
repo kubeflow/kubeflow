@@ -14,8 +14,10 @@ import './resources/md2-input/md2-input.js';
 import css from './manage-users-view-contributor.css';
 import template from './manage-users-view-contributor.pug';
 import utilitiesMixin from './utilities-mixin.js';
+import localizationMixin from './localization-mixin.js';
 
-export class ManageUsersViewContributor extends utilitiesMixin(PolymerElement) {
+// eslint-disable-next-line max-len
+export class ManageUsersViewContributor extends utilitiesMixin(localizationMixin(PolymerElement)) {
     static get template() {
         return html([`
             <style>${css.toString()}</style>
@@ -78,8 +80,9 @@ export class ManageUsersViewContributor extends utilitiesMixin(PolymerElement) {
      */
     handleContribCreate(e) {
         if (e.detail.error) {
-            const error = this._isolateErrorFromIronRequest(e);
-            this.contribCreateError = error;
+            // const error = this._isolateErrorFromIronRequest(e);
+            this.contribCreateError =
+                'manageUsersViewContributor.errorCreateGeneral';
             return;
         }
         this.contributorList = e.detail.response;
@@ -91,8 +94,9 @@ export class ManageUsersViewContributor extends utilitiesMixin(PolymerElement) {
      */
     handleContribDelete(e) {
         if (e.detail.error) {
-            const error = this._isolateErrorFromIronRequest(e);
-            this.contribCreateError = error;
+            // const error = this._isolateErrorFromIronRequest(e);
+            this.contribCreateError =
+                'manageUsersViewContributor.errorDeleteGeneral';
             return;
         }
         this.contributorList = e.detail.response;
