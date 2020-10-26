@@ -7,15 +7,15 @@
                 last-response='{{contributorList}}', on-error='onContribFetchError', handle-as='json')   
     h2
         iron-icon.icon(icon='kubeflow:namespace')
-        span.text Contributors to your namespace - [[ownedNamespace.namespace]]
+        span.text {{localize('manageUsersViewContributor.ContributorsToYourNamespace', 'ownedNamespace', ownedNamespace.namespace)}}
     .content.small
-        md2-input(label='Email Addresses', value='{{newContribEmail}}', on-submit='addNewContrib', placeholder='Add by email address', error$='[[contribCreateError]]')
+        md2-input(label="{{localize('manageUsersViewContributor.lblEmail')}}", value='{{newContribEmail}}', on-submit='addNewContrib', placeholder="{{localize('manageUsersViewContributor.phdAddByEmail')}}", error$='{{localize(contribCreateError)}}')
             .prefix(slot='prefix')
                 template(is='dom-repeat', items='[[contributorList]]')
                     paper-chip(on-remove='removeContributor') [[item]]
     paper-toast#ContribError(duration=5000)
-        | Failed to fetch contributor list for {{ownedNamespace.namespace}}, because: 
+        | {{localize('manageUsersViewContributor.errorContributor', 'ownedNamespace', ownedNamespace.namespace)}}
         strong [[contribError]]
     paper-toast#AllNamespaceError(duration=5000)
-        | Failed to fetch all namespaces, because:
+        | {{localize('manageUsersViewContributor.errorAllNamespaces'}}
         strong [[allNamespaceError]]

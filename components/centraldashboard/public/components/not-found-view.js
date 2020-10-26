@@ -1,6 +1,7 @@
 import {html, PolymerElement} from '@polymer/polymer';
+import localizationMixin from './localization-mixin.js';
 
-export class NotFoundView extends PolymerElement {
+export class NotFoundView extends localizationMixin(PolymerElement) {
     static get template() {
         return html`
             <style>
@@ -18,13 +19,16 @@ export class NotFoundView extends PolymerElement {
                     transform: translateY(-50%);
                 }
             </style>
-            <p>Sorry, <strong>[[path]]</strong> is not a valid page</p>
+            <p>{{localize('notFound.invalidPagePart1')}}
+                <strong>[[path]]</strong>
+                {{localize('notFound.invalidPagePart2')}}
+            </p>
         `;
     }
 
     /**
-      * Object describing property-related metadata used by Polymer features
-      */
+     * Object describing property-related metadata used by Polymer features
+     */
     static get properties() {
         return {
             path: String,

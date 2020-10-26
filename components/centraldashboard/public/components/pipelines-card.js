@@ -9,6 +9,7 @@ import '@polymer/paper-progress/paper-progress.js';
 import './iframe-link.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
+import localizationMixin from './localization-mixin.js';
 
 import './card-styles.js';
 import utilitiesMixin from './utilities-mixin.js';
@@ -21,7 +22,7 @@ const VALID_ARTIFACT_TYPES = new Set([PIPELINES, RUNS]);
 /**
  * Component to retrieve and display Pipelines or Pipeline Runs
  */
-export class PipelinesCard extends utilitiesMixin(PolymerElement) {
+export class PipelinesCard extends localizationMixin(PolymerElement) {
     static get template() {
         return html`
         <style include="card-styles">
@@ -41,7 +42,9 @@ export class PipelinesCard extends utilitiesMixin(PolymerElement) {
         <paper-progress indeterminate class="slow"
             hidden$="[[!loading]]"></paper-progress>
         <paper-card heading="[[heading]]">
-            <header id="message" hidden$="[[!message]]">[[message]]</header>
+            <header id="message" hidden$="[[!message]]">
+                {{localize(message)}}
+            </header>
             <template is="dom-repeat" items="[[pipelines]]">
                 <iframe-link class="link" href$="[[item.href]]">
                     <paper-icon-item>
@@ -52,7 +55,10 @@ export class PipelinesCard extends utilitiesMixin(PolymerElement) {
                         </iron-icon>
                         <paper-item-body two-line>
                             <div class="header">[[item.name]]</div>
-                            <aside secondary>Created [[item.created]]</aside>
+                            <aside secondary>
+                                {{localize('pipelinesCard.txtCreated')}}
+                                [[item.created]]
+                            </aside>
                         </paper-item-body>
                     </paper-icon-item>
                 </iframe-link>
@@ -146,7 +152,8 @@ export class PipelinesCard extends utilitiesMixin(PolymerElement) {
             };
         }).slice(0, MAX_PIPELINES);
         this.splice('pipelines', 0, this.pipelines.length, ...pipelines);
-        this.message = this.pipelines.length ? '' : 'None Found';
+        this.message = this.pipelines.length ?
+            '' : 'pipelinesCard.msgNoneFound';
         this.loading = false;
     }
 
@@ -156,7 +163,8 @@ export class PipelinesCard extends utilitiesMixin(PolymerElement) {
     _onError() {
         this.splice('pipelines', 0);
         this.message = this.artifactType === PIPELINES ?
-            'Error retrieving Pipelines' : 'Error retrieving Pipeline Runs';
+            'pipelinesCard.errRetrievingPipelines' :
+            'pipelinesCard.errRetrievingPipelineRuns';
     }
 
     /**
