@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
-import { getNameValidators, getNameError, MAX_NAME_LENGTH } from '../validators';
+import { getNameError, MAX_NAME_LENGTH } from '../validators';
 
 @Component({
   selector: 'lib-form-name-namespace-inputs',

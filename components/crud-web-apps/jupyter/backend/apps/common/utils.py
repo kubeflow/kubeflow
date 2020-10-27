@@ -3,7 +3,7 @@ import os
 from kubernetes import client
 from werkzeug import exceptions
 
-from kubeflow.kubeflow.flask_rest_backend import helpers, logging
+from kubeflow.kubeflow.crud_backend import helpers, logging
 
 from . import status
 
@@ -43,6 +43,38 @@ def load_spawner_ui_config():
 
     log.error("Couldn't find any config file.")
     raise exceptions.NotFound("Couldn't find any config file.")
+
+
+def process_gpus(container):
+    """
+    This function will expose two things, regarding GPUs:
+    1. The total number of GPUs that the Notebook has requested
+    2. A message describing how many GPUs from each venders it requested
+
+    This function will check the vendors that the admin has defined in the
+    app's config file.
+    """
+    # get the GPU vendors from the app's config
+    config = load_spawner_ui_config()
+    cfg_vendors = config.get("gpus", {}).get("value", {}).get("vendors", [])
+    # create a dict mapping the limits key with the UI name.
+    # For example: "nvidia.com/gpu": "NVIDIA"
+    gpu_vendors = {v["limitsKey"]: v["uiName"] for v in cfg_vendors}
+
+    count = 0
+    gpus = []
+    resource_limits = container.get("resources", {}).get("limits", {})
+    for vendor in gpu_vendors.keys():
+        if vendor not in resource_limits:
+            continue
+
+        gpu_count = resource_limits[vendor]
+        count += int(gpu_count)
+
+        # final message will be like: 1 NVIDIA, 2 AMD
+        gpus.append("%s %s" % (gpu_count, gpu_vendors[vendor]))
+
+    return {"count": count, "message": ", ".join(gpus)}
 
 
 def pvc_from_dict(vol, namespace):
@@ -94,6 +126,7 @@ def notebook_dict_from_k8s_obj(notebook):
         "image": cntr["image"],
         "shortImage": cntr["image"].split("/")[-1],
         "cpu": cntr["resources"]["requests"]["cpu"],
+        "gpus": process_gpus(cntr),
         "memory": cntr["resources"]["requests"]["memory"],
         "volumes": [v["name"] for v in cntr["volumeMounts"]],
         "status": status.process_status(notebook),

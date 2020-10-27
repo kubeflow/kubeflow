@@ -1,0 +1,57 @@
+<lib-form-section
+  title="Image"
+  text="A started Jupyter Docker Image with a baseline deployment and typical
+  ML packages"
+  icon="fa:fab:docker"
+>
+  <mat-checkbox
+    *ngIf="!readonly"
+    [formControl]="parentForm.get('customImageCheck')"
+  >
+    Custom Image
+  </mat-checkbox>
+
+  <mat-form-field
+    class="wide"
+    appearance="outline"
+    *ngIf="!parentForm?.value.customImageCheck"
+  >
+    <!-- If readonly, then make it an input element instead of select -->
+    <mat-label>Image</mat-label>
+    <mat-select
+      placeholder="Docker Image"
+      [formControl]="parentForm.get('image')"
+    >
+      <mat-option *ngFor="let img of images" [value]="img">
+        {{ img }}
+      </mat-option>
+    </mat-select>
+    <mat-error>Please provide and Image to use</mat-error>
+  </mat-form-field>
+
+  <mat-form-field
+    class="wide"
+    appearance="outline"
+    *ngIf="parentForm?.value.customImageCheck"
+  >
+    <mat-label>Custom Image</mat-label>
+    <input
+      matInput
+      placeholder="Provide a custom Image"
+      [formControl]="parentForm.get('customImage')"
+      #cstmimg
+    />
+    <mat-error>Please provide and Image to use</mat-error>
+  </mat-form-field>
+
+  <lib-advanced-options>
+    <mat-form-field class="wide" appearance="outline">
+      <mat-label>Image pull policy</mat-label>
+      <mat-select [formControl]="parentForm.get('imagePullPolicy')">
+        <mat-option value="Always">Always</mat-option>
+        <mat-option value="IfNotPresent">IfNotPresent</mat-option>
+        <mat-option value="Never">Never</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </lib-advanced-options>
+</lib-form-section>

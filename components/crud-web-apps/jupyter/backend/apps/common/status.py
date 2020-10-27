@@ -1,6 +1,6 @@
 import datetime as dt
 
-from kubeflow.kubeflow.flask_rest_backend import api, status
+from kubeflow.kubeflow.crud_backend import api, status
 
 EVENT_TYPE_WARNING = "Warning"
 STOP_ANNOTATION = "kubeflow-resource-stopped"
@@ -29,7 +29,7 @@ def process_status(notebook):
     # If the Notebook is being deleted, the status will be waiting
     if "deletionTimestamp" in metadata:
         return status.create_status(
-            status.STATUS_PHASE.TERMINATING, "Deleting Notebook Server"
+            status.STATUS_PHASE.TERMINATING, "Deleting this notebook server"
         )
 
     # Check the status

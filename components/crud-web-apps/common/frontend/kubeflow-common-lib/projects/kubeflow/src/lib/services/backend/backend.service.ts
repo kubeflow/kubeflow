@@ -22,17 +22,9 @@ export class BackendService {
 
   constructor(public http: HttpClient, public snackBar: SnackBarService) {}
 
-  public setApiUrl(apiUrl: string) {
-    this.apiUrl = apiUrl;
-  }
-
-  public getUrl(url: string): string {
-    return Location.joinWithSlash(this.apiUrl, url);
-  }
-
   // GETers
   public getUsername(): Observable<string> {
-    const url = this.getUrl(`/info`);
+    const url = `info`;
 
     return this.http.get<BackendResponse>(url).pipe(
       catchError(error => this.handleError(error, false)),
@@ -41,7 +33,7 @@ export class BackendService {
   }
 
   public getNamespaces(showSnackBar = true): Observable<string[]> {
-    const url = this.getUrl(`/api/namespaces`);
+    const url = `api/namespaces`;
 
     return this.http.get<BackendResponse>(url).pipe(
       catchError(error => this.handleError(error, showSnackBar)),
@@ -51,7 +43,7 @@ export class BackendService {
 
   public getStorageClasses(showSnackBar = true): Observable<string[]> {
     // Get existing PVCs in a namespace
-    const url = this.getUrl(`/api/storageclasses`);
+    const url = `api/storageclasses`;
 
     return this.http.get<BackendResponse>(url).pipe(
       catchError(error => this.handleError(error, showSnackBar)),
@@ -62,7 +54,7 @@ export class BackendService {
   }
 
   public getDefaultStorageClass(showSnackBar = true): Observable<string> {
-    const url = this.getUrl(`/api/storageclasses/default`);
+    const url = `api/storageclasses/default`;
 
     return this.http.get<BackendResponse>(url).pipe(
       catchError(error => this.handleError(error, showSnackBar)),

@@ -6,6 +6,7 @@ export enum STATUS_TYPE {
   UNAVAILABLE = 'unavailable',
   UNINITIALIZED = 'uninitialized',
   TERMINATING = 'terminating',
+  STOPPED = 'stopped',
 }
 
 export interface Status {

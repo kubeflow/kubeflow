@@ -7,7 +7,7 @@ export class ActionListValue {
 
 export interface ActionConfig {
   name: string;
-  tooltip: string;
+  tooltip?: string;
   color: string;
   field: string;
 }

@@ -1,0 +1,42 @@
+<lib-form-section
+  title="Data Volumes"
+  text="
+    Configure the Volumes to be mounted as your Datasets.
+  "
+  icon="fa:fas:hdd"
+>
+  <button
+    mat-stroked-button
+    class="add-data-vol-button"
+    color="accent"
+    (click)="addVol()"
+    type="button"
+    [disabled]="readonly"
+  >
+    <mat-icon>add</mat-icon>ADD VOLUME
+  </button>
+
+  <div *ngFor="let vol of datavols; let i = index" class="volume-wrapper">
+    <app-rok-volume
+      [volume]="vol"
+      [notebookName]="parentForm.get('name').value"
+      [namespace]="parentForm.get('namespace').value"
+      [pvcs]="pvcs"
+      [ephemeral]="false"
+      [storageClasses]="storageClasses"
+    >
+    </app-rok-volume>
+
+    <div class="del-btn">
+      <button
+        mat-icon-button
+        color="warn"
+        (click)="deleteVol(i)"
+        type="button"
+        [disabled]="readonly"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </div>
+</lib-form-section>

@@ -3,7 +3,7 @@ import datetime as dt
 from flask import request
 from werkzeug import exceptions
 
-from kubeflow.kubeflow.flask_rest_backend import api, decorators, logging
+from kubeflow.kubeflow.crud_backend import api, decorators, logging
 
 from .. import status
 from . import bp

@@ -19,7 +19,6 @@ export class RokUrlInputComponent implements OnInit {
   @Input() control: AbstractControl;
   @Input() mode = 'group';
   @Input() create = false;
-  @Input() rokUrl = '';
   @Output() urlEntered = new EventEmitter<string>();
 
   private popupChooser;
@@ -45,7 +44,7 @@ export class RokUrlInputComponent implements OnInit {
     }
     this.chooserId = Date.now();
     this.popupChooser = window.open(
-      `${this.rokUrl}/rok/buckets?mode=${this.mode}-chooser` +
+      `/rok/buckets?mode=${this.mode}-chooser` +
         `&create=${this.create}` +
         `&chooser-id=${this.chooserId}`,
       'Chooser',

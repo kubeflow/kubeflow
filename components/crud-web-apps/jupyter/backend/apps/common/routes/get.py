@@ -1,4 +1,4 @@
-from kubeflow.kubeflow.flask_rest_backend import api, logging
+from kubeflow.kubeflow.crud_backend import api, logging
 
 from .. import utils
 from . import bp
@@ -45,3 +45,27 @@ def get_notebooks(namespace):
     contents = [utils.notebook_dict_from_k8s_obj(nb) for nb in notebooks]
 
     return api.success_response("notebooks", contents)
+
+
+@bp.route("/api/gpus")
+def get_gpu_vendors():
+    """
+    Return a list of GPU vendors for which at least one node has the necessary
+    annotation required to schedule pods
+    """
+    frontend_config = utils.load_spawner_ui_config()
+    gpus_value = frontend_config.get("gpus", {}).get("value", {})
+    config_vendor_keys = [
+        v.get("limitsKey", "") for v in gpus_value.get("vendors", [])
+    ]
+
+    # Get all of the different resources installed in all nodes
+    installed_resources = set()
+    nodes = api.list_nodes().items
+    for node in nodes:
+        installed_resources.update(node.status.capacity.keys())
+
+    # Keep the vendors the key of which exists in at least one node
+    available_vendors = installed_resources.intersection(config_vendor_keys)
+
+    return api.success_response("vendors", list(available_vendors))

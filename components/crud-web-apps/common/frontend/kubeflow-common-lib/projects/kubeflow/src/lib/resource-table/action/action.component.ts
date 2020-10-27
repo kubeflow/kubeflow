@@ -36,6 +36,23 @@ export class ActionComponent implements OnInit {
     this.emitter.emit(ev);
   }
 
+  // Helpers for handling the Tooltips
+  get tooltipInit() {
+    if (this.action.tooltip && this.action.tooltip.length > 0) {
+      return this.action.tooltip;
+    }
+
+    return this.action.tooltipInit;
+  }
+
+  get tooltipReady() {
+    if (this.action.tooltip && this.action.tooltip.length > 0) {
+      return this.action.tooltip;
+    }
+
+    return this.action.tooltipReady;
+  }
+
   // Icon handling functions
   public getIcon(icon: string) {
     if (icon.split(':').length !== 2) {

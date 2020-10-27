@@ -1,0 +1,15 @@
+:host {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.options-wrapper {
+  /* Height will be an Input to the component */
+  transition: max-height 0.25s ease;
+  overflow: hidden;
+}
+
+.toggle-button {
+  padding: 0 4px;
+  margin-left: -8px;
+}

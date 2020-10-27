@@ -1,0 +1,23 @@
+// Data Volumes with the Delete button
+.add-data-vol-button {
+  margin-bottom: 1rem;
+}
+
+.volume-wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.volume-wrapper > app-rok-volume {
+  flex: 1 1 0px;
+  min-width: initial;
+  max-width: 93%;
+}
+
+.volume-wrapper > .del-btn {
+  flex: 1 1 0px;
+  margin-top: 0.8rem;
+  margin-left: 1.5rem;
+  width: 7%;
+  text-align: center;
+}
