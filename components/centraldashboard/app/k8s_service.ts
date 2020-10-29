@@ -44,8 +44,8 @@ const APP_API_NAME = 'applications';
 /** Wrap Kubernetes API calls in a simpler interface for use in routes. */
 export class KubernetesService {
   private namespace = 'kubeflow';
-  private coreAPI: k8s.Core_v1Api;
-  private customObjectsAPI: k8s.Custom_objectsApi;
+  private coreAPI: k8s.CoreV1Api;
+  private customObjectsAPI: k8s.CustomObjectsApi;
 
   constructor(private kubeConfig: k8s.KubeConfig) {
     console.info('Initializing Kubernetes configuration');
@@ -55,9 +55,9 @@ export class KubernetesService {
     if (context && context.namespace) {
       this.namespace = context.namespace;
     }
-    this.coreAPI = this.kubeConfig.makeApiClient(k8s.Core_v1Api);
+    this.coreAPI = this.kubeConfig.makeApiClient(k8s.CoreV1Api);
     this.customObjectsAPI =
-        this.kubeConfig.makeApiClient(k8s.Custom_objectsApi);
+        this.kubeConfig.makeApiClient(k8s.CustomObjectsApi);
   }
 
   /** Retrieves the list of namespaces from the Cluster. */
