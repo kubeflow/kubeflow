@@ -1,0 +1,306 @@
+ARG BASE_CONTAINER=ubuntu:18.04
+FROM $BASE_CONTAINER
+
+LABEL maintainer="fabiol@cpqd.com.br"
+
+ARG NB_USER="jovyan"
+ARG NB_UID="1000"
+ARG NB_GID="100"
+
+USER root
+
+# Install all OS dependencies for notebook server that starts but lacks all
+# features (e.g., download as all possible file formats)
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update \
+ && apt-get install -yq --no-install-recommends \
+    wget \
+    bzip2 \
+    ca-certificates \
+    sudo \
+    locales \
+    fonts-liberation \
+    run-one \
+    lsb-core \
+    build-essential \
+    gnupg2 \
+    git \
+    unzip \
+    curl \
+    swig \
+    openjdk-11-jdk \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    tesseract-ocr \
+    tesseract-ocr-por \
+    tesseract-ocr-eng \
+ && export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
+ && echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list \
+ && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
+ && apt-get update \
+ && apt-get install -y google-cloud-sdk kubectl \
+ && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
+ && locale-gen
+
+# Configure environment
+ENV CONDA_DIR=/opt/conda \
+    SHELL=/bin/bash \
+    NB_USER=$NB_USER \
+    NB_UID=$NB_UID \
+    NB_GID=$NB_GID \
+    LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8
+ENV PATH=$CONDA_DIR/bin:$PATH \
+    HOME=/home/$NB_USER
+
+# Copy a script that we will use to correct permissions after running certain commands
+COPY fix-permissions /usr/local/bin/fix-permissions
+RUN chmod a+rx /usr/local/bin/fix-permissions
+
+# Enable prompt color in the skeleton .bashrc before creating the default NB_USER
+RUN sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashrc
+
+# Create NB_USER wtih name jovyan user with UID=1000 and in the 'users' group
+# and make sure these dirs are writable by the `users` group.
+RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su \
+ && sed -i.bak -e 's/^%admin/#%admin/' /etc/sudoers \
+ && sed -i.bak -e 's/^%sudo/#%sudo/' /etc/sudoers \
+ && useradd -m -s /bin/bash -N -u $NB_UID $NB_USER \
+ && mkdir -p $CONDA_DIR \
+ && chown $NB_USER:$NB_GID $CONDA_DIR \
+ && chmod g+w /etc/passwd \
+ && fix-permissions $HOME \
+ && fix-permissions $CONDA_DIR
+
+USER $NB_UID
+WORKDIR $HOME
+ARG PYTHON_VERSION=default
+
+# Setup work directory for backward-compatibility
+RUN mkdir /home/$NB_USER/work  \
+ && fix-permissions /home/$NB_USER
+
+# Export MinIO credentials - required for Papermill and PlatIAgro SDK
+ENV BOTO3_ENDPOINT_URL=http://minio-service.kubeflow:9000 \
+    AWS_ACCESS_KEY_ID=minio \
+    AWS_SECRET_ACCESS_KEY=minio123 \
+    MINICONDA_VERSION=4.8.2 \
+    MINICONDA_MD5=87e77f097f6ebb5127c77662dfc3165e \
+    CONDA_VERSION=4.8.2
+
+# Install conda as jovyan and check the md5 sum provided on the download site
+RUN cd /tmp \
+ && wget --quiet https://repo.continuum.io/miniconda/Miniconda3-py37_${MINICONDA_VERSION}-Linux-x86_64.sh \
+ && echo "${MINICONDA_MD5} *Miniconda3-py37_${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c - \
+ && /bin/bash Miniconda3-py37_${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p $CONDA_DIR \
+ && rm Miniconda3-py37_${MINICONDA_VERSION}-Linux-x86_64.sh \
+ && echo "conda ${CONDA_VERSION}" >> $CONDA_DIR/conda-meta/pinned \
+ && conda config --system --prepend channels conda-forge \
+ && conda config --system --set auto_update_conda false \
+ && conda config --system --set show_channel_urls true \
+ && conda config --system --set channel_priority strict \
+ && if [ ! $PYTHON_VERSION = 'default' ]; then conda install --yes python=$PYTHON_VERSION; fi \
+ && conda list python | grep '^python ' | tr -s ' ' | cut -d '.' -f 1,2 | sed 's/$/.*/' >> $CONDA_DIR/conda-meta/pinned \
+ && conda install --quiet --yes conda \
+ && conda install --quiet --yes pip \
+ && conda update --all --quiet --yes \
+ && conda clean --all -f -y \
+ && rm -rf /home/$NB_USER/.cache/yarn \
+ && fix-permissions $CONDA_DIR \
+ && fix-permissions /home/$NB_USER \
+ && git clone https://github.com/platiagro/datasets/ \
+ && mv datasets/samples/*.csv datasets \
+ && find datasets -mindepth 1 -type f,d -not -name '*.csv' -delete \
+ && mv datasets data \
+ && gcloud config set pass_credentials_to_gsutil false
+
+# Install Tini
+RUN conda install --quiet --yes 'tini=0.18.0' \
+ && conda list tini | grep tini | tr -s ' ' | cut -d ' ' -f 1,2 >> $CONDA_DIR/conda-meta/pinned \
+ && conda clean --all -f -y \
+ && fix-permissions $CONDA_DIR \
+ && fix-permissions /home/$NB_USER
+
+# Install Jupyter Notebook, Lab, and Hub
+# Generate a notebook server config
+# Cleanup temporary files
+# Correct permissions
+# Do all this in a single RUN command to avoid duplicating all of the
+# files across image layers when the permissions change
+RUN conda install --quiet --yes \
+    'notebook=6.0.3' \
+    'jupyterhub=1.1.0' \
+    'jupyterlab=2.1.2' \
+    'ipywidgets=7.5.*' \
+    'widgetsnbextension=3.5.*' \
+    'jupyterlab_code_formatter=1.3.6' \
+    'black=20.8b1' \
+    'isort=5.5.2' \
+    'nbresuse=0.3.6' \
+    'opencv=4.1.2' \
+ && conda clean --all -f -y \
+    # Activate ipywidgets extension in the environment that runs the notebook server
+ && jupyter nbextension enable --py widgetsnbextension --sys-prefix \
+    # Also activate ipywidgets extension for JupyterLab
+    # Check this URL for most recent compatibilities
+    # https://github.com/jupyter-widgets/ipywidgets/tree/master/packages/jupyterlab-manager
+ && jupyter labextension install @jupyter-widgets/jupyterlab-manager@^2.0.0 --no-build \
+    # Activate jupyterlab_code_formatter server extension
+ && jupyter serverextension enable --py jupyterlab_code_formatter --sys-prefix \
+    # Install JupyterLab extensions:
+    # (defer rebuilding the application by including the flag --no-build)
+    # - Code Formatter
+    # - Plotly
+    # - Topbar
+    # - System Monitor
+    # - Table of Contents
+ && jupyter labextension install --no-build  \
+      @ryantam626/jupyterlab_code_formatter@1.3.6 \
+      jupyterlab-plotly@4.9.0 \
+      jupyterlab-topbar-extension@0.5.0 \
+      jupyterlab-system-monitor@0.6.0 \
+      @jupyterlab/toc@4.0.0 \
+    # Install PlatIAgro extension for JupyterLab
+ && pip --no-cache-dir install \
+    git+https://github.com/platiagro/jupyterlab-extension.git@master \
+ && jupyter lab build -y \
+ && jupyter lab clean -y \
+ && npm cache clean --force \
+ && jupyter notebook --generate-config \
+ && rm -rf $CONDA_DIR/share/jupyter/lab/staging \
+ && rm -rf /home/$NB_USER/.cache/yarn \
+ && fix-permissions $CONDA_DIR \
+ && fix-permissions /home/$NB_USER
+
+# Install:
+# - Cython - compiler for writing C extensions for the Python language
+# - scikit-learn - machine learning library
+# - Pandas - data analysis library
+# - JupyterLab - web-based user interface for Project Jupyter
+# - Seldon Core - platform to deploy machine learning models
+# - Papermill - tool for parameterizing and executing Jupyter Notebooks
+# - Category Encoders - scikit-learn-style transformers
+# - imbalanced-learn - re-sampling techniques used in datasets showing between-class imbalance
+# - auto-sklearn - toolkit for automated machine learning
+# - Featuretools -  library for automated feature engineering
+# - Tensorflow - machine learning library
+# - NetworkX - creates and manipulates graphs and networks
+# - Platiagro SDK - helper functions to build components
+# - PyTorch - machine learning library
+# - PyTorch Lightning - lightweight PyTorch wrapper for ML researchers
+# - Transfomers - state-of-the-art natural language processing
+# - SacreBLEU - standard BLEU implementation
+# - xlrd - extract data from Microsoft Excel spreadsheet files
+# - imutils - functions to make basic image processing with OpenCV
+# - rouge_score - python implementation of ROUGE (Automatic Evaluation of Summaries)
+# - spacy - library for advanced Natural Language Processing (NLP)
+# - nltk - natural language toolkit
+# - pystan - Stan, a package for Bayesian inference
+# - convertdate - converts between Gregorian dates and other calendar systems
+# - LunarCalendar - a lunar calendar converter
+# - holidays - generate and work with holidays
+# - plotly - interactive data visualization library
+# - torchtext - text utilities and datasets for PyTorch
+# - alibi - algorithms for monitoring and explaining machine learning models
+# - alibi-detect - algorithms for outlier detection, concept drift and metrics
+# - matplotlib - library for creating static, animated, and interactive visualizations
+# - Unidecode - ASCII transliterations of Unicode tex
+# - ftfy - Fixes some problems with Unicode text after the fact
+# - scikit-video - Video processing routines
+# - nlp==0.4.0 - package with datasets and metric pre implemented for nlp solutions
+# - tqdm==4.41.1 - progress bar
+# - git+https://github.com/albumentations-team/albumentations - package to make data augmentation in computer vision
+# - gensim==3.6.0 - nlp package with many funcionalities pre-implemented
+# - numba==0.48.0 - package to paralelize cpus
+# - jsonlines==1.2.0 - package to save and read with lists of dicionaries
+# - opencv-contrib-python==4.1.2.30 - package for work with images
+# - opencv-python==4.1.2.30 - package for work with images
+# - jiwer==2.1.0 package with some metrics used in OCR
+# - pytesseract==0.3.6 package with OCR algorithms
+# - gdown=3.12.2 download google drive files
+RUN curl -sSL https://raw.githubusercontent.com/automl/auto-sklearn/v.0.7.0/requirements.txt | xargs -L 1 pip install --no-cache-dir \
+ && pip install --no-cache-dir \
+    seldon-core==1.0.2 \
+    papermill[s3]==2.1.1 \
+    category-encoders==2.2.2 \
+    imbalanced-learn==0.6.2 \
+    auto-sklearn==0.7.0 \
+    featuretools==0.14.0 \
+    tensorflow==2.3.0 \
+    networkx==2.4 \
+    xlrd==1.2.0 \
+    pyserini==0.8.1.0 \
+    transformers==3.0.2 \
+    imutils==0.5.3 \
+    rouge_score==0.0.4 \
+    spacy==2.2.4 \
+    nltk==3.2.5 \
+    pystan==2.19.1.1 \
+    convertdate==2.2.1 \
+    LunarCalendar==0.0.9 \
+    holidays==0.10.3 \
+    plotly==4.9.0 \
+    Unidecode==1.1.1 \
+    ftfy==5.8 \
+    scikit-video==1.1.11 \
+    "smac>=0.12,<0.13" \
+    nlp==0.4.0 \
+    tqdm==4.41.1 \
+    git+https://github.com/albumentations-team/albumentations \
+    gensim==3.6.0 \
+    numba==0.48.0 \
+    jsonlines==1.2.0 \
+    opencv-contrib-python==4.1.2.30 \
+    opencv-python==4.1.2.30 \
+    jiwer==2.1.0 \
+    pytesseract==0.3.6 \
+    gdown==3.12.2 \
+    git+https://github.com/platiagro/sdk.git@master \
+ && pip install --no-cache-dir \
+    -f https://download.pytorch.org/whl/torch_stable.html \
+    torch==1.5.0+cpu \
+    torchvision==0.6.0+cpu \
+ && pip install --no-cache-dir \
+    pytorch-lightning==0.7.5 \
+    transformers==3.0.2 \
+    sacrebleu==1.4.9 \
+    torchtext==0.6.0 \
+    alibi==0.5.2 \
+    alibi-detect==0.4.1 \
+    matplotlib==3.3.0 \
+ && pip uninstall -y typing \
+ && fix-permissions $CONDA_DIR \
+ && fix-permissions /home/$NB_USER
+
+USER root
+
+# Copy a script that we will use to make output notebook cells read only
+COPY make-cells-read-only.sh /usr/local/bin/
+RUN chmod a+rx /usr/local/bin/make-cells-read-only.sh
+
+# Copy a script that we will use to interact with jupyter
+COPY upload-to-jupyter.sh /usr/local/bin/
+RUN chmod a+rx /usr/local/bin/upload-to-jupyter.sh
+
+# Copy a script that we will use to save datasets using the SDK
+COPY save-dataset.sh /usr/local/bin/
+RUN chmod a+rx /usr/local/bin/save-dataset.sh
+
+# Copy a script that we will use to save figure using the SDK
+COPY save-figure.sh /usr/local/bin/
+RUN chmod a+rx /usr/local/bin/save-figure.sh
+
+# Unfortunately, Kubeflow pipelines mount volumes as root root (user group).
+# If we want to use this image in a ContainerOp where there are mount volumes,
+# the user must remain as root.
+# Kubeflow must add support to PodsecurityContext before we can change this.
+# https://github.com/kubeflow/pipelines/blob/master/sdk/python/kfp/components/structures/kubernetes/v1.py
+# USER $NB_UID
+
+EXPOSE 8888
+
+ENTRYPOINT ["tini", "--"]
+CMD ["sh", "-c", "jupyter lab --allow-root --notebook-dir=/home/${NB_USER} --ip=0.0.0.0 --no-browser --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"]
