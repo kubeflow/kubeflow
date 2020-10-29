@@ -45,12 +45,7 @@ jobs:
         docker tag ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${{ github.sha }} \
           ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${GITHUB_REF#refs/*/}
         docker push ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${GITHUB_REF#refs/*/}
-        docker system prune -f -a
-
-  container-scan:
-    needs: build-push
-    runs-on: ubuntu-latest
-    steps:
+    
     # Scan image for vulnerabilities
     - uses: Azure/container-scan@v0
       with:
