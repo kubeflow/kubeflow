@@ -61,9 +61,9 @@ export class KubernetesService {
     if (context && context.namespace) {
       this.namespace = context.namespace;
     }
-    this.coreAPI = this.kubeConfig.makeApiClient(k8s.Core_v1Api);
+    this.coreAPI = this.kubeConfig.makeApiClient(k8s.CoreV1Api);
     this.customObjectsAPI =
-        this.kubeConfig.makeApiClient(k8s.Custom_objectsApi);
+        this.kubeConfig.makeApiClient(k8s.CustomObjectsApi);
   }
 
   /** Retrieves the list of namespaces from the Cluster. */
