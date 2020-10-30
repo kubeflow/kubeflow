@@ -71,7 +71,8 @@
         "chartjs-plugin-crosshair": "^1.1.4",
         "express": "^4.17.1",
         "node-fetch": "^2.6.0",
-        "web-animations-js": "^2.3.2"
+        "web-animations-js": "^2.3.2",
+        "ws": "^7.3.1"
     },
     "devDependencies": {
         "@babel/core": "^7.6.2",
