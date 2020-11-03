@@ -220,7 +220,12 @@ RUN conda install --quiet --yes \
 # - opencv-python==4.1.2.30 - package for work with images
 # - jiwer==2.1.0 package with some metrics used in OCR
 # - pytesseract==0.3.6 package with OCR algorithms
-# - gdown=3.12.2 download google drive files
+# - gdown==3.12.2 download google drive files
+# - emcee==3.0.2 lib pre-requisite of yolov4
+# - scikit-optimize==0.8.1 lib pre-requisite of yolov4
+# - pyDOE==0.3.8 lib pre-requisite of yolov4
+# - yolov4==2.0.0 lib of yolov4
+# - openpyxl==3.0.5 read and write xlsx files within pandas
 RUN curl -sSL https://raw.githubusercontent.com/automl/auto-sklearn/v.0.7.0/requirements.txt | xargs -L 1 pip install --no-cache-dir \
  && pip install --no-cache-dir \
     seldon-core==1.0.2 \
@@ -258,7 +263,12 @@ RUN curl -sSL https://raw.githubusercontent.com/automl/auto-sklearn/v.0.7.0/requ
     jiwer==2.1.0 \
     pytesseract==0.3.6 \
     gdown==3.12.2 \
-    git+https://github.com/platiagro/sdk.git@master \
+    emcee==3.0.2 \
+    scikit-optimize==0.8.1 \
+    pyDOE==0.3.8 \
+    yolov4==2.0.0 \
+    openpyxl==3.0.5 \
+    git+https://github.com/platiagro/sdk.git@master\
  && pip install --no-cache-dir \
     -f https://download.pytorch.org/whl/torch_stable.html \
     torch==1.5.0+cpu \
