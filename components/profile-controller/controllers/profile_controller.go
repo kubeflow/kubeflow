@@ -389,6 +389,9 @@ func (r *ProfileReconciler) updateIstioRbac(profileIns *profilev1.Profile) error
 				{
 					Properties: map[string]string{fmt.Sprintf("request.headers[%v]", r.UserIdHeader): r.UserIdPrefix + profileIns.Spec.Owner.Name},
 				},
+				{
+					Properties: map[string]string{"source.namespace": istioServiceRole.Namespace},
+				},
 			},
 			RoleRef: &istiorbac.RoleRef{
 				Kind: "ServiceRole",
