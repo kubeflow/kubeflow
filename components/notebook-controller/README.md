@@ -35,9 +35,9 @@ All other fields will be filled in with default value if not specified.
 
 ## Environment parameters
 
-ADD_FSGROUP:  If the value is true or unset, fsGroup: 100 will be included
+ADD_FSGROUP: If the value is true or unset, fsGroup: 100 will be included
 in the pod's security context. If this value is present and set to false, it will suppress the
-automatic addition of fsGroup: 100 to the security context of the pod.  
+automatic addition of fsGroup: 100 to the security context of the pod.
 
 ## Implementation detail
 
@@ -45,9 +45,22 @@ This part is WIP as we are still developing.
 
 Under the hood, the controller creates a StatefulSet to run the notebook instance, and a Service for it.
 
+## Contributing
+
+## Prerequisites
+
+- [go](https://golang.org/dl/) version v1.12+.
+- [docker](https://docs.docker.com/install/) version 17.03+.
+- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.11.3+.
+- [kustomize](https://sigs.k8s.io/kustomize/docs/INSTALL.md) v3.1.0+
+- Access to a Kubernetes v1.11.3+ cluster.
+- [kubebuilder](https://book.kubebuilder.io/quick-start.html#installation)
+
 ### TODO
+
 - e2e test (we have one testing the jsonnet-metacontroller one, we should make it run on this one)
 - `status` field should reflect the error if there is any. See [#2269](https://github.com/kubeflow/kubeflow/issues/2269).
 - Istio integration (controller will generate istio resources to secure each user's notebook)
 - CRD [validation](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/jupyter/notebooks.schema)
 - `ttlSecondsAfterFinished`: This is in the original jsonnet controller spec, but not being used yet. I think we want to cleanup the notebook after idle?
+- Add more instructions on contributing like build,deploy and test locally.
