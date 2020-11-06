@@ -26,7 +26,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	beta1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
+	nbv1beta1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
 )
 
 var _ = Describe("Notebook controller", func() {
@@ -43,13 +43,13 @@ var _ = Describe("Notebook controller", func() {
 		It("Should create replicas", func() {
 			By("By creating a new Notebook")
 			ctx := context.Background()
-			notebook := &beta1.Notebook{
+			notebook := &nbv1beta1.Notebook{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      Name,
 					Namespace: Namespace,
 				},
-				Spec: beta1.NotebookSpec{
-					Template: beta1.NotebookTemplateSpec{
+				Spec: nbv1beta1.NotebookSpec{
+					Template: nbv1beta1.NotebookTemplateSpec{
 						Spec: v1.PodSpec{Containers: []v1.Container{{
 							Name:  "busybox",
 							Image: "busybox",
@@ -58,7 +58,7 @@ var _ = Describe("Notebook controller", func() {
 			Expect(k8sClient.Create(ctx, notebook)).Should(Succeed())
 
 			notebookLookupKey := types.NamespacedName{Name: Name, Namespace: Namespace}
-			createdNotebook := &beta1.Notebook{}
+			createdNotebook := &nbv1beta1.Notebook{}
 
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, notebookLookupKey, createdNotebook)
@@ -68,7 +68,9 @@ var _ = Describe("Notebook controller", func() {
 				return true
 			}, timeout, interval).Should(BeTrue())
 			/*
-				Checking for the underlying statefulset
+				Checking for the underlying statefulset.
+				The satefulset controllers aren't running within envtest, when env test's aren't pointing to the live cluster.
+				Only the API server is running within envtest. So cannot check actual pods / replicas.
 			*/
 			By("By checking that the Notebook has statefulset")
 			Eventually(func() (bool, error) {
@@ -82,13 +84,6 @@ var _ = Describe("Notebook controller", func() {
 				}
 				return true, nil
 			}, timeout, interval).Should(BeTrue())
-			/*
-				Checking for replica count
-			*/
-			By("By checking that the Notebook is running with at least 1 replica")
-			Eventually(func() bool {
-				return notebook.Status.ReadyReplicas > 0
-			}, timeout, interval).ShouldNot(Equal(0))
 		})
 	})
 })
