@@ -16,8 +16,11 @@ limitations under the License.
 package controllers
 
 import (
+	"math/rand"
+	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	controllermetrics "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/metrics"
 
@@ -43,12 +46,58 @@ var cfg *rest.Config
 var k8sClient client.Client // You'll be using this client in your tests.
 var testEnv *envtest.Environment
 
-var _ = BeforeSuite(func(done Done) {
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyz")
+
+func randStringRunes(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
+}
+
+func getEnvDefault(variable string, defaultVal string) string {
+	envVar := os.Getenv(variable)
+	if len(envVar) == 0 {
+		return defaultVal
+	}
+	return envVar
+}
+
+// Cleaning the ENV
+var _ = SynchronizedAfterSuite(func() {
+
+}, func() {
+	By("tearing down the test environment")
+	err := testEnv.Stop()
+	Expect(err).ToNot(HaveOccurred())
+})
+
+// Setting up the ENV. This will run once before all the tests.
+var _ = SynchronizedBeforeSuite(func() []byte {
 	logf.SetLogger(zap.LoggerTo(GinkgoWriter, true))
 
 	By("bootstrapping test environment")
-	testEnv = &envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join("..", "config", "crd", "bases")},
+	var existingCluster bool
+	// TEST_USE_EXISTING_CLUSTER determines whether to use an existing cluster
+	// instead of standing up control plane with just API server.
+	// None of the controllers will run as part of this.
+	if getEnvDefault("TEST_USE_EXISTING_CLUSTER", "false") == "true" {
+		existingCluster = true
+		testEnv = &envtest.Environment{
+			CRDDirectoryPaths:  []string{filepath.Join("..", "config", "crd", "bases")},
+			UseExistingCluster: &existingCluster,
+		}
+	} else {
+		existingCluster = false
+		testEnv = &envtest.Environment{
+			CRDDirectoryPaths:  []string{filepath.Join("..", "config", "crd", "bases")},
+			UseExistingCluster: &existingCluster,
+		}
 	}
 
 	var err error
@@ -87,13 +136,8 @@ var _ = BeforeSuite(func(done Done) {
 	k8sClient = k8sManager.GetClient()
 	Expect(k8sClient).ToNot(BeNil())
 
-	close(done)
-}, 60)
-
-var _ = AfterSuite(func() {
-	By("tearing down the test environment")
-	err := testEnv.Stop()
-	Expect(err).ToNot(HaveOccurred())
+	return nil
+}, func(data []byte) {
 })
 
 func TestAPIs(t *testing.T) {

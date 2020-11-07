@@ -17,6 +17,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -29,17 +30,17 @@ import (
 	nbv1beta1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
 )
 
-var _ = Describe("Notebook controller", func() {
+var _ = Describe("E2E TEST:Notebook controller", func() {
 
+	Name := fmt.Sprintf("test-notebook-%s", randStringRunes(6))
 	// Define utility constants for object names and testing timeouts/durations and intervals.
 	const (
-		Name      = "test-notebook"
 		Namespace = "default"
 		timeout   = time.Second * 10
 		interval  = time.Millisecond * 250
 	)
 
-	Context("When validating the notebook controller", func() {
+	Context("E2E TEST:When validating the notebook controller", func() {
 		It("Should create replicas", func() {
 			By("By creating a new Notebook")
 			ctx := context.Background()
@@ -51,8 +52,12 @@ var _ = Describe("Notebook controller", func() {
 				Spec: nbv1beta1.NotebookSpec{
 					Template: nbv1beta1.NotebookTemplateSpec{
 						Spec: v1.PodSpec{Containers: []v1.Container{{
-							Name:  "busybox",
-							Image: "busybox",
+							Name:  "nginx",
+							Image: "k8s.gcr.io/nginx-slim:0.8",
+							Ports: []v1.ContainerPort{{
+								ContainerPort: 80,
+								Name:          "web",
+							}},
 						}}}},
 				}}
 			Expect(k8sClient.Create(ctx, notebook)).Should(Succeed())
@@ -67,11 +72,6 @@ var _ = Describe("Notebook controller", func() {
 				}
 				return true
 			}, timeout, interval).Should(BeTrue())
-			/*
-				Checking for the underlying statefulset.
-				The satefulset controllers aren't running within envtest, when env test's aren't pointing to the live cluster.
-				Only the API server is running within envtest. So cannot check actual pods / replicas.
-			*/
 			By("By checking that the Notebook has statefulset")
 			Eventually(func() (bool, error) {
 				sts := &appsv1.StatefulSet{ObjectMeta: metav1.ObjectMeta{
@@ -83,6 +83,20 @@ var _ = Describe("Notebook controller", func() {
 					return false, err
 				}
 				return true, nil
+			}, timeout, interval).Should(BeTrue())
+			By("By checking that there is a Pod that is in Running state")
+			Eventually(func() (bool, error) {
+				name := fmt.Sprintf("%s-0", Name)
+				podLookupKey := types.NamespacedName{Name: name, Namespace: Namespace}
+				p := &v1.Pod{ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: Namespace,
+				}}
+				err := k8sClient.Get(ctx, podLookupKey, p)
+				if err != nil {
+					return false, err
+				}
+				return p.Status.Phase == v1.PodRunning, nil
 			}, timeout, interval).Should(BeTrue())
 		})
 	})
