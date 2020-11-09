@@ -39,6 +39,12 @@ ADD_FSGROUP: If the value is true or unset, fsGroup: 100 will be included
 in the pod's security context. If this value is present and set to false, it will suppress the
 automatic addition of fsGroup: 100 to the security context of the pod.
 
+## Commandline parameters
+
+`metrics-addr`: The address the metric endpoint binds to. The default value is `:8080`.
+
+`enable-leader-election`: Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager. The default value is `false`.
+
 ## Implementation detail
 
 This part is WIP as we are still developing.
@@ -47,7 +53,11 @@ Under the hood, the controller creates a StatefulSet to run the notebook instanc
 
 ## Contributing
 
-## Prerequisites
+[https://www.kubeflow.org/docs/about/contributing/](https://www.kubeflow.org/docs/about/contributing/)
+
+### Development Environment
+
+To develop on `notebook-controller`, your environment must have the following:
 
 - [go](https://golang.org/dl/) version v1.12+.
 - [docker](https://docs.docker.com/install/) version 17.03+.
@@ -56,7 +66,7 @@ Under the hood, the controller creates a StatefulSet to run the notebook instanc
 - Access to a Kubernetes v1.11.3+ cluster.
 - [kubebuilder](https://book.kubebuilder.io/quick-start.html#installation)
 
-### TODO
+## TODO
 
 - e2e test (we have one testing the jsonnet-metacontroller one, we should make it run on this one)
 - `status` field should reflect the error if there is any. See [#2269](https://github.com/kubeflow/kubeflow/issues/2269).
@@ -64,3 +74,4 @@ Under the hood, the controller creates a StatefulSet to run the notebook instanc
 - CRD [validation](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/jupyter/notebooks.schema)
 - `ttlSecondsAfterFinished`: This is in the original jsonnet controller spec, but not being used yet. I think we want to cleanup the notebook after idle?
 - Add more instructions on contributing like build,deploy and test locally.
+- A script for installing all deps.
