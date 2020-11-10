@@ -2,7 +2,8 @@ PROJECT ?= kubeflow-dev
 # Image URL to use all building/pushing image targets
 IMG ?= gcr.io/$(PROJECT)/profile-controller
 TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
-GOLANG_VERSION ?= 1.12.5
+GOLANG_VERSION ?= 1.14.3
+CONTROLLER_GEN_VERSION ?= 0.4.0
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
@@ -55,7 +56,7 @@ generate: controller-gen
 
 # Build the docker image
 build:
-	docker build -t ${IMG}:${TAG} .
+	docker build --build-arg GOLANG_VERSION=${GOLANG_VERSION} -t ${IMG}:${TAG} .
 	@echo Built ${IMG}:${TAG}
 
 build-gcb:
@@ -74,7 +75,7 @@ push: build
 # download controller-gen if necessary
 controller-gen:
 ifeq (, $(shell which controller-gen))
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.0
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v${CONTROLLER_GEN_VERSION}
 CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)

@@ -19,9 +19,9 @@ import (
 	"flag"
 	"os"
 
-	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/api/istiorbac/v1alpha1"
 	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
 	"github.com/kubeflow/kubeflow/components/profile-controller/controllers"
+	istioSecurityClient "istio.io/client-go/pkg/apis/security/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -43,12 +43,12 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = profilev1.AddToScheme(scheme)
-	_ = istiorbac.AddToScheme(scheme)
+	_ = istioSecurityClient.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
 func main() {
-	var metricsAddr, leaderElectionNamespace string
+	var metricsAddr string
 	var enableLeaderElection bool
 	var userIdHeader string
 	var userIdPrefix string
@@ -56,22 +56,17 @@ func main() {
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
-	flag.StringVar(&leaderElectionNamespace, "leader-election-namespace", "",
-		"Determines the namespace in which the leader election configmap will be created.")
 	flag.StringVar(&userIdHeader, USERIDHEADER, "x-goog-authenticated-user-email", "Key of request header containing user id")
 	flag.StringVar(&userIdPrefix, USERIDPREFIX, "accounts.google.com:", "Request header user id common prefix")
 	flag.StringVar(&workloadIdentity, WORKLOADIDENTITY, "", "Default identity (GCP service account) for workload_identity plugin")
-
 	flag.Parse()
 
 	ctrl.SetLogger(zap.Logger(true))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                  scheme,
-		MetricsBindAddress:      metricsAddr,
-		LeaderElection:          enableLeaderElection,
-		LeaderElectionNamespace: leaderElectionNamespace,
-		LeaderElectionID:        "kubeflow-profile-controller",
+		Scheme:             scheme,
+		MetricsBindAddress: metricsAddr,
+		LeaderElection:     enableLeaderElection,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
