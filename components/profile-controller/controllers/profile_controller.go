@@ -341,7 +341,6 @@ func (r *ProfileReconciler) getSecurityCondition(profileIns *profilev1.Profile) 
 		Values: []string{profileIns.Name},
 	}
 	logger := r.Log.WithValues("profile", profileIns.Name)
-	logger.Info("Variable", "r.UserIdHeader", r.UserIdHeader, "r.UserIdHeader == \"\"", r.UserIdHeader == "")
 	if r.UserIdHeader == "" {
 		return []*istioSecurity.Condition{
 			&namespaceCondition,
