@@ -1,13 +1,8 @@
-
 # Image URL to use all building/pushing image targets
 IMG ?= gcr.io/kubeflow-images-public/notebook-controller
 TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
 GOLANG_VERSION ?= 1.11.2
 SHELL := /bin/bash
-
-# Whether to use cached images with GCB
-USE_IMAGE_CACHE ?= true
-
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd"
 
@@ -37,6 +32,10 @@ test: generate fmt vet manifests
 # Build manager binary
 manager: generate fmt vet
 	go build -o bin/manager main.go
+
+# Uninstall CRDs from a cluster
+uninstall: manifests
+	kustomize build config/crd | kubectl delete -f -
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet
@@ -95,3 +94,16 @@ build-gcr: test
 push-gcr: build-gcr
 	docker push $(IMG):$(TAG)
 	@echo Pushed $(IMG):$(TAG)
+
+k3d:
+ifeq (, $(shell which k3d))
+	curl -sS https://raw.githubusercontent.com/rancher/k3d/1030f0fa47b65d78eb9ffbdf94f0623a08d19b97/install.sh  | TAG=v3.1.0 bash
+endif
+e2e-tests: k3d
+		# Docker image that is used for spinning up the k8s cluster.
+		# K8S_DOCKER_IMAGE=docker.io/rancher/k3s:v1.16.14-k3s1
+		# if TEST_USE_EXISTING_CLUSTER is false then a new k3d cluster would be created to test controller.
+		# TEST_USE_EXISTING_CLUSTER=false
+		# Image to load into the test cluster.
+		# TEST_IMAGE=$(IMG):latest
+		TEST_USE_EXISTING_CLUSTER=false TEST_IMAGE=$(IMG):latest ginkgo --focus="E2E TEST:" -v  --cover  --coverprofile cover.out  ./e2e/...
