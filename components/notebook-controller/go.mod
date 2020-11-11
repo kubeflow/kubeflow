@@ -6,6 +6,8 @@ require (
 	github.com/go-logr/logr v0.1.0
 	github.com/kubeflow/kubeflow/components/common v0.0.0-00010101000000-000000000000
 	github.com/prometheus/client_golang v0.9.0
+	github.com/onsi/ginkgo v1.12.1
+    github.com/onsi/gomega v1.10.1
 	k8s.io/api v0.0.0-20190409021203-6e4e0e4f393b
 	k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
