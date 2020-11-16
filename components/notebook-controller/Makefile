@@ -68,7 +68,7 @@ generate: controller-gen
 
 # Build the docker image
 docker-build: test
-	cd .. && docker build . -t ${IMG} -f ./notebook-controller/Dockerfile
+	cd .. && docker build . -t ${IMG}:${TAG} -f ./notebook-controller/Dockerfile
 	@echo "updating kustomize image patch file for manager resource"
 	sed -i'' -e 's@image: .*@image: '"${IMG}"'@' ./config/default/manager_image_patch.yaml
 
@@ -99,11 +99,11 @@ k3d:
 ifeq (, $(shell which k3d))
 	curl -sS https://raw.githubusercontent.com/rancher/k3d/1030f0fa47b65d78eb9ffbdf94f0623a08d19b97/install.sh  | TAG=v3.1.0 bash
 endif
-e2e-tests: k3d
+e2e-tests: k3d docker-build
 		# Docker image that is used for spinning up the k8s cluster.
 		# K8S_DOCKER_IMAGE=docker.io/rancher/k3s:v1.16.14-k3s1
 		# if TEST_USE_EXISTING_CLUSTER is false then a new k3d cluster would be created to test controller.
 		# TEST_USE_EXISTING_CLUSTER=false
 		# Image to load into the test cluster.
-		# TEST_IMAGE=$(IMG):latest
-		TEST_USE_EXISTING_CLUSTER=false TEST_IMAGE=$(IMG):latest ginkgo --focus="E2E TEST:" -v  --cover  --coverprofile cover.out  ./e2e/...
+		# TEST_IMAGE=$(IMG):$(TAG)
+		TEST_USE_EXISTING_CLUSTER=false TEST_IMAGE=$(IMG):$(TAG) ginkgo --focus="E2E TEST:" -v  --cover  --coverprofile cover.out  ./e2e/...
