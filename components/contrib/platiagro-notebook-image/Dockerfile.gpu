@@ -133,7 +133,6 @@ RUN conda install --quiet --yes 'tini=0.18.0' \
 RUN conda install --quiet --yes \
     'notebook=6.0.3' \
     'jupyterhub=1.1.0' \
-    'jupyterlab=2.1.2' \
     'ipywidgets=7.5.*' \
     'widgetsnbextension=3.5.*' \
     'jupyterlab_code_formatter=1.3.6' \
@@ -142,6 +141,8 @@ RUN conda install --quiet --yes \
     'nbresuse=0.3.6' \
     'opencv=4.1.2' \
  && conda clean --all -f -y \
+    # Install PlatIAgro's Jupyterlab customized version
+ && pip install git+https://github.com/platiagro/jupyterlab.git@v0.2.0-jupyterlab-v2.1.2 \
     # Activate ipywidgets extension in the environment that runs the notebook server
  && jupyter nbextension enable --py widgetsnbextension --sys-prefix \
     # Also activate ipywidgets extension for JupyterLab
