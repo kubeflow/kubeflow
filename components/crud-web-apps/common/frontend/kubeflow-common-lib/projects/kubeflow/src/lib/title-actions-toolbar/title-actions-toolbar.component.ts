@@ -14,16 +14,12 @@ import { ToolbarButton } from './types';
 })
 export class TitleActionsToolbarComponent {
   @Input() buttons: ToolbarButton[] = [];
-  @Input() backButton = true;
+  @Input() backButton = false;
   @Input() title: string;
-  @Output() buttonClicked = new EventEmitter<string>();
+  @Output() back = new EventEmitter();
   @HostBinding('class.lib-title-actions-toolbar') selfClass = true;
 
-  emitButtonClicked(button: string) {
-    this.buttonClicked.emit(button);
-  }
-
   emitBack() {
-    this.buttonClicked.emit('backButton');
+    this.back.emit('backButton');
   }
 }
