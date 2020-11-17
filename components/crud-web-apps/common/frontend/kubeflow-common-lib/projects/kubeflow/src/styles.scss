@@ -1,5 +1,6 @@
 @import './kubeflow.css';
 @import '~@angular/material/theming';
+@import './lib/variables.scss';
 
 // always include only once per project
 @include mat-core();
@@ -142,9 +143,6 @@ body {
 /*
  * padding for the page
  */
-$page-space-left: 20px;
-$page-space-right: 20px;
-
 .page-padding {
   padding-left: $page-space-left;
   padding-right: $page-space-right;
