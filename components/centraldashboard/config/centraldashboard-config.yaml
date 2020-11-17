@@ -18,14 +18,12 @@ data:
           "icon": "assessment"
         },
         {
-          "link": "/volumes/",
-          "text": "Volumes",
-          "icon": "device:storage"
+          "link": "/pipeline/",
+          "text": "Pipelines"
         },
         {
-          "link": "/pipeline/",
-          "text": "Pipelines",
-          "icon": "kubeflow:pipeline-centered"
+          "link": "/jupyter/",
+          "text": "Notebook Servers"
         },
         {
           "link": "/katib/",
