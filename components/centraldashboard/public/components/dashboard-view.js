@@ -4,6 +4,7 @@ import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-ripple/paper-ripple.js';
 import '@polymer/paper-item/paper-icon-item.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
+import localizationMixin from './localization-mixin.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
 
@@ -16,8 +17,8 @@ import './pipelines-card.js';
 import './resource-chart.js';
 import {getGCPData} from './resources/cloud-platform-data.js';
 
-
-export class DashboardView extends PolymerElement {
+// eslint-disable-next-line max-len
+export class DashboardView extends localizationMixin(PolymerElement) {
     static get template() {
         return html([`
             <style include="card-styles">
@@ -36,28 +37,24 @@ export class DashboardView extends PolymerElement {
                 type: Array,
                 value: [
                     {
-                        text: 'Advanced Analytics Workspace Docs',
-                        desc: 'Helpful guides about our data and analysis ' +
-                            'tools',
-                        link: `https://statcan.github.io/daaas/`,
+                        text: 'dashboardView.docItemAawdText',
+                        desc: 'dashboardView.docItemAawdDesc',
+                        link: 'dashboardView.docItemAawdLink',
                     },
                     {
-                        text: 'Video Tutorial Series',
-                        desc: 'YouTube playlist of videos for getting ' +
-                            'started with Advanced Analytics Workspace tools',
-                        link: `https://www.youtube.com/playlist?list=PL1zlA2D7AHugkDdiyeUHWOKGKUd3MB_nD`,
+                        text: 'dashboardView.docItemVideoTutorialText',
+                        desc: 'dashboardView.docItemVideoTutorialDesc',
+                        link: 'dashboardView.docItemVideoTutorialLink',
                     },
                     {
-                        text: 'Community Chat',
-                        desc: 'Slack workspace for discussion/support - ' +
-                            'requires sign-up for emails outside @canada.ca',
-                        link: `https://statcan-aaw.slack.com/`,
+                        text: 'dashboardView.docItemCommunityChatText',
+                        desc: 'dashboardView.docItemCommunityChatDesc',
+                        link: 'dashboardView.docItemCommunityChatLink',
                     },
                     {
-                        text: 'Official Kubeflow Docs',
-                        desc: 'Advanced documentation for installing, ' +
-                            'running, and using Kubeflow',
-                        link: `https://www.kubeflow.org/docs/`,
+                        text: 'dashboardView.docItemOfficialKubeflowDocsText',
+                        desc: 'dashboardView.docItemOfficialKubeflowDocsDesc',
+                        link: 'dashboardView.docItemOfficialKubeflowDocsLink',
                     },
                 ],
             },
@@ -66,28 +63,28 @@ export class DashboardView extends PolymerElement {
                 type: Array,
                 value: [
                     {
-                        text: 'Upload a pipeline',
-                        desc: 'Pipelines',
+                        text: 'dashboardView.quicklinkUploadText',
+                        desc: 'dashboardView.quicklinkUploadDesc',
                         link: `/pipeline/`,
                     },
                     {
-                        text: 'View all pipeline runs',
-                        desc: 'Pipelines',
+                        text: 'dashboardView.quicklinkViewAllText',
+                        desc: 'dashboardView.quicklinkViewAllDesc',
                         link: `/pipeline/#/runs`,
                     },
                     {
-                        text: 'Create a new Notebook server',
-                        desc: 'Notebook Servers',
+                        text: 'dashboardView.quicklinkCreateNewText',
+                        desc: 'dashboardView.quicklinkCreateNewDesc',
                         link: `/jupyter/new?namespace=kubeflow`,
                     },
                     {
-                        text: 'View Katib Studies',
-                        desc: 'Katib',
+                        text: 'dashboardView.quicklinkViewKatibText',
+                        desc: 'dashboardView.quicklinkViewKatibDesc',
                         link: `/katib/`,
                     },
                     {
-                        text: 'View Metadata Artifacts',
-                        desc: 'Artifact Store',
+                        text: 'dashboardView.quicklinkMetadataArtifactsText',
+                        desc: 'dashboardView.quicklinkMetadataArtifactsDesc',
                         link: `/metadata/`,
                     },
                 ],
