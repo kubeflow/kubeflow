@@ -336,22 +336,15 @@ func (r *ProfileReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *ProfileReconciler) getSecurityCondition(profileIns *profilev1.Profile) []*istioSecurity.Condition {
-	namespaceCondition := istioSecurity.Condition{
-		Key:    "source.namespace",
-		Values: []string{profileIns.Name},
-	}
-	logger := r.Log.WithValues("profile", profileIns.Name)
 	if r.UserIdHeader == "" {
-		return []*istioSecurity.Condition{
-			&namespaceCondition,
-		}
+		return []*istioSecurity.Condition{}
 	}
 	return []*istioSecurity.Condition{
-		&namespaceCondition,
 		{
 			Key: fmt.Sprintf("request.headers[%v]", r.UserIdHeader),
 			Values: []string{
 				r.UserIdPrefix + profileIns.Spec.Owner.Name,
+				"",
 			},
 		},
 	}
