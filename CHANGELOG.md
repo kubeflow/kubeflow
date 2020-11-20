@@ -1,5 +1,8 @@
 # Change Log
 
+## [v1.2.0](https://github.com/kubeflow/kubeflow/tree/v1.2.0) (2020-11-20)
+[Full Changelog](https://github.com/kubeflow/kubeflow/compare/v1.1.0...v1.2.0)
+
 ## [v0.5.0-rc.0](https://github.com/kubeflow/kubeflow/tree/v0.5.0-rc.0) (2019-03-28)
 [Full Changelog](https://github.com/kubeflow/kubeflow/compare/v0.4.1-rc.4...v0.5.0-rc.0)
 
