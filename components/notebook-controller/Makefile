@@ -70,7 +70,7 @@ generate: controller-gen
 docker-build: test
 	cd .. && docker build . -t ${IMG}:${TAG} -f ./notebook-controller/Dockerfile
 	@echo "updating kustomize image patch file for manager resource"
-	sed -i'' -e 's@image: .*@image: '"${IMG}"'@' ./config/default/manager_image_patch.yaml
+	sed -i'' .temp 's@image: .*@image: '"${IMG}:${TAG}"'@' ./config/default/manager_image_patch.yaml
 
 # Push the docker image
 docker-push:
@@ -97,13 +97,25 @@ push-gcr: build-gcr
 
 k3d:
 ifeq (, $(shell which k3d))
-	curl -sS https://raw.githubusercontent.com/rancher/k3d/1030f0fa47b65d78eb9ffbdf94f0623a08d19b97/install.sh  | TAG=v3.1.0 bash
+	curl -sS https://raw.githubusercontent.com/rancher/k3d/1030f0fa47b65d78eb9ffbdf94f0623a08d19b97/install.sh  | TAG=v3.2.0 bash
 endif
-e2e-tests: k3d docker-build
-		# Docker image that is used for spinning up the k8s cluster.
-		# K8S_DOCKER_IMAGE=docker.io/rancher/k3s:v1.16.14-k3s1
-		# if TEST_USE_EXISTING_CLUSTER is false then a new k3d cluster would be created to test controller.
-		# TEST_USE_EXISTING_CLUSTER=false
-		# Image to load into the test cluster.
-		# TEST_IMAGE=$(IMG):$(TAG)
-		TEST_USE_EXISTING_CLUSTER=false TEST_IMAGE=$(IMG):$(TAG) ginkgo --focus="E2E TEST:" -v  --cover  --coverprofile cover.out  ./e2e/...
+
+# Functional test using existing k8s cluster
+e2e-tests-existing-cluster: k3d docker-build manifests
+		# Assumes that the notebook controller image is loaded into the k8s cluster.
+		# The tests doesn't load the image into the cluster.
+		@echo "Testing notebook controller with the existing k8s cluster"
+		 TEST_USE_EXISTING_CLUSTER=true  ginkgo --focus="E2E TEST:" -v  --cover  --coverprofile cover.out  ./e2e/...
+
+# Functional test using k3d cluster.
+e2e-tests-k3d: k3d docker-build manifests
+		@echo "Testing k3d 1.16"
+		TEST_K3D_DOCKER_IMAGE=docker.io/rancher/k3s:v1.16.14-k3s1 TEST_USE_EXISTING_CLUSTER=false TEST_IMAGE=$(IMG):$(TAG) ginkgo --focus="E2E TEST:" -v  --cover  --coverprofile cover.out  ./e2e/...
+		@echo "Testing k3d 1.17"
+		TEST_K3D_DOCKER_IMAGE=docker.io/rancher/k3s:v1.17.14-k3s2 TEST_USE_EXISTING_CLUSTER=false TEST_IMAGE=$(IMG):$(TAG) ginkgo --focus="E2E TEST:" -v  --cover  --coverprofile cover.out  ./e2e/...
+		@echo "Testing k3d 1.18"
+		TEST_K3D_DOCKER_IMAGE=docker.io/rancher/k3s:v1.18.12-k3s1 TEST_USE_EXISTING_CLUSTER=false TEST_IMAGE=$(IMG):$(TAG) ginkgo --focus="E2E TEST:" -v  --cover  --coverprofile cover.out  ./e2e/...
+
+# Cleans docker images.
+docker-clean:
+	docker system prune -a -f

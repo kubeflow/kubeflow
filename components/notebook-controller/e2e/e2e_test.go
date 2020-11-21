@@ -36,7 +36,7 @@ var _ = Describe("E2E TEST:Notebook controller", func() {
 	// Define utility constants for object names and testing timeouts/durations and intervals.
 	const (
 		Namespace = "default"
-		timeout   = time.Second * 90
+		timeout   = time.Minute * 10
 		interval  = time.Millisecond * 250
 	)
 	Context("E2E TEST:When validating the notebook controller", func() {
@@ -66,10 +66,7 @@ var _ = Describe("E2E TEST:Notebook controller", func() {
 
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, notebookLookupKey, createdNotebook)
-				if err != nil {
-					return false
-				}
-				return true
+				return err == nil
 			}, timeout, interval).Should(BeTrue())
 			By("By checking that the Notebook has statefulset")
 			Eventually(func() (bool, error) {

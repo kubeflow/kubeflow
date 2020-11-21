@@ -26,4 +26,5 @@ bin
 gcb_build/**
 manager
 testbin/*
-./config/default/manager_image_patch.yaml-e
+./config/default/*.yaml-e
+*.temp
