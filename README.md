@@ -1,9 +1,19 @@
 <img src="https://www.kubeflow.org/images/logo.svg" width="100">
-Kubeflow is a Cloud Native platform for machine learning based on Google’s internal machine learning pipelines.
+Kubeflow the cloud-native platform for machine learning operations - pipelines, training and deployment.
 
 ---
 Please refer to the official docs at [kubeflow.org](http://kubeflow.org).
 
+The Kubeflow community is organized into working groups (WGs) with associated repositories, that focus on specific pieces of the ML platform. 
+
+## Working Groups
+* Auto ML (Katib)
+* Deployment
+* Manifests
+* Notebooks
+* Pipelines
+* Serving
+* Training
 
 ## Quick Links
 * [Prow test dashboard](https://k8s-testgrid.appspot.com/sig-big-data)
