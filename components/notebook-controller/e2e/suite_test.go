@@ -23,11 +23,11 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"testing"
 	"time"
 
 	nbv1beta1 "github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
+	controllerruntime "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
@@ -35,9 +35,7 @@ import (
 	. "github.com/onsi/gomega"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	// +kubebuilder:scaffold:imports
 )
@@ -53,11 +51,9 @@ const (
 )
 
 var (
-	useExistingCluster bool // flag for using an existing cluster for testing.
-	cfg                *rest.Config
+	useExistingCluster bool          // flag for using an existing cluster for testing.
 	k8sClient          client.Client // You'll be using this client in your tests.
-	testEnv            *envtest.Environment
-	clusterName        string // cluster that was dynamically created.
+	clusterName        string        // cluster that was dynamically created.
 	k3DockerImage      string
 )
 
@@ -93,27 +89,26 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	logf.SetLogger(zap.LoggerTo(GinkgoWriter, true))
 	By("Creating a k8s cluster.")
 	if !useExistingCluster {
-		err := bootstrapk8sCluster()
-		Expect(err).NotTo(HaveOccurred())
+		err := bootstrapK3DCluster()
 		Expect(err).NotTo(HaveOccurred())
 	}
-	existingCluster := true
-	testEnv = &envtest.Environment{UseExistingCluster: &existingCluster}
-	var err error
-	cfg, err = testEnv.Start()
+	restConfig, err := controllerruntime.GetConfig()
 	Expect(err).ToNot(HaveOccurred())
-	Expect(cfg).ToNot(BeNil())
+	Expect(restConfig).ToNot(BeNil())
 
 	err = nbv1beta1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	// Applying kustomizations from the config folder
-	err = applyKustomizations()
+	kustomizations := []string{
+		"../config/default",
+	}
+	err = applyKustomizations(kustomizations)
 	Expect(err).NotTo(HaveOccurred())
 
 	// +kubebuilder:scaffold:scheme
 
-	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
+	k8sClient, err = client.New(restConfig, client.Options{Scheme: scheme.Scheme})
 	Expect(err).ToNot(HaveOccurred())
 	Expect(k8sClient).ToNot(BeNil())
 
@@ -131,14 +126,17 @@ var _ = SynchronizedAfterSuite(func() {
 	} else {
 		By("Deleting the deployed CRD's in the existing cluster.")
 		// Deleting CRD's that were deployed as part of the test.
-		err := deleteKustomizations()
+		kustomizations := []string{
+			"../config/default",
+		}
+		err := deleteKustomizations(kustomizations)
 		Expect(err).Should(BeNil())
 	}
 })
 
-// bootstrapk8sCluster creates a k3d cluster with a random name. Loads the docker image into the cluster.
+// bootstrapK3DCluster creates a k3d cluster with a random name. Loads the docker image into the cluster.
 // The docker image name retrieved from the ENV variable TestImage.
-func bootstrapk8sCluster() error {
+func bootstrapK3DCluster() error {
 	clusterName = fmt.Sprintf("e2e-notebook-kf-cluster-%s", randStringRunes(6))
 
 	cmd := exec.Command("k3d", "cluster", "create", clusterName, "-i", k3DockerImage,
@@ -173,51 +171,44 @@ func deleteK3DCluster(clusterName string) error {
 }
 
 // applyKustomizations applies kustomizations into the k8s clusters.
-func applyKustomizations() error {
-	kubectlApply := exec.Command("kubectl", "apply", "-f",
-		filepath.Join("..", "config", "crd", "bases"))
-	kubectlApply.Stdout, kubectlApply.Stderr = os.Stdout, os.Stderr
-	err := kubectlApply.Run()
+func applyKustomizations(kustomizations []string) error {
+	for _, kust := range kustomizations {
+		out, err := exec.Command("kustomize", "build",
+			kust).Output()
 
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
+
+		kubectlApply := exec.Command("kubectl", "apply", "-f", "-")
+		kubectlApply.Stdin = bytes.NewReader(out)
+		kubectlApply.Stdout, kubectlApply.Stderr = os.Stdout, os.Stderr
+		err = kubectlApply.Run()
+
+		if err != nil {
+			return err
+		}
 	}
-
-	out, err := exec.Command("kustomize", "build",
-		filepath.Join("..", "config", "default")).Output()
-
-	if err != nil {
-		return err
-	}
-
-	kubectlApply = exec.Command("kubectl", "apply", "-f", "-")
-	kubectlApply.Stdin = bytes.NewReader(out)
-	kubectlApply.Stdout, kubectlApply.Stderr = os.Stdout, os.Stderr
-	err = kubectlApply.Run()
-
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 // deleteKustomizations deletes the CRD,RBAC,Deployment and services of the notebook controller from the cluster.
-func deleteKustomizations() error {
-	out, err := exec.Command("kustomize", "build",
-		filepath.Join("..", "config", "default")).Output()
+func deleteKustomizations(kustomizations []string) error {
+	for _, kust := range kustomizations {
+		out, err := exec.Command("kustomize", "build", kust).Output()
 
-	if err != nil {
-		return err
-	}
+		if err != nil {
+			return err
+		}
 
-	kubectlApply := exec.Command("kubectl", "delete", "-f", "-")
-	kubectlApply.Stdin = bytes.NewReader(out)
-	kubectlApply.Stdout, kubectlApply.Stderr = os.Stdout, os.Stderr
-	err = kubectlApply.Run()
+		kubectlApply := exec.Command("kubectl", "delete", "-f", "-")
+		kubectlApply.Stdin = bytes.NewReader(out)
+		kubectlApply.Stdout, kubectlApply.Stderr = os.Stdout, os.Stderr
+		err = kubectlApply.Run()
 
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

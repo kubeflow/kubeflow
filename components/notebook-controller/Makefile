@@ -70,7 +70,8 @@ generate: controller-gen
 docker-build: test
 	cd .. && docker build . -t ${IMG}:${TAG} -f ./notebook-controller/Dockerfile
 	@echo "updating kustomize image patch file for manager resource"
-	sed -i'' .temp 's@image: .*@image: '"${IMG}:${TAG}"'@' ./config/default/manager_image_patch.yaml
+	sed -i'' -e 's@image: .*@image: '"${IMG}"'@' ./config/default/manager_image_patch.yaml
+
 
 # Push the docker image
 docker-push:
@@ -105,17 +106,14 @@ e2e-tests-existing-cluster: k3d docker-build manifests
 		# Assumes that the notebook controller image is loaded into the k8s cluster.
 		# The tests doesn't load the image into the cluster.
 		@echo "Testing notebook controller with the existing k8s cluster"
-		 TEST_USE_EXISTING_CLUSTER=true  ginkgo --focus="E2E TEST:" -v  --cover  --coverprofile cover.out  ./e2e/...
+		 TEST_USE_EXISTING_CLUSTER=true  ginkgo --focus="E2E TEST:" -v  ./e2e/...
 
 # Functional test using k3d cluster.
 e2e-tests-k3d: k3d docker-build manifests
 		@echo "Testing k3d 1.16"
-		TEST_K3D_DOCKER_IMAGE=docker.io/rancher/k3s:v1.16.14-k3s1 TEST_USE_EXISTING_CLUSTER=false TEST_IMAGE=$(IMG):$(TAG) ginkgo --focus="E2E TEST:" -v  --cover  --coverprofile cover.out  ./e2e/...
+		TEST_K3D_DOCKER_IMAGE=docker.io/rancher/k3s:v1.16.14-k3s1 TEST_USE_EXISTING_CLUSTER=false TEST_IMAGE=$(IMG):$(TAG) ginkgo --focus="E2E TEST:" -v  ./e2e/...
 		@echo "Testing k3d 1.17"
-		TEST_K3D_DOCKER_IMAGE=docker.io/rancher/k3s:v1.17.14-k3s2 TEST_USE_EXISTING_CLUSTER=false TEST_IMAGE=$(IMG):$(TAG) ginkgo --focus="E2E TEST:" -v  --cover  --coverprofile cover.out  ./e2e/...
+		TEST_K3D_DOCKER_IMAGE=docker.io/rancher/k3s:v1.17.14-k3s2 TEST_USE_EXISTING_CLUSTER=false TEST_IMAGE=$(IMG):$(TAG) ginkgo --focus="E2E TEST:" -v  ./e2e/...
 		@echo "Testing k3d 1.18"
-		TEST_K3D_DOCKER_IMAGE=docker.io/rancher/k3s:v1.18.12-k3s1 TEST_USE_EXISTING_CLUSTER=false TEST_IMAGE=$(IMG):$(TAG) ginkgo --focus="E2E TEST:" -v  --cover  --coverprofile cover.out  ./e2e/...
+		TEST_K3D_DOCKER_IMAGE=docker.io/rancher/k3s:v1.18.12-k3s1 TEST_USE_EXISTING_CLUSTER=false TEST_IMAGE=$(IMG):$(TAG) ginkgo --focus="E2E TEST:" -v  ./e2e/...
 
-# Cleans docker images.
-docker-clean:
-	docker system prune -a -f

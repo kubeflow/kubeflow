@@ -26,5 +26,4 @@ bin
 gcb_build/**
 manager
 testbin/*
-./config/default/*.yaml-e
 *.temp

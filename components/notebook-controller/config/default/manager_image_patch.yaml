@@ -8,5 +8,5 @@ spec:
     spec:
       containers:
       # Change the value of image field below to your controller image URL
-      - image: gcr.io/kubeflow-images-public/notebook-controller:v20201122-v1.2-rc.0-5-g87c6d9c0-dirty-1a1de6
+      - image: gcr.io/kubeflow-images-public/notebook-controller
         name: manager
