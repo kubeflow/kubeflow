@@ -74,7 +74,20 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
             },
             menuLinks: {
                 type: Array,
-                value: [],
+                value: [
+                    {
+                        link: '/pipeline/',
+                        text: 'mainPage.menuPipelines',
+                    },
+                    {
+                        link: '/jupyter/',
+                        text: 'mainPage.menuNotebookServers',
+                    },
+                    {
+                        link: '/katib/',
+                        text: 'mainPage.menuKatib',
+                    },
+                ],
             },
             externalLinks: {
                 type: Array,
@@ -175,10 +188,10 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
             quickLinks,
             documentationItems,
         } = ev.detail.response;
-        this.menuLinks = menuLinks || [];
-        this.externalLinks = externalLinks || [];
-        this.quickLinks = quickLinks || [];
-        this.documentationItems = documentationItems || [];
+        // this.menuLinks = menuLinks || [];
+        // this.externalLinks = externalLinks || [];
+        // this.quickLinks = quickLinks || [];
+        // this.documentationItems = documentationItems || [];
     }
 
     /**
@@ -186,7 +199,7 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
      * @param {Event} ev AJAX-response
      */
     _onHasWorkgroupError(ev) {
-        this.showError("mainPage.errGeneric");
+        this.showError('mainPage.errGeneric');
         return;
     }
 
@@ -220,7 +233,7 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
         switch (newPage) {
         case 'logout':
             window.top.location.href = '/logout';
-            break;  
+            break;
         case 'activity':
             this.sidebarItemIndex = 0;
             this.page = 'activity';
