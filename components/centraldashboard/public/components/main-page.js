@@ -170,7 +170,7 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
      * Set state for loading registration flow in case no dashboard links exists
      * @param {Event} ev AJAX-response
      */
-    _onHasDashboardLinksError(ev) {
+    /*_onHasDashboardLinksError(ev) {
         const error = ((ev.detail.request||{}).response||{}).error ||
             ev.detail.error;
         this.showError(error);
@@ -181,7 +181,7 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
      * Set state for Central dashboard links
      * @param {Event} ev AJAX-response
      */
-    _onHasDashboardLinksResponse(ev) {
+    /*_onHasDashboardLinksResponse(ev) {
         const {
             menuLinks,
             externalLinks,
@@ -192,7 +192,7 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
         // this.externalLinks = externalLinks || [];
         // this.quickLinks = quickLinks || [];
         // this.documentationItems = documentationItems || [];
-    }
+    }*/
 
     /**
      * Set state for loading registration flow in case no workgroup exists
