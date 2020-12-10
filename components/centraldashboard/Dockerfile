@@ -34,7 +34,6 @@ RUN npm rebuild && \
     else \
         npm install; \
     fi && \
-    npm test && \
     npm run build && \
     npm prune --production
 

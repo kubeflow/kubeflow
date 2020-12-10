@@ -176,10 +176,10 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
             quickLinks,
             documentationItems,
         } = ev.detail.response;
-        // this.menuLinks = menuLinks || [];
-        // this.externalLinks = externalLinks || [];
-        // this.quickLinks = quickLinks || [];
-        // this.documentationItems = documentationItems || [];
+        this.menuLinks = menuLinks || [];
+        this.externalLinks = externalLinks || [];
+        this.quickLinks = quickLinks || [];
+        this.documentationItems = documentationItems || [];
     }
 
     /**
