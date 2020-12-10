@@ -95,7 +95,7 @@ export class PipelinesCard extends localizationMixin(PolymerElement) {
     }
 
     /**
-     * Returns the URL to list the available Pipeline artifacts
+     * Returns the URL to list the available Pipeline artifacts in the namespace
      * @param {string} artifactType
      * @param {string} namespace
      * @return {string}
