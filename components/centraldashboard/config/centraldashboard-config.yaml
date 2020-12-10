@@ -8,70 +8,61 @@ data:
     {
       "menuLinks": [
         {
-          link: '/pipeline/',
-          text: 'mainPage.menuPipelines',
+          "link": "/pipeline/",
+          "text": "mainPage.menuPipelines",
         },
         {
-          link: '/jupyter/',
-          text: 'mainPage.menuNotebookServers',
+          "link": "/jupyter/",
+          "text": "mainPage.menuNotebookServers",
         },
         {
-          link: '/katib/',
-          text: 'mainPage.menuKatib',
+          "link": "/katib/",
+          "text": "mainPage.menuKatib",
         },
-        {
-          link: '/metadata/',
-          text: 'mainPage.menuArtifactStore',
-        },  
       ],
       "externalLinks": [],
       "quickLinks": [
         {
-          text: 'dashboardView.quicklinkUploadText',
-          desc: 'dashboardView.quicklinkUploadDesc',
-          link: `/pipeline/`,
+          "text": "dashboardView.quicklinkUploadText",
+          "desc": "dashboardView.quicklinkUploadDesc",
+          "link": "/pipeline/",
         },
         {
-          text: 'dashboardView.quicklinkViewAllText',
-          desc: 'dashboardView.quicklinkViewAllDesc',
-          link: `/pipeline/#/runs`,
+          "text": "dashboardView.quicklinkViewAllText",
+          "desc": "dashboardView.quicklinkViewAllDesc",
+          "link": "/pipeline/#/runs",
         },
         {
-          text: 'dashboardView.quicklinkCreateNewText',
-          desc: 'dashboardView.quicklinkCreateNewDesc',
-          link: `/jupyter/new?namespace=kubeflow`,
+          "text": "dashboardView.quicklinkCreateNewText",
+          "desc": "dashboardView.quicklinkCreateNewDesc",
+          "link": "/jupyter/new?namespace=kubeflow",
         },
         {
-          text: 'dashboardView.quicklinkViewKatibText',
-          desc: 'dashboardView.quicklinkViewKatibDesc',
-          link: `/katib/`,
-        },
-        {
-          text: 'dashboardView.quicklinkMetadataArtifactsText',
-          desc: 'dashboardView.quicklinkMetadataArtifactsDesc',
-          link: `/metadata/`,
+          "text": "dashboardView.quicklinkViewKatibText",
+          "desc": "dashboardView.quicklinkViewKatibDesc",
+          "link": "/katib/",
         },
       ],
       "documentationItems": [
         {
-          text: 'dashboardView.docItemAawdText',
-          desc: 'dashboardView.docItemAawdDesc',
-          link: 'dashboardView.docItemAawdLink',
+          "text": "dashboardView.docItemAawdText",
+          "desc": "dashboardView.docItemAawdDesc",
+          "link": "dashboardView.docItemAawdLink",
         },
         {
-          text: 'dashboardView.docItemVideoTutorialText',
-          desc: 'dashboardView.docItemVideoTutorialDesc',
-          link: 'dashboardView.docItemVideoTutorialLink',
+          "text": "dashboardView.docItemVideoTutorialText",
+          "desc": "dashboardView.docItemVideoTutorialDesc",
+          "link": "dashboardView.docItemVideoTutorialLink",
         },
         {
-          text: 'dashboardView.docItemCommunityChatText',
-          desc: 'dashboardView.docItemCommunityChatDesc',
-          link: 'dashboardView.docItemCommunityChatLink',
+          "text": "dashboardView.docItemCommunityChatText",
+          "desc": "dashboardView.docItemCommunityChatDesc",
+          "link": "dashboardView.docItemCommunityChatLink",
         },
         {
-          text: 'dashboardView.docItemOfficialKubeflowDocsText',
-          desc: 'dashboardView.docItemOfficialKubeflowDocsDesc',
-          link: 'dashboardView.docItemOfficialKubeflowDocsLink',
+          "text": "dashboardView.docItemOfficialKubeflowDocsText",
+          "desc": "dashboardView.docItemOfficialKubeflowDocsDesc",
+          "link": "dashboardView.docItemOfficialKubeflowDocsLink",
         },
       ]
     }
