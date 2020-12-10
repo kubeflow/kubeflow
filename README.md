@@ -4,9 +4,9 @@ Kubeflow the cloud-native platform for machine learning operations - pipelines, 
 ---
 Please refer to the official docs at [kubeflow.org](http://kubeflow.org).
 
+## Working Groups
 The Kubeflow community is organized into working groups (WGs) with associated repositories, that focus on specific pieces of the ML platform. 
 
-## Working Groups
 * [AutoML](https://github.com/kubeflow/community/tree/master/wg-automl)
 * [Deployment](https://github.com/kubeflow/community/tree/master/wgdeployment)
 * [Manifests](https://github.com/kubeflow/community/tree/master/wg-manifests)
