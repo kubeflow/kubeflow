@@ -74,13 +74,14 @@ export class PipelinesCard extends localizationMixin(PolymerElement) {
             },
             heading: String,
             artifactType: String,
+            namespace: String,
             message: {
                 type: String,
                 value: '',
             },
             listPipelinesUrl: {
                 type: String,
-                computed: '_getListPipelinesUrl(artifactType)',
+                computed: '_getListPipelinesUrl(artifactType, namespace)',
             },
             pipelines: {
                 type: Array,
@@ -90,14 +91,18 @@ export class PipelinesCard extends localizationMixin(PolymerElement) {
     }
 
     /**
-     * Returns the URL to list the available Pipeline artifacts
+     * Returns the URL to list the available Pipeline artifacts in the namespace
      * @param {string} artifactType
+     * @param {string} namespace
      * @return {string}
      */
-    _getListPipelinesUrl(artifactType) {
+    _getListPipelinesUrl(artifactType, namespace) {
         if (!VALID_ARTIFACT_TYPES.has(artifactType)) return null;
-        return `/pipeline/apis/v1beta1/${artifactType}?`
-            + 'page_size=5&sort_by=created_at%20desc';
+        if (!namespace) return null;
+        return `/pipeline/apis/v1beta1/${artifactType}`
+            + `?resource_reference_key.type=NAMESPACE`
+            + `&resource_reference_key.id=${namespace}`
+            + '&page_size=5&sort_by=created_at%20desc';
     }
 
     /**
