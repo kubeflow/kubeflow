@@ -227,6 +227,8 @@ RUN conda install --quiet --yes \
 # - pyDOE==0.3.8 lib pre-requisite of yolov4
 # - yolov4==2.0.0 lib of yolov4
 # - openpyxl==3.0.5 read and write xlsx files within pandas
+# - shap==0.37.0 exaplinable AI lib
+
 RUN curl -sSL https://raw.githubusercontent.com/automl/auto-sklearn/v.0.7.0/requirements.txt | xargs -L 1 pip install --no-cache-dir \
  && pip install --no-cache-dir \
     seldon-core==1.0.2 \
@@ -270,6 +272,8 @@ RUN curl -sSL https://raw.githubusercontent.com/automl/auto-sklearn/v.0.7.0/requ
     yolov4==2.0.0 \
     openpyxl==3.0.5 \
     git+https://github.com/platiagro/sdk.git@master\
+	shap==0.37.0 \
+
  && pip install --no-cache-dir \
     -f https://download.pytorch.org/whl/torch_stable.html \
     torch==1.5.0+cpu \
