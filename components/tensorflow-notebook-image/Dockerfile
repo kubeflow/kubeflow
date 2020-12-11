@@ -19,6 +19,7 @@ ENV NB_USER $NB_USER
 ENV NB_UID 1000
 ENV HOME /home/$NB_USER
 ENV NB_PREFIX /
+ENV PATH $HOME/.local/bin:$PATH
 
 
 # Use bash instead of sh
@@ -68,6 +69,13 @@ RUN curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "/tmp/awscli-bu
     unzip /tmp/awscli-bundle.zip && ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws && \
     rm -rf ./awscli-bundle
 
+# Install Azure CLI
+RUN curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/microsoft.asc.gpg > /dev/null && \
+    AZ_REPO=$(lsb_release -cs) && \
+    echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" | tee /etc/apt/sources.list.d/azure-cli.list && \
+    apt-get update && \
+    apt-get install azure-cli
+
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen
 
@@ -80,7 +88,8 @@ ENV LANGUAGE en_US.UTF-8
 # $HOME provided by the contents of a PV
 RUN useradd -M -s /bin/bash -N -u $NB_UID $NB_USER && \
     chown -R ${NB_USER}:users /usr/local/bin && \
-    mkdir -p $HOME
+    mkdir -p $HOME && \
+    chown -R ${NB_USER}:users ${HOME}
 
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
@@ -104,7 +113,7 @@ RUN pip3 --no-cache-dir install \
     jupyter-console==6.0.0 \
     jupyterlab \
     xgboost \
-    git+https://github.com/kubeflow/fairing@a9bb9d5cc1c9f1d75efa31198ddbdccfe176b7bf
+    kubeflow-fairing==1.0.1
 
 COPY --chown=jovyan:users requirements.txt /tmp
 

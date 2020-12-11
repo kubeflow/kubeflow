@@ -1,0 +1,28 @@
+<!--Material Icon-->
+<mat-icon *ngIf="getCategory() === 'material'">
+  {{ getIcon() }}
+</mat-icon>
+
+<!--Font Awesome Icon-->
+<fa-icon *ngIf="getCategory() === 'fa'" [icon]="getIcon()"></fa-icon>
+
+<!--Custom icons-->
+<ng-container *ngIf="getCategory() === 'custom'">
+  <!--Folder with search bar on top-->
+  <div class="folderSearch" *ngIf="getIcon() === 'folderSearch'">
+    <i class="material-icons folder">folder</i>
+    <i class="material-icons search">search</i>
+  </div>
+
+  <!--GPU in section-->
+  <mat-icon *ngIf="getIcon() === 'gpuSectionIcon'" [inline]="true" class="gpu">
+    memory
+  </mat-icon>
+
+  <!--Stopped Resource-->
+  <fa-icon
+    *ngIf="getIcon() === 'stoppedResource'"
+    class="stoppedResource"
+    [icon]="['fas', 'stop-circle']"
+  ></fa-icon>
+</ng-container>

@@ -3,34 +3,32 @@ module github.com/kubeflow/kubeflow/bootstrap/v3
 require (
 	cloud.google.com/go v0.38.0
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/ghodss/yaml v1.0.0
-	github.com/go-kit/kit v0.8.0
+	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
+	github.com/go-kit/kit v0.9.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/golang/protobuf v1.3.1
-	github.com/kubeflow/kfctl/v3 v3.0.0-20200116231643-1ed4811a215a
+	github.com/golang/protobuf v1.3.2
+	github.com/kubeflow/kfctl/v3 v3.0.0-20200203192121-521fcfed625f
 	github.com/onrik/logrus v0.2.1
-	github.com/otiai10/curr v0.0.0-20190513014714-f5a3d24e5776 // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/prometheus/client_golang v0.9.2
-	github.com/prometheus/client_model v0.0.0-20190129233127-fd36f4220a90 // indirect
-	github.com/prometheus/common v0.2.0
-	github.com/prometheus/procfs v0.0.0-20190219184716-e4d4a2206da0 // indirect
+	github.com/prometheus/client_golang v1.1.0
+	github.com/prometheus/common v0.6.0
+	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.2.2
-	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
+	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c
+	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect
+	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 	google.golang.org/api v0.10.0
-	google.golang.org/genproto v0.0.0-20190502173448-54afdca5d873
-	gopkg.in/src-d/go-git.v4 v4.12.0
+	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
+	gopkg.in/src-d/go-git.v4 v4.13.1
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
-	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
+	k8s.io/client-go v12.0.0+incompatible
 )
 
 replace (
 	git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
-	github.com/Azure/go-autorest => github.com/Azure/go-autorest v11.1.2+incompatible
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.0.5
 	github.com/go-openapi/jsonpointer => github.com/go-openapi/jsonpointer v0.17.0
 	github.com/go-openapi/jsonreference => github.com/go-openapi/jsonreference v0.17.0
@@ -55,6 +53,7 @@ replace (
 	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.0.0-20190620085942-b7f18460b210
 	k8s.io/kube-proxy => k8s.io/kube-proxy v0.0.0-20190620085809-589f994ddf7f
 	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.0.0-20190620085912-4acac5405ec6
+	k8s.io/kubectl => k8s.io/kubectl v0.0.0-20191016120415-2ed914427d51
 	k8s.io/kubelet => k8s.io/kubelet v0.0.0-20190620085838-f1cb295a73c9
 	k8s.io/kubernetes => k8s.io/kubernetes v1.15.0
 	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.0.0-20190620090156-2138f2c9de18

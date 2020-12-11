@@ -4,9 +4,8 @@ TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always
 GOLANG_VERSION ?= 1.12
 
 build:
-	go build -gcflags 'all=-N -l' -o bin/webhook main.go
+	go build -gcflags 'all=-N -l' -o bin/webhook .
 
 build-gcr:
 	docker build -t $(IMG):$(TAG) .
 	@echo Built $(IMG):$(TAG)
-

@@ -30,7 +30,6 @@ import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 import css from './main-page.css';
 import template from './main-page.pug';
 import logo from '../assets/logo.svg';
-import '../assets/anon-user.png';
 
 import './registration-page.js';
 import './namespace-selector.js';
@@ -65,6 +64,14 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
             },
             iframeSrc: String,
             iframePage: {type: String, observer: '_iframePageChanged'},
+            documentationItems: {
+                type: Array,
+                value: [],
+            },
+            quickLinks: {
+                type: Array,
+                value: [],
+            },
             menuLinks: {
                 type: Array,
                 value: [
@@ -80,11 +87,11 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
                         link: '/katib/',
                         text: 'mainPage.menuKatib',
                     },
-                    {
-                        link: '/metadata/',
-                        text: 'mainPage.menuArtifactStore',
-                    },
                 ],
+            },
+            externalLinks: {
+                type: Array,
+                value: [],
             },
             sidebarItemIndex: {
                 type: Number,
@@ -160,11 +167,42 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
     }
 
     /**
+     * Set state for loading registration flow in case no dashboard links exists
+     * @param {Event} ev AJAX-response
+     */
+    /*
+     * _onHasDashboardLinksError(ev) {
+     *  const error = ((ev.detail.request||{}).response||{}).error ||
+     *      ev.detail.error;
+     *  this.showError(error);
+     *  return;
+     *}
+     */
+    /**
+     * Set state for Central dashboard links
+     * @param {Event} ev AJAX-response
+     */
+    /*
+     * _onHasDashboardLinksResponse(ev) {
+     *  const {
+     *      menuLinks,
+     *      externalLinks,
+     *      quickLinks,
+     *      documentationItems,
+     *  } = ev.detail.response;
+     *     this.menuLinks = menuLinks || [];
+     *     this.externalLinks = externalLinks || [];
+     *     this.quickLinks = quickLinks || [];
+     *     this.documentationItems = documentationItems || [];
+     *}
+     */
+
+    /**
      * Set state for loading registration flow in case no workgroup exists
      * @param {Event} ev AJAX-response
      */
     _onHasWorkgroupError(ev) {
-        this.showError("mainPage.errGeneric");
+        this.showError('mainPage.errGeneric');
         return;
     }
 
@@ -173,9 +211,10 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
      * @param {Event} ev AJAX-response
      */
     _onHasWorkgroupResponse(ev) {
-        const {user, hasWorkgroup, hasAuth} = ev.detail.response;
+        const {user, hasWorkgroup, hasAuth,
+            registrationFlowAllowed} = ev.detail.response;
         this._setIsolationMode(hasAuth ? 'multi-user' : 'single-user');
-        if (hasAuth && !hasWorkgroup) {
+        if (registrationFlowAllowed && hasAuth && !hasWorkgroup) {
             this.user = user;
             this._setRegistrationFlow(true);
         }
@@ -195,6 +234,9 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
         let hideSidebar = false;
 
         switch (newPage) {
+        case 'logout':
+            window.top.location.href = '/logout';
+            break;
         case 'activity':
             this.sidebarItemIndex = 0;
             this.page = 'activity';
@@ -208,7 +250,8 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
             this._setIframeSrc();
             break;
         case 'manage-users':
-            this.sidebarItemIndex = 6;
+            this.sidebarItemIndex = this.menuLinks.length
+                                    + this.externalLinks.length + 1;
             this.page = 'manage-users';
             hideTabs = true;
             allNamespaces = true;
@@ -292,13 +335,19 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
      * @param {string} path
      */
     _setActiveMenuLink(path) {
-        const menuLinkIndex = this.menuLinks
+        let menuLinkIndex = this.menuLinks
             .findIndex((m) => path.startsWith(m.link));
         if (menuLinkIndex >= 0) {
             // Adds 1 since Overview is hard-coded
             this.sidebarItemIndex = menuLinkIndex + 1;
         } else {
-            this.sidebarItemIndex = -1;
+            menuLinkIndex = this.externalLinks
+                .findIndex((m) => path.startsWith(m.link));
+            if (menuLinkIndex >= 0) {
+                this.sidebarItemIndex = menuLinkIndex + this.menuLinks.length+1;
+            } else {
+                this.sidebarItemIndex = -1;
+            }
         }
     }
 

@@ -30,6 +30,8 @@ export function getFormDefaults(): FormGroup {
     datavols: fb.array([]),
     shm: [true, []],
     configurations: [[], []],
+    affinityConfig: ['', []],
+    tolerationGroup: ['', []],
   });
 }
 
@@ -62,6 +64,7 @@ export function updateVolumeControl(
   volCtrl.get('size').setValue(vol.size.value);
   volCtrl.get('mode').setValue(vol.accessModes.value);
   volCtrl.get('path').setValue(vol.mountPath.value);
+  volCtrl.get('class').setValue(vol.class.value);
   volCtrl.get('templatedName').setValue(vol.name.value);
 
   if (readonly) {
@@ -93,6 +96,9 @@ export function addDataVolume(
       },
       accessModes: {
         value: 'ReadWriteOnce',
+      },
+      class: {
+        value: '{none}',
       },
     };
   }
@@ -158,6 +164,18 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
 
   // GPUs
   updateGPUControl(formCtrl.get('gpus') as FormGroup, config.gpus);
+
+  // Affinity
+  formCtrl.controls.affinityConfig.setValue(config.affinityConfig.value);
+  if (config.affinityConfig.readOnly) {
+    formCtrl.controls.affinityConfig.disable();
+  }
+
+  // Tolerations
+  formCtrl.controls.tolerationGroup.setValue(config.tolerationGroup.value);
+  if (config.tolerationGroup.readOnly) {
+    formCtrl.controls.tolerationGroup.disable();
+  }
 
   formCtrl.controls.shm.setValue(config.shm.value);
   if (config.shm.readOnly) {

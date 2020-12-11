@@ -1,0 +1,19 @@
+<div class="group-wrapper" [formGroup]="parentForm">
+  <h3>
+    <fa-icon [icon]="['fas', 'bullseye']" class="check"></fa-icon>
+    Affinity
+  </h3>
+  <p>
+    Select an affinity config.
+  </p>
+
+  <mat-form-field class="wide" appearance="outline">
+    <mat-label>Affinity Config</mat-label>
+    <mat-select matNativeControl formControlName="affinityConfig">
+      <mat-option *ngFor="let affinityConfig of affinityConfigs" [value]="affinityConfig.configKey">
+        {{ affinityConfig.displayName }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+</div>

@@ -27,6 +27,7 @@ interface HasWorkgroupResponse {
     user: string;
     hasAuth: boolean;
     hasWorkgroup: boolean;
+    registrationFlowAllowed: boolean;
 }
 
 interface EnvironmentInfo {
@@ -108,7 +109,7 @@ const surfaceProfileControllerErrors = (info: {res: Response, msg: string, err: 
     const code = (err.response && err.response.statusCode) || 400;
     const devError = err.body || '';
     // Msg is the developer reason of what happened, devError is the technical details as to why
-    console.error(msg+(devError?` ${devError}`:''));
+    console.error(msg+(devError?` ${devError}`:''), err.stack?err:'');
     apiError({res, code, error: devError || msg});
 };
 
@@ -116,7 +117,8 @@ export class WorkgroupApi {
     private platformInfo: PlatformInfo;
     constructor(
         private profilesService: DefaultApi,
-        private k8sService: KubernetesService) {}
+        private k8sService: KubernetesService,
+        private registrationFlowAllowed: boolean) {}
     /** Retrieves and memoizes the PlatformInfo. */
     private async getPlatformInfo(): Promise<PlatformInfo> {
         if (!this.platformInfo) {
@@ -244,34 +246,33 @@ export class WorkgroupApi {
         return users;
     }
     routes() {return Router()
-        .get(
-            '/exists',
-            async (req: Request, res: Response) => {
-                try {
-                    const response: HasWorkgroupResponse = {
-                        hasAuth: req.user.hasAuth,
-                        user: req.user.username,
-                        hasWorkgroup: false,
-                    };
-                    if (req.user.hasAuth) {
-                        const workgroup = await this.getWorkgroupInfo(
-                            req.user,
-                        );
-                        response.hasWorkgroup = !!(workgroup.namespaces || [])
-                            .find((w) => w.role === 'owner');
-                    } else {
-                        // Basic auth workgroup condition
-                        response.hasWorkgroup = !!(await this.getAllWorkgroups(req.user.username)).length;
-                    }
-                    res.json(response);
-                } catch (err) {
-                    surfaceProfileControllerErrors({
-                        res,
-                        msg: 'Unable to contact Profile Controller',
-                        err,
-                    });
+        .get('/exists', async (req: Request, res: Response) => {
+            try {
+                const response: HasWorkgroupResponse = {
+                    hasAuth: req.user.hasAuth,
+                    user: req.user.username,
+                    hasWorkgroup: false,
+                    registrationFlowAllowed: this.registrationFlowAllowed,
+                };
+                if (req.user.hasAuth) {
+                    const workgroup = await this.getWorkgroupInfo(
+                        req.user,
+                    );
+                    response.hasWorkgroup = !!(workgroup.namespaces || [])
+                        .find((w) => w.role === 'owner');
+                } else {
+                    // Basic auth workgroup condition
+                    response.hasWorkgroup = !!(await this.getAllWorkgroups(req.user.username)).length;
                 }
-            })
+                res.json(response);
+            } catch (err) {
+                surfaceProfileControllerErrors({
+                    res,
+                    msg: 'Unable to contact Profile Controller',
+                    err,
+                });
+            }
+        })
         .post('/create', async (req: Request, res: Response) => {
             const profile = req.body as CreateProfileRequest;
             try {
@@ -319,6 +320,20 @@ export class WorkgroupApi {
                 });
             }
             next();
+        })
+        .delete('/nuke-self', async (req: Request, res: Response) => {
+            try {
+                const headers = req.user.auth;
+                const namespace = req.user.username;
+                const {body: serverBody} = await this.profilesService.deleteProfile(namespace, {headers});
+                res.json({message: `Removed namespace/profile ${namespace}`, serverBody});
+            } catch (err) {
+                surfaceProfileControllerErrors({
+                    res,
+                    msg: 'Unexpected error deleting profile',
+                    err,
+                });
+            }
         })
         .get('/get-all-namespaces', async (req: Request, res: Response) => {
             try {

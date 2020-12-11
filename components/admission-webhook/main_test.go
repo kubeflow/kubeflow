@@ -126,6 +126,50 @@ func TestApplyPodDefaultsOnPod(t *testing.T) {
 					Labels: map[string]string{},
 				},
 			},
+		}, {
+			"Add tolerations",
+			&corev1.Pod{
+				Spec: corev1.PodSpec{
+					Tolerations: []*corev1.Toleration{
+						{
+							Key: "oldToleration",
+							Operator: "Exists",
+							Effect: "NoSchedule",
+						},
+					}
+				}
+			},
+			[]*settingsapi.PodDefault{
+				{
+					Spec: settingsapi.PodDefaultSpec{
+						Tolerations: []*corev1.Toleration{
+							{
+								Key: "newToleration",
+								Operator: "Equal",
+								Value: "foo",
+								"Effect": "NoSchedule",
+							},
+						},
+					},
+				},
+			},
+			&corev1.Pod{
+				Spec: corev1.PodSpec{
+					Tolerations: []*corev1.Toleration{
+						{
+							Key: "oldToleration",
+							Operator: "Exists",
+							Effect: "NoSchedule",
+						},
+						{
+							Key: "newToleration",
+							Operator: "Equal",
+							Value: "foo",
+							"Effect": "NoSchedule",
+						},
+					}
+				}
+			},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

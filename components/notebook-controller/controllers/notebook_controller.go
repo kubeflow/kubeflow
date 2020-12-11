@@ -28,7 +28,6 @@ import (
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/metrics"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -79,12 +78,13 @@ type NotebookReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=services/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks/status,verbs=get;update;patch
+
 func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("notebook", req.NamespacedName)
 
 	// TODO(yanniszark): Can we avoid reconciling Events and Notebook in the same queue?
-	event := &v1.Event{}
+	event := &corev1.Event{}
 	var getEventErr error
 	getEventErr = r.Get(ctx, req.NamespacedName, event)
 	if getEventErr == nil {
@@ -327,10 +327,17 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 		Name:  "NB_PREFIX",
 		Value: "/notebook/" + instance.Namespace + "/" + instance.Name,
 	})
-	if podSpec.SecurityContext == nil {
-		fsGroup := DefaultFSGroup
-		podSpec.SecurityContext = &corev1.PodSecurityContext{
-			FSGroup: &fsGroup,
+
+	// For some platforms (like OpenShift), adding fsGroup: 100 is troublesome.
+	// This allows for those platforms to bypass the automatic addition of the fsGroup
+	// and will allow for the Pod Security Policy controller to make an appropriate choice
+	// https://github.com/kubernetes-sigs/controller-runtime/issues/4617
+	if value, exists := os.LookupEnv("ADD_FSGROUP"); !exists || value == "true" {
+		if podSpec.SecurityContext == nil {
+			fsGroup := DefaultFSGroup
+			podSpec.SecurityContext = &corev1.PodSecurityContext{
+				FSGroup: &fsGroup,
+			}
 		}
 	}
 	return ss
@@ -372,10 +379,13 @@ func virtualServiceName(kfName string, namespace string) string {
 func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructured, error) {
 	name := instance.Name
 	namespace := instance.Namespace
+	clusterDomain := "cluster.local"
 	prefix := fmt.Sprintf("/notebook/%s/%s/", namespace, name)
 	rewrite := fmt.Sprintf("/notebook/%s/%s/", namespace, name)
-	// TODO(gabrielwen): Make clusterDomain an option.
-	service := fmt.Sprintf("%s.%s.svc.cluster.local", name, namespace)
+	if clusterDomainFromEnv, ok := os.LookupEnv("CLUSTER_DOMAIN"); ok {
+		clusterDomain = clusterDomainFromEnv
+	}
+	service := fmt.Sprintf("%s.%s.svc.%s", name, namespace, clusterDomain)
 
 	vsvc := &unstructured.Unstructured{}
 	vsvc.SetAPIVersion("networking.istio.io/v1alpha3")
@@ -465,11 +475,11 @@ func (r *NotebookReconciler) reconcileVirtualService(instance *v1beta1.Notebook)
 	return nil
 }
 
-func isStsOrPodEvent(event *v1.Event) bool {
+func isStsOrPodEvent(event *corev1.Event) bool {
 	return event.InvolvedObject.Kind == "Pod" || event.InvolvedObject.Kind == "StatefulSet"
 }
 
-func nbNameFromInvolvedObject(c client.Client, object *v1.ObjectReference) (string, error) {
+func nbNameFromInvolvedObject(c client.Client, object *corev1.ObjectReference) (string, error) {
 	name, namespace := object.Name, object.Namespace
 
 	if object.Kind == "StatefulSet" {
@@ -561,7 +571,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	eventsPredicates := predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
-			event := e.ObjectNew.(*v1.Event)
+			event := e.ObjectNew.(*corev1.Event)
 			nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
 			if err != nil {
 				return false
@@ -571,7 +581,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 				nbNameExists(r.Client, nbName, e.MetaNew.GetNamespace())
 		},
 		CreateFunc: func(e event.CreateEvent) bool {
-			event := e.Object.(*v1.Event)
+			event := e.Object.(*corev1.Event)
 			nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
 			if err != nil {
 				return false
@@ -591,7 +601,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	if err = c.Watch(
-		&source.Kind{Type: &v1.Event{}},
+		&source.Kind{Type: &corev1.Event{}},
 		&handler.EnqueueRequestsFromMapFunc{
 			ToRequests: eventToRequest,
 		},

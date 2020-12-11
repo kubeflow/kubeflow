@@ -1,0 +1,7 @@
+<div class="form--section-bottom">
+  <h3><lib-icon *ngIf="icon" [icon]="icon"></lib-icon>{{ title }}</h3>
+  <p>{{ text }}</p>
+  <p *ngIf="readOnly">*The cluster admin has disabled setting this section!</p>
+
+  <ng-content></ng-content>
+</div>

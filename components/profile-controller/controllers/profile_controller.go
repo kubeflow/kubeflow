@@ -65,6 +65,7 @@ const (
 var kubeflowNamespaceLabels = map[string]string{
 	"katib-metricscollector-injection":      "enabled",
 	"serving.kubeflow.org/inferenceservice": "enabled",
+	"app.kubernetes.io/part-of":             "kubeflow-profile",
 }
 
 const DEFAULT_EDITOR = "default-editor"
@@ -387,6 +388,9 @@ func (r *ProfileReconciler) updateIstioRbac(profileIns *profilev1.Profile) error
 			Subjects: []*istiorbac.Subject{
 				{
 					Properties: map[string]string{fmt.Sprintf("request.headers[%v]", r.UserIdHeader): r.UserIdPrefix + profileIns.Spec.Owner.Name},
+				},
+				{
+					Properties: map[string]string{"source.namespace": istioServiceRole.Namespace},
 				},
 			},
 			RoleRef: &istiorbac.RoleRef{

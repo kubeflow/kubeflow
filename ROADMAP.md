@@ -114,37 +114,48 @@ Support for hardware accelerated training and inference
    * Automatic injection of device configuration needed to use hardware accelerators
      for training and inference
 
+ 
 ## Kubeflow 1.0
+Kubeflow 1.0 was released on March 2, 2020. The 1.0 release consists of the following key pieces
+* A core set of applications targeting the critical user journey of build-train-deploy
+* Scaffolding to securely deploy and manage multi-user Kubeflow environments on-prem and in the cloud.
+* A process to graduate Kubeflow components to a stable version based upon an Application Requirements definition that has been defined and validated by the Community’s testing process.
 
-We are targeting a 1.0 release in January 2020. Our 1.0 release consists of the following key pieces
-
-1. A core set of applications targeting the critical user journey of build-train-deploy
-1. Scaffolding to securely deploy and manage multi-user Kubeflow environments on-prem and in the cloud.
-
-We are currently targeting the following applications to graduate to 1.0 as part of the initial Kubeflow release
-
+The following applications graduated to stable versions in Kubeflow 1.0.
 * kfctl for deployment and upgrades
-* TFJob and PyTorch for distributed training (already 1.0)
+* TFJob and PyTorch for distributed training
 * Jupyter notebook controller and web app
 * Profile controller and UI for multiuser management
 
-The following applications will likely be of beta quality for the 1.0 release with a goal of graduating to 1.0 in Q1 2020
-
+The following applications are considered in a beta version in Kubeflow 1.0.
 * Katib for hyper-parameter tuning
-* fairing SDK to facilite use of notebooks for build-train-deploy
-* Metadata SDK, UI, and backend
+* fairing SDK to facilitate use of notebooks for build-train-deploy
+* Kale which extends jupyter notebooks to create, run, and explore KF pipelines
+Metadata SDK, UI, and backend
 * KFServing for model deployment and inference
 * Pipelines
-   * CI/CD integration and Pipeline versioning are targeted for Q4 2019
-   * Multi-tenancy and RBAC features are targeted for early Q1 2020
 
 Here is a preliminary list of limitations and requirements that will be part of our 1.0 release
-
 * ISTIO will be required as a service mesh and for AuthN and AuthZ support
 * We will only support a single shared Kubeflow deployment per Kubernetes cluster
-  * Users can consume Kubeflow in their own, isolated namespace
+* Users can consume Kubeflow in their own, isolated namespace
 * Upgrades will require downtime
-* Upgradability will not support advanced customization (e.g. custom overlays) for Kustomize packages
 
-  * We expect application to expose a list of parameters that can be customized without breaking upgradability
-  * Customization beyond these parameters will require manual configuration on upgrade
+## Kubeflow 1.1 Features, Target release: Late June 2020
+
+Kubeflow 1.1 will continue to enhance enterprise grade functionality for secure operations and upgrades.   1.1 will also simplify ML workflows to improve data scientist productivity.
+
+The following features are under design review:
+
+* Process and tools for upgrades from Release N-1 to N i.e. 1.0.x to 1.1, [#304](https://github.com/kubeflow/kfctl/issues/304)
+* Additional security use cases for GCP users (including support for private GKE & Anthos Service Mesh),[design doc](https://cloud.google.com/service-mesh/docs); [#1705](https://github.com/kubeflow/website/issues/1705)
+* A CVE scanning report and mitigation process, [4590](https://github.com/kubeflow/kubeflow/issues/4590)
+* Improved workflow automation tools (fairing and kale) to simplify and mature the Core and EcoSystem supported CUJs
+
+* Establishment of Kubeflow Policy / Guidelines on how to implement authorization in web applications. Propose SubjectAccessReview in order to use K8s RBAC as the source of truth for Authz. [4899](https://github.com/kubeflow/community#327)
+* Guidelines on how cluster admins can interact with Kubeflow's authorization. There are already some difficulties with the self-serve model, process of adding contributors to a namespace and the way KFAM is using magic annotations on RoleBindings (#4574 #4889 #4936 #4924 #4938). Document current workarounds. [#4960](https://github.com/kubeflow/kubeflow/issues/4960)
+* Decide when the CentralDashboard should show a namespace. Right now, this is done with KFAM in an error-prone way (magic annotations on RoleBindings). Design doc exploring different options (change KFAM to use SubjectAccessReview, use a model like GCP Console checking read permission on namespace, etc.) This is also related to item above. [#4960](https://github.com/kubeflow/kubeflow/issues/4960)
+* Ability to turn off the self-serve mode, as in many environments there are mechanisms other than the Kubeflow Dashboard that provision/share an environment for/with the user. (#4942)
+* Multi-User Authorization: Add support for K8s RBAC via SubjectAccessReview [#3513](https://github.com/kubeflow/pipelines/issues/3513)
+
+The 1.1 features are tracked in this [Kanban board](https://github.com/orgs/kubeflow/projects/36) 

@@ -58,7 +58,6 @@ export class DashboardView extends localizationMixin(PolymerElement) {
                     },
                 ],
             },
-            namespace: String,
             quickLinks: {
                 type: Array,
                 value: [
@@ -82,13 +81,9 @@ export class DashboardView extends localizationMixin(PolymerElement) {
                         desc: 'dashboardView.quicklinkViewKatibDesc',
                         link: `/katib/`,
                     },
-                    {
-                        text: 'dashboardView.quicklinkMetadataArtifactsText',
-                        desc: 'dashboardView.quicklinkMetadataArtifactsDesc',
-                        link: `/metadata/`,
-                    },
                 ],
             },
+            namespace: String,
             platformDetails: Object,
             platformInfo: {
                 type: Object,

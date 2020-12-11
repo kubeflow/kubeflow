@@ -259,11 +259,30 @@ def process_pvc(rsrc):
     return res
 
 
+def process_gpu(cntr):
+    
+    # GPUs may not have been assigned to a pod 
+    gpu = 0
+    gpuvendor = 'nvidia'
+    try:
+        gpu = cntr["resources"]["limits"]["nvidia.com/gpu"]
+    except KeyError:
+        try:
+            gpu = cntr["resources"]["limits"]["amd.com/gpu"]
+            gpuvendor = 'amd'
+        except KeyError:
+            gpu = 0
+            gpuvendor = ''
+
+    return gpu, gpuvendor
+    
+
 def process_resource(rsrc, rsrc_events):
     # VAR: change this function according to the main resource
     cntr = rsrc["spec"]["template"]["spec"]["containers"][0]
     status, reason = process_status(rsrc, rsrc_events)
-
+    gpu, gpuvendor = process_gpu(cntr)
+   
     res = {
         "name": rsrc["metadata"]["name"],
         "namespace": rsrc["metadata"]["namespace"],
@@ -271,6 +290,8 @@ def process_resource(rsrc, rsrc_events):
         "image": cntr["image"],
         "shortImage": cntr["image"].split("/")[-1],
         "cpu": cntr["resources"]["requests"]["cpu"],
+        "gpu": gpu,
+        "gpuvendor": gpuvendor,
         "memory": cntr["resources"]["requests"]["memory"],
         "volumes": [v["name"] for v in cntr["volumeMounts"]],
         "status": status,
@@ -319,7 +340,7 @@ def find_error_event(rsrc_events):
     Returns status and reason from the latest event that surfaces the cause
     of why the resource could not be created. For a Notebook, it can be due to:
 
-          EVENT_TYPE      EVENT_REASON      DESCRIPTION   
+          EVENT_TYPE      EVENT_REASON      DESCRIPTION
           Warning         FailedCreate      pods "x" is forbidden: error looking up service account ... (originated in statefulset)
           Warning         FailedScheduling  0/1 nodes are available: 1 Insufficient cpu (originated in pod)
 
@@ -343,7 +364,7 @@ def set_notebook_image(notebook, body, defaults):
         image = defaults["image"]["value"]
         logger.info("Using default Image: " + image)
     elif body.get("customImageCheck", False):
-        image = body["customImage"]
+        image = body["customImage"].strip()
         logger.info("Using form's custom Image: " + image)
     elif "image" in body:
         image = body["image"]
@@ -369,6 +390,7 @@ def set_notebook_cpu(notebook, body, defaults):
         logger.info("Using default CPU: " + cpu)
 
     container["resources"]["requests"]["cpu"] = cpu
+    container["resources"]["limits"]["cpu"] = cpu
 
 
 def set_notebook_memory(notebook, body, defaults):
@@ -385,6 +407,64 @@ def set_notebook_memory(notebook, body, defaults):
         logger.info("Using default Memory: " + memory)
 
     container["resources"]["requests"]["memory"] = memory
+    container["resources"]["limits"]["memory"] = memory
+
+
+def set_notebook_affinity(notebook, body, defaults):
+    affinity_configs = defaults.get("affinityConfig", {})
+    aff_default = affinity_configs.get("value", None)
+    aff_options = affinity_configs.get("options", [])
+
+    if affinity_configs.get("readOnly", False):
+        configKey = aff_default
+        logger.info("Using default AffinityConfig: {}".format(configKey))
+    elif body.get("affinityConfig", None) is not None:
+        configKey = body["affinityConfig"]
+        logger.info("Using form's AffinityConfig: {}".format(configKey))
+    else:
+        configKey = aff_default
+        logger.info("Using default AffinityConfig: {}".format(configKey))
+
+    aff_group_match = [
+        aff_conf for aff_conf in aff_options if aff_conf["configKey"] == configKey
+    ]
+    if len(aff_group_match) == 0:
+        logger.error("AffinityConfig `{}` not in provided options".format(configKey))
+        return
+    elif len(aff_group_match) > 1:
+        logger.warning("AffinityConfig `{}` matched multiple options, using first match"
+                       .format(configKey))
+
+    notebook_spec = notebook["spec"]["template"]["spec"]
+    notebook_spec["affinity"] = aff_group_match[0]["affinity"]
+
+
+def set_notebook_tolerations(notebook, body, defaults):
+    toleration_configs = defaults.get("tolerationGroup", {})
+    tol_group_default = toleration_configs.get("value", None)
+    tol_group_options = toleration_configs.get("options", [])
+
+    if toleration_configs.get("readOnly", False):
+        groupKey = tol_group_default
+        logger.info("Using default TolerationGroup: {}".format(groupKey))
+    elif body.get("tolerationGroup", None) is not None:
+        groupKey = body["tolerationGroup"]
+        logger.info("Using form's TolerationGroup: {}".format(groupKey))
+    else:
+        groupKey = tol_group_default
+        logger.info("Using default TolerationGroup: {}".format(groupKey))
+
+    tol_group_match = [
+        tol_group for tol_group in tol_group_options if tol_group["groupKey"] == groupKey
+    ]
+    if len(tol_group_match) == 0:
+        logger.error("TolerationGroup `{}` not in provided options".format(groupKey))
+        return
+
+    notebook_tolerations = notebook["spec"]["template"]["spec"]["tolerations"]
+    for tol_group in tol_group_match:
+        for toleration in tol_group["tolerations"]:
+            notebook_tolerations.append(toleration)
 
 
 def set_notebook_gpus(notebook, body, defaults):

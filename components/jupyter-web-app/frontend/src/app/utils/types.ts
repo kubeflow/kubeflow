@@ -12,19 +12,39 @@ export interface Volume {
 
 export function emptyVolume(): Volume {
   return {
-    type: "",
-    name: "",
-    size: "",
-    path: "",
-    mode: "",
+    type: '',
+    name: '',
+    size: '',
+    path: '',
+    mode: '',
     extraFields: {},
-    templatedName: ""
+    templatedName: '',
   };
 }
 
 export interface PodDefault {
   label: string;
   desc: string;
+}
+
+export interface AffinityConfig {
+  configKey: string;
+  displayName: string;
+  affinity: object;
+}
+
+export interface TolerationGroup {
+  groupKey: string;
+  displayName: string;
+  tolerations: Toleration[];
+}
+
+export interface Toleration {
+  key: string;
+  operator: string;
+  value: string;
+  effect: string;
+  tolerationSeconds?: bigint;
 }
 
 export interface GPUVendor {
@@ -60,6 +80,8 @@ export interface Resource {
   age: string;
   image: string;
   volumes: string[];
+  gpu: string;
+  gpuvendor: string;
   cpu: string;
   memory: string;
   shortImage: string;
@@ -80,6 +102,9 @@ export interface ConfigVolume {
     value: string;
   };
   accessModes: {
+    value: string;
+  };
+  class: {
     value: string;
   };
 }
@@ -129,6 +154,18 @@ export interface Config {
     value: string[];
     readOnly?: boolean;
   };
+
+  affinityConfig?: {
+    value: string;
+    options: AffinityConfig[];
+    readOnly?: boolean;
+  }
+
+  tolerationGroup?: {
+    value: string;
+    options: TolerationGroup[];
+    readOnly?: boolean;
+  };
 }
 
 // Types of  popup
@@ -136,5 +173,5 @@ export enum SnackType {
   Success,
   Error,
   Warning,
-  Info
+  Info,
 }

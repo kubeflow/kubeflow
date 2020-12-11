@@ -4,8 +4,7 @@ import { HttpClientModule } from "@angular/common/http";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 
-import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
-import { library } from "@fortawesome/fontawesome-svg-core";
+import { FontAwesomeModule, FaIconLibrary } from "@fortawesome/angular-fontawesome";
 import {
   faCogs,
   faHdd,
@@ -13,7 +12,9 @@ import {
   faMicrochip,
   faLaptopCode,
   faLink,
-  faSlidersH
+  faSlidersH,
+  faCheckSquare,
+  faBullseye
 } from "@fortawesome/free-solid-svg-icons";
 import { faDocker } from "@fortawesome/free-brands-svg-icons";
 
@@ -49,7 +50,8 @@ import { RokFormDataVolumesComponent } from "./uis/rok/rok-resource-form/rok-for
 import { RokErrorMsgComponent } from "./uis/rok/rok-error-msg/rok-error-msg.component";
 import { FormConfigurationsComponent } from "./resource-form/form-configurations/form-configurations.component";
 import { FormGpusComponent } from "./resource-form/form-gpus/form-gpus.component";
-
+import { FormTolerationsComponent } from "./resource-form/form-tolerations/form-tolerations.component";
+import { FormAffinityComponent } from "./resource-form/form-affinity/form-affinity.component";
 
 @NgModule({
   declarations: [
@@ -78,6 +80,8 @@ import { FormGpusComponent } from "./resource-form/form-gpus/form-gpus.component
     RokErrorMsgComponent,
     FormConfigurationsComponent,
     FormGpusComponent,
+    FormTolerationsComponent,
+    FormAffinityComponent,
   ],
   imports: [
     BrowserModule,
@@ -94,8 +98,8 @@ import { FormGpusComponent } from "./resource-form/form-gpus/form-gpus.component
   entryComponents: [SnackBarComponent, ConfirmDialogComponent]
 })
 export class AppModule {
-  constructor() {
-    library.add(
+  constructor(library: FaIconLibrary) {
+    library.addIcons(
       faCogs,
       faHdd,
       faBook,
@@ -103,7 +107,9 @@ export class AppModule {
       faLaptopCode,
       faDocker,
       faLink,
-      faSlidersH
+      faSlidersH,
+      faCheckSquare,
+      faBullseye
     );
   }
 }

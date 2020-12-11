@@ -1,0 +1,23 @@
+.wide {
+  width: 100%;
+}
+
+h3,
+p {
+  margin-block-start: 0.2rem;
+  color: rgba(0, 0, 0, 0.54);
+}
+
+.lib-icon {
+  margin-right: 0.3rem;
+}
+
+// The following two rules are for adding bottom margin
+// inside of a form section
+.form--section-bottom {
+  margin-bottom: 0.5em;
+}
+
+.form--section-bottom > button {
+  margin-bottom: 0.5em;
+}

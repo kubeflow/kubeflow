@@ -1,0 +1,68 @@
+<div class="form--container" mat-dialog-content>
+  <form novalidate (ngSubmit)="onSubmit()" [formGroup]="formCtrl">
+    <lib-form-section title="New Tensorboard" text="Create a new Tensorboard.">
+    </lib-form-section>
+
+    <!--Name / Namespace-->
+    <lib-form-name-namespace-inputs
+      [nameControl]="formCtrl.get('name')"
+      [namespaceControl]="formCtrl.get('namespace')"
+      resourceName="Tensorboard"
+      [existingNames]="tensorboardNames"
+    >
+    </lib-form-name-namespace-inputs>
+
+    <mat-radio-group formControlName="storage">
+      <mat-radio-button value="object_store">Object Store</mat-radio-button>
+      <mat-radio-button value="pvc" class="radio-pvc">PVC</mat-radio-button>
+    </mat-radio-group>
+
+    <mat-form-field
+      appearance="outline"
+      class="wide"
+      *ngIf="formCtrl.get('storage').value === 'pvc'"
+    >
+      <mat-label>PVC Name</mat-label>
+      <mat-select formControlName="pvcName">
+        <mat-option *ngFor="let pvc of pvcNames" [value]="pvc">
+          {{ pvc }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field
+      appearance="outline"
+      class="wide"
+      *ngIf="formCtrl.get('storage').value === 'pvc'"
+    >
+      <mat-label>Mount Path</mat-label>
+      <input
+        formControlName="pvcMountPath"
+        matInput
+        placeholder="ex: mount/to/path"
+        type="url"
+      />
+    </mat-form-field>
+
+    <mat-form-field
+      appearance="outline"
+      class="wide"
+      *ngIf="formCtrl.get('storage').value === 'object_store'"
+    >
+      <mat-label>Object Store Link</mat-label>
+      <input matInput formControlName="objectStoreLink" type="url" />
+    </mat-form-field>
+
+    <button
+      mat-raised-button
+      color="primary"
+      class="form--button-margin"
+      type="submit"
+      [disabled]="!formCtrl.valid || blockSubmit"
+    >
+      CREATE
+    </button>
+
+    <button mat-raised-button type="button" (click)="onCancel()">CANCEL</button>
+  </form>
+</div>

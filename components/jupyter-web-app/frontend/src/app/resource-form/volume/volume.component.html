@@ -1,11 +1,15 @@
 <div *ngIf="volume" [formGroup]="volume" class="volume-wrapper">
-  <mat-form-field appearance="outline" id="type">
-    <mat-label>Type</mat-label>
-    <mat-select formControlName="type">
-      <mat-option *ngIf="defaultStorageClass" value="New">New</mat-option>
-      <mat-option value="Existing">Existing</mat-option>
-    </mat-select>
-  </mat-form-field>
+ 
+  <!-- Volume Type Input -->
+    <mat-form-field appearance="outline" id="type">
+      <mat-label>Type</mat-label>
+      <mat-select  (selectionChange)="selectType($event)" formControlName="type">
+        <mat-option *ngFor="let i of types"
+        [disabled]="newTypeIsDisabled()"
+        [matTooltip]="newTypeTooltip()"
+        value="{{i}}">{{i}}</mat-option>
+      </mat-select>
+    </mat-form-field>
 
   <!-- Volume Name Input -->
   <mat-form-field appearance="outline" id="name">

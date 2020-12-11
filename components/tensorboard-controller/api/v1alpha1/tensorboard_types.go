@@ -43,6 +43,10 @@ type TensorboardCondition struct {
 type TensorboardStatus struct {
 	// Conditions is an array of current conditions
 	Conditions []TensorboardCondition `json:"conditions"`
+	// ReadyReplicas defines the number of Tensorboard Servers
+	// that are available to connect. The value of ReadyReplicas
+	// can be either 0 or 1
+	ReadyReplicas int32 `json:"readyReplicas"`
 }
 
 // +kubebuilder:object:root=true

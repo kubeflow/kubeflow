@@ -102,8 +102,7 @@ export class RegistrationPage extends utilitiesMixin(localizationMixin(PolymerEl
         if (!this.validateNamespace()) return;
         API.body = {namespace: this.namespaceName};
         this.waitForRedirect = true;
-        // The promise rejection error is already handled in the API
-        await API.generateRequest().completes.catch(() => {});
+        await API.generateRequest().completes.catch((e) => e);
         await this.sleep(1); // So the errors and callbacks can schedule
         if (this.error && this.error.response) {
             return this.waitForRedirect = false;

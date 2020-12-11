@@ -1,0 +1,19 @@
+<div class="row">
+  <lib-name-input
+    class="column"
+    [nameControl]="nameControl"
+    [maxLength]="maxLength"
+    [resourceName]="resourceName"
+    [existingNames]="existingNames"
+  ></lib-name-input>
+
+  <mat-form-field appearance="outline" class="column">
+    <mat-label>Namespace</mat-label>
+    <input
+      matInput
+      placeholder="Namespace"
+      readonly
+      [formControl]="namespaceControl"
+    />
+  </mat-form-field>
+</div>

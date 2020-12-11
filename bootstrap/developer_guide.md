@@ -75,7 +75,7 @@ git clone git@github.com:kubeflow/kubeflow.git
 or
 
 ```sh
-git clone https://github.com:kubeflow/kubeflow .
+git clone https://github.com/kubeflow/kubeflow .
 ```
 
 Create a symbolic link inside your GOPATH to the location you checked out the code

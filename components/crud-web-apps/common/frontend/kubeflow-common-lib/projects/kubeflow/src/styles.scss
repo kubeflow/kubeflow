@@ -1,0 +1,130 @@
+@import './kubeflow.css';
+@import '~@angular/material/theming';
+
+// always include only once per project
+@include mat-core();
+
+// Primary color is not used
+$kubeflow-theme-primary: mat-palette($mat-blue, 600, 700, 900);
+
+// Loaded from the kubeflow.css
+$kubeflow-accent: (
+  500: var(--accent-color),
+  100: var(--accent-color-light),
+  700: var(--accent-color-dark),
+  contrast: (
+    100: $dark-primary-text,
+    500: $light-primary-text,
+    700: $light-primary-text,
+  ),
+);
+$kubeflow-theme-accent: mat-palette($kubeflow-accent);
+
+// create theme (use mat-dark-theme for themes with dark backgrounds)
+$kubeflow-theme: mat-light-theme(
+  $kubeflow-theme-primary,
+  $kubeflow-theme-accent
+);
+
+@include angular-material-theme($kubeflow-theme);
+
+// Use the material icons offline
+$material-icons-font-path: '~material-icons/iconfont/';
+@import '~material-icons/iconfont/material-icons.scss';
+
+// Material Form Field error message
+mat-form-field .mat-form-field {
+  &-underline {
+    position: static;
+  }
+  &-subscript-wrapper {
+    position: static;
+  }
+}
+
+// Custom css
+html,
+body {
+  font-family: Roboto, Sans-Serif;
+}
+
+.wide {
+  width: 100%;
+}
+
+.mat-tooltip-panel .mat-tooltip {
+  font-size: 14px !important;
+}
+
+.mat-snack-bar-container {
+  max-width: 100% !important;
+  width: 700px;
+}
+
+.form--container.mat-dialog-content {
+  max-height: 88vh;
+  padding: 16px;
+}
+
+.mat-form-field-wrapper {
+  padding-bottom: 0.2rem !important;
+}
+
+// Truncate text
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Form global css
+.form--dialog-padding .mat-dialog-container {
+  padding: 0 24px;
+}
+
+// .form--container {
+//   padding: 16px
+// }
+
+.mat-button-base.form--button-margin {
+  margin-right: 8px;
+}
+
+// Make the outline grey instead of black
+.mat-form-field-appearance-outline .mat-form-field-outline-thick {
+  color: rgba(0, 0, 0, 0.16);
+}
+
+.mat-checkbox-layout {
+  margin-bottom: 10px;
+}
+
+.form--input-padding .mat-form-field {
+  // Get the select and input elements have the same height
+  line-height: 0;
+}
+
+// Center an element
+.center-flex {
+  display: flex;
+  justify-content: center;
+}
+
+// Have a row of inputs
+.row {
+  display: flex;
+  flex-direction: row;
+  margin-right: -0.5rem;
+  margin-left: -0.5rem;
+}
+
+.column {
+  flex: 1 1 0px;
+  padding-right: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+.mat-button.button-with-icon .mat-button-wrapper {
+  display: flex;
+  align-items: center;
+}
