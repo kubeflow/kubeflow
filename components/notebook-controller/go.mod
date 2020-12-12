@@ -8,6 +8,8 @@ require (
 	github.com/json-iterator/go v1.1.6 // indirect
 	github.com/kubeflow/kubeflow/components/common v0.0.0-00010101000000-000000000000
 	github.com/modern-go/reflect2 v1.0.1 // indirect
+	github.com/kubeflow/kubeflow/components/common v0.0.0-20200908101143-7f5e242f4671
+	github.com/prometheus/client_golang v0.9.0
 	github.com/onsi/ginkgo v1.12.1
 	github.com/onsi/gomega v1.10.1
 	github.com/prometheus/client_golang v0.9.0
@@ -21,4 +23,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.2.0
 )
 
+// Ensure we build the notebook-controller with the latest `common`
+// module. However, because this module's `replace` will be ignored by
+// other modules, we still specify a commit in the `require` directive.
 replace github.com/kubeflow/kubeflow/components/common => ../common
