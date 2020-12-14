@@ -18,6 +18,7 @@ import { DetailsListModule } from './details-list/details-list.module';
 import { DateTimeModule } from './date-time/date-time.module';
 import { PanelModule } from './panel/panel.module';
 import { LoadingSpinnerModule } from './loading-spinner/loading-spinner.module';
+import { ConfirmDialogModule } from './confirm-dialog/confirm-dialog.module';
 
 @NgModule({
   declarations: [],
@@ -27,6 +28,7 @@ import { LoadingSpinnerModule } from './loading-spinner/loading-spinner.module';
     SnackBarModule,
     FormModule,
     PopoverModule,
+    ConfirmDialogModule,
     HttpClientModule,
     HttpClientXsrfModule,
     TitleActionsToolbarModule,
