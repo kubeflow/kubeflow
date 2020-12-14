@@ -2,6 +2,8 @@
 Kubeflow the cloud-native platform for machine learning operations - pipelines, training and deployment.
 
 ---
+
+## Documentation
 Please refer to the official docs at [kubeflow.org](http://kubeflow.org).
 
 ## Working Groups
