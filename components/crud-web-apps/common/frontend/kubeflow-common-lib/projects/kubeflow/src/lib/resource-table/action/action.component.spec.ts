@@ -1,6 +1,8 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ActionComponent } from './action.component';
+import { ActionIconValue } from '../types';
+import { ResourceTableModule } from '../resource-table.module';
 
 describe('ActionComponent', () => {
   let component: ActionComponent;
@@ -8,13 +10,21 @@ describe('ActionComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ActionComponent],
+      imports: [ResourceTableModule],
     }).compileComponents();
   }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ActionComponent);
     component = fixture.componentInstance;
+    component.action = new ActionIconValue({
+      name: '',
+      color: '',
+      iconReady: '',
+      tooltip: '',
+    });
+    component.data = {};
+
     fixture.detectChanges();
   });
 
