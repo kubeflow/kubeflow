@@ -1,9 +1,8 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
-import { first } from 'rxjs/operators';
-import { NamespaceService } from '../services/namespace.service';
-import { BackendService } from '../services/backend/backend.service';
-import { ExponentialBackoff } from '../polling/exponential-backoff';
-import { Subscription } from 'rxjs';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {NamespaceService} from '../services/namespace.service';
+import {BackendService} from '../services/backend/backend.service';
+import {ExponentialBackoff} from '../polling/exponential-backoff';
+import {Subscription} from 'rxjs';
 
 @Component({
   selector: 'lib-namespace-select',
@@ -11,6 +10,9 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./namespace-select.component.scss'],
 })
 export class NamespaceSelectComponent implements OnInit, OnDestroy {
+  @Input()
+  namespacesUrl: string;
+
   namespaces = [];
   currNamespace: string;
   private poller: ExponentialBackoff;
@@ -32,7 +34,7 @@ export class NamespaceSelectComponent implements OnInit, OnDestroy {
       });
     // Poll untill you get existing Namespaces
     const nsGetSub = this.poller.start().subscribe(() => {
-      this.backend.getNamespaces().subscribe(namespaces => {
+      this.backend.getNamespaces(true, this.namespacesUrl).subscribe(namespaces => {
         this.namespaces = namespaces;
         if (
           this.currNamespace === undefined ||

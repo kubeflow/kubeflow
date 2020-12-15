@@ -1,0 +1,61 @@
+$row-right-padding: 28px;
+
+.grey {
+  background-color: rgb(245, 245, 245);
+}
+
+.row-right-padding {
+  padding-right: $row-right-padding;
+}
+
+tr th.right-align {
+  text-align: right;
+}
+
+.action-list {
+  display: flex;
+}
+
+.action-button {
+  margin: auto;
+}
+
+.mat-cell {
+  min-height: auto;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-right: $row-right-padding;
+}
+
+.mat-row:hover {
+  background-color: rgb(245, 245, 245);
+}
+
+.mat-row:hover .link {
+  text-decoration: underline;
+}
+
+.link:hover {
+  text-decoration: underline;
+  color: blue;
+  cursor: pointer;
+}
+
+.text-small {
+  max-width: 150px;
+}
+
+.text-medium {
+  max-width: 300px;
+}
+
+.text-large {
+  max-width: 450px;
+}
+
+lib-action {
+  width: 40px;
+  display: inline-flex;
+  justify-content: center;
+  height: 40px;
+}

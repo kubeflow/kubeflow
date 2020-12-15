@@ -1,8 +1,19 @@
-<div class="options-wrapper" #options>
-  <ng-content></ng-content>
+<div class="flex">
+  <div
+    class="threadline"
+    (click)="toggleClicked()"
+    [matTooltip]="'Hide ' + text | lowercase"
+    matTooltipPosition="right"
+  ></div>
+
+  <div class="wide">
+    <div class="options-wrapper anchor" #options>
+      <ng-content></ng-content>
+    </div>
+  </div>
 </div>
 
-<div>
+<div class="anchor">
   <button
     class="toggle-button button-with-icon"
     color="primary"
@@ -11,6 +22,6 @@
     type="button"
   >
     <lib-icon class="blue" [icon]="buttonIcon"></lib-icon>
-    Advanced options
+    {{ text }}
   </button>
 </div>

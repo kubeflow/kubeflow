@@ -5,16 +5,19 @@ import {
   ViewChild,
   ElementRef,
   AfterViewInit,
+  HostBinding,
 } from '@angular/core';
 
 @Component({
   selector: 'lib-advanced-options',
   templateUrl: './advanced-options.component.html',
-  styleUrls: ['./advanced-options.component.css'],
+  styleUrls: ['./advanced-options.component.scss'],
 })
 export class AdvancedOptionsComponent implements OnInit, AfterViewInit {
   @Input() sectionIsExpanded = false;
-  @Input() maxHeight = '100px';
+  @Input() maxHeight = '5000px';
+  @Input() text = 'Advanced options';
+  @HostBinding('class.lib-advanced-options') selfClass = true;
   @ViewChild('options', { static: true }) optionsWrapper: ElementRef;
 
   get buttonIcon() {
