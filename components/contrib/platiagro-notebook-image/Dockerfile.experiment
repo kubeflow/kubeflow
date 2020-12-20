@@ -1,6 +1,11 @@
 ARG BASE_CONTAINER=platiagro/platiagro-notebook-image:0.2.0
 FROM $BASE_CONTAINER
 
-ENTRYPOINT ["sh", "-c"]
+RUN pip install --no-cache-dir \
+    papermill[s3]==2.1.1
 
-CMD ["papermill $notebookPath output.ipynb -b $parameters;\n                        status=$?;\n                        bash save-dataset.sh;\n                        bash save-figure.sh;\n                        bash make-cells-read-only.sh\n                        bash upload-to-jupyter.sh $experimentId $operatorId Experiment.ipynb;\n                        exit $status"]
+COPY docker-entrypoint.sh /usr/local/bin/
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
+CMD []

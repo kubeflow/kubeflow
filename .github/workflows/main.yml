@@ -24,6 +24,7 @@ jobs:
         registry: registry.hub.docker.com
         repository: platiagro/platiagro-notebook-image
         tags: 0.2.0
+        dockerfile: components/contrib/platiagro-notebook-image/Dockerfile.cpu
 
     - name: Build and push experiment image for CPU
       uses: docker/build-push-action@v1

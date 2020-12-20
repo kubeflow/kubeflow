@@ -271,7 +271,7 @@ RUN curl -sSL https://raw.githubusercontent.com/automl/auto-sklearn/v.0.7.0/requ
     pyDOE==0.3.8 \
     yolov4==2.0.0 \
     openpyxl==3.0.5 \
-	shap==0.37.0 \
+    shap==0.37.0 \
     git+https://github.com/platiagro/sdk.git@master \
  && pip install --no-cache-dir \
     -f https://download.pytorch.org/whl/torch_stable.html \
@@ -290,22 +290,6 @@ RUN curl -sSL https://raw.githubusercontent.com/automl/auto-sklearn/v.0.7.0/requ
  && fix-permissions /home/$NB_USER
 
 USER root
-
-# Copy a script that we will use to make output notebook cells read only
-COPY make-cells-read-only.sh /usr/local/bin/
-RUN chmod a+rx /usr/local/bin/make-cells-read-only.sh
-
-# Copy a script that we will use to interact with jupyter
-COPY upload-to-jupyter.sh /usr/local/bin/
-RUN chmod a+rx /usr/local/bin/upload-to-jupyter.sh
-
-# Copy a script that we will use to save datasets using the SDK
-COPY save-dataset.sh /usr/local/bin/
-RUN chmod a+rx /usr/local/bin/save-dataset.sh
-
-# Copy a script that we will use to save figure using the SDK
-COPY save-figure.sh /usr/local/bin/
-RUN chmod a+rx /usr/local/bin/save-figure.sh
 
 # Unfortunately, Kubeflow pipelines mount volumes as root root (user group).
 # If we want to use this image in a ContainerOp where there are mount volumes,
