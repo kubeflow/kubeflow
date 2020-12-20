@@ -53,10 +53,11 @@ EOF
 # Edits output notebook to make all cells readonly.
 ###############################################################################
 make_cells_readonly() {
+    filename=$1
     python3 <<EOF
 from json import dumps, loads
 
-with open("output.ipynb", "rb") as notebook_file:
+with open("${filename}", "rb") as notebook_file:
     notebook = loads(notebook_file.read())
     cells = notebook["cells"]
     for cell in cells:
@@ -64,7 +65,7 @@ with open("output.ipynb", "rb") as notebook_file:
         metadata["deletable"] = False
         metadata["editable"] = False
 
-    f = open("output.ipynb", "w")
+    f = open("${filename}", "w")
     f.write(dumps(notebook, sort_keys=True, indent=4))
     f.close()
 EOF
@@ -106,11 +107,27 @@ upload_to_jupyter() {
 }
 
 OUTPUT_PATH="Experiment.ipynb"
+
+PARAMETERS_BASE64=$(python3 <<EOF
+import base64
+import os
+import yaml
+
+prefix = "PARAMETER_"
+parameters = {}
+for var in os.environ:
+    if var.startswith(prefix):
+        name = var[len(prefix):]
+        parameters[name] = os.environ[var]
+print(base64.b64encode(yaml.dump(parameters).encode()).decode())
+EOF
+)
+
 papermill ${NOTEBOOK_PATH} ${OUTPUT_PATH} -b ${PARAMETERS_BASE64}
 STATUS=$?
 
-save_dataset
+save_dataset ${PARAMETER_DATASET}
 save_figure ${OUTPUT_PATH}
-make_cells_read_only
+make_cells_readonly ${OUTPUT_PATH}
 upload_to_jupyter ${EXPERIMENT_ID} ${OPERATOR_ID} ${OUTPUT_PATH}
 exit ${STATUS}
