@@ -13,6 +13,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"os"
 
@@ -23,6 +24,7 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	// +kubebuilder:scaffold:imports
 )
@@ -45,9 +47,11 @@ func main() {
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
+	opts := zap.Options{Development: true}
+	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
-	ctrl.SetLogger(zap.Logger(true))
+	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
@@ -64,7 +68,7 @@ func main() {
 
 	//This Indexer Function returns a list of the raw ClaimName values of
 	//the PersistentVolumeClaims that are mounted by a Pod
-	pvcIndexFunc := func(o runtime.Object) []string {
+	pvcIndexFunc := func(o client.Object) []string {
 		var res []string
 		for _, vol := range o.(*corev1.Pod).Spec.Volumes {
 			if vol.PersistentVolumeClaim == nil {
@@ -76,7 +80,7 @@ func main() {
 	}
 
 	//This is a custom Field Indexer for the "pod.spec.volumes.persistentvolumeclaim.claimname" field
-	if err := cache.IndexField(&corev1.Pod{}, "spec.volumes.persistentvolumeclaim.claimname", pvcIndexFunc); err != nil {
+	if err := cache.IndexField(context.Background(), &corev1.Pod{}, "spec.volumes.persistentvolumeclaim.claimname", pvcIndexFunc); err != nil {
 		setupLog.Error(err, "unable to index pod.spec.volumes.persistentvolumeclaim.claimname field")
 		os.Exit(1)
 	}

@@ -1,11 +1,12 @@
 # Build the manager binary
-ARG GOLANG_VERSION=1.12
+ARG GOLANG_VERSION=1.15
 FROM golang:${GOLANG_VERSION} as builder
 
 # Copy in the go src
 WORKDIR /go/src/github.com/kubeflow/kubeflow/components/admission-webhook
 COPY pkg/  pkg/
 COPY . .
+RUN go mod download
 
 ENV GO111MODULE=on
 

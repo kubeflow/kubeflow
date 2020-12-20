@@ -25,10 +25,10 @@ limitations under the License.
 package v1alpha1
 
 import (
+	istioV1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/api/istiorbac/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	istioV1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/api/istiorbac/v1alpha1"
 )
 
 const GroupName = "rbac.istio.io"

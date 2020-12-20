@@ -15,6 +15,7 @@
 package kfam
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -93,7 +94,7 @@ func (c *BindingClient) Create(binding *Binding, userIdHeader string, userIdPref
 			*binding.User,
 		},
 	}
-	_, err = c.kubeClient.RbacV1().RoleBindings(binding.ReferredNamespace).Create(&roleBinding)
+	_, err = c.kubeClient.RbacV1().RoleBindings(binding.ReferredNamespace).Create(context.Background(), &roleBinding, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}
@@ -123,7 +124,7 @@ func (c *BindingClient) Create(binding *Binding, userIdHeader string, userIdPref
 		Namespace(binding.ReferredNamespace).
 		Resource(ServiceRoleBinding).
 		Body(istioServiceRoleBinding).
-		Do().
+		Do(context.Background()).
 		Into(&result)
 }
 
@@ -134,7 +135,7 @@ func (c *BindingClient) Delete(binding *Binding) error {
 	if err != nil {
 		return err
 	}
-	_, err = c.kubeClient.RbacV1().RoleBindings(binding.ReferredNamespace).Get(bindingName, metav1.GetOptions{})
+	_, err = c.kubeClient.RbacV1().RoleBindings(binding.ReferredNamespace).Get(context.Background(), bindingName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -145,13 +146,13 @@ func (c *BindingClient) Delete(binding *Binding) error {
 		Resource(ServiceRoleBinding).
 		Name(bindingName).
 		VersionedParams(&metav1.GetOptions{}, scheme.ParameterCodec).
-		Do().
+		Do(context.Background()).
 		Into(&result)
 	if err != nil {
 		return err
 	}
 	// Delete if exists
-	err = c.kubeClient.RbacV1().RoleBindings(binding.ReferredNamespace).Delete(bindingName, &metav1.DeleteOptions{})
+	err = c.kubeClient.RbacV1().RoleBindings(binding.ReferredNamespace).Delete(context.Background(), bindingName, metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
@@ -161,14 +162,14 @@ func (c *BindingClient) Delete(binding *Binding) error {
 		Resource(ServiceRoleBinding).
 		Name(bindingName).
 		Body(&metav1.DeleteOptions{}).
-		Do().
+		Do(context.Background()).
 		Error()
 }
 
 func (c *BindingClient) List(user string, namespaces []string, role string) (*BindingEntries, error) {
 	bindings := []Binding{}
 	for _, ns := range namespaces {
-		roleBindingList, err := c.kubeClient.RbacV1().RoleBindings(ns).List(metav1.ListOptions{})
+		roleBindingList, err := c.kubeClient.RbacV1().RoleBindings(ns).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
 			return nil, err
 		}

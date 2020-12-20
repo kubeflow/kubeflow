@@ -130,24 +130,24 @@ func TestApplyPodDefaultsOnPod(t *testing.T) {
 			"Add tolerations",
 			&corev1.Pod{
 				Spec: corev1.PodSpec{
-					Tolerations: []*corev1.Toleration{
+					Tolerations: []corev1.Toleration{
 						{
-							Key: "oldToleration",
+							Key:      "oldToleration",
 							Operator: "Exists",
-							Effect: "NoSchedule",
+							Effect:   "NoSchedule",
 						},
-					}
-				}
+					},
+				},
 			},
 			[]*settingsapi.PodDefault{
 				{
 					Spec: settingsapi.PodDefaultSpec{
-						Tolerations: []*corev1.Toleration{
+						Tolerations: []corev1.Toleration{
 							{
-								Key: "newToleration",
+								Key:      "newToleration",
 								Operator: "Equal",
-								Value: "foo",
-								"Effect": "NoSchedule",
+								Value:    "foo",
+								Effect:   "NoSchedule",
 							},
 						},
 					},
@@ -155,20 +155,20 @@ func TestApplyPodDefaultsOnPod(t *testing.T) {
 			},
 			&corev1.Pod{
 				Spec: corev1.PodSpec{
-					Tolerations: []*corev1.Toleration{
+					Tolerations: []corev1.Toleration{
 						{
-							Key: "oldToleration",
+							Key:      "oldToleration",
 							Operator: "Exists",
-							Effect: "NoSchedule",
+							Effect:   "NoSchedule",
 						},
 						{
-							Key: "newToleration",
+							Key:      "newToleration",
 							Operator: "Equal",
-							Value: "foo",
-							"Effect": "NoSchedule",
+							Value:    "foo",
+							Effect:   "NoSchedule",
 						},
-					}
-				}
+					},
+				},
 			},
 		},
 	} {

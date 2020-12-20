@@ -79,8 +79,7 @@ type NotebookReconciler struct {
 // +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks/status,verbs=get;update;patch
 
-func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("notebook", req.NamespacedName)
 
 	// TODO(yanniszark): Can we avoid reconciling Events and Notebook in the same queue?
@@ -535,36 +534,36 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	// watch underlying pod
-	mapFn := handler.ToRequestsFunc(
-		func(a handler.MapObject) []ctrl.Request {
+	mapFn := handler.EnqueueRequestsFromMapFunc(
+		func(a client.Object) []ctrl.Request {
 			return []ctrl.Request{
 				{NamespacedName: types.NamespacedName{
-					Name:      a.Meta.GetLabels()["notebook-name"],
-					Namespace: a.Meta.GetNamespace(),
+					Name:      a.GetLabels()["notebook-name"],
+					Namespace: a.GetNamespace(),
 				}},
 			}
 		})
 	p := predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
-			if _, ok := e.MetaOld.GetLabels()["notebook-name"]; !ok {
+			if _, ok := e.ObjectOld.GetLabels()["notebook-name"]; !ok {
 				return false
 			}
 			return e.ObjectOld != e.ObjectNew
 		},
 		CreateFunc: func(e event.CreateEvent) bool {
-			if _, ok := e.Meta.GetLabels()["notebook-name"]; !ok {
+			if _, ok := e.Object.GetLabels()["notebook-name"]; !ok {
 				return false
 			}
 			return true
 		},
 	}
 
-	eventToRequest := handler.ToRequestsFunc(
-		func(a handler.MapObject) []ctrl.Request {
+	eventToRequest := handler.EnqueueRequestsFromMapFunc(
+		func(a client.Object) []ctrl.Request {
 			return []reconcile.Request{
 				{NamespacedName: types.NamespacedName{
-					Name:      a.Meta.GetName(),
-					Namespace: a.Meta.GetNamespace(),
+					Name:      a.GetName(),
+					Namespace: a.GetNamespace(),
 				}},
 			}
 		})
@@ -578,7 +577,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			}
 			return e.ObjectOld != e.ObjectNew &&
 				isStsOrPodEvent(event) &&
-				nbNameExists(r.Client, nbName, e.MetaNew.GetNamespace())
+				nbNameExists(r.Client, nbName, e.ObjectNew.GetNamespace())
 		},
 		CreateFunc: func(e event.CreateEvent) bool {
 			event := e.Object.(*corev1.Event)
@@ -587,24 +586,20 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 				return false
 			}
 			return isStsOrPodEvent(event) &&
-				nbNameExists(r.Client, nbName, e.Meta.GetNamespace())
+				nbNameExists(r.Client, nbName, e.Object.GetNamespace())
 		},
 	}
 
 	if err = c.Watch(
 		&source.Kind{Type: &corev1.Pod{}},
-		&handler.EnqueueRequestsFromMapFunc{
-			ToRequests: mapFn,
-		},
+		mapFn,
 		p); err != nil {
 		return err
 	}
 
 	if err = c.Watch(
 		&source.Kind{Type: &corev1.Event{}},
-		&handler.EnqueueRequestsFromMapFunc{
-			ToRequests: eventToRequest,
-		},
+		eventToRequest,
 		eventsPredicates); err != nil {
 		return err
 	}

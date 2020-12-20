@@ -1,27 +1,24 @@
-
-# Image URL to use all building/pushing image targets
-IMG ?= gcr.io/kubeflow-images-public/notebook-controller
-TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
-GOLANG_VERSION ?= 1.11.2
-SHELL := /bin/bash
-
-# Whether to use cached images with GCB
-USE_IMAGE_CACHE ?= true
-
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd"
+PROJECT           ?= kubeflow-dev
+REGISTRY_PROJECT  ?= kubeflow-dev
+GCLOUD_PROJECT    ?= kubeflow-images-public
+IMG               ?= gcr.io/$(GCLOUD_PROJECT)/notebook-controller
+TAG               ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
+DOCKER_BUILD_OPTS ?= --network=host
+GOLANG_VERSION    ?= 1.15.6
+DOCKER_BUILD_ARGS ?= --build-arg GOLANG_VERSION=$(GOLANG_VERSION)
+ 
+SHELL             := /bin/bash
+USE_IMAGE_CACHE   ?= true
+CRD_OPTIONS       ?= "crd"
+BINDIR            := bin
+TOOLS_DIR         := tools
+TOOLS_BIN_DIR     := $(TOOLS_DIR)/bin
+CONTROLLER_GEN    := $(TOOLS_BIN_DIR)/controller-gen
 
 # Based on recommendation https://sdk.operatorframework.io/docs/building-operators/golang/references/envtest-setup/
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 
-# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
-ifeq (,$(shell go env GOBIN))
-GOBIN=$(shell go env GOPATH)/bin
-else
-GOBIN=$(shell go env GOBIN)
-endif
-
-all: manager
+all: localbin
 
 # check license
 check-license:
@@ -34,8 +31,8 @@ test: generate fmt vet manifests
 	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR);
 	go test ./api/... ./controllers/... -coverprofile cover.out
 
-# Build manager binary
-manager: generate fmt vet
+# Build local binary
+localbin: generate fmt vet
 	go build -o bin/manager main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
@@ -52,7 +49,7 @@ deploy: manifests
 	kustomize build config/default | kubectl apply -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
-manifests: controller-gen
+manifests: $(CONTROLLER_GEN)
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 # Run go fmt against code
@@ -64,34 +61,31 @@ vet:
 	go vet ./...
 
 # Generate code
-generate: controller-gen
+generate: $(CONTROLLER_GEN)
 	$(CONTROLLER_GEN) object:headerFile=./hack/boilerplate.go.txt paths=./api/...
 
 # Build the docker image
-docker-build: test
-	cd .. && docker build . -t ${IMG} -f ./notebook-controller/Dockerfile
+build:
+	cd .. && docker build $(DOCKER_BUILD_OPTS) $(DOCKER_BUILD_ARGS) . -t $(IMG):$(TAG) -f ./notebook-controller/Dockerfile
 	@echo "updating kustomize image patch file for manager resource"
-	sed -i'' -e 's@image: .*@image: '"${IMG}"'@' ./config/default/manager_image_patch.yaml
+	sed -i'' -e 's@image: .*@image: '"${IMG}:${TAG}"'@' ./config/default/manager_image_patch.yaml
 
 # Push the docker image
-docker-push:
+push:
 	docker push ${IMG}
-
-# find or download controller-gen
-# download controller-gen if necessary
-controller-gen:
-ifeq (, $(shell which controller-gen))
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.0
-CONTROLLER_GEN=$(GOBIN)/controller-gen
-else
-CONTROLLER_GEN=$(shell which controller-gen)
-endif
 
 # TODO(jlewi): Can we get rid of this and just use skaffold?
 build-gcr: test
-	docker build -t $(IMG):$(TAG) .
+	docker build $(DOCKER_BUILD_OPTS) -t $(IMG):$(TAG) .
 	@echo Built $(IMG):$(TAG)
 
 push-gcr: build-gcr
 	docker push $(IMG):$(TAG)
 	@echo Pushed $(IMG):$(TAG)
+
+## --------------------------------------
+## Tooling Binaries
+## --------------------------------------
+
+$(CONTROLLER_GEN): $(TOOLS_DIR)/go.mod # Build controller-gen from tools folder.
+	cd $(TOOLS_DIR); go build -tags=tools -o $(BINDIR)/controller-gen sigs.k8s.io/controller-tools/cmd/controller-gen

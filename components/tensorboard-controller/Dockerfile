@@ -5,7 +5,8 @@
 #
 # This is necessary because the Jupyter controller now depends on
 # components/common
-FROM golang:1.12.5 as builder
+ARG GOLANG_VERSION=1.15
+FROM golang:${GOLANG_VERSION} as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests

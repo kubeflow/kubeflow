@@ -1,10 +1,11 @@
-# Project used with GCB
-PROJECT ?= kubeflow-dev
-# Registry where the image should be published
-REGISTRY_PROJECT ?= kubeflow-dev
-KUBEFLOWVERSION ?= 0.7.0
-
-IMG ?= gcr.io/$(REGISTRY_PROJECT)/centraldashboard
+PROJECT           ?= kubeflow-dev
+REGISTRY_PROJECT  ?= kubeflow-dev
+GCLOUD_PROJECT    ?= kubeflow-images-public
+IMG               ?= gcr.io/$(REGISTRY_PROJECT)/centraldashboard
+TAG               ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
+DOCKER_BUILD_OPTS ?= --network=host
+GOLANG_VERSION    ?= 1.15.6
+DOCKER_BUILD_ARGS ?= --build-arg GOLANG_VERSION=$(GOLANG_VERSION)
 
 # List any changed  files. We only include files in the notebooks directory.
 # because that is the code in the docker image.
@@ -23,6 +24,7 @@ endif
 COMMIT = $(shell git rev-parse HEAD)
 
 TAG := $(shell date +v%Y%m%d)-$(GIT_VERSION)
+
 all: build
 
 clean:
@@ -39,10 +41,10 @@ test: build-local
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
 build:
-	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) . \
+	docker build $(DOCKER_BUILD_OPTS) $(DOCKER_BUILD_ARGS) -t $(IMG):$(TAG) . \
 	  --build-arg kubeflowversion=$(shell git describe --abbrev=0 --tags) \
 	  --build-arg commit=$(shell git rev-parse HEAD) \
-      --label=git-verions=$(GIT_VERSION)
+	  --label=git-verions=$(GIT_VERSION)
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):latest
 	@echo Built $(IMG):$(TAG)

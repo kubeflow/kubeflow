@@ -17,18 +17,19 @@ import (
 	"net/http"
 
 	"github.com/kubeflow/kubeflow/components/access-management/kfam"
-	profile "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1beta1"
 	istio "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/istiorbac/v1alpha1"
+	profile "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1beta1"
 )
 
 // kfam API assume coming request will contain user id in request header.
 // set this parameter to specify header key containing user id.
 const USERIDHEADER = "userid-header"
+
 // set this parameter to specify header value prefix (if any) before user id.
 const USERIDPREFIX = "userid-prefix"
+
 // set cluster admin user id here.
 const CLUSTERADMIN = "cluster-admin"
-
 
 func main() {
 	log.Printf("Server started")

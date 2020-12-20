@@ -58,8 +58,7 @@ type TensorboardReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=persistentvolumeclaims,verbs=get;list;watch
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
 
-func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *TensorboardReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := r.Log.WithValues("tensorboard", req.NamespacedName)
 
 	instance := &tensorboardv1alpha1.Tensorboard{}
@@ -82,7 +81,7 @@ func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	if err := ctrl.SetControllerReference(instance, deployment, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
-	if err := Deployment(ctx, r, deployment, logger); err != nil {
+	if err := Deployment(ctx, r.Client, deployment, logger); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -91,7 +90,7 @@ func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	if err := ctrl.SetControllerReference(instance, service, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
-	if err := reconcilehelper.Service(ctx, r, service, logger); err != nil {
+	if err := reconcilehelper.Service(ctx, r.Client, service, logger); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -100,7 +99,7 @@ func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	if err := ctrl.SetControllerReference(instance, virtualService, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
-	if err := reconcilehelper.VirtualService(ctx, r, virtualService.GetName(), virtualService.GetNamespace(), virtualService, logger); err != nil {
+	if err := reconcilehelper.VirtualService(ctx, r.Client, virtualService.GetName(), virtualService.GetNamespace(), virtualService, logger); err != nil {
 		return ctrl.Result{}, err
 	}
 

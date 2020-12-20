@@ -1,7 +1,7 @@
 PROJECT           ?= kubeflow-dev
 REGISTRY_PROJECT  ?= kubeflow-dev
 GCLOUD_PROJECT    ?= kubeflow-images-public
-IMG               ?= gcr.io/$(GCLOUD_PROJECT)/admission-webhook
+IMG               ?= gcr.io/$(REGISTRY_PROJECT)/common
 TAG               ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
 DOCKER_BUILD_OPTS ?= --network=host
 GOLANG_VERSION    ?= 1.15.6
@@ -17,18 +17,8 @@ fmt:
 vet:
 	go vet ./...
 
-# Build local binary
+# 
 localbin: fmt vet
-	go build -gcflags 'all=-N -l' -o bin/webhook .
+	go build ./reconcilehelper/util.go
 
-# Build the docker image
-build:
-	docker build $(DOCKER_BUILD_OPTS) $(DOCKER_BUILD_ARGS) -t $(IMG):$(TAG) .
 
-# Push the docker image
-push:
-	docker push $(IMG):$(TAG)
-
-build-gcr:
-	docker build $(DOCKER_BUILD_OPTS) $(DOCKER_BUILD_ARGS) -t $(IMG):$(TAG) .
-	@echo Built $(IMG):$(TAG)

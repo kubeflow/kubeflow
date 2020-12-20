@@ -1,4 +1,4 @@
-# Copyright 2017 The Kubernetes Authors.
+# Copyright 2020 The Kubernetes Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,15 +13,11 @@
 # limitations under the License.
 #
 
-# Project used with GCB
-PROJECT ?= kubeflow-dev
-# Registry where the image should be published
+PROJECT          ?= kubeflow-dev
 REGISTRY_PROJECT ?= kubeflow-dev
-OUTPUT ?= output.yaml
-
-# We want the git tag to be the last commit to this directory so we don't
-# bump the image on unrelated changes.
-GIT_TAG ?= $(shell git log -n 1 --pretty=format:"%h" ./)
+GCLOUD_PROJECT   ?= kubeflow-images-public
+OUTPUT           ?= output.yaml
+GIT_TAG          ?= $(shell git log -n 1 --pretty=format:"%h" ./)
 
 info:
 	echo image: \"gcr.io/$(REGISTRY_PROJECT)/jupyter-web-app:$(GIT_TAG)\" > $(OUTPUT)
