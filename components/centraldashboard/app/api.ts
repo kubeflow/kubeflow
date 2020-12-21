@@ -4,7 +4,8 @@ import {Interval, MetricsService} from './metrics_service';
 
 export const ERRORS = {
   operation_not_supported: 'Operation not supported',
-  invalid_links_config: 'Dashboard Links ConfigMap is invalid'
+  invalid_links_config: 'Cannot load dashboard menu link',
+  invalid_settings: 'Cannot load dashboard settings'
 };
 
 export function apiError(a: {res: Response, error: string, code?: number}) {
@@ -71,10 +72,10 @@ export class Api {
         .get(
           '/dashboard-links',
           async (_: Request, res: Response) => {
-            const linksData = await this.k8sService.getDashboardLinks();
+            const cm = await this.k8sService.getConfigMap();
             let links = {};
             try {
-              links=JSON.parse(linksData.data["links"]);
+              links=JSON.parse(cm.data["links"]);
             }catch(e){
               return apiError({
                 res, code: 500,
@@ -82,6 +83,21 @@ export class Api {
               });
             }
             res.json(links);
+          })
+        .get(
+          '/dashboard-settings',
+          async (_: Request, res: Response) => {
+            const cm = await this.k8sService.getConfigMap();
+            let settings = {};
+            try {
+              settings=JSON.parse(cm.data["settings"]);
+            }catch(e){
+              return apiError({
+                res, code: 500,
+                error: ERRORS.invalid_settings,
+              });
+            }
+            res.json(settings);
           });
   }
 }
