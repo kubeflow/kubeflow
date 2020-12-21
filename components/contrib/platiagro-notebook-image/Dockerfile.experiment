@@ -1,11 +1,9 @@
 ARG BASE_CONTAINER=platiagro/platiagro-notebook-image:0.2.0
 FROM $BASE_CONTAINER
 
-RUN pip install --no-cache-dir \
-    papermill[s3]==2.1.1
+COPY docker-entrypoint.py /usr/local/bin/
+RUN chmod +x"/usr/local/bin/docker-entrypoint.py
 
-COPY docker-entrypoint.sh /usr/local/bin/
-
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.py"]
 
 CMD []
