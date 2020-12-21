@@ -10,10 +10,40 @@ import papermill
 import platiagro
 import requests
 
+BASE_URL = os.getenv("JUPYTER_ENDPOINT", "http://server.anonymous:80/notebook/anonymous/server/api/contents")
+
+
+def execute_notebook(notebook_path, output_path):
+    """
+    Executes a notebook and saves the output.
+
+    Parameters
+    ----------
+    notebook_path : str
+    output_path : str
+    """
+    prefix = "PARAMETER_"
+    parameters = {}
+    for var in os.environ:
+        if var.startswith(prefix):
+            name = var[len(prefix):]
+            value = os.environ[var]
+
+            if value is not None:
+                value = json.loads(value)
+
+            parameters[name] = value
+
+    papermill.execute_notebook(
+        notebook_path,
+        output_path,
+        parameters=parameters,
+    )
+
 
 def save_dataset(dataset):
     """
-    Stores file /tmp/data/{dataset} in a persistent storage using platiagro SDK.
+    Stores dataset file in a persistent storage using platiagro SDK.
     This will make it available in the Web-UI.
 
     Parameters
@@ -50,15 +80,11 @@ def save_figures(notebook_path):
                         if "html" in key:
                             html = data[key]
                             if "script" not in html[0]:
-                                plotly_figure = "".join(html).replace(
-                                    '["plotly"]', '["https://cdn.plot.ly/plotly-latest.min.js"]')
-                                html_figure = '<html><head><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script></head><body>' + \
-                                    plotly_figure + '</body></html>'
-                                platiagro.save_figure(figure=html_figure,
-                                                      extension='html')
+                                plotly_figure = "".join(html).replace('["plotly"]', '["https://cdn.plot.ly/plotly-latest.min.js"]')
+                                html_figure = f'<html><head><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script></head><body>{plotly_figure}</body></html>'
+                                platiagro.save_figure(figure=html_figure, extension="html")
                         elif "image" in key:
-                            platiagro.save_figure(
-                                figure=data[key], extension=key.split("/")[1])
+                            platiagro.save_figure(figure=data[key], extension=key.split("/")[1])
 
 
 def make_cells_readonly(notebook_path):
@@ -95,16 +121,13 @@ def upload_to_jupyter(notebook_path):
     """
     print("Uploading to Jupyter Notebook server...", flush=True)
 
-    base_url = "http://server.anonymous:80/notebook/anonymous/server/api/contents"
     headers = {"X-XSRFToken": "token", "Cookie": "_xsrf=token"}
 
-    parts = notebook_path.split("/")
     path = ""
-
-    for directory in parts[:-1]:
+    for directory in notebook_path.split("/")[:-1]:
         path = f"{path}/{directory}"
         requests.put(
-            f"{base_url}{path}",
+            f"{BASE_URL}{path}",
             json={"type": "directory"},
             headers=headers,
         )
@@ -113,7 +136,7 @@ def upload_to_jupyter(notebook_path):
         content = json.load(f)
 
     requests.put(
-        f"{base_url}/{notebook_path}",
+        f"{BASE_URL}/{notebook_path}",
         json={
             "type": "notebook",
             "content": content,
@@ -131,19 +154,7 @@ def main():
     dataset = os.environ["PARAMETER_dataset"]
     output_path = f"experiments/{experiment_id}/operators/{operator_id}/Experiment.ipynb"
 
-    prefix = "PARAMETER_"
-    parameters = {}
-    for var in os.environ:
-        if var.startswith(prefix):
-            name = var[len(prefix):]
-            parameters[name] = os.environ[var]
-
-    papermill.execute_notebook(
-        notebook_path,
-        output_path,
-        parameters=parameters,
-    )
-
+    execute_notebook(notebook_path, output_path)
     save_dataset(dataset)
     save_figures(output_path)
     make_cells_readonly(output_path)
