@@ -9,5 +9,5 @@ export interface ActionConfig {
   name: string;
   tooltip?: string;
   color: string;
-  field: string;
+  field?: string;
 }

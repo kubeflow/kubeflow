@@ -48,8 +48,16 @@ body {
   font-family: Roboto, Sans-Serif;
 }
 
+.flex {
+  display: flex;
+}
+
 .wide {
   width: 100%;
+}
+
+.right-align {
+  text-align: right;
 }
 
 .mat-tooltip-panel .mat-tooltip {
@@ -81,10 +89,6 @@ body {
 .form--dialog-padding .mat-dialog-container {
   padding: 0 24px;
 }
-
-// .form--container {
-//   padding: 16px
-// }
 
 .mat-button-base.form--button-margin {
   margin-right: 8px;
@@ -127,4 +131,29 @@ body {
 .mat-button.button-with-icon .mat-button-wrapper {
   display: flex;
   align-items: center;
+}
+
+// tooltips show we as wide as possible
+.custom-tooltip {
+  max-width: unset !important;
+  white-space: pre-line;
+}
+
+/*
+ * padding for the page
+ */
+$page-space-left: 20px;
+$page-space-right: 20px;
+
+.page-padding {
+  padding-left: $page-space-left;
+  padding-right: $page-space-right;
+}
+
+.page-padding-right {
+  padding-right: $page-space-right;
+}
+
+.page-padding-left {
+  padding-left: $page-space-left;
 }

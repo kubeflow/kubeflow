@@ -1,6 +1,7 @@
 <button
   mat-button
   [matTooltip]="action.tooltip"
+  matTooltipClass="custom-tooltip"
   (click)="emitClickedEvent()"
   [color]="action.color"
   [disabled]="!isPhaseReady()"

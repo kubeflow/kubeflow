@@ -1,0 +1,164 @@
+<table mat-table [dataSource]="dataSource" [trackBy]="trackByFn" class="wide">
+  <ng-container
+    [matColumnDef]="col.matColumnDef"
+    *ngFor="let col of config?.columns"
+  >
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      [ngClass]="{
+        grey: tableTheme === TABLE_THEME.FLAT,
+        'right-align': col.textAlignment === 'right',
+        'row-right-padding': col.textAlignment === 'right'
+      }"
+    >
+      {{ col.matHeaderCellDef }}
+    </th>
+
+    <!--Property Value-->
+    <ng-container *ngIf="isPropertyValue(col.value)">
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
+        [ngClass]="{
+          'right-align': col.textAlignment === 'right',
+          'row-right-padding': col.textAlignment === 'right'
+        }"
+      >
+        <div
+          [matTooltip]="col.value.getTooltip(element)"
+          [libPopover]="col.value.getPopover(element)"
+          matTooltipClass="custom-tooltip"
+          [ngClass]="col.value.getClasses()"
+          (click)="linkClicked(col.matColumnDef, element)"
+        >
+          {{ col.value.getValue(element) }}
+        </div>
+      </td>
+    </ng-container>
+
+    <!--Status Value-->
+    <ng-container *ngIf="isStatusValue(col.value)">
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
+      >
+        <lib-status [row]="element" [config]="col.value"></lib-status>
+      </td>
+    </ng-container>
+
+    <!--Date Time Value-->
+    <ng-container *ngIf="isDateTimeValue(col.value)">
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
+      >
+        <lib-date-time [date]="col.value.getValue(element)"></lib-date-time>
+      </td>
+    </ng-container>
+
+    <!--Component Value-->
+    <ng-container *ngIf="isComponentValue(col.value)">
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
+        [ngClass]="{ 'right-align': col.rightAlign }"
+      >
+        <lib-component-value
+          [element]="element"
+          [valueDescriptor]="col.value"
+        ></lib-component-value>
+      </td>
+    </ng-container>
+
+    <!--Template Ref Value-->
+    <ng-container *ngIf="isTemplateValue(col.value)">
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
+        [ngClass]="{
+          'right-align': col.textAlignment === 'right',
+          'row-right-padding': col.textAlignment === 'right'
+        }"
+      >
+        <ng-template
+          [ngTemplateOutlet]="col.value.ref"
+          [ngTemplateOutletContext]="{ $implicit: element }"
+        ></ng-template>
+      </td>
+    </ng-container>
+
+    <!--Chips List Value-->
+    <ng-container *ngIf="isChipsListValue(col.value)">
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
+      >
+        <lib-table-chips-list
+          [element]="element"
+          [valueDescriptor]="col.value"
+        ></lib-table-chips-list>
+      </td>
+    </ng-container>
+
+    <!--Menu Value-->
+    <ng-container *ngIf="isMenuValue(col.value)">
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
+      >
+        <button mat-icon-button [matMenuTriggerFor]="menu">
+          <mat-icon>{{ col.value.menuIcon }}</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <button
+            mat-menu-item
+            *ngFor="let item of col.value.getItems(element)"
+            [matTooltip]="item"
+            matTooltipClass="custom-tooltip"
+            [matTooltipDisabled]="!col.value.showTooltip"
+          >
+            <mat-icon>{{ col.value.itemsIcon }}</mat-icon>
+            <span>{{ item }}</span>
+          </button>
+        </mat-menu>
+      </td>
+    </ng-container>
+
+    <!--Action List Value-->
+    <ng-container *ngIf="isActionListValue(col.value)">
+      <td mat-cell *matCellDef="let element">
+        <div class="action-list">
+          <ng-container *ngFor="let action of col.value.actions">
+            <!--Button-->
+            <lib-action-button
+              *ngIf="isActionButtonValue(action)"
+              class="action-button"
+              [action]="action"
+              [data]="element"
+              (emitter)="actionTriggered($event)"
+            ></lib-action-button>
+
+            <!--Icon-->
+            <lib-action
+              *ngIf="isActionIconValue(action)"
+              [action]="action"
+              [data]="element"
+              (emitter)="actionTriggered($event)"
+            ></lib-action>
+          </ng-container>
+        </div>
+      </td>
+    </ng-container>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+</table>

@@ -1,0 +1,38 @@
+<div class="flex wide margin-top-title">
+  <div class="page-padding-left"></div>
+
+  <button
+    *ngIf="backButton"
+    mat-icon-button
+    color="primary"
+    class="margin-top-bottom-auto"
+    (click)="emitBack()"
+  >
+    <mat-icon>keyboard_backspace</mat-icon>
+  </button>
+
+  <div class="title-margin title">
+    {{ title }}
+  </div>
+
+  <div class="margin-top-bottom-auto">
+    <button
+      *ngFor="let button of buttons"
+      mat-button
+      [color]="button.color"
+      [disabled]="button.disabled"
+      (click)="emitButtonClicked(button.eventName)"
+    >
+      <mat-icon *ngIf="button.icon" class="button-icon">
+        {{ button.icon }}
+      </mat-icon>
+      {{ button.text }}
+    </button>
+  </div>
+
+  <div class="margin-content">
+    <ng-content></ng-content>
+  </div>
+</div>
+
+<mat-divider class="page-placement margin-top"></mat-divider>

@@ -11,6 +11,8 @@ declare global {
   providedIn: 'root',
 })
 export class NamespaceService {
+  private currNamespace: string;
+
   // Observable string sources
   private selectedNamespaceSource = new ReplaySubject<string>(1);
 
@@ -32,8 +34,8 @@ export class NamespaceService {
             cdeh.onNamespaceSelected = this.updateSelectedNamespace.bind(this);
           },
         );
-      } else {
-        this.updateSelectedNamespace('kubeflow');
+      } else if (this.currNamespace === undefined) {
+        this.updateSelectedNamespace('kubeflow-user');
       }
     });
   }
@@ -46,6 +48,7 @@ export class NamespaceService {
   // Service message commands
   updateSelectedNamespace(namespace: string) {
     if (namespace.length !== 0) {
+      this.currNamespace = namespace;
       this.selectedNamespaceSource.next(namespace);
     }
   }
