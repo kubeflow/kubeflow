@@ -1,12 +1,11 @@
 import logging
 
-from flask import Blueprint, Response, request
+from flask import Blueprint, Response
 
-from . import helpers
+from . import csrf, helpers
 
 bp = Blueprint("serving", __name__)
 log = logging.getLogger(__name__)
-
 
 # Caching: We want the browser to always check if the index.html file it has
 # is the latest one. Also we want this check to use the ETag header and not
@@ -18,14 +17,15 @@ log = logging.getLogger(__name__)
 
 @bp.route("/index.html")
 @bp.route("/")
-@bp.route("/new")
-@bp.route("/form")
-def serve_index():
+@bp.route("/<path:path>")
+def serve_index(path="/"):
     # Serve the index file in all other cases
-    log.info("Serving index.html for path: %s", request.path)
+    log.info("Serving index.html for path: %s", path)
 
-    return Response(
-        helpers.get_prefixed_index_html(),
-        mimetype="text/html",
-        headers={"Cache-Control": "public, no-cache"},
-    )
+    no_cache = "no-cache, no-store, must-revalidate, max-age=0"
+    resp = Response(helpers.get_prefixed_index_html(), mimetype="text/html",
+                    headers={"Cache-Control": no_cache})
+
+    csrf.set_cookie(resp)
+
+    return resp
