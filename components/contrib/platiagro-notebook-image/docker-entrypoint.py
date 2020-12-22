@@ -5,6 +5,7 @@ datasets, figures and output notebook to PlatIAgro.
 """
 import json
 import os
+import re
 
 import papermill
 import platiagro
@@ -33,6 +34,8 @@ def execute_notebook(notebook_path, output_path):
                 value = json.loads(value)
 
             parameters[name] = value
+
+    notebook_path = re.sub("minio://", "s3://", notebook_path, 1)
 
     papermill.execute_notebook(
         notebook_path,
