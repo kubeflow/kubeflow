@@ -1,27 +1,43 @@
-# AngularFrontendKubeflow
+# Kubeflow Common Frontend Library
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.3.20.
+This code provides a common library of reusable Angular Components that can be used from our different Kubeflow web apps. This library aims to:
+* Enforce a common UX throughout the different apps
+* Reduce the development effort required to propagate changes to all the web apps
+* Minimize the code duplication between our Kubeflow web apps
 
-## Development server
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.3.20, which is required to build and run the unit tests.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+## Local development
+In order to use this library while developing locally  an Angular app you will need to:
+1. Build the `kubeflow` node module from this source code
+2. Link the produced module to your global npm modules
+3. Link the `kubeflow` module in the npm modules of you app
 
-## Code scaffolding
+### Building the library locally
+```bash
+# build the npm module
+npm run build
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+# might need sudo, depending on where you global folder lives
+# https://nodejs.dev/learn/where-does-npm-install-the-packages
+npm link dist/kubeflow
+```
+### Linking it to the app
+```bash
+cd ${APP_DIR}
+npm install
+npm link kubeflow
+```
 
 ## Running unit tests
 
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
-## Running end-to-end tests
+## Contributor Guidelines
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+### Unit tests
+1. Any new component added to this library should also include some basic unit tests
+2. The unit tests should be passing at any point of time
 
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+### Git commits
+Git commits that modify this code should be prefixed with `web-apps(front)`.
