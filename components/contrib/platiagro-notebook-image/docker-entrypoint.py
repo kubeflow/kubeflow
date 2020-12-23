@@ -30,8 +30,10 @@ def execute_notebook(notebook_path, output_path):
             name = var[len(prefix):]
             value = os.environ[var]
 
-            if value is not None:
+            try:
                 value = json.loads(value)
+            except json.decoder.JSONDecodeError:
+                value = None
 
             parameters[name] = value
 
@@ -55,10 +57,12 @@ def save_dataset(dataset):
     dataset : str
     """
     print("Saving dataset...", flush=True)
-    if dataset is not None:
+    try:
         dataset = json.loads(dataset)
         content = open(dataset, "rb")
         platiagro.save_dataset(name=dataset.rsplit("/")[1], data=content)
+    except json.decoder.JSONDecodeError:
+        pass
 
 
 def save_figures(notebook_path):
