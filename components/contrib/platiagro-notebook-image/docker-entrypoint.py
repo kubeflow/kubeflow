@@ -55,8 +55,10 @@ def save_dataset(dataset):
     dataset : str
     """
     print("Saving dataset...", flush=True)
-    content = open(dataset, "rb")
-    platiagro.save_dataset(name=dataset, data=content)
+    if dataset is not None:
+        dataset = json.loads(dataset)
+        content = open(dataset, "rb")
+        platiagro.save_dataset(name=dataset.rsplit("/")[1], data=content)
 
 
 def save_figures(notebook_path):
