@@ -8,7 +8,7 @@ This code provides a common library of reusable Angular Components that can be u
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.3.20, which is required to build and run the unit tests.
 
 ## Local development
-In order to use this library while developing locally  an Angular app you will need to:
+In order to use this library while developing locally your Angular app you will need to:
 1. Build the `kubeflow` node module from this source code
 2. Link the produced module to your global npm modules
 3. Link the `kubeflow` module in the npm modules of you app
