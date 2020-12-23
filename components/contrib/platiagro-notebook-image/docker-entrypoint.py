@@ -36,7 +36,7 @@ def execute_notebook(notebook_path, output_path):
             parameters[name] = value
 
     notebook_path = re.sub("minio://", "s3://", notebook_path, 1)
-    os.makedirs(output_path, exist_ok=True)
+    os.makedirs(output_path.rsplit("/", 1)[0], exist_ok=True)
 
     papermill.execute_notebook(
         notebook_path,
