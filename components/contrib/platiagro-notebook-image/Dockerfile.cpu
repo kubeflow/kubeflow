@@ -228,6 +228,8 @@ RUN conda install --quiet --yes \
 # - yolov4==2.0.0 lib of yolov4
 # - openpyxl==3.0.5 read and write xlsx files within pandas
 # - shap==0.37.0 exaplinable AI lib
+# - facenet-pytorch==2.5.1 Required for MTCNN
+
 
 RUN curl -sSL https://raw.githubusercontent.com/automl/auto-sklearn/v.0.7.0/requirements.txt | xargs -L 1 pip install --no-cache-dir \
  && pip install --no-cache-dir \
@@ -273,6 +275,7 @@ RUN curl -sSL https://raw.githubusercontent.com/automl/auto-sklearn/v.0.7.0/requ
     openpyxl==3.0.5 \
     git+https://github.com/platiagro/sdk.git@master\
     shap==0.37.0 \
+	facenet-pytorch==2.5.1\
  && pip install --no-cache-dir \
     -f https://download.pytorch.org/whl/torch_stable.html \
     torch==1.5.0+cpu \
