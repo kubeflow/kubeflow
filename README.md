@@ -10,7 +10,7 @@ Please refer to the official docs at [kubeflow.org](http://kubeflow.org).
 The Kubeflow community is organized into working groups (WGs) with associated repositories, that focus on specific pieces of the ML platform. 
 
 * [AutoML](https://github.com/kubeflow/community/tree/master/wg-automl)
-* [Deployment](https://github.com/kubeflow/community/tree/master/wgdeployment)
+* [Deployment](https://github.com/kubeflow/community/tree/master/wg-deployment)
 * [Manifests](https://github.com/kubeflow/community/tree/master/wg-manifests)
 * [Notebooks](https://github.com/kubeflow/community/tree/master/wg-notebooks)
 * [Pipelines](https://github.com/kubeflow/community/tree/master/wg-pipelines)
