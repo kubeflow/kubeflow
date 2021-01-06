@@ -13,5 +13,5 @@ def delete_notebook(notebook, namespace):
     api.delete_notebook(notebook, namespace)
 
     return api.success_response(
-        "message", f"Notebook %s successfully deleted.", notebook
+        "message", "Notebook %s successfully deleted.", notebook
     )
