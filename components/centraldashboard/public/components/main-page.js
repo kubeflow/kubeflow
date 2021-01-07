@@ -236,7 +236,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             hideTabs = true;
             allNamespaces = true;
             hideSidebar = false;
-            // need to ues the shadowRoot selector instead of this.$ because
+            // need to use the shadowRoot selector instead of this.$ because
             // this.$ does not contain dynamically created DOM nodes
             this._setActiveLink(this.shadowRoot.querySelector('#contributors'));
             break;
