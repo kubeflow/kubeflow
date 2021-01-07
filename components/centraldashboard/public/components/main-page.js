@@ -317,7 +317,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     _setActiveMenuLink(path, hashPath) {
         const htmlElements = this._clearActiveLink();
         let matchPath = path;
-        if (hashPath && hashPath !== '') {
+        if (hashPath) {
             matchPath = path + '#' + hashPath;
         }
         const allLinks = this.menuLinks.map((m) => {
