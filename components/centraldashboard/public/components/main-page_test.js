@@ -54,7 +54,6 @@ describe('Main Page', () => {
         flush();
 
         expect(mainPage.page).toBe('dashboard');
-        expect(mainPage.sidebarItemIndex).toBe(0);
         expect(mainPage.inIframe).toBe(false);
 
         await selectedTabPromise;
@@ -73,7 +72,6 @@ describe('Main Page', () => {
         flush();
 
         expect(mainPage.page).toBe('activity');
-        expect(mainPage.sidebarItemIndex).toBe(0);
         expect(mainPage.inIframe).toBe(false);
 
         await selectedTabPromise;
@@ -87,7 +85,6 @@ describe('Main Page', () => {
         flush();
 
         expect(mainPage.page).toBe('not_found');
-        expect(mainPage.sidebarItemIndex).toBe(-1);
         expect(mainPage.notFoundInIframe).toBe(false);
         expect(mainPage.inIframe).toBe(false);
         expect(mainPage.shadowRoot.getElementById('ViewTabs')
@@ -104,11 +101,9 @@ describe('Main Page', () => {
 
         expect(window.location.search).toContain('ns=test');
         expect(mainPage.page).toBe('iframe');
-        // expect(mainPage.sidebarItemIndex).toBe(2);
         expect(mainPage.inIframe).toBe(true);
         expect(mainPage.shadowRoot.getElementById('ViewTabs')
             .hasAttribute('hidden')).toBe(true);
-        expect(mainPage.$.MainDrawer.close).toHaveBeenCalled();
     });
 
     it('Sets view state when an invalid page is specified from an iframe',
@@ -118,7 +113,6 @@ describe('Main Page', () => {
             flush();
 
             expect(mainPage.page).toBe('not_found');
-            expect(mainPage.sidebarItemIndex).toBe(-1);
             expect(mainPage.notFoundInIframe).toBe(true);
             expect(mainPage.shadowRoot.getElementById('ViewTabs')
                 .hasAttribute('hidden')).toBe(true);
@@ -212,10 +206,12 @@ describe('Main Page', () => {
         const historySpy = spyOn(window.history, 'replaceState');
         mainPage.iframePage = '/notebooks?blah=bar';
         mainPage.iframePage = '/pipelines/create/new';
-        expect(historySpy).toHaveBeenCalledWith(null, null,
-            '/_/notebooks?blah=bar');
-        expect(historySpy).toHaveBeenCalledWith(null, null,
-            '/_/pipelines/create/new');
+        const l1 = new URL('/_/notebooks?blah=bar',
+            window.location.origin).toString();
+        expect(historySpy).toHaveBeenCalledWith(null, null, l1);
+        const l2 = new URL('/_/pipelines/create/new',
+            window.location.origin).toString();
+        expect(historySpy).toHaveBeenCalledWith(null, null, l2);
     });
 
     it('Sets iframeSrc with hash and query values from parent', () => {

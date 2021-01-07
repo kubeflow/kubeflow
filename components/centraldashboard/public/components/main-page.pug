@@ -6,31 +6,51 @@ iron-ajax#envInfo(auto='[[_shouldFetchEnv]]', url='/api/workgroup/env-info', han
     on-response='_onEnvInfoResponse')
 aside#PageLoader(hidden='{{!pageLoading}}')
 app-drawer-layout.flex(narrow='{{narrowMode}}',
-        force-narrow='[[or(inIframe, thinView, notFoundInIframe, hideSidebar)]]',
+        force-narrow='[[or(thinView, hideSidebar)]]',
+        persistent='[[persistent]]'
         bleed$='[[sidebarBleed]]')
     app-location(route='{{route}}', query-params='{{queryParams}}')
+    app-location(route='{{routeHash}}', use-hash-as-path)
     app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
         tail='{{subRouteData}}')
     app-drawer#MainDrawer(slot='drawer')
         figure.logo
             |!{logo}
-        iron-selector.flex(selected='{{sidebarItemIndex}}')
+        div.flex
             a(href$='[[buildHref("/", queryParams)]]', tabindex='-1')
-                paper-item.menu-item Home
+                paper-item.menu-item#home
+                    iron-icon(icon='home')
+                    | Home
+
             template(is='dom-repeat', items='[[menuLinks]]')
-                iframe-link(href$="[[buildHref(item.link, queryParams)]]")
-                    paper-item.menu-item [[item.text]]
+                template(is='dom-if', if='[[equals(item.type, "section")]]')
+                    paper-item.menu-item.section-item(on-click='_toggleMenuSection')
+                        iron-icon(icon='[[item.icon]]')
+                        | [[item.text]]
+                    iron-collapse
+                        template(is='dom-repeat', items='[[item.items]]')
+                            iframe-link(href$="[[buildHref(item.link, queryParams)]]")
+                                paper-item.menu-item.inner-menu-item [[item.text]]
+                template(is='dom-if', if='[[!equals(item.type, "section")]]')
+                    iframe-link(href$="[[buildHref(item.link, queryParams)]]")
+                        paper-item.menu-item
+                            iron-icon(icon='[[item.icon]]')
+                            | [[item.text]]
             template(is='dom-repeat', items='[[externalLinks]]')
                 template(is='dom-if', if='[[item.iframe]]')
                     iframe-link(href$="[[buildHref(item.link, queryParams)]]")
-                        paper-item.menu-item [[item.text]]
+                        paper-item.menu-item
+                            iron-icon(icon='[[item.icon]]')
+                            | [[item.text]]
                 template(is='dom-if', if='[[!item.iframe]]')
                     a(href$="[[item.link]]",tabindex='-1', target="_blank")
-                        paper-item.menu-item [[item.text]]
+                        paper-item.menu-item
+                            iron-icon(icon='[[item.icon]]')
+                            | [[item.text]]
             template(is='dom-if', if='[[equals(isolationMode, "multi-user")]]')
                 aside.divider
                 a(href$='[[buildHref("/manage-users", queryParams)]]', tabindex='-1')
-                    paper-item.menu-item Manage Contributors
+                    paper-item.menu-item#contributors Manage Contributors
             aside.divider
             a(href='https://github.com/kubeflow/kubeflow',
                 tabindex='-1', target="_blank")
@@ -50,10 +70,11 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
     app-header-layout(fullbleed)
         app-header(slot='header', hides, hidden$='[[notFoundInIframe]]')
             app-toolbar
-                aside#Narrow-Slider(hides, hidden$='[[!narrowMode]]')
-                    paper-icon-button#Menu(icon='menu', drawer-toggle)
-                    figure.Logo
-                        |!{logo}
+                template(is='dom-if', if='![[persistent]]')
+                    aside#Narrow-Slider(hides, hidden$='[[!narrowMode]]')
+                        paper-icon-button#Menu(icon='menu', drawer-toggle)
+                        figure.Logo
+                            |!{logo}
                 namespace-selector#NamespaceSelector(
                     query-params='{{queryParams}}', namespaces='[[namespaces]]'
                     selected='{{namespace}}', hides, hidden$='[[hideNamespaces]]'
