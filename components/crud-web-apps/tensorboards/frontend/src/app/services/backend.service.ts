@@ -20,7 +20,7 @@ export class TWABackendService extends BackendService {
   public getTensorboards(
     namespace: string,
   ): Observable<TensorboardResponseObject[]> {
-    const url = this.getUrl(`/api/namespaces/${namespace}/tensorboards`);
+    const url = `api/namespaces/${namespace}/tensorboards`;
 
     return this.http.get<TWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
@@ -32,7 +32,7 @@ export class TWABackendService extends BackendService {
 
   // GET PVC names
   public getPVCNames(namespace: string): Observable<string[]> {
-    const url = this.getUrl(`/api/namespaces/${namespace}/pvcs`);
+    const url = `api/namespaces/${namespace}/pvcs`;
 
     return this.http.get<TWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
@@ -47,7 +47,7 @@ export class TWABackendService extends BackendService {
     namespace: string,
     tensorboard: TensorboardPostObject,
   ) {
-    const url = this.getUrl(`/api/namespaces/${namespace}/tensorboards`);
+    const url = `api/namespaces/${namespace}/tensorboards`;
 
     return this.http
       .post<TWABackendResponse>(url, tensorboard)
@@ -56,9 +56,7 @@ export class TWABackendService extends BackendService {
 
   // DELETE
   public deleteTensorboard(namespace: string, tensorboard: string) {
-    const url = this.getUrl(
-      `/api/namespaces/${namespace}/tensorboards/${tensorboard}`,
-    );
+    const url = `api/namespaces/${namespace}/tensorboards/${tensorboard}`;
 
     return this.http
       .delete<TWABackendResponse>(url)
