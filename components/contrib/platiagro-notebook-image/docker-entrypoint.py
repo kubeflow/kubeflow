@@ -23,6 +23,7 @@ def execute_notebook(notebook_path, output_path):
     notebook_path : str
     output_path : str
     """
+    print(f"Executing notebook {notebook_path}...", flush=True)
     prefix = "PARAMETER_"
     parameters = {}
     for var in os.environ:
@@ -37,6 +38,7 @@ def execute_notebook(notebook_path, output_path):
 
             parameters[name] = value
 
+    print(f"Parameters are: {parameters}...", flush=True)
     notebook_path = re.sub("minio://", "s3://", notebook_path, 1)
     os.makedirs(output_path.rsplit("/", 1)[0], exist_ok=True)
 
@@ -56,7 +58,7 @@ def save_dataset(dataset):
     ----------
     dataset : str
     """
-    print("Saving dataset...", flush=True)
+    print(f"Saving dataset {dataset}...", flush=True)
     try:
         dataset = json.loads(dataset)
         content = open(dataset, "rb")

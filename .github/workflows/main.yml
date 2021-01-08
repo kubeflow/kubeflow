@@ -50,6 +50,18 @@ jobs:
         dockerfile: components/contrib/platiagro-notebook-image/Dockerfile.deployment
         build_args: BASE_CONTAINER=platiagro/platiagro-notebook-image:0.2.0
 
+    - name: Build and push monitoring image for CPU
+      uses: docker/build-push-action@v1
+      with:
+        path: components/contrib/platiagro-notebook-image
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        registry: registry.hub.docker.com
+        repository: platiagro/platiagro-monitoring-image
+        tags: 0.2.0
+        dockerfile: components/contrib/platiagro-notebook-image/Dockerfile.monitoring
+        build_args: BASE_CONTAINER=platiagro/platiagro-notebook-image:0.2.0
+
   build-gpu:
 
     runs-on: ubuntu-latest
@@ -90,4 +102,16 @@ jobs:
         repository: platiagro/platiagro-deployment-image-gpu
         tags: 0.2.0
         dockerfile: components/contrib/platiagro-notebook-image/Dockerfile.deployment
+        build_args: BASE_CONTAINER=platiagro/platiagro-notebook-image-gpu:0.2.0
+
+    - name: Build and push monitoring image for GPU
+      uses: docker/build-push-action@v1
+      with:
+        path: components/contrib/platiagro-notebook-image
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        registry: registry.hub.docker.com
+        repository: platiagro/platiagro-monitoring-image-gpu
+        tags: 0.2.0
+        dockerfile: components/contrib/platiagro-notebook-image/Dockerfile.monitoring
         build_args: BASE_CONTAINER=platiagro/platiagro-notebook-image-gpu:0.2.0
