@@ -214,7 +214,7 @@ RUN conda install --quiet --yes \
 # - nlp==0.4.0 - package with datasets and metric pre implemented for nlp solutions
 # - tqdm==4.41.1 - progress bar
 # - git+https://github.com/albumentations-team/albumentations - package to make data augmentation in computer vision
-# - gensim==3.6.0 - nlp package with many funcionalities pre-implemented
+# - gensim==4.0.0b0 - nlp package with many funcionalities pre-implemented
 # - numba==0.48.0 - package to paralelize cpus
 # - jsonlines==1.2.0 - package to save and read with lists of dicionaries
 # - opencv-contrib-python==4.1.2.30 - package for work with images
@@ -260,7 +260,7 @@ RUN curl -sSL https://raw.githubusercontent.com/automl/auto-sklearn/v.0.7.0/requ
     nlp==0.4.0 \
     tqdm==4.41.1 \
     git+https://github.com/albumentations-team/albumentations \
-    gensim==3.6.0 \
+    gensim==4.0.0b0 \
     numba==0.48.0 \
     jsonlines==1.2.0 \
     opencv-contrib-python==4.1.2.30 \
