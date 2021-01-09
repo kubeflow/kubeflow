@@ -62,7 +62,7 @@ def save_dataset(dataset):
     try:
         dataset = json.loads(dataset)
         content = open(dataset, "rb")
-        platiagro.save_dataset(name=dataset.rsplit("/")[1], data=content)
+        platiagro.save_dataset(name=dataset.rsplit("/")[-1], data=content)
     except json.decoder.JSONDecodeError:
         pass
 
