@@ -5,6 +5,7 @@ datasets, figures and output notebook to PlatIAgro.
 """
 import json
 import os
+import tempfile
 import re
 
 import papermill
@@ -122,7 +123,7 @@ def make_cells_readonly(notebook_path):
         json.dump(notebook, f, sort_keys=True, indent=4)
 
 
-def upload_to_jupyter(notebook_path):
+def upload_to_jupyter(notebook_path, destination_path):
     """
     Uploads output notebook to PlatIAgro Jupyter notebook server.
     This will make it available for visualization.
@@ -130,13 +131,14 @@ def upload_to_jupyter(notebook_path):
     Parameters
     ----------
     notebook_path : str
+    destination_path : str
     """
     print("Uploading to Jupyter Notebook server...", flush=True)
 
     headers = {"X-XSRFToken": "token", "Cookie": "_xsrf=token"}
 
     path = ""
-    for directory in notebook_path.split("/")[:-1]:
+    for directory in destination_path.split("/")[:-1]:
         path = f"{path}/{directory}"
         requests.put(
             f"{BASE_URL}{path}",
@@ -148,7 +150,7 @@ def upload_to_jupyter(notebook_path):
         content = json.load(f)
 
     requests.put(
-        f"{BASE_URL}/{notebook_path}",
+        f"{BASE_URL}/{destination_path}",
         json={
             "type": "notebook",
             "content": content,
@@ -164,13 +166,23 @@ def main():
     operator_id = os.environ["OPERATOR_ID"]
     notebook_path = os.environ["NOTEBOOK_PATH"]
     dataset = os.environ["PARAMETER_dataset"]
-    output_path = f"experiments/{experiment_id}/operators/{operator_id}/Experiment.ipynb"
+    output_path = os.path.join(tempfile._get_default_tempdir(), notebook_path)
 
-    execute_notebook(notebook_path, output_path)
+    exception = None
+    try:
+        execute_notebook(notebook_path, output_path)
+    except papermill.exceptions.PapermillExecutionError as e:
+        exception = e
+
     save_dataset(dataset)
     save_figures(output_path)
     make_cells_readonly(output_path)
-    upload_to_jupyter(output_path)
+
+    destination_path = f"experiments/{experiment_id}/operators/{operator_id}/{notebook_path}"
+    upload_to_jupyter(output_path, destination_path)
+
+    if exception is not None:
+        raise exception
 
 
 if __name__ == "__main__":
