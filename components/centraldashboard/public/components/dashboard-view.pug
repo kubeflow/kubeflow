@@ -20,8 +20,8 @@ div#grid
                 external-link-text='[[platformDetails.resourceChartsLinkText]]')
     .column
         notebooks-card(namespace='[[namespace]]')
-        pipelines-card(heading='Recent Pipelines', artifact-type='pipelines')
-        pipelines-card(heading='Recent Pipeline Runs', artifact-type='runs')
+        pipelines-card(heading='Recent Pipelines', artifact-type='pipelines', namespace='[[namespace]]')
+        pipelines-card(heading='Recent Pipeline Runs', artifact-type='runs', namespace='[[namespace]]')
     .column
         template(is='dom-if', if='[[platformDetails.links]]')
             paper-card#Platform-Links(class$='[[platformDetails.name]]',

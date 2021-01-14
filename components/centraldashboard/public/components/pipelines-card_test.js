@@ -53,6 +53,7 @@ describe('Pipelines Card', () => {
                 'page_size=5&sort_by=created_at%20desc');
 
         pipelinesCard.artifactType = 'pipelines';
+        pipelinesCard.namespace = 'kubeflow-user';
         await requestPromise;
         flush();
 
@@ -62,7 +63,7 @@ describe('Pipelines Card', () => {
         const pipelineLinks = Array.from(pipelinesCard.shadowRoot
             .querySelectorAll('iframe-link').values());
         expect(pipelineLinks.length).toBe(5);
-        const hrefPrefix = '/pipeline/#/pipelines/details';
+        const hrefPrefix = '/pipeline/?ns=kubeflow-user#/pipelines/details';
         expect(pipelineLinks.map((l) => l.href)).toEqual([
             `${hrefPrefix}/10`,
             `${hrefPrefix}/9`,
@@ -97,9 +98,12 @@ describe('Pipelines Card', () => {
             status: 200,
             responseText: JSON.stringify({runs}),
         }, false, '/pipeline/apis/v1beta1/runs?' +
-                'page_size=5&sort_by=created_at%20desc');
+                'page_size=5&sort_by=created_at%20desc' +
+                '&resource_reference_key.type=NAMESPACE' +
+                '&resource_reference_key.id=kubeflow-user');
 
         pipelinesCard.artifactType = 'runs';
+        pipelinesCard.namespace = 'kubeflow-user';
         await requestPromise;
         flush();
 
@@ -109,7 +113,7 @@ describe('Pipelines Card', () => {
         const pipelineLinks = Array.from(pipelinesCard.shadowRoot
             .querySelectorAll('iframe-link').values());
         expect(pipelineLinks.length).toBe(5);
-        const hrefPrefix = '/pipeline/#/runs/details';
+        const hrefPrefix = '/pipeline/?ns=kubeflow-user#/runs/details';
         expect(pipelineLinks.map((l) => l.href)).toEqual([
             `${hrefPrefix}/10`,
             `${hrefPrefix}/9`,
@@ -159,8 +163,11 @@ describe('Pipelines Card', () => {
             status: 500,
             responseText: 'Some internal error',
         }, true, '/pipeline/apis/v1beta1/runs?' +
-                'page_size=5&sort_by=created_at%20desc');
+                'page_size=5&sort_by=created_at%20desc' +
+                '&resource_reference_key.type=NAMESPACE' +
+                '&resource_reference_key.id=kubeflow-user');
         pipelinesCard.artifactType = 'runs';
+        pipelinesCard.namespace = 'kubeflow-user';
         await requestPromise;
         flush();
 

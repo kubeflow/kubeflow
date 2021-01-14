@@ -11,6 +11,7 @@ import './iframe-link.js';
 import {html, PolymerElement} from '@polymer/polymer';
 
 import './card-styles.js';
+import utilitiesMixin from './utilities-mixin.js';
 
 const MAX_PIPELINES = 5;
 const PIPELINES = 'pipelines';
@@ -20,7 +21,7 @@ const VALID_ARTIFACT_TYPES = new Set([PIPELINES, RUNS]);
 /**
  * Component to retrieve and display Pipelines or Pipeline Runs
  */
-export class PipelinesCard extends PolymerElement {
+export class PipelinesCard extends utilitiesMixin(PolymerElement) {
     static get template() {
         return html`
         <style include="card-styles">
@@ -68,13 +69,17 @@ export class PipelinesCard extends PolymerElement {
             },
             heading: String,
             artifactType: String,
+            namespace: {
+                type: String,
+                observer: '_namespaceChange',
+            },
             message: {
                 type: String,
                 value: '',
             },
             listPipelinesUrl: {
                 type: String,
-                computed: '_getListPipelinesUrl(artifactType)',
+                computed: '_getListPipelinesUrl(artifactType, namespace)',
             },
             pipelines: {
                 type: Array,
@@ -86,12 +91,18 @@ export class PipelinesCard extends PolymerElement {
     /**
      * Returns the URL to list the available Pipeline artifacts
      * @param {string} artifactType
+     * @param {string} namespace
      * @return {string}
      */
-    _getListPipelinesUrl(artifactType) {
+    _getListPipelinesUrl(artifactType, namespace) {
         if (!VALID_ARTIFACT_TYPES.has(artifactType)) return null;
-        return `/pipeline/apis/v1beta1/${artifactType}?`
+        let link = `/pipeline/apis/v1beta1/${artifactType}?`
             + 'page_size=5&sort_by=created_at%20desc';
+        if (artifactType === RUNS) {
+            link += '&resource_reference_key.type=NAMESPACE'
+            + `&resource_reference_key.id=${namespace}`;
+        }
+        return link;
     }
 
     /**
@@ -124,8 +135,10 @@ export class PipelinesCard extends PolymerElement {
             }
             return {
                 created: date.toLocaleString(),
-                href:
+                href: this.buildHref(
                     `/pipeline/#/${this.artifactType}/details/${p.id}`,
+                    { ns: this.namespace }
+                ),
                 name: p.name,
                 icon,
                 iconClass,
@@ -144,6 +157,20 @@ export class PipelinesCard extends PolymerElement {
         this.splice('pipelines', 0);
         this.message = this.artifactType === PIPELINES ?
             'Error retrieving Pipelines' : 'Error retrieving Pipeline Runs';
+    }
+
+    /**
+     * Rewrites the links adding the namespace as a query parameter.
+     * @param {namesapce} namespace
+     */
+    _namespaceChange(namespace) {
+        const pipelines = this.pipelines.map((p) => {
+            p.href = this.buildHref(p.href, {ns: namespace});
+            return p;
+        });
+        // We need to deep-copy and re-assign in order to trigger the
+        // re-rendering of the component
+        this.pipelines = JSON.parse(JSON.stringify(pipelines));
     }
 }
 
