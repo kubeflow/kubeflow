@@ -22,7 +22,6 @@ export class Api {
       private metricsService?: MetricsService,
     ) {}
 
-
   /**
    * Returns the Express router for the API routes.
    */
@@ -99,5 +98,20 @@ export class Api {
             }
             res.json(settings);
           });
+  }
+
+  resolveLanguage(requested: string[], supported: string[], defaultLang: string) {
+    return requested.find(lang => supported.indexOf(lang) > -1) || defaultLang;
+  }
+
+  getBrowserLanguages(acceptlanguage: string) {
+    if (!acceptlanguage) {
+      return [];
+    }
+    const languages = acceptlanguage.split(',');
+    // Append fallbacks not explicit in browser languages.
+    // Non-destructive: string keys will be reported back in order of insertion.
+    const languagelist = Array.from(new Set(languages.map(lang => lang.split(/-|;/)[0])));
+    return languagelist;
   }
 }
