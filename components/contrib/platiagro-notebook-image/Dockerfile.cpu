@@ -140,6 +140,7 @@ RUN conda install --quiet --yes \
     'isort=5.5.2' \
     'nbresuse=0.3.6' \
     'opencv=4.1.2' \
+    'nbformat=5.0.8' \
  && conda clean --all -f -y \
     # Install PlatIAgro's Jupyterlab customized version
  && pip install git+https://github.com/platiagro/jupyterlab.git@v0.2.0-jupyterlab-v2.1.2 \
