@@ -12,7 +12,21 @@ import papermill
 import platiagro
 import requests
 
+COOKIES = {"_xsrf": "token"}
+HEADERS = {"content-type": "application/json", "X-XSRFToken": "token"}
+
 BASE_URL = os.getenv("JUPYTER_ENDPOINT", "http://server.anonymous:80/notebook/anonymous/server/api/contents")
+SESSION = requests.Session()
+SESSION.cookies.update(COOKIES)
+SESSION.headers.update(HEADERS)
+RETRY_STRATEGY = requests.packages.urllib3.util.retry.Retry(
+    total=5,
+    backoff_factor=0.5,
+    status_forcelist=[429, 500, 502, 503, 504],
+    method_whitelist=["HEAD", "GET", "PUT", "OPTIONS", "DELETE"]
+)
+ADAPTER = requests.adapters.HTTPAdapter(max_retries=RETRY_STRATEGY)
+SESSION.mount("http://", ADAPTER)
 
 
 def execute_notebook(notebook_path, output_path):
@@ -135,27 +149,23 @@ def upload_to_jupyter(notebook_path, destination_path):
     """
     print("Uploading to Jupyter Notebook server...", flush=True)
 
-    headers = {"X-XSRFToken": "token", "Cookie": "_xsrf=token"}
-
     path = ""
     for directory in destination_path.split("/")[:-1]:
         path = f"{path}/{directory}"
-        requests.put(
+        SESSION.put(
             f"{BASE_URL}{path}",
             json={"type": "directory"},
-            headers=headers,
         )
 
     with open(notebook_path) as f:
         content = json.load(f)
 
-    requests.put(
+    SESSION.put(
         f"{BASE_URL}/{destination_path}",
         json={
             "type": "notebook",
             "content": content,
         },
-        headers=headers,
     )
 
 
