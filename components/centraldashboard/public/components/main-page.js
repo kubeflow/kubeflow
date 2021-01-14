@@ -74,20 +74,7 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
             },
             menuLinks: {
                 type: Array,
-                value: [
-                    {
-                        link: '/pipeline/',
-                        text: 'mainPage.menuPipelines',
-                    },
-                    {
-                        link: '/jupyter/',
-                        text: 'mainPage.menuNotebookServers',
-                    },
-                    {
-                        link: '/katib/',
-                        text: 'mainPage.menuKatib',
-                    },
-                ],
+                value: [],
             },
             externalLinks: {
                 type: Array,
@@ -170,33 +157,30 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
      * Set state for loading registration flow in case no dashboard links exists
      * @param {Event} ev AJAX-response
      */
-    /*
-     * _onHasDashboardLinksError(ev) {
-     *  const error = ((ev.detail.request||{}).response||{}).error ||
-     *      ev.detail.error;
-     *  this.showError(error);
-     *  return;
-     *}
-     */
+      _onHasDashboardLinksError(ev) {
+       const error = ((ev.detail.request||{}).response||{}).error ||
+           ev.detail.error;
+       this.showError(error);
+       return;
+     }
+     
     /**
      * Set state for Central dashboard links
      * @param {Event} ev AJAX-response
      */
-    /*
-     * _onHasDashboardLinksResponse(ev) {
-     *  const {
-     *      menuLinks,
-     *      externalLinks,
-     *      quickLinks,
-     *      documentationItems,
-     *  } = ev.detail.response;
-     *     this.menuLinks = menuLinks || [];
-     *     this.externalLinks = externalLinks || [];
-     *     this.quickLinks = quickLinks || [];
-     *     this.documentationItems = documentationItems || [];
-     *}
-     */
-
+      _onHasDashboardLinksResponse(ev) {
+       const {
+           menuLinks,
+           externalLinks,
+           quickLinks,
+           documentationItems,
+       } = ev.detail.response;
+          this.menuLinks = menuLinks || [];
+          this.externalLinks = externalLinks || [];
+          this.quickLinks = quickLinks || [];
+          this.documentationItems = documentationItems || [];
+     }
+     
     /**
      * Set state for loading registration flow in case no workgroup exists
      * @param {Event} ev AJAX-response

@@ -33,56 +33,8 @@ export class DashboardView extends localizationMixin(PolymerElement) {
      */
     static get properties() {
         return {
-            documentationItems: {
-                type: Array,
-                value: [
-                    {
-                        text: 'dashboardView.docItemAawdText',
-                        desc: 'dashboardView.docItemAawdDesc',
-                        link: 'dashboardView.docItemAawdLink',
-                    },
-                    {
-                        text: 'dashboardView.docItemVideoTutorialText',
-                        desc: 'dashboardView.docItemVideoTutorialDesc',
-                        link: 'dashboardView.docItemVideoTutorialLink',
-                    },
-                    {
-                        text: 'dashboardView.docItemCommunityChatText',
-                        desc: 'dashboardView.docItemCommunityChatDesc',
-                        link: 'dashboardView.docItemCommunityChatLink',
-                    },
-                    {
-                        text: 'dashboardView.docItemOfficialKubeflowDocsText',
-                        desc: 'dashboardView.docItemOfficialKubeflowDocsDesc',
-                        link: 'dashboardView.docItemOfficialKubeflowDocsLink',
-                    },
-                ],
-            },
-            quickLinks: {
-                type: Array,
-                value: [
-                    {
-                        text: 'dashboardView.quicklinkUploadText',
-                        desc: 'dashboardView.quicklinkUploadDesc',
-                        link: `/pipeline/`,
-                    },
-                    {
-                        text: 'dashboardView.quicklinkViewAllText',
-                        desc: 'dashboardView.quicklinkViewAllDesc',
-                        link: `/pipeline/#/runs`,
-                    },
-                    {
-                        text: 'dashboardView.quicklinkCreateNewText',
-                        desc: 'dashboardView.quicklinkCreateNewDesc',
-                        link: `/jupyter/new?namespace=kubeflow`,
-                    },
-                    {
-                        text: 'dashboardView.quicklinkViewKatibText',
-                        desc: 'dashboardView.quicklinkViewKatibDesc',
-                        link: `/katib/`,
-                    },
-                ],
-            },
+            documentationItems: Array,
+            quickLinks: Array,
             namespace: String,
             platformDetails: Object,
             platformInfo: {
