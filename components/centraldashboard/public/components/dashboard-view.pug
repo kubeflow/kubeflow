@@ -6,8 +6,8 @@ div#grid
                     paper-icon-item
                         iron-icon(icon='kubeflow:bolt', slot='item-icon')
                         paper-item-body(two-line)
-                            .header {{localize(item.text)}}
-                            aside(secondary) {{localize(item.desc)}}
+                            .header [[item.text]]
+                            aside(secondary) [[item.desc]]
                         paper-ripple
         template(is='dom-if', if='[[platformDetails.resourceChartsLink]]')
             resource-chart(header-text='Cluster CPU Utilization', metric='cpu',
@@ -37,12 +37,12 @@ div#grid
                                 slot='item-icon', alt='[[item.text]]', tabindex=-1)
         paper-card#Documentation(heading="{{localize('dashboardView.headingDocumentation')}}")
             template(is='dom-repeat', items='[[documentationItems]]')
-                a.link(href$="{{localize(item.link)}}", tabindex='-1',
+                a.link(href$="[[item.link]]", tabindex='-1',
                             target='_blank')
                     paper-icon-item.external
                         paper-ripple
                         paper-item-body(two-line)
-                            .header  {{localize(item.text)}}
-                            aside(secondary) {{localize(item.desc)}}
+                            .header  [[item.text]]
+                            aside(secondary) [[item.desc]]
                         paper-icon-button.button(icon='open-in-new',
-                            slot='item-icon', alt='{{localize(item.text)}}', tabindex=-1)
+                            slot='item-icon', alt='[[item.text]]', tabindex=-1)
