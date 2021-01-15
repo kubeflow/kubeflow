@@ -24,6 +24,7 @@ import { PositiveNumberInputComponent } from './positive-number-input/positive-n
 import { RokUrlInputComponent } from './rok-url-input/rok-url-input.component';
 import { AdvancedOptionsComponent } from './advanced-options/advanced-options.component';
 import { PopoverModule } from '../popover/popover.module';
+import { SubmitBarComponent } from './submit-bar/submit-bar.component';
 import { StepInfoComponent } from './step-info/step-info.component';
 
 @NgModule({
@@ -57,6 +58,7 @@ import { StepInfoComponent } from './step-info/step-info.component';
     PositiveNumberInputComponent,
     RokUrlInputComponent,
     AdvancedOptionsComponent,
+    SubmitBarComponent,
     StepInfoComponent,
     MatFormFieldModule,
     MatInputModule,
