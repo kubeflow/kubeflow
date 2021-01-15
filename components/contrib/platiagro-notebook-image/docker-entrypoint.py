@@ -8,6 +8,7 @@ import os
 import tempfile
 import re
 
+import pandas as pd
 import papermill
 import platiagro
 import requests
@@ -76,10 +77,15 @@ def save_dataset(dataset):
     print(f"Saving dataset {dataset}...", flush=True)
     try:
         dataset = json.loads(dataset)
+    except json.decoder.JSONDecodeError:
+        return
+
+    try:
+        df = pd.read_csv(dataset)
+        platiagro.save_dataset(name=dataset.rsplit("/")[-1], df=df)
+    except pd.errors.EmptyDataError:
         content = open(dataset, "rb")
         platiagro.save_dataset(name=dataset.rsplit("/")[-1], data=content)
-    except json.decoder.JSONDecodeError:
-        pass
 
 
 def save_figures(notebook_path):
