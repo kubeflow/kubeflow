@@ -73,6 +73,10 @@ body {
   flex-direction: column;
 }
 
+.fit-content {
+  width: fit-content;
+}
+
 .bold {
   font-weight: 500;
 }
@@ -178,4 +182,33 @@ body {
 
 .page-padding-left {
   padding-left: $page-space-left;
+}
+
+/*
+ * Classes for showing a Toolbar, footer and scrollable content
+ */
+.lib-content-wrapper {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.lib-flex-layout-column {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.lib-flex-grow {
+  flex-grow: 1;
+}
+
+.lib-overflow-auto {
+  overflow: auto;
 }
