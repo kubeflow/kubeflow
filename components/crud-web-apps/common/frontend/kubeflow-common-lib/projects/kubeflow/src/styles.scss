@@ -55,6 +55,28 @@ body {
   display: flex;
 }
 
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.lib-step-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.lib-step-info-wrapper {
+  width: fit-content;
+  flex-grow: 0;
+  margin-right: 10%;
+  display: flex;
+  flex-direction: column;
+}
+
+.bold {
+  font-weight: 500;
+}
+
 .wide {
   width: 100%;
 }
