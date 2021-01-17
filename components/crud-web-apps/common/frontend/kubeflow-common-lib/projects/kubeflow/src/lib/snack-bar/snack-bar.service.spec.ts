@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { SnackBarService } from './snack-bar.service';
-import { MatSnackBar } from '@angular/material';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Overlay } from '@angular/cdk/overlay';
 
 export class MockSnackBarService {
