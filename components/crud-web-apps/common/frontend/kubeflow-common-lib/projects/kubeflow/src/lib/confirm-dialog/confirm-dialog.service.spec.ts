@@ -13,7 +13,7 @@ describe('ConfirmDialogService', () => {
   );
 
   it('should be created', () => {
-    const service: ConfirmDialogService = TestBed.get(ConfirmDialogService);
+    const service: ConfirmDialogService = TestBed.inject(ConfirmDialogService);
     expect(service).toBeTruthy();
   });
 });
