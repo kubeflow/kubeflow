@@ -44,7 +44,13 @@ async function main() {
   const metricsService = await getMetricsService(k8sService);
   console.info(`Using Profiles service at ${profilesServiceUrl}`);
   const profilesService = new DefaultApi(profilesServiceUrl);
+  const rateLimit = require("express-rate-limit");
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+  });
 
+  app.use(limiter);
   app.use(express.json());
   app.use(express.static(frontEnd));
   app.use(attachUser(USERID_HEADER, USERID_PREFIX));
