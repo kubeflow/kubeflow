@@ -15,6 +15,7 @@
   "dependencies": {
     "@angular/animations": "~8.2.14",
     "@angular/cdk": "^8.2.3",
+    "@angular/cdk-experimental": "^8.2.3",
     "@angular/common": "~8.2.14",
     "@angular/compiler": "~8.2.14",
     "@angular/core": "~8.2.14",
@@ -27,6 +28,7 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.26",
     "@fortawesome/free-brands-svg-icons": "^5.12.0",
     "@fortawesome/free-solid-svg-icons": "^5.12.0",
+    "@kubernetes/client-node": "^0.12.2",
     "hammerjs": "^2.0.8",
     "lodash": "^4.17.15",
     "material-icons": "^0.3.1",
