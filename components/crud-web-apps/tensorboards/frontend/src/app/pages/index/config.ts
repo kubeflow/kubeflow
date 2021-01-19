@@ -6,9 +6,10 @@ import {
   ActionButtonValue,
   TableColumn,
   TRUNCATE_TEXT_SIZE,
+  TableConfig,
 } from 'kubeflow';
 
-const tableConfig = {
+const tableConfig: TableConfig = {
   title: 'Tensorboards',
   newButtonText: 'NEW TENSORBOARD',
   columns: [
