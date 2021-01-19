@@ -11,6 +11,7 @@
 package kfam
 
 import (
+	"strings"
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
 	istioRegister "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/istiorbac/v1alpha1"
@@ -72,7 +73,7 @@ func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string
 			restClient: 	istioRESTClient,
 			kubeClient: 	kubeClient,
 		},
-		clusterAdmin: []string{clusterAdmin},
+		clusterAdmin: strings.Split(clusterAdmin, ","),
 		userIdHeader: userIdHeader,
 		userIdPrefix: userIdPrefix,
 	}, nil
