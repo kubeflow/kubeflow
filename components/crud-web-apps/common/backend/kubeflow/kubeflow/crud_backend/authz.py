@@ -22,9 +22,8 @@ except ConfigException:
 authz_api = client.AuthorizationV1Api()
 
 
-def create_subject_access_review(
-    user, verb, namespace, group, version, resource
-):
+def create_subject_access_review(user, verb, namespace, group, version,
+                                 resource):
     """
     Create the SubjecAccessReview object which we will use to determine if the
     user is authorized.
@@ -43,7 +42,7 @@ def create_subject_access_review(
     )
 
 
-def is_authorized(user, verb, namespace, group, version, resource):
+def is_authorized(user, verb, group, version, resource, namespace=None):
     """
     Create a SubjectAccessReview to the K8s API to determine if the user is
     authorized to perform a specific verb on a resource.
@@ -54,22 +53,17 @@ def is_authorized(user, verb, namespace, group, version, resource):
         return True
 
     if user is None:
-        log.warning(
-            (
-                "No user credentials were found! Make sure you"
-                " have correctly set the USERID_HEADER in the"
-                " Web App's deployment."
-            )
-        )
+        log.warning("No user credentials were found! Make sure you have"
+                    " correctly set the USERID_HEADER in the Web App's"
+                    " deployment.")
         raise Unauthorized(description="No user credentials were found!")
 
-    sar = create_subject_access_review(
-        user, verb, namespace, group, version, resource
-    )
+    sar = create_subject_access_review(user, verb, namespace, group, version,
+                                       resource)
     try:
         obj = authz_api.create_subject_access_review(sar)
     except ApiException as e:
-        log.error(f"Error submitting SubjecAccessReview: {sar}, {e}")
+        log.error("Error submitting SubjecAccessReview: %s, %s", sar, e)
         raise e
 
     if obj.status is not None:
@@ -79,25 +73,32 @@ def is_authorized(user, verb, namespace, group, version, resource):
         return False
 
 
+def generate_unauthorized_message(user, verb, group, version, resource,
+                                  namespace=None):
+    msg = "User '%s' is not authorized to %s" % (user, verb)
+
+    if group == "":
+        msg += " %s/%s" % (version, resource)
+    else:
+        msg += " %s/%s/%s" % (group, version, resource)
+
+    if namespace is not None:
+        msg += " in namespace '%s'" % namespace
+
+    return msg
+
+
 def ensure_authorized(verb, group, version, resource, namespace=None):
     user = authn.get_username()
-    if not is_authorized(user, verb, namespace, group, version, resource):
-        if namespace is not None:
-            msg = (
-                f"User '{user}' is not authorized to {verb}"
-                f" {group}.{version}.{resource} for namespace:"
-                f" {namespace}"
-            )
-        else:
-            msg = (
-                f"User '{user}' is not authorized to {verb}"
-                f" {group}.{version}.{resource}"
-            )
+    if not is_authorized(user, verb, group, version, resource,
+                         namespace=namespace):
 
+        msg = generate_unauthorized_message(user, verb, group, version,
+                                            resource, namespace=namespace)
         raise Forbidden(description=msg)
 
 
-def needs_authorization(verb, group, version, resource, namespace=None):
+def needs_authorization(verb, group, version, resource, namespace=None,):
     """
     This function will serve as a decorator. It will be used to make sure that
     the decorated function is authorized to perform the corresponding k8s api
@@ -108,7 +109,9 @@ def needs_authorization(verb, group, version, resource, namespace=None):
         @functools.wraps(func)
         def runner(*args, **kwargs):
             # Run the decorated function only if the user is authorized
-            ensure_authorized(verb, namespace, group, version, resource)
+            ensure_authorized(verb, group, version, resource,
+                              namespace=namespace)
+
             return func(*args, **kwargs)
 
         return runner
