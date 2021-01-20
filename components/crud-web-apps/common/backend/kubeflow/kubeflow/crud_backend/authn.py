@@ -20,9 +20,8 @@ def get_username():
     else:
         user = request.headers[USER_HEADER]
         username = user.replace(USER_PREFIX, "")
-        log.debug(
-            f"User: '{username}' | Headers: '{USER_HEADER}' '{USER_PREFIX}'"
-        )
+        log.debug("User: '%s' | Headers: '%s' '%s'",
+                  username, USER_HEADER, USER_PREFIX)
 
     return username
 
@@ -64,5 +63,5 @@ def check_authentication():
         # assigned function.
         raise Unauthorized("No user detected.")
     else:
-        log.info(f"Handling request for user: {user}")
+        log.info("Handling request for user: %s", user)
         return

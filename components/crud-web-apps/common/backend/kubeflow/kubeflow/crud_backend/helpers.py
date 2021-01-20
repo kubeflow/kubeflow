@@ -40,7 +40,7 @@ def load_yaml(f):
         with open(f, "r") as yaml_file:
             c = yaml_file.read()
     except IOError:
-        log.error(f"Error opening: {f}")
+        log.error("Error opening: %s", f)
         return None
 
     try:
@@ -69,7 +69,7 @@ def load_param_yaml(f, **kwargs):
         with open(f, "r") as yaml_file:
             c = yaml_file.read().format(**kwargs)
     except IOError:
-        log.error(f"Error opening: {f}")
+        log.error("Error opening: %s", f)
         return None
 
     try:
