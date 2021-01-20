@@ -46,7 +46,7 @@ var roleBindingNameMap = map[string]string{
 }
 
 type BindingInterface interface {
-	Create(binding *Binding, userIdHeader string, userIdPrefix string) error
+	Create(binding *Binding, userIdHeader string, userIdPrefix string, authorizedNamespaces []string) error
 	Delete(binding *Binding) error
 	List(user string, namespaces []string, role string) (*BindingEntries, error)
 }
@@ -76,9 +76,18 @@ func getBindingName(binding *Binding) (string, error) {
 	return reg.ReplaceAllString(nameRaw, "-"), nil
 }
 
-func getAuthorizationPolicy(binding *Binding, userIdHeader string, userIdPrefix string) istioSecurity.AuthorizationPolicy {
+func getAuthorizationPolicy(binding *Binding, userIdHeader string, userIdPrefix string, authorizedNamespaces []string) istioSecurity.AuthorizationPolicy {
 	return istioSecurity.AuthorizationPolicy{
 		Rules: []*istioSecurity.Rule{
+			{
+				From: []*istioSecurity.Rule_From{
+					{
+						Source: &istioSecurity.Source{
+							Namespaces: append(authorizedNamespaces, binding.ReferredNamespace),
+						},
+					},
+				},
+			},
 			{
 				When: []*istioSecurity.Condition{
 					{
@@ -90,10 +99,11 @@ func getAuthorizationPolicy(binding *Binding, userIdHeader string, userIdPrefix 
 				},
 			},
 		},
+		Action: istioSecurity.AuthorizationPolicy_ALLOW,
 	}
 }
 
-func (c *BindingClient) Create(binding *Binding, userIdHeader string, userIdPrefix string) error {
+func (c *BindingClient) Create(binding *Binding, userIdHeader string, userIdPrefix string, authorizedNamespaces []string) error {
 	// TODO: permission check before go ahead
 	bindingName, err := getBindingName(binding)
 	if err != nil {
@@ -125,7 +135,7 @@ func (c *BindingClient) Create(binding *Binding, userIdHeader string, userIdPref
 			Name:        bindingName,
 			Namespace:   binding.ReferredNamespace,
 		},
-		Spec: getAuthorizationPolicy(binding, userIdHeader, userIdPrefix),
+		Spec: getAuthorizationPolicy(binding, userIdHeader, userIdPrefix, authorizedNamespaces),
 	}
 
 	result := istioSecurityClient.AuthorizationPolicy{}

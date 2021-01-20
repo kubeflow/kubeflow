@@ -43,14 +43,15 @@ type KfamV1Alpha1Interface interface {
 }
 
 type KfamV1Alpha1Client struct {
-	profileClient ProfileInterface
-	bindingClient BindingInterface
-	clusterAdmin  []string
-	userIdHeader  string
-	userIdPrefix  string
+	profileClient        ProfileInterface
+	bindingClient        BindingInterface
+	clusterAdmin         []string
+	userIdHeader         string
+	userIdPrefix         string
+	authorizedNamespaces []string
 }
 
-func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string) (*KfamV1Alpha1Client, error) {
+func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string, authorizedNamespaces []string) (*KfamV1Alpha1Client, error) {
 	profileRESTClient, err := getRESTClient(profileRegister.GroupName, profileRegister.GroupVersion)
 	if err != nil {
 		return nil, err
@@ -83,9 +84,10 @@ func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string
 			kubeClient:        kubeClient,
 			roleBindingLister: roleBindingLister,
 		},
-		clusterAdmin: []string{clusterAdmin},
-		userIdHeader: userIdHeader,
-		userIdPrefix: userIdPrefix,
+		clusterAdmin:         []string{clusterAdmin},
+		userIdHeader:         userIdHeader,
+		userIdPrefix:         userIdPrefix,
+		authorizedNamespaces: authorizedNamespaces,
 	}, nil
 }
 
@@ -115,7 +117,7 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 	// check permission before create binding
 	useremail := c.getUserEmail(r.Header)
 	if c.isOwnerOrAdmin(useremail, binding.ReferredNamespace) {
-		err := c.bindingClient.Create(&binding, c.userIdHeader, c.userIdPrefix)
+		err := c.bindingClient.Create(&binding, c.userIdHeader, c.userIdPrefix, c.authorizedNamespaces)
 		if err != nil {
 			IncRequestErrorCounter(err.Error(), useremail, action, r.URL.Path,
 				SEVERITY_MAJOR)

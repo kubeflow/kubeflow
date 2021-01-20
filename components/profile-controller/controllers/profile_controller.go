@@ -100,6 +100,7 @@ type ProfileReconciler struct {
 	UserIdPrefix               string
 	WorkloadIdentity           string
 	DefaultNamespaceLabelsPath string
+	AuthorizedNamespaces       []string
 }
 
 // +kubebuilder:rbac:groups=core,resources=namespaces,verbs="*"
@@ -443,6 +444,15 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 		// Empty selector == match all workloads in namespace
 		Selector: nil,
 		Rules: []*istioSecurity.Rule{
+			{
+				From: []*istioSecurity.Rule_From{
+					{
+						Source: &istioSecurity.Source{
+							Namespaces: append(r.AuthorizedNamespaces, profileIns.Name),
+						},
+					},
+				},
+			},
 			{
 				When: []*istioSecurity.Condition{
 					{

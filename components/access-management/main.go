@@ -17,6 +17,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes/scheme"
 
+	"strings"
+
 	"github.com/kubeflow/kubeflow/components/access-management/kfam"
 	profile "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1beta1"
 
@@ -33,20 +35,29 @@ const USERIDPREFIX = "userid-prefix"
 // set cluster admin user id here.
 const CLUSTERADMIN = "cluster-admin"
 
+const AUTHORIZEDNAMESPACES = "allow-access-from-namespaces"
+
 func main() {
 	log.Printf("Server started")
 	var userIdHeader string
 	var userIdPrefix string
 	var clusterAdmin string
+	var defaultAuthorizedNamespaces string
 	flag.StringVar(&userIdHeader, USERIDHEADER, "x-goog-authenticated-user-email", "Key of request header containing user id")
 	flag.StringVar(&userIdPrefix, USERIDPREFIX, "accounts.google.com:", "Request header user id common prefix")
 	flag.StringVar(&clusterAdmin, CLUSTERADMIN, "", "cluster admin")
+	flag.StringVar(&defaultAuthorizedNamespaces, AUTHORIZEDNAMESPACES, "", "Comma-separated string of namespace names to allow access from and include into Istio AuthorizationPolicy")
 	flag.Parse()
 
 	profile.AddToScheme(scheme.Scheme)
 	istioSecurityClient.AddToScheme(scheme.Scheme)
 
-	profileClient, err := kfam.NewKfamClient(userIdHeader, userIdPrefix, clusterAdmin)
+	var authorizedNamespaces []string
+	if len(defaultAuthorizedNamespaces) != 0 {
+		authorizedNamespaces = strings.Split(defaultAuthorizedNamespaces, ",")
+	}
+
+	profileClient, err := kfam.NewKfamClient(userIdHeader, userIdPrefix, clusterAdmin, authorizedNamespaces)
 	if err != nil {
 		log.Print(err)
 		panic(err)
