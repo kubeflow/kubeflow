@@ -148,3 +148,33 @@ updates:
     schedule:
       interval: daily
     open-pull-requests-limit: 10
+  - package-ecosystem: gomod
+    directory: /components/access-management
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: gomod
+    directory: /components/admission-webhook
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: gomod
+    directory: /components/common
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: gomod
+    directory: /components/notebook-controller
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: gomod
+    directory: /components/profile-controller
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: gomod
+    directory: /components/tensorboard-controller
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
