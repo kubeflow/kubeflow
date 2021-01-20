@@ -4,6 +4,7 @@ This file runs a Jupyter notebook file using papermill, then saves generated
 datasets, figures and output notebook to PlatIAgro.
 """
 import json
+import logging
 import os
 import tempfile
 import re
@@ -12,6 +13,11 @@ import pandas as pd
 import papermill
 import platiagro
 import requests
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    level=logging.INFO,
+    datefmt="%Y-%m-%d %H:%M:%S")
 
 COOKIES = {"_xsrf": "token"}
 HEADERS = {"content-type": "application/json", "X-XSRFToken": "token"}
@@ -39,7 +45,7 @@ def execute_notebook(notebook_path, output_path):
     notebook_path : str
     output_path : str
     """
-    print(f"Executing notebook {notebook_path}...", flush=True)
+    logging.info(f"Executing notebook {notebook_path}...")
     prefix = "PARAMETER_"
     parameters = {}
     for var in os.environ:
@@ -54,7 +60,7 @@ def execute_notebook(notebook_path, output_path):
 
             parameters[name] = value
 
-    print(f"Parameters are: {parameters}...", flush=True)
+    logging.info(f"Parameters are: {parameters}...")
     notebook_path = re.sub("minio://", "s3://", notebook_path, 1)
     os.makedirs(output_path.rsplit("/", 1)[0], exist_ok=True)
 
@@ -74,7 +80,7 @@ def save_dataset(dataset):
     ----------
     dataset : str
     """
-    print(f"Saving dataset {dataset}...", flush=True)
+    logging.info(f"Saving dataset {dataset}...")
     try:
         dataset = json.loads(dataset)
     except json.decoder.JSONDecodeError:
@@ -97,7 +103,7 @@ def save_figures(notebook_path):
     ----------
     notebook_path : str
     """
-    print("Saving figures...", flush=True)
+    logging.info("Saving figures...")
     with open(notebook_path, "rb") as f:
         notebook = json.load(f)
 
@@ -128,7 +134,7 @@ def make_cells_readonly(notebook_path):
     ----------
     notebook_path : str
     """
-    print("Editing notebook to make it read-only...", flush=True)
+    logging.info("Editing notebook to make it read-only...")
 
     with open(notebook_path, "rb") as notebook_file:
         notebook = json.load(notebook_file)
@@ -153,7 +159,7 @@ def upload_to_jupyter(notebook_path, destination_path):
     notebook_path : str
     destination_path : str
     """
-    print("Uploading to Jupyter Notebook server...", flush=True)
+    logging.info("Uploading to Jupyter Notebook server...")
 
     path = ""
     for directory in destination_path.split("/")[:-1]:
