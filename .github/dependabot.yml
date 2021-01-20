@@ -99,11 +99,6 @@ updates:
       interval: daily
     open-pull-requests-limit: 10
   - package-ecosystem: npm
-    directory: /components/crud-web-apps/common/frontend/kubeflow-common-lib/dist/kubeflow
-    schedule:
-      interval: daily
-    open-pull-requests-limit: 10
-  - package-ecosystem: npm
     directory: /components/crud-web-apps/common/frontend/kubeflow-common-lib/projects/kubeflow
     schedule:
       interval: daily

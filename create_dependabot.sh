@@ -8,7 +8,9 @@ for directory in $(dirname $(find . -type f -name "*ockerfile*" -not -path './*n
 done
 
 for directory in $(dirname $(find . -type f -name "package*.json" -not -path "./*node_modules*") | sort -u | cut -c2-); do
-    yq eval -i ".updates += {\"package-ecosystem\":\"npm\",\"directory\":\"${directory}\",\"schedule\":{\"interval\":\"daily\"},\"open-pull-requests-limit\":10}" .github/dependabot.yml
+     if [[ ${directory} != *"dist"* ]]; then
+          yq eval -i ".updates += {\"package-ecosystem\":\"npm\",\"directory\":\"${directory}\",\"schedule\":{\"interval\":\"daily\"},\"open-pull-requests-limit\":10}" .github/dependabot.yml
+     fi
 done
 
 for directory in $(dirname $(find . -type f -name "*requirements.txt" -not -path "./*node_modules*") | sort -u | cut -c2-); do
