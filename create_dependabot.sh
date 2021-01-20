@@ -20,3 +20,5 @@ done
 for directory in $(dirname $(find . -type f -name "go.*" -not -path "./*node_modules*") | sort -u | cut -c2-); do
      yq eval -i ".updates += {\"package-ecosystem\":\"gomod\",\"directory\":\"${directory}\",\"schedule\":{\"interval\":\"daily\"},\"open-pull-requests-limit\":10}" .github/dependabot.yml
 done
+
+yq eval -i 'del(.updates[0])' .github/dependabot.yml
