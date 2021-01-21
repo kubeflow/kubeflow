@@ -1,8 +1,20 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: docker
+    directory: /testing
     schedule:
-      interval: "daily"
-    # Disable version updates for npm dependencies
+      interval: daily
     open-pull-requests-limit: 10
+    assignees:
+      - Bobgy
+      - jlewi
+      - pdmack
+  - package-ecosystem: gomod
+    directory: /components/common
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+    assignees:
+      - Bobgy
+      - jlewi
+      - pdmack
