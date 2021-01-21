@@ -310,6 +310,13 @@ RUN chmod a+rx /usr/local/bin/save-dataset.sh
 COPY save-figure.sh /usr/local/bin/
 RUN chmod a+rx /usr/local/bin/save-figure.sh
 
+# Copy a custom jupyter config file
+# Currently, only custom option is FileContentsManager.delete_to_trash = False
+# This is necessary since notebook server has many volumes mounted and
+# using trash folder may cause the error
+# Invalid cross-device link: '/home/jovyan/tasks/...' -> '/home/jovyan/.local/share/Trash/...''
+COPY jupyter_notebook_config.py "${HOME}/.jupyter/"
+
 # Unfortunately, Kubeflow pipelines mount volumes as root root (user group).
 # If we want to use this image in a ContainerOp where there are mount volumes,
 # the user must remain as root.
