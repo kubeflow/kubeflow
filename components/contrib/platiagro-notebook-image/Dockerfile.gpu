@@ -275,7 +275,7 @@ RUN curl -sSL https://raw.githubusercontent.com/automl/auto-sklearn/v.0.7.0/requ
     openpyxl==3.0.5 \
     shap==0.37.0 \
 	facenet-pytorch==2.5.1\
-    git+https://github.com/platiagro/sdk.git@master \
+    git+https://github.com/platiagro/sdk.git@master#egg=platiagro[plotting] \
  && pip install --no-cache-dir \
     -f https://download.pytorch.org/whl/torch_stable.html \
     torch==1.5.0 \

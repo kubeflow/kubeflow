@@ -274,7 +274,7 @@ RUN curl -sSL https://raw.githubusercontent.com/automl/auto-sklearn/v.0.7.0/requ
     pyDOE==0.3.8 \
     yolov4==2.0.0 \
     openpyxl==3.0.5 \
-    git+https://github.com/platiagro/sdk.git@master\
+    git+https://github.com/platiagro/sdk.git@master#egg=platiagro[plotting] \
     shap==0.37.0 \
 	facenet-pytorch==2.5.1\
  && pip install --no-cache-dir \
