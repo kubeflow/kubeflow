@@ -65,25 +65,25 @@ def append_updates(ecosystem, directory, assignees, reviewers=None):
     dependabot['updates'].append(config)
 
 for docker_path in get_docker_paths():
-    string_path = '/'+str(docker_path)
+    string_path = str(docker_path)
     assignees = get_owners(docker_path).get('approvers')
     reviewers = get_owners(docker_path).get('reviewers')
     append_updates('docker', string_path, assignees, reviewers)
 
 for npm_path in get_npm_paths():
-    string_path = '/'+str(npm_path)
+    string_path = str(npm_path)
     assignees = get_owners(npm_path).get('approvers')
     reviewers = get_owners(npm_path).get('reviewers')
     append_updates('npm', string_path, assignees, reviewers)
 
 for pip_path in get_pip_paths():
-    string_path = '/'+str(pip_path)
+    string_path = str(pip_path)
     assignees = get_owners(pip_path).get('approvers')
     reviewers = get_owners(pip_path).get('reviewers')
     append_updates('pip', string_path, assignees, reviewers)
 
 for go_path in get_go_paths():
-    string_path = '/'+str(go_path)
+    string_path = str(go_path)
     assignees = get_owners(go_path).get('approvers')
     reviewers = get_owners(go_path).get('reviewers')
     append_updates('gomod', string_path, assignees, reviewers)
