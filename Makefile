@@ -1,3 +1,2 @@
 build-dependabot:
-	chmod +x hack/create_dependabot.sh
-	hack/create_dependabot.sh
+	python3 hack/create_dependabot.py
