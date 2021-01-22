@@ -192,16 +192,6 @@ updates:
   - kimwnasptd
   - StefanoFioravanzo
   - thesuperzapper
-  directory: /components/crud-web-apps/common/frontend/kubeflow-common-lib/dist/kubeflow
-  open-pull-requests-limit: 10
-  package-ecosystem: npm
-  schedule:
-    interval: daily
-- assignees:
-  - elikatsis
-  - kimwnasptd
-  - StefanoFioravanzo
-  - thesuperzapper
   - yanniszark
   directory: /components/centraldashboard
   open-pull-requests-limit: 10
