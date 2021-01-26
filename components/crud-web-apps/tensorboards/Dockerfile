@@ -1,5 +1,5 @@
 # --- Build the backend kubeflow-wheel ---
-FROM python:3.8 AS backend-kubeflow-wheel
+FROM python:3.8-slim-buster AS backend-kubeflow-wheel
 
 WORKDIR /src
 
@@ -32,7 +32,7 @@ COPY ./tensorboards/frontend/ .
 RUN npm run build -- --output-path=./dist --configuration=production
 
 # Web App
-FROM python:3.8
+FROM python:3.8-slim-buster
 
 WORKDIR /package
 COPY --from=backend-kubeflow-wheel /src .
