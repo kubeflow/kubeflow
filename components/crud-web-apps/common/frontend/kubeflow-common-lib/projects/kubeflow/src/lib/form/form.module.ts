@@ -11,6 +11,8 @@ import {
   MatProgressSpinnerModule,
   MatDialogModule,
   MatTooltipModule,
+  MatDividerModule,
+  MatIconModule,
 } from '@angular/material';
 
 import { FormSectionComponent } from './section/section.component';
@@ -38,9 +40,11 @@ import { PopoverModule } from '../popover/popover.module';
     MatCardModule,
     MatButtonModule,
     MatFormFieldModule,
+    MatDividerModule,
     MatInputModule,
     MatTooltipModule,
     IconModule,
+    MatProgressSpinnerModule,
     PopoverModule,
   ],
   exports: [
@@ -58,6 +62,8 @@ import { PopoverModule } from '../popover/popover.module';
     MatProgressSpinnerModule,
     MatDialogModule,
     MatTooltipModule,
+    MatIconModule,
+    MatDividerModule,
   ],
 })
 export class FormModule {}
