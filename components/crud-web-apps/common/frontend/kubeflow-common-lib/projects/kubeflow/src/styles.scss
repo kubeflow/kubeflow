@@ -67,6 +67,7 @@ body {
 
 .lib-step-info-wrapper {
   width: fit-content;
+  width: -moz-fit-content;
   flex-grow: 0;
   margin-right: 10%;
   display: flex;
