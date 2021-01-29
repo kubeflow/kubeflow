@@ -1,5 +1,6 @@
 @import './kubeflow.css';
 @import '~@angular/material/theming';
+@import './lib/variables.scss';
 
 // always include only once per project
 @include mat-core();
@@ -46,10 +47,40 @@ mat-form-field .mat-form-field {
 html,
 body {
   font-family: Roboto, Sans-Serif;
+  margin: 0;
+  background-color: white;
 }
 
 .flex {
   display: flex;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.lib-step-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.lib-step-info-wrapper {
+  width: fit-content;
+  width: -moz-fit-content;
+  flex-grow: 0;
+  margin-right: 10%;
+  display: flex;
+  flex-direction: column;
+}
+
+.fit-content {
+  width: fit-content;
+  width: -moz-fit-content;
+}
+
+.bold {
+  font-weight: 500;
 }
 
 .wide {
@@ -142,9 +173,6 @@ body {
 /*
  * padding for the page
  */
-$page-space-left: 20px;
-$page-space-right: 20px;
-
 .page-padding {
   padding-left: $page-space-left;
   padding-right: $page-space-right;
@@ -156,4 +184,33 @@ $page-space-right: 20px;
 
 .page-padding-left {
   padding-left: $page-space-left;
+}
+
+/*
+ * Classes for showing a Toolbar, footer and scrollable content
+ */
+.lib-content-wrapper {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.lib-flex-layout-column {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.lib-flex-grow {
+  flex-grow: 1;
+}
+
+.lib-overflow-auto {
+  overflow: auto;
 }

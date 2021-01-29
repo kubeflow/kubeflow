@@ -1,0 +1,27 @@
+<mat-divider></mat-divider>
+
+<div class="flex bar">
+  <button
+    *ngIf="!isApplying"
+    mat-raised-button
+    color="primary"
+    (click)="create.emit(true)"
+    [disabled]="createDisabled"
+  >
+    CREATE
+  </button>
+
+  <button *ngIf="isApplying" mat-raised-button disabled>
+    <div class="waiting-button-wrapper">
+      <mat-spinner diameter="16"></mat-spinner>
+      <div>CREATING</div>
+    </div>
+  </button>
+
+  <button mat-raised-button (click)="cancel.emit(true)">CANCEL</button>
+
+  <div class="flex text-area" *ngIf="allowYAMLEditing">
+    <button class="btn-link" (click)="yaml.emit(true)">Edit</button>
+    <span> and submit YAML</span>
+  </div>
+</div>

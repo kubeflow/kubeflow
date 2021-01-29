@@ -11,6 +11,8 @@ import {
   MatProgressSpinnerModule,
   MatDialogModule,
   MatTooltipModule,
+  MatDividerModule,
+  MatIconModule,
 } from '@angular/material';
 
 import { FormSectionComponent } from './section/section.component';
@@ -22,6 +24,8 @@ import { PositiveNumberInputComponent } from './positive-number-input/positive-n
 import { RokUrlInputComponent } from './rok-url-input/rok-url-input.component';
 import { AdvancedOptionsComponent } from './advanced-options/advanced-options.component';
 import { PopoverModule } from '../popover/popover.module';
+import { SubmitBarComponent } from './submit-bar/submit-bar.component';
+import { StepInfoComponent } from './step-info/step-info.component';
 
 @NgModule({
   declarations: [
@@ -31,6 +35,8 @@ import { PopoverModule } from '../popover/popover.module';
     PositiveNumberInputComponent,
     RokUrlInputComponent,
     AdvancedOptionsComponent,
+    SubmitBarComponent,
+    StepInfoComponent,
   ],
   imports: [
     CommonModule,
@@ -38,9 +44,11 @@ import { PopoverModule } from '../popover/popover.module';
     MatCardModule,
     MatButtonModule,
     MatFormFieldModule,
+    MatDividerModule,
     MatInputModule,
     MatTooltipModule,
     IconModule,
+    MatProgressSpinnerModule,
     PopoverModule,
   ],
   exports: [
@@ -50,6 +58,8 @@ import { PopoverModule } from '../popover/popover.module';
     PositiveNumberInputComponent,
     RokUrlInputComponent,
     AdvancedOptionsComponent,
+    SubmitBarComponent,
+    StepInfoComponent,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
@@ -58,6 +68,8 @@ import { PopoverModule } from '../popover/popover.module';
     MatProgressSpinnerModule,
     MatDialogModule,
     MatTooltipModule,
+    MatIconModule,
+    MatDividerModule,
   ],
 })
 export class FormModule {}

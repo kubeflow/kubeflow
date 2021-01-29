@@ -1,5 +1,9 @@
+@import '../variables.scss';
+
 :host {
   display: block;
+  width: 100%;
+  padding-top: 8px;
 }
 
 .title {
@@ -7,12 +11,16 @@
   font-size: 20px;
 }
 
+.back-button {
+  margin: auto 0;
+}
+
 .actions-wrapper {
   margin-top: 0.22rem;
 }
 
 .title-margin {
-  margin: auto 4rem auto 0.5rem;
+  margin: auto 0;
 }
 
 .button-icon {
@@ -29,17 +37,17 @@
 }
 
 .margin-content {
-  margin: auto 1rem auto auto;
+  margin: auto;
 }
 
-.margin-top-bottom-auto {
+.toolbar-buttons {
   margin: auto 0px;
 }
 
-.flex {
-  display: flex;
+.toolbar-button {
+  margin-left: 0.2rem;
 }
 
-.margin-top-title {
-  margin-top: 8px;
+.toolbar-buttons .toolbar-button:last-child {
+  margin-right: $page-space-right;
 }
