@@ -21,7 +21,7 @@
   <button mat-raised-button (click)="cancel.emit(true)">CANCEL</button>
 
   <div class="flex text-area" *ngIf="allowYAMLEditing">
-    <span class="link" (click)="yaml.emit(true)">Edit</span>
+    <button class="btn-link" (click)="yaml.emit(true)">Edit</button>
     <span> and submit YAML</span>
   </div>
 </div>
