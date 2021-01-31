@@ -1,0 +1,5 @@
+#!/usr/bin/with-contenv bash
+## allow apache2 to use the NB_PREFIX provided by kubeflow
+## note: we strip off any trailing / for consistency
+shopt -s extglob;
+echo "export NB_PREFIX_NO_SLASH=${NB_PREFIX%%+(/)}" >> /etc/apache2/envvars
