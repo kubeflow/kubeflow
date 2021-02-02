@@ -89,7 +89,7 @@ def save_dataset(dataset):
     try:
         df = pd.read_csv(dataset)
         platiagro.save_dataset(name=dataset.rsplit("/")[-1], df=df)
-    except pd.errors.EmptyDataError:
+    except (pd.errors.EmptyDataError, ValueError):
         content = open(dataset, "rb")
         platiagro.save_dataset(name=dataset.rsplit("/")[-1], data=content)
 
