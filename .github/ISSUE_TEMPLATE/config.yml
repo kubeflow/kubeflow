@@ -1,0 +1,36 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Issue related to manifests
+    url: https://github.com/kubeflow/manifests/issues/new
+    about: Create issue in kubeflow/manfiests repo
+  - name: Issue related to deployment
+    url: https://github.com/kubeflow/kfctl/issues/new
+    about: Create issue in kubeflow/kfctl repo
+  - name: Issue related to pipelines
+    url: https://github.com/kubeflow/pipelines/issues/new/choose
+    about: Create issue in kubeflow/pipelines repo
+  - name: Issue related to notebooks
+    url: https://github.com/kubeflow/kubeflow/issues/new/choose
+    about: Creat issue in kubeflow/kubeflow repo
+  - name: Issue related to katib
+    url: https://github.com/kubeflow/katib/issues/new/choose
+    about: Create issue in kubeflow/katib repo
+  - name: Issue related to kfserving
+    url: https://github.com/kubeflow/kfserving/issues/new/choose
+    about: Create issue in kubeflow/kfserving repo
+  - name: Issue related to tf-operator
+    url: https://github.com/kubeflow/tf-operator/issues/new
+    about: Create issue in kubeflow/tf-operator repo
+  - name: Issue related to pytorch-operator
+    url: https://github.com/kubeflow/pytorch-operator/issues/new
+    about: Create issue in kubeflow/pytorch-operator repo
+  - name: Issue related to mpi-operator
+    url: https://github.com/kubeflow/mpi-operator/issues/new
+    about: Create issue in kubeflow/mpi-operator repo
+  - name: Issue related to xgboost-operator
+    url: https://github.com/kubeflow/xgboost-operator/issues/new
+    about: Create issue in kubeflow/xgboost-operator repo
+  - name: Issue related to mxnet-operator
+    url: https://github.com/kubeflow/mxnet-operator/issues/new
+    about: Create issue in kubeflow/mxnet-operator repo
+
