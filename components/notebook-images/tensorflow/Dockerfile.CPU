@@ -1,0 +1,9 @@
+FROM davidspek/kubeflow-buster-base:0.14-pip
+
+COPY requirements-cpu.txt .
+RUN python3 -m pip install -r \
+    requirements-cpu.txt --quiet --no-cache-dir
+
+COPY requirements.txt .
+RUN python3 -m pip install -r \
+    requirements.txt --quiet --no-cache-dir

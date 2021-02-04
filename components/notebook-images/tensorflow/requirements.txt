@@ -1,29 +1,5 @@
-# These packages are installed for both python2 and python3
-
-# Extensions for jupyter notebook
-widgetsnbextension
-ipywidgets
-
-# tensorflow related packages
-tensor2tensor
-
-# Common data science packages
-h5py
-sklearn
-pandas
-keras
-matplotlib
-
-# Google Cloud related packages
-google-cloud
-pandas-gbq
-google-api-python-client
-
-jupyter-console
-jupyterlab
-xgboost
-jupyterlab_widgets
-kubeflow-fairing==1.0.2
-kfserving==0.4.1
-kfp==1.0.4
-kfp-server-api==1.0.4
+scikit-learn==0.24.1
+pandas==1.2.1
+matplotlib==3.3.4
+xgboost==1.3.3
+keras==2.4.3
