@@ -1,0 +1,7 @@
+notebook==6.2.0
+jupyterlab==3.0.5
+ruamel_yaml==0.16.12
+kubeflow-fairing==1.0.2
+kfserving==0.4.1
+kfp==1.0.4
+kfp-server-api==1.0.4

@@ -32,7 +32,7 @@ SHELL ["/bin/bash", "-c"]
 # Install -- Linux Dependencies
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get -yq update \
- && apt-get -yq install --no-install-recommends \
+    && apt-get -yq install --no-install-recommends \
     bash \
     bzip2 \
     ca-certificates \
@@ -47,8 +47,25 @@ RUN apt-get -yq update \
     vim \
     wget \
     zip \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && \
+    apt-get install -y && \
+    curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - && \
+    echo 'deb https://deb.nodesource.com/node_14.x buster main' \
+    > /etc/apt/sources.list.d/nodesource.list && \
+    curl -s https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    echo 'deb https://dl.yarnpkg.com/debian/ stable main' \
+    > /etc/apt/sources.list.d/yarn.list && \
+    echo "**** install build dependencies ****" && \
+    apt-get update && \
+    apt-get install -y \
+    nodejs \
+    yarn && \
+    yarn cache clean && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen
@@ -67,10 +84,6 @@ ENV HOME=/home/$NB_USER \
     CONDA_VERSION="${conda_version}" \
     MINIFORGE_VERSION="${miniforge_version}"
 
-# Copy a script that we will use to correct permissions after running certain commands
-COPY fix-permissions /usr/local/bin/fix-permissions
-RUN chmod a+rx /usr/local/bin/fix-permissions
-
 # Enable prompt color in the skeleton .bashrc before creating the default NB_USER
 # hadolint ignore=SC2016
 RUN sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashrc && \
@@ -87,9 +100,6 @@ RUN useradd -M -s /bin/bash -N -u ${NB_UID} ${NB_USER} \
     && chown -R ${NB_USER}:users ${HOME} \
     && mkdir -p $CONDA_DIR \
     && chown -R ${NB_USER}:users $CONDA_DIR
-
-COPY entrypoint.sh /opt/entrypoint.sh
-RUN chmod a+x /opt/entrypoint.sh
 
 # Make NB_USER a sudoer
 RUN adduser $NB_USER sudo \
@@ -137,19 +147,16 @@ RUN wget --quiet "https://github.com/conda-forge/miniforge/releases/download/${m
 # Correct permissions
 # Do all this in a single RUN command to avoid duplicating all of the
 # files across image layers when the permissions change
-RUN conda install --quiet --yes \
-    'notebook=6.2.0' \
-    # 'jupyterhub=1.3.0' \
-    'jupyterlab=3.0.5' && \
+COPY requirements.txt .
+
+RUN python3 -m pip install -r \
+   requirements.txt --quiet --no-cache-dir && \
     conda clean --all -f -y && \
-    # npm cache clean --force && \
     jupyter notebook --generate-config && \
     rm -rf $CONDA_DIR/share/jupyter/lab/staging && \
     rm -rf /home/$NB_USER/.cache/yarn && \
     chown -R ${NB_USER}:users $CONDA_DIR && \
     chown -R ${NB_USER}:users /home/$NB_USER
-
-RUN export PATH="$CONDA_DIR/bin:$PATH"
 
 EXPOSE 8888
 

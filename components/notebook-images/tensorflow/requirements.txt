@@ -23,7 +23,7 @@ jupyter-console
 jupyterlab
 xgboost
 jupyterlab_widgets
-kubeflow-fairing
-kfserving
+kubeflow-fairing==1.0.2
+kfserving==0.4.1
 kfp==1.0.4
 kfp-server-api==1.0.4
