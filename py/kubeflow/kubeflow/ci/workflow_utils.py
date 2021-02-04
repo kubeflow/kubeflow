@@ -18,9 +18,7 @@ CREDENTIALS_VOLUME = {"name": "aws-secret",
 CREDENTIALS_MOUNT = {"mountPath": "/root/.aws/",
                      "name": "aws-secret"}
 
-AWS_WORKER_IMAGE = ("527798164940.dkr.ecr.us-west-2.amazonaws.com/"
-                    "aws-kubeflow-ci/test-worker:latest")
-PUBLIC_WORKER_IMAGE = "gcr.io/kubeflow-ci/test-worker:latest"
+AWS_WORKER_IMAGE = "public.ecr.aws/j1r0q0g6/kubeflow-testing:latest"
 
 
 class ArgoTestBuilder:
@@ -99,7 +97,6 @@ class ArgoTestBuilder:
                 "entrypoint": E2E_DAG_NAME,
                 # Have argo garbage collect old workflows otherwise we overload
                 # the API server.
-                "ttlSecondsAfterFinished": 7 * 24 * 60 * 60,
                 "volumes": volumes,
                 "onExit": EXIT_DAG_NAME,
                 "templates": [
@@ -130,9 +127,7 @@ class ArgoTestBuilder:
         if LOCAL_TESTING == "False":
             volume_mounts.append(CREDENTIALS_MOUNT)
 
-        image = PUBLIC_WORKER_IMAGE
-        if LOCAL_TESTING == "False":
-            image = AWS_WORKER_IMAGE
+        image = AWS_WORKER_IMAGE
 
         task_template = {
             "activeDeadlineSeconds": 3000,
