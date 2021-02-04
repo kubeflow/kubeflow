@@ -1,0 +1,157 @@
+FROM debian:buster-20210111-slim
+
+ARG NB_UI_TYPE=lab
+
+ENV NB_UI_TYPE=${NB_UI_TYPE}
+ENV NB_USER jovyan
+ENV NB_UID 1000
+ENV NB_PREFIX /
+
+ENV HOME /home/$NB_USER
+
+# Conda version
+ARG conda_version="4.9.2"
+# Miniforge installer patch version
+ARG miniforge_patch_number="5"
+# Miniforge installer architecture
+ARG miniforge_arch="x86_64"
+# Python implementation to use 
+# can be either Miniforge3 to use Python or Miniforge-pypy3 to use PyPy
+ARG miniforge_python="Miniforge3"
+
+# Miniforge archive to install
+ARG miniforge_version="${conda_version}-${miniforge_patch_number}"
+# Miniforge installer
+ARG miniforge_installer="${miniforge_python}-${miniforge_version}-Linux-${miniforge_arch}.sh"
+# Miniforge checksum
+ARG miniforge_checksum="49dddb3998550e40adc904dae55b0a2aeeb0bd9fc4306869cc4a600ec4b8b47c"
+
+# Use bash instead of sh
+SHELL ["/bin/bash", "-c"]
+
+# Install -- Linux Dependencies
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get -yq update \
+ && apt-get -yq install --no-install-recommends \
+    bash \
+    bzip2 \
+    ca-certificates \
+    curl \
+    git \
+    gnupg \
+    locales \
+    lsb-release \
+    software-properties-common \
+    sudo \
+    unzip \
+    vim \
+    wget \
+    zip \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
+    locale-gen
+
+# Configure environment
+ENV CONDA_DIR=/opt/conda \
+    SHELL=/bin/bash \
+    NB_USER=$NB_USER \
+    NB_UID=$NB_UID \
+    NB_GID=$NB_GID \
+    LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8
+ENV PATH "$CONDA_DIR/bin:$PATH"
+ENV HOME=/home/$NB_USER \
+    CONDA_VERSION="${conda_version}" \
+    MINIFORGE_VERSION="${miniforge_version}"
+
+# Copy a script that we will use to correct permissions after running certain commands
+COPY fix-permissions /usr/local/bin/fix-permissions
+RUN chmod a+rx /usr/local/bin/fix-permissions
+
+# Enable prompt color in the skeleton .bashrc before creating the default NB_USER
+# hadolint ignore=SC2016
+RUN sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashrc && \
+   # Add call to conda init script see https://stackoverflow.com/a/58081608/4413446
+   echo 'eval "$(command conda shell.bash hook 2> /dev/null)"' >> /etc/skel/.bashrc 
+
+# Create NB_USER user with UID=1000 and in the 'users' group
+# but allow for non-initial launches of the notebook to have
+# $HOME provided by the contents of a PV
+RUN useradd -M -s /bin/bash -N -u ${NB_UID} ${NB_USER} \
+    #&& addgroup --gid 100 users \
+    && chown -R ${NB_USER}:users /usr/local/bin \
+    && mkdir -p $HOME \
+    && chown -R ${NB_USER}:users ${HOME} \
+    && mkdir -p $CONDA_DIR \
+    && chown -R ${NB_USER}:users $CONDA_DIR
+
+COPY entrypoint.sh /opt/entrypoint.sh
+RUN chmod a+x /opt/entrypoint.sh
+
+# Make NB_USER a sudoer
+RUN adduser $NB_USER sudo \
+    && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+RUN sed -r "s#Defaults\s+secure_path\s*=\s*\"?([^\"]+)\"?#Defaults secure_path=\"\1:$CONDA_DIR/bin\"#" /etc/sudoers | grep secure_path > /etc/sudoers.d/path
+# Fix PATH used in the terminal
+RUN sed -i "0,/else/{/else/{n;s|.*|  PATH=\"${CONDA_DIR}/bin:${PATH}\"|}}" /etc/profile
+
+
+USER $NB_UID
+ARG PYTHON_VERSION=3.8.6
+
+WORKDIR /tmp
+
+# Install -- tini
+RUN curl -sL https://github.com/krallin/tini/releases/download/v0.19.0/tini -o /tmp/tini \
+ && echo "93dcc18adc78c65a028a84799ecf8ad40c936fdfc5f2a57b1acda5a8117fa82c /tmp/tini" | sha256sum -c - \
+ && mv /tmp/tini /usr/local/bin \
+ && chmod +x /usr/local/bin/tini
+
+# Prerequisites installation: conda, pip
+RUN wget --quiet "https://github.com/conda-forge/miniforge/releases/download/${miniforge_version}/${miniforge_installer}" && \
+    echo "${miniforge_checksum} *${miniforge_installer}" | sha256sum --check && \
+    /bin/bash "${miniforge_installer}" -f -b -p $CONDA_DIR && \
+    rm "${miniforge_installer}" && \
+    # Conda configuration see https://conda.io/projects/conda/en/latest/configuration.html
+    echo "conda ${CONDA_VERSION}" >> $CONDA_DIR/conda-meta/pinned && \
+    conda config --system --set auto_update_conda false && \
+    conda config --system --set show_channel_urls true && \
+    if [ ! $PYTHON_VERSION = 'default' ]; then conda install --yes python=$PYTHON_VERSION; fi && \
+    conda list python | grep '^python ' | tr -s ' ' | cut -d '.' -f 1,2 | sed 's/$/.*/' >> $CONDA_DIR/conda-meta/pinned && \
+    conda install --quiet --yes \
+    "conda=${CONDA_VERSION}" \
+    'pip' && \
+    conda update --all --quiet --yes && \
+    conda clean --all -f -y && \
+    rm -rf /home/$NB_USER/.cache/yarn && \
+    chown -R ${NB_USER}:users $CONDA_DIR && \
+    chown -R ${NB_USER}:users /home/$NB_USER
+
+# Install Jupyter Notebook and Lab
+# Generate a notebook server config
+# Cleanup temporary files
+# Correct permissions
+# Do all this in a single RUN command to avoid duplicating all of the
+# files across image layers when the permissions change
+RUN conda install --quiet --yes \
+    'notebook=6.2.0' \
+    # 'jupyterhub=1.3.0' \
+    'jupyterlab=3.0.5' && \
+    conda clean --all -f -y && \
+    # npm cache clean --force && \
+    jupyter notebook --generate-config && \
+    rm -rf $CONDA_DIR/share/jupyter/lab/staging && \
+    rm -rf /home/$NB_USER/.cache/yarn && \
+    chown -R ${NB_USER}:users $CONDA_DIR && \
+    chown -R ${NB_USER}:users /home/$NB_USER
+
+RUN export PATH="$CONDA_DIR/bin:$PATH"
+
+EXPOSE 8888
+
+ENTRYPOINT ["tini", "-g", "--"]
+CMD ["sh", "-c", "jupyter ${NB_UI_TYPE} --notebook-dir=/home/${NB_USER} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX} --NotebookApp.authenticate_prometheus=False"]
