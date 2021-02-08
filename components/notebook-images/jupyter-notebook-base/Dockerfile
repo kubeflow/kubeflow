@@ -1,13 +1,8 @@
-FROM debian:buster-20210111-slim
+FROM davidspek/kubeflow-ubuntu-webide-base:0.2
 
 ARG NB_UI_TYPE=lab
 
 ENV NB_UI_TYPE=${NB_UI_TYPE}
-ENV NB_USER jovyan
-ENV NB_UID 1000
-ENV NB_PREFIX /
-
-ENV HOME /home/$NB_USER
 
 # Conda version
 ARG conda_version="4.9.2"
@@ -29,31 +24,11 @@ ARG miniforge_checksum="49dddb3998550e40adc904dae55b0a2aeeb0bd9fc4306869cc4a600e
 # Use bash instead of sh
 SHELL ["/bin/bash", "-c"]
 
-# Install -- Linux Dependencies
-ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get -yq update \
-    && apt-get -yq install --no-install-recommends \
-    bash \
-    bzip2 \
-    ca-certificates \
-    curl \
-    git \
-    gnupg \
-    locales \
-    lsb-release \
-    software-properties-common \
-    sudo \
-    unzip \
-    vim \
-    wget \
-    zip \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
+# Install -- Node Dependencies
 RUN apt-get update && \
     apt-get install -y && \
     curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - && \
-    echo 'deb https://deb.nodesource.com/node_14.x buster main' \
+    echo 'deb https://deb.nodesource.com/node_14.x focal main' \
     > /etc/apt/sources.list.d/nodesource.list && \
     curl -s https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     echo 'deb https://dl.yarnpkg.com/debian/ stable main' \
@@ -66,9 +41,6 @@ RUN apt-get update && \
     yarn cache clean && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
-RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
-    locale-gen
 
 # Configure environment
 ENV CONDA_DIR=/opt/conda \
@@ -90,25 +62,9 @@ RUN sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashr
    # Add call to conda init script see https://stackoverflow.com/a/58081608/4413446
    echo 'eval "$(command conda shell.bash hook 2> /dev/null)"' >> /etc/skel/.bashrc 
 
-# Create NB_USER user with UID=1000 and in the 'users' group
-# but allow for non-initial launches of the notebook to have
-# $HOME provided by the contents of a PV
-RUN useradd -M -s /bin/bash -N -u ${NB_UID} ${NB_USER} \
-    #&& addgroup --gid 100 users \
-    && chown -R ${NB_USER}:users /usr/local/bin \
-    && mkdir -p $HOME \
-    && chown -R ${NB_USER}:users ${HOME} \
-    && mkdir -p $CONDA_DIR \
+# Create Conda dir and set user permissions for Jovyan
+RUN mkdir -p $CONDA_DIR \
     && chown -R ${NB_USER}:users $CONDA_DIR
-
-# Make NB_USER a sudoer
-RUN adduser $NB_USER sudo \
-    && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-
-RUN sed -r "s#Defaults\s+secure_path\s*=\s*\"?([^\"]+)\"?#Defaults secure_path=\"\1:$CONDA_DIR/bin\"#" /etc/sudoers | grep secure_path > /etc/sudoers.d/path
-# Fix PATH used in the terminal
-RUN sed -i "0,/else/{/else/{n;s|.*|  PATH=\"${CONDA_DIR}/bin:${PATH}\"|}}" /etc/profile
-
 
 USER $NB_UID
 ARG PYTHON_VERSION=3.8.6

@@ -1,4 +1,4 @@
-FROM davidspek/kubeflow-buster-base:0.14-pip
+FROM davidspek/kubeflow-ubuntu-jupyter-base:0.4
 
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
@@ -8,7 +8,3 @@ COPY requirements-gpu.txt .
 RUN python3 -m pip install -r \
     requirements-gpu.txt --quiet --no-cache-dir \
     -f https://download.pytorch.org/whl/torch_stable.html
-
-COPY requirements.txt .
-RUN python3 -m pip install -r \
-    requirements.txt --quiet --no-cache-dir

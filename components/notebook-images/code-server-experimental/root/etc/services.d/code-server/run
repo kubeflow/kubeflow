@@ -1,0 +1,8 @@
+#!/usr/bin/with-contenv bash
+
+exec \
+	s6-setuidgid jovyan \
+		/usr/local/bin/code-server \
+			--bind-addr 0.0.0.0:8080 \
+			--disable-telemetry \
+			--auth none
