@@ -1,16 +1,17 @@
-FROM davidspek/kubeflow-ubuntu-jupyter-base:0.4
+FROM davidspek/kubeflow-ubuntu-jupyter-base:0.5
 
 ARG CUDA=11.1
 ARG CUDNN=8.0.5.39-1
 ARG CUDNN_MAJOR_VERSION=8
 ARG LIB_DIR_PREFIX=x86_64
-ARG LIBNVINFER=7.2.1-1
+ARG LIBNVINFER=7.2.2-1
 ARG LIBNVINFER_MAJOR_VERSION=7
 
 USER root
 
 RUN curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub | apt-key add - && \
     echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /" > /etc/apt/sources.list.d/cuda.list && \
+    echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2004/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list && \
     echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list && \
     rm -rf /var/lib/apt/lists/*
 
@@ -51,12 +52,20 @@ RUN apt-get update \
     libhdf5-serial-dev \
     libzmq3-dev \
     pkg-config \
-    software-properties-common \
     cm-super \
-    libnvinfer${LIBNVINFER_MAJOR_VERSION}=${LIBNVINFER}+cuda${CUDA} \
-    libnvinfer-plugin${LIBNVINFER_MAJOR_VERSION}=${LIBNVINFER}+cuda${CUDA} \
-#    python3-libnvinfer=${LIBNVINFER}+cuda${CUDA} \
+    # libnvinfer${LIBNVINFER_MAJOR_VERSION}=${LIBNVINFER}+cuda${CUDA} \
+    # libnvinfer-plugin${LIBNVINFER_MAJOR_VERSION}=${LIBNVINFER}+cuda${CUDA} \
+    # python3-libnvinfer=${LIBNVINFER}+cuda${CUDA} \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install TensorRT
+RUN apt-get update && \
+        apt-get install -y --no-install-recommends \
+        libnvinfer${LIBNVINFER_MAJOR_VERSION}=${LIBNVINFER}+cuda${CUDA} \
+        libnvinfer-plugin${LIBNVINFER_MAJOR_VERSION}=${LIBNVINFER}+cuda${CUDA} \
+        # python3-libnvinfer=${LIBNVINFER}+cuda${CUDA} \
+        && apt-get clean \
+        && rm -rf /var/lib/apt/lists/*
 
 # For CUDA profiling, TensorFlow requires CUPTI.
 ENV LD_LIBRARY_PATH /usr/local/cuda/extras/CUPTI/lib64:/usr/local/cuda/lib64:$LD_LIBRARY_PATH
@@ -67,6 +76,9 @@ RUN ln -s /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/lib
     && echo "/usr/local/cuda/lib64/stubs" > /etc/ld.so.conf.d/z-cuda-stubs.conf \
     && ldconfig
 
+# Fix libcusolver not found with CUDA 11.1 and ll.2 from https://github.com/tensorflow/tensorflow/issues/43947#issuecomment-748273679
+RUN ln -s /usr/local/cuda-11.1/targets/x86_64-linux/lib/libcusolver.so.11 /usr/local/cuda-11.1/targets/x86_64-linux/lib/libcusolver.so.10
+
 USER $NB_UID
 
 # Some TF tools expect a "python" binary
@@ -74,4 +86,5 @@ RUN ln -s $(which python3) /usr/local/bin/python
 
 COPY requirements-gpu.txt .
 RUN python3 -m pip install -r \
-    requirements-gpu.txt --quiet --no-cache-dir
+    requirements-gpu.txt --quiet --no-cache-dir \
+    && rm -f requirements.txt

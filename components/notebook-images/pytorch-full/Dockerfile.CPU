@@ -2,4 +2,5 @@ FROM davidspek/kubeflow-ubuntu-pytorch-base:0.1
 
 COPY requirements.txt .
 RUN python3 -m pip install -r \
-    requirements.txt --quiet --no-cache-dir
+    requirements.txt --quiet --no-cache-dir \
+    && rm -f requirements.txt

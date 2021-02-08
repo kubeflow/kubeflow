@@ -112,8 +112,10 @@ RUN python3 -m pip install -r \
     rm -rf $CONDA_DIR/share/jupyter/lab/staging && \
     rm -rf /home/$NB_USER/.cache/yarn && \
     chown -R ${NB_USER}:users $CONDA_DIR && \
-    chown -R ${NB_USER}:users /home/$NB_USER
+    chown -R ${NB_USER}:users /home/$NB_USER && \
+    rm -f requirements.txt
 
+WORKDIR $HOME
 EXPOSE 8888
 
 ENTRYPOINT ["tini", "-g", "--"]

@@ -46,6 +46,7 @@ USER $NB_UID
 
 # R packages including IRKernel which gets installed globally.
 RUN conda install --quiet --yes \
+    'r-irkernel=1.1*' \
     'r-base=4.0.3' && \
     conda clean --all -f -y && \
     chown -R ${NB_USER}:users $CONDA_DIR && \

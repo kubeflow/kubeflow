@@ -1,4 +1,4 @@
-FROM davidspek/kubeflow-ubuntu-jupyter-base:0.4
+FROM davidspek/kubeflow-ubuntu-jupyter-base:0.5
 
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
@@ -7,4 +7,5 @@ ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
 COPY requirements-gpu.txt .
 RUN python3 -m pip install -r \
     requirements-gpu.txt --quiet --no-cache-dir \
-    -f https://download.pytorch.org/whl/torch_stable.html
+    -f https://download.pytorch.org/whl/torch_stable.html \
+    && rm -f requirements.txt

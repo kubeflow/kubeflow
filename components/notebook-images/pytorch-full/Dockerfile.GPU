@@ -6,4 +6,5 @@ ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
 
 COPY requirements.txt .
 RUN python3 -m pip install -r \
-    requirements.txt --quiet --no-cache-dir
+    requirements.txt --quiet --no-cache-dir\
+    && rm -f requirements.txt

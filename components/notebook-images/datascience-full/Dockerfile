@@ -2,13 +2,12 @@ FROM davidspek/kubeflow-ubuntu-datascience-base:0.1
 
 USER $NB_UID
 
-WORKDIR /tmp
-
 COPY requirements.txt .
 RUN python3 -m pip install -r \
-    requirements.txt --quiet --no-cache-dir
+    requirements.txt --quiet --no-cache-dir \
+    && rm -f requirements.txt
 
-# R packages including IRKernel which gets installed globally.
+# R packages which gets installed globally.
 RUN conda install --quiet --yes \
     'r-caret=6.0*' \
     'r-crayon=1.3*' \
@@ -17,7 +16,6 @@ RUN conda install --quiet --yes \
     'r-hexbin=1.28*' \
     'r-htmltools=0.5*' \
     'r-htmlwidgets=1.5*' \ 
-    'r-irkernel=1.1*' \
     'r-nycflights13=1.0*' \
     'r-randomforest=4.6*' \
     'r-rcurl=1.98*' \
@@ -29,5 +27,3 @@ RUN conda install --quiet --yes \
     conda clean --all -f -y && \
     chown -R ${NB_USER}:users $CONDA_DIR && \
     chown -R ${NB_USER}:users /home/$NB_USER
-
-WORKDIR $HOME
