@@ -1,2 +1,4 @@
 kfp==1.3.0
 kfp-server-api==1.3.0
+kubeflow-fairing==1.0.2
+kfserving==0.4.1
