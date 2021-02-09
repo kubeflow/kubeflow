@@ -71,6 +71,27 @@ def execute_notebook(notebook_path, output_path):
     )
 
 
+def download_dataset(dataset):
+    """
+    Downloads the dataset to a local path (if it does not exist locally yet).
+
+    Parameters
+    ----------
+    dataset : str
+    """
+    logging.info(f"Download dataset {dataset}...")
+    try:
+        dataset = json.loads(dataset)
+    except json.decoder.JSONDecodeError:
+        return
+
+    dataset = dataset.rsplit("/")[-1]
+    dataset_path = f"/tmp/data/{dataset}"
+
+    if not os.path.exists(dataset_path):
+        platiagro.download_dataset(dataset, dataset_path)
+
+
 def save_dataset(dataset):
     """
     Stores dataset file in a persistent storage using platiagro SDK.
@@ -86,12 +107,15 @@ def save_dataset(dataset):
     except json.decoder.JSONDecodeError:
         return
 
+    dataset = dataset.rsplit("/")[-1]
+    dataset_path = f"/tmp/data/{dataset}"
+
     try:
-        df = pd.read_csv(dataset)
-        platiagro.save_dataset(name=dataset.rsplit("/")[-1], df=df)
+        df = pd.read_csv(dataset_path, sep=None, engine="python")
+        platiagro.save_dataset(name=dataset, df=df)
     except (pd.errors.EmptyDataError, pd.errors.ParserError, UnicodeDecodeError, ValueError):
-        content = open(dataset, "rb")
-        platiagro.save_dataset(name=dataset.rsplit("/")[-1], data=content)
+        content = open(dataset_path, "rb")
+        platiagro.save_dataset(name=dataset, data=content)
 
 
 def save_figures(notebook_path):
@@ -192,6 +216,9 @@ def main():
 
     exception = None
 
+    if dataset != "":
+        download_dataset(dataset)
+
     if notebook_path != "":
         try:
             execute_notebook(notebook_path, output_path)
@@ -204,7 +231,8 @@ def main():
         destination_path = f"experiments/{experiment_id}/operators/{operator_id}/{notebook_path}"
         upload_to_jupyter(output_path, destination_path)
 
-    save_dataset(dataset)
+    if dataset != "":
+        save_dataset(dataset)
 
     if exception is not None:
         raise exception
