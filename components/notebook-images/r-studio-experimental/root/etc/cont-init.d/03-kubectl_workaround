@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv bash
+
+kubectl config set-cluster local --server=https://kubernetes.default.svc.cluster.local --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+kubectl config set-credentials default-editor --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+kubectl config set-context local --cluster=local --user=default-editor
+kubectl config use-context local
+chown -R ${NB_USER}:users $HOME
