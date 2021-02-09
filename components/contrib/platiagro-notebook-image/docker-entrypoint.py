@@ -89,7 +89,7 @@ def save_dataset(dataset):
     try:
         df = pd.read_csv(dataset)
         platiagro.save_dataset(name=dataset.rsplit("/")[-1], df=df)
-    except (pd.errors.EmptyDataError, ValueError):
+    except (pd.errors.EmptyDataError, pd.errors.ParserError, UnicodeDecodeError, ValueError):
         content = open(dataset, "rb")
         platiagro.save_dataset(name=dataset.rsplit("/")[-1], data=content)
 
@@ -191,17 +191,20 @@ def main():
     output_path = os.path.join(tempfile._get_default_tempdir(), notebook_path)
 
     exception = None
-    try:
-        execute_notebook(notebook_path, output_path)
-    except papermill.exceptions.PapermillExecutionError as e:
-        exception = e
+
+    if notebook_path != "":
+        try:
+            execute_notebook(notebook_path, output_path)
+        except papermill.exceptions.PapermillExecutionError as e:
+            exception = e
+
+        save_figures(output_path)
+        make_cells_readonly(output_path)
+
+        destination_path = f"experiments/{experiment_id}/operators/{operator_id}/{notebook_path}"
+        upload_to_jupyter(output_path, destination_path)
 
     save_dataset(dataset)
-    save_figures(output_path)
-    make_cells_readonly(output_path)
-
-    destination_path = f"experiments/{experiment_id}/operators/{operator_id}/{notebook_path}"
-    upload_to_jupyter(output_path, destination_path)
 
     if exception is not None:
         raise exception
