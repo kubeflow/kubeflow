@@ -8,4 +8,4 @@ COPY requirements-gpu.txt .
 RUN python3 -m pip install -r \
     requirements-gpu.txt --quiet --no-cache-dir \
     -f https://download.pytorch.org/whl/torch_stable.html \
-    && rm -f requirements.txt
+    && rm -f requirements-gpu.txt
