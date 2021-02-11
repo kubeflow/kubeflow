@@ -141,10 +141,11 @@ RUN conda install --quiet --yes \
     'nbresuse=0.3.6' \
     'opencv=4.1.2' \
     'nbformat=5.0.8' \
-    'numpy=1.18.5' \
+    'numpy=1.19.5' \
  && conda clean --all -f -y \
     # Install PlatIAgro's Jupyterlab customized version
- && pip install git+https://github.com/platiagro/jupyterlab.git@v0.2.0-jupyterlab-v2.1.2 \
+ && pip install --no-cache-dir \
+    git+https://github.com/platiagro/jupyterlab.git@v0.2.0-jupyterlab-v2.1.2 \
     # Activate ipywidgets extension in the environment that runs the notebook server
  && jupyter nbextension enable --py widgetsnbextension --sys-prefix \
     # Also activate ipywidgets extension for JupyterLab
@@ -232,63 +233,83 @@ RUN conda install --quiet --yes \
 # - shap==0.37.0 exaplinable AI lib
 # - facenet-pytorch==2.5.1 Required for MTCNN
 
-RUN curl -sSL https://raw.githubusercontent.com/automl/auto-sklearn/v.0.7.0/requirements.txt | xargs -L 1 pip install --no-cache-dir \
- && pip install --no-cache-dir \
-    seldon-core==1.0.2 \
-    papermill==2.2.2 \
-    category-encoders==2.2.2 \
-    imbalanced-learn==0.6.2 \
-    auto-sklearn==0.7.0 \
-    featuretools==0.14.0 \
-    tensorflow==2.3.0 \
-    networkx==2.4 \
-    xlrd==1.2.0 \
-    pyserini==0.8.1.0 \
-    transformers==3.0.2 \
-    imutils==0.5.3 \
-    rouge_score==0.0.4 \
-    spacy==2.2.4 \
-    nltk==3.2.5 \
-    pystan==2.19.1.1 \
+# Installs numpy and packages that don't depend on numpy
+RUN pip install --no-cache-dir \
     convertdate==2.2.1 \
-    LunarCalendar==0.0.9 \
-    holidays==0.10.3 \
-    "plotly>=4.14.1,<5" \
-    Unidecode==1.1.1 \
+    Cython \
     ftfy==5.8 \
-    scikit-video==1.1.11 \
-    "smac>=0.12,<0.13" \
-    nlp==0.4.0 \
-    tqdm==4.41.1 \
-    git+https://github.com/albumentations-team/albumentations \
-    gensim==4.0.0b0 \
-    numba==0.48.0 \
+    gdown==3.12.2 \
+    holidays==0.10.3 \
+    imutils==0.5.3 \
     jsonlines==1.2.0 \
+    joblib \
+    liac-arff \
+    lockfile \
+    LunarCalendar==0.0.9 \
+    networkx==2.4 \
+    nltk==3.2.5 \
+    numba==0.48.0 \
+    "numpy~=1.19.5" \
+    "plotly>=4.14.1,<5" \
+    openpyxl==3.0.5 \
+    pytesseract==0.3.6 \
+    sacrebleu==1.4.9 \
+    setuptools \
+    papermill==2.2.2 \
+    pyserini==0.8.1.0 \
+    pystan==2.19.1.1 \
+    psutil \
+    pyyaml \
+    tqdm==4.41.1 \
+    Unidecode==1.1.1 \
+    xlrd==1.2.0 \
+ # Then, installs pandas
+ && pip install --no-cache-dir --no-build-isolation \
+   "pandas>=1.0" \
+ # Then, installs packages that depend on numpy
+ && pip install --no-cache-dir --no-build-isolation \
+    -f https://download.pytorch.org/whl/torch_stable.html \
+    torch==1.7.1+cpu \
+    torchvision==0.8.2+cpu \
+    torchaudio==0.7.2 \
+ && pip install --no-cache-dir --no-build-isolation \
+    git+https://github.com/albumentations-team/albumentations \
+    alibi==0.5.5 \
+    alibi-detect==0.4.4 \
+    auto-sklearn==0.12.1 \
+    category-encoders==2.2.2 \
+    "ConfigSpace>=0.4.14,<0.5" \
+    dask[complete]==2021.2.0 \
+    distributed>=2.2.0 \
+    emcee==3.0.2 \
+    facenet-pytorch==2.5.1 \
+    featuretools==0.23.1 \
+    gensim==4.0.0b0 \
+    imbalanced-learn==0.7.0 \
+    jiwer==2.2.0 \
+    matplotlib==3.3.0 \
+    nlp==0.4.0 \
     opencv-contrib-python==4.1.2.30 \
     opencv-python==4.1.2.30 \
-    jiwer==2.1.0 \
-    pytesseract==0.3.6 \
-    gdown==3.12.2 \
-    emcee==3.0.2 \
-    scikit-optimize==0.8.1 \
-    pyDOE==0.3.8 \
-    yolov4==2.0.0 \
-    openpyxl==3.0.5 \
-    shap==0.37.0 \
-	facenet-pytorch==2.5.1\
     git+https://github.com/platiagro/sdk.git@master#egg=platiagro[plotting] \
- && pip install --no-cache-dir \
-    -f https://download.pytorch.org/whl/torch_stable.html \
-    torch==1.5.0 \
-    torchvision==0.6.0 \
- && pip install --no-cache-dir \
-    pytorch-lightning==0.7.5 \
-    transformers==3.0.2 \
-    sacrebleu==1.4.9 \
-    torchtext==0.6.0 \
-    alibi==0.5.2 \
-    alibi-detect==0.4.1 \
-    matplotlib==3.3.0 \
+    pyDOE==0.3.8 \
+    "pynisher>=0.6.3" \
+    "pyrfr>=0.7,<0.9" \
+    pytorch-lightning==1.1.8 \
+    rouge_score==0.0.4 \
+    "scikit-learn>=0.24.0,<0.25.0" \
+    scikit-optimize==0.8.1 \
+    scikit-video==1.1.11 \
+    "scipy>=1.4.1,<1.5" \
+    seaborn==0.11.1 \
+    seldon-core==1.4.0 \
+    shap==0.37.0 \
+    "smac>=0.13.1,<0.14" \
+    spacy==3.0.1 \
+    tensorflow==2.4.1 \
+    torchtext==0.8.1 \
+    transformers==4.3.2 \
+    yolov4==2.1.0 \
  && pip uninstall -y typing \
  && fix-permissions $CONDA_DIR \
  && fix-permissions /home/$NB_USER

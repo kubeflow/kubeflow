@@ -225,11 +225,12 @@ def main():
         except papermill.exceptions.PapermillExecutionError as e:
             exception = e
 
-        save_figures(output_path)
         make_cells_readonly(output_path)
 
         destination_path = f"experiments/{experiment_id}/operators/{operator_id}/{notebook_path}"
         upload_to_jupyter(output_path, destination_path)
+
+        save_figures(output_path)
 
     if dataset != "":
         save_dataset(dataset)
