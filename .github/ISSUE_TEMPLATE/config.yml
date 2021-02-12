@@ -5,7 +5,7 @@ contact_links:
     about: Create issue in kubeflow/pipelines repo
   - name: Issues related to Kubeflow Notebooks
     url: https://github.com/kubeflow/kubeflow/issues/new
-    about: Creat issue in kubeflow/kubeflow repo
+    about: Create issue in kubeflow/kubeflow repo
   - name: Issues related to Kubeflow Katib
     url: https://github.com/kubeflow/katib/issues/new/choose
     about: Create issue in kubeflow/katib repo
