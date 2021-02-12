@@ -1,2 +1,0 @@
-#!/usr/bin/with-contenv bash
-service apache2 start
