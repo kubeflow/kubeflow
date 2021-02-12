@@ -19,7 +19,7 @@ export class FormImageComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.subs.add(
       this.parentForm.get('customImageCheck').valueChanges.subscribe(check => {
-        // Make sure that the use will insert and Image value
+        // Make sure that the user inserts an Image value
         if (check) {
           this.parentForm.get('customImage').setValidators(Validators.required);
           this.parentForm.get('image').setValidators([]);
@@ -30,6 +30,7 @@ export class FormImageComponent implements OnInit, OnDestroy {
 
         this.parentForm.get('customImage').updateValueAndValidity();
         this.parentForm.get('image').updateValueAndValidity();
+        this.parentForm.get('useRootURL').updateValueAndValidity();
       }),
     );
   }

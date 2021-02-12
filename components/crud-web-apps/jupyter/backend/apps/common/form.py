@@ -135,6 +135,14 @@ def set_notebook_image_pull_policy(notebook, body, defaults):
     )
 
 
+def set_notebook_root_url_rewrite(notebook, body, defaults):
+    notebook_annotations = notebook["metadata"]["annotations"]
+    if get_form_value(body, defaults, "useRootURL"):
+        notebook_annotations["use-root-url"] = "true"
+    else:
+        notebook_annotations["use-root-url"] = "false"
+
+
 def set_notebook_cpu(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
 

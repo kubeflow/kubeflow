@@ -5,6 +5,8 @@ metadata:
   namespace: {namespace}
   labels:
     app: {name}
+  annotations:
+    use-root-url: 
 spec:
   template:
     spec:

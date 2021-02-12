@@ -56,6 +56,10 @@ spawnerFormDefaults:
     # Memory for user's Notebook
     value: 1.0Gi
     readOnly: false
+  useRootURL:
+    # Use root URL during Istio rewrite
+    value: false
+    readOnly: false
   environment:
     value: {}
     readOnly: false
