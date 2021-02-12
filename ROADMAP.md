@@ -141,11 +141,11 @@ Here is a preliminary list of limitations and requirements that will be part of 
 * Users can consume Kubeflow in their own, isolated namespace
 * Upgrades will require downtime
 
-## Kubeflow 1.1 Features, Target release: Late June 2020
+## Kubeflow 1.1 Features, Release Date: Late June 2020
 
 Kubeflow 1.1 will continue to enhance enterprise grade functionality for secure operations and upgrades.   1.1 will also simplify ML workflows to improve data scientist productivity.
 
-The following features are under design review:
+The following features were delivered in Kubeflow 1.1:
 
 * Process and tools for upgrades from Release N-1 to N i.e. 1.0.x to 1.1, [#304](https://github.com/kubeflow/kfctl/issues/304)
 * Additional security use cases for GCP users (including support for private GKE & Anthos Service Mesh),[design doc](https://cloud.google.com/service-mesh/docs); [#1705](https://github.com/kubeflow/website/issues/1705)
@@ -159,3 +159,56 @@ The following features are under design review:
 * Multi-User Authorization: Add support for K8s RBAC via SubjectAccessReview [#3513](https://github.com/kubeflow/pipelines/issues/3513)
 
 The 1.1 features are tracked in this [Kanban board](https://github.com/orgs/kubeflow/projects/36) 
+
+## Kubeflow 1.2 Features, Release Date: November 2020
+
+Kubeflow 1.2 provides valuable enhancements to HyperParameter Tuning, Pipelines, KFServing, Notebooks and the Training Operators, which improve Kubeflow operations and data scientist productivity.
+
+1.2 includes the following features:
+
+* Katib 0.10 with the new v1beta1 API 
+* Katib support for early stopping.
+* Katib support for custom CRD in the new Trial template.
+* Katib support to resume experiments
+* Katib support for multiple ways to extract metrics
+* KFServing support to add batcher module as sidecar 
+* KFServing for the Alibi explainer upgrade to 0.4.0 
+* KFServing for Triton inference server rename and integrations  
+* Pipelines support for a Tekton backend option.
+* Kubeflow Pipelines 1.0.4, Changelog includes ~20 fixes and ~5 minor features.
+* Notebooks support for Affinity/Toleration configs 
+* Update mxnet-operator manifest to v1
+* Correct XGBoostJob CRD group name and add singular name
+* Fix XGBoost Operator manifest issue
+* Move Pytorch operator e2e tests to AWS Prow
+* Support BytePS in MXNet Operator
+* Fix error when conditions is empty in tf-operator
+* Fix success Policy logic in MXNet Operator
+
+For more details please see this post: https://blog.kubeflow.org/release/official/2020/11/18/kubeflow-1.2-blog-post.html
+
+## Kubeflow 1.3 Features, Target release: March 2021
+
+The Kubeflow 1.3 roadmap includes many User Interface (UI) improvements and core Kubeflow component upgrades to improve installation, management, authentication (including Istio upgrades).
+
+The 1.3 release plan includes the following features:
+
+User Interface (UI)  enhancements to improve user access to model info & simplify workflows
+
+* Completely new UIs for KFServing, Katib, Tensorboard & Volumes Manager
+* Important backend updates to Notebooks (i.e. to improve interop with Tensorboard)
+* Notebook image addition (RStudio) and updates (PyTorch, Tensorflow)
+* Kubeflow Pipelines (KFP) 
+  * UI reorganization for better User Experience
+  * Manage recurring Runs via new “Jobs” page
+  * Simplified view of dependency graphs 
+
+Core improvements to Kubeflow Installation, Management, Authentication, Istio
+
+* Manifests cleanup and simplification of GitOps patterns for Kubeflow stack management
+* Refactoring of Istio integration and support for the latest Istio versions
+* Multi-user feature enhancements in Kubeflow Pipelines
+* KFServing v0.5
+
+
+
