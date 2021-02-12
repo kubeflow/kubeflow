@@ -400,7 +400,17 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 	namespace := instance.Namespace
 	clusterDomain := "cluster.local"
 	prefix := fmt.Sprintf("/notebook/%s/%s/", namespace, name)
-	rewrite := fmt.Sprintf("/notebook/%s/%s/", namespace, name)
+	labels := make(map[string]string)
+	for k, v := range instance.ObjectMeta.Labels {
+		labels[k] = v
+	}
+
+	var rewrite string
+	if _, ok := labels["use-root-url"]; ok {
+		rewrite = fmt.Sprintf("/")
+	} else {
+		rewrite = fmt.Sprintf("/notebook/%s/%s/", namespace, name)
+	}
 	if clusterDomainFromEnv, ok := os.LookupEnv("CLUSTER_DOMAIN"); ok {
 		clusterDomain = clusterDomainFromEnv
 	}
