@@ -103,10 +103,10 @@ RUN wget --quiet "https://github.com/conda-forge/miniforge/releases/download/${m
 # Correct permissions
 # Do all this in a single RUN command to avoid duplicating all of the
 # files across image layers when the permissions change
-COPY requirements.txt .
+COPY --chown=jovyan:users requirements.txt .
 
 RUN python3 -m pip install -r \
-   requirements.txt --quiet --no-cache-dir && \
+    requirements.txt --quiet --no-cache-dir && \
     conda clean --all -f -y && \
     jupyter notebook --generate-config && \
     rm -rf $CONDA_DIR/share/jupyter/lab/staging && \
