@@ -189,11 +189,11 @@ For more details please see this post: https://blog.kubeflow.org/release/officia
 
 ## Kubeflow 1.3 Features, Target release: March 2021
 
-The Kubeflow 1.3 roadmap includes many User Interface (UI) improvements and core Kubeflow component upgrades to improve installation, management, authentication (including Istio upgrades).
+The Kubeflow 1.3 roadmap includes many User Interface (UI) improvements and core Kubeflow component upgrades to improve installation, management, and authentication.  It also includes support the latest Istio versions.
 
 The 1.3 release plan includes the following features:
 
-User Interface (UI)  enhancements to improve user access to model info & simplify workflows
+User Interface (UI)  enhancements to improve user experience and simplify workflows
 
 * Completely new UIs for KFServing, Katib, Tensorboard & Volumes Manager
 * Important backend updates to Notebooks (i.e. to improve interop with Tensorboard)
@@ -203,10 +203,17 @@ User Interface (UI)  enhancements to improve user access to model info & simplif
   * Manage recurring Runs via new “Jobs” page
   * Simplified view of dependency graphs 
 
-Core improvements to Kubeflow Installation, Management, Authentication, Istio
+Core improvements to Kubeflow Installation, Management, Authentication, and Istio
 
-* Manifests cleanup and simplification of GitOps patterns for Kubeflow stack management
-* Refactoring of Istio integration and support for the latest Istio versions
+* Support for latest Istio versions across Kubeflow applications:
+    * KFP, Profile-Controller and KFAM will support the new AuthorizationPolicy API
+* Manifests refactor:
+    * Easy installation of Kubeflow applications and common services
+    * Easy creation of Kubeflow distributions
+    * Moving manifest development to upstream application repositories
+      - This allows separation of responsibilities between Application Owners and Distribution Owners. 
+      - These will be sync'ed on a regular basis.
+      - This will result in a reduction of tech debt from old or duplicate manifests.
 * Multi-user feature enhancements in Kubeflow Pipelines
 * KFServing v0.5
 
