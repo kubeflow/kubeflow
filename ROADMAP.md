@@ -216,6 +216,18 @@ Core improvements to Kubeflow Installation, Management, Authentication, and Isti
       - This will result in a reduction of tech debt from old or duplicate manifests.
 * Multi-user feature enhancements in Kubeflow Pipelines
 * KFServing v0.5
+     * Ability to specify container fields on ML Framework spec such as env variable, liveness/readiness probes etc.
+     * Ability to specify pod template fields on component spec such as NodeAffinity etc.
+     * gRPC support Tensorflow Serving.
+     * Triton Inference server V2 inference REST/gRPC protocol support
+     * TorchServe predict integration
+     * PyTorch Captum explain integration
+     * SKLearn/XGBoost V2 inference REST/gRPC protocol support with MLServer
+     * PMMLServer support
+     * LightGBM support
+     * Allow specifying timeouts on component spec
+     * Simplified canary rollout, traffic split at knative revisions level instead of services level
+     * Transformer to predictor call is now made async
 
 
 
