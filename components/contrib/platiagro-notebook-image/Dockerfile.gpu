@@ -280,7 +280,7 @@ RUN pip install --no-cache-dir \
     category-encoders==2.2.2 \
     "ConfigSpace>=0.4.14,<0.5" \
     dask[complete]==2021.2.0 \
-    distributed>=2.2.0 \
+    "distributed>=2.2.0" \
     emcee==3.0.2 \
     facenet-pytorch==2.5.1 \
     featuretools==0.23.1 \
