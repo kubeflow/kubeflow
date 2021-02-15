@@ -12,6 +12,7 @@ export function getFormDefaults(): FormGroup {
     imagePullPolicy: ['IfNotPresent', [Validators.required]],
     customImage: ['', []],
     customImageCheck: [false, []],
+    useRootURL: [false, []],
     cpu: [1, [Validators.required]],
     memory: [1, [Validators.required]],
     gpus: fb.group({

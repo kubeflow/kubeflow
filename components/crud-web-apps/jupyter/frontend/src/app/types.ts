@@ -39,6 +39,7 @@ export interface NotebookFormObject {
   imagePullPolicy: string;
   customImage?: string;
   customImageCheck: boolean;
+  useRootURL: boolean;
   cpu: number | string;
   memory: number | string;
   gpus: GPU;
@@ -138,6 +139,11 @@ export interface Config {
 
   imagePullPolicy?: {
     value: string;
+    readOnly?: boolean;
+  };
+
+  useRootURL?: {
+    value: boolean;
     readOnly?: boolean;
   };
 
