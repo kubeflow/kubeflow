@@ -268,11 +268,6 @@ RUN pip install --no-cache-dir \
    "pandas>=1.0" \
  # Then, installs packages that depend on numpy
  && pip install --no-cache-dir --no-build-isolation \
-    -f https://download.pytorch.org/whl/torch_stable.html \
-    torch==1.7.1+cpu \
-    torchvision==0.8.2+cpu \
-    torchaudio==0.7.2 \
- && pip install --no-cache-dir --no-build-isolation \
     git+https://github.com/albumentations-team/albumentations \
     alibi==0.5.5 \
     alibi-detect==0.4.4 \
@@ -307,6 +302,8 @@ RUN pip install --no-cache-dir \
     "smac>=0.13.1,<0.14" \
     spacy==3.0.1 \
     tensorflow==2.4.1 \
+    torch==1.7.1 \
+    torchvision==0.8.2 \
     torchtext==0.8.1 \
     transformers==4.3.2 \
     yolov4==2.1.0 \
