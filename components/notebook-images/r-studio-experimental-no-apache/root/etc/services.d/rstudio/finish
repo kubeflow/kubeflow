@@ -1,0 +1,4 @@
+#!/bin/bash
+exec \
+	s6-setuidgid jovyan \
+                rstudio-server stop

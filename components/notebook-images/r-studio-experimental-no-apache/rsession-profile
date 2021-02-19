@@ -1,0 +1,2 @@
+#!/bin/bash
+export $(bash -c env | tr '\n' ' ')

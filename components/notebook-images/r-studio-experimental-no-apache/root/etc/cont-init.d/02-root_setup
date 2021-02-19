@@ -1,0 +1,5 @@
+#!/usr/bin/with-contenv bash
+#echo "www-root-path=${NB_PREFIX%%+(/)}" >> /etc/rstudio/rserver.conf
+echo "www-port=8888" >> /etc/rstudio/rserver.conf
+echo "HTTR_LOCALHOST=$HTTR_LOCALHOST" >> /etc/R/Renviron.site
+echo "HTTR_PORT=$HTTR_PORT" >> /etc/R/Renviron.site
