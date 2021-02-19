@@ -40,6 +40,7 @@ export interface NotebookFormObject {
   customImage?: string;
   customImageCheck: boolean;
   useRootURL: boolean;
+  setRstudioPathHeader: boolean;
   cpu: number | string;
   memory: number | string;
   gpus: GPU;
@@ -143,6 +144,11 @@ export interface Config {
   };
 
   useRootURL?: {
+    value: boolean;
+    readOnly?: boolean;
+  };
+
+  setRstudioPathHeader?: {
     value: boolean;
     readOnly?: boolean;
   };

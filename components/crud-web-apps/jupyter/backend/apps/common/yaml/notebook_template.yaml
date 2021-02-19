@@ -7,6 +7,7 @@ metadata:
     app: {name}
   annotations:
     use-root-url: 
+    set-rstudio-path-header: 
 spec:
   template:
     spec:

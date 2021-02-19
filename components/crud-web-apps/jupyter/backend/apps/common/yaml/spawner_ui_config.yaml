@@ -60,6 +60,10 @@ spawnerFormDefaults:
     # Use root URL during Istio rewrite
     value: false
     readOnly: false
+  setRstudioPathHeader:
+    # Set the X-RStudio-Root-Path request header to NB_PREFIX
+    value: false
+    readOnly: false
   environment:
     value: {}
     readOnly: false

@@ -434,33 +434,74 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 		return nil, fmt.Errorf("Set .spec.gateways error: %v", err)
 	}
 
-	http := []interface{}{
-		map[string]interface{}{
-			"match": []interface{}{
-				map[string]interface{}{
-					"uri": map[string]interface{}{
-						"prefix": prefix,
-					},
-				},
-			},
-			"rewrite": map[string]interface{}{
-				"uri": rewrite,
-			},
-			"route": []interface{}{
-				map[string]interface{}{
-					"destination": map[string]interface{}{
-						"host": service,
-						"port": map[string]interface{}{
-							"number": int64(DefaultServingPort),
+	if annotations["set-rstudio-path-header"] == "true" {
+		http := []interface{}{
+			map[string]interface{}{
+				"match": []interface{}{
+					map[string]interface{}{
+						"uri": map[string]interface{}{
+							"prefix": prefix,
 						},
 					},
 				},
+				"rewrite": map[string]interface{}{
+					"uri": rewrite,
+				},
+				"headers": map[string]interface{}{
+					"request": map[string]interface{}{
+						"add": map[string]interface{}{
+							"X-RStudio-Root-Path": prefix,
+						},
+					},
+				},
+				"route": []interface{}{
+					map[string]interface{}{
+						"destination": map[string]interface{}{
+							"host": service,
+							"port": map[string]interface{}{
+								"number": int64(DefaultServingPort),
+							},
+						},
+					},
+				},
+				"timeout": "300s",
 			},
-			"timeout": "300s",
-		},
-	}
-	if err := unstructured.SetNestedSlice(vsvc.Object, http, "spec", "http"); err != nil {
-		return nil, fmt.Errorf("Set .spec.http error: %v", err)
+		}
+
+		if err := unstructured.SetNestedSlice(vsvc.Object, http, "spec", "http"); err != nil {
+			return nil, fmt.Errorf("Set .spec.http error: %v", err)
+		}
+
+	} else {
+		http := []interface{}{
+			map[string]interface{}{
+				"match": []interface{}{
+					map[string]interface{}{
+						"uri": map[string]interface{}{
+							"prefix": prefix,
+						},
+					},
+				},
+				"rewrite": map[string]interface{}{
+					"uri": rewrite,
+				},
+				"route": []interface{}{
+					map[string]interface{}{
+						"destination": map[string]interface{}{
+							"host": service,
+							"port": map[string]interface{}{
+								"number": int64(DefaultServingPort),
+							},
+						},
+					},
+				},
+				"timeout": "300s",
+			},
+		}
+
+		if err := unstructured.SetNestedSlice(vsvc.Object, http, "spec", "http"); err != nil {
+			return nil, fmt.Errorf("Set .spec.http error: %v", err)
+		}
 	}
 
 	return vsvc, nil
