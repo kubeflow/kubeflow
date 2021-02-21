@@ -196,8 +196,10 @@ The 1.3 release plan includes the following features:
 User Interface (UI)  enhancements to improve user experience and simplify workflows
 
 * Completely new UIs for KFServing, Katib, Tensorboard & Volumes Manager
-* Important backend updates to Notebooks (i.e. to improve interop with Tensorboard)
-* Notebook image addition (RStudio) and updates (PyTorch, Tensorflow)
+* Notebooks
+  * Important backend updates to Notebooks (i.e. to improve interop with Tensorboard)
+  * New and expanded Jupyter Notebook stack along with easy to customize common base images
+  * Addition of R-Studio and Code-Server (VS-Code) support
 * Kubeflow Pipelines (KFP) 
   * UI reorganization for better User Experience
   * Manage recurring Runs via new “Jobs” page
