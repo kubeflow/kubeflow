@@ -27,7 +27,6 @@ def post_pvc(namespace):
 
     form.set_notebook_image(notebook, body, defaults)
     form.set_notebook_image_pull_policy(notebook, body, defaults)
-    form.set_notebook_root_url_rewrite(notebook, body, defaults)
     form.set_rstudio_request_header(notebook, body, defaults)
     form.set_notebook_cpu(notebook, body, defaults)
     form.set_notebook_memory(notebook, body, defaults)

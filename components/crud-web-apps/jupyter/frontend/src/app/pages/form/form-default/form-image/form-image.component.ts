@@ -30,7 +30,6 @@ export class FormImageComponent implements OnInit, OnDestroy {
 
         this.parentForm.get('customImage').updateValueAndValidity();
         this.parentForm.get('image').updateValueAndValidity();
-        this.parentForm.get('useRootURL').updateValueAndValidity();
         this.parentForm.get('setRstudioPathHeader').updateValueAndValidity();
       }),
     );

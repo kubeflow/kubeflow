@@ -56,10 +56,6 @@ spawnerFormDefaults:
     # Memory for user's Notebook
     value: 1.0Gi
     readOnly: false
-  useRootURL:
-    # Use root URL during Istio rewrite
-    value: false
-    readOnly: false
   setRstudioPathHeader:
     # Set the X-RStudio-Root-Path request header to NB_PREFIX
     value: false

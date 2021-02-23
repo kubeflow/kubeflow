@@ -401,16 +401,8 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 	clusterDomain := "cluster.local"
 	prefix := fmt.Sprintf("/notebook/%s/%s/", namespace, name)
 	annotations := make(map[string]string)
-	for k, v := range instance.ObjectMeta.Annotations {
-		annotations[k] = v
-	}
+	rewrite := fmt.Sprintf("/notebook/%s/%s/", namespace, name)
 
-	var rewrite string
-	if annotations["use-root-url"] == "true" {
-		rewrite = fmt.Sprintf("/")
-	} else {
-		rewrite = fmt.Sprintf("/notebook/%s/%s/", namespace, name)
-	}
 	if clusterDomainFromEnv, ok := os.LookupEnv("CLUSTER_DOMAIN"); ok {
 		clusterDomain = clusterDomainFromEnv
 	}

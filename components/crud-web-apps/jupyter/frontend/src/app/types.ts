@@ -39,7 +39,6 @@ export interface NotebookFormObject {
   imagePullPolicy: string;
   customImage?: string;
   customImageCheck: boolean;
-  useRootURL: boolean;
   setRstudioPathHeader: boolean;
   cpu: number | string;
   memory: number | string;
@@ -140,11 +139,6 @@ export interface Config {
 
   imagePullPolicy?: {
     value: string;
-    readOnly?: boolean;
-  };
-
-  useRootURL?: {
-    value: boolean;
     readOnly?: boolean;
   };
 

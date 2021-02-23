@@ -12,7 +12,6 @@ export function getFormDefaults(): FormGroup {
     imagePullPolicy: ['IfNotPresent', [Validators.required]],
     customImage: ['', []],
     customImageCheck: [false, []],
-    useRootURL: [false, []],
     setRstudioPathHeader: [false, []],
     cpu: [1, [Validators.required]],
     memory: [1, [Validators.required]],
