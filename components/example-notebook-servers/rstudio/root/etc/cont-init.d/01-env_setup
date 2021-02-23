@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv bash
+
+cp -r -n /jovyan/* /home/
+echo "www-port=8888" >> /etc/rstudio/rserver.conf
+echo "HTTR_LOCALHOST=$HTTR_LOCALHOST" >> /etc/R/Renviron.site
+echo "HTTR_PORT=$HTTR_PORT" >> /etc/R/Renviron.site
+env >> /etc/R/Renviron.site
