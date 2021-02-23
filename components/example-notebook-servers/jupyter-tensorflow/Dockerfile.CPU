@@ -1,0 +1,6 @@
+FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:master-9d688f73
+
+COPY requirements-cpu.txt .
+RUN python3 -m pip install -r \
+    requirements-cpu.txt --quiet --no-cache-dir \
+    && rm -f requirements-cpu.txt

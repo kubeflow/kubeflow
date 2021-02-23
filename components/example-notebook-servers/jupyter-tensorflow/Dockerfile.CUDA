@@ -1,0 +1,90 @@
+FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:master-9d688f73
+
+ARG CUDA=11.1
+ARG CUDNN=8.0.5.39-1
+ARG CUDNN_MAJOR_VERSION=8
+ARG LIB_DIR_PREFIX=x86_64
+ARG LIBNVINFER=7.2.2-1
+ARG LIBNVINFER_MAJOR_VERSION=7
+
+USER root
+
+RUN curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub | apt-key add - && \
+    echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /" > /etc/apt/sources.list.d/cuda.list && \
+    echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2004/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list && \
+    echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV CUDA_VERSION 11.1.1
+
+# For libraries in the cuda-compat-* package: https://docs.nvidia.com/cuda/eula/index.html#attachment-a
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    cuda-cudart-11-1=11.1.74-1 \
+    cuda-compat-11-1 \
+    && ln -s cuda-11.1 /usr/local/cuda && \
+    rm -rf /var/lib/apt/lists/*
+
+# Required for nvidia-docker v1
+RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
+    echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
+
+ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
+ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
+
+# nvidia-container-runtime
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
+ENV NVIDIA_REQUIRE_CUDA "cuda>=11.1 brand=tesla,driver>=418,driver<419 brand=tesla,driver>=440,driver<441 brand=tesla,driver>=450,driver<451"
+
+# Install all OS dependencies for notebook server that starts but lacks all
+# features (e.g., download as all possible file formats)
+RUN apt-get update \
+ && apt-get install -yq --no-install-recommends \
+    cuda-command-line-tools-${CUDA/./-} \
+    libcublas-${CUDA/./-} \
+    cuda-nvrtc-${CUDA/./-} \
+    libcufft-${CUDA/./-} \
+    libcurand-${CUDA/./-} \
+    libcusolver-${CUDA/./-} \
+    libcusparse-${CUDA/./-} \
+    libcudnn8=${CUDNN}+cuda${CUDA} \
+    libfreetype6-dev \
+    libhdf5-serial-dev \
+    libzmq3-dev \
+    pkg-config \
+    cm-super \
+    # libnvinfer${LIBNVINFER_MAJOR_VERSION}=${LIBNVINFER}+cuda${CUDA} \
+    # libnvinfer-plugin${LIBNVINFER_MAJOR_VERSION}=${LIBNVINFER}+cuda${CUDA} \
+    # python3-libnvinfer=${LIBNVINFER}+cuda${CUDA} \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install TensorRT
+RUN apt-get update && \
+        apt-get install -y --no-install-recommends \
+        libnvinfer${LIBNVINFER_MAJOR_VERSION}=${LIBNVINFER}+cuda${CUDA} \
+        libnvinfer-plugin${LIBNVINFER_MAJOR_VERSION}=${LIBNVINFER}+cuda${CUDA} \
+        # python3-libnvinfer=${LIBNVINFER}+cuda${CUDA} \
+        && apt-get clean \
+        && rm -rf /var/lib/apt/lists/*
+
+# For CUDA profiling, TensorFlow requires CUPTI.
+ENV LD_LIBRARY_PATH /usr/local/cuda/extras/CUPTI/lib64:/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+# Link the libcuda stub to the location where tensorflow is searching for it and reconfigure
+# dynamic linker run-time bindings
+RUN ln -s /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so.1 \
+    && echo "/usr/local/cuda/lib64/stubs" > /etc/ld.so.conf.d/z-cuda-stubs.conf \
+    && ldconfig
+
+# Fix libcusolver not found with CUDA 11.1 and ll.2 from https://github.com/tensorflow/tensorflow/issues/43947#issuecomment-748273679
+RUN ln -s /usr/local/cuda-11.1/targets/x86_64-linux/lib/libcusolver.so.11 /usr/local/cuda-11.1/targets/x86_64-linux/lib/libcusolver.so.10
+
+USER $NB_UID
+
+# Some TF tools expect a "python" binary
+RUN ln -s $(which python3) /usr/local/bin/python
+
+COPY requirements-cuda.txt .
+RUN python3 -m pip install -r \
+    requirements-cuda.txt --quiet --no-cache-dir \
+    && rm -f requirements-cuda.txt
