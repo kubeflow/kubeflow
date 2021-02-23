@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv bash
+cd $HOME
+exec \
+	/opt/conda/bin/jupyter ${NB_UI_TYPE} \
+        --notebook-dir=/home/${NB_USER} \
+        --ip=0.0.0.0 --no-browser --allow-root \
+        --port=8888 --ServerApp.token='' --ServerApp.password='' \
+        --ServerApp.allow_origin='*' --ServerApp.base_url=${NB_PREFIX} \
+        --ServerApp.authenticate_prometheus=False
