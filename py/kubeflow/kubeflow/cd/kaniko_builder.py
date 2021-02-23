@@ -30,10 +30,10 @@ class Builder(ci.workflow_utils.ArgoTestBuilder):
         if second_dockerfile and second_destination:
             dockerfile = ("%s/%s") % (self.src_dir, second_dockerfile)
             destination = second_destination
-            
+
             second_kaniko_task = self.create_kaniko_task(task_template, dockerfile,
                                               context, destination)
-            
+
             argo_build_util.add_task_to_dag(workflow,
                                         ci.workflow_utils.E2E_DAG_NAME,
                                         second_kaniko_task, [self.mkdir_task_name])
