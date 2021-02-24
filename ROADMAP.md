@@ -193,17 +193,31 @@ The Kubeflow 1.3 roadmap includes many User Interface (UI) improvements and core
 
 The 1.3 release plan includes the following features:
 
-User Interface (UI)  enhancements to improve user experience and simplify workflows
+User Interface (UI) & Working Group enhancements to improve user experience and simplify workflows & operations
 
 * Completely new UIs for KFServing, Katib, Tensorboard & Volumes Manager
 * Notebooks
   * Important backend updates to Notebooks (i.e. to improve interop with Tensorboard)
-  * New and expanded Jupyter Notebook stack along with easy to customize common base images
+  * New and expanded Jupyter Notebook stack along with easy to customize common base images - this is a stretch feature for 1.3
   * Addition of R-Studio and Code-Server (VS-Code) support
 * Kubeflow Pipelines (KFP) 
   * UI reorganization for better User Experience
   * Manage recurring Runs via new “Jobs” page
   * Simplified view of dependency graphs 
+  * Multi-user feature enhancements in Kubeflow Pipelines
+* KFServing v0.5
+   * Ability to specify container fields on ML Framework spec such as env variable, liveness/readiness probes etc.
+   * Ability to specify pod template fields on component spec such as NodeAffinity etc.
+   * gRPC support Tensorflow Serving.
+   * Triton Inference server V2 inference REST/gRPC protocol support
+   * TorchServe predict integration
+   * PyTorch Captum explain integration
+   * SKLearn/XGBoost V2 inference REST/gRPC protocol support with MLServer
+   * PMMLServer support
+   * LightGBM support
+   * Allow specifying timeouts on component spec
+   * Simplified canary rollout, traffic split at knative revisions level instead of services level
+   * Transformer to predictor call is now made async
 
 Core improvements to Kubeflow Installation, Management, Authentication, and Istio
 
@@ -216,20 +230,7 @@ Core improvements to Kubeflow Installation, Management, Authentication, and Isti
       - This allows separation of responsibilities between Application Owners and Distribution Owners. 
       - These will be sync'ed on a regular basis.
       - This will result in a reduction of tech debt from old or duplicate manifests.
-* Multi-user feature enhancements in Kubeflow Pipelines
-* KFServing v0.5
-     * Ability to specify container fields on ML Framework spec such as env variable, liveness/readiness probes etc.
-     * Ability to specify pod template fields on component spec such as NodeAffinity etc.
-     * gRPC support Tensorflow Serving.
-     * Triton Inference server V2 inference REST/gRPC protocol support
-     * TorchServe predict integration
-     * PyTorch Captum explain integration
-     * SKLearn/XGBoost V2 inference REST/gRPC protocol support with MLServer
-     * PMMLServer support
-     * LightGBM support
-     * Allow specifying timeouts on component spec
-     * Simplified canary rollout, traffic split at knative revisions level instead of services level
-     * Transformer to predictor call is now made async
+
 
 
 
