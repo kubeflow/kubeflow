@@ -232,6 +232,7 @@ RUN conda install --quiet --yes \
 # - openpyxl==3.0.5 read and write xlsx files within pandas
 # - shap==0.37.0 exaplinable AI lib
 # - facenet-pytorch==2.5.1 Required for MTCNN
+# - sentencepiece - encoding, decoding and training of Sentencepiece
 
 # Installs numpy and packages that don't depend on numpy
 RUN pip install --no-cache-dir \
@@ -254,6 +255,7 @@ RUN pip install --no-cache-dir \
     openpyxl==3.0.5 \
     pytesseract==0.3.6 \
     sacrebleu==1.4.9 \
+    sentencepiece==0.1.95 \
     setuptools \
     papermill==2.2.2 \
     pyserini==0.8.1.0 \
