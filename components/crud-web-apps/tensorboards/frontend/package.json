@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "npm run copyLibAssets && ng serve --base-href /tensorboard/ --deploy-url /tensorboard/",
-    "build": "npm run copyLibAssets && ng build --prod --base-href /tensorboard/ --deploy-url /tensorboard/static/",
+    "build": "npm run copyLibAssets && ng build --prod --base-href /tensorboards/ --deploy-url static/",
     "build:watch": "npm run copyLibAssets && ng build --watch --deploy-url static/ --outputPath ../backend/app/static/ --outputHashing all",
     "copyLibAssets": "cp ./node_modules/kubeflow/assets/* ./src/assets/",
     "test": "ng test",
