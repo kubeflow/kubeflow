@@ -7,8 +7,8 @@ cloudpickle==1.6.0
 dill==0.3.3
 bokeh==2.2.3
 seaborn==0.11.1
-scipy==1.6.0
+scipy==1.6.1
 scikit-learn==0.24.1
 scikit-image==0.18.1
-pandas==1.2.1
+pandas==1.2.2
 matplotlib==3.3.4
