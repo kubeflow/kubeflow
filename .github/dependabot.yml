@@ -1,0 +1,157 @@
+updates:
+  directory: /components/profile-controller
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  schedule:
+    interval: daily
+  directory: /components/crud-web-apps/jupyter
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  schedule:
+    interval: daily
+  directory: /components/crud-web-apps/tensorboards
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  schedule:
+    interval: daily
+  directory: /components/access-management
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  schedule:
+    interval: daily
+  directory: /components/tensorflow-notebook-image
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  schedule:
+    interval: daily
+  directory: /components/tensorflow-notebook-image/contrib/kaggle-notebook-image
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  schedule:
+    interval: daily
+  directory: /components/tensorflow-notebook-image/contrib/rapidsai-notebook-image
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  schedule:
+    interval: daily
+  directory: /components/tensorboard-controller
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  schedule:
+    interval: daily
+  directory: /components/notebook-controller
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  reviewers:
+  - MartinForReal
+  schedule:
+    interval: daily
+  directory: /components/centraldashboard
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  schedule:
+    interval: daily
+  directory: /components/admission-webhook
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  schedule:
+    interval: daily
+  directory: /components/jupyter-web-app
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  schedule:
+    interval: daily
+  directory: /testing
+  open-pull-requests-limit: 10
+  package-ecosystem: docker
+  schedule:
+    interval: daily
+  directory: /components/crud-web-apps/jupyter/frontend
+  open-pull-requests-limit: 10
+  package-ecosystem: npm
+  schedule:
+    interval: daily
+  directory: /components/crud-web-apps/tensorboards/frontend
+  open-pull-requests-limit: 10
+  package-ecosystem: npm
+  schedule:
+    interval: daily
+  directory: /components/crud-web-apps/common/frontend/kubeflow-common-lib
+  open-pull-requests-limit: 10
+  package-ecosystem: npm
+  schedule:
+    interval: daily
+  directory: /components/crud-web-apps/common/frontend/kubeflow-common-lib/projects/kubeflow
+  open-pull-requests-limit: 10
+  package-ecosystem: npm
+  schedule:
+    interval: daily
+  directory: /components/centraldashboard
+  open-pull-requests-limit: 10
+  package-ecosystem: npm
+  reviewers:
+  - avdaredevil
+  - SachinVarghese
+  schedule:
+    interval: daily
+  directory: /components/jupyter-web-app/frontend
+  open-pull-requests-limit: 10
+  package-ecosystem: npm
+  schedule:
+    interval: daily
+  directory: /components/crud-web-apps/jupyter/backend
+  open-pull-requests-limit: 10
+  package-ecosystem: pip
+  schedule:
+    interval: daily
+  directory: /components/crud-web-apps/tensorboards/backend
+  open-pull-requests-limit: 10
+  package-ecosystem: pip
+  schedule:
+    interval: daily
+  directory: /components/crud-web-apps/common/backend/kubeflow/kubeflow/crud_backend
+  open-pull-requests-limit: 10
+  package-ecosystem: pip
+  schedule:
+    interval: daily
+  directory: /components/tensorflow-notebook-image
+  open-pull-requests-limit: 10
+  package-ecosystem: pip
+  schedule:
+    interval: daily
+  directory: /components/jupyter-web-app/backend
+  open-pull-requests-limit: 10
+  package-ecosystem: pip
+  schedule:
+    interval: daily
+  directory: /components/profile-controller
+  open-pull-requests-limit: 10
+  package-ecosystem: gomod
+  schedule:
+    interval: daily
+  directory: /components/access-management
+  open-pull-requests-limit: 10
+  package-ecosystem: gomod
+  schedule:
+    interval: daily
+  directory: /components/tensorboard-controller
+  open-pull-requests-limit: 10
+  package-ecosystem: gomod
+  schedule:
+    interval: daily
+  directory: /components/notebook-controller
+  open-pull-requests-limit: 10
+  package-ecosystem: gomod
+  schedule:
+    interval: daily
+  directory: /components/common
+  open-pull-requests-limit: 10
+  package-ecosystem: gomod
+  schedule:
+    interval: daily
+  directory: /components/admission-webhook
+  open-pull-requests-limit: 10
+  package-ecosystem: gomod
+  schedule:
+    interval: daily
+version: 2
