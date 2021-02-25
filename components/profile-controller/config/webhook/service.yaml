@@ -6,7 +6,7 @@ metadata:
   namespace: system
 spec:
   ports:
-    - port: 4443
+    - port: 443
       targetPort: 4443
   selector:
     control-plane: controller-manager
