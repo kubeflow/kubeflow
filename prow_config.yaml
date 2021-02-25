@@ -6,13 +6,6 @@ python_paths:
   - kubeflow/testing/py
   - kubeflow/kubeflow/py
 workflows:
-  # Run unittests
-  # TODO(jlewi): Need to add step to run go and python unittests
-  - app_dir: kubeflow/kubeflow/testing/workflows
-    component: unit_tests
-    name: unittests
-    params:
-      workflowName: unittest
   # Run unittests for the shared frontend code
   - py_func: kubeflow.kubeflow.ci.shared_ui_tests.create_workflow
     name: shared_ui_tests
