@@ -147,7 +147,6 @@ Kubeflow 1.1 will continue to enhance enterprise grade functionality for secure 
 
 The following features were delivered in Kubeflow 1.1:
 
-* Process and tools for upgrades from Release N-1 to N i.e. 1.0.x to 1.1, [#304](https://github.com/kubeflow/kfctl/issues/304)
 * Additional security use cases for GCP users (including support for private GKE & Anthos Service Mesh),[design doc](https://cloud.google.com/service-mesh/docs); [#1705](https://github.com/kubeflow/website/issues/1705)
 * A CVE scanning report and mitigation process, [4590](https://github.com/kubeflow/kubeflow/issues/4590)
 * Improved workflow automation tools (fairing and kale) to simplify and mature the Core and EcoSystem supported CUJs
@@ -202,7 +201,7 @@ User Interface (UI) & Working Group enhancements to improve user experience and 
   * Addition of R-Studio and Code-Server (VS-Code) support
 * Kubeflow Pipelines (KFP) 
   * UI reorganization for better User Experience
-  * Manage recurring Runs via new “Jobs” page
+  * Manage recurring Runs via new “Jobs” page (exact name on UI is TBD)
   * Simplified view of dependency graphs 
   * Multi-user feature enhancements in Kubeflow Pipelines
 * KFServing v0.5
