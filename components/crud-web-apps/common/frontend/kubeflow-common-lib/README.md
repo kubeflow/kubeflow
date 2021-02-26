@@ -22,6 +22,7 @@ npm run build
 # https://nodejs.dev/learn/where-does-npm-install-the-packages
 npm link dist/kubeflow
 ```
+
 ### Linking it to the app
 ```bash
 cd ${APP_DIR}
