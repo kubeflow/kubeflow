@@ -205,6 +205,7 @@ User Interface (UI) & Working Group enhancements to improve user experience and 
   * Simplified view of dependency graphs 
   * Multi-user feature enhancements in Kubeflow Pipelines
 * KFServing v0.5
+   * [Multi-model Serving](https://github.com/yuzliu/kfserving/blob/master/docs/MULTIMODELSERVING_GUIDE.md) 
    * Ability to specify container fields on ML Framework spec such as env variable, liveness/readiness probes etc.
    * Ability to specify pod template fields on component spec such as NodeAffinity etc.
    * gRPC support Tensorflow Serving.
