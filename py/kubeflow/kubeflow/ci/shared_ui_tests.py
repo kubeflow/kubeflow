@@ -51,6 +51,20 @@ class Builder(workflow_utils.ArgoTestBuilder):
 
         return ui_build
 
+    def _create_exit_handler(self, task_template):
+        ui_build = argo_build_util.deep_copy(task_template)
+
+        ui_build["name"] = "rm-node-modules"
+        ui_build["container"]["image"] = "node:12.20.1-stretch-slim"
+        ui_build["container"]["command"] = ["rm"]
+        ui_build["container"]["args"] = ["-r", "node_modules"]
+
+        ui_dir = ("%s/components/crud-web-apps/common/"
+                  "frontend/kubeflow-common-lib/") % self.src_dir
+        ui_build["container"]["workingDir"] = ui_dir
+
+        return ui_build
+
     def build(self):
         """Build the Argo workflow graph"""
         workflow = self.build_init_workflow()
@@ -68,11 +82,18 @@ class Builder(workflow_utils.ArgoTestBuilder):
                                         ui_tests_task,
                                         [modules_install_task["name"]])
 
-        # run common ui frontend tests
+        # build the node module from the lib source code
         build_step = self._create_ui_build_task(task_template)
         argo_build_util.add_task_to_dag(workflow, workflow_utils.E2E_DAG_NAME,
                                         build_step,
                                         [modules_install_task["name"]])
+
+        # remove node_modules folder as exit handler
+        rm_node_modules = self._create_exit_handler(task_template)
+        argo_build_util.add_task_to_dag(workflow, workflow_utils.EXIT_DAG_NAME,
+                                        rm_node_modules,
+                                        [build_step["name"],
+                                         ui_tests_task["name"]])
 
         # Set the labels on all templates
         workflow = argo_build_util.set_task_template_labels(workflow)
