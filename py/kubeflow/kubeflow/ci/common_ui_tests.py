@@ -27,7 +27,7 @@ class Builder(workflow_utils.ArgoTestBuilder):
         ui_tests = argo_build_util.deep_copy(task_template)
 
         img = "browserless/chrome:1.44-chrome-stable"
-        ui_tests["name"] = "shared-ui-tests"
+        ui_tests["name"] = "common-ui-tests"
         ui_tests["container"]["image"] = img
         ui_tests["container"]["command"] = ["npm"]
         ui_tests["container"]["args"] = ["run", "test-ci"]
@@ -41,7 +41,7 @@ class Builder(workflow_utils.ArgoTestBuilder):
     def _create_ui_build_task(self, task_template):
         ui_build = argo_build_util.deep_copy(task_template)
 
-        ui_build["name"] = "build-shared-ui-library"
+        ui_build["name"] = "build-common-ui-library"
         ui_build["container"]["image"] = "node:12.20.1-stretch-slim"
         ui_build["container"]["command"] = ["npm"]
         ui_build["container"]["args"] = ["run", "build"]

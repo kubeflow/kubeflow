@@ -7,7 +7,7 @@ python_paths:
   - kubeflow/kubeflow/py
 workflows:
   # Run unittests for the shared frontend code
-  - py_func: kubeflow.kubeflow.ci.shared_ui_tests.create_workflow
+  - py_func: kubeflow.kubeflow.ci.common_ui_tests.create_workflow
     name: common-ui
     job_types:
       - presubmit
