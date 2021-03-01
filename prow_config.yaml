@@ -8,7 +8,7 @@ python_paths:
 workflows:
   # Run unittests for the shared frontend code
   - py_func: kubeflow.kubeflow.ci.shared_ui_tests.create_workflow
-    name: shared_ui_tests
+    name: shared-ui-tests
     job_types:
       - presubmit
     include_dirs:
