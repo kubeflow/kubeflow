@@ -6,11 +6,11 @@ KUBEFLOW_TESTING_REPO ?= /tmp/kubeflow/testing
 KUBEFLOW_KUBEFLOW_REPO ?= /tmp/kubeflow/kubeflow
 PYTHONPATH ?= "${KUBEFLOW_KUBEFLOW_REPO}/py:${KUBEFLOW_TESTING_REPO}/py"
 
-check-local-shared-ui-tests:
+check-local-common-ui-tests:
 	PYTHONPATH=${PYTHONPATH} \
 	LOCAL_TESTING=True \
-	python shared_ui_tests_runner.py
+	python common_ui_tests_runner.py
 
-check-prod-shared-ui-tests:
+check-prod-common-ui-tests:
 	PYTHONPATH=${PYTHONPATH} \
-	python shared_ui_tests_runner.py
+	python common_ui_tests_runner.py
