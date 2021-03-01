@@ -88,12 +88,10 @@ class Builder(workflow_utils.ArgoTestBuilder):
                                         build_step,
                                         [modules_install_task["name"]])
 
-        # remove node_modules folder as exit handler
+        # EXIT-HANDLER: remove node_modules folder as exit handler
         rm_node_modules = self._create_exit_handler(task_template)
         argo_build_util.add_task_to_dag(workflow, workflow_utils.EXIT_DAG_NAME,
-                                        rm_node_modules,
-                                        [build_step["name"],
-                                         ui_tests_task["name"]])
+                                        rm_node_modules, [])
 
         # Set the labels on all templates
         workflow = argo_build_util.set_task_template_labels(workflow)
