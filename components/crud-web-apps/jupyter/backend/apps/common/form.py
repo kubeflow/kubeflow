@@ -137,7 +137,7 @@ def set_notebook_image_pull_policy(notebook, body, defaults):
 
 def set_request_headers(notebook, body, defaults):
     notebook_annotations = notebook["metadata"]["annotations"]
-    request_headers = notebook_annotations["request-headers"]
+    request_headers = get_form_value(body, defaults, "requestHeaders")
     if request_headers:
         notebook_annotations["request-headers"] = request_headers
 

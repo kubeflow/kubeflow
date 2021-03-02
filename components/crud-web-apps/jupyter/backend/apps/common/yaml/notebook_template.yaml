@@ -6,7 +6,8 @@ metadata:
   labels:
     app: {name}
   annotations:
-    request-headers: 
+    request-headers: |-
+      
 spec:
   template:
     spec:
