@@ -1,0 +1,42 @@
+# TODO(https://github.com/kubeflow/manifests/issues/774):
+# This is a new kustomization file intended to get rid of the
+# need to rely on kfctl to build the kustomization.yaml file.
+# We might want to eventually move it to jupyter/jupyter-web-app/kustomization.yaml
+# We currently don't do that because we don't want to interfere with existing behavior.
+#
+# This kustomization.yaml file doesn't depend on base/kustomization.yaml
+# because that file contains changes that won't work with the new stack kustomize
+# packages that we want to define. For example, we can't define vars namespace, clusterDomain
+# etc... because we want those to be defined at the stack level and reused across applications.
+# We don't want to modify jupyter-web-app/kustomization.yaml because that would
+# break the existing KFDef files. So we want to make the stacks work 
+# and then replace it.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namePrefix: jupyter-web-app-
+namespace: kubeflow
+commonLabels:
+  app: jupyter-web-app
+  kustomize.component: jupyter-web-app
+images:
+- name: gcr.io/kubeflow-images-public/jupyter-web-app
+  newName: gcr.io/kubeflow-images-public/jupyter-web-app
+  newTag: vmaster-ge4456300
+resources:
+- ../base/cluster-role-binding.yaml
+- ../base/cluster-role.yaml
+- ../base/deployment.yaml
+- ../base/role-binding.yaml
+- ../base/role.yaml
+- ../base/service-account.yaml
+- ../base/service.yaml
+- ../overlays/istio
+- ../overlays/application
+configMapGenerator:
+# We need the name to be unique without the suffix because the original name is what
+# gets used with patches
+- name: jupyter-web-app-config
+  files:
+  - ../base/configs/spawner_ui_config.yaml
+patchesStrategicMerge:
+- deployment_patch.yaml

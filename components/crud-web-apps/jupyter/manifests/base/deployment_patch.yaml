@@ -1,0 +1,27 @@
+# TODO(https://github.com/kubeflow/manifests/issues/774): This is a patch
+# that pulls out from core the parts that should be in pulled into stacks.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment
+spec:
+  template:
+    spec:
+      containers:
+      - name: jupyter-web-app
+        imagePullPolicy: $(policy)
+        env:
+        - name: ROK_SECRET_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: parameters
+              key: ROK_SECRET_NAME
+        - name: UI
+          valueFrom:
+            configMapKeyRef:
+              name: parameters
+              key: UI
+        - name: USERID_HEADER
+          value: $(userid-header)
+        - name: USERID_PREFIX
+          value: $(userid-prefix)
