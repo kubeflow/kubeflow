@@ -135,12 +135,11 @@ def set_notebook_image_pull_policy(notebook, body, defaults):
     )
 
 
-def set_rstudio_request_header(notebook, body, defaults):
+def set_request_headers(notebook, body, defaults):
     notebook_annotations = notebook["metadata"]["annotations"]
-    if get_form_value(body, defaults, "setRstudioPathHeader"):
-        notebook_annotations["set-rstudio-path-header"] = "true"
-    else:
-        notebook_annotations["set-rstudio-path-header"] = "false"
+    request_headers = notebook_annotations["request-headers"]
+    if request_headers:
+        notebook_annotations["request-headers"] = request_headers
 
 
 def set_notebook_cpu(notebook, body, defaults):

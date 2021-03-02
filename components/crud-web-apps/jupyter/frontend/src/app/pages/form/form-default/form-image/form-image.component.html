@@ -54,12 +54,15 @@
           <mat-option value="Never">Never</mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-checkbox class="column" appearance="outline"
-        *ngIf="!readonly"
-        [formControl]="parentForm.get('setRstudioPathHeader')"
-      >
-        Set R-Studio Root-Path request header location
-      </mat-checkbox>
+      <mat-form-field class="column" appearance="outline">
+        <mat-label>Headers for Istio to add to requests</mat-label>
+        <input
+          matInput
+          placeholder="Headers for Istio to add to requests"
+          [formControl]="parentForm.get('requestHeaders')"
+          #cstmimg
+        />
+      </mat-form-field>
     </div>
   </lib-advanced-options>
 </lib-form-section>

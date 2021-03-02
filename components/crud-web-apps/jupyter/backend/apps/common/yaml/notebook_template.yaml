@@ -6,7 +6,7 @@ metadata:
   labels:
     app: {name}
   annotations:
-    set-rstudio-path-header: 
+    request-headers: 
 spec:
   template:
     spec:

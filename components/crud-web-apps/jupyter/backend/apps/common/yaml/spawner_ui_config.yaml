@@ -56,9 +56,9 @@ spawnerFormDefaults:
     # Memory for user's Notebook
     value: 1.0Gi
     readOnly: false
-  setRstudioPathHeader:
+  requestHeaders:
     # Set the X-RStudio-Root-Path request header to NB_PREFIX
-    value: false
+    value: ''
     readOnly: false
   environment:
     value: {}
