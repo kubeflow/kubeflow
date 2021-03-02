@@ -406,8 +406,8 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 	}
 
 	var rewrite string
-	if annotations["use-root-url"] == "true" {
-		rewrite = fmt.Sprintf("/")
+	if _, ok := annotations["base-uri"]; ok {
+		rewrite = fmt.Sprintf(annotations["base-uri"])
 	} else {
 		rewrite = fmt.Sprintf("/notebook/%s/%s/", namespace, name)
 	}

@@ -54,12 +54,15 @@
           <mat-option value="Never">Never</mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-checkbox class="column" appearance="outline"
-        *ngIf="!readonly"
-        [formControl]="parentForm.get('useRootURL')"
-      >
-        Use root URL
-      </mat-checkbox>
+      <mat-form-field class="column" appearance="outline">
+        <mat-label>Base URI that the server is exposed on</mat-label>
+        <input
+          matInput
+          placeholder="Base URI that the server is exposed on"
+          [formControl]="parentForm.get('baseURI')"
+          #cstmimg
+        />
+      </mat-form-field>
     </div>
   </lib-advanced-options>
 </lib-form-section>
