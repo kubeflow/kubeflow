@@ -1,0 +1,65 @@
+# TODO(jlewi): This kustomization.yaml is deprecated. We want the
+# base_v3 version. This version uses a bunch of problematic patterns e.g.
+# i) Using vars to do command line substitution
+# ii) Not using a configmap to make application and global config available
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- cluster-role-binding.yaml
+- crd.yaml
+- deployment.yaml
+- service.yaml
+- service-account.yaml
+namePrefix: profiles-
+namespace: kubeflow
+commonLabels:
+  kustomize.component: profiles
+configMapGenerator:
+- envs:
+  - params.env
+  name: profiles-parameters
+images:
+- name: gcr.io/kubeflow-images-public/kfam
+  newName: gcr.io/kubeflow-images-public/kfam
+  newTag: vmaster-g9f3bfd00
+- name: gcr.io/kubeflow-images-public/profile-controller
+  newName: gcr.io/kubeflow-images-public/profile-controller
+  newTag: vmaster-ga49f658f
+vars:
+- fieldref:
+    fieldPath: data.admin
+  name: admin
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: profiles-parameters
+- fieldref:
+    fieldPath: data.gcp-sa
+  name: gcp-sa
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: profiles-parameters
+- fieldref:
+    fieldPath: data.userid-header
+  name: userid-header
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: profiles-parameters
+- fieldref:
+    fieldPath: data.userid-prefix
+  name: userid-prefix
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: profiles-parameters
+- fieldref:
+    fieldPath: metadata.namespace
+  name: namespace
+  objref:
+    apiVersion: v1
+    kind: Service
+    name: kfam
+configurations:
+- params.yaml
