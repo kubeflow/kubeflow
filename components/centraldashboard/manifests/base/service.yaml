@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    getambassador.io/config: |-
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name: centralui-mapping
+      prefix: /
+      rewrite: /
+      service: centraldashboard.$(namespace)
+  labels:
+    app: centraldashboard
+  name: centraldashboard
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8082
+  selector:
+    app: centraldashboard
+  sessionAffinity: None
+  type: ClusterIP

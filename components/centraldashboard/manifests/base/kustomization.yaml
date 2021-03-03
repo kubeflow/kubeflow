@@ -1,0 +1,64 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow
+resources:
+- clusterrole-binding.yaml
+- clusterrole.yaml
+- deployment.yaml
+- role-binding.yaml
+- role.yaml
+- service-account.yaml
+- service.yaml
+patchesStrategicMerge:
+- deployment_patch.yaml
+namespace: kubeflow
+commonLabels:
+  kustomize.component: centraldashboard
+images:
+- name: gcr.io/kubeflow-images-public/centraldashboard
+  newName: gcr.io/kubeflow-images-public/centraldashboard
+  newTag: vmaster-g8097cfeb
+configMapGenerator:
+- envs:
+  - params.env
+  name: parameters
+generatorOptions:
+  disableNameSuffixHash: true
+vars:
+- fieldref:
+    fieldPath: metadata.namespace
+  name: namespace
+  objref:
+    apiVersion: v1
+    kind: Service
+    name: centraldashboard
+- fieldref:
+    fieldPath: data.clusterDomain
+  name: clusterDomain
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters
+- fieldref:
+    fieldPath: data.userid-header
+  name: userid-header
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters
+- fieldref:
+    fieldPath: data.userid-prefix
+  name: userid-prefix
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters
+- fieldref:
+    fieldPath: data.registration-flow
+  name: registration-flow
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters
+configurations:
+- params.yaml

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: centraldashboard
+  name: centraldashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: centraldashboard
+  template:
+    metadata:
+      labels:
+        app: centraldashboard
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+      - image: gcr.io/kubeflow-images-public/centraldashboard
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8082
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        name: centraldashboard
+        ports:
+        - containerPort: 8082
+          protocol: TCP
+      serviceAccountName: centraldashboard
