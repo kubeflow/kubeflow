@@ -1,0 +1,85 @@
+# TODO(https://github.com/kubeflow/manifests/issues/774): 
+# This is a legacy package. Hopefully we can get rid of it once
+# 774 is complete.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# TODO(jlewi): We can't depend on base because of the deployment_patch.
+# but maybe if we changed that to use ConfigMapRef then the patch would correctly
+# override the patch applied in base_v3
+resources:
+- cluster-role-binding.yaml
+- cluster-role.yaml
+- deployment.yaml
+- role-binding.yaml
+- role.yaml
+- service-account.yaml
+- service.yaml
+namePrefix: jupyter-web-app-
+namespace: kubeflow
+commonLabels:
+  app: jupyter-web-app
+  kustomize.component: jupyter-web-app
+images:
+- name: gcr.io/kubeflow-images-public/jupyter-web-app
+  newName: gcr.io/kubeflow-images-public/jupyter-web-app
+  newTag: vmaster-ge4456300
+# We need the name to be unique without the suffix because the original name is what
+# gets used with patches
+configMapGenerator:
+- envs:
+  - params.env
+  name: parameters
+- files:
+  - configs/spawner_ui_config.yaml
+  name: jupyter-web-app-config
+  # TODO(jlewi): Why are we setting disableNameSuffixHash true? Don't we want a content hash so that if the config map
+  # changes we would update the configmap?
+generatorOptions:
+  disableNameSuffixHash: true
+patchesStrategicMerge:
+- deployment_patch.yaml
+vars:
+- fieldref:
+    fieldPath: data.policy
+  name: policy
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters
+- fieldref:
+    fieldPath: data.prefix
+  name: prefix
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters
+- fieldref:
+    fieldPath: data.clusterDomain
+  name: clusterDomain
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters
+- fieldref:
+    fieldPath: metadata.namespace
+  name: namespace
+  objref:
+    apiVersion: v1
+    kind: Service
+    name: service
+- fieldref:
+    fieldPath: data.userid-header
+  name: userid-header
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters
+- fieldref:
+    fieldPath: data.userid-prefix
+  name: userid-prefix
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters
+configurations:
+- params.yaml
