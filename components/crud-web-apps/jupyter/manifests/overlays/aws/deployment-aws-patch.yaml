@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment
+spec:
+  template:
+    spec:
+      volumes:
+        - configMap:
+            name: jupyter-web-app-jupyter-web-app-config-aws
+          name: config-volume

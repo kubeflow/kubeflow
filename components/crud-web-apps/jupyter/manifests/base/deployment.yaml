@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+      - image: gcr.io/kubeflow-images-public/jupyter-web-app        
+        name: jupyter-web-app
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      serviceAccountName: service-account
+      volumes:
+      - configMap:
+          name: jupyter-web-app-config
+        name: config-volume

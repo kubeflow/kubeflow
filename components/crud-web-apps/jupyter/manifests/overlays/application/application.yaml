@@ -1,0 +1,45 @@
+apiVersion: app.k8s.io/v1beta1
+kind: Application
+metadata:
+  name: jupyter-web-app
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: jupyter-web-app
+      app.kubernetes.io/name: jupyter-web-app
+  componentKinds:
+  - group: core
+    kind: ConfigMap
+  - group: apps
+    kind: Deployment
+  - group: rbac.authorization.k8s.io
+    kind: Role
+  - group: rbac.authorization.k8s.io
+    kind: RoleBinding
+  - group: core
+    kind: Service
+  - group: core
+    kind: ServiceAccount
+  - group: networking.istio.io
+    kind: VirtualService
+  descriptor:
+    type: jupyter-web-app
+    version: v1beta1
+    description: Provides a UI which allows the user to create/conect/delete jupyter notebooks.
+    maintainers:
+    - name: Kimonas Sotirchos
+      email: kimwnasptd@arrikto.com
+    owners:
+    - name: Kimonas Sotirchos
+      email: kimwnasptd@arrikto.com
+    keywords:
+     - jupyterhub
+     - jupyter ui
+     - notebooks  
+    links:
+    - description: About
+      url: https://github.com/kubeflow/kubeflow/tree/master/components/jupyter-web-app
+    - description: Docs
+      url: https://www.kubeflow.org/docs/notebooks 
+  addOwnerRef: true
+
