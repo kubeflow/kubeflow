@@ -68,7 +68,7 @@ class ArgoTestBuilder:
 
         self.go_path = self.test_dir
 
-    def _build_workflow(self):
+    def _build_workflow(self, exit_dag=True):
         """Create a scaffolding CR for the Argo workflow"""
         volumes = [{
             "name": DATA_VOLUME,
@@ -98,7 +98,6 @@ class ArgoTestBuilder:
                 # Have argo garbage collect old workflows otherwise we overload
                 # the API server.
                 "volumes": volumes,
-                "onExit": EXIT_DAG_NAME,
                 "templates": [
                     {
                         "dag": {
@@ -106,15 +105,18 @@ class ArgoTestBuilder:
                         },
                         "name": E2E_DAG_NAME
                     },
-                    {
-                        "dag": {
-                            "tasks": []
-                        },
-                        "name":EXIT_DAG_NAME
-                    },
                 ],
             },  # spec
         }  # workflow
+
+        if exit_dag:
+            workflow["spec"]["onExit"] = EXIT_DAG_NAME
+            workflow["spec"]["templates"].append({
+                "dag": {
+                    "tasks": []
+                },
+                "name": EXIT_DAG_NAME
+            })
 
         return workflow
 
@@ -241,9 +243,9 @@ class ArgoTestBuilder:
 
         return mkdir_step
 
-    def build_init_workflow(self):
+    def build_init_workflow(self, exit_dag=True):
         """Build the Argo workflow graph"""
-        workflow = self._build_workflow()
+        workflow = self._build_workflow(exit_dag)
         task_template = self.build_task_template()
 
         # checkout the code
