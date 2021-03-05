@@ -201,6 +201,12 @@ class ArgoTestBuilder:
         """
         kaniko = argo_build_util.deep_copy(task_template)
 
+        # append the tag base-commit[0:7]
+        if ":" not in destination:
+            sha = os.getenv("PULL_BASE_SHA", "12341234kanikotest")
+            base = os.getenv("PULL_BASE_REF", "master")
+            destination += ":%s-%s" % (base, sha[0:8])
+
         kaniko["name"] = "kaniko-build-push"
         kaniko["container"]["image"] = "gcr.io/kaniko-project/executor:v1.5.0"
         kaniko["container"]["command"] = ["/kaniko/executor"]
