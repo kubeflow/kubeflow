@@ -183,6 +183,30 @@ class ArgoTestBuilder:
 
         return task_template
 
+    def create_kaniko_task(self, task_template, dockerfile, context,
+                           destination, no_push=False):
+        """
+        A task for building images inside a cluster container using Kaniko.
+        If we are testing the workflow locally then we won't be pushing images
+        to any registries. This will make it easier for people to try out and
+        extend the code.
+        """
+        kaniko = argo_build_util.deep_copy(task_template)
+
+        kaniko["name"] = "kaniko-build-push"
+        kaniko["container"]["image"] = "gcr.io/kaniko-project/executor:v1.5.0"
+        kaniko["container"]["command"] = ["/kaniko/executor"]
+        kaniko["container"]["args"] = ["--dockerfile=%s" % dockerfile,
+                                       "--context=%s" % context,
+                                       "--destination=%s" % destination]
+
+        # don't push the image to a registry if trying out the produced
+        # Argo Workflow yaml locally
+        if LOCAL_TESTING == "True" or no_push:
+            kaniko["container"]["args"].append("--no-push")
+
+        return kaniko
+
     def _create_checkout_task(self, task_template):
         """Checkout the kubeflow/testing and kubeflow/kubeflow code"""
         main_repo = argo_build_util.get_repo_from_prow_env()
