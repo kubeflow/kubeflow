@@ -13,10 +13,14 @@ EXIT_DAG_NAME = "exit-handler"
 
 
 LOCAL_TESTING = os.getenv("LOCAL_TESTING", "False")
-CREDENTIALS_VOLUME = {"name": "aws-secret",
-                      "secret": {"secretName": "aws-secret"}}
-CREDENTIALS_MOUNT = {"mountPath": "/root/.aws/",
-                     "name": "aws-secret"}
+DOCKER_CONFIG_VOLUME = {"name": "docker-config",
+                        "configMap": {"name": "docker-config"}}
+DOCKER_CONFIG_MOUNT = {"name": "docker-config",
+                       "mountPath": "/kaniko/.docker/"}
+AWS_CREDENTIALS_VOLUME = {"name": "aws-secret",
+                          "secret": {"secretName": "aws-secret"}}
+AWS_CREDENTIALS_MOUNT = {"mountPath": "/root/.aws/",
+                         "name": "aws-secret"}
 
 AWS_WORKER_IMAGE = "public.ecr.aws/j1r0q0g6/kubeflow-testing:latest"
 
@@ -68,7 +72,7 @@ class ArgoTestBuilder:
 
         self.go_path = self.test_dir
 
-    def _build_workflow(self):
+    def _build_workflow(self, exit_dag=True):
         """Create a scaffolding CR for the Argo workflow"""
         volumes = [{
             "name": DATA_VOLUME,
@@ -77,7 +81,8 @@ class ArgoTestBuilder:
             },
         }]
         if LOCAL_TESTING == "False":
-            volumes.append(CREDENTIALS_VOLUME)
+            volumes.append(AWS_CREDENTIALS_VOLUME)
+            volumes.append(DOCKER_CONFIG_VOLUME)
 
         workflow = {
             "apiVersion": "argoproj.io/v1alpha1",
@@ -98,7 +103,6 @@ class ArgoTestBuilder:
                 # Have argo garbage collect old workflows otherwise we overload
                 # the API server.
                 "volumes": volumes,
-                "onExit": EXIT_DAG_NAME,
                 "templates": [
                     {
                         "dag": {
@@ -106,15 +110,18 @@ class ArgoTestBuilder:
                         },
                         "name": E2E_DAG_NAME
                     },
-                    {
-                        "dag": {
-                            "tasks": []
-                        },
-                        "name":EXIT_DAG_NAME
-                    },
                 ],
             },  # spec
         }  # workflow
+
+        if exit_dag:
+            workflow["spec"]["onExit"] = EXIT_DAG_NAME
+            workflow["spec"]["templates"].append({
+                "dag": {
+                    "tasks": []
+                },
+                "name": EXIT_DAG_NAME
+            })
 
         return workflow
 
@@ -125,7 +132,8 @@ class ArgoTestBuilder:
             "name": DATA_VOLUME
         }]
         if LOCAL_TESTING == "False":
-            volume_mounts.append(CREDENTIALS_MOUNT)
+            volume_mounts.append(AWS_CREDENTIALS_MOUNT)
+            volume_mounts.append(DOCKER_CONFIG_MOUNT)
 
         image = AWS_WORKER_IMAGE
 
@@ -183,6 +191,36 @@ class ArgoTestBuilder:
 
         return task_template
 
+    def create_kaniko_task(self, task_template, dockerfile, context,
+                           destination, no_push=False):
+        """
+        A task for building images inside a cluster container using Kaniko.
+        If we are testing the workflow locally then we won't be pushing images
+        to any registries. This will make it easier for people to try out and
+        extend the code.
+        """
+        kaniko = argo_build_util.deep_copy(task_template)
+
+        # append the tag base-commit[0:7]
+        if ":" not in destination:
+            sha = os.getenv("PULL_BASE_SHA", "12341234kanikotest")
+            base = os.getenv("PULL_BASE_REF", "master")
+            destination += ":%s-%s" % (base, sha[0:8])
+
+        kaniko["name"] = "kaniko-build-push"
+        kaniko["container"]["image"] = "gcr.io/kaniko-project/executor:v1.5.0"
+        kaniko["container"]["command"] = ["/kaniko/executor"]
+        kaniko["container"]["args"] = ["--dockerfile=%s" % dockerfile,
+                                       "--context=%s" % context,
+                                       "--destination=%s" % destination]
+
+        # don't push the image to a registry if trying out the produced
+        # Argo Workflow yaml locally
+        if LOCAL_TESTING == "True" or no_push:
+            kaniko["container"]["args"].append("--no-push")
+
+        return kaniko
+
     def _create_checkout_task(self, task_template):
         """Checkout the kubeflow/testing and kubeflow/kubeflow code"""
         main_repo = argo_build_util.get_repo_from_prow_env()
@@ -217,9 +255,9 @@ class ArgoTestBuilder:
 
         return mkdir_step
 
-    def build_init_workflow(self):
+    def build_init_workflow(self, exit_dag=True):
         """Build the Argo workflow graph"""
-        workflow = self._build_workflow()
+        workflow = self._build_workflow(exit_dag)
         task_template = self.build_task_template()
 
         # checkout the code
