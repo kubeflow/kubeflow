@@ -1,8 +1,7 @@
 """"Argo Workflow for building Jupyter web app's OCI image using Kaniko"""
 from kubeflow.kubeflow import ci
+from kubeflow.kubeflow.cd import config
 from kubeflow.testing import argo_build_util
-
-AWS_REGISTRY = "public.ecr.aws/j1r0q0g6/jupyter-web-app"
 
 
 class Builder(ci.workflow_utils.ArgoTestBuilder):
@@ -20,7 +19,7 @@ class Builder(ci.workflow_utils.ArgoTestBuilder):
         dockerfile = ("%s/components/crud-web-apps"
                       "/jupyter/Dockerfile") % self.src_dir
         context = "dir://%s/components/crud-web-apps" % self.src_dir
-        destination = AWS_REGISTRY
+        destination = config.JUPYTER_WEB_APP_IMAGE
 
         kaniko_task = self.create_kaniko_task(task_template, dockerfile,
                                               context, destination)
