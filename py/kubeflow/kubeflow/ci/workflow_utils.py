@@ -13,10 +13,14 @@ EXIT_DAG_NAME = "exit-handler"
 
 
 LOCAL_TESTING = os.getenv("LOCAL_TESTING", "False")
-CREDENTIALS_VOLUME = {"name": "aws-secret",
-                      "secret": {"secretName": "aws-secret"}}
-CREDENTIALS_MOUNT = {"mountPath": "/root/.aws/",
-                     "name": "aws-secret"}
+DOCKER_CONFIG_VOLUME = {"name": "docker-config",
+                        "configMap": {"name": "docker-config"}}
+DOCKER_CONFIG_MOUNT = {"name": "docker-config",
+                       "mountPath": "/kaniko/.docker/"}
+AWS_CREDENTIALS_VOLUME = {"name": "aws-secret",
+                          "secret": {"secretName": "aws-secret"}}
+AWS_CREDENTIALS_MOUNT = {"mountPath": "/root/.aws/",
+                         "name": "aws-secret"}
 
 AWS_WORKER_IMAGE = "public.ecr.aws/j1r0q0g6/kubeflow-testing:latest"
 
@@ -77,7 +81,8 @@ class ArgoTestBuilder:
             },
         }]
         if LOCAL_TESTING == "False":
-            volumes.append(CREDENTIALS_VOLUME)
+            volumes.append(AWS_CREDENTIALS_VOLUME)
+            volumes.append(DOCKER_CONFIG_VOLUME)
 
         workflow = {
             "apiVersion": "argoproj.io/v1alpha1",
@@ -127,7 +132,8 @@ class ArgoTestBuilder:
             "name": DATA_VOLUME
         }]
         if LOCAL_TESTING == "False":
-            volume_mounts.append(CREDENTIALS_MOUNT)
+            volume_mounts.append(AWS_CREDENTIALS_MOUNT)
+            volume_mounts.append(DOCKER_CONFIG_MOUNT)
 
         image = AWS_WORKER_IMAGE
 
