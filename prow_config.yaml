@@ -14,17 +14,12 @@ workflows:
     include_dirs:
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
     kwargs: {}
-  # Image Auto Release workflows.
-  # The workflows below are related to auto building our Docker images.
-  # We have separate pre/postsubmit jobs because we want to use different
-  # registries
-  #- app_dir: kubeflow/kubeflow/components/tensorflow-notebook-image/releaser
-  #  component: workflows
-  #  name: tf-notebook-release
-  #  job_types:
-  #    - presubmit
-  #  params:
-  #    registry: "gcr.io/kubeflow-ci"
-  #    step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
-  #  include_dirs:
-  #    - components/tensorflow-notebook-image/*
+  # post submit jobs
+  - py_func: kubeflow.kubeflow.cd.jwa.create_workflow
+    name: jwa-build
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/jupyter/*
+    kwargs: {}
