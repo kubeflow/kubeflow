@@ -1,4 +1,4 @@
-""""Argo Workflow for building Admission Webhook's OCI image using Kaniko"""
+""""Argo Workflow for testing Admission Webhook"""
 from kubeflow.kubeflow.ci import workflow_utils
 from kubeflow.testing import argo_build_util
 

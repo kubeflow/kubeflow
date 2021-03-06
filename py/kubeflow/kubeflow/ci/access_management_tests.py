@@ -1,10 +1,9 @@
-""""Argo Workflow for building Central Dashboards' OCI image using Kaniko"""
-from kubeflow.kubeflow import ci
-from kubeflow.kubeflow.cd import config
+""""Argo Workflow for testing Access Management's OCI image using Kaniko"""
+from kubeflow.kubeflow.ci import workflow_utils
 from kubeflow.testing import argo_build_util
 
 
-class Builder(ci.workflow_utils.ArgoTestBuilder):
+class Builder(workflow_utils.ArgoTestBuilder):
     def __init__(self, name=None, namespace=None, bucket=None,
                  test_target_name=None, **kwargs):
         super().__init__(name=name, namespace=namespace, bucket=bucket,
@@ -15,16 +14,16 @@ class Builder(ci.workflow_utils.ArgoTestBuilder):
         workflow = self.build_init_workflow(exit_dag=False)
         task_template = self.build_task_template()
 
-        # Build Central Dashboards using Kaniko
-        dockerfile = ("%s/components/centraldashboard"
+        # Build Access Management using Kaniko
+        dockerfile = ("%s/components/access-mamanegment"
                       "/Dockerfile") % self.src_dir
-        context = "dir://%s/components/centraldashboard/" % self.src_dir
-        destination = config.CENTRAL_DASHBOARD_IMAGE
+        context = "dir://%s/components/access-mamanegment/" % self.src_dir
+        destination = "access-management-test"
 
         kaniko_task = self.create_kaniko_task(task_template, dockerfile,
-                                              context, destination)
+                                              context, destination, no_push=True)
         argo_build_util.add_task_to_dag(workflow,
-                                        ci.workflow_utils.E2E_DAG_NAME,
+                                        workflow_utils.E2E_DAG_NAME,
                                         kaniko_task, [self.mkdir_task_name])
 
         # Set the labels on all templates

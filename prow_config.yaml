@@ -14,12 +14,65 @@ workflows:
     include_dirs:
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
     kwargs: {}
+  - py_func: kubeflow.kubeflow.ci.access_management_tests.create_workflow
+    name: a-man-tests
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/access-management/*
+    kwargs: {}
   - py_func: kubeflow.kubeflow.ci.admission_webhook_tests.create_workflow
     name: am-wh
     job_types:
       - presubmit
     include_dirs:
       - components/admission-webhook/*
+    kwargs: {}
+  - py_func: kubeflow.kubeflow.ci.central_dashboard_tests.create_workflow
+    name: cdash-test
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/centraldashboard/*
+    kwargs: {}
+  - py_func: kubeflow.kubeflow.ci.jwa_tests.create_workflow
+    name: jwa-tests
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/jupyter/*
+    kwargs: {}
+  - py_func: kubeflow.kubeflow.ci.notebook_controller_tests.create_workflow
+    name: nb-c-tests
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/common/*
+      - components/notebook-controller/*
+    kwargs: {}
+  - py_func: kubeflow.kubeflow.ci.profile_controller_tests.create_workflow
+    name: pro-c-test
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/profile-controller/*
+    kwargs: {}
+  - py_func: kubeflow.kubeflow.ci.tensorboard_controller_tests.create_workflow
+    name: ten-c-test
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/common/*
+      - components/tensorboard-controller/*
+    kwargs: {}
+  - py_func: kubeflow.kubeflow.ci.twa_tests.create_workflow
+    name: twa-tests
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/tensorboards/*
     kwargs: {}
   # post submit jobs
   - py_func: kubeflow.kubeflow.cd.jwa.create_workflow
@@ -33,7 +86,7 @@ workflows:
   # - py_func: kubeflow.kubeflow.cd.access_management.create_workflow
   #   name: a-man-build
   #   job_types:
-  #     - presubmit
+  #     - postsubmit
   #   include_dirs:
   #     - components/access-management/*
   #   kwargs: {}
