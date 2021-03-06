@@ -5,7 +5,7 @@ import yaml
 
 from kubeflow.kubeflow.cd import access_management
 
-WORKFLOW_NAME = os.getenv("WORKFLOW_NAME", "access-management-build")
+WORKFLOW_NAME = os.getenv("WORKFLOW_NAME", "a-man-build")
 WORKFLOW_NAMESPACE = os.getenv("WORKFLOW_NAMESPACE", "kubeflow-user")
 
 if __name__ == "__main__":

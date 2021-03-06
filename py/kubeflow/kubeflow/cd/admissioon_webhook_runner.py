@@ -5,7 +5,7 @@ import yaml
 
 from kubeflow.kubeflow.cd import admission_webhook
 
-WORKFLOW_NAME = os.getenv("WORKFLOW_NAME", "admission-webhook-build")
+WORKFLOW_NAME = os.getenv("WORKFLOW_NAME", "ad-wh-build")
 WORKFLOW_NAMESPACE = os.getenv("WORKFLOW_NAMESPACE", "kubeflow-user")
 
 if __name__ == "__main__":

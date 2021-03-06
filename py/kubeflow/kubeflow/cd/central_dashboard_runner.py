@@ -5,7 +5,7 @@ import yaml
 
 from kubeflow.kubeflow.cd import central_dashboard
 
-WORKFLOW_NAME = os.getenv("WORKFLOW_NAME", "central-dashboard-build")
+WORKFLOW_NAME = os.getenv("WORKFLOW_NAME", "cdash-build")
 WORKFLOW_NAMESPACE = os.getenv("WORKFLOW_NAMESPACE", "kubeflow-user")
 
 if __name__ == "__main__":

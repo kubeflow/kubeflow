@@ -5,7 +5,7 @@ import yaml
 
 from kubeflow.kubeflow.cd import notebook_controller
 
-WORKFLOW_NAME = os.getenv("WORKFLOW_NAME", "notebook-controller-build")
+WORKFLOW_NAME = os.getenv("WORKFLOW_NAME", "nb-c-build")
 WORKFLOW_NAMESPACE = os.getenv("WORKFLOW_NAMESPACE", "kubeflow-user")
 
 if __name__ == "__main__":
