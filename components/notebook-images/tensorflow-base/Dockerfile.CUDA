@@ -1,4 +1,4 @@
-FROM davidspek/kubeflow-ubuntu-jupyter-base:0.5
+FROM davidspek/kubeflow-ubuntu-jupyter-base:0.8
 
 ARG CUDA=11.1
 ARG CUDNN=8.0.5.39-1
@@ -84,7 +84,7 @@ USER $NB_UID
 # Some TF tools expect a "python" binary
 RUN ln -s $(which python3) /usr/local/bin/python
 
-COPY requirements-gpu.txt .
+COPY requirements-cuda.txt .
 RUN python3 -m pip install -r \
-    requirements-gpu.txt --quiet --no-cache-dir \
-    && rm -f requirements-gpu.txt
+    requirements-cuda.txt --quiet --no-cache-dir \
+    && rm -f requirements-cuda.txt
