@@ -1,4 +1,4 @@
-FROM davidspek/kubeflow-ubuntu-datascience-base:0.2
+FROM davidspek/kubeflow-ubuntu-datascience-base:0.4
 
 USER $NB_UID
 
