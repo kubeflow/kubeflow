@@ -14,6 +14,13 @@ workflows:
     include_dirs:
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
     kwargs: {}
+  - py_func: kubeflow.kubeflow.ci.admission_webhook_tests.create_workflow
+    name: am-wh
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/admission-webhook/*
+    kwargs: {}
   # post submit jobs
   - py_func: kubeflow.kubeflow.cd.jwa.create_workflow
     name: jwa-build
@@ -33,21 +40,21 @@ workflows:
   - py_func: kubeflow.kubeflow.cd.admission_webhook.create_workflow
     name: ad-wh-build
     job_types:
-      - presubmit
+      - postsubmit
     include_dirs:
       - components/admission-webhook/*
     kwargs: {}
   - py_func: kubeflow.kubeflow.cd.central_dashboard.create_workflow
     name: cdash-build
     job_types:
-      - presubmit
+      - postsubmit
     include_dirs:
       - components/centraldashboard/*
     kwargs: {}
   - py_func: kubeflow.kubeflow.cd.twa.create_workflow
     name: twa-build
     job_types:
-      - presubmit
+      - postsubmit
     include_dirs:
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
       - components/crud-web-apps/tensorboards/*
@@ -55,7 +62,7 @@ workflows:
   - py_func: kubeflow.kubeflow.cd.notebook_controller.create_workflow
     name: nb-c-build
     job_types:
-      - presubmit
+      - postsubmit
     include_dirs:
       - components/common/*
       - components/notebook-controller/*
@@ -63,14 +70,14 @@ workflows:
   - py_func: kubeflow.kubeflow.cd.profile_controller.create_workflow
     name: pro-c-build
     job_types:
-      - presubmit
+      - postsubmit
     include_dirs:
       - components/profile-controller/*
     kwargs: {}
   - py_func: kubeflow.kubeflow.cd.tensorboard_controller.create_workflow
     name: ten-c-build
     job_types:
-      - presubmit
+      - postsubmit
     include_dirs:
       - components/common/*
       - components/tensorboard-controller/*

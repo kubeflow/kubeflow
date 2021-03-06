@@ -14,3 +14,12 @@ check-local-common-ui-tests:
 check-prod-common-ui-tests:
 	PYTHONPATH=${PYTHONPATH} \
 	python common_ui_tests_runner.py
+
+check-local-admission-webhook-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python admission_webhook_tests_runner.py
+
+check-prod-admission-webhook-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	python admission_webhook_tests_runner.py
