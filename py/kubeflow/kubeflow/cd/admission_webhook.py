@@ -1,4 +1,4 @@
-""""Argo Workflow for building Jupyter Web App's OCI image using Kaniko"""
+""""Argo Workflow for building Admission Webhook's OCI image using Kaniko"""
 from kubeflow.kubeflow import ci
 from kubeflow.kubeflow.cd import config
 from kubeflow.testing import argo_build_util
@@ -15,11 +15,11 @@ class Builder(ci.workflow_utils.ArgoTestBuilder):
         workflow = self.build_init_workflow(exit_dag=False)
         task_template = self.build_task_template()
 
-        # Build JWA using Kaniko
-        dockerfile = ("%s/components/crud-web-apps"
-                      "/jupyter/Dockerfile") % self.src_dir
-        context = "dir://%s/components/crud-web-apps" % self.src_dir
-        destination = config.JUPYTER_WEB_APP_IMAGE
+        # Build Admission Webhook using Kaniko
+        dockerfile = ("%s/components/admission-webhook"
+                      "/Dockerfile") % self.src_dir
+        context = "dir://%s/components/admission-webhook/" % self.src_dir
+        destination = config.ADMISSION_WEBHOOK_IMAGE
 
         kaniko_task = self.create_kaniko_task(task_template, dockerfile,
                                               context, destination)

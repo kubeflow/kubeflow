@@ -23,3 +23,55 @@ workflows:
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
       - components/crud-web-apps/jupyter/*
     kwargs: {}
+  # - py_func: kubeflow.kubeflow.cd.access_management.create_workflow
+  #   name: access-management-build
+  #   job_types:
+  #     - presubmit
+  #   include_dirs:
+  #     - components/access-management/*
+  #   kwargs: {}
+  - py_func: kubeflow.kubeflow.cd.admission_webhook.create_workflow
+    name: admission-webhook-build
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/admission-webhook/*
+    kwargs: {}
+  - py_func: kubeflow.kubeflow.cd.central_dashboard.create_workflow
+    name: central-dashboard-build
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/centraldashboard/*
+    kwargs: {}
+  - py_func: kubeflow.kubeflow.cd.twa.create_workflow
+    name: twa-build
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/tensorboards/*
+    kwargs: {}
+  - py_func: kubeflow.kubeflow.cd.notebook_controller.create_workflow
+    name: notebook-controller-build
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/common/*
+      - components/notebook-controller/*
+    kwargs: {}
+  - py_func: kubeflow.kubeflow.cd.profile_controller.create_workflow
+    name: profile-controller-build
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/profile-controller/*
+    kwargs: {}
+  - py_func: kubeflow.kubeflow.cd.tensorboard_controller.create_workflow
+    name: tensorboard-controller-build
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/common/*
+      - components/tensorboard-controller/*
+    kwargs: {}
