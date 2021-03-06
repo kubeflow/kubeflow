@@ -1,4 +1,4 @@
-FROM davidspek/kubeflow-ubuntu-jupyter-base:0.7
+FROM davidspek/kubeflow-ubuntu-jupyter-base:0.8
 
 USER root
 
