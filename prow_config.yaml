@@ -93,13 +93,13 @@ workflows:
       - components/crud-web-apps/jupyter/*
     kwargs: {}
   # Create and push Access Management OCI image to ECR
-  # - py_func: kubeflow.kubeflow.cd.access_management.create_workflow
-  #   name: a-man-build
-  #   job_types:
-  #     - postsubmit
-  #   include_dirs:
-  #     - components/access-management/*
-  #   kwargs: {}
+  - py_func: kubeflow.kubeflow.cd.access_management.create_workflow
+    name: a-man-build
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/access-management/*
+    kwargs: {}
   # Create and push Admission Webhook OCI image to ECR
   - py_func: kubeflow.kubeflow.cd.admission_webhook.create_workflow
     name: ad-wh-build
