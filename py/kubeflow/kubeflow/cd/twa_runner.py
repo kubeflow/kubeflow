@@ -1,12 +1,5 @@
 # This file is only intended for development purposes
-import os
+from kubeflow.kubeflow.cd import base_runner
 
-import yaml
-
-from kubeflow.kubeflow.cd import twa
-
-WORKFLOW_NAME = os.getenv("WORKFLOW_NAME", "twa-build")
-WORKFLOW_NAMESPACE = os.getenv("WORKFLOW_NAMESPACE", "kubeflow-user")
-
-if __name__ == "__main__":
-    print(yaml.dump(twa.create_workflow(WORKFLOW_NAME, WORKFLOW_NAMESPACE)))
+base_runner.main(component_name="twa",
+                 workflow_name="twa-build")

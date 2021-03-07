@@ -1,12 +1,5 @@
 # This file is only intended for development purposes
-import os
+from kubeflow.kubeflow.cd import base_runner
 
-import yaml
-
-from kubeflow.kubeflow.cd import notebook_controller
-
-WORKFLOW_NAME = os.getenv("WORKFLOW_NAME", "nb-c-build")
-WORKFLOW_NAMESPACE = os.getenv("WORKFLOW_NAMESPACE", "kubeflow-user")
-
-if __name__ == "__main__":
-    print(yaml.dump(notebook_controller.create_workflow(WORKFLOW_NAME, WORKFLOW_NAMESPACE)))
+base_runner.main(component_name="notebook_controller",
+                 workflow_name="nb-c-build")
