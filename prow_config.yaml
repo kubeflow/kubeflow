@@ -16,7 +16,7 @@ workflows:
     kwargs: {}
   # Run unittests for access management
   - py_func: kubeflow.kubeflow.ci.access_management_tests.create_workflow
-    name: a-man-tests
+    name: ac-mgr-tests
     job_types:
       - presubmit
     include_dirs:
@@ -24,7 +24,7 @@ workflows:
     kwargs: {}
   # Run unittests for admission webhook
   - py_func: kubeflow.kubeflow.ci.admission_webhook_tests.create_workflow
-    name: am-wh
+    name: adm-wh-tests
     job_types:
       - presubmit
     include_dirs:
@@ -45,6 +45,7 @@ workflows:
       - presubmit
     include_dirs:
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/common/backend/*
       - components/crud-web-apps/jupyter/*
     kwargs: {}
   # Run unittests for the Notebook Controller
@@ -66,7 +67,7 @@ workflows:
     kwargs: {}
   # Run unittests for the Tensorboard Controller
   - py_func: kubeflow.kubeflow.ci.tensorboard_controller_tests.create_workflow
-    name: ten-c-test
+    name: tb-c-test
     job_types:
       - presubmit
     include_dirs:
@@ -80,9 +81,12 @@ workflows:
       - presubmit
     include_dirs:
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/common/backend/*
       - components/crud-web-apps/tensorboards/*
     kwargs: {}
-  # post submit jobs
+#######################################
+# Postsubmit jobs
+#######################################
   # Create and push Jupyter Web App OCI image to ECR
   - py_func: kubeflow.kubeflow.cd.jwa.create_workflow
     name: jwa-build
@@ -90,11 +94,12 @@ workflows:
       - postsubmit
     include_dirs:
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/common/backend/*
       - components/crud-web-apps/jupyter/*
     kwargs: {}
   # Create and push Access Management OCI image to ECR
   - py_func: kubeflow.kubeflow.cd.access_management.create_workflow
-    name: a-man-build
+    name: ac-mgr-build
     job_types:
       - postsubmit
     include_dirs:
@@ -102,7 +107,7 @@ workflows:
     kwargs: {}
   # Create and push Admission Webhook OCI image to ECR
   - py_func: kubeflow.kubeflow.cd.admission_webhook.create_workflow
-    name: ad-wh-build
+    name: adm-wh-build
     job_types:
       - postsubmit
     include_dirs:
@@ -123,6 +128,7 @@ workflows:
       - postsubmit
     include_dirs:
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/common/backend/*
       - components/crud-web-apps/tensorboards/*
     kwargs: {}
   # Create and push Notebook Controller OCI image to ECR
@@ -144,7 +150,7 @@ workflows:
     kwargs: {}
   # Create and push Tensorboard Controller OCI image to ECR
   - py_func: kubeflow.kubeflow.cd.tensorboard_controller.create_workflow
-    name: ten-c-build
+    name: tb-c-build
     job_types:
       - postsubmit
     include_dirs:

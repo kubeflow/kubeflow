@@ -2,4 +2,4 @@
 from kubeflow.kubeflow.cd import base_runner
 
 base_runner.main(component_name="admission_webhook",
-                 workflow_name="ad-wh-build")
+                 workflow_name="adm-wh-build")

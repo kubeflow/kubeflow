@@ -2,4 +2,4 @@
 from kubeflow.kubeflow.cd import base_runner
 
 base_runner.main(component_name="tensorboard_controller",
-                 workflow_name="ten-c-build")
+                 workflow_name="tb-c-build")

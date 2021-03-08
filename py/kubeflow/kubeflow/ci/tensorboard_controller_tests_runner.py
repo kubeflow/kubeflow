@@ -2,4 +2,4 @@
 from kubeflow.kubeflow.ci import base_runner
 
 base_runner.main(component_name="tensorboard_controller_tests",
-                 workflow_name="ten-c-test")
+                 workflow_name="tb-c-test")
