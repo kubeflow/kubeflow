@@ -38,6 +38,5 @@
       "dependencyDashboardApproval": true,
     }
   ],
-  "dependencyDashboardApproval": true, // require approval for all updates initially
   "separateMinorPatch": true
 }
