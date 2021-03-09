@@ -23,8 +23,10 @@ import (
 	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/api/istiorbac/v1alpha1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
+	v1 "k8s.io/client-go/listers/rbac/v1"
 	"k8s.io/client-go/rest"
 )
 
@@ -50,8 +52,9 @@ type BindingInterface interface {
 }
 
 type BindingClient struct {
-	restClient rest.Interface
-	kubeClient *clientset.Clientset
+	restClient        rest.Interface
+	kubeClient        *clientset.Clientset
+	roleBindingLister v1.RoleBindingLister
 }
 
 //getBindingName returns bindingName, which is combination of user kind, username, RoleRef kind, RoleRef name.
@@ -134,7 +137,7 @@ func (c *BindingClient) Delete(binding *Binding) error {
 	if err != nil {
 		return err
 	}
-	_, err = c.kubeClient.RbacV1().RoleBindings(binding.ReferredNamespace).Get(bindingName, metav1.GetOptions{})
+	_, err = c.roleBindingLister.RoleBindings(binding.ReferredNamespace).Get(bindingName)
 	if err != nil {
 		return err
 	}
@@ -168,11 +171,11 @@ func (c *BindingClient) Delete(binding *Binding) error {
 func (c *BindingClient) List(user string, namespaces []string, role string) (*BindingEntries, error) {
 	bindings := []Binding{}
 	for _, ns := range namespaces {
-		roleBindingList, err := c.kubeClient.RbacV1().RoleBindings(ns).List(metav1.ListOptions{})
+		roleBindings, err := c.roleBindingLister.RoleBindings(ns).List(labels.Everything())
 		if err != nil {
 			return nil, err
 		}
-		for _, roleBinding := range roleBindingList.Items {
+		for _, roleBinding := range roleBindings {
 			userVal, ok := roleBinding.Annotations[USER]
 			if !ok {
 				continue
