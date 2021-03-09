@@ -1,4 +1,4 @@
-""""Argo Workflow for building Jupyter Web App's OCI image using Kaniko"""
+""""Argo Workflow for building Admission Webhook's OCI image using Kaniko"""
 from kubeflow.kubeflow.cd import config, kaniko_builder
 
 
@@ -10,6 +10,6 @@ def create_workflow(name=None, namespace=None, bucket=None, **kwargs):
     """
     builder = kaniko_builder.Builder(name=name, namespace=namespace, bucket=bucket, **kwargs)
 
-    return builder.build(dockerfile="components/crud-web-apps/jupyter/Dockerfile",
-                         context="components/crud-web-apps/",
-                         destination=config.JUPYTER_WEB_APP_IMAGE)
+    return builder.build(dockerfile="components/admission-webhook/Dockerfile",
+                         context="components/admission-webhook/",
+                         destination=config.ADMISSION_WEBHOOK_IMAGE)

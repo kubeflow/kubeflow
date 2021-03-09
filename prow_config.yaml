@@ -14,12 +14,146 @@ workflows:
     include_dirs:
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
     kwargs: {}
-  # post submit jobs
+  # Run unittests for access management
+  - py_func: kubeflow.kubeflow.ci.access_management_tests.create_workflow
+    name: ac-mgr-tests
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/access-management/*
+    kwargs: {}
+  # Run unittests for admission webhook
+  - py_func: kubeflow.kubeflow.ci.admission_webhook_tests.create_workflow
+    name: adm-wh-tests
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/admission-webhook/*
+    kwargs: {}
+  # Run unittests for the central dashboard
+  - py_func: kubeflow.kubeflow.ci.central_dashboard_tests.create_workflow
+    name: cdash-test
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/centraldashboard/*
+    kwargs: {}
+  # Run unittests for the Jupyter Web App
+  - py_func: kubeflow.kubeflow.ci.jwa_tests.create_workflow
+    name: jwa-tests
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/common/backend/*
+      - components/crud-web-apps/jupyter/*
+    kwargs: {}
+  # Run unittests for the Notebook Controller
+  - py_func: kubeflow.kubeflow.ci.notebook_controller_tests.create_workflow
+    name: nb-c-tests
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/common/*
+      - components/notebook-controller/*
+    kwargs: {}
+  # Run unittests for the Profile Controller
+  - py_func: kubeflow.kubeflow.ci.profile_controller_tests.create_workflow
+    name: pro-c-test
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/profile-controller/*
+    kwargs: {}
+  # Run unittests for the Tensorboard Controller
+  - py_func: kubeflow.kubeflow.ci.tensorboard_controller_tests.create_workflow
+    name: tb-c-test
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/common/*
+      - components/tensorboard-controller/*
+    kwargs: {}
+  # Run unittests for the Tensorboard Web App
+  - py_func: kubeflow.kubeflow.ci.twa_tests.create_workflow
+    name: twa-tests
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/common/backend/*
+      - components/crud-web-apps/tensorboards/*
+    kwargs: {}
+#######################################
+# Postsubmit jobs
+#######################################
+  # Create and push Jupyter Web App OCI image to ECR
   - py_func: kubeflow.kubeflow.cd.jwa.create_workflow
     name: jwa-build
     job_types:
       - postsubmit
     include_dirs:
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/common/backend/*
       - components/crud-web-apps/jupyter/*
+    kwargs: {}
+  # Create and push Access Management OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.access_management.create_workflow
+    name: ac-mgr-build
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/access-management/*
+    kwargs: {}
+  # Create and push Admission Webhook OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.admission_webhook.create_workflow
+    name: adm-wh-build
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/admission-webhook/*
+    kwargs: {}
+  # Create and push Central Dashboard OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.central_dashboard.create_workflow
+    name: cdash-build
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/centraldashboard/*
+    kwargs: {}
+  # Create and push Tensorboard Web App OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.twa.create_workflow
+    name: twa-build
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/common/backend/*
+      - components/crud-web-apps/tensorboards/*
+    kwargs: {}
+  # Create and push Notebook Controller OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.notebook_controller.create_workflow
+    name: nb-c-build
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/common/*
+      - components/notebook-controller/*
+    kwargs: {}
+  # Create and push Profile Controller OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.profile_controller.create_workflow
+    name: pro-c-build
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/profile-controller/*
+    kwargs: {}
+  # Create and push Tensorboard Controller OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.tensorboard_controller.create_workflow
+    name: tb-c-build
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/common/*
+      - components/tensorboard-controller/*
     kwargs: {}
