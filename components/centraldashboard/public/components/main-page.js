@@ -73,6 +73,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             menuLinks: {
                 type: Array,
                 value: [],
+                observer: '_menuLinksChanged',
             },
             externalLinks: {
                 type: Array,
@@ -201,6 +202,21 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         }
         this._setWorkgroupStatusHasLoaded(true);
     }
+
+    /**
+     * Simulate page changed to activate the correct menu link. This callback
+     * is called in response to the async call to /api/dashboard-links that
+     * happens at every page refresh.
+     *
+     * @param {Array} newValue - new menu links
+     */
+    _menuLinksChanged(newValue) {
+        if (newValue) {
+            this._routePageChanged(this.routeData.page, this.subRouteData.path,
+                this.routeHash.path);
+        }
+    }
+
     /**
      * Handles route changes by evaluating the page path component
      * @param {string} newPage
