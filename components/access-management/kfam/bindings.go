@@ -57,7 +57,7 @@ type BindingClient struct {
 //getBindingName returns bindingName, which is combination of user kind, username, RoleRef kind, RoleRef name.
 func getBindingName(binding *Binding) (string, error) {
 	// Only keep lower case letters and numbers, replace other with -
-	reg, err := regexp.Compile("[^a-zA-Z0-9]+")
+	reg, err := regexp.Compile("[^a-z0-9]+")
 	if err != nil {
 		return "", err
 	}
@@ -73,25 +73,18 @@ func getBindingName(binding *Binding) (string, error) {
 	return reg.ReplaceAllString(nameRaw, "-"), nil
 }
 
-func getSecurityCondition(binding *Binding, userIdHeader string, userIdPrefix string) []*istioSecurity.Condition {
-	if userIdHeader == "" {
-		return []*istioSecurity.Condition{}
-	}
-	return []*istioSecurity.Condition{
-		{
-			Key: fmt.Sprintf("request.headers[%v]", userIdHeader),
-			Values: []string{
-				userIdPrefix + binding.User.Name,
-			},
-		},
-	}
-}
-
 func getAuthorizationPolicy(binding *Binding, userIdHeader string, userIdPrefix string) istioSecurity.AuthorizationPolicy {
 	return istioSecurity.AuthorizationPolicy{
 		Rules: []*istioSecurity.Rule{
 			{
-				When: getSecurityCondition(binding, userIdHeader, userIdPrefix),
+				When: []*istioSecurity.Condition{
+					{
+						Key: fmt.Sprintf("request.headers[%v]", userIdHeader),
+						Values: []string{
+							userIdPrefix + binding.User.Name,
+						},
+					},
+				},
 			},
 		},
 	}
