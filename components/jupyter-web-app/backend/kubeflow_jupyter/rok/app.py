@@ -1,12 +1,12 @@
 import base64
-from flask import Flask, request, jsonify, send_from_directory
-from ..common.base_app import app as base
-from ..common import utils, api
+
+from flask import Blueprint, jsonify, request
+
+from ..common import api, utils
 from . import rok
 
 # Use the BaseApp, override the POST Notebook Endpoint
-app = Flask(__name__)
-app.register_blueprint(base)
+app = Blueprint("ui", __name__)
 logger = utils.create_logger(__name__)
 
 NOTEBOOK = "./kubeflow_jupyter/common/yaml/notebook.yaml"
@@ -119,20 +119,3 @@ def post_notebook(namespace):
 
     logger.info("Creating Notebook: {}".format(notebook))
     return jsonify(api.create_notebook(notebook, namespace=namespace))
-
-
-# Since Angular is a SPA, we serve index.html every time
-@app.route("/")
-def serve_root():
-    return send_from_directory("./static/", "index.html")
-
-
-@app.route("/<path:path>", methods=["GET"])
-def static_proxy(path):
-    return send_from_directory("./static/", path)
-
-
-@app.errorhandler(404)
-def page_not_found(e):
-    logger.info("Sending file 'index.html'")
-    return send_from_directory("./static/", "index.html")
