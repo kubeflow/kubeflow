@@ -31,13 +31,13 @@ workflows:
       - components/admission-webhook/*
     kwargs: {}
   # Run unittests for the central dashboard
-  - py_func: kubeflow.kubeflow.ci.central_dashboard_tests.create_workflow
-    name: cdash-test
-    job_types:
-      - presubmit
-    include_dirs:
-      - components/centraldashboard/*
-    kwargs: {}
+  # - py_func: kubeflow.kubeflow.ci.central_dashboard_tests.create_workflow
+  #   name: cdash-test
+  #   job_types:
+  #     - presubmit
+  #   include_dirs:
+  #     - components/centraldashboard/*
+  #   kwargs: {}
   # Run unittests for the Jupyter Web App
   - py_func: kubeflow.kubeflow.ci.jwa_tests.create_workflow
     name: jwa-tests
@@ -117,7 +117,7 @@ workflows:
   - py_func: kubeflow.kubeflow.cd.central_dashboard.create_workflow
     name: cdash-build
     job_types:
-      - postsubmit
+      - presubmit
     include_dirs:
       - components/centraldashboard/*
     kwargs: {}
