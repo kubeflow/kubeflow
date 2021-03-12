@@ -1,4 +1,4 @@
-AWS_REGISTRY = "public.ecr.aws/j1r0q0g6"
+AWS_REGISTRY = "public.ecr.aws/j1r0q0g6/notebooks"
 
 # list of public images
 JUPYTER_WEB_APP_IMAGE = "%s/jupyter-web-app" % AWS_REGISTRY
