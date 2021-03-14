@@ -1,0 +1,8 @@
+apiVersion: pvcviewer.kubeflow.org/v1alpha1
+kind: PVCViewer
+metadata:
+  name: workspace-argo-image-building-sample1
+  namespace: admin
+spec:
+  # Add fields here
+  pvcname: workspace-argo-image-building
