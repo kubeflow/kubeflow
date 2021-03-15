@@ -9,10 +9,11 @@ class Builder(ci.workflow_utils.ArgoTestBuilder):
         super().__init__(name=name, namespace=namespace, bucket=bucket,
                          test_target_name=test_target_name, **kwargs)
 
-    def build(self, dockerfile, context, destination):
+    def build(self, dockerfile, context, destination,
+              mem_override=None, deadline_override=None):
         """Build the Argo workflow graph"""
         workflow = self.build_init_workflow(exit_dag=False)
-        task_template = self.build_task_template()
+        task_template = self.build_task_template(mem_override, deadline_override)
 
         # Build component OCI image using Kaniko
         dockerfile = ("%s/%s") % (self.src_dir, dockerfile)

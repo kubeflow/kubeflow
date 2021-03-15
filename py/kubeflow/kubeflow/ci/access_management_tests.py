@@ -12,7 +12,7 @@ class Builder(workflow_utils.ArgoTestBuilder):
     def build(self):
         """Build the Argo workflow graph"""
         workflow = self.build_init_workflow(exit_dag=False)
-        task_template = self.build_task_template()
+        task_template = self.build_task_template(mem_override="6Gi")
 
         # Build Access Management using Kaniko
         dockerfile = ("%s/components/access-management"
