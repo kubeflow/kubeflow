@@ -79,4 +79,4 @@ data:
     }
 kind: ConfigMap
 metadata:
-  name: centraldashboard-links-config
+  name: centraldashboard-config
