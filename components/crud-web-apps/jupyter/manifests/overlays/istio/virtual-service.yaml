@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: jupyter-web-app
+  name: jupyter-web-app-jupyter-web-app
 spec:
   gateways:
   - kubeflow-gateway
@@ -19,6 +19,6 @@ spec:
       uri: /
     route:
     - destination:
-        host: jupyter-web-app-service.$(namespace).svc.$(clusterDomain)
+        host: jupyter-web-app-service.$(JWA_NAMESPACE).svc.$(JWA_CLUSTER_DOMAIN)
         port:
           number: 80
