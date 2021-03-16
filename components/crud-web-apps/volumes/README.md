@@ -1,4 +1,4 @@
-# Jupyter web app
+# Volumes web app
 
 This web app is responsible for allowing the user to manipulate PVCs in their Kubeflow cluster. To achieve this it provides a user friendly way to handle the lifecycle of PVC objects.
 
