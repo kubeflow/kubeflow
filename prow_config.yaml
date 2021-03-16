@@ -84,6 +84,16 @@ workflows:
       - components/crud-web-apps/common/backend/*
       - components/crud-web-apps/tensorboards/*
     kwargs: {}
+  # Run unittests for the Volumes Web App
+  - py_func: kubeflow.kubeflow.ci.vwa_tests.create_workflow
+    name: vwa-tests
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/common/backend/*
+      - components/crud-web-apps/volumes/*
+    kwargs: {}
 #######################################
 # Postsubmit jobs
 #######################################
@@ -156,4 +166,14 @@ workflows:
     include_dirs:
       - components/common/*
       - components/tensorboard-controller/*
+    kwargs: {}
+  # Create and push Volumes Web App OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.vwa.create_workflow
+    name: vwa-build
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/common/backend/*
+      - components/crud-web-apps/volumes/*
     kwargs: {}
