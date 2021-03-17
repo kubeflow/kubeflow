@@ -4,27 +4,27 @@
   ML packages"
   icon="fa:fab:docker"
 >
-  <section>
-    <div class="server-type">Choose server type:</div>
-    <mat-button-toggle-group [formControl]="parentForm.get('serverType')" aria-label="Server Type">
-      <mat-button-toggle value="jupyter" aria-label="Use JupyterLab based server">
-        <mat-icon style="height:72px !important; width:200px !important;" svgIcon="jupyterlab"></mat-icon>
-      </mat-button-toggle>
-      <mat-button-toggle value="vs-code" aria-label="Use VS-Code based server">
-        <mat-icon style="height:72px !important; width:200px !important;" svgIcon="vs-code"></mat-icon>
-      </mat-button-toggle>
-      <mat-button-toggle value="rstudio" aria-label="Use RStudio based server">
-        <mat-icon style="height:72px !important; width:200px !important;" svgIcon="rstudio"></mat-icon>
-      </mat-button-toggle>
-    </mat-button-toggle-group>
-  </section>
 
-  <mat-checkbox
+  <div class="flex-column">
+    <mat-checkbox
     *ngIf="!jupyterReadonly && !vscodeReadonly && !rstudioReadonly"
     [formControl]="parentForm.get('customImageCheck')"
-  >
-    Custom Image
-  </mat-checkbox>
+    >
+      Custom Image
+    </mat-checkbox>
+
+    <mat-button-toggle-group [formControl]="parentForm.get('serverType')" class="server-type-wrapper" aria-label="Server Type">
+      <mat-button-toggle value="jupyter" aria-label="Use JupyterLab based server">
+        <mat-icon class="server-type" svgIcon="jupyterlab"></mat-icon>
+      </mat-button-toggle>
+      <mat-button-toggle value="vs-code" aria-label="Use VS-Code based server">
+        <mat-icon class="server-type" svgIcon="vs-code"></mat-icon>
+      </mat-button-toggle>
+      <mat-button-toggle value="rstudio" aria-label="Use RStudio based server">
+        <mat-icon class="server-type" svgIcon="rstudio"></mat-icon>
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
 
   <mat-form-field
     class="wide"
