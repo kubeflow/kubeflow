@@ -1,10 +1,12 @@
-# Kubeflow Example Notebook Servers
+# Example Notebook Servers
 
-**These dockerfiles and the resulting images are provided as examples only.**
-**These images do not (yet) undergo automated testing and are only briefly**
-**tested manually. As such, these images are not guaranteed to contain no problems.**
-**If you do encounter a problem in one of these images, we greatly appreciate**
-**contributions to further improve these images.**
+**DISCLAIMER:** The Notebooks Working Group provides these Dockerfiles and
+their images as examples only, they are not tested with our CI/CD pipelines
+and are not certified to work in every situation. As such, issues related to
+these images will be dealt with in a best efforts approach. The Notebooks
+Working Group will work on officially supporting some of these Notebook
+Server images in the near future. If you do encounter a problem in one of
+these images, contributions and issue reports are greatly appreciated.
 
 ## Introduction
 
