@@ -60,6 +60,11 @@ export const defaultConfig = {
       }),
     },
     {
+      matHeaderCellDef: 'Type',
+      matColumnDef: 'type',
+      value: new PropertyValue({ field: 'serverType'}),
+    },
+    {
       matHeaderCellDef: 'Age',
       matColumnDef: 'age',
       value: new PropertyValue({ field: 'age' }),
