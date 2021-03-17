@@ -11,6 +11,7 @@ export interface JWABackendResponse extends BackendResponse {
 export interface NotebookResponseObject {
   name: string;
   namespace: string;
+  serverType: string;
   status: Status;
   reason: string;
   age: string;
@@ -36,9 +37,14 @@ export interface NotebookFormObject {
   name: string;
   namespace: string;
   image: string;
+  imageVSCode: string;
+  imageRStudio: string;
   imagePullPolicy: string;
   customImage?: string;
   customImageCheck: boolean;
+  httpRewriteURI: string;
+  httpHeadersRequestSet: string;
+  serverType: string;
   cpu: number | string;
   memory: number | string;
   gpus: GPU;
@@ -136,7 +142,29 @@ export interface Config {
     readOnly?: boolean;
   };
 
+  imageVSCode?: {
+    value: string;
+    options: string[];
+    readOnly?: boolean;
+  };
+
+  imageRStudio?: {
+    value: string;
+    options: string[];
+    readOnly?: boolean;
+  };
+
   imagePullPolicy?: {
+    value: string;
+    readOnly?: boolean;
+  };
+
+  httpRewriteURI?: {
+    value: string;
+    readOnly?: boolean;
+  };
+
+  httpHeadersRequestSet?: {
     value: string;
     readOnly?: boolean;
   };
