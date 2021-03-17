@@ -106,7 +106,49 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
 
     // Use the custom image instead
     if (notebook.customImageCheck) {
+      // Remove unnecessary images from payloaf
+      delete notebook.imageVSCode;
+      delete notebook.imageRStudio;
       notebook.image = notebook.customImage;
+      if (notebook.serverType == 'vs-code') {
+        // Remove unnecessary images from payloaf
+        delete notebook.imageVSCode;
+        delete notebook.imageRStudio;
+        // Set base URI to / for Istio rewrite
+        notebook.httpRewriteURI = '/';
+      } else if (notebook.serverType == 'rstudio') {
+        // Remove unnecessary images from payloaf
+        delete notebook.imageVSCode;
+        delete notebook.imageRStudio;
+        // Set base URI to / for Istio rewrite
+        notebook.httpRewriteURI = '/';
+        // Add X-RStudio-Root-Path header to requests for RStudio
+        const headerValue = '/notebook/' + notebook.namespace.toString() + '/' + notebook.name.toString() + '/';
+        notebook.httpHeadersRequestSet = JSON.stringify({ 'X-RStudio-Root-Path': headerValue });
+      }
+    } else if (notebook.serverType === 'jupyter') { // Set notebook image from jupyterImage
+        delete notebook.imageVSCode;
+        delete notebook.imageRStudio;
+      } else if (notebook.serverType === 'vs-code') { // Set notebook image from imageVSCode
+        notebook.image = notebook.imageVSCode;
+        delete notebook.imageVSCode;
+        delete notebook.imageRStudio;
+        // Set base URI to / for Istio rewrite
+        notebook.httpRewriteURI = '/';
+      } else if (notebook.serverType === 'rstudio') { // Set notebook image from imageRStudio
+        notebook.image = notebook.imageRStudio;
+        delete notebook.imageVSCode;
+        delete notebook.imageRStudio;
+        // Set base URI to / for Istio rewrite
+        notebook.httpRewriteURI = '/';
+        // Add X-RStudio-Root-Path header to requests for RStudio
+        const headerValue = '/notebook/' + notebook.namespace.toString() + '/' + notebook.name.toString() + '/';
+        notebook.httpHeadersRequestSet = JSON.stringify({ 'X-RStudio-Root-Path': headerValue });
+      }
+
+    // Ensure CPU input is a string
+    if (typeof notebook.cpu === 'number') {
+      notebook.cpu = notebook.cpu.toString();
     }
 
     // Add Gi to all sizes
