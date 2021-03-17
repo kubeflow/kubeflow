@@ -77,3 +77,12 @@ check-local-tensorboard-controller-kaniko-build:
 check-prod-tensorboard-controller-kaniko-build:
 	@PYTHONPATH=${PYTHONPATH} \
 	python tensorboard_controller_runner.py
+
+check-local-vwa-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python vwa_runner.py
+
+check-prod-vwa-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	python vwa_runner.py

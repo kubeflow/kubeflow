@@ -1,4 +1,4 @@
-""""Argo Workflow for testing Tensorboard Web App"""
+""""Argo Workflow for testing Volumes Web App"""
 from kubeflow.kubeflow.ci import workflow_utils
 from kubeflow.testing import argo_build_util
 
@@ -14,11 +14,11 @@ class Builder(workflow_utils.ArgoTestBuilder):
         workflow = self.build_init_workflow(exit_dag=False)
         task_template = self.build_task_template()
 
-        # Test building TWA image using Kaniko
+        # Test building VWA image using Kaniko
         dockerfile = ("%s/components/crud-web-apps"
-                      "/tensorboards/Dockerfile") % self.src_dir
+                      "/volumes/Dockerfile") % self.src_dir
         context = "dir://%s/components/crud-web-apps" % self.src_dir
-        destination = "twa-test"
+        destination = "vwa-test"
 
         kaniko_task = self.create_kaniko_task(task_template, dockerfile,
                                               context, destination, no_push=True)
