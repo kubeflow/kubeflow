@@ -1,5 +1,6 @@
 import functools
 import logging
+import os
 
 from kubernetes import client
 from kubernetes import config as k8s_config
@@ -10,6 +11,8 @@ from werkzeug.exceptions import Forbidden, Unauthorized
 from . import authn, config
 
 log = logging.getLogger(__name__)
+
+NO_AUTHNZ = os.getenv("APP_NO_AUTHNZ", "False")
 
 try:
     # Load configuration inside the Pod
@@ -52,6 +55,11 @@ def is_authorized(user, verb, group, version, resource, namespace=None,
     # Skip authz check if in dev mode
     if config.dev_mode_enabled():
         log.debug("Skipping authorization check in development mode")
+        return True
+
+    # Skip authz check if admin explicitly requested it
+    if NO_AUTHNZ == "True":
+        log.info("APP_NO_AUTHNZ set to True. Skipping authorization check.")
         return True
 
     if user is None:

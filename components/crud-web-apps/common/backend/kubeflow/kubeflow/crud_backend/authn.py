@@ -9,6 +9,7 @@ from . import config
 bp = Blueprint("authn", __name__)
 log = logging.getLogger(__name__)
 
+NO_AUTHNZ = os.getenv("APP_NO_AUTHNZ", "False")
 USER_HEADER = os.getenv("USERID_HEADER", "kubeflow-userid")
 USER_PREFIX = os.getenv("USERID_PREFIX", ":")
 
@@ -44,6 +45,10 @@ def check_authentication():
     """
     if config.dev_mode_enabled():
         log.debug("Skipping authentication check in development mode")
+        return
+
+    if NO_AUTHNZ == "True":
+        log.info("APP_NO_AUTHNZ set to True. Skipping authentication check.")
         return
 
     # If a function was decorated with `no_authentication` then we will skip
