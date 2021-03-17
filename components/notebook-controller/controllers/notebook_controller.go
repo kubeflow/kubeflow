@@ -75,12 +75,12 @@ type NotebookReconciler struct {
 	EventRecorder record.EventRecorder
 }
 
-// +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=apps,resources=statefulsets/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=core,resources=services/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
+// +kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create
+// +kubebuilder:rbac:groups=core,resources=services,verbs="*"
+// +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs="*"
+// +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks;notebooks/status;notebooks/finalizers,verbs="*"
+// +kubebuilder:rbac:groups="networking.istio.io",resources=virtualservices,verbs="*"
 
 func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
