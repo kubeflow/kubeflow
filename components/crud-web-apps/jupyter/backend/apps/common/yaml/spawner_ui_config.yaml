@@ -43,10 +43,10 @@ spawnerFormDefaults:
   imageRStudio:
     # The container Image for the user's RStudio Server
     # If readonly, this value must be a member of the list below
-    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio:master-28af7716
+    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:master-87b7d015
     # The list of available standard container Images
     options:
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio:master-28af7716
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:master-87b7d015
     logo: |-
       <?xml version="1.0" encoding="utf-8"?>
       <!-- Generator: Adobe Illustrator 22.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
