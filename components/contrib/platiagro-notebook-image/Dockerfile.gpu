@@ -292,7 +292,7 @@ RUN pip install --no-cache-dir \
     pyDOE==0.3.8 \
     "pynisher>=0.6.3" \
     "pyrfr>=0.7,<0.9" \
-    pytorch-lightning==1.1.8 \
+    pytorch-lightning==1.2.4 \
     rouge_score==0.0.4 \
     "scikit-learn>=0.24.0,<0.25.0" \
     scikit-optimize==0.8.1 \
@@ -304,9 +304,10 @@ RUN pip install --no-cache-dir \
     "smac>=0.13.1,<0.14" \
     spacy==3.0.1 \
     tensorflow==2.4.1 \
-    torch==1.7.1 \
-    torchvision==0.8.2 \
-    torchtext==0.8.1 \
+    torch==1.8.0 \
+    torchvision==0.9.0 \
+    torchaudio==0.8.0 \
+    torchtext==0.9.0 \
     transformers==4.3.2 \
     yolov4==2.1.0 \
  && pip uninstall -y typing \
