@@ -37,7 +37,7 @@ deploy: manifests
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
-	$(CONTROLLER_GEN) crd:trivialVersions=true webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) crd:trivialVersions=true paths="./..." output:crd:artifacts:config=config/crd/bases
 	# Uncomment when we remove the permissive ClusterRoleBinding to cluster-admin
 	# $(CONTROLLER_GEN) rbac:roleName=cluster-role-binding webhook paths="./..."
 
