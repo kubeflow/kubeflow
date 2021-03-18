@@ -48,4 +48,4 @@ COPY ./tensorboards/backend/Makefile .
 
 COPY --from=frontend /src/dist/ /src/app/static/
 
-ENTRYPOINT gunicorn -w 3 --bind 0.0.0.0:5000 --access-logfile - entrypoint:app
+ENTRYPOINT ["/bin/bash","-c","gunicorn -w 3 --bind 0.0.0.0:5000 --access-logfile - entrypoint:app"]
