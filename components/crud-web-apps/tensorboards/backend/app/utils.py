@@ -23,14 +23,6 @@ def parse_tensorboard(tensorboard):
     return parsed_tensorboard
 
 
-def getPVCName(pvc):
-    """
-    Return name of given PVC.
-    """
-
-    return pvc.metadata.name
-
-
 def get_tensorboard_dict(namespace, body):
     """
     Create Tensorboard object from request body and format it as a Python dict.
