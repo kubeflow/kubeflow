@@ -1,4 +1,4 @@
-IMG ?= public.ecr.aws/j1r0q0g6/tensorboards-web-app
+IMG ?= public.ecr.aws/j1r0q0g6/notebooks/tensorboards-web-app
 TAG ?= $(shell git log -n 1 --pretty=format:"%h" ./)
 DOCKERFILE=tensorboards/Dockerfile
 
