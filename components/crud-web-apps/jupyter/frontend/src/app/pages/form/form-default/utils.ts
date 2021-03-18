@@ -14,8 +14,6 @@ export function getFormDefaults(): FormGroup {
     imagePullPolicy: ['IfNotPresent', [Validators.required]],
     customImage: ['', []],
     customImageCheck: [false, []],
-    httpRewriteURI: ['', []],
-    httpHeadersRequestSet: ['', []],
     serverType: ['jupyter', [Validators.required]],
     cpu: [1, [Validators.required]],
     memory: [1, [Validators.required]],

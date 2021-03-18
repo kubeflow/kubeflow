@@ -60,8 +60,6 @@ export class FormImageComponent implements OnInit, OnDestroy {
         })
         this.parentForm.get('customImage').updateValueAndValidity();
         this.parentForm.get('serverType').updateValueAndValidity();
-        this.parentForm.get('httpRewriteURI').updateValueAndValidity();
-        this.parentForm.get('httpHeadersRequestSet').updateValueAndValidity();
       }),
     );
   }
