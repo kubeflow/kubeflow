@@ -84,6 +84,104 @@ workflows:
       - components/crud-web-apps/common/backend/*
       - components/crud-web-apps/tensorboards/*
     kwargs: {}
+  # Run unittests for the Volumes Web App
+  - py_func: kubeflow.kubeflow.ci.vwa_tests.create_workflow
+    name: vwa-tests
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/common/backend/*
+      - components/crud-web-apps/volumes/*
+    kwargs: {}
+  # Run build test for notebook-server-base OCI image
+  - py_func: kubeflow.kubeflow.ci.notebook_servers.notebook_server_base_tests.create_workflow
+    name: nb-base
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/example-notebook-servers/base/*
+    kwargs: {}
+  # Run build test for notebook-server-jupyter OCI image
+  - py_func: kubeflow.kubeflow.ci.notebook_servers.notebook_server_jupyter_tests.create_workflow
+    name: nb-jupyter
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/example-notebook-servers/jupyter/*
+    kwargs: {}
+  # Create and push notebook-server-rstudio OCI image to ECR
+  - py_func: kubeflow.kubeflow.ci.notebook_servers.notebook_server_rstudio_tests.create_workflow
+    name: nb-rstudio
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/example-notebook-servers/rstudio/*
+    kwargs: {}
+  # Run build test for notebook-server-codeserver OCI image
+  - py_func: kubeflow.kubeflow.ci.notebook_servers.notebook_server_codeserver_tests.create_workflow
+    name: nb-code
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/example-notebook-servers/codeserver/*
+    kwargs: {}
+  # Run build test for notebook-server-jupyter-pytorch OCI image
+  - py_func: kubeflow.kubeflow.ci.notebook_servers.notebook_server_jupyter_pytorch_tests.create_workflow
+    name: nb-j-pt
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/example-notebook-servers/jupyter-pytorch/*
+    kwargs: {}
+  # Run build test for notebook-server-jupyter-tensorflow OCI images
+  - py_func: kubeflow.kubeflow.ci.notebook_servers.notebook_server_jupyter_tensorflow_tests.create_workflow
+    name: nb-j-tf
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/example-notebook-servers/jupyter-tensorflow/*
+    kwargs: {}
+  # Run build test for notebook-server-jupyter-pytorch-full OCI images
+  - py_func: kubeflow.kubeflow.ci.notebook_servers.notebook_server_jupyter_pytorch_full_tests.create_workflow
+    name: nb-j-pt-f
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/example-notebook-servers/jupyter-pytorch-full/*
+    kwargs: {}
+  # Run build test for notebook-server-jupyter-tensorflow-full OCI images
+  - py_func: kubeflow.kubeflow.ci.notebook_servers.notebook_server_jupyter_tensorflow_full_tests.create_workflow
+    name: nb-j-tf-f
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/example-notebook-servers/jupyter-tensorflow-full/*
+    kwargs: {}
+  # Run build test for notebook-server-jupyter-scipy OCI image
+  - py_func: kubeflow.kubeflow.ci.notebook_servers.notebook_server_jupyter_scipy_tests.create_workflow
+    name: nb-j-sp
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/example-notebook-servers/jupyter-scipy/*
+    kwargs: {}
+  # Run build test for notebook-server-codeserver-python OCI image
+  - py_func: kubeflow.kubeflow.ci.notebook_servers.notebook_server_codeserver_python_tests.create_workflow
+    name: nb-code-p
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/example-notebook-servers/codeserver-python/*
+    kwargs: {}
+  # Run build test for notebook-server-rstudio-tidyverse OCI image
+  - py_func: kubeflow.kubeflow.ci.notebook_servers.notebook_server_rstudio_tidyverse_tests.create_workflow
+    name: nb-rs-tidy
+    job_types:
+      - presubmit
+    include_dirs:
+      - components/example-notebook-servers/rstudio-tidyverse/*
+    kwargs: {}
 #######################################
 # Postsubmit jobs
 #######################################
@@ -156,4 +254,102 @@ workflows:
     include_dirs:
       - components/common/*
       - components/tensorboard-controller/*
+    kwargs: {}
+  # Create and push Volumes Web App OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.vwa.create_workflow
+    name: vwa-build
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
+      - components/crud-web-apps/common/backend/*
+      - components/crud-web-apps/volumes/*
+    kwargs: {}
+  # Create and push notebook-server-base OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.notebook_servers.notebook_server_base.create_workflow
+    name: nb-base
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/example-notebook-servers/base/*
+    kwargs: {}
+  # Create and push notebook-server-jupyter OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.notebook_servers.notebook_server_jupyter.create_workflow
+    name: nb-jupyter
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/example-notebook-servers/jupyter/*
+    kwargs: {}
+  # Create and push notebook-server-rstudio OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.notebook_servers.notebook_server_rstudio.create_workflow
+    name: nb-rstudio
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/example-notebook-servers/rstudio/*
+    kwargs: {}
+  # Create and push notebook-server-codeserver OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.notebook_servers.notebook_server_codeserver.create_workflow
+    name: nb-code
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/example-notebook-servers/codeserver/*
+    kwargs: {}
+  # Create and push notebook-server-jupyter-pytorch OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.notebook_servers.notebook_server_jupyter_pytorch.create_workflow
+    name: nb-j-pt
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/example-notebook-servers/jupyter-pytorch/*
+    kwargs: {}
+  # Create and push notebook-server-jupyter-tensorflow OCI images to ECR
+  - py_func: kubeflow.kubeflow.cd.notebook_servers.notebook_server_jupyter_tensorflow.create_workflow
+    name: nb-j-tf
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/example-notebook-servers/jupyter-tensorflow/*
+    kwargs: {}
+  # Create and push notebook-server-jupyter-pytorch-full OCI images to ECR
+  - py_func: kubeflow.kubeflow.cd.notebook_servers.notebook_server_jupyter_pytorch_full.create_workflow
+    name: nb-j-pt-f
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/example-notebook-servers/jupyter-pytorch-full/*
+    kwargs: {}
+  # Create and push notebook-server-jupyter-tensorflow OCI images to ECR
+  - py_func: kubeflow.kubeflow.cd.notebook_servers.notebook_server_jupyter_tensorflow_full.create_workflow
+    name: nb-j-tf-f
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/example-notebook-servers/jupyter-tensorflow-full/*
+    kwargs: {}
+  # Create and push notebook-server-jupyter-scipy OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.notebook_servers.notebook_server_jupyter_scipy.create_workflow
+    name: nb-j-sp
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/example-notebook-servers/jupyter-scipy/*
+    kwargs: {}
+  # Create and push notebook-server-codeserver-python OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.notebook_servers.notebook_server_codeserver_python.create_workflow
+    name: nb-code-p
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/example-notebook-servers/codeserver-python/*
+    kwargs: {}
+  # Create and push notebook-server-rstudio-tidyverse OCI image to ECR
+  - py_func: kubeflow.kubeflow.cd.notebook_servers.notebook_server_rstudio_tidyverse.create_workflow
+    name: nb-rs-tidy
+    job_types:
+      - postsubmit
+    include_dirs:
+      - components/example-notebook-servers/rstudio-tidyverse/*
     kwargs: {}

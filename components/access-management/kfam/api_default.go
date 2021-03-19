@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"path"
 	"strconv"
+	"time"
 
 	profileRegister "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1beta1"
 	profilev1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
@@ -24,6 +25,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/client-go/informers"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -65,13 +67,20 @@ func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string
 	if err != nil {
 		return nil, err
 	}
+
+	informerFactory := informers.NewSharedInformerFactory(kubeClient, time.Minute*60)
+	roleBindingLister := informerFactory.Rbac().V1().RoleBindings().Lister()
+	stop := make(chan struct{})
+	informerFactory.Start(stop)
+	informerFactory.WaitForCacheSync(stop)
+
 	return &KfamV1Alpha1Client{
 		profileClient: &ProfileClient{
 			restClient: profileRESTClient,
 		},
 		bindingClient: &BindingClient{
-			restClient:        istioRESTClient,
-			kubeClient:        kubeClient,
+			restClient: istioRESTClient,
+			kubeClient: kubeClient,
 		},
 		clusterAdmin: []string{clusterAdmin},
 		userIdHeader: userIdHeader,

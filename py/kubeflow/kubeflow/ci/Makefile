@@ -86,3 +86,12 @@ check-local-twa-tests:
 check-prod-twa-tests:
 	PYTHONPATH=${PYTHONPATH} \
 	python twa_tests_runner.py
+
+check-local-vwa-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python vwa_tests_runner.py
+
+check-prod-vwa-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	python vwa_tests_runner.py

@@ -1,4 +1,4 @@
-""""Argo Workflow for testibg Tensorboard Web App"""
+""""Argo Workflow for testing Tensorboard Web App"""
 from kubeflow.kubeflow.ci import workflow_utils
 from kubeflow.testing import argo_build_util
 

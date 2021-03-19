@@ -12,4 +12,5 @@ def create_workflow(name=None, namespace=None, bucket=None, **kwargs):
 
     return builder.build(dockerfile="components/access-management/Dockerfile",
                          context="components/access-management/",
-                         destination=config.ACCESS_MANAGEMENT_IMAGE)
+                         destination=config.ACCESS_MANAGEMENT_IMAGE,
+                         mem_override="6Gi")
