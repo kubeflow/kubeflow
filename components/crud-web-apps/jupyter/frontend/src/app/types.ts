@@ -39,6 +39,7 @@ export interface NotebookFormObject {
   image: string;
   imageVSCode: string;
   imageRStudio: string;
+  allowCustomImage: boolean;
   imagePullPolicy: string;
   customImage?: string;
   customImageCheck: boolean;
@@ -137,20 +138,19 @@ export interface Config {
   image?: {
     value: string;
     options: string[];
-    readOnly?: boolean;
   };
 
   imageVSCode?: {
     value: string;
     options: string[];
-    readOnly?: boolean;
   };
 
   imageRStudio?: {
     value: string;
     options: string[];
-    readOnly?: boolean;
   };
+
+  allowCustomImage?: boolean;
 
   imagePullPolicy?: {
     value: string;

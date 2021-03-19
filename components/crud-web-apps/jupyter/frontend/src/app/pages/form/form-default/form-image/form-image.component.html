@@ -7,7 +7,7 @@
 
   <div class="flex-column">
     <mat-checkbox
-    *ngIf="!jupyterReadonly && !vscodeReadonly && !rstudioReadonly"
+    *ngIf="allowCustomImage"
     [formControl]="parentForm.get('customImageCheck')"
     >
       Custom Image

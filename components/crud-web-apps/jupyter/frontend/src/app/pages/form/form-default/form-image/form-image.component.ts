@@ -13,11 +13,9 @@ import { MatIconRegistry } from '@angular/material/icon';
 export class FormImageComponent implements OnInit, OnDestroy {
   @Input() parentForm: FormGroup;
   @Input() images: string[];
-  @Input() jupyterReadonly: boolean;
   @Input() imagesVSCode: string[];
-  @Input() vscodeReadonly: boolean;
   @Input() imagesRStudio: string[];
-  @Input() rstudioReadonly: boolean;
+  @Input() allowCustomImage: boolean;
 
   subs = new Subscription();
 

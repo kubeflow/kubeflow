@@ -17,7 +17,6 @@
 spawnerFormDefaults:
   image:
     # The container Image for the user's Jupyter Notebook
-    # If readonly, this value must be a member of the list below
     value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-28af7716
     # The list of available standard container Images
     options:
@@ -26,29 +25,21 @@ spawnerFormDefaults:
       - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-cuda-full:master-28af7716
       - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-full:master-28af7716
       - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda-full:master-28af7716
-    # By default, custom container Images are allowed
-    # Uncomment the following line to only enable standard container Images
-    readOnly: false
   imageVSCode:
     # The container Image for the user's VS-Code Server
-    # If readonly, this value must be a member of the list below
     value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:master-28af7716
     # The list of available standard container Images
     options:
       - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:master-28af7716
-    # By default, custom container Images are allowed
-    # Uncomment the following line to only enable standard container Images
-    readOnly: false
   imageRStudio:
     # The container Image for the user's RStudio Server
-    # If readonly, this value must be a member of the list below
     value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:master-87b7d015
     # The list of available standard container Images
     options:
       - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:master-87b7d015
-    # By default, custom container Images are allowed
-    # Uncomment the following line to only enable standard container Images
-    readOnly: false
+  allowCustomImage: true
+  # If true, users can input custom images
+  # If false, users can only select from the images in this config
   imagePullPolicy:
     # Supported values: Always, IfNotPresent, Never
     value: IfNotPresent

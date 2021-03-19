@@ -11,6 +11,7 @@ export function getFormDefaults(): FormGroup {
     image: ['', [Validators.required]],
     imageVSCode: ['', [Validators.required]],
     imageRStudio: ['', [Validators.required]],
+    allowCustomImage: [true, []],
     imagePullPolicy: ['IfNotPresent', [Validators.required]],
     customImage: ['', []],
     customImageCheck: [false, []],
@@ -149,19 +150,10 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
   }
 
   formCtrl.controls.image.setValue(config.image.value);
-  if (config.image.readOnly) {
-    formCtrl.controls.image.disable();
-  }
 
   formCtrl.controls.imageVSCode.setValue(config.imageVSCode.value);
-  if (config.imageVSCode.readOnly) {
-    formCtrl.controls.imageVSCode.disable();
-  }
 
   formCtrl.controls.imageRStudio.setValue(config.imageRStudio.value);
-  if (config.imageRStudio.readOnly) {
-    formCtrl.controls.imageRStudio.disable();
-  }
 
   formCtrl.controls.imagePullPolicy.setValue(config.imagePullPolicy.value);
   if (config.imagePullPolicy.readOnly) {
