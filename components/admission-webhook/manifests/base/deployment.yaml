@@ -15,6 +15,9 @@ spec:
         - mountPath: /etc/webhook/certs
           name: webhook-cert
           readOnly: true
+        ports:
+        - name: https-webhook
+          containerPort: 4443
       volumes:
       - name: webhook-cert
         secret:
