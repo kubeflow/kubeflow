@@ -1,4 +1,4 @@
-# TODO(https://github.com/kubeflow/manifests/issues/774): 
+# TODO(https://github.com/kubeflow/manifests/issues/774):
 # This is a legacy package. Hopefully we can get rid of it once
 # 774 is complete.
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -32,51 +32,45 @@ configMapGenerator:
 - files:
   - configs/spawner_ui_config.yaml
   name: jupyter-web-app-config
-  # TODO(jlewi): Why are we setting disableNameSuffixHash true? Don't we want a content hash so that if the config map
-  # changes we would update the configmap?
-generatorOptions:
-  disableNameSuffixHash: true
-patchesStrategicMerge:
-- deployment_patch.yaml
 vars:
 - fieldref:
-    fieldPath: data.policy
-  name: policy
-  objref:
-    apiVersion: v1
-    kind: ConfigMap
-    name: parameters
-- fieldref:
-    fieldPath: data.prefix
-  name: prefix
-  objref:
-    apiVersion: v1
-    kind: ConfigMap
-    name: parameters
-- fieldref:
-    fieldPath: data.clusterDomain
-  name: clusterDomain
+    fieldPath: data.JWA_CLUSTER_DOMAIN
+  name: JWA_CLUSTER_DOMAIN
   objref:
     apiVersion: v1
     kind: ConfigMap
     name: parameters
 - fieldref:
     fieldPath: metadata.namespace
-  name: namespace
+  name: JWA_NAMESPACE
   objref:
     apiVersion: v1
     kind: Service
     name: service
 - fieldref:
-    fieldPath: data.userid-header
-  name: userid-header
+    fieldPath: data.JWA_USERID_HEADER
+  name: JWA_USERID_HEADER
   objref:
     apiVersion: v1
     kind: ConfigMap
     name: parameters
 - fieldref:
-    fieldPath: data.userid-prefix
-  name: userid-prefix
+    fieldPath: data.JWA_USERID_PREFIX
+  name: JWA_USERID_PREFIX
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters
+- fieldref:
+    fieldPath: data.JWA_ROK_SECRET_NAME
+  name: JWA_ROK_SECRET_NAME
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters
+- fieldref:
+    fieldPath: data.JWA_UI
+  name: JWA_UI
   objref:
     apiVersion: v1
     kind: ConfigMap
