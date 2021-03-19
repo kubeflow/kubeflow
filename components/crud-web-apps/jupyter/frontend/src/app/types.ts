@@ -8,10 +8,12 @@ export interface JWABackendResponse extends BackendResponse {
   vendors?: string[];
 }
 
+export type ServerType = 'jupyter' | 'vscode' | 'rstudio';
+
 export interface NotebookResponseObject {
   name: string;
   namespace: string;
-  serverType: string;
+  serverType: ServerType;
   status: Status;
   reason: string;
   age: string;
