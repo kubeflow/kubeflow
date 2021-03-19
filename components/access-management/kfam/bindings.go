@@ -76,25 +76,18 @@ func getBindingName(binding *Binding) (string, error) {
 	return reg.ReplaceAllString(nameRaw, "-"), nil
 }
 
-func getSecurityCondition(binding *Binding, userIdHeader string, userIdPrefix string) []*istioSecurity.Condition {
-	if userIdHeader == "" {
-		return []*istioSecurity.Condition{}
-	}
-	return []*istioSecurity.Condition{
-		{
-			Key: fmt.Sprintf("request.headers[%v]", userIdHeader),
-			Values: []string{
-				userIdPrefix + binding.User.Name,
-			},
-		},
-	}
-}
-
 func getAuthorizationPolicy(binding *Binding, userIdHeader string, userIdPrefix string) istioSecurity.AuthorizationPolicy {
 	return istioSecurity.AuthorizationPolicy{
 		Rules: []*istioSecurity.Rule{
 			{
-				When: getSecurityCondition(binding, userIdHeader, userIdPrefix),
+				When: []*istioSecurity.Condition{
+					{
+						Key: fmt.Sprintf("request.headers[%v]", userIdHeader),
+						Values: []string{
+							userIdPrefix + binding.User.Name,
+						},
+					},
+				},
 			},
 		},
 	}
