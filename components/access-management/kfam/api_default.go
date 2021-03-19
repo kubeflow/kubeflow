@@ -55,7 +55,7 @@ func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string
 	if err != nil {
 		return nil, err
 	}
-	istioRESTClient, err := getRESTClient(istioRegister.GroupName, istioRegister.GroupVersion)
+	istioRESTClient, err := getRESTClient(istioRegister.GroupName, "v1beta1")
 	if err != nil {
 		return nil, err
 	}
