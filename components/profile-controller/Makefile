@@ -5,9 +5,6 @@ TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always
 GOLANG_VERSION ?= 1.15
 CONTROLLER_GEN_VERSION ?= 0.4.0
 
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true"
-
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -35,12 +32,14 @@ install:
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests
-	cd config/manager && kustomize edit set image controller=${IMG}
+	cd config/manager && kustomize edit set image gcr.io/kubeflow-images-public/profile-controller=${IMG}
 	kustomize build config/default | kubectl apply -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) crd:trivialVersions=true paths="./..." output:crd:artifacts:config=config/crd/bases
+	# Uncomment when we remove the permissive ClusterRoleBinding to cluster-admin
+	# $(CONTROLLER_GEN) rbac:roleName=cluster-role-binding webhook paths="./..."
 
 # Run go fmt against code
 fmt:
