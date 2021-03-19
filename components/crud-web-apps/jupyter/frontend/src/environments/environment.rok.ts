@@ -6,6 +6,9 @@ export const environment = {
   production: false,
   resource: 'notebooks',
   ui: 'rok',
+  jupyterlabLogo: 'static/assets/jupyterlab-logo.svg',
+  vscodeLogo: 'static/assets/visual-studio-code-logo.svg',
+  rstudioLogo: 'static/assets/rstudio-logo.svg',
 };
 /*
  * For easier debugging in development mode, you can import the following file

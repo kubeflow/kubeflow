@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import { FormGroup, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { environment } from '@app/environment';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconRegistry } from '@angular/material/icon';
 
@@ -21,9 +22,9 @@ export class FormImageComponent implements OnInit, OnDestroy {
   subs = new Subscription();
 
   constructor(iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
-    iconRegistry.addSvgIcon('jupyterlab', sanitizer.bypassSecurityTrustResourceUrl('static/assets/jupyterlab-wordmark.svg'));
-    iconRegistry.addSvgIcon('vs-code', sanitizer.bypassSecurityTrustResourceUrl('static/assets/visual-studio-code.svg'));
-    iconRegistry.addSvgIcon('rstudio', sanitizer.bypassSecurityTrustResourceUrl('static/assets/rstudio.svg'));
+    iconRegistry.addSvgIcon('jupyterlab', sanitizer.bypassSecurityTrustResourceUrl(environment.jupyterlabLogo));
+    iconRegistry.addSvgIcon('vs-code', sanitizer.bypassSecurityTrustResourceUrl(environment.vscodeLogo));
+    iconRegistry.addSvgIcon('rstudio', sanitizer.bypassSecurityTrustResourceUrl(environment.rstudioLogo));
   }
 
   ngOnInit() {

@@ -7,6 +7,9 @@ export const environment = {
   apiUrl: 'http://localhost:5000',
   resource: 'notebooks',
   ui: 'default',
+  jupyterlabLogo: 'static/assets/jupyterlab-logo.svg',
+  vscodeLogo: 'static/assets/visual-studio-code-logo.svg',
+  rstudioLogo: 'static/assets/rstudio-logo.svg',
 
   // Rok specifics
   rokUrl: '',
