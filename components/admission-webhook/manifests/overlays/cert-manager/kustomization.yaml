@@ -10,15 +10,20 @@ bases:
 resources:
 - certificate.yaml
 
+namespace: kubeflow
+
+namePrefix: admission-webhook-
+
+commonLabels:
+  app: poddefaults
+  kustomize.component: poddefaults
+  app.kubernetes.io/component: poddefaults
+  app.kubernetes.io/name: poddefaults
+
 patchesStrategicMerge:
 - mutating-webhook-configuration.yaml
 - deployment.yaml
 
-configMapGenerator:
-- name: admission-webhook-parameters
-  behavior: merge
-  envs:
-  - params.env
 generatorOptions:
   disableNameSuffixHash: true
 
@@ -29,19 +34,12 @@ vars:
 # transform them.
 # We need the var names to be relatively unique so that when we
 # compose with other applications they won't conflict.
-- name: podDefaultsIssuer
-  objref:
-    kind: ConfigMap
-    name: admission-webhook-parameters
-    apiVersion: v1
-  fieldref:
-    fieldpath: data.issuer
 - name: podDefaultsCertName
   objref:
       kind: Certificate
       group: cert-manager.io
       version: v1alpha2
-      name: admission-webhook-cert
+      name: cert
   fieldref:
     fieldpath: metadata.name
 

@@ -6,8 +6,7 @@ webhooks:
 - clientConfig:
     caBundle: ""
     service:
-      name: $(podDefaultsServiceName)
-      namespace: $(podDefaultsNamespace)
+      name: service
       path: /apply-poddefault
   name: $(podDefaultsDeploymentName).kubeflow.org
   namespaceSelector:

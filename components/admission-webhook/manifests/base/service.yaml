@@ -4,5 +4,6 @@ metadata:
   name: service
 spec:
   ports:
-  - port: 443
-    targetPort: 4443
+  - name: https-webhook
+    port: 443
+    targetPort: https-webhook
