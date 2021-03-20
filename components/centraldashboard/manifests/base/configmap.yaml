@@ -53,7 +53,7 @@ data:
           "link": "/pipeline/#/executions",
           "text": "Executions",
           "icon": "av:play-arrow"
-        },
+        }
       ],
       "externalLinks": [ ],
         "quickLinks": [
@@ -115,7 +115,7 @@ data:
             "link": "https://www.kubeflow.org/docs/started/requirements/"
           }
         ]
-}
+    }
 kind: ConfigMap
 metadata:
   name: centraldashboard-config

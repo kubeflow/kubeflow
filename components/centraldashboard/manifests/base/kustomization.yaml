@@ -9,7 +9,7 @@ resources:
 - role.yaml
 - service-account.yaml
 - service.yaml
-- links-configmap.yaml
+- configmap.yaml
 namespace: kubeflow
 commonLabels:
   kustomize.component: centraldashboard
@@ -62,5 +62,12 @@ vars:
     apiVersion: v1
     kind: ConfigMap
     name: centraldashboard-parameters
+- fieldref:
+    fieldPath: metadata.name
+  name: CD_CONFIGMAP_NAME
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: centraldashboard-config
 configurations:
 - params.yaml
