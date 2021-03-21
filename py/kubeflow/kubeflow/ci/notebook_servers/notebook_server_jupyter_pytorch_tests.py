@@ -16,7 +16,7 @@ class Builder(workflow_utils.ArgoTestBuilder):
 
         # Test building notebook-server-jupyter-pytorch images using Kaniko
         dockerfile = ("%s/components/example-notebook-servers"
-                      "/jupyter-pytorch/Dockerfile.CPU") % self.src_dir
+                      "/jupyter-pytorch/cpu.Dockerfile") % self.src_dir
         context = "dir://%s/components/example-notebook-servers/jupyter-pytorch/" % self.src_dir
         destination = "notebook-server-jupyter-pytorch-cpu-test"
 
@@ -27,7 +27,7 @@ class Builder(workflow_utils.ArgoTestBuilder):
                                         kaniko_task, [self.mkdir_task_name])
 
         dockerfile_cuda = ("%s/components/example-notebook-servers"
-                      "/jupyter-pytorch/Dockerfile.CUDA") % self.src_dir
+                      "/jupyter-pytorch/cuda.Dockerfile") % self.src_dir
         destination_cuda = "notebook-server-jupyter-pytorch-cuda-test"
 
         kaniko_task_cuda = self.create_kaniko_task(task_template, dockerfile_cuda,

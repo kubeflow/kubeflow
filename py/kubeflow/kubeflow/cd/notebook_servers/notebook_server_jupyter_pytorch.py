@@ -10,8 +10,8 @@ def create_workflow(name=None, namespace=None, bucket=None, **kwargs):
     """
     builder = kaniko_builder.Builder(name=name, namespace=namespace, bucket=bucket, **kwargs)
 
-    return builder.build(dockerfile="components/example-notebook-servers/jupyter-pytorch/Dockerfile.CPU",
+    return builder.build(dockerfile="components/example-notebook-servers/jupyter-pytorch/cpu.Dockerfile",
                          context="components/example-notebook-servers/jupyter-pytorch/",
                          destination=config.NOTEBOOK_SERVER_JUPYTER_PYTORCH,
-                         second_dockerfile="components/example-notebook-servers/jupyter-pytorch/Dockerfile.CUDA",
+                         second_dockerfile="components/example-notebook-servers/jupyter-pytorch/cuda.Dockerfile",
                          second_destination=config.NOTEBOOK_SERVER_JUPYTER_PYTORCH_CUDA)
