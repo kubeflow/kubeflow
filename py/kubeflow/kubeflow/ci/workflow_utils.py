@@ -208,7 +208,7 @@ class ArgoTestBuilder:
         extend the code.
         """
         kaniko = argo_build_util.deep_copy(task_template)
-        # for shurt UUID generation
+        # for short UUID generation
         alphabet = string.ascii_lowercase + string.digits
 
         # append the tag base-commit[0:7]
