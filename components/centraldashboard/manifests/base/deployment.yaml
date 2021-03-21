@@ -39,5 +39,5 @@ spec:
         - name: REGISTRATION_FLOW
           value: $(CD_REGISTRATION_FLOW)
         - name: DASHBOARD_LINKS_CONFIGMAP
-          value: centraldashboard-links-config
+          value: $(CD_CONFIGMAP_NAME)
       serviceAccountName: centraldashboard
