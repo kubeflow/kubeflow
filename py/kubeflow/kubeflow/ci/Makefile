@@ -95,3 +95,103 @@ check-local-vwa-tests:
 check-prod-vwa-tests:
 	PYTHONPATH=${PYTHONPATH} \
 	python vwa_tests_runner.py
+
+check-local-notebook-server-base-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_base_tests_runner.py
+
+check-prod-notebook-server-base-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_base_tests_runner.py
+
+check-local-notebook-server-jupyter-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_jupyter_tests_runner.py
+
+check-prod-notebook-server-jupyter-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_jupyter_tests_runner.py
+
+check-local-notebook-server-rstudio-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_rstudio_tests_runner.py
+
+check-prod-notebook-server-rstudio-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_rstudio_tests_runner.py
+
+check-local-notebook-server-codeserver-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_codeserver_tests_runner.py
+
+check-prod-notebook-server-codeserver-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_codeserver_tests_runner.py
+
+check-local-notebook-server-jupyter-pytorch-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_jupyter_pytorch_tests_runner.py
+
+check-prod-notebook-server-jupyter-pytorch-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_jupyter_pytorch_tests_runner.py
+
+check-local-notebook-server-jupyter-tensorflow-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_jupyter_tensorflow_tests_runner.py
+
+check-prod-notebook-server-jupyter-tensorflow-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_jupyter_tensorflow_tests_runner.py
+
+check-local-notebook-server-jupyter-pytorch-full-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_jupyter_pytorch_full_tests_runner.py
+
+check-prod-notebook-server-jupyter-pytorch-full-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_jupyter_pytorch_full_tests_runner.py
+
+check-local-notebook-server-jupyter-tensorflow-full-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_jupyter_tensorflow_full_tests_runner.py
+
+check-prod-notebook-server-jupyter-tensorflow-full-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_jupyter_tensorflow_full_tests_runner.py
+
+check-local-notebook-server-jupyter-scipy-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_jupyter_scipy_tests_runner.py
+
+check-prod-notebook-server-jupyter-scipy-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_jupyter_scipy_tests_runner.py
+
+check-local-notebook-server-codeserver-python-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_codeserver_python_tests_runner.py
+
+check-prod-notebook-server-codeserver-python-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_codeserver_python_tests_runner.py
+
+check-local-notebook-server-rstudio-tidyverse-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_rstudio_tidyverse_tests_runner.py
+
+check-prod-notebook-server-rstudio-tidyverse-tests:
+	PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_rstudio_tests_tidyverse_runner.py
+

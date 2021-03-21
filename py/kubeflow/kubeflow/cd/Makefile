@@ -86,3 +86,103 @@ check-local-vwa-kaniko-build:
 check-prod-vwa-kaniko-build:
 	@PYTHONPATH=${PYTHONPATH} \
 	python vwa_runner.py
+
+check-local-nb-base-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_base_runner.py
+
+check-prod-nb-base-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_base_runner.py
+
+check-local-nb-jupyter-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_jupyter_runner.py
+
+check-prod-nb-jupyter-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_jupyter_runner.py
+
+check-local-nb-rstudio-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_rstudio_runner.py
+
+check-prod-nb-rstudio-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_rstudio_runner.py
+
+check-local-nb-codeserver-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_codeserver_runner.py
+
+check-prod-nb-codeserver-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_codeserver_runner.py
+
+check-local-nb-jupyter-pytorch-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_jupyter_pytorch_runner.py
+
+check-prod-nb-jupyter-pytorch-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_jupyter_pytorch_runner.py
+
+check-local-nb-jupyter-tensorflow-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_jupyter_tensorflow_runner.py
+
+check-prod-nb-jupyter-tensorflow-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_jupyter_tensorflow_runner.py
+
+check-local-nb-jupyter-pytorch-full-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_jupyter_pytorch_full_runner.py
+
+check-prod-nb-jupyter-pytorch-full-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_jupyter_pytorch_full_runner.py
+
+check-local-nb-jupyter-tensorflow-full-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_jupyter_tensorflow_full_runner.py
+
+check-prod-nb-jupyter-tensorflow-full-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_jupyter_tensorflow_full_runner.py
+
+check-local-nb-jupyter-scipy-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_jupyter_scipy_runner.py
+
+check-prod-nb-jupyter-scipy-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_jupyter_scipy_runner.py
+
+check-local-nb-codeserver-python-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_codeserver_python_runner.py
+
+check-prod-nb-codeserver-python-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_codeserver_python_runner.py
+
+check-local-nb-rstudio-tidyverse-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	LOCAL_TESTING=True \
+	python notebook_servers/notebook_server_rstudio_tidyverse_runner.py
+
+check-prod-nb-rstudio-tidyverse-kaniko-build:
+	@PYTHONPATH=${PYTHONPATH} \
+	python notebook_servers/notebook_server_rstudio_tidyverse_runner.py
+
