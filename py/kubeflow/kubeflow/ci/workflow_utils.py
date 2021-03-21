@@ -1,5 +1,7 @@
 import logging
 import os
+import string
+import random
 
 from kubeflow.testing import argo_build_util
 
@@ -206,6 +208,8 @@ class ArgoTestBuilder:
         extend the code.
         """
         kaniko = argo_build_util.deep_copy(task_template)
+        # for short UUID generation
+        alphabet = string.ascii_lowercase + string.digits
 
         # append the tag base-commit[0:7]
         if ":" not in destination:
@@ -213,7 +217,8 @@ class ArgoTestBuilder:
             base = os.getenv("PULL_BASE_REF", "master")
             destination += ":%s-%s" % (base, sha[0:8])
 
-        kaniko["name"] = "kaniko-build-push"
+        # add short UUID to step name to ensure it is unique
+        kaniko["name"] = "kaniko-build-push-" + ''.join(random.choices(alphabet, k=8))
         kaniko["container"]["image"] = "gcr.io/kaniko-project/executor:v1.5.0"
         kaniko["container"]["command"] = ["/kaniko/executor"]
         kaniko["container"]["args"] = ["--dockerfile=%s" % dockerfile,
