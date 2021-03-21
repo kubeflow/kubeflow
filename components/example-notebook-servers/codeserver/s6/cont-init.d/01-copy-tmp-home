@@ -1,2 +1,2 @@
 #!/usr/bin/with-contenv bash
-cp -r -n /jovyan/* /home/
+cp -r -n /tmp_home/* /home/
