@@ -1,4 +1,4 @@
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:master-b3fe73b2
+FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:master-2dd0e3e4
 
 USER root
 
