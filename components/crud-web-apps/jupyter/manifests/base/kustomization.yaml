@@ -31,7 +31,7 @@ configMapGenerator:
   name: parameters
 - files:
   - configs/spawner_ui_config.yaml
-  name: jupyter-web-app-config
+  name: config
 vars:
 - fieldref:
     fieldPath: data.JWA_CLUSTER_DOMAIN
