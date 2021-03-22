@@ -1,203 +1,112 @@
 FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/base:master-4892c583
 
-# Conda version
-ARG conda_version="4.9.2"
-# Miniforge installer patch version
-ARG miniforge_patch_number="7"
-# Miniforge installer architecture
-ARG miniforge_arch="x86_64"
-# Python implementation to use 
-# can be either Miniforge3 to use Python or Miniforge-pypy3 to use PyPy
-ARG miniforge_python="Miniforge3"
-
-# Miniforge archive to install
-ARG miniforge_version="${conda_version}-${miniforge_patch_number}"
-# Miniforge installer
-ARG miniforge_installer="${miniforge_python}-${miniforge_version}-Linux-${miniforge_arch}.sh"
-# Miniforge checksum
-ARG miniforge_checksum="91d5aa5f732b5e02002a371196a2607f839bab166970ea06e6ecc602cb446848"
-
-ARG UBUNTU_VERSION=focal
-ARG CRAN_LINUX_VERSION=cran40
-ARG CRAN="https://packagemanager.rstudio.com/all/__linux__/focal/latest"
-ARG PANDOC_VERSION=2.11.4-1
-ARG PANDOC_DL_URL=https://github.com/jgm/pandoc/releases/download/2.11.4/pandoc-${PANDOC_VERSION}-amd64.deb
-
-# Configure environment
-ENV CONDA_DIR=/opt/conda
-ENV TZ=Etc/UTC
-ENV SHELL=/bin/bash
-ENV LC_ALL=en_US.UTF-8
-ENV R_VERSION=4.0.3
-ENV RSTUDIO_VERSION_ARG=1.4.1106
-ENV R_LIBS_SITE=$R_HOME/site-library
-ENV PATH "$CONDA_DIR/bin:$PATH"
-ENV R_HOME ${CONDA_DIR}/lib/R
-ENV CONDA_VERSION="${conda_version}"
-ENV MINIFORGE_VERSION="${miniforge_version}"
-
-
 USER root
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    file \
-    libapparmor1 \
-    libgc1c2 \
-    libclang-dev \
-    libcurl4-openssl-dev \
-    libedit2 \
-    libobjc4 \
-    libssl-dev \
-    libpq5 \
-    psmisc \
-    procps \
-    python-setuptools \
-    less \
-    libopenblas-base \
-    dirmngr \
-    gpg \
-    gpg-agent \
-    sudo \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Use bash instead of sh
+# use bash instead of sh
 SHELL ["/bin/bash", "-c"]
 
-# Create Conda dir and set user permissions for Jovyan
-# Create /jovyan dir and set user permissions for Jovyan to store files in home directory
-RUN mkdir -p $CONDA_DIR && \
-    chown -R ${NB_USER}:users $CONDA_DIR && \
-    mkdir -p /jovyan && \
-    chown -R ${NB_USER}:users /jovyan
+# args - software versions
+ARG CONDA_VERSION="4.9.2"
+ARG MINIFORGE_ARCH="x86_64"
+ARG MINIFORGE_SHA256="91d5aa5f732b5e02002a371196a2607f839bab166970ea06e6ecc602cb446848"
+ARG MINIFORGE_VERSION="${CONDA_VERSION}-7"
+ARG PIP_VERSION="21.0.1"
+ARG PYTHON_VERSION="3.8.8"
+ARG RSTUDIO_ARCH="amd64"
+ARG RSTUDIO_SHA256="a46bbfbcb468e7af6aa12280adb830056f4a10e3457fd2f5969bb31d4d476939"
+ARG RSTUDIO_VERSION="1.4.1106"
+ARG R_BASE_VERSION="4.0.3"
+ARG R_RETICULATE_VERSION="1.18"
+ARG R_PNG_VERSION="0.1_7"
 
-USER $NB_UID
+# install - binary rstudio dependencies
+RUN apt-get -yq update \
+ && apt-get -yq install --no-install-recommends \
+    libapparmor1 \
+    libc6 \
+    libclang-dev \
+    libedit2 \
+    libpq5 \
+    psmisc \
+    rrdtool \
+    sudo \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
-ARG PYTHON_VERSION=3.8.8
+# setup environment for conda
+ENV CONDA_DIR /opt/conda
+ENV PATH "${CONDA_DIR}/bin:${PATH}"
+RUN mkdir -p ${CONDA_DIR} \
+ && echo ". /opt/conda/etc/profile.d/conda.sh" >> ${HOME}/.bashrc \
+ && echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/profile \
+ && echo "conda activate base" >> ${HOME}/.bashrc \
+ && echo "conda activate base" >> /etc/profile \
+ && chown -R ${NB_USER}:users ${CONDA_DIR} \
+ && chown -R ${NB_USER}:users ${HOME}
 
-WORKDIR /tmp
+# setup environment for R
+ENV R_HOME ${CONDA_DIR}/lib/R
 
-# Prerequisites installation: conda, pip
-RUN wget --quiet "https://github.com/conda-forge/miniforge/releases/download/${miniforge_version}/${miniforge_installer}" && \
-    echo "${miniforge_checksum} *${miniforge_installer}" | sha256sum --check && \
-    /bin/bash "${miniforge_installer}" -f -b -p $CONDA_DIR && \
-    rm "${miniforge_installer}" && \
-    # Conda configuration see https://conda.io/projects/conda/en/latest/configuration.html
-    echo "conda ${CONDA_VERSION}" >> $CONDA_DIR/conda-meta/pinned && \
-    conda config --system --set auto_update_conda false && \
-    conda config --system --set show_channel_urls true && \
-    if [ ! $PYTHON_VERSION = 'default' ]; then conda install --yes python=$PYTHON_VERSION; fi && \
-    conda list python | grep '^python ' | tr -s ' ' | cut -d '.' -f 1,2 | sed 's/$/.*/' >> $CONDA_DIR/conda-meta/pinned && \
-    conda install --quiet --yes \
-    "conda=${CONDA_VERSION}" \
-    "r-base=${R_VERSION}" \
-    'pip' && \
-    conda update --all --quiet --yes && \
-    conda clean --all -f -y && \
-    rm -rf $HOME/.cache/yarn && \
-    chown -R ${NB_USER}:users $CONDA_DIR && \
-    chown -R ${NB_USER}:users $HOME
+USER ${NB_UID}
+
+# install - conda, pip, python, r-base
+RUN curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh" -o /tmp/Miniforge3.sh \
+ && echo "${MINIFORGE_SHA256} /tmp/Miniforge3.sh" | sha256sum --check \
+ && /bin/bash /tmp/Miniforge3.sh -b -f -p ${CONDA_DIR} \
+ && rm /tmp/Miniforge3.sh \
+ && conda config --system --set auto_update_conda false \
+ && conda config --system --set show_channel_urls true \
+ && echo "conda ${CONDA_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
+ && echo "python ${PYTHON_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
+ && echo "r-base ${R_BASE_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
+ && conda install -y -q \
+    python=${PYTHON_VERSION} \
+    conda=${CONDA_VERSION} \
+    pip=${PIP_VERSION} \
+    r-base=${R_BASE_VERSION} \
+    r-reticulate=${R_RETICULATE_VERSION} \
+    r-png=${R_PNG_VERSION} \
+ && conda update -y -q --all \
+ && conda clean -a -f -y \
+ && chown -R ${NB_USER}:users ${CONDA_DIR} \
+ && chown -R ${NB_USER}:users ${HOME}
+
+# set default CRAN repo to RSPM (it has pre-compiled R packages, increasing user install speed)
+RUN echo 'options(repos=c(CRAN="https://packagemanager.rstudio.com/all/__linux__/focal/latest"))' >> ${R_HOME}/etc/Rprofile.site \
+ && echo 'options(HTTPUserAgent=sprintf("R/%s R (%s)", getRversion(), paste(getRversion(), R.version$platform, R.version$arch, R.version$os)))' >> ${R_HOME}/etc/Rprofile.site
 
 USER root
 
-# Add RSPM repo and install littler & docopt
-RUN echo "options(repos = c(CRAN = \"${CRAN}\"), download.file.method = 'libcurl')" >> ${R_HOME}/etc/Rprofile.site && \
-    # Set HTTPUserAgent for RSPM (https://github.com/rocker-org/rocker/issues/400)
-    echo  'options(HTTPUserAgent = sprintf("R/%s R (%s)", getRversion(), paste(getRversion(), R.version$platform, R.version$arch, R.version$os)))' >> ${R_HOME}/etc/Rprofile.site && \
-    # Add a library directory (for user-installed packages)
-    mkdir -p ${R_HOME}/site-library && \
-    chown ${NB_USER}:staff ${R_HOME}/site-library && \
-    chmod g+ws ${R_HOME}/site-library && \
-    # Fix library path
-    echo "R_LIBS=\${R_LIBS-'${R_HOME}/library'}" >> ${R_HOME}/etc/Renviron && \
-    echo "R_LIBS_SITE='${R_HOME}/site-library'" >> ${R_HOME}/etc/Renviron && \
-    echo "TZ=${TZ}" >> ${R_HOME}/etc/Renviron && \
-    # Use littler installation scripts
-    Rscript -e "install.packages(c('littler', 'docopt'), repos=\"${CRAN}\")" && \
-    ln -s ${R_LIBS_SITE}/littler/examples/install.r /usr/local/bin/install.r && \
-    ln -s ${R_LIBS_SITE}/littler/examples/install2.r /usr/local/bin/install2.r && \
-    ln -s ${R_LIBS_SITE}/littler/examples/installGithub.r /usr/local/bin/installGithub.r && \
-    ln -s ${R_LIBS_SITE}/littler/bin/r /usr/local/bin/r
+# install - rstudio-server
+RUN curl -sL "https://download2.rstudio.org/server/bionic/${RSTUDIO_ARCH}/rstudio-server-${RSTUDIO_VERSION}-${RSTUDIO_ARCH}.deb" -o /tmp/rstudio-server.deb \
+ && echo "${RSTUDIO_SHA256} /tmp/rstudio-server.deb" | sha256sum --check \
+ && dpkg -i /tmp/rstudio-server.deb \
+ && rm -f /tmp/rstudio-server.deb \
+    # our Kaniko build excludes `/var/run/*` but RStudio needs those files,
+    # so we move them to `/run`, wich is actually the same place due to symbolic links
+ && mv -n /var/run/rstudio-server* /run \
+    # use advisory file-locks to improve PVC support
+ && echo "lock-type=advisory" > /etc/rstudio/file-locks \
+    # allows the non-root NB_USER to run rstudio
+ && chown -R ${NB_USER}:users /etc/rstudio \
+ && chown -R ${NB_USER}:users /run/rstudio-server* \
+ && chown -R ${NB_USER}:users /usr/lib/rstudio-server \
+ && chown -R ${NB_USER}:users /var/lib/rstudio-server
 
-ENV PATH "/usr/lib/rstudio-server/bin:$PATH"
+# tell rstudio to use conda python by setting `RETICULATE_PYTHON` with `--rsession-path=/opt/rsession.sh`
+COPY --chown=jovyan:users rsession.sh /opt
+RUN chmod +x /opt/rsession.sh
 
-## UBUNTU_VERSION is not generally valid: only works for xenial and bionic, not other releases,
-## and does not understand numeric versions. (2020-04-15)
-#RSTUDIO_URL="https://s3.amazonaws.com/rstudio-ide-build/server/${UBUNTU_VERSION}/amd64/rstudio-server-${DOWNLOAD_VERSION}-amd64.deb"
-## hardwire bionic for now...
-ARG RSTUDIO_URL="https://s3.amazonaws.com/rstudio-ide-build/server/bionic/amd64/rstudio-server-${RSTUDIO_VERSION_ARG}-amd64.deb"
+# s6 - copy scripts
+COPY --chown=jovyan:users s6/ /etc
 
-RUN wget $RSTUDIO_URL -q --show-progress \
-    --progress=bar:force:noscroll && \
-    dpkg -i rstudio-server-*-amd64.deb && \
-    rm rstudio-server-*-amd64.deb && \
-    # Fix container not running when built with Kaniko without --whitelist-var-run=false
-    mv -n /var/run/rstudio-server.pid /run/ && \
-    mv -n /var/run/rstudio-server/ /run/
+# s6 - 01-copy-tmp-home
+RUN mkdir -p /tmp_home \
+ && cp -r ${HOME} /tmp_home \
+ && chown -R ${NB_USER}:users /tmp_home
 
-## RStudio wants an /etc/R, will populate from $R_HOME/etc
-RUN mkdir -p /etc/R && \
-    echo "PATH=${PATH}" >> ${R_HOME}/etc/Renviron
+USER ${NB_UID}
 
-## Make RStudio compatible with case when R is built from source 
-## (and thus is at /usr/local/bin/R), because RStudio doesn't obey
-## path if a user apt-get installs a package
-## use more robust file locking to avoid errors when using shared volumes:
-RUN R_BIN=`which R` \
-    && echo "rsession-which-r=${R_BIN}" > /etc/rstudio/rserver.conf \
-    && echo "lock-type=advisory" > /etc/rstudio/file-locks
-
-# Disable authentication and set user in environment
-RUN echo "auth-none=1" >> /etc/rstudio/rserver.conf && \
-    echo "USER=${NB_USER}" >> /etc/environment
-
-# Create /jovyan dir and set user permissions for Jovyan to store files in home directory
-# Add jovyan to staff group and change ownership of /etc/s6 
-# and R related folders to user jovyan and staff group
-RUN mkdir -p /jovyan && \
-    chown -R ${NB_USER}:users /jovyan && \
-    addgroup ${NB_USER} staff && \
-    chown -R ${NB_USER}:staff /etc/s6 && \
-    chown -R ${NB_USER}:staff /var/lib/rstudio-server && \
-    chown -R ${NB_USER}:staff /etc/rstudio && \
-    chown -R ${NB_USER}:staff /etc/R
-
-## configure git not to request password each time
-RUN git config --system credential.helper 'cache --timeout=3600' \
-    && git config --system push.default simple
-
-RUN wget ${PANDOC_DL_URL} -O pandoc-amd64.deb -q \
-    --show-progress --progress=bar:force:noscroll && \
-    dpkg -i pandoc-amd64.deb && \
-    rm pandoc-amd64.deb
-
-
-## Symlink pandoc & standard pandoc templates for use system-wide
-## Copy files from $HOME to /jovyan
-## Ensure $CONDA_DIR is owned by $NB_USER
-RUN export PANDOC_TEMPLATES_VERSION=`pandoc -v | grep -oP "(?<=pandoc\s)[0-9\.]+$"` && \
-    wget https://github.com/jgm/pandoc-templates/archive/${PANDOC_TEMPLATES_VERSION}.tar.gz -q --show-progress --progress=bar:force:noscroll \
-    -O pandoc-templates.tar.gz && \
-    rm -fr /opt/pandoc/templates && \
-    mkdir -p /opt/pandoc/templates && \
-    tar xvf pandoc-templates.tar.gz && \
-    cp -r pandoc-templates*/* /opt/pandoc/templates && \
-    rm -rf pandoc-templates* && \
-    rm -fr /root/.pandoc && \
-    mkdir /root/.pandoc && \
-    ln -s /opt/pandoc/templates /root/.pandoc/templates && \
-    chown -R ${NB_USER}:users $HOME && \
-    cp -r $HOME/ /jovyan && \
-    chown -R ${NB_USER}:users $CONDA_DIR
-
-USER $NB_UID
-
-# Copy Init and service scripts into containers
-# and ensure jovyan is user (so S6 doesn't need to run as root)
-COPY --chown=jovyan:staff root/ /
-
-WORKDIR $HOME
 EXPOSE 8888
 
 ENTRYPOINT ["/init"]
