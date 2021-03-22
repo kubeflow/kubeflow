@@ -20,9 +20,9 @@ commonLabels:
   app: jupyter-web-app
   kustomize.component: jupyter-web-app
 images:
-- name: gcr.io/kubeflow-images-public/jupyter-web-app
-  newName: gcr.io/kubeflow-images-public/jupyter-web-app
-  newTag: vmaster-ge4456300
+- name: public.ecr.aws/j1r0q0g6/notebooks/jupyter-web-app
+  newName: public.ecr.aws/j1r0q0g6/notebooks/jupyter-web-app
+  newTag: master-f753ef1a
 # We need the name to be unique without the suffix because the original name is what
 # gets used with patches
 configMapGenerator:
