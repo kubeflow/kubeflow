@@ -12,6 +12,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
     kwargs: {}
   # Run unittests for access management
@@ -20,6 +21,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/access-management/*
     kwargs: {}
   # Run unittests for admission webhook
@@ -28,6 +30,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/admission-webhook/*
     kwargs: {}
   # Run unittests for the central dashboard
@@ -36,6 +39,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/centraldashboard/*
     kwargs: {}
   # Run unittests for the Jupyter Web App
@@ -44,6 +48,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
       - components/crud-web-apps/common/backend/*
       - components/crud-web-apps/jupyter/*
@@ -54,6 +59,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/common/*
       - components/notebook-controller/*
     kwargs: {}
@@ -63,6 +69,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/profile-controller/*
     kwargs: {}
   # Run unittests for the Tensorboard Controller
@@ -71,6 +78,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/common/*
       - components/tensorboard-controller/*
     kwargs: {}
@@ -80,6 +88,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
       - components/crud-web-apps/common/backend/*
       - components/crud-web-apps/tensorboards/*
@@ -90,6 +99,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/crud-web-apps/common/frontend/kubeflow-common-lib/*
       - components/crud-web-apps/common/backend/*
       - components/crud-web-apps/volumes/*
@@ -100,6 +110,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/example-notebook-servers/base/*
     kwargs: {}
   # Run build test for notebook-server-jupyter OCI image
@@ -108,6 +119,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/example-notebook-servers/jupyter/*
     kwargs: {}
   # Create and push notebook-server-rstudio OCI image to ECR
@@ -116,6 +128,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/example-notebook-servers/rstudio/*
     kwargs: {}
   # Run build test for notebook-server-codeserver OCI image
@@ -124,6 +137,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/example-notebook-servers/codeserver/*
     kwargs: {}
   # Run build test for notebook-server-jupyter-pytorch OCI image
@@ -132,6 +146,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/example-notebook-servers/jupyter-pytorch/*
     kwargs: {}
   # Run build test for notebook-server-jupyter-tensorflow OCI images
@@ -140,6 +155,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/example-notebook-servers/jupyter-tensorflow/*
     kwargs: {}
   # Run build test for notebook-server-jupyter-pytorch-full OCI images
@@ -148,6 +164,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/example-notebook-servers/jupyter-pytorch-full/*
     kwargs: {}
   # Run build test for notebook-server-jupyter-tensorflow-full OCI images
@@ -156,6 +173,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/example-notebook-servers/jupyter-tensorflow-full/*
     kwargs: {}
   # Run build test for notebook-server-jupyter-scipy OCI image
@@ -164,6 +182,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/example-notebook-servers/jupyter-scipy/*
     kwargs: {}
   # Run build test for notebook-server-codeserver-python OCI image
@@ -172,6 +191,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/example-notebook-servers/codeserver-python/*
     kwargs: {}
   # Run build test for notebook-server-rstudio-tidyverse OCI image
@@ -180,6 +200,7 @@ workflows:
     job_types:
       - presubmit
     include_dirs:
+      - releasing/version/*
       - components/example-notebook-servers/rstudio-tidyverse/*
     kwargs: {}
 #######################################
