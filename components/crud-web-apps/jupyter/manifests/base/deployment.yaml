@@ -20,6 +20,8 @@ spec:
         env:
         - name: ROK_SECRET_NAME
           value: $(JWA_ROK_SECRET_NAME)
+        - name: APP_PREFIX
+          value: $(JWA_PREFIX)
         - name: UI
           value: $(JWA_UI)
         - name: USERID_HEADER

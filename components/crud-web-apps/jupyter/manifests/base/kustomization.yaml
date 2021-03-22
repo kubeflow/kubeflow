@@ -75,5 +75,12 @@ vars:
     apiVersion: v1
     kind: ConfigMap
     name: parameters
+- fieldref:
+    fieldPath: data.JWA_PREFIX
+  name: JWA_PREFIX
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters
 configurations:
 - params.yaml
