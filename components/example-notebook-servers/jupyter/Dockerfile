@@ -24,7 +24,12 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 ENV CONDA_DIR /opt/conda
 ENV PATH "${CONDA_DIR}/bin:${PATH}"
 RUN mkdir -p ${CONDA_DIR} \
- && chown -R ${NB_USER}:users ${CONDA_DIR}
+ && echo ". /opt/conda/etc/profile.d/conda.sh" >> ${HOME}/.bashrc \
+ && echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/profile \
+ && echo "conda activate base" >> ${HOME}/.bashrc \
+ && echo "conda activate base" >> /etc/profile \
+ && chown -R ${NB_USER}:users ${CONDA_DIR} \
+ && chown -R ${NB_USER}:users ${HOME}
 
 USER $NB_UID
 
