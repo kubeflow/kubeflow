@@ -1,3 +1,10 @@
+# kubeflow packages
+kfp==1.0.4
+kfp-server-api==1.0.4
+kfserving==0.4.1
+
+# scipy packages
+# https://github.com/jupyter/docker-stacks/blob/master/scipy-notebook/Dockerfile
 beautifulsoup4==4.9.3
 bokeh==2.3.0
 #Bottleneck==1.3.2 Could not build wheels for Bottleneck which use PEP 517 and cannot be installed directly
