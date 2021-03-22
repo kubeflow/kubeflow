@@ -31,7 +31,8 @@ RUN mkdir -p ${CONDA_DIR} \
  && chown -R ${NB_USER}:users ${CONDA_DIR} \
  && chown -R ${NB_USER}:users ${HOME}
 
-USER $NB_UID
+# switch to NB_UID for installs
+USER ${NB_UID}
 
 # install - conda, pip, python
 RUN curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh" -o /tmp/Miniforge3.sh \
