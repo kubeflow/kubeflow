@@ -19,7 +19,6 @@ patches:
     subjects:
     - kind: ServiceAccount
       name: tensorboard-controller
-      namespace: system
   target:
     kind: "RoleBinding"
     group: "rbac.authorization.k8s.io"
@@ -31,7 +30,6 @@ patches:
     subjects:
     - kind: ServiceAccount
       name: tensorboard-controller
-      namespace: system
   target:
     kind: "ClusterRoleBinding"
     group: "rbac.authorization.k8s.io"
