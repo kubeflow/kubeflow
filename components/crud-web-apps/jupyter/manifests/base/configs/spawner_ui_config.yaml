@@ -20,11 +20,11 @@ spawnerFormDefaults:
     value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-78840844
     # The list of available standard container Images
     options:
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-78840844
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-full:master-de7c3f00
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-cuda-full:master-de7c3f00
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-full:master-a9821baa
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda-full:master-a9821baa
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-abf9ec48
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-full:master-1831e436
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-cuda-full:master-1831e436
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-full:master-1831e436
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda-full:master-1831e436
   imageVSCode:
     # The container Image for the user's VS-Code Server
     value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:master-c99f886b
