@@ -75,6 +75,10 @@ RUN curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIF
 RUN echo 'options(repos=c(CRAN="https://packagemanager.rstudio.com/all/__linux__/focal/latest"))' >> ${R_HOME}/etc/Rprofile.site \
  && echo 'options(HTTPUserAgent=sprintf("R/%s R (%s)", getRversion(), paste(getRversion(), R.version$platform, R.version$arch, R.version$os)))' >> ${R_HOME}/etc/Rprofile.site
 
+# R needs TZ set
+ENV TZ Etc/UTC
+RUN echo "TZ=${TZ}" >> ${R_HOME}/etc/Renviron.site
+
 USER root
 
 # install - rstudio-server
