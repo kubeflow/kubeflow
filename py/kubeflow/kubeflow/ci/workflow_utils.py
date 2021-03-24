@@ -29,7 +29,7 @@ AWS_WORKER_IMAGE = "public.ecr.aws/j1r0q0g6/kubeflow-testing:latest"
 
 class ArgoTestBuilder:
     def __init__(self, name=None, namespace=None, bucket=None,
-                 test_target_name=None,
+                 test_target_name=None, release=False,
                  **kwargs):
         self.name = name
         self.namespace = namespace
@@ -37,6 +37,7 @@ class ArgoTestBuilder:
         self.template_label = "argo_test"
         self.test_target_name = test_target_name
         self.mkdir_task_name = "make-artifacts-dir"
+        self.release = release
 
         # *********************************************************************
         #
@@ -213,9 +214,14 @@ class ArgoTestBuilder:
 
         # append the tag base-commit[0:7]
         if ":" not in destination:
-            sha = os.getenv("PULL_BASE_SHA", "12341234kanikotest")
-            base = os.getenv("PULL_BASE_REF", "master")
-            destination += ":%s-%s" % (base, sha[0:8])
+            if self.release:
+                with open(os.path.join("/src/kubeflow/kubeflow", "releasing/version/VERSION")) as f:
+                    version = f.read().strip()
+                destination += ":%s" % version
+            else:
+                sha = os.getenv("PULL_BASE_SHA", "12341234kanikotest")
+                base = os.getenv("PULL_BASE_REF", "master")
+                destination += ":%s-%s" % (base, sha[0:8])
 
         # add short UUID to step name to ensure it is unique
         kaniko["name"] = "kaniko-build-push-" + ''.join(random.choices(alphabet, k=8))
