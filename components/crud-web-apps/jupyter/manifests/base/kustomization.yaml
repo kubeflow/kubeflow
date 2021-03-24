@@ -22,7 +22,7 @@ commonLabels:
 images:
 - name: public.ecr.aws/j1r0q0g6/notebooks/jupyter-web-app
   newName: public.ecr.aws/j1r0q0g6/notebooks/jupyter-web-app
-  newTag: master-f753ef1a
+  newTag: master-05ba7a65
 # We need the name to be unique without the suffix because the original name is what
 # gets used with patches
 configMapGenerator:
