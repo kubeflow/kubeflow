@@ -42,7 +42,7 @@ import secrets
 from flask import Blueprint, current_app, request
 from werkzeug.exceptions import Forbidden
 
-from . import config
+from . import settings
 
 bp = Blueprint("csrf", __name__)
 log = logging.getLogger(__name__)
@@ -69,10 +69,9 @@ def set_cookie(resp):
     """
     cookie = secrets.token_urlsafe(32)
 
-    secure = True
-    if config.dev_mode_enabled():
-        log.info("Allowing the cookie to be sent through http for dev mode")
-        secure = False
+    secure = settings.SECURE_COOKIES
+    if not secure:
+        log.info("Not setting Secure in CSRF cookie.")
 
     samesite = os.getenv("CSRF_SAMESITE", "Strict")
     if samesite not in SAMESITE_VALUES:
