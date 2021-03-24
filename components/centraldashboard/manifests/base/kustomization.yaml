@@ -10,7 +10,6 @@ resources:
 - service-account.yaml
 - service.yaml
 - configmap.yaml
-namespace: kubeflow
 commonLabels:
   kustomize.component: centraldashboard
   app: centraldashboard
