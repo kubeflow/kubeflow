@@ -15,6 +15,18 @@ data:
         },
         {
           "type": "item",
+          "link": "/tensorboards/",
+          "text": "Tensorboards",
+          "icon": "assessment"
+        },
+        {
+          "type": "item",
+          "link": "/volumes/",
+          "text": "Volumes",
+          "icon": "device:storage"
+        },
+        {
+          "type": "item",
           "link": "/pipeline/#/pipelines",
           "text": "Pipelines",
           "icon": "kubeflow:pipeline-centered"
