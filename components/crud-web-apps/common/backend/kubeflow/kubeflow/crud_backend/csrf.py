@@ -94,13 +94,13 @@ def check_endpoint():
         return
 
     log.debug("Ensuring endpoint is CSRF protected: %s", request.path)
-    if CSRF_HEADER not in request.headers:
-        raise Forbidden("Could not detect CSRF protection header %s."
-                        % CSRF_HEADER)
-
     if CSRF_COOKIE not in request.cookies:
         raise Forbidden("Could not find CSRF cookie %s in the request."
                         % CSRF_COOKIE)
+
+    if CSRF_HEADER not in request.headers:
+        raise Forbidden("Could not detect CSRF protection header %s."
+                        % CSRF_HEADER)
 
     header_token = request.headers[CSRF_HEADER]
     cookie_token = request.cookies[CSRF_COOKIE]
