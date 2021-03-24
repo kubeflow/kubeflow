@@ -68,5 +68,3 @@ vars:
     apiVersion: v1
     kind: ConfigMap
     name: centraldashboard-config
-configurations:
-- params.yaml
