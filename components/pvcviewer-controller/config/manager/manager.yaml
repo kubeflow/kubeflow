@@ -28,8 +28,6 @@ spec:
       containers:
       - command:
         - /manager
-        args:
-        - --enable-leader-election
         image: public.ecr.aws/j1r0q0g6/notebooks/pvcviewer-controller
         name: manager
         resources:
