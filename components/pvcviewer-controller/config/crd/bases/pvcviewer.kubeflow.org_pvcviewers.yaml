@@ -53,12 +53,15 @@ spec:
                 - deploymentState
                 type: object
               type: array
+            ready:
+              type: boolean
             readyReplicas:
               description: ReadyReplicas defines the number of PVCViewer Servers that are available to connect. The value of ReadyReplicas can be either 0 or 1
               format: int32
               type: integer
           required:
           - conditions
+          - ready
           - readyReplicas
           type: object
       type: object

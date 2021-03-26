@@ -132,6 +132,11 @@ func (r *PVCViewerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			instance.Status.ReadyReplicas = foundDeployment.Status.ReadyReplicas
 		}
 
+		instance.Status.Ready = false
+		if instance.Status.ReadyReplicas == 1 {
+			instance.Status.Ready = true
+		}
+
 		_err = r.Status().Update(ctx, instance)
 		if _err != nil {
 			return ctrl.Result{}, _err

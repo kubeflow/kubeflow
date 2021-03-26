@@ -47,6 +47,7 @@ type PVCViewerStatus struct {
 	// that are available to connect. The value of ReadyReplicas
 	// can be either 0 or 1
 	ReadyReplicas int32 `json:"readyReplicas"`
+	Ready         bool  `json:"ready"`
 }
 
 // +kubebuilder:object:root=true
