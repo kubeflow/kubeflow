@@ -49,6 +49,8 @@ spawnerFormDefaults:
   allowCustomImage: true
   # If true, users can input custom images
   # If false, users can only select from the images in this config
+  hideRegistry: false
+  hideTag: false
   imagePullPolicy:
     # Supported values: Always, IfNotPresent, Never
     value: IfNotPresent
