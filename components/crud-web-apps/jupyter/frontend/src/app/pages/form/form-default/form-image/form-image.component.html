@@ -74,7 +74,7 @@
       [formControl]="parentForm.get('imageGroupOne')"
     >
       <mat-option *ngFor="let img of imagesGroupOne" [value]="img">
-        {{ img }}
+        {{ imageDisplayName(img) }}
       </mat-option>
     </mat-select>
     <mat-error>Please provide and Image to use</mat-error>
@@ -95,7 +95,7 @@
       [formControl]="parentForm.get('imageGroupTwo')"
     >
       <mat-option *ngFor="let img of imagesGroupTwo" [value]="img">
-        {{ img }}
+        {{ imageDisplayName(img) }}
       </mat-option>
     </mat-select>
     <mat-error>Please provide and Image to use</mat-error>
