@@ -203,6 +203,10 @@ func generateDeployment(viewer *pvcviewerv1alpha1.PVCViewer, log logr.Logger, r 
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      viewer.Name,
 			Namespace: viewer.Namespace,
+			Labels: map[string]string{
+				"app":  viewer.Name,
+				"kind": viewer.Kind,
+			},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: proto.Int32(1),
@@ -214,7 +218,10 @@ func generateDeployment(viewer *pvcviewerv1alpha1.PVCViewer, log logr.Logger, r 
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"app": viewer.Name},
+					Labels: map[string]string{
+						"app":  viewer.Name,
+						"kind": viewer.Kind,
+					},
 				},
 				Spec: corev1.PodSpec{
 					Affinity:      affinity,
