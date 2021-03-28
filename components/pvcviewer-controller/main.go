@@ -14,14 +14,13 @@ package main
 
 import (
 	"flag"
-	"os"
-
 	pvcviewerv1alpha1 "github.com/kubeflow/kubeflow/components/pvcviewer-controller/api/v1alpha1"
 	"github.com/kubeflow/kubeflow/components/pvcviewer-controller/controllers"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	// +kubebuilder:scaffold:imports
@@ -54,6 +53,7 @@ func main() {
 		MetricsBindAddress: metricsAddr,
 		LeaderElection:     enableLeaderElection,
 		Port:               9443,
+		LeaderElectionID:   "pvcviewer-leader-election-helper",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")

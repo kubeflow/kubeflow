@@ -18,10 +18,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"os"
-	"reflect"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
 	"github.com/go-logr/logr"
 	"github.com/gogo/protobuf/proto"
 	appsv1 "k8s.io/api/apps/v1"
@@ -33,6 +29,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"os"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -80,9 +78,6 @@ func (r *PVCViewerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 	if err := ctrl.SetControllerReference(instance, deployment, r.Scheme); err != nil {
-		return ctrl.Result{}, err
-	}
-	if err := controllerutil.SetOwnerReference(instance, &deployment.Spec.Template.ObjectMeta, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
 	if err := Deployment(ctx, r, deployment, logger); err != nil {
@@ -213,7 +208,8 @@ func generateDeployment(viewer *pvcviewerv1alpha1.PVCViewer, log logr.Logger, r 
 			Replicas: proto.Int32(1),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": viewer.Name,
+					"app":  viewer.Name,
+					"kind": viewer.Kind,
 				},
 			},
 			Template: corev1.PodTemplateSpec{
