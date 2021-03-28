@@ -70,7 +70,7 @@ func (in *PVCViewerCondition) DeepCopy() *PVCViewerCondition {
 func (in *PVCViewerList) DeepCopyInto(out *PVCViewerList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]PVCViewer, len(*in))

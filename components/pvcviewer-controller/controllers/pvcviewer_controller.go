@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"github.com/go-logr/logr"
 	"github.com/gogo/protobuf/proto"
@@ -79,6 +80,9 @@ func (r *PVCViewerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 	if err := ctrl.SetControllerReference(instance, deployment, r.Scheme); err != nil {
+		return ctrl.Result{}, err
+	}
+	if err := controllerutil.SetOwnerReference(instance, &deployment.Spec.Template.ObjectMeta, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
 	if err := Deployment(ctx, r, deployment, logger); err != nil {
