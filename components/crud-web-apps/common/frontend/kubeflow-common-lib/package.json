@@ -10,7 +10,8 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "copyCSS": "cp ./projects/kubeflow/src/kubeflow.css ./dist/kubeflow && cp ./projects/kubeflow/src/styles.scss ./dist/kubeflow && cp ./projects/kubeflow/src/lib/variables.scss ./dist/kubeflow/lib",
-    "copyAssets": "cp -r ./projects/kubeflow/src/assets ./dist/kubeflow/assets"
+    "copyAssets": "cp -r ./projects/kubeflow/src/assets ./dist/kubeflow/assets",
+    "postinstall": "ngcc"
   },
   "private": true,
   "dependencies": {
