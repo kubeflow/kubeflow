@@ -76,3 +76,7 @@ export * from './lib/form/name-namespace-inputs/name-input/name-input.component'
 export * from './lib/form/positive-number-input/positive-number-input.component';
 export * from './lib/form/advanced-options/advanced-options.component';
 export * from './lib/details-list/details-list-item/details-list-item.component';
+export * from './lib/form/submit-bar/submit-bar.component';
+export * from './lib/form/step-info/step-info.component';
+export * from './lib/form/submit-bar/submit-bar.component';
+export * from './lib/form/step-info/step-info.component';
