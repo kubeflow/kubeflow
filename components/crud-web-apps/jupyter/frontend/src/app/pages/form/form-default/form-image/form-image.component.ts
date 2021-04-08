@@ -20,9 +20,18 @@ export class FormImageComponent implements OnInit, OnDestroy {
   subs = new Subscription();
 
   constructor(iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
-    iconRegistry.addSvgIcon('jupyterlab', sanitizer.bypassSecurityTrustResourceUrl(environment.jupyterlabLogo));
-    iconRegistry.addSvgIcon('vs-code', sanitizer.bypassSecurityTrustResourceUrl(environment.vscodeLogo));
-    iconRegistry.addSvgIcon('rstudio', sanitizer.bypassSecurityTrustResourceUrl(environment.rstudioLogo));
+    iconRegistry.addSvgIcon(
+      'jupyterlab',
+      sanitizer.bypassSecurityTrustResourceUrl(environment.jupyterlabLogo),
+    );
+    iconRegistry.addSvgIcon(
+      'vs-code',
+      sanitizer.bypassSecurityTrustResourceUrl(environment.vscodeLogo),
+    );
+    iconRegistry.addSvgIcon(
+      'rstudio',
+      sanitizer.bypassSecurityTrustResourceUrl(environment.rstudioLogo),
+    );
   }
 
   ngOnInit() {
@@ -36,27 +45,30 @@ export class FormImageComponent implements OnInit, OnDestroy {
           this.parentForm.get('imageRStudio').setValidators([]);
         }
         this.parentForm.get('serverType').valueChanges.subscribe(selection => {
-          if (selection === "jupyter") {
+          if (selection === 'jupyter') {
             this.parentForm.get('customImage').setValidators([]);
             this.parentForm.get('image').setValidators(Validators.required);
             this.parentForm.get('imageVSCode').setValidators([]);
             this.parentForm.get('imageRStudio').setValidators([]);
-          } else if (selection === "vs-code") {
+          } else if (selection === 'vs-code') {
             this.parentForm.get('customImage').setValidators([]);
             this.parentForm.get('image').setValidators([]);
-            this.parentForm.get('imageVSCode').setValidators(Validators.required);
+            this.parentForm
+              .get('imageVSCode')
+              .setValidators(Validators.required);
             this.parentForm.get('imageRStudio').setValidators([]);
-          } else if (selection === "rstudio") {
+          } else if (selection === 'rstudio') {
             this.parentForm.get('customImage').setValidators([]);
             this.parentForm.get('image').setValidators([]);
             this.parentForm.get('imageVSCode').setValidators([]);
-            this.parentForm.get('imageRStudio').setValidators(Validators.required);
+            this.parentForm
+              .get('imageRStudio')
+              .setValidators(Validators.required);
           }
           this.parentForm.get('image').updateValueAndValidity();
           this.parentForm.get('imageVSCode').updateValueAndValidity();
           this.parentForm.get('imageRStudio').updateValueAndValidity();
-          
-        })
+        });
         this.parentForm.get('customImage').updateValueAndValidity();
         this.parentForm.get('serverType').updateValueAndValidity();
       }),
