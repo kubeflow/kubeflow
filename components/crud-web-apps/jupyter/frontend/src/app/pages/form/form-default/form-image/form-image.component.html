@@ -1,5 +1,5 @@
 <lib-form-section
-  title="Image"
+  title="{{ 'formImage.h3Image' | translate }}"
   text="A started Jupyter Docker Image with a baseline deployment and typical
   ML packages"
   icon="fa:fab:docker"
@@ -9,7 +9,7 @@
       *ngIf="allowCustomImage"
       [formControl]="parentForm.get('customImageCheck')"
     >
-      Custom Image
+      {{ "formImage.ckbImage" | translate }}
     </mat-checkbox>
 
     <mat-button-toggle-group
@@ -47,16 +47,16 @@
     "
   >
     <!-- If readonly, then make it an input element instead of select -->
-    <mat-label>Image</mat-label>
+    <mat-label>{{ "formImage.lblImage" | translate }}</mat-label>
     <mat-select
-      placeholder="Docker Image"
+      placeholder="{{ 'formImage.plhImage' | translate }}"
       [formControl]="parentForm.get('image')"
     >
       <mat-option *ngFor="let img of images" [value]="img" [matTooltip]="img">
         {{ imageDisplayName(img) }}
       </mat-option>
     </mat-select>
-    <mat-error>Please provide an Image to use</mat-error>
+    <mat-error>{{ "formImage.errorImageRequired" | translate }}</mat-error>
   </mat-form-field>
 
   <mat-form-field
@@ -68,9 +68,9 @@
     "
   >
     <!-- If readonly, then make it an input element instead of select -->
-    <mat-label>Image</mat-label>
+    <mat-label>{{ "formImage.h3Image" | translate }}</mat-label>
     <mat-select
-      placeholder="Docker Image"
+      placeholder="{{ 'formImage.plhImage' | translate }}"
       [formControl]="parentForm.get('imageGroupOne')"
     >
       <mat-option
@@ -81,7 +81,7 @@
         {{ imageDisplayName(img) }}
       </mat-option>
     </mat-select>
-    <mat-error>Please provide an Image to use</mat-error>
+    <mat-error>{{ "formImage.errorImageRequired" | translate }}</mat-error>
   </mat-form-field>
 
   <mat-form-field
@@ -93,9 +93,9 @@
     "
   >
     <!-- If readonly, then make it an input element instead of select -->
-    <mat-label>Image</mat-label>
+    <mat-label>{{ "formImage.h3Image" | translate }}</mat-label>
     <mat-select
-      placeholder="Docker Image"
+      placeholder="{ 'formImage.plhImage' | translate }}"
       [formControl]="parentForm.get('imageGroupTwo')"
     >
       <mat-option
@@ -106,7 +106,7 @@
         {{ imageDisplayName(img) }}
       </mat-option>
     </mat-select>
-    <mat-error>Please provide an Image to use</mat-error>
+    <mat-error>{{ "formImage.errorImageRequired" | translate }}</mat-error>
   </mat-form-field>
 
   <mat-form-field
@@ -114,14 +114,14 @@
     appearance="outline"
     *ngIf="parentForm?.value.customImageCheck"
   >
-    <mat-label>Custom Image</mat-label>
+    <mat-label>{{ "formImage.lblCustomImage" | translate }}</mat-label>
     <input
       matInput
-      placeholder="Provide a custom Image"
+      placeholder="{{ 'formImage.plhCustomImage' | translate }}"
       [formControl]="parentForm.get('customImage')"
       #cstmimg
     />
-    <mat-error>Please provide an Image to use</mat-error>
+    <mat-error>{{ "formImage.errorImageRequired" | translate }}</mat-error>
   </mat-form-field>
 
   <lib-advanced-options>

@@ -48,6 +48,8 @@
     "deleteDialogNo": "Annuler"
   },
   "formAdvancedOptions": {
+    "h3MiscSettings": "Paramètres divers",
+    "txtMiscSettings": "Autres paramètres pouvant être appliqué au serveur bloc-notes.",
     "h3AdvancedSettings": "Paramètres avancés",
     "toggleSharedMemory": "Activer la mémoire partagée",
     "lblSystemLanguage":"Langue du système",
@@ -71,6 +73,7 @@
     "lblNumGpu": "Nombre GPUs",
     "optNone": "Aucun",
     "lblGpuVendor": "Vendeur de GPU",
+    "errorGpuVendorNotFound": "Aucun GPU {{vendoruiName}} trouvé installé dans le cluster.",
     "errorGpuVendorRequired": "Vous devez spécifier le vendeur des GPUs assignés",
     "specsWarningMessage": "La sélection de 1 GPU définira automatiquement 4 processeurs et 96Gi de la mémoire."
 
@@ -100,7 +103,7 @@
   },
   "formSpecs": {
     "titleCpuRam": "CPU / Mémoire vive",
-    "lblCpu": "CPU",
+    "lblCpu": "CPU demandé",
     "plhCpu": "# de coeurs de CPU",
     "txtCpu": "Spécifier le nombre total de CPU et mémoire vive reservé pour votre Notebook Server. Pour les charges de travail lourde pour le CPU, vous pouvez choisir plus d'un CPU (ex. 1.5).",
     "errorCpuRequired": "Spécifier le nombre de CPUs",
@@ -108,7 +111,7 @@
     "errorCpuMin": "Spécifier au moins {{min}} CPUs",
     "errorCpuMax": "Ne peut excéder {{max}} CPUs",
     "errorCpuMaxLimit": " avec {{gpu}} GPU(s) sélectionné(s)",
-    "lblMemory": "Mémoire",
+    "lblMemory": "Taille de la mémoire demandé en Gi",
     "plhMemory": "Quantié de mémoire",
     "errorRamRequired": "Spécifier la quantité de mémoire (ex. 2Gi)",
     "errorRamMin": "Spécifier au moins {{min}}Gi de mémoire",

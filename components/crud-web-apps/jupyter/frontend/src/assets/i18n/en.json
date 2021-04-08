@@ -48,6 +48,8 @@
     "deleteDialogNo": "Cancel"
   },
   "formAdvancedOptions": {
+    "h3MiscSettings": "Miscellaneous Settings",
+    "txtMiscSettings": "Other possible settings to be applied to the Notebook Server.",
     "h3AdvancedSettings": "Advanced Settings",
     "toggleSharedMemory": "Enable Shared Memory",
     "lblSystemLanguage":"System language",
@@ -71,6 +73,7 @@
     "lblNumGpu": "Number of GPUs",
     "optNone": "None",
     "lblGpuVendor": "GPU Vendor",
+    "errorGpuVendorNotFound": "No {{vendoruiName}} GPU found installed in the cluster.",
     "errorGpuVendorRequired": "You must also specify the GPU Vendor for the assigned GPUs",
     "specsWarningMessage": "Selecting 1 GPU will automatically set 4 CPUs and 96Gi of memory."
   },
@@ -99,7 +102,7 @@
   },
   "formSpecs": {
     "titleCpuRam": "CPU / RAM",
-    "lblCpu": "CPU",
+    "lblCpu": "Requested CPUs",
     "plhCpu": "# of CPU Cores",
     "txtCpu": "Specify the total amount of CPU and RAM reserved by your Notebook Server. For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).",
     "errorCpuRequired": "Specify number of CPUs",
@@ -107,7 +110,7 @@
     "errorCpuMin": "Specify at least {{min}} CPUs",
     "errorCpuMax": "Can't exceed {{max}} CPUs",
     "errorCpuMaxLimit": " with {{gpu}} GPU(s) selected",
-    "lblMemory": "Memory",
+    "lblMemory": "Requested memory in Gi",
     "plhMemory": "Amount of Memory",
     "errorRamRequired": "Specify amount of memory (e.g. 2Gi)",
     "errorRamMin": "Specify at least {{min}}Gi of memory",
