@@ -175,6 +175,9 @@ def set_notebook_cpu(notebook, body, defaults):
                 utils.load_spawner_ui_config()["cpu"].get(
                     "value")) * limit_factor), 1)
 
+    if float(cpuLimit) < float(cpu):
+        raise BadRequest("CPU limit must be greater than the request")
+
     container["resources"]["requests"]["cpu"] = cpu
     container["resources"]["limits"]["cpu"] = cpuLimit
 
@@ -195,6 +198,9 @@ def set_notebook_memory(notebook, body, defaults):
             memoryLimit = str(round(float(
                 utils.load_spawner_ui_config()["memory"].get(
                     "value").replace('Gi', '')) * limit_factor), 1) + "Gi"
+
+    if float(memoryLimit.replace('Gi', '')) < float(memory.replace('Gi', '')):
+        raise BadRequest("Memory limit must be greater than the request")
 
     container["resources"]["requests"]["memory"] = memory
     container["resources"]["limits"]["memory"] = memoryLimit
