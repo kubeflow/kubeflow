@@ -182,7 +182,7 @@ def set_notebook_memory(notebook, body, defaults):
 
     memory = get_form_value(body, defaults, "memory")
     memoryLimit = get_form_value(body, defaults, "memoryLimit")
-    
+
     limit_factor = utils.load_spawner_ui_config()["memory"].get("limitFactor")
     if not limit_factor:
         limit_factor = 1.2

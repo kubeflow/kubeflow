@@ -57,12 +57,12 @@ spawnerFormDefaults:
     # CPU for user's Notebook
     value: '0.5'
     limitFactor: 1.2
-    readOnly: true
+    readOnly: false
   memory:
     # Memory for user's Notebook
     value: 1.0Gi
     limitFactor: 1.2
-    readOnly: true
+    readOnly: false
   environment:
     value: {}
     readOnly: false

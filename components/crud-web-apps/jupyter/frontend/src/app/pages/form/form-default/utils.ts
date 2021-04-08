@@ -142,14 +142,20 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
   // Sets the values from our internal dict. This is an initialization step
   // that should be only run once
   formCtrl.controls.cpu.setValue(configSizeToNumber(config.cpu.value));
-  formCtrl.controls.cpuLimit.setValue((configSizeToNumber(config.cpu.value) * config.cpu.limitFactor).toFixed(1));
+  formCtrl.controls.cpuLimit.setValue(
+    (configSizeToNumber(config.cpu.value) * config.cpu.limitFactor).toFixed(1),
+  );
   if (config.cpu.readOnly) {
     formCtrl.controls.cpu.disable();
     formCtrl.controls.cpuLimit.disable();
   }
 
   formCtrl.controls.memory.setValue(configSizeToNumber(config.memory.value));
-  formCtrl.controls.memoryLimit.setValue((configSizeToNumber(config.memory.value) * config.memory.limitFactor).toFixed(1));
+  formCtrl.controls.memoryLimit.setValue(
+    (
+      configSizeToNumber(config.memory.value) * config.memory.limitFactor
+    ).toFixed(1),
+  );
   if (config.memory.readOnly) {
     formCtrl.controls.memory.disable();
     formCtrl.controls.memoryLimit.disable();
