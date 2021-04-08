@@ -1,4 +1,4 @@
-ARG BASE_CONTAINER=nvidia/cuda:11.2.0-runtime-ubuntu18.04
+ARG BASE_CONTAINER=nvidia/cuda:11.2.2-cudnn8-runtime-ubuntu18.04
 FROM $BASE_CONTAINER
 
 LABEL maintainer="fabiol@cpqd.com.br"
