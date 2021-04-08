@@ -9,6 +9,12 @@ ARG NB_GID="100"
 
 USER root
 
+# Fix cuda symlinks for tensorflow
+# Read this issue for further details:
+# https://github.com/tensorflow/tensorflow/issues/43947#issuecomment-715295153
+ENV LD_LIBRARY_PATH=/usr/local/cuda-11.2/targets/x86_64-linux/lib:$LD_LIBRARY_PATH
+RUN ln -s /usr/local/cuda-11.2/targets/x86_64-linux/lib/libcusolver.so.11 /usr/local/cuda-11.2/targets/x86_64-linux/lib/libcusolver.so.10
+
 # Install all OS dependencies for notebook server that starts but lacks all
 # features (e.g., download as all possible file formats)
 ENV DEBIAN_FRONTEND noninteractive
