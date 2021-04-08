@@ -48,13 +48,17 @@ While it is possible to install Python packages in the user's home directory
 by using `pip install --user ...`, this can cause unexpected behaviour if the
 workspace volume is later used in a different Notebook Server, as the packages
 present in the home directory might be used rather than the ones present in the
-Notebook Server's image. We recommended to creating custom images if the
+Notebook Server's image.
+
+We recommended to creating custom images if the
 installed packages need to be persistant. An example of such
-a Dockerfile can be seen (POINT TO A DOCKERFILE THAT USES PIP AND ONE THAT USES CONDA).
+a Dockerfile can be seen [here](./jupyter-pytorch-full/cpu.Dockerfile) for
+installation with pip and [here](./rstudio-tidyverse/Dockerfile) for
+installation with conda.
 If APT dependencies need to be installed, this must be done with by
 creating a custom Notebook Server image as the user in the provided images does
 not have `sudo` privileges. An example Dockerfile that changes to the `root` user to
-install packages can be found [here](LINK TO RSTUDIO TIDYVERSE DOCKERFILE).
+install packages can be found [here](./rstudio-tidyverse/Dockerfile).
 Note, genreally we recommend installing Pip or Conda packages as the `$NB_USER` and
 using the `root` user for APT packages. However, due to our build process using
 Kaniko this was note possible for the example Dockerfile mentioned previously.
@@ -85,7 +89,7 @@ processes should restart and which should cause the container to exit.
 
 Scripts that need to run during the startup of the Notebook Server container
 can be placed in the directory `/etc/cont-init.d/`. An example of such a script
-can be found [here](POINT TO RSTUDIO INIT SCRIPT). In this script, the
+can be found [here](./rstudio/s6/cont-init.d/02-rstudio-env-fix). In this script, the
 `with-contenv` helper is used so that the container environment variables are
 available to the script. This script then exports the container environment
 variables to the R site environment so that they are available within RStudio.
@@ -101,7 +105,7 @@ services that are started by the scripts present in the `/etc/services.d/`
 directory. Each service requires it's own folder in `/etc/services.d/` and
 contain a script named `run` and can optionally contain a finishing script
 called `finish`. For example, the provided Jupyter example images contain the
-file `/etc/services.d/jupyterlab/run` (LINK TO FILE) that the
+file [/etc/services.d/jupyterlab/run](./jupyter/s6/services.d/jupyterlab/run) that the
 [S6-overlay](https://github.com/just-containers/s6-overlay) uses to start
 [JupyterLab](https://github.com/jupyterlab/jupyterlab). For more information on
 creating `run` and `finish` scripts for services please see the
@@ -114,8 +118,8 @@ and not as `root`. This is done so that none of the processes in the container
 are executed as `root` user. As such, any files or scripts related to the
 [S6-overlay](https://github.com/just-containers/s6-overlay) must be owned by
 user `$NB_USER`. To copy startup or service scripts into the container image
-you can use `--chown` with the `COPY` command in the Dockerfile
-(LINK TO A PLACE WHERE THIS IS USED). As the
+you can use `--chown` with the `COPY` command in the Dockerfile as seen
+[here](./codeserver/Dockerfile). As the
 [S6-overlay](https://github.com/just-containers/s6-overlay) does not have root
 priveledges in this scenario, not all of it's functionalities will work. If
 your environment allows containers that run processes as the `root` user and
