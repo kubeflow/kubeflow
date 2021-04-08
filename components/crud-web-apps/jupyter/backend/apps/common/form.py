@@ -163,28 +163,36 @@ def set_notebook_cpu(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
 
     cpu = get_form_value(body, defaults, "cpu")
+    cpuLimit = get_form_value(body, defaults, "cpuLimit")
 
     limit_factor = utils.load_spawner_ui_config()["cpu"].get("limitFactor")
     if not limit_factor:
         limit_factor = 1.2
-    limit = str(float(cpu) * limit_factor)
+    if not cpuLimit:
+        cpuLimit = str(float(cpu) * limit_factor)
+        if not cpu:
+            cpuLimit = str(float(utils.load_spawner_ui_config()["cpu"].get("value")) * limit_factor)
 
     container["resources"]["requests"]["cpu"] = cpu
-    container["resources"]["limits"]["cpu"] = limit
+    container["resources"]["limits"]["cpu"] = cpuLimit
 
 
 def set_notebook_memory(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
 
     memory = get_form_value(body, defaults, "memory")
-
+    memoryLimit = get_form_value(body, defaults, "memoryLimit")
+    
     limit_factor = utils.load_spawner_ui_config()["memory"].get("limitFactor")
     if not limit_factor:
         limit_factor = 1.2
-    limit = str(float(memory.replace('Gi', '')) * limit_factor) + "Gi"
+    if not memoryLimit:
+        memoryLimit = str(float(memory.replace('Gi', '')) * limit_factor) + "Gi"
+        if not memory:
+            memoryLimit = str(float(utils.load_spawner_ui_config()["memory"].get("value").replace('Gi', '')) * limit_factor) + "Gi"
 
     container["resources"]["requests"]["memory"] = memory
-    container["resources"]["limits"]["memory"] = limit
+    container["resources"]["limits"]["memory"] = memoryLimit
 
 
 def set_notebook_tolerations(notebook, body, defaults):

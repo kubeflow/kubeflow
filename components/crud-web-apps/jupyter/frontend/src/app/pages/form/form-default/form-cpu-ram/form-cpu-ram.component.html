@@ -11,7 +11,7 @@
       min="0.1"
       step="0.1"
       [sizeControl]="parentForm.get('cpu')"
-      label="CPUs"
+      label="Requested CPUs"
     ></lib-positive-number-input>
 
     <!--RAM-->
@@ -20,7 +20,28 @@
       min="0.1"
       step="0.1"
       [sizeControl]="parentForm.get('memory')"
-      label="RAM size in Gi"
+      label="Requested memory in Gi"
     ></lib-positive-number-input>
   </div>
+  <lib-advanced-options>
+    <div class="row">
+      <!--CPU-->
+      <lib-positive-number-input
+        class="column"
+        min="0.1"
+        step="0.1"
+        [sizeControl]="parentForm.get('cpuLimit')"
+        label="CPU limit"
+      ></lib-positive-number-input>
+  
+      <!--RAM-->
+      <lib-positive-number-input
+        class="column"
+        min="0.1"
+        step="0.1"
+        [sizeControl]="parentForm.get('memoryLimit')"
+        label="Memory limit in Gi"
+      ></lib-positive-number-input>
+    </div>
+  </lib-advanced-options>
 </lib-form-section>
