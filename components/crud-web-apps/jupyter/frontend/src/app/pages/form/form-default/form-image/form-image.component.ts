@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 import { environment } from '@app/environment';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconRegistry } from '@angular/material/icon';
+import { ServerType } from 'src/app/types';
 
 @Component({
   selector: 'app-form-image',
@@ -12,65 +13,32 @@ import { MatIconRegistry } from '@angular/material/icon';
 })
 export class FormImageComponent implements OnInit, OnDestroy {
   @Input() parentForm: FormGroup;
-  @Input() images: string[];
+  @Input() imagesJupyter: string[];
   @Input() imagesVSCode: string[];
   @Input() imagesRStudio: string[];
   @Input() allowCustomImage: boolean;
 
   subs = new Subscription();
-
-  constructor(iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
-    iconRegistry.addSvgIcon(
-      'jupyterlab',
-      sanitizer.bypassSecurityTrustResourceUrl(environment.jupyterlabLogo),
-    );
-    iconRegistry.addSvgIcon(
-      'vs-code',
-      sanitizer.bypassSecurityTrustResourceUrl(environment.vscodeLogo),
-    );
-    iconRegistry.addSvgIcon(
-      'rstudio',
-      sanitizer.bypassSecurityTrustResourceUrl(environment.rstudioLogo),
-    );
-  }
+  imagesInputLabel = 'Image (Jupyter)';
 
   ngOnInit() {
+    // update the input's label based on the Server type
     this.subs.add(
-      this.parentForm.get('customImageCheck').valueChanges.subscribe(check => {
-        // Make sure that the use will insert and Image value
-        if (check) {
-          this.parentForm.get('customImage').setValidators(Validators.required);
-          this.parentForm.get('image').setValidators([]);
-          this.parentForm.get('imageVSCode').setValidators([]);
-          this.parentForm.get('imageRStudio').setValidators([]);
+      this.parentForm.get('image').valueChanges.subscribe((image: string) => {
+        if (this.imagesJupyter && this.imagesJupyter.includes(image)) {
+          this.imagesInputLabel = 'Image (Jupyter)';
+          this.parentForm.get('serverType').setValue('jupyter');
         }
-        this.parentForm.get('serverType').valueChanges.subscribe(selection => {
-          if (selection === 'jupyter') {
-            this.parentForm.get('customImage').setValidators([]);
-            this.parentForm.get('image').setValidators(Validators.required);
-            this.parentForm.get('imageVSCode').setValidators([]);
-            this.parentForm.get('imageRStudio').setValidators([]);
-          } else if (selection === 'vs-code') {
-            this.parentForm.get('customImage').setValidators([]);
-            this.parentForm.get('image').setValidators([]);
-            this.parentForm
-              .get('imageVSCode')
-              .setValidators(Validators.required);
-            this.parentForm.get('imageRStudio').setValidators([]);
-          } else if (selection === 'rstudio') {
-            this.parentForm.get('customImage').setValidators([]);
-            this.parentForm.get('image').setValidators([]);
-            this.parentForm.get('imageVSCode').setValidators([]);
-            this.parentForm
-              .get('imageRStudio')
-              .setValidators(Validators.required);
-          }
-          this.parentForm.get('image').updateValueAndValidity();
-          this.parentForm.get('imageVSCode').updateValueAndValidity();
-          this.parentForm.get('imageRStudio').updateValueAndValidity();
-        });
-        this.parentForm.get('customImage').updateValueAndValidity();
-        this.parentForm.get('serverType').updateValueAndValidity();
+
+        if (this.imagesRStudio && this.imagesRStudio.includes(image)) {
+          this.imagesInputLabel = 'Image (RStudio)';
+          this.parentForm.get('serverType').setValue('rstudio');
+        }
+
+        if (this.imagesVSCode && this.imagesVSCode.includes(image)) {
+          this.imagesInputLabel = 'Image (VSCode)';
+          this.parentForm.get('serverType').setValue('vscode');
+        }
       }),
     );
   }
