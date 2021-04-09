@@ -12,6 +12,10 @@ SERVER_TYPE_ANNOTATION = "notebooks.kubeflow.org/server-type"
 HEADERS_ANNOTATION = "notebooks.kubeflow.org/http-headers-request-set"
 URI_REWRITE_ANNOTATION = "notebooks.kubeflow.org/http-rewrite-uri"
 
+SERVER_TYPE_JUPYTER = "jupyter"
+SERVER_TYPE_RSTUDIO = "rstudio"
+SERVER_TYPE_VSCODE = "vscode"
+
 
 def get_form_value(body, defaults, body_field, defaults_field=None):
     """
@@ -140,11 +144,15 @@ def set_notebook_image_pull_policy(notebook, body, defaults):
 
 
 def set_server_type(notebook, body, defaults):
-    valid_server_types = ["jupyter", "vs-code", "rstudio"]
+    valid_server_types = [SERVER_TYPE_JUPYTER, SERVER_TYPE_VSCODE,
+                          SERVER_TYPE_RSTUDIO]
     notebook_annotations = notebook["metadata"]["annotations"]
     server_type = get_form_value(body, defaults, "serverType")
+
+    # if no type was sent, then assume Jupyter
     if server_type == "":
-        server_type == "jupyter"
+        server_type == SERVER_TYPE_JUPYTER
+
     if server_type not in valid_server_types:
         raise BadRequest("'%s' is not a valid server type" % server_type)
 
@@ -152,10 +160,15 @@ def set_server_type(notebook, body, defaults):
     nb_ns = get_form_value(body, defaults, "namespace")
     rstudio_header = '{"X-RStudio-Root-Path":"/notebook/%s/%s/"}' % (nb_ns,
                                                                      nb_name)
+    # set server annotation
     notebook_annotations[SERVER_TYPE_ANNOTATION] = server_type
-    if server_type == "vs-code" or server_type == "rstudio":
+
+    # set annotations for the Controller to set the url rewrite
+    if server_type in [SERVER_TYPE_RSTUDIO, SERVER_TYPE_VSCODE]:
         notebook_annotations[URI_REWRITE_ANNOTATION] = "/"
-    if server_type == "rstudio":
+
+    # set annotations for the Controller to set specific headers
+    if server_type == SERVER_TYPE_RSTUDIO:
         notebook_annotations[HEADERS_ANNOTATION] = rstudio_header
 
 
