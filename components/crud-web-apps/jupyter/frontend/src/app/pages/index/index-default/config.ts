@@ -9,7 +9,7 @@ import {
   DialogConfig,
   ComponentValue,
 } from 'kubeflow';
-import { ServerTypeComponent } from './server-type/server-type.component';
+import { parseServerType } from './utils';
 
 // --- Configs for the Confirm Dialogs ---
 export function getDeleteDialogConfig(name: string): DialogConfig {
@@ -64,8 +64,8 @@ export const defaultConfig = {
     {
       matHeaderCellDef: 'Type',
       matColumnDef: 'type',
-      value: new ComponentValue({
-        component: ServerTypeComponent,
+      value: new PropertyValue({
+        valueFn: parseServerType,
       }),
     },
     {

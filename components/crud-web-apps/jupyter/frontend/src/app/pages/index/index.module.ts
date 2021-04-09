@@ -4,11 +4,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { IndexRokModule } from './index-rok/index-rok.module';
 import { IndexDefaultModule } from './index-default/index-default.module';
 import { IndexComponent } from './index.component';
-import { ServerTypeComponent } from './index-default/server-type/server-type.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 @NgModule({
-  declarations: [IndexComponent, ServerTypeComponent],
+  declarations: [IndexComponent],
   imports: [
     CommonModule,
     IndexRokModule,
@@ -16,6 +15,5 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatIconModule,
     MatTooltipModule,
   ],
-  entryComponents: [ServerTypeComponent],
 })
 export class IndexModule {}
