@@ -139,17 +139,9 @@ export interface ConfigVolume {
 export interface Config {
   image?: {
     value: string;
-    options: string[];
-  };
-
-  imageVSCode?: {
-    value: string;
-    options: string[];
-  };
-
-  imageRStudio?: {
-    value: string;
-    options: string[];
+    jupyter?: string[];
+    rstudio?: string[];
+    vscode?: string[];
   };
 
   allowCustomImage?: boolean;
