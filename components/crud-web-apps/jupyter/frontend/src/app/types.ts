@@ -163,13 +163,13 @@ export interface Config {
 
   cpu?: {
     value: string;
-    limitFactor: number;
+    limitFactor: string;
     readOnly?: boolean;
   };
 
   memory?: {
     value: string;
-    limitFactor: number;
+    limitFactor: string;
     readOnly?: boolean;
   };
 

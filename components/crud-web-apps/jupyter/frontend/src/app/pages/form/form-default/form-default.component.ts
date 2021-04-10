@@ -124,17 +124,25 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
       notebook.cpu = notebook.cpu.toString();
     }
 
-    // Ensure CPU Limit input is a string
-    if (typeof notebook.cpuLimit === 'number') {
+    // Remove cpuLimit from request if null
+    if (notebook.cpuLimit == null) {
+      delete notebook.cpuLimit;
+      // Ensure CPU Limit input is a string
+    } else if (typeof notebook.cpuLimit === 'number') {
       notebook.cpuLimit = notebook.cpuLimit.toString();
+    }
+
+    // Remove memoryLimit from request if null
+    if (notebook.memoryLimit == null) {
+      delete notebook.memoryLimit;
+      // Add Gi to memoryLimit
+    } else if (notebook.memoryLimit) {
+      notebook.memoryLimit = notebook.memoryLimit.toString() + 'Gi';
     }
 
     // Add Gi to all sizes
     if (notebook.memory) {
       notebook.memory = notebook.memory.toString() + 'Gi';
-    }
-    if (notebook.memoryLimit) {
-      notebook.memoryLimit = notebook.memoryLimit.toString() + 'Gi';
     }
 
     if (notebook.workspace.size) {
