@@ -168,10 +168,6 @@ def set_notebook_cpu(notebook, body, defaults):
     limit_factor = utils.load_spawner_ui_config()["cpu"].get("limitFactor")
     if not cpu_limit and limit_factor != "none":
         cpu_limit = str(round((float(cpu) * float(limit_factor)), 1))
-        if not cpu:
-            cpu_limit = str(round((float(
-                utils.load_spawner_ui_config()["cpu"].get(
-                    "value")) * float(limit_factor)), 1))
 
     container["resources"]["requests"]["cpu"] = cpu
 
@@ -199,11 +195,6 @@ def set_notebook_memory(notebook, body, defaults):
             round((
                 float(memory.replace('Gi', '')) * float(
                     limit_factor)), 1)) + "Gi"
-        if not memory:
-            memory_limit = str(round((float(
-                utils.load_spawner_ui_config()["memory"].get(
-                    "value").replace('Gi', '')) * float(
-                        limit_factor)), 1)) + "Gi"
 
     container["resources"]["requests"]["memory"] = memory
 
