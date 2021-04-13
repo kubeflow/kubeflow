@@ -17,12 +17,12 @@ export class ServerTypeComponent implements TableColumnComponent {
       sanitizer.bypassSecurityTrustResourceUrl(environment.jupyterIcon),
     );
     iconRegistry.addSvgIcon(
-      'vs-code-icon',
-      sanitizer.bypassSecurityTrustResourceUrl(environment.vscodeIcon),
+      'group-one-icon',
+      sanitizer.bypassSecurityTrustResourceUrl(environment.groupOneIcon),
     );
     iconRegistry.addSvgIcon(
-      'rstudio-icon',
-      sanitizer.bypassSecurityTrustResourceUrl(environment.rstudioIcon),
+      'group-two-icon',
+      sanitizer.bypassSecurityTrustResourceUrl(environment.groupTwoIcon),
     );
   }
 

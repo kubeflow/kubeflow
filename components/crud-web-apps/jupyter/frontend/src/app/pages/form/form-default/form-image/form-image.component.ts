@@ -13,8 +13,8 @@ import { MatIconRegistry } from '@angular/material/icon';
 export class FormImageComponent implements OnInit, OnDestroy {
   @Input() parentForm: FormGroup;
   @Input() images: string[];
-  @Input() imagesVSCode: string[];
-  @Input() imagesRStudio: string[];
+  @Input() imagesGroupOne: string[];
+  @Input() imagesGroupTwo: string[];
   @Input() allowCustomImage: boolean;
 
   subs = new Subscription();
@@ -25,12 +25,12 @@ export class FormImageComponent implements OnInit, OnDestroy {
       sanitizer.bypassSecurityTrustResourceUrl(environment.jupyterlabLogo),
     );
     iconRegistry.addSvgIcon(
-      'vs-code',
-      sanitizer.bypassSecurityTrustResourceUrl(environment.vscodeLogo),
+      'group-one',
+      sanitizer.bypassSecurityTrustResourceUrl(environment.groupOneLogo),
     );
     iconRegistry.addSvgIcon(
-      'rstudio',
-      sanitizer.bypassSecurityTrustResourceUrl(environment.rstudioLogo),
+      'group-two',
+      sanitizer.bypassSecurityTrustResourceUrl(environment.groupTwoLogo),
     );
   }
 
@@ -41,33 +41,33 @@ export class FormImageComponent implements OnInit, OnDestroy {
         if (check) {
           this.parentForm.get('customImage').setValidators(Validators.required);
           this.parentForm.get('image').setValidators([]);
-          this.parentForm.get('imageVSCode').setValidators([]);
-          this.parentForm.get('imageRStudio').setValidators([]);
+          this.parentForm.get('imageGroupOne').setValidators([]);
+          this.parentForm.get('imageGroupTwo').setValidators([]);
         }
         this.parentForm.get('serverType').valueChanges.subscribe(selection => {
           if (selection === 'jupyter') {
             this.parentForm.get('customImage').setValidators([]);
             this.parentForm.get('image').setValidators(Validators.required);
-            this.parentForm.get('imageVSCode').setValidators([]);
-            this.parentForm.get('imageRStudio').setValidators([]);
-          } else if (selection === 'vs-code') {
+            this.parentForm.get('imageGroupOne').setValidators([]);
+            this.parentForm.get('imageGroupTwo').setValidators([]);
+          } else if (selection === 'group-one') {
             this.parentForm.get('customImage').setValidators([]);
             this.parentForm.get('image').setValidators([]);
             this.parentForm
-              .get('imageVSCode')
+              .get('imageGroupOne')
               .setValidators(Validators.required);
-            this.parentForm.get('imageRStudio').setValidators([]);
-          } else if (selection === 'rstudio') {
+            this.parentForm.get('imageGroupTwo').setValidators([]);
+          } else if (selection === 'group-two') {
             this.parentForm.get('customImage').setValidators([]);
             this.parentForm.get('image').setValidators([]);
-            this.parentForm.get('imageVSCode').setValidators([]);
+            this.parentForm.get('imageGroupOne').setValidators([]);
             this.parentForm
-              .get('imageRStudio')
+              .get('imageGroupTwo')
               .setValidators(Validators.required);
           }
           this.parentForm.get('image').updateValueAndValidity();
-          this.parentForm.get('imageVSCode').updateValueAndValidity();
-          this.parentForm.get('imageRStudio').updateValueAndValidity();
+          this.parentForm.get('imageGroupOne').updateValueAndValidity();
+          this.parentForm.get('imageGroupTwo').updateValueAndValidity();
         });
         this.parentForm.get('customImage').updateValueAndValidity();
         this.parentForm.get('serverType').updateValueAndValidity();
