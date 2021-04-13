@@ -163,21 +163,21 @@ def set_notebook_cpu(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
 
     cpu = get_form_value(body, defaults, "cpu")
-    cpuLimit = get_form_value(body, defaults, "cpuLimit")
+    cpu_limit = get_form_value(body, defaults, "cpuLimit")
 
     limit_factor = utils.load_spawner_ui_config()["cpu"].get("limitFactor")
-    if not cpuLimit and limit_factor != "none":
-        cpuLimit = str(round((float(cpu) * float(limit_factor)), 1))
+    if not cpu_limit and limit_factor != "none":
+        cpu_limit = str(round((float(cpu) * float(limit_factor)), 1))
         if not cpu:
-            cpuLimit = str(round((float(
+            cpu_limit = str(round((float(
                 utils.load_spawner_ui_config()["cpu"].get(
                     "value")) * float(limit_factor)), 1))
 
-    if cpuLimit is not (None and ''):
-        if float(cpuLimit) < float(cpu):
+    if cpu_limit is not (None and ''):
+        if float(cpu_limit) < float(cpu):
             raise BadRequest("CPU limit must be greater than the request")
         limits = container["resources"].get("limits", {})
-        limits["cpu"] = cpuLimit
+        limits["cpu"] = cpu_limit
         container["resources"]["limits"] = limits
 
     container["resources"]["requests"]["cpu"] = cpu
@@ -187,26 +187,26 @@ def set_notebook_memory(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
 
     memory = get_form_value(body, defaults, "memory")
-    memoryLimit = get_form_value(body, defaults, "memoryLimit")
+    memory_limit = get_form_value(body, defaults, "memoryLimit")
 
     limit_factor = utils.load_spawner_ui_config()["memory"].get("limitFactor")
-    if not memoryLimit and limit_factor != "none":
-        memoryLimit = str(
+    if not memory_limit and limit_factor != "none":
+        memory_limit = str(
             round((
                 float(memory.replace('Gi', '')) * float(
                     limit_factor)), 1)) + "Gi"
         if not memory:
-            memoryLimit = str(round((float(
+            memory_limit = str(round((float(
                 utils.load_spawner_ui_config()["memory"].get(
                     "value").replace('Gi', '')) * float(
                         limit_factor)), 1)) + "Gi"
 
-    if memoryLimit is not (None and ''):
-        if float(memoryLimit.replace('Gi', '')) < float(
+    if memory_limit is not (None and ''):
+        if float(memory_limit.replace('Gi', '')) < float(
                 memory.replace('Gi', '')):
             raise BadRequest("Memory limit must be greater than the request")
         limits = container["resources"].get("limits", {})
-        limits["memory"] = memoryLimit
+        limits["memory"] = memory_limit
         container["resources"]["limits"] = limits
 
     container["resources"]["requests"]["memory"] = memory
