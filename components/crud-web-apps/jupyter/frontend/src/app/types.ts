@@ -8,7 +8,7 @@ export interface JWABackendResponse extends BackendResponse {
   vendors?: string[];
 }
 
-export type ServerType = 'jupyter' | 'groupOne' | 'groupTwo';
+export type ServerType = 'jupyter' | 'group-one' | 'group-two';
 
 export interface NotebookResponseObject {
   name: string;
