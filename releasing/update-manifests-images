@@ -169,7 +169,7 @@ def update_manifests_images(apps, tag):
     log.info("Updating JWA Spawner config `%s`", JWA_SPAWNER_CONFIG)
     with open(JWA_SPAWNER_CONFIG, "r") as f:
         jwa_config = yaml.load(f)
-    for nb_type in ["image", "imageRStudio", "imageVSCode"]:
+    for nb_type in ["image", "imageGroupTwo", "imageGroupOne"]:
         jwa_config["spawnerFormDefaults"][nb_type]["value"] = change_image_tag(jwa_config["spawnerFormDefaults"][nb_type]["value"], tag)
         for i in range(len(jwa_config["spawnerFormDefaults"][nb_type]["options"])):
             jwa_config["spawnerFormDefaults"][nb_type]["options"][i] = change_image_tag(jwa_config["spawnerFormDefaults"][nb_type]["options"][i], tag)

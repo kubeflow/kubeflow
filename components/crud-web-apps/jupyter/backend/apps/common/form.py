@@ -140,7 +140,7 @@ def set_notebook_image_pull_policy(notebook, body, defaults):
 
 
 def set_server_type(notebook, body, defaults):
-    valid_server_types = ["jupyter", "vs-code", "rstudio"]
+    valid_server_types = ["jupyter", "group-one", "group-two"]
     notebook_annotations = notebook["metadata"]["annotations"]
     server_type = get_form_value(body, defaults, "serverType")
     if server_type == "":
@@ -153,9 +153,9 @@ def set_server_type(notebook, body, defaults):
     rstudio_header = '{"X-RStudio-Root-Path":"/notebook/%s/%s/"}' % (nb_ns,
                                                                      nb_name)
     notebook_annotations[SERVER_TYPE_ANNOTATION] = server_type
-    if server_type == "vs-code" or server_type == "rstudio":
+    if server_type == "group-one" or server_type == "group-two":
         notebook_annotations[URI_REWRITE_ANNOTATION] = "/"
-    if server_type == "rstudio":
+    if server_type == "group-two":
         notebook_annotations[HEADERS_ANNOTATION] = rstudio_header
 
 
