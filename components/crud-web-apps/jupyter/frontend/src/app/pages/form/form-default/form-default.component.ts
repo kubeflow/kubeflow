@@ -107,17 +107,17 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
     // Use the custom image instead
     if (notebook.customImageCheck) {
       notebook.image = notebook.customImage;
-    } else if (notebook.serverType === 'vs-code') {
-      // Set notebook image from imageVSCode
-      notebook.image = notebook.imageVSCode;
-    } else if (notebook.serverType === 'rstudio') {
-      // Set notebook image from imageRStudio
-      notebook.image = notebook.imageRStudio;
+    } else if (notebook.serverType === 'group-one') {
+      // Set notebook image from imageGroupOne
+      notebook.image = notebook.imageGroupOne;
+    } else if (notebook.serverType === 'group-two') {
+      // Set notebook image from imageGroupTwo
+      notebook.image = notebook.imageGroupTwo;
     }
 
     // Remove unnecessary images from the request sent to the backend
-    delete notebook.imageVSCode;
-    delete notebook.imageRStudio;
+    delete notebook.imageGroupOne;
+    delete notebook.imageGroupTwo;
 
     // Ensure CPU input is a string
     if (typeof notebook.cpu === 'number') {

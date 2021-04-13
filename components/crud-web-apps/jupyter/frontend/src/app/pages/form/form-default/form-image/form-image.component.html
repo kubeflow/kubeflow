@@ -23,16 +23,17 @@
       >
         <mat-icon class="server-type" svgIcon="jupyterlab"></mat-icon>
       </mat-button-toggle>
-      <mat-button-toggle value="vs-code" aria-label="Use VS-Code based server">
-        <mat-icon class="server-type" svgIcon="vs-code"></mat-icon>
+      <mat-button-toggle
+        value="group-one"
+        aria-label="Use Group One based server"
+      >
+        <mat-icon class="server-type" svgIcon="group-one"></mat-icon>
       </mat-button-toggle>
       <mat-button-toggle
-        value="rstudio"
-        aria-label="Use RStudio based server"
-        matTooltip="RStudio® and the RStudio logo are registered trademarks of RStudio, PBC"
-        matTooltipPosition="after"
+        value="group-two"
+        aria-label="Use Group Two based server"
       >
-        <mat-icon class="server-type" svgIcon="rstudio"></mat-icon>
+        <mat-icon class="server-type" svgIcon="group-two"></mat-icon>
       </mat-button-toggle>
     </mat-button-toggle-group>
   </div>
@@ -63,16 +64,16 @@
     appearance="outline"
     *ngIf="
       !parentForm?.value.customImageCheck &&
-      parentForm?.value.serverType === 'vs-code'
+      parentForm?.value.serverType === 'group-one'
     "
   >
     <!-- If readonly, then make it an input element instead of select -->
     <mat-label>Image</mat-label>
     <mat-select
       placeholder="Docker Image"
-      [formControl]="parentForm.get('imageVSCode')"
+      [formControl]="parentForm.get('imageGroupOne')"
     >
-      <mat-option *ngFor="let img of imagesVSCode" [value]="img">
+      <mat-option *ngFor="let img of imagesGroupOne" [value]="img">
         {{ img }}
       </mat-option>
     </mat-select>
@@ -84,16 +85,16 @@
     appearance="outline"
     *ngIf="
       !parentForm?.value.customImageCheck &&
-      parentForm?.value.serverType === 'rstudio'
+      parentForm?.value.serverType === 'group-two'
     "
   >
     <!-- If readonly, then make it an input element instead of select -->
     <mat-label>Image</mat-label>
     <mat-select
       placeholder="Docker Image"
-      [formControl]="parentForm.get('imageRStudio')"
+      [formControl]="parentForm.get('imageGroupTwo')"
     >
-      <mat-option *ngFor="let img of imagesRStudio" [value]="img">
+      <mat-option *ngFor="let img of imagesGroupTwo" [value]="img">
         {{ img }}
       </mat-option>
     </mat-select>

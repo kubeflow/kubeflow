@@ -8,7 +8,7 @@ export interface JWABackendResponse extends BackendResponse {
   vendors?: string[];
 }
 
-export type ServerType = 'jupyter' | 'vscode' | 'rstudio';
+export type ServerType = 'jupyter' | 'groupOne' | 'groupTwo';
 
 export interface NotebookResponseObject {
   name: string;
@@ -39,8 +39,8 @@ export interface NotebookFormObject {
   name: string;
   namespace: string;
   image: string;
-  imageVSCode: string;
-  imageRStudio: string;
+  imageGroupOne: string;
+  imageGroupTwo: string;
   allowCustomImage: boolean;
   imagePullPolicy: string;
   customImage?: string;
@@ -142,12 +142,12 @@ export interface Config {
     options: string[];
   };
 
-  imageVSCode?: {
+  imageGroupOne?: {
     value: string;
     options: string[];
   };
 
-  imageRStudio?: {
+  imageGroupTwo?: {
     value: string;
     options: string[];
   };
