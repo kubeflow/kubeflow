@@ -9,4 +9,4 @@ resources:
 images:
 - name: public.ecr.aws/j1r0q0g6/notebooks/profile-controller
   newName: public.ecr.aws/j1r0q0g6/notebooks/profile-controller
-  newTag: v1.3.0-rc.0
+  newTag: v1.3.0-rc.1
