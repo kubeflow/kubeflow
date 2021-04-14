@@ -1,6 +1,4 @@
-# Use the respective Makefile to pass the appropriate BASE_IMG and build the image correctly
-ARG BASE_IMG=<jupyter>
-FROM $BASE_IMG
+FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:master-ebc0c4f0
 
 USER root
 

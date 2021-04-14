@@ -1,6 +1,4 @@
-# Use the respective Makefile to pass the appropriate BASE_IMG and build the image correctly
-ARG BASE_IMG=<jupyter-pytorch>
-FROM $BASE_IMG
+FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch:master-3dbc352f
 
 # install - requirements.txt
 COPY --chown=jovyan:users requirements.txt /tmp/requirements.txt

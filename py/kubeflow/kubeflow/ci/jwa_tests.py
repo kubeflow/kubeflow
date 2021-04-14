@@ -39,6 +39,7 @@ class Builder(workflow_utils.ArgoTestBuilder):
         context = "dir://%s/components/crud-web-apps" % self.src_dir
         destination = "jwa-test"
 
+        # check that the image can be build
         kaniko_task = self.create_kaniko_task(task_template, dockerfile,
                                               context, destination,
                                               no_push=True)
