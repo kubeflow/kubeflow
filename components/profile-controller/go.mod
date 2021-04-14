@@ -50,6 +50,7 @@ require (
 	k8s.io/kube-openapi v0.0.0-20200831175022-64514a1d5d59 // indirect
 	k8s.io/utils v0.0.0-20201015054608-420da100c033 // indirect
 	sigs.k8s.io/controller-runtime v0.6.3
+	sigs.k8s.io/controller-tools v0.4.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.0.2 // indirect
 )
 
