@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
 - ../default
+- service_account.yaml
 configMapGenerator:
 - name: tensorboard-controller-config
   literals:
@@ -10,6 +11,30 @@ configMapGenerator:
   - ISTIO_GATEWAY=kubeflow/kubeflow-gateway
 patchesStrategicMerge:
 - patches/add_controller_config.yaml
+- patches/add_service_account.yaml
+patches:
+- patch: |
+    apiVersion: rbac.authorization.k8s.io/v1beta1
+    kind: RoleBinding
+    metadata:
+      name: "*"
+    subjects:
+    - kind: ServiceAccount
+      name: tensorboard-controller
+  target:
+    kind: "RoleBinding"
+    group: "rbac.authorization.k8s.io"
+- patch: |
+    apiVersion: rbac.authorization.k8s.io/v1beta1
+    kind: ClusterRoleBinding
+    metadata:
+      name: "*"
+    subjects:
+    - kind: ServiceAccount
+      name: tensorboard-controller
+  target:
+    kind: "ClusterRoleBinding"
+    group: "rbac.authorization.k8s.io"
 images:
 - name: docker.io/kubeflownotebookswg/tensorboard-controller
   newTag: v1.6.0
