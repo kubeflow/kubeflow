@@ -6,6 +6,7 @@
     <th
       mat-header-cell
       *matHeaderCellDef
+      data-cy-resource-table-row
       [ngClass]="{
         grey: tableTheme === TABLE_THEME.FLAT,
         'right-align': col.textAlignment === 'right',
@@ -20,6 +21,7 @@
       <td
         mat-cell
         *matCellDef="let element"
+        data-cy-resource-table-row
         [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
         [ngClass]="{
           'right-align': col.textAlignment === 'right',
@@ -43,6 +45,7 @@
       <td
         mat-cell
         *matCellDef="let element"
+        data-cy-resource-table-row
         [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
       >
         <lib-status [row]="element" [config]="col.value"></lib-status>
@@ -54,6 +57,7 @@
       <td
         mat-cell
         *matCellDef="let element"
+        data-cy-resource-table-row
         [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
       >
         <lib-date-time [date]="col.value.getValue(element)"></lib-date-time>
@@ -65,6 +69,7 @@
       <td
         mat-cell
         *matCellDef="let element"
+        data-cy-resource-table-row
         [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
         [ngClass]="{ 'right-align': col.rightAlign }"
       >
@@ -80,6 +85,7 @@
       <td
         mat-cell
         *matCellDef="let element"
+        data-cy-resource-table-row
         [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
         [ngClass]="{
           'right-align': col.textAlignment === 'right',
@@ -98,6 +104,7 @@
       <td
         mat-cell
         *matCellDef="let element"
+        data-cy-resource-table-row
         [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
       >
         <lib-table-chips-list
@@ -112,6 +119,7 @@
       <td
         mat-cell
         *matCellDef="let element"
+        data-cy-resource-table-row
         [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
       >
         <button mat-icon-button [matMenuTriggerFor]="menu">
@@ -134,12 +142,13 @@
 
     <!--Action List Value-->
     <ng-container *ngIf="isActionListValue(col.value)">
-      <td mat-cell *matCellDef="let element">
+      <td mat-cell *matCellDef="let element" data-cy-resource-table-row>
         <div class="action-list">
           <ng-container *ngFor="let action of col.value.actions">
             <!--Button-->
             <lib-action-button
               *ngIf="isActionButtonValue(action)"
+              data-cy-resource-table-action-button
               class="action-button"
               [action]="action"
               [data]="element"
@@ -149,6 +158,7 @@
             <!--Icon-->
             <lib-action
               *ngIf="isActionIconValue(action)"
+              data-cy-resource-table-action-icon
               [action]="action"
               [data]="element"
               (emitter)="actionTriggered($event)"
