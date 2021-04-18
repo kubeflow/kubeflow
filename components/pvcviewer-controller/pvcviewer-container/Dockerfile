@@ -9,7 +9,7 @@ ENV SHELL /bin/bash
 
 # args - software versions
 ARG ARCH="amd64"
-ARG FILEBROWSER_VERSION="2.14.1"
+ARG FILEBROWSER_VERSION="2.15.0"
 
 # install - usefull linux packages
 RUN export DEBIAN_FRONTEND=noninteractive \

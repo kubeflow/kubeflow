@@ -18,6 +18,9 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
+	"reflect"
+
 	"github.com/go-logr/logr"
 	"github.com/gogo/protobuf/proto"
 	appsv1 "k8s.io/api/apps/v1"
@@ -29,8 +32,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"os"
-	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -38,6 +39,8 @@ import (
 	reconcilehelper "github.com/kubeflow/kubeflow/components/common/reconcilehelper"
 	pvcviewerv1alpha1 "github.com/kubeflow/kubeflow/components/pvcviewer-controller/api/v1alpha1"
 )
+
+const defaultViewerImage = "davidspek/kubeflow-filebrowser:0.31"
 
 // PVCViewerReconciler reconciles a PVCViewer object
 type PVCViewerReconciler struct {
@@ -159,6 +162,10 @@ func generateDeployment(viewer *pvcviewerv1alpha1.PVCViewer, log logr.Logger, r 
 	pvcname := viewer.Spec.PVCName
 	mountpath := "/home/jovyan/"
 
+	if len(viewer.Spec.ViewerImage) == 0 {
+		viewer.Spec.ViewerImage = defaultViewerImage
+	}
+
 	volumeMounts = append(volumeMounts, corev1.VolumeMount{
 		Name:      "viewerpd",
 		ReadOnly:  false,
@@ -192,7 +199,7 @@ func generateDeployment(viewer *pvcviewerv1alpha1.PVCViewer, log logr.Logger, r 
 		//If the PVC is mounted as a ReadWriteOnce volume by a pod that is running on a node X,
 		//then we find the NodeName of X so that the PVCViewer server
 		//(that must access the volume) will be deployed on X using nodeAffinity.
-		if pvc.Status.AccessModes[0] == corev1.ReadWriteOnce {
+		if len(pvc.Status.AccessModes) > 0 && pvc.Status.AccessModes[0] == corev1.ReadWriteOnce {
 			if err := generateNodeAffinity(affinity, pvcname, r, viewer); err != nil {
 				return nil, err
 			}
@@ -229,7 +236,7 @@ func generateDeployment(viewer *pvcviewerv1alpha1.PVCViewer, log logr.Logger, r 
 					Containers: []corev1.Container{
 						{
 							Name:            "pvcviewer",
-							Image:           "davidspek/kubeflow-filebrowser:0.30",
+							Image:           viewer.Spec.ViewerImage,
 							ImagePullPolicy: "IfNotPresent",
 							WorkingDir:      "/home/jovyan",
 							Env: []corev1.EnvVar{

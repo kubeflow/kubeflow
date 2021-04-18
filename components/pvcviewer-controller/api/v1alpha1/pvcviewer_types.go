@@ -27,7 +27,8 @@ import (
 type PVCViewerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	PVCName string `json:"pvcname"`
+	PVCName     string `json:"pvcname"`
+	ViewerImage string `json:"viewerimage"`
 }
 
 // PVCViewerCondition defines the observed state of PVCViewer

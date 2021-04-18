@@ -36,4 +36,4 @@ patches:
 images:
 - name: public.ecr.aws/j1r0q0g6/notebooks/pvcviewer-controller
   newName: davidspek/kubeflow-pvcviewer-controller
-  newTag: "0.6"
+  newTag: "0.7"
