@@ -36,4 +36,10 @@ spec:
           requests:
             cpu: 100m
             memory: 20Mi
+        env:
+          - name: ISTIO_GATEWAY
+            valueFrom:
+              configMapKeyRef:
+                name: config
+                key: ISTIO_GATEWAY
       terminationGracePeriodSeconds: 10
