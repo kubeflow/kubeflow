@@ -30,7 +30,7 @@ RETRY_STRATEGY = requests.packages.urllib3.util.retry.Retry(
     total=5,
     backoff_factor=0.5,
     status_forcelist=[429, 500, 502, 503, 504],
-    method_whitelist=["HEAD", "GET", "PUT", "OPTIONS", "DELETE"]
+    allowed_methods=["HEAD", "GET", "PUT", "OPTIONS", "DELETE"]
 )
 ADAPTER = requests.adapters.HTTPAdapter(max_retries=RETRY_STRATEGY)
 SESSION.mount("http://", ADAPTER)
@@ -68,6 +68,7 @@ def execute_notebook(notebook_path, output_path):
         notebook_path,
         output_path,
         parameters=parameters,
+        progress_bar=False,
     )
 
 
