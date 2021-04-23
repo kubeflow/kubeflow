@@ -1,6 +1,2 @@
 resources:
 - manager.yaml
-configMapGenerator:
-- name: config
-  literals:
-  - ISTIO_GATEWAY=kubeflow/kubeflow-gateway
