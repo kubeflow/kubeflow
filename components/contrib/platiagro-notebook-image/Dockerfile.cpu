@@ -111,10 +111,6 @@ RUN cd /tmp \
  && rm -rf /home/$NB_USER/.cache/yarn \
  && fix-permissions $CONDA_DIR \
  && fix-permissions /home/$NB_USER \
- && git clone https://github.com/platiagro/datasets/ \
- && mv datasets/samples/*.csv datasets \
- && find datasets -mindepth 1 -type f,d -not -name '*.csv' -delete \
- && mv datasets data \
  && gcloud config set pass_credentials_to_gsutil false
 
 # Install Tini
