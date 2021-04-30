@@ -301,10 +301,10 @@ RUN pip install --no-cache-dir \
     "smac>=0.13.1,<0.14" \
     spacy==3.0.1 \
     tensorflow==2.4.1 \
-    torch==1.8.0+cpu \
-    torchvision==0.9.0+cpu \
-    torchaudio==0.8.0 \
-    torchtext==0.9.0 \
+    torch==1.8.1+cpu \
+    torchvision==0.9.1+cpu \
+    torchaudio==0.8.1 \
+    torchtext==0.9.1 \
     transformers==4.3.2 \
     yolov4==2.1.0 \
  && pip uninstall -y typing \
