@@ -11,12 +11,54 @@ import tempfile
 import pandas as pd
 import papermill
 import requests
+import platiagro
 
 BASE_URL = os.getenv(
     "JUPYTER_ENDPOINT",
     "http://server.anonymous:80/notebook/anonymous/server/api/contents",
 )
 DEPLOYMENT_ID = os.getenv("DEPLOYMENT_ID")
+
+
+def save_figures(notebook_path):
+    """
+    Stores images and html outputs from a notebook using platiagro SDK.
+    This will make them available in the Web-UI.
+
+    Parameters
+    ----------
+    notebook_path : str
+    """
+    logging.info("Saving figures...")
+    with open(notebook_path, "rb") as f:
+        notebook = json.load(f)
+
+    cells = notebook["cells"]
+    for cell in cells:
+        if "outputs" in cell:
+            outputs = cell["outputs"]
+            for output in outputs:
+                if "data" in output:
+                    data = output["data"]
+                    keys = data.keys()
+                    for key in keys:
+                        if "html" in key:
+                            html = data[key]
+                            plotly_figure = "".join(html).replace(
+                                '["plotly"]',
+                                '["https://cdn.plot.ly/plotly-latest.min.js"]'
+                            )
+                            html_figure = f'<html><head><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script></head><body>{plotly_figure}</body></html>'
+                            platiagro.save_figure(
+                                figure=html_figure,
+                                extension="html"
+                            )
+
+                        elif "image" in key:
+                            platiagro.save_figure(
+                                figure=data[key],
+                                extension=key.split("/")[1]
+                            )
 
 
 def upload_to_jupyter(notebook_path):
@@ -84,7 +126,8 @@ class Model:
     def predict(self, X, feature_names, meta=None):
         dataset = next(tempfile._get_candidate_names())
         dataset_path = f"/tmp/data/{dataset}.csv"
-        logging.info(f"Downloading deployment data {dataset}. X.shape = {X.shape}...")
+        logging.info(
+            f"Downloading deployment data {dataset}. X.shape = {X.shape}...")
 
         df = pd.DataFrame(X, columns=feature_names)
         df.to_csv(dataset_path, index=False)
@@ -100,9 +143,11 @@ class Model:
                 output_path,
                 parameters={"dataset": dataset_path},
             )
-        except papermill.exceptions.PapermillExecutionError:
+        except papermill.exceptions.PapermillExecutionError as test:
+            print(test)
             pass
 
         make_cells_readonly(output_path)
         upload_to_jupyter(output_path)
+        save_figures(output_path)
         os.remove(dataset_path)
