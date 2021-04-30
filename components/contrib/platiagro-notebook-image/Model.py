@@ -143,8 +143,8 @@ class Model:
                 output_path,
                 parameters={"dataset": dataset_path},
             )
-        except papermill.exceptions.PapermillExecutionError as test:
-            print(test)
+        except papermill.exceptions.PapermillExecutionError:
+            logging.exception("Monitoring Task Error")
             pass
 
         make_cells_readonly(output_path)
