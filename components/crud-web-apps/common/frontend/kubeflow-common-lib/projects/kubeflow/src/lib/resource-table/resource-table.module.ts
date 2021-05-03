@@ -7,6 +7,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { StatusComponent } from './status/status.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -33,6 +34,7 @@ import { PortalModule } from '@angular/cdk/portal';
     MatButtonModule,
     MatChipsModule,
     MatMenuModule,
+    MatPaginatorModule,
     PortalModule,
     FontAwesomeModule,
     MatIconModule,
