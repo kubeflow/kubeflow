@@ -57,7 +57,7 @@ export class TableComponent {
   // Whenever a button in a row is pressed the component will emit an event
   // with information regarding the button that was pressed as well as the
   // row's object.
-  @Input() emitter: EventEmitter<ActionEvent>;
+  @Output() actionsEmitter = new EventEmitter<ActionEvent>();
 
   public isActionListValue(obj) {
     return obj instanceof ActionListValue;
@@ -101,17 +101,17 @@ export class TableComponent {
 
   public actionTriggered(e: ActionEvent) {
     // Forward the emitted ActionEvent
-    this.emitter.emit(e);
+    this.actionsEmitter.emit(e);
   }
 
   public newButtonTriggered() {
     const ev = new ActionEvent('newResourceButton', {});
-    this.emitter.emit(ev);
+    this.actionsEmitter.emit(ev);
   }
 
   public linkClicked(col: string, data: any) {
     const ev = new ActionEvent(`${col}:link`, data);
-    this.emitter.emit(ev);
+    this.actionsEmitter.emit(ev);
   }
 
   get tableTheme(): TABLE_THEME {

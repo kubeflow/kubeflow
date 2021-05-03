@@ -80,3 +80,4 @@ export * from './lib/form/submit-bar/submit-bar.component';
 export * from './lib/form/step-info/step-info.component';
 export * from './lib/form/submit-bar/submit-bar.component';
 export * from './lib/form/step-info/step-info.component';
+export * from './lib/resource-table/table/table.component';

@@ -36,7 +36,7 @@
         [config]="config"
         [data]="data"
         [trackByFn]="trackByFn"
-        [emitter]="actionsEmitter"
+        (actionsEmitter)="actionTriggered($event)"
       ></lib-table>
     </mat-card-content>
   </mat-card>
@@ -71,7 +71,7 @@
       [config]="config"
       [data]="data"
       [trackByFn]="trackByFn"
-      [emitter]="actionsEmitter"
+      (actionsEmitter)="actionTriggered($event)"
     ></lib-table>
   </div>
 </div>

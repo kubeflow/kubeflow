@@ -10,7 +10,7 @@
       [ngClass]="{
         grey: tableTheme === TABLE_THEME.FLAT,
         'right-align': col.textAlignment === 'right',
-        'row-right-padding': col.textAlignment === 'right'
+        'header-padding': true
       }"
     >
       {{ col.matHeaderCellDef }}
@@ -22,16 +22,17 @@
         mat-cell
         *matCellDef="let element"
         data-cy-resource-table-row
-        [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
+        [ngStyle]="col.style"
         [ngClass]="{
           'right-align': col.textAlignment === 'right',
-          'row-right-padding': col.textAlignment === 'right'
+          'mat-cell-truncate': col.value.truncate
         }"
       >
         <div
           [matTooltip]="col.value.getTooltip(element)"
           [libPopover]="col.value.getPopover(element)"
           matTooltipClass="custom-tooltip"
+          [ngStyle]="col.value.style"
           [ngClass]="col.value.getClasses()"
           (click)="linkClicked(col.matColumnDef, element)"
         >
@@ -46,7 +47,7 @@
         mat-cell
         *matCellDef="let element"
         data-cy-resource-table-row
-        [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
+        [ngStyle]="col.style"
       >
         <lib-status [row]="element" [config]="col.value"></lib-status>
       </td>
@@ -58,7 +59,8 @@
         mat-cell
         *matCellDef="let element"
         data-cy-resource-table-row
-        [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
+        [ngStyle]="col.style"
+        [ngClass]="{ 'right-align': col.textAlignment === 'right' }"
       >
         <lib-date-time [date]="col.value.getValue(element)"></lib-date-time>
       </td>
@@ -70,8 +72,8 @@
         mat-cell
         *matCellDef="let element"
         data-cy-resource-table-row
-        [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
-        [ngClass]="{ 'right-align': col.rightAlign }"
+        [ngStyle]="col.style"
+        [ngClass]="{ 'right-align': col.textAlignment === 'right' }"
       >
         <lib-component-value
           [element]="element"
@@ -86,7 +88,7 @@
         mat-cell
         *matCellDef="let element"
         data-cy-resource-table-row
-        [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
+        [ngStyle]="col.style"
         [ngClass]="{
           'right-align': col.textAlignment === 'right',
           'row-right-padding': col.textAlignment === 'right'
@@ -105,7 +107,7 @@
         mat-cell
         *matCellDef="let element"
         data-cy-resource-table-row
-        [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
+        [ngStyle]="col.style"
       >
         <lib-table-chips-list
           [element]="element"
@@ -120,7 +122,7 @@
         mat-cell
         *matCellDef="let element"
         data-cy-resource-table-row
-        [ngStyle]="{ 'min-width': col.minWidth, width: col.width }"
+        [ngStyle]="col.style"
       >
         <button mat-icon-button [matMenuTriggerFor]="menu">
           <mat-icon>{{ col.value.menuIcon }}</mat-icon>
@@ -159,6 +161,7 @@
             <lib-action
               *ngIf="isActionIconValue(action)"
               data-cy-resource-table-action-icon
+              class="action-button"
               [action]="action"
               [data]="element"
               (emitter)="actionTriggered($event)"

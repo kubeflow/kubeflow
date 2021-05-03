@@ -49,6 +49,6 @@ import { PortalModule } from '@angular/cdk/portal';
     TableComponent,
     ComponentValueComponent,
   ],
-  exports: [ResourceTableComponent],
+  exports: [ResourceTableComponent, TableComponent],
 })
 export class ResourceTableModule {}

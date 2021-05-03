@@ -1,20 +1,13 @@
 import { get as getAttributeValue } from 'lodash';
 
-// Single Text field
-export enum TRUNCATE_TEXT_SIZE {
-  NO_TRUNCATE = 'none',
-  SMALL = 'text-small',
-  MEDIUM = 'text-medium',
-  LARGE = 'text-large',
-}
-
 export interface PropertyConfig {
   field?: string;
   valueFn?: (row: any) => any;
   tooltipField?: string;
   popoverField?: string;
-  truncate?: TRUNCATE_TEXT_SIZE;
+  truncate?: boolean /* if set to true, user needs to define max-width */;
   isLink?: boolean;
+  style?: { [prop: string]: string };
 }
 
 export class PropertyValue {
@@ -22,19 +15,29 @@ export class PropertyValue {
   tooltipField: string;
   valueFn?: (row: any) => any;
   popoverField: string;
-  truncate: TRUNCATE_TEXT_SIZE;
+  truncate: boolean;
   isLink: boolean;
+  style: { [prop: string]: string };
 
   private defaultValues: PropertyConfig = {
     field: '',
     tooltipField: '',
     popoverField: '',
-    truncate: TRUNCATE_TEXT_SIZE.NO_TRUNCATE,
+    truncate: false,
     isLink: false,
+    style: {},
   };
 
   constructor(config: PropertyConfig) {
-    const { field, valueFn, tooltipField, popoverField, truncate, isLink } = {
+    const {
+      field,
+      valueFn,
+      tooltipField,
+      popoverField,
+      truncate,
+      isLink,
+      style,
+    } = {
       ...this.defaultValues,
       ...config,
     };
@@ -44,6 +47,7 @@ export class PropertyValue {
     this.popoverField = popoverField;
     this.truncate = truncate;
     this.isLink = isLink;
+    this.style = style;
   }
 
   getClasses() {
@@ -53,11 +57,11 @@ export class PropertyValue {
       classes.push('link');
     }
 
-    if (this.truncate === TRUNCATE_TEXT_SIZE.NO_TRUNCATE) {
+    if (!this.truncate) {
       return classes;
     }
 
-    classes.push(...['truncate', this.truncate]);
+    classes.push('truncate');
     return classes;
   }
 
