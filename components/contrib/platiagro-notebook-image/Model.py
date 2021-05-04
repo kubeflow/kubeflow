@@ -121,7 +121,7 @@ def make_cells_readonly(notebook_path):
 
 class Model:
     def __init__(self):
-        pass
+        os.makedirs("/tmp/data", exist_ok=True)
 
     def predict(self, X, feature_names, meta=None):
         dataset = next(tempfile._get_candidate_names())
