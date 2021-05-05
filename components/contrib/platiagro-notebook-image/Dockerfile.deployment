@@ -3,19 +3,11 @@ FROM $BASE_CONTAINER
 
 WORKDIR /app
 
-ENV MODEL_NAME Model
-ENV API_TYPE REST
-ENV SERVICE_TYPE MODEL
-ENV PERSISTENCE 0
-ENV PARAMETERS '[]'
-ENV LOG_LEVEL INFO
-ENV SINGLE_THREADED 1
-
 EXPOSE 5000
 ENTRYPOINT ["seldon-core-microservice"]
-CMD ["$MODEL_NAME", "$API_TYPE", \
-    "--service-type", "$SERVICE_TYPE", \
-    "--persistence", "$PERSISTENCE", \
-    "--parameters", "$PARAMETERS", \
-    "--log-level", "$LOG_LEVEL", \
-    "--single-threaded", "$SINGLE_THREADED"]
+CMD ["Model", "REST", \
+    "--service-type", "MODEL", \
+    "--persistence", "0", \
+    "--parameters", "[]", \
+    "--log-level", "INFO", \
+    "--single-threaded", "1"]
