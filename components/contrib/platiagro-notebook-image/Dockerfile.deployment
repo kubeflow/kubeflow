@@ -9,6 +9,13 @@ ENV SERVICE_TYPE MODEL
 ENV PERSISTENCE 0
 ENV PARAMETERS '[]'
 ENV LOG_LEVEL INFO
+ENV SINGLE_THREADED 1
 
 EXPOSE 5000
-CMD ["sh", "-c", "seldon-core-microservice \"$MODEL_NAME\" \"$API_TYPE\" --service-type \"$SERVICE_TYPE\" --persistence \"$PERSISTENCE\" --parameters \"$PARAMETERS\" --log-level \"$LOG_LEVEL\""]
+ENTRYPOINT ["seldon-core-microservice"]
+CMD ["$MODEL_NAME", "$API_TYPE", \
+    "--service-type", "$SERVICE_TYPE", \
+    "--persistence", "$PERSISTENCE", \
+    "--parameters", "$PARAMETERS", \
+    "--log-level", "$LOG_LEVEL", \
+    "--single-threaded", "$SINGLE_THREADED"]
