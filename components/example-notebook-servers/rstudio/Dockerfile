@@ -82,6 +82,7 @@ RUN echo "TZ=${TZ}" >> ${R_HOME}/etc/Renviron.site
 USER root
 
 # install - rstudio-server
+# Affero General Public License may apply to RStudio: https://www.gnu.org/licenses/agpl-3.0.en.html 
 RUN curl -sL "https://download2.rstudio.org/server/bionic/${RSTUDIO_ARCH}/rstudio-server-${RSTUDIO_VERSION}-${RSTUDIO_ARCH}.deb" -o /tmp/rstudio-server.deb \
  && echo "${RSTUDIO_SHA256} /tmp/rstudio-server.deb" | sha256sum --check \
  && dpkg -i /tmp/rstudio-server.deb \
