@@ -281,7 +281,7 @@ def set_notebook_gpus(notebook, body, defaults):
         raise BadRequest("gpus.num is not a valid number: %s" % gpus["num"])
 
     limits = container["resources"].get("limits", {})
-    limits[vendor] = str(num)
+    limits[vendor] = num
 
     container["resources"]["limits"] = limits
 
