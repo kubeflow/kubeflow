@@ -117,7 +117,9 @@ RUN cd /tmp \
  && rm -rf /home/$NB_USER/.cache/yarn \
  && fix-permissions $CONDA_DIR \
  && fix-permissions /home/$NB_USER \
- && gcloud config set pass_credentials_to_gsutil false
+ && gcloud config set pass_credentials_to_gsutil false \
+ && mkdir -p /tmp/data \
+ && fix-permissions /tmp/data
 
 # Install Tini
 RUN conda install --quiet --yes 'tini=0.18.0' \
