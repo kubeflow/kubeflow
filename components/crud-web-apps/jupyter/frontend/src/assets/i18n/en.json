@@ -138,7 +138,27 @@
     "connectTooltip": "Connect to this notebook server",
     "deleteTooltip": "Delete this notebook server",
     "startNotebookServer": "Start this notebook server",
-    "stopNotebookServer": "Stop this notebook server"
+    "stopNotebookServer": "Stop this notebook server",
+    "startingNotebookServer": "Starting Notebook server '{{notebookName}}'...",
+    "stoppingNotebookServer": "Stopping Notebook server '{{notebookName}}'..."
+  },
+  "backend": {
+    "status": {
+      "errorEvent": "An error has occured. Check 'kubectl describe pod' for more information",
+      "noPodsRunning": "No Pods are currently running for this Notebook Server.",
+      "notebookStopping": "Notebook Server is stopping.",
+      "notebookDeleting": "Deleting this notebook server",
+      "running": "Running",
+      "schedulingPod": "Scheduling the Pod",
+      "waitingStatus": "Current status is waiting. Check 'kubectl describe pod' for more information"
+    },
+    "service": {
+      "error": "An error occured: {{errorMsg}}",
+      "clientError": "Client error: {{errorMsg}}",
+      "errorConnectBackend": "Could not connect to the backend.",
+      "errorUnexpected": "Unexpected error encountered",
+      "errorOccured": "An error occured. Original message: {{errorMsg}}"
+    }
   },
   "volumeTable": {
     "title": "Notebook Volumes",

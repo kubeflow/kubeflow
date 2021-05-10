@@ -138,6 +138,26 @@
     "connectTooltip": "Connecter à ce serveur bloc-notes",
     "deleteTooltip": "Supprimer ce serveur bloc-notes",
     "startNotebookServer": "Démarer ce serveur bloc-notes",
-    "stopNotebookServer": "Arrêter ce serveur bloc-notes"
+    "stopNotebookServer": "Arrêter ce serveur bloc-notes",
+    "startingNotebookServer": "Démarer le serveur bloc-notes '{{notebookName}}'...",
+    "stoppingNotebookServer": "Arrêter le serveur bloc-notes '{{notebookName}}'..."
+  },
+  "backend": {
+    "status":{
+      "errorEvent": "Une erreur est advenue. Vérifier 'kubectl describe pod' pour plus d'information",
+      "noPodsRunning": "Aucun pod actuellement en exécurion pour ce serveur bloc-notes.",
+      "notebookStopping": "Serveur bloc-notes en arrêt.",
+      "notebookDeleting": "Serveur bloc-notes en supression",
+      "running": "En exécution",
+      "schedulingPod": "Planification du pod",
+      "waitingStatus": "Status actuel est 'en attente'. Vérifier 'kubectl describe pod' pour plus d'information"
+    },
+    "service": {
+      "error": "Une erreur est survenue: {{errorMsg}}",
+      "clientError": "Erreur client: {{errorMsg}}",
+      "errorConnectBackend": "Impossible de se connecter au backend.",
+      "errorUnexpected": "Erreur inattendue rencontrée",
+      "errorOccured": "Une erreur est survenue. Message original: {{errorMsg}}"
+    }
   }
 }

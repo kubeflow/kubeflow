@@ -21,6 +21,7 @@ import {
 import { isEqual } from 'lodash';
 import { NotebookResponseObject, NotebookProcessedObject } from 'src/app/types';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-index-default',
@@ -44,6 +45,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     public confirmDialog: ConfirmDialogService,
     public snackBar: SnackBarService,
     public router: Router,
+    public translate: TranslateService,
   ) {}
 
   ngOnInit(): void {
@@ -157,7 +159,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
   public startNotebook(notebook: NotebookProcessedObject) {
     this.snackBar.open(
-      `Starting Notebook server '${notebook.name}'...`,
+      this.translate.instant('indexTableConfig.startingNotebookServer', {notebookName:notebook.name}),
       SnackType.Info,
       3000,
     );
@@ -200,7 +202,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         }
 
         this.snackBar.open(
-          `Stopping Notebook server '${notebook.name}'...`,
+          this.translate.instant('indexTableConfig.stoppingNotebookServer', {notebookName:notebook.name}),
           SnackType.Info,
           3000,
         );
