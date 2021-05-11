@@ -1,6 +1,6 @@
 <lib-form-section
-  title="{{ 'formDataVolumes.dataVolumes' | translate }}"
-  text="{{ 'formDataVolumes.dataVolumesDesc' | translate }}"
+  title="{{ 'jupyter.formDataVolumes.dataVolumes' | translate }}"
+  text="{{ 'jupyter.formDataVolumes.dataVolumesDesc' | translate }}"
   icon="fa:fas:hdd"
 >
   <div [formGroup]="parentForm">
@@ -12,7 +12,7 @@
       type="button"
       [disabled]="readonly"
     >
-      <mat-icon>add</mat-icon>{{ 'formDataVolumes.addVolumeCaps' | translate }}
+      <mat-icon>add</mat-icon>{{ 'jupyter.formDataVolumes.addVolumeCaps' | translate }}
     </button>
 
     <div *ngFor="let vol of datavols; let i = index" class="volume-wrapper">

@@ -1,12 +1,12 @@
 <div *ngIf="volume" [formGroup]="volume" class="row">
   <mat-form-field class="column" appearance="outline" id="type">
-    <mat-label>{{ 'volume.type' | translate }}</mat-label>
+    <mat-label>{{ 'common.type' | translate }}</mat-label>
     <mat-select formControlName="type">
       <mat-option *ngIf="defaultStorageClass" value="New">
-        {{ 'volume.optNew' | translate }}
+        {{ 'jupyter.volume.optNew' | translate }}
       </mat-option>
       <mat-option value="Existing">
-        {{ 'volume.optExisting' | translate }}
+        {{ 'jupyter.volume.optExisting' | translate }}
       </mat-option>
     </mat-select>
   </mat-form-field>
@@ -30,7 +30,7 @@
 
   <!-- Mode Input -->
   <mat-form-field class="column" appearance="outline" id="mode">
-    <mat-label>{{ 'volume.mode' | translate }}</mat-label>
+    <mat-label>{{ 'jupyter.volume.mode' | translate }}</mat-label>
     <mat-select formControlName="mode">
       <mat-option value="ReadWriteOnce">
         {{ 'common.optReadWriteOnce' | translate }}
@@ -46,7 +46,7 @@
 
   <!-- Mount Input -->
   <mat-form-field class="column" appearance="outline" id="path">
-    <mat-label>{{ 'volume.mountPoint' | translate }}</mat-label>
+    <mat-label>{{ 'jupyter.volume.mountPoint' | translate }}</mat-label>
     <input matInput formControlName="path" />
   </mat-form-field>
 </div>

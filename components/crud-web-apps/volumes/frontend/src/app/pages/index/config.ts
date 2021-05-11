@@ -8,7 +8,7 @@ import {
 } from 'kubeflow';
 
 export const tableConfig: TableConfig = {
-  title: 'volume.volumes',
+  title: 'common.volumes',
   newButtonText: 'volume.newVolumeCaps',
   columns: [
     {

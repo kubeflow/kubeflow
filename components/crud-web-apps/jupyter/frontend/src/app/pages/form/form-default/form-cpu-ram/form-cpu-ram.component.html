@@ -1,6 +1,6 @@
 <lib-form-section
-  title="{{ 'formSpecs.cpuRam' | translate }}"
-  text="{{ 'formSpecs.cpuDesc' | translate }}"
+  title="{{ 'jupyter.formSpecs.cpuRam' | translate }}"
+  text="{{ 'jupyter.formSpecs.cpuDesc' | translate }}"
   icon="fa:fas:microchip"
 >
   <div class="row">
@@ -10,7 +10,7 @@
       min="0.1"
       step="0.1"
       [sizeControl]="parentForm.get('cpu')"
-      label="{{ 'formSpecs.cpu' | translate }}"
+      label="{{ 'jupyter.formSpecs.cpu' | translate }}"
     ></lib-positive-number-input>
 
     <!--RAM-->
@@ -19,7 +19,7 @@
       min="0.1"
       step="0.1"
       [sizeControl]="parentForm.get('memory')"
-      label="{{ 'formSpecs.ramSize' | translate }}"
+      label="{{ 'jupyter.formSpecs.ramSize' | translate }}"
     ></lib-positive-number-input>
   </div>
   <lib-advanced-options>

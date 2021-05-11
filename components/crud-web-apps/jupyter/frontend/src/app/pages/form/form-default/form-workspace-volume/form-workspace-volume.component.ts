@@ -40,7 +40,7 @@ export class FormWorkspaceVolumeComponent implements OnInit, OnDestroy {
           if (!b) {
             this.snackBar.close();
           } else {
-            const msg = this.translate.instant("formWorkspaceVolume.msgNoPersistent");
+            const msg = this.translate.instant("jupyter.formWorkspaceVolume.msgNoPersistent");
             
             this.snackBar.open(msg, SnackType.Warning, 0);
           }

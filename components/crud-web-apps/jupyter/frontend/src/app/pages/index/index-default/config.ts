@@ -15,15 +15,15 @@ import { ServerTypeComponent } from './server-type/server-type.component';
 export function getDeleteDialogConfig(name: string): DialogConfig {
   return {
     title: {
-      key: 'dialog.deleteDialogTitle',
+      key: 'jupyter.dialog.deleteDialogTitle',
       params: { name: name },
     },
-    message: 'dialog.deleteDialogMessage',
+    message: 'jupyter.dialog.deleteDialogMessage',
     accept: 'common.deleteCaps',
     confirmColor: 'warn',
     cancel: 'common.cancelCaps',
     error: '',
-    applying: 'dialog.deletingCaps',
+    applying: 'common.deletingCaps',
     width: '600px',
   };
 }
@@ -31,31 +31,31 @@ export function getDeleteDialogConfig(name: string): DialogConfig {
 export function getStopDialogConfig(name: string): DialogConfig {
   return {
     title: {
-      key: 'dialog.stopDialogTitle',
+      key: 'jupyter.dialog.stopDialogTitle',
       params: { name: name },
     },
-    message: 'dialog.stopDialogMessage',
+    message: 'jupyter.dialog.stopDialogMessage',
     accept: 'common.stopCaps',
     confirmColor: 'primary',
     cancel: 'common.cancelCaps',
     error: '',
-    applying: 'dialog.stoppingCaps',
+    applying: 'common.stoppingCaps',
     width: '600px',
   };
 }
 
 // --- Config for the Resource Table ---
 export const defaultConfig = {
-  title: 'indexTableConfig.notebookServers',
-  newButtonText: 'indexTableConfig.newServersCaps',
+  title: 'jupyter.index.notebookServers',
+  newButtonText: 'jupyter.index.newServersCaps',
   columns: [
     {
-      matHeaderCellDef: 'indexTableConfig.status',
+      matHeaderCellDef: 'common.status',
       matColumnDef: 'status',
       value: new StatusValue(),
     },
     {
-      matHeaderCellDef: 'indexTableConfig.name',
+      matHeaderCellDef: 'common.name',
       matColumnDef: 'name',
       value: new PropertyValue({
         field: 'name',
@@ -64,19 +64,19 @@ export const defaultConfig = {
       }),
     },
     {
-      matHeaderCellDef: 'indexTableConfig.type',
+      matHeaderCellDef: 'common.type',
       matColumnDef: 'type',
       value: new ComponentValue({
         component: ServerTypeComponent,
       }),
     },
     {
-      matHeaderCellDef: 'indexTableConfig.age',
+      matHeaderCellDef: 'common.age',
       matColumnDef: 'age',
       value: new PropertyValue({ field: 'age' }),
     },
     {
-      matHeaderCellDef: 'indexTableConfig.image',
+      matHeaderCellDef: 'common.image',
       matColumnDef: 'image',
       value: new PropertyValue({
         field: 'shortImage',
@@ -85,7 +85,7 @@ export const defaultConfig = {
       }),
     },
     {
-      matHeaderCellDef: 'indexTableConfig.gpus',
+      matHeaderCellDef: 'common.gpus',
       matColumnDef: 'gpus',
       value: new PropertyValue({
         field: 'gpus.count',
@@ -93,17 +93,17 @@ export const defaultConfig = {
       }),
     },
     {
-      matHeaderCellDef: 'indexTableConfig.cpus',
+      matHeaderCellDef: 'jupyter.index.cpus',
       matColumnDef: 'cpu',
       value: new PropertyValue({ field: 'cpu' }),
     },
     {
-      matHeaderCellDef: 'indexTableConfig.memory',
+      matHeaderCellDef: 'jupyter.index.memory',
       matColumnDef: 'memory',
       value: new PropertyValue({ field: 'memory' }),
     },
     {
-      matHeaderCellDef: 'indexTableConfig.volumes',
+      matHeaderCellDef: 'common.volumes',
       matColumnDef: 'volumes',
       value: new MenuValue({ field: 'volumes', itemsIcon: 'storage' }),
     },
@@ -114,15 +114,15 @@ export const defaultConfig = {
       value: new ActionListValue([
         new ActionButtonValue({
           name: 'connect',
-          tooltip: 'indexTableConfig.connectTooltip',
+          tooltip: 'jupyter.index.connectTooltip',
           color: 'primary',
           field: 'connectAction',
-          text: 'indexTableConfig.connectCaps',
+          text: 'jupyter.index.connectCaps',
         }),
         new ActionIconValue({
           name: 'start-stop',
-          tooltipInit: 'indexTableConfig.stopNotebookServer',
-          tooltipReady: 'indexTableConfig.startNotebookServer',
+          tooltipInit: 'jupyter.index.stopNotebookServer',
+          tooltipReady: 'jupyter.index.startNotebookServer',
           color: '',
           field: 'startStopAction',
           iconInit: 'material:stop',
@@ -130,7 +130,7 @@ export const defaultConfig = {
         }),
         new ActionIconValue({
           name: 'delete',
-          tooltip: 'indexTableConfig.deleteTooltip',
+          tooltip: 'jupyter.index.deleteTooltip',
           color: '',
           field: 'deleteAction',
           iconReady: 'material:delete',

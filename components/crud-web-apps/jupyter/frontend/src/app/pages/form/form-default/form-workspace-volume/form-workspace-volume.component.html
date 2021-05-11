@@ -1,11 +1,11 @@
 <lib-form-section
-  title="{{ 'formWorkspaceVolume.workspaceVolume' | translate }}"
-  text="{{ 'formWorkspaceVolume.workspaceVolumeDesc' | translate }}"
+  title="{{ 'jupyter.formWorkspaceVolume.workspaceVolume' | translate }}"
+  text="{{ 'jupyter.formWorkspaceVolume.workspaceVolumeDesc' | translate }}"
   icon="fa:fas:laptop-code"
 >
   <div [formGroup]="parentForm">
     <mat-checkbox formControlName="noWorkspace">
-      {{ 'formWorkspaceVolume.ckbNoPersistent' | translate }}
+      {{ 'jupyter.formWorkspaceVolume.ckbNoPersistent' | translate }}
     </mat-checkbox>
 
     <app-volume

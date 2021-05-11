@@ -1,13 +1,13 @@
 <lib-form-section
-  title="{{ 'formAffinityTolerations.affinityTolerations' | translate }}"
-  text="{{ 'formAffinityTolerations.affinityTolerationsDesc' | translate }}"
+  title="{{ 'jupyter.formAffinityTolerations.affinityTolerations' | translate }}"
+  text="{{ 'jupyter.formAffinityTolerations.affinityTolerationsDesc' | translate }}"
   icon="fa:fas:bullseye"
 >
   <div class="row">
     <!--Affinity-->
     <mat-form-field class="wide column" appearance="outline">
       <mat-label>
-        {{ 'formAffinityTolerations.affinityConfig' | translate }}
+        {{ 'jupyter.formAffinityTolerations.affinityConfig' | translate }}
       </mat-label>
       <mat-select [formControl]="parentForm.get('affinityConfig')">
         <mat-option value="">{{ 'common.optNone' | translate }}</mat-option>
@@ -23,7 +23,7 @@
     <!--Tolerations-->
     <mat-form-field class="wide column" appearance="outline">
       <mat-label>
-        {{ 'formAffinityTolerations.tolerationsGroup' | translate }}
+        {{ 'jupyter.formAffinityTolerations.tolerationsGroup' | translate }}
       </mat-label>
       <mat-select [formControl]="parentForm.get('tolerationGroup')">
         <mat-option value="">{{ 'common.optNone' | translate }}</mat-option>
