@@ -113,7 +113,10 @@ export class IndexComponent implements OnInit {
 
   public deleteTensorboardClicked(tensorboard: TensorboardProcessedObject) {
     const deleteDialogConfig: DialogConfig = {
-      title: `Are you sure you want to delete this Tensorboard : ${tensorboard.name} ?`,
+      title: {
+        key: `Are you sure you want to delete this Tensorboard : ${tensorboard.name} ?`,
+        params: { name: tensorboard.name },
+      },
       message: '',
       accept: 'DELETE',
       confirmColor: 'warn',

@@ -17,7 +17,7 @@ def parse_tensorboard(tensorboard):
         "namespace": tensorboard["metadata"]["namespace"],
         "logspath": tensorboard["spec"]["logspath"],
         "age": tensorboard["metadata"]["creationTimestamp"],
-        "status": status.create_status(phase, message, "")
+        "status": status.create_status(phase, message, "", key={"key": msg, "params": None})
     }
 
     return parsed_tensorboard

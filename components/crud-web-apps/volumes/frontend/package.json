@@ -17,9 +17,9 @@
   "dependencies": {
     "@angular/animations": "~8.2.14",
     "@angular/cdk": "^8.2.3",
+    "@angular/cdk-experimental": "^8.2.3",
     "@angular/common": "~8.2.14",
     "@angular/compiler": "~8.2.14",
-    "@angular/cdk-experimental": "^8.2.3",
     "@angular/core": "~8.2.14",
     "@angular/forms": "~8.2.14",
     "@angular/material": "^8.2.3",
@@ -30,16 +30,18 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.26",
     "@fortawesome/free-brands-svg-icons": "^5.12.0",
     "@fortawesome/free-solid-svg-icons": "^5.12.0",
+    "@kubernetes/client-node": "^0.12.2",
+    "@ngx-translate/core": "^12.0.0",
+    "@ngx-translate/http-loader": "^4.0.0",
     "date-fns": "^1.29.0",
-    "lodash-es": "^4.17.11",
     "hammerjs": "^2.0.8",
     "lodash": "^4.17.15",
+    "lodash-es": "^4.17.11",
     "material-icons": "^0.3.1",
     "raw-loader": "^4.0.0",
     "rxjs": "~6.4.0",
     "tslib": "^1.10.0",
-    "zone.js": "~0.9.1",
-    "@kubernetes/client-node": "^0.12.2"
+    "zone.js": "~0.9.1"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~0.803.20",

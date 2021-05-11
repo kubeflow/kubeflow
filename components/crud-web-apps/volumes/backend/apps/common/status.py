@@ -7,11 +7,11 @@ def pvc_status(pvc):
     """
     if pvc.metadata.deletion_timestamp is not None:
         return status.create_status(
-            status.STATUS_PHASE.TERMINATING, "Deleting Volume..."
+            status.STATUS_PHASE.TERMINATING, "Deleting Volume...", key={"key": "Deleting Volume...", "params": None}
         )
 
     if pvc.status.phase == "Bound":
-        return status.create_status(status.STATUS_PHASE.READY, "Bound")
+        return status.create_status(status.STATUS_PHASE.READY, "Bound", key={"key": "Bound", "params": None})
 
         # The PVC is in Pending state, we check the Events to find out why
     evs = api.v1_core.list_namespaced_event(
@@ -24,7 +24,7 @@ def pvc_status(pvc):
     # If there are no events, then the PVC was just created
     if len(evs) == 0:
         return status.create_status(
-            status.STATUS_PHASE.WAITING, "Provisioning Volume..."
+            status.STATUS_PHASE.WAITING, "Provisioning Volume...", key={"key": "Provisioning Volume...", "params": None}
         )
 
     msg = f"Pending: {evs[0].message}"
@@ -45,7 +45,7 @@ def pvc_status(pvc):
     elif evs[0].type == "Normal":
         phase = status.STATUS_PHASE.READY
 
-    return status.create_status(phase, msg, state)
+    return status.create_status(phase, msg, state, key={"key": msg, "params": None})
 
 
 def viewer_status(viewer):

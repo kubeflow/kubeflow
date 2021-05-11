@@ -108,7 +108,10 @@ export class IndexDefaultComponent implements OnInit {
 
   public deleteVolumeClicked(pvc: PVCProcessedObject) {
     const deleteDialogConfig: DialogConfig = {
-      title: `Are you sure you want to delete this volume? ${pvc.name}`,
+      title: {
+        key: `Are you sure you want to delete this volume? ${pvc.name}`,
+        params: { name: pvc.name },
+      },
       message: 'Warning: All data in this volume will be lost.',
       accept: 'DELETE',
       confirmColor: 'warn',

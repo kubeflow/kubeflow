@@ -23,6 +23,10 @@ import {
 import { IndexComponent } from './pages/index/index.component';
 import { FormComponent } from './pages/form/form.component';
 
+import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
+
 @NgModule({
   declarations: [AppComponent, IndexComponent, FormComponent],
   imports: [
@@ -37,6 +41,14 @@ import { FormComponent } from './pages/form/form.component';
     MatInputModule,
     FormModule,
     KubeflowModule,
+    HttpClientModule,
+    TranslateModule.forRoot({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: createTranslateLoader,
+        deps: [HttpClient],
+      },
+    }),
   ],
   providers: [
     { provide: ErrorStateMatcher, useClass: ImmediateErrorStateMatcher },
@@ -45,3 +57,7 @@ import { FormComponent } from './pages/form/form.component';
   entryComponents: [FormComponent],
 })
 export class AppModule {}
+
+export function createTranslateLoader(http: HttpClient) {
+  return new TranslateHttpLoader(http, '../static/assets/i18n/', '.json');
+}

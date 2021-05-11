@@ -4,13 +4,18 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { PVCResponseObject, VWABackendResponse, PVCPostObject } from '../types';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VWABackendService extends BackendService {
-  constructor(public http: HttpClient, public snackBar: SnackBarService) {
-    super(http, snackBar);
+  constructor(
+    public http: HttpClient,
+    public snackBar: SnackBarService,
+    public translate: TranslateService,
+  ) {
+    super(http, snackBar, translate);
   }
 
   public getPVCs(namespace: string): Observable<PVCResponseObject[]> {
