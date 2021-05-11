@@ -117,7 +117,7 @@ export const defaultConfig = {
           tooltip: 'jupyter.index.connectTooltip',
           color: 'primary',
           field: 'connectAction',
-          text: 'jupyter.index.connectCaps',
+          text: 'common.connectCaps',
         }),
         new ActionIconValue({
           name: 'start-stop',

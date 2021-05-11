@@ -21,7 +21,6 @@
       "addVolumeCaps": "AJOUTER UN VOLUME"
     },
     "formGpus": {
-      "gpus": "GPUs",
       "gpusDesc": "Spécifier le nombre et le vendeur de GPUs qui sera assigné au containeur du serveur bloc-notes.",
       "numGpus": "Nombre GPUs",
       "gpuVendor": "Vendeur de GPU",
@@ -29,7 +28,6 @@
       "errorGpuVendorRequired": "Vous devez spécifier le vendeur des GPUs assignés"
     },
     "formImage": {
-      "image": "Image",
       "frmImageDescription": "Une image Jupyter Docker démarrée avec un déploiement de base et des paquets ML typiques.",
       "customImage": "Image personnalisée",
       "imageDocker": "Image Docker",
@@ -46,7 +44,6 @@
       "useRStudioBasedServer": "Utiliser le serveur basé sur RStudio"
     },
     "formName": {
-      "name": "Nom",
       "nameDesc": "Spécifier le nom du serveur bloc-notes et l'espace de noms dont il fera partie."
     },
     "formSpecs": {
@@ -71,12 +68,8 @@
       "msgNoPersistent": "Votre espace de travail ne sera pas persistant. Toutes les données seront perdues si le bloc-notes est terminé, pour quelque raison que ce soit."
     },
     "volume": {
-      "type": "Type",
       "optNew": "Nouveau",
       "optExisting": "Existant",
-      "name": "Nom",
-      "errorNameRequired": "Le nom du volume ne peut pas être vide",
-      "errorNamePattern": "Le nom du volume ne peut contenir que des caractères alphanumériques en minuscule, '-' ou '.', et doit commencer et se terminer par un caractères alphanumériques",
       "errorMountedVolume": "Le volume est déjà monté sur un autre bloc-notes et ne peut être sélectionné actuellement",
       "sizeInGi": "Taille en Gi",
       "mode": "Mode",
@@ -89,23 +82,13 @@
       "deleteDialogTitle": "Êtes-vous sûr de vouloir supprimer ce serveur bloc-notes? {{name}}",
       "deleteDialogMessage": "Attention: Vos données pourraient être perdues si le serveur n'est pas sauvegardé par un stockage persistant.",
       "stopDialogTitle": "Êtes-vous sûr de vouloir arrêter ce serveur bloc-notes? {{name}}",
-      "stopDialogMessage": "Attention: Vos données pourraient être perdues si le serveur n'est pas sauvegardé par un stockage persistant.",
-      "stoppingCaps": "En cours d'arrêt",
-      "deletingCaps": "Supression en cours"
+      "stopDialogMessage": "Attention: Vos données pourraient être perdues si le serveur n'est pas sauvegardé par un stockage persistant."
     },
-    "indexTableConfig": {
+    "index": {
       "notebookServers": "Serveurs bloc-notes",
       "newServersCaps": "NOUVEAU SERVEUR",
-      "status": "Statut",
-      "name": "Nom",
-      "type": "Type",
-      "age": "Âge",
-      "image": "Image",
-      "gpus": "GPUs",
       "cpus": "CPUs",
       "memory": "Mémoire",
-      "volumes": "Volumes",
-      "connectCaps": "CONNECTER",
       "connectTooltip": "Connecter à ce serveur bloc-notes",
       "deleteTooltip": "Supprimer ce serveur bloc-notes",
       "startNotebookServer": "Démarer ce serveur bloc-notes",
@@ -129,6 +112,7 @@
     "deleteCaps": "SUPPRIMER",
     "cancelCaps": "ANNULER",
     "createCaps": "CRÉER",
+    "connectCaps": "CONNECTER",
     "name": "Nom",
     "type": "Type",
     "age": "Âge",
@@ -142,7 +126,10 @@
     "optReadWriteMany": "ReadWriteMany",
     "lauchCaps": "LANCER",
     "stoppingCaps": "En cours d'arrêt",
-    "deletingCaps": "Supression en cours"
+    "deletingCaps": "Supression en cours",
+    "image": "Image",
+    "gpus": "GPUs",
+    "volumes": "Volumes"
   },
   "commonProject": {
     "advancedOptions": {

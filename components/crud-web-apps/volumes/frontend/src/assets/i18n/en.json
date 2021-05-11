@@ -21,7 +21,6 @@
       "addVolumeCaps": "ADD VOLUME"
     },
     "formGpus": {
-      "gpus": "GPUs",
       "gpusDesc": "Specify the number and Vendor of GPUs that will be assigned to the Notebook Server's Container.",
       "numGpus": "Number of GPUs",
       "gpuVendor": "GPU Vendor",
@@ -29,7 +28,6 @@
       "errorGpuVendorRequired": "You must also specify the GPU Vendor for the assigned GPUs"
     },
     "formImage": {
-      "image": "Image",
       "frmImageDescription": "A started Jupyter Docker Image with a baseline deployment and typical ML packages",
       "customImage": "Custom Image",
       "imageDocker": "Docker Image",
@@ -45,7 +43,6 @@
       "useGroupTwoBasedServer": "Use Group Two based server"
     },
     "formName": {
-      "name": "Name",
       "nameDesc": "Specify the name of the Notebook Server and the Namespace it will belong to."
     },
     "formSpecs": {
@@ -70,12 +67,8 @@
       "msgNoPersistent": "Your workspace will not be persistent. You will lose all data in it, if your notebook is terminated for any reason."
     },
     "volume": {
-      "type": "Type",
       "optNew": "New",
       "optExisting": "Existing",
-      "name": "Name",
-      "errorNameRequired": "The volume name can't be empty",
-      "errorNamePattern": "The volume name can only contain lowercase alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character",
       "errorMountedVolume": "The volume is already mounted to another notebook and cannot be currently selected",
       "sizeInGi": "Size in Gi",
       "mode": "Mode",
@@ -88,23 +81,13 @@
       "deleteDialogTitle": "Are you sure you want to delete this notebook server? {{name}}",
       "deleteDialogMessage": "Warning: Your data might be lost if the notebook server is not backed by persistent storage",
       "stopDialogTitle": "Are you sure you want to stop this notebook server? {{name}}",
-      "stopDialogMessage": "Warning: Your data might be lost if the notebook server is not backed by persistent storage",
-      "stoppingCaps": "STOPPING",
-      "deletingCaps": "DELETING"
+      "stopDialogMessage": "Warning: Your data might be lost if the notebook server is not backed by persistent storage"
     },
-    "indexTableConfig": {
+    "index": {
       "notebookServers": "Notebook Servers",
       "newServersCaps": "NEW SERVER",
-      "status": "Status",
-      "name": "Name",
-      "type": "Type",
-      "age": "Age",
-      "image": "Image",
-      "gpus": "GPUs",
       "cpus": "CPUs",
       "memory": "Memory",
-      "volumes": "Volumes",
-      "connectCaps": "CONNECT",
       "connectTooltip": "Connect to this notebook server",
       "deleteTooltip": "Delete this notebook server",
       "startNotebookServer": "Start this notebook server",
@@ -128,6 +111,7 @@
     "deleteCaps": "DELETE",
     "cancelCaps": "CANCEL",
     "createCaps": "CREATE",
+    "connectCaps": "CONNECT",
     "name": "Name",
     "type": "Type",
     "age": "Age",
@@ -141,7 +125,10 @@
     "optReadWriteMany": "ReadWriteMany",
     "lauchCaps": "LAUNCH",
     "stoppingCaps": "STOPPING",
-    "deletingCaps": "DELETING"
+    "deletingCaps": "DELETING",
+    "image": "Image",
+    "gpus": "GPUs",
+    "volumes": "Volumes"
   },
   "commonProject": {
     "advancedOptions": {
@@ -169,7 +156,6 @@
   },
   "volume": {
     "volume": "Volume",
-    "volumes": "Volumes",
     "accessMode": "Access Mode",
     "storageClass": "Storage Class",
     "newVolume": "New Volume",
