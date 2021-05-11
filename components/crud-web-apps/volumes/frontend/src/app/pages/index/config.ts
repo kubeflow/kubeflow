@@ -8,16 +8,16 @@ import {
 } from 'kubeflow';
 
 export const tableConfig: TableConfig = {
-  title: 'Volumes',
-  newButtonText: 'NEW VOLUME',
+  title: 'volume.volumes',
+  newButtonText: 'volume.newVolumeCaps',
   columns: [
     {
-      matHeaderCellDef: 'Status',
+      matHeaderCellDef: 'common.status',
       matColumnDef: 'status',
       value: new StatusValue(),
     },
     {
-      matHeaderCellDef: 'Name',
+      matHeaderCellDef: 'common.name',
       matColumnDef: 'name',
       value: new PropertyValue({
         field: 'name',
@@ -26,7 +26,7 @@ export const tableConfig: TableConfig = {
       }),
     },
     {
-      matHeaderCellDef: 'Age',
+      matHeaderCellDef: 'common.age',
       matColumnDef: 'age',
       value: new PropertyValue({
         field: 'age.uptime',
@@ -34,17 +34,17 @@ export const tableConfig: TableConfig = {
       }),
     },
     {
-      matHeaderCellDef: 'Size',
+      matHeaderCellDef: 'common.size',
       matColumnDef: 'size',
       value: new PropertyValue({ field: 'capacity' }),
     },
     {
-      matHeaderCellDef: 'Access Mode',
+      matHeaderCellDef: 'volume.accessMode',
       matColumnDef: 'modes',
       value: new PropertyValue({ field: 'modes' }),
     },
     {
-      matHeaderCellDef: 'Storage Class',
+      matHeaderCellDef: 'volume.storageClass',
       matColumnDef: 'class',
       value: new PropertyValue({ field: 'class' }),
     },

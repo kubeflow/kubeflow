@@ -111,13 +111,13 @@ export class BackendService {
     error: HttpErrorResponse | ErrorEvent | string,
   ): string {
     if (typeof error === 'string') {
-      return this.translate.instant('backend.service.error', {
+      return this.translate.instant('commonProject.backend.error', {
         errorMsg: error,
       });
     }
 
     if (error.error instanceof ErrorEvent) {
-      return this.translate.instant('backend.service.clientError', {
+      return this.translate.instant('commonProject.backend.clientError', {
         errorMsg: error.error.message,
       });
     }
@@ -126,10 +126,10 @@ export class BackendService {
       // In case of status code 0 or negative, Http module couldn't
       // connect to the backend
       if (error.status <= 0) {
-        return this.translate.instant('backend.service.errorConnectBackend');
+        return this.translate.instant('commonProject.backend.errorConnectBackend');
       }
 
-      return this.translate.instant('backend.service.errorOccured', {
+      return this.translate.instant('commonProject.backend.errorOccured', {
         errorMsg: `[${error.status}] ${this.getBackendErrorLog(error)}\n${
           error.url
         }`,
@@ -137,12 +137,12 @@ export class BackendService {
     }
 
     if (error instanceof ErrorEvent) {
-      return this.translate.instant('backend.service.errorOccured', {
+      return this.translate.instant('commonProject.backend.errorOccured', {
         errorMsg: error.message,
       });
     }
 
-    return this.translate.instant('backend.service.errorUnexpected');
+    return this.translate.instant('commonProject.backend.errorUnexpected');
   }
 
   public handleError(
