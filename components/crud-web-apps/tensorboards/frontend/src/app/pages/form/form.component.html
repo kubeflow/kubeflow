@@ -1,6 +1,9 @@
 <div class="form--container" mat-dialog-content>
   <form novalidate (ngSubmit)="onSubmit()" [formGroup]="formCtrl">
-    <lib-form-section title="New Tensorboard" text="Create a new Tensorboard.">
+    <lib-form-section
+      title="{{ 'tensorboard.newTensorboard' | translate }}"
+      text="{{ 'tensorboard.form.newTensorboardText' | translate }}"
+    >
     </lib-form-section>
 
     <!--Name / Namespace-->
@@ -13,8 +16,12 @@
     </lib-form-name-namespace-inputs>
 
     <mat-radio-group formControlName="storage">
-      <mat-radio-button value="object_store">Object Store</mat-radio-button>
-      <mat-radio-button value="pvc" class="radio-pvc">PVC</mat-radio-button>
+      <mat-radio-button value="object_store">
+        {{ 'tensorboard.form.objectStore' | translate }}
+      </mat-radio-button>
+      <mat-radio-button value="pvc" class="radio-pvc">
+        {{ 'tensorboard.form.pvc' | translate }}
+      </mat-radio-button>
     </mat-radio-group>
 
     <mat-form-field
@@ -22,7 +29,7 @@
       class="wide"
       *ngIf="formCtrl.get('storage').value === 'pvc'"
     >
-      <mat-label>PVC Name</mat-label>
+      <mat-label>{{ 'tensorboard.form.pvcName' | translate }}</mat-label>
       <mat-select formControlName="pvcName">
         <mat-option *ngFor="let pvc of pvcNames" [value]="pvc">
           {{ pvc }}
@@ -35,11 +42,11 @@
       class="wide"
       *ngIf="formCtrl.get('storage').value === 'pvc'"
     >
-      <mat-label>Mount Path</mat-label>
+      <mat-label>{{ 'tensorboard.form.mountPath' | translate }}</mat-label>
       <input
         formControlName="pvcMountPath"
         matInput
-        placeholder="ex: mount/to/path"
+        placeholder="{{ 'tensorboard.form.mountPathEx' | translate }}"
         type="url"
       />
     </mat-form-field>
@@ -49,7 +56,9 @@
       class="wide"
       *ngIf="formCtrl.get('storage').value === 'object_store'"
     >
-      <mat-label>Object Store Link</mat-label>
+      <mat-label>
+        {{ 'tensorboard.form.objectStoreLink' | translate }}
+      </mat-label>
       <input matInput formControlName="objectStoreLink" type="url" />
     </mat-form-field>
 
@@ -60,9 +69,11 @@
       type="submit"
       [disabled]="!formCtrl.valid || blockSubmit"
     >
-      CREATE
+      {{ 'common.createCaps' | translate }}
     </button>
 
-    <button mat-raised-button type="button" (click)="onCancel()">CANCEL</button>
+    <button mat-raised-button type="button" (click)="onCancel()">
+      {{ 'common.cancelCaps' | translate }}
+    </button>
   </form>
 </div>

@@ -157,7 +157,6 @@
   },
   "volume": {
     "volume": "Volume",
-    "volumes": "Volumes",
     "accessMode": "Mode d'accès",
     "storageClass": "Classe de stockage",
     "newVolume": "Nouveau volume",
@@ -182,6 +181,31 @@
         "bound": "Attaché",
         "unavailableStatus": "En attente: ce volume sera lié lors de la création de son premier consommateur. Par exemple, lorsque vous parcourez son contenu pour la première fois ou que vous le connectez à un serveur bloc-notes"
       }
+    }
+  },
+  "tensorboard": {
+    "tensorboards": "Tensorboards",
+    "logspath":"Chemin d'accès",
+    "newTensorboard": "Nouveau Tensorboard",
+    "newTensorboardCaps": "NOUVEAU TENSORBOARD",
+    "form": {
+      "newTensorboardText": "Créer un nouveau Tensorboard.",
+      "objectStore": "Object Store",
+      "pvc": "PVC",
+      "pvcName": "Nom PVC",
+      "mountPath": "Chemin de montage",
+      "mountPathEx": "ex: mount/to/path",
+      "objectStoreLink": "Lien au Object Store"
+    },
+    "index": {
+      "connectTensorboard": "Connecter au serveur Tensorboard",
+      "deleteTensorboard": "Supprimer Tensorboard",
+      "tensorboardSubmitSuccess":"Tensorboard a été soumis avec succès.",
+      "deleteTensorboardDialogTitle": "Voulez-vous vraiment supprimer ce tensorboards? {{name}}"
+    },
+    "backend": {
+      "serverReady": "Le serveur Tensorboard est prêt à connecter",
+      "serverUnavailable": "Le serveur Tensorboard est actuellement indisponible"
     }
   }
 }

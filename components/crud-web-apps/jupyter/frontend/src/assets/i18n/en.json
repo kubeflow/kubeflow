@@ -182,5 +182,30 @@
         "unavailableStatus": "Pending: This volume will be bound when its first consumer is created. E.g., when you first browse its contents, or attach it to a notebook server"
       }
     }
+  },
+  "tensorboard": {
+    "tensorboards": "Tensorboards",
+    "logspath":"Logspath",
+    "newTensorboard": "New Tensorboard",
+    "newTensorboardCaps": "NEW TENSORBOARD",
+    "form": {
+      "newTensorboardText": "Create a new Tensorboard.",
+      "objectStore": "Object Store",
+      "pvc": "PVC",
+      "pvcName": "PVC Name",
+      "mountPath": "Mount Path",
+      "mountPathEx": "ex: mount/to/path",
+      "objectStoreLink": "Object Store Link"
+    },
+    "index": {
+      "connectTensorboard": "Connect to the Tensorboard Server",
+      "deleteTensorboard": "Delete Tensorboard",
+      "tensorboardSubmitSuccess":"Tensorboard was submitted successfully.",
+      "deleteTensorboardDialogTitle": "Voulez-vous vraiment supprimer ce tensorboards? {{name}}"
+    },
+    "backend": {
+      "serverReady": "The Tensorboard server is ready to connect",
+      "serverUnavailable": "The Tensorboard server is currently unavailble"
+    }
   }
 }
