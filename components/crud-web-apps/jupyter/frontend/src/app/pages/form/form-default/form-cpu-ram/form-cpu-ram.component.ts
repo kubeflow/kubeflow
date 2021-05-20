@@ -19,6 +19,10 @@ export class FormCpuRamComponent implements OnInit {
   ngOnInit() {
     this.parentForm.get('cpu').valueChanges.subscribe(val => {
       // set cpu limit when value of the cpu request changes
+      if (this.parentForm.get('cpuLimit').dirty) {
+        return;
+      }
+
       const cpu = this.parentForm.get('cpu').value;
       this.parentForm
         .get('cpuLimit')
@@ -27,6 +31,10 @@ export class FormCpuRamComponent implements OnInit {
 
     this.parentForm.get('memory').valueChanges.subscribe(val => {
       // set memory limit when value of the memory request changes
+      if (this.parentForm.get('memoryLimit').dirty) {
+        return;
+      }
+
       const memory = this.parentForm.get('memory').value;
       this.parentForm
         .get('memoryLimit')
