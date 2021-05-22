@@ -41,24 +41,25 @@ def save_figures(notebook_path):
                 if "data" in output:
                     data = output["data"]
                     keys = data.keys()
-                    for key in keys:
-                        if "html" in key:
-                            html = data[key]
-                            plotly_figure = "".join(html).replace(
-                                '["plotly"]',
-                                '["https://cdn.plot.ly/plotly-latest.min.js"]'
-                            )
-                            html_figure = f'<html><head><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script></head><body>{plotly_figure}</body></html>'
-                            platiagro.save_figure(
-                                figure=html_figure,
-                                extension="html"
-                            )
+                    if len(keys) == 2 and list(keys)[1] == "text/html":
+                        for key in keys:
+                            if "html" in key:
+                                html = data[key]
+                                plotly_figure = "".join(html).replace(
+                                    '["plotly"]',
+                                    '["https://cdn.plot.ly/plotly-latest.min.js"]'
+                                )
+                                html_figure = f'<html><head><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script></head><body>{plotly_figure}</body></html>'
+                                platiagro.save_figure(
+                                    figure=html_figure,
+                                    extension="html"
+                                )
 
-                        elif "image" in key:
-                            platiagro.save_figure(
-                                figure=data[key],
-                                extension=key.split("/")[1]
-                            )
+                            elif "image" in key:
+                                platiagro.save_figure(
+                                    figure=data[key],
+                                    extension=key.split("/")[1]
+                                )
 
 
 def upload_to_jupyter(notebook_path):
@@ -127,7 +128,7 @@ class Model:
         dataset = next(tempfile._get_candidate_names())
         dataset_path = f"/tmp/data/{dataset}.csv"
         logging.info(
-            f"Downloading deployment data {dataset}. X.shape = {X.shape}...")
+            f"Downloading deployment data {dataset} X.shape = {X.shape}...")
 
         df = pd.DataFrame(X, columns=feature_names)
         df.to_csv(dataset_path, index=False)
