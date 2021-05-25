@@ -255,6 +255,7 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 							WorkingDir:      "/",
 							Args: []string{
 								"--logdir=" + mountpath,
+								"--bind_all",
 							},
 							Ports: []corev1.ContainerPort{
 								{
