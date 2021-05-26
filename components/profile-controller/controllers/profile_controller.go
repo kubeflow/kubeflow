@@ -22,6 +22,7 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/cenkalti/backoff"
@@ -30,7 +31,9 @@ import (
 	"github.com/go-logr/logr"
 	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
 	"github.com/pkg/errors"
+	networkingv1alpha3 "istio.io/api/networking/v1alpha3"
 	istioSecurity "istio.io/api/security/v1beta1"
+	istioclientnetworkingapi "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	istioSecurityClient "istio.io/client-go/pkg/apis/security/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -46,9 +49,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+
+	"github.com/gogo/protobuf/jsonpb"
+	protobuftypes "github.com/gogo/protobuf/types"
 )
 
 const AUTHZPOLICYISTIO = "ns-owner-access-istio"
+
+const USERIDENVOYFILTERNAME = "add-userid-header-filter"
+const PIPELINESAPIHOSTNAME = "ml-pipeline.kubeflow.svc.cluster.local:8888"
 
 // Istio constants
 const ISTIOALLOWALL = "allow-all"
@@ -221,6 +230,13 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 		logger.Error(err, "error Updating ServiceAccount", "namespace", instance.Name, "name",
 			"defaultViewer")
 		IncRequestErrorCounter("error updating ServiceAccount", SEVERITY_MAJOR)
+		return reconcile.Result{}, err
+	}
+
+	// Update Istio EnvoyFilter
+	if err = r.updateHeaderAppenderEnvoyFilter(instance); err != nil {
+		logger.Error(err, "error Updating Istio EnvoyFilter", "namespace", instance.Name)
+		IncRequestErrorCounter("error updating Istio EnvoyFilter", SEVERITY_MAJOR)
 		return reconcile.Result{}, err
 	}
 
@@ -655,6 +671,72 @@ func (r *ProfileReconciler) updateRoleBinding(profileIns *profilev1.Profile,
 	return nil
 }
 
+// updateHeaderAppenderEnvoyFilter create or update EnvoyFilter responsible for adding user identity headers in target namespace owned by "profileIns".
+func (r *ProfileReconciler) updateHeaderAppenderEnvoyFilter(profileIns *profilev1.Profile) error {
+	logger := r.Log.WithValues("profile", profileIns.Name)
+
+	header := fmt.Sprintf(`{"request_headers_to_add": [{"append": true, "header": {"key": "%v", "value": "%v"}}]}`,
+		r.UserIdHeader, r.UserIdPrefix+profileIns.Spec.Owner.Name)
+	patch := &networkingv1alpha3.EnvoyFilter_EnvoyConfigObjectPatch{
+		ApplyTo: networkingv1alpha3.EnvoyFilter_VIRTUAL_HOST,
+		Match: &networkingv1alpha3.EnvoyFilter_EnvoyConfigObjectMatch{
+			Context: networkingv1alpha3.EnvoyFilter_SIDECAR_OUTBOUND,
+			ObjectTypes: &networkingv1alpha3.EnvoyFilter_EnvoyConfigObjectMatch_RouteConfiguration{
+				RouteConfiguration: &networkingv1alpha3.EnvoyFilter_RouteConfigurationMatch{
+					Vhost: &networkingv1alpha3.EnvoyFilter_RouteConfigurationMatch_VirtualHostMatch{
+						Name: PIPELINESAPIHOSTNAME,
+						Route: &networkingv1alpha3.EnvoyFilter_RouteConfigurationMatch_RouteMatch{
+							Name: "default",
+						},
+					},
+				},
+			},
+		},
+		Patch: &networkingv1alpha3.EnvoyFilter_Patch{
+			Operation: networkingv1alpha3.EnvoyFilter_Patch_MERGE,
+			Value:     buildPatchStruct(header),
+		},
+	}
+	envoyFilter := &istioclientnetworkingapi.EnvoyFilter{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      USERIDENVOYFILTERNAME,
+			Namespace: profileIns.Name,
+		},
+		Spec: networkingv1alpha3.EnvoyFilter{
+			ConfigPatches: []*networkingv1alpha3.EnvoyFilter_EnvoyConfigObjectPatch{patch},
+		},
+	}
+	if err := controllerutil.SetControllerReference(profileIns, envoyFilter, r.Scheme); err != nil {
+		return err
+	}
+	foundEnvoyFilter := &istioclientnetworkingapi.EnvoyFilter{}
+	err := r.Get(context.TODO(), types.NamespacedName{Name: envoyFilter.Name,
+		Namespace: envoyFilter.Namespace}, foundEnvoyFilter)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			logger.Info("Creating Istio EnvoyFilter", "namespace", envoyFilter.Namespace,
+				"name", envoyFilter.Name)
+			err = r.Create(context.TODO(), envoyFilter)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		if !reflect.DeepEqual(envoyFilter.Spec, foundEnvoyFilter.Spec) {
+			foundEnvoyFilter.Spec = envoyFilter.Spec
+			logger.Info("Updating Istio EnvoyFilter", "namespace", envoyFilter.Namespace,
+				"name", envoyFilter.Name)
+			err = r.Update(context.TODO(), foundEnvoyFilter)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // GetPluginSpec will try to unmarshal the plugin spec inside profile for the specified plugin
 // Returns an error if the plugin isn't defined or if there is a problem
 func (r *ProfileReconciler) GetPluginSpec(profileIns *profilev1.Profile) ([]Plugin, error) {
@@ -772,4 +854,10 @@ func (r *ProfileReconciler) readDefaultLabelsFromFile(path string) map[string]st
 		os.Exit(1)
 	}
 	return labels
+}
+
+func buildPatchStruct(config string) *protobuftypes.Struct {
+	val := &protobuftypes.Struct{}
+	jsonpb.Unmarshal(strings.NewReader(config), val)
+	return val
 }
