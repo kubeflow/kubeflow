@@ -26,7 +26,7 @@ export function getFormDefaults(): FormGroup {
       num: ['', []],
     }),
     workspace: fb.group({
-      mount: ['/home/jovyan', [Validators.required]],
+      mount: ['/home/kubeflow', [Validators.required]],
       newPvc: fb.group({
         metadata: fb.group({
           name: ['{notebook-name}-volume', [Validators.required]],
