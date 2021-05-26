@@ -19,7 +19,7 @@ import (
 	"time"
 
 	profileRegister "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1beta1"
-	profilev1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
+	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
 	log "github.com/sirupsen/logrus"
 	istioRegister "istio.io/client-go/pkg/apis/security/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -134,7 +134,7 @@ func (c *KfamV1Alpha1Client) CreateBinding(w http.ResponseWriter, r *http.Reques
 func (c *KfamV1Alpha1Client) CreateProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	const action = "create"
-	var profile profilev1beta1.Profile
+	var profile profilev1.Profile
 	if err := json.NewDecoder(r.Body).Decode(&profile); err != nil {
 		IncRequestErrorCounter("decode error", "", action, r.URL.Path,
 			SEVERITY_MAJOR)
