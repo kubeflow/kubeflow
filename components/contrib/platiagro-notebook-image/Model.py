@@ -62,6 +62,19 @@ def save_figures(notebook_path):
                                 )
 
 
+def delete_figure(notebook_path):
+    """
+    Delete images and html output from a notebook using platiagro SDK.
+    Removing from the Web-UI.
+
+    Parameters
+    ----------
+    notebook_path : str
+    """
+    logging.info("Deleting figures...")
+    platiagro.delete_figures()
+
+
 def upload_to_jupyter(notebook_path):
     """
     Uploads output notebook to PlatIAgro Jupyter notebook server.
@@ -150,5 +163,6 @@ class Model:
 
         make_cells_readonly(output_path)
         upload_to_jupyter(output_path)
+        delete_figure(output_path)
         save_figures(output_path)
         os.remove(dataset_path)
