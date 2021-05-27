@@ -292,18 +292,11 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         // instead of "queryParamsChange.base".
         // const queryParams = queryParamsChange.base;
         const queryParams = this.queryParams;
-        if (queryParams) {
-            if (queryParams["ns"]) {
-                if (queryParams["ns"] !== null){
-                    return this.buildHref(
-                        href.replace('{ns}', queryParams["ns"]),
-                        queryParams
-                    );
-                }
-            }
+        if (!queryParams || !queryParams["ns"]) {
+            return this.buildHref(href, this.queryParams);
         }
-
-        return this.buildHref(href, this.queryParams);
+        return this.buildHref(href.replace('{ns}', queryParams["ns"]),
+                              queryParams);
     }
 
     /**
@@ -360,14 +353,10 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         }).flat().sort().map((m) => {
             // replace namespaced menu items
             const queryParams = this.queryParams
-            if (queryParams) {
-                if (queryParams["ns"]) {
-                    if (queryParams["ns"] !== null){
-                        return m.replace('{ns}', queryParams["ns"]);
-                    }
-                }
+            if (!queryParams || !queryParams["ns"]) {
+                return m;
             }
-            return m;
+            return m.replace('{ns}', queryParams["ns"]);
         });
         if (hashPath) {
             matchPath = path + '#' + hashPath;
