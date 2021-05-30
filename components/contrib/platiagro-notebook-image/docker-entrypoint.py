@@ -23,6 +23,7 @@ COOKIES = {"_xsrf": "token"}
 HEADERS = {"content-type": "application/json", "X-XSRFToken": "token"}
 
 BASE_URL = os.getenv("JUPYTER_ENDPOINT", "http://server.anonymous:80/notebook/anonymous/server/api/contents")
+
 SESSION = requests.Session()
 SESSION.cookies.update(COOKIES)
 SESSION.headers.update(HEADERS)
@@ -91,7 +92,17 @@ def download_dataset(dataset):
 
     if not os.path.exists(dataset_path):
         platiagro.download_dataset(dataset, dataset_path)
-
+    else:
+        try:
+            # search for the metadata file of this run, if it exists, 
+            # it isn't necessary to download the dataset again.
+            metadata = platiagro.stat_dataset(dataset)
+            
+            # check if the metadata file is from the current run
+            if metadata.get("run_id") != os.getenv("RUN_ID"):
+                platiagro.download_dataset(dataset, dataset_path)
+        except FileNotFoundError:
+            platiagro.download_dataset(dataset, dataset_path)
 
 def save_dataset(dataset):
     """
