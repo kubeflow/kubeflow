@@ -237,7 +237,8 @@ def main():
         save_dataset(dataset)
 
     if exception is not None:
-        logging.exception(exception)
+        logging.error("Invalid file path or buffer object type.")
+        raise exception
 
 
 if __name__ == "__main__":
