@@ -291,7 +291,12 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         // A temporary workaround is  to use "this.queryParams" as an input
         // instead of "queryParamsChange.base".
         // const queryParams = queryParamsChange.base;
-        return this.buildHref(href, this.queryParams);
+        const queryParams = this.queryParams;
+        if (!queryParams || !queryParams["ns"]) {
+            return this.buildHref(href, this.queryParams);
+        }
+        return this.buildHref(href.replace('{ns}', queryParams["ns"]),
+                              queryParams);
     }
 
     /**
@@ -345,7 +350,14 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         let matchingLink = '';
         const allLinks = this.menuLinks.map((m) => {
             return m.type === 'section' ? m.items.map((x) => x.link) : m.link;
-        }).flat().sort();
+        }).flat().sort().map((m) => {
+            // replace namespaced menu items
+            const queryParams = this.queryParams
+            if (!queryParams || !queryParams["ns"]) {
+                return m;
+            }
+            return m.replace('{ns}', queryParams["ns"]);
+        });
         if (hashPath) {
             matchPath = path + '#' + hashPath;
             matchingLink = allLinks
