@@ -237,7 +237,7 @@ def main():
         save_dataset(dataset)
 
     if exception is not None:
-        raise exception
+        logging.exception(exception)
 
 
 if __name__ == "__main__":
