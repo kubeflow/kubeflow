@@ -237,7 +237,7 @@ def main():
         save_dataset(dataset)
 
     if exception is not None:
-        logging.error("Invalid file path or buffer object type.")
+        logging.error("Exception raised when running a notebook.")
         raise exception
 
 
