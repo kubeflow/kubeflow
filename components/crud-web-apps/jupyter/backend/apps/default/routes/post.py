@@ -48,7 +48,7 @@ def post_pvc(namespace):
             notebook,
             workspace_vol["name"],
             workspace_vol["name"],
-            workspace_vol["path"],
+            workspace_vol["templatedPath"],
         )
 
     # Add the Data Volumes
