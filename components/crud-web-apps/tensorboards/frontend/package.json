@@ -5,7 +5,7 @@
     "ng": "ng",
     "build": "npm run copyLibAssets && ng build --prod --base-href /tensorboards/ --deploy-url static/",
     "build:watch": "npm run copyLibAssets && ng build --watch --deploy-url static/ --outputPath ../backend/app/static/ --outputHashing all",
-    "copyLibAssets": "cp ./node_modules/kubeflow/assets/* ./src/assets/",
+    "copyLibAssets": "cp -r ./node_modules/kubeflow/assets/* ./src/assets/",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"

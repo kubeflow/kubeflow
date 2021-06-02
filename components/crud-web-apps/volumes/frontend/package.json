@@ -6,7 +6,7 @@
     "build": "npm run copyLibAssets && ng build --prod --base-href /volumes/ --deploy-url static/",
     "build:watch": "npm run copyLibAssets && ng build --watch --deploy-url static/ --outputPath ../backend/apps/default/static/ --outputHashing all",
     "build:watch:rok": "npm run copyLibAssets && ng build --watch --deploy-url static/ --configuration=rok --outputPath ../backend/apps/rok/static/ --outputHashing all",
-    "copyLibAssets": "cp ./node_modules/kubeflow/assets/* ./src/assets/",
+    "copyLibAssets": "cp -r ./node_modules/kubeflow/assets/* ./src/assets/",
     "format:check": "prettier --check 'src/**/*.{js,ts,html,scss,css}' || node scripts/check-format-error.js",
     "format:write": "prettier --write 'src/**/*.{js,ts,html,scss,css}'",
     "test": "ng test",
