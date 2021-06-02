@@ -37,20 +37,21 @@
       "optIfNotPresent": "Si elle n'est pas présente",
       "optNever": "Jamais",
       "errorImageRequired": "Veuillez fournir une image a utiliser",
-      "rstudioTrademark": "RStudio® et le logo RStudio sont des marques déposées de RStudio, PBC",
       "serverType": "Type de serveur",
       "useJupyterLabBasedServer": "Utiliser le serveur basé sur JupyterLab",
-      "useVSCodeBasedServer": "Utiliser le serveur basé sur VS-Code",
-      "useRStudioBasedServer": "Utiliser le serveur basé sur RStudio"
+      "useGroupOneBasedServer": "Utiliser le serveur basé sur le groupe un",
+      "useGroupTwoBasedServer": "Utiliser le serveur basé sur le groupe deux"
     },
     "formName": {
       "nameDesc": "Spécifier le nom du serveur bloc-notes et l'espace de noms dont il fera partie."
     },
     "formSpecs": {
       "cpuRam": "CPU / Mémoire vive",
-      "cpu": "CPU",
+      "cpuRequested": "CPUs demandé",
       "cpuDesc": "Spécifier le nombre total de CPU et mémoire vive reservé pour votre serveur bloc-notes. Pour les charges de travail lourde pour le CPU, vous pouvez choisir plus d'un CPU (ex. 1.5).",
-      "ramSize": "Taille de la mémoire en Gi",
+      "cpuLimit": "Limite du CPU",
+      "memoryLimit": "Limite pour la mémoire, en Gi",
+      "memoryRequested": "Mémoire demandé en Gi",
       "errorCpuRequired": "Spécifier le nombre de CPUs",
       "errorCpuNumber": "Doit être un nombre",
       "errorCpuMin": "Spécifier au moins {{min}} CPUs",
@@ -124,7 +125,7 @@
     "optReadWriteOnce": "ReadWriteOnce",
     "optReadOnlyMany": "ReadOnlyMany",
     "optReadWriteMany": "ReadWriteMany",
-    "lauchCaps": "LANCER",
+    "launchCaps": "LANCER",
     "stoppingCaps": "En cours d'arrêt",
     "deletingCaps": "Supression en cours",
     "image": "Image",

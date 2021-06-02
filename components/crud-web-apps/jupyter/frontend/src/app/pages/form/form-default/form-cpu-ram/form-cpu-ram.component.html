@@ -10,7 +10,7 @@
       min="0.1"
       step="0.1"
       [sizeControl]="parentForm.get('cpu')"
-      label="{{ 'jupyter.formSpecs.cpu' | translate }}"
+      label="{{ 'jupyter.formSpecs.cpuRequested' | translate }}"
     ></lib-positive-number-input>
 
     <!--RAM-->
@@ -19,7 +19,7 @@
       min="0.1"
       step="0.1"
       [sizeControl]="parentForm.get('memory')"
-      label="{{ 'jupyter.formSpecs.ramSize' | translate }}"
+      label="{{ 'jupyter.formSpecs.memoryRequested' | translate }}"
     ></lib-positive-number-input>
   </div>
   <lib-advanced-options>
@@ -27,7 +27,7 @@
       <!--CPU-->
       <div class="column">
         <mat-form-field appearance="outline" class="wide">
-          <mat-label>CPU limit</mat-label>
+          <mat-label>{{ 'jupyter.formSpecs.cpuLimit' | translate }}</mat-label>
           <input
             matInput
             type="number"
@@ -40,7 +40,7 @@
       <!--RAM-->
       <div class="column">
         <mat-form-field appearance="outline" class="wide">
-          <mat-label>Memory limit in Gi</mat-label>
+          <mat-label>{{ 'jupyter.formSpecs.memoryLimit' | translate }}</mat-label>
           <input
             matInput
             type="number"

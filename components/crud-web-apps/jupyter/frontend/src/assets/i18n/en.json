@@ -37,20 +37,21 @@
       "optIfNotPresent": "IfNotPresent",
       "optNever": "Never",
       "errorImageRequired": "Please provide and Image to use",
-      "rstudioTrademark": "RStudio® and the RStudio logo are registered trademarks of RStudio, PBC",
       "serverType": "Server Type",
       "useJupyterLabBasedServer": "Use JupyterLab based server",
-      "useVSCodeBasedServer": "Use VS-Code based server",
-      "useRStudioBasedServer": "Use RStudio based server"
+      "useGroupOneBasedServer": "Use Group One based server",
+      "useGroupTwoBasedServer": "Use Group Two based server"
     },
     "formName": {
       "nameDesc": "Specify the name of the Notebook Server and the Namespace it will belong to."
     },
     "formSpecs": {
       "cpuRam": "CPU / RAM",
-      "cpu": "CPU",
+      "cpuRequested": "Requested CPUs",
       "cpuDesc": "Specify the total amount of CPU and RAM reserved by your Notebook Server. For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).",
-      "ramSize": "RAM size in Gi",
+      "cpuLimit": "CPU limit",
+      "memoryLimit": "Memory limit in Gi",
+      "memoryRequested": "Requested memory in Gi",
       "errorCpuRequired": "Specify number of CPUs",
       "errorCpuNumber": "Must be a number",
       "errorCpuMin": "Specify at least {{min}} CPUs",
@@ -124,7 +125,7 @@
     "optReadWriteOnce": "ReadWriteOnce",
     "optReadOnlyMany": "ReadOnlyMany",
     "optReadWriteMany": "ReadWriteMany",
-    "lauchCaps": "LAUNCH",
+    "launchCaps": "LAUNCH",
     "stoppingCaps": "STOPPING",
     "deletingCaps": "DELETING",
     "image": "Image",
