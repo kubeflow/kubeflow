@@ -7,7 +7,7 @@ USER root
 ARG CODESERVER_VERSION=v3.10.2
 
 # install - code-server
-RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_VERSION}/code-server_$(echo ${CODESERVER_VERSION} | sed 's/^.//')_amd64.deb" -o /tmp/code-server.deb \
+RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION/v/}_amd64.deb" -o /tmp/code-server.deb \
  && dpkg -i /tmp/code-server.deb \
  && rm -f /tmp/code-server.deb
 
