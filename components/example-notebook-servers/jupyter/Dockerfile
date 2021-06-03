@@ -1,14 +1,15 @@
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/base:master-1831e436
+FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/base:master-6c41e72b
 
 USER root
 
 # args - software versions
-ARG CONDA_VERSION="4.9.2"
+ # renovate: datasource=github-tags depName=conda/conda versioning=semver
+ARG CONDA_VERSION=4.10.1
 ARG MINIFORGE_ARCH="x86_64"
-ARG MINIFORGE_SHA256="91d5aa5f732b5e02002a371196a2607f839bab166970ea06e6ecc602cb446848"
-ARG MINIFORGE_VERSION="${CONDA_VERSION}-7"
-ARG PIP_VERSION="21.0.1"
-ARG PYTHON_VERSION="3.8.8"
+ # renovate: datasource=github-tags depName=conda-forge/miniforge versioning=loose
+ARG MINIFORGE_VERSION=4.10.1-4
+ARG PIP_VERSION=21.1.2
+ARG PYTHON_VERSION=3.8.10
 
 # install -- node.js
 RUN export DEBIAN_FRONTEND=noninteractive \
@@ -36,7 +37,9 @@ USER ${NB_UID}
 
 # install - conda, pip, python
 RUN curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh" -o /tmp/Miniforge3.sh \
- && echo "${MINIFORGE_SHA256} /tmp/Miniforge3.sh" | sha256sum --check \
+ && curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh.sha256" -o /tmp/Miniforge3.sh.sha256 \
+ && echo "$(cat /tmp/Miniforge3.sh.sha256 | awk '{ print $1; }') /tmp/Miniforge3.sh" | sha256sum --check \
+ && rm /tmp/Miniforge3.sh.sha256 \
  && /bin/bash /tmp/Miniforge3.sh -b -f -p ${CONDA_DIR} \
  && rm /tmp/Miniforge3.sh \
  && conda config --system --set auto_update_conda false \
