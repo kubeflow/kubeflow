@@ -155,7 +155,7 @@ export interface Config {
   };
 
   hideRegistry?: boolean;
-  
+
   hideTag?: boolean;
 
   allowCustomImage?: boolean;
