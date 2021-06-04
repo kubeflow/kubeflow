@@ -142,8 +142,6 @@ export interface Config {
   image?: {
     value: string;
     options: string[];
-    hideRegistry?: boolean;
-    hideTag?: boolean;
   };
 
   imageGroupOne?: {
@@ -155,6 +153,10 @@ export interface Config {
     value: string;
     options: string[];
   };
+
+  hideRegistry?: boolean;
+  
+  hideTag?: boolean;
 
   allowCustomImage?: boolean;
 
