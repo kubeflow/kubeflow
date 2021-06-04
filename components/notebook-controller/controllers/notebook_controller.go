@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -219,7 +220,8 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 				if pod.Status.ContainerStatuses[i].Name != instance.Name {
 					continue
 				}
-				if pod.Status.ContainerStatuses[i].State == instance.Status.ContainerState {
+				if reflect.DeepEqual(pod.Status.ContainerStatuses[i].State, instance.Status.ContainerState) {
+					notebookContainerFound = true
 					continue
 				}
 
