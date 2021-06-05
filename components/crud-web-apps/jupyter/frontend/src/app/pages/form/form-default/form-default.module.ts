@@ -43,7 +43,7 @@ import { FormAffinityTolerationsComponent } from './form-affinity-tolerations/fo
     MatCheckboxModule,
     MatSlideToggleModule,
     MatIconModule,
-    MatButtonToggleModule
+    MatButtonToggleModule,
   ],
   exports: [
     FormDefaultComponent,
@@ -60,4 +60,3 @@ import { FormAffinityTolerationsComponent } from './form-affinity-tolerations/fo
   ],
 })
 export class FormDefaultModule {}
-

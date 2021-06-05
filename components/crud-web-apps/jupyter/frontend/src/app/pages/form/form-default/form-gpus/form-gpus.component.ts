@@ -21,7 +21,10 @@ export class FormGpusComponent implements OnInit {
   maxGPUs = 16;
   gpusCount = ['1', '2', '4', '8'];
 
-  constructor(public backend: JWABackendService, private translate: TranslateService) {}
+  constructor(
+    public backend: JWABackendService,
+    private translate: TranslateService,
+  ) {}
 
   ngOnInit() {
     this.gpuCtrl = this.parentForm.get('gpus') as FormGroup;
@@ -54,7 +57,9 @@ export class FormGpusComponent implements OnInit {
 
   public vendorTooltip(vendor: GPUVendor) {
     return !this.installedVendors.has(vendor.limitsKey)
-      ? this.translate.instant("jupyter.formGpus.errorGpuVendorNotFound", {vendoruiName: `${vendor.uiName}`}) 
+      ? this.translate.instant('jupyter.formGpus.errorGpuVendorNotFound', {
+          vendoruiName: `${vendor.uiName}`,
+        })
       : '';
   }
 

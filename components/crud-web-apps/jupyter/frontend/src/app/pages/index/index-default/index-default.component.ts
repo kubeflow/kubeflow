@@ -159,7 +159,9 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
   public startNotebook(notebook: NotebookProcessedObject) {
     this.snackBar.open(
-      this.translate.instant('jupyter.index.startingNotebookServer', {notebookName:notebook.name}),
+      this.translate.instant('jupyter.index.startingNotebookServer', {
+        notebookName: notebook.name,
+      }),
       SnackType.Info,
       3000,
     );
@@ -202,7 +204,9 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         }
 
         this.snackBar.open(
-          this.translate.instant('jupyter.index.stoppingNotebookServer', {notebookName:notebook.name}),
+          this.translate.instant('jupyter.index.stoppingNotebookServer', {
+            notebookName: notebook.name,
+          }),
           SnackType.Info,
           3000,
         );

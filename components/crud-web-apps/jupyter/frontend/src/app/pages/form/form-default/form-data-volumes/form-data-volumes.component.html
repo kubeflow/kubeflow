@@ -12,7 +12,8 @@
       type="button"
       [disabled]="readonly"
     >
-      <mat-icon>add</mat-icon>{{ 'jupyter.formDataVolumes.addVolumeCaps' | translate }}
+      <mat-icon>add</mat-icon
+      >{{ 'jupyter.formDataVolumes.addVolumeCaps' | translate }}
     </button>
 
     <div *ngFor="let vol of datavols; let i = index" class="volume-wrapper">

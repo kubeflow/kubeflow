@@ -4,7 +4,9 @@
   icon="fa:fas:sliders-h"
 >
   <mat-form-field class="wide" appearance="outline">
-    <mat-label>{{ 'jupyter.formConfiguration.configurations' | translate }}</mat-label>
+    <mat-label>
+      {{ 'jupyter.formConfiguration.configurations' | translate }}
+    </mat-label>
     <mat-select [formControl]="parentForm.get('configurations')" multiple>
       <mat-option *ngFor="let config of podDefaults" [value]="config.label">
         {{ config.desc }}
