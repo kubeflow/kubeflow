@@ -52,7 +52,7 @@
       placeholder="Docker Image"
       [formControl]="parentForm.get('image')"
     >
-      <mat-option *ngFor="let img of images" [value]="img">
+      <mat-option *ngFor="let img of images" [value]="img" [matTooltip]="img">
         {{ imageDisplayName(img) }}
       </mat-option>
     </mat-select>
@@ -73,7 +73,11 @@
       placeholder="Docker Image"
       [formControl]="parentForm.get('imageGroupOne')"
     >
-      <mat-option *ngFor="let img of imagesGroupOne" [value]="img">
+      <mat-option
+        *ngFor="let img of imagesGroupOne"
+        [value]="img"
+        [matTooltip]="img"
+      >
         {{ imageDisplayName(img) }}
       </mat-option>
     </mat-select>
@@ -94,7 +98,11 @@
       placeholder="Docker Image"
       [formControl]="parentForm.get('imageGroupTwo')"
     >
-      <mat-option *ngFor="let img of imagesGroupTwo" [value]="img">
+      <mat-option
+        *ngFor="let img of imagesGroupTwo"
+        [value]="img"
+        [matTooltip]="img"
+      >
         {{ imageDisplayName(img) }}
       </mat-option>
     </mat-select>
