@@ -20,7 +20,7 @@ numba==0.53.1
 numexpr==2.7.3
 pandas==1.2.4
 patsy==0.5.1
-protobuf==3.17.2
+protobuf==3.17.3
 scikit-image==0.18.1
 scikit-learn==0.24.2
 scipy==1.6.3
