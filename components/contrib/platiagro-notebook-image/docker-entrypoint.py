@@ -195,26 +195,29 @@ def upload_to_jupyter(notebook_path, destination_path):
     notebook_path : str
     destination_path : str
     """
-    logging.info("Uploading to Jupyter Notebook server...")
+    logging.info("Uploading to Jupyter Notebook Server...")
 
     path = ""
-    for directory in destination_path.split("/")[:-1]:
-        path = f"{path}/{directory}"
+    try:
+        for directory in destination_path.split("/")[:-1]:
+            path = f"{path}/{directory}"
+            SESSION.put(
+                f"{BASE_URL}{path}",
+                json={"type": "directory"},
+            )   
+
+        with open(notebook_path) as f:
+            content = json.load(f)
+
         SESSION.put(
-            f"{BASE_URL}{path}",
-            json={"type": "directory"},
+            f"{BASE_URL}/{destination_path}",
+            json={
+                "type": "notebook",
+                "content": content,
+            },
         )
-
-    with open(notebook_path) as f:
-        content = json.load(f)
-
-    SESSION.put(
-        f"{BASE_URL}/{destination_path}",
-        json={
-            "type": "notebook",
-            "content": content,
-        },
-    )
+    except requests.exceptions.ConnectionError:
+        logging.warning("Jupyter Notebook Server is currently unavailable, the output notebook will not be uploaded.")
 
 
 def main():
