@@ -365,6 +365,22 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 					},
 				},
 			},
+			{
+				To: []*istioSecurity.Rule_To{
+					{
+						Operation: &istioSecurity.Operation{
+							// Workloads pathes should be accessible for KNative's
+							// `activator` and `controller` probes
+							// See: https://knative.dev/docs/serving/istio-authorization/#allowing-access-from-system-pods-by-paths
+							Paths: []string{
+								"/healthz",
+								"/metrics",
+								"/wait-for-drain",
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
