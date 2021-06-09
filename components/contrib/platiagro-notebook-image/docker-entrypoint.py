@@ -216,7 +216,7 @@ def upload_to_jupyter(notebook_path, destination_path):
                 "content": content,
             },
         )
-    except requests.exceptions.RequestException:
+    except requests.exceptions.ConnectionError:
         logging.warning("Jupyter Notebook Server is currently unavailable, the output notebook will not be uploaded.")
 
 
