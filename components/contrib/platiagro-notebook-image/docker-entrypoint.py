@@ -198,17 +198,17 @@ def upload_to_jupyter(notebook_path, destination_path):
     logging.info("Uploading to Jupyter Notebook Server...")
 
     path = ""
-    for directory in destination_path.split("/")[:-1]:
-        path = f"{path}/{directory}"
-        SESSION.put(
-            f"{BASE_URL}{path}",
-            json={"type": "directory"},
-        )
-
-    with open(notebook_path) as f:
-        content = json.load(f)
-
     try:
+        for directory in destination_path.split("/")[:-1]:
+            path = f"{path}/{directory}"
+            SESSION.put(
+                f"{BASE_URL}{path}",
+                json={"type": "directory"},
+            )   
+
+        with open(notebook_path) as f:
+            content = json.load(f)
+
         SESSION.put(
             f"{BASE_URL}/{destination_path}",
             json={
