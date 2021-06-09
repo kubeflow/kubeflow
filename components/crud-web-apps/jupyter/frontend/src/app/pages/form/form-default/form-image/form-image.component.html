@@ -52,11 +52,11 @@
       placeholder="Docker Image"
       [formControl]="parentForm.get('image')"
     >
-      <mat-option *ngFor="let img of images" [value]="img">
-        {{ img }}
+      <mat-option *ngFor="let img of images" [value]="img" [matTooltip]="img">
+        {{ imageDisplayName(img) }}
       </mat-option>
     </mat-select>
-    <mat-error>Please provide and Image to use</mat-error>
+    <mat-error>Please provide an Image to use</mat-error>
   </mat-form-field>
 
   <mat-form-field
@@ -73,11 +73,15 @@
       placeholder="Docker Image"
       [formControl]="parentForm.get('imageGroupOne')"
     >
-      <mat-option *ngFor="let img of imagesGroupOne" [value]="img">
-        {{ img }}
+      <mat-option
+        *ngFor="let img of imagesGroupOne"
+        [value]="img"
+        [matTooltip]="img"
+      >
+        {{ imageDisplayName(img) }}
       </mat-option>
     </mat-select>
-    <mat-error>Please provide and Image to use</mat-error>
+    <mat-error>Please provide an Image to use</mat-error>
   </mat-form-field>
 
   <mat-form-field
@@ -94,11 +98,15 @@
       placeholder="Docker Image"
       [formControl]="parentForm.get('imageGroupTwo')"
     >
-      <mat-option *ngFor="let img of imagesGroupTwo" [value]="img">
-        {{ img }}
+      <mat-option
+        *ngFor="let img of imagesGroupTwo"
+        [value]="img"
+        [matTooltip]="img"
+      >
+        {{ imageDisplayName(img) }}
       </mat-option>
     </mat-select>
-    <mat-error>Please provide and Image to use</mat-error>
+    <mat-error>Please provide an Image to use</mat-error>
   </mat-form-field>
 
   <mat-form-field
@@ -113,7 +121,7 @@
       [formControl]="parentForm.get('customImage')"
       #cstmimg
     />
-    <mat-error>Please provide and Image to use</mat-error>
+    <mat-error>Please provide an Image to use</mat-error>
   </mat-form-field>
 
   <lib-advanced-options>

@@ -46,6 +46,9 @@ spawnerFormDefaults:
     # The list of available standard container Images
     options:
       - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:master-164fa2ea
+  # If true, hide registry and/or tag name in the image selection dropdown
+  hideRegistry: true
+  hideTag: false
   allowCustomImage: true
   # If true, users can input custom images
   # If false, users can only select from the images in this config
