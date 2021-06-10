@@ -231,6 +231,7 @@ RUN conda install --quiet --yes \
 # - shap==0.37.0 exaplinable AI lib
 # - facenet-pytorch==2.5.1 Required for MTCNN
 # - sentencepiece - encoding, decoding and training of Sentencepiece
+# - dvc[all]==2.3.0 - manage your code and data together
 
 # Installs numpy and packages that don't depend on numpy
 RUN pip install --no-cache-dir \
@@ -276,6 +277,7 @@ RUN pip install --no-cache-dir \
     category-encoders==2.2.2 \
     "ConfigSpace>=0.4.14,<0.5" \
     dask[complete]==2021.2.0 \
+    dvc[all]==2.3.0 \
     "distributed>=2.2.0" \
     emcee==3.0.2 \
     facenet-pytorch==2.5.1 \
