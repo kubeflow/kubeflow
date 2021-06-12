@@ -188,6 +188,36 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 			return r.appendErrorConditionAndReturn(ctx, instance, fmt.Sprintf(
 				"namespace already exist, but not owned by profile creator %v", instance.Spec.Owner.Name))
 		}
+		//to check if namespace have been removed
+		err = r.Get(ctx, foundNs, types.NamespacedName{Name: ns.Name})
+		if err != nil {
+		if errors.IsNotFound(err) {
+			logger.Info("Deleting Namespace: " + ns.Name)
+			err = r.Delete(ctx, ns)
+			if err != nil {
+				IncRequestErrorCounter("error deleting namespace", SEVERITY_MAJOR)
+				logger.Error(err, "error deleting namespace")
+				return reconcile.Result{}, err
+			}
+			// wait 15 seconds for  namespace deletion.
+			err = backoff.Retry(
+				func() error {
+					return  r.Get(ctx, foundNs, types.NamespacedName{Name: ns.Name})
+				},
+				backoff.WithMaxRetries(backoff.NewConstantBackOff(3*time.Second), 5))
+			if err != nil {
+				IncRequestErrorCounter("error namespace delete completion", SEVERITY_MAJOR)
+				logger.Error(err, "error namespace delete completion")
+				return r.appendErrorConditionAndReturn(ctx, instance,
+					"Owning namespace failed to delete within 15 seconds")
+			}
+			logger.Info("delete Namespace: "+foundNs.Name, "status", foundNs.Status.Phase)
+		} else {
+			IncRequestErrorCounter("error reading namespace", SEVERITY_MAJOR)
+			logger.Error(err, "error reading namespace")
+			return reconcile.Result{}, err
+		}	
+		
 	}
 
 	// Update Istio AuthorizationPolicy
