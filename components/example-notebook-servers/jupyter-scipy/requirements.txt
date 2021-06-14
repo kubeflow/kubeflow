@@ -11,7 +11,7 @@ bokeh==2.3.2
 cloudpickle==1.6.0
 cython==0.29.23
 dask==2021.6.0
-dill==0.3.3
+dill==0.3.4
 h5py==3.2.1
 ipympl==0.7.0
 ipywidgets==7.6.3
