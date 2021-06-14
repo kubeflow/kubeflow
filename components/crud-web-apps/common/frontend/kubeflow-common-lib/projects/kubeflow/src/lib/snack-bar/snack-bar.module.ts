@@ -12,7 +12,7 @@ import { TranslateModule } from '@ngx-translate/core';
     MatIconModule,
     MatButtonModule,
     MatSnackBarModule,
-    TranslateModule,
+    TranslateModule.forRoot(),
   ],
   declarations: [SnackBarComponent],
   entryComponents: [SnackBarComponent],

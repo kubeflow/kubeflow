@@ -51,7 +51,7 @@ import { TranslateModule } from '@ngx-translate/core';
     IconModule,
     MatProgressSpinnerModule,
     PopoverModule,
-    TranslateModule,
+    TranslateModule.forRoot(),
   ],
   exports: [
     FormSectionComponent,

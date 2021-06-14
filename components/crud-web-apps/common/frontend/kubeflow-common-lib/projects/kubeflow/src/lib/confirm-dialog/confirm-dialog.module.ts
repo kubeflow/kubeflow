@@ -12,7 +12,7 @@ import { TranslateModule } from '@ngx-translate/core';
     MatDialogModule,
     MatButtonModule,
     MatProgressSpinnerModule,
-    TranslateModule,
+    TranslateModule.forRoot(),
   ],
   entryComponents: [ConfirmDialogComponent],
 })

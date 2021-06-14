@@ -126,7 +126,9 @@ export class BackendService {
       // In case of status code 0 or negative, Http module couldn't
       // connect to the backend
       if (error.status <= 0) {
-        return this.translate.instant('commonProject.backend.errorConnectBackend');
+        return this.translate.instant(
+          'commonProject.backend.errorConnectBackend',
+        );
       }
 
       return this.translate.instant('commonProject.backend.errorOccured', {

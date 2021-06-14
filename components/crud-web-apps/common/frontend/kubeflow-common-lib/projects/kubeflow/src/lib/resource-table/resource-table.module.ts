@@ -42,7 +42,7 @@ import { TranslateModule } from '@ngx-translate/core';
     IconModule,
     DateTimeModule,
     PopoverModule,
-    TranslateModule.forChild(),
+    TranslateModule.forRoot(),
   ],
   declarations: [
     ResourceTableComponent,

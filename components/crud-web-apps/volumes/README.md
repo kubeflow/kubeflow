@@ -56,10 +56,6 @@ For each language added, `app.component.ts` will need to be updated.
 - Copy the en.json file and rename is to the language you want to add. As it currently is, the culture should not be included.
 - Change the values to the translated ones
 
-**When a language is added:** 
-- Copy the en.json file and rename is to the language you want to add. As it currently is, the culture should not be included.
-- Change the values to the translated ones
-
 **When a translation is added or modified:**
 - Choose an appropriate key
 - Make sure to add the key in every language file

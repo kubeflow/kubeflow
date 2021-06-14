@@ -18,7 +18,7 @@ import { TranslateModule } from '@ngx-translate/core';
     MatFormFieldModule,
     MatSelectModule,
     SnackBarModule,
-    TranslateModule,
+    TranslateModule.forRoot(),
   ],
   declarations: [NamespaceSelectComponent],
   exports: [NamespaceSelectComponent],
