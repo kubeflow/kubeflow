@@ -21,14 +21,14 @@ def process_status(notebook):
                 status.STATUS_PHASE.STOPPED,
                 "No Pods are currently running for this Notebook Server.",
                 key={"key": "jupyter.backend.status.noPodsRunning",
-                    "params": None}
+                     "params": None}
             )
         else:
             return status.create_status(
                 status.STATUS_PHASE.TERMINATING,
                 "Notebook Server is stopping.",
                 key={"key": "jupyter.backend.status.notebookStopping",
-                    "params": None}
+                     "params": None}
             )
 
     # If the Notebook is being deleted, the status will be waiting
@@ -37,7 +37,7 @@ def process_status(notebook):
             status.STATUS_PHASE.TERMINATING,
             "Deleting this notebook server",
             key={"key": "jupyter.backend.status.notebookDeleting",
-                "params": None}
+                 "params": None}
         )
 
     # Check the status
