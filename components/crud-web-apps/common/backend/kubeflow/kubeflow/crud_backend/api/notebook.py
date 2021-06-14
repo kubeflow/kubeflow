@@ -1,5 +1,3 @@
-from kubernetes import client
-
 from .. import authz
 from . import custom_api, v1_core
 
@@ -37,12 +35,12 @@ def delete_notebook(notebook, namespace):
         "delete", "kubeflow.org", "v1beta1", "notebooks", namespace
     )
     return custom_api.delete_namespaced_custom_object(
-        "kubeflow.org",
-        "v1beta1",
-        namespace,
-        "notebooks",
-        notebook,
-        client.V1DeleteOptions(propagation_policy="Foreground"),
+        group="kubeflow.org",
+        version="v1beta1",
+        namespace=namespace,
+        plural="notebooks",
+        name=notebook,
+        propagation_policy="Foreground",
     )
 
 
