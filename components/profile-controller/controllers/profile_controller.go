@@ -450,6 +450,15 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 				},
 			},
 			{
+				From: []*istioSecurity.Rule_From{
+					{
+						Source: &istioSecurity.Source{
+							Principals: []string{
+								"cluster.local/ns/knative-serving/sa/controller",
+							},
+						},
+					},
+				},
 				To: []*istioSecurity.Rule_To{
 					{
 						Operation: &istioSecurity.Operation{
@@ -459,7 +468,9 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 							Paths: []string{
 								"/healthz",
 								"/metrics",
+								"/ready",
 								"/wait-for-drain",
+								"/v1/models/*",
 							},
 						},
 					},
