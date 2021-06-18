@@ -24,3 +24,10 @@ The breakdown is the following:
         - Add KFAM container.
         - Add KFAM Service and VirtualService.
     - `overlays/standalone`: Install `profile-controller` in its own namespace. Useful for testing or for users that prefer to install just the controller.
+
+
+### Settings
+
+#### Namespace label injection
+
+The Profile Controller applies several labels to every Profile namespace. These labels are configurable by editing the `namespace-labels` ConfigMap. Refer to the current value for usage instruction.
