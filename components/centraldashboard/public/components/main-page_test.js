@@ -357,4 +357,26 @@ describe('Main Page', () => {
                    '/myapp/test?ns=test');
        });
 
+    it('Update namespaced item along with namespace selection',
+        () => {
+            mainPage.menuLinks = MENU_LINKS;
+            flush();
+            mainPage.set('queryParams.ns', 'test');
+            mainPage.subRouteData.path = '/myapp/test/';
+            mainPage._routePageChanged('_', '/myapp/test/');
+            flush();
+            let activeMenuItem = getSelectedMenuItem();
+            expect(activeMenuItem.length).toBe(1);
+            expect(activeMenuItem[0].parentElement.href).toBe(
+                   '/myapp/test?ns=test');
+            expect(mainPage.subRouteData.path).toBe('/myapp/test/');
+
+            mainPage.set('queryParams.ns', 'other-namespace');
+            activeMenuItem = getSelectedMenuItem();
+            expect(activeMenuItem.length).toBe(1);
+            expect(activeMenuItem[0].parentElement.href).toBe(
+                   '/myapp/other-namespace?ns=other-namespace');
+            expect(mainPage.subRouteData.path).toBe('/myapp/other-namespace');
+        });
 });
+
