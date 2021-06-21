@@ -33,7 +33,6 @@ class MockDictComponent implements TableColumnComponent {
   declarations: [MockComponent, MockDictComponent],
   imports: [],
   exports: [MockComponent, MockDictComponent],
-  entryComponents: [MockComponent, MockDictComponent],
 })
 class MockModule {}
 

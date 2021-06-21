@@ -13,6 +13,5 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatButtonModule,
     MatProgressSpinnerModule,
   ],
-  entryComponents: [ConfirmDialogComponent],
 })
 export class ConfirmDialogModule {}
