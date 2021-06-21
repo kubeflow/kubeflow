@@ -141,14 +141,14 @@ workflows:
       - components/example-notebook-servers/codeserver/*
     kwargs: {}
   # Run build test for notebook-server-jupyter-pytorch OCI image
-  - py_func: kubeflow.kubeflow.ci.notebook_servers.notebook_server_jupyter_pytorch_tests.create_workflow
-    name: nb-j-pt
-    job_types:
-      - presubmit
-    include_dirs:
-      - releasing/version/*
-      - components/example-notebook-servers/jupyter-pytorch/*
-    kwargs: {}
+  # - py_func: kubeflow.kubeflow.ci.notebook_servers.notebook_server_jupyter_pytorch_tests.create_workflow
+  #   name: nb-j-pt
+  #   job_types:
+  #     - presubmit
+  #   include_dirs:
+  #     - releasing/version/*
+  #     - components/example-notebook-servers/jupyter-pytorch/*
+  #   kwargs: {}
   # Run build test for notebook-server-jupyter-tensorflow OCI images
   - py_func: kubeflow.kubeflow.ci.notebook_servers.notebook_server_jupyter_tensorflow_tests.create_workflow
     name: nb-j-tf
@@ -322,7 +322,7 @@ workflows:
   - py_func: kubeflow.kubeflow.cd.notebook_servers.notebook_server_jupyter_pytorch.create_workflow
     name: nb-j-pt
     job_types:
-      - postsubmit
+      - presubmit
     include_dirs:
       - components/example-notebook-servers/jupyter-pytorch/*
     kwargs: {}
