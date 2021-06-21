@@ -26,6 +26,7 @@ import { AdvancedOptionsComponent } from './advanced-options/advanced-options.co
 import { PopoverModule } from '../popover/popover.module';
 import { SubmitBarComponent } from './submit-bar/submit-bar.component';
 import { StepInfoComponent } from './step-info/step-info.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 @NgModule({
   declarations: [
@@ -50,6 +51,7 @@ import { StepInfoComponent } from './step-info/step-info.component';
     IconModule,
     MatProgressSpinnerModule,
     PopoverModule,
+    TranslateModule.forRoot(),
   ],
   exports: [
     FormSectionComponent,
@@ -70,6 +72,7 @@ import { StepInfoComponent } from './step-info/step-info.component';
     MatTooltipModule,
     MatIconModule,
     MatDividerModule,
+    TranslateModule,
   ],
 })
 export class FormModule {}

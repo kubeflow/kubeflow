@@ -1,17 +1,19 @@
-import {Injectable} from '@angular/core';
-import {Location} from '@angular/common';
+import { Injectable } from '@angular/core';
+import { Location } from '@angular/common';
 import {
   HttpClient,
   HttpErrorResponse,
   HttpHeaders,
 } from '@angular/common/http';
 
-import {throwError, Observable} from 'rxjs';
-import {catchError, map} from 'rxjs/operators';
+import { throwError, Observable } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
-import {BackendResponse} from './types';
-import {SnackType} from '../../snack-bar/types';
-import {SnackBarService} from '../../snack-bar/snack-bar.service';
+import { BackendResponse } from './types';
+import { SnackType } from '../../snack-bar/types';
+import { SnackBarService } from '../../snack-bar/snack-bar.service';
+
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({
   providedIn: 'root',
@@ -20,8 +22,11 @@ export class BackendService {
   apiUrl = '';
   username: string;
 
-  constructor(public http: HttpClient, public snackBar: SnackBarService) {
-  }
+  constructor(
+    public http: HttpClient,
+    public snackBar: SnackBarService,
+    public translate: TranslateService,
+  ) {}
 
   // GETers
   public getUsername(): Observable<string> {
@@ -33,12 +38,16 @@ export class BackendService {
     );
   }
 
-  public getNamespaces(showSnackBar = true, url?: string): Observable<string[]> {
-
+  public getNamespaces(
+    showSnackBar = true,
+    url?: string,
+  ): Observable<string[]> {
     return this.http.get<BackendResponse>(url ? url : 'api/namespaces').pipe(
       catchError(error => this.handleError(error, showSnackBar)),
       map((data: BackendResponse | string[]) =>
-        (data as BackendResponse).namespaces ? (data as BackendResponse).namespaces : (data as string[])
+        (data as BackendResponse).namespaces
+          ? (data as BackendResponse).namespaces
+          : (data as string[]),
       ),
     );
   }
@@ -102,30 +111,40 @@ export class BackendService {
     error: HttpErrorResponse | ErrorEvent | string,
   ): string {
     if (typeof error === 'string') {
-      return error;
+      return this.translate.instant('commonProject.backend.error', {
+        errorMsg: error,
+      });
     }
 
     if (error.error instanceof ErrorEvent) {
-      return `Client error: ${error.error.message}`;
+      return this.translate.instant('commonProject.backend.clientError', {
+        errorMsg: error.error.message,
+      });
     }
 
     if (error instanceof HttpErrorResponse) {
       // In case of status code 0 or negative, Http module couldn't
       // connect to the backend
       if (error.status <= 0) {
-        return 'Could not connect to the backend.';
+        return this.translate.instant(
+          'commonProject.backend.errorConnectBackend',
+        );
       }
 
-      return `[${error.status}] ${this.getBackendErrorLog(error)}\n${
-        error.url
-      }`;
+      return this.translate.instant('commonProject.backend.errorOccured', {
+        errorMsg: `[${error.status}] ${this.getBackendErrorLog(error)}\n${
+          error.url
+        }`,
+      });
     }
 
     if (error instanceof ErrorEvent) {
-      return error.message;
+      return this.translate.instant('commonProject.backend.errorOccured', {
+        errorMsg: error.message,
+      });
     }
 
-    return `Unexpected error encountered`;
+    return this.translate.instant('commonProject.backend.errorUnexpected');
   }
 
   public handleError(

@@ -16,6 +16,7 @@ import { IndexDefaultComponent } from '../index-default/index-default.component'
 import { FormRokComponent } from '../../form/form-rok/form-rok.component';
 import { rokConfig } from './config';
 import { PVCProcessedObjectRok, PVCResponseObjectRok } from 'src/app/types';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-index-rok',
@@ -32,8 +33,9 @@ export class IndexRokComponent extends IndexDefaultComponent implements OnInit {
     public dialog: MatDialog,
     public snackBar: SnackBarService,
     public rok: RokService,
+    public translate: TranslateService,
   ) {
-    super(ns, confirmDialog, backend, dialog, snackBar);
+    super(ns, confirmDialog, backend, dialog, snackBar, translate);
   }
 
   ngOnInit() {

@@ -18,6 +18,7 @@ import { PVCResponseObject, PVCProcessedObject } from 'src/app/types';
 import { Subscription, Observable, Subject } from 'rxjs';
 import { isEqual } from 'lodash';
 import { FormDefaultComponent } from '../../form/form-default/form-default.component';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-index-default',
@@ -42,6 +43,7 @@ export class IndexDefaultComponent implements OnInit {
     public backend: VWABackendService,
     public dialog: MatDialog,
     public snackBar: SnackBarService,
+    public translate: TranslateService,
   ) {}
 
   ngOnInit() {
@@ -97,7 +99,7 @@ export class IndexDefaultComponent implements OnInit {
     ref.afterClosed().subscribe(res => {
       if (res === DIALOG_RESP.ACCEPT) {
         this.snackBar.open(
-          'Volume was submitted successfully.',
+          'volume.index.volumeSubmitSuccess',
           SnackType.Success,
           2000,
         );
@@ -108,13 +110,16 @@ export class IndexDefaultComponent implements OnInit {
 
   public deleteVolumeClicked(pvc: PVCProcessedObject) {
     const deleteDialogConfig: DialogConfig = {
-      title: `Are you sure you want to delete this volume? ${pvc.name}`,
-      message: 'Warning: All data in this volume will be lost.',
-      accept: 'DELETE',
+      title: {
+        key: 'volume.dialog.deleteVolumeDialogTitle',
+        params: { name: pvc.name },
+      },
+      message: 'volume.dialog.deleteVolumeDialogMessage',
+      accept: 'common.deleteCaps',
       confirmColor: 'warn',
-      cancel: 'CANCEL',
+      cancel: 'common.cancelCaps',
       error: '',
-      applying: 'DELETING',
+      applying: 'common.deletingCaps',
       width: '600px',
     };
 
@@ -134,7 +139,10 @@ export class IndexDefaultComponent implements OnInit {
           // Simplify the error message
           const errorMsg = err;
           console.log(err);
-          deleteDialogConfig.error = errorMsg;
+          deleteDialogConfig.error = this.translate.instant(
+            'commonProject.backend.errorOccured',
+            { errorMsg: errorMsg },
+          );
           ref.componentInstance.applying$.next(false);
         },
       });

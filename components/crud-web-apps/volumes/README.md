@@ -40,3 +40,27 @@ make -C backend install-deps
 # run the backend
 make -C backend run-dev
 ```
+### Internationalization
+Internationalization was implemented using [ngx-translate](https://github.com/ngx-translate/core).
+
+This is based on the browser's language. If the browser detects a language that is not implemented in the application, it will default to English.
+
+The i18n asset files are located under `frontend/src/assets/i18n`. One file is needed per language.
+
+The translation asset files are set in the `app.module.ts`, which should not be needed to modify.
+The translation default language is set in the `app.component.ts`.
+
+For each language added, `app.component.ts` will need to be updated.
+
+**When a language is added:** 
+- Copy the en.json file and rename is to the language you want to add. As it currently is, the culture should not be included.
+- Change the values to the translated ones
+
+**When a translation is added or modified:**
+- Choose an appropriate key
+- Make sure to add the key in every language file
+- If text is added/modified in the Common Project, it needs to be added/modified in the other applications as well.
+
+**Testing**
+
+To test the i18n works as expected, simply change your browser's language to whichever language you want to test.  

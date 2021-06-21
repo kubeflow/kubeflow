@@ -3,6 +3,7 @@ import { FormGroup, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { GPUVendor } from 'src/app/types';
 import { JWABackendService } from 'src/app/services/backend.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-form-gpus',
@@ -20,7 +21,10 @@ export class FormGpusComponent implements OnInit {
   maxGPUs = 16;
   gpusCount = ['1', '2', '4', '8'];
 
-  constructor(public backend: JWABackendService) {}
+  constructor(
+    public backend: JWABackendService,
+    private translate: TranslateService,
+  ) {}
 
   ngOnInit() {
     this.gpuCtrl = this.parentForm.get('gpus') as FormGroup;
@@ -53,7 +57,9 @@ export class FormGpusComponent implements OnInit {
 
   public vendorTooltip(vendor: GPUVendor) {
     return !this.installedVendors.has(vendor.limitsKey)
-      ? `No ${vendor.uiName} GPU found installed in the cluster.`
+      ? this.translate.instant('jupyter.formGpus.errorGpuVendorNotFound', {
+          vendoruiName: `${vendor.uiName}`,
+        })
       : '';
   }
 
@@ -62,7 +68,7 @@ export class FormGpusComponent implements OnInit {
     const vendorCtrl = this.parentForm.get('gpus').get('vendor');
 
     if (vendorCtrl.hasError('vendorNullName')) {
-      return `You must also specify the GPU Vendor for the assigned GPUs`;
+      return this.translate.instant('jupyter.formGpus.errorGpuVendorRequired');
     }
   }
 

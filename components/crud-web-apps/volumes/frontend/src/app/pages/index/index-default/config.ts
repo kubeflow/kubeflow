@@ -12,7 +12,7 @@ const actionsCol: TableColumn = {
   value: new ActionListValue([
     new ActionIconValue({
       name: 'delete',
-      tooltip: 'Delete Volume',
+      tooltip: 'volume.index.deleteVolume',
       color: 'warn',
       field: 'deleteAction',
       iconReady: 'material:delete',
