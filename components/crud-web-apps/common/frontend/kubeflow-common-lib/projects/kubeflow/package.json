@@ -1,6 +1,9 @@
 {
   "name": "kubeflow",
   "version": "0.0.2",
+  "dependencies": {
+    "tslib": "^2.0.0"
+  },
   "peerDependencies": {
     "@angular/common": "~9.1.13",
     "@angular/cdk": "^9.2.4",
