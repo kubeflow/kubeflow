@@ -15,6 +15,5 @@ import { TranslateModule } from '@ngx-translate/core';
     MatProgressSpinnerModule,
     TranslateModule.forRoot(),
   ],
-  entryComponents: [ConfirmDialogComponent],
 })
 export class ConfirmDialogModule {}
