@@ -338,6 +338,32 @@ func mergeTolerations(tolerations []corev1.Toleration, podDefaults []*settingsap
 	return mergedTolerations, err
 }
 
+// getSecurityContext scans through the matching PodDefaults and returns a PodSecurityContext
+// if it is provided. Returns an error if there are multiple conflicting PodSecurityContexts specified.
+func getSecurityContext(podDefaults []*settingsapi.PodDefault) (*corev1.PodSecurityContext, error) {
+	var securityContext corev1.PodSecurityContext
+	podDefaultName := ""
+
+	for _, pd := range podDefaults {
+		if pd.Spec.SecurityContext.Size() > 0 {
+			if securityContext.Size() == 0 {
+				securityContext = pd.Spec.SecurityContext
+				podDefaultName = pd.Name
+			} else {
+				if !reflect.DeepEqual(securityContext, pd.Spec.SecurityContext) {
+					return nil, fmt.Errorf("conflicting security contexts in pod defaults %s and %s, skipping", podDefaultName, pd.Name)
+				}
+			}
+		}
+	}
+
+	if securityContext.Size() == 0 {
+		return nil, nil
+	}
+
+	return &securityContext, nil
+}
+
 // mergeMap copies the existing map and adds the keys in defaults. It returns
 // an error if it detects any conflict during the merge.
 func mergeMap(existing map[string]string, defaults []*map[string]string) (map[string]string, error) {
@@ -384,6 +410,13 @@ func applyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.PodDefaul
 		klog.Error(err)
 	}
 	pod.Spec.Tolerations = tolerations
+
+	securityContext, err := getSecurityContext(podDefaults)
+	if err != nil {
+		klog.Error(err)
+	} else {
+		pod.Spec.SecurityContext = securityContext
+	}
 
 	var (
 		defaultAnnotations = make([]*map[string]string, len(podDefaults))
@@ -464,7 +497,7 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	reviewResponse := v1beta1.AdmissionResponse{}
 	reviewResponse.Allowed = true
 	if pod.Namespace == "" {
-		klog.Infof("Namespace was not set explicitly in Pod manifest, falling back to the namespace-'%s' coming from AdmissionReview request", ar.Request.Namespace)	
+		klog.Infof("Namespace was not set explicitly in Pod manifest, falling back to the namespace-'%s' coming from AdmissionReview request", ar.Request.Namespace)
 		pod.Namespace = ar.Request.Namespace
 	}
 

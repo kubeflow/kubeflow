@@ -94,8 +94,8 @@ func TestApplyPodDefaultsOnPod(t *testing.T) {
 			[]*settingsapi.PodDefault{
 				{
 					Spec: settingsapi.PodDefaultSpec{
-						Annotations: map[string]string{"baz": "bux"},
-						ServiceAccountName: "some-service-account",
+						Annotations:                  map[string]string{"baz": "bux"},
+						ServiceAccountName:           "some-service-account",
 						AutomountServiceAccountToken: newTrue(),
 					},
 				},
@@ -110,7 +110,7 @@ func TestApplyPodDefaultsOnPod(t *testing.T) {
 					Labels: map[string]string{},
 				},
 				Spec: corev1.PodSpec{
-					ServiceAccountName: "some-service-account",
+					ServiceAccountName:           "some-service-account",
 					AutomountServiceAccountToken: newTrue(),
 				},
 			},
@@ -200,4 +200,134 @@ func TestApplyPodDefaultsOnPod(t *testing.T) {
 		})
 	}
 
+}
+
+func TestApplyPodDefaultsSecurityContextOnPod(t *testing.T) {
+	idOne := int64(1)
+	idTwo := int64(2)
+
+	scOne := corev1.PodSecurityContext{
+		RunAsUser:  &idOne,
+		RunAsGroup: &idOne,
+		FSGroup:    &idOne,
+	}
+
+	scTwo := corev1.PodSecurityContext{
+		RunAsUser:  &idTwo,
+		RunAsGroup: &idTwo,
+		FSGroup:    &idTwo,
+	}
+
+	for _, test := range []struct {
+		name        string
+		in          *corev1.Pod
+		podDefaults []*settingsapi.PodDefault
+		out         *corev1.Pod
+	}{
+		{
+			"Add Pod Security Context",
+			&corev1.Pod{
+				Spec: corev1.PodSpec{},
+			},
+			[]*settingsapi.PodDefault{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-pod-default",
+					},
+					Spec: settingsapi.PodDefaultSpec{
+						SecurityContext: scOne,
+					},
+				},
+			},
+			&corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						"poddefault.admission.kubeflow.org/poddefault-test-pod-default": "",
+					},
+					Labels: map[string]string{},
+				},
+				Spec: corev1.PodSpec{
+					SecurityContext: &scOne,
+				},
+			},
+		}, {
+			"Add Security Context when similar values specified in multiple PodDefaults",
+			&corev1.Pod{
+				Spec: corev1.PodSpec{},
+			},
+			[]*settingsapi.PodDefault{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-pod-default",
+					},
+					Spec: settingsapi.PodDefaultSpec{
+						SecurityContext: scOne,
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-pod-default-two",
+					},
+					Spec: settingsapi.PodDefaultSpec{
+						SecurityContext: scOne,
+					},
+				},
+			},
+			&corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						"poddefault.admission.kubeflow.org/poddefault-test-pod-default":     "",
+						"poddefault.admission.kubeflow.org/poddefault-test-pod-default-two": "",
+					},
+					Labels: map[string]string{},
+				},
+				Spec: corev1.PodSpec{
+					SecurityContext: &scOne,
+				},
+			},
+		}, {
+			"Skip adding Security Context when different values specified in multiple PodDefaults",
+			&corev1.Pod{
+				Spec: corev1.PodSpec{},
+			},
+			[]*settingsapi.PodDefault{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-pod-default",
+					},
+					Spec: settingsapi.PodDefaultSpec{
+						SecurityContext: scOne,
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-pod-default-two",
+					},
+					Spec: settingsapi.PodDefaultSpec{
+						SecurityContext: scTwo,
+					},
+				},
+			},
+			&corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						"poddefault.admission.kubeflow.org/poddefault-test-pod-default":     "",
+						"poddefault.admission.kubeflow.org/poddefault-test-pod-default-two": "",
+					},
+					Labels: map[string]string{},
+				},
+				Spec: corev1.PodSpec{},
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if err := safeToApplyPodDefaultsOnPod(test.in, test.podDefaults); err != nil {
+				t.Fatal(err)
+			}
+			applyPodDefaultsOnPod(test.in, test.podDefaults)
+			if !reflect.DeepEqual(test.in, test.out) {
+				t.Fatalf("%#v\n  Not Equals:\n%#v", test.in.ObjectMeta, test.out.ObjectMeta)
+			}
+		})
+	}
 }

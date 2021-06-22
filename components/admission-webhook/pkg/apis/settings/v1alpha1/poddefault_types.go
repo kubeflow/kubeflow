@@ -69,6 +69,9 @@ type PodDefaultSpec struct {
 	Labels map[string]string `json:"labels,omitempty"`
 
 	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
+
+	// SecurityContext allows to specify PodSecurityContext for a pod.
+	SecurityContext v1.PodSecurityContext `json:"securityContext,omitempty"`
 }
 
 // PodDefaultStatus defines the observed state of PodDefault
