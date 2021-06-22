@@ -94,10 +94,10 @@ def download_dataset(dataset):
         platiagro.download_dataset(dataset, dataset_path)
     else:
         try:
-            # search for the metadata file of this run, if it exists, 
+            # search for the metadata file of this run, if it exists,
             # it isn't necessary to download the dataset again.
             metadata = platiagro.stat_dataset(dataset)
-            
+
             # check if the metadata file is from the current run
             if metadata.get("run_id") != os.getenv("RUN_ID"):
                 platiagro.download_dataset(dataset, dataset_path)
@@ -151,15 +151,29 @@ def save_figures(notebook_path):
                 if "data" in output:
                     data = output["data"]
                     keys = data.keys()
-                    for key in keys:
-                        if "html" in key:
-                            html = data[key]
-                            if "script" not in html[0]:
-                                plotly_figure = "".join(html).replace('["plotly"]', '["https://cdn.plot.ly/plotly-latest.min.js"]')
-                                html_figure = f'<html><head><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script></head><body>{plotly_figure}</body></html>'
-                                platiagro.save_figure(figure=html_figure, extension="html")
-                        elif "image" in key:
-                            platiagro.save_figure(figure=data[key], extension=key.split("/")[1])
+
+                    # Plot.ly outputs starts with 1 data.text/html containing the javascript required by Plot.ly.
+                    # Then, it outputs data."application/vnd.plotly.v1+json" and data."text/html" for each plot.
+                    # The code below calls platiagro.save_figure once for each plot,
+                    # but not for the first output, which is appended to all plots.
+                    if {"application/vnd.plotly.v1+json", "text/html"}.issubset(keys):
+                        html = "".join(data["text/html"])
+                        plotly_figure = "".join(html).replace(
+                            '["plotly"]',
+                            '["https://cdn.plot.ly/plotly-latest.min.js"]'
+                        )
+                        html_figure = f'<html><head><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script></head><body>{plotly_figure}</body></html>'
+                        platiagro.save_figure(
+                            figure=html_figure,
+                            extension="html"
+                        )
+                    else:
+                        for key in keys:
+                            if key.startswith("image/"):
+                                platiagro.save_figure(
+                                    figure=data[key],
+                                    extension=key.split("/")[1]
+                                )
 
 
 def make_cells_readonly(notebook_path):
@@ -205,7 +219,7 @@ def upload_to_jupyter(notebook_path, destination_path):
                 f"{BASE_URL}{path}",
                 json={"type": "directory"},
             )
-            r.raise_for_status() 
+            r.raise_for_status()
 
         with open(notebook_path) as f:
             content = json.load(f)

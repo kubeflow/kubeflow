@@ -41,21 +41,25 @@ def save_figures(notebook_path):
                 if "data" in output:
                     data = output["data"]
                     keys = data.keys()
-                    if len(keys) == 2 and list(keys)[1] == "text/html":
-                        for key in keys:
-                            if "html" in key:
-                                html = data[key]
-                                plotly_figure = "".join(html).replace(
-                                    '["plotly"]',
-                                    '["https://cdn.plot.ly/plotly-latest.min.js"]'
-                                )
-                                html_figure = f'<html><head><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script></head><body>{plotly_figure}</body></html>'
-                                platiagro.save_figure(
-                                    figure=html_figure,
-                                    extension="html"
-                                )
 
-                            elif "image" in key:
+                    # Plot.ly outputs starts with 1 data.text/html containing the javascript required by Plot.ly.
+                    # Then, it outputs data."application/vnd.plotly.v1+json" and data."text/html" for each plot.
+                    # The code below calls platiagro.save_figure once for each plot,
+                    # but not for the first output, which is appended to all plots.
+                    if {"application/vnd.plotly.v1+json", "text/html"}.issubset(keys):
+                        html = "".join(data["text/html"])
+                        plotly_figure = "".join(html).replace(
+                            '["plotly"]',
+                            '["https://cdn.plot.ly/plotly-latest.min.js"]'
+                        )
+                        html_figure = f'<html><head><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script></head><body>{plotly_figure}</body></html>'
+                        platiagro.save_figure(
+                            figure=html_figure,
+                            extension="html"
+                        )
+                    else:
+                        for key in keys:
+                            if key.startswith("image/"):
                                 platiagro.save_figure(
                                     figure=data[key],
                                     extension=key.split("/")[1]
