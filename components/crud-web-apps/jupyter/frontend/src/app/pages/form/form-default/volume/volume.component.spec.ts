@@ -6,11 +6,13 @@ describe('VolumeComponent', () => {
   let component: VolumeComponent;
   let fixture: ComponentFixture<VolumeComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [VolumeComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [VolumeComponent],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(VolumeComponent);

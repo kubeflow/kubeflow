@@ -6,11 +6,13 @@ describe('FormAffinityTolerationsComponent', () => {
   let component: FormAffinityTolerationsComponent;
   let fixture: ComponentFixture<FormAffinityTolerationsComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [FormAffinityTolerationsComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [FormAffinityTolerationsComponent],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(FormAffinityTolerationsComponent);

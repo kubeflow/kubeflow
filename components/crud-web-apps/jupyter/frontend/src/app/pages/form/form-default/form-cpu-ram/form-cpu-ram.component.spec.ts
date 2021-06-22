@@ -6,11 +6,13 @@ describe('FormCpuRamComponent', () => {
   let component: FormCpuRamComponent;
   let fixture: ComponentFixture<FormCpuRamComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [FormCpuRamComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [FormCpuRamComponent],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(FormCpuRamComponent);

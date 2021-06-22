@@ -6,11 +6,13 @@ describe('RokVolumeComponent', () => {
   let component: RokVolumeComponent;
   let fixture: ComponentFixture<RokVolumeComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [RokVolumeComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [RokVolumeComponent],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(RokVolumeComponent);

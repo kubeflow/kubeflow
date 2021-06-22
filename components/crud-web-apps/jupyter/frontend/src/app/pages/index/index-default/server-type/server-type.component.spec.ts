@@ -6,11 +6,13 @@ describe('ServerTypeComponent', () => {
   let component: ServerTypeComponent;
   let fixture: ComponentFixture<ServerTypeComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ServerTypeComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [ServerTypeComponent],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ServerTypeComponent);

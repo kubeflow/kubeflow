@@ -6,11 +6,13 @@ describe('FormGpusComponent', () => {
   let component: FormGpusComponent;
   let fixture: ComponentFixture<FormGpusComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [FormGpusComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [FormGpusComponent],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(FormGpusComponent);

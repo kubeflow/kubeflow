@@ -6,11 +6,13 @@ describe('RokJupyterLabSelectorComponent', () => {
   let component: RokJupyterLabSelectorComponent;
   let fixture: ComponentFixture<RokJupyterLabSelectorComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [RokJupyterLabSelectorComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [RokJupyterLabSelectorComponent],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(RokJupyterLabSelectorComponent);

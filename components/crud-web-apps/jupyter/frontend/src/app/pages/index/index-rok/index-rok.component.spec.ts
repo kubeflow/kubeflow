@@ -6,11 +6,13 @@ describe('IndexRokComponent', () => {
   let component: IndexRokComponent;
   let fixture: ComponentFixture<IndexRokComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [IndexRokComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [IndexRokComponent],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(IndexRokComponent);

@@ -6,11 +6,13 @@ describe('FormWorkspaceVolumeComponent', () => {
   let component: FormWorkspaceVolumeComponent;
   let fixture: ComponentFixture<FormWorkspaceVolumeComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [FormWorkspaceVolumeComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [FormWorkspaceVolumeComponent],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(FormWorkspaceVolumeComponent);
