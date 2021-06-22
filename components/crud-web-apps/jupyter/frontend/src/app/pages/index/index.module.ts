@@ -16,6 +16,5 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatIconModule,
     MatTooltipModule,
   ],
-  entryComponents: [ServerTypeComponent],
 })
 export class IndexModule {}
