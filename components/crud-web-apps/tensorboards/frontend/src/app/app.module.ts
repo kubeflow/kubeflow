@@ -52,7 +52,6 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
     { provide: ErrorStateMatcher, useClass: ImmediateErrorStateMatcher },
   ],
   bootstrap: [AppComponent],
-  entryComponents: [FormComponent],
 })
 export class AppModule {}
 
