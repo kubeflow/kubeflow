@@ -6,11 +6,13 @@ describe('FormDefaultComponent', () => {
   let component: FormDefaultComponent;
   let fixture: ComponentFixture<FormDefaultComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [FormDefaultComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [FormDefaultComponent],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(FormDefaultComponent);

@@ -6,11 +6,13 @@ describe('IndexDefaultComponent', () => {
   let component: IndexDefaultComponent;
   let fixture: ComponentFixture<IndexDefaultComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [IndexDefaultComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [IndexDefaultComponent],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(IndexDefaultComponent);
