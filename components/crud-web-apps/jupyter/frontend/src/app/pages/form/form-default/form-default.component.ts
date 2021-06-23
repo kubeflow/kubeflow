@@ -124,6 +124,11 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
       notebook.cpu = notebook.cpu.toString();
     }
 
+    // Ensure GPU input is a string
+    if (typeof notebook.gpus.num === 'number') {
+      notebook.gpus.num = notebook.gpus.num.toString();
+    }
+
     // Remove cpuLimit from request if null
     if (notebook.cpuLimit == null) {
       delete notebook.cpuLimit;

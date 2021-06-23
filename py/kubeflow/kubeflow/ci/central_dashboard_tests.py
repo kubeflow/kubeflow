@@ -9,10 +9,29 @@ class Builder(workflow_utils.ArgoTestBuilder):
         super().__init__(name=name, namespace=namespace, bucket=bucket,
                          test_target_name=test_target_name, **kwargs)
 
+    def _kustomize_build_task(self, task_template):
+        k_build = argo_build_util.deep_copy(task_template)
+
+        k_build["name"] = "kustomize-build-test"
+        k_build["container"]["image"] = "k8s.gcr.io/kustomize/kustomize:v4.1.2"
+        k_build["container"]["args"] = ["build"]
+
+        manifest_dir = ("%s/components/centraldashboard/manifests/"
+                        "overlays/istio/") % self.src_dir
+        k_build["container"]["workingDir"] = manifest_dir
+
+        return k_build
+
     def build(self):
         """Build the Argo workflow graph"""
         workflow = self.build_init_workflow(exit_dag=False)
         task_template = self.build_task_template()
+
+        # build manifests with kustomize
+        kustomize_build_task = self._kustomize_build_task(task_template)
+        argo_build_util.add_task_to_dag(workflow, workflow_utils.E2E_DAG_NAME,
+                                        kustomize_build_task,
+                                        [self.mkdir_task_name])
 
         # Test building Central Dashboards image using Kaniko
         dockerfile = ("%s/components/centraldashboard"
@@ -21,7 +40,8 @@ class Builder(workflow_utils.ArgoTestBuilder):
         destination = "central-dashboard-test"
 
         kaniko_task = self.create_kaniko_task(task_template, dockerfile,
-                                              context, destination, no_push=True)
+                                              context, destination,
+                                              no_push=True)
         argo_build_util.add_task_to_dag(workflow,
                                         workflow_utils.E2E_DAG_NAME,
                                         kaniko_task, [self.mkdir_task_name])

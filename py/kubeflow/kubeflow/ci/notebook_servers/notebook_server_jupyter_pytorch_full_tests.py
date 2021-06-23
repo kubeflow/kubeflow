@@ -12,7 +12,7 @@ class Builder(workflow_utils.ArgoTestBuilder):
     def build(self):
         """Build the Argo workflow graph"""
         workflow = self.build_init_workflow(exit_dag=False)
-        task_template = self.build_task_template()
+        task_template = self.build_task_template(mem_override="8Gi")
 
         # Test building notebook-server-jupyter-pytorch-full images using Kaniko
         dockerfile = ("%s/components/example-notebook-servers"
