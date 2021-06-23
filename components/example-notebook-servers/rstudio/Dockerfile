@@ -84,7 +84,7 @@ USER root
 # Affero General Public License may apply to RStudio: https://www.gnu.org/licenses/agpl-3.0.en.html 
 RUN curl -sL "https://download2.rstudio.org/server/bionic/${RSTUDIO_ARCH}/rstudio-server-${RSTUDIO_VERSION/v/}-${RSTUDIO_ARCH}.deb" -o /tmp/rstudio-server.deb \
     # add rstudio public code-signing key
- && gpg --keyserver keys.gnupg.net --recv-keys 3F32EE77E331692F \
+ && gpg --keyserver keys.gnupg.net --keyserver pgp.surfnet.nl --recv-keys 3F32EE77E331692F \
     # validate the build signature
  && dpkg-sig --verify /tmp/rstudio-server.deb \
  && dpkg -i /tmp/rstudio-server.deb \
