@@ -1,15 +1,14 @@
-// eslint-disable-next-line max-len
+/* eslint-disable max-len */
 import {AppLocalizeBehavior} from '@polymer/app-localize-behavior/app-localize-behavior.js';
 import {languages} from '../assets/i18n/languages.json';
 import {mixinBehaviors} from '@polymer/polymer/lib/legacy/class.js';
 
-// eslint-disable-next-line max-len
 export default (superClass) => class extends mixinBehaviors([AppLocalizeBehavior], superClass) {
     constructor() {
         super();
         this.resources = languages;
         const currentLanguage = this.getBrowserLang();
-        // eslint-disable-next-line max-len
+        // add new language abbreviation to folowing line otherwise, default language is used (en)
         const lang = (currentLanguage != undefined && currentLanguage.match(/en|fr/)) ? currentLanguage : 'en';
         this.language = lang;
     }
