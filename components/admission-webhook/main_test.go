@@ -72,6 +72,11 @@ func TestMergeMapGood(t *testing.T) {
 	}
 }
 
+func newTrue() *bool {
+	b := true
+	return &b
+}
+
 func TestApplyPodDefaultsOnPod(t *testing.T) {
 	for _, test := range []struct {
 		name        string
@@ -90,6 +95,8 @@ func TestApplyPodDefaultsOnPod(t *testing.T) {
 				{
 					Spec: settingsapi.PodDefaultSpec{
 						Annotations: map[string]string{"baz": "bux"},
+						ServiceAccountName: "some-service-account",
+						AutomountServiceAccountToken: newTrue(),
 					},
 				},
 			},
@@ -101,6 +108,10 @@ func TestApplyPodDefaultsOnPod(t *testing.T) {
 						"poddefault.admission.kubeflow.org/poddefault-": "",
 					},
 					Labels: map[string]string{},
+				},
+				Spec: corev1.PodSpec{
+					ServiceAccountName: "some-service-account",
+					AutomountServiceAccountToken: newTrue(),
 				},
 			},
 		}, {

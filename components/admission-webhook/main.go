@@ -392,6 +392,12 @@ func applyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.PodDefaul
 	for i, pd := range podDefaults {
 		defaultAnnotations[i] = &pd.Spec.Annotations
 		defaultLabels[i] = &pd.Spec.Labels
+		if pd.Spec.AutomountServiceAccountToken != nil {
+			pod.Spec.AutomountServiceAccountToken = pd.Spec.AutomountServiceAccountToken
+		}
+		if pd.Spec.ServiceAccountName != "" {
+			pod.Spec.ServiceAccountName = pd.Spec.ServiceAccountName
+		}
 	}
 	annotations, err := mergeMap(pod.Annotations, defaultAnnotations)
 	if err != nil {

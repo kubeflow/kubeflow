@@ -38,6 +38,14 @@ type PodDefaultSpec struct {
 	// +optional
 	Desc string `json:"desc,omitempty"`
 
+	// ServiceAccountName defines the service account to attach to the pod.
+	// +optional
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
+
+	// AutomountServiceAccountToken defines whether or not the service account access token should automatically be mounted to the pod.
+	// +optional
+	AutomountServiceAccountToken *bool `json:"automountServiceAccountToken,omitempty"`
+
 	// Env defines the collection of EnvVar to inject into containers.
 	// +optional
 	Env []v1.EnvVar `json:"env,omitempty"`
