@@ -59,5 +59,5 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
 export class AppModule {}
 
 export function createTranslateLoader(http: HttpClient) {
-  return new TranslateHttpLoader(http, '../static/assets/i18n/', '.json');
+  return new TranslateHttpLoader(http, 'static/assets/i18n/', '.json');
 }
