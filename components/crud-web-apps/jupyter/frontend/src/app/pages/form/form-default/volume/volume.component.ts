@@ -15,6 +15,7 @@ export class VolumeComponent implements OnInit, OnDestroy {
 
   currentPVC: Volume;
   existingPVCs: Set<string> = new Set();
+  typeSelected = 'New';
 
   subscriptions = new Subscription();
 
@@ -86,6 +87,13 @@ export class VolumeComponent implements OnInit, OnDestroy {
       this.volume.controls.size.enable();
       this.volume.controls.mode.enable();
     }
+  }
+
+  // ----- onChange of the New / Existing Volume -----
+  selectType(event): void {
+    this.typeSelected = event.value;
+    if (this.typeSelected != 'New') return;
+    this.volume.controls.name.setValue(this.currentVolName);
   }
 
   updateVolInputFields(): void {

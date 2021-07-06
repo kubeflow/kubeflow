@@ -1,7 +1,7 @@
 <div *ngIf="volume" [formGroup]="volume" class="row">
   <mat-form-field class="column" appearance="outline" id="type">
     <mat-label>{{ 'common.type' | translate }}</mat-label>
-    <mat-select formControlName="type">
+    <mat-select (selectionChange)="selectType($event)" formControlName="type">
       <mat-option *ngIf="defaultStorageClass" value="New">
         {{ 'jupyter.volume.optNew' | translate }}
       </mat-option>
@@ -12,11 +12,18 @@
   </mat-form-field>
 
   <!-- Volume Name Input -->
-  <lib-name-input
-    class="column"
-    [nameControl]="volume.get('name')"
-    id="name"
-  ></lib-name-input>
+  <mat-form-field *ngIf="typeSelected === 'New'" class="wide" appearance="outline" id="name">
+    <mat-label>Name</mat-label>
+    <input matInput formControlName="name"/>
+  </mat-form-field>
+
+  <mat-form-field *ngIf="typeSelected === 'Existing'" class="wide" appearance="outline" id="name">
+    <mat-label>Name</mat-label>
+    <mat-select formControlName="name">
+      <mat-option *ngFor="let i of existingPVCs"
+                  value="{{i}}">{{i}}</mat-option>
+    </mat-select>
+  </mat-form-field>
 
   <!-- Size Input -->
   <lib-positive-number-input
