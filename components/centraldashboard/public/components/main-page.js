@@ -291,11 +291,9 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         // update namespaced menu item when namespace is changed
         // by namespace selector
         if (this.namespacedItemTemplete &&
-            this.namespacedItemTemplete.includes('{ns}') &&
-            this.queryParams && this.queryParams["ns"]) {
+            this.namespacedItemTemplete.includes('{ns}')) {
             this.set('subRouteData.path',
-                this.namespacedItemTemplete.replace(
-                '{ns}', this.queryParams["ns"]))
+                this.namespacedItemTemplete.replace('{ns}', namespace))
         }
     }
 
