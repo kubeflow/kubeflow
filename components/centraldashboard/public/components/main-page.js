@@ -106,6 +106,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                 // eslint-disable-next-line max-len
                 computed: 'computeShouldFetchEnv(registrationFlow, workgroupStatusHasLoaded)',
             },
+            matchingIndex: Number,
             namespacedItemTemplete: String,
         };
     }
@@ -371,26 +372,25 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             }
             return m.replace('{ns}', queryParams["ns"]);
         });
-        let matchingIndex = 0
         if (hashPath) {
             matchPath = path + '#' + hashPath;
-            matchingIndex = allLinks
+            this.matchingIndex = allLinks
                 .findIndex((l) => this.compareLinks(l, matchPath));
         } else {
             allLinks.forEach((link, index) => {
                 if (path.startsWith(link)) {
-                    matchingIndex = index
+                    this.matchingIndex = index
                 }
             });
         }
-        matchingLink = allLinks[matchingIndex]
+        matchingLink = allLinks[this.matchingIndex]
 
         // find the HTML element that references the active link
         const activeMenuEl = Array.from(htmlElements).find(
             (x) => this.compareLinks(x.parentElement.href, matchingLink));
         if (activeMenuEl) {
             // in case the item is a section item, open its section
-            this.namespacedItemTemplete = allLinksTemplete[matchingIndex]
+            this.namespacedItemTemplete = allLinksTemplete[this.matchingIndex]
             activeMenuEl.parentElement.parentElement.opened = true;
             activeMenuEl.classList.add('iron-selected');
         }
