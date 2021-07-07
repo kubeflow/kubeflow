@@ -1,0 +1,2 @@
+pyspark==3.1.2
+pyarrow==4.0.*
