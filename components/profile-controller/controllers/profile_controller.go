@@ -450,15 +450,6 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 				},
 			},
 			{
-				From: []*istioSecurity.Rule_From{
-					{
-						Source: &istioSecurity.Source{
-							Principals: []string{
-								"cluster.local/ns/knative-serving/sa/controller",
-							},
-						},
-					},
-				},
 				To: []*istioSecurity.Rule_To{
 					{
 						Operation: &istioSecurity.Operation{
@@ -473,6 +464,13 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 								"/v1/models/*",
 							},
 						},
+					},
+				},
+				When: []*istioSecurity.Condition{
+					{
+						// Allow access to above paths from the knative-serving namespace
+						Key:    fmt.Sprintf("source.namespace"),
+						Values: []string{"knative-serving"},
 					},
 				},
 			},
