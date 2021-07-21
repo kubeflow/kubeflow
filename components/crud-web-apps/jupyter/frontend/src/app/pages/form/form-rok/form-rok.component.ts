@@ -27,7 +27,8 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class FormRokComponent
   extends FormDefaultComponent
-  implements OnInit, OnDestroy {
+  implements OnInit, OnDestroy
+{
   env = environment;
 
   constructor(

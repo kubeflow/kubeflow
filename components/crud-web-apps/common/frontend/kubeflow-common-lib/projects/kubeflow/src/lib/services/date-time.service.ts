@@ -8,13 +8,13 @@ import { distanceInWords } from 'date-fns';
 import { differenceInSeconds } from 'date-fns';
 import memoize from 'lodash-es/memoize';
 
-export const defaultDateOptions = {
+export const defaultDateOptions: Intl.DateTimeFormatOptions = {
   weekday: 'short',
   year: 'numeric',
   month: 'short',
   day: 'numeric',
 };
-export const defaultTimeOptions = {
+export const defaultTimeOptions: Intl.DateTimeFormatOptions = {
   hour: 'numeric',
   minute: 'numeric',
   second: 'numeric',

@@ -11,7 +11,7 @@ describe('TWABackendService', () => {
   );
 
   it('should be created', () => {
-    const service: TWABackendService = TestBed.get(TWABackendService);
+    const service: TWABackendService = TestBed.inject(TWABackendService);
     expect(service).toBeTruthy();
   });
 });

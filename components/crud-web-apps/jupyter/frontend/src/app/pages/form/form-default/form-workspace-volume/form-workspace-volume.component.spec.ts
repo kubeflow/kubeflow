@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { FormWorkspaceVolumeComponent } from './form-workspace-volume.component';
 
@@ -6,11 +6,13 @@ describe('FormWorkspaceVolumeComponent', () => {
   let component: FormWorkspaceVolumeComponent;
   let fixture: ComponentFixture<FormWorkspaceVolumeComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [FormWorkspaceVolumeComponent],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [FormWorkspaceVolumeComponent],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(FormWorkspaceVolumeComponent);

@@ -15,6 +15,5 @@ import { TranslateModule } from '@ngx-translate/core';
     TranslateModule.forRoot(),
   ],
   declarations: [SnackBarComponent],
-  entryComponents: [SnackBarComponent],
 })
 export class SnackBarModule {}
