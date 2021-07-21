@@ -5,7 +5,10 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
 
-import { FormModule as KfFormModule } from 'kubeflow';
+import {
+  FormModule as KfFormModule,
+  TitleActionsToolbarModule,
+} from 'kubeflow';
 import { FormNameComponent } from '../form-default/form-name/form-name.component';
 import { FormImageComponent } from '../form-default/form-image/form-image.component';
 import { FormCpuRamComponent } from '../form-default/form-cpu-ram/form-cpu-ram.component';
@@ -40,6 +43,7 @@ import { RokFormConfigurationsComponent } from './rok-form-configurations/rok-fo
     MatSlideToggleModule,
     MatIconModule,
     FormDefaultModule,
+    TitleActionsToolbarModule,
   ],
   exports: [FormRokComponent],
 })

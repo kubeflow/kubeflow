@@ -16,6 +16,7 @@ import { FormAdvancedOptionsComponent } from './form-advanced-options/form-advan
 import {
   FormModule as KfFormModule,
   ImmediateErrorStateMatcher,
+  TitleActionsToolbarModule,
 } from 'kubeflow';
 import { FormWorkspaceVolumeComponent } from './form-workspace-volume/form-workspace-volume.component';
 import { VolumeComponent } from './volume/volume.component';
@@ -44,6 +45,7 @@ import { FormAffinityTolerationsComponent } from './form-affinity-tolerations/fo
     MatSlideToggleModule,
     MatIconModule,
     MatButtonToggleModule,
+    TitleActionsToolbarModule,
   ],
   exports: [
     FormDefaultComponent,
