@@ -1,5 +1,5 @@
 export interface DialogConfig {
-  title: { key: string; params?: object };
+  title: string;
   message: string;
   accept: string;
   applying: string;
