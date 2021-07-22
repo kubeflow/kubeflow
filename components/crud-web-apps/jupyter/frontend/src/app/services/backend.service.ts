@@ -12,17 +12,12 @@ import {
   NotebookFormObject,
   NotebookProcessedObject,
 } from '../types';
-import { TranslateService } from '@ngx-translate/core';
 @Injectable({
   providedIn: 'root',
 })
 export class JWABackendService extends BackendService {
-  constructor(
-    public http: HttpClient,
-    public snackBar: SnackBarService,
-    public translate: TranslateService,
-  ) {
-    super(http, snackBar, translate);
+  constructor(public http: HttpClient, public snackBar: SnackBarService) {
+    super(http, snackBar);
   }
 
   // GET
