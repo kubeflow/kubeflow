@@ -16,7 +16,7 @@ import {
 export class AdvancedOptionsComponent implements OnInit, AfterViewInit {
   @Input() sectionIsExpanded = false;
   @Input() maxHeight = '5000px';
-  @Input() text = 'commonProject.advancedOptions.advancedOptions';
+  @Input() text = $localize`Advanced Options`;
   @HostBinding('class.lib-advanced-options') selfClass = true;
   @ViewChild('options', { static: true }) optionsWrapper: ElementRef;
 
