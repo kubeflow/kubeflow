@@ -67,12 +67,13 @@
       class="form--button-margin"
       (click)="onSubmit()"
       [disabled]="!formCtrl.valid || blockSubmit"
+      i18n
     >
-      {{ 'common.launchCaps' | translate }}
+      LAUNCH
     </button>
 
-    <button mat-raised-button type="button" (click)="onCancel()">
-      {{ 'common.cancelCaps' | translate }}
+    <button mat-raised-button type="button" (click)="onCancel()" i18n>
+      CANCEL
     </button>
   </div>
 </div>
