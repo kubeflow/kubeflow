@@ -1,11 +1,13 @@
 <lib-form-section
-  title="{{ 'jupyter.formWorkspaceVolume.workspaceVolume' | translate }}"
-  text="{{ 'jupyter.formWorkspaceVolume.workspaceVolumeDesc' | translate }}"
+  title="Workspace Volume"
+  text="Configure the Volume to be mounted as your personal Workspace."
   icon="fa:fas:laptop-code"
+  i18n-title
+  i18n-text
 >
   <div [formGroup]="parentForm">
-    <mat-checkbox formControlName="noWorkspace">
-      {{ 'jupyter.formWorkspaceVolume.ckbNoPersistent' | translate }}
+    <mat-checkbox formControlName="noWorkspace" i18n>
+      Don't use Persistent Storage for User's home
     </mat-checkbox>
 
     <app-volume
