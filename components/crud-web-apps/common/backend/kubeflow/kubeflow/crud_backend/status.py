@@ -15,11 +15,8 @@ class STATUS_PHASE:
 
 
 def create_status(phase="", message="", state="", key=None):
-    if key is None:
-        key= {"key": "", "params":None}
     return {
         "phase": phase,
         "message": message,
         "state": state,
-        "key": key,
     }
