@@ -1,7 +1,9 @@
 <lib-form-section
-  title="{{ 'common.name' | translate }}"
-  text="{{ 'jupyter.formName.nameDesc' | translate }}"
+  title="Name"
+  text="Specify the name of the Notebook Server and the Namespace it will belong to."
   icon="fa:fas:book"
+  i18n-title
+  i18n-text
 >
   <lib-form-name-namespace-inputs
     [nameControl]="parentForm.get('name')"
