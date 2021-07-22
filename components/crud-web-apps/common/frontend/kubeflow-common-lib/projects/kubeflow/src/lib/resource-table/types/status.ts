@@ -7,7 +7,6 @@ export interface StatusConfig {
   fieldPhase?: string;
   fieldMessage?: string;
   fieldState?: string;
-  fieldKey?:string;
 }
 
 export class StatusValue {
@@ -16,18 +15,16 @@ export class StatusValue {
   valueFn: (row: any) => Status;
   fieldMessage: string;
   fieldState: string;
-  fieldKey:string;
 
   private defaultValues: StatusConfig = {
     field: 'status',
     fieldPhase: '',
     fieldMessage: '',
     fieldState: '',
-    fieldKey:'',
   };
 
   constructor(config: StatusConfig = {}) {
-    const { field, valueFn, fieldPhase, fieldMessage, fieldState, fieldKey } = {
+    const { field, valueFn, fieldPhase, fieldMessage, fieldState } = {
       ...this.defaultValues,
       ...config,
     };
@@ -36,7 +33,6 @@ export class StatusValue {
     this.fieldPhase = fieldPhase;
     this.fieldMessage = fieldMessage;
     this.fieldState = fieldState;
-    this.fieldKey = fieldKey;
   }
 
   getPhase(row: any) {
@@ -75,19 +71,7 @@ export class StatusValue {
     return getAttributeValue(row, this.fieldMessage);
   }
 
-  getKey(row: any) {
-    if (this.valueFn) {
-      return this.valueFn(row).key;
-    }
-
-    if (!this.fieldPhase) {
-      return getAttributeValue(row, this.field + '.key');
-    }
-
-    return getAttributeValue(row, this.fieldKey);
-  }
-
-  public getIcon(row: any) { 
+  public getIcon(row: any) {
     switch (this.getPhase(row)) {
       case STATUS_TYPE.READY: {
         return 'check_circle';
@@ -110,8 +94,8 @@ export class StatusValue {
   public getCssClasses(row: any): string[] {
     return [this.getPhase(row), 'status'];
   }
-  // The key is the string for the message
-  public getTooltip(row: any) {
-    return this.getKey(row);
+
+  public getTooltip(row: any): string {
+    return this.getMessage(row);
   }
 }
