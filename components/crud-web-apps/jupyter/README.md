@@ -68,26 +68,28 @@ make -C backend run-dev
 ```
 
 ### Internationalization
-Internationalization was implemented using [ngx-translate](https://github.com/ngx-translate/core).
+Support for non-English languages is only supported in a best effort way.
 
-This is based on the browser's language. If the browser detects a language that is not implemented in the application, it will default to English.
+Internationalization(i18n) was implemented using [Angular's i18n](https://angular.io/guide/i18n)
+guide and practices, in the frontend. You can use the following methods to
+ensure the text of the app will be localized:
+1. `i18n` attribute in html elements, if the node's text should be translated
+2. `i18n-{attribute}` in an html element, if the element's attribute should be
+   translated
+3. [$localize](https://angular.io/api/localize/init/$localize) to mark text in
+   TypeScript variables that should be translated
 
-The i18n asset files are located under `frontend/src/assets/i18n`. One file is needed per language.
-
-The translation asset files are set in the `app.module.ts`, which should not be needed to modify.
-The translation default language is set in the `app.component.ts`.
-
-For each language added, `app.component.ts` will need to be updated.
-
-**When a language is added:** 
-- Copy the en.json file and rename is to the language you want to add. As it currently is, the culture should not be included.
-- Change the values to the translated ones
-
-**When a translation is added or modified:**
-- Choose an appropriate key
-- Make sure to add the key in every language file
-- If text is added/modified in the Common Project, it needs to be added/modified in the other applications as well.
+The file for the English text is located under `i18n/messages.xlf` and other
+languages under their respective locale folder, i.e. `i18n/fr/messages.fr.xfl`.
+Each language's folder, aside from English, should have a distinct and up to
+date OWNERs file that reflects the maintainers of that language.
 
 **Testing**
 
-To test the i18n works as expected, simply change your browser's language to whichever language you want to test.  
+You can run a different translation of the app, locally, by running
+```bash
+ng serve --configuration=fr
+```
+
+You must also ensure that the backend is running, since Angular's dev server
+will be proxying request to the backend at `localhost:5000`.
