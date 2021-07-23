@@ -18,7 +18,6 @@ import { PVCResponseObject, PVCProcessedObject } from 'src/app/types';
 import { Subscription, Observable, Subject } from 'rxjs';
 import { isEqual } from 'lodash';
 import { FormDefaultComponent } from '../../form/form-default/form-default.component';
-import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-index-default',
@@ -43,7 +42,6 @@ export class IndexDefaultComponent implements OnInit {
     public backend: VWABackendService,
     public dialog: MatDialog,
     public snackBar: SnackBarService,
-    public translate: TranslateService,
   ) {}
 
   ngOnInit() {
@@ -99,7 +97,7 @@ export class IndexDefaultComponent implements OnInit {
     ref.afterClosed().subscribe(res => {
       if (res === DIALOG_RESP.ACCEPT) {
         this.snackBar.open(
-          'volume.index.volumeSubmitSuccess',
+          $localize`Volume was submitted successfully.`,
           SnackType.Success,
           2000,
         );
@@ -110,16 +108,13 @@ export class IndexDefaultComponent implements OnInit {
 
   public deleteVolumeClicked(pvc: PVCProcessedObject) {
     const deleteDialogConfig: DialogConfig = {
-      title: {
-        key: 'volume.dialog.deleteVolumeDialogTitle',
-        params: { name: pvc.name },
-      },
-      message: 'volume.dialog.deleteVolumeDialogMessage',
-      accept: 'common.deleteCaps',
+      title: $localize`Are you sure you want to delete this volume? ${pvc.name}`,
+      message: $localize`Warning: All data in this volume will be lost.`,
+      accept: $localize`DELETE`,
       confirmColor: 'warn',
-      cancel: 'common.cancelCaps',
+      cancel: $localize`CANCEL`,
       error: '',
-      applying: 'common.deletingCaps',
+      applying: $localize`DELETING`,
       width: '600px',
     };
 
@@ -138,11 +133,7 @@ export class IndexDefaultComponent implements OnInit {
         error: err => {
           // Simplify the error message
           const errorMsg = err;
-          console.log(err);
-          deleteDialogConfig.error = this.translate.instant(
-            'commonProject.backend.errorOccured',
-            { errorMsg: errorMsg },
-          );
+          deleteDialogConfig.error = errorMsg;
           ref.componentInstance.applying$.next(false);
         },
       });
