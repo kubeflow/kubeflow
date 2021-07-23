@@ -70,6 +70,7 @@ var kubeflowNamespaceLabels = map[string]string{
 	"serving.kubeflow.org/inferenceservice": "enabled",
 	"pipelines.kubeflow.org/enabled":        "true",
 	"app.kubernetes.io/part-of":             "kubeflow-profile",
+	"eventing.knative.dev/injection":        "enabled",
 }
 
 const DEFAULT_EDITOR = "default-editor"
@@ -362,22 +363,6 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 						// workloads in the namespace
 						Key:    fmt.Sprintf("source.namespace"),
 						Values: []string{profileIns.Name},
-					},
-				},
-			},
-			{
-				To: []*istioSecurity.Rule_To{
-					{
-						Operation: &istioSecurity.Operation{
-							// Workloads pathes should be accessible for KNative's
-							// `activator` and `controller` probes
-							// See: https://knative.dev/docs/serving/istio-authorization/#allowing-access-from-system-pods-by-paths
-							Paths: []string{
-								"/healthz",
-								"/metrics",
-								"/wait-for-drain",
-							},
-						},
 					},
 				},
 			},
