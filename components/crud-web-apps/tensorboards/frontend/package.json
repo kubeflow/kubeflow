@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "build": "npm run copyLibAssets && ng build --prod --base-href /tensorboards/ --deploy-url static/",
+    "build": "npm run copyLibAssets && ng build --prod  --deploy-url static/",
+    "build:fr": "npm run copyLibAssets && ng build --prod --deploy-url static/ --configuration=fr",
     "build:watch": "npm run copyLibAssets && ng build --watch --deploy-url static/ --outputPath ../backend/app/static/ --outputHashing all",
     "copyLibAssets": "cp -r ./node_modules/kubeflow/assets/* ./src/assets/",
     "i18n:extract": "ng extract-i18n --output-path i18n",
@@ -30,8 +31,6 @@
     "@fortawesome/free-brands-svg-icons": "^5.12.0",
     "@fortawesome/free-solid-svg-icons": "^5.12.0",
     "@kubernetes/client-node": "^0.12.2",
-    "@ngx-translate/core": "^12.0.0",
-    "@ngx-translate/http-loader": "^4.0.0",
     "date-fns": "^1.29.0",
     "lodash": "^4.17.21",
     "lodash-es": "^4.17.11",
