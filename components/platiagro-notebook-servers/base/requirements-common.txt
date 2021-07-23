@@ -1,0 +1,63 @@
+# kubeflow packages
+kfp==1.2.0
+kfp-server-api==1.2.0
+
+# scipy packages
+# https://github.com/jupyter/docker-stacks/blob/master/scipy-notebook/Dockerfile
+beautifulsoup4==4.9.3
+bokeh==2.3.1
+#Bottleneck==1.3.2 Could not build wheels for Bottleneck which use PEP 517 and cannot be installed directly
+cloudpickle==1.6.0
+cython==0.29.22
+dask==2021.4.0
+dill==0.3.3
+h5py==3.2.1
+ipympl==0.7.0
+ipywidgets==7.6.3
+matplotlib==3.4.1
+numba==0.53.1
+numexpr==2.7.3
+pandas==1.2.3
+patsy==0.5.1
+protobuf==3.15.7
+scikit-image==0.18.1
+scikit-learn==0.24.1
+scipy==1.6.2
+seaborn==0.11.1
+SQLAlchemy==1.4.5
+statsmodels==0.12.2
+sympy==1.7.1
+tables==3.6.1
+vincent==0.4.4
+xlrd==2.0.1
+
+# Extra packages, required by PlatIAgro
+
+# PlatIAgro plotting
+platiagro @ git+https://github.com/platiagro/sdk.git@master#egg=platiagro[plotting]
+
+# PlatIAgro Experiments
+papermill==2.3.3
+
+# PlatIAgro Deployments
+seldon-core==1.4.0
+
+# Data management
+dvc[all]==2.3.0
+
+# AutoML
+# https://github.com/platiagro/tasks/tree/main/tasks/automl-classifier
+auto-sklearn==0.12.1
+category-encoders==2.2.2
+
+# Transformation Graph
+# https://github.com/platiagro/tasks/tree/main/tasks/transformation-graph
+networkx==2.5.1
+
+# NLP Text pre-processor
+# https://github.com/platiagro/tasks/tree/main/tasks/nlp-text-pre-processor
+nltk==3.4.5
+
+# CV OCR
+# https://github.com/platiagro/tasks/tree/main/tasks/cv-ocr
+pytesseract==0.3.6

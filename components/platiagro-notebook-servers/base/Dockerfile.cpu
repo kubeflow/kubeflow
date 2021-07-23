@@ -1,0 +1,66 @@
+FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:master-ebc0c4f0
+
+LABEL maintainer="fabiol@cpqd.com.br"
+
+USER root
+
+# install build tools and tesseract ocr
+ENV DEBIAN_FRONTEND noninteractive
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN apt-get update \
+ && apt-get install -yq --no-install-recommends \
+    build-essential=12.8ubuntu1 \
+    swig=4.0.1-5build1 \
+    libgl1-mesa-glx=20.2.6-0ubuntu0.20.04.1 \
+    libglib2.0-0=2.64.6-1~ubuntu20.04.3 \
+    libsm6=2:1.2.3-1 \
+    tesseract-ocr=4.1.1-2build2 \
+    tesseract-ocr-por=1:4.00~git30-7274cfa-1 \
+    tesseract-ocr-eng=1:4.00~git30-7274cfa-1 \
+ && echo "deb http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
+ && wget -q -O - https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends google-cloud-sdk=346.0.0-0 \
+ && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# switch to NB_UID for installs
+USER ${NB_UID}
+WORKDIR $HOME
+
+# JupyterLab Extension and (Customized API for remote GPU access)
+RUN python3 -m pip install --quiet --no-cache-dir --no-build-isolation \
+   jupyter-packaging~=0.10.4 \
+&& python3 -m pip install --quiet --no-cache-dir --no-build-isolation \
+   "jupyterlab @ git+https://github.com/platiagro/jupyterlab.git@v0.3.0-jupyterlab-v3.0.16" \
+   "jupyterlab_extension @ git+https://github.com/platiagro/jupyterlab-extension.git@feature/update-extension-version" \
+ && jupyter lab build -y \
+ && jupyter lab clean -y \
+ && npm cache clean --force \
+ && jupyter notebook --generate-config \
+ && rm -rf "$CONDA_DIR/share/jupyter/lab/staging" \
+ && rm -rf "/home/$NB_USER/.cache/yarn"
+
+# install - requirements-common.txt
+COPY --chown=jovyan:users requirements-common.txt /tmp/requirements.txt
+RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir --no-build-isolation \
+ && rm -f /tmp/requirements.txt
+
+# install - requirements-cpu-only.txt
+COPY --chown=jovyan:users requirements-cpu-only.txt /tmp/requirements.txt
+RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir --no-build-isolation \
+ && rm -f /tmp/requirements.txt
+
+# Copy a custom jupyter config file
+# Currently, only custom option is FileContentsManager.delete_to_trash = False
+# This is necessary since notebook server has many volumes mounted and
+# using trash folder may cause the error
+# Invalid cross-device link: '/home/jovyan/tasks/...' -> '/home/jovyan/.local/share/Trash/...'
+COPY jupyter_notebook_config.py "${HOME}/.jupyter/"
+
+# Unfortunately, Kubeflow pipelines mounts volumes as root root (user group).
+# If we want to use this image in a ContainerOp where there are mount volumes,
+# the user must remain as root.
+# Kubeflow must add support to PodsecurityContext before we can change this.
+# https://github.com/kubeflow/pipelines/blob/master/sdk/python/kfp/components/structures/kubernetes/v1.py
+# USER $NB_UID
+USER root
