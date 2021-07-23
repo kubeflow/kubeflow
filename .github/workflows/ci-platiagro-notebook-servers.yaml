@@ -1,0 +1,192 @@
+# This workflow will build and push Docker images and will log in to a Docker registry if required.
+# For more information see: https://github.com/docker/build-push-action
+
+name: PlatIAgro Notebook Servers - CI
+
+on:
+  push:
+    branches:
+    - v0.3.0-kubeflow-v1.3-branch
+    paths:
+    - components/platiagro-notebook-servers/**
+
+  pull_request:
+    branches:
+    - v0.3.0-kubeflow-v1.3-branch
+    paths:
+    - components/platiagro-notebook-servers/**
+
+jobs:
+  build-cpu:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout 🛎️
+      uses: actions/checkout@v2
+
+    - name: Set output variables
+      id: vars
+      run: |
+        VERSION=0.2.1
+        if [ ${{ github.ref }} = "refs/heads/master" ]; then
+          echo ::set-output name=TAG::${VERSION}-SNAPSHOT
+        elif [[ ${{ github.ref }} =~ ^refs/heads/v.*-branch$ ]]; then
+          echo ::set-output name=TAG::${VERSION}
+        else
+          echo ::set-output name=TAG::${VERSION}-${{ github.sha }}
+        fi
+        echo ::set-output name=BRANCH::${{ github.ref }}
+        echo ::set-output name=COMMIT::${{ github.sha }}
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push docker (BASE IMAGE) 📦
+      id: docker_build_base
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: docker.io/platiagro/platiagro-notebook-image:${{ steps.vars.outputs.TAG }}
+        context: components/platiagro-notebook-servers/base/
+        file: components/platiagro-notebook-servers/base/Dockerfile.cpu
+
+    - name: Image digest
+      run: echo ${{ steps.docker_build_base.outputs.digest }}
+
+    - name: Build and push docker (EXPERIMENT IMAGE) 📦
+      id: docker_build_experiment
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: docker.io/platiagro/platiagro-experiment-image:${{ steps.vars.outputs.TAG }}
+        context: components/platiagro-notebook-servers/experiment/
+        file: components/platiagro-notebook-servers/experiment/Dockerfile
+        build-args: |
+          BASE_CONTAINER=platiagro/platiagro-notebook-image:${{ steps.vars.outputs.TAG }}
+
+    - name: Image digest
+      run: echo ${{ steps.docker_build_experiment.outputs.digest }}
+
+    - name: Build and push docker (DEPLOYMENT IMAGE) 📦
+      id: docker_build_deployment
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: docker.io/platiagro/platiagro-deployment-image:${{ steps.vars.outputs.TAG }}
+        context: components/platiagro-notebook-servers/deployment/
+        file: components/platiagro-notebook-servers/deployment/Dockerfile
+        build-args: |
+          BASE_CONTAINER=platiagro/platiagro-notebook-image:${{ steps.vars.outputs.TAG }}
+
+    - name: Image digest
+      run: echo ${{ steps.docker_build_deployment.outputs.digest }}
+
+    - name: Build and push docker (MONITORING IMAGE) 📦
+      id: docker_build_monitoring
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: docker.io/platiagro/platiagro-monitoring-image:${{ steps.vars.outputs.TAG }}
+        context: components/platiagro-notebook-servers/monitoring/
+        file: components/platiagro-notebook-servers/monitoring/Dockerfile
+        build-args: |
+          BASE_CONTAINER=platiagro/platiagro-notebook-image:${{ steps.vars.outputs.TAG }}
+
+    - name: Image digest
+      run: echo ${{ steps.docker_build_monitoring.outputs.digest }}
+
+  build-gpu:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout 🛎️
+      uses: actions/checkout@v2
+
+    - name: Set output variables
+      id: vars
+      run: |
+        VERSION=0.2.1
+        if [ ${{ github.ref }} = "refs/heads/master" ]; then
+          echo ::set-output name=TAG::${VERSION}-SNAPSHOT
+        elif [[ ${{ github.ref }} =~ ^refs/heads/v.*-branch$ ]]; then
+          echo ::set-output name=TAG::${VERSION}
+        else
+          echo ::set-output name=TAG::${VERSION}-${{ github.sha }}
+        fi
+        echo ::set-output name=BRANCH::${{ github.ref }}
+        echo ::set-output name=COMMIT::${{ github.sha }}
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push docker (BASE IMAGE - GPU) 📦
+      id: docker_build_base
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: docker.io/platiagro/platiagro-notebook-image-gpu:${{ steps.vars.outputs.TAG }}
+        context: components/platiagro-notebook-servers/base/
+        file: components/platiagro-notebook-servers/base/Dockerfile.gpu
+
+    - name: Image digest
+      run: echo ${{ steps.docker_build_base.outputs.digest }}
+
+    - name: Build and push docker (EXPERIMENT IMAGE - GPU) 📦
+      id: docker_build_experiment
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: docker.io/platiagro/platiagro-experiment-image-gpu:${{ steps.vars.outputs.TAG }}
+        context: components/platiagro-notebook-servers/experiment/
+        file: components/platiagro-notebook-servers/experiment/Dockerfile
+        build-args: |
+          BASE_CONTAINER=platiagro/platiagro-notebook-image-gpu:${{ steps.vars.outputs.TAG }}
+
+    - name: Image digest
+      run: echo ${{ steps.docker_build_experiment.outputs.digest }}
+
+    - name: Build and push docker (DEPLOYMENT IMAGE - GPU) 📦
+      id: docker_build_deployment
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: docker.io/platiagro/platiagro-deployment-image-gpu:${{ steps.vars.outputs.TAG }}
+        context: components/platiagro-notebook-servers/deployment/
+        file: components/platiagro-notebook-servers/deployment/Dockerfile
+        build-args: |
+          BASE_CONTAINER=platiagro/platiagro-notebook-image-gpu:${{ steps.vars.outputs.TAG }}
+
+    - name: Image digest
+      run: echo ${{ steps.docker_build_deployment.outputs.digest }}
+
+    - name: Build and push docker (MONITORING IMAGE - GPU) 📦
+      id: docker_build_monitoring
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: docker.io/platiagro/platiagro-monitoring-image-gpu:${{ steps.vars.outputs.TAG }}
+        context: components/platiagro-notebook-servers/monitoring/
+        file: components/platiagro-notebook-servers/monitoring/Dockerfile
+        build-args: |
+          BASE_CONTAINER=platiagro/platiagro-notebook-image-gpu:${{ steps.vars.outputs.TAG }}
+
+    - name: Image digest
+      run: echo ${{ steps.docker_build_monitoring.outputs.digest }}
