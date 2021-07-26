@@ -47,7 +47,7 @@ dvc[all]==2.3.0
 
 # AutoML
 # https://github.com/platiagro/tasks/tree/main/tasks/automl-classifier
-auto-sklearn==0.12.1
+auto-sklearn==0.12.7
 category-encoders==2.2.2
 
 # Transformation Graph
