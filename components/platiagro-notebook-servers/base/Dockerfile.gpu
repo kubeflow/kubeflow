@@ -37,7 +37,7 @@ RUN python3 -m pip install --quiet --no-cache-dir --no-build-isolation \
    jupyter-packaging~=0.10.4 \
 && python3 -m pip install --quiet --no-cache-dir --no-build-isolation \
    "jupyterlab @ git+https://github.com/platiagro/jupyterlab.git@v0.3.0-jupyterlab-v3.0.16" \
-   "jupyterlab_extension @ git+https://github.com/platiagro/jupyterlab-extension.git@feature/update-extension-version" \
+   "jupyterlab_extension @ git+https://github.com/platiagro/jupyterlab-extension.git@master" \
  && jupyter lab build -y \
  && jupyter lab clean -y \
  && npm cache clean --force \
