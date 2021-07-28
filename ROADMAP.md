@@ -1,6 +1,24 @@
 # Kubeflow Roadmap
 
-## Kubeflow 1.3 Features, Target release: March 2021
+## Kubeflow 1.4 Release, Due: September 2021
+
+Themes and major features
+* Maturation of Version 2 (V2) Protocols in KFServing and KFPipelines
+* Increased use of metadata for pipeline orchestration and model performance monitoring
+* KFServing User Interface with model details, logs, yaml
+* Reduce redundant code - Training, Web Apps
+* Faster, better builds with more CI/CD - Katib, Training, Notebooks
+* 20% improvement in Kubeflow.org docs
+
+Additional features, bug fixes and enhancements are identified in the Working Group Roadmaps
+* Operators - https://github.com/kubeflow/common/blob/master/ROADMAP.md
+* KFServing - https://github.com/kubeflow/kfserving/blob/master/ROADMAP.md
+* Katib - https://github.com/kubeflow/katib/blob/master/ROADMAP.md
+* Pipelines - https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md
+
+
+
+## Kubeflow 1.3 Features, Released Date: April 2021
 
 The Kubeflow 1.3 roadmap includes many User Interface (UI) improvements and core Kubeflow component upgrades to improve installation, management, and authentication.  It also includes support for the latest Istio versions.
 
@@ -11,7 +29,7 @@ User Interface (UI) & Working Group enhancements to improve user experience and 
 * Completely new UIs for KFServing, Katib, Tensorboard & Volumes Manager
 * Notebooks
   * Important backend updates to Notebooks (i.e. to improve interop with Tensorboard)
-  * New and expanded Jupyter Notebook stack along with easy to customize common base images - this is a stretch feature for 1.3
+  * New and expanded Jupyter Notebook stack along with easy to customize common base images
   * Addition of R-Studio and Code-Server (VS-Code) support
 * Kubeflow Pipelines (KFP)
   * UI reorganization for better User Experience
