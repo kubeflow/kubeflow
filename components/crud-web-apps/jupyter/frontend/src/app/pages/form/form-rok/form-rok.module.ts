@@ -42,6 +42,7 @@ import { RokFormConfigurationsComponent } from './rok-form-configurations/rok-fo
     MatCheckboxModule,
     MatSlideToggleModule,
     MatIconModule,
+    TitleActionsToolbarModule,
     FormDefaultModule,
     TitleActionsToolbarModule,
   ],

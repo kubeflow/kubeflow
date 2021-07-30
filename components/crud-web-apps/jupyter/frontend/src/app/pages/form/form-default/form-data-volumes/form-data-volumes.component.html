@@ -1,10 +1,4 @@
-<lib-form-section
-  title="Data Volumes"
-  text="Configure the Volumes to be mounted as your Datasets."
-  icon="fa:fas:hdd"
-  i18n-title
-  i18n-text
->
+<lib-form-section title="Data Volumes">
   <div [formGroup]="parentForm">
     <button
       mat-stroked-button
@@ -20,16 +14,6 @@
     </button>
 
     <div *ngFor="let vol of datavols; let i = index" class="volume-wrapper">
-      <app-volume
-        [volume]="vol"
-        [notebookName]="parentForm.get('name').value"
-        [namespace]="parentForm.get('namespace').value"
-        [pvcs]="pvcs"
-        [ephemeral]="false"
-        [defaultStorageClass]="defaultStorageClass"
-      >
-      </app-volume>
-
       <div class="del-btn">
         <button
           mat-icon-button

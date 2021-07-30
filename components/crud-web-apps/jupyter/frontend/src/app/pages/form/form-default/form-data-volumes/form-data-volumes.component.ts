@@ -1,6 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup, FormArray, Validators, FormBuilder } from '@angular/forms';
-import { addDataVolume } from '../utils';
 import { Volume } from 'src/app/types';
 
 @Component({
@@ -23,9 +22,7 @@ export class FormDataVolumesComponent implements OnInit {
 
   ngOnInit() {}
 
-  addVol() {
-    addDataVolume(this.parentForm);
-  }
+  addVol() {}
 
   deleteVol(idx: number) {
     const vols = this.parentForm.get('datavols') as FormArray;

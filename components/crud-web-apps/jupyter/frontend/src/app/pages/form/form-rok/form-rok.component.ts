@@ -20,8 +20,8 @@ import { FormDefaultComponent } from '../form-default/form-default.component';
   selector: 'app-form-rok',
   templateUrl: './form-rok.component.html',
   styleUrls: [
-    './form-rok.component.scss',
     '../form-default/form-default.component.scss',
+    './form-rok.component.scss',
   ],
 })
 export class FormRokComponent
