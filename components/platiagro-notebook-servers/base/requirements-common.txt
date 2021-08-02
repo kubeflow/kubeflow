@@ -61,3 +61,12 @@ nltk==3.4.5
 # CV OCR
 # https://github.com/platiagro/tasks/tree/main/tasks/cv-ocr
 pytesseract==0.3.6
+
+# Question Generator
+# https://github.com/platiagro/tasks/tree/main/tasks/nlp-question-generator
+transformers==4.9.1
+spacy==3.1.1
+gensim==4.0.1
+sacrebleu==1.5.1
+sentencepiece==0.1.96
+MarkupSafe==2.0.1

@@ -10,3 +10,6 @@ tensorflow-gpu==2.4.2
 # Hypertuner for Keras
 keras-tuner==1.0.2
 autokeras==1.0.12
+
+# Lightweight PyTorch wrapper for ML researchers
+pytorch-lightning==1.4.0
