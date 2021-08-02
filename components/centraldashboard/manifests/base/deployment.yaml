@@ -31,13 +31,22 @@ spec:
           protocol: TCP
         env:
         - name: USERID_HEADER
-          value: $(CD_USERID_HEADER)
+          valueFrom:
+            configMapKeyRef:
+              name: centraldashboard-parameters
+              key: CD_USERID_HEADER
         - name: USERID_PREFIX
-          value: $(CD_USERID_PREFIX)
+          valueFrom:
+            configMapKeyRef:
+              name: centraldashboard-parameters
+              key: CD_USERID_PREFIX
+        - name: REGISTRATION_FLOW
+          valueFrom:
+            configMapKeyRef:
+              name: centraldashboard-parameters
+              key: CD_REGISTRATION_FLOW
         - name: PROFILES_KFAM_SERVICE_HOST
           value: profiles-kfam.kubeflow
-        - name: REGISTRATION_FLOW
-          value: $(CD_REGISTRATION_FLOW)
         - name: DASHBOARD_LINKS_CONFIGMAP
           value: $(CD_CONFIGMAP_NAME)
       serviceAccountName: centraldashboard
