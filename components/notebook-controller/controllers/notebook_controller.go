@@ -114,7 +114,12 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		log.Error(err, "unable to fetch Notebook")
 		return ctrl.Result{}, ignoreNotFound(err)
 	}
-
+	
+        //if notebook is terminating , no need to reconcile
+	if instance.DeletionTimestamp != nil {
+		return ctrl.Result{}, nil
+	}
+	
 	// Reconcile StatefulSet
 	ss := generateStatefulSet(instance)
 	if err := ctrl.SetControllerReference(instance, ss, r.Scheme); err != nil {
