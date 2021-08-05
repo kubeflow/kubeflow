@@ -11,7 +11,7 @@ RUN apt-get update \
  && apt-get install -yq --no-install-recommends \
     build-essential=12.8ubuntu1 \
     swig=4.0.1-5build1 \
-    libgl1-mesa-glx=20.2.6-0ubuntu0.20.04.1 \
+    libgl1-mesa-glx=20.0.4-2ubuntu1 \
     libglib2.0-0=2.64.6-1~ubuntu20.04.3 \
     libsm6=2:1.2.3-1 \
     tesseract-ocr=4.1.1-2build2 \
@@ -28,9 +28,9 @@ USER ${NB_UID}
 WORKDIR $HOME
 
 # JupyterLab Extension and (Customized API for remote GPU access)
-RUN python3 -m pip install --quiet --no-cache-dir --no-build-isolation \
+RUN python3 -m pip install --quiet --no-cache-dir \
    jupyter-packaging~=0.10.4 \
-&& python3 -m pip install --quiet --no-cache-dir --no-build-isolation \
+&& python3 -m pip install --quiet --no-cache-dir \
    "jupyterlab @ git+https://github.com/platiagro/jupyterlab.git@v0.3.0-jupyterlab-v3.0.16" \
    "jupyterlab_extension @ git+https://github.com/platiagro/jupyterlab-extension.git@feature/update-extension-version" \
  && jupyter lab build -y \
