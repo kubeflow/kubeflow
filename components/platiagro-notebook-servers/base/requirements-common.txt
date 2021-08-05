@@ -76,3 +76,7 @@ featuretools==0.23.3
 # Simulated Annealing
 # https://github.com/platiagro/tasks/tree/main/tasks/simulated-annealing
 gdown==3.13.0
+
+# MarianMT
+# https://github.com/platiagro/tasks/tree/main/tasks/nlp-marianmt-translator
+sacrebleu==1.4.9
