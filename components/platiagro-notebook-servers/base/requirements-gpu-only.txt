@@ -7,7 +7,8 @@ torchaudio==0.9.0
 # tensorflow packages
 tensorflow-gpu==2.4.2
 
-# Hypertuner for Keras
+# AutoCV
+# https://github.com/platiagro/tasks/tree/main/tasks/cv-autokeras-autocv-image-classification
 keras-tuner==1.0.2
 autokeras==1.0.12
 
