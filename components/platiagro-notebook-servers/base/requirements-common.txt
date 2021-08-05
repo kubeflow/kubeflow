@@ -72,3 +72,7 @@ jiwer==2.2.0
 # Feature Tools
 # https://github.com/platiagro/tasks/tree/main/tasks/feature-tools
 featuretools==0.23.3
+
+# Simulated Annealing
+# https://github.com/platiagro/tasks/tree/main/tasks/simulated-annealing
+gdown==3.13.0
