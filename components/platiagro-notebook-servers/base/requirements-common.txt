@@ -68,3 +68,15 @@ spacy==3.1.1
 gensim==4.0.1
 sentencepiece==0.1.96
 jiwer==2.2.0
+
+# Feature Tools
+# https://github.com/platiagro/tasks/tree/main/tasks/feature-tools
+featuretools==0.23.3
+
+# Simulated Annealing
+# https://github.com/platiagro/tasks/tree/main/tasks/simulated-annealing
+gdown==3.13.0
+
+# MarianMT
+# https://github.com/platiagro/tasks/tree/main/tasks/nlp-marianmt-translator
+sacrebleu==1.4.9
