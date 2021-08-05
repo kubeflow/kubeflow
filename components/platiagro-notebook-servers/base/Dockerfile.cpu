@@ -14,6 +14,7 @@ RUN apt-get update \
     libgl1-mesa-glx=20.0.4-2ubuntu1 \
     libglib2.0-0=2.64.6-1~ubuntu20.04.3 \
     libsm6=2:1.2.3-1 \
+    nvidia-cuda-toolkit=10.1.243-3 \
     tesseract-ocr=4.1.1-2build2 \
     tesseract-ocr-por=1:4.00~git30-7274cfa-1 \
     tesseract-ocr-eng=1:4.00~git30-7274cfa-1 \
