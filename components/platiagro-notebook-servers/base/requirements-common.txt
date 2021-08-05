@@ -1,6 +1,6 @@
 # kubeflow packages
-kfp==1.2.0
-kfp-server-api==1.2.0
+kfp==1.6.6
+kfp-server-api==1.6.0
 
 # scipy packages
 # https://github.com/jupyter/docker-stacks/blob/master/scipy-notebook/Dockerfile
@@ -64,7 +64,6 @@ pytesseract==0.3.6
 
 # Question Generator
 # https://github.com/platiagro/tasks/tree/main/tasks/nlp-question-generator
-transformers==4.9.1
 spacy==3.1.1
 gensim==4.0.1
 sacrebleu==1.5.1

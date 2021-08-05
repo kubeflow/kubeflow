@@ -13,3 +13,5 @@ autokeras==1.0.12
 
 # Lightweight PyTorch wrapper for ML researchers
 pytorch-lightning==1.4.0
+
+transformers==4.9.1

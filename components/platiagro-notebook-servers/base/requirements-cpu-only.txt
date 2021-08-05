@@ -9,3 +9,5 @@ tensorflow==2.4.2
 
 # Lightweight PyTorch wrapper for ML researchers
 pytorch-lightning==1.4.0
+
+transformers==4.9.1
