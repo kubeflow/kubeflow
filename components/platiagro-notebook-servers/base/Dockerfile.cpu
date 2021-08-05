@@ -31,6 +31,7 @@ WORKDIR $HOME
 # JupyterLab Extension and (Customized API for remote GPU access)
 RUN python3 -m pip install --quiet --no-cache-dir \
    jupyter-packaging~=0.10.4 \
+   numpy~=1.19.5 \
 && python3 -m pip install --quiet --no-cache-dir \
    "jupyterlab @ git+https://github.com/platiagro/jupyterlab.git@v0.3.0-jupyterlab-v3.0.16" \
    "jupyterlab_extension @ git+https://github.com/platiagro/jupyterlab-extension.git@master" \
