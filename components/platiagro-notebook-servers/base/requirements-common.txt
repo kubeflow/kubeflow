@@ -80,3 +80,7 @@ gdown==3.13.0
 # MarianMT
 # https://github.com/platiagro/tasks/tree/main/tasks/nlp-marianmt-translator
 sacrebleu==1.4.9
+
+# Sparse Document Retriever
+# https://github.com/platiagro/tasks/tree/main/tasks/nlp-sparse-document-retriever
+rank-bm25==0.2.1
