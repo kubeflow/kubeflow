@@ -28,7 +28,7 @@
       "errorGpuVendorRequired": "You must also specify the GPU Vendor for the assigned GPUs"
     },
     "formImage": {
-      "frmImageDescription": "A started Jupyter Docker Image with a baseline deployment and typical ML packages",
+      "frmImageDescription": "A starter Jupyter Docker Image with a baseline deployment and typical ML packages",
       "customImage": "Custom Image",
       "imageDocker": "Docker Image",
       "customImagePhl": "Provide a custom Image",
