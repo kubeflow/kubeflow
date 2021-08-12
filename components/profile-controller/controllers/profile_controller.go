@@ -245,9 +245,9 @@ func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error)
 		},
 	}
 	if err = r.updateRoleBinding(instance, roleBinding); err != nil {
-		logger.Error(err, "error Updating Owner Rolebinding", "namespace", instance.Name, "name",
-			"defaultEdittor")
-		IncRequestErrorCounter("error updating Owner Rolebinding", SEVERITY_MAJOR)
+		logger.Error(err, "error Updating Owner RoleBinding", "namespace", instance.Name, "name",
+			roleBinding.Name)
+		IncRequestErrorCounter("error updating Owner RoleBinding", SEVERITY_MAJOR)
 		return reconcile.Result{}, err
 	}
 	// Create resource quota for target namespace if resources are specified in profile.
