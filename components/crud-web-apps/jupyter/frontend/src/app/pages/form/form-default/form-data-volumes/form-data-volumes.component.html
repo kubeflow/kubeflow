@@ -1,6 +1,6 @@
 <lib-form-section
-  title="{{ 'jupyter.formDataVolumes.dataVolumes' | translate }}"
-  text="{{ 'jupyter.formDataVolumes.dataVolumesDesc' | translate }}"
+  title="Data Volumes"
+  text="Configure the Volumes to be mounted as your Datasets."
   icon="fa:fas:hdd"
 >
   <div [formGroup]="parentForm">
@@ -11,9 +11,10 @@
       (click)="addVol()"
       type="button"
       [disabled]="readonly"
+      i18n="Add data volume button text"
     >
-      <mat-icon>add</mat-icon
-      >{{ 'jupyter.formDataVolumes.addVolumeCaps' | translate }}
+      <mat-icon>add</mat-icon>
+      ADD VOLUME
     </button>
 
     <div *ngFor="let vol of datavols; let i = index" class="volume-wrapper">

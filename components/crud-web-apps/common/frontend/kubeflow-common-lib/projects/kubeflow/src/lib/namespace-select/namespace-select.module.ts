@@ -7,7 +7,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { NamespaceSelectComponent } from './namespace-select.component';
 import { SnackBarModule } from '../snack-bar/snack-bar.module';
-import { TranslateModule } from '@ngx-translate/core';
 
 @NgModule({
   imports: [
@@ -18,7 +17,6 @@ import { TranslateModule } from '@ngx-translate/core';
     MatFormFieldModule,
     MatSelectModule,
     SnackBarModule,
-    TranslateModule.forRoot(),
   ],
   declarations: [NamespaceSelectComponent],
   exports: [NamespaceSelectComponent],

@@ -13,6 +13,7 @@
     "@angular/compiler": "~12.0.5",
     "@angular/forms": "~12.0.5",
     "@angular/material": "^12.0.5",
+    "@angular/localize": "^12.0.5",
     "date-fns": "1.29.0",
     "lodash-es": "4.17.14",
     "material-icons": "^0.3.1",

@@ -8,18 +8,16 @@ def parse_tensorboard(tensorboard):
     if tensorboard.get("status", {}).get("readyReplicas", 0) == 1:
         phase = status.STATUS_PHASE.READY
         message = "The Tensorboard server is ready to connect"
-        key = "tensorboard.backend.serverReady"
     else:
         phase = status.STATUS_PHASE.UNAVAILABLE
         message = "The Tensorboard server is currently unavailble"
-        key = "tensorboard.backend.serverUnavailable"
 
     parsed_tensorboard = {
         "name": tensorboard["metadata"]["name"],
         "namespace": tensorboard["metadata"]["namespace"],
         "logspath": tensorboard["spec"]["logspath"],
         "age": tensorboard["metadata"]["creationTimestamp"],
-        "status": status.create_status(phase, message, "", key={"key": key, "params": None})
+        "status": status.create_status(phase, message, "")
     }
 
     return parsed_tensorboard

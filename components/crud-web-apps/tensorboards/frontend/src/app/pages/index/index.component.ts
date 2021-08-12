@@ -102,7 +102,7 @@ export class IndexComponent implements OnInit {
     ref.afterClosed().subscribe(res => {
       if (res === DIALOG_RESP.ACCEPT) {
         this.snackBar.open(
-          'tensorboard.index.tensorboardSubmitSuccess',
+          $localize`Tensorboard was submitted successfully.`,
           SnackType.Success,
           2000,
         );
@@ -113,16 +113,13 @@ export class IndexComponent implements OnInit {
 
   public deleteTensorboardClicked(tensorboard: TensorboardProcessedObject) {
     const deleteDialogConfig: DialogConfig = {
-      title: {
-        key: 'tensorboard.index.deleteTensorboardDialogTitle',
-        params: { name: tensorboard.name },
-      },
+      title: $localize`Are you sure you want to delete this Tensorboard : ${tensorboard.name} ?`,
       message: '',
-      accept: 'common.deleteCaps',
+      accept: $localize`DELETE`,
       confirmColor: 'warn',
-      cancel: 'common.cancelCaps',
+      cancel: $localize`CANCEL`,
       error: '',
-      applying: 'common.deletingCaps',
+      applying: $localize`DELETING`,
       width: '600px',
     };
 

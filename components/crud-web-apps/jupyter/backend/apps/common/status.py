@@ -20,24 +20,16 @@ def process_status(notebook):
             return status.create_status(
                 status.STATUS_PHASE.STOPPED,
                 "No Pods are currently running for this Notebook Server.",
-                key={"key": "jupyter.backend.status.noPodsRunning",
-                     "params": None}
             )
         else:
             return status.create_status(
-                status.STATUS_PHASE.TERMINATING,
-                "Notebook Server is stopping.",
-                key={"key": "jupyter.backend.status.notebookStopping",
-                     "params": None}
+                status.STATUS_PHASE.TERMINATING, "Notebook Server is stopping."
             )
 
     # If the Notebook is being deleted, the status will be waiting
     if "deletionTimestamp" in metadata:
         return status.create_status(
-            status.STATUS_PHASE.TERMINATING,
-            "Deleting this notebook server",
-            key={"key": "jupyter.backend.status.notebookDeleting",
-                 "params": None}
+            status.STATUS_PHASE.TERMINATING, "Deleting this notebook server"
         )
 
     # Check the status
@@ -48,29 +40,22 @@ def process_status(notebook):
     # about why the notebook is not starting from the notebook's events
     # (see find_error_event)
     if readyReplicas == 1:
-        return status.create_status(
-            status.STATUS_PHASE.READY,
-            "Running",
-            key={"key": "jupyter.backend.status.running", "params": None}
-        )
+        return status.create_status(status.STATUS_PHASE.READY, "Running")
 
     if "waiting" in state:
         return status.create_status(
-            status.STATUS_PHASE.WAITING, state["waiting"]["reason"],
-            key={"key": "jupyter.backend.status.waitingStatus", "params": None}
+            status.STATUS_PHASE.WAITING, state["waiting"]["reason"]
         )
 
     # Provide the user with detailed information (if any) about
     # why the notebook is not starting
     notebook_events = get_notebook_events(notebook)
     status_val, reason = status.STATUS_PHASE.WAITING, "Scheduling the Pod"
-    key = {"key": "jupyter.backend.status.schedulingPod", "params": None}
     status_event, reason_event = find_error_event(notebook_events)
     if status_event is not None:
-        status_val, reason, key = status_event, reason_event, {
-            "key": "jupyter.backend.status.errorEvent", "params": None}
+        status_val, reason = status_event, reason_event
 
-    return status.create_status(status_val, reason, key=key)
+    return status.create_status(status_val, reason)
 
 
 def get_notebook_events(notebook):

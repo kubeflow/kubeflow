@@ -3,7 +3,6 @@ import { Observable, of } from 'rxjs';
 import { BackendService } from './backend.service';
 import { SnackBarService } from '../../snack-bar/snack-bar.service';
 import { HttpClient } from '@angular/common/http';
-import { TranslateService } from '@ngx-translate/core';
 
 export const MOCK_NAMESPACES = ['kubeflow', 'kubeflow-user'];
 
@@ -19,7 +18,6 @@ describe('BackendService', () => {
       providers: [
         { provide: HttpClient, useValue: {} },
         { provide: SnackBarService, useValue: {} },
-        { provide: TranslateService, useValue: {} },
       ],
     }),
   );

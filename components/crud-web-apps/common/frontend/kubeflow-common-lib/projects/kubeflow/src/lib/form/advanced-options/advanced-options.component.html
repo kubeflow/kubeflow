@@ -2,7 +2,8 @@
   <div
     class="threadline"
     (click)="toggleClicked()"
-    matTooltip="{{ 'commonProject.advancedOptions.hideAdvancedOptions' | translate }}"
+    matTooltip="Hide"
+    i18n-matTooltip
     matTooltipPosition="right"
   ></div>
 
@@ -22,6 +23,6 @@
     type="button"
   >
     <lib-icon class="blue" [icon]="buttonIcon"></lib-icon>
-    {{ text | translate }}
+    {{ text }}
   </button>
 </div>

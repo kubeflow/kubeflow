@@ -8,7 +8,10 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatSpinner, MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import {
+  MatSpinner,
+  MatProgressSpinnerModule,
+} from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -23,7 +26,6 @@ import { AdvancedOptionsComponent } from './advanced-options/advanced-options.co
 import { PopoverModule } from '../popover/popover.module';
 import { SubmitBarComponent } from './submit-bar/submit-bar.component';
 import { StepInfoComponent } from './step-info/step-info.component';
-import { TranslateModule } from '@ngx-translate/core';
 
 @NgModule({
   declarations: [
@@ -48,7 +50,6 @@ import { TranslateModule } from '@ngx-translate/core';
     IconModule,
     MatProgressSpinnerModule,
     PopoverModule,
-    TranslateModule.forRoot(),
   ],
   exports: [
     FormSectionComponent,
@@ -69,7 +70,6 @@ import { TranslateModule } from '@ngx-translate/core';
     MatTooltipModule,
     MatIconModule,
     MatDividerModule,
-    TranslateModule,
   ],
 })
 export class FormModule {}

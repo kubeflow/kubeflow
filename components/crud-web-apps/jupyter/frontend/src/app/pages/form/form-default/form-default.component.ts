@@ -13,7 +13,6 @@ import { Router } from '@angular/router';
 import { getFormDefaults, initFormControls } from './utils';
 import { JWABackendService } from 'src/app/services/backend.service';
 import { environment } from '@app/environment';
-import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-form-default',
@@ -40,7 +39,6 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
     public backend: JWABackendService,
     public router: Router,
     public popup: SnackBarService,
-    public translate: TranslateService,
   ) {}
 
   ngOnInit(): void {
@@ -76,7 +74,7 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
       if (defaultClass.length === 0) {
         this.defaultStorageclass = false;
         this.popup.open(
-          this.translate.instant('resourceForm.msgDefaultStorageClass'),
+          $localize`No default Storage Class is set. Can't create new Disks for the new Notebook. Please use an Existing Disk.`,
           SnackType.Warning,
           0,
         );

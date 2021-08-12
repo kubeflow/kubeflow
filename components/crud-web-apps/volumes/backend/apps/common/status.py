@@ -6,26 +6,13 @@ def pvc_status(pvc):
     Set the status of the pvc
     """
     if pvc.metadata.deletion_timestamp is not None:
-        return status.create_status(
-            status.STATUS_PHASE.TERMINATING,
-            "Deleting Volume...",
-            key={
-                "key": "volume.backend.status.volumeDeleting",
-                "params": None
-            }
-        )
+        return status.create_status(status.STATUS_PHASE.TERMINATING,
+                                    "Deleting Volume...")
 
     if pvc.status.phase == "Bound":
-        return status.create_status(
-            status.STATUS_PHASE.READY,
-            "Bound",
-            key={
-                "key": "volume.backend.status.bound",
-                "params": None
-            }
-        )
+        return status.create_status(status.STATUS_PHASE.READY, "Bound")
 
-        # The PVC is in Pending state, we check the Events to find out why
+    # The PVC is in Pending state, we check the Events to find out why
     evs = api.v1_core.list_namespaced_event(
         namespace=pvc.metadata.namespace,
         field_selector=api.events_field_selector(
@@ -35,14 +22,8 @@ def pvc_status(pvc):
 
     # If there are no events, then the PVC was just created
     if len(evs) == 0:
-        return status.create_status(
-            status.STATUS_PHASE.WAITING,
-            "Provisioning Volume...",
-            key={
-                "key": "volume.backend.status.volumeProvisioning",
-                "params": None
-            }
-        )
+        return status.create_status(status.STATUS_PHASE.WAITING,
+                                    "Provisioning Volume...")
 
     msg = f"Pending: {evs[0].message}"
     state = evs[0].reason
@@ -62,15 +43,7 @@ def pvc_status(pvc):
     elif evs[0].type == "Normal":
         phase = status.STATUS_PHASE.READY
 
-    return status.create_status(
-        phase,
-        msg,
-        state,
-        key={
-            "key": "volume.backend.status.unavailableStatus",
-            "params": None
-        }
-    )
+    return status.create_status(phase, msg, state)
 
 
 def viewer_status(viewer):

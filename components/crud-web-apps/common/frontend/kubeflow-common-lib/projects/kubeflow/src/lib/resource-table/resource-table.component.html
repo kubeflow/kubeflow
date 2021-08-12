@@ -10,7 +10,7 @@
     [style.min-width]="minTableWidth"
   >
     <div class="header card-title-padding">
-      <div>{{ config?.title | translate }}</div>
+      <div>{{ config?.title }}</div>
 
       <button
         *ngIf="config?.newButtonText"
@@ -21,7 +21,7 @@
         (click)="newButtonTriggered()"
       >
         <mat-icon class="new-resource-button">add</mat-icon>
-        {{ config?.newButtonText | translate }}
+        {{ config?.newButtonText }}
       </button>
     </div>
 
@@ -45,7 +45,7 @@
     *ngIf="tableTheme == TABLE_THEME.FLAT"
   >
     <div class="header">
-      <p>{{ config?.title | translate }}</p>
+      <p>{{ config?.title }}</p>
 
       <button
         *ngIf="config?.newButtonText"
@@ -56,7 +56,7 @@
         (click)="newButtonTriggered()"
       >
         <mat-icon class="new-resource-button">add</mat-icon>
-        {{ config?.newButtonText | translate }}
+        {{ config?.newButtonText }}
       </button>
     </div>
 

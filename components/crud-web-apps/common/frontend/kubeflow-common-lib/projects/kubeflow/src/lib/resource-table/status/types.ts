@@ -13,5 +13,4 @@ export interface Status {
   phase: string;
   state: string;
   message: string;
-  key: { key:string; params?: object};
 }
