@@ -106,6 +106,8 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                 // eslint-disable-next-line max-len
                 computed: 'computeShouldFetchEnv(registrationFlow, workgroupStatusHasLoaded)',
             },
+            matchingIndex: Number,
+            namespacedItemTemplete: String,
         };
     }
 
@@ -117,6 +119,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         return [
             // eslint-disable-next-line
             '_routePageChanged(routeData.page,subRouteData.path,routeHash.path)',
+            '_namespaceChanged(queryParams.ns)',
         ];
     }
 
@@ -285,6 +288,16 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         }
     }
 
+    _namespaceChanged(namespace) {
+        // update namespaced menu item when namespace is changed
+        // by namespace selector
+        if (this.namespacedItemTemplete &&
+            this.namespacedItemTemplete.includes('{ns}')) {
+            this.set('subRouteData.path',
+                this.namespacedItemTemplete.replace('{ns}', namespace))
+        }
+    }
+
     _buildHref(href, queryParamsChange) {
         // The "queryParams" value from "queryParamsChange" is not updated as
         // expected in the "iframe-link", but it works in anchor element.
@@ -348,9 +361,10 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         const htmlElements = this._clearActiveLink();
         let matchPath = path;
         let matchingLink = '';
-        const allLinks = this.menuLinks.map((m) => {
+        const allLinksTemplete = this.menuLinks.map((m) => {
             return m.type === 'section' ? m.items.map((x) => x.link) : m.link;
-        }).flat().sort().map((m) => {
+        }).flat().sort()
+        const allLinks = allLinksTemplete.map((m) => {
             // replace namespaced menu items
             const queryParams = this.queryParams
             if (!queryParams || !queryParams["ns"]) {
@@ -360,19 +374,23 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         });
         if (hashPath) {
             matchPath = path + '#' + hashPath;
-            matchingLink = allLinks
-                .find((l) => this.compareLinks(l, matchPath));
+            this.matchingIndex = allLinks
+                .findIndex((l) => this.compareLinks(l, matchPath));
         } else {
-            // longest prefix match - allLinks is sorted
-            allLinks.forEach((link) => {
-                matchingLink = path.startsWith(link) ? link : matchingLink;
+            allLinks.forEach((link, index) => {
+                if (path.startsWith(link)) {
+                    this.matchingIndex = index
+                }
             });
         }
+        matchingLink = allLinks[this.matchingIndex]
+
         // find the HTML element that references the active link
         const activeMenuEl = Array.from(htmlElements).find(
             (x) => this.compareLinks(x.parentElement.href, matchingLink));
         if (activeMenuEl) {
             // in case the item is a section item, open its section
+            this.namespacedItemTemplete = allLinksTemplete[this.matchingIndex]
             activeMenuEl.parentElement.parentElement.opened = true;
             activeMenuEl.classList.add('iron-selected');
         }
