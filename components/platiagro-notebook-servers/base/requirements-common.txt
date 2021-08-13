@@ -30,6 +30,8 @@ sympy==1.7.1
 tables==3.6.1
 vincent==0.4.4
 xlrd==2.0.1
+PyPDF4==1.27.0
+
 
 # Extra packages, required by PlatIAgro
 
@@ -45,6 +47,21 @@ seldon-core==1.4.0
 # Data management
 dvc[all]==2.3.0
 
+##  NLP
+# - frameworks
+spacy==3.1.1
+gensim==4.0.1
+nltk==3.4.5
+# - metrics
+sacrebleu==1.4.9
+rouge ==1.0.1
+git+https://github.com/google-research/bleurt.git
+jiwer==2.2.0
+# - other libs
+sentencepiece==0.1.96
+ftfy==6.0.3
+rank-bm25==0.2.1
+
 # AutoML
 # https://github.com/platiagro/tasks/tree/main/tasks/automl-classifier
 auto-sklearn==0.12.7
@@ -54,20 +71,9 @@ category-encoders==2.2.2
 # https://github.com/platiagro/tasks/tree/main/tasks/transformation-graph
 networkx==2.5.1
 
-# NLP Text pre-processor
-# https://github.com/platiagro/tasks/tree/main/tasks/nlp-text-pre-processor
-nltk==3.4.5
-
 # CV OCR
 # https://github.com/platiagro/tasks/tree/main/tasks/cv-ocr
 pytesseract==0.3.6
-
-# Question Generator
-# https://github.com/platiagro/tasks/tree/main/tasks/nlp-question-generator
-spacy==3.1.1
-gensim==4.0.1
-sentencepiece==0.1.96
-jiwer==2.2.0
 
 # Feature Tools
 # https://github.com/platiagro/tasks/tree/main/tasks/feature-tools
@@ -77,10 +83,3 @@ featuretools==0.23.3
 # https://github.com/platiagro/tasks/tree/main/tasks/simulated-annealing
 gdown==3.13.0
 
-# MarianMT
-# https://github.com/platiagro/tasks/tree/main/tasks/nlp-marianmt-translator
-sacrebleu==1.4.9
-
-# Sparse Document Retriever
-# https://github.com/platiagro/tasks/tree/main/tasks/nlp-sparse-document-retriever
-rank-bm25==0.2.1
