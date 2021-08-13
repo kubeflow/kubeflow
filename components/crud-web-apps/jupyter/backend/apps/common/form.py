@@ -163,7 +163,10 @@ def set_notebook_cpu(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
 
     cpu = get_form_value(body, defaults, "cpu")
+
     cpu_limit = get_form_value(body, defaults, "cpuLimit")
+    if cpu_limit == "NaN":
+        cpu_limit = None
 
     limit_factor = utils.load_spawner_ui_config()["cpu"].get("limitFactor")
     if not cpu_limit and limit_factor != "none":
@@ -187,7 +190,10 @@ def set_notebook_memory(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
 
     memory = get_form_value(body, defaults, "memory")
+
     memory_limit = get_form_value(body, defaults, "memoryLimit")
+    if memory_limit == "NaNGi":
+        memory_limit = None
 
     limit_factor = utils.load_spawner_ui_config()["memory"].get("limitFactor")
     if not memory_limit and limit_factor != "none":
