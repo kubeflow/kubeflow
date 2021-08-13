@@ -7,17 +7,18 @@
 * Maturation of Version 2 (V2) Protocols in KFServing and KFPipelines
 * Increased use of metadata for pipeline orchestration and model performance monitoring
 * KFServing User Interface with model details, logs, yaml
-* Reduce redundant code in Training operators and Kubeflow’s web apps
-* Faster, better builds with more CI/CD - Katib, Training, Notebooks
+* Reduce redundant code in training operators and Kubeflow’s web apps
+* Faster, better builds with more CI/CD - Katib, Training Operators, Notebooks
 * Audit relevant docs pages and update for 1.4 features 
 * Ongoing improvement to user documentation on [Kubeflow.org](https://www.kubeflow.org/)
 
 ### Detailed features, bug fixes and enhancements are identified in the Working Group Roadmaps
 
-* [Operators](https://github.com/kubeflow/common/blob/master/ROADMAP.md)
+* [Training Operators](https://github.com/kubeflow/common/blob/master/ROADMAP.md)
 * [KFServing](https://github.com/kubeflow/kfserving/blob/master/ROADMAP.md)
 * [Katib](https://github.com/kubeflow/katib/blob/master/ROADMAP.md)
 * [Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
+* [Notebooks](https://github.com/kubeflow/kubeflow/issues/5978)
 
 
 
@@ -225,7 +226,7 @@ Multi-user support
    * Profile resource to manage per-team namespaces
    * Kubeflow identity management API to manage multiple users/teams     
 
-Training
+Training Operators
 
    * TFJob and PyTorch to 1.0
 
