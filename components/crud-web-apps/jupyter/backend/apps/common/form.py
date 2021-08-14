@@ -163,11 +163,11 @@ def set_notebook_cpu(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
 
     cpu = get_form_value(body, defaults, "cpu")
-    if 'nan' in cpu.lower():
+    if cpu and 'nan' in cpu.lower():
         raise BadRequest("'%s' is an invalid value for CPU" % cpu)
 
     cpu_limit = get_form_value(body, defaults, "cpuLimit")
-    if 'nan' in cpu_limit.lower():
+    if cpu_limit and 'nan' in cpu_limit.lower():
         raise BadRequest("'%s' is an invalid value for CPU limit" % cpu_limit)
 
     limit_factor = utils.load_spawner_ui_config()["cpu"].get("limitFactor")
@@ -192,11 +192,11 @@ def set_notebook_memory(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
 
     memory = get_form_value(body, defaults, "memory")
-    if 'nan' in memory.lower():
+    if memory and 'nan' in memory.lower():
         raise BadRequest("'%s' is an invalid value for memory" % memory)
 
     memory_limit = get_form_value(body, defaults, "memoryLimit")
-    if 'nan' in memory_limit.lower():
+    if memory_limit and 'nan' in memory_limit.lower():
         raise BadRequest("'%s' is an invalid value for memory limit" % memory_limit)
 
     limit_factor = utils.load_spawner_ui_config()["memory"].get("limitFactor")
