@@ -4,12 +4,12 @@ resources:
 - ../default
 - service_account.yaml
 configMapGenerator:
-  - name: tensorboard-controller-config
-    literals:
-    - RWO_PVC_SCHEDULING="True"
+- name: tensorboard-controller-config
+  literals:
+  - RWO_PVC_SCHEDULING="True"
 patchesStrategicMerge:
-  - patches/add_controller_config.yaml
-  - patches/add_service_account.yaml
+- patches/add_controller_config.yaml
+- patches/add_service_account.yaml
 patches:
 - patch: |
     apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -36,4 +36,4 @@ patches:
 images:
 - name: public.ecr.aws/j1r0q0g6/notebooks/tensorboard-controller
   newName: public.ecr.aws/j1r0q0g6/notebooks/tensorboard-controller
-  newTag: master-f779f93b
+  newTag: v1.4-rc.0
