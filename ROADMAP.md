@@ -4,8 +4,9 @@
 
 ### Themes and Major Features
 
-* Maturation of Version 2 (V2) Protocols in KFServing and KFPipelines
+* Maturation of Version 2 (V2) Protocols in KFServing and Kubeflow Pipelines
 * Increased use of metadata for pipeline orchestration and model performance monitoring
+* Kubeflow Pipelines - introduce [emissary executor (Alpha)](https://www.kubeflow.org/docs/components/pipelines/installation/choose-executor/#emissary-executor) which no longer depends on docker container runtime.
 * KFServing User Interface with model details, logs, yaml
 * Reduce redundant code in training operators and Kubeflow’s web apps
 * Faster, better builds with more CI/CD - Katib, Training Operators, Notebooks
@@ -17,7 +18,7 @@
 * [Training Operators](https://github.com/kubeflow/common/blob/master/ROADMAP.md)
 * [KFServing](https://github.com/kubeflow/kfserving/blob/master/ROADMAP.md)
 * [Katib](https://github.com/kubeflow/katib/blob/master/ROADMAP.md)
-* [Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
+* [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
 * [Notebooks](https://github.com/kubeflow/kubeflow/issues/5978)
 
 
