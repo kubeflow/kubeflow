@@ -1,6 +1,29 @@
 # Kubeflow Roadmap
 
-## Kubeflow 1.3 Features, Target release: March 2021
+## Kubeflow 1.4 Release, Due: September 2021
+
+### Themes and Major Features
+
+* Maturation of Version 2 (V2) Protocols in KFServing and Kubeflow Pipelines
+* Increased use of metadata for pipeline orchestration and model performance monitoring
+* Kubeflow Pipelines - introduce [emissary executor (Alpha)](https://www.kubeflow.org/docs/components/pipelines/installation/choose-executor/#emissary-executor) which no longer depends on docker container runtime.
+* KFServing User Interface with model details, logs, yaml
+* Reduce redundant code in training operators and Kubeflow’s web apps
+* Faster, better builds with more CI/CD - Katib, Training Operators, Notebooks
+* Audit relevant docs pages and update for 1.4 features 
+* Ongoing improvement to user documentation on [Kubeflow.org](https://www.kubeflow.org/)
+
+### Detailed features, bug fixes and enhancements are identified in the Working Group Roadmaps
+
+* [Training Operators](https://github.com/kubeflow/common/blob/master/ROADMAP.md)
+* [KFServing](https://github.com/kubeflow/kfserving/blob/master/ROADMAP.md)
+* [Katib](https://github.com/kubeflow/katib/blob/master/ROADMAP.md)
+* [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
+* [Notebooks](https://github.com/kubeflow/kubeflow/issues/5978)
+
+
+
+## Kubeflow 1.3 Features, Released: April 2021
 
 The Kubeflow 1.3 roadmap includes many User Interface (UI) improvements and core Kubeflow component upgrades to improve installation, management, and authentication.  It also includes support for the latest Istio versions.
 
@@ -11,11 +34,9 @@ User Interface (UI) & Working Group enhancements to improve user experience and 
 * Completely new UIs for KFServing, Katib, Tensorboard & Volumes Manager
 * Notebooks
   * Important backend updates to Notebooks (i.e. to improve interop with Tensorboard)
-  * New and expanded Jupyter Notebook stack along with easy to customize common base images - this is a stretch feature for 1.3
   * Addition of R-Studio and Code-Server (VS-Code) support
 * Kubeflow Pipelines (KFP)
   * UI reorganization for better User Experience
-  * Manage recurring Runs via new “Jobs” page (exact name on UI is TBD)
   * Simplified view of dependency graphs
   * Multi-user feature enhancements in Kubeflow Pipelines
 * KFServing v0.5
@@ -206,7 +227,7 @@ Multi-user support
    * Profile resource to manage per-team namespaces
    * Kubeflow identity management API to manage multiple users/teams     
 
-Training
+Training Operators
 
    * TFJob and PyTorch to 1.0
 
