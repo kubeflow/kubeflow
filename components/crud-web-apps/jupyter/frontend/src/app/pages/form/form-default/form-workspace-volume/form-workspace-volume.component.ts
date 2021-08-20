@@ -37,9 +37,8 @@ export class FormWorkspaceVolumeComponent implements OnInit, OnDestroy {
           if (!b) {
             this.snackBar.close();
           } else {
-            const msg =
-              'Your workspace will not be persistent. You will lose all ' +
-              'data in it, if your notebook is terminated for any reason.';
+            const msg = $localize`Your workspace will not be persistent. You will lose all data in it, if your notebook is terminated for any reason.`;
+
             this.snackBar.open(msg, SnackType.Warning, 0);
           }
         }),

@@ -9,9 +9,12 @@ import { IndexModule } from './pages/index/index.module';
 import { FormModule } from './pages/form/form.module';
 import { KubeflowModule } from 'kubeflow';
 
+import { HttpClientModule, HttpClient } from '@angular/common/http';
+
 @NgModule({
   declarations: [AppComponent],
   imports: [
+    HttpClientModule,
     BrowserModule,
     AppRoutingModule,
     CommonModule,

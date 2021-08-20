@@ -7,12 +7,12 @@ export const environment = {
   apiUrl: 'http://localhost:5000',
   resource: 'notebooks',
   ui: 'default',
-  jupyterlabLogo: 'static/assets/jupyterlab-logo.svg',
-  jupyterIcon: 'static/assets/jupyter-icon.svg',
-  groupOneLogo: 'static/assets/group-one-logo.svg',
-  groupOneIcon: 'static/assets/group-one-icon.svg',
-  groupTwoLogo: 'static/assets/group-two-logo.svg',
-  groupTwoIcon: 'static/assets/group-two-icon.svg',
+  jupyterlabLogo: 'static/assets/logos/jupyterlab-logo.svg',
+  jupyterIcon: 'static/assets/logos/jupyter-icon.svg',
+  groupOneLogo: 'static/assets/logos/group-one-logo.svg',
+  groupOneIcon: 'static/assets/logos/group-one-icon.svg',
+  groupTwoLogo: 'static/assets/logos/group-two-logo.svg',
+  groupTwoIcon: 'static/assets/logos/group-two-icon.svg',
 
   // Rok specifics
   rokUrl: '',
@@ -24,4 +24,4 @@ export const environment = {
  * This import should be commented out in production mode because it will have a negative impact
  * on performance if an error is thrown.
  */
-// import 'zone.js/dist/zone-error';  // Included with Angular CLI.
+// import 'zone.js/plugins/zone-error';  // Included with Angular CLI.

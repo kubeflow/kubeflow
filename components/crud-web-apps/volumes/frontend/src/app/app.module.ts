@@ -22,6 +22,8 @@ import { FormRokComponent } from './pages/form/form-rok/form-rok.component';
 import { IndexDefaultComponent } from './pages/index/index-default/index-default.component';
 import { IndexRokComponent } from './pages/index/index-rok/index-rok.component';
 
+import { HttpClientModule, HttpClient } from '@angular/common/http';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -40,11 +42,11 @@ import { IndexRokComponent } from './pages/index/index-rok/index-rok.component';
     ConfirmDialogModule,
     FormModule,
     KubeflowModule,
+    HttpClientModule,
   ],
   providers: [
     { provide: ErrorStateMatcher, useClass: ImmediateErrorStateMatcher },
   ],
   bootstrap: [AppComponent],
-  entryComponents: [FormDefaultComponent, FormRokComponent],
 })
 export class AppModule {}

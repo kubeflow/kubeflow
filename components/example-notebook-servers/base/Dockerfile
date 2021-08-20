@@ -8,9 +8,14 @@ ENV HOME /home/$NB_USER
 ENV SHELL /bin/bash
 
 # args - software versions
-ARG ARCH="amd64"
-ARG S6_VERSION="v2.2.0.3"
-ARG KUBECTL_VERSION="v1.20.5"
+ARG KUBECTL_ARCH="amd64"
+ARG KUBECTL_VERSION=v1.21.0
+ARG S6_ARCH="amd64"
+ # renovate: datasource=github-tags depName=just-containers/s6-overlay versioning=loose
+ARG S6_VERSION=v2.2.0.3
+
+# set shell to bash
+SHELL ["/bin/bash", "-c"]
 
 # install - usefull linux packages
 RUN export DEBIAN_FRONTEND=noninteractive \
@@ -38,17 +43,17 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 
 # install - s6 overlay
 RUN export GNUPGHOME=/tmp/ \
- && curl -sL "https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-${ARCH}-installer" -o /tmp/s6-overlay-${ARCH}-installer \
- && curl -sL "https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-${ARCH}-installer.sig" -o /tmp/s6-overlay-${ARCH}-installer.sig \
+ && curl -sL "https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-${S6_ARCH}-installer" -o /tmp/s6-overlay-${S6_VERSION}-installer \
+ && curl -sL "https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-${S6_ARCH}-installer.sig" -o /tmp/s6-overlay-${S6_VERSION}-installer.sig \
  && curl -sL "https://keybase.io/justcontainers/key.asc" | gpg -q --import \
- && gpg -q --verify /tmp/s6-overlay-${ARCH}-installer.sig /tmp/s6-overlay-${ARCH}-installer \
- && chmod +x /tmp/s6-overlay-${ARCH}-installer \
- && /tmp/s6-overlay-${ARCH}-installer / \
- && rm /tmp/s6-overlay-${ARCH}-installer.sig /tmp/s6-overlay-${ARCH}-installer
+ && gpg -q --verify /tmp/s6-overlay-${S6_VERSION}-installer.sig /tmp/s6-overlay-${S6_VERSION}-installer \
+ && chmod +x /tmp/s6-overlay-${S6_VERSION}-installer \
+ && /tmp/s6-overlay-${S6_VERSION}-installer / \
+ && rm /tmp/s6-overlay-${S6_VERSION}-installer.sig /tmp/s6-overlay-${S6_VERSION}-installer
 
 # install - kubectl
-RUN curl -sL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl" -o /usr/local/bin/kubectl \
- && curl -sL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl.sha256" -o /tmp/kubectl.sha256 \
+RUN curl -sL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl" -o /usr/local/bin/kubectl \
+ && curl -sL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl.sha256" -o /tmp/kubectl.sha256 \
  && echo "$(cat /tmp/kubectl.sha256) /usr/local/bin/kubectl" | sha256sum --check \
  && rm /tmp/kubectl.sha256 \
  && chmod +x /usr/local/bin/kubectl

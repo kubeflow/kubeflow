@@ -14,4 +14,6 @@ def create_workflow(name=None, namespace=None, bucket=None, **kwargs):
                          context="components/example-notebook-servers/jupyter-pytorch-full/",
                          destination=config.NOTEBOOK_SERVER_JUPYTER_PYTORCH_FULL,
                          second_dockerfile="components/example-notebook-servers/jupyter-pytorch-full/cuda.Dockerfile",
-                         second_destination=config.NOTEBOOK_SERVER_JUPYTER_PYTORCH_CUDA_FULL)
+                         second_destination=config.NOTEBOOK_SERVER_JUPYTER_PYTORCH_CUDA_FULL,
+                         mem_override="8Gi",
+                         deadline_override=6000)

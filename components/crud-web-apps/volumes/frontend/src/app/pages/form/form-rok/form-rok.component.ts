@@ -12,7 +12,7 @@ import {
 
 import { VWABackendService } from 'src/app/services/backend.service';
 import { PVCPostObject } from 'src/app/types';
-import { MatDialogRef } from '@angular/material';
+import { MatDialogRef } from '@angular/material/dialog';
 import { FormDefaultComponent } from '../form-default/form-default.component';
 import { environment } from '@app/environment';
 import { rokStorageClassValidator } from './utils';
@@ -27,7 +27,8 @@ import { concatMap } from 'rxjs/operators';
   ],
 })
 // TODO: Use an abstract class to eliminate common code
-export class FormRokComponent extends FormDefaultComponent
+export class FormRokComponent
+  extends FormDefaultComponent
   implements OnInit, OnDestroy {
   public env = environment;
 

@@ -22,6 +22,11 @@
     flex: 1
 }
 
+.scrollable {
+    height: 100%;
+    overflow: auto;
+}
+
 #MainDrawer {
     color: white;
     --app-drawer-content-container: {

@@ -12,7 +12,6 @@ import {
   NotebookFormObject,
   NotebookProcessedObject,
 } from '../types';
-
 @Injectable({
   providedIn: 'root',
 })
@@ -96,14 +95,12 @@ export class JWABackendService extends BackendService {
     const namespace = notebook.namespace;
     const url = `api/namespaces/${namespace}/notebooks/${name}`;
 
-    return this.http
-      .patch<JWABackendResponse>(url, { stopped: false })
-      .pipe(
-        catchError(error => this.handleError(error)),
-        map(_ => {
-          return 'started';
-        }),
-      );
+    return this.http.patch<JWABackendResponse>(url, { stopped: false }).pipe(
+      catchError(error => this.handleError(error)),
+      map(_ => {
+        return 'started';
+      }),
+    );
   }
 
   public stopNotebook(notebook: NotebookProcessedObject): Observable<string> {
@@ -111,14 +108,12 @@ export class JWABackendService extends BackendService {
     const namespace = notebook.namespace;
     const url = `api/namespaces/${namespace}/notebooks/${name}`;
 
-    return this.http
-      .patch<JWABackendResponse>(url, { stopped: true })
-      .pipe(
-        catchError(error => this.handleError(error, false)),
-        map(_ => {
-          return 'stopped';
-        }),
-      );
+    return this.http.patch<JWABackendResponse>(url, { stopped: true }).pipe(
+      catchError(error => this.handleError(error, false)),
+      map(_ => {
+        return 'stopped';
+      }),
+    );
   }
 
   // DELETE

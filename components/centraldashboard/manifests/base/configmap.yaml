@@ -27,6 +27,12 @@ data:
         },
         {
           "type": "item",
+          "link": "/models/",
+          "text": "Models",
+          "icon": "kubeflow:models"
+        },
+        {
+          "type": "item",
           "link": "/katib/",
           "text": "Experiments (AutoML)",
           "icon": "kubeflow:katib"

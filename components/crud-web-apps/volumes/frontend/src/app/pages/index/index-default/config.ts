@@ -1,4 +1,9 @@
-import { ActionListValue, ActionIconValue, TableColumn, TableConfig } from 'kubeflow';
+import {
+  ActionListValue,
+  ActionIconValue,
+  TableColumn,
+  TableConfig,
+} from 'kubeflow';
 import { tableConfig } from '../config';
 
 const actionsCol: TableColumn = {
@@ -7,7 +12,7 @@ const actionsCol: TableColumn = {
   value: new ActionListValue([
     new ActionIconValue({
       name: 'delete',
-      tooltip: 'Delete Volume',
+      tooltip: $localize`Delete Volume`,
       color: 'warn',
       field: 'deleteAction',
       iconReady: 'material:delete',

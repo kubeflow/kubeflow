@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { MatDialog } from '@angular/material';
+import { MatDialog } from '@angular/material/dialog';
 import {
   NamespaceService,
   ActionEvent,
@@ -97,7 +97,7 @@ export class IndexDefaultComponent implements OnInit {
     ref.afterClosed().subscribe(res => {
       if (res === DIALOG_RESP.ACCEPT) {
         this.snackBar.open(
-          'Volume was submitted successfully.',
+          $localize`Volume was submitted successfully.`,
           SnackType.Success,
           2000,
         );
@@ -108,13 +108,13 @@ export class IndexDefaultComponent implements OnInit {
 
   public deleteVolumeClicked(pvc: PVCProcessedObject) {
     const deleteDialogConfig: DialogConfig = {
-      title: `Are you sure you want to delete this volume? ${pvc.name}`,
-      message: 'Warning: All data in this volume will be lost.',
-      accept: 'DELETE',
+      title: $localize`Are you sure you want to delete this volume? ${pvc.name}`,
+      message: $localize`Warning: All data in this volume will be lost.`,
+      accept: $localize`DELETE`,
       confirmColor: 'warn',
-      cancel: 'CANCEL',
+      cancel: $localize`CANCEL`,
       error: '',
-      applying: 'DELETING',
+      applying: $localize`DELETING`,
       width: '600px',
     };
 
@@ -133,7 +133,6 @@ export class IndexDefaultComponent implements OnInit {
         error: err => {
           // Simplify the error message
           const errorMsg = err;
-          console.log(err);
           deleteDialogConfig.error = errorMsg;
           ref.componentInstance.applying$.next(false);
         },

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { MatDialog } from '@angular/material';
+import { MatDialog } from '@angular/material/dialog';
 import {
   NamespaceService,
   ActionEvent,
@@ -102,7 +102,7 @@ export class IndexComponent implements OnInit {
     ref.afterClosed().subscribe(res => {
       if (res === DIALOG_RESP.ACCEPT) {
         this.snackBar.open(
-          'Tensorboard was submitted successfully.',
+          $localize`Tensorboard was submitted successfully.`,
           SnackType.Success,
           2000,
         );
@@ -113,13 +113,13 @@ export class IndexComponent implements OnInit {
 
   public deleteTensorboardClicked(tensorboard: TensorboardProcessedObject) {
     const deleteDialogConfig: DialogConfig = {
-      title: `Are you sure you want to delete this Tensorboard : ${tensorboard.name} ?`,
+      title: $localize`Are you sure you want to delete this Tensorboard : ${tensorboard.name} ?`,
       message: '',
-      accept: 'DELETE',
+      accept: $localize`DELETE`,
       confirmColor: 'warn',
-      cancel: 'CANCEL',
+      cancel: $localize`CANCEL`,
       error: '',
-      applying: 'DELETING',
+      applying: $localize`DELETING`,
       width: '600px',
     };
 

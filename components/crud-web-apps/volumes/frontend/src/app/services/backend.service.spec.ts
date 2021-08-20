@@ -4,12 +4,14 @@ import { VWABackendService } from './backend.service';
 import { HttpClientModule } from '@angular/common/http';
 
 describe('VWABackendService', () => {
-  beforeEach(() => TestBed.configureTestingModule({
-    imports: [HttpClientModule]
-  }));
+  beforeEach(() =>
+    TestBed.configureTestingModule({
+      imports: [HttpClientModule],
+    }),
+  );
 
   it('should be created', () => {
-    const service: VWABackendService = TestBed.get(VWABackendService);
+    const service: VWABackendService = TestBed.inject(VWABackendService);
     expect(service).toBeTruthy();
   });
 });

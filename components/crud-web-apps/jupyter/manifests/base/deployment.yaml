@@ -17,7 +17,7 @@ spec:
         volumeMounts:
         - mountPath: /etc/config
           name: config-volume
-        - mountPath: /src/apps/default/static/assets
+        - mountPath: /src/apps/default/static/assets/logos
           name: logos-volume
         env:
         - name: APP_PREFIX

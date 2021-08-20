@@ -154,6 +154,10 @@ export interface Config {
     options: string[];
   };
 
+  hideRegistry?: boolean;
+
+  hideTag?: boolean;
+
   allowCustomImage?: boolean;
 
   imagePullPolicy?: {

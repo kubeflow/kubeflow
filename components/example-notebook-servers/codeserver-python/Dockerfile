@@ -1,15 +1,14 @@
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver:master-ebc0c4f0
+FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver:master-434b10ab
 
 USER root
 
 # args - software versions
-ARG CODESERVER_PYTHON_VERSION="2021.3.658691958"
-ARG CONDA_VERSION="4.9.2"
+ARG CODESERVER_PYTHON_VERSION=2021.5.842923320
 ARG MINIFORGE_ARCH="x86_64"
-ARG MINIFORGE_SHA256="91d5aa5f732b5e02002a371196a2607f839bab166970ea06e6ecc602cb446848"
-ARG MINIFORGE_VERSION="${CONDA_VERSION}-7"
-ARG PIP_VERSION="21.0.1"
-ARG PYTHON_VERSION="3.8.8"
+ # renovate: datasource=github-tags depName=conda-forge/miniforge versioning=loose
+ARG MINIFORGE_VERSION=4.10.1-4
+ARG PIP_VERSION=21.1.2
+ARG PYTHON_VERSION=3.8.10
 
 # setup environment for conda
 ENV CONDA_DIR /opt/conda
@@ -21,16 +20,18 @@ USER $NB_UID
 
 # install - conda, pip, python
 RUN curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh" -o /tmp/Miniforge3.sh \
- && echo "${MINIFORGE_SHA256} /tmp/Miniforge3.sh" | sha256sum --check \
+ && curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh.sha256" -o /tmp/Miniforge3.sh.sha256 \
+ && echo "$(cat /tmp/Miniforge3.sh.sha256 | awk '{ print $1; }') /tmp/Miniforge3.sh" | sha256sum --check \
+ && rm /tmp/Miniforge3.sh.sha256 \
  && /bin/bash /tmp/Miniforge3.sh -b -f -p ${CONDA_DIR} \
  && rm /tmp/Miniforge3.sh \
  && conda config --system --set auto_update_conda false \
  && conda config --system --set show_channel_urls true \
- && echo "conda ${CONDA_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
+ && echo "conda ${MINIFORGE_VERSION:0:-2}" >> ${CONDA_DIR}/conda-meta/pinned \
  && echo "python ${PYTHON_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
  && conda install -y -q \
     python=${PYTHON_VERSION} \
-    conda=${CONDA_VERSION} \
+    conda=${MINIFORGE_VERSION:0:-2} \
     pip=${PIP_VERSION} \
  && conda update -y -q --all \
  && conda clean -a -f -y \

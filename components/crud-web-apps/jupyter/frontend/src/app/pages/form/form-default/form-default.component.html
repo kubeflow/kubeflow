@@ -12,6 +12,8 @@
           [imagesGroupOne]="config?.imageGroupOne?.options"
           [imagesGroupTwo]="config?.imageGroupTwo?.options"
           [allowCustomImage]="config?.allowCustomImage"
+          [hideRegistry]="config?.hideRegistry"
+          [hideTag]="config?.hideTag"
         ></app-form-image>
 
         <app-form-cpu-ram
@@ -65,10 +67,13 @@
       class="form--button-margin"
       (click)="onSubmit()"
       [disabled]="!formCtrl.valid || blockSubmit"
+      i18n
     >
       LAUNCH
     </button>
 
-    <button mat-raised-button type="button" (click)="onCancel()">CANCEL</button>
+    <button mat-raised-button type="button" (click)="onCancel()" i18n>
+      CANCEL
+    </button>
   </div>
 </div>

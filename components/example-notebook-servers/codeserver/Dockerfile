@@ -1,12 +1,13 @@
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/base:master-1831e436
+FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/base:master-6c41e72b
 
 USER root
 
 # args - software versions
-ARG CODESERVER_VERSION=3.9.2
+ # renovate: datasource=github-tags depName=cdr/code-server versioning=semver
+ARG CODESERVER_VERSION=v3.10.2
 
 # install - code-server
-RUN curl -sL "https://github.com/cdr/code-server/releases/download/v${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION}_amd64.deb" -o /tmp/code-server.deb \
+RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION/v/}_amd64.deb" -o /tmp/code-server.deb \
  && dpkg -i /tmp/code-server.deb \
  && rm -f /tmp/code-server.deb
 

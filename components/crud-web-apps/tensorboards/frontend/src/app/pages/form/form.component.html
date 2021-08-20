@@ -1,6 +1,11 @@
 <div class="form--container" mat-dialog-content>
   <form novalidate (ngSubmit)="onSubmit()" [formGroup]="formCtrl">
-    <lib-form-section title="New Tensorboard" text="Create a new Tensorboard.">
+    <lib-form-section
+      title="New Tensorboard"
+      text="Create a new Tensorboard"
+      i18n-title
+      i18n-text
+    >
     </lib-form-section>
 
     <!--Name / Namespace-->
@@ -13,8 +18,12 @@
     </lib-form-name-namespace-inputs>
 
     <mat-radio-group formControlName="storage">
-      <mat-radio-button value="object_store">Object Store</mat-radio-button>
-      <mat-radio-button value="pvc" class="radio-pvc">PVC</mat-radio-button>
+      <mat-radio-button value="object_store" i18n>
+        Object Store
+      </mat-radio-button>
+      <mat-radio-button value="pvc" class="radio-pvc" i18n>
+        PVC
+      </mat-radio-button>
     </mat-radio-group>
 
     <mat-form-field
@@ -22,7 +31,7 @@
       class="wide"
       *ngIf="formCtrl.get('storage').value === 'pvc'"
     >
-      <mat-label>PVC Name</mat-label>
+      <mat-label i18n>PVC Name</mat-label>
       <mat-select formControlName="pvcName">
         <mat-option *ngFor="let pvc of pvcNames" [value]="pvc">
           {{ pvc }}
@@ -35,11 +44,12 @@
       class="wide"
       *ngIf="formCtrl.get('storage').value === 'pvc'"
     >
-      <mat-label>Mount Path</mat-label>
+      <mat-label i18n>Mount Path</mat-label>
       <input
         formControlName="pvcMountPath"
         matInput
         placeholder="ex: mount/to/path"
+        i18n-placeholder
         type="url"
       />
     </mat-form-field>
@@ -49,7 +59,7 @@
       class="wide"
       *ngIf="formCtrl.get('storage').value === 'object_store'"
     >
-      <mat-label>Object Store Link</mat-label>
+      <mat-label i18n>Object Store Link</mat-label>
       <input matInput formControlName="objectStoreLink" type="url" />
     </mat-form-field>
 
@@ -59,10 +69,13 @@
       class="form--button-margin"
       type="submit"
       [disabled]="!formCtrl.valid || blockSubmit"
+      i18n
     >
       CREATE
     </button>
 
-    <button mat-raised-button type="button" (click)="onCancel()">CANCEL</button>
+    <button mat-raised-button type="button" (click)="onCancel()" i18n>
+      CANCEL
+    </button>
   </form>
 </div>

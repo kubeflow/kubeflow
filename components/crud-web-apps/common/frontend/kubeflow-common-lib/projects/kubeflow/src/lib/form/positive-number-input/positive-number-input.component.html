@@ -7,7 +7,7 @@
     [step]="step"
     [formControl]="sizeControl"
   />
-  <mat-error *ngIf="sizeControl.hasError('min')">
+  <mat-error *ngIf="sizeControl.hasError('min')" i18n>
     Cannot be negative.
   </mat-error>
 </mat-form-field>

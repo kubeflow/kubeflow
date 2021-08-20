@@ -1,13 +1,15 @@
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:master-ebc0c4f0
+FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:master-434b10ab
 
 USER root
 
+# needed for LIBNVINFER
+ARG OLD_CUDA_VERSION=11.1
 # args - software versions
-ARG CUDA_VERSION=11.1
-ARG CUDA_COMPART_VERSION=455.45.01-1
-ARG CUDA_CUDART_VERSION=11.1.74-1
-ARG CUDNN_VERSION=8.0.5.39-1
-ARG LIBNVINFER_VERSION=7.2.2-1
+ARG CUDA_VERSION=11.2
+ARG CUDA_COMPAT_VERSION=460.73.01-1
+ARG CUDA_CUDART_VERSION=11.2.152-1
+ARG CUDNN_VERSION=8.1.0.77-1
+ARG LIBNVINFER_VERSION=7.2.3-1
 
 # we need bash's env var character substitution
 SHELL ["/bin/bash", "-c"]
@@ -18,7 +20,7 @@ RUN curl -sL "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu200
  && echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /" > /etc/apt/sources.list.d/cuda.list \
  && apt-get -yq update \
  && apt-get -yq install --no-install-recommends \
-    cuda-compat-${CUDA_VERSION/./-}=${CUDA_COMPART_VERSION} \
+    cuda-compat-${CUDA_VERSION/./-}=${CUDA_COMPAT_VERSION} \
     cuda-cudart-${CUDA_VERSION/./-}=${CUDA_CUDART_VERSION} \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
@@ -48,12 +50,12 @@ RUN curl -sL "https://developer.download.nvidia.com/compute/machine-learning/rep
     libcusparse-${CUDA_VERSION/./-} \
     libfreetype6-dev \
     libhdf5-serial-dev \
-    libnvinfer7=${LIBNVINFER_VERSION}+cuda${CUDA_VERSION} \
-    libnvinfer-plugin7=${LIBNVINFER_VERSION}+cuda${CUDA_VERSION} \
+    libnvinfer7=${LIBNVINFER_VERSION}+cuda${OLD_CUDA_VERSION} \
+    libnvinfer-plugin7=${LIBNVINFER_VERSION}+cuda${OLD_CUDA_VERSION} \
     libzmq3-dev \
     pkg-config \
     # can't be used until NVIDIA updates (requires python < 3.7)
-    # pthon3-libnvinfer=${LIBNVINFER_VERSION}+cuda${CUDA_VERSION} \
+    # python3-libnvinfer=${LIBNVINFER_VERSION}+cuda${CUDA_VERSION} \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -75,6 +77,6 @@ RUN ln -s $(which python3) /usr/local/bin/python
 USER $NB_UID
 
 # install - requirements.txt
-COPY --chown=jovyan:users requirements-cuda.txt /tmp/requirements.txt
+COPY --chown=jovyan:users cuda-requirements.txt /tmp/requirements.txt
 RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
  && rm -f /tmp/requirements.txt

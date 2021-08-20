@@ -74,8 +74,7 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
       if (defaultClass.length === 0) {
         this.defaultStorageclass = false;
         this.popup.open(
-          "No default Storage Class is set. Can't create new Disks for the " +
-            'new Notebook. Please use an Existing Disk.',
+          $localize`No default Storage Class is set. Can't create new Disks for the new Notebook. Please use an Existing Disk.`,
           SnackType.Warning,
           0,
         );
@@ -122,6 +121,11 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
     // Ensure CPU input is a string
     if (typeof notebook.cpu === 'number') {
       notebook.cpu = notebook.cpu.toString();
+    }
+
+    // Ensure GPU input is a string
+    if (typeof notebook.gpus.num === 'number') {
+      notebook.gpus.num = notebook.gpus.num.toString();
     }
 
     // Remove cpuLimit from request if null
