@@ -13,6 +13,6 @@ keras-tuner==1.0.2
 autokeras==1.0.12
 
 # Lightweight PyTorch wrapper for ML researchers
-pytorch-lightning==1.4.0
+pytorch-lightning==1.2.1
 
 transformers==4.9.1
