@@ -55,7 +55,6 @@ nltk==3.4.5
 # - metrics
 sacrebleu==1.4.9
 rouge ==1.0.1
-git+https://github.com/google-research/bleurt.git
 jiwer==2.2.0
 # - other libs
 sentencepiece==0.1.96

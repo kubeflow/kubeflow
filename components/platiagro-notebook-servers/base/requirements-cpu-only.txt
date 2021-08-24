@@ -14,5 +14,5 @@ autokeras==1.0.12
 
 # Lightweight PyTorch wrapper for ML researchers
 pytorch-lightning==1.2.1
-
+git+https://github.com/google-research/bleurt.git
 transformers==4.9.1
