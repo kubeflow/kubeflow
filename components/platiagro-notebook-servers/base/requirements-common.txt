@@ -82,3 +82,5 @@ featuretools==0.23.3
 # https://github.com/platiagro/tasks/tree/main/tasks/simulated-annealing
 gdown==3.13.0
 
+# mlflow
+mlflow==1.20.1
