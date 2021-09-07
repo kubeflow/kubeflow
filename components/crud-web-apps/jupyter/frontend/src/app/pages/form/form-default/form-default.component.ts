@@ -153,6 +153,10 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
       notebook.workspace.size = notebook.workspace.size.toString() + 'Gi';
     }
 
+    if (typeof notebook.language === 'string') {
+      notebook.language = notebook.language.toString()
+    }
+
     for (const vol of notebook.datavols) {
       if (vol.size) {
         vol.size = vol.size + 'Gi';

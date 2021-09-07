@@ -84,6 +84,15 @@ languages under their respective locale folder, i.e. `i18n/fr/messages.fr.xfl`.
 Each language's folder, aside from English, should have a distinct and up to
 date OWNERs file that reflects the maintainers of that language.
 
+KF_LANG is an environment variable to be used by notebook servers and is
+selected by the user upon notebook creation. KF_LANG follows ISO 639-1 formatting (`en`, `fr`).
+To make full use of KF_LANG each image must have the respective language pack installed 
+and the image scripts modifying the locale environment variable to match KF_LANG. 
+The notebook server will then be configured with the appropriate language.
+
+Add the language to the dictionary in `form-advanced-options.component.ts` to have it appear in the drop-down langauge list.
+To verify KF_LANG is written to the notebook server, you can view the notebook spec.
+
 **Testing**
 
 You can run a different translation of the app, locally, by running

@@ -45,26 +45,25 @@
           <context context-type="linenumber">11,12</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="6259832288014753417" datatype="html">
-        <source>Name must consist of lowercase alphanumeric characters or &apos;-&apos;,
-    start with an alphabetic character, and end with an alphanumeric character.</source>
+      <trans-unit id="2882480855052705081" datatype="html">
+        <source>Name must consist of lowercase alphanumeric characters or &apos;-&apos;, start with an alphabetic character, and end with an alphanumeric character.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">projects/kubeflow/src/lib/form/validators.ts</context>
-          <context context-type="linenumber">32,33</context>
+          <context context-type="linenumber">32</context>
         </context-group>
       </trans-unit>
       <trans-unit id="824282508845786476" datatype="html">
         <source>Name is too long</source>
         <context-group purpose="location">
           <context context-type="sourcefile">projects/kubeflow/src/lib/form/validators.ts</context>
-          <context context-type="linenumber">105</context>
+          <context context-type="linenumber">104</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5302945586275093972" datatype="html">
         <source>Name cannot be empty</source>
         <context-group purpose="location">
           <context context-type="sourcefile">projects/kubeflow/src/lib/form/validators.ts</context>
-          <context context-type="linenumber">107</context>
+          <context context-type="linenumber">106</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2061ce2524f31b7754bd310c6b0ad194b563767c" datatype="html">
@@ -111,6 +110,7 @@
       </trans-unit>
       <trans-unit id="ac184ad5119488375c501e04e46b79dbb6079cc7" datatype="html">
         <source>Miscellaneous Settings</source>
+        <target>Paramètres divers</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/form/form-default/form-advanced-options/form-advanced-options.component.html</context>
           <context context-type="linenumber">2</context>
@@ -118,6 +118,7 @@
       </trans-unit>
       <trans-unit id="aa98eb3757f779bf6bce68192b5c93831570c9ea" datatype="html">
         <source>Other possible settings to be applied to the Notebook Server.</source>
+        <target>Autres paramètres possibles à appliquer au serveur bloc-notes.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/form/form-default/form-advanced-options/form-advanced-options.component.html</context>
           <context context-type="linenumber">3</context>
@@ -125,9 +126,34 @@
       </trans-unit>
       <trans-unit id="4f9350429574d4118ef3709016039f34a0785466" datatype="html">
         <source> Enable Shared Memory </source>
+        <target>Activer la mémoire partagée</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/form/form-default/form-advanced-options/form-advanced-options.component.html</context>
-          <context context-type="linenumber">9,10</context>
+          <context context-type="linenumber">10,11</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="acf597925514f04edbad43a68eeb6e983444239b" datatype="html">
+        <source>System language</source>
+        <target>Langue du système</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-advanced-options/form-advanced-options.component.html</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5866254605255506989" datatype="html">
+        <source>English</source>
+        <target>English</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-advanced-options/form-advanced-options.component.ts</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4134147244760971282" datatype="html">
+        <source>Français</source>
+        <target>Français</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-advanced-options/form-advanced-options.component.ts</context>
+          <context context-type="linenumber">14</context>
         </context-group>
       </trans-unit>
       <trans-unit id="e0a31a4739749d022f9c0265ef0db1779daf3bad" datatype="html">
@@ -241,11 +267,25 @@
           <context context-type="linenumber">50</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="cbe5b11222992396a96e6d3d8ba3e9af4cbbdd92" datatype="html">
+        <source>Data Volumes</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-data-volumes/form-data-volumes.component.html</context>
+          <context context-type="linenumber">2</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="f586fa68fde13b574cf55682962b36884e507d21" datatype="html">
+        <source>Configure the Volumes to be mounted as your Datasets.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-data-volumes/form-data-volumes.component.html</context>
+          <context context-type="linenumber">3</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="1d41bb5873bf9a2c9cfa0176d4637258953cad24" datatype="html">
         <source><x id="START_TAG_MAT_ICON" ctype="x-mat_icon" equiv-text="&lt;mat-icon&gt;"/>add<x id="CLOSE_TAG_MAT_ICON" ctype="x-mat_icon" equiv-text="&lt;/mat-icon&gt;"/> ADD VOLUME </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/form/form-default/form-data-volumes/form-data-volumes.component.html</context>
-          <context context-type="linenumber">16,18</context>
+          <context context-type="linenumber">18,20</context>
         </context-group>
         <note priority="1" from="description">Add data volume button text</note>
       </trans-unit>

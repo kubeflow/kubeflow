@@ -135,4 +135,5 @@ def notebook_dict_from_k8s_obj(notebook):
         "memory": cntr["resources"]["requests"]["memory"],
         "volumes": [v["name"] for v in cntr["volumeMounts"]],
         "status": status.process_status(notebook),
+        "language": [l["value"] for l in cntr["env"] if l["name"]=="KF_LANG"]
     }

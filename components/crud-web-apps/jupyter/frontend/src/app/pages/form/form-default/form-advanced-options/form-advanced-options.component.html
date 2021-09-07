@@ -5,7 +5,24 @@
   i18n-title
   i18n-text
 >
-  <mat-slide-toggle [formControl]="parentForm.get('shm')" i18n>
-    Enable Shared Memory
-  </mat-slide-toggle>
+<div class="group-wrapper" [formGroup]="parentForm">
+  <input id="collapsible" class="toggle-advanced-options" type="checkbox">
+  <label for="collapsible" class="lbl-toggle-advanced-options">
+  </label>
+  <div class="collapsible-content">
+    <div class="content-inner">
+      <mat-slide-toggle formControlName="shm" class="matSpacing" i18n>
+        Enable Shared Memory
+      </mat-slide-toggle>
+      <mat-form-field class="wide" appearance="outline">
+        <mat-label i18n>System language</mat-label>
+      <mat-select matNativeControl  formControlName="language">
+        <mat-option *ngFor="let lang of languageList" [value]="lang.id">
+          {{ lang.label }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    </div>
+  </div>
+</div>
 </lib-form-section>

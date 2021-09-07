@@ -1,15 +1,30 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
-
+import { Component, Input, AfterViewChecked, OnInit, ChangeDetectorRef} from "@angular/core";
+import {FormBuilder, FormControl, FormGroup } from "@angular/forms";
 @Component({
-  selector: 'app-form-advanced-options',
-  templateUrl: './form-advanced-options.component.html',
-  styleUrls: ['./form-advanced-options.component.scss'],
+  selector: "app-form-advanced-options",
+  templateUrl: "./form-advanced-options.component.html",
+  styleUrls: [
+    "./form-advanced-options.component.scss"
+  ]
 })
-export class FormAdvancedOptionsComponent implements OnInit {
+export class FormAdvancedOptionsComponent implements AfterViewChecked, OnInit{
   @Input() parentForm: FormGroup;
+  languageList = [
+    {'id':'en', 'label': $localize`English`},
+    {'id':'fr', 'label': $localize`Français`}    
+  ];
+  constructor(private fb: FormBuilder, private cdr: ChangeDetectorRef) {
+    this.parentForm = this.fb.group({
+      language: new FormControl(),
+      shm: new FormControl()
+    });
+  }
 
-  constructor() {}
+  ngOnInit(){
+    this.parentForm.get('language').setValue('en');
+  }
 
-  ngOnInit() {}
+  ngAfterViewChecked(){
+    this.cdr.detectChanges();
+  }
 }

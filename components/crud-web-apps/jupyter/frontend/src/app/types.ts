@@ -27,6 +27,7 @@ export interface NotebookResponseObject {
   };
   environment: string;
   shortImage: string;
+  language: string;
 }
 
 export interface NotebookProcessedObject extends NotebookResponseObject {
@@ -57,6 +58,7 @@ export interface NotebookFormObject {
   datavols: Volume[];
   shm: boolean;
   configurations: PodDefault[];
+  language: string;
 }
 
 export interface Volume {
@@ -220,4 +222,8 @@ export interface Config {
     value: string[];
     readOnly?: boolean;
   };
+  language?: {
+    value: string;
+    readOnly?: boolean;
+  }
 }

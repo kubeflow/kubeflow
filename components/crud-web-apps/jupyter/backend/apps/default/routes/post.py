@@ -33,7 +33,7 @@ def post_pvc(namespace):
     form.set_notebook_tolerations(notebook, body, defaults)
     form.set_notebook_affinity(notebook, body, defaults)
     form.set_notebook_configurations(notebook, body, defaults)
-
+    form.set_notebook_language(notebook, body, defaults)
     # Workspace Volume
     workspace_vol = form.get_workspace_vol(body, defaults)
     if not body.get("noWorkspace", False) and workspace_vol["type"] == "New":

@@ -1,3 +1,59 @@
 mat-slide-toggle {
   margin-bottom: 0.6rem;
 }
+//Simulate the h3 heading for the title
+.lbl-toggle-advanced-options{
+  color: rgba(0, 0, 0, 0.54);
+  display: block;
+  font-size: 1.17em;
+  margin-block-start: 1em;
+  margin-block-end: 1em;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  font-weight: bold;
+  
+  transition: all 0.25s ease-out;
+  cursor: pointer;
+}
+// Have the + sign
+.lbl-toggle-advanced-options::after {
+  content: '\02795'; /* Unicode character for "plus" sign (+) */
+  font-size: 0.8em;
+  float: right;
+  margin-left: 0.5em;
+  margin-top: -2.8em;
+  transition: transform .2s ease-out;
+}
+// Have the - sign
+.toggle-advanced-options:checked + .lbl-toggle-advanced-options::after {
+  content: "\2796"; /* Unicode character for "minus" sign (-) */
+}
+//Hide the checkbox
+.toggle-advanced-options[type='checkbox']{
+  display: none;
+}
+.collapsible-content {
+  max-height: 0px;
+  overflow: hidden;
+  transition: max-height .25s ease-in-out;
+}
+
+.toggle-advanced-options:checked + .lbl-toggle-advanced-options + .collapsible-content {
+  max-height: 100vh;
+}
+
+.toggle-advanced-options:checked + .lbl-toggle-advanced-options {
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.collapsible-content .content-inner {
+  border: 1px solid rgba(224, 224, 224, 0.45);
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
+  padding: .5rem 1rem;
+}
+
+.matSpacing {
+  padding: 0.6em 0em;
+}

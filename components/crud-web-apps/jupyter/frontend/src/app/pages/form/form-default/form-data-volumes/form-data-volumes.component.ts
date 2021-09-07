@@ -13,7 +13,6 @@ export class FormDataVolumesComponent implements OnInit {
   @Input() readonly: boolean;
   @Input() pvcs: Volume[];
   @Input() defaultStorageClass: boolean;
-
   get datavols() {
     const vols = this.parentForm.get('datavols') as FormArray;
     return vols.controls;
