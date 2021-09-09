@@ -605,8 +605,9 @@ func main() {
 	var config Config
 	flag.StringVar(&config.CertFile, "tlsCertFile", "/etc/webhook/certs/cert.pem", "File containing the x509 Certificate for HTTPS.")
 	flag.StringVar(&config.KeyFile, "tlsKeyFile", "/etc/webhook/certs/key.pem", "File containing the x509 private key to --tlsCertFile.")
-	flag.Parse()
 	klog.InitFlags(nil)
+	defer klog.Flush()
+	flag.Parse()
 
 	http.HandleFunc("/apply-poddefault", serveMutatePods)
 
