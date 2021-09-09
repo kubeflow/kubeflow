@@ -482,7 +482,6 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 					},
 				},
 			},
-			"timeout": "300s",
 		},
 	}
 
