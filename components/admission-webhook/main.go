@@ -82,7 +82,7 @@ func filterPodDefaults(list []settingsapi.PodDefault, pod *corev1.Pod) ([]*setti
 		}
 		// check if the pod namespace match the poddefault's namespace
 		if pd.GetNamespace() != pod.GetNamespace() {
-			klog.Infof("PodDefault '%s' is not in the namespace of pod '%s' ", pd.GetName(), pod.GetName())
+			klog.Infof("PodDefault '%s/%s' is not in the namespace of pod '%s/%s'", pd.GetNamespace(), pd.GetName(), pod.GetNamespace(), pod.GetName())
 			continue
 		}
 		klog.V(4).Infof("PodDefault '%s' matches pod '%s' labels", pd.GetName(), pod.GetName())
