@@ -53,7 +53,7 @@ export class IframeContainer extends PolymerElement {
         iframe.addEventListener('load', () => {
             const syncIframePage = () => {
                 const iframeLocation = iframe.contentWindow.location;
-                // This allows to the usage of URL's with special characters
+                // For Special characters within links inside iframe
                 const newIframePage = encodeURIComponent(
                     decodeURIComponent(
                         iframeLocation.href.slice(
