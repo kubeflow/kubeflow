@@ -76,7 +76,7 @@ describe('Iframe Container', () => {
             .returnValue({location: fakeLocation});
         expect(iframeContainer.page).toBe(undefined);
         iframeContainer.$.iframe.contentDocument.firstChild.click();
-        expect(iframeContainer.page).toBe('%2Ffoo%2Fbar%3Fname%3Dblah');
+        expect(iframeContainer.page).toBe('/foo/bar?name=blah');
     });
 
     it('Should reflect iframe URL changes on hashchange event', async () => {
@@ -90,8 +90,7 @@ describe('Iframe Container', () => {
         fakeLocation.href = 'http://testsite.com/foo/bar?name=blah#new-hash';
         iframeContainer.$.iframe.contentDocument
             .dispatchEvent(new Event('hashchange'));
-        expect(iframeContainer.page).toBe(
-            '%2Ffoo%2Fbar%3Fname%3Dblah%23new-hash');
+        expect(iframeContainer.page).toBe('/foo/bar?name=blah#new-hash');
     });
 
     it('Should send messages to iframed page', async () => {
