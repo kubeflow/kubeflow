@@ -443,6 +443,11 @@ func applyPodDefaultsOnContainer(ctr *corev1.Container, podDefaults []*settingsa
 	if err != nil {
 		klog.Error(err)
 	}
+	for _, pd := range podDefaults {
+		if pd.Spec.Lifecycle != nil {
+			ctr.Lifecycle = pd.Spec.Lifecycle
+		}
+	}
 	ctr.EnvFrom = envFrom
 }
 
@@ -464,7 +469,7 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	reviewResponse := v1beta1.AdmissionResponse{}
 	reviewResponse.Allowed = true
 	if pod.Namespace == "" {
-		klog.Infof("Namespace was not set explicitly in Pod manifest, falling back to the namespace-'%s' coming from AdmissionReview request", ar.Request.Namespace)	
+		klog.Infof("Namespace was not set explicitly in Pod manifest, falling back to the namespace-'%s' coming from AdmissionReview request", ar.Request.Namespace)
 		pod.Namespace = ar.Request.Namespace
 	}
 

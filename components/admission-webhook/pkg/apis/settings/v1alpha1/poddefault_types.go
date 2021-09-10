@@ -69,6 +69,9 @@ type PodDefaultSpec struct {
 	Labels map[string]string `json:"labels,omitempty"`
 
 	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
+
+	// Lifecycle defines a Lifecycle to inject into containers.
+	Lifecycle *v1.Lifecycle `json:"lifecycle,omitempty"`
 }
 
 // PodDefaultStatus defines the observed state of PodDefault
