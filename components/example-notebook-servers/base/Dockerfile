@@ -45,7 +45,7 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 RUN export GNUPGHOME=/tmp/ \
  && curl -sL "https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-${S6_ARCH}-installer" -o /tmp/s6-overlay-${S6_VERSION}-installer \
  && curl -sL "https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-${S6_ARCH}-installer.sig" -o /tmp/s6-overlay-${S6_VERSION}-installer.sig \
- && curl -sL "https://keybase.io/justcontainers/key.asc" | gpg -q --import \
+ && gpg --keyserver keys.gnupg.net --keyserver pgp.surfnet.nl --recv-keys 6101B2783B2FD161 \
  && gpg -q --verify /tmp/s6-overlay-${S6_VERSION}-installer.sig /tmp/s6-overlay-${S6_VERSION}-installer \
  && chmod +x /tmp/s6-overlay-${S6_VERSION}-installer \
  && /tmp/s6-overlay-${S6_VERSION}-installer / \
