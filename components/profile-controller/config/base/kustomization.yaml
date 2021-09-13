@@ -12,7 +12,7 @@ patchesStrategicMerge:
 images:
 - name: public.ecr.aws/j1r0q0g6/notebooks/profile-controller
   newName: public.ecr.aws/j1r0q0g6/notebooks/profile-controller
-  newTag: v1.4-rc.0
+  newTag: v1.4-rc.1
 
 configMapGenerator:
 - name: namespace-labels-data
