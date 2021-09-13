@@ -82,7 +82,7 @@ func filterPodDefaults(list []settingsapi.PodDefault, pod *corev1.Pod) ([]*setti
 		}
 		// check if the pod namespace match the poddefault's namespace
 		if pd.GetNamespace() != pod.GetNamespace() {
-			klog.Infof("PodDefault '%s' is not in the namespcae of pod '%s' ", pd.GetName(), pod.GetName())
+			klog.Infof("PodDefault '%s/%s' is not in the namespace of pod '%s/%s'", pd.GetNamespace(), pd.GetName(), pod.GetNamespace(), pod.GetName())
 			continue
 		}
 		klog.V(4).Infof("PodDefault '%s' matches pod '%s' labels", pd.GetName(), pod.GetName())
@@ -463,6 +463,11 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	}
 	reviewResponse := v1beta1.AdmissionResponse{}
 	reviewResponse.Allowed = true
+	if pod.Namespace == "" {
+		klog.Infof("Namespace was not set explicitly in Pod manifest, falling back to the namespace-'%s' coming from AdmissionReview request", ar.Request.Namespace)	
+		pod.Namespace = ar.Request.Namespace
+	}
+
 	podCopy := pod.DeepCopy()
 	klog.V(1).Infof("Examining pod: %v\n", pod.GetName())
 
