@@ -5,4 +5,4 @@ resources:
 images:
 - name: public.ecr.aws/j1r0q0g6/notebooks/notebook-controller
   newName: public.ecr.aws/j1r0q0g6/notebooks/notebook-controller
-  newTag: v1.4-rc.0
+  newTag: v1.4-rc.1
