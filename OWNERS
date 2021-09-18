@@ -1,5 +1,7 @@
 # We want to rely on fine grained OWNERs files.
 # Approvers listed here is just a backup in case someone is out.
 approvers:
-  - Bobgy
-  - pdmack
+- Bobgy
+- pdmack
+- james-jwu
+- zijianjoy
