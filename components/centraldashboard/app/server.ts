@@ -66,6 +66,12 @@ async function main() {
       message: `I tick, therfore I am!`,
     });
   });
+  app.get('/readyz', (req: Request, res: Response) => {
+    res.json({
+      codeEnvironment,
+      message: `I am ready to serve traffic`,
+    });
+  });
   app.use('/api', new Api(k8sService, metricsService).routes());
   app.use('/api/workgroup', new WorkgroupApi(profilesService, k8sService, registrationFlowAllowed).routes());
   app.use('/api', (req: Request, res: Response) => 
