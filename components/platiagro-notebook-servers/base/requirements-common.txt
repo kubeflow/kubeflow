@@ -63,7 +63,7 @@ rank-bm25==0.2.1
 
 # AutoML
 # https://github.com/platiagro/tasks/tree/main/tasks/automl-classifier
-auto-sklearn==0.12.7
+auto-sklearn==0.12.1
 category-encoders==2.2.2
 
 # Transformation Graph
