@@ -31,6 +31,7 @@ tables==3.6.1
 vincent==0.4.4
 xlrd==2.0.1
 PyPDF4==1.27.0
+black==21.7b0
 
 
 # Extra packages, required by PlatIAgro
