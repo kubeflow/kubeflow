@@ -1,10 +1,10 @@
-import { ConfigVolume, Volume, emptyVolume } from 'src/app/types';
-import { createVolumeControl } from '../form-default/utils';
+import { Volume } from 'src/app/types';
 import {
   FormGroup,
   FormControl,
   FormArray,
   AbstractControl,
+  Validators,
 } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -14,60 +14,23 @@ import {
   updateNonDirtyControl,
   updateControlNonNullValue,
 } from 'kubeflow';
-import { JupyterLab, emptyJupyterLab } from './types';
-
-export function createRokVolumeControl(vol: ConfigVolume) {
-  const volCtrl = createVolumeControl(vol);
-
-  // Set the rokUrl in extraFields
-  const extraFields: FormGroup = volCtrl.get('extraFields') as FormGroup;
-  extraFields.addControl('rokUrl', new FormControl('', []));
-  extraFields.disable();
-
-  return volCtrl;
-}
-
-export function addRokDataVolume(
-  formCtrl: AbstractControl,
-  vol: ConfigVolume = null,
-) {
-  // If no vol is provided create one with default values
-  if (vol === null) {
-    const l: number = formCtrl.value.datavols.length;
-    const name: string = '{notebook-name}-vol-' + (l + 1);
-
-    vol = {
-      type: {
-        value: 'New',
-      },
-      name: {
-        value: name,
-      },
-      size: {
-        value: '5',
-      },
-      mountPath: {
-        value: '/home/jovyan/{volume-name}',
-      },
-      accessModes: {
-        value: 'ReadWriteOnce',
-      },
-    };
-  }
-
-  // Push it to the control
-  const vols = formCtrl.get('datavols') as FormArray;
-  vols.push(createRokVolumeControl(vol));
-}
+import { JupyterLabMetadata, RokVolumeSnapshotMetadata } from './types';
+import {
+  createExistingSourceFormGroup,
+  createExistingVolumeFormGroup,
+  createNewPvcFormGroup,
+  createNewPvcVolumeFormGroup,
+  setGenerateNameCtrl,
+} from 'src/app/shared/utils/volumes';
 
 // Functions to create Autofilled Rok Objects
-export function getJupyterLabFromRokURL(
+export function getJupyterLabMetaFromRokURL(
   url: string,
   rok: RokService,
-): Observable<JupyterLab> {
+): Observable<JupyterLabMetadata> {
   return rok.getObjectMetadata(url).pipe(
     map((headers: HttpHeaders) => {
-      const notebook: JupyterLab = emptyJupyterLab();
+      const notebook: JupyterLabMetadata = {};
 
       // Fill the notebook with the info from the response
       notebook.namespace = headers.get('X-Object-Meta-namespace');
@@ -95,22 +58,21 @@ export function getJupyterLabFromRokURL(
 
       // Workspace Volume
       const workspaceRokUrl = headers.get('X-Object-Group-Member-0-URL');
-      notebook.workspace.extraFields = {
-        // rokUrl: baseUrl + obj + '?version=' + version,
-        rokUrl: workspaceRokUrl,
-      };
+      if (workspaceRokUrl) {
+        notebook.workspaceUrl = workspaceRokUrl;
+      }
 
       // Data Volumes
       const volsNum = headers.get('X-Object-Group-Member-Count');
+      if (!volsNum) {
+        return notebook;
+      }
+
+      notebook.datavolsUrls = [];
       for (let i = 1; i < parseInt(volsNum, 10); i++) {
         const volRokUrl = headers.get('X-Object-Group-Member-' + i + '-URL');
 
-        const vol = emptyVolume();
-        vol.extraFields = {
-          // rokUrl: baseUrl + obj + '?version=' + version,
-          rokUrl: volRokUrl,
-        };
-        notebook.datavols.push(vol);
+        notebook.datavolsUrls.push(volRokUrl);
       }
 
       return notebook;
@@ -118,35 +80,35 @@ export function getJupyterLabFromRokURL(
   );
 }
 
-export function getVolumeFromRokURL(
+export function getVolumeMetadataFromRokURL(
   url: string,
   rok: RokService,
-): Observable<Volume> {
+): Observable<RokVolumeSnapshotMetadata> {
   return rok.getObjectMetadata(url).pipe(
     map((headers: HttpHeaders) => {
-      console.log(`Creating volume object from return metadata`);
+      console.log(`Creating volume object from fetched metadata`);
 
-      const volume: Volume = emptyVolume();
+      const volume: RokVolumeSnapshotMetadata = {};
 
       // Fill the notebook with the info from the response
-      volume.name = headers.get('X-Object-Meta-dataset');
-      if (volume.name === null) {
-        volume.name = headers.get('X-Object-Meta-workspace');
-      }
+      volume.name =
+        headers.get('X-Object-Meta-workspace') ||
+        headers.get('X-Object-Meta-dataset') ||
+        headers.get('x-object-meta-pvc');
+      volume.name = `${volume.name}-`;
 
       const size = parseInt(headers.get('Content-Length'), 10);
-      volume.size = size / Math.pow(1024, 3);
+      volume.size = `${size / Math.pow(1024, 3)}Gi`;
 
       volume.path = headers.get('X-Object-Meta-mountpoint');
 
-      console.log(`Created volume object: ${JSON.stringify(volume)}`);
       return volume;
     }),
   );
 }
 
 // Functions for autofilling control values
-export function setLabValues(lab: JupyterLab, formCtrl: AbstractControl) {
+export function setLabValues(lab: JupyterLabMetadata, formCtrl: FormGroup) {
   console.log(
     `Setting Jupyter Lab form values based on object: ${JSON.stringify(lab)}`,
   );
@@ -161,52 +123,69 @@ export function setLabValues(lab: JupyterLab, formCtrl: AbstractControl) {
     formCtrl.get('environment').setValue(lab.environment);
   }
 
-  // Set the workspace volume
-  formCtrl
-    .get('workspace')
-    .get('extraFields')
-    .get('rokUrl')
-    .setValue(lab.workspace.extraFields.rokUrl);
-  formCtrl.get('workspace').get('type').setValue('Existing');
-
   // Clear the existing Data Volumes array
   const dataVols = formCtrl.get('datavols') as FormArray;
-  while (dataVols.length !== 0) {
-    dataVols.removeAt(0);
+  dataVols.clear();
+
+  for (const url of lab.datavolsUrls) {
+    const volGroup = createNewPvcVolumeFormGroup();
+    updateVolumeFormGroupWithRokUrl(lab.workspaceUrl, volGroup);
   }
 
-  for (const vol of lab.datavols) {
-    addRokDataVolume(formCtrl);
-  }
+  // update the workspace volume
+  const workspace = createNewPvcVolumeFormGroup();
+  formCtrl.removeControl('workspace');
+  formCtrl.addControl('workspace', workspace);
+  updateVolumeFormGroupWithRokUrl(lab.workspaceUrl, workspace);
 
-  // Set each volume to existing type
-  const volsArr = formCtrl.get('datavols') as FormArray;
-  for (let i = 0; i < lab.datavols.length; i++) {
-    volsArr
-      .at(i)
-      .get('extraFields')
-      .get('rokUrl')
-      .setValue(lab.datavols[i].extraFields.rokUrl);
-
-    volsArr.at(i).get('type').setValue('Existing');
+  // update data volumes
+  const dataVolsArray = formCtrl.get('datavols') as FormArray;
+  dataVolsArray.clear();
+  for (const url of lab.datavolsUrls) {
+    const volGroup = createNewPvcVolumeFormGroup();
+    updateVolumeFormGroupWithRokUrl(url, volGroup);
+    dataVolsArray.push(volGroup);
   }
 }
 
-export function setVolumeValues(vol: Volume, volCtrl: AbstractControl) {
-  console.log(
-    `Setting Volume form values based on object: ${JSON.stringify(vol)}`,
-  );
-
-  const volProps = { size: vol.size, name: vol.name, path: vol.path };
-
-  for (const prop in volProps) {
-    if (volProps.hasOwnProperty(prop)) {
-      updateControlNonNullValue(
-        volCtrl.get(prop),
-        volProps[prop],
-        `Provided volume has null value for property '${prop}'. ` +
-          `Will NOT override the current value.`,
-      );
-    }
+export function updateVolumeFormGroupWithRokUrl(
+  url: string,
+  volume: FormGroup,
+) {
+  // If Volume was existing source then it will need to change to New PVC
+  if (volume.get('existingSource')) {
+    volume.removeControl('existingSource');
+    volume.addControl('newPvc', createNewPvcFormGroup());
   }
+
+  // ensure the PVC's metadata has annotations
+  const metadataGroup = volume.get('newPvc.metadata') as FormGroup;
+  if (!metadataGroup.get('annotations')) {
+    metadataGroup.addControl('annotations', new FormGroup({}));
+  }
+
+  // add rok/origin with Snapshot URL
+  const annotationsGroup = metadataGroup.get('annotations') as FormGroup;
+  annotationsGroup.addControl(
+    'rok/origin',
+    new FormControl(url, [Validators.required]),
+  );
+}
+
+export function updateVolumeFormGroupWithRokMetadata(
+  metadata: RokVolumeSnapshotMetadata,
+  volume: FormGroup,
+) {
+  volume.get('mount').setValue(metadata.path);
+
+  // set the size
+  volume.get('newPvc.spec.resources.requests.storage').setValue(metadata.size);
+
+  // ensure the new PVC has generateName set, and not name
+  const meta = volume.get('newPvc.metadata') as FormGroup;
+  setGenerateNameCtrl(meta, metadata.name);
+  meta.get('generateName').markAsDirty();
+
+  volume.get('newPvc.spec.storageClassName').enable();
+  volume.get('newPvc.spec.storageClassName').setValue('rok');
 }

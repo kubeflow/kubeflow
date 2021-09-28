@@ -7,17 +7,14 @@ import {
   SnackBarService,
   SnackType,
 } from 'kubeflow';
-import { JupyterLab, emptyJupyterLab } from '../types';
-import { emptyVolume, Volume } from 'src/app/types';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { HttpHeaders } from '@angular/common/http';
 import {
-  addRokDataVolume,
-  getJupyterLabFromRokURL,
+  getJupyterLabMetaFromRokURL,
   setLabValues,
-  setVolumeValues,
-  getVolumeFromRokURL,
+  getVolumeMetadataFromRokURL,
+  updateVolumeFormGroupWithRokMetadata,
 } from '../utils';
 
 @Component({
@@ -36,21 +33,24 @@ export class RokJupyterLabSelectorComponent implements OnInit {
   ngOnInit() {}
 
   labAutofillClicked(url: string) {
-    getJupyterLabFromRokURL(url, this.rok).subscribe(lab => {
+    getJupyterLabMetaFromRokURL(url, this.rok).subscribe(lab => {
       setLabValues(lab, this.parentForm);
+      const rokOrigin = 'newPvc.metadata.annotations.rok/origin';
 
       // Autofill the workspace volume
-      const wsUrl = this.parentForm.get('workspace.extraFields.rokUrl').value;
-      getVolumeFromRokURL(wsUrl, this.rok).subscribe(vol => {
-        setVolumeValues(vol, this.parentForm.get('workspace'));
+      const workspace = this.parentForm.get('workspace') as FormGroup;
+      const wsUrl = workspace.get(rokOrigin).value;
+      getVolumeMetadataFromRokURL(wsUrl, this.rok).subscribe(metadata => {
+        updateVolumeFormGroupWithRokMetadata(metadata, workspace);
       });
 
       // Autofill the data volumes
       const dataVols = this.parentForm.get('datavols') as FormArray;
-      for (const volCtrl of dataVols.controls) {
-        const volUrl = volCtrl.get('extraFields.rokUrl').value;
-        getVolumeFromRokURL(volUrl, this.rok).subscribe(vol => {
-          setVolumeValues(vol, volCtrl);
+      const controls = dataVols.controls as FormGroup[];
+      for (const volCtrl of controls) {
+        const volUrl = volCtrl.get(rokOrigin).value;
+        getVolumeMetadataFromRokURL(volUrl, this.rok).subscribe(metadata => {
+          updateVolumeFormGroupWithRokMetadata(metadata, volCtrl);
         });
       }
 

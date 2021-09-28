@@ -43,19 +43,20 @@
         [vendors]="config?.gpus?.value.vendors"
       ></app-form-gpus>
 
-      <app-rok-form-workspace-volume
-        [parentForm]="formCtrl"
-        [pvcs]="pvcs"
+      <app-form-workspace-volume
+        *ngIf="formCtrl.get('workspace')"
         [readonly]="config?.workspaceVolume?.readOnly"
+        [volGroup]="formCtrl.get('workspace')"
+        [externalName]="formCtrl.get('name').value"
       >
-      </app-rok-form-workspace-volume>
+      </app-form-workspace-volume>
 
-      <app-rok-form-data-volumes
-        [parentForm]="formCtrl"
-        [pvcs]="pvcs"
+      <app-form-data-volumes
+        [volsArray]="formCtrl.get('datavols')"
         [readonly]="config?.dataVolumes?.readOnly"
+        [externalName]="formCtrl.get('name').value"
       >
-      </app-rok-form-data-volumes>
+      </app-form-data-volumes>
 
       <app-rok-form-configurations
         [parentForm]="formCtrl"

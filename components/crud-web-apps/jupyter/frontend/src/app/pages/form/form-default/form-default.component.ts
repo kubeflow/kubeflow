@@ -153,9 +153,16 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
+    this.popup.open('Submitting new Notebook...', SnackType.Info, 3000);
+
     const notebook = this.getSubmitNotebook();
     this.backend.createNotebook(notebook).subscribe(() => {
       this.popup.close();
+      this.popup.open(
+        'Notebook created successfully.',
+        SnackType.Success,
+        3000,
+      );
       this.router.navigate(['/']);
     });
   }
