@@ -43,3 +43,8 @@ def deserialize(json_obj, klass):
     except ValueError as e:
         raise ValueError("Failed to deserialize input into '%s': %s"
                          % (klass, str(e)))
+
+
+def serialize(obj):
+    """Convert a K8s library object to JSON."""
+    return client.ApiClient().sanitize_for_serialization(obj)
