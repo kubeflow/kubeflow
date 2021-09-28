@@ -211,5 +211,6 @@ spawnerFormDefaults:
     # value:
     #   - add-gcp-secret
     #   - default-editor
-    value: []
+    value:
+    - access-ml-pipeline
     readOnly: false
