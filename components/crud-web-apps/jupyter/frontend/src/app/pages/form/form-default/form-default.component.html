@@ -42,18 +42,17 @@
       ></app-form-gpus>
 
       <app-form-workspace-volume
-        [parentForm]="formCtrl"
-        [pvcs]="pvcs"
+        *ngIf="formCtrl.get('workspace')"
         [readonly]="config?.workspaceVolume?.readOnly"
-        [defaultStorageClass]="defaultStorageclass"
+        [volGroup]="formCtrl.get('workspace')"
+        [externalName]="formCtrl.get('name').value"
       >
       </app-form-workspace-volume>
 
       <app-form-data-volumes
-        [parentForm]="formCtrl"
-        [pvcs]="pvcs"
+        [volsArray]="formCtrl.get('datavols')"
         [readonly]="config?.dataVolumes?.readOnly"
-        [defaultStorageClass]="defaultStorageclass"
+        [externalName]="formCtrl.get('name')"
       >
       </app-form-data-volumes>
 
