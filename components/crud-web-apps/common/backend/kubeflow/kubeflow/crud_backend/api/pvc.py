@@ -23,3 +23,12 @@ def list_pvcs(namespace):
         "list", "", "v1", "persistentvolumeclaims", namespace
     )
     return v1_core.list_namespaced_persistent_volume_claim(namespace)
+
+
+def patch_pvc(name, namespace, pvc, auth=True):
+    if auth:
+        authz.ensure_authorized("patch", "", "v1", "persistentvolumeclaims",
+                                namespace)
+
+    return v1_core.patch_namespaced_persistent_volume_claim(name, namespace,
+                                                            pvc)
