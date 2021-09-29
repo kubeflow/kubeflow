@@ -115,12 +115,20 @@ export function setLabValues(lab: JupyterLabMetadata, formCtrl: FormGroup) {
 
   formCtrl.get('customImage').setValue(lab.image);
   formCtrl.get('customImageCheck').setValue(true);
-  formCtrl.get('cpu').setValue(lab.cpu);
-  formCtrl.get('memory').setValue(lab.memory);
+  formCtrl.get('customImage').markAsDirty();
+
+  formCtrl.get('cpu').setValue(lab.cpu, { emitEvent: false });
+  formCtrl.get('cpuLimit').setValue(null);
+  formCtrl.get('cpu').markAsDirty();
+
+  formCtrl.get('memory').setValue(lab.memory, { emitEvent: false });
+  formCtrl.get('memoryLimit').setValue(null);
+  formCtrl.get('memory').markAsDirty();
 
   // Change env only if it exists
   if (lab.environment !== null) {
     formCtrl.get('environment').setValue(lab.environment);
+    formCtrl.get('environment').markAsDirty();
   }
 
   // Clear the existing Data Volumes array
