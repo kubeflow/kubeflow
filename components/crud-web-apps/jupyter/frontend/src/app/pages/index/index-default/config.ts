@@ -9,6 +9,7 @@ import {
   ComponentValue,
   TableConfig,
   TABLE_THEME,
+  DateTimeValue,
 } from 'kubeflow';
 import { ServerTypeComponent } from './server-type/server-type.component';
 
@@ -72,6 +73,11 @@ export const defaultConfig: TableConfig = {
       style: { width: '12%' },
       textAlignment: 'right',
       value: new PropertyValue({ field: 'age', truncate: true }),
+    },
+    {
+      matHeaderCellDef: $localize`Last activity`,
+      matColumnDef: 'last_activity',
+      value: new DateTimeValue({ field: 'last_activity' }),
     },
     {
       matHeaderCellDef: $localize`Image`,
