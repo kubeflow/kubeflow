@@ -27,6 +27,7 @@ const DEFAULT_CULL_IDLE_TIME = "1440" // One day
 const DEFAULT_IDLENESS_CHECK_PERIOD = "1"
 const DEFAULT_ENABLE_CULLING = "false"
 const DEFAULT_CLUSTER_DOMAIN = "cluster.local"
+const DEFAULT_DEV = "false"
 
 // When a Resource should be stopped/culled, then the controller should add this
 // annotation in the Resource's Metadata. Then, inside the reconcile loop,
@@ -152,6 +153,11 @@ func getNotebookApiKernels(nm, ns string) []KernelStatus {
 	url := fmt.Sprintf(
 		"http://%s.%s.svc.%s/notebook/%s/%s/api/kernels",
 		nm, ns, domain, ns, nm)
+	if getEnvDefault("DEV", DEFAULT_DEV) != "false" {
+		url = fmt.Sprintf(
+			"http://localhost:8001/api/v1/namespaces/%s/services/%s:http-%s/proxy/notebook/%s/%s/api/kernels",
+			ns, nm, nm, ns, nm)
+	}
 
 	resp, err := client.Get(url)
 	if err != nil {
