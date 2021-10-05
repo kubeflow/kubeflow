@@ -1,4 +1,4 @@
-module github.com/kubeflow/kubeflow/components/notebook-controller
+module github.com/geojaz/kubeflow/components/notebook-controller
 
 go 1.15
 
