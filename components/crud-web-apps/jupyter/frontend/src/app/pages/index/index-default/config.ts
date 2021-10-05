@@ -8,8 +8,10 @@ import {
   DialogConfig,
   ComponentValue,
   TableConfig,
+  TableColumn,
   TABLE_THEME,
   DateTimeValue,
+  createNamespaceColumn,
 } from 'kubeflow';
 import { ServerTypeComponent } from './server-type/server-type.component';
 
@@ -43,6 +45,8 @@ export function getStopDialogConfig(name: string): DialogConfig {
 }
 
 // --- Config for the Resource Table ---
+export const NAMESPACE_COLUMN: TableColumn = createNamespaceColumn('namespace');
+
 export const defaultConfig: TableConfig = {
   columns: [
     {
