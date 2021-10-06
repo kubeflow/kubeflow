@@ -7,6 +7,12 @@ import '@polymer/paper-item/paper-item.js';
 
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
+export const ALL_NAMESPACES = 'All namespaces';
+export const ALL_NAMESPACES_ALLOWED_LIST = ['jupyter'];
+
+const allNamespacesAllowedPaths = ALL_NAMESPACES_ALLOWED_LIST
+    .map(( p)=>`/_/${p}/`);
+
 /**
  * Component to retrieve and allow namespace selection. Bubbles the selected
  * items up to the query string in the 'ns' parameter.
@@ -87,7 +93,8 @@ export class NamespaceSelector extends PolymerElement {
                     attr-for-selected="name" selected="{{selected}}">
                     <template is="dom-repeat" items="{{namespaces}}" as="n">
                         <paper-item name="[[n.namespace]]" title$='[[n.role]]'
-                                owner$='[[isOwner(n.role)]]'>
+                                owner$='[[isOwner(n.role)]]'
+                                disabled$="[[n.disabled]]">
                             [[n.namespace]]
                         </paper-item>
                     </template>
@@ -102,6 +109,7 @@ export class NamespaceSelector extends PolymerElement {
     static get properties() {
         return {
             queryParams: Object,
+            route: Object,
             namespaces: Array,
             selected: {
                 type: String,
@@ -128,6 +136,7 @@ export class NamespaceSelector extends PolymerElement {
             '_queryParamChanged(queryParams.ns)',
             '_ownedContextChanged(namespaces, selected)',
             'validate(selected, namespaces)',
+            'onRouteChange(route, queryParams)',
         ];
     }
 
@@ -158,18 +167,57 @@ export class NamespaceSelector extends PolymerElement {
     /**
      * Validate internal state of the selector, and change selected state
      * if needed
+     * @param {string} selected
+     * @param {[object]} namespaces
      */
-    validate() {
-        const {namespaces} = this;
+    validate(selected, namespaces) {
         if (!namespaces) return;
-        const nsSet = new Set(namespaces.map((i) => i.namespace));
-        if (nsSet.has(this.selected)) return;
+        const allNs = namespaces.map((i) => i.namespace);
+        if (allNs.includes(selected)) return;
 
-        const owned = namespaces.find((n) => n.role == 'owner');
-        this.selected = (owned && owned.namespace)
-            || (nsSet.has('kubeflow')
-                ? 'kubeflow'
-                : '');
+        const owned = this.getDefaultNamespace();
+
+        if (selected === ALL_NAMESPACES
+            && allNamespacesAllowedPaths.includes(this.route.path)) {
+            return;
+        }
+
+        let newNamespace = '';
+        if (owned && owned.namespace) {
+            newNamespace = owned.namespace;
+        } else if (allNs.includes('kubeflow')) {
+            newNamespace = 'kubeflow';
+        }
+        this.selected = newNamespace;
+    }
+
+    /**
+     * Get the default namespace when needed by the namespace selector.
+     * @return {string}
+     */
+    getDefaultNamespace() {
+        return this.namespaces.find(
+            (n) => n.role == 'owner');
+    }
+
+    /**
+     * Observe route and query parameter changes and ensure that the 'ns' query
+     * query parameter has the correct value when a user navigates to another
+     * page that the 'All namespace' selection is not allowed.
+     * @param {object} route
+     * @param {object} queryParams
+     */
+    onRouteChange(route, queryParams) {
+        if (route && !allNamespacesAllowedPaths.includes(route.path)
+            && this.selected === ALL_NAMESPACES) {
+            const ns = this.getDefaultNamespace();
+            // Fix in order to ensure that the 'ns' parameter is not being
+            // overwritten by iron-location.
+            // See:
+            setTimeout(() => {
+                this.set('queryParams.ns', ns.namespace);
+            });
+        }
     }
 
     /**

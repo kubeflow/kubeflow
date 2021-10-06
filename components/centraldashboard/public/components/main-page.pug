@@ -76,8 +76,9 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                         figure.Logo
                             |!{logo}
                 namespace-selector#NamespaceSelector(
-                    query-params='{{queryParams}}', namespaces='[[namespaces]]'
-                    selected='{{namespace}}', hides, hidden$='[[hideNamespaces]]'
+                    query-params='{{queryParams}}', route='{{route}}',
+                    namespaces='[[namespaces]]', selected='{{namespace}}',
+                    hides, hidden$='[[hideNamespaces]]'
                     all-namespaces='[[allNamespaces]]')
                 footer#User-Badge
                     a(target="_top", href="/logout")
@@ -101,7 +102,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     manage-users-view(user='[[user]]', namespaces='[[namespaces]]', is-cluster-admin='[[isClusterAdmin]]', owned-namespace='[[ownedNamespace]]')
                 neon-animatable(page='iframe')
                     iframe-container(namespace='[[namespace]]',
-                        src='[[iframeSrc]]', page="{{iframePage}}")
+                        src='[[iframeSrc]]', page="{{iframePage}}"
+                        namespaces='[[namespaces]]')
                 neon-animatable(page='not_found')
                     not-found-view(path="[[route.path]]")
                 neon-animatable(page='namespace_needed')
