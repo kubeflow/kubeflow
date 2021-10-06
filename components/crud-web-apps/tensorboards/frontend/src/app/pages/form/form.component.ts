@@ -35,6 +35,8 @@ export class FormComponent implements OnInit, OnDestroy {
     this.formCtrl = this.fb.group({
       name: ['', [Validators.required]],
       namespace: ['', [Validators.required]],
+      cpu: [1, [Validators.required]],
+      memory: [1, [Validators.required]],
       storage: ['object_store', [Validators.required]],
       objectStoreLink: ['', [Validators.required]],
       pvcName: ['', [Validators.nullValidator]],
@@ -104,9 +106,21 @@ export class FormComponent implements OnInit, OnDestroy {
       JSON.stringify({
         name: this.formCtrl.get('name').value,
         namespace: this.formCtrl.get('namespace').value,
+        cpu: this.formCtrl.get('cpu').value,
+        memory: this.formCtrl.get('memory').value,
         logspath: logspath,
       }),
     );
+
+    // Ensure CPU input is a string
+    if (typeof tensorboard.cpu === 'number') {
+      tensorboard.cpu = tensorboard.cpu.toString();
+    }
+
+    // Add Gi to all sizes
+    if (tensorboard.memory) {
+      tensorboard.memory = tensorboard.memory.toString() + 'Gi';
+    }
 
     this.blockSubmit = true;
 

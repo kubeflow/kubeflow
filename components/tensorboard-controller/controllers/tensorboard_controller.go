@@ -154,6 +154,7 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 	var volumes []corev1.Volume
 	var mountpath, subpath string = tb.Spec.LogsPath, ""
 	var affinity = &corev1.Affinity{}
+	var resources = &corev1.ResourceRequirements{}
 
 	//In this case, a PVC is used as a log storage for the Tensorboard server.
 	if !isCloudPath(tb.Spec.LogsPath) {
@@ -227,6 +228,10 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 		})
 	}
 
+	if tb.Spec.Resources != nil {
+		resources = tb.Spec.Resources
+	}
+
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      tb.Name,
@@ -263,6 +268,7 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 								},
 							},
 							VolumeMounts: volumeMounts,
+							Resources:    *resources,
 						},
 					},
 					Volumes: volumes,

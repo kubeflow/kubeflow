@@ -27,4 +27,6 @@ export interface TensorboardProcessedObject extends TensorboardResponseObject {
 export interface TensorboardPostObject {
   name: string;
   logspath: string;
+  cpu: number | string;
+  memory: number | string;
 }

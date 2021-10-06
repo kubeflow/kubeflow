@@ -17,6 +17,7 @@ package v1alpha1
 
 import (
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -27,7 +28,8 @@ import (
 type TensorboardSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	LogsPath string `json:"logspath"`
+	LogsPath  string                       `json:"logspath"`
+	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 // TensorboardCondition defines the observed state of Tensorboard

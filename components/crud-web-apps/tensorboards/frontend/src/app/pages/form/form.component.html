@@ -17,6 +17,26 @@
     >
     </lib-form-name-namespace-inputs>
 
+    <div class="row">
+    <lib-positive-number-input
+        class="column"
+        min="0.1"
+        step="0.1"
+        [sizeControl]="formCtrl.get('cpu')"
+        label="Requested CPUs"
+        i18n-label
+    ></lib-positive-number-input>
+
+    <lib-positive-number-input
+        class="column"
+        min="0.1"
+        step="0.1"
+        [sizeControl]="formCtrl.get('memory')"
+        label="Requested memory in Gi"
+        i18n-label
+    ></lib-positive-number-input>
+    </div>
+
     <mat-radio-group formControlName="storage">
       <mat-radio-button value="object_store" i18n>
         Object Store

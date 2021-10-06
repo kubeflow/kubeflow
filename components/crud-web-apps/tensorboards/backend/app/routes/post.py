@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 @bp.route("/api/namespaces/<namespace>/tensorboards", methods=["POST"])
 @decorators.request_is_json_type
-@decorators.required_body_params("name", "logspath")
+@decorators.required_body_params("name", "logspath", "cpu", "memory")
 def post_tensorboard(namespace):
 
     body = request.get_json()
