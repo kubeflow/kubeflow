@@ -48,6 +48,7 @@ export * from './lib/form/rok-url-input/rok-url-input.component';
 
 export * from './lib/resource-table/types';
 export * from './lib/resource-table/status/types';
+export * from './lib/resource-table/table/utils';
 export * from './lib/snack-bar/types';
 export * from './lib/services/backend/types';
 export * from './lib/services/rok/types';
