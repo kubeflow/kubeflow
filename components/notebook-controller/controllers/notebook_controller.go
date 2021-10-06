@@ -110,7 +110,7 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		log.Info("Emitting Notebook Event.", "Event", event)
 		r.EventRecorder.Eventf(involvedNotebook, event.Type, event.Reason,
 			"Reissued from %s/%s: %s", strings.ToLower(event.InvolvedObject.Kind), event.InvolvedObject.Name, event.Message)
-		return ctrl.Result{}, err
+		return ctrl.Result{}, nil
 	}
 
 	if getEventErr != nil && !apierrs.IsNotFound(getEventErr) {
@@ -685,14 +685,13 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return isStsOrPodEvent(event) && nbNameExists(r.Client, nbName, m.GetNamespace())
 	}
 	// TODO: refactor to use predicate.NewPredicateFuncs when controller-runtime module version is updated
+	// We don't include DeleteFunc since we don't want the reconcile
+	// to happen when an event gets deleted
 	eventsPredicates := predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			return e.ObjectOld != e.ObjectNew && checkEvent(e.ObjectNew, e.MetaNew)
 		},
 		CreateFunc: func(e event.CreateEvent) bool {
-			return checkEvent(e.Object, e.Meta)
-		},
-		DeleteFunc: func(e event.DeleteEvent) bool {
 			return checkEvent(e.Object, e.Meta)
 		},
 		GenericFunc: func(e event.GenericEvent) bool {
