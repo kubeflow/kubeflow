@@ -25,7 +25,6 @@
         <mat-option
           *ngFor="let v of vendors"
           [value]="v.limitsKey"
-          [disabled]="vendorIsDisabled(v)"
           [matTooltip]="vendorTooltip(v)"
         >
           {{ v.uiName }}
