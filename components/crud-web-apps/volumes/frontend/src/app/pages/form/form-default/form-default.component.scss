@@ -1,0 +1,25 @@
+.annotations {
+  margin-top: 1rem;
+}
+
+.annotation-wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.annotation-wrapper > app-annotation {
+  flex: 1 1 0px;
+  min-width: initial;
+  max-width: 93%;
+}
+
+.annotation-wrapper > .del-btn {
+  margin-top: 0.8rem;
+  margin-left: 1rem;
+  width: 7%;
+  text-align: center;
+}
+
+.form--button-margin {
+  margin-top: 2rem;
+}

@@ -1,0 +1,11 @@
+<div *ngIf="annotation" [formGroup]="annotation" class="row">
+  <mat-form-field class="column" appearance="outline" id="key">
+    <mat-label i18n>Key</mat-label>
+    <input matInput formControlName="key" />
+  </mat-form-field>
+
+  <mat-form-field class="column" appearance="outline" id="value">
+    <mat-label i18n>Value</mat-label>
+    <input matInput formControlName="value" />
+  </mat-form-field>
+</div>

@@ -1,17 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import {
+  FormArray,
   FormBuilder,
   FormGroup,
   Validators,
-  FormControl,
-  ValidatorFn,
 } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
   NamespaceService,
-  getExistingNameValidator,
-  dns1035Validator,
-  getNameError,
   DIALOG_RESP,
 } from 'kubeflow';
 import { VWABackendService } from 'src/app/services/backend.service';
@@ -49,6 +45,7 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
       size: [10, []],
       class: ['$empty', [Validators.required]],
       mode: ['ReadWriteOnce', [Validators.required]],
+      annotations: fb.array([]),
     });
   }
 
@@ -100,5 +97,27 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
 
   public onCancel() {
     this.dialog.close(DIALOG_RESP.CANCEL);
+  }
+
+  get annotations() {
+    const annotations = this.formCtrl.get('annotations') as FormArray;
+    return annotations.controls;
+  }
+
+  addAnnotation() {
+    const fb = new FormBuilder();
+    const ctrl = fb.group({
+      key: ['', [Validators.required]],
+      value: ['', [Validators.required]],
+    });
+
+    const annotations = this.formCtrl.get('annotations') as FormArray;
+    annotations.push(ctrl);
+  }
+
+  deleteAnnotation(idx: number) {
+    const annotations = this.formCtrl.get('annotations') as FormArray;
+    annotations.removeAt(idx);
+    this.formCtrl.updateValueAndValidity();
   }
 }

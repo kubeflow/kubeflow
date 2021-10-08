@@ -58,6 +58,41 @@
       </mat-select>
     </mat-form-field>
 
+    <!--Annotations-->
+    <lib-form-section>
+      <button
+        mat-stroked-button
+        class="add-annotation-button"
+        color="accent"
+        (click)="addAnnotation()"
+        type="button"
+        i18n="Add annotation button text"
+      >
+        <mat-icon>add</mat-icon>
+        ADD ANNOTATION
+      </button>
+    </lib-form-section>
+
+    <div class="annotations">
+      <div *ngFor="let annotation of annotations; let i = index" class="annotation-wrapper">
+        <app-annotation
+          [annotation]="annotation"
+        >
+        </app-annotation>
+
+        <div class="del-btn">
+          <button
+            mat-icon-button
+            color="warn"
+            (click)="deleteAnnotation(i)"
+            type="button"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <button
       mat-raised-button
       color="primary"

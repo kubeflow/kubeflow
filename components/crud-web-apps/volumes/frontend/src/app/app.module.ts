@@ -19,6 +19,7 @@ import {
 import { IndexComponent } from './pages/index/index.component';
 import { FormDefaultComponent } from './pages/form/form-default/form-default.component';
 import { FormRokComponent } from './pages/form/form-rok/form-rok.component';
+import { AnnotationComponent} from './pages/form/form-default/annotation/annotation.component';
 import { IndexDefaultComponent } from './pages/index/index-default/index-default.component';
 import { IndexRokComponent } from './pages/index/index-rok/index-rok.component';
 
@@ -28,6 +29,7 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
   declarations: [
     AppComponent,
     IndexComponent,
+    AnnotationComponent,
     FormDefaultComponent,
     FormRokComponent,
     IndexDefaultComponent,
