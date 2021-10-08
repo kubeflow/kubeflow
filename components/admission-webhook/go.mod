@@ -1,6 +1,6 @@
 module github.com/kubeflow/kubeflow/components/admission-webhook
 
-go 1.12
+go 1.17
 
 replace (
 	k8s.io/api => k8s.io/api v0.0.0-20190222213804-5cb15d344471
@@ -9,6 +9,7 @@ replace (
 )
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v0.1.0 // indirect
 	github.com/go-logr/zapr v0.1.1 // indirect
@@ -36,7 +37,8 @@ require (
 	golang.org/x/crypto v0.0.0-20190418165655-df01cb2cc480 // indirect
 	golang.org/x/net v0.0.0-20190415214537-1da14a5a36f2
 	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a // indirect
-	golang.org/x/sys v0.0.0-20190418153312-f0ce4c0180be // indirect
+	golang.org/x/sys v0.0.0-20190429190828-d89cdac9e872 // indirect
+	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/appengine v1.5.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
@@ -50,4 +52,5 @@ require (
 	k8s.io/utils v0.0.0-20190308190857-21c4ce38f2a7 // indirect
 	sigs.k8s.io/controller-runtime v0.1.10
 	sigs.k8s.io/testing_frameworks v0.1.1 // indirect
+	sigs.k8s.io/yaml v1.1.0 // indirect
 )
