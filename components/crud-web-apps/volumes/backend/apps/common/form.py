@@ -26,8 +26,17 @@ def pvc_from_dict(body, namespace):
     Convert the PVC json object that is sent from the backend to a python
     client PVC instance.
     """
+
+    annotations = {}
+    for annotation in body["annotations"]:
+        annotations[annotation["key"]] = annotation["value"]
+
     return client.V1PersistentVolumeClaim(
-        metadata=client.V1ObjectMeta(name=body["name"], namespace=namespace),
+        metadata=client.V1ObjectMeta(
+            name=body["name"],
+            namespace=namespace,
+            annotations=annotations,
+        ),
         spec=client.V1PersistentVolumeClaimSpec(
             access_modes=[body["mode"]],
             storage_class_name=handle_storage_class(body),
