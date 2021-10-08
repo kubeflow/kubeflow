@@ -286,11 +286,11 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// Pod is found
 	// Check if the Notebook needs to be stopped
 	// Update the LAST_ACTIVITY_ANNOTATION
-	culler.UpdateNotebookLastActivityAnnotation(&instance.ObjectMeta)
-
-	err = r.Update(ctx, instance)
-	if err != nil {
-		return ctrl.Result{}, err
+	if culler.UpdateNotebookLastActivityAnnotation(&instance.ObjectMeta) {
+		err = r.Update(ctx, instance)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	// Check if the Notebook needs to be stopped
