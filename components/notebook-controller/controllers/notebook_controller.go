@@ -364,7 +364,7 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 					"statefulset":   instance.Name,
 					"notebook-name": instance.Name,
 				}},
-				Spec: instance.Spec.Template.Spec,
+				Spec: *instance.Spec.Template.Spec.DeepCopy(),
 			},
 		},
 	}
