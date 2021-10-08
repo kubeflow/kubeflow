@@ -7,9 +7,6 @@ import { FormGroup } from '@angular/forms';
   styleUrls: ['./annotation.component.scss'],
 })
 export class AnnotationComponent {
-  annotationKey = '';
-  annotationValue = '';
-
   @Input() annotation: FormGroup;
 
   constructor() {}
