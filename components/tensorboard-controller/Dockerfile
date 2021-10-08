@@ -5,7 +5,7 @@
 #
 # This is necessary because the Jupyter controller now depends on
 # components/common
-FROM golang:1.12.5 as builder
+FROM golang:1.17 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -27,7 +27,7 @@ RUN if [ "$(uname -m)" = "aarch64" ]; then \
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot 
+FROM gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=builder /workspace/tensorboard-controller/manager .
 USER nonroot:nonroot

@@ -47,13 +47,9 @@ export class FormGpusComponent implements OnInit {
   }
 
   // Vendor handling
-  public vendorIsDisabled(vendor: GPUVendor) {
-    return !this.installedVendors.has(vendor.limitsKey);
-  }
-
   public vendorTooltip(vendor: GPUVendor) {
     return !this.installedVendors.has(vendor.limitsKey)
-      ? $localize`No ${vendor.uiName} GPU found installed in the cluster.`
+      ? $localize`There are currently no ${vendor.uiName} GPUs in you cluster.`
       : '';
   }
 
