@@ -105,6 +105,14 @@ def get_storage_class(vol):
         return vol["class"]
 
 
+def workspace_volume_from_config(config):
+    """
+    return the mountPath specified as specified in the spawner_ui configuration
+    :param config: loaded spawner_ui configuration
+    """
+    return config["workspaceVolume"]["value"]["mountPath"]["value"]
+
+
 # Functions for transforming the data from k8s api
 def pvc_dict_from_k8s_obj(pvc):
     return {

@@ -48,7 +48,7 @@ def post_pvc(namespace):
             notebook,
             workspace_vol["name"],
             workspace_vol["name"],
-            workspace_vol["templatedPath"],
+            utils.workspace_volume_from_config(defaults),
         )
 
     # Add the Data Volumes
