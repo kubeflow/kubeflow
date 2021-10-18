@@ -213,7 +213,7 @@ of the `kubeflow/website` repository. And you can view versioned documentation f
 The naming convention is as follows:
 The site at `vX-Y.kubeflow.org` points to the release at vX.Y-branch.
 For example, the [documentation for v0.6](https://v0-6.kubeflow.org) is 
-maintained in the
+maintained in the branch called
 [v0.6-branch](https://github.com/kubeflow/website/tree/v0.6-branch).
 
 ## Lifecycle
