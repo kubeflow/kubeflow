@@ -21,8 +21,8 @@
 - [Version the website](#version-the-website)
   - [Lifecycle](#lifecycle)
   - [Creating and publishing a website branch for vX.Y](#creating-and-publishing-a-website-branch-for-vxy)
+  - [Deploy new branch to Netlify](#deploy-new-branch-to-netlify)
     - [Some notes about Kubeflow's Netlify Setup](#some-notes-about-kubeflows-netlify-setup)
-  - [Updating version numbers etc for the upcoming release (major, minor, or patch)](#updating-version-numbers-etc-for-the-upcoming-release-major-minor-or-patch)
   - [Archiving docs](#archiving-docs)
   - [Changing the version `www.kubeflow.org` points to](#changing-the-version-wwwkubefloworg-points-to)
 - [Get Votes for the Release](#get-votes-for-the-release)
@@ -221,10 +221,11 @@ maintained in the branch called
 Our typical process when getting ready to do a minor release vX.Y 
 (i.e. going from vX.Y to vX.Z); this process doesn't apply for patch releases.
 
-1. Follow the [instructions below](#create-website-branch) to create a release branch for vX.Y
-1. Develop vX.Z docs on the master branch
+1. Follow the [Create website branch instructions](#create-website-branch) to create a release branch for vX.Y.
 
-   * Follow the [instructions](#prepare-docs) below to update version numbers etc. on master for the upcoming vX.Z release
+1. Follow the [Deploy to Netlify instructions](#deploy-to-netlify) to set up a versioned documentation on Kubeflow website.
+
+1. Develop vX.Z docs on the master branch
 
    * Docs for the master branch should be available on [https://master.kubeflow.org](https://master.kubeflow.org)
   
@@ -235,16 +236,24 @@ Other guides:
 *  If we ever need to update the default website version, follow the [Production branch instructions](#update-kubeflow-org) 
    below to point [www.kubeflow.org](https://www.kubeflow.org) to the desired branch.
 
+*  There are [old instructions](https://github.com/kubeflow/kubeflow/issues/6199) which have been out-of-date, but keeping a link here in case we need it in the future.
+
 
 <a id="create-website-branch"></a> 
 ## Creating and publishing a website branch for vX.Y
 
-Note: Contact [Kubeflow admins](https://groups.google.com/a/google.com/g/google-kubeflow-admins) with the link to this section when we want to cut a new version for Kubeflow website. 
 
-Admins use Netlify to manage branches for Kubeflow website hosting and update the default branch if needed. Kubeflow Admins need permission to Netify project, and `kubeflow-dns` GCP project.
+1. Create a new section (vX.Y) for dropdown in `config.toml` ([example PR](https://github.com/kubeflow/website/commit/1deed4b4f7846d5c791350620d298a38ce906f1e#)).
 
+1. Update the shortcode that holds the latest Kubeflow version:
 
-1. Create a new vX.Y branch in dropdown for `config.toml` ([example PR](https://github.com/kubeflow/website/commit/1deed4b4f7846d5c791350620d298a38ce906f1e#)).
+   * Edit [kf-latest-version.html](https://github.com/kubeflow/website/blob/master/layouts/shortcodes/kf-latest-version.html).
+
+   * Update the version number. For example, if the upcoming release is 
+     Kubeflow v0.7.0:
+     ```
+     v0.7.0
+     ```
 
 1. Create a new version branch under the 
   [website repository](https://github.com/kubeflow/website). The branch name
@@ -257,6 +266,7 @@ Admins use Netlify to manage branches for Kubeflow website hosting and update th
 1. In `vX.Y-branch`, change `version_menu`, `version` and `githubbranch` to the corresponding vX.Y branch
    value ([example PR](https://github.com/kubeflow/website/commit/2d1577c51a420b11e9de1116fb024f1fa4f9d7ea#diff-28043ff911f28a5cb5742f7638363546311225a63eabc365af5356c70d4deb77)).
 
+
 1. Netlify should auto deploy this branch once its created (see [Branch Deploys](https://docs.netlify.com/site-deploys/overview/#branch-deploy-controls))
 
    * Netlify publishes the website on `${BRANCHNAME}--competent-brattain-de2d6d.netlify.com`
@@ -265,6 +275,14 @@ Admins use Netlify to manage branches for Kubeflow website hosting and update th
 
    * You can check under deploys to see if Netlify deployed it
    * If no deploys show up you can push a commit to the branch to trigger a deploy
+
+
+<a id="deploy-to-netlify"></a> 
+## Deploy new branch to Netlify
+
+Note: Contact [Kubeflow admins](https://groups.google.com/a/google.com/g/google-kubeflow-admins) with the link to this section when we want to cut a new version for Kubeflow website in Netlify. 
+
+Admins use Netlify manage branches for Kubeflow website hosting and update the default branch if needed. Kubeflow Admins need permission to Netify project, and `kubeflow-dns` GCP project.
 
 
 1. Set up DNS for the new site:
@@ -315,92 +333,6 @@ Admins use Netlify to manage branches for Kubeflow website hosting and update th
   `{BRNACHNAME}---competent-brattain-de2d6d.netlify.com`
 
 
-<a id="prepare-docs"></a>
-##  Updating version numbers etc for the upcoming release (major, minor, or patch)
-
-We usually start updating the website for the upcoming major/minor release when
-we've released a good RC for that release. At this point, it's useful for
-users to start experimenting with the upcoming release.
-
-When we're ready to start updating the docs for the upcoming version, we
-need to update various version numbers on the website, to ensure users are
-getting the correct installation instructions etc. Here are the steps to follow:
-
-1. Make sure the website branch for the current major/minor version has been 
-  created. For example, if we are working towards release v0.7 then make sure
-  the website branch for v0.6 exists.
-  If not, create the branch now before updating any docs for the 
-  upcoming version. See [below](#create-website-branch).
-
-1. Edit the version numbers in the site configuration file:
-   * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml).
-
-   * Update the parameters that set the version number for various purposes.
-     For example, if the upcoming release is Kubeflow v0.7:
-     ```
-     version_menu = "v0.7"
-     version = "v0.7"
-     ```
-
-   * Update the GitHub branch number. For example, if the upcoming release is
-     Kubeflow v0.7:
-     ```
-     githubbranch = "v0.7-branch"
-     ```
-
-1. Update the shortcode that holds the latest Kubeflow version:
-
-   * Edit [kf-latest-version.html](https://github.com/kubeflow/website/blob/master/layouts/shortcodes/kf-latest-version.html).
-
-   * Update the version number. For example, if the upcoming release is 
-     Kubeflow v0.7.0:
-     ```
-     v0.7.0
-     ```
-
-1. Update **all** the shortcodes that hold the config file names and URIs
-  for the KFDef YAML files - for every platform. For example:
-
-   * Update the GCP IAP config file name in [config-file-gcp-iap.html](https://github.com/kubeflow/website/blob/master/layouts/shortcodes/config-file-gcp-iap.html).
-     ```
-     kfctl_gcp_iap.0.7.0.yaml
-     ```
-
-   * Update the GCP IAP config URI in [config-uri-gcp-iap.html](https://github.com/kubeflow/website/blob/master/layouts/shortcodes/config-uri-gcp-iap.html).
-     ```
-     https://raw.githubusercontent.com/kubeflow/manifests/v0.7-branch/kfdef/kfctl_gcp_iap.0.7.0.yaml
-     ```
-
-   * And so on, for all the `config-uri-xxx.html` and `config-file-xxx.html` 
-     shortcodes for AWS, kfctl_k8s_istio, kfctl_existing_arrikto, and more.
-
-1. Update the matrix of Kubernetes versions on 
-  [the Kubernetes overview](https://www.kubeflow.org/docs/started/k8s/overview/).
-
-1. Update the application version matrix on the [version policy page](https://github.com/kubeflow/website/edit/master/content/docs/reference/version-policy.md)
-
-   * There are a number of different ways to get the application versions
-
-     1. You can look at the [kustomization.yaml](https://github.com/kubeflow/manifests/blob/30b666f2b8a0d1b5217a095cfe18f6a03f22231f/metadata/overlays/application/kustomization.yaml#L10)
-        file at the label `app.kubernetes.io/version`
-
-        * TODO(https://github.com/kubeflow/testing/issues/600): Create a script to get all application
-          version 
-   
-     1. You can get the application versions in a running Kubeflow deployment by doing
-
-        ```
-        kubectl -n kubeflow get applications 
-        ```
- 
-        * You can use one of the [auto-deployed clusters](https://kf-ci-v1.endpoints.kubeflow-ci.cloud.goog/auto_deploy/)
-
-1. Add outdated banner to documentation that hasn't been updated recently
-
-   * Run [this script][outdated-script] from within the `website` repository to add the
-     outdated banner
-
-[outdated-script]: https://github.com/kubeflow/website/blob/master/scripts/add_outdated_banner.py
 
 <a id="archive"></a>
 ##  Archiving docs
