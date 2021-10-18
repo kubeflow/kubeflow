@@ -289,10 +289,10 @@ Admins use Netlify manage branches for Kubeflow website hosting and update the d
    * In [Cloud DNS](http://console.cloud.google.com/net-services/dns/zones?project=kubeflow-dns&organizationId=714441643818), 
      select the `kubeflow.org` zone.
    * Create a new CNAME record set for `v${MAJOR}-${MINOR}-branch.kubeflow.org`, pointing
-     to the new site (`something-something.netlify.com`), with TTL of 5 minutes.
+     to the new site (`something-something.netlify.com`), with TTL of 5 minutes. Canonical name: ${BRANCHNAME}--competent-brattain-de2d6d.netlify.com. (Example: v0-7-branch--competent-brattain-de2d6d.netlify.com)
      **Note:** The version format in the URL is different from that in the
      GitHub branch name! The URL has a **dash** between major and minor version.
-     For example: `v0-6.kubeflow.org`.
+     For example: `v0-6.kubeflow.org`. 
 
 1. Wait for the DNS record to propogate. You can use `nslookup` to check this.
 
