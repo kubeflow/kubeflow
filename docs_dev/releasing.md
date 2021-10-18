@@ -207,7 +207,7 @@ components' guides.
 For each minor (vX.Y) release, we also publish a corresponding version of the 
 website. Each version of the website is generated from a separate 
 [branch](https://github.com/kubeflow/website/branches)
-of the `kubeflow/website` repository. And you can view versioned document from website's 
+of the `kubeflow/website` repository. And you can view versioned documentation from the website's
 [top bar](https://user-images.githubusercontent.com/37026441/137779544-dbf6b689-e6d8-43e6-9b31-a05c0502c464.png).
 
 The naming convention is as follows:
