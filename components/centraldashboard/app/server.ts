@@ -89,7 +89,7 @@ process.on('unhandledRejection', error => {
 });
 
 process.on('uncaughtException', error => {
-  console.error('[SEVERE] unhandledRejection', error);
+  console.error('[SEVERE] uncaughtException', error);
 });
 
 main();
