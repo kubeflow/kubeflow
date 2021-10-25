@@ -68,7 +68,7 @@ async function main() {
   });
   app.use('/api', new Api(k8sService, metricsService).routes());
   app.use('/api/workgroup', new WorkgroupApi(profilesService, k8sService, registrationFlowAllowed).routes());
-  app.use('/api', (req: Request, res: Response) => 
+  app.use('/api', (req: Request, res: Response) =>
     apiError({
       res,
       error: `Could not find the route you're looking for`,
@@ -85,6 +85,10 @@ async function main() {
 
 // This will allow us to inspect uncaught exceptions around the app
 process.on('unhandledRejection', error => {
+  console.error('[SEVERE] unhandledRejection', error);
+});
+
+process.on('uncaughtException', error => {
   console.error('[SEVERE] unhandledRejection', error);
 });
 
