@@ -234,10 +234,11 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 					oldConditions[0].Message != newCondition.Message {
 					log.Info("Appending to conditions: ", "namespace", instance.Namespace, "name", instance.Name, "type", newCondition.Type, "reason", newCondition.Reason, "message", newCondition.Message)
 					instance.Status.Conditions = append([]v1beta1.NotebookCondition{newCondition}, oldConditions...)
-				}
-				err = r.Status().Update(ctx, instance)
-				if err != nil {
-					return ctrl.Result{}, err
+					err = r.Status().Update(ctx, instance)
+					if err != nil {
+						log.Error(err, "unable to update Notebook CR state")
+						return ctrl.Result{}, err
+					}
 				}
 				notebookContainerFound = true
 				break
