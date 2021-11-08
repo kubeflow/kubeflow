@@ -8,6 +8,7 @@ export * from './lib/snack-bar/snack-bar.module';
 export * from './lib/snack-bar/snack-bar.service';
 
 export * from './lib/services/namespace.service';
+export * from './lib/services/poller.service';
 export * from './lib/services/backend/backend.service';
 export * from './lib/services/rok/rok.service';
 
