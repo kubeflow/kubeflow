@@ -13,13 +13,32 @@ export class VWABackendService extends BackendService {
     super(http, snackBar);
   }
 
-  public getPVCs(namespace: string): Observable<PVCResponseObject[]> {
+  private getNamespacedPVCs(
+    namespace: string,
+  ): Observable<PVCResponseObject[]> {
     const url = `api/namespaces/${namespace}/pvcs`;
 
     return this.http.get<VWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
       map((resp: VWABackendResponse) => resp.pvcs),
     );
+  }
+
+  private getPVCsAllNamespaces(
+    namespaces: string[],
+  ): Observable<PVCResponseObject[]> {
+    return this.getObjectsAllNamespaces(
+      this.getNamespacedPVCs.bind(this),
+      namespaces,
+    );
+  }
+
+  public getPVCs(ns: string | string[]): Observable<PVCResponseObject[]> {
+    if (!Array.isArray(ns)) {
+      return this.getNamespacedPVCs(ns);
+    }
+
+    return this.getPVCsAllNamespaces(ns);
   }
 
   // POST

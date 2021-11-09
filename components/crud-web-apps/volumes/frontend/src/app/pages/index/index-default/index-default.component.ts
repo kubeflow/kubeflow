@@ -30,20 +30,20 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
   public env = environment;
   public config = defaultConfig;
-  public currNamespace: string;
+  public currNamespace: string | string[];
   public processedData: PVCProcessedObject[] = [];
   public pvcsWaitingViewer = new Set<string>();
 
-  buttons: ToolbarButton[] = [
-    new ToolbarButton({
-      text: `New Volume`,
-      icon: 'add',
-      stroked: true,
-      fn: () => {
-        this.newResourceClicked();
-      },
-    }),
-  ];
+  private newVolumeButton = new ToolbarButton({
+    text: $localize`New Volume`,
+    icon: 'add',
+    stroked: true,
+    fn: () => {
+      this.newResourceClicked();
+    },
+  });
+
+  buttons: ToolbarButton[] = [this.newVolumeButton];
 
   constructor(
     public ns: NamespaceService,
@@ -55,10 +55,11 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.nsSub = this.ns.getSelectedNamespace().subscribe(ns => {
+    this.nsSub = this.ns.getSelectedNamespace2().subscribe(ns => {
       this.currNamespace = ns;
       this.pvcsWaitingViewer = new Set<string>();
       this.poll(ns);
+      this.newVolumeButton.namespaceChanged(ns, $localize`Volume`);
     });
   }
 
@@ -67,7 +68,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     this.pollSub.unsubscribe();
   }
 
-  public poll(ns: string) {
+  public poll(ns: string | string[]) {
     this.pollSub.unsubscribe();
     this.processedData = [];
 
@@ -126,7 +127,9 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
       // Close the open dialog only if the DELETE request succeeded
       this.backend.deletePVC(pvc.namespace, pvc.name).subscribe({
         next: _ => {
-          this.poll(pvc.namespace);
+          // We don't want to poll based on the namespace of the PVC since this
+          // might override the all-namespaces selection
+          this.poll(this.currNamespace);
           ref.close(DIALOG_RESP.ACCEPT);
         },
         error: err => {
