@@ -17,7 +17,7 @@ export class TWABackendService extends BackendService {
     super(http, snackBar);
   }
   // GET Tensorboards
-  public getTensorboards(
+  private getNamespacedTensorboards(
     namespace: string,
   ): Observable<TensorboardResponseObject[]> {
     const url = `api/namespaces/${namespace}/tensorboards`;
@@ -26,6 +26,25 @@ export class TWABackendService extends BackendService {
       catchError(error => this.handleError(error)),
       map((resp: TWABackendResponse) => resp.tensorboards),
     );
+  }
+
+  private getTensorBoardsAllNamespaces(
+    namespaces: string[],
+  ): Observable<TensorboardResponseObject[]> {
+    return this.getObjectsAllNamespaces(
+      this.getNamespacedTensorboards.bind(this),
+      namespaces,
+    );
+  }
+
+  public getTensorBoards(
+    ns: string | string[],
+  ): Observable<TensorboardResponseObject[]> {
+    if (Array.isArray(ns)) {
+      return this.getTensorBoardsAllNamespaces(ns);
+    }
+
+    return this.getNamespacedTensorboards(ns);
   }
 
   // GET PVC names
