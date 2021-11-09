@@ -23,34 +23,38 @@
     <ng-container *ngFor="let button of buttons">
       <!--raised button-->
       <ng-container *ngIf="button.raised">
-        <button
-          mat-button
-          [color]="button.color"
-          [disabled]="button.disabled"
-          (click)="button.fn()"
-          class="toolbar-button"
-        >
-          <mat-icon *ngIf="button.icon" class="button-icon">
-            {{ button.icon }}
-          </mat-icon>
-          {{ button.text }}
-        </button>
+        <div [matTooltip]="button.tooltip">
+          <button
+            mat-button
+            [color]="button.color"
+            [disabled]="button.disabled"
+            (click)="button.fn()"
+            class="toolbar-button"
+          >
+            <mat-icon *ngIf="button.icon" class="button-icon">
+              {{ button.icon }}
+            </mat-icon>
+            {{ button.text }}
+          </button>
+        </div>
       </ng-container>
 
       <!--stroked button-->
       <ng-container *ngIf="button.stroked">
-        <button
-          mat-stroked-button
-          [color]="button.color"
-          [disabled]="button.disabled"
-          (click)="button.fn()"
-          class="toolbar-button"
-        >
-          <mat-icon *ngIf="button.icon" class="button-icon">
-            {{ button.icon }}
-          </mat-icon>
-          {{ button.text }}
-        </button>
+        <div [matTooltip]="button.tooltip">
+          <button
+            mat-stroked-button
+            [color]="button.color"
+            [disabled]="button.disabled"
+            (click)="button.fn()"
+            class="toolbar-button"
+          >
+            <mat-icon *ngIf="button.icon" class="button-icon">
+              {{ button.icon }}
+            </mat-icon>
+            {{ button.text }}
+          </button>
+        </div>
       </ng-container>
     </ng-container>
   </div>
