@@ -26,7 +26,7 @@ export function getFormDefaults(): FormGroup {
       vendor: ['', []],
       num: ['', []],
     }),
-    noWorkspace: [true, []],
+    noWorkspace: [false, []],
     workspace: fb.group({
       type: ['', [Validators.required]],
       name: ['', getNameSyncValidators(), getNameAsyncValidators()],
