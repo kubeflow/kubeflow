@@ -144,9 +144,21 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
       notebook.memoryLimit = notebook.memoryLimit.toString() + 'Gi';
     }
 
+    // Remove storageLimit from request if null
+    if (notebook.storageLimit == null) {
+      delete notebook.storageLimit;
+      // Add Gi to storageLimit
+    } else if (notebook.storageLimit) {
+      notebook.storageLimit = notebook.storageLimit.toString() + 'Gi';
+    }
+
     // Add Gi to all sizes
     if (notebook.memory) {
       notebook.memory = notebook.memory.toString() + 'Gi';
+    }
+
+    if (notebook.storage) {
+      notebook.storage = notebook.storage.toString() + 'Gi';
     }
 
     if (notebook.workspace.size) {

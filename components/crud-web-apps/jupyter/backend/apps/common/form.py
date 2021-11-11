@@ -2,7 +2,7 @@ import json
 
 from werkzeug.exceptions import BadRequest
 
-from kubeflow.kubeflow.crud_backend import logging
+from kubeflow.kubeflow.crud_backend import logging, authn
 
 from . import utils
 
@@ -152,6 +152,8 @@ def set_server_type(notebook, body, defaults):
     nb_ns = get_form_value(body, defaults, "namespace")
     rstudio_header = '{"X-RStudio-Root-Path":"/notebook/%s/%s/"}' % (nb_ns,
                                                                      nb_name)
+    # Only support jupyter images
+    server_type = "jupyter"
     notebook_annotations[SERVER_TYPE_ANNOTATION] = server_type
     if server_type == "group-one" or server_type == "group-two":
         notebook_annotations[URI_REWRITE_ANNOTATION] = "/"
@@ -218,6 +220,39 @@ def set_notebook_memory(notebook, body, defaults):
 
     limits = container["resources"].get("limits", {})
     limits["memory"] = memory_limit
+    container["resources"]["limits"] = limits
+
+
+def set_notebook_storage(notebook, body, defaults):
+    container = notebook["spec"]["template"]["spec"]["containers"][0]
+
+    storage = get_form_value(body, defaults, "storage")
+    if storage and 'nan' in storage.lower():
+        raise BadRequest("Invalid value for storage: %s" % storage)
+
+    storage_limit = get_form_value(body, defaults, "storageLimit")
+    if storage_limit and 'nan' in storage_limit.lower():
+        raise BadRequest("Invalid value for storage limit: %s" % storage_limit)
+
+    limit_factor = utils.load_spawner_ui_config()["storage"].get("limitFactor")
+    if not storage_limit and limit_factor != "none":
+        storage_limit = str(
+            round((
+                float(storage.replace('Gi', '')) * float(
+                    limit_factor)), 1)) + "Gi"
+
+    container["resources"]["requests"]["ephemeral-storage"] = storage
+
+    if storage_limit is None or storage_limit == "":
+        # user explicitly asked for no limits
+        return
+
+    if float(storage_limit.replace('Gi', '')) < float(
+            storage.replace('Gi', '')):
+        raise BadRequest("Storage limit must be greater than the request")
+
+    limits = container["resources"].get("limits", {})
+    limits["ephemeral-storage"] = storage_limit
     container["resources"]["limits"] = limits
 
 
@@ -305,6 +340,10 @@ def set_notebook_configurations(notebook, body, defaults):
 
     for label in labels:
         notebook_labels[label] = "true"
+
+    # set label to apply PodDefault accordingly
+    # the value of label cannot contain '@'. username contains "@zillowgroup.com"
+    notebook_labels["user-pod-default"] = authn.get_username().split("@")[0]
 
 
 def set_notebook_shm(notebook, body, defaults):

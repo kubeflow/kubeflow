@@ -21,6 +21,7 @@ export interface NotebookResponseObject {
   volumes: string[];
   cpu: string;
   memory: string;
+  storage: string;
   gpus: {
     count: number;
     message: string;
@@ -50,6 +51,8 @@ export interface NotebookFormObject {
   cpuLimit: number | string;
   memory: number | string;
   memoryLimit: number | string;
+  storage: number | string;
+  storageLimit: number | string;
   gpus: GPU;
   environment?: string;
   noWorkspace: boolean;
@@ -172,6 +175,12 @@ export interface Config {
   };
 
   memory?: {
+    value: string;
+    limitFactor: string;
+    readOnly?: boolean;
+  };
+
+  storage?: {
     value: string;
     limitFactor: string;
     readOnly?: boolean;

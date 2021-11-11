@@ -20,11 +20,13 @@ export function getFormDefaults(): FormGroup {
     cpuLimit: ['', []],
     memory: [1, [Validators.required]],
     memoryLimit: ['', []],
+    storage: [1, [Validators.required]],
+    storageLimit: ['', []],
     gpus: fb.group({
       vendor: ['', []],
       num: ['', []],
     }),
-    noWorkspace: [false, []],
+    noWorkspace: [true, []],
     workspace: fb.group({
       type: ['', [Validators.required]],
       name: ['', getNameSyncValidators(), getNameAsyncValidators()],
@@ -183,10 +185,28 @@ export function initMemoryFormControls(formCtrl: FormGroup, config: Config) {
   );
 }
 
+export function initStorageFormControls(formCtrl: FormGroup, config: Config) {
+  const storage = configSizeToNumber(config.storage.value);
+  if (!isNaN(storage)) {
+    formCtrl.controls.storage.setValue(storage);
+  }
+
+  if (config.storage.readOnly) {
+    formCtrl.controls.storage.disable();
+    formCtrl.controls.storageLimit.disable();
+  }
+
+  formCtrl.controls.storageLimit.setValue(
+    calculateLimits(storage, config.storage.limitFactor),
+  );
+}
+
 export function initFormControls(formCtrl: FormGroup, config: Config) {
   initCpuFormControls(formCtrl, config);
 
   initMemoryFormControls(formCtrl, config);
+
+  initStorageFormControls(formCtrl, config);
 
   formCtrl.controls.image.setValue(config.image.value);
 

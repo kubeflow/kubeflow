@@ -99,6 +99,11 @@ export const defaultConfig = {
       value: new PropertyValue({ field: 'memory' }),
     },
     {
+      matHeaderCellDef: $localize`Storage`,
+      matColumnDef: 'storage',
+      value: new PropertyValue({ field: 'storage' }),
+    },
+    {
       matHeaderCellDef: $localize`Volumes`,
       matColumnDef: 'volumes',
       value: new MenuValue({ field: 'volumes', itemsIcon: 'storage' }),

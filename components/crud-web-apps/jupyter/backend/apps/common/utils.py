@@ -123,6 +123,10 @@ def notebook_dict_from_k8s_obj(notebook):
         annotations = notebook["metadata"]["annotations"]
         server_type = annotations.get("notebooks.kubeflow.org/server-type")
 
+    # for backward compatibility, "ephemeral-storage" is NOT available
+    #   in notebook server created before "ephemeral-storage" is enabled
+    ephemeral_storage = cntr["resources"]["requests"].get("ephemeral-storage", "8Gi")
+
     return {
         "name": notebook["metadata"]["name"],
         "namespace": notebook["metadata"]["namespace"],
@@ -133,6 +137,7 @@ def notebook_dict_from_k8s_obj(notebook):
         "cpu": cntr["resources"]["requests"]["cpu"],
         "gpus": process_gpus(cntr),
         "memory": cntr["resources"]["requests"]["memory"],
+        "storage": ephemeral_storage,
         "volumes": [v["name"] for v in cntr["volumeMounts"]],
         "status": status.process_status(notebook),
     }

@@ -70,6 +70,13 @@ spawnerFormDefaults:
     # if no limit is set, to disable set "none"
     limitFactor: "1.2"
     readOnly: false
+  storage:
+    # Storage for user's Notebook
+    value: 8.0Gi
+    # Factor by with to multiply request to calculate limit
+    # if no limit is set, to disable set "none"
+    limitFactor: "1.2"
+    readOnly: false
   environment:
     value: {}
     readOnly: false

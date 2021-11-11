@@ -11,8 +11,10 @@ export class FormCpuRamComponent implements OnInit {
   @Input() parentForm: FormGroup;
   @Input() readonlyCPU: boolean;
   @Input() readonlyMemory: boolean;
+  @Input() readonlyStorage: boolean;
   @Input() cpuLimitFactor: string;
   @Input() memoryLimitFactor: string;
+  @Input() storageLimitFactor: string;
 
   constructor() {}
 
@@ -39,6 +41,18 @@ export class FormCpuRamComponent implements OnInit {
       this.parentForm
         .get('memoryLimit')
         .setValue(calculateLimits(memory, this.memoryLimitFactor));
+    });
+
+    this.parentForm.get('storage').valueChanges.subscribe(val => {
+      // set storage limit when value of the storage request changes
+      if (this.parentForm.get('storageLimit').dirty) {
+        return;
+      }
+
+      const storage = this.parentForm.get('storage').value;
+      this.parentForm
+        .get('storageLimit')
+        .setValue(calculateLimits(storage, this.storageLimitFactor));
     });
   }
 
