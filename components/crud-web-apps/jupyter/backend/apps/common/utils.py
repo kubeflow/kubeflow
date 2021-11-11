@@ -124,7 +124,8 @@ def notebook_dict_from_k8s_obj(notebook):
         server_type = annotations.get("notebooks.kubeflow.org/server-type")
 
     # for backward compatibility, "ephemeral-storage" is NOT available
-    #   in notebook server created before "ephemeral-storage" is enabled
+    #   in notebook servers created before "ephemeral-storage" is enabled
+    #   while listing all notebook servers created by the user
     ephemeral_storage = cntr["resources"]["requests"].get("ephemeral-storage", "8Gi")
 
     return {
