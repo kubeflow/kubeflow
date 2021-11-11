@@ -27,11 +27,6 @@ def get_poddefaults(namespace):
     # Return a list of (label, desc) with the pod defaults
     contents = []
     for pd in pod_defaults["items"]:
-        # Some podDefault do not use "matchLabels", i.e. use "matchExpressions"
-        #   https://zbrt.atl.zillow.net/browse/AIP-5086
-        if "matchLabels" not in pd["spec"]["selector"]:
-            continue
-
         label = list(pd["spec"]["selector"]["matchLabels"].keys())[0]
         if "desc" in pd["spec"]:
             desc = pd["spec"]["desc"]

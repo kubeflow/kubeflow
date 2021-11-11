@@ -2,7 +2,7 @@ import json
 
 from werkzeug.exceptions import BadRequest
 
-from kubeflow.kubeflow.crud_backend import logging, authn
+from kubeflow.kubeflow.crud_backend import logging
 
 from . import utils
 
@@ -152,8 +152,6 @@ def set_server_type(notebook, body, defaults):
     nb_ns = get_form_value(body, defaults, "namespace")
     rstudio_header = '{"X-RStudio-Root-Path":"/notebook/%s/%s/"}' % (nb_ns,
                                                                      nb_name)
-    # Only support jupyter images
-    server_type = "jupyter"
     notebook_annotations[SERVER_TYPE_ANNOTATION] = server_type
     if server_type == "group-one" or server_type == "group-two":
         notebook_annotations[URI_REWRITE_ANNOTATION] = "/"
@@ -340,10 +338,6 @@ def set_notebook_configurations(notebook, body, defaults):
 
     for label in labels:
         notebook_labels[label] = "true"
-
-    # set label to apply PodDefault accordingly
-    # the value of label cannot contain '@'. username contains "@zillowgroup.com"
-    notebook_labels["user-pod-default"] = authn.get_username().split("@")[0]
 
 
 def set_notebook_shm(notebook, body, defaults):
