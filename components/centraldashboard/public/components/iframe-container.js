@@ -4,7 +4,7 @@
 import {html, PolymerElement} from '@polymer/polymer';
 
 import {
-    IFRAME_CONNECTED_EVENT,
+    APP_CONNECTED_EVENT,
     MESSAGE,
     NAMESPACE_SELECTED_EVENT,
     PARENT_CONNECTED_EVENT,
@@ -116,7 +116,7 @@ export class IframeContainer extends PolymerElement {
         const {data, origin} = event;
         this._iframeOrigin = origin;
         switch (data.type) {
-        case IFRAME_CONNECTED_EVENT:
+        case APP_CONNECTED_EVENT:
             this.$.iframe.contentWindow.postMessage({
                 type: PARENT_CONNECTED_EVENT,
                 value: null,
