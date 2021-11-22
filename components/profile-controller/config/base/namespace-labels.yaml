@@ -12,7 +12,7 @@
 # 1. Remove the label by using `key: ''` and deploy.
 # 2. Add the label by using `key: 'value'` and deploy.
 #
-katib-metricscollector-injection:      'enabled'
-serving.kubeflow.org/inferenceservice: 'enabled'
-pipelines.kubeflow.org/enabled:        'true'
-app.kubernetes.io/part-of:             'kubeflow-profile'
+katib.kubeflow.org/metrics-collector-injection: "enabled"
+serving.kubeflow.org/inferenceservice: "enabled"
+pipelines.kubeflow.org/enabled: "true"
+app.kubernetes.io/part-of: "kubeflow-profile"
