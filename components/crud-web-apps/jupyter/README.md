@@ -55,7 +55,7 @@ npm run build:watch
 ```bash
 # create a virtual env and install deps
 # https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/
-cd component/crud-web-apps/jupyter/backend
+cd components/crud-web-apps/jupyter/backend
 python3.7 -m pip install --user virtualenv
 python3.7 -m venv web-apps-dev
 source web-apps-dev/bin/activate

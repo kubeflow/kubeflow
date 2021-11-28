@@ -18,10 +18,9 @@ The Kubeflow community is organized into working groups (WGs) with associated re
 * [Training](https://github.com/kubeflow/community/tree/master/wg-training)
 
 ## Quick Links
-* [Prow test dashboard](https://k8s-testgrid.appspot.com/sig-big-data)
-* [Prow jobs dashboard](https://prow.k8s.io/?repo=kubeflow%2Fkubeflow)
+* [Prow jobs dashboard](http://prow.kubeflow-testing.com)
 * [PR Dashboard](https://k8s-gubernator.appspot.com/pr)
-* [Argo UI for E2E tests](http://testing-argo.kubeflow.org)
+* [Argo UI for E2E tests](https://argo.kubeflow-testing.com)
 
 ## Get Involved
 Please refer to the [Community](https://www.kubeflow.org/docs/about/community/) page.
