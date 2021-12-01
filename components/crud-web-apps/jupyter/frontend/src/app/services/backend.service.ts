@@ -21,13 +21,34 @@ export class JWABackendService extends BackendService {
   }
 
   // GET
-  public getNotebooks(namespace: string): Observable<NotebookResponseObject[]> {
+  private getNotebooksSingleNamespace(
+    namespace: string,
+  ): Observable<NotebookResponseObject[]> {
     const url = `api/namespaces/${namespace}/notebooks`;
 
     return this.http.get<JWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
       map((resp: JWABackendResponse) => resp.notebooks),
     );
+  }
+
+  private getNotebooksAllNamespaces(
+    namespaces: string[],
+  ): Observable<NotebookResponseObject[]> {
+    return this.getObjectsAllNamespaces(
+      this.getNotebooksSingleNamespace.bind(this),
+      namespaces,
+    );
+  }
+
+  public getNotebooks(
+    ns: string | string[],
+  ): Observable<NotebookResponseObject[]> {
+    if (Array.isArray(ns)) {
+      return this.getNotebooksAllNamespaces(ns);
+    }
+
+    return this.getNotebooksSingleNamespace(ns);
   }
 
   public getConfig(): Observable<Config> {
