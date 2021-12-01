@@ -7,3 +7,4 @@ configMapGenerator:
   literals:
   - USE_ISTIO=true
   - ISTIO_GATEWAY=kubeflow/kubeflow-gateway
+  - ISTIO_HOST='*'
