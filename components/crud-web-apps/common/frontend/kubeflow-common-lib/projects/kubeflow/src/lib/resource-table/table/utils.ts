@@ -1,17 +1,17 @@
 import { PropertyValue, TableColumn, TableConfig } from '../types';
 
-export function createNamespaceColumn(field: string): TableColumn {
-  return {
-    matHeaderCellDef: $localize`Namespace`,
-    matColumnDef: 'namespace',
-    style: { width: '20%' },
-    value: new PropertyValue({
-      field,
-      tooltipField: 'namespace',
-      truncate: true,
-    }),
-  };
-}
+export const NAMESPACE_COLUMN: TableColumn = {
+  matHeaderCellDef: $localize`Namespace`,
+  matColumnDef: 'namespace',
+  style: { width: '20%' },
+  value: new PropertyValue({
+    valueFn: (obj: any) => {
+      return obj?.namespace || obj?.metadata?.namespace;
+    },
+    tooltipField: 'namespace',
+    truncate: true,
+  }),
+};
 
 export function removeColumn(config: TableConfig, name: string) {
   const index = findColumnIndex(config, name);

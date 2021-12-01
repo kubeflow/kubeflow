@@ -6,6 +6,8 @@ import {
   AfterViewInit,
   HostBinding,
   ViewChild,
+  OnDestroy,
+  OnInit,
 } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
@@ -24,13 +26,17 @@ import {
 } from '../types';
 import { DateTimeValue } from '../types/date-time';
 import { TemplateValue } from '../types/template';
+import { NamespaceService } from '../../services/namespace.service';
+import { Subscription } from 'rxjs';
+import { addColumn, NAMESPACE_COLUMN, removeColumn } from './utils';
 
 @Component({
   selector: 'lib-table',
   templateUrl: './table.component.html',
   styleUrls: ['./table.component.scss'],
 })
-export class TableComponent implements AfterViewInit {
+export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
+  private nsSub = new Subscription();
   private innerConfig: TableConfig;
   private innerData: any[] = [];
 
@@ -71,6 +77,30 @@ export class TableComponent implements AfterViewInit {
   // with information regarding the button that was pressed as well as the
   // row's object.
   @Output() actionsEmitter = new EventEmitter<ActionEvent>();
+
+  constructor(public ns: NamespaceService) {}
+
+  ngOnInit() {
+    this.nsSub = this.ns.getSelectedNamespace2().subscribe(ns => {
+      if (
+        !this.config ||
+        !this.config.dynamicNamespaceColumn ||
+        this.config.columns.length === 0
+      ) {
+        return;
+      }
+
+      if (Array.isArray(ns)) {
+        addColumn(this.config, NAMESPACE_COLUMN, 'name');
+      } else {
+        removeColumn(this.config, 'namespace');
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.nsSub.unsubscribe();
+  }
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
