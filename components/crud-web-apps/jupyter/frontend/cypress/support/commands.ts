@@ -13,6 +13,18 @@ Cypress.Commands.add('selectNamespace', ns => {
   cy.get(`[data-cy-namespace=${ns}]`).click();
 });
 
+Cypress.Commands.add('selectAllNamespaces', () => {
+  cy.intercept('GET', '/api/namespaces').as('getNamespaces');
+  cy.visit('/');
+
+  cy.log(`Selecting all namespaces`);
+  cy.wait('@getNamespaces');
+
+  // click and select the provided namespace
+  cy.get('[data-cy-namespace-selector-dropdown]').click();
+  cy.get(`[data-cy-all-namespaces]`).click();
+});
+
 Cypress.Commands.add('createNotebook', () => {
   const randomSubfix = Math.random().toString(36).substring(4);
 
