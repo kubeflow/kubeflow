@@ -37,8 +37,8 @@
     },
     "homepage": "https://github.com/kubeflow/kubeflow#readme",
     "dependencies": {
-        "@google-cloud/monitoring": "^0.7.1",
-        "@kubernetes/client-node": "^0.8.2",
+        "@google-cloud/monitoring": "^2.3.5",
+        "@kubernetes/client-node": "^0.16.1",
         "@polymer/app-layout": "^3.1.0",
         "@polymer/app-route": "^3.0.0",
         "@polymer/iron-a11y-keys": "^3.0.1",
@@ -69,7 +69,7 @@
         "chart.js": "^2.8.0",
         "chartjs-plugin-crosshair": "^1.1.4",
         "express": "^4.17.1",
-        "node-fetch": "^2.6.0",
+        "node-fetch": "^3.1.0",
         "web-animations-js": "^2.3.2"
     },
     "devDependencies": {
