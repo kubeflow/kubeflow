@@ -37,7 +37,6 @@
     },
     "homepage": "https://github.com/kubeflow/kubeflow#readme",
     "dependencies": {
-        "@babel/polyfill": "^7.6.0",
         "@google-cloud/monitoring": "^0.7.1",
         "@kubernetes/client-node": "^0.8.2",
         "@polymer/app-layout": "^3.1.0",
