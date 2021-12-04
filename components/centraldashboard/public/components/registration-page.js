@@ -3,7 +3,6 @@ import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/iron-media-query/iron-media-query.js';
 import '@polymer/paper-card/paper-card.js';
 import '@polymer/iron-a11y-keys/iron-a11y-keys.js';
-import 'web-animations-js/web-animations-next.min.js';
 import '@polymer/neon-animation/neon-animatable.js';
 import '@polymer/neon-animation/neon-animated-pages.js';
 import '@polymer/neon-animation/animations/fade-in-animation.js';

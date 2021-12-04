@@ -18,7 +18,6 @@ import '@polymer/paper-item/paper-item.js';
 import '@polymer/paper-item/paper-icon-item.js';
 import '@polymer/paper-item/paper-item-body.js';
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import 'web-animations-js/web-animations-next.min.js';
 import '@polymer/neon-animation/neon-animatable.js';
 import '@polymer/neon-animation/neon-animated-pages.js';
 import '@polymer/neon-animation/animations/fade-in-animation.js';
