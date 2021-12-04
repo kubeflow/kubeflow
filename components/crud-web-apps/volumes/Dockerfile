@@ -7,7 +7,7 @@ COPY ./common/backend/ .
 RUN python3 setup.py bdist_wheel
 
 # --- Build the frontend kubeflow library ---
-FROM node:12 as frontend-kubeflow-lib
+FROM node:16 as frontend-kubeflow-lib
 
 WORKDIR /src
 
@@ -19,7 +19,7 @@ COPY ./common/frontend/kubeflow-common-lib/ .
 RUN npm run build
 
 # --- Build the frontend ---
-FROM node:12-buster-slim as frontend
+FROM node:16-buster-slim as frontend
 
 WORKDIR /src
 

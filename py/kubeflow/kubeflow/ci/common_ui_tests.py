@@ -13,7 +13,7 @@ class Builder(workflow_utils.ArgoTestBuilder):
         install = argo_build_util.deep_copy(task_template)
 
         install["name"] = "npm-modules-install"
-        install["container"]["image"] = "node:12.20.1-stretch-slim"
+        install["container"]["image"] = "node:16-stretch-slim"
         install["container"]["command"] = ["npm"]
         install["container"]["args"] = ["ci"]
 
@@ -42,7 +42,7 @@ class Builder(workflow_utils.ArgoTestBuilder):
         ui_build = argo_build_util.deep_copy(task_template)
 
         ui_build["name"] = "build-common-ui-library"
-        ui_build["container"]["image"] = "node:12.20.1-stretch-slim"
+        ui_build["container"]["image"] = "node:16-stretch-slim"
         ui_build["container"]["command"] = ["npm"]
         ui_build["container"]["args"] = ["run", "build"]
 
@@ -56,7 +56,7 @@ class Builder(workflow_utils.ArgoTestBuilder):
         ui_build = argo_build_util.deep_copy(task_template)
 
         ui_build["name"] = "rm-node-modules"
-        ui_build["container"]["image"] = "node:12.20.1-stretch-slim"
+        ui_build["container"]["image"] = "node:16-stretch-slim"
         ui_build["container"]["command"] = ["rm"]
         ui_build["container"]["args"] = ["-r", "node_modules"]
 

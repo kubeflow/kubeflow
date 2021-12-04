@@ -206,7 +206,7 @@ class ArgoTestBuilder:
         install = argo_build_util.deep_copy(task_template)
 
         install["name"] = "npm-modules-install"
-        install["container"]["image"] = "node:12.20.1-stretch-slim"
+        install["container"]["image"] = "node:16-stretch-slim"
 
         install["container"]["command"] = ["npm"]
         install["container"]["args"] = ["ci"]
@@ -219,7 +219,7 @@ class ArgoTestBuilder:
         format_task = argo_build_util.deep_copy(task_template)
 
         format_task["name"] = "check-frontend-formatting"
-        format_task["container"]["image"] = "node:12.20.1-stretch-slim"
+        format_task["container"]["image"] = "node:16-stretch-slim"
 
         format_task["container"]["command"] = ["npm"]
         format_task["container"]["args"] = ["run", "format:check"]
