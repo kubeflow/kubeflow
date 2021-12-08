@@ -1,7 +1,7 @@
 ## Goal
 We need a way to inject common data (env vars, volumes) to pods (e.g. notebooks).
 See [issue](https://github.com/kubeflow/kubeflow/issues/2641).
-K8s has [PodPreset](https://kubernetes.io/docs/concepts/workloads/pods/podpreset/) resource with similar use-case, however it is in alpha. 
+K8s has [PodPreset](https://v1-19.docs.kubernetes.io/docs/concepts/workloads/pods/podpreset/) resource with similar use-case, however it is in alpha. 
 K8s [admission-controller](https://godoc.org/k8s.io/api/admissionregistration/v1beta1#MutatingWebhookConfiguration) and CRD can be used to implement PodPreset as done in [here](https://github.com/jpeeler/podpreset-crd).
 We borrowed this PodPreset implementation, customize it for Kubeflow and rename it to PodDefault to avoid confusion.  
 The code is not directly used as Kubeflow's use case for PodDefault controller is slightly different. 
@@ -81,11 +81,10 @@ The webhook should be a server that can handle request coming from the configure
 The request and response types are both [AdmissionReview](https://godoc.org/k8s.io/api/admission/v1beta1#AdmissionReview)
 
 ## Reference
-1. [K8S PodPreset](https://kubernetes.io/docs/concepts/workloads/pods/podpreset)
+1. [K8S PodPreset](https://v1-19.docs.kubernetes.io/docs/concepts/workloads/pods/podpreset/)
 1. https://github.com/jpeeler/podpreset-crd
 1. https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/
 1. https://github.com/kubernetes/kubernetes/tree/v1.13.0/test/images/webhook
 1. https://github.com/morvencao/kube-mutating-webhook-tutorial
 1. How to self sign: [link](https://github.com/kubernetes/kubectl/issues/86)
 1. What to put for caBundle: [issue](https://github.com/kubernetes/kubernetes/issues/61171)
-
