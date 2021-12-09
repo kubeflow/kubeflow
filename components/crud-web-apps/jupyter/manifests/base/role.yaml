@@ -24,7 +24,9 @@ rules:
 - apiGroups:
   - kubeflow.org
   resources:
-  - '*'
+  - notebooks
+  - notebooks/finalizers
+  - poddefaults
   verbs:
   - '*'
 - apiGroups:
