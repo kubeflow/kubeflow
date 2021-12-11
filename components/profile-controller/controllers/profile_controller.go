@@ -488,6 +488,7 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 								"/ready",
 								"/wait-for-drain",
 								"/v1/models/*",
+								"/v2/models/*",
 							},
 						},
 					},
