@@ -21,7 +21,7 @@ spec:
             cpu: 500m
             memory: 1Gi
         volumeMounts:
-          - mountPath: /home/jovyan
+          - mountPath: /home/kubeflow
             name: test-vol
           - mountPath: /dev/shm
             name: dshm

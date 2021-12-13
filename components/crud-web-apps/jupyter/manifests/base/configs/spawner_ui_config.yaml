@@ -77,7 +77,7 @@ spawnerFormDefaults:
     # Workspace Volume to be attached to user's Notebook
     # If you don't want a workspace volume then delete the 'value' key
     value:
-      mount: /home/jovyan
+      mount: /home/kubeflow
       newPvc:
         metadata:
           name: '{notebook-name}-workspace'
@@ -93,7 +93,7 @@ spawnerFormDefaults:
     value: []
     # For example, a list with 2 Data Volumes:
     # value:
-    #   - mount: /home/jovyan/datavol-1
+    #   - mount: /home/kubeflow/datavol-1
     #     newPvc:
     #       metadata:
     #         name: '{notebook-name}-datavol-1'
@@ -103,7 +103,7 @@ spawnerFormDefaults:
     #             storage: 5Gi
     #         accessModes:
     #           - ReadWriteOnce
-    #   - mount: /home/jovyan/datavol-1
+    #   - mount: /home/kubeflow/datavol-1
     #     existingSource:
     #       persistentVolumeClaim:
     #         claimName: test-pvc
