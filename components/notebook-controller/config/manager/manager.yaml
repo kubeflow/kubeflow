@@ -34,11 +34,11 @@ spec:
               configMapKeyRef:
                 name: config
                 key: ISTIO_GATEWAY
-          - name: ISTIO_HOST
+          - name: ISTIO_HOSTS
             valueFrom:
               configMapKeyRef:
                 name: config
-                key: ISTIO_HOST
+                key: ISTIO_HOSTS
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
