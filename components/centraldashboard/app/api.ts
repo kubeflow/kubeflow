@@ -5,7 +5,8 @@ import {Interval, MetricsService} from './metrics_service';
 export const ERRORS = {
   operation_not_supported: 'Operation not supported',
   invalid_links_config: 'Cannot load dashboard menu link',
-  invalid_settings: 'Cannot load dashboard settings'
+  invalid_settings: 'Cannot load dashboard settings',
+  metric_service_not_ready: 'The metric service is not ready',
 };
 
 export function apiError(a: {res: Response, error: string, code?: number}) {
@@ -33,8 +34,8 @@ export class Api {
             async (req: Request, res: Response) => {
               if (!this.metricsService) {
                 return apiError({
-                  res, code: 405,
-                  error: ERRORS.operation_not_supported,
+                  res, code: 503,
+                  error: ERRORS.metric_service_not_ready,
                 });
               }
 

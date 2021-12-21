@@ -34,9 +34,9 @@ describe('Main API', () => {
       port = addressInfo.port;
     });
 
-    it('Should return a 405 status code', (done) => {
+    it('Should return a 503 status code', (done) => {
       get(`http://localhost:${port}/api/metrics/podcpu`, (res) => {
-        expect(res.statusCode).toBe(405);
+        expect(res.statusCode).toBe(503);
         done();
       });
     });
