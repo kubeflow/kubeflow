@@ -67,7 +67,7 @@ async function main() {
     });
   });
   app.use('/api', new Api(k8sService, metricsService).routes());
-  app.use('/api/workgroup', new WorkgroupApi(profilesService, k8sService, registrationFlowAllowed).routes());
+  app.use('/api/workgroup', new WorkgroupApi(profilesService, k8sService, registrationFlowAllowed, USERID_HEADER).routes());
   app.use('/api', (req: Request, res: Response) =>
     apiError({
       res,
