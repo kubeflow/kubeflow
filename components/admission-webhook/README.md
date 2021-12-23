@@ -52,7 +52,7 @@ Define a [MutatingWebhookConfiguration](https://godoc.org/k8s.io/api/admissionre
 for example:
 
 ```
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: gcp-cred-webhook
@@ -64,6 +64,12 @@ webhooks:
         namespace: default
         path: "/add-cred"
       caBundle: "..."
+    failurePolicy: Ignore
+    matchPolicy: Exact
+    sideEffects: None
+    admissionReviewVersions:
+    - v1
+    - v1beta1
     rules:
       - operations: [ "CREATE" ]
         apiGroups: [""]
