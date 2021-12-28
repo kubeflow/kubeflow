@@ -1,7 +1,7 @@
 # Kubeflow Roadmap
 
 ## Kubeflow 1.5 Release, Due: February 2022
-* Kubeflow 1.5 timeline is track in [#538](https://github.com/kubeflow/community/pull/538)
+* Kubeflow 1.5 timeline is tracked in [#538](https://github.com/kubeflow/community/pull/538)
 * Additional details will be posted in early 1Q'22
 
 ## Kubeflow 1.4.1 Release, Due: December 2021
