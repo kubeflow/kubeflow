@@ -54,3 +54,5 @@ scripts/gke/build/**
 
 # Created after running JWA e2e tests
 **/geckodriver.log
+
+components/crud-web-apps/kafka/backend/venv

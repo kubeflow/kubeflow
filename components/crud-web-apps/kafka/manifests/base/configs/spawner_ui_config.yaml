@@ -1,0 +1,215 @@
+# Configuration file for the Jupyter UI.
+#
+# Each Jupyter UI option is configured by two keys: 'value' and 'readOnly'
+# - The 'value' key contains the default value
+# - The 'readOnly' key determines if the option will be available to users
+#
+# If the 'readOnly' key is present and set to 'true', the respective option
+# will be disabled for users and only set by the admin. Also when a
+# Notebook is POSTED to the API if a necessary field is not present then
+# the value from the config will be used.
+#
+# If the 'readOnly' key is missing (defaults to 'false'), the respective option
+# will be available for users to edit.
+#
+# Note that some values can be templated. Such values are the names of the
+# Volumes as well as their StorageClass
+spawnerFormDefaults:
+  image:
+    # The container Image for the user's Jupyter Notebook
+    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:v1.4
+    # The list of available standard container Images
+    options:
+    - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:v1.4
+    - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-full:v1.4
+    - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-cuda-full:v1.4
+    - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-full:v1.4
+    - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda-full:v1.4
+  imageGroupOne:
+    # The container Image for the user's Group One Server
+    # The annotation `notebooks.kubeflow.org/http-rewrite-uri: /`
+    # is applied to notebook in this group, configuring
+    # the Istio rewrite for containers that host their web UI at `/`
+    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:v1.4
+    # The list of available standard container Images
+    options:
+    - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:v1.4
+  imageGroupTwo:
+    # The container Image for the user's Group Two Server
+    # The annotation `notebooks.kubeflow.org/http-rewrite-uri: /`
+    # is applied to notebook in this group, configuring
+    # the Istio rewrite for containers that host their web UI at `/`
+    # The annotation `notebooks.kubeflow.org/http-headers-request-set`
+    # is applied to notebook in this group, configuring Istio
+    # to add the `X-RStudio-Root-Path` header to requests
+    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:v1.4
+    # The list of available standard container Images
+    options:
+    - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:v1.4
+  # If true, hide registry and/or tag name in the image selection dropdown
+  hideRegistry: true
+  hideTag: false
+  allowCustomImage: true
+  # If true, users can input custom images
+  # If false, users can only select from the images in this config
+  imagePullPolicy:
+    # Supported values: Always, IfNotPresent, Never
+    value: IfNotPresent
+    readOnly: false
+  cpu:
+    # CPU for user's Notebook
+    value: '0.5'
+    # Factor by with to multiply request to calculate limit
+    # if no limit is set, to disable set "none"
+    limitFactor: "1.2"
+    readOnly: false
+  memory:
+    # Memory for user's Notebook
+    value: 1.0Gi
+    # Factor by with to multiply request to calculate limit
+    # if no limit is set, to disable set "none"
+    limitFactor: "1.2"
+    readOnly: false
+  environment:
+    value: {}
+    readOnly: false
+  workspaceVolume:
+    # Workspace Volume to be attached to user's Notebook
+    # Each Workspace Volume is declared with the following attributes:
+    # Type, Name, Size, MountPath and Access Mode
+    value:
+      type:
+        # The Type of the Workspace Volume
+        # Supported values: 'New', 'Existing'
+        value: New
+      name:
+        # The Name of the Workspace Volume
+        # Note that this is a templated value. Special values:
+        # {notebook-name}: Replaced with the name of the Notebook. The frontend
+        #                  will replace this value as the user types the name
+        value: 'workspace-{notebook-name}'
+      size:
+        # The Size of the Workspace Volume (in Gi)
+        value: '5Gi'
+      mountPath:
+        # The Path that the Workspace Volume will be mounted
+        value: /home/jovyan
+      accessModes:
+        # The Access Mode of the Workspace Volume
+        # Supported values: 'ReadWriteOnce', 'ReadWriteMany', 'ReadOnlyMany'
+        value: ReadWriteOnce
+      class:
+        # The StrageClass the PVC will use if type is New. Special values are:
+        # {none}: default StorageClass
+        # {empty}: empty string ""
+        value: '{none}'
+    readOnly: false
+  dataVolumes:
+    # List of additional Data Volumes to be attached to the user's Notebook
+    value: []
+    # Each Data Volume is declared with the following attributes:
+    # Type, Name, Size, MountPath and Access Mode
+    #
+    # For example, a list with 2 Data Volumes:
+    # value:
+    #   - value:
+    #       type:
+    #         value: New
+    #       name:
+    #         value: '{notebook-name}-vol-1'
+    #       size:
+    #         value: '10Gi'
+    #       class:
+    #         value: standard
+    #       mountPath:
+    #         value: /home/jovyan/vol-1
+    #       accessModes:
+    #         value: ReadWriteOnce
+    #       class:
+    #         value: {none}
+    #   - value:
+    #       type:
+    #         value: New
+    #       name:
+    #         value: '{notebook-name}-vol-2'
+    #       size:
+    #         value: '10Gi'
+    #       mountPath:
+    #         value: /home/jovyan/vol-2
+    #       accessModes:
+    #         value: ReadWriteMany
+    #       class:
+    #         value: {none}
+    readOnly: false
+  gpus:
+    # Number of GPUs to be assigned to the Notebook Container
+    value:
+      # values: "none", "1", "2", "4", "8"
+      num: "none"
+      # Determines what the UI will show and send to the backend
+      vendors:
+      - limitsKey: "nvidia.com/gpu"
+        uiName: "NVIDIA"
+      - limitsKey: "amd.com/gpu"
+        uiName: "AMD"
+      # Values: "" or a `limits-key` from the vendors list
+      vendor: ""
+    readOnly: false
+  affinityConfig:
+    # If readonly, the default value will be the only option
+    # value is a list of `configKey`s that we want to be selected by default
+    value: ""
+    # The list of available affinity configs
+    options: []
+    #options:
+    #  - configKey: "exclusive__n1-standard-2"
+    #    displayName: "Exclusive: n1-standard-2"
+    #    affinity:
+    #      # (Require) Node having label: `node_pool=notebook-n1-standard-2`
+    #      nodeAffinity:
+    #        requiredDuringSchedulingIgnoredDuringExecution:
+    #          nodeSelectorTerms:
+    #            - matchExpressions:
+    #                - key: "node_pool"
+    #                  operator: "In"
+    #                  values:
+    #                   - "notebook-n1-standard-2"
+    #      # (Require) Node WITHOUT existing Pod having label: `notebook-name`
+    #      podAntiAffinity:
+    #        requiredDuringSchedulingIgnoredDuringExecution:
+    #          - labelSelector:
+    #              matchExpressions:
+    #                - key: "notebook-name"
+    #                  operator: "Exists"
+    #            namespaces: []
+    #            topologyKey: "kubernetes.io/hostname"
+    #readOnly: false
+  tolerationGroup:
+    # The default `groupKey` from the options list
+    # If readonly, the default value will be the only option
+    value: ""
+    # The list of available tolerationGroup configs
+    options: []
+    #options:
+    #  - groupKey: "group_1"
+    #    displayName: "Group 1: description"
+    #    tolerations:
+    #      - key: "key1"
+    #        operator: "Equal"
+    #        value: "value1"
+    #        effect: "NoSchedule"
+    #      - key: "key2"
+    #        operator: "Equal"
+    #        value: "value2"
+    #        effect: "NoSchedule"
+    readOnly: false
+  shm:
+    value: true
+    readOnly: false
+  configurations:
+    # List of labels to be selected, these are the labels from PodDefaults
+    # value:
+    #   - add-gcp-secret
+    #   - default-editor
+    value: []
+    readOnly: false

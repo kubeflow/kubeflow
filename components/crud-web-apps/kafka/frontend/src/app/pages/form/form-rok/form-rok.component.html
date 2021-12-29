@@ -1,0 +1,70 @@
+<div class="center-flex">
+  <div class="form-with-buttons">
+    <div class="form--card-container mat-elevation-z2">
+      <form novalidate (ngSubmit)="onSubmit()" [formGroup]="formCtrl">
+        <app-rok-jupyter-lab-selector
+          [parentForm]="formCtrl"
+        ></app-rok-jupyter-lab-selector>
+
+        <app-form-name-namespace
+          [parentForm]="formCtrl"
+        ></app-form-name-namespace>
+
+        <app-form-image
+          [parentForm]="formCtrl"
+          [images]="config?.image?.options"
+          [imagesGroupOne]="config?.imageGroupOne?.options"
+          [imagesGroupTwo]="config?.imageGroupTwo?.options"
+          [allowCustomImage]="config?.allowCustomImage"
+        ></app-form-image>
+
+        <app-form-cpu-ram [parentForm]="formCtrl"></app-form-cpu-ram>
+
+        <app-form-gpus
+          [parentForm]="formCtrl"
+          [vendors]="config?.gpus?.value.vendors"
+        ></app-form-gpus>
+
+        <app-rok-form-workspace-volume
+          [parentForm]="formCtrl"
+          [pvcs]="pvcs"
+          [readonly]="config?.workspaceVolume?.readOnly"
+        >
+        </app-rok-form-workspace-volume>
+
+        <app-rok-form-data-volumes
+          [parentForm]="formCtrl"
+          [pvcs]="pvcs"
+          [readonly]="config?.dataVolumes?.readOnly"
+        >
+        </app-rok-form-data-volumes>
+
+        <app-rok-form-configurations
+          [parentForm]="formCtrl"
+        ></app-rok-form-configurations>
+
+        <app-form-affinity-tolerations
+          [parentForm]="formCtrl"
+          [affinityConfigs]="config?.affinityConfig?.options"
+          [tolerationGroups]="config?.tolerationGroup?.options"
+        ></app-form-affinity-tolerations>
+
+        <app-form-advanced-options
+          [parentForm]="formCtrl"
+        ></app-form-advanced-options>
+      </form>
+    </div>
+
+    <button
+      mat-raised-button
+      color="primary"
+      class="form--button-margin"
+      (click)="onSubmit()"
+      [disabled]="!formCtrl.valid || blockSubmit"
+    >
+      LAUNCH
+    </button>
+
+    <button mat-raised-button type="button" (click)="onCancel()">CANCEL</button>
+  </div>
+</div>

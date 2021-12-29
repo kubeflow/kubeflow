@@ -1,0 +1,43 @@
+<div *ngIf="volume" [formGroup]="volume" class="row">
+  <!--Type-->
+  <mat-form-field class="column" appearance="outline" id="type">
+    <mat-label>Type</mat-label>
+    <mat-select formControlName="type">
+      <mat-option value="New">New</mat-option>
+      <mat-option value="Existing">Existing</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <!--Rok URL-->
+  <lib-rok-url-input
+    class="column"
+    id="rokUrl"
+    mode="file"
+    [control]="volume.get('extraFields.rokUrl')"
+    (urlPasted)="autofillVolume($event)"
+    (urlEntered)="autofillVolume($event)"
+  ></lib-rok-url-input>
+
+  <!-- Volume Name Input -->
+  <lib-name-input
+    class="column"
+    [nameControl]="volume.get('name')"
+    id="name"
+  ></lib-name-input>
+
+  <!-- Size Input -->
+  <lib-positive-number-input
+    id="size"
+    class="column"
+    min="1"
+    step="1"
+    [sizeControl]="volume.get('size')"
+    label="Size in Gi"
+  ></lib-positive-number-input>
+
+  <!-- Mount Input -->
+  <mat-form-field class="column" appearance="outline" id="path">
+    <mat-label>Mount Point</mat-label>
+    <input matInput formControlName="path" />
+  </mat-form-field>
+</div>
