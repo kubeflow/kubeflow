@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: jupyter-web-app-jupyter-web-app
+  name: kafka-web-app-kafka-web-app
 spec:
   gateways:
   - kubeflow-gateway
@@ -11,14 +11,14 @@ spec:
   - headers:
       request:
         add:
-          x-forwarded-prefix: /jupyter
+          x-forwarded-prefix: /kafka
     match:
     - uri:
-        prefix: /jupyter/
+        prefix: /kafka/
     rewrite:
       uri: /
     route:
     - destination:
-        host: jupyter-web-app-service.$(JWA_NAMESPACE).svc.$(JWA_CLUSTER_DOMAIN)
+        host: kafka-web-app-service.$(JWA_NAMESPACE).svc.$(JWA_CLUSTER_DOMAIN)
         port:
           number: 80

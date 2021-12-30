@@ -7,18 +7,18 @@ from ...common import form, utils
 log = logging.getLogger(__name__)
 
 
-@bp.route("/api/namespaces/<namespace>/kafkas", methods=["GET"])
-# @decorators.request_is_json_type
-# @decorators.required_body_params("name")
+@bp.route("/api/namespaces/<namespace>/kafkas", methods=["POST"])
+@decorators.request_is_json_type
+@decorators.required_body_params("name")
 def post_kafka_cluster(namespace):
-    # body = request.get_json()
-    # log.info("Got body: %s" % body)
+    body = request.get_json()
+    log.info("Got body: %s" % body)
 
-    # kafka_ephemeral = helpers.load_param_yaml(
-    #     utils.KAFKA_EPHEMERAL,
-    #     name=body["name"],
-    #     namespace=namespace,
-    # )
+    kafka_ephemeral = helpers.load_param_yaml(
+        utils.KAFKA_EPHEMERAL,
+        name=body["name"],
+        namespace=namespace,
+    )
     # kafka_ephemeral_single = helpers.load_param_yaml(
     #     utils.KAFKA_EPHEMERAL_SINGLE,
     #     name=body["name"],
@@ -42,5 +42,6 @@ def post_kafka_cluster(namespace):
 
     # kafka_jbod = helpers.load_param_yaml()
 
-    # return api.success_response("message", "Kafka Cluster Created successfully.")
-    return {"Hello": "Success"}
+    log.info("Creating Kafka Cluster: %s", kafka_ephemeral)
+    api.create_kafka_cluster(kafka_ephemeral, namespace)
+    return api.success_response("message", "Kafka Cluster created successfully.")

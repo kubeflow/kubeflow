@@ -5,7 +5,7 @@ resources:
 - virtual-service.yaml
 namespace: kubeflow
 commonLabels:
-  app: jupyter-web-app
-  kustomize.component: jupyter-web-app
+  app: kafka-web-app
+  kustomize.component: kafka-web-app
 configurations:
 - params.yaml

@@ -805,7 +805,8 @@ class FormDefaultComponent {
     }
     onSubmit() {
         const notebook = this.getSubmitNotebook();
-        this.backend.createNotebook(notebook).subscribe(() => {
+        // console.log(notebook)
+        this.backend.createEphemeralKafka(notebook).subscribe(() => {
             this.popup.close();
             this.router.navigate(['/']);
         });
@@ -4073,4 +4074,4 @@ _angular_platform_browser__WEBPACK_IMPORTED_MODULE_3__.platformBrowser()
 /******/ var __webpack_exports__ = __webpack_require__.O();
 /******/ }
 ]);
-//# sourceMappingURL=main-es2015.799c9bee7babe89d484d.js.map
+//# sourceMappingURL=main-es2015.570e5cda131eaf18c87d.js.map

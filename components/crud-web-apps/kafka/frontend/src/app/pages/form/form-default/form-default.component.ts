@@ -165,7 +165,8 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     const notebook = this.getSubmitNotebook();
-    this.backend.createNotebook(notebook).subscribe(() => {
+    // console.log(notebook)
+    this.backend.createEphemeralKafka(notebook).subscribe(() => {
       this.popup.close();
       this.router.navigate(['/']);
     });

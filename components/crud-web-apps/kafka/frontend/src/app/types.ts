@@ -9,7 +9,7 @@ export interface JWABackendResponse extends BackendResponse {
 }
 
 export interface KafkaBackendResponse extends BackendResponse {
-  notebooks?: NotebookResponseObject[];
+  kafkas?: NotebookResponseObject[];
   pvcs?: Volume[];
   config?: Config;
   poddefaults?: PodDefault[];

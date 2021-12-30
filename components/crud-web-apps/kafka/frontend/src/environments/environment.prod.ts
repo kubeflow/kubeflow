@@ -1,7 +1,7 @@
 export const environment = {
-  production: false,
-  apiUrl: '/jupyter',
-  resource: 'notebooks',
+  production: true,
+  apiUrl: '/kafka',
+  resource: 'kafkas',
   ui: 'default',
   jupyterlabLogo: 'static/assets/logos/jupyterlab-logo.svg',
   jupyterIcon: 'static/assets/logos/jupyter-icon.svg',
