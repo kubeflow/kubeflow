@@ -7,7 +7,7 @@ install-deps:
 	pip install -r requirements.txt
 
 run:
-	APP_PREFIX=/jupyter \
+	APP_PREFIX=/kafka \
 	gunicorn -w 3 --bind 0.0.0.0:5000 --access-logfile - entrypoint:app
 
 run-rok:

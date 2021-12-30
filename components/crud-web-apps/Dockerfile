@@ -53,6 +53,6 @@ COPY ./kafka/backend/apps/ ./apps
 COPY ./kafka/backend/entrypoint.py .
 
 COPY --from=frontend /src/dist/default/ /src/apps/default/static/
-COPY --from=frontend /src/dist/rok/ /src/apps/rok/static/
+# COPY --from=frontend /src/dist/rok/ /src/apps/rok/static/
 
 ENTRYPOINT ["/bin/bash","-c","gunicorn -w 3 --bind 0.0.0.0:5000 --access-logfile - entrypoint:app"]
