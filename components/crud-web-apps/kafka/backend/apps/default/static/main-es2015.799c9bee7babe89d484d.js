@@ -816,11 +816,11 @@ class FormDefaultComponent {
 }
 FormDefaultComponent.ɵfac = function FormDefaultComponent_Factory(t) { return new (t || FormDefaultComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵdirectiveInject"](kubeflow__WEBPACK_IMPORTED_MODULE_5__.NamespaceService), _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵdirectiveInject"](src_app_services_backend_service__WEBPACK_IMPORTED_MODULE_1__.JWABackendService), _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵdirectiveInject"](_angular_router__WEBPACK_IMPORTED_MODULE_6__.Router), _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵdirectiveInject"](kubeflow__WEBPACK_IMPORTED_MODULE_5__.SnackBarService)); };
 FormDefaultComponent.ɵcmp = /*@__PURE__*/ _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵdefineComponent"]({ type: FormDefaultComponent, selectors: [["app-form-default"]], decls: 9, vars: 3, consts: function () { let i18n_0; if (typeof ngI18nClosureMode !== "undefined" && ngI18nClosureMode) {
-        const MSG_EXTERNAL_5810728927715214246$$________________________USERS_ALLAN_CHEPKOY_CLOUD_KUBEFLOW_COMPONENTS_CRUD_WEB_APPS_KAFKA_FRONTEND_SRC_APP_PAGES_FORM_FORM_DEFAULT_FORM_DEFAULT_COMPONENT_TS_1 = goog.getMsg(" CREATE CLUSTER ");
-        i18n_0 = MSG_EXTERNAL_5810728927715214246$$________________________USERS_ALLAN_CHEPKOY_CLOUD_KUBEFLOW_COMPONENTS_CRUD_WEB_APPS_KAFKA_FRONTEND_SRC_APP_PAGES_FORM_FORM_DEFAULT_FORM_DEFAULT_COMPONENT_TS_1;
+        const MSG_EXTERNAL_6723260713871643987$$________________________USERS_ALLAN_CHEPKOY_CLOUD_KUBEFLOW_COMPONENTS_CRUD_WEB_APPS_KAFKA_FRONTEND_SRC_APP_PAGES_FORM_FORM_DEFAULT_FORM_DEFAULT_COMPONENT_TS_1 = goog.getMsg(" CREATE ");
+        i18n_0 = MSG_EXTERNAL_6723260713871643987$$________________________USERS_ALLAN_CHEPKOY_CLOUD_KUBEFLOW_COMPONENTS_CRUD_WEB_APPS_KAFKA_FRONTEND_SRC_APP_PAGES_FORM_FORM_DEFAULT_FORM_DEFAULT_COMPONENT_TS_1;
     }
     else {
-        i18n_0 = $localize `:␟38ea170dae1494c88ce518e15745a0310d2a7eee␟5810728927715214246: CREATE CLUSTER `;
+        i18n_0 = $localize `:␟577ff450cd8d905a75bf92dad2457515d3a49b3b␟6723260713871643987: CREATE `;
     } let i18n_2; if (typeof ngI18nClosureMode !== "undefined" && ngI18nClosureMode) {
         const MSG_EXTERNAL_4224268807144446140$$________________________USERS_ALLAN_CHEPKOY_CLOUD_KUBEFLOW_COMPONENTS_CRUD_WEB_APPS_KAFKA_FRONTEND_SRC_APP_PAGES_FORM_FORM_DEFAULT_FORM_DEFAULT_COMPONENT_TS_3 = goog.getMsg(" CANCEL ");
         i18n_2 = MSG_EXTERNAL_4224268807144446140$$________________________USERS_ALLAN_CHEPKOY_CLOUD_KUBEFLOW_COMPONENTS_CRUD_WEB_APPS_KAFKA_FRONTEND_SRC_APP_PAGES_FORM_FORM_DEFAULT_FORM_DEFAULT_COMPONENT_TS_3;
@@ -4073,4 +4073,4 @@ _angular_platform_browser__WEBPACK_IMPORTED_MODULE_3__.platformBrowser()
 /******/ var __webpack_exports__ = __webpack_require__.O();
 /******/ }
 ]);
-//# sourceMappingURL=main-es2015.d6709d24172dbe235c47.js.map
+//# sourceMappingURL=main-es2015.799c9bee7babe89d484d.js.map
