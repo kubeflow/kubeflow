@@ -24,7 +24,7 @@ def get_config(mode):
 
 APP_NAME = os.environ.get("APP_NAME", "Kafka Web App")
 BACKEND_MODE = os.environ.get("BACKEND_MODE",
-                              config.BackendMode.DEVELOPMENT_FULL.value)
+                              config.BackendMode.DEVELOPMENT.value)
 PREFIX = os.environ.get("APP_PREFIX", "/")
 
 # Check both values for determining what flavor to load
