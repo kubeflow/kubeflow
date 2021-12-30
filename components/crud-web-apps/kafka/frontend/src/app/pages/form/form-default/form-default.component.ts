@@ -158,6 +158,7 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
     //     vol.size = vol.size + 'Gi';
     //   }
     // }
+    // console.log(notebook)
 
     return notebook;
   }
