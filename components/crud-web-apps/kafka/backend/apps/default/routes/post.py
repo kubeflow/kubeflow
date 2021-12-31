@@ -7,7 +7,7 @@ from ...common import form, utils
 log = logging.getLogger(__name__)
 
 
-@bp.route("/api/namespaces/<namespace>/kafkas", methods=["POST"])
+@bp.route("/api/namespaces/<namespace>/kafkas", methods=["GET"])
 @decorators.request_is_json_type
 @decorators.required_body_params("name")
 def post_kafka_cluster(namespace):
@@ -17,8 +17,8 @@ def post_kafka_cluster(namespace):
     kafka_ephemeral = helpers.load_param_yaml(
         utils.KAFKA_EPHEMERAL,
         name=body["name"],
-        namespace=namespace,
-        serviceAccount="default-editor",
+        namespace="namespace",
+        # serviceAccount="default-editor",
     )
     # kafka_ephemeral_single = helpers.load_param_yaml(
     #     utils.KAFKA_EPHEMERAL_SINGLE,
@@ -45,4 +45,4 @@ def post_kafka_cluster(namespace):
 
     log.info("Creating Kafka Cluster: %s", kafka_ephemeral)
     api.create_kafka_cluster(kafka_ephemeral, namespace)
-    return api.success_response("message", "Kafka Cluster created successfully.")
+    return api.success_response("message", "Kafka Ephemeral Cluster created successfully.")

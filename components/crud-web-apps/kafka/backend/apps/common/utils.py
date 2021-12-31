@@ -16,7 +16,7 @@ NOTEBOOK_TEMPLATE_YAML = os.path.join(
 )
 
 KAFKA_EPHEMERAL = os.path.join(
-    FILE_ABS_PATH, "yaml/kafka-ephemeral.yaml"
+    FILE_ABS_PATH, "yaml/kafka_ephemeral.yaml"
 )
 
 KAFKA_EPHEMERAL_SINGLE = os.path.join(
