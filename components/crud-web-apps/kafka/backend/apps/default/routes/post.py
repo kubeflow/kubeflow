@@ -18,6 +18,7 @@ def post_kafka_cluster(namespace):
         utils.KAFKA_EPHEMERAL,
         name=body["name"],
         namespace=namespace,
+        serviceAccount="default-editor",
     )
     # kafka_ephemeral_single = helpers.load_param_yaml(
     #     utils.KAFKA_EPHEMERAL_SINGLE,
