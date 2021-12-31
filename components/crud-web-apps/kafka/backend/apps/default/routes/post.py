@@ -7,7 +7,7 @@ from ...common import form, utils
 log = logging.getLogger(__name__)
 
 
-@bp.route("/api/namespaces/<namespace>/kafkas", methods=["GET"])
+@bp.route("/api/namespaces/<namespace>/kafkas", methods=["POST"])
 @decorators.request_is_json_type
 @decorators.required_body_params("name")
 def post_kafka_cluster(namespace):
