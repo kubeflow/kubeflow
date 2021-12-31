@@ -22,7 +22,7 @@ commonLabels:
   kustomize.component: kafka-web-app
 images:
 - name: docker.io/chepkoyallan/kafka-web-app
-  newTag: v1.4.0-9-geed9c583
+  newTag: v1.4.0-10-gc1fd44b4
 # We need the name to be unique without the suffix because the original name is what
 # gets used with patches
 configMapGenerator:

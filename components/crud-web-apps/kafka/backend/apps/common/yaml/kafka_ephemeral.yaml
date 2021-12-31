@@ -2,7 +2,6 @@ apiVersion: kafka.strimzi.io/v1beta2
 kind: Kafka
 metadata:
   name: {name}
-  namespace: {namespace}
 spec:
   kafka:
     version: 3.0.0
