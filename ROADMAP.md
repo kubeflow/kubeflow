@@ -1,10 +1,58 @@
 # Kubeflow Roadmap
 
 ## Kubeflow 1.5 Release, Due: February 2022
-* Kubeflow 1.5 timeline is tracked in [#538](https://github.com/kubeflow/community/pull/538)
-* Additional details will be posted in early 1Q'22
+* Kubeflow 1.5 [milestones and timeline](https://github.com/kubeflow/community/pull/538)
 
-## Kubeflow 1.4.1 Release, Due: December 2021
+### Themes
+* Increase ML pipeline functionality with aggregation and passing of parameters and artifacts between pipeline components
+* Improve model accuracy and reduce overfitting, especially with hyper parameter tuning
+* Simplify operations and optimize utilization (including spot instance use cases for distributed training) 
+* More consistent user experience - UI appearance, features and naming
+* Improved documentation, tutorials and examples
+* Stretch - Support for K8s 1.22 and associated dependencies (cert mgr, istio)
+
+### Major Features from each Working Group (note: Individual WG versions are independent of Kubeflow's)
+
+#### Kubeflow Pipelines, v1.8
+* [Emissary executor](https://www.kubeflow.org/docs/components/pipelines/installation/choose-executor/#emissary-executor) is default rather than Docker runtime
+Advanced features in [KFP v2 Control Flow](https://docs.google.com/document/d/1TZeZtxwPzAImIu8Jk_e-4otSx467Ckf0smNe7JbPReE/edit?resourcekey=0-lTeZGW_Ys78j1LU60CEARg#heading=h.x9snb54sjlu9)
+* Aggregation of parameters and artifacts in DAG or sub-DAG
+* Sub-DAG outputs (parameters and artifacts) can be inputs to the next sub-DAG
+* Increase exit handler functionality with conditionals and sub-DAG options
+
+#### Katib, v0.13 
+* Hyperparameter leader election for HA operations and faster recovery
+* Validation for Early Stopping algorithm settings improves accuracy, reduces overfitting
+* Improve SDK, AWS CI, parameter settings across frameworks (goptuna, optuna, hyperopt) 
+* Updated metrics (note - breaking change)
+
+#### Training Operator, v1.3
+* Elastic Training for PyTorch, restarts pod rather than whole job, supports spot instances
+* MPI addition to Unified training operator 
+* Python SDK supported on PyPI 
+
+#### Notebooks, Central Dashboard, Web Apps, Manifest, v1.5 
+* Exposing notebook idleness parameters, reduces infra used on idle notebooks
+* UI consistency between web apps along with frontend pagination, and remove cards and user responsive tables
+* Support for dark mode
+* More options to define PVC specification
+
+#### KServe, v0.7
+* KFServing is rebranded to [KServe](https://github.com/kserve)
+* [ModelMesh](https://github.com/kserve/modelmesh-serving) joins KServe 
+* Triton model serving runtime defaults to v21.09
+* (Alpha feature) Raw kubernetes deployment support, Istio/Knative dependency is now optional
+
+#### Detailed features, bug fixes and enhancements are identified in the Working Group Roadmaps
+
+* [Training Operators](https://github.com/kubeflow/common/blob/master/ROADMAP.md)
+* [KFServing](https://github.com/kubeflow/kfserving/blob/master/ROADMAP.md)
+* [Katib](https://github.com/kubeflow/katib/blob/master/ROADMAP.md)
+* [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
+* [Notebooks](https://github.com/kubeflow/kubeflow/issues/5978)
+
+
+## Kubeflow 1.4.1 Release, Delivered: December 2021
 * The need for a patch release was triggered by [#2082](https://github.com/kubeflow/manifests/issues/2082)
 * 1.4.1 Tracking issue: [2084](https://github.com/kubeflow/manifests/issues/2082)
 
