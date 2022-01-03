@@ -35,8 +35,8 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   subs = new Subscription();
 
   config = defaultConfig;
-  rawData: NotebookResponseObject[] = [];
-  processedData: NotebookProcessedObject[] = [];
+  rawData = [];
+  processedData = [];
 
   constructor(
     public ns: NamespaceService,
@@ -56,12 +56,13 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
           return;
         }
 
-        this.backend.getNotebooks(this.currNamespace).subscribe(notebooks => {
-          if (!isEqual(this.rawData, notebooks)) {
-            this.rawData = notebooks;
+        this.backend.getKafkas(this.currNamespace).subscribe(kafkas => {
+          if (!isEqual(this.rawData, kafkas)) {
+            this.rawData = kafkas;
+            // console.log(this.rawData)
 
             // Update the frontend's state
-            this.processedData = this.processIncomingData(notebooks);
+            this.processedData = this.processIncomingData(kafkas);
             this.poller.reset();
           }
         });
@@ -218,15 +219,16 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     notebook.startStopAction = this.processStartStopActionStatus(notebook);
   }
 
-  processIncomingData(notebooks: NotebookResponseObject[]) {
-    const notebooksCopy = JSON.parse(
-      JSON.stringify(notebooks),
+  processIncomingData(kafkas) {
+    const kafkasCopy = JSON.parse(
+      JSON.stringify(kafkas),
     ) as NotebookProcessedObject[];
 
-    for (const nb of notebooksCopy) {
+    for (const nb of kafkasCopy) {
       this.updateNotebookFields(nb);
     }
-    return notebooksCopy;
+    console.log(kafkasCopy)
+    return kafkasCopy;
   }
 
   // Action handling functions

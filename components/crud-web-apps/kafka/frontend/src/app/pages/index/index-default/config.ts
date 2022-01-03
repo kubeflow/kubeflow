@@ -51,7 +51,7 @@ export const defaultConfig = {
       value: new StatusValue(),
     },
     {
-      matHeaderCellDef: $localize`Name`,
+      matHeaderCellDef: $localize`Names`,
       matColumnDef: 'name',
       value: new PropertyValue({
         field: 'name',

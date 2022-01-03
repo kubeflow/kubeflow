@@ -12,6 +12,7 @@ import {
   NotebookFormObject,
   NotebookProcessedObject,
   EphemeralKafkaFormObject,
+  KafkaBackendResponse,
 } from '../types';
 @Injectable({
   providedIn: 'root',
@@ -29,6 +30,18 @@ export class JWABackendService extends BackendService {
       catchError(error => this.handleError(error)),
       map((resp: JWABackendResponse) => {
         return resp.notebooks;
+      }),
+    );
+  }
+
+  // GET
+  public getKafkas(namespace: string) {
+    const url = `api/namespaces/${namespace}/kafkas`;
+
+    return this.http.get<KafkaBackendResponse>(url).pipe(
+      catchError(error => this.handleError(error)),
+      map((resp: KafkaBackendResponse) => {
+        return resp.kafkas;
       }),
     );
   }

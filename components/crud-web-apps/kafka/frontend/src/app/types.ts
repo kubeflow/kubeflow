@@ -9,14 +9,38 @@ export interface JWABackendResponse extends BackendResponse {
 }
 
 export interface KafkaBackendResponse extends BackendResponse {
-  kafkas?: NotebookResponseObject[];
-  pvcs?: Volume[];
-  config?: Config;
-  poddefaults?: PodDefault[];
-  vendors?: string[];
+  kafkas?: KafkaBackendResponse[];
+  // pvcs?: Volume[];
+  // config?: Config;
+  // poddefaults?: PodDefault[];
+  // vendors?: string[];
 }
 
 export type ServerType = 'jupyter' | 'group-one' | 'group-two';
+
+export interface KafkaResponseObject {
+
+  apiVersion: string;
+  kind: string;
+  metadata:{}
+  spec:{}
+  status:{}
+  // namespace: string;
+  // serverType: ServerType;
+  // status: Status;
+  // reason: string;
+  // age: string;
+  // image: string;
+  // volumes: string[];
+  // cpu: string;
+  // memory: string;
+  // gpus: {
+  //   count: number;
+  //   message: string;
+  // };
+  // environment: string;
+  // shortImage: string;
+}
 
 export interface NotebookResponseObject {
   name: string;

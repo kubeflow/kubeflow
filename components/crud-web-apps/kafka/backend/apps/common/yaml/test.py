@@ -3,7 +3,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-def load_param_yaml(f, **kwargs):
+def load_param_yaml(f, name):
     """
     f: file path
 
@@ -15,7 +15,7 @@ def load_param_yaml(f, **kwargs):
     c = None
     try:
         with open(f, "r") as yaml_file:
-            c = yaml_file.read().format(**kwargs)
+            c = yaml_file.read().format(name=name)
     except IOError:
         log.error("Error opening: %s", f)
         return None
@@ -32,5 +32,5 @@ def load_param_yaml(f, **kwargs):
         return None
 
 
-my_info = load_param_yaml("kafka_ephemeral.yaml", name="name", namespace="namespace")
+my_info = load_param_yaml("kafka_ephemeral.yaml", name="name")
 print()
