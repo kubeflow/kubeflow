@@ -15,10 +15,10 @@
 
 #### Kubeflow Pipelines, v1.8
 * [Emissary executor](https://www.kubeflow.org/docs/components/pipelines/installation/choose-executor/#emissary-executor) is default rather than Docker runtime
-Advanced features in [KFP v2 Control Flow](https://docs.google.com/document/d/1TZeZtxwPzAImIu8Jk_e-4otSx467Ckf0smNe7JbPReE/edit?resourcekey=0-lTeZGW_Ys78j1LU60CEARg#heading=h.x9snb54sjlu9)
-* Aggregation of parameters and artifacts in DAG or sub-DAG
-* Sub-DAG outputs (parameters and artifacts) can be inputs to the next sub-DAG
-* Increase exit handler functionality with conditionals and sub-DAG options
+* Advanced features in [KFP v2 Control Flow](https://docs.google.com/document/d/1TZeZtxwPzAImIu8Jk_e-4otSx467Ckf0smNe7JbPReE/edit?resourcekey=0-lTeZGW_Ys78j1LU60CEARg#heading=h.x9snb54sjlu9)
+   * Aggregation of parameters and artifacts in DAG or sub-DAG
+   * Sub-DAG outputs (parameters and artifacts) can be inputs to the next sub-DAG
+   * Increase exit handler functionality with conditionals and sub-DAG options
 
 #### Katib, v0.13 
 * Hyperparameter leader election for HA operations and faster recovery
