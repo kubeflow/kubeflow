@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'strimzi_cluster_operator',
     'strimzi_entity_operator',
     'strimzi_topic_operator',
-    'strimzi_user_operator'
+    'strimzi_user_operator',
     'kafka'
 ]
 
@@ -88,8 +88,11 @@ WSGI_APPLICATION = 'zoracloud.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'zoracloud',
+        'HOST': 'localhost',
+        'USER': 'root',
+        'PASSWORD': ''
     }
 }
 
