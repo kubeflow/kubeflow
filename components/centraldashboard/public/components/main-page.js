@@ -35,6 +35,7 @@ import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
 import './not-found-view.js';
+import './namespace-needed-view.js';
 import './manage-users-view.js';
 import './resources/kubeflow-icons.js';
 import './iframe-container.js';
@@ -265,12 +266,18 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             this._setActiveLink(this.$.home);
             break;
         default:
-            this.page = 'not_found';
             // Handles case when an iframed page requests an invalid route
             if (this._isInsideOfIframe()) {
                 notFoundInIframe = true;
+                hideSidebar = true;
+            }
+            if (path && path.includes('{ns}')) {
+                this.page = 'namespace_needed'
+            } else {
+                this.page = 'not_found';
             }
         }
+
         this._setNotFoundInIframe(notFoundInIframe);
         this._setHideTabs(hideTabs);
         this._setAllNamespaces(allNamespaces);
