@@ -44,6 +44,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'debug_toolbar',
+    'strimzi_cluster_operator',
+    'strimzi_entity_operator',
+    'strimzi_topic_operator',
+    'strimzi_user_operator'
     'kafka'
 ]
 
