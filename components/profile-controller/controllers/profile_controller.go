@@ -508,7 +508,7 @@ func (r *ProfileReconciler) updateIstioAuthorizationPolicy(profileIns *profilev1
 			return err
 		}
 	} else {
-		if !reflect.DeepEqual(istioAuth, foundAuthorizationPolicy) {
+		if !reflect.DeepEqual(istioAuth.Spec, foundAuthorizationPolicy.Spec) {
 			foundAuthorizationPolicy.Spec = istioAuth.Spec
 			logger.Info("Updating Istio AuthorizationPolicy", "namespace", istioAuth.ObjectMeta.Namespace,
 				"name", istioAuth.ObjectMeta.Name)
