@@ -4,7 +4,7 @@
 * Kubeflow 1.5 [milestones and timeline](https://github.com/kubeflow/community/pull/538)
 
 ### Themes
-* Increase ML pipeline functionality with aggregation and passing of parameters and artifacts between pipeline components
+* Switching to [Emissary executor](https://www.kubeflow.org/docs/components/pipelines/installation/choose-executor/#emissary-executor) enables Kubeflow Pipelines deployment on Kubernetes >= v1.20, which runs on containerd runtime instead of Docker runtime
 * Improve model accuracy and reduce overfitting, especially with hyper parameter tuning
 * Simplify operations and optimize utilization (including spot instance use cases for distributed training) 
 * More consistent user experience - UI appearance, features and naming
@@ -14,11 +14,7 @@
 ### Major Features from each Working Group (note: Individual WG versions are independent of Kubeflow's)
 
 #### Kubeflow Pipelines, v1.8
-* [Emissary executor](https://www.kubeflow.org/docs/components/pipelines/installation/choose-executor/#emissary-executor) is default rather than Docker runtime
-* Advanced features in [KFP v2 Control Flow](https://docs.google.com/document/d/1TZeZtxwPzAImIu8Jk_e-4otSx467Ckf0smNe7JbPReE/edit?resourcekey=0-lTeZGW_Ys78j1LU60CEARg#heading=h.x9snb54sjlu9)
-   * Aggregation of parameters and artifacts in DAG or sub-DAG
-   * Sub-DAG outputs (parameters and artifacts) can be inputs to the next sub-DAG
-   * Increase exit handler functionality with conditionals and sub-DAG options
+* Switching to [Emissary executor](https://www.kubeflow.org/docs/components/pipelines/installation/choose-executor/#emissary-executor) enables Kubeflow Pipelines deployment on Kubernetes >= v1.20, which runs on containerd runtime instead of Docker runtime.
 
 #### Katib, v0.13 
 * Hyperparameter leader election for HA operations and faster recovery
