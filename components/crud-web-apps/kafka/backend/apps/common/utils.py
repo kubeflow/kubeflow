@@ -19,6 +19,10 @@ KAFKA_EPHEMERAL = os.path.join(
     FILE_ABS_PATH, "yaml/kafka_ephemeral.yaml"
 )
 
+PROFILE = os.path.join(
+    FILE_ABS_PATH, "yaml/profile.yaml"
+)
+
 KAFKA_EPHEMERAL_SINGLE = os.path.join(
     FILE_ABS_PATH, "yaml/kafka-ephemeral-single.yaml"
 )

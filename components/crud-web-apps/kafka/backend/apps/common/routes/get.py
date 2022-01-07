@@ -69,3 +69,10 @@ def get_gpu_vendors():
     available_vendors = installed_resources.intersection(config_vendor_keys)
 
     return api.success_response("vendors", list(available_vendors))
+
+
+@bp.route("/api/profiles")
+def get_profiles():
+    profiles = api.list_profiles()["items"]
+    # contents = [utils.notebook_dict_from_k8s_obj(nb) for nb in kafkas]
+    return api.success_response("profiles", profiles)

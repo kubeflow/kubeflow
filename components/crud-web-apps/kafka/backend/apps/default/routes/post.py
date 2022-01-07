@@ -45,3 +45,32 @@ def post_kafka_cluster(namespace):
     log.info("Creating Kafka Cluster: %s", kafka_ephemeral)
     api.create_kafka_cluster(kafka_ephemeral, namespace)
     return api.success_response("message", "Kafka Ephemeral Cluster created successfully.")
+
+
+@bp.route("/api/profiles", methods=["POST"])
+@decorators.request_is_json_type
+@decorators.required_body_params(
+    "user_name",
+    "email",
+    "cpu",
+    "memory",
+    "gpu",
+    "pvc",
+    "storage")
+def create_profile():
+    body = request.get_json()
+    log.info("Got body: %s" % body)
+
+    profile = helpers.load_profile_param_yaml(
+        utils.PROFILE,
+        user_name=body["user_name"],
+        email=body["email"],
+        cpu=body["cpu"],
+        memory=body["memory"],
+        gpu=body["gpu"],
+        pvc=body["pvc"],
+        storage=body["storage"],
+    )
+    log.info("Creating Profile: %s", profile)
+    api.create_profile(profile)
+    return api.success_response("message", "Profile created successfully.")
