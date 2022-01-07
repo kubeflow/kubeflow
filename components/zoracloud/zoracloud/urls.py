@@ -15,10 +15,17 @@ Including another URLconf
 """
 import debug_toolbar
 from django.contrib import admin
+from django.contrib import admin
 from django.urls import path, include
+
+admin.site.site_header = 'ZoraCloud'
+admin.site.index_title = "Admin"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('kafka/', include("kafka.urls")),
+    path('zoracloud/', include("zora.urls")),
+    # path('oidc/', include('mozilla_django_oidc.urls')),
+    path('auth/', include('djoser.urls')),
+    path('auth/', include('djoser.urls.jwt')),
     path('__debug__/', include('debug_toolbar.urls')),
 ]

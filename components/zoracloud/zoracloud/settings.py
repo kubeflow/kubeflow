@@ -9,12 +9,12 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import datetime
 from pathlib import Path
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -31,8 +31,10 @@ INTERNAL_IPS = [
     # ...
 ]
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    "27c3-133-237-92-89.ngrok.io",
+    'localhost'
+]
 
 # Application definition
 
@@ -43,12 +45,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'mozilla_django_oidc',
+    'djoser',
     'debug_toolbar',
-    'strimzi_cluster_operator',
-    'strimzi_entity_operator',
-    'strimzi_topic_operator',
-    'strimzi_user_operator',
-    'kafka'
+    'zora'
 ]
 
 MIDDLEWARE = [
@@ -82,7 +83,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'zoracloud.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
@@ -95,7 +95,6 @@ DATABASES = {
         'PASSWORD': ''
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -115,7 +114,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -127,7 +125,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
@@ -137,3 +134,65 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CELERY_BROKER_URL = 'redis://localhost:6379/1'
+CELERY_BEAT_SCHEDULE = {
+    # 'create_ephemeral_clusters': {
+    #     'task': 'zora.tasks.create_ephemeral_clusters',
+    #     'schedule': crontab(day_of_week=1, hour=7, minute=30)
+    #
+    # },
+    'get_profiles': {
+        'task': 'zora.tasks.get_profiles',
+        'schedule': 1,
+        'args': ["http://localhost:5000/api/profiles"]
+    }
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://localhost:6379/2",
+        "TIME_OUT": 30,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'mozilla_django_oidc.auth.OIDCAuthenticationBackend',
+    ),
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.IsAuthenticated'
+    # ]
+}
+
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT',),
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(days=1)
+}
+
+DJOSER = {
+    'SERIALIZERS': {
+        'user_create': 'zora.serializers.UserCreateSerializer',
+        'current_user': 'zora.serializers.UserSerializer'
+    }
+}
+
+OIDC_RP_CLIENT_ID = ""
+OIDC_RP_CLIENT_SECRET = ""
+
+OIDC_OP_AUTHORIZATION_ENDPOINT = "<URL of the OIDC OP authorization endpoint>"
+OIDC_OP_TOKEN_ENDPOINT = "<URL of the OIDC OP token endpoint>"
+OIDC_OP_USER_ENDPOINT = "<URL of the OIDC OP userinfo endpoint>"
+
+LOGIN_REDIRECT_URL = "<URL path to redirect to after login>"
+LOGOUT_REDIRECT_URL = "<URL path to redirect to after logout>"
+
+OIDC_DRF_AUTH_BACKEND = 'mozilla_django_oidc.auth.OIDCAuthenticationBackend'
+
+AUTH_USER_MODEL = 'zora.User'
+# minute='*/15'

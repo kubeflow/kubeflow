@@ -7,8 +7,18 @@ name = "pypi"
 django = "*"
 django-debug-toolbar = "*"
 mysqlclient = "*"
+djangorestframework = "*"
+redis = "*"
+celery = "*"
+flower = "*"
+django-redis = "*"
+djoser = "*"
+install = "*"
+djangorestframework-simplejwt = "*"
+mozilla-django-oidc = "*"
 
 [dev-packages]
+locust = "*"
 
 [requires]
 python_version = "3.9"
