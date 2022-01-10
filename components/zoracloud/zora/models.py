@@ -57,13 +57,13 @@ class Profile(models.Model):
         (MEMBERSHIP_GOLD, 'Gold'),
     ]
     company = models.CharField(max_length=255)
-    cpu = models.CharField(max_length=255, default="0.1")
-    memory = models.CharField(max_length=255, default="0.1")
-    gpu = models.CharField(max_length=255, default=0)
-    number_of_disks = models.CharField(max_length=10, default="1")
+    cpu = models.IntegerField(default=1)
+    memory = models.IntegerField(default=1)
+    gpu = models.IntegerField(default=0)
+    number_of_disks = models.IntegerField(default=1)
     phone = models.CharField(max_length=255)
     membership = models.CharField(max_length=1, choices=MEMBERSHIP_CHOICES, default=MEMBERSHIP_BRONZE)
-    volume = models.CharField(max_length=10, default="5Gi")
+    volume = models.IntegerField(default=1)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -75,3 +75,8 @@ class Profile(models.Model):
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
+
+
+class ProvisionResponse(models.Model):
+    # provision_request = models.CharField(max_length=255)
+    provision_response = models.CharField(max_length=255)

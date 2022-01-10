@@ -33,3 +33,8 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('username', 'password1', 'password2', "email", "first_name", "last_name"),
         }),
     )
+
+
+@admin.register(models.ProvisionResponse)
+class RequestResponse(admin.ModelAdmin):
+    list_display = ['provision_response']

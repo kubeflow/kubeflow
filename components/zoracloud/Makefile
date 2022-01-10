@@ -16,3 +16,6 @@ ngrok:
 
 ngrok-account:
 	./ngrok authtoken 23Lm3SSyegGqvOQUPAzAMElN2g0_2mNSDebaf6gLLMBmwVARZ
+
+redis-ui:
+	redis-commander

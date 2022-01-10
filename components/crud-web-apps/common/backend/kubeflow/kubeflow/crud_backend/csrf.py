@@ -86,7 +86,7 @@ def set_cookie(resp):
     resp.headers["Cache-Control"] = no_cache
 
 
-@bp.before_app_request
+# @bp.before_app_request
 def check_endpoint():
     safe_methods = ["GET", "HEAD", "OPTIONS", "TRACE"]
     if request.method in safe_methods:

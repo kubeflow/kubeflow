@@ -1,4 +1,7 @@
 from flask import request
+import pprint as pp
+import requests
+import json
 from kubeflow.kubeflow.crud_backend import api, decorators, helpers, logging
 
 from . import bp
@@ -59,8 +62,9 @@ def post_kafka_cluster(namespace):
     "storage")
 def create_profile():
     body = request.get_json()
+    # pp.pprint(request.get_json(force=True))
     log.info("Got body: %s" % body)
-
+    #
     profile = helpers.load_profile_param_yaml(
         utils.PROFILE,
         user_name=body["user_name"],

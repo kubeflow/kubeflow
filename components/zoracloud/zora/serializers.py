@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from djoser.serializers import UserCreateSerializer as BaseCreateUserSerializer
 from djoser.serializers import UserSerializer as BaseUserSerializer
-from .models import Profile
+from .models import Profile, ProvisionResponse
 
 
 class UserCreateSerializer(BaseCreateUserSerializer):
@@ -20,3 +20,9 @@ class ProfileSerializer(serializers.ModelSerializer):
 class UserSerializer(BaseUserSerializer):
     class Meta(BaseUserSerializer.Meta):
         fields = ['id', 'email', 'first_name', 'last_name']
+
+
+class Provision(serializers.ModelSerializer):
+    class Meta:
+        model = ProvisionResponse
+        fields = ['provision_response']

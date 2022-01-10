@@ -16,6 +16,9 @@ djoser = "*"
 install = "*"
 djangorestframework-simplejwt = "*"
 mozilla-django-oidc = "*"
+aiohttp = "*"
+ujson = "*"
+uvloop = "*"
 
 [dev-packages]
 locust = "*"

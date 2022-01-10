@@ -144,7 +144,7 @@ CELERY_BEAT_SCHEDULE = {
     # },
     'get_profiles': {
         'task': 'zora.tasks.get_profiles',
-        'schedule': 1,
+        'schedule': 30,
         'args': ["http://localhost:5000/api/profiles"]
     }
 }
