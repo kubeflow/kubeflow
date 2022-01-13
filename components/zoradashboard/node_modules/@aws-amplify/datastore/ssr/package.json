@@ -1,0 +1,8 @@
+{
+	"main": "../lib/ssr/index.js",
+	"module": "../lib-esm/ssr/index.js",
+	"typings": "../lib-esm/ssr/index.d.ts",
+	"react-native": {
+		"../lib/ssr/index": "../lib-esm/ssr/index.js"
+	}
+}

@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/DateTimePicker/index.js",
+  "types": "./index.d.ts"
+}

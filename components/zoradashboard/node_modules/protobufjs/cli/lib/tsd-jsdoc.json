@@ -1,0 +1,18 @@
+{
+    "tags": {
+        "allowUnknownTags": false
+    },
+    "plugins": [
+        "./tsd-jsdoc/plugin"
+    ],
+    "opts": {
+        "encoding"      : "utf8",
+        "recurse"       : true,
+        "lenient"       : true,
+        "template"      : "./tsd-jsdoc",
+
+        "private"       : false,
+        "comments"      : true,
+        "destination"   : false
+    }
+}

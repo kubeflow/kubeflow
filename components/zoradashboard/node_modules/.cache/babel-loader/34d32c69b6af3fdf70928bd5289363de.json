@@ -1,0 +1,1 @@
+{"ast":null,"code":"export { fromEvent } from './file-selector';","map":{"version":3,"sources":["../../src/index.ts"],"names":[],"mappings":"AAAA,SAAQ,SAAR,QAAwB,iBAAxB","sourceRoot":"","sourcesContent":["export { fromEvent } from './file-selector';\n//# sourceMappingURL=index.js.map"]},"metadata":{},"sourceType":"module"}

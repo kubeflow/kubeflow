@@ -1,0 +1,7 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.isArrayBuffer = void 0;
+const isArrayBuffer = (arg) => (typeof ArrayBuffer === "function" && arg instanceof ArrayBuffer) ||
+    Object.prototype.toString.call(arg) === "[object ArrayBuffer]";
+exports.isArrayBuffer = isArrayBuffer;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi9zcmMvaW5kZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7O0FBQU8sTUFBTSxhQUFhLEdBQUcsQ0FBQyxHQUFRLEVBQXNCLEVBQUUsQ0FDNUQsQ0FBQyxPQUFPLFdBQVcsS0FBSyxVQUFVLElBQUksR0FBRyxZQUFZLFdBQVcsQ0FBQztJQUNqRSxNQUFNLENBQUMsU0FBUyxDQUFDLFFBQVEsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEtBQUssc0JBQXNCLENBQUM7QUFGcEQsUUFBQSxhQUFhLGlCQUV1QyIsInNvdXJjZXNDb250ZW50IjpbImV4cG9ydCBjb25zdCBpc0FycmF5QnVmZmVyID0gKGFyZzogYW55KTogYXJnIGlzIEFycmF5QnVmZmVyID0+XG4gICh0eXBlb2YgQXJyYXlCdWZmZXIgPT09IFwiZnVuY3Rpb25cIiAmJiBhcmcgaW5zdGFuY2VvZiBBcnJheUJ1ZmZlcikgfHxcbiAgT2JqZWN0LnByb3RvdHlwZS50b1N0cmluZy5jYWxsKGFyZykgPT09IFwiW29iamVjdCBBcnJheUJ1ZmZlcl1cIjtcbiJdfQ==

@@ -49,10 +49,12 @@ INSTALLED_APPS = [
     'mozilla_django_oidc',
     'djoser',
     'debug_toolbar',
-    'zora'
+    'zora',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -179,7 +181,8 @@ DJOSER = {
     'SERIALIZERS': {
         'user_create': 'zora.serializers.UserCreateSerializer',
         'current_user': 'zora.serializers.UserSerializer'
-    }
+    },
+    'LOGIN_FIELD': 'User.email'
 }
 
 OIDC_RP_CLIENT_ID = ""
@@ -196,3 +199,10 @@ OIDC_DRF_AUTH_BACKEND = 'mozilla_django_oidc.auth.OIDCAuthenticationBackend'
 
 AUTH_USER_MODEL = 'zora.User'
 # minute='*/15'
+
+CORS_ALLOWED_ORIGINS = [
+    # "https://example.com",
+    # "https://sub.example.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]

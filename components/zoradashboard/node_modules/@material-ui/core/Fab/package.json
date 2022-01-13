@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/Fab/index.js",
+  "types": "./index.d.ts"
+}

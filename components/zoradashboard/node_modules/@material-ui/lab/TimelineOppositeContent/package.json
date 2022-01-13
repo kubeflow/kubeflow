@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/TimelineOppositeContent/index.js",
+  "types": "./index.d.ts"
+}

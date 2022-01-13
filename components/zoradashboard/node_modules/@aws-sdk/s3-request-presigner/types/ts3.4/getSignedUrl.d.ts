@@ -1,0 +1,3 @@
+import { Client, Command } from "@aws-sdk/smithy-client";
+import { MetadataBearer, RequestPresigningArguments } from "@aws-sdk/types";
+export declare const getSignedUrl: <InputTypesUnion extends object, InputType extends InputTypesUnion, OutputType extends MetadataBearer = MetadataBearer>(client: Client<any, InputTypesUnion, MetadataBearer, any>, command: Command<InputType, OutputType, any, InputTypesUnion, MetadataBearer>, options?: RequestPresigningArguments) => Promise<string>;

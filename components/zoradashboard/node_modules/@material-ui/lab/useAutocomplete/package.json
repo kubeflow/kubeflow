@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/useAutocomplete/index.js",
+  "types": "./index.d.ts"
+}

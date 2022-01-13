@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/TableRow/index.js",
+  "types": "./index.d.ts"
+}

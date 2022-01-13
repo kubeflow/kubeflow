@@ -1,0 +1,7 @@
+{
+  "name": "firebase/firestore/bundle",
+  "description": "The bundle loading feature of the Cloud Firestore component.",
+  "main": "dist/index.node.cjs.js",
+  "module": "dist/index.esm.js",
+  "typings": "../empty-import.d.ts"
+}

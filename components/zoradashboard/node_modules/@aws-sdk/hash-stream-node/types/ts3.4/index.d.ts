@@ -1,0 +1,4 @@
+/// <reference types="node" />
+import { StreamHasher } from "@aws-sdk/types";
+import { Readable } from "stream";
+export declare const fileStreamHasher: StreamHasher<Readable>;

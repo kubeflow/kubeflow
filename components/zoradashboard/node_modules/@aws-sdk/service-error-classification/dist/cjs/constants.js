@@ -1,0 +1,48 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TRANSIENT_ERROR_STATUS_CODES = exports.TRANSIENT_ERROR_CODES = exports.THROTTLING_ERROR_CODES = exports.CLOCK_SKEW_ERROR_CODES = void 0;
+/**
+ * Errors encountered when the client clock and server clock cannot agree on the
+ * current time.
+ *
+ * These errors are retryable, assuming the SDK has enabled clock skew
+ * correction.
+ */
+exports.CLOCK_SKEW_ERROR_CODES = [
+    "AuthFailure",
+    "InvalidSignatureException",
+    "RequestExpired",
+    "RequestInTheFuture",
+    "RequestTimeTooSkewed",
+    "SignatureDoesNotMatch",
+];
+/**
+ * Errors that indicate the SDK is being throttled.
+ *
+ * These errors are always retryable.
+ */
+exports.THROTTLING_ERROR_CODES = [
+    "BandwidthLimitExceeded",
+    "EC2ThrottledException",
+    "LimitExceededException",
+    "PriorRequestNotComplete",
+    "ProvisionedThroughputExceededException",
+    "RequestLimitExceeded",
+    "RequestThrottled",
+    "RequestThrottledException",
+    "SlowDown",
+    "ThrottledException",
+    "Throttling",
+    "ThrottlingException",
+    "TooManyRequestsException",
+    "TransactionInProgressException",
+];
+/**
+ * Error codes that indicate transient issues
+ */
+exports.TRANSIENT_ERROR_CODES = ["AbortError", "TimeoutError", "RequestTimeout", "RequestTimeoutException"];
+/**
+ * Error codes that indicate transient issues
+ */
+exports.TRANSIENT_ERROR_STATUS_CODES = [500, 502, 503, 504];
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiY29uc3RhbnRzLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vLi4vc3JjL2NvbnN0YW50cy50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7QUFBQTs7Ozs7O0dBTUc7QUFDVSxRQUFBLHNCQUFzQixHQUFHO0lBQ3BDLGFBQWE7SUFDYiwyQkFBMkI7SUFDM0IsZ0JBQWdCO0lBQ2hCLG9CQUFvQjtJQUNwQixzQkFBc0I7SUFDdEIsdUJBQXVCO0NBQ3hCLENBQUM7QUFFRjs7OztHQUlHO0FBQ1UsUUFBQSxzQkFBc0IsR0FBRztJQUNwQyx3QkFBd0I7SUFDeEIsdUJBQXVCO0lBQ3ZCLHdCQUF3QjtJQUN4Qix5QkFBeUI7SUFDekIsd0NBQXdDO0lBQ3hDLHNCQUFzQjtJQUN0QixrQkFBa0I7SUFDbEIsMkJBQTJCO0lBQzNCLFVBQVU7SUFDVixvQkFBb0I7SUFDcEIsWUFBWTtJQUNaLHFCQUFxQjtJQUNyQiwwQkFBMEI7SUFDMUIsZ0NBQWdDO0NBQ2pDLENBQUM7QUFFRjs7R0FFRztBQUNVLFFBQUEscUJBQXFCLEdBQUcsQ0FBQyxZQUFZLEVBQUUsY0FBYyxFQUFFLGdCQUFnQixFQUFFLHlCQUF5QixDQUFDLENBQUM7QUFFakg7O0dBRUc7QUFDVSxRQUFBLDRCQUE0QixHQUFHLENBQUMsR0FBRyxFQUFFLEdBQUcsRUFBRSxHQUFHLEVBQUUsR0FBRyxDQUFDLENBQUMiLCJzb3VyY2VzQ29udGVudCI6WyIvKipcbiAqIEVycm9ycyBlbmNvdW50ZXJlZCB3aGVuIHRoZSBjbGllbnQgY2xvY2sgYW5kIHNlcnZlciBjbG9jayBjYW5ub3QgYWdyZWUgb24gdGhlXG4gKiBjdXJyZW50IHRpbWUuXG4gKlxuICogVGhlc2UgZXJyb3JzIGFyZSByZXRyeWFibGUsIGFzc3VtaW5nIHRoZSBTREsgaGFzIGVuYWJsZWQgY2xvY2sgc2tld1xuICogY29ycmVjdGlvbi5cbiAqL1xuZXhwb3J0IGNvbnN0IENMT0NLX1NLRVdfRVJST1JfQ09ERVMgPSBbXG4gIFwiQXV0aEZhaWx1cmVcIixcbiAgXCJJbnZhbGlkU2lnbmF0dXJlRXhjZXB0aW9uXCIsXG4gIFwiUmVxdWVzdEV4cGlyZWRcIixcbiAgXCJSZXF1ZXN0SW5UaGVGdXR1cmVcIixcbiAgXCJSZXF1ZXN0VGltZVRvb1NrZXdlZFwiLFxuICBcIlNpZ25hdHVyZURvZXNOb3RNYXRjaFwiLFxuXTtcblxuLyoqXG4gKiBFcnJvcnMgdGhhdCBpbmRpY2F0ZSB0aGUgU0RLIGlzIGJlaW5nIHRocm90dGxlZC5cbiAqXG4gKiBUaGVzZSBlcnJvcnMgYXJlIGFsd2F5cyByZXRyeWFibGUuXG4gKi9cbmV4cG9ydCBjb25zdCBUSFJPVFRMSU5HX0VSUk9SX0NPREVTID0gW1xuICBcIkJhbmR3aWR0aExpbWl0RXhjZWVkZWRcIixcbiAgXCJFQzJUaHJvdHRsZWRFeGNlcHRpb25cIixcbiAgXCJMaW1pdEV4Y2VlZGVkRXhjZXB0aW9uXCIsXG4gIFwiUHJpb3JSZXF1ZXN0Tm90Q29tcGxldGVcIixcbiAgXCJQcm92aXNpb25lZFRocm91Z2hwdXRFeGNlZWRlZEV4Y2VwdGlvblwiLFxuICBcIlJlcXVlc3RMaW1pdEV4Y2VlZGVkXCIsXG4gIFwiUmVxdWVzdFRocm90dGxlZFwiLFxuICBcIlJlcXVlc3RUaHJvdHRsZWRFeGNlcHRpb25cIixcbiAgXCJTbG93RG93blwiLFxuICBcIlRocm90dGxlZEV4Y2VwdGlvblwiLFxuICBcIlRocm90dGxpbmdcIixcbiAgXCJUaHJvdHRsaW5nRXhjZXB0aW9uXCIsXG4gIFwiVG9vTWFueVJlcXVlc3RzRXhjZXB0aW9uXCIsXG4gIFwiVHJhbnNhY3Rpb25JblByb2dyZXNzRXhjZXB0aW9uXCIsIC8vIER5bmFtb0RCXG5dO1xuXG4vKipcbiAqIEVycm9yIGNvZGVzIHRoYXQgaW5kaWNhdGUgdHJhbnNpZW50IGlzc3Vlc1xuICovXG5leHBvcnQgY29uc3QgVFJBTlNJRU5UX0VSUk9SX0NPREVTID0gW1wiQWJvcnRFcnJvclwiLCBcIlRpbWVvdXRFcnJvclwiLCBcIlJlcXVlc3RUaW1lb3V0XCIsIFwiUmVxdWVzdFRpbWVvdXRFeGNlcHRpb25cIl07XG5cbi8qKlxuICogRXJyb3IgY29kZXMgdGhhdCBpbmRpY2F0ZSB0cmFuc2llbnQgaXNzdWVzXG4gKi9cbmV4cG9ydCBjb25zdCBUUkFOU0lFTlRfRVJST1JfU1RBVFVTX0NPREVTID0gWzUwMCwgNTAyLCA1MDMsIDUwNF07XG4iXX0=

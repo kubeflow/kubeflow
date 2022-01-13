@@ -1,0 +1,67 @@
+@import './Theme.css';
+
+.container {
+	font-weight: 400;
+}
+
+.actionRow {
+	margin-bottom: 15px;
+}
+
+.sectionHeader {
+	color: var(--deepSquidInk);
+	margin-bottom: 24px;
+	font-size: 18px;
+	font-weight: 500;
+}
+
+.sectionHeaderHint {
+	color: var(--grey);
+	font-size: 16px;
+	font-weight: 400;
+	margin-top: 4px;
+}
+
+.sectionBody {
+	margin-bottom: 30px;
+}
+
+.sectionHeaderContent {
+}
+
+.sectionFooter {
+	font-size: 14px;
+	color: var(--grey);
+	display: flex;
+	flex-direction: row-reverse;
+	align-items: flex-start;
+}
+
+.sectionFooterPrimaryContent {
+	margin-left: auto;
+}
+
+.sectionFooterSecondaryContent {
+	margin-right: auto;
+	align-self: center;
+}
+
+@media only screen and (max-width: 599px) {
+	.sectionFooter {
+		flex-wrap: wrap;
+	}
+
+	.sectionFooterPrimaryContent {
+		width: 100%;
+		margin-bottom: 32px;
+	}
+
+	.sectionFooterPrimaryContent > button {
+		width: 100%;
+	}
+
+	.sectionFooterSecondaryContent {
+		text-align: center;
+		flex: 0 0 100%;
+	}
+}

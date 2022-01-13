@@ -1,0 +1,1 @@
+{"version":3,"file":"reactnative.js","sourceRoot":"","sources":["../../src/trackers/reactnative.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,cAAc,EAAE,MAAM,qBAAqB,CAAC;AAErD;IACC,sBAAY,OAAO,EAAE,IAAI;IAAG,CAAC;IAC9B,mBAAC;AAAD,CAAC,AAFD,IAEC;AAED;IACC,yBAAY,OAAO,EAAE,IAAI;IAAG,CAAC;IAC9B,sBAAC;AAAD,CAAC,AAFD,IAEC;AAED,OAAO,EAAE,YAAY,EAAE,eAAe,EAAE,cAAc,EAAE,CAAC"}

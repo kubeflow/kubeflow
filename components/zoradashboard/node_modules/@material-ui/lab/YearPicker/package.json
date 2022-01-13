@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/YearPicker/index.js",
+  "types": "./index.d.ts"
+}

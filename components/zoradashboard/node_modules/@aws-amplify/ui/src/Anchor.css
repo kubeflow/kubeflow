@@ -1,0 +1,10 @@
+@import './Theme.css';
+
+.a {
+  color: var(--link-color);
+  cursor: pointer;
+}
+
+.a:hover {
+  text-decoration: underline;
+}

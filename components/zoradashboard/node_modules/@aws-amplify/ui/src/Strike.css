@@ -1,0 +1,17 @@
+@import './Theme.css';
+
+.strike {
+  width: 100%;
+  text-align: center;
+  border-bottom: 1px solid var(--lightGrey); 
+  line-height: 0.1em;
+  margin: 32px 0;
+  color: var(--grey);
+}
+
+.strikeContent {
+  background: var(--form-color); 
+  padding: 0 25px;
+  font-size: 14px;
+  font-weight: 500;
+}

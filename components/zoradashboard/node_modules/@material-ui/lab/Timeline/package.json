@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/Timeline/index.js",
+  "types": "./index.d.ts"
+}

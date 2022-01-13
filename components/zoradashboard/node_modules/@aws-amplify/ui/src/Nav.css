@@ -1,0 +1,21 @@
+.navBar {
+  position: relative;
+  border: 1px solid transparent;
+  border-color: #e7e7e7;
+  background-color: #fff;
+}
+
+.navRight {
+  text-align: right
+}
+
+.nav {
+  padding: 10px;
+}
+
+.navItem {
+  display: inline-block;
+  padding: 10px 5px;
+  line-height: 20px;
+  margin-right: 12px;
+}

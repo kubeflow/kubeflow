@@ -1,0 +1,5 @@
+import { BuildMiddleware } from "@aws-sdk/types";
+export interface HeaderDefaultArgs {
+    [header: string]: string;
+}
+export declare function headerDefault(headerBag: HeaderDefaultArgs): BuildMiddleware<any, any>;

@@ -1,0 +1,1 @@
+../react-scripts/bin/react-scripts.js

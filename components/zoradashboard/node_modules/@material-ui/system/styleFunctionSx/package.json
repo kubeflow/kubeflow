@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "../esm/styleFunctionSx/index.js",
+  "main": "./index.js",
+  "types": "./index.d.ts"
+}

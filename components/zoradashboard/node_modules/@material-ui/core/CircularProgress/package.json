@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/CircularProgress/index.js",
+  "types": "./index.d.ts"
+}

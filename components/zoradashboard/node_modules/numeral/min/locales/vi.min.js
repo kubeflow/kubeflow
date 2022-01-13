@@ -1,0 +1,1 @@
+!function(a,b){"function"==typeof define&&define.amd?define(["../numeral"],b):b("object"==typeof module&&module.exports?require("../numeral"):a.numeral)}(this,function(a){a.register("locale","vi",{delimiters:{thousands:".",decimal:","},abbreviations:{thousand:" nghìn",million:" triệu",billion:" tỷ",trillion:" nghìn tỷ"},ordinal:function(){return"."},currency:{symbol:"₫"}})});

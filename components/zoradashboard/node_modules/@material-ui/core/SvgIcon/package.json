@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/SvgIcon/index.js",
+  "types": "./index.d.ts"
+}

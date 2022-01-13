@@ -1,0 +1,34 @@
+import { CreateLogGroupCommandInput, CreateLogGroupCommandOutput, CreateLogStreamCommandInput, CreateLogStreamCommandOutput, DescribeLogGroupsCommandInput, DescribeLogGroupsCommandOutput, DescribeLogStreamsCommandInput, DescribeLogStreamsCommandOutput, GetLogEventsCommandInput, GetLogEventsCommandOutput, InputLogEvent } from '@aws-sdk/client-cloudwatch-logs';
+import { AWSCloudWatchProviderOptions, LoggingProvider } from '../types/types';
+declare class AWSCloudWatchProvider implements LoggingProvider {
+    static readonly PROVIDER_NAME = "AWSCloudWatch";
+    static readonly CATEGORY = "Logging";
+    private _config;
+    private _dataTracker;
+    private _currentLogBatch;
+    private _timer;
+    private _nextSequenceToken;
+    constructor(config?: AWSCloudWatchProviderOptions);
+    getProviderName(): string;
+    getCategoryName(): string;
+    getLogQueue(): InputLogEvent[];
+    configure(config?: AWSCloudWatchProviderOptions): AWSCloudWatchProviderOptions;
+    createLogGroup(params: CreateLogGroupCommandInput): Promise<CreateLogGroupCommandOutput>;
+    getLogGroups(params: DescribeLogGroupsCommandInput): Promise<DescribeLogGroupsCommandOutput>;
+    createLogStream(params: CreateLogStreamCommandInput): Promise<CreateLogStreamCommandOutput>;
+    getLogStreams(params: DescribeLogStreamsCommandInput): Promise<DescribeLogStreamsCommandOutput>;
+    getLogEvents(params: GetLogEventsCommandInput): Promise<GetLogEventsCommandOutput>;
+    pushLogs(logs: InputLogEvent[]): void;
+    private _validateLogGroupExistsAndCreate;
+    private _validateLogStreamExists;
+    private _sendLogEvents;
+    private _initCloudWatchLogs;
+    private _ensureCredentials;
+    private _getNextSequenceToken;
+    private _safeUploadLogEvents;
+    private _getBufferedBatchOfLogs;
+    private _getNewSequenceTokenAndSubmit;
+    private _initiateLogPushInterval;
+    private _getDocUploadPermissibility;
+}
+export { AWSCloudWatchProvider };

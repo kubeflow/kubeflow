@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/LinearProgress/index.js",
+  "types": "./index.d.ts"
+}

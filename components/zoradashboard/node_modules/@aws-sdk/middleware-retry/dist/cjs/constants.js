@@ -1,0 +1,45 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.REQUEST_HEADER = exports.INVOCATION_ID_HEADER = exports.NO_RETRY_INCREMENT = exports.TIMEOUT_RETRY_COST = exports.RETRY_COST = exports.INITIAL_RETRY_TOKENS = exports.THROTTLING_RETRY_DELAY_BASE = exports.MAXIMUM_RETRY_DELAY = exports.DEFAULT_RETRY_DELAY_BASE = void 0;
+/**
+ * The base number of milliseconds to use in calculating a suitable cool-down
+ * time when a retryable error is encountered.
+ */
+exports.DEFAULT_RETRY_DELAY_BASE = 100;
+/**
+ * The maximum amount of time (in milliseconds) that will be used as a delay
+ * between retry attempts.
+ */
+exports.MAXIMUM_RETRY_DELAY = 20 * 1000;
+/**
+ * The retry delay base (in milliseconds) to use when a throttling error is
+ * encountered.
+ */
+exports.THROTTLING_RETRY_DELAY_BASE = 500;
+/**
+ * Initial number of retry tokens in Retry Quota
+ */
+exports.INITIAL_RETRY_TOKENS = 500;
+/**
+ * The total amount of retry tokens to be decremented from retry token balance.
+ */
+exports.RETRY_COST = 5;
+/**
+ * The total amount of retry tokens to be decremented from retry token balance
+ * when a throttling error is encountered.
+ */
+exports.TIMEOUT_RETRY_COST = 10;
+/**
+ * The total amount of retry token to be incremented from retry token balance
+ * if an SDK operation invocation succeeds without requiring a retry request.
+ */
+exports.NO_RETRY_INCREMENT = 1;
+/**
+ * Header name for SDK invocation ID
+ */
+exports.INVOCATION_ID_HEADER = "amz-sdk-invocation-id";
+/**
+ * Header name for request retry information.
+ */
+exports.REQUEST_HEADER = "amz-sdk-request";
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiY29uc3RhbnRzLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vLi4vc3JjL2NvbnN0YW50cy50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7QUFBQTs7O0dBR0c7QUFDVSxRQUFBLHdCQUF3QixHQUFHLEdBQUcsQ0FBQztBQUU1Qzs7O0dBR0c7QUFDVSxRQUFBLG1CQUFtQixHQUFHLEVBQUUsR0FBRyxJQUFJLENBQUM7QUFFN0M7OztHQUdHO0FBQ1UsUUFBQSwyQkFBMkIsR0FBRyxHQUFHLENBQUM7QUFFL0M7O0dBRUc7QUFDVSxRQUFBLG9CQUFvQixHQUFHLEdBQUcsQ0FBQztBQUV4Qzs7R0FFRztBQUNVLFFBQUEsVUFBVSxHQUFHLENBQUMsQ0FBQztBQUU1Qjs7O0dBR0c7QUFDVSxRQUFBLGtCQUFrQixHQUFHLEVBQUUsQ0FBQztBQUVyQzs7O0dBR0c7QUFDVSxRQUFBLGtCQUFrQixHQUFHLENBQUMsQ0FBQztBQUVwQzs7R0FFRztBQUNVLFFBQUEsb0JBQW9CLEdBQUcsdUJBQXVCLENBQUM7QUFFNUQ7O0dBRUc7QUFDVSxRQUFBLGNBQWMsR0FBRyxpQkFBaUIsQ0FBQyIsInNvdXJjZXNDb250ZW50IjpbIi8qKlxuICogVGhlIGJhc2UgbnVtYmVyIG9mIG1pbGxpc2Vjb25kcyB0byB1c2UgaW4gY2FsY3VsYXRpbmcgYSBzdWl0YWJsZSBjb29sLWRvd25cbiAqIHRpbWUgd2hlbiBhIHJldHJ5YWJsZSBlcnJvciBpcyBlbmNvdW50ZXJlZC5cbiAqL1xuZXhwb3J0IGNvbnN0IERFRkFVTFRfUkVUUllfREVMQVlfQkFTRSA9IDEwMDtcblxuLyoqXG4gKiBUaGUgbWF4aW11bSBhbW91bnQgb2YgdGltZSAoaW4gbWlsbGlzZWNvbmRzKSB0aGF0IHdpbGwgYmUgdXNlZCBhcyBhIGRlbGF5XG4gKiBiZXR3ZWVuIHJldHJ5IGF0dGVtcHRzLlxuICovXG5leHBvcnQgY29uc3QgTUFYSU1VTV9SRVRSWV9ERUxBWSA9IDIwICogMTAwMDtcblxuLyoqXG4gKiBUaGUgcmV0cnkgZGVsYXkgYmFzZSAoaW4gbWlsbGlzZWNvbmRzKSB0byB1c2Ugd2hlbiBhIHRocm90dGxpbmcgZXJyb3IgaXNcbiAqIGVuY291bnRlcmVkLlxuICovXG5leHBvcnQgY29uc3QgVEhST1RUTElOR19SRVRSWV9ERUxBWV9CQVNFID0gNTAwO1xuXG4vKipcbiAqIEluaXRpYWwgbnVtYmVyIG9mIHJldHJ5IHRva2VucyBpbiBSZXRyeSBRdW90YVxuICovXG5leHBvcnQgY29uc3QgSU5JVElBTF9SRVRSWV9UT0tFTlMgPSA1MDA7XG5cbi8qKlxuICogVGhlIHRvdGFsIGFtb3VudCBvZiByZXRyeSB0b2tlbnMgdG8gYmUgZGVjcmVtZW50ZWQgZnJvbSByZXRyeSB0b2tlbiBiYWxhbmNlLlxuICovXG5leHBvcnQgY29uc3QgUkVUUllfQ09TVCA9IDU7XG5cbi8qKlxuICogVGhlIHRvdGFsIGFtb3VudCBvZiByZXRyeSB0b2tlbnMgdG8gYmUgZGVjcmVtZW50ZWQgZnJvbSByZXRyeSB0b2tlbiBiYWxhbmNlXG4gKiB3aGVuIGEgdGhyb3R0bGluZyBlcnJvciBpcyBlbmNvdW50ZXJlZC5cbiAqL1xuZXhwb3J0IGNvbnN0IFRJTUVPVVRfUkVUUllfQ09TVCA9IDEwO1xuXG4vKipcbiAqIFRoZSB0b3RhbCBhbW91bnQgb2YgcmV0cnkgdG9rZW4gdG8gYmUgaW5jcmVtZW50ZWQgZnJvbSByZXRyeSB0b2tlbiBiYWxhbmNlXG4gKiBpZiBhbiBTREsgb3BlcmF0aW9uIGludm9jYXRpb24gc3VjY2VlZHMgd2l0aG91dCByZXF1aXJpbmcgYSByZXRyeSByZXF1ZXN0LlxuICovXG5leHBvcnQgY29uc3QgTk9fUkVUUllfSU5DUkVNRU5UID0gMTtcblxuLyoqXG4gKiBIZWFkZXIgbmFtZSBmb3IgU0RLIGludm9jYXRpb24gSURcbiAqL1xuZXhwb3J0IGNvbnN0IElOVk9DQVRJT05fSURfSEVBREVSID0gXCJhbXotc2RrLWludm9jYXRpb24taWRcIjtcblxuLyoqXG4gKiBIZWFkZXIgbmFtZSBmb3IgcmVxdWVzdCByZXRyeSBpbmZvcm1hdGlvbi5cbiAqL1xuZXhwb3J0IGNvbnN0IFJFUVVFU1RfSEVBREVSID0gXCJhbXotc2RrLXJlcXVlc3RcIjtcbiJdfQ==

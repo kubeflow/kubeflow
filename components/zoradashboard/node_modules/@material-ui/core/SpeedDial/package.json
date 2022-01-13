@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/SpeedDial/index.js",
+  "types": "./index.d.ts"
+}

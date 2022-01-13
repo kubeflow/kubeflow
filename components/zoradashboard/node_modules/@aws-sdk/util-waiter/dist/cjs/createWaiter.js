@@ -1,0 +1,34 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createWaiter = void 0;
+const poller_1 = require("./poller");
+const utils_1 = require("./utils");
+const waiter_1 = require("./waiter");
+const abortTimeout = async (abortSignal) => {
+    return new Promise((resolve) => {
+        abortSignal.onabort = () => resolve({ state: waiter_1.WaiterState.ABORTED });
+    });
+};
+/**
+ * Create a waiter promise that only resolves when:
+ * 1. Abort controller is signaled
+ * 2. Max wait time is reached
+ * 3. `acceptorChecks` succeeds, or fails
+ * Otherwise, it invokes `acceptorChecks` with exponential-backoff delay.
+ *
+ * @internal
+ */
+const createWaiter = async (options, input, acceptorChecks) => {
+    const params = {
+        ...waiter_1.waiterServiceDefaults,
+        ...options,
+    };
+    utils_1.validateWaiterOptions(params);
+    const exitConditions = [poller_1.runPolling(params, input, acceptorChecks)];
+    if (options.abortController) {
+        exitConditions.push(abortTimeout(options.abortController.signal));
+    }
+    return Promise.race(exitConditions);
+};
+exports.createWaiter = createWaiter;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiY3JlYXRlV2FpdGVyLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vLi4vc3JjL2NyZWF0ZVdhaXRlci50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7QUFFQSxxQ0FBc0M7QUFDdEMsbUNBQWdEO0FBQ2hELHFDQUEyRjtBQUUzRixNQUFNLFlBQVksR0FBRyxLQUFLLEVBQUUsV0FBd0IsRUFBeUIsRUFBRTtJQUM3RSxPQUFPLElBQUksT0FBTyxDQUFDLENBQUMsT0FBTyxFQUFFLEVBQUU7UUFDN0IsV0FBVyxDQUFDLE9BQU8sR0FBRyxHQUFHLEVBQUUsQ0FBQyxPQUFPLENBQUMsRUFBRSxLQUFLLEVBQUUsb0JBQVcsQ0FBQyxPQUFPLEVBQUUsQ0FBQyxDQUFDO0lBQ3RFLENBQUMsQ0FBQyxDQUFDO0FBQ0wsQ0FBQyxDQUFDO0FBRUY7Ozs7Ozs7O0dBUUc7QUFDSSxNQUFNLFlBQVksR0FBRyxLQUFLLEVBQy9CLE9BQThCLEVBQzlCLEtBQVksRUFDWixjQUF1RSxFQUNoRCxFQUFFO0lBQ3pCLE1BQU0sTUFBTSxHQUFHO1FBQ2IsR0FBRyw4QkFBcUI7UUFDeEIsR0FBRyxPQUFPO0tBQ1gsQ0FBQztJQUNGLDZCQUFxQixDQUFDLE1BQU0sQ0FBQyxDQUFDO0lBRTlCLE1BQU0sY0FBYyxHQUFHLENBQUMsbUJBQVUsQ0FBZ0IsTUFBTSxFQUFFLEtBQUssRUFBRSxjQUFjLENBQUMsQ0FBQyxDQUFDO0lBQ2xGLElBQUksT0FBTyxDQUFDLGVBQWUsRUFBRTtRQUMzQixjQUFjLENBQUMsSUFBSSxDQUFDLFlBQVksQ0FBQyxPQUFPLENBQUMsZUFBZSxDQUFDLE1BQU0sQ0FBQyxDQUFDLENBQUM7S0FDbkU7SUFDRCxPQUFPLE9BQU8sQ0FBQyxJQUFJLENBQUMsY0FBYyxDQUFDLENBQUM7QUFDdEMsQ0FBQyxDQUFDO0FBaEJXLFFBQUEsWUFBWSxnQkFnQnZCIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgQWJvcnRTaWduYWwgfSBmcm9tIFwiQGF3cy1zZGsvdHlwZXNcIjtcblxuaW1wb3J0IHsgcnVuUG9sbGluZyB9IGZyb20gXCIuL3BvbGxlclwiO1xuaW1wb3J0IHsgdmFsaWRhdGVXYWl0ZXJPcHRpb25zIH0gZnJvbSBcIi4vdXRpbHNcIjtcbmltcG9ydCB7IFdhaXRlck9wdGlvbnMsIFdhaXRlclJlc3VsdCwgd2FpdGVyU2VydmljZURlZmF1bHRzLCBXYWl0ZXJTdGF0ZSB9IGZyb20gXCIuL3dhaXRlclwiO1xuXG5jb25zdCBhYm9ydFRpbWVvdXQgPSBhc3luYyAoYWJvcnRTaWduYWw6IEFib3J0U2lnbmFsKTogUHJvbWlzZTxXYWl0ZXJSZXN1bHQ+ID0+IHtcbiAgcmV0dXJuIG5ldyBQcm9taXNlKChyZXNvbHZlKSA9PiB7XG4gICAgYWJvcnRTaWduYWwub25hYm9ydCA9ICgpID0+IHJlc29sdmUoeyBzdGF0ZTogV2FpdGVyU3RhdGUuQUJPUlRFRCB9KTtcbiAgfSk7XG59O1xuXG4vKipcbiAqIENyZWF0ZSBhIHdhaXRlciBwcm9taXNlIHRoYXQgb25seSByZXNvbHZlcyB3aGVuOlxuICogMS4gQWJvcnQgY29udHJvbGxlciBpcyBzaWduYWxlZFxuICogMi4gTWF4IHdhaXQgdGltZSBpcyByZWFjaGVkXG4gKiAzLiBgYWNjZXB0b3JDaGVja3NgIHN1Y2NlZWRzLCBvciBmYWlsc1xuICogT3RoZXJ3aXNlLCBpdCBpbnZva2VzIGBhY2NlcHRvckNoZWNrc2Agd2l0aCBleHBvbmVudGlhbC1iYWNrb2ZmIGRlbGF5LlxuICpcbiAqIEBpbnRlcm5hbFxuICovXG5leHBvcnQgY29uc3QgY3JlYXRlV2FpdGVyID0gYXN5bmMgPENsaWVudCwgSW5wdXQ+KFxuICBvcHRpb25zOiBXYWl0ZXJPcHRpb25zPENsaWVudD4sXG4gIGlucHV0OiBJbnB1dCxcbiAgYWNjZXB0b3JDaGVja3M6IChjbGllbnQ6IENsaWVudCwgaW5wdXQ6IElucHV0KSA9PiBQcm9taXNlPFdhaXRlclJlc3VsdD5cbik6IFByb21pc2U8V2FpdGVyUmVzdWx0PiA9PiB7XG4gIGNvbnN0IHBhcmFtcyA9IHtcbiAgICAuLi53YWl0ZXJTZXJ2aWNlRGVmYXVsdHMsXG4gICAgLi4ub3B0aW9ucyxcbiAgfTtcbiAgdmFsaWRhdGVXYWl0ZXJPcHRpb25zKHBhcmFtcyk7XG5cbiAgY29uc3QgZXhpdENvbmRpdGlvbnMgPSBbcnVuUG9sbGluZzxDbGllbnQsIElucHV0PihwYXJhbXMsIGlucHV0LCBhY2NlcHRvckNoZWNrcyldO1xuICBpZiAob3B0aW9ucy5hYm9ydENvbnRyb2xsZXIpIHtcbiAgICBleGl0Q29uZGl0aW9ucy5wdXNoKGFib3J0VGltZW91dChvcHRpb25zLmFib3J0Q29udHJvbGxlci5zaWduYWwpKTtcbiAgfVxuICByZXR1cm4gUHJvbWlzZS5yYWNlKGV4aXRDb25kaXRpb25zKTtcbn07XG4iXX0=

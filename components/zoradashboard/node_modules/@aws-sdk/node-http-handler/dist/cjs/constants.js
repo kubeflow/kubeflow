@@ -1,0 +1,8 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.NODEJS_TIMEOUT_ERROR_CODES = void 0;
+/**
+ * Node.js system error codes that indicate timeout.
+ */
+exports.NODEJS_TIMEOUT_ERROR_CODES = ["ECONNRESET", "EPIPE", "ETIMEDOUT"];
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiY29uc3RhbnRzLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vLi4vc3JjL2NvbnN0YW50cy50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7QUFBQTs7R0FFRztBQUNVLFFBQUEsMEJBQTBCLEdBQUcsQ0FBQyxZQUFZLEVBQUUsT0FBTyxFQUFFLFdBQVcsQ0FBQyxDQUFDIiwic291cmNlc0NvbnRlbnQiOlsiLyoqXG4gKiBOb2RlLmpzIHN5c3RlbSBlcnJvciBjb2RlcyB0aGF0IGluZGljYXRlIHRpbWVvdXQuXG4gKi9cbmV4cG9ydCBjb25zdCBOT0RFSlNfVElNRU9VVF9FUlJPUl9DT0RFUyA9IFtcIkVDT05OUkVTRVRcIiwgXCJFUElQRVwiLCBcIkVUSU1FRE9VVFwiXTtcbiJdfQ==

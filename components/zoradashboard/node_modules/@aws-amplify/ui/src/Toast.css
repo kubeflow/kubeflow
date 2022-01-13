@@ -1,0 +1,63 @@
+@import './Theme.css';
+
+.toast {
+  display: flex;
+  justify-content: space-between;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 99;
+  box-shadow: 0 0 5px 0 rgba(0,0,0,0.3);
+  padding: 16px;
+  background-color: var(--lightSquidInk);
+  font-size: 14px;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+.toast > span {
+  margin-right: 10px;
+}
+
+.toastClose {
+  margin-left: auto;
+  align-self: center;
+  position: relative;
+  width: 18px;
+  height: 18px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.toastClose::before,
+.toastClose::after {
+  content: '';
+  position: absolute;
+  height: 2px;
+  width: 100%;
+  top: 50%;
+  left: 0;
+  margin-top: -1px;
+  background: var(--lightGrey);
+}
+
+.toastClose:hover::before,
+.toastClose:hover::after {
+  background: var(--red);
+}
+
+.toastClose::before {
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  -o-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+.toastClose::after {
+  -webkit-transform: rotate(-45deg);
+  -moz-transform: rotate(-45deg);
+  -ms-transform: rotate(-45deg);
+  -o-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+}

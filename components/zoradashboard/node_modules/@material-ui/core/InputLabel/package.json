@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/InputLabel/index.js",
+  "types": "./index.d.ts"
+}

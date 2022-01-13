@@ -1,0 +1,18 @@
+import { BuildHandlerOptions, BuildMiddleware, Pluggable, Provider } from "@aws-sdk/types";
+declare type PreviouslyResolved = {
+    region: Provider<string>;
+    isCustomEndpoint: boolean;
+};
+/**
+ * @internal
+ */
+export declare const useRegionalEndpointMiddleware: (config: PreviouslyResolved) => BuildMiddleware<any, any>;
+/**
+ * @internal
+ */
+export declare const useRegionalEndpointMiddlewareOptions: BuildHandlerOptions;
+/**
+ * @internal
+ */
+export declare const getUseRegionalEndpointPlugin: (config: PreviouslyResolved) => Pluggable<any, any>;
+export {};

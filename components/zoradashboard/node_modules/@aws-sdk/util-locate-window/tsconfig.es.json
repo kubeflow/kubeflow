@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "strict": false,
+    "noImplicitUseStrict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "lib": ["dom", "es5", "es2015.collection"],
+    "declarationDir": "./dist/types",
+    "rootDir": "./src",
+    "outDir": "./dist/es",
+    "baseUrl": "."
+  },
+  "extends": "../../tsconfig.es.json",
+  "include": ["src/"]
+}

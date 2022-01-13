@@ -1,0 +1,10 @@
+{
+  "name": "@firebase/firestore/bundle",
+  "description": "Firestore bundle",
+  "main": "../dist/node-cjs/bundle.js",
+  "main-esm2017": "../dist/node-esm2017/bundle.js",
+  "react-native": "../dist/rn/bundle.js",
+  "browser": "../dist/esm5/bundle.js",
+  "module": "../dist/esm5/bundle.js",
+  "esm2017": "../dist/esm2017/bundle.js"
+}

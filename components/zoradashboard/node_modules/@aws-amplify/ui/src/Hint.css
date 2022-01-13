@@ -1,0 +1,6 @@
+@import './Theme.css';
+
+.hint {
+  color: var(--grey);
+  font-size: 12px;
+}

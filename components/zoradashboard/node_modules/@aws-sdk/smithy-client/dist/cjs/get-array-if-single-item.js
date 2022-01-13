@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getArrayIfSingleItem = void 0;
+/**
+ * The XML parser will set one K:V for a member that could
+ * return multiple entries but only has one.
+ */
+const getArrayIfSingleItem = (mayBeArray) => Array.isArray(mayBeArray) ? mayBeArray : [mayBeArray];
+exports.getArrayIfSingleItem = getArrayIfSingleItem;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZ2V0LWFycmF5LWlmLXNpbmdsZS1pdGVtLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vLi4vc3JjL2dldC1hcnJheS1pZi1zaW5nbGUtaXRlbS50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7QUFBQTs7O0dBR0c7QUFDSSxNQUFNLG9CQUFvQixHQUFHLENBQUksVUFBYSxFQUFXLEVBQUUsQ0FDaEUsS0FBSyxDQUFDLE9BQU8sQ0FBQyxVQUFVLENBQUMsQ0FBQyxDQUFDLENBQUMsVUFBVSxDQUFDLENBQUMsQ0FBQyxDQUFDLFVBQVUsQ0FBQyxDQUFDO0FBRDNDLFFBQUEsb0JBQW9CLHdCQUN1QiIsInNvdXJjZXNDb250ZW50IjpbIi8qKlxuICogVGhlIFhNTCBwYXJzZXIgd2lsbCBzZXQgb25lIEs6ViBmb3IgYSBtZW1iZXIgdGhhdCBjb3VsZFxuICogcmV0dXJuIG11bHRpcGxlIGVudHJpZXMgYnV0IG9ubHkgaGFzIG9uZS5cbiAqL1xuZXhwb3J0IGNvbnN0IGdldEFycmF5SWZTaW5nbGVJdGVtID0gPFQ+KG1heUJlQXJyYXk6IFQpOiBUIHwgVFtdID0+XG4gIEFycmF5LmlzQXJyYXkobWF5QmVBcnJheSkgPyBtYXlCZUFycmF5IDogW21heUJlQXJyYXldO1xuIl19

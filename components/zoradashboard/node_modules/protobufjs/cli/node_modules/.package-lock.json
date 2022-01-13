@@ -1,0 +1,256 @@
+{
+  "name": "cli",
+  "version": "6.9.0",
+  "lockfileVersion": 2,
+  "requires": true,
+  "packages": {
+    "node_modules/acorn": {
+      "version": "7.4.1",
+      "license": "MIT",
+      "bin": {
+        "acorn": "bin/acorn"
+      },
+      "engines": {
+        "node": ">=0.4.0"
+      }
+    },
+    "node_modules/acorn-jsx": {
+      "version": "5.3.1",
+      "license": "MIT",
+      "peerDependencies": {
+        "acorn": "^6.0.0 || ^7.0.0 || ^8.0.0"
+      }
+    },
+    "node_modules/balanced-match": {
+      "version": "1.0.0",
+      "license": "MIT"
+    },
+    "node_modules/brace-expansion": {
+      "version": "1.1.11",
+      "license": "MIT",
+      "dependencies": {
+        "balanced-match": "^1.0.0",
+        "concat-map": "0.0.1"
+      }
+    },
+    "node_modules/concat-map": {
+      "version": "0.0.1",
+      "license": "MIT"
+    },
+    "node_modules/deep-is": {
+      "version": "0.1.3",
+      "license": "MIT"
+    },
+    "node_modules/escodegen": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/escodegen/-/escodegen-2.0.0.tgz",
+      "integrity": "sha512-mmHKys/C8BFUGI+MAWNcSYoORYLMdPzjrknd2Vc+bUsjN5bXcr8EhrNB+UTqfL1y3I9c4fw2ihgtMPQLBRiQxw==",
+      "dependencies": {
+        "esprima": "^4.0.1",
+        "estraverse": "^5.2.0",
+        "esutils": "^2.0.2",
+        "optionator": "^0.8.1"
+      },
+      "bin": {
+        "escodegen": "bin/escodegen.js",
+        "esgenerate": "bin/esgenerate.js"
+      },
+      "engines": {
+        "node": ">=6.0"
+      },
+      "optionalDependencies": {
+        "source-map": "~0.6.1"
+      }
+    },
+    "node_modules/eslint-visitor-keys": {
+      "version": "1.3.0",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=4"
+      }
+    },
+    "node_modules/espree": {
+      "version": "7.3.1",
+      "license": "BSD-2-Clause",
+      "dependencies": {
+        "acorn": "^7.4.0",
+        "acorn-jsx": "^5.3.1",
+        "eslint-visitor-keys": "^1.3.0"
+      },
+      "engines": {
+        "node": "^10.12.0 || >=12.0.0"
+      }
+    },
+    "node_modules/esprima": {
+      "version": "4.0.1",
+      "license": "BSD-2-Clause",
+      "bin": {
+        "esparse": "bin/esparse.js",
+        "esvalidate": "bin/esvalidate.js"
+      },
+      "engines": {
+        "node": ">=4"
+      }
+    },
+    "node_modules/estraverse": {
+      "version": "5.2.0",
+      "license": "BSD-2-Clause",
+      "engines": {
+        "node": ">=4.0"
+      }
+    },
+    "node_modules/esutils": {
+      "version": "2.0.3",
+      "license": "BSD-2-Clause",
+      "engines": {
+        "node": ">=0.10.0"
+      }
+    },
+    "node_modules/fast-levenshtein": {
+      "version": "2.0.6",
+      "license": "MIT"
+    },
+    "node_modules/fs.realpath": {
+      "version": "1.0.0",
+      "license": "ISC"
+    },
+    "node_modules/glob": {
+      "version": "7.1.6",
+      "license": "ISC",
+      "dependencies": {
+        "fs.realpath": "^1.0.0",
+        "inflight": "^1.0.4",
+        "inherits": "2",
+        "minimatch": "^3.0.4",
+        "once": "^1.3.0",
+        "path-is-absolute": "^1.0.0"
+      },
+      "engines": {
+        "node": "*"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/isaacs"
+      }
+    },
+    "node_modules/inflight": {
+      "version": "1.0.6",
+      "license": "ISC",
+      "dependencies": {
+        "once": "^1.3.0",
+        "wrappy": "1"
+      }
+    },
+    "node_modules/inherits": {
+      "version": "2.0.4",
+      "license": "ISC"
+    },
+    "node_modules/levn": {
+      "version": "0.3.0",
+      "license": "MIT",
+      "dependencies": {
+        "prelude-ls": "~1.1.2",
+        "type-check": "~0.3.2"
+      },
+      "engines": {
+        "node": ">= 0.8.0"
+      }
+    },
+    "node_modules/minimatch": {
+      "version": "3.0.4",
+      "license": "ISC",
+      "dependencies": {
+        "brace-expansion": "^1.1.7"
+      },
+      "engines": {
+        "node": "*"
+      }
+    },
+    "node_modules/once": {
+      "version": "1.4.0",
+      "license": "ISC",
+      "dependencies": {
+        "wrappy": "1"
+      }
+    },
+    "node_modules/optionator": {
+      "version": "0.8.3",
+      "license": "MIT",
+      "dependencies": {
+        "deep-is": "~0.1.3",
+        "fast-levenshtein": "~2.0.6",
+        "levn": "~0.3.0",
+        "prelude-ls": "~1.1.2",
+        "type-check": "~0.3.2",
+        "word-wrap": "~1.2.3"
+      },
+      "engines": {
+        "node": ">= 0.8.0"
+      }
+    },
+    "node_modules/path-is-absolute": {
+      "version": "1.0.1",
+      "license": "MIT",
+      "engines": {
+        "node": ">=0.10.0"
+      }
+    },
+    "node_modules/prelude-ls": {
+      "version": "1.1.2",
+      "engines": {
+        "node": ">= 0.8.0"
+      }
+    },
+    "node_modules/rimraf": {
+      "version": "3.0.2",
+      "license": "ISC",
+      "dependencies": {
+        "glob": "^7.1.3"
+      },
+      "bin": {
+        "rimraf": "bin.js"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/isaacs"
+      }
+    },
+    "node_modules/source-map": {
+      "version": "0.6.1",
+      "license": "BSD-3-Clause",
+      "optional": true,
+      "engines": {
+        "node": ">=0.10.0"
+      }
+    },
+    "node_modules/tmp": {
+      "version": "0.2.1",
+      "license": "MIT",
+      "dependencies": {
+        "rimraf": "^3.0.0"
+      },
+      "engines": {
+        "node": ">=8.17.0"
+      }
+    },
+    "node_modules/type-check": {
+      "version": "0.3.2",
+      "license": "MIT",
+      "dependencies": {
+        "prelude-ls": "~1.1.2"
+      },
+      "engines": {
+        "node": ">= 0.8.0"
+      }
+    },
+    "node_modules/word-wrap": {
+      "version": "1.2.3",
+      "license": "MIT",
+      "engines": {
+        "node": ">=0.10.0"
+      }
+    },
+    "node_modules/wrappy": {
+      "version": "1.0.2",
+      "license": "ISC"
+    }
+  }
+}

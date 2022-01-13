@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "lib": ["es5", "es2015.collection"],
+    "declarationDir": "./types",
+    "rootDir": "./src",
+    "outDir": "./dist/es",
+    "baseUrl": "."
+  },
+  "extends": "../../tsconfig.es.json",
+  "include": ["src/"]
+}

@@ -1,0 +1,15 @@
+@import './Theme.css';
+
+.photoPickerButton {
+  width: 100%;
+}
+
+.photoPlaceholder {
+  border: 2px dotted var(--grey);
+  padding: 64px 0 64px;
+}
+
+.photoPlaceholderIcon {
+  text-align: center;
+  opacity: 0.2;
+}

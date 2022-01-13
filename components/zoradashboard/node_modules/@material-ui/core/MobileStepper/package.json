@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/MobileStepper/index.js",
+  "types": "./index.d.ts"
+}

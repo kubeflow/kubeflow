@@ -1,0 +1,263 @@
+function _inheritsLoose(subClass, superClass) { subClass.prototype = Object.create(superClass.prototype); subClass.prototype.constructor = subClass; subClass.__proto__ = superClass; }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ *  strict
+ */
+import { visit, visitWithTypeInfo } from '../language/visitor';
+import { Kind } from '../language/kinds';
+import { TypeInfo } from '../utilities/TypeInfo';
+
+/**
+ * An instance of this class is passed as the "this" context to all validators,
+ * allowing access to commonly useful contextual information from within a
+ * validation rule.
+ */
+export var ASTValidationContext =
+/*#__PURE__*/
+function () {
+  function ASTValidationContext(ast) {
+    _defineProperty(this, "_ast", void 0);
+
+    _defineProperty(this, "_errors", void 0);
+
+    this._ast = ast;
+    this._errors = [];
+  }
+
+  var _proto = ASTValidationContext.prototype;
+
+  _proto.reportError = function reportError(error) {
+    this._errors.push(error);
+  };
+
+  _proto.getErrors = function getErrors() {
+    return this._errors;
+  };
+
+  _proto.getDocument = function getDocument() {
+    return this._ast;
+  };
+
+  return ASTValidationContext;
+}();
+export var SDLValidationContext =
+/*#__PURE__*/
+function (_ASTValidationContext) {
+  _inheritsLoose(SDLValidationContext, _ASTValidationContext);
+
+  function SDLValidationContext(ast, schema) {
+    var _this;
+
+    _this = _ASTValidationContext.call(this, ast) || this;
+
+    _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "_schema", void 0);
+
+    _this._schema = schema;
+    return _this;
+  }
+
+  var _proto2 = SDLValidationContext.prototype;
+
+  _proto2.getSchema = function getSchema() {
+    return this._schema;
+  };
+
+  return SDLValidationContext;
+}(ASTValidationContext);
+export var ValidationContext =
+/*#__PURE__*/
+function (_ASTValidationContext2) {
+  _inheritsLoose(ValidationContext, _ASTValidationContext2);
+
+  function ValidationContext(schema, ast, typeInfo) {
+    var _this2;
+
+    _this2 = _ASTValidationContext2.call(this, ast) || this;
+
+    _defineProperty(_assertThisInitialized(_assertThisInitialized(_this2)), "_schema", void 0);
+
+    _defineProperty(_assertThisInitialized(_assertThisInitialized(_this2)), "_typeInfo", void 0);
+
+    _defineProperty(_assertThisInitialized(_assertThisInitialized(_this2)), "_fragments", void 0);
+
+    _defineProperty(_assertThisInitialized(_assertThisInitialized(_this2)), "_fragmentSpreads", void 0);
+
+    _defineProperty(_assertThisInitialized(_assertThisInitialized(_this2)), "_recursivelyReferencedFragments", void 0);
+
+    _defineProperty(_assertThisInitialized(_assertThisInitialized(_this2)), "_variableUsages", void 0);
+
+    _defineProperty(_assertThisInitialized(_assertThisInitialized(_this2)), "_recursiveVariableUsages", void 0);
+
+    _this2._schema = schema;
+    _this2._typeInfo = typeInfo;
+    _this2._fragmentSpreads = new Map();
+    _this2._recursivelyReferencedFragments = new Map();
+    _this2._variableUsages = new Map();
+    _this2._recursiveVariableUsages = new Map();
+    return _this2;
+  }
+
+  var _proto3 = ValidationContext.prototype;
+
+  _proto3.getSchema = function getSchema() {
+    return this._schema;
+  };
+
+  _proto3.getFragment = function getFragment(name) {
+    var fragments = this._fragments;
+
+    if (!fragments) {
+      this._fragments = fragments = this.getDocument().definitions.reduce(function (frags, statement) {
+        if (statement.kind === Kind.FRAGMENT_DEFINITION) {
+          frags[statement.name.value] = statement;
+        }
+
+        return frags;
+      }, Object.create(null));
+    }
+
+    return fragments[name];
+  };
+
+  _proto3.getFragmentSpreads = function getFragmentSpreads(node) {
+    var spreads = this._fragmentSpreads.get(node);
+
+    if (!spreads) {
+      spreads = [];
+      var setsToVisit = [node];
+
+      while (setsToVisit.length !== 0) {
+        var set = setsToVisit.pop();
+
+        for (var i = 0; i < set.selections.length; i++) {
+          var selection = set.selections[i];
+
+          if (selection.kind === Kind.FRAGMENT_SPREAD) {
+            spreads.push(selection);
+          } else if (selection.selectionSet) {
+            setsToVisit.push(selection.selectionSet);
+          }
+        }
+      }
+
+      this._fragmentSpreads.set(node, spreads);
+    }
+
+    return spreads;
+  };
+
+  _proto3.getRecursivelyReferencedFragments = function getRecursivelyReferencedFragments(operation) {
+    var fragments = this._recursivelyReferencedFragments.get(operation);
+
+    if (!fragments) {
+      fragments = [];
+      var collectedNames = Object.create(null);
+      var nodesToVisit = [operation.selectionSet];
+
+      while (nodesToVisit.length !== 0) {
+        var node = nodesToVisit.pop();
+        var spreads = this.getFragmentSpreads(node);
+
+        for (var i = 0; i < spreads.length; i++) {
+          var fragName = spreads[i].name.value;
+
+          if (collectedNames[fragName] !== true) {
+            collectedNames[fragName] = true;
+            var fragment = this.getFragment(fragName);
+
+            if (fragment) {
+              fragments.push(fragment);
+              nodesToVisit.push(fragment.selectionSet);
+            }
+          }
+        }
+      }
+
+      this._recursivelyReferencedFragments.set(operation, fragments);
+    }
+
+    return fragments;
+  };
+
+  _proto3.getVariableUsages = function getVariableUsages(node) {
+    var usages = this._variableUsages.get(node);
+
+    if (!usages) {
+      var newUsages = [];
+      var typeInfo = new TypeInfo(this._schema);
+      visit(node, visitWithTypeInfo(typeInfo, {
+        VariableDefinition: function VariableDefinition() {
+          return false;
+        },
+        Variable: function Variable(variable) {
+          newUsages.push({
+            node: variable,
+            type: typeInfo.getInputType(),
+            defaultValue: typeInfo.getDefaultValue()
+          });
+        }
+      }));
+      usages = newUsages;
+
+      this._variableUsages.set(node, usages);
+    }
+
+    return usages;
+  };
+
+  _proto3.getRecursiveVariableUsages = function getRecursiveVariableUsages(operation) {
+    var usages = this._recursiveVariableUsages.get(operation);
+
+    if (!usages) {
+      usages = this.getVariableUsages(operation);
+      var fragments = this.getRecursivelyReferencedFragments(operation);
+
+      for (var i = 0; i < fragments.length; i++) {
+        Array.prototype.push.apply(usages, this.getVariableUsages(fragments[i]));
+      }
+
+      this._recursiveVariableUsages.set(operation, usages);
+    }
+
+    return usages;
+  };
+
+  _proto3.getType = function getType() {
+    return this._typeInfo.getType();
+  };
+
+  _proto3.getParentType = function getParentType() {
+    return this._typeInfo.getParentType();
+  };
+
+  _proto3.getInputType = function getInputType() {
+    return this._typeInfo.getInputType();
+  };
+
+  _proto3.getParentInputType = function getParentInputType() {
+    return this._typeInfo.getParentInputType();
+  };
+
+  _proto3.getFieldDef = function getFieldDef() {
+    return this._typeInfo.getFieldDef();
+  };
+
+  _proto3.getDirective = function getDirective() {
+    return this._typeInfo.getDirective();
+  };
+
+  _proto3.getArgument = function getArgument() {
+    return this._typeInfo.getArgument();
+  };
+
+  return ValidationContext;
+}(ASTValidationContext);

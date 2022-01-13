@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/FormGroup/index.js",
+  "types": "./index.d.ts"
+}

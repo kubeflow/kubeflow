@@ -1,0 +1,30 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getDefaultRetryQuota = void 0;
+const constants_1 = require("./constants");
+const getDefaultRetryQuota = (initialRetryTokens) => {
+    const MAX_CAPACITY = initialRetryTokens;
+    let availableCapacity = initialRetryTokens;
+    const getCapacityAmount = (error) => (error.name === "TimeoutError" ? constants_1.TIMEOUT_RETRY_COST : constants_1.RETRY_COST);
+    const hasRetryTokens = (error) => getCapacityAmount(error) <= availableCapacity;
+    const retrieveRetryTokens = (error) => {
+        if (!hasRetryTokens(error)) {
+            // retryStrategy should stop retrying, and return last error
+            throw new Error("No retry token available");
+        }
+        const capacityAmount = getCapacityAmount(error);
+        availableCapacity -= capacityAmount;
+        return capacityAmount;
+    };
+    const releaseRetryTokens = (capacityReleaseAmount) => {
+        availableCapacity += capacityReleaseAmount !== null && capacityReleaseAmount !== void 0 ? capacityReleaseAmount : constants_1.NO_RETRY_INCREMENT;
+        availableCapacity = Math.min(availableCapacity, MAX_CAPACITY);
+    };
+    return Object.freeze({
+        hasRetryTokens,
+        retrieveRetryTokens,
+        releaseRetryTokens,
+    });
+};
+exports.getDefaultRetryQuota = getDefaultRetryQuota;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZGVmYXVsdFJldHJ5UXVvdGEuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi9zcmMvZGVmYXVsdFJldHJ5UXVvdGEudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7O0FBRUEsMkNBQWlGO0FBRzFFLE1BQU0sb0JBQW9CLEdBQUcsQ0FBQyxrQkFBMEIsRUFBYyxFQUFFO0lBQzdFLE1BQU0sWUFBWSxHQUFHLGtCQUFrQixDQUFDO0lBQ3hDLElBQUksaUJBQWlCLEdBQUcsa0JBQWtCLENBQUM7SUFFM0MsTUFBTSxpQkFBaUIsR0FBRyxDQUFDLEtBQWUsRUFBRSxFQUFFLENBQUMsQ0FBQyxLQUFLLENBQUMsSUFBSSxLQUFLLGNBQWMsQ0FBQyxDQUFDLENBQUMsOEJBQWtCLENBQUMsQ0FBQyxDQUFDLHNCQUFVLENBQUMsQ0FBQztJQUVqSCxNQUFNLGNBQWMsR0FBRyxDQUFDLEtBQWUsRUFBRSxFQUFFLENBQUMsaUJBQWlCLENBQUMsS0FBSyxDQUFDLElBQUksaUJBQWlCLENBQUM7SUFFMUYsTUFBTSxtQkFBbUIsR0FBRyxDQUFDLEtBQWUsRUFBRSxFQUFFO1FBQzlDLElBQUksQ0FBQyxjQUFjLENBQUMsS0FBSyxDQUFDLEVBQUU7WUFDMUIsNERBQTREO1lBQzVELE1BQU0sSUFBSSxLQUFLLENBQUMsMEJBQTBCLENBQUMsQ0FBQztTQUM3QztRQUNELE1BQU0sY0FBYyxHQUFHLGlCQUFpQixDQUFDLEtBQUssQ0FBQyxDQUFDO1FBQ2hELGlCQUFpQixJQUFJLGNBQWMsQ0FBQztRQUNwQyxPQUFPLGNBQWMsQ0FBQztJQUN4QixDQUFDLENBQUM7SUFFRixNQUFNLGtCQUFrQixHQUFHLENBQUMscUJBQThCLEVBQUUsRUFBRTtRQUM1RCxpQkFBaUIsSUFBSSxxQkFBcUIsYUFBckIscUJBQXFCLGNBQXJCLHFCQUFxQixHQUFJLDhCQUFrQixDQUFDO1FBQ2pFLGlCQUFpQixHQUFHLElBQUksQ0FBQyxHQUFHLENBQUMsaUJBQWlCLEVBQUUsWUFBWSxDQUFDLENBQUM7SUFDaEUsQ0FBQyxDQUFDO0lBRUYsT0FBTyxNQUFNLENBQUMsTUFBTSxDQUFDO1FBQ25CLGNBQWM7UUFDZCxtQkFBbUI7UUFDbkIsa0JBQWtCO0tBQ25CLENBQUMsQ0FBQztBQUNMLENBQUMsQ0FBQztBQTVCVyxRQUFBLG9CQUFvQix3QkE0Qi9CIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgU2RrRXJyb3IgfSBmcm9tIFwiQGF3cy1zZGsvc21pdGh5LWNsaWVudFwiO1xuXG5pbXBvcnQgeyBOT19SRVRSWV9JTkNSRU1FTlQsIFJFVFJZX0NPU1QsIFRJTUVPVVRfUkVUUllfQ09TVCB9IGZyb20gXCIuL2NvbnN0YW50c1wiO1xuaW1wb3J0IHsgUmV0cnlRdW90YSB9IGZyb20gXCIuL2RlZmF1bHRTdHJhdGVneVwiO1xuXG5leHBvcnQgY29uc3QgZ2V0RGVmYXVsdFJldHJ5UXVvdGEgPSAoaW5pdGlhbFJldHJ5VG9rZW5zOiBudW1iZXIpOiBSZXRyeVF1b3RhID0+IHtcbiAgY29uc3QgTUFYX0NBUEFDSVRZID0gaW5pdGlhbFJldHJ5VG9rZW5zO1xuICBsZXQgYXZhaWxhYmxlQ2FwYWNpdHkgPSBpbml0aWFsUmV0cnlUb2tlbnM7XG5cbiAgY29uc3QgZ2V0Q2FwYWNpdHlBbW91bnQgPSAoZXJyb3I6IFNka0Vycm9yKSA9PiAoZXJyb3IubmFtZSA9PT0gXCJUaW1lb3V0RXJyb3JcIiA/IFRJTUVPVVRfUkVUUllfQ09TVCA6IFJFVFJZX0NPU1QpO1xuXG4gIGNvbnN0IGhhc1JldHJ5VG9rZW5zID0gKGVycm9yOiBTZGtFcnJvcikgPT4gZ2V0Q2FwYWNpdHlBbW91bnQoZXJyb3IpIDw9IGF2YWlsYWJsZUNhcGFjaXR5O1xuXG4gIGNvbnN0IHJldHJpZXZlUmV0cnlUb2tlbnMgPSAoZXJyb3I6IFNka0Vycm9yKSA9PiB7XG4gICAgaWYgKCFoYXNSZXRyeVRva2VucyhlcnJvcikpIHtcbiAgICAgIC8vIHJldHJ5U3RyYXRlZ3kgc2hvdWxkIHN0b3AgcmV0cnlpbmcsIGFuZCByZXR1cm4gbGFzdCBlcnJvclxuICAgICAgdGhyb3cgbmV3IEVycm9yKFwiTm8gcmV0cnkgdG9rZW4gYXZhaWxhYmxlXCIpO1xuICAgIH1cbiAgICBjb25zdCBjYXBhY2l0eUFtb3VudCA9IGdldENhcGFjaXR5QW1vdW50KGVycm9yKTtcbiAgICBhdmFpbGFibGVDYXBhY2l0eSAtPSBjYXBhY2l0eUFtb3VudDtcbiAgICByZXR1cm4gY2FwYWNpdHlBbW91bnQ7XG4gIH07XG5cbiAgY29uc3QgcmVsZWFzZVJldHJ5VG9rZW5zID0gKGNhcGFjaXR5UmVsZWFzZUFtb3VudD86IG51bWJlcikgPT4ge1xuICAgIGF2YWlsYWJsZUNhcGFjaXR5ICs9IGNhcGFjaXR5UmVsZWFzZUFtb3VudCA/PyBOT19SRVRSWV9JTkNSRU1FTlQ7XG4gICAgYXZhaWxhYmxlQ2FwYWNpdHkgPSBNYXRoLm1pbihhdmFpbGFibGVDYXBhY2l0eSwgTUFYX0NBUEFDSVRZKTtcbiAgfTtcblxuICByZXR1cm4gT2JqZWN0LmZyZWV6ZSh7XG4gICAgaGFzUmV0cnlUb2tlbnMsXG4gICAgcmV0cmlldmVSZXRyeVRva2VucyxcbiAgICByZWxlYXNlUmV0cnlUb2tlbnMsXG4gIH0pO1xufTtcbiJdfQ==

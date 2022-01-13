@@ -1,0 +1,30 @@
+root: true
+extends:
+  - airbnb-base
+  - prettier
+env:
+  browser: true
+settings:
+  import/resolver: webpack
+overrides:
+  files: *.test.js
+  rules: jest/valid-expect
+rules:
+  # Git-controlled
+  linebreak-style: off
+  # sjcl hmac breaks new-cap
+  new-cap:
+    - error
+    - newIsCapExceptions:
+        - sjcl.misc.hmac
+  # Check JSDocs
+  valid-jsdoc: error
+  require-jsdoc:
+    - error
+    - require:
+        FunctionDeclaration: true
+        ClassDeclaration: true
+        MethodDefinition: true
+  # Seems this doesn't use import/resolver? import/no-unresolved catches most of these anyway.
+  # https://github.com/benmosher/eslint-plugin-import/issues/496
+  import/no-extraneous-dependencies: off

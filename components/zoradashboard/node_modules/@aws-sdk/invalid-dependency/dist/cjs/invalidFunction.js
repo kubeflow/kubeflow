@@ -1,0 +1,8 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.invalidFunction = void 0;
+const invalidFunction = (message) => () => {
+    throw new Error(message);
+};
+exports.invalidFunction = invalidFunction;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW52YWxpZEZ1bmN0aW9uLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vLi4vc3JjL2ludmFsaWRGdW5jdGlvbi50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7QUFBTyxNQUFNLGVBQWUsR0FBRyxDQUFDLE9BQWUsRUFBRSxFQUFFLENBQUMsR0FBRyxFQUFFO0lBQ3ZELE1BQU0sSUFBSSxLQUFLLENBQUMsT0FBTyxDQUFDLENBQUM7QUFDM0IsQ0FBQyxDQUFDO0FBRlcsUUFBQSxlQUFlLG1CQUUxQiIsInNvdXJjZXNDb250ZW50IjpbImV4cG9ydCBjb25zdCBpbnZhbGlkRnVuY3Rpb24gPSAobWVzc2FnZTogc3RyaW5nKSA9PiAoKSA9PiB7XG4gIHRocm93IG5ldyBFcnJvcihtZXNzYWdlKTtcbn07XG4iXX0=

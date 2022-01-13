@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/themeAugmentation/index.js",
+  "types": "./index.d.ts"
+}

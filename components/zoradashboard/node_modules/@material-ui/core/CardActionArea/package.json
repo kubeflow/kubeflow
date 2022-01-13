@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/CardActionArea/index.js",
+  "types": "./index.d.ts"
+}

@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/BadgeUnstyled/index.js",
+  "types": "./index.d.ts"
+}

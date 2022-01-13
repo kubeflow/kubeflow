@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.blobHasher = void 0;
+const chunked_blob_reader_1 = require("@aws-sdk/chunked-blob-reader");
+const blobHasher = async function blobHasher(hashCtor, blob) {
+    const hash = new hashCtor();
+    await chunked_blob_reader_1.blobReader(blob, (chunk) => {
+        hash.update(chunk);
+    });
+    return hash.digest();
+};
+exports.blobHasher = blobHasher;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi9zcmMvaW5kZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7O0FBQUEsc0VBQTBEO0FBR25ELE1BQU0sVUFBVSxHQUF1QixLQUFLLFVBQVUsVUFBVSxDQUNyRSxRQUF5QixFQUN6QixJQUFVO0lBRVYsTUFBTSxJQUFJLEdBQUcsSUFBSSxRQUFRLEVBQUUsQ0FBQztJQUU1QixNQUFNLGdDQUFVLENBQUMsSUFBSSxFQUFFLENBQUMsS0FBSyxFQUFFLEVBQUU7UUFDL0IsSUFBSSxDQUFDLE1BQU0sQ0FBQyxLQUFLLENBQUMsQ0FBQztJQUNyQixDQUFDLENBQUMsQ0FBQztJQUVILE9BQU8sSUFBSSxDQUFDLE1BQU0sRUFBRSxDQUFDO0FBQ3ZCLENBQUMsQ0FBQztBQVhXLFFBQUEsVUFBVSxjQVdyQiIsInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IGJsb2JSZWFkZXIgfSBmcm9tIFwiQGF3cy1zZGsvY2h1bmtlZC1ibG9iLXJlYWRlclwiO1xuaW1wb3J0IHsgSGFzaENvbnN0cnVjdG9yLCBTdHJlYW1IYXNoZXIgfSBmcm9tIFwiQGF3cy1zZGsvdHlwZXNcIjtcblxuZXhwb3J0IGNvbnN0IGJsb2JIYXNoZXI6IFN0cmVhbUhhc2hlcjxCbG9iPiA9IGFzeW5jIGZ1bmN0aW9uIGJsb2JIYXNoZXIoXG4gIGhhc2hDdG9yOiBIYXNoQ29uc3RydWN0b3IsXG4gIGJsb2I6IEJsb2Jcbik6IFByb21pc2U8VWludDhBcnJheT4ge1xuICBjb25zdCBoYXNoID0gbmV3IGhhc2hDdG9yKCk7XG5cbiAgYXdhaXQgYmxvYlJlYWRlcihibG9iLCAoY2h1bmspID0+IHtcbiAgICBoYXNoLnVwZGF0ZShjaHVuayk7XG4gIH0pO1xuXG4gIHJldHVybiBoYXNoLmRpZ2VzdCgpO1xufTtcbiJdfQ==

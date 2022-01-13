@@ -1,0 +1,6 @@
+{
+  "sideEffects": false,
+  "module": "./index.js",
+  "main": "../node/RadioGroup/index.js",
+  "types": "./index.d.ts"
+}

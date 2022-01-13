@@ -1,0 +1,6 @@
+{
+  "name": "firebase/messaging",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "typings": "../empty-import.d.ts"
+}

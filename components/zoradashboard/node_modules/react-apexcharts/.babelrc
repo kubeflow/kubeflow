@@ -1,0 +1,6 @@
+{
+  "presets":[
+      "react",
+      "stage-3"
+  ]
+}
