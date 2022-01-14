@@ -95,21 +95,25 @@ const items = [
     title: 'Streams',
     items: [
       {
-        href: '/dashboard/invoices',
+        href: '/dashboard/streams',
         title: 'List'
       },
       {
-        href: '/dashboard/invoices/create',
+        href: '/dashboard/streams/create',
         title: 'Create'
       },
       {
-        href: '/dashboard/invoices/1',
+        href: '/dashboard/streams/1',
         title: 'Details'
       },
       {
-        href: '/dashboard/invoices/1/preview',
+        href: '/dashboard/streams/1/preview',
         title: 'Preview'
-      }
+      },
+      // {
+      //   href: '/dashboard/streams/onboard',
+      //   title: 'Onboard'
+      // },
     ]
   },
   {

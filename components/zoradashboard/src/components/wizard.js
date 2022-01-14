@@ -2,43 +2,57 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Card, CardContent, Container, Grid } from '@material-ui/core';
 import { Stepper } from './stepper';
-import { WizardBusiness } from './wizard-business';
+import { StreamerClusterType } from './wizard-cluster-type';
 import { WizardConfirmation } from './wizard-confirmation';
 import { WizardNotifications } from './wizard-notifications';
 import { WizardProfile } from './wizard-profile';
+import { ClusterCreationConfirmation } from './wizard-cluster-confirmation';
+import { StreamerClusterDetails } from './wizard-streamer-cluster-details';
 
 const steps = [
   {
     title: 'Step 1',
-    content: 'Business'
+    content: 'Select Cluster Type'
   },
   {
     title: 'Step 2',
-    content: 'Profile'
+    content: 'General Cluster Details'
   },
+  // {
+  //   title: 'Step 3',
+  //   content: 'Cluster Topic Details'
+  // },
+  // {
+  //   title: 'Step 4',
+  //   content: 'Cluster User Details'
+  // },
+  // {
+  //   title: 'Step 5',
+  //   content: 'Cluster Service Details'
+  // }, 
   {
     title: 'Step 3',
-    content: 'Business'
-  },
-  {
-    title: 'Step 4',
     content: 'Confirmation'
   }
+
 ];
 
 export const Wizard = (props) => {
   const { orientation } = props;
   const [currentStep, setCurrentStep] = useState(0);
   const [values, setValues] = useState({
-    business: '',
-    fullName: '',
-    website: '',
-    companyName: '',
-    notifications: {
-      newCompanySignups: true,
-      newOrders: false,
-      publishErrors: false
-    }
+    clusterType: '',
+    clusterName: '',
+    clusterUserAccount: '',
+    clusterTopic: '',
+    clusterServiceName: '',
+    // website: '',
+    // companyName: '',
+    // notifications: {
+    //   newCompanySignups: true,
+    //   newOrders: false,
+    //   publishErrors: false
+    // }
   });
 
   const handleNextStep = (newValues) => {
@@ -57,8 +71,8 @@ export const Wizard = (props) => {
   const getContent = () => {
     if (currentStep === 0) {
       return (
-        <WizardBusiness
-          initialBusiness={values.business}
+        <StreamerClusterType
+          initialClusterType={values.clusterType}
           onNextStep={handleNextStep}
         />
       );
@@ -66,11 +80,14 @@ export const Wizard = (props) => {
 
     if (currentStep === 1) {
       return (
-        <WizardProfile
+        <StreamerClusterDetails
           initialValues={{
-            fullName: values.fullName,
-            website: values.website,
-            companyName: values.companyName
+            clusterName: values.clusterName,
+            clusterUserAccount: values.clusterUserAccount,
+            clusterTopic: values.clusterTopic,
+            clusterServiceName: values.clusterServiceName
+            // website: values.website,
+            // companyName: values.companyName
           }}
           onNextStep={handleNextStep}
           onPreviousStep={handlePreviousStep}
@@ -78,18 +95,60 @@ export const Wizard = (props) => {
       );
     }
 
-    if (currentStep === 2) {
-      return (
-        <WizardNotifications
-          onNextStep={handleNextStep}
-          onPreviousStep={handlePreviousStep}
-          initialNotifications={values.notifications}
-        />
-      );
-    }
+    // if (currentStep === 2) {
+    //   return (
+    //     <WizardProfile
+    //       initialValues={{
+    //         fullName: values.fullName,
+    //         website: values.website,
+    //         companyName: values.companyName
+    //       }}
+    //       onNextStep={handleNextStep}
+    //       onPreviousStep={handlePreviousStep}
+    //     />
+    //   );
+    // }
+
+    // if (currentStep === 3) {
+    //   return (
+    //     <WizardProfile
+    //       initialValues={{
+    //         fullName: values.fullName,
+    //         website: values.website,
+    //         companyName: values.companyName
+    //       }}
+    //       onNextStep={handleNextStep}
+    //       onPreviousStep={handlePreviousStep}
+    //     />
+    //   );
+    // }
+
+    // if (currentStep === 4) {
+    //   return (
+    //     <WizardProfile
+    //       initialValues={{
+    //         fullName: values.fullName,
+    //         website: values.website,
+    //         companyName: values.companyName
+    //       }}
+    //       onNextStep={handleNextStep}
+    //       onPreviousStep={handlePreviousStep}
+    //     />
+    //   );
+    // }
+
+    // if (currentStep === 3) {
+    //   return (
+    //     <WizardNotifications
+    //       onNextStep={handleNextStep}
+    //       onPreviousStep={handlePreviousStep}
+    //       initialNotifications={values.notifications}
+    //     />
+    //   );
+    // }
 
     return (
-      <WizardConfirmation
+      <ClusterCreationConfirmation
         onPreviousStep={handlePreviousStep}
         values={values}
       />

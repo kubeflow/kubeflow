@@ -41,7 +41,9 @@ const Order = Loadable(lazy(() => import('./containers/order').then((module) => 
 const Orders = Loadable(lazy(() => import('./containers/orders').then((module) => ({ default: module.Orders }))));
 
 const Invoices = Loadable(lazy(() => import('./containers/invoices').then((module) => ({ default: module.Invoices }))));
+const Streams = Loadable(lazy(() => import('./containers/streams').then((module) => ({ default: module.Streams }))));
 const InvoiceCreate = Loadable(lazy(() => import('./containers/invoice-create').then((module) => ({ default: module.InvoiceCreate }))));
+const StreamClusterCreate = Loadable(lazy(() => import('./containers/stream-cluster-create').then((module) => ({ default: module.StreamClusterCreate }))));
 const InvoiceSummary = Loadable(lazy(() => import('./containers/invoice').then((module) => ({ default: module.Invoice }))));
 const InvoicePreview = Loadable(lazy(() => import('./containers/invoice-preview').then((module) => ({ default: module.InvoicePreview }))));
 
@@ -266,16 +268,16 @@ const routes = [
         ]
       },
       {
-        path: 'invoices',
+        path: 'streams',
         children: [
           {
             path: '/',
-            element: <Invoices />
+            element: <Streams />
           },
-          {
-            path: 'create',
-            element: <InvoiceCreate />
-          },
+          // {
+          //   path: 'create',
+          //   element: <InvoiceCreate />
+          // },
           {
             path: ':invoiceId',
             children: [
@@ -288,7 +290,12 @@ const routes = [
                 element: <InvoicePreview />
               }
             ]
-          }
+          },
+          {
+            path: 'create',
+            // element: <ComponentsOnboarding />
+            element: <StreamClusterCreate/>
+          },
         ]
       },
       {

@@ -13,7 +13,7 @@ import { Chip as ChipIcon } from '../icons/chip';
 import { Cloud as CloudIcon } from '../icons/cloud';
 import { OfficeBuilding as OfficeBuildingIcon } from '../icons/office-building';
 
-const businessOptions = [
+const clusterTypeOptions = [
   {
     content: 'Ephemeral Cluster stores data for the lifetime of the cluster instance. Data will be lost when the instance is restarted recommended for development only',
     icon: ChipIcon,
@@ -31,25 +31,24 @@ const businessOptions = [
   }
 ];
 
-export const WizardBusiness = (props) => {
-  const { initialBusiness, onNextStep } = props;
-  console.log(props)
-  const [business, setBusiness] = useState(initialBusiness);
+export const StreamerClusterType = (props) => {
+  const { initialClusterType, onNextStep } = props;
+  const [clusterType, setClusters] = useState(initialClusterType);
   const [error, setError] = useState(null);
 
-  const handleBusinessTypeChange = (value) => {
-    setBusiness(value);
+  const handleClusterTypeChange = (value) => {
+    setClusters(value);
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    if (!business) {
-      setError('Please select a business');
+    if (!clusterType) {
+      setError('Please select a cluster type');
       return;
     }
 
-    onNextStep({ business });
+    onNextStep({ clusterType });
   };
 
   return (
@@ -77,15 +76,15 @@ export const WizardBusiness = (props) => {
           </Typography>
         </Box>
         <Box>
-          {businessOptions.map((option) => {
+          {clusterTypeOptions.map((option) => {
             const { content, icon: Icon, value } = option;
 
             return (
               <Card
-                onClick={() => handleBusinessTypeChange(value)}
+                onClick={() => handleClusterTypeChange(value)}
                 key={value}
                 sx={{
-                  boxShadow: (theme) => (business === value
+                  boxShadow: (theme) => (clusterType === value
                     ? `0px 0px 0px 2px ${theme.palette.primary.main}`
                     : `0px 0px 0px 1px ${theme.palette.divider}`),
                   cursor: 'pointer',
@@ -158,7 +157,7 @@ export const WizardBusiness = (props) => {
   );
 };
 
-WizardBusiness.propTypes = {
-  initialBusiness: PropTypes.string.isRequired,
+StreamerClusterType.propTypes = {
+  initialClusterType: PropTypes.string.isRequired,
   onNextStep: PropTypes.func.isRequired
 };

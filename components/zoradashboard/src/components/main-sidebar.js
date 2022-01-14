@@ -74,23 +74,23 @@ const sections = [
     ]
   },
   {
-    title: 'Invoices',
+    title: 'Stream',
     items: [
       {
         title: 'List',
-        href: '/dashboard/invoices'
+        href: '/dashboard/streams'
       },
       {
         title: 'Create',
-        href: '/dashboard/invoices/create'
+        href: '/dashboard/streams/create'
       },
       {
         title: 'Details',
-        href: '/dashboard/invoices/1'
+        href: '/dashboard/streams/1'
       },
       {
         title: 'Preview',
-        href: '/dashboard/invoices/1/preview'
+        href: '/dashboard/streams/1/preview'
       }
     ]
   },
