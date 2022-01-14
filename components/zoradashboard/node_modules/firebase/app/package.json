@@ -1,7 +1,0 @@
-{
-  "name": "firebase/app",
-  "main": "dist/index.cjs.js",
-  "browser": "dist/index.esm.js",
-  "module": "dist/index.esm.js",
-  "typings": "../index.d.ts"
-}

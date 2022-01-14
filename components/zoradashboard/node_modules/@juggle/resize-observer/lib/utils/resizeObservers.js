@@ -1,2 +1,0 @@
-var resizeObservers = [];
-export { resizeObservers };

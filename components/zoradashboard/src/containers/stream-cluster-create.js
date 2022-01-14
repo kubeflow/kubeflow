@@ -16,7 +16,7 @@ export const StreamClusterCreate = () => {
   return (
     <>
       <Helmet>
-        <title>Components: Onboarding | Carpatin Dashboard</title>
+        <title>Streams: Create | Zora Cloud</title>
       </Helmet>
       <Box
         sx={{

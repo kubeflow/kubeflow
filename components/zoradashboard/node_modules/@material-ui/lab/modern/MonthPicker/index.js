@@ -1,1 +1,0 @@
-export { default, getMonthPickerUtilityClass, monthPickerClasses } from './MonthPicker';

@@ -1,7 +1,0 @@
-{
-  "name": "firebase/firestore/memory",
-  "description": "The bundle loading feature for the memory-only build of the Cloud Firestore JS SDK.",
-  "main": "dist/index.node.cjs.js",
-  "module": "dist/index.esm.js",
-  "typings": "../../empty-import.d.ts"
-}

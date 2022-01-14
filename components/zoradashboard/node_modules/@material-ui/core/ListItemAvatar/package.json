@@ -1,6 +1,0 @@
-{
-  "sideEffects": false,
-  "module": "./index.js",
-  "main": "../node/ListItemAvatar/index.js",
-  "types": "./index.d.ts"
-}

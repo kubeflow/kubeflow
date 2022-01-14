@@ -1,8 +1,0 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.UA_ESCAPE_REGEX = exports.SPACE = exports.X_AMZ_USER_AGENT = exports.USER_AGENT = void 0;
-exports.USER_AGENT = "user-agent";
-exports.X_AMZ_USER_AGENT = "x-amz-user-agent";
-exports.SPACE = " ";
-exports.UA_ESCAPE_REGEX = /[^\!\#\$\%\&\'\*\+\-\.\^\_\`\|\~\d\w]/g;
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiY29uc3RhbnRzLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vLi4vc3JjL2NvbnN0YW50cy50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7QUFBYSxRQUFBLFVBQVUsR0FBRyxZQUFZLENBQUM7QUFFMUIsUUFBQSxnQkFBZ0IsR0FBRyxrQkFBa0IsQ0FBQztBQUV0QyxRQUFBLEtBQUssR0FBRyxHQUFHLENBQUM7QUFFWixRQUFBLGVBQWUsR0FBRyx3Q0FBd0MsQ0FBQyIsInNvdXJjZXNDb250ZW50IjpbImV4cG9ydCBjb25zdCBVU0VSX0FHRU5UID0gXCJ1c2VyLWFnZW50XCI7XG5cbmV4cG9ydCBjb25zdCBYX0FNWl9VU0VSX0FHRU5UID0gXCJ4LWFtei11c2VyLWFnZW50XCI7XG5cbmV4cG9ydCBjb25zdCBTUEFDRSA9IFwiIFwiO1xuXG5leHBvcnQgY29uc3QgVUFfRVNDQVBFX1JFR0VYID0gL1teXFwhXFwjXFwkXFwlXFwmXFwnXFwqXFwrXFwtXFwuXFxeXFxfXFxgXFx8XFx+XFxkXFx3XS9nO1xuIl19

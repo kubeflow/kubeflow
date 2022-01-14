@@ -1,7 +1,0 @@
-{
-  "name": "firebase/firestore",
-  "description": "The Cloud Firestore component of the Firebase JS SDK.",
-  "main": "dist/index.node.cjs.js",
-  "module": "dist/index.esm.js",
-  "typings": "../empty-import.d.ts"
-}

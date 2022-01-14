@@ -1,9 +1,0 @@
-import { __awaiter, __generator } from "tslib";
-import { fromStatic as convertToProvider } from "@aws-sdk/property-provider";
-var isFunction = function (func) { return typeof func === "function"; };
-export var fromStatic = function (defaultValue) {
-    return isFunction(defaultValue) ? function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
-        return [2 /*return*/, defaultValue()];
-    }); }); } : convertToProvider(defaultValue);
-};
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZnJvbVN0YXRpYy5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uLy4uL3NyYy9mcm9tU3RhdGljLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQSxPQUFPLEVBQUUsVUFBVSxJQUFJLGlCQUFpQixFQUFFLE1BQU0sNEJBQTRCLENBQUM7QUFLN0UsSUFBTSxVQUFVLEdBQUcsVUFBSSxJQUF5QixJQUF3QixPQUFBLE9BQU8sSUFBSSxLQUFLLFVBQVUsRUFBMUIsQ0FBMEIsQ0FBQztBQUVuRyxNQUFNLENBQUMsSUFBTSxVQUFVLEdBQUcsVUFBSSxZQUFpQztJQUM3RCxPQUFBLFVBQVUsQ0FBQyxZQUFZLENBQUMsQ0FBQyxDQUFDLENBQUM7UUFBWSxzQkFBQSxZQUFZLEVBQUUsRUFBQTthQUFBLENBQUMsQ0FBQyxDQUFDLGlCQUFpQixDQUFDLFlBQVksQ0FBQztBQUF2RixDQUF1RixDQUFDIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgZnJvbVN0YXRpYyBhcyBjb252ZXJ0VG9Qcm92aWRlciB9IGZyb20gXCJAYXdzLXNkay9wcm9wZXJ0eS1wcm92aWRlclwiO1xuaW1wb3J0IHsgUHJvdmlkZXIgfSBmcm9tIFwiQGF3cy1zZGsvdHlwZXNcIjtcblxuZXhwb3J0IHR5cGUgRnJvbVN0YXRpY0NvbmZpZzxUPiA9IFQgfCAoKCkgPT4gVCk7XG50eXBlIEdldHRlcjxUPiA9ICgpID0+IFQ7XG5jb25zdCBpc0Z1bmN0aW9uID0gPFQ+KGZ1bmM6IEZyb21TdGF0aWNDb25maWc8VD4pOiBmdW5jIGlzIEdldHRlcjxUPiA9PiB0eXBlb2YgZnVuYyA9PT0gXCJmdW5jdGlvblwiO1xuXG5leHBvcnQgY29uc3QgZnJvbVN0YXRpYyA9IDxUPihkZWZhdWx0VmFsdWU6IEZyb21TdGF0aWNDb25maWc8VD4pOiBQcm92aWRlcjxUPiA9PlxuICBpc0Z1bmN0aW9uKGRlZmF1bHRWYWx1ZSkgPyBhc3luYyAoKSA9PiBkZWZhdWx0VmFsdWUoKSA6IGNvbnZlcnRUb1Byb3ZpZGVyKGRlZmF1bHRWYWx1ZSk7XG4iXX0=

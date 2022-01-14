@@ -1,8 +1,0 @@
-{
-  "extends": "../../tsconfig.declaration.base.json",
-  "compilerOptions": {
-    "target": "es6",
-    "declarationDir": "build"
-  },
-  "include": ["src/*.ts"]
-}

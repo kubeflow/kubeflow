@@ -1,6 +1,0 @@
-{
-  "sideEffects": false,
-  "module": "./index.js",
-  "main": "../node/CssBaseline/index.js",
-  "types": "./index.d.ts"
-}

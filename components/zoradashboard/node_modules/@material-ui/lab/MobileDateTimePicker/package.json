@@ -1,6 +1,0 @@
-{
-  "sideEffects": false,
-  "module": "./index.js",
-  "main": "../node/MobileDateTimePicker/index.js",
-  "types": "./index.d.ts"
-}

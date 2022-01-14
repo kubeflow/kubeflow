@@ -1,7 +1,0 @@
-{
-  "extends": "../../tsconfig.declaration.base.json",
-  "compilerOptions": {
-    "declarationDir": "build"
-  },
-  "include": ["src/*.ts"]
-}

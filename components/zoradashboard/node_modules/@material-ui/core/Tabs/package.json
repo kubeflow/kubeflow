@@ -1,6 +1,0 @@
-{
-  "sideEffects": false,
-  "module": "./index.js",
-  "main": "../node/Tabs/index.js",
-  "types": "./index.d.ts"
-}

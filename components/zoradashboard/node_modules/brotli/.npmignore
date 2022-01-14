@@ -1,9 +1,0 @@
-vendor/
-test/
-*.o
-*.c
-Makefile
-.DS_Store
-build/all*
-build/decode*
-.gitmodules
