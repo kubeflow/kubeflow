@@ -101,7 +101,7 @@ data:
           {
             "text": "Getting Started with Kubeflow",
             "desc": "Get your machine-learning workflow up and running on Kubeflow",
-            "link": "https://www.kubeflow.org/docs/started/getting-started/"
+            "link": "https://www.kubeflow.org/docs/started/introduction/"
           },
           {
             "text": "MiniKF",
@@ -109,24 +109,19 @@ data:
             "link": "https://www.kubeflow.org/docs/distributions/minikf/"
           },
           {
-            "text": "Microk8s for Kubeflow",
-            "desc": "Quickly get Kubeflow running locally on native hypervisors",
-            "link": "https://www.kubeflow.org/docs/distributions/microk8s/kubeflow-on-microk8s/"
-          },
-          {
             "text": "Kubeflow on GCP",
             "desc": "Running Kubeflow on Kubernetes Engine and Google Cloud Platform",
-            "link": "https://www.kubeflow.org/docs/gke/"
+            "link": "https://www.kubeflow.org/docs/distributions/gke/"
           },
           {
             "text": "Kubeflow on AWS",
             "desc": "Running Kubeflow on Elastic Container Service and Amazon Web Services",
-            "link": "https://www.kubeflow.org/docs/aws/"
+            "link": "https://www.kubeflow.org/docs/distributions/aws/"
           },
           {
             "text": "Requirements for Kubeflow",
             "desc": "Get more detailed information about using Kubeflow and its components",
-            "link": "https://www.kubeflow.org/docs/started/requirements/"
+            "link": "https://www.kubeflow.org/docs/started/installing-kubeflow/"
           }
         ]
     }
