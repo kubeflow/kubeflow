@@ -19,6 +19,7 @@ mozilla-django-oidc = "*"
 aiohttp = "*"
 ujson = "*"
 uvloop = "*"
+drf-nested-routers = "*"
 
 [dev-packages]
 locust = "*"

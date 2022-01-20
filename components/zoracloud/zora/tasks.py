@@ -32,6 +32,8 @@ def profile_creation(backend, task_name):
     loop.run_until_complete(final_task)
     return response_result.result()
 
+# def create_ephemeral_cluster(backend, )
+
 
 async def create_profile(backend, task_name):
     task = await read_cache(task_name)

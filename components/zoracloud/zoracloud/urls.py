@@ -24,6 +24,7 @@ admin.site.index_title = "Admin"
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('zoracloud/', include("zora.urls")),
+    path('streams/', include("kafka.urls")),
     # path('oidc/', include('mozilla_django_oidc.urls')),
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),

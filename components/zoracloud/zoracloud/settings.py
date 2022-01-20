@@ -50,7 +50,9 @@ INSTALLED_APPS = [
     'djoser',
     'debug_toolbar',
     'zora',
+    'django_celery_results',
     'corsheaders',
+    'kafka',
 ]
 
 MIDDLEWARE = [
@@ -137,19 +139,28 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+CELERY_RESULT_BACKEND = 'django-db'
 CELERY_BROKER_URL = 'redis://localhost:6379/1'
 CELERY_BEAT_SCHEDULE = {
-    # 'create_ephemeral_clusters': {
-    #     'task': 'zora.tasks.create_ephemeral_clusters',
-    #     'schedule': crontab(day_of_week=1, hour=7, minute=30)
-    #
-    # },
+    'create_ephemeral_clusters': {
+        'task': 'zora.tasks.create_ephemeral_clusters',
+        # 'schedule': crontab(day_of_week=1, hour=7, minute=30)
+
+    },
     'get_profiles': {
         'task': 'zora.tasks.get_profiles',
         'schedule': 30,
         'args': ["http://localhost:5000/api/profiles"]
     }
 }
+
+# django setting.
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+#         'LOCATION': 'my_cache_table',
+#     }
+# }
 
 CACHES = {
     "default": {

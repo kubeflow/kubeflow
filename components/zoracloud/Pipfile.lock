@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c11c517134c54f3fc40f1a99027a3709afe63d6b36b34894fb89eb0523a4f1b6"
+            "sha256": "66946047e369da7fa341297e54abdd273ee6c52dc4eb01fa8bfb6eb920cceb20"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -232,7 +232,7 @@
                 "sha256:a0713dc7a1de3f06bc0df5a9567ad19ead2d3d5689b434768a6145bff77c0667",
                 "sha256:f184f0d851d96b6d29297354ed981b7dd71df7ff500d82fa6d11f0856bee8035"
             ],
-            "markers": "python_version < '4' and python_full_version >= '3.6.2'",
+            "markers": "python_full_version >= '3.6.2' and python_full_version < '4.0.0'",
             "version": "==0.3.0"
         },
         "click-plugins": {
@@ -359,6 +359,14 @@
             ],
             "index": "pypi",
             "version": "==2.1.0"
+        },
+        "drf-nested-routers": {
+            "hashes": [
+                "sha256:01aa556b8c08608bb74fb34f6ca065a5183f2cda4dc0478192cc17a2581d71b0",
+                "sha256:996b77f3f4dfaf64569e7b8f04e3919945f90f95366838ca5b8bed9dd709d6c5"
+            ],
+            "index": "pypi",
+            "version": "==0.93.4"
         },
         "flower": {
             "hashes": [
@@ -487,11 +495,11 @@
         },
         "josepy": {
             "hashes": [
-                "sha256:40ef59f2f537ec01bafe698dad66281f6ccf4642f747411647db403ab8fa9a2d",
-                "sha256:8473f6674497383627621b40aacb4955afdd4e7b205dca45a68486aa989bab60"
+                "sha256:267004a64f08c016cd54b7aaf7c323fa3ef3679fb62f4b086cd56448d0fecb25",
+                "sha256:5b1805df50d0be5b06fd892d7192fedbf0e5f5191473ccf002ba429a3eb55db8"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==1.11.0"
+            "version": "==1.12.0"
         },
         "kombu": {
             "hashes": [
@@ -930,7 +938,7 @@
                 "sha256:000ca7f471a233c2251c6c7023ee85305721bfdf18621ebff4fd17a8653427ed",
                 "sha256:0e7c33d9a63e7ddfcb86780aac87befc2fbddf46c58dbb487e0855f7ceec283c"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_full_version < '4.0.0'",
             "version": "==1.26.8"
         },
         "uvloop": {
@@ -1638,7 +1646,7 @@
                 "sha256:000ca7f471a233c2251c6c7023ee85305721bfdf18621ebff4fd17a8653427ed",
                 "sha256:0e7c33d9a63e7ddfcb86780aac87befc2fbddf46c58dbb487e0855f7ceec283c"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_full_version < '4.0.0'",
             "version": "==1.26.8"
         },
         "werkzeug": {
