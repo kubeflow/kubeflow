@@ -592,7 +592,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	// watch underlying pod
 	mapFn := handler.ToRequestsFunc(
-		func(a handler.MapObject) []ctrl.Request {
+		func(a client.Object) []ctrl.Request {
 			return []ctrl.Request{
 				{NamespacedName: types.NamespacedName{
 					Name:      a.Meta.GetLabels()["notebook-name"],
@@ -623,7 +623,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	eventToRequest := handler.ToRequestsFunc(
-		func(a handler.MapObject) []ctrl.Request {
+		func(a client.Object) []ctrl.Request {
 			return []reconcile.Request{
 				{NamespacedName: types.NamespacedName{
 					Name:      a.Meta.GetName(),

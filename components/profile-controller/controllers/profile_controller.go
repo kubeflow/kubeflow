@@ -102,8 +102,7 @@ type ProfileReconciler struct {
 // Reconcile reads that state of the cluster for a Profile object and makes changes based on the state read
 // and what is in the Profile.Spec
 // Automatically generate RBAC rules to allow the Controller to read and write Deployments
-func (r *ProfileReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *ProfileReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	logger := r.Log.WithValues("profile", request.NamespacedName)
 	defaultKubeflowNamespaceLabels := r.readDefaultLabelsFromFile(r.DefaultNamespaceLabelsPath)
 
@@ -355,7 +354,7 @@ func (i *ProfileMapper) InjectLogger(l logr.Logger) error {
 	return nil
 }
 
-func (i *ProfileMapper) Map(a handler.MapObject) []reconcile.Request {
+func (i *ProfileMapper) Map(a client.Object) []reconcile.Request {
 	req := []reconcile.Request{}
 	profileList := &profilev1.ProfileList{}
 	err := i.client.List(context.TODO(), profileList)

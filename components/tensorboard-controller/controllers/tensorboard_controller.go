@@ -58,8 +58,7 @@ type TensorboardReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=persistentvolumeclaims,verbs=get;list;watch
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
 
-func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *TensorboardReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := r.Log.WithValues("tensorboard", req.NamespacedName)
 
 	instance := &tensorboardv1alpha1.Tensorboard{}
