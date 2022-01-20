@@ -5,8 +5,8 @@ Though our process is not formal, the convention is to create a PR against Kubef
 proposals folder. Proposal reviews and feedback will happen on the PR with the proposal.
 
 ```
-    kubeflow/proposals/notebooks       <- folder
-        YYYYMMDD-title.md              <- file
+    components/proposals     <- folder
+        YYYYMMDD-title.md    <- file
 ```
 
 In your proposal it is good to consider and include some of the following:
