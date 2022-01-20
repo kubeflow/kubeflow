@@ -1,5 +1,5 @@
 REGISTRY_PROJECT ?= kubeflow-dev
-GOLANG_VERSION ?= 1.12
+GOLANG_VERSION ?= 1.17
 GCLOUD_PROJECT ?= kubeflow-images-public
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/kfam
 PROJECT ?= kubeflow-dev
