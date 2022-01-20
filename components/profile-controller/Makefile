@@ -2,8 +2,8 @@ PROJECT ?= kubeflow-dev
 # Image URL to use all building/pushing image targets
 IMG ?= gcr.io/$(PROJECT)/profile-controller
 TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
-GOLANG_VERSION ?= 1.15
-CONTROLLER_GEN_VERSION ?= 0.4.0
+GOLANG_VERSION ?= 1.17
+CONTROLLER_GEN_VERSION ?= 0.8.0
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
