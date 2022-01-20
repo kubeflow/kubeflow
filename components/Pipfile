@@ -6,6 +6,9 @@ name = "pypi"
 [packages]
 install = "*"
 django-cors-headers = "*"
+django-celery-results = "*"
+grpcio = "*"
+protobuf = "*"
 
 [dev-packages]
 
