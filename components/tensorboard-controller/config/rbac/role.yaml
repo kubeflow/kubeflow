@@ -56,7 +56,6 @@ rules:
   - tensorboard.kubeflow.org
   resources:
   - tensorboards
-  - tensorboards/finalizers
   verbs:
   - create
   - delete
