@@ -5,6 +5,7 @@ resources:
 - ../../base
 - service.yaml
 - virtual-service.yaml
+- authorizationpolicy.yaml
 
 commonLabels:
   kustomize.component: profiles
