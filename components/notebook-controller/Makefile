@@ -3,7 +3,7 @@
 IMG ?= gcr.io/kubeflow-images-public/notebook-controller
 TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
 SHELL := /bin/bash
-GOLANG_VERSION ?= 1.15
+GOLANG_VERSION ?= 1.17
 
 # Whether to use cached images with GCB
 USE_IMAGE_CACHE ?= true
