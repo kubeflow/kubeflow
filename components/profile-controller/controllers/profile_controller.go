@@ -465,6 +465,24 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 					},
 				},
 			},
+			{
+				// allow the notebook-controller in the kubeflow namespace to access the api/status endpoint of the notebook servers.
+				From: []*istioSecurity.Rule_From{
+					{
+						Source: &istioSecurity.Source{
+							Principals: []string{"cluster.local/ns/kubeflow/sa/notebook-controller-service-account"},
+						},
+					},
+				},
+				To: []*istioSecurity.Rule_To{
+					{
+						Operation: &istioSecurity.Operation{
+							Methods: []string{"GET"},
+							Paths:   []string{"*/api/status"}, // wildcard for the name of the notebook server
+						},
+					},
+				},
+			},
 		},
 	}
 }
