@@ -1,4 +1,4 @@
-# Extend Notebooks Controller to expose idleness for Jupyter
+# Expose Idleness Information for Jupyter Notebooks
 
 **Authors**: Athanasios Markou athamark@arrikto.com, Kimonas Sotirchos kimwnasptd@arrikto.com, Chris Pavlou cspavlou@arrikto.com
 
