@@ -6,8 +6,13 @@
       [(ngModel)]="currNamespace"
       name="namespacesSelect"
       (selectionChange)="namespaceChanged($event.value)"
+      data-cy-namespace-selector-dropdown
     >
-      <mat-option *ngFor="let namespace of namespaces" [value]="namespace">
+      <mat-option
+        *ngFor="let namespace of namespaces"
+        [value]="namespace"
+        attr.data-cy-namespace="{{ namespace }}"
+      >
         {{ namespace }}
       </mat-option>
     </mat-select>

@@ -1,6 +1,6 @@
 export enum SnackType {
-  Success,
-  Error,
-  Warning,
-  Info,
+  Success = 'SUCCESS',
+  Error = 'ERROR',
+  Warning = 'WARNING',
+  Info = 'INFO',
 }
