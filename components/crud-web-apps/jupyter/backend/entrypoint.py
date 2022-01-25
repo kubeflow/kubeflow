@@ -18,7 +18,7 @@ def get_config(mode):
     cfg_class = config_classes.get(mode)
     if not cfg_class:
         raise RuntimeError("Backend mode '%s' is not implemented. Choose one"
-                            " of %s" % (mode, list(config_classes.keys())))
+                           " of %s" % (mode, list(config_classes.keys())))
     return cfg_class()
 
 
@@ -41,7 +41,7 @@ if UI_FLAVOR == "default":
 elif UI_FLAVOR == "rok":
     app = rok.create_app(APP_NAME, cfg)
 else:
-    log.error(f"No UI flavor for '{UI_FLAVOR}'")
+    log.error("No UI flavor for '%s'" % UI_FLAVOR)
     sys.exit(1)
 
 if __name__ == "__main__":

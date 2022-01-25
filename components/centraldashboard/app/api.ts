@@ -4,7 +4,8 @@ import {Interval, MetricsService} from './metrics_service';
 
 export const ERRORS = {
   operation_not_supported: 'Operation not supported',
-  invalid_links_config: 'Dashboard Links ConfigMap is invalid'
+  invalid_links_config: 'Cannot load dashboard menu link',
+  invalid_settings: 'Cannot load dashboard settings'
 };
 
 export function apiError(a: {res: Response, error: string, code?: number}) {
@@ -71,14 +72,14 @@ export class Api {
           '/dashboard-links',
           async (req: Request, res: Response) => {
             const acceptlanguage = req.header('accept-language');
-            const linksData = await this.k8sService.getDashboardLinks();
+            const cm = await this.k8sService.getConfigMap();
             let langLinks = {};
             try {
-              const links = JSON.parse(linksData.data["links"]);
+              const links = JSON.parse(cm.data["links"]);
               const lang = this.resolveLanguage (
                 this.getBrowserLanguages(acceptlanguage), 
                 Object.getOwnPropertyNames(links), 
-                linksData.data["defaultLanguage"]
+                cm.data["defaultLanguage"]
               );
               langLinks = links[lang];
             }catch(e){
@@ -88,6 +89,21 @@ export class Api {
               });
             }
             res.json(langLinks);
+          })
+        .get(
+          '/dashboard-settings',
+          async (_: Request, res: Response) => {
+            const cm = await this.k8sService.getConfigMap();
+            let settings = {};
+            try {
+              settings=JSON.parse(cm.data["settings"]);
+            }catch(e){
+              return apiError({
+                res, code: 500,
+                error: ERRORS.invalid_settings,
+              });
+            }
+            res.json(settings);
           });
   }
 

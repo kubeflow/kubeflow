@@ -17,6 +17,14 @@ The backend will be exposing a base backend which will be taking care of:
 * Exceptions handling
 * Common helper functions for dates, yaml file parsing etc.
 
+### Supported ENV Vars
+
+The following is a list of ENV var that can be set for any web app that is using this base app.
+This is list is incomplete, we will be adding more variables in the future.
+| ENV Var | Description |
+| - | - |
+| CSRF_SAMESITE | Controls the [SameSite value](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#SameSite) of the CSRF cookie |
+
 ### How to use
 
 In order to use this code during the development process one could use the `-e` [flag](https://pip.pypa.io/en/stable/reference/pip_install/#install-editable) with `pip install`. For example:

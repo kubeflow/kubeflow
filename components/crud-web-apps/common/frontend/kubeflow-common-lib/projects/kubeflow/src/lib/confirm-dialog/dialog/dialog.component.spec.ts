@@ -1,19 +1,37 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DialogComponent } from './dialog.component';
+import { ConfirmDialogComponent } from './dialog.component';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
+import { ConfirmDialogModule } from '../confirm-dialog.module';
 
-describe('DialogComponent', () => {
-  let component: DialogComponent;
-  let fixture: ComponentFixture<DialogComponent>;
+describe('ConfirmDialogComponent', () => {
+  let component: ConfirmDialogComponent;
+  let fixture: ComponentFixture<ConfirmDialogComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [DialogComponent],
+      imports: [ConfirmDialogModule],
+      providers: [
+        { provide: MatDialogRef, useValue: {} },
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            title: '',
+            message: '',
+            accept: '',
+            applying: '',
+            error: '',
+            confirmColor: '',
+            cancel: '',
+            width: '',
+          },
+        },
+      ],
     }).compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(DialogComponent);
+    fixture = TestBed.createComponent(ConfirmDialogComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

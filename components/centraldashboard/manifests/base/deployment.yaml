@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: centraldashboard
+  name: centraldashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: centraldashboard
+  template:
+    metadata:
+      labels:
+        app: centraldashboard
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+      - name: centraldashboard
+        image: public.ecr.aws/j1r0q0g6/notebooks/central-dashboard
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8082
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        ports:
+        - containerPort: 8082
+          protocol: TCP
+        env:
+        - name: USERID_HEADER
+          value: $(CD_USERID_HEADER)
+        - name: USERID_PREFIX
+          value: $(CD_USERID_PREFIX)
+        - name: PROFILES_KFAM_SERVICE_HOST
+          value: profiles-kfam.kubeflow
+        - name: REGISTRATION_FLOW
+          value: $(CD_REGISTRATION_FLOW)
+        - name: DASHBOARD_LINKS_CONFIGMAP
+          value: $(CD_CONFIGMAP_NAME)
+      serviceAccountName: centraldashboard

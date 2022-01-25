@@ -1,0 +1,53 @@
+@import '../variables.scss';
+
+:host {
+  display: block;
+  width: 100%;
+  padding-top: 8px;
+}
+
+.title {
+  font-weight: 400;
+  font-size: 20px;
+}
+
+.back-button {
+  margin: auto 0;
+}
+
+.actions-wrapper {
+  margin-top: 0.22rem;
+}
+
+.title-margin {
+  margin: auto 0;
+}
+
+.button-icon {
+  font-size: 1.2rem;
+  padding-top: 0.1rem;
+}
+
+.padding-bottom {
+  padding-bottom: 2rem;
+}
+
+.margin-top {
+  margin-top: 0.2rem;
+}
+
+.margin-content {
+  margin: auto;
+}
+
+.toolbar-buttons {
+  margin: auto 0px;
+}
+
+.toolbar-button {
+  margin-left: 0.2rem;
+}
+
+.toolbar-buttons .toolbar-button:last-child {
+  margin-right: $page-space-right;
+}

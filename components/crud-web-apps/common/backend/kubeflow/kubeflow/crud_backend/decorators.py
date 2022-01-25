@@ -33,8 +33,8 @@ def required_body_params(*params):
             for param in params:
                 if param not in body:
                     raise exceptions.BadRequest(
-                        f"Parameter '{param}' is missing from the request's"
-                        " body."
+                        "Parameter '%s' is missing from the request's"
+                        " body." % param
                     )
 
             return func(*args, **kwargs)

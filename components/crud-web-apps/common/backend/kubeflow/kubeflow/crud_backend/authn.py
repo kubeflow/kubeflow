@@ -1,28 +1,23 @@
 import logging
-import os
 
 from flask import Blueprint, current_app, request
 from werkzeug.exceptions import Unauthorized
 
-from . import config
+from . import config, settings
 
 bp = Blueprint("authn", __name__)
 log = logging.getLogger(__name__)
 
-USER_HEADER = os.getenv("USERID_HEADER", "kubeflow-userid")
-USER_PREFIX = os.getenv("USERID_PREFIX", ":")
-
 
 def get_username():
-    if USER_HEADER not in request.headers:
+    if settings.USER_HEADER not in request.headers:
         log.debug("User header not present!")
         username = None
     else:
-        user = request.headers[USER_HEADER]
-        username = user.replace(USER_PREFIX, "")
-        log.debug(
-            f"User: '{username}' | Headers: '{USER_HEADER}' '{USER_PREFIX}'"
-        )
+        user = request.headers[settings.USER_HEADER]
+        username = user.replace(settings.USER_PREFIX, "")
+        log.debug("User: '%s' | Headers: '%s' '%s'",
+                  username, settings.USER_HEADER, settings.USER_PREFIX)
 
     return username
 
@@ -47,6 +42,10 @@ def check_authentication():
         log.debug("Skipping authentication check in development mode")
         return
 
+    if settings.DISABLE_AUTH:
+        log.info("APP_DISABLE_AUTH set to True. Skipping authentication check")
+        return
+
     # If a function was decorated with `no_authentication` then we will skip
     # the authn check
     if request.endpoint and getattr(
@@ -64,5 +63,5 @@ def check_authentication():
         # assigned function.
         raise Unauthorized("No user detected.")
     else:
-        log.info(f"Handling request for user: {user}")
+        log.info("Handling request for user: %s", user)
         return

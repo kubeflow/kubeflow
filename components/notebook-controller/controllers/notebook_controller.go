@@ -17,6 +17,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -46,6 +47,8 @@ import (
 
 const DefaultContainerPort = 8888
 const DefaultServingPort = 80
+const AnnotationRewriteURI = "notebooks.kubeflow.org/http-rewrite-uri"
+const AnnotationHeadersRequestSet = "notebooks.kubeflow.org/http-headers-request-set"
 
 // The default fsGroup of PodSecurityContext.
 // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#podsecuritycontext-v1-core
@@ -72,12 +75,12 @@ type NotebookReconciler struct {
 	EventRecorder record.EventRecorder
 }
 
-// +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=apps,resources=statefulsets/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=core,resources=services/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
+// +kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create
+// +kubebuilder:rbac:groups=core,resources=services,verbs="*"
+// +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs="*"
+// +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks;notebooks/status;notebooks/finalizers,verbs="*"
+// +kubebuilder:rbac:groups="networking.istio.io",resources=virtualservices,verbs="*"
 
 func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
@@ -206,23 +209,42 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	} else {
 		// Got the pod
 		podFound = true
-		if len(pod.Status.ContainerStatuses) > 0 &&
-			pod.Status.ContainerStatuses[0].State != instance.Status.ContainerState {
-			log.Info("Updating container state: ", "namespace", instance.Namespace, "name", instance.Name)
-			cs := pod.Status.ContainerStatuses[0].State
-			instance.Status.ContainerState = cs
-			oldConditions := instance.Status.Conditions
-			newCondition := getNextCondition(cs)
-			// Append new condition
-			if len(oldConditions) == 0 || oldConditions[0].Type != newCondition.Type ||
-				oldConditions[0].Reason != newCondition.Reason ||
-				oldConditions[0].Message != newCondition.Message {
-				log.Info("Appending to conditions: ", "namespace", instance.Namespace, "name", instance.Name, "type", newCondition.Type, "reason", newCondition.Reason, "message", newCondition.Message)
-				instance.Status.Conditions = append([]v1beta1.NotebookCondition{newCondition}, oldConditions...)
+
+		// Update status of the CR using the ContainerState of
+		// the container that has the same name as the CR.
+		// If no container of same name is found, the state of the CR is not updated.
+		if len(pod.Status.ContainerStatuses) > 0 {
+			notebookContainerFound := false
+			for i := range pod.Status.ContainerStatuses {
+				if pod.Status.ContainerStatuses[i].Name != instance.Name {
+					continue
+				}
+				if pod.Status.ContainerStatuses[i].State == instance.Status.ContainerState {
+					continue
+				}
+
+				log.Info("Updating Notebook CR state: ", "namespace", instance.Namespace, "name", instance.Name)
+				cs := pod.Status.ContainerStatuses[i].State
+				instance.Status.ContainerState = cs
+				oldConditions := instance.Status.Conditions
+				newCondition := getNextCondition(cs)
+				// Append new condition
+				if len(oldConditions) == 0 || oldConditions[0].Type != newCondition.Type ||
+					oldConditions[0].Reason != newCondition.Reason ||
+					oldConditions[0].Message != newCondition.Message {
+					log.Info("Appending to conditions: ", "namespace", instance.Namespace, "name", instance.Name, "type", newCondition.Type, "reason", newCondition.Reason, "message", newCondition.Message)
+					instance.Status.Conditions = append([]v1beta1.NotebookCondition{newCondition}, oldConditions...)
+				}
+				err = r.Status().Update(ctx, instance)
+				if err != nil {
+					return ctrl.Result{}, err
+				}
+				notebookContainerFound = true
+				break
+
 			}
-			err = r.Status().Update(ctx, instance)
-			if err != nil {
-				return ctrl.Result{}, err
+			if !notebookContainerFound {
+				log.Error(nil, "Could not find the Notebook container, will not update the status of the CR. No container has the same name as the CR.", "CR name:", instance.Name)
 			}
 		}
 	}
@@ -381,7 +403,19 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 	namespace := instance.Namespace
 	clusterDomain := "cluster.local"
 	prefix := fmt.Sprintf("/notebook/%s/%s/", namespace, name)
+
+	// unpack annotations from Notebook resource
+	annotations := make(map[string]string)
+	for k, v := range instance.ObjectMeta.Annotations {
+		annotations[k] = v
+	}
+
 	rewrite := fmt.Sprintf("/notebook/%s/%s/", namespace, name)
+	// If AnnotationRewriteURI is present, use this value for "rewrite"
+	if _, ok := annotations[AnnotationRewriteURI]; ok && len(annotations[AnnotationRewriteURI]) > 0 {
+		rewrite = annotations[AnnotationRewriteURI]
+	}
+
 	if clusterDomainFromEnv, ok := os.LookupEnv("CLUSTER_DOMAIN"); ok {
 		clusterDomain = clusterDomainFromEnv
 	}
@@ -405,8 +439,29 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 		return nil, fmt.Errorf("Set .spec.gateways error: %v", err)
 	}
 
+	headersRequestSet := make(map[string]string)
+	// If AnnotationHeadersRequestSet is present, use its values in "headers.request.set"
+	if _, ok := annotations[AnnotationHeadersRequestSet]; ok && len(annotations[AnnotationHeadersRequestSet]) > 0 {
+		requestHeadersBytes := []byte(annotations[AnnotationHeadersRequestSet])
+		if err := json.Unmarshal(requestHeadersBytes, &headersRequestSet); err != nil {
+			// if JSON decoding fails, set an empty map
+			headersRequestSet = make(map[string]string)
+		}
+	}
+	// cast from map[string]string, as SetNestedSlice needs map[string]interface{}
+	headersRequestSetInterface := make(map[string]interface{})
+	for key, element := range headersRequestSet {
+		headersRequestSetInterface[key] = element
+	}
+
+	// the http section of the istio VirtualService spec
 	http := []interface{}{
 		map[string]interface{}{
+			"headers": map[string]interface{}{
+				"request": map[string]interface{}{
+					"set": headersRequestSetInterface,
+				},
+			},
 			"match": []interface{}{
 				map[string]interface{}{
 					"uri": map[string]interface{}{
@@ -430,6 +485,8 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 			"timeout": "300s",
 		},
 	}
+
+	// add http section to istio VirtualService spec
 	if err := unstructured.SetNestedSlice(vsvc.Object, http, "spec", "http"); err != nil {
 		return nil, fmt.Errorf("Set .spec.http error: %v", err)
 	}
@@ -489,7 +546,7 @@ func nbNameFromInvolvedObject(c client.Client, object *corev1.ObjectReference) (
 		pod := &corev1.Pod{}
 		err := c.Get(
 			context.TODO(),
-			types.NamespacedName {
+			types.NamespacedName{
 				Namespace: namespace,
 				Name:      name,
 			},

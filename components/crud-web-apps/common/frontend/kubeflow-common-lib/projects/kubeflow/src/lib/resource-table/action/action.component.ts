@@ -2,11 +2,12 @@ import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
 import { STATUS_TYPE } from '../status/types';
 import { Observable, Subject } from 'rxjs';
 import { ActionIconValue, ActionEvent } from '../types';
+import { get as getAttributeValue } from 'lodash';
 
 @Component({
   selector: 'lib-action',
   templateUrl: './action.component.html',
-  styleUrls: ['./action.component.css'],
+  styleUrls: ['./action.component.scss'],
 })
 export class ActionComponent implements OnInit {
   // READY: Button will be enabled
@@ -77,32 +78,32 @@ export class ActionComponent implements OnInit {
 
   // Helpers for checking the Action's State
   public isPhaseReady(): boolean {
-    const phaseField = this.action.field;
-    const status = this.data[phaseField];
-
-    return status === STATUS_TYPE.READY;
+    return this.status === STATUS_TYPE.READY;
   }
 
   public isPhaseInit(): boolean {
-    const phaseField = this.action.field;
-    const status = this.data[phaseField];
-
-    return status === STATUS_TYPE.UNINITIALIZED;
+    return this.status === STATUS_TYPE.UNINITIALIZED;
   }
 
   public isPhaseWaiting(): boolean {
-    const phaseField = this.action.field;
-    const status = this.data[phaseField];
-
-    return status === STATUS_TYPE.WAITING;
+    return this.status === STATUS_TYPE.WAITING;
   }
 
   public isPhaseDisabled(): boolean {
-    const phaseField = this.action.field;
-    const status = this.data[phaseField];
-
     return (
-      status === STATUS_TYPE.TERMINATING || status === STATUS_TYPE.UNAVAILABLE
+      this.status === STATUS_TYPE.TERMINATING ||
+      this.status === STATUS_TYPE.UNAVAILABLE
     );
+  }
+
+  get status(): STATUS_TYPE {
+    const phaseField = this.action.field;
+
+    if (!phaseField) {
+      return STATUS_TYPE.READY;
+    }
+
+    const status = getAttributeValue(this.data, phaseField);
+    return status;
   }
 }

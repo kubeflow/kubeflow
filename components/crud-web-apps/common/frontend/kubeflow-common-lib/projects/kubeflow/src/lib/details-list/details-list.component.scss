@@ -1,0 +1,13 @@
+// list classes
+.list {
+  display: inline-block;
+  width: 100%;
+}
+
+.list-header {
+  display: flex;
+  align-items: center;
+  height: 64px;
+  font-weight: 400;
+  font-size: 20px;
+}

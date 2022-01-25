@@ -12,10 +12,16 @@ package kfam
 
 import (
 	"encoding/json"
-	istioRegister "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/istiorbac/v1alpha1"
+	"net/http"
+	"net/url"
+	"path"
+	"strconv"
+	"time"
+
 	profileRegister "github.com/kubeflow/kubeflow/components/access-management/pkg/apis/kubeflow/v1beta1"
 	profilev1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
 	log "github.com/sirupsen/logrus"
+	istioRegister "istio.io/client-go/pkg/apis/security/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -24,12 +30,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
-	"net/http"
-	"net/url"
-	"path"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-	"strconv"
-	"time"
 )
 
 type KfamV1Alpha1Interface interface {
@@ -44,9 +45,9 @@ type KfamV1Alpha1Interface interface {
 type KfamV1Alpha1Client struct {
 	profileClient ProfileInterface
 	bindingClient BindingInterface
-	clusterAdmin []string
-	userIdHeader string
-	userIdPrefix string
+	clusterAdmin  []string
+	userIdHeader  string
+	userIdPrefix  string
 }
 
 func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string) (*KfamV1Alpha1Client, error) {
@@ -54,7 +55,7 @@ func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string
 	if err != nil {
 		return nil, err
 	}
-	istioRESTClient, err := getRESTClient(istioRegister.GroupName, istioRegister.GroupVersion)
+	istioRESTClient, err := getRESTClient(istioRegister.GroupName, "v1beta1")
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +68,7 @@ func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string
 		return nil, err
 	}
 
-	informerFactory := informers.NewSharedInformerFactory(kubeClient, time.Minute * 60)
+	informerFactory := informers.NewSharedInformerFactory(kubeClient, time.Minute*60)
 	roleBindingLister := informerFactory.Rbac().V1().RoleBindings().Lister()
 	stop := make(chan struct{})
 	informerFactory.Start(stop)
@@ -78,8 +79,8 @@ func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string
 			restClient: profileRESTClient,
 		},
 		bindingClient: &BindingClient{
-			restClient: 	istioRESTClient,
-			kubeClient: 	kubeClient,
+			restClient:        istioRESTClient,
+			kubeClient:        kubeClient,
 			roleBindingLister: roleBindingLister,
 		},
 		clusterAdmin: []string{clusterAdmin},

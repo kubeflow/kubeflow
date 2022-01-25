@@ -17,33 +17,38 @@
 spawnerFormDefaults:
   image:
     # The container Image for the user's Jupyter Notebook
-    # If readonly, this value must be a member of the list below
-    value: gcr.io/kubeflow-images-public/tensorflow-1.13.1-notebook-cpu:v0.5.0
+    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-1831e436
     # The list of available standard container Images
     options:
-      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-cpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-gpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-cpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-gpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-cpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-gpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-gpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-cpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-gpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-gpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.11.0-notebook-cpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.11.0-notebook-gpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-cpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-gpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.13.1-notebook-cpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-1.13.1-notebook-gpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-2.0.0a-notebook-cpu:v0.5.0
-      - gcr.io/kubeflow-images-public/tensorflow-2.0.0a-notebook-gpu:v0.5.0
-    # By default, custom container Images are allowed
-    # Uncomment the following line to only enable standard container Images
-    readOnly: false
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-1831e436
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-full:master-1831e436
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-cuda-full:master-1831e436
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-full:master-1831e436
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda-full:master-1831e436
+  imageGroupOne:
+    # The container Image for the user's Group One Server
+    # The annotation `notebooks.kubeflow.org/http-rewrite-uri: /`
+    # is applied to notebook in this group, configuring
+    # the Istio rewrite for containers that host their web UI at `/`
+    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:master-1831e436
+    # The list of available standard container Images
+    options:
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:master-1831e436
+  imageGroupTwo:
+    # The container Image for the user's Group Two Server
+    # The annotation `notebooks.kubeflow.org/http-rewrite-uri: /`
+    # is applied to notebook in this group, configuring
+    # the Istio rewrite for containers that host their web UI at `/`
+    # The annotation `notebooks.kubeflow.org/http-headers-request-set`
+    # is applied to notebook in this group, configuring Istio
+    # to add the `X-RStudio-Root-Path` header to requests
+    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:master-164fa2ea
+    # The list of available standard container Images
+    options:
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:master-164fa2ea
+  allowCustomImage: true
+  # If true, users can input custom images
+  # If false, users can only select from the images in this config
   imagePullPolicy:
     # Supported values: Always, IfNotPresent, Never
     value: IfNotPresent
@@ -51,10 +56,16 @@ spawnerFormDefaults:
   cpu:
     # CPU for user's Notebook
     value: '0.5'
+    # Factor by with to multiply request to calculate limit
+    # if no limit is set, to disable set "none"
+    limitFactor: "1.2"
     readOnly: false
   memory:
     # Memory for user's Notebook
     value: 1.0Gi
+    # Factor by with to multiply request to calculate limit
+    # if no limit is set, to disable set "none"
+    limitFactor: "1.2"
     readOnly: false
   environment:
     value: {}

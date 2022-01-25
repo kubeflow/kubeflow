@@ -16,9 +16,10 @@ import './notebooks-card.js';
 import './pipelines-card.js';
 import './resource-chart.js';
 import {getGCPData} from './resources/cloud-platform-data.js';
+import utilitiesMixin from './utilities-mixin.js';
 
 // eslint-disable-next-line max-len
-export class DashboardView extends localizationMixin(PolymerElement) {
+export class DashboardView extends utilitiesMixin(localizationMixin(PolymerElement)) {
     static get template() {
         return html([`
             <style include="card-styles">
@@ -35,7 +36,10 @@ export class DashboardView extends localizationMixin(PolymerElement) {
         return {
             documentationItems: Array,
             quickLinks: Array,
-            namespace: String,
+            namespace: {
+                type: Object,
+                observer: '_namespaceChanged',
+            },
             platformDetails: Object,
             platformInfo: {
                 type: Object,
@@ -57,6 +61,20 @@ export class DashboardView extends localizationMixin(PolymerElement) {
             }
             this.platformDetails = getGCPData(gcpProject);
         }
+    }
+
+    /**
+     * Rewrites the links adding the namespace as a query parameter.
+     * @param {namespace} namespace
+     */
+    _namespaceChanged(namespace) {
+        this.quickLinks.map((quickLink) => {
+            quickLink.link = this.buildHref(quickLink.link, {ns: namespace});
+            return quickLink;
+        });
+        // We need to deep-copy and re-assign in order to trigger the
+        // re-rendering of the component
+        this.quickLinks = JSON.parse(JSON.stringify(this.quickLinks));
     }
 }
 

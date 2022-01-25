@@ -1,20 +1,19 @@
 import os
 
-from kubeflow.kubeflow.crud_backend import config, logging
 import app
+from kubeflow.kubeflow.crud_backend import config, logging
 
 log = logging.getLogger(__name__)
 
-APP_NAME = os.environ.get("APP_NAME", "Tensorboard Web App")
-BACKEND_MODE = os.environ.get("BACKEND_MODE", "prod")  # 'prod' or 'dev'
+APP_NAME = os.environ.get("APP_NAME", "Tensorboards Web App")
+PREFIX = os.environ.get("APP_PREFIX", "/")
+BACKEND_MODE = os.environ.get("BACKEND_MODE",
+                              config.BackendMode.PRODUCTION.value)
 
-# Load the Dev config based on BACKEND_MODE env var
-if BACKEND_MODE == "dev":
-    cfg = config.DevConfig
-else:
-    cfg = config.Config
+cfg = config.get_config(BACKEND_MODE)
+cfg.PREFIX = PREFIX
 
-_app = app.create_app(name=APP_NAME, config_class=cfg)
+app = app.create_app(APP_NAME, cfg)
 
 if __name__ == "__main__":
-    _app.run()
+    app.run()

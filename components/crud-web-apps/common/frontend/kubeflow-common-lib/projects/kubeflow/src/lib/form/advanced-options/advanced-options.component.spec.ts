@@ -1,6 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AdvancedOptionsComponent } from './advanced-options.component';
+import { FormModule } from '../form.module';
 
 describe('AdvancedOptionsComponent', () => {
   let component: AdvancedOptionsComponent;
@@ -8,9 +9,8 @@ describe('AdvancedOptionsComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ AdvancedOptionsComponent ]
-    })
-    .compileComponents();
+      imports: [FormModule],
+    }).compileComponents();
   }));
 
   beforeEach(() => {

@@ -18,7 +18,7 @@ def api_exception_handler(e):
     appropriate response for the frontend
     """
     ep = request.url
-    log.error(f"An error occured talking to k8s while working on {ep}: {e}")
+    log.error("An error occured talking to k8s while working on %s: %s", ep, e)
 
     if e.status == 404:
         msg = "The requested resource could not be found in the API Server"
@@ -30,7 +30,7 @@ def api_exception_handler(e):
 
 @bp.app_errorhandler(exceptions.HTTPException)
 def handle_http_errors(e):
-    log.error(f"HTTP Exception handled: {e}")
+    log.error("HTTP Exception handled: %s", e)
     return api.failed_response(e.description, e.code)
 
 

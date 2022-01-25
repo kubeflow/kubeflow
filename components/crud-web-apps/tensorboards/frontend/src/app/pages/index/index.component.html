@@ -1,7 +1,4 @@
-<lib-namespace-select
-  *ngIf="!env.production"
-  [apiUrl]="env.apiUrl"
-></lib-namespace-select>
+<lib-namespace-select *ngIf="!env.production"></lib-namespace-select>
 
 <lib-resource-table
   [config]="config"
