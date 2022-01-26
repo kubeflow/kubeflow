@@ -1,15 +1,11 @@
+GIT_TAG ?= $(shell git describe --tags --always)
 IMG ?= public.ecr.aws/j1r0q0g6/notebooks/tensorboards-web-app
-TAG ?= $(shell git log -n 1 --pretty=format:"%h" ./)
 DOCKERFILE=tensorboards/Dockerfile
 
 docker-build:
-	cp Dockerfile.dockerignore ../.dockerignore
-	-cd ../ && docker build -t ${IMG}:${TAG} -f ${DOCKERFILE} .
-	rm ../.dockerignore
-
+	cd ../ && docker build -t ${IMG}:${GIT_TAG} -f ${DOCKERFILE} .
 
 docker-push:
-	docker push $(IMG):$(TAG)
+	docker push $(IMG):$(GIT_TAG)
 
 image: docker-build docker-push
-	@echo "Updated image ${IMG}"
