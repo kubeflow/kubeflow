@@ -10,6 +10,7 @@ import {
   DialogConfig,
   SnackBarService,
   SnackType,
+  ToolbarButton,
 } from 'kubeflow';
 import { defaultConfig } from './config';
 import { environment } from '@app/environment';
@@ -35,6 +36,17 @@ export class IndexDefaultComponent implements OnInit {
   public rawData: PVCResponseObject[] = [];
   public processedData: PVCProcessedObject[] = [];
   public pvcsWaitingViewer = new Set<string>();
+
+  buttons: ToolbarButton[] = [
+    new ToolbarButton({
+      text: `New Volume`,
+      icon: 'add',
+      stroked: true,
+      fn: () => {
+        this.newResourceClicked();
+      },
+    }),
+  ];
 
   constructor(
     public ns: NamespaceService,
@@ -78,9 +90,6 @@ export class IndexDefaultComponent implements OnInit {
 
   public reactToAction(a: ActionEvent) {
     switch (a.action) {
-      case 'newResourceButton': // TODO: could also use enums here
-        this.newResourceClicked();
-        break;
       case 'delete':
         this.deleteVolumeClicked(a.data);
         break;

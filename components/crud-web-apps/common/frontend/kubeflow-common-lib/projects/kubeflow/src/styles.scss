@@ -116,6 +116,13 @@ body {
   text-overflow: ellipsis;
 }
 
+/*
+ * common table
+ */
+.lib-table .mat-paginator-container {
+  min-height: 48px;
+}
+
 // Form global css
 .form--dialog-padding .mat-dialog-container {
   padding: 0 24px;

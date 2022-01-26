@@ -5,32 +5,33 @@ import {
   ActionIconValue,
   ActionButtonValue,
   TableColumn,
-  TRUNCATE_TEXT_SIZE,
   TableConfig,
   DateTimeValue,
 } from 'kubeflow';
 
 const tableConfig: TableConfig = {
-  title: $localize`Tensorboards`,
-  newButtonText: $localize`NEW TENSORBOARD`,
   columns: [
     {
       matHeaderCellDef: $localize`Status`,
       matColumnDef: 'status',
+      style: { width: '1%' },
       value: new StatusValue(),
     },
     {
       matHeaderCellDef: $localize`Name`,
       matColumnDef: 'name',
+      style: { width: '25%' },
       value: new PropertyValue({
         field: 'name',
         tooltipField: 'name',
-        truncate: TRUNCATE_TEXT_SIZE.SMALL,
+        truncate: true,
       }),
     },
     {
       matHeaderCellDef: $localize`Age`,
       matColumnDef: 'age',
+      style: { width: '15%' },
+      textAlignment: 'right',
       value: new DateTimeValue({
         field: 'age',
       }),
@@ -38,10 +39,11 @@ const tableConfig: TableConfig = {
     {
       matHeaderCellDef: $localize`Logspath`,
       matColumnDef: 'logspath',
+      style: { width: '40%%' },
       value: new PropertyValue({
         field: 'logspath',
         tooltipField: 'logspath',
-        truncate: TRUNCATE_TEXT_SIZE.SMALL,
+        truncate: true,
       }),
     },
   ],
