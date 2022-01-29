@@ -17,7 +17,7 @@
 * Switching to [Emissary executor](https://www.kubeflow.org/docs/components/pipelines/installation/choose-executor/#emissary-executor) enables Kubeflow Pipelines deployment on Kubernetes >= v1.20, which runs on containerd runtime instead of Docker runtime.
 
 #### Katib, v0.13 
-* Hyperparameter leader election for HA operations and faster recovery
+* Katib controller leader election for HA operations and faster recovery
 * Validation for Early Stopping algorithm settings improves accuracy, reduces overfitting
 * Improve SDK, AWS CI, parameter settings across frameworks (goptuna, optuna, hyperopt) 
 * Updated metrics (note - breaking change)
