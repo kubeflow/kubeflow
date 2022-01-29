@@ -20,7 +20,7 @@
 * Katib controller leader election for HA operations and faster recovery
 * Validation for Early Stopping algorithm settings improves accuracy, reduces overfitting
 * Improve SDK, AWS CI, parameter settings across frameworks (goptuna, optuna, hyperopt) 
-* Updated metrics (note - breaking change)
+* Update namespace label for Metrics Collector injection (note - breaking change)
 
 #### Training Operator, v1.3
 * Elastic Training for PyTorch, restarts pod rather than whole job, supports spot instances
