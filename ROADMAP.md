@@ -18,7 +18,7 @@
 
 #### Katib, v0.13 
 * Katib controller leader election for HA operations and faster recovery
-* Validation for Early Stopping algorithm settings improves accuracy, reduces overfitting
+* Validation for Early Stopping algorithm settings helps users to reduce model overfitting
 * Improve SDK, AWS CI, parameter settings across frameworks (goptuna, optuna, hyperopt) 
 * Update namespace label for Metrics Collector injection (note - breaking change)
 
