@@ -22,7 +22,8 @@ const VALID_ARTIFACT_TYPES = new Set([PIPELINES, RUNS]);
 /**
  * Component to retrieve and display Pipelines or Pipeline Runs
  */
-export class PipelinesCard extends utilitiesMixin(localizationMixin(PolymerElement)) {
+export class PipelinesCard
+    extends utilitiesMixin(localizationMixin(PolymerElement)) {
     static get template() {
         return html`
         <style include="card-styles">
@@ -143,7 +144,7 @@ export class PipelinesCard extends utilitiesMixin(localizationMixin(PolymerEleme
                 created: date.toLocaleString(),
                 href: this.buildHref(
                     `/pipeline/#/${this.artifactType}/details/${p.id}`,
-                    {ns: this.namespace}
+                    {ns: this.namespace},
                 ),
                 name: p.name,
                 icon,
@@ -176,8 +177,10 @@ export class PipelinesCard extends utilitiesMixin(localizationMixin(PolymerEleme
             p.href = this.buildHref(p.href, {ns: namespace});
             return p;
         });
-        // We need to deep-copy and re-assign in order to trigger the
-        // re-rendering of the component
+        /*
+         * We need to deep-copy and re-assign in order to trigger the
+         * re-rendering of the component
+         */
         this.pipelines = JSON.parse(JSON.stringify(pipelines));
     }
 }
