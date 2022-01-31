@@ -7,13 +7,11 @@ import {mockRequest} from '../ajax_test_helper';
 
 const FIXTURE_ID = 'pipelines-card-fixture';
 const PIPELINES_CARD_ID = 'test-pipelines-card';
-const PIPELING_CARD_NAMESPACE = 'test-namespace';
 const TEMPLATE = `
 <test-fixture id="${FIXTURE_ID}">
   <template>
-    <pipelines-card 
-        id="${PIPELINES_CARD_ID}" 
-        namespace="${PIPELING_CARD_NAMESPACE}">
+    <pipelines-card
+        id="${PIPELINES_CARD_ID}"
     </pipelines-card>
   </template>
 </test-fixture>
@@ -54,9 +52,7 @@ describe('Pipelines Card', () => {
             status: 200,
             responseText: JSON.stringify({pipelines}),
         }, false, '/pipeline/apis/v1beta1/pipelines?' +
-                'resource_reference_key.type=NAMESPACE' +
-                '&resource_reference_key.id=test-namespace' +
-                '&page_size=5&sort_by=created_at%20desc');
+                'page_size=5&sort_by=created_at%20desc');
         pipelinesCard.artifactType = 'pipelines';
         pipelinesCard.namespace = 'kubeflow-user';
         await requestPromise;
@@ -153,9 +149,7 @@ describe('Pipelines Card', () => {
             status: 500,
             responseText: 'Some internal error',
         }, true, '/pipeline/apis/v1beta1/pipelines?' +
-                'resource_reference_key.type=NAMESPACE' +
-                '&resource_reference_key.id=test-namespace' +
-                '&page_size=5&sort_by=created_at%20desc');
+                'page_size=5&sort_by=created_at%20desc');
         pipelinesCard.artifactType = 'pipelines';
         await requestPromise;
         flush();
@@ -188,9 +182,7 @@ describe('Pipelines Card', () => {
             status: 200,
             responseText: JSON.stringify({pipelines: []}),
         }, false, '/pipeline/apis/v1beta1/pipelines?' +
-            'resource_reference_key.type=NAMESPACE' +
-            '&resource_reference_key.id=test-namespace' +
-            '&page_size=5&sort_by=created_at%20desc');
+            'page_size=5&sort_by=created_at%20desc');
 
         pipelinesCard.artifactType = 'pipelines';
         await requestPromise;
@@ -199,6 +191,6 @@ describe('Pipelines Card', () => {
         const header = pipelinesCard.shadowRoot
             .getElementById('message');
         expect(header.hasAttribute('hidden')).toBe(false);
-        expect(header.innerText).toBe('None Found');
+        expect(header.innerText).toBe('pipelinesCard.msgNoneFound');
     });
 });
