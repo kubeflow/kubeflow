@@ -144,7 +144,7 @@ export class PipelinesCard
                 created: date.toLocaleString(),
                 href: this.buildHref(
                     `/pipeline/#/${this.artifactType}/details/${p.id}`,
-                    {ns: this.namespace}
+                    {ns: this.namespace},
                 ),
                 name: p.name,
                 icon,
@@ -177,8 +177,10 @@ export class PipelinesCard
             p.href = this.buildHref(p.href, {ns: namespace});
             return p;
         });
-        // We need to deep-copy and re-assign in order to trigger the
-        // re-rendering of the component
+        /*
+         * We need to deep-copy and re-assign in order to trigger the
+         * re-rendering of the component
+         */
         this.pipelines = JSON.parse(JSON.stringify(pipelines));
     }
 }
