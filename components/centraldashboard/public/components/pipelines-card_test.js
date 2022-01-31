@@ -191,6 +191,6 @@ describe('Pipelines Card', () => {
         const header = pipelinesCard.shadowRoot
             .getElementById('message');
         expect(header.hasAttribute('hidden')).toBe(false);
-        expect(header.innerText).toBe('pipelinesCard.msgNoneFound');
+        expect(header.innerText).toBe('None Found');
     });
 });
