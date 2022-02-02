@@ -26,8 +26,11 @@ class CentralDashboardEventHandler_ {
      * communication with the parent frame.
      * @param {Function} callback - Callback invoked with this instance and a
      *  boolean indicating whether the page importing the library is iframed.
+     * @param {boolean} disableForceIframe - In case DASHBOARD_FORCE_IFRAME
+     *  is set to true, forcing every app to be iframed, set this flag to avoid
+     *  the redirection.
      */
-    init(callback) {
+    init(callback, disableForceIframe=false) {
         const isIframed = this.window.location !== this.parent.location;
         callback(this, isIframed);
         if (isIframed) {
@@ -35,6 +38,20 @@ class CentralDashboardEventHandler_ {
             this.window.addEventListener(MESSAGE, this._messageEventListener);
             this.parent.postMessage({type: IFRAME_CONNECTED_EVENT},
                 this.parent.origin);
+        } else if (!disableForceIframe) {
+            fetch('/api/dashboard-settings')
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.DASHBOARD_FORCE_IFRAME) {
+                        // pre-pend `/_/` to navigate to central dashboard
+                        const newLoc = this.window.location.origin
+                            + this.window.location.href.replace(
+                                this.window.location.origin, '/_');
+                        this.window.location.replace(newLoc);
+                    }
+                })
+                // eslint-disable-next-line no-console
+                .catch((err) => console.error(err));
         }
     }
 

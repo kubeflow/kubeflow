@@ -6,31 +6,50 @@ iron-ajax#envInfo(auto='[[_shouldFetchEnv]]', url='/api/workgroup/env-info', han
     on-response='_onEnvInfoResponse')
 aside#PageLoader(hidden='{{!pageLoading}}')
 app-drawer-layout.flex(narrow='{{narrowMode}}',
-        force-narrow='[[or(inIframe, thinView, notFoundInIframe, hideSidebar)]]',
+        force-narrow='[[or(thinView, hideSidebar)]]',
+        persistent='[[persistent]]'
         bleed$='[[sidebarBleed]]')
     app-location(route='{{route}}', query-params='{{queryParams}}')
+    app-location(route='{{routeHash}}', use-hash-as-path)
     app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
         tail='{{subRouteData}}')
     app-drawer#MainDrawer(slot='drawer')
         figure.logo
             |!{logo}
-        iron-selector.flex(selected='{{sidebarItemIndex}}')
-            a(href$='[[buildHref("/", queryParams)]]', tabindex='-1')
-                paper-item.menu-item {{localize('mainPage.menuHome')}}
+        div.flex.scrollable
+            a(href$='[[_buildHref("/", queryParams.*)]]', tabindex='-1')
+                paper-item.menu-item#home
+                    iron-icon(icon='home')
+                    | {{localize('mainPage.menuHome')}}
             template(is='dom-repeat', items='[[menuLinks]]')
-                iframe-link(href$="[[buildHref(item.link, queryParams)]]")
-                    paper-item.menu-item [[item.text]]
+                template(is='dom-if', if='[[equals(item.type, "section")]]')
+                    paper-item.menu-item.section-item(on-click='_toggleMenuSection')
+                        iron-icon(icon='[[item.icon]]')
+                        | [[item.text]]
+                    iron-collapse
+                        template(is='dom-repeat', items='[[item.items]]')
+                            iframe-link(href$="[[_buildHref(item.link, queryParams.*)]]")
+                                paper-item.menu-item.inner-menu-item [[item.text]]
+                template(is='dom-if', if='[[!equals(item.type, "section")]]')
+                    iframe-link(href$="[[_buildHref(item.link, queryParams.*)]]")
+                        paper-item.menu-item
+                            iron-icon(icon='[[item.icon]]')
+                            | [[item.text]]
             template(is='dom-repeat', items='[[externalLinks]]')
                 template(is='dom-if', if='[[item.iframe]]')
                     iframe-link(href$="[[buildHref(item.link, queryParams)]]")
-                        paper-item.menu-item [[item.text]]
+                        paper-item.menu-item
+                            iron-icon(icon='[[item.icon]]')
+                            | [[item.text]]
                 template(is='dom-if', if='[[!item.iframe]]')
                     a(href$="[[item.link]]",tabindex='-1', target="_blank")
-                        paper-item.menu-item [[item.text]]       
+                        paper-item.menu-item
+                            iron-icon(icon='[[item.icon]]')
+                            | [[item.text]]
             template(is='dom-if', if='[[equals(isolationMode, "multi-user")]]')
                 aside.divider
-                a(href$='[[buildHref("/manage-users", queryParams)]]', tabindex='-1')
-                    paper-item.menu-item {{localize('mainPage.menuManageContributors')}}
+                a(href$='[[_buildHref("/manage-users", queryParams.*)]]', tabindex='-1')
+                    paper-item.menu-item#contributors {{localize('mainPage.menuManageContributors')}}
             aside.divider
             a(href='https://github.com/kubeflow/kubeflow',
                 tabindex='-1', target="_blank")
@@ -50,10 +69,11 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
     app-header-layout(fullbleed)
         app-header(slot='header', hides, hidden$='[[notFoundInIframe]]')
             app-toolbar
-                aside#Narrow-Slider(hides, hidden$='[[!narrowMode]]')
-                    paper-icon-button#Menu(icon='menu', drawer-toggle)
-                    figure.Logo
-                        |!{logo}
+                template(is='dom-if', if='![[persistent]]')
+                    aside#Narrow-Slider(hides, hidden$='[[!narrowMode]]')
+                        paper-icon-button#Menu(icon='menu', drawer-toggle)
+                        figure.Logo
+                            |!{logo}
                 namespace-selector#NamespaceSelector(
                     query-params='{{queryParams}}', namespaces='[[namespaces]]'
                     selected='{{namespace}}', hides, hidden$='[[hideNamespaces]]'
@@ -65,14 +85,14 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             section#ViewTabs(hidden$='[[hideTabs]]')
                 paper-tabs(selected='[[page]]', attr-for-selected='page')
                     paper-tab(page='dashboard', link)
-                        a.link(tabindex='-1', href$='[[buildHref("/", queryParams)]]') {{localize('mainPage.tabDashboard')}}
+                        a.link(tabindex='-1', href$='[[_buildHref("/", queryParams.*)]]') {{localize('mainPage.tabDashboard')}}
                     paper-tab(page='activity', link)
-                        a.link(tabindex='-1', href$='[[buildHref("/activity", queryParams)]]') {{localize('mainPage.tabActivity')}}
+                        a.link(tabindex='-1', href$='[[_buildHref("/activity", queryParams.*)]]') {{localize('mainPage.tabActivity')}}
             neon-animated-pages(selected='[[page]]', attr-for-selected='page',
                                 entry-animation='fade-in-animation',
                                 exit-animation='fade-out-animation')
                 neon-animatable(page='dashboard')
-                    dashboard-view(namespace='[[namespace]]',
+                    dashboard-view(namespace='[[queryParams.ns]]',
                         platform-info='[[platformInfo]]', quick-links='[[quickLinks]]', documentation-items='[[documentationItems]]')
                 neon-animatable(page='activity')
                     activity-view(namespace='[[queryParams.ns]]')

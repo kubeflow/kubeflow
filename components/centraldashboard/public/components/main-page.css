@@ -22,6 +22,11 @@
     flex: 1
 }
 
+.scrollable {
+    height: 100%;
+    overflow: auto;
+}
+
 #MainDrawer {
     color: white;
     --app-drawer-content-container: {
@@ -64,7 +69,8 @@ app-drawer-layout[bleed] #MainDrawer {
 }
 
 #MainDrawer a:hover {
-    color: inherit
+    color: inherit;
+    text-decoration: none;
 }
 
 #MainDrawer iframe-link:hover, #MainDrawer iron-selector>a:hover {
@@ -83,10 +89,28 @@ app-drawer-layout[bleed] #MainDrawer {
     font-weight: 500;
     letter-spacing: 0.3px;
     line-height: 24px;
-    margin: .5em 0;
     transition: background .25s;
     --paper-item-icon-width: 36px;
 
+}
+
+#MainDrawer .inner-menu-item {
+    padding-left: 65px;
+    margin: 0;
+    font-size: 13px;
+    min-height: 30px;
+}
+
+#MainDrawer .section-item {
+    margin-bottom: 0;
+    border-bottom:1px ;
+    position: relative;
+}
+
+#MainDrawer iron-icon {
+    margin-right: 20px;
+    height: 20px;
+    width: 20px;
 }
 
 #MainDrawer .divider {
@@ -99,11 +123,11 @@ app-drawer-layout[bleed] #MainDrawer {
     background: #ffffff1b
 }
 
-#MainDrawer .iron-selected>.menu-item {
+#MainDrawer .iron-selected {
     color: #fff;
 }
 
-#MainDrawer .iron-selected>.menu-item::after {
+#MainDrawer .iron-selected::after {
     content: '';
     display: block;
     position: absolute;

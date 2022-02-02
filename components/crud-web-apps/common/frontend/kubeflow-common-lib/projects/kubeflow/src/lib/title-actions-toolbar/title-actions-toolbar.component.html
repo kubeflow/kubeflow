@@ -1,0 +1,59 @@
+<div class="flex">
+  <div class="page-padding-left"></div>
+
+  <button
+    *ngIf="backButton"
+    mat-icon-button
+    color="primary"
+    class="back-button"
+    (click)="emitBack()"
+  >
+    <mat-icon>keyboard_backspace</mat-icon>
+  </button>
+
+  <div class="title-margin title">
+    {{ title }}
+  </div>
+
+  <div class="margin-content">
+    <ng-content></ng-content>
+  </div>
+
+  <div class="toolbar-buttons">
+    <ng-container *ngFor="let button of buttons">
+      <!--raised button-->
+      <ng-container *ngIf="button.raised">
+        <button
+          mat-button
+          [color]="button.color"
+          [disabled]="button.disabled"
+          (click)="button.fn()"
+          class="toolbar-button"
+        >
+          <mat-icon *ngIf="button.icon" class="button-icon">
+            {{ button.icon }}
+          </mat-icon>
+          {{ button.text }}
+        </button>
+      </ng-container>
+
+      <!--stroked button-->
+      <ng-container *ngIf="button.stroked">
+        <button
+          mat-stroked-button
+          [color]="button.color"
+          [disabled]="button.disabled"
+          (click)="button.fn()"
+          class="toolbar-button"
+        >
+          <mat-icon *ngIf="button.icon" class="button-icon">
+            {{ button.icon }}
+          </mat-icon>
+          {{ button.text }}
+        </button>
+      </ng-container>
+    </ng-container>
+  </div>
+</div>
+
+<mat-divider class="page-placement margin-top"></mat-divider>

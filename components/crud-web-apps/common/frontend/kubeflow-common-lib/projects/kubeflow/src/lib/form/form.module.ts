@@ -11,6 +11,8 @@ import {
   MatProgressSpinnerModule,
   MatDialogModule,
   MatTooltipModule,
+  MatDividerModule,
+  MatIconModule,
 } from '@angular/material';
 
 import { FormSectionComponent } from './section/section.component';
@@ -21,6 +23,9 @@ import { IconModule } from '../icon/icon.module';
 import { PositiveNumberInputComponent } from './positive-number-input/positive-number-input.component';
 import { RokUrlInputComponent } from './rok-url-input/rok-url-input.component';
 import { AdvancedOptionsComponent } from './advanced-options/advanced-options.component';
+import { PopoverModule } from '../popover/popover.module';
+import { SubmitBarComponent } from './submit-bar/submit-bar.component';
+import { StepInfoComponent } from './step-info/step-info.component';
 
 @NgModule({
   declarations: [
@@ -30,6 +35,8 @@ import { AdvancedOptionsComponent } from './advanced-options/advanced-options.co
     PositiveNumberInputComponent,
     RokUrlInputComponent,
     AdvancedOptionsComponent,
+    SubmitBarComponent,
+    StepInfoComponent,
   ],
   imports: [
     CommonModule,
@@ -37,9 +44,12 @@ import { AdvancedOptionsComponent } from './advanced-options/advanced-options.co
     MatCardModule,
     MatButtonModule,
     MatFormFieldModule,
+    MatDividerModule,
     MatInputModule,
     MatTooltipModule,
     IconModule,
+    MatProgressSpinnerModule,
+    PopoverModule,
   ],
   exports: [
     FormSectionComponent,
@@ -48,6 +58,8 @@ import { AdvancedOptionsComponent } from './advanced-options/advanced-options.co
     PositiveNumberInputComponent,
     RokUrlInputComponent,
     AdvancedOptionsComponent,
+    SubmitBarComponent,
+    StepInfoComponent,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
@@ -56,6 +68,8 @@ import { AdvancedOptionsComponent } from './advanced-options/advanced-options.co
     MatProgressSpinnerModule,
     MatDialogModule,
     MatTooltipModule,
+    MatIconModule,
+    MatDividerModule,
   ],
 })
 export class FormModule {}

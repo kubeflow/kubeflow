@@ -6,9 +6,11 @@ import {
   ActionButtonValue,
   TableColumn,
   TRUNCATE_TEXT_SIZE,
+  TableConfig,
+  DateTimeValue,
 } from 'kubeflow';
 
-const tableConfig = {
+const tableConfig: TableConfig = {
   title: 'Tensorboards',
   newButtonText: 'NEW TENSORBOARD',
   columns: [
@@ -27,20 +29,19 @@ const tableConfig = {
       }),
     },
     {
+      matHeaderCellDef: 'Age',
+      matColumnDef: 'age',
+      value: new DateTimeValue({
+        field: 'age',
+      }),
+    },
+    {
       matHeaderCellDef: 'Logspath',
       matColumnDef: 'logspath',
       value: new PropertyValue({
         field: 'logspath',
         tooltipField: 'logspath',
         truncate: TRUNCATE_TEXT_SIZE.SMALL,
-      }),
-    },
-    {
-      matHeaderCellDef: 'Age',
-      matColumnDef: 'age',
-      value: new PropertyValue({
-        field: 'age.uptime',
-        tooltipField: 'age.timestamp',
       }),
     },
   ],

@@ -53,7 +53,7 @@ export class FormGpusComponent implements OnInit {
 
   public vendorTooltip(vendor: GPUVendor) {
     return !this.installedVendors.has(vendor.limitsKey)
-      ? `No ${vendor.uiName} GPUs are installed in the cluster.`
+      ? `No ${vendor.uiName} GPU found installed in the cluster.`
       : '';
   }
 

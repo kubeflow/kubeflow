@@ -16,22 +16,25 @@ package kfam
 
 import (
 	"fmt"
-	"k8s.io/apimachinery/pkg/labels"
-	v1 "k8s.io/client-go/listers/rbac/v1"
 	"net/url"
 	"regexp"
 	"strings"
 
-	istiorbac "github.com/kubeflow/kubeflow/components/profile-controller/api/istiorbac/v1alpha1"
+	"k8s.io/apimachinery/pkg/labels"
+	v1 "k8s.io/client-go/listers/rbac/v1"
+
+	istioSecurity "istio.io/api/security/v1beta1"
+	istioSecurityClient "istio.io/client-go/pkg/apis/security/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
+	v1 "k8s.io/client-go/listers/rbac/v1"
 	"k8s.io/client-go/rest"
 )
 
-const ServiceRoleBinding = "servicerolebindings"
-const SERVICEROLEISTIO = "ns-access-istio"
+const AuthorizationPolicy = "authorizationpolicies"
 const USER = "user"
 const ROLE = "role"
 
@@ -52,15 +55,15 @@ type BindingInterface interface {
 }
 
 type BindingClient struct {
-	restClient rest.Interface
-	kubeClient *clientset.Clientset
+	restClient        rest.Interface
+	kubeClient        *clientset.Clientset
 	roleBindingLister v1.RoleBindingLister
 }
 
 //getBindingName returns bindingName, which is combination of user kind, username, RoleRef kind, RoleRef name.
 func getBindingName(binding *Binding) (string, error) {
 	// Only keep lower case letters and numbers, replace other with -
-	reg, err := regexp.Compile("[^a-z0-9]+")
+	reg, err := regexp.Compile("[^a-zA-Z0-9]+")
 	if err != nil {
 		return "", err
 	}
@@ -74,6 +77,23 @@ func getBindingName(binding *Binding) (string, error) {
 	)
 
 	return reg.ReplaceAllString(nameRaw, "-"), nil
+}
+
+func getAuthorizationPolicy(binding *Binding, userIdHeader string, userIdPrefix string) istioSecurity.AuthorizationPolicy {
+	return istioSecurity.AuthorizationPolicy{
+		Rules: []*istioSecurity.Rule{
+			{
+				When: []*istioSecurity.Condition{
+					{
+						Key: fmt.Sprintf("request.headers[%v]", userIdHeader),
+						Values: []string{
+							userIdPrefix + binding.User.Name,
+						},
+					},
+				},
+			},
+		},
+	}
 }
 
 func (c *BindingClient) Create(binding *Binding, userIdHeader string, userIdPrefix string) error {
@@ -101,31 +121,22 @@ func (c *BindingClient) Create(binding *Binding, userIdHeader string, userIdPref
 		return err
 	}
 
-	// create istio service role binding
-	istioServiceRoleBinding := &istiorbac.ServiceRoleBinding{
+	// create istio authorization policy
+	istioAuth := &istioSecurityClient.AuthorizationPolicy{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{USER: binding.User.Name, ROLE: binding.RoleRef.Name},
 			Name:        bindingName,
 			Namespace:   binding.ReferredNamespace,
 		},
-		Spec: istiorbac.ServiceRoleBindingSpec{
-			Subjects: []*istiorbac.Subject{
-				{
-					Properties: map[string]string{fmt.Sprintf("request.headers[%v]", userIdHeader): userIdPrefix + binding.User.Name},
-				},
-			},
-			RoleRef: &istiorbac.RoleRef{
-				Kind: "ServiceRole",
-				Name: SERVICEROLEISTIO,
-			},
-		},
+		Spec: getAuthorizationPolicy(binding, userIdHeader, userIdPrefix),
 	}
-	result := istiorbac.ServiceRoleBinding{}
+
+	result := istioSecurityClient.AuthorizationPolicy{}
 	return c.restClient.
 		Post().
 		Namespace(binding.ReferredNamespace).
-		Resource(ServiceRoleBinding).
-		Body(istioServiceRoleBinding).
+		Resource(AuthorizationPolicy).
+		Body(istioAuth).
 		Do().
 		Into(&result)
 }
@@ -141,11 +152,11 @@ func (c *BindingClient) Delete(binding *Binding) error {
 	if err != nil {
 		return err
 	}
-	result := istiorbac.ServiceRoleBinding{}
+	result := istioSecurityClient.AuthorizationPolicy{}
 	err = c.restClient.
 		Get().
 		Namespace(binding.ReferredNamespace).
-		Resource(ServiceRoleBinding).
+		Resource(AuthorizationPolicy).
 		Name(bindingName).
 		VersionedParams(&metav1.GetOptions{}, scheme.ParameterCodec).
 		Do().
@@ -161,7 +172,7 @@ func (c *BindingClient) Delete(binding *Binding) error {
 	return c.restClient.
 		Delete().
 		Namespace(binding.ReferredNamespace).
-		Resource(ServiceRoleBinding).
+		Resource(AuthorizationPolicy).
 		Name(bindingName).
 		Body(&metav1.DeleteOptions{}).
 		Do().

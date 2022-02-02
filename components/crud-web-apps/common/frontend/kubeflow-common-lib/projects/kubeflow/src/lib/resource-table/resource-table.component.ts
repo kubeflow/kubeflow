@@ -10,6 +10,7 @@ import {
   MenuValue,
   StatusValue,
   PropertyValue,
+  TABLE_THEME,
 } from './types';
 
 @Component({
@@ -18,68 +19,20 @@ import {
   styleUrls: ['./resource-table.component.scss'],
 })
 export class ResourceTableComponent implements OnInit {
-  private innerConfig: TableConfig;
-  private innerData: any[] = [];
-
-  public dataSource = new MatTableDataSource();
-  public displayedColumns: string[] = [];
-
-  @Input()
-  set config(config: TableConfig) {
-    this.innerConfig = config;
-
-    this.displayedColumns = [];
-    for (const col of config.columns) {
-      this.displayedColumns.push(col.matColumnDef);
-    }
-  }
-  get config(): TableConfig {
-    return this.innerConfig;
-  }
-
-  @Input()
-  trackByFn: (index: number, r: any) => string;
-
-  @Input()
-  get data() {
-    return this.innerData;
-  }
-  set data(newData) {
-    this.dataSource.data = newData;
-  }
+  @Input() config: TableConfig;
+  @Input() data: any[];
+  @Input() trackByFn: (index: number, r: any) => string;
 
   // Whenever a button in a row is pressed the component will emit an event
   // with information regarding the button that was pressed as well as the
   // row's object.
   @Output() actionsEmitter = new EventEmitter<ActionEvent>();
 
+  TABLE_THEME = TABLE_THEME;
+
   constructor() {}
 
   ngOnInit() {}
-
-  public isActionListValue(obj) {
-    return obj instanceof ActionListValue;
-  }
-
-  public isActionButtonValue(obj) {
-    return obj instanceof ActionButtonValue;
-  }
-
-  public isActionIconValue(obj) {
-    return obj instanceof ActionIconValue;
-  }
-
-  public isMenuValue(obj) {
-    return obj instanceof MenuValue;
-  }
-
-  public isStatusValue(obj) {
-    return obj instanceof StatusValue;
-  }
-
-  public isPropertyValue(obj) {
-    return obj instanceof PropertyValue;
-  }
 
   public actionTriggered(e: ActionEvent) {
     // Forward the emitted ActionEvent
@@ -91,7 +44,12 @@ export class ResourceTableComponent implements OnInit {
     this.actionsEmitter.emit(ev);
   }
 
-  public minTableWidth() {
+  public linkClicked(field: string, data: any) {
+    const ev = new ActionEvent(`${field}:link`, data);
+    this.actionsEmitter.emit(ev);
+  }
+
+  get minTableWidth() {
     // Review: This will break if the config is an other falsy value
     // https://developer.mozilla.org/en-US/docs/Glossary/Falsy
     if (typeof this.config === 'undefined') {
@@ -99,5 +57,21 @@ export class ResourceTableComponent implements OnInit {
     }
 
     return `${this.config.columns.length * 100}px`;
+  }
+
+  get totalWidth() {
+    if (!this.config || !this.config.width) {
+      return 'fit-content';
+    }
+
+    return this.config.width;
+  }
+
+  get tableTheme(): TABLE_THEME {
+    if (!this.config || !this.config.theme) {
+      return TABLE_THEME.CARD;
+    }
+
+    return this.config.theme;
   }
 }

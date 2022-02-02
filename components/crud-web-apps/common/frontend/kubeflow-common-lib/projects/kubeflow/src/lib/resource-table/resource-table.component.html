@@ -1,16 +1,27 @@
-<div class="center-flex space-top">
-  <mat-card class="mat-elevation-z4">
-    <div class="header">
-      <p>{{ config?.title }}</p>
+<!--TODO(kimwnasptd): we shouldn't add any padding in the top at all in here-->
+<!--if a page would like to add some padding then it should be its own-->
+<!--responsibility.-->
+<div class="center-flex " [class.space-top]="tableTheme == TABLE_THEME.CARD">
+  <!--CARD table theme-->
+  <mat-card
+    *ngIf="tableTheme == TABLE_THEME.CARD"
+    class="mat-elevation-z4"
+    [style.width]="totalWidth"
+    [style.min-width]="minTableWidth"
+  >
+    <div class="header card-title-padding">
+      <div>{{ config?.title }}</div>
 
       <button
+        *ngIf="config?.newButtonText"
         mat-button
         id="newResource"
         color="primary"
         class="right"
         (click)="newButtonTriggered()"
       >
-        <mat-icon>add</mat-icon>{{ config?.newButtonText }}
+        <mat-icon class="new-resource-button">add</mat-icon>
+        {{ config?.newButtonText }}
       </button>
     </div>
 
@@ -18,89 +29,45 @@
 
     <mat-card-content>
       <!-- Iterate on the column definitions and create the Columns-->
-      <table
-        mat-table
-        [dataSource]="dataSource"
-        [trackBy]="trackByFn"
-        [style.min-width]="minTableWidth()"
-      >
-        <ng-container
-          [matColumnDef]="col.matColumnDef"
-          *ngFor="let col of config?.columns"
-        >
-          <th mat-header-cell *matHeaderCellDef>
-            {{ col.matHeaderCellDef }}
-          </th>
-
-          <!--Property Value-->
-          <ng-container *ngIf="isPropertyValue(col.value)">
-            <td mat-cell *matCellDef="let element">
-              <div
-                [matTooltip]="col.value.getTooltip(element)"
-                [ngClass]="col.value.getClasses()"
-              >
-                {{ col.value.getValue(element) }}
-              </div>
-            </td>
-          </ng-container>
-
-          <!--Status Value-->
-          <ng-container *ngIf="isStatusValue(col.value)">
-            <td mat-cell *matCellDef="let element">
-              <lib-status [status]="element.status"></lib-status>
-            </td>
-          </ng-container>
-
-          <!--Menu Value-->
-          <ng-container *ngIf="isMenuValue(col.value)">
-            <td mat-cell *matCellDef="let element">
-              <button mat-icon-button [matMenuTriggerFor]="menu">
-                <mat-icon>{{ col.value.menuIcon }}</mat-icon>
-              </button>
-              <mat-menu #menu="matMenu">
-                <button
-                  mat-menu-item
-                  *ngFor="let item of col.value.getItems(element)"
-                  [matTooltip]="item"
-                  [matTooltipDisabled]="!col.value.showTooltip"
-                >
-                  <mat-icon>{{ col.value.itemsIcon }}</mat-icon>
-                  <span>{{ item }}</span>
-                </button>
-              </mat-menu>
-            </td>
-          </ng-container>
-
-          <!--Action List Value-->
-          <ng-container *ngIf="isActionListValue(col.value)">
-            <td mat-cell *matCellDef="let element">
-              <div class="action-list">
-                <ng-container *ngFor="let action of col.value.actions">
-                  <!--Button-->
-                  <lib-action-button
-                    *ngIf="isActionButtonValue(action)"
-                    class="action-button"
-                    [action]="action"
-                    [data]="element"
-                    (emitter)="actionTriggered($event)"
-                  ></lib-action-button>
-
-                  <!--Icon-->
-                  <lib-action
-                    *ngIf="isActionIconValue(action)"
-                    [action]="action"
-                    [data]="element"
-                    (emitter)="actionTriggered($event)"
-                  ></lib-action>
-                </ng-container>
-              </div>
-            </td>
-          </ng-container>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-      </table>
+      <lib-table
+        [config]="config"
+        [data]="data"
+        [trackByFn]="trackByFn"
+        [emitter]="actionsEmitter"
+      ></lib-table>
     </mat-card-content>
   </mat-card>
+
+  <!--FLAT table theme-->
+  <div
+    [style.width]="totalWidth"
+    [style.min-width]="minTableWidth"
+    *ngIf="tableTheme == TABLE_THEME.FLAT"
+  >
+    <div class="header">
+      <p>{{ config?.title }}</p>
+
+      <button
+        *ngIf="config?.newButtonText"
+        mat-button
+        id="newResource"
+        color="primary"
+        class="right"
+        (click)="newButtonTriggered()"
+      >
+        <mat-icon class="new-resource-button">add</mat-icon>
+        {{ config?.newButtonText }}
+      </button>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Iterate on the column definitions and create the Columns-->
+    <lib-table
+      [config]="config"
+      [data]="data"
+      [trackByFn]="trackByFn"
+      [emitter]="actionsEmitter"
+    ></lib-table>
+  </div>
 </div>

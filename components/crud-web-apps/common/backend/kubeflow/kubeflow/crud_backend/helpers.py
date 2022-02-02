@@ -24,7 +24,7 @@ def get_prefixed_index_html():
     with open(os.path.join(static_dir, "index.html"), "r") as f:
         index_html = f.read()
         index_prefixed = re.sub(
-            r"\<base href=\".*\"\>", '<base href="%s">' % prefix, index_html,
+            r"\<base href=\".*\".*\>", '<base href="%s">' % prefix, index_html,
         )
 
         return index_prefixed
@@ -40,7 +40,7 @@ def load_yaml(f):
         with open(f, "r") as yaml_file:
             c = yaml_file.read()
     except IOError:
-        log.error(f"Error opening: {f}")
+        log.error("Error opening: %s", f)
         return None
 
     try:
@@ -69,7 +69,7 @@ def load_param_yaml(f, **kwargs):
         with open(f, "r") as yaml_file:
             c = yaml_file.read().format(**kwargs)
     except IOError:
-        log.error(f"Error opening: {f}")
+        log.error("Error opening: %s", f)
         return None
 
     try:

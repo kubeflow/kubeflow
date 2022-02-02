@@ -4,25 +4,48 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
-  name: manager-role
+  name: role
 rules:
 - apiGroups:
-  - =kubeflow.org
+  - apps
   resources:
-  - notebooks
+  - statefulsets
+  verbs:
+  - '*'
+- apiGroups:
+  - ""
+  resources:
+  - events
   verbs:
   - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - '*'
 - apiGroups:
   - kubeflow.org
   resources:
+  - notebooks
+  - notebooks/finalizers
   - notebooks/status
   verbs:
-  - get
-  - patch
-  - update
+  - '*'
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - virtualservices
+  verbs:
+  - '*'

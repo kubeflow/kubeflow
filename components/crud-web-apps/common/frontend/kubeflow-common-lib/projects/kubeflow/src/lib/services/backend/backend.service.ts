@@ -1,17 +1,17 @@
-import { Injectable } from '@angular/core';
-import { Location } from '@angular/common';
+import {Injectable} from '@angular/core';
+import {Location} from '@angular/common';
 import {
   HttpClient,
   HttpErrorResponse,
   HttpHeaders,
 } from '@angular/common/http';
 
-import { throwError, Observable } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import {throwError, Observable} from 'rxjs';
+import {catchError, map} from 'rxjs/operators';
 
-import { BackendResponse } from './types';
-import { SnackType } from '../../snack-bar/types';
-import { SnackBarService } from '../../snack-bar/snack-bar.service';
+import {BackendResponse} from './types';
+import {SnackType} from '../../snack-bar/types';
+import {SnackBarService} from '../../snack-bar/snack-bar.service';
 
 @Injectable({
   providedIn: 'root',
@@ -20,7 +20,8 @@ export class BackendService {
   apiUrl = '';
   username: string;
 
-  constructor(public http: HttpClient, public snackBar: SnackBarService) {}
+  constructor(public http: HttpClient, public snackBar: SnackBarService) {
+  }
 
   // GETers
   public getUsername(): Observable<string> {
@@ -32,12 +33,13 @@ export class BackendService {
     );
   }
 
-  public getNamespaces(showSnackBar = true): Observable<string[]> {
-    const url = `api/namespaces`;
+  public getNamespaces(showSnackBar = true, url?: string): Observable<string[]> {
 
-    return this.http.get<BackendResponse>(url).pipe(
+    return this.http.get<BackendResponse>(url ? url : 'api/namespaces').pipe(
       catchError(error => this.handleError(error, showSnackBar)),
-      map((data: BackendResponse) => data.namespaces),
+      map((data: BackendResponse | string[]) =>
+        (data as BackendResponse).namespaces ? (data as BackendResponse).namespaces : (data as string[])
+      ),
     );
   }
 
@@ -79,16 +81,21 @@ export class BackendService {
   ): string {
     if (typeof error === 'string') {
       return error;
-    } else if (error.error instanceof ErrorEvent) {
-      return error.error.message;
-    } else if (error instanceof HttpErrorResponse) {
-      return this.getBackendErrorLog(error);
-    } else if (error instanceof ErrorEvent) {
-      return error.message;
-    } else {
-      return `Unexpected error encountered`;
     }
-    return '';
+
+    if (error instanceof HttpErrorResponse) {
+      if (this.getBackendErrorLog(error) !== undefined) {
+        return this.getBackendErrorLog(error);
+      }
+
+      return `${error.status}: ${error.message}`;
+    }
+
+    if (error instanceof ErrorEvent) {
+      return error.message;
+    }
+
+    return `Unexpected error encountered`;
   }
 
   public getSnackErrorMessage(

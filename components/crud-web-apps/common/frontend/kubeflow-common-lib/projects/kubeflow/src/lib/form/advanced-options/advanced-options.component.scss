@@ -1,0 +1,36 @@
+:host {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.options-wrapper {
+  /* Height will be an Input to the component */
+  transition: max-height 0.3s ease;
+  overflow: hidden;
+}
+
+.flex {
+  display: flex;
+}
+
+.anchor {
+  overflow-anchor: none;
+}
+
+.threadline {
+  border-left: 2px solid #edeff1;
+  padding-right: 12px;
+  margin-right: 12px;
+}
+
+.threadline:hover {
+  border-left: 2px solid #1e88e5;
+  padding-right: 12px;
+  margin-right: 12px;
+  cursor: pointer;
+}
+
+.toggle-button {
+  padding: 0 4px;
+  margin-left: -8px;
+}

@@ -17,6 +17,12 @@ import { MatChipsModule } from '@angular/material/chips';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ActionButtonComponent } from './action-button/action-button.component';
 import { IconModule } from '../icon/icon.module';
+import { TableComponent } from './table/table.component';
+import { DateTimeModule } from '../date-time/date-time.module';
+import { PopoverModule } from '../popover/popover.module';
+import { TableChipsListComponent } from './chips-list/chips-list.component';
+import { ComponentValueComponent } from './component-value/component-value.component';
+import { PortalModule } from '@angular/cdk/portal';
 
 @NgModule({
   imports: [
@@ -29,15 +35,21 @@ import { IconModule } from '../icon/icon.module';
     MatButtonModule,
     MatChipsModule,
     MatMenuModule,
+    PortalModule,
     FontAwesomeModule,
     MatIconModule,
     IconModule,
+    DateTimeModule,
+    PopoverModule,
   ],
   declarations: [
     ResourceTableComponent,
     StatusComponent,
     ActionComponent,
     ActionButtonComponent,
+    TableChipsListComponent,
+    TableComponent,
+    ComponentValueComponent,
   ],
   exports: [ResourceTableComponent],
 })

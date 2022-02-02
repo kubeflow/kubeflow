@@ -1,6 +1,12 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { NamespaceSelectComponent } from './namespace-select.component';
+import {
+  MOCK_NAMESPACES,
+  MockBackendService,
+} from '../services/backend/backend.service.spec';
+import { BackendService } from '../services/backend/backend.service';
+import { NamespaceSelectModule } from './namespace-select.module';
 
 describe('NamespaceSelectComponent', () => {
   let component: NamespaceSelectComponent;
@@ -8,7 +14,8 @@ describe('NamespaceSelectComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [NamespaceSelectComponent],
+      imports: [NamespaceSelectModule],
+      providers: [{ provide: BackendService, useClass: MockBackendService }],
     }).compileComponents();
   }));
 

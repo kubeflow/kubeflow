@@ -1,10 +1,9 @@
 approvers:
-  - avdaredevil
   - elikatsis
   - kimwnasptd
-  - prodonjs
   - StefanoFioravanzo
-  - swiftdiaries
+  - thesuperzapper
+  - yanniszark
 reviewers:
+  - avdaredevil
   - SachinVarghese
-  - StefanoFioravanzo

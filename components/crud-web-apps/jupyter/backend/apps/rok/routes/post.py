@@ -1,7 +1,6 @@
 from flask import request
 
-from kubeflow.kubeflow.crud_backend import (api, decorators, helpers,
-                                                  logging)
+from kubeflow.kubeflow.crud_backend import api, decorators, helpers, logging
 
 from ...common import form, utils
 from ..utils import common as rok_common
@@ -15,7 +14,7 @@ log = logging.getLogger(__name__)
 @decorators.required_body_params("name")
 def post_notebook(namespace):
     body = request.get_json()
-    log.info(f"Got body: {body}")
+    log.info("Got body: %s" % body)
 
     notebook = helpers.load_param_yaml(
         utils.NOTEBOOK_TEMPLATE_YAML,
@@ -28,6 +27,7 @@ def post_notebook(namespace):
 
     form.set_notebook_image(notebook, body, defaults)
     form.set_notebook_image_pull_policy(notebook, body, defaults)
+    form.set_server_type(notebook, body, defaults)
     form.set_notebook_cpu(notebook, body, defaults)
     form.set_notebook_memory(notebook, body, defaults)
     form.set_notebook_gpus(notebook, body, defaults)

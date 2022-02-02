@@ -44,9 +44,7 @@ export class IndexComponent implements OnInit {
     public backend: TWABackendService,
     public dialog: MatDialog,
     public snackBar: SnackBarService,
-  ) {
-    this.backend.setApiUrl(this.env.apiUrl);
-  }
+  ) {}
 
   ngOnInit() {
     this.poller = new ExponentialBackoff({ interval: 1000, retries: 3 });

@@ -1,0 +1,12 @@
+# TODO(jlewi): This kustomization.yaml is deprecated. We want the
+# base_v3 version. This version uses a bunch of problematic patterns e.g.
+# i) Using vars to do command line substitution
+# ii) Not using a configmap to make application and global config available
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../default
+images:
+- name: public.ecr.aws/j1r0q0g6/notebooks/profile-controller
+  newName: public.ecr.aws/j1r0q0g6/notebooks/profile-controller
+  newTag: v1.3.1-rc.0

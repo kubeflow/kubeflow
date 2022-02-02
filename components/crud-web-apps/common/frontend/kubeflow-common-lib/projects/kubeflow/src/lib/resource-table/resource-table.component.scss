@@ -6,58 +6,25 @@
   padding-top: 1.5rem;
 }
 
-.action-list {
-  display: flex;
-}
-
-.action-button {
-  margin: auto;
-}
-
 mat-card {
-  width: fit-content;
   padding: 0px;
   margin: 0 0 50px 0;
-}
-
-.mat-cell {
-  min-height: auto; // overrides the 'inherit' that set the min height of the row
-  padding: 2px 28px 2px 0;
 }
 
 mat-toolbar {
   background: white;
 }
 
-.text-small {
-  max-width: 150px;
-}
-
-.text-medium {
-  max-width: 300px;
-}
-
-.text-large {
-  max-width: 450px;
-}
-
-lib-action {
-  width: 40px;
-  display: inline-flex;
-  justify-content: center;
-  height: 40px;
-}
-
 .header {
   display: flex;
   align-items: center;
-  padding: 0px 16px 0px 16px;
   height: 64px;
-}
-
-.header p {
   font-weight: 400;
   font-size: 20px;
+}
+
+.card-title-padding {
+  padding: 0px 16px 0px 16px;
 }
 
 .mat-icon {

@@ -1,28 +1,31 @@
-<ng-container [ngSwitch]="status?.phase">
+<ng-container [ngSwitch]="config?.getPhase(row)">
   <!-- Loading -->
   <mat-spinner
     *ngSwitchCase="STATUS_TYPE.WAITING"
     diameter="24"
-    [matTooltip]="status?.message"
+    [matTooltip]="config?.getTooltip(row)"
+    matTooltipClass="custom-tooltip"
   ></mat-spinner>
 
   <mat-spinner
     *ngSwitchCase="STATUS_TYPE.TERMINATING"
     diameter="24"
-    [matTooltip]="status?.message"
+    [matTooltip]="config?.getTooltip(row)"
+    matTooltipClass="custom-tooltip"
   ></mat-spinner>
 
   <lib-icon
     *ngSwitchCase="STATUS_TYPE.STOPPED"
-    [matTooltip]="status?.message"
+    [matTooltip]="config?.getTooltip(row)"
     icon="custom:stoppedResource"
   ></lib-icon>
 
   <mat-icon
     *ngSwitchDefault
-    [ngClass]="getCssClasses()"
-    [matTooltip]="getTooltip()"
+    [ngClass]="config?.getCssClasses(row)"
+    [matTooltip]="config?.getTooltip(row)"
+    matTooltipClass="custom-tooltip"
   >
-    {{ getIcon() }}
+    {{ config?.getIcon(row) }}
   </mat-icon>
 </ng-container>

@@ -4,6 +4,11 @@
 */
 import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/iron-iconset-svg/iron-iconset-svg.js';
+import '@polymer/iron-icons/communication-icons.js';
+import '@polymer/iron-icons/maps-icons.js';
+import '@polymer/iron-icons/av-icons.js';
+import '@polymer/iron-icons/editor-icons.js';
+import '@polymer/iron-icons/device-icons.js';
 
 import {html, htmlLiteral} from '@polymer/polymer/lib/utils/html-tag.js';
 

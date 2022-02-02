@@ -15,6 +15,39 @@ const TEMPLATE = `
 </test-fixture>
 `;
 
+const MENU_LINKS = [
+    {
+        link: '/jupyter/',
+        text: 'Notebooks',
+    },
+    {
+        link: '/pipeline/#/pipelines',
+        text: 'Pipelines',
+    },
+    {
+        link: '/katib/trials',
+        text: 'Katib Trials',
+    },
+    {
+        type: 'section',
+        text: 'Experiments',
+        items: [
+            {
+                link: '/pipeline/#/experiments',
+                text: 'Pipelines',
+            },
+            {
+                link: '/katib/experiments',
+                text: 'Katib Experiments',
+            },
+        ],
+    },
+    {
+        link: '/pipeline/#/runs',
+        text: 'Runs',
+    },
+];
+
 describe('Main Page', () => {
     let mainPage;
     let beforeHash;
@@ -54,7 +87,6 @@ describe('Main Page', () => {
         flush();
 
         expect(mainPage.page).toBe('dashboard');
-        expect(mainPage.sidebarItemIndex).toBe(0);
         expect(mainPage.inIframe).toBe(false);
 
         await selectedTabPromise;
@@ -73,7 +105,6 @@ describe('Main Page', () => {
         flush();
 
         expect(mainPage.page).toBe('activity');
-        expect(mainPage.sidebarItemIndex).toBe(0);
         expect(mainPage.inIframe).toBe(false);
 
         await selectedTabPromise;
@@ -87,7 +118,6 @@ describe('Main Page', () => {
         flush();
 
         expect(mainPage.page).toBe('not_found');
-        expect(mainPage.sidebarItemIndex).toBe(-1);
         expect(mainPage.notFoundInIframe).toBe(false);
         expect(mainPage.inIframe).toBe(false);
         expect(mainPage.shadowRoot.getElementById('ViewTabs')
@@ -104,11 +134,9 @@ describe('Main Page', () => {
 
         expect(window.location.search).toContain('ns=test');
         expect(mainPage.page).toBe('iframe');
-        // expect(mainPage.sidebarItemIndex).toBe(2);
         expect(mainPage.inIframe).toBe(true);
         expect(mainPage.shadowRoot.getElementById('ViewTabs')
             .hasAttribute('hidden')).toBe(true);
-        expect(mainPage.$.MainDrawer.close).toHaveBeenCalled();
     });
 
     it('Sets view state when an invalid page is specified from an iframe',
@@ -118,7 +146,6 @@ describe('Main Page', () => {
             flush();
 
             expect(mainPage.page).toBe('not_found');
-            expect(mainPage.sidebarItemIndex).toBe(-1);
             expect(mainPage.notFoundInIframe).toBe(true);
             expect(mainPage.shadowRoot.getElementById('ViewTabs')
                 .hasAttribute('hidden')).toBe(true);
@@ -197,8 +224,10 @@ describe('Main Page', () => {
 
         const buildVersion = mainPage.shadowRoot.querySelector(
             'section.build span');
-        // textContent is used because innerText would be empty if sidebar is
-        // hidden
+        /*
+         * textContent is used because innerText would be empty if sidebar is
+         * hidden
+         */
         expect(buildVersion.textContent).toEqual('1.0.0');
         const namespaceSelector = mainPage.shadowRoot
             .getElementById('NamespaceSelector');
@@ -212,10 +241,12 @@ describe('Main Page', () => {
         const historySpy = spyOn(window.history, 'replaceState');
         mainPage.iframePage = '/notebooks?blah=bar';
         mainPage.iframePage = '/pipelines/create/new';
-        expect(historySpy).toHaveBeenCalledWith(null, null,
-            '/_/notebooks?blah=bar');
-        expect(historySpy).toHaveBeenCalledWith(null, null,
-            '/_/pipelines/create/new');
+        const l1 = new URL('/_/notebooks?blah=bar',
+            window.location.origin).toString();
+        expect(historySpy).toHaveBeenCalledWith(null, null, l1);
+        const l2 = new URL('/_/pipelines/create/new',
+            window.location.origin).toString();
+        expect(historySpy).toHaveBeenCalledWith(null, null, l2);
     });
 
     it('Sets iframeSrc with hash and query values from parent', () => {
@@ -245,5 +276,60 @@ describe('Main Page', () => {
             flush();
 
             expect(mainPage.iframeSrc).toBe('about:blank');
+        });
+
+    function getSelectedMenuItem() {
+        return mainPage.shadowRoot.querySelectorAll(
+            '.menu-item.iron-selected');
+    }
+
+    it('Sets active menu item from simple URL',
+        () => {
+            mainPage.menuLinks = MENU_LINKS;
+            flush();
+            mainPage._setActiveMenuLink('/jupyter/', '');
+            flush();
+            const activeMenuItem = getSelectedMenuItem();
+            expect(activeMenuItem.length).toBe(1);
+            expect(activeMenuItem[0].parentElement.href).toBe('/jupyter/');
+        });
+
+    it('Sets active menu item from hash-based URL with common prefix',
+        () => {
+            mainPage.menuLinks = MENU_LINKS;
+            flush();
+            mainPage._setActiveMenuLink('/pipeline/',
+                '/experiments/details/12345');
+            flush();
+            let activeMenuItem = getSelectedMenuItem();
+            expect(activeMenuItem.length).toBe(1);
+            expect(activeMenuItem[0].parentElement.href).toBe(
+                '/pipeline/#/experiments');
+
+            mainPage._setActiveMenuLink('/pipeline/',
+                '/runs/details/12345');
+            flush();
+            activeMenuItem = getSelectedMenuItem();
+            expect(activeMenuItem.length).toBe(1);
+            expect(activeMenuItem[0].parentElement.href).toBe(
+                '/pipeline/#/runs');
+        });
+
+    it('Sets active menu item from path-based URL with common prefix ',
+        () => {
+            mainPage.menuLinks = MENU_LINKS;
+            flush();
+            mainPage._setActiveMenuLink('/katib/experiments/id/12345', '');
+            flush();
+            let activeMenuItem = getSelectedMenuItem();
+            expect(activeMenuItem.length).toBe(1);
+            expect(activeMenuItem[0].parentElement.href).toBe(
+                '/katib/experiments');
+
+            mainPage._setActiveMenuLink('/katib/trials/id/12345', '');
+            flush();
+            activeMenuItem = getSelectedMenuItem();
+            expect(activeMenuItem.length).toBe(1);
+            expect(activeMenuItem[0].parentElement.href).toBe('/katib/trials');
         });
 });

@@ -1,8 +1,8 @@
 import * as k8s from '@kubernetes/client-node';
 
-/** Retrieve Dashboard links configmap Name */
+/** Retrieve Dashboard configmap Name */
 const {
-  DASHBOARD_LINKS_CONFIGMAP = "centraldashboard-links-config"
+  DASHBOARD_CONFIGMAP = "centraldashboard-config"
 } = process.env;
 
 /** Information about the Kubernetes hosting platform. */
@@ -51,7 +51,7 @@ export class KubernetesService {
   private namespace = 'kubeflow';
   private coreAPI: k8s.CoreV1Api;
   private customObjectsAPI: k8s.CustomObjectsApi;
-  private dashboardlinksConfigMap = DASHBOARD_LINKS_CONFIGMAP;
+  private dashboardConfigMap = DASHBOARD_CONFIGMAP;
 
   constructor(private kubeConfig: k8s.KubeConfig) {
     console.info('Initializing Kubernetes configuration');
@@ -77,13 +77,13 @@ export class KubernetesService {
     }
   }
 
-  /** Retrieves the configmap data of links for the central dashboard. */
-  async getDashboardLinks(): Promise<k8s.V1ConfigMap> {
+  /** Retrieves the configmap data for the central dashboard. */
+  async getConfigMap(): Promise<k8s.V1ConfigMap> {
     try {
-      const { body } = await this.coreAPI.readNamespacedConfigMap(this.dashboardlinksConfigMap,this.namespace);
+      const { body } = await this.coreAPI.readNamespacedConfigMap(this.dashboardConfigMap,this.namespace);
       return body;
     } catch (err) {
-      console.error('Unable to fetch Links ConfigMap:', err.body || err);
+      console.error('Unable to fetch ConfigMap:', err.body || err);
       return null;
     }
   }
