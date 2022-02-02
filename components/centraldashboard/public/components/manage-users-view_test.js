@@ -69,12 +69,12 @@ describe('Manage Users View', () => {
         expect(manageUsersView.shadowRoot.querySelector('.Contributors')
             .hasAttribute('hidden')).toBe(false, 'Contributors was still hidden');
         expect(manageUsersView.shadowRoot.querySelector('.Cluster-Namespaces')
-            .hasAttribute('hidden')).toBe(true, 'Cluster Namespaces should have been hidden');       
+            .hasAttribute('hidden')).toBe(true, 'Cluster Namespaces should have been hidden');
         // View prop expectations
         expect(manageUsersView.shadowRoot.querySelector('.Namespaces vaadin-grid').items)
             .toEqual(
                 [['ns1', 'Owner'], ['ns2', 'Contributor'], ['ns3', 'Contributor']],
-                'Invalid namespace memberships'
+                'Invalid namespace memberships',
             );
     });
 
@@ -103,7 +103,7 @@ describe('Manage Users View', () => {
         expect(manageUsersView.shadowRoot.querySelector('.Cluster-Namespaces vaadin-grid').items)
             .toEqual(
                 allPeeps,
-                'Invalid list of all namespace memberships'
+                'Invalid list of all namespace memberships',
             );
     });
 });

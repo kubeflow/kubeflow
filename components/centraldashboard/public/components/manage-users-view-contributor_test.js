@@ -40,7 +40,7 @@ describe('Manage Users View Contributor', () => {
 
     afterAll(() => {
         jasmine.Ajax.uninstall();
-    });   
+    });
 
     it('Should handle errors correctly', async () => {
         mockIronAjax(
@@ -59,7 +59,7 @@ describe('Manage Users View Contributor', () => {
         expect(manageUsersView.$.ContribError.opened)
             .toBe(
                 true,
-                'Error toast is not opened'
+                'Error toast is not opened',
             );
         expect(manageUsersView.contribError)
             .toBe('Failed for test');
@@ -93,7 +93,7 @@ describe('Manage Users View Contributor', () => {
         expect(manageUsersView.contributorList)
             .toEqual(
                 verificationContribs,
-                'Invalid list of contributors'
+                'Invalid list of contributors',
             );
     });
 
@@ -124,7 +124,7 @@ describe('Manage Users View Contributor', () => {
         expect(manageUsersView.contributorList)
             .toEqual(
                 verificationContribs,
-                'Invalid list of contributors'
+                'Invalid list of contributors',
             );
     });
 
@@ -149,7 +149,7 @@ describe('Manage Users View Contributor', () => {
         expect(manageUsersView.contributorList)
             .toEqual(
                 contribList,
-                'Invalid list of contributors'
+                'Invalid list of contributors',
             );
     });
 });

@@ -158,30 +158,30 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
      * Set state for loading registration flow in case no dashboard links exists
      * @param {Event} ev AJAX-response
      */
-      _onHasDashboardLinksError(ev) {
-       const error = ((ev.detail.request||{}).response||{}).error ||
+    _onHasDashboardLinksError(ev) {
+        const error = ((ev.detail.request||{}).response||{}).error ||
            ev.detail.error;
-       this.showError(error);
-       return;
-     }
-     
+        this.showError(error);
+        return;
+    }
+
     /**
      * Set state for Central dashboard links
      * @param {Event} ev AJAX-response
      */
-      _onHasDashboardLinksResponse(ev) {
-       const {
-           menuLinks,
-           externalLinks,
-           quickLinks,
-           documentationItems,
-       } = ev.detail.response;
-          this.menuLinks = menuLinks || [];
-          this.externalLinks = externalLinks || [];
-          this.quickLinks = quickLinks || [];
-          this.documentationItems = documentationItems || [];
-     }
-     
+    _onHasDashboardLinksResponse(ev) {
+        const {
+            menuLinks,
+            externalLinks,
+            quickLinks,
+            documentationItems,
+        } = ev.detail.response;
+        this.menuLinks = menuLinks || [];
+        this.externalLinks = externalLinks || [];
+        this.quickLinks = quickLinks || [];
+        this.documentationItems = documentationItems || [];
+    }
+
     /**
      * Set state for loading registration flow in case no workgroup exists
      * @param {Event} ev AJAX-response
@@ -255,8 +255,10 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
             hideTabs = true;
             allNamespaces = true;
             hideSidebar = false;
-            // need to use the shadowRoot selector instead of this.$ because
-            // this.$ does not contain dynamically created DOM nodes
+            /*
+             * need to use the shadowRoot selector instead of this.$ because
+             * this.$ does not contain dynamically created DOM nodes
+             */
             this._setActiveLink(this.shadowRoot.querySelector('#contributors'));
             break;
         case '':
