@@ -121,8 +121,10 @@ export class DashboardView extends localizationMixin(PolymerElement) {
             quickLink.link = this.buildHref(quickLink.link, {ns: namespace});
             return quickLink;
         });
-        // We need to deep-copy and re-assign in order to trigger the
-        // re-rendering of the component
+        /*
+         * We need to deep-copy and re-assign in order to trigger the
+         * re-rendering of the component
+         */
         this.quickLinks = JSON.parse(JSON.stringify(this.quickLinks));
     }
 }

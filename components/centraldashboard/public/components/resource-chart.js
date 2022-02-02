@@ -10,9 +10,11 @@ import 'chartjs-plugin-crosshair';
 
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 import {Chart} from 'chart.js';
-// Explicitly loads the Chart.js CSS so it can be applied to the ShadowDOM
-// Necessary since third-party CSS would normally be vendored and applied
-// globally.
+/*
+ * Explicitly loads the Chart.js CSS so it can be applied to the ShadowDOM
+ * Necessary since third-party CSS would normally be vendored and applied
+ * globally.
+ */
 import chartCss from '!css-loader!exports-loader!chart.js/dist/Chart.css';
 
 import './card-styles.js';
@@ -263,12 +265,14 @@ class ResourceChart extends PolymerElement {
      * @return {Array}
      */
     _buildDatasets(timeSeriesPoints) {
-        // Create a Map from timeseries label to objects with the following
-        // shape:
-        // {
-        //   mean: cumulative moving average
-        //   data: [{t: timestamp in s, y: value}]
-        // }
+        /*
+         * Create a Map from timeseries label to objects with the following
+         * shape:
+         * {
+         *   mean: cumulative moving average
+         *   data: [{t: timestamp in s, y: value}]
+         * }
+         */
         let truncatedSeries = false;
         const dataPointsByLabel = new Map();
         timeSeriesPoints.forEach((point) => {
