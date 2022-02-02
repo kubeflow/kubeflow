@@ -42,7 +42,7 @@ describe('CentralDashboardEventHandler', () => {
             .toHaveBeenCalledWith(
                 {
                     type: IFRAME_CONNECTED_EVENT,
-                }, 'http://testpage.com'
+                }, 'http://testpage.com',
             );
         expect(initSpy).toHaveBeenCalledWith(CentralDashboardEventHandler,
             true);

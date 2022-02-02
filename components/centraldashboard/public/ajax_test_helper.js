@@ -55,7 +55,7 @@ export async function yieldForRequests() {
 export function mockIronAjax(component, response, respondWithError = false) {
     const {tagName} = component;
     expect(tagName).toBe(
-        'IRON-AJAX', '[mockRequest] Element passed in was not iron-ajax'
+        'IRON-AJAX', '[mockRequest] Element passed in was not iron-ajax',
     );
     // eslint-disable-next-line no-console
     const finalEvent = `${respondWithError?'error':'response'}`;
@@ -70,12 +70,12 @@ export function mockIronAjax(component, response, respondWithError = false) {
             component._setLastResponse(response);
         }
         component.dispatchEvent(
-            new CustomEvent(finalEvent, eventPayload)
+            new CustomEvent(finalEvent, eventPayload),
         );
         const resp = component.lastResponse || component.lastError;
         // So that code can await when using this dynamically
         const completes = new Promise((res, rej) =>
-            (respondWithError ? rej : res)(resp)
+            (respondWithError ? rej : res)(resp),
         );
         completes.catch(() => {});
 
