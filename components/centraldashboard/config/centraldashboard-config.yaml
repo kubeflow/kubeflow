@@ -11,15 +11,18 @@ data:
         "menuLinks": [
         {
           "link": "/pipeline/",
-          "text": "Pipelines"
+          "text": "Pipelines",
+          "icon": "kubeflow:pipeline-centered"
         },
         {
           "link": "/jupyter/",
-          "text": "Notebook Servers"
+          "text": "Notebooks",
+          "icon": "book"
         },
         {
           "link": "/katib/",
-          "text": "Katib"
+          "text": "Katib",
+          "icon": "kubeflow:katib"
         }
       ],
      "externalLinks": [],
@@ -73,15 +76,18 @@ data:
         "menuLinks": [
         {
           "link": "/pipeline/",
-          "text": "Pipelines"
+          "text": "Pipelines",
+          "icon": "kubeflow:pipeline-centered"
         },
         {
           "link": "/jupyter/",
-          "text": "Serveur Bloc-notes"
+          "text": "Serveur Bloc-notes",
+          "icon": "book"
         },
         {
           "link": "/katib/",
-          "text": "Katib"
+          "text": "Katib",
+          "icon": "kubeflow:katib"
         }
        ],
       "externalLinks": [],
