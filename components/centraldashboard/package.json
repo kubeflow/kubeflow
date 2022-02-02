@@ -72,6 +72,8 @@
         "chartjs-plugin-crosshair": "^1.1.4",
         "express": "^4.17.1",
         "google-auth-library": "^5.9.2",
+        "json-schema": "^0.4.0",
+        "jsprim": "^1.4.2",
         "levenary": "^1.1.1",
         "node-fetch": "^2.6.0",
         "web-animations-js": "^2.3.2",
