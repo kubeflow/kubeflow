@@ -11,28 +11,19 @@ data:
       { 
         "menuLinks": [
         {
-          "link": "/jupyter/",
-          "text": "Notebooks",
-          "icon": "book"
-        },
-        {
-          "link": "/tensorboards/",
-          "text": "Tensorboards",
-          "icon": "assessment"
-        },
-        {
-          "link": "/volumes/",
-          "text": "Volumes",
-          "icon": "device:storage"
-        },
-        {
           "link": "/pipeline/",
           "text": "Pipelines",
           "icon": "kubeflow:pipeline-centered"
         },
         {
+          "link": "/jupyter/",
+          "text": "Notebooks",
+          "icon": "book"
+        },
+        {
           "link": "/katib/",
-          "text": "Katib"
+          "text": "Katib",
+          "icon": "kubeflow:katib"
         }
       ],
      "externalLinks": [],
@@ -86,15 +77,18 @@ data:
         "menuLinks": [
         {
           "link": "/pipeline/",
-          "text": "Pipelines"
+          "text": "Pipelines",
+          "icon": "kubeflow:pipeline-centered"
         },
         {
           "link": "/jupyter/",
-          "text": "Serveur Bloc-notes"
+          "text": "Serveur Bloc-notes",
+          "icon": "book"
         },
         {
           "link": "/katib/",
-          "text": "Katib"
+          "text": "Katib",
+          "icon": "kubeflow:katib"
         }
        ],
       "externalLinks": [],
