@@ -8,9 +8,8 @@ describe('StorageClassComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ StorageClassComponent ]
-    })
-    .compileComponents();
+      declarations: [StorageClassComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

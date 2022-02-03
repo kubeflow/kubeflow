@@ -8,9 +8,8 @@ describe('AccessModesComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ AccessModesComponent ]
-    })
-    .compileComponents();
+      declarations: [AccessModesComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

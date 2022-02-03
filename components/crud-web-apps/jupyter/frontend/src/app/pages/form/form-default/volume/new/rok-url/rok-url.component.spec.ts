@@ -8,9 +8,8 @@ describe('RokUrlComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ RokUrlComponent ]
-    })
-    .compileComponents();
+      declarations: [RokUrlComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {
