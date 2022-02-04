@@ -223,7 +223,7 @@ func UpdateNotebookLastActivityAnnotation(meta *metav1.ObjectMeta) {
 			meta.SetAnnotations(map[string]string{})
 		}
 		meta.Annotations[LAST_ACTIVITY_ANNOTATION] = t
-		return true
+		return
 	}
 
 	log.Info("last-activity annotation exists. Checking /api/kernels")
