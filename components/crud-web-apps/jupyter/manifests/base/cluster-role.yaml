@@ -4,15 +4,6 @@ metadata:
   name: cluster-role
 rules:
 - apiGroups:
-  - ""
-  resources:
-  - namespaces
-  verbs:
-  - get
-  - list
-  - create
-  - delete
-- apiGroups:
   - authorization.k8s.io
   resources:
   - subjectaccessreviews

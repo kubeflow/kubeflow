@@ -4,32 +4,45 @@ metadata:
   name: jupyter-notebook-role
 rules:
 - apiGroups:
-  - ""
+  - authorization.k8s.io
   resources:
-  - pods
-  - pods/log
-  - secrets
-  - services
+  - subjectaccessreviews
   verbs:
-  - '*'
-- apiGroups:
-  - ""
-  - apps
-  - extensions
-  resources:
-  - deployments
-  - replicasets
-  verbs:
-  - '*'
+  - create
 - apiGroups:
   - kubeflow.org
   resources:
-  - '*'
+  - notebooks
+  - notebooks/finalizers
+  - poddefaults
   verbs:
-  - '*'
+  - get
+  - list
+  - create
+  - delete
+  - patch
+  - update
 - apiGroups:
-  - batch
+  - ""
   resources:
-  - jobs
+  - persistentvolumeclaims
   verbs:
-  - '*'
+  - create
+  - delete
+  - get
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - events
+  - nodes
+  verbs:
+  - list
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
+  verbs:
+  - get
+  - list
+  - watch
