@@ -15,9 +15,11 @@ def get_config():
 @bp.route("/api/namespaces/<namespace>/pvcs")
 def get_pvcs(namespace):
     pvcs = api.list_pvcs(namespace).items
-    contents = [utils.pvc_dict_from_k8s_obj(pvc) for pvc in pvcs]
+    data = [{"name": pvc.metadata.name,
+             "size": pvc.spec.resources.requests["storage"],
+             "mode": pvc.spec.access_modes[0]} for pvc in pvcs]
 
-    return api.success_response("pvcs", contents)
+    return api.success_response("pvcs", data)
 
 
 @bp.route("/api/namespaces/<namespace>/poddefaults")

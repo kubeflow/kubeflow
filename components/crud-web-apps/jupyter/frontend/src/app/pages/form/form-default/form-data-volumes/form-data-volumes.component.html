@@ -1,46 +1,110 @@
 <lib-form-section
   title="Data Volumes"
-  text="Configure the Volumes to be mounted as your Datasets."
-  icon="fa:fas:hdd"
+  text="Additional volumes that will be mounted in your Notebook"
   i18n-title
   i18n-text
 >
-  <div [formGroup]="parentForm">
-    <button
-      mat-stroked-button
-      class="add-data-vol-button"
-      color="accent"
-      (click)="addVol()"
-      type="button"
-      [disabled]="readonly"
-      i18n="Add data volume button text"
+  <mat-accordion>
+    <mat-expansion-panel
+      hideToggle
+      *ngFor="let volGroup of volsArray.controls; let i = index"
+      (opened)="openPanel.add(i)"
+      (closed)="openPanel.clear()"
     >
-      <mat-icon>add</mat-icon>
-      ADD VOLUME
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          {{ getVolumeTitle(volGroup.value) }}
+        </mat-panel-title>
+
+        <mat-panel-description>
+          <ng-container *ngIf="volGroup.get('newPvc')">
+            <div
+              class="pvc-name truncate"
+              [matTooltip]="getVolumeName(volGroup.value)"
+            >
+              {{ getVolumeName(volGroup.value) }},
+            </div>
+            <div class="pvc-type">{{ getNewVolumeType(volGroup.value) }},</div>
+            <div>{{ getNewVolumeSize(volGroup.value) }}</div>
+          </ng-container>
+
+          <ng-container *ngIf="volGroup.get('existingSource')">
+            <div
+              class="vol-name truncate"
+              [matTooltip]="getVolumeName(volGroup.value)"
+            >
+              {{ getVolumeName(volGroup.value) }}
+            </div>
+          </ng-container>
+
+          <div class="icons">
+            <mat-icon
+              *ngIf="!readonly"
+              (click)="onDelete(i, $event)"
+              matTooltip="Delete volume"
+              i18n-matTooltip
+              class="delete-icon"
+            >
+              delete
+            </mat-icon>
+
+            <mat-icon
+              *ngIf="!openPanel.has(i)"
+              matTooltip="Show volume details"
+              i18n-matTooltip
+            >
+              expand_more
+            </mat-icon>
+
+            <mat-icon
+              *ngIf="openPanel.has(i)"
+              matTooltip="Hide volume details"
+              i18n-matTooltip
+            >
+              expand_less
+            </mat-icon>
+          </div>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <div [class.readonly]="readonly">
+        <app-existing-volume
+          *ngIf="volGroup.get('existingSource')"
+          [volGroup]="volGroup"
+        ></app-existing-volume>
+
+        <app-new-volume
+          *ngIf="volGroup.get('newPvc')"
+          [volGroup]="volGroup"
+          [externalName]="externalName"
+        ></app-new-volume>
+
+        <app-volume-mount [volGroup]="volGroup"></app-volume-mount>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  <div class="volume-buttons">
+    <button
+      type="button"
+      color="primary"
+      [disabled]="readonly"
+      (click)="addNewVolume()"
+      mat-stroked-button
+      i18n
+    >
+      + Add new volume
     </button>
 
-    <div *ngFor="let vol of datavols; let i = index" class="volume-wrapper">
-      <app-volume
-        [volume]="vol"
-        [notebookName]="parentForm.get('name').value"
-        [namespace]="parentForm.get('namespace').value"
-        [pvcs]="pvcs"
-        [ephemeral]="false"
-        [defaultStorageClass]="defaultStorageClass"
-      >
-      </app-volume>
-
-      <div class="del-btn">
-        <button
-          mat-icon-button
-          color="warn"
-          (click)="deleteVol(i)"
-          type="button"
-          [disabled]="readonly"
-        >
-          <mat-icon>delete</mat-icon>
-        </button>
-      </div>
-    </div>
+    <button
+      type="button"
+      color="primary"
+      [disabled]="readonly"
+      (click)="attachExistingVolume()"
+      mat-stroked-button
+      i18n
+    >
+      + Attach existing volume
+    </button>
   </div>
 </lib-form-section>

@@ -1,6 +1,14 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup, FormArray, Validators, FormBuilder } from '@angular/forms';
-import { addDataVolume } from '../utils';
+import {
+  createExistingVolumeFormGroup,
+  createNewPvcVolumeFormGroup,
+  getNewVolumeSize,
+  getNewVolumeType,
+  getVolumeDesc,
+  getVolumeName,
+  getVolumeTitle,
+} from 'src/app/shared/utils/volumes';
 import { Volume } from 'src/app/types';
 
 @Component({
@@ -9,27 +17,43 @@ import { Volume } from 'src/app/types';
   styleUrls: ['./form-data-volumes.component.scss'],
 })
 export class FormDataVolumesComponent implements OnInit {
-  @Input() parentForm: FormGroup;
-  @Input() readonly: boolean;
-  @Input() pvcs: Volume[];
-  @Input() defaultStorageClass: boolean;
+  openPanel = new Set();
 
-  get datavols() {
-    const vols = this.parentForm.get('datavols') as FormArray;
-    return vols.controls;
-  }
+  @Input() volsArray: FormArray;
+  @Input() readonly: boolean;
+  @Input() externalName: string;
+
+  getVolumeTitle = getVolumeTitle;
+  getVolumeName = getVolumeName;
+  getNewVolumeSize = getNewVolumeSize;
+  getNewVolumeType = getNewVolumeType;
 
   constructor() {}
 
   ngOnInit() {}
 
-  addVol() {
-    addDataVolume(this.parentForm);
+  onDelete(id: number, event: PointerEvent) {
+    event.stopPropagation();
+    this.volsArray.removeAt(id);
+    this.openPanel.clear();
   }
 
-  deleteVol(idx: number) {
-    const vols = this.parentForm.get('datavols') as FormArray;
-    vols.removeAt(idx);
-    this.parentForm.updateValueAndValidity();
+  addNewVolume() {
+    const volId = this.volsArray.length + 1;
+    const volGroup = createNewPvcVolumeFormGroup(
+      `{notebook-name}-datavol-${volId}`,
+    );
+
+    this.volsArray.push(volGroup);
+
+    volGroup.get('mount').setValue(`/home/jovyan/vol-${this.volsArray.length}`);
+  }
+
+  attachExistingVolume() {
+    const volGroup = createExistingVolumeFormGroup();
+
+    this.volsArray.push(volGroup);
+
+    volGroup.get('mount').setValue(`/home/jovyan/vol-${this.volsArray.length}`);
   }
 }

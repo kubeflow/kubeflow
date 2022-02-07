@@ -7,10 +7,10 @@ import {
   NotebookResponseObject,
   JWABackendResponse,
   Config,
-  Volume,
   PodDefault,
   NotebookFormObject,
   NotebookProcessedObject,
+  PvcResponseObject,
 } from '../types';
 @Injectable({
   providedIn: 'root',
@@ -43,7 +43,7 @@ export class JWABackendService extends BackendService {
     );
   }
 
-  public getVolumes(ns: string): Observable<Volume[]> {
+  public getVolumes(ns: string): Observable<PvcResponseObject[]> {
     // Get existing PVCs in a namespace
     const url = `api/namespaces/${ns}/pvcs`;
 

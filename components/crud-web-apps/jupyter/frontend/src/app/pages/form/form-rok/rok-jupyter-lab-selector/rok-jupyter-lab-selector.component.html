@@ -1,9 +1,9 @@
 <lib-form-section
   title="Rok JupyterLab URL"
+  i18n-title
   text="
-    Load an existing Jupyter Lab by providing a valid Rok URL.
-  "
-  icon="fa:fas:link"
+    Create a new Notebook from a snapshot URL."
+  i18n-text
 >
   <lib-rok-url-input [control]="ctrl" (urlEntered)="labAutofillClicked($event)">
   </lib-rok-url-input>
