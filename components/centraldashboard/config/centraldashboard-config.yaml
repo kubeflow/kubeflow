@@ -10,14 +10,46 @@ data:
       { 
         "menuLinks": [
         {
+          "type": "item",
+          "link": "/jupyter/",
+          "text": "Notebooks",
+          "icon": "book"
+        },
+        {
+          "type": "item",
           "link": "/pipeline/",
           "text": "Pipelines",
           "icon": "kubeflow:pipeline-centered"
         },
         {
-          "link": "/jupyter/",
-          "text": "Notebooks",
-          "icon": "book"
+          "type": "item",
+          "text": "Experiments (KFP)",
+          "link": "/pipeline/#/experiments",
+          "icon": "done-all"
+        },
+        {
+          "type": "item",
+          "link": "/pipeline/#/runs",
+          "text": "Runs",
+          "icon": "maps:directions-run"
+        },
+        {
+          "type": "item",
+          "link": "/pipeline/#/recurringruns",
+          "text": "Recurring Runs",
+          "icon": "device:access-alarm"
+        },
+        {
+          "type": "item",
+          "link": "/pipeline/#/artifacts",
+          "text": "Artifacts",
+          "icon": "editor:bubble-chart"
+        },
+        {
+          "type": "item",
+          "link": "/pipeline/#/executions",
+          "text": "Executions",
+          "icon": "av:play-arrow"
         },
         {
           "link": "/katib/",
@@ -75,14 +107,46 @@ data:
       {
         "menuLinks": [
         {
+          "type": "item",
+          "link": "/jupyter/",
+          "text": "Serveur Bloc-notes",
+          "icon": "book"
+        },
+        {
+          "type": "item",
           "link": "/pipeline/",
           "text": "Pipelines",
           "icon": "kubeflow:pipeline-centered"
         },
         {
-          "link": "/jupyter/",
-          "text": "Serveur Bloc-notes",
-          "icon": "book"
+          "type": "item",
+          "text": "Expériences (KFP)",
+          "link": "/pipeline/#/experiments",
+          "icon": "done-all"
+        },
+        {
+          "type": "item",
+          "link": "/pipeline/#/runs",
+          "text": "Exécutions",
+          "icon": "maps:directions-run"
+        },
+        {
+          "type": "item",
+          "link": "/pipeline/#/recurringruns",
+          "text": "Exécutions récurrentes",
+          "icon": "device:access-alarm"
+        },
+        {
+          "type": "item",
+          "link": "/pipeline/#/artifacts",
+          "text": "Artefacts",
+          "icon": "editor:bubble-chart"
+        },
+        {
+          "type": "item",
+          "link": "/pipeline/#/executions",
+          "text": "Exécutions en cours",
+          "icon": "av:play-arrow"
         },
         {
           "link": "/katib/",
