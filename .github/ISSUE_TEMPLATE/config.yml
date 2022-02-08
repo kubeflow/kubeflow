@@ -9,9 +9,9 @@ contact_links:
   - name: Issues related to Kubeflow Katib
     url: https://github.com/kubeflow/katib/issues/new/choose
     about: Create issue in kubeflow/katib repo
-  - name: Issues related to Kubeflow Kfserving
-    url: https://github.com/kubeflow/kfserving/issues/new/choose
-    about: Create issue in kubeflow/kfserving repo
+  - name: Issues related to Kubeflow KServe
+    url: https://github.com/kserve/kserve/issues/new/choose
+    about: Create issue in kserve/kserve repo
   - name: Issues related to Kubeflow Tf-operator
     url: https://github.com/kubeflow/tf-operator/issues/new/choose
     about: Create issue in kubeflow/tf-operator repo
