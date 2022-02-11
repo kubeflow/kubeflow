@@ -50,6 +50,8 @@ const DefaultServingPort = 80
 const AnnotationRewriteURI = "notebooks.kubeflow.org/http-rewrite-uri"
 const AnnotationHeadersRequestSet = "notebooks.kubeflow.org/http-headers-request-set"
 
+const PrefixEnvVar = "NB_PREFIX"
+
 // The default fsGroup of PodSecurityContext.
 // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#podsecuritycontext-v1-core
 const DefaultFSGroup = int64(100)
@@ -286,11 +288,11 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// Pod is found
 	// Check if the Notebook needs to be stopped
 	// Update the LAST_ACTIVITY_ANNOTATION
-	culler.UpdateNotebookLastActivityAnnotation(&instance.ObjectMeta)
-
-	err = r.Update(ctx, instance)
-	if err != nil {
-		return ctrl.Result{}, err
+	if culler.UpdateNotebookLastActivityAnnotation(&instance.ObjectMeta) {
+		err = r.Update(ctx, instance)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	// Check if the Notebook needs to be stopped
@@ -341,6 +343,22 @@ func getNextCondition(cs corev1.ContainerState) v1beta1.NotebookCondition {
 	return newCondition
 }
 
+func setPrefixEnvVar(instance *v1beta1.Notebook, container *corev1.Container) {
+	prefix := "/notebook/" + instance.Namespace + "/" + instance.Name
+
+	for _, envVar := range container.Env {
+		if envVar.Name == PrefixEnvVar {
+			envVar.Value = prefix
+			return
+		}
+	}
+
+	container.Env = append(container.Env, corev1.EnvVar{
+		Name:  PrefixEnvVar,
+		Value: prefix,
+	})
+}
+
 func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 	replicas := int32(1)
 	if culler.StopAnnotationIsSet(instance.ObjectMeta) {
@@ -364,7 +382,7 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 					"statefulset":   instance.Name,
 					"notebook-name": instance.Name,
 				}},
-				Spec: instance.Spec.Template.Spec,
+				Spec: *instance.Spec.Template.Spec.DeepCopy(),
 			},
 		},
 	}
@@ -388,10 +406,8 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 			},
 		}
 	}
-	container.Env = append(container.Env, corev1.EnvVar{
-		Name:  "NB_PREFIX",
-		Value: "/notebook/" + instance.Namespace + "/" + instance.Name,
-	})
+
+	setPrefixEnvVar(instance, container)
 
 	// For some platforms (like OpenShift), adding fsGroup: 100 is troublesome.
 	// This allows for those platforms to bypass the automatic addition of the fsGroup

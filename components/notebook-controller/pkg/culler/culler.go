@@ -204,11 +204,11 @@ func allKernelsAreIdle(kernels []KernelStatus, log logr.Logger) bool {
 }
 
 // Update LAST_ACTIVITY_ANNOTATION
-func UpdateNotebookLastActivityAnnotation(meta *metav1.ObjectMeta) {
+func UpdateNotebookLastActivityAnnotation(meta *metav1.ObjectMeta) bool {
 	log := log.WithValues("notebook", getNamespacedNameFromMeta(*meta))
 	if meta == nil {
 		log.Info("Metadata is Nil. Can't update Last Activity Annotation.")
-		return
+		return false
 	}
 
 	log.Info("Updating the last-activity annotation.")
@@ -223,25 +223,25 @@ func UpdateNotebookLastActivityAnnotation(meta *metav1.ObjectMeta) {
 			meta.SetAnnotations(map[string]string{})
 		}
 		meta.Annotations[LAST_ACTIVITY_ANNOTATION] = t
-		return
+		return true
 	}
 
 	log.Info("last-activity annotation exists. Checking /api/kernels")
 	kernels := getNotebookApiKernels(nm, ns)
 	if kernels == nil {
 		log.Info("Could not GET the kernels status. Will not update last-activity.")
-		return
+		return false
 	}
 
-	updateTimestampFromKernelsActivity(meta, kernels)
+	return updateTimestampFromKernelsActivity(meta, kernels)
 }
 
-func updateTimestampFromKernelsActivity(meta *metav1.ObjectMeta, kernels []KernelStatus) {
+func updateTimestampFromKernelsActivity(meta *metav1.ObjectMeta, kernels []KernelStatus) bool {
 	log := log.WithValues("notebook", getNamespacedNameFromMeta(*meta))
 
 	if len(kernels) == 0 {
 		log.Info("Notebook has no kernels. Will not update last-activity")
-		return
+		return false
 	}
 
 	if !allKernelsAreIdle(kernels, log) {
@@ -251,7 +251,7 @@ func updateTimestampFromKernelsActivity(meta *metav1.ObjectMeta, kernels []Kerne
 		log.Info(fmt.Sprintf("Found a busy kernel. Updating the last-activity to %s", t))
 
 		meta.Annotations[LAST_ACTIVITY_ANNOTATION] = t
-		return
+		return true
 	}
 
 	// Checking for the most recent kernel last_activity. The LAST_ACTIVITY_ANNOTATION
@@ -259,14 +259,14 @@ func updateTimestampFromKernelsActivity(meta *metav1.ObjectMeta, kernels []Kerne
 	recentTime, err := time.Parse(time.RFC3339, kernels[0].LastActivity)
 	if err != nil {
 		log.Error(err, "Error parsing the last-activity from the /api/kernels")
-		return
+		return false
 	}
 
 	for i := 1; i < len(kernels); i++ {
 		kernelLastActivity, err := time.Parse(time.RFC3339, kernels[i].LastActivity)
 		if err != nil {
 			log.Error(err, "Error parsing the last-activity from the /api/kernels")
-			return
+			return false
 		}
 		if kernelLastActivity.After(recentTime) {
 			recentTime = kernelLastActivity
@@ -276,6 +276,7 @@ func updateTimestampFromKernelsActivity(meta *metav1.ObjectMeta, kernels []Kerne
 
 	meta.Annotations[LAST_ACTIVITY_ANNOTATION] = t
 	log.Info(fmt.Sprintf("Successfully updated last-activity from latest kernel action, %s", t))
+	return true
 }
 
 func notebookIsIdle(meta metav1.ObjectMeta) bool {
