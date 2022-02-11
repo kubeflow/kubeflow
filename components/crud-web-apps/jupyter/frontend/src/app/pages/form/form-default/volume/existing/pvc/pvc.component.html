@@ -1,0 +1,16 @@
+<mat-checkbox [formControl]="pvcGroup.get('readOnly')">Readonly</mat-checkbox>
+
+<mat-form-field appearance="outline" class="wide">
+  <mat-label i18n>Name</mat-label>
+  <mat-select [formControl]="pvcGroup.get('claimName')" #select>
+    <mat-option *ngFor="let pvc of pvcs" [value]="pvc.name">
+      <div class="flex">
+        <div class="name truncate">{{ pvc.name }}</div>
+        <ng-container *ngIf="select.panelOpen">
+          <div class="size">{{ pvc.size }}</div>
+          <div class="mode">{{ pvc.mode }}</div>
+        </ng-container>
+      </div>
+    </mat-option>
+  </mat-select>
+</mat-form-field>

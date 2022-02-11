@@ -50,6 +50,8 @@ const DefaultServingPort = 80
 const AnnotationRewriteURI = "notebooks.kubeflow.org/http-rewrite-uri"
 const AnnotationHeadersRequestSet = "notebooks.kubeflow.org/http-headers-request-set"
 
+const PrefixEnvVar = "NB_PREFIX"
+
 // The default fsGroup of PodSecurityContext.
 // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#podsecuritycontext-v1-core
 const DefaultFSGroup = int64(100)
@@ -91,19 +93,28 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	var getEventErr error
 	getEventErr = r.Get(ctx, req.NamespacedName, event)
 	if getEventErr == nil {
+		log.Info("Found event for Notebook. Re-emitting...")
+
+		// Find the Notebook that corresponds to the triggered event
 		involvedNotebook := &v1beta1.Notebook{}
 		nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
+
 		involvedNotebookKey := types.NamespacedName{Name: nbName, Namespace: req.Namespace}
 		if err := r.Get(ctx, involvedNotebookKey, involvedNotebook); err != nil {
 			log.Error(err, "unable to fetch Notebook by looking at event")
 			return ctrl.Result{}, ignoreNotFound(err)
 		}
+
+		// re-emit the event in the Notebook CR
+		log.Info("Emitting Notebook Event.", "Event", event)
 		r.EventRecorder.Eventf(involvedNotebook, event.Type, event.Reason,
 			"Reissued from %s/%s: %s", strings.ToLower(event.InvolvedObject.Kind), event.InvolvedObject.Name, event.Message)
+		return ctrl.Result{}, nil
 	}
+
 	if getEventErr != nil && !apierrs.IsNotFound(getEventErr) {
 		return ctrl.Result{}, getEventErr
 	}
@@ -249,8 +260,43 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 	}
 
+	if !podFound {
+		// Delete LAST_ACTIVITY_ANNOTATION annotations for CR objects
+		// that do not have a pod.
+		log.Info("Notebook has not Pod running. Will remove last-activity annotation")
+		meta := instance.ObjectMeta
+		if meta.GetAnnotations() == nil {
+			log.Info("No annotations found")
+			return ctrl.Result{}, nil
+		}
+
+		if _, ok := meta.GetAnnotations()[culler.LAST_ACTIVITY_ANNOTATION]; !ok {
+			log.Info("No last-activity annotations found")
+			return ctrl.Result{}, nil
+		}
+
+		log.Info("Removing last-activity annotation")
+		delete(meta.GetAnnotations(), culler.LAST_ACTIVITY_ANNOTATION)
+		err = r.Update(ctx, instance)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{}, nil
+
+	}
+
+	// Pod is found
 	// Check if the Notebook needs to be stopped
-	if podFound && culler.NotebookNeedsCulling(instance.ObjectMeta) {
+	// Update the LAST_ACTIVITY_ANNOTATION
+	if culler.UpdateNotebookLastActivityAnnotation(&instance.ObjectMeta) {
+		err = r.Update(ctx, instance)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	// Check if the Notebook needs to be stopped
+	if culler.NotebookNeedsCulling(instance.ObjectMeta) {
 		log.Info(fmt.Sprintf(
 			"Notebook %s/%s needs culling. Setting annotations",
 			instance.Namespace, instance.Name))
@@ -262,14 +308,13 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-	} else if podFound && !culler.StopAnnotationIsSet(instance.ObjectMeta) {
+	} else if !culler.StopAnnotationIsSet(instance.ObjectMeta) {
 		// The Pod is either too fresh, or the idle time has passed and it has
 		// received traffic. In this case we will be periodically checking if
 		// it needs culling.
 		return ctrl.Result{RequeueAfter: culler.GetRequeueTime()}, nil
 	}
-
-	return ctrl.Result{}, nil
+	return ctrl.Result{RequeueAfter: culler.GetRequeueTime()}, nil
 }
 
 func getNextCondition(cs corev1.ContainerState) v1beta1.NotebookCondition {
@@ -298,6 +343,22 @@ func getNextCondition(cs corev1.ContainerState) v1beta1.NotebookCondition {
 	return newCondition
 }
 
+func setPrefixEnvVar(instance *v1beta1.Notebook, container *corev1.Container) {
+	prefix := "/notebook/" + instance.Namespace + "/" + instance.Name
+
+	for _, envVar := range container.Env {
+		if envVar.Name == PrefixEnvVar {
+			envVar.Value = prefix
+			return
+		}
+	}
+
+	container.Env = append(container.Env, corev1.EnvVar{
+		Name:  PrefixEnvVar,
+		Value: prefix,
+	})
+}
+
 func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 	replicas := int32(1)
 	if culler.StopAnnotationIsSet(instance.ObjectMeta) {
@@ -321,7 +382,7 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 					"statefulset":   instance.Name,
 					"notebook-name": instance.Name,
 				}},
-				Spec: instance.Spec.Template.Spec,
+				Spec: *instance.Spec.Template.Spec.DeepCopy(),
 			},
 		},
 	}
@@ -345,10 +406,8 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 			},
 		}
 	}
-	container.Env = append(container.Env, corev1.EnvVar{
-		Name:  "NB_PREFIX",
-		Value: "/notebook/" + instance.Namespace + "/" + instance.Name,
-	})
+
+	setPrefixEnvVar(instance, container)
 
 	// For some platforms (like OpenShift), adding fsGroup: 100 is troublesome.
 	// This allows for those platforms to bypass the automatic addition of the fsGroup
@@ -602,7 +661,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		})
 
 	// helper common function for pod predicates. Filter pods not containing the "notebook-name" label key
-	checkNBLabel := func (m metav1.Object) bool {
+	checkNBLabel := func(m metav1.Object) bool {
 		_, ok := m.GetLabels()["notebook-name"]
 		return ok
 	}
@@ -633,7 +692,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		})
 
 	// helper common function for event predicates. Filter events not coming from Pod or STS, and coming from unknown NBs
-	checkEvent := func (o runtime.Object, m metav1.Object) bool {
+	checkEvent := func(o runtime.Object, m metav1.Object) bool {
 		event := o.(*corev1.Event)
 		nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
 		if err != nil {
@@ -642,14 +701,13 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return isStsOrPodEvent(event) && nbNameExists(r.Client, nbName, m.GetNamespace())
 	}
 	// TODO: refactor to use predicate.NewPredicateFuncs when controller-runtime module version is updated
+	// We don't include DeleteFunc since we don't want the reconcile
+	// to happen when an event gets deleted
 	eventsPredicates := predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			return e.ObjectOld != e.ObjectNew && checkEvent(e.ObjectNew, e.MetaNew)
 		},
 		CreateFunc: func(e event.CreateEvent) bool {
-			return checkEvent(e.Object, e.Meta)
-		},
-		DeleteFunc: func(e event.DeleteEvent) bool {
 			return checkEvent(e.Object, e.Meta)
 		},
 		GenericFunc: func(e event.GenericEvent) bool {

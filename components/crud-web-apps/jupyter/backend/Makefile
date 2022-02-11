@@ -6,6 +6,9 @@ install-deps:
 	popd
 	pip install -r requirements.txt
 
+unittest:
+	python -m unittest discover --pattern "*_test.py"
+
 run:
 	APP_PREFIX=/jupyter \
 	gunicorn -w 3 --bind 0.0.0.0:5000 --access-logfile - entrypoint:app

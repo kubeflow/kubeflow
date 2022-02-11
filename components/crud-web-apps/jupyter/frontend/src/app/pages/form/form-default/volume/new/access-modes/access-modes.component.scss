@@ -1,0 +1,23 @@
+:host {
+  display: inline-block;
+}
+
+.form-title {
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+  color: rgba(0, 0, 0, 0.64);
+  display: block;
+}
+
+.mat-radio-group {
+  display: flex;
+  flex-direction: column;
+
+  .mat-radio-button {
+    margin-bottom: 0.5rem;
+  }
+
+  .mat-radio-button:last-child {
+    margin-bottom: 1rem;
+  }
+}
