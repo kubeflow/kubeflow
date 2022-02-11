@@ -81,7 +81,15 @@ export class FormImageComponent implements OnInit, OnDestroy {
     this.subs.unsubscribe();
   }
   imageDisplayName(image: string): string {
-    const [name, tag = null] = image.split(':');
+    const nameTagRegex = /(.*):([^:]*)$/;
+    let name, tag;
+
+    if (!image.includes(':')){
+      name = image, tag = null;
+    } else {
+      [name, tag] = image.match(nameTagRegex).splice(1);
+    }
+
     let tokens = name.split('/');
 
     if (this.hideRegistry && tokens.length > 1 && tokens[0].includes('.')) {
