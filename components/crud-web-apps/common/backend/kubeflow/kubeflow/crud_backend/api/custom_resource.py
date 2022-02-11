@@ -10,15 +10,12 @@ def create_custom_rsrc(group, version, kind, data, namespace):
                                                       namespace, kind, data)
 
 
-def delete_custom_rsrc(group, version, kind, name, namespace, foreground=True):
-    del_policy = client.V1DeleteOptions()
-    if foreground:
-        del_policy = client.V1DeleteOptions(propagation_policy="Foreground")
-
+def delete_custom_rsrc(group, version, kind, name, namespace,
+                       policy="Foreground"):
     authz.ensure_authorized("delete", group, version, kind, namespace)
-    return custom_api.delete_namespaced_custom_object(group, version,
-                                                      namespace, kind, name,
-                                                      del_policy)
+    return custom_api.delete_namespaced_custom_object(
+        group, version, namespace, kind, name, propagation_policy=policy
+    )
 
 
 def list_custom_rsrc(group, version, kind, namespace):
