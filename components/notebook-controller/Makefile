@@ -1,7 +1,7 @@
 
 # Image URL to use all building/pushing image targets
 IMG ?= gcr.io/kubeflow-images-public/notebook-controller
-TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
+TAG ?= $(shell git describe --tags --always)
 SHELL := /bin/bash
 GOLANG_VERSION ?= 1.15
 
@@ -69,13 +69,13 @@ generate: controller-gen
 
 # Build the docker image
 docker-build: test
-	cd .. && docker build . -t ${IMG} -f ./notebook-controller/Dockerfile
+	cd .. && docker build . -t ${IMG}:${TAG} -f ./notebook-controller/Dockerfile
 	@echo "updating kustomize image patch file for manager resource"
-	sed -i'' -e 's@image: .*@image: '"${IMG}"'@' ./config/default/manager_image_patch.yaml
+	sed -i'' -e 's@image: .*@image: '"${IMG}:${TAG}"'@' ./config/default/manager_image_patch.yaml
 
 # Push the docker image
 docker-push:
-	docker push ${IMG}
+	docker push ${IMG}:${TAG}
 
 # find or download controller-gen
 # download controller-gen if necessary

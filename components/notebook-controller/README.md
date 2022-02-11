@@ -34,11 +34,13 @@ That is, the user should specify what and how to run.
 All other fields will be filled in with default value if not specified.
 
 ## Environment parameters
+|Parameter | Description |
+| --- | --- |
+|ADD_FSGROUP| If the value is true or unset, fsGroup: 100 will be included in the pod's security context. If this value is present and set to false, it will suppress the automatic addition of fsGroup: 100 to the security context of the pod.|
+|DEV| If the value is false or unset, then the default implementation of the Notebook Controller will be used. If the admins want to use a custom implementation from their local machine, they should set this value to true.|
 
-ADD_FSGROUP: If the value is true or unset, fsGroup: 100 will be included
-in the pod's security context. If this value is present and set to false, it will suppress the
-automatic addition of fsGroup: 100 to the security context of the pod.
 
+   
 ## Commandline parameters
 
 `metrics-addr`: The address the metric endpoint binds to. The default value is `:8080`.
@@ -66,6 +68,17 @@ To develop on `notebook-controller`, your environment must have the following:
 - Access to a Kubernetes v1.11.3+ cluster.
 - [kubebuilder](https://book.kubebuilder.io/quick-start.html#installation)
 
+In order for the custom Notebook Controller to be functional from your local machine, 
+the admins must:
+
+1. Set the number of replicas to zero: 
+   ``` 
+   kubectl edit deployment notebook-controller-deployment -n=kubeflow
+   ```
+2. Allow the controller to proxy the traffic to the Notebook Services by executing on your local machine:
+   ```
+   kubectl proxy
+   ```
 ## TODO
 
 - e2e test (we have one testing the jsonnet-metacontroller one, we should make it run on this one)

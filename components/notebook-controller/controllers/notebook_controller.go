@@ -249,8 +249,43 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 	}
 
+	if !podFound {
+		// Delete LAST_ACTIVITY_ANNOTATION annotations for CR objects
+		// that do not have a pod.
+		log.Info("Notebook has not Pod running. Will remove last-activity annotation")
+		meta := instance.ObjectMeta
+		if meta.GetAnnotations() == nil {
+			log.Info("No annotations found")
+			return ctrl.Result{}, nil
+		}
+
+		if _, ok := meta.GetAnnotations()[culler.LAST_ACTIVITY_ANNOTATION]; !ok {
+			log.Info("No last-activity annotations found")
+			return ctrl.Result{}, nil
+		}
+
+		log.Info("Removing last-activity annotation")
+		delete(meta.GetAnnotations(), culler.LAST_ACTIVITY_ANNOTATION)
+		err = r.Update(ctx, instance)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{}, nil
+
+	}
+
+	// Pod is found
 	// Check if the Notebook needs to be stopped
-	if podFound && culler.NotebookNeedsCulling(instance.ObjectMeta) {
+	// Update the LAST_ACTIVITY_ANNOTATION
+	culler.UpdateNotebookLastActivityAnnotation(&instance.ObjectMeta)
+
+	err = r.Update(ctx, instance)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Check if the Notebook needs to be stopped
+	if culler.NotebookNeedsCulling(instance.ObjectMeta) {
 		log.Info(fmt.Sprintf(
 			"Notebook %s/%s needs culling. Setting annotations",
 			instance.Namespace, instance.Name))
@@ -262,14 +297,13 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-	} else if podFound && !culler.StopAnnotationIsSet(instance.ObjectMeta) {
+	} else if !culler.StopAnnotationIsSet(instance.ObjectMeta) {
 		// The Pod is either too fresh, or the idle time has passed and it has
 		// received traffic. In this case we will be periodically checking if
 		// it needs culling.
 		return ctrl.Result{RequeueAfter: culler.GetRequeueTime()}, nil
 	}
-
-	return ctrl.Result{}, nil
+	return ctrl.Result{RequeueAfter: culler.GetRequeueTime()}, nil
 }
 
 func getNextCondition(cs corev1.ContainerState) v1beta1.NotebookCondition {
@@ -602,7 +636,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		})
 
 	// helper common function for pod predicates. Filter pods not containing the "notebook-name" label key
-	checkNBLabel := func (m metav1.Object) bool {
+	checkNBLabel := func(m metav1.Object) bool {
 		_, ok := m.GetLabels()["notebook-name"]
 		return ok
 	}
@@ -633,7 +667,7 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		})
 
 	// helper common function for event predicates. Filter events not coming from Pod or STS, and coming from unknown NBs
-	checkEvent := func (o runtime.Object, m metav1.Object) bool {
+	checkEvent := func(o runtime.Object, m metav1.Object) bool {
 		event := o.(*corev1.Event)
 		nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
 		if err != nil {
