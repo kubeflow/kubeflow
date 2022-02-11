@@ -23,9 +23,9 @@ WORKDIR /workspace/notebook-controller
 
 # Build
 RUN if [ "$(uname -m)" = "aarch64" ]; then \
-        CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on go build -a -o manager main.go; \
+        CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on go build -a -mod=mod -o manager main.go; \
     else \
-        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go; \
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -mod=mod -o manager main.go; \
     fi
 
 # Use distroless as minimal base image to package the manager binary
