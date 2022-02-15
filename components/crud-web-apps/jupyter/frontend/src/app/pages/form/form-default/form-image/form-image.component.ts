@@ -84,7 +84,7 @@ export class FormImageComponent implements OnInit, OnDestroy {
     const nameTagRegex = /(.*):([^:]*)$/;
     let name, tag;
 
-    if (!image.includes(':')){
+    if (!image.includes(':')) {
       name = image, tag = null;
     } else {
       [name, tag] = image.match(nameTagRegex).splice(1);
