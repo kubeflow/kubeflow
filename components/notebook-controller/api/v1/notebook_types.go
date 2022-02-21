@@ -25,8 +25,7 @@ import (
 
 // NotebookSpec defines the desired state of Notebook
 type NotebookSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Template describes the notebooks that will be created.
 	Template NotebookTemplateSpec `json:"template,omitempty"`
 }
 

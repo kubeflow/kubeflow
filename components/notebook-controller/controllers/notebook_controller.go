@@ -37,6 +37,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -84,8 +85,7 @@ type NotebookReconciler struct {
 // +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks;notebooks/status;notebooks/finalizers,verbs="*"
 // +kubebuilder:rbac:groups="networking.istio.io",resources=virtualservices,verbs="*"
 
-func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("notebook", req.NamespacedName)
 
 	// TODO(yanniszark): Can we avoid reconciling Events and Notebook in the same queue?
@@ -628,11 +628,79 @@ func nbNameExists(client client.Client, nbName string, namespace string) bool {
 	return true
 }
 
+// predNBPodIsLabeled filters pods not containing the "notebook-name" label key
+func predNBPodIsLabeled() predicate.Funcs {
+	// Documented at
+	// https://github.com/kubernetes-sigs/controller-runtime/blob/ce8bdd3d81ab410ff23255e9ad3554f613c5183c/pkg/predicate/predicate_test.go#L884
+	checkNBLabel := func() func(object client.Object) bool {
+		return func(object client.Object) bool {
+			_, labelExists := object.GetLabels()["notebook-name"]
+			return labelExists
+		}
+	}
+
+	return predicate.NewPredicateFuncs(checkNBLabel())
+}
+
+// predNBEvents filters events not coming from Pod or STS, and coming from
+// unknown NBs
+func predNBEvents(r *NotebookReconciler) predicate.Funcs {
+	checkEvent := func() func(object client.Object) bool {
+		return func(object client.Object) bool {
+			event := object.(*corev1.Event)
+			nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
+			if err != nil {
+				return false
+			}
+			return isStsOrPodEvent(event) && nbNameExists(r.Client, nbName, object.GetNamespace())
+		}
+	}
+
+	predicates := predicate.NewPredicateFuncs(checkEvent())
+
+	// Do not reconcile when an event gets deleted
+	predicates.DeleteFunc = func(e event.DeleteEvent) bool {
+		return false
+	}
+
+	return predicates
+}
+
+// SetupWithManager sets up the controller with the Manager.
 func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
+
+	// Map function to convert pod events to reconciliation requests
+	mapPodToRequest := func(object client.Object) []reconcile.Request {
+		return []reconcile.Request{
+			{NamespacedName: types.NamespacedName{
+				Name:      object.GetLabels()["notebook-name"],
+				Namespace: object.GetNamespace(),
+			}},
+		}
+	}
+
+	// Map function to convert namespace events to reconciliation requests
+	mapEventToRequest := func(object client.Object) []reconcile.Request {
+		return []reconcile.Request{
+			{NamespacedName: types.NamespacedName{
+				Name:      object.GetName(),
+				Namespace: object.GetNamespace(),
+			}},
+		}
+	}
+
 	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&v1beta1.Notebook{}).
 		Owns(&appsv1.StatefulSet{}).
-		Owns(&corev1.Service{})
+		Owns(&corev1.Service{}).
+		Watches(
+			&source.Kind{Type: &corev1.Pod{}},
+			handler.EnqueueRequestsFromMapFunc(mapPodToRequest),
+			builder.WithPredicates(predNBPodIsLabeled())).
+		Watches(
+			&source.Kind{Type: &corev1.Event{}},
+			handler.EnqueueRequestsFromMapFunc(mapEventToRequest),
+			builder.WithPredicates(predNBEvents(r)))
 	// watch Istio virtual service
 	if os.Getenv("USE_ISTIO") == "true" {
 		virtualService := &unstructured.Unstructured{}
@@ -641,98 +709,8 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		builder.Owns(virtualService)
 	}
 
-	// TODO(lunkai): After this is fixed:
-	// https://github.com/kubernetes-sigs/controller-runtime/issues/572
-	// We don't have to call Build to get the controller.
-	c, err := builder.Build(r)
+	err := builder.Complete(r)
 	if err != nil {
-		return err
-	}
-
-	// watch underlying pod
-	mapFn := handler.ToRequestsFunc(
-		func(a handler.MapObject) []ctrl.Request {
-			return []ctrl.Request{
-				{NamespacedName: types.NamespacedName{
-					Name:      a.Meta.GetLabels()["notebook-name"],
-					Namespace: a.Meta.GetNamespace(),
-				}},
-			}
-		})
-
-	// helper common function for pod predicates. Filter pods not containing the "notebook-name" label key
-	checkNBLabel := func(m metav1.Object) bool {
-		_, ok := m.GetLabels()["notebook-name"]
-		return ok
-	}
-	// TODO: refactor to use predicate.NewPredicateFuncs when controller-runtime module version is updated
-	p := predicate.Funcs{
-		UpdateFunc: func(e event.UpdateEvent) bool {
-			return checkNBLabel(e.MetaOld) && e.ObjectOld != e.ObjectNew
-		},
-		CreateFunc: func(e event.CreateEvent) bool {
-			return checkNBLabel(e.Meta)
-		},
-		DeleteFunc: func(e event.DeleteEvent) bool {
-			return checkNBLabel(e.Meta)
-		},
-		GenericFunc: func(e event.GenericEvent) bool {
-			return checkNBLabel(e.Meta)
-		},
-	}
-
-	eventToRequest := handler.ToRequestsFunc(
-		func(a handler.MapObject) []ctrl.Request {
-			return []reconcile.Request{
-				{NamespacedName: types.NamespacedName{
-					Name:      a.Meta.GetName(),
-					Namespace: a.Meta.GetNamespace(),
-				}},
-			}
-		})
-
-	// helper common function for event predicates. Filter events not coming from Pod or STS, and coming from unknown NBs
-	checkEvent := func(o runtime.Object, m metav1.Object) bool {
-		event := o.(*corev1.Event)
-		nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
-		if err != nil {
-			return false
-		}
-		return isStsOrPodEvent(event) && nbNameExists(r.Client, nbName, m.GetNamespace())
-	}
-	// TODO: refactor to use predicate.NewPredicateFuncs when controller-runtime module version is updated
-	// We don't include DeleteFunc since we don't want the reconcile
-	// to happen when an event gets deleted
-	eventsPredicates := predicate.Funcs{
-		UpdateFunc: func(e event.UpdateEvent) bool {
-			return e.ObjectOld != e.ObjectNew && checkEvent(e.ObjectNew, e.MetaNew)
-		},
-		CreateFunc: func(e event.CreateEvent) bool {
-			return checkEvent(e.Object, e.Meta)
-		},
-		DeleteFunc: func(e event.DeleteEvent) bool {
-			return false
-		},
-		GenericFunc: func(e event.GenericEvent) bool {
-			return checkEvent(e.Object, e.Meta)
-		},
-	}
-
-	if err = c.Watch(
-		&source.Kind{Type: &corev1.Pod{}},
-		&handler.EnqueueRequestsFromMapFunc{
-			ToRequests: mapFn,
-		},
-		p); err != nil {
-		return err
-	}
-
-	if err = c.Watch(
-		&source.Kind{Type: &corev1.Event{}},
-		&handler.EnqueueRequestsFromMapFunc{
-			ToRequests: eventToRequest,
-		},
-		eventsPredicates); err != nil {
 		return err
 	}
 
