@@ -1,12 +1,29 @@
-version: "2"
+domain: kubeflow.org
+layout:
+- go.kubebuilder.io/v3
+projectName: notebook-controller
 repo: github.com/kubeflow/kubeflow/components/notebook-controller
 resources:
-- group: kubeflow.org
-  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kubeflow.org
   kind: Notebook
-- group: kubeflow.org
-  version: v1beta1
-  kind: Notebook
-- group: kubeflow.org
+  path: github.com/kubeflow/kubeflow/components/notebook-controller/api/v1
   version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: kubeflow.org
   kind: Notebook
+  path: github.com/kubeflow/kubeflow/components/notebook-controller/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: kubeflow.org
+  kind: Notebook
+  path: github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1
+  version: v1beta1
+version: "3"
