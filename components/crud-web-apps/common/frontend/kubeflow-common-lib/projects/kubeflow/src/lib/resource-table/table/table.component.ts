@@ -29,6 +29,7 @@ import { TemplateValue } from '../types/template';
 import { NamespaceService } from '../../services/namespace.service';
 import { Subscription } from 'rxjs';
 import { addColumn, NAMESPACE_COLUMN, removeColumn } from './utils';
+import { MatSort } from '@angular/material/sort';
 
 @Component({
   selector: 'lib-table',
@@ -37,9 +38,7 @@ import { addColumn, NAMESPACE_COLUMN, removeColumn } from './utils';
 })
 export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
   private nsSub = new Subscription();
-  private innerConfig: TableConfig;
   private innerData: any[] = [];
-
   public dataSource = new MatTableDataSource();
   public get displayedColumns(): string[] {
     if (!this.config) {
@@ -56,6 +55,7 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
 
   @HostBinding('class.lib-table') selfClass = true;
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
+  @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   TABLE_THEME = TABLE_THEME;
 
@@ -96,6 +96,7 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
         removeColumn(this.config, 'namespace');
       }
     });
+    this.sort.sort({ disableClear: true, id: 'name', start: 'asc' });
   }
 
   ngOnDestroy() {
@@ -104,6 +105,67 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
+    this.dataSource.sortingDataAccessor = (element, sortHeaderId) => {
+      let sortingPreprocessorFn;
+      let valueExtractor;
+      this.config.columns.forEach(column => {
+        if (column.matColumnDef === sortHeaderId) {
+          valueExtractor = column.value;
+          sortingPreprocessorFn = column.sortingPreprocessorFn;
+        }
+      });
+      if (this.isPropertyValue(valueExtractor)) {
+        if (sortingPreprocessorFn !== undefined) {
+          return sortingPreprocessorFn(valueExtractor.getValue(element));
+        } else {
+          return valueExtractor.getValue(element);
+        }
+      }
+      if (this.isDateTimeValue(valueExtractor)) {
+        if (valueExtractor.getValue(element) === '') {
+          return -1;
+        } else {
+          return new Date(valueExtractor.getValue(element));
+        }
+      }
+      if (this.isStatusValue(valueExtractor)) {
+        return valueExtractor.getPhase(element);
+      }
+      if (this.isComponentValue(valueExtractor)) {
+        return sortingPreprocessorFn(element);
+      }
+    };
+    this.dataSource.sortData = (data, sort) => {
+      const active = sort.active;
+      const direction = sort.direction;
+      if (!active || direction === '') {
+        return data;
+      }
+      return data.sort((a, b) => {
+        const valueA = this.dataSource.sortingDataAccessor(a, active);
+        const valueB = this.dataSource.sortingDataAccessor(b, active);
+        // If both valueA and valueB exist (truthy), then compare the two. Otherwise, check if
+        // one value exists while the other doesn't. In this case, existing value should come last.
+        // This avoids inconsistent results when comparing values to undefined/null.
+        // If neither value exists, return 0 (equal).
+        let comparatorResult = 0;
+        if (valueA != null && valueB != null) {
+          // Check if one value is greater than the other; if equal, comparatorResult should remain 0.
+          if (valueA > valueB) {
+            comparatorResult = 1;
+          } else if (valueA < valueB) {
+            comparatorResult = -1;
+          }
+        } else if (valueA != null) {
+          comparatorResult = 1;
+        } else if (valueB != null) {
+          comparatorResult = -1;
+        }
+        return comparatorResult * (direction === 'asc' ? 1 : -1);
+      });
+    };
+    this.dataSource.sort = this.sort;
+    this.sort.disableClear = true;
   }
 
   public isActionListValue(obj) {

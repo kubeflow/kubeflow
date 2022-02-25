@@ -23,6 +23,7 @@ import { TableChipsListComponent } from './chips-list/chips-list.component';
 import { ComponentValueComponent } from './component-value/component-value.component';
 import { PortalModule } from '@angular/cdk/portal';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatSortModule } from '@angular/material/sort';
 
 @NgModule({
   imports: [
@@ -43,6 +44,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     IconModule,
     DateTimeModule,
     PopoverModule,
+    MatSortModule,
   ],
   declarations: [
     ResourceTableComponent,
