@@ -26,7 +26,7 @@ export const tableConfig: TableConfig = {
       }),
     },
     {
-      matHeaderCellDef: $localize`Age`,
+      matHeaderCellDef: $localize`Created at`,
       matColumnDef: 'age',
       textAlignment: 'right',
       style: { width: '10%' },
