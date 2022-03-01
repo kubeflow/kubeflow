@@ -77,6 +77,7 @@ export const defaultConfig: TableConfig = {
     {
       matHeaderCellDef: $localize`Last activity`,
       matColumnDef: 'last_activity',
+      textAlignment: 'right',
       value: new DateTimeValue({ field: 'last_activity' }),
     },
     {
