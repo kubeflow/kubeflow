@@ -3,6 +3,10 @@ Kubeflow the cloud-native platform for machine learning operations - pipelines, 
 
 ---
 
+## External Contributions
+Aurora is currently not accepting contributions from external contributors in this repo. For 
+improvements to features or bug fixes should be contributed to the [upstream repo](https://github.com/kubeflow/kubeflow).
+
 ## Documentation
 Please refer to the official docs at [kubeflow.org](http://kubeflow.org).
 

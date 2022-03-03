@@ -3,8 +3,6 @@
 bin/
 vendor/
 
-.vscode/
-
 # Compiled python files.
 *.pyc
 
@@ -21,6 +19,11 @@ flymd.*
 *~
 *.swp
 *.swo
+
+# IDE
+.ijwb/
+*.iml
+.vscode/
 
 # Files created by Gogland IDE
 .idea/
