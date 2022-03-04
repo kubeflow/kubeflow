@@ -710,6 +710,9 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		CreateFunc: func(e event.CreateEvent) bool {
 			return checkEvent(e.Object, e.Meta)
 		},
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			return false
+		},
 		GenericFunc: func(e event.GenericEvent) bool {
 			return checkEvent(e.Object, e.Meta)
 		},
