@@ -36,4 +36,4 @@ patches:
 images:
 - name: public.ecr.aws/j1r0q0g6/notebooks/tensorboard-controller
   newName: public.ecr.aws/j1r0q0g6/notebooks/tensorboard-controller
-  newTag: v1.5.0-rc.2
+  newTag: v1.5.0
