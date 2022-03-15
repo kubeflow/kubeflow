@@ -4,6 +4,8 @@ import { TolerationGroup } from './toleration';
 import { Volume } from './volume';
 
 export interface Config {
+  notebookTypeName?: string;
+
   image?: {
     value: string;
     options: string[];
@@ -34,12 +36,14 @@ export interface Config {
     value: string;
     limitFactor: string;
     readOnly?: boolean;
+    max?: number;
   };
 
   memory?: {
     value: string;
     limitFactor: string;
     readOnly?: boolean;
+    maxGi?: number;
   };
 
   environment?: {

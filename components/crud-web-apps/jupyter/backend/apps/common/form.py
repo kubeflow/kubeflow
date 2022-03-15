@@ -124,7 +124,7 @@ def set_notebook_cpu(notebook, body, defaults):
     if cpu_limit and 'nan' in cpu_limit.lower():
         raise BadRequest("Invalid value for cpu limit: %s" % cpu_limit)
 
-    limit_factor = utils.load_spawner_ui_config()["cpu"].get("limitFactor")
+    limit_factor = defaults["cpu"].get("limitFactor")
     if not cpu_limit and limit_factor != "none":
         cpu_limit = str(round((float(cpu) * float(limit_factor)), 1))
 
@@ -153,7 +153,7 @@ def set_notebook_memory(notebook, body, defaults):
     if memory_limit and 'nan' in memory_limit.lower():
         raise BadRequest("Invalid value for memory limit: %s" % memory_limit)
 
-    limit_factor = utils.load_spawner_ui_config()["memory"].get("limitFactor")
+    limit_factor = defaults["memory"].get("limitFactor")
     if not memory_limit and limit_factor != "none":
         memory_limit = str(
             round((
@@ -182,8 +182,7 @@ def set_notebook_tolerations(notebook, body, defaults):
         return
 
     notebook_tolerations = notebook["spec"]["template"]["spec"]["tolerations"]
-    config = utils.load_spawner_ui_config()
-    toleration_groups = config.get("tolerationGroup", {}).get("options", [])
+    toleration_groups = defaults.get("tolerationGroup", {}).get("options", [])
 
     for group in toleration_groups:
         if group["groupKey"] != tolerations_group_key:
@@ -206,8 +205,7 @@ def set_notebook_affinity(notebook, body, defaults):
         return
 
     notebook_spec = notebook["spec"]["template"]["spec"]
-    config = utils.load_spawner_ui_config()
-    affinity_configs = config.get("affinityConfig", {}).get("options", [])
+    affinity_configs = defaults.get("affinityConfig", {}).get("options", [])
 
     for affinity_config in affinity_configs:
         if affinity_config["configKey"] != affinity_config_key:

@@ -22,12 +22,14 @@ import { FormWorkspaceVolumeComponent } from './form-workspace-volume/form-works
 import { FormDataVolumesComponent } from './form-data-volumes/form-data-volumes.component';
 import { FormConfigurationsComponent } from './form-configurations/form-configurations.component';
 import { FormAffinityTolerationsComponent } from './form-affinity-tolerations/form-affinity-tolerations.component';
+import { FormNotebookTypeComponent } from './form-notebook-type/form-notebook-type.component';
 import { VolumeModule } from './volume/volume.module';
 
 @NgModule({
   declarations: [
     FormDefaultComponent,
     FormNameComponent,
+    FormNotebookTypeComponent,
     FormImageComponent,
     FormCpuRamComponent,
     FormWorkspaceVolumeComponent,
@@ -51,6 +53,7 @@ import { VolumeModule } from './volume/volume.module';
   exports: [
     FormDefaultComponent,
     FormNameComponent,
+    FormNotebookTypeComponent,
     FormImageComponent,
     FormCpuRamComponent,
     FormWorkspaceVolumeComponent,

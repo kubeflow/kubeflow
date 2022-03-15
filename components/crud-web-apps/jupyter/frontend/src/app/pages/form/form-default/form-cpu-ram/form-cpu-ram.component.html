@@ -4,24 +4,34 @@
 >
   <div class="row">
     <!--CPU-->
-    <lib-positive-number-input
-      class="column"
-      min="0"
-      step="0.1"
-      [sizeControl]="parentForm.get('cpu')"
-      label="Requested CPUs"
-      i18n-label
-    ></lib-positive-number-input>
+    <div class="column">
+      <mat-form-field appearance="outline" class="wide">
+        <mat-label i18n>Requested CPUs</mat-label>
+        <input
+          matInput
+          type="number"
+          min="0"
+          step="0.1"
+          [formControl]="parentForm.get('cpu')"
+          />
+        <mat-error>{{ getCPURequestError() }}</mat-error>
+      </mat-form-field>
+    </div>
 
     <!--RAM-->
-    <lib-positive-number-input
-      class="column"
-      min="0"
-      step="0.1"
-      [sizeControl]="parentForm.get('memory')"
-      label="Requested memory in Gi"
-      i18n-label
-    ></lib-positive-number-input>
+    <div class="column">
+      <mat-form-field appearance="outline" class="wide">
+        <mat-label>Requested memory in Gi</mat-label>
+        <input
+          matInput
+          type="number"
+          min="0"
+          step="0.1"
+          [formControl]="parentForm.get('memory')"
+          />
+        <mat-error>{{ getMemoryRequestError() }}</mat-error>
+      </mat-form-field>
+    </div>
   </div>
 
   <lib-advanced-options>
@@ -37,6 +47,7 @@
             step="0.1"
             [formControl]="parentForm.get('cpuLimit')"
           />
+          <mat-error>{{ getCPULimitError() }}</mat-error>
         </mat-form-field>
       </div>
 
@@ -51,6 +62,7 @@
             step="0.1"
             [formControl]="parentForm.get('memoryLimit')"
           />
+          <mat-error>{{ getMemoryLimitError() }}</mat-error>
         </mat-form-field>
       </div>
     </div>

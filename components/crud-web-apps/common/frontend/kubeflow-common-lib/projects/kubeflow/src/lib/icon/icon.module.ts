@@ -9,6 +9,7 @@ import {
   FaIconLibrary,
 } from '@fortawesome/angular-fontawesome';
 import {
+  faBars,
   faCogs,
   faHdd,
   faBook,
@@ -29,6 +30,7 @@ import { faDocker } from '@fortawesome/free-brands-svg-icons';
 export class IconModule {
   constructor(library: FaIconLibrary) {
     library.addIcons(
+      faBars,
       faCogs,
       faHdd,
       faBook,

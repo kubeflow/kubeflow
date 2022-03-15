@@ -1,4 +1,7 @@
-<lib-form-section title="GPUs" i18n-title>
+<lib-form-section
+  title="GPUs"
+  i18n-title
+  *ngIf="this.vendors != null && this.vendors.length > 0">
   <div class="row" [formGroup]="parentForm.get('gpus')">
     <!--GPUs Number-->
     <mat-form-field class="column" appearance="outline">

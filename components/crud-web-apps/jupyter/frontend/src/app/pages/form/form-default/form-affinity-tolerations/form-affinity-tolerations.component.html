@@ -1,7 +1,13 @@
-<lib-form-section title="Affinity / Tolerations" i18n-title>
+<lib-form-section
+  title="Affinity / Tolerations"
+  i18n-title
+  *ngIf = "(this.affinityConfigs != null && this.affinityConfigs.length > 0) || (this.tolerationGroups != null && this.tolerationGroups.length > 0)">
   <div class="row">
     <!--Affinity-->
-    <mat-form-field class="wide column" appearance="outline">
+    <mat-form-field
+      class="wide column"
+      appearance="outline"
+      *ngIf = "this.affinityConfigs != null && this.affinityConfigs.length > 0">
       <mat-label i18n> Affinity Config </mat-label>
       <mat-select [formControl]="parentForm.get('affinityConfig')">
         <mat-option value="" i18n="option None">None</mat-option>
@@ -15,7 +21,10 @@
     </mat-form-field>
 
     <!--Tolerations-->
-    <mat-form-field class="wide column" appearance="outline">
+    <mat-form-field
+        class="wide column"
+        appearance="outline"
+        *ngIf = "this.tolerationGroups != null && this.tolerationGroups.length > 0">
       <mat-label i18n> Tolerations Group </mat-label>
       <mat-select [formControl]="parentForm.get('tolerationGroup')">
         <mat-option value="" i18n="option None">None</mat-option>
