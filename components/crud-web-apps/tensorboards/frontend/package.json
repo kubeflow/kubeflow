@@ -33,7 +33,7 @@
     "@kubernetes/client-node": "^0.12.2",
     "date-fns": "^1.29.0",
     "lodash": "^4.17.21",
-    "lodash-es": "^4.17.11",
+    "lodash-es": "^4.17.21",
     "material-icons": "^0.7.3",
     "raw-loader": "^4.0.0",
     "rxjs": "~6.6.7",
