@@ -7,6 +7,6 @@ roleRef:
   kind: Role
   name: leader-election-role
 subjects:
-- kind: ServiceAccount
-  name: default
-  namespace: system
+  - kind: ServiceAccount
+    name: controller-manager
+    namespace: system

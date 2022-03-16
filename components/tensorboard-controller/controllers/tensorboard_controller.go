@@ -1,4 +1,5 @@
 /*
+Copyright 2022.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,7 +31,6 @@ import (
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -44,22 +44,28 @@ import (
 // TensorboardReconciler reconciles a Tensorboard object
 type TensorboardReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log logr.Logger
 }
 
-// Reconcile reads that state of the cluster for a Tensorboard object and makes changes based on the state read
-// and what is in the Tensorboard.Spec
-// +kubebuilder:rbac:groups=tensorboard.kubeflow.org,resources=tensorboards,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=tensorboard.kubeflow.org,resources=tensorboards/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=tensorboard.kubeflow.org,resources=tensorboards,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=tensorboard.kubeflow.org,resources=tensorboards/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=tensorboard.kubeflow.org,resources=tensorboards/finalizers,verbs=update
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups=networking.istio.io,resources=virtualservices,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups=core,resources=persistentvolumeclaims,verbs=get;list;watch
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
 
-func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+// Reconcile is part of the main kubernetes reconciliation loop which aims to
+// move the current state of the cluster closer to the desired state.
+// the Tensorboard object against the actual cluster state, and then
+// perform operations to make the cluster state reflect the state specified by
+// the user.
+//
+// For more details, check Reconcile and its Result here:
+// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
+func (r *TensorboardReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+
 	logger := r.Log.WithValues("tensorboard", req.NamespacedName)
 
 	instance := &tensorboardv1alpha1.Tensorboard{}
@@ -79,7 +85,7 @@ func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	if err := ctrl.SetControllerReference(instance, deployment, r.Scheme); err != nil {
+	if err := ctrl.SetControllerReference(instance, deployment, r.Scheme()); err != nil {
 		return ctrl.Result{}, err
 	}
 	if err := Deployment(ctx, r, deployment, logger); err != nil {
@@ -88,7 +94,7 @@ func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 
 	// Reconcile k8s service.
 	service := generateService(instance)
-	if err := ctrl.SetControllerReference(instance, service, r.Scheme); err != nil {
+	if err := ctrl.SetControllerReference(instance, service, r.Scheme()); err != nil {
 		return ctrl.Result{}, err
 	}
 	if err := reconcilehelper.Service(ctx, r, service, logger); err != nil {
@@ -97,7 +103,7 @@ func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 
 	// Reconcile istio virtual service.
 	virtualService, err := generateVirtualService(instance)
-	if err := ctrl.SetControllerReference(instance, virtualService, r.Scheme); err != nil {
+	if err := ctrl.SetControllerReference(instance, virtualService, r.Scheme()); err != nil {
 		return ctrl.Result{}, err
 	}
 	if err := reconcilehelper.VirtualService(ctx, r, virtualService.GetName(), virtualService.GetNamespace(), virtualService, logger); err != nil {
@@ -142,6 +148,7 @@ func (r *TensorboardReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	return ctrl.Result{}, nil
 }
 
+// SetupWithManager sets up the controller with the Manager.
 func (r *TensorboardReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&tensorboardv1alpha1.Tensorboard{}).
