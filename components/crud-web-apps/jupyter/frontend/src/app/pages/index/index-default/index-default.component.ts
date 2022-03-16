@@ -3,6 +3,8 @@ import { environment } from '@app/environment';
 import {
   NamespaceService,
   ExponentialBackoff,
+  ActionButtonValue,
+  ActionListValue,
   ActionEvent,
   STATUS_TYPE,
   DialogConfig,
@@ -10,6 +12,7 @@ import {
   SnackBarService,
   DIALOG_RESP,
   SnackType,
+  TableConfig,
   ToolbarButton,
 } from 'kubeflow';
 import { JWABackendService } from 'src/app/services/backend.service';
@@ -35,7 +38,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   currNamespace = '';
   subs = new Subscription();
 
-  config = defaultConfig;
+  config: TableConfig = defaultConfig;
   rawData: NotebookResponseObject[] = [];
   processedData: NotebookProcessedObject[] = [];
 
@@ -68,9 +71,35 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
           return;
         }
 
-        this.backend.getNotebooks(this.currNamespace).subscribe(notebooks => {
+        this.backend.getNotebooks(this.currNamespace).subscribe((notebooks: NotebookResponseObject[]) => {
           if (!isEqual(this.rawData, notebooks)) {
             this.rawData = notebooks;
+
+            if (notebooks.length > 0) { 
+              var hasDashLink = false
+              for (var notebook of notebooks) {
+                if (notebook.dashLink !== "") {
+                  hasDashLink = true
+                  break
+                }
+              }
+
+              for (var column of this.config.columns) {
+                if (column.matColumnDef === "actions" && column.value instanceof ActionListValue) {
+                  if (column.value.actions[0].name === "debug" && !hasDashLink) {
+                    column.value.actions.shift()
+                  } else if (column.value.actions[0].name !== "debug" && hasDashLink) {
+                    column.value.actions.unshift(new ActionButtonValue({
+                      name: 'debug',
+                      tooltip: $localize`Debug this notebook server in the Kubernetes Dashboard`,
+                      color: 'primary',
+                      field: 'debugAction',
+                      text: $localize`DEBUG`,
+                    }))
+                  }
+                }
+              }
+            }
 
             // Update the frontend's state
             this.processedData = this.processIncomingData(notebooks);
@@ -102,6 +131,9 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         break;
       case 'connect':
         this.connectClicked(a.data);
+        break;
+      case 'debug':
+        this.debugClicked(a.data);
         break;
       case 'start-stop':
         this.startStopClicked(a.data);
@@ -148,6 +180,10 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   public connectClicked(notebook: NotebookProcessedObject) {
     // Open new tab to work on the Notebook
     window.open(`/notebook/${notebook.namespace}/${notebook.name}/`);
+  }
+
+  public debugClicked(notebook: NotebookProcessedObject) {
+    window.open(notebook.dashLink);
   }
 
   public startStopClicked(notebook: NotebookProcessedObject) {
@@ -219,6 +255,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   updateNotebookFields(notebook: NotebookProcessedObject) {
     notebook.deleteAction = this.processDeletionActionStatus(notebook);
     notebook.connectAction = this.processConnectActionStatus(notebook);
+    notebook.debugAction = this.processDebugActionStatus(notebook);
     notebook.startStopAction = this.processStartStopActionStatus(notebook);
   }
 
@@ -264,6 +301,14 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
   processConnectActionStatus(notebook: NotebookProcessedObject) {
     if (notebook.status.phase !== STATUS_TYPE.READY) {
+      return STATUS_TYPE.UNAVAILABLE;
+    }
+
+    return STATUS_TYPE.READY;
+  }
+
+  processDebugActionStatus(notebook: NotebookProcessedObject) {
+    if (notebook.status.phase === STATUS_TYPE.STOPPED) {
       return STATUS_TYPE.UNAVAILABLE;
     }
 

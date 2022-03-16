@@ -113,7 +113,6 @@ export const defaultConfig: TableConfig = {
       matColumnDef: 'volumes',
       value: new MenuValue({ field: 'volumes', itemsIcon: 'storage' }),
     },
-
     {
       matHeaderCellDef: '',
       matColumnDef: 'actions',

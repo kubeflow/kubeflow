@@ -113,16 +113,21 @@ def get_storage_class(vol):
 
 
 # Functions for transforming the data from k8s api
-def notebook_dict_from_k8s_obj(notebook):
+def notebook_dict_from_k8s_obj(notebook, config):
     cntr = notebook["spec"]["template"]["spec"]["containers"][0]
     server_type = None
     if notebook["metadata"].get("annotations"):
         annotations = notebook["metadata"]["annotations"]
         server_type = annotations.get("notebooks.kubeflow.org/server-type")
+    name = notebook["metadata"]["name"]
+    namespace = notebook["metadata"]["namespace"]
+    dashLink = ""
+    if "dashLinkFormat" in config:
+        dashLink = config["dashLinkFormat"].format(namespace=namespace, name=name)
 
     return {
-        "name": notebook["metadata"]["name"],
-        "namespace": notebook["metadata"]["namespace"],
+        "name": name,
+        "namespace": namespace,
         "serverType": server_type,
         "age": helpers.get_uptime(notebook["metadata"]["creationTimestamp"]),
         "image": cntr["image"],
@@ -132,4 +137,5 @@ def notebook_dict_from_k8s_obj(notebook):
         "memory": cntr["resources"]["requests"]["memory"],
         "volumes": [v["name"] for v in cntr["volumeMounts"]],
         "status": status.process_status(notebook),
+        "dashLink": dashLink
     }
