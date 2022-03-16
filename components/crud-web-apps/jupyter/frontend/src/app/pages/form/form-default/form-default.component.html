@@ -14,6 +14,12 @@
       (ngSubmit)="onSubmit()"
       [formGroup]="formCtrl"
     >
+
+      <app-form-notebook-type
+        [parentForm]="formCtrl"
+        [notebookTypes]="notebookTypes"
+      ></app-form-notebook-type>
+
       <app-form-name-namespace
         [parentForm]="formCtrl"
       ></app-form-name-namespace>

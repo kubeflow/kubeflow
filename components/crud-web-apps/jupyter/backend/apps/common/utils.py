@@ -76,6 +76,7 @@ def load_default_config():
 
 
 def load_spawner_ui_config(namespace):
+    global _spawner_config_cache
     if not namespace:
         raise exceptions.NotFound("Namespace not specified.")
 
@@ -83,7 +84,7 @@ def load_spawner_ui_config(namespace):
         functools.partial(load_ns_specific_config, namespace),
         load_default_config
     ]
-    now = datetime.now()
+    now = datetime.datetime.now()
     min_timestamp = now - MAX_CONFIG_AGE
     cached = _spawner_config_cache.get(namespace)
     if cached is not None and min_timestamp < cached[1]:
@@ -99,7 +100,8 @@ def load_spawner_ui_config(namespace):
     raise exceptions.NotFound("Couldn't find any config file.")
 
 def load_notebook_index_ui_config():
-    now = datetime.now()
+    global _notebook_index_cached_config
+    now = datetime.datetime.now()
     min_timestamp = now - MAX_CONFIG_AGE
 
     cached = _notebook_index_cached_config
@@ -122,7 +124,7 @@ def load_notebook_index_ui_config():
     _log.error("Couldn't find any index config file.")
     raise exceptions.NotFound("Couldn't find any index config file.")
 
-def process_gpus(container, config):
+def process_gpus(container, all_configs):
     """
     This function will expose two things, regarding GPUs:
     1. The total number of GPUs that the Notebook has requested
@@ -131,6 +133,12 @@ def process_gpus(container, config):
     This function will check the vendors that the admin has defined in the
     app's config file.
     """
+    # get the GPU vendors from the app's config
+    if isinstance(all_configs, list):
+        config = all_configs[0]
+    else:
+        config = all_configs
+
     cfg_vendors = config.get("gpus", {}).get("value", {}).get("vendors", [])
     # create a dict mapping the limits key with the UI name.
     # For example: "nvidia.com/gpu": "NVIDIA"
