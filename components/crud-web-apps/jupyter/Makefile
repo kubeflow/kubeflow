@@ -11,9 +11,10 @@ docker-push:
 
 image: docker-build docker-push
 
+
 HARBOR_IMG ?= harbor.cloud.aurora.tech/library/notebooks/jupyter-web-app
 harbor-build:
-	cd ../ && 
+	cd ../ &&
 
 harbor-push:
 	docker push $(HARBOR_IMG):$(GIT_TAG)-$(UNIX_TS)

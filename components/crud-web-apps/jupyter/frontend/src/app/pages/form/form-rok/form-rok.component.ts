@@ -52,7 +52,8 @@ export class FormRokComponent
     return formCtrl;
   }
 
-  initFormControls(formCtrl: FormGroup, config: Config) {
+  initFormControls(formCtrl: FormGroup) {
+    const config = this.config
     // Sets the values from our internal dict. This is an initialization step
     // that should be only run once
     initFormControls(formCtrl, config);

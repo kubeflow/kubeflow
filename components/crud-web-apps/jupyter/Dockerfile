@@ -58,4 +58,27 @@ COPY ./jupyter/backend/entrypoint.py .
 COPY --from=frontend /src/dist/default/ /src/apps/default/static/
 COPY --from=frontend /src/dist/rok/ /src/apps/rok/static/
 
-ENTRYPOINT ["/bin/bash","-c","gunicorn -w 3 --bind 0.0.0.0:5000 --access-logfile - entrypoint:app"]
+# Type of guicorn worker. See https://docs.gunicorn.org/en/stable/settings.html#worker-class
+# evenlet cannot be used with watches with the  Kube's client because it is not compatible with
+# eventlet see:
+#   https://github.com/kubernetes-client/python/issues/1686
+ENV WORKER_CLASS sync
+# Number of workers to spawn. See https://docs.gunicorn.org/en/stable/settings.html#worker-processes
+ENV WORKER_COUNT "3"
+# Number of concurrent connections for eventlet / gevent.
+ENV WORKER_CONNECTIONS "1000"
+# Number of threads
+ENV WORKER_THREAD_COUNT "1"
+# Access log format ref: https://docs.gunicorn.org/en/stable/settings.html#worker-class
+# The amount of time it took to respond has been aded to the default.
+ENV WORKER_ACCESS_LOG_FORMAT "%(h)s %(l)s %(t)s \"%(r)s\" %(s)s %(M)sms %(b)s \"%(f)s\" \"%(a)s\""
+ENTRYPOINT ["/bin/bash", "-c", \
+    "gunicorn \
+        -k $WORKER_CLASS \
+        -w $WORKER_COUNT \
+        --threads $WORKER_THREAD_COUNT \
+        --worker-connections $WORKER_CONNECTIONS \
+        --bind 0.0.0.0:5000 \
+        --access-logfile - \
+        --access-logformat \"$WORKER_ACCESS_LOG_FORMAT\"\
+        entrypoint:app"]

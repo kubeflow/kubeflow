@@ -62,7 +62,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.poller = new ExponentialBackoff({ interval: 1000, retries: 3 });
+    this.poller = new ExponentialBackoff({ interval: 10000, retries: 3 });
 
     // Poll for new data and reset the poller if different data is found
     this.subs.add(

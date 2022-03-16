@@ -22,7 +22,9 @@ def post_pvc(namespace):
         serviceAccount="default-editor",
     )
 
-    defaults = utils.load_spawner_ui_config()
+    defaults = utils.load_spawner_ui_config(namespace)
+    if isinstance(defaults, list):
+        defaults = defaults[0]
 
     form.set_notebook_image(notebook, body, defaults)
     form.set_notebook_image_pull_policy(notebook, body, defaults)

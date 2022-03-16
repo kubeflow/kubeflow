@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormGroup, Validators } from '@angular/forms';
 import { Config, NotebookFormObject } from 'src/app/types';
 import { Subscription } from 'rxjs';
 import {
@@ -22,6 +22,9 @@ import { environment } from '@app/environment';
 export class FormDefaultComponent implements OnInit, OnDestroy {
   currNamespace = '';
   formCtrl: FormGroup;
+
+  notebookTypes: string[];
+  allConfigs: Config[];
   config: Config;
 
   ephemeral = false;
@@ -45,14 +48,25 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
     this.formCtrl = this.getFormDefaults();
 
     // Update the form Values from the default ones
-    this.backend.getConfig().subscribe(config => {
-      if (Object.keys(config).length === 0) {
-        // Don't fire on empty config
-        return;
-      }
+    this.namespaceService.getSelectedNamespace().subscribe(namespace => {
+      this.backend.getConfig(namespace).subscribe(allConfigs => {
+        if (Object.keys(allConfigs[0]).length === 0) {
+          // Don't fire on empty config
+          return;
+        }
 
-      this.config = config;
-      this.initFormControls(this.formCtrl, config);
+        this.allConfigs = allConfigs;
+        this.config = allConfigs[0];
+        this.notebookTypes = this.allConfigs.map(cfg => cfg.notebookTypeName);
+        this.formCtrl.controls.notebookType.setValue(this.config.notebookTypeName);
+        this.initFormControls(this.formCtrl);
+        // When there is more than one notebook type users need to select one.
+        if (this.notebookTypes.length > 1) {
+          this.formCtrl.controls.notebookType.setValidators([Validators.required]);
+        } else {
+          this.formCtrl.controls.notebookType.clearValidators();
+        }
+      });
     });
 
     // Keep track of the selected namespace
@@ -60,6 +74,13 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
       this.namespaceService.getSelectedNamespace().subscribe(namespace => {
         this.currNamespace = namespace;
         this.formCtrl.controls.namespace.setValue(this.currNamespace);
+      }),
+    );
+
+    this.subscriptions.add(
+      this.formCtrl.controls['notebookType'].valueChanges.subscribe((notebookType: string) => {
+        this.config = this.allConfigs.find(cfg => cfg.notebookTypeName === notebookType)
+        this.initFormControls(this.formCtrl);
       }),
     );
 
@@ -88,8 +109,8 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
     return getFormDefaults();
   }
 
-  initFormControls(formCtrl: FormGroup, config: Config) {
-    initFormControls(formCtrl, config);
+  initFormControls(formCtrl: FormGroup) {
+    initFormControls(formCtrl, this.config);
   }
 
   // Form Actions

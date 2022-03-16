@@ -2,6 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { GPUVendor } from 'src/app/types';
+import { NamespaceService } from 'kubeflow';
 import { JWABackendService } from 'src/app/services/backend.service';
 
 @Component({
@@ -20,7 +21,7 @@ export class FormGpusComponent implements OnInit {
   maxGPUs = 16;
   gpusCount = ['1', '2', '4', '8'];
 
-  constructor(public backend: JWABackendService) {}
+  constructor(public ns: NamespaceService, public backend: JWABackendService) {}
 
   ngOnInit() {
     this.gpuCtrl = this.parentForm.get('gpus') as FormGroup;
@@ -41,8 +42,10 @@ export class FormGpusComponent implements OnInit {
       }),
     );
 
-    this.backend.getGPUVendors().subscribe(vendors => {
-      this.installedVendors = new Set(vendors);
+    this.ns.getSelectedNamespace().subscribe(namespace => {
+      this.backend.getGPUVendors(namespace).subscribe(vendors => {
+        this.installedVendors = new Set(vendors);
+      });
     });
   }
 

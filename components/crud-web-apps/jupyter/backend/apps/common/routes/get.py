@@ -6,9 +6,9 @@ from . import bp
 log = logging.getLogger(__name__)
 
 
-@bp.route("/api/config")
-def get_config():
-    config = utils.load_spawner_ui_config()
+@bp.route("/api/config/<namespace>")
+def get_config(namespace):
+    config = utils.load_spawner_ui_config(namespace)
     return api.success_response("config", config)
 
 
@@ -41,49 +41,26 @@ def get_poddefaults(namespace):
     return api.success_response("poddefaults", contents)
 
 
-from kubeflow.kubeflow.crud_backend import helpers, logging
-from werkzeug import exceptions
-import os
-
-# The production configuration is mounted on the app's pod via a configmap
-FILE_ABS_PATH = os.path.abspath(os.path.dirname(__file__))
-DEV_CONFIG = os.path.join(FILE_ABS_PATH, "yaml/spawner_ui_config.yaml")
-CONFIGS = [
-    "/etc/config/spawner_ui_config.yaml",
-    DEV_CONFIG,
-]
-
-def load_notebook_index_ui_config():
-    for config in CONFIGS:
-        config_dict = helpers.load_yaml(config)
-
-        if config_dict is not None:
-            log.info("Using config file: %s", config)
-            if "notebookIndexOptions" in config_dict:
-                return config_dict["notebookIndexOptions"]
-            else:
-                return {}
-
-    log.error("Couldn't find any config file.")
-    raise exceptions.NotFound("Couldn't find any config file.")
-
-
 @bp.route("/api/namespaces/<namespace>/notebooks")
 def get_notebooks(namespace):
-    config = load_notebook_index_ui_config()
+    index_config = utils.load_notebook_index_ui_config()
+    spawner_config = utils.load_spawner_ui_config(namespace)
     notebooks = api.list_notebooks(namespace)["items"]
-    contents = [utils.notebook_dict_from_k8s_obj(nb, config) for nb in notebooks]
+    contents = [utils.notebook_dict_from_k8s_obj(nb, index_config, spawner_config) for nb in notebooks]
 
     return api.success_response("notebooks", contents)
 
 
-@bp.route("/api/gpus")
-def get_gpu_vendors():
+@bp.route("/api/gpus/<namespace>")
+def get_gpu_vendors(namespace):
     """
     Return a list of GPU vendors for which at least one node has the necessary
     annotation required to schedule pods
     """
-    frontend_config = utils.load_spawner_ui_config()
+    frontend_config = utils.load_spawner_ui_config(namespace)
+    if isinstance(frontend_config, list):
+        frontend_config = frontend_config[0]
+
     gpus_value = frontend_config.get("gpus", {}).get("value", {})
     config_vendor_keys = [
         v.get("limitsKey", "") for v in gpus_value.get("vendors", [])

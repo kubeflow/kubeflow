@@ -32,13 +32,16 @@ export class JWABackendService extends BackendService {
     );
   }
 
-  public getConfig(): Observable<Config> {
-    const url = `api/config`;
+  public getConfig(namespace: string): Observable<Config[]> {
+    const url = `api/config/${namespace}`;
 
     return this.http.get<JWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
       map(data => {
-        return data.config;
+        if (Array.isArray(data.config)) {
+          return data.config
+        }
+        return [data.config];
       }),
     );
   }
@@ -67,9 +70,9 @@ export class JWABackendService extends BackendService {
     );
   }
 
-  public getGPUVendors(): Observable<string[]> {
+  public getGPUVendors(namespace: string): Observable<string[]> {
     // Get installed GPU vendors
-    const url = `api/gpus`;
+    const url = `api/gpus/${namespace}`;
 
     return this.http.get<JWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
