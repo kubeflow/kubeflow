@@ -76,19 +76,19 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
             this.rawData = notebooks;
 
             if (notebooks.length > 0) { 
-              var hasDashLink = false
+              var hasDebugURL = false
               for (var notebook of notebooks) {
-                if (notebook.dashLink !== "") {
-                  hasDashLink = true
+                if (notebook.debugURL !== "") {
+                  hasDebugURL = true
                   break
                 }
               }
 
               for (var column of this.config.columns) {
                 if (column.matColumnDef === "actions" && column.value instanceof ActionListValue) {
-                  if (column.value.actions[0].name === "debug" && !hasDashLink) {
+                  if (column.value.actions[0].name === "debug" && !hasDebugURL) {
                     column.value.actions.shift()
-                  } else if (column.value.actions[0].name !== "debug" && hasDashLink) {
+                  } else if (column.value.actions[0].name !== "debug" && hasDebugURL) {
                     column.value.actions.unshift(new ActionButtonValue({
                       name: 'debug',
                       tooltip: $localize`Debug this notebook server in the Kubernetes Dashboard`,
@@ -183,7 +183,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   }
 
   public debugClicked(notebook: NotebookProcessedObject) {
-    window.open(notebook.dashLink);
+    window.open(notebook.debugURL);
   }
 
   public startStopClicked(notebook: NotebookProcessedObject) {

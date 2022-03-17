@@ -21,7 +21,7 @@ export interface NotebookResponseObject {
   };
   environment: string;
   shortImage: string;
-  dashLink: string;
+  debugURL: string;
 }
 
 export interface NotebookProcessedObject extends NotebookResponseObject {

@@ -198,9 +198,9 @@ def notebook_dict_from_k8s_obj(notebook, index_config, spawner_config):
     
     name = notebook["metadata"]["name"]
     namespace = notebook["metadata"]["namespace"]
-    dashLink = ""
-    if "dashLinkFormat" in index_config:
-        dashLink = index_config["dashLinkFormat"].format(namespace=namespace, name=name)
+    debugURL = ""
+    if "debugURLFormat" in index_config:
+        debugURL = index_config["debugURLFormat"].format(namespace=namespace, name=name)
 
     return {
         "name": name,
@@ -214,5 +214,5 @@ def notebook_dict_from_k8s_obj(notebook, index_config, spawner_config):
         "memory": cntr["resources"]["requests"]["memory"],
         "volumes": [v["name"] for v in cntr["volumeMounts"]],
         "status": status.process_status(notebook),
-        "dashLink": dashLink
+        "debugURL": debugURL
     }
