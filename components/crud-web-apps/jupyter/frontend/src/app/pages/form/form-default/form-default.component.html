@@ -14,6 +14,12 @@
       (ngSubmit)="onSubmit()"
       [formGroup]="formCtrl"
     >
+
+      <app-form-notebook-type
+        [parentForm]="formCtrl"
+        [notebookTypes]="notebookTypes"
+      ></app-form-notebook-type>
+
       <app-form-name-namespace
         [parentForm]="formCtrl"
       ></app-form-name-namespace>
@@ -33,6 +39,8 @@
         [readonlyCPU]="config?.cpu?.readOnly"
         [readonlyMemory]="config?.memory?.readOnly"
         [cpuLimitFactor]="config?.cpu?.limitFactor"
+        [cpuMax]="config?.cpu?.max"
+        [memoryMaxGi]="config?.memory?.maxGi"
         [memoryLimitFactor]="config?.memory?.limitFactor"
       ></app-form-cpu-ram>
 

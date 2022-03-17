@@ -1,1 +1,6 @@
 gunicorn
+# Eventlet has a breaking change 0.30.3 https://github.com/benoitc/gunicorn/issues/2582
+# Gunicorn last release of 20.1.0 does not a fix for this eventlet change. The diff that needs to
+# be in the release is https://github.com/benoitc/gunicorn/commit/6a8ebb4844b2f28596ffe7421eb9f7d08c8dc4d8
+eventlet==0.30.2
+gunicorn==20.1.0

@@ -42,7 +42,13 @@ def load_yaml(f):
     except IOError:
         log.error("Error opening: %s", f)
         return None
+    return load_yaml_from_string(c)
 
+def load_yaml_from_string(c):
+    """
+    c: yaml string
+    Cconvert a yaml string to a python dict.
+    """
     try:
         contents = yaml.safe_load(c)
         if contents is None:
@@ -53,7 +59,6 @@ def load_yaml(f):
             return contents
     except yaml.YAMLError:
         return None
-
 
 def load_param_yaml(f, **kwargs):
     """

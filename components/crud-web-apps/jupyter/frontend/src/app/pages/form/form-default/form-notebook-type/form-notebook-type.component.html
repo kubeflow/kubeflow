@@ -1,0 +1,18 @@
+<lib-form-section
+  title="Notebook Type"
+  text="The type of Jupyter notebook to provision"
+
+  icon="fa:fas:bars"
+  i18n-title="Title for the Notebok Types section of the form"
+  i18n-text="Text for the Notebook Types section of the form"
+  *ngIf="this.notebookTypes != null && this.notebookTypes.length > 1"
+>
+  <mat-form-field class="wide" appearance="outline">
+    <mat-label i18n>Notebook Type</mat-label>
+    <mat-select [formControl]="parentForm.get('notebookType')">
+      <mat-option *ngFor="let notebook_type of notebookTypes" [value]="notebook_type">
+        {{ notebook_type }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</lib-form-section>

@@ -6,9 +6,9 @@ from . import bp
 log = logging.getLogger(__name__)
 
 
-@bp.route("/api/config")
-def get_config():
-    config = utils.load_spawner_ui_config()
+@bp.route("/api/config/<namespace>")
+def get_config(namespace):
+    config = utils.load_spawner_ui_config(namespace)
     return api.success_response("config", config)
 
 
@@ -43,19 +43,24 @@ def get_poddefaults(namespace):
 
 @bp.route("/api/namespaces/<namespace>/notebooks")
 def get_notebooks(namespace):
+    index_config = utils.load_notebook_index_ui_config()
+    spawner_config = utils.load_spawner_ui_config(namespace)
     notebooks = api.list_notebooks(namespace)["items"]
-    contents = [utils.notebook_dict_from_k8s_obj(nb) for nb in notebooks]
+    contents = [utils.notebook_dict_from_k8s_obj(nb, index_config, spawner_config) for nb in notebooks]
 
     return api.success_response("notebooks", contents)
 
 
-@bp.route("/api/gpus")
-def get_gpu_vendors():
+@bp.route("/api/gpus/<namespace>")
+def get_gpu_vendors(namespace):
     """
     Return a list of GPU vendors for which at least one node has the necessary
     annotation required to schedule pods
     """
-    frontend_config = utils.load_spawner_ui_config()
+    frontend_config = utils.load_spawner_ui_config(namespace)
+    if isinstance(frontend_config, list):
+        frontend_config = frontend_config[0]
+
     gpus_value = frontend_config.get("gpus", {}).get("value", {})
     config_vendor_keys = [
         v.get("limitsKey", "") for v in gpus_value.get("vendors", [])

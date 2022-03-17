@@ -9,9 +9,10 @@ export function getFormDefaults(): FormGroup {
   return fb.group({
     name: ['', [Validators.required]],
     namespace: ['', [Validators.required]],
+    notebookType: ['', []],
     image: ['', [Validators.required]],
-    imageGroupOne: ['', [Validators.required]],
-    imageGroupTwo: ['', [Validators.required]],
+    imageGroupOne: ['', []],
+    imageGroupTwo: ['', []],
     allowCustomImage: [true, []],
     imagePullPolicy: ['IfNotPresent', [Validators.required]],
     customImage: ['', []],
@@ -71,13 +72,19 @@ export function updateGPUControl(formCtrl: FormGroup, gpuConf: any) {
 export function calculateLimits(
   requests: number | string,
   factor: number | string,
+  max: number | string | null
 ): string | null {
-  const limit = configSizeToNumber(requests) * configSizeToNumber(factor);
+  let limit = configSizeToNumber(requests) * configSizeToNumber(factor);
 
   if (isNaN(limit)) {
     return null;
   }
 
+  const maxAsNum = configSizeToNumber(max);
+  if (maxAsNum) {
+    // Max is clamp on what the calculated limit can be
+    limit = Math.min(limit, maxAsNum);
+  }
   return limit.toFixed(1);
 }
 
@@ -90,10 +97,18 @@ export function initCpuFormControls(formCtrl: FormGroup, config: Config) {
   if (config.cpu.readOnly) {
     formCtrl.controls.cpu.disable();
     formCtrl.controls.cpuLimit.disable();
+  } else {
+    if (config.cpu.max) {
+      formCtrl.controls.cpu.setValidators([Validators.required, Validators.max(config.cpu.max)]);
+      formCtrl.controls.cpuLimit.setValidators([Validators.max(config.cpu.max)]);
+    } else {
+      formCtrl.controls.cpu.setValidators([Validators.required]);
+      formCtrl.controls.cpuLimit.clearValidators();
+    }
   }
 
   formCtrl.controls.cpuLimit.setValue(
-    calculateLimits(cpu, config.cpu.limitFactor),
+    calculateLimits(cpu, config.cpu.limitFactor, config.cpu.max),
   );
 }
 
@@ -106,10 +121,19 @@ export function initMemoryFormControls(formCtrl: FormGroup, config: Config) {
   if (config.memory.readOnly) {
     formCtrl.controls.memory.disable();
     formCtrl.controls.memoryLimit.disable();
+  } else {
+    if (config.memory.maxGi) {
+      formCtrl.controls.memory.setValidators([
+        Validators.required, Validators.max(config.memory.maxGi)]);
+      formCtrl.controls.memoryLimit.setValidators([Validators.max(config.memory.maxGi)]);
+    } else {
+      formCtrl.controls.memory.setValidators([Validators.required]);
+      formCtrl.controls.memoryLimit.clearValidators();
+    }
   }
 
   formCtrl.controls.memoryLimit.setValue(
-    calculateLimits(memory, config.memory.limitFactor),
+    calculateLimits(memory, config.memory.limitFactor, config.memory.maxGi),
   );
 }
 
@@ -120,9 +144,9 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
 
   formCtrl.controls.image.setValue(config.image.value);
 
-  formCtrl.controls.imageGroupOne.setValue(config.imageGroupOne.value);
+  formCtrl.controls.imageGroupOne.setValue(config.imageGroupOne?.value);
 
-  formCtrl.controls.imageGroupTwo.setValue(config.imageGroupTwo.value);
+  formCtrl.controls.imageGroupTwo.setValue(config.imageGroupTwo?.value);
 
   formCtrl.controls.imagePullPolicy.setValue(config.imagePullPolicy.value);
   if (config.imagePullPolicy.readOnly) {

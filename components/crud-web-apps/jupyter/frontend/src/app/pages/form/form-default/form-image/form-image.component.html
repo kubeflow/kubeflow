@@ -29,6 +29,7 @@
         value="group-one"
         attr.aria-label="Use Group One based server"
         i18n-aria-label="Aria label for Group One server"
+        *ngIf = "this.imagesGroupOne != null && this.imagesGroupOne.length > 0"
       >
         <mat-icon class="server-type" svgIcon="group-one"></mat-icon>
       </mat-button-toggle>
@@ -36,6 +37,7 @@
         value="group-two"
         attr.aria-label="Use Group Two based server"
         i18n-aria-label="Aria label for Group Two server"
+        *ngIf = "this.imagesGroupTwo != null && this.imagesGroupTwo.length > 0"
       >
         <mat-icon class="server-type" svgIcon="group-two"></mat-icon>
       </mat-button-toggle>
