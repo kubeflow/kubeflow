@@ -125,6 +125,7 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		log.Error(err, "unable to fetch Notebook")
 		return ctrl.Result{}, ignoreNotFound(err)
 	}
+	update_notebook_status := false
 
 	// Reconcile StatefulSet
 	ss := generateStatefulSet(instance)
@@ -202,10 +203,7 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if foundStateful.Status.ReadyReplicas != instance.Status.ReadyReplicas {
 		log.Info("Updating Status", "namespace", instance.Namespace, "name", instance.Name)
 		instance.Status.ReadyReplicas = foundStateful.Status.ReadyReplicas
-		err = r.Status().Update(ctx, instance)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
+		update_notebook_status = true
 	}
 
 	// Check the pod status
@@ -246,10 +244,7 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 					log.Info("Appending to conditions: ", "namespace", instance.Namespace, "name", instance.Name, "type", newCondition.Type, "reason", newCondition.Reason, "message", newCondition.Message)
 					instance.Status.Conditions = append([]v1beta1.NotebookCondition{newCondition}, oldConditions...)
 				}
-				err = r.Status().Update(ctx, instance)
-				if err != nil {
-					return ctrl.Result{}, err
-				}
+				update_notebook_status = true
 				notebookContainerFound = true
 				break
 
@@ -257,6 +252,14 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			if !notebookContainerFound {
 				log.Error(nil, "Could not find the Notebook container, will not update the status of the CR. No container has the same name as the CR.", "CR name:", instance.Name)
 			}
+		}
+	}
+
+	// The Notebook object has changed, update it
+	if update_notebook_status {
+		err = r.Status().Update(ctx, instance)
+		if err != nil {
+			return ctrl.Result{}, err
 		}
 	}
 
