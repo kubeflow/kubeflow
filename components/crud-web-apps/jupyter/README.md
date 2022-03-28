@@ -21,6 +21,10 @@ The annotation `notebooks.kubeflow.org/http-headers-request-set:`
 `'{"X-RStudio-Root-Path":"/notebook/<namespace>/<name>/"}'` is added to
 Notebook resources belonging to Group 2. This configures Istio to add
 this header to requests, which is necessary for images from Group 2 to work.
+IF you need to add extra headers to RStudio notebooks you may provide them
+by setting environment variable `RSTUDIO_EXTRA_HEADERS`
+to `'{"X-Custom-Header":"custom-header-value"}'`
+**Example:** `RSTUDIO_EXTRA_HEADERS='{"X-Forwarded-Proto":"https"}'`
 
 The Jupyter Web App displays the logos for each Notebook Server group
 in a button toggle in the Spawner UI. To easily identify the group of

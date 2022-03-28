@@ -42,6 +42,10 @@ spawnerFormDefaults:
     # The annotation `notebooks.kubeflow.org/http-headers-request-set`
     # is applied to notebook in this group, configuring Istio
     # to add the `X-RStudio-Root-Path` header to requests
+    # IF you need to add extra headers to RStudio notebooks
+    # you may provide them by setting environment variable `RSTUDIO_EXTRA_HEADERS`
+    # to `'{"X-Custom-Header":"custom-header-value"}'`
+    # Example: `RSTUDIO_EXTRA_HEADERS='{"X-Forwarded-Proto":"https"}'`
     value: kubeflownotebookswg/rstudio-tidyverse:latest
     # The list of available standard container Images
     options:

@@ -1,4 +1,5 @@
 import json
+import os
 
 from werkzeug.exceptions import BadRequest
 
@@ -93,6 +94,18 @@ def set_notebook_image_pull_policy(notebook, body, defaults):
     )
 
 
+def get_rstudio_header(notebook, body, defaults):
+    nb_name = get_form_value(body, defaults, "name")
+    nb_ns = get_form_value(body, defaults, "namespace")
+    rstudio_header = {
+        "X-RStudio-Root-Path": f"/notebook/{nb_ns}/{nb_name}/"
+    }
+    if os.environ.get("RSTUDIO_EXTRA_HEADERS"):
+        extra_headers = json.loads(os.environ.get("RSTUDIO_EXTRA_HEADERS"))
+        rstudio_header = {**rstudio_header, **extra_headers}
+    return json.dumps(rstudio_header)
+
+
 def set_server_type(notebook, body, defaults):
     valid_server_types = ["jupyter", "group-one", "group-two"]
     notebook_annotations = notebook["metadata"]["annotations"]
@@ -102,10 +115,7 @@ def set_server_type(notebook, body, defaults):
     if server_type not in valid_server_types:
         raise BadRequest("'%s' is not a valid server type" % server_type)
 
-    nb_name = get_form_value(body, defaults, "name")
-    nb_ns = get_form_value(body, defaults, "namespace")
-    rstudio_header = '{"X-RStudio-Root-Path":"/notebook/%s/%s/"}' % (nb_ns,
-                                                                     nb_name)
+    rstudio_header = get_rstudio_header(notebook, body, defaults)
     notebook_annotations[SERVER_TYPE_ANNOTATION] = server_type
     if server_type == "group-one" or server_type == "group-two":
         notebook_annotations[URI_REWRITE_ANNOTATION] = "/"
