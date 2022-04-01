@@ -221,3 +221,14 @@ body {
 .lib-overflow-auto {
   overflow: auto;
 }
+
+.mat-chip {
+  &.mat-chip-blue {
+    background-color: var(--accent-color);
+    color: white;
+
+    .mat-icon {
+      color: white;
+    }
+  }
+}

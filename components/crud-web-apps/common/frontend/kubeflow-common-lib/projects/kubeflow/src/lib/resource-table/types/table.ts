@@ -27,6 +27,7 @@ export interface TableColumn {
   style?: { [prop: string]: string };
   sort?: boolean;
   sortingPreprocessorFn?: (prop: any) => any;
+  filteringPreprocessorFn?: (prop: any) => any;
 }
 
 export interface TableConfig {

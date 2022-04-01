@@ -8,6 +8,7 @@ import {
   ViewChild,
   OnDestroy,
   OnInit,
+  ElementRef,
 } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
@@ -27,9 +28,17 @@ import {
 import { DateTimeValue } from '../types/date-time';
 import { TemplateValue } from '../types/template';
 import { NamespaceService } from '../../services/namespace.service';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { addColumn, NAMESPACE_COLUMN, removeColumn } from './utils';
 import { MatSort } from '@angular/material/sort';
+import { MatChipInputEvent } from '@angular/material/chips';
+import { FormControl } from '@angular/forms';
+import { map, startWith } from 'rxjs/operators';
+import {
+  MatAutocompleteSelectedEvent,
+  MatAutocompleteTrigger,
+} from '@angular/material/autocomplete';
+import { DateTimeService } from '../../services/date-time.service';
 
 @Component({
   selector: 'lib-table',
@@ -53,9 +62,18 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
     return cols;
   }
 
+  chipList = [];
+  chips = [];
+  headers = [];
+  isClear: boolean;
+  filteredHeaders: Observable<string[]>;
+  chipCtrl = new FormControl();
+
   @HostBinding('class.lib-table') selfClass = true;
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
+  @ViewChild('chipInput') chipInput: ElementRef<HTMLInputElement>;
+  @ViewChild(MatAutocompleteTrigger) autocomplete: MatAutocompleteTrigger;
 
   TABLE_THEME = TABLE_THEME;
 
@@ -78,7 +96,14 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
   // row's object.
   @Output() actionsEmitter = new EventEmitter<ActionEvent>();
 
-  constructor(public ns: NamespaceService) {}
+  constructor(public ns: NamespaceService, private dtService: DateTimeService) {
+    this.filteredHeaders = this.chipCtrl.valueChanges.pipe(
+      startWith(null),
+      map((chip: string | null) =>
+        chip ? this.filter(chip) : this.headers.slice(),
+      ),
+    );
+  }
 
   ngOnInit() {
     this.nsSub = this.ns.getSelectedNamespace2().subscribe(ns => {
@@ -96,7 +121,23 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
         removeColumn(this.config, 'namespace');
       }
     });
+
     this.sort.sort({ disableClear: true, id: 'name', start: 'asc' });
+
+    this.config.columns.forEach(column => {
+      if (
+        !this.isMenuValue(column.value) &&
+        !this.isActionListValue(column.value) &&
+        !(
+          this.isComponentValue(column.value) &&
+          column.filteringPreprocessorFn === undefined
+        )
+      ) {
+        this.headers.push({
+          title: column.matHeaderCellDef,
+        });
+      }
+    });
   }
 
   ngOnDestroy() {
@@ -149,16 +190,16 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
         // This avoids inconsistent results when comparing values to undefined/null.
         // If neither value exists, return 0 (equal).
         let comparatorResult = 0;
-        if (valueA != null && valueB != null) {
+        if (valueA !== null && valueB !== null) {
           // Check if one value is greater than the other; if equal, comparatorResult should remain 0.
           if (valueA > valueB) {
             comparatorResult = 1;
           } else if (valueA < valueB) {
             comparatorResult = -1;
           }
-        } else if (valueA != null) {
+        } else if (valueA !== null) {
           comparatorResult = 1;
-        } else if (valueB != null) {
+        } else if (valueB !== null) {
           comparatorResult = -1;
         }
         return comparatorResult * (direction === 'asc' ? 1 : -1);
@@ -166,6 +207,268 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
     };
     this.dataSource.sort = this.sort;
     this.sort.disableClear = true;
+    this.dataSource.filterPredicate = (row: unknown, filterInput: string) =>
+      this.filterPredicate(row, filterInput);
+  }
+
+  filterPredicate(row: unknown, filterInput: string): boolean {
+    const filterValueList = JSON.parse(filterInput);
+    let found = false;
+    for (const filterValue of filterValueList) {
+      if (typeof filterValue === 'string') {
+        found = this.handleStringMatch(row, filterValue);
+      } else {
+        found = this.handleObjectMatch(row, filterValue);
+      }
+      if (!found) {
+        break;
+      }
+    }
+    return found;
+  }
+
+  handleStringMatch(row: unknown, filterValue: string): boolean {
+    let isMatchText = false;
+    this.config.columns.forEach(column => {
+      const valueExtractor = column.value;
+      const filteringPreprocessorFn = column.filteringPreprocessorFn;
+      if (this.isPropertyValue(valueExtractor)) {
+        isMatchText =
+          isMatchText ||
+          (valueExtractor as PropertyValue)
+            .getValue(row)
+            .toString()
+            .toLocaleLowerCase()
+            .includes(filterValue);
+      }
+      if (this.isDateTimeValue(valueExtractor)) {
+        isMatchText =
+          isMatchText ||
+          (valueExtractor as DateTimeValue)
+            .getValue(row)
+            .toString()
+            .toLocaleLowerCase()
+            .includes(filterValue) ||
+          this.dtService
+            .distanceInWords((valueExtractor as DateTimeValue).getValue(row))
+            .toString()
+            .toLocaleLowerCase()
+            .includes(filterValue);
+      }
+      if (this.isStatusValue(valueExtractor)) {
+        isMatchText =
+          isMatchText ||
+          (valueExtractor as StatusValue)
+            .getPhase(row)
+            .toString()
+            .toLocaleLowerCase()
+            .includes(filterValue) ||
+          (valueExtractor as StatusValue)
+            .getMessage(row)
+            .toString()
+            .toLocaleLowerCase()
+            .includes(filterValue);
+      }
+      if (
+        this.isComponentValue(valueExtractor) &&
+        filteringPreprocessorFn !== undefined
+      ) {
+        isMatchText =
+          isMatchText ||
+          filteringPreprocessorFn(row)
+            .toString()
+            .toLocaleLowerCase()
+            .includes(filterValue);
+      }
+    });
+
+    return isMatchText;
+  }
+
+  handleObjectMatch(row: unknown, filterValue: string): boolean {
+    let isValid = false;
+    let isMatchObj = true;
+    Object.keys(filterValue).forEach(element => {
+      let filteringPreprocessorFn;
+      let valueExtractor;
+      this.config.columns.forEach(column => {
+        if (
+          column.matHeaderCellDef.toLocaleLowerCase() === element &&
+          !this.isMenuValue(column.value) &&
+          !this.isActionListValue(column.value) &&
+          !(
+            this.isComponentValue(column.value) &&
+            column.filteringPreprocessorFn === undefined
+          )
+        ) {
+          valueExtractor = column.value;
+          filteringPreprocessorFn = column.filteringPreprocessorFn;
+          isValid = true;
+        }
+      });
+      if (isValid) {
+        if (this.isPropertyValue(valueExtractor)) {
+          if (filterValue[element] === '""') {
+            isMatchObj =
+              isMatchObj && valueExtractor.getValue(row).length === 0;
+          } else {
+            isMatchObj =
+              isMatchObj &&
+              valueExtractor
+                .getValue(row)
+                .toString()
+                .toLocaleLowerCase()
+                .includes(filterValue[element]);
+          }
+        }
+        if (this.isDateTimeValue(valueExtractor)) {
+          if (filterValue[element] === '-') {
+            isMatchObj =
+              isMatchObj && valueExtractor.getValue(row).length === 0;
+          } else {
+            isMatchObj =
+              isMatchObj &&
+              (valueExtractor
+                .getValue(row)
+                .toString()
+                .toLocaleLowerCase()
+                .includes(filterValue[element]) ||
+                this.dtService
+                  .distanceInWords(valueExtractor.getValue(row))
+                  .toString()
+                  .toLocaleLowerCase()
+                  .includes(filterValue[element]));
+          }
+        }
+        if (this.isStatusValue(valueExtractor)) {
+          isMatchObj =
+            isMatchObj &&
+            (valueExtractor
+              .getPhase(row)
+              .toString()
+              .toLocaleLowerCase()
+              .includes(filterValue[element]) ||
+              valueExtractor
+                .getMessage(row)
+                .toString()
+                .toLocaleLowerCase()
+                .includes(filterValue[element]));
+        }
+        if (this.isComponentValue(valueExtractor)) {
+          isMatchObj =
+            isMatchObj &&
+            filteringPreprocessorFn(row)
+              .toString()
+              .toLocaleLowerCase()
+              .includes(filterValue[element]);
+        }
+      } else {
+        isMatchObj = false;
+      }
+    });
+
+    return isMatchObj;
+  }
+
+  add(event: MatChipInputEvent): void {
+    const chip = (event.value || '').trim();
+    if (chip.indexOf(':') > -1) {
+      if (chip.split(':')[1].length !== 0) {
+        this.chips.push(chip);
+        this.isClear = true;
+        this.chipCtrl.setValue(null);
+        this.editFilter(chip);
+
+        this.clearInputValue();
+      }
+    } else if (chip) {
+      this.chips.push(chip);
+      this.isClear = true;
+      this.chipCtrl.setValue(null);
+      this.editFilter(chip);
+
+      this.clearInputValue();
+    }
+    this.resetPaginator();
+  }
+
+  remove(chip: string): void {
+    const index = this.chips.indexOf(chip);
+
+    if (index >= 0) {
+      this.chips.splice(index, 1);
+      this.autocomplete.closePanel();
+      this.chipList = [];
+      if (this.chips.length === 0) {
+        if (this.chipCtrl.value === null) {
+          this.isClear = false;
+        } else {
+          this.isClear = true;
+        }
+        this.dataSource.filter = '';
+      } else {
+        this.chips.forEach(chipValue => {
+          this.editFilter(chipValue);
+        });
+      }
+    }
+    this.resetPaginator();
+  }
+
+  editFilter(filterValue: string) {
+    if (filterValue.indexOf(':') > -1) {
+      const myHeader = filterValue.substring(0, filterValue.indexOf(':'));
+      const myFilter = filterValue.substring(filterValue.indexOf(':') + 1);
+      const obj = {};
+      obj[myHeader.trim().toLocaleLowerCase()] = myFilter.trim().toLowerCase();
+      this.chipList.push(obj);
+    } else {
+      this.chipList.push(filterValue.trim().toLowerCase());
+    }
+
+    const jsonString = JSON.stringify(this.chipList);
+    this.dataSource.filter = jsonString;
+  }
+
+  clear() {
+    this.chips = [];
+    this.chipList = [];
+    this.chipCtrl.setValue(null);
+    this.dataSource.filter = '';
+    this.clearInputValue();
+    this.isClear = false;
+    this.resetPaginator();
+  }
+
+  blurInput(value: HTMLTextAreaElement) {
+    setTimeout(() => {
+      value.blur();
+    });
+  }
+
+  selected(event: MatAutocompleteSelectedEvent): void {
+    this.chipInput.nativeElement.value = event.option.viewValue.concat(': ');
+    this.isClear = true;
+  }
+
+  // Clear the input value
+  clearInputValue() {
+    this.chipInput.nativeElement.value = '';
+  }
+
+  // Reset paginator
+  resetPaginator() {
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+  }
+
+  private filter(value: string): string[] {
+    const filterValue = value.toLowerCase();
+
+    return this.headers.filter(chip =>
+      chip.title.toLowerCase().includes(filterValue),
+    );
   }
 
   public isActionListValue(obj) {
