@@ -16,7 +16,7 @@ commonLabels:
 images:
 - name: public.ecr.aws/j1r0q0g6/notebooks/admission-webhook
   newName: public.ecr.aws/j1r0q0g6/notebooks/admission-webhook
-  newTag: v1.5.0-rc.2
+  newTag: v1.5.0
 namespace: kubeflow
 generatorOptions:
   disableNameSuffixHash: true
