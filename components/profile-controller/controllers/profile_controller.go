@@ -710,9 +710,10 @@ func (r *ProfileReconciler) PatchDefaultPluginSpec(ctx context.Context, profileI
 				},
 			})
 		}
-	}
-	if err := r.Update(ctx, profileIns); err != nil {
-		return err
+		if err := r.Update(ctx, profileIns); err != nil {
+			return err
+		}
+
 	}
 	return nil
 }
