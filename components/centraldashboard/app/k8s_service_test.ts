@@ -6,8 +6,8 @@ import {KubernetesService} from './k8s_service';
 describe('KubernetesService', () => {
   let mockResponse: jasmine.SpyObj<IncomingMessage>;
   let mockKubeConfig: jasmine.SpyObj<k8s.KubeConfig>;
-  let mockApiClient: jasmine.SpyObj<k8s.Core_v1Api>;
-  let mockCustomApiClient: jasmine.SpyObj<k8s.Custom_objectsApi>;
+  let mockApiClient: jasmine.SpyObj<k8s.CoreV1Api>;
+  let mockCustomApiClient: jasmine.SpyObj<k8s.CustomObjectsApi>;
   let k8sService: KubernetesService;
 
   beforeEach(() => {
@@ -17,13 +17,13 @@ describe('KubernetesService', () => {
       'loadFromDefault', 'getContextObject', 'getCurrentContext',
       'makeApiClient'
     ]);
-    mockApiClient = jasmine.createSpyObj<k8s.Core_v1Api>(
+    mockApiClient = jasmine.createSpyObj<k8s.CoreV1Api>(
         'mockApiClient', ['listNamespace', 'listNamespacedEvent', 'listNode']);
-    mockCustomApiClient = jasmine.createSpyObj<k8s.Custom_objectsApi>(
+    mockCustomApiClient = jasmine.createSpyObj<k8s.CustomObjectsApi>(
         'mockCustomApiClient', ['listNamespacedCustomObject']);
-    mockKubeConfig.makeApiClient.withArgs(k8s.Core_v1Api)
+    mockKubeConfig.makeApiClient.withArgs(k8s.CoreV1Api)
         .and.returnValue(mockApiClient);
-    mockKubeConfig.makeApiClient.withArgs(k8s.Custom_objectsApi)
+    mockKubeConfig.makeApiClient.withArgs(k8s.CustomObjectsApi)
         .and.returnValue(mockCustomApiClient);
 
     k8sService = new KubernetesService(mockKubeConfig);
@@ -165,7 +165,7 @@ describe('KubernetesService', () => {
         ]
       } as unknown;  // needed to work around TS compiler
       mockApiClient.listNamespacedEvent.and.returnValue(Promise.resolve(
-          {response: mockResponse, body: response as k8s.V1EventList}));
+          {response: mockResponse, body: response as k8s.CoreV1EventList}));
 
       const events = await k8sService.getEventsForNamespace('kubeflow');
       const eventNames = events.map((n) => n.metadata.name);
