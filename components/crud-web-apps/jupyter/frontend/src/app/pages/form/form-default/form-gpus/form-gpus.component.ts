@@ -45,9 +45,11 @@ export class FormGpusComponent implements OnInit {
     );
 
     this.gpuCtrl.get('vendor').valueChanges.subscribe((v: string) => {
-      if (this.installedVendors.has('tencent.com/vcuda-core') &&
-          this.installedVendors.has('tencent.com/vcuda-memory')) {
-        if (v === "tencent.com/vcuda-core") {
+      if (
+        this.installedVendors.has('tencent.com/vcuda-core') &&
+        this.installedVendors.has('tencent.com/vcuda-memory')
+      ) {
+        if (v === 'tencent.com/vcuda-core') {
           this.gpuCtrl.get('memory').enable();
           this.gpuCtrl.get('memoryVendor').enable();
           this.gpuCtrl.get('memoryVendor').setValue('tencent.com/vcuda-memory');

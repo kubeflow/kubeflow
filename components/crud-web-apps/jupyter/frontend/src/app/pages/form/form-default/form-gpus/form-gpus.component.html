@@ -52,7 +52,11 @@
     <!--GPUs Memory Vendors-->
     <mat-form-field class="column" appearance="outline">
       <mat-label i18n>GPU Memory Vendor</mat-label>
-      <mat-select matNativeControl formControlName="memoryVendor" id="gpu-memoryVendor">
+      <mat-select
+        matNativeControl
+        formControlName="memoryVendor"
+        id="gpu-memoryVendor"
+      >
         <mat-option
           *ngFor="let v of memoryVendors"
           [value]="v.limitsKey"

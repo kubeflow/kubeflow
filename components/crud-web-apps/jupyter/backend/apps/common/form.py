@@ -223,6 +223,32 @@ def set_notebook_affinity(notebook, body, defaults):
     )
 
 
+def _set_notebook_vgpus(notebook, gpus):
+    # deal with gpu-manager vGPU resource.
+    num = int(float(gpus["num"]) * 100)
+    if num % 10 != 0:
+        raise BadRequest("gpus.num is not a valid number: %s" % gpus["num"])
+    if "memoryVendor" not in gpus:
+        raise BadRequest(
+            "'gpus' must have a 'memoryVendor' field when using vGPU")
+    if "memoryVendor" not in gpus:
+        raise BadRequest(
+            "'gpus' must have a 'memoryVendor' field when using vGPU")
+    try:
+        memory = int(gpus["memory"])
+    except ValueError:
+        raise BadRequest(
+            "gpus.memory is not a valid number: %s" % gpus["memory"])
+
+    container = notebook["spec"]["template"]["spec"]["containers"][0]
+    vendor = gpus["vendor"]
+    memoryVendor = gpus['memoryVendor']
+    limits = container["resources"].get("limits", {})
+    limits[vendor] = str(num)
+    limits[memoryVendor] = str(memory)
+    container["resources"]["limits"] = limits
+
+
 def set_notebook_gpus(notebook, body, defaults):
     gpus = get_form_value(body, defaults, "gpus")
 
@@ -240,29 +266,13 @@ def set_notebook_gpus(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
     vendor = gpus["vendor"]
     if gpus["vendor"] == "tencent.com/vcuda-core":
-        # deal with gpu-manager vGPU resource.
-        num = int(float(gpus["num"]) * 100)
-        if num % 10 != 0:
-            raise BadRequest("gpus.num is not a valid number: %s" % gpus["num"])
-        if "memoryVendor" not in gpus:
-            raise BadRequest("'gpus' must have a 'memoryVendor' field when using vGPU")
-        if "memoryVendor" not in gpus:
-            raise BadRequest("'gpus' must have a 'memoryVendor' field when using vGPU")
-        memoryVendor = gpus['memoryVendor']
-        try:
-            memory = int(gpus["memory"])
-        except ValueError:
-            raise BadRequest("gpus.memory is not a valid number: %s" % gpus["memory"])
-
-        limits = container["resources"].get("limits", {})
-        limits[vendor] = str(num)
-        limits[memoryVendor] = str(memory)
-        container["resources"]["limits"] = limits
+        _set_notebook_vgpus(notebook, gpus)
     else:
         try:
             num = int(gpus["num"])
         except ValueError:
-            raise BadRequest("gpus.num is not a valid number: %s" % gpus["num"])
+            raise BadRequest(
+                "gpus.num is not a valid number: %s" % gpus["num"])
 
         limits = container["resources"].get("limits", {})
         limits[vendor] = num
