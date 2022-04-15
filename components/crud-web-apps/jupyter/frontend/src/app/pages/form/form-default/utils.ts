@@ -23,7 +23,9 @@ export function getFormDefaults(): FormGroup {
     memoryLimit: ['', []],
     gpus: fb.group({
       vendor: ['', []],
-      num: ['', []],
+      num: [0, []],
+      memoryVendor: ['', []],
+      memory: [0, []],
     }),
     workspace: fb.group({
       mount: ['/home/jovyan', [Validators.required]],
@@ -52,19 +54,23 @@ export function getFormDefaults(): FormGroup {
 export function updateGPUControl(formCtrl: FormGroup, gpuConf: any) {
   // If the backend didn't send the value, default to none
   if (gpuConf == null) {
-    formCtrl.get('num').setValue('none');
+    formCtrl.get('num').setValue(0);
     return;
   }
 
   // Set the values
   const gpu = gpuConf.value as GPU;
-  formCtrl.get('num').setValue(gpu.num);
+  formCtrl.get('num').setValue(Number(gpu.num));
   formCtrl.get('vendor').setValue(gpu.vendor);
+  formCtrl.get('memory').setValue(Number(gpu.memory));
+  formCtrl.get('memoryVendor').setValue(gpu.memoryVendor);
 
   // Don't allow the user to edit them if the admin does not allow it
   if (gpuConf.readOnly) {
     formCtrl.get('num').disable();
     formCtrl.get('vendor').disable();
+    formCtrl.get('memory').disable();
+    formCtrl.get('memoryVendor').disable();
   }
 }
 

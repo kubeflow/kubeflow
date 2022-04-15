@@ -230,7 +230,7 @@ def set_notebook_gpus(notebook, body, defaults):
     if "num" not in gpus:
         raise BadRequest("'gpus' must have a 'num' field")
 
-    if gpus["num"] == "none":
+    if gpus["num"] == "none" or gpus["num"] == "0":
         return
 
     if "vendor" not in gpus:
@@ -239,15 +239,34 @@ def set_notebook_gpus(notebook, body, defaults):
     # set the gpus annotation
     container = notebook["spec"]["template"]["spec"]["containers"][0]
     vendor = gpus["vendor"]
-    try:
-        num = int(gpus["num"])
-    except ValueError:
-        raise BadRequest("gpus.num is not a valid number: %s" % gpus["num"])
+    if gpus["vendor"] == "tencent.com/vcuda-core":
+        # deal with gpu-manager vGPU resource.
+        num = int(float(gpus["num"]) * 100)
+        if num % 10 != 0:
+            raise BadRequest("gpus.num is not a valid number: %s" % gpus["num"])
+        if "memoryVendor" not in gpus:
+            raise BadRequest("'gpus' must have a 'memoryVendor' field when using vGPU")
+        if "memoryVendor" not in gpus:
+            raise BadRequest("'gpus' must have a 'memoryVendor' field when using vGPU")
+        memoryVendor = gpus['memoryVendor']
+        try:
+            memory = int(gpus["memory"])
+        except ValueError:
+            raise BadRequest("gpus.memory is not a valid number: %s" % gpus["memory"])
 
-    limits = container["resources"].get("limits", {})
-    limits[vendor] = num
+        limits = container["resources"].get("limits", {})
+        limits[vendor] = str(num)
+        limits[memoryVendor] = str(memory)
+        container["resources"]["limits"] = limits
+    else:
+        try:
+            num = int(gpus["num"])
+        except ValueError:
+            raise BadRequest("gpus.num is not a valid number: %s" % gpus["num"])
 
-    container["resources"]["limits"] = limits
+        limits = container["resources"].get("limits", {})
+        limits[vendor] = num
+        container["resources"]["limits"] = limits
 
 
 def set_notebook_configurations(notebook, body, defaults):

@@ -3,6 +3,7 @@ import { FormGroup, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { GPUVendor } from 'src/app/types';
 import { JWABackendService } from 'src/app/services/backend.service';
+import { NotebookFormObject } from 'src/app/types';
 
 @Component({
   selector: 'app-form-gpus',
@@ -12,13 +13,12 @@ import { JWABackendService } from 'src/app/services/backend.service';
 export class FormGpusComponent implements OnInit {
   @Input() parentForm: FormGroup;
   @Input() vendors: GPUVendor[] = [];
+  @Input() memoryVendors: GPUVendor[] = [];
 
   private gpuCtrl: FormGroup;
   public installedVendors = new Set<string>();
 
   subscriptions = new Subscription();
-  maxGPUs = 16;
-  gpusCount = ['1', '2', '4', '8'];
 
   constructor(public backend: JWABackendService) {}
 
@@ -31,15 +31,34 @@ export class FormGpusComponent implements OnInit {
       .get('vendor')
       .setValidators([this.vendorWithNum()]);
 
+    this.gpuCtrl.get('memory').disable();
+    this.gpuCtrl.get('memoryVendor').disable();
+
     this.subscriptions.add(
-      this.gpuCtrl.get('num').valueChanges.subscribe((n: string) => {
-        if (n === 'none') {
+      this.gpuCtrl.get('num').valueChanges.subscribe((n: number) => {
+        if (n === 0) {
           this.gpuCtrl.get('vendor').disable();
         } else {
           this.gpuCtrl.get('vendor').enable();
         }
       }),
     );
+
+    this.gpuCtrl.get('vendor').valueChanges.subscribe((v: string) => {
+      if (this.installedVendors.has('tencent.com/vcuda-core') &&
+          this.installedVendors.has('tencent.com/vcuda-memory')) {
+        if (v === "tencent.com/vcuda-core") {
+          this.gpuCtrl.get('memory').enable();
+          this.gpuCtrl.get('memoryVendor').enable();
+          this.gpuCtrl.get('memoryVendor').setValue('tencent.com/vcuda-memory');
+        } else {
+          this.gpuCtrl.get('memory').disable();
+          this.gpuCtrl.get('memory').setValue(0);
+          this.gpuCtrl.get('memoryVendor').disable();
+          this.gpuCtrl.get('memoryVendor').setValue('');
+        }
+      }
+    });
 
     this.backend.getGPUVendors().subscribe(vendors => {
       this.installedVendors = new Set(vendors);
@@ -69,7 +88,7 @@ export class FormGpusComponent implements OnInit {
       const num = this.parentForm.get('gpus').get('num').value;
       const vendor = this.parentForm.get('gpus').get('vendor').value;
 
-      if (num !== 'none' && vendor === '') {
+      if (Number(num) !== 0 && vendor === '') {
         return { vendorNullName: true };
       } else {
         return null;

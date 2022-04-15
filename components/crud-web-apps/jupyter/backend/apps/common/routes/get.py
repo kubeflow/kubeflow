@@ -60,6 +60,9 @@ def get_gpu_vendors():
     config_vendor_keys = [
         v.get("limitsKey", "") for v in gpus_value.get("vendors", [])
     ]
+    config_vendor_keys.extend([
+        v.get("limitsKey", "") for v in gpus_value.get("memoryVendors", [])
+    ])
 
     # Get all of the different resources installed in all nodes
     installed_resources = set()

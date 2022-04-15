@@ -1,6 +1,7 @@
 <lib-form-section title="GPUs" i18n-title>
   <div class="row" [formGroup]="parentForm.get('gpus')">
     <!--GPUs Number-->
+    <!--
     <mat-form-field class="column" appearance="outline">
       <mat-label i18n>Number of GPUs</mat-label>
       <mat-select matNativeControl formControlName="num">
@@ -10,6 +11,17 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
+    -->
+
+    <lib-positive-number-input
+      class="column"
+      formControlName="num"
+      min="0"
+      step="0.1"
+      [sizeControl]="parentForm.get('gpus').get('num')"
+      label="GPU/vGPU Core"
+      i18n-label
+    ></lib-positive-number-input>
 
     <!--GPUs Vendor-->
     <mat-form-field class="column" appearance="outline">
@@ -24,6 +36,32 @@
         </mat-option>
       </mat-select>
       <mat-error>{{ getVendorError() }}</mat-error>
+    </mat-form-field>
+
+    <!--GPUs Memory-->
+    <lib-positive-number-input
+      class="column"
+      formControlName="memory"
+      min="0"
+      step="1"
+      [sizeControl]="parentForm.get('gpus').get('memory')"
+      label="vGPU Memory x 0.25Gi"
+      i18n-label
+    ></lib-positive-number-input>
+
+    <!--GPUs Memory Vendors-->
+    <mat-form-field class="column" appearance="outline">
+      <mat-label i18n>GPU Memory Vendor</mat-label>
+      <mat-select matNativeControl formControlName="memoryVendor" id="gpu-memoryVendor">
+        <mat-option
+          *ngFor="let v of memoryVendors"
+          [value]="v.limitsKey"
+          [matTooltip]="vendorTooltip(v)"
+        >
+          {{ v.uiName }}
+        </mat-option>
+      </mat-select>
+      <!-- <mat-error>{{ getVendorError() }}</mat-error> -->
     </mat-form-field>
   </div>
 </lib-form-section>
