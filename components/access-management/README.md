@@ -8,7 +8,7 @@ The goal is to support multi-tenancy kubeflow cluster / services.
 ### Profile
 - Profile contains owner which refers to a k8s user.
 - Profile will create a namespace with same name and make profile owner the namespace owner.
-- Profile will create necessary k8s resources to enable owner access to kubeflow servuces under multi-tenancy mode.
+- Profile will create necessary k8s resources to enable owner access to kubeflow services under multi-tenancy mode.
 - After the namespace is created, the owner can grant access to additional users or groups using the API or by creating RBAC roles & bindings directly.
 - Delete profile will delete namespace and other k8s resources owned by this profile.
 

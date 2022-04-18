@@ -8,8 +8,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/metrics"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
@@ -21,10 +23,11 @@ var client = &http.Client{
 // The constants with name 'DEFAULT_{ENV_Var}' are the default values to be
 // used, if the respective ENV vars are not present.
 // All the time numbers correspond to minutes.
-const DEFAULT_IDLE_TIME = "1440" // One day
-const DEFAULT_CULLING_CHECK_PERIOD = "1"
+const DEFAULT_CULL_IDLE_TIME = "1440" // One day
+const DEFAULT_IDLENESS_CHECK_PERIOD = "1"
 const DEFAULT_ENABLE_CULLING = "false"
 const DEFAULT_CLUSTER_DOMAIN = "cluster.local"
+const DEFAULT_DEV = "false"
 
 // When a Resource should be stopped/culled, then the controller should add this
 // annotation in the Resource's Metadata. Then, inside the reconcile loop,
@@ -35,12 +38,22 @@ const DEFAULT_CLUSTER_DOMAIN = "cluster.local"
 // In case of Notebooks, the controller will reduce the replicas to 0 if
 // this annotation is set. If it's not set, then it will make the replicas 1.
 const STOP_ANNOTATION = "kubeflow-resource-stopped"
+const LAST_ACTIVITY_ANNOTATION = "notebooks.kubeflow.org/last-activity"
 
-type NotebookStatus struct {
-	Started      string `json:"started"`
-	LastActivity string `json:"last_activity"`
-	Connections  int    `json:"connections"`
-	Kernels      int    `json:"kernels"`
+const (
+	KERNEL_EXECUTION_STATE_IDLE     = "idle"
+	KERNEL_EXECUTION_STATE_BUSY     = "busy"
+	KERNEL_EXECUTION_STATE_STARTING = "starting"
+)
+
+// Each kernel of the Notebook Server has a status.
+// KernelStatus struct:
+type KernelStatus struct {
+	ID             string `json:"id"`
+	Name           string `json:"name"`
+	LastActivity   string `json:"last_activity"`
+	ExecutionState string `json:"execution_state"`
+	Connections    int    `json:"connections"`
 }
 
 // Some Utility Functions
@@ -52,6 +65,13 @@ func getEnvDefault(variable string, defaultVal string) string {
 	return envVar
 }
 
+func getNamespacedNameFromMeta(meta metav1.ObjectMeta) types.NamespacedName {
+	return types.NamespacedName{
+		Name:      meta.GetName(),
+		Namespace: meta.GetNamespace(),
+	}
+}
+
 // Time / Frequency Utility functions
 func createTimestamp() string {
 	now := time.Now()
@@ -60,28 +80,28 @@ func createTimestamp() string {
 
 func GetRequeueTime() time.Duration {
 	// The frequency in which we check if the Pod needs culling
-	// Uses ENV var: CULLING_CHECK_PERIOD
+	// Uses ENV var: IDLENESS_CHECK_PERIOD
 	cullingPeriod := getEnvDefault(
-		"CULLING_CHECK_PERIOD", DEFAULT_CULLING_CHECK_PERIOD)
+		"IDLENESS_CHECK_PERIOD", DEFAULT_IDLENESS_CHECK_PERIOD)
 	realCullingPeriod, err := strconv.Atoi(cullingPeriod)
 	if err != nil {
 		log.Info(fmt.Sprintf(
 			"Culling Period should be Int. Got '%s'. Using default value.",
 			cullingPeriod))
-		realCullingPeriod, _ = strconv.Atoi(DEFAULT_CULLING_CHECK_PERIOD)
+		realCullingPeriod, _ = strconv.Atoi(DEFAULT_IDLENESS_CHECK_PERIOD)
 	}
 
 	return time.Duration(realCullingPeriod) * time.Minute
 }
 
 func getMaxIdleTime() time.Duration {
-	idleTime := getEnvDefault("IDLE_TIME", DEFAULT_IDLE_TIME)
+	idleTime := getEnvDefault("CULL_IDLE_TIME", DEFAULT_CULL_IDLE_TIME)
 	realIdleTime, err := strconv.Atoi(idleTime)
 	if err != nil {
 		log.Info(fmt.Sprintf(
-			"IDLE_TIME should be Int. Got %s instead. Using default value.",
+			"CULL_IDLE_TIME should be Int. Got %s instead. Using default value.",
 			idleTime))
-		realIdleTime, _ = strconv.Atoi(DEFAULT_IDLE_TIME)
+		realIdleTime, _ = strconv.Atoi(DEFAULT_CULL_IDLE_TIME)
 	}
 
 	return time.Minute * time.Duration(realIdleTime)
@@ -105,20 +125,11 @@ func SetStopAnnotation(meta *metav1.ObjectMeta, m *metrics.Metrics) {
 		m.NotebookCullingCount.WithLabelValues(meta.Namespace, meta.Name).Inc()
 		m.NotebookCullingTimestamp.WithLabelValues(meta.Namespace, meta.Name).Set(float64(t.Unix()))
 	}
-}
 
-func RemoveStopAnnotation(meta *metav1.ObjectMeta) {
-	if meta == nil {
-		log.Info("Error: Metadata is Nil. Can't remove Annotations")
-		return
-	}
-
-	if meta.GetAnnotations() == nil {
-		return
-	}
-
-	if _, ok := meta.GetAnnotations()[STOP_ANNOTATION]; ok {
-		delete(meta.GetAnnotations(), STOP_ANNOTATION)
+	if meta.GetAnnotations() != nil {
+		if _, ok := meta.GetAnnotations()["notebooks.kubeflow.org/last_activity"]; ok {
+			delete(meta.GetAnnotations(), "notebooks.kubeflow.org/last_activity")
+		}
 	}
 }
 
@@ -135,16 +146,22 @@ func StopAnnotationIsSet(meta metav1.ObjectMeta) bool {
 }
 
 // Culling Logic
-func getNotebookApiStatus(nm, ns string) *NotebookStatus {
-	// Get the Notebook Status from the Server's /api/status endpoint
+func getNotebookApiKernels(nm, ns string) []KernelStatus {
+	// Get the Kernels' status from the Server's `/api/kernels` endpoint
+
 	domain := getEnvDefault("CLUSTER_DOMAIN", DEFAULT_CLUSTER_DOMAIN)
 	url := fmt.Sprintf(
-		"http://%s.%s.svc.%s/notebook/%s/%s/api/status",
+		"http://%s.%s.svc.%s/notebook/%s/%s/api/kernels",
 		nm, ns, domain, ns, nm)
+	if getEnvDefault("DEV", DEFAULT_DEV) != "false" {
+		url = fmt.Sprintf(
+			"http://localhost:8001/api/v1/namespaces/%s/services/%s:http-%s/proxy/notebook/%s/%s/api/kernels",
+			ns, nm, nm, ns, nm)
+	}
 
 	resp, err := client.Get(url)
 	if err != nil {
-		log.Info(fmt.Sprintf("Error talking to %s", url), "error", err)
+		log.Error(err, fmt.Sprintf("Error talking to %s", url))
 		return nil
 	}
 
@@ -156,51 +173,146 @@ func getNotebookApiStatus(nm, ns string) *NotebookStatus {
 		return nil
 	}
 
-	status := new(NotebookStatus)
-	err = json.NewDecoder(resp.Body).Decode(status)
+	var kernels []KernelStatus
+
+	err = json.NewDecoder(resp.Body).Decode(&kernels)
 	if err != nil {
-		log.Info(fmt.Sprintf(
-			"Error parsing the JSON response for Notebook %s/%s", nm, ns),
-			"error", err)
+		log.Error(err, "Error parsing JSON response for Notebook API Kernels.")
 		return nil
 	}
 
-	return status
+	return kernels
 }
 
-func notebookIsIdle(nm, ns string, status *NotebookStatus) bool {
-	// Being idle means that the Notebook can be culled
-	if status == nil {
+func allKernelsAreIdle(kernels []KernelStatus, log logr.Logger) bool {
+	// Iterate on the list of kernels' status.
+	// If all kernels are on execution_state=idle then this function returns true.
+	log.Info("Examining if all kernels are idle")
+
+	if kernels == nil {
 		return false
 	}
 
-	lastActivity, err := time.Parse(time.RFC3339, status.LastActivity)
-	if err != nil {
-		log.Info(fmt.Sprintf("Error parsing time for Notebook %s/%s", nm, ns),
-			"error", err)
+	for i := 0; i < len(kernels); i++ {
+		if kernels[i].ExecutionState != KERNEL_EXECUTION_STATE_IDLE {
+			log.Info("Not all kernels are idle")
+			return false
+		}
+	}
+	log.Info("All kernels are idle")
+	return true
+}
+
+// Update LAST_ACTIVITY_ANNOTATION
+func UpdateNotebookLastActivityAnnotation(meta *metav1.ObjectMeta) bool {
+	log := log.WithValues("notebook", getNamespacedNameFromMeta(*meta))
+	if meta == nil {
+		log.Info("Metadata is Nil. Can't update Last Activity Annotation.")
 		return false
 	}
 
-	timeCap := lastActivity.Add(getMaxIdleTime())
-	if time.Now().After(timeCap) {
+	log.Info("Updating the last-activity annotation.")
+	nm, ns := meta.GetName(), meta.GetNamespace()
+
+	// No last-activity found in the CR. Setting to Now()
+	if _, ok := meta.GetAnnotations()[LAST_ACTIVITY_ANNOTATION]; !ok {
+		t := createTimestamp()
+		log.Info(fmt.Sprintf("No last-activity found in the CR. Setting to %s", t))
+
+		if len(meta.GetAnnotations()) == 0 {
+			meta.SetAnnotations(map[string]string{})
+		}
+		meta.Annotations[LAST_ACTIVITY_ANNOTATION] = t
 		return true
+	}
+
+	log.Info("last-activity annotation exists. Checking /api/kernels")
+	kernels := getNotebookApiKernels(nm, ns)
+	if kernels == nil {
+		log.Info("Could not GET the kernels status. Will not update last-activity.")
+		return false
+	}
+
+	return updateTimestampFromKernelsActivity(meta, kernels)
+}
+
+func updateTimestampFromKernelsActivity(meta *metav1.ObjectMeta, kernels []KernelStatus) bool {
+	log := log.WithValues("notebook", getNamespacedNameFromMeta(*meta))
+
+	if len(kernels) == 0 {
+		log.Info("Notebook has no kernels. Will not update last-activity")
+		return false
+	}
+
+	if !allKernelsAreIdle(kernels, log) {
+		// At least on kernel is "busy" so the last-activity annotation should
+		// should be the current time.
+		t := createTimestamp()
+		log.Info(fmt.Sprintf("Found a busy kernel. Updating the last-activity to %s", t))
+
+		meta.Annotations[LAST_ACTIVITY_ANNOTATION] = t
+		return true
+	}
+
+	// Checking for the most recent kernel last_activity. The LAST_ACTIVITY_ANNOTATION
+	// should be the most recent kernel last-activity among the kernels.
+	recentTime, err := time.Parse(time.RFC3339, kernels[0].LastActivity)
+	if err != nil {
+		log.Error(err, "Error parsing the last-activity from the /api/kernels")
+		return false
+	}
+
+	for i := 1; i < len(kernels); i++ {
+		kernelLastActivity, err := time.Parse(time.RFC3339, kernels[i].LastActivity)
+		if err != nil {
+			log.Error(err, "Error parsing the last-activity from the /api/kernels")
+			return false
+		}
+		if kernelLastActivity.After(recentTime) {
+			recentTime = kernelLastActivity
+		}
+	}
+	t := recentTime.Format(time.RFC3339)
+
+	meta.Annotations[LAST_ACTIVITY_ANNOTATION] = t
+	log.Info(fmt.Sprintf("Successfully updated last-activity from latest kernel action, %s", t))
+	return true
+}
+
+func notebookIsIdle(meta metav1.ObjectMeta) bool {
+	// Being idle means that the Notebook can be culled
+	log := log.WithValues("notebook", getNamespacedNameFromMeta(meta))
+
+	if meta.GetAnnotations() != nil {
+		// Read the current LAST_ACTIVITY_ANNOTATION
+		tempLastActivity := meta.GetAnnotations()[LAST_ACTIVITY_ANNOTATION]
+		LastActivity, err := time.Parse(time.RFC3339, tempLastActivity)
+		if err != nil {
+			log.Error(err, "Error parsing last-activity time")
+			return false
+		}
+
+		timeCap := LastActivity.Add(getMaxIdleTime())
+		if time.Now().After(timeCap) {
+			return true
+		}
 	}
 	return false
 }
 
-func NotebookNeedsCulling(nbMeta metav1.ObjectMeta) bool {
+func NotebookNeedsCulling(meta metav1.ObjectMeta) bool {
+	log := log.WithValues("notebook", getNamespacedNameFromMeta(meta))
+
 	if getEnvDefault("ENABLE_CULLING", DEFAULT_ENABLE_CULLING) != "true" {
 		log.Info("Culling of idle Pods is Disabled. To enable it set the " +
 			"ENV Var 'ENABLE_CULLING=true'")
 		return false
 	}
 
-	nm, ns := nbMeta.GetName(), nbMeta.GetNamespace()
-	if StopAnnotationIsSet(nbMeta) {
-		log.Info(fmt.Sprintf("Notebook %s/%s is already stopping", ns, nm))
+	if StopAnnotationIsSet(meta) {
+		log.Info("Notebook is already stopping")
 		return false
 	}
 
-	notebookStatus := getNotebookApiStatus(nm, ns)
-	return notebookIsIdle(nm, ns, notebookStatus)
+	return notebookIsIdle(meta)
 }

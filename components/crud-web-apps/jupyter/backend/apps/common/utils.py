@@ -1,4 +1,6 @@
 import os
+import random
+import string
 
 from kubernetes import client
 from werkzeug import exceptions
@@ -21,6 +23,11 @@ CONFIGS = [
     "/etc/config/spawner_ui_config.yaml",
     DEV_CONFIG,
 ]
+
+
+def random_string(size=9, chars=string.ascii_lowercase + string.digits):
+    """Create a random string."""
+    return "".join(random.choice(chars) for _ in range(size))
 
 
 def load_notebook_template(**kwargs):
@@ -106,16 +113,6 @@ def get_storage_class(vol):
 
 
 # Functions for transforming the data from k8s api
-def pvc_dict_from_k8s_obj(pvc):
-    return {
-        "name": pvc.metadata.name,
-        "namespace": pvc.metadata.namespace,
-        "size": pvc.spec.resources.requests["storage"],
-        "mode": pvc.spec.access_modes,
-        "class": pvc.spec.storage_class_name,
-    }
-
-
 def notebook_dict_from_k8s_obj(notebook):
     cntr = notebook["spec"]["template"]["spec"]["containers"][0]
     server_type = None

@@ -35,6 +35,7 @@ import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
 import './not-found-view.js';
+import './namespace-needed-view.js';
 import './manage-users-view.js';
 import './resources/kubeflow-icons.js';
 import './iframe-container.js';
@@ -265,12 +266,18 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
             this._setActiveLink(this.$.home);
             break;
         default:
-            this.page = 'not_found';
             // Handles case when an iframed page requests an invalid route
             if (this._isInsideOfIframe()) {
                 notFoundInIframe = true;
+                hideSidebar = true;
+            }
+            if (path && path.includes('{ns}')) {
+                this.page = 'namespace_needed'
+            } else {
+                this.page = 'not_found';
             }
         }
+
         this._setNotFoundInIframe(notFoundInIframe);
         this._setHideTabs(hideTabs);
         this._setAllNamespaces(allNamespaces);
@@ -294,7 +301,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         if (this.namespacedItemTemplete &&
             this.namespacedItemTemplete.includes('{ns}')) {
             this.set('subRouteData.path',
-                this.namespacedItemTemplete.replace('{ns}', namespace))
+                this.namespacedItemTemplete.replace('{ns}', namespace));
         }
     }
 
@@ -305,11 +312,11 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         // instead of "queryParamsChange.base".
         // const queryParams = queryParamsChange.base;
         const queryParams = this.queryParams;
-        if (!queryParams || !queryParams["ns"]) {
+        if (!queryParams || !queryParams['ns']) {
             return this.buildHref(href, this.queryParams);
         }
-        return this.buildHref(href.replace('{ns}', queryParams["ns"]),
-                              queryParams);
+        return this.buildHref(href.replace('{ns}', queryParams['ns']),
+            queryParams);
     }
 
     /**
@@ -363,14 +370,14 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         let matchingLink = '';
         const allLinksTemplete = this.menuLinks.map((m) => {
             return m.type === 'section' ? m.items.map((x) => x.link) : m.link;
-        }).flat().sort()
+        }).flat().sort();
         const allLinks = allLinksTemplete.map((m) => {
             // replace namespaced menu items
-            const queryParams = this.queryParams
-            if (!queryParams || !queryParams["ns"]) {
+            const queryParams = this.queryParams;
+            if (!queryParams || !queryParams['ns']) {
                 return m;
             }
-            return m.replace('{ns}', queryParams["ns"]);
+            return m.replace('{ns}', queryParams['ns']);
         });
         if (hashPath) {
             matchPath = path + '#' + hashPath;
@@ -379,18 +386,18 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         } else {
             allLinks.forEach((link, index) => {
                 if (path.startsWith(link)) {
-                    this.matchingIndex = index
+                    this.matchingIndex = index;
                 }
             });
         }
-        matchingLink = allLinks[this.matchingIndex]
+        matchingLink = allLinks[this.matchingIndex];
 
         // find the HTML element that references the active link
         const activeMenuEl = Array.from(htmlElements).find(
             (x) => this.compareLinks(x.parentElement.href, matchingLink));
         if (activeMenuEl) {
             // in case the item is a section item, open its section
-            this.namespacedItemTemplete = allLinksTemplete[this.matchingIndex]
+            this.namespacedItemTemplete = allLinksTemplete[this.matchingIndex];
             activeMenuEl.parentElement.parentElement.opened = true;
             activeMenuEl.classList.add('iron-selected');
         }

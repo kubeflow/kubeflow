@@ -2,7 +2,7 @@ from flask import request
 
 from kubeflow.kubeflow.crud_backend import api, decorators, helpers, logging
 
-from ...common import form, utils
+from ...common import form, utils, volumes
 from ..utils import common as rok_common
 from . import bp
 
@@ -35,53 +35,48 @@ def post_notebook(namespace):
     form.set_notebook_affinity(notebook, body, defaults)
     form.set_notebook_configurations(notebook, body, defaults)
     form.set_notebook_environment(notebook, body, defaults)
-
-    # Workspace Volume
-    ws_pvc = None
-    workspace_vol = form.get_workspace_vol(body, defaults)
-    if not body.get("noWorkspace", False) and workspace_vol["type"] != "None":
-        ws_pvc = rok_common.rok_pvc_from_dict(workspace_vol, namespace)
-
-        rok_common.add_workspace_volume_annotations(ws_pvc, workspace_vol)
-
-        form.add_notebook_volume(
-            notebook,
-            ws_pvc.metadata.name,
-            ws_pvc.metadata.name,
-            "/home/jovyan",
-        )
-
-    # Add the Data Volumes
-    dtvol_pvcs = []
-    for vol in form.get_data_vols(body, defaults):
-        dtvol_pvc = rok_common.rok_pvc_from_dict(vol, namespace)
-        dtvol_pvcs.append(dtvol_pvc)
-
-        rok_common.add_data_volume_annotations(dtvol_pvc, vol)
-
-        form.add_notebook_volume(
-            notebook,
-            dtvol_pvc.metadata.name,
-            dtvol_pvc.metadata.name,
-            vol["path"],
-        )
-
-    # shm
     form.set_notebook_shm(notebook, body, defaults)
 
-    # Create the Notebook before creating the PVCs
+    # Notebook volumes
+    api_volumes = []
+    api_volumes.extend(form.get_form_value(body, defaults, "datavols",
+                                           "dataVolumes"))
+    workspace = form.get_form_value(body, defaults, "workspace",
+                                    "workspaceVolume", optional=True)
+    if workspace:
+        api_volumes.append(workspace)
+
+    # ensure that all objects can be created
+    api.create_notebook(notebook, namespace, dry_run=True)
+    for api_volume in api_volumes:
+        pvc = volumes.get_new_pvc(api_volume)
+        if pvc is None:
+            continue
+
+        api.create_pvc(pvc, namespace, dry_run=True)
+
+    # create the new PVCs and set the Notebook volumes and mounts
+    created_pvcs = []
+    for api_volume in api_volumes:
+        pvc = volumes.get_new_pvc(api_volume)
+        if pvc is not None:
+            logging.info("Creating PVC: %s", pvc)
+            pvc = api.create_pvc(pvc, namespace)
+            created_pvcs.append(pvc)
+
+        v1_volume = volumes.get_pod_volume(api_volume, pvc)
+        mount = volumes.get_container_mount(api_volume, v1_volume["name"])
+
+        notebook = volumes.add_notebook_volume(notebook, v1_volume)
+        notebook = volumes.add_notebook_container_mount(notebook, mount)
+
     log.info("Creating Notebook: %s", notebook)
     notebook = api.create_notebook(notebook, namespace)
 
-    # Create the PVCs with owner references to the Notebook
-    if ws_pvc is not None:
-        rok_common.add_owner_reference(ws_pvc, notebook)
-        log.info("Creating Workspace Volume: %s", ws_pvc.to_dict())
-        api.create_pvc(ws_pvc, namespace)
-
-    for dtvol_pvc in dtvol_pvcs:
-        rok_common.add_owner_reference(dtvol_pvc, notebook)
-        log.info("Creating Data Volume %s:", dtvol_pvc)
-        api.create_pvc(dtvol_pvc, namespace=namespace)
+    # set ownerReferences to the created pvcs
+    for pvc in created_pvcs:
+        logging.info("Adding owner references to PVC: %s", pvc.metadata.name)
+        rok_common.add_owner_reference(pvc, notebook)
+        api.patch_pvc(pvc.metadata.name, namespace, pvc, auth=False)
 
     return api.success_response("message", "Notebook created successfully.")

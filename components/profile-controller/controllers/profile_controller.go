@@ -465,6 +465,25 @@ func (r *ProfileReconciler) getAuthorizationPolicy(profileIns *profilev1.Profile
 					},
 				},
 			},
+			{
+				// allow the notebook-controller in the kubeflow namespace to
+				// access the api/kernels endpoint of the notebook servers.
+				From: []*istioSecurity.Rule_From{
+					{
+						Source: &istioSecurity.Source{
+							Principals: []string{"cluster.local/ns/kubeflow/sa/notebook-controller-service-account"},
+						},
+					},
+				},
+				To: []*istioSecurity.Rule_To{
+					{
+						Operation: &istioSecurity.Operation{
+							Methods: []string{"GET"},
+							Paths:   []string{"*/api/kernels"}, // wildcard for the name of the notebook server
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -508,7 +527,7 @@ func (r *ProfileReconciler) updateIstioAuthorizationPolicy(profileIns *profilev1
 			return err
 		}
 	} else {
-		if !reflect.DeepEqual(istioAuth, foundAuthorizationPolicy) {
+		if !reflect.DeepEqual(istioAuth.Spec, foundAuthorizationPolicy.Spec) {
 			foundAuthorizationPolicy.Spec = istioAuth.Spec
 			logger.Info("Updating Istio AuthorizationPolicy", "namespace", istioAuth.ObjectMeta.Namespace,
 				"name", istioAuth.ObjectMeta.Name)
