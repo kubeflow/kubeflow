@@ -1,7 +1,6 @@
 import {
   PropertyValue,
   StatusValue,
-  TRUNCATE_TEXT_SIZE,
   TABLE_THEME,
   TableConfig,
 } from '../resource-table/types';
@@ -16,7 +15,7 @@ export function generateConfig(): TableConfig {
       {
         matHeaderCellDef: 'Status',
         matColumnDef: 'status',
-        width: '40px',
+        style: { width: '40px' },
         value: new StatusValue({
           fieldPhase: 'statusPhase',
           fieldMessage: 'statusMessage',
@@ -25,7 +24,7 @@ export function generateConfig(): TableConfig {
       {
         matHeaderCellDef: 'Type',
         matColumnDef: 'type',
-        width: '150px',
+        style: { width: '150px' },
         value: new PropertyValue({
           field: 'type',
         }),
@@ -33,7 +32,7 @@ export function generateConfig(): TableConfig {
       {
         matHeaderCellDef: 'Last Transition Time',
         matColumnDef: 'lastTransitionTime',
-        width: '160px',
+        style: { width: '150px' },
         value: new DateTimeValue({
           field: 'lastTransitionTime',
         }),
@@ -41,7 +40,7 @@ export function generateConfig(): TableConfig {
       {
         matHeaderCellDef: 'Reason',
         matColumnDef: 'reason',
-        width: '150px',
+        style: { width: '150px' },
         value: new PropertyValue({
           field: 'reason',
         }),
@@ -49,7 +48,7 @@ export function generateConfig(): TableConfig {
       {
         matHeaderCellDef: 'Message',
         matColumnDef: 'message',
-        minWidth: '150px',
+        style: { width: '150px' },
         value: new PropertyValue({
           field: 'message',
         }),

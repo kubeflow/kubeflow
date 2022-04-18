@@ -4,10 +4,11 @@ import {
   ActionListValue,
   ActionIconValue,
   ActionButtonValue,
-  TRUNCATE_TEXT_SIZE,
   MenuValue,
   DialogConfig,
   ComponentValue,
+  TableConfig,
+  TABLE_THEME,
 } from 'kubeflow';
 import { ServerTypeComponent } from './server-type/server-type.component';
 
@@ -41,9 +42,7 @@ export function getStopDialogConfig(name: string): DialogConfig {
 }
 
 // --- Config for the Resource Table ---
-export const defaultConfig = {
-  title: $localize`Notebooks`,
-  newButtonText: $localize`NEW NOTEBOOK`,
+export const defaultConfig: TableConfig = {
   columns: [
     {
       matHeaderCellDef: $localize`Status`,
@@ -53,10 +52,11 @@ export const defaultConfig = {
     {
       matHeaderCellDef: $localize`Name`,
       matColumnDef: 'name',
+      style: { width: '25%' },
       value: new PropertyValue({
         field: 'name',
-        truncate: TRUNCATE_TEXT_SIZE.SMALL,
         tooltipField: 'name',
+        truncate: true,
       }),
     },
     {
@@ -69,20 +69,26 @@ export const defaultConfig = {
     {
       matHeaderCellDef: $localize`Age`,
       matColumnDef: 'age',
-      value: new PropertyValue({ field: 'age' }),
+      style: { width: '12%' },
+      textAlignment: 'right',
+      value: new PropertyValue({ field: 'age', truncate: true }),
     },
     {
       matHeaderCellDef: $localize`Image`,
       matColumnDef: 'image',
+      style: { width: '30%' },
       value: new PropertyValue({
         field: 'shortImage',
-        tooltipField: 'image',
-        truncate: TRUNCATE_TEXT_SIZE.MEDIUM,
+        popoverField: 'image',
+        truncate: true,
+        style: { maxWidth: '300px' },
       }),
     },
     {
       matHeaderCellDef: $localize`GPUs`,
       matColumnDef: 'gpus',
+      style: { width: '8%' },
+      textAlignment: 'right',
       value: new PropertyValue({
         field: 'gpus.count',
         tooltipField: 'gpus.message',
@@ -91,11 +97,15 @@ export const defaultConfig = {
     {
       matHeaderCellDef: $localize`CPUs`,
       matColumnDef: 'cpu',
+      style: { width: '8%' },
+      textAlignment: 'right',
       value: new PropertyValue({ field: 'cpu' }),
     },
     {
       matHeaderCellDef: $localize`Memory`,
       matColumnDef: 'memory',
+      style: { width: '8%' },
+      textAlignment: 'right',
       value: new PropertyValue({ field: 'memory' }),
     },
     {

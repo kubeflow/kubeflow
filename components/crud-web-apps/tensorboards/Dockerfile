@@ -11,23 +11,32 @@ FROM node:12-buster-slim as frontend-kubeflow-lib
 
 WORKDIR /src
 
-COPY ./common/frontend/kubeflow-common-lib/package*.json ./
-RUN npm install
+ENV NG_CLI_ANALYTICS "ci"
+COPY ./common/frontend/kubeflow-common-lib/package.json ./
+COPY ./common/frontend/kubeflow-common-lib/package-lock.json ./
+RUN npm ci
 
-COPY ./common/frontend/kubeflow-common-lib/ .
+COPY ./common/frontend/kubeflow-common-lib/projects ./projects
+COPY ./common/frontend/kubeflow-common-lib/angular.json .
+COPY ./common/frontend/kubeflow-common-lib/tsconfig.json .
 RUN npm run build
 
 # --- Build the frontend ---
 FROM node:12-buster-slim as frontend
-RUN npm install -g @angular/cli
 
 WORKDIR /src
-COPY ./tensorboards/frontend/package*.json ./
-RUN npm install
-COPY --from=frontend-kubeflow-lib /src/dist/kubeflow/ ./node_modules/kubeflow/
 
-COPY ./tensorboards/frontend/ .
-# RUN ls node_modules
+COPY ./tensorboards/frontend/package.json ./
+COPY ./tensorboards/frontend/package-lock.json ./
+COPY ./tensorboards/frontend/tsconfig.json ./
+COPY ./tensorboards/frontend/tsconfig.app.json ./
+COPY ./tensorboards/frontend/tsconfig.spec.json ./
+COPY ./tensorboards/frontend/angular.json ./
+COPY ./tensorboards/frontend/src ./src
+
+ENV NG_CLI_ANALYTICS "ci"
+RUN npm ci
+COPY --from=frontend-kubeflow-lib /src/dist/kubeflow/ ./node_modules/kubeflow/
 
 RUN npm run build -- --output-path=./dist --configuration=production
 

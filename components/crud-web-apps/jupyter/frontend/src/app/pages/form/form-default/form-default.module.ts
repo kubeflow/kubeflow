@@ -5,6 +5,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 import { FormDefaultComponent } from './form-default.component';
 import { FormNameComponent } from './form-name/form-name.component';
@@ -15,13 +16,13 @@ import { FormAdvancedOptionsComponent } from './form-advanced-options/form-advan
 
 import {
   FormModule as KfFormModule,
-  ImmediateErrorStateMatcher,
+  TitleActionsToolbarModule,
 } from 'kubeflow';
 import { FormWorkspaceVolumeComponent } from './form-workspace-volume/form-workspace-volume.component';
-import { VolumeComponent } from './volume/volume.component';
 import { FormDataVolumesComponent } from './form-data-volumes/form-data-volumes.component';
 import { FormConfigurationsComponent } from './form-configurations/form-configurations.component';
 import { FormAffinityTolerationsComponent } from './form-affinity-tolerations/form-affinity-tolerations.component';
+import { VolumeModule } from './volume/volume.module';
 
 @NgModule({
   declarations: [
@@ -31,7 +32,6 @@ import { FormAffinityTolerationsComponent } from './form-affinity-tolerations/fo
     FormCpuRamComponent,
     FormWorkspaceVolumeComponent,
     FormDataVolumesComponent,
-    VolumeComponent,
     FormGpusComponent,
     FormAdvancedOptionsComponent,
     FormConfigurationsComponent,
@@ -42,8 +42,11 @@ import { FormAffinityTolerationsComponent } from './form-affinity-tolerations/fo
     KfFormModule,
     MatCheckboxModule,
     MatSlideToggleModule,
+    MatExpansionModule,
     MatIconModule,
     MatButtonToggleModule,
+    TitleActionsToolbarModule,
+    VolumeModule,
   ],
   exports: [
     FormDefaultComponent,
@@ -52,7 +55,6 @@ import { FormAffinityTolerationsComponent } from './form-affinity-tolerations/fo
     FormCpuRamComponent,
     FormWorkspaceVolumeComponent,
     FormDataVolumesComponent,
-    VolumeComponent,
     FormGpusComponent,
     FormAdvancedOptionsComponent,
     FormConfigurationsComponent,

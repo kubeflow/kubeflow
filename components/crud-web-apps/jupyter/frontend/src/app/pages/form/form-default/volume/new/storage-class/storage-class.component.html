@@ -1,0 +1,19 @@
+<div class="form-title" i18n>Storage class</div>
+
+<mat-checkbox
+  i18n
+  [checked]="scControl?.disabled"
+  (change)="useDefaultSC($event.checked)"
+>
+  Use default class
+</mat-checkbox>
+
+<mat-form-field appearance="outline" class="wide" *ngIf="scControl">
+  <mat-label i18n>Class</mat-label>
+  <mat-select [formControl]="scControl">
+    <mat-option value="" i18n>Empty storage class</mat-option>
+    <mat-option *ngFor="let sc of storageClasses" [value]="sc">
+      {{ sc }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>

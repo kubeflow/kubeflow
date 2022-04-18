@@ -10,7 +10,9 @@
     [style.min-width]="minTableWidth"
   >
     <div class="header card-title-padding">
-      <div>{{ config?.title }}</div>
+      <div data-cy-table-title>
+        {{ config?.title }}
+      </div>
 
       <button
         *ngIf="config?.newButtonText"
@@ -19,6 +21,7 @@
         color="primary"
         class="right"
         (click)="newButtonTriggered()"
+        data-cy-resource-table-new
       >
         <mat-icon class="new-resource-button">add</mat-icon>
         {{ config?.newButtonText }}
@@ -33,7 +36,7 @@
         [config]="config"
         [data]="data"
         [trackByFn]="trackByFn"
-        [emitter]="actionsEmitter"
+        (actionsEmitter)="actionTriggered($event)"
       ></lib-table>
     </mat-card-content>
   </mat-card>
@@ -54,6 +57,7 @@
         color="primary"
         class="right"
         (click)="newButtonTriggered()"
+        data-cy-resource-table-new
       >
         <mat-icon class="new-resource-button">add</mat-icon>
         {{ config?.newButtonText }}
@@ -67,7 +71,7 @@
       [config]="config"
       [data]="data"
       [trackByFn]="trackByFn"
-      [emitter]="actionsEmitter"
+      (actionsEmitter)="actionTriggered($event)"
     ></lib-table>
   </div>
 </div>

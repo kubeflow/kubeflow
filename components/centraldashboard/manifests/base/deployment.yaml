@@ -14,7 +14,7 @@ spec:
       labels:
         app: centraldashboard
       annotations:
-        sidecar.istio.io/inject: "false"
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
       - name: centraldashboard

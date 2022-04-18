@@ -10,6 +10,7 @@ import {
   DialogConfig,
   SnackBarService,
   SnackType,
+  ToolbarButton,
 } from 'kubeflow';
 import { defaultConfig } from './config';
 import { environment } from '@app/environment';
@@ -37,6 +38,17 @@ export class IndexComponent implements OnInit {
   public config = defaultConfig;
   public rawData: TensorboardResponseObject[] = [];
   public processedData: TensorboardProcessedObject[] = [];
+
+  buttons: ToolbarButton[] = [
+    new ToolbarButton({
+      text: `New TensorBoard`,
+      icon: 'add',
+      stroked: true,
+      fn: () => {
+        this.newResourceClicked();
+      },
+    }),
+  ];
 
   constructor(
     public ns: NamespaceService,
@@ -81,9 +93,6 @@ export class IndexComponent implements OnInit {
 
   public reactToAction(a: ActionEvent) {
     switch (a.action) {
-      case 'newResourceButton':
-        this.newResourceClicked();
-        break;
       case 'delete':
         this.deleteTensorboardClicked(a.data);
         break;
@@ -164,7 +173,7 @@ export class IndexComponent implements OnInit {
     window.open(`/tensorboard/${tensorboard.namespace}/${tensorboard.name}/`);
   }
 
-  //Utility functions
+  // Utility functions
   public processIncomingData(
     tensorboards: TensorboardResponseObject[],
   ): TensorboardProcessedObject[] {

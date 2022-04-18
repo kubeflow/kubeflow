@@ -1,6 +1,7 @@
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
-import { ConfigVolume, GPU, Config } from 'src/app/types';
+import { GPU, Config } from 'src/app/types';
 import { getNameSyncValidators, getNameAsyncValidators } from 'kubeflow';
+import { createFormGroupFromVolume } from 'src/app/shared/utils/volumes';
 
 export function getFormDefaults(): FormGroup {
   const fb = new FormBuilder();
@@ -24,17 +25,21 @@ export function getFormDefaults(): FormGroup {
       vendor: ['', []],
       num: ['', []],
     }),
-    noWorkspace: [false, []],
     workspace: fb.group({
-      type: ['', [Validators.required]],
-      name: ['', getNameSyncValidators(), getNameAsyncValidators()],
-      templatedName: ['', []],
-      size: [1, [Validators.required]],
-      path: [{ value: '', disabled: true }, [Validators.required]],
-      templatedPath: ['', []],
-      mode: ['', [Validators.required]],
-      class: ['{none}', [Validators.required]],
-      extraFields: fb.group({}),
+      mount: ['/home/jovyan', [Validators.required]],
+      newPvc: fb.group({
+        metadata: fb.group({
+          name: ['{notebook-name}-volume', [Validators.required]],
+        }),
+        spec: fb.group({
+          accessModes: [['ReadWriteOnce']],
+          resources: fb.group({
+            requests: fb.group({
+              storage: ['10Gi'],
+            }),
+          }),
+        }),
+      }),
     }),
     affinityConfig: ['', []],
     tolerationGroup: ['', []],
@@ -42,81 +47,6 @@ export function getFormDefaults(): FormGroup {
     shm: [true, []],
     configurations: [[], []],
   });
-}
-
-export function createVolumeControl(vol: ConfigVolume, readonly = false) {
-  const fb = new FormBuilder();
-
-  const ctrl = fb.group({
-    type: [vol.type.value, [Validators.required]],
-    name: ['volume', getNameSyncValidators(), getNameAsyncValidators()],
-    templatedName: [vol.name.value, []],
-    templatedPath: [vol.mountPath.value, []],
-    size: [configSizeToNumber(vol.size.value), [Validators.required]],
-    path: [vol.mountPath.value, [Validators.required]],
-    mode: [vol.accessModes.value, [Validators.required]],
-    class: ['{none}', []],
-    extraFields: fb.group({}),
-  });
-
-  if (readonly) {
-    ctrl.disable();
-  }
-
-  return ctrl;
-}
-
-export function updateVolumeControl(
-  volCtrl: FormGroup,
-  vol: ConfigVolume,
-  readonly = false,
-) {
-  volCtrl.get('name').setValue(vol.name.value);
-  volCtrl.get('type').setValue(vol.type.value);
-  volCtrl.get('size').setValue(configSizeToNumber(vol.size.value));
-  volCtrl.get('mode').setValue(vol.accessModes.value);
-  volCtrl.get('path').setValue(vol.mountPath.value);
-  volCtrl.get('templatedName').setValue(vol.name.value);
-  volCtrl.get('templatedPath').setValue(vol.mountPath.value);
-
-  if (readonly) {
-    volCtrl.disable();
-  }
-}
-
-export function addDataVolume(
-  formCtrl: FormGroup,
-  vol: ConfigVolume = null,
-  readonly = false,
-) {
-  // If no vol is provided create one with default values
-  if (vol === null) {
-    const l: number = formCtrl.value.datavols.length;
-    const name: string = '{notebook-name}-vol-' + (l + 1);
-
-    vol = {
-      type: {
-        value: 'New',
-      },
-      name: {
-        value: '{notebook-name}-vol-' + (l + 1),
-      },
-      size: {
-        value: '5',
-      },
-      mountPath: {
-        value: '/home/jovyan/{volume-name}',
-      },
-      accessModes: {
-        value: 'ReadWriteOnce',
-      },
-    };
-  }
-
-  // Push it to the control
-  const ctrl = createVolumeControl(vol, readonly);
-  const vols = formCtrl.get('datavols') as FormArray;
-  vols.push(ctrl);
 }
 
 export function updateGPUControl(formCtrl: FormGroup, gpuConf: any) {
@@ -199,22 +129,11 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
     formCtrl.controls.imagePullPolicy.disable();
   }
 
-  const wsCtrl = formCtrl.get('workspace') as FormGroup;
-  updateVolumeControl(
-    wsCtrl,
-    config.workspaceVolume.value,
-    config.workspaceVolume.readOnly,
-  );
+  // Workspace volume
+  initWorkspaceVolumeControl(formCtrl, config);
 
-  // Disable the mount path by default
-  const ws = formCtrl.controls.workspace as FormGroup;
-  ws.controls.path.disable();
-
-  // Add the data volumes
-  config.dataVolumes.value.forEach(vol => {
-    // Create a new FormControl to append to the array
-    addDataVolume(formCtrl, vol.value, config.dataVolumes.readOnly);
-  });
+  // Data volumes
+  initDataVolumeControl(formCtrl, config);
 
   // Affinity
   formCtrl.controls.affinityConfig.setValue(config.affinityConfig.value);
@@ -240,6 +159,27 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
   formCtrl.controls.configurations.setValue(config.configurations.value);
   if (config.configurations.readOnly) {
     formCtrl.controls.configurations.disable();
+  }
+}
+
+export function initWorkspaceVolumeControl(form: FormGroup, config: Config) {
+  const workspace = config.workspaceVolume.value;
+  if (!workspace) {
+    form.get('workspace').disable();
+    return;
+  }
+
+  form.setControl('workspace', createFormGroupFromVolume(workspace));
+}
+
+export function initDataVolumeControl(form: FormGroup, config: Config) {
+  const datavols = config.dataVolumes.value;
+
+  const datavolsArray = new FormArray([]);
+  form.setControl('datavols', datavolsArray);
+
+  for (const vol of datavols) {
+    datavolsArray.push(createFormGroupFromVolume(vol));
   }
 }
 

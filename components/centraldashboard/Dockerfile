@@ -1,5 +1,5 @@
 # Step 1: Builds and tests
-FROM node:12.18.3-alpine AS build
+FROM node:12.22.8-alpine AS build
 
 ARG kubeflowversion
 ARG commit
@@ -8,19 +8,20 @@ ENV BUILD_COMMIT=$commit
 ENV CHROME_BIN=/usr/bin/chromium-browser
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
-# Installs latest Chromium package and configures environment for testing
+# Installs latest-stable Chromium package and configures environment for testing
 RUN apk update && apk upgrade && \
-    echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories && \
-    echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
-    apk add --no-cache bash chromium@edge nss@edge \
-    freetype@edge \
-    harfbuzz@edge \
-    ttf-freefont@edge \
-    libstdc++@edge
+    echo @stable http://nl.alpinelinux.org/alpine/latest-stable/community >> /etc/apk/repositories && \
+    echo @stable http://nl.alpinelinux.org/alpine/latest-stable/main >> /etc/apk/repositories
+
+RUN apk add --no-cache bash chromium@stable nss@stable \
+    freetype@stable \
+    harfbuzz@stable \
+    ttf-freefont@stable \
+    libstdc++@stable
 
 RUN if [ "$(uname -m)" = "aarch64" ]; then \
         apk update && apk upgrade && \
-        apk add --no-cache python2 make g++@edge; \
+        apk add --no-cache python2 make g++@stable; \
     fi
 
 COPY . /centraldashboard
@@ -39,7 +40,7 @@ RUN npm rebuild && \
     npm prune --production
 
 # Step 2: Packages assets for serving
-FROM node:12.18.3-alpine AS serve
+FROM node:12.22.8-alpine AS serve
 
 ENV NODE_ENV=production
 WORKDIR /app
