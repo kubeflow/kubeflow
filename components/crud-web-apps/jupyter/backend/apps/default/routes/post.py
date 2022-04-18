@@ -2,7 +2,7 @@ from flask import request
 
 from kubeflow.kubeflow.crud_backend import api, decorators, helpers, logging
 
-from ...common import form, utils
+from ...common import form, utils, volumes
 from . import bp
 
 log = logging.getLogger(__name__)
@@ -33,39 +33,38 @@ def post_pvc(namespace):
     form.set_notebook_tolerations(notebook, body, defaults)
     form.set_notebook_affinity(notebook, body, defaults)
     form.set_notebook_configurations(notebook, body, defaults)
-
-    # Workspace Volume
-    workspace_vol = form.get_workspace_vol(body, defaults)
-    if not body.get("noWorkspace", False) and workspace_vol["type"] == "New":
-        # Create the PVC
-        ws_pvc = utils.pvc_from_dict(workspace_vol, namespace)
-
-        log.info("Creating Workspace Volume: %s", ws_pvc.to_dict())
-        api.create_pvc(ws_pvc, namespace)
-
-    if not body.get("noWorkspace", False) and workspace_vol["type"] != "None":
-        form.add_notebook_volume(
-            notebook,
-            workspace_vol["name"],
-            workspace_vol["name"],
-            workspace_vol["templatedPath"],
-        )
-
-    # Add the Data Volumes
-    for vol in form.get_data_vols(body, defaults):
-        if vol["type"] == "New":
-            # Create the PVC
-            dtvol_pvc = utils.pvc_from_dict(vol, namespace)
-
-            log.info("Creating Data Volume: %s", dtvol_pvc)
-            api.create_pvc(dtvol_pvc, namespace=namespace)
-
-        form.add_notebook_volume(
-            notebook, vol["name"], vol["name"], vol["path"]
-        )
-
-    # shm
     form.set_notebook_shm(notebook, body, defaults)
+
+    # Notebook volumes
+    api_volumes = []
+    api_volumes.extend(form.get_form_value(body, defaults, "datavols",
+                                           "dataVolumes"))
+    workspace = form.get_form_value(body, defaults, "workspace",
+                                    "workspaceVolume", optional=True)
+    if workspace:
+        api_volumes.append(workspace)
+
+    # ensure that all objects can be created
+    api.create_notebook(notebook, namespace, dry_run=True)
+    for api_volume in api_volumes:
+        pvc = volumes.get_new_pvc(api_volume)
+        if pvc is None:
+            continue
+
+        api.create_pvc(pvc, namespace, dry_run=True)
+
+    # create the new PVCs and set the Notebook volumes and mounts
+    for api_volume in api_volumes:
+        pvc = volumes.get_new_pvc(api_volume)
+        if pvc is not None:
+            logging.info("Creating PVC: %s", pvc)
+            pvc = api.create_pvc(pvc, namespace)
+
+        v1_volume = volumes.get_pod_volume(api_volume, pvc)
+        mount = volumes.get_container_mount(api_volume, v1_volume["name"])
+
+        notebook = volumes.add_notebook_volume(notebook, v1_volume)
+        notebook = volumes.add_notebook_container_mount(notebook, mount)
 
     log.info("Creating Notebook: %s", notebook)
     api.create_notebook(notebook, namespace)

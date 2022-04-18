@@ -106,17 +106,12 @@ data:
           {
             "text": "MiniKF",
             "desc": "A fast and easy way to deploy Kubeflow locally",
-            "link": "https://www.kubeflow.org/docs/started/getting-started-minikf/"
+            "link": "https://www.kubeflow.org/docs/distributions/minikf/"
           },
           {
             "text": "Microk8s for Kubeflow",
             "desc": "Quickly get Kubeflow running locally on native hypervisors",
-            "link": "https://www.kubeflow.org/docs/started/getting-started-multipass/"
-          },
-          {
-            "text": "Minikube for Kubeflow",
-            "desc": "Quickly get Kubeflow running locally",
-            "link": "https://www.kubeflow.org/docs/started/getting-started-minikube/"
+            "link": "https://www.kubeflow.org/docs/distributions/microk8s/kubeflow-on-microk8s/"
           },
           {
             "text": "Kubeflow on GCP",

@@ -5,6 +5,7 @@ resources:
 - ../../base
 - service.yaml
 - virtual-service.yaml
+- authorizationpolicy.yaml
 
 commonLabels:
   kustomize.component: profiles
@@ -28,4 +29,4 @@ vars:
 images:
 - name: public.ecr.aws/j1r0q0g6/notebooks/access-management
   newName: public.ecr.aws/j1r0q0g6/notebooks/access-management
-  newTag: master-1831e436
+  newTag: v1.5.0

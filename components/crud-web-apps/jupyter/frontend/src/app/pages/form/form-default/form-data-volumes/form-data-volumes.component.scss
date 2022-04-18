@@ -1,23 +1,58 @@
-// Data Volumes with the Delete button
-.add-data-vol-button {
-  margin-bottom: 1rem;
+:host {
+  display: block;
 }
 
-.volume-wrapper {
+.readonly {
+  pointer-events: none;
+}
+
+.pvc-name {
+  max-width: 200px;
+  margin-right: 0.3rem;
+}
+
+.pvc-type {
+  margin-right: 0.3rem;
+}
+
+.vol-name {
+  max-width: 400px;
+  margin-right: 0.3rem;
+}
+
+.icons {
+  margin-left: auto;
+  min-width: 88px;
+
+  .mat-icon:hover {
+    color: rgba(0, 0, 0, 0.72);
+  }
+
+  .delete-icon {
+    margin-right: 24px;
+    padding-left: 16px;
+  }
+}
+.mat-expansion-panel-header-description {
+  margin-right: 0;
   display: flex;
-  width: 100%;
+  align-items: center;
 }
 
-.volume-wrapper > app-volume {
-  flex: 1 1 0px;
-  min-width: initial;
-  max-width: 93%;
+.mat-expansion-panel-header-title {
+  align-items: center;
 }
 
-.volume-wrapper > .del-btn {
-  flex: 1 1 0px;
-  margin-top: 0.8rem;
-  margin-left: 1.5rem;
-  width: 7%;
-  text-align: center;
+.volume-buttons {
+  display: flex;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+
+  .mat-stroked-button:first-child {
+    margin-right: 1rem;
+  }
+
+  .mat-stroked-button {
+    width: 100%;
+  }
 }

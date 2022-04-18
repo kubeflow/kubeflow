@@ -7,6 +7,7 @@
     "build": "ng build && npm run copyCSS && npm run copyAssets",
     "test": "ng test",
     "test-ci": "ng test --no-watch --no-progress --browsers=ChromeHeadlessCI",
+    "test-docker": "docker run -v $(pwd):/usr/src/app browserless/chrome:1.44-chrome-stable npm run test-ci",
     "lint": "ng lint",
     "e2e": "ng e2e",
     "copyCSS": "cp ./projects/kubeflow/src/kubeflow.css ./dist/kubeflow && cp ./projects/kubeflow/src/styles.scss ./dist/kubeflow && cp ./projects/kubeflow/src/lib/variables.scss ./dist/kubeflow/lib && cp ./projects/kubeflow/src/lib/fonts.scss ./dist/kubeflow/lib",
@@ -57,7 +58,7 @@
     "karma-jasmine-html-reporter": "^1.6.0",
     "ng-packagr": "^12.0.8",
     "protractor": "~7.0.0",
-    "ts-node": "~7.0.0",
+    "ts-node": "^10.4.0",
     "tslint": "~6.1.0",
     "typescript": "~4.2.4"
   }

@@ -116,13 +116,20 @@ body {
   text-overflow: ellipsis;
 }
 
+/*
+ * common table
+ */
+.lib-table .mat-paginator-container {
+  min-height: 48px;
+}
+
 // Form global css
 .form--dialog-padding .mat-dialog-container {
   padding: 0 24px;
 }
 
 .mat-button-base.form--button-margin {
-  margin-right: 8px;
+  margin-right: 16px;
 }
 
 // Make the outline grey instead of black

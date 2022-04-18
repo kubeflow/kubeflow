@@ -1,0 +1,23 @@
+export const notebook = {
+  name: 'test-notebook',
+  namespace: 'default',
+  image:
+    'public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-1831e436',
+  allowCustomImage: true,
+  imagePullPolicy: 'IfNotPresent',
+  customImage: '',
+  customImageCheck: false,
+  serverType: 'jupyter',
+  cpu: '0.5',
+  cpuLimit: '',
+  memory: '1Gi',
+  memoryLimit: '',
+  gpus: { num: 'none' },
+  noWorkspace: true,
+  workspace: {},
+  affinityConfig: '',
+  tolerationGroup: '',
+  datavols: [],
+  shm: true,
+  configurations: [],
+};

@@ -12,10 +12,13 @@ FROM node:12 as frontend-kubeflow-lib
 WORKDIR /src
 
 ENV NG_CLI_ANALYTICS "ci"
-COPY ./common/frontend/kubeflow-common-lib/package*.json ./
-RUN npm install
+COPY ./common/frontend/kubeflow-common-lib/package.json ./
+COPY ./common/frontend/kubeflow-common-lib/package-lock.json ./
+RUN npm ci
 
-COPY ./common/frontend/kubeflow-common-lib/ .
+COPY ./common/frontend/kubeflow-common-lib/projects ./projects
+COPY ./common/frontend/kubeflow-common-lib/angular.json .
+COPY ./common/frontend/kubeflow-common-lib/tsconfig.json .
 RUN npm run build
 
 # --- Build the frontend ---

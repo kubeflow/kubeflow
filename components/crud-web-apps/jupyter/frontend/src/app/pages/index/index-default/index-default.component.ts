@@ -10,6 +10,7 @@ import {
   SnackBarService,
   DIALOG_RESP,
   SnackType,
+  ToolbarButton,
 } from 'kubeflow';
 import { JWABackendService } from 'src/app/services/backend.service';
 import { Subscription } from 'rxjs';
@@ -37,6 +38,17 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   config = defaultConfig;
   rawData: NotebookResponseObject[] = [];
   processedData: NotebookProcessedObject[] = [];
+
+  buttons: ToolbarButton[] = [
+    new ToolbarButton({
+      text: `New Notebook`,
+      icon: 'add',
+      stroked: true,
+      fn: () => {
+        this.router.navigate(['/new']);
+      },
+    }),
+  ];
 
   constructor(
     public ns: NamespaceService,
@@ -85,9 +97,6 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   // Event handling functions
   reactToAction(a: ActionEvent) {
     switch (a.action) {
-      case 'newResourceButton': // TODO: could also use enums here
-        this.newResourceClicked();
-        break;
       case 'delete':
         this.deleteVolumeClicked(a.data);
         break;
@@ -98,11 +107,6 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         this.startStopClicked(a.data);
         break;
     }
-  }
-
-  public newResourceClicked() {
-    // Redirect to form page
-    this.router.navigate(['/new']);
   }
 
   public deleteVolumeClicked(notebook: NotebookProcessedObject) {

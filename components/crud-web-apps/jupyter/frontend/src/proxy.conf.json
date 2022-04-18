@@ -2,5 +2,10 @@
   "/api": {
     "target": "http://localhost:5000",
     "secure": false
+  },
+  "/static": {
+    "target": "http://localhost:4200",
+    "pathRewrite": { "^/static": "" },
+    "secure": false
   }
 }
