@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/imdario/mergo"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -414,8 +415,13 @@ func applyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.PodDefaul
 	securityContext, err := getSecurityContext(podDefaults)
 	if err != nil {
 		klog.Error(err)
-	} else {
-		pod.Spec.SecurityContext = securityContext
+	} else if securityContext != nil {
+		klog.Infof("Patching securityContext in pod: %v, existing: %v, patch: %v", pod.GetName(), pod.Spec.SecurityContext, securityContext)
+		// merging the exising securityContext with the one from PodDefault
+		err := mergo.Merge(pod.Spec.SecurityContext, securityContext, mergo.WithOverride)
+		if err != nil {
+			klog.Error(err)
+		}
 	}
 
 	var (
