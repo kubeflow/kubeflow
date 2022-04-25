@@ -1,6 +1,20 @@
 # Kubeflow Roadmap
 
-## Kubeflow 1.5 Release, Due: March 2022
+## Kubeflow 1.6 Release, Due: July 2022
+* Kubeflow 1.6 [milestones and timelines](https://github.com/kubeflow/community/pull/558)
+
+#### Detailed features, bug fixes and enhancements will be identified in the Working Group Roadmaps
+
+* [Training Operators](https://github.com/kubeflow/common/blob/master/ROADMAP.md)
+* [KFServing](https://github.com/kubeflow/kfserving/blob/master/ROADMAP.md)
+* [Katib](https://github.com/kubeflow/katib/blob/master/ROADMAP.md)
+* [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
+* [Notebooks, Central Dashboard](https://docs.google.com/document/d/1YtSWRhdhyOgd6ZQcWLM38TGDy2H_EhXjr8U5lUi37_I/edit)
+
+#### Note - The Community does plan to add support for Kubernetes v1.22 in Kubeflow 1.6
+
+
+## Kubeflow 1.5 Release, Delivered: March 2022
 * Kubeflow 1.5 [milestones and timeline](https://github.com/kubeflow/community/pull/538)
 
 ### Themes
