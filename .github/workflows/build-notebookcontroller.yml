@@ -43,11 +43,12 @@ jobs:
       # Container build and push to a Azure Container registry (ACR)
       - name: Docker build/push
         run: |
-          docker build \
+          cd components
+          docker build . \
             -t ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/notebook-controller:${{ github.sha }} \
             --build-arg kubeflowversion=$(git describe --abbrev=0 --tags) \
             --build-arg commit=$(git rev-parse HEAD) \
-            components/notebook-controller/
+            -f notebook-controller/Dockerfile
           docker push ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/notebook-controller:${{ github.sha }}
           docker tag ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/notebook-controller:${{ github.sha }} \
             ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/notebook-controller:${GITHUB_REF#refs/*/}
