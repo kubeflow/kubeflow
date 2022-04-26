@@ -39,7 +39,7 @@ class CentralDashboardEventHandler_ {
             this.parent.postMessage({type: IFRAME_CONNECTED_EVENT},
                 this.parent.origin);
         } else if (!disableForceIframe) {
-            fetch('/api/dashboard-settings')
+            fetch('/dashboard/api/dashboard-settings')
                 .then((res) => res.json())
                 .then((data) => {
                     if (data.DASHBOARD_FORCE_IFRAME) {

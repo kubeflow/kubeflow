@@ -237,7 +237,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
 
         switch (newPage) {
         case 'logout':
-            window.top.location.href = '/logout';
+            window.top.location.href = '/dashboard/logout';
             break;
         case 'activity':
             this.page = 'activity';
@@ -272,7 +272,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                 hideSidebar = true;
             }
             if (path && path.includes('{ns}')) {
-                this.page = 'namespace_needed'
+                this.page = 'namespace_needed';
             } else {
                 this.page = 'not_found';
             }
@@ -337,7 +337,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
      * @param {string} newPage - iframe page path
      */
     _iframePageChanged(newPage) {
-        const l = new URL(`${IFRAME_LINK_PREFIX}${newPage}`
+        const l = new URL(`/dashboard/${IFRAME_LINK_PREFIX}${newPage}`
             , window.location.origin);
         for (const key in this.queryParams) {
             if (this.queryParams.hasOwnProperty(key)) {

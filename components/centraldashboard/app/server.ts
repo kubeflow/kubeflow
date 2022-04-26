@@ -34,7 +34,7 @@ const {
 
 async function main() {
   const port: number = Number(PORT_1);
-  const frontEnd: string = resolve(__dirname, 'public');
+  const frontEnd: string = resolve(__dirname, 'public', "dashboard");
   const registrationFlowAllowed = (REGISTRATION_FLOW.toLowerCase() === "true");
   const profilesServiceUrl =
       `http://${PROFILES_KFAM_SERVICE_HOST}:${PROFILES_KFAM_SERVICE_PORT}/kfam`;
@@ -46,7 +46,7 @@ async function main() {
   const profilesService = new DefaultApi(profilesServiceUrl);
 
   app.use(express.json());
-  app.use(express.static(frontEnd));
+  app.use('/dashboard',express.static(frontEnd));
   app.use(attachUser(USERID_HEADER, USERID_PREFIX));
   app.get('/debug', (req: Request, res: Response) => {
     res.json({
@@ -66,16 +66,16 @@ async function main() {
       message: `I tick, therfore I am!`,
     });
   });
-  app.use('/api', new Api(k8sService, metricsService).routes());
-  app.use('/api/workgroup', new WorkgroupApi(profilesService, k8sService, registrationFlowAllowed, USERID_HEADER).routes());
-  app.use('/api', (req: Request, res: Response) =>
+  app.use('/dashboard/api', new Api(k8sService, metricsService).routes());
+  app.use('/dashboard/api/workgroup', new WorkgroupApi(profilesService, k8sService, registrationFlowAllowed, USERID_HEADER).routes());
+  app.use('/dashboard/api', (req: Request, res: Response) =>
     apiError({
       res,
       error: `Could not find the route you're looking for`,
       code: 404,
     })
   );
-  app.get('/*', (_: express.Request, res: express.Response) => {
+  app.get('/dashboard/*', (_: express.Request, res: express.Response) => {
     res.sendFile(resolve(frontEnd, 'index.html'));
   });
   app.listen(
