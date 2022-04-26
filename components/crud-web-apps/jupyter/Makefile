@@ -1,5 +1,7 @@
-GIT_TAG ?= $(shell git describe --tags --always)
-IMG ?= public.ecr.aws/j1r0q0g6/notebooks/jupyter-web-app
+# GIT_TAG ?= $(shell git describe --tags --always)
+GIT_TAG ?= latest
+# IMG ?= public.ecr.aws/j1r0q0g6/notebooks/jupyter-web-app
+IMG ?= hub.kce.ksyun.com/dmetasoul/jupyter-web-app
 DOCKERFILE ?= jupyter/Dockerfile
 
 docker-build:

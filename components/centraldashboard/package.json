@@ -3,7 +3,7 @@
     "version": "0.0.3",
     "description": "Kubeflow Central Dashboard",
     "scripts": {
-        "build": "cross-env NODE_ENV=development webpack && npm run tslint && npm run build-ts",
+        "build": "cross-env NODE_ENV=production webpack && npm run tslint && npm run build-ts",
         "build-ts": "tsc",
         "build-webpack": "webpack",
         "debug": "npm run build && npm run watch-debug",

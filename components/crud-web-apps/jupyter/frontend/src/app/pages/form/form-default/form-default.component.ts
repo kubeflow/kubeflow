@@ -4,15 +4,12 @@ import { Config, NotebookFormObject } from 'src/app/types';
 import { Subscription } from 'rxjs';
 import {
   NamespaceService,
-  BackendService,
   SnackBarService,
   SnackType,
-  getNameError,
 } from 'kubeflow';
 import { Router } from '@angular/router';
 import { getFormDefaults, initFormControls } from './utils';
 import { JWABackendService } from 'src/app/services/backend.service';
-import { environment } from '@app/environment';
 
 @Component({
   selector: 'app-form-default',
