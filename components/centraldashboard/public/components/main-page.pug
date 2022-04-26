@@ -3,7 +3,6 @@ iron-ajax(auto, url='/dashboard/api/workgroup/exists', handle-as='json',
 iron-ajax(auto, url='/dashboard/api/metrics', handle-as='json',
     last-response='{{metrics}}', loading='{{pageLoading}}')
 iron-ajax(auto, url='/dashboard/api/dashboard-links', handle-as='json',
-iron-ajax(auto, url='/dashboard/api/dashboard-links', handle-as='json',
     on-response='_onHasDashboardLinksResponse', on-error='_onHasDashboardLinksError', loading='{{pageLoading}}')
 iron-ajax#envInfo(auto='[[_shouldFetchEnv]]', url='/dashboard/api/workgroup/env-info', handle-as='json',
     on-response='_onEnvInfoResponse')
@@ -85,7 +84,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     all-namespaces='[[allNamespaces]]',
                     user='[[user]]')
                 footer#User-Badge
-                    a(target="_top", href="/logout")
+                    a(target="_top", href="/dashboard/logout")
                         iron-icon.icon(icon='kubeflow:logout' title="Logout")
         main#Content
             section#ViewTabs(hidden$='[[hideTabs]]')

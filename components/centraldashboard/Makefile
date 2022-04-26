@@ -4,7 +4,8 @@ PROJECT ?= kubeflow-dev
 REGISTRY_PROJECT ?= kubeflow-dev
 KUBEFLOWVERSION ?= 0.7.0
 
-IMG ?= gcr.io/$(REGISTRY_PROJECT)/centraldashboard
+# IMG ?= gcr.io/$(REGISTRY_PROJECT)/centraldashboard
+IMG ?= hub.kce.ksyun.com/dmetasoul/centraldashboard
 
 # List any changed  files. We only include files in the notebooks directory.
 # because that is the code in the docker image.
