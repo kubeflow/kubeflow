@@ -1,9 +1,9 @@
 {
     "name": "kubeflow-centraldashboard",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Kubeflow Central Dashboard",
     "scripts": {
-        "build": "cross-env NODE_ENV=production webpack && npm run tslint && npm run build-ts",
+        "build": "cross-env NODE_ENV=development webpack && npm run tslint && npm run build-ts",
         "build-ts": "tsc",
         "build-webpack": "webpack",
         "debug": "npm run build && npm run watch-debug",
@@ -71,7 +71,8 @@
         "chartjs-plugin-crosshair": "^1.1.4",
         "express": "^4.17.1",
         "node-fetch": "^2.6.0",
-        "web-animations-js": "^2.3.2"
+        "web-animations-js": "^2.3.2",
+        "webpack-hot-middleware": "^2.25.1"
     },
     "devDependencies": {
         "@babel/core": "^7.6.2",
