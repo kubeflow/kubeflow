@@ -28,7 +28,7 @@ import (
 
 	settingsapi "github.com/kubeflow/kubeflow/components/admission-webhook/pkg/apis/settings/v1alpha1"
 	"github.com/mattbaird/jsonpatch"
-	"k8s.io/api/admission/v1beta1"
+	"k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -58,8 +58,8 @@ func (c *Config) addFlags() {
 		"File containing the default x509 private key matching --tls-cert-file.")
 }
 
-func toAdmissionResponse(err error) *v1beta1.AdmissionResponse {
-	return &v1beta1.AdmissionResponse{
+func toAdmissionResponse(err error) *v1.AdmissionResponse {
+	return &v1.AdmissionResponse{
 		Result: &metav1.Status{
 			Message: err.Error(),
 		},
@@ -446,7 +446,7 @@ func applyPodDefaultsOnContainer(ctr *corev1.Container, podDefaults []*settingsa
 	ctr.EnvFrom = envFrom
 }
 
-func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
+func mutatePods(ar v1.AdmissionReview) *v1.AdmissionResponse {
 	klog.Info("Entering mutatePods in mutating webhook")
 	podResource := metav1.GroupVersionResource{Group: "", Version: "v1", Resource: "pods"}
 	if ar.Request.Resource != podResource {
@@ -461,7 +461,7 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 		klog.Error(err)
 		return toAdmissionResponse(err)
 	}
-	reviewResponse := v1beta1.AdmissionResponse{}
+	reviewResponse := v1.AdmissionResponse{}
 	reviewResponse.Allowed = true
 	if pod.Namespace == "" {
 		klog.Infof("Namespace was not set explicitly in Pod manifest, falling back to the namespace-'%s' coming from AdmissionReview request", ar.Request.Namespace)	
@@ -484,7 +484,7 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 
 	crdclient := getCrdClient()
 	list := &settingsapi.PodDefaultList{}
-	err := crdclient.List(context.TODO(), &client.ListOptions{Namespace: pod.Namespace}, list)
+	err := crdclient.List(context.TODO(), list, &client.ListOptions{Namespace: pod.Namespace})
 	if meta.IsNoMatchError(err) {
 		klog.Errorf("%v (has the CRD been loaded?)", err)
 		return toAdmissionResponse(err)
@@ -546,13 +546,13 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	jsonPatchBytes, _ := json.Marshal(jsonPatch)
 
 	reviewResponse.Patch = jsonPatchBytes
-	pt := v1beta1.PatchTypeJSONPatch
+	pt := v1.PatchTypeJSONPatch
 	reviewResponse.PatchType = &pt
 
 	return &reviewResponse
 }
 
-type admitFunc func(v1beta1.AdmissionReview) *v1beta1.AdmissionResponse
+type admitFunc func(v1.AdmissionReview) *v1.AdmissionResponse
 
 func serve(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 	var body []byte
@@ -569,8 +569,8 @@ func serve(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 		return
 	}
 
-	var reviewResponse *v1beta1.AdmissionResponse
-	ar := v1beta1.AdmissionReview{}
+	var reviewResponse *v1.AdmissionResponse
+	ar := v1.AdmissionReview{}
 	deserializer := codecs.UniversalDeserializer()
 	if _, _, err := deserializer.Decode(body, nil, &ar); err != nil {
 		klog.Error(err)
@@ -579,7 +579,7 @@ func serve(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 		reviewResponse = admit(ar)
 	}
 
-	response := v1beta1.AdmissionReview{}
+	response := v1.AdmissionReview{}
 	if reviewResponse != nil {
 		response.Response = reviewResponse
 		response.Response.UID = ar.Request.UID

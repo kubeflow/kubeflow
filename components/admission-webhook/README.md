@@ -2,7 +2,7 @@
 We need a way to inject common data (env vars, volumes) to pods (e.g. notebooks).
 See [issue](https://github.com/kubeflow/kubeflow/issues/2641).
 K8s has [PodPreset](https://v1-19.docs.kubernetes.io/docs/concepts/workloads/pods/podpreset/) resource with similar use-case, however it is in alpha. 
-K8s [admission-controller](https://godoc.org/k8s.io/api/admissionregistration/v1beta1#MutatingWebhookConfiguration) and CRD can be used to implement PodPreset as done in [here](https://github.com/jpeeler/podpreset-crd).
+K8s [admission-controller](https://godoc.org/k8s.io/api/admissionregistration/v1#MutatingWebhookConfiguration) and CRD can be used to implement PodPreset as done in [here](https://github.com/jpeeler/podpreset-crd).
 We borrowed this PodPreset implementation, customize it for Kubeflow and rename it to PodDefault to avoid confusion.  
 The code is not directly used as Kubeflow's use case for PodDefault controller is slightly different. 
 In fact, PodDefault in Kubeflow is defined as CRD without the  custom controller (as opposed to [here](https://github.com/jpeeler/podpreset-crd)).
@@ -48,11 +48,11 @@ For the above PodDefault, when a pod creation request comes which has the label 
 to the pod as described in the PodDefault spec.
 
 ## Webhook Configuration
-Define a [MutatingWebhookConfiguration](https://godoc.org/k8s.io/api/admissionregistration/v1beta1#MutatingWebhookConfiguration),
+Define a [MutatingWebhookConfiguration](https://godoc.org/k8s.io/api/admissionregistration/v1#MutatingWebhookConfiguration),
 for example:
 
 ```
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: gcp-cred-webhook
@@ -78,7 +78,7 @@ This specifies
 
 ### Webhook implementation
 The webhook should be a server that can handle request coming from the configured path (`/add-cred` in the above).
-The request and response types are both [AdmissionReview](https://godoc.org/k8s.io/api/admission/v1beta1#AdmissionReview)
+The request and response types are both [AdmissionReview](https://godoc.org/k8s.io/api/admission/v1#AdmissionReview)
 
 ## Reference
 1. [K8S PodPreset](https://v1-19.docs.kubernetes.io/docs/concepts/workloads/pods/podpreset/)
