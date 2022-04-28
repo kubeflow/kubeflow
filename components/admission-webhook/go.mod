@@ -2,19 +2,13 @@ module github.com/kubeflow/kubeflow/components/admission-webhook
 
 go 1.17
 
-replace (
-	k8s.io/api => k8s.io/api v0.23.0
-	k8s.io/apimachinery => k8s.io/apimachinery v0.23.0
-	k8s.io/client-go => k8s.io/client-go v0.23.0
-)
-
 require (
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a
 	github.com/onsi/gomega v1.17.0
 	golang.org/x/net v0.0.0-20211209124913-491a49abca63
 	k8s.io/api v0.23.0
 	k8s.io/apimachinery v0.23.0
-	k8s.io/client-go v10.0.0+incompatible
+	k8s.io/client-go v0.23.0
 	k8s.io/klog v0.3.0
 	sigs.k8s.io/controller-runtime v0.11.0
 )

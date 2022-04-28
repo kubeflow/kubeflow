@@ -188,10 +188,8 @@ func mergeEnv(envVars []corev1.EnvVar, podDefaults []*settingsapi.PodDefault) ([
 
 func mergeEnvFrom(envSources []corev1.EnvFromSource, podDefaults []*settingsapi.PodDefault) ([]corev1.EnvFromSource, error) {
 	var mergedEnvFrom []corev1.EnvFromSource
-	klog.Infof("apply PD mergeEnvFrom function")
 	mergedEnvFrom = append(mergedEnvFrom, envSources...)
 	for _, pd := range podDefaults {
-		klog.Infof("applying PD env vars in loop '%s'", pd.GetName())
 		mergedEnvFrom = append(mergedEnvFrom, pd.Spec.EnvFrom...)
 	}
 
@@ -413,7 +411,6 @@ func applyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.PodDefaul
 	pod.ObjectMeta.Labels = labels
 
 	for i, ctr := range pod.Spec.Containers {
-		klog.Infof("in loop apply PD to container applyPodDefaultsOnPod")
 		applyPodDefaultsOnContainer(&ctr, podDefaults)
 		pod.Spec.Containers[i] = ctr
 	}
@@ -441,7 +438,6 @@ func applyPodDefaultsOnContainer(ctr *corev1.Container, podDefaults []*settingsa
 		klog.Error(err)
 	}
 	ctr.VolumeMounts = volumeMounts
-	klog.Infof("applying PD on container function")
 	envFrom, err := mergeEnvFrom(ctr.EnvFrom, podDefaults)
 	if err != nil {
 		klog.Error(err)

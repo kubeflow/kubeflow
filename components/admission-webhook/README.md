@@ -75,6 +75,15 @@ This specifies
 1. When there is a pod being created (see `rules`),
 1. call the webhook service `gcp-cred-webhook.default` at path `/add-cred` (see `clientConfig`)
 
+### admissionregistration.k8s.io/v1 default failurePolicy
+In adopting `admissionregistration.k8s.io/v1` for the `MutatingWebhookConfiguration` we accept the default value
+for `failurePolicy` to be `Fail` per [documentation](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#failure-policy). Upon testing this default feature it was discovered if the `AdmissionWebhook`'s `mutating-webhook-configuration` failed to mutate a pod then the pod would fail to start, its associated `Deployment` or `StatefulSet` would continually attempt to create the pod until the process that created the pod was terminated. This continuous failure to mutate the target pod may block other target pods from mutation
+until the failing process ends.
+
+Engineers should be mindful of this setting as it was also noted these failures can persist beyond the `timeoutSeconds` parameter that
+is by default set to `10` seconds in the `v1` API. For example, Kubeflow Notebook `StatefulSet`s attempted to create notebook pods
+despite its API request getting rejected by the `mutating-webhook-configuration`. Please refer to kubernetes documentation to read up on
+the `failurePolicy: Ignore` parameter as this was the default value in `v1beta1`.
 
 ### Webhook implementation
 The webhook should be a server that can handle request coming from the configured path (`/add-cred` in the above).
