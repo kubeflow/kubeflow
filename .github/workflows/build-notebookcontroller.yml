@@ -50,9 +50,6 @@ jobs:
             --build-arg commit=$(git rev-parse HEAD) \
             -f notebook-controller/Dockerfile
           docker push ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/notebook-controller:${{ github.sha }}
-          docker tag ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/notebook-controller:${{ github.sha }} \
-            ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/notebook-controller:${GITHUB_REF#refs/*/}
-          docker push ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/notebook-controller:${GITHUB_REF#refs/*/}
 
       # Scan image for vulnerabilities
       - uses: Azure/container-scan@v0
