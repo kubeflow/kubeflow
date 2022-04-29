@@ -4,8 +4,8 @@ metadata:
   name: mutating-webhook-configuration
 webhooks:
 - admissionReviewVersions:
-    - v1
     - v1beta1
+    - v1
   clientConfig:
     caBundle: ""
     service:
