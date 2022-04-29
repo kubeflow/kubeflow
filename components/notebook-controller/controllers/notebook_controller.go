@@ -464,6 +464,18 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 
 	setPrefixEnvVar(instance, container)
 
+	// Add readiness probe
+	if container.ReadinessProbe == nil {
+		container.ReadinessProbe = &corev1.Probe{
+			Handler: corev1.Handler{
+				HTTPGet: &corev1.HTTPGetAction{
+					Path: "/notebook/" + instance.Namespace + "/" + instance.Name,
+					Port: intstr.FromInt(DefaultContainerPort),
+				},
+			},
+		}
+	}
+
 	// For some platforms (like OpenShift), adding fsGroup: 100 is troublesome.
 	// This allows for those platforms to bypass the automatic addition of the fsGroup
 	// and will allow for the Pod Security Policy controller to make an appropriate choice
