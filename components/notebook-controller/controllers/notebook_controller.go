@@ -388,6 +388,26 @@ func generateService(instance *v1beta1.Notebook) *corev1.Service {
 					TargetPort: intstr.FromInt(port),
 					Protocol:   "TCP",
 				},
+				// FORK starts - Hardcoded Spark ports:
+				{
+					Name:       "spark-driver",
+					Port:       2222,
+					TargetPort: intstr.FromInt(2222),
+					Protocol:   "TCP",
+				},
+				{
+					Name:       "spark-blockmanager",
+					Port:       7078,
+					TargetPort: intstr.FromInt(7078),
+					Protocol:   "TCP",
+				},
+				{
+					Name:       "spark-ui",
+					Port:       4040,
+					TargetPort: intstr.FromInt(4040),
+					Protocol:   "TCP",
+				},
+				// FORK ends - Hardcoded Spark ports
 			},
 		},
 	}
