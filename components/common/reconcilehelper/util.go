@@ -8,6 +8,8 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+
+	"k8s.io/apimachinery/pkg/api/equality"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
@@ -125,7 +127,7 @@ func CopyStatefulSetFields(from, to *appsv1.StatefulSet) bool {
 		requireUpdate = true
 	}
 
-	if !reflect.DeepEqual(to.Spec.Template.Spec, from.Spec.Template.Spec) {
+	if !equality.Semantic.DeepDerivative(from.Spec.Template.Spec, to.Spec.Template.Spec) {
 		requireUpdate = true
 	}
 	to.Spec.Template.Spec = from.Spec.Template.Spec
@@ -149,12 +151,12 @@ func CopyDeploymentSetFields(from, to *appsv1.Deployment) bool {
 	}
 	to.Annotations = from.Annotations
 
-	if from.Spec.Replicas != to.Spec.Replicas {
-		to.Spec.Replicas = from.Spec.Replicas
+	if *from.Spec.Replicas != *to.Spec.Replicas {
+		*to.Spec.Replicas = *from.Spec.Replicas
 		requireUpdate = true
 	}
 
-	if !reflect.DeepEqual(to.Spec.Template.Spec, from.Spec.Template.Spec) {
+	if !equality.Semantic.DeepDerivative(from.Spec.Template.Spec, to.Spec.Template.Spec) {
 		requireUpdate = true
 	}
 	to.Spec.Template.Spec = from.Spec.Template.Spec
@@ -211,9 +213,9 @@ func CopyVirtualService(from, to *unstructured.Unstructured) bool {
 		return true
 	}
 
-	requiresUpdate := !reflect.DeepEqual(fromSpec, toSpec)
-	if requiresUpdate {
+	requireUpdate := !reflect.DeepEqual(fromSpec, toSpec)
+	if requireUpdate {
 		unstructured.SetNestedMap(to.Object, fromSpec, "spec")
 	}
-	return requiresUpdate
+	return requireUpdate
 }
