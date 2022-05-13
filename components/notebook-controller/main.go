@@ -57,20 +57,31 @@ func main() {
 	var metricsAddr, leaderElectionNamespace string
 	var enableLeaderElection bool
 	var probeAddr string
+	var Burst int
+	var QPS int
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "probe-addr", ":8081", "The address the health endpoint binds to.")
 	flag.StringVar(&leaderElectionNamespace, "leader-election-namespace", "",
 		"Determines the namespace in which the leader election configmap will be created.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
+	flag.IntVar(&Burst, "burst", 0, "If it's zero, the created RESTClient will use DefaultBurst")
+	flag.IntVar(&QPS, "qps", 0, "If it's zero, the created RESTClient will use DefaultQPS")
 	opts := zap.Options{
 		Development: true,
 	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
-
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	cfg := ctrl.GetConfigOrDie()
+	if Burst != 0 {
+		cfg.Burst = Burst
+	}
+	if QPS != 0 {
+		cfg.QPS = float32(QPS)
+	}
+
+	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme:                  scheme,
 		MetricsBindAddress:      metricsAddr,
 		HealthProbeBindAddress:  probeAddr,
