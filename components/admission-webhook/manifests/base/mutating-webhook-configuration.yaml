@@ -1,13 +1,18 @@
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: mutating-webhook-configuration
 webhooks:
-- clientConfig:
+- admissionReviewVersions:
+    - v1beta1
+    - v1
+  clientConfig:
     caBundle: ""
     service:
       name: service
       path: /apply-poddefault
+  sideEffects: None
+  failurePolicy: Fail
   name: $(podDefaultsDeploymentName).kubeflow.org
   namespaceSelector:
     matchLabels:
