@@ -1,0 +1,59 @@
+# Conformance test profile
+apiVersion: kubeflow.org/v1beta1
+kind: Profile
+metadata:
+  name: kf-conformance
+spec:
+  owner:
+    kind: User
+    name: test@kf-conformance.com
+  resourceQuotaSpec:
+   hard:
+     cpu: "2"
+     memory: 2Gi
+     requests.storage: "5Gi"
+---
+# Service account used by conformance test
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kf-conformance
+  namespace: kf-conformance
+---
+# Bind service account to kubeflow-admin role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kf-conformance
+  namespace: kf-conformance
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubeflow-admin
+subjects:
+- kind: ServiceAccount
+  name: kf-conformance
+  namespace: kf-conformance
+---
+# TODO: workaround until this issue can be fixed: https://github.com/kubeflow/pipelines/issues/7657
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kfp-conformance-patch
+rules:
+- apiGroups: [""]
+  resources: ["pipelines"]
+  verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kfp-conformance-patch
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kfp-conformance-patch
+subjects:
+- kind: ServiceAccount
+  name: kf-conformance
+  namespace: kf-conformance
