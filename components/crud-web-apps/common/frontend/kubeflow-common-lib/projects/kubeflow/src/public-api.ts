@@ -72,6 +72,9 @@ export * from './lib/services/date-time.service';
 export * from './lib/panel/panel.module';
 export * from './lib/panel/panel.component';
 
+export * from './lib/editor/editor.component';
+export * from './lib/editor/editor.module';
+
 export * from './lib/namespace-select/namespace-select.component';
 export * from './lib/form/name-namespace-inputs/name-namespace-inputs.component';
 export * from './lib/form/name-namespace-inputs/name-input/name-input.component';
