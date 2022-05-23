@@ -36,6 +36,9 @@ spec:
         env:
         - name: KF_PIPELINES_SA_TOKEN_PATH
           value: /var/run/secrets/kubeflow/pipelines/token
+        # To enable debug mode, uncomment the env variable ADDITIONAL_FLAGS.
+        # - name: ADDITIONAL_FLAGS
+        #   value: "-isDebugMode"
       volumes:
       - name: volume-kf-pipeline-token
         projected:
@@ -44,4 +47,3 @@ spec:
                 path: token
                 expirationSeconds: 7200
                 audience: pipelines.kubeflow.org
----
