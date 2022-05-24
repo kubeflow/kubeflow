@@ -5,7 +5,7 @@
 #   # package can be correctly located.
 #   - kubeflow/testing/py
 #   - kubeflow/kubeflow/py
-# workflows:
+workflows: []
 #   # Run unittests for the shared frontend code
 #   - py_func: kubeflow.kubeflow.ci.common_ui_tests.create_workflow
 #     name: common-ui
