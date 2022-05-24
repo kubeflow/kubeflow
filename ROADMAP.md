@@ -2,32 +2,34 @@
 
 ## Kubeflow 1.6 Release, Due: July 2022
 * Kubeflow 1.6 [milestones and timelines](https://github.com/kubeflow/community/pull/558)
+
+#### Themes
+* Kubernetes 1.22 support
+* 
+
 ### Major Features from each Working Group (note: Individual WG versions are independent of Kubeflow's)
 
-#### Kubeflow Pipelines, v x.y.z
+#### Kubeflow Pipelines
 * V2 Preview: Support running pipeline in Argo-agnostic approach
 * New DAG visualization based on Pipeline Template and MLMD
 * SDK to change from `kfp.v2` to `kfp`
 * KFP SDK CLI design
 
-#### Katib, v x.y.z
+#### Katib
 * Support for Population based training
 * Support JSON format for Metrics Collector
-* Support for Kubernetes 1.22
 * UI Enhancement to add a separate page for Trials and show Trial logs
 
-#### Training Operator, v x.y.z
+#### Training Operator
 * PyTorch elastic training enhancements
 * Elastic scheduling with Volcano support
-* Support for Kubernetes 1.22
 * MPI Operator v2
 
 #### Notebooks, Central Dashboard, Web Apps, Manifest, v x.y.z
-* Support for Kubernetes 1.22
 * Sorting and filtering support for the web apps
 * Expose Notebook idleness information in the JWA
 
-#### KServe, v x.y.z
+#### KServe
 * Knative 1.0 support and certified for KServe Serverless installation
 * KServe 0.9 SDK with ModelServer API name changes and improvement for CloudEvent support
 * New ServingRuntime and ClusterServingRuntime CRDs
