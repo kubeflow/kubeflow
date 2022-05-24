@@ -5,7 +5,6 @@
 
 #### Themes
 * Kubernetes 1.22 support
-* 
 
 ### Major Features from each Working Group (note: Individual WG versions are independent of Kubeflow's)
 
@@ -25,7 +24,7 @@
 * Elastic scheduling with Volcano support
 * MPI Operator v2
 
-#### Notebooks, Central Dashboard, Web Apps, Manifest, v x.y.z
+#### Notebooks, Central Dashboard, Web Apps, Manifest
 * Sorting and filtering support for the web apps
 * Expose Notebook idleness information in the JWA
 
@@ -43,8 +42,6 @@
 * [Katib](https://github.com/kubeflow/katib/blob/master/ROADMAP.md)
 * [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
 * [Notebooks, Central Dashboard](https://docs.google.com/document/d/1YtSWRhdhyOgd6ZQcWLM38TGDy2H_EhXjr8U5lUi37_I/edit)
-
-#### Note - The Community does plan to add support for Kubernetes v1.22 in Kubeflow 1.6
 
 
 ## Kubeflow 1.5 Release, Delivered: March 2022
