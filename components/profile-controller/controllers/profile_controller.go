@@ -709,11 +709,10 @@ func (r *ProfileReconciler) PatchDefaultPluginSpec(ctx context.Context, profileI
 					Raw: []byte(fmt.Sprintf(`{"gcpServiceAccount": "%v"}`, r.WorkloadIdentity)),
 				},
 			})
+			if err := r.Update(ctx, profileIns); err != nil {
+				return err
+			}
 		}
-		if err := r.Update(ctx, profileIns); err != nil {
-			return err
-		}
-
 	}
 	return nil
 }
