@@ -1,0 +1,8 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: profiles.kubeflow.org
+spec:
+  preserveUnknownFields: false # TODO: Remove in Kubeflow 1.7 release
+  conversion:
+    strategy: None

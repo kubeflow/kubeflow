@@ -1,0 +1,48 @@
+# Reference: https://skaffold.dev/docs/references/yaml/
+apiVersion: skaffold/v2alpha1
+kind: Config
+metadata:
+  name: profile-controller
+build:
+  artifacts:
+  - image: gcr.io/kubeflow-releasing/profile-controller
+    # Set the context to the root directory. 
+    # All paths in the Dockerfile should be relative to this one.
+    context: . 
+    kaniko:
+      dockerfile: ./Dockerfile
+      buildContext:
+        gcsBucket: kubeflow-releasing_skaffold
+      env: 
+        # TODO(GoogleContainerTools/skaffold#3468) skaffold doesn't
+        # appear to work with workload identity
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /secret/user-gcp-sa.json
+      cache: {}
+  cluster:    
+    pullSecretName: user-gcp-sa
+    resources:
+      requests:
+        cpu: 8
+        memory: 16Gi
+profiles:
+  # TODO(jlewi): What is a good pattern for people setting up personal
+  # skaffold configs?
+  - name: jlewi
+    patches:
+      - op: replace
+        path: /build/artifacts/0/image
+        value: gcr.io/jlewi-dev/profile-controller
+      - op: replace
+        path: /build/artifacts/0/kaniko/buildContext/gcsBucket
+        value: jlewi-dev_skaffold
+    build:
+      cluster:    
+        # Build in a namespace with ISTIO sidecar injection disabled
+        # see  GoogleContainerTools/skaffold#3442
+        namespace: kubeflow
+        pullSecretName: user-gcp-sa
+        resources:
+          requests:
+            cpu: 8
+            memory: 16Gi

@@ -1,0 +1,20 @@
+# TODO(jlewi): This kustomization.yaml is deprecated. We want the
+# base_v3 version. This version uses a bunch of problematic patterns e.g.
+# i) Using vars to do command line substitution
+# ii) Not using a configmap to make application and global config available
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../default
+patchesStrategicMerge:
+- patches/manager.yaml
+
+images:
+- name: public.ecr.aws/j1r0q0g6/notebooks/profile-controller
+  newName: gcr.io/arrikto-playground/profile-controller
+  newTag: v1.4-rc.0-200-gb79289d1
+
+configMapGenerator:
+- name: namespace-labels-data
+  files:
+  - namespace-labels.yaml

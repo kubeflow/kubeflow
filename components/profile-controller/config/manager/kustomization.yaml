@@ -1,10 +1,11 @@
 resources:
 - manager.yaml
-
-generatorOptions:
-  disableNameSuffixHash: true
+- service-account.yaml
 
 configMapGenerator:
-- name: manager-config
-  files:
-  - controller_manager_config.yaml
+- literals:
+  - ADMIN=
+  - WORKLOAD_IDENTITY=
+  - USERID_HEADER="kubeflow-userid"
+  - USERID_PREFIX=
+  name: config

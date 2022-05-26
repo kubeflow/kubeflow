@@ -1,0 +1,18 @@
+# Below is a list of labels to be set by default.
+#
+# To add a namespace label, use `key: 'value'`, for example:
+# istio.io/rev: 'asm-191-1'
+#
+# To remove a namespace label, use `key: ''`. For example:
+# istio-injection: ''
+#
+# Profile controller will not replace a namespace label if its key already
+# exists. If you want to override the value of a previously applied label, you
+# need to:
+# 1. Remove the label by using `key: ''` and deploy.
+# 2. Add the label by using `key: 'value'` and deploy.
+#
+katib.kubeflow.org/metrics-collector-injection: "enabled"
+serving.kubeflow.org/inferenceservice: "enabled"
+pipelines.kubeflow.org/enabled: "true"
+app.kubernetes.io/part-of: "kubeflow-profile"

@@ -8,33 +8,39 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: controller-manager
-  namespace: system
-  labels:
-    control-plane: controller-manager
+  name: deployment
 spec:
-  selector:
-    matchLabels:
-      control-plane: controller-manager
   replicas: 1
   template:
     metadata:
       annotations:
-        kubectl.kubernetes.io/default-container: manager
-      labels:
-        control-plane: controller-manager
+        sidecar.istio.io/inject: "false"
     spec:
-      securityContext:
-        runAsNonRoot: true
       containers:
       - command:
         - /manager
-        args:
-        - --leader-elect
-        image: controller:latest
+        - "-userid-header"
+        - $(USERID_HEADER)
+        - "-userid-prefix"
+        - $(USERID_PREFIX)
+        - "-workload-identity"
+        - $(WORKLOAD_IDENTITY)
+        envFrom:
+          - configMapRef:
+              name: config
+        image: public.ecr.aws/j1r0q0g6/notebooks/profile-controller
+        imagePullPolicy: Always
         name: manager
-        securityContext:
-          allowPrivilegeEscalation: false
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        ports:
+        - containerPort: 8080
+          name: manager-http
+          protocol: TCP
         livenessProbe:
           httpGet:
             path: /healthz
@@ -47,14 +53,6 @@ spec:
             port: 9876
           initialDelaySeconds: 5
           periodSeconds: 10
-        # TODO(user): Configure the resources accordingly based on the project requirements.
-        # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-        resources:
-          limits:
-            cpu: 500m
-            memory: 128Mi
-          requests:
-            cpu: 10m
-            memory: 64Mi
+        ports:
+        - containerPort: 9876
       serviceAccountName: controller-manager
-      terminationGracePeriodSeconds: 10

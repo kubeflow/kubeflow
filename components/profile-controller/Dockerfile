@@ -13,15 +13,26 @@ RUN go mod download
 COPY main.go main.go
 COPY api/ api/
 COPY controllers/ controllers/
+RUN cp /bin/dash /workspace/dash
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
+RUN if [ "$(uname -m)" = "aarch64" ]; then \
+        CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on go build -a -o manager main.go; \
+    else \
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go; \
+    fi
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
+FROM gcr.io/distroless/base:latest as serve
 WORKDIR /
+COPY --from=builder /workspace/dash /bin/dash
+
+COPY third_party third_party
 COPY --from=builder /workspace/manager .
-USER 65532:65532
+COPY --from=builder /go/pkg/mod/github.com/hashicorp third_party/library/
+
+EXPOSE 8080
 
 ENTRYPOINT ["/manager"]
+
