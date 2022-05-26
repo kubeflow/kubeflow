@@ -30,6 +30,10 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	kubefloworgv1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
+	kubefloworgv1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
+	"github.com/kubeflow/kubeflow/components/profile-controller/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -41,6 +45,8 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
+	utilruntime.Must(kubefloworgv1.AddToScheme(scheme))
+	utilruntime.Must(kubefloworgv1beta1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -74,6 +80,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = (&controllers.ProfileReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Profile")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
