@@ -24,6 +24,7 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	istioSecurityClient "istio.io/client-go/pkg/apis/security/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -31,11 +32,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	kubefloworgv1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
+	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
 	kubefloworgv1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
 	"github.com/kubeflow/kubeflow/components/profile-controller/controllers"
 	//+kubebuilder:scaffold:imports
 )
+
+const USERIDHEADER = "userid-header"
+const USERIDPREFIX = "userid-prefix"
+const WORKLOADIDENTITY = "workload-identity"
+const DEFAULTNAMESPACELABELSPATH = "namespace-labels-path"
 
 var (
 	scheme   = runtime.NewScheme()
@@ -45,20 +51,31 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(kubefloworgv1.AddToScheme(scheme))
+	utilruntime.Must(profilev1.AddToScheme(scheme))
+	utilruntime.Must(istioSecurityClient.AddToScheme(scheme))
 	utilruntime.Must(kubefloworgv1beta1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
 func main() {
-	var metricsAddr string
+	var metricsAddr, leaderElectionNamespace string
 	var enableLeaderElection bool
 	var probeAddr string
+	var userIdHeader string
+	var userIdPrefix string
+	var workloadIdentity string
+	var defaultNamespaceLabelsPath string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
-	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+	flag.StringVar(&probeAddr, "health-probe-bind-address", ":9876", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	flag.StringVar(&leaderElectionNamespace, "leader-election-namespace", "",
+		"Determines the namespace in which the leader election configmap will be created.")
+	flag.StringVar(&userIdHeader, USERIDHEADER, "x-goog-authenticated-user-email", "Key of request header containing user id")
+	flag.StringVar(&userIdPrefix, USERIDPREFIX, "accounts.google.com:", "Request header user id common prefix")
+	flag.StringVar(&workloadIdentity, WORKLOADIDENTITY, "", "Default identity (GCP service account) for workload_identity plugin")
+	flag.StringVar(&defaultNamespaceLabelsPath, DEFAULTNAMESPACELABELSPATH, "/etc/profile-controller/namespace-labels.yaml", "A YAML file with a map of labels to be set on every Profile namespace")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -70,10 +87,9 @@ func main() {
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "4f0d02af.kubeflow.org",
+		LeaderElectionID:       "kubeflow-profile-controller",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -81,8 +97,13 @@ func main() {
 	}
 
 	if err = (&controllers.ProfileReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:                     mgr.GetClient(),
+		Scheme:                     mgr.GetScheme(),
+		Log:                        ctrl.Log.WithName("controllers").WithName("Profile"),
+		UserIdHeader:               userIdHeader,
+		UserIdPrefix:               userIdPrefix,
+		WorkloadIdentity:           workloadIdentity,
+		DefaultNamespaceLabelsPath: defaultNamespaceLabelsPath,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Profile")
 		os.Exit(1)

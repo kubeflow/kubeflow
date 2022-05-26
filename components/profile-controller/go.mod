@@ -5,8 +5,6 @@ go 1.17
 require (
 	github.com/aws/aws-sdk-go v1.44.22
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/fsnotify/fsnotify v1.5.1
-	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/logr v1.2.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.18.1
@@ -16,6 +14,8 @@ require (
 	github.com/tidwall/gjson v1.14.1
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	google.golang.org/api v0.43.0
+	gopkg.in/fsnotify.v1 v1.4.7
+	gopkg.in/yaml.v2 v2.4.0
 	istio.io/api v0.0.0-20220525153140-e3c48c9ac324
 	istio.io/client-go v1.13.4
 	k8s.io/api v0.24.0
@@ -40,6 +40,7 @@ require (
 	github.com/emicklei/go-restful v2.9.5+incompatible // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
+	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-logr/zapr v1.2.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
@@ -85,7 +86,6 @@ require (
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/apiextensions-apiserver v0.24.0 // indirect
 	k8s.io/component-base v0.24.0 // indirect
