@@ -1,0 +1,6 @@
+domain: kubeflow.org
+layout:
+- go.kubebuilder.io/v3
+projectName: profile-controller
+repo: github.com/kubeflow/kubeflow/components/profile-controller
+version: "3"
