@@ -1,7 +1,0 @@
-version: "2"
-domain: kubeflow.org
-repo: github.com/kubeflow/kubeflow
-resources:
-- group: profile
-  version: v1
-  kind: Profile
