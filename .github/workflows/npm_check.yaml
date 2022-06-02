@@ -1,10 +1,11 @@
 name: NPM check code format
 on:
-  pull_request:
+  push:
     branches:
       - master
     paths:
       - components/crud-web-apps/jupyter/frontend/**
+  pull_request:
 
 jobs:
   format:
