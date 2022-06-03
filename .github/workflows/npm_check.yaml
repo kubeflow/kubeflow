@@ -11,8 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - uses: bahmutov/npm-install@v1
     - name: Install npm and check format
-      run: |
-        npm init
-        npm install
-        npm format:check
+      run: npm format:check
