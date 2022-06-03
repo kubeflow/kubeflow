@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        repository: NickLoukas/kubeflow/components/crud-web-apps/jupyter/frontend
+        path: components/crud-web-apps/jupyter/frontend
     - name: Install npm and check format
       run: |
         npm install
