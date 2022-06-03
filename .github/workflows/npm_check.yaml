@@ -11,9 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-      with:
-        path: components/crud-web-apps/jupyter/frontend
     - name: Install npm and check format
       run: |
-        npm install
+        npm install components/crud-web-apps/jupyter/frontend
         npm format:check
