@@ -13,5 +13,5 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install npm and check format
       run: |
-        npm install components/crud-web-apps/jupyter/frontend
+        npm install components/crud-web-apps/jupyter/frontend/package.json
         npm format:check
