@@ -12,5 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: bahmutov/npm-install@v1
+      with:
+        useLockFile: false
     - name: Install npm and check format
       run: npm format:check
