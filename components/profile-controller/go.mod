@@ -22,7 +22,7 @@ require (
 	github.com/prometheus/procfs v0.2.0 // indirect
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.6.1
-	github.com/tidwall/gjson v1.4.0
+	github.com/tidwall/gjson v1.9.3
 	go.opencensus.io v0.22.5 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0 // indirect
