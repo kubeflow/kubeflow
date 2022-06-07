@@ -13,15 +13,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       name: Check out code
-    
-    - name: Go to web apps
-      run: cd components/crud-web-apps
-      
+
     - uses: mr-smithers-excellent/docker-build-push@v5
       name: Build & Push Docker image
       with:
         image: nickloukas/test-actions
         registry: docker.io
+        directory: components/crud-web-apps
         dockerfile: jupyter/Dockerfile
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
