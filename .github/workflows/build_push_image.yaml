@@ -19,5 +19,6 @@ jobs:
       with:
         image: nickloukas/test-actions
         registry: docker.io
+        dockerfile: components/crud-web-apps/jupyter/Dockerfile
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
