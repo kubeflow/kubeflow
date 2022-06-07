@@ -1,9 +1,9 @@
 // Karma configuration file, see link for more information
 // https://karma-runner.github.io/1.0/config/configuration-file.html
 
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
-    basePath: '',
+    basePath: '../../',
     frameworks: ['jasmine', '@angular-devkit/build-angular'],
     plugins: [
       require('karma-jasmine'),
@@ -12,6 +12,24 @@ module.exports = function(config) {
       require('karma-coverage-istanbul-reporter'),
       require('@angular-devkit/build-angular/plugins/karma'),
     ],
+    files: [
+      {
+        pattern: 'node_modules/monaco-editor/**',
+        watched: false,
+        included: false,
+        served: true,
+      },
+      {
+        pattern: 'projects/kubeflow/src/assets/**',
+        watched: false,
+        included: false,
+        served: true,
+      },
+    ],
+    proxies: {
+      '/static/assets/monaco-editor/': '/base/node_modules/monaco-editor/',
+      '/static/assets/': '/base/projects/kubeflow/src/assets/',
+    },
     client: {
       clearContext: false, // leave Jasmine Spec Runner output visible in browser
     },

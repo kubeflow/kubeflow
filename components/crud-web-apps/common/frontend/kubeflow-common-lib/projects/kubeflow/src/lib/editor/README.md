@@ -17,6 +17,33 @@ In order to use the editor component in one of our web apps, you need to do the 
             ],
 ```
 
+### Test a component using the editor
+
+In order to run unit tests for a component that uses the editor,you need to edit your `karma.conf.js` file and add the following:
+
+```
+    files: [
+      {
+        pattern: 'node_modules/monaco-editor/**',
+        watched: false,
+        included: false,
+        served: true,
+      },
+      {
+        pattern: 'src/assets/**',
+        watched: false,
+        included: false,
+        served: true,
+      },
+    ],
+    proxies: {
+      '/static/assets/monaco-editor/': '/base/node_modules/monaco-editor/',
+      '/static/assets/': '/base/src/assets/',
+    },
+```
+
+This will ensure that all neccessary files are loaded during tests.
+
 ## Monaco.ts
 
 The file specifies the API of the editor and its content was copied from https://github.com/microsoft/monaco-editor/blob/v0.32.0/website/typedoc/monaco.d.ts.
