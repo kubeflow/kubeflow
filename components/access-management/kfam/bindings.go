@@ -15,6 +15,7 @@
 package kfam
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -177,46 +178,69 @@ func (c *BindingClient) Delete(binding *Binding) error {
 }
 
 func (c *BindingClient) List(user string, namespaces []string, role string) (*BindingEntries, error) {
-	bindings := []Binding{}
+	entries := &BindingEntries{}
+	isDuplicate := map[string]bool{}
 	for _, ns := range namespaces {
 		roleBindings, err := c.roleBindingLister.RoleBindings(ns).List(labels.Everything())
 		if err != nil {
+			fmt.Printf("failed listing rolebindings for namespace %s: %s\n", ns, err)
 			return nil, err
 		}
 		for _, roleBinding := range roleBindings {
-			userVal, ok := roleBinding.Annotations[USER]
-			if !ok {
+			mappedName, validName := roleBindingNameMap[roleBinding.RoleRef.Name]
+			if !validName {
+				fmt.Printf("skipping rolebinding %s:%s for invalid roleref name %s\n",
+					ns,
+					roleBinding.Name,
+					roleBinding.RoleRef.Name)
 				continue
 			}
-			if user != "" && user != userVal {
+
+			if role != "" && mappedName != role && roleBinding.RoleRef.Name != role { // either is considered a match
+				fmt.Printf("skipping rolebinding %s:%s for roleref name %s not matching %s\n",
+					ns,
+					roleBinding.Name,
+					roleBinding.RoleRef.Name,
+					role)
 				continue
 			}
-			roleVal, ok := roleBinding.Annotations[ROLE]
-			if !ok {
-				continue
+
+			for _, sub := range roleBinding.Subjects {
+				if sub.Kind != "User" || sub.APIGroup != "rbac.authorization.k8s.io" || sub.Name != user {
+					fmt.Printf("skipping rolebinding %s:%s for subject %s:%s:%s not matching rbac.authorization.k8s.io:User:%s\n",
+						ns,
+						roleBinding.Name,
+						sub.APIGroup,
+						sub.Kind,
+						sub.Name,
+						user)
+					continue
+				}
+
+				fmt.Printf("found binding entry match %s:%s for user %s, role %s\n", ns, roleBinding.Name, user, role)
+				binding := Binding{
+					User:              &sub,
+					ReferredNamespace: ns,
+					RoleRef: &rbacv1.RoleRef{
+						Kind: roleBinding.RoleRef.Kind,
+						Name: roleBindingNameMap[roleBinding.RoleRef.Name],
+					},
+				}
+
+				bindingJSONBytes, err := json.Marshal(binding)
+				if err != nil {
+					return nil, fmt.Errorf("failed marshalling binding %s:%s to json: %s", ns, roleBinding.Name, err)
+				}
+
+				bindingJSON := string(bindingJSONBytes)
+				if !isDuplicate[bindingJSON] {
+					entries.Bindings = append(entries.Bindings, binding)
+					isDuplicate[bindingJSON] = true
+				}
 			}
-			if role != "" && role != roleVal {
-				continue
-			}
-			if len(roleBinding.Subjects) != 1 {
-				return nil, fmt.Errorf("binding subject length not equal to 1, actual length: %v",
-					len(roleBinding.Subjects))
-			}
-			binding := Binding{
-				User: &rbacv1.Subject{
-					Kind: roleBinding.Subjects[0].Kind,
-					Name: roleBinding.Subjects[0].Name,
-				},
-				ReferredNamespace: ns,
-				RoleRef: &rbacv1.RoleRef{
-					Kind: roleBinding.RoleRef.Kind,
-					Name: roleBindingNameMap[roleBinding.RoleRef.Name],
-				},
-			}
-			bindings = append(bindings, binding)
 		}
 	}
-	return &BindingEntries{
-		Bindings: bindings,
-	}, nil
+
+	fmt.Printf("total of %d binding entries found for user %s and role %s\n", len(entries.Bindings), user, role)
+	return entries, nil
 }
