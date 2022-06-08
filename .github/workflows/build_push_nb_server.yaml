@@ -25,7 +25,7 @@ jobs:
       run: |
         cd components/example-notebook-servers/base
         export NAME=base
-        export IMG=docker.io/nickloukas/test-actions/${NAME}
+        export IMG=docker.io/nickloukas/test-actions
         export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
