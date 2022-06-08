@@ -23,88 +23,99 @@ jobs:
 
     - name: Run base Notebook Server build and push
       run: |
-        cd component/examble-notebook-servers/base
+        cd components/examble-notebook-servers/base
         export NAME=base
-        export IMG=docker.io/nickloukas/test-actions
+        export IMG=docker.io/nickloukas/test-actions/${NAME}
+        export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
         
     - name: Run codeserver Notebook Server build and push
       run: |
-        cd component/examble-notebook-servers/codeserver
+        cd components/examble-notebook-servers/codeserver
         export NAME=codeserver
-        export IMG=docker.io/nickloukas/test-actions
+        export IMG=docker.io/nickloukas/test-actions/${NAME}
+        export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
         
     - name: Run codeserver-python Notebook Server build and push
       run: |
-        cd component/examble-notebook-servers/codeserver-python
+        cd components/examble-notebook-servers/codeserver-python
         export NAME=codeserver-python
-        export IMG=docker.io/nickloukas/test-actions
+        export IMG=docker.io/nickloukas/test-actions/${NAME}
+        export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
         
     - name: Run jupyter Notebook Server build and push
       run: |
-        cd component/examble-notebook-servers/jupyter
+        cd components/examble-notebook-servers/jupyter
         export NAME=jupyter
-        export IMG=docker.io/nickloukas/test-actions
+        export IMG=docker.io/nickloukas/test-actions/${NAME}
+        export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
         
     - name: Run jupyter-scipy Notebook Server build and push
       run: |
-        cd component/examble-notebook-servers/jupyter-scipy
+        cd components/examble-notebook-servers/jupyter-scipy
         export NAME=jupyter-scipy
-        export IMG=docker.io/nickloukas/test-actions
+        export IMG=docker.io/nickloukas/test-actions/${NAME}
+        export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
         
     - name: Run jupyter-pytorch-full Notebook Server build and push
       run: |
-        cd component/examble-notebook-servers/jupyter-pytorch-full
+        cd components/examble-notebook-servers/jupyter-pytorch-full
         export NAME=jupyter-pytorch-full
-        export IMG=docker.io/nickloukas/test-actions
+        export IMG=docker.io/nickloukas/test-actions/${NAME}
+        export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
         
     - name: Run jupyter-pytorch-cuda-full Notebook Server build and push
       run: |
-        cd component/examble-notebook-servers/jupyter-pytorch-cuda-full
+        cd components/examble-notebook-servers/jupyter-pytorch-cuda-full
         export NAME=jupyter-pytorch-cuda-full
-        export IMG=docker.io/nickloukas/test-actions
+        export IMG=docker.io/nickloukas/test-actions/${NAME}
+        export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
         
     - name: Run jupyter-tensorflow-full Notebook Server build and push
       run: |
-        cd component/examble-notebook-servers/jupyter-tensorflow-full
+        cd components/examble-notebook-servers/jupyter-tensorflow-full
         export NAME=jupyter-tensorflow-full
-        export IMG=docker.io/nickloukas/test-actions
+        export IMG=docker.io/nickloukas/test-actions/${NAME}
+        export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
         
     - name: Run jupyter-tensorflow-cuda-full Notebook Server build and push
       run: |
-        cd component/examble-notebook-servers/jupyter-tensorflow-cuda-full
+        cd components/examble-notebook-servers/jupyter-tensorflow-cuda-full
         export NAME=jupyter-tensorflow-cuda-full
-        export IMG=docker.io/nickloukas/test-actions
+        export IMG=docker.io/nickloukas/test-actions/${NAME}
+        export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
         
     - name: Run rstudio Notebook Server build and push
       run: |
-        cd component/examble-notebook-servers/rstudio
+        cd components/examble-notebook-servers/rstudio
         export NAME=rstudio
-        export IMG=docker.io/nickloukas/test-actions
+        export IMG=docker.io/nickloukas/test-actions/${NAME}
+        export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
         
     - name: Run rstudio-tidyverse Notebook Server build and push
       run: |
-        cd component/examble-notebook-servers/rstudio-tidyverse
+        cd components/examble-notebook-servers/rstudio-tidyverse
         export NAME=rstudio-tidyverse
-        export IMG=docker.io/nickloukas/test-actions
+        export IMG=docker.io/nickloukas/test-actions/${NAME}
+        export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
