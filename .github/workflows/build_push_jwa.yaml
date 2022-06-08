@@ -24,6 +24,9 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
+    - uses: actions/checkout@v2
+      name: Check out code 
+
     - name: Run JWA build and push
       run: |
         cd components/crud-web-apps/jupyter
