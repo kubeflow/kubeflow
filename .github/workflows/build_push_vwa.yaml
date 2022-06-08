@@ -23,6 +23,6 @@ jobs:
 
     - name: Run TWA build and push
       run: |
-        gcd components/volumes-web-app
+        cd components/volumes-web-app
         export IMG=docker.io/nickloukas/test-actions
         make image
