@@ -1,7 +1,7 @@
 # Kubeflow Roadmap
 
-## Kubeflow 1.6 Release, Due: July 2022
-* Kubeflow 1.6 [milestones and timelines](https://github.com/kubeflow/community/pull/558)
+## Kubeflow 1.6 Release, Due: August 2022
+* Kubeflow 1.6 [milestones and timelines](https://github.com/kubeflow/community/tree/master/releases/release-1.6)
 
 #### Themes
 * Kubernetes 1.22 support
