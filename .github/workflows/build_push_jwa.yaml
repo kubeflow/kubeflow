@@ -23,6 +23,8 @@ jobs:
 
     - name: Run JWA build and push
       run: |
+        git remote add public git@github.com:kubeflow/kubeflow
+        git fetch public --tags
         cd components/crud-web-apps/jupyter
         export IMG=docker.io/nickloukas/test-actions
         make image
