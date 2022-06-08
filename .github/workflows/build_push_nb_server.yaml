@@ -23,7 +23,7 @@ jobs:
 
     - name: Run base Notebook Server build and push
       run: |
-        cd components/examble-notebook-servers/base
+        cd components/example-notebook-servers/base
         export NAME=base
         export IMG=docker.io/nickloukas/test-actions/${NAME}
         export TAG=$(git describe --tags --always);
@@ -32,7 +32,7 @@ jobs:
         
     - name: Run codeserver Notebook Server build and push
       run: |
-        cd components/examble-notebook-servers/codeserver
+        cd components/example-notebook-servers/codeserver
         export NAME=codeserver
         export IMG=docker.io/nickloukas/test-actions/${NAME}
         export TAG=$(git describe --tags --always);
@@ -41,7 +41,7 @@ jobs:
         
     - name: Run codeserver-python Notebook Server build and push
       run: |
-        cd components/examble-notebook-servers/codeserver-python
+        cd components/example-notebook-servers/codeserver-python
         export NAME=codeserver-python
         export IMG=docker.io/nickloukas/test-actions/${NAME}
         export TAG=$(git describe --tags --always);
@@ -50,7 +50,7 @@ jobs:
         
     - name: Run jupyter Notebook Server build and push
       run: |
-        cd components/examble-notebook-servers/jupyter
+        cd components/example-notebook-servers/jupyter
         export NAME=jupyter
         export IMG=docker.io/nickloukas/test-actions/${NAME}
         export TAG=$(git describe --tags --always);
@@ -59,7 +59,7 @@ jobs:
         
     - name: Run jupyter-scipy Notebook Server build and push
       run: |
-        cd components/examble-notebook-servers/jupyter-scipy
+        cd components/example-notebook-servers/jupyter-scipy
         export NAME=jupyter-scipy
         export IMG=docker.io/nickloukas/test-actions/${NAME}
         export TAG=$(git describe --tags --always);
@@ -68,7 +68,7 @@ jobs:
         
     - name: Run jupyter-pytorch-full Notebook Server build and push
       run: |
-        cd components/examble-notebook-servers/jupyter-pytorch-full
+        cd components/example-notebook-servers/jupyter-pytorch-full
         export NAME=jupyter-pytorch-full
         export IMG=docker.io/nickloukas/test-actions/${NAME}
         export TAG=$(git describe --tags --always);
@@ -77,7 +77,7 @@ jobs:
         
     - name: Run jupyter-pytorch-cuda-full Notebook Server build and push
       run: |
-        cd components/examble-notebook-servers/jupyter-pytorch-cuda-full
+        cd components/example-notebook-servers/jupyter-pytorch-cuda-full
         export NAME=jupyter-pytorch-cuda-full
         export IMG=docker.io/nickloukas/test-actions/${NAME}
         export TAG=$(git describe --tags --always);
@@ -86,7 +86,7 @@ jobs:
         
     - name: Run jupyter-tensorflow-full Notebook Server build and push
       run: |
-        cd components/examble-notebook-servers/jupyter-tensorflow-full
+        cd components/example-notebook-servers/jupyter-tensorflow-full
         export NAME=jupyter-tensorflow-full
         export IMG=docker.io/nickloukas/test-actions/${NAME}
         export TAG=$(git describe --tags --always);
@@ -95,7 +95,7 @@ jobs:
         
     - name: Run jupyter-tensorflow-cuda-full Notebook Server build and push
       run: |
-        cd components/examble-notebook-servers/jupyter-tensorflow-cuda-full
+        cd components/example-notebook-servers/jupyter-tensorflow-cuda-full
         export NAME=jupyter-tensorflow-cuda-full
         export IMG=docker.io/nickloukas/test-actions/${NAME}
         export TAG=$(git describe --tags --always);
@@ -104,7 +104,7 @@ jobs:
         
     - name: Run rstudio Notebook Server build and push
       run: |
-        cd components/examble-notebook-servers/rstudio
+        cd components/example-notebook-servers/rstudio
         export NAME=rstudio
         export IMG=docker.io/nickloukas/test-actions/${NAME}
         export TAG=$(git describe --tags --always);
@@ -113,7 +113,7 @@ jobs:
         
     - name: Run rstudio-tidyverse Notebook Server build and push
       run: |
-        cd components/examble-notebook-servers/rstudio-tidyverse
+        cd components/example-notebook-servers/rstudio-tidyverse
         export NAME=rstudio-tidyverse
         export IMG=docker.io/nickloukas/test-actions/${NAME}
         export TAG=$(git describe --tags --always);
