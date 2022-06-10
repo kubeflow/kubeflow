@@ -21,8 +21,8 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Run TWA build and push
+    - name: Run KFAM build and push
       run: |
         cd components/access-management
-        export IMG=docker.io/kubeflownotebookswg
+        export IMG=docker.io/kubeflownotebookswg/kfam
         make push
