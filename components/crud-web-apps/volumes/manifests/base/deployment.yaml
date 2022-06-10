@@ -21,4 +21,6 @@ spec:
           value: $(VWA_USERID_HEADER)
         - name: USERID_PREFIX
           value: $(VWA_USERID_PREFIX)
+        - name: APP_SECURE_COOKIES
+          value: $(VWA_APP_SECURE_COOKIES)
       serviceAccountName: service-account
