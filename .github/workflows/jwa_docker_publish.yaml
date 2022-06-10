@@ -6,6 +6,7 @@ on:
       - v*-branch
     paths:
       - components/crud-web-apps/jupyter/**
+      - components/crud-web-apps/common/**
 
 jobs:
   push_to_registry:
