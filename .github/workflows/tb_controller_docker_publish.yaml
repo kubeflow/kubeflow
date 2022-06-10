@@ -24,6 +24,6 @@ jobs:
     - name: Run Tensorboard Controller build and push
       run: |
         cd components/tensorboard-controller
-        export IMG=docker.io/kubeflownotebookswg:$(git describe --tags --always)
+        export IMG=docker.io/kubeflownotebookswg/tensorboard-controller:$(git describe --tags --always)
         make docker-build
         make docker-push
