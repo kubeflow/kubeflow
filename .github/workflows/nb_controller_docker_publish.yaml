@@ -6,6 +6,7 @@ on:
       - v*-branch
     paths:
       - components/notebook-controller/**
+      - /components/common/**
 
 jobs:
   push_to_registry:
@@ -21,10 +22,10 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Run TWA build and push
+    - name: Run Notebook Controller build and push
       run: |
         cd components
-        export IMG=docker.io/kubeflownotebookswg
+        export IMG=docker.io/kubeflownotebookswg/notebook-controller
         export TAG=$(git describe --tags --always)
         docker build . -t ${IMG}:${TAG} -f ./notebook-controller/Dockerfile
         docker push ${IMG}:${TAG}
