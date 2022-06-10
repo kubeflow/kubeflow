@@ -6,6 +6,7 @@ on:
       - v*-branch
     paths:
       - components/crud-web-apps/tensorboards/**
+      - components/crud-web-apps/common/**
 
 jobs:
   push_to_registry:
@@ -24,5 +25,5 @@ jobs:
     - name: Run TWA build and push
       run: |
         cd components/crud-web-apps/tensorboards
-        export IMG=docker.io/kubeflownotebookswg
+        export IMG=docker.io/kubeflownotebookswg/tensorboard-web-app
         make image
