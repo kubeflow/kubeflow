@@ -25,5 +25,5 @@ jobs:
     - name: Run JWA build and push
       run: |
         cd components/crud-web-apps/jupyter
-        export IMG=docker.io/kubeflownotebookswg
+        export IMG=docker.io/kubeflownotebookswg/jupyter-web-app
         make image
