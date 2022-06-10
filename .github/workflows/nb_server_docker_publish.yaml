@@ -24,7 +24,7 @@ jobs:
     - name: Run codeserver-python Notebook Server build and push
       run: |
         cd components/example-notebook-servers/codeserver-python
-        export IMG=docker.io/kubeflownotebookswg
+        export IMG=docker.io/kubeflownotebookswg/notebook-servers/codeserver-python
         export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
@@ -32,7 +32,7 @@ jobs:
     - name: Run jupyter-scipy Notebook Server build and push
       run: |
         cd components/example-notebook-servers/jupyter-scipy
-        export IMG=docker.io/kubeflownotebookswg
+        export IMG=docker.io/kubeflownotebookswg/notebook-servers/jupyter-scipy
         export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
@@ -40,15 +40,15 @@ jobs:
     - name: Run jupyter-pytorch-full Notebook Server build and push
       run: |
         cd components/example-notebook-servers/jupyter-pytorch-full
-        export IMG=docker.io/kubeflownotebookswg
+        export IMG=docker.io/kubeflownotebookswg/notebook-servers/jupyter-pytorch-full
         export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f cpu.Dockerfile . 
         docker push ${IMG}:${TAG}
 
-    - name: Run jupyter-pytorch-full Notebook Server build and push
+    - name: Run jupyter-pytorch-cuda-full Notebook Server build and push
       run: |
         cd components/example-notebook-servers/jupyter-pytorch-full
-        export IMG=docker.io/kubeflownotebookswg
+        export IMG=docker.io/kubeflownotebookswg/notebook-servers/jupyter-pytorch-cuda-full
         export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f cuda.Dockerfile . 
         docker push ${IMG}:${TAG}
@@ -56,7 +56,7 @@ jobs:
     - name: Run jupyter-tensorflow-full Notebook Server build and push
       run: |
         cd components/example-notebook-servers/jupyter-tensorflow-full
-        export IMG=docker.io/kubeflownotebookswg
+        export IMG=docker.io/kubeflownotebookswg/notebook-servers/jupyter-tensorflow-full
         export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f cpu.Dockerfile . 
         docker push ${IMG}:${TAG}
@@ -64,7 +64,7 @@ jobs:
     - name: Run jupyter-tensorflow-cuda-full Notebook Server build and push
       run: |
         cd components/example-notebook-servers/jupyter-tensorflow-full
-        export IMG=docker.io/kubeflownotebookswg
+        export IMG=docker.io/kubeflownotebookswg/notebook-servers/jupyter-tensorflow-cuda-full
         export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f cuda.Dockerfile . 
         docker push ${IMG}:${TAG}
@@ -72,7 +72,7 @@ jobs:
     - name: Run rstudio-tidyverse Notebook Server build and push
       run: |
         cd components/example-notebook-servers/rstudio-tidyverse
-        export IMG=docker.io/kubeflownotebookswg
+        export IMG=docker.io/kubeflownotebookswg/notebook-servers/rstudio-tidyverse
         export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
