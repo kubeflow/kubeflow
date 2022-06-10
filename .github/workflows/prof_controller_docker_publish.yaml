@@ -24,7 +24,7 @@ jobs:
     - name: Run Profile Controller build and push
       run: |
         cd components/profile-controller
-        export IMG=docker.io/kubeflownotebookswg
+        export IMG=docker.io/kubeflownotebookswg/profile-controller
         export TAG=$(git describe --tags --always)
         make build
         make push
