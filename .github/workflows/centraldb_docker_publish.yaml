@@ -1,4 +1,4 @@
-name: Build & Publish Central Dashboard Docker image
+name: Build & Publish CentralDashboard Docker image
 on:
   push:
     branches:
@@ -21,10 +21,10 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Run TWA build and push
+    - name: Run CentralDashboard build and push
       run: |
         cd components/centraldashboard
-        export IMG=docker.io/kubeflownotebookswg
+        export IMG=docker.io/kubeflownotebookswg/centraldashboard
         export TAG=$(git describe --tags --always);
         docker build -t ${IMG}:${TAG} -f Dockerfile . 
         docker push ${IMG}:${TAG}
