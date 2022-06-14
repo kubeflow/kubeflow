@@ -1,9 +1,8 @@
-
 # Image URL to use all building/pushing image targets
-TAG ?= $(shell git describe --tags --always)
-IMG ?= tensorboard-controller:$(TAG)
-# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.23
+IMG ?= tensorboard-controller
+TAG ?= $(shell git describe --tags --always --dirty)
+# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
+CRD_OPTIONS ?= "crd:trivialVersions=true"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -40,9 +39,16 @@ help: ## Display this help.
 
 ##@ Development
 
+<<<<<<< HEAD
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+=======
+# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+deploy: manifests
+	cd config/manager && kustomize edit set image controller=${IMG}:${TAG}
+	kustomize build config/default | kubectl apply -f -
+>>>>>>> d37616bb... build: Update components makefiles for building
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
@@ -70,6 +76,7 @@ build: generate fmt vet ## Build manager binary.
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
+<<<<<<< HEAD
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
 	cd .. && docker build -t ${IMG} . -f ./tensorboard-controller/Dockerfile
@@ -77,6 +84,14 @@ docker-build: ## Build docker image with the manager.
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
 	docker push ${IMG}
+=======
+# Build the docker image
+docker-build:
+	cd ../ && docker build -t ${IMG}:${TAG} -f tensorboard-controller/Dockerfile . 
+# Push the docker image
+docker-push:
+	docker push ${IMG}:${TAG}
+>>>>>>> d37616bb... build: Update components makefiles for building
 
 ##@ Deployment
 

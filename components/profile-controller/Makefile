@@ -1,7 +1,6 @@
-PROJECT ?= kubeflow-dev
 # Image URL to use all building/pushing image targets
-IMG ?= gcr.io/$(PROJECT)/profile-controller
-TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
+IMG ?= profile-controller
+TAG ?= $(shell git describe --tags --always --dirty)
 GOLANG_VERSION ?= 1.15
 CONTROLLER_GEN_VERSION ?= 0.4.0
 
@@ -54,21 +53,16 @@ generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile=./hack/boilerplate.go.txt paths="./..."
 
 # Build the docker image
-build:
+docker-build:
 	docker build --build-arg GOLANG_VERSION=${GOLANG_VERSION} -t ${IMG}:${TAG} .
 	@echo Built ${IMG}:${TAG}
 
-build-gcb:
-	gcloud --project=$(PROJECT) \
-		builds submit \
-		--machine-type=n1-highcpu-32 \
-		--substitutions=_TAG=$(TAG),_REGISTRY=$(PROJECT) \
-		--config=cloudbuild.yaml .
-
 # Push the docker image
-push: build
+docker-push: 
 	docker push ${IMG}:${TAG}
 	@echo Pushed ${IMG}:${TAG}
+
+image: docker-build docker-push
 
 # find or download controller-gen
 # download controller-gen if necessary

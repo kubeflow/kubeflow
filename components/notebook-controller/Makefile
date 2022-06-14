@@ -1,10 +1,12 @@
-
 # Image URL to use all building/pushing image targets
-IMG ?= public.ecr.aws/j1r0q0g6/notebooks/notebook-controller
-TAG ?= $(shell git describe --tags --always)
+IMG ?= notebook-controller
+TAG ?= $(shell git describe --tags --always --dirty)
 
-# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.22
+# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
+CRD_OPTIONS ?= "crd"
+
+# Based on recommendation https://sdk.operatorframework.io/docs/building-operators/golang/references/envtest-setup/
+ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -67,6 +69,7 @@ test: manifests generate fmt vet envtest ## Run tests.
 
 ##@ Build
 
+<<<<<<< HEAD
 .PHONY: manager
 manager: generate fmt vet ## Build manager binary.
 	go build -o bin/manager main.go
@@ -77,12 +80,17 @@ run: manifests generate fmt vet ## Run a controller from your host.
 
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
+=======
+# Build the docker image
+docker-build: 
+>>>>>>> d37616bb... build: Update components makefiles for building
 	cd .. && docker build . -t ${IMG}:${TAG} -f ./notebook-controller/Dockerfile
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
 	docker push ${IMG}:${TAG}
 
+<<<<<<< HEAD
 .PHONY: image
 image: docker-build docker-push ## Build and push docker image with the manager.
 
@@ -138,3 +146,14 @@ GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
 rm -rf $$TMP_DIR ;\
 }
 endef
+=======
+# find or download controller-gen
+# download controller-gen if necessary
+controller-gen:
+ifeq (, $(shell which controller-gen))
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.0
+CONTROLLER_GEN=$(GOBIN)/controller-gen
+else
+CONTROLLER_GEN=$(shell which controller-gen)
+endif
+>>>>>>> d37616bb... build: Update components makefiles for building
