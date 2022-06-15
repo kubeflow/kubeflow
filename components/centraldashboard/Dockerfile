@@ -19,6 +19,9 @@ RUN apk add --no-cache bash@stable chromium@stable nss@stable \
     ttf-freefont@stable \
     libstdc++@stable
 
+RUN apk update && apk upgrade && \
+    echo @stable http://nl.alpinelinux.org/alpine/v3.16/main >> /etc/apk/repositories
+
 RUN if [ "$(uname -m)" = "aarch64" ]; then \
         apk update && apk upgrade && \
         apk add --no-cache python2 make g++@stable; \
