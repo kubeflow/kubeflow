@@ -737,7 +737,7 @@ json-bigint@0.3.0,https://github.com/sidorares/json-bigint/tree/master/LICENSE,M
 json-parse-better-errors@1.0.2,https://github.com/zkat/json-parse-better-errors/tree/latest/LICENSE.md,MIT,https://raw.githubusercontent.com/zkat/json-parse-better-errors/latest/LICENSE.md
 json-schema-traverse@0.3.1,https://github.com/epoberezkin/json-schema-traverse/tree/master/LICENSE,MIT,https://raw.githubusercontent.com/epoberezkin/json-schema-traverse/master/LICENSE
 json-schema-traverse@0.4.1,https://github.com/epoberezkin/json-schema-traverse/tree/master/LICENSE,MIT,https://raw.githubusercontent.com/epoberezkin/json-schema-traverse/master/LICENSE
-json-schema@0.2.3,https://github.com/kriszyp/json-schema/tree/master/README.md,AFLv2.1,BSD
+json-schema@0.4.0,https://github.com/kriszyp/json-schema/tree/master/README.md,AFLv2.1,BSD
 json-stable-stringify-without-jsonify@1.0.1,https://github.com/samn/json-stable-stringify/tree/master/LICENSE,MIT,https://raw.githubusercontent.com/samn/json-stable-stringify/master/LICENSE
 json-stringify-safe@5.0.1,https://github.com/isaacs/json-stringify-safe/tree/master/LICENSE,ISC,https://raw.githubusercontent.com/isaacs/json-stringify-safe/master/LICENSE
 json3@3.3.3,https://github.com/bestiejs/json3/tree/master/LICENSE,MIT,https://raw.githubusercontent.com/bestiejs/json3/master/LICENSE
