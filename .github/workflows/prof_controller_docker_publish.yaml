@@ -1,0 +1,30 @@
+name: Build & Publish Profile Controller Docker image
+on:
+  push:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/profile-controller/**
+
+jobs:
+  push_to_registry:
+    name: Build & Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: kubeflownotebookswg
+        password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
+
+    - name: Run Profile Controller build and push
+      run: |
+        cd components/profile-controller
+        export IMG=docker.io/kubeflownotebookswg/profile-controller
+        export TAG=$(git describe --tags --always)
+        make build
+        make push
