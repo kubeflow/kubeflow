@@ -10,8 +10,8 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # Installs latest-stable Chromium package and configures environment for testing
 RUN apk update && apk upgrade && \
-    echo @stable http://nl.alpinelinux.org/alpine/latest-stable/community >> /etc/apk/repositories && \
-    echo @stable http://nl.alpinelinux.org/alpine/latest-stable/main >> /etc/apk/repositories
+    echo @stable http://nl.alpinelinux.org/alpine/v3.15/community >> /etc/apk/repositories && \
+    echo @stable http://nl.alpinelinux.org/alpine/v3.15/main >> /etc/apk/repositories
 
 RUN apk add --no-cache bash chromium@stable nss@stable \
     freetype@stable \
