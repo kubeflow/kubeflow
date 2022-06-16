@@ -1,4 +1,3 @@
-from cProfile import label
 from kubernetes import client
 
 def secret_from_dict(body, namespace):
