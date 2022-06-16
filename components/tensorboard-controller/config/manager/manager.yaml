@@ -25,6 +25,7 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
+        runAsUser: 999
       containers:
         - command:
             - /manager
