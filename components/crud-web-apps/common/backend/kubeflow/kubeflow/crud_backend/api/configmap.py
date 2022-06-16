@@ -19,7 +19,7 @@ def delete_configmap(cmap, namespace, auth=True):
         authz.ensure_authorized(
             "delete", "", "v1", "configmaps", namespace
         )
-    return v1_core.delete_namespaced_config_map(namespace, cmap)
+    return v1_core.delete_namespaced_config_map(cmap, namespace)
 
 
 def list_configmaps(namespace, auth=True):
@@ -31,7 +31,7 @@ def list_configmaps(namespace, auth=True):
     return v1_core.list_namespaced_config_map(namespace)
 
 
-def patch_configmaps(name, namespace, cmap, auth=True):
+def patch_configmap(name, namespace, cmap, auth=True):
     if auth:
         authz.ensure_authorized("patch", "", "v1", "configmaps",
                                 namespace)
