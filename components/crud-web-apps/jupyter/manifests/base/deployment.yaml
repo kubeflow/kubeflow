@@ -28,6 +28,8 @@ spec:
           value: $(JWA_USERID_HEADER)
         - name: USERID_PREFIX
           value: $(JWA_USERID_PREFIX)
+        - name: APP_SECURE_COOKIES
+          value: $(JWA_APP_SECURE_COOKIES)
       serviceAccountName: service-account
       volumes:
       - configMap:
