@@ -44,7 +44,6 @@ export class FormDefaultComponent implements OnInit {
     public dialog: MatDialogRef<FormDefaultComponent>,
   ) {
     this.formCtrl = this.fb.group({
-      type: ['empty', [Validators.required]],
       name: ['', [Validators.required]],
       namespace: ['', [Validators.required]],
       labels: [null],
@@ -76,7 +75,7 @@ export class FormDefaultComponent implements OnInit {
 
       this.formCtrl.controls.labels.setValue(secret.labels);
       this.formCtrl.controls.annotations.setValue(secret.annotations);
-      this.formCtrl.controls.data.setValue(JSON.stringify(secret.data));
+      this.formCtrl.controls.data.setValue(secret.data);
     }
   }
 
@@ -90,7 +89,7 @@ export class FormDefaultComponent implements OnInit {
     this.formCtrl.controls.annotations.setValue(this.annotationeditor.data);
     const secret: SecretPostObject = JSON.parse(JSON.stringify(this.formCtrl.getRawValue()));
     this.blockSubmit = true;
-    console.log(secret);
+
     if (!this.isPatch)
     {
       this.backend.createSecret(this.currNamespace, secret).subscribe(
