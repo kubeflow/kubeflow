@@ -1,0 +1,44 @@
+<div class="form--container" mat-dialog-content>
+  <form novalidate (ngSubmit)="onSubmit()" [formGroup]="formCtrl">
+    <lib-form-section
+      title="New ConfigMap"
+      text="Create a new ConfigMap."
+      icon="fa:fas:hdd"
+      i18n-title
+      i18n-text
+    >
+    </lib-form-section>
+
+    <!--Name / Namespace-->
+    <lib-form-name-namespace-inputs
+      [nameControl]="formCtrl.get('name')"
+      [namespaceControl]="formCtrl.get('namespace')"
+      resourceName="ConfigMap"
+      i18n-resourceName
+      [existingNames]="configMapNames"
+    >
+    </lib-form-name-namespace-inputs>
+
+    <mat-label i18n>ConfigMap Lable</mat-label>
+    <app-yamls #labeleditor [value]="formCtrl.get('labels').value" mode="yaml" theme="xcode"></app-yamls>
+    <mat-label i18n>ConfigMap Annotation</mat-label>
+    <app-yamls #annotationeditor [value]="formCtrl.get('annotations').value" mode="yaml" theme="xcode"></app-yamls>
+    <mat-label i18n>ConfigMap Data</mat-label>
+    <app-yamls #yamleditor [value]="formCtrl.get('data').value" mode="yaml" theme="xcode"></app-yamls>
+    
+    <button
+    mat-raised-button
+    color="primary"
+    class="form--button-margin"
+    type="submit"
+    [disabled]="!formCtrl.valid || blockSubmit"
+    i18n
+    >
+      CREATE
+    </button>
+
+    <button mat-raised-button type="button" (click)="onCancel()" i18n>
+      CANCEL
+    </button>
+  </form>
+</div>
