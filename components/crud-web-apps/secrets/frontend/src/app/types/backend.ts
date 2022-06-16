@@ -29,5 +29,6 @@ export interface SecretPostObject {
   name: string;
   type: string;
   labels: Map<String, Object>;
+  annotations: Map<String, Object>;
   data: Map<String, Object>;
 }
