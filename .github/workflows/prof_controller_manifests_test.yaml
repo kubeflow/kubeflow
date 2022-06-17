@@ -2,7 +2,7 @@ name: Build Profile Controller manifests
 on:
   pull_request:
     paths:
-      - components/profile-controller/**
+      - components/profile-controller/config/**
 
 jobs:
   build:
