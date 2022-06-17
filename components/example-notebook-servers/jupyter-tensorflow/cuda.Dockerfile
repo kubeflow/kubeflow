@@ -17,7 +17,7 @@ SHELL ["/bin/bash", "-c"]
 
 # install - cuda
 # for `cuda-compat-*`: https://docs.nvidia.com/cuda/eula/index.html#attachment-a
-RUN curl -sL "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub" | apt-key add - \
+RUN curl -sL "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub" | apt-key add - \
  && echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /" > /etc/apt/sources.list.d/cuda.list \
  && apt-get -yq update \
  && apt-get -yq install --no-install-recommends \
