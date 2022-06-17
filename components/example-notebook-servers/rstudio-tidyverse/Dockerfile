@@ -1,4 +1,5 @@
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio:master-434b10ab
+ARG BASE_IMG=public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio:master-434b10ab
+FROM $BASE_IMG
 
 # args - software versions
 ARG R_TIDYVERSE_VERSION="1.3.1"

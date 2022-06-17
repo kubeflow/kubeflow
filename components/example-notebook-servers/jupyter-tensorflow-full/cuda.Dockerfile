@@ -1,5 +1,5 @@
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda:master-e9324d39
-
+ARG BASE_IMG=public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda:master-e9324d39
+FROM $BASE_IMG
 # install - requirements.txt
 COPY --chown=jovyan:users requirements.txt /tmp/requirements.txt
 RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
