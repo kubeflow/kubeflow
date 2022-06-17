@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en-US" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="1eede69e18c5ac9c0b0295b72cabb7e64e029e74" datatype="html">
+        <source>Hide</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/advanced-options/advanced-options.component.html</context>
+          <context context-type="linenumber">5</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6358767024326715915" datatype="html">
+        <source>Advanced Options</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/advanced-options/advanced-options.component.ts</context>
+          <context context-type="linenumber">19</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="cff1428d10d59d14e45edec3c735a27b5482db59" datatype="html">
+        <source>Name</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/name-namespace-inputs/name-input/name-input.component.html</context>
+          <context context-type="linenumber">2</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="130fd872c78271a8f86b1ab16a76e823969c47d9" datatype="html">
+        <source>Namespace</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/name-namespace-inputs/name-namespace-inputs.component.html</context>
+          <context context-type="linenumber">11</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/name-namespace-inputs/name-namespace-inputs.component.html</context>
+          <context context-type="linenumber">14</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7824eb0fc97826f3919ba20317db1f8fb7926fcf" datatype="html">
+        <source> Cannot be negative. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/positive-number-input/positive-number-input.component.html</context>
+          <context context-type="linenumber">11,12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6259832288014753417" datatype="html">
+        <source>Name must consist of lowercase alphanumeric characters or &apos;-&apos;,
+    start with an alphabetic character, and end with an alphanumeric character.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/validators.ts</context>
+          <context context-type="linenumber">32,33</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="824282508845786476" datatype="html">
+        <source>Name is too long</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/validators.ts</context>
+          <context context-type="linenumber">105</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5302945586275093972" datatype="html">
+        <source>Name cannot be empty</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/validators.ts</context>
+          <context context-type="linenumber">107</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2061ce2524f31b7754bd310c6b0ad194b563767c" datatype="html">
+        <source>Select Namespace</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/namespace-select/namespace-select.component.html</context>
+          <context context-type="linenumber">4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3862207452684082108" datatype="html">
+        <source>An error occurred: <x id="PH" equiv-text="error"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/services/backend/backend.service.ts</context>
+          <context context-type="linenumber">108</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1292256390007124036" datatype="html">
+        <source>Client error: <x id="PH" equiv-text="error.error.message"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/services/backend/backend.service.ts</context>
+          <context context-type="linenumber">112</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8194451610848887333" datatype="html">
+        <source>Could not connect to the backend.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/services/backend/backend.service.ts</context>
+          <context context-type="linenumber">119</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4553983244211420347" datatype="html">
+        <source>Unexpected error encountered</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/services/backend/backend.service.ts</context>
+          <context context-type="linenumber">131</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="0c0be57aaf30414531e79157a45e0fc3fd6b637b" datatype="html">
+        <source>DISMISS</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/snack-bar/component/snack-bar.component.html</context>
+          <context context-type="linenumber">4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="f613be7e99fd88ee72c8ec370da76b4a106cbc57" datatype="html">
+        <source>New Volume</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-default.component.html</context>
+          <context context-type="linenumber">4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="757c34610f03908bd23675a5ba7adbf048e53e2d" datatype="html">
+        <source>Create a new empty Volume.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-default.component.html</context>
+          <context context-type="linenumber">5</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="796e42bec8a6996607cf1f3e80235b86d695804a" datatype="html">
+        <source>Volume</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-default.component.html</context>
+          <context context-type="linenumber">16</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="f8fdc777736a0356a290fff7e0a10b990c65a017" datatype="html">
+        <source>Snapshot</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-default.component.html</context>
+          <context context-type="linenumber">28</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5a237d4cea2a69c625c9c0a081adc9acc4664843" datatype="html">
+        <source>Storage Class</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-default.component.html</context>
+          <context context-type="linenumber">42</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="a2f14a73f7a6e94479f67423cc51102da8d6f524" datatype="html">
+        <source>None</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-default.component.html</context>
+          <context context-type="linenumber">44</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="ca8a463644ae578e0be4299b2a7d050046edcb49" datatype="html">
+        <source>Access Mode</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-default.component.html</context>
+          <context context-type="linenumber">53</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3ecda4b04c618776ed92e6436ff5f0fc8a58b17a" datatype="html">
+        <source>ReadWriteOnce</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-default.component.html</context>
+          <context context-type="linenumber">55</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="63d01b21c7a9fcc7903bd3b7ded47685ad741aa8" datatype="html">
+        <source>ReadOnlyMany</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-default.component.html</context>
+          <context context-type="linenumber">56</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3fb968289ff3a84b6fe7ee67af1f5c0ea485f1aa" datatype="html">
+        <source>ReadWriteMany</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-default.component.html</context>
+          <context context-type="linenumber">57</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="577ff450cd8d905a75bf92dad2457515d3a49b3b" datatype="html">
+        <source> CREATE </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-default.component.html</context>
+          <context context-type="linenumber">69,70</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="ae582a9312e4bcbb32a62d84e47e6b1b73ffd06a" datatype="html">
+        <source> CANCEL </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form-default/form-default.component.html</context>
+          <context context-type="linenumber">73,74</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2823783345206414517" datatype="html">
+        <source>Volumes</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">11</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="590336525338016075" datatype="html">
+        <source>NEW VOLUME</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5611592591303869712" datatype="html">
+        <source>Status</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">15</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8953033926734869941" datatype="html">
+        <source>Name</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">20</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1130652265542107236" datatype="html">
+        <source>Age</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">29</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="45739481977493163" datatype="html">
+        <source>Size</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1839789574610981042" datatype="html">
+        <source>Access Mode</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">42</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1748150374925445786" datatype="html">
+        <source>Storage Class</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">47</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8392114801608050005" datatype="html">
+        <source>Delete Volume</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/index-default/config.ts</context>
+          <context context-type="linenumber">15</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5156704408648015254" datatype="html">
+        <source>Volume was submitted successfully.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/index-default/index-default.component.ts</context>
+          <context context-type="linenumber">100</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5287831016434712379" datatype="html">
+        <source>Are you sure you want to delete this volume? <x id="PH" equiv-text="pvc.name"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/index-default/index-default.component.ts</context>
+          <context context-type="linenumber">111</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5463203516729908103" datatype="html">
+        <source>Warning: All data in this volume will be lost.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/index-default/index-default.component.ts</context>
+          <context context-type="linenumber">112</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="841311519047609428" datatype="html">
+        <source>DELETE</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/index-default/index-default.component.ts</context>
+          <context context-type="linenumber">113</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6943486270557756671" datatype="html">
+        <source>CANCEL</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/index-default/index-default.component.ts</context>
+          <context context-type="linenumber">115</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3271166475979376691" datatype="html">
+        <source>DELETING</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/index-default/index-default.component.ts</context>
+          <context context-type="linenumber">117</context>
+        </context-group>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
