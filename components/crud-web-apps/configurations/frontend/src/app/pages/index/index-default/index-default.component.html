@@ -1,0 +1,14 @@
+<div class="lib-content-wrapper">
+  <lib-title-actions-toolbar title="Configurations" [buttons]="buttons" i18n-title>
+    <lib-namespace-select *ngIf="!env.production"></lib-namespace-select>
+  </lib-title-actions-toolbar>
+
+  <!--scrollable page content-->
+  <div class="page-padding lib-flex-grow lib-overflow-auto">
+    <lib-table
+      [config]="config"
+      [data]="processedData"
+      (actionsEmitter)="reactToAction($event)"
+    ></lib-table>
+  </div>
+</div>
