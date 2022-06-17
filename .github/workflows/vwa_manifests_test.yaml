@@ -1,9 +1,8 @@
-name: Build JWA manifests
+name: Build VWA manifests
 on:
   pull_request:
     paths:
-      - components/crud-web-apps/jupyter/**
-      - components/crud-web-apps/common/**
+      - components/crud-web-apps/volumes/manifests/**
 
 jobs:
   build:
@@ -20,5 +19,5 @@ jobs:
 
     - name: Build manifests
       run: |
-        cd components/crud-web-apps/jupyter/manifests
+        cd components/crud-web-apps/volumes/manifests
         kustomize build overlays/istio

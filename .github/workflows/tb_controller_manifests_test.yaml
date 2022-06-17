@@ -1,9 +1,8 @@
-name: Build TWA manifests
+name: Build Tensorboard Controller manifests
 on:
   pull_request:
     paths:
-      - components/crud-web-apps/tensorboards/**
-      - components/crud-web-apps/common/**
+      - components/tensorboard-controller/config/**
 
 jobs:
   build:
@@ -20,5 +19,5 @@ jobs:
 
     - name: Build manifests
       run: |
-        cd components/crud-web-apps/tensorboards/manifests
-        kustomize build overlays/istio
+        cd components/tensorboard-controller/config
+        kustomize build overlays/kubeflow

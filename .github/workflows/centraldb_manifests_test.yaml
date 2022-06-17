@@ -1,9 +1,8 @@
-name: Build Notebook Controller manifests
+name: Build CentralDashboard manifests
 on:
   pull_request:
     paths:
-      - components/notebook-controller/**
-      - components/common/**
+      - components/centraldashboard/manifests/**
 
 jobs:
   build:
@@ -20,5 +19,5 @@ jobs:
 
     - name: Build manifests
       run: |
-        cd components/notebook-controller/config
-        kustomize build overlays/kubeflow
+        cd components/centraldashboard/manifests
+        kustomize build overlays/kserve

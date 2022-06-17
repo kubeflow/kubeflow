@@ -2,7 +2,7 @@ name: Build PodDefaults manifests
 on:
   pull_request:
     paths:
-      - components/admission-webhook/**
+      - components/admission-webhook/manifests/**
 
 jobs:
   build:

@@ -1,8 +1,8 @@
-name: Build CentralDashboard manifests
+name: Build TWA manifests
 on:
   pull_request:
     paths:
-      - components/centraldashboard/**
+      - components/crud-web-apps/tensorboards/manifests/**
 
 jobs:
   build:
@@ -19,5 +19,5 @@ jobs:
 
     - name: Build manifests
       run: |
-        cd components/centraldashboard/manifests
-        kustomize build overlays/kserve
+        cd components/crud-web-apps/tensorboards/manifests
+        kustomize build overlays/istio
