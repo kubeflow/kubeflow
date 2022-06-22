@@ -1,0 +1,90 @@
+name: Build & Apply PodDefaults manifests in KinD
+on:
+  pull_request:
+    paths:
+      - components/admission-webhook/manifests/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Install KinD
+      run: |
+        sudo swapoff -a
+        sudo rm -f /swapfile
+        sudo mkdir -p /tmp/etcd
+        sudo mount -t tmpfs tmpfs /tmp/etcd
+        curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.14.0/kind-linux-amd64
+        chmod +x ./kind
+        sudo mv kind /usr/local/bin
+
+    - name: Configure KinD Cluster
+      run: |
+        # KinD configuration.
+        cat > kind.yaml <<EOF
+        apiVersion: kind.x-k8s.io/v1alpha4
+        kind: Cluster
+        # Configure registry for KinD.
+        containerdConfigPatches:
+        - |-
+          [plugins."io.containerd.grpc.v1.cri".registry.mirrors."$REGISTRY_NAME:$REGISTRY_PORT"]
+            endpoint = ["http://$REGISTRY_NAME:$REGISTRY_PORT"]
+        # This is needed in order to support projected volumes with service account tokens.
+        # See: https://kubernetes.slack.com/archives/CEKK1KTN2/p1600268272383600
+        kubeadmConfigPatches:
+          - |
+            apiVersion: kubeadm.k8s.io/v1beta2
+            kind: ClusterConfiguration
+            metadata:
+              name: config
+            apiServer:
+              extraArgs:
+                "service-account-issuer": "kubernetes.default.svc"
+                "service-account-signing-key-file": "/etc/kubernetes/pki/sa.key"
+        nodes:
+        - role: control-plane
+          image: kindest/node:1.22.9@sha256:ad5b8404c4052781365a4e70bb7d17c5331e4177bd4a7cd214339316cd6193b6
+        - role: worker
+          image: kindest/node:1.22.9@sha256:ad5b8404c4052781365a4e70bb7d17c5331e4177bd4a7cd214339316cd6193b6
+        EOF
+
+    - name: Create KinD Cluster
+      run: kind create cluster --config kind.yaml
+
+    - name: Install kustomize
+      run: |
+        curl --silent --location --remote-name "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v3.2.3/kustomize_kustomize.v3.2.3_linux_amd64"
+        chmod a+x kustomize_kustomize.v3.2.3_linux_amd64
+        sudo mv kustomize_kustomize.v3.2.3_linux_amd64 /usr/local/bin/kustomize
+
+    - name: Install Istio
+      run: |
+        ISTIO_VERSION="1.11.0"
+        echo "Installing Istio ..."
+        mkdir istio_tmp
+        pushd istio_tmp >/dev/null
+          curl -L https://istio.io/downloadIstio | ISTIO_VERSION=${ISTIO_VERSION} sh -
+          cd istio-${ISTIO_VERSION}
+          export PATH=$PWD/bin:$PATH
+          istioctl install -y
+        popd
+
+    - name: Install cert-manager
+      run: |
+        echo "Installing cert-manager ..."
+        CERT_MANAGER_VERSION="v1.5.0"
+        kubectl create namespace cert-manager
+        sleep 2
+        kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml
+
+        echo "Waiting for cert-manager to be ready ..."
+        kubectl wait --for=condition=ready pod -l 'app in (cert-manager,webhook)' --timeout=180s -n cert-manager
+
+    - name: Build & Apply manifests
+      run: |
+        cd components/admission-webhook/manifests
+        kubectl create ns kubeflow
+        kustomize build overlays/cert-manager | kubectl apply -f -
