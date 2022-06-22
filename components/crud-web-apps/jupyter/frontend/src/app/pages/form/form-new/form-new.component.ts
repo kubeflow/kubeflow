@@ -99,7 +99,7 @@ export class FormNewComponent implements OnInit, OnDestroy {
 
     // Use the custom image instead
     if (notebook.customImageCheck) {
-      notebook.image = notebook.customImage;
+      notebook.image = notebook.customImage?.trim();
     } else if (notebook.serverType === 'group-one') {
       // Set notebook image from imageGroupOne
       notebook.image = notebook.imageGroupOne;
