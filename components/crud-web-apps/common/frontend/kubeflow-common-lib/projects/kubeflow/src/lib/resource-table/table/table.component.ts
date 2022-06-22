@@ -9,6 +9,8 @@ import {
   OnDestroy,
   OnInit,
   ElementRef,
+  SimpleChanges,
+  OnChanges,
 } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
@@ -28,24 +30,26 @@ import {
 import { DateTimeValue } from '../types/date-time';
 import { TemplateValue } from '../types/template';
 import { NamespaceService } from '../../services/namespace.service';
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { addColumn, NAMESPACE_COLUMN, removeColumn } from './utils';
 import { MatSort } from '@angular/material/sort';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { FormControl } from '@angular/forms';
-import { map, startWith } from 'rxjs/operators';
 import {
   MatAutocompleteSelectedEvent,
   MatAutocompleteTrigger,
 } from '@angular/material/autocomplete';
 import { DateTimeService } from '../../services/date-time.service';
+import { isEqual } from 'lodash-es';
 
 @Component({
   selector: 'lib-table',
   templateUrl: './table.component.html',
   styleUrls: ['./table.component.scss'],
 })
-export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
+export class TableComponent
+  implements AfterViewInit, OnInit, OnDestroy, OnChanges
+{
   private nsSub = new Subscription();
   private innerData: any[] = [];
   public dataSource = new MatTableDataSource();
@@ -64,10 +68,12 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
 
   chipList = [];
   chips = [];
-  headers = [];
+  headers: { title: string }[] = [];
   isClear: boolean;
-  filteredHeaders: Observable<string[]>;
+  filteredHeaders: { title: string }[] = [];
   chipCtrl = new FormControl();
+  showDate = false;
+  showStatus = false;
 
   @HostBinding('class.lib-table') selfClass = true;
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
@@ -91,18 +97,18 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
     this.dataSource.data = newData;
   }
 
+  @Input()
+  highlightedRow: unknown = {};
+
   // Whenever a button in a row is pressed the component will emit an event
   // with information regarding the button that was pressed as well as the
   // row's object.
   @Output() actionsEmitter = new EventEmitter<ActionEvent>();
 
   constructor(public ns: NamespaceService, private dtService: DateTimeService) {
-    this.filteredHeaders = this.chipCtrl.valueChanges.pipe(
-      startWith(null),
-      map((chip: string | null) =>
-        chip ? this.filter(chip) : this.headers.slice(),
-      ),
-    );
+    this.chipCtrl.valueChanges.subscribe(chip => {
+      this.filteredHeaders = this.filter(chip);
+    });
   }
 
   ngOnInit() {
@@ -123,8 +129,19 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
     });
 
     this.sort.sort({ disableClear: true, id: 'name', start: 'asc' });
+  }
 
-    this.config.columns.forEach(column => {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.config) {
+      this.configureFilter(changes.config.currentValue);
+    }
+  }
+
+  configureFilter(config: TableConfig): void {
+    this.headers = [];
+    this.showStatus = false;
+    this.showDate = false;
+    config.columns.forEach(column => {
       if (
         !this.isMenuValue(column.value) &&
         !this.isActionListValue(column.value) &&
@@ -137,7 +154,16 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
           title: column.matHeaderCellDef,
         });
       }
+
+      if (this.isStatusValue(column.value)) {
+        this.showStatus = true;
+      }
+
+      if (this.isDateTimeValue(column.value)) {
+        this.showDate = true;
+      }
     });
+    this.filteredHeaders = this.filter(this.chipCtrl.value);
   }
 
   ngOnDestroy() {
@@ -463,12 +489,24 @@ export class TableComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  private filter(value: string): string[] {
+  private filter(value: string | null): { title: string }[] {
+    if (value === null) {
+      return this.headers.slice();
+    }
     const filterValue = value.toLowerCase();
 
     return this.headers.filter(chip =>
       chip.title.toLowerCase().includes(filterValue),
     );
+  }
+
+  highlightRow(row: unknown, highlightedRow: unknown): string {
+    try {
+      return isEqual(row, highlightedRow) ? 'highlight-row' : '';
+    } catch (error) {
+      console.error(error);
+      return '';
+    }
   }
 
   public isActionListValue(obj) {
