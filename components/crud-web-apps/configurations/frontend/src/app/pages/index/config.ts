@@ -27,14 +27,24 @@ export const tableConfig: TableConfig = {
       matColumnDef: 'labels',
       textAlignment: 'left',
       style: { width: '25%' },
-      value: new PropertyValue({ field: 'labels', truncate: true }),
+      value: new PropertyValue({ 
+        field: 'labels', 
+        valueFn: (rows) => {
+          return JSON.stringify((new Map(Object.entries(rows))).get("labels"));
+        },
+        truncate: true }),
     },
     {
       matHeaderCellDef: $localize`Annotations`,
       matColumnDef: 'annotations',
       textAlignment: 'left',
       style: { width: '25%' },
-      value: new PropertyValue({ field: 'annotations', truncate: true }),
+      value: new PropertyValue({ 
+        field: 'annotations', 
+        valueFn: (rows) => {
+          return JSON.stringify((new Map(Object.entries(rows))).get("annotations"));
+        },
+        truncate: true }),
     },
     {
       matHeaderCellDef: $localize`Created`,

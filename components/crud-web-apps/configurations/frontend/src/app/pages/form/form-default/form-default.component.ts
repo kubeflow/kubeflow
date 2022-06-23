@@ -31,6 +31,8 @@ export class FormDefaultComponent implements OnInit {
   @ViewChild('volummounteditor') volummounteditor;
   @ViewChild('volumeeditor') volumeeditor;
   @ViewChild('enveditor') enveditor;
+  @ViewChild('labeleditor') labeleditor;
+  @ViewChild('annotationeditor') annotationeditor;
 
   constructor(
     public ns: NamespaceService,
@@ -46,7 +48,8 @@ export class FormDefaultComponent implements OnInit {
       annotations: [null],
       volumeMounts: [null],
       volumes: [null],
-      env: [null]
+      env: [null],
+      isSync: [false, [Validators.required]]
     });
   }
 
@@ -66,8 +69,15 @@ export class FormDefaultComponent implements OnInit {
       this.isPatch = true;
       this.formCtrl.controls.name.setValue(config.name);
       this.formCtrl.controls.name.disable();
-      this.formCtrl.controls.labels.setValue(config.labels);
-      this.formCtrl.controls.annotations.setValue(config.annotations);
+      this.formCtrl.controls.labels.setValue(JSON.stringify(config.labels));
+      this.formCtrl.controls.annotations.setValue(JSON.stringify(config.annotations));
+      var annotations = config.annotations == null ? null : new Map(Object.entries(config.annotations));
+      if (annotations != null && 
+          annotations.has("replicator.v1.mittwald.de/replicate-to-matching")){
+            this.formCtrl.controls.isSync.setValue(true);
+            this.formCtrl.controls.isSync.disable();
+        }
+
       this.formCtrl.controls.desc.setValue(config.desc);
       this.formCtrl.controls.volumeMounts.setValue(JSON.stringify(config.volumeMounts));
       this.formCtrl.controls.volumes.setValue(JSON.stringify(config.volumes));
@@ -80,13 +90,26 @@ export class FormDefaultComponent implements OnInit {
   }
 
   public onSubmit() {
-    // this.formCtrl.controls.labels.setValue(this.labeleditor.data);
-    // this.formCtrl.controls.annotations.setValue(this.annotationeditor.data);
     this.formCtrl.controls.volumeMounts.setValue(this.volummounteditor.data);
     this.formCtrl.controls.volumes.setValue(this.volumeeditor.data);
     this.formCtrl.controls.env.setValue(this.enveditor.data);
+    this.formCtrl.controls.labels.setValue(this.labeleditor.data);
+    var annotations = this.annotationeditor.data == null ? new Map() : new Map(Object.entries(this.annotationeditor.data));
+    if (this.formCtrl.controls.isSync.value){
+      if (!annotations.has("replicator.v1.mittwald.de/replicate-to-matching")){
+            annotations.set("replicator.v1.mittwald.de/replicate-to-matching", "app.kubernetes.io/part-of=kubeflow-profile")
+          }
+    }
+    this.formCtrl.controls.annotations.setValue(((function(map) {
+      let obj = Object.create(null);
+      for (let [k,v] of map){
+        obj[k]=v;
+      }
+      return obj;
+    })(annotations)));
     const config: ConfigPostObject = JSON.parse(JSON.stringify(this.formCtrl.getRawValue()));
     this.blockSubmit = true;
+    console.log(config);
     if (!this.isPatch)
     {
       this.backend.createConfig(this.currNamespace, config).subscribe(
