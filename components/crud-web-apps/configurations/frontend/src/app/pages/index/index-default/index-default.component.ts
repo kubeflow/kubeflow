@@ -196,11 +196,11 @@ export class IndexDefaultComponent implements OnInit {
       secret.ageTooltip = secret.age.timestamp;
       if (secret.labels != null)
       {
-        secret.labels = JSON.stringify(secret.labels);
+        secret.labels = secret.labels;
       }
       if (secret.annotations != null)
       {
-        secret.annotations = JSON.stringify(secret.annotations);
+        secret.annotations = secret.annotations;
       }
     }
 

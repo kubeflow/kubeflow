@@ -18,6 +18,10 @@
       [existingNames]="configurationNames"
     >
     </lib-form-name-namespace-inputs>
+
+    <div>
+      <mat-checkbox formControlName="isSync">Whether to synchronize to another namespace</mat-checkbox>
+    </div>
     
     <mat-form-field
       appearance="outline"
@@ -26,6 +30,10 @@
       <mat-label i18n>Configuration Desc</mat-label>
       <input matInput formControlName="desc" type="text" />
     </mat-form-field>
+    <mat-label i18n>Configuration Lable</mat-label>
+    <app-yamls #labeleditor [value]="formCtrl.get('labels').value" mode="yaml" theme="xcode"></app-yamls>
+    <mat-label i18n>Configuration Annotation</mat-label>
+    <app-yamls #annotationeditor [value]="formCtrl.get('annotations').value" mode="yaml" theme="xcode"></app-yamls>
     <mat-label i18n>Configuration VolumeMounts</mat-label>
     <app-yamls #volummounteditor [value]="formCtrl.get('volumeMounts').value" mode="yaml" theme="xcode"></app-yamls>
     <mat-label i18n>Configuration Volumes</mat-label>

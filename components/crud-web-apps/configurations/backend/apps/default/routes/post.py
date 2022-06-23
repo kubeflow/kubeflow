@@ -30,7 +30,7 @@ def post_configuration(namespace):
 @decorators.request_is_json_type
 @decorators.required_body_params("name", "labels", "annotations", "desc",
                                  "env", "volumeMounts", "volumes")
-def patch_configuration(namespace):
+def replace_configuration(namespace):
     body = request.get_json()
     log.info("Received body: %s", body)
 
@@ -38,7 +38,8 @@ def patch_configuration(namespace):
     log.info("Received configuration: %s", configuration)
 
     log.info("Creating Configuration '...")
-    api.patch_poddefault(body["name"], namespace, configuration)
+    api.delete_poddefault(body["name"], namespace)
+    api.create_poddefault(configuration, namespace)
     log.info("Successfully update Configuration %s/%s", namespace, body["name"])
 
     return api.success_response("message", "Configuration update successfully.")
