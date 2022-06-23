@@ -69,6 +69,12 @@ type PodDefaultSpec struct {
 	Labels map[string]string `json:"labels,omitempty"`
 
 	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
+
+	// Entrypoint array.
+	Command []string `json:"command,omitempty" protobuf:"bytes,3,rep,name=command"`
+
+	// Arguments to the entrypoint.
+	Args []string `json:"args,omitempty" protobuf:"bytes,4,rep,name=args"`
 }
 
 // PodDefaultStatus defines the observed state of PodDefault

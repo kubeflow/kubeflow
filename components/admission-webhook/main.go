@@ -41,7 +41,8 @@ import (
 )
 
 const (
-	annotationPrefix = "poddefault.admission.kubeflow.org"
+	annotationPrefix        = "poddefault.admission.kubeflow.org"
+	istioProxyContainerName = "istio-proxy"
 )
 
 // Config contains the server (the webhook) cert and key.
@@ -443,6 +444,27 @@ func applyPodDefaultsOnContainer(ctr *corev1.Container, podDefaults []*settingsa
 		klog.Error(err)
 	}
 	ctr.EnvFrom = envFrom
+
+	setCommandAndArgs(ctr, podDefaults)
+}
+
+//setCommandAndArgs adds command and args to the provided container. If the container already has a command or arguments set,
+// they won't be overwritten by PodDefault.
+func setCommandAndArgs(ctr *corev1.Container, podDefaults []*settingsapi.PodDefault) {
+	// ignore istio sidecar container
+	if ctr.Name == istioProxyContainerName {
+		return
+	}
+	for _, pd := range podDefaults {
+		if ctr.Command == nil && pd.Spec.Command != nil {
+			klog.Info(fmt.Sprintf("Updating container: %v, poddefault: %v, setting command: %v", ctr.Name, pd.GetName(), pd.Spec.Command))
+			ctr.Command = pd.Spec.Command
+		}
+		if ctr.Args == nil && pd.Spec.Args != nil {
+			klog.Info(fmt.Sprintf("Updating container: %v, poddefault: %v, setting args %v", ctr.Name, pd.GetName(), pd.Spec.Args))
+			ctr.Args = pd.Spec.Args
+		}
+	}
 }
 
 func mutatePods(ar v1.AdmissionReview) *v1.AdmissionResponse {
@@ -463,7 +485,7 @@ func mutatePods(ar v1.AdmissionReview) *v1.AdmissionResponse {
 	reviewResponse := v1.AdmissionResponse{}
 	reviewResponse.Allowed = true
 	if pod.Namespace == "" {
-		klog.Infof("Namespace was not set explicitly in Pod manifest, falling back to the namespace-'%s' coming from AdmissionReview request", ar.Request.Namespace)	
+		klog.Infof("Namespace was not set explicitly in Pod manifest, falling back to the namespace-'%s' coming from AdmissionReview request", ar.Request.Namespace)
 		pod.Namespace = ar.Request.Namespace
 	}
 
