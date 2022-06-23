@@ -21,7 +21,12 @@ export const tableConfig: TableConfig = {
       matColumnDef: 'data',
       textAlignment: 'left',
       style: { width: '65%' },
-      value: new PropertyValue({ field: 'data', truncate: true }),
+      value: new PropertyValue({ 
+        field: 'data', 
+        valueFn: (rows) => {
+          return JSON.stringify((new Map(Object.entries(rows))).get("data"));
+        },
+        truncate: true }),
     },
     {
       matHeaderCellDef: $localize`Created`,

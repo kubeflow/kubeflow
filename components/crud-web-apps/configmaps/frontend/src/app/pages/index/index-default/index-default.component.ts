@@ -195,13 +195,13 @@ export class IndexDefaultComponent implements OnInit {
       configMap.ageValue = configMap.age.uptime;
       configMap.ageTooltip = configMap.age.timestamp;
       if (configMap.labels != null){
-        configMap.labels = JSON.stringify(configMap.labels);
+        configMap.labels = configMap.labels;
       }
       if (configMap.data != null){
-        configMap.data = JSON.stringify(configMap.data);
+        configMap.data = configMap.data;
       }
       if (configMap.annotations != null){
-        configMap.annotations = JSON.stringify(configMap.annotations);
+        configMap.annotations = configMap.annotations;
       }
     }
 
