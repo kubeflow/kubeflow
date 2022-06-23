@@ -184,6 +184,7 @@ export class FormDefaultComponent implements OnInit {
       volumes: this.formCtrl.controls.volumes.value
     }
     this.blockSubmit = true;
+    console.log(config);
     if (!this.isPatch)
     {
       this.backend.createConfig(this.currNamespace, config).subscribe(
