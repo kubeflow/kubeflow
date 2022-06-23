@@ -37,3 +37,10 @@ def patch_configmap(name, namespace, cmap, auth=True):
                                 namespace)
 
     return v1_core.patch_namespaced_config_map(name, namespace, cmap)
+
+def replace_configmap(name, namespace, cmap, auth=True):
+    if auth:
+        authz.ensure_authorized("patch", "", "v1", "configmaps",
+                                namespace)
+
+    return v1_core.replace_namespaced_config_map(name, namespace, cmap)
