@@ -44,6 +44,7 @@ export class FormDefaultComponent implements OnInit {
       labels: [null],
       annotations: [null],
       data: [null],
+      isSync: [false, [Validators.required]]
     });
   }
 
@@ -64,9 +65,15 @@ export class FormDefaultComponent implements OnInit {
       this.formCtrl.controls.name.setValue(cmap.name);
       this.formCtrl.controls.name.disable();
 
-      this.formCtrl.controls.labels.setValue(cmap.labels);
-      this.formCtrl.controls.annotations.setValue(cmap.annotations);
-      this.formCtrl.controls.data.setValue(cmap.data);
+      this.formCtrl.controls.labels.setValue(JSON.stringify(cmap.labels));
+      this.formCtrl.controls.annotations.setValue(JSON.stringify(cmap.annotations));
+      var annotations = cmap.annotations == null ? null : new Map(Object.entries(cmap.annotations));
+      if (annotations != null && 
+          annotations.has("replicator.v1.mittwald.de/replicate-to-matching")){
+            this.formCtrl.controls.isSync.setValue(true);
+            this.formCtrl.controls.isSync.disable();
+        }
+      this.formCtrl.controls.data.setValue(JSON.stringify(cmap.data));
     }
   }
 
@@ -77,7 +84,19 @@ export class FormDefaultComponent implements OnInit {
   public onSubmit() {
     this.formCtrl.controls.data.setValue(this.yamleditor.data);
     this.formCtrl.controls.labels.setValue(this.labeleditor.data);
-    this.formCtrl.controls.annotations.setValue(this.annotationeditor.data);
+    var annotations = this.annotationeditor.data == null ? new Map() : new Map(Object.entries(this.annotationeditor.data));
+    if (this.formCtrl.controls.isSync.value){
+      if (!annotations.has("replicator.v1.mittwald.de/replicate-to-matching")){
+            annotations.set("replicator.v1.mittwald.de/replicate-to-matching", "app.kubernetes.io/part-of=kubeflow-profile")
+          }
+    }
+    this.formCtrl.controls.annotations.setValue(((function(map) {
+      let obj = Object.create(null);
+      for (let [k,v] of map){
+        obj[k]=v;
+      }
+      return obj;
+    })(annotations)));
     const configMap: ConfigMapPostObject = JSON.parse(JSON.stringify(this.formCtrl.getRawValue()));
     this.blockSubmit = true;
     console.log(configMap);
