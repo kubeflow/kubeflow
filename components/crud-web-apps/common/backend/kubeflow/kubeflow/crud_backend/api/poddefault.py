@@ -60,3 +60,18 @@ def patch_poddefault(name, namespace, poddefault, auth=True):
                                                   PODDEFAULT_KIND,
                                                   name,
                                                   poddefault)
+
+
+def replace_poddefault(name, namespace, poddefault, auth=True):
+    if auth:
+        authz.ensure_authorized("patch", PODDEFAULT_GROUP, 
+                                PODDEFAULT_VERSION, 
+                                PODDEFAULT_KIND,
+                                namespace)
+
+    return custom_api.replace_namespaced_custom_object(PODDEFAULT_GROUP,
+                                                  PODDEFAULT_VERSION,
+                                                  namespace,
+                                                  PODDEFAULT_KIND,
+                                                  name,
+                                                  poddefault)
