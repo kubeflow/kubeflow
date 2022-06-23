@@ -28,7 +28,7 @@ def post_secret(namespace):
 @bp.route("/api/namespaces/<namespace>/secret", methods=["PATCH"])
 @decorators.request_is_json_type
 @decorators.required_body_params("name", "secretType", "data", )
-def patch_secret(namespace):
+def replace_secret(namespace):
     body = request.get_json()
     log.info("Received body: %s", body)
 
@@ -36,7 +36,7 @@ def patch_secret(namespace):
     log.info("Received secret: %s", secret)
 
     log.info("Creating Secret '...")
-    api.patch_secret(body["name"], namespace, secret)
+    api.replace_secret(body["name"], namespace, secret)
     log.info("Successfully update Secret %s/%s", namespace, secret.metadata.name)
 
     return api.success_response("message", "Secret update successfully.")

@@ -11,8 +11,8 @@ export interface SecretResponseObject {
   };
   name: string;
   namespace: string;
-  labels: string;
-  annotations: string;
+  labels: Map<String, Object>;
+  annotations: Map<String, Object>;
   status: Status;
   type?: string;
   data?: Map<String, Object>;

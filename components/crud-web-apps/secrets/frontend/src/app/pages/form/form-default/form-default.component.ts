@@ -50,6 +50,7 @@ export class FormDefaultComponent implements OnInit {
       annotations: [null],
       secretType: ['', [Validators.required]],
       data: [null],
+      isSync: [false, [Validators.required]]
     });
   }
 
@@ -73,9 +74,15 @@ export class FormDefaultComponent implements OnInit {
       this.formCtrl.controls.secretType.setValue(secret.type);
       this.formCtrl.controls.secretType.disable();
 
-      this.formCtrl.controls.labels.setValue(secret.labels);
-      this.formCtrl.controls.annotations.setValue(secret.annotations);
-      this.formCtrl.controls.data.setValue(secret.data);
+      this.formCtrl.controls.labels.setValue(JSON.stringify(secret.labels));
+      this.formCtrl.controls.annotations.setValue(JSON.stringify(secret.annotations));
+      var annotations = secret.annotations == null ? null : new Map(Object.entries(secret.annotations));
+      if (annotations != null && 
+          annotations.has("replicator.v1.mittwald.de/replicate-to-matching")){
+            this.formCtrl.controls.isSync.setValue(true);
+            this.formCtrl.controls.isSync.disable();
+        }
+      this.formCtrl.controls.data.setValue(JSON.stringify(secret.data));
     }
   }
 
@@ -86,7 +93,19 @@ export class FormDefaultComponent implements OnInit {
   public onSubmit() {
     this.formCtrl.controls.data.setValue(this.yamleditor.data);
     this.formCtrl.controls.labels.setValue(this.labeleditor.data);
-    this.formCtrl.controls.annotations.setValue(this.annotationeditor.data);
+    var annotations = this.annotationeditor.data == null ? new Map() : new Map(Object.entries(this.annotationeditor.data));
+    if (this.formCtrl.controls.isSync.value){
+      if (!annotations.has("replicator.v1.mittwald.de/replicate-to-matching")){
+            annotations.set("replicator.v1.mittwald.de/replicate-to-matching", "app.kubernetes.io/part-of=kubeflow-profile")
+          }
+    }
+    this.formCtrl.controls.annotations.setValue(((function(map) {
+      let obj = Object.create(null);
+      for (let [k,v] of map){
+        obj[k]=v;
+      }
+      return obj;
+    })(annotations)));
     const secret: SecretPostObject = JSON.parse(JSON.stringify(this.formCtrl.getRawValue()));
     this.blockSubmit = true;
 
