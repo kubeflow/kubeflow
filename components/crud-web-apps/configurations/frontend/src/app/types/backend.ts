@@ -11,8 +11,8 @@ export interface ConfigResponseObject {
   };
   name: string;
   namespace: string;
-  labels: string;
-  annotations: string;
+  labels:  Map<String, Object>;
+  annotations:  Map<String, Object>;
   status: Status;
   desc: string;
   env: [];

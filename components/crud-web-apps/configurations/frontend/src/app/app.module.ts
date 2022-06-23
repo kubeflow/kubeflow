@@ -22,6 +22,7 @@ import { IndexDefaultComponent } from './pages/index/index-default/index-default
 
 import { MatTabsModule } from '@angular/material/tabs';
 import { YamlsModule } from './pages/form/yamls/yamls.module';
+import {MatCheckboxModule} from '@angular/material/checkbox';
 
 
 import { HttpClientModule } from '@angular/common/http';
@@ -42,6 +43,7 @@ import { HttpClientModule } from '@angular/common/http';
     ConfirmDialogModule,
     FormModule,
     MatTabsModule,
+    MatCheckboxModule,
     YamlsModule,
     KubeflowModule,
     HttpClientModule,
