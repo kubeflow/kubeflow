@@ -11,10 +11,10 @@ export interface ConfigMapResponseObject {
   };
   name: string;
   namespace: string;
-  labels: string;
-  annotations: Object;
+  labels: Map<String, Object>;
+  annotations:  Map<String, Object>;
   status: Status;
-  data: string;
+  data:  Map<String, Object>;
 }
 
 export interface ConfigMapProcessedObject extends ConfigMapResponseObject {
@@ -28,5 +28,5 @@ export interface ConfigMapPostObject {
   name: string;
   labels: Map<String, Object>;
   annotations: Map<String, Object>;
-  data: Map<String, Object>
+  data: Map<String, Object>;
 }

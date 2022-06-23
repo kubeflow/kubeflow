@@ -19,6 +19,10 @@
     >
     </lib-form-name-namespace-inputs>
 
+    <div>
+      <mat-checkbox formControlName="isSync">Whether to synchronize to another namespace</mat-checkbox>
+    </div>
+    
     <mat-label i18n>ConfigMap Lable</mat-label>
     <app-yamls #labeleditor [value]="formCtrl.get('labels').value" mode="yaml" theme="xcode"></app-yamls>
     <mat-label i18n>ConfigMap Annotation</mat-label>

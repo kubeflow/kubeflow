@@ -27,7 +27,7 @@ def post_cmap(namespace):
 @bp.route("/api/namespaces/<namespace>/configmap", methods=["PATCH"])
 @decorators.request_is_json_type
 @decorators.required_body_params("name", "labels", "annotations", "data")
-def patch_configmap(namespace):
+def replace_configmap(namespace):
     body = request.get_json()
     log.info("Received body: %s", body)
 
@@ -35,7 +35,7 @@ def patch_configmap(namespace):
     log.info("Received configmap: %s", cmap)
 
     log.info("Creating ConfigMap '...")
-    api.patch_configmap(body["name"], namespace, cmap)
+    api.replace_configmap(body["name"], namespace, cmap)
     log.info("Successfully update ConfigMap %s/%s", namespace, cmap.metadata.name)
 
     return api.success_response("message", "ConfigMap update successfully.")
