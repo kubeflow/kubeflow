@@ -28,3 +28,17 @@ build-gcb:
 
 push: build
 	docker push $(IMG):$(TAG)
+
+UNIX_TS ?= $(shell date +%s)
+GIT_TAG ?= $(shell git describe --tags --always)
+DOCKERFILE ?= Dockerfile
+HARBOR_IMG ?= harbor.cloud.aurora.tech/library/kfam
+harbor-build:
+	cd ../ &&
+
+harbor-push:
+	docker push $(HARBOR_IMG):$(GIT_TAG)-$(UNIX_TS)
+
+harbor-image:
+	docker build -t ${HARBOR_IMG}:${GIT_TAG}-$(UNIX_TS) -f ${DOCKERFILE} .
+	docker push $(HARBOR_IMG):$(GIT_TAG)-$(UNIX_TS)
