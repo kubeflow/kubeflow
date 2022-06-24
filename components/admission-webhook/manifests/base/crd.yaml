@@ -58,9 +58,6 @@ spec:
                     x-kubernetes-preserve-unknown-fields: true
                   type: array
                   x-kubernetes-preserve-unknown-fields: true
-                securityContext:
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 command:
                   items:
                     type: string
