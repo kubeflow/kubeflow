@@ -11,6 +11,9 @@ export class YamlsComponent {
   @ViewChild('editor') editor;
 
   get data(){
-    return JSON.parse(this.editor.text);
+    if (this.editor.text != "") {
+      return JSON.parse(this.editor.text);
+    }
+    return null;
   }
 }

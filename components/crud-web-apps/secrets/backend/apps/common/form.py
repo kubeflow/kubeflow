@@ -1,3 +1,4 @@
+from cProfile import label
 from kubernetes import client
 
 def secret_from_dict(body, namespace):
@@ -8,7 +9,11 @@ def secret_from_dict(body, namespace):
     client Secret instance.
     """
     return client.V1Secret(
-        metadata=client.V1ObjectMeta(name=body["name"], namespace=namespace),
+        metadata=client.V1ObjectMeta(
+            name=body["name"], 
+            namespace=namespace,
+            labels=body["labels"],
+            annotations=body["annotations"]),
         type=body["secretType"],
         data=body["data"],
     )

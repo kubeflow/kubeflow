@@ -188,7 +188,6 @@ export class IndexDefaultComponent implements OnInit {
   // Utility funcs
   public parseIncomingData(secrets: SecretResponseObject[]): SecretProcessedObject[] {
     const secretsCopy = JSON.parse(JSON.stringify(secrets)) as SecretProcessedObject[];
-    console.log(secrets);
     for (const secret of secretsCopy) {
       secret.deleteAction = STATUS_TYPE.READY;
       secret.editAction = STATUS_TYPE.READY;
@@ -196,14 +195,13 @@ export class IndexDefaultComponent implements OnInit {
       secret.ageTooltip = secret.age.timestamp;
       if (secret.labels != null)
       {
-        secret.labels = JSON.stringify(secret.labels);
+        secret.labels = secret.labels;
       }
       if (secret.annotations != null)
       {
-        secret.annotations = JSON.stringify(secret.annotations);
+        secret.annotations = secret.annotations;
       }
     }
-
     return secretsCopy;
   }
 }

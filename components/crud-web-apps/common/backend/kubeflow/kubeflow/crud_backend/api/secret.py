@@ -30,3 +30,9 @@ def patch_secret(name, namespace, secret, auth=True):
         authz.ensure_authorized("patch", "", "v1", "secrets", namespace)
 
     return v1_core.patch_namespaced_secret(name, namespace, secret)
+
+def replace_secret(name, namespace, secret, auth=True):
+    if auth:
+        authz.ensure_authorized("patch", "", "v1", "secrets", namespace)
+
+    return v1_core.replace_namespaced_secret(name, namespace, secret)
