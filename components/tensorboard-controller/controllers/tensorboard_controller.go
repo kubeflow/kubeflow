@@ -267,6 +267,7 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 							Args: []string{
 								"--logdir=" + mountpath,
 								"--bind_all",
+								"--reload_multifile",
 							},
 							Ports: []corev1.ContainerPort{
 								{
