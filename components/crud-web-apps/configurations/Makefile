@@ -1,7 +1,5 @@
-# IMG ?= public.ecr.aws/j1r0q0g6/notebooks/configurations-web-app
-# TAG ?= $(shell git describe --tags --always)
-IMG ?= hub.kce.ksyun.com/dmetasoul/configurations-web-app
-TAG ?= latest
+IMG ?= public.ecr.aws/j1r0q0g6/notebooks/configurations-web-app
+TAG ?= $(shell git describe --tags --always)
 
 docker-build:
 	docker build -t ${IMG}:${TAG} -f Dockerfile ..
