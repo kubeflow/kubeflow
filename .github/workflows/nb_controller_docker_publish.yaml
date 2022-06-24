@@ -6,7 +6,7 @@ on:
       - v*-branch
     paths:
       - components/notebook-controller/**
-      - /components/common/**
+      - components/common/**
 
 jobs:
   push_to_registry:
