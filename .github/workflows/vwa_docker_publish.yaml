@@ -30,7 +30,7 @@ jobs:
         username: kubeflownotebookswg
         password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
 
-    - name: Run VWA build and push
+    - name: Run VWA build
       run: |
         cd components/volumes-web-app
         export IMG=docker.io/kubeflownotebookswg/volumes-web-app
