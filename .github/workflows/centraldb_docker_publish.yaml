@@ -6,6 +6,12 @@ on:
       - v*-branch
     paths:
       - components/centraldashboard/**
+  pull_request:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/centraldashboard/**
 
 jobs:
   push_to_registry:
@@ -16,15 +22,23 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Login to DockerHub
+      if: github.event_name == 'push'
       uses: docker/login-action@v2
       with:
         username: kubeflownotebookswg
         password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
 
-    - name: Run CentralDashboard build and push
+    - name: Run CentralDashboard build
       run: |
         cd components/centraldashboard
         export IMG=docker.io/kubeflownotebookswg/centraldashboard
         export TAG=$(git describe --tags --always);
-        docker build -t ${IMG}:${TAG} -f Dockerfile . 
+        docker build -t ${IMG}:${TAG} -f Dockerfile .
+
+    - name: Run CentralDashboard push
+      if: github.event_name == 'push'
+      run: |
+        cd components/centraldashboard
+        export IMG=docker.io/kubeflownotebookswg/centraldashboard
+        export TAG=$(git describe --tags --always);
         docker push ${IMG}:${TAG}
