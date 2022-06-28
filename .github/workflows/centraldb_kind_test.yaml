@@ -12,22 +12,16 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Install KinD
-      run: |
-        chmod +x components/testing/gh-actions/install_kind.sh
-        ./components/testing/gh-actions/install_kind.sh
+      run: ./components/testing/gh-actions/install_kind.sh
 
     - name: Create KinD Cluster
-      run: kind create cluster --config components/testing/gh-actions/kind.yaml
+      run: kind create cluster --config components/testing/gh-actions/kind-1-22.yaml
 
     - name: Install kustomize
-      run: |
-        chmod +x components/testing/gh-actions/install_kustomize.sh
-        ./components/testing/gh-actions/install_kustomize.sh
+      run: ./components/testing/gh-actions/install_kustomize.sh
 
     - name: Install Istio
-      run: |
-        chmod +x components/testing/gh-actions/install_istio.sh
-        ./components/testing/gh-actions/install_istio.sh
+      run: ./components/testing/gh-actions/install_istio.sh
 
     - name: Build & Apply manifests
       run: |
