@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 echo "Fetching KinD executable ..."
 sudo swapoff -a
 sudo rm -f /swapfile
