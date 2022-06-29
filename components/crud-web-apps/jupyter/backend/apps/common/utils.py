@@ -16,6 +16,7 @@ FILE_ABS_PATH = os.path.abspath(os.path.dirname(__file__))
 NOTEBOOK_TEMPLATE_YAML = os.path.join(
     FILE_ABS_PATH, "yaml/notebook_template.yaml"
 )
+LAST_ACTIVITY_ANNOTATION = "notebooks.kubeflow.org/last-activity"
 
 # The production configuration is mounted on the app's pod via a configmap
 DEV_CONFIG = os.path.join(FILE_ABS_PATH, "yaml/spawner_ui_config.yaml")
@@ -113,6 +114,11 @@ def get_storage_class(vol):
 
 
 # Functions for transforming the data from k8s api
+def get_notebook_last_activity(notebook):
+    annotations = notebook["metadata"].get("annotations", {})
+    return annotations.get(LAST_ACTIVITY_ANNOTATION, "")
+
+
 def notebook_dict_from_k8s_obj(notebook):
     cntr = notebook["spec"]["template"]["spec"]["containers"][0]
     server_type = None
@@ -125,6 +131,7 @@ def notebook_dict_from_k8s_obj(notebook):
         "namespace": notebook["metadata"]["namespace"],
         "serverType": server_type,
         "age": helpers.get_uptime(notebook["metadata"]["creationTimestamp"]),
+        "last_activity": get_notebook_last_activity(notebook),
         "image": cntr["image"],
         "shortImage": cntr["image"].split("/")[-1],
         "cpu": cntr["resources"]["requests"]["cpu"],
