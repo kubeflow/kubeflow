@@ -32,13 +32,13 @@ jobs:
 
     - name: Run VWA build
       run: |
-        cd components/volumes-web-app
+        cd components/crud-web-apps/volumes
         export IMG=docker.io/kubeflownotebookswg/volumes-web-app
         make docker-build
 
     - name: Run VWA push
       if: github.event_name == 'push'
       run: |
-        cd components/volumes-web-app
+        cd components/crud-web-apps/volumes
         export IMG=docker.io/kubeflownotebookswg/volumes-web-app
         make docker-push
