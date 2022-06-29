@@ -1,4 +1,4 @@
-FROM docker.io/kubeflownotebookswg/notebook-servers/jupyter-pytorch:master-c7ed4a32
+FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch:master-c7ed4a32
 
 # install - requirements.txt
 COPY --chown=jovyan:users requirements.txt /tmp/requirements.txt
