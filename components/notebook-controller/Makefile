@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= public.ecr.aws/j1r0q0g6/notebooks/notebook-controller
+IMG ?= docker.io/kubeflownotebookswg/notebook-controller
 TAG ?= $(shell git describe --tags --always)
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.

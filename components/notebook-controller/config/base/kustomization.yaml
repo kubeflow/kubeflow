@@ -3,6 +3,5 @@ kind: Kustomization
 resources:
 - ../default
 images:
-- name: public.ecr.aws/j1r0q0g6/notebooks/notebook-controller
-  newName: public.ecr.aws/j1r0q0g6/notebooks/notebook-controller
+- name: docker.io/kubeflownotebookswg/notebook-controller
   newTag: v1.6.0-alpha

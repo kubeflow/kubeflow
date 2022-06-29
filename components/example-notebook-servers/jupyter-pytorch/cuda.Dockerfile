@@ -1,4 +1,4 @@
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:master-434b10ab
+FROM docker.io/kubeflownotebookswg/notebook-servers/jupyter:master-434b10ab
 
 # nvidia configs
 ENV NVIDIA_VISIBLE_DEVICES all

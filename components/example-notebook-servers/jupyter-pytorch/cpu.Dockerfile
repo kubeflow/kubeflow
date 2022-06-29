@@ -1,4 +1,4 @@
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:master-434b10ab
+FROM docker.io/kubeflownotebookswg/notebook-servers/jupyter:master-434b10ab
 
 # install - requirements.txt
 COPY --chown=jovyan:users cpu-requirements.txt /tmp/requirements.txt
