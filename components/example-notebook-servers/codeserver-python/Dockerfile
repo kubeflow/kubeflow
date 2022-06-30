@@ -46,7 +46,9 @@ RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
  && chown -R ${NB_USER}:users ${HOME}
 
 # install - codeserver extensions
-RUN code-server --install-extension "ms-python.python@${CODESERVER_PYTHON_VERSION}"
+RUN curl -# -L -o /tmp/ms-python-release.vsix "https://github.com/microsoft/vscode-python/releases/download/${CODESERVER_PYTHON_VERSION}/ms-python-release.vsix" \
+ && code-server --install-extension /tmp/ms-python-release.vsix \
+ && code-server --list-extensions --show-versions
 
 # s6 - copy scripts
 COPY --chown=jovyan:users s6/ /etc
