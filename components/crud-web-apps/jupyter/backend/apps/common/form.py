@@ -1,4 +1,5 @@
 import json
+import re
 
 from werkzeug.exceptions import BadRequest
 
@@ -7,10 +8,14 @@ from kubeflow.kubeflow.crud_backend import logging
 from . import utils
 
 log = logging.getLogger(__name__)
+label_regex = re.compile("^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$")
 
 SERVER_TYPE_ANNOTATION = "notebooks.kubeflow.org/server-type"
 HEADERS_ANNOTATION = "notebooks.kubeflow.org/http-headers-request-set"
 URI_REWRITE_ANNOTATION = "notebooks.kubeflow.org/http-rewrite-uri"
+OWNER_USERNAME_LABEL = "notebooks.kubeflow.org/owner-username"
+OWNER_DOMAIN_LABEL = "notebook.kubeflow.org/owner-domain"
+OWNER_ENVIRONMENT_VARIABLE = "KUBEFLOW_NOTEBOOK_OWNER"
 
 
 def get_form_value(body, defaults, body_field, defaults_field=None,
@@ -295,3 +300,13 @@ def add_notebook_volume(notebook, vol_name, claim, mnt_path):
     # Container Mounts
     mnt = {"mountPath": mnt_path, "name": vol_name}
     container["volumeMounts"].append(mnt)
+
+
+def set_notebook_owner(notebook, owner):
+    owner_tokens = owner.split("@", 2)
+    if label_regex.match(owner_tokens[0]):
+        notebook["metadata"]["labels"][OWNER_USERNAME_LABEL] = owner_tokens[0]
+    if len(owner_tokens) == 2 and label_regex.match(owner_tokens[1]):
+        notebook["metadata"]["labels"][OWNER_DOMAIN_LABEL] = owner_tokens[1]
+    env = [{"name": OWNER_ENVIRONMENT_VARIABLE, "value": owner}]
+    notebook["spec"]["template"]["spec"]["containers"][0]["env"] += env

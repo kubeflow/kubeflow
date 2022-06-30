@@ -1,6 +1,6 @@
 from flask import request
 
-from kubeflow.kubeflow.crud_backend import api, decorators, helpers, logging
+from kubeflow.kubeflow.crud_backend import api, authn, decorators, helpers, logging
 
 from ...common import form, utils, volumes
 from ..utils import common as rok_common
@@ -27,6 +27,7 @@ def post_notebook(namespace):
     if isinstance(defaults, list):
         defaults = defaults[0]
 
+    form.set_notebook_owner(notebook, authn.get_username())
     form.set_notebook_image(notebook, body, defaults)
     form.set_notebook_image_pull_policy(notebook, body, defaults)
     form.set_server_type(notebook, body, defaults)
