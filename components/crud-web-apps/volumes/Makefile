@@ -1,4 +1,4 @@
-IMG ?= public.ecr.aws/j1r0q0g6/notebooks/volumes-web-app
+IMG ?= docker.io/kubeflownotebookswg/volumes-web-app
 TAG ?= $(shell git describe --tags --always)
 
 docker-build:
