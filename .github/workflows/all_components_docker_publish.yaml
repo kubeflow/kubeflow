@@ -134,7 +134,7 @@ jobs:
       run: |
         export GIT_TAG=$(cat releasing/version/VERSION)
         cd components/crud-web-apps/tensorboards
-        export IMG=docker.io/kubeflownotebookswg/tensorboard-web-app
+        export IMG=docker.io/kubeflownotebookswg/tensorboards-web-app
         make image
 
     - name: Run VWA build and push
