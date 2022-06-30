@@ -29,7 +29,7 @@ spec:
       containers:
         - command:
             - /manager
-          image: public.ecr.aws/j1r0q0g6/notebooks/tensorboard-controller
+          image: docker.io/kubeflownotebookswg/tensorboard-controller
           name: manager
           securityContext:
             allowPrivilegeEscalation: false
