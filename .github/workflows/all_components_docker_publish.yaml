@@ -133,13 +133,13 @@ jobs:
     - name: Run TWA build and push
       run: |
         export GIT_TAG=$(cat releasing/version/VERSION)
-        cd components/volumes-web-app
-        export IMG=docker.io/kubeflownotebookswg/volumes-web-app
+        cd components/crud-web-apps/tensorboards
+        export IMG=docker.io/kubeflownotebookswg/tensorboard-web-app
         make image
 
     - name: Run VWA build and push
       run: |
         export GIT=$(cat releasing/version/VERSION)
-        cd components/volumes-web-app
+        cd components/crud-web-apps/volumes
         export IMG=docker.io/kubeflownotebookswg/volumes-web-app
         make image
