@@ -39,16 +39,9 @@ help: ## Display this help.
 
 ##@ Development
 
-<<<<<<< HEAD
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
-=======
-# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy: manifests
-	cd config/manager && kustomize edit set image controller=${IMG}:${TAG}
-	kustomize build config/default | kubectl apply -f -
->>>>>>> d37616bb... build: Update components makefiles for building
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
@@ -76,22 +69,15 @@ build: generate fmt vet ## Build manager binary.
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
-<<<<<<< HEAD
-.PHONY: docker-build
-docker-build: ## Build docker image with the manager.
-	cd .. && docker build -t ${IMG} . -f ./tensorboard-controller/Dockerfile
-
-.PHONY: docker-push
-docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
-=======
 # Build the docker image
+.PHONY: docker-build
 docker-build:
 	cd ../ && docker build -t ${IMG}:${TAG} -f tensorboard-controller/Dockerfile . 
+
 # Push the docker image
+.PHONY: docker-push
 docker-push:
 	docker push ${IMG}:${TAG}
->>>>>>> d37616bb... build: Update components makefiles for building
 
 ##@ Deployment
 
@@ -109,7 +95,7 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}:${TAG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 .PHONY: undeploy

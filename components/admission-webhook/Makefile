@@ -13,9 +13,5 @@ docker-push:
 
 image: docker-build docker-push
 
-build-gcr:
-	docker build -t $(IMG):$(TAG) .
-	@echo Built $(IMG):$(TAG)
-
 docker-push:
 	docker push ${IMG}:${TAG}

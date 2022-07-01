@@ -22,10 +22,3 @@ docker-push:
 	docker push $(IMG):$(TAG)
 
 image: docker-build docker-push 
-
-build-gcb:
-	gcloud --project=$(PROJECT) \
-		builds submit \
-		--machine-type=n1-highcpu-32 \
-		--substitutions=_GIT_VERSION=$(GIT_VERSION),_REGISTRY=$(REGISTRY_PROJECT) \
-		--config=cloudbuild.yaml .
