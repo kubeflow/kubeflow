@@ -1,4 +1,5 @@
-ARG BASE_IMG=public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow:master-e9324d39
+# Use the respective Makefile to pass the appropriate BASE_IMG and build the image correctly
+ARG BASE_IMG=<jupyter-tensorflow>
 FROM $BASE_IMG
 
 # install - requirements.txt
