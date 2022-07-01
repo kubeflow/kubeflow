@@ -75,8 +75,7 @@ manager: generate fmt vet ## Build manager binary.
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
-|##@ Build
-
+##@ Build
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
 	cd .. && docker build . -t ${IMG}:${TAG} -f ./notebook-controller/Dockerfile
