@@ -8,4 +8,4 @@ spec:
     spec:
       containers:
         - name: notebook-sample-v1
-          image: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.5.0-rc.1
+          image: kubeflownotebookswg/jupyter:v1.5.0-rc.1
