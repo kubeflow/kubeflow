@@ -33,12 +33,12 @@ jobs:
     - name: Run TWA build
       run: |
         cd components/crud-web-apps/tensorboards
-        export IMG=docker.io/kubeflownotebookswg/tensorboards-web-app
+        export IMG=kubeflownotebookswg/tensorboards-web-app
         make docker-build
 
     - name: Run TWA push
       if: github.event_name == 'push'
       run: |
         cd components/crud-web-apps/tensorboards
-        export IMG=docker.io/kubeflownotebookswg/tensorboards-web-app
+        export IMG=kubeflownotebookswg/tensorboards-web-app
         make docker-push

@@ -28,107 +28,15 @@ jobs:
         username: kubeflownotebookswg
         password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
 
-    - name: Run codeserver-python Notebook Server build
+    - name: Build all Notebook Server images via central-Makefile
       run: |
-        cd components/example-notebook-servers/codeserver-python
-        export IMG=docker.io/kubeflownotebookswg/notebook-servers/codeserver-python
-        export TAG=$(git describe --tags --always)
-        docker build -t ${IMG}:${TAG} -f Dockerfile .
-
-    - name: Run codeserver-python Notebook Server push
+        cd components/example-notebook-servers/
+        export TAG=$(git describe --tags --always --dirty)
+        make docker-build-all
+    
+    - name: Push all Notebook Server images via central-Makefile
       if: github.event_name == 'push'
       run: |
-        cd components/example-notebook-servers/codeserver-python
-        export IMG=docker.io/kubeflownotebookswg/notebook-servers/codeserver-python
-        export TAG=$(git describe --tags --always)
-        docker push ${IMG}:${TAG}
-
-    - name: Run jupyter-scipy Notebook Server build
-      run: |
-        cd components/example-notebook-servers/jupyter-scipy
-        export IMG=docker.io/kubeflownotebookswg/notebook-servers/jupyter-scipy
-        export TAG=$(git describe --tags --always)
-        docker build -t ${IMG}:${TAG} -f Dockerfile .
-
-    - name: Run jupyter-scipy Notebook Server push
-      if: github.event_name == 'push'
-      run: |
-        cd components/example-notebook-servers/jupyter-scipy
-        export IMG=docker.io/kubeflownotebookswg/notebook-servers/jupyter-scipy
-        export TAG=$(git describe --tags --always)
-        docker push ${IMG}:${TAG}
-
-    - name: Run jupyter-pytorch-full Notebook Server build
-      run: |
-        cd components/example-notebook-servers/jupyter-pytorch-full
-        export IMG=docker.io/kubeflownotebookswg/notebook-servers/jupyter-pytorch-full
-        export TAG=$(git describe --tags --always)
-        docker build -t ${IMG}:${TAG} -f cpu.Dockerfile .
-
-    - name: Run jupyter-pytorch-full Notebook Server push
-      if: github.event_name == 'push'
-      run: |
-        cd components/example-notebook-servers/jupyter-pytorch-full
-        export IMG=docker.io/kubeflownotebookswg/notebook-servers/jupyter-pytorch-full
-        export TAG=$(git describe --tags --always)
-        docker push ${IMG}:${TAG}
-
-    - name: Run jupyter-pytorch-cuda-full Notebook Server build
-      run: |
-        cd components/example-notebook-servers/jupyter-pytorch-full
-        export IMG=docker.io/kubeflownotebookswg/notebook-servers/jupyter-pytorch-cuda-full
-        export TAG=$(git describe --tags --always)
-        docker build -t ${IMG}:${TAG} -f cuda.Dockerfile .
-
-    - name: Run jupyter-pytorch-cuda-full Notebook Server push
-      if: github.event_name == 'push'
-      run: |
-        cd components/example-notebook-servers/jupyter-pytorch-full
-        export IMG=docker.io/kubeflownotebookswg/notebook-servers/jupyter-pytorch-cuda-full
-        export TAG=$(git describe --tags --always)
-        docker push ${IMG}:${TAG}
-
-    - name: Run jupyter-tensorflow-full Notebook Server build
-      run: |
-        cd components/example-notebook-servers/jupyter-tensorflow-full
-        export IMG=docker.io/kubeflownotebookswg/notebook-servers/jupyter-tensorflow-full
-        export TAG=$(git describe --tags --always)
-        docker build -t ${IMG}:${TAG} -f cpu.Dockerfile .
-
-    - name: Run jupyter-tensorflow-full Notebook Server push
-      if: github.event_name == 'push'
-      run: |
-        cd components/example-notebook-servers/jupyter-tensorflow-full
-        export IMG=docker.io/kubeflownotebookswg/notebook-servers/jupyter-tensorflow-full
-        export TAG=$(git describe --tags --always)
-        docker push ${IMG}:${TAG}
-
-    - name: Run jupyter-tensorflow-cuda-full Notebook Server build
-      run: |
-        cd components/example-notebook-servers/jupyter-tensorflow-full
-        export IMG=docker.io/kubeflownotebookswg/notebook-servers/jupyter-tensorflow-cuda-full
-        export TAG=$(git describe --tags --always)
-        docker build -t ${IMG}:${TAG} -f cuda.Dockerfile .
-
-    - name: Run jupyter-tensorflow-cuda-full Notebook Server push
-      if: github.event_name == 'push'
-      run: |
-        cd components/example-notebook-servers/jupyter-tensorflow-full
-        export IMG=docker.io/kubeflownotebookswg/notebook-servers/jupyter-tensorflow-cuda-full
-        export TAG=$(git describe --tags --always) 
-        docker push ${IMG}:${TAG}
-
-    - name: Run rstudio-tidyverse Notebook Server build
-      run: |
-        cd components/example-notebook-servers/rstudio-tidyverse
-        export IMG=docker.io/kubeflownotebookswg/notebook-servers/rstudio-tidyverse
-        export TAG=$(git describe --tags --always)
-        docker build -t ${IMG}:${TAG} -f Dockerfile .
-
-    - name: Run rstudio-tidyverse Notebook Server push
-      if: github.event_name == 'push'
-      run: |
-        cd components/example-notebook-servers/rstudio-tidyverse
-        export IMG=docker.io/kubeflownotebookswg/notebook-servers/rstudio-tidyverse
-        export TAG=$(git describe --tags --always) 
-        docker push ${IMG}:${TAG}
+        cd components/example-notebook-servers/
+        export TAG=$(git describe --tags --always --dirty)
+        make docker-push-all

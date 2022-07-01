@@ -1,10 +1,12 @@
-
 # Image URL to use all building/pushing image targets
-IMG ?= public.ecr.aws/j1r0q0g6/notebooks/notebook-controller
-TAG ?= $(shell git describe --tags --always)
+IMG ?= notebook-controller
+TAG ?= $(shell git describe --tags --always --dirty)
 
-# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.22
+# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
+CRD_OPTIONS ?= "crd"
+
+# Based on recommendation https://sdk.operatorframework.io/docs/building-operators/golang/references/envtest-setup/
+ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -65,8 +67,6 @@ vet: ## Run go vet against code.
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
 
-##@ Build
-
 .PHONY: manager
 manager: generate fmt vet ## Build manager binary.
 	go build -o bin/manager main.go
@@ -75,6 +75,7 @@ manager: generate fmt vet ## Build manager binary.
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
+##@ Build
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
 	cd .. && docker build . -t ${IMG}:${TAG} -f ./notebook-controller/Dockerfile

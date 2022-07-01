@@ -31,12 +31,12 @@ jobs:
     - name: Run KFAM build
       run: |
         cd components/access-management
-        export IMG=docker.io/kubeflownotebookswg/kfam
-        make build
+        export IMG=kubeflownotebookswg/kfam
+        make docker-build
 
     - name: Run KFAM push
       if: github.event_name == 'push'
       run: |
         cd components/access-management
-        export IMG=docker.io/kubeflownotebookswg/kfam
-        make push
+        export IMG=kubeflownotebookswg/kfam
+        make docker-push
