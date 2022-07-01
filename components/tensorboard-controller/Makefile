@@ -1,9 +1,8 @@
-
 # Image URL to use all building/pushing image targets
-TAG ?= $(shell git describe --tags --always)
-IMG ?= tensorboard-controller:$(TAG)
-# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.23
+IMG ?= tensorboard-controller
+TAG ?= $(shell git describe --tags --always --dirty)
+# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
+CRD_OPTIONS ?= "crd:trivialVersions=true"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -70,13 +69,15 @@ build: generate fmt vet ## Build manager binary.
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
+# Build the docker image
 .PHONY: docker-build
-docker-build: ## Build docker image with the manager.
-	cd .. && docker build -t ${IMG} . -f ./tensorboard-controller/Dockerfile
+docker-build:
+	cd ../ && docker build -t ${IMG}:${TAG} -f tensorboard-controller/Dockerfile . 
 
+# Push the docker image
 .PHONY: docker-push
-docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
+docker-push:
+	docker push ${IMG}:${TAG}
 
 ##@ Deployment
 
@@ -94,7 +95,7 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}:${TAG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 .PHONY: undeploy

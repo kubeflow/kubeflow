@@ -31,14 +31,12 @@ jobs:
     - name: Run CentralDashboard build
       run: |
         cd components/centraldashboard
-        export IMG=docker.io/kubeflownotebookswg/centraldashboard
-        export TAG=$(git describe --tags --always);
-        docker build -t ${IMG}:${TAG} -f Dockerfile .
+        export IMG=kubeflownotebookswg/centraldashboard
+        make docker-build
 
     - name: Run CentralDashboard push
       if: github.event_name == 'push'
       run: |
         cd components/centraldashboard
-        export IMG=docker.io/kubeflownotebookswg/centraldashboard
-        export TAG=$(git describe --tags --always);
-        docker push ${IMG}:${TAG}
+        export IMG=kubeflownotebookswg/centraldashboard
+        make docker-push

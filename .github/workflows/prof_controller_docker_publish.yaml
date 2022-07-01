@@ -31,14 +31,12 @@ jobs:
     - name: Run Profile Controller build
       run: |
         cd components/profile-controller
-        export IMG=docker.io/kubeflownotebookswg/profile-controller
-        export TAG=$(git describe --tags --always)
-        make build
+        export IMG=kubeflownotebookswg/profile-controller
+        make docker-build
 
     - name: Run Profile Controller push
       if: github.event_name == 'push'
       run: |
         cd components/profile-controller
-        export IMG=docker.io/kubeflownotebookswg/profile-controller
-        export TAG=$(git describe --tags --always)
-        make push
+        export IMG=kubeflownotebookswg/profile-controller
+        make docker-push

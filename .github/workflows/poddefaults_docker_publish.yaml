@@ -31,12 +31,12 @@ jobs:
     - name: Run PodDefaults build
       run: |
         cd components/admission-webhook
-        export IMG=docker.io/kubeflownotebookswg/poddefaults-webhook
+        export IMG=kubeflownotebookswg/poddefaults-webhook
         make docker-build
 
     - name: Run PodDefaults push
       if: github.event_name == 'push'
       run: |
         cd components/admission-webhook
-        export IMG=docker.io/kubeflownotebookswg/poddefaults-webhook
+        export IMG=kubeflownotebookswg/poddefaults-webhook
         make docker-push

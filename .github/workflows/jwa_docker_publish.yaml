@@ -33,12 +33,12 @@ jobs:
     - name: Run JWA build
       run: |
         cd components/crud-web-apps/jupyter
-        export IMG=docker.io/kubeflownotebookswg/jupyter-web-app
+        export IMG=kubeflownotebookswg/jupyter-web-app
         make docker-build
 
     - name: Run JWA push
       if: github.event_name == 'push'
       run: |
         cd components/crud-web-apps/jupyter
-        export IMG=docker.io/kubeflownotebookswg/jupyter-web-app
+        export IMG=kubeflownotebookswg/jupyter-web-app
         make docker-push

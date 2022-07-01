@@ -1,11 +1,11 @@
-GIT_TAG ?= $(shell git describe --tags --always)
-IMG ?= docker.io/kubeflownotebookswg/tensorboards-web-app
-DOCKERFILE=tensorboards/Dockerfile
+TAG ?= $(shell git describe --tags --always --dirty)
+IMG ?= tensorboards-web-app
+DOCKERFILE ?= tensorboards/Dockerfile
 
 docker-build:
-	cd ../ && docker build -t ${IMG}:${GIT_TAG} -f ${DOCKERFILE} .
+	cd ../ && docker build -t ${IMG}:${TAG} -f ${DOCKERFILE} .
 
 docker-push:
-	docker push $(IMG):$(GIT_TAG)
+	docker push $(IMG):$(TAG)
 
 image: docker-build docker-push

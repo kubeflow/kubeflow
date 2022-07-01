@@ -32,15 +32,13 @@ jobs:
 
     - name: Run Notebook Controller build
       run: |
-        cd components
-        export IMG=docker.io/kubeflownotebookswg/notebook-controller
-        export TAG=$(git describe --tags --always)
-        docker build . -t ${IMG}:${TAG} -f ./notebook-controller/Dockerfile
+        cd components/notebook-controller
+        export IMG=kubeflownotebookswg/notebook-controller
+        make docker-build
 
     - name: Run Notebook Controller push
       if: github.event_name == 'push'
       run: |
-        cd components
-        export IMG=docker.io/kubeflownotebookswg/notebook-controller
-        export TAG=$(git describe --tags --always)
-        docker push ${IMG}:${TAG}
+        cd components/notebook-controller
+        export IMG=kubeflownotebookswg/notebook-controller
+        make docker-push
