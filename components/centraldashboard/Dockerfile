@@ -1,5 +1,5 @@
 # Step 1: Builds and tests
-FROM node:12.22.8-alpine AS build
+FROM node:12.22.12-alpine AS build
 
 ARG kubeflowversion
 ARG commit
@@ -40,7 +40,7 @@ RUN npm rebuild && \
     npm prune --production
 
 # Step 2: Packages assets for serving
-FROM node:12.22.8-alpine AS serve
+FROM node:12.22.12-alpine AS serve
 
 ENV NODE_ENV=production
 WORKDIR /app
