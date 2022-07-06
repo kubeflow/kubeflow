@@ -270,13 +270,14 @@ describe('Main Page', () => {
         const hash = '#/hash/route/fragments';
         window.location.hash = hash;
         mainPage.set('queryParams.ns', 'test');
-        mainPage.set('queryParams.foo', 'bar');
+        mainPage.set('queryParams.foo', '["bar"]');
         mainPage.subRouteData.path = '/pipeline/';
         mainPage._routePageChanged('_');
         flush();
 
-        expect(mainPage.iframeSrc).toMatch(
-            new RegExp(`${window.location.origin}/pipeline/?.*foo=bar${hash}`));
+        expect(mainPage.iframeSrc).toMatch(new RegExp(
+            `${window.location.origin}/pipeline/?.*foo=%5B%22bar%22%5D${hash}`
+        ));
     });
 
     it('Sets iframeSrc to about:blank when user navigates to non-iframe page',
