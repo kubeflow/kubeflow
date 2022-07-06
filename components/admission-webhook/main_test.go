@@ -94,8 +94,8 @@ func TestApplyPodDefaultsOnPod(t *testing.T) {
 			[]*settingsapi.PodDefault{
 				{
 					Spec: settingsapi.PodDefaultSpec{
-						Annotations: map[string]string{"baz": "bux"},
-						ServiceAccountName: "some-service-account",
+						Annotations:                  map[string]string{"baz": "bux"},
+						ServiceAccountName:           "some-service-account",
 						AutomountServiceAccountToken: newTrue(),
 					},
 				},
@@ -110,7 +110,7 @@ func TestApplyPodDefaultsOnPod(t *testing.T) {
 					Labels: map[string]string{},
 				},
 				Spec: corev1.PodSpec{
-					ServiceAccountName: "some-service-account",
+					ServiceAccountName:           "some-service-account",
 					AutomountServiceAccountToken: newTrue(),
 				},
 			},
@@ -200,4 +200,76 @@ func TestApplyPodDefaultsOnPod(t *testing.T) {
 		})
 	}
 
+}
+
+func TestSetCommandAndArgs(t *testing.T) {
+	commandOne := []string{
+		"cmd1",
+	}
+	argsOne := []string{
+		"arg1",
+		"arg2",
+	}
+	commandTwo := []string{
+		"cmd2",
+	}
+	argsTwo := []string{
+		"arg3",
+		"arg4",
+	}
+	for _, test := range []struct {
+		name        string
+		in          *corev1.Container
+		podDefaults []*settingsapi.PodDefault
+		out         *corev1.Container
+	}{
+		{
+			name: "Set command and args",
+			in:   &corev1.Container{},
+			podDefaults: []*settingsapi.PodDefault{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-pod-default",
+					},
+					Spec: settingsapi.PodDefaultSpec{
+						Command: commandOne,
+						Args:    argsOne,
+					},
+				},
+			},
+			out: &corev1.Container{
+				Command: commandOne,
+				Args:    argsOne,
+			},
+		},
+		{
+			name: "Do not overwrite command and args in case they are already set",
+			in: &corev1.Container{
+				Command: commandTwo,
+				Args:    argsTwo,
+			},
+			podDefaults: []*settingsapi.PodDefault{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-pod-default",
+					},
+					Spec: settingsapi.PodDefaultSpec{
+						Command: commandOne,
+						Args:    argsOne,
+					},
+				},
+			},
+			out: &corev1.Container{
+				Command: commandTwo,
+				Args:    argsTwo,
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			setCommandAndArgs(test.in, test.podDefaults)
+			if !reflect.DeepEqual(test.in, test.out) {
+				t.Fatalf("%#v\n  Not Equals:\n%#v", test.in, test.out)
+			}
+		})
+	}
 }

@@ -10,7 +10,7 @@ spec:
     singular: poddefault
   preserveUnknownFields: false
   scope: Namespaced
-  versions: 
+  versions:
     - name: v1alpha1
       served: true
       storage: true
@@ -55,6 +55,18 @@ spec:
                 volumes:
                   items:
                     type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  type: array
+                  x-kubernetes-preserve-unknown-fields: true
+                command:
+                  items:
+                    type: string
+                    x-kubernetes-preserve-unknown-fields: true
+                  type: array
+                  x-kubernetes-preserve-unknown-fields: true
+                args:
+                  items:
+                    type: string
                     x-kubernetes-preserve-unknown-fields: true
                   type: array
                   x-kubernetes-preserve-unknown-fields: true
