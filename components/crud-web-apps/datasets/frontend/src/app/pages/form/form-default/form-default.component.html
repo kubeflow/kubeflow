@@ -1,0 +1,98 @@
+<div class="form--container" mat-dialog-content>
+  <form novalidate (ngSubmit)="onSubmit()" [formGroup]="formCtrl">
+    <lib-form-section
+      title="Accelerate S3 data"
+      text="Accelerate a S3 data"
+      icon="fa:fas:hdd"
+      i18n-title
+      i18n-text
+    >
+    </lib-form-section>
+
+    <!--Name / Namespace-->
+    <lib-form-name-namespace-inputs
+      [nameControl]="formCtrl.get('name')"
+      [namespaceControl]="formCtrl.get('namespace')"
+      resourceName="Dataset"
+      i18n-resourceName
+      [existingNames]="datasetNames"
+    >
+    </lib-form-name-namespace-inputs>
+
+    <mat-form-field
+      appearance="outline"
+      class="wide"
+    >
+      <mat-label i18n>Object Storage Type</mat-label>
+      <input matInput formControlName="objectstorageType" />
+    </mat-form-field>
+
+    <mat-form-field
+      appearance="outline"
+      class="wide"
+    >
+      <mat-label i18n>EndPoint</mat-label>
+      <input matInput formControlName="endpoint" />
+    </mat-form-field>
+
+    <mat-form-field
+      appearance="outline"
+      class="wide"
+    >
+      <mat-label i18n>AccessKeyID</mat-label>
+      <!-- <input matInput formControlName="accessID"/> -->
+      <mat-select [(ngModel)]="selectedValue" name="food">
+        <mat-option *ngFor="let food of foods" [value]="food.value">
+          {{food.viewValue}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field
+      appearance="outline"
+      class="wide"
+    >
+      <mat-label i18n>AccessKeySecret</mat-label>
+      <input matInput formControlName="accessSecret"/>
+    </mat-form-field>
+
+    <mat-form-field
+      appearance="outline"
+      class="wide"
+    >
+      <mat-label i18n>QuotaSize</mat-label>
+      <input matInput formControlName="quotaSize" />
+    </mat-form-field>
+
+    <mat-form-field
+      appearance="outline"
+      class="wide"
+    >
+      <mat-label i18n>MediumType</mat-label>
+      <input matInput formControlName="mediumType"/>
+    </mat-form-field>
+
+    <mat-form-field
+      appearance="outline"
+      class="wide"
+    >
+      <mat-label i18n>Path</mat-label>
+      <input matInput formControlName="path"/>
+    </mat-form-field>
+    
+    <button
+    mat-raised-button
+    color="primary"
+    class="form--button-margin"
+    type="submit"
+    [disabled]="blockSubmit"
+    i18n
+    >
+      CREATE
+    </button>
+
+    <button mat-raised-button type="button" (click)="onCancel()" i18n>
+      CANCEL
+    </button>
+  </form>
+</div>
