@@ -18,6 +18,12 @@ export interface AccelerateDatasetResponseObject {
   mediumType: string;
   path: string;
   quotaSize: string;
+  metaurl_key: string; 
+  metaurl_name: string; 
+  access_key_name: string; 
+  access_key: string; 
+  secret_key: string; 
+  secret_key_name: string;
 }
 
 export interface AccelerateDatasetProcessedObject extends AccelerateDatasetResponseObject {
@@ -35,4 +41,20 @@ export interface AccelerateDatasetPostObject {
   mediumType: string;
   path: string;
   quotaSize: string;
+  metaurl_key: string; 
+  metaurl_name: string; 
+  access_key_name: string; 
+  access_key: string; 
+  secret_key: string; 
+  secret_key_name: string;
+}
+
+export interface SecretResponseObject {
+  name: string;
+  namespace: string;
+  data: Map<string,string>;
+}
+
+export interface SWABackendResponse extends BackendResponse {
+  secrets?: SecretResponseObject[];
 }

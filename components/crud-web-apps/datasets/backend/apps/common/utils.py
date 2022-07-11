@@ -26,3 +26,18 @@ def parse_s3_accerlerate(juicefsruntime):
     }
 
     return parsed_dataset
+
+def parse_secret(secret):
+    """
+    secret: client.V1Secret
+
+    Process the Secret and format it as the UI expects it.
+    """
+    
+    parsed_secret = {
+        "name": secret.metadata.name,
+        "namespace": secret.metadata.namespace,
+        "data": secret.data,
+    }
+
+    return parsed_secret
