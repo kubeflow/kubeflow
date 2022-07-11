@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -10,7 +10,7 @@ import {
   DIALOG_RESP,
 } from 'kubeflow';
 import { VWABackendService } from 'src/app/services/backend.service';
-import { AccelerateDatasetPostObject, AccelerateDatasetProcessedObject } from 'src/app/types';
+import { AccelerateDatasetPostObject, AccelerateDatasetProcessedObject, SecretResponseObject } from 'src/app/types';
 import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
@@ -27,6 +27,21 @@ export class FormDefaultComponent implements OnInit {
 
   public currNamespace = '';
   public datasetNames = new Set<string>();
+
+  public secrets: String[] = [];
+  public accessKeys: String[] = [];
+  public selectedAccessKeyFrom: string;
+  public selectedAccessKeyName: string;
+
+  public secretKeys: String[] = [];
+  public selectedSecretKeyFrom: string;
+  public selectedSecretKeyName: string;
+
+  public metaurlKeys: String[] = [];
+  public selectedMetaurlFrom: string;
+  public selectedMetaurlName: string;
+
+  public secretLists: SecretResponseObject[];
 
   constructor(
     public ns: NamespaceService,
@@ -54,6 +69,11 @@ export class FormDefaultComponent implements OnInit {
       this.ns.getSelectedNamespace().subscribe(ns => {
         this.currNamespace = ns;
         this.formCtrl.controls.namespace.setValue(ns);
+        this.backend.getSecrets(ns).subscribe(secrets => {
+          this.secretLists = secrets;
+          for(const secret of secrets){
+            this.secrets.push(secret.name)
+          }})
       }),
     );
 
@@ -83,6 +103,39 @@ export class FormDefaultComponent implements OnInit {
     this.subs.unsubscribe();
   }
 
+  public onAccessKeyFromChange(){
+    this.accessKeys = [];
+    for (const secret of this.secretLists){
+      if (secret.name == this.selectedAccessKeyFrom){
+        for (var key in secret.data){
+          this.accessKeys.push(key);
+        }
+      }
+    }
+  }
+
+  public onSecretKeyFromChange(){
+    this.secretKeys = [];
+    for (const secret of this.secretLists){
+      if (secret.name == this.selectedAccessKeyFrom){
+        for (var key in secret.data){
+          this.secretKeys.push(key);
+        }
+      }
+    }
+  }
+
+  public onMetaurlFromChange(){
+    this.metaurlKeys = [];
+    for (const secret of this.secretLists){
+      if (secret.name == this.selectedAccessKeyFrom){
+        for (var key in secret.data){
+          this.metaurlKeys.push(key);
+        }
+      }
+    }
+  }
+
   public onSubmit() {
     
     const tmp: Object = JSON.parse(JSON.stringify(this.formCtrl.getRawValue()));
@@ -96,6 +149,12 @@ export class FormDefaultComponent implements OnInit {
       quotaSize: tmp["quotaSize"],
       bucket: tmp["bucket"],
       storage: tmp["objectstorageType"],
+      metaurl_key: this.selectedMetaurlName,
+      metaurl_name: this.selectedMetaurlFrom, 
+      access_key_name: this.selectedAccessKeyFrom,
+      access_key: this.selectedAccessKeyName,
+      secret_key: this.selectedSecretKeyName,
+      secret_key_name: this.selectedSecretKeyFrom,
     };
     if (!this.isPatch)
     {

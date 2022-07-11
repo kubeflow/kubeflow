@@ -28,8 +28,8 @@ def dataset_from_dict(body, namespace):
                             "name": "metaurl",
                             "valueFrom": {
                                 "secretKeyRef": {
-                                    "key": "metaurl",
-                                    "name": "jfs-secret"
+                                    "key": body["metaurl_key"],
+                                    "name": body["metaurl_name"]
                                 }
                             }
                         },
@@ -37,8 +37,8 @@ def dataset_from_dict(body, namespace):
                             "name": "access-key",
                             "valueFrom": {
                                 "secretKeyRef": {
-                                    "key": "access-key",
-                                    "name": "jfs-secret"
+                                    "key": body["access_key"],
+                                    "name": body["access_key_name"]
                                 }
                             }
                         },
@@ -46,8 +46,8 @@ def dataset_from_dict(body, namespace):
                             "name": "secret-key",
                             "valueFrom": {
                                 "secretKeyRef": {
-                                    "key": "secret-key",
-                                    "name": "jfs-secret"
+                                    "key": body["secret_key"],
+                                    "name": body["secret_key_name"]
                                 }
                             }
                         }
