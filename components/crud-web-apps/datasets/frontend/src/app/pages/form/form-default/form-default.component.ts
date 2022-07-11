@@ -13,12 +13,6 @@ import { VWABackendService } from 'src/app/services/backend.service';
 import { AccelerateDatasetPostObject, AccelerateDatasetProcessedObject } from 'src/app/types';
 import { MatDialogRef } from '@angular/material/dialog';
 
-interface Food {
-  value: string;
-  viewValue: string;
-}
-
-
 @Component({
   selector: 'app-form-default',
   templateUrl: './form-default.component.html',
@@ -33,12 +27,6 @@ export class FormDefaultComponent implements OnInit {
 
   public currNamespace = '';
   public datasetNames = new Set<string>();
-
-  foods: Food[] = [
-    {value: 'steak-0', viewValue: 'Steak'},
-    {value: 'pizza-1', viewValue: 'Pizza'},
-    {value: 'tacos-2', viewValue: 'Tacos'},
-  ];
 
   constructor(
     public ns: NamespaceService,

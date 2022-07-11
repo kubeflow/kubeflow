@@ -40,12 +40,7 @@
       class="wide"
     >
       <mat-label i18n>AccessKeyID</mat-label>
-      <!-- <input matInput formControlName="accessID"/> -->
-      <mat-select [(ngModel)]="selectedValue" name="food">
-        <mat-option *ngFor="let food of foods" [value]="food.value">
-          {{food.viewValue}}
-        </mat-option>
-      </mat-select>
+      <input matInput formControlName="accessID"/>
     </mat-form-field>
 
     <mat-form-field
