@@ -27,6 +27,7 @@ export class NotebookPageComponent implements OnInit, OnDestroy {
   public notebookStateChanging = false;
   public podRequestCompleted = false;
   public podRequestError = '';
+  public selectedTab = { index: 0, name: 'overview' };
   public buttonsConfig: ToolbarButton[] = [];
 
   pollSubNotebook = new Subscription();
@@ -50,6 +51,12 @@ export class NotebookPageComponent implements OnInit, OnDestroy {
       this.namespace = params.namespace;
 
       this.poll(this.namespace, this.notebookName);
+    });
+
+    this.route.queryParams.subscribe(params => {
+      this.selectedTab.name = params.tab;
+      this.selectedTab.index = this.switchTab(this.selectedTab.name).index;
+      this.selectedTab.name = this.switchTab(this.selectedTab.name).name;
     });
   }
 
@@ -77,6 +84,28 @@ export class NotebookPageComponent implements OnInit, OnDestroy {
     ) as NotebookRawObject;
 
     return notebookCopy;
+  }
+
+  private switchTab(name): { index: number; name: string } {
+    if (name === 'yaml') {
+      return { index: 3, name: 'yaml' };
+    } else if (name === 'events') {
+      return { index: 2, name: 'events' };
+    } else if (name === 'logs') {
+      return { index: 1, name: 'logs' };
+    } else {
+      return { index: 0, name: 'overview' };
+    }
+  }
+
+  public onTabChange(c) {
+    const queryParams = { tab: c.tab.textLabel.toLowerCase() };
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      replaceUrl: true,
+      queryParamsHandling: '',
+    });
   }
 
   private getNotebookPod(notebook: NotebookRawObject) {
