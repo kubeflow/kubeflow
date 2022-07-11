@@ -48,6 +48,15 @@
           </ng-template>
         </mat-tab>
 
+        <mat-tab label="YAML">
+          <ng-template matTabContent>
+            <app-yaml
+              [podRequestCompleted]="podRequestCompleted"
+              [notebook]="notebook"
+              [pod]="notebookPod"
+            ></app-yaml>
+          </ng-template>
+        </mat-tab>
       </mat-tab-group>
     </ng-container>
   </div>

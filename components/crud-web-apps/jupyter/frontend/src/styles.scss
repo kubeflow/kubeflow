@@ -6,3 +6,10 @@
 mat-form-field {
   margin-bottom: 0.25rem;
 }
+
+.yaml-tab-container {
+  .mat-form-field-flex > .mat-form-field-infix {
+    margin-bottom: -0.4em;
+    margin-top: -0.6em;
+  }
+}
