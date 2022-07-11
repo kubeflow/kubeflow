@@ -13,3 +13,11 @@ def get_datasets(namespace):
     content = [utils.parse_s3_accerlerate(dataset) for dataset in datasets["items"]]
 
     return api.success_response("datasets", content)
+
+@bp.route("/api/namespaces/<namespace>/secrets")
+def get_secrets(namespace):
+    # Return the list of Secrets
+    secrets = api.list_secrets(namespace)
+    content = [utils.parse_secret(secret) for secret in secrets.items]
+
+    return api.success_response("secrets", content)

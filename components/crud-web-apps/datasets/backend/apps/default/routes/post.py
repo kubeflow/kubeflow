@@ -9,7 +9,8 @@ log = logging.getLogger(__name__)
 
 @bp.route("/api/namespaces/<namespace>/acceleratedataset", methods=["POST"])
 @decorators.request_is_json_type
-@decorators.required_body_params("name", "bucket", "storage", "mountPoint", "mediumType", "path", "quotaSize")
+@decorators.required_body_params("name", "bucket", "storage", "mountPoint", "mediumType", "path", "quotaSize",
+                                 "metaurl_key", "metaurl_name", "access_key_name", "access_key", "secret_key", "secret_key_name")
 def post_acceleratedataset(namespace):
     body = request.get_json()
     log.info("Received body: %s", body)
@@ -28,7 +29,8 @@ def post_acceleratedataset(namespace):
 
 @bp.route("/api/namespaces/<namespace>/acceleratedataset", methods=["PATCH"])
 @decorators.request_is_json_type
-@decorators.required_body_params("name", "bucket", "storage", "mountPoint", "mediumType", "path", "quotaSize")
+@decorators.required_body_params("name", "bucket", "storage", "mountPoint", "mediumType", "path", "quotaSize", 
+                                 "metaurl_key", "metaurl_name", "access_key_name", "access_key", "secret_key", "secret_key_name")
 def replace_acceleratedataset(namespace):
     body = request.get_json()
     log.info("Received body: %s", body)

@@ -35,21 +35,83 @@
       <input matInput formControlName="endpoint" />
     </mat-form-field>
 
-    <mat-form-field
-      appearance="outline"
-      class="wide"
-    >
-      <mat-label i18n>AccessKeyID</mat-label>
-      <input matInput formControlName="accessID"/>
-    </mat-form-field>
+    <div class="row">
+      <mat-form-field
+        appearance="outline"
+        class="column"
+      >
+        <mat-label i18n>AccessKeyFrom</mat-label>
+        <mat-select [(value)]="selectedAccessKeyFrom"  (selectionChange)="onAccessKeyFromChange()" name="AccessKeyFrom">
+          <mat-option *ngFor="let secret of secrets" [value]="secret">
+            {{secret}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
 
-    <mat-form-field
-      appearance="outline"
-      class="wide"
-    >
-      <mat-label i18n>AccessKeySecret</mat-label>
-      <input matInput formControlName="accessSecret"/>
-    </mat-form-field>
+      <mat-form-field
+        appearance="outline"
+        class="column"
+      >
+        <mat-label i18n>AccessKeyName</mat-label>
+        <mat-select name="AccessKeyName">
+          <mat-option [(value)]="selectedAccessKeyName" *ngFor="let key of accessKeys" [value]="key">
+            {{key}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="row">
+      <mat-form-field
+        appearance="outline"
+        class="column"
+      >
+        <mat-label i18n>SecretKeyFrom</mat-label>
+        <mat-select [(value)]="selectedSecretKeyFrom"  (selectionChange)="onSecretKeyFromChange()" name="SecretKeyFrom">
+          <mat-option *ngFor="let secret of secrets" [value]="secret">
+            {{secret}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field
+        appearance="outline"
+        class="column"
+      >
+        <mat-label i18n>SecretKeyName</mat-label>
+        <mat-select name="SecretKeyName">
+          <mat-option [(value)]="selectedSecretKeyName" *ngFor="let key of secretKeys" [value]="key">
+            {{key}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="row">
+      <mat-form-field
+        appearance="outline"
+        class="column"
+      >
+        <mat-label i18n>MetaurlFrom</mat-label>
+        <mat-select [(value)]="selectedMetaurlFrom"  (selectionChange)="onMetaurlFromChange()" name="MetaurlFrom">
+          <mat-option *ngFor="let secret of secrets" [value]="secret">
+            {{secret}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field
+        appearance="outline"
+        class="column"
+      >
+        <mat-label i18n>Metaurl</mat-label>
+        <mat-select name="MetaurlName">
+          <mat-option [(value)]="selectedMetaurlName" *ngFor="let key of metaurlKeys" [value]="key">
+            {{key}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
 
     <mat-form-field
       appearance="outline"
