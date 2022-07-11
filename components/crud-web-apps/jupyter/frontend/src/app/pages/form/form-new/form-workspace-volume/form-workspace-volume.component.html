@@ -86,9 +86,9 @@
 
   <div class="volume-buttons">
     <button
+      *ngIf="volGroup.disabled || readonly"
       type="button"
       color="primary"
-      [disabled]="!volGroup.disabled || readonly"
       (click)="addNewVolume()"
       mat-stroked-button
       i18n
@@ -97,9 +97,9 @@
     </button>
 
     <button
+      *ngIf="volGroup.disabled || readonly"
       type="button"
       color="primary"
-      [disabled]="!volGroup.disabled || readonly"
       (click)="attachExistingVolume()"
       mat-stroked-button
       i18n

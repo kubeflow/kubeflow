@@ -17,12 +17,7 @@ export class FormNewComponent implements OnInit, OnDestroy {
   formCtrl: FormGroup;
   config: Config;
 
-  ephemeral = false;
   defaultStorageclass = false;
-
-  blockSubmit = false;
-  formReady = false;
-  existingNotebooks = new Set<string>();
 
   subscriptions = new Subscription();
 
@@ -147,6 +142,17 @@ export class FormNewComponent implements OnInit, OnDestroy {
     }
 
     return notebook;
+  }
+
+  // Set the tooltip text based on form's validity
+  setTooltipText(form: FormGroup): string {
+    let text: string;
+    if (!form.get('name').valid) {
+      text = 'No value of the Notebook name was provided';
+    } else if (!form.controls.valid) {
+      text = 'The form contains invalid fields';
+    }
+    return text;
   }
 
   onSubmit() {
