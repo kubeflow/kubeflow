@@ -1,0 +1,49 @@
+name: Build & Publish Jupyter TensorFlow Notebook Server Docker images
+on:
+  push:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/example-notebook-servers/jupyter-tensorflow/**
+  pull_request:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/example-notebook-servers/jupyter-tensorflow/**
+
+jobs:
+  push_to_registry:
+    name: Build & Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Login to DockerHub
+      if: github.event_name == 'push'
+      uses: docker/login-action@v2
+      with:
+        username: kubeflownotebookswg
+        password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
+
+    - name: Build Notebook Server images via their Makefile
+      run: |
+        cd components/example-notebook-servers/
+        export TAG=$(git describe --tags --always --dirty)
+        make docker-build-cpu -C jupyter-tensorflow TAG=${TAG}
+        make docker-build-cuda -C jupyter-tensorflow TAG=${TAG}
+        make docker-build-cpu -C jupyter-tensorflow-full TAG=${TAG}
+        make docker-build-cuda -C jupyter-tensorflow-full TAG=${TAG}
+    
+    - name: Push Notebook Server images via their Makefile
+      if: github.event_name == 'push'
+      run: |
+        cd components/example-notebook-servers/
+        export TAG=$(git describe --tags --always --dirty)
+        REGISTRY ?= kubeflownotebookswg
+        docker tag jupyter-tensorflow-full:${TAG} ${REGISTRY}/jupyter-tensorflow-full:${TAG}
+        docker push ${REGISTRY}/jupyter-tensorflow-full:${TAG}
+        docker tag jupyter-tensorflow-cuda-full:${TAG} ${REGISTRY}/jupyter-tensorflow-cuda-full:${TAG}
+        docker push ${REGISTRY}/jupyter-tensorflow-cuda-full:${TAG}

@@ -1,0 +1,47 @@
+name: Build & Publish Codeserver Notebook Server Docker images
+on:
+  push:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/example-notebook-servers/codeserver/**
+  pull_request:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/example-notebook-servers/codeserver/**
+
+jobs:
+  push_to_registry:
+    name: Build & Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Login to DockerHub
+      if: github.event_name == 'push'
+      uses: docker/login-action@v2
+      with:
+        username: kubeflownotebookswg
+        password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
+
+    - name: Build Notebook Server images via their Makefile
+      run: |
+        cd components/example-notebook-servers/
+        export TAG=$(git describe --tags --always --dirty)
+        make docker-build -C codeserver TAG=${TAG}
+        make docker-build -C codeserver-python TAG=${TAG}
+    
+    - name: Push Notebook Server images via their Makefile
+      if: github.event_name == 'push'
+      run: |
+        cd components/example-notebook-servers/
+        export TAG=$(git describe --tags --always --dirty)
+        REGISTRY ?= kubeflownotebookswg
+        docker tag codeserver:${TAG} ${REGISTRY}/codeserver:${TAG}
+        docker push ${REGISTRY}/codeserver:${TAG}
+        docker tag codeserver-python:${TAG} ${REGISTRY}/codeserver-python:${TAG}
+        docker push ${REGISTRY}/codeserver-python:${TAG}
