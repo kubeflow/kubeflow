@@ -24,3 +24,33 @@ def parse_poddefault(poddefault):
     }
 
     return parsed_poddefault
+
+def parse_secret(secret):
+    """
+    secret: client.V1Secret
+
+    Process the Secret and format it as the UI expects it.
+    """
+    
+    parsed_secret = {
+        "name": secret.metadata.name,
+        "namespace": secret.metadata.namespace,
+        "data": secret.data,
+    }
+
+    return parsed_secret
+
+def parse_configmap(configmap):
+    """
+    configmap: client.V1ConfigMap
+
+    Process the ConfigMap and format it as the UI expects it.
+    """
+    
+    parsed_configmap = {
+        "name": configmap.metadata.name,
+        "namespace": configmap.metadata.namespace,
+        "data": configmap.data,
+    }
+
+    return parsed_configmap

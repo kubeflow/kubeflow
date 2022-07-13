@@ -39,7 +39,7 @@ export class IndexDefaultComponent implements OnInit {
 
   buttons: ToolbarButton[] = [
     new ToolbarButton({
-      text: `New Configuration`,
+      text: `New Notebook Config`,
       icon: 'add',
       stroked: true,
       fn: () => {
@@ -102,7 +102,7 @@ export class IndexDefaultComponent implements OnInit {
   // Functions for handling the action events
   public newResourceClicked() {
     const ref = this.dialog.open(FormDefaultComponent, {
-      width: '600px',
+      width: '1000px',
       panelClass: 'form--dialog-padding',
     });
 
