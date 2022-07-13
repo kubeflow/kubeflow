@@ -117,7 +117,7 @@ export class FormDefaultComponent implements OnInit {
   public onSecretKeyFromChange(){
     this.secretKeys = [];
     for (const secret of this.secretLists){
-      if (secret.name == this.selectedAccessKeyFrom){
+      if (secret.name == this.selectedSecretKeyFrom){
         for (var key in secret.data){
           this.secretKeys.push(key);
         }
@@ -128,7 +128,7 @@ export class FormDefaultComponent implements OnInit {
   public onMetaurlFromChange(){
     this.metaurlKeys = [];
     for (const secret of this.secretLists){
-      if (secret.name == this.selectedAccessKeyFrom){
+      if (secret.name == this.selectedMetaurlFrom){
         for (var key in secret.data){
           this.metaurlKeys.push(key);
         }
