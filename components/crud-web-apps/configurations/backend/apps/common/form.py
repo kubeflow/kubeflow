@@ -13,8 +13,6 @@ def poddefault_from_dict(body, namespace):
         "metadata":{
             "name": body["name"],
             "namesapce": namespace,
-            "labels": body["labels"],
-            "annotations": body["annotations"],
         },
         "spec":{
             "selector":{
@@ -25,11 +23,51 @@ def poddefault_from_dict(body, namespace):
             "desc": body["desc"]
         }
     }
-    if body["env"]:
-        poddefault["spec"].update({"env": body["env"]})
+    if body["envs"]:
+        envs = []
+        for env in body["envs"]:
+            pd_env = {
+                "name": env["key"],
+                "valueFrom": {
+                    "secretKeyRef":{
+                        "key": env["value"],
+                        "name": env["from"],
+                    }
+                }
+            }
+            envs.append(pd_env)
+        poddefault["spec"].update({"env": envs})
+    
     if body["volumes"]:
-        poddefault["spec"].update({"volumes": body["volumes"]})
-    if body["volumeMounts"]:
-        poddefault["spec"].update({"volumeMounts": body["volumeMounts"]})
+        volumes = []
+        volumeMounts = []
+        
+        for vol in body["volumes"]:
+            items = []
+            for item in vol["value"]:
+                pd_item = {
+                        "key": item,
+                        "path": item,
+                    }
+                items.append(pd_item)
+            
+            pd_vol = {
+                "name": vol["key"],
+                "configMap": {
+                    "name": vol["from"],
+                    "items": items
+                }
+            }
+            
+            pd_volM = {
+                "name": vol["key"],
+                "mountPath": vol["path"]
+            }
+            
+            volumes.append(pd_vol)
+            volumeMounts.append(pd_volM)
+        
+        poddefault["spec"].update({"volumes": volumes})
+        poddefault["spec"].update({"volumeMounts": volumeMounts})
     
     return poddefault
