@@ -3,7 +3,7 @@ import { BackendService, SnackBarService } from 'kubeflow';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { ConfigResponseObject, VWABackendResponse, ConfigPostObject } from '../types';
+import { ConfigResponseObject, VWABackendResponse, ConfigPostObject, SecretResponseObject, SWABackendResponse } from '../types';
 
 @Injectable({
   providedIn: 'root',
@@ -20,6 +20,29 @@ export class VWABackendService extends BackendService {
       catchError(error => this.handleError(error)),
       map((resp: VWABackendResponse) => {
         return resp.configurations;
+      }),
+    );
+  }
+
+  public getSecrets(namespace: string): Observable<SecretResponseObject[]> {
+    const url = `api/namespaces/${namespace}/secrets`;
+
+    return this.http.get<SWABackendResponse>(url).pipe(
+      catchError(error => this.handleError(error)),
+      map((resp: SWABackendResponse) => {
+        return resp.secrets;
+      }),
+    );
+  }
+
+  public getConfigMaps(namespace: string): Observable<SecretResponseObject[]> {
+    const url = `api/namespaces/${namespace}/configmaps`;
+
+    return this.http.get<SWABackendResponse>(url).pipe(
+      catchError(error => this.handleError(error)),
+      map((resp: SWABackendResponse) => {
+        console.log(resp)
+        return resp.secrets;
       }),
     );
   }

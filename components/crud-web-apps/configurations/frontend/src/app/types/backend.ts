@@ -17,7 +17,6 @@ export interface ConfigResponseObject {
   desc: string;
   env: [];
   volumes: [];
-  volumeMounts: [];
 }
 
 export interface ConfigProcessedObject extends ConfigResponseObject {
@@ -34,5 +33,14 @@ export interface ConfigPostObject {
   desc: string;
   env: [];
   volumes: [];
-  volumeMounts: [];
+}
+
+export interface SecretResponseObject {
+  name: string;
+  namespace: string;
+  data: Map<string,string>;
+}
+
+export interface SWABackendResponse extends BackendResponse {
+  secrets?: SecretResponseObject[];
 }

@@ -1,8 +1,8 @@
 <div class="form--container" mat-dialog-content>
-  <form novalidate (ngSubmit)="onSubmit()" [formGroup]="formCtrl">
+  <form novalidate [formGroup]="formCtrl">
     <lib-form-section
-      title="New Configuration"
-      text="Create a new Configuration."
+      title="New Notebook Config"
+      text="Create a new Notebook Config"
       icon="fa:fas:hdd"
       i18n-title
       i18n-text
@@ -30,16 +30,32 @@
       <mat-label i18n>Configuration Desc</mat-label>
       <input matInput formControlName="desc" type="text" />
     </mat-form-field>
-    <mat-label i18n>Configuration Lable</mat-label>
-    <app-yamls #labeleditor [value]="formCtrl.get('labels').value" mode="yaml" theme="xcode"></app-yamls>
-    <mat-label i18n>Configuration Annotation</mat-label>
-    <app-yamls #annotationeditor [value]="formCtrl.get('annotations').value" mode="yaml" theme="xcode"></app-yamls>
-    <mat-label i18n>Configuration VolumeMounts</mat-label>
-    <app-yamls #volummounteditor [value]="formCtrl.get('volumeMounts').value" mode="yaml" theme="xcode"></app-yamls>
-    <mat-label i18n>Configuration Volumes</mat-label>
-    <app-yamls #volumeeditor [value]="formCtrl.get('volumes').value" mode="yaml" theme="xcode"></app-yamls>
-    <mat-label i18n>Configuration Env</mat-label>
-    <app-yamls #enveditor [value]="formCtrl.get('env').value" mode="yaml" theme="xcode"></app-yamls>
+    
+    <mat-label i18n>Notebook Envs</mat-label>
+    <app-list-key-value
+      #envs
+      [formArray]="formCtrl.get('envs')"
+      [fromLabels]=secrets
+      (selectionChange)="onSelectionChange($event)"
+      addButtonText="Add Env"
+      keyLabel="Env Name"
+      fromLabel="Env From"
+      valueLabel="Env Value"
+    ></app-list-key-value>
+
+    <mat-label i18n>Notebook Config Files</mat-label>
+    <app-list-key-value
+      #volumes
+      [formArray]="formCtrl.get('volumes')"
+      [fromLabels]=configmaps
+      (selectionChange)="onNBSelectionChange($event)"
+      addButtonText="Add Config File"
+      keyLabel="Config Name"
+      fromLabel="Config From"
+      valueLabel="Config Value"
+      pathLabel="Config Path"
+      valueMultSelect=true
+    ></app-list-key-value>
 
     <button
     mat-raised-button
@@ -47,6 +63,7 @@
     class="form--button-margin"
     type="submit"
     [disabled]="!formCtrl.valid || blockSubmit"
+    (click)="onSubmit()"
     i18n
     >
       CREATE

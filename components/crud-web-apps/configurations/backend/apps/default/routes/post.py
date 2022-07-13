@@ -10,8 +10,7 @@ log = logging.getLogger(__name__)
 
 @bp.route("/api/namespaces/<namespace>/configuration", methods=["POST"])
 @decorators.request_is_json_type
-@decorators.required_body_params("name", "labels", "annotations", "desc",
-                                 "env", "volumeMounts", "volumes")
+@decorators.required_body_params("name", "desc", "envs", "volumes")
 def post_configuration(namespace):
     body = request.get_json()
     log.info("Received body: %s", body)
@@ -28,8 +27,7 @@ def post_configuration(namespace):
 
 @bp.route("/api/namespaces/<namespace>/configuration", methods=["PATCH"])
 @decorators.request_is_json_type
-@decorators.required_body_params("name", "labels", "annotations", "desc",
-                                 "env", "volumeMounts", "volumes")
+@decorators.required_body_params("name", "desc", "envs", "volumes")
 def replace_configuration(namespace):
     body = request.get_json()
     log.info("Received body: %s", body)

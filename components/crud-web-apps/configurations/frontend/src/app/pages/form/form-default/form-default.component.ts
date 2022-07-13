@@ -1,6 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import {
+  FormArray,
   FormBuilder,
+  FormControl,
   FormGroup,
   Validators,
 } from '@angular/forms';
@@ -10,7 +12,7 @@ import {
   DIALOG_RESP,
 } from 'kubeflow';
 import { VWABackendService } from 'src/app/services/backend.service';
-import { ConfigPostObject, ConfigProcessedObject } from 'src/app/types';
+import { ConfigPostObject, ConfigProcessedObject, SecretResponseObject } from 'src/app/types';
 import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
@@ -28,11 +30,14 @@ export class FormDefaultComponent implements OnInit {
   public currNamespace = '';
   public configurationNames = new Set<string>();
 
-  @ViewChild('volummounteditor') volummounteditor;
-  @ViewChild('volumeeditor') volumeeditor;
-  @ViewChild('enveditor') enveditor;
-  @ViewChild('labeleditor') labeleditor;
-  @ViewChild('annotationeditor') annotationeditor;
+  public secrets: String[] = [];
+  public secretLists: SecretResponseObject[];
+
+  public configmaps: String[] = [];
+  public configmapLists: SecretResponseObject[];
+
+  @ViewChild('envs') envs;
+  @ViewChild('volumes') volumes;
 
   constructor(
     public ns: NamespaceService,
@@ -44,11 +49,8 @@ export class FormDefaultComponent implements OnInit {
       name: ['', [Validators.required]],
       namespace: ['', [Validators.required]],
       desc: ['', [Validators.required]],
-      labels: [null],
-      annotations: [null],
-      volumeMounts: [null],
-      volumes: [null],
-      env: [null],
+      volumes: this.fb.array([]),
+      envs: this.fb.array([]),
       isSync: [false, [Validators.required]]
     });
   }
@@ -60,6 +62,18 @@ export class FormDefaultComponent implements OnInit {
       this.ns.getSelectedNamespace().subscribe(ns => {
         this.currNamespace = ns;
         this.formCtrl.controls.namespace.setValue(ns);
+        
+        this.backend.getSecrets(ns).subscribe(secrets => {
+          this.secretLists = secrets;
+          for(const secret of secrets){
+            this.secrets.push(secret.name)
+          }})
+        
+        this.backend.getConfigMaps(ns).subscribe(configmaps => {
+          this.configmapLists = configmaps;
+          for(const configmap of configmaps){
+            this.configmaps.push(configmap.name)
+          }})
       }),
     );
     
@@ -69,19 +83,8 @@ export class FormDefaultComponent implements OnInit {
       this.isPatch = true;
       this.formCtrl.controls.name.setValue(config.name);
       this.formCtrl.controls.name.disable();
-      this.formCtrl.controls.labels.setValue(JSON.stringify(config.labels));
-      this.formCtrl.controls.annotations.setValue(JSON.stringify(config.annotations));
-      var annotations = config.annotations == null ? null : new Map(Object.entries(config.annotations));
-      if (annotations != null && 
-          annotations.has("replicator.v1.mittwald.de/replicate-to-matching")){
-            this.formCtrl.controls.isSync.setValue(true);
-            this.formCtrl.controls.isSync.disable();
-        }
 
       this.formCtrl.controls.desc.setValue(config.desc);
-      this.formCtrl.controls.volumeMounts.setValue(JSON.stringify(config.volumeMounts));
-      this.formCtrl.controls.volumes.setValue(JSON.stringify(config.volumes));
-      this.formCtrl.controls.env.setValue(JSON.stringify(config.env));
     }
   }
 
@@ -89,27 +92,33 @@ export class FormDefaultComponent implements OnInit {
     this.subs.unsubscribe();
   }
 
-  public onSubmit() {
-    this.formCtrl.controls.volumeMounts.setValue(this.volummounteditor.data);
-    this.formCtrl.controls.volumes.setValue(this.volumeeditor.data);
-    this.formCtrl.controls.env.setValue(this.enveditor.data);
-    this.formCtrl.controls.labels.setValue(this.labeleditor.data);
-    var annotations = this.annotationeditor.data == null ? new Map() : new Map(Object.entries(this.annotationeditor.data));
-    if (this.formCtrl.controls.isSync.value){
-      if (!annotations.has("replicator.v1.mittwald.de/replicate-to-matching")){
-            annotations.set("replicator.v1.mittwald.de/replicate-to-matching", "app.kubernetes.io/part-of=kubeflow-profile")
-          }
-    }
-    this.formCtrl.controls.annotations.setValue(((function(map) {
-      let obj = Object.create(null);
-      for (let [k,v] of map){
-        obj[k]=v;
+  public onSelectionChange(i){
+    let valueKeys = [];
+    for (const secret of this.secretLists){
+      if (secret.name == this.envs.formArray.at(i).get("from").value){
+        for (var key in secret.data){
+          valueKeys.push(key);
+        }
       }
-      return obj;
-    })(annotations)));
+    }
+    this.envs.formArray.at(i).get("valueList").setValue(valueKeys);
+  }
+
+  public onNBSelectionChange(i){
+    let valueKeys = [];
+    for (const configmap of this.configmapLists){
+      if (configmap.name == this.volumes.formArray.at(i).get("from").value){
+        for (var key in configmap.data){
+          valueKeys.push(key);
+        }
+      }
+    }
+    this.volumes.formArray.at(i).get("valueList").setValue(valueKeys);
+  }
+
+  public onSubmit() {
     const config: ConfigPostObject = JSON.parse(JSON.stringify(this.formCtrl.getRawValue()));
     this.blockSubmit = true;
-    console.log(config);
     if (!this.isPatch)
     {
       this.backend.createConfig(this.currNamespace, config).subscribe(
