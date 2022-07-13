@@ -13,8 +13,6 @@ def poddefault_from_dict(body, namespace):
         "metadata":{
             "name": body["name"],
             "namesapce": namespace,
-            "labels": body["labels"],
-            "annotations": body["annotations"],
         },
         "spec":{
             "selector":{
