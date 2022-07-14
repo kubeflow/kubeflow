@@ -6,12 +6,16 @@ on:
       - v*-branch
     paths:
       - components/example-notebook-servers/rstudio-tidyverse/**
+      - components/example-notebook-servers/rstudio/**
+      - components/example-notebook-servers/base/**
   pull_request:
     branches:
       - master
       - v*-branch
     paths:
       - components/example-notebook-servers/rstudio-tidyverse/**
+      - components/example-notebook-servers/rstudio/**
+      - components/example-notebook-servers/base/**
 
 jobs:
   push_to_registry:
