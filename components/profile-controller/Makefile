@@ -1,6 +1,6 @@
 # Image URL to use all building/pushing image targets
-IMG ?= public.ecr.aws/j1r0q0g6/notebooks/profile-controller
-TAG ?= $(shell git describe --tags --always)
+IMG ?= profile-controller
+TAG ?= $(shell git describe --tags --always --dirty)
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.23
 
@@ -60,7 +60,7 @@ run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go -namespace-labels-path ./config/base/namespace-labels.yaml 
 
 .PHONY: docker-build
-docker-build: test ## Build docker image with the manager.
+docker-build: ## Build docker image with the manager.
 	docker build -t ${IMG}:${TAG} .
 	@echo Built ${IMG}:${TAG}.
 
