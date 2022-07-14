@@ -1,0 +1,6 @@
+apiVersion: kubeflow.org/v1beta1
+kind: Profile
+metadata:
+  name: profile-sample
+spec:
+  # TODO(user): Add fields here
