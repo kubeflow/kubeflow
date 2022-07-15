@@ -120,7 +120,7 @@ export class IndexDefaultComponent implements OnInit {
 
   public editConfigClicked(secret: ConfigProcessedObject) {
     const ref = this.dialog.open(FormDefaultComponent, {
-      width: '600px',
+      width: '1000px',
       panelClass: 'form--dialog-padding',
       data: secret,
     });

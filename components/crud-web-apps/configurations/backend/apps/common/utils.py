@@ -20,7 +20,7 @@ def parse_poddefault(poddefault):
         "desc": poddefault["spec"].get("desc"),
         "volumeMounts": poddefault["spec"].get("volumeMounts"),
         "volumes": poddefault["spec"].get("volumes"),
-        "env": poddefault["spec"].get("env")
+        "envs": poddefault["spec"].get("env")
     }
 
     return parsed_poddefault
