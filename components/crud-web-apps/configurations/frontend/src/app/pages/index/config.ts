@@ -22,30 +22,30 @@ export const tableConfig: TableConfig = {
       style: { width: '15%' },
       value: new PropertyValue({ field: 'desc', truncate: true }),
     },
-    {
-      matHeaderCellDef: $localize`Labels`,
-      matColumnDef: 'labels',
-      textAlignment: 'left',
-      style: { width: '25%' },
-      value: new PropertyValue({ 
-        field: 'labels', 
-        valueFn: (rows) => {
-          return JSON.stringify((new Map(Object.entries(rows))).get("labels"));
-        },
-        truncate: true }),
-    },
-    {
-      matHeaderCellDef: $localize`Annotations`,
-      matColumnDef: 'annotations',
-      textAlignment: 'left',
-      style: { width: '25%' },
-      value: new PropertyValue({ 
-        field: 'annotations', 
-        valueFn: (rows) => {
-          return JSON.stringify((new Map(Object.entries(rows))).get("annotations"));
-        },
-        truncate: true }),
-    },
+    // {
+    //   matHeaderCellDef: $localize`Labels`,
+    //   matColumnDef: 'labels',
+    //   textAlignment: 'left',
+    //   style: { width: '25%' },
+    //   value: new PropertyValue({ 
+    //     field: 'labels', 
+    //     valueFn: (rows) => {
+    //       return JSON.stringify((new Map(Object.entries(rows))).get("labels"));
+    //     },
+    //     truncate: true }),
+    // },
+    // {
+    //   matHeaderCellDef: $localize`Annotations`,
+    //   matColumnDef: 'annotations',
+    //   textAlignment: 'left',
+    //   style: { width: '25%' },
+    //   value: new PropertyValue({ 
+    //     field: 'annotations', 
+    //     valueFn: (rows) => {
+    //       return JSON.stringify((new Map(Object.entries(rows))).get("annotations"));
+    //     },
+    //     truncate: true }),
+    // },
     {
       matHeaderCellDef: $localize`Created`,
       matColumnDef: 'create',
