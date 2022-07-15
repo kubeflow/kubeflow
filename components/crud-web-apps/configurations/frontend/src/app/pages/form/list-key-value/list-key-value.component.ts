@@ -25,7 +25,7 @@ export class ListKeyValueComponent {
         key: new FormControl('', Validators.required),
         from: new FormControl('', Validators.required),
         value: new FormControl('', Validators.required),
-        path: new FormControl('path', Validators.required),
+        path: new FormControl('/etc', Validators.required),
         valueList: new FormControl([], Validators.required),
       }),
     );
