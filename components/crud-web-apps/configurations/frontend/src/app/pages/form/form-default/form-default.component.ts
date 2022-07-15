@@ -1,6 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import {
+  FormArray,
   FormBuilder,
+  FormControl,
   FormGroup,
   Validators,
 } from '@angular/forms';
@@ -83,6 +85,45 @@ export class FormDefaultComponent implements OnInit {
       this.formCtrl.controls.name.disable();
 
       this.formCtrl.controls.desc.setValue(config.desc);
+      let envs:FormArray = this.formCtrl.controls.envs as FormArray
+      for (const env of config.envs){
+        envs.push(
+          new FormGroup(
+            {
+                key: new FormControl(env["name"], Validators.required),
+                from: new FormControl(env["valueFrom"]["secretKeyRef"]["name"], Validators.required),
+                value: new FormControl(env["valueFrom"]["secretKeyRef"]["key"], Validators.required),
+                path: new FormControl('path', Validators.required),
+                valueList: new FormControl([env["valueFrom"]["secretKeyRef"]["key"]], Validators.required),
+            }
+          ),
+        )
+      }
+      let volumes:FormArray = this.formCtrl.controls.volumes as FormArray
+      for (const vol of config.volumes){
+        let valueKeys = [];
+        let items:[] = vol["configMap"]["items"]
+        for (let key of items){
+          valueKeys.push(key["key"]);
+        }
+        let volPath = "";
+        for (let path of config.volumeMounts){
+          if (path["name"] == vol["name"]){
+            volPath = path["mountPath"]
+          }
+        }
+        volumes.push(
+          new FormGroup(
+            {
+                key: new FormControl(vol["name"], Validators.required),
+                from: new FormControl(vol["configMap"]["name"], Validators.required),
+                value: new FormControl(valueKeys, Validators.required),
+                path: new FormControl(volPath, Validators.required),
+                valueList: new FormControl(valueKeys, Validators.required),
+            }
+          ),
+        )
+      }
     }
   }
 

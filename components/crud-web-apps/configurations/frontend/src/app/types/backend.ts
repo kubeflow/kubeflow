@@ -15,7 +15,8 @@ export interface ConfigResponseObject {
   annotations:  Map<String, Object>;
   status: Status;
   desc: string;
-  env: [];
+  envs: [];
+  volumeMounts: [];
   volumes: [];
 }
 
