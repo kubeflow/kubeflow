@@ -1,5 +1,5 @@
 <div class="form--container" mat-dialog-content>
-  <form novalidate (ngSubmit)="onSubmit()" [formGroup]="formCtrl">
+  <form novalidate [formGroup]="formCtrl">
     <lib-form-section
       title="New ConfigMap"
       text="Create a new ConfigMap."
@@ -23,18 +23,26 @@
       <mat-checkbox formControlName="isSync">Whether to synchronize to another namespace</mat-checkbox>
     </div>
     
-    <mat-label i18n>ConfigMap Lable</mat-label>
+    <!-- <mat-label i18n>ConfigMap Lable</mat-label>
     <app-yamls #labeleditor [value]="formCtrl.get('labels').value" mode="yaml" theme="xcode"></app-yamls>
     <mat-label i18n>ConfigMap Annotation</mat-label>
     <app-yamls #annotationeditor [value]="formCtrl.get('annotations').value" mode="yaml" theme="xcode"></app-yamls>
-    <mat-label i18n>ConfigMap Data</mat-label>
-    <app-yamls #yamleditor [value]="formCtrl.get('data').value" mode="yaml" theme="xcode"></app-yamls>
+    <mat-label i18n>ConfigMap Data</mat-label> -->
+    <!-- <app-yamls #yamleditor [value]="formCtrl.get('data').value" mode="yaml" theme="xcode"></app-yamls> -->
+    <app-list-key-value
+      #data
+      [formArray]="formCtrl.get('data')"
+      addButtonText="Add ConfigMap Data"
+      keyLabel="Name"
+      valueLabel="Value"
+    ></app-list-key-value>
     
     <button
     mat-raised-button
     color="primary"
     class="form--button-margin"
     type="submit"
+    (click)="onSubmit()"
     [disabled]="!formCtrl.valid || blockSubmit"
     i18n
     >
