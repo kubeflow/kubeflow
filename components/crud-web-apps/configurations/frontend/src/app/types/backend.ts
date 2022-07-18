@@ -32,7 +32,7 @@ export interface ConfigPostObject {
   labels: Map<String, Object>;
   annotations: Map<String, Object>;
   desc: string;
-  env: [];
+  envs: [];
   volumes: [];
 }
 
