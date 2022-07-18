@@ -23,6 +23,7 @@ import { IndexDefaultComponent } from './pages/index/index-default/index-default
 import { MatTabsModule } from '@angular/material/tabs';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import { YamlsModule } from './pages/form/yamls/yamls.module';
+import { ListKeyValueModule } from './pages/form/list-key-value/list-key-value.module';
 
 
 import { HttpClientModule } from '@angular/common/http';
@@ -45,6 +46,7 @@ import { HttpClientModule } from '@angular/common/http';
     MatTabsModule,
     MatCheckboxModule,
     YamlsModule,
+    ListKeyValueModule,
     KubeflowModule,
     HttpClientModule,
   ],
