@@ -1,10 +1,12 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import {
+  FormArray,
   FormBuilder,
+  FormControl,
   FormGroup,
   Validators,
 } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { of, Subscription } from 'rxjs';
 import {
   NamespaceService,
   DIALOG_RESP,
@@ -33,7 +35,7 @@ export class FormDefaultComponent implements OnInit {
   public currNamespace = '';
   public secretNames = new Set<string>();
 
-  @ViewChild('yamleditor') yamleditor;
+  // @ViewChild('yamleditor') yamleditor;
   @ViewChild('labeleditor') labeleditor;
   @ViewChild('annotationeditor') annotationeditor;
 
@@ -49,7 +51,7 @@ export class FormDefaultComponent implements OnInit {
       labels: [null],
       annotations: [null],
       secretType: ['', [Validators.required]],
-      data: [null],
+      data: this.fb.array([]),
       isSync: [false, [Validators.required]]
     });
   }
@@ -65,8 +67,7 @@ export class FormDefaultComponent implements OnInit {
     );
     
     const secret: SecretProcessedObject = this.dialog._containerInstance._config.data;
-    if (secret != null)
-    {
+    if (secret != null){
       this.isPatch = true;
       this.formCtrl.controls.name.setValue(secret.name);
       this.formCtrl.controls.name.disable();
@@ -82,7 +83,24 @@ export class FormDefaultComponent implements OnInit {
             this.formCtrl.controls.isSync.setValue(true);
             this.formCtrl.controls.isSync.disable();
         }
-      this.formCtrl.controls.data.setValue(JSON.stringify(secret.data));
+      let datas:FormArray = this.formCtrl.controls.data as FormArray
+      for (var [k,v] of new Map(Object.entries(secret.data))){
+        var val = ""
+        var isBase64 = false
+        if (btoa(atob(v)) == v){
+          val = atob(v)
+          isBase64 = true
+        }
+        datas.push(
+          new FormGroup(
+            {
+                key: new FormControl(k, Validators.required),
+                value: new FormControl(val, Validators.required),
+                isBase64: new FormControl(isBase64, Validators.required),
+            }
+          ),
+        )
+      }
     }
   }
 
@@ -91,8 +109,7 @@ export class FormDefaultComponent implements OnInit {
   }
 
   public onSubmit() {
-    this.formCtrl.controls.data.setValue(this.yamleditor.data);
-    this.formCtrl.controls.labels.setValue(this.labeleditor.data);
+    // this.formCtrl.controls.labels.setValue(this.labeleditor.data);
     var annotations = this.annotationeditor.data == null ? new Map() : new Map(Object.entries(this.annotationeditor.data));
     if (this.formCtrl.controls.isSync.value){
       if (!annotations.has("replicator.v1.mittwald.de/replicate-to-matching")){
@@ -106,11 +123,25 @@ export class FormDefaultComponent implements OnInit {
       }
       return obj;
     })(annotations)));
-    const secret: SecretPostObject = JSON.parse(JSON.stringify(this.formCtrl.getRawValue()));
+
+    let data = Object.create(null);
+    for(const dt of this.formCtrl.controls.data.value){
+      if (dt["isBase64"]){
+        data[dt["key"]] = btoa(dt["value"])
+      } else {
+        data[dt["key"]] = dt["value"]
+      }
+    }
+    let secret: SecretPostObject ={
+      name: this.formCtrl.controls.name.value,
+      type: this.formCtrl.controls.secretType.value,
+      labels: this.formCtrl.controls.labels.value,
+      annotations: this.formCtrl.controls.annotations.value,
+      data: data,
+    }
     this.blockSubmit = true;
 
-    if (!this.isPatch)
-    {
+    if (!this.isPatch){
       this.backend.createSecret(this.currNamespace, secret).subscribe(
         result => {
           this.dialog.close(DIALOG_RESP.ACCEPT);
@@ -119,7 +150,7 @@ export class FormDefaultComponent implements OnInit {
           this.blockSubmit = false;
         },
       );
-    } else{
+    } else {
       this.backend.patchSecret(this.currNamespace, secret).subscribe(
         result => {
           this.dialog.close(DIALOG_RESP.ACCEPT);
