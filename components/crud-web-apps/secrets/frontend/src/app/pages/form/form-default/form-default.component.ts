@@ -79,10 +79,11 @@ export class FormDefaultComponent implements OnInit {
       this.formCtrl.controls.annotations.setValue(JSON.stringify(secret.annotations));
       var annotations = secret.annotations == null ? null : new Map(Object.entries(secret.annotations));
       if (annotations != null && 
-          annotations.has("replicator.v1.mittwald.de/replicate-to-matching")){
+          annotations.has("replicator.v1.mittwald.de/replicate-to-matching")) {
             this.formCtrl.controls.isSync.setValue(true);
             this.formCtrl.controls.isSync.disable();
         }
+      
       let datas:FormArray = this.formCtrl.controls.data as FormArray
       for (var [k,v] of new Map(Object.entries(secret.data))){
         var val = ""
@@ -109,19 +110,16 @@ export class FormDefaultComponent implements OnInit {
   }
 
   public onSubmit() {
-    var annotations = this.annotationeditor.data == null ? new Map() : new Map(Object.entries(this.annotationeditor.data));
+    var annotations = this.annotationeditor == null ? new Map() : new Map(Object.entries(this.annotationeditor.data));
     if (this.formCtrl.controls.isSync.value){
       if (!annotations.has("replicator.v1.mittwald.de/replicate-to-matching")){
             annotations.set("replicator.v1.mittwald.de/replicate-to-matching", "app.kubernetes.io/part-of=kubeflow-profile")
           }
     }
-    this.formCtrl.controls.annotations.setValue(((function(map) {
-      let obj = Object.create(null);
-      for (let [k,v] of map){
-        obj[k]=v;
-      }
-      return obj;
-    })(annotations)));
+    let annotationobj = Object.create(null);
+    for (let [k,v] of annotations){
+      annotationobj[k]=v;
+    }
 
     let data = Object.create(null);
     for(var dt of this.formCtrl.controls.data.value){
@@ -135,7 +133,7 @@ export class FormDefaultComponent implements OnInit {
       name: this.formCtrl.controls.name.value,
       type: this.formCtrl.controls.secretType.value,
       labels: this.formCtrl.controls.labels.value,
-      annotations: this.formCtrl.controls.annotations.value,
+      annotations: annotationobj,
       data: data,
     }
     this.blockSubmit = true;
