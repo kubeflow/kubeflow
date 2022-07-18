@@ -1,6 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import {
+  FormArray,
   FormBuilder,
+  FormControl,
   FormGroup,
   Validators,
 } from '@angular/forms';
@@ -28,8 +30,8 @@ export class FormDefaultComponent implements OnInit {
   public currNamespace = '';
   public configMapNames = new Set<string>();
 
-  @ViewChild('yamleditor') yamleditor;
-  @ViewChild('labeleditor') labeleditor;
+  // @ViewChild('data') data;
+  // @ViewChild('labeleditor') labeleditor;
   @ViewChild('annotationeditor') annotationeditor;
 
   constructor(
@@ -43,7 +45,7 @@ export class FormDefaultComponent implements OnInit {
       namespace: ['', [Validators.required]],
       labels: [null],
       annotations: [null],
-      data: [null],
+      data: this.fb.array([]),
       isSync: [false, [Validators.required]]
     });
   }
@@ -73,7 +75,17 @@ export class FormDefaultComponent implements OnInit {
             this.formCtrl.controls.isSync.setValue(true);
             this.formCtrl.controls.isSync.disable();
         }
-      this.formCtrl.controls.data.setValue(JSON.stringify(cmap.data));
+      let datas:FormArray = this.formCtrl.controls.data as FormArray
+      for (var [k,v] of new Map(Object.entries(cmap.data))){
+        datas.push(
+          new FormGroup(
+            {
+                key: new FormControl(k, Validators.required),
+                value: new FormControl(v, Validators.required),
+            }
+          ),
+        )
+      }
     }
   }
 
@@ -82,26 +94,31 @@ export class FormDefaultComponent implements OnInit {
   }
 
   public onSubmit() {
-    this.formCtrl.controls.data.setValue(this.yamleditor.data);
-    this.formCtrl.controls.labels.setValue(this.labeleditor.data);
-    var annotations = this.annotationeditor.data == null ? new Map() : new Map(Object.entries(this.annotationeditor.data));
+    var annotations = this.annotationeditor == null ? new Map() : new Map(Object.entries(this.annotationeditor.data));
     if (this.formCtrl.controls.isSync.value){
       if (!annotations.has("replicator.v1.mittwald.de/replicate-to-matching")){
             annotations.set("replicator.v1.mittwald.de/replicate-to-matching", "app.kubernetes.io/part-of=kubeflow-profile")
           }
     }
-    this.formCtrl.controls.annotations.setValue(((function(map) {
-      let obj = Object.create(null);
-      for (let [k,v] of map){
-        obj[k]=v;
-      }
-      return obj;
-    })(annotations)));
-    const configMap: ConfigMapPostObject = JSON.parse(JSON.stringify(this.formCtrl.getRawValue()));
+    let annotationobj = Object.create(null);
+    for (let [k,v] of annotations){
+      annotationobj[k]=v;
+    }
+
+    let data = Object.create(null);
+    for(var dt of this.formCtrl.controls.data.value){
+        data[dt["key"]] = dt["value"]
+    }
+
+    let configMap: ConfigMapPostObject={
+      name: this.formCtrl.controls.name.value,
+      labels: null,
+      annotations: annotationobj,
+      data: data,
+    }
     this.blockSubmit = true;
-    console.log(configMap);
     
-    if (!this.isPatch){
+    if (!this.isPatch) {
       this.backend.createConfigMap(this.currNamespace, configMap).subscribe(
         result => {
           this.dialog.close(DIALOG_RESP.ACCEPT);
@@ -110,8 +127,7 @@ export class FormDefaultComponent implements OnInit {
           this.blockSubmit = false;
         },
       );
-    }
-    else{
+    } else {
       this.backend.patchConfigMap(this.currNamespace, configMap).subscribe(
         result => {
           this.dialog.close(DIALOG_RESP.ACCEPT);
