@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 @bp.route("/api/namespaces/<namespace>/secret", methods=["POST"])
 @decorators.request_is_json_type
-@decorators.required_body_params("name", "secretType", "data", )
+@decorators.required_body_params("name", "type", "data", )
 def post_secret(namespace):
     body = request.get_json()
     log.info("Received body: %s", body)
@@ -27,7 +27,7 @@ def post_secret(namespace):
 
 @bp.route("/api/namespaces/<namespace>/secret", methods=["PATCH"])
 @decorators.request_is_json_type
-@decorators.required_body_params("name", "secretType", "data", )
+@decorators.required_body_params("name", "type", "data", )
 def replace_secret(namespace):
     body = request.get_json()
     log.info("Received body: %s", body)

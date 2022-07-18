@@ -14,6 +14,6 @@ def secret_from_dict(body, namespace):
             namespace=namespace,
             labels=body["labels"],
             annotations=body["annotations"]),
-        type=body["secretType"],
+        type=body["type"],
         data=body["data"],
     )
