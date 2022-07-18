@@ -38,6 +38,7 @@ export class FormDefaultComponent implements OnInit {
 
   @ViewChild('envs') envs;
   @ViewChild('volumes') volumes;
+  @ViewChild('annotationeditor') annotationeditor;
 
   constructor(
     public ns: NamespaceService,
@@ -78,13 +79,20 @@ export class FormDefaultComponent implements OnInit {
     );
     
     const config: ConfigProcessedObject = this.dialog._containerInstance._config.data;
-    if (config != null)
-    {
+    if (config != null) {
       this.isPatch = true;
       this.formCtrl.controls.name.setValue(config.name);
       this.formCtrl.controls.name.disable();
 
       this.formCtrl.controls.desc.setValue(config.desc);
+
+      var annotations = config.annotations == null ? null : new Map(Object.entries(config.annotations));
+      if (annotations != null && 
+          annotations.has("replicator.v1.mittwald.de/replicate-to-matching")) {
+            this.formCtrl.controls.isSync.setValue(true);
+            this.formCtrl.controls.isSync.disable();
+      }
+
       let envs:FormArray = this.formCtrl.controls.envs as FormArray
       for (const env of config.envs){
         envs.push(
@@ -156,7 +164,25 @@ export class FormDefaultComponent implements OnInit {
   }
 
   public onSubmit() {
-    const config: ConfigPostObject = JSON.parse(JSON.stringify(this.formCtrl.getRawValue()));
+    var annotations = this.annotationeditor == null ? new Map() : new Map(Object.entries(this.annotationeditor.data));
+    if (this.formCtrl.controls.isSync.value){
+      if (!annotations.has("replicator.v1.mittwald.de/replicate-to-matching")){
+            annotations.set("replicator.v1.mittwald.de/replicate-to-matching", "app.kubernetes.io/part-of=kubeflow-profile")
+          }
+    }
+    let annotationobj = Object.create(null);
+    for (let [k,v] of annotations){
+      annotationobj[k]=v;
+    }
+
+    let config: ConfigPostObject ={
+      name: this.formCtrl.controls.name.value,
+      desc: this.formCtrl.controls.desc.value,
+      labels: null,
+      annotations: annotationobj,
+      envs: this.formCtrl.controls.envs.value,
+      volumes: this.formCtrl.controls.volumes.value
+    }
     this.blockSubmit = true;
     if (!this.isPatch)
     {
