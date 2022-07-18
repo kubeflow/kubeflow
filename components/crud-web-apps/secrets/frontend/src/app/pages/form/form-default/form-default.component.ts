@@ -109,7 +109,6 @@ export class FormDefaultComponent implements OnInit {
   }
 
   public onSubmit() {
-    // this.formCtrl.controls.labels.setValue(this.labeleditor.data);
     var annotations = this.annotationeditor.data == null ? new Map() : new Map(Object.entries(this.annotationeditor.data));
     if (this.formCtrl.controls.isSync.value){
       if (!annotations.has("replicator.v1.mittwald.de/replicate-to-matching")){
@@ -125,14 +124,14 @@ export class FormDefaultComponent implements OnInit {
     })(annotations)));
 
     let data = Object.create(null);
-    for(const dt of this.formCtrl.controls.data.value){
+    for(var dt of this.formCtrl.controls.data.value){
       if (dt["isBase64"]){
         data[dt["key"]] = btoa(dt["value"])
       } else {
         data[dt["key"]] = dt["value"]
       }
     }
-    let secret: SecretPostObject ={
+    let secret: SecretPostObject = {
       name: this.formCtrl.controls.name.value,
       type: this.formCtrl.controls.secretType.value,
       labels: this.formCtrl.controls.labels.value,

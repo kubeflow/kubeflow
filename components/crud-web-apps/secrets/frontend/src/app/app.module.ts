@@ -21,7 +21,7 @@ import { FormDefaultComponent } from './pages/form/form-default/form-default.com
 import { IndexDefaultComponent } from './pages/index/index-default/index-default.component';
 
 import { MatTabsModule } from '@angular/material/tabs';
-import {MatCheckboxModule} from '@angular/material/checkbox';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { YamlsModule } from './pages/form/yamls/yamls.module';
 import { ListKeyValueModule } from './pages/form/list-key-value/list-key-value.module';
 
