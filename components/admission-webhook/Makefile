@@ -2,16 +2,46 @@
 IMG ?= admission-webhook
 TAG ?= $(shell git describe --tags --always --dirty)
 
+# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
+ifeq (,$(shell go env GOBIN))
+GOBIN=$(shell go env GOPATH)/bin
+else
+GOBIN=$(shell go env GOBIN)
+endif
+
+generate: controller-gen
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+
+manifests: controller-gen
+	$(CONTROLLER_GEN) crd:crdVersions=v1,maxDescLen=0 output:crd:artifacts:config=manifests/base paths="./..."
+	mv manifests/base/kubeflow.org_poddefaults.yaml manifests/base/crd.yaml
+
 build:
 	go build -gcflags 'all=-N -l' -o bin/webhook .
 
 docker-build:
 	docker build -t ${IMG}:${TAG} -f Dockerfile .
 
-docker-push: 
+docker-push:
 	docker push ${IMG}:${TAG}
 
 image: docker-build docker-push
 
-docker-push:
-	docker push ${IMG}:${TAG}
+CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
+.PHONY: controller-gen
+controller-gen: ## Download controller-gen locally if necessary.
+	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.8.0)
+
+# go-get-tool will 'go get' any package $2 and install it to $1.
+PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+define go-get-tool
+@[ -f $(1) ] || { \
+set -e ;\
+TMP_DIR=$$(mktemp -d) ;\
+cd $$TMP_DIR ;\
+go mod init tmp ;\
+echo "Downloading $(2)" ;\
+GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
+rm -rf $$TMP_DIR ;\
+}
+endef
