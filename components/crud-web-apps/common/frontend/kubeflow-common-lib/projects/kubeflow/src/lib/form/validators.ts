@@ -22,7 +22,7 @@ export interface IValidator {
 export const dns1123Validator: IValidator = {
   regex: '^' + dns1123LabelFmt + '(\\.' + dns1123LabelFmt + ')*' + '$',
   help:
-    "Name must consist of lowercase alphanumeric characters or '-', and\"" +
+    'Name must consist of lowercase alphanumeric characters or \'-\', and"' +
     ' must start and end with an alphanumeric character',
 };
 
@@ -56,7 +56,7 @@ export const cpuValidator: IValidator = {
   regex: '^[0-9]*(m|[.][0-9]+)?$',
   help:
     'Invalid cpu limit: Should be a fixed-point integer or an integer ' +
-    "followed by 'm'",
+    'followed by \'m\'',
 };
 
 export const DEBOUNCE_TIME = 500;
@@ -65,8 +65,7 @@ export const DEBOUNCE_TIME = 500;
 export function mergeAndDebounceValidators(
   syncValidators: ValidatorFn[],
 ): AsyncValidatorFn {
-  return (control: AbstractControl): Observable<ValidationErrors | null> => {
-    return timer(DEBOUNCE_TIME).pipe(
+  return (control: AbstractControl): Observable<ValidationErrors | null> => timer(DEBOUNCE_TIME).pipe(
       switchMap(() => {
         // Run all synchronous validators and return their concatenated output
         let validationResult: ValidationErrors = {};
@@ -89,7 +88,6 @@ export function mergeAndDebounceValidators(
         return observableOf(validationResult);
       }),
     );
-  };
 }
 
 // Name Validators
@@ -109,9 +107,7 @@ export function getNameError(nameCtrl: AbstractControl, resource: string) {
 }
 
 export function getExistingNameValidator(names: Set<string>): ValidatorFn {
-  return (control: AbstractControl): { [key: string]: any } => {
-    return names.has(control.value) ? { existingName: true } : null;
-  };
+  return (control: AbstractControl): { [key: string]: any } => names.has(control.value) ? { existingName: true } : null;
 }
 
 export function getNameSyncValidators() {
@@ -154,16 +150,10 @@ export function rokUrlValidator(rok: RokService): AsyncValidatorFn {
     // Ensure a protocol is given
     // Don't fire while the user is writting
     return timer(DEBOUNCE_TIME).pipe(
-      switchMap(() => {
-        return rok.getObjectMetadata(url, false).pipe(
-          map(resp => {
-            return null;
-          }),
-          catchError((msg: string) => {
-            return observableOf({ invalidRokUrl: true });
-          }),
-        );
-      }),
+      switchMap(() => rok.getObjectMetadata(url, false).pipe(
+          map(resp => null),
+          catchError((msg: string) => observableOf({ invalidRokUrl: true })),
+        )),
     );
   };
 }

@@ -9,7 +9,7 @@
     "copyLibAssets": "cp -r ./node_modules/kubeflow/assets/* ./src/assets/",
     "i18n:extract": "ng extract-i18n --output-path i18n",
     "test": "ng test",
-    "lint": "ng lint",
+    "lint": "ng lint --fix",
     "e2e": "ng e2e"
   },
   "private": true,

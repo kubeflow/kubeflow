@@ -18,9 +18,7 @@ export class VWABackendService extends BackendService {
 
     return this.http.get<VWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
-      map((resp: VWABackendResponse) => {
-        return resp.pvcs;
-      }),
+      map((resp: VWABackendResponse) => resp.pvcs),
     );
   }
 

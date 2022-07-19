@@ -27,6 +27,9 @@
             "accessibility": "explicit"
           }
         ],
+        "@typescript-eslint/naming-convention": "off",
+        "@typescript-eslint/member-ordering": "off",
+        "prefer-arrow/prefer-arrow-functions": "off",
         "arrow-parens": [
           "off",
           "always"
