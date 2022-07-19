@@ -16,9 +16,9 @@ spec:
         - containerPort: 5000
         env:
         - name: APP_PREFIX
-          value: $(CWA_PREFIX)
+          value: $(DWA_PREFIX)
         - name: USERID_HEADER
-          value: $(CWA_USERID_HEADER)
+          value: $(DWA_USERID_HEADER)
         - name: USERID_PREFIX
-          value: $(CWA_USERID_PREFIX)
+          value: $(DWA_USERID_PREFIX)
       serviceAccountName: service-account
