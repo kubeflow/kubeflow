@@ -19,6 +19,7 @@ import { PVCResponseObject, PVCProcessedObject } from 'src/app/types';
 import { Subscription } from 'rxjs';
 import { FormDefaultComponent } from '../../form/form-default/form-default.component';
 import { Router } from '@angular/router';
+import { ActionsService } from 'src/app/services/actions.service';
 
 @Component({
   selector: 'app-index-default',
@@ -54,6 +55,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     public snackBar: SnackBarService,
     public poller: PollerService,
     public router: Router,
+    public actions: ActionsService,
   ) {}
 
   ngOnInit() {
@@ -122,51 +124,15 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   }
 
   public deleteVolumeClicked(pvc: PVCProcessedObject) {
-    const deleteDialogConfig: DialogConfig = {
-      title: $localize`Are you sure you want to delete this volume? ${pvc.name}`,
-      message: $localize`Warning: All data in this volume will be lost.`,
-      accept: $localize`DELETE`,
-      confirmColor: 'warn',
-      cancel: $localize`CANCEL`,
-      error: '',
-      applying: $localize`DELETING`,
-      width: '600px',
-    };
-
-    const ref = this.confirmDialog.open(pvc.name, deleteDialogConfig);
-    const delSub = ref.componentInstance.applying$.subscribe(applying => {
-      if (!applying) {
+    this.actions.deleteVolume(pvc.name, pvc.namespace).subscribe(result => {
+      if (result !== DIALOG_RESP.ACCEPT) {
         return;
       }
 
-      // Close the open dialog only if the DELETE request succeeded
-      this.backend.deletePVC(pvc.namespace, pvc.name).subscribe({
-        next: _ => {
-          // We don't want to poll based on the namespace of the PVC since this
-          // might override the all-namespaces selection
-          this.poll(this.currNamespace);
-          ref.close(DIALOG_RESP.ACCEPT);
-        },
-        error: err => {
-          // Simplify the error message
-          const errorMsg = err;
-          deleteDialogConfig.error = errorMsg;
-          ref.componentInstance.applying$.next(false);
-        },
-      });
-
-      // DELETE request has succeeded
-      ref.afterClosed().subscribe(res => {
-        delSub.unsubscribe();
-        if (res !== DIALOG_RESP.ACCEPT) {
-          return;
-        }
-
-        pvc.status.phase = STATUS_TYPE.TERMINATING;
-        pvc.status.message = 'Preparing to delete the Volume...';
-        pvc.deleteAction = STATUS_TYPE.UNAVAILABLE;
-        this.pvcsWaitingViewer.delete(pvc.name);
-      });
+      pvc.status.phase = STATUS_TYPE.TERMINATING;
+      pvc.status.message = 'Preparing to delete the Volume...';
+      pvc.deleteAction = STATUS_TYPE.UNAVAILABLE;
+      this.pvcsWaitingViewer.delete(pvc.name);
     });
   }
 
