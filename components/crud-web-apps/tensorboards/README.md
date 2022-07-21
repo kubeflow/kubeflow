@@ -12,7 +12,6 @@ This web app is responsible for allowing the user to manipulate Tensorboard inst
 ## Development
 
 Requirements:
-* node 12.0.0
 * python 3.7
 
 ### Frontend
@@ -106,3 +105,4 @@ I hope to be able to maintain and improve the TWA, using it where possibly throu
 # Acknowledgements
 
 First and foremost, I would like to thank my mentors Kimonas and Ilias. Both of them, despite their busy timelines were always willing to answer my (very often) questions and provide suggestions. They were always there for me, and I can't thank them enough for that. Also, Kubeflow, which introduced me to the world of open-source programming and gave me the opportunity to work on such an exiting project. Finally the Google Summer of Code program, that provided the necessary funding so I could undertake this project throughout the summer months and have a wonderful experience.
+* node 16
