@@ -41,4 +41,18 @@ spec:
         - containerPort: 8080
           name: manager-http
           protocol: TCP
-      serviceAccountName: controller-service-account
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 9876
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 9876
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        ports:
+        - containerPort: 9876
+      serviceAccountName: controller-manager
