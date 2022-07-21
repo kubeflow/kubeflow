@@ -29,6 +29,7 @@
         ],
         "@typescript-eslint/naming-convention": "off",
         "@typescript-eslint/member-ordering": "off",
+        "@angular-eslint/no-input-rename": "off",
         "prefer-arrow/prefer-arrow-functions": "off",
         "arrow-parens": [
           "off",
