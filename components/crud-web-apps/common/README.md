@@ -95,7 +95,7 @@ You also need to add `"preserveSymlinks": true` to the app's frontend `angular.j
 
 ```dockerfile
 # --- Build the frontend kubeflow library ---
-FROM node:12 as frontend-kubeflow-lib
+FROM node:16 as frontend-kubeflow-lib
 
 WORKDIR /src
 
@@ -107,7 +107,7 @@ RUN npm run build
 
 ...
 # --- Build the frontend ---
-FROM node:12 as frontend
+FROM node:16 as frontend
 RUN npm install -g @angular/cli
 
 WORKDIR /src
@@ -126,14 +126,14 @@ Internationalization was implemented using [ngx-translate](https://github.com/ng
 
 This is based on the browser's language. If the browser detects a language that is not implemented in the application, it will default to English.
 
-The i18n asset files are located under `frontend/src/assets/i18n` of each application (jupyter, volumes and tensorboard). One file is needed per language. The common project is duplicated in every asset. 
+The i18n asset files are located under `frontend/src/assets/i18n` of each application (jupyter, volumes and tensorboard). One file is needed per language. The common project is duplicated in every asset.
 
 The translation asset files are set in the `app.module.ts`, which should not be needed to modify.
 The translation default language is set in the `app.component.ts`.
 
 For each language added, `app.component.ts` will need to be updated.
 
-**When a language is added:** 
+**When a language is added:**
 - Copy the en.json file and rename is to the language you want to add. As it currently is, the culture should not be included.
 - Change the values to the translated ones
 
@@ -144,4 +144,4 @@ For each language added, `app.component.ts` will need to be updated.
 
 **Testing**
 
-To test the i18n works as expected, simply change your browser's language to whichever language you want to test.  
+To test the i18n works as expected, simply change your browser's language to whichever language you want to test.

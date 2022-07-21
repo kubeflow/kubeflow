@@ -5,7 +5,7 @@ This code provides a common library of reusable Angular Components that can be u
 * Reduce the development effort required to propagate changes to all the web apps
 * Minimize the code duplication between our Kubeflow web apps
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.3.20, which is required to build and run the unit tests.
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 12, which is required to build and run the unit tests.
 
 ## Local development
 In order to use this library while developing locally your Angular app you will need to:
