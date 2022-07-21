@@ -31,7 +31,7 @@ with a [configmap](./manifests/base/configs/logos-configmap.yaml) to make it eas
 ## Development
 
 Requirements:
-* node 16
+* node 16.13
 * python 3.7
 
 ### Frontend

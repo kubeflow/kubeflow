@@ -5,7 +5,7 @@ This web app is responsible for allowing the user to manipulate PVCs in their Ku
 ## Development
 
 Requirements:
-* node 16
+* node 16.13
 * python 3.7
 
 ### Frontend
