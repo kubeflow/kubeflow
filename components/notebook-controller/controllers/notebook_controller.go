@@ -263,7 +263,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if !podFound {
 		// Delete LAST_ACTIVITY_ANNOTATION annotations for CR objects
 		// that do not have a pod.
-		log.Info("Notebook has not Pod running. Will remove last-activity annotation")
+		log.Info("Notebook has no Pod running. Will remove last-activity annotation")
 		meta := instance.ObjectMeta
 		if meta.GetAnnotations() == nil {
 			log.Info("No annotations found")
