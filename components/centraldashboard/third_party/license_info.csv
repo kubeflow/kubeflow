@@ -737,7 +737,7 @@ json-bigint@0.3.0,https://github.com/sidorares/json-bigint/tree/master/LICENSE,M
 json-parse-better-errors@1.0.2,https://github.com/zkat/json-parse-better-errors/tree/latest/LICENSE.md,MIT,https://raw.githubusercontent.com/zkat/json-parse-better-errors/latest/LICENSE.md
 json-schema-traverse@0.3.1,https://github.com/epoberezkin/json-schema-traverse/tree/master/LICENSE,MIT,https://raw.githubusercontent.com/epoberezkin/json-schema-traverse/master/LICENSE
 json-schema-traverse@0.4.1,https://github.com/epoberezkin/json-schema-traverse/tree/master/LICENSE,MIT,https://raw.githubusercontent.com/epoberezkin/json-schema-traverse/master/LICENSE
-json-schema@0.2.3,https://github.com/kriszyp/json-schema/tree/master/README.md,AFLv2.1,BSD
+json-schema@0.4.0,https://github.com/kriszyp/json-schema/tree/master/README.md,AFLv2.1,BSD
 json-stable-stringify-without-jsonify@1.0.1,https://github.com/samn/json-stable-stringify/tree/master/LICENSE,MIT,https://raw.githubusercontent.com/samn/json-stable-stringify/master/LICENSE
 json-stringify-safe@5.0.1,https://github.com/isaacs/json-stringify-safe/tree/master/LICENSE,ISC,https://raw.githubusercontent.com/isaacs/json-stringify-safe/master/LICENSE
 json3@3.3.3,https://github.com/bestiejs/json3/tree/master/LICENSE,MIT,https://raw.githubusercontent.com/bestiejs/json3/master/LICENSE
@@ -746,7 +746,7 @@ json5@1.0.1,https://github.com/json5/json5/tree/master/LICENSE.md,MIT,https://ra
 json5@2.1.1,https://github.com/json5/json5/tree/master/LICENSE.md,MIT,https://raw.githubusercontent.com/json5/json5/master/LICENSE.md
 jsonfile@4.0.0,https://github.com/jprichardson/node-jsonfile/tree/master/LICENSE,MIT,https://raw.githubusercontent.com/jprichardson/node-jsonfile/master/LICENSE
 jsonpath@1.0.1,https://github.com/dchester/jsonpath/tree/master/LICENSE,MIT,https://raw.githubusercontent.com/dchester/jsonpath/master/LICENSE
-jsprim@1.4.1,https://github.com/joyent/node-jsprim/tree/master/LICENSE,MIT,https://raw.githubusercontent.com/joyent/node-jsprim/master/LICENSE
+jsprim@1.4.2,https://github.com/joyent/node-jsprim/tree/master/LICENSE,MIT,https://raw.githubusercontent.com/joyent/node-jsprim/master/LICENSE
 jstransformer@1.0.0,https://github.com/jstransformers/jstransformer/tree/master/LICENSE.md,MIT,https://raw.githubusercontent.com/jstransformers/jstransformer/master/LICENSE.md
 jwa@1.4.1,https://github.com/brianloveswords/node-jwa/tree/master/LICENSE,MIT,https://raw.githubusercontent.com/brianloveswords/node-jwa/master/LICENSE
 jws@3.2.2,https://github.com/brianloveswords/node-jws/tree/master/LICENSE,MIT,https://raw.githubusercontent.com/brianloveswords/node-jws/master/LICENSE
