@@ -7,6 +7,7 @@ on:
     paths:
       - components/notebook-controller/**
       - components/common/**
+      - releasing/version/VERSION
   pull_request:
     branches:
       - master
@@ -23,6 +24,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          version:
+            - 'releasing/version/VERSION'
+
     - name: Login to DockerHub
       if: github.event_name == 'push'
       uses: docker/login-action@v2
@@ -35,6 +43,15 @@ jobs:
         cd components/notebook-controller
         export IMG=kubeflownotebookswg/notebook-controller
         make docker-build
+
+    - name: Run Notebook Controller push on Version change
+      id: version
+      if: steps.filter.outputs.version == 'true'
+      run: |
+        export TAG=$(cat releasing/version/VERSION)
+        cd components/notebook-controller
+        export IMG=kubeflownotebookswg/notebook-controller
+        make docker-push
 
     - name: Run Notebook Controller push
       if: github.event_name == 'push'
