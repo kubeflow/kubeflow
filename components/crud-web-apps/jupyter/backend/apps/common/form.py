@@ -4,8 +4,6 @@ from werkzeug.exceptions import BadRequest
 
 from kubeflow.kubeflow.crud_backend import logging
 
-from . import utils
-
 log = logging.getLogger(__name__)
 
 SERVER_TYPE_ANNOTATION = "notebooks.kubeflow.org/server-type"
@@ -124,8 +122,8 @@ def set_notebook_cpu(notebook, body, defaults):
     if cpu_limit and 'nan' in cpu_limit.lower():
         raise BadRequest("Invalid value for cpu limit: %s" % cpu_limit)
 
-    limit_factor = defaults["cpu"].get("limitFactor")
-    if not cpu_limit and limit_factor != "none":
+    if not cpu_limit and "none" != (
+            limit_factor := defaults["cpu"].get("limitFactor")):
         cpu_limit = str(round((float(cpu) * float(limit_factor)), 1))
 
     container["resources"]["requests"]["cpu"] = cpu
@@ -153,8 +151,8 @@ def set_notebook_memory(notebook, body, defaults):
     if memory_limit and 'nan' in memory_limit.lower():
         raise BadRequest("Invalid value for memory limit: %s" % memory_limit)
 
-    limit_factor = defaults["memory"].get("limitFactor")
-    if not memory_limit and limit_factor != "none":
+    if not memory_limit and "none" != (
+            limit_factor := defaults["memory"].get("limitFactor")):
         memory_limit = str(
             round((
                 float(memory.replace('Gi', '')) * float(
@@ -182,9 +180,7 @@ def set_notebook_tolerations(notebook, body, defaults):
         return
 
     notebook_tolerations = notebook["spec"]["template"]["spec"]["tolerations"]
-    toleration_groups = defaults.get("tolerationGroup", {}).get("options", [])
-
-    for group in toleration_groups:
+    for group in defaults.get("tolerationGroup", {}).get("options", []):
         if group["groupKey"] != tolerations_group_key:
             continue
 
@@ -205,9 +201,8 @@ def set_notebook_affinity(notebook, body, defaults):
         return
 
     notebook_spec = notebook["spec"]["template"]["spec"]
-    affinity_configs = defaults.get("affinityConfig", {}).get("options", [])
-
-    for affinity_config in affinity_configs:
+    for affinity_config in (
+            defaults.get("affinityConfig", {}).get("options", [])):
         if affinity_config["configKey"] != affinity_config_key:
             continue
 
