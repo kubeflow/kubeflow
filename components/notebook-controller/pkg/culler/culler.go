@@ -184,6 +184,9 @@ func getNotebookApiKernels(nm, ns string) []KernelStatus {
 	// Get the Kernels' status from the Server's `/api/kernels` endpoint
 
 	resp := getNotebookResourceResponse(nm, ns, "kernels")
+	if resp == nil {
+		return nil
+	}
 
 	var kernels []KernelStatus
 
@@ -201,6 +204,9 @@ func getNotebookApiKernels(nm, ns string) []KernelStatus {
 func getNotebookApiTerminals(nm, ns string) []TerminalStatus {
 	// Get the Terminals' status from the Server's `/api/terminals` endpoint
 	resp := getNotebookResourceResponse(nm, ns, "terminals")
+	if resp == nil {
+		return nil
+	}
 
 	var terminals []TerminalStatus
 
