@@ -32,7 +32,8 @@
       *ngIf="formCtrl.get('type').value === TYPE_ROK_SNAPSHOT"
       [control]="formCtrl.controls.snapshot"
       [mode]="'file'"
-      (urlEntered)="rokUrlChanged($event)"
+      snapshotType="Volume"
+      (snapshotHeaders)="rokUrlChanged($event)"
     ></lib-rok-url-input>
 
     <!--Size-->
