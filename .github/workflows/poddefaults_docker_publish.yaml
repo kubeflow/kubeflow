@@ -42,6 +42,13 @@ jobs:
         export IMG=kubeflownotebookswg/poddefaults-webhook
         make docker-build
 
+    - name: Run PodDefaults push
+      if: github.event_name == 'push'
+      run: |
+        cd components/admission-webhook
+        export IMG=kubeflownotebookswg/poddefaults-webhook
+        make docker-push
+
     - name: Run PodDefaults push on Version change
       id: version
       if: steps.filter.outputs.version == 'true'
@@ -49,11 +56,5 @@ jobs:
         export TAG=$(cat releasing/version/VERSION)
         cd components/admission-webhook
         export IMG=kubeflownotebookswg/poddefaults-webhook
-        make docker-push
-
-    - name: Run PodDefaults push
-      if: github.event_name == 'push'
-      run: |
-        cd components/admission-webhook
-        export IMG=kubeflownotebookswg/poddefaults-webhook
+        make docker-build
         make docker-push

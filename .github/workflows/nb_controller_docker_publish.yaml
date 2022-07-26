@@ -44,6 +44,13 @@ jobs:
         export IMG=kubeflownotebookswg/notebook-controller
         make docker-build
 
+    - name: Run Notebook Controller push
+      if: github.event_name == 'push'
+      run: |
+        cd components/notebook-controller
+        export IMG=kubeflownotebookswg/notebook-controller
+        make docker-push
+
     - name: Run Notebook Controller push on Version change
       id: version
       if: steps.filter.outputs.version == 'true'
@@ -51,11 +58,5 @@ jobs:
         export TAG=$(cat releasing/version/VERSION)
         cd components/notebook-controller
         export IMG=kubeflownotebookswg/notebook-controller
-        make docker-push
-
-    - name: Run Notebook Controller push
-      if: github.event_name == 'push'
-      run: |
-        cd components/notebook-controller
-        export IMG=kubeflownotebookswg/notebook-controller
+        make docker-build
         make docker-push
