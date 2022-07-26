@@ -44,6 +44,13 @@ jobs:
         export IMG=kubeflownotebookswg/tensorboards-web-app
         make docker-build
 
+    - name: Run TWA push
+      if: github.event_name == 'push'
+      run: |
+        cd components/crud-web-apps/tensorboards
+        export IMG=kubeflownotebookswg/tensorboards-web-app
+        make docker-push
+
     - name: Run TWA push on Version change
       id: version
       if: steps.filter.outputs.version == 'true'
@@ -51,11 +58,5 @@ jobs:
         export TAG=$(cat releasing/version/VERSION)
         cd components/crud-web-apps/tensorboards
         export IMG=kubeflownotebookswg/tensorboards-web-app
-        make docker-push
-
-    - name: Run TWA push
-      if: github.event_name == 'push'
-      run: |
-        cd components/crud-web-apps/tensorboards
-        export IMG=kubeflownotebookswg/tensorboards-web-app
+        make docker-build
         make docker-push

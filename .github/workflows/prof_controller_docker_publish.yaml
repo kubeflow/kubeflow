@@ -42,6 +42,13 @@ jobs:
         export IMG=kubeflownotebookswg/profile-controller
         make docker-build
 
+    - name: Run Profile Controller push
+      if: github.event_name == 'push'
+      run: |
+        cd components/profile-controller
+        export IMG=kubeflownotebookswg/profile-controller
+        make docker-push
+
     - name: Run Profile Controller push on Version change
       id: version
       if: steps.filter.outputs.version == 'true'
@@ -49,11 +56,5 @@ jobs:
         export TAG=$(cat releasing/version/VERSION)
         cd components/profile-controller
         export IMG=kubeflownotebookswg/profile-controller
-        make docker-push
-
-    - name: Run Profile Controller push
-      if: github.event_name == 'push'
-      run: |
-        cd components/profile-controller
-        export IMG=kubeflownotebookswg/profile-controller
+        make docker-build
         make docker-push

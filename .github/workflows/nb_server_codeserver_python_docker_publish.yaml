@@ -46,21 +46,22 @@ jobs:
         export TAG=$(git describe --tags --always --dirty)
         make docker-build -C codeserver-python TAG=${TAG}
 
+    - name: Push Notebook Server images via their Makefile
+      if: github.event_name == 'push'
+      run: |
+        cd components/example-notebook-servers/
+        export TAG=$(git describe --tags --always --dirty)
+        export REGISTRY=kubeflownotebookswg
+        docker tag codeserver-python:${TAG} ${REGISTRY}/codeserver-python:${TAG}
+        docker push ${REGISTRY}/codeserver-python:${TAG}
+
     - name: Push Notebook Server images via their Makefile on Version change
       id: version
       if: steps.filter.outputs.version == 'true'
       run: |
         export TAG=$(cat releasing/version/VERSION)
         cd components/example-notebook-servers/
-        export REGISTRY=kubeflownotebookswg
-        docker tag codeserver-python:${TAG} ${REGISTRY}/codeserver-python:${TAG}
-        docker push ${REGISTRY}/codeserver-python:${TAG}
-
-    - name: Push Notebook Server images via their Makefile
-      if: github.event_name == 'push'
-      run: |
-        cd components/example-notebook-servers/
-        export TAG=$(git describe --tags --always --dirty)
+        make docker-build -C codeserver-python TAG=${TAG}
         export REGISTRY=kubeflownotebookswg
         docker tag codeserver-python:${TAG} ${REGISTRY}/codeserver-python:${TAG}
         docker push ${REGISTRY}/codeserver-python:${TAG}

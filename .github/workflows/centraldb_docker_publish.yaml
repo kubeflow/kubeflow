@@ -42,6 +42,13 @@ jobs:
         export IMG=kubeflownotebookswg/centraldashboard
         make docker-build
 
+    - name: Run CentralDashboard push
+      if: github.event_name == 'push'
+      run: |
+        cd components/centraldashboard
+        export IMG=kubeflownotebookswg/centraldashboard
+        make docker-push
+
     - name: Run CentralDashboard push on Version change
       id: version
       if: steps.filter.outputs.version == 'true'
@@ -49,11 +56,5 @@ jobs:
         export TAG=$(cat releasing/version/VERSION)
         cd components/centraldashboard
         export IMG=kubeflownotebookswg/centraldashboard
-        make docker-push
-
-    - name: Run CentralDashboard push
-      if: github.event_name == 'push'
-      run: |
-        cd components/centraldashboard
-        export IMG=kubeflownotebookswg/centraldashboard
+        make docker-build
         make docker-push

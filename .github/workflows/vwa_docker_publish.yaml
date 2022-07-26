@@ -44,6 +44,13 @@ jobs:
         export IMG=kubeflownotebookswg/volumes-web-app
         make docker-build
 
+    - name: Run VWA push
+      if: github.event_name == 'push'
+      run: |
+        cd components/crud-web-apps/volumes
+        export IMG=kubeflownotebookswg/volumes-web-app
+        make docker-push
+
     - name: Run VWA push on Version change
       id: version
       if: steps.filter.outputs.version == 'true'
@@ -51,11 +58,5 @@ jobs:
         export TAG=$(cat releasing/version/VERSION)
         cd components/crud-web-apps/volumes
         export IMG=kubeflownotebookswg/volumes-web-app
-        make docker-push
-
-    - name: Run VWA push
-      if: github.event_name == 'push'
-      run: |
-        cd components/crud-web-apps/volumes
-        export IMG=kubeflownotebookswg/volumes-web-app
+        make docker-build
         make docker-push

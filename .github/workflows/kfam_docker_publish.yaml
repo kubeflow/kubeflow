@@ -42,6 +42,13 @@ jobs:
         export IMG=kubeflownotebookswg/kfam
         make docker-build
 
+    - name: Run KFAM push
+      if: github.event_name == 'push'
+      run: |
+        cd components/access-management
+        export IMG=kubeflownotebookswg/kfam
+        make docker-push
+
     - name: Run KFAM push on Version change
       id: version
       if: steps.filter.outputs.version == 'true'
@@ -49,11 +56,5 @@ jobs:
         export TAG=$(cat releasing/version/VERSION)
         cd components/access-management
         export IMG=kubeflownotebookswg/kfam
-        make docker-push
-
-    - name: Run KFAM push
-      if: github.event_name == 'push'
-      run: |
-        cd components/access-management
-        export IMG=kubeflownotebookswg/kfam
+        make docker-build
         make docker-push

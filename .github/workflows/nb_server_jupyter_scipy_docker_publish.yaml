@@ -44,21 +44,22 @@ jobs:
         export TAG=$(git describe --tags --always --dirty)
         make docker-build -C jupyter-scipy TAG=${TAG}
 
+    - name: Push Notebook Server images via their Makefile
+      if: github.event_name == 'push'
+      run: |
+        cd components/example-notebook-servers/
+        export TAG=$(git describe --tags --always --dirty)
+        export REGISTRY=kubeflownotebookswg
+        docker tag jupyter-scipy:${TAG} ${REGISTRY}/jupyter-scipy:${TAG}
+        docker push ${REGISTRY}/jupyter-scipy:${TAG}
+
     - name: Push Notebook Server images via their Makefile on Version change
       id: version
       if: steps.filter.outputs.version == 'true'
       run: |
         export TAG=$(cat releasing/version/VERSION)
         cd components/example-notebook-servers/
-        export REGISTRY=kubeflownotebookswg
-        docker tag jupyter-scipy:${TAG} ${REGISTRY}/jupyter-scipy:${TAG}
-        docker push ${REGISTRY}/jupyter-scipy:${TAG}
-
-    - name: Push Notebook Server images via their Makefile
-      if: github.event_name == 'push'
-      run: |
-        cd components/example-notebook-servers/
-        export TAG=$(git describe --tags --always --dirty)
+        make docker-build -C jupyter-scipy TAG=${TAG}
         export REGISTRY=kubeflownotebookswg
         docker tag jupyter-scipy:${TAG} ${REGISTRY}/jupyter-scipy:${TAG}
         docker push ${REGISTRY}/jupyter-scipy:${TAG}
