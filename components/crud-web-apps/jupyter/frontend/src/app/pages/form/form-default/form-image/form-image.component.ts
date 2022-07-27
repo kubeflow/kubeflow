@@ -15,6 +15,8 @@ export class FormImageComponent implements OnInit, OnDestroy {
   @Input() images: string[];
   @Input() imagesGroupOne: string[];
   @Input() imagesGroupTwo: string[];
+  @Input() imagesGroupOneEnabled: boolean;
+  @Input() imagesGroupTwoEnabled: boolean;
   @Input() allowCustomImage: boolean;
   @Input() hideRegistry: boolean;
   @Input() hideTag: boolean;

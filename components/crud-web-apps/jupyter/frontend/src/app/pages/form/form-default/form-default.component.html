@@ -23,6 +23,8 @@
         [images]="config?.image?.options"
         [imagesGroupOne]="config?.imageGroupOne?.options"
         [imagesGroupTwo]="config?.imageGroupTwo?.options"
+        [imagesGroupOneEnabled]="config?.imageGroupOne?.options?.length > 0"
+        [imagesGroupTwoEnabled]="config?.imageGroupTwo?.options?.length > 0"
         [allowCustomImage]="config?.allowCustomImage"
         [hideRegistry]="config?.hideRegistry"
         [hideTag]="config?.hideTag"

@@ -1,6 +1,5 @@
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { GPU, Config } from 'src/app/types';
-import { getNameSyncValidators, getNameAsyncValidators } from 'kubeflow';
 import { createFormGroupFromVolume } from 'src/app/shared/utils/volumes';
 
 export function getFormDefaults(): FormGroup {
@@ -12,6 +11,8 @@ export function getFormDefaults(): FormGroup {
     image: ['', [Validators.required]],
     imageGroupOne: ['', [Validators.required]],
     imageGroupTwo: ['', [Validators.required]],
+    imagesGroupOneEnabled: [true, []],
+    imagesGroupTwoEnabled: [true, []],
     allowCustomImage: [true, []],
     imagePullPolicy: ['IfNotPresent', [Validators.required]],
     customImage: ['', []],
