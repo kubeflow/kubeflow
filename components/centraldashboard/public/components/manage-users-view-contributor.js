@@ -80,9 +80,16 @@ export class ManageUsersViewContributor extends utilitiesMixin(localizationMixin
      */
     handleContribCreate(e) {
         if (e.detail.error) {
-            // const error = this._isolateErrorFromIronRequest(e);
-            this.contribCreateError =
-                'manageUsersViewContributor.errorCreateGeneral';
+            const error = this._isolateErrorFromIronRequest(e);
+            // Employee-only namespaces
+            if (error.includes("denyexternalusers")) {
+                this.contribCreateError = 
+                    'manageUsersViewContributor.errorExternalUser';
+            }
+            else {
+                this.contribCreateError =
+                    'manageUsersViewContributor.errorCreateGeneral';
+            }
             return;
         }
         this.contributorList = e.detail.response;
