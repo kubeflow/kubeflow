@@ -126,6 +126,14 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, ignoreNotFound(err)
 	}
 
+	// jupyter-web-app deletes objects using foreground deletion policy, Notebook CR will stay until all owned objects are deleted
+	// reconcile loop might keep on trying to recreate the resources that the API server tries to delete.
+	// so when Notebook CR is terminating, reconcile loop should do nothing
+
+	if !instance.DeletionTimestamp.IsZero() {
+		return ctrl.Result{}, nil
+	}
+
 	// Reconcile StatefulSet
 	ss := generateStatefulSet(instance)
 	if err := ctrl.SetControllerReference(instance, ss, r.Scheme); err != nil {
