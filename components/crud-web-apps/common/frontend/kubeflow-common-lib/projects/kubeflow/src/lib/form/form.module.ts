@@ -50,6 +50,7 @@ import { StepInfoComponent } from './step-info/step-info.component';
     IconModule,
     MatProgressSpinnerModule,
     PopoverModule,
+    MatIconModule,
   ],
   exports: [
     FormSectionComponent,
