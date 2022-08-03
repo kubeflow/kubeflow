@@ -1,20 +1,33 @@
+import { CommonModule } from '@angular/common';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { VolumeSizeComponent } from './size.component';
 
-import { SizeComponent } from './size.component';
-
-describe('SizeComponent', () => {
-  let component: SizeComponent;
-  let fixture: ComponentFixture<SizeComponent>;
+describe('VolumeSizeComponent', () => {
+  let component: VolumeSizeComponent;
+  let fixture: ComponentFixture<VolumeSizeComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SizeComponent],
+      declarations: [VolumeSizeComponent],
+      imports: [
+        CommonModule,
+        MatFormFieldModule,
+        MatInputModule,
+        NoopAnimationsModule,
+        ReactiveFormsModule,
+      ],
     }).compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(SizeComponent);
+    fixture = TestBed.createComponent(VolumeSizeComponent);
     component = fixture.componentInstance;
+    component.sizeCtrl = new FormControl('');
+
     fixture.detectChanges();
   });
 
