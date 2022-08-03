@@ -55,6 +55,10 @@ def patch_notebook(notebook, namespace, body):
 
 
 def list_notebook_events(notebook, namespace):
+    authz.ensure_authorized(
+        "list", "", "v1", "events", namespace
+    )
+
     selector = "involvedObject.kind=Notebook,involvedObject.name=" + notebook
 
     return v1_core.list_namespaced_event(
