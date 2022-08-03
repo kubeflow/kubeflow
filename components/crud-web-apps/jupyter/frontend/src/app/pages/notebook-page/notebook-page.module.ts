@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { NotebookPageComponent } from './notebook-page.component';
 import { OverviewModule } from './overview/overview.module';
+import { LogsModule } from './logs/logs.module';
 import { RouterModule } from '@angular/router';
 
 @NgModule({
@@ -19,6 +20,7 @@ import { RouterModule } from '@angular/router';
     MatTabsModule,
     OverviewModule,
     MatProgressSpinnerModule,
+    LogsModule,
     RouterModule,
   ],
 })

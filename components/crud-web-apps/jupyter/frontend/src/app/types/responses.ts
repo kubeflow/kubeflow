@@ -8,6 +8,7 @@ import { PvcResponseObject } from './volume';
 export interface JWABackendResponse extends BackendResponse {
   notebook?: NotebookRawObject;
   notebooks?: NotebookResponseObject[];
+  logs: string[];
   pvcs?: PvcResponseObject[];
   config?: Config;
   poddefaults?: PodDefault[];
