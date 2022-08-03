@@ -1,0 +1,19 @@
+<mat-divider *ngIf="topDivider"></mat-divider>
+
+<div class="list-entry-row">
+  <!--Key-Title Row-->
+  <div
+    class="list-entry-key vertical-align"
+    [matTooltip]="keyTooltip"
+    [style.min-width]="keyMinWidth"
+  >
+    {{ key }}
+  </div>
+
+  <!--Values-Subtable Row-->
+  <div class="container">
+    <ng-content class="vertical-align"> </ng-content>
+  </div>
+</div>
+
+<mat-divider *ngIf="bottomDivider"></mat-divider>

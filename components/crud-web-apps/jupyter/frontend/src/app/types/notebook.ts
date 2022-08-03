@@ -1,6 +1,12 @@
 import { Status } from 'kubeflow';
 import { PodDefault } from './poddefault';
 import { GPU } from './gpu';
+import {
+  V1ContainerState,
+  V1ObjectMeta,
+  V1PodSpec,
+} from '@kubernetes/client-node';
+import { Condition } from './condition';
 
 export type ServerType = 'jupyter' | 'group-one' | 'group-two';
 
@@ -51,4 +57,20 @@ export interface NotebookFormObject {
   datavols: any[];
   shm: boolean;
   configurations: PodDefault[];
+}
+
+export interface NotebookRawObject {
+  apiVersion: string;
+  kind: string;
+  metadata: V1ObjectMeta;
+  spec: {
+    template: {
+      spec: V1PodSpec;
+    };
+  };
+  status: {
+    conditions: Condition[];
+    containerState: V1ContainerState;
+    readyReplicas: number;
+  };
 }

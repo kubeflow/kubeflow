@@ -1,0 +1,16 @@
+<div>
+  <ng-container *ngIf="configurations && configurations.length > 0">
+    <div class="config-container">
+      <button
+        *ngFor="let config of configurations"
+        class="config-item reset-button-to-text"
+        (click)="openDialog(config)"
+      >
+        {{ config.name }}
+      </button>
+    </div>
+  </ng-container>
+</div>
+<div>
+  <ng-content> </ng-content>
+</div>

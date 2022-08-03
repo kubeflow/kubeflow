@@ -1,0 +1,74 @@
+<lib-details-list-item key="Volumes" [chipsList]="volumes">
+</lib-details-list-item>
+
+<lib-details-list-item key="Shared memory enabled">
+  {{ sharedMemory }}
+</lib-details-list-item>
+
+<lib-content-list-item class="configurations" key="Configurations">
+  <app-configurations [configurations]="configurations">
+    {{ podDefaultsMessage }}
+  </app-configurations>
+</lib-content-list-item>
+
+<lib-details-list-item key="Type">
+  {{ notebookType }}
+</lib-details-list-item>
+
+<lib-details-list-item *ngIf="cpuRequests" key="Minimum CPU">
+  {{ cpuRequests }}
+</lib-details-list-item>
+
+<lib-details-list-item *ngIf="cpuLimits" key="Maximum CPU">
+  {{ cpuLimits }}
+</lib-details-list-item>
+
+<lib-details-list-item *ngIf="memoryRequests" key="Minimum memory">
+  {{ memoryRequests }}
+</lib-details-list-item>
+
+<lib-details-list-item *ngIf="memoryLimits" key="Maximum memory">
+  {{ memoryLimits }}
+</lib-details-list-item>
+
+<lib-details-list-item key="Image" [copyValue]="dockerImage">
+  {{ dockerImage }}
+</lib-details-list-item>
+
+<lib-content-list-item key="Environment">
+  <lib-variables-group-table
+    [envGroups]="envGroups"
+    [loadCompleted]="podRequestCompleted"
+    [loadErrorMsg]="'No environment variables available for this notebook.'"
+  ></lib-variables-group-table>
+</lib-content-list-item>
+
+<!-- Show spinner while pod is being fetched -->
+<ng-container *ngIf="!podRequestCompleted">
+  <lib-heading-row
+    class="heading-row"
+    heading="Pod Conditions"
+  ></lib-heading-row>
+  <lib-loading-spinner></lib-loading-spinner>
+</ng-container>
+
+<!--Show adequate message when no pod is available for this notebook-->
+<ng-container *ngIf="podRequestCompleted && !pod">
+  <lib-heading-row
+    class="heading-row"
+    heading="Pod Conditions"
+  ></lib-heading-row>
+  <lib-panel class="page-padding">
+    {{ podConditionsMessage }}
+  </lib-panel>
+</ng-container>
+
+<!--Show Pod Conditions-->
+<ng-container *ngIf="podRequestCompleted && pod">
+  <lib-conditions-table
+    *ngIf="pod?.status"
+    [conditions]="pod.status?.conditions"
+    title="Pod Conditions"
+    class="page-padding"
+  ></lib-conditions-table>
+</ng-container>

@@ -58,6 +58,7 @@ export const defaultConfig: TableConfig = {
       style: { width: '25%' },
       value: new PropertyValue({
         field: 'name',
+        isLink: true,
         tooltipField: 'name',
         truncate: true,
       }),

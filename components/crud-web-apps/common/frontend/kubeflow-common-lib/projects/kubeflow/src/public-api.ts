@@ -91,3 +91,13 @@ export * from './lib/logs-viewer/logs-viewer.module';
 export * from './lib/logs-viewer/logs-viewer.component';
 export * from './lib/help-popover/help-popover.component';
 export * from './lib/help-popover/help-popover.module';
+
+export * from './lib/content-list-item/content-list-item.component';
+export * from './lib/content-list-item/content-list-item.module';
+
+export * from './lib/variables-groups-table/variables-groups-table.component';
+export * from './lib/variables-groups-table/variables-groups-table.module';
+export * from './lib/variables-groups-table/types';
+
+export * from './lib/status-icon/status-icon.component';
+export * from './lib/status-icon/status-icon.module';
