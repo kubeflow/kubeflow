@@ -14,6 +14,7 @@ import {
   PvcResponseObject,
 } from '../types';
 import { V1Pod } from '@kubernetes/client-node';
+import { EventObject } from '../types/event';
 @Injectable({
   providedIn: 'root',
 })
@@ -84,6 +85,19 @@ export class JWABackendService extends BackendService {
     return this.http.get<JWABackendResponse>(url).pipe(
       catchError(error => this.handleErrorExtended(error, [404, 400])),
       map((resp: JWABackendResponse) => resp.logs),
+    );
+  }
+
+  public getNotebookEvents(
+    notebook: NotebookRawObject,
+  ): Observable<EventObject[]> {
+    const namespace = notebook.metadata.namespace;
+    const notebookName = notebook.metadata.name;
+    const url = `api/namespaces/${namespace}/notebooks/${notebookName}/events`;
+
+    return this.http.get<JWABackendResponse>(url).pipe(
+      catchError(error => this.handleErrorExtended(error, [404])),
+      map((resp: JWABackendResponse) => resp.events),
     );
   }
 

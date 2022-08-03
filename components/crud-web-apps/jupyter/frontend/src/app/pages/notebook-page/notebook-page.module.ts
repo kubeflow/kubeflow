@@ -9,6 +9,7 @@ import { NotebookPageComponent } from './notebook-page.component';
 import { OverviewModule } from './overview/overview.module';
 import { LogsModule } from './logs/logs.module';
 import { RouterModule } from '@angular/router';
+import { EventsModule } from './events/events.module';
 
 @NgModule({
   declarations: [NotebookPageComponent],
@@ -22,6 +23,7 @@ import { RouterModule } from '@angular/router';
     MatProgressSpinnerModule,
     LogsModule,
     RouterModule,
+    EventsModule,
   ],
 })
 export class NotebookPageModule {}
