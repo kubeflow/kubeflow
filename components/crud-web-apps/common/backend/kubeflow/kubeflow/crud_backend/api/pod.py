@@ -2,12 +2,14 @@ from .. import authz
 from . import v1_core
 
 
-def list_pods(namespace, auth=True):
+def list_pods(namespace, auth=True, label_selector = None):
     if auth:
         authz.ensure_authorized("list", "", "v1", "pods", namespace)
 
-    return v1_core.list_namespaced_pod(namespace)
-
+    if label_selector is None:
+        return v1_core.list_namespaced_pod(namespace)
+    else:
+        return v1_core.list_namespaced_pod(namespace = namespace, label_selector = label_selector)
 
 def get_pod_logs(namespace, pod, container, auth=True):
     if auth:
