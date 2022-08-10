@@ -4,15 +4,12 @@ import { of } from 'rxjs';
 import { ActionsService } from './actions.service';
 import { ConfirmDialogService, SnackBarService } from 'kubeflow';
 
-let JWABackendServiceStub: Partial<JWABackendService>;
-let SnackBarServiceStub: Partial<SnackBarService>;
-
-JWABackendServiceStub = {
+const JWABackendServiceStub: Partial<JWABackendService> = {
   deleteNotebook: () => of(),
   startNotebook: () => of(),
   stopNotebook: () => of(),
 };
-SnackBarServiceStub = {
+const SnackBarServiceStub: Partial<SnackBarService> = {
   open: () => {},
   close: () => {},
 };
