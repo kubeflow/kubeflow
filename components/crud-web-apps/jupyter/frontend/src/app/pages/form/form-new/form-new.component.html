@@ -14,9 +14,7 @@
       (ngSubmit)="onSubmit()"
       [formGroup]="formCtrl"
     >
-      <app-form-name-namespace
-        [parentForm]="formCtrl"
-      ></app-form-name-namespace>
+      <app-form-name [parentForm]="formCtrl"></app-form-name>
 
       <app-form-image
         [parentForm]="formCtrl"
