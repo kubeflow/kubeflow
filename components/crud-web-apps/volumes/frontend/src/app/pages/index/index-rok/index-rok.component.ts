@@ -17,6 +17,7 @@ import { IndexDefaultComponent } from '../index-default/index-default.component'
 import { FormRokComponent } from '../../form/form-rok/form-rok.component';
 import { rokConfig } from './config';
 import { PVCProcessedObjectRok, PVCResponseObjectRok } from 'src/app/types';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-index-rok',
@@ -25,7 +26,8 @@ import { PVCProcessedObjectRok, PVCResponseObjectRok } from 'src/app/types';
 })
 export class IndexRokComponent
   extends IndexDefaultComponent
-  implements OnInit, OnDestroy {
+  implements OnInit, OnDestroy
+{
   config = rokConfig;
 
   constructor(
@@ -36,8 +38,17 @@ export class IndexRokComponent
     public snackBar: SnackBarService,
     public rok: RokService,
     public poller: PollerService,
+    public router: Router,
   ) {
-    super(ns, confirmDialog, backend, dialog, snackBar, poller);
+    super(
+      ns,
+      confirmDialog,
+      backend,
+      dialog,
+      snackBar,
+      poller,
+      router,
+    );
   }
 
   ngOnInit() {

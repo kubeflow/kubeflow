@@ -1,0 +1,32 @@
+.link-groups {
+  padding: 0.6rem 0;
+  margin-bottom: 16px;
+}
+
+.link-groups:last-of-type {
+  margin-bottom: 0;
+}
+
+.group-key {
+  margin-bottom: 0.6rem;
+  font-weight: 500;
+}
+
+.link-group-container {
+  display: flex;
+}
+
+.link-item {
+  margin-right: 14px;
+  color: #1a73e8;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.link-item:visited {
+  color: #1a73e8;
+}
+
+.link-item:hover {
+  text-decoration: underline;
+}
