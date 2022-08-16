@@ -35,3 +35,9 @@ def get_pvc_pods(namespace, pvc_name):
     pods = get_pods_using_pvc(pvc_name, namespace)
 
     return api.success_response("pods", api.serialize(pods))
+
+@bp.route("/api/namespaces/<namespace>/pvcs/<pvc_name>/events")
+def get_pvc_events(namespace, pvc_name):
+    events = api.list_pvc_events(namespace, pvc_name).items
+
+    return api.success_response("events", api.serialize(events))
