@@ -1,9 +1,11 @@
 import { V1PersistentVolumeClaim, V1Pod } from '@kubernetes/client-node';
 import { Status, BackendResponse } from 'kubeflow';
+import { EventObject } from './event';
 
 export interface VWABackendResponse extends BackendResponse {
   pvcs?: PVCResponseObject[];
   pvc?: V1PersistentVolumeClaim;
+  events?: EventObject[];
   pods?: V1Pod[];
 }
 

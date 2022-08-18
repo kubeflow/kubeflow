@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { PVCResponseObject, VWABackendResponse, PVCPostObject } from '../types';
 import { V1PersistentVolumeClaim, V1Pod } from '@kubernetes/client-node';
+import { EventObject } from '../types/event';
 
 @Injectable({
   providedIn: 'root',
@@ -51,6 +52,19 @@ export class VWABackendService extends BackendService {
     return this.http.get<VWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
       map((resp: VWABackendResponse) => resp.pvc),
+    );
+  }
+
+  public getPVCEvents(pvc: V1PersistentVolumeClaim): Observable<EventObject[]> {
+    const namespace = pvc.metadata.namespace;
+    const pvcName = pvc.metadata.name;
+    const url = `api/namespaces/${namespace}/pvcs/${pvcName}/events`;
+
+    return this.http.get<VWABackendResponse>(url).pipe(
+      catchError(error => this.handleError(error)),
+      map((resp: VWABackendResponse) => {
+        return resp.events;
+      }),
     );
   }
 

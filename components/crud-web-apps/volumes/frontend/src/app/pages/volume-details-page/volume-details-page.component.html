@@ -26,6 +26,12 @@
         <mat-tab label="OVERVIEW">
           <app-overview [pvc]="pvc"></app-overview>
         </mat-tab>
+
+        <mat-tab label="EVENTS">
+          <ng-template matTabContent>
+            <app-events [pvc]="pvc"></app-events>
+          </ng-template>
+        </mat-tab>
       </mat-tab-group>
     </ng-container>
   </div>
