@@ -119,7 +119,7 @@
         "mini-css-extract-plugin": "^0.5.0",
         "nodemon": "^2.0.4",
         "nyc": "^15.1.0",
-        "pug": "^3.0.1",
+        "pug": "^3.0.2",
         "pug-loader": "^2.4.0",
         "puppeteer": "^5.2.1",
         "raw-loader": "^2.0.0",

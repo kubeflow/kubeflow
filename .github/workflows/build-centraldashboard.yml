@@ -33,24 +33,22 @@ jobs:
         docker rmi $(docker image ls -aq)
         df -h
 
-    # Container build and push to a Azure Container registry (ACR)
-    - name: Docker build/push
+    # Container build to a Azure Container registry (ACR)
+    - name: Docker build
       run: |
         docker build \
           -t ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${{ github.sha }} \
           --build-arg kubeflowversion=$(git describe --abbrev=0 --tags) \
           --build-arg commit=$(git rev-parse HEAD) \
           components/centraldashboard/
-        docker push ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${{ github.sha }}
-        docker tag ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${{ github.sha }} \
-          ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${GITHUB_REF#refs/*/}
-        docker push ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${GITHUB_REF#refs/*/}
     
-    # Comment out for now while https://github.com/Azure/container-scan/issues/122 is still open
-    # ALSO should re-order this to actuall have it block the push if there is a critical severity
     # Scan image for vulnerabilities
-    #- uses: Azure/container-scan@v0
-    #  with:
-    #    image-name: ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${{ github.sha }}
-    #    severity-threshold: CRITICAL
-    #    run-quality-checks: false
+    - uses: Azure/container-scan@v0
+      with:
+       image-name: ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${{ github.sha }}
+       severity-threshold: CRITICAL
+       run-quality-checks: false
+    - name: Docker push
+      run: |
+        docker push ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${{ github.sha }}
+    # Push once, https://github.com/StatCan/kubeflow/pull/87
