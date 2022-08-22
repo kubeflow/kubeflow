@@ -1,6 +1,6 @@
 # Kubeflow Roadmap
 
-## Kubeflow 1.6 Release, Due: August 2022
+## Kubeflow 1.6 Release, Due: September 2022
 * Kubeflow 1.6 [milestones and timelines](https://github.com/kubeflow/community/tree/master/releases/release-1.6)
 
 #### Themes
