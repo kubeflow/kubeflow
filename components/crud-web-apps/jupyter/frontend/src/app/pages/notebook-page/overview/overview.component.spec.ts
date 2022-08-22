@@ -15,6 +15,7 @@ import { OverviewComponent } from './overview.component';
 import { of } from 'rxjs';
 import { mockNotebook } from '../notebook-mock';
 import { mockPod } from '../pod-mock';
+import { VolumesComponent } from './volumes/volumes.component';
 
 const JWABackendServiceStub: Partial<JWABackendService> = {
   getPodDefaults: () => of(),
@@ -29,7 +30,7 @@ describe('OverviewComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [OverviewComponent],
+      declarations: [OverviewComponent, VolumesComponent],
       providers: [
         { provide: JWABackendService, useValue: JWABackendServiceStub },
         { provide: PollerService, useValue: PollerServiceStub },

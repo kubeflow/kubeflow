@@ -1,12 +1,21 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { V1EnvVar, V1Pod } from '@kubernetes/client-node';
-import { ChipDescriptor, PollerService, STATUS_TYPE } from 'kubeflow';
+import { V1EnvVar, V1Pod, V1Volume } from '@kubernetes/client-node';
+import { ChipDescriptor, PollerService, STATUS_TYPE, UrlItem } from 'kubeflow';
 import { Subscription } from 'rxjs';
 import { JWABackendService } from 'src/app/services/backend.service';
 import { NotebookRawObject, PodDefault } from 'src/app/types';
 import { EnvironmentVariablesGroup } from '../../../types/environmentVariablesGroup';
 import { Configuration } from 'src/app/types/configuration';
 import { isEqual, get } from 'lodash-es';
+import { VolumesGroup } from './volumes/types';
+import {
+  PVCS,
+  EPHEMERALS,
+  SECRETS,
+  CONFIG_MAPS,
+  OTHER_VOLS,
+  MEMORY_VOLS,
+} from './volumes.constants';
 
 @Component({
   selector: 'app-overview',
@@ -14,7 +23,8 @@ import { isEqual, get } from 'lodash-es';
   styleUrls: ['./overview.component.scss'],
 })
 export class OverviewComponent implements OnInit, OnDestroy {
-  public volumes: ChipDescriptor[];
+  public volGroups: VolumesGroup[] = [];
+  public notebookInfoLoaded = false;
   private notebookEnv: ChipDescriptor[];
   public configurations: Configuration[] = [];
   private podDefaults: PodDefault[];
@@ -30,7 +40,8 @@ export class OverviewComponent implements OnInit, OnDestroy {
   set notebook(nb: NotebookRawObject) {
     this.prvNotebook = nb;
 
-    this.volumes = this.generateVolumes(nb);
+    this.notebookInfoLoaded = true;
+    this.volGroups = this.generateVolGroups(nb);
     this.generatePodDefaults(nb);
     this.notebookEnv = this.generateEnv(nb);
   }
@@ -260,17 +271,95 @@ export class OverviewComponent implements OnInit, OnDestroy {
     return configuration;
   }
 
-  private generateVolumes(nb: NotebookRawObject): ChipDescriptor[] {
-    const chips = [];
-    for (const volume of nb.spec.template.spec.volumes) {
-      if (volume.persistentVolumeClaim) {
-        chips.push({
-          value: volume.persistentVolumeClaim.claimName,
-          color: 'primary',
-        });
+  private generateVolGroups(nb: NotebookRawObject): VolumesGroup[] {
+    const volGroups: VolumesGroup[] = [];
+    for (const volume of nb?.spec?.template?.spec?.volumes) {
+      const groupName = this.classifyVolume(volume);
+      const namespace = nb.metadata.namespace;
+      const volumeItem = this.getVolumeItem(volume, groupName, namespace);
+
+      const index = volGroups.findIndex(group => group.name === groupName);
+      if (index < 0) {
+        if (groupName === PVCS) {
+          volGroups.unshift(this.newVolGroup(volumeItem, groupName));
+        } else {
+          volGroups.push(this.newVolGroup(volumeItem, groupName));
+        }
+      } else {
+        volGroups[index].array.push(volumeItem);
       }
     }
-    return chips;
+    return volGroups;
+  }
+
+  private classifyVolume(volume: V1Volume): string {
+    if (volume?.persistentVolumeClaim) {
+      return PVCS;
+    } else if (volume?.emptyDir?.medium === 'Memory') {
+      return MEMORY_VOLS;
+    } else if (volume?.emptyDir) {
+      return EPHEMERALS;
+    } else if (volume?.configMap) {
+      return CONFIG_MAPS;
+    } else if (volume?.secret) {
+      return SECRETS;
+    }
+    return OTHER_VOLS;
+  }
+
+  private newVolGroup(
+    volItem: UrlItem | ChipDescriptor,
+    groupName: string,
+  ): VolumesGroup {
+    const group: VolumesGroup = {
+      name: groupName,
+      array: [volItem],
+    };
+    if (groupName === PVCS) {
+      group.info =
+        'A PersistentVolumeClaim (PVC) is a request for storage by a user and it is similar to a Pod. Pods consume node resources and PVCs consume PV resources. Pods can request specific levels of resources (CPU and Memory). Claims can request specific size and access modes (e.g., they can be mounted ReadWriteOnce, ReadOnlyMany or ReadWriteMany).';
+      group.url =
+        'https://kubernetes.io/docs/concepts/storage/persistent-volumes/';
+    } else if (groupName === MEMORY_VOLS) {
+      group.info =
+        "A memory-backed volume is a special kind of emptyDir volume which is mounted as a tmpfs (RAM-backed filesystem) volume. While tmpfs is very fast, be aware that unlike disks, tmpfs is cleared on node reboot and any files you write count against your container's memory limit.";
+      group.url =
+        'https://kubernetes.io/docs/concepts/storage/volumes/#emptydir';
+    } else if (groupName === EPHEMERALS) {
+      group.info =
+        'An ephemeral volume is Kubernetes emptyDir. An emptyDir volume is first created when a Pod is assigned to a node, and exists as long as that Pod is running on that node. As the name says, the emptyDir volume is initially empty. All containers in the Pod can read and write the same files in the emptyDir volume, though that volume can be mounted at the same or different paths in each container. When a Pod is removed from a node for any reason, the data in the emptyDir is deleted permanently.';
+      group.url =
+        'https://kubernetes.io/docs/concepts/storage/volumes/#emptydir';
+    } else if (groupName === CONFIG_MAPS) {
+      group.info =
+        'A ConfigMap provides a way to inject configuration data into pods. The data stored in a ConfigMap can be referenced in a volume of type configMap and then consumed by containerized applications running in a pod.';
+      group.url =
+        'https://kubernetes.io/docs/concepts/storage/volumes/#configmap';
+    } else if (groupName === SECRETS) {
+      group.info =
+        'A secret volume is used to pass sensitive information, such as passwords, to Pods. You can store secrets in the Kubernetes API and mount them as files for use by pods without coupling to Kubernetes directly. Secret volumes are backed by tmpfs (a RAM-backed filesystem) so they are never written to non-volatile storage.';
+      group.url = 'https://kubernetes.io/docs/concepts/storage/volumes/#secret';
+    } else if (groupName === OTHER_VOLS) {
+      group.url = 'https://kubernetes.io/docs/concepts/storage/volumes';
+    }
+    return group;
+  }
+
+  private getVolumeItem(
+    vol: V1Volume,
+    groupName: string,
+    ns: string,
+  ): UrlItem | ChipDescriptor {
+    if (groupName === PVCS) {
+      return {
+        name: vol.name,
+        url: `/volumes/volume/details/${ns}/${vol.name}`,
+      };
+    }
+    return {
+      value: vol.name,
+      color: 'primary',
+    };
   }
 
   private generateEnv(nb: NotebookRawObject): ChipDescriptor[] {
