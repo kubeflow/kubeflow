@@ -1,5 +1,7 @@
 # Step 1: Builds and tests
-FROM node:12.22.12-alpine AS build
+# This is a long-lived tag, if there is a vulnerability
+# sometimes a rebuild will set you on your way.
+FROM node:16-alpine AS build
 
 ARG kubeflowversion
 ARG commit
@@ -13,11 +15,14 @@ RUN apk update && apk upgrade && \
     echo @stable http://nl.alpinelinux.org/alpine/v3.15/community >> /etc/apk/repositories && \
     echo @stable http://nl.alpinelinux.org/alpine/v3.15/main >> /etc/apk/repositories
 
-RUN apk add --no-cache bash chromium@stable nss@stable \
-    freetype@stable \
-    harfbuzz@stable \
-    ttf-freefont@stable \
-    libstdc++@stable
+RUN apk add --no-cache \
+    bash \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ttf-freefont \
+    libstdc++
 
 RUN if [ "$(uname -m)" = "aarch64" ]; then \
         apk update && apk upgrade && \
@@ -31,16 +36,17 @@ RUN npm rebuild && \
     if [ "$(uname -m)" = "aarch64" ]; then \
         export CFLAGS=-Wno-error && \
         export CXXFLAGS=-Wno-error && \
-        npm install; \
+        npm install --legacy-peer-deps; \
     else \
-        npm install; \
+        npm install --legacy-peer-deps; \
     fi && \
     npm test && \
-    npm run build && \
-    npm prune --production
-
+    # --legacy-peer-deps is required in the update to node16
+    # https://github.com/pugjs/pug-loader/issues/126#issuecomment-796517327
+    npm run build --legacy-peer-deps && \
+    npm prune --production --legacy-peer-deps
 # Step 2: Packages assets for serving
-FROM node:12.22.12-alpine AS serve
+FROM node:16-alpine AS serve
 
 ENV NODE_ENV=production
 WORKDIR /app
