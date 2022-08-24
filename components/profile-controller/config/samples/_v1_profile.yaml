@@ -1,6 +1,8 @@
 apiVersion: kubeflow.org/v1
 kind: Profile
 metadata:
-  name: profile-sample
+  name: test-user-profile
 spec:
-  # TODO(user): Add fields here
+  owner:
+    kind: User
+    name: test-user@kubeflow.org
