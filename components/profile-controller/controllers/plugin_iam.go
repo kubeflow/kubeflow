@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -23,6 +24,7 @@ const (
 	AWS_ANNOTATION_KEY               = "eks.amazonaws.com/role-arn"
 	AWS_TRUST_IDENTITY_SUBJECT       = "system:serviceaccount:%s:%s"
 	AWS_DEFAULT_AUDIENCE             = "sts.amazonaws.com"
+	DEFAULT_SERVICE_ACCOUNT          = DEFAULT_EDITOR
 )
 
 type AwsIAMForServiceAccount struct {
@@ -32,21 +34,21 @@ type AwsIAMForServiceAccount struct {
 // ApplyPlugin annotate service account with the ARN of the IAM role and update trust relationship of IAM role
 func (aws *AwsIAMForServiceAccount) ApplyPlugin(r *ProfileReconciler, profile *profilev1.Profile) error {
 	logger := r.Log.WithValues("profile", profile.Name)
-	if err := aws.patchAnnotation(r, profile.Name, DEFAULT_EDITOR, addIAMRoleAnnotation, logger); err != nil {
+	if err := aws.patchAnnotation(r, profile.Name, DEFAULT_SERVICE_ACCOUNT, addIAMRoleAnnotation, logger); err != nil {
 		return err
 	}
-	logger.Info("Setting up iam roles and policy for service account.", "ServiceAccount", aws.AwsIAMRole)
-	return aws.updateIAMForServiceAccount(profile.Name, DEFAULT_EDITOR, addServiceAccountInAssumeRolePolicy)
+	logger.Info("Setting up iam roles and policy for service account.", "ServiceAccount", DEFAULT_SERVICE_ACCOUNT, "Role", aws.AwsIAMRole)
+	return aws.updateIAMForServiceAccount(profile.Name, DEFAULT_SERVICE_ACCOUNT, addServiceAccountInAssumeRolePolicy)
 }
 
 // RevokePlugin remove role in service account annotation and delete service account record in IAM trust relationship.
 func (aws *AwsIAMForServiceAccount) RevokePlugin(r *ProfileReconciler, profile *profilev1.Profile) error {
 	logger := r.Log.WithValues("profile", profile.Name)
-	if err := aws.patchAnnotation(r, profile.Name, DEFAULT_EDITOR, removeIAMRoleAnnotation, logger); err != nil {
+	if err := aws.patchAnnotation(r, profile.Name, DEFAULT_SERVICE_ACCOUNT, removeIAMRoleAnnotation, logger); err != nil {
 		return err
 	}
-	logger.Info("Clean up AWS IAM Role for Service Account.", "ServiceAccount", aws.AwsIAMRole)
-	return aws.updateIAMForServiceAccount(profile.Name, DEFAULT_EDITOR, removeServiceAccountInAssumeRolePolicy)
+	logger.Info("Clean up AWS IAM Role for Service Account.", "ServiceAccount", DEFAULT_SERVICE_ACCOUNT, "Role", aws.AwsIAMRole)
+	return aws.updateIAMForServiceAccount(profile.Name, DEFAULT_SERVICE_ACCOUNT, removeServiceAccountInAssumeRolePolicy)
 }
 
 // patchAnnotation will patch annotation to k8s service account in order to pair up with GCP identity
@@ -56,6 +58,10 @@ func (aws *AwsIAMForServiceAccount) patchAnnotation(r *ProfileReconciler, namesp
 	err := r.Get(ctx, types.NamespacedName{Name: ksa, Namespace: namespace}, found)
 	if err != nil {
 		return err
+	}
+
+	if aws.AwsIAMRole == "" {
+		return errors.New("failed to setup service account because awsIamRole is empty")
 	}
 
 	annotationFunc(found, aws.AwsIAMRole)
