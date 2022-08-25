@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -656,14 +657,14 @@ func (r *ProfileReconciler) GetPluginSpec(profileIns *profilev1.Profile) ([]Plug
 
 		// To deserialize it to a specific type we need to first serialize it to bytes
 		// and then unserialize it.
-		specBytes, err := yaml.Marshal(p.Spec)
+		specBytes, err := json.Marshal(p.Spec)
 
 		if err != nil {
 			logger.Info("Could not marshal plugin ", p.Kind, "; error: ", err)
 			return nil, err
 		}
 
-		err = yaml.Unmarshal(specBytes, pluginIns)
+		err = json.Unmarshal(specBytes, pluginIns)
 		if err != nil {
 			logger.Info("Could not unmarshal plugin ", p.Kind, "; error: ", err)
 			return nil, err
