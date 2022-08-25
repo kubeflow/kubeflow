@@ -1,4 +1,4 @@
-name: Run unit tests for Profile Controller
+name: Run Profile Controller unit tests
 on:
   pull_request:
     paths:
