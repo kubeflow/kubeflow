@@ -241,15 +241,18 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				if pod.Status.ContainerStatuses[i].State == instance.Status.ContainerState {
 					continue
 				}
-				notebookCondition := []v1beta1.NotebookCondition{}
+				log.Info("Updating Notebook CR state: ", "namespace", instance.Namespace, "name", instance.Name)
+				cs := pod.Status.ContainerStatuses[i].State
+				instance.Status.ContainerState = cs
+				notebookConditions := []v1beta1.NotebookCondition{}
 				for i := range pod.Status.Conditions {
 					log.Info("Updating Notebook CR state: ", "namespace", instance.Namespace, "name", instance.Name)
 					// Mirroring pod condition
 					condition := PodCondToNotebookCond(pod.Status.Conditions[i])
-					log.Info("Mirroring pod conditions: ", "namespace", instance.Namespace, "name", instance.Name, "type", condition.Type, "reason", condition.Reason, "message", condition.Message)
-					notebookCondition = append(notebookCondition, condition)
+					log.Info("Mirroring pod condition: ", "namespace", instance.Namespace, "name", instance.Name, "type", condition.Type, "status", condition.Status, "reason", condition.Reason, "message", condition.Message)
+					notebookConditions = append(notebookConditions, condition)
 				}
-				instance.Status.Conditions = notebookCondition
+				instance.Status.Conditions = notebookConditions
 				err = r.Status().Update(ctx, instance)
 				if err != nil {
 					return ctrl.Result{}, err
@@ -329,16 +332,24 @@ func PodCondToNotebookCond(podc corev1.PodCondition) v1beta1.NotebookCondition {
 		condition.Type = string(podc.Type)
 	}
 
-	if !(podc.LastProbeTime.IsZero()) {
-		condition.LastProbeTime = podc.LastProbeTime
+	if len(podc.Status) > 0 {
+		condition.Status = string(podc.Status)
+	}
+
+	if len(podc.Message) > 0 {
+		condition.Message = podc.Message
 	}
 
 	if len(podc.Reason) > 0 {
 		condition.Reason = podc.Reason
 	}
 
-	if len(podc.Message) > 0 {
-		condition.Message = podc.Message
+	if !(podc.LastProbeTime.IsZero()) {
+		condition.LastProbeTime = podc.LastProbeTime
+	}
+
+	if !(podc.LastTransitionTime.IsZero()) {
+		condition.LastTransitionTime = podc.LastTransitionTime
 	}
 
 	return condition
