@@ -241,19 +241,18 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				if pod.Status.ContainerStatuses[i].State == instance.Status.ContainerState {
 					continue
 				}
-
 				log.Info("Updating Notebook CR state: ", "namespace", instance.Namespace, "name", instance.Name)
 				cs := pod.Status.ContainerStatuses[i].State
 				instance.Status.ContainerState = cs
-				oldConditions := instance.Status.Conditions
-				newCondition := getNextCondition(cs)
-				// Append new condition
-				if len(oldConditions) == 0 || oldConditions[0].Type != newCondition.Type ||
-					oldConditions[0].Reason != newCondition.Reason ||
-					oldConditions[0].Message != newCondition.Message {
-					log.Info("Appending to conditions: ", "namespace", instance.Namespace, "name", instance.Name, "type", newCondition.Type, "reason", newCondition.Reason, "message", newCondition.Message)
-					instance.Status.Conditions = append([]v1beta1.NotebookCondition{newCondition}, oldConditions...)
+				notebookConditions := []v1beta1.NotebookCondition{}
+				for i := range pod.Status.Conditions {
+					log.Info("Updating Notebook CR state: ", "namespace", instance.Namespace, "name", instance.Name)
+					// Mirroring pod condition
+					condition := PodCondToNotebookCond(pod.Status.Conditions[i])
+					log.Info("Mirroring pod condition: ", "namespace", instance.Namespace, "name", instance.Name, "type", condition.Type, "status", condition.Status, "reason", condition.Reason, "message", condition.Message)
+					notebookConditions = append(notebookConditions, condition)
 				}
+				instance.Status.Conditions = notebookConditions
 				err = r.Status().Update(ctx, instance)
 				if err != nil {
 					return ctrl.Result{}, err
@@ -325,30 +324,35 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	return ctrl.Result{RequeueAfter: culler.GetRequeueTime()}, nil
 }
 
-func getNextCondition(cs corev1.ContainerState) v1beta1.NotebookCondition {
-	var nbtype = ""
-	var nbreason = ""
-	var nbmsg = ""
+func PodCondToNotebookCond(podc corev1.PodCondition) v1beta1.NotebookCondition {
 
-	if cs.Running != nil {
-		nbtype = "Running"
-	} else if cs.Waiting != nil {
-		nbtype = "Waiting"
-		nbreason = cs.Waiting.Reason
-		nbmsg = cs.Waiting.Message
-	} else {
-		nbtype = "Terminated"
-		nbreason = cs.Terminated.Reason
-		nbmsg = cs.Terminated.Reason
+	condition := v1beta1.NotebookCondition{}
+
+	if len(podc.Type) > 0 {
+		condition.Type = string(podc.Type)
 	}
 
-	newCondition := v1beta1.NotebookCondition{
-		Type:          nbtype,
-		LastProbeTime: metav1.Now(),
-		Reason:        nbreason,
-		Message:       nbmsg,
+	if len(podc.Status) > 0 {
+		condition.Status = string(podc.Status)
 	}
-	return newCondition
+
+	if len(podc.Message) > 0 {
+		condition.Message = podc.Message
+	}
+
+	if len(podc.Reason) > 0 {
+		condition.Reason = podc.Reason
+	}
+
+	if !(podc.LastProbeTime.IsZero()) {
+		condition.LastProbeTime = podc.LastProbeTime
+	}
+
+	if !(podc.LastTransitionTime.IsZero()) {
+		condition.LastTransitionTime = podc.LastTransitionTime
+	}
+
+	return condition
 }
 
 func setPrefixEnvVar(instance *v1beta1.Notebook, container *corev1.Container) {
