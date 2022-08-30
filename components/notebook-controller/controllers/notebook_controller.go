@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/go-logr/logr"
 	reconcilehelper "github.com/kubeflow/kubeflow/components/common/reconcilehelper"
@@ -376,12 +377,22 @@ func PodCondToNotebookCond(podc corev1.PodCondition) v1beta1.NotebookCondition {
 		condition.Reason = podc.Reason
 	}
 
-	if !(podc.LastProbeTime.IsZero()) {
+	// check if podc.LastProbeTime is null. If so initialize
+	// the field with metav1.Now()
+	check := podc.LastProbeTime.Time.Equal(time.Time{})
+	if !check {
 		condition.LastProbeTime = podc.LastProbeTime
+	} else {
+		condition.LastProbeTime = metav1.Now()
 	}
 
-	if !(podc.LastTransitionTime.IsZero()) {
+	// check if podc.LastTransitionTime is null. If so initialize
+	// the field with metav1.Now()
+	check = podc.LastTransitionTime.Time.Equal(time.Time{})
+	if !check {
 		condition.LastTransitionTime = podc.LastTransitionTime
+	} else {
+		condition.LastTransitionTime = metav1.Now()
 	}
 
 	return condition
