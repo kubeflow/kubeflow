@@ -4,13 +4,7 @@
 >
   <div class="group-key">{{ linkGroup.name }}</div>
   <div class="link-group-container" [ngSwitch]="linkGroup.name">
-    <a
-      [href]="link.url"
-      *ngFor="let link of linkGroup.links; trackBy: linkTrackByFn"
-      class="link-item"
-    >
-      {{ link.name }}
-    </a>
+      <lib-urls [urlList]="linkGroup.links"></lib-urls>
   </div>
 </div>
 
