@@ -17,23 +17,23 @@
 spawnerFormDefaults:
   image:
     # The container Image for the user's Jupyter Notebook
-    value: kubeflownotebookswg/jupyter-scipy:v1.6.0-rc.1
+    value: kubeflownotebookswg/jupyter-scipy:v1.6.0-rc.2
     # The list of available standard container Images
     options:
-    - kubeflownotebookswg/jupyter-scipy:v1.6.0-rc.1
-    - kubeflownotebookswg/jupyter-pytorch-full:v1.6.0-rc.1
-    - kubeflownotebookswg/jupyter-pytorch-cuda-full:v1.6.0-rc.1
-    - kubeflownotebookswg/jupyter-tensorflow-full:v1.6.0-rc.1
-    - kubeflownotebookswg/jupyter-tensorflow-cuda-full:v1.6.0-rc.1
+    - kubeflownotebookswg/jupyter-scipy:v1.6.0-rc.2
+    - kubeflownotebookswg/jupyter-pytorch-full:v1.6.0-rc.2
+    - kubeflownotebookswg/jupyter-pytorch-cuda-full:v1.6.0-rc.2
+    - kubeflownotebookswg/jupyter-tensorflow-full:v1.6.0-rc.2
+    - kubeflownotebookswg/jupyter-tensorflow-cuda-full:v1.6.0-rc.2
   imageGroupOne:
     # The container Image for the user's Group One Server
     # The annotation `notebooks.kubeflow.org/http-rewrite-uri: /`
     # is applied to notebook in this group, configuring
     # the Istio rewrite for containers that host their web UI at `/`
-    value: kubeflownotebookswg/codeserver-python:v1.6.0-rc.1
+    value: kubeflownotebookswg/codeserver-python:v1.6.0-rc.2
     # The list of available standard container Images
     options:
-    - kubeflownotebookswg/codeserver-python:v1.6.0-rc.1
+    - kubeflownotebookswg/codeserver-python:v1.6.0-rc.2
   imageGroupTwo:
     # The container Image for the user's Group Two Server
     # The annotation `notebooks.kubeflow.org/http-rewrite-uri: /`
@@ -42,10 +42,10 @@ spawnerFormDefaults:
     # The annotation `notebooks.kubeflow.org/http-headers-request-set`
     # is applied to notebook in this group, configuring Istio
     # to add the `X-RStudio-Root-Path` header to requests
-    value: kubeflownotebookswg/rstudio-tidyverse:v1.6.0-rc.1
+    value: kubeflownotebookswg/rstudio-tidyverse:v1.6.0-rc.2
     # The list of available standard container Images
     options:
-    - kubeflownotebookswg/rstudio-tidyverse:v1.6.0-rc.1
+    - kubeflownotebookswg/rstudio-tidyverse:v1.6.0-rc.2
   # If true, hide registry and/or tag name in the image selection dropdown
   hideRegistry: true
   hideTag: false

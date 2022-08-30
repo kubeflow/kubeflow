@@ -13,7 +13,7 @@ commonLabels:
   kustomize.component: volumes-web-app
 images:
 - name: docker.io/kubeflownotebookswg/volumes-web-app
-  newTag: v1.6.0-rc.1
+  newTag: v1.6.0-rc.2
 # We need the name to be unique without the suffix because the original name is what
 # gets used with patches
 configMapGenerator:
