@@ -62,7 +62,7 @@ jobs:
 
     - name: Push Notebook Server images via their Makefile on Version change
       id: version
-      if: steps.filter.outputs.version == 'true'
+      if: github.event_name == 'push' && steps.filter.outputs.version == 'true'
       run: |
         export TAG=$(cat releasing/version/VERSION)
         cd components/example-notebook-servers/

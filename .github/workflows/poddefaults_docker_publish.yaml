@@ -51,7 +51,7 @@ jobs:
 
     - name: Run PodDefaults push on Version change
       id: version
-      if: steps.filter.outputs.version == 'true'
+      if: github.event_name == 'push' && steps.filter.outputs.version == 'true'
       run: |
         export TAG=$(cat releasing/version/VERSION)
         cd components/admission-webhook
