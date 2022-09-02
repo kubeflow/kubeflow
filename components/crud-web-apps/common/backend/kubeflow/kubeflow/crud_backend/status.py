@@ -14,7 +14,7 @@ class STATUS_PHASE:
     STOPPED = "stopped"
 
 
-def create_status(phase="", message="", state=""):
+def create_status(phase="", message="", state="", key=None):
     return {
         "phase": phase,
         "message": message,

@@ -25,6 +25,8 @@ spec:
               type: string
             serviceAccountName:
               type: string
+            automountServiceAccountToken:
+              type: boolean
             env:
               items:
                 type: object

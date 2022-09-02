@@ -11,7 +11,7 @@ describe('VWABackendService', () => {
   );
 
   it('should be created', () => {
-    const service: VWABackendService = TestBed.get(VWABackendService);
+    const service: VWABackendService = TestBed.inject(VWABackendService);
     expect(service).toBeTruthy();
   });
 });

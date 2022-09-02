@@ -74,8 +74,7 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
       if (defaultClass.length === 0) {
         this.defaultStorageclass = false;
         this.popup.open(
-          "No default Storage Class is set. Can't create new Disks for the " +
-            'new Notebook. Please use an Existing Disk.',
+          $localize`No default Storage Class is set. Can't create new Disks for the new Notebook. Please use an Existing Disk.`,
           SnackType.Warning,
           0,
         );

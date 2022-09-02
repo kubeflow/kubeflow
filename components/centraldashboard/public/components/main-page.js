@@ -24,6 +24,7 @@ import '@polymer/neon-animation/neon-animated-pages.js';
 import '@polymer/neon-animation/animations/fade-in-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
 import localizationMixin from './localization-mixin.js';
+import localizationMixin from './localization-mixin.js';
 
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
@@ -46,7 +47,8 @@ import {IFRAME_LINK_PREFIX} from './iframe-link.js';
  * Entry point for application UI.
  */
 // eslint-disable-next-line max-len
-export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) {
+// eslint-disable-next-line max-len
+export class MainPage extends utilitiesMixin(localizationMixin(localizationMixin(PolymerElement))) {
     static get template() {
         const vars = {logo};
         return html([
@@ -108,6 +110,8 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
                 // eslint-disable-next-line max-len
                 computed: 'computeShouldFetchEnv(registrationFlow, workgroupStatusHasLoaded)',
             },
+            matchingIndex: Number,
+            namespacedItemTemplete: String,
         };
     }
 
@@ -119,6 +123,7 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
         return [
             // eslint-disable-next-line
             '_routePageChanged(routeData.page,subRouteData.path,routeHash.path)',
+            '_namespaceChanged(queryParams.ns)',
         ];
     }
 
@@ -287,15 +292,28 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
         }
     }
 
+    _namespaceChanged(namespace) {
+        // update namespaced menu item when namespace is changed
+        // by namespace selector
+        if (this.namespacedItemTemplete &&
+            this.namespacedItemTemplete.includes('{ns}')) {
+            this.set('subRouteData.path',
+                this.namespacedItemTemplete.replace('{ns}', namespace));
+        }
+    }
+
     _buildHref(href, queryParamsChange) {
-        /*
-         * The "queryParams" value from "queryParamsChange" is not updated as
-         * expected in the "iframe-link", but it works in anchor element.
-         * A temporary workaround is  to use "this.queryParams" as an input
-         * instead of "queryParamsChange.base".
-         * const queryParams = queryParamsChange.base;
-         */
-        return this.buildHref(href, this.queryParams);
+        // The "queryParams" value from "queryParamsChange" is not updated as
+        // expected in the "iframe-link", but it works in anchor element.
+        // A temporary workaround is  to use "this.queryParams" as an input
+        // instead of "queryParamsChange.base".
+        // const queryParams = queryParamsChange.base;
+        const queryParams = this.queryParams;
+        if (!queryParams || !queryParams['ns']) {
+            return this.buildHref(href, this.queryParams);
+        }
+        return this.buildHref(href.replace('{ns}', queryParams['ns']),
+            queryParams);
     }
 
     /**
@@ -347,24 +365,36 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
         const htmlElements = this._clearActiveLink();
         let matchPath = path;
         let matchingLink = '';
-        const allLinks = this.menuLinks.map((m) => {
+        const allLinksTemplete = this.menuLinks.map((m) => {
             return m.type === 'section' ? m.items.map((x) => x.link) : m.link;
         }).flat().sort();
+        const allLinks = allLinksTemplete.map((m) => {
+            // replace namespaced menu items
+            const queryParams = this.queryParams;
+            if (!queryParams || !queryParams['ns']) {
+                return m;
+            }
+            return m.replace('{ns}', queryParams['ns']);
+        });
         if (hashPath) {
             matchPath = path + '#' + hashPath;
-            matchingLink = allLinks
-                .find((l) => this.compareLinks(l, matchPath));
+            this.matchingIndex = allLinks
+                .findIndex((l) => this.compareLinks(l, matchPath));
         } else {
-            // longest prefix match - allLinks is sorted
-            allLinks.forEach((link) => {
-                matchingLink = path.startsWith(link) ? link : matchingLink;
+            allLinks.forEach((link, index) => {
+                if (path.startsWith(link)) {
+                    this.matchingIndex = index;
+                }
             });
         }
+        matchingLink = allLinks[this.matchingIndex];
+
         // find the HTML element that references the active link
         const activeMenuEl = Array.from(htmlElements).find(
             (x) => this.compareLinks(x.parentElement.href, matchingLink));
         if (activeMenuEl) {
             // in case the item is a section item, open its section
+            this.namespacedItemTemplete = allLinksTemplete[this.matchingIndex];
             activeMenuEl.parentElement.parentElement.opened = true;
             activeMenuEl.classList.add('iron-selected');
         }
@@ -436,6 +466,7 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
             this._setRegistrationFlow(true);
         }
         this.ownedNamespace = namespaces.find((n) => n.role == 'owner');
+        this.multiOwnedNamespaces = ownerRoleNamespaces;
         this.multiOwnedNamespaces = ownerRoleNamespaces;
         this.platformInfo = platform;
         const kVer = this.platformInfo.kubeflowVersion;

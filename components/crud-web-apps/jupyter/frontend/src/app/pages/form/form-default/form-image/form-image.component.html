@@ -1,13 +1,16 @@
 <lib-form-section
   title="Image"
-  text="A started Jupyter Docker Image with a baseline deployment and typical
-  ML packages"
+  text="A starter Jupyter Docker Image with a baseline deployment and typical
+        ML packages"
   icon="fa:fab:docker"
+  i18n-title="Title for the Image section of the form"
+  i18n-text="Text for the Image section of the form"
 >
   <div class="flex-column">
     <mat-checkbox
       *ngIf="allowCustomImage"
       [formControl]="parentForm.get('customImageCheck')"
+      i18n
     >
       Custom Image
     </mat-checkbox>
@@ -15,23 +18,28 @@
     <mat-button-toggle-group
       [formControl]="parentForm.get('serverType')"
       class="server-type-wrapper"
-      aria-label="Server Type"
+      attr.aria-label="Server Type"
+      i18n-aria-label="Aria label for the Server Type"
     >
       <mat-button-toggle
         value="jupyter"
-        aria-label="Use JupyterLab based server"
+        attr.aria-label="Use JupyterLab based server"
+        i18n-aria-label="Aria label for JupyterLab type server"
       >
         <mat-icon class="server-type" svgIcon="jupyterlab"></mat-icon>
       </mat-button-toggle>
+
       <mat-button-toggle
         value="group-one"
-        aria-label="Use Group One based server"
+        attr.aria-label="Use Group One based server"
+        i18n-aria-label="Aria label for Group One server"
       >
         <mat-icon class="server-type" svgIcon="group-one"></mat-icon>
       </mat-button-toggle>
       <mat-button-toggle
         value="group-two"
-        aria-label="Use Group Two based server"
+        attr.aria-label="Use Group Two based server"
+        i18n-aria-label="Aria label for Group Two server"
       >
         <mat-icon class="server-type" svgIcon="group-two"></mat-icon>
       </mat-button-toggle>
@@ -42,21 +50,25 @@
     class="wide"
     appearance="outline"
     *ngIf="
+      
       !parentForm?.value.customImageCheck &&
+     
       parentForm?.value.serverType === 'jupyter'
+    
     "
   >
     <!-- If readonly, then make it an input element instead of select -->
-    <mat-label>Image</mat-label>
+    <mat-label i18n>Image</mat-label>
     <mat-select
       placeholder="Docker Image"
+      i18n-placeholder
       [formControl]="parentForm.get('image')"
     >
-      <mat-option *ngFor="let img of images" [value]="img">
-        {{ img }}
+      <mat-option *ngFor="let img of images" [value]="img" [matTooltip]="img">
+        {{ imageDisplayName(img) }}
       </mat-option>
     </mat-select>
-    <mat-error>Please provide and Image to use</mat-error>
+    <mat-error i18n>Please provide an Image to use</mat-error>
   </mat-form-field>
 
   <mat-form-field
@@ -68,16 +80,21 @@
     "
   >
     <!-- If readonly, then make it an input element instead of select -->
-    <mat-label>Image</mat-label>
+    <mat-label i18n>Image</mat-label>
     <mat-select
       placeholder="Docker Image"
+      i18n-placeholder
       [formControl]="parentForm.get('imageGroupOne')"
     >
-      <mat-option *ngFor="let img of imagesGroupOne" [value]="img">
-        {{ img }}
+      <mat-option
+        *ngFor="let img of imagesGroupOne"
+        [value]="img"
+        [matTooltip]="img"
+      >
+        {{ imageDisplayName(img) }}
       </mat-option>
     </mat-select>
-    <mat-error>Please provide and Image to use</mat-error>
+    <mat-error i18n>Please provide an Image to use</mat-error>
   </mat-form-field>
 
   <mat-form-field
@@ -89,16 +106,21 @@
     "
   >
     <!-- If readonly, then make it an input element instead of select -->
-    <mat-label>Image</mat-label>
+    <mat-label i18n>Image</mat-label>
     <mat-select
       placeholder="Docker Image"
+      i18n-placeholder
       [formControl]="parentForm.get('imageGroupTwo')"
     >
-      <mat-option *ngFor="let img of imagesGroupTwo" [value]="img">
-        {{ img }}
+      <mat-option
+        *ngFor="let img of imagesGroupTwo"
+        [value]="img"
+        [matTooltip]="img"
+      >
+        {{ imageDisplayName(img) }}
       </mat-option>
     </mat-select>
-    <mat-error>Please provide and Image to use</mat-error>
+    <mat-error i18n>Please provide an Image to use</mat-error>
   </mat-form-field>
 
   <mat-form-field
@@ -106,24 +128,30 @@
     appearance="outline"
     *ngIf="parentForm?.value.customImageCheck"
   >
-    <mat-label>Custom Image</mat-label>
+    <mat-label i18n>Custom Image</mat-label>
     <input
       matInput
       placeholder="Provide a custom Image"
       [formControl]="parentForm.get('customImage')"
       #cstmimg
     />
-    <mat-error>Please provide and Image to use</mat-error>
+    <mat-error i18n>Please provide an Image to use</mat-error>
   </mat-form-field>
 
   <lib-advanced-options>
     <div class="row">
       <mat-form-field class="column" appearance="outline">
-        <mat-label>Image pull policy</mat-label>
+        <mat-label i18n>Image pull policy</mat-label>
         <mat-select [formControl]="parentForm.get('imagePullPolicy')">
-          <mat-option value="Always">Always</mat-option>
-          <mat-option value="IfNotPresent">IfNotPresent</mat-option>
-          <mat-option value="Never">Never</mat-option>
+          <mat-option value="Always" i18n="ImagePullPolicy: Always">
+            Always
+          </mat-option>
+          <mat-option value="IfNotPresent" i18n="ImagePullPolicy: IfNotPresent">
+            IfNotPresent
+          </mat-option>
+          <mat-option value="Never" i18n="ImagePullPolicy: Never">
+            Never
+          </mat-option>
         </mat-select>
       </mat-form-field>
     </div>

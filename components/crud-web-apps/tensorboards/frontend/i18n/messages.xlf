@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en-US" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="1eede69e18c5ac9c0b0295b72cabb7e64e029e74" datatype="html">
+        <source>Hide</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/advanced-options/advanced-options.component.html</context>
+          <context context-type="linenumber">5</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6358767024326715915" datatype="html">
+        <source>Advanced Options</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/advanced-options/advanced-options.component.ts</context>
+          <context context-type="linenumber">19</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="cff1428d10d59d14e45edec3c735a27b5482db59" datatype="html">
+        <source>Name</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/name-namespace-inputs/name-input/name-input.component.html</context>
+          <context context-type="linenumber">2</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="130fd872c78271a8f86b1ab16a76e823969c47d9" datatype="html">
+        <source>Namespace</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/name-namespace-inputs/name-namespace-inputs.component.html</context>
+          <context context-type="linenumber">11</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/name-namespace-inputs/name-namespace-inputs.component.html</context>
+          <context context-type="linenumber">14</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7824eb0fc97826f3919ba20317db1f8fb7926fcf" datatype="html">
+        <source> Cannot be negative. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/positive-number-input/positive-number-input.component.html</context>
+          <context context-type="linenumber">11,12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6259832288014753417" datatype="html">
+        <source>Name must consist of lowercase alphanumeric characters or &apos;-&apos;,
+    start with an alphabetic character, and end with an alphanumeric character.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/validators.ts</context>
+          <context context-type="linenumber">32,33</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="824282508845786476" datatype="html">
+        <source>Name is too long</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/validators.ts</context>
+          <context context-type="linenumber">105</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5302945586275093972" datatype="html">
+        <source>Name cannot be empty</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/form/validators.ts</context>
+          <context context-type="linenumber">107</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2061ce2524f31b7754bd310c6b0ad194b563767c" datatype="html">
+        <source>Select Namespace</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/namespace-select/namespace-select.component.html</context>
+          <context context-type="linenumber">4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3862207452684082108" datatype="html">
+        <source>An error occurred: <x id="PH" equiv-text="error"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/services/backend/backend.service.ts</context>
+          <context context-type="linenumber">108</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1292256390007124036" datatype="html">
+        <source>Client error: <x id="PH" equiv-text="error.error.message"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/services/backend/backend.service.ts</context>
+          <context context-type="linenumber">112</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8194451610848887333" datatype="html">
+        <source>Could not connect to the backend.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/services/backend/backend.service.ts</context>
+          <context context-type="linenumber">119</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4553983244211420347" datatype="html">
+        <source>Unexpected error encountered</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/services/backend/backend.service.ts</context>
+          <context context-type="linenumber">131</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="0c0be57aaf30414531e79157a45e0fc3fd6b637b" datatype="html">
+        <source>DISMISS</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/kubeflow/src/lib/snack-bar/component/snack-bar.component.html</context>
+          <context context-type="linenumber">4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="a234afa57f1bd21feffbc92465d2499226210ee7" datatype="html">
+        <source>New Tensorboard</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form.component.html</context>
+          <context context-type="linenumber">4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="ad31fd9b57fd0e75fd13a50ea4b788181042e77c" datatype="html">
+        <source>Create a new Tensorboard</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form.component.html</context>
+          <context context-type="linenumber">5</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="ea7e5045aec7cb2689739b557c9f116d6df61e6d" datatype="html">
+        <source> Object Store </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form.component.html</context>
+          <context context-type="linenumber">22,23</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6a37336ff34b005579c9945589599dc4a199e889" datatype="html">
+        <source> PVC </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form.component.html</context>
+          <context context-type="linenumber">25,26</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="166088ccb8789fc1b04899db097e825a5d14ed81" datatype="html">
+        <source>PVC Name</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form.component.html</context>
+          <context context-type="linenumber">34</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="77abbe59a0fb6ed58f736acf8cef054ed267b31e" datatype="html">
+        <source>Mount Path</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form.component.html</context>
+          <context context-type="linenumber">47</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="439ea1e30d9586aa35b3e5038045fbcc0664f664" datatype="html">
+        <source>ex: mount/to/path</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form.component.html</context>
+          <context context-type="linenumber">51</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="c2f17e3f9c40c618a39b49c094b6caa728fbd828" datatype="html">
+        <source>Object Store Link</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form.component.html</context>
+          <context context-type="linenumber">62</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="577ff450cd8d905a75bf92dad2457515d3a49b3b" datatype="html">
+        <source> CREATE </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form.component.html</context>
+          <context context-type="linenumber">74,75</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="ae582a9312e4bcbb32a62d84e47e6b1b73ffd06a" datatype="html">
+        <source> CANCEL </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/form/form.component.html</context>
+          <context context-type="linenumber">78,79</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="226301729344319172" datatype="html">
+        <source>Tensorboards</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">14</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2390935671439412834" datatype="html">
+        <source>NEW TENSORBOARD</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">15</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5611592591303869712" datatype="html">
+        <source>Status</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">18</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8953033926734869941" datatype="html">
+        <source>Name</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">23</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1130652265542107236" datatype="html">
+        <source>Age</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6112762993922889274" datatype="html">
+        <source>Logspath</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">39</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6267607215695624724" datatype="html">
+        <source>Connect to the Tensorboaard Server</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">56</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8966109024004058984" datatype="html">
+        <source>CONNECT</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">59</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2814730733409470360" datatype="html">
+        <source>Delete Tensorboard</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/config.ts</context>
+          <context context-type="linenumber">63</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3740691649124036868" datatype="html">
+        <source>Tensorboard was submitted successfully.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/index.component.ts</context>
+          <context context-type="linenumber">105</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5966222566390034080" datatype="html">
+        <source>Are you sure you want to delete this Tensorboard : <x id="PH" equiv-text="tensorboard.name"/> ?</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/index.component.ts</context>
+          <context context-type="linenumber">116</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="841311519047609428" datatype="html">
+        <source>DELETE</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/index.component.ts</context>
+          <context context-type="linenumber">118</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6943486270557756671" datatype="html">
+        <source>CANCEL</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/index.component.ts</context>
+          <context context-type="linenumber">120</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3271166475979376691" datatype="html">
+        <source>DELETING</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/index/index.component.ts</context>
+          <context context-type="linenumber">122</context>
+        </context-group>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -6,7 +6,15 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
 - ../default
+patchesStrategicMerge:
+- patches/manager.yaml
+
 images:
 - name: public.ecr.aws/j1r0q0g6/notebooks/profile-controller
   newName: public.ecr.aws/j1r0q0g6/notebooks/profile-controller
-  newTag: v1.3.1-rc.0
+  newTag: v1.4
+
+configMapGenerator:
+- name: namespace-labels-data
+  files:
+  - namespace-labels.yaml

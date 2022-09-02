@@ -11,16 +11,16 @@ import {
 } from 'kubeflow';
 
 const tableConfig: TableConfig = {
-  title: 'Tensorboards',
-  newButtonText: 'NEW TENSORBOARD',
+  title: $localize`Tensorboards`,
+  newButtonText: $localize`NEW TENSORBOARD`,
   columns: [
     {
-      matHeaderCellDef: 'Status',
+      matHeaderCellDef: $localize`Status`,
       matColumnDef: 'status',
       value: new StatusValue(),
     },
     {
-      matHeaderCellDef: 'Name',
+      matHeaderCellDef: $localize`Name`,
       matColumnDef: 'name',
       value: new PropertyValue({
         field: 'name',
@@ -29,14 +29,14 @@ const tableConfig: TableConfig = {
       }),
     },
     {
-      matHeaderCellDef: 'Age',
+      matHeaderCellDef: $localize`Age`,
       matColumnDef: 'age',
       value: new DateTimeValue({
         field: 'age',
       }),
     },
     {
-      matHeaderCellDef: 'Logspath',
+      matHeaderCellDef: $localize`Logspath`,
       matColumnDef: 'logspath',
       value: new PropertyValue({
         field: 'logspath',
@@ -53,14 +53,14 @@ const actionsCol: TableColumn = {
   value: new ActionListValue([
     new ActionButtonValue({
       name: 'connect',
-      tooltip: 'Connect to the Tensorboaard Server',
+      tooltip: $localize`Connect to the Tensorboaard Server`,
       color: 'primary',
       field: 'connectAction',
-      text: 'CONNECT',
+      text: $localize`CONNECT`,
     }),
     new ActionIconValue({
       name: 'delete',
-      tooltip: 'Delete Tensorboard',
+      tooltip: $localize`Delete Tensorboard`,
       color: 'warn',
       field: 'deleteAction',
       iconReady: 'material:delete',

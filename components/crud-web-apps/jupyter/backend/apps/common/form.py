@@ -12,6 +12,10 @@ SERVER_TYPE_ANNOTATION = "notebooks.kubeflow.org/server-type"
 HEADERS_ANNOTATION = "notebooks.kubeflow.org/http-headers-request-set"
 URI_REWRITE_ANNOTATION = "notebooks.kubeflow.org/http-rewrite-uri"
 
+SERVER_TYPE_ANNOTATION = "notebooks.kubeflow.org/server-type"
+HEADERS_ANNOTATION = "notebooks.kubeflow.org/http-headers-request-set"
+URI_REWRITE_ANNOTATION = "notebooks.kubeflow.org/http-rewrite-uri"
+
 
 def get_form_value(body, defaults, body_field, defaults_field=None):
     """
@@ -163,7 +167,12 @@ def set_notebook_cpu(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
 
     cpu = get_form_value(body, defaults, "cpu")
+    if cpu and 'nan' in cpu.lower():
+        raise BadRequest("Invalid value for cpu: %s" % cpu)
+
     cpu_limit = get_form_value(body, defaults, "cpuLimit")
+    if cpu_limit and 'nan' in cpu_limit.lower():
+        raise BadRequest("Invalid value for cpu limit: %s" % cpu_limit)
 
     limit_factor = utils.load_spawner_ui_config()["cpu"].get("limitFactor")
     if not cpu_limit and limit_factor != "none":
@@ -182,12 +191,28 @@ def set_notebook_cpu(notebook, body, defaults):
     limits["cpu"] = cpu_limit
     container["resources"]["limits"] = limits
 
+    if cpu_limit is None or cpu_limit == "":
+        # user explicitly asked for no limits
+        return
+
+    if float(cpu_limit) < float(cpu):
+        raise BadRequest("CPU limit must be greater than the request")
+
+    limits = container["resources"].get("limits", {})
+    limits["cpu"] = cpu_limit
+    container["resources"]["limits"] = limits
+
 
 def set_notebook_memory(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
 
     memory = get_form_value(body, defaults, "memory")
+    if memory and 'nan' in memory.lower():
+        raise BadRequest("Invalid value for memory: %s" % memory)
+
     memory_limit = get_form_value(body, defaults, "memoryLimit")
+    if memory_limit and 'nan' in memory_limit.lower():
+        raise BadRequest("Invalid value for memory limit: %s" % memory_limit)
 
     limit_factor = utils.load_spawner_ui_config()["memory"].get("limitFactor")
     if not memory_limit and limit_factor != "none":
@@ -197,6 +222,18 @@ def set_notebook_memory(notebook, body, defaults):
                     limit_factor)), 1)) + "Gi"
 
     container["resources"]["requests"]["memory"] = memory
+
+    if memory_limit is None or memory_limit == "":
+        # user explicitly asked for no limits
+        return
+
+    if float(memory_limit.replace('Gi', '')) < float(
+            memory.replace('Gi', '')):
+        raise BadRequest("Memory limit must be greater than the request")
+
+    limits = container["resources"].get("limits", {})
+    limits["memory"] = memory_limit
+    container["resources"]["limits"] = limits
 
     if memory_limit is None or memory_limit == "":
         # user explicitly asked for no limits

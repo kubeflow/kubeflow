@@ -70,6 +70,8 @@
         "@webcomponents/webcomponentsjs": "^2.3.0",
         "chart.js": "^2.8.0",
         "chartjs-plugin-crosshair": "^1.1.4",
+        "chokidar": "^3.5.2",
+        "eventsource": "^1.1.1",
         "express": "^4.17.1",
         "google-auth-library": "^5.9.2",
         "json-schema": "^0.4.0",

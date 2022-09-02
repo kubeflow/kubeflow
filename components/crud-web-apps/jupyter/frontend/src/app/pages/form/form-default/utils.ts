@@ -18,7 +18,9 @@ export function getFormDefaults(): FormGroup {
     serverType: ['jupyter', [Validators.required]],
     cpu: [1, [Validators.required]],
     cpuLimit: ['', []],
+    cpuLimit: ['', []],
     memory: [1, [Validators.required]],
+    memoryLimit: ['', []],
     memoryLimit: ['', []],
     gpus: fb.group({
       vendor: ['', []],
@@ -138,36 +140,57 @@ export function updateGPUControl(formCtrl: FormGroup, gpuConf: any) {
   }
 }
 
-export function initFormControls(formCtrl: FormGroup, config: Config) {
-  // Sets the values from our internal dict. This is an initialization step
-  // that should be only run once
-  formCtrl.controls.cpu.setValue(configSizeToNumber(config.cpu.value));
-  if (config.cpu.limitFactor !== 'none') {
-    formCtrl.controls.cpuLimit.setValue(
-      (
-        configSizeToNumber(config.cpu.value) *
-        configSizeToNumber(config.cpu.limitFactor)
-      ).toFixed(1),
-    );
+export function calculateLimits(
+  requests: number | string,
+  factor: number | string,
+): string | null {
+  const limit = configSizeToNumber(requests) * configSizeToNumber(factor);
+
+  if (isNaN(limit)) {
+    return null;
   }
+
+  return limit.toFixed(1);
+}
+
+export function initCpuFormControls(formCtrl: FormGroup, config: Config) {
+  const cpu = Number(config.cpu.value);
+  if (!isNaN(cpu)) {
+    formCtrl.controls.cpu.setValue(cpu);
+  }
+
   if (config.cpu.readOnly) {
     formCtrl.controls.cpu.disable();
     formCtrl.controls.cpuLimit.disable();
+    formCtrl.controls.cpuLimit.disable();
   }
 
-  formCtrl.controls.memory.setValue(configSizeToNumber(config.memory.value));
-  if (config.memory.limitFactor !== 'none') {
-    formCtrl.controls.memoryLimit.setValue(
-      (
-        configSizeToNumber(config.memory.value) *
-        configSizeToNumber(config.memory.limitFactor)
-      ).toFixed(1),
-    );
+  formCtrl.controls.cpuLimit.setValue(
+    calculateLimits(cpu, config.cpu.limitFactor),
+  );
+}
+
+export function initMemoryFormControls(formCtrl: FormGroup, config: Config) {
+  const memory = configSizeToNumber(config.memory.value);
+  if (!isNaN(memory)) {
+    formCtrl.controls.memory.setValue(memory);
   }
+
   if (config.memory.readOnly) {
     formCtrl.controls.memory.disable();
     formCtrl.controls.memoryLimit.disable();
+    formCtrl.controls.memoryLimit.disable();
   }
+
+  formCtrl.controls.memoryLimit.setValue(
+    calculateLimits(memory, config.memory.limitFactor),
+  );
+}
+
+export function initFormControls(formCtrl: FormGroup, config: Config) {
+  initCpuFormControls(formCtrl, config);
+
+  initMemoryFormControls(formCtrl, config);
 
   formCtrl.controls.image.setValue(config.image.value);
 
@@ -225,6 +248,10 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
 }
 
 export function configSizeToNumber(size: string | number): number {
+  if (size == null) {
+    return NaN;
+  }
+
   if (typeof size === 'number') {
     return size;
   }

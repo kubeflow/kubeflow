@@ -1,6 +1,6 @@
 <button
   mat-button
-  [matTooltip]="action.tooltip"
+  matTooltip="{{ action.tooltip }}"
   matTooltipClass="custom-tooltip"
   (click)="emitClickedEvent()"
   [color]="action.color"

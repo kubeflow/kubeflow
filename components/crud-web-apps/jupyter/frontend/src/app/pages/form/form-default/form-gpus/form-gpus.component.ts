@@ -18,7 +18,7 @@ export class FormGpusComponent implements OnInit {
 
   subscriptions = new Subscription();
   maxGPUs = 16;
-  gpusCount = ['1', '2', '4', '8'];
+  gpusCount = ['1'];
 
   constructor(public backend: JWABackendService) {}
 
@@ -47,13 +47,9 @@ export class FormGpusComponent implements OnInit {
   }
 
   // Vendor handling
-  public vendorIsDisabled(vendor: GPUVendor) {
-    return !this.installedVendors.has(vendor.limitsKey);
-  }
-
   public vendorTooltip(vendor: GPUVendor) {
     return !this.installedVendors.has(vendor.limitsKey)
-      ? `No ${vendor.uiName} GPU found installed in the cluster.`
+      ? $localize`There are currently no ${vendor.uiName} GPUs in you cluster.`
       : '';
   }
 
@@ -62,7 +58,7 @@ export class FormGpusComponent implements OnInit {
     const vendorCtrl = this.parentForm.get('gpus').get('vendor');
 
     if (vendorCtrl.hasError('vendorNullName')) {
-      return `You must also specify the GPU Vendor for the assigned GPUs`;
+      return $localize`You must also specify the GPU Vendor for the assigned GPUs`;
     }
   }
 

@@ -156,7 +156,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
   public startNotebook(notebook: NotebookProcessedObject) {
     this.snackBar.open(
-      `Starting Notebook server '${notebook.name}'...`,
+      $localize`Starting Notebook server '${notebook.name}'...`,
       SnackType.Info,
       3000,
     );
@@ -199,7 +199,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         }
 
         this.snackBar.open(
-          `Stopping Notebook server '${notebook.name}'...`,
+          $localize`Stopping Notebook server '${notebook.name}'...`,
           SnackType.Info,
           3000,
         );

@@ -17,23 +17,23 @@
 spawnerFormDefaults:
   image:
     # The container Image for the user's Jupyter Notebook
-    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-1831e436
+    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-6e4ad3b4
     # The list of available standard container Images
     options:
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-1831e436
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-full:master-1831e436
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-cuda-full:master-1831e436
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-full:master-1831e436
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda-full:master-1831e436
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-6e4ad3b4
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-full:master-6e4ad3b4
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-cuda-full:master-6e4ad3b4
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-full:master-6e4ad3b4
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda-full:master-6e4ad3b4
   imageGroupOne:
     # The container Image for the user's Group One Server
     # The annotation `notebooks.kubeflow.org/http-rewrite-uri: /`
     # is applied to notebook in this group, configuring
     # the Istio rewrite for containers that host their web UI at `/`
-    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:master-1831e436
+    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:master-e9324d39
     # The list of available standard container Images
     options:
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:master-1831e436
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:master-e9324d39
   imageGroupTwo:
     # The container Image for the user's Group Two Server
     # The annotation `notebooks.kubeflow.org/http-rewrite-uri: /`
@@ -42,10 +42,13 @@ spawnerFormDefaults:
     # The annotation `notebooks.kubeflow.org/http-headers-request-set`
     # is applied to notebook in this group, configuring Istio
     # to add the `X-RStudio-Root-Path` header to requests
-    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:master-164fa2ea
+    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:master-e9324d39
     # The list of available standard container Images
     options:
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:master-164fa2ea
+      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:master-e9324d39
+  # If true, hide registry and/or tag name in the image selection dropdown
+  hideRegistry: true
+  hideTag: false
   allowCustomImage: true
   # If true, users can input custom images
   # If false, users can only select from the images in this config
@@ -59,10 +62,16 @@ spawnerFormDefaults:
     # Factor by with to multiply request to calculate limit
     # if no limit is set, to disable set "none"
     limitFactor: "1.2"
+    # Factor by with to multiply request to calculate limit
+    # if no limit is set, to disable set "none"
+    limitFactor: "1.2"
     readOnly: false
   memory:
     # Memory for user's Notebook
     value: 1.0Gi
+    # Factor by with to multiply request to calculate limit
+    # if no limit is set, to disable set "none"
+    limitFactor: "1.2"
     # Factor by with to multiply request to calculate limit
     # if no limit is set, to disable set "none"
     limitFactor: "1.2"

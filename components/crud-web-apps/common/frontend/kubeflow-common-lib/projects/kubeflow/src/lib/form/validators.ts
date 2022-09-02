@@ -29,10 +29,8 @@ export const dns1123Validator: IValidator = {
 // TODO(kimwnasptd): We only use this validator, do we need the others?
 export const dns1035Validator: IValidator = {
   regex: '^[a-z]([-a-z0-9]*[a-z0-9])?$',
-  help:
-    "Name must consist of lowercase alphanumeric characters or '-', " +
-    ' start with an alphabetic character, and end with an alphanumeric ' +
-    'character',
+  help: $localize`Name must consist of lowercase alphanumeric characters or '-',
+    start with an alphabetic character, and end with an alphanumeric character.`,
 };
 
 export const volSizeValidator: IValidator = {
@@ -104,9 +102,9 @@ export function getNameError(nameCtrl: AbstractControl, resource: string) {
     // TODO: "pattern", is generic error, this might break in the future
     return dns1035Validator.help;
   } else if (nameCtrl.hasError('maxlength')) {
-    return `Name is too long`;
+    return $localize`Name is too long`;
   } else {
-    return 'Name cannot be empty';
+    return $localize`Name cannot be empty`;
   }
 }
 

@@ -14,46 +14,44 @@ import { ServerTypeComponent } from './server-type/server-type.component';
 // --- Configs for the Confirm Dialogs ---
 export function getDeleteDialogConfig(name: string): DialogConfig {
   return {
-    title: `Are you sure you want to delete this notebook server? ${name}`,
-    message:
-      'Warning: Your data might be lost if the notebook server is not' +
-      ' backed by persistent storage',
-    accept: 'DELETE',
+    title: $localize`Are you sure you want to delete this notebook server? ${name}`,
+    message: $localize`Warning: Your data might be lost if the notebook server
+                       is not backed by persistent storage`,
+    accept: $localize`DELETE`,
     confirmColor: 'warn',
-    cancel: 'CANCEL',
+    cancel: $localize`CANCEL`,
     error: '',
-    applying: 'DELETING',
+    applying: $localize`DELETING`,
     width: '600px',
   };
 }
 
 export function getStopDialogConfig(name: string): DialogConfig {
   return {
-    title: `Are you sure you want to stop this notebook server? ${name}`,
-    message:
-      'Warning: Your data might be lost if the notebook server is not' +
-      ' backed by persistent storage',
-    accept: 'STOP',
+    title: $localize`Are you sure you want to stop this notebook server? ${name}`,
+    message: $localize`Warning: Your data might be lost if the notebook server
+                       is not backed by persistent storage.`,
+    accept: $localize`STOP`,
     confirmColor: 'primary',
-    cancel: 'CANCEL',
+    cancel: $localize`CANCEL`,
     error: '',
-    applying: 'STOPPING',
+    applying: $localize`STOPPING`,
     width: '600px',
   };
 }
 
 // --- Config for the Resource Table ---
 export const defaultConfig = {
-  title: 'Notebook Servers',
-  newButtonText: 'NEW SERVER',
+  title: $localize`Notebooks`,
+  newButtonText: $localize`NEW NOTEBOOK`,
   columns: [
     {
-      matHeaderCellDef: 'Status',
+      matHeaderCellDef: $localize`Status`,
       matColumnDef: 'status',
       value: new StatusValue(),
     },
     {
-      matHeaderCellDef: 'Name',
+      matHeaderCellDef: $localize`Name`,
       matColumnDef: 'name',
       value: new PropertyValue({
         field: 'name',
@@ -62,19 +60,19 @@ export const defaultConfig = {
       }),
     },
     {
-      matHeaderCellDef: 'Type',
+      matHeaderCellDef: $localize`Type`,
       matColumnDef: 'type',
       value: new ComponentValue({
         component: ServerTypeComponent,
       }),
     },
     {
-      matHeaderCellDef: 'Age',
+      matHeaderCellDef: $localize`Age`,
       matColumnDef: 'age',
       value: new PropertyValue({ field: 'age' }),
     },
     {
-      matHeaderCellDef: 'Image',
+      matHeaderCellDef: $localize`Image`,
       matColumnDef: 'image',
       value: new PropertyValue({
         field: 'shortImage',
@@ -83,7 +81,7 @@ export const defaultConfig = {
       }),
     },
     {
-      matHeaderCellDef: 'GPUs',
+      matHeaderCellDef: $localize`GPUs`,
       matColumnDef: 'gpus',
       value: new PropertyValue({
         field: 'gpus.count',
@@ -91,17 +89,17 @@ export const defaultConfig = {
       }),
     },
     {
-      matHeaderCellDef: 'CPUs',
+      matHeaderCellDef: $localize`CPUs`,
       matColumnDef: 'cpu',
       value: new PropertyValue({ field: 'cpu' }),
     },
     {
-      matHeaderCellDef: 'Memory',
+      matHeaderCellDef: $localize`Memory`,
       matColumnDef: 'memory',
       value: new PropertyValue({ field: 'memory' }),
     },
     {
-      matHeaderCellDef: 'Volumes',
+      matHeaderCellDef: $localize`Volumes`,
       matColumnDef: 'volumes',
       value: new MenuValue({ field: 'volumes', itemsIcon: 'storage' }),
     },
@@ -112,15 +110,15 @@ export const defaultConfig = {
       value: new ActionListValue([
         new ActionButtonValue({
           name: 'connect',
-          tooltip: 'Connect to this notebook server',
+          tooltip: $localize`Connect to this notebook server`,
           color: 'primary',
           field: 'connectAction',
-          text: 'CONNECT',
+          text: $localize`CONNECT`,
         }),
         new ActionIconValue({
           name: 'start-stop',
-          tooltipInit: 'Stop this notebook server',
-          tooltipReady: 'Start this notebook server',
+          tooltipInit: $localize`Stop this notebook server`,
+          tooltipReady: $localize`Start this notebook server`,
           color: '',
           field: 'startStopAction',
           iconInit: 'material:stop',
@@ -128,7 +126,7 @@ export const defaultConfig = {
         }),
         new ActionIconValue({
           name: 'delete',
-          tooltip: 'Delete this notebook server',
+          tooltip: $localize`Delete this notebook server`,
           color: '',
           field: 'deleteAction',
           iconReady: 'material:delete',
