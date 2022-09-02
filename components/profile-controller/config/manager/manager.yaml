@@ -33,16 +33,6 @@ spec:
         name: manager
         livenessProbe:
           httpGet:
-            path: /metrics
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 30
-        ports:
-        - containerPort: 8080
-          name: manager-http
-          protocol: TCP
-        livenessProbe:
-          httpGet:
             path: /healthz
             port: 9876
           initialDelaySeconds: 15
