@@ -1,21 +1,21 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
-import { VolumeComponent } from './volume.component';
+import { RokVolumeComponent } from './rok-volume.component';
 
-describe('VolumeComponent', () => {
-  let component: VolumeComponent;
-  let fixture: ComponentFixture<VolumeComponent>;
+describe('RokVolumeComponent', () => {
+  let component: RokVolumeComponent;
+  let fixture: ComponentFixture<RokVolumeComponent>;
 
   beforeEach(
     waitForAsync(() => {
       TestBed.configureTestingModule({
-        declarations: [VolumeComponent],
+        declarations: [RokVolumeComponent],
       }).compileComponents();
     }),
   );
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(VolumeComponent);
+    fixture = TestBed.createComponent(RokVolumeComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

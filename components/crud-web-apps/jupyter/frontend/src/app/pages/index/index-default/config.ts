@@ -43,7 +43,9 @@ export function getStopDialogConfig(name: string): DialogConfig {
 }
 
 // --- Config for the Resource Table ---
-export const defaultConfig: TableConfig = {
+export const defaultConfig = {
+  title: $localize`Notebooks`,
+  newButtonText: $localize`NEW NOTEBOOK`,
   columns: [
     {
       matHeaderCellDef: $localize`Status`,

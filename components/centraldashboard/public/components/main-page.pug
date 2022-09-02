@@ -36,11 +36,11 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             aside.divider
             a(href='https://github.com/kubeflow/kubeflow',
                 tabindex='-1', target="_blank")
-                paper-item.menu-item {{localize('mainPage.menuGitHub')}}
+                paper-item.menu-item {{localize('mainPage.menu{{localize('mainPage.menuGitHub')}}')}}
                     iron-icon.external(icon="launch")
             a(href='https://www.kubeflow.org/docs/about/kubeflow/',
                 tabindex='-1', target="_blank")
-                paper-item.menu-item {{localize('mainPage.menuDocumentation')}}
+                paper-item.menu-item {{localize('mainPage.menu{{localize('mainPage.menuDocumentation')}}')}}
                     iron-icon.external(icon="launch")
         footer.footer
             section.information

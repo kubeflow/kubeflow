@@ -24,6 +24,7 @@ import '@polymer/neon-animation/neon-animated-pages.js';
 import '@polymer/neon-animation/animations/fade-in-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
 import localizationMixin from './localization-mixin.js';
+import localizationMixin from './localization-mixin.js';
 
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
@@ -47,7 +48,8 @@ import {IFRAME_LINK_PREFIX} from './iframe-link.js';
  * Entry point for application UI.
  */
 // eslint-disable-next-line max-len
-export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) {
+// eslint-disable-next-line max-len
+export class MainPage extends utilitiesMixin(localizationMixin(localizationMixin(PolymerElement))) {
     static get template() {
         const vars = {logo};
         return html([
@@ -487,6 +489,7 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
             this._setRegistrationFlow(true);
         }
         this.ownedNamespace = namespaces.find((n) => n.role == 'owner');
+        this.multiOwnedNamespaces = ownerRoleNamespaces;
         this.multiOwnedNamespaces = ownerRoleNamespaces;
         this.platformInfo = platform;
         const kVer = this.platformInfo.kubeflowVersion;

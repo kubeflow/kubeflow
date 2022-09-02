@@ -7,6 +7,8 @@ import {
 } from 'kubeflow';
 
 export const tableConfig: TableConfig = {
+  title: $localize`Volumes`,
+  newButtonText: $localize`NEW VOLUME`,
   columns: [
     {
       matHeaderCellDef: $localize`Status`,

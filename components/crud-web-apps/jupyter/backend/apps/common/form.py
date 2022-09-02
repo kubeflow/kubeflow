@@ -12,6 +12,10 @@ SERVER_TYPE_ANNOTATION = "notebooks.kubeflow.org/server-type"
 HEADERS_ANNOTATION = "notebooks.kubeflow.org/http-headers-request-set"
 URI_REWRITE_ANNOTATION = "notebooks.kubeflow.org/http-rewrite-uri"
 
+SERVER_TYPE_ANNOTATION = "notebooks.kubeflow.org/server-type"
+HEADERS_ANNOTATION = "notebooks.kubeflow.org/http-headers-request-set"
+URI_REWRITE_ANNOTATION = "notebooks.kubeflow.org/http-rewrite-uri"
+
 
 def get_form_value(body, defaults, body_field, defaults_field=None,
                    optional=False):
@@ -141,6 +145,17 @@ def set_notebook_cpu(notebook, body, defaults):
     limits["cpu"] = cpu_limit
     container["resources"]["limits"] = limits
 
+    if cpu_limit is None or cpu_limit == "":
+        # user explicitly asked for no limits
+        return
+
+    if float(cpu_limit) < float(cpu):
+        raise BadRequest("CPU limit must be greater than the request")
+
+    limits = container["resources"].get("limits", {})
+    limits["cpu"] = cpu_limit
+    container["resources"]["limits"] = limits
+
 
 def set_notebook_memory(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
@@ -161,6 +176,18 @@ def set_notebook_memory(notebook, body, defaults):
                     limit_factor)), 1)) + "Gi"
 
     container["resources"]["requests"]["memory"] = memory
+
+    if memory_limit is None or memory_limit == "":
+        # user explicitly asked for no limits
+        return
+
+    if float(memory_limit.replace('Gi', '')) < float(
+            memory.replace('Gi', '')):
+        raise BadRequest("Memory limit must be greater than the request")
+
+    limits = container["resources"].get("limits", {})
+    limits["memory"] = memory_limit
+    container["resources"]["limits"] = limits
 
     if memory_limit is None or memory_limit == "":
         # user explicitly asked for no limits

@@ -48,8 +48,11 @@
     class="wide"
     appearance="outline"
     *ngIf="
+      
       !parentForm?.value.customImageCheck &&
+     
       parentForm?.value.serverType === 'jupyter'
+    
     "
   >
     <!-- If readonly, then make it an input element instead of select -->

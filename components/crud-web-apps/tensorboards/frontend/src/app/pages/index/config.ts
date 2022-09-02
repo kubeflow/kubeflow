@@ -10,6 +10,8 @@ import {
 } from 'kubeflow';
 
 const tableConfig: TableConfig = {
+  title: $localize`Tensorboards`,
+  newButtonText: $localize`NEW TENSORBOARD`,
   columns: [
     {
       matHeaderCellDef: $localize`Status`,
