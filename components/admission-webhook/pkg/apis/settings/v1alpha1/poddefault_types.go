@@ -75,6 +75,9 @@ type PodDefaultSpec struct {
 
 	// Arguments to the entrypoint.
 	Args []string `json:"args,omitempty" protobuf:"bytes,4,rep,name=args"`
+
+	// ImagePullSecrets defines the collection of ImagePullSecrets to inject into the Pod.
+	ImagePullSecrets []v1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 }
 
 // PodDefaultStatus defines the observed state of PodDefault
