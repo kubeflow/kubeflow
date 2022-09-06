@@ -1,5 +1,5 @@
 # --- Build the backend kubeflow-wheel ---
-FROM python:3.8-slim-buster AS backend-kubeflow-wheel
+FROM python:3.8-slim AS backend-kubeflow-wheel
 
 WORKDIR /src
 
@@ -42,7 +42,7 @@ RUN npm run build -- --output-path=./dist/default --configuration=production
 RUN npm run build -- --output-path=./dist/rok --configuration=rok-prod
 
 # Web App
-FROM python:3.8-slim-buster
+FROM python:3.8-slim
 
 WORKDIR /package
 COPY --from=backend-kubeflow-wheel /src .
