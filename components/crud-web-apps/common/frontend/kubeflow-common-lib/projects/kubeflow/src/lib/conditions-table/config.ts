@@ -59,5 +59,7 @@ export function generateConfig(): TableConfig {
         sort: true,
       },
     ],
+    sortByColumn: 'lastTransitionTime',
+    sortDirection: 'desc',
   };
 }
