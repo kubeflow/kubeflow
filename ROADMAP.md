@@ -4,7 +4,7 @@
 * Please join the Kubeflow Community Meetings on Tuesdays for updates and for opportunities to contribute.  
 
 ## Kubeflow 1.6 Release, Delivered: September 2022
-* Kubeflow 1.6 [milestones and timelines](https://github.com/kubeflow/community/pull/558)
+* Kubeflow 1.6 [milestones and timelines](https://github.com/kubeflow/community/tree/master/releases/release-1.6)
 
 #### Themes
 * Kubernetes 1.22 support
