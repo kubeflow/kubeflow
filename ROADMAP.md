@@ -8,7 +8,7 @@
 
 #### Themes
 * Kubernetes 1.22 support
-* Kubeflowo Pipelines v2 (alpha)
+* Kubeflow Pipelines v2 (alpha)
 
 ### Major Features from each Working Group (note: Individual WG versions are independent of Kubeflow's)
 
