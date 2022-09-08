@@ -44,4 +44,6 @@ export const defaultConfig: TableConfig = {
       sort: true,
     },
   ],
+  sortByColumn: 'age',
+  sortDirection: 'desc',
 };
