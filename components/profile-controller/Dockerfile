@@ -1,6 +1,5 @@
 # Build the manager binary
-ARG GOLANG_VERSION=1.15
-FROM golang:${GOLANG_VERSION} as builder
+FROM golang:1.17 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -36,3 +35,4 @@ COPY --from=builder /go/pkg/mod/github.com/hashicorp third_party/library/
 EXPOSE 8080
 
 ENTRYPOINT ["/manager"]
+

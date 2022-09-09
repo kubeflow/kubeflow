@@ -2,7 +2,7 @@ export const notebook = {
   name: 'test-notebook',
   namespace: 'default',
   image:
-    'public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-1831e436',
+    'kubeflownotebookswg/jupyter-scipy:master-1831e436',
   allowCustomImage: true,
   imagePullPolicy: 'IfNotPresent',
   customImage: '',

@@ -14,27 +14,29 @@ commonLabels:
   kustomize.component: tensorboard-controller
 
 bases:
-- ../crd
-- ../rbac
-- ../manager
-# [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix including the one in crd/kustomization.yaml
+  - ../crd
+  - ../rbac
+  - ../manager
+# [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix including the one in
+# crd/kustomization.yaml
 #- ../webhook
 # [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER'. 'WEBHOOK' components are required.
 #- ../certmanager
+# [PROMETHEUS] To enable prometheus monitor, uncomment all sections with 'PROMETHEUS'.
+#- ../prometheus
 
 patchesStrategicMerge:
   # Protect the /metrics endpoint by putting it behind auth.
-  # Only one of manager_auth_proxy_patch.yaml and
-  # manager_prometheus_metrics_patch.yaml should be enabled.
-- manager_auth_proxy_patch.yaml
   # If you want your controller-manager to expose the /metrics
-  # endpoint w/o any authn/z, uncomment the following line and
-  # comment manager_auth_proxy_patch.yaml.
-  # Only one of manager_auth_proxy_patch.yaml and
-  # manager_prometheus_metrics_patch.yaml should be enabled.
-#- manager_prometheus_metrics_patch.yaml
+  # endpoint w/o any authn/z, please comment the following line.
+  - manager_auth_proxy_patch.yaml
 
-# [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix including the one in crd/kustomization.yaml
+# Mount the controller config file for loading manager configurations
+# through a ComponentConfig type
+#- manager_config_patch.yaml
+
+# [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix including the one in
+# crd/kustomization.yaml
 #- manager_webhook_patch.yaml
 
 # [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER'.
@@ -48,16 +50,16 @@ vars:
 #- name: CERTIFICATE_NAMESPACE # namespace of the certificate CR
 #  objref:
 #    kind: Certificate
-#    group: certmanager.k8s.io
-#    version: v1alpha1
+#    group: cert-manager.io
+#    version: v1
 #    name: serving-cert # this name should match the one in certificate.yaml
 #  fieldref:
 #    fieldpath: metadata.namespace
 #- name: CERTIFICATE_NAME
 #  objref:
 #    kind: Certificate
-#    group: certmanager.k8s.io
-#    version: v1alpha1
+#    group: cert-manager.io
+#    version: v1
 #    name: serving-cert # this name should match the one in certificate.yaml
 #- name: SERVICE_NAMESPACE # namespace of the service
 #  objref:

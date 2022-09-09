@@ -14,13 +14,13 @@
           "options": {
             "tsConfig": "projects/kubeflow/tsconfig.lib.json",
             "project": "projects/kubeflow/ng-package.json"
-          }
-        ,          "configurations": {
+          },
+          "configurations": {
             "production": {
               "tsConfig": "projects/kubeflow/tsconfig.lib.prod.json"
             }
           }
-},
+        },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
@@ -30,18 +30,19 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": [
-              "projects/kubeflow/tsconfig.lib.json",
-              "projects/kubeflow/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "projects/kubeflow/**/*.ts",
+              "projects/kubeflow/**/*.html"
             ]
           }
         }
       }
-    }},
-  "defaultProject": "kubeflow"
+    }
+  },
+  "defaultProject": "kubeflow",
+  "cli": {
+    "defaultCollection": "@angular-eslint/schematics"
+  }
 }

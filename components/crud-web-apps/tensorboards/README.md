@@ -13,7 +13,7 @@ This web app is responsible for allowing the user to manipulate Tensorboard inst
 
 Requirements:
 * node 12.0.0
-* python 3.7
+* python 3.8
 
 ### Frontend
 
@@ -37,8 +37,8 @@ npm run build:watch
 # create a virtual env and install deps
 # https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/
 cd component/crud-web-apps/tensorboards/backend
-python3.7 -m pip install --user virtualenv
-python3.7 -m venv web-apps-dev
+python3.8 -m pip install --user virtualenv
+python3.8 -m venv web-apps-dev
 source web-apps-dev/bin/activate
 
 # install the deps on the activated virtual env

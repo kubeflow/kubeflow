@@ -82,7 +82,7 @@ export class FormImageComponent implements OnInit, OnDestroy {
   }
   imageDisplayName(image: string): string {
     const [name, tag = null] = image.split(':');
-    let tokens = name.split('/');
+    const tokens = name.split('/');
 
     if (this.hideRegistry && tokens.length > 1 && tokens[0].includes('.')) {
       tokens.shift();

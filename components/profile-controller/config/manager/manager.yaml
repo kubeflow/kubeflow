@@ -33,12 +33,16 @@ spec:
         name: manager
         livenessProbe:
           httpGet:
-            path: /metrics
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 30
+            path: /healthz
+            port: 9876
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 9876
+          initialDelaySeconds: 5
+          periodSeconds: 10
         ports:
-        - containerPort: 8080
-          name: manager-http
-          protocol: TCP
-      serviceAccountName: controller-service-account
+        - containerPort: 9876
+      serviceAccountName: controller-manager

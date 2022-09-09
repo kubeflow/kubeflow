@@ -1,5 +1,5 @@
-IMG ?= public.ecr.aws/j1r0q0g6/notebooks/volumes-web-app
-TAG ?= $(shell git describe --tags --always)
+IMG ?= volumes-web-app
+TAG ?= $(shell git describe --tags --always --dirty)
 
 docker-build:
 	docker build -t ${IMG}:${TAG} -f Dockerfile ..
@@ -8,4 +8,4 @@ docker-push:
 	docker push $(IMG):$(TAG)
 
 image: docker-build docker-push
-	@echo "Updated image ${IMG}"
+	@echo "Updated image ${IMG}:${TAG}"

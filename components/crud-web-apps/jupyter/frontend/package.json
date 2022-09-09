@@ -16,7 +16,7 @@
     "test": "ng test",
     "e2e": "cypress open .",
     "e2e-ci": "cypress run .",
-    "lint": "ng lint"
+    "lint": "ng lint --fix"
   },
   "private": true,
   "dependencies": {
@@ -50,17 +50,27 @@
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~12.0.5",
+    "@angular-eslint/builder": "12.7.0",
+    "@angular-eslint/eslint-plugin": "12.7.0",
+    "@angular-eslint/eslint-plugin-template": "12.7.0",
+    "@angular-eslint/schematics": "12.7.0",
+    "@angular-eslint/template-parser": "12.7.0",
     "@angular/cli": "~12.0.5",
     "@angular/compiler-cli": "~12.0.5",
     "@angular/language-service": "~12.0.5",
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "^2.0.9",
     "@types/node": "^12.20.15",
-    "codelyzer": "^6.0.2",
+    "@typescript-eslint/eslint-plugin": "4.28.2",
+    "@typescript-eslint/parser": "4.28.2",
+    "cypress": "^7.5.0",
+    "eslint": "^7.26.0",
+    "eslint-plugin-import": "latest",
+    "eslint-plugin-jsdoc": "^34.0.0",
+    "eslint-plugin-prefer-arrow": "latest",
     "jasmine-core": "~3.6.0",
     "jasmine-spec-reporter": "~5.0.0",
     "karma": "~6.3.16",
-    "cypress": "^7.5.0",
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage-istanbul-reporter": "~3.0.2",
     "karma-jasmine": "~4.0.0",
@@ -68,7 +78,6 @@
     "prettier": "^2.3.1",
     "protractor": "~7.0.0",
     "ts-node": "^10.4.0",
-    "tslint": "~6.1.0",
     "typescript": "~4.2.4"
   }
 }

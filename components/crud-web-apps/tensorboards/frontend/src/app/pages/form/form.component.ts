@@ -104,7 +104,7 @@ export class FormComponent implements OnInit, OnDestroy {
       JSON.stringify({
         name: this.formCtrl.get('name').value,
         namespace: this.formCtrl.get('namespace').value,
-        logspath: logspath,
+        logspath,
       }),
     );
 

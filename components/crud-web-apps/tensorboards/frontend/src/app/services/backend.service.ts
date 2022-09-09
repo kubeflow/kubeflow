@@ -24,9 +24,7 @@ export class TWABackendService extends BackendService {
 
     return this.http.get<TWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
-      map((resp: TWABackendResponse) => {
-        return resp.tensorboards;
-      }),
+      map((resp: TWABackendResponse) => resp.tensorboards),
     );
   }
 
@@ -36,9 +34,7 @@ export class TWABackendService extends BackendService {
 
     return this.http.get<TWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
-      map((resp: TWABackendResponse) => {
-        return resp.pvcs;
-      }),
+      map((resp: TWABackendResponse) => resp.pvcs),
     );
   }
 

@@ -92,3 +92,49 @@ Plugin owners have full control over plugin spec struct and implementation.
   - Type: credential binding
   - IAM For Service Account plugin will grant k8s service account permission of IAM role,
   so pods in profile namespace can authenticate AWS services as IAM role.
+
+# Deployment
+
+Install the `profiles.kubeflow.org` CRD:
+```sh
+make install
+```
+
+Deploy the profile controller manager:
+```sh
+make deploy
+```
+
+Verify that the controller is running in the `profiles-system` namespace:
+```sh
+kubectl get pods -l kustomize.component=profiles -n profiles-system
+```
+
+### Clean-up
+
+Uninstall the profile controller manager:
+
+```
+make undeploy
+```
+
+Uninstall the `profiles.kubeflow.org` CRD:
+
+```
+make uninstall
+```
+
+### Running the controller locally
+
+In order for the custom Notebook Controller to be functional from your local machine, the admins must:
+
+1. Set the number of replicas to zero:
+```sh
+kubectl edit deployment profiles-deployment -n=kubeflow
+```
+
+2. Start the manager locally:
+```sh
+make run
+```
+
