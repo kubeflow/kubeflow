@@ -53,11 +53,11 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             aside.divider
             a(href='https://github.com/kubeflow/kubeflow',
                 tabindex='-1', target="_blank")
-                paper-item.menu-item {{localize('mainPage.menu{{localize('mainPage.menuGitHub')}}')}}
+                paper-item.menu-item {{localize('mainPage.menuGitHub')}}
                     iron-icon.external(icon="launch")
             a(href='https://www.kubeflow.org/docs/about/kubeflow/',
                 tabindex='-1', target="_blank")
-                paper-item.menu-item {{localize('mainPage.menu{{localize('mainPage.menuDocumentation')}}')}}
+                paper-item.menu-item {{localize('mainPage.menuDocumentation')}}
                     iron-icon.external(icon="launch")
         footer.footer
             section.information
@@ -85,9 +85,9 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             section#ViewTabs(hidden$='[[hideTabs]]')
                 paper-tabs(selected='[[page]]', attr-for-selected='page')
                     paper-tab(page='dashboard', link)
-                        a.link(tabindex='-1', href$='[[_buildHref("/", queryParams.*)]]') {{localize('mainPage.tab{{localize('mainPage.tabDashboard')}}')}}
+                        a.link(tabindex='-1', href$='[[_buildHref("/", queryParams.*)]]') {{localize('mainPage.tabDashboard')}}
                     paper-tab(page='activity', link)
-                        a.link(tabindex='-1', href$='[[_buildHref("/activity", queryParams.*)]]') {{localize('mainPage.tab{{localize('mainPage.tabActivity')}}')}}
+                        a.link(tabindex='-1', href$='[[_buildHref("/activity", queryParams.*)]]') {{localize('mainPage.tabActivity')}}
             neon-animated-pages(selected='[[page]]', attr-for-selected='page',
                                 entry-animation='fade-in-animation',
                                 exit-animation='fade-out-animation')
