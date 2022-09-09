@@ -15,7 +15,7 @@ export class ToolbarButton {
   color: string;
   raised: boolean;
   stroked: boolean;
-  fn: () => {};
+  fn: () => any;
 
   private defaults: ToolbarButtonConfig = {
     icon: '',

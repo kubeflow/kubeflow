@@ -25,8 +25,7 @@ import (
 
 // NotebookSpec defines the desired state of Notebook
 type NotebookSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Template describes the notebooks that will be created.
 	Template NotebookTemplateSpec `json:"template,omitempty"`
 }
 
@@ -47,9 +46,14 @@ type NotebookStatus struct {
 type NotebookCondition struct {
 	// Type is the type of the condition. Possible values are Running|Waiting|Terminated
 	Type string `json:"type"`
+	// Status is the status of the condition. Can be True, False, Unknown.
+	Status string `json:"status"`
 	// Last time we probed the condition.
 	// +optional
 	LastProbeTime metav1.Time `json:"lastProbeTime,omitempty"`
+	// Last time the condition transitioned from one status to another.
+	// +optional
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
 	// (brief) reason the container is in the current state
 	// +optional
 	Reason string `json:"reason,omitempty"`

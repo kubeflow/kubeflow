@@ -12,10 +12,10 @@ See the [custom images guide](#custom-images) to learn how to extend them with y
 
 Dockerfile | Registry | Notes
 --- | --- | ---
-[./base](./base) | [`public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/base:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/base) | common base image
-[./codeserver](./codeserver) | [`public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver) | base [code-server](https://github.com/cdr/code-server) (Visual Studio Code) image
-[./jupyter](./jupyter) | [`public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter) | base [JupyterLab](https://github.com/jupyterlab/jupyterlab) image
-[./rstudio](./rstudio) | [`public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio) | base [RStudio](https://github.com/rstudio/rstudio) image
+[./base](./base) | [`kubeflownotebookswg/base:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/base) | common base image
+[./codeserver](./codeserver) | [`kubeflownotebookswg/codeserver:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver) | base [code-server](https://github.com/cdr/code-server) (Visual Studio Code) image
+[./jupyter](./jupyter) | [`kubeflownotebookswg/jupyter:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter) | base [JupyterLab](https://github.com/jupyterlab/jupyterlab) image
+[./rstudio](./rstudio) | [`kubeflownotebookswg/rstudio:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio) | base [RStudio](https://github.com/rstudio/rstudio) image
 
 ### Images // Full
 
@@ -23,17 +23,17 @@ These images extend the [base images](#images--base) with common packages used i
 
 Dockerfile | Registry | Notes
 --- | --- | ---
-[./codeserver-python](./codeserver-python) | [`public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python) | code-server (Visual Studio Code) + Conda Python
-[./jupyter-pytorch (CPU)](./jupyter-pytorch) | [`public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch) | JupyterLab + PyTorch (CPU)
-[./jupyter-pytorch (CUDA)](./jupyter-pytorch) | [`public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-cuda:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-cuda) | JupyterLab + PyTorch (CUDA)
-[./jupyter-pytorch-full (CPU)](./jupyter-pytorch-full) | [`public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-full:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-full) | JupyterLab + PyTorch (CPU) + [common](./jupyter-pytorch-full/requirements.txt) packages
-[./jupyter-pytorch-full (CUDA)](./jupyter-pytorch-full) | [`public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-cuda-full:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-cuda-full) | JupyterLab + PyTorch (CUDA) + [common](./jupyter-pytorch-full/requirements.txt) packages
-[./jupyter-scipy](./jupyter-scipy) | [`public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy) | JupyterLab + [SciPy](https://www.scipy.org/) packages
-[./jupyter-tensorflow (CPU)](./jupyter-tensorflow) | [`public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow) | JupyterLab + TensorFlow (CPU)
-[./jupyter-tensorflow (CUDA)](./jupyter-tensorflow) | [`public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda) | JupyterLab + TensorFlow (CUDA)
-[./jupyter-tensorflow-full (CPU)](./jupyter-tensorflow-full) | [`public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-full:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-full) | JupyterLab + TensorFlow (CPU) + [common](./jupyter-tensorflow-full/requirements.txt) packages
-[./jupyter-tensorflow-full (CUDA)](./jupyter-tensorflow-full) | [`public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda-full:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda-full) | JupyterLab + TensorFlow (CUDA) + [common](./jupyter-tensorflow-full/requirements.txt) packages
-[./rstudio-tidyverse](./rstudio-tidyverse) | [`public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse) | RStudio + [Tidyverse](https://www.tidyverse.org/) packages
+[./codeserver-python](./codeserver-python) | [`kubeflownotebookswg/codeserver-python:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python) | code-server (Visual Studio Code) + Conda Python
+[./jupyter-pytorch (CPU)](./jupyter-pytorch) | [`kubeflownotebookswg/jupyter-pytorch:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch) | JupyterLab + PyTorch (CPU)
+[./jupyter-pytorch (CUDA)](./jupyter-pytorch) | [`kubeflownotebookswg/jupyter-pytorch-cuda:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-cuda) | JupyterLab + PyTorch (CUDA)
+[./jupyter-pytorch-full (CPU)](./jupyter-pytorch-full) | [`kubeflownotebookswg/jupyter-pytorch-full:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-full) | JupyterLab + PyTorch (CPU) + [common](./jupyter-pytorch-full/requirements.txt) packages
+[./jupyter-pytorch-full (CUDA)](./jupyter-pytorch-full) | [`kubeflownotebookswg/jupyter-pytorch-cuda-full:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-cuda-full) | JupyterLab + PyTorch (CUDA) + [common](./jupyter-pytorch-full/requirements.txt) packages
+[./jupyter-scipy](./jupyter-scipy) | [`kubeflownotebookswg/jupyter-scipy:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy) | JupyterLab + [SciPy](https://www.scipy.org/) packages
+[./jupyter-tensorflow (CPU)](./jupyter-tensorflow) | [`kubeflownotebookswg/jupyter-tensorflow:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow) | JupyterLab + TensorFlow (CPU)
+[./jupyter-tensorflow (CUDA)](./jupyter-tensorflow) | [`kubeflownotebookswg/jupyter-tensorflow-cuda:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda) | JupyterLab + TensorFlow (CUDA)
+[./jupyter-tensorflow-full (CPU)](./jupyter-tensorflow-full) | [`kubeflownotebookswg/jupyter-tensorflow-full:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-full) | JupyterLab + TensorFlow (CPU) + [common](./jupyter-tensorflow-full/requirements.txt) packages
+[./jupyter-tensorflow-full (CUDA)](./jupyter-tensorflow-full) | [`kubeflownotebookswg/jupyter-tensorflow-cuda-full:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda-full) | JupyterLab + TensorFlow (CUDA) + [common](./jupyter-tensorflow-full/requirements.txt) packages
+[./rstudio-tidyverse](./rstudio-tidyverse) | [`kubeflownotebookswg/rstudio-tidyverse:{TAG}`](https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse) | RStudio + [Tidyverse](https://www.tidyverse.org/) packages
 
 ### Images // Relationship Chart
 

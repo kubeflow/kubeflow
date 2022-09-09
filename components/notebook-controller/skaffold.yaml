@@ -23,7 +23,7 @@ build:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /secret/key.json
       cache: {}
-  cluster:    
+  cluster:
     pullSecretName: gcp-credentials
     # Build in the kaniko namespace because we need to disable ISTIO sidecar injection
     # see  GoogleContainerTools/skaffold#3442
@@ -35,6 +35,6 @@ build:
         cpu: 6
         memory: 16Gi
 
-# TODO(jlewi): We should add a deploy section to actually deploy the controller. Assuming 
+# TODO(jlewi): We should add a deploy section to actually deploy the controller. Assuming
 # kubeflow/manifests is checked out we should be able to just point to he kustomize manifest in that
 # directory

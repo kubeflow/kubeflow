@@ -1,0 +1,44 @@
+name: Build & Publish Notebook Controller Docker image
+on:
+  push:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/notebook-controller/**
+      - components/common/**
+  pull_request:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/notebook-controller/**
+      - components/common/**
+
+jobs:
+  push_to_registry:
+    name: Build & Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Login to DockerHub
+      if: github.event_name == 'push'
+      uses: docker/login-action@v2
+      with:
+        username: kubeflownotebookswg
+        password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
+
+    - name: Run Notebook Controller build
+      run: |
+        cd components/notebook-controller
+        export IMG=kubeflownotebookswg/notebook-controller
+        make docker-build
+
+    - name: Run Notebook Controller push
+      if: github.event_name == 'push'
+      run: |
+        cd components/notebook-controller
+        export IMG=kubeflownotebookswg/notebook-controller
+        make docker-push

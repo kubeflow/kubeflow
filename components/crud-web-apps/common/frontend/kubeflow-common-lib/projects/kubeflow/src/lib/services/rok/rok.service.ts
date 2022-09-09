@@ -91,9 +91,7 @@ export class RokService extends BackendService {
 
     return this.http.get<BackendResponse>(url).pipe(
       catchError(error => this.handleError(error, showSnackBar)),
-      map((data: BackendResponse) => {
-        return data.storageClasses;
-      }),
+      map((data: BackendResponse) => data.storageClasses),
     );
   }
 }

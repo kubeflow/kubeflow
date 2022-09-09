@@ -120,9 +120,17 @@ export function initFormControls(formCtrl: FormGroup, config: Config) {
 
   formCtrl.controls.image.setValue(config.image.value);
 
-  formCtrl.controls.imageGroupOne.setValue(config.imageGroupOne.value);
+  if (config.imageGroupOne?.value) {
+    formCtrl.controls.imageGroupOne.setValue(config.imageGroupOne.value);
+  } else {
+    formCtrl.controls.imageGroupOne.disable();
+  }
 
-  formCtrl.controls.imageGroupTwo.setValue(config.imageGroupTwo.value);
+  if (config.imageGroupTwo?.value) {
+    formCtrl.controls.imageGroupTwo.setValue(config.imageGroupTwo.value);
+  } else {
+    formCtrl.controls.imageGroupTwo.disable();
+  }
 
   formCtrl.controls.imagePullPolicy.setValue(config.imagePullPolicy.value);
   if (config.imagePullPolicy.readOnly) {

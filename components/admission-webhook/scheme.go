@@ -18,7 +18,7 @@ package main
 
 import (
 	"github.com/kubeflow/kubeflow/components/admission-webhook/pkg/apis"
-	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
+	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -33,6 +33,6 @@ func init() {
 
 func addToScheme(scheme *runtime.Scheme) {
 	corev1.AddToScheme(scheme)
-	admissionregistrationv1beta1.AddToScheme(scheme)
+	admissionregistrationv1.AddToScheme(scheme)
 	apis.AddToScheme(scheme)
 }

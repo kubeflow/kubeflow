@@ -1,4 +1,6 @@
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:master-434b10ab
+# Use the respective Makefile to pass the appropriate BASE_IMG and build the image correctly
+ARG BASE_IMG=<jupyter>
+FROM $BASE_IMG
 
 # nvidia configs
 ENV NVIDIA_VISIBLE_DEVICES all

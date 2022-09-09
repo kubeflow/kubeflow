@@ -24876,7 +24876,7 @@ Jasmine
 http://jasmine.github.io
 Copyright (c) 2010-2017 Pivotal Labs. This software is licensed under the MIT License.
 --------------------------------------------------------------------------------
-jsprim@1.4.1  MIT  https://github.com/joyent/node-jsprim/tree/master/LICENSE
+jsprim@1.4.2  MIT  https://github.com/joyent/node-jsprim/tree/master/LICENSE
 --------------------------------------------------------------------------------
 Copyright (c) 2012, Joyent, Inc. All rights reserved.
 Permission is hereby granted, free of charge, to any person obtaining a copy

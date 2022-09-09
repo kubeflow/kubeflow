@@ -1,7 +1,16 @@
-version: "2"
-domain: kubeflow.org
-repo: tensorboard-controller
+ domain: kubeflow.org
+layout:
+- go.kubebuilder.io/v3
+projectName: tensorboard-controller
+repo: github.com/kubeflow/kubeflow/components/tensorboard-controller
 resources:
-- group: tensorboard
-  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kubeflow.org
+  group: tensorboard
   kind: Tensorboard
+  path: github.com/kubeflow/kubeflow/components/tensorboard-controller/api/v1alpha1
+  version: v1alpha1
+version: "3"

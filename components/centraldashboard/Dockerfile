@@ -1,5 +1,5 @@
 # Step 1: Builds and tests
-FROM node:12.22.8-alpine AS build
+FROM node:12.22.12-alpine AS build
 
 ARG kubeflowversion
 ARG commit
@@ -10,8 +10,8 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # Installs latest-stable Chromium package and configures environment for testing
 RUN apk update && apk upgrade && \
-    echo @stable http://nl.alpinelinux.org/alpine/latest-stable/community >> /etc/apk/repositories && \
-    echo @stable http://nl.alpinelinux.org/alpine/latest-stable/main >> /etc/apk/repositories
+    echo @stable http://nl.alpinelinux.org/alpine/v3.15/community >> /etc/apk/repositories && \
+    echo @stable http://nl.alpinelinux.org/alpine/v3.15/main >> /etc/apk/repositories
 
 RUN apk add --no-cache bash chromium@stable nss@stable \
     freetype@stable \
@@ -40,7 +40,7 @@ RUN npm rebuild && \
     npm prune --production
 
 # Step 2: Packages assets for serving
-FROM node:12.22.8-alpine AS serve
+FROM node:12.22.12-alpine AS serve
 
 ENV NODE_ENV=production
 WORKDIR /app
