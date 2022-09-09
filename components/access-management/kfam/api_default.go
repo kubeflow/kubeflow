@@ -299,12 +299,22 @@ func (c *KfamV1Alpha1Client) isClusterAdmin(queryUser string) bool {
 	return false
 }
 
+func (c *KfamV1Alpha1Client) isNamespaceAdmin(queryUser string, namespace string) bool {
+	bindingEntries, err := c.bindingClient.List(queryUser, []string{namespace}, "admin")
+	if err != nil {
+		return false
+	}
+	return len(bindingEntries.Bindings) > 0
+}
+
 //isOwnerOrAdmin return true if queryUser is cluster admin or profile owner
 func (c *KfamV1Alpha1Client) isOwnerOrAdmin(queryUser string, profileName string) bool {
-	isAdmin := c.isClusterAdmin(queryUser)
+	userIsClusterAdmin := c.isClusterAdmin(queryUser)
+	userIsNamespaceAdmin := c.isNamespaceAdmin(queryUser, profileName)
 	prof, err := c.profileClient.Get(profileName, metav1.GetOptions{})
 	if err != nil {
 		return false
 	}
-	return isAdmin || (prof.Spec.Owner.Name == queryUser)
+
+	return userIsClusterAdmin || userIsNamespaceAdmin || (prof.Spec.Owner.Name == queryUser)
 }
