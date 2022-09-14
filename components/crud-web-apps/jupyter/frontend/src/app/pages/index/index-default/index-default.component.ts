@@ -94,7 +94,9 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         this.startStopClicked(a.data);
         break;
       case 'name:link':
-        if (a.data.metadata.deletionTimestamp) {
+        if (a.data.status.phase === STATUS_TYPE.TERMINATING) {
+          a.event.stopPropagation();
+          a.event.preventDefault();
           this.snackBar.open(
             'Notebook is being deleted, cannot show details.',
             SnackType.Info,
@@ -102,13 +104,6 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
           );
           return;
         }
-        this.router.navigate(
-          [`/notebook/details/${a.data.namespace}/${a.data.name}`],
-          {
-            queryParams: { tab: 'overview' },
-            queryParamsHandling: '',
-          },
-        );
         break;
     }
   }
@@ -168,6 +163,10 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     notebook.deleteAction = this.processDeletionActionStatus(notebook);
     notebook.connectAction = this.processConnectActionStatus(notebook);
     notebook.startStopAction = this.processStartStopActionStatus(notebook);
+    notebook.link = {
+      text: notebook.name,
+      url: `/notebook/details/${notebook.namespace}/${notebook.name}`,
+    };
   }
 
   processIncomingData(notebooks: NotebookResponseObject[]) {
