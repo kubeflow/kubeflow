@@ -33,6 +33,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSelectModule } from '@angular/material/select';
 import { HelpPopoverModule } from '../help-popover/help-popover.module';
+import { RouterModule } from '@angular/router';
 
 @NgModule({
   imports: [
@@ -65,6 +66,7 @@ import { HelpPopoverModule } from '../help-popover/help-popover.module';
     MatAutocompleteModule,
     MatSelectModule,
     HelpPopoverModule,
+    RouterModule,
   ],
   declarations: [
     ResourceTableComponent,

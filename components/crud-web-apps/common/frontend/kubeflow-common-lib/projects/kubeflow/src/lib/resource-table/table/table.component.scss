@@ -1,3 +1,5 @@
+@import '../../variables.scss';
+
 $row-padding: 8px;
 
 :host {
@@ -48,9 +50,16 @@ td.mat-cell {
   text-decoration: underline;
 }
 
-.link:hover {
+a {
+  display: inline-block;
+  text-decoration: none;
+  color: black;
+  max-width: 100%;
+}
+
+a:hover {
   text-decoration: underline;
-  color: blue;
+  color: $link-color;
   cursor: pointer;
 }
 

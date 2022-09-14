@@ -9,3 +9,4 @@ export * from './menu-value';
 export * from './property-value';
 export * from './status';
 export * from './template';
+export * from './link-value';
