@@ -26,6 +26,7 @@ export class DeleteButtonComponent
       iconReady: 'material:delete',
     });
   }
+
   isPhaseUnavailable(): boolean {
     return this.status === STATUS_TYPE.UNAVAILABLE;
   }
