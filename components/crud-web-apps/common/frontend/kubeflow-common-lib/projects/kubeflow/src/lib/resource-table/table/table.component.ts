@@ -594,7 +594,9 @@ export class TableComponent
 
   public actionTriggered(e: ActionEvent) {
     // Forward the emitted ActionEvent
-    this.actionsEmitter.emit(e);
+    if (e instanceof ActionEvent) {
+      this.actionsEmitter.emit(e);
+    }
   }
 
   public newButtonTriggered() {
