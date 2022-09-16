@@ -7,7 +7,7 @@ COPY ./common/backend/ .
 RUN python3 setup.py bdist_wheel
 
 # --- Build the frontend kubeflow library ---
-FROM node:12 as frontend-kubeflow-lib
+FROM node:12-buster-slim as frontend-kubeflow-lib
 
 WORKDIR /src
 
@@ -42,7 +42,7 @@ RUN npm run build -- --output-path=./dist/default --configuration=production
 RUN npm run build -- --output-path=./dist/rok --configuration=rok-prod
 
 # Web App
-FROM python:3.7-slim-buster
+FROM python:3.7-slim
 
 WORKDIR /package
 COPY --from=backend-kubeflow-wheel /src .
