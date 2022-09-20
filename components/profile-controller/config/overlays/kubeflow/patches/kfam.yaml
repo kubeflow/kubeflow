@@ -4,6 +4,9 @@ metadata:
   name: deployment
 spec:
   template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
       - command:
@@ -17,7 +20,7 @@ spec:
         envFrom:
           - configMapRef:
               name: config
-        image: public.ecr.aws/j1r0q0g6/notebooks/access-management
+        image: docker.io/kubeflownotebookswg/kfam
         imagePullPolicy: Always
         name: kfam
         livenessProbe:

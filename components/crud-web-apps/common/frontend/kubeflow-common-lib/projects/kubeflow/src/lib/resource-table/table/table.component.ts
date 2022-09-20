@@ -1,5 +1,14 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  AfterViewInit,
+  HostBinding,
+  ViewChild,
+} from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator } from '@angular/material/paginator';
 import {
   TableConfig,
   ActionEvent,
@@ -21,12 +30,15 @@ import { TemplateValue } from '../types/template';
   templateUrl: './table.component.html',
   styleUrls: ['./table.component.scss'],
 })
-export class TableComponent {
+export class TableComponent implements AfterViewInit {
   private innerConfig: TableConfig;
   private innerData: any[] = [];
 
   public dataSource = new MatTableDataSource();
   public displayedColumns: string[] = [];
+
+  @HostBinding('class.lib-table') selfClass = true;
+  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
 
   TABLE_THEME = TABLE_THEME;
 
@@ -57,7 +69,11 @@ export class TableComponent {
   // Whenever a button in a row is pressed the component will emit an event
   // with information regarding the button that was pressed as well as the
   // row's object.
-  @Input() emitter: EventEmitter<ActionEvent>;
+  @Output() actionsEmitter = new EventEmitter<ActionEvent>();
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
 
   public isActionListValue(obj) {
     return obj instanceof ActionListValue;
@@ -101,17 +117,17 @@ export class TableComponent {
 
   public actionTriggered(e: ActionEvent) {
     // Forward the emitted ActionEvent
-    this.emitter.emit(e);
+    this.actionsEmitter.emit(e);
   }
 
   public newButtonTriggered() {
     const ev = new ActionEvent('newResourceButton', {});
-    this.emitter.emit(ev);
+    this.actionsEmitter.emit(ev);
   }
 
   public linkClicked(col: string, data: any) {
     const ev = new ActionEvent(`${col}:link`, data);
-    this.emitter.emit(ev);
+    this.actionsEmitter.emit(ev);
   }
 
   get tableTheme(): TABLE_THEME {

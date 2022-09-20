@@ -157,6 +157,21 @@ describe('Main Page', () => {
                 .hasAttribute('hidden')).toBe(true);
         });
 
+    it('Sets view state when the namespace is not specified for ' +
+       'a namespaced item', () => {
+            spyOn(mainPage, '_isInsideOfIframe').and.returnValue(true);
+            mainPage._routePageChanged('iframe', '/myapp/{ns}');
+            flush();
+
+            expect(mainPage.page).toBe('namespace_needed');
+            expect(mainPage.notFoundInIframe).toBe(true);
+            expect(mainPage.shadowRoot.getElementById('ViewTabs')
+                .hasAttribute('hidden')).toBe(true);
+            expect(mainPage.shadowRoot.getElementById('ViewTabs')
+                .hasAttribute('hidden')).toBe(true);
+
+        });
+
     it('Appends query string when building links', () => {
         const sidebarLinkSelector = '#MainDrawer iron-selector iframe-link';
         const headerLinkSelector = '#ViewTabs paper-tabs a';

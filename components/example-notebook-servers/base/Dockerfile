@@ -1,3 +1,4 @@
+# Use the respective Makefile to build the image.
 FROM ubuntu:20.04
 
 # common environemnt variables
@@ -52,8 +53,8 @@ RUN export GNUPGHOME=/tmp/ \
  && rm /tmp/s6-overlay-${S6_VERSION}-installer.sig /tmp/s6-overlay-${S6_VERSION}-installer
 
 # install - kubectl
-RUN curl -sL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${KUBECTL_KUBECTL_ARCH}/kubectl" -o /usr/local/bin/kubectl \
- && curl -sL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${KUBECTL_KUBECTL_ARCH}/kubectl.sha256" -o /tmp/kubectl.sha256 \
+RUN curl -sL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl" -o /usr/local/bin/kubectl \
+ && curl -sL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl.sha256" -o /tmp/kubectl.sha256 \
  && echo "$(cat /tmp/kubectl.sha256) /usr/local/bin/kubectl" | sha256sum --check \
  && rm /tmp/kubectl.sha256 \
  && chmod +x /usr/local/bin/kubectl

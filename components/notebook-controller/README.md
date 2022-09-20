@@ -1,31 +1,39 @@
 # Notebook Controller
 
-The controller allows users to create a custom resource "Notebook" (jupyter notebook).
-We originally wrote the controller using jsonnet and metacontroller, but are migrating to golang and
-Kubebuilder here. See [discussion](https://github.com/kubeflow/kubeflow/issues/2269).
+The controller allows users to create a custom resource "Notebook" (jupyter
+notebook).
+
+It has been developed using **Golang** and
+**[Kubebuilder](https://book.kubebuilder.io/quick-start.html)**.
 
 ## Spec
 
-The user needs to specify the PodSpec for the jupyter notebook.
+The user needs to specify the PodSpec for the Jupyter notebook.
 For example:
 
-```
-apiVersion: kubeflow.org/v1alpha1
+```yaml
+apiVersion: kubeflow.org/v1
 kind: Notebook
 metadata:
   name: my-notebook
-  namespace: test
 spec:
   template:
-    spec:  # Your PodSpec here
+    spec:
       containers:
-      - image: gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.0
-        args: ["start.sh", "lab", "--LabApp.token=''", "--LabApp.allow_remote_access='True'",
-               "--LabApp.allow_root='True'", "--LabApp.ip='*'",
-               "--LabApp.base_url=/test/my-notebook/",
-               "--port=8888", "--no-browser"]
-        name: notebook
-      ...
+        - name: my-notebook
+          image: kubeflownotebookswg/jupyter:master
+          args:
+            [
+              "start.sh",
+              "lab",
+              "--LabApp.token=''",
+              "--LabApp.allow_remote_access='True'",
+              "--LabApp.allow_root='True'",
+              "--LabApp.ip='*'",
+              "--LabApp.base_url=/test/my-notebook/",
+              "--port=8888",
+              "--no-browser",
+            ]
 ```
 
 The required fields are `containers[0].image` and (`containers[0].command` and/or `containers[0].args`).
@@ -34,14 +42,18 @@ That is, the user should specify what and how to run.
 All other fields will be filled in with default value if not specified.
 
 ## Environment parameters
+|Parameter | Description |
+| --- | --- |
+|ADD_FSGROUP| If the value is true or unset, fsGroup: 100 will be included in the pod's security context. If this value is present and set to false, it will suppress the automatic addition of fsGroup: 100 to the security context of the pod.|
+|DEV| If the value is false or unset, then the default implementation of the Notebook Controller will be used. If the admins want to use a custom implementation from their local machine, they should set this value to true.|
 
-ADD_FSGROUP: If the value is true or unset, fsGroup: 100 will be included
-in the pod's security context. If this value is present and set to false, it will suppress the
-automatic addition of fsGroup: 100 to the security context of the pod.
+
 
 ## Commandline parameters
 
 `metrics-addr`: The address the metric endpoint binds to. The default value is `:8080`.
+
+`probe-addr`: The address the health endpoint binds to. The default value is `:8081`.
 
 `enable-leader-election`: Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager. The default value is `false`.
 
@@ -51,6 +63,42 @@ This part is WIP as we are still developing.
 
 Under the hood, the controller creates a StatefulSet to run the notebook instance, and a Service for it.
 
+## Deployment
+
+Install the `notebooks.kubeflow.org` CRD:
+
+```
+make install
+```
+
+Deploy the notebook controller manager:
+
+```
+make deploy
+```
+
+Verify that the controller is running in the `notebook-controller-system` namespace:
+
+```
+$ kubectl get pods -l app=notebook-controller -n notebook-controller-system
+NAME                                             READY   STATUS    RESTARTS   AGE
+notebook-controller-deployment-564d76877-mqsm8   1/1     Running   0          16s
+```
+
+### Clean-up
+
+Uninstall the notebook controller manager:
+
+```
+make undeploy
+```
+
+Uninstall the `notebooks.kubeflow.org` CRD:
+
+```
+make uninstall
+```
+
 ## Contributing
 
 [https://www.kubeflow.org/docs/about/contributing/](https://www.kubeflow.org/docs/about/contributing/)
@@ -59,12 +107,37 @@ Under the hood, the controller creates a StatefulSet to run the notebook instanc
 
 To develop on `notebook-controller`, your environment must have the following:
 
-- [go](https://golang.org/dl/) version v1.15+.
-- [docker](https://docs.docker.com/install/) version 17.03+.
-- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.11.3+.
-- [kustomize](https://sigs.k8s.io/kustomize/docs/INSTALL.md) v3.1.0+
-- Access to a Kubernetes v1.11.3+ cluster.
-- [kubebuilder](https://book.kubebuilder.io/quick-start.html#installation)
+- [go](https://golang.org/dl/) version v1.17+.
+- [docker](https://docs.docker.com/install/) version 20.10+.
+- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version 1.22.0+.
+- [kustomize](https://sigs.k8s.io/kustomize/docs/INSTALL.md) version 3.8.7+.
+- [kubernetes](https://github.com/kubernetes-sigs/kind) Access to a Kubernetes v1.22.0+ cluster.
+- [kubebuilder](https://book.kubebuilder.io/quick-start.html#installation) version 3.3.0+.
+
+In order for the custom Notebook Controller to be functional from your local machine,
+the admins must:
+
+1. Set the number of replicas to zero:
+   ```
+   kubectl edit deployment notebook-controller-deployment -n=kubeflow
+   ```
+2. Allow the controller to proxy the traffic to the Notebook Services by executing on your local machine:
+   ```
+   kubectl proxy
+   ```
+3. Start the manager locally in developer mode:
+   ```
+   export DEV="true"
+   make run
+   ```
+
+### Testing
+
+Make sure all the tests are passing after you add a new feature:
+
+```
+make test
+```
 
 ## TODO
 

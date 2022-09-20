@@ -55,7 +55,7 @@ npm run build:watch
 ```bash
 # create a virtual env and install deps
 # https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/
-cd component/crud-web-apps/jupyter/backend
+cd components/crud-web-apps/jupyter/backend
 python3.7 -m pip install --user virtualenv
 python3.7 -m venv web-apps-dev
 source web-apps-dev/bin/activate
@@ -93,3 +93,16 @@ ng serve --configuration=fr
 
 You must also ensure that the backend is running, since Angular's dev server
 will be proxying request to the backend at `localhost:5000`.
+
+## E2E Tests
+
+To run the tests locally users will need to:
+```bash
+# navigate to the frontend and make sure the node modules are installed
+cd frontend
+npm i
+# ensure the backend is running and serving the files under localhost:5000
+# you can run the backend with: make run-dev
+# run the tests
+npm run e2e
+```

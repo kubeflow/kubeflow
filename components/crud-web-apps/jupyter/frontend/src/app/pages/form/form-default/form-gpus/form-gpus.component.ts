@@ -18,7 +18,7 @@ export class FormGpusComponent implements OnInit {
 
   subscriptions = new Subscription();
   maxGPUs = 16;
-  gpusCount = ['1'];
+  gpusCount = ['1', '2', '4', '8'];
 
   constructor(public backend: JWABackendService) {}
 
@@ -49,7 +49,7 @@ export class FormGpusComponent implements OnInit {
   // Vendor handling
   public vendorTooltip(vendor: GPUVendor) {
     return !this.installedVendors.has(vendor.limitsKey)
-      ? $localize`There are currently no ${vendor.uiName} GPUs in you cluster.`
+      ? $localize`There are currently no ${vendor.uiName} GPUs in your cluster.`
       : '';
   }
 

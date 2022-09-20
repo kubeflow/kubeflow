@@ -36,6 +36,7 @@ import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
 import './not-found-view.js';
+import './namespace-needed-view.js';
 import './manage-users-view.js';
 import './resources/kubeflow-icons.js';
 import './iframe-container.js';
@@ -268,12 +269,18 @@ export class MainPage extends utilitiesMixin(localizationMixin(localizationMixin
             this._setActiveLink(this.$.home);
             break;
         default:
-            this.page = 'not_found';
             // Handles case when an iframed page requests an invalid route
             if (this._isInsideOfIframe()) {
                 notFoundInIframe = true;
+                hideSidebar = true;
+            }
+            if (path && path.includes('{ns}')) {
+                this.page = 'namespace_needed';
+            } else {
+                this.page = 'not_found';
             }
         }
+
         this._setNotFoundInIframe(notFoundInIframe);
         this._setHideTabs(hideTabs);
         this._setAllNamespaces(allNamespaces);
@@ -292,8 +299,10 @@ export class MainPage extends utilitiesMixin(localizationMixin(localizationMixin
     }
 
     _namespaceChanged(namespace) {
-        // update namespaced menu item when namespace is changed
-        // by namespace selector
+        /*
+         * update namespaced menu item when namespace is changed
+         * by namespace selector
+         */
         if (this.namespacedItemTemplete &&
             this.namespacedItemTemplete.includes('{ns}')) {
             this.set('subRouteData.path',
@@ -302,11 +311,13 @@ export class MainPage extends utilitiesMixin(localizationMixin(localizationMixin
     }
 
     _buildHref(href, queryParamsChange) {
-        // The "queryParams" value from "queryParamsChange" is not updated as
-        // expected in the "iframe-link", but it works in anchor element.
-        // A temporary workaround is  to use "this.queryParams" as an input
-        // instead of "queryParamsChange.base".
-        // const queryParams = queryParamsChange.base;
+        /*
+         * The "queryParams" value from "queryParamsChange" is not updated as
+         * expected in the "iframe-link", but it works in anchor element.
+         * A temporary workaround is  to use "this.queryParams" as an input
+         * instead of "queryParamsChange.base".
+         * const queryParams = queryParamsChange.base;
+         */
         const queryParams = this.queryParams;
         if (!queryParams || !queryParams['ns']) {
             return this.buildHref(href, this.queryParams);

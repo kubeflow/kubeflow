@@ -5,6 +5,7 @@ resources:
 - ../../base
 - service.yaml
 - virtual-service.yaml
+- authorizationpolicy.yaml
 
 commonLabels:
   kustomize.component: profiles
@@ -26,6 +27,5 @@ vars:
     apiVersion: v1
 
 images:
-- name: public.ecr.aws/j1r0q0g6/notebooks/access-management
-  newName: public.ecr.aws/j1r0q0g6/notebooks/access-management
-  newTag: v1.4
+- name: docker.io/kubeflownotebookswg/kfam
+  newTag: v1.6.0

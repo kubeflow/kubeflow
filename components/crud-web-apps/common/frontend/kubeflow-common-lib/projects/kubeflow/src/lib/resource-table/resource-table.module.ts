@@ -7,6 +7,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { StatusComponent } from './status/status.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -21,10 +22,12 @@ import { PopoverModule } from '../popover/popover.module';
 import { TableChipsListComponent } from './chips-list/chips-list.component';
 import { ComponentValueComponent } from './component-value/component-value.component';
 import { PortalModule } from '@angular/cdk/portal';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   imports: [
     CommonModule,
+    BrowserAnimationsModule,
     MatTableModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
@@ -33,6 +36,7 @@ import { PortalModule } from '@angular/cdk/portal';
     MatButtonModule,
     MatChipsModule,
     MatMenuModule,
+    MatPaginatorModule,
     PortalModule,
     FontAwesomeModule,
     MatIconModule,
@@ -49,6 +53,6 @@ import { PortalModule } from '@angular/cdk/portal';
     TableComponent,
     ComponentValueComponent,
   ],
-  exports: [ResourceTableComponent],
+  exports: [ResourceTableComponent, TableComponent],
 })
 export class ResourceTableModule {}

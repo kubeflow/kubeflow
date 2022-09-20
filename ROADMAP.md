@@ -1,6 +1,102 @@
 # Kubeflow Roadmap
 
-## Kubeflow 1.4 Release, Due: September 2021
+## Kubeflow 1.6 Release, Due: July 2022
+* Kubeflow 1.6 [milestones and timelines](https://github.com/kubeflow/community/pull/558)
+
+#### Themes
+* Kubernetes 1.22 support
+
+### Major Features from each Working Group (note: Individual WG versions are independent of Kubeflow's)
+
+#### Kubeflow Pipelines
+* V2 Preview: Support running pipeline in Argo-agnostic approach
+* New DAG visualization based on Pipeline Template and MLMD
+* SDK to change from `kfp.v2` to `kfp`
+* KFP SDK CLI [design](https://docs.google.com/document/d/1Z79ebKaf3hjyadSRsme1Qo7F-Tqu4qM1cyKuLeu2PgA/edit#heading=h.x9snb54sjlu9)
+
+#### Katib
+* Support for Population based training
+* Support JSON format for Metrics Collector
+* UI Enhancement to add a separate page for Trials and show Trial logs
+
+#### Training Operator
+* PyTorch elastic training enhancements
+* Elastic scheduling with Volcano support
+* MPI Operator v2
+
+#### Notebooks, Central Dashboard, Web Apps, Manifest
+* Sorting and filtering support for the web apps
+* Expose Notebook idleness information in the JWA
+
+#### KServe
+* Knative 1.0 support and certified for KServe Serverless installation
+* KServe 0.9 SDK with ModelServer API name changes and improvement for CloudEvent support
+* New ServingRuntime and ClusterServingRuntime CRDs
+* New ModelSpec in InferenceServices
+* ModelMesh updates include support for multi-namespace reconciliation
+
+#### Detailed features, bug fixes and enhancements will be identified in the Working Group Roadmaps
+
+* [Training Operators](https://github.com/kubeflow/common/blob/master/ROADMAP.md)
+* [KFServing](https://github.com/kubeflow/kfserving/blob/master/ROADMAP.md)
+* [Katib](https://github.com/kubeflow/katib/blob/master/ROADMAP.md)
+* [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
+* [Notebooks, Central Dashboard](https://docs.google.com/document/d/1YtSWRhdhyOgd6ZQcWLM38TGDy2H_EhXjr8U5lUi37_I/edit)
+
+
+## Kubeflow 1.5 Release, Delivered: March 2022
+* Kubeflow 1.5 [milestones and timeline](https://github.com/kubeflow/community/pull/538)
+
+### Themes
+* Switching to [Emissary executor](https://www.kubeflow.org/docs/components/pipelines/installation/choose-executor/#emissary-executor) enables Kubeflow Pipelines deployment on Kubernetes >= v1.20, which runs on containerd runtime instead of Docker runtime
+* Improve model accuracy and reduce overfitting, especially with hyper parameter tuning
+* Simplify operations and optimize utilization (including spot instance use cases for distributed training) 
+* More consistent user experience - UI appearance, features and naming
+* Improved documentation, tutorials and examples
+* Stretch - Support for K8s 1.22 and associated dependencies (cert mgr, istio)
+
+### Major Features from each Working Group (note: Individual WG versions are independent of Kubeflow's)
+
+#### Kubeflow Pipelines, v1.8
+* Switching to [Emissary executor](https://www.kubeflow.org/docs/components/pipelines/installation/choose-executor/#emissary-executor) enables Kubeflow Pipelines deployment on Kubernetes >= v1.20, which runs on containerd runtime instead of Docker runtime.
+
+#### Katib, v0.13 
+* Katib controller leader election for HA operations and faster recovery
+* Validation for Early Stopping algorithm settings helps users to reduce model overfitting
+* Improve SDK, AWS CI, parameter settings across frameworks (goptuna, optuna, hyperopt) 
+* Update namespace label for Metrics Collector injection (note - breaking change)
+
+#### Training Operator, v1.3
+* Elastic Training for PyTorch, restarts pod rather than whole job, supports spot instances
+* MPI addition to Unified training operator 
+* Python SDK supported on PyPI 
+
+#### Notebooks, Central Dashboard, Web Apps, Manifest, v1.5 
+* Exposing notebook idleness parameters, reduces infra used on idle notebooks
+* UI consistency between web apps along with frontend pagination, and remove cards and user responsive tables
+* Support for dark mode
+* More options to define PVC specification
+
+#### KServe, v0.7
+* KFServing is rebranded to [KServe](https://github.com/kserve)
+* [ModelMesh](https://github.com/kserve/modelmesh-serving) joins KServe 
+* Triton model serving runtime defaults to v21.09
+* (Alpha feature) Raw kubernetes deployment support, Istio/Knative dependency is now optional
+
+#### Detailed features, bug fixes and enhancements are identified in the Working Group Roadmaps
+
+* [Training Operators](https://github.com/kubeflow/common/blob/master/ROADMAP.md)
+* [KFServing](https://github.com/kubeflow/kfserving/blob/master/ROADMAP.md)
+* [Katib](https://github.com/kubeflow/katib/blob/master/ROADMAP.md)
+* [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
+* [Notebooks](https://github.com/kubeflow/kubeflow/issues/5978)
+
+
+## Kubeflow 1.4.1 Release, Delivered: December 2021
+* The need for a patch release was triggered by [#2082](https://github.com/kubeflow/manifests/issues/2082)
+* 1.4.1 Tracking issue: [2084](https://github.com/kubeflow/manifests/issues/2082)
+
+## Kubeflow 1.4 Release, Delivered: October 2021
 
 ### Themes and Major Features
 

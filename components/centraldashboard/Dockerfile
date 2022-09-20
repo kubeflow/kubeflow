@@ -22,7 +22,8 @@ RUN apk add --no-cache \
     freetype \
     harfbuzz \
     ttf-freefont \
-    libstdc++
+    libstdc++ \
+    git
 
 RUN if [ "$(uname -m)" = "aarch64" ]; then \
         apk update && apk upgrade && \

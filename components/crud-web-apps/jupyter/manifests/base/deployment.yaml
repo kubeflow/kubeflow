@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: jupyter-web-app
-        image: public.ecr.aws/j1r0q0g6/notebooks/jupyter-web-app
+        image: docker.io/kubeflownotebookswg/jupyter-web-app
         ports:
         - containerPort: 5000
         volumeMounts:
@@ -28,6 +28,8 @@ spec:
           value: $(JWA_USERID_HEADER)
         - name: USERID_PREFIX
           value: $(JWA_USERID_PREFIX)
+        - name: APP_SECURE_COOKIES
+          value: $(JWA_APP_SECURE_COOKIES)
       serviceAccountName: service-account
       volumes:
       - configMap:

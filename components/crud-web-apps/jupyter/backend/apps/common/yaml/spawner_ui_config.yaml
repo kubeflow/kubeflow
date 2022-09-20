@@ -17,23 +17,23 @@
 spawnerFormDefaults:
   image:
     # The container Image for the user's Jupyter Notebook
-    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-6e4ad3b4
+    value: kubeflownotebookswg/jupyter-scipy:master-6e4ad3b4
     # The list of available standard container Images
     options:
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-6e4ad3b4
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-full:master-6e4ad3b4
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-cuda-full:master-6e4ad3b4
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-full:master-6e4ad3b4
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda-full:master-6e4ad3b4
+      - kubeflownotebookswg/jupyter-scipy:v1.6.0-rc.0
+      - kubeflownotebookswg/jupyter-pytorch-full:v1.6.0-rc.0
+      - kubeflownotebookswg/jupyter-pytorch-cuda-full:v1.6.0-rc.0
+      - kubeflownotebookswg/jupyter-tensorflow-full:v1.6.0-rc.0
+      - kubeflownotebookswg/jupyter-tensorflow-cuda-full:v1.6.0-rc.0
   imageGroupOne:
     # The container Image for the user's Group One Server
     # The annotation `notebooks.kubeflow.org/http-rewrite-uri: /`
     # is applied to notebook in this group, configuring
     # the Istio rewrite for containers that host their web UI at `/`
-    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:master-e9324d39
+    value: kubeflownotebookswg/codeserver-python:v1.6.0-rc.0
     # The list of available standard container Images
     options:
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:master-e9324d39
+      - kubeflownotebookswg/codeserver-python:v1.6.0-rc.0
   imageGroupTwo:
     # The container Image for the user's Group Two Server
     # The annotation `notebooks.kubeflow.org/http-rewrite-uri: /`
@@ -42,10 +42,10 @@ spawnerFormDefaults:
     # The annotation `notebooks.kubeflow.org/http-headers-request-set`
     # is applied to notebook in this group, configuring Istio
     # to add the `X-RStudio-Root-Path` header to requests
-    value: public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:master-e9324d39
+    value: kubeflownotebookswg/rstudio-tidyverse:v1.6.0-rc.0
     # The list of available standard container Images
     options:
-      - public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:master-e9324d39
+      - kubeflownotebookswg/rstudio-tidyverse:v1.6.0-rc.0
   # If true, hide registry and/or tag name in the image selection dropdown
   hideRegistry: true
   hideTag: false
@@ -62,16 +62,10 @@ spawnerFormDefaults:
     # Factor by with to multiply request to calculate limit
     # if no limit is set, to disable set "none"
     limitFactor: "1.2"
-    # Factor by with to multiply request to calculate limit
-    # if no limit is set, to disable set "none"
-    limitFactor: "1.2"
     readOnly: false
   memory:
     # Memory for user's Notebook
     value: 1.0Gi
-    # Factor by with to multiply request to calculate limit
-    # if no limit is set, to disable set "none"
-    limitFactor: "1.2"
     # Factor by with to multiply request to calculate limit
     # if no limit is set, to disable set "none"
     limitFactor: "1.2"
@@ -80,35 +74,18 @@ spawnerFormDefaults:
     value: {}
     readOnly: false
   workspaceVolume:
-    # Workspace Volume to be attached to user's Notebook
-    # Each Workspace Volume is declared with the following attributes:
-    # Type, Name, Size, MountPath and Access Mode
+    # If you don't want a workspace volume then delete the 'value' key
     value:
-      type:
-        # The Type of the Workspace Volume
-        # Supported values: 'New', 'Existing'
-        value: New
-      name:
-        # The Name of the Workspace Volume
-        # Note that this is a templated value. Special values:
-        # {notebook-name}: Replaced with the name of the Notebook. The frontend
-        #                  will replace this value as the user types the name
-        value: 'workspace-{notebook-name}'
-      size:
-        # The Size of the Workspace Volume (in Gi)
-        value: '5Gi'
-      mountPath:
-        # The Path that the Workspace Volume will be mounted
-        value: /home/jovyan
-      accessModes:
-        # The Access Mode of the Workspace Volume
-        # Supported values: 'ReadWriteOnce', 'ReadWriteMany', 'ReadOnlyMany'
-        value: ReadWriteOnce
-      class:
-        # The StrageClass the PVC will use if type is New. Special values are:
-        # {none}: default StorageClass
-        # {empty}: empty string ""
-        value: '{none}'
+      mount: /home/jovyan
+      newPvc:
+        metadata:
+          name: '{notebook-name}-workspace'
+        spec:
+          resources:
+            requests:
+              storage: 5Gi
+          accessModes:
+            - ReadWriteOnce
     readOnly: false
   dataVolumes:
     # List of additional Data Volumes to be attached to the user's Notebook
@@ -118,34 +95,20 @@ spawnerFormDefaults:
     #
     # For example, a list with 2 Data Volumes:
     # value:
-    #   - value:
-    #       type:
-    #         value: New
-    #       name:
-    #         value: '{notebook-name}-vol-1'
-    #       size:
-    #         value: '10Gi'
-    #       class:
-    #         value: standard
-    #       mountPath:
-    #         value: /home/jovyan/vol-1
-    #       accessModes:
-    #         value: ReadWriteOnce
-    #       class:
-    #         value: {none}
-    #   - value:
-    #       type:
-    #         value: New
-    #       name:
-    #         value: '{notebook-name}-vol-2'
-    #       size:
-    #         value: '10Gi'
-    #       mountPath:
-    #         value: /home/jovyan/vol-2
-    #       accessModes:
-    #         value: ReadWriteMany
-    #       class:
-    #         value: {none}
+    #   - mount: /home/jovyan/datavol-1
+    #     newPvc:
+    #       metadata:
+    #         name: '{notebook-name}-datavol-1'
+    #       spec:
+    #         resources:
+    #           requests:
+    #             storage: 5Gi
+    #         accessModes:
+    #           - ReadWriteOnce
+    #   - mount: /home/jovyan/datavol-1
+    #     existingSource:
+    #       persistentVolumeClaim:
+    #         claimName: test-pvc
     readOnly: false
   gpus:
     # Number of GPUs to be assigned to the Notebook Container

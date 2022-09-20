@@ -1,11 +1,12 @@
-.wide {
-  width: 100%;
+.header,
+p {
+  margin-top: 0.2rem;
+  color: rgba(0, 0, 0, 0.66);
 }
 
-h3,
-p {
-  margin-block-start: 0.2rem;
-  color: rgba(0, 0, 0, 0.54);
+.header {
+  font-weight: 500;
+  font-size: 20px;
 }
 
 .lib-icon {
@@ -15,9 +16,5 @@ p {
 // The following two rules are for adding bottom margin
 // inside of a form section
 .form--section-bottom {
-  margin-bottom: 0.5em;
-}
-
-.form--section-bottom > button {
   margin-bottom: 0.5em;
 }

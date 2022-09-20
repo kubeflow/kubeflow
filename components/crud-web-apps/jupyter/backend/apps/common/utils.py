@@ -1,4 +1,6 @@
 import os
+import random
+import string
 
 from kubernetes import client
 from werkzeug import exceptions
@@ -14,6 +16,7 @@ FILE_ABS_PATH = os.path.abspath(os.path.dirname(__file__))
 NOTEBOOK_TEMPLATE_YAML = os.path.join(
     FILE_ABS_PATH, "yaml/notebook_template.yaml"
 )
+LAST_ACTIVITY_ANNOTATION = "notebooks.kubeflow.org/last-activity"
 
 # The production configuration is mounted on the app's pod via a configmap
 DEV_CONFIG = os.path.join(FILE_ABS_PATH, "yaml/spawner_ui_config.yaml")
@@ -21,6 +24,11 @@ CONFIGS = [
     "/etc/config/spawner_ui_config.yaml",
     DEV_CONFIG,
 ]
+
+
+def random_string(size=9, chars=string.ascii_lowercase + string.digits):
+    """Create a random string."""
+    return "".join(random.choice(chars) for _ in range(size))
 
 
 def load_notebook_template(**kwargs):
@@ -106,14 +114,9 @@ def get_storage_class(vol):
 
 
 # Functions for transforming the data from k8s api
-def pvc_dict_from_k8s_obj(pvc):
-    return {
-        "name": pvc.metadata.name,
-        "namespace": pvc.metadata.namespace,
-        "size": pvc.spec.resources.requests["storage"],
-        "mode": pvc.spec.access_modes,
-        "class": pvc.spec.storage_class_name,
-    }
+def get_notebook_last_activity(notebook):
+    annotations = notebook["metadata"].get("annotations", {})
+    return annotations.get(LAST_ACTIVITY_ANNOTATION, "")
 
 
 def notebook_dict_from_k8s_obj(notebook):
@@ -128,6 +131,7 @@ def notebook_dict_from_k8s_obj(notebook):
         "namespace": notebook["metadata"]["namespace"],
         "serverType": server_type,
         "age": helpers.get_uptime(notebook["metadata"]["creationTimestamp"]),
+        "last_activity": get_notebook_last_activity(notebook),
         "image": cntr["image"],
         "shortImage": cntr["image"].split("/")[-1],
         "cpu": cntr["resources"]["requests"]["cpu"],

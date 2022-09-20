@@ -12,21 +12,22 @@ SERVER_TYPE_ANNOTATION = "notebooks.kubeflow.org/server-type"
 HEADERS_ANNOTATION = "notebooks.kubeflow.org/http-headers-request-set"
 URI_REWRITE_ANNOTATION = "notebooks.kubeflow.org/http-rewrite-uri"
 
-SERVER_TYPE_ANNOTATION = "notebooks.kubeflow.org/server-type"
-HEADERS_ANNOTATION = "notebooks.kubeflow.org/http-headers-request-set"
-URI_REWRITE_ANNOTATION = "notebooks.kubeflow.org/http-rewrite-uri"
 
-
-def get_form_value(body, defaults, body_field, defaults_field=None):
+def get_form_value(body, defaults, body_field, defaults_field=None,
+                   optional=False):
     """
     Get the value to set by respecting the readOnly configuration for
     the field.
     If the field does not exist in the configuration then just use the form
     value.
     """
+    # The field in the defaults json not be the same in the request body
     if defaults_field is None:
         defaults_field = body_field
 
+    # If no default value exists then just return value in the request body.
+    # This is also useful if we add a new field and the configmap isn't updated
+    # yet
     user_value = body.get(body_field, None)
     if defaults_field not in defaults:
         return user_value
@@ -34,6 +35,8 @@ def get_form_value(body, defaults, body_field, defaults_field=None):
     readonly = defaults[defaults_field].get("readOnly", False)
     default_value = defaults[defaults_field]["value"]
 
+    # if the value of a field is readonly then the request/form should not
+    # contain this field
     if readonly:
         if body_field in body:
             raise BadRequest(
@@ -44,9 +47,14 @@ def get_form_value(body, defaults, body_field, defaults_field=None):
         log.info("Using default value for '%s': %s", body_field, default_value)
         return default_value
 
-    # field is not readonly
+    # field is not readonly and no value was provided
     if user_value is None:
-        raise BadRequest("No value provided for: %s" % body_field)
+        if not optional:
+            raise BadRequest("No value provided for: %s" % body_field)
+
+        # no value for field, but it was optional
+        log.info("No value provided for '%s'", defaults_field)
+        return None
 
     log.info("Using provided value for '%s': %s", body_field, user_value)
     return user_value
@@ -61,64 +69,6 @@ def is_config_volume(vol):
         return False
 
     return True
-
-
-def volume_from_config(config_vol, notebook):
-    """
-    Create a Volume Dict from the config.yaml. This dict has the same fields as
-    a Volume returned from the frontend
-    """
-    vol_name = config_vol["name"]["value"].replace(
-        "{notebook-name}", notebook["name"]
-    )
-    vol_class = utils.get_storage_class(config_vol["class"]["value"])
-
-    return {
-        "name": vol_name,
-        "type": config_vol["type"]["value"],
-        "size": config_vol["size"]["value"],
-        "mode": config_vol["accessModes"]["value"],
-        "path": config_vol["mountPath"]["value"],
-        "class": vol_class,
-        "extraFields": config_vol.get("extra", {}),
-    }
-
-
-def get_workspace_vol(body, defaults):
-    """
-    Checks the config and the form values and returns a Volume Dict for the
-    workspace.
-    """
-    if body.get("noWorkspace", False):
-        log.info("Requested to NOT use persistent storage for home dir")
-        return {}
-
-    workspace_vol = get_form_value(
-        body, defaults, "workspace", "workspaceVolume"
-    )
-
-    # check if it is a value from the config
-    if is_config_volume(workspace_vol):
-        workspace_vol = volume_from_config(workspace_vol, body)
-
-    return workspace_vol
-
-
-def get_data_vols(body, defaults):
-    """
-    Checks the config and the form values and returns a list of Volume
-    Dictionaries for the Notebook's Data Volumes.
-    """
-    vols = get_form_value(body, defaults, "datavols", "dataVolumes")
-    data_vols = []
-
-    for vol in vols:
-        if is_config_volume(vol):
-            vol = volume_from_config(vol, body)
-
-        data_vols.append(vol)
-
-    return data_vols
 
 
 # Notebook YAML processing
@@ -191,17 +141,6 @@ def set_notebook_cpu(notebook, body, defaults):
     limits["cpu"] = cpu_limit
     container["resources"]["limits"] = limits
 
-    if cpu_limit is None or cpu_limit == "":
-        # user explicitly asked for no limits
-        return
-
-    if float(cpu_limit) < float(cpu):
-        raise BadRequest("CPU limit must be greater than the request")
-
-    limits = container["resources"].get("limits", {})
-    limits["cpu"] = cpu_limit
-    container["resources"]["limits"] = limits
-
 
 def set_notebook_memory(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
@@ -222,18 +161,6 @@ def set_notebook_memory(notebook, body, defaults):
                     limit_factor)), 1)) + "Gi"
 
     container["resources"]["requests"]["memory"] = memory
-
-    if memory_limit is None or memory_limit == "":
-        # user explicitly asked for no limits
-        return
-
-    if float(memory_limit.replace('Gi', '')) < float(
-            memory.replace('Gi', '')):
-        raise BadRequest("Memory limit must be greater than the request")
-
-    limits = container["resources"].get("limits", {})
-    limits["memory"] = memory_limit
-    container["resources"]["limits"] = limits
 
     if memory_limit is None or memory_limit == "":
         # user explicitly asked for no limits

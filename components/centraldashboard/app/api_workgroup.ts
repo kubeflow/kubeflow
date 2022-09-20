@@ -118,7 +118,8 @@ export class WorkgroupApi {
     constructor(
         private profilesService: DefaultApi,
         private k8sService: KubernetesService,
-        private registrationFlowAllowed: boolean) {}
+        private registrationFlowAllowed: boolean,
+        private userIdHeader: string) {}
     /** Retrieves and memoizes the PlatformInfo. */
     private async getPlatformInfo(): Promise<PlatformInfo> {
         if (!this.platformInfo) {
@@ -214,8 +215,12 @@ export class WorkgroupApi {
                 namespace,
                 role: 'contributor',
             });
+            // only pass the auth-related headers from the user's request on to kfam
+            const authHeaders = ['authorization', 'cookie', this.userIdHeader];
             const {headers} = req;
-            delete headers['content-length'];
+            Object.keys(headers).forEach(
+                (key) => authHeaders.includes(key) || delete headers[key]
+            );
             const actionAPI = action === 'create' ? 'createBinding' : 'deleteBinding';
             await profilesService[actionAPI](binding, {headers});
             errIndex++;

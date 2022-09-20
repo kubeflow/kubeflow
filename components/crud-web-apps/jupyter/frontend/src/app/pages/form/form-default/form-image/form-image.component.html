@@ -1,10 +1,6 @@
 <lib-form-section
-  title="Image"
-  text="A starter Jupyter Docker Image with a baseline deployment and typical
-        ML packages"
-  icon="fa:fab:docker"
+  title="Docker Image"
   i18n-title="Title for the Image section of the form"
-  i18n-text="Text for the Image section of the form"
 >
   <div class="flex-column">
     <mat-checkbox
@@ -31,6 +27,7 @@
 
       <mat-button-toggle
         value="group-one"
+        *ngIf="!parentForm.get('imageGroupOne')?.disabled"
         attr.aria-label="Use Group One based server"
         i18n-aria-label="Aria label for Group One server"
       >
@@ -38,6 +35,7 @@
       </mat-button-toggle>
       <mat-button-toggle
         value="group-two"
+        *ngIf="!parentForm.get('imageGroupTwo')?.disabled"
         attr.aria-label="Use Group Two based server"
         i18n-aria-label="Aria label for Group Two server"
       >
@@ -50,11 +48,8 @@
     class="wide"
     appearance="outline"
     *ngIf="
-      
       !parentForm?.value.customImageCheck &&
-     
       parentForm?.value.serverType === 'jupyter'
-    
     "
   >
     <!-- If readonly, then make it an input element instead of select -->

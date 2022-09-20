@@ -3,31 +3,32 @@ import {
   StatusValue,
   ActionListValue,
   ActionIconValue,
-  TRUNCATE_TEXT_SIZE,
   TableConfig,
 } from 'kubeflow';
 
 export const tableConfig: TableConfig = {
-  title: $localize`Volumes`,
-  newButtonText: $localize`NEW VOLUME`,
   columns: [
     {
       matHeaderCellDef: $localize`Status`,
       matColumnDef: 'status',
+      style: { width: '1%' },
       value: new StatusValue(),
     },
     {
       matHeaderCellDef: $localize`Name`,
       matColumnDef: 'name',
+      style: { width: '25%' },
       value: new PropertyValue({
         field: 'name',
         tooltipField: 'name',
-        truncate: TRUNCATE_TEXT_SIZE.SMALL,
+        truncate: true,
       }),
     },
     {
       matHeaderCellDef: $localize`Age`,
       matColumnDef: 'age',
+      textAlignment: 'right',
+      style: { width: '10%' },
       value: new PropertyValue({
         field: 'age.uptime',
         tooltipField: 'age.timestamp',
@@ -36,17 +37,21 @@ export const tableConfig: TableConfig = {
     {
       matHeaderCellDef: $localize`Size`,
       matColumnDef: 'size',
-      value: new PropertyValue({ field: 'capacity' }),
+      textAlignment: 'right',
+      style: { width: '10%' },
+      value: new PropertyValue({ field: 'capacity', truncate: true }),
     },
     {
       matHeaderCellDef: $localize`Access Mode`,
       matColumnDef: 'modes',
-      value: new PropertyValue({ field: 'modes' }),
+      style: { width: '15%' },
+      value: new PropertyValue({ field: 'modes', truncate: true }),
     },
     {
       matHeaderCellDef: $localize`Storage Class`,
       matColumnDef: 'class',
-      value: new PropertyValue({ field: 'class' }),
+      style: { width: '10%' },
+      value: new PropertyValue({ field: 'class', truncate: true }),
     },
 
     // the apps should import the actions they want

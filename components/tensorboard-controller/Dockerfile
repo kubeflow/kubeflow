@@ -9,7 +9,6 @@ FROM golang:1.17 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
-# Copy the Go Modules manifests
 COPY tensorboard-controller /workspace/tensorboard-controller
 COPY common /workspace/common
 # cache deps before building and copying source so that we don't need to re-download as much
@@ -30,6 +29,6 @@ RUN if [ "$(uname -m)" = "aarch64" ]; then \
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=builder /workspace/tensorboard-controller/manager .
-USER nonroot:nonroot
+USER 65532:65532
 
 ENTRYPOINT ["/manager"]

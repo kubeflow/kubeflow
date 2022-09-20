@@ -1,10 +1,12 @@
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/base:master-6c41e72b
+# Use the respective Makefile to pass the appropriate BASE_IMG and build the image correctly
+ARG BASE_IMG=<base>
+FROM $BASE_IMG
 
 USER root
 
 # args - software versions
  # renovate: datasource=github-tags depName=cdr/code-server versioning=semver
-ARG CODESERVER_VERSION=v3.10.2
+ARG CODESERVER_VERSION=v4.3.0
 
 # install - code-server
 RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION/v/}_amd64.deb" -o /tmp/code-server.deb \

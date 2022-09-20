@@ -90,8 +90,8 @@
             "manageUsersViewContributor.lblEmail": "Email Addresses",
             "manageUsersViewContributor.phdAddByEmail":"Add by email address",
             "manageUsersViewContributor.errorContributor": "Failed to fetch contributor list for {ownedNamespace}, because:",
-            "manageUsersViewContributor.errorCreateGeneral": "An error occured while trying to add the email. Please make check the email format and make sure there are no duplicates in this namespace.",
-            "manageUsersViewContributor.errorDeleteGeneral": "An error occured while trying to remove the email. Please try again."
+            "manageUsersViewContributor.errorCreateGeneral": "An error occured while trying to add the email. Please check the email format and make sure there are no duplicates in this namespace.",            "manageUsersViewContributor.errorDeleteGeneral": "An error occured while trying to remove the email. Please try again.",
+            "manageUsersViewContributor.errorExternalUser": "External contributors cannot be added to employee-only (SAS) namespaces."
         },
         "fr": {
             "dashboardView.headingQuickLinks": "Raccourcis",
@@ -184,7 +184,8 @@
             "manageUsersViewContributor.phdAddByEmail":"Ajouter par adresse courriel",
             "manageUsersViewContributor.errorContributor": "Échec de la récupération de la liste de contributeurs pour {ownedNamespace}, car:",
             "manageUsersViewContributor.errorCreateGeneral": "Échec lors de l'ajout d'un courriel. Veuillez vous assurez que le format est valide et qu'il n'y a pas de duplicat dans cet espace de noms.",
-            "manageUsersViewContributor.errorDeleteGeneral": "Échec lors de la supression du courriel. Veuillez réessayer."
+            "manageUsersViewContributor.errorDeleteGeneral": "Échec lors de la supression du courriel. Veuillez réessayer.",
+            "manageUsersViewContributor.errorExternalUser": "Les contributeurs externes ne peuvent pas être ajoutés aux espaces de noms réservés aux employés (SAS)."
         }
     }
 }

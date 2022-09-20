@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: tensorboards-web-app
-        image: public.ecr.aws/j1r0q0g6/notebooks/tensorboards-web-app
+        image: docker.io/kubeflownotebookswg/tensorboards-web-app
         ports:
         - containerPort: 5000
         env:
@@ -21,4 +21,6 @@ spec:
           value: $(TWA_USERID_HEADER)
         - name: USERID_PREFIX
           value: $(TWA_USERID_PREFIX)
+        - name: APP_SECURE_COOKIES
+          value: $(TWA_APP_SECURE_COOKIES)
       serviceAccountName: service-account

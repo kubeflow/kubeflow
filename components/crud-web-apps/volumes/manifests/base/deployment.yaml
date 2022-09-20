@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: volumes-web-app
-        image: public.ecr.aws/j1r0q0g6/notebooks/volumes-web-app
+        image: docker.io/kubeflownotebookswg/volumes-web-app
         ports:
         - containerPort: 5000
         env:
@@ -21,4 +21,6 @@ spec:
           value: $(VWA_USERID_HEADER)
         - name: USERID_PREFIX
           value: $(VWA_USERID_PREFIX)
+        - name: APP_SECURE_COOKIES
+          value: $(VWA_APP_SECURE_COOKIES)
       serviceAccountName: service-account
