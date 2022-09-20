@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DeleteButtonComponent } from './delete-button/delete-button.component';
 import { IconModule, KubeflowModule, UrlsModule } from 'kubeflow';
+import { UsedByComponent } from './used-by/used-by.component';
 
 @NgModule({
-  declarations: [DeleteButtonComponent],
+  declarations: [DeleteButtonComponent, UsedByComponent],
   imports: [
     CommonModule,
     MatTooltipModule,
@@ -13,6 +14,6 @@ import { IconModule, KubeflowModule, UrlsModule } from 'kubeflow';
     KubeflowModule,
     UrlsModule,
   ],
-  exports: [DeleteButtonComponent],
+  exports: [DeleteButtonComponent, UsedByComponent],
 })
 export class ColumnsModule {}

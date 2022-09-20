@@ -5,8 +5,10 @@ import {
   DateTimeValue,
   LinkValue,
   LinkType,
+  ComponentValue,
 } from 'kubeflow';
 import { quantityToScalar } from '@kubernetes/client-node/dist/util';
+import { UsedByComponent } from './columns/used-by/used-by.component';
 
 export const tableConfig: TableConfig = {
   columns: [
@@ -61,6 +63,21 @@ export const tableConfig: TableConfig = {
       style: { width: '10%' },
       value: new PropertyValue({ field: 'class', truncate: true }),
       sort: true,
+    },
+    {
+      matHeaderCellDef: $localize`Used by`,
+      matColumnDef: 'usedBy',
+      style: { 'max-width': '60px' },
+      value: new ComponentValue({
+        component: UsedByComponent,
+      }),
+      sort: true,
+      sortingPreprocessorFn: element => {
+        return element.notebooks;
+      },
+      filteringPreprocessorFn: element => {
+        return element.notebooks;
+      },
     },
 
     // the apps should import the actions they want
