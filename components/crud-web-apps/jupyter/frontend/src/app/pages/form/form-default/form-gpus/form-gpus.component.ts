@@ -12,13 +12,13 @@ import { JWABackendService } from 'src/app/services/backend.service';
 export class FormGpusComponent implements OnInit {
   @Input() parentForm: FormGroup;
   @Input() vendors: GPUVendor[] = [];
+  @Input() memoryVendors: GPUVendor[] = [];
 
   private gpuCtrl: FormGroup;
   public installedVendors = new Set<string>();
 
   subscriptions = new Subscription();
   maxGPUs = 16;
-  gpusCount = ['1', '2', '4', '8'];
 
   constructor(public backend: JWABackendService) {}
 
@@ -29,14 +29,30 @@ export class FormGpusComponent implements OnInit {
     this.parentForm
       .get('gpus')
       .get('vendor')
-      .setValidators([this.vendorWithNum()]);
+      .setValidators([this.vendorValidator()]);
+    this.parentForm
+      .get('gpus')
+      .get('memoryVendor')
+      .setValidators([this.memoryVendorValidator()]);
+
+    this.parentForm.get('gpus').setValue(0);
+    this.parentForm.get('memory').setValue(0);
 
     this.subscriptions.add(
-      this.gpuCtrl.get('num').valueChanges.subscribe((n: string) => {
-        if (n === 'none') {
+      this.gpuCtrl.get('num').valueChanges.subscribe((n: number) => {
+        if (n === 0) {
           this.gpuCtrl.get('vendor').disable();
         } else {
           this.gpuCtrl.get('vendor').enable();
+        }
+      }),
+    );
+    this.subscriptions.add(
+      this.gpuCtrl.get('memory').valueChanges.subscribe((n: number) => {
+        if (n === 0) {
+          this.gpuCtrl.get('memoryVendor').disable();
+        } else {
+          this.gpuCtrl.get('memoryVendor').enable();
         }
       }),
     );
@@ -49,7 +65,7 @@ export class FormGpusComponent implements OnInit {
   // Vendor handling
   public vendorTooltip(vendor: GPUVendor) {
     return !this.installedVendors.has(vendor.limitsKey)
-      ? $localize`There are currently no ${vendor.uiName} GPUs in your cluster.`
+      ? $localize`There are currently no ${vendor.uiName} GPUs/GPU memory in your cluster.`
       : '';
   }
 
@@ -60,17 +76,48 @@ export class FormGpusComponent implements OnInit {
     if (vendorCtrl.hasError('vendorNullName')) {
       return $localize`You must also specify the GPU Vendor for the assigned GPUs`;
     }
+
+    if (vendorCtrl.hasError('vendorNotEqual')) {
+      return $localize`GPU vendor and memory vendor must have same prefix`;
+    }
   }
 
-  private vendorWithNum(): ValidatorFn {
+  private vendorValidator(): ValidatorFn {
     // Make sure that if the user has specified a number of GPUs
     // that they also specify the GPU vendor
     return (control: AbstractControl): { [key: string]: any } => {
       const num = this.parentForm.get('gpus').get('num').value;
       const vendor = this.parentForm.get('gpus').get('vendor').value;
 
-      if (num !== 'none' && vendor === '') {
+      if (Number(num) !== 0 && vendor === '') {
         return { vendorNullName: true };
+      } else {
+        return null;
+      }
+    };
+  }
+
+  private memoryVendorValidator(): ValidatorFn {
+    // GPU memory and GPU memory vendor must be supplied together and,
+    // vendor and memory vendor must have same prefix like:
+    // "example.com/gpu-cores" and "example.com/gpu-memory"
+    return (control: AbstractControl): { [key: string]: any } => {
+      const mem = this.parentForm.get('gpus').get('memory').value;
+      const vendor = this.parentForm.get('gpus').get('vendor').value;
+      const memvendor = this.parentForm.get('gpus').get('memoryVendor').value;
+      let valErrors : { [key: string]: any} = {};
+      let hasError = false;
+
+      if (Number(mem) !== 0 && memvendor === '') {
+        valErrors['vendorNullName'] = true;
+        hasError = true;
+      }
+      if (vendor.split('/')[0] !== memvendor.split('/')[0]) {
+        valErrors['vendorNotEqual'] = true;
+        hasError = true;
+      }
+      if (hasError) {
+        return valErrors;
       } else {
         return null;
       }

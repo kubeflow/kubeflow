@@ -111,16 +111,23 @@ spawnerFormDefaults:
   gpus:
     # Number of GPUs to be assigned to the Notebook Container
     value:
-      # values: "none", "1", "2", "4", "8"
-      num: "none"
+      num: "0"
+      memory: "0"
       # Determines what the UI will show and send to the backend
       vendors:
       - limitsKey: "nvidia.com/gpu"
         uiName: "NVIDIA"
       - limitsKey: "amd.com/gpu"
         uiName: "AMD"
+      memoryVendors: []
+      # configure vendors and memory vendors for virtual gpu 
+      # implementations like GPUManager.
+      # memoryVendors:
+      # - limitsKey: "nvidia.com/gpu-mem"
+      #   uiName: "NVIDIA vMem"
       # Values: "" or a `limits-key` from the vendors list
       vendor: ""
+      memoryVendor: ""
     readOnly: false
   affinityConfig:
     # If readonly, the default value will be the only option

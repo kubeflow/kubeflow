@@ -230,22 +230,33 @@ def set_notebook_gpus(notebook, body, defaults):
     if "num" not in gpus:
         raise BadRequest("'gpus' must have a 'num' field")
 
-    if gpus["num"] == "none":
+    if gpus["num"] == "none" or gpus["num"] == "0":
         return
 
     if "vendor" not in gpus:
         raise BadRequest("'gpus' must have a 'vendor' field")
+    if "memory" not in gpus:
+        raise BadRequest("'gpus' must have a 'memory' field")
+    if "memoryVendor" not in gpus:
+        raise BadRequest("'gpus' must have a 'memoryVendor' field")
 
     # set the gpus annotation
     container = notebook["spec"]["template"]["spec"]["containers"][0]
     vendor = gpus["vendor"]
+    memoryVendor = gpus["memoryVendor"]
     try:
         num = str(gpus["num"])
     except ValueError:
         raise BadRequest("gpus.num is not a valid number: %s" % gpus["num"])
+    try:
+        gpu_memory = str(gpus["memory"])
+    except ValueError:
+        raise BadRequest("gpus.memory is not a valid number: %s" % gpus["memory"])
 
     limits = container["resources"].get("limits", {})
     limits[vendor] = num
+    if memoryVendor:
+        limits[memoryVendor] = gpu_memory
 
     container["resources"]["limits"] = limits
 
