@@ -46,7 +46,7 @@ def _setup_test(api_client, run_label):
     test_dir: The local test directory.
   """
 
-  api = k8s_client.CoreV1Api(api_client)
+  api = k8s_client.Core_v1Api(api_client)
   namespace = k8s_client.V1Namespace()
   namespace.api_version = "v1"
   namespace.kind = "Namespace"

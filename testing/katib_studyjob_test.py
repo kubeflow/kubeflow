@@ -146,7 +146,7 @@ def wait_for_condition(client,
       invoked after we poll the job. Callable takes a single argument which is
       the job.
   """
-  crd_api = k8s_client.CustomObjectsApi(client)
+  crd_api = k8s_client.Custom_objectsApi(client)
   end_time = datetime.datetime.now() + timeout
   while True:
     # By setting async_req=True ApiClient returns multiprocessing.pool.AsyncResult

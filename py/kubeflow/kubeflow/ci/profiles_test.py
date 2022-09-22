@@ -57,7 +57,7 @@ logging.basicConfig(level=logging.INFO,
 logging.getLogger().setLevel(logging.INFO)
 
 def deleteProfile(api_client, group, version, name):
-  k8s_co = k8s_client.CustomObjectsApi(api_client)
+  k8s_co = k8s_client.Custom_objectsApi(api_client)
   resp = k8s_co.delete_cluster_custom_object(
       group=group,
       version=version,
@@ -69,7 +69,7 @@ def deleteProfile(api_client, group, version, name):
   time.sleep(20)
 
 def verifyProfileDeletion(api_client, group, version, name):
-  k8s_co = k8s_client.CustomObjectsApi(api_client)
+  k8s_co = k8s_client.Custom_objectsApi(api_client)
   status = '\"status\":\"Failure\",\"message\":'
   with pytest.raises(ApiException) as e:
     resp = k8s_co.get_cluster_custom_object(
@@ -83,7 +83,7 @@ def verifyProfileDeletion(api_client, group, version, name):
              status, PLURAL, GROUP, name)
   assert excMsg in str(e.value)
 
-  coreV1 = k8s_client.CoreV1Api(api_client)
+  coreV1 = k8s_client.Core_v1Api(api_client)
   with pytest.raises(ApiException) as e:
     resp = coreV1.read_namespace(name)
     logging.info(resp)
@@ -116,7 +116,7 @@ def verifyServiceAccounts(api_client, name):
   foundDefEditor = False
   foundDefViewer = False
 
-  coreV1 = k8s_client.CoreV1Api(api_client)
+  coreV1 = k8s_client.Core_v1Api(api_client)
   saList = coreV1.list_namespaced_service_account(namespace=name, watch=False)
   for i in saList.items:
     saName = i.metadata.name
@@ -134,7 +134,7 @@ def verifyServiceAccounts(api_client, name):
 
 def verifyNamespaceCreation(api_client, name):
   # Verifies the namespace is created with profile 'name' specified.
-  coreV1 = k8s_client.CoreV1Api(api_client)
+  coreV1 = k8s_client.Core_v1Api(api_client)
   retry_read_namespace = retry(
     wait_exponential_multiplier=1000,  # wait 2^i * 1000 ms, on the i-th retry
     wait_exponential_max=60000,  # 60 sec max
@@ -143,7 +143,7 @@ def verifyNamespaceCreation(api_client, name):
   logging.info("found namespace: %s", resp)
 
 def verifyProfileCreation(api_client, group, version, name):
-  k8s_co = k8s_client.CustomObjectsApi(api_client)
+  k8s_co = k8s_client.Custom_objectsApi(api_client)
   retry_read_profile = retry(
     wait_exponential_multiplier=1000,  # wait 2^i * 1000 ms, on the i-th retry
     wait_exponential_max=60000,  # 60 sec max
@@ -162,7 +162,7 @@ def createProfile(api_client, profileTestYamlFile):
     wf_result = yaml.load(params)
     group, version = wf_result['apiVersion'].split('/')
     name = wf_result['metadata']['name']
-    k8s_co = k8s_client.CustomObjectsApi(api_client)
+    k8s_co = k8s_client.Custom_objectsApi(api_client)
     resp = k8s_co.create_cluster_custom_object(
       group=group,
       version=version,

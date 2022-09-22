@@ -49,7 +49,7 @@ const MENU_LINKS = [
     {
         link: '/myapp/{ns}',
         text: 'MyApp',
-    }
+    },
 ];
 
 describe('Main Page', () => {
@@ -159,18 +159,17 @@ describe('Main Page', () => {
 
     it('Sets view state when the namespace is not specified for ' +
        'a namespaced item', () => {
-            spyOn(mainPage, '_isInsideOfIframe').and.returnValue(true);
-            mainPage._routePageChanged('iframe', '/myapp/{ns}');
-            flush();
+        spyOn(mainPage, '_isInsideOfIframe').and.returnValue(true);
+        mainPage._routePageChanged('iframe', '/myapp/{ns}');
+        flush();
 
-            expect(mainPage.page).toBe('namespace_needed');
-            expect(mainPage.notFoundInIframe).toBe(true);
-            expect(mainPage.shadowRoot.getElementById('ViewTabs')
-                .hasAttribute('hidden')).toBe(true);
-            expect(mainPage.shadowRoot.getElementById('ViewTabs')
-                .hasAttribute('hidden')).toBe(true);
-
-        });
+        expect(mainPage.page).toBe('namespace_needed');
+        expect(mainPage.notFoundInIframe).toBe(true);
+        expect(mainPage.shadowRoot.getElementById('ViewTabs')
+            .hasAttribute('hidden')).toBe(true);
+        expect(mainPage.shadowRoot.getElementById('ViewTabs')
+            .hasAttribute('hidden')).toBe(true);
+    });
 
     it('Appends query string when building links', () => {
         const sidebarLinkSelector = '#MainDrawer iron-selector iframe-link';
@@ -358,8 +357,8 @@ describe('Main Page', () => {
             flush();
             mainPage.set('queryParams.ns', 'test');
             expect(mainPage._buildHref('/myapp/{ns}', {ns: 'test'})).toBe(
-                   '/myapp/test?ns=test');
-       })
+                '/myapp/test?ns=test');
+        });
 
     it('Sets active menu item from namespaced URL',
         () => {
@@ -371,8 +370,8 @@ describe('Main Page', () => {
             const activeMenuItem = getSelectedMenuItem();
             expect(activeMenuItem.length).toBe(1);
             expect(activeMenuItem[0].parentElement.href).toBe(
-                   '/myapp/test?ns=test');
-       });
+                '/myapp/test?ns=test');
+        });
 
     it('Update namespaced item along with namespace selection',
         () => {
@@ -385,14 +384,14 @@ describe('Main Page', () => {
             let activeMenuItem = getSelectedMenuItem();
             expect(activeMenuItem.length).toBe(1);
             expect(activeMenuItem[0].parentElement.href).toBe(
-                   '/myapp/test?ns=test');
+                '/myapp/test?ns=test');
             expect(mainPage.subRouteData.path).toBe('/myapp/test/');
 
             mainPage.set('queryParams.ns', 'other-namespace');
             activeMenuItem = getSelectedMenuItem();
             expect(activeMenuItem.length).toBe(1);
             expect(activeMenuItem[0].parentElement.href).toBe(
-                   '/myapp/other-namespace?ns=other-namespace');
+                '/myapp/other-namespace?ns=other-namespace');
             expect(mainPage.subRouteData.path).toBe('/myapp/other-namespace');
         });
 });

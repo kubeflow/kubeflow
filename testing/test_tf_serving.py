@@ -97,7 +97,7 @@ def main():
 
   util.load_kube_config(persist_config=False)
   api_client = k8s_client.ApiClient()
-  core_api = k8s_client.CoreV1Api(api_client)
+  core_api = k8s_client.Core_v1Api(api_client)
   try:
     with open(args.input_path) as f:
       instances = json.loads(f.read())

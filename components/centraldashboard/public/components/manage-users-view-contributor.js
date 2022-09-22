@@ -85,11 +85,10 @@ export class ManageUsersViewContributor extends utilitiesMixin(localizationMixin
                 'manageUsersViewContributor.errorCreateGeneral';
             const error = this._isolateErrorFromIronRequest(e);
             // Employee-only namespaces
-            if (error.includes("denyexternalusers")) {
-                this.contribCreateError = 
+            if (error.includes('denyexternalusers')) {
+                this.contribCreateError =
                     'manageUsersViewContributor.errorExternalUser';
-            }
-            else {
+            } else {
                 this.contribCreateError =
                     'manageUsersViewContributor.errorCreateGeneral';
             }

@@ -462,20 +462,6 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 		}
 	}
 
-	// Begin AAW Addition
-	// Add readiness probe
-	if container.ReadinessProbe == nil {
-		container.ReadinessProbe = &corev1.Probe{
-			ProbeHandler: corev1.ProbeHandler{
-				HTTPGet: &corev1.HTTPGetAction{
-					Path: "/notebook/" + instance.Namespace + "/" + instance.Name,
-					Port: intstr.FromInt(DefaultContainerPort),
-				},
-			},
-		}
-	}
-	// End AAW Addition
-
 	setPrefixEnvVar(instance, container)
 
 	// For some platforms (like OpenShift), adding fsGroup: 100 is troublesome.

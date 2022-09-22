@@ -49,8 +49,8 @@ const APP_API_NAME = 'applications';
 /** Wrap Kubernetes API calls in a simpler interface for use in routes. */
 export class KubernetesService {
   private namespace = 'kubeflow';
-  private coreAPI: k8s.CoreV1Api;
-  private customObjectsAPI: k8s.CustomObjectsApi;
+  private coreAPI: k8s.Core_v1Api;
+  private Custom_objectsApi: k8s.Custom_objectsApi;
   private dashboardConfigMap = DASHBOARD_CONFIGMAP;
 
   constructor(private kubeConfig: k8s.KubeConfig) {
@@ -61,9 +61,9 @@ export class KubernetesService {
     if (context && context.namespace) {
       this.namespace = context.namespace;
     }
-    this.coreAPI = this.kubeConfig.makeApiClient(k8s.CoreV1Api);
-    this.customObjectsAPI =
-        this.kubeConfig.makeApiClient(k8s.CustomObjectsApi);
+    this.coreAPI = this.kubeConfig.makeApiClient(k8s.Core_v1Api);
+    this.Custom_objectsApi =
+        this.kubeConfig.makeApiClient(k8s.Custom_objectsApi);
   }
 
   /** Retrieves the list of namespaces from the Cluster. */
@@ -158,7 +158,7 @@ export class KubernetesService {
     try {
       // tslint:disable-next-line: no-any
       const _ = (o: any) => o || {};
-      const response = await this.customObjectsAPI.listNamespacedCustomObject(
+      const response = await this.Custom_objectsApi.listNamespacedCustomObject(
           APP_API_GROUP, APP_API_VERSION, this.namespace, APP_API_NAME);
       const body = response.body as V1BetaApplicationList;
       const kubeflowApp = (body.items || [])
