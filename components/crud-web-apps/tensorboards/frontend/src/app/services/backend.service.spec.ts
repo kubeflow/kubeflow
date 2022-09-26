@@ -2,11 +2,19 @@ import { TestBed } from '@angular/core/testing';
 
 import { TWABackendService } from './backend.service';
 import { HttpClientModule } from '@angular/common/http';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { KubeflowModule } from 'kubeflow';
+import { MatRadioModule } from '@angular/material/radio';
 
 describe('TWABackendService', () => {
   beforeEach(() =>
     TestBed.configureTestingModule({
-      imports: [HttpClientModule],
+      imports: [
+        KubeflowModule,
+        HttpClientModule,
+        MatSnackBarModule,
+        MatRadioModule,
+      ],
     }),
   );
 
