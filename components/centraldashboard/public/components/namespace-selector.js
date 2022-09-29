@@ -196,6 +196,16 @@ export class NamespaceSelector extends PolymerElement {
      * @return {string}
      */
     getDefaultNamespace() {
+        // Restore the user's previous namespace choice
+        const previousNamespaceName = localStorage.getItem("selectedNamespace");
+        if (previousNamespaceName) {
+            const previousNamespace = this.namespaces.find(
+                (n) => n.namespace === previousNamespaceName);
+            if (previousNamespace) {
+                return previousNamespace;
+            }
+        }
+
         return this.namespaces.find(
             (n) => n.role == 'owner');
     }
