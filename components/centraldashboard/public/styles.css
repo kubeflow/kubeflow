@@ -16,7 +16,7 @@ html, body {
     box-sizing: border-box;
 }
 
-body>* {
+body > main-page {
     flex: 1
 }
 
