@@ -17,7 +17,9 @@
     "test:prod": "ng test --browsers=ChromeHeadless --watch=false",
     "lint-check": "ng lint",
     "lint": "ng lint --fix",
-    "e2e": "ng e2e"
+    "ui-test": "cypress open . --e2e",
+    "ui-test-ci": "cypress run . --e2e",
+    "ui-test-ci-all": "cypress run . --e2e --browser=chrome && cypress run . --e2e --browser=firefox"
   },
   "private": true,
   "dependencies": {
@@ -67,6 +69,7 @@
     "eslint-plugin-import": "latest",
     "eslint-plugin-jsdoc": "^34.0.0",
     "eslint-plugin-prefer-arrow": "latest",
+    "cypress": "^10.10.0",
     "jasmine-core": "~3.6.0",
     "jasmine-spec-reporter": "~5.0.0",
     "karma": "~6.3.16",
@@ -75,7 +78,6 @@
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "^1.5.0",
     "prettier": "^2.2.1",
-    "protractor": "~7.0.0",
     "ts-node": "^10.4.0",
     "typescript": "~4.2.4"
   }
