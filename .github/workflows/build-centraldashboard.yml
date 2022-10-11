@@ -2,7 +2,7 @@ name: component/centraldashboard
 on:
   push:
     branches:
-      - rohan-test
+      - stc-master
     paths:
       - components/centraldashboard/**
   pull_request:
