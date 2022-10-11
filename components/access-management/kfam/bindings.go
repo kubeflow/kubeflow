@@ -16,14 +16,9 @@ package kfam
 
 import (
 	"fmt"
-	"k8s.io/apimachinery/pkg/labels"
-	v1 "k8s.io/client-go/listers/rbac/v1"
 	"net/url"
 	"regexp"
 	"strings"
-
-	"k8s.io/apimachinery/pkg/labels"
-	v1 "k8s.io/client-go/listers/rbac/v1"
 
 	istioSecurity "istio.io/api/security/v1beta1"
 	istioSecurityClient "istio.io/client-go/pkg/apis/security/v1beta1"

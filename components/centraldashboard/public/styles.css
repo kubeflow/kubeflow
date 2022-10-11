@@ -32,7 +32,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: italic;
     font-weight: 400;
-    src: local('Google Sans Italic'), local('GoogleSans-Italic'), url('assets/fonts/googlesans-cyrillic-italic400.woff2') format('woff2');
+    src: local('Google Sans Italic'), local('GoogleSans-Italic'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaErENHsxJlGDuGo1OIlL3L8phULjtH.woff2) format('woff2');
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
@@ -42,7 +42,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: italic;
     font-weight: 400;
-    src: local('Google Sans Italic'), local('GoogleSans-Italic'), url('assets/fonts/googlesans-greek-italic400.woff2') format('woff2');
+    src: local('Google Sans Italic'), local('GoogleSans-Italic'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaErENHsxJlGDuGo1OIlL3L8p9ULjtH.woff2) format('woff2');
     unicode-range: U+0370-03FF;
 }
 
@@ -52,7 +52,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: italic;
     font-weight: 400;
-    src: local('Google Sans Italic'), local('GoogleSans-Italic'), url('assets/fonts/googlesans-vietnamese-italic400.woff2') format('woff2');
+    src: local('Google Sans Italic'), local('GoogleSans-Italic'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaErENHsxJlGDuGo1OIlL3L8pNULjtH.woff2) format('woff2');
     unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
 }
 
@@ -62,7 +62,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: italic;
     font-weight: 400;
-    src: local('Google Sans Italic'), local('GoogleSans-Italic'), url('assets/fonts/googlesans-latinext-italic400.woff2') format('woff2');
+    src: local('Google Sans Italic'), local('GoogleSans-Italic'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaErENHsxJlGDuGo1OIlL3L8pJULjtH.woff2) format('woff2');
     unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
@@ -72,7 +72,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: italic;
     font-weight: 400;
-    src: local('Google Sans Italic'), local('GoogleSans-Italic'), url('assets/fonts/googlesans-latin-italic400.woff2') format('woff2');
+    src: local('Google Sans Italic'), local('GoogleSans-Italic'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaErENHsxJlGDuGo1OIlL3L8pxULg.woff2) format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -82,7 +82,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: italic;
     font-weight: 500;
-    src: local('Google Sans Medium Italic'), local('GoogleSans-MediumItalic'), url('assets/fonts/googlesans-cyrillic-italic500.woff2') format('woff2');
+    src: local('Google Sans Medium Italic'), local('GoogleSans-MediumItalic'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaZrENHsxJlGDuGo1OIlL3L-m93OwBmO24p.woff2) format('woff2');
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
@@ -92,7 +92,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: italic;
     font-weight: 500;
-    src: local('Google Sans Medium Italic'), local('GoogleSans-MediumItalic'), url('assets/fonts/googlesans-greek-italic500.woff2') format('woff2');
+    src: local('Google Sans Medium Italic'), local('GoogleSans-MediumItalic'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaZrENHsxJlGDuGo1OIlL3L-m93OwdmO24p.woff2) format('woff2');
     unicode-range: U+0370-03FF;
 }
 
@@ -102,7 +102,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: italic;
     font-weight: 500;
-    src: local('Google Sans Medium Italic'), local('GoogleSans-MediumItalic'), url('assets/fonts/googlesans-vietnamese-italic500.woff2') format('woff2');
+    src: local('Google Sans Medium Italic'), local('GoogleSans-MediumItalic'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaZrENHsxJlGDuGo1OIlL3L-m93OwtmO24p.woff2) format('woff2');
     unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
 }
 
@@ -112,7 +112,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: italic;
     font-weight: 500;
-    src: local('Google Sans Medium Italic'), local('GoogleSans-MediumItalic'), url('assets/fonts/googlesans-latinext-italic500.woff2') format('woff2');
+    src: local('Google Sans Medium Italic'), local('GoogleSans-MediumItalic'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaZrENHsxJlGDuGo1OIlL3L-m93OwpmO24p.woff2) format('woff2');
     unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
@@ -122,7 +122,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: italic;
     font-weight: 500;
-    src: local('Google Sans Medium Italic'), local('GoogleSans-MediumItalic'), url('assets/fonts/googlesans-latin-italic500.woff2') format('woff2');
+    src: local('Google Sans Medium Italic'), local('GoogleSans-MediumItalic'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaZrENHsxJlGDuGo1OIlL3L-m93OwRmOw.woff2) format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -132,7 +132,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: italic;
     font-weight: 700;
-    src: local('Google Sans Bold Italic'), local('GoogleSans-BoldItalic'), url('assets/fonts/googlesans-cyrillic-italic700.woff2') format('woff2');
+    src: local('Google Sans Bold Italic'), local('GoogleSans-BoldItalic'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaZrENHsxJlGDuGo1OIlL3L-idxOwBmO24p.woff2) format('woff2');
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
@@ -142,7 +142,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: italic;
     font-weight: 700;
-    src: local('Google Sans Bold Italic'), local('GoogleSans-BoldItalic'), url('assets/fonts/googlesans-greek-italic700.woff2') format('woff2');
+    src: local('Google Sans Bold Italic'), local('GoogleSans-BoldItalic'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaZrENHsxJlGDuGo1OIlL3L-idxOwdmO24p.woff2) format('woff2');
     unicode-range: U+0370-03FF;
 }
 
@@ -152,7 +152,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: italic;
     font-weight: 700;
-    src: local('Google Sans Bold Italic'), local('GoogleSans-BoldItalic'), url('assets/fonts/googlesans-vietnamese-italic700.woff2') format('woff2');
+    src: local('Google Sans Bold Italic'), local('GoogleSans-BoldItalic'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaZrENHsxJlGDuGo1OIlL3L-idxOwtmO24p.woff2) format('woff2');
     unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
 }
 
@@ -162,7 +162,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: italic;
     font-weight: 700;
-    src: local('Google Sans Bold Italic'), local('GoogleSans-BoldItalic'), url('assets/fonts/googlesans-latinext-italic700.woff2') format('woff2');
+    src: local('Google Sans Bold Italic'), local('GoogleSans-BoldItalic'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaZrENHsxJlGDuGo1OIlL3L-idxOwpmO24p.woff2) format('woff2');
     unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
@@ -172,7 +172,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: italic;
     font-weight: 700;
-    src: local('Google Sans Bold Italic'), local('GoogleSans-BoldItalic'), url('assets/fonts/googlesans-latin-italic700.woff2') format('woff2');
+    src: local('Google Sans Bold Italic'), local('GoogleSans-BoldItalic'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaZrENHsxJlGDuGo1OIlL3L-idxOwRmOw.woff2) format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -182,7 +182,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: normal;
     font-weight: 400;
-    src: local('Google Sans Regular'), local('GoogleSans-Regular'), url('assets/fonts/googlesans-cyrillic-normal400.woff2') format('woff2');
+    src: local('Google Sans Regular'), local('GoogleSans-Regular'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaGrENHsxJlGDuGo1OIlL3Kwp5MKg.woff2) format('woff2');
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
@@ -192,7 +192,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: normal;
     font-weight: 400;
-    src: local('Google Sans Regular'), local('GoogleSans-Regular'), url('assets/fonts/googlesans-greek-normal400.woff2') format('woff2');
+    src: local('Google Sans Regular'), local('GoogleSans-Regular'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaGrENHsxJlGDuGo1OIlL3Nwp5MKg.woff2) format('woff2');
     unicode-range: U+0370-03FF;
 }
 
@@ -202,7 +202,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: normal;
     font-weight: 400;
-    src: local('Google Sans Regular'), local('GoogleSans-Regular'), url('assets/fonts/googlesans-vietnamese-normal400.woff2') format('woff2');
+    src: local('Google Sans Regular'), local('GoogleSans-Regular'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaGrENHsxJlGDuGo1OIlL3Bwp5MKg.woff2) format('woff2');
     unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
 }
 
@@ -212,7 +212,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: normal;
     font-weight: 400;
-    src: local('Google Sans Regular'), local('GoogleSans-Regular'), url('assets/fonts/googlesans-latinext-normal400.woff2') format('woff2');
+    src: local('Google Sans Regular'), local('GoogleSans-Regular'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaGrENHsxJlGDuGo1OIlL3Awp5MKg.woff2) format('woff2');
     unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
@@ -222,7 +222,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: normal;
     font-weight: 400;
-    src: local('Google Sans Regular'), local('GoogleSans-Regular'), url('assets/fonts/googlesans-latin-normal400.woff2') format('woff2');
+    src: local('Google Sans Regular'), local('GoogleSans-Regular'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaGrENHsxJlGDuGo1OIlL3Owp4.woff2) format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -232,7 +232,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: normal;
     font-weight: 500;
-    src: local('Google Sans Medium'), local('GoogleSans-Medium'), url('assets/fonts/googlesans-cyrillic-normal500.woff2') format('woff2');
+    src: local('Google Sans Medium'), local('GoogleSans-Medium'), url(https://fonts.gstatic.com/s/googlesans/v14/4UabrENHsxJlGDuGo1OIlLU94Yt3CwZ-Pw.woff2) format('woff2');
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
@@ -242,7 +242,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: normal;
     font-weight: 500;
-    src: local('Google Sans Medium'), local('GoogleSans-Medium'), url('assets/fonts/googlesans-greek-normal500.woff2') format('woff2');
+    src: local('Google Sans Medium'), local('GoogleSans-Medium'), url(https://fonts.gstatic.com/s/googlesans/v14/4UabrENHsxJlGDuGo1OIlLU94YtwCwZ-Pw.woff2) format('woff2');
     unicode-range: U+0370-03FF;
 }
 
@@ -252,7 +252,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: normal;
     font-weight: 500;
-    src: local('Google Sans Medium'), local('GoogleSans-Medium'), url('assets/fonts/googlesans-vietnamese-normal500.woff2') format('woff2');
+    src: local('Google Sans Medium'), local('GoogleSans-Medium'), url(https://fonts.gstatic.com/s/googlesans/v14/4UabrENHsxJlGDuGo1OIlLU94Yt8CwZ-Pw.woff2) format('woff2');
     unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
 }
 
@@ -262,7 +262,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: normal;
     font-weight: 500;
-    src: local('Google Sans Medium'), local('GoogleSans-Medium'), url('assets/fonts/googlesans-latinext-normal500.woff2') format('woff2');
+    src: local('Google Sans Medium'), local('GoogleSans-Medium'), url(https://fonts.gstatic.com/s/googlesans/v14/4UabrENHsxJlGDuGo1OIlLU94Yt9CwZ-Pw.woff2) format('woff2');
     unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
@@ -272,7 +272,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: normal;
     font-weight: 500;
-    src: local('Google Sans Medium'), local('GoogleSans-Medium'), url('assets/fonts/googlesans-latin-normal500.woff2') format('woff2');
+    src: local('Google Sans Medium'), local('GoogleSans-Medium'), url(https://fonts.gstatic.com/s/googlesans/v14/4UabrENHsxJlGDuGo1OIlLU94YtzCwY.woff2) format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -282,7 +282,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: normal;
     font-weight: 700;
-    src: local('Google Sans Bold'), local('GoogleSans-Bold'), url('assets/fonts/googlesans-cyrillic-normal700.woff2') format('woff2');
+    src: local('Google Sans Bold'), local('GoogleSans-Bold'), url(https://fonts.gstatic.com/s/googlesans/v14/4UabrENHsxJlGDuGo1OIlLV154t3CwZ-Pw.woff2) format('woff2');
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
@@ -292,7 +292,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: normal;
     font-weight: 700;
-    src: local('Google Sans Bold'), local('GoogleSans-Bold'), url('assets/fonts/googlesans-greek-normal700.woff2') format('woff2');
+    src: local('Google Sans Bold'), local('GoogleSans-Bold'), url(https://fonts.gstatic.com/s/googlesans/v14/4UabrENHsxJlGDuGo1OIlLV154twCwZ-Pw.woff2) format('woff2');
     unicode-range: U+0370-03FF;
 }
 
@@ -302,7 +302,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: normal;
     font-weight: 700;
-    src: local('Google Sans Bold'), local('GoogleSans-Bold'), url('assets/fonts/googlesans-vietnamese-normal700.woff2') format('woff2');
+    src: local('Google Sans Bold'), local('GoogleSans-Bold'), url(https://fonts.gstatic.com/s/googlesans/v14/4UabrENHsxJlGDuGo1OIlLV154t8CwZ-Pw.woff2) format('woff2');
     unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
 }
 
@@ -312,7 +312,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: normal;
     font-weight: 700;
-    src: local('Google Sans Bold'), local('GoogleSans-Bold'), url('assets/fonts/googlesans-latinext-normal700.woff2') format('woff2');
+    src: local('Google Sans Bold'), local('GoogleSans-Bold'), url(https://fonts.gstatic.com/s/googlesans/v14/4UabrENHsxJlGDuGo1OIlLV154t9CwZ-Pw.woff2) format('woff2');
     unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
@@ -322,7 +322,7 @@ body>* {
     font-family: 'Google Sans';
     font-style: normal;
     font-weight: 700;
-    src: local('Google Sans Bold'), local('GoogleSans-Bold'), url('assets/fonts/googlesans-latin-normal700.woff2') format('woff2');
+    src: local('Google Sans Bold'), local('GoogleSans-Bold'), url(https://fonts.gstatic.com/s/googlesans/v14/4UabrENHsxJlGDuGo1OIlLV154tzCwY.woff2) format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -332,7 +332,7 @@ body>* {
     font-family: 'Roboto';
     font-style: italic;
     font-weight: 400;
-    src: local('Roboto Italic'), local('Roboto-Italic'), url('assets/fonts/roboto-cyrillicext-italic400.woff2') format('woff2');
+    src: local('Roboto Italic'), local('Roboto-Italic'), url(https://fonts.gstatic.com/s/roboto/v18/KFOkCnqEu92Fr1Mu51xFIzIFKw.woff2) format('woff2');
     unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
 }
 
@@ -342,7 +342,7 @@ body>* {
     font-family: 'Roboto';
     font-style: italic;
     font-weight: 400;
-    src: local('Roboto Italic'), local('Roboto-Italic'), url('assets/fonts/roboto-cyrillic-italic400.woff2') format('woff2');
+    src: local('Roboto Italic'), local('Roboto-Italic'), url(https://fonts.gstatic.com/s/roboto/v18/KFOkCnqEu92Fr1Mu51xMIzIFKw.woff2) format('woff2');
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
@@ -352,7 +352,7 @@ body>* {
     font-family: 'Roboto';
     font-style: italic;
     font-weight: 400;
-    src: local('Roboto Italic'), local('Roboto-Italic'), url('assets/fonts/roboto-greekext-italic400.woff2') format('woff2');
+    src: local('Roboto Italic'), local('Roboto-Italic'), url(https://fonts.gstatic.com/s/roboto/v18/KFOkCnqEu92Fr1Mu51xEIzIFKw.woff2) format('woff2');
     unicode-range: U+1F00-1FFF;
 }
 
@@ -362,7 +362,7 @@ body>* {
     font-family: 'Roboto';
     font-style: italic;
     font-weight: 400;
-    src: local('Roboto Italic'), local('Roboto-Italic'), url('assets/fonts/roboto-greek-italic400.woff2') format('woff2');
+    src: local('Roboto Italic'), local('Roboto-Italic'), url(https://fonts.gstatic.com/s/roboto/v18/KFOkCnqEu92Fr1Mu51xLIzIFKw.woff2) format('woff2');
     unicode-range: U+0370-03FF;
 }
 
@@ -372,7 +372,7 @@ body>* {
     font-family: 'Roboto';
     font-style: italic;
     font-weight: 400;
-    src: local('Roboto Italic'), local('Roboto-Italic'), url('assets/fonts/roboto-vietnamese-italic400.woff2') format('woff2');
+    src: local('Roboto Italic'), local('Roboto-Italic'), url(https://fonts.gstatic.com/s/roboto/v18/KFOkCnqEu92Fr1Mu51xHIzIFKw.woff2) format('woff2');
     unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
 }
 
@@ -382,7 +382,7 @@ body>* {
     font-family: 'Roboto';
     font-style: italic;
     font-weight: 400;
-    src: local('Roboto Italic'), local('Roboto-Italic'), url('assets/fonts/roboto-latinext-italic400.woff2') format('woff2');
+    src: local('Roboto Italic'), local('Roboto-Italic'), url(https://fonts.gstatic.com/s/roboto/v18/KFOkCnqEu92Fr1Mu51xGIzIFKw.woff2) format('woff2');
     unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
@@ -392,7 +392,7 @@ body>* {
     font-family: 'Roboto';
     font-style: italic;
     font-weight: 400;
-    src: local('Roboto Italic'), local('Roboto-Italic'), url('assets/fonts/roboto-latin-italic400.woff2') format('woff2');
+    src: local('Roboto Italic'), local('Roboto-Italic'), url(https://fonts.gstatic.com/s/roboto/v18/KFOkCnqEu92Fr1Mu51xIIzI.woff2) format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -402,7 +402,7 @@ body>* {
     font-family: 'Roboto';
     font-style: italic;
     font-weight: 700;
-    src: local('Roboto Bold Italic'), local('Roboto-BoldItalic'), url('assets/fonts/roboto-cyrillicext-itallic700.woff2') format('woff2');
+    src: local('Roboto Bold Italic'), local('Roboto-BoldItalic'), url(https://fonts.gstatic.com/s/roboto/v18/KFOjCnqEu92Fr1Mu51TzBic3CsTKlA.woff2) format('woff2');
     unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
 }
 
@@ -412,7 +412,7 @@ body>* {
     font-family: 'Roboto';
     font-style: italic;
     font-weight: 700;
-    src: local('Roboto Bold Italic'), local('Roboto-BoldItalic'), url('assets/fonts/roboto-cyrillic-italic700.woff2') format('woff2');
+    src: local('Roboto Bold Italic'), local('Roboto-BoldItalic'), url(https://fonts.gstatic.com/s/roboto/v18/KFOjCnqEu92Fr1Mu51TzBic-CsTKlA.woff2) format('woff2');
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
@@ -422,7 +422,7 @@ body>* {
     font-family: 'Roboto';
     font-style: italic;
     font-weight: 700;
-    src: local('Roboto Bold Italic'), local('Roboto-BoldItalic'), url('assets/fonts/roboto-greekext-italic700.woff2') format('woff2');
+    src: local('Roboto Bold Italic'), local('Roboto-BoldItalic'), url(https://fonts.gstatic.com/s/roboto/v18/KFOjCnqEu92Fr1Mu51TzBic2CsTKlA.woff2) format('woff2');
     unicode-range: U+1F00-1FFF;
 }
 
@@ -432,7 +432,7 @@ body>* {
     font-family: 'Roboto';
     font-style: italic;
     font-weight: 700;
-    src: local('Roboto Bold Italic'), local('Roboto-BoldItalic'), url('assets/fonts/roboto-greek-italic700.woff2') format('woff2');
+    src: local('Roboto Bold Italic'), local('Roboto-BoldItalic'), url(https://fonts.gstatic.com/s/roboto/v18/KFOjCnqEu92Fr1Mu51TzBic5CsTKlA.woff2) format('woff2');
     unicode-range: U+0370-03FF;
 }
 
@@ -442,7 +442,7 @@ body>* {
     font-family: 'Roboto';
     font-style: italic;
     font-weight: 700;
-    src: local('Roboto Bold Italic'), local('Roboto-BoldItalic'), url('assets/fonts/roboto-vietnamese-italic700.woff2') format('woff2');
+    src: local('Roboto Bold Italic'), local('Roboto-BoldItalic'), url(https://fonts.gstatic.com/s/roboto/v18/KFOjCnqEu92Fr1Mu51TzBic1CsTKlA.woff2) format('woff2');
     unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
 }
 
@@ -452,7 +452,7 @@ body>* {
     font-family: 'Roboto';
     font-style: italic;
     font-weight: 700;
-    src: local('Roboto Bold Italic'), local('Roboto-BoldItalic'), url('assets/fonts/roboto-latinext-italic700.woff2') format('woff2');
+    src: local('Roboto Bold Italic'), local('Roboto-BoldItalic'), url(https://fonts.gstatic.com/s/roboto/v18/KFOjCnqEu92Fr1Mu51TzBic0CsTKlA.woff2) format('woff2');
     unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
@@ -462,7 +462,7 @@ body>* {
     font-family: 'Roboto';
     font-style: italic;
     font-weight: 700;
-    src: local('Roboto Bold Italic'), local('Roboto-BoldItalic'), url('assets/fonts/roboto-latin-italic700.woff2') format('woff2');
+    src: local('Roboto Bold Italic'), local('Roboto-BoldItalic'), url(https://fonts.gstatic.com/s/roboto/v18/KFOjCnqEu92Fr1Mu51TzBic6CsQ.woff2) format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -472,7 +472,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 100;
-    src: local('Roboto Thin'), local('Roboto-Thin'), url('assets/fonts/roboto-cyrillicext-normal100.woff2') format('woff2');
+    src: local('Roboto Thin'), local('Roboto-Thin'), url(https://fonts.gstatic.com/s/roboto/v18/KFOkCnqEu92Fr1MmgVxFIzIFKw.woff2) format('woff2');
     unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
 }
 
@@ -482,7 +482,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 100;
-    src: local('Roboto Thin'), local('Roboto-Thin'), url('assets/fonts/roboto-cyrillic-normal100.woff2') format('woff2');
+    src: local('Roboto Thin'), local('Roboto-Thin'), url(https://fonts.gstatic.com/s/roboto/v18/KFOkCnqEu92Fr1MmgVxMIzIFKw.woff2) format('woff2');
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
@@ -492,7 +492,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 100;
-    src: local('Roboto Thin'), local('Roboto-Thin'), url('assets/fonts/roboto-greekext-normal100.woff2') format('woff2');
+    src: local('Roboto Thin'), local('Roboto-Thin'), url(https://fonts.gstatic.com/s/roboto/v18/KFOkCnqEu92Fr1MmgVxEIzIFKw.woff2) format('woff2');
     unicode-range: U+1F00-1FFF;
 }
 
@@ -502,7 +502,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 100;
-    src: local('Roboto Thin'), local('Roboto-Thin'), url('assets/fonts/roboto-greek-normal100.woff2') format('woff2');
+    src: local('Roboto Thin'), local('Roboto-Thin'), url(https://fonts.gstatic.com/s/roboto/v18/KFOkCnqEu92Fr1MmgVxLIzIFKw.woff2) format('woff2');
     unicode-range: U+0370-03FF;
 }
 
@@ -512,7 +512,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 100;
-    src: local('Roboto Thin'), local('Roboto-Thin'), url('assets/fonts/roboto-vietnamese-normal100.woff2') format('woff2');
+    src: local('Roboto Thin'), local('Roboto-Thin'), url(https://fonts.gstatic.com/s/roboto/v18/KFOkCnqEu92Fr1MmgVxHIzIFKw.woff2) format('woff2');
     unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
 }
 
@@ -522,7 +522,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 100;
-    src: local('Roboto Thin'), local('Roboto-Thin'), url('assets/fonts/roboto-latinext-normal100.woff2') format('woff2');
+    src: local('Roboto Thin'), local('Roboto-Thin'), url(https://fonts.gstatic.com/s/roboto/v18/KFOkCnqEu92Fr1MmgVxGIzIFKw.woff2) format('woff2');
     unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
@@ -532,7 +532,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 100;
-    src: local('Roboto Thin'), local('Roboto-Thin'), url('assets/fonts/roboto-latin-normal100.woff2') format('woff2');
+    src: local('Roboto Thin'), local('Roboto-Thin'), url(https://fonts.gstatic.com/s/roboto/v18/KFOkCnqEu92Fr1MmgVxIIzI.woff2) format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -542,7 +542,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 300;
-    src: local('Roboto Light'), local('Roboto-Light'), url('assets/fonts/roboto-cyrillicext-normal300.woff2') format('woff2');
+    src: local('Roboto Light'), local('Roboto-Light'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmSU5fCRc4EsA.woff2) format('woff2');
     unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
 }
 
@@ -552,7 +552,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 300;
-    src: local('Roboto Light'), local('Roboto-Light'), url('assets/fonts/roboto-cyrillic-normal300.woff2') format('woff2');
+    src: local('Roboto Light'), local('Roboto-Light'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmSU5fABc4EsA.woff2) format('woff2');
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
@@ -562,7 +562,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 300;
-    src: local('Roboto Light'), local('Roboto-Light'), url('assets/fonts/roboto-greekext-normal300.woff2') format('woff2');
+    src: local('Roboto Light'), local('Roboto-Light'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmSU5fCBc4EsA.woff2) format('woff2');
     unicode-range: U+1F00-1FFF;
 }
 
@@ -572,7 +572,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 300;
-    src: local('Roboto Light'), local('Roboto-Light'), url('assets/fonts/roboto-greek-normal300.woff2') format('woff2');
+    src: local('Roboto Light'), local('Roboto-Light'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmSU5fBxc4EsA.woff2) format('woff2');
     unicode-range: U+0370-03FF;
 }
 
@@ -582,7 +582,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 300;
-    src: local('Roboto Light'), local('Roboto-Light'), url('assets/fonts/roboto-vietnamese-normal300.woff2') format('woff2');
+    src: local('Roboto Light'), local('Roboto-Light'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmSU5fCxc4EsA.woff2) format('woff2');
     unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
 }
 
@@ -592,7 +592,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 300;
-    src: local('Roboto Light'), local('Roboto-Light'), url('assets/fonts/roboto-latinext-normal300.woff2') format('woff2');
+    src: local('Roboto Light'), local('Roboto-Light'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmSU5fChc4EsA.woff2) format('woff2');
     unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
@@ -602,7 +602,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 300;
-    src: local('Roboto Light'), local('Roboto-Light'), url('assets/fonts/roboto-latin-normal300.woff2') format('woff2');
+    src: local('Roboto Light'), local('Roboto-Light'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmSU5fBBc4.woff2) format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -612,7 +612,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 400;
-    src: local('Roboto'), local('Roboto-Regular'), url('assets/fonts/roboto-cyrillicext-normal400.woff2') format('woff2');
+    src: local('Roboto'), local('Roboto-Regular'), url(https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu72xKOzY.woff2) format('woff2');
     unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
 }
 
@@ -622,7 +622,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 400;
-    src: local('Roboto'), local('Roboto-Regular'), url('assets/fonts/roboto-cyrillic-normal400.woff2') format('woff2');
+    src: local('Roboto'), local('Roboto-Regular'), url(https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu5mxKOzY.woff2) format('woff2');
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
@@ -632,7 +632,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 400;
-    src: local('Roboto'), local('Roboto-Regular'), url('assets/fonts/roboto-greekext-normal400.woff2') format('woff2');
+    src: local('Roboto'), local('Roboto-Regular'), url(https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu7mxKOzY.woff2) format('woff2');
     unicode-range: U+1F00-1FFF;
 }
 
@@ -642,7 +642,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 400;
-    src: local('Roboto'), local('Roboto-Regular'), url('assets/fonts/roboto-greek-normal400.woff2') format('woff2');
+    src: local('Roboto'), local('Roboto-Regular'), url(https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4WxKOzY.woff2) format('woff2');
     unicode-range: U+0370-03FF;
 }
 
@@ -652,7 +652,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 400;
-    src: local('Roboto'), local('Roboto-Regular'), url('assets/fonts/roboto-vietnamese-normal400.woff2') format('woff2');
+    src: local('Roboto'), local('Roboto-Regular'), url(https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu7WxKOzY.woff2) format('woff2');
     unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
 }
 
@@ -662,7 +662,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 400;
-    src: local('Roboto'), local('Roboto-Regular'), url('assets/fonts/roboto-latinext-normal400.woff2') format('woff2');
+    src: local('Roboto'), local('Roboto-Regular'), url(https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu7GxKOzY.woff2) format('woff2');
     unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
@@ -672,7 +672,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 400;
-    src: local('Roboto'), local('Roboto-Regular'), url('assets/fonts/roboto-latin-normal400.woff2') format('woff2');
+    src: local('Roboto'), local('Roboto-Regular'), url(https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxK.woff2) format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -682,7 +682,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 500;
-    src: local('Roboto Medium'), local('Roboto-Medium'), url('assets/fonts/roboto-cyrillicext-normal500.woff2') format('woff2');
+    src: local('Roboto Medium'), local('Roboto-Medium'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fCRc4EsA.woff2) format('woff2');
     unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
 }
 
@@ -692,7 +692,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 500;
-    src: local('Roboto Medium'), local('Roboto-Medium'), url('assets/fonts/roboto-cyrillic-normal500.woff2') format('woff2');
+    src: local('Roboto Medium'), local('Roboto-Medium'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fABc4EsA.woff2) format('woff2');
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
@@ -702,7 +702,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 500;
-    src: local('Roboto Medium'), local('Roboto-Medium'), url('assets/fonts/roboto-greekext-normal500.woff2') format('woff2');
+    src: local('Roboto Medium'), local('Roboto-Medium'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fCBc4EsA.woff2) format('woff2');
     unicode-range: U+1F00-1FFF;
 }
 
@@ -712,7 +712,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 500;
-    src: local('Roboto Medium'), local('Roboto-Medium'), url('assets/fonts/roboto-greek-normal500.woff2') format('woff2');
+    src: local('Roboto Medium'), local('Roboto-Medium'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBxc4EsA.woff2) format('woff2');
     unicode-range: U+0370-03FF;
 }
 
@@ -722,7 +722,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 500;
-    src: local('Roboto Medium'), local('Roboto-Medium'), url('assets/fonts/roboto-vietnamese-normal500.woff2') format('woff2');
+    src: local('Roboto Medium'), local('Roboto-Medium'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fCxc4EsA.woff2) format('woff2');
     unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
 }
 
@@ -732,7 +732,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 500;
-    src: local('Roboto Medium'), local('Roboto-Medium'), url('assets/fonts/roboto-latinext-normal500.woff2') format('woff2');
+    src: local('Roboto Medium'), local('Roboto-Medium'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fChc4EsA.woff2) format('woff2');
     unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
@@ -742,7 +742,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 500;
-    src: local('Roboto Medium'), local('Roboto-Medium'), url('assets/fonts/roboto-latin-normal500.woff2') format('woff2');
+    src: local('Roboto Medium'), local('Roboto-Medium'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4.woff2) format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -752,7 +752,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 700;
-    src: local('Roboto Bold'), local('Roboto-Bold'), url('assets/fonts/roboto-cyrillicext-normal700.woff2') format('woff2');
+    src: local('Roboto Bold'), local('Roboto-Bold'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmWUlfCRc4EsA.woff2) format('woff2');
     unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
 }
 
@@ -762,7 +762,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 700;
-    src: local('Roboto Bold'), local('Roboto-Bold'), url('assets/fonts/roboto-cyrillic-normal700.woff2') format('woff2');
+    src: local('Roboto Bold'), local('Roboto-Bold'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmWUlfABc4EsA.woff2) format('woff2');
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
@@ -772,7 +772,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 700;
-    src: local('Roboto Bold'), local('Roboto-Bold'), url('assets/fonts/roboto-greekext-normal700.woff2') format('woff2');
+    src: local('Roboto Bold'), local('Roboto-Bold'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmWUlfCBc4EsA.woff2) format('woff2');
     unicode-range: U+1F00-1FFF;
 }
 
@@ -782,7 +782,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 700;
-    src: local('Roboto Bold'), local('Roboto-Bold'), url('assets/fonts/roboto-greek-normal700.woff2') format('woff2');
+    src: local('Roboto Bold'), local('Roboto-Bold'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmWUlfBxc4EsA.woff2) format('woff2');
     unicode-range: U+0370-03FF;
 }
 
@@ -792,7 +792,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 700;
-    src: local('Roboto Bold'), local('Roboto-Bold'), url('assets/fonts/roboto-vietnamese-normal700.woff2') format('woff2');
+    src: local('Roboto Bold'), local('Roboto-Bold'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmWUlfCxc4EsA.woff2) format('woff2');
     unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
 }
 
@@ -802,7 +802,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 700;
-    src: local('Roboto Bold'), local('Roboto-Bold'), url('assets/fonts/roboto-latinext-normal700.woff2') format('woff2');
+    src: local('Roboto Bold'), local('Roboto-Bold'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmWUlfChc4EsA.woff2) format('woff2');
     unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
@@ -812,7 +812,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 700;
-    src: local('Roboto Bold'), local('Roboto-Bold'), url('assets/fonts/roboto-latin-normal700.woff2') format('woff2');
+    src: local('Roboto Bold'), local('Roboto-Bold'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmWUlfBBc4.woff2) format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -822,7 +822,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 900;
-    src: local('Roboto Black'), local('Roboto-Black'), url('assets/fonts/roboto-cyrillicext-normal900.woff2') format('woff2');
+    src: local('Roboto Black'), local('Roboto-Black'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmYUtfCRc4EsA.woff2) format('woff2');
     unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
 }
 
@@ -832,7 +832,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 900;
-    src: local('Roboto Black'), local('Roboto-Black'), url('assets/fonts/roboto-cyrillic-normal900.woff2') format('woff2');
+    src: local('Roboto Black'), local('Roboto-Black'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmYUtfABc4EsA.woff2) format('woff2');
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 
@@ -842,7 +842,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 900;
-    src: local('Roboto Black'), local('Roboto-Black'), url('assets/fonts/roboto-greekext-normal900.woff2') format('woff2');
+    src: local('Roboto Black'), local('Roboto-Black'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmYUtfCBc4EsA.woff2) format('woff2');
     unicode-range: U+1F00-1FFF;
 }
 
@@ -852,7 +852,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 900;
-    src: local('Roboto Black'), local('Roboto-Black'), url('assets/fonts/roboto-greek-normal900.woff2') format('woff2');
+    src: local('Roboto Black'), local('Roboto-Black'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmYUtfBxc4EsA.woff2) format('woff2');
     unicode-range: U+0370-03FF;
 }
 
@@ -862,7 +862,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 900;
-    src: local('Roboto Black'), local('Roboto-Black'), url('assets/fonts/roboto-vietnamese-normal900.woff2') format('woff2');
+    src: local('Roboto Black'), local('Roboto-Black'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmYUtfCxc4EsA.woff2) format('woff2');
     unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
 }
 
@@ -872,7 +872,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 900;
-    src: local('Roboto Black'), local('Roboto-Black'), url('assets/fonts/roboto-latinext-normal900.woff2') format('woff2');
+    src: local('Roboto Black'), local('Roboto-Black'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmYUtfChc4EsA.woff2) format('woff2');
     unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
@@ -882,7 +882,7 @@ body>* {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 900;
-    src: local('Roboto Black'), local('Roboto-Black'), url('assets/fonts/roboto-latin-normal900.woff2') format('woff2');
+    src: local('Roboto Black'), local('Roboto-Black'), url(https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmYUtfBBc4.woff2) format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -892,7 +892,7 @@ body>* {
     font-family: 'Material Icons';
     font-style: normal;
     font-weight: 400;
-    src: url('assets/fonts/materialicons-fallback-normal400.woff2') format('woff2');
+    src: url(https://fonts.gstatic.com/s/materialicons/v43/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
 }
 
 .material-icons {

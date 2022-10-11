@@ -91,10 +91,7 @@ module.exports = {
             },
             // Roboto Font and Material Icons
             {
-                test: /\.(eot|svg|ttf|woff2?)$/,
-                include: [
-                    resolve(__dirname, 'public/assets/fonts')
-                ],
+                test: /(iconfont|roboto)\/.*\.(eot|svg|ttf|woff2?)$/,
                 use: {
                     loader: 'url-loader',
                     options: {
@@ -197,15 +194,7 @@ module.exports = {
     devServer: {
         port: 8080,
         proxy: {
-            '/api': {
-                target: 'http://localhost:8082',
-                bypass: function(req) {
-                    const uidHeader = process.env.KF_USER_ID;
-                    if (uidHeader) {
-                        req.headers['kubeflow-userid'] = uidHeader;
-                    }
-                }
-            },
+            '/api': 'http://localhost:8082',
             '/jupyter': {
                 target: 'http://localhost:8083/api/v1/namespaces/kubeflow/services/jupyter-web-app-service:80/proxy',
                 pathRewrite: {'^/jupyter': ''},

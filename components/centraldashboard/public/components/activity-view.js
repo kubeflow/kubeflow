@@ -3,12 +3,11 @@ import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/paper-progress/paper-progress.js';
-import localizationMixin from './localization-mixin.js';
+
 import {html, PolymerElement} from '@polymer/polymer';
 import './activities-list.js';
 
-// eslint-disable-next-line max-len
-export class ActivityView extends localizationMixin(PolymerElement) {
+export class ActivityView extends PolymerElement {
     static get template() {
         return html`
             <style is="custom-style" include="iron-flex iron-flex-alignment">
@@ -50,7 +49,7 @@ export class ActivityView extends localizationMixin(PolymerElement) {
             <paper-progress indeterminate class="slow"
                 hidden$="[[!loading]]"></paper-progress>
             <aside class="message" hidden$="[[!message]]">
-                {{localize(message, 'namespace', namespace)}}
+                [[message]]
             </aside>
             <activities-list activities="[[activities]]"></activities-list>
             `;
@@ -68,7 +67,7 @@ export class ActivityView extends localizationMixin(PolymerElement) {
             },
             message: {
                 type: String,
-                value: 'activityView.msgSelectNamespace',
+                value: 'Select a namespace to see recent events',
             },
             loading: {
                 type: Boolean,
@@ -99,7 +98,7 @@ export class ActivityView extends localizationMixin(PolymerElement) {
         const response = responseEvent.detail.response;
         this.splice('activities', 0);
         if (!response.length) {
-            this.message = 'activityView.errNoActivities';
+            this.message = `No activities for namespace ${this.namespace}`;
         } else {
             this.push('activities', ...response);
         }
@@ -110,7 +109,8 @@ export class ActivityView extends localizationMixin(PolymerElement) {
      */
     _onError() {
         this.splice('activities', 0);
-        this.message ='activityView.errRetrivingActivities';
+        this.message =
+            `Error retrieving activities for namespace ${this.namespace}`;
     }
 }
 

@@ -28,7 +28,7 @@ import (
 	"k8s.io/client-go/informers"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -68,7 +68,7 @@ func NewKfamClient(userIdHeader string, userIdPrefix string, clusterAdmin string
 		return nil, err
 	}
 
-	informerFactory := informers.NewSharedInformerFactory(kubeClient, time.Minute * 60)
+	informerFactory := informers.NewSharedInformerFactory(kubeClient, time.Minute*60)
 	roleBindingLister := informerFactory.Rbac().V1().RoleBindings().Lister()
 	stop := make(chan struct{})
 	informerFactory.Start(stop)

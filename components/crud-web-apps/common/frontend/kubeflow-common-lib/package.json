@@ -8,8 +8,9 @@
     "test": "ng test",
     "test-ci": "ng test --no-watch --no-progress --browsers=ChromeHeadlessCI",
     "test-docker": "docker run -v $(pwd):/usr/src/app browserless/chrome:1.44-chrome-stable npm run test-ci",
-    "lint": "ng lint",
+    "lint": "ng lint --fix",
     "e2e": "ng e2e",
+    "preinstall": "npx npm-force-resolutions",
     "copyCSS": "cp ./projects/kubeflow/src/kubeflow.css ./dist/kubeflow && cp ./projects/kubeflow/src/styles.scss ./dist/kubeflow && cp ./projects/kubeflow/src/lib/variables.scss ./dist/kubeflow/lib && cp ./projects/kubeflow/src/lib/fonts.scss ./dist/kubeflow/lib",
     "copyAssets": "cp -r ./projects/kubeflow/src/assets ./dist/kubeflow/assets",
     "postinstall": "ngcc"
@@ -41,6 +42,11 @@
   "devDependencies": {
     "@angular-devkit/build-angular": "~12.0.5",
     "@angular-devkit/core": "^12.0.5",
+    "@angular-eslint/builder": "12.7.0",
+    "@angular-eslint/eslint-plugin": "12.7.0",
+    "@angular-eslint/eslint-plugin-template": "12.7.0",
+    "@angular-eslint/schematics": "12.7.0",
+    "@angular-eslint/template-parser": "12.7.0",
     "@angular/cli": "~12.0.5",
     "@angular/compiler-cli": "~12.0.5",
     "@angular/language-service": "~12.0.5",
@@ -48,7 +54,12 @@
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "^2.0.9",
     "@types/node": "^12.11.1",
-    "codelyzer": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "4.28.2",
+    "@typescript-eslint/parser": "4.28.2",
+    "eslint": "^7.26.0",
+    "eslint-plugin-import": "latest",
+    "eslint-plugin-jsdoc": "^34.0.0",
+    "eslint-plugin-prefer-arrow": "latest",
     "jasmine-core": "~3.6.0",
     "jasmine-spec-reporter": "~5.0.0",
     "karma": "~6.3.16",
@@ -59,7 +70,11 @@
     "ng-packagr": "^12.0.8",
     "protractor": "~7.0.0",
     "ts-node": "^10.4.0",
-    "tslint": "~6.1.0",
     "typescript": "~4.2.4"
+  },
+  "resolutions": {
+    "minimist": "1.2.6",
+    "json-schema": "0.4.0",
+    "underscore": "1.13.1"
   }
 }

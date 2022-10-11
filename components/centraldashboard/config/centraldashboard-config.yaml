@@ -1,224 +1,215 @@
 apiVersion: v1
 data:
   defaultLanguage: "en"
-  defaultLanguage: "en"
   settings: |-
     {
-      DASHBOARD_FORCE_IFRAME: true
+    DASHBOARD_FORCE_IFRAME: true
     }
   links: |-
     {
-     "en":
+    "en":
       { 
-       "en":
-      { 
-        "menuLinks": [
+      "menuLinks": [
         {
-          "type": "item",
-          "type": "item",
           "link": "/jupyter/",
           "text": "Notebooks",
           "icon": "book"
         },
         {
-          "type": "item",
-          "link": "/pipeline/",
-          "text": "Pipelines",
-          "icon": "kubeflow:pipeline-centered"
+        "link": "/pipeline/",
+        "text": "Pipelines",
+        "icon": "kubeflow:pipeline-centered"
         },
         {
-          "type": "item",
-          "link": "/pipeline/",
-          "text": "Pipelines",
-          "icon": "kubeflow:pipeline-centered"
+        "link": "/pipeline/",
+        "text": "Pipelines",
+        "icon": "kubeflow:pipeline-centered"
         },
         {
-          "type": "item",
-          "text": "Experiments (KFP)",
-          "link": "/pipeline/#/experiments",
-          "icon": "done-all"
+	"text": "Experiments (KFP)",
+        "link": "/pipeline/#/experiments",
+        "icon": "done-all"
         },
         {
-          "type": "item",
-          "link": "/pipeline/#/runs",
-          "text": "Runs",
-          "icon": "maps:directions-run"
+        "link": "/pipeline/#/runs",
+        "text": "Runs",
+        "icon": "maps:directions-run"
         },
         {
-          "type": "item",
-          "link": "/pipeline/#/recurringruns",
-          "text": "Recurring Runs",
-          "icon": "device:access-alarm"
+        "link": "/pipeline/#/recurringruns",
+        "text": "Recurring Runs",
+        "icon": "device:access-alarm"
         },
         {
-          "type": "item",
-          "link": "/pipeline/#/artifacts",
-          "text": "Artifacts",
-          "icon": "editor:bubble-chart"
+        "link": "/pipeline/#/artifacts",
+        "text": "Artifacts",
+        "icon": "editor:bubble-chart"
         },
         {
-          "type": "item",
-          "link": "/pipeline/#/executions",
-          "text": "Executions",
-          "icon": "av:play-arrow"
-        },
-        {
-          "link": "/katib/",
-          "text": "Katib",
-          "icon": "kubeflow:katib",
-          "icon": "kubeflow:katib"
+        "link": "/pipeline/#/executions",
+        "text": "Executions",
+        "icon": "av:play-arrow"
         }
       ],
-     "externalLinks": [],
-     "quickLinks": [
-        {
-          "text": "Upload a pipeline",
-          "desc": "Pipelines",
-          "link": "/pipeline/"
-        },
-        {
-          "text": "View all pipeline runs",
-          "desc": "Pipelines",
-          "link": "/pipeline/#/runs"
-        },
-        {
-          "text": "Create a new Notebook server",
-          "desc": "Notebook Servers",
-          "link": "/jupyter/new?namespace=kubeflow"
-        },
-        {
-          "text": "View Katib Studies",
-          "desc": "Katib",
-          "link": "/katib/"
-        }
-        ],
-      "documentationItems": [
-        {
-          "text": "Advanced Analytics Workspace Docs",
-          "desc": "Helpful guides about our data and analysis tools",
-          "link": "https://statcan.github.io/daaas/"
-        },
-        {
-          "text": "Video Tutorial Series",
-          "desc": "YouTube playlist of videos for getting started with Advanced Analytics Workspace tools",
-          "link": "https://www.youtube.com/playlist?list=PL1zlA2D7AHugkDdiyeUHWOKGKUd3MB_nD"
-        },
-        {
-          "text": "Community Chat",
-          "desc": "Slack workspace for discussion/support - requires sign-up for emails outside @canada.ca",
-          "link": "https://statcan-aaw.slack.com/"
-        },
-        {
-          "text": "Official Kubeflow Docs",
-          "desc": "Advanced documentation for installing, running, and using Kubeflow",
-          "link": "https://www.kubeflow.org/docs/"
-        }
-       ]
-     },
-     "fr":
-      {
-        "menuLinks": [
-        {
-          "type": "item",
-          "link": "/jupyter/",
-          "text": "Serveur Bloc-notes",
-          "icon": "book"
-        },
-        {
-          "link": "/tensorboards/",
-          "text": "Tensorboards",
-          "icon": "assessment"
-        },
-        {
-          "type": "item",
-          "link": "/pipeline/",
-          "text": "Pipelines",
-          "icon": "kubeflow:pipeline-centered"
-        },
-        {
-          "type": "item",
-          "text": "Expériences (KFP)",
-          "link": "/pipeline/#/experiments",
-          "icon": "done-all"
-        },
-        {
-          "type": "item",
-          "link": "/pipeline/#/runs",
-          "text": "Exécutions",
-          "icon": "maps:directions-run"
-        },
-        {
-          "type": "item",
-          "link": "/pipeline/#/recurringruns",
-          "text": "Exécutions récurrentes",
-          "icon": "device:access-alarm"
-        },
-        {
-          "type": "item",
-          "link": "/pipeline/#/artifacts",
-          "text": "Artefacts",
-          "icon": "editor:bubble-chart"
-        },
-        {
-          "type": "item",
-          "link": "/pipeline/#/executions",
-          "text": "Exécutions en cours",
-          "icon": "av:play-arrow"
-        },
-        {
-          "link": "/katib/",
-          "text": "Katib",
-          "icon": "kubeflow:katib"
-        }
-       ],
       "externalLinks": [],
       "quickLinks": [
         {
-          "text": "Télécharger un pipeline",
-          "desc": "Pipelines",
-          "link": "/pipeline/"
+        "text": "Upload a pipeline",
+        "desc": "Pipelines",
+        "link": "/pipeline/"
         },
         {
-          "text": "Voir tous les pipelines exécutés",
-          "desc": "Pipelines",
-          "link": "/pipeline/#/runs"
+        "text": "View all pipeline runs",
+        "desc": "Pipelines",
+        "link": "/pipeline/#/runs"
         },
         {
-          "text": "Créer un nouveau serveur bloc-notes",
-          "desc": "Serveur bloc-notes",
-          "link": "/jupyter/new?namespace=kubeflow"
-        },
-        {
-          "text": "Voir Katib Studies",
-          "desc": "Katib",
-          "link": "/katib/"
+        "text": "Create a new Notebook server",
+        "desc": "Notebook Servers",
+        "link": "/jupyter/new?namespace=kubeflow"
         }
-       ],
+      ],
       "documentationItems": [
         {
-          "text": "Documents de l'espace d'analyses avancées",
-          "desc": "Guides utiles pour nos données et outils d'analyse",
-          "link": "https://statcan.github.io/daaas/"
+        "text": "Advanced Analytics Workspace Docs",
+        "desc": "Helpful guides about our data and analysis tools",
+        "link": "https://statcan.github.io/daaas/"
         },
         {
-          "text": "Série de didacticiels vidéos",
-          "desc": "Playlist de vidéos YouTube pour commencer avec les outils de l'espace d'analyses avancées",
-          "link": "https://www.youtube.com/playlist?list=PL1zlA2D7AHugkDdiyeUHWOKGKUd3MB_nD"
+        "text": "Video Tutorial Series",
+        "desc": "YouTube playlist of videos for getting started with Advanced Analytics Workspace tools",
+        "link": "https://www.youtube.com/playlist?list=PL1zlA2D7AHugkDdiyeUHWOKGKUd3MB_nD"
         },
         {
-          "text": "Clavardage de la communauté",
-          "desc": "Espace de travail Slack pour discussion/support - besoin de s'inscrire pour les courriels en dehors de @canada.ca",
-          "link": "https://statcan-aaw.slack.com/"
+        "text": "Community Chat",
+        "desc": "Slack workspace for discussion/support - requires sign-up for emails outside @canada.ca",
+        "link": "https://statcan-aaw.slack.com/"
         },
         {
-          "text": "Documents Kubeflow Officiels",
-          "desc": "Documentation avancé pour installer, exécuter et utiliser Kubeflow",
-          "link": "https://www.kubeflow.org/docs/"
+        "text": "Official Kubeflow Docs",
+        "desc": "Advanced documentation for installing, running, and using Kubeflow",
+        "link": "https://www.kubeflow.org/docs/"
+        },
+	{
+          "text": "Getting Started with Kubeflow",
+          "desc": "Get your machine-learning workflow up and running on Kubeflow",
+          "link": "https://www.kubeflow.org/docs/started/getting-started/"
+        },
+        {
+          "text": "MiniKF",
+          "desc": "A fast and easy way to deploy Kubeflow locally",
+          "link": "https://www.kubeflow.org/docs/distributions/minikf/"
+        },
+        {
+          "text": "Microk8s for Kubeflow",
+          "desc": "Quickly get Kubeflow running locally on native hypervisors",
+          "link": "https://www.kubeflow.org/docs/distributions/microk8s/kubeflow-on-microk8s/"
+        },
+        {
+          "text": "Kubeflow on GCP",
+          "desc": "Running Kubeflow on Kubernetes Engine and Google Cloud Platform",
+          "link": "https://www.kubeflow.org/docs/gke/"
+        },
+        {
+          "text": "Kubeflow on AWS",
+          "desc": "Running Kubeflow on Elastic Container Service and Amazon Web Services",
+          "link": "https://www.kubeflow.org/docs/aws/"
+        },
+        {
+          "text": "Requirements for Kubeflow",
+          "desc": "Get more detailed information about using Kubeflow and its components",
+          "link": "https://www.kubeflow.org/docs/started/requirements/"
         }
-        ]
-     }
-     }
+      ]
+      },
+    "fr":
+      {
+      "menuLinks": [
+        {
+
+        "link": "/jupyter/",
+        "text": "Serveur Bloc-notes",
+        "icon": "book"
+        },
+        {
+        "link": "/pipeline/",
+        "text": "Pipelines",
+        "icon": "kubeflow:pipeline-centered"
+        },
+        {
+        "text": "Expériences (KFP)",
+        "link": "/pipeline/#/experiments",
+        "icon": "done-all"
+        },
+        {
+        "link": "/pipeline/#/runs",
+        "text": "Exécutions",
+        "icon": "maps:directions-run"
+        },
+        {
+        "link": "/pipeline/#/recurringruns",
+        "text": "Exécutions récurrentes",
+        "icon": "device:access-alarm"
+        },
+        {
+        "link": "/pipeline/#/artifacts",
+        "text": "Artefacts",
+        "icon": "editor:bubble-chart"
+        },
+        {
+        "link": "/pipeline/#/executions",
+        "text": "Exécutions en cours",
+        "icon": "av:play-arrow"
+        }
+      ],
+      "externalLinks": [],
+      "quickLinks": [
+        {
+        "text": "Télécharger un pipeline",
+        "desc": "Pipelines",
+        "link": "/pipeline/"
+        },
+        {
+        "text": "Voir tous les pipelines exécutés",
+        "desc": "Pipelines",
+        "link": "/pipeline/#/runs"
+        },
+        {
+        "text": "Créer un nouveau serveur bloc-notes",
+        "desc": "Serveur bloc-notes",
+        "link": "/jupyter/new?namespace=kubeflow"
+        },
+        {
+        "text": "Voir Katib Studies",
+        "desc": "Katib",
+        "link": "/katib/"
+        }
+      ],
+      "documentationItems": [
+        {
+        "text": "Documents de l'espace d'analyses avancées",
+        "desc": "Guides utiles pour nos données et outils d'analyse",
+        "link": "https://statcan.github.io/daaas/"
+        },
+        {
+        "text": "Série de didacticiels vidéos",
+        "desc": "Playlist de vidéos YouTube pour commencer avec les outils de l'espace d'analyses avancées",
+        "link": "https://www.youtube.com/playlist?list=PL1zlA2D7AHugkDdiyeUHWOKGKUd3MB_nD"
+        },
+        {
+        "text": "Clavardage de la communauté",
+        "desc": "Espace de travail Slack pour discussion/support - besoin de s'inscrire pour les courriels en dehors de @canada.ca",
+        "link": "https://statcan-aaw.slack.com/"
+        },
+        {
+        "text": "Documents Kubeflow Officiels",
+        "desc": "Documentation avancé pour installer, exécuter et utiliser Kubeflow",
+        "link": "https://www.kubeflow.org/docs/"
+        }
+      ]
+      }
     }
+
 kind: ConfigMap
 metadata:
   name: centraldashboard-config

@@ -7,7 +7,6 @@ import '@polymer/paper-ripple/paper-ripple.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
 import '@polymer/paper-progress/paper-progress.js';
 import './iframe-link.js';
-import localizationMixin from './localization-mixin.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
 
@@ -22,8 +21,7 @@ const getListNotebooksUrl = (namespace, server) =>
 /**
  * Component to retrieve and display recently modified Jupyter Notebooks.
  */
-// eslint-disable-next-line max-len
-export class NotebooksCard extends localizationMixin(PolymerElement) {
+export class NotebooksCard extends PolymerElement {
     static get template() {
         return html`
         <style include="card-styles">
@@ -35,12 +33,10 @@ export class NotebooksCard extends localizationMixin(PolymerElement) {
             loading="{{loading}}" on-response="_onNotebookServersResponse"
             on-error="_onError">
         </iron-ajax>
-        <paper-card heading="{{localize('notebookCard.headRecentNotebooks')}}">
+        <paper-card heading="Recent Notebooks">
             <paper-progress indeterminate class="slow"
                 hidden$="[[!loading]]"></paper-progress>
-            <header id="message" hidden$="[[!message]]">
-                {{localize(message, 'namespace', namespace)}}
-            </header>
+            <header id="message" hidden$="[[!message]]">[[message]]</header>
             <template is="dom-repeat" items="[[notebooks]]">
                 <iframe-link class="link" href$="[[item.href]]">
                     <paper-icon-item>
@@ -50,8 +46,7 @@ export class NotebooksCard extends localizationMixin(PolymerElement) {
                         <paper-item-body two-line>
                             <div class="header">[[item.name]]</div>
                             <aside secondary>
-                                {{localize('notebookCard.txtAccessed')}}
-                                [[item.lastModified]]
+                                Accessed [[item.lastModified]]
                             </aside>
                         </paper-item-body>
                     </paper-icon-item>
@@ -69,7 +64,7 @@ export class NotebooksCard extends localizationMixin(PolymerElement) {
             },
             message: {
                 type: String,
-                value: 'notebookCard.msgChooseNamespace',
+                value: 'Choose a namespace to see Notebooks',
             },
             namespace: String,
             listNotebookServersUrl: {
@@ -113,7 +108,7 @@ export class NotebooksCard extends localizationMixin(PolymerElement) {
             this._onError();
         }
         this.message = this.notebooks.length ?
-            '' : 'notebookCard.errNoNotebooks';
+            '' : `No Notebooks in namespace ${this.namespace}`;
         this.loading = false;
     }
 
@@ -150,7 +145,7 @@ export class NotebooksCard extends localizationMixin(PolymerElement) {
      */
     _onError() {
         this.splice('notebooks', 0);
-        this.message = 'notebookCard.errRetrievingNotebooks';
+        this.message = 'Error retrieving Notebooks';
     }
 }
 

@@ -50,7 +50,7 @@ const APP_API_NAME = 'applications';
 export class KubernetesService {
   private namespace = 'kubeflow';
   private coreAPI: k8s.Core_v1Api;
-  private Custom_objectsApi: k8s.Custom_objectsApi;
+  private customObjectsAPI: k8s.Custom_objectsApi;
   private dashboardConfigMap = DASHBOARD_CONFIGMAP;
 
   constructor(private kubeConfig: k8s.KubeConfig) {
@@ -62,7 +62,7 @@ export class KubernetesService {
       this.namespace = context.namespace;
     }
     this.coreAPI = this.kubeConfig.makeApiClient(k8s.Core_v1Api);
-    this.Custom_objectsApi =
+    this.customObjectsAPI =
         this.kubeConfig.makeApiClient(k8s.Custom_objectsApi);
   }
 
@@ -158,7 +158,7 @@ export class KubernetesService {
     try {
       // tslint:disable-next-line: no-any
       const _ = (o: any) => o || {};
-      const response = await this.Custom_objectsApi.listNamespacedCustomObject(
+      const response = await this.customObjectsAPI.listNamespacedCustomObject(
           APP_API_GROUP, APP_API_VERSION, this.namespace, APP_API_NAME);
       const body = response.body as V1BetaApplicationList;
       const kubeflowApp = (body.items || [])

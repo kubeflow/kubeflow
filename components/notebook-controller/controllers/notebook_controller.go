@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
@@ -186,7 +187,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return ctrl.Result{}, err
 		}
 	} else if err != nil {
-		log.Error(err, "error getting Statefulset")
+		log.Error(err, "error getting Service")
 		return ctrl.Result{}, err
 	}
 	// Update the foundService object and write the result back if there are any changes
@@ -208,14 +209,14 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	foundPod := &corev1.Pod{}
-	podFound := false
+	podFound := true
 	err = r.Get(ctx, types.NamespacedName{Name: ss.Name + "-0", Namespace: ss.Namespace}, foundPod)
 	if err != nil && apierrs.IsNotFound(err) {
 		log.Info("Pod not found...")
+		podFound = false
 	} else if err != nil {
 		return ctrl.Result{}, err
 	}
-	podFound = true
 
 	// Update Notebook CR status
 	err = updateNotebookStatus(r, instance, foundStateful, foundPod, req)
@@ -310,8 +311,8 @@ func createNotebookStatus(r *NotebookReconciler, nb *v1beta1.Notebook,
 	}
 
 	// Update the status based on the Pod's status
-	if pod == nil {
-		log.Info("No pod found. Won't update notebook conditions and containerState")
+	if reflect.DeepEqual(pod.Status, corev1.PodStatus{}) {
+		log.Info("No pod.Status found. Won't update notebook conditions and containerState")
 		return status, nil
 	}
 

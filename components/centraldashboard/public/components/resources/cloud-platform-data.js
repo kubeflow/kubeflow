@@ -1,5 +1,4 @@
-/*
- * The Goal of this file is to provide platform specific resources
+/* The Goal of this file is to provide platform specific resources
  *  to centraldashboard:
  * - Platform Specific card in case links are provided.
  * - Logo for said card.

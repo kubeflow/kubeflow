@@ -47,10 +47,8 @@ export class IframeContainer extends PolymerElement {
         this._messageListener = this._onMessageReceived.bind(this);
         window.addEventListener(MESSAGE, this._messageListener);
 
-        /*
-         * Adds a click handler to be able to capture navigation events from
-         * the captured iframe and set the page property which notifies
-         */
+        // Adds a click handler to be able to capture navigation events from
+        // the captured iframe and set the page property which notifies
         const iframe = this.$.iframe;
         iframe.addEventListener('load', () => {
             const syncIframePage = () => {

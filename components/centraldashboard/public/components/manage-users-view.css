@@ -55,5 +55,15 @@ vaadin-grid > [slot$='content-0'],
     color: var(--subheading-color);
 }
 #NoNamespaceError {margin-top: 1em}
+#ContribError {
+    background: #F44336
+}
+
+md2-input {
+    width: 100%;
+    --md2-input-box: {
+        min-height: 2.5em;
+    }
+}
 
 [hidden] {display: none !important}

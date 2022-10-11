@@ -242,10 +242,8 @@ describe('Main Page', () => {
 
         const buildVersion = mainPage.shadowRoot.querySelector(
             'section.build span');
-        /*
-         * textContent is used because innerText would be empty if sidebar is
-         * hidden
-         */
+        // textContent is used because innerText would be empty if sidebar is
+        // hidden
         expect(buildVersion.textContent).toEqual('1.0.0');
         const namespaceSelector = mainPage.shadowRoot
             .getElementById('NamespaceSelector');

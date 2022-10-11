@@ -36,14 +36,14 @@ describe('Activities List', () => {
         const today = new Date();
         const yesterday = new Date(today - ONE_DAY);
         activitiesList.activities = [{
-            lastTimestamp: today.toISOString(),
+            lastTimestamp: today.toLocaleString(),
             message: 'Something happened',
             type: 'Normal',
             involvedObject: {
                 name: 'some-pod',
             },
         }, {
-            lastTimestamp: yesterday.toISOString(),
+            lastTimestamp: yesterday.toLocaleString(),
             message: 'Something bad happened',
             type: 'Error',
             involvedObject: {
@@ -68,7 +68,7 @@ describe('Activities List', () => {
             // Add i hours to each activities
             activities.push({
                 lastTimestamp: new Date(eventDate - (i * 60 * 60 * 1000))
-                    .toISOString(),
+                    .toLocaleString(),
                 message: `Something happened ${i}`,
                 type: 'Normal',
                 involvedObject: {
@@ -88,15 +88,15 @@ describe('Activities List', () => {
             times.push(t.innerText);
         });
         expect(times).toEqual([
-            '19:00:00',
-            '18:00:00',
-            '17:00:00',
-            '16:00:00',
-            '15:00:00',
-            '14:00:00',
-            '13:00:00',
-            '12:00:00',
-            '11:00:00',
-            '10:00:00']);
+            '7:00:00 PM',
+            '6:00:00 PM',
+            '5:00:00 PM',
+            '4:00:00 PM',
+            '3:00:00 PM',
+            '2:00:00 PM',
+            '1:00:00 PM',
+            '12:00:00 PM',
+            '11:00:00 AM',
+            '10:00:00 AM']);
     });
 });

@@ -2,10 +2,12 @@ name: component/centraldashboard
 on:
   push:
     branches:
-      - stc-master
+      - rohan-test
     paths:
       - components/centraldashboard/**
-
+  pull_request:
+    types:
+      - 'opened'
 # Environment variables available to all jobs and steps in this workflow
 env:
   REGISTRY_NAME: k8scc01covidacr

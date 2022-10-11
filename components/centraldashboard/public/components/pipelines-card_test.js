@@ -10,9 +10,7 @@ const PIPELINES_CARD_ID = 'test-pipelines-card';
 const TEMPLATE = `
 <test-fixture id="${FIXTURE_ID}">
   <template>
-    <pipelines-card
-        id="${PIPELINES_CARD_ID}"
-    </pipelines-card>
+    <pipelines-card id="${PIPELINES_CARD_ID}"></pipelines-card>
   </template>
 </test-fixture>
 `;
@@ -53,6 +51,7 @@ describe('Pipelines Card', () => {
             responseText: JSON.stringify({pipelines}),
         }, false, '/pipeline/apis/v1beta1/pipelines?' +
                 'page_size=5&sort_by=created_at%20desc');
+
         pipelinesCard.artifactType = 'pipelines';
         pipelinesCard.namespace = 'kubeflow-user';
         await requestPromise;
@@ -182,7 +181,7 @@ describe('Pipelines Card', () => {
             status: 200,
             responseText: JSON.stringify({pipelines: []}),
         }, false, '/pipeline/apis/v1beta1/pipelines?' +
-            'page_size=5&sort_by=created_at%20desc');
+                'page_size=5&sort_by=created_at%20desc');
 
         pipelinesCard.artifactType = 'pipelines';
         await requestPromise;

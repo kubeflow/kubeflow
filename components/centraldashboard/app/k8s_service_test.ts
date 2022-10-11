@@ -9,7 +9,7 @@ describe('KubernetesService', () => {
   let mockApiClient: jasmine.SpyObj<k8s.Core_v1Api>;
   let mockCustomApiClient: jasmine.SpyObj<k8s.Custom_objectsApi>;
   let k8sService: KubernetesService;
-  
+
   beforeEach(() => {
     mockResponse =
         jasmine.createSpyObj<IncomingMessage>('mockResponse', ['rawHeaders']);
@@ -17,21 +17,14 @@ describe('KubernetesService', () => {
       'loadFromDefault', 'getContextObject', 'getCurrentContext',
       'makeApiClient'
     ]);
-    mockApiClient = jasmine.createSpyObj<k8s.Core_v1Api>('mockApiClient', [
-      'listNamespace',
-      'listNamespacedEvent',
-      'listNode',
-    ]);
+    mockApiClient = jasmine.createSpyObj<k8s.Core_v1Api>(
+        'mockApiClient', ['listNamespace', 'listNamespacedEvent', 'listNode']);
     mockCustomApiClient = jasmine.createSpyObj<k8s.Custom_objectsApi>(
-      'mockCustomApiClient',
-      ['listNamespacedCustomObject']
-    );
-    mockKubeConfig.makeApiClient
-      .withArgs(k8s.Core_v1Api)
-      .and.returnValue(mockApiClient);
-    mockKubeConfig.makeApiClient
-      .withArgs(k8s.Custom_objectsApi)
-      .and.returnValue(mockCustomApiClient);
+        'mockCustomApiClient', ['listNamespacedCustomObject']);
+    mockKubeConfig.makeApiClient.withArgs(k8s.Core_v1Api)
+        .and.returnValue(mockApiClient);
+    mockKubeConfig.makeApiClient.withArgs(k8s.Custom_objectsApi)
+        .and.returnValue(mockCustomApiClient);
 
     k8sService = new KubernetesService(mockKubeConfig);
   });

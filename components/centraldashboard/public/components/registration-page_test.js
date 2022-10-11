@@ -156,7 +156,7 @@ describe('Registration Page', () => {
     it('Should show errors correctly', async () => {
         mockIronAjax(
             registrationPage.$.MakeNamespace,
-            {error: 'registrationPage.errTest'},
+            {error: 'Test Error!'},
             true,
         );
 
@@ -201,7 +201,7 @@ describe('Registration Page', () => {
         expect(input.error).not.toBe('Ajax Ran!');
         expect(input.error).toBe(
             `Name can only start and end with alpha-num characters, `+
-            `dashes are only permitted between start and end. (minlength >= 1)`,
+            `dashes are only permitted between start and end. (minlength >= 1)`
         );
     });
 });

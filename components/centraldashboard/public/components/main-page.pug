@@ -16,11 +16,12 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
     app-drawer#MainDrawer(slot='drawer')
         figure.logo
             |!{logo}
-        div.flex.scrollable.scrollable
+        div.flex.scrollable
             a(href$='[[_buildHref("/", queryParams.*)]]', tabindex='-1')
                 paper-item.menu-item#home
                     iron-icon(icon='home')
-                    | {{localize('mainPage.menuHome')}}
+                    | Home
+
             template(is='dom-repeat', items='[[menuLinks]]')
                 template(is='dom-if', if='[[equals(item.type, "section")]]')
                     paper-item.menu-item.section-item(on-click='_toggleMenuSection')
@@ -49,23 +50,23 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             template(is='dom-if', if='[[equals(isolationMode, "multi-user")]]')
                 aside.divider
                 a(href$='[[_buildHref("/manage-users", queryParams.*)]]', tabindex='-1')
-                    paper-item.menu-item {{localize('mainPage.menuManageContributors')}}
+                    paper-item.menu-item#contributors Manage Contributors
             aside.divider
             a(href='https://github.com/kubeflow/kubeflow',
                 tabindex='-1', target="_blank")
-                paper-item.menu-item {{localize('mainPage.menuGitHub')}}
+                paper-item.menu-item GitHub
                     iron-icon.external(icon="launch")
             a(href='https://www.kubeflow.org/docs/about/kubeflow/',
                 tabindex='-1', target="_blank")
-                paper-item.menu-item {{localize('mainPage.menuDocumentation')}}
+                paper-item.menu-item Documentation
                     iron-icon.external(icon="launch")
         footer.footer
             section.information
-                a.privacy(title="{{localize('mainPage.menuPrivacyTitle')}}", target='_blank', href='https://policies.google.com/privacy') {{localize('mainPage.menuPrivacy')}}
+                a.privacy(title='Kubeflow Privacy Policy', target='_blank', href='https://policies.google.com/privacy') Privacy
                 .bullet
-                a.usage(title="{{localize('mainPage.menuUsageReportingTitle')}}", target='_blank', href='https://www.kubeflow.org/docs/other-guides/usage-reporting/') {{localize('mainPage.menuUsageReporting')}}
+                a.usage(title='Kubeflow Usage Reporting', target='_blank', href='https://www.kubeflow.org/docs/other-guides/usage-reporting/') Usage Reporting
             section.build build version&nbsp;
-                span(title="{{localize('mainPage.footerBuildVersion', 'buildVersion', buildVersion, 'dashVersion', dashVersion, 'isolationMode', isolationMode)}}") [[buildVersion]]
+                span(title="Build: [[buildVersion]] | Dashboard: v[[dashVersion]] | Isolation-Mode: [[isolationMode]]") [[buildVersion]]
     app-header-layout(fullbleed)
         app-header(slot='header', hides, hidden$='[[notFoundInIframe]]')
             app-toolbar
@@ -85,9 +86,9 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
             section#ViewTabs(hidden$='[[hideTabs]]')
                 paper-tabs(selected='[[page]]', attr-for-selected='page')
                     paper-tab(page='dashboard', link)
-                        a.link(tabindex='-1', href$='[[_buildHref("/", queryParams.*)]]') {{localize('mainPage.tabDashboard')}}
+                        a.link(tabindex='-1', href$='[[_buildHref("/", queryParams.*)]]') Dashboard
                     paper-tab(page='activity', link)
-                        a.link(tabindex='-1', href$='[[_buildHref("/activity", queryParams.*)]]') {{localize('mainPage.tabActivity')}}
+                        a.link(tabindex='-1', href$='[[_buildHref("/activity", queryParams.*)]]') Activity
             neon-animated-pages(selected='[[page]]', attr-for-selected='page',
                                 entry-animation='fade-in-animation',
                                 exit-animation='fade-out-animation')
@@ -97,16 +98,18 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                 neon-animatable(page='activity')
                     activity-view(namespace='[[queryParams.ns]]')
                 neon-animatable(page='manage-users')
-                    manage-users-view(user='[[user]]', namespaces='[[namespaces]]', multi-owned-namespaces='[[multiOwnedNamespaces]]', is-cluster-admin='[[isClusterAdmin]]')
+                    manage-users-view(user='[[user]]', namespaces='[[namespaces]]', is-cluster-admin='[[isClusterAdmin]]', owned-namespace='[[ownedNamespace]]')
                 neon-animatable(page='iframe')
                     iframe-container(namespace='[[namespace]]',
                         src='[[iframeSrc]]', page="{{iframePage}}")
                 neon-animatable(page='not_found')
                     not-found-view(path="[[route.path]]")
+                neon-animatable(page='namespace_needed')
+                    namespace-needed-view()
     iron-media-query(query='(max-width: 900px)', query-matches='{{sidebarBleed}}')
     iron-media-query(query='(max-width: 1270px)', query-matches='{{thinView}}')
 paper-toast#welcomeUser(duration=5000) Welcome, [[_extractLdap(user)]]!
-paper-toast#ErrorToast(duration=0, opened='[[!empty(errorText)]]', on-click='closeError') {{localize(errorText)}}
+paper-toast#ErrorToast(duration=0, opened='[[!empty(errorText)]]', on-click='closeError') [[errorText]]
     paper-icon-button(icon='close')
 template(is='dom-if', if='[[registrationFlow]]')
     registration-page(user-details='[[_extractLdap(user)]]' on-flowcomplete='resyncApp')

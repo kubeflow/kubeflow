@@ -240,7 +240,7 @@ def set_notebook_gpus(notebook, body, defaults):
     container = notebook["spec"]["template"]["spec"]["containers"][0]
     vendor = gpus["vendor"]
     try:
-        num = int(gpus["num"])
+        num = str(gpus["num"])
     except ValueError:
         raise BadRequest("gpus.num is not a valid number: %s" % gpus["num"])
 

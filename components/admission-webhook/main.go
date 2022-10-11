@@ -41,7 +41,8 @@ import (
 )
 
 const (
-	annotationPrefix = "poddefault.admission.kubeflow.org"
+	annotationPrefix        = "poddefault.admission.kubeflow.org"
+	istioProxyContainerName = "istio-proxy"
 )
 
 // Config contains the server (the webhook) cert and key.
@@ -108,6 +109,12 @@ func safeToApplyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.Pod
 		errs = append(errs, err)
 	}
 
+	// imagePullSecrets attribute is defined at the Pod level, so determine if volumes
+	// injection is causing any conflict.
+	if _, err := mergeImagePullSecrets(pod.Spec.ImagePullSecrets, podDefaults); err != nil {
+		errs = append(errs, err)
+	}
+
 	for _, ctr := range pod.Spec.Containers {
 		if err := safeToApplyPodDefaultsOnContainer(&ctr, podDefaults); err != nil {
 			errs = append(errs, err)
@@ -145,6 +152,53 @@ func safeToApplyPodDefaultsOnContainer(ctr *corev1.Container, podDefaults []*set
 	}
 
 	return utilerrors.NewAggregate(errs)
+}
+
+// mergeImagePullSecrets merges a list of imagePullSecrets with the imagePullSecrets injected by given list podDefaults.
+// It returns an error if it detects any conflict during the merge.
+func mergeImagePullSecrets(
+	imagePullSecrets []corev1.LocalObjectReference,
+	podDefaults []*settingsapi.PodDefault) ([]corev1.LocalObjectReference, error) {
+
+	var errs []error
+
+	origMap := map[string]corev1.LocalObjectReference{}
+	for _, ips := range imagePullSecrets {
+		origMap[ips.Name] = ips
+	}
+
+	merged := make([]corev1.LocalObjectReference, len(imagePullSecrets))
+	copy(merged, imagePullSecrets)
+
+	for _, pd := range podDefaults {
+		for _, ips := range pd.Spec.ImagePullSecrets {
+			found, ok := origMap[ips.Name]
+			if !ok {
+				// if we don't have it already, append it and continue
+				origMap[ips.Name] = ips
+				merged = append(merged, ips)
+				continue
+			}
+
+			// make sure they are identical or throw an error
+			if !reflect.DeepEqual(found, ips) {
+				errs = append(
+					errs,
+					fmt.Errorf(
+						"merging imagePullSecret for %s has a conflict on %s: \n%#v\ndoes not match\n%#v\n in container",
+						pd.GetName(), ips.Name, ips, found),
+				)
+			}
+		}
+	}
+
+	err := utilerrors.NewAggregate(errs)
+	if err != nil {
+		klog.Error(err)
+		return nil, err
+	}
+
+	return merged, err
 }
 
 // mergeEnv merges a list of env vars with the env vars injected by given list podDefaults.
@@ -384,6 +438,12 @@ func applyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.PodDefaul
 	}
 	pod.Spec.Tolerations = tolerations
 
+	imagePullSecrets, err := mergeImagePullSecrets(pod.Spec.ImagePullSecrets, podDefaults)
+	if err != nil {
+		klog.Error(err)
+	}
+	pod.Spec.ImagePullSecrets = imagePullSecrets
+
 	var (
 		defaultAnnotations = make([]*map[string]string, len(podDefaults))
 		defaultLabels      = make([]*map[string]string, len(podDefaults))
@@ -443,6 +503,27 @@ func applyPodDefaultsOnContainer(ctr *corev1.Container, podDefaults []*settingsa
 		klog.Error(err)
 	}
 	ctr.EnvFrom = envFrom
+
+	setCommandAndArgs(ctr, podDefaults)
+}
+
+//setCommandAndArgs adds command and args to the provided container. If the container already has a command or arguments set,
+// they won't be overwritten by PodDefault.
+func setCommandAndArgs(ctr *corev1.Container, podDefaults []*settingsapi.PodDefault) {
+	// ignore istio sidecar container
+	if ctr.Name == istioProxyContainerName {
+		return
+	}
+	for _, pd := range podDefaults {
+		if ctr.Command == nil && pd.Spec.Command != nil {
+			klog.Info(fmt.Sprintf("Updating container: %v, poddefault: %v, setting command: %v", ctr.Name, pd.GetName(), pd.Spec.Command))
+			ctr.Command = pd.Spec.Command
+		}
+		if ctr.Args == nil && pd.Spec.Args != nil {
+			klog.Info(fmt.Sprintf("Updating container: %v, poddefault: %v, setting args %v", ctr.Name, pd.GetName(), pd.Spec.Args))
+			ctr.Args = pd.Spec.Args
+		}
+	}
 }
 
 func mutatePods(ar v1.AdmissionReview) *v1.AdmissionResponse {
@@ -463,7 +544,7 @@ func mutatePods(ar v1.AdmissionReview) *v1.AdmissionResponse {
 	reviewResponse := v1.AdmissionResponse{}
 	reviewResponse.Allowed = true
 	if pod.Namespace == "" {
-		klog.Infof("Namespace was not set explicitly in Pod manifest, falling back to the namespace-'%s' coming from AdmissionReview request", ar.Request.Namespace)	
+		klog.Infof("Namespace was not set explicitly in Pod manifest, falling back to the namespace-'%s' coming from AdmissionReview request", ar.Request.Namespace)
 		pod.Namespace = ar.Request.Namespace
 	}
 
@@ -519,6 +600,7 @@ func mutatePods(ar v1.AdmissionReview) *v1.AdmissionResponse {
 	// detect merge conflict
 	err = safeToApplyPodDefaultsOnPod(&pod, matchingPDs)
 	if err != nil {
+		// This code doesn't ignore the error but rejects the Pod.
 		// conflict, ignore the error, but raise an event
 		msg := fmt.Errorf("conflict occurred while applying poddefaults: %s on pod: %v err: %v",
 			strings.Join(defaultNames, ","), pod.GetName(), err)

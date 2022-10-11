@@ -9,7 +9,6 @@ import '@polymer/paper-progress/paper-progress.js';
 import './iframe-link.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
-import localizationMixin from './localization-mixin.js';
 
 import './card-styles.js';
 import utilitiesMixin from './utilities-mixin.js';
@@ -22,8 +21,7 @@ const VALID_ARTIFACT_TYPES = new Set([PIPELINES, RUNS]);
 /**
  * Component to retrieve and display Pipelines or Pipeline Runs
  */
-export class PipelinesCard
-    extends utilitiesMixin(localizationMixin(PolymerElement)) {
+export class PipelinesCard extends utilitiesMixin(PolymerElement) {
     static get template() {
         return html`
         <style include="card-styles">
@@ -43,9 +41,7 @@ export class PipelinesCard
         <paper-progress indeterminate class="slow"
             hidden$="[[!loading]]"></paper-progress>
         <paper-card heading="[[heading]]">
-            <header id="message" hidden$="[[!message]]">
-                {{localize(message)}}
-            </header>
+            <header id="message" hidden$="[[!message]]">[[message]]</header>
             <template is="dom-repeat" items="[[pipelines]]">
                 <iframe-link class="link" href$="[[item.href]]">
                     <paper-icon-item>
@@ -56,10 +52,7 @@ export class PipelinesCard
                         </iron-icon>
                         <paper-item-body two-line>
                             <div class="header">[[item.name]]</div>
-                            <aside secondary>
-                                {{localize('pipelinesCard.txtCreated')}}
-                                [[item.created]]
-                            </aside>
+                            <aside secondary>Created [[item.created]]</aside>
                         </paper-item-body>
                     </paper-icon-item>
                 </iframe-link>
@@ -96,7 +89,7 @@ export class PipelinesCard
     }
 
     /**
-     * Returns the URL to list the available Pipeline artifacts in the namespace
+     * Returns the URL to list the available Pipeline artifacts
      * @param {string} artifactType
      * @param {string} namespace
      * @return {string}
@@ -144,7 +137,7 @@ export class PipelinesCard
                 created: date.toLocaleString(),
                 href: this.buildHref(
                     `/pipeline/#/${this.artifactType}/details/${p.id}`,
-                    {ns: this.namespace},
+                    {ns: this.namespace}
                 ),
                 name: p.name,
                 icon,
@@ -153,8 +146,7 @@ export class PipelinesCard
             };
         }).slice(0, MAX_PIPELINES);
         this.splice('pipelines', 0, this.pipelines.length, ...pipelines);
-        this.message = this.pipelines.length ?
-            '' : 'pipelinesCard.msgNoneFound';
+        this.message = this.pipelines.length ? '' : 'None Found';
         this.loading = false;
     }
 
@@ -164,8 +156,7 @@ export class PipelinesCard
     _onError() {
         this.splice('pipelines', 0);
         this.message = this.artifactType === PIPELINES ?
-            'pipelinesCard.errRetrievingPipelines' :
-            'pipelinesCard.errRetrievingPipelineRuns';
+            'Error retrieving Pipelines' : 'Error retrieving Pipeline Runs';
     }
 
     /**
@@ -177,10 +168,8 @@ export class PipelinesCard
             p.href = this.buildHref(p.href, {ns: namespace});
             return p;
         });
-        /*
-         * We need to deep-copy and re-assign in order to trigger the
-         * re-rendering of the component
-         */
+        // We need to deep-copy and re-assign in order to trigger the
+        // re-rendering of the component
         this.pipelines = JSON.parse(JSON.stringify(pipelines));
     }
 }

@@ -1,7 +1,8 @@
 export const notebook = {
   name: 'test-notebook',
   namespace: 'default',
-  image: 'kubeflownotebookswg/jupyter-scipy:v1.6.0-rc.0',
+  image:
+    'kubeflownotebookswg/jupyter-scipy:master-1831e436',
   allowCustomImage: true,
   imagePullPolicy: 'IfNotPresent',
   customImage: '',

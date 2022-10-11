@@ -23,7 +23,6 @@ import '@polymer/neon-animation/neon-animatable.js';
 import '@polymer/neon-animation/neon-animated-pages.js';
 import '@polymer/neon-animation/animations/fade-in-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
-import localizationMixin from './localization-mixin.js';
 
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
@@ -46,9 +45,7 @@ import {IFRAME_LINK_PREFIX} from './iframe-link.js';
 /**
  * Entry point for application UI.
  */
-// eslint-disable-next-line max-len
-// eslint-disable-next-line max-len
-export class MainPage extends utilitiesMixin(localizationMixin(localizationMixin(PolymerElement))) {
+export class MainPage extends utilitiesMixin(PolymerElement) {
     static get template() {
         const vars = {logo};
         return html([
@@ -162,7 +159,7 @@ export class MainPage extends utilitiesMixin(localizationMixin(localizationMixin
      */
     _onHasDashboardLinksError(ev) {
         const error = ((ev.detail.request||{}).response||{}).error ||
-           ev.detail.error;
+            ev.detail.error;
         this.showError(error);
         return;
     }
@@ -189,7 +186,9 @@ export class MainPage extends utilitiesMixin(localizationMixin(localizationMixin
      * @param {Event} ev AJAX-response
      */
     _onHasWorkgroupError(ev) {
-        this.showError('mainPage.errGeneric');
+        const error = ((ev.detail.request||{}).response||{}).error ||
+            ev.detail.error;
+        this.showError(error);
         return;
     }
 
@@ -257,10 +256,8 @@ export class MainPage extends utilitiesMixin(localizationMixin(localizationMixin
             hideTabs = true;
             allNamespaces = true;
             hideSidebar = false;
-            /*
-             * need to use the shadowRoot selector instead of this.$ because
-             * this.$ does not contain dynamically created DOM nodes
-             */
+            // need to use the shadowRoot selector instead of this.$ because
+            // this.$ does not contain dynamically created DOM nodes
             this._setActiveLink(this.shadowRoot.querySelector('#contributors'));
             break;
         case '':
@@ -299,10 +296,8 @@ export class MainPage extends utilitiesMixin(localizationMixin(localizationMixin
     }
 
     _namespaceChanged(namespace) {
-        /*
-         * update namespaced menu item when namespace is changed
-         * by namespace selector
-         */
+        // update namespaced menu item when namespace is changed
+        // by namespace selector
         if (this.namespacedItemTemplete &&
             this.namespacedItemTemplete.includes('{ns}')) {
             this.set('subRouteData.path',
@@ -311,13 +306,11 @@ export class MainPage extends utilitiesMixin(localizationMixin(localizationMixin
     }
 
     _buildHref(href, queryParamsChange) {
-        /*
-         * The "queryParams" value from "queryParamsChange" is not updated as
-         * expected in the "iframe-link", but it works in anchor element.
-         * A temporary workaround is  to use "this.queryParams" as an input
-         * instead of "queryParamsChange.base".
-         * const queryParams = queryParamsChange.base;
-         */
+        // The "queryParams" value from "queryParamsChange" is not updated as
+        // expected in the "iframe-link", but it works in anchor element.
+        // A temporary workaround is  to use "this.queryParams" as an input
+        // instead of "queryParamsChange.base".
+        // const queryParams = queryParamsChange.base;
         const queryParams = this.queryParams;
         if (!queryParams || !queryParams['ns']) {
             return this.buildHref(href, this.queryParams);
@@ -455,20 +448,7 @@ export class MainPage extends utilitiesMixin(localizationMixin(localizationMixin
             platform, user, namespaces, isClusterAdmin,
         } = responseEvent.detail.response;
         Object.assign(this, {user, isClusterAdmin});
-        const ownerRoleNamespaces = [];
-        const otherRoleNamespaces = [];
-        for (let i = 0; i < namespaces.length; i++) {
-            if (namespaces[i].role == 'owner') {
-                ownerRoleNamespaces.push(
-                    namespaces[i],
-                );
-            } else {
-                otherRoleNamespaces.push(
-                    namespaces[i],
-                );
-            }
-        }
-        this.namespaces = ownerRoleNamespaces.concat(otherRoleNamespaces);
+        this.namespaces = namespaces;
         if (this.namespaces.length) {
             this._setRegistrationFlow(false);
         } else if (this.isolationMode == 'single-user') {
@@ -476,8 +456,6 @@ export class MainPage extends utilitiesMixin(localizationMixin(localizationMixin
             this._setRegistrationFlow(true);
         }
         this.ownedNamespace = namespaces.find((n) => n.role == 'owner');
-        this.multiOwnedNamespaces = ownerRoleNamespaces;
-        this.multiOwnedNamespaces = ownerRoleNamespaces;
         this.platformInfo = platform;
         const kVer = this.platformInfo.kubeflowVersion;
         if (kVer && kVer != 'unknown') {

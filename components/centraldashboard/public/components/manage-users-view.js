@@ -12,14 +12,13 @@ import '@vaadin/vaadin-grid/vaadin-grid-sort-column.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
 
-import './manage-users-view-contributor.js';
+import './resources/paper-chip.js';
+import './resources/md2-input/md2-input.js';
 import css from './manage-users-view.css';
 import template from './manage-users-view.pug';
 import utilitiesMixin from './utilities-mixin.js';
-import localizationMixin from './localization-mixin.js';
 
-// eslint-disable-next-line max-len
-export class ManageUsersView extends utilitiesMixin(localizationMixin(PolymerElement)) {
+export class ManageUsersView extends utilitiesMixin(PolymerElement) {
     static get template() {
         return html([`
             <style>${css.toString()}</style>
@@ -35,49 +34,56 @@ export class ManageUsersView extends utilitiesMixin(localizationMixin(PolymerEle
             user: {type: String, value: 'Loading...'},
             isClusterAdmin: {type: Boolean, value: false},
             namespaces: Array,
-            multiOwnedNamespaces: {type: Array, value: []},
+            ownedNamespace: {type: Object, value: () => ({})},
+            newContribEmail: String,
+            contribError: Object,
+            contributorInputEl: Object,
         };
     }
-
     /**
      * Main ready method for Polymer Elements.
      */
     ready() {
         super.ready();
+        this.contributorInputEl = this.$.ContribEmail;
     }
-
     /**
-     * Returns namespaces and roles
+     * Returns 1 to 2 rows containing owner and contributor rows for namespaces
      * @param {[object]} ns Namespaces array.
      * @return {[string, [string]]} rows for namespace table.
      */
     nsBreakdown(ns) {
-        const {namespaces} = this;
-        if (!namespaces) return;
-        const roleStrings = {
-            'contributor': this.localize('manageUsersView.lblContributor'),
-            'owner': this.localize('manageUsersView.lblOwner'),
-            'other': this.localize('manageUsersView.lblOther'),
-        };
-        const arr = [];
-        for (let i = 0; i < namespaces.length; i++) {
-            arr.push(
-                [namespaces[i].namespace,
-                    roleStrings[namespaces[i].role] || roleStrings['other']],
-            );
-        }
+        const {ownedNamespace, namespaces} = this;
+        if (!ownedNamespace || !namespaces) return;
+        const arr = [
+            [ownedNamespace.namespace, 'Owner'],
+        ];
+        if (ns.length <= 1) return arr;
+        const otherNamespaces = namespaces
+            .filter((n) => n != ownedNamespace)
+            .map((i) => i.namespace).join(', ');
+        arr.push(
+            [otherNamespaces, 'Contributor'],
+        );
         return arr;
     }
-
     /**
-     * Used to uppercase the first letter of the role name
-     * @param {string} string A string
-     * @return {string} A string where the first character is capitalized
+     * Triggers an API call to create a new Contributor
      */
-    uppercaseFirst(string) {
-        return string.charAt(0).toUpperCase() + string.slice(1);
+    addNewContrib() {
+        const api = this.$.AddContribAjax;
+        api.body = {contributor: this.newContribEmail};
+        api.generateRequest();
     }
-
+    /**
+     * Triggers an API call to remove a Contributor
+     * @param {Event} e
+     */
+    removeContributor(e) {
+        const api = this.$.RemoveContribAjax;
+        api.body = {contributor: e.model.item};
+        api.generateRequest();
+    }
     /**
      * Takes an event from iron-ajax and isolates the error from a request that
      * failed
@@ -88,7 +94,41 @@ export class ManageUsersView extends utilitiesMixin(localizationMixin(PolymerEle
         const bd = e.detail.request.response||{};
         return bd.error || e.detail.error || e.detail;
     }
-
+    /**
+     * Iron-Ajax response / error handler for addNewContributor
+     * @param {IronAjaxEvent} e
+     */
+    handleContribCreate(e) {
+        if (e.detail.error) {
+            const error = this._isolateErrorFromIronRequest(e);
+            this.contribCreateError = error;
+            return;
+        }
+        this.contributorList = e.detail.response;
+        this.newContribEmail = this.contribCreateError = '';
+    }
+    /**
+     * Iron-Ajax response / error handler for removeContributor
+     * @param {IronAjaxEvent} e
+     */
+    handleContribDelete(e) {
+        if (e.detail.error) {
+            const error = this._isolateErrorFromIronRequest(e);
+            this.contribCreateError = error;
+            return;
+        }
+        this.contributorList = e.detail.response;
+        this.newContribEmail = this.contribCreateError = '';
+    }
+    /**
+     * Iron-Ajax error handler for getContributors
+     * @param {IronAjaxEvent} e
+     */
+    onContribFetchError(e) {
+        const error = this._isolateErrorFromIronRequest(e);
+        this.contribError = error;
+        this.$.ContribError.show();
+    }
     /**
      * Iron-Ajax error handler for getContributors
      * @param {IronAjaxEvent} e
@@ -100,12 +140,12 @@ export class ManageUsersView extends utilitiesMixin(localizationMixin(PolymerEle
     }
     /**
      * [ComputedProp] Should the ajax call for all namespaces run?
-     * @param {object} multiOwnedNamespaces
+     * @param {object} ownedNamespace
      * @param {boolean} isClusterAdmin
      * @return {boolean}
      */
-    shouldFetchAllNamespaces(multiOwnedNamespaces, isClusterAdmin) {
-        return isClusterAdmin && !this.empty(multiOwnedNamespaces);
+    shouldFetchAllNamespaces(ownedNamespace, isClusterAdmin) {
+        return isClusterAdmin && !this.empty(ownedNamespace);
     }
 }
 

@@ -88,11 +88,9 @@ describe('Notebooks Card', () => {
                 .withArgs('/notebook/test-namespace/server-2/api/contents')
                 .and.returnValue(
                     generateNotebooksFetchResponse(10, 'server-2-nb'));
-            /*
-             * Wrapping the expectations for the fetch mock in a timeout
-             * ensures that the component handles the responses before we
-             * do any assertions
-             */
+            // Wrapping the expectations for the fetch mock in a timeout
+            // ensures that the component handles the responses before we
+            // do any assertions
             const fetchPromise = new Promise((resolve) => {
                 setTimeout(() => {
                     expect(mockFetch).toHaveBeenCalledWith(
@@ -157,11 +155,9 @@ describe('Notebooks Card', () => {
                 .withArgs('/notebook/test-namespace/server-2/api/contents')
                 .and.returnValue(
                     generateNotebooksFetchResponse(10, 'server-2-nb'));
-            /*
-             * Wrapping the expectations for the fetch mock in a timeout
-             * ensures that the component handles the responses before we
-             * do any assertions
-             */
+            // Wrapping the expectations for the fetch mock in a timeout
+            // ensures that the component handles the responses before we
+            // do any assertions
             const fetchPromise = new Promise((resolve) => {
                 setTimeout(() => {
                     expect(mockFetch).toHaveBeenCalledWith(
@@ -219,11 +215,9 @@ describe('Notebooks Card', () => {
                 .withArgs('/notebook/test-namespace/server-1/api/contents')
                 .and.returnValue(
                     generateNotebooksFetchResponse(0, 'server-1-nb'));
-            /*
-             * Wrapping the expectations for the fetch mock in a timeout
-             * ensures that the component handles the responses before we
-             * do any assertions
-             */
+            // Wrapping the expectations for the fetch mock in a timeout
+            // ensures that the component handles the responses before we
+            // do any assertions
             const fetchPromise = new Promise((resolve) => {
                 setTimeout(() => {
                     expect(mockFetch).toHaveBeenCalledWith(
