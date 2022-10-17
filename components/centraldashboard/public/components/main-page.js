@@ -272,7 +272,7 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
                 hideSidebar = true;
             }
             if (path && path.includes('{ns}')) {
-                this.page = 'namespace_needed'
+                this.page = 'namespace_needed';
             } else {
                 this.page = 'not_found';
             }
