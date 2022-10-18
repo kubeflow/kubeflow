@@ -1,6 +1,50 @@
 # Kubeflow Roadmap
 
-## Kubeflow 1.5 Release, Due: March 2022
+## Kubeflow 1.6 Release, Due: July 2022
+* Kubeflow 1.6 [milestones and timelines](https://github.com/kubeflow/community/pull/558)
+
+#### Themes
+* Kubernetes 1.22 support
+
+### Major Features from each Working Group (note: Individual WG versions are independent of Kubeflow's)
+
+#### Kubeflow Pipelines
+* V2 Preview: Support running pipeline in Argo-agnostic approach
+* New DAG visualization based on Pipeline Template and MLMD
+* SDK to change from `kfp.v2` to `kfp`
+* KFP SDK CLI [design](https://docs.google.com/document/d/1Z79ebKaf3hjyadSRsme1Qo7F-Tqu4qM1cyKuLeu2PgA/edit#heading=h.x9snb54sjlu9)
+
+#### Katib
+* Support for Population based training
+* Support JSON format for Metrics Collector
+* UI Enhancement to add a separate page for Trials and show Trial logs
+
+#### Training Operator
+* PyTorch elastic training enhancements
+* Elastic scheduling with Volcano support
+* MPI Operator v2
+
+#### Notebooks, Central Dashboard, Web Apps, Manifest
+* Sorting and filtering support for the web apps
+* Expose Notebook idleness information in the JWA
+
+#### KServe
+* Knative 1.0 support and certified for KServe Serverless installation
+* KServe 0.9 SDK with ModelServer API name changes and improvement for CloudEvent support
+* New ServingRuntime and ClusterServingRuntime CRDs
+* New ModelSpec in InferenceServices
+* ModelMesh updates include support for multi-namespace reconciliation
+
+#### Detailed features, bug fixes and enhancements will be identified in the Working Group Roadmaps
+
+* [Training Operators](https://github.com/kubeflow/common/blob/master/ROADMAP.md)
+* [KFServing](https://github.com/kubeflow/kfserving/blob/master/ROADMAP.md)
+* [Katib](https://github.com/kubeflow/katib/blob/master/ROADMAP.md)
+* [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
+* [Notebooks, Central Dashboard](https://docs.google.com/document/d/1YtSWRhdhyOgd6ZQcWLM38TGDy2H_EhXjr8U5lUi37_I/edit)
+
+
+## Kubeflow 1.5 Release, Delivered: March 2022
 * Kubeflow 1.5 [milestones and timeline](https://github.com/kubeflow/community/pull/538)
 
 ### Themes

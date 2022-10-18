@@ -2,38 +2,14 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
 - ../default
-- service_account.yaml
 configMapGenerator:
 - name: tensorboard-controller-config
   literals:
   - RWO_PVC_SCHEDULING="True"
+  - TENSORBOARD_IMAGE=tensorflow/tensorflow:2.1.0
+  - ISTIO_GATEWAY=kubeflow/kubeflow-gateway
 patchesStrategicMerge:
 - patches/add_controller_config.yaml
-- patches/add_service_account.yaml
-patches:
-- patch: |
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: RoleBinding
-    metadata:
-      name: "*"
-    subjects:
-    - kind: ServiceAccount
-      name: tensorboard-controller
-  target:
-    kind: "RoleBinding"
-    group: "rbac.authorization.k8s.io"
-- patch: |
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRoleBinding
-    metadata:
-      name: "*"
-    subjects:
-    - kind: ServiceAccount
-      name: tensorboard-controller
-  target:
-    kind: "ClusterRoleBinding"
-    group: "rbac.authorization.k8s.io"
 images:
-- name: public.ecr.aws/j1r0q0g6/notebooks/tensorboard-controller
-  newName: public.ecr.aws/j1r0q0g6/notebooks/tensorboard-controller
-  newTag: v1.5.0-rc.1
+- name: docker.io/kubeflownotebookswg/tensorboard-controller
+  newTag: v1.6.1

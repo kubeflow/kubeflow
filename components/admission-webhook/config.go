@@ -17,11 +17,13 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"crypto/tls"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"k8s.io/klog"
+	"sigs.k8s.io/controller-runtime/pkg/certwatcher"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
@@ -39,12 +41,19 @@ func getCrdClient() client.Client {
 }
 
 func configTLS(config Config) *tls.Config {
-	sCert, err := tls.LoadX509KeyPair(config.CertFile, config.KeyFile)
+	certWatcher, err := certwatcher.New(config.CertFile, config.KeyFile)
 	if err != nil {
 		klog.Fatalf("config=%#v Error: %v", config, err)
 	}
+
+	go func() {
+		if err := certWatcher.Start(context.TODO()); err != nil {
+			klog.Fatalf("config=%#v Error: %v", config, err)
+		}
+	}()
+
 	return &tls.Config{
-		Certificates: []tls.Certificate{sCert},
+		GetCertificate: certWatcher.GetCertificate,
 		// TODO: uses mutual tls after we agree on what cert the apiserver should use.
 		//ClientAuth: tls.RequireAndVerifyClientCert,
 	}

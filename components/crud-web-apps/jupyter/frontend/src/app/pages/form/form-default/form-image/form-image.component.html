@@ -27,6 +27,7 @@
 
       <mat-button-toggle
         value="group-one"
+        *ngIf="!parentForm.get('imageGroupOne')?.disabled"
         attr.aria-label="Use Group One based server"
         i18n-aria-label="Aria label for Group One server"
         *ngIf = "this.imagesGroupOne != null && this.imagesGroupOne.length > 0"
@@ -35,6 +36,7 @@
       </mat-button-toggle>
       <mat-button-toggle
         value="group-two"
+        *ngIf="!parentForm.get('imageGroupTwo')?.disabled"
         attr.aria-label="Use Group Two based server"
         i18n-aria-label="Aria label for Group Two server"
         *ngIf = "this.imagesGroupTwo != null && this.imagesGroupTwo.length > 0"

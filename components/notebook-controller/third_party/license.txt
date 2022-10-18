@@ -464,7 +464,7 @@ modification, are permitted provided that the following conditions are met:
 
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-* Redistributions in binary form must reproduce the above copyright notice
+* Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
 * Neither the name of the Evan Phoenix nor the names of its contributors 
@@ -3987,7 +3987,7 @@ stretchr/testify  MIT License  https://github.com/stretchr/testify/blob/master/L
 --------------------------------------------------------------------------------
 MIT License
 
-Copyright (c) 2012-2018 Mat Ryer and Tyler Bunnell
+Copyright (c) 2012-2020 Mat Ryer, Tyler Bunnell and contributors.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -4033,7 +4033,7 @@ THE SOFTWARE.
 --------------------------------------------------------------------------------
 uber-go/multierr  MIT License  https://github.com/uber-go/multierr/blob/master/LICENSE.txt
 --------------------------------------------------------------------------------
-Copyright (c) 2017 Uber Technologies, Inc.
+Copyright (c) 2017-2021 Uber Technologies, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

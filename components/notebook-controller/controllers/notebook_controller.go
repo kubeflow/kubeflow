@@ -20,7 +20,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
+	"time"
 
 	"github.com/go-logr/logr"
 	reconcilehelper "github.com/kubeflow/kubeflow/components/common/reconcilehelper"
@@ -37,6 +39,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -78,14 +81,13 @@ type NotebookReconciler struct {
 }
 
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
-// +kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create
+// +kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;patch
 // +kubebuilder:rbac:groups=core,resources=services,verbs="*"
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs="*"
 // +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks;notebooks/status;notebooks/finalizers,verbs="*"
 // +kubebuilder:rbac:groups="networking.istio.io",resources=virtualservices,verbs="*"
 
-func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("notebook", req.NamespacedName)
 
 	// TODO(yanniszark): Can we avoid reconciling Events and Notebook in the same queue?
@@ -124,6 +126,14 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
 		log.Error(err, "unable to fetch Notebook")
 		return ctrl.Result{}, ignoreNotFound(err)
+	}
+
+	// jupyter-web-app deletes objects using foreground deletion policy, Notebook CR will stay until all owned objects are deleted
+	// reconcile loop might keep on trying to recreate the resources that the API server tries to delete.
+	// so when Notebook CR is terminating, reconcile loop should do nothing
+
+	if !instance.DeletionTimestamp.IsZero() {
+		return ctrl.Result{}, nil
 	}
 
 	// Reconcile StatefulSet
@@ -198,66 +208,20 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 	}
 
-	// Update the readyReplicas if the status is changed
-	if foundStateful.Status.ReadyReplicas != instance.Status.ReadyReplicas {
-		log.Info("Updating Status", "namespace", instance.Namespace, "name", instance.Name)
-		instance.Status.ReadyReplicas = foundStateful.Status.ReadyReplicas
-		err = r.Status().Update(ctx, instance)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-	}
-
-	// Check the pod status
-	pod := &corev1.Pod{}
-	podFound := false
-	err = r.Get(ctx, types.NamespacedName{Name: ss.Name + "-0", Namespace: ss.Namespace}, pod)
+	foundPod := &corev1.Pod{}
+	podFound := true
+	err = r.Get(ctx, types.NamespacedName{Name: ss.Name + "-0", Namespace: ss.Namespace}, foundPod)
 	if err != nil && apierrs.IsNotFound(err) {
-		// This should be reconciled by the StatefulSet
 		log.Info("Pod not found...")
+		podFound = false
 	} else if err != nil {
 		return ctrl.Result{}, err
-	} else {
-		// Got the pod
-		podFound = true
+	}
 
-		// Update status of the CR using the ContainerState of
-		// the container that has the same name as the CR.
-		// If no container of same name is found, the state of the CR is not updated.
-		if len(pod.Status.ContainerStatuses) > 0 {
-			notebookContainerFound := false
-			for i := range pod.Status.ContainerStatuses {
-				if pod.Status.ContainerStatuses[i].Name != instance.Name {
-					continue
-				}
-				if pod.Status.ContainerStatuses[i].State == instance.Status.ContainerState {
-					continue
-				}
-
-				log.Info("Updating Notebook CR state: ", "namespace", instance.Namespace, "name", instance.Name)
-				cs := pod.Status.ContainerStatuses[i].State
-				instance.Status.ContainerState = cs
-				oldConditions := instance.Status.Conditions
-				newCondition := getNextCondition(cs)
-				// Append new condition
-				if len(oldConditions) == 0 || oldConditions[0].Type != newCondition.Type ||
-					oldConditions[0].Reason != newCondition.Reason ||
-					oldConditions[0].Message != newCondition.Message {
-					log.Info("Appending to conditions: ", "namespace", instance.Namespace, "name", instance.Name, "type", newCondition.Type, "reason", newCondition.Reason, "message", newCondition.Message)
-					instance.Status.Conditions = append([]v1beta1.NotebookCondition{newCondition}, oldConditions...)
-				}
-				err = r.Status().Update(ctx, instance)
-				if err != nil {
-					return ctrl.Result{}, err
-				}
-				notebookContainerFound = true
-				break
-
-			}
-			if !notebookContainerFound {
-				log.Error(nil, "Could not find the Notebook container, will not update the status of the CR. No container has the same name as the CR.", "CR name:", instance.Name)
-			}
-		}
+	// Update Notebook CR status
+	err = updateNotebookStatus(r, instance, foundStateful, foundPod, req)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
 
 	if !podFound {
@@ -317,30 +281,122 @@ func (r *NotebookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	return ctrl.Result{RequeueAfter: culler.GetRequeueTime()}, nil
 }
 
-func getNextCondition(cs corev1.ContainerState) v1beta1.NotebookCondition {
-	var nbtype = ""
-	var nbreason = ""
-	var nbmsg = ""
+func updateNotebookStatus(r *NotebookReconciler, nb *v1beta1.Notebook,
+	sts *appsv1.StatefulSet, pod *corev1.Pod, req ctrl.Request) error {
 
-	if cs.Running != nil {
-		nbtype = "Running"
-	} else if cs.Waiting != nil {
-		nbtype = "Waiting"
-		nbreason = cs.Waiting.Reason
-		nbmsg = cs.Waiting.Message
+	log := r.Log.WithValues("notebook", req.NamespacedName)
+	ctx := context.Background()
+
+	status, err := createNotebookStatus(r, nb, sts, pod, req)
+	if err != nil {
+		return err
+	}
+
+	log.Info("Updating Notebook CR Status", "status", status)
+	nb.Status = status
+	return r.Status().Update(ctx, nb)
+}
+
+func createNotebookStatus(r *NotebookReconciler, nb *v1beta1.Notebook,
+	sts *appsv1.StatefulSet, pod *corev1.Pod, req ctrl.Request) (v1beta1.NotebookStatus, error) {
+
+	log := r.Log.WithValues("notebook", req.NamespacedName)
+
+	// Initialize Notebook CR Status
+	log.Info("Initializing Notebook CR Status")
+	status := v1beta1.NotebookStatus{
+		Conditions:     make([]v1beta1.NotebookCondition, 0),
+		ReadyReplicas:  sts.Status.ReadyReplicas,
+		ContainerState: corev1.ContainerState{},
+	}
+
+	// Update the status based on the Pod's status
+	if reflect.DeepEqual(pod.Status, corev1.PodStatus{}) {
+		log.Info("No pod.Status found. Won't update notebook conditions and containerState")
+		return status, nil
+	}
+
+	// Update status of the CR using the ContainerState of
+	// the container that has the same name as the CR.
+	// If no container of same name is found, the state of the CR is not updated.
+	notebookContainerFound := false
+	log.Info("Calculating Notebook's  containerState")
+	for i := range pod.Status.ContainerStatuses {
+		if pod.Status.ContainerStatuses[i].Name != nb.Name {
+			continue
+		}
+
+		if pod.Status.ContainerStatuses[i].State == nb.Status.ContainerState {
+			continue
+		}
+
+		// Update Notebook CR's status.ContainerState
+		cs := pod.Status.ContainerStatuses[i].State
+		log.Info("Updating Notebook CR state: ", "state", cs)
+
+		status.ContainerState = cs
+		notebookContainerFound = true
+		break
+	}
+
+	if !notebookContainerFound {
+		log.Error(nil, "Could not find container with the same name as Notebook "+
+			"in containerStates of Pod. Will not update notebook's "+
+			"status.containerState ")
+	}
+
+	// Mirroring pod condition
+	notebookConditions := []v1beta1.NotebookCondition{}
+	log.Info("Calculating Notebook's Conditions")
+	for i := range pod.Status.Conditions {
+		condition := PodCondToNotebookCond(pod.Status.Conditions[i])
+		notebookConditions = append(notebookConditions, condition)
+	}
+
+	status.Conditions = notebookConditions
+
+	return status, nil
+}
+
+func PodCondToNotebookCond(podc corev1.PodCondition) v1beta1.NotebookCondition {
+
+	condition := v1beta1.NotebookCondition{}
+
+	if len(podc.Type) > 0 {
+		condition.Type = string(podc.Type)
+	}
+
+	if len(podc.Status) > 0 {
+		condition.Status = string(podc.Status)
+	}
+
+	if len(podc.Message) > 0 {
+		condition.Message = podc.Message
+	}
+
+	if len(podc.Reason) > 0 {
+		condition.Reason = podc.Reason
+	}
+
+	// check if podc.LastProbeTime is null. If so initialize
+	// the field with metav1.Now()
+	check := podc.LastProbeTime.Time.Equal(time.Time{})
+	if !check {
+		condition.LastProbeTime = podc.LastProbeTime
 	} else {
-		nbtype = "Terminated"
-		nbreason = cs.Terminated.Reason
-		nbmsg = cs.Terminated.Reason
+		condition.LastProbeTime = metav1.Now()
 	}
 
-	newCondition := v1beta1.NotebookCondition{
-		Type:          nbtype,
-		LastProbeTime: metav1.Now(),
-		Reason:        nbreason,
-		Message:       nbmsg,
+	// check if podc.LastTransitionTime is null. If so initialize
+	// the field with metav1.Now()
+	check = podc.LastTransitionTime.Time.Equal(time.Time{})
+	if !check {
+		condition.LastTransitionTime = podc.LastTransitionTime
+	} else {
+		condition.LastTransitionTime = metav1.Now()
 	}
-	return newCondition
+
+	return condition
 }
 
 func setPrefixEnvVar(instance *v1beta1.Notebook, container *corev1.Container) {
@@ -628,11 +684,79 @@ func nbNameExists(client client.Client, nbName string, namespace string) bool {
 	return true
 }
 
+// predNBPodIsLabeled filters pods not containing the "notebook-name" label key
+func predNBPodIsLabeled() predicate.Funcs {
+	// Documented at
+	// https://github.com/kubernetes-sigs/controller-runtime/blob/ce8bdd3d81ab410ff23255e9ad3554f613c5183c/pkg/predicate/predicate_test.go#L884
+	checkNBLabel := func() func(object client.Object) bool {
+		return func(object client.Object) bool {
+			_, labelExists := object.GetLabels()["notebook-name"]
+			return labelExists
+		}
+	}
+
+	return predicate.NewPredicateFuncs(checkNBLabel())
+}
+
+// predNBEvents filters events not coming from Pod or STS, and coming from
+// unknown NBs
+func predNBEvents(r *NotebookReconciler) predicate.Funcs {
+	checkEvent := func() func(object client.Object) bool {
+		return func(object client.Object) bool {
+			event := object.(*corev1.Event)
+			nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
+			if err != nil {
+				return false
+			}
+			return isStsOrPodEvent(event) && nbNameExists(r.Client, nbName, object.GetNamespace())
+		}
+	}
+
+	predicates := predicate.NewPredicateFuncs(checkEvent())
+
+	// Do not reconcile when an event gets deleted
+	predicates.DeleteFunc = func(e event.DeleteEvent) bool {
+		return false
+	}
+
+	return predicates
+}
+
+// SetupWithManager sets up the controller with the Manager.
 func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
+
+	// Map function to convert pod events to reconciliation requests
+	mapPodToRequest := func(object client.Object) []reconcile.Request {
+		return []reconcile.Request{
+			{NamespacedName: types.NamespacedName{
+				Name:      object.GetLabels()["notebook-name"],
+				Namespace: object.GetNamespace(),
+			}},
+		}
+	}
+
+	// Map function to convert namespace events to reconciliation requests
+	mapEventToRequest := func(object client.Object) []reconcile.Request {
+		return []reconcile.Request{
+			{NamespacedName: types.NamespacedName{
+				Name:      object.GetName(),
+				Namespace: object.GetNamespace(),
+			}},
+		}
+	}
+
 	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&v1beta1.Notebook{}).
 		Owns(&appsv1.StatefulSet{}).
-		Owns(&corev1.Service{})
+		Owns(&corev1.Service{}).
+		Watches(
+			&source.Kind{Type: &corev1.Pod{}},
+			handler.EnqueueRequestsFromMapFunc(mapPodToRequest),
+			builder.WithPredicates(predNBPodIsLabeled())).
+		Watches(
+			&source.Kind{Type: &corev1.Event{}},
+			handler.EnqueueRequestsFromMapFunc(mapEventToRequest),
+			builder.WithPredicates(predNBEvents(r)))
 	// watch Istio virtual service
 	if os.Getenv("USE_ISTIO") == "true" {
 		virtualService := &unstructured.Unstructured{}
@@ -641,95 +765,8 @@ func (r *NotebookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		builder.Owns(virtualService)
 	}
 
-	// TODO(lunkai): After this is fixed:
-	// https://github.com/kubernetes-sigs/controller-runtime/issues/572
-	// We don't have to call Build to get the controller.
-	c, err := builder.Build(r)
+	err := builder.Complete(r)
 	if err != nil {
-		return err
-	}
-
-	// watch underlying pod
-	mapFn := handler.ToRequestsFunc(
-		func(a handler.MapObject) []ctrl.Request {
-			return []ctrl.Request{
-				{NamespacedName: types.NamespacedName{
-					Name:      a.Meta.GetLabels()["notebook-name"],
-					Namespace: a.Meta.GetNamespace(),
-				}},
-			}
-		})
-
-	// helper common function for pod predicates. Filter pods not containing the "notebook-name" label key
-	checkNBLabel := func(m metav1.Object) bool {
-		_, ok := m.GetLabels()["notebook-name"]
-		return ok
-	}
-	// TODO: refactor to use predicate.NewPredicateFuncs when controller-runtime module version is updated
-	p := predicate.Funcs{
-		UpdateFunc: func(e event.UpdateEvent) bool {
-			return checkNBLabel(e.MetaOld) && e.ObjectOld != e.ObjectNew
-		},
-		CreateFunc: func(e event.CreateEvent) bool {
-			return checkNBLabel(e.Meta)
-		},
-		DeleteFunc: func(e event.DeleteEvent) bool {
-			return checkNBLabel(e.Meta)
-		},
-		GenericFunc: func(e event.GenericEvent) bool {
-			return checkNBLabel(e.Meta)
-		},
-	}
-
-	eventToRequest := handler.ToRequestsFunc(
-		func(a handler.MapObject) []ctrl.Request {
-			return []reconcile.Request{
-				{NamespacedName: types.NamespacedName{
-					Name:      a.Meta.GetName(),
-					Namespace: a.Meta.GetNamespace(),
-				}},
-			}
-		})
-
-	// helper common function for event predicates. Filter events not coming from Pod or STS, and coming from unknown NBs
-	checkEvent := func(o runtime.Object, m metav1.Object) bool {
-		event := o.(*corev1.Event)
-		nbName, err := nbNameFromInvolvedObject(r.Client, &event.InvolvedObject)
-		if err != nil {
-			return false
-		}
-		return isStsOrPodEvent(event) && nbNameExists(r.Client, nbName, m.GetNamespace())
-	}
-	// TODO: refactor to use predicate.NewPredicateFuncs when controller-runtime module version is updated
-	// We don't include DeleteFunc since we don't want the reconcile
-	// to happen when an event gets deleted
-	eventsPredicates := predicate.Funcs{
-		UpdateFunc: func(e event.UpdateEvent) bool {
-			return e.ObjectOld != e.ObjectNew && checkEvent(e.ObjectNew, e.MetaNew)
-		},
-		CreateFunc: func(e event.CreateEvent) bool {
-			return checkEvent(e.Object, e.Meta)
-		},
-		GenericFunc: func(e event.GenericEvent) bool {
-			return checkEvent(e.Object, e.Meta)
-		},
-	}
-
-	if err = c.Watch(
-		&source.Kind{Type: &corev1.Pod{}},
-		&handler.EnqueueRequestsFromMapFunc{
-			ToRequests: mapFn,
-		},
-		p); err != nil {
-		return err
-	}
-
-	if err = c.Watch(
-		&source.Kind{Type: &corev1.Event{}},
-		&handler.EnqueueRequestsFromMapFunc{
-			ToRequests: eventToRequest,
-		},
-		eventsPredicates); err != nil {
 		return err
 	}
 

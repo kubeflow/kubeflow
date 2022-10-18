@@ -1,0 +1,75 @@
+name: Build & Publish Jupyter Pytorch Full Notebook Server Docker images
+on:
+  push:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/example-notebook-servers/jupyter-pytorch-full/**
+      - components/example-notebook-servers/jupyter-pytorch/**
+      - components/example-notebook-servers/jupyter/**
+      - components/example-notebook-servers/base/**
+      - releasing/version/VERSION
+  pull_request:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/example-notebook-servers/jupyter-pytorch-full/**
+      - components/example-notebook-servers/jupyter-pytorch/**
+      - components/example-notebook-servers/jupyter/**
+      - components/example-notebook-servers/base/**
+
+jobs:
+  push_to_registry:
+    name: Build & Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          version:
+            - 'releasing/version/VERSION'
+
+    - name: Login to DockerHub
+      if: github.event_name == 'push'
+      uses: docker/login-action@v2
+      with:
+        username: kubeflownotebookswg
+        password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
+
+    - name: Build Notebook Server images via their Makefile
+      run: |
+        cd components/example-notebook-servers/
+        export TAG=$(git describe --tags --always --dirty)
+        make docker-build-cpu -C jupyter-pytorch-full TAG=${TAG}
+        make docker-build-cuda -C jupyter-pytorch-full TAG=${TAG}
+
+    - name: Push Notebook Server images via their Makefile
+      if: github.event_name == 'push'
+      run: |
+        cd components/example-notebook-servers/
+        export TAG=$(git describe --tags --always --dirty)
+        export REGISTRY=kubeflownotebookswg
+        docker tag jupyter-pytorch-full:${TAG} ${REGISTRY}/jupyter-pytorch-full:${TAG}
+        docker push ${REGISTRY}/jupyter-pytorch-full:${TAG}
+        docker tag jupyter-pytorch-cuda-full:${TAG} ${REGISTRY}/jupyter-pytorch-cuda-full:${TAG}
+        docker push ${REGISTRY}/jupyter-pytorch-cuda-full:${TAG}
+
+    - name: Push Notebook Server images via their Makefile on Version change
+      id: version
+      if: github.event_name == 'push' && steps.filter.outputs.version == 'true'
+      run: |
+        export TAG=$(cat releasing/version/VERSION)
+        cd components/example-notebook-servers/
+        make docker-build-cpu -C jupyter-pytorch-full TAG=${TAG}
+        make docker-build-cuda -C jupyter-pytorch-full TAG=${TAG}
+        export REGISTRY=kubeflownotebookswg
+        docker tag jupyter-pytorch-full:${TAG} ${REGISTRY}/jupyter-pytorch-full:${TAG}
+        docker push ${REGISTRY}/jupyter-pytorch-full:${TAG}
+        docker tag jupyter-pytorch-cuda-full:${TAG} ${REGISTRY}/jupyter-pytorch-cuda-full:${TAG}
+        docker push ${REGISTRY}/jupyter-pytorch-cuda-full:${TAG}

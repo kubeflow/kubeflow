@@ -1,0 +1,62 @@
+name: Build & Publish VWA Docker image
+on:
+  push:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/crud-web-apps/volumes/**
+      - components/crud-web-apps/common/**
+      - releasing/version/VERSION
+  pull_request:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/crud-web-apps/volumes/**
+      - components/crud-web-apps/common/**
+
+jobs:
+  push_to_registry:
+    name: Build & Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          version:
+            - 'releasing/version/VERSION'
+
+    - name: Login to DockerHub
+      if: github.event_name == 'push'
+      uses: docker/login-action@v2
+      with:
+        username: kubeflownotebookswg
+        password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
+
+    - name: Run VWA build
+      run: |
+        cd components/crud-web-apps/volumes
+        export IMG=kubeflownotebookswg/volumes-web-app
+        make docker-build
+
+    - name: Run VWA push
+      if: github.event_name == 'push'
+      run: |
+        cd components/crud-web-apps/volumes
+        export IMG=kubeflownotebookswg/volumes-web-app
+        make docker-push
+
+    - name: Run VWA push on Version change
+      id: version
+      if: github.event_name == 'push' && steps.filter.outputs.version == 'true'
+      run: |
+        export TAG=$(cat releasing/version/VERSION)
+        cd components/crud-web-apps/volumes
+        export IMG=kubeflownotebookswg/volumes-web-app
+        make docker-build
+        make docker-push
