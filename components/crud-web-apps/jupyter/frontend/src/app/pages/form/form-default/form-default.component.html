@@ -52,7 +52,7 @@
       <app-form-data-volumes
         [volsArray]="formCtrl.get('datavols')"
         [readonly]="config?.dataVolumes?.readOnly"
-        [externalName]="formCtrl.get('name')"
+        [externalName]="formCtrl.get('name').value"
       >
       </app-form-data-volumes>
 
