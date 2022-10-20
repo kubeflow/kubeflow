@@ -437,7 +437,8 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{
 					"statefulset":   instance.Name,
 					"notebook-name": instance.Name,
-				}},
+				},
+					Annotations: map[string]string{}},
 				Spec: *instance.Spec.Template.Spec.DeepCopy(),
 			},
 		},
@@ -446,6 +447,12 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 	l := &ss.Spec.Template.ObjectMeta.Labels
 	for k, v := range instance.ObjectMeta.Labels {
 		(*l)[k] = v
+	}
+
+	// copy all the Notebook annotations to the pod
+	a := ss.Spec.Template.ObjectMeta.Annotations
+	for k, v := range instance.ObjectMeta.Annotations {
+		a[k] = v
 	}
 
 	podSpec := &ss.Spec.Template.Spec
