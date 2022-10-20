@@ -43,7 +43,7 @@ jobs:
           --build-arg kubeflowversion=$(git describe --abbrev=0 --tags) \
           --build-arg commit=$(git rev-parse HEAD) \
           components/centraldashboard/
-    
+
     # Scan image for vulnerabilities
     - uses: Azure/container-scan@v0
       with:

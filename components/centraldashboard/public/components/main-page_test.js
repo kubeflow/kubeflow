@@ -264,7 +264,6 @@ describe('Main Page', () => {
             window.location.origin).toString();
         expect(historySpy).toHaveBeenCalledWith(null, null, l2);
     });
-
     it('Sets iframeSrc with hash and query values from parent', () => {
         const hash = '#/hash/route/fragments';
         window.location.hash = hash;
@@ -277,7 +276,6 @@ describe('Main Page', () => {
         expect(mainPage.iframeSrc).toMatch(
             new RegExp(`${window.location.origin}/pipeline/?.*foo=bar${hash}`));
     });
-
     it('Sets iframeSrc to about:blank when user navigates to non-iframe page',
         () => {
             mainPage.subRouteData.path = '/pipeline/';

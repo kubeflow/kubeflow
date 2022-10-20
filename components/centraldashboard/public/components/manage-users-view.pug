@@ -1,4 +1,4 @@
-h1 Manage Contributors
+h1 {{localize('manageUsersView.lblManageContributors')}}
 iron-ajax#RemoveContribAjax(method='DELETE', url='/api/workgroup/remove-contributor/[[ownedNamespace.namespace]]',
     on-response='handleContribDelete', on-error='handleContribDelete', handle-as='json', content-type='application/json')
 iron-ajax#AddContribAjax(method='POST', url='/api/workgroup/add-contributor/[[ownedNamespace.namespace]]',
@@ -11,15 +11,15 @@ section#Main-Content
     article.Acct-Info
         h2
             iron-icon.icon(icon='social:person-outline')
-            span.text Account info
-            span(hidden$='[[!isClusterAdmin]]') &nbsp; (Cluster Admin)
+            span.text {{localize('manageUsersView.lblAccountInfo')}}
+            span(hidden$='[[!isClusterAdmin]]') &nbsp; {{localize('manageUsersView.lblClusterAdmin')}}
         .content
             span [[user]]
-    h2#NoNamespaceError(hidden$='[[!empty(ownedNamespace)]]') You have no owned namespaces!
+    h2#NoNamespaceError(hidden$='[[!empty(ownedNamespace)]]') {{localize('manageUsersView.lblNoOwnedNamespaces')}}
     article.Namespaces(hidden$='[[empty(ownedNamespace)]]')
         h2
             iron-icon.icon(icon='kubeflow:namespace')
-            span.text Namespace memberships
+            span.text {{localize('manageUsersView.lblNamespaceMemberships')}}
         .content.small
             vaadin-grid(items='[[nsBreakdown(namespaces, ownedNamespace)]]', theme="no-border", height-by-rows, multi-sort)
                 vaadin-grid-column(width='15em', path='0', flex-grow='2', header='Namespaces')
@@ -27,24 +27,24 @@ section#Main-Content
     article.Contributors(hidden$='[[empty(ownedNamespace)]]')
         h2
             iron-icon.icon(icon='kubeflow:namespace')
-            span.text Contributors to your namespace - [[ownedNamespace.namespace]]
+            span.text {{localize('manageUsersViewContributor.ContributorsToYourNamespace', 'ownedNamespace', ownedNamespace.namespace)}}
         .content.small
-            md2-input(label='Email Addresses', value='{{newContribEmail}}', on-submit='addNewContrib', placeholder='Add by email address', error$='[[contribCreateError]]')
+            md2-input(label="{{localize('manageUsersViewContributor.lblEmail')}}", value='{{newContribEmail}}', on-submit='addNewContrib', placeholder="{{localize('manageUsersViewContributor.phdAddByEmail')}}", error$='[[contribCreateError]]')
                 .prefix(slot='prefix')
                     template(is='dom-repeat', items='[[contributorList]]')
                         paper-chip(on-remove='removeContributor') [[item]]
     article.Cluster-Namespaces(hidden$='[[empty(isClusterAdmin)]]')
         h2
             iron-icon.icon(icon='kubeflow:namespace')
-            span.text Cluster namespaces
+            span.text {{localize('manageUsersView.lblClusterNamespaces')}}
         .content
             vaadin-grid(items='[[allNamespaces]]', theme="no-border", height-by-rows, multi-sort)
-                vaadin-grid-column(width='9em', path='0', header='Namespace')
-                vaadin-grid-column(width='10em', path='1', header='Owner')
-                vaadin-grid-column(width='15em', path='2', flex-grow='2', header='Contributors')
+                vaadin-grid-column(width='9em', path='0', header="{{localize('manageUsersView.headerNamespace')}}")
+                vaadin-grid-column(width='10em', path='1', header="{{localize('manageUsersView.headerOwner')}}")
+                vaadin-grid-column(width='15em', path='2', flex-grow='2', header="{{localize('manageUsersView.headerContributors')}}")
 paper-toast#ContribError(duration=5000)
-    | Failed to fetch contributor list for {{ownedNamespace.namespace}}, because: 
+    | {{localize('manageUsersViewContributor.errorContributor', 'ownedNamespace', ownedNamespace.namespace)}}
     strong [[contribError]]
 paper-toast#AllNamespaceError(duration=5000)
-    | Failed to fetch all namespaces, because:
+    | {{localize('manageUsersView.errorAllNamespaces')}}
     strong [[allNamespaceError]]

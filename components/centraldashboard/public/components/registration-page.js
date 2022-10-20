@@ -8,6 +8,7 @@ import '@polymer/neon-animation/neon-animatable.js';
 import '@polymer/neon-animation/neon-animated-pages.js';
 import '@polymer/neon-animation/animations/fade-in-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
+import localizationMixin from './localization-mixin.js';
 
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
@@ -23,7 +24,8 @@ import utilitiesMixin from './utilities-mixin.js';
 /**
  * Entry point for application UI.
  */
-export class RegistrationPage extends utilitiesMixin(PolymerElement) {
+// eslint-disable-next-line max-len
+export class RegistrationPage extends utilitiesMixin(localizationMixin(PolymerElement)) {
     static get template() {
         const vars = {logo};
         return html([
@@ -81,10 +83,7 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
     validateNamespace() {
         const finalRgx = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/;
         if (finalRgx.test(this.namespaceName)) return true;
-        this.showError(
-            `Name can only start and end with alpha-num characters, `+
-            `dashes are only permitted between start and end. (minlength >= 1)`
-        );
+        this.showError('registrationPage.errValidation');
     }
 
     async pollProfile(times, delay) {
@@ -108,8 +107,10 @@ export class RegistrationPage extends utilitiesMixin(PolymerElement) {
         if (this.error && this.error.response) {
             return this.waitForRedirect = false;
         }
-        // Poll for profile over a span of 20 seconds (every 300ms)
-        // if still not there, let the user click next again!
+        /*
+         * Poll for profile over a span of 20 seconds (every 300ms)
+         * if still not there, let the user click next again!
+         */
         const success = await this.pollProfile(66, 300);
         if (success) this._successSetup();
         this.waitForRedirect = false;

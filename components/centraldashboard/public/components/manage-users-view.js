@@ -17,8 +17,10 @@ import './resources/md2-input/md2-input.js';
 import css from './manage-users-view.css';
 import template from './manage-users-view.pug';
 import utilitiesMixin from './utilities-mixin.js';
+import localizationMixin from './localization-mixin.js';
 
-export class ManageUsersView extends utilitiesMixin(PolymerElement) {
+// eslint-disable-next-line max-len
+export class ManageUsersView extends utilitiesMixin(localizationMixin(PolymerElement)) {
     static get template() {
         return html([`
             <style>${css.toString()}</style>
@@ -56,14 +58,15 @@ export class ManageUsersView extends utilitiesMixin(PolymerElement) {
         const {ownedNamespace, namespaces} = this;
         if (!ownedNamespace || !namespaces) return;
         const arr = [
-            [ownedNamespace.namespace, 'Owner'],
+            // eslint-disable-next-line max-len
+            [ownedNamespace.namespace, this.localize('manageUsersView.lblOwner')],
         ];
         if (ns.length <= 1) return arr;
         const otherNamespaces = namespaces
             .filter((n) => n != ownedNamespace)
             .map((i) => i.namespace).join(', ');
         arr.push(
-            [otherNamespaces, 'Contributor'],
+            [otherNamespaces, this.localize('manageUsersView.lblContributor')],
         );
         return arr;
     }
