@@ -79,7 +79,8 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                     query-params='{{queryParams}}', route='{{route}}',
                     namespaces='[[namespaces]]', selected='{{namespace}}',
                     hides, hidden$='[[hideNamespaces]]'
-                    all-namespaces='[[allNamespaces]]')
+                    all-namespaces='[[allNamespaces]]', 
+                    user='[[user]]')
                 footer#User-Badge
                     a(target="_top", href="/logout")
                         iron-icon.icon(icon='kubeflow:logout' title="Logout")

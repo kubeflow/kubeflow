@@ -307,7 +307,9 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
         if (namespace) {
             // Save the user's choice so we are able to restore it, 
             // when re-loading the page without a queryParam
-            localStorage.setItem("selectedNamespace", namespace);
+            const localStorageKey = "selectedNamespace" + 
+                (this.user && "." + this.user || "");
+            localStorage.setItem(localStorageKey, namespace);
         }
 
         if (this.namespacedItemTemplete &&
