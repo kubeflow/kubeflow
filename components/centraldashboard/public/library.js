@@ -5,6 +5,7 @@
 export const PARENT_CONNECTED_EVENT = 'parent-connected';
 export const IFRAME_CONNECTED_EVENT = 'iframe-connected';
 export const NAMESPACE_SELECTED_EVENT = 'namespace-selected';
+export const ALL_NAMESPACES_EVENT = 'all-namespaces';
 export const MESSAGE = 'message';
 
 /**
@@ -19,6 +20,7 @@ class CentralDashboardEventHandler_ {
         this._messageEventListener = null;
         this._onParentConnected = null;
         this._onNamespaceSelected = null;
+        this._onAllNamespacesSelected = null;
     }
 
     /**
@@ -90,6 +92,18 @@ class CentralDashboardEventHandler_ {
     }
 
     /**
+     * Attaches a callback function to respond to the ALL_NAMESPACES_EVENT
+     * event.
+     * @param {Function} callback - Callback accepting an object that contains
+     *  the event data.
+     */
+    set onAllNamespacesSelected(callback) {
+        if (typeof callback === 'function') {
+            this._onAllNamespacesSelected = callback;
+        }
+    }
+
+    /**
      * Handle the receipt of a message and dispatch to any added callbacks.
      * @param {MessageEvent} event
      */
@@ -104,6 +118,11 @@ class CentralDashboardEventHandler_ {
         case NAMESPACE_SELECTED_EVENT:
             if (this._onNamespaceSelected) {
                 this._onNamespaceSelected(data.value);
+            }
+            break;
+        case ALL_NAMESPACES_EVENT:
+            if (this._onAllNamespacesSelected) {
+                this._onAllNamespacesSelected(data.value);
             }
             break;
         }
