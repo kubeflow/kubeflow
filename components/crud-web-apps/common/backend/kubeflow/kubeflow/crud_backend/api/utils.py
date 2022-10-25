@@ -1,5 +1,3 @@
-import json
-
 from flask import jsonify
 from kubernetes import client
 
