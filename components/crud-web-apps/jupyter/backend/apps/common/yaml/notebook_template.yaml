@@ -2,7 +2,7 @@ apiVersion: kubeflow.org/v1beta1
 kind: Notebook
 metadata:
   name: {name}
-  namespace: {namespace}
+  namespace: "{namespace}"
   labels:
     app: {name}
   annotations:
