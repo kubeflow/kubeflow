@@ -4,6 +4,5 @@ resources:
 - service.yaml
 configMapGenerator:
 - name: config
-  literals:
-  - USE_ISTIO=true
-  - ISTIO_GATEWAY=kubeflow/kubeflow-gateway
+  envs:
+  - params.env
