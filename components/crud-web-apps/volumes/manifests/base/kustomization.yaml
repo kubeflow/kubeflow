@@ -57,3 +57,10 @@ vars:
     apiVersion: v1
     kind: ConfigMap
     name: parameters
+- name: VWA_APP_SECURE_COOKIES
+  fieldref:
+    fieldPath: data.VWA_APP_SECURE_COOKIES
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters
