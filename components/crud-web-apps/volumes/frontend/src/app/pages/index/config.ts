@@ -4,6 +4,7 @@ import {
   ActionListValue,
   ActionIconValue,
   TableConfig,
+  DateTimeValue,
 } from 'kubeflow';
 
 export const tableConfig: TableConfig = {
@@ -25,13 +26,12 @@ export const tableConfig: TableConfig = {
       }),
     },
     {
-      matHeaderCellDef: $localize`Age`,
+      matHeaderCellDef: $localize`Created at`,
       matColumnDef: 'age',
       textAlignment: 'right',
       style: { width: '10%' },
-      value: new PropertyValue({
-        field: 'age.uptime',
-        tooltipField: 'age.timestamp',
+      value: new DateTimeValue({
+        field: 'age',
       }),
     },
     {

@@ -684,15 +684,17 @@ func serveMutatePods(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	var config Config
+	var port int
 	flag.StringVar(&config.CertFile, "tlsCertFile", "/etc/webhook/certs/cert.pem", "File containing the x509 Certificate for HTTPS.")
 	flag.StringVar(&config.KeyFile, "tlsKeyFile", "/etc/webhook/certs/key.pem", "File containing the x509 private key to --tlsCertFile.")
+	flag.IntVar(&port, "webhookPort", 4443, "Port number on which the webhook listens.")
 	flag.Parse()
 	klog.InitFlags(nil)
 
 	http.HandleFunc("/apply-poddefault", serveMutatePods)
 
 	server := &http.Server{
-		Addr:      ":4443",
+		Addr:      fmt.Sprintf(":%d", port),
 		TLSConfig: configTLS(config),
 	}
 	klog.Info(fmt.Sprintf("About to start serving webhooks: %#v", server))

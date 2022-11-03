@@ -18,12 +18,7 @@ def parse_pvc(pvc):
         "name": pvc.metadata.name,
         "namespace": pvc.metadata.namespace,
         "status": status.pvc_status(pvc),
-        "age": {
-            "uptime": helpers.get_uptime(pvc.metadata.creation_timestamp),
-            "timestamp": pvc.metadata.creation_timestamp.strftime(
-                "%d/%m/%Y, %H:%M:%S"
-            ),
-        },
+        "age": pvc.metadata.creation_timestamp,
         "capacity": capacity,
         "modes": pvc.spec.access_modes,
         "class": pvc.spec.storage_class_name,
