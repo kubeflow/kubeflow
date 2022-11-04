@@ -57,9 +57,13 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
 
     // Keep track of the selected namespace
     this.subscriptions.add(
-      this.namespaceService.getSelectedNamespace().subscribe(namespace => {
-        this.currNamespace = namespace;
-        this.formCtrl.controls.namespace.setValue(this.currNamespace);
+      this.namespaceService.getSelectedNamespace2().subscribe(namespace => {
+        if (Array.isArray(namespace)) {
+          this.goToNotebooks();
+        } else {
+          this.currNamespace = namespace;
+          this.formCtrl.controls.namespace.setValue(this.currNamespace);
+        }
       }),
     );
 
@@ -163,11 +167,15 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
         SnackType.Success,
         3000,
       );
-      this.router.navigate(['/']);
+      this.goToNotebooks();
     });
   }
 
   onCancel() {
+    this.goToNotebooks();
+  }
+
+  goToNotebooks() {
     this.router.navigate(['/']);
   }
 }

@@ -5,19 +5,23 @@ import {
   ExponentialBackoff,
   ActionEvent,
   STATUS_TYPE,
-  DialogConfig,
   ConfirmDialogService,
   SnackBarService,
   DIALOG_RESP,
   SnackType,
   ToolbarButton,
+  ToolbarButtonConfig,
+  addColumn,
+  removeColumn,
 } from 'kubeflow';
 import { JWABackendService } from 'src/app/services/backend.service';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription, of, forkJoin } from 'rxjs';
+import { map, filter } from 'rxjs/operators';
 import {
   defaultConfig,
   getDeleteDialogConfig,
   getStopDialogConfig,
+  NAMESPACE_COLUMN,
 } from './config';
 import { isEqual } from 'lodash';
 import { NotebookResponseObject, NotebookProcessedObject } from 'src/app/types';
@@ -32,23 +36,33 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   env = environment;
   poller: ExponentialBackoff;
 
-  currNamespace = '';
+  currNamespace: string | null = null;
+  allNamespaces: string[] | null = null;
   subs = new Subscription();
+  currRequest = new Subscription();
 
   config = defaultConfig;
   rawData: NotebookResponseObject[] = [];
   processedData: NotebookProcessedObject[] = [];
 
-  buttons: ToolbarButton[] = [
-    new ToolbarButton({
-      text: `New Notebook`,
+  buttons: ToolbarButton[] = [this.newNotebookButton];
+
+  public get newNotebookButton(): ToolbarButton {
+    const config: ToolbarButtonConfig = {
+      text: $localize`New Notebook`,
       icon: 'add',
       stroked: true,
       fn: () => {
         this.router.navigate(['/new']);
       },
-    }),
-  ];
+    };
+
+    if (this.currNamespace === null) {
+      config.disabled = true;
+    }
+
+    return new ToolbarButton(config);
+  }
 
   constructor(
     public ns: NamespaceService,
@@ -64,27 +78,28 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     // Poll for new data and reset the poller if different data is found
     this.subs.add(
       this.poller.start().subscribe(() => {
-        if (!this.currNamespace) {
-          return;
-        }
-
-        this.backend.getNotebooks(this.currNamespace).subscribe(notebooks => {
-          if (!isEqual(this.rawData, notebooks)) {
-            this.rawData = notebooks;
-
-            // Update the frontend's state
-            this.processedData = this.processIncomingData(notebooks);
-            this.poller.reset();
-          }
-        });
+        this.currRequest = this.getNotebooksObservable().subscribe(
+          notebooks => {
+            this.updateNotebooks(notebooks);
+          },
+        );
       }),
     );
 
     // Reset the poller whenever the selected namespace changes
     this.subs.add(
-      this.ns.getSelectedNamespace().subscribe(ns => {
-        this.currNamespace = ns;
-        this.poller.reset();
+      this.ns.getSelectedNamespace2().subscribe(ns => {
+        if (Array.isArray(ns)) {
+          this.currNamespace = null;
+          this.allNamespaces = ns;
+          addColumn(this.config, NAMESPACE_COLUMN, 'name');
+        } else {
+          this.currNamespace = ns;
+          this.allNamespaces = null;
+          removeColumn(this.config, 'namespace');
+        }
+        this.resetPolling();
+        this.updateButtons();
       }),
     );
   }
@@ -92,6 +107,82 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.subs.unsubscribe();
     this.poller.stop();
+  }
+
+  resetPolling() {
+    this.currRequest.unsubscribe();
+    this.rawData = [];
+    this.processedData = [];
+    this.poller.reset();
+  }
+
+  correctNamespace(notebooks: NotebookResponseObject[]): boolean {
+    // Only update the current data when they are intended for the current
+    // namespace. Ideally the canceled requests should not be updating the
+    // state
+    if (this.allNamespaces) {
+      return true;
+    }
+
+    return notebooks.every((nb: NotebookResponseObject, i) => {
+      return nb.namespace === this.currNamespace;
+    });
+  }
+
+  updateNotebooks(notebooks) {
+    // FIXME: This check is required because the ExponentialBackoff is not
+    // canceling all inflight request when we reset it.
+    if (!this.correctNamespace(notebooks)) {
+      return;
+    }
+
+    if (isEqual(this.rawData, notebooks)) {
+      return;
+    }
+
+    this.rawData = notebooks;
+
+    // Update the frontend's state
+    this.processedData = this.processIncomingData(notebooks);
+    this.poller.reset();
+  }
+
+  getNotebooksObservable(): Observable<NotebookResponseObject[]> {
+    if (!this.currNamespace && !this.allNamespaces) {
+      return of([]);
+    }
+
+    if (this.currNamespace) {
+      return this.backend.getNotebooks(this.currNamespace);
+    }
+
+    // make a request for each namespace and gather all Notebooks
+    const requests: Observable<NotebookResponseObject[]>[] = [];
+    for (const ns of this.allNamespaces) {
+      requests.push(this.backend.getNotebooks(ns));
+    }
+
+    // wait until all requests complete
+    return forkJoin(requests).pipe(
+      map((notebooks: NotebookResponseObject[][]) => {
+        const all = notebooks.flat();
+        all.sort(this.compareNotebookNames);
+
+        return all;
+      }),
+    );
+  }
+
+  compareNotebookNames(a: NotebookResponseObject, b: NotebookResponseObject) {
+    if (a.name > b.name) {
+      return 1;
+    }
+
+    if (a.name < b.name) {
+      return -1;
+    }
+
+    return 0;
   }
 
   // Event handling functions
@@ -272,5 +363,9 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
   public notebookTrackByFn(index: number, notebook: NotebookProcessedObject) {
     return `${notebook.name}/${notebook.image}`;
+  }
+
+  private updateButtons(): void {
+    this.buttons = [this.newNotebookButton];
   }
 }

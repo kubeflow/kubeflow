@@ -35,7 +35,18 @@ export class TableComponent implements AfterViewInit {
   private innerData: any[] = [];
 
   public dataSource = new MatTableDataSource();
-  public displayedColumns: string[] = [];
+  public get displayedColumns(): string[] {
+    if (!this.config) {
+      return [];
+    }
+
+    const cols = [];
+    for (const col of this.config.columns) {
+      cols.push(col.matColumnDef);
+    }
+
+    return cols;
+  }
 
   @HostBinding('class.lib-table') selfClass = true;
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
@@ -43,17 +54,7 @@ export class TableComponent implements AfterViewInit {
   TABLE_THEME = TABLE_THEME;
 
   @Input()
-  set config(config: TableConfig) {
-    this.innerConfig = config;
-
-    this.displayedColumns = [];
-    for (const col of config.columns) {
-      this.displayedColumns.push(col.matColumnDef);
-    }
-  }
-  get config(): TableConfig {
-    return this.innerConfig;
-  }
+  config: TableConfig;
 
   @Input()
   trackByFn: (index: number, r: any) => string;
