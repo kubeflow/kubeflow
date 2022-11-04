@@ -41,6 +41,8 @@ import (
 	tensorboardv1alpha1 "github.com/kubeflow/kubeflow/components/tensorboard-controller/api/v1alpha1"
 )
 
+const resourceNamePrefix = "tb-"
+
 // TensorboardReconciler reconciles a Tensorboard object
 type TensorboardReconciler struct {
 	client.Client
@@ -78,6 +80,13 @@ func (r *TensorboardReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
+	}
+
+	// Make sure the prefix doesn't cause the derived resource names to get too long
+	maxNameLength := 63 - len(resourceNamePrefix)
+	if len(instance.Name) > maxNameLength {
+		return reconcile.Result{},
+			fmt.Errorf("Tensorboard name must not be longer than %d characters", maxNameLength)
 	}
 
 	// Reconcile k8s deployment.
@@ -240,19 +249,19 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      tb.Name,
+			Name:      resourceNamePrefix + tb.Name,
 			Namespace: tb.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: proto.Int32(1),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": tb.Name,
+					"app": resourceNamePrefix + tb.Name,
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"app": tb.Name},
+					Labels: map[string]string{"app": resourceNamePrefix + tb.Name},
 				},
 				Spec: corev1.PodSpec{
 					Affinity:      affinity,
@@ -286,12 +295,12 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 func generateService(tb *tensorboardv1alpha1.Tensorboard) *corev1.Service {
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      tb.Name,
+			Name:      resourceNamePrefix + tb.Name,
 			Namespace: tb.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
 			Type:     "ClusterIP",
-			Selector: map[string]string{"app": tb.Name},
+			Selector: map[string]string{"app": resourceNamePrefix + tb.Name},
 			Ports: []corev1.ServicePort{
 				corev1.ServicePort{
 					Name:       "http-" + tb.Name,
@@ -306,7 +315,7 @@ func generateService(tb *tensorboardv1alpha1.Tensorboard) *corev1.Service {
 func generateVirtualService(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.Unstructured, error) {
 	prefix := fmt.Sprintf("/tensorboard/%s/%s/", tb.Namespace, tb.Name)
 	rewrite := "/"
-	service := fmt.Sprintf("%s.%s.svc.cluster.local", tb.Name, tb.Namespace)
+	service := fmt.Sprintf("%s%s.%s.svc.cluster.local", resourceNamePrefix, tb.Name, tb.Namespace)
 	istioGateway, err := getEnvVariable("ISTIO_GATEWAY")
 	if err != nil {
 		return nil, err
@@ -315,7 +324,7 @@ func generateVirtualService(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.
 	vsvc := &unstructured.Unstructured{}
 	vsvc.SetAPIVersion("networking.istio.io/v1alpha3")
 	vsvc.SetKind("VirtualService")
-	vsvc.SetName(tb.Name)
+	vsvc.SetName(resourceNamePrefix + tb.Name)
 	vsvc.SetNamespace(tb.Namespace)
 	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"*"}, "spec", "hosts"); err != nil {
 		return nil, fmt.Errorf("Set .spec.hosts error: %v", err)
