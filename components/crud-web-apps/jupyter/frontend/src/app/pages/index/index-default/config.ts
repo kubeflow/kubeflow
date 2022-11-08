@@ -76,7 +76,7 @@ export const defaultConfig: TableConfig = {
       matColumnDef: 'age',
       style: { width: '12%' },
       textAlignment: 'right',
-      value: new PropertyValue({ field: 'age', truncate: true }),
+      value: new DateTimeValue({ field: 'age' }),
     },
     {
       matHeaderCellDef: $localize`Last activity`,
