@@ -29,7 +29,7 @@ spec:
           - configMapRef:
               name: config
         image: public.ecr.aws/j1r0q0g6/notebooks/profile-controller
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: manager
         livenessProbe:
           httpGet:
