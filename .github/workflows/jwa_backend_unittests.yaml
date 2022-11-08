@@ -1,4 +1,4 @@
-name: JWA Integration Tests
+name: JWA Backend Tests
 on:
   pull_request:
     paths:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   run-backend-unittests:
-    name: Run Backend unittests
+    name: Unittests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
