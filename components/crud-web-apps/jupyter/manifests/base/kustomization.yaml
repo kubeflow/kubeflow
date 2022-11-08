@@ -76,3 +76,10 @@ vars:
     apiVersion: v1
     kind: ConfigMap
     name: parameters
+- name: JWA_APP_SECURE_COOKIES
+  fieldref:
+    fieldPath: data.JWA_APP_SECURE_COOKIES
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters

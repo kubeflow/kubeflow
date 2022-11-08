@@ -57,3 +57,10 @@ vars:
     apiVersion: v1
     kind: ConfigMap
     name: parameters
+- fieldref:
+    fieldPath: data.TWA_APP_SECURE_COOKIES
+  name: TWA_APP_SECURE_COOKIES
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: parameters
