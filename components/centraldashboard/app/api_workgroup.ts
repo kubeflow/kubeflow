@@ -211,7 +211,7 @@ export class WorkgroupApi {
         let errIndex = 0;
         try {
             const binding = mapSimpleBindingToWorkgroupBinding({
-                user: contributor.toLowerCase(),
+                user: contributor,
                 namespace,
                 role: 'contributor',
             });
@@ -291,7 +291,7 @@ export class WorkgroupApi {
                     spec: {
                         owner: {
                             kind: 'User',
-                            name: owerName.toLowerCase(),
+                            name: owerName,
                         }
                     },
                 });
