@@ -21,7 +21,7 @@ spec:
           - configMapRef:
               name: config
         image: public.ecr.aws/j1r0q0g6/notebooks/access-management
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: kfam
         livenessProbe:
           httpGet:

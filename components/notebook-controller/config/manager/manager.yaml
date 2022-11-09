@@ -52,7 +52,7 @@ spec:
               configMapKeyRef:
                 name: config
                 key: IDLENESS_CHECK_PERIOD
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
             path: /healthz
