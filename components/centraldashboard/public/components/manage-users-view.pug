@@ -21,9 +21,9 @@ section#Main-Content
             iron-icon.icon(icon='kubeflow:namespace')
             span.text {{localize('manageUsersView.lblNamespaceMemberships')}}
         .content.small
-            vaadin-grid(items='[[nsBreakdown(namespaces, ownedNamespace)]]', theme="no-border", height-by-rows, multi-sort)
-                vaadin-grid-column(width='15em', path='0', flex-grow='2', header='Namespaces')
-                vaadin-grid-column(width='9em', path='1', header='Your role')
+            vaadin-grid(items='[[nsBreakdown(namespaces, ownedNamespace)]]', theme="no-border wrap-cell-content", height-by-rows, multi-sort)
+                vaadin-grid-column(width='15em', path='0', flex-grow='2', header="{{localize('manageUsersView.headerNamespaces')}}")
+                vaadin-grid-column(width='9em', path='1', header="{{localize('manageUsersView.headerYouRole')}}")
     article.Contributors(hidden$='[[empty(ownedNamespace)]]')
         h2
             iron-icon.icon(icon='kubeflow:namespace')
