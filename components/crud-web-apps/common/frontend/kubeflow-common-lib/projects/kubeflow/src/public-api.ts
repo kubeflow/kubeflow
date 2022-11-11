@@ -83,3 +83,6 @@ export * from './lib/form/step-info/step-info.component';
 export * from './lib/form/submit-bar/submit-bar.component';
 export * from './lib/form/step-info/step-info.component';
 export * from './lib/resource-table/table/table.component';
+
+export * from './lib/logs-viewer/logs-viewer.module';
+export * from './lib/logs-viewer/logs-viewer.component';
