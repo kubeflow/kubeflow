@@ -25,7 +25,8 @@ describe('EditorComponent', () => {
   it('a new editor should be defined after initEditor() and new values should pass from the component to its editor', (done: DoneFn) => {
     component.monacoInitState.subscribe(ready => {
       if (ready) {
-        expect(component['prvEditor']).toBeDefined();
+        const prvEditor = 'prvEditor';
+        expect(component[prvEditor]).toBeDefined();
         const newEditor = component.monacoEditor;
         expect(newEditor).toBeDefined();
         component.text = 'hey hi';
@@ -39,10 +40,8 @@ describe('EditorComponent', () => {
         };
         component.ngOnChanges(changes);
         fixture.detectChanges();
-        expect(component['prvEditor'].getModel().getValue()).toBe(
-          component.text,
-        );
-        expect(component['prvEditor'].getModel().getLanguageId()).toBe(
+        expect(component[prvEditor].getModel().getValue()).toBe(component.text);
+        expect(component[prvEditor].getModel().getLanguageId()).toBe(
           component.language,
         );
 
