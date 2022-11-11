@@ -29,13 +29,22 @@ def get_poddefaults(namespace):
     # Return a list of (label, desc) with the pod defaults
     contents = []
     for pd in pod_defaults["items"]:
-        label = list(pd["spec"]["selector"]["matchLabels"].keys())[0]
-        if "desc" in pd["spec"]:
-            desc = pd["spec"]["desc"]
+        if "matchLabels" in pd["spec"]["selector"]:
+            # get the first label key
+            label = list(pd["spec"]["selector"]["matchLabels"].keys())[0] 
+        elif "matchExpressions" in pd["spec"]["selector"]:
+            # get the first expr key
+            label = list(pd["spec"]["selector"]["matchExpressions"])[0]["key"] 
         else:
-            desc = pd["metadata"]["name"]
+            log.error("poddefault %s with no matchLabels  nor matchExpressions set",pd)
+            # ignore the error
+            continue
+    if "desc" in pd["spec"]:
+        desc = pd["spec"]["desc"]
+    else:
+        desc = pd["metadata"]["name"]
 
-        contents.append({"label": label, "desc": desc})
+    contents.append({"label": label, "desc": desc})
 
     log.info("Found poddefaults: %s", contents)
     return api.success_response("poddefaults", contents)
