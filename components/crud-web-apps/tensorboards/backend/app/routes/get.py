@@ -14,7 +14,7 @@ def get_tensorboards(namespace):
     )
     content = [
         utils.parse_tensorboard(tensorboard)
-        for tensorboard in tensorboards["items"]
+        for tensorboard in tensorboards
     ]
 
     return api.success_response("tensorboards", content)
@@ -24,7 +24,7 @@ def get_tensorboards(namespace):
 def get_pvcs(namespace):
     # Return the list of PVCs and the corresponding Viewer's state
     pvcs = api.list_pvcs(namespace)
-    content = [pvc.metadata.name for pvc in pvcs.items]
+    content = [pvc.metadata.name for pvc in pvcs]
 
     return api.success_response("pvcs", content)
 
