@@ -68,7 +68,7 @@ def get_pods_using_pvc(pvc, namespace):
     pods = api.list_pods(namespace)
     mounted_pods = []
 
-    for pod in pods.items:
+    for pod in pods:
         pvcs = get_pod_pvcs(pod)
         if pvc in pvcs:
             mounted_pods.append(pod)
