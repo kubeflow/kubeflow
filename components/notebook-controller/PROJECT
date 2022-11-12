@@ -12,6 +12,9 @@ resources:
   kind: Notebook
   path: github.com/kubeflow/kubeflow/components/notebook-controller/api/v1
   version: v1
+  webhooks:
+    validation: true
+    webhookVersion: v1
 - api:
     crdVersion: v1
     namespaced: true
