@@ -18,6 +18,7 @@ package v1
 import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
+	dockerref "github.com/docker/distribution/reference"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
@@ -41,17 +42,29 @@ var _ webhook.Validator = &Notebook{}
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *Notebook) ValidateCreate() error {
 	notebooklog.Info("validate create", "name", r.Name)
+	
+	image := r.Spec.Template.Spec.Containers[0].Image
 
-	// TODO(user): fill in your validation logic upon object creation.
-	return nil
+	notebooklog.Info("validate update", "image", r.image)
+	named, err := dockerref.ParseNormalizedNamed(image)
+	if err != nil {
+		notebooklog.Error("couldn't parse image reference %q: %v", image, err)
+		return error("couldn't parse image reference %q: %v", image, err), 
+	}
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (r *Notebook) ValidateUpdate(old runtime.Object) error {
 	notebooklog.Info("validate update", "name", r.Name)
 
-	// TODO(user): fill in your validation logic upon object update.
-	return nil
+	image := r.Spec.Template.Spec.Containers[0].Image
+
+	notebooklog.Info("validate update", "image", r.image)
+	_, err := dockerref.ParseNormalizedNamed(image)
+	if err != nil {
+		notebooklog.Error("couldn't parse image reference %q: %v", image, err)
+		return error("couldn't parse image reference %q: %v", image, err), 
+	}
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
