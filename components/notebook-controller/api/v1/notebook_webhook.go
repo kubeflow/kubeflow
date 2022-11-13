@@ -16,9 +16,11 @@ limitations under the License.
 package v1
 
 import (
+	"fmt"
+
+	dockerref "github.com/docker/distribution/reference"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
-	dockerref "github.com/docker/distribution/reference"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
@@ -42,15 +44,15 @@ var _ webhook.Validator = &Notebook{}
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *Notebook) ValidateCreate() error {
 	notebooklog.Info("validate create", "name", r.Name)
-	
+
 	image := r.Spec.Template.Spec.Containers[0].Image
 
-	notebooklog.Info("validate update", "image", r.image)
-	named, err := dockerref.ParseNormalizedNamed(image)
+	notebooklog.Info("validate update", "image", image)
+	_, err := dockerref.ParseNormalizedNamed(image)
 	if err != nil {
-		notebooklog.Error("couldn't parse image reference %q: %v", image, err)
-		return error("couldn't parse image reference %q: %v", image, err), 
+		return fmt.Errorf("couldn't parse image reference %q: %v", image, err)
 	}
+	return nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
@@ -59,12 +61,12 @@ func (r *Notebook) ValidateUpdate(old runtime.Object) error {
 
 	image := r.Spec.Template.Spec.Containers[0].Image
 
-	notebooklog.Info("validate update", "image", r.image)
+	notebooklog.Info("validate update", "image", image)
 	_, err := dockerref.ParseNormalizedNamed(image)
 	if err != nil {
-		notebooklog.Error("couldn't parse image reference %q: %v", image, err)
-		return error("couldn't parse image reference %q: %v", image, err), 
+		return fmt.Errorf("couldn't parse image reference %q: %v", image, err)
 	}
+	return nil
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
