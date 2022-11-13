@@ -121,7 +121,7 @@ func main() {
 	// 	os.Exit(1)
 	// }
 
-	if err = (&kubefloworgv1.Notebook{}).SetupWebhookWithManager(mgr); err != nil {
+	if err = (&nbv1.Notebook{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "Notebook")
 		os.Exit(1)
 	}
