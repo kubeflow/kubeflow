@@ -23,19 +23,19 @@ jobs:
       run: |
         cd components/crud-web-apps/common/frontend/kubeflow-common-lib
         npm i
-        npm run lint
+        npm run lint-check
     - name: Lint jupyter
       run: |
         cd components/crud-web-apps/jupyter/frontend
         npm i
-        npm run lint
+        npm run lint-check
     - name: Lint tensorboards
       run: |
         cd components/crud-web-apps/tensorboards/frontend
         npm i
-        npm run lint
+        npm run lint-check
     - name: Lint volumes
       run: |
         cd components/crud-web-apps/volumes/frontend
         npm i
-        npm run lint
+        npm run lint-check
