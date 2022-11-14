@@ -21,7 +21,6 @@ import {
   defaultConfig,
   getDeleteDialogConfig,
   getStopDialogConfig,
-  NAMESPACE_COLUMN,
 } from './config';
 import { isEqual } from 'lodash';
 import { NotebookResponseObject, NotebookProcessedObject } from 'src/app/types';
@@ -43,24 +42,16 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   config = defaultConfig;
   processedData: NotebookProcessedObject[] = [];
 
+  private newNotebookButton = new ToolbarButton({
+    text: $localize`New Notebook`,
+    icon: 'add',
+    stroked: true,
+    fn: () => {
+      this.router.navigate(['/new']);
+    },
+  });
+
   buttons: ToolbarButton[] = [this.newNotebookButton];
-
-  public get newNotebookButton(): ToolbarButton {
-    const config: ToolbarButtonConfig = {
-      text: $localize`New Notebook`,
-      icon: 'add',
-      stroked: true,
-      fn: () => {
-        this.router.navigate(['/new']);
-      },
-    };
-
-    if (Array.isArray(this.currNamespace)) {
-      config.disabled = true;
-    }
-
-    return new ToolbarButton(config);
-  }
 
   constructor(
     public ns: NamespaceService,
@@ -75,16 +66,8 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     // Reset the poller whenever the selected namespace changes
     this.nsSub = this.ns.getSelectedNamespace2().subscribe(ns => {
       this.currNamespace = ns;
-
-      // update the table columns
-      if (Array.isArray(ns)) {
-        addColumn(this.config, NAMESPACE_COLUMN, 'name');
-      } else {
-        removeColumn(this.config, 'namespace');
-      }
-
       this.poll(ns);
-      this.updateButtons();
+      this.newNotebookButton.namespaceChanged(ns, $localize`Notebook`);
     });
   }
 
@@ -97,51 +80,11 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     this.pollSub.unsubscribe();
     this.processedData = [];
 
-    const request = this.getNotebooksObservable(ns);
+    const request = this.backend.getNotebooks(ns);
 
     this.pollSub = this.poller.exponential(request).subscribe(notebooks => {
       this.processedData = this.processIncomingData(notebooks);
     });
-  }
-
-  getNotebooksObservable(
-    ns: string | string[],
-  ): Observable<NotebookResponseObject[]> {
-    if (!ns) {
-      return of([]);
-    }
-
-    if (!Array.isArray(ns)) {
-      return this.backend.getNotebooks(ns);
-    }
-
-    // make a request for each namespace and gather all Notebooks
-    const requests: Observable<NotebookResponseObject[]>[] = [];
-    for (const namespace of ns) {
-      requests.push(this.backend.getNotebooks(namespace));
-    }
-
-    // wait until all requests complete
-    return forkJoin(requests).pipe(
-      map((notebooks: NotebookResponseObject[][]) => {
-        const all = notebooks.flat();
-        all.sort(this.compareNotebookNames);
-
-        return all;
-      }),
-    );
-  }
-
-  compareNotebookNames(a: NotebookResponseObject, b: NotebookResponseObject) {
-    if (a.name > b.name) {
-      return 1;
-    }
-
-    if (a.name < b.name) {
-      return -1;
-    }
-
-    return 0;
   }
 
   // Event handling functions

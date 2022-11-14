@@ -17,6 +17,7 @@
     "test": "ng test",
     "e2e": "cypress open .",
     "e2e-ci": "cypress run .",
+    "lint-check": "ng lint",
     "lint": "ng lint --fix"
   },
   "private": true,

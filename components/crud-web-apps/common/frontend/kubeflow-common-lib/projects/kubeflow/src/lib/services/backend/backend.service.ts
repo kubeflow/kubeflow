@@ -6,7 +6,7 @@ import {
   HttpHeaders,
 } from '@angular/common/http';
 
-import { throwError, Observable } from 'rxjs';
+import { throwError, Observable, of, forkJoin } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 import { BackendResponse } from './types';
@@ -63,6 +63,50 @@ export class BackendService {
       catchError(error => this.handleError(error, showSnackBar)),
       map((data: BackendResponse) => data.defaultStorageClass),
     );
+  }
+
+  public getObjectsAllNamespaces<T>(
+    obsFn: (ns: string) => Observable<T[]>,
+    ns: string | string[],
+  ): Observable<T[]> {
+    if (!ns) {
+      return of([]);
+    }
+
+    if (!Array.isArray(ns)) {
+      return obsFn(ns);
+    }
+
+    // make a request for each namespace and gather all Notebooks
+    const requests: Observable<T[]>[] = [];
+    for (const namespace of ns) {
+      requests.push(obsFn(namespace));
+    }
+
+    // wait until all requests complete
+    return forkJoin(requests).pipe(
+      map((objects: T[][]) => {
+        const all = objects.flat();
+        all.sort(this.sortCompareFn);
+
+        return all;
+      }),
+    );
+  }
+
+  private sortCompareFn(a: any, b: any): number {
+    const name1 = a.name || a.metadata.name;
+    const name2 = b.name || b.metadata.name;
+
+    if (name1 > name2) {
+      return 1;
+    }
+
+    if (name1 < name2) {
+      return -1;
+    }
+
+    return 0;
   }
 
   // ---------------------------Error Handling---------------------------------
