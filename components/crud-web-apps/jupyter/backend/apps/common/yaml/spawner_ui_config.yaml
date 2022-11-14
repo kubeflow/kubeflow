@@ -1,184 +1,307 @@
-# Configuration file for the Jupyter UI.
+# --------------------------------------------------------------
+# Configuration file for the Kubeflow Notebooks UI.
 #
-# Each Jupyter UI option is configured by two keys: 'value' and 'readOnly'
-# - The 'value' key contains the default value
-# - The 'readOnly' key determines if the option will be available to users
-#
-# If the 'readOnly' key is present and set to 'true', the respective option
-# will be disabled for users and only set by the admin. Also when a
-# Notebook is POSTED to the API if a necessary field is not present then
-# the value from the config will be used.
-#
-# If the 'readOnly' key is missing (defaults to 'false'), the respective option
-# will be available for users to edit.
-#
-# Note that some values can be templated. Such values are the names of the
-# Volumes as well as their StorageClass
+# About the `readOnly` configs:
+#  - when `readOnly` is set to "true", the respective option
+#    will be disabled for users and only set by the admin
+#  - when 'readOnly' is missing, it defaults to 'false'
+# --------------------------------------------------------------
+
 spawnerFormDefaults:
-  image:
-    # The container Image for the user's Jupyter Notebook
-    value: kubeflownotebookswg/jupyter-scipy:master-6e4ad3b4
-    # The list of available standard container Images
-    options:
-      - kubeflownotebookswg/jupyter-scipy:master-6e4ad3b4
-      - kubeflownotebookswg/jupyter-pytorch-full:master-6e4ad3b4
-      - kubeflownotebookswg/jupyter-pytorch-cuda-full:master-6e4ad3b4
-      - kubeflownotebookswg/jupyter-tensorflow-full:master-6e4ad3b4
-      - kubeflownotebookswg/jupyter-tensorflow-cuda-full:master-6e4ad3b4
-  imageGroupOne:
-    # The container Image for the user's Group One Server
-    # The annotation `notebooks.kubeflow.org/http-rewrite-uri: /`
-    # is applied to notebook in this group, configuring
-    # the Istio rewrite for containers that host their web UI at `/`
-    value: kubeflownotebookswg/codeserver-python:master-e9324d39
-    # The list of available standard container Images
-    options:
-      - kubeflownotebookswg/codeserver-python:master-e9324d39
-  imageGroupTwo:
-    # The container Image for the user's Group Two Server
-    # The annotation `notebooks.kubeflow.org/http-rewrite-uri: /`
-    # is applied to notebook in this group, configuring
-    # the Istio rewrite for containers that host their web UI at `/`
-    # The annotation `notebooks.kubeflow.org/http-headers-request-set`
-    # is applied to notebook in this group, configuring Istio
-    # to add the `X-RStudio-Root-Path` header to requests
-    value: kubeflownotebookswg/rstudio-tidyverse:master-e9324d39
-    # The list of available standard container Images
-    options:
-      - kubeflownotebookswg/rstudio-tidyverse:master-e9324d39
-  # If true, hide registry and/or tag name in the image selection dropdown
-  hideRegistry: true
-  hideTag: false
+  ################################################################
+  # Container Images
+  ################################################################
+  # if users can input custom images, or only select from dropdowns
   allowCustomImage: true
-  # If true, users can input custom images
-  # If false, users can only select from the images in this config
+
+  # if the registry of the container image is hidden from display
+  hideRegistry: true
+
+  # if the tag of the container image is hidden from display
+  hideTag: false
+
+  # configs for the ImagePullPolicy
   imagePullPolicy:
-    # Supported values: Always, IfNotPresent, Never
+    readOnly: false
+
+    # the default ImagePullPolicy
+    # (possible values: "Always", "IfNotPresent", "Never")
     value: IfNotPresent
-    readOnly: false
+
+  ################################################################
+  # Jupyter-like Container Images
+  #
+  # NOTES:
+  #  - the `image` section is used for "Jupyter-like" apps whose
+  #    HTTP path is configured by the "NB_PREFIX" environment variable
+  ################################################################
+  image:
+    # the default container image
+    value: kubeflownotebookswg/jupyter-scipy:latest
+
+    # the list of available container images in the dropdown
+    options:
+      - kubeflownotebookswg/jupyter-scipy:latest
+      - kubeflownotebookswg/jupyter-pytorch-full:latest
+      - kubeflownotebookswg/jupyter-pytorch-cuda-full:latest
+      - kubeflownotebookswg/jupyter-tensorflow-full:latest
+      - kubeflownotebookswg/jupyter-tensorflow-cuda-full:latest
+
+  ################################################################
+  # VSCode-like Container Images (Group 1)
+  #
+  # NOTES:
+  #  - the `imageGroupOne` section is used for "VSCode-like" apps that
+  #    expose themselves under the HTTP root path "/" and support path
+  #    rewriting without breaking
+  #  - the annotation `notebooks.kubeflow.org/http-rewrite-uri: "/"` is
+  #    set on Notebooks spawned by this group, to make Istio rewrite
+  #    the path of HTTP requests to the HTTP root
+  ################################################################
+  imageGroupOne:
+    # the default container image
+    value: kubeflownotebookswg/codeserver-python:latest
+
+    # the list of available container images in the dropdown
+    options:
+      - kubeflownotebookswg/codeserver-python:latest
+
+  ################################################################
+  # RStudio-like Container Images (Group 2)
+  #
+  # NOTES:
+  #  - the `imageGroupTwo` section is used for "RStudio-like" apps whose
+  #    HTTP path is configured by the "X-RStudio-Root-Path" header
+  #  - the annotation `notebooks.kubeflow.org/http-rewrite-uri: "/"` is
+  #    set on Notebooks spawned by this group, to make Istio rewrite
+  #    the path of HTTP requests to the HTTP root
+  #  - the annotation `notebooks.kubeflow.org/http-headers-request-set` is
+  #    set on Notebooks spawned by this group, such that Istio injects the
+  #    "X-RStudio-Root-Path" header to all request
+  ################################################################
+  imageGroupTwo:
+    # the default container image
+    value: kubeflownotebookswg/rstudio-tidyverse:latest
+
+    # the list of available container images in the dropdown
+    options:
+      - kubeflownotebookswg/rstudio-tidyverse:latest
+
+  ################################################################
+  # CPU Resources
+  ################################################################
   cpu:
-    # CPU for user's Notebook
-    value: '0.5'
-    # Factor by with to multiply request to calculate limit
-    # if no limit is set, to disable set "none"
-    limitFactor: "1.2"
     readOnly: false
+
+    # the default cpu request for the container
+    value: "0.5"
+
+    # a factor by which to multiply the CPU request calculate the cpu limit
+    # (to disable cpu limits, set as "none")
+    limitFactor: "1.2"
+
+  ################################################################
+  # Memory Resources
+  ################################################################
   memory:
-    # Memory for user's Notebook
-    value: 1.0Gi
-    # Factor by with to multiply request to calculate limit
-    # if no limit is set, to disable set "none"
+    readOnly: false
+
+    # the default memory request for the container
+    value: "1.0Gi"
+
+    # a factor by which to multiply the memory request calculate the memory limit
+    # (to disable memory limits, set as "none")
     limitFactor: "1.2"
+
+  ################################################################
+  # GPU/Device-Plugin Resources
+  ################################################################
+  gpus:
     readOnly: false
-  environment:
-    value: {}
-    readOnly: false
+
+    # configs for gpu/device-plugin limits of the container
+    # https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/#using-device-plugins
+    value:
+      # the `limitKey` of the default vendor
+      # (to have no default, set as "")
+      vendor: ""
+
+      # the list of available vendors in the dropdown
+      #  `limitsKey` - what will be set as the actual limit
+      #  `uiName` - what will be displayed in the dropdown UI
+      vendors: []
+      #vendors:
+      #  - limitsKey: "nvidia.com/gpu"
+      #    uiName: "NVIDIA"
+      #  - limitsKey: "amd.com/gpu"
+      #    uiName: "AMD"
+
+      # the default value of the limit
+      # (possible values: "none", "1", "2", "4", "8")
+      num: "none"
+
+  ################################################################
+  # Workspace Volumes
+  ################################################################
   workspaceVolume:
-    # If you don't want a workspace volume then delete the 'value' key
+    readOnly: false
+
+    # the default workspace volume to be created and mounted
+    # (to have no default, set `value: null`)
     value:
       mount: /home/jovyan
+
+      # pvc configs for creating new workspace volumes
+      # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#persistentvolumeclaim-v1-core
       newPvc:
         metadata:
-          name: '{notebook-name}-workspace'
+          # "{notebook-name}" is replaced with the Notebook name
+          name: "{notebook-name}-workspace"
         spec:
+          #storageClassName: my-storage-class
           resources:
             requests:
               storage: 5Gi
           accessModes:
             - ReadWriteOnce
-    readOnly: false
+
+  ################################################################
+  # Data Volumes
+  ################################################################
   dataVolumes:
-    # List of additional Data Volumes to be attached to the user's Notebook
+    readOnly: false
+
+    # a list of additional data volumes to be created and/or mounted
     value: []
-    # Each Data Volume is declared with the following attributes:
-    # Type, Name, Size, MountPath and Access Mode
+    #value:
+    #  - mount: /home/jovyan/datavol-1
+    #    newPvc:
+    #      metadata:
+    #        name: "{notebook-name}-datavol-1"
+    #      spec:
+    #        resources:
+    #          requests:
+    #            storage: 5Gi
+    #        accessModes:
+    #          - ReadWriteOnce
     #
-    # For example, a list with 2 Data Volumes:
-    # value:
-    #   - mount: /home/jovyan/datavol-1
-    #     newPvc:
-    #       metadata:
-    #         name: '{notebook-name}-datavol-1'
-    #       spec:
-    #         resources:
-    #           requests:
-    #             storage: 5Gi
-    #         accessModes:
-    #           - ReadWriteOnce
-    #   - mount: /home/jovyan/datavol-1
-    #     existingSource:
-    #       persistentVolumeClaim:
-    #         claimName: test-pvc
-    readOnly: false
-  gpus:
-    # Number of GPUs to be assigned to the Notebook Container
-    value:
-      # values: "none", "1", "2", "4", "8"
-      num: "none"
-      # Determines what the UI will show and send to the backend
-      vendors:
-        - limitsKey: "nvidia.com/gpu"
-          uiName: "NVIDIA"
-        - limitsKey: "amd.com/gpu"
-          uiName: "AMD"
-      # Values: "" or a `limits-key` from the vendors list
-      vendor: ""
-    readOnly: false
+    #  - mount: /home/jovyan/datavol-1
+    #    existingSource:
+    #      persistentVolumeClaim:
+    #        claimName: "test-pvc"
+
+  ################################################################
+  # Affinity
+  ################################################################
   affinityConfig:
-    # If readonly, the default value will be the only option
-    # value is a list of `configKey`s that we want to be selected by default
+    readOnly: false
+
+    # the `configKey` of the default affinity config
+    # (to have no default, set as "")
+    # (if `readOnly`, the default `value` will be the only accessible option)
     value: ""
-    # The list of available affinity configs
+
+    # the list of available affinity configs in the dropdown
     options: []
     #options:
-    #  - configKey: "exclusive__n1-standard-2"
-    #    displayName: "Exclusive: n1-standard-2"
+    #  - configKey: "dedicated_node_per_notebook"
+    #    displayName: "Dedicated Node Per Notebook"
     #    affinity:
-    #      # (Require) Node having label: `node_pool=notebook-n1-standard-2`
+    #      # Require a Node with label `lifecycle=kubeflow-notebook`
     #      nodeAffinity:
     #        requiredDuringSchedulingIgnoredDuringExecution:
     #          nodeSelectorTerms:
     #            - matchExpressions:
-    #                - key: "node_pool"
+    #                - key: "lifecycle"
     #                  operator: "In"
     #                  values:
-    #                   - "notebook-n1-standard-2"
-    #      # (Require) Node WITHOUT existing Pod having label: `notebook-name`
+    #                    - "kubeflow-notebook"
+    #
+    #      # Require a Node WITHOUT an existing Pod having `notebook-name` label
     #      podAntiAffinity:
     #        requiredDuringSchedulingIgnoredDuringExecution:
     #          - labelSelector:
     #              matchExpressions:
     #                - key: "notebook-name"
     #                  operator: "Exists"
-    #            namespaces: []
     #            topologyKey: "kubernetes.io/hostname"
-    #readOnly: false
+    #            # WARNING: `namespaceSelector` is Beta in 1.22 and Stable in 1.24,
+    #            #          setting to {} is required for affinity to work across Namespaces
+    #            namespaceSelector: {}
+
+  ################################################################
+  # Tolerations
+  ################################################################
   tolerationGroup:
-    # The default `groupKey` from the options list
-    # If readonly, the default value will be the only option
+    readOnly: false
+
+    # the `groupKey` of the default toleration group
+    # (to have no default, set as "")
+    # (if `readOnly`, the default `value` will be the only accessible option)
     value: ""
-    # The list of available tolerationGroup configs
+
+    # the list of available toleration groups in the dropdown
     options: []
     #options:
     #  - groupKey: "group_1"
-    #    displayName: "Group 1: description"
+    #    displayName: "4 CPU 8Gb Mem at ~$X.XXX USD per day"
     #    tolerations:
-    #      - key: "key1"
+    #      - key: "dedicated"
     #        operator: "Equal"
-    #        value: "value1"
+    #        value: "kubeflow-c5.xlarge"
     #        effect: "NoSchedule"
-    #      - key: "key2"
+    #
+    #  - groupKey: "group_2"
+    #    displayName: "8 CPU 16Gb Mem at ~$X.XXX USD per day"
+    #    tolerations:
+    #      - key: "dedicated"
     #        operator: "Equal"
-    #        value: "value2"
+    #        value: "kubeflow-c5.2xlarge"
     #        effect: "NoSchedule"
-    readOnly: false
+    #
+    #  - groupKey: "group_3"
+    #    displayName: "16 CPU 32Gb Mem at ~$X.XXX USD per day"
+    #    tolerations:
+    #      - key: "dedicated"
+    #        operator: "Equal"
+    #        value: "kubeflow-c5.4xlarge"
+    #        effect: "NoSchedule"
+    #
+    #  - groupKey: "group_4"
+    #    displayName: "32 CPU 256Gb Mem at ~$X.XXX USD per day"
+    #    tolerations:
+    #      - key: "dedicated"
+    #        operator: "Equal"
+    #        value: "kubeflow-r5.8xlarge"
+    #        effect: "NoSchedule"
+
+  ################################################################
+  # Shared Memory
+  ################################################################
   shm:
+    readOnly: false
+
+    # the default state of the "Enable Shared Memory" toggle
     value: true
-    readOnly: false
+
+  ################################################################
+  # PodDefaults
+  ################################################################
   configurations:
-    # List of labels to be selected, these are the labels from PodDefaults
-    # value:
-    #   - add-gcp-secret
-    #   - default-editor
-    value: []
     readOnly: false
+
+    # the list of PodDefault names that are selected by default
+    # (take care to ensure these PodDefaults exist in Profile Namespaces)
+    value: []
+    #value:
+    #  - my-pod-default
+
+  ################################################################
+  # Environment
+  #
+  # NOTE:
+  #  - these configs are only used by the ROK "flavor" of the UI
+  ################################################################
+  environment:
+    readOnly: false
+    value: {}
