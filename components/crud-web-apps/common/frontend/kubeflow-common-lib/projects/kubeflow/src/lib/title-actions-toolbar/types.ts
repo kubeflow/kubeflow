@@ -17,7 +17,7 @@ export class ToolbarButton {
   raised: boolean;
   stroked: boolean;
   tooltip: string;
-  fn: () => {};
+  fn: () => any;
 
   private defaults: ToolbarButtonConfig = {
     icon: '',

@@ -5,9 +5,7 @@ export const NAMESPACE_COLUMN: TableColumn = {
   matColumnDef: 'namespace',
   style: { width: '20%' },
   value: new PropertyValue({
-    valueFn: (obj: any) => {
-      return obj?.namespace || obj?.metadata?.namespace;
-    },
+    valueFn: (obj: any) => obj?.namespace || obj?.metadata?.namespace,
     tooltipField: 'namespace',
     truncate: true,
   }),
