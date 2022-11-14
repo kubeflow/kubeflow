@@ -44,7 +44,7 @@ export interface NotebookFormObject {
   cpuLimit: number | string;
   memory: number | string;
   memoryLimit: number | string;
-  gpus: GPU;
+  gpus?: GPU;
   environment?: string;
   noWorkspace: boolean;
   workspace: any;

@@ -122,7 +122,7 @@ export class FormDefaultComponent implements OnInit, OnDestroy {
     }
 
     // Ensure GPU input is a string
-    if (typeof notebook.gpus.num === 'number') {
+    if (notebook.gpus && typeof notebook.gpus.num === 'number') {
       notebook.gpus.num = notebook.gpus.num.toString();
     }
 
