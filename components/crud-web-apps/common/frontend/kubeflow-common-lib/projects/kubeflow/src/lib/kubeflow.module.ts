@@ -20,6 +20,7 @@ import { DateTimeModule } from './date-time/date-time.module';
 import { PanelModule } from './panel/panel.module';
 import { LoadingSpinnerModule } from './loading-spinner/loading-spinner.module';
 import { ConfirmDialogModule } from './confirm-dialog/confirm-dialog.module';
+import { EditorModule } from './editor/editor.module';
 
 @NgModule({
   declarations: [],
@@ -38,6 +39,7 @@ import { ConfirmDialogModule } from './confirm-dialog/confirm-dialog.module';
     DateTimeModule,
     PanelModule,
     LoadingSpinnerModule,
+    EditorModule,
   ],
   imports: [CommonModule, HttpClientModule, HttpClientXsrfModule],
   providers: [

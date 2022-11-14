@@ -34,6 +34,7 @@
     "date-fns": "1.29.0",
     "lodash-es": "^4.17.21",
     "material-icons": "^0.7.3",
+    "monaco-editor": "^0.33.0",
     "rxjs": "~6.6.7",
     "tslib": "^2.0.0",
     "zone.js": "~0.11.4"
