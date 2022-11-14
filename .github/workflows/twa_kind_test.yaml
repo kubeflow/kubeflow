@@ -15,7 +15,7 @@ jobs:
       run: ./components/testing/gh-actions/install_kind.sh
 
     - name: Create KinD Cluster
-      run: kind create cluster --config components/testing/gh-actions/kind-1-22.yaml
+      run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
 
     - name: Install kustomize
       run: ./components/testing/gh-actions/install_kustomize.sh

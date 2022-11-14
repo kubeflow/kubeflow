@@ -14,7 +14,7 @@ jobs:
       - name: Install KinD
         run: ./components/testing/gh-actions/install_kind.sh
       - name: Create KinD Cluster
-        run: kind create cluster --config components/testing/gh-actions/kind-1-22.yaml
+        run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
       - uses: actions/setup-python@v4
         with:
           python-version: '3.7'
