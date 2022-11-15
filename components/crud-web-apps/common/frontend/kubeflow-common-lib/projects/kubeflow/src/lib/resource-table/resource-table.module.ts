@@ -22,6 +22,7 @@ import { PopoverModule } from '../popover/popover.module';
 import { TableChipsListComponent } from './chips-list/chips-list.component';
 import { ComponentValueComponent } from './component-value/component-value.component';
 import { PortalModule } from '@angular/cdk/portal';
+import { MatSortModule } from '@angular/material/sort';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSortModule } from '@angular/material/sort';
 
