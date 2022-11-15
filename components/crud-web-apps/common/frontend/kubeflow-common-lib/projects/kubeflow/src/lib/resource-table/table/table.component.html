@@ -16,6 +16,7 @@
       [arrowPosition]="col.textAlignment === 'right' ? 'before' : 'after'"
       [disabled]="!col.sort"
       data-cy-resource-table-row
+      [attr.data-cy-table-header-row]="col.matHeaderCellDef"
       [ngClass]="{
         grey: tableTheme === TABLE_THEME.FLAT,
         'right-align': col.textAlignment === 'right',
@@ -154,7 +155,10 @@
 
     <!--Action List Value-->
     <ng-container *ngIf="isActionListValue(col.value)">
-      <td mat-cell *matCellDef="let element" [attr.data-cy-resource-table-row]="col.matHeaderCellDef"
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [attr.data-cy-resource-table-row]="col.matHeaderCellDef"
       >
         <div class="action-list">
           <ng-container *ngFor="let action of col.value.actions">
