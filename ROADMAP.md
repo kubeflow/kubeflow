@@ -8,7 +8,7 @@ Notable feature candidates in the [Project Board](https://github.com/orgs/kubefl
 * Improved user isolation especially for the Kubeflow pipelines user interface, database, and artifacts
 * Update Kubeflow Noteboks naming from Notebooks to Workbenches
 * Delivery of KFP V2 beta with its new front-end, backend and SDK 
-* New, time saving workflows to simplify data exchange from Katib to Kubeflow Pipelines
+* Simplified creation of Katib and Training Operator experiments using SDKs
 * Distributed Training Operator support for PaddlePaddle
 * Proposals and potential alpha integrations with popular open source projects: MLflow via Concurrent, BentoML, Ray
 
