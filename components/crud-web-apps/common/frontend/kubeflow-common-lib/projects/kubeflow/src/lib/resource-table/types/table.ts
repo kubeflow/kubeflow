@@ -25,6 +25,8 @@ export interface TableColumn {
     | TemplateValue;
   textAlignment?: TextAlignment;
   style?: { [prop: string]: string };
+  sort?: boolean;
+  sortingPreprocessorFn?: (prop: any) => any;
 }
 
 export interface TableConfig {

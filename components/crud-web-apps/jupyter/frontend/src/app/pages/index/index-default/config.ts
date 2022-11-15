@@ -1,3 +1,4 @@
+import { values } from 'cypress/types/lodash';
 import {
   PropertyValue,
   StatusValue,
@@ -13,6 +14,7 @@ import {
   DateTimeValue,
 } from 'kubeflow';
 import { ServerTypeComponent } from './server-type/server-type.component';
+import { quantityToScalar } from '@kubernetes/client-node/dist/util';
 
 // --- Configs for the Confirm Dialogs ---
 export function getDeleteDialogConfig(name: string): DialogConfig {
@@ -51,6 +53,7 @@ export const defaultConfig: TableConfig = {
       matHeaderCellDef: $localize`Status`,
       matColumnDef: 'status',
       value: new StatusValue(),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`Name`,
@@ -61,6 +64,7 @@ export const defaultConfig: TableConfig = {
         tooltipField: 'name',
         truncate: true,
       }),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`Type`,
@@ -68,6 +72,8 @@ export const defaultConfig: TableConfig = {
       value: new ComponentValue({
         component: ServerTypeComponent,
       }),
+      sort: true,
+      sortingPreprocessorFn: element => element.serverType,
     },
     {
       matHeaderCellDef: $localize`Created at`,
@@ -75,12 +81,14 @@ export const defaultConfig: TableConfig = {
       style: { width: '12%' },
       textAlignment: 'right',
       value: new DateTimeValue({ field: 'age' }),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`Last activity`,
       matColumnDef: 'last_activity',
       textAlignment: 'right',
       value: new DateTimeValue({ field: 'last_activity' }),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`Image`,
@@ -92,6 +100,7 @@ export const defaultConfig: TableConfig = {
         truncate: true,
         style: { maxWidth: '300px' },
       }),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`GPUs`,
@@ -102,6 +111,7 @@ export const defaultConfig: TableConfig = {
         field: 'gpus.count',
         tooltipField: 'gpus.message',
       }),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`CPUs`,
@@ -109,6 +119,8 @@ export const defaultConfig: TableConfig = {
       style: { width: '8%' },
       textAlignment: 'right',
       value: new PropertyValue({ field: 'cpu' }),
+      sort: true,
+      sortingPreprocessorFn: quantityToScalar,
     },
     {
       matHeaderCellDef: $localize`Memory`,
@@ -116,6 +128,8 @@ export const defaultConfig: TableConfig = {
       style: { width: '8%' },
       textAlignment: 'right',
       value: new PropertyValue({ field: 'memory' }),
+      sort: true,
+      sortingPreprocessorFn: quantityToScalar,
     },
     {
       matHeaderCellDef: $localize`Volumes`,

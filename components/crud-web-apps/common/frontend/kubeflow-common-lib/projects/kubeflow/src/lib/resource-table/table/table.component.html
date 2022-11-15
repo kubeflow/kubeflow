@@ -1,4 +1,10 @@
-<table mat-table [dataSource]="dataSource" [trackBy]="trackByFn" class="wide">
+<table
+  mat-table
+  [dataSource]="dataSource"
+  matSort
+  [trackBy]="trackByFn"
+  class="wide"
+>
   <ng-container
     [matColumnDef]="col.matColumnDef"
     *ngFor="let col of config?.columns"
@@ -6,6 +12,9 @@
     <th
       mat-header-cell
       *matHeaderCellDef
+      mat-sort-header
+      [arrowPosition]="col.textAlignment === 'right' ? 'before' : 'after'"
+      [disabled]="!col.sort"
       data-cy-resource-table-row
       [ngClass]="{
         grey: tableTheme === TABLE_THEME.FLAT,
