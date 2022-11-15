@@ -11,8 +11,8 @@ on:
       - components/crud-web-apps/volumes/frontend/**
 
 jobs:
-  lint:
-    name: Lint frontend code
+  lint-common-code:
+    name: Common code
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -23,19 +23,46 @@ jobs:
       run: |
         cd components/crud-web-apps/common/frontend/kubeflow-common-lib
         npm i
-        npm run lint
-    - name: Lint jupyter
+        npm run lint-check
+
+  lint-jwa-code:
+    name: Jupyter web app
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 12
+    - name: Lint jupyter web app
       run: |
         cd components/crud-web-apps/jupyter/frontend
         npm i
-        npm run lint
+        npm run lint-check
+
+  lint-twa-code:
+    name: TensorBoards web app
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 12
     - name: Lint tensorboards
       run: |
         cd components/crud-web-apps/tensorboards/frontend
         npm i
-        npm run lint
-    - name: Lint volumes
+        npm run lint-check
+
+  lint-vwa-code:
+    name: Volumes web app
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 12
+    - name: Lint Volumes web app
       run: |
         cd components/crud-web-apps/volumes/frontend
         npm i
-        npm run lint
+        npm run lint-check

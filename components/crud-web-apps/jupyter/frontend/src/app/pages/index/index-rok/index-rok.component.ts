@@ -5,6 +5,7 @@ import {
   NamespaceService,
   SnackBarService,
   ConfirmDialogService,
+  PollerService,
 } from 'kubeflow';
 import { JWABackendService } from 'src/app/services/backend.service';
 import { Router } from '@angular/router';
@@ -23,8 +24,9 @@ export class IndexRokComponent extends IndexDefaultComponent implements OnInit {
     public confirmDialog: ConfirmDialogService,
     public popup: SnackBarService,
     public router: Router,
+    public poller: PollerService,
   ) {
-    super(ns, backend, confirmDialog, popup, router);
+    super(ns, backend, confirmDialog, popup, router, poller);
 
     this.rok.initCSRF();
   }

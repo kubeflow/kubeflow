@@ -5,15 +5,18 @@ import {
   ExponentialBackoff,
   ActionEvent,
   STATUS_TYPE,
-  DialogConfig,
   ConfirmDialogService,
   SnackBarService,
   DIALOG_RESP,
   SnackType,
   ToolbarButton,
+  ToolbarButtonConfig,
+  addColumn,
+  removeColumn,
+  PollerService,
 } from 'kubeflow';
 import { JWABackendService } from 'src/app/services/backend.service';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription, of, forkJoin } from 'rxjs';
 import {
   defaultConfig,
   getDeleteDialogConfig,
@@ -21,6 +24,7 @@ import {
 } from './config';
 import { isEqual } from 'lodash';
 import { NotebookResponseObject, NotebookProcessedObject } from 'src/app/types';
+import { map } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
 @Component({
@@ -30,25 +34,24 @@ import { Router } from '@angular/router';
 })
 export class IndexDefaultComponent implements OnInit, OnDestroy {
   env = environment;
-  poller: ExponentialBackoff;
 
-  currNamespace = '';
-  subs = new Subscription();
+  nsSub = new Subscription();
+  pollSub = new Subscription();
 
+  currNamespace: string | string[];
   config = defaultConfig;
-  rawData: NotebookResponseObject[] = [];
   processedData: NotebookProcessedObject[] = [];
 
-  buttons: ToolbarButton[] = [
-    new ToolbarButton({
-      text: `New Notebook`,
-      icon: 'add',
-      stroked: true,
-      fn: () => {
-        this.router.navigate(['/new']);
-      },
-    }),
-  ];
+  private newNotebookButton = new ToolbarButton({
+    text: $localize`New Notebook`,
+    icon: 'add',
+    stroked: true,
+    fn: () => {
+      this.router.navigate(['/new']);
+    },
+  });
+
+  buttons: ToolbarButton[] = [this.newNotebookButton];
 
   constructor(
     public ns: NamespaceService,
@@ -56,42 +59,32 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     public confirmDialog: ConfirmDialogService,
     public snackBar: SnackBarService,
     public router: Router,
+    public poller: PollerService,
   ) {}
 
   ngOnInit(): void {
-    this.poller = new ExponentialBackoff({ interval: 1000, retries: 3 });
-
-    // Poll for new data and reset the poller if different data is found
-    this.subs.add(
-      this.poller.start().subscribe(() => {
-        if (!this.currNamespace) {
-          return;
-        }
-
-        this.backend.getNotebooks(this.currNamespace).subscribe(notebooks => {
-          if (!isEqual(this.rawData, notebooks)) {
-            this.rawData = notebooks;
-
-            // Update the frontend's state
-            this.processedData = this.processIncomingData(notebooks);
-            this.poller.reset();
-          }
-        });
-      }),
-    );
-
     // Reset the poller whenever the selected namespace changes
-    this.subs.add(
-      this.ns.getSelectedNamespace().subscribe(ns => {
-        this.currNamespace = ns;
-        this.poller.reset();
-      }),
-    );
+    this.nsSub = this.ns.getSelectedNamespace2().subscribe(ns => {
+      this.currNamespace = ns;
+      this.poll(ns);
+      this.newNotebookButton.namespaceChanged(ns, $localize`Notebook`);
+    });
   }
 
   ngOnDestroy() {
-    this.subs.unsubscribe();
-    this.poller.stop();
+    this.nsSub.unsubscribe();
+    this.pollSub.unsubscribe();
+  }
+
+  public poll(ns: string | string[]) {
+    this.pollSub.unsubscribe();
+    this.processedData = [];
+
+    const request = this.backend.getNotebooks(ns);
+
+    this.pollSub = this.poller.exponential(request).subscribe(notebooks => {
+      this.processedData = this.processIncomingData(notebooks);
+    });
   }
 
   // Event handling functions
@@ -119,9 +112,11 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
       }
 
       // Close the open dialog only if the DELETE request succeeded
-      this.backend.deleteNotebook(this.currNamespace, notebook.name).subscribe({
+      this.backend.deleteNotebook(notebook.namespace, notebook.name).subscribe({
         next: _ => {
-          this.poller.reset();
+          // NOTE: We don't want to reset the polling based on the Notebook's
+          // namespace, since the user might have selected all-namespaces
+          this.poll(this.currNamespace);
           ref.close(DIALOG_RESP.ACCEPT);
         },
         error: err => {
@@ -170,7 +165,9 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     this.updateNotebookFields(notebook);
 
     this.backend.startNotebook(notebook).subscribe(() => {
-      this.poller.reset();
+      // NOTE: We don't want to reset the polling based on the Notebook's
+      // namespace, since the user might have selected all-namespaces
+      this.poll(this.currNamespace);
     });
   }
 
@@ -185,7 +182,9 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
       // Close the open dialog only if the request succeeded
       this.backend.stopNotebook(notebook).subscribe({
         next: _ => {
-          this.poller.reset();
+          // NOTE: We don't want to reset the polling based on the Notebook's
+          // namespace, since the user might have selected all-namespaces
+          this.poll(this.currNamespace);
           ref.close(DIALOG_RESP.ACCEPT);
         },
         error: err => {
@@ -272,5 +271,9 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
   public notebookTrackByFn(index: number, notebook: NotebookProcessedObject) {
     return `${notebook.name}/${notebook.image}`;
+  }
+
+  private updateButtons(): void {
+    this.buttons = [this.newNotebookButton];
   }
 }

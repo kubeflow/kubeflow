@@ -3,6 +3,8 @@ kind: Kustomization
 resources:
 - ../../base
 - virtual-service.yaml
+- authorization-policy.yaml
+- destination-rule.yaml
 namespace: kubeflow
 commonLabels:
   app: jupyter-web-app

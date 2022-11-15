@@ -1,10 +1,9 @@
 import copy
 import unittest
 
+from apps.common import volumes
 from kubernetes import client
 from werkzeug import exceptions
-
-from apps.common import volumes
 
 PVC_NAME = "workspace_volume"
 
@@ -72,28 +71,22 @@ class TestGetVolumeName(unittest.TestCase):
         self.api_volume_new = copy.deepcopy(NEW_API_VOLUME)
         self.api_volume_existing = copy.deepcopy(EXISTING_API_VOLUME)
 
-    def test_get_name_from_created_pvc(self):
+    def test_should_not_work_on_new_pvc(self):
         """Return the name of the PVC, if one is provided."""
-        pvc = client.V1PersistentVolumeClaim(
-            metadata=client.V1ObjectMeta(name=PVC_NAME),
-        )
+        with self.assertRaises(exceptions.BadRequest):
+            volumes.get_volume_name(self.api_volume_new)
 
-        self.assertEqual(volumes.get_volume_name(self.api_volume_new, pvc),
+    def test_get_name_of_pvc(self):
+        """Return the name of the PVC, if one is provided."""
+        self.assertEqual(volumes.get_volume_name(self.api_volume_existing),
                          PVC_NAME)
-
-    def test_get_name_of_existing_source_pvc(self):
-        """Use the name of the persistentVolumeClaim.claimName if provided."""
-        pvc = None
-        volume_name = volumes.get_volume_name(self.api_volume_existing, pvc)
-        self.assertEqual(volume_name, PVC_NAME)
 
     def test_non_pvc_source_name(self):
         """Return a generic name in case of non-pvc source."""
-        pvc = None
         del self.api_volume_existing["existingSource"]["persistentVolumeClaim"]
 
         self.api_volume_existing["nfs"] = {"address": "127.0.0.1"}
-        volume_name = volumes.get_volume_name(self.api_volume_existing, pvc)
+        volume_name = volumes.get_volume_name(self.api_volume_existing)
         self.assertIn("existing-source-volume", volume_name)
 
 

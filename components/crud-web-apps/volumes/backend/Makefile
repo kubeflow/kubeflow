@@ -1,7 +1,7 @@
 SHELL=bash
 
 install-deps:
-	pushd ../../../py && \
+	pushd ../../common/backend && \
 	pip install -e . && \
 	popd
 	pip install -r requirements.txt

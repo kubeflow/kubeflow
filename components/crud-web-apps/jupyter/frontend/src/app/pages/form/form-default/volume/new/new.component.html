@@ -42,6 +42,7 @@
     <ng-container i18n> for the supported volumes and their specs</ng-container>
 
     <div ace-editor mode="yaml" theme="xcode" [(text)]="yaml"></div>
+
     <mat-error *ngIf="errorParsingYaml">{{ errorParsingYaml }}</mat-error>
   </ng-container>
 

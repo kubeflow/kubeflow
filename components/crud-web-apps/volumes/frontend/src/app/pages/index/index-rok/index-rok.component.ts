@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import {
   NamespaceService,
@@ -9,6 +9,7 @@ import {
   RokService,
   ActionEvent,
   STATUS_TYPE,
+  PollerService,
 } from 'kubeflow';
 import { environment } from '@app/environment';
 import { VWABackendService } from 'src/app/services/backend.service';
@@ -22,7 +23,9 @@ import { PVCProcessedObjectRok, PVCResponseObjectRok } from 'src/app/types';
   templateUrl: '../index-default/index-default.component.html',
   styleUrls: ['../index-default/index-default.component.scss'],
 })
-export class IndexRokComponent extends IndexDefaultComponent implements OnInit {
+export class IndexRokComponent
+  extends IndexDefaultComponent
+  implements OnInit, OnDestroy {
   config = rokConfig;
 
   constructor(
@@ -32,8 +35,9 @@ export class IndexRokComponent extends IndexDefaultComponent implements OnInit {
     public dialog: MatDialog,
     public snackBar: SnackBarService,
     public rok: RokService,
+    public poller: PollerService,
   ) {
-    super(ns, confirmDialog, backend, dialog, snackBar);
+    super(ns, confirmDialog, backend, dialog, snackBar, poller);
   }
 
   ngOnInit() {
@@ -56,7 +60,7 @@ export class IndexRokComponent extends IndexDefaultComponent implements OnInit {
           SnackType.Success,
           2000,
         );
-        this.poller.reset();
+        this.poll(this.currNamespace);
       }
     });
   }
@@ -80,9 +84,9 @@ export class IndexRokComponent extends IndexDefaultComponent implements OnInit {
     this.pvcsWaitingViewer.add(pvc.name);
     pvc.editAction = this.parseViewerActionStatus(pvc);
 
-    this.backend.createViewer(this.currNamespace, pvc.name).subscribe({
+    this.backend.createViewer(pvc.namespace, pvc.name).subscribe({
       next: res => {
-        this.poller.reset();
+        this.poll(pvc.namespace);
       },
       error: err => {
         this.pvcsWaitingViewer.delete(pvc.name);

@@ -32,7 +32,27 @@ spec:
               configMapKeyRef:
                 name: config
                 key: ISTIO_GATEWAY
-        imagePullPolicy: Always
+          - name: CLUSTER_DOMAIN
+            valueFrom:
+              configMapKeyRef:
+                name: config
+                key: CLUSTER_DOMAIN
+          - name: ENABLE_CULLING
+            valueFrom:
+              configMapKeyRef:
+                name: config
+                key: ENABLE_CULLING
+          - name: CULL_IDLE_TIME
+            valueFrom:
+              configMapKeyRef:
+                name: config
+                key: CULL_IDLE_TIME
+          - name: IDLENESS_CHECK_PERIOD
+            valueFrom:
+              configMapKeyRef:
+                name: config
+                key: IDLENESS_CHECK_PERIOD
+        imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
             path: /healthz

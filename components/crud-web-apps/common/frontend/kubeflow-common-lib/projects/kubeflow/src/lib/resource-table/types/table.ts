@@ -33,6 +33,7 @@ export interface TableConfig {
   newButtonText?: string;
   width?: string;
   theme?: TABLE_THEME;
+  dynamicNamespaceColumn?: boolean;
 }
 
 export enum TABLE_THEME {

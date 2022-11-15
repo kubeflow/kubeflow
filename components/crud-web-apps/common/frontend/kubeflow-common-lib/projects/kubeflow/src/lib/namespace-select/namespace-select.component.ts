@@ -1,8 +1,8 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {NamespaceService} from '../services/namespace.service';
-import {BackendService} from '../services/backend/backend.service';
-import {ExponentialBackoff} from '../polling/exponential-backoff';
-import {Subscription} from 'rxjs';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { NamespaceService } from '../services/namespace.service';
+import { BackendService } from '../services/backend/backend.service';
+import { ExponentialBackoff } from '../polling/exponential-backoff';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'lib-namespace-select',
@@ -15,6 +15,8 @@ export class NamespaceSelectComponent implements OnInit, OnDestroy {
 
   namespaces = [];
   currNamespace: string;
+  allNamespaces: string[];
+
   private poller: ExponentialBackoff;
   private subscriptions = new Subscription();
 
@@ -32,24 +34,18 @@ export class NamespaceSelectComponent implements OnInit, OnDestroy {
       .subscribe(namespace => {
         this.currNamespace = namespace;
       });
-    // Poll untill you get existing Namespaces
-    const nsGetSub = this.poller.start().subscribe(() => {
-      this.backend.getNamespaces(true, this.namespacesUrl).subscribe(namespaces => {
+
+    this.backend
+      .getNamespaces(true, this.namespacesUrl)
+      .subscribe(namespaces => {
         this.namespaces = namespaces;
-        if (
-          this.currNamespace === undefined ||
-          this.currNamespace.length === 0
-        ) {
+        if (!this.currNamespace) {
           return;
         }
-        // stop polling
-        this.namespaceService.updateSelectedNamespace(this.currNamespace);
-        this.poller.stop();
-        this.subscriptions.unsubscribe();
-      });
-    });
 
-    this.subscriptions.add(nsGetSub);
+        this.namespaceService.updateSelectedNamespace(this.currNamespace);
+      });
+
     this.subscriptions.add(currNsSub);
   }
 
@@ -58,6 +54,11 @@ export class NamespaceSelectComponent implements OnInit, OnDestroy {
   }
 
   namespaceChanged(namespace: string) {
+    if (namespace === '{all}') {
+      this.namespaceService.selectedNamespace2$.next(this.namespaces);
+      return;
+    }
+
     this.namespaceService.updateSelectedNamespace(namespace);
   }
 }

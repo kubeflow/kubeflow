@@ -8,6 +8,7 @@ import {
   DialogConfig,
   ComponentValue,
   TableConfig,
+  TableColumn,
   TABLE_THEME,
   DateTimeValue,
 } from 'kubeflow';
@@ -44,6 +45,7 @@ export function getStopDialogConfig(name: string): DialogConfig {
 
 // --- Config for the Resource Table ---
 export const defaultConfig: TableConfig = {
+  dynamicNamespaceColumn: true,
   columns: [
     {
       matHeaderCellDef: $localize`Status`,
@@ -72,7 +74,7 @@ export const defaultConfig: TableConfig = {
       matColumnDef: 'age',
       style: { width: '12%' },
       textAlignment: 'right',
-      value: new PropertyValue({ field: 'age', truncate: true }),
+      value: new DateTimeValue({ field: 'age' }),
     },
     {
       matHeaderCellDef: $localize`Last activity`,
