@@ -10,6 +10,7 @@ Notable feature candidates in the [Project Board](https://github.com/orgs/kubefl
 * Delivery of KFP V2 beta with its new front-end, backend and SDK 
 * Simplified creation of Katib and Training Operator experiments using SDKs
 * Distributed Training Operator support for PaddlePaddle
+* Simplified hyperparameter trial and log access.  Katib plans to add filtering and sorting of hyperparameter trial lists, and to speed user debugging by exposing logs from previous and running trials.
 * Proposals and potential alpha integrations with popular open source projects: MLflow via Concurrent, BentoML, Ray
 
 Please join the Kubeflow Community Meetings on Tuesdays for updates and for opportunities to contribute.  
