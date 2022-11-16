@@ -303,6 +303,15 @@ export class MainPage extends utilitiesMixin(PolymerElement) {
     _namespaceChanged(namespace) {
         // update namespaced menu item when namespace is changed
         // by namespace selector
+
+        if (namespace) {
+            // Save the user's choice so we are able to restore it, 
+            // when re-loading the page without a queryParam
+            const localStorageKey = "/centraldashboard/selectedNamespace/" +
+                (this.user && "." + this.user || "");
+            localStorage.setItem(localStorageKey, namespace);
+        }
+
         if (this.namespacedItemTemplete &&
             this.namespacedItemTemplete.includes('{ns}')) {
             this.set('subRouteData.path',
