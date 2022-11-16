@@ -16,6 +16,7 @@ const tableConfig: TableConfig = {
       matColumnDef: 'status',
       style: { width: '1%' },
       value: new StatusValue(),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`Name`,
@@ -26,6 +27,7 @@ const tableConfig: TableConfig = {
         tooltipField: 'name',
         truncate: true,
       }),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`Created at`,
@@ -35,6 +37,7 @@ const tableConfig: TableConfig = {
       value: new DateTimeValue({
         field: 'age',
       }),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`Logspath`,
@@ -45,6 +48,7 @@ const tableConfig: TableConfig = {
         tooltipField: 'logspath',
         truncate: true,
       }),
+      sort: true,
     },
   ],
 };

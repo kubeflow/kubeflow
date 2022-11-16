@@ -6,6 +6,7 @@ import {
   TableConfig,
   DateTimeValue,
 } from 'kubeflow';
+import { quantityToScalar } from '@kubernetes/client-node/dist/util';
 
 export const tableConfig: TableConfig = {
   columns: [
@@ -14,6 +15,7 @@ export const tableConfig: TableConfig = {
       matColumnDef: 'status',
       style: { width: '1%' },
       value: new StatusValue(),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`Name`,
@@ -24,6 +26,7 @@ export const tableConfig: TableConfig = {
         tooltipField: 'name',
         truncate: true,
       }),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`Created at`,
@@ -33,6 +36,7 @@ export const tableConfig: TableConfig = {
       value: new DateTimeValue({
         field: 'age',
       }),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`Size`,
@@ -40,18 +44,22 @@ export const tableConfig: TableConfig = {
       textAlignment: 'right',
       style: { width: '10%' },
       value: new PropertyValue({ field: 'capacity', truncate: true }),
+      sort: true,
+      sortingPreprocessorFn: quantityToScalar,
     },
     {
       matHeaderCellDef: $localize`Access Mode`,
       matColumnDef: 'modes',
       style: { width: '15%' },
       value: new PropertyValue({ field: 'modes', truncate: true }),
+      sort: true,
     },
     {
       matHeaderCellDef: $localize`Storage Class`,
       matColumnDef: 'class',
       style: { width: '10%' },
       value: new PropertyValue({ field: 'class', truncate: true }),
+      sort: true,
     },
 
     // the apps should import the actions they want
