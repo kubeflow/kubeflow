@@ -118,6 +118,7 @@ export class NamespaceSelector extends PolymerElement {
                 notify: true,
             },
             allNamespaces: {type: Boolean, value: false},
+            user: String,
             selectedNamespaceIsOwned: {
                 type: Boolean,
                 readOnly: true,
@@ -196,6 +197,18 @@ export class NamespaceSelector extends PolymerElement {
      * @return {string}
      */
     getDefaultNamespace() {
+        // Restore the user's previous namespace choice
+        const localStorageKey = "/centraldashboard/selectedNamespace/" +
+            (this.user && "." + this.user || "");
+        const previousNamespaceName = localStorage.getItem(localStorageKey);
+        if (previousNamespaceName) {
+            const previousNamespace = this.namespaces.find(
+                (n) => n.namespace === previousNamespaceName);
+            if (previousNamespace) {
+                return previousNamespace;
+            }
+        }
+
         return this.namespaces.find(
             (n) => n.role == 'owner');
     }
