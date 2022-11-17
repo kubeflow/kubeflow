@@ -13,6 +13,14 @@ Notable feature candidates in the [Project Board](https://github.com/orgs/kubefl
 * Distributed Training Operator support for PaddlePaddle
 * Proposals and potential alpha integrations with popular open source projects: MLflow via Concurrent, BentoML, Ray
 
+### Detailed features, bug fixes and enhancements are identified in the Working Group Roadmaps
+
+* [Training Operators](https://github.com/kubeflow/common/blob/master/ROADMAP.md)
+* [KFServing](https://github.com/kubeflow/kfserving/blob/master/ROADMAP.md)
+* [Katib](https://github.com/kubeflow/katib/blob/master/ROADMAP.md)
+* [Kubeflow Pipelines](https://github.com/kubeflow/pipelines/blob/master/ROADMAP.md)
+* [Notebooks](https://github.com/kubeflow/kubeflow/issues/5978)
+
 Please join the Kubeflow Community Meetings on Tuesdays for updates and for opportunities to contribute.  
 
 ## Kubeflow 1.6 Release, Delivered: September 2022
