@@ -135,6 +135,15 @@ func safeToApplyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.Pod
 	if _, err := mergeMap(pod.Labels, defaultLabels); err != nil {
 		errs = append(errs, err)
 	}
+
+	if _, err := mergeContainers(pod.Spec.InitContainers, podDefaults, false); err != nil {
+		errs = append(errs, err)
+	}
+
+	if _, err := mergeContainers(pod.Spec.Containers, podDefaults, true); err != nil {
+		errs = append(errs, err)
+	}
+
 	return utilerrors.NewAggregate(errs)
 }
 
@@ -377,7 +386,7 @@ func mergeContainers(containers []corev1.Container, podDefaults []*settingsapi.P
 
 			// make sure they are identical or throw an error
 			if !reflect.DeepEqual(found, v) {
-				errs = append(errs, fmt.Errorf("merging initcontainers for %s has a conflict on %s: \n%#v\ndoes not match\n%#v\n in container", pd.GetName(), v.Name, v, found))
+				errs = append(errs, fmt.Errorf("merging containers for %s has a conflict on %s: \n%#v\ndoes not match\n%#v\n in container", pd.GetName(), v.Name, v, found))
 			}
 		}
 	}
@@ -473,18 +482,6 @@ func applyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.PodDefaul
 		return
 	}
 
-	initContainers, err := mergeContainers(pod.Spec.InitContainers, podDefaults, false)
-	if err != nil {
-		klog.Error(err)
-	}
-	pod.Spec.InitContainers = initContainers
-
-	containers, err := mergeContainers(pod.Spec.Containers, podDefaults, true)
-	if err != nil {
-		klog.Error(err)
-	}
-	pod.Spec.Containers = containers
-
 	volumes, err := mergeVolumes(pod.Spec.Volumes, podDefaults)
 	if err != nil {
 		klog.Error(err)
@@ -537,6 +534,18 @@ func applyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.PodDefaul
 	if pod.ObjectMeta.Annotations == nil {
 		pod.ObjectMeta.Annotations = map[string]string{}
 	}
+
+	initContainers, err := mergeContainers(pod.Spec.InitContainers, podDefaults, false)
+	if err != nil {
+		klog.Error(err)
+	}
+	pod.Spec.InitContainers = initContainers
+
+	containers, err := mergeContainers(pod.Spec.Containers, podDefaults, true)
+	if err != nil {
+		klog.Error(err)
+	}
+	pod.Spec.Containers = containers
 
 	// add annotation information to mark poddefault mutation has occurred
 	for _, pd := range podDefaults {
