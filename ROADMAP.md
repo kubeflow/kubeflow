@@ -6,7 +6,7 @@ The Kubeflow Community plans to deliver its v1.7 release in March 2023, per this
 Notable feature candidates in the [Project Board](https://github.com/orgs/kubeflow/projects/50/views/1) are:
 * Support for Kubernetes 1.25
 * Improved user isolation especially for the Kubeflow pipelines user interface, database, and artifacts
-* Update Kubeflow Noteboks naming from Notebooks to Workbenches
+* Update Kubeflow Notebooks naming from Notebooks to Workbenches
 * Delivery of KFP V2 beta with its new front-end, backend and SDK 
 * Simplified creation of Katib and Training Operator experiments using SDKs
 * Simplified hyperparameter trial and log access.  Katib plans to add filtering and sorting of hyperparameter trial lists, and to speed user debugging by exposing logs from previous and running trials.
