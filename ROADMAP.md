@@ -9,7 +9,7 @@ Notable feature candidates in the [Project Board](https://github.com/orgs/kubefl
 * Update Kubeflow Notebooks naming from Notebooks to Workbenches
 * Delivery of KFP V2 beta with its new front-end, backend and SDK 
 * Simplified creation of Katib and Training Operator experiments using SDKs
-* Simplified hyperparameter trial and log access from the Katib user interface.  Katib plans to add filtering and sorting of hyperparameter trial lists, and to speed user debugging by exposing logs from previous and running trials.
+* Simplified hyperparameter trial and log access from the Katib user interface.  Katib plans to add filtering and sorting of hyperparameter trial lists, and to speed user debugging by exposing logs from previous and running trials
 * Distributed Training Operator support for PaddlePaddle
 
 ### Detailed features, bug fixes and enhancements are identified in these long term Working Group Roadmaps:
