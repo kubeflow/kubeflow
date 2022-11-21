@@ -12,8 +12,7 @@ import '@vaadin/vaadin-grid/vaadin-grid-sort-column.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
 
-import './resources/paper-chip.js';
-import './resources/md2-input/md2-input.js';
+import './manage-users-view-contributor.js';
 import css from './manage-users-view.css';
 import template from './manage-users-view.pug';
 import utilitiesMixin from './utilities-mixin.js';
@@ -36,10 +35,7 @@ export class ManageUsersView extends utilitiesMixin(localizationMixin(PolymerEle
             user: {type: String, value: 'Loading...'},
             isClusterAdmin: {type: Boolean, value: false},
             namespaces: Array,
-            ownedNamespace: {type: Object, value: () => ({})},
-            newContribEmail: String,
-            contribError: Object,
-            contributorInputEl: Object,
+            multiOwnedNamespaces: {type: Array, value: []},
         };
     }
     /**
@@ -47,45 +43,28 @@ export class ManageUsersView extends utilitiesMixin(localizationMixin(PolymerEle
      */
     ready() {
         super.ready();
-        this.contributorInputEl = this.$.ContribEmail;
     }
     /**
-     * Returns 1 to 2 rows containing owner and contributor rows for namespaces
+     * Returns namespaces and roles
      * @param {[object]} ns Namespaces array.
      * @return {[string, [string]]} rows for namespace table.
      */
     nsBreakdown(ns) {
-        const {ownedNamespace, namespaces} = this;
-        if (!ownedNamespace || !namespaces) return;
-        const arr = [
-            // eslint-disable-next-line max-len
-            [ownedNamespace.namespace, this.localize('manageUsersView.lblOwner')],
-        ];
-        if (ns.length <= 1) return arr;
-        const otherNamespaces = namespaces
-            .filter((n) => n != ownedNamespace)
-            .map((i) => i.namespace).join(', ');
-        arr.push(
-            [otherNamespaces, this.localize('manageUsersView.lblContributor')],
-        );
+        const {namespaces} = this;
+        if (!namespaces) return;
+        const roleStrings = {
+            'contributor': this.localize('manageUsersView.lblContributor'),
+            'owner': this.localize('manageUsersView.lblOwner'),
+            'other': this.localize('manageUsersView.lblOther'),
+        };
+        const arr = [];
+        for (let i = 0; i < namespaces.length; i++) {
+            arr.push(
+                [namespaces[i].namespace,
+                    roleStrings[namespaces[i].role] || roleStrings['other']],
+            );
+        }
         return arr;
-    }
-    /**
-     * Triggers an API call to create a new Contributor
-     */
-    addNewContrib() {
-        const api = this.$.AddContribAjax;
-        api.body = {contributor: this.newContribEmail};
-        api.generateRequest();
-    }
-    /**
-     * Triggers an API call to remove a Contributor
-     * @param {Event} e
-     */
-    removeContributor(e) {
-        const api = this.$.RemoveContribAjax;
-        api.body = {contributor: e.model.item};
-        api.generateRequest();
     }
     /**
      * Takes an event from iron-ajax and isolates the error from a request that
@@ -96,41 +75,6 @@ export class ManageUsersView extends utilitiesMixin(localizationMixin(PolymerEle
     _isolateErrorFromIronRequest(e) {
         const bd = e.detail.request.response||{};
         return bd.error || e.detail.error || e.detail;
-    }
-    /**
-     * Iron-Ajax response / error handler for addNewContributor
-     * @param {IronAjaxEvent} e
-     */
-    handleContribCreate(e) {
-        if (e.detail.error) {
-            const error = this._isolateErrorFromIronRequest(e);
-            this.contribCreateError = error;
-            return;
-        }
-        this.contributorList = e.detail.response;
-        this.newContribEmail = this.contribCreateError = '';
-    }
-    /**
-     * Iron-Ajax response / error handler for removeContributor
-     * @param {IronAjaxEvent} e
-     */
-    handleContribDelete(e) {
-        if (e.detail.error) {
-            const error = this._isolateErrorFromIronRequest(e);
-            this.contribCreateError = error;
-            return;
-        }
-        this.contributorList = e.detail.response;
-        this.newContribEmail = this.contribCreateError = '';
-    }
-    /**
-     * Iron-Ajax error handler for getContributors
-     * @param {IronAjaxEvent} e
-     */
-    onContribFetchError(e) {
-        const error = this._isolateErrorFromIronRequest(e);
-        this.contribError = error;
-        this.$.ContribError.show();
     }
     /**
      * Iron-Ajax error handler for getContributors

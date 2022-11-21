@@ -1,11 +1,5 @@
 h1 {{localize('manageUsersView.lblManageContributors')}}
-iron-ajax#RemoveContribAjax(method='DELETE', url='/api/workgroup/remove-contributor/[[ownedNamespace.namespace]]',
-    on-response='handleContribDelete', on-error='handleContribDelete', handle-as='json', content-type='application/json')
-iron-ajax#AddContribAjax(method='POST', url='/api/workgroup/add-contributor/[[ownedNamespace.namespace]]',
-    on-response='handleContribCreate', on-error='handleContribCreate', handle-as='json', content-type='application/json')
-iron-ajax#GetContribsAjax(auto='[[!empty(ownedNamespace)]]', url='/api/workgroup/get-contributors/[[ownedNamespace.namespace]]',
-    last-response='{{contributorList}}', on-error='onContribFetchError', handle-as='json')
-iron-ajax#GetAllNamespacesAjax(auto='[[shouldFetchAllNamespaces(ownedNamespace, isClusterAdmin)]]', url='/api/workgroup/get-all-namespaces',
+iron-ajax#GetAllNamespacesAjax(auto='[[shouldFetchAllNamespaces(multiOwnedNamespaces, isClusterAdmin)]]', url='/api/workgroup/get-all-namespaces',
     last-response='{{allNamespaces}}', on-error='onAllNamespaceFetchError', handle-as='json')
 section#Main-Content
     article.Acct-Info
@@ -15,24 +9,18 @@ section#Main-Content
             span(hidden$='[[!isClusterAdmin]]') &nbsp; {{localize('manageUsersView.lblClusterAdmin')}}
         .content
             span [[user]]
-    h2#NoNamespaceError(hidden$='[[!empty(ownedNamespace)]]') {{localize('manageUsersView.lblNoOwnedNamespaces')}}
-    article.Namespaces(hidden$='[[empty(ownedNamespace)]]')
+    h2#NoNamespaceError(hidden$='[[!empty(multiOwnedNamespaces)]]') {{localize('manageUsersView.lblNoOwnedNamespaces')}}
+    article.Namespaces(hidden$='[[empty(multiOwnedNamespaces)]]')
         h2
             iron-icon.icon(icon='kubeflow:namespace')
             span.text {{localize('manageUsersView.lblNamespaceMemberships')}}
         .content.small
-            vaadin-grid(items='[[nsBreakdown(namespaces, ownedNamespace)]]', theme="no-border wrap-cell-content", height-by-rows, multi-sort)
+            vaadin-grid(items='[[nsBreakdown(namespaces)]]', theme="no-border", height-by-rows, multi-sort)
                 vaadin-grid-column(width='15em', path='0', flex-grow='2', header="{{localize('manageUsersView.headerNamespaces')}}")
                 vaadin-grid-column(width='9em', path='1', header="{{localize('manageUsersView.headerYouRole')}}")
-    article.Contributors(hidden$='[[empty(ownedNamespace)]]')
-        h2
-            iron-icon.icon(icon='kubeflow:namespace')
-            span.text {{localize('manageUsersViewContributor.ContributorsToYourNamespace', 'ownedNamespace', ownedNamespace.namespace)}}
-        .content.small
-            md2-input(label="{{localize('manageUsersViewContributor.lblEmail')}}", value='{{newContribEmail}}', on-submit='addNewContrib', placeholder="{{localize('manageUsersViewContributor.phdAddByEmail')}}", error$='[[contribCreateError]]')
-                .prefix(slot='prefix')
-                    template(is='dom-repeat', items='[[contributorList]]')
-                        paper-chip(on-remove='removeContributor') [[item]]
+    article.Contributors(hidden$='[[empty(multiOwnedNamespaces)]]')     
+        template(is='dom-repeat', items='[[multiOwnedNamespaces]]' as='multiOwnedNamespace')
+            manage-users-view-contributor(owned-namespace='[[multiOwnedNamespace]]')
     article.Cluster-Namespaces(hidden$='[[empty(isClusterAdmin)]]')
         h2
             iron-icon.icon(icon='kubeflow:namespace')
@@ -42,9 +30,6 @@ section#Main-Content
                 vaadin-grid-column(width='9em', path='0', header="{{localize('manageUsersView.headerNamespace')}}")
                 vaadin-grid-column(width='10em', path='1', header="{{localize('manageUsersView.headerOwner')}}")
                 vaadin-grid-column(width='15em', path='2', flex-grow='2', header="{{localize('manageUsersView.headerContributors')}}")
-paper-toast#ContribError(duration=5000)
-    | {{localize('manageUsersViewContributor.errorContributor', 'ownedNamespace', ownedNamespace.namespace)}}
-    strong [[contribError]]
 paper-toast#AllNamespaceError(duration=5000)
     | {{localize('manageUsersView.errorAllNamespaces')}}
     strong [[allNamespaceError]]
