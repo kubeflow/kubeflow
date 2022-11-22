@@ -7,6 +7,7 @@
       "modes": ["ReadWriteOnce"],
       "name": "a-pvc-phase-ready-viewer-ready",
       "namespace": "kubeflow-user",
+      "notebooks": [],
       "status": {
         "message": "Bound",
         "phase": "ready",
@@ -21,6 +22,7 @@
       "modes": ["ReadWriteOnce"],
       "name": "a-pvc-phase-ready-viewer-uninitialized",
       "namespace": "kubeflow-user",
+      "notebooks": [],
       "status": {
         "message": "Bound",
         "phase": "ready",
@@ -35,6 +37,7 @@
       "modes": ["ReadWriteOnce"],
       "name": "a-pvc-phase-ready-viewer-waiting",
       "namespace": "kubeflow-user",
+      "notebooks": [],
       "status": {
         "message": "Bound",
         "phase": "ready",
@@ -49,6 +52,7 @@
       "modes": ["ReadWriteOnce"],
       "name": "a-pvc-phase-unvailable-viewer-unavailable",
       "namespace": "kubeflow-user",
+      "notebooks": [],
       "status": {
         "message": "Pending: This volume will be bound when its first consumer is created. E.g., when you first browse its contents, or attach it to a notebook server",
         "phase": "unavailable",
@@ -63,6 +67,7 @@
       "modes": ["ReadWriteOnce"],
       "name": "a-pvc-phase-waiting-viewer-uninitialized",
       "namespace": "kubeflow-user",
+      "notebooks": ["test-notebook-1", "test-notebook-2"],
       "status": {
         "message": "Bound",
         "phase": "waiting",
@@ -77,6 +82,7 @@
       "modes": ["ReadWriteOnce"],
       "name": "a-pvc-phase-warning-viewer-ready",
       "namespace": "kubeflow-user",
+      "notebooks": [],
       "status": {
         "message": "Bound",
         "phase": "warning",
