@@ -89,3 +89,5 @@ export * from './lib/resource-table/table/table.component';
 
 export * from './lib/logs-viewer/logs-viewer.module';
 export * from './lib/logs-viewer/logs-viewer.component';
+export * from './lib/help-popover/help-popover.component';
+export * from './lib/help-popover/help-popover.module';

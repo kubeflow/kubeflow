@@ -21,6 +21,7 @@ import { PanelModule } from './panel/panel.module';
 import { LoadingSpinnerModule } from './loading-spinner/loading-spinner.module';
 import { ConfirmDialogModule } from './confirm-dialog/confirm-dialog.module';
 import { EditorModule } from './editor/editor.module';
+import { HelpPopoverModule } from './help-popover/help-popover.module';
 
 @NgModule({
   declarations: [],
@@ -40,6 +41,7 @@ import { EditorModule } from './editor/editor.module';
     PanelModule,
     LoadingSpinnerModule,
     EditorModule,
+    HelpPopoverModule,
   ],
   imports: [CommonModule, HttpClientModule, HttpClientXsrfModule],
   providers: [

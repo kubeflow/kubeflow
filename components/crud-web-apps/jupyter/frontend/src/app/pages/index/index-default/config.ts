@@ -1,4 +1,3 @@
-import { values } from 'cypress/types/lodash';
 import {
   PropertyValue,
   StatusValue,
@@ -9,8 +8,6 @@ import {
   DialogConfig,
   ComponentValue,
   TableConfig,
-  TableColumn,
-  TABLE_THEME,
   DateTimeValue,
 } from 'kubeflow';
 import { ServerTypeComponent } from './server-type/server-type.component';
@@ -74,6 +71,15 @@ export const defaultConfig: TableConfig = {
       }),
       sort: true,
       sortingPreprocessorFn: element => element.serverType,
+      filteringPreprocessorFn: element => {
+        if (element.serverType === 'group-one') {
+          return 'vscode Visual Studio Code';
+        } else if (element.serverType === 'group-two') {
+          return 'rstudio';
+        } else {
+          return 'jupyterlab';
+        }
+      },
     },
     {
       matHeaderCellDef: $localize`Created at`,
