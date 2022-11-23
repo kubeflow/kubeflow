@@ -1,3 +1,64 @@
+<mat-form-field class="example-chip-list" appearance="none">
+  <mat-chip-list #chipList>
+    <mat-icon matPrefix class="filter-icon">filter_list</mat-icon>
+    <span class="filter-header">Filter</span>
+    <mat-chip
+      *ngFor="let chip of chips"
+      (removed)="remove(chip)"
+      class="mat-chip-blue"
+    >
+      {{ chip }}
+      <button matChipRemove>
+        <mat-icon>cancel</mat-icon>
+      </button>
+    </mat-chip>
+    <input
+      id="filterInput"
+      placeholder="Enter property name or value"
+      #chipInput
+      (keydown.escape)="blurInput(chipInput)"
+      [formControl]="chipCtrl"
+      [matAutocomplete]="auto"
+      [matChipInputFor]="chipList"
+      (matChipInputTokenEnd)="add($event)"
+    />
+  </mat-chip-list>
+  <button
+    mat-button
+    *ngIf="chipCtrl.value || isClear"
+    matSuffix
+    mat-icon-button
+    matTooltip="Clear filters"
+    aria-label="Clear"
+    (click)="clear(); blurInput(chipInput)"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+  <button
+    mat-button
+    matSuffix
+    mat-icon-button
+    aria-label="Help"
+    (click)="$event.stopPropagation()"
+  >
+    <lib-help-popover></lib-help-popover>
+  </button>
+  <mat-autocomplete
+    #auto="matAutocomplete"
+    panelWidth="270px"
+    (optionSelected)="selected($event)"
+  >
+    <mat-option
+      *ngFor="let header of filteredHeaders | async"
+      [value]="header.title"
+    >
+      {{ header.title }}
+    </mat-option>
+  </mat-autocomplete>
+</mat-form-field>
+
+<mat-divider></mat-divider>
+
 <table
   mat-table
   [dataSource]="dataSource"
@@ -189,6 +250,11 @@
 
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+  <!-- Row shown when there is no matching data. -->
+  <tr class="mat-row" *matNoDataRow>
+    <td class="mat-cell" colspan="12">No rows to display</td>
+  </tr>
 </table>
 
 <mat-paginator

@@ -9,6 +9,7 @@ export const NAMESPACE_COLUMN: TableColumn = {
     tooltipField: 'namespace',
     truncate: true,
   }),
+  sort: true,
 };
 
 export function removeColumn(config: TableConfig, name: string) {
