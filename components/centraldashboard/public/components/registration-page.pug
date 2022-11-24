@@ -15,7 +15,7 @@ paper-card#MainCard
             h2 {{localize('registrationPage.lblNamespace')}}
             aside {{localize('registrationPage.lblNamespaceDesc')}}
             md2-input#Namespace(label="{{localize('registrationPage.lblNamespaceName')}}", value='{{namespaceName}}', allowed-pattern='[[_namespaceValidationRegex]]',
-                error='{{localize(error.response.error)}}', disabled='[[submittingWorkgroup]]', maxlength=253)
+                error='{{localize(error.response.error, "namespace", error.response.namespace)}}', disabled='[[submittingWorkgroup]]', maxlength=253)
             iron-a11y-keys#keys(target='[[namespaceInput]]', keys='enter', on-keys-pressed='finishSetup')
             .actions
                 paper-button(on-click='finishSetup', disabled='[[or(submittingWorkgroup, waitForRedirect)]]') {{localize('registrationPage.btnFinish')}}

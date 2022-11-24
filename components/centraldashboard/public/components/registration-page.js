@@ -86,6 +86,16 @@ export class RegistrationPage extends utilitiesMixin(localizationMixin(PolymerEl
         this.showError('registrationPage.errValidation');
     }
 
+    duplicateNamespace(msg) {
+        const finalRgx = /^(profiles.kubeflow.org)[\s\S]*(already exists)$/;
+        if (finalRgx.test(msg)) {
+            this.set('error', {response: {
+                error: 'registrationPage.errDuplicate',
+                namespace: this.namespaceName,
+            }});
+        }
+    }
+
     async pollProfile(times, delay) {
         const profileAPI = this.$.GetMyNamespace;
         if (times < 1) throw Error('Cannot poll profile < 1 times!');
@@ -105,6 +115,9 @@ export class RegistrationPage extends utilitiesMixin(localizationMixin(PolymerEl
         await API.generateRequest().completes.catch((e) => e);
         await this.sleep(1); // So the errors and callbacks can schedule
         if (this.error && this.error.response) {
+            if (this.error.response.error) {
+                this.duplicateNamespace(this.error.response.error);
+            }
             return this.waitForRedirect = false;
         }
         /*
