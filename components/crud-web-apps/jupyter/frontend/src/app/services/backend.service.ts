@@ -61,9 +61,7 @@ export class JWABackendService extends BackendService {
 
     return this.http.get<JWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
-      map((resp: JWABackendResponse) => {
-        return resp.notebook;
-      }),
+      map((resp: JWABackendResponse) => resp.notebook),
     );
   }
 
@@ -74,9 +72,7 @@ export class JWABackendService extends BackendService {
 
     return this.http.get<JWABackendResponse>(url).pipe(
       catchError(error => this.handleErrorExtended(error, [404])),
-      map((resp: JWABackendResponse) => {
-        return resp.pod;
-      }),
+      map((resp: JWABackendResponse) => resp.pod),
     );
   }
 

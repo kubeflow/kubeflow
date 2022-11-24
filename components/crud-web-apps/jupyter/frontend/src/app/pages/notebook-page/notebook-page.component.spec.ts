@@ -4,23 +4,12 @@ import { of } from 'rxjs';
 
 import { NotebookPageComponent } from './notebook-page.component';
 import { RouterTestingModule } from '@angular/router/testing';
-import { ActionsService } from 'src/app/services/actions.service';
 import { NamespaceService } from 'kubeflow';
-let JWABackendServiceStub: Partial<JWABackendService>;
-let ActionsServiceStub: Partial<ActionsService>;
-let NamespaceServiceStub: Partial<NamespaceService>;
-
-JWABackendServiceStub = {
+const JWABackendServiceStub: Partial<JWABackendService> = {
   getNotebook: () => of(),
   getNotebookPod: () => of(),
 };
-ActionsServiceStub = {
-  connectToNotebook: () => {},
-  deleteNotebook: () => of(),
-  startNotebook: () => of(),
-  stopNotebook: () => of(),
-};
-NamespaceServiceStub = {
+const NamespaceServiceStub: Partial<NamespaceService> = {
   updateSelectedNamespace: () => {},
 };
 
@@ -33,7 +22,6 @@ describe('NotebookInfoComponent', () => {
       declarations: [NotebookPageComponent],
       providers: [
         { provide: JWABackendService, useValue: JWABackendServiceStub },
-        { provide: ActionsService, useValue: ActionsServiceStub },
         { provide: NamespaceService, useValue: NamespaceServiceStub },
       ],
       imports: [RouterTestingModule],

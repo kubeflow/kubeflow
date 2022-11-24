@@ -13,13 +13,10 @@ import { JWABackendService } from 'src/app/services/backend.service';
 import { ConfigurationsModule } from './configurations/configurations.module';
 import { OverviewComponent } from './overview.component';
 import { of } from 'rxjs';
-let JWABackendServiceStub: Partial<JWABackendService>;
-let PollerServiceStub: Partial<PollerService>;
-
-JWABackendServiceStub = {
+const JWABackendServiceStub: Partial<JWABackendService> = {
   getPodDefaults: () => of(),
 };
-PollerServiceStub = {
+const PollerServiceStub: Partial<PollerService> = {
   exponential: () => of(),
 };
 
