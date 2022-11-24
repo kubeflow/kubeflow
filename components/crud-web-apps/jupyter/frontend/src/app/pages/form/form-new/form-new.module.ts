@@ -6,37 +6,24 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatExpansionModule } from '@angular/material/expansion';
-
 import { FormNewComponent } from './form-new.component';
-import { FormNameComponent } from './form-name/form-name.component';
-import { FormImageComponent } from './form-image/form-image.component';
-import { FormCpuRamComponent } from './form-cpu-ram/form-cpu-ram.component';
-import { FormGpusComponent } from './form-gpus/form-gpus.component';
-import { FormAdvancedOptionsComponent } from './form-advanced-options/form-advanced-options.component';
-
 import {
   FormModule as KfFormModule,
   TitleActionsToolbarModule,
 } from 'kubeflow';
-import { FormWorkspaceVolumeComponent } from './form-workspace-volume/form-workspace-volume.component';
-import { FormDataVolumesComponent } from './form-data-volumes/form-data-volumes.component';
-import { FormConfigurationsComponent } from './form-configurations/form-configurations.component';
-import { FormAffinityTolerationsComponent } from './form-affinity-tolerations/form-affinity-tolerations.component';
 import { VolumeModule } from './volume/volume.module';
+import { FormAdvancedOptionsModule } from './form-advanced-options/form-advanced-options.module';
+import { FormAffinityTolerationsModule } from './form-affinity-tolerations/form-affinity-tolerations.module';
+import { FormCpuRamModule } from './form-cpu-ram/form-cpu-ram.module';
+import { FormConfigurationsModule } from './form-configurations/form-configurations.module';
+import { FormDataVolumesModule } from './form-data-volumes/form-data-volumes.module';
+import { FormGpusModule } from './form-gpus/form-gpus.module';
+import { FormImageModule } from './form-image/form-image.module';
+import { FormNameModule } from './form-name/form-name.module';
+import { FormWorkspaceVolumeModule } from './form-workspace-volume/form-workspace-volume.module';
 
 @NgModule({
-  declarations: [
-    FormNewComponent,
-    FormNameComponent,
-    FormImageComponent,
-    FormCpuRamComponent,
-    FormWorkspaceVolumeComponent,
-    FormDataVolumesComponent,
-    FormGpusComponent,
-    FormAdvancedOptionsComponent,
-    FormConfigurationsComponent,
-    FormAffinityTolerationsComponent,
-  ],
+  declarations: [FormNewComponent],
   imports: [
     CommonModule,
     KfFormModule,
@@ -47,18 +34,16 @@ import { VolumeModule } from './volume/volume.module';
     MatButtonToggleModule,
     TitleActionsToolbarModule,
     VolumeModule,
+    FormAdvancedOptionsModule,
+    FormAffinityTolerationsModule,
+    FormConfigurationsModule,
+    FormCpuRamModule,
+    FormDataVolumesModule,
+    FormGpusModule,
+    FormImageModule,
+    FormNameModule,
+    FormWorkspaceVolumeModule,
   ],
-  exports: [
-    FormNewComponent,
-    FormNameComponent,
-    FormImageComponent,
-    FormCpuRamComponent,
-    FormWorkspaceVolumeComponent,
-    FormDataVolumesComponent,
-    FormGpusComponent,
-    FormAdvancedOptionsComponent,
-    FormConfigurationsComponent,
-    FormAffinityTolerationsComponent,
-  ],
+  exports: [FormNewComponent],
 })
 export class FormNewModule {}
