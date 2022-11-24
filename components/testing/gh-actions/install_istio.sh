@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-ISTIO_VERSION="1.11.0"
+ISTIO_VERSION="1.16.0"
 echo "Installing Istio ..."
 mkdir istio_tmp
 pushd istio_tmp >/dev/null

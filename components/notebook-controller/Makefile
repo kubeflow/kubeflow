@@ -78,7 +78,7 @@ run: manifests generate fmt vet ## Run a controller from your host.
 
 ##@ Build
 .PHONY: docker-build
-docker-build: test ## Build docker image with the manager.
+docker-build: ## Build docker image with the manager.
 	cd .. && docker build . -t ${IMG}:${TAG} -f ./notebook-controller/Dockerfile
 
 .PHONY: docker-push
