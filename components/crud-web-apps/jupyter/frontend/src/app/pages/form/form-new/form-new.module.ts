@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatExpansionModule } from '@angular/material/expansion';
 
-import { FormDefaultComponent } from './form-default.component';
+import { FormNewComponent } from './form-new.component';
 import { FormNameComponent } from './form-name/form-name.component';
 import { FormImageComponent } from './form-image/form-image.component';
 import { FormCpuRamComponent } from './form-cpu-ram/form-cpu-ram.component';
@@ -26,7 +26,7 @@ import { VolumeModule } from './volume/volume.module';
 
 @NgModule({
   declarations: [
-    FormDefaultComponent,
+    FormNewComponent,
     FormNameComponent,
     FormImageComponent,
     FormCpuRamComponent,
@@ -49,7 +49,7 @@ import { VolumeModule } from './volume/volume.module';
     VolumeModule,
   ],
   exports: [
-    FormDefaultComponent,
+    FormNewComponent,
     FormNameComponent,
     FormImageComponent,
     FormCpuRamComponent,
@@ -61,4 +61,4 @@ import { VolumeModule } from './volume/volume.module';
     FormAffinityTolerationsComponent,
   ],
 })
-export class FormDefaultModule {}
+export class FormNewModule {}

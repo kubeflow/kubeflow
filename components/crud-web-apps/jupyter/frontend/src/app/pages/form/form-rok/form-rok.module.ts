@@ -10,10 +10,10 @@ import {
   TitleActionsToolbarModule,
 } from 'kubeflow';
 import { FormRokComponent } from './form-rok.component';
-import { FormDefaultModule } from '../form-default/form-default.module';
 
 import { RokJupyterLabSelectorComponent } from './rok-jupyter-lab-selector/rok-jupyter-lab-selector.component';
 import { RokFormConfigurationsComponent } from './rok-form-configurations/rok-form-configurations.component';
+import { FormNewModule } from '../form-new/form-new.module';
 
 @NgModule({
   declarations: [
@@ -28,7 +28,7 @@ import { RokFormConfigurationsComponent } from './rok-form-configurations/rok-fo
     MatSlideToggleModule,
     MatIconModule,
     TitleActionsToolbarModule,
-    FormDefaultModule,
+    FormNewModule,
     TitleActionsToolbarModule,
   ],
   exports: [FormRokComponent],

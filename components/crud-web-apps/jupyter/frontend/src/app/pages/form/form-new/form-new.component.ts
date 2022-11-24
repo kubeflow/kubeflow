@@ -2,24 +2,17 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Config, NotebookFormObject } from 'src/app/types';
 import { Subscription } from 'rxjs';
-import {
-  NamespaceService,
-  BackendService,
-  SnackBarService,
-  SnackType,
-  getNameError,
-} from 'kubeflow';
+import { NamespaceService, SnackBarService, SnackType } from 'kubeflow';
 import { Router } from '@angular/router';
 import { getFormDefaults, initFormControls } from './utils';
 import { JWABackendService } from 'src/app/services/backend.service';
-import { environment } from '@app/environment';
 
 @Component({
-  selector: 'app-form-default',
-  templateUrl: './form-default.component.html',
-  styleUrls: ['./form-default.component.scss'],
+  selector: 'app-form-new',
+  templateUrl: './form-new.component.html',
+  styleUrls: ['./form-new.component.scss'],
 })
-export class FormDefaultComponent implements OnInit, OnDestroy {
+export class FormNewComponent implements OnInit, OnDestroy {
   currNamespace = '';
   formCtrl: FormGroup;
   config: Config;

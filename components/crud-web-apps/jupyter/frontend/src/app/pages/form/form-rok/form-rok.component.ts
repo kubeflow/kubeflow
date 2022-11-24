@@ -4,20 +4,20 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Config } from 'src/app/types';
 import { NamespaceService, SnackBarService, RokService } from 'kubeflow';
 import { Router } from '@angular/router';
-import { getFormDefaults, initFormControls } from '../form-default/utils';
+import { getFormDefaults, initFormControls } from '../form-new/utils';
 import { JWABackendService } from 'src/app/services/backend.service';
-import { FormDefaultComponent } from '../form-default/form-default.component';
+import { FormNewComponent } from '../form-new/form-new.component';
 
 @Component({
   selector: 'app-form-rok',
   templateUrl: './form-rok.component.html',
   styleUrls: [
-    '../form-default/form-default.component.scss',
+    '../form-new/form-new.component.scss',
     './form-rok.component.scss',
   ],
 })
 export class FormRokComponent
-  extends FormDefaultComponent
+  extends FormNewComponent
   implements OnInit, OnDestroy
 {
   env = environment;

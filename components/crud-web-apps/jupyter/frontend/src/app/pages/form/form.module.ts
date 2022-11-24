@@ -1,22 +1,17 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
 import { ErrorStateMatcher } from '@angular/material/core';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-
-import { FormDefaultModule } from './form-default/form-default.module';
 import { FormComponent } from './form.component';
-import { FormRokComponent } from './form-rok/form-rok.component';
-
 import {
   FormModule as KfFormModule,
   ImmediateErrorStateMatcher,
 } from 'kubeflow';
 import { FormRokModule } from './form-rok/form-rok.module';
+import { FormNewModule } from './form-new/form-new.module';
 
 @NgModule({
   declarations: [FormComponent],
-  imports: [CommonModule, FormDefaultModule, FormRokModule],
+  imports: [CommonModule, FormNewModule, FormRokModule],
   providers: [
     { provide: ErrorStateMatcher, useClass: ImmediateErrorStateMatcher },
   ],
