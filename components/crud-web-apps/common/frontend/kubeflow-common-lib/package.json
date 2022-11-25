@@ -54,6 +54,7 @@
     "@kubernetes/client-node": "^0.16.3",
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "^2.0.9",
+    "@types/lodash-es": "^4.17.6",
     "@types/node": "^12.11.1",
     "@typescript-eslint/eslint-plugin": "4.28.2",
     "@typescript-eslint/parser": "4.28.2",
