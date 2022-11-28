@@ -1,0 +1,20 @@
+{
+  "/jupyter/*": {
+    "target": "http://localhost:8085",
+    "pathRewrite": { "^/jupyter": "" },
+    "headers": {
+      "kubeflow-userid": "user"
+    },
+    "secure": false,
+    "logLevel": "debug"
+  },
+  "/pipeline/*": {
+    "target": "http://localhost:8086",
+    "pathRewrite": { "^/pipeline": "" },
+    "headers": {
+      "kubeflow-userid": "user"
+    },
+    "secure": false,
+    "logLevel": "debug"
+  }
+}
