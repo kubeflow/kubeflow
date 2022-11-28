@@ -8,7 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
 import { ExistingPvcModule } from './pvc/pvc.module';
-import { AceEditorModule } from 'ng2-ace-editor';
+import { EditorModule } from 'kubeflow';
 
 @NgModule({
   declarations: [ExistingVolumeComponent],
@@ -19,7 +19,7 @@ import { AceEditorModule } from 'ng2-ace-editor';
     MatInputModule,
     MatSelectModule,
     ExistingPvcModule,
-    AceEditorModule,
+    EditorModule,
   ],
   exports: [ExistingVolumeComponent],
 })

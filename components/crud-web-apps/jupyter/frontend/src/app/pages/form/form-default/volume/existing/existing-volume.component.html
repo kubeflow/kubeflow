@@ -32,6 +32,13 @@
   >
   <ng-container i18n> for the supported volumes and their specs</ng-container>
 
-  <div ace-editor mode="yaml" theme="xcode" [(text)]="yaml"></div>
+  <lib-monaco-editor
+    [(text)]="yaml"
+    language="yaml"
+    [readOnly]="false"
+    [height]="250"
+    class="editor"
+  ></lib-monaco-editor>
+
   <mat-error *ngIf="errorParsingYaml">{{ errorParsingYaml }}</mat-error>
 </ng-template>
