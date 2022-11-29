@@ -1,6 +1,7 @@
 # Image URL to use all building/pushing image targets
 IMG ?= notebook-controller
 TAG ?= $(shell git describe --tags --always --dirty)
+ARCH ?= linux/amd64
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd"
@@ -84,6 +85,16 @@ docker-build: ## Build docker image with the manager.
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
 	docker push ${IMG}:${TAG}
+
+.PHONY: docker-build-multi-arch
+docker-build-multi-arch: ##  Build multi-arch docker images with docker buildx
+	cd .. && docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} -f ./notebook-controller/Dockerfile .
+
+
+.PHONY: docker-build-push-multi-arch
+docker-build-push-multi-arch: ## Build multi-arch docker images with docker buildx and push to docker registry 
+	cd .. && docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} --push -f ./notebook-controller/Dockerfile .
+
 
 .PHONY: image
 image: docker-build docker-push ## Build and push docker image with the manager.
