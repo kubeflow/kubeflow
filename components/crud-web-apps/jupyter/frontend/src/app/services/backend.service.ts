@@ -76,6 +76,17 @@ export class JWABackendService extends BackendService {
     );
   }
 
+  public getPodLogs(pod: V1Pod): Observable<string[]> {
+    const namespace = pod.metadata.namespace;
+    const notebookName = pod.metadata.labels['notebook-name'];
+    const podName = pod.metadata.name;
+    const url = `api/namespaces/${namespace}/notebooks/${notebookName}/pod/${podName}/logs`;
+    return this.http.get<JWABackendResponse>(url).pipe(
+      catchError(error => this.handleErrorExtended(error, [404, 400])),
+      map((resp: JWABackendResponse) => resp.logs),
+    );
+  }
+
   public getConfig(): Observable<Config> {
     const url = `api/config`;
 

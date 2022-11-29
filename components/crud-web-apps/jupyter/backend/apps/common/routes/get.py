@@ -78,6 +78,15 @@ def get_notebook_pod(notebook_name, namespace):
 
 
 
+@bp.route("/api/namespaces/<namespace>/notebooks/<notebook_name>/pod/<pod_name>/logs")
+def get_pod_logs(namespace, notebook_name, pod_name):
+    container =  notebook_name
+    logs = api.get_pod_logs(namespace, pod_name, container)
+    return api.success_response(
+        "logs", logs.split("\n"),
+    )
+
+
 
 @bp.route("/api/gpus")
 def get_gpu_vendors():

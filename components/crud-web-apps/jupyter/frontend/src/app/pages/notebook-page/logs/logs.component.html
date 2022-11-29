@@ -1,0 +1,18 @@
+<lib-loading-spinner *ngIf="logsLoading"></lib-loading-spinner>
+
+<!--if no logs are present at all then show a warning message-->
+<ng-container *ngIf="!logsLoading && logsEmpty">
+  <lib-panel *ngIf="!pod"> No logs were found for this Notebook. </lib-panel>
+  <lib-panel *ngIf="pod" icon="error" color="warn">
+    Error: {{ loadErrorMsg }}
+  </lib-panel>
+</ng-container>
+
+<ng-container *ngIf="!logsLoading && !logsEmpty">
+  <lib-logs-viewer
+    class="logs-viewer"
+    heading="Notebook Pod Logs"
+    [subHeading]="''"
+    [logs]="logs"
+  ></lib-logs-viewer>
+</ng-container>

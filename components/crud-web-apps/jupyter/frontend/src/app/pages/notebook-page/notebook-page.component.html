@@ -32,6 +32,16 @@
             ></app-overview>
           </ng-template>
         </mat-tab>
+
+        <mat-tab label="LOGS">
+          <ng-template matTabContent>
+            <app-logs
+              [pod]="notebookPod"
+              [podRequestCompleted]="podRequestCompleted"
+            ></app-logs>
+          </ng-template>
+        </mat-tab>
+
       </mat-tab-group>
     </ng-container>
   </div>
