@@ -7,7 +7,6 @@ import { NotebookRawObject, PodDefault } from 'src/app/types';
 import { EnvironmentVariablesGroup } from '../../../types/environmentVariablesGroup';
 import { Configuration } from 'src/app/types/configuration';
 import { isEqual, get } from 'lodash-es';
-import { getErrorCode } from 'src/app/shared/utils/error';
 
 @Component({
   selector: 'app-overview',
@@ -25,7 +24,6 @@ export class OverviewComponent implements OnInit, OnDestroy {
   private prvPod: V1Pod;
   private pollSub = new Subscription();
 
-  @Input() error = '';
   @Input() notebookStatus: STATUS_TYPE;
 
   @Input()
@@ -211,21 +209,6 @@ export class OverviewComponent implements OnInit, OnDestroy {
       if (container.name === notebook.metadata.name) {
         return container.image;
       }
-    }
-  }
-
-  get podConditionsMessage(): string {
-    return this.getPodConditionsMessage(this.error, this.notebookStatus);
-  }
-
-  getPodConditionsMessage(error: string, notebookStatus: STATUS_TYPE): string {
-    const errorCode = getErrorCode(error);
-    if (errorCode === 404 && notebookStatus === STATUS_TYPE.STOPPED) {
-      return 'This notebook is paused so its Pod was deleted. Click on ‘Start’ to resume your development environment.';
-    } else if (errorCode === 404) {
-      return `The notebook is ${notebookStatus} at the moment so its pod is not available.`;
-    } else {
-      return 'Error: The backend failed to fetch the Pod.';
     }
   }
 

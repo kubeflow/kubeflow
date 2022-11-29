@@ -43,32 +43,16 @@
   ></lib-variables-group-table>
 </lib-content-list-item>
 
-<!-- Show spinner while pod is being fetched -->
-<ng-container *ngIf="!podRequestCompleted">
-  <lib-heading-row
-    class="heading-row"
-    heading="Pod Conditions"
-  ></lib-heading-row>
+<!-- Show spinner while notebooks status is being fetched -->
+<ng-container *ngIf="!notebook?.status">
+  <lib-heading-row class="heading-row" heading="Conditions"></lib-heading-row>
   <lib-loading-spinner></lib-loading-spinner>
 </ng-container>
 
-<!--Show adequate message when no pod is available for this notebook-->
-<ng-container *ngIf="podRequestCompleted && !pod">
-  <lib-heading-row
-    class="heading-row"
-    heading="Pod Conditions"
-  ></lib-heading-row>
-  <lib-panel class="page-padding">
-    {{ podConditionsMessage }}
-  </lib-panel>
-</ng-container>
-
-<!--Show Pod Conditions-->
-<ng-container *ngIf="podRequestCompleted && pod">
-  <lib-conditions-table
-    *ngIf="pod?.status"
-    [conditions]="pod.status?.conditions"
-    title="Pod Conditions"
-    class="page-padding"
-  ></lib-conditions-table>
-</ng-container>
+<!--Show Notebook's Conditions-->
+<lib-conditions-table
+  *ngIf="notebook?.status"
+  [conditions]="notebook.status?.conditions"
+  title="Conditions"
+  class="page-padding"
+></lib-conditions-table>
