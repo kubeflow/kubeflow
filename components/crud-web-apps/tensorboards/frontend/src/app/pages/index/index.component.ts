@@ -12,6 +12,7 @@ import {
   SnackType,
   ToolbarButton,
   PollerService,
+  ToolbarButtonConfig,
 } from 'kubeflow';
 import { defaultConfig } from './config';
 import { environment } from '@app/environment';
@@ -29,7 +30,7 @@ import { FormComponent } from '../form/form.component';
   styleUrls: ['./index.component.scss'],
 })
 export class IndexComponent implements OnInit, OnDestroy {
-  public currNamespace = '';
+  public currNamespace: string | string[];
   public nsSub = new Subscription();
   public pollSub = new Subscription();
 
@@ -37,16 +38,16 @@ export class IndexComponent implements OnInit, OnDestroy {
   public config = defaultConfig;
   public processedData: TensorboardProcessedObject[] = [];
 
-  buttons: ToolbarButton[] = [
-    new ToolbarButton({
-      text: `New TensorBoard`,
-      icon: 'add',
-      stroked: true,
-      fn: () => {
-        this.newResourceClicked();
-      },
-    }),
-  ];
+  private newTensorBoardButton = new ToolbarButton({
+    text: $localize`New TensorBoard`,
+    icon: 'add',
+    stroked: true,
+    fn: () => {
+      this.newResourceClicked();
+    },
+  });
+
+  buttons: ToolbarButton[] = [this.newTensorBoardButton];
 
   constructor(
     public ns: NamespaceService,
@@ -58,9 +59,10 @@ export class IndexComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.nsSub = this.ns.getSelectedNamespace().subscribe(ns => {
+    this.nsSub = this.ns.getSelectedNamespace2().subscribe(ns => {
       this.currNamespace = ns;
       this.poll(ns);
+      this.newTensorBoardButton.namespaceChanged(ns, $localize`TensorBoard`);
     });
   }
 
@@ -69,11 +71,11 @@ export class IndexComponent implements OnInit, OnDestroy {
     this.pollSub.unsubscribe();
   }
 
-  public poll(ns: string) {
+  public poll(ns: string | string[]) {
     this.pollSub.unsubscribe();
     this.processedData = [];
 
-    const request = this.backend.getTensorboards(ns);
+    const request = this.backend.getTensorBoards(ns);
 
     this.pollSub = this.poller.exponential(request).subscribe(tensorboards => {
       this.processedData = this.processIncomingData(tensorboards);
@@ -132,7 +134,9 @@ export class IndexComponent implements OnInit, OnDestroy {
         .deleteTensorboard(tensorboard.namespace, tensorboard.name)
         .subscribe({
           next: _ => {
-            this.poll(tensorboard.namespace);
+            // We don't want to use the namespace of the deleted object since
+            // it might override the selected all-namespaces
+            this.poll(this.currNamespace);
             ref.close(DIALOG_RESP.ACCEPT);
           },
           error: err => {

@@ -13,6 +13,11 @@ declare global {
       selectNamespace(ns: string): Chainable;
 
       /**
+       * Custom command to select all-namespaces option from the dropdown
+       */
+      selectAllNamespaces(): Chainable;
+
+      /**
        * Custom command to create a Notebook with random suffixed name
        */
       createNotebook(): Chainable;

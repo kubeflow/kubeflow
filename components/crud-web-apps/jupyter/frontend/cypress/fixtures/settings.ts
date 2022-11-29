@@ -1,5 +1,5 @@
 export const settings = {
-  // namespace to create test InferenceServices in
+  // namespace to create test Notebooks in
   namespace: 'default',
 
   // POST/PATCH/PUT/DELETE requests will need these headers since we are

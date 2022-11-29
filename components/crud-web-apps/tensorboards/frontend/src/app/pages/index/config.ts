@@ -74,8 +74,9 @@ const actionsCol: TableColumn = {
   ]),
 };
 
-export const defaultConfig = {
+export const defaultConfig: TableConfig = {
   title: tableConfig.title,
+  dynamicNamespaceColumn: true,
   newButtonText: tableConfig.newButtonText,
   columns: tableConfig.columns.concat(actionsCol),
 };

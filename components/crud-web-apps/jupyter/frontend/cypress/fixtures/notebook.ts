@@ -13,8 +13,6 @@ export const notebook = {
   memory: '1Gi',
   memoryLimit: '',
   gpus: { num: 'none' },
-  noWorkspace: true,
-  workspace: {},
   affinityConfig: '',
   tolerationGroup: '',
   datavols: [],

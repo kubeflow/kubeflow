@@ -50,7 +50,7 @@ export class FormComponent implements OnInit, OnDestroy {
         this.currNamespace = ns;
         this.formCtrl.controls.namespace.setValue(ns);
 
-        this.backend.getTensorboards(ns).subscribe(tensorboards => {
+        this.backend.getTensorBoards(ns).subscribe(tensorboards => {
           this.tensorboardNames.clear();
           tensorboards.forEach(tensorboard =>
             this.tensorboardNames.add(tensorboard.name),
