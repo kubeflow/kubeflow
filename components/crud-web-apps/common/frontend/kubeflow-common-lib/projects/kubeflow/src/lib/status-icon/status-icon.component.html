@@ -1,0 +1,18 @@
+<mat-icon
+  *ngIf="!stateChanging"
+  class="small-padding-right"
+  [class.warning]="statusIcon === 'warning'"
+  [class.check-circle]="statusIcon === 'check_circle'"
+  [class.stop-circle]="statusIcon === 'stop_circle'"
+>
+  {{ statusIcon }}
+</mat-icon>
+
+<mat-progress-spinner
+  *ngIf="stateChanging"
+  class="small-padding-right"
+  mode="indeterminate"
+  diameter="25"
+>
+  {{ statusIcon }}
+</mat-progress-spinner>

@@ -1,0 +1,13 @@
+<div class="env-group-container" *ngFor="let envGroup of envGroups">
+  <div class="group-key">{{ envGroup.name }}</div>
+  <mat-chip-list class="chip-list-wa">
+    <div *ngFor="let chip of envGroup.chipsList">
+      <mat-chip color="primary" class="list-chip">
+        {{ chip.value }}
+      </mat-chip>
+    </div>
+  </mat-chip-list>
+</div>
+
+<ng-content class="vertical-align"> </ng-content>
+<div *ngIf="envGroupsEmpty() && loadCompleted">{{ loadErrorMsg }}</div>

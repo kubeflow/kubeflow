@@ -139,4 +139,5 @@ def notebook_dict_from_k8s_obj(notebook):
         "memory": cntr["resources"]["requests"]["memory"],
         "volumes": [v["name"] for v in cntr["volumeMounts"]],
         "status": status.process_status(notebook),
+        "metadata": notebook["metadata"]
     }

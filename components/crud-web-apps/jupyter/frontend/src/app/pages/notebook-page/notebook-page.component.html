@@ -1,0 +1,38 @@
+<div class="lib-content-wrapper details-page">
+  <lib-title-actions-toolbar
+    title="Notebook details"
+    [buttons]="buttonsConfig"
+    [backButton]="true"
+    (back)="navigateBack()"
+  >
+  </lib-title-actions-toolbar>
+
+  <div class="details-page-outer">
+    <lib-loading-spinner *ngIf="!notebookInfoLoaded"></lib-loading-spinner>
+
+    <ng-container *ngIf="notebookInfoLoaded">
+      <div class="details-page-inner">
+        <div class="details-page-inner-2">
+          <lib-status-icon
+            [stateChanging]="notebookStateChanging"
+            [status]="status"
+          ></lib-status-icon>
+          <div class="title">{{ notebookName }}</div>
+        </div>
+      </div>
+      <mat-tab-group dynamicHeight animationDuration="0ms">
+        <mat-tab label="OVERVIEW">
+          <ng-template matTabContent>
+            <app-overview
+              *ngIf="notebookInfoLoaded"
+              [notebook]="notebook"
+              [pod]="notebookPod"
+              [podRequestCompleted]="podRequestCompleted"
+              [notebookStatus]="status"
+            ></app-overview>
+          </ng-template>
+        </mat-tab>
+      </mat-tab-group>
+    </ng-container>
+  </div>
+</div>

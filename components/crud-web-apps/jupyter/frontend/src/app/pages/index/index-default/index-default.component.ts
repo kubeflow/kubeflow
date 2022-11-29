@@ -99,6 +99,23 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
       case 'start-stop':
         this.startStopClicked(a.data);
         break;
+      case 'name:link':
+        if (a.data.metadata.deletionTimestamp) {
+          this.snackBar.open(
+            'Notebook is being deleted, cannot show details.',
+            SnackType.Info,
+            4000,
+          );
+          return;
+        }
+        this.router.navigate(
+          [`/notebook/details/${a.data.namespace}/${a.data.name}`],
+          {
+            queryParams: { tab: 'overview' },
+            queryParamsHandling: '',
+          },
+        );
+        break;
     }
   }
 

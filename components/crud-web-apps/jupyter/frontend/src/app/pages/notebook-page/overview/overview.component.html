@@ -1,0 +1,58 @@
+<lib-details-list-item key="Volumes" [chipsList]="volumes">
+</lib-details-list-item>
+
+<lib-details-list-item key="Shared memory enabled">
+  {{ sharedMemory }}
+</lib-details-list-item>
+
+<lib-content-list-item class="configurations" key="Configurations">
+  <app-configurations [configurations]="configurations">
+    {{ podDefaultsMessage }}
+  </app-configurations>
+</lib-content-list-item>
+
+<lib-details-list-item key="Type">
+  {{ notebookType }}
+</lib-details-list-item>
+
+<lib-details-list-item *ngIf="cpuRequests" key="Minimum CPU">
+  {{ cpuRequests }}
+</lib-details-list-item>
+
+<lib-details-list-item *ngIf="cpuLimits" key="Maximum CPU">
+  {{ cpuLimits }}
+</lib-details-list-item>
+
+<lib-details-list-item *ngIf="memoryRequests" key="Minimum memory">
+  {{ memoryRequests }}
+</lib-details-list-item>
+
+<lib-details-list-item *ngIf="memoryLimits" key="Maximum memory">
+  {{ memoryLimits }}
+</lib-details-list-item>
+
+<lib-details-list-item key="Image" [copyValue]="dockerImage">
+  {{ dockerImage }}
+</lib-details-list-item>
+
+<lib-content-list-item key="Environment">
+  <lib-variables-group-table
+    [envGroups]="envGroups"
+    [loadCompleted]="podRequestCompleted"
+    [loadErrorMsg]="'No environment variables available for this notebook.'"
+  ></lib-variables-group-table>
+</lib-content-list-item>
+
+<!-- Show spinner while notebooks status is being fetched -->
+<ng-container *ngIf="!notebook?.status">
+  <lib-heading-row class="heading-row" heading="Conditions"></lib-heading-row>
+  <lib-loading-spinner></lib-loading-spinner>
+</ng-container>
+
+<!--Show Notebook's Conditions-->
+<lib-conditions-table
+  *ngIf="notebook?.status"
+  [conditions]="notebook.status?.conditions"
+  title="Conditions"
+  class="page-padding"
+></lib-conditions-table>

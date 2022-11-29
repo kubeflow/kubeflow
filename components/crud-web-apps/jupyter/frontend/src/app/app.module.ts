@@ -10,6 +10,7 @@ import { FormModule } from './pages/form/form.module';
 import { KubeflowModule } from 'kubeflow';
 
 import { HttpClientModule, HttpClient } from '@angular/common/http';
+import { NotebookPageModule } from './pages/notebook-page/notebook-page.module';
 
 @NgModule({
   declarations: [AppComponent],
@@ -21,6 +22,7 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
     KubeflowModule,
     IndexModule,
     FormModule,
+    NotebookPageModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
