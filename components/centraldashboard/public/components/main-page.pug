@@ -52,6 +52,10 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
                 a(href$='[[_buildHref("/manage-users", queryParams.*)]]', tabindex='-1')
                     paper-item.menu-item#contributors {{localize('mainPage.menuManageContributors')}}
             aside.divider
+            a(href$='[[_getGrafanaUrl(namespace)]]',
+                tabindex='-1', target="_blank")
+                paper-item.menu-item {{localize('mainPage.menuMetrics')}}
+                    iron-icon.external(icon="launch")
             a(href='https://github.com/kubeflow/kubeflow',
                 tabindex='-1', target="_blank")
                 paper-item.menu-item {{localize('mainPage.menuGitHub')}}
