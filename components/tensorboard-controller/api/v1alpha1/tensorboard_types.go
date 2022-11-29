@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -29,6 +30,16 @@ type TensorboardSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	LogsPath string `json:"logspath"`
+	// TensorBoard image to use for this tensorboard deployment
+	// +optional
+	Image string `json:"image,omitempty"`
+	// Specify the secret key to use for pulling images from a private Docker repository.
+	// +optional
+	ImagePullSecret corev1.LocalObjectReference `json:"imagePullSecret,omitempty"`
+	// The pull policy for the TensorBoard image.
+	// Refer to the Kubernetes documentation for details https://kubernetes.io/docs/concepts/containers/images#updating-images
+	// +optional
+	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 }
 
 // TensorboardCondition defines the observed state of Tensorboard
