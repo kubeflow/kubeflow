@@ -12,7 +12,7 @@
     "start": "npm run serve",
     "test": "ts-node --transpile-only node_modules/jasmine/bin/jasmine --config=app/.jasmine.json --reporter=jasmine-console-reporter",
     "tslint": "tslint -c tslint.json -p tsconfig.json",
-    "coverage": "nyc npm run test-server",
+    "coverage": "nyc npm run test",
     "watch-node": "nodemon dist/server.js",
     "watch-ts": "tsc -w"
   },
