@@ -26,8 +26,7 @@ import { Router } from '@angular/router';
 })
 export class IndexRokComponent
   extends IndexDefaultComponent
-  implements OnInit, OnDestroy
-{
+  implements OnInit, OnDestroy {
   config = rokConfig;
 
   constructor(
@@ -40,15 +39,7 @@ export class IndexRokComponent
     public poller: PollerService,
     public router: Router,
   ) {
-    super(
-      ns,
-      confirmDialog,
-      backend,
-      dialog,
-      snackBar,
-      poller,
-      router,
-    );
+    super(ns, confirmDialog, backend, dialog, snackBar, poller, router);
   }
 
   ngOnInit() {
