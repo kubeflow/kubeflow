@@ -9,6 +9,7 @@ on:
       - components/crud-web-apps/jupyter/frontend/**
       - components/crud-web-apps/tensorboards/frontend/**
       - components/crud-web-apps/volumes/frontend/**
+      - components/centraldashboard-angular/frontend/**
 
 jobs:
   lint-common-code:
@@ -66,3 +67,17 @@ jobs:
         cd components/crud-web-apps/volumes/frontend
         npm i
         npm run lint-check
+
+  lint-centraldashboard-angular-code:
+    name: CentralDashboard-angular web app
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 12
+    - name: Lint CentralDashboard-angular web app
+      run: |
+        cd components/centraldashboard-angular/frontend
+        npm i
+        npm run tslint
