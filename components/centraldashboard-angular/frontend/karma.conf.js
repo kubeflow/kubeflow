@@ -28,13 +28,20 @@ module.exports = function (config) {
       dir: require("path").join(__dirname, "./coverage/frontend"),
       subdir: ".",
       reporters: [{ type: "html" }, { type: "text-summary" }],
+      skipFilesWithNoCoverage: false,
     },
     reporters: ["progress", "kjhtml"],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ["Chrome"],
+    browsers: ['Chrome','ChromeHeadlessNoSandbox'],
+    customLaunchers: {
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox']
+      }
+    },
     singleRun: false,
     restartOnFileChange: true,
   });

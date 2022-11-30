@@ -6,7 +6,12 @@
     "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:prod": "ng test --no-watch --browsers ChromeHeadlessNoSandbox",
+    "tslint": "tslint -c tslint.json -p tsconfig.json",
+    "coverage": "ng test --no-watch --code-coverage --browsers ChromeHeadlessNoSandbox",
+    "format:check": "prettier --check 'src/**/*.{js,ts,html,scss,css}' || node scripts/check-format-error.js",
+    "format:write": "prettier --write 'src/**/*.{js,ts,html,scss,css}'"
   },
   "private": true,
   "dependencies": {
@@ -36,6 +41,8 @@
     "karma-coverage": "~2.0.3",
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "~1.7.0",
+    "prettier": "^2.3.1",
+    "tslint": "^6.1.3",
     "typescript": "~4.3.5"
   }
 }
