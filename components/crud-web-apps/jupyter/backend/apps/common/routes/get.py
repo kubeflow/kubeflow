@@ -87,6 +87,14 @@ def get_pod_logs(namespace, notebook_name, pod_name):
     )
 
 
+@bp.route("/api/namespaces/<namespace>/notebooks/<notebook_name>/events")
+def get_notebook_events(notebook_name, namespace):
+    events = api.list_notebook_events(notebook_name, namespace).items
+
+    return api.success_response(
+        "events", api.serialize(events),
+    )
+
 
 @bp.route("/api/gpus")
 def get_gpu_vendors():
