@@ -1,12 +1,5 @@
 name: Build & Publish Notebook Controller Docker image
 on:
-  push:
-    branches:
-      - master
-      - v*-branch
-    paths:
-      - components/notebook-controller/**
-      - components/common/**
   pull_request:
     branches:
       - master
@@ -14,6 +7,8 @@ on:
     paths:
       - components/notebook-controller/**
       - components/common/**
+    types:
+      - closed
 
 env:
   DOCKER_USER: kubeflownotebookswg
@@ -23,13 +18,13 @@ env:
 jobs:
   push_to_registry:
     name: Build & Push Docker image to Docker Hub
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Login to DockerHub
-        if: github.event_name == 'push'
         uses: docker/login-action@v2
         with:
           username: ${{ env.DOCKER_USER }}
@@ -49,7 +44,6 @@ jobs:
           make docker-build-multi-arch
 
       - name: Build  and push multi-arch docker image
-        if: github.event_name == 'push'
         run: |
           cd components/notebook-controller
           make docker-build-push-multi-arch
