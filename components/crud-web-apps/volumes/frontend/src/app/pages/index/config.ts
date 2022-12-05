@@ -24,6 +24,7 @@ export const tableConfig: TableConfig = {
       value: new PropertyValue({
         field: 'name',
         tooltipField: 'name',
+        isLink: true,
         truncate: true,
       }),
       sort: true,

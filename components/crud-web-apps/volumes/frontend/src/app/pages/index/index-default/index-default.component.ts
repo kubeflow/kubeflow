@@ -18,6 +18,7 @@ import { VWABackendService } from 'src/app/services/backend.service';
 import { PVCResponseObject, PVCProcessedObject } from 'src/app/types';
 import { Subscription } from 'rxjs';
 import { FormDefaultComponent } from '../../form/form-default/form-default.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-index-default',
@@ -52,6 +53,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     public dialog: MatDialog,
     public snackBar: SnackBarService,
     public poller: PollerService,
+    public router: Router,
   ) {}
 
   ngOnInit() {
@@ -83,6 +85,19 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     switch (a.action) {
       case 'delete':
         this.deleteVolumeClicked(a.data);
+        break;
+      case 'name:link':
+        if (a.data.status.phase === STATUS_TYPE.TERMINATING) {
+          this.snackBar.open(
+            'PVC is unavailable now.',
+            SnackType.Warning,
+            3000,
+          );
+          return;
+        }
+        this.router.navigate([
+          `/volume/details/${a.data.namespace}/${a.data.name}`,
+        ]);
         break;
     }
   }

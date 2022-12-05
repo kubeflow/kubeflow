@@ -23,6 +23,7 @@ import { IndexDefaultComponent } from './pages/index/index-default/index-default
 import { IndexRokComponent } from './pages/index/index-rok/index-rok.component';
 
 import { HttpClientModule, HttpClient } from '@angular/common/http';
+import { VolumeDetailsPageModule } from './pages/volume-details-page/volume-details-page.module';
 
 @NgModule({
   declarations: [
@@ -43,6 +44,7 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
     FormModule,
     KubeflowModule,
     HttpClientModule,
+    VolumeDetailsPageModule,
   ],
   providers: [
     { provide: ErrorStateMatcher, useClass: ImmediateErrorStateMatcher },
