@@ -13,6 +13,7 @@ import {
   ToolbarButton,
   PollerService,
   ToolbarButtonConfig,
+  DashboardState,
 } from 'kubeflow';
 import { defaultConfig } from './config';
 import { environment } from '@app/environment';
@@ -37,6 +38,7 @@ export class IndexComponent implements OnInit, OnDestroy {
   public env = environment;
   public config = defaultConfig;
   public processedData: TensorboardProcessedObject[] = [];
+  public dashboardDisconnectedState = DashboardState.Disconnected;
 
   private newTensorBoardButton = new ToolbarButton({
     text: $localize`New TensorBoard`,

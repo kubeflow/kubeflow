@@ -14,6 +14,7 @@ import {
   addColumn,
   removeColumn,
   PollerService,
+  DashboardState,
 } from 'kubeflow';
 import { JWABackendService } from 'src/app/services/backend.service';
 import { Observable, Subscription, of, forkJoin } from 'rxjs';
@@ -41,6 +42,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   currNamespace: string | string[];
   config = defaultConfig;
   processedData: NotebookProcessedObject[] = [];
+  dashboardDisconnectedState = DashboardState.Disconnected;
 
   private newNotebookButton = new ToolbarButton({
     text: $localize`New Notebook`,

@@ -11,6 +11,7 @@ import {
   SnackType,
   ToolbarButton,
   PollerService,
+  DashboardState,
 } from 'kubeflow';
 import { defaultConfig } from './config';
 import { environment } from '@app/environment';
@@ -35,6 +36,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   public currNamespace: string | string[];
   public processedData: PVCProcessedObject[] = [];
   public pvcsWaitingViewer = new Set<string>();
+  public dashboardDisconnectedState = DashboardState.Disconnected;
 
   private newVolumeButton = new ToolbarButton({
     text: $localize`New Volume`,
