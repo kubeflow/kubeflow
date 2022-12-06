@@ -1,6 +1,7 @@
 import {html, PolymerElement} from '@polymer/polymer';
+import localizationMixin from './localization-mixin.js';
 
-export class NamespaceNeededView extends PolymerElement {
+export class NamespaceNeededView extends localizationMixin(PolymerElement) {
     static get template() {
         return html`
             <style>
@@ -18,7 +19,9 @@ export class NamespaceNeededView extends PolymerElement {
                     transform: translateY(-50%);
                 }
             </style>
-            <p>Please select a <strong>namespace</strong> from the top bar</p>
+            <p>{{localize('namespaceNeeded.text1')}}
+            <strong>{{localize('namespaceNeeded.text2')}}</strong>
+            {{localize('namespaceNeeded.text3')}}</p>
         `;
     }
 }
