@@ -80,4 +80,4 @@ jobs:
       run: |
         cd components/centraldashboard-angular/frontend
         npm i
-        npm run tslint
+        npm run lint

@@ -1,4 +1,4 @@
-name: CentralDashboard-angular Frontend check
+name: CentralDashboard-angular Frontend Tests
 on:
   pull_request:
     paths:
