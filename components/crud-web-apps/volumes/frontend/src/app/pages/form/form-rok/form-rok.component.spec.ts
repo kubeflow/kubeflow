@@ -6,16 +6,24 @@ import { Observable, of } from 'rxjs';
 import { VWABackendService } from 'src/app/services/backend.service';
 
 import { FormRokComponent } from './form-rok.component';
-let VWABackendServiceStub: Partial<VWABackendService>;
-let FormBuilderStub: Partial<FormBuilder>;
-let RokServiceStub: Partial<RokService>;
-let MockBackendService: Partial<BackendService>;
-
-VWABackendServiceStub = {
+const VWABackendServiceStub: Partial<VWABackendService> = {
   getStorageClasses: () => of(),
   getDefaultStorageClass: () => of(),
   getPVCs: () => of(),
   createPVC: () => of(),
+};
+const FormBuilderStub: Partial<FormBuilder> = {
+  group: () => mockFormGroup,
+};
+const RokServiceStub: Partial<RokService> = {
+  initCSRF: () => {},
+  getObjectMetadata: () => of(),
+  getRokManagedStorageClasses: () => of(),
+};
+const MockBackendService: Partial<BackendService> = {
+  getNamespaces(): Observable<string[]> {
+    return of([]);
+  },
 };
 
 function getFormDefaults(): FormGroup {
@@ -31,22 +39,6 @@ function getFormDefaults(): FormGroup {
   });
 }
 const mockFormGroup: FormGroup = getFormDefaults();
-
-FormBuilderStub = {
-  group: () => mockFormGroup,
-};
-
-RokServiceStub = {
-  initCSRF: () => {},
-  getObjectMetadata: () => of(),
-  getRokManagedStorageClasses: () => of(),
-};
-
-MockBackendService = {
-  getNamespaces(): Observable<string[]> {
-    return of([]);
-  },
-};
 
 describe('FormRokComponent', () => {
   let component: FormRokComponent;

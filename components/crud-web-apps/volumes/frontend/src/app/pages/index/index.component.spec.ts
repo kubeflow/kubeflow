@@ -15,26 +15,18 @@ import { IndexDefaultComponent } from './index-default/index-default.component';
 
 import { IndexComponent } from './index.component';
 
-let VWABackendServiceStub: Partial<VWABackendService>;
-let SnackBarServiceStub: Partial<SnackBarService>;
-let NamespaceServiceStub: Partial<NamespaceService>;
-let MockBackendService: Partial<BackendService>;
-
-VWABackendServiceStub = {
+const VWABackendServiceStub: Partial<VWABackendService> = {
   getPVCs: () => of(),
 };
-
-SnackBarServiceStub = {
+const SnackBarServiceStub: Partial<SnackBarService> = {
   open: () => {},
   close: () => {},
 };
-
-NamespaceServiceStub = {
+const NamespaceServiceStub: Partial<NamespaceService> = {
   getSelectedNamespace: () => of(),
   getSelectedNamespace2: () => of(),
 };
-
-MockBackendService = {
+const MockBackendService: Partial<BackendService> = {
   getNamespaces(): Observable<string[]> {
     return of([]);
   },

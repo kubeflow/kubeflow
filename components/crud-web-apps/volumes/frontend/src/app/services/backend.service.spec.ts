@@ -3,9 +3,7 @@ import { VWABackendService } from './backend.service';
 import { HttpClientModule } from '@angular/common/http';
 import { SnackBarService } from 'kubeflow';
 
-let SnackBarServiceStub: Partial<SnackBarService>;
-
-SnackBarServiceStub = {
+const SnackBarServiceStub: Partial<SnackBarService> = {
   open: () => {},
 };
 

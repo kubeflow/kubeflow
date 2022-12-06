@@ -4,13 +4,10 @@ import { of } from 'rxjs';
 import { ActionsService } from './actions.service';
 import { VWABackendService } from './backend.service';
 
-let VWABackendServiceStub: Partial<VWABackendService>;
-let SnackBarServiceStub: Partial<SnackBarService>;
-
-VWABackendServiceStub = {
+const VWABackendServiceStub: Partial<VWABackendService> = {
   deletePVC: () => of(),
 };
-SnackBarServiceStub = {
+const SnackBarServiceStub: Partial<SnackBarService> = {
   open: () => {},
 };
 

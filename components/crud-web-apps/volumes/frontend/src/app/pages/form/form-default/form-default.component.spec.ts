@@ -7,14 +7,14 @@ import { VWABackendService } from 'src/app/services/backend.service';
 
 import { FormDefaultComponent } from './form-default.component';
 
-let VWABackendServiceStub: Partial<VWABackendService>;
-let FormBuilderStub: Partial<FormBuilder>;
-
-VWABackendServiceStub = {
+const VWABackendServiceStub: Partial<VWABackendService> = {
   getStorageClasses: () => of(),
   getDefaultStorageClass: () => of(),
   getPVCs: () => of(),
   createPVC: () => of(),
+};
+const FormBuilderStub: Partial<FormBuilder> = {
+  group: () => mockFormGroup,
 };
 
 function getFormDefaults(): FormGroup {
@@ -31,25 +31,23 @@ function getFormDefaults(): FormGroup {
 }
 const mockFormGroup: FormGroup = getFormDefaults();
 
-FormBuilderStub = {
-  group: () => mockFormGroup,
-};
-
 describe('FormDefaultComponent', () => {
   let component: FormDefaultComponent;
   let fixture: ComponentFixture<FormDefaultComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [FormDefaultComponent],
-      providers: [
-        { provide: FormBuilder, useValue: FormBuilderStub },
-        { provide: VWABackendService, useValue: VWABackendServiceStub },
-        { provide: MatDialogRef, useValue: {} },
-      ],
-      imports: [KubeflowModule],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [FormDefaultComponent],
+        providers: [
+          { provide: FormBuilder, useValue: FormBuilderStub },
+          { provide: VWABackendService, useValue: VWABackendServiceStub },
+          { provide: MatDialogRef, useValue: {} },
+        ],
+        imports: [KubeflowModule],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(FormDefaultComponent);

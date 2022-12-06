@@ -4,13 +4,10 @@ import { VWABackendService } from 'src/app/services/backend.service';
 import { of } from 'rxjs';
 import { EventsComponent } from './events.component';
 
-let VWABackendServiceStub: Partial<VWABackendService>;
-let PollerServiceStub: Partial<PollerService>;
-
-VWABackendServiceStub = {
+const VWABackendServiceStub: Partial<VWABackendService> = {
   getPVCEvents: () => of(),
 };
-PollerServiceStub = {
+const PollerServiceStub: Partial<PollerService> = {
   exponential: () => of(),
 };
 
