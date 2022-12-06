@@ -491,7 +491,6 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
         }
         this.ownedNamespace = namespaces.find((n) => n.role == 'owner');
         this.multiOwnedNamespaces = ownerRoleNamespaces;
-        this.multiOwnedNamespaces = ownerRoleNamespaces;
         this.platformInfo = platform;
         const kVer = this.platformInfo.kubeflowVersion;
         if (kVer && kVer != 'unknown') {
@@ -499,6 +498,11 @@ export class MainPage extends utilitiesMixin(localizationMixin(PolymerElement)) 
         }
         // trigger template render
         this.menuLinks = JSON.parse(JSON.stringify(this.menuLinks));
+    }
+
+    _showManageUsers(isolationMode, ownedNamespace) {
+        return isolationMode==='multi-user'
+            && ownedNamespace!==undefined;
     }
 }
 

@@ -263,8 +263,7 @@ export class WorkgroupApi {
                     const workgroup = await this.getWorkgroupInfo(
                         req.user,
                     );
-                    response.hasWorkgroup = !!(workgroup.namespaces || [])
-                        .find((w) => w.role === 'owner');
+                    response.hasWorkgroup = !!(workgroup.namespaces && workgroup.namespaces.length);
                 } else {
                     // Basic auth workgroup condition
                     response.hasWorkgroup = !!(await this.getAllWorkgroups(req.user.username)).length;
