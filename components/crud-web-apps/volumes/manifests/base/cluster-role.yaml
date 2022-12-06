@@ -43,6 +43,12 @@ rules:
   - events
   verbs:
   - list
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - notebooks
+  verbs:
+  - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
