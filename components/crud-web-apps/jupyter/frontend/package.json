@@ -15,6 +15,7 @@
     "format:write": "prettier --write 'src/**/*.{js,ts,html,scss,css}'",
     "i18n:extract": "ng extract-i18n --output-path i18n",
     "test": "ng test",
+    "test:prod": "ng test --browsers=ChromeHeadless --watch=false",
     "e2e": "cypress open .",
     "e2e-ci": "cypress run .",
     "lint-check": "ng lint",
