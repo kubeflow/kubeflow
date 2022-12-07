@@ -2,12 +2,14 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { V1PersistentVolumeClaim } from '@kubernetes/client-node';
 import {
+  DIALOG_RESP,
   NamespaceService,
   PollerService,
   STATUS_TYPE,
   ToolbarButton,
 } from 'kubeflow';
 import { Subscription } from 'rxjs';
+import { ActionsService } from 'src/app/services/actions.service';
 import { VWABackendService } from 'src/app/services/backend.service';
 
 @Component({
@@ -20,7 +22,16 @@ export class VolumeDetailsPageComponent implements OnInit, OnDestroy {
   public namespace: string;
   public pvc: V1PersistentVolumeClaim;
   public pvcInfoLoaded = false;
-  public buttonsConfig: ToolbarButton[] = [];
+  public buttonsConfig: ToolbarButton[] = [
+    new ToolbarButton({
+      text: 'DELETE',
+      icon: 'delete',
+      tooltip: 'Delete this volume',
+      fn: () => {
+        this.deleteVolume();
+      },
+    }),
+  ];
 
   pollSub = new Subscription();
 
@@ -29,6 +40,7 @@ export class VolumeDetailsPageComponent implements OnInit, OnDestroy {
     public backend: VWABackendService,
     public poller: PollerService,
     public router: Router,
+    public actions: ActionsService,
     private route: ActivatedRoute,
   ) {}
 
@@ -60,6 +72,15 @@ export class VolumeDetailsPageComponent implements OnInit, OnDestroy {
 
   navigateBack() {
     this.router.navigate(['']);
+  }
+
+  private deleteVolume() {
+    this.actions.deleteVolume(this.name, this.namespace).subscribe(result => {
+      if (result !== DIALOG_RESP.ACCEPT) {
+        return;
+      }
+      this.navigateBack();
+    });
   }
 
   get status(): STATUS_TYPE {
