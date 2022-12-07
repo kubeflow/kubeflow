@@ -23,11 +23,7 @@ import { FormNewComponent } from './form-new.component';
 import { FormWorkspaceVolumeModule } from './form-workspace-volume/form-workspace-volume.module';
 import { VolumeModule } from './volume/volume.module';
 
-let JWABackendServiceStub: Partial<JWABackendService>;
-let NamespaceServiceStub: Partial<NamespaceService>;
-let SnackBarServiceStub: Partial<SnackBarService>;
-
-JWABackendServiceStub = {
+const JWABackendServiceStub = {
   getConfig: () => of(),
   createNotebook: () => of(),
   getGPUVendors: () => of(),
@@ -35,12 +31,12 @@ JWABackendServiceStub = {
   getDefaultStorageClass: () => of(),
 };
 
-NamespaceServiceStub = {
+const NamespaceServiceStub = {
   getSelectedNamespace: () => of(),
   getSelectedNamespace2: () => of(),
 };
 
-SnackBarServiceStub = {
+const SnackBarServiceStub = {
   open: () => {},
   close: () => {},
 };
