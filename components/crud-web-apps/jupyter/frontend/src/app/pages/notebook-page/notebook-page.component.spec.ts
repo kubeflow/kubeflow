@@ -4,7 +4,8 @@ import { of } from 'rxjs';
 
 import { NotebookPageComponent } from './notebook-page.component';
 import { RouterTestingModule } from '@angular/router/testing';
-import { NamespaceService } from 'kubeflow';
+import { KubeflowModule, NamespaceService } from 'kubeflow';
+
 const JWABackendServiceStub: Partial<JWABackendService> = {
   getNotebook: () => of(),
   getNotebookPod: () => of(),
@@ -24,7 +25,7 @@ describe('NotebookInfoComponent', () => {
         { provide: JWABackendService, useValue: JWABackendServiceStub },
         { provide: NamespaceService, useValue: NamespaceServiceStub },
       ],
-      imports: [RouterTestingModule],
+      imports: [KubeflowModule, RouterTestingModule],
     }).compileComponents();
   });
 
