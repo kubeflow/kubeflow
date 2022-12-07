@@ -1,0 +1,53 @@
+name: Profile Controller Intergration Test
+on:
+  pull_request:
+    paths:
+      - components/profile-controller/**
+    branches:
+      - master
+      - v*-branch
+
+env:
+  IMG: profile-controller
+  TAG: intergration-test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Build Profile Controller Image 
+      run: |
+        cd components/profile-controller
+        make docker-build IMG=${{env.IMG}} TAG=${{env.TAG}}
+
+    - name: Install KinD
+      run: ./components/testing/gh-actions/install_kind.sh
+
+    - name: Create KinD Cluster
+      run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml --name prof-controller
+
+    - name: Load image into KinD Cluster 
+      run: kind load docker-image ${{env.IMG}}:${{env.TAG}} --name prof-controller
+
+    - name: Install kustomize
+      run: ./components/testing/gh-actions/install_kustomize.sh
+
+    - name: Install Istio
+      run: ./components/testing/gh-actions/install_istio.sh
+
+    - name: Build & Apply manifests
+      run: |
+        cd components/profile-controller/config
+        kubectl create ns kubeflow
+
+        export CURRENT_IMG=public.ecr.aws/j1r0q0g6/notebooks/profile-controller:v1.5.0
+        export PR_IMG=profile-controller:intergration-test
+
+        kustomize build overlays/kubeflow | sed "s#$CURRENT_IMG#$PR_IMG#g" | kubectl apply -f -
+        kubectl wait pods -n kubeflow -l kustomize.component=profiles --for=condition=Ready --timeout=120s
+
