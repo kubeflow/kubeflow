@@ -1,6 +1,8 @@
 # Image URL to use all building/pushing image targets
 IMG ?= profile-controller
 TAG ?= $(shell git describe --tags --always --dirty)
+ARCH ?= linux/amd64
+
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.23
 
@@ -67,6 +69,14 @@ docker-build: ## Build docker image with the manager.
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
 	docker push ${IMG}:${TAG}
+
+.PHONY: docker-build-multi-arch
+docker-build-multi-arch: ##  Build multi-arch docker images with docker buildx
+	docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} .
+
+.PHONY: docker-build-push-multi-arch
+docker-build-push-multi-arch: ## Build multi-arch docker images with docker buildx and push to docker registry 
+	docker buildx build --platform ${ARCH} --tag ${IMG}:${TAG} --push .
 
 .PHONY: image
 image: docker-build docker-push ## Build and push docker image with the manager.
