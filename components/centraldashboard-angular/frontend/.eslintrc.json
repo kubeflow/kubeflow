@@ -6,7 +6,8 @@
   "overrides": [
     {
       "files": [
-        "*.ts"
+        "*.ts",
+        "*.js"
       ],
       "parserOptions": {
         "project": [
@@ -34,7 +35,8 @@
             "prefix": "app",
             "style": "kebab-case"
           }
-        ]
+        ],
+        "@typescript-eslint/no-non-null-assertion": "warn"
       }
     },
     {

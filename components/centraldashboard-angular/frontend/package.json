@@ -48,6 +48,8 @@
     "@typescript-eslint/eslint-plugin": "4.28.2",
     "@typescript-eslint/parser": "4.28.2",
     "eslint": "^7.26.0",
+    "eslint-config-google": "0.12.0",
+    "eslint-loader": "2.2.1",
     "babel-loader": "^8.0.6",
     "cross-env": "^5.2.1",
     "jasmine-core": "~3.8.0",
