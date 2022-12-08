@@ -1,17 +1,13 @@
 name: Build & Publish KFAM Docker image
 on:
-  push:
-    branches:
-      - master
-      - v*-branch
-    paths:
-      - components/access-management/**
   pull_request:
     branches:
       - master
       - v*-branch
     paths:
       - components/access-management/**
+    types:
+      - closed
 
 env:
   DOCKER_USER: kubeflownotebookswg
@@ -19,15 +15,16 @@ env:
   ARCH: linux/ppc64le,linux/amd64
 
 jobs:
-  push_to_registry:
-    name: Build & Push Docker image to Docker Hub
-    runs-on: ubuntu-latest
-    steps:
+  if_merged:
+    if: github.event.pull_request.merged == true
+    push_to_registry:
+      name: Build & Push Docker image to Docker Hub
+      runs-on: ubuntu-latest
+      steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Login to DockerHub
-        if: github.event_name == 'push'
         uses: docker/login-action@v2
         with:
           username: ${{ env.DOCKER_USER }}
@@ -45,7 +42,6 @@ jobs:
           make docker-build-multi-arch
 
       - name: Build  and push multi-arch docker image
-        if: github.event_name == 'push'
         run: |
           cd components/access-management
           make docker-build-push-multi-arch
