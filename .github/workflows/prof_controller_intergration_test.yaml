@@ -17,22 +17,20 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-      with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
     - name: Build Profile Controller Image 
       run: |
         cd components/profile-controller
-        make docker-build IMG=${{env.IMG}} TAG=${{env.TAG}}
+        make docker-build
 
     - name: Install KinD
       run: ./components/testing/gh-actions/install_kind.sh
 
     - name: Create KinD Cluster
-      run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml --name prof-controller
+      run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
 
     - name: Load image into KinD Cluster 
-      run: kind load docker-image ${{env.IMG}}:${{env.TAG}} --name prof-controller
+      run: kind load docker-image ${{env.IMG}}:${{env.TAG}}
 
     - name: Install kustomize
       run: ./components/testing/gh-actions/install_kustomize.sh
@@ -45,9 +43,9 @@ jobs:
         cd components/profile-controller/config
         kubectl create ns kubeflow
 
-        export CURRENT_IMG=public.ecr.aws/j1r0q0g6/notebooks/profile-controller:v1.5.0
-        export PR_IMG=profile-controller:intergration-test
+        export CURRENT_IMG=docker.io/kubeflownotebookswg/profile-controller:v1.5.0
+        export PR_IMG=${{env.IMG}}:${{env.TAG}}
 
         kustomize build overlays/kubeflow | sed "s#$CURRENT_IMG#$PR_IMG#g" | kubectl apply -f -
-        kubectl wait pods -n kubeflow -l kustomize.component=profiles --for=condition=Ready --timeout=120s
+        kubectl wait pods -n kubeflow -l kustomize.component=profiles --for=condition=Ready --timeout=300s
 
