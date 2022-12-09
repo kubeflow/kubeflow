@@ -1,14 +1,16 @@
-name: Profile Controller Intergration Test
+name: Profiles/KFAM Integration Tests
 on:
   pull_request:
     paths:
       - components/profile-controller/**
+      - components/access-management/**
     branches:
       - master
       - v*-branch
 
 env:
-  IMG: profile-controller
+  PROFILE_IMG: profile-controller
+  KFAM_IMG: kfam
   TAG: intergration-test
 
 jobs:
@@ -21,7 +23,12 @@ jobs:
     - name: Build Profile Controller Image 
       run: |
         cd components/profile-controller
-        make docker-build
+        make docker-build IMG=${{env.PROFILE_IMG}}
+
+    - name: Build Kfam Image
+      run: |
+        cd components/access-management
+        make docker-build IMG=${{env.KFAM_IMG}}
 
     - name: Install KinD
       run: ./components/testing/gh-actions/install_kind.sh
@@ -29,8 +36,10 @@ jobs:
     - name: Create KinD Cluster
       run: kind create cluster --config components/testing/gh-actions/kind-1-25.yaml
 
-    - name: Load image into KinD Cluster 
-      run: kind load docker-image ${{env.IMG}}:${{env.TAG}}
+    - name: Load Images into KinD Cluster 
+      run: |
+        kind load docker-image ${{env.PROFILE_IMG}}:${{env.TAG}}
+        kind load docker-image ${{env.KFAM_IMG}}:${{env.TAG}}
 
     - name: Install kustomize
       run: ./components/testing/gh-actions/install_kustomize.sh
@@ -43,9 +52,10 @@ jobs:
         cd components/profile-controller/config
         kubectl create ns kubeflow
 
-        export CURRENT_IMG=docker.io/kubeflownotebookswg/profile-controller:v1.5.0
-        export PR_IMG=${{env.IMG}}:${{env.TAG}}
+        export CURRENT_PROFILE_IMG=docker.io/kubeflownotebookswg/profile-controller:v1.6.0
+        export CURRENT_KFAM_IMG=docker.io/kubeflownotebookswg/kfam:v1.6.0
+        export PR_PROFILE_IMG=${{env.PROFILE_IMG}}:${{env.TAG}}
+        export PR_KFAM_IMG=${{env.KFAM_IMG}}:${{env.TAG}}
 
-        kustomize build overlays/kubeflow | sed "s#$CURRENT_IMG#$PR_IMG#g" | kubectl apply -f -
+        kustomize build overlays/kubeflow | sed "s#$CURRENT_PROFILE_IMG#$PR_PROFILE_IMG#g" | sed "s#$CURRENT_KFAM_IMG#$PR_KFAM_IMG#g" | kubectl apply -f -
         kubectl wait pods -n kubeflow -l kustomize.component=profiles --for=condition=Ready --timeout=300s
-
