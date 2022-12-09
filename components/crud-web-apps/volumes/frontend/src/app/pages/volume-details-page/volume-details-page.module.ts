@@ -5,6 +5,7 @@ import { KubeflowModule } from 'kubeflow';
 import { MatTabsModule } from '@angular/material/tabs';
 import { OverviewModule } from './overview/overview.module';
 import { EventsModule } from './events/events.module';
+import { YamlModule } from './yaml/yaml.module';
 
 @NgModule({
   declarations: [VolumeDetailsPageComponent],
@@ -14,6 +15,7 @@ import { EventsModule } from './events/events.module';
     MatTabsModule,
     OverviewModule,
     EventsModule,
+    YamlModule,
   ],
 })
 export class VolumeDetailsPageModule {}

@@ -32,6 +32,12 @@
             <app-events [pvc]="pvc"></app-events>
           </ng-template>
         </mat-tab>
+
+        <mat-tab label="YAML">
+          <ng-template matTabContent>
+            <app-yaml [pvcInfoLoaded]="pvcInfoLoaded" [pvc]="pvc"></app-yaml>
+          </ng-template>
+        </mat-tab>
       </mat-tab-group>
     </ng-container>
   </div>
