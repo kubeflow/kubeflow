@@ -1,5 +1,5 @@
 # Image URL to use all building/pushing image targets
-IMG ?= admission-webhook
+IMG ?= poddefaults-webhook
 TAG ?= $(shell git describe --tags --always --dirty)
 ARCH ?= linux/amd64
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
