@@ -184,14 +184,14 @@ func (c *BindingClient) List(user string, namespaces []string, role string) (*Bi
 			return nil, err
 		}
 		for _, roleBinding := range roleBindings {
-			var subject rbacv1.Subject = nil
+			var subject rbacv1.Subject
 			for _, roleBindingSubject := range roleBinding.Subjects {
 				if roleBindingSubject.Kind == USER && roleBindingSubject.Name == user {
 					subject = roleBindingSubject
 					break
 				}
 			}
-			if roleBindingSubject == nil {
+			if subject == rbacv1.Subject{} {
 				userVal, ok := roleBinding.Annotations[USER]
 				if !ok {
 					continue
