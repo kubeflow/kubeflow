@@ -123,9 +123,7 @@ describe('VolumeDetailsPageComponent', () => {
   it('should switchTabs according to queryParams', fakeAsync(() => {
     const checkActiveTabIndex = (name: string) => {
       const allTabs = ['overview', 'events', 'yaml'];
-      const expectedIndexOfActiveTab = allTabs.findIndex(v => {
-        return v === name;
-      });
+      const expectedIndexOfActiveTab = allTabs.findIndex(v => v === name);
       expect(component.selectedTab.index).toEqual(expectedIndexOfActiveTab);
     };
 

@@ -157,7 +157,7 @@ export const mockPods: V1Pod[] = [
                 fieldRef: {
                   apiVersion: 'v1',
                   fieldPath:
-                    "metadata.labels['service.istio.io/canonical-name']",
+                    'metadata.labels[\'service.istio.io/canonical-name\']',
                 },
               },
             },
@@ -167,7 +167,7 @@ export const mockPods: V1Pod[] = [
                 fieldRef: {
                   apiVersion: 'v1',
                   fieldPath:
-                    "metadata.labels['service.istio.io/canonical-revision']",
+                    'metadata.labels[\'service.istio.io/canonical-revision\']',
                 },
               },
             },
