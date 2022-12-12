@@ -41,12 +41,7 @@ jobs:
 
     - name: Install cert-manager
       run: |
-        echo "Installing cert-manager ..."
-        CERT_MANAGER_VERSION="v1.10.1"
-        kubectl create namespace cert-manager
-        sleep 2
-        kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml
-
+        ./components/testing/gh-actions/install_cert_manager.sh
         echo "Waiting for cert-manager to be ready ..."
         kubectl wait --for=condition=ready pod -l 'app in (cert-manager,webhook)' --timeout=180s -n cert-manager
 
