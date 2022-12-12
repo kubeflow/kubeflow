@@ -191,7 +191,7 @@ func (c *BindingClient) List(user string, namespaces []string, role string) (*Bi
 					break
 				}
 			}
-			if subject == rbacv1.Subject{} {
+			if subject == (rbacv1.Subject{}) {
 				userVal, ok := roleBinding.Annotations[USER]
 				if !ok {
 					continue
