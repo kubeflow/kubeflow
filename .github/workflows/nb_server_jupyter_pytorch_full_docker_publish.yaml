@@ -9,15 +9,11 @@ on:
       - components/example-notebook-servers/jupyter-pytorch/**
       - components/example-notebook-servers/jupyter/**
       - components/example-notebook-servers/base/**
-  pull_request:
-    branches:
-      - master
-      - v*-branch
-    paths:
-      - components/example-notebook-servers/jupyter-pytorch-full/**
-      - components/example-notebook-servers/jupyter-pytorch/**
-      - components/example-notebook-servers/jupyter/**
-      - components/example-notebook-servers/base/**
+
+env:
+  TAG: $(git describe --tags --always --dirty)
+  DOCKER_USER: kubeflownotebookswg
+  REGISTRY: kubeflownotebookswg
 
 jobs:
   push_to_registry:
@@ -28,26 +24,20 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Login to DockerHub
-      if: github.event_name == 'push'
       uses: docker/login-action@v2
       with:
-        username: kubeflownotebookswg
+        username: ${{ env.DOCKER_USER }}
         password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
 
     - name: Build Notebook Server images via their Makefile
       run: |
         cd components/example-notebook-servers/
-        export TAG=$(git describe --tags --always --dirty)
-        make docker-build-cpu -C jupyter-pytorch-full TAG=${TAG}
-        make docker-build-cuda -C jupyter-pytorch-full TAG=${TAG}
+        make docker-build-cpu -C jupyter-pytorch-full
+        make docker-build-cuda -C jupyter-pytorch-full
     
-    - name: Push Notebook Server images via their Makefile
-      if: github.event_name == 'push'
+    - name: Push Notebook Server images
       run: |
-        cd components/example-notebook-servers/
-        export TAG=$(git describe --tags --always --dirty)
-        REGISTRY ?= kubeflownotebookswg
-        docker tag jupyter-pytorch-full:${TAG} ${REGISTRY}/jupyter-pytorch-full:${TAG}
-        docker push ${REGISTRY}/jupyter-pytorch-full:${TAG}
-        docker tag jupyter-pytorch-cuda-full:${TAG} ${REGISTRY}/jupyter-pytorch-cuda-full:${TAG}
-        docker push ${REGISTRY}/jupyter-pytorch-cuda-full:${TAG}
+        docker tag jupyter-pytorch-full:${{env.TAG}} ${{env.REGISTRY}}/jupyter-pytorch-full:${{env.TAG}}
+        docker push ${{env.REGISTRY}}/jupyter-pytorch-full:${{env.TAG}}
+        docker tag jupyter-pytorch-cuda-full:${{env.TAG}} ${{env.REGISTRY}}/jupyter-pytorch-cuda-full:${{env.TAG}}
+        docker push ${{env.REGISTRY}}/jupyter-pytorch-cuda-full:${{env.TAG}}
