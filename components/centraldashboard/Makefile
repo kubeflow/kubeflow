@@ -1,5 +1,5 @@
 IMG ?= centraldashboard
-TAG := $(shell git describe --tags --always --dirty)
+TAG ?= $(shell git describe --tags --always --dirty)
 COMMIT = $(shell git rev-parse HEAD)
 
 
