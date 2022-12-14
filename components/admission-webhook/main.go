@@ -257,7 +257,7 @@ func mergeVolumeMounts(volumeMounts []corev1.VolumeMount, podDefaults []*setting
 	origVolumeMounts := map[string]corev1.VolumeMount{}
 	volumeMountsByPath := map[string]corev1.VolumeMount{}
 	for _, v := range volumeMounts {
-		origVolumeMounts[v.Name] = v
+		origVolumeMounts[v.Name+"|"+v.MountPath] = v
 		volumeMountsByPath[v.MountPath] = v
 	}
 
@@ -268,10 +268,10 @@ func mergeVolumeMounts(volumeMounts []corev1.VolumeMount, podDefaults []*setting
 
 	for _, pd := range podDefaults {
 		for _, v := range pd.Spec.VolumeMounts {
-			found, ok := origVolumeMounts[v.Name]
+			found, ok := origVolumeMounts[v.Name+"|"+v.MountPath]
 			if !ok {
 				// if we don't already have it append it and continue
-				origVolumeMounts[v.Name] = v
+				origVolumeMounts[v.Name+"|"+v.MountPath] = v
 				mergedVolumeMounts = append(mergedVolumeMounts, v)
 
 			} else {
