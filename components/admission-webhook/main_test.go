@@ -1,12 +1,14 @@
 package main
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
 	settingsapi "github.com/kubeflow/kubeflow/components/admission-webhook/pkg/apis/settings/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 )
 
 func TestMergeMapBad(t *testing.T) {
@@ -269,6 +271,179 @@ func TestSetCommandAndArgs(t *testing.T) {
 			setCommandAndArgs(test.in, test.podDefaults)
 			if !reflect.DeepEqual(test.in, test.out) {
 				t.Fatalf("%#v\n  Not Equals:\n%#v", test.in, test.out)
+			}
+		})
+	}
+}
+
+func TestMergeVolumeMounts(t *testing.T) {
+	
+	ANY_ERROR := errors.New("ANY")
+	
+	for _, test := range []struct {
+		name        string
+		in          []corev1.VolumeMount
+		podDefaults []*settingsapi.PodDefault
+		outMounts   []corev1.VolumeMount
+		outErrs     []error
+	}{
+		{
+			name: "Can mount the same volume twice at different paths",
+			// mounts already on the container
+			in:   []corev1.VolumeMount{},
+			podDefaults: []*settingsapi.PodDefault{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-pod-default",
+					},
+					Spec: settingsapi.PodDefaultSpec{
+						// mounts in the podDefault
+						VolumeMounts: []corev1.VolumeMount{
+							{
+								Name: "volume-1",
+								MountPath: "/path1",
+							},
+							{
+								Name: "volume-1",
+								MountPath: "/path2",
+							},
+						},
+					},
+				},
+			},
+			// the final, merged set of mounts
+			outMounts: []corev1.VolumeMount{
+				{
+					Name: "volume-1",
+					MountPath: "/path1",
+				},
+				{
+					Name: "volume-1",
+					MountPath: "/path2",
+				},
+			},
+			outErrs: nil,
+		},
+		{
+			name: "Can mount the same volume twice at the same path",
+			// mounts already on the container
+			in:   []corev1.VolumeMount{},
+			podDefaults: []*settingsapi.PodDefault{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-pod-default",
+					},
+					Spec: settingsapi.PodDefaultSpec{
+						// mounts in the podDefault
+						VolumeMounts: []corev1.VolumeMount{
+							{
+								Name: "volume-1",
+								MountPath: "/path1",
+							},
+							{
+								Name: "volume-1",
+								MountPath: "/path1",
+							},
+						},
+					},
+				},
+			},
+			// the final, merged set of mounts
+			outMounts: []corev1.VolumeMount{
+				{
+					Name: "volume-1",
+					MountPath: "/path1",
+				},
+			},
+			outErrs: nil,
+		},
+		{
+			name: "Cannot mount the same volume twice at same path with different SubPath",
+			// mounts already on the container
+			in:   []corev1.VolumeMount{},
+			podDefaults: []*settingsapi.PodDefault{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-pod-default",
+					},
+					Spec: settingsapi.PodDefaultSpec{
+						// mounts in the podDefault
+						VolumeMounts: []corev1.VolumeMount{
+							{
+								Name: "volume-1",
+								MountPath: "/path1",
+								SubPath: "/sp1",
+							},
+							{
+								Name: "volume-1",
+								MountPath: "/path1",
+								SubPath: "/sp2",
+							},
+						},
+					},
+				},
+			},
+			// the final, merged set of mounts
+			outMounts: nil,
+			outErrs: []error{
+				ANY_ERROR,
+			},
+		},
+		{
+			name: "Cannot mount different volumes to the same path",
+			// mounts already on the container
+			in:   []corev1.VolumeMount{},
+			podDefaults: []*settingsapi.PodDefault{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-pod-default",
+					},
+					Spec: settingsapi.PodDefaultSpec{
+						// mounts in the podDefault
+						VolumeMounts: []corev1.VolumeMount{
+							{
+								Name: "volume-1",
+								MountPath: "/path1",
+							},
+							{
+								Name: "volume-2",
+								MountPath: "/path1",
+							},
+						},
+					},
+				},
+			},
+			// the final, merged set of mounts
+			outMounts: nil,
+			outErrs: []error{
+				ANY_ERROR,
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			outMounts, outErr := mergeVolumeMounts(test.in, test.podDefaults)
+			
+			if test.outErrs == nil && outErr != nil {
+				// the test failed but it wasn't supposed to
+				t.Fatalf("Unexpected ERROR raised: %s", outErr)
+			} else if test.outErrs != nil {
+				// the test is supposed to fail
+				
+				if len(test.outErrs) == 1 && test.outErrs[0] == ANY_ERROR {
+					// There should be AN error but we don't care what it was.
+					if outErr == nil {
+						t.Fatalf("Expected an ERROR but none was raised.")
+					}
+				} else {
+					// check the string content of the errors
+					actualErrList := outErr.(utilerrors.Aggregate).Errors()
+					if !reflect.DeepEqual(test.outErrs, actualErrList) {
+						t.Fatalf("Expected ERROR:\n%s\nbut got\nERROR:\n%s", test.outErrs, actualErrList)
+					}
+				}
+			} else if !reflect.DeepEqual(outMounts, test.outMounts) {
+				// the test was supposed to pass and output was supposed to match.
+				t.Fatalf("Expected volumeMounts\n%#v\nbut got\n%#v", test.outMounts, outMounts)
 			}
 		})
 	}
