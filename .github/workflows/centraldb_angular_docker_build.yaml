@@ -1,11 +1,5 @@
 name: Build CentralDashboard-Angular Docker image
 on:
-  push:
-    branches:
-      - master
-      - v*-branch
-    paths:
-      - components/centraldashboard-angular/**
   pull_request:
     branches:
       - master
@@ -23,6 +17,6 @@ jobs:
 
     - name: Run CentralDashboard build
       run: |
-        cd components/centraldashboard
+        cd components/centraldashboard-angular
         export IMG=kubeflownotebookswg/centraldashboard-angular
         make docker-build
