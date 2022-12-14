@@ -40,10 +40,7 @@ jobs:
       run: ./components/testing/gh-actions/install_istio.sh
 
     - name: Install cert-manager
-      run: |
-        ./components/testing/gh-actions/install_cert_manager.sh
-        echo "Waiting for cert-manager to be ready ..."
-        kubectl wait --for=condition=ready pod -l 'app in (cert-manager,webhook)' --timeout=180s -n cert-manager
+      run: ./components/testing/gh-actions/install_cert_manager.sh
 
     - name: Build & Apply manifests
       run: |

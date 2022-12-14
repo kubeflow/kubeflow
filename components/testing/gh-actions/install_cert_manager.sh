@@ -10,3 +10,5 @@ pushd cert_tmp > /dev/null
     sudo mv cmctl /usr/local/bin
     cmctl x install
 popd
+echo "Waiting for cert-manager to be ready ..."
+kubectl wait --for=condition=ready pod -l 'app in (cert-manager,webhook)' --timeout=180s -n cert-manager
