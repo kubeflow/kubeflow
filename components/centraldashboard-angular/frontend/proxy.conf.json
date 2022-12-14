@@ -17,5 +17,14 @@
     },
     "secure": false,
     "logLevel": "debug"
+  },
+  "/volumes/*": {
+    "target": "http://localhost:8087",
+    "pathRewrite": { "^/volumes": "" },
+    "headers": {
+      "kubeflow-userid": "user"
+    },
+    "secure": false,
+    "logLevel": "debug"
   }
 }
