@@ -44,9 +44,8 @@ jobs:
         cd components/notebook-controller/config
         kubectl create ns kubeflow
 
-        export CURRENT_NOTEBOOK_IMG=docker.io/kubeflownotebookswg/notebook-controller:v1.6.0
+        export CURRENT_NOTEBOOK_IMG=docker.io/kubeflownotebookswg/notebook-controller:latest
         export PR_NOTEBOOK_IMG=${{env.IMG}}:${{env.TAG}}
 
         kustomize build overlays/kubeflow | sed "s#$CURRENT_NOTEBOOK_IMG#$PR_NOTEBOOK_IMG#g" | kubectl apply -f -
         kubectl wait pods -n kubeflow -l app=notebook-controller --for=condition=Ready --timeout=300s
-

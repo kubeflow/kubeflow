@@ -18,7 +18,7 @@ commonLabels:
 images:
 - name: docker.io/kubeflownotebookswg/centraldashboard
   newName: docker.io/kubeflownotebookswg/centraldashboard
-  newTag: v1.6.0
+  newTag: latest
 configMapGenerator:
 - envs:
   - params.env

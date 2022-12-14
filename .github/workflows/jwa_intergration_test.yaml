@@ -45,9 +45,8 @@ jobs:
         cd components/crud-web-apps/jupyter/manifests
         kubectl create ns kubeflow
 
-        export CURRENT_JWA_IMG=docker.io/kubeflownotebookswg/jupyter-web-app:v1.6.0
+        export CURRENT_JWA_IMG=docker.io/kubeflownotebookswg/jupyter-web-app:latest
         export PR_JWA_IMG=${{env.IMG}}:${{env.TAG}}
 
         kustomize build overlays/istio | sed "s#$CURRENT_JWA_IMG#$PR_JWA_IMG#g" | kubectl apply -f -
         kubectl wait pods -n kubeflow -l app=jupyter-web-app --for=condition=Ready --timeout=300s
-
