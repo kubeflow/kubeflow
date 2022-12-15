@@ -12,7 +12,9 @@
     "test": "ng test",
     "test:prod": "ng test --browsers=ChromeHeadless --watch=false",
     "lint-check": "ng lint",
-    "lint": "ng lint --fix"
+    "lint": "ng lint --fix",
+    "format:check": "prettier --check 'src/**/*.{js,ts,html,scss,css}' || node scripts/check-format-error.js",
+    "format:write": "prettier --write 'src/**/*.{js,ts,html,scss,css}'"
   },
   "private": true,
   "dependencies": {
@@ -68,6 +70,7 @@
     "karma-coverage-istanbul-reporter": "~3.0.2",
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "^1.5.0",
+    "prettier": "2.3.2",
     "protractor": "~7.0.0",
     "ts-node": "^10.4.0",
     "typescript": "~4.2.4"
