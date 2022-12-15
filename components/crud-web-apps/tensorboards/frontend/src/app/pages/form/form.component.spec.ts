@@ -21,17 +21,19 @@ describe('FormComponent', () => {
   let component: FormComponent;
   let fixture: ComponentFixture<FormComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [FormComponent],
-      imports: [KubeflowModule, MatDialogModule, MatRadioModule],
-      providers: [
-        { provide: TWABackendService, useValue: TWABackendServiceStub },
-        { provide: NamespaceService, useValue: NamespaceServiceStub },
-        { provide: MatDialogRef, useValue: {} },
-      ],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [FormComponent],
+        imports: [KubeflowModule, MatDialogModule, MatRadioModule],
+        providers: [
+          { provide: TWABackendService, useValue: TWABackendServiceStub },
+          { provide: NamespaceService, useValue: NamespaceServiceStub },
+          { provide: MatDialogRef, useValue: {} },
+        ],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(FormComponent);
