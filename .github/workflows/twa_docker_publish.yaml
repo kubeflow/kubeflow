@@ -1,14 +1,12 @@
 name: Build & Publish TWA Docker image
 on:
-  pull_request:
+  push:
     branches:
       - master
       - v*-branch
     paths:
       - components/crud-web-apps/tensorboards/**
       - components/crud-web-apps/common/**
-    types:
-      - closed
 
 env:
   DOCKER_USER: kubeflownotebookswg
@@ -16,33 +14,26 @@ env:
   ARCH: linux/ppc64le,linux/amd64
 
 jobs:
-  if_merged:
-    if: github.event.pull_request.merged == true
-      push_to_registry:
-        name: Build & Push Docker image to Docker Hub
-        runs-on: ubuntu-latest
-        steps:
-        - name: Checkout
-          uses: actions/checkout@v3
+  push_to_registry:
+    name: Build & Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
 
-        - name: Login to DockerHub
-          uses: docker/login-action@v2
-          with:
-            username: ${{ env.DOCKER_USER }}
-            password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
+    - name: Login to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ env.DOCKER_USER }}
+        password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
 
-        - name: Setup QEMU
-          uses: docker/setup-qemu-action@v2
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v2
 
-        - name: Setup Docker Buildx
-          uses: docker/setup-buildx-action@v2
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
-        - name: Build multi-arch docker image
-          run: |
-            cd components/crud-web-apps/tensorboards
-            make docker-build-multi-arch
-
-          - name: Build and push multi-arch docker image
-            run: |
-              cd components/crud-web-apps/tensorboards
-              make docker-build-push-multi-arch
+    - name: Build and push multi-arch docker image
+      run: |
+        cd components/crud-web-apps/tensorboards
+        make docker-build-push-multi-arch

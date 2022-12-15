@@ -1,13 +1,11 @@
 name: Build & Publish CentralDashboard Docker image
 on:
-  pull_request:
+  push:
     branches:
       - master
       - v*-branch
     paths:
       - components/centraldashboard/**
-    types:
-      - closed
 
 env:
   DOCKER_USER: kubeflownotebookswg
@@ -15,7 +13,6 @@ env:
 
 jobs:
   push_to_registry:
-    if: github.event.pull_request.merged == true
     name: Build & Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     steps:
