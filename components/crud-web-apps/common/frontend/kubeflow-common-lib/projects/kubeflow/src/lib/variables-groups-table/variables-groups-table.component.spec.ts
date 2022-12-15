@@ -8,9 +8,8 @@ describe('VariablesGroupsTableComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ VariablesGroupsTableComponent ]
-    })
-    .compileComponents();
+      declarations: [VariablesGroupsTableComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

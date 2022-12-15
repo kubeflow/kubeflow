@@ -14,11 +14,11 @@ export class PollerService {
     let currData: any;
 
     /*
-    * The poller$ observable is pushing values in an exponential manner.
-    * The `expand` operator is emitting values by using the value from the
-    * previous emit. In our case we also use delay with a dynamic period
-    * to achieve resetable exponential delay.
-    */
+     * The poller$ observable is pushing values in an exponential manner.
+     * The `expand` operator is emitting values by using the value from the
+     * previous emit. In our case we also use delay with a dynamic period
+     * to achieve resetable exponential delay.
+     */
     const poller$ = of(1).pipe(expand(x => of(period).pipe(delay(x * 1000))));
 
     const request$ = poller$.pipe(

@@ -7,11 +7,13 @@ describe('FormSectionComponent', () => {
   let component: FormSectionComponent;
   let fixture: ComponentFixture<FormSectionComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [FormModule],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [FormModule],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(FormSectionComponent);

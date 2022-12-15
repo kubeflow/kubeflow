@@ -8,11 +8,13 @@ describe('DateTimeComponent', () => {
   let component: DateTimeComponent;
   let fixture: ComponentFixture<DateTimeComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [DateTimeModule],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [DateTimeModule],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(DateTimeComponent);

@@ -11,16 +11,18 @@ describe('RokUrlInputComponent', () => {
   let component: RokUrlInputComponent;
   let fixture: ComponentFixture<RokUrlInputComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        FormModule,
-        BrowserAnimationsModule,
-        MatSnackBarModule,
-        HttpClientModule,
-      ],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [
+          FormModule,
+          BrowserAnimationsModule,
+          MatSnackBarModule,
+          HttpClientModule,
+        ],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(RokUrlInputComponent);
