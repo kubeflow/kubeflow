@@ -8,6 +8,7 @@
     "test": "ng test",
     "test-ci": "ng test --no-watch --no-progress --browsers=ChromeHeadlessCI",
     "test-docker": "docker run -v $(pwd):/usr/src/app browserless/chrome:1.44-chrome-stable npm run test-ci",
+    "test:prod": "ng test --browsers=ChromeHeadless --watch=false",
     "lint-check": "ng lint",
     "lint": "ng lint --fix",
     "e2e": "ng e2e",
