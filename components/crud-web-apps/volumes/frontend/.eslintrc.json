@@ -1,7 +1,9 @@
 {
   "root": true,
   "ignorePatterns": [
-    "projects/**/*"
+    "projects/**/*",
+    "src/app/pages/volume-details-page/pvc-mock.ts",
+    "src/app/pages/volume-details-page/overview/pods-mock.ts"
   ],
   "overrides": [
     {

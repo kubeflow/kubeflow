@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { V1PersistentVolumeClaim } from '@kubernetes/client-node';
 import {
@@ -32,6 +33,10 @@ export class VolumeDetailsPageComponent implements OnInit, OnDestroy {
       },
     }),
   ];
+  public selectedTab: {
+    index: number;
+    name: string;
+  } = { index: 0, name: 'overview' };
 
   pollSub = new Subscription();
 
@@ -53,6 +58,10 @@ export class VolumeDetailsPageComponent implements OnInit, OnDestroy {
 
       this.poll(this.namespace, this.name);
     });
+
+    this.route.queryParams.subscribe(params => {
+      this.selectedTab = this.newTab(params.tab);
+    });
   }
 
   ngOnDestroy() {
@@ -67,6 +76,26 @@ export class VolumeDetailsPageComponent implements OnInit, OnDestroy {
     this.pollSub = this.poller.exponential(request).subscribe(pvc => {
       this.pvc = pvc;
       this.pvcInfoLoaded = true;
+    });
+  }
+
+  private newTab(name: any): { index: number; name: string } {
+    if (name === 'yaml') {
+      return { index: 2, name: 'yaml' };
+    } else if (name === 'events') {
+      return { index: 1, name: 'events' };
+    } else {
+      return { index: 0, name: 'overview' };
+    }
+  }
+
+  public onTabChange(c: MatTabChangeEvent) {
+    const updatedQueryParams = { tab: c.tab.textLabel.toLowerCase() };
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: updatedQueryParams,
+      replaceUrl: true,
+      queryParamsHandling: '',
     });
   }
 
