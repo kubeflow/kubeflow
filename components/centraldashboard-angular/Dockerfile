@@ -25,6 +25,8 @@ ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=backend /src .
 COPY --from=frontend /src/dist/default/ ./dist/public/
+COPY --from=frontend /src/dist/default/assets/dashboard_lib.bundle.js ./dist/public/
+COPY --from=frontend /src/dist/default/assets/dashboard_lib.bundle.js.map ./dist/public/
 
 EXPOSE 8082
 ENTRYPOINT ["npm", "start"]

@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "npm run build-library && ng serve --proxy-config proxy.conf.json",
-    "build": "ng build",
+    "build": "npm run build-library && ng build",
     "build-library": "cross-env NODE_ENV=production webpack",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
