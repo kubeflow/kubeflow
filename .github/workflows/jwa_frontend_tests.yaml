@@ -24,7 +24,7 @@ jobs:
           npm i
           npm run format:check
 
-      - name: Lint jupyter web app
+      - name: Check frontend code linting
         run: |
           cd components/crud-web-apps/jupyter/frontend
           npm i
