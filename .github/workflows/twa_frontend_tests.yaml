@@ -5,6 +5,31 @@ on:
       - components/crud-web-apps/tensorboards/frontend/**
 
 jobs:
+  test:
+    name: Code format and lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 12
+
+      - name: Format tensorboards web app
+        run: |
+          cd components/crud-web-apps/tensorboards/frontend
+          npm i
+          npm run format:check
+
+      - name: Lint tensorboards web app
+        run: |
+          cd components/crud-web-apps/tensorboards/frontend
+          npm i
+          npm run lint-check
+
   frontend-unit-tests:
     runs-on: ubuntu-latest
     name: Unit tests
