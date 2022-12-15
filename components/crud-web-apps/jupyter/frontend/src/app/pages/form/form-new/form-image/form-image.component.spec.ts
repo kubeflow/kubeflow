@@ -10,6 +10,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { FormModule as KfFormModule } from 'kubeflow';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 
 describe('FormImageComponent', () => {
   let component: FormImageComponent;
@@ -30,6 +32,7 @@ describe('FormImageComponent', () => {
           MatSelectModule,
           ReactiveFormsModule,
           MatIconTestingModule,
+          MatExpansionModule,
         ],
       }).compileComponents();
     }),
@@ -53,5 +56,25 @@ describe('FormImageComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should toggle image controls when custom image is checked', () => {
+    const image = component.parentForm.get('image');
+    const imageGroupOne = component.parentForm.get('imageGroupOne');
+    const imageGroupTwo = component.parentForm.get('imageGroupTwo');
+
+    let event = { checked: true } as MatCheckboxChange;
+    component.onSelect(event);
+
+    expect(image.disabled).toBe(true);
+    expect(imageGroupOne.disabled).toBe(true);
+    expect(imageGroupTwo.disabled).toBe(true);
+
+    event = { checked: false } as MatCheckboxChange;
+    component.onSelect(event);
+
+    expect(image.enabled).toBe(true);
+    expect(imageGroupOne.enabled).toBe(true);
+    expect(imageGroupTwo.enabled).toBe(true);
   });
 });

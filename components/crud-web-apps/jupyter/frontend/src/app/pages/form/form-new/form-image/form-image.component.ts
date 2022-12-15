@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 import { environment } from '@app/environment';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconRegistry } from '@angular/material/icon';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-form-image',
@@ -23,16 +24,16 @@ export class FormImageComponent implements OnInit, OnDestroy {
 
   constructor(iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
     iconRegistry.addSvgIcon(
-      'jupyterlab',
-      sanitizer.bypassSecurityTrustResourceUrl(environment.jupyterlabLogo),
+      'jupyter-icon',
+      sanitizer.bypassSecurityTrustResourceUrl(environment.jupyterIcon),
     );
     iconRegistry.addSvgIcon(
       'group-one',
-      sanitizer.bypassSecurityTrustResourceUrl(environment.groupOneLogo),
+      sanitizer.bypassSecurityTrustResourceUrl(environment.groupOneIcon),
     );
     iconRegistry.addSvgIcon(
       'group-two',
-      sanitizer.bypassSecurityTrustResourceUrl(environment.groupTwoLogo),
+      sanitizer.bypassSecurityTrustResourceUrl(environment.groupTwoIcon),
     );
   }
 
@@ -77,9 +78,22 @@ export class FormImageComponent implements OnInit, OnDestroy {
     );
   }
 
+  onSelect(event: MatCheckboxChange): void {
+    if (event.checked) {
+      this.parentForm.get('image').disable();
+      this.parentForm.get('imageGroupOne').disable();
+      this.parentForm.get('imageGroupTwo').disable();
+    } else {
+      this.parentForm.get('image').enable();
+      this.parentForm.get('imageGroupOne').enable();
+      this.parentForm.get('imageGroupTwo').enable();
+    }
+  }
+
   ngOnDestroy() {
     this.subs.unsubscribe();
   }
+
   imageDisplayName(image: string): string {
     const [name, tag = null] = image.split(':');
     const tokens = name.split('/');

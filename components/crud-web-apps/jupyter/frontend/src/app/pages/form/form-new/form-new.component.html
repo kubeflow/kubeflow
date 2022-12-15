@@ -14,9 +14,7 @@
       (ngSubmit)="onSubmit()"
       [formGroup]="formCtrl"
     >
-      <app-form-name-namespace
-        [parentForm]="formCtrl"
-      ></app-form-name-namespace>
+      <app-form-name [parentForm]="formCtrl"></app-form-name>
 
       <app-form-image
         [parentForm]="formCtrl"
@@ -56,33 +54,46 @@
       >
       </app-form-data-volumes>
 
-      <app-form-configurations
-        [parentForm]="formCtrl"
-      ></app-form-configurations>
+      <lib-advanced-options>
+        <app-form-configurations
+          [parentForm]="formCtrl"
+        ></app-form-configurations>
 
-      <app-form-affinity-tolerations
-        [parentForm]="formCtrl"
-        [affinityConfigs]="config?.affinityConfig?.options"
-        [tolerationGroups]="config?.tolerationGroup?.options"
-      ></app-form-affinity-tolerations>
+        <app-form-affinity-tolerations
+          [parentForm]="formCtrl"
+          [affinityConfigs]="config?.affinityConfig?.options"
+          [tolerationGroups]="config?.tolerationGroup?.options"
+        ></app-form-affinity-tolerations>
 
-      <app-form-advanced-options
-        [parentForm]="formCtrl"
-      ></app-form-advanced-options>
+        <app-form-advanced-options
+          [parentForm]="formCtrl"
+        ></app-form-advanced-options>
+      </lib-advanced-options>
     </form>
 
     <div class="form-buttons">
+      <div
+        [matTooltip]="setTooltipText(formCtrl)"
+        [matTooltipDisabled]="formCtrl.valid"
+      >
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="onSubmit()"
+          [disabled]="!formCtrl.valid"
+          i18n
+        >
+          LAUNCH
+        </button>
+      </div>
+
       <button
         mat-raised-button
-        color="primary"
-        (click)="onSubmit()"
-        [disabled]="!formCtrl.valid || blockSubmit"
+        type="button"
+        class="cancel-button"
+        (click)="onCancel()"
         i18n
       >
-        LAUNCH
-      </button>
-
-      <button mat-raised-button type="button" (click)="onCancel()" i18n>
         CANCEL
       </button>
     </div>

@@ -6,7 +6,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { FormNewComponent } from './form-new.component';
+
 import {
   FormModule as KfFormModule,
   TitleActionsToolbarModule,
@@ -21,6 +21,7 @@ import { FormGpusModule } from './form-gpus/form-gpus.module';
 import { FormImageModule } from './form-image/form-image.module';
 import { FormNameModule } from './form-name/form-name.module';
 import { FormWorkspaceVolumeModule } from './form-workspace-volume/form-workspace-volume.module';
+import { FormNewComponent } from './form-new.component';
 
 @NgModule({
   declarations: [FormNewComponent],

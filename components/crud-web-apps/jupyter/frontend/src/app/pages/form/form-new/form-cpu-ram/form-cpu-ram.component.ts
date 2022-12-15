@@ -13,6 +13,7 @@ export class FormCpuRamComponent implements OnInit {
   @Input() readonlyMemory: boolean;
   @Input() cpuLimitFactor: string;
   @Input() memoryLimitFactor: string;
+  @Input() popoverPosition = 'below';
 
   constructor() {}
 

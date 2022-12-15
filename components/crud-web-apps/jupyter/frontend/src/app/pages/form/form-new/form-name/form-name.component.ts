@@ -10,7 +10,7 @@ import { Subscription } from 'rxjs';
 import { JWABackendService } from 'src/app/services/backend.service';
 
 @Component({
-  selector: 'app-form-name-namespace',
+  selector: 'app-form-name',
   templateUrl: './form-name.component.html',
   styleUrls: ['./form-name.component.scss'],
 })
