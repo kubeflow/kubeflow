@@ -44,19 +44,21 @@ describe('FormRokComponent', () => {
   let component: FormRokComponent;
   let fixture: ComponentFixture<FormRokComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [FormRokComponent],
-      providers: [
-        { provide: FormBuilder, useValue: FormBuilderStub },
-        { provide: VWABackendService, useValue: VWABackendServiceStub },
-        { provide: MatDialogRef, useValue: {} },
-        { provide: RokService, useValue: RokServiceStub },
-        { provide: BackendService, useValue: MockBackendService },
-      ],
-      imports: [KubeflowModule],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [FormRokComponent],
+        providers: [
+          { provide: FormBuilder, useValue: FormBuilderStub },
+          { provide: VWABackendService, useValue: VWABackendServiceStub },
+          { provide: MatDialogRef, useValue: {} },
+          { provide: RokService, useValue: RokServiceStub },
+          { provide: BackendService, useValue: MockBackendService },
+        ],
+        imports: [KubeflowModule],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(FormRokComponent);
