@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: 12
 
-      - name: Format jupyter web app
+      - name: Check frontend formatting
         run: |
           cd components/crud-web-apps/jupyter/frontend
           npm i
