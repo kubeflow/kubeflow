@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: centraldashboard-angular
+  name: centraldashboard-angular
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8082
+  selector:
+    app: centraldashboard-angular
+  sessionAffinity: None
+  type: ClusterIP
