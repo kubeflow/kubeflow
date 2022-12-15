@@ -20,7 +20,12 @@
           <div class="title">{{ notebookName }}</div>
         </div>
       </div>
-      <mat-tab-group dynamicHeight animationDuration="0ms">
+      <mat-tab-group
+        dynamicHeight
+        animationDuration="0ms"
+        (selectedTabChange)="onTabChange($event)"
+        [selectedIndex]="selectedTab.index"
+      >
         <mat-tab label="OVERVIEW">
           <ng-template matTabContent>
             <app-overview

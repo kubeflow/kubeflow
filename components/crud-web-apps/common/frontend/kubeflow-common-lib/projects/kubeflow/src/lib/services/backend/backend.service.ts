@@ -174,7 +174,7 @@ export class BackendService {
   public handleError(
     error: HttpErrorResponse | ErrorEvent | string,
     showSnackBar = true,
-  ) {
+  ): Observable<never> {
     // The backend returned an unsuccessful response code.
     // The response body may contain clues as to what went wrong,
     console.error(error);

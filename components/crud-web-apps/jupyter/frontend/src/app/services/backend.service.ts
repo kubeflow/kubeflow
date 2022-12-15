@@ -151,9 +151,7 @@ export class JWABackendService extends BackendService {
   }
 
   // PATCH
-  public startNotebook(notebook: NotebookProcessedObject): Observable<string> {
-    const name = notebook.name;
-    const namespace = notebook.namespace;
+  public startNotebook(namespace: string, name: string): Observable<string> {
     const url = `api/namespaces/${namespace}/notebooks/${name}`;
 
     return this.http.patch<JWABackendResponse>(url, { stopped: false }).pipe(
@@ -162,9 +160,7 @@ export class JWABackendService extends BackendService {
     );
   }
 
-  public stopNotebook(notebook: NotebookProcessedObject): Observable<string> {
-    const name = notebook.name;
-    const namespace = notebook.namespace;
+  public stopNotebook(namespace: string, name: string): Observable<string> {
     const url = `api/namespaces/${namespace}/notebooks/${name}`;
 
     return this.http.patch<JWABackendResponse>(url, { stopped: true }).pipe(
@@ -187,7 +183,7 @@ export class JWABackendService extends BackendService {
   public handleErrorExtended(
     error: HttpErrorResponse | ErrorEvent | string,
     codes: number[] = [],
-  ) {
+  ): Observable<never> {
     if (
       error instanceof HttpErrorResponse &&
       codes.includes(error.error.status)
