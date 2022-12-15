@@ -7,6 +7,7 @@ on:
     paths:
       - components/notebook-controller/**
       - components/common/**
+      - releasing/version/VERSION
 
 env:
   DOCKER_USER: kubeflownotebookswg
@@ -20,6 +21,15 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          version:
+            - 'releasing/version/VERSION'
 
     - name: Login to DockerHub
       uses: docker/login-action@v2
@@ -39,3 +49,12 @@ jobs:
       run: |
         cd components/notebook-controller
         make docker-build-push-multi-arch
+
+    - name: Build and push multi-arch docker image on Version change
+      id: version
+      if: steps.filter.outputs.version == 'true'
+      run: |
+        cd components/notebook-controller
+        make docker-build-push-multi-arch
+      env:
+        TAG: $(cat releasing/version/VERSION)

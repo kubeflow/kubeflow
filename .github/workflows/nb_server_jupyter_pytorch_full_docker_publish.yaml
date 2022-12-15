@@ -9,6 +9,7 @@ on:
       - components/example-notebook-servers/jupyter-pytorch/**
       - components/example-notebook-servers/jupyter/**
       - components/example-notebook-servers/base/**
+      - releasing/version/VERSION
 
 env:
   TAG: $(git describe --tags --always --dirty)
@@ -22,6 +23,15 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          version:
+            - 'releasing/version/VERSION'
 
     - name: Login to DockerHub
       uses: docker/login-action@v2
@@ -41,3 +51,14 @@ jobs:
         docker push ${{env.REGISTRY}}/jupyter-pytorch-full:${{env.TAG}}
         docker tag jupyter-pytorch-cuda-full:${{env.TAG}} ${{env.REGISTRY}}/jupyter-pytorch-cuda-full:${{env.TAG}}
         docker push ${{env.REGISTRY}}/jupyter-pytorch-cuda-full:${{env.TAG}}
+
+    - name: Push Notebook Server images on Version change
+      id: version
+      if: steps.filter.outputs.version == 'true'
+      run: |
+        docker tag jupyter-pytorch-full:${{env.TAG}} ${{env.REGISTRY}}/jupyter-pytorch-full:${VERSION_TAG}
+        docker push ${{env.REGISTRY}}/jupyter-pytorch-full:${VERSION_TAG}
+        docker tag jupyter-pytorch-cuda-full:${{env.TAG}} ${{env.REGISTRY}}/jupyter-pytorch-cuda-full:${VERSION_TAG}
+        docker push ${{env.REGISTRY}}/jupyter-pytorch-cuda-full:${VERSION_TAG}
+      env:
+        VERSION_TAG: $(cat releasing/version/VERSION)

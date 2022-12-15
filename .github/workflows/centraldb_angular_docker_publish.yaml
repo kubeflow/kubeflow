@@ -6,6 +6,7 @@ on:
       - v*-branch
     paths:
       - components/centraldashboard-angular/**
+      - releasing/version/VERSION
 
 env:
   DOCKER_USER: kubeflownotebookswg
@@ -18,6 +19,15 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          version:
+            - 'releasing/version/VERSION'
 
     - name: Login to DockerHub
       uses: docker/login-action@v2
@@ -25,12 +35,22 @@ jobs:
         username: ${{ env.DOCKER_USER }}
         password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
 
-    - name: Run CentralDashboard build
+    - name: Run CentralDashboard-Angular build
       run: |
         cd components/centraldashboard-angular
         make docker-build
 
-    - name: Run CentralDashboard push
+    - name: Run CentralDashboard-Angular push
       run: |
         cd components/centraldashboard-angular
         make docker-push
+
+    - name: Run CentralDashboard-Angular push on Version change
+      id: version
+      if: steps.filter.outputs.version == 'true'
+      run: |
+        docker tag ${{env.IMG}}:${TAG} ${{env.IMG}}:${VERSION_TAG}
+        docker push ${{env.IMG}}:${VERSION_TAG}
+      env:
+        TAG: $(git describe --tags --always --dirty)
+        VERSION_TAG: $(cat releasing/version/VERSION)
