@@ -317,27 +317,27 @@ export class OverviewComponent implements OnInit, OnDestroy {
     };
     if (groupName === PVCS) {
       group.info =
-        'A PersistentVolumeClaim (PVC) is a request for storage by a user and it is similar to a Pod. Pods consume node resources and PVCs consume PV resources. Pods can request specific levels of resources (CPU and Memory). Claims can request specific size and access modes (e.g., they can be mounted ReadWriteOnce, ReadOnlyMany or ReadWriteMany).';
+        'A PersistentVolumeClaim (PVC) is a request for storage by a user and it is similar to a Pod. Pods consume node resources and PVCs consume PV resources. Pods can request specific levels of resources (CPU and Memory). Claims can request specific size and access modes (e.g., they can be mounted ReadWriteOnce, ReadOnlyMany or ReadWriteMany).'; // eslint-disable-line
       group.url =
         'https://kubernetes.io/docs/concepts/storage/persistent-volumes/';
     } else if (groupName === MEMORY_VOLS) {
       group.info =
-        "A memory-backed volume is a special kind of emptyDir volume which is mounted as a tmpfs (RAM-backed filesystem) volume. While tmpfs is very fast, be aware that unlike disks, tmpfs is cleared on node reboot and any files you write count against your container's memory limit.";
+        "A memory-backed volume is a special kind of emptyDir volume which is mounted as a tmpfs (RAM-backed filesystem) volume. While tmpfs is very fast, be aware that unlike disks, tmpfs is cleared on node reboot and any files you write count against your container's memory limit."; // eslint-disable-line
       group.url =
         'https://kubernetes.io/docs/concepts/storage/volumes/#emptydir';
     } else if (groupName === EPHEMERALS) {
       group.info =
-        'An ephemeral volume is Kubernetes emptyDir. An emptyDir volume is first created when a Pod is assigned to a node, and exists as long as that Pod is running on that node. As the name says, the emptyDir volume is initially empty. All containers in the Pod can read and write the same files in the emptyDir volume, though that volume can be mounted at the same or different paths in each container. When a Pod is removed from a node for any reason, the data in the emptyDir is deleted permanently.';
+        'An ephemeral volume is Kubernetes emptyDir. An emptyDir volume is first created when a Pod is assigned to a node, and exists as long as that Pod is running on that node. As the name says, the emptyDir volume is initially empty. All containers in the Pod can read and write the same files in the emptyDir volume, though that volume can be mounted at the same or different paths in each container. When a Pod is removed from a node for any reason, the data in the emptyDir is deleted permanently.'; // eslint-disable-line
       group.url =
         'https://kubernetes.io/docs/concepts/storage/volumes/#emptydir';
     } else if (groupName === CONFIG_MAPS) {
       group.info =
-        'A ConfigMap provides a way to inject configuration data into pods. The data stored in a ConfigMap can be referenced in a volume of type configMap and then consumed by containerized applications running in a pod.';
+        'A ConfigMap provides a way to inject configuration data into pods. The data stored in a ConfigMap can be referenced in a volume of type configMap and then consumed by containerized applications running in a pod.'; // eslint-disable-line
       group.url =
         'https://kubernetes.io/docs/concepts/storage/volumes/#configmap';
     } else if (groupName === SECRETS) {
       group.info =
-        'A secret volume is used to pass sensitive information, such as passwords, to Pods. You can store secrets in the Kubernetes API and mount them as files for use by pods without coupling to Kubernetes directly. Secret volumes are backed by tmpfs (a RAM-backed filesystem) so they are never written to non-volatile storage.';
+        'A secret volume is used to pass sensitive information, such as passwords, to Pods. You can store secrets in the Kubernetes API and mount them as files for use by pods without coupling to Kubernetes directly. Secret volumes are backed by tmpfs (a RAM-backed filesystem) so they are never written to non-volatile storage.'; // eslint-disable-line
       group.url = 'https://kubernetes.io/docs/concepts/storage/volumes/#secret';
     } else if (groupName === OTHER_VOLS) {
       group.url = 'https://kubernetes.io/docs/concepts/storage/volumes';

@@ -31,16 +31,12 @@ export class VolumesComponent implements OnInit {
   groupTrackByFn: TrackByFunction<VolumesGroup> = (
     id: number,
     group: VolumesGroup,
-  ) => {
-    return JSON.stringify(group);
-  };
+  ) => JSON.stringify(group);
 
   chipTrackByFn: TrackByFunction<ChipDescriptor> = (
     id: number,
     chip: ChipDescriptor,
-  ) => {
-    return chip.value;
-  };
+  ) => chip.value;
 
   constructor() {}
 

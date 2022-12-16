@@ -41,7 +41,5 @@ export class LinkGroupsTableComponent implements OnInit {
     return JSON.stringify(group);
   }
 
-  linkTrackByFn: TrackByFunction<UrlItem> = (id: number, link: UrlItem) => {
-    return link.name;
-  };
+  linkTrackByFn: TrackByFunction<UrlItem> = (id: number, link: UrlItem) => link.name;
 }
