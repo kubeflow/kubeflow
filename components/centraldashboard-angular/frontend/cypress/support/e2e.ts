@@ -1,20 +1,57 @@
-// ***********************************************************
-// This example support/e2e.ts is processed and
-// loaded automatically before your test files.
-//
-// This is a great place to put global configuration and
-// behavior that modifies Cypress.
-//
-// You can change the location of this file or turn off
-// automatically serving support files with the
-// 'supportFile' configuration option.
-//
-// You can read more here:
-// https://on.cypress.io/configuration
-// ***********************************************************
+import './commands';
 
-// Import commands.js using ES2015 syntax:
-import './commands'
+// types of the custom commands
+// Must be declared global to be detected by typescript (allows import/export)
 
-// Alternatively you can use CommonJS syntax:
-// require('./commands')
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /**
+       * Custom command that returns Iframe's #document's body
+       */
+      getIframeBody(): Chainable<any>;
+
+      /**
+       * Custom command that returns Iframe's URL
+       */
+      getIframeUrl(): Chainable<string>;
+
+      /**
+       * Custom command that checks if Browser's and Iframe's URLs
+       * are equal (as well their query parameters)
+       */
+      equalUrls(): Chainable<boolean>;
+
+      /**
+       * Custom command that intercepts the storage class request
+       */
+      storageClassRequest(): Chainable<void>;
+
+      /**
+       * Custom command that intercepts the notebooks request
+       */
+      notebooksRequest(): Chainable<void>;
+
+      /**
+       * Custom command that mocks pod defaults request
+       */
+      mockPodDefaultsRequest(): Chainable<void>;
+
+      /**
+       * Custom command that intercepts the test PVC request
+       */
+      pvcRequest(): Chainable<void>;
+
+      /**
+       * Custom command that intercepts the test PVC's pods request
+       */
+      pvcPodsRequest(): Chainable<void>;
+
+      /**
+       * Custom command that intercepts the test notebook's
+       * underlying pod request
+       */
+      notebookPodRequest(): Chainable<void>;
+    }
+  }
+}

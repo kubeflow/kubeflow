@@ -7,6 +7,11 @@ import {
 } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import {
+  equalUrlPaths,
+  appendBackslash,
+  removePrefixFrom,
+} from 'src/app/shared/utils';
 
 @Component({
   selector: 'app-iframe-wrapper',
@@ -21,14 +26,14 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
     return this.prvSrcPath;
   }
   set srcPath(src: string) {
-    src = this.removePrefixFrom(src);
+    src = removePrefixFrom(src);
 
     /**
      * When Istio exports Services, it always expects
      * a '/' at the end. SO we'll need to make sure the
      * links propagated to the iframe end with a '/'
      */
-    src = this.appendBackslash(src);
+    src = appendBackslash(src);
 
     /**
      * The following hacky logic appends the window.location.origin
@@ -73,49 +78,11 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
         ? iframeWindow?.location.pathname + iframeWindow?.location.search
         : iframeWindow?.location.pathname;
 
-      const eventUrl = this.removePrefixFrom(event.url);
-      if (!this.equalUrlPaths(eventUrl, iframeUrl)) {
+      const eventUrl = removePrefixFrom(event.url);
+      if (!equalUrlPaths(eventUrl, iframeUrl)) {
         this.srcPath = event.url;
       }
     });
-  }
-
-  removePrefixFrom(url: string) {
-    return url.includes('/_') ? url.slice(2) : url;
-  }
-
-  /**
-   * We treat URLs with or without a trailing slash as the same
-   * URL. Thus, in order to compare URLs, we need to use
-   * appendBackslash for both URLS to avoid false statements
-   * in cases where they only differ in the trailing slash.
-   */
-  equalUrlPaths(firstUrl: string, secondUrl: string | undefined) {
-    if (!firstUrl && !secondUrl) {
-      console.warn(`Got undefined URLs ${firstUrl} and ${secondUrl}`);
-      return true;
-    }
-    if (!firstUrl || !secondUrl) {
-      return false;
-    }
-    firstUrl = this.appendBackslash(firstUrl);
-    secondUrl = this.appendBackslash(secondUrl);
-    return firstUrl === secondUrl;
-  }
-
-  /**
-   * Appends a trailing slash either at the end of the URL
-   * or at the end of path, just before query parameters
-   */
-  appendBackslash(url: string): string {
-    const href = window.location.origin + url;
-    const urlObject = new URL(href);
-
-    let urlPath = urlObject.pathname;
-    urlPath += urlPath?.endsWith('/') ? '' : '/';
-    const urlParams = urlObject.search;
-
-    return urlPath + urlParams;
   }
 
   ngAfterViewInit() {
