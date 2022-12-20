@@ -47,11 +47,17 @@ jobs:
         cd components/profile-controller
         make docker-build-push-multi-arch
 
+    - name: Build and push latest multi-arch docker image
+      if: github.ref == 'refs/heads/master'
+      run: |
+        export TAG=latest
+        cd components/profile-controller
+        make docker-build-push-multi-arch
+
     - name: Build and push multi-arch docker image on Version change
       id: version
       if: steps.filter.outputs.version == 'true'
       run: |
+        export TAG=$(cat releasing/version/VERSION)
         cd components/profile-controller
         make docker-build-push-multi-arch
-      env:
-        TAG: $(cat releasing/version/VERSION)

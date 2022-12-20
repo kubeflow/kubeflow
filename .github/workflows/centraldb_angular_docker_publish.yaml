@@ -35,22 +35,22 @@ jobs:
         username: ${{ env.DOCKER_USER }}
         password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
 
-    - name: Run CentralDashboard-Angular build
+    - name: Run CentralDashboard-Angular build/push
       run: |
         cd components/centraldashboard-angular
-        make docker-build
-
-    - name: Run CentralDashboard-Angular push
+        make docker-build docker-push
+    
+    - name: Run CentralDashboard-Angular build/push latest
+      if: github.ref == 'refs/heads/master'
       run: |
+        export TAG=latest
         cd components/centraldashboard-angular
-        make docker-push
+        make docker-build docker-push
 
-    - name: Run CentralDashboard-Angular push on Version change
+    - name: Run CentralDashboard-Angular build/push on Version change
       id: version
       if: steps.filter.outputs.version == 'true'
       run: |
-        docker tag ${{env.IMG}}:${TAG} ${{env.IMG}}:${VERSION_TAG}
-        docker push ${{env.IMG}}:${VERSION_TAG}
-      env:
-        TAG: $(git describe --tags --always --dirty)
-        VERSION_TAG: $(cat releasing/version/VERSION)
+        export TAG=$(cat releasing/version/VERSION)
+        cd components/centraldashboard-angular
+        make docker-build docker-push

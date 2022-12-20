@@ -47,10 +47,9 @@ jobs:
         cd components/admission-webhook/manifests
         kubectl create ns kubeflow
 
-        export CURRENT_PODDEFAULTS_IMG=docker.io/kubeflownotebookswg/poddefaults-webhook:v1.6.0
+        export CURRENT_PODDEFAULTS_IMG=docker.io/kubeflownotebookswg/poddefaults-webhook:latest
         export PR_PODDEFAULTS_IMG=${{env.IMG}}:${{env.TAG}}
 
 
         kustomize build overlays/cert-manager | sed "s#$CURRENT_PODDEFAULTS_IMG#$PR_PODDEFAULTS_IMG#g" | kubectl apply -f -
         kubectl wait pods -n kubeflow -l app=poddefaults --for=condition=Ready --timeout=300s
-

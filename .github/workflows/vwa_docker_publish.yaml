@@ -45,14 +45,20 @@ jobs:
 
     - name: Build and push multi-arch docker image
       run: |
-        cd  components/crud-web-apps/volumes
+        cd components/crud-web-apps/volumes
+        make docker-build-push-multi-arch
+
+    - name: Build and push latest multi-arch docker image
+      if: github.ref == 'refs/heads/master'
+      run: |
+        export TAG=latest
+        cd components/crud-web-apps/volumes
         make docker-build-push-multi-arch
 
     - name: Build and push multi-arch docker image on Version change
       id: version
       if: steps.filter.outputs.version == 'true'
       run: |
-        cd  components/crud-web-apps/volumes
+        export TAG=$(cat releasing/version/VERSION)
+        cd components/crud-web-apps/volumes
         make docker-build-push-multi-arch
-      env:
-        TAG: $(cat releasing/version/VERSION)

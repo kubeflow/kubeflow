@@ -8,4 +8,4 @@ spec:
     spec:
       containers:
         - name: notebook-sample-v1
-          image: kubeflownotebookswg/jupyter:v1.5.0-rc.1
+          image: kubeflownotebookswg/jupyter:latest

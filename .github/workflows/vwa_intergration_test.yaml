@@ -45,9 +45,8 @@ jobs:
         cd components/crud-web-apps/volumes/manifests
         kubectl create ns kubeflow
 
-        export CURRENT_VWA_IMG=docker.io/kubeflownotebookswg/volumes-web-app:v1.6.0
+        export CURRENT_VWA_IMG=docker.io/kubeflownotebookswg/volumes-web-app:latest
         export PR_VWA_IMG=${{env.IMG}}:${{env.TAG}}
 
         kustomize build overlays/istio | sed "s#$CURRENT_VWA_IMG#$PR_VWA_IMG#g" |  kubectl apply -f -
         kubectl wait pods -n kubeflow -l app=volumes-web-app --for=condition=Ready --timeout=300s
-
