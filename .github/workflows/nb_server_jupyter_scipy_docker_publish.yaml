@@ -11,7 +11,6 @@ on:
       - releasing/version/VERSION
 
 env:
-  TAG: $(git describe --tags --always --dirty)
   DOCKER_USER: kubeflownotebookswg
   REGISTRY: kubeflownotebookswg
 
@@ -38,21 +37,25 @@ jobs:
         username: ${{ env.DOCKER_USER }}
         password: ${{ secrets.KUBEFLOWNOTEBOOKSWG_DOCKER_TOKEN }}
 
-    - name: Build Notebook Server images via their Makefile
+    - name: Build and push Notebook Server images
       run: |
         cd components/example-notebook-servers/
         make docker-build -C jupyter-scipy
-    
-    - name: Push Notebook Server images
-      run: |
-        docker tag jupyter-scipy:${{env.TAG}} ${{env.REGISTRY}}/jupyter-scipy:${{env.TAG}}
-        docker push ${{env.REGISTRY}}/jupyter-scipy:${{env.TAG}}
+        make docker-push -C jupyter-scipy
 
-    - name: Push Notebook Server images on Version change
+    - name: Build and push latest Notebook Server images
+      if: github.ref == 'refs/heads/master'
+      run: |
+        export TAG=latest
+        cd components/example-notebook-servers/
+        make docker-build -C jupyter-scipy
+        make docker-push -C jupyter-scipy
+
+    - name: Build and push Notebook Server images on Version change
       id: version
       if: steps.filter.outputs.version == 'true'
       run: |
-        docker tag jupyter-scipy:${{env.TAG}} ${{env.REGISTRY}}/jupyter-scipy:${VERSION_TAG}
-        docker push ${{env.REGISTRY}}/jupyter-scipy:${VERSION_TAG}
-      env:
-        VERSION_TAG: $(cat releasing/version/VERSION)
+        export TAG=$(cat releasing/version/VERSION)
+        cd components/example-notebook-servers/
+        make docker-build -C jupyter-scipy
+        make docker-push -C jupyter-scipy
