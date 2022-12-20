@@ -128,7 +128,13 @@ export class TableComponent
       }
     });
 
-    this.sort.sort({ disableClear: true, id: 'name', start: 'asc' });
+    const sortByColumn = this.config.sortByColumn || 'name';
+    const sortDirection = this.config.sortDirection || 'asc';
+    this.sort.sort({
+      disableClear: true,
+      id: sortByColumn,
+      start: sortDirection,
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {

@@ -39,21 +39,23 @@ describe('IndexRokComponent', () => {
   let component: IndexRokComponent;
   let fixture: ComponentFixture<IndexRokComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [IndexRokComponent],
-      providers: [
-        { provide: ConfirmDialogService, useValue: {} },
-        { provide: VWABackendService, useValue: VWABackendServiceStub },
-        { provide: SnackBarService, useValue: SnackBarServiceStub },
-        { provide: NamespaceService, useValue: NamespaceServiceStub },
-        { provide: PollerService, useValue: {} },
-        { provide: BackendService, useValue: MockBackendService },
-        { provide: RokService, useValue: RokServiceStub },
-      ],
-      imports: [MatDialogModule, RouterTestingModule, KubeflowModule],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [IndexRokComponent],
+        providers: [
+          { provide: ConfirmDialogService, useValue: {} },
+          { provide: VWABackendService, useValue: VWABackendServiceStub },
+          { provide: SnackBarService, useValue: SnackBarServiceStub },
+          { provide: NamespaceService, useValue: NamespaceServiceStub },
+          { provide: PollerService, useValue: {} },
+          { provide: BackendService, useValue: MockBackendService },
+          { provide: RokService, useValue: RokServiceStub },
+        ],
+        imports: [MatDialogModule, RouterTestingModule, KubeflowModule],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(IndexRokComponent);

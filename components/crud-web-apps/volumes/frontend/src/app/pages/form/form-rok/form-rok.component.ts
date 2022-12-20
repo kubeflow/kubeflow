@@ -31,8 +31,7 @@ import { Observable } from 'rxjs';
 // TODO: Use an abstract class to eliminate common code
 export class FormRokComponent
   extends FormDefaultComponent
-  implements OnInit, OnDestroy
-{
+  implements OnInit, OnDestroy {
   public env = environment;
 
   private rokManagedStorageClasses: string[] = [];

@@ -37,6 +37,8 @@ export interface TableConfig {
   width?: string;
   theme?: TABLE_THEME;
   dynamicNamespaceColumn?: boolean;
+  sortByColumn?: string;
+  sortDirection?: 'asc' | 'desc';
 }
 
 export enum TABLE_THEME {

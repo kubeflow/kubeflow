@@ -36,20 +36,22 @@ describe('IndexComponent', () => {
   let component: IndexComponent;
   let fixture: ComponentFixture<IndexComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [IndexComponent, IndexDefaultComponent],
-      providers: [
-        { provide: ConfirmDialogService, useValue: {} },
-        { provide: VWABackendService, useValue: VWABackendServiceStub },
-        { provide: SnackBarService, useValue: SnackBarServiceStub },
-        { provide: NamespaceService, useValue: NamespaceServiceStub },
-        { provide: PollerService, useValue: {} },
-        { provide: BackendService, useValue: MockBackendService },
-      ],
-      imports: [MatDialogModule, RouterTestingModule, KubeflowModule],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [IndexComponent, IndexDefaultComponent],
+        providers: [
+          { provide: ConfirmDialogService, useValue: {} },
+          { provide: VWABackendService, useValue: VWABackendServiceStub },
+          { provide: SnackBarService, useValue: SnackBarServiceStub },
+          { provide: NamespaceService, useValue: NamespaceServiceStub },
+          { provide: PollerService, useValue: {} },
+          { provide: BackendService, useValue: MockBackendService },
+        ],
+        imports: [MatDialogModule, RouterTestingModule, KubeflowModule],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(IndexComponent);
