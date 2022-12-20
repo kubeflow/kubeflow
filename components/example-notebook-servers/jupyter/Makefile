@@ -1,10 +1,11 @@
 TAG ?= $(shell git describe --tags --always --dirty)
+REGISTRY ?= kubeflownotebookswg
 
 docker-build-base:
 	make docker-build -C ../base TAG=${TAG}
 
 docker-build: docker-build-base
-	docker build -t jupyter:${TAG} --build-arg BASE_IMG=base:${TAG} -f Dockerfile . 
+	docker build -t ${REGISTRY}/jupyter:${TAG} --build-arg BASE_IMG=${REGISTRY}/base:${TAG} -f Dockerfile . 
 
 docker-push:
-	docker push jupyter:${TAG}
+	docker push ${REGISTRY}/jupyter:${TAG}
