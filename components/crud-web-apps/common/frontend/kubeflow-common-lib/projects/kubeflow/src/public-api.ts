@@ -104,3 +104,7 @@ export * from './lib/variables-groups-table/types';
 
 export * from './lib/status-icon/status-icon.component';
 export * from './lib/status-icon/status-icon.module';
+
+export * from './lib/urls/urls.component';
+export * from './lib/urls/urls.module';
+export * from './lib/urls/types';

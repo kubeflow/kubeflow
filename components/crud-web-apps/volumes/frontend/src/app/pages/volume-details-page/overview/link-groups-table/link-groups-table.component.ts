@@ -1,5 +1,6 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { LinkGroup, LinkObject } from './types';
+import { Component, Input, OnInit, TrackByFunction } from '@angular/core';
+import { UrlItem } from 'kubeflow';
+import { LinkGroup } from './types';
 
 @Component({
   selector: 'app-link-groups-table',
@@ -40,7 +41,5 @@ export class LinkGroupsTableComponent implements OnInit {
     return JSON.stringify(group);
   }
 
-  linkTrackByFn(link: LinkObject) {
-    return link.name;
-  }
+  linkTrackByFn: TrackByFunction<UrlItem> = (id: number, link: UrlItem) => link.name;
 }

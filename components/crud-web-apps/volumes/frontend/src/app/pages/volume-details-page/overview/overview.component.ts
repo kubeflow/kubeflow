@@ -1,10 +1,10 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { environment } from '@app/environment';
 import { V1PersistentVolumeClaim, V1Pod } from '@kubernetes/client-node';
-import { ChipDescriptor, PollerService } from 'kubeflow';
+import { ChipDescriptor, PollerService, UrlItem } from 'kubeflow';
 import { Subscription } from 'rxjs';
 import { VWABackendService } from 'src/app/services/backend.service';
-import { LinkGroup, LinkObject } from './link-groups-table/types';
+import { LinkGroup } from './link-groups-table/types';
 
 @Component({
   selector: 'app-overview',
@@ -107,7 +107,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
     }
   }
 
-  private newPodGroup(podLink: LinkObject, groupName: string): LinkGroup {
+  private newPodGroup(podLink: UrlItem, groupName: string): LinkGroup {
     const podsGroup: LinkGroup = {
       name: groupName,
       links: [podLink],
@@ -120,7 +120,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
     namespace: string,
     groupName: string,
     viewerUrl: string,
-  ): LinkObject {
+  ): UrlItem {
     let url = '';
 
     if (groupName === 'Notebooks') {

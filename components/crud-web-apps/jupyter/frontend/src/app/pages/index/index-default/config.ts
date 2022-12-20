@@ -108,11 +108,6 @@ export const defaultConfig: TableConfig = {
       sort: true,
       sortingPreprocessorFn: quantityToScalar,
     },
-    {
-      matHeaderCellDef: $localize`Volumes`,
-      matColumnDef: 'volumes',
-      value: new MenuValue({ field: 'volumes', itemsIcon: 'storage' }),
-    },
 
     {
       matHeaderCellDef: '',

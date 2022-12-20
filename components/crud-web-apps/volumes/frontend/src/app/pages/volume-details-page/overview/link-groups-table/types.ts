@@ -1,9 +1,6 @@
-export interface LinkObject {
-  name: string;
-  url?: string;
-}
+import { UrlItem } from 'kubeflow';
 
 export interface LinkGroup {
   name: string;
-  links: LinkObject[];
+  links: UrlItem[];
 }

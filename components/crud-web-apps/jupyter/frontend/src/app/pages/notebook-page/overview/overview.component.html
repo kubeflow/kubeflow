@@ -1,5 +1,10 @@
-<lib-details-list-item key="Volumes" [chipsList]="volumes">
-</lib-details-list-item>
+<lib-content-list-item key="Volumes">
+  <app-volumes
+    [volGroups]="volGroups"
+    [loadCompleted]="notebookInfoLoaded"
+    [loadErrorMsg]="'No volumes available for this notebook.'"
+  ></app-volumes>
+</lib-content-list-item>
 
 <lib-details-list-item key="Shared memory enabled">
   {{ sharedMemory }}

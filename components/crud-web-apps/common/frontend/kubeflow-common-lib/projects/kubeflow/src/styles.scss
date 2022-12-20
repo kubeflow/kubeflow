@@ -273,3 +273,19 @@ body {
     font-size: 20px;
   }
 }
+
+// Classes for styling anchor elements
+
+.lib-link {
+  color: $link-color;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.lib-link:visited {
+  color: $link-color;
+}
+
+.lib-link:hover {
+  text-decoration: underline;
+}

@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OverviewComponent } from './overview.component';
+import { MatChipsModule } from '@angular/material/chips';
 import {
   KubeflowModule,
   ConditionsTableModule,
@@ -8,11 +9,13 @@ import {
   HeadingSubheadingRowModule,
   ContentListItemModule,
   VariablesGroupsTableModule,
+  UrlsModule,
 } from 'kubeflow';
 import { ConfigurationsModule } from './configurations/configurations.module';
+import { VolumesComponent } from './volumes/volumes.component';
 
 @NgModule({
-  declarations: [OverviewComponent],
+  declarations: [OverviewComponent, VolumesComponent],
   imports: [
     CommonModule,
     DetailsListModule,
@@ -22,6 +25,8 @@ import { ConfigurationsModule } from './configurations/configurations.module';
     ContentListItemModule,
     VariablesGroupsTableModule,
     ConfigurationsModule,
+    UrlsModule,
+    MatChipsModule,
   ],
   exports: [OverviewComponent],
 })
