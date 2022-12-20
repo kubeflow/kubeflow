@@ -13,7 +13,10 @@
     "lint": "ng lint --fix",
     "coverage": "ng test --no-watch --code-coverage --browsers ChromeHeadlessNoSandbox",
     "format:check": "prettier --check 'src/**/*.{js,ts,html,scss,css}' || node scripts/check-format-error.js",
-    "format:write": "prettier --write 'src/**/*.{js,ts,html,scss,css}'"
+    "format:write": "prettier --write 'src/**/*.{js,ts,html,scss,css}'",
+    "ui-test": "cypress open . --e2e",
+    "ui-test-ci": "cypress run . --e2e",
+    "ui-test-ci-all": "cypress run . --e2e --browser=chrome && cypress run . --e2e --browser=firefox"
   },
   "private": true,
   "dependencies": {
@@ -32,9 +35,6 @@
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.6.2",
-    "@babel/plugin-transform-runtime": "^7.6.2",
-    "@babel/preset-env": "^7.6.2",
     "@angular-devkit/build-angular": "~12.2.18",
     "@angular-eslint/builder": "12.7.0",
     "@angular-eslint/eslint-plugin": "12.7.0",
@@ -43,15 +43,19 @@
     "@angular-eslint/template-parser": "12.7.0",
     "@angular/cli": "~12.2.18",
     "@angular/compiler-cli": "~12.2.0",
+    "@babel/core": "^7.6.2",
+    "@babel/plugin-transform-runtime": "^7.6.2",
+    "@babel/preset-env": "^7.6.2",
     "@types/jasmine": "~3.8.0",
     "@types/node": "^12.11.1",
     "@typescript-eslint/eslint-plugin": "4.28.2",
     "@typescript-eslint/parser": "4.28.2",
+    "babel-loader": "^8.0.6",
+    "cross-env": "^5.2.1",
+    "cypress": "^12.1.0",
     "eslint": "^7.26.0",
     "eslint-config-google": "0.12.0",
     "eslint-loader": "2.2.1",
-    "babel-loader": "^8.0.6",
-    "cross-env": "^5.2.1",
     "jasmine-core": "~3.8.0",
     "karma": "~6.3.0",
     "karma-chrome-launcher": "~3.1.0",
