@@ -160,15 +160,13 @@ export class WorkgroupApi {
      * Retrieves all namespaces in case of basic auth.
      */
     async getAllWorkgroups(fakeUser: string): Promise<SimpleBinding[]> {
-        /*let bindings;
+        let bindings;
         try{
             //try catch is for a retry when it fails
             bindings = await this.profilesService.readBindings();
         }catch(e){
             bindings = await this.profilesService.readBindings();
-        }*/
-        let bindings = await this.profilesService.readBindings();
-        
+        }
         const namespaces = mapWorkgroupBindingToSimpleBinding(
             bindings.body.bindings || []
         );
