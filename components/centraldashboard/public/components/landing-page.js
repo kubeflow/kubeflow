@@ -18,6 +18,7 @@ import utilitiesMixin from './utilities-mixin.js';
 export class LandingPage extends utilitiesMixin(localizationMixin(PolymerElement)) {
     static get template() {
         const vars = {logo};
+        
         return html([
             `<style>${css.toString()}</style>${template(vars)}`]);
     }
