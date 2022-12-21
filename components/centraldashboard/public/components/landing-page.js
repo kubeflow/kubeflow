@@ -12,6 +12,7 @@ import utilitiesMixin from './utilities-mixin.js';
 
 /**
  * Entry point for application UI.
+ * Replaces registration-page
  */
 // eslint-disable-next-line max-len
 export class LandingPage extends utilitiesMixin(localizationMixin(PolymerElement)) {
