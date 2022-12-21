@@ -160,7 +160,13 @@ export class WorkgroupApi {
      * Retrieves all namespaces in case of basic auth.
      */
     async getAllWorkgroups(fakeUser: string): Promise<SimpleBinding[]> {
-        const bindings = await this.profilesService.readBindings();
+        let bindings;
+        try{
+            //try catch is for a retry when it fails
+            bindings = await this.profilesService.readBindings();
+        }catch(e){
+            bindings = await this.profilesService.readBindings();
+        }
         const namespaces = mapWorkgroupBindingToSimpleBinding(
             bindings.body.bindings || []
         );
@@ -175,10 +181,19 @@ export class WorkgroupApi {
      * Retrieves WorkgroupInfo from Profile Controller for the given user.
      */
     async getWorkgroupInfo(user: User.User): Promise<WorkgroupInfo> {
-        const [adminResponse, bindings] = await Promise.all([
-            this.profilesService.v1RoleClusteradminGet(user.email),
-            this.profilesService.readBindings(user.email),
-        ]);
+        let adminResponse, bindings;
+        try{
+            //try catch is for a retry when it fails
+            [adminResponse, bindings] = await Promise.all([
+                this.profilesService.v1RoleClusteradminGet(user.email),
+                this.profilesService.readBindings(user.email),
+            ]);
+        }catch(e){
+            [adminResponse, bindings] = await Promise.all([
+                this.profilesService.v1RoleClusteradminGet(user.email),
+                this.profilesService.readBindings(user.email),
+            ]);
+        }
         const namespaces = mapWorkgroupBindingToSimpleBinding(
             bindings.body.bindings || []
         );
