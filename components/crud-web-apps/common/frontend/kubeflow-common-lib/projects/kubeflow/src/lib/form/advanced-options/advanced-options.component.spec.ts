@@ -7,11 +7,13 @@ describe('AdvancedOptionsComponent', () => {
   let component: AdvancedOptionsComponent;
   let fixture: ComponentFixture<AdvancedOptionsComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [FormModule],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [FormModule],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(AdvancedOptionsComponent);

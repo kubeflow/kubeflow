@@ -12,12 +12,14 @@ describe('NamespaceSelectComponent', () => {
   let component: NamespaceSelectComponent;
   let fixture: ComponentFixture<NamespaceSelectComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [NamespaceSelectModule],
-      providers: [{ provide: BackendService, useClass: MockBackendService }],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [NamespaceSelectModule],
+        providers: [{ provide: BackendService, useClass: MockBackendService }],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(NamespaceSelectComponent);

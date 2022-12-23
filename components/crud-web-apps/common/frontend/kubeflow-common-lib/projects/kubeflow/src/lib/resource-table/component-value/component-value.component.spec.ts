@@ -41,11 +41,13 @@ describe('ComponentValueComponent', () => {
   let component: ComponentValueComponent;
   let fixture: ComponentFixture<ComponentValueComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [ResourceTableModule, MockModule],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [ResourceTableModule, MockModule],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ComponentValueComponent);

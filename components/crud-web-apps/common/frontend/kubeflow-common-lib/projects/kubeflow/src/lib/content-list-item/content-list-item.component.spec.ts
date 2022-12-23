@@ -8,9 +8,8 @@ describe('ContentListItemComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ContentListItemComponent ]
-    })
-    .compileComponents();
+      declarations: [ContentListItemComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {
