@@ -1,4 +1,10 @@
-import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnDestroy,
+  ViewChild,
+} from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
@@ -7,7 +13,7 @@ import { Subscription } from 'rxjs';
   templateUrl: './iframe-wrapper.component.html',
   styleUrls: ['./iframe-wrapper.component.scss'],
 })
-export class IframeWrapperComponent implements AfterViewInit {
+export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
   @ViewChild('iframe') iframe: ElementRef<HTMLIFrameElement>;
 
   public prvSrcPath: string;
