@@ -95,7 +95,7 @@ export class IndexRokComponent
     }
 
     this.pvcsWaitingViewer.add(pvc.name);
-    pvc.editAction = this.parseViewerActionStatus(pvc);
+    pvc.openViewerAction = this.parseViewerActionStatus(pvc);
 
     this.backend.createViewer(pvc.namespace, pvc.name).subscribe({
       next: res => {
@@ -103,7 +103,7 @@ export class IndexRokComponent
       },
       error: err => {
         this.pvcsWaitingViewer.delete(pvc.name);
-        pvc.editAction = this.parseViewerActionStatus(pvc);
+        pvc.openViewerAction = this.parseViewerActionStatus(pvc);
       },
     });
   }
@@ -116,7 +116,7 @@ export class IndexRokComponent
     for (const pvc of super.parseIncomingData(pvcs)) {
       const parsedPVC = pvc as PVCProcessedObjectRok;
 
-      parsedPVC.editAction = this.parseViewerActionStatus(parsedPVC);
+      parsedPVC.openViewerAction = this.parseViewerActionStatus(parsedPVC);
       parsedPVCs.push(parsedPVC);
     }
 
