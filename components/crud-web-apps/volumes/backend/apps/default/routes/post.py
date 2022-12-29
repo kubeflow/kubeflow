@@ -31,7 +31,7 @@ def post_viewer(namespace):
     body = request.get_json()
     log.info("Received body: %s", body)
 
-    viewer = viewer_utils.create_viewer_from_template(
+    viewer = viewer_utils.create_viewer_template(
         name=body["name"], namespace=namespace)
 
     log.info("Creating Viewer '%s'...", viewer)

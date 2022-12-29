@@ -1,4 +1,5 @@
 from kubeflow.kubeflow.crud_backend import helpers
+import os
 
 KIND = "VolumeViewer"
 GROUP = "volumeviewer.kubeflow.org"
@@ -8,19 +9,15 @@ VIEWER = [GROUP, VERSION, PLURAL]
 
 POD_VIEWER_NAME_LABEL = "viewer-name"
 
-VIEWER_SPEC_PATH = "/etc/config/viewer.yaml"
+DEFAULT_VIEWER_IMAGE = "filebrowser/filebrowser:latest"
 
-
-def create_viewer_from_template(name, namespace):
+def create_viewer_template(name, namespace):
     """
-    name: the metadata.name of the viewer
-    namespace: the metadata.namespace of the viewer
+    name: the name of the PVC for which the viewer is to be created
+    namespace: the PVC's namespace
 
-    Reads the yaml for the web app's custom resource, replaces the variables
-    and returns it as a python dict.
+    Returns the body of the viewer as a dict 
     """
-
-    viewer_spec = helpers.load_param_yaml(VIEWER_SPEC_PATH)
 
     return {
         "apiVersion": f"{GROUP}/{VERSION}",
@@ -29,7 +26,10 @@ def create_viewer_from_template(name, namespace):
             "name": name,
             "namespace": namespace,
         },
-        "spec": viewer_spec
+        "spec": {
+            "pvcname": name,
+            "viewerimage": os.environ.get("VOLUME_VIEWER_IMAGE", DEFAULT_VIEWER_IMAGE)
+        }
     }
 
 
