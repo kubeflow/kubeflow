@@ -253,6 +253,11 @@ neon-animatable {
     height: 100%;
 }
 
+/* Remove the double scroll bar */
+iframe-container {
+    overflow: hidden;
+}
+
 #User-Badge {
     right: 16px;
     position: absolute;
