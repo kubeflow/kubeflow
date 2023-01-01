@@ -50,9 +50,9 @@ rules:
   verbs:
   - list
 - apiGroups:
-  - volumeviewer.kubeflow.org
+  - kubeflow.org
   resources:
-  - volumeviewers
+  - volumesviewers
   verbs:
   - get
   - list
@@ -87,9 +87,9 @@ rules:
   - update
   - patch
 - apiGroups:
-  - volumeviewer.kubeflow.org
+  - kubeflow.org
   resources:
-  - volumeviewers
+  - volumesviewers
   verbs:
   - get
   - list
@@ -120,9 +120,9 @@ rules:
   - list
   - watch
 - apiGroups:
-  - volumeviewer.kubeflow.org
+  - kubeflow.org
   resources:
-  - volumeviewers
+  - volumesviewers
   verbs:
   - get
   - list

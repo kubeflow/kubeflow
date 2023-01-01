@@ -1,4 +1,4 @@
-from kubeflow.kubeflow.crud_backend import api, logging
+from kubeflow.kubeflow.crud_backend import api, logging, status as crud_status
 
 from ...common import utils, status, viewer as viewer_utils
 from . import bp
@@ -13,13 +13,14 @@ def get_pvcs(namespace):
     content = [utils.parse_pvc(pvc) for pvc in pvcs.items]
 
     # Mix-in the viewer status to the response
-    viewers = {
-        v["spec"]["pvcname"]: status.viewer_status(v) for v in
+    viewerStatus = {
+        v["metadata"]["name"]: status.viewer_status(v) for v in
         api.list_custom_rsrc(*viewer_utils.VIEWER, namespace)["items"]
     }
+
     for pvc in content:
-        pvc["viewer"] = viewers.get(pvc.metadata.name,
-                                       status.STATUS_PHASE.UNINITIALIZED)
+        pvc["viewer"] = viewerStatus.get(pvc["name"],
+                                         crud_status.STATUS_PHASE.UNINITIALIZED)
 
     return api.success_response("pvcs", content)
 

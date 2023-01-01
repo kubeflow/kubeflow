@@ -29,11 +29,11 @@ def delete_pvc(pvc, namespace):
 
     # For each associated viewer pod delete its parent
     for viewer_pod in viewer_pods:
-        viewer = viewer_utils.get_viewer_owning_pod(viewer_pod)
+        viewer = viewer_utils.get_owning_viewer(viewer_pod)
         if not viewer:
-            logging.warn("Viewer pod %s/%s is missing the label %s required to identify its parent",
+            logging.warn("Viewer pod %s/%s is missing the label value %s required to identify its parent",
                          namespace, viewer_pod.metadata.name, viewer_utils.VIEWER_LABEL)
-        viewer_utils.delete_viewer(viewer, namespace)
+        delete_viewer(viewer, namespace)
 
     log.info("Deleting PVC %s/%s...", namespace, pvc)
     api.delete_pvc(pvc, namespace)

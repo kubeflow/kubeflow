@@ -8,7 +8,8 @@ spec:
     spec:
       containers:
       - name: volumes-web-app
-        image: docker.io/kubeflownotebookswg/volumes-web-app
+        # image: docker.io/kubeflownotebookswg/volumes-web-app
+        image: volumes:dev
         ports:
         - containerPort: 5000
         env:
@@ -22,4 +23,12 @@ spec:
           value: $(VWA_APP_SECURE_COOKIES)
         - name: VOLUME_VIEWER_IMAGE
           value: filebrowser/filebrowser:latest
+        volumeMounts: 
+        - name: viewer-spec
+          mountPath: /etc/config/viewer-spec.yaml
+          subPath: viewer-spec.yaml 
       serviceAccountName: service-account
+      volumes: 
+      - name: viewer-spec
+        configMap: 
+          name: viewer-spec

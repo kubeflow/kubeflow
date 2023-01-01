@@ -1,15 +1,16 @@
 from kubeflow.kubeflow.crud_backend import helpers
 import os
+import yaml
+from string import Template
 
-KIND = "VolumeViewer"
-GROUP = "volumeviewer.kubeflow.org"
+KIND = "VolumesViewer"
+GROUP = "kubeflow.org"
 VERSION = "v1alpha1"
-PLURAL = "volumeviewers"
+PLURAL = "volumesviewers"
 VIEWER = [GROUP, VERSION, PLURAL]
 
-POD_VIEWER_NAME_LABEL = "viewer-name"
-
-DEFAULT_VIEWER_IMAGE = "filebrowser/filebrowser:latest"
+VIEWER_SPEC_PATH = os.path.join("/etc/config", "viewer-spec.yaml")
+POD_PARENT_VIEWER_LABEL_KEY = "app.kubernetes.io/name"
 
 def create_viewer_template(name, namespace):
     """
@@ -19,6 +20,15 @@ def create_viewer_template(name, namespace):
     Returns the body of the viewer as a dict 
     """
 
+    with open(VIEWER_SPEC_PATH, "r") as f:
+        viewer_template = yaml.safe_load(f) 
+
+    variables = os.environ.copy()
+    variables["PVC_NAME"] = name
+    variables["NAMESPACE"] = namespace
+
+    spec = _substitute_env_variables(viewer_template, variables)
+
     return {
         "apiVersion": f"{GROUP}/{VERSION}",
         "kind": KIND,
@@ -26,11 +36,24 @@ def create_viewer_template(name, namespace):
             "name": name,
             "namespace": namespace,
         },
-        "spec": {
-            "pvcname": name,
-            "viewerimage": os.environ.get("VOLUME_VIEWER_IMAGE", DEFAULT_VIEWER_IMAGE)
-        }
+        "spec": spec
     }
+
+
+# Substitute environment variables
+def _substitute_env_variables(data, variables):
+    if isinstance(data, dict):
+        for key, value in data.items():
+            data[key] = _substitute_env_variables(value, variables)
+    elif isinstance(data, list):
+        for i, element in enumerate(data):
+            data[i] = _substitute_env_variables(element, variables)
+    elif isinstance(data, str):
+        try:
+            data = Template(data).substitute(**variables)
+        except:
+            pass
+    return data
 
 
 def is_viewer_pod(pod):
@@ -45,6 +68,6 @@ def get_owning_viewer(pod):
     Returns the viewer's name that owns the given pod.
     """
     try:
-        return pod.metadata.labels.get(POD_VIEWER_NAME_LABEL, None)
+        return pod.metadata.labels.get(POD_PARENT_VIEWER_LABEL_KEY, None)
     except AttributeError:
         return None

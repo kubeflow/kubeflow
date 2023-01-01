@@ -18,6 +18,9 @@ images:
 # We need the name to be unique without the suffix because the original name is what
 # gets used with patches
 configMapGenerator:
+- name: viewer-spec
+  files:
+    - viewer-spec.yaml
 - envs:
   - params.env
   name: parameters

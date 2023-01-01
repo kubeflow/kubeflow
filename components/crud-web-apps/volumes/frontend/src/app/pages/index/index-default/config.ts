@@ -14,7 +14,7 @@ const actionsCol: TableColumn = {
       name: 'open-viewer',
       tooltip: 'Browse',
       color: 'primary',
-      field: 'editAction',
+      field: 'openViewerAction',
       iconInit: 'material:folder',
       iconReady: 'custom:folderSearch',
     }),

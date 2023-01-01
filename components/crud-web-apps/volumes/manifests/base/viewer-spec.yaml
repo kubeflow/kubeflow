@@ -1,0 +1,48 @@
+# Note: the volumes-web-app allows expanding strings using ${VAR_NAME}
+# You may use any environment variable
+# Additionally, 'PVC_NAME' and 'NAMESPACE' are defined
+podTemplate:
+  containers:
+    - name: main
+      image: filebrowser/filebrowser:latest
+      env:
+        - name: FB_ADDRESS
+          value: "0.0.0.0"
+        - name: FB_PORT
+          value: "8080"
+        - name: FB_DATABASE
+          value: /tmp/filebrowser.db
+        - name: FB_NOAUTH
+          value: "true"
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: VIEWER_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['app.kubernetes.io/name']
+        - name: FB_BASEURL
+          value: /volumesviewer/$(NAMESPACE)/$(VIEWER_NAME)/
+      readinessProbe:
+        tcpSocket:
+          port: 8080
+        initialDelaySeconds: 30
+        periodSeconds: 10
+      volumeMounts:
+        - name: pvc
+          mountPath: /data
+      workingDir: /data
+  volumes:
+    - name: pvc
+      persistentVolumeClaim:
+        claimName: $PVC_NAME
+service:
+  targetPort: 8080
+  virtualService:
+    basePrefix: "/volumesviewer"
+    rewrite: "/"
+    timeout: 30s
+rwoScheduling:
+  enabled: true
+  restart: true

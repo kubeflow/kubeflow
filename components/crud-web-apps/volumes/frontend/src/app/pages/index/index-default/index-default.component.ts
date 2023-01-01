@@ -263,7 +263,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
   public openViewerWindow(pvc: PVCProcessedObject) {
     const url =
-      this.env.viewerUrl + `/viewer/${pvc.namespace}/${pvc.name}/`;
+      this.env.viewerUrl + `/volumesviewer/${pvc.namespace}/${pvc.name}/`;
 
     window.open(url, `${pvc.name}: Edit file contents`, 'height=600,width=800');
   }
