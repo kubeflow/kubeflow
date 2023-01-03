@@ -30,6 +30,7 @@
             [disabled]="button.disabled"
             (click)="button.fn()"
             class="toolbar-button"
+            [attr.data-cy-toolbar-button]="button.text"
           >
             <mat-icon *ngIf="button.icon" class="button-icon">
               {{ button.icon }}
@@ -48,6 +49,7 @@
             [disabled]="button.disabled"
             (click)="button.fn()"
             class="toolbar-button"
+            [attr.data-cy-toolbar-button]="button.text"
           >
             <mat-icon *ngIf="button.icon" class="button-icon">
               {{ button.icon }}
