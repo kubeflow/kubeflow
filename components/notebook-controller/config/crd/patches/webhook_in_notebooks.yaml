@@ -9,12 +9,9 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        # this is "\n" used as a placeholder, otherwise it will be rejected by the apiserver for being blank,
-        # but we're going to set it later using the cert-manager (or potentially a patch if not using cert-manager)
-        caBundle: Cg==
         service:
           namespace: system
-          name: webhook-service
+          name: notebook-controller-webhook-service
           path: /validate-kubeflow-org-v1-notebook
       conversionReviewVersions:
         - v1
