@@ -65,7 +65,7 @@ jobs:
       run: echo "::set-output name=boolean::true"
 
     - name: Docker push
-    if: steps.should-i-push.outputs.boolean == 'true'
+      if: steps.should-i-push.outputs.boolean == 'true'
       run: |
         docker push ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${{ github.sha }}
     # Push once, https://github.com/StatCan/kubeflow/pull/87
