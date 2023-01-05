@@ -145,7 +145,6 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   }
 
   public openViewerClicked(pvc: PVCProcessedObject) {
-    console.log("clicked open viewer: ", pvc)
     if (pvc.viewer === STATUS_TYPE.READY) {
       this.openViewerWindow(pvc);
       return;
@@ -192,7 +191,6 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         error: err => {
           // Simplify the error message
           const errorMsg = err;
-          console.log(err);
           closeDialogConfig.error = errorMsg;
           ref.componentInstance.applying$.next(false);
         },
@@ -228,8 +226,6 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
 
     // If the user had clicked to view the files and the viewer just
     // became ready, then open the edit window
-    console.log("parseViewerActionStatus pvc: ", pvc)
-    console.log("pvcsWaitingViewer: ", this.pvcsWaitingViewer)
     if (
       this.pvcsWaitingViewer.has(pvc.name) &&
       pvc.viewer === STATUS_TYPE.READY
