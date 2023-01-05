@@ -305,14 +305,10 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     ) {
       return STATUS_TYPE.UNAVAILABLE;
     }
-    if (
-      pvc.viewer === STATUS_TYPE.READY
-    ) {
+    if (pvc.viewer === STATUS_TYPE.READY) {
       return STATUS_TYPE.READY;
     }
-    if (
-      pvc.viewer === STATUS_TYPE.TERMINATING
-    ) {
+    if (pvc.viewer === STATUS_TYPE.TERMINATING) {
       return STATUS_TYPE.WAITING;
     }
 
