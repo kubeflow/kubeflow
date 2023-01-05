@@ -220,8 +220,4 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   public notebookTrackByFn(index: number, notebook: NotebookProcessedObject) {
     return `${notebook.name}/${notebook.image}`;
   }
-
-  private updateButtons(): void {
-    this.buttons = [this.newNotebookButton];
-  }
 }
