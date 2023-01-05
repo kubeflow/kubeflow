@@ -61,7 +61,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.nsSub = this.ns.getSelectedNamespace().subscribe(ns => {
+    this.nsSub = this.ns.getSelectedNamespace2().subscribe(ns => {
       this.currNamespace = ns;
       this.pvcsWaitingViewer = new Set<string>();
       this.poll(ns);
