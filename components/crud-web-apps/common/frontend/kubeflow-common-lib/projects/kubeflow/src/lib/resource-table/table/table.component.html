@@ -158,6 +158,19 @@
       </td>
     </ng-container>
 
+    <!--Memory Value-->
+    <ng-container *ngIf="isMemoryValue(col.value)">
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [attr.data-cy-resource-table-row]="col.matHeaderCellDef"
+        [ngStyle]="col.style"
+        [ngClass]="{ 'right-align': col.textAlignment === 'right' }"
+      >
+        {{ col.value.getViewValue(element) }}
+      </td>
+    </ng-container>
+
     <!--Status Value-->
     <ng-container *ngIf="isStatusValue(col.value)">
       <td

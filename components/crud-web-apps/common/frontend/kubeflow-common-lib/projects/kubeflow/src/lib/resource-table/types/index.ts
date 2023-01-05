@@ -10,3 +10,4 @@ export * from './property-value';
 export * from './status';
 export * from './template';
 export * from './link-value';
+export * from './memory-value';

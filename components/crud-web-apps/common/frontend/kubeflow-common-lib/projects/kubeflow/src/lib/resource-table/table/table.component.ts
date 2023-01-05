@@ -43,6 +43,7 @@ import {
 } from '@angular/material/autocomplete';
 import { DateTimeService } from '../../services/date-time.service';
 import { isEqual } from 'lodash-es';
+import { MemoryValue } from '../types/memory-value';
 
 @Component({
   selector: 'lib-table',
@@ -204,6 +205,9 @@ export class TableComponent
           return valueExtractor.getValue(element);
         }
       }
+      if (this.isMemoryValue(valueExtractor)) {
+        return valueExtractor.getValue(element);
+      }
       if (this.isDateTimeValue(valueExtractor)) {
         if (valueExtractor.getValue(element) === '') {
           return -1;
@@ -288,6 +292,15 @@ export class TableComponent
           isMatchText ||
           (valueExtractor as LinkValue)
             .getValue(row)
+            .toString()
+            .toLocaleLowerCase()
+            .includes(filterValue);
+      }
+      if (this.isMemoryValue(valueExtractor)) {
+        isMatchText =
+          isMatchText ||
+          (valueExtractor as MemoryValue)
+            .getViewValue(row)
             .toString()
             .toLocaleLowerCase()
             .includes(filterValue);
@@ -381,6 +394,20 @@ export class TableComponent
               isMatchObj &&
               valueExtractor
                 .getValue(row)
+                .toString()
+                .toLocaleLowerCase()
+                .includes(filterValue[element]);
+          }
+        }
+        if (this.isMemoryValue(valueExtractor)) {
+          if (filterValue[element] === '""') {
+            isMatchObj =
+              isMatchObj && valueExtractor.getViewValue(row).length === 0;
+          } else {
+            isMatchObj =
+              isMatchObj &&
+              valueExtractor
+                .getViewValue(row)
                 .toString()
                 .toLocaleLowerCase()
                 .includes(filterValue[element]);
@@ -590,6 +617,10 @@ export class TableComponent
 
   public isDateTimeValue(obj) {
     return obj instanceof DateTimeValue;
+  }
+
+  public isMemoryValue(obj) {
+    return obj instanceof MemoryValue;
   }
 
   public actionTriggered(e: ActionEvent) {
