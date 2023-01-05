@@ -1,6 +1,6 @@
 # Note: the volumes-web-app allows expanding strings using ${VAR_NAME}
 # You may use any environment variable. This lets us e.g. specify images that can be modified using kustomize's image transformer.
-# Additionally, 'PVC_NAME' and 'NAMESPACE' are defined
+# Additionally, 'PVC_NAME', 'NAME' and 'NAMESPACE' are defined
 podTemplate:
   containers:
     - name: main
@@ -14,16 +14,8 @@ podTemplate:
           value: /tmp/filebrowser.db
         - name: FB_NOAUTH
           value: "true"
-        - name: NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: VIEWER_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.labels['app.kubernetes.io/name']
         - name: FB_BASEURL
-          value: /volumesviewer/$(NAMESPACE)/$(VIEWER_NAME)/
+          value: /volumesviewer/$NAMESPACE/$NAME/
       readinessProbe:
         tcpSocket:
           port: 8080
