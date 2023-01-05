@@ -8,8 +8,7 @@ spec:
     spec:
       containers:
       - name: volumes-web-app
-        # image: docker.io/kubeflownotebookswg/volumes-web-app
-        image: volumes:dev
+        image: docker.io/kubeflownotebookswg/volumes-web-app
         ports:
         - containerPort: 5000
         env:

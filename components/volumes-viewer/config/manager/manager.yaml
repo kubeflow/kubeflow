@@ -45,9 +45,8 @@ spec:
         - /manager
         args:
         - --leader-elect
-        image: controller:latest
-        # TODO remove
-        imagePullPolicy: Never
+        # TODO set image to external repo
+        image: tobiasgoerke/kubeflow-volumes-viewer:test-v2
         name: manager
         securityContext:
           allowPrivilegeEscalation: false
