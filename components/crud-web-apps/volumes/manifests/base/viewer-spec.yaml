@@ -1,10 +1,10 @@
 # Note: the volumes-web-app allows expanding strings using ${VAR_NAME}
-# You may use any environment variable
+# You may use any environment variable. This lets us e.g. specify images that can be modified using kustomize's image transformer.
 # Additionally, 'PVC_NAME' and 'NAMESPACE' are defined
 podTemplate:
   containers:
     - name: main
-      image: filebrowser/filebrowser:latest
+      image: $VOLUME_VIEWER_IMAGE
       env:
         - name: FB_ADDRESS
           value: "0.0.0.0"
