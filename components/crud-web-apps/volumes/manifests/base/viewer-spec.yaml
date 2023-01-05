@@ -27,7 +27,7 @@ podTemplate:
       readinessProbe:
         tcpSocket:
           port: 8080
-        initialDelaySeconds: 30
+        initialDelaySeconds: 2
         periodSeconds: 10
       volumeMounts:
         - name: pvc
