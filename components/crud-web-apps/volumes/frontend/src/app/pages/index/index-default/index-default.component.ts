@@ -145,7 +145,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
   }
 
   public openViewerClicked(pvc: PVCProcessedObject) {
-    if (pvc.viewer === STATUS_TYPE.READY) {
+    if (pvc.viewer.status === STATUS_TYPE.READY) {
       this.openViewerWindow(pvc);
       return;
     }
@@ -203,65 +203,63 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
           return;
         }
 
-        pvc.viewer = STATUS_TYPE.TERMINATING;
+        pvc.viewer.status = STATUS_TYPE.TERMINATING;
         pvc.closeViewerAction = STATUS_TYPE.TERMINATING;
+
+        this.pvcsWaitingViewer.delete(pvc.name)
       });
     });
   }
 
+  // Defines the status of the "Open Viewer" button
   public parseViewerActionStatus(pvc: PVCProcessedObject): STATUS_TYPE {
-    // If the PVC is being created or there was an error, then
-    // don't allow the user to edit it
-    if (
-      pvc.status.phase === STATUS_TYPE.UNINITIALIZED ||
-      pvc.status.phase === STATUS_TYPE.WAITING ||
-      pvc.status.phase === STATUS_TYPE.WARNING ||
-      pvc.status.phase === STATUS_TYPE.TERMINATING ||
-      pvc.status.phase === STATUS_TYPE.ERROR
-    ) {
+    // PVC is UNAVAILABLE but only because its waiting for a consumer
+    // This shouldn't stop a viewer from being the first consumer
+    const pvcWaitingForConsumer =
+      pvc.status.phase === STATUS_TYPE.UNAVAILABLE &&
+      pvc.status.state === 'WaitForFirstConsumer';
+
+    if (pvc.status.phase !== STATUS_TYPE.READY && !pvcWaitingForConsumer) {
       return STATUS_TYPE.UNAVAILABLE;
     }
 
-    // The PVC is either READY or UNAVAILABLE(WaitForFirstConsumer)
-
-    // If the user had clicked to view the files and the viewer just
-    // became ready, then open the edit window
-    if (
-      this.pvcsWaitingViewer.has(pvc.name) &&
-      pvc.viewer === STATUS_TYPE.READY
-    ) {
-      this.pvcsWaitingViewer.delete(pvc.name);
-      this.openViewerWindow(pvc);
-      return STATUS_TYPE.READY;
+    // Popup is waiting for the viewer to become ready
+    if (this.pvcsWaitingViewer.has(pvc.name)) {
+      // Open the viewer window if it's ready
+      if (pvc.viewer.status === STATUS_TYPE.READY) {
+        this.pvcsWaitingViewer.delete(pvc.name);
+        this.openViewerWindow(pvc);
+      }
+      // Show a spinner as we're waiting to the viewer to become ready
+      if (
+        [STATUS_TYPE.UNINITIALIZED, STATUS_TYPE.WAITING].includes(
+          pvc.viewer.status,
+        )
+      ) {
+        return STATUS_TYPE.WAITING;
+      }
     }
 
-    // If the user clicked to view the files and the viewer
-    // is still uninitialized or unavailable, then show a spinner
-    if (
-      this.pvcsWaitingViewer.has(pvc.name) &&
-      (pvc.viewer === STATUS_TYPE.UNINITIALIZED ||
-        pvc.viewer === STATUS_TYPE.WAITING)
-    ) {
-      return STATUS_TYPE.WAITING;
-    }
+    return pvc.viewer.status;
+  }
 
-    // If the user hasn't yet clicked to edit the pvc, then the viewer
-    // button should be enabled
-    if (
-      !this.pvcsWaitingViewer.has(pvc.name) &&
-      pvc.status.state === 'WaitForFirstConsumer'
-    ) {
-      return STATUS_TYPE.UNINITIALIZED;
+  // Defines the status of the "Close Viewer" button
+  public parseCloseViewerActionStatus(pvc: PVCProcessedObject) {
+    // Users may always close an existing, non-terminating viewer
+    switch (pvc.viewer.status) {
+      case STATUS_TYPE.UNINITIALIZED:
+        return STATUS_TYPE.UNAVAILABLE;
+      case STATUS_TYPE.TERMINATING:
+        return STATUS_TYPE.WAITING;
+      default:
+        return STATUS_TYPE.READY;
     }
-
-    return pvc.viewer;
   }
 
   public openViewerWindow(pvc: PVCProcessedObject) {
-    const url =
-      this.env.viewerUrl + `/volumesviewer/${pvc.namespace}/${pvc.name}/`;
+    const url = this.env.viewerUrl + pvc.viewer.url;
 
-    window.open(url, `${pvc.name}: Edit file contents`, 'height=600,width=800');
+    window.open(url, `${pvc.name}: Volumes Viewer`, 'height=600,width=800');
   }
 
   // Utility funcs
@@ -285,34 +283,6 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
     }
 
     return STATUS_TYPE.TERMINATING;
-  }
-
-  public parseCloseViewerActionStatus(pvc: PVCProcessedObject) {
-    if (
-      !this.pvcsWaitingViewer.has(pvc.name) &&
-      pvc.status.state === 'WaitForFirstConsumer'
-    ) {
-      return STATUS_TYPE.UNINITIALIZED;
-    }
-    // If the PVC is being created or there was an error, then
-    // don't allow the user to edit it
-    if (
-      pvc.status.phase === STATUS_TYPE.UNINITIALIZED ||
-      pvc.status.phase === STATUS_TYPE.WAITING ||
-      pvc.status.phase === STATUS_TYPE.WARNING ||
-      pvc.status.phase === STATUS_TYPE.TERMINATING ||
-      pvc.status.phase === STATUS_TYPE.ERROR
-    ) {
-      return STATUS_TYPE.UNAVAILABLE;
-    }
-    if (pvc.viewer === STATUS_TYPE.READY) {
-      return STATUS_TYPE.READY;
-    }
-    if (pvc.viewer === STATUS_TYPE.TERMINATING) {
-      return STATUS_TYPE.WAITING;
-    }
-
-    return STATUS_TYPE.UNAVAILABLE;
   }
 
   public pvcTrackByFn(index: number, pvc: PVCProcessedObject) {

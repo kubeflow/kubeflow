@@ -13,14 +13,17 @@ def get_pvcs(namespace):
     content = [utils.parse_pvc(pvc) for pvc in pvcs.items]
 
     # Mix-in the viewer status to the response
-    viewerStatus = {
-        v["metadata"]["name"]: status.viewer_status(v) for v in
+    viewers = {
+        v["metadata"]["name"]: v for v in
         api.list_custom_rsrc(*viewer_utils.VIEWER, namespace)["items"]
     }
 
     for pvc in content:
-        pvc["viewer"] = viewerStatus.get(pvc["name"],
-                                         crud_status.STATUS_PHASE.UNINITIALIZED)
+        viewer = viewers.get(pvc["name"], {})
+        pvc["viewer"] = {
+            "status": status.viewer_status(viewer),
+            "url": viewer.get("status", {}).get("url", None)
+        }
 
     return api.success_response("pvcs", content)
 
