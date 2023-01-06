@@ -17,7 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -41,13 +40,16 @@ type RWOScheduling struct {
 	// NodeAffinity so that the VolumesViewer is preferably scheduled on the same node as
 	// the other Pods mounting the volume. Therefore, the VolumesViewer will be able to
 	// access RWO-PVCs which are already mounted.
-	Enabled bool `json:"enabled,omitempty"`
+	// +kubebuilder:default:=true
+	Enabled bool `json:"enabled"`
+
 	// Instructs the controller to restart generated deployments after they have been created
 	// in case the mounted RWO-PVC's node changes.
 	// Therefore, the newly started Pod won't be blocked by the viewer.
 	// This feature only works reliably when used with one RWO-PVC, as the viewer cannot
 	// be simultaneously mount RWO-PVCs from different nodes.
-	Restart bool `json:"restart,omitempty"`
+	// +kubebuilder:default:=false
+	Restart bool `json:"restart"`
 }
 
 type Service struct {
@@ -71,27 +73,25 @@ type VirtualService struct {
 	Timeout string `json:"timeout,omitempty"`
 }
 
-// VolumesViewerCondition defines the observed state of VolumesViewer Status
-type VolumesViewerCondition struct {
-	// Deployment status, 'Available', 'Progressing', 'ReplicaFailure' .
-	DeploymentState appsv1.DeploymentConditionType `json:"deploymentState,omitempty"`
-
-	// Last time the condition was probed
-	LastProbeTime metav1.Time `json:"lastProbeTime,omitempty"`
-}
-
 // VolumesViewerStatus defines the observed state of VolumesViewer
 type VolumesViewerStatus struct {
 	// ReadyReplicas defines the number of PVCViewer Servers
 	// that are available to connect
-	ReadyReplicas int32 `json:"readyReplicas,omitempty"`
+	// +kubebuilder:default:=0
+	ReadyReplicas int32 `json:"readyReplicas"`
+
 	// Ready defines if the PVCViewer is ready to be used,
 	// e.g. Replicas==ReadyReplicas
-	Ready bool `json:"ready,omitempty"`
+	// +kubebuilder:default:=false
+	Ready bool `json:"ready"`
+
 	// RWOVolumes defines the RWO-PVCs that are referenced by the PodTemplate.
 	// These values are only set if the RWOScheduling.restart is enabled.
 	// The controller will reconcile the deployment's (and its affinity) if another Pod mounts one of these RWO-PVC.
 	RWOVolumes []string `json:"rwoVolumes,omitempty"`
+
+	// If a virtualService is defined, this field contains the relative URL to the virtual service.
+	URL *string `json:"url,omitempty"`
 }
 
 //+kubebuilder:object:root=true

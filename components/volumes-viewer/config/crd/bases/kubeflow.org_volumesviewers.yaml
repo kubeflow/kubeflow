@@ -6933,6 +6933,7 @@ spec:
                   the PodTemplate.
                 properties:
                   enabled:
+                    default: true
                     description: If true, the controller will monitor other Pods that
                       use the same 'ReadWriteOnce'-PVCs as defined by this VolumeViewer's
                       PodTemplate. It will set the deployment's NodeAffinity so that
@@ -6941,6 +6942,7 @@ spec:
                       will be able to access RWO-PVCs which are already mounted.
                     type: boolean
                   restart:
+                    default: false
                     description: Instructs the controller to restart generated deployments
                       after they have been created in case the mounted RWO-PVC's node
                       changes. Therefore, the newly started Pod won't be blocked by
@@ -6948,6 +6950,9 @@ spec:
                       one RWO-PVC, as the viewer cannot be simultaneously mount RWO-PVCs
                       from different nodes.
                     type: boolean
+                required:
+                - enabled
+                - restart
                 type: object
               service:
                 description: If defined, a service is created for the deployment.
@@ -6990,10 +6995,12 @@ spec:
             description: VolumesViewerStatus defines the observed state of VolumesViewer
             properties:
               ready:
+                default: false
                 description: Ready defines if the PVCViewer is ready to be used, e.g.
                   Replicas==ReadyReplicas
                 type: boolean
               readyReplicas:
+                default: 0
                 description: ReadyReplicas defines the number of PVCViewer Servers
                   that are available to connect
                 format: int32
@@ -7006,6 +7013,13 @@ spec:
                 items:
                   type: string
                 type: array
+              url:
+                description: If a virtualService is defined, this field contains the
+                  relative URL to the virtual service.
+                type: string
+            required:
+            - ready
+            - readyReplicas
             type: object
         type: object
     served: true

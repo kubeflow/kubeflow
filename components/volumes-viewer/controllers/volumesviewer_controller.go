@@ -107,8 +107,7 @@ func (r *VolumesViewerReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	log := log.FromContext(ctx)
 
 	instance := &kubefloworgv1alpha1.VolumesViewer{}
-	err := r.Get(ctx, req.NamespacedName, instance)
-	if err != nil {
+	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
 		// Created objects are automatically garbage collected if parent is deleted
 		return reconcile.Result{}, client.IgnoreNotFound(err)
 	}
@@ -142,7 +141,7 @@ func (r *VolumesViewerReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, err
 	}
 
-	if err := r.reconcileStatus(ctx, log, instance, rwoVolumes); err != nil {
+	if err := r.reconcileStatus(ctx, log, instance.Name, instance.Namespace, rwoVolumes); err != nil {
 		log.Error(err, "Error while reconciling status")
 		return ctrl.Result{}, err
 	}
@@ -344,25 +343,37 @@ func (r *VolumesViewerReconciler) reconcileVirtualService(ctx context.Context, l
 }
 
 // Computes and updates the status of the volumes viewer
-func (r *VolumesViewerReconciler) reconcileStatus(ctx context.Context, log logr.Logger, viewer *kubefloworgv1alpha1.VolumesViewer, rwoVolumes []string) error {
-	deployment := &appsv1.Deployment{}
-	err := r.Get(ctx, types.NamespacedName{Name: resourcePrefix + viewer.Name, Namespace: viewer.Namespace}, deployment)
-	if err != nil {
-		log.Info("Could not find Deployment")
-		return client.IgnoreNotFound(err)
-	}
-
-	updatedViewer := &kubefloworgv1alpha1.VolumesViewer{}
-	if err := r.Get(ctx, types.NamespacedName{Name: viewer.Name, Namespace: viewer.Namespace}, updatedViewer); err != nil {
+func (r *VolumesViewerReconciler) reconcileStatus(ctx context.Context, log logr.Logger, viewerName string, viewerNamespace string, rwoVolumes []string) error {
+	viewer := &kubefloworgv1alpha1.VolumesViewer{}
+	if err := r.Get(ctx, types.NamespacedName{Name: viewerName, Namespace: viewerNamespace}, viewer); err != nil {
 		return err
 	}
 
-	updatedViewer.Status.ReadyReplicas = deployment.Status.ReadyReplicas
-	updatedViewer.Status.Ready = *deployment.Spec.Replicas == deployment.Status.ReadyReplicas
-	updatedViewer.Status.RWOVolumes = rwoVolumes
+	if rwoVolumes == nil {
+		viewer.Status.RWOVolumes = []string{}
+	} else {
+		viewer.Status.RWOVolumes = rwoVolumes
+	}
+
+	if viewer.Spec.Service.VirtualService != (kubefloworgv1alpha1.VirtualService{}) {
+		url := fmt.Sprintf("%s/%s/%s/", viewer.Spec.Service.VirtualService.BasePrefix, viewer.Namespace, viewer.Name)
+		viewer.Status.URL = &url
+	} else {
+		viewer.Status.URL = nil
+	}
+
+	deployment := &appsv1.Deployment{}
+	if err := r.Get(ctx, types.NamespacedName{Name: resourcePrefix + viewer.Name, Namespace: viewer.Namespace}, deployment); err != nil {
+		log.Info("Could not find Deployment for status update")
+		viewer.Status.Ready = false
+		viewer.Status.ReadyReplicas = 0
+	} else {
+		viewer.Status.ReadyReplicas = deployment.Status.ReadyReplicas
+		viewer.Status.Ready = *deployment.Spec.Replicas == deployment.Status.ReadyReplicas
+	}
 
 	log.Info("Updating status")
-	return r.Client.Status().Update(ctx, updatedViewer)
+	return r.Client.Status().Update(ctx, viewer)
 }
 
 // Generates the affinity to be used for the deployment

@@ -259,6 +259,16 @@ var _ = Describe("VolumesViewer controller", func() {
 			Expect(http0["match"].([]interface{})[0].(map[string]interface{})["uri"].(map[string]interface{})["prefix"]).Should(Equal(expectedRewrite))
 			Expect(http0["rewrite"].(map[string]interface{})["uri"]).Should(Equal(expectedRewrite))
 
+			// Test the status.URL gets set correctly
+			Eventually(func() (string, error) {
+				viewer := &kubefloworgv1alpha1.VolumesViewer{}
+				err := k8sClient.Get(ctx, lookupKey, viewer)
+				if err != nil || viewer.Status.URL == nil {
+					return "", err
+				}
+				return *viewer.Status.URL, nil
+			}, timeout, interval).Should(Equal(expectedRewrite))
+
 			By("Updating the defaults")
 			newBasePrefix := "/newbase"
 			newTimeout := "10s"
