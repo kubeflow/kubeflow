@@ -116,6 +116,13 @@ func (r *VolumesViewerReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		// The object is being deleted
 		// Do nothing as the resources are automatically garbage collected
 		log.Info("Volumes viewer is being deleted")
+
+		// Keep on reconciling status until the finalizer is removed
+		if err := r.reconcileStatus(ctx, log, instance.Name, instance.Namespace, nil); err != nil {
+			log.Error(err, "Error while reconciling status")
+			return ctrl.Result{}, err
+		}
+
 		return reconcile.Result{}, nil
 	}
 
