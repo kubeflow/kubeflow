@@ -46,7 +46,7 @@ spec:
         args:
         - --leader-elect
         # TODO set image to external repo
-        image: tobiasgoerke/kubeflow-volumes-viewer:test-v2
+        image: tobiasgoerke/kubeflow-volumes-viewer:test-v3
         name: manager
         securityContext:
           allowPrivilegeEscalation: false

@@ -1,8 +1,52 @@
-# volumes-viewer
-// TODO(user): Add simple overview of use/purpose
+# Volumes Viewer
+Using this component, volume viewers can easily be created. Volume viewers enable users to open a filebrowser on arbitrary persistent volume claims, letting them inspect, download, upload and manipulate data. 
+
+The volumes viewer API is meant to be extensible and can easily be user for other use-cases, such as launching user-tailored apps (e.g. tensorboards or notebooks).
+
+Find the [Pull Request for more info here](https://github.com/kubeflow/kubeflow/pull/6876).
 
 ## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+The component is meant to be used in interaction with other components, such as the volumes web app. These are to create an instance of the custom resource.
+The controller will then generate deployments, services and virtualservices base on the spec.
+
+A resource starting a filebrowser might look like this:
+
+```yaml
+apiVersion: kubeflow.org/v1alpha1
+kind: VolumesViewer
+metadata:
+  name: volumesviewer-sample
+  namespace: kubeflow-user-example-com
+spec:
+  # The podTemplate is applied to the deployment.Spec.Template.Spec
+  # and thus, represents the core viewer's application
+  podTemplate:
+    # Your pod spec here
+  service:
+    # Specifies the application's target port used by the Service
+    targetPort: 8080
+    # If defined, an istio VirtualService is created, pointing to the Service
+    virtualService:
+      # The base prefix is suffixed by '/namespace/name' to create the
+      # VirtualService's prefix and a unique URL for each started viewer
+      basePrefix: "/volumesviewer"
+      # You may specify the VirtualService's rewrite.
+      # If not set, the prefix's value is used
+      rewrite: "/"
+      # By default, no timeout is set
+      # timeout: 30s
+  rwoScheduling:
+    # If set to true, the controller detects RWO-Volumes referred to by the
+    # podTemplate and uses affinities to schedule the viewer to nodes
+    # where the volume is currently mounted. This enables the viewer to
+    # access RWO-Volumes, even though they might already be mounted.
+    enabled: true
+    # Using the rwoScheduling feature, the viewer might block other application
+    # from (re-starting). Setting restart to true instructs the controller to
+    # re-compute the affinity in case Pods start using the viewer's RWO-Volumes.
+    # Thus, the viewer might restart on another node without blocking new Pods.
+    restart: true
+```
 
 ## Getting Started
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
@@ -42,7 +86,7 @@ make undeploy
 ```
 
 ## Contributing
-// TODO(user): Add detailed information on how you would like others to contribute to this project
+See the parent repository for more info on how to contribute.
 
 ### How it works
 This project aims to follow the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
