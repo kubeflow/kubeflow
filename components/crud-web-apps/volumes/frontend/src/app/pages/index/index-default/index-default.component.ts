@@ -206,7 +206,7 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         pvc.viewer.status = STATUS_TYPE.TERMINATING;
         pvc.closeViewerAction = STATUS_TYPE.TERMINATING;
 
-        this.pvcsWaitingViewer.delete(pvc.name)
+        this.pvcsWaitingViewer.delete(pvc.name);
       });
     });
   }
