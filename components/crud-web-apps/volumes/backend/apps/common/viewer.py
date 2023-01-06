@@ -26,6 +26,7 @@ def create_viewer_template(name, namespace):
     variables = os.environ.copy()
     variables["PVC_NAME"] = name
     variables["NAMESPACE"] = namespace
+    variables["NAME"] = name
 
     spec = _substitute_env_variables(viewer_template, variables)
 
