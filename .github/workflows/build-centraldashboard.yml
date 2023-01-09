@@ -8,6 +8,8 @@ on:
   pull_request:
     types:
       - 'opened'
+      - 'synchronize'
+      - 'reopened'
 # Environment variables available to all jobs and steps in this workflow
 env:
   REGISTRY_NAME: k8scc01covidacr
@@ -50,7 +52,20 @@ jobs:
        image-name: ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${{ github.sha }}
        severity-threshold: CRITICAL
        run-quality-checks: false
+
+    # Pushes if this is a push to master or an update to a PR that has auto-deploy label
+    - name: Test if we should push to ACR
+      id: should-i-push
+      if: |
+        github.event_name == 'push' ||
+        (
+          github.event_name == 'pull_request' &&
+          contains( github.event.pull_request.labels.*.name, 'auto-deploy')
+        )
+      run: echo "::set-output name=boolean::true"
+
     - name: Docker push
+      if: steps.should-i-push.outputs.boolean == 'true'
       run: |
         docker push ${{ env.REGISTRY_NAME }}.azurecr.io/kubeflow/centraldashboard:${{ github.sha }}
     # Push once, https://github.com/StatCan/kubeflow/pull/87
