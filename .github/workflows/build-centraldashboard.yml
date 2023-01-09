@@ -3,8 +3,6 @@ on:
   push:
     branches:
       - stc-master
-      # REVERT THIS
-      - 1486-new-users-should-not-be-able-to-create-their-own-profile
     paths:
       - components/centraldashboard/**
   pull_request:
