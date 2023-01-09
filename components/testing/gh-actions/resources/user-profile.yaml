@@ -1,0 +1,10 @@
+apiVersion: kubeflow.org/v1
+kind: Profile
+metadata:
+  name: kubeflow-user
+spec:
+  owner:
+    apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: user
+  resourceQuotaSpec: {}
