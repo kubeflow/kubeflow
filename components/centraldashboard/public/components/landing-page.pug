@@ -1,0 +1,11 @@
+paper-card#MainCard
+    figure#Logo !{logo}
+    neon-animatable.Main-Content
+        h2 {{localize('registrationPage.lblWelcome')}}
+        aside {{localize('landingPage.landingDesc')}} 
+          a(href='https://statcan-aaw.slack.com', tabindex='-1', target="_blank") {{localize('landingPage.slackLink')}}
+
+nav#Links
+    a(href='https://github.com/kubeflow/kubeflow', tabindex='-1', target="_blank") {{localize('registrationPage.linkGitHub')}}
+    a(href='https://www.kubeflow.org/docs/about/kubeflow/', tabindex='-1', target="_blank") {{localize('registrationPage.linkDocumentation')}}
+    a(href='https://policies.google.com/privacy', tabindex='-1', target="_blank") {{localize('registrationPage.linkPrivacy')}}
