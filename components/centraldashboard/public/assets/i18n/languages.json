@@ -42,7 +42,7 @@
             "mainPage.menuPrivacy": "Privacy",
             "mainPage.menuPrivacyTitle": "Kubeflow Privacy Policy",
             "mainPage.menuUsageReporting": "Usage Reporting",
-            "mainPage.menuUsageReportingTitle": "Kubeflow Usage Reporting ",
+            "mainPage.menuUsageReportingTitle": "Kubeflow Usage Reporting",
             "mainPage.tabDashboard": "Dashboard",
             "mainPage.tabActivity": "Activity",
             "mainPage.footerBuildVersion": "Build: {buildVersion} | Dashboard: v {dashVersion} | Isolation-Mode: {isolationMode}",
