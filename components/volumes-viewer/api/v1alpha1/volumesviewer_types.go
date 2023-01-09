@@ -75,13 +75,13 @@ type VirtualService struct {
 
 // VolumesViewerStatus defines the observed state of VolumesViewer
 type VolumesViewerStatus struct {
-	// ReadyReplicas defines the number of PVCViewer Servers
+	// ReadyReplicas defines the number of viewer Servers
 	// that are available to connect
 	// +kubebuilder:default:=0
 	ReadyReplicas int32 `json:"readyReplicas"`
 
-	// Ready defines if the PVCViewer is ready to be used,
-	// e.g. Replicas==ReadyReplicas
+	// Ready defines if the viewer is ready to be used,
+	// i.e. Replicas==ReadyReplicas
 	// +kubebuilder:default:=false
 	Ready bool `json:"ready"`
 

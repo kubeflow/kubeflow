@@ -6996,13 +6996,13 @@ spec:
             properties:
               ready:
                 default: false
-                description: Ready defines if the PVCViewer is ready to be used, e.g.
+                description: Ready defines if the viewer is ready to be used, i.e.
                   Replicas==ReadyReplicas
                 type: boolean
               readyReplicas:
                 default: 0
-                description: ReadyReplicas defines the number of PVCViewer Servers
-                  that are available to connect
+                description: ReadyReplicas defines the number of viewer Servers that
+                  are available to connect
                 format: int32
                 type: integer
               rwoVolumes:
