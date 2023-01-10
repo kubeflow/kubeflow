@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kubefloworgv1alpha1 "github.com/kubeflow/kubeflow/components/volumes-viewer/api/v1alpha1"
 )
@@ -89,6 +90,21 @@ var _ = Describe("VolumesViewer controller", func() {
 			return k8sClient.Get(ctx, lookupKey, createdVolumesViewer)
 		}, timeout, interval).Should(Succeed())
 		Expect(createdVolumesViewer).ShouldNot(BeNil())
+	})
+
+	AfterEach(func() {
+		// Delete objects in test namespace
+		// Lets tests run deterministically, speeds them up and increases debugability
+		objectsToDelete := []client.Object{
+			&kubefloworgv1alpha1.VolumesViewer{},
+			&appsv1.Deployment{},
+			&corev1.Service{},
+			&corev1.Pod{},
+			virtualServiceTemplate.DeepCopy(),
+		}
+		for _, object := range objectsToDelete {
+			Expect(k8sClient.DeleteAllOf(ctx, object, client.InNamespace(testingNamespace))).Should(Succeed())
+		}
 	})
 
 	Context("When VolumesViewer created", func() {
@@ -572,7 +588,7 @@ var _ = Describe("VolumesViewer controller", func() {
 					return nil, err
 				}
 				return viewer.Status.RWOVolumes, nil
-			}, timeout*2, interval).Should(Equal([]string{rwoPVC.Name}))
+			}, timeout, interval).Should(Equal([]string{rwoPVC.Name}))
 
 			Consistently(func() (*corev1.Affinity, error) {
 				deployment := &appsv1.Deployment{}
@@ -729,7 +745,7 @@ var _ = Describe("VolumesViewer controller", func() {
 					return nil, err
 				}
 				return viewer.Status.RWOVolumes, err
-			}, timeout*2, interval).Should(And(HaveLen(3), ContainElements([]string{rwoPVCs[0].Name, rwoPVCs[1].Name, rwoPVCs[2].Name})))
+			}, timeout, interval).Should(And(HaveLen(3), ContainElements([]string{rwoPVCs[0].Name, rwoPVCs[1].Name, rwoPVCs[2].Name})))
 
 			By("Removing PVCs from the VolumesViewer")
 			Eventually(func() error {
@@ -745,7 +761,7 @@ var _ = Describe("VolumesViewer controller", func() {
 			Eventually(func() ([]string, error) {
 				viewer := &kubefloworgv1alpha1.VolumesViewer{}
 				return viewer.Status.RWOVolumes, k8sClient.Get(ctx, lookupKey, viewer)
-			}, timeout*2, interval).Should(And(HaveLen(1), ContainElements([]string{rwoPVCs[0].Name})))
+			}, timeout, interval).Should(And(HaveLen(1), ContainElements([]string{rwoPVCs[0].Name})))
 		})
 	})
 })

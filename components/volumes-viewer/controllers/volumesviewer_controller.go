@@ -251,7 +251,7 @@ func (r *VolumesViewerReconciler) reconcileService(ctx context.Context, log logr
 	service.Spec.Type = "ClusterIP"
 	service.Spec.Selector = commonLabels
 	service.Spec.Ports = []corev1.ServicePort{
-		corev1.ServicePort{
+		{
 			Name:       "http",
 			Port:       servicePort,
 			TargetPort: viewer.Spec.Service.TargetPort,
@@ -489,8 +489,13 @@ func (r *VolumesViewerReconciler) generateAffinity(ctx context.Context, log logr
 // that need to be reconciled as these mount the same RWO PVCs that the Pod mounts
 // We might night to recompute the affinity of these volumes viewers, leading to on correct nodes
 func (r *VolumesViewerReconciler) findVolumeViewersForPod(pod client.Object) []reconcile.Request {
-	// Ignore pods that are being deleted
-	if pod.GetDeletionTimestamp() != nil {
+	// Only process Pending and Running (not Succeeded/Failed/Unknown) pods
+	if !(pod.(*corev1.Pod).Status.Phase == corev1.PodPending || pod.(*corev1.Pod).Status.Phase == corev1.PodRunning) {
+		return []reconcile.Request{}
+	}
+
+	// Ignore pods that are being deleted/terminating
+	if pod.GetDeletionTimestamp() != nil && !pod.GetDeletionTimestamp().IsZero() {
 		return []reconcile.Request{}
 	}
 
@@ -523,8 +528,6 @@ func (r *VolumesViewerReconciler) findVolumeViewersForPod(pod client.Object) []r
 			continue
 		}
 
-		log.Log.Info("Watch triggering reconcile", "pod", pod.GetName(), "volumesViewer", volumesViewer.GetName(), "namespace", pod.GetNamespace())
-
 		// Trigger reconciliation of that volume viewer
 		for pvcName := range pvcNames {
 			if slices.Contains(volumesViewer.Status.RWOVolumes, pvcName) {
@@ -534,6 +537,7 @@ func (r *VolumesViewerReconciler) findVolumeViewersForPod(pod client.Object) []r
 						Namespace: volumesViewer.GetNamespace(),
 					},
 				})
+				log.Log.Info("Pod Watch triggering reconcile")
 				break
 			}
 		}
