@@ -1,4 +1,5 @@
 {
+  "/api": "http://localhost:8082",
   "/dashboard_lib.bundle.js": "http://localhost:4200/assets/",
   "/jupyter/*": {
     "target": "http://localhost:8085",
