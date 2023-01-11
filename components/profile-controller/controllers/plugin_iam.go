@@ -28,7 +28,8 @@ const (
 )
 
 type AwsIAMForServiceAccount struct {
-	AwsIAMRole string `json:"awsIamRole,omitempty"`
+	AwsIAMRole           string `json:"awsIamRole,omitempty"`
+	AnnotateOnly bool   `json:"AnnotateOnly,omitempty"`
 }
 
 // ApplyPlugin annotate service account with the ARN of the IAM role and update trust relationship of IAM role
@@ -37,6 +38,12 @@ func (aws *AwsIAMForServiceAccount) ApplyPlugin(r *ProfileReconciler, profile *p
 	if err := aws.patchAnnotation(r, profile.Name, DEFAULT_SERVICE_ACCOUNT, addIAMRoleAnnotation, logger); err != nil {
 		return err
 	}
+
+	if aws.AnnotateOnly {
+		logger.Info("AnnotateOnly set to true IAM roles and policy will not be mutated")
+		return nil
+	}
+
 	logger.Info("Setting up iam roles and policy for service account.", "ServiceAccount", DEFAULT_SERVICE_ACCOUNT, "Role", aws.AwsIAMRole)
 	return aws.updateIAMForServiceAccount(profile.Name, DEFAULT_SERVICE_ACCOUNT, addServiceAccountInAssumeRolePolicy)
 }
@@ -47,6 +54,12 @@ func (aws *AwsIAMForServiceAccount) RevokePlugin(r *ProfileReconciler, profile *
 	if err := aws.patchAnnotation(r, profile.Name, DEFAULT_SERVICE_ACCOUNT, removeIAMRoleAnnotation, logger); err != nil {
 		return err
 	}
+
+	if aws.AnnotateOnly {
+		logger.Info("DisableAutoUpdateIAM set to true IAM roles and policy will not be mutated")
+		return nil
+	}
+
 	logger.Info("Clean up AWS IAM Role for Service Account.", "ServiceAccount", DEFAULT_SERVICE_ACCOUNT, "Role", aws.AwsIAMRole)
 	return aws.updateIAMForServiceAccount(profile.Name, DEFAULT_SERVICE_ACCOUNT, removeServiceAccountInAssumeRolePolicy)
 }
@@ -107,7 +120,6 @@ func (aws *AwsIAMForServiceAccount) updateIAMForServiceAccount(serviceAccountNam
 	if _, err = svc.UpdateAssumeRolePolicy(input); err != nil {
 		return err
 	}
-
 	return nil
 }
 
