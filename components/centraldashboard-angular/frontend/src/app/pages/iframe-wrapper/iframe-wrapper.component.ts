@@ -28,6 +28,8 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
      * reloading constantly, its src is not updated on each navigation
      * a user does.
      */
+    src = this.removePrefixFrom(src);
+
     if (window.location.origin) {
       if (!this.prvSrcPath?.includes(window.location.origin)) {
         src = window.location.origin + src;
@@ -56,10 +58,15 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
         ? iframeWindow?.location.pathname + iframeWindow?.location.search
         : iframeWindow?.location.pathname;
 
-      if (!this.equalUrlPaths(event.url, iframeUrl)) {
+      const eventUrl = this.removePrefixFrom(event.url);
+      if (!this.equalUrlPaths(eventUrl, iframeUrl)) {
         this.srcPath = event.url;
       }
     });
+  }
+
+  removePrefixFrom(url: string) {
+    return url.includes('/_') ? url.slice(2) : url;
   }
 
   /**
@@ -96,7 +103,7 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
         this.iframeLocation = currentUrl;
         const path = iframeWindow?.location.pathname;
         const queryParams = this.getQueryParams(iframeWindow?.location.search);
-        this.router.navigate([path], { queryParams });
+        this.router.navigate(['/_' + path], { queryParams });
       }
     }, 100);
   }
