@@ -16,7 +16,7 @@ import { Subscription } from 'rxjs';
 export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
   @ViewChild('iframe') iframe: ElementRef<HTMLIFrameElement>;
 
-  public prvSrcPath: string;
+  private prvSrcPath: string;
   get srcPath(): string {
     return this.prvSrcPath;
   }
@@ -34,9 +34,12 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    this.prvSrcPath = src;
-    // Some KF distributions need a trailing slash "/" in order to resolve paths
-    this.prvSrcPath += this.prvSrcPath?.endsWith('/') ? '' : '/';
+    /**
+     * When Istio exports Services, it always expects
+     * a '/' at the end. SO we'll need to make sure the
+     * links propagated to the iframe end with a '/'
+     */
+    this.prvSrcPath = this.appendBackslash(src);
   }
   public iframeLocation: string | undefined = 'about:blank';
   private urlSub: Subscription;
@@ -49,11 +52,9 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
       }
 
       const iframeWindow = this.iframe?.nativeElement?.contentWindow;
-      let iframeUrl = iframeWindow?.location.pathname;
-      if (iframeUrl) {
-        // Include URL's query parameters
-        iframeUrl += iframeWindow?.location.search;
-      }
+      const iframeUrl = iframeWindow?.location.pathname
+        ? iframeWindow?.location.pathname + iframeWindow?.location.search
+        : iframeWindow?.location.pathname;
 
       if (!this.equalUrlPaths(event.url, iframeUrl)) {
         this.srcPath = event.url;
@@ -61,6 +62,13 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * We treat URLs with or without a trailing slash as the same
+   * URL. Thus, in order to compare URLs, we need to append
+   * a '/' at the end of both URLs if there is none to avoid
+   * false statements in cases where they only differ in the
+   * trailing slash.
+   */
   equalUrlPaths(firstUrl: string, secondUrl: string | undefined) {
     if (!firstUrl && !secondUrl) {
       console.warn(`Got undefined URLs ${firstUrl} and ${secondUrl}`);
@@ -69,22 +77,25 @@ export class IframeWrapperComponent implements AfterViewInit, OnDestroy {
     if (!firstUrl || !secondUrl) {
       return false;
     }
-    firstUrl += firstUrl?.endsWith('/') ? '' : '/';
-    secondUrl += secondUrl?.endsWith('/') ? '' : '/';
+    firstUrl = this.appendBackslash(firstUrl);
+    secondUrl = this.appendBackslash(secondUrl);
     return firstUrl === secondUrl;
+  }
+
+  appendBackslash(url: string): string {
+    url += url?.endsWith('/') ? '' : '/';
+    return url;
   }
 
   ngAfterViewInit() {
     this.interval = setInterval(() => {
-      let currentUrl = this.iframe?.nativeElement?.contentWindow?.location.href;
+      const iframeWindow = this.iframe?.nativeElement?.contentWindow;
+      let currentUrl = iframeWindow?.location.href;
 
       if (currentUrl !== this.iframeLocation) {
         this.iframeLocation = currentUrl;
-        const path =
-          this.iframe?.nativeElement?.contentWindow?.location.pathname;
-        const queryParams = this.getQueryParams(
-          this.iframe?.nativeElement?.contentWindow?.location.search,
-        );
+        const path = iframeWindow?.location.pathname;
+        const queryParams = this.getQueryParams(iframeWindow?.location.search);
         this.router.navigate([path], { queryParams });
       }
     }, 100);
