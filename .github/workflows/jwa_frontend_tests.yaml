@@ -57,8 +57,8 @@ jobs:
           cd components/crud-web-apps/jupyter/frontend
           npm run test:prod
 
-  run-tests-in-chrome:
-    name: UI tests in chrome
+  run-ui-tests:
+    name: UI tests with Cypress
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -79,42 +79,8 @@ jobs:
           cd components/crud-web-apps/jupyter/frontend
           npm i
           npm link kubeflow
-      - name: Serve UI & run Cypress tests in Chrome
-        uses: cypress-io/github-action@v4.2.0
-        with:
-          working-directory: components/crud-web-apps/jupyter/frontend
-          start: npm run serve
-          install: false
-          browser: chrome
-          wait-on: "http://localhost:4200"
-
-  run-tests-in-firefox:
-    name: UI tests in firefox
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup node version to 12
-        uses: actions/setup-node@v3
-        with:
-          node-version: 12
-
-      - name: Install Kubeflow common library dependecies
-        run: |
-          cd components/crud-web-apps/common/frontend/kubeflow-common-lib
-          npm i
-          npm run build
-          npm link ./dist/kubeflow
-      - name: Install JWA dependencies
+      - name: Serve UI & run Cypress tests in Chrome and Firefox
         run: |
           cd components/crud-web-apps/jupyter/frontend
-          npm i
-          npm link kubeflow
-      - name: Serve UI & run Cypress tests in Firefox
-        uses: cypress-io/github-action@v4.2.0
-        with:
-          working-directory: components/crud-web-apps/jupyter/frontend
-          start: npm run serve
-          install: false
-          browser: firefox
-          wait-on: "http://localhost:4200"
+          npm run serve & npx wait-on http://localhost:4200
+          npm run ui-test-ci-all
