@@ -48,7 +48,7 @@
     "cross-env": "^5.2.1",
     "jasmine": "^3.5.0",
     "jasmine-console-reporter": "^3.1.0",
-    "nodemon": "^1.19.3",
+    "nodemon": "^2.0.20",
     "nyc": "^14.1.1",
     "ts-node": "^10.4.0",
     "tslint": "^6.1.3",
