@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { TableComponent } from './table.component';
 import { ResourceTableModule } from '../resource-table.module';
-import { quantityToScalar } from '@kubernetes/client-node/dist/util';
 import {
   PropertyValue,
   DateTimeValue,
@@ -20,6 +19,7 @@ import { cloneDeep } from 'lodash-es';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { quantityToScalar } from './utils';
 
 @Component({
   selector: 'lib-server-type',

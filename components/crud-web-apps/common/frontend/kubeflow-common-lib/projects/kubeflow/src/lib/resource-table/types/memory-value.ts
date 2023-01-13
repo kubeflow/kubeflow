@@ -1,6 +1,5 @@
 import { get as getAttributeValue } from 'lodash';
-import { quantityToScalar } from '@kubernetes/client-node/dist/util';
-import { formatBytes } from '../table/utils';
+import { formatBytes, quantityToScalar } from '../table/utils';
 
 export interface MemoryConfig {
   field: string;
