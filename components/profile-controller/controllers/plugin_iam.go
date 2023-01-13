@@ -28,7 +28,7 @@ const (
 )
 
 type AwsIAMForServiceAccount struct {
-	AwsIAMRole           string `json:"awsIamRole,omitempty"`
+	AwsIAMRole   string `json:"awsIamRole,omitempty"`
 	AnnotateOnly bool   `json:"AnnotateOnly,omitempty"`
 }
 
@@ -39,13 +39,8 @@ func (aws *AwsIAMForServiceAccount) ApplyPlugin(r *ProfileReconciler, profile *p
 		return err
 	}
 
-	if aws.AnnotateOnly {
-		logger.Info("AnnotateOnly set to true IAM roles and policy will not be mutated")
-		return nil
-	}
-
 	logger.Info("Setting up iam roles and policy for service account.", "ServiceAccount", DEFAULT_SERVICE_ACCOUNT, "Role", aws.AwsIAMRole)
-	return aws.updateIAMForServiceAccount(profile.Name, DEFAULT_SERVICE_ACCOUNT, addServiceAccountInAssumeRolePolicy)
+	return aws.updateIAMForServiceAccount(profile.Name, DEFAULT_SERVICE_ACCOUNT, addServiceAccountInAssumeRolePolicy, logger)
 }
 
 // RevokePlugin remove role in service account annotation and delete service account record in IAM trust relationship.
@@ -55,13 +50,8 @@ func (aws *AwsIAMForServiceAccount) RevokePlugin(r *ProfileReconciler, profile *
 		return err
 	}
 
-	if aws.AnnotateOnly {
-		logger.Info("DisableAutoUpdateIAM set to true IAM roles and policy will not be mutated")
-		return nil
-	}
-
 	logger.Info("Clean up AWS IAM Role for Service Account.", "ServiceAccount", DEFAULT_SERVICE_ACCOUNT, "Role", aws.AwsIAMRole)
-	return aws.updateIAMForServiceAccount(profile.Name, DEFAULT_SERVICE_ACCOUNT, removeServiceAccountInAssumeRolePolicy)
+	return aws.updateIAMForServiceAccount(profile.Name, DEFAULT_SERVICE_ACCOUNT, removeServiceAccountInAssumeRolePolicy, logger)
 }
 
 // patchAnnotation will patch annotation to k8s service account in order to pair up with GCP identity
@@ -83,7 +73,12 @@ func (aws *AwsIAMForServiceAccount) patchAnnotation(r *ProfileReconciler, namesp
 }
 
 // updateIAMForServiceAccount update AWS IAM Roles trust relationship with namespace and service account
-func (aws *AwsIAMForServiceAccount) updateIAMForServiceAccount(serviceAccountNamespace, serviceAccountName string, updateAssumeRolePolicy func(string, string, string) (string, error)) error {
+func (aws *AwsIAMForServiceAccount) updateIAMForServiceAccount(serviceAccountNamespace, serviceAccountName string, updateAssumeRolePolicy func(string, string, string) (string, error), logger logr.Logger) error {
+	if aws.isAnnotateOnly() {
+		logger.Info("AnnotateOnly set to true IAM roles and policy will not be mutated")
+		return nil
+	}
+
 	sess, err := session.NewSession()
 	if err != nil {
 		return fmt.Errorf("error getting AWS session while retrieving region: %v", err)
@@ -286,6 +281,10 @@ func MakePolicyDocument(statements ...MapOfInterfaces) MapOfInterfaces {
 		"Version":   "2012-10-17",
 		"Statement": statements,
 	}
+}
+
+func (aws *AwsIAMForServiceAccount) isAnnotateOnly() bool {
+	return aws.AnnotateOnly
 }
 
 type (
