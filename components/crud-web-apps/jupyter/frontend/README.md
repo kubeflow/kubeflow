@@ -18,9 +18,22 @@ Run `ng build` to build the project. The build artifacts will be stored in the `
 
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
-## Running end-to-end tests
+## Running integration tests
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+To run integration tests locally, make sure that node modules are installed and the frontend is serving the UI under `localhost:4200`. Then use `npm run e2e` to execute the integration tests via [Cypress](https://www.cypress.io/). This will open Cypress and there select the browser in which the tests will run.
+
+Ideally, tests should be run both in Chrome and Firefox and for that there is the script `npm run e2e-ci-all` that `runs` (instead of `opening`) Cypress. Note that in order for tests to run in a browser, the browser needs to be already installed on the system.
+
+Make sure to check out these guides for system-specific information on installing and running Cypress
+
+- https://docs.cypress.io/guides/getting-started/installing-cypress
+- https://docs.cypress.io/guides/references/advanced-installation
+
+### WSL2
+
+In order to be run in a WSL2 installation, Cypress requires these [dependencies](https://docs.cypress.io/guides/getting-started/installing-cypress#Linux-Prerequisites).
+
+In the case of WSL2 on _Windows 10_, [this extra setup](https://docs.cypress.io/guides/references/advanced-installation#Windows-Subsystem-for-Linux) is required in order to have an X Server running in Windows host and creating the browser window.
 
 ## Further help
 

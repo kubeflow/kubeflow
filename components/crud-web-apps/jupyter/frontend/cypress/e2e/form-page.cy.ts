@@ -1,5 +1,15 @@
 describe('New notebook form', () => {
-  beforeEach(() => {});
+  beforeEach(() => {
+    cy.mockDashboardRequest();
+    cy.mockStorageClassesRequests();
+    cy.mockDefaultStorageClassRequest('rok');
+    cy.mockGpusRequest();
+    cy.mockConfigRequest();
+    cy.fixture('settings').then(settings => {
+      cy.mockNotebooksRequest(settings.namespace);
+      cy.mockPoddefaultsRequest(settings.namespace);
+    });
+  });
 
   it('should have a "New notebook" title', () => {
     cy.visit('/new');
