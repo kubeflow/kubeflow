@@ -72,12 +72,8 @@ export const tableConfig: TableConfig = {
         component: UsedByComponent,
       }),
       sort: true,
-      sortingPreprocessorFn: element => {
-        return element.notebooks;
-      },
-      filteringPreprocessorFn: element => {
-        return element.notebooks;
-      },
+      sortingPreprocessorFn: element => element.notebooks,
+      filteringPreprocessorFn: element => element.notebooks,
     },
 
     // the apps should import the actions they want

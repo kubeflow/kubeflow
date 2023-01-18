@@ -8,8 +8,7 @@ import { TableColumnComponent } from 'kubeflow/lib/resource-table/component-valu
 })
 export class DeleteButtonComponent
   extends ActionComponent
-  implements TableColumnComponent, OnInit
-{
+  implements TableColumnComponent, OnInit {
   set element(data: any) {
     this.data = data;
   }
