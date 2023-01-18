@@ -1,0 +1,27 @@
+name: Build Codeserver Python Notebook Server Docker images
+on:
+  pull_request:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/example-notebook-servers/codeserver-python/**
+      - components/example-notebook-servers/codeserver/**
+      - components/example-notebook-servers/base/**
+      - releasing/version/VERSION
+
+env:
+  REGISTRY: kubeflownotebookswg
+
+jobs:
+  push_to_registry:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build Notebook Server images
+      run: |
+        cd components/example-notebook-servers/codeserver-python
+        make docker-build

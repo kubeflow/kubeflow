@@ -1,0 +1,27 @@
+name: Build RStudio Tidyverse Notebook Server Docker images
+on:
+  pull_request:
+    branches:
+      - master
+      - v*-branch
+    paths:
+      - components/example-notebook-servers/rstudio-tidyverse/**
+      - components/example-notebook-servers/rstudio/**
+      - components/example-notebook-servers/base/**
+      - releasing/version/VERSION
+
+env:
+  REGISTRY: kubeflownotebookswg
+
+jobs:
+  push_to_registry:
+    name: Build Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build Notebook Server images
+      run: |
+        cd components/example-notebook-servers/rstudio-tidyverse
+        make docker-build
