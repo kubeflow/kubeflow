@@ -1,32 +1,48 @@
 import { get as getAttributeValue } from 'lodash';
 
-export interface PropertyConfig {
-  field?: string;
+export enum LinkType {
+  Internal = 'internal',
+  External = 'external',
+}
+
+export interface LinkConfig {
+  field: string;
   valueFn?: (row: any) => any;
   tooltipField?: string;
   popoverField?: string;
   truncate?: boolean /* if set to true, user needs to define max-width */;
   style?: { [prop: string]: string };
+  linkType: LinkType;
 }
 
-export class PropertyValue {
+export class LinkValue {
   field: string;
-  tooltipField: string;
   valueFn?: (row: any) => any;
+  tooltipField: string;
   popoverField: string;
   truncate: boolean;
   style: { [prop: string]: string };
+  linkType: LinkType;
 
-  private defaultValues: PropertyConfig = {
+  private defaultValues: LinkConfig = {
     field: '',
     tooltipField: '',
     popoverField: '',
     truncate: false,
     style: {},
+    linkType: LinkType.Internal,
   };
 
-  constructor(config: PropertyConfig) {
-    const { field, valueFn, tooltipField, popoverField, truncate, style } = {
+  constructor(config: LinkConfig) {
+    const {
+      field,
+      valueFn,
+      tooltipField,
+      popoverField,
+      truncate,
+      style,
+      linkType,
+    } = {
       ...this.defaultValues,
       ...config,
     };
@@ -36,6 +52,7 @@ export class PropertyValue {
     this.popoverField = popoverField;
     this.truncate = truncate;
     this.style = style;
+    this.linkType = linkType;
   }
 
   getClasses() {
@@ -70,6 +87,14 @@ export class PropertyValue {
       return this.valueFn(row);
     }
 
-    return getAttributeValue(row, this.field);
+    return getAttributeValue(row, this.field).text;
+  }
+
+  getUrl(row: any) {
+    return getAttributeValue(row, this.field).url;
+  }
+
+  getQueryParams(row: any) {
+    return getAttributeValue(row, this.field)?.queryParams;
   }
 }
