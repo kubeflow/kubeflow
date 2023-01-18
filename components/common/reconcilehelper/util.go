@@ -100,11 +100,12 @@ func VirtualService(ctx context.Context, r client.Client, virtualServiceName, na
 	return nil
 }
 
-// Reference: https://github.com/pwittrock/kubebuilder-workshop/blob/master/pkg/util/util.go
+// Reference: https://github.com/pwittrock/kubebuilder-workshop/blob/master/util/util.go
 
 // CopyStatefulSetFields copies the owned fields from one StatefulSet to another
 // Returns true if the fields copied from don't match to.
-func CopyStatefulSetFields(from, to *appsv1.StatefulSet) bool {
+// Also takes into account Openshift image policy admission plug-in on Notebook/StatefulSet metadata annotation to exclude image-field(s) from reconciliation when Pod spec container image field value is done by that plugin
+func CopyStatefulSetFields(from, to *appsv1.StatefulSet, isImageChangeTriggerSet bool, imageChangeTriggerReferencedContainerNames []string) bool {
 	requireUpdate := false
 	for k, v := range to.Labels {
 		if from.Labels[k] != v {
@@ -125,6 +126,8 @@ func CopyStatefulSetFields(from, to *appsv1.StatefulSet) bool {
 		requireUpdate = true
 	}
 
+        // To do: see isImageChangeTriggerSet bool and container names referenced/affected. Exclude image field from reconciliation for that container name in the Spec (containers[x].name .image
+        // https://stackoverflow.com/questions/47134293/compare-structs-except-one-field-golang
 	if !reflect.DeepEqual(to.Spec.Template.Spec, from.Spec.Template.Spec) {
 		requireUpdate = true
 	}

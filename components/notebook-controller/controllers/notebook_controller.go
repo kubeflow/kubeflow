@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+        "regexp"
 	"strings"
 	"time"
 
@@ -52,12 +53,59 @@ const DefaultContainerPort = 8888
 const DefaultServingPort = 80
 const AnnotationRewriteURI = "notebooks.kubeflow.org/http-rewrite-uri"
 const AnnotationHeadersRequestSet = "notebooks.kubeflow.org/http-headers-request-set"
+// annotation that makes OpenShift ImagePolicy admission plug-in resolve the image-field from an imagestream name:tag reference
+const AnnotationImageChangeTrigger = "image.openshift.io/triggers"
 
 const PrefixEnvVar = "NB_PREFIX"
 
 // The default fsGroup of PodSecurityContext.
 // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#podsecuritycontext-v1-core
 const DefaultFSGroup = int64(100)
+
+func AnnotationImageChangeTriggerIsSet(meta metav1.ObjectMeta) bool {
+        if meta.GetAnnotations() == nil {
+                return false
+        }
+         
+        if _, ok := meta.GetAnnotations()[AnnotationImageChangeTrigger]; ok {
+                return true
+        } else {
+                return false
+        }       
+}
+
+func getContainerNamesFromAnnotationImageChangeFieldPaths(dataJson string) []string {
+	annotationImageChangeContent := AnnotationImageChangeContent{}
+	err := json.Unmarshal([]byte(dataJson), &annotationImageChangeContent)
+	if err != nil {
+		fmt.Println("JSON decode error!")
+		return nil
+	}
+
+	containerNameSlice := make([]string, len(annotationImageChangeContent))
+
+	for i := 0; i < len(annotationImageChangeContent); i++ {
+		re := regexp.MustCompile(`"[^"]+"`)
+		newStrs := re.FindAllString(annotationImageChangeContent[i].FieldPath, -1)
+		for _, s := range newStrs {
+			containerNameSlice[i] = (s[1 : len(s)-1])
+		}
+	}
+
+	return containerNameSlice
+}
+
+func getImageChangeTriggerReferencedContainerNames(meta metav1.ObjectMeta) []string {
+        if meta.GetAnnotations() == nil {
+                return nil
+        }
+        
+        if valAnnotationImageChangeTrigger, ok := meta.GetAnnotations()[AnnotationImageChangeTrigger]; ok {
+                return getContainerNamesFromAnnotationImageChangeFieldPaths(valAnnotationImageChangeTrigger)
+        } else {
+                return nil
+        }
+}
 
 /*
 We generally want to ignore (not requeue) NotFound errors, since we'll get a
@@ -69,6 +117,15 @@ func ignoreNotFound(err error) error {
 		return nil
 	}
 	return err
+}
+
+type AnnotationImageChangeContent []struct {
+	From struct {
+		Kind      string `json:"kind"`
+		Name      string `json:"name"`
+		Namespace string `json:"namespace"`
+	} `json:"from"`
+	FieldPath string `json:"fieldPath"`
 }
 
 // NotebookReconciler reconciles a Notebook object
@@ -144,6 +201,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	// Check if the StatefulSet already exists
 	foundStateful := &appsv1.StatefulSet{}
 	justCreated := false
+
 	err := r.Get(ctx, types.NamespacedName{Name: ss.Name, Namespace: ss.Namespace}, foundStateful)
 	if err != nil && apierrs.IsNotFound(err) {
 		log.Info("Creating StatefulSet", "namespace", ss.Namespace, "name", ss.Name)
@@ -159,8 +217,12 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		log.Error(err, "error getting Statefulset")
 		return ctrl.Result{}, err
 	}
+
+        isImageChangeTriggerSet := AnnotationImageChangeTriggerIsSet(instance.ObjectMeta)
+        imageChangeTriggerReferencedContainerNames := getImageChangeTriggerReferencedContainerNames(instance.ObjectMeta)
+
 	// Update the foundStateful object and write the result back if there are any changes
-	if !justCreated && reconcilehelper.CopyStatefulSetFields(ss, foundStateful) {
+	if !justCreated && reconcilehelper.CopyStatefulSetFields(ss, foundStateful, isImageChangeTriggerSet, imageChangeTriggerReferencedContainerNames) {
 		log.Info("Updating StatefulSet", "namespace", ss.Namespace, "name", ss.Name)
 		err = r.Update(ctx, foundStateful)
 		if err != nil {
@@ -421,10 +483,19 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 		replicas = 0
 	}
 
+        annotations := make(map[string]string)
+        meta := instance.ObjectMeta
+        
+        // keep Notebook image change trigger annotation key and value and use it later in StatefulSet metadata
+        if annotationImageChangeTriggerVal, ok := meta.GetAnnotations()[AnnotationImageChangeTrigger]; ok {  
+                annotations[AnnotationImageChangeTrigger] = imageChangeTriggerVal 
+        }
+
 	ss := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name,
 			Namespace: instance.Namespace,
+                        Annotations: annotations 
 		},
 		Spec: appsv1.StatefulSetSpec{
 			Replicas: &replicas,
@@ -438,7 +509,7 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 					"statefulset":   instance.Name,
 					"notebook-name": instance.Name,
 				}},
-				Spec: *instance.Spec.Template.Spec.DeepCopy(),
+				Spec: *instance.Spec.Template.Spec.DeepCopy(), 
 			},
 		},
 	}
