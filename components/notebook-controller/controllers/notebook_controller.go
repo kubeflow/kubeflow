@@ -495,7 +495,7 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name,
 			Namespace: instance.Namespace,
-                        Annotations: annotations 
+                        Annotations: annotations, 
 		},
 		Spec: appsv1.StatefulSetSpec{
 			Replicas: &replicas,
@@ -509,7 +509,7 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 					"statefulset":   instance.Name,
 					"notebook-name": instance.Name,
 				}},
-				Spec: *instance.Spec.Template.Spec.DeepCopy(), 
+				Spec: *instance.Spec.Template.Spec.DeepCopy(),
 			},
 		},
 	}
