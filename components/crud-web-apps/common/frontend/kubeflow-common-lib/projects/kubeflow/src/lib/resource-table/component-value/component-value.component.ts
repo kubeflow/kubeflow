@@ -49,8 +49,10 @@ export class ComponentValueComponent implements OnInit {
   onAttach(ref: ComponentRef<TableColumnComponent>) {
     this.componentRef = ref;
     this.componentRef.instance.element = this.element;
+    /* eslint-disable */
     if (this.componentRef.instance?.['emitter']) {
       this.componentRef.instance['emitter'] = this.emitter;
     }
+    /* eslint-enable */
   }
 }
