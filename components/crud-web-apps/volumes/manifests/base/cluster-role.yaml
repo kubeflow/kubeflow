@@ -52,7 +52,7 @@ rules:
 - apiGroups:
   - kubeflow.org
   resources:
-  - volumesviewers
+  - pvcviewers
   verbs:
   - get
   - list
@@ -89,7 +89,7 @@ rules:
 - apiGroups:
   - kubeflow.org
   resources:
-  - volumesviewers
+  - pvcviewers
   verbs:
   - get
   - list
@@ -122,7 +122,7 @@ rules:
 - apiGroups:
   - kubeflow.org
   resources:
-  - volumesviewers
+  - pvcviewers
   verbs:
   - get
   - list

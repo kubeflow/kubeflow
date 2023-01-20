@@ -15,7 +15,7 @@ podTemplate:
         - name: FB_NOAUTH
           value: "true"
         - name: FB_BASEURL
-          value: /volumesviewer/$NAMESPACE/$NAME/
+          value: /pvcviewers/$NAMESPACE/$NAME/
       readinessProbe:
         tcpSocket:
           port: 8080
@@ -32,7 +32,7 @@ podTemplate:
 service:
   targetPort: 8080
   virtualService:
-    basePrefix: "/volumesviewer"
+    basePrefix: "/pvcviewers"
     rewrite: "/"
     timeout: 30s
 rwoScheduling:

@@ -3,10 +3,10 @@ import os
 import yaml
 from string import Template
 
-KIND = "VolumesViewer"
+KIND = "PVCViewer"
 GROUP = "kubeflow.org"
 VERSION = "v1alpha1"
-PLURAL = "volumesviewers"
+PLURAL = "pvcviewers"
 VIEWER = [GROUP, VERSION, PLURAL]
 
 VIEWER_SPEC_PATH = os.path.join("/etc/config", "viewer-spec.yaml")
