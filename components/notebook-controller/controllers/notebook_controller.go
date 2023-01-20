@@ -542,7 +542,7 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 	vsvc.SetName(virtualServiceName(name, namespace))
 	vsvc.SetNamespace(namespace)
 
-	istioHosts := os.Getenv("ISTIO_HOSTS")
+	istioHosts := os.Getenv("ISTIO_HOST")
 	if len(istioHosts) == 0 {
 		istioHosts = "*"
 	}

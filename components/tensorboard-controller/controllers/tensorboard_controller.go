@@ -320,7 +320,7 @@ func generateVirtualService(tb *tensorboardv1alpha1.Tensorboard) (*unstructured.
 		return nil, err
 	}
 
-	istioHosts, err := getEnvVariable("ISTIO_HOSTS")
+	istioHosts, err := getEnvVariable("ISTIO_HOST")
 	if err != nil {
 		return nil, err
 	}
