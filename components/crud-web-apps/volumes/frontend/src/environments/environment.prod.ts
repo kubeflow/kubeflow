@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
   viewerUrl: '',
-  resource: 'viewers',
+  resource: 'pvcviewers',
   ui: 'default',
 };

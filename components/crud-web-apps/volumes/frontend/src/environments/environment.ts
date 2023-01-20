@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   viewerUrl: '//localhost:8081',
-  resource: 'viewers',
+  resource: 'pvcviewers',
   ui: 'default',
 };
 

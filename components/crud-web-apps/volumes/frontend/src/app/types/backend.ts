@@ -1,6 +1,6 @@
 import { Params } from '@angular/router';
 import { V1PersistentVolumeClaim, V1Pod } from '@kubernetes/client-node';
-import { Status, BackendResponse, STATUS_TYPE } from 'kubeflow';
+import { Status, BackendResponse } from 'kubeflow';
 import { EventObject } from './event';
 
 export interface VWABackendResponse extends BackendResponse {
@@ -21,16 +21,11 @@ export interface PVCResponseObject {
   name: string;
   namespace: string;
   status: Status;
-  viewer: {
-    status: STATUS_TYPE;
-    url: string;
-  };
 }
 
 export interface PVCProcessedObject extends PVCResponseObject {
   deleteAction?: string;
-  closeViewerAction?: string;
-  openViewerAction?: string;
+  editAction?: string;
   ageValue?: string;
   ageTooltip?: string;
   link: {
