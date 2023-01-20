@@ -1,10 +1,10 @@
 import {
   PropertyValue,
   StatusValue,
-  ActionListValue,
-  ActionIconValue,
   TableConfig,
   DateTimeValue,
+  LinkValue,
+  LinkType,
 } from 'kubeflow';
 import { quantityToScalar } from '@kubernetes/client-node/dist/util';
 
@@ -21,11 +21,11 @@ export const tableConfig: TableConfig = {
       matHeaderCellDef: $localize`Name`,
       matColumnDef: 'name',
       style: { width: '25%' },
-      value: new PropertyValue({
-        field: 'name',
-        tooltipField: 'name',
-        isLink: true,
+      value: new LinkValue({
+        field: 'link',
+        popoverField: 'name',
         truncate: true,
+        linkType: LinkType.Internal,
       }),
       sort: true,
     },

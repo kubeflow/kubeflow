@@ -187,6 +187,55 @@ func TestApplyPodDefaultsOnPod(t *testing.T) {
 					},
 				},
 			},
+		}, {
+			"Add init containers",
+			&corev1.Pod{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{},
+				},
+			},
+			[]*settingsapi.PodDefault{
+				{
+					Spec: settingsapi.PodDefaultSpec{
+						InitContainers: []corev1.Container{
+							corev1.Container{
+								Command: []string{
+									"cmd1",
+								},
+								Args: []string{
+									"arg1",
+									"arg2",
+								},
+								Image: "nginx",
+								Name:  "test initcontainer and sidecar",
+							},
+						},
+					},
+				},
+			},
+			&corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						"poddefault.admission.kubeflow.org/poddefault-": "",
+					},
+					Labels: map[string]string{},
+				},
+				Spec: corev1.PodSpec{
+					InitContainers: []corev1.Container{
+						corev1.Container{
+							Command: []string{
+								"cmd1",
+							},
+							Args: []string{
+								"arg1",
+								"arg2",
+							},
+							Image: "nginx",
+							Name:  "test initcontainer and sidecar",
+						},
+					},
+				},
+			},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -194,8 +243,8 @@ func TestApplyPodDefaultsOnPod(t *testing.T) {
 				t.Fatal(err)
 			}
 			applyPodDefaultsOnPod(test.in, test.podDefaults)
-			if !reflect.DeepEqual(test.in, test.out) {
-				t.Fatalf("%#v\n  Not Equals:\n%#v", test.in.ObjectMeta, test.out.ObjectMeta)
+			if reflect.DeepEqual(test.in, test.out) {
+				t.Fatalf("%#v\n  Not Equals:\n%#v", test.in, test.out)
 			}
 		})
 	}

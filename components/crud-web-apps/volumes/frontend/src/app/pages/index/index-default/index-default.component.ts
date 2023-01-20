@@ -6,7 +6,6 @@ import {
   ConfirmDialogService,
   STATUS_TYPE,
   DIALOG_RESP,
-  DialogConfig,
   SnackBarService,
   SnackType,
   ToolbarButton,
@@ -98,6 +97,8 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
         break;
       case 'name:link':
         if (a.data.status.phase === STATUS_TYPE.TERMINATING) {
+          a.event.stopPropagation();
+          a.event.preventDefault();
           this.snackBar.open(
             'PVC is unavailable now.',
             SnackType.Warning,
@@ -105,9 +106,6 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
           );
           return;
         }
-        this.router.navigate([
-          `/volume/details/${a.data.namespace}/${a.data.name}`,
-        ]);
         break;
     }
   }
@@ -272,6 +270,10 @@ export class IndexDefaultComponent implements OnInit, OnDestroy {
       pvc.ageValue = pvc.age.uptime;
       pvc.ageTooltip = pvc.age.timestamp;
       pvc.openViewerAction = this.parseViewerActionStatus(pvc);
+      pvc.link = {
+        text: pvc.name,
+        url: `/volume/details/${pvc.namespace}/${pvc.name}`,
+      };
     }
 
     return pvcsCopy;

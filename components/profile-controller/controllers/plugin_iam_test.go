@@ -2,12 +2,11 @@ package controllers
 
 import (
 	"fmt"
-	"testing"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"testing"
 )
 
 type AWSTestCase struct {
@@ -300,4 +299,16 @@ func TestRemoveServiceAccountInAssumeRolePolicy(t *testing.T) {
 		result, _ := removeServiceAccountInAssumeRolePolicy(test.policy, test.serviceAccountNamespace, test.serviceAccountName)
 		require.JSONEq(t, test.expectedPolicy, result)
 	}
+}
+
+func TestIsAnnotateOnly(t *testing.T) {
+	aws := &AwsIAMForServiceAccount{AnnotateOnly: true}
+
+	// Check that the result is true
+	assert.True(t, aws.isAnnotateOnly())
+
+
+	aws = &AwsIAMForServiceAccount{AnnotateOnly: false}
+	// Check that the result is true
+	assert.False(t, aws.isAnnotateOnly())
 }

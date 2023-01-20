@@ -7,6 +7,7 @@ import {
   V1PodSpec,
 } from '@kubernetes/client-node';
 import { Condition } from './condition';
+import { Params } from '@angular/router';
 
 export type ServerType = 'jupyter' | 'group-one' | 'group-two';
 
@@ -33,6 +34,11 @@ export interface NotebookProcessedObject extends NotebookResponseObject {
   deleteAction?: string;
   connectAction?: string;
   startStopAction?: string;
+  link: {
+    text: string;
+    url: string;
+    queryParams?: Params | null;
+  };
 }
 
 export interface NotebookFormObject {

@@ -1,0 +1,29 @@
+apiVersion: kubeflow.org/v1alpha1
+kind: PodDefault
+metadata:
+  name: inject-containers
+  namespace: kubeflow
+spec:
+  desc: PodDefault to inject initContainers and sidecars
+  initContainers:
+  - command:
+    - echo
+    - kubectl image pulled
+    image: gcr.io/cloud-builders/kubectl
+    imagePullPolicy: Always
+    name: init-kubectl
+  selector:
+    matchLabels:
+      kubeflow.org/inject-containers: "true"
+  sidecars:
+  - env:
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.name
+    command:
+    - echo $(kubectl get pods $POD_NAME -o yaml)
+    image: gcr.io/cloud-builders/kubectl
+    imagePullPolicy: IfNotPresent
+    name: kubectl
