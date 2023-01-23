@@ -2,10 +2,10 @@ TAG ?= $(shell git describe --tags --always --dirty)
 REGISTRY ?= kubeflownotebookswg
 
 docker-build-jupyter-pytorch:
-	make docker-build-cpu -C ../jupyter-pytorch TAG=${TAG} 
+	$(MAKE) docker-build-cpu -C ../jupyter-pytorch TAG=${TAG} 
 
 docker-build-jupyter-pytorch-cuda:
-	make docker-build-cuda -C ../jupyter-pytorch TAG=${TAG} 
+	$(MAKE) docker-build-cuda -C ../jupyter-pytorch TAG=${TAG} 
 
 docker-build-cpu: docker-build-jupyter-pytorch
 	docker build -t ${REGISTRY}/jupyter-pytorch-full:${TAG} --build-arg BASE_IMG=${REGISTRY}/jupyter-pytorch:${TAG} -f cpu.Dockerfile . 
