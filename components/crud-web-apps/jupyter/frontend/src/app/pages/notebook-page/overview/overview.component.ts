@@ -488,8 +488,8 @@ export class OverviewComponent implements OnInit, OnDestroy {
     envGroup: EnvironmentVariablesGroup,
   ): boolean {
     if (
-      envGroup.configuration?.spec.env
-        .map(env => env.name)
+      envGroup.configuration?.spec?.env
+        ?.map(env => env.name)
         .includes(envVar.name)
     ) {
       return true;
