@@ -1,0 +1,250 @@
+{
+  "notebooks": [
+    {
+      "age": "2022-09-01T15:15:35Z",
+      "cpu": "1m",
+      "gpus": {
+        "count": 0,
+        "message": ""
+      },
+      "image": "kubeflownotebookswg/jupyter-scipy:latest",
+      "last_activity": "2022-09-21T12:15:06Z",
+      "memory": "1073741824m",
+      "metadata": {
+        "annotations": {
+          "notebooks.kubeflow.org/last-activity": "2022-09-21T12:15:06Z",
+          "notebooks.kubeflow.org/server-type": "jupyter"
+        },
+        "creationTimestamp": "2022-09-01T15:15:35Z",
+        "generation": 2,
+        "labels": {
+          "app": "a-dog-breed-katib"
+        },
+        "name": "a-dog-breed-katib-warning",
+        "namespace": "kubeflow-user",
+        "resourceVersion": "60018065",
+        "selfLink": "/apis/kubeflow.org/v1beta1/namespaces/kubeflow-user/notebooks/a-dog-breed-katib",
+        "uid": "ff8ba37f-ec1f-46d4-a007-abed1e1a9e2a"
+      },
+      "name": "a-dog-breed-katib",
+      "namespace": "kubeflow-user",
+      "serverType": "jupyter",
+      "shortImage": "jupyter-scipy:latest",
+      "status": {
+        "message": "Warning",
+        "phase": "warning",
+        "state": ""
+      },
+      "volumes": [
+        "dshm",
+        "dog-breed-nwmrc-tutorial-dog-breed-datavol-1-xrrmt-lf276",
+        "dog-breed-nwmrc-tutorial-dog-breed-workspace-24ntl-jcjlv"
+      ]
+    },
+    {
+      "age": "2022-09-15T13:28:12Z",
+      "cpu": "500m",
+      "gpus": {
+        "count": 0,
+        "message": ""
+      },
+      "image": "kubeflownotebookswg/codeserver-python:latest",
+      "last_activity": "2022-09-15T13:28:17Z",
+      "memory": "1Gi",
+      "metadata": {
+        "annotations": {
+          "notebooks.kubeflow.org/http-rewrite-uri": "/",
+          "notebooks.kubeflow.org/last-activity": "2022-09-15T13:28:17Z",
+          "notebooks.kubeflow.org/server-type": "group-one"
+        },
+        "creationTimestamp": "2022-09-15T13:28:12Z",
+        "generation": 2,
+        "labels": {
+          "access-ml-pipeline": "true",
+          "access-rok": "true",
+          "app": "a-test-01"
+        },
+        "name": "a-test-01",
+        "namespace": "kubeflow-user",
+        "resourceVersion": "60018244",
+        "selfLink": "/apis/kubeflow.org/v1beta1/namespaces/kubeflow-user/notebooks/a-test-01",
+        "uid": "bfc9453c-9d98-46fd-aa4e-3482aff96e8d"
+      },
+      "name": "a-test-01",
+      "namespace": "kubeflow-user",
+      "serverType": "group-one",
+      "shortImage": "codeserver-python:latest",
+      "status": {
+        "message": "Running",
+        "phase": "ready",
+        "state": ""
+      },
+      "volumes": ["dshm", "b-rstudio-workspace-svdl2"]
+    },
+    {
+      "age": "2022-09-19T16:39:10Z",
+      "cpu": "500m",
+      "gpus": {
+        "count": 0,
+        "message": ""
+      },
+      "image": "kubeflownotebookswg/jupyter-scipy:latest",
+      "last_activity": "",
+      "memory": "1Gi",
+      "metadata": {
+        "annotations": {
+          "kubeflow-resource-stopped": "2022-10-07T09:50:48Z",
+          "notebooks.kubeflow.org/server-type": "jupyter"
+        },
+        "creationTimestamp": "2022-09-19T16:39:10Z",
+        "generation": 2,
+        "labels": {
+          "access-ml-pipeline": "true",
+          "app": "a0-new-image"
+        },
+        "name": "a0-new-image",
+        "namespace": "kubeflow-user",
+        "resourceVersion": "60167216",
+        "selfLink": "/apis/kubeflow.org/v1beta1/namespaces/kubeflow-user/notebooks/a0-new-image",
+        "uid": "6699d0a4-93d2-4373-8a40-48cce931f5fa"
+      },
+      "name": "a0-new-image",
+      "namespace": "kubeflow-user",
+      "serverType": "jupyter",
+      "shortImage": "jupyter-scipy:latest",
+      "status": {
+        "message": "No Pods are currently running for this Notebook Server.",
+        "phase": "stopped",
+        "state": ""
+      },
+      "volumes": [
+        "a0-new-image-workspace-d8pc2",
+        "a0-new-image-datavol-1-wlmfg",
+        "dshm"
+      ]
+    },
+    {
+      "age": "2022-09-01T08:36:40Z",
+      "cpu": "500m",
+      "gpus": {
+        "count": 0,
+        "message": ""
+      },
+      "image": "kubeflownotebookswg/rstudio-tidyverse:latest",
+      "last_activity": "2022-09-12T07:30:39Z",
+      "memory": "1Gi",
+      "metadata": {
+        "annotations": {
+          "notebooks.kubeflow.org/http-headers-request-set": "{\"X-RStudio-Root-Path\":\"/notebook/kubeflow-user/b-rstudio/\"}",
+          "notebooks.kubeflow.org/http-rewrite-uri": "/",
+          "notebooks.kubeflow.org/last-activity": "2022-09-12T07:30:39Z",
+          "notebooks.kubeflow.org/server-type": "group-two"
+        },
+        "creationTimestamp": "2022-09-01T08:36:40Z",
+        "generation": 2,
+        "labels": {
+          "access-ml-pipeline": "true",
+          "app": "b-rstudio"
+        },
+        "name": "b-rstudio",
+        "namespace": "kubeflow-user",
+        "resourceVersion": "60018168",
+        "selfLink": "/apis/kubeflow.org/v1beta1/namespaces/kubeflow-user/notebooks/b-rstudio",
+        "uid": "43ec159d-648a-4546-8985-3edbbc4d132c"
+      },
+      "name": "b-rstudio-terminating",
+      "namespace": "kubeflow-user",
+      "serverType": "group-two",
+      "shortImage": "rstudio-tidyverse:latest",
+      "status": {
+        "message": "Terminating",
+        "phase": "terminating",
+        "state": ""
+      },
+      "volumes": ["dshm", "b-rstudio-workspace-svdl2"]
+    },
+    {
+      "age": "2022-04-15T09:41:07Z",
+      "cpu": "1m",
+      "gpus": {
+        "count": 0,
+        "message": ""
+      },
+      "image": "kubeflownotebookswg/jupyter-scipy:latest",
+      "last_activity": "2022-09-21T12:16:25Z",
+      "memory": "1073741824m",
+      "metadata": {
+        "annotations": {
+          "notebooks.kubeflow.org/last-activity": "2022-09-21T12:16:25Z",
+          "notebooks.kubeflow.org/server-type": "jupyter"
+        },
+        "creationTimestamp": "2022-04-15T09:41:07Z",
+        "generation": 2,
+        "labels": {
+          "access-ml-pipeline": "true",
+          "app": "inference"
+        },
+        "name": "inference-unavailable",
+        "namespace": "kubeflow-user",
+        "resourceVersion": "60019474",
+        "selfLink": "/apis/kubeflow.org/v1beta1/namespaces/kubeflow-user/notebooks/inference",
+        "uid": "e5670f15-9d3a-4226-b49e-2a680a911b09"
+      },
+      "name": "inference-unavailable",
+      "namespace": "kubeflow-user",
+      "serverType": "jupyter",
+      "shortImage": "jupyter-scipy:latest",
+      "status": {
+        "message": "unavailable",
+        "phase": "unavailable",
+        "state": ""
+      },
+      "volumes": ["dshm", "coronahack-l9dwt-1759876298-ax7mi-pvc-dfhvr-zqxmt"]
+    },
+    {
+      "age": "2022-04-14T08:25:10Z",
+      "cpu": "1m",
+      "gpus": {
+        "count": 0,
+        "message": ""
+      },
+      "image": "kubeflownotebookswg/jupyter-scipy:latest",
+      "last_activity": "2022-09-21T12:19:26Z",
+      "memory": "1073741824m",
+      "metadata": {
+        "annotations": {
+          "notebooks.kubeflow.org/last-activity": "2022-09-21T12:19:26Z",
+          "notebooks.kubeflow.org/server-type": "jupyter"
+        },
+        "creationTimestamp": "2022-04-14T08:25:10Z",
+        "generation": 2,
+        "labels": {
+          "access-ml-pipeline": "true",
+          "app": "random-forest"
+        },
+        "name": "random-forest",
+        "namespace": "kubeflow-user",
+        "resourceVersion": "53812193",
+        "selfLink": "/apis/kubeflow.org/v1beta1/namespaces/kubeflow-user/notebooks/random-forest",
+        "uid": "7637cafa-ba4d-4b60-93d3-7008b6ff2d67"
+      },
+      "name": "random-forest-waiting",
+      "namespace": "kubeflow-user",
+      "serverType": "jupyter",
+      "shortImage": "jupyter-scipy:latest",
+      "status": {
+        "message": "PodInitializing",
+        "phase": "waiting",
+        "state": ""
+      },
+      "volumes": [
+        "dshm",
+        "titanic-ml-47xh5-data-m57vq-2md82",
+        "titanic-ml-47xh5-tutorial-titanic-workspace-mxstz-52fbp"
+      ]
+    }
+  ],
+  "status": 200,
+  "success": true,
+  "user": null
+}

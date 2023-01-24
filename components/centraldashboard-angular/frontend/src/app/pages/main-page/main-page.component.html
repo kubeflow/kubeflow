@@ -9,12 +9,12 @@
   >
     <mat-toolbar>Menu</mat-toolbar>
     <mat-nav-list>
-      <a mat-list-item href="#">Link 1</a>
-      <a mat-list-item href="#">Link 2</a>
-      <a mat-list-item href="#">Link 3</a>
+      <a mat-list-item routerLink="/">Home</a>
+      <a mat-list-item routerLink="/_/jupyter/">Jupyter</a>
+      <a mat-list-item routerLink="/_/volumes/">Volume</a>
     </mat-nav-list>
   </mat-sidenav>
-  <mat-sidenav-content>
+  <mat-sidenav-content class="main-page-content">
     <mat-toolbar color="primary">
       <button
         type="button"
@@ -25,11 +25,8 @@
       >
         <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
       </button>
-      <span>frontend</span>
+      <span>Central Dashboard</span>
     </mat-toolbar>
-    <iframe #iframe style="width: 100%; height: 100%" src="/jupyter/">
-      <p>Your browser does not support iframes.</p>
-    </iframe>
     <router-outlet></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>

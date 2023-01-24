@@ -6,7 +6,6 @@ export interface PropertyConfig {
   tooltipField?: string;
   popoverField?: string;
   truncate?: boolean /* if set to true, user needs to define max-width */;
-  isLink?: boolean;
   style?: { [prop: string]: string };
 }
 
@@ -16,7 +15,6 @@ export class PropertyValue {
   valueFn?: (row: any) => any;
   popoverField: string;
   truncate: boolean;
-  isLink: boolean;
   style: { [prop: string]: string };
 
   private defaultValues: PropertyConfig = {
@@ -24,20 +22,11 @@ export class PropertyValue {
     tooltipField: '',
     popoverField: '',
     truncate: false,
-    isLink: false,
     style: {},
   };
 
   constructor(config: PropertyConfig) {
-    const {
-      field,
-      valueFn,
-      tooltipField,
-      popoverField,
-      truncate,
-      isLink,
-      style,
-    } = {
+    const { field, valueFn, tooltipField, popoverField, truncate, style } = {
       ...this.defaultValues,
       ...config,
     };
@@ -46,16 +35,11 @@ export class PropertyValue {
     this.tooltipField = tooltipField;
     this.popoverField = popoverField;
     this.truncate = truncate;
-    this.isLink = isLink;
     this.style = style;
   }
 
   getClasses() {
     const classes = [];
-
-    if (this.isLink) {
-      classes.push('link');
-    }
 
     if (!this.truncate) {
       return classes;

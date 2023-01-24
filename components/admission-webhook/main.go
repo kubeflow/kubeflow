@@ -135,6 +135,15 @@ func safeToApplyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.Pod
 	if _, err := mergeMap(pod.Labels, defaultLabels); err != nil {
 		errs = append(errs, err)
 	}
+
+	if _, err := mergeContainers(pod.Spec.InitContainers, podDefaults, false); err != nil {
+		errs = append(errs, err)
+	}
+
+	if _, err := mergeContainers(pod.Spec.Containers, podDefaults, true); err != nil {
+		errs = append(errs, err)
+	}
+
 	return utilerrors.NewAggregate(errs)
 }
 
@@ -348,6 +357,53 @@ func mergeVolumes(volumes []corev1.Volume, podDefaults []*settingsapi.PodDefault
 	return mergedVolumes, err
 }
 
+// mergeContainers merges given list of Container with the containers injected by given
+// podDefaults. It returns an error if it detects any conflict during the merge.
+func mergeContainers(containers []corev1.Container, podDefaults []*settingsapi.PodDefault, isSidecar bool) ([]corev1.Container, error) {
+	origContainers := map[string]corev1.Container{}
+	for _, ic := range containers {
+		origContainers[ic.Name] = ic
+	}
+
+	mergedContainers := make([]corev1.Container, len(containers))
+	copy(mergedContainers, containers)
+
+	var errs []error
+
+	for _, pd := range podDefaults {
+		pdContainers := pd.Spec.InitContainers
+		if isSidecar {
+			pdContainers = pd.Spec.Sidecars
+		}
+		for _, v := range pdContainers {
+			found, ok := origContainers[v.Name]
+			if !ok {
+				// if we don't already have it append it and continue
+				origContainers[v.Name] = v
+				mergedContainers = append(mergedContainers, v)
+				continue
+			}
+
+			// make sure they are identical or throw an error
+			if !reflect.DeepEqual(found, v) {
+				errs = append(errs, fmt.Errorf("merging containers for %s has a conflict on %s: \n%#v\ndoes not match\n%#v\n in container", pd.GetName(), v.Name, v, found))
+			}
+		}
+	}
+
+	err := utilerrors.NewAggregate(errs)
+	if err != nil {
+		klog.Error(err)
+		return nil, err
+	}
+
+	if len(mergedContainers) == 0 {
+		return nil, nil
+	}
+
+	return mergedContainers, err
+}
+
 // mergeTolerations merges given list of Tolerations with the tolerations injected by given
 // podDefaults. It returns an error if it detects any conflict during the merge.
 func mergeTolerations(tolerations []corev1.Toleration, podDefaults []*settingsapi.PodDefault) ([]corev1.Toleration, error) {
@@ -478,6 +534,18 @@ func applyPodDefaultsOnPod(pod *corev1.Pod, podDefaults []*settingsapi.PodDefaul
 	if pod.ObjectMeta.Annotations == nil {
 		pod.ObjectMeta.Annotations = map[string]string{}
 	}
+
+	initContainers, err := mergeContainers(pod.Spec.InitContainers, podDefaults, false)
+	if err != nil {
+		klog.Error(err)
+	}
+	pod.Spec.InitContainers = initContainers
+
+	containers, err := mergeContainers(pod.Spec.Containers, podDefaults, true)
+	if err != nil {
+		klog.Error(err)
+	}
+	pod.Spec.Containers = containers
 
 	// add annotation information to mark poddefault mutation has occurred
 	for _, pd := range podDefaults {
