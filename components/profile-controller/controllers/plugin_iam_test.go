@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"os"
 	"testing"
 )
 
@@ -18,6 +19,20 @@ type AWSTestCase struct {
 	serviceAccountNamespace string
 	// service account name
 	serviceAccountName string
+}
+
+func TestIsUpdateIRSATrustRelationshipDisabled(t *testing.T) {
+	os.Setenv(ENV_ENABLE_EDITING_IAM_ROLE_TRUST_RELATIONSHIP, "false")
+	defer os.Unsetenv(ENV_ENABLE_EDITING_IAM_ROLE_TRUST_RELATIONSHIP)
+
+	assert.Equal(t, false, isUpdateIRSATrustRelationshipEnabled())
+}
+
+func TestIsUpdateIRSATrustRelationshipEnabled(t *testing.T) {
+	os.Setenv(ENV_ENABLE_EDITING_IAM_ROLE_TRUST_RELATIONSHIP, "true")
+	defer os.Unsetenv(ENV_ENABLE_EDITING_IAM_ROLE_TRUST_RELATIONSHIP)
+
+	assert.Equal(t, true, isUpdateIRSATrustRelationshipEnabled())
 }
 
 func TestAddIAMRoleAnnotation(t *testing.T) {
@@ -306,7 +321,6 @@ func TestIsAnnotateOnly(t *testing.T) {
 
 	// Check that the result is true
 	assert.True(t, aws.isAnnotateOnly())
-
 
 	aws = &AwsIAMForServiceAccount{AnnotateOnly: false}
 	// Check that the result is true
