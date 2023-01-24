@@ -101,7 +101,6 @@ func VirtualService(ctx context.Context, r client.Client, virtualServiceName, na
 }
 
 // Reference: https://github.com/pwittrock/kubebuilder-workshop/blob/master/util/util.go
-
 // CopyStatefulSetFields copies the owned fields from one StatefulSet to another
 // Returns true if the fields copied from don't match to.
 // Also takes into account Openshift image policy admission plug-in on Notebook/StatefulSet metadata annotation to exclude image-field(s) from reconciliation when Pod spec container image field value is done by that plugin
@@ -126,11 +125,25 @@ func CopyStatefulSetFields(from, to *appsv1.StatefulSet, isImageChangeTriggerSet
 		requireUpdate = true
 	}
 
-        // To do: see isImageChangeTriggerSet bool and container names referenced/affected. Exclude image field from reconciliation for that container name in the Spec (containers[x].name .image
         // https://stackoverflow.com/questions/47134293/compare-structs-except-one-field-golang
-	if !reflect.DeepEqual(to.Spec.Template.Spec, from.Spec.Template.Spec) {
+        // set container image field of "to" to equal container image field of "from" for all affected container names referenced in image change trigger annotation, if annotation is present
+        // this makes DeepEqual work in this special exclude-image-field from reconciliation/compare scenario, too
+        if (isImageChangeTriggerSet) {
+          for containerNameFromAnnotation := range imageChangeTriggerReferencedContainerNames {
+              // func GetContainerSpec(pod *v1.Pod, containerName string) *v1.Container
+              // GetContainerSpec gets the container spec by containerName.
+              for container := range to.Spec.Template.Spec.Containers {
+                 if (to.Spec.Template.Spec.Containers[container].Name == imageChangeTriggerReferencedContainerNames[containerNameFromAnnotation]) {
+                   log.Info("excluding container image-field from DeepEqual by making to equals from", "for container name", to.Spec.Template.Spec.Containers[container].Name), "and new image field value being disregarded", to.Spec.Template.Spec.Containers[container].Image)
+                   to.Spec.Template.Spec.Containers[container].Image = from.Spec.Template.Spec.Containers[container].Image
+                 }
+             }
+          }
+        }
+        if !reflect.DeepEqual(to.Spec.Template.Spec, from.Spec.Template.Spec) {
 		requireUpdate = true
 	}
+
 	to.Spec.Template.Spec = from.Spec.Template.Spec
 
 	return requireUpdate
