@@ -22,7 +22,7 @@ spec:
   # and thus, represents the core viewer's application
   podSpec:
     # Your pod spec here
-  service:
+  networking:
     # Specifies the application's target port used by the Service
     targetPort: 8080
     # If defined, an istio VirtualService is created, pointing to the Service

@@ -29,19 +29,20 @@ type PVCViewerSpec struct {
 	// +optional
 	PodSpec corev1.PodSpec `json:"podSpec,omitempty"`
 
-	// If defined, a service is created for the deployment.
-	Service Service `json:"service,omitempty"`
+	// Specifies custom networking specification for the underlying
+	// Service and VirtualService resources
+	// +optional
+	Networking Networking `json:"networking,omitempty"`
 
 	// Defines the strategy for handling RWO-PVCs defined in the podSpec.
 	RWOScheduling RWOScheduling `json:"rwoScheduling,omitempty"`
 }
 
 type RWOScheduling struct {
-	// If true, the controller will monitor other Pods that use the same 'ReadWriteOnce'-PVCs
-	// as defined by this PVCViewer's podSpec. It will set the deployment's
-	// NodeAffinity so that the PVCViewer is preferably scheduled on the same node as
-	// the other Pods mounting the volume. Therefore, the PVCViewer will be able to
-	// access RWO-PVCs which are already mounted.
+	// If set to true, the controller detects RWO-Volumes referred to by
+	// the Pod and uses affinities to schedule the PVCViewer to nodes
+	// where the volume is currently mounted. This enables the PVCViewer
+	// to access RWO-Volumes, even though they might already be mounted.
 	// +kubebuilder:default:=true
 	Enabled bool `json:"enabled"`
 
@@ -54,8 +55,8 @@ type RWOScheduling struct {
 	Restart bool `json:"restart"`
 }
 
-type Service struct {
-	// Specifies the deployment's target port that's used by the containers' podSpec.
+type Networking struct {
+	// Specifies the application's target port used by the Deployment's Service.
 	TargetPort intstr.IntOrString `json:"targetPort"`
 
 	// If defined, a virtual service will be created for the service.
@@ -68,10 +69,13 @@ type VirtualService struct {
 	BasePrefix string `json:"basePrefix"`
 
 	// Specifies the virtual service's 'rewrite' field.
-	// If omitted, the controller will set the 'rewrite' field to the same value as the 'prefix' field.
+	// If omitted, the controller will set the 'rewrite' field to the same
+	// value as the 'prefix' field.
+	// +optional
 	Rewrite string `json:"rewrite,omitempty"`
 
 	// The timeout for the virtual service's 'timeout' field.
+	// +optional
 	Timeout string `json:"timeout,omitempty"`
 }
 

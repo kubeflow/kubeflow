@@ -35,6 +35,41 @@ spec:
           spec:
             description: PVCViewerSpec defines the desired state of PVCViewer
             properties:
+              networking:
+                description: Specifies custom networking specification for the underlying
+                  Service and VirtualService resources
+                properties:
+                  targetPort:
+                    anyOf:
+                    - type: integer
+                    - type: string
+                    description: Specifies the application's target port used by the
+                      Deployment's Service.
+                    x-kubernetes-int-or-string: true
+                  virtualService:
+                    description: If defined, a virtual service will be created for
+                      the service.
+                    properties:
+                      basePrefix:
+                        description: Specifies the prefix to the virtual service's
+                          'prefix' field. The controller will suffix '/namespace/name'
+                          to this prefix.
+                        type: string
+                      rewrite:
+                        description: Specifies the virtual service's 'rewrite' field.
+                          If omitted, the controller will set the 'rewrite' field
+                          to the same value as the 'prefix' field.
+                        type: string
+                      timeout:
+                        description: The timeout for the virtual service's 'timeout'
+                          field.
+                        type: string
+                    required:
+                    - basePrefix
+                    type: object
+                required:
+                - targetPort
+                type: object
               podSpec:
                 description: "TODO infer default values if PodSpec is empty Specifies
                   the deployment's pod spec that will be created\tby the operator."
@@ -6934,12 +6969,11 @@ spec:
                 properties:
                   enabled:
                     default: true
-                    description: If true, the controller will monitor other Pods that
-                      use the same 'ReadWriteOnce'-PVCs as defined by this PVCViewer's
-                      podSpec. It will set the deployment's NodeAffinity so that the
-                      PVCViewer is preferably scheduled on the same node as the other
-                      Pods mounting the volume. Therefore, the PVCViewer will be able
-                      to access RWO-PVCs which are already mounted.
+                    description: If set to true, the controller detects RWO-Volumes
+                      referred to by the Pod and uses affinities to schedule the PVCViewer
+                      to nodes where the volume is currently mounted. This enables
+                      the PVCViewer to access RWO-Volumes, even though they might
+                      already be mounted.
                     type: boolean
                   restart:
                     default: false
@@ -6953,40 +6987,6 @@ spec:
                 required:
                 - enabled
                 - restart
-                type: object
-              service:
-                description: If defined, a service is created for the deployment.
-                properties:
-                  targetPort:
-                    anyOf:
-                    - type: integer
-                    - type: string
-                    description: Specifies the deployment's target port that's used
-                      by the containers' podSpec.
-                    x-kubernetes-int-or-string: true
-                  virtualService:
-                    description: If defined, a virtual service will be created for
-                      the service.
-                    properties:
-                      basePrefix:
-                        description: Specifies the prefix to the virtual service's
-                          'prefix' field. The controller will suffix '/namespace/name'
-                          to this prefix.
-                        type: string
-                      rewrite:
-                        description: Specifies the virtual service's 'rewrite' field.
-                          If omitted, the controller will set the 'rewrite' field
-                          to the same value as the 'prefix' field.
-                        type: string
-                      timeout:
-                        description: The timeout for the virtual service's 'timeout'
-                          field.
-                        type: string
-                    required:
-                    - basePrefix
-                    type: object
-                required:
-                - targetPort
                 type: object
             type: object
           status:

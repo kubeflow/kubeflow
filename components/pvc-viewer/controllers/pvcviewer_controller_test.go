@@ -188,7 +188,7 @@ var _ = Describe("PVCViewer controller", func() {
 				if err != nil {
 					return err
 				}
-				viewer.Spec.Service = kubefloworgv1alpha1.Service{
+				viewer.Spec.Networking = kubefloworgv1alpha1.Networking{
 					TargetPort: intstr.IntOrString{IntVal: int32(targetPort)},
 				}
 				return k8sClient.Update(ctx, viewer)
@@ -215,7 +215,7 @@ var _ = Describe("PVCViewer controller", func() {
 				if err != nil {
 					return err
 				}
-				viewer.Spec.Service.TargetPort = intstr.IntOrString{IntVal: int32(newTargetPort)}
+				viewer.Spec.Networking.TargetPort = intstr.IntOrString{IntVal: int32(newTargetPort)}
 				return k8sClient.Update(ctx, viewer)
 			}, timeout, interval).Should(Succeed())
 
@@ -251,7 +251,7 @@ var _ = Describe("PVCViewer controller", func() {
 				if err != nil {
 					return err
 				}
-				viewer.Spec.Service = kubefloworgv1alpha1.Service{
+				viewer.Spec.Networking = kubefloworgv1alpha1.Networking{
 					TargetPort: intstr.IntOrString{IntVal: 80},
 					VirtualService: kubefloworgv1alpha1.VirtualService{
 						BasePrefix: basePrefix,
@@ -295,9 +295,9 @@ var _ = Describe("PVCViewer controller", func() {
 				if err != nil {
 					return err
 				}
-				viewer.Spec.Service.VirtualService.BasePrefix = newBasePrefix
-				viewer.Spec.Service.VirtualService.Timeout = newTimeout
-				viewer.Spec.Service.VirtualService.Rewrite = newRewrite
+				viewer.Spec.Networking.VirtualService.BasePrefix = newBasePrefix
+				viewer.Spec.Networking.VirtualService.Timeout = newTimeout
+				viewer.Spec.Networking.VirtualService.Rewrite = newRewrite
 				return k8sClient.Update(ctx, viewer)
 			}, timeout, interval).Should(Succeed())
 

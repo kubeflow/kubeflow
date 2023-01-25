@@ -229,7 +229,7 @@ func (r *PVCViewerReconciler) reconcileDeployment(ctx context.Context, log logr.
 
 // Creates or updates the service as defined by the viewer's service
 func (r *PVCViewerReconciler) reconcileService(ctx context.Context, log logr.Logger, viewer *kubefloworgv1alpha1.PVCViewer, commonLabels map[string]string) error {
-	if viewer.Spec.Service == (kubefloworgv1alpha1.Service{}) {
+	if viewer.Spec.Networking == (kubefloworgv1alpha1.Networking{}) {
 		return nil
 	}
 
@@ -254,7 +254,7 @@ func (r *PVCViewerReconciler) reconcileService(ctx context.Context, log logr.Log
 		{
 			Name:       "http",
 			Port:       servicePort,
-			TargetPort: viewer.Spec.Service.TargetPort,
+			TargetPort: viewer.Spec.Networking.TargetPort,
 		},
 	}
 
@@ -271,7 +271,7 @@ func (r *PVCViewerReconciler) reconcileService(ctx context.Context, log logr.Log
 }
 
 func (r *PVCViewerReconciler) reconcileVirtualService(ctx context.Context, log logr.Logger, viewer *kubefloworgv1alpha1.PVCViewer, commonLabels map[string]string) error {
-	if viewer.Spec.Service == (kubefloworgv1alpha1.Service{}) || viewer.Spec.Service.VirtualService == (kubefloworgv1alpha1.VirtualService{}) {
+	if viewer.Spec.Networking == (kubefloworgv1alpha1.Networking{}) || viewer.Spec.Networking.VirtualService == (kubefloworgv1alpha1.VirtualService{}) {
 		return nil
 	}
 
@@ -294,15 +294,15 @@ func (r *PVCViewerReconciler) reconcileVirtualService(ctx context.Context, log l
 		createVirtualService = true
 	}
 
-	prefix := fmt.Sprintf("%s/%s/%s/", viewer.Spec.Service.VirtualService.BasePrefix, viewer.Namespace, viewer.Name)
+	prefix := fmt.Sprintf("%s/%s/%s/", viewer.Spec.Networking.VirtualService.BasePrefix, viewer.Namespace, viewer.Name)
 	rewrite := prefix
-	if viewer.Spec.Service.VirtualService.Rewrite != "" {
-		rewrite = viewer.Spec.Service.VirtualService.Rewrite
+	if viewer.Spec.Networking.VirtualService.Rewrite != "" {
+		rewrite = viewer.Spec.Networking.VirtualService.Rewrite
 	}
 	service := fmt.Sprintf("%s%s.%s.svc.cluster.local", resourcePrefix, viewer.Name, viewer.Namespace)
 	var timeout *string = nil
-	if viewer.Spec.Service.VirtualService.Timeout != "" {
-		timeout = &viewer.Spec.Service.VirtualService.Timeout
+	if viewer.Spec.Networking.VirtualService.Timeout != "" {
+		timeout = &viewer.Spec.Networking.VirtualService.Timeout
 	}
 
 	virtualService.Object["spec"] = map[string]interface{}{
@@ -362,8 +362,8 @@ func (r *PVCViewerReconciler) reconcileStatus(ctx context.Context, log logr.Logg
 		viewer.Status.RWOVolumes = rwoVolumes
 	}
 
-	if viewer.Spec.Service.VirtualService != (kubefloworgv1alpha1.VirtualService{}) {
-		url := fmt.Sprintf("%s/%s/%s/", viewer.Spec.Service.VirtualService.BasePrefix, viewer.Namespace, viewer.Name)
+	if viewer.Spec.Networking.VirtualService != (kubefloworgv1alpha1.VirtualService{}) {
+		url := fmt.Sprintf("%s/%s/%s/", viewer.Spec.Networking.VirtualService.BasePrefix, viewer.Namespace, viewer.Name)
 		viewer.Status.URL = &url
 	} else {
 		viewer.Status.URL = nil

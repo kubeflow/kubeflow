@@ -41,7 +41,7 @@ spec:
       - name: rwo-pvc
         persistentVolumeClaim:
           claimName: pvcviewer-sample
-  service:
+  networking:
     # Specifies the application's target port used by the Service
     targetPort: 8080
     # If defined, an istio VirtualService is created, pointing to the Service
