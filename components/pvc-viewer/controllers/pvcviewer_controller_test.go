@@ -72,7 +72,7 @@ var _ = Describe("PVCViewer controller", func() {
 				Namespace: testingNamespace,
 			},
 			Spec: kubefloworgv1alpha1.PVCViewerSpec{
-				PodTemplate: corev1.PodSpec{
+				PodSpec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
 							Name:  "viewer",
@@ -134,7 +134,7 @@ var _ = Describe("PVCViewer controller", func() {
 			}, timeout, interval).Should(Succeed())
 			Expect(deployment).ShouldNot(BeNil())
 			Expect(deployment.Spec.Template.Spec.Containers).Should(HaveLen(1))
-			Expect(deployment.Spec.Template.Spec.Containers[0].Image).Should(Equal(pvcViewer.Spec.PodTemplate.Containers[0].Image))
+			Expect(deployment.Spec.Template.Spec.Containers[0].Image).Should(Equal(pvcViewer.Spec.PodSpec.Containers[0].Image))
 			Expect(deployment.ObjectMeta.Labels).Should(And(
 				HaveKeyWithValue(nameLabelKey, pvcViewer.Name),
 				HaveKeyWithValue(instanceLabelKey, resourcePrefix+pvcViewer.Name),
@@ -149,8 +149,8 @@ var _ = Describe("PVCViewer controller", func() {
 				if err != nil {
 					return err
 				}
-				viewer.Spec.PodTemplate.Containers[0].Image = newImageName
-				viewer.Spec.PodTemplate.Containers = append(viewer.Spec.PodTemplate.Containers,
+				viewer.Spec.PodSpec.Containers[0].Image = newImageName
+				viewer.Spec.PodSpec.Containers = append(viewer.Spec.PodSpec.Containers,
 					corev1.Container{
 						Name:  newContainerName,
 						Image: newImageName,
@@ -364,8 +364,8 @@ var _ = Describe("PVCViewer controller", func() {
 				if err != nil {
 					return err
 				}
-				viewer.Spec.PodTemplate.Containers[0].Image = newImage
-				viewer.Spec.PodTemplate.SchedulerName = newSchedulerName
+				viewer.Spec.PodSpec.Containers[0].Image = newImage
+				viewer.Spec.PodSpec.SchedulerName = newSchedulerName
 				return k8sClient.Update(ctx, viewer)
 			}, timeout, interval).Should(Succeed())
 
@@ -525,7 +525,7 @@ var _ = Describe("PVCViewer controller", func() {
 				mount := volumeTemplate.DeepCopy()
 				mount.Name = rwoPVC.Name
 				mount.VolumeSource.PersistentVolumeClaim.ClaimName = rwoPVC.Name
-				viewer.Spec.PodTemplate.Volumes = []corev1.Volume{*mount}
+				viewer.Spec.PodSpec.Volumes = []corev1.Volume{*mount}
 				return k8sClient.Update(ctx, viewer)
 			}, timeout, interval).Should(Succeed())
 
@@ -576,7 +576,7 @@ var _ = Describe("PVCViewer controller", func() {
 				volume := volumeTemplate.DeepCopy()
 				volume.Name = rwoPVC.Name
 				volume.VolumeSource.PersistentVolumeClaim.ClaimName = rwoPVC.Name
-				viewer.Spec.PodTemplate.Volumes = []corev1.Volume{*volume}
+				viewer.Spec.PodSpec.Volumes = []corev1.Volume{*volume}
 				return k8sClient.Update(ctx, viewer)
 			}, timeout, interval).Should(Succeed())
 
@@ -656,7 +656,7 @@ var _ = Describe("PVCViewer controller", func() {
 				volume := volumeTemplate.DeepCopy()
 				volume.Name = rwoPVC.Name
 				volume.VolumeSource.PersistentVolumeClaim.ClaimName = rwoPVC.Name
-				viewer.Spec.PodTemplate.Volumes = append(viewer.Spec.PodTemplate.Volumes, *volume)
+				viewer.Spec.PodSpec.Volumes = append(viewer.Spec.PodSpec.Volumes, *volume)
 				return k8sClient.Update(ctx, viewer)
 			}, timeout, interval).Should(Succeed())
 
@@ -728,13 +728,13 @@ var _ = Describe("PVCViewer controller", func() {
 					volume := volumeTemplate.DeepCopy()
 					volume.Name = pvc.Name
 					volume.VolumeSource.PersistentVolumeClaim.ClaimName = pvc.Name
-					viewer.Spec.PodTemplate.Volumes = append(viewer.Spec.PodTemplate.Volumes, *volume)
+					viewer.Spec.PodSpec.Volumes = append(viewer.Spec.PodSpec.Volumes, *volume)
 				}
 				// Append a rwx volume to the pod template
 				volume := volumeTemplate.DeepCopy()
 				volume.Name = rwxPVC.Name
 				volume.VolumeSource.PersistentVolumeClaim.ClaimName = rwxPVC.Name
-				viewer.Spec.PodTemplate.Volumes = append(viewer.Spec.PodTemplate.Volumes, *volume)
+				viewer.Spec.PodSpec.Volumes = append(viewer.Spec.PodSpec.Volumes, *volume)
 				return k8sClient.Update(ctx, viewer)
 			}, timeout, interval).Should(Succeed())
 
@@ -754,7 +754,7 @@ var _ = Describe("PVCViewer controller", func() {
 				if err != nil {
 					return err
 				}
-				viewer.Spec.PodTemplate.Volumes = viewer.Spec.PodTemplate.Volumes[:1]
+				viewer.Spec.PodSpec.Volumes = viewer.Spec.PodSpec.Volumes[:1]
 				return k8sClient.Update(ctx, viewer)
 			}, timeout, interval).Should(Succeed())
 

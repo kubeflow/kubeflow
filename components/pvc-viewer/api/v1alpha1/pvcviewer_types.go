@@ -24,19 +24,21 @@ import (
 
 // PVCViewerSpec defines the desired state of PVCViewer
 type PVCViewerSpec struct {
+	// TODO infer default values if PodSpec is empty
 	// Specifies the deployment's pod spec that will be created	by the operator.
-	PodTemplate corev1.PodSpec `json:"podTemplate"`
+	// +optional
+	PodSpec corev1.PodSpec `json:"podSpec,omitempty"`
 
 	// If defined, a service is created for the deployment.
 	Service Service `json:"service,omitempty"`
 
-	// Defines the strategy for handling RWO-PVCs defined in the PodTemplate.
+	// Defines the strategy for handling RWO-PVCs defined in the podSpec.
 	RWOScheduling RWOScheduling `json:"rwoScheduling,omitempty"`
 }
 
 type RWOScheduling struct {
 	// If true, the controller will monitor other Pods that use the same 'ReadWriteOnce'-PVCs
-	// as defined by this PVCViewer's PodTemplate. It will set the deployment's
+	// as defined by this PVCViewer's podSpec. It will set the deployment's
 	// NodeAffinity so that the PVCViewer is preferably scheduled on the same node as
 	// the other Pods mounting the volume. Therefore, the PVCViewer will be able to
 	// access RWO-PVCs which are already mounted.
@@ -53,7 +55,7 @@ type RWOScheduling struct {
 }
 
 type Service struct {
-	// Specifies the deployment's target port that's used by the containers' PodTemplate.
+	// Specifies the deployment's target port that's used by the containers' podSpec.
 	TargetPort intstr.IntOrString `json:"targetPort"`
 
 	// If defined, a virtual service will be created for the service.
@@ -85,7 +87,7 @@ type PVCViewerStatus struct {
 	// +kubebuilder:default:=false
 	Ready bool `json:"ready"`
 
-	// RWOVolumes defines the RWO-PVCs that are referenced by the PodTemplate.
+	// RWOVolumes defines the RWO-PVCs that are referenced by the podSpec.
 	// These values are only set if the RWOScheduling.restart is enabled.
 	// The controller will reconcile the deployment's (and its affinity) if another Pod mounts one of these RWO-PVC.
 	RWOVolumes []string `json:"rwoVolumes,omitempty"`

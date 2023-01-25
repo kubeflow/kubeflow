@@ -18,9 +18,9 @@ metadata:
   name: pvcviewer-sample
   namespace: kubeflow-user-example-com
 spec:
-  # The podTemplate is applied to the deployment.Spec.Template.Spec
+  # The podSpec is applied to the deployment.Spec.Template.Spec
   # and thus, represents the core viewer's application
-  podTemplate:
+  podSpec:
     # Your pod spec here
   service:
     # Specifies the application's target port used by the Service
@@ -37,7 +37,7 @@ spec:
       # timeout: 30s
   rwoScheduling:
     # If set to true, the controller detects RWO-Volumes referred to by the
-    # podTemplate and uses affinities to schedule the viewer to nodes
+    # podSpec and uses affinities to schedule the viewer to nodes
     # where the volume is currently mounted. This enables the viewer to
     # access RWO-Volumes, even though they might already be mounted.
     enabled: true

@@ -156,7 +156,7 @@ func (r *PVCViewerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	return ctrl.Result{}, nil
 }
 
-// Creates or updates the deployment as defined by the viewer's podTemplate
+// Creates or updates the deployment as defined by the viewer's podSpec
 func (r *PVCViewerReconciler) reconcileDeployment(ctx context.Context, log logr.Logger, viewer *kubefloworgv1alpha1.PVCViewer, commonLabels map[string]string) ([]string, error) {
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -178,7 +178,7 @@ func (r *PVCViewerReconciler) reconcileDeployment(ctx context.Context, log logr.
 		affinity   = deployment.Spec.Template.Spec.Affinity
 		rwoVolumes = viewer.Status.RWOVolumes
 		// The user may update the viewer and add new volumes. This case needs to be considered when computing setAffinity
-		volumesChanged = !reflect.DeepEqual(deployment.Spec.Template.Spec.Volumes, viewer.Spec.PodTemplate.Volumes)
+		volumesChanged = !reflect.DeepEqual(deployment.Spec.Template.Spec.Volumes, viewer.Spec.PodSpec.Volumes)
 		// Affinity is only to be set when rwo scheduling is enabled and the deployment needs to be (re-)started
 		determineAffinity = viewer.Spec.RWOScheduling.Enabled && (createDeployment || viewer.Spec.RWOScheduling.Restart || volumesChanged)
 	)
@@ -206,7 +206,7 @@ func (r *PVCViewerReconciler) reconcileDeployment(ctx context.Context, log logr.
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: commonLabels,
 		},
-		Spec: viewer.Spec.PodTemplate,
+		Spec: viewer.Spec.PodSpec,
 	}
 	// We're using a recreate strategy to ensure that the pod is restarted when the affinity change.
 	// Otherwise, we could be mounting the same PVC to multiple pods, preventing the pod from starting.
@@ -388,7 +388,7 @@ func (r *PVCViewerReconciler) reconcileStatus(ctx context.Context, log logr.Logg
 func (r *PVCViewerReconciler) generateAffinity(ctx context.Context, log logr.Logger, viewer *kubefloworgv1alpha1.PVCViewer) (*corev1.Affinity, map[string]bool, error) {
 	// 1. Extract the referenced PVCs from the pod template
 	volumes := make(map[string]bool)
-	for _, volume := range viewer.Spec.PodTemplate.Volumes {
+	for _, volume := range viewer.Spec.PodSpec.Volumes {
 		if volume.PersistentVolumeClaim != nil && volume.PersistentVolumeClaim.ClaimName != "" {
 			volumes[volume.PersistentVolumeClaim.ClaimName] = false
 		}

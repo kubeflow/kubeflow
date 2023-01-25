@@ -35,9 +35,9 @@ spec:
           spec:
             description: PVCViewerSpec defines the desired state of PVCViewer
             properties:
-              podTemplate:
-                description: "Specifies the deployment's pod spec that will be created\tby
-                  the operator."
+              podSpec:
+                description: "TODO infer default values if PodSpec is empty Specifies
+                  the deployment's pod spec that will be created\tby the operator."
                 properties:
                   activeDeadlineSeconds:
                     description: Optional duration in seconds the pod may be active
@@ -6930,16 +6930,16 @@ spec:
                 type: object
               rwoScheduling:
                 description: Defines the strategy for handling RWO-PVCs defined in
-                  the PodTemplate.
+                  the podSpec.
                 properties:
                   enabled:
                     default: true
                     description: If true, the controller will monitor other Pods that
                       use the same 'ReadWriteOnce'-PVCs as defined by this PVCViewer's
-                      PodTemplate. It will set the deployment's NodeAffinity so that
-                      the PVCViewer is preferably scheduled on the same node as the
-                      other Pods mounting the volume. Therefore, the PVCViewer will
-                      be able to access RWO-PVCs which are already mounted.
+                      podSpec. It will set the deployment's NodeAffinity so that the
+                      PVCViewer is preferably scheduled on the same node as the other
+                      Pods mounting the volume. Therefore, the PVCViewer will be able
+                      to access RWO-PVCs which are already mounted.
                     type: boolean
                   restart:
                     default: false
@@ -6962,7 +6962,7 @@ spec:
                     - type: integer
                     - type: string
                     description: Specifies the deployment's target port that's used
-                      by the containers' PodTemplate.
+                      by the containers' podSpec.
                     x-kubernetes-int-or-string: true
                   virtualService:
                     description: If defined, a virtual service will be created for
@@ -6988,8 +6988,6 @@ spec:
                 required:
                 - targetPort
                 type: object
-            required:
-            - podTemplate
             type: object
           status:
             description: PVCViewerStatus defines the observed state of PVCViewer
@@ -7007,7 +7005,7 @@ spec:
                 type: integer
               rwoVolumes:
                 description: RWOVolumes defines the RWO-PVCs that are referenced by
-                  the PodTemplate. These values are only set if the RWOScheduling.restart
+                  the podSpec. These values are only set if the RWOScheduling.restart
                   is enabled. The controller will reconcile the deployment's (and
                   its affinity) if another Pod mounts one of these RWO-PVC.
                 items:
