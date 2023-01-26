@@ -66,7 +66,7 @@ var _ = Describe("PVCViewer controller", func() {
 	})
 
 	// Test the validation and defaulting webhooks
-	Context("When inferring defaults", func() {
+	Context("Defaulting and Validating Webhooks", func() {
 		It("Should create a PodSpec", func() {
 			pvcViewer := testHelper.CreateViewer(&kubefloworgv1alpha1.PVCViewerSpec{
 				PVC: "test-pvc",
@@ -94,6 +94,45 @@ var _ = Describe("PVCViewer controller", func() {
 			Expect(pvcViewer.Spec.PodSpec.Containers[0].Name).Should(Equal("test"))
 			Expect(pvcViewer.Spec.PodSpec.SecurityContext).ShouldNot(BeNil())
 			Expect(*pvcViewer.Spec.PodSpec.SecurityContext.RunAsUser).Should(Equal(int64(1234)))
+		})
+
+		It("The spec.PVC must be specified", func() {
+			pvcViewer := &kubefloworgv1alpha1.PVCViewer{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-pvcviewer",
+					Namespace: testHelper.namespace,
+				},
+				Spec: kubefloworgv1alpha1.PVCViewerSpec{
+					PVC: "",
+				},
+			}
+			err := k8sClient.Create(ctx, pvcViewer)
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("denied the request: PVC name must be specified"))
+		})
+
+		It("Not using the spec.PVC in podSpec.volumes is forbidden", func() {
+			pvcViewer := &kubefloworgv1alpha1.PVCViewer{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-pvcviewer",
+					Namespace: testHelper.namespace,
+				},
+				Spec: kubefloworgv1alpha1.PVCViewerSpec{
+					PVC: "test-pvc",
+					PodSpec: corev1.PodSpec{
+						Containers: []corev1.Container{
+							{
+								Name:  "test",
+								Image: "test",
+							},
+						},
+						Volumes: []corev1.Volume{},
+					},
+				},
+			}
+			err := k8sClient.Create(ctx, pvcViewer)
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("denied the request: PVC test-pvc must be used in the podSpec"))
 		})
 	})
 
