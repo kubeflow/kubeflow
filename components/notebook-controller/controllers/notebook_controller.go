@@ -27,7 +27,6 @@ import (
 	"github.com/go-logr/logr"
 	reconcilehelper "github.com/kubeflow/kubeflow/components/common/reconcilehelper"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/api/v1beta1"
-	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/culler"
 	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/metrics"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -89,6 +88,7 @@ type NotebookReconciler struct {
 
 func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("notebook", req.NamespacedName)
+	log.Info("Reconciliation loop started")
 
 	// TODO(yanniszark): Can we avoid reconciling Events and Notebook in the same queue?
 	event := &corev1.Event{}
@@ -121,7 +121,6 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, getEventErr
 	}
 	// If not found, continue. Is not an event.
-
 	instance := &v1beta1.Notebook{}
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
 		log.Error(err, "unable to fetch Notebook")
@@ -209,11 +208,9 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	foundPod := &corev1.Pod{}
-	podFound := true
 	err = r.Get(ctx, types.NamespacedName{Name: ss.Name + "-0", Namespace: ss.Namespace}, foundPod)
 	if err != nil && apierrs.IsNotFound(err) {
-		log.Info("Pod not found...")
-		podFound = false
+		log.Info(fmt.Sprintf("No Pods are currently running for Notebook Server: %s in namesace: %s.", instance.Name, instance.Namespace))
 	} else if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -224,61 +221,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	if !podFound {
-		// Delete LAST_ACTIVITY_ANNOTATION annotations for CR objects
-		// that do not have a pod.
-		log.Info("Notebook has not Pod running. Will remove last-activity annotation")
-		meta := instance.ObjectMeta
-		if meta.GetAnnotations() == nil {
-			log.Info("No annotations found")
-			return ctrl.Result{}, nil
-		}
-
-		if _, ok := meta.GetAnnotations()[culler.LAST_ACTIVITY_ANNOTATION]; !ok {
-			log.Info("No last-activity annotations found")
-			return ctrl.Result{}, nil
-		}
-
-		log.Info("Removing last-activity annotation")
-		delete(meta.GetAnnotations(), culler.LAST_ACTIVITY_ANNOTATION)
-		err = r.Update(ctx, instance)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{}, nil
-
-	}
-
-	// Pod is found
-	// Check if the Notebook needs to be stopped
-	// Update the LAST_ACTIVITY_ANNOTATION
-	if culler.UpdateNotebookLastActivityAnnotation(&instance.ObjectMeta) {
-		err = r.Update(ctx, instance)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-	}
-
-	// Check if the Notebook needs to be stopped
-	if culler.NotebookNeedsCulling(instance.ObjectMeta) {
-		log.Info(fmt.Sprintf(
-			"Notebook %s/%s needs culling. Setting annotations",
-			instance.Namespace, instance.Name))
-
-		// Set annotations to the Notebook
-		culler.SetStopAnnotation(&instance.ObjectMeta, r.Metrics)
-		r.Metrics.NotebookCullingCount.WithLabelValues(instance.Namespace, instance.Name).Inc()
-		err = r.Update(ctx, instance)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-	} else if !culler.StopAnnotationIsSet(instance.ObjectMeta) {
-		// The Pod is either too fresh, or the idle time has passed and it has
-		// received traffic. In this case we will be periodically checking if
-		// it needs culling.
-		return ctrl.Result{RequeueAfter: culler.GetRequeueTime()}, nil
-	}
-	return ctrl.Result{RequeueAfter: culler.GetRequeueTime()}, nil
+	return ctrl.Result{}, nil
 }
 
 func updateNotebookStatus(r *NotebookReconciler, nb *v1beta1.Notebook,
@@ -417,7 +360,7 @@ func setPrefixEnvVar(instance *v1beta1.Notebook, container *corev1.Container) {
 
 func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 	replicas := int32(1)
-	if culler.StopAnnotationIsSet(instance.ObjectMeta) {
+	if metav1.HasAnnotation(instance.ObjectMeta, "kubeflow-resource-stopped") {
 		replicas = 0
 	}
 
@@ -542,7 +485,7 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 	vsvc.SetName(virtualServiceName(name, namespace))
 	vsvc.SetNamespace(namespace)
 	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{"*"}, "spec", "hosts"); err != nil {
-		return nil, fmt.Errorf("Set .spec.hosts error: %v", err)
+		return nil, fmt.Errorf("set .spec.hosts error: %v", err)
 	}
 
 	istioGateway := os.Getenv("ISTIO_GATEWAY")
@@ -551,7 +494,7 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 	}
 	if err := unstructured.SetNestedStringSlice(vsvc.Object, []string{istioGateway},
 		"spec", "gateways"); err != nil {
-		return nil, fmt.Errorf("Set .spec.gateways error: %v", err)
+		return nil, fmt.Errorf("set .spec.gateways error: %v", err)
 	}
 
 	headersRequestSet := make(map[string]string)
@@ -602,7 +545,7 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 
 	// add http section to istio VirtualService spec
 	if err := unstructured.SetNestedSlice(vsvc.Object, http, "spec", "http"); err != nil {
-		return nil, fmt.Errorf("Set .spec.http error: %v", err)
+		return nil, fmt.Errorf("set .spec.http error: %v", err)
 	}
 
 	return vsvc, nil
@@ -612,6 +555,10 @@ func generateVirtualService(instance *v1beta1.Notebook) (*unstructured.Unstructu
 func (r *NotebookReconciler) reconcileVirtualService(instance *v1beta1.Notebook) error {
 	log := r.Log.WithValues("notebook", instance.Namespace)
 	virtualService, err := generateVirtualService(instance)
+	if err != nil {
+		log.Info("Unable to generate VirtualService...", err)
+		return err
+	}
 	if err := ctrl.SetControllerReference(instance, virtualService, r.Scheme); err != nil {
 		return err
 	}

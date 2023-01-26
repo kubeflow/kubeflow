@@ -63,18 +63,24 @@ This part is WIP as we are still developing.
 
 Under the hood, the controller creates a StatefulSet to run the notebook instance, and a Service for it.
 
-## Deployment
+## Build, Run, Deploy
 
-Install the `notebooks.kubeflow.org` CRD:
+You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
 
+**Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
+
+### Create a Docker image and deploy it (Suggested)
+
+The Makefile will use the `notebook-controller:<commit-hash>`, if you want to use a different image name of tag then simply change that line in the beginning of the makefile. Build and push your image to the location specified by `IMG` and `TAG`:
+	
+```sh
+make docker-build docker-push IMG=<some-registry>/notebook-controller TAG=<some-tag>
 ```
-make install
-```
+	
+The Makefile has a `deploy` rule that will build and push the Docker image, create a `notebook-controller-system` namespace and finally generate and apply the necessary YAMLs. Deploy the controller to the cluster with the image specified by `IMG` and `TAG`:
 
-Deploy the notebook controller manager:
-
-```
-make deploy
+```sh
+make deploy IMG=<some-registry>/notebook-controller TAG=<some-tag>
 ```
 
 Verify that the controller is running in the `notebook-controller-system` namespace:
@@ -83,6 +89,38 @@ Verify that the controller is running in the `notebook-controller-system` namesp
 $ kubectl get pods -l app=notebook-controller -n notebook-controller-system
 NAME                                             READY   STATUS    RESTARTS   AGE
 notebook-controller-deployment-564d76877-mqsm8   1/1     Running   0          16s
+```
+
+### Build and Run the Controller locally
+In order to build the controller you will need to use Go 1.17 and up in order to have Go Modules support. You will also need to have a k8s cluster.
+
+1. Install the CRDs into the cluster:
+
+```sh
+make install
+```
+
+2. Run your controller (this will run in the foreground, so switch to a new terminal if you want to leave it running):
+
+```sh
+make run
+```
+
+3. To run with culling first you need:
+
+i) Proxy requests from localhost to NotebookPod Service (this will run in the foreground, so switch to a new terminal:
+```sh
+kubectl proxy
+```
+
+ii) Apply an AuthorizationPolicy to grant appropriate access privileges for the /api/kernels endpoint:
+```sh
+kubectl apply -f hack/dev_culling_authorization_policy.yaml
+```
+
+iii) run the controller locally:
+```sh
+make run-culling
 ```
 
 ### Clean-up
@@ -98,6 +136,8 @@ Uninstall the `notebooks.kubeflow.org` CRD:
 ```
 make uninstall
 ```
+
+
 
 ## Contributing
 
