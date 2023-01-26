@@ -161,6 +161,18 @@ func (r *PVCViewer) validate() error {
 		return fmt.Errorf("PodSpec must be specified")
 	}
 
+	// Require the viewer.spec.PVC to be used in the podSpec.volumes
+	found := false
+	for _, volume := range r.Spec.PodSpec.Volumes {
+		if volume.PersistentVolumeClaim != nil && volume.PersistentVolumeClaim.ClaimName == r.Spec.PVC {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return fmt.Errorf("PVC %s must be used in the podSpec", r.Spec.PVC)
+	}
+
 	return nil
 }
 
