@@ -28,7 +28,7 @@ data:
         {
           "type": "item",
           "link": "/models/",
-          "text": "Models",
+          "text": "Endpoints",
           "icon": "kubeflow:models"
         },
         {
