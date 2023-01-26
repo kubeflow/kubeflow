@@ -105,10 +105,17 @@ func (r *CullingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// Ensure that the underlying Notebook Pod exists
 	foundPod := &corev1.Pod{}
 	err = r.Get(ctx, types.NamespacedName{Name: instance.Name + "-0", Namespace: instance.Namespace}, foundPod)
-	if apierrs.IsNotFound(err) {
-		log.Info("Pod not found...Won't check for culling...")
+	if err != nil && apierrs.IsNotFound(err) {
+		log.Info("Pod not found...Will remove last-activity annotation...")
+
+		removeAnnotations(&instance.ObjectMeta, r.Log)
+		err = r.Update(ctx, instance)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 		return ctrl.Result{}, nil
-	} else if err != nil {
+	}
+	if err != nil {
 		return ctrl.Result{}, err
 	}
 
