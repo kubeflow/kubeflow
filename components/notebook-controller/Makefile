@@ -77,6 +77,16 @@ manager: generate fmt vet ## Build manager binary.
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
+# Run the controller locally with culling enabled
+.PHONY: run-culling
+run-culling: generate fmt vet manifests
+	ENABLE_CULLING=true \
+	CLUSTER_DOMAIN=cluster.local \
+	CULL_IDLE_TIME=10 \
+	IDLENESS_CHECK_PERIOD=1 \
+	DEV=true \
+	go run ./main.go
+
 ##@ Build
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
