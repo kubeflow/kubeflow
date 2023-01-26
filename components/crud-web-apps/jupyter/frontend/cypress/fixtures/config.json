@@ -1,0 +1,108 @@
+{
+  "config": {
+    "affinityConfig": {
+      "options": [],
+      "value": ""
+    },
+    "allowCustomImage": true,
+    "configurations": {
+      "readOnly": false,
+      "value": []
+    },
+    "cpu": {
+      "limitFactor": "none",
+      "readOnly": false,
+      "value": "0.5"
+    },
+    "dataVolumes": {
+      "readOnly": false,
+      "value": []
+    },
+    "environment": {
+      "readOnly": false,
+      "value": {}
+    },
+    "gpus": {
+      "readOnly": false,
+      "value": {
+        "num": "none",
+        "vendor": "",
+        "vendors": [
+          {
+            "limitsKey": "nvidia.com/gpu",
+            "uiName": "NVIDIA"
+          },
+          {
+            "limitsKey": "amd.com/gpu",
+            "uiName": "AMD"
+          }
+        ]
+      }
+    },
+    "hideRegistry": true,
+    "hideTag": false,
+    "image": {
+      "options": [
+        "public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-6e4ad3b4",
+        "public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-full:master-6e4ad3b4",
+        "public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-pytorch-cuda-full:master-6e4ad3b4",
+        "public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-full:master-6e4ad3b4",
+        "public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-tensorflow-cuda-full:master-6e4ad3b4"
+      ],
+      "value": "public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:master-6e4ad3b4"
+    },
+    "imageGroupOne": {
+      "options": [
+        "public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:master-e9324d39"
+      ],
+      "value": "public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/codeserver-python:master-e9324d39"
+    },
+    "imageGroupTwo": {
+      "options": [
+        "public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:master-e9324d39"
+      ],
+      "value": "public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/rstudio-tidyverse:master-e9324d39"
+    },
+    "imagePullPolicy": {
+      "readOnly": false,
+      "value": "IfNotPresent"
+    },
+    "memory": {
+      "limitFactor": "none",
+      "readOnly": false,
+      "value": "1.0Gi"
+    },
+    "shm": {
+      "readOnly": false,
+      "value": true
+    },
+    "storageClass": "{none}",
+    "tolerationGroup": {
+      "options": [],
+      "readOnly": false,
+      "value": ""
+    },
+    "workspaceVolume": {
+      "readOnly": false,
+      "value": {
+        "mount": "/home/jovyan",
+        "newPvc": {
+          "metadata": {
+            "name": "{notebook-name}-workspace"
+          },
+          "spec": {
+            "accessModes": ["ReadWriteOnce"],
+            "resources": {
+              "requests": {
+                "storage": "5Gi"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "status": 200,
+  "success": true,
+  "user": null
+}

@@ -8,12 +8,17 @@ import {
   DateTimeValue,
   StatusValue,
   ComponentValue,
+  LinkValue,
+  LinkType,
 } from '../types';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { TableColumnComponent } from '../component-value/component-value.component';
 import { Component, SimpleChange } from '@angular/core';
 import subMonths from 'date-fns/sub_months';
 import { cloneDeep } from 'lodash-es';
+import { RouterTestingModule } from '@angular/router/testing';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'lib-server-type',
@@ -40,10 +45,9 @@ const tableConfig = {
     {
       matHeaderCellDef: `Name`,
       matColumnDef: 'name',
-      value: new PropertyValue({
-        field: 'name',
-        tooltipField: 'name',
-        truncate: true,
+      value: new LinkValue({
+        field: 'link',
+        linkType: LinkType.Internal,
       }),
     },
     {
@@ -71,6 +75,10 @@ const tableData = [
     name: 'a-notebook',
     serverType: 'jupyter',
     age: '2022-02-25T16:57:23Z',
+    link: {
+      text: 'a-notebook',
+      url: '',
+    },
   },
   {
     status: {
@@ -80,6 +88,10 @@ const tableData = [
     name: 'b-notebook',
     serverType: 'group-one',
     age: '2022-01-23T14:51:29Z',
+    link: {
+      text: 'b-notebook',
+      url: '',
+    },
   },
 ];
 
@@ -97,7 +109,12 @@ describe('TableComponent', () => {
   beforeEach(
     waitForAsync(() => {
       TestBed.configureTestingModule({
-        imports: [ResourceTableModule],
+        imports: [
+          ResourceTableModule,
+          RouterTestingModule,
+          MatDividerModule,
+          MatTooltipModule,
+        ],
       }).compileComponents();
     }),
   );
@@ -116,23 +133,25 @@ describe('TableComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should sort property values', () => {
+  it('should sort link values', () => {
     component.config = {
       title: 'test',
       columns: [
         {
           matHeaderCellDef: `Name`,
           matColumnDef: 'name',
-          value: new PropertyValue({
-            field: 'name',
-            tooltipField: 'name',
-            truncate: true,
+          value: new LinkValue({
+            field: 'link',
+            linkType: LinkType.Internal,
           }),
           sort: true,
         },
       ],
     };
-    component.data = [{ name: 'a-notebook' }, { name: 'b-notebook' }];
+    component.data = [
+      { link: { text: 'a-notebook', url: '' } },
+      { link: { text: 'b-notebook', url: '' } },
+    ];
     fixture.detectChanges();
 
     const compiled = fixture.debugElement.nativeElement;
@@ -217,7 +236,7 @@ describe('TableComponent', () => {
     expect(columnCells[0].textContent.replace(/\s+/g, '')).toBe('1');
   });
 
-  it('should filter property values based on all columns', () => {
+  it('should filter link values based on all columns', () => {
     component.config = tableConfig;
     component.data = tableData;
 
@@ -233,7 +252,23 @@ describe('TableComponent', () => {
     checkCell(compiled);
   });
 
-  it('should filter property values based on one column', () => {
+  it('should filter link values based on one column', () => {
+    component.config = tableConfig;
+    component.data = tableData;
+
+    const compiled = fixture.debugElement.nativeElement;
+    const inputElement = compiled.querySelector('#filterInput');
+    component.add({
+      input: inputElement,
+      value: 'Name: b-not',
+    } as MatChipInputEvent);
+
+    fixture.detectChanges();
+
+    checkCell(compiled);
+  });
+
+  it('should filter link values based on one column', () => {
     component.config = tableConfig;
     component.data = tableData;
 

@@ -103,10 +103,58 @@
           matTooltipClass="custom-tooltip"
           [ngStyle]="col.value.style"
           [ngClass]="col.value.getClasses()"
-          (click)="linkClicked(col.matColumnDef, element)"
+          (click)="linkClicked(col.matColumnDef, element, $event)"
         >
           {{ col.value.getValue(element) }}
         </div>
+      </td>
+    </ng-container>
+
+    <!--Link Value-->
+    <ng-container
+      *ngIf="isLinkValue(col.value)"
+      [ngSwitch]="col.value.linkType"
+    >
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [attr.data-cy-resource-table-row]="col.matHeaderCellDef"
+        [ngStyle]="col.style"
+        [ngClass]="{
+          'right-align': col.textAlignment === 'right',
+          'mat-cell-truncate': col.value.truncate
+        }"
+      >
+        <a
+          *ngSwitchCase="LinkType.External"
+          [matTooltip]="col.value.getTooltip(element)"
+          [libPopover]="col.value.getPopover(element)"
+          matTooltipClass="custom-tooltip"
+          [ngStyle]="col.value.style"
+          [ngClass]="col.value.getClasses()"
+          [href]="col.value.getUrl(element)"
+          target="_blank"
+          rel="noopener noreferrer"
+          (click)="linkClicked(col.matColumnDef, element, $event)"
+        >
+          {{ col.value.getValue(element) }}
+        </a>
+
+        <a
+          *ngSwitchCase="LinkType.Internal"
+          [matTooltip]="col.value.getTooltip(element)"
+          [libPopover]="col.value.getPopover(element)"
+          matTooltipClass="custom-tooltip"
+          [ngStyle]="col.value.style"
+          [ngClass]="col.value.getClasses()"
+          [routerLink]="col.value.getUrl(element)"
+          [queryParams]="col.value.getQueryParams(element)"
+          queryParamsHandling="merge"
+        >
+          <span (click)="linkClicked(col.matColumnDef, element, $event)">{{
+            col.value.getValue(element)
+          }}</span>
+        </a>
       </td>
     </ng-container>
 

@@ -1,46 +1,25 @@
 REGISTRY ?= kubeflownotebookswg
 TAG ?= $(shell git describe --tags --always --dirty)
 
-build-all:
-	@echo "\nBuilding KFAM image...\n"
-	make docker-build -C access-management 
+SUBDIRS := access-management admission-webhook centraldashboard crud-web-apps/jupyter crud-web-apps/tensorboards \
+			crud-web-apps/volumes notebook-controller profile-controller tensorboard-controller example-notebook-servers
 
-	@echo "\nBuilding Admission-webhook image...\n"
-	make docker-build -C admission-webhook
-
-	@echo "\nBuilding Centraldashboard image...\n"
-	make docker-build -C centraldashboard
-
-	@echo "\nBuilding Jupyter-Web-App image...\n"
-	make docker-build -C crud-web-apps/jupyter
-
-	@echo "\nBuilding Tensorboard-Web-App image...\n"
-	make docker-build -C crud-web-apps/tensorboards
-
-	@echo "\nBuilding Volumes-Web-App image...\n"
-	make docker-build -C crud-web-apps/volumes
-
-	@echo "\nBuilding Notebook-controller image...\n"
-	make docker-build -C notebook-controller
-
-	@echo "\nBuilding Profile-controller image...\n"
-	make docker-build -C profile-controller
-
-	@echo "\nBuilding tensorboard-controller image...\n"
-	make docker-build -C tensorboard-controller
-
-	@echo "\nBuilding notebook-server images...\n"
-	make docker-build-all -C example-notebook-servers
-
+.PHONY: build-all
+build-all: $(SUBDIRS)
 	@echo "\nAll images of prv-kubeflow-kubeflow repo have been built successfully!\n"
 
-push-all:	
-	for img in kfam admission-webhook centraldashboard jupyter-web-app tensorboards-web-app volumes-web-app notebook-controller profile-controller \
+.PHONY: $(SUBDIRS)
+$(SUBDIRS):
+	$(MAKE) docker-build -C $@ TAG=${TAG} REGISTRY=${REGISTRY}
+
+.PHONY: push-all
+push-all:
+	for img in kfam poddefaults-webhook centraldashboard jupyter-web-app tensorboards-web-app volumes-web-app notebook-controller profile-controller \
 	tensorboard-controller ; do \
 		docker tag $$img:$(TAG) ${REGISTRY}/$$img:${TAG} ; \
 		docker push ${REGISTRY}/$$img:${TAG} ; \
 	done
 
-	make docker-push-all -C example-notebook-servers TAG=${TAG} REGISTRY=${REGISTRY}
+	$(MAKE) docker-push -C example-notebook-servers TAG=${TAG} REGISTRY=${REGISTRY}
 
 	@echo "\nAll images have been succesfully retaged and pushed with registry: ${REGISTRY} and tag: ${TAG}...\n"
