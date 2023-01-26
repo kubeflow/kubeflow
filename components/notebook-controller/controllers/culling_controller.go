@@ -77,6 +77,7 @@ type CullingReconciler struct {
 
 func (r *CullingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("culler", req.NamespacedName)
+	log.Info("Reconciliation loop started")
 
 	instance := &v1beta1.Notebook{}
 	err := r.Get(context.TODO(), req.NamespacedName, instance)

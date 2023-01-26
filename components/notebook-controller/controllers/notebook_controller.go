@@ -88,6 +88,7 @@ type NotebookReconciler struct {
 
 func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("notebook", req.NamespacedName)
+	log.Info("Reconciliation loop started")
 
 	// TODO(yanniszark): Can we avoid reconciling Events and Notebook in the same queue?
 	event := &corev1.Event{}
