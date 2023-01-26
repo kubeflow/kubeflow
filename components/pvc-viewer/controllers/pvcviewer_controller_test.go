@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	// "strconv"
 
@@ -76,6 +78,22 @@ var _ = Describe("PVCViewer controller", func() {
 
 			Expect(pvcViewer.Spec.PodSpec.Volumes).Should(HaveLen(1))
 			Expect(pvcViewer.Spec.PodSpec.Volumes[0].PersistentVolumeClaim.ClaimName).Should(Equal("test-pvc"))
+		})
+
+		It("Should use defaults if environment variable is set", func() {
+			filePath, _ := filepath.Abs("testdata/podspec_default.yaml")
+			os.Setenv(kubefloworgv1alpha1.DefaultPodSpecPathEnvName, filePath)
+			defer os.Unsetenv(kubefloworgv1alpha1.DefaultPodSpecPathEnvName)
+
+			pvcViewer := testHelper.CreateViewer(&kubefloworgv1alpha1.PVCViewerSpec{
+				PVC: "test-pvc",
+			})
+
+			Expect(pvcViewer.Spec.PodSpec).ShouldNot(BeNil())
+			Expect(pvcViewer.Spec.PodSpec.Containers).Should(HaveLen(1))
+			Expect(pvcViewer.Spec.PodSpec.Containers[0].Name).Should(Equal("test"))
+			Expect(pvcViewer.Spec.PodSpec.SecurityContext).ShouldNot(BeNil())
+			Expect(*pvcViewer.Spec.PodSpec.SecurityContext.RunAsUser).Should(Equal(int64(1234)))
 		})
 	})
 
