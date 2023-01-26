@@ -24,6 +24,10 @@ import (
 
 // PVCViewerSpec defines the desired state of PVCViewer
 type PVCViewerSpec struct {
+	// Defines the PVC we want to edit
+	// +required
+	PVC string `json:"pvc"`
+
 	// TODO infer default values if PodSpec is empty
 	// Specifies the deployment's pod spec that will be created	by the operator.
 	// +optional
@@ -90,11 +94,6 @@ type PVCViewerStatus struct {
 	// i.e. Replicas==ReadyReplicas
 	// +kubebuilder:default:=false
 	Ready bool `json:"ready"`
-
-	// RWOVolumes defines the RWO-PVCs that are referenced by the podSpec.
-	// These values are only set if the RWOScheduling.restart is enabled.
-	// The controller will reconcile the deployment's (and its affinity) if another Pod mounts one of these RWO-PVC.
-	RWOVolumes []string `json:"rwoVolumes,omitempty"`
 
 	// If a virtualService is defined, this field contains the relative URL to the virtual service.
 	URL *string `json:"url,omitempty"`

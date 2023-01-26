@@ -6963,6 +6963,9 @@ spec:
                 required:
                 - containers
                 type: object
+              pvc:
+                description: Defines the PVC we want to edit
+                type: string
               rwoScheduling:
                 description: Defines the strategy for handling RWO-PVCs defined in
                   the podSpec.
@@ -6988,6 +6991,8 @@ spec:
                 - enabled
                 - restart
                 type: object
+            required:
+            - pvc
             type: object
           status:
             description: PVCViewerStatus defines the observed state of PVCViewer
@@ -7003,14 +7008,6 @@ spec:
                   are available to connect
                 format: int32
                 type: integer
-              rwoVolumes:
-                description: RWOVolumes defines the RWO-PVCs that are referenced by
-                  the podSpec. These values are only set if the RWOScheduling.restart
-                  is enabled. The controller will reconcile the deployment's (and
-                  its affinity) if another Pod mounts one of these RWO-PVC.
-                items:
-                  type: string
-                type: array
               url:
                 description: If a virtualService is defined, this field contains the
                   relative URL to the virtual service.

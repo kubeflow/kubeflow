@@ -19,7 +19,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"reflect"
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
@@ -29,7 +28,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/utils/strings/slices"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -118,7 +116,7 @@ func (r *PVCViewerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		log.Info("PVCViewer is being deleted")
 
 		// Keep on reconciling status until the finalizer is removed
-		if err := r.reconcileStatus(ctx, log, instance.Name, instance.Namespace, nil); err != nil {
+		if err := r.reconcileStatus(ctx, log, instance.Name, instance.Namespace); err != nil {
 			log.Error(err, "Error while reconciling status")
 			return ctrl.Result{}, err
 		}
@@ -132,8 +130,7 @@ func (r *PVCViewerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		partOfLabelKey:   partOfLabelValue,
 	}
 
-	rwoVolumes, err := r.reconcileDeployment(ctx, log, instance, commonLabels)
-	if err != nil {
+	if err := r.reconcileDeployment(ctx, log, instance, commonLabels); err != nil {
 		log.Error(err, "Error while reconciling deployment")
 		return ctrl.Result{}, err
 	}
@@ -148,7 +145,7 @@ func (r *PVCViewerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, err
 	}
 
-	if err := r.reconcileStatus(ctx, log, instance.Name, instance.Namespace, rwoVolumes); err != nil {
+	if err := r.reconcileStatus(ctx, log, instance.Name, instance.Namespace); err != nil {
 		log.Error(err, "Error while reconciling status")
 		return ctrl.Result{}, err
 	}
@@ -157,7 +154,7 @@ func (r *PVCViewerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 }
 
 // Creates or updates the deployment as defined by the viewer's podSpec
-func (r *PVCViewerReconciler) reconcileDeployment(ctx context.Context, log logr.Logger, viewer *kubefloworgv1alpha1.PVCViewer, commonLabels map[string]string) ([]string, error) {
+func (r *PVCViewerReconciler) reconcileDeployment(ctx context.Context, log logr.Logger, viewer *kubefloworgv1alpha1.PVCViewer, commonLabels map[string]string) error {
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      resourcePrefix + viewer.Name,
@@ -168,33 +165,23 @@ func (r *PVCViewerReconciler) reconcileDeployment(ctx context.Context, log logr.
 	createDeployment := false
 	if err := r.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: deployment.Namespace}, deployment); err != nil {
 		if !apierrs.IsNotFound(err) {
-			return nil, err
+			return err
 		}
 		createDeployment = true
 	}
 
 	var (
 		// Do not change affinity or rwoClaims by default
-		affinity   = deployment.Spec.Template.Spec.Affinity
-		rwoVolumes = viewer.Status.RWOVolumes
-		// The user may update the viewer and add new volumes. This case needs to be considered when computing setAffinity
-		volumesChanged = !reflect.DeepEqual(deployment.Spec.Template.Spec.Volumes, viewer.Spec.PodSpec.Volumes)
+		affinity = deployment.Spec.Template.Spec.Affinity
 		// Affinity is only to be set when rwo scheduling is enabled and the deployment needs to be (re-)started
-		determineAffinity = viewer.Spec.RWOScheduling.Enabled && (createDeployment || viewer.Spec.RWOScheduling.Restart || volumesChanged)
+		determineAffinity = viewer.Spec.RWOScheduling.Enabled && (createDeployment || viewer.Spec.RWOScheduling.Restart)
 	)
 
 	if determineAffinity {
-		newAffinity, rwoVolumesMap, err := r.generateAffinity(ctx, log, viewer)
-		// Convert map to slice
-		rwoVolumes = make([]string, 0, len(rwoVolumesMap))
-		for claim := range rwoVolumesMap {
-			rwoVolumes = append(rwoVolumes, claim)
-		}
-		if err != nil {
-			return rwoVolumes, err
-		}
-		// Only set the affinity if it is not nil - we wouldn't win anything by restarting without affinity
-		if newAffinity != nil {
+		if newAffinity, err := r.generateAffinity(ctx, log, viewer); err != nil {
+			return err
+		} else if newAffinity != nil {
+			// Only set the affinity if it is not nil - we wouldn't win anything by restarting without affinity
 			affinity = newAffinity
 		}
 	}
@@ -216,15 +203,15 @@ func (r *PVCViewerReconciler) reconcileDeployment(ctx context.Context, log logr.
 	deployment.Spec.Template.Spec.Affinity = affinity
 
 	if err := ctrl.SetControllerReference(viewer, deployment, r.Scheme); err != nil {
-		return nil, err
+		return err
 	}
 
 	if createDeployment {
 		log.Info("Creating Deployment")
-		return rwoVolumes, r.Create(ctx, deployment)
+		return r.Create(ctx, deployment)
 	}
 	log.Info("Updating Deployment")
-	return rwoVolumes, r.Update(ctx, deployment)
+	return r.Update(ctx, deployment)
 }
 
 // Creates or updates the service as defined by the viewer's service
@@ -350,16 +337,10 @@ func (r *PVCViewerReconciler) reconcileVirtualService(ctx context.Context, log l
 }
 
 // Computes and updates the status of the PVCViewer
-func (r *PVCViewerReconciler) reconcileStatus(ctx context.Context, log logr.Logger, viewerName string, viewerNamespace string, rwoVolumes []string) error {
+func (r *PVCViewerReconciler) reconcileStatus(ctx context.Context, log logr.Logger, viewerName string, viewerNamespace string) error {
 	viewer := &kubefloworgv1alpha1.PVCViewer{}
 	if err := r.Get(ctx, types.NamespacedName{Name: viewerName, Namespace: viewerNamespace}, viewer); err != nil {
 		return err
-	}
-
-	if rwoVolumes == nil {
-		viewer.Status.RWOVolumes = []string{}
-	} else {
-		viewer.Status.RWOVolumes = rwoVolumes
 	}
 
 	if viewer.Spec.Networking.VirtualService != (kubefloworgv1alpha1.VirtualService{}) {
@@ -385,53 +366,28 @@ func (r *PVCViewerReconciler) reconcileStatus(ctx context.Context, log logr.Logg
 
 // Generates the affinity to be used for the deployment
 // In case no affinity should be used (e.g. RWOScheduling is disabled) or updated, nil is returned
-func (r *PVCViewerReconciler) generateAffinity(ctx context.Context, log logr.Logger, viewer *kubefloworgv1alpha1.PVCViewer) (*corev1.Affinity, map[string]bool, error) {
-	// 1. Extract the referenced PVCs from the pod template
-	volumes := make(map[string]bool)
-	for _, volume := range viewer.Spec.PodSpec.Volumes {
-		if volume.PersistentVolumeClaim != nil && volume.PersistentVolumeClaim.ClaimName != "" {
-			volumes[volume.PersistentVolumeClaim.ClaimName] = false
+func (r *PVCViewerReconciler) generateAffinity(ctx context.Context, log logr.Logger, viewer *kubefloworgv1alpha1.PVCViewer) (*corev1.Affinity, error) {
+	// Check if the viewer's PVC is RWO access mode
+	pvc := &corev1.PersistentVolumeClaim{}
+	if err := r.Get(ctx, types.NamespacedName{Name: viewer.Spec.PVC, Namespace: viewer.Namespace}, pvc); err != nil {
+		if apierrs.IsNotFound(err) {
+			log.Info("Omitting Affinity: PVC not found")
+			// Should we return an error here or suppress it and let the Deployment fail?
+			// Latter might be better and more visible to the user
+			return nil, nil
 		}
+		return nil, err
 	}
 
-	if len(volumes) == 0 {
-		log.Info("Viewer references no claims")
-		return nil, nil, nil
+	if len(pvc.Spec.AccessModes) != 1 || pvc.Spec.AccessModes[0] != corev1.ReadWriteOnce {
+		log.Info("Omitting Affinity: PVC is not RWO")
+		return nil, nil
 	}
 
-	// 2. Check which of those PVCs have RWO access mode by listing them
-	// Note: directly selecting PVCs by names using FieldSelectors doesn't work (maybe only in testing env?)
-	// Thus, get all PVCs in namespace and filter manually
-	pvcList := &corev1.PersistentVolumeClaimList{}
-	err := r.List(ctx, pvcList, client.InNamespace(viewer.Namespace))
-	if err != nil {
-		return nil, nil, err
-	}
-	referencesRWO := false
-	for _, pvc := range pvcList.Items {
-		if _, ok := volumes[pvc.Name]; ok {
-			isRWO := len(pvc.Spec.AccessModes) == 1 && pvc.Spec.AccessModes[0] == corev1.ReadWriteOnce
-			volumes[pvc.Name] = isRWO
-			referencesRWO = referencesRWO || isRWO
-		}
-	}
-	if !referencesRWO {
-		log.Info("Viewer references no RWO volumes")
-		return nil, nil, nil
-	}
-
-	// Delete all claims that are not RWO
-	for volumeName, isRWO := range volumes {
-		if !isRWO {
-			delete(volumes, volumeName)
-		}
-	}
-
-	// 3. Get all pods in namespace and filter by RWO PVCs
+	// Get all pods in namespace and filter by RWO PVCs
 	podList := &corev1.PodList{}
-	err = r.List(ctx, podList, client.InNamespace(viewer.Namespace))
-	if err != nil {
-		return nil, volumes, err
+	if err := r.List(ctx, podList, client.InNamespace(viewer.Namespace)); err != nil {
+		return nil, err
 	}
 	var nodeName *string
 	for _, pod := range podList.Items {
@@ -441,16 +397,16 @@ func (r *PVCViewerReconciler) generateAffinity(ctx context.Context, log logr.Log
 		}
 		for _, volume := range pod.Spec.Volumes {
 			if volume.PersistentVolumeClaim != nil && volume.PersistentVolumeClaim.ClaimName != "" {
-				if isRWO, ok := volumes[volume.PersistentVolumeClaim.ClaimName]; ok && isRWO {
+				if volume.PersistentVolumeClaim.ClaimName == pvc.Name {
 					if nodeName != nil {
 						// Rather than throwing an error, we just omit the affinity, leaving the current deployment's affinity unchanged
 						log.Info("Omitting Affinity: Viewer references RWO volumes on multiple nodes",
 							"nodes", []string{*nodeName, pod.Spec.NodeName})
-						return nil, volumes, nil
+						return nil, nil
 					}
 					if pod.Spec.NodeName == "" {
 						log.Info("Omitting Affinity: Viewer references RWO volume on pod without nodeName")
-						return nil, volumes, nil
+						return nil, nil
 					}
 					nodeName = &pod.Spec.NodeName
 				}
@@ -459,11 +415,11 @@ func (r *PVCViewerReconciler) generateAffinity(ctx context.Context, log logr.Log
 	}
 
 	if nodeName == nil {
-		log.Info("Omitting Affinity: Viewer references no RWO volumes on pods")
-		return nil, volumes, nil
+		log.Info("Omitting Affinity: PVC not used by other Pods")
+		return nil, nil
 	}
 
-	// 4. Generate Affinity using the node name
+	// Generate Affinity using the node name
 	affinity := &corev1.Affinity{
 		NodeAffinity: &corev1.NodeAffinity{
 			PreferredDuringSchedulingIgnoredDuringExecution: []corev1.PreferredSchedulingTerm{
@@ -482,7 +438,7 @@ func (r *PVCViewerReconciler) generateAffinity(ctx context.Context, log logr.Log
 			},
 		},
 	}
-	return affinity, volumes, nil
+	return affinity, nil
 }
 
 // Gets called for each Pod that changes and returns a list of PVCViewer objects
@@ -528,9 +484,9 @@ func (r *PVCViewerReconciler) findPVCViewersForPod(pod client.Object) []reconcil
 			continue
 		}
 
-		// Trigger reconciliation of that PVCViewer
+		// Trigger reconciliation of that PVCViewer if it watches one of the pod's PVCs
 		for pvcName := range pvcNames {
-			if slices.Contains(pvcViewer.Status.RWOVolumes, pvcName) {
+			if pvcViewer.Spec.PVC == pvcName {
 				requests = append(requests, reconcile.Request{
 					NamespacedName: types.NamespacedName{
 						Name:      pvcViewer.GetName(),

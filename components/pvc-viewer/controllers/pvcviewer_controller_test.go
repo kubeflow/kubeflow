@@ -2,94 +2,50 @@ package controllers
 
 import (
 	"fmt"
-	"strconv"
-	"time"
 
+	// "strconv"
+
+	kubefloworgv1alpha1 "github.com/kubeflow/kubeflow/components/pvc-viewer/api/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+)
 
-	kubefloworgv1alpha1 "github.com/kubeflow/kubeflow/components/pvc-viewer/api/v1alpha1"
+var (
+	// We're using these variables to keep track of the test-# and create a unique namespace for each test
+	testCount  = 0
+	testHelper *TestHelper
 )
 
 // +kubebuilder:docs-gen:collapse=Imports
 
 var _ = Describe("PVCViewer controller", func() {
 
-	// Define utility constants for object names and testing timeouts/durations and intervals.
-	const (
-		// Used for Eventually test
-		timeout = time.Second * 10
-		// Use for consistently test
-		duration = time.Second * 5
-		// Defines the interval for the Eventually/Consistency tests
-		interval = time.Millisecond * 250
-	)
-
-	var (
-		// We're using these variables to keep track of the test-# and create a unique namespace for each test
-		testCount        = 0
-		testingNamespace string
-
-		// Provide a reusable lookup key for the controller created objects
-		lookupKey         types.NamespacedName
-		prefixedLookupKey types.NamespacedName
-
-		// Provide the default viewer as a variable that is provided by the beforeEach function
-		pvcViewer *kubefloworgv1alpha1.PVCViewer
-	)
-
-	// BeforeEach provides a clean namespace for each test, initializes variables and creates a default viewer
+	// BeforeEach provides a clean namespace for each test
 	BeforeEach(func() {
 		// Each test should run in isolation. Using Namespaces is a good way to do this.
 		// However, while EnvTest supports creating namespaces, it can't tear them down.
 		// It is recommended to simply use a different namespace for each test.
 		// See: https://book.kubebuilder.io/reference/envtest.html#namespace-usage-limitation
 		testCount++
-		testingNamespace = "test-" + fmt.Sprint(testCount)
+		testHelper = &TestHelper{
+			namespace: "test-" + fmt.Sprint(testCount),
+			ctx:       ctx,
+			k8sClient: k8sClient,
+		}
 
-		pvcViewerName := "test-pvcviewer"
-
-		lookupKey = types.NamespacedName{Name: pvcViewerName, Namespace: testingNamespace}
-		prefixedLookupKey = types.NamespacedName{Name: resourcePrefix + pvcViewerName, Namespace: testingNamespace}
 		ns := &corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: testingNamespace,
+				Name: testHelper.namespace,
 			},
 		}
 		Expect(k8sClient.Create(ctx, ns)).Should(Succeed())
-
-		pvcViewer = &kubefloworgv1alpha1.PVCViewer{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      pvcViewerName,
-				Namespace: testingNamespace,
-			},
-			Spec: kubefloworgv1alpha1.PVCViewerSpec{
-				PodSpec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:  "viewer",
-							Image: "filebrowser/filebrowser:latest",
-						},
-					},
-				},
-			},
-		}
-		Expect(k8sClient.Create(ctx, pvcViewer)).Should(Succeed())
-
-		// We'll need to retry getting this newly created viewer, given that creation may not immediately happen.
-		createdPVCViewer := &kubefloworgv1alpha1.PVCViewer{}
-		Eventually(func() error {
-			return k8sClient.Get(ctx, lookupKey, createdPVCViewer)
-		}, timeout, interval).Should(Succeed())
-		Expect(createdPVCViewer).ShouldNot(BeNil())
 	})
 
 	AfterEach(func() {
@@ -103,34 +59,38 @@ var _ = Describe("PVCViewer controller", func() {
 			virtualServiceTemplate.DeepCopy(),
 		}
 		for _, object := range objectsToDelete {
-			Expect(k8sClient.DeleteAllOf(ctx, object, client.InNamespace(testingNamespace))).Should(Succeed())
+			Expect(k8sClient.DeleteAllOf(ctx, object, client.InNamespace(testHelper.namespace))).Should(Succeed())
 		}
 	})
 
-	Context("When PVCViewer created", func() {
-		var (
-			//We cannot test deletions directly, as we are in a testing environment
-			//However, testing the ownerReferences is a good proxy for testing deletion
-			//See: https://book.kubebuilder.io/reference/envtest.html#testing-considerations
-			expectedOwnerReferences metav1.OwnerReference
-		)
+	// Test the validation and defaulting webhooks
+	Context("When inferring defaults", func() {
+		It("Should create a PodSpec", func() {
+			pvcViewer := testHelper.CreateViewer(&kubefloworgv1alpha1.PVCViewerSpec{
+				PVC: "test-pvc",
+			})
 
-		BeforeEach(func() {
-			expectedOwnerReferences = metav1.OwnerReference{
-				APIVersion:         "kubeflow.org/v1alpha1",
-				Kind:               "PVCViewer",
-				Name:               pvcViewer.Name,
-				UID:                pvcViewer.UID,
-				Controller:         &[]bool{true}[0],
-				BlockOwnerDeletion: &[]bool{true}[0],
-			}
+			Expect(pvcViewer.Spec.PodSpec).ShouldNot(BeNil())
+			Expect(pvcViewer.Spec.PodSpec.Containers).Should(HaveLen(1))
+			Expect(pvcViewer.Spec.PodSpec.Containers[0].Image).ShouldNot(HaveLen(0))
+
+			Expect(pvcViewer.Spec.PodSpec.Volumes).Should(HaveLen(1))
+			Expect(pvcViewer.Spec.PodSpec.Volumes[0].PersistentVolumeClaim.ClaimName).Should(Equal("test-pvc"))
 		})
+	})
+
+	// Test simple CRUD operations, i.e. the creation and update of deployments, services, virtualservices, etc.
+	Context("When PVCViewer created", func() {
 
 		It("Should CRUD Deployment", func() {
-			By("By using the default viewer")
+			By("By creating a viewer")
+			pvcViewer := testHelper.CreateViewer(&kubefloworgv1alpha1.PVCViewerSpec{
+				PVC: "test-pvc",
+			})
+
 			deployment := &appsv1.Deployment{}
 			Eventually(func() error {
-				return k8sClient.Get(ctx, prefixedLookupKey, deployment)
+				return testHelper.GetRelatedResource(pvcViewer, deployment)
 			}, timeout, interval).Should(Succeed())
 			Expect(deployment).ShouldNot(BeNil())
 			Expect(deployment.Spec.Template.Spec.Containers).Should(HaveLen(1))
@@ -145,8 +105,7 @@ var _ = Describe("PVCViewer controller", func() {
 			newContainerName := "test-container"
 			Eventually(func() error {
 				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
+				if err := testHelper.GetRelatedResource(pvcViewer, viewer); err != nil {
 					return err
 				}
 				viewer.Spec.PodSpec.Containers[0].Image = newImageName
@@ -159,8 +118,7 @@ var _ = Describe("PVCViewer controller", func() {
 			}, timeout, interval).Should(Succeed())
 
 			Eventually(func() (int, error) {
-				err := k8sClient.Get(ctx, prefixedLookupKey, deployment)
-				if err != nil {
+				if err := testHelper.GetRelatedResource(pvcViewer, deployment); err != nil {
 					return -1, err
 				}
 				return len(deployment.Spec.Template.Spec.Containers), nil
@@ -170,22 +128,24 @@ var _ = Describe("PVCViewer controller", func() {
 			Expect(deployment.Spec.Template.Spec.Containers[1].Image).Should(Equal(newImageName))
 
 			By("Deleting the PVCViewer")
-			Expect(deployment.ObjectMeta.OwnerReferences).To(ContainElement(expectedOwnerReferences))
+			testHelper.ExpectMatchingOwnerReferences(pvcViewer, deployment.ObjectMeta.OwnerReferences)
 		})
 
 		It("Should CRUD Services", func() {
-			By("Default a service should not exist")
+			By("Creating an empty Viewer, a service should not exist")
+			pvcViewer := testHelper.CreateViewer(&kubefloworgv1alpha1.PVCViewerSpec{
+				PVC: "test-pvc",
+			})
 			service := &corev1.Service{}
 			Consistently(func() error {
-				return k8sClient.Get(ctx, prefixedLookupKey, service)
+				return testHelper.GetRelatedResource(pvcViewer, service)
 			}, duration, interval).ShouldNot(Succeed())
 
 			By("Adding a Service to the PVCViewer")
 			targetPort := 1234
 			Eventually(func() error {
 				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
+				if err := testHelper.GetRelatedResource(pvcViewer, viewer); err != nil {
 					return err
 				}
 				viewer.Spec.Networking = kubefloworgv1alpha1.Networking{
@@ -195,7 +155,7 @@ var _ = Describe("PVCViewer controller", func() {
 			}, timeout, interval).Should(Succeed())
 
 			Eventually(func() error {
-				return k8sClient.Get(ctx, prefixedLookupKey, service)
+				return testHelper.GetRelatedResource(pvcViewer, service)
 			}, timeout, interval).Should(Succeed())
 			Expect(service).ShouldNot(BeNil())
 			Expect(service.Spec.Ports).Should(HaveLen(1))
@@ -211,8 +171,7 @@ var _ = Describe("PVCViewer controller", func() {
 			newTargetPort := 5678
 			Eventually(func() error {
 				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
+				if err := testHelper.GetRelatedResource(pvcViewer, viewer); err != nil {
 					return err
 				}
 				viewer.Spec.Networking.TargetPort = intstr.IntOrString{IntVal: int32(newTargetPort)}
@@ -220,19 +179,21 @@ var _ = Describe("PVCViewer controller", func() {
 			}, timeout, interval).Should(Succeed())
 
 			Eventually(func() (bool, error) {
-				err := k8sClient.Get(ctx, prefixedLookupKey, service)
-				if err != nil {
+				if err := testHelper.GetRelatedResource(pvcViewer, service); err != nil {
 					return false, err
 				}
 				return service.Spec.Ports[0].TargetPort == intstr.IntOrString{IntVal: int32(newTargetPort)}, nil
 			}, timeout, interval).Should(BeTrue())
 
 			By("Deleting the PVCViewer")
-			Expect(service.ObjectMeta.OwnerReferences).To(ContainElement(expectedOwnerReferences))
+			testHelper.ExpectMatchingOwnerReferences(pvcViewer, service.ObjectMeta.OwnerReferences)
 		})
 
 		It("Should CRUD VirtualService", func() {
-			By("Not defining a VirtualService should not exist")
+			By("Creating a default viewer, a VirtualService should not exist")
+			pvcViewer := testHelper.CreateViewer(&kubefloworgv1alpha1.PVCViewerSpec{
+				PVC: "test-pvc",
+			})
 			virtualService := &unstructured.Unstructured{
 				Object: map[string]interface{}{
 					"apiVersion": "networking.istio.io/v1alpha3",
@@ -240,15 +201,14 @@ var _ = Describe("PVCViewer controller", func() {
 				},
 			}
 			Consistently(func() error {
-				return k8sClient.Get(ctx, prefixedLookupKey, virtualService)
+				return testHelper.GetRelatedResource(pvcViewer, virtualService)
 			}, duration, interval).ShouldNot(Succeed())
 
 			By("Adding a minimal VirtualService")
 			basePrefix := "/base"
 			Eventually(func() error {
 				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
+				if err := testHelper.GetRelatedResource(pvcViewer, viewer); err != nil {
 					return err
 				}
 				viewer.Spec.Networking = kubefloworgv1alpha1.Networking{
@@ -261,7 +221,7 @@ var _ = Describe("PVCViewer controller", func() {
 			}, timeout, interval).Should(Succeed())
 
 			Eventually(func() error {
-				return k8sClient.Get(ctx, prefixedLookupKey, virtualService)
+				return testHelper.GetRelatedResource(pvcViewer, virtualService)
 			}, timeout, interval).Should(Succeed())
 			Expect(virtualService.Object["metadata"].(map[string]interface{})["labels"]).Should(And(
 				HaveKeyWithValue(nameLabelKey, pvcViewer.Name),
@@ -271,15 +231,14 @@ var _ = Describe("PVCViewer controller", func() {
 			Expect(http).Should(HaveLen(1))
 			http0 := http.([]interface{})[0].(map[string]interface{})
 			Expect(http0["timeout"]).Should(BeNil())
-			expectedRewrite := fmt.Sprintf("%s/%s/%s/", basePrefix, testingNamespace, pvcViewer.Name)
+			expectedRewrite := fmt.Sprintf("%s/%s/%s/", basePrefix, testHelper.namespace, pvcViewer.Name)
 			Expect(http0["match"].([]interface{})[0].(map[string]interface{})["uri"].(map[string]interface{})["prefix"]).Should(Equal(expectedRewrite))
 			Expect(http0["rewrite"].(map[string]interface{})["uri"]).Should(Equal(expectedRewrite))
 
 			// Test the status.URL gets set correctly
 			Eventually(func() (string, error) {
 				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil || viewer.Status.URL == nil {
+				if err := testHelper.GetRelatedResource(pvcViewer, viewer); err != nil || viewer.Status.URL == nil {
 					return "", err
 				}
 				return *viewer.Status.URL, nil
@@ -291,8 +250,7 @@ var _ = Describe("PVCViewer controller", func() {
 			newRewrite := "/newrewrite"
 			Eventually(func() error {
 				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
+				if err := testHelper.GetRelatedResource(pvcViewer, viewer); err != nil {
 					return err
 				}
 				viewer.Spec.Networking.VirtualService.BasePrefix = newBasePrefix
@@ -302,8 +260,7 @@ var _ = Describe("PVCViewer controller", func() {
 			}, timeout, interval).Should(Succeed())
 
 			Eventually(func() (bool, error) {
-				err := k8sClient.Get(ctx, prefixedLookupKey, virtualService)
-				if err != nil {
+				if err := testHelper.GetRelatedResource(pvcViewer, virtualService); err != nil {
 					return false, err
 				}
 				return virtualService.Object["spec"].(map[string]interface{})["http"].([]interface{})[0].(map[string]interface{})["timeout"] != nil, nil
@@ -313,7 +270,7 @@ var _ = Describe("PVCViewer controller", func() {
 			Expect(http).Should(HaveLen(1))
 			http0 = http.([]interface{})[0].(map[string]interface{})
 			Expect(http0["timeout"]).Should(Equal(newTimeout))
-			expectedRewrite = fmt.Sprintf("%s/%s/%s/", newBasePrefix, testingNamespace, pvcViewer.Name)
+			expectedRewrite = fmt.Sprintf("%s/%s/%s/", newBasePrefix, testHelper.namespace, pvcViewer.Name)
 			Expect(http0["match"].([]interface{})[0].(map[string]interface{})["uri"].(map[string]interface{})["prefix"]).Should(Equal(expectedRewrite))
 			Expect(http0["rewrite"].(map[string]interface{})["uri"]).Should(Equal(newRewrite))
 
@@ -322,11 +279,13 @@ var _ = Describe("PVCViewer controller", func() {
 		})
 
 		It("Should update status", func() {
-			By("By checking an initial PVCViewer status")
+			By("By checking a default PVCViewer's status")
+			pvcViewer := testHelper.CreateViewer(&kubefloworgv1alpha1.PVCViewerSpec{
+				PVC: "test-pvc",
+			})
 			Consistently(func() (int, error) {
 				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
+				if err := testHelper.GetRelatedResource(pvcViewer, viewer); err != nil {
 					return -1, err
 				}
 				return int(viewer.Status.ReadyReplicas), nil
@@ -334,7 +293,7 @@ var _ = Describe("PVCViewer controller", func() {
 
 			deployment := &appsv1.Deployment{}
 			Eventually(func() error {
-				return k8sClient.Get(ctx, prefixedLookupKey, deployment)
+				return testHelper.GetRelatedResource(pvcViewer, deployment)
 			}, timeout, interval).Should(Succeed())
 
 			By("By updating the Deployment's status")
@@ -345,62 +304,45 @@ var _ = Describe("PVCViewer controller", func() {
 
 			viewer := &kubefloworgv1alpha1.PVCViewer{}
 			Eventually(func() (bool, error) {
-				err := k8sClient.Get(ctx, lookupKey, viewer)
+				err := testHelper.GetRelatedResource(pvcViewer, viewer)
 				return viewer.Status.Ready, err
 			}, timeout, interval).Should(BeTrue())
 			Expect(deployment.Status.ReadyReplicas).Should(Equal(int32(1)))
-		})
-
-		It("Strategically Merges Changes", func() {
-			By("By updating the PVCViewer")
-			// Make sure both existing values are overwritten but new fields aren't removed
-			// Thus, we only enforce "our" values but ignore all others, whoever might have added them
-			newImage := "newimagename"
-			newSchedulerName := "test"
-
-			Eventually(func() error {
-				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
-					return err
-				}
-				viewer.Spec.PodSpec.Containers[0].Image = newImage
-				viewer.Spec.PodSpec.SchedulerName = newSchedulerName
-				return k8sClient.Update(ctx, viewer)
-			}, timeout, interval).Should(Succeed())
-
-			Eventually(func() (bool, error) {
-				deployment := &appsv1.Deployment{}
-				err := k8sClient.Get(ctx, prefixedLookupKey, deployment)
-				return deployment.Spec.Template.Spec.Containers[0].Image == newImage &&
-					deployment.Spec.Template.Spec.SchedulerName == newSchedulerName, err
-			}, timeout, interval).Should(BeTrue())
 		})
 	})
 
 	// Test affinity generation for RWO scheduling
 	Context("When RWO Scheduling is used", func() {
-		var (
-			// Template PVCs/Pods so we can reuse the definitions
-			pvcTemplate = &corev1.PersistentVolumeClaim{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "some-pvc-name",
-				},
-				Spec: corev1.PersistentVolumeClaimSpec{
-					AccessModes: []corev1.PersistentVolumeAccessMode{},
-					Resources: corev1.ResourceRequirements{
-						Requests: corev1.ResourceList{
-							corev1.ResourceStorage: resource.MustParse("1Gi"),
-						},
-					},
-				},
-			}
-			podTemplate = &corev1.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "some-pod-name",
-				},
-				Spec: corev1.PodSpec{
-					NodeName: "some-node-name",
+		It("Does not generate affinities for RWX PVCs", func() {
+			By("Creating a RWX PVC and mounting Pod")
+			pvcName := "rwx-pvc"
+			testHelper.CreatePVC(pvcName, corev1.ReadWriteMany)
+			testHelper.CreatePod("rwx-pod", "some-node", pvcName)
+
+			By("Creating a PVCViewer for the RWX PVC")
+			pvcViewer := testHelper.CreateViewer(&kubefloworgv1alpha1.PVCViewerSpec{
+				PVC: pvcName,
+			})
+
+			// RWX PVCs should not be considered
+			Consistently(func() (*corev1.Affinity, error) {
+				deployment := &appsv1.Deployment{}
+				err := testHelper.GetRelatedResource(pvcViewer, deployment)
+				return deployment.Spec.Template.Spec.Affinity, err
+			}, duration, interval).Should(BeNil())
+		})
+
+		It("Should generate Affinity on existing RWO", func() {
+			By("Creating a RWO PVC and mounting Pod")
+			pvcName := "rwo-pvc"
+			nodeName := "some-node-mounting-the-rwo-pvc"
+			testHelper.CreatePVC(pvcName, corev1.ReadWriteOnce)
+			testHelper.CreatePod("rwo-pod", nodeName, pvcName)
+
+			By("By creating a viewer and referencing a RWO PVC")
+			pvcViewer := testHelper.CreateViewer(&kubefloworgv1alpha1.PVCViewerSpec{
+				PVC: pvcName,
+				PodSpec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
 							Name:  "main",
@@ -417,351 +359,78 @@ var _ = Describe("PVCViewer controller", func() {
 						{
 							Name: "pvc",
 							VolumeSource: corev1.VolumeSource{
-								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{},
+								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+									ClaimName: pvcName,
+								},
 							},
 						},
 					},
 				},
-			}
-			volumeTemplate = &corev1.Volume{
-				Name: "name",
-				VolumeSource: corev1.VolumeSource{
-					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-						ClaimName: "claim",
-					},
-				},
-			}
-		)
-
-		BeforeEach(func() {
-			// Note: this BeforeEach runs after the global BeforeEach defined above
-
-			// Set the variable namespaces for our templates
-			pvcTemplate.Namespace = testingNamespace
-			podTemplate.Namespace = testingNamespace
-
-			// Wait for our deployment to be ready
-			Eventually(func() error {
-				deployment := &appsv1.Deployment{}
-				return k8sClient.Get(ctx, prefixedLookupKey, deployment)
-			}, timeout, interval).Should(Succeed())
-
-			// Update the PVCViewer to use RWO Scheduling for each test
-			viewer := &kubefloworgv1alpha1.PVCViewer{}
-			Eventually(func() error {
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
-					return err
-				}
-				viewer.Spec.RWOScheduling = kubefloworgv1alpha1.RWOScheduling{
-					Enabled: true,
-				}
-				return k8sClient.Update(ctx, viewer)
-			}, timeout, interval).Should(Succeed())
-			pvcViewer = viewer
-
-			// Once the deployment is created, it should consistently not have an affinity
-			Consistently(func() (*corev1.Affinity, error) {
-				deployment := &appsv1.Deployment{}
-				err := k8sClient.Get(ctx, prefixedLookupKey, deployment)
-				if err != nil {
-					return nil, err
-				}
-				return deployment.Spec.Template.Spec.Affinity, nil
-			}, duration, interval).Should(BeNil())
-		})
-
-		var extractNodeName = func(affinity *corev1.Affinity) string {
-			if affinity == nil || affinity.NodeAffinity == nil || affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution == nil {
-				return ""
-			}
-			return affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution[0].Preference.MatchExpressions[0].Values[0]
-		}
-
-		It("Should Ignore RWX PVCs", func() {
-			By("Creating a PVC and mounting Pod")
-
-			rwxPVC := pvcTemplate.DeepCopy()
-			rwxPVC.Name = "rwx-pvc"
-			rwxPVC.Spec.AccessModes = []corev1.PersistentVolumeAccessMode{
-				corev1.ReadWriteMany,
-			}
-			Expect(k8sClient.Create(ctx, rwxPVC)).Should(Succeed())
-
-			rwxPod := podTemplate.DeepCopy()
-			rwxPod.Name = "rwx-pod"
-			rwxPod.Spec.Volumes[0].PersistentVolumeClaim.ClaimName = rwxPVC.Name
-			Expect(k8sClient.Create(ctx, rwxPod)).Should(Succeed())
-
-			// RWX PVCs should not be considered
-			Consistently(func() (*corev1.Affinity, error) {
-				deployment := &appsv1.Deployment{}
-				err := k8sClient.Get(ctx, prefixedLookupKey, deployment)
-				return deployment.Spec.Template.Spec.Affinity, err
-			}, duration, interval).Should(BeNil())
-		})
-
-		It("Should generate Affinity on existing RWO", func() {
-			By("Creating a RWO PVC and mounting Pod")
-			rwoPVC := pvcTemplate.DeepCopy()
-			rwoPVC.Name = "rwo-pvc"
-			rwoPVC.Spec.AccessModes = []corev1.PersistentVolumeAccessMode{
-				corev1.ReadWriteOnce,
-			}
-			Expect(k8sClient.Create(ctx, rwoPVC)).Should(Succeed())
-
-			rwoPod := podTemplate.DeepCopy()
-			rwoPod.Name = "rwo-pod"
-			rwoPod.Spec.Volumes[0].PersistentVolumeClaim.ClaimName = rwoPVC.Name
-			Expect(k8sClient.Create(ctx, rwoPod)).Should(Succeed())
-
-			By("By referencing a RWO PVC")
-			Eventually(func() error {
-				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
-					return err
-				}
-				mount := volumeTemplate.DeepCopy()
-				mount.Name = rwoPVC.Name
-				mount.VolumeSource.PersistentVolumeClaim.ClaimName = rwoPVC.Name
-				viewer.Spec.PodSpec.Volumes = []corev1.Volume{*mount}
-				return k8sClient.Update(ctx, viewer)
-			}, timeout, interval).Should(Succeed())
+			})
 
 			Eventually(func() (*corev1.Affinity, error) {
 				deployment := &appsv1.Deployment{}
-				err := k8sClient.Get(ctx, prefixedLookupKey, deployment)
+				err := testHelper.GetRelatedResource(pvcViewer, deployment)
 				if err != nil {
 					return nil, err
 				}
 				return deployment.Spec.Template.Spec.Affinity, err
-			}, timeout, interval).ShouldNot(And(BeNil(), WithTransform(extractNodeName, Equal(rwoPod.Spec.NodeName))))
+			}, timeout, interval).ShouldNot(And(BeNil(), WithTransform(testHelper.ExtractNodeName, Equal(nodeName))))
 		})
 
-		// Helper function that sets the rwo restart flag,
-		// creates a RWO PVC,
-		// lets the PVCViewer mount the PVC
-		// and creates a contender Pod that mounts the PVC
-		prepareRestartScenario := func(restart bool) {
-			By("Setting the restart flag")
-			Eventually(func() error {
-				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
-					return err
-				}
-				viewer.Spec.RWOScheduling = kubefloworgv1alpha1.RWOScheduling{
+		createViewerWithRestartFlagAndMountingPod := func(restart bool) (*kubefloworgv1alpha1.PVCViewer, string) {
+			By("Creating a standalone RWO PVC")
+			pvcName := "rwo-pvc"
+			testHelper.CreatePVC(pvcName, corev1.ReadWriteOnce)
+
+			By("Creating a viewer with the restart flag set")
+			pvcViewer := testHelper.CreateViewer(&kubefloworgv1alpha1.PVCViewerSpec{
+				PVC: pvcName,
+				RWOScheduling: kubefloworgv1alpha1.RWOScheduling{
 					Enabled: true,
 					Restart: restart,
-				}
-				return k8sClient.Update(ctx, viewer)
-			}, timeout, interval).Should(Succeed())
-
-			By("Creating a standalone RWO PVC")
-			rwoPVC := pvcTemplate.DeepCopy()
-			rwoPVC.Name = "rwo-pvc"
-			rwoPVC.Spec.AccessModes = []corev1.PersistentVolumeAccessMode{
-				corev1.ReadWriteOnce,
-			}
-			Expect(k8sClient.Create(ctx, rwoPVC)).Should(Succeed())
-
-			By("By referencing a RWO PVC")
-			Eventually(func() error {
-				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
-					return err
-				}
-				volume := volumeTemplate.DeepCopy()
-				volume.Name = rwoPVC.Name
-				volume.VolumeSource.PersistentVolumeClaim.ClaimName = rwoPVC.Name
-				viewer.Spec.PodSpec.Volumes = []corev1.Volume{*volume}
-				return k8sClient.Update(ctx, viewer)
-			}, timeout, interval).Should(Succeed())
-
-			// Make sure the controller is observing the PVC
-			Eventually(func() ([]string, error) {
-				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
-					return nil, err
-				}
-				return viewer.Status.RWOVolumes, nil
-			}, timeout, interval).Should(Equal([]string{rwoPVC.Name}))
-
-			Consistently(func() (*corev1.Affinity, error) {
+				},
+			})
+			// Wait for deployment to be created without any affinity
+			Eventually(func() (*corev1.Affinity, error) {
 				deployment := &appsv1.Deployment{}
-				err := k8sClient.Get(ctx, prefixedLookupKey, deployment)
-				if err != nil {
+				if err := testHelper.GetRelatedResource(pvcViewer, deployment); err != nil {
 					return nil, err
 				}
 				return deployment.Spec.Template.Spec.Affinity, nil
 			}, duration, interval).Should(BeNil())
 
-			By("Creating a mounting RWO Pod")
-			rwoPod := podTemplate.DeepCopy()
-			rwoPod.Name = "rwo-pod"
-			rwoPod.Spec.Volumes[0].PersistentVolumeClaim.ClaimName = rwoPVC.Name
-			Expect(k8sClient.Create(ctx, rwoPod)).Should(Succeed())
+			By("By creating a Pod mounting the RWO PVC")
+			nodeName := "some-new-node"
+			testHelper.CreatePod("rwo-pod", nodeName, pvcName)
+
+			return pvcViewer, nodeName
 		}
 
 		It("Should not set Affinity (i.e. restart) on Restart=False", func() {
-			prepareRestartScenario(false)
+			pvcViewer, _ := createViewerWithRestartFlagAndMountingPod(false)
 
-			// Without restart, affinity should not be set / change
 			Consistently(func() (*corev1.Affinity, error) {
 				deployment := &appsv1.Deployment{}
-				err := k8sClient.Get(ctx, prefixedLookupKey, deployment)
-				if err != nil {
+				if err := testHelper.GetRelatedResource(pvcViewer, deployment); err != nil {
 					return nil, err
 				}
 				return deployment.Spec.Template.Spec.Affinity, nil
-			}, duration, interval).Should(BeNil())
+			}, timeout, interval).Should(BeNil())
 		})
 
 		It("Should set Affinity (i.e. restart) on Restart=True", func() {
-			prepareRestartScenario(true)
+			pvcViewer, nodeName := createViewerWithRestartFlagAndMountingPod(true)
 
-			// Without restart, a node affinity should be set by the controller.
 			// As we've checked before that the deployment was launched without a node affinity,
-			// this would mean the Pod restarted after the Pod was created
+			// having one now would mean the Pod restarted after the Pod was created
 			Eventually(func() (*corev1.Affinity, error) {
 				deployment := &appsv1.Deployment{}
-				err := k8sClient.Get(ctx, prefixedLookupKey, deployment)
-				if err != nil {
+				if err := testHelper.GetRelatedResource(pvcViewer, deployment); err != nil {
 					return nil, err
 				}
 				return deployment.Spec.Template.Spec.Affinity, nil
-			}, timeout, interval).ShouldNot(BeNil())
-		})
-
-		It("Should not change Affinity on conflicting nodeNames", func() {
-			prepareRestartScenario(true)
-
-			By("Creating and referencing another RWO PVC")
-			rwoPVC := pvcTemplate.DeepCopy()
-			rwoPVC.Name = "another-rwo-pvc"
-			rwoPVC.Spec.AccessModes = []corev1.PersistentVolumeAccessMode{
-				corev1.ReadWriteOnce,
-			}
-			Expect(k8sClient.Create(ctx, rwoPVC)).Should(Succeed())
-
-			Eventually(func() error {
-				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
-					return err
-				}
-				volume := volumeTemplate.DeepCopy()
-				volume.Name = rwoPVC.Name
-				volume.VolumeSource.PersistentVolumeClaim.ClaimName = rwoPVC.Name
-				viewer.Spec.PodSpec.Volumes = append(viewer.Spec.PodSpec.Volumes, *volume)
-				return k8sClient.Update(ctx, viewer)
-			}, timeout, interval).Should(Succeed())
-
-			// Make sure the controller is observing both PVCs
-			Eventually(func() ([]string, error) {
-				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				return viewer.Status.RWOVolumes, k8sClient.Get(ctx, lookupKey, viewer)
-			}, timeout, interval).Should(And(HaveLen(2), ContainElements([]string{"rwo-pvc", rwoPVC.Name})))
-
-			deployment := &appsv1.Deployment{}
-			Eventually(func() (*corev1.Affinity, error) {
-				err := k8sClient.Get(ctx, prefixedLookupKey, deployment)
-				if err != nil {
-					return nil, err
-				}
-				return deployment.Spec.Template.Spec.Affinity, nil
-			}, timeout, interval).ShouldNot(BeNil())
-
-			initialNodeName := extractNodeName(deployment.Spec.Template.Spec.Affinity)
-			Expect(initialNodeName).ShouldNot(Or(BeNil(), BeEmpty()))
-
-			By("Creating a mounting RWO Pod with a conflicting nodeName")
-			rwoPod := podTemplate.DeepCopy()
-			rwoPod.Name = "another-rwo-pod"
-			rwoPod.Spec.NodeName = "another-node"
-			rwoPod.Spec.Volumes[0].PersistentVolumeClaim.ClaimName = rwoPVC.Name
-			Expect(k8sClient.Create(ctx, rwoPod)).Should(Succeed())
-
-			Consistently(func() (*corev1.Affinity, error) {
-				err := k8sClient.Get(ctx, prefixedLookupKey, deployment)
-				if err != nil {
-					return nil, err
-				}
-				return deployment.Spec.Template.Spec.Affinity, nil
-			}, duration, interval).Should(WithTransform(extractNodeName, Equal(initialNodeName)))
-		})
-
-		It("Should update Status.RWOVolumes", func() {
-			By("Creating and Adding multiple PVCs to the PVCViewer")
-			rwoPVCs := []corev1.PersistentVolumeClaim{}
-			for i := 0; i < 3; i++ {
-				rwoPVC := pvcTemplate.DeepCopy()
-				rwoPVC.Name = "rwo-pvc-" + strconv.Itoa(i)
-				rwoPVC.Namespace = testingNamespace
-				rwoPVC.Spec.AccessModes = []corev1.PersistentVolumeAccessMode{
-					corev1.ReadWriteOnce,
-				}
-				Expect(k8sClient.Create(ctx, rwoPVC)).Should(Succeed())
-				rwoPVCs = append(rwoPVCs, *rwoPVC)
-				pod := podTemplate.DeepCopy()
-				pod.Name = "rwo-pod-" + strconv.Itoa(i)
-				pod.Spec.Volumes[0].PersistentVolumeClaim.ClaimName = rwoPVC.Name
-				Expect(k8sClient.Create(ctx, pod)).Should(Succeed())
-			}
-			rwxPVC := pvcTemplate.DeepCopy()
-			rwxPVC.Name = "rwx-pvc"
-			rwxPVC.Spec.AccessModes = []corev1.PersistentVolumeAccessMode{
-				corev1.ReadWriteMany,
-			}
-			Expect(k8sClient.Create(ctx, rwxPVC)).Should(Succeed())
-
-			Eventually(func() error {
-				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
-					return err
-				}
-				for _, pvc := range rwoPVCs {
-					volume := volumeTemplate.DeepCopy()
-					volume.Name = pvc.Name
-					volume.VolumeSource.PersistentVolumeClaim.ClaimName = pvc.Name
-					viewer.Spec.PodSpec.Volumes = append(viewer.Spec.PodSpec.Volumes, *volume)
-				}
-				// Append a rwx volume to the pod template
-				volume := volumeTemplate.DeepCopy()
-				volume.Name = rwxPVC.Name
-				volume.VolumeSource.PersistentVolumeClaim.ClaimName = rwxPVC.Name
-				viewer.Spec.PodSpec.Volumes = append(viewer.Spec.PodSpec.Volumes, *volume)
-				return k8sClient.Update(ctx, viewer)
-			}, timeout, interval).Should(Succeed())
-
-			Eventually(func() ([]string, error) {
-				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
-					return nil, err
-				}
-				return viewer.Status.RWOVolumes, err
-			}, timeout, interval).Should(And(HaveLen(3), ContainElements([]string{rwoPVCs[0].Name, rwoPVCs[1].Name, rwoPVCs[2].Name})))
-
-			By("Removing PVCs from the PVCViewer")
-			Eventually(func() error {
-				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				err := k8sClient.Get(ctx, lookupKey, viewer)
-				if err != nil {
-					return err
-				}
-				viewer.Spec.PodSpec.Volumes = viewer.Spec.PodSpec.Volumes[:1]
-				return k8sClient.Update(ctx, viewer)
-			}, timeout, interval).Should(Succeed())
-
-			Eventually(func() ([]string, error) {
-				viewer := &kubefloworgv1alpha1.PVCViewer{}
-				return viewer.Status.RWOVolumes, k8sClient.Get(ctx, lookupKey, viewer)
-			}, timeout, interval).Should(And(HaveLen(1), ContainElements([]string{rwoPVCs[0].Name})))
+			}, duration, interval).ShouldNot(And(BeNil(), WithTransform(testHelper.ExtractNodeName, Equal(nodeName))))
 		})
 	})
 })
