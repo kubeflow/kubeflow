@@ -87,7 +87,6 @@ func (r *PVCViewer) Default() {
 		// If so, set it as the default, otherwise set a predefined default
 		if !reflect.DeepEqual(defaultPodSpec, corev1.PodSpec{}) {
 			r.Spec.PodSpec = defaultPodSpec
-			pvcviewerlog.Info("TEST", "TEST", r.Spec.PodSpec)
 		} else {
 			r.Spec.PodSpec.Containers = []corev1.Container{
 				{
