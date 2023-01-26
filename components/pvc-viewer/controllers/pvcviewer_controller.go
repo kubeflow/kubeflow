@@ -354,10 +354,15 @@ func (r *PVCViewerReconciler) reconcileStatus(ctx context.Context, log logr.Logg
 	if err := r.Get(ctx, types.NamespacedName{Name: resourcePrefix + viewer.Name, Namespace: viewer.Namespace}, deployment); err != nil {
 		log.Info("Could not find Deployment for status update")
 		viewer.Status.Ready = false
-		viewer.Status.ReadyReplicas = 0
 	} else {
-		viewer.Status.ReadyReplicas = deployment.Status.ReadyReplicas
 		viewer.Status.Ready = *deployment.Spec.Replicas == deployment.Status.ReadyReplicas
+		// Append the latest condition, if it is not already in the list
+		if len(deployment.Status.Conditions) > 0 {
+			clen := len(viewer.Status.Conditions)
+			if clen == 0 || viewer.Status.Conditions[clen-1] != deployment.Status.Conditions[0] {
+				viewer.Status.Conditions = append(viewer.Status.Conditions, deployment.Status.Conditions[0])
+			}
+		}
 	}
 
 	log.Info("Updating status")

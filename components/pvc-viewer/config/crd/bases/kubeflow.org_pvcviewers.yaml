@@ -6997,24 +6997,50 @@ spec:
           status:
             description: PVCViewerStatus defines the observed state of PVCViewer
             properties:
+              conditions:
+                description: Conditions will be a mirror of the underlying Pod’s Conditions
+                items:
+                  description: DeploymentCondition describes the state of a deployment
+                    at a certain point.
+                  properties:
+                    lastTransitionTime:
+                      description: Last time the condition transitioned from one status
+                        to another.
+                      format: date-time
+                      type: string
+                    lastUpdateTime:
+                      description: The last time this condition was updated.
+                      format: date-time
+                      type: string
+                    message:
+                      description: A human readable message indicating details about
+                        the transition.
+                      type: string
+                    reason:
+                      description: The reason for the condition's last transition.
+                      type: string
+                    status:
+                      description: Status of the condition, one of True, False, Unknown.
+                      type: string
+                    type:
+                      description: Type of deployment condition.
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
               ready:
                 default: false
                 description: Ready defines if the viewer is ready to be used, i.e.
                   Replicas==ReadyReplicas
                 type: boolean
-              readyReplicas:
-                default: 0
-                description: ReadyReplicas defines the number of viewer Servers that
-                  are available to connect
-                format: int32
-                type: integer
               url:
                 description: If a virtualService is defined, this field contains the
                   relative URL to the virtual service.
                 type: string
             required:
             - ready
-            - readyReplicas
             type: object
         type: object
     served: true

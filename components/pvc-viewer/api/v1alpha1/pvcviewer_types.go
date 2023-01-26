@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -85,10 +86,8 @@ type VirtualService struct {
 
 // PVCViewerStatus defines the observed state of PVCViewer
 type PVCViewerStatus struct {
-	// ReadyReplicas defines the number of viewer Servers
-	// that are available to connect
-	// +kubebuilder:default:=0
-	ReadyReplicas int32 `json:"readyReplicas"`
+	// Conditions will be a mirror of the underlying Pod’s Conditions
+	Conditions []appsv1.DeploymentCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
 
 	// Ready defines if the viewer is ready to be used,
 	// i.e. Replicas==ReadyReplicas

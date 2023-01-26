@@ -301,13 +301,13 @@ var _ = Describe("PVCViewer controller", func() {
 			pvcViewer := testHelper.CreateViewer(&kubefloworgv1alpha1.PVCViewerSpec{
 				PVC: "test-pvc",
 			})
-			Consistently(func() (int, error) {
+			Consistently(func() (bool, error) {
 				viewer := &kubefloworgv1alpha1.PVCViewer{}
 				if err := testHelper.GetRelatedResource(pvcViewer, viewer); err != nil {
-					return -1, err
+					return true, err
 				}
-				return int(viewer.Status.ReadyReplicas), nil
-			}, duration, interval).Should(Equal(0))
+				return viewer.Status.Ready, nil
+			}, duration, interval).Should(Equal(false))
 
 			deployment := &appsv1.Deployment{}
 			Eventually(func() error {
