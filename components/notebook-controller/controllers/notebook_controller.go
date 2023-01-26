@@ -51,6 +51,7 @@ const DefaultContainerPort = 8888
 const DefaultServingPort = 80
 const AnnotationRewriteURI = "notebooks.kubeflow.org/http-rewrite-uri"
 const AnnotationHeadersRequestSet = "notebooks.kubeflow.org/http-headers-request-set"
+const DefaultEnvoyMetricsServingPort = 8765
 
 const PrefixEnvVar = "NB_PREFIX"
 
@@ -92,8 +93,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	// TODO(yanniszark): Can we avoid reconciling Events and Notebook in the same queue?
 	event := &corev1.Event{}
-	var getEventErr error
-	getEventErr = r.Get(ctx, req.NamespacedName, event)
+	getEventErr := r.Get(ctx, req.NamespacedName, event)
 	if getEventErr == nil {
 		log.Info("Found event for Notebook. Re-emitting...")
 
@@ -199,9 +199,17 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	// Reconcile virtual service if we use ISTIO.
+	// Reconcile VirtualService if we use ISTIO.
 	if os.Getenv("USE_ISTIO") == "true" {
 		err = r.reconcileVirtualService(instance)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	// Reconcile Sidecar CR (culling) if we use ISTIO and CULLING is enabled.
+	if os.Getenv("USE_ISTIO") == "true" && os.Getenv("ENABLE_CULLING") == "true" {
+		err = r.reconcileSidecar(instance)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -449,6 +457,17 @@ func generateService(instance *v1beta1.Notebook) *corev1.Service {
 			},
 		},
 	}
+
+	if GetEnvDefault("ENABLE_CULLING", DEFAULT_ENABLE_CULLING) == "true" && os.Getenv("USE_ISTIO") == "true" {
+		metricPort := corev1.ServicePort{
+			Name:       "http-envoy-metrics",
+			Port:       DefaultEnvoyMetricsServingPort,
+			TargetPort: intstr.FromInt(DefaultEnvoyMetricsServingPort),
+			Protocol:   "TCP",
+		}
+		svc.Spec.Ports = append(svc.Spec.Ports, metricPort)
+	}
+
 	return svc
 }
 
@@ -588,6 +607,82 @@ func (r *NotebookReconciler) reconcileVirtualService(instance *v1beta1.Notebook)
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func generateSidecarObject(instance *v1beta1.Notebook) (*unstructured.Unstructured, error) {
+
+	name := instance.Name
+	namespace := instance.Namespace
+
+	sidecar := &unstructured.Unstructured{}
+	sidecar.SetAPIVersion("networking.istio.io/v1alpha3")
+	sidecar.SetKind("Sidecar")
+	sidecar.SetName(name)
+	sidecar.SetNamespace(namespace)
+
+	workloadSelector := map[string]interface{}{
+		"labels": map[string]interface{}{
+			// We use the same label for the ServiceSelector.
+			// Maybe add another label? (apoger)
+			"statefulset": name,
+		},
+	}
+
+	if err := unstructured.SetNestedField(sidecar.Object, workloadSelector, "spec", "workloadSelector"); err != nil {
+		return nil, fmt.Errorf("set .spec.workloadSelector error: %v", err)
+	}
+
+	ingress := []interface{}{
+		map[string]interface{}{
+			"port": map[string]interface{}{
+				"number":   int64(DefaultEnvoyMetricsServingPort),
+				"protocol": "HTTP",
+				"name":     "mtls-envoy-metrics",
+			},
+			"defaultEndpoint": "127.0.0.1:15090",
+			"tls": map[string]interface{}{
+				"mode": "ISTIO_MUTUAL",
+			},
+		},
+	}
+
+	if err := unstructured.SetNestedSlice(sidecar.Object, ingress, "spec", "ingress"); err != nil {
+		return nil, fmt.Errorf("set .spec.ingress error: %v", err)
+	}
+
+	return sidecar, nil
+}
+
+func (r *NotebookReconciler) reconcileSidecar(instance *v1beta1.Notebook) error {
+	log := r.Log.WithValues("notebook", types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name})
+
+	sidecar, err := generateSidecarObject(instance)
+	if err != nil {
+		log.Error(err, "Failed to generate Sidecar object.")
+		return err
+	}
+
+	if err := ctrl.SetControllerReference(instance, sidecar, r.Scheme); err != nil {
+		return err
+	}
+
+	// check if Sidecar already exists
+	foundSidecar := &unstructured.Unstructured{}
+	foundSidecar.SetAPIVersion("networking.istio.io/v1alpha3")
+	foundSidecar.SetKind("Sidecar")
+	err = r.Get(context.TODO(), types.NamespacedName{Name: instance.Name,
+		Namespace: instance.Namespace}, foundSidecar)
+	if err != nil && apierrs.IsNotFound(err) {
+		log.Info("Creating Sidecar object...")
+		err = r.Create(context.TODO(), sidecar)
+		if err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
 	}
 
 	return nil

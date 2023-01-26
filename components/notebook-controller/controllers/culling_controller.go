@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/prometheus/common/expfmt"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,12 +27,13 @@ import (
 // The constants with name 'DEFAULT_{ENV_Var}' are the default values to be
 // used, if the respective ENV vars are not present.
 // All the time numbers correspond to minutes.
-
-const DEFAULT_CULL_IDLE_TIME = "1440" // One day
-const DEFAULT_IDLENESS_CHECK_PERIOD = "1"
-const DEFAULT_ENABLE_CULLING = "false"
-const DEFAULT_CLUSTER_DOMAIN = "cluster.local"
-const DEFAULT_DEV = "false"
+const (
+	DEFAULT_CULL_IDLE_TIME        = "1440" // One day
+	DEFAULT_IDLENESS_CHECK_PERIOD = "1"
+	DEFAULT_ENABLE_CULLING        = "false"
+	DEFAULT_CLUSTER_DOMAIN        = "cluster.local"
+	DEFAULT_DEV                   = "false"
+)
 
 var CULL_IDLE_TIME = 0
 var ENABLE_CULLING = false
@@ -39,17 +41,31 @@ var IDLENESS_CHECK_PERIOD = 0
 var CLUSTER_DOMAIN = ""
 var DEV = false
 
-// When a Resource should be stopped/culled, then the controller should add this
-// annotation in the Resource's Metadata. Then, inside the reconcile loop,
+var httpClient = &http.Client{
+	Timeout: time.Second * 10,
+}
+
+// When a Resource should be stopped/culled, then the controller should add the
+// STOP_ANNOTATION in the Resource's Metadata. Then, inside the reconcile loop,
 // the controller must check if this annotation is set and then apply the
 // respective culling logic for that Resource. The value of the annotation will
 // be a timestamp of when the Resource was stopped/culled.
 //
 // In case of Notebooks, the controller will reduce the replicas to 0 if
 // this annotation is set. If it's not set, then it will make the replicas 1.
-const STOP_ANNOTATION = "kubeflow-resource-stopped"
-const LAST_ACTIVITY_ANNOTATION = "notebooks.kubeflow.org/last-activity"
-const LAST_ACTIVITY_CHECK_TIMESTAMP_ANNOTATION = "notebooks.kubeflow.org/last_activity_check_timestamp"
+const (
+	STOP_ANNOTATION                    = "kubeflow-resource-stopped"
+	LAST_ACTIVITY_ANNOTATION           = "notebooks.kubeflow.org/last-activity"
+	CULLING_CHECK_TIMESTAMP_ANNOTATION = "notebooks.kubeflow.org/culling_check_timestamp"
+	TOTAL_HTTP_REQUESTS_ANNOTATION     = "notebooks.kubeflow.org/total_http_requests"
+	ENVOY_METRICS_SERVING_PORT         = 8765
+
+	// The `server-type` annotation in each Notebook CR has one of the following values
+	NOTEBOOK_SERVER_TYPE_ANNOTATION = "notebooks.kubeflow.org/server-type"
+	JUPYTER_SERVER_TYPE_ANNOTATION  = "jupyter"
+	VSC_SERVER_TYPE_ANNOTATION      = "group-one"
+	RSTUDIO_SERVER_TYPE_ANNOTATION  = "group-two"
+)
 
 const (
 	KERNEL_EXECUTION_STATE_IDLE     = "idle"
@@ -94,12 +110,14 @@ func (r *CullingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// Remove LAST_ACTIVITY_ANNOTATION and LAST_ACTIVITY_TIMESTAMP_CHECK
 	// annotations for CR objects
 	if StopAnnotationIsSet(instance.ObjectMeta) {
-		log.Info("Notebook is already stopping")
+		log.Info("Notebook is already stopping...Will remove culling annotation...")
 		removeAnnotations(&instance.ObjectMeta, r.Log)
 		err = r.Update(ctx, instance)
 		if err != nil {
+			log.Error(err, "Remove notebook instance annotations failed, reconciler requeued")
 			return ctrl.Result{}, err
 		}
+		log.Info("Successfully removed culling annotation...")
 		return ctrl.Result{}, nil
 	}
 
@@ -107,13 +125,15 @@ func (r *CullingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	foundPod := &corev1.Pod{}
 	err = r.Get(ctx, types.NamespacedName{Name: instance.Name + "-0", Namespace: instance.Namespace}, foundPod)
 	if err != nil && apierrs.IsNotFound(err) {
-		log.Info("Pod not found...Will remove last-activity annotation...")
+		log.Info("Pod not found...Will remove culling annotation...")
 
 		removeAnnotations(&instance.ObjectMeta, r.Log)
 		err = r.Update(ctx, instance)
 		if err != nil {
+			log.Error(err, "Remove notebook instance annotations failed, reconciler requeued")
 			return ctrl.Result{}, err
 		}
+		log.Info("Successfully removed culling annotation...")
 		return ctrl.Result{}, nil
 	}
 	if err != nil {
@@ -126,24 +146,34 @@ func (r *CullingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		initializeAnnotations(&instance.ObjectMeta)
 		err = r.Update(ctx, instance)
 		if err != nil {
+			log.Error(err, "Initialize notebook instance culling annotations failed, reconciler requeued")
 			return ctrl.Result{}, err
 		}
 	}
 
-	// Check if culling period has passed (IDLENESS_CHECK_PERIOD ~ default 1 min)
+	// Culling checks are performed every IDLENESS_CHECK_PERIOD min ~ default 1 min
 	if !cullingCheckPeriodHasPassed(instance.ObjectMeta, r.Log) {
 		log.Info("Not enough time has passed. Won't check for culling.")
 		return ctrl.Result{RequeueAfter: getRequeueTime()}, nil
 	}
+	serverType := instance.ObjectMeta.Annotations[NOTEBOOK_SERVER_TYPE_ANNOTATION]
 
-	// Update the LAST_ACTIVITY_ANNOTATION and LAST_ACTIVITY_CHECK_TIMESTAMP_ANNOTATION
-	updateNotebookLastActivityAnnotation(&instance.ObjectMeta, r.Log)
-	updateLastCullingCheckTimestampAnnotation(&instance.ObjectMeta, r.Log)
+	// Check if a Notebook has recently received http traffic from istio-ingressgateway
+	// and update the LAST_ACTIVITY_ANNOTATION accordingly
+	updateNotebookLastActivityFromHttpTraffic(&instance.ObjectMeta, foundPod, r.Log)
+
+	// Check the /api/kernels endpoint only for Jupyter Notebooks
+	if serverType == JUPYTER_SERVER_TYPE_ANNOTATION {
+		updateNotebookLastActivityAnnotationFromKernels(&instance.ObjectMeta, foundPod, r.Log)
+	}
 	// Always keep track of the last time we checked for culling
+	updateLastCullingCheckTimestampAnnotation(&instance.ObjectMeta, r.Log)
 	err = r.Update(ctx, instance)
 	if err != nil {
+		log.Error(err, "Update notebook instance culling annotations failed, reconciler requeued")
 		return ctrl.Result{}, err
 	}
+	log.Info("Successfully updated notebook instance annotations")
 
 	// Check if the Notebook needs to be stopped
 	if notebookIsIdle(instance.ObjectMeta, r.Log) {
@@ -152,9 +182,11 @@ func (r *CullingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			instance.Namespace, instance.Name))
 
 		// Set Stop Annotation to the Notebook CR
+		log.Info("Setting stop timestamp annotation")
 		setStopAnnotation(&instance.ObjectMeta, r.Metrics, r.Log)
 		err = r.Update(ctx, instance)
 		if err != nil {
+			log.Error(err, "Update notebook instance stop annotation failed, reconciler requeued")
 			return ctrl.Result{}, err
 		}
 	}
@@ -164,11 +196,12 @@ func (r *CullingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 // This function ensures that we run the culling checks every CULLING_CHECK_PERIOD
 // even if in the meantime an update/create/delete event occurs for a Notebook CR.
 func cullingCheckPeriodHasPassed(meta metav1.ObjectMeta, log logr.Logger) bool {
-	if _, ok := meta.GetAnnotations()[LAST_ACTIVITY_CHECK_TIMESTAMP_ANNOTATION]; !ok {
+	log = log.WithValues("notebook", types.NamespacedName{Name: meta.Name, Namespace: meta.Namespace})
+	if _, ok := meta.GetAnnotations()[CULLING_CHECK_TIMESTAMP_ANNOTATION]; !ok {
 		log.Info("No last-activity-check-timestamp found in the CR. Won't check for culling")
 		return false
 	}
-	storedTimestamp, _ := time.Parse(time.RFC3339, meta.Annotations[LAST_ACTIVITY_CHECK_TIMESTAMP_ANNOTATION])
+	storedTimestamp, _ := time.Parse(time.RFC3339, meta.Annotations[CULLING_CHECK_TIMESTAMP_ANNOTATION])
 	nextCullingCheck := storedTimestamp.Add(getRequeueTime())
 	currentTime := time.Now()
 
@@ -177,12 +210,15 @@ func cullingCheckPeriodHasPassed(meta metav1.ObjectMeta, log logr.Logger) bool {
 
 // Culling Logic
 func notebookIsIdle(meta metav1.ObjectMeta, log logr.Logger) bool {
+	log = log.WithValues("notebook", types.NamespacedName{Name: meta.Name, Namespace: meta.Namespace})
+
 	// Being idle means that the Notebook can be culled/stopped
 	if meta.GetAnnotations() != nil {
 		if StopAnnotationIsSet(meta) {
 			log.Info("Notebook is already stopping")
 			return false
 		}
+
 		// Read the current LAST_ACTIVITY_ANNOTATION
 		tempLastActivity := meta.GetAnnotations()[LAST_ACTIVITY_ANNOTATION]
 		LastActivity, err := time.Parse(time.RFC3339, tempLastActivity)
@@ -199,13 +235,13 @@ func notebookIsIdle(meta metav1.ObjectMeta, log logr.Logger) bool {
 	return false
 }
 
+// Get the Kernels' status from the Server's `/api/kernels` endpoint
 func getNotebookApiKernels(nm, ns string, log logr.Logger) []KernelStatus {
-	// Get the Kernels' status from the Server's `/api/kernels` endpoint
+
 	client := &http.Client{
 		Timeout: time.Second * 10,
 	}
-
-	domain := GetEnvDefault("CLUSTER_DOMAIN", DEFAULT_CLUSTER_DOMAIN)
+	domain := CLUSTER_DOMAIN
 	url := fmt.Sprintf(
 		"http://%s.%s.svc.%s/notebook/%s/%s/api/kernels",
 		nm, ns, domain, ns, nm)
@@ -224,8 +260,7 @@ func getNotebookApiKernels(nm, ns string, log logr.Logger) []KernelStatus {
 	// Decode the body
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		log.Info(fmt.Sprintf(
-			"Warning: GET to %s: %d", url, resp.StatusCode))
+		log.Info(fmt.Sprintf("Warning: GET to %s: %d", url, resp.StatusCode))
 		return nil
 	}
 
@@ -240,22 +275,20 @@ func getNotebookApiKernels(nm, ns string, log logr.Logger) []KernelStatus {
 	return kernels
 }
 
+// Iterate on the list of kernels' status.
+// If all kernels are on execution_state=idle then this function returns true.
 func allKernelsAreIdle(kernels []KernelStatus, log logr.Logger) bool {
-	// Iterate on the list of kernels' status.
-	// If all kernels are on execution_state=idle then this function returns true.
-	log.Info("Examining if all kernels are idle")
 	for i := 0; i < len(kernels); i++ {
 		if kernels[i].ExecutionState != KERNEL_EXECUTION_STATE_IDLE {
-			log.Info("Not all kernels are idle")
 			return false
 		}
 	}
-	log.Info("All kernels are idle")
 	return true
 }
 
 // Update LAST_ACTIVITY_ANNOTATION
-func updateNotebookLastActivityAnnotation(meta *metav1.ObjectMeta, log logr.Logger) {
+func updateNotebookLastActivityAnnotationFromKernels(meta *metav1.ObjectMeta, pod *corev1.Pod, log logr.Logger) {
+	log = log.WithValues("notebook", types.NamespacedName{Name: meta.Name, Namespace: meta.Namespace})
 
 	log.Info("Updating the last-activity annotation. Checking /api/kernels")
 	nm, ns := meta.GetName(), meta.GetNamespace()
@@ -267,21 +300,22 @@ func updateNotebookLastActivityAnnotation(meta *metav1.ObjectMeta, log logr.Logg
 		log.Info("Notebook has no kernels. Will not update last-activity")
 		return
 	}
-
 	updateTimestampFromKernelsActivity(meta, kernels, log)
+
 }
 
 func updateTimestampFromKernelsActivity(meta *metav1.ObjectMeta, kernels []KernelStatus, log logr.Logger) {
+	log = log.WithValues("notebook", types.NamespacedName{Name: meta.Name, Namespace: meta.Namespace})
 
+	log.Info("Examining if all kernels are idle")
 	if !allKernelsAreIdle(kernels, log) {
-		// At least on kernel is "busy" so the last-activity annotation should
-		// should be the current time.
+		// At least on kernel is "busy" so the last-activity annotation should be the current time.
 		t := createTimestamp()
-		log.Info(fmt.Sprintf("Found a busy kernel. Updating the last-activity to %s", t))
-
+		log.Info(fmt.Sprintf("Found a busy kernel...Updating the last-activity to %s", t))
 		meta.Annotations[LAST_ACTIVITY_ANNOTATION] = t
 		return
 	}
+	log.Info("All kernels are idle. Checking for the most recent kernel last_activity")
 
 	// Checking for the most recent kernel last_activity. The LAST_ACTIVITY_ANNOTATION
 	// should be the most recent kernel last-activity among the kernels.
@@ -301,26 +335,105 @@ func updateTimestampFromKernelsActivity(meta *metav1.ObjectMeta, kernels []Kerne
 			recentTime = kernelLastActivity
 		}
 	}
-	t := recentTime.Format(time.RFC3339)
 
-	meta.Annotations[LAST_ACTIVITY_ANNOTATION] = t
-	log.Info(fmt.Sprintf("Successfully updated last-activity from latest kernel action, %s", t))
+	// Compare the kernel last-activity timestamp we just found with the timestamp we calculated
+	// from scraping envoy HTTP metrics and keep the most recent one.
+	storedLastHttpActivity, _ := time.Parse(time.RFC3339, meta.Annotations[LAST_ACTIVITY_ANNOTATION])
+	if storedLastHttpActivity.Before(recentTime) {
+		meta.Annotations[LAST_ACTIVITY_ANNOTATION] = recentTime.Format(time.RFC3339)
+		log.Info(fmt.Sprintf("Updating the last-activity from latest kernel action to, %s", recentTime.Format(time.RFC3339)))
+	}
+
+}
+
+func updateNotebookLastActivityFromHttpTraffic(meta *metav1.ObjectMeta, pod *corev1.Pod, log logr.Logger) {
+	log = log.WithValues("notebook", types.NamespacedName{Name: meta.Name, Namespace: meta.Namespace})
+
+	log.Info("Updating the last-activity annotation. Checking /stats/prometheus")
+	currentTotalHttpRequests, err := getEnvoyMetrics(pod, log)
+	if err != nil {
+		log.Info("Could not fetch HTTP requests from /stats/preomtheus endpoint. Will not update last-activity.")
+		return
+	}
+
+	storedTotalHttpRequestsString := meta.GetAnnotations()[TOTAL_HTTP_REQUESTS_ANNOTATION]
+	storedTotalHttpRequests, _ := strconv.Atoi(storedTotalHttpRequestsString)
+	t := createTimestamp()
+	if storedTotalHttpRequests < currentTotalHttpRequests {
+		log.Info("Notebook has received HTTP traffic. Will update total-http-requests and last-activity annotations.")
+		meta.Annotations[TOTAL_HTTP_REQUESTS_ANNOTATION] = strconv.Itoa(currentTotalHttpRequests)
+		meta.Annotations[LAST_ACTIVITY_ANNOTATION] = t
+		return
+	}
+	log.Info("Notebook has not received any HTTP traffic. Will not update last-activity.")
+}
+
+func getEnvoyMetrics(pod *corev1.Pod, log logr.Logger) (int, error) {
+
+	name := pod.ObjectMeta.GetLabels()["notebook-name"]
+	namespace := pod.ObjectMeta.GetNamespace()
+	domain := CLUSTER_DOMAIN
+	port := strconv.Itoa(ENVOY_METRICS_SERVING_PORT)
+	log = log.WithValues("notebook", types.NamespacedName{Name: name, Namespace: namespace})
+	url := fmt.Sprintf("http://%s.%s.svc.%s:%s/stats/prometheus", name, namespace, domain, port)
+	// if DEV mode is on we proxy the requests from localhost
+	if GetEnvDefault("DEV", DEFAULT_DEV) != "false" {
+		url = fmt.Sprintf("http://localhost:8001/api/v1/namespaces/%s/services/%s:%s/proxy/stats/prometheus",
+			namespace, name, port)
+	}
+
+	// Make the request to Envoy's /stats/prometheus endpoint to gather all the current
+	// istio_requests_total counter-metric elements
+	resp, err := httpClient.Get(url)
+	if err != nil {
+		log.Error(err, fmt.Sprintf("Error talking to %s", url))
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	// Create a new text parser
+	var parser expfmt.TextParser
+	metrics, err := parser.TextToMetricFamilies(resp.Body)
+	if err != nil {
+		log.Error(err, "Error parsing the metrics", "url", url, "body", resp.Body)
+		return 0, err
+	}
+
+	// Calculate requests
+	requests := 0
+	for k, v := range metrics {
+		if k == "istio_requests_total" {
+			// Iterate over multiple istio_requests_total counter elements
+			for _, m := range v.GetMetric() {
+				// Get labels and filter requests coming from istio-ingressgateway
+				for _, l := range m.GetLabel() {
+					if l.GetName() == "source_workload" && l.GetValue() == "istio-ingressgateway" {
+						requests += int(*m.GetCounter().Value)
+						break
+					}
+				}
+			}
+			break
+		}
+	}
+
+	return requests, nil
 }
 
 func updateLastCullingCheckTimestampAnnotation(meta *metav1.ObjectMeta, log logr.Logger) {
-	t := createTimestamp()
-	if _, ok := meta.GetAnnotations()[LAST_ACTIVITY_CHECK_TIMESTAMP_ANNOTATION]; !ok {
+	log = log.WithValues("notebook", types.NamespacedName{Name: meta.Name, Namespace: meta.Namespace})
+	if _, ok := meta.GetAnnotations()[CULLING_CHECK_TIMESTAMP_ANNOTATION]; !ok {
 		log.Info("No last-activity-check-timestamp annotation found. Will not update")
 	}
-	meta.Annotations[LAST_ACTIVITY_CHECK_TIMESTAMP_ANNOTATION] = t
-	log.Info("Successfully updated last-activity-check-timestamp annotation")
-
+	t := createTimestamp()
+	meta.Annotations[CULLING_CHECK_TIMESTAMP_ANNOTATION] = t
 }
 
 func annotationsExist(instance *v1beta1.Notebook) bool {
 	meta := instance.ObjectMeta
 	if metav1.HasAnnotation(meta, LAST_ACTIVITY_ANNOTATION) &&
-		metav1.HasAnnotation(meta, LAST_ACTIVITY_CHECK_TIMESTAMP_ANNOTATION) {
+		metav1.HasAnnotation(meta, CULLING_CHECK_TIMESTAMP_ANNOTATION) &&
+		metav1.HasAnnotation(meta, TOTAL_HTTP_REQUESTS_ANNOTATION) {
 		return true
 	}
 	return false
@@ -330,25 +443,19 @@ func initializeAnnotations(meta *metav1.ObjectMeta) {
 	if len(meta.GetAnnotations()) == 0 {
 		meta.SetAnnotations(map[string]string{})
 	}
+
 	t := createTimestamp()
 	meta.Annotations[LAST_ACTIVITY_ANNOTATION] = t
-	meta.Annotations[LAST_ACTIVITY_CHECK_TIMESTAMP_ANNOTATION] = t
+	meta.Annotations[CULLING_CHECK_TIMESTAMP_ANNOTATION] = t
+	meta.Annotations[TOTAL_HTTP_REQUESTS_ANNOTATION] = "0"
 }
 
 func removeAnnotations(meta *metav1.ObjectMeta, log logr.Logger) {
-	if meta == nil {
-		log.Info("Error: Metadata is Nil. Can't remove Annotations")
-		return
-	}
-
-	if _, ok := meta.GetAnnotations()[LAST_ACTIVITY_ANNOTATION]; ok {
-		log.Info("Removing last-activity annotation")
-		delete(meta.GetAnnotations(), LAST_ACTIVITY_ANNOTATION)
-	}
-	if _, ok := meta.GetAnnotations()[LAST_ACTIVITY_CHECK_TIMESTAMP_ANNOTATION]; ok {
-		log.Info("Removing last-activity-check-timestamp annotation")
-		delete(meta.GetAnnotations(), LAST_ACTIVITY_CHECK_TIMESTAMP_ANNOTATION)
-	}
+	// func delete(m map[Type]Type1, key Type) is no-op if meta.Annotations is nil
+	// or key doesn't exist!
+	delete(meta.GetAnnotations(), LAST_ACTIVITY_ANNOTATION)
+	delete(meta.GetAnnotations(), CULLING_CHECK_TIMESTAMP_ANNOTATION)
+	delete(meta.GetAnnotations(), TOTAL_HTTP_REQUESTS_ANNOTATION)
 }
 
 // Stop Annotation handling functions
@@ -358,7 +465,6 @@ func setStopAnnotation(meta *metav1.ObjectMeta, m *metrics.Metrics, log logr.Log
 		return
 	}
 
-	log.Info("Setting stop timestamp annotation")
 	t := time.Now()
 	if len(meta.GetAnnotations()) == 0 {
 		meta.SetAnnotations(map[string]string{})
@@ -375,10 +481,7 @@ func StopAnnotationIsSet(meta metav1.ObjectMeta) bool {
 	if meta.GetAnnotations() == nil {
 		return false
 	}
-	if metav1.HasAnnotation(meta, STOP_ANNOTATION) {
-		return true
-	}
-	return false
+	return metav1.HasAnnotation(meta, STOP_ANNOTATION)
 }
 
 // Some Utility Functions
