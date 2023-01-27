@@ -62,18 +62,6 @@ const PrefixEnvVar = "NB_PREFIX"
 // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#podsecuritycontext-v1-core
 const DefaultFSGroup = int64(100)
 
-func AnnotationImageChangeTriggerIsSet(meta metav1.ObjectMeta) bool {
-        if meta.GetAnnotations() == nil {
-                return false
-        }
-         
-        if _, ok := meta.GetAnnotations()[AnnotationImageChangeTrigger]; ok {
-                return true
-        } else {
-                return false
-        }       
-}
-
 func getContainerNamesFromAnnotationImageChangeFieldPaths(dataJson string) []string {
 	annotationImageChangeContent := AnnotationImageChangeContent{}
 	err := json.Unmarshal([]byte(dataJson), &annotationImageChangeContent)
@@ -218,7 +206,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-        isImageChangeTriggerSet := AnnotationImageChangeTriggerIsSet(instance.ObjectMeta)
+        isImageChangeTriggerSet := metav1.HasAnnotation(instance.ObjectMeta, AnnotationImageChangeTrigger)
         imageChangeTriggerReferencedContainerNames := getImageChangeTriggerReferencedContainerNames(instance.ObjectMeta)
 
 	// Update the foundStateful object and write the result back if there are any changes
