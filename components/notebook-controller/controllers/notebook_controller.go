@@ -481,8 +481,8 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
 
 	ss := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      instance.Name,
-			Namespace: instance.Namespace,
+			Name:        instance.Name,
+			Namespace:   instance.Namespace,
                         Annotations: annotations, 
 		},
 		Spec: appsv1.StatefulSetSpec{
