@@ -12,3 +12,15 @@ body {
 
 // Use the material icons offline
 @import '~material-icons/iconfont/material-icons.scss';
+
+.cdb-snackbar {
+  .snack-container {
+    width: 200px;
+    white-space: initial;
+    overflow-wrap: break-word;
+
+    span {
+      width: 100%;
+    }
+  }
+}
