@@ -42,11 +42,12 @@ jobs:
 
     - name: Build & Apply manifests
       run: |
-        cd components/crud-web-apps/volumes/manifests
+        cd components/crud-web-apps/volumes/manifests/overlays/istio
         kubectl create ns kubeflow
 
-        export CURRENT_VWA_IMG=docker.io/kubeflownotebookswg/volumes-web-app:latest
+        export CURRENT_VWA_IMG=docker.io/kubeflownotebookswg/volumes-web-app
         export PR_VWA_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize edit set image ${CURRENT_VWA_IMG}=${PR_VWA_IMG}
 
-        kustomize build overlays/istio | sed "s#$CURRENT_VWA_IMG#$PR_VWA_IMG#g" |  kubectl apply -f -
+        kustomize build . | kubectl apply -f -
         kubectl wait pods -n kubeflow -l app=volumes-web-app --for=condition=Ready --timeout=300s
