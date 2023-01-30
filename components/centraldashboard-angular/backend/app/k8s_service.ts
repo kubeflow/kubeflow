@@ -9,48 +9,12 @@ const {
 export interface PlatformInfo {
   provider: string;
   providerName: string;
-  kubeflowVersion: string;
 }
-
-/**
- * Relevant fields from the description property of the Application CRD
- * https://github.com/kubernetes-sigs/application/blob/master/config/crds/app_v1beta1_application.yaml
- */
-interface V1BetaApplicationDescriptor {
-  version: string;
-  type: string;
-  description: string;
-}
-
-/**
- * Relevant fields from the spec property of the Application CRD
- * https://github.com/kubernetes-sigs/application/blob/master/config/crds/app_v1beta1_application.yaml
- */
-interface V1BetaApplicationSpec {
-  descriptor: V1BetaApplicationDescriptor;
-}
-
-/** Generic definition of the Kubeflow Application CRD */
-interface V1BetaApplication {
-  apiVersion: string;
-  kind: string;
-  metadata?: k8s.V1ObjectMeta;
-  spec: V1BetaApplicationSpec;
-}
-
-interface V1BetaApplicationList {
-  items: V1BetaApplication[];
-}
-
-const APP_API_GROUP = 'app.k8s.io';
-const APP_API_VERSION = 'v1beta1';
-const APP_API_NAME = 'applications';
 
 /** Wrap Kubernetes API calls in a simpler interface for use in routes. */
 export class KubernetesService {
   private namespace = 'kubeflow';
   private coreAPI: k8s.Core_v1Api;
-  private customObjectsAPI: k8s.Custom_objectsApi;
   private dashboardConfigMap = DASHBOARD_CONFIGMAP;
 
   constructor(private kubeConfig: k8s.KubeConfig) {
@@ -62,8 +26,6 @@ export class KubernetesService {
       this.namespace = context.namespace;
     }
     this.coreAPI = this.kubeConfig.makeApiClient(k8s.Core_v1Api);
-    this.customObjectsAPI =
-        this.kubeConfig.makeApiClient(k8s.Custom_objectsApi);
   }
 
   /** Retrieves the list of namespaces from the Cluster. */
@@ -106,10 +68,8 @@ export class KubernetesService {
    */
   async getPlatformInfo(): Promise<PlatformInfo> {
     try {
-      const [provider, version] =
-          await Promise.all([this.getProvider(), this.getKubeflowVersion()]);
+      const [provider] = await Promise.all([this.getProvider()]);
       return {
-        kubeflowVersion: version,
         provider,
         providerName: provider.split(':')[0]
       };
@@ -147,30 +107,5 @@ export class KubernetesService {
       console.error('Unable to fetch Node information:', err.body || err);
     }
     return provider;
-  }
-
-  /**
-   * Returns the Kubeflow version from the Application custom resource or
-   * 'unknown'.
-   */
-  private async getKubeflowVersion(): Promise<string> {
-    let version = 'unknown';
-    try {
-      // tslint:disable-next-line: no-any
-      const _ = (o: any) => o || {};
-      const response = await this.customObjectsAPI.listNamespacedCustomObject(
-          APP_API_GROUP, APP_API_VERSION, this.namespace, APP_API_NAME);
-      const body = response.body as V1BetaApplicationList;
-      const kubeflowApp = (body.items || [])
-        .find((app) =>
-          /^kubeflow$/i.test(_(_(_(app).spec).descriptor).type)
-        );
-      if (kubeflowApp) {
-        version = kubeflowApp.spec.descriptor.version;
-      }
-    } catch (err) {
-      console.error('Unable to fetch Application information:', err.body || err);
-    }
-    return version;
   }
 }
