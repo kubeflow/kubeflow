@@ -476,7 +476,7 @@ func generateStatefulSet(instance *v1beta1.Notebook) *appsv1.StatefulSet {
         
         // keep Notebook image change trigger annotation key and value and use it later in StatefulSet metadata
         if annotationImageChangeTriggerVal, ok := meta.GetAnnotations()[AnnotationImageChangeTrigger]; ok {  
-                annotations[AnnotationImageChangeTrigger] = imageChangeTriggerVal 
+                annotations[AnnotationImageChangeTrigger] = annotationImageChangeTriggerVal
         }
 
 	ss := &appsv1.StatefulSet{
