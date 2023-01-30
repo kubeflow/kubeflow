@@ -212,7 +212,10 @@ describe('KubernetesService', () => {
       expect(platformInfo).toEqual({
         provider:
             'gce://kubeflow-dev/us-east1-d/gke-kubeflow-default-pool-59885f2c-08tm',
-        providerName: 'gce'
+        providerName: 'gce',
+        buildLabel: 'Build',
+        buildVersion: null,
+        buildId: null,
       });
     });
 
@@ -242,7 +245,10 @@ describe('KubernetesService', () => {
       const platformInfo = await k8sService.getPlatformInfo();
       expect(platformInfo).toEqual({
         provider: 'other://',
-        providerName: 'other'
+        providerName: 'other',
+        buildLabel: 'Build',
+        buildVersion: null,
+        buildId: null,
       });
     });
 
@@ -281,7 +287,10 @@ describe('KubernetesService', () => {
       expect(platformInfo).toEqual({
         provider:
             'gce://kubeflow-dev/us-east1-d/gke-kubeflow-default-pool-59885f2c-08tm',
-        providerName: 'gce'
+        providerName: 'gce',
+        buildLabel: 'Build',
+        buildVersion: null,
+        buildId: null,
       });
     });
 
@@ -292,7 +301,10 @@ describe('KubernetesService', () => {
       const platformInfo = await k8sService.getPlatformInfo();
       expect(platformInfo).toEqual({
         provider: 'other://',
-        providerName: 'other'
+        providerName: 'other',
+        buildLabel: 'Build',
+        buildVersion: null,
+        buildId: null,
       });
     });
   });

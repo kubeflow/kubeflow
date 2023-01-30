@@ -2,13 +2,19 @@ import * as k8s from '@kubernetes/client-node';
 
 /** Retrieve Dashboard configmap Name */
 const {
-  DASHBOARD_CONFIGMAP = "centraldashboard-config"
+  DASHBOARD_CONFIGMAP = "centraldashboard-config",
+  KF_DASHBOARD_BUILD_LABEL = "Build",
+  KF_DASHBOARD_VERSION = null,
+  KF_DASHBOARD_BUILD_ID = null,
 } = process.env;
 
 /** Information about the Kubernetes hosting platform. */
 export interface PlatformInfo {
   provider: string;
   providerName: string;
+  buildLabel: string;
+  buildVersion: string;
+  buildId: string;
 }
 
 /** Wrap Kubernetes API calls in a simpler interface for use in routes. */
@@ -71,7 +77,10 @@ export class KubernetesService {
       const [provider] = await Promise.all([this.getProvider()]);
       return {
         provider,
-        providerName: provider.split(':')[0]
+        providerName: provider.split(':')[0],
+        buildLabel: KF_DASHBOARD_BUILD_LABEL,
+        buildVersion: KF_DASHBOARD_VERSION,
+        buildId: KF_DASHBOARD_BUILD_ID,
       };
     } catch (err) {
       console.error('Unexpected error', err);
