@@ -24,6 +24,7 @@ import { IndexRokComponent } from './pages/index/index-rok/index-rok.component';
 
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { VolumeDetailsPageModule } from './pages/volume-details-page/volume-details-page.module';
+import { ColumnsModule } from './pages/index/columns/columns.module';
 
 @NgModule({
   declarations: [
@@ -45,6 +46,7 @@ import { VolumeDetailsPageModule } from './pages/volume-details-page/volume-deta
     KubeflowModule,
     HttpClientModule,
     VolumeDetailsPageModule,
+    ColumnsModule,
   ],
   providers: [
     { provide: ErrorStateMatcher, useClass: ImmediateErrorStateMatcher },

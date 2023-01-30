@@ -77,6 +77,6 @@ import { RouterModule } from '@angular/router';
     TableComponent,
     ComponentValueComponent,
   ],
-  exports: [ResourceTableComponent, TableComponent],
+  exports: [ResourceTableComponent, TableComponent, ActionComponent],
 })
 export class ResourceTableModule {}
