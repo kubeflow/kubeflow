@@ -5,6 +5,11 @@ metadata:
   namespace: system
 spec:
   template:
+    metadata:
+      annotations:
+        # Istio terminates TLS. However, our container itself already uses TLS
+        # Thus, disable inbound port 9443, which is only used by the API server
+        traffic.sidecar.istio.io/excludeInboundPorts: "9443"
     spec:
       containers:
       - name: manager

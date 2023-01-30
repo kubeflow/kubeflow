@@ -4,43 +4,12 @@ metadata:
   name: pvcviewer-sample
   namespace: kubeflow-user-example-com
 spec:
+  # The PVC we are watching
+  pvc: pvcviewer-sample
   # The podSpec is applied to the deployment.Spec.Template.Spec
   # and thus, represents the core viewer's application
-  podSpec:
-    containers:
-      - name: main
-        image: filebrowser/filebrowser:latest
-        env:
-          - name: FB_ADDRESS
-            value: "0.0.0.0"
-          - name: FB_PORT
-            value: "8080"
-          - name: FB_DATABASE
-            value: /tmp/filebrowser.db
-          - name: FB_NOAUTH
-            value: "true"
-          # Note: below we need to get somewhat creative
-          # Our viewer needs the env-variable FB_BASEURL
-          # As we define below how the VirtualService is prefixed,
-          # we can assemble the value using the downward API
-          - name: NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
-          - name: VIEWER_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.labels['app.kubernetes.io/name']
-          - name: FB_BASEURL
-            value: /pvcviewer/$(NAMESPACE)/$(VIEWER_NAME)/
-        volumeMounts:
-          - name: rwo-pvc
-            mountPath: /data
-        workingDir: /data
-    volumes:
-      - name: rwo-pvc
-        persistentVolumeClaim:
-          claimName: pvcviewer-sample
+  # Gets set to a default PodSpec, if not specified
+  # podSpec:
   networking:
     # Specifies the application's target port used by the Service
     targetPort: 8080

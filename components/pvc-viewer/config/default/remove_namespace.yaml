@@ -2,4 +2,4 @@ $patch: delete
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: pvc-viewer-system
+  name: system
