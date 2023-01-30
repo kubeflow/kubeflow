@@ -104,7 +104,7 @@ func VirtualService(ctx context.Context, r client.Client, virtualServiceName, na
 // CopyStatefulSetFields copies the owned fields from one StatefulSet to another
 // Returns true if the fields copied from don't match to.
 // Also takes into account Openshift image policy admission plug-in on Notebook/StatefulSet metadata annotation to exclude image-field(s) from reconciliation when Pod spec container image field value is done by that plugin
-func CopyStatefulSetFields(from, to *appsv1.StatefulSet, isImageChangeTriggerSet bool, imageChangeTriggerReferencedContainerNames []string) bool {
+func CopyStatefulSetFields(from, to *appsv1.StatefulSet, isImageChangeTriggerSet bool, imageChangeTriggerReferencedContainerNames []string, log logr.Logger) bool {
 	requireUpdate := false
 	for k, v := range to.Labels {
 		if from.Labels[k] != v {
@@ -126,16 +126,15 @@ func CopyStatefulSetFields(from, to *appsv1.StatefulSet, isImageChangeTriggerSet
 	}
 
         // https://stackoverflow.com/questions/47134293/compare-structs-except-one-field-golang
-        // set container image field of "to" to equal container image field of "from" for all affected container names referenced in image change trigger annotation, if annotation is present
+        // set container image field of "from" to equal container image field of "to" for all affected container names referenced in image change trigger annotation, if annotation is present
+        // in that case, to.Spec.Template.Spec.Containers[container].Image is the desired reconcile image value single version of truth, even if it differs from whatever was present in the image field before
         // this makes DeepEqual work in this special exclude-image-field from reconciliation/compare scenario, too
         if (isImageChangeTriggerSet) {
           for containerNameFromAnnotation := range imageChangeTriggerReferencedContainerNames {
-              // func GetContainerSpec(pod *v1.Pod, containerName string) *v1.Container
-              // GetContainerSpec gets the container spec by containerName.
               for container := range to.Spec.Template.Spec.Containers {
                  if (to.Spec.Template.Spec.Containers[container].Name == imageChangeTriggerReferencedContainerNames[containerNameFromAnnotation]) {
-                   log.Info("excluding container image-field from DeepEqual by making to equals from", "for container name", to.Spec.Template.Spec.Containers[container].Name), "and new image field value being disregarded", to.Spec.Template.Spec.Containers[container].Image)
-                   to.Spec.Template.Spec.Containers[container].Image = from.Spec.Template.Spec.Containers[container].Image
+                   log.Info("excluding new container image-field value", to.Spec.Template.Spec.Containers[container].Image, "from DeepEqual and making it the single version of truth by making from/image equal to to/image for container name", to.Spec.Template.Spec.Containers[container].Name)
+                   from.Spec.Template.Spec.Containers[container].Image = to.Spec.Template.Spec.Containers[container].Image
                  }
              }
           }

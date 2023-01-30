@@ -210,7 +210,7 @@ func (r *NotebookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
         imageChangeTriggerReferencedContainerNames := getImageChangeTriggerReferencedContainerNames(instance.ObjectMeta)
 
 	// Update the foundStateful object and write the result back if there are any changes
-	if !justCreated && reconcilehelper.CopyStatefulSetFields(ss, foundStateful, isImageChangeTriggerSet, imageChangeTriggerReferencedContainerNames) {
+	if !justCreated && reconcilehelper.CopyStatefulSetFields(ss, foundStateful, isImageChangeTriggerSet, imageChangeTriggerReferencedContainerNames, log) {
 		log.Info("Updating StatefulSet", "namespace", ss.Namespace, "name", ss.Name)
 		err = r.Update(ctx, foundStateful)
 		if err != nil {
