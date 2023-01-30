@@ -3,12 +3,15 @@ import {
   ActionIconValue,
   TableColumn,
   TableConfig,
+  ComponentValue,
 } from 'kubeflow';
 import { tableConfig } from '../config';
+import { DeleteButtonComponent } from '../columns/delete-button/delete-button.component';
 
-const actionsCol: TableColumn = {
+const browseCol: TableColumn = {
   matHeaderCellDef: '',
-  matColumnDef: 'actions',
+  matColumnDef: 'browse',
+  style: { 'padding-right': '0' },
   value: new ActionListValue([
     new ActionIconValue({
       name: 'edit',
@@ -18,19 +21,21 @@ const actionsCol: TableColumn = {
       iconInit: 'material:folder',
       iconReady: 'custom:folderSearch',
     }),
-    new ActionIconValue({
-      name: 'delete',
-      tooltip: 'Delete Volume',
-      color: 'warn',
-      field: 'deleteAction',
-      iconReady: 'material:delete',
-    }),
   ]),
+};
+
+const customDeleteCol: TableColumn = {
+  matHeaderCellDef: ' ',
+  matColumnDef: 'customDelete',
+  style: { width: '40px', 'padding-left': '0' },
+  value: new ComponentValue({
+    component: DeleteButtonComponent,
+  }),
 };
 
 export const rokConfig: TableConfig = {
   title: tableConfig.title,
   dynamicNamespaceColumn: true,
   newButtonText: tableConfig.newButtonText,
-  columns: tableConfig.columns.concat([actionsCol]),
+  columns: tableConfig.columns.concat([browseCol, customDeleteCol]),
 };

@@ -196,6 +196,7 @@
         <lib-component-value
           [element]="element"
           [valueDescriptor]="col.value"
+          (emitter)="actionTriggered($event)"
         ></lib-component-value>
       </td>
     </ng-container>
