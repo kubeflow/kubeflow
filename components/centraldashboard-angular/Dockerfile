@@ -26,10 +26,14 @@ RUN npm run build
 # --- Build the frontend ---
 FROM node:12-buster-slim as frontend
 
+ARG kubeflowversion
+ENV BUILD_VERSION=$kubeflowversion
+
 COPY ./centraldashboard-angular/frontend ./src
 WORKDIR /src
 
 ENV NG_CLI_ANALYTICS "ci"
+RUN node scripts/replace-string-in-file.js src/environments/environment.prod.ts 'BUILD_VERSION' $BUILD_VERSION
 RUN npm ci
 COPY --from=frontend-kubeflow-lib /src/dist/kubeflow/ ./node_modules/kubeflow/
 RUN npm run build -- --output-path=./dist/default --configuration=production
@@ -46,3 +50,4 @@ COPY --from=frontend /src/dist/default/assets/dashboard_lib.bundle.js.map ./dist
 
 EXPOSE 8082
 ENTRYPOINT ["npm", "start"]
+

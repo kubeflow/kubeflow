@@ -23,9 +23,20 @@
         >Volume</a
       >
     </mat-nav-list>
+
+    <mat-toolbar class="footer">
+      <mat-toolbar-row class="footer-text">
+        <span class="buildVersion">
+          {{ buildVersionWithLabel }}
+        </span>
+        <span class="buildId">
+          {{ buildIdWithLabel }}
+        </span>
+      </mat-toolbar-row>
+    </mat-toolbar>
   </mat-sidenav>
   <mat-sidenav-content class="main-page-content">
-    <mat-toolbar color="primary">
+    <mat-toolbar class="menu-toolbar" color="primary">
       <button
         type="button"
         aria-label="Toggle sidenav"

@@ -12,3 +12,6 @@ docker-build:
 
 docker-push:
 	docker push $(IMG):$(TAG)
+
+image: docker-build docker-push
+
