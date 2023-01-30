@@ -49,13 +49,14 @@ jobs:
 
     - name: Build & Apply manifests
       run: |
-        cd components/profile-controller/config
+        cd components/profile-controller/config/overlays/kubeflow
         kubectl create ns kubeflow
 
-        export CURRENT_PROFILE_IMG=docker.io/kubeflownotebookswg/profile-controller:latest
-        export CURRENT_KFAM_IMG=docker.io/kubeflownotebookswg/kfam:latest
+        export CURRENT_PROFILE_IMG=docker.io/kubeflownotebookswg/profile-controller
+        export CURRENT_KFAM_IMG=docker.io/kubeflownotebookswg/kfam
         export PR_PROFILE_IMG=${{env.PROFILE_IMG}}:${{env.TAG}}
         export PR_KFAM_IMG=${{env.KFAM_IMG}}:${{env.TAG}}
+        kustomize edit set image ${CURRENT_PROFILE_IMG}=${PR_PROFILE_IMG} ${CURRENT_KFAM_IMG}=${PR_KFAM_IMG} 
 
-        kustomize build overlays/kubeflow | sed "s#$CURRENT_PROFILE_IMG#$PR_PROFILE_IMG#g" | sed "s#$CURRENT_KFAM_IMG#$PR_KFAM_IMG#g" | kubectl apply -f -
+        kustomize build . | kubectl apply -f -
         kubectl wait pods -n kubeflow -l kustomize.component=profiles --for=condition=Ready --timeout=300s

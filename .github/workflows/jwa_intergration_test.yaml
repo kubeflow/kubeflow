@@ -42,11 +42,12 @@ jobs:
 
     - name: Build & Apply manifests
       run: |
-        cd components/crud-web-apps/jupyter/manifests
+        cd components/crud-web-apps/jupyter/manifests/overlays/istio
         kubectl create ns kubeflow
 
-        export CURRENT_JWA_IMG=docker.io/kubeflownotebookswg/jupyter-web-app:latest
+        export CURRENT_JWA_IMG=docker.io/kubeflownotebookswg/jupyter-web-app
         export PR_JWA_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize edit set image ${CURRENT_JWA_IMG}=${PR_JWA_IMG}
 
-        kustomize build overlays/istio | sed "s#$CURRENT_JWA_IMG#$PR_JWA_IMG#g" | kubectl apply -f -
+        kustomize build . | kubectl apply -f -
         kubectl wait pods -n kubeflow -l app=jupyter-web-app --for=condition=Ready --timeout=300s

@@ -41,11 +41,12 @@ jobs:
 
     - name: Build & Apply manifests
       run: |
-        cd components/notebook-controller/config
+        cd components/notebook-controller/config/overlays/kubeflow
         kubectl create ns kubeflow
 
-        export CURRENT_NOTEBOOK_IMG=docker.io/kubeflownotebookswg/notebook-controller:latest
+        export CURRENT_NOTEBOOK_IMG=docker.io/kubeflownotebookswg/notebook-controller
         export PR_NOTEBOOK_IMG=${{env.IMG}}:${{env.TAG}}
+        kustomize edit set image ${CURRENT_NOTEBOOK_IMG}=${PR_NOTEBOOK_IMG}
 
-        kustomize build overlays/kubeflow | sed "s#$CURRENT_NOTEBOOK_IMG#$PR_NOTEBOOK_IMG#g" | kubectl apply -f -
+        kustomize build . | kubectl apply -f -
         kubectl wait pods -n kubeflow -l app=notebook-controller --for=condition=Ready --timeout=300s
