@@ -26,7 +26,12 @@ describe('FormComponent', () => {
     waitForAsync(() => {
       TestBed.configureTestingModule({
         declarations: [FormComponent],
-        imports: [KubeflowModule, MatDialogModule, MatRadioModule, FormConfigurationsModule],
+        imports: [
+          KubeflowModule,
+          MatDialogModule,
+          MatRadioModule,
+          FormConfigurationsModule,
+        ],
         providers: [
           { provide: TWABackendService, useValue: TWABackendServiceStub },
           { provide: NamespaceService, useValue: NamespaceServiceStub },
