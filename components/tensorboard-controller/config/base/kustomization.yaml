@@ -13,4 +13,4 @@ patchesStrategicMerge:
 images:
 - name: docker.io/kubeflownotebookswg/tensorboard-controller
   newName: docker.io/kubeflownotebookswg/tensorboard-controller
-  newTag: latest
+  newTag: v1.7.0-rc.0
