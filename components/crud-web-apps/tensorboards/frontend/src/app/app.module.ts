@@ -20,7 +20,7 @@ import {
 
 import { IndexComponent } from './pages/index/index.component';
 import { FormComponent } from './pages/form/form.component';
-
+import { FormConfigurationsModule } from './pages/form/form-configurations/form-configurations.module';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 
 @NgModule({
@@ -38,6 +38,7 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
     FormModule,
     KubeflowModule,
     HttpClientModule,
+    FormConfigurationsModule,
   ],
   providers: [
     { provide: ErrorStateMatcher, useClass: ImmediateErrorStateMatcher },

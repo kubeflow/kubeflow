@@ -6,6 +6,7 @@ import { TWABackendService } from 'src/app/services/backend.service';
 import { MatRadioModule } from '@angular/material/radio';
 
 import { FormComponent } from './form.component';
+import { FormConfigurationsModule } from './form-configurations/form-configurations.module';
 
 const TWABackendServiceStub = {
   getTensorBoards: () => of(),
@@ -25,7 +26,7 @@ describe('FormComponent', () => {
     waitForAsync(() => {
       TestBed.configureTestingModule({
         declarations: [FormComponent],
-        imports: [KubeflowModule, MatDialogModule, MatRadioModule],
+        imports: [KubeflowModule, MatDialogModule, MatRadioModule, FormConfigurationsModule],
         providers: [
           { provide: TWABackendService, useValue: TWABackendServiceStub },
           { provide: NamespaceService, useValue: NamespaceServiceStub },
